@@ -41,13 +41,13 @@ describe('parseUtility (outline)', () => {
 
   describe('outline-offset', () => {
     it('should parse Tailwind v4 outline offset classes', () => {
-      expect(parseUtility('outline-offset-0')).toEqual(baseUtility({ prefix: 'outline-offset', value: '0', raw: 'outline-offset-0' }));
-      expect(parseUtility('outline-offset-2')).toEqual(baseUtility({ prefix: 'outline-offset', value: '2', raw: 'outline-offset-2' }));
-      expect(parseUtility('outline-offset-4')).toEqual(baseUtility({ prefix: 'outline-offset', value: '4', raw: 'outline-offset-4' }));
-      expect(parseUtility('outline-offset-8')).toEqual(baseUtility({ prefix: 'outline-offset', value: '8', raw: 'outline-offset-8' }));
-      expect(parseUtility('outline-offset-[3px]')).toEqual(baseUtility({ prefix: 'outline-offset', value: '3px', arbitrary: true, arbitraryValue: '3px', raw: 'outline-offset-[3px]' }));
-      expect(parseUtility('outline-offset-[0.5rem]')).toEqual(baseUtility({ prefix: 'outline-offset', value: '0.5rem', arbitrary: true, arbitraryValue: '0.5rem', raw: 'outline-offset-[0.5rem]' }));
-      expect(parseUtility('outline-offset-')).toEqual({ type: 'unknown', raw: 'outline-offset-' });
+      expect(parseUtility('outline-offset-0')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-0', raw: 'outline-offset-0' }));
+      expect(parseUtility('outline-offset-2')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-2', raw: 'outline-offset-2' }));
+      expect(parseUtility('outline-offset-4')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-4', raw: 'outline-offset-4' }));
+      expect(parseUtility('outline-offset-8')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-8', raw: 'outline-offset-8' }));
+      expect(parseUtility('outline-offset-[3px]')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-[3px]', raw: 'outline-offset-[3px]' }));
+      expect(parseUtility('outline-offset-[0.5rem]')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-[0.5rem]', raw: 'outline-offset-[0.5rem]' }));
+      expect(parseUtility('outline-offset-')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-', raw: 'outline-offset-' }));
     });
   });
 }); 

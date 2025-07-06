@@ -5,10 +5,10 @@ import { baseUtility } from './base';
 describe('parseUtility (gradient)', () => {
   describe('bg-gradient', () => {
     it('should parse Tailwind v4 bg-gradient classes', () => {
-      expect(parseUtility('bg-gradient-to-t')).toEqual(baseUtility({ prefix: 'bg-gradient', value: 'to-t', raw: 'bg-gradient-to-t' }));
-      expect(parseUtility('bg-gradient-to-b')).toEqual(baseUtility({ prefix: 'bg-gradient', value: 'to-b', raw: 'bg-gradient-to-b' }));
-      expect(parseUtility('bg-gradient-to-l')).toEqual(baseUtility({ prefix: 'bg-gradient', value: 'to-l', raw: 'bg-gradient-to-l' }));
-      expect(parseUtility('bg-gradient-to-r')).toEqual(baseUtility({ prefix: 'bg-gradient', value: 'to-r', raw: 'bg-gradient-to-r' }));
+      expect(parseUtility('bg-gradient-to-t')).toEqual(baseUtility({ prefix: 'bg-gradient-to', value: 't', raw: 'bg-gradient-to-t' }));
+      expect(parseUtility('bg-gradient-to-b')).toEqual(baseUtility({ prefix: 'bg-gradient-to', value: 'b', raw: 'bg-gradient-to-b' }));
+      expect(parseUtility('bg-gradient-to-l')).toEqual(baseUtility({ prefix: 'bg-gradient-to', value: 'l', raw: 'bg-gradient-to-l' }));
+      expect(parseUtility('bg-gradient-to-r')).toEqual(baseUtility({ prefix: 'bg-gradient-to', value: 'r', raw: 'bg-gradient-to-r' }));
       expect(parseUtility('bg-gradient-')).toEqual({ type: 'unknown', raw: 'bg-gradient-' });
     });
   });

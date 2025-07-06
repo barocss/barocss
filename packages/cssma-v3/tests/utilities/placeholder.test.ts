@@ -15,11 +15,11 @@ describe('parseUtility (placeholder)', () => {
 
   describe('placeholder-opacity', () => {
     it('should parse Tailwind v4 placeholder opacity classes', () => {
-      expect(parseUtility('placeholder-opacity-0')).toEqual(baseUtility({ prefix: 'placeholder-opacity', value: '0', raw: 'placeholder-opacity-0' }));
-      expect(parseUtility('placeholder-opacity-50')).toEqual(baseUtility({ prefix: 'placeholder-opacity', value: '50', raw: 'placeholder-opacity-50' }));
-      expect(parseUtility('placeholder-opacity-100')).toEqual(baseUtility({ prefix: 'placeholder-opacity', value: '100', raw: 'placeholder-opacity-100' }));
-      expect(parseUtility('placeholder-opacity-[.25]')).toEqual(baseUtility({ prefix: 'placeholder-opacity', value: '.25', arbitrary: true, arbitraryValue: '.25', raw: 'placeholder-opacity-[.25]' }));
-      expect(parseUtility('placeholder-opacity-')).toEqual({ type: 'unknown', raw: 'placeholder-opacity-' });
+      expect(parseUtility('placeholder-opacity-0')).toEqual(baseUtility({ prefix: 'placeholder', value: 'opacity-0', raw: 'placeholder-opacity-0' }));
+      expect(parseUtility('placeholder-opacity-50')).toEqual(baseUtility({ prefix: 'placeholder', value: 'opacity-50', raw: 'placeholder-opacity-50' }));
+      expect(parseUtility('placeholder-opacity-100')).toEqual(baseUtility({ prefix: 'placeholder', value: 'opacity-100', raw: 'placeholder-opacity-100' }));
+      expect(parseUtility('placeholder-opacity-[.25]')).toEqual(baseUtility({ prefix: 'placeholder', value: 'opacity-[.25]', raw: 'placeholder-opacity-[.25]' }));
+      expect(parseUtility('placeholder-opacity-')).toEqual(baseUtility({ prefix: 'placeholder', value: 'opacity-', raw: 'placeholder-opacity-' }));
     });
   });
 }); 

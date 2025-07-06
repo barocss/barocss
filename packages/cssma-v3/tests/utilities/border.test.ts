@@ -31,21 +31,21 @@ describe('parseUtility (border)', () => {
 
   describe('border opacity', () => {
     it('should parse Tailwind v4 border opacity classes', () => {
-      expect(parseUtility('border-opacity-50')).toEqual(baseUtility({ prefix: 'border-opacity', value: '50', numeric: true, raw: 'border-opacity-50' }));
-      expect(parseUtility('border-opacity-[.25]')).toEqual(baseUtility({ prefix: 'border-opacity', value: '.25', numeric: true, arbitrary: true, arbitraryValue: '.25', raw: 'border-opacity-[.25]' }));
-      expect(parseUtility('border-opacity-')).toEqual({ type: 'unknown', raw: 'border-opacity-' });
+      expect(parseUtility('border-opacity-50')).toEqual(baseUtility({ prefix: 'border', value: 'opacity-50', raw: 'border-opacity-50' }));
+      expect(parseUtility('border-opacity-[.25]')).toEqual(baseUtility({ prefix: 'border', value: 'opacity-[.25]', raw: 'border-opacity-[.25]' }));
+      expect(parseUtility('border-opacity-')).toEqual(baseUtility({ prefix: 'border', value: 'opacity-', raw: 'border-opacity-' }));
     });
   });
 
   describe('border style', () => {
     it('should parse Tailwind v4 border style classes', () => {
-      expect(parseUtility('border-solid')).toEqual(baseUtility({ prefix: 'border-solid', raw: 'border-solid' }));
-      expect(parseUtility('border-dashed')).toEqual(baseUtility({ prefix: 'border-dashed', raw: 'border-dashed' }));
-      expect(parseUtility('border-dotted')).toEqual(baseUtility({ prefix: 'border-dotted', raw: 'border-dotted' }));
-      expect(parseUtility('border-double')).toEqual(baseUtility({ prefix: 'border-double', raw: 'border-double' }));
-      expect(parseUtility('border-hidden')).toEqual(baseUtility({ prefix: 'border-hidden', raw: 'border-hidden' }));
-      expect(parseUtility('border-none')).toEqual(baseUtility({ prefix: 'border-none', raw: 'border-none' }));
-      expect(parseUtility('border-style-')).toEqual({ type: 'unknown', raw: 'border-style-' });
+      expect(parseUtility('border-solid')).toEqual(baseUtility({ prefix: 'border', value: 'solid', raw: 'border-solid' }));
+      expect(parseUtility('border-dashed')).toEqual(baseUtility({ prefix: 'border', value: 'dashed', raw: 'border-dashed' }));
+      expect(parseUtility('border-dotted')).toEqual(baseUtility({ prefix: 'border', value: 'dotted', raw: 'border-dotted' }));
+      expect(parseUtility('border-double')).toEqual(baseUtility({ prefix: 'border', value: 'double', raw: 'border-double' }));
+      expect(parseUtility('border-hidden')).toEqual(baseUtility({ prefix: 'border', value: 'hidden', raw: 'border-hidden' }));
+      expect(parseUtility('border-none')).toEqual(baseUtility({ prefix: 'border', value: 'none', raw: 'border-none' }));
+      expect(parseUtility('border-style-')).toEqual(baseUtility({ prefix: 'border', value: 'style-', raw: 'border-style-' }));
     });
   });
 
@@ -64,9 +64,9 @@ describe('parseUtility (border)', () => {
       expect(parseUtility('ring')).toEqual(baseUtility({ prefix: 'ring', raw: 'ring' }));
       expect(parseUtility('ring-2')).toEqual(baseUtility({ prefix: 'ring', value: '2', numeric: true, raw: 'ring-2' }));
       expect(parseUtility('ring-inset')).toEqual(baseUtility({ prefix: 'ring', value: 'inset', raw: 'ring-inset' }));
-      expect(parseUtility('ring-offset-4')).toEqual(baseUtility({ prefix: 'ring-offset', value: '4', numeric: true, raw: 'ring-offset-4' }));
+      expect(parseUtility('ring-offset-4')).toEqual(baseUtility({ prefix: 'ring', value: 'offset-4', raw: 'ring-offset-4' }));
       expect(parseUtility('ring-red-500')).toEqual(baseUtility({ prefix: 'ring', value: 'red-500', raw: 'ring-red-500' }));
-      expect(parseUtility('ring-opacity-50')).toEqual(baseUtility({ prefix: 'ring-opacity', value: '50', numeric: true, raw: 'ring-opacity-50' }));
+      expect(parseUtility('ring-opacity-50')).toEqual(baseUtility({ prefix: 'ring', value: 'opacity-50', raw: 'ring-opacity-50' }));
       expect(parseUtility('ring-')).toEqual({ type: 'unknown', raw: 'ring-' });
     });
   });

@@ -38,8 +38,8 @@ describe('parseUtility (color)', () => {
   describe('accent color', () => {
     it('should parse Tailwind v4 accent color classes', () => {
       expect(parseUtility('accent-pink-500')).toEqual(baseUtility({ prefix: 'accent', value: 'pink-500', raw: 'accent-pink-500' }));
-      expect(parseUtility('accent-[#ff0]')).toEqual(baseUtility({ type: 'color', value: '#ff0', arbitrary: true, arbitraryType: 'hex', arbitraryValue: '#ff0', raw: 'accent-[#ff0]' }));
-      expect(parseUtility('accent-[oklch(0.5_0.2_30)]')).toEqual(baseUtility({ type: 'color', value: 'oklch(0.5 0.2 30)', arbitrary: true, arbitraryType: 'oklch', arbitraryValue: '0.5 0.2 30', raw: 'accent-[oklch(0.5_0.2_30)]' }));
+      expect(parseUtility('accent-[#ff0]')).toEqual(baseUtility({ prefix: 'accent', value: '#ff0', raw: 'accent-[#ff0]', arbitrary: true, arbitraryType: 'hex', arbitraryValue: '#ff0' }));
+      expect(parseUtility('accent-[oklch(0.5_0.2_30)]')).toEqual(baseUtility({ prefix: 'accent', value: 'oklch(0.5 0.2 30)', raw: 'accent-[oklch(0.5_0.2_30)]', arbitrary: true, arbitraryType: 'oklch', arbitraryValue: '0.5 0.2 30' }));
       expect(parseUtility('accent-pink-500!')).toEqual(baseUtility({ prefix: 'accent', value: 'pink-500', raw: 'accent-pink-500!', important: true }));
       expect(parseUtility('accent-')).toEqual({ type: 'unknown', raw: 'accent-' });
     });
@@ -48,8 +48,8 @@ describe('parseUtility (color)', () => {
   describe('caret color', () => {
     it('should parse Tailwind v4 caret color classes', () => {
       expect(parseUtility('caret-red-500')).toEqual(baseUtility({ prefix: 'caret', value: 'red-500', raw: 'caret-red-500' }));
-      expect(parseUtility('caret-[#ff0]')).toEqual(baseUtility({ prefix: 'caret', value: '#ff0', arbitrary: true, arbitraryValue: '#ff0', raw: 'caret-[#ff0]' }));
-      expect(parseUtility('caret-[oklch(0.5_0.2_30)]')).toEqual(baseUtility({ prefix: 'caret', value: 'oklch(0.5 0.2 30)', arbitrary: true, arbitraryValue: '0.5 0.2 30', raw: 'caret-[oklch(0.5_0.2_30)]' }));
+      expect(parseUtility('caret-[#ff0]')).toEqual(baseUtility({ prefix: 'caret', value: '#ff0', raw: 'caret-[#ff0]', arbitrary: true, arbitraryType: 'hex', arbitraryValue: '#ff0' }));
+      expect(parseUtility('caret-[oklch(0.5_0.2_30)]')).toEqual(baseUtility({ prefix: 'caret', value: 'oklch(0.5 0.2 30)', raw: 'caret-[oklch(0.5_0.2_30)]', arbitrary: true, arbitraryType: 'oklch', arbitraryValue: '0.5 0.2 30' }));
       expect(parseUtility('caret-red-500!')).toEqual(baseUtility({ prefix: 'caret', value: 'red-500', raw: 'caret-red-500!', important: true }));
       expect(parseUtility('caret-')).toEqual({ type: 'unknown', raw: 'caret-' });
     });
@@ -59,7 +59,7 @@ describe('parseUtility (color)', () => {
     it('should parse Tailwind v4 decoration color classes', () => {
       expect(parseUtility('decoration-blue-500')).toEqual(baseUtility({ prefix: 'decoration', value: 'blue-500', raw: 'decoration-blue-500' }));
       expect(parseUtility('decoration-[#ff0]')).toEqual(baseUtility({ prefix: 'decoration', value: '#ff0', arbitrary: true, arbitraryType: 'hex', arbitraryValue: '#ff0', raw: 'decoration-[#ff0]' }));
-      expect(parseUtility('decoration-[oklch(0.5_0.2_30)]')).toEqual(baseUtility({ prefix: 'decoration', value: 'oklch(0.5 0.2 30)', arbitrary: true, arbitraryValue: 'oklch(0.5 0.2 30)', raw: 'decoration-[oklch(0.5_0.2_30)]' }));
+      expect(parseUtility('decoration-[oklch(0.5_0.2_30)]')).toEqual(baseUtility({ prefix: 'decoration', value: 'oklch(0.5 0.2 30)', raw: 'decoration-[oklch(0.5_0.2_30)]', arbitrary: true, arbitraryType: 'oklch', arbitraryValue: '0.5 0.2 30' }));
       expect(parseUtility('decoration-blue-500!')).toEqual(baseUtility({ prefix: 'decoration', value: 'blue-500', raw: 'decoration-blue-500!', important: true }));
       expect(parseUtility('decoration-')).toEqual({ type: 'unknown', raw: 'decoration-' });
     });

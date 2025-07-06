@@ -36,7 +36,7 @@ describe('parseUtility (box)', () => {
     expect(parseUtility('border-separate')).toEqual(baseUtility({ prefix: 'border-separate', raw: 'border-separate' }));
   });
   it('parses drop-shadow', () => {
-    expect(parseUtility('drop-shadow')).toEqual(baseUtility({ type: 'drop-shadow', raw: 'drop-shadow', preset: 'DEFAULT' }));
+    expect(parseUtility('drop-shadow')).toEqual(baseUtility({ prefix: 'drop-shadow', value: '', raw: 'drop-shadow', preset: false }));
   });
   it('returns unknown for invalid', () => {
     expect(parseUtility('box-decoration-')).toEqual({ type: 'unknown', raw: 'box-decoration-' });

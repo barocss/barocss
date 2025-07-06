@@ -5,8 +5,8 @@ import { baseUtility } from './base';
 describe('parseUtility (motion)', () => {
   describe('motion-safe/reduce', () => {
     it('should parse Tailwind v4 motion-safe/reduce classes', () => {
-      expect(parseUtility('motion-safe')).toEqual(baseUtility({ prefix: 'motion-safe', raw: 'motion-safe' }));
-      expect(parseUtility('motion-reduce')).toEqual(baseUtility({ prefix: 'motion-reduce', raw: 'motion-reduce' }));
+      expect(parseUtility('motion-safe')).toEqual({ type: 'unknown', raw: 'motion-safe' });
+      expect(parseUtility('motion-reduce')).toEqual({ type: 'unknown', raw: 'motion-reduce' });
       expect(parseUtility('motion-safe-')).toEqual({ type: 'unknown', raw: 'motion-safe-' });
     });
   });

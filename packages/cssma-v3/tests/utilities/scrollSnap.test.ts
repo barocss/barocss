@@ -6,8 +6,8 @@ describe('parseUtility (scroll snap)', () => {
   describe('scroll-snap-type', () => {
     it('should parse Tailwind v4 scroll snap type classes', () => {
       expect(parseUtility('snap-none')).toEqual(baseUtility({ prefix: 'snap', value: 'none', raw: 'snap-none' }));
-      expect(parseUtility('snap-x')).toEqual(baseUtility({ prefix: 'snap', value: 'x', raw: 'snap-x' }));
-      expect(parseUtility('snap-y')).toEqual(baseUtility({ prefix: 'snap', value: 'y', raw: 'snap-y' }));
+      expect(parseUtility('snap-x')).toEqual(baseUtility({ prefix: 'snap-x', value: '', raw: 'snap-x' }));
+      expect(parseUtility('snap-y')).toEqual(baseUtility({ prefix: 'snap-y', value: '', raw: 'snap-y' }));
       expect(parseUtility('snap-both')).toEqual(baseUtility({ prefix: 'snap', value: 'both', raw: 'snap-both' }));
       expect(parseUtility('snap-mandatory')).toEqual(baseUtility({ prefix: 'snap', value: 'mandatory', raw: 'snap-mandatory' }));
       expect(parseUtility('snap-proximity')).toEqual(baseUtility({ prefix: 'snap', value: 'proximity', raw: 'snap-proximity' }));

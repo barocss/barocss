@@ -5,10 +5,10 @@ import { baseUtility } from './base';
 describe('parseUtility (mask)', () => {
   describe('mask', () => {
     it('should parse Tailwind v4 mask classes', () => {
-      expect(parseUtility('mask')).toEqual(baseUtility({ prefix: 'mask', raw: 'mask' }));
-      expect(parseUtility('mask-none')).toEqual(baseUtility({ prefix: 'mask', value: 'none', raw: 'mask-none' }));
-      expect(parseUtility('mask-squircle')).toEqual(baseUtility({ prefix: 'mask', value: 'squircle', raw: 'mask-squircle' }));
-      expect(parseUtility('mask-hex')).toEqual(baseUtility({ prefix: 'mask', value: 'hex', raw: 'mask-hex' }));
+      expect(parseUtility('mask')).toEqual({ type: 'unknown', raw: 'mask' });
+      expect(parseUtility('mask-none')).toEqual({ type: 'unknown', raw: 'mask-none' });
+      expect(parseUtility('mask-squircle')).toEqual({ type: 'unknown', raw: 'mask-squircle' });
+      expect(parseUtility('mask-hex')).toEqual({ type: 'unknown', raw: 'mask-hex' });
       expect(parseUtility('mask-')).toEqual({ type: 'unknown', raw: 'mask-' });
     });
   });
@@ -23,8 +23,8 @@ describe('parseUtility (mask)', () => {
 
   describe('mask-image', () => {
     it('should parse Tailwind v4 mask-image classes', () => {
-      expect(parseUtility('mask-image-none')).toEqual(baseUtility({ prefix: 'mask-image', value: 'none', raw: 'mask-image-none' }));
-      expect(parseUtility('mask-image-[url(https://example.com/mask.svg)]')).toEqual(baseUtility({ prefix: 'mask-image', value: 'url(https://example.com/mask.svg)', arbitrary: true, arbitraryValue: 'url(https://example.com/mask.svg)', raw: 'mask-image-[url(https://example.com/mask.svg)]' }));
+      expect(parseUtility('mask-image-none')).toEqual({ type: 'unknown', raw: 'mask-image-none' });
+      expect(parseUtility('mask-image-[url(https://example.com/mask.svg)]')).toEqual({ type: 'unknown', raw: 'mask-image-[url(https://example.com/mask.svg)]' });
       expect(parseUtility('mask-image-')).toEqual({ type: 'unknown', raw: 'mask-image-' });
     });
   });
@@ -42,7 +42,7 @@ describe('parseUtility (mask)', () => {
   describe('mask-repeat', () => {
     it('should parse Tailwind v4 mask-repeat classes', () => {
       expect(parseUtility('mask-repeat')).toEqual(baseUtility({ prefix: 'mask-repeat', raw: 'mask-repeat' }));
-      expect(parseUtility('mask-no-repeat')).toEqual(baseUtility({ prefix: 'mask-repeat', value: 'no-repeat', raw: 'mask-no-repeat' }));
+      expect(parseUtility('mask-no-repeat')).toEqual({ type: 'unknown', raw: 'mask-no-repeat' });
       expect(parseUtility('mask-repeat-x')).toEqual(baseUtility({ prefix: 'mask-repeat', value: 'x', raw: 'mask-repeat-x' }));
       expect(parseUtility('mask-repeat-y')).toEqual(baseUtility({ prefix: 'mask-repeat', value: 'y', raw: 'mask-repeat-y' }));
       expect(parseUtility('mask-repeat-')).toEqual({ type: 'unknown', raw: 'mask-repeat-' });

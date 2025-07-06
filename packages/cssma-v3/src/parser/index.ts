@@ -19,6 +19,9 @@ export function parseClassName(input: string, context?: CssmaContext): ParsedCla
       }
     } else if (token.type === 'utility') {
       utility = parseUtility(token.value);
+      if (utility && utility.type === 'unknown') {
+        utility = null;
+      }
     }
   });
 

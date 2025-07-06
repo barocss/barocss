@@ -8,7 +8,7 @@ describe('parseUtility (sizing)', () => {
       expect(parseUtility('w-0')).toEqual(baseUtility({ prefix: 'w', value: '0', numeric: true, raw: 'w-0' }));
       expect(parseUtility('w-px')).toEqual(baseUtility({ prefix: 'w', value: 'px', raw: 'w-px' }));
       expect(parseUtility('w-1')).toEqual(baseUtility({ prefix: 'w', value: '1', numeric: true, raw: 'w-1' }));
-      expect(parseUtility('w-1/2')).toEqual(baseUtility({ prefix: 'w', value: '1', slash: '2', raw: 'w-1/2' }));
+      expect(parseUtility('w-1/2')).toEqual(baseUtility({ prefix: 'w', value: '1', numeric: true, slash: '2', raw: 'w-1/2' }));
       expect(parseUtility('w-full')).toEqual(baseUtility({ prefix: 'w', value: 'full', raw: 'w-full' }));
       expect(parseUtility('w-screen')).toEqual(baseUtility({ prefix: 'w', value: 'screen', raw: 'w-screen' }));
       expect(parseUtility('w-min')).toEqual(baseUtility({ prefix: 'w', value: 'min', raw: 'w-min' }));
@@ -48,7 +48,7 @@ describe('parseUtility (sizing)', () => {
       expect(parseUtility('h-0')).toEqual(baseUtility({ prefix: 'h', value: '0', numeric: true, raw: 'h-0' }));
       expect(parseUtility('h-px')).toEqual(baseUtility({ prefix: 'h', value: 'px', raw: 'h-px' }));
       expect(parseUtility('h-1')).toEqual(baseUtility({ prefix: 'h', value: '1', numeric: true, raw: 'h-1' }));
-      expect(parseUtility('h-1/2')).toEqual(baseUtility({ prefix: 'h', value: '1', slash: '2', raw: 'h-1/2' }));
+      expect(parseUtility('h-1/2')).toEqual(baseUtility({ prefix: 'h', value: '1', numeric: true, slash: '2', raw: 'h-1/2' }));
       expect(parseUtility('h-full')).toEqual(baseUtility({ prefix: 'h', value: 'full', raw: 'h-full' }));
       expect(parseUtility('h-screen')).toEqual(baseUtility({ prefix: 'h', value: 'screen', raw: 'h-screen' }));
       expect(parseUtility('h-min')).toEqual(baseUtility({ prefix: 'h', value: 'min', raw: 'h-min' }));

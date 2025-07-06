@@ -20,7 +20,7 @@ describe('parseUtility (effects)', () => {
       expect(parseUtility('opacity-0')).toEqual(baseUtility({ prefix: 'opacity', value: '0', numeric: true, raw: 'opacity-0' }));
       expect(parseUtility('opacity-50')).toEqual(baseUtility({ prefix: 'opacity', value: '50', numeric: true, raw: 'opacity-50' }));
       expect(parseUtility('opacity-100')).toEqual(baseUtility({ prefix: 'opacity', value: '100', numeric: true, raw: 'opacity-100' }));
-      expect(parseUtility('opacity-[.25]')).toEqual(baseUtility({ prefix: 'opacity', value: '.25', numeric: true, arbitrary: true, arbitraryValue: '.25', raw: 'opacity-[.25]' }));
+      expect(parseUtility('opacity-[.25]')).toEqual(baseUtility({ prefix: 'opacity', value: '.25', raw: 'opacity-[.25]', arbitrary: true, arbitraryValue: '.25', numeric: false }));
       expect(parseUtility('opacity-')).toEqual({ type: 'unknown', raw: 'opacity-' });
     });
   });
@@ -48,18 +48,19 @@ describe('parseUtility (effects)', () => {
 
   describe('backdrop-brightness', () => {
     it('should parse Tailwind v4 backdrop-brightness classes', () => {
-      expect(parseUtility('backdrop-brightness-50')).toEqual(baseUtility({ prefix: 'backdrop-brightness', value: '50', raw: 'backdrop-brightness-50' }));
+      expect(parseUtility('backdrop-brightness-50')).toEqual(baseUtility({ prefix: 'backdrop-brightness', value: '50', raw: 'backdrop-brightness-50', numeric: true }));
       expect(parseUtility('backdrop-brightness-200')).toEqual(baseUtility({ prefix: 'backdrop-brightness', value: '200', numeric: true, raw: 'backdrop-brightness-200' }));
-      expect(parseUtility('backdrop-brightness-[.25]')).toEqual(baseUtility({ prefix: 'backdrop-brightness', value: '.25', numeric: true, arbitrary: true, arbitraryValue: '.25', raw: 'backdrop-brightness-[.25]' }));
+      expect(parseUtility('backdrop-brightness-[.25]')).toEqual(baseUtility({ prefix: 'backdrop-brightness', value: '.25', raw: 'backdrop-brightness-[.25]', arbitrary: true, arbitraryValue: '.25', numeric: false }));
       expect(parseUtility('backdrop-brightness-')).toEqual({ type: 'unknown', raw: 'backdrop-brightness-' });
     });
   });
 
   describe('backdrop-contrast', () => {
     it('should parse Tailwind v4 backdrop-contrast classes', () => {
-      expect(parseUtility('backdrop-contrast-50')).toEqual(baseUtility({ prefix: 'backdrop-contrast', value: '50', numeric: true, raw: 'backdrop-contrast-50' }));
-      expect(parseUtility('backdrop-contrast-200')).toEqual(baseUtility({ prefix: 'backdrop-contrast', value: '200', numeric: true, raw: 'backdrop-contrast-200' }));
-      expect(parseUtility('backdrop-contrast-[.25]')).toEqual(baseUtility({ prefix: 'backdrop-contrast', value: '.25', numeric: true, arbitrary: true, arbitraryValue: '.25', raw: 'backdrop-contrast-[.25]' }));
+      expect(parseUtility('backdrop-contrast')).toEqual(baseUtility({ prefix: 'backdrop-contrast', value: '', raw: 'backdrop-contrast', arbitrary: false }));
+      expect(parseUtility('backdrop-contrast-0')).toEqual(baseUtility({ prefix: 'backdrop-contrast', value: '0', raw: 'backdrop-contrast-0', arbitrary: false, numeric: true }));
+      expect(parseUtility('backdrop-contrast-200')).toEqual(baseUtility({ prefix: 'backdrop-contrast', value: '200', raw: 'backdrop-contrast-200', arbitrary: false, numeric: true }));
+      expect(parseUtility('backdrop-contrast-[.25]')).toEqual(baseUtility({ prefix: 'backdrop-contrast', value: '.25', raw: 'backdrop-contrast-[.25]', arbitrary: true, arbitraryValue: '.25', numeric: false }));
       expect(parseUtility('backdrop-contrast-')).toEqual({ type: 'unknown', raw: 'backdrop-contrast-' });
     });
   });
@@ -83,44 +84,45 @@ describe('parseUtility (effects)', () => {
 
   describe('backdrop-invert', () => {
     it('should parse Tailwind v4 backdrop-invert classes', () => {
-      expect(parseUtility('backdrop-invert')).toEqual(baseUtility({ prefix: 'backdrop-invert', raw: 'backdrop-invert' }));
-      expect(parseUtility('backdrop-invert-0')).toEqual(baseUtility({ prefix: 'backdrop-invert', value: '0', raw: 'backdrop-invert-0' }));
+      expect(parseUtility('backdrop-invert')).toEqual(baseUtility({ prefix: 'backdrop-invert', value: '', raw: 'backdrop-invert', arbitrary: false }));
+      expect(parseUtility('backdrop-invert-0')).toEqual(baseUtility({ prefix: 'backdrop-invert', value: '0', raw: 'backdrop-invert-0', arbitrary: false, numeric: true }));
       expect(parseUtility('backdrop-invert-')).toEqual({ type: 'unknown', raw: 'backdrop-invert-' });
     });
   });
 
   describe('backdrop-opacity', () => {
     it('should parse Tailwind v4 backdrop-opacity classes', () => {
-      expect(parseUtility('backdrop-opacity-0')).toEqual(baseUtility({ prefix: 'backdrop-opacity', value: '0', numeric: true, raw: 'backdrop-opacity-0' }));
-      expect(parseUtility('backdrop-opacity-50')).toEqual(baseUtility({ prefix: 'backdrop-opacity', value: '50', numeric: true, raw: 'backdrop-opacity-50' }));
-      expect(parseUtility('backdrop-opacity-100')).toEqual(baseUtility({ prefix: 'backdrop-opacity', value: '100', numeric: true, raw: 'backdrop-opacity-100' }));
-      expect(parseUtility('backdrop-opacity-[.25]')).toEqual(baseUtility({ prefix: 'backdrop-opacity', value: '.25', numeric: true, arbitrary: true, arbitraryValue: '.25', raw: 'backdrop-opacity-[.25]' }));
+      expect(parseUtility('backdrop-opacity')).toEqual(baseUtility({ prefix: 'backdrop-opacity', value: '', raw: 'backdrop-opacity', arbitrary: false }));
+      expect(parseUtility('backdrop-opacity-0')).toEqual(baseUtility({ prefix: 'backdrop-opacity', value: '0', raw: 'backdrop-opacity-0', arbitrary: false, numeric: true }));
+      expect(parseUtility('backdrop-opacity-100')).toEqual(baseUtility({ prefix: 'backdrop-opacity', value: '100', raw: 'backdrop-opacity-100', arbitrary: false, numeric: true }));
+      expect(parseUtility('backdrop-opacity-[.25]')).toEqual(baseUtility({ prefix: 'backdrop-opacity', value: '.25', raw: 'backdrop-opacity-[.25]', arbitrary: true, arbitraryValue: '.25', numeric: false }));
       expect(parseUtility('backdrop-opacity-')).toEqual({ type: 'unknown', raw: 'backdrop-opacity-' });
     });
   });
 
   describe('backdrop-saturate', () => {
     it('should parse Tailwind v4 backdrop-saturate classes', () => {
-      expect(parseUtility('backdrop-saturate-50')).toEqual(baseUtility({ prefix: 'backdrop-saturate', value: '50', numeric: true, raw: 'backdrop-saturate-50' }));
-      expect(parseUtility('backdrop-saturate-200')).toEqual(baseUtility({ prefix: 'backdrop-saturate', value: '200', numeric: true, raw: 'backdrop-saturate-200' }));
-      expect(parseUtility('backdrop-saturate-[.25]')).toEqual(baseUtility({ prefix: 'backdrop-saturate', value: '.25', numeric: true, arbitrary: true, arbitraryValue: '.25', raw: 'backdrop-saturate-[.25]' }));
+      expect(parseUtility('backdrop-saturate')).toEqual(baseUtility({ prefix: 'backdrop-saturate', value: '', raw: 'backdrop-saturate', arbitrary: false }));
+      expect(parseUtility('backdrop-saturate-0')).toEqual(baseUtility({ prefix: 'backdrop-saturate', value: '0', raw: 'backdrop-saturate-0', arbitrary: false, numeric: true }));
+      expect(parseUtility('backdrop-saturate-200')).toEqual(baseUtility({ prefix: 'backdrop-saturate', value: '200', raw: 'backdrop-saturate-200', arbitrary: false, numeric: true }));
+      expect(parseUtility('backdrop-saturate-[.25]')).toEqual(baseUtility({ prefix: 'backdrop-saturate', value: '.25', raw: 'backdrop-saturate-[.25]', arbitrary: true, arbitraryValue: '.25', numeric: false }));
       expect(parseUtility('backdrop-saturate-')).toEqual({ type: 'unknown', raw: 'backdrop-saturate-' });
     });
   });
 
   describe('backdrop-sepia', () => {
     it('should parse Tailwind v4 backdrop-sepia classes', () => {
-      expect(parseUtility('backdrop-sepia')).toEqual(baseUtility({ prefix: 'backdrop-sepia', raw: 'backdrop-sepia' }));
-      expect(parseUtility('backdrop-sepia-0')).toEqual(baseUtility({ prefix: 'backdrop-sepia', value: '0', raw: 'backdrop-sepia-0' }));
+      expect(parseUtility('backdrop-sepia')).toEqual(baseUtility({ prefix: 'backdrop-sepia', value: '', raw: 'backdrop-sepia', arbitrary: false }));
+      expect(parseUtility('backdrop-sepia-0')).toEqual(baseUtility({ prefix: 'backdrop-sepia', value: '0', raw: 'backdrop-sepia-0', arbitrary: false, numeric: true }));
       expect(parseUtility('backdrop-sepia-')).toEqual({ type: 'unknown', raw: 'backdrop-sepia-' });
     });
   });
 
   describe('backdrop-filter', () => {
     it('should parse Tailwind v4 backdrop-filter classes', () => {
-      expect(parseUtility('backdrop-filter')).toEqual(baseUtility({ prefix: 'backdrop-filter', raw: 'backdrop-filter' }));
-      expect(parseUtility('backdrop-filter-none')).toEqual(baseUtility({ prefix: 'backdrop-filter', value: 'none', raw: 'backdrop-filter-none' }));
-      expect(parseUtility('backdrop-filter-')).toEqual({ type: 'unknown', raw: 'backdrop-filter-' });
+      expect(parseUtility('backdrop-filter')).toEqual(baseUtility({ prefix: 'backdrop', value: 'filter', raw: 'backdrop-filter' }));
+      expect(parseUtility('backdrop-filter-none')).toEqual(baseUtility({ prefix: 'backdrop', value: 'filter-none', raw: 'backdrop-filter-none' }));
+      expect(parseUtility('backdrop-filter-')).toEqual(baseUtility({ prefix: 'backdrop', value: 'filter-', raw: 'backdrop-filter-' }));
     });
   });
 }); 

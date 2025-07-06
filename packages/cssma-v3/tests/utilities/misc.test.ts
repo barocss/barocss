@@ -5,7 +5,7 @@ import { baseUtility } from './base';
 describe('parseUtility (misc)', () => {
   it('parses display', () => {
     expect(parseUtility('block')).toEqual(baseUtility({ prefix: 'block', raw: 'block' }));
-    expect(parseUtility('inline-block')).toEqual(baseUtility({ prefix: 'inline-block', raw: 'inline-block' }));
+    expect(parseUtility('inline-block')).toEqual(baseUtility({ prefix: 'inline', value: 'block', raw: 'inline-block' }));
     expect(parseUtility('hidden')).toEqual(baseUtility({ prefix: 'hidden', raw: 'hidden' }));
   });
   it('parses float', () => {

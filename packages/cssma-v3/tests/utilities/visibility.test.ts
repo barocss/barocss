@@ -17,9 +17,9 @@ describe('parseUtility (visibility)', () => {
   describe('screen reader only', () => {
     it('should parse Tailwind v4 sr-only classes', () => {
       expect(parseUtility('sr-only')).toEqual(baseUtility({ prefix: 'sr-only', raw: 'sr-only' }));
-      expect(parseUtility('not-sr-only')).toEqual(baseUtility({ prefix: 'not-sr-only', raw: 'not-sr-only' }));
+      expect(parseUtility('not-sr-only')).toEqual(baseUtility({ prefix: 'not-sr-only', value: '', raw: 'not-sr-only' }));
       expect(parseUtility('sr-only!')).toEqual(baseUtility({ prefix: 'sr-only', raw: 'sr-only!', important: true }));
-      expect(parseUtility('not-sr-only!')).toEqual(baseUtility({ prefix: 'not-sr-only', raw: 'not-sr-only!', important: true }));
+      expect(parseUtility('not-sr-only!')).toEqual(baseUtility({ prefix: 'not-sr-only', value: '', raw: 'not-sr-only!', important: true }));
       expect(parseUtility('sr-only-')).toEqual({ type: 'unknown', raw: 'sr-only-' });
       expect(parseUtility('not-sr-only-')).toEqual({ type: 'unknown', raw: 'not-sr-only-' });
     });

@@ -38,7 +38,7 @@ describe('parseUtility (transform)', () => {
   describe('translate', () => {
     it('should parse Tailwind v4 translate classes', () => {
       expect(parseUtility('translate-x-0')).toEqual(baseUtility({ prefix: 'translate-x', value: '0', numeric: true, raw: 'translate-x-0' }));
-      expect(parseUtility('translate-x-1/2')).toEqual(baseUtility({ prefix: 'translate-x', value: '1/2', raw: 'translate-x-1/2' }));
+      expect(parseUtility('translate-x-1/2')).toEqual(baseUtility({ prefix: 'translate-x', value: '1', numeric: true, slash: '2', raw: 'translate-x-1/2' }));
       expect(parseUtility('translate-y-full')).toEqual(baseUtility({ prefix: 'translate-y', value: 'full', raw: 'translate-y-full' }));
       expect(parseUtility('translate-x-[10px]')).toEqual(baseUtility({ prefix: 'translate-x', value: '10px', arbitrary: true, arbitraryValue: '10px', raw: 'translate-x-[10px]' }));
       expect(parseUtility('translate-y-[-50%]')).toEqual(baseUtility({ prefix: 'translate-y', value: '-50%', arbitrary: true, arbitraryValue: '-50%', raw: 'translate-y-[-50%]' }));
@@ -51,14 +51,14 @@ describe('parseUtility (transform)', () => {
       expect(parseUtility('skew-x-0')).toEqual(baseUtility({ prefix: 'skew-x', value: '0', numeric: true, raw: 'skew-x-0' }));
       expect(parseUtility('skew-x-12')).toEqual(baseUtility({ prefix: 'skew-x', value: '12', numeric: true, raw: 'skew-x-12' }));
       expect(parseUtility('skew-y-6')).toEqual(baseUtility({ prefix: 'skew-y', value: '6', numeric: true, raw: 'skew-y-6' }));
-      expect(parseUtility('skew-x-[-15deg]')).toEqual(baseUtility({ prefix: 'skew-x', value: '15deg', arbitrary: true, arbitraryValue: '15deg', raw: 'skew-x-[-15deg]' }));
+      expect(parseUtility('skew-x-[-15deg]')).toEqual(baseUtility({ prefix: 'skew-x', value: '-15deg', arbitrary: true, arbitraryValue: '-15deg', raw: 'skew-x-[-15deg]' }));
       expect(parseUtility('skew-x-')).toEqual({ type: 'unknown', raw: 'skew-x-' });
     });
   });
 
   describe('perspective', () => {
     it('should parse Tailwind v4 perspective classes', () => {
-      expect(parseUtility('perspective-500')).toEqual(baseUtility({ prefix: 'perspective', value: '500', raw: 'perspective-500' }));
+      expect(parseUtility('perspective-500')).toEqual(baseUtility({ prefix: 'perspective', value: '500', numeric: true, raw: 'perspective-500' }));
       expect(parseUtility('perspective-[1000px]')).toEqual(baseUtility({ prefix: 'perspective', value: '1000px', arbitrary: true, arbitraryValue: '1000px', raw: 'perspective-[1000px]' }));
       expect(parseUtility('perspective-')).toEqual({ type: 'unknown', raw: 'perspective-' });
     });

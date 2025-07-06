@@ -82,7 +82,7 @@ describe('parseUtility (font)', () => {
       expect(parseUtility('leading-normal')).toEqual(baseUtility({ prefix: 'leading', value: 'normal', raw: 'leading-normal' }));
       expect(parseUtility('leading-relaxed')).toEqual(baseUtility({ prefix: 'leading', value: 'relaxed', raw: 'leading-relaxed' }));
       expect(parseUtility('leading-loose')).toEqual(baseUtility({ prefix: 'leading', value: 'loose', raw: 'leading-loose' }));
-      expect(parseUtility('leading-[3]')).toEqual(baseUtility({ prefix: 'leading', value: '3', arbitrary: true, arbitraryValue: '3', raw: 'leading-[3]' }));
+      expect(parseUtility('leading-[3]')).toEqual(baseUtility({ prefix: 'leading', value: '3', raw: 'leading-[3]', arbitrary: true, arbitraryValue: '3', numeric: true }));
       expect(parseUtility('leading-')).toEqual({ type: 'unknown', raw: 'leading-' });
     });
   });

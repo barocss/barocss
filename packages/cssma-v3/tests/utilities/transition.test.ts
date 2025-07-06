@@ -8,10 +8,10 @@ describe('parseUtility (transition)', () => {
       expect(parseUtility('transition')).toEqual(baseUtility({ prefix: 'transition', raw: 'transition' }));
       expect(parseUtility('transition-none')).toEqual(baseUtility({ prefix: 'transition', value: 'none', raw: 'transition-none' }));
       expect(parseUtility('transition-all')).toEqual(baseUtility({ prefix: 'transition', value: 'all', raw: 'transition-all' }));
-      expect(parseUtility('transition-colors')).toEqual(baseUtility({ prefix: 'transition-colors', raw: 'transition-colors' }));
-      expect(parseUtility('transition-opacity')).toEqual(baseUtility({ prefix: 'transition-opacity', raw: 'transition-opacity' }));
-      expect(parseUtility('transition-shadow')).toEqual(baseUtility({ prefix: 'transition-shadow', raw: 'transition-shadow' }));
-      expect(parseUtility('transition-transform')).toEqual(baseUtility({ prefix: 'transition-transform', raw: 'transition-transform' }));
+      expect(parseUtility('transition-colors')).toEqual(baseUtility({ prefix: 'transition', value: 'colors', raw: 'transition-colors' }));
+      expect(parseUtility('transition-opacity')).toEqual(baseUtility({ prefix: 'transition', value: 'opacity', raw: 'transition-opacity' }));
+      expect(parseUtility('transition-shadow')).toEqual(baseUtility({ prefix: 'transition', value: 'shadow', raw: 'transition-shadow' }));
+      expect(parseUtility('transition-transform')).toEqual(baseUtility({ prefix: 'transition', value: 'transform', raw: 'transition-transform' }));
       expect(parseUtility('transition!')).toEqual(baseUtility({ prefix: 'transition', raw: 'transition!', important: true }));
       expect(parseUtility('transition-')).toEqual({ type: 'unknown', raw: 'transition-' });
     });
@@ -45,7 +45,7 @@ describe('parseUtility (transition)', () => {
       expect(parseUtility('ease-in')).toEqual(baseUtility({ prefix: 'ease', value: 'in', raw: 'ease-in' }));
       expect(parseUtility('ease-out')).toEqual(baseUtility({ prefix: 'ease', value: 'out', raw: 'ease-out' }));
       expect(parseUtility('ease-in-out')).toEqual(baseUtility({ prefix: 'ease', value: 'in-out', raw: 'ease-in-out' }));
-      expect(parseUtility('ease-[cubic-bezier(0.4,0,1,1)]')).toEqual(baseUtility({ prefix: 'ease', value: 'cubic-bezier(0.4,0,1,1)', arbitrary: true, arbitraryValue: 'cubic-bezier(0.4,0,1,1)', raw: 'ease-[cubic-bezier(0.4,0,1,1)]' }));
+      expect(parseUtility('ease-[cubic-bezier(0.4,0,1,1)]')).toEqual(baseUtility({ prefix: 'ease', value: 'cubic-bezier(0.4,0,1,1)', arbitrary: true, arbitraryType: 'cubic-bezier', arbitraryValue: '0.4,0,1,1', raw: 'ease-[cubic-bezier(0.4,0,1,1)]' }));
       expect(parseUtility('ease-')).toEqual({ type: 'unknown', raw: 'ease-' });
     });
   });

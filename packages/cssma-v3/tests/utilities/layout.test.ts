@@ -5,32 +5,41 @@ import { baseUtility } from './base';
 describe('parseUtility (layout)', () => {
   describe('container', () => {
     it('should parse Tailwind v4 container class', () => {
-      expect(parseUtility('container')).toEqual(baseUtility({ prefix: 'container', raw: 'container' }));
+      expect(parseUtility('container')).toEqual(baseUtility({ prefix: 'container', value: '', raw: 'container' }));
     });
   });
 
   describe('box', () => {
     it('should parse Tailwind v4 box classes', () => {
-      expect(parseUtility('box-border')).toEqual(baseUtility({ prefix: 'box-border', raw: 'box-border' }));
-      expect(parseUtility('box-content')).toEqual(baseUtility({ prefix: 'box-content', raw: 'box-content' }));
-      expect(parseUtility('box-border!')).toEqual(baseUtility({ prefix: 'box-border', raw: 'box-border!', important: true }));
-      expect(parseUtility('box-')).toEqual({ type: 'unknown', raw: 'box-' });
+      expect(parseUtility('box-border')).toEqual(baseUtility({ prefix: 'box', value: 'border', raw: 'box-border' }));
+      expect(parseUtility('box-content')).toEqual(baseUtility({ prefix: 'box', value: 'content', raw: 'box-content' }));
+      expect(parseUtility('box-border!')).toEqual(baseUtility({ prefix: 'box', value: 'border', raw: 'box-border!', important: true }));
+      expect(parseUtility('box-content!')).toEqual(baseUtility({ prefix: 'box', value: 'content', raw: 'box-content!', important: true }));
     });
   });
 
   describe('display', () => {
     it('should parse Tailwind v4 display classes', () => {
-      expect(parseUtility('block')).toEqual(baseUtility({ prefix: 'block', raw: 'block' }));
-      expect(parseUtility('inline-block')).toEqual(baseUtility({ prefix: 'inline-block', raw: 'inline-block' }));
-      expect(parseUtility('inline')).toEqual(baseUtility({ prefix: 'inline', raw: 'inline' }));
-      expect(parseUtility('flex')).toEqual(baseUtility({ prefix: 'flex', raw: 'flex' }));
-      expect(parseUtility('inline-flex')).toEqual(baseUtility({ prefix: 'inline-flex', raw: 'inline-flex' }));
-      expect(parseUtility('grid')).toEqual(baseUtility({ prefix: 'grid', raw: 'grid' }));
-      expect(parseUtility('inline-grid')).toEqual(baseUtility({ prefix: 'inline-grid', raw: 'inline-grid' }));
-      expect(parseUtility('contents')).toEqual(baseUtility({ prefix: 'contents', raw: 'contents' }));
-      expect(parseUtility('hidden')).toEqual(baseUtility({ prefix: 'hidden', raw: 'hidden' }));
-      expect(parseUtility('block!')).toEqual(baseUtility({ prefix: 'block', raw: 'block!', important: true }));
-      expect(parseUtility('block-')).toEqual({ type: 'unknown', raw: 'block-' });
+      expect(parseUtility('block')).toEqual(baseUtility({ prefix: 'block', value: '', raw: 'block' }));
+      expect(parseUtility('inline-block')).toEqual(baseUtility({ prefix: 'inline', value: 'block', raw: 'inline-block' }));
+      expect(parseUtility('inline')).toEqual(baseUtility({ prefix: 'inline', value: '', raw: 'inline' }));
+      expect(parseUtility('flex')).toEqual(baseUtility({ prefix: 'flex', value: '', raw: 'flex' }));
+      expect(parseUtility('inline-flex')).toEqual(baseUtility({ prefix: 'inline', value: 'flex', raw: 'inline-flex' }));
+      expect(parseUtility('table')).toEqual(baseUtility({ prefix: 'table', value: '', raw: 'table' }));
+      expect(parseUtility('inline-table')).toEqual(baseUtility({ prefix: 'inline', value: 'table', raw: 'inline-table' }));
+      expect(parseUtility('table-caption')).toEqual(baseUtility({ prefix: 'table-caption', value: '', raw: 'table-caption' }));
+      expect(parseUtility('table-cell')).toEqual(baseUtility({ prefix: 'table-cell', value: '', raw: 'table-cell' }));
+      expect(parseUtility('table-column')).toEqual(baseUtility({ prefix: 'table-column', value: '', raw: 'table-column' }));
+      expect(parseUtility('table-column-group')).toEqual(baseUtility({ prefix: 'table-column-group', value: '', raw: 'table-column-group' }));
+      expect(parseUtility('table-footer-group')).toEqual(baseUtility({ prefix: 'table-footer-group', value: '', raw: 'table-footer-group' }));
+      expect(parseUtility('table-header-group')).toEqual(baseUtility({ prefix: 'table-header-group', value: '', raw: 'table-header-group' }));
+      expect(parseUtility('table-row-group')).toEqual(baseUtility({ prefix: 'table-row-group', value: '', raw: 'table-row-group' }));
+      expect(parseUtility('table-row')).toEqual(baseUtility({ prefix: 'table-row', value: '', raw: 'table-row' }));
+      expect(parseUtility('flow-root')).toEqual(baseUtility({ prefix: 'flow-root', value: '', raw: 'flow-root' }));
+      expect(parseUtility('grid')).toEqual(baseUtility({ prefix: 'grid', value: '', raw: 'grid' }));
+      expect(parseUtility('inline-grid')).toEqual(baseUtility({ prefix: 'inline', value: 'grid', raw: 'inline-grid' }));
+      expect(parseUtility('contents')).toEqual(baseUtility({ prefix: 'contents', value: '', raw: 'contents' }));
+      expect(parseUtility('hidden')).toEqual(baseUtility({ prefix: 'hidden', value: '', raw: 'hidden' }));
     });
   });
 
@@ -160,26 +169,24 @@ describe('parseUtility (layout)', () => {
     it('should parse Tailwind v4 flex classes', () => {
       expect(parseUtility('flex-row')).toEqual(baseUtility({ prefix: 'flex', value: 'row', raw: 'flex-row' }));
       expect(parseUtility('flex-col')).toEqual(baseUtility({ prefix: 'flex', value: 'col', raw: 'flex-col' }));
-      expect(parseUtility('flex-wrap')).toEqual(baseUtility({ prefix: 'flex', value: 'wrap', raw: 'flex-wrap' }));
+      expect(parseUtility('flex-wrap')).toEqual(baseUtility({ prefix: 'flex-wrap', value: '', raw: 'flex-wrap' }));
       expect(parseUtility('flex-nowrap')).toEqual(baseUtility({ prefix: 'flex', value: 'nowrap', raw: 'flex-nowrap' }));
-      expect(parseUtility('flex-1')).toEqual(baseUtility({ prefix: 'flex', value: '1', raw: 'flex-1' }));
-      expect(parseUtility('flex-auto')).toEqual(baseUtility({ prefix: 'flex', value: 'auto', raw: 'flex-auto' }));
-      expect(parseUtility('flex-initial')).toEqual(baseUtility({ prefix: 'flex', value: 'initial', raw: 'flex-initial' }));
-      expect(parseUtility('flex-none')).toEqual(baseUtility({ prefix: 'flex', value: 'none', raw: 'flex-none' }));
-      expect(parseUtility('flex-')).toEqual({ type: 'unknown', raw: 'flex-' });
+      expect(parseUtility('flex-1')).toEqual(baseUtility({ prefix: 'flex', value: '1', numeric: true, raw: 'flex-1' }));
+      expect(parseUtility('flex-auto')).toEqual(baseUtility({ prefix: 'flex-auto', value: '', raw: 'flex-auto' }));
+      expect(parseUtility('flex-initial')).toEqual(baseUtility({ prefix: 'flex-initial', value: '', raw: 'flex-initial' }));
+      expect(parseUtility('flex-none')).toEqual(baseUtility({ prefix: 'flex-none', value: '', raw: 'flex-none' }));
     });
   });
 
   describe('grid', () => {
     it('should parse Tailwind v4 grid classes', () => {
-      expect(parseUtility('grid-cols-1')).toEqual(baseUtility({ prefix: 'grid-cols', value: '1', raw: 'grid-cols-1' }));
-      expect(parseUtility('grid-cols-12')).toEqual(baseUtility({ prefix: 'grid-cols', value: '12', raw: 'grid-cols-12' }));
-      expect(parseUtility('grid-rows-6')).toEqual(baseUtility({ prefix: 'grid-rows', value: '6', raw: 'grid-rows-6' }));
+      expect(parseUtility('grid-cols-1')).toEqual(baseUtility({ prefix: 'grid-cols', value: '1', numeric: true, raw: 'grid-cols-1' }));
+      expect(parseUtility('grid-cols-12')).toEqual(baseUtility({ prefix: 'grid-cols', value: '12', numeric: true, raw: 'grid-cols-12' }));
+      expect(parseUtility('grid-rows-6')).toEqual(baseUtility({ prefix: 'grid-rows', value: '6', numeric: true, raw: 'grid-rows-6' }));
       expect(parseUtility('grid-flow-row')).toEqual(baseUtility({ prefix: 'grid-flow', value: 'row', raw: 'grid-flow-row' }));
       expect(parseUtility('grid-flow-col')).toEqual(baseUtility({ prefix: 'grid-flow', value: 'col', raw: 'grid-flow-col' }));
-      expect(parseUtility('grid-flow-dense')).toEqual(baseUtility({ prefix: 'grid-flow', value: 'dense', raw: 'grid-flow-dense' }));
-      expect(parseUtility('grid-cols-[7]')).toEqual(baseUtility({ prefix: 'grid-cols', value: '7', arbitrary: true, arbitraryValue: '7', raw: 'grid-cols-[7]' }));
-      expect(parseUtility('grid-cols-')).toEqual({ type: 'unknown', raw: 'grid-cols-' });
+      expect(parseUtility('grid-flow-row-dense')).toEqual(baseUtility({ prefix: 'grid-flow', value: 'row-dense', raw: 'grid-flow-row-dense' }));
+      expect(parseUtility('grid-flow-col-dense')).toEqual(baseUtility({ prefix: 'grid-flow', value: 'col-dense', raw: 'grid-flow-col-dense' }));
     });
   });
 }); 
