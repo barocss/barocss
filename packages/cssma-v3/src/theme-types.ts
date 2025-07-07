@@ -94,6 +94,7 @@ export interface CssmaConfig {
 }
 
 export interface CssmaContext {
+  hasPreset: (category: string, preset: string) => boolean;
   theme: (...path: (string|number)[]) => any;
   config: (...path: (string|number)[]) => any;
   plugins: CssmaPlugin[];

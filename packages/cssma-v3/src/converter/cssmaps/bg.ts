@@ -50,6 +50,15 @@ export const bg = (utility: ParsedClassToken, ctx: CssmaContext) => {
 
   // 4. 나머지 → backgroundColor
   let value = utility.value?.replace(/-/g, '.');
+
+  // 컬러 프리셋 체크
+  // 예를 들어 bg-red-500 이면 colors.red 가 프리셋에 있는지 확인
+  // 있으면 colors.red.500 을 가져옴
+  if (ctx.hasPreset('colors', value.split('-')[0])) {
+    return { backgroundColor: ctx.theme('colors', value) + importantString };
+  }
+
+  // 없으면 colors.red-500 을 가져옴
   let css = value === undefined ? undefined : ctx.theme?.('colors', value as string | number) ?? value;
   if (css !== undefined && importantString) css += importantString;
   return { backgroundColor: css };

@@ -5,9 +5,10 @@ import { CssmaTheme } from "../theme-types";
 
 export function theme(themeObj: CssmaTheme, ...path: (string | number)[]): any {
   let keys: (string | number)[] = [];
-  let pathString = path.join('.');
-  if (pathString.includes('.')) keys = pathString.split('.');
-  else keys = [pathString];
-
+  if (path.length === 1 && typeof path[0] === 'string' && path[0].includes('.')) {
+    keys = path[0].split('.');
+  } else {
+    keys = path;
+  }
   return keys.reduce((acc, key) => (acc ? acc[key] : undefined), themeObj);
 } 
