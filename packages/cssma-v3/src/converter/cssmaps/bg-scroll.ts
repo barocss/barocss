@@ -1,0 +1,1 @@
+export const bgScroll = () => ({ backgroundAttachment: "scroll" }); 

@@ -1,0 +1,1 @@
+export const bgFixed = () => ({ backgroundAttachment: "fixed" }); 
