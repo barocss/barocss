@@ -1,73 +1,917 @@
 import { describe, it, expect } from 'vitest';
-import { parseUtility } from '../../src/parser/parseUtility';
-import { baseUtility } from './base';
+import type { ParsedClassToken } from '../../src/parser/utils';
+import type { CssmaContext } from '../../src/theme-types';
 
-describe('parseUtility (border)', () => {
-  describe('border width', () => {
-    it('should parse Tailwind v4 border width classes', () => {
-      expect(parseUtility('border')).toEqual(baseUtility({ prefix: 'border', raw: 'border' }));
-      expect(parseUtility('border-0')).toEqual(baseUtility({ prefix: 'border', value: '0', numeric: true, raw: 'border-0' }));
-      expect(parseUtility('border-2')).toEqual(baseUtility({ prefix: 'border', value: '2', numeric: true, raw: 'border-2' }));
-      expect(parseUtility('border-x-4')).toEqual(baseUtility({ prefix: 'border-x', value: '4', numeric: true, raw: 'border-x-4' }));
-      expect(parseUtility('border-y-8')).toEqual(baseUtility({ prefix: 'border-y', value: '8', numeric: true, raw: 'border-y-8' }));
-      expect(parseUtility('border-t')).toEqual(baseUtility({ prefix: 'border-t', raw: 'border-t' }));
-      expect(parseUtility('border-b-2')).toEqual(baseUtility({ prefix: 'border-b', value: '2', numeric: true, raw: 'border-b-2' }));
-      expect(parseUtility('border-l-[5px]')).toEqual(baseUtility({ prefix: 'border-l', value: '5px', arbitrary: true, arbitraryValue: '5px', raw: 'border-l-[5px]' }));
-      expect(parseUtility('border-4!')).toEqual(baseUtility({ prefix: 'border', value: '4', numeric: true, raw: 'border-4!', important: true }));
-      expect(parseUtility('-border-2')).toEqual(baseUtility({ prefix: 'border', value: '2', numeric: true, raw: '-border-2', negative: true }));
-      expect(parseUtility('border-')).toEqual({ type: 'unknown', raw: 'border-' });
+// Import border converters
+import {
+  border,
+  borderT,
+  borderR,
+  borderB,
+  borderL,
+  borderX,
+  borderY,
+  borderS,
+  borderE
+} from '../../src/converter/cssmaps/border';
+
+// Border color functions are integrated into border.ts - no separate imports needed
+
+// Import rounded converters
+import {
+  rounded,
+  roundedS,
+  roundedE,
+  roundedT,
+  roundedR,
+  roundedB,
+  roundedL,
+  roundedTl,
+  roundedTr,
+  roundedBr,
+  roundedBl,
+  roundedSs,
+  roundedSe,
+  roundedEs,
+  roundedEe
+} from '../../src/converter/cssmaps/rounded';
+
+// Import divide converters
+import {
+  divideX,
+  divideY
+} from '../../src/converter/cssmaps/divide';
+
+// Mock context for testing
+const mockContext: CssmaContext = {
+  theme: (category: string, value: string) => {
+    if (category === 'colors') {
+      const colorMap: Record<string, string> = {
+        'red-500': '#f56565',
+        'blue-600': '#3182ce',
+        'gray-300': '#d2d6dc'
+      };
+      return colorMap[value];
+    }
+    if (category === 'borderRadius') {
+      const radiusMap: Record<string, string> = {
+        'none': '0px',
+        'sm': '0.125rem',
+        'md': '0.375rem',
+        'lg': '0.5rem',
+        'xl': '0.75rem',
+        '2xl': '1rem',
+        '3xl': '1.5rem',
+        'full': '9999px'
+      };
+      return radiusMap[value];
+    }
+    return undefined;
+  }
+};
+
+describe('Border Converters (Integrated)', () => {
+  describe('border function (handles width, color, and style)', () => {
+    it('should handle no value (default to 1px)', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: '1px' });
+    });
+
+    it('should handle numeric values (width)', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: '2px' });
+    });
+
+    it('should handle zero value', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '0', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: '0' });
+    });
+
+    it('should handle theme colors', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'red-500', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderColor: '#f56565' });
+    });
+
+    it('should handle border styles - solid', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'solid', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderStyle: 'solid' });
+    });
+
+    it('should handle border styles - dashed', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'dashed', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderStyle: 'dashed' });
+    });
+
+    it('should handle border styles - dotted', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'dotted', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderStyle: 'dotted' });
+    });
+
+    it('should handle border styles - groove', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'groove', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderStyle: 'groove' });
+    });
+
+    it('should handle border styles - ridge', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'ridge', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderStyle: 'ridge' });
+    });
+
+    it('should handle border styles - inset', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'inset', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderStyle: 'inset' });
+    });
+
+    it('should handle border styles - outset', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'outset', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderStyle: 'outset' });
+    });
+
+    it('should handle arbitrary width values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '', 
+        numeric: false, 
+        important: false,
+        arbitrary: true,
+        arbitraryValue: '3px'
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: '3px' });
+    });
+
+    it('should handle arbitrary color values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '', 
+        numeric: false, 
+        important: false,
+        arbitrary: true,
+        arbitraryValue: '#123456'
+      };
+      expect(border(utility, mockContext)).toEqual({ borderColor: '#123456' });
+    });
+
+    it('should handle arbitrary style values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '', 
+        numeric: false, 
+        important: false,
+        arbitrary: true,
+        arbitraryValue: 'groove'
+      };
+      expect(border(utility, mockContext)).toEqual({ borderStyle: 'groove' });
+    });
+
+    it('should handle custom properties', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '--my-width', 
+        numeric: false, 
+        important: false,
+        customProperty: true
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: 'var(--my-width)' });
+    });
+
+    it('should handle important flag', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '2', 
+        numeric: true, 
+        important: true 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: '2px !important' });
+    });
+
+    it('should handle important flag with colors', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'red-500', 
+        numeric: false, 
+        important: true 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderColor: '#f56565 !important' });
+    });
+
+    it('should handle important flag with styles', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'solid', 
+        numeric: false, 
+        important: true 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderStyle: 'solid !important' });
+    });
+
+    it('should return empty object for unknown values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: 'unknown-value', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({});
     });
   });
 
-  describe('border color', () => {
-    it('should parse Tailwind v4 border color classes', () => {
-      expect(parseUtility('border-red-500')).toEqual(baseUtility({ prefix: 'border', value: 'red-500', raw: 'border-red-500' }));
-      expect(parseUtility('border-[#123456]')).toEqual(baseUtility({ prefix: 'border', value: '#123456', arbitrary: true, arbitraryType: 'hex', arbitraryValue: '#123456', raw: 'border-[#123456]' }));
-      expect(parseUtility('border-[oklch(0.5_0.2_30)]')).toEqual(baseUtility({ prefix: 'border', value: 'oklch(0.5 0.2 30)', arbitrary: true, arbitraryType: 'oklch', arbitraryValue: '0.5 0.2 30', raw: 'border-[oklch(0.5_0.2_30)]' }));
-      expect(parseUtility('border-red-500!')).toEqual(baseUtility({ prefix: 'border', value: 'red-500', raw: 'border-red-500!', important: true }));
-      expect(parseUtility('border-')).toEqual({ type: 'unknown', raw: 'border-' });
+  describe('directional border functions', () => {
+    it('should handle borderT with numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-t', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(borderT(utility, mockContext)).toEqual({ borderTopWidth: '2px' });
+    });
+
+    it('should handle borderT with colors', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-t', 
+        value: 'red-500', 
+        numeric: false, 
+        important: false 
+      };
+      expect(borderT(utility, mockContext)).toEqual({ borderTopColor: '#f56565' });
+    });
+
+    it('should handle borderT with styles', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-t', 
+        value: 'groove', 
+        numeric: false, 
+        important: false 
+      };
+      expect(borderT(utility, mockContext)).toEqual({ borderTopStyle: 'groove' });
+    });
+
+    it('should handle borderR with styles', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-r', 
+        value: 'ridge', 
+        numeric: false, 
+        important: false 
+      };
+      expect(borderR(utility, mockContext)).toEqual({ borderRightStyle: 'ridge' });
+    });
+
+    it('should handle borderB with styles', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-b', 
+        value: 'inset', 
+        numeric: false, 
+        important: false 
+      };
+      expect(borderB(utility, mockContext)).toEqual({ borderBottomStyle: 'inset' });
+    });
+
+    it('should handle borderL with styles', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-l', 
+        value: 'outset', 
+        numeric: false, 
+        important: false 
+      };
+      expect(borderL(utility, mockContext)).toEqual({ borderLeftStyle: 'outset' });
+    });
+
+    it('should handle borderX with styles', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-x', 
+        value: 'dashed', 
+        numeric: false, 
+        important: false 
+      };
+      expect(borderX(utility, mockContext)).toEqual({
+        borderInlineStyle: 'dashed'
+      });
+    });
+
+    it('should handle borderY with styles', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-y', 
+        value: 'dotted', 
+        numeric: false, 
+        important: false 
+      };
+      expect(borderY(utility, mockContext)).toEqual({
+        borderBlockStyle: 'dotted'
+      });
+    });
+  });
+});
+
+describe('Border Width Converters', () => {
+  describe('border (from border-width.ts)', () => {
+    it('should handle no value (default to 1px)', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: '1px' });
+    });
+
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: '2px' });
+    });
+
+    it('should handle zero value', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '0', 
+        numeric: false, 
+        important: false 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: '0' });
+    });
+
+    it('should handle arbitrary values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '', 
+        numeric: false, 
+        important: false,
+        arbitrary: true,
+        arbitraryValue: '3px'
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: '3px' });
+    });
+
+    it('should handle custom properties', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '--my-width', 
+        numeric: false, 
+        important: false,
+        customProperty: true
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: 'var(--my-width)' });
+    });
+
+    it('should handle important flag', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border', 
+        value: '2', 
+        numeric: true, 
+        important: true 
+      };
+      expect(border(utility, mockContext)).toEqual({ borderWidth: '2px !important' });
     });
   });
 
-  describe('border opacity', () => {
-    it('should parse Tailwind v4 border opacity classes', () => {
-      expect(parseUtility('border-opacity-50')).toEqual(baseUtility({ prefix: 'border', value: 'opacity-50', raw: 'border-opacity-50' }));
-      expect(parseUtility('border-opacity-[.25]')).toEqual(baseUtility({ prefix: 'border', value: 'opacity-[.25]', raw: 'border-opacity-[.25]' }));
-      expect(parseUtility('border-opacity-')).toEqual(baseUtility({ prefix: 'border', value: 'opacity-', raw: 'border-opacity-' }));
+  describe('borderX (from border.ts)', () => {
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-x', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(borderX(utility, mockContext)).toEqual({
+        borderInlineWidth: '2px'
+      });
     });
   });
 
-  describe('border style', () => {
-    it('should parse Tailwind v4 border style classes', () => {
-      expect(parseUtility('border-solid')).toEqual(baseUtility({ prefix: 'border', value: 'solid', raw: 'border-solid' }));
-      expect(parseUtility('border-dashed')).toEqual(baseUtility({ prefix: 'border', value: 'dashed', raw: 'border-dashed' }));
-      expect(parseUtility('border-dotted')).toEqual(baseUtility({ prefix: 'border', value: 'dotted', raw: 'border-dotted' }));
-      expect(parseUtility('border-double')).toEqual(baseUtility({ prefix: 'border', value: 'double', raw: 'border-double' }));
-      expect(parseUtility('border-hidden')).toEqual(baseUtility({ prefix: 'border', value: 'hidden', raw: 'border-hidden' }));
-      expect(parseUtility('border-none')).toEqual(baseUtility({ prefix: 'border', value: 'none', raw: 'border-none' }));
-      expect(parseUtility('border-style-')).toEqual(baseUtility({ prefix: 'border', value: 'style-', raw: 'border-style-' }));
+  describe('borderY (from border.ts)', () => {
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-y', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(borderY(utility, mockContext)).toEqual({
+        borderBlockWidth: '2px'
+      });
     });
   });
 
-  describe('divide', () => {
-    it('should parse Tailwind v4 divide classes', () => {
-      expect(parseUtility('divide-x')).toEqual(baseUtility({ prefix: 'divide-x', raw: 'divide-x' }));
-      expect(parseUtility('divide-y-2')).toEqual(baseUtility({ prefix: 'divide-y', value: '2', numeric: true, raw: 'divide-y-2' }));
-      expect(parseUtility('divide-x-reverse')).toEqual(baseUtility({ prefix: 'divide-x', value: 'reverse', raw: 'divide-x-reverse' }));
-      expect(parseUtility('divide-y-[3px]')).toEqual(baseUtility({ prefix: 'divide-y', value: '3px', arbitrary: true, arbitraryValue: '3px', raw: 'divide-y-[3px]' }));
-      expect(parseUtility('divide-x-')).toEqual({ type: 'unknown', raw: 'divide-x-' });
+  describe('borderT (from border.ts)', () => {
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-t', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(borderT(utility, mockContext)).toEqual({ borderTopWidth: '2px' });
     });
   });
 
-  describe('ring', () => {
-    it('should parse Tailwind v4 ring classes', () => {
-      expect(parseUtility('ring')).toEqual(baseUtility({ prefix: 'ring', raw: 'ring' }));
-      expect(parseUtility('ring-2')).toEqual(baseUtility({ prefix: 'ring', value: '2', numeric: true, raw: 'ring-2' }));
-      expect(parseUtility('ring-inset')).toEqual(baseUtility({ prefix: 'ring', value: 'inset', raw: 'ring-inset' }));
-      expect(parseUtility('ring-offset-4')).toEqual(baseUtility({ prefix: 'ring', value: 'offset-4', raw: 'ring-offset-4' }));
-      expect(parseUtility('ring-red-500')).toEqual(baseUtility({ prefix: 'ring', value: 'red-500', raw: 'ring-red-500' }));
-      expect(parseUtility('ring-opacity-50')).toEqual(baseUtility({ prefix: 'ring', value: 'opacity-50', raw: 'ring-opacity-50' }));
-      expect(parseUtility('ring-')).toEqual({ type: 'unknown', raw: 'ring-' });
+  describe('borderR (from border.ts)', () => {
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-r', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(borderR(utility, mockContext)).toEqual({ borderRightWidth: '2px' });
     });
+  });
+
+  describe('borderB (from border.ts)', () => {
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-b', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(borderB(utility, mockContext)).toEqual({ borderBottomWidth: '2px' });
+    });
+  });
+
+  describe('borderL (from border.ts)', () => {
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-l', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(borderL(utility, mockContext)).toEqual({ borderLeftWidth: '2px' });
+    });
+  });
+
+  describe('borderS (logical start from border-width.ts)', () => {
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-s', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(borderS(utility, mockContext)).toEqual({ borderInlineStartWidth: '2px' });
+    });
+  });
+
+  describe('borderE (logical end from border-width.ts)', () => {
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'border-e', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(borderE(utility, mockContext)).toEqual({ borderInlineEndWidth: '2px' });
+    });
+  });
+});
+
+describe('Border Radius Converters', () => {
+  describe('rounded', () => {
+    it('should handle no value (default to 0.25rem)', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded', 
+        value: '', 
+        numeric: false, 
+        important: false 
+      };
+      expect(rounded(utility, mockContext)).toEqual({ borderRadius: '0.25rem' });
+    });
+
+    it('should handle theme values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded', 
+        value: 'md', 
+        numeric: false, 
+        important: false 
+      };
+      expect(rounded(utility, mockContext)).toEqual({ borderRadius: '0.375rem' });
+    });
+
+    it('should handle arbitrary values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded', 
+        value: '', 
+        numeric: false, 
+        important: false,
+        arbitrary: true,
+        arbitraryValue: '4px'
+      };
+      expect(rounded(utility, mockContext)).toEqual({ borderRadius: '4px' });
+    });
+
+    it('should handle custom properties', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded', 
+        value: '--my-radius', 
+        numeric: false, 
+        important: false,
+        customProperty: true
+      };
+      expect(rounded(utility, mockContext)).toEqual({ borderRadius: 'var(--my-radius)' });
+    });
+
+    it('should handle important flag', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded', 
+        value: 'md', 
+        numeric: false, 
+        important: true 
+      };
+      expect(rounded(utility, mockContext)).toEqual({ borderRadius: '0.375rem !important' });
+    });
+  });
+
+  describe('roundedT', () => {
+    it('should handle no value (default to 0.25rem)', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded-t', 
+        value: '', 
+        numeric: false, 
+        important: false 
+      };
+      expect(roundedT(utility, mockContext)).toEqual({
+        borderTopLeftRadius: '0.25rem',
+        borderTopRightRadius: '0.25rem'
+      });
+    });
+
+    it('should handle theme values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded-t', 
+        value: 'md', 
+        numeric: false, 
+        important: false 
+      };
+      expect(roundedT(utility, mockContext)).toEqual({
+        borderTopLeftRadius: '0.375rem',
+        borderTopRightRadius: '0.375rem'
+      });
+    });
+  });
+
+  describe('roundedTl', () => {
+    it('should handle no value (default to 0.25rem)', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded-tl', 
+        value: '', 
+        numeric: false, 
+        important: false 
+      };
+      expect(roundedTl(utility, mockContext)).toEqual({ borderTopLeftRadius: '0.25rem' });
+    });
+
+    it('should handle theme values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded-tl', 
+        value: 'md', 
+        numeric: false, 
+        important: false 
+      };
+      expect(roundedTl(utility, mockContext)).toEqual({ borderTopLeftRadius: '0.375rem' });
+    });
+  });
+
+  describe('roundedTr', () => {
+    it('should handle theme values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded-tr', 
+        value: 'md', 
+        numeric: false, 
+        important: false 
+      };
+      expect(roundedTr(utility, mockContext)).toEqual({ borderTopRightRadius: '0.375rem' });
+    });
+  });
+
+  describe('roundedBr', () => {
+    it('should handle theme values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded-br', 
+        value: 'md', 
+        numeric: false, 
+        important: false 
+      };
+      expect(roundedBr(utility, mockContext)).toEqual({ borderBottomRightRadius: '0.375rem' });
+    });
+  });
+
+  describe('roundedBl', () => {
+    it('should handle theme values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'rounded-bl', 
+        value: 'md', 
+        numeric: false, 
+        important: false 
+      };
+      expect(roundedBl(utility, mockContext)).toEqual({ borderBottomLeftRadius: '0.375rem' });
+    });
+  });
+
+  describe('Logical Property Functions', () => {
+    describe('roundedSs', () => {
+      it('should handle no value (default to 0.25rem)', () => {
+        const utility: ParsedClassToken = { 
+          prefix: 'rounded-ss', 
+          value: '', 
+          numeric: false, 
+          important: false 
+        };
+        expect(roundedSs(utility, mockContext)).toEqual({ borderStartStartRadius: '0.25rem' });
+      });
+
+      it('should handle theme values', () => {
+        const utility: ParsedClassToken = { 
+          prefix: 'rounded-ss', 
+          value: 'md', 
+          numeric: false, 
+          important: false 
+        };
+        expect(roundedSs(utility, mockContext)).toEqual({ borderStartStartRadius: '0.375rem' });
+      });
+
+      it('should handle arbitrary values', () => {
+        const utility: ParsedClassToken = { 
+          prefix: 'rounded-ss', 
+          value: '', 
+          numeric: false, 
+          important: false,
+          arbitrary: true,
+          arbitraryValue: '8px'
+        };
+        expect(roundedSs(utility, mockContext)).toEqual({ borderStartStartRadius: '8px' });
+      });
+    });
+
+    describe('roundedSe', () => {
+      it('should handle no value (default to 0.25rem)', () => {
+        const utility: ParsedClassToken = { 
+          prefix: 'rounded-se', 
+          value: '', 
+          numeric: false, 
+          important: false 
+        };
+        expect(roundedSe(utility, mockContext)).toEqual({ borderStartEndRadius: '0.25rem' });
+      });
+
+      it('should handle theme values', () => {
+        const utility: ParsedClassToken = { 
+          prefix: 'rounded-se', 
+          value: 'lg', 
+          numeric: false, 
+          important: false 
+        };
+        expect(roundedSe(utility, mockContext)).toEqual({ borderStartEndRadius: '0.5rem' });
+      });
+    });
+
+    describe('roundedEs', () => {
+      it('should handle no value (default to 0.25rem)', () => {
+        const utility: ParsedClassToken = { 
+          prefix: 'rounded-es', 
+          value: '', 
+          numeric: false, 
+          important: false 
+        };
+        expect(roundedEs(utility, mockContext)).toEqual({ borderEndStartRadius: '0.25rem' });
+      });
+
+      it('should handle custom properties', () => {
+        const utility: ParsedClassToken = { 
+          prefix: 'rounded-es', 
+          value: '--my-radius', 
+          numeric: false, 
+          important: false,
+          customProperty: true
+        };
+        expect(roundedEs(utility, mockContext)).toEqual({ borderEndStartRadius: 'var(--my-radius)' });
+      });
+    });
+
+    describe('roundedEe', () => {
+      it('should handle no value (default to 0.25rem)', () => {
+        const utility: ParsedClassToken = { 
+          prefix: 'rounded-ee', 
+          value: '', 
+          numeric: false, 
+          important: false 
+        };
+        expect(roundedEe(utility, mockContext)).toEqual({ borderEndEndRadius: '0.25rem' });
+      });
+
+      it('should handle important flag', () => {
+        const utility: ParsedClassToken = { 
+          prefix: 'rounded-ee', 
+          value: 'xl', 
+          numeric: false, 
+          important: true 
+        };
+        expect(roundedEe(utility, mockContext)).toEqual({ borderEndEndRadius: '0.75rem !important' });
+      });
+    });
+  });
+});
+
+describe('Divide Converters', () => {
+  describe('divideX', () => {
+    it('should handle no value (default to 1px)', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'divide-x', 
+        value: '', 
+        numeric: false, 
+        important: false 
+      };
+      expect(divideX(utility, mockContext)).toEqual({
+        '& > :not(:last-child)': {
+          borderInlineStartWidth: '0px',
+          borderInlineEndWidth: '1px'
+        }
+      });
+    });
+
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'divide-x', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(divideX(utility, mockContext)).toEqual({
+        '& > :not(:last-child)': {
+          borderInlineStartWidth: '0px',
+          borderInlineEndWidth: '2px'
+        }
+      });
+    });
+
+    it('should handle zero value', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'divide-x', 
+        value: '0', 
+        numeric: false, 
+        important: false 
+      };
+      expect(divideX(utility, mockContext)).toEqual({
+        '& > :not(:last-child)': {
+          borderInlineStartWidth: '0px',
+          borderInlineEndWidth: '0px'
+        }
+      });
+    });
+
+    it('should handle arbitrary values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'divide-x', 
+        value: '', 
+        numeric: false, 
+        important: false,
+        arbitrary: true,
+        arbitraryValue: '3px'
+      };
+      expect(divideX(utility, mockContext)).toEqual({
+        '& > :not(:last-child)': {
+          borderInlineStartWidth: '0px',
+          borderInlineEndWidth: '3px'
+        }
+      });
+    });
+  });
+
+  describe('divideY', () => {
+    it('should handle no value (default to 1px)', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'divide-y', 
+        value: '', 
+        numeric: false, 
+        important: false 
+      };
+      expect(divideY(utility, mockContext)).toEqual({
+        '& > :not(:last-child)': {
+          borderTopWidth: '0px',
+          borderBottomWidth: '1px'
+        }
+      });
+    });
+
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'divide-y', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(divideY(utility, mockContext)).toEqual({
+        '& > :not(:last-child)': {
+          borderTopWidth: '0px',
+          borderBottomWidth: '2px'
+        }
+      });
+    });
+  });
+});
+
+describe('Edge Cases and Error Handling', () => {
+  it('should handle undefined values gracefully', () => {
+    const utility: ParsedClassToken = { 
+      prefix: 'border', 
+      value: undefined as any, 
+      numeric: false, 
+      important: false 
+    };
+    expect(border(utility, mockContext)).toEqual({ borderWidth: '1px' });
+  });
+
+  it('should handle empty context gracefully', () => {
+    const emptyContext: CssmaContext = {
+      theme: () => undefined
+    };
+    const utility: ParsedClassToken = { 
+      prefix: 'border', 
+      value: 'red-500', 
+      numeric: false, 
+      important: false 
+    };
+    expect(border(utility, emptyContext)).toEqual({});
+  });
+
+  it('should handle missing arbitraryValue', () => {
+    const utility: ParsedClassToken = { 
+      prefix: 'border', 
+      value: '', 
+      numeric: false, 
+      important: false,
+      arbitrary: true
+      // arbitraryValue is missing
+    };
+    expect(border(utility, mockContext)).toEqual({});
+  });
+
+  it('should handle negative values for border width', () => {
+    const utility: ParsedClassToken = { 
+      prefix: 'border', 
+      value: '2', 
+      numeric: true, 
+      important: false,
+      negative: true
+    };
+    expect(border(utility, mockContext)).toEqual({ borderWidth: '-2px' });
   });
 }); 

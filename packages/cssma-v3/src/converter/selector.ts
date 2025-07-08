@@ -39,4 +39,3 @@ export function selectorTreeToCssSelector(
   if (media) selector = `${media} { ${selector} }`;
   return selector;
 } 
-} 

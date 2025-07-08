@@ -49,16 +49,21 @@ export const bg = (utility: ParsedClassToken, ctx: CssmaContext) => {
   }
 
   // 4. 나머지 → backgroundColor
-  let value = utility.value?.replace(/-/g, '.');
-
-  // 컬러 프리셋 체크
-  // 예를 들어 bg-red-500 이면 colors.red 가 프리셋에 있는지 확인
-  // 있으면 colors.red.500 을 가져옴
-  if (ctx.hasPreset('colors', value.split('-')[0])) {
-    return { backgroundColor: ctx.theme('colors', value) + importantString };
+  if (!utility.value) {
+    return { backgroundColor: undefined };
   }
 
-  // 없으면 colors.red-500 을 가져옴
+  // Handle theme colors: bg-red-500
+  if (utility.value && utility.value.includes('-')) {
+    const colorPath = utility.value.replace(/-(\d+)$/, '.$1');
+    const css = ctx.config(`theme.colors.${colorPath}`);
+    if (css && isColorValue(css)) {
+      return { backgroundColor: css + importantString };
+    }
+  }
+
+  // Fallback: try theme function
+  let value = utility.value?.replace(/-/g, '.');
   let css = value === undefined ? undefined : ctx.theme?.('colors', value as string | number) ?? value;
   if (css !== undefined && importantString) css += importantString;
   return { backgroundColor: css };

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { parseUtility } from '../../src/parser/parseUtility';
 import { baseUtility } from './base';
-import { from, via, to } from '../../src/converter/cssmaps/etc';
+import { from, via, to } from '../../src/converter/cssmaps/gradient-stops';
 
 describe('parseUtility (gradient)', () => {
   describe('bg-gradient', () => {

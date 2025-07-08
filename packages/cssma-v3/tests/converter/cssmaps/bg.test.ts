@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { bg } from "../../../src/converter/cssmaps/bg";
-import { bgGradient, bgGradientTo } from "../../../src/converter/cssmaps/etc";
+import { bgGradient } from "../../../src/converter/cssmaps/bg-gradient";
+import { bgGradientTo } from "../../../src/converter/cssmaps/bg-gradient-to";
 import { theme as themeGetter } from "../../../src/config/theme-getter";
 import type { CssmaContext } from "../../../src/theme-types";
 import type { ParsedClassToken } from "../../../src/parser/utils";
@@ -28,9 +29,21 @@ const mockTheme = {
     },
   },
 };
+
+// Helper function to traverse nested object by path
+const getByPath = (obj: any, path: string): any => {
+  return path.split('.').reduce((current, key) => current?.[key], obj);
+};
+
 const mockContext: CssmaContext = {
   theme: (...args) => themeGetter(mockTheme, ...args),
-  config: () => undefined,
+  config: (path: string) => {
+    if (path.startsWith('theme.')) {
+      const themePath = path.replace('theme.', '');
+      return getByPath(mockTheme, themePath);
+    }
+    return undefined;
+  },
   plugins: [],
 };
 

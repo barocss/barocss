@@ -1,53 +1,290 @@
 import { describe, it, expect } from 'vitest';
-import { parseUtility } from '../../src/parser/parseUtility';
-import { baseUtility } from './base';
+import type { ParsedClassToken } from '../../src/parser/utils';
+import { createContext } from '../../src/config/context';
+import type { CssmaConfig } from '../../src/theme-types';
 
-describe('parseUtility (outline)', () => {
-  describe('outline-style', () => {
-    it('should parse Tailwind v4 outline style classes', () => {
-      expect(parseUtility('outline-none')).toEqual(baseUtility({ prefix: 'outline', value: 'none', raw: 'outline-none' }));
-      expect(parseUtility('outline')).toEqual(baseUtility({ prefix: 'outline', raw: 'outline' }));
-      expect(parseUtility('outline-dashed')).toEqual(baseUtility({ prefix: 'outline', value: 'dashed', raw: 'outline-dashed' }));
-      expect(parseUtility('outline-dotted')).toEqual(baseUtility({ prefix: 'outline', value: 'dotted', raw: 'outline-dotted' }));
-      expect(parseUtility('outline-double')).toEqual(baseUtility({ prefix: 'outline', value: 'double', raw: 'outline-double' }));
-      expect(parseUtility('outline-solid')).toEqual(baseUtility({ prefix: 'outline', value: 'solid', raw: 'outline-solid' }));
-      expect(parseUtility('outline-hidden')).toEqual(baseUtility({ prefix: 'outline', value: 'hidden', raw: 'outline-hidden' }));
-      expect(parseUtility('outline-')).toEqual({ type: 'unknown', raw: 'outline-' });
+// Import outline converters
+import {
+  outline,
+  outlineOffset
+} from '../../src/converter/cssmaps/outline';
+
+// Create proper context with theme colors
+const config: CssmaConfig = {
+  theme: {
+    colors: {
+      red: {
+        '50': '#fef2f2',
+        '100': '#fee2e2',
+        '500': '#ef4444',
+        '900': '#7f1d1d'
+      },
+      blue: {
+        '100': '#dbeafe',
+        '500': '#3b82f6',
+        '600': '#2563eb'
+      },
+      gray: {
+        '200': '#e5e7eb',
+        '400': '#9ca3af'
+      }
+    }
+  }
+};
+
+const mockContext = createContext(config);
+
+describe('Outline Converters', () => {
+  describe('outline (integrated)', () => {
+    it('should handle no value (default to 1px)', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: '', 
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineWidth: '1px' });
+    });
+
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: '2', 
+        numeric: true, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineWidth: '2px' });
+    });
+
+    it('should handle arbitrary width values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: '', 
+        arbitrary: true,
+        arbitraryValue: '3px',
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineWidth: '3px' });
+    });
+
+    it('should handle arbitrary color values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: '', 
+        arbitrary: true,
+        arbitraryValue: '#ff0000',
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineColor: '#ff0000' });
+    });
+
+    it('should handle arbitrary style values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: '', 
+        arbitrary: true,
+        arbitraryValue: 'dashed',
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineStyle: 'dashed' });
+    });
+
+    it('should handle theme colors', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: 'red-500', 
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineColor: '#ef4444' });
+    });
+
+    it('should handle outline styles', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: 'solid', 
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineStyle: 'solid' });
+    });
+
+    it('should handle outline-hidden special case', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: 'hidden', 
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ 
+        outline: '2px solid transparent',
+        outlineOffset: '2px'
+      });
+    });
+
+    it('should handle custom properties with type prefix', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: 'length:--my-width',
+        customProperty: true,
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineWidth: 'var(--my-width)' });
+    });
+
+    it('should handle custom properties for color', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: 'color:--my-color',
+        customProperty: true,
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineColor: 'var(--my-color)' });
+    });
+
+    it('should handle important flag', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: '2', 
+        numeric: true, 
+        important: true 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineWidth: '2px !important' });
+    });
+
+    it('should handle CSS color keywords', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: 'transparent', 
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineColor: 'transparent' });
     });
   });
 
-  describe('outline-width', () => {
-    it('should parse Tailwind v4 outline width classes', () => {
-      expect(parseUtility('outline-0')).toEqual(baseUtility({ prefix: 'outline', value: '0', numeric: true, raw: 'outline-0' }));
-      expect(parseUtility('outline-2')).toEqual(baseUtility({ prefix: 'outline', value: '2', numeric: true, raw: 'outline-2' }));
-      expect(parseUtility('outline-4')).toEqual(baseUtility({ prefix: 'outline', value: '4', numeric: true, raw: 'outline-4' }));
-      expect(parseUtility('outline-8')).toEqual(baseUtility({ prefix: 'outline', value: '8', numeric: true, raw: 'outline-8' }));
-      expect(parseUtility('outline-[3px]')).toEqual(baseUtility({ prefix: 'outline', value: '3px', arbitrary: true, arbitraryValue: '3px', raw: 'outline-[3px]' }));
-      expect(parseUtility('outline-[0.5rem]')).toEqual(baseUtility({ prefix: 'outline', value: '0.5rem', arbitrary: true, arbitraryValue: '0.5rem', raw: 'outline-[0.5rem]' }));
-      expect(parseUtility('outline-')).toEqual({ type: 'unknown', raw: 'outline-' });
+  describe('outlineOffset', () => {
+    it('should handle no value (default to 2px)', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline-offset', 
+        value: '', 
+        numeric: false, 
+        important: false 
+      };
+      expect(outlineOffset(utility, mockContext)).toEqual({ outlineOffset: '2px' });
+    });
+
+    it('should handle numeric values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline-offset', 
+        value: '4', 
+        numeric: true, 
+        important: false 
+      };
+      expect(outlineOffset(utility, mockContext)).toEqual({ outlineOffset: '4px' });
+    });
+
+    it('should handle zero value', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline-offset', 
+        value: '0', 
+        numeric: true, 
+        important: false 
+      };
+      expect(outlineOffset(utility, mockContext)).toEqual({ outlineOffset: '0px' });
+    });
+
+    it('should handle negative values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: '-outline-offset', 
+        value: '-2', 
+        numeric: false, 
+        important: false 
+      };
+      expect(outlineOffset(utility, mockContext)).toEqual({ outlineOffset: 'calc(2px * -1)' });
+    });
+
+    it('should handle arbitrary values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline-offset', 
+        value: '', 
+        arbitrary: true,
+        arbitraryValue: '3px',
+        numeric: false, 
+        important: false 
+      };
+      expect(outlineOffset(utility, mockContext)).toEqual({ outlineOffset: '3px' });
+    });
+
+    it('should handle custom properties', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline-offset', 
+        value: '--my-offset',
+        customProperty: true,
+        numeric: false, 
+        important: false 
+      };
+      expect(outlineOffset(utility, mockContext)).toEqual({ outlineOffset: 'var(--my-offset)' });
+    });
+
+    it('should handle important flag', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline-offset', 
+        value: '4', 
+        numeric: true, 
+        important: true 
+      };
+      expect(outlineOffset(utility, mockContext)).toEqual({ outlineOffset: '4px !important' });
     });
   });
 
-  describe('outline-color', () => {
-    it('should parse Tailwind v4 outline color classes', () => {
-      expect(parseUtility('outline-black')).toEqual(baseUtility({ prefix: 'outline', value: 'black', raw: 'outline-black' }));
-      expect(parseUtility('outline-white')).toEqual(baseUtility({ prefix: 'outline', value: 'white', raw: 'outline-white' }));
-      expect(parseUtility('outline-red-500')).toEqual(baseUtility({ prefix: 'outline', value: 'red-500', raw: 'outline-red-500' }));
-      expect(parseUtility('outline-blue-300')).toEqual(baseUtility({ prefix: 'outline', value: 'blue-300', raw: 'outline-blue-300' }));
-      expect(parseUtility('outline-[color:rebeccapurple]')).toEqual(baseUtility({ prefix: 'outline', value: 'color:rebeccapurple', arbitrary: true, arbitraryValue: 'color:rebeccapurple', raw: 'outline-[color:rebeccapurple]' }));
-      expect(parseUtility('outline-')).toEqual({ type: 'unknown', raw: 'outline-' });
+  describe('Edge Cases and Error Handling', () => {
+    it('should handle undefined values gracefully', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineWidth: '1px' });
     });
-  });
 
-  describe('outline-offset', () => {
-    it('should parse Tailwind v4 outline offset classes', () => {
-      expect(parseUtility('outline-offset-0')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-0', raw: 'outline-offset-0' }));
-      expect(parseUtility('outline-offset-2')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-2', raw: 'outline-offset-2' }));
-      expect(parseUtility('outline-offset-4')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-4', raw: 'outline-offset-4' }));
-      expect(parseUtility('outline-offset-8')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-8', raw: 'outline-offset-8' }));
-      expect(parseUtility('outline-offset-[3px]')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-[3px]', raw: 'outline-offset-[3px]' }));
-      expect(parseUtility('outline-offset-[0.5rem]')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-[0.5rem]', raw: 'outline-offset-[0.5rem]' }));
-      expect(parseUtility('outline-offset-')).toEqual(baseUtility({ prefix: 'outline', value: 'offset-', raw: 'outline-offset-' }));
+    it('should handle non-existent theme colors', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: 'purple-999', 
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineWidth: 'purple-999' });
+    });
+
+    it('should handle empty arbitrary values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: '', 
+        arbitrary: true,
+        arbitraryValue: '',
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({});
+    });
+
+    it('should handle complex arbitrary values', () => {
+      const utility: ParsedClassToken = { 
+        prefix: 'outline', 
+        value: '', 
+        arbitrary: true,
+        arbitraryValue: 'rgba(255,0,0,0.5)',
+        numeric: false, 
+        important: false 
+      };
+      expect(outline(utility, mockContext)).toEqual({ outlineColor: 'rgba(255,0,0,0.5)' });
     });
   });
 }); 

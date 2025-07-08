@@ -38,6 +38,8 @@ import {
   borderR,
   borderX,
   borderY,
+  borderS,
+  borderE,
 } from "./cssmaps/border";
 import { shadow, opacity } from "./cssmaps/effect";
 import { w, h, minW, maxW, minH, maxH } from "./cssmaps/sizing";
@@ -45,25 +47,41 @@ import { font, leading, tracking, lineClamp } from "./cssmaps/typography";
 import { flex, gridCols, gap, items, justify } from "./cssmaps/flexgrid";
 import { scale, rotate } from "./cssmaps/transform";
 import { table, tableRow, tableCell } from "./cssmaps/table";
+// Layout utilities
 import {
   appearance,
-  writingMode,
-  userSelect,
-  float,
-  clear,
   overflow,
   overflowX,
   overflowY,
-  truncate,
-  pointerEvents,
-  select,
-  resize,
   isolation,
-  mixBlend,
-  filter,
-  backdrop,
-  content,
   z,
+  inset,
+  top,
+  left,
+  right,
+  bottom,
+  box,
+  boxDecoration,
+  visible,
+  invisible,
+  collapse,
+  display,
+  container,
+  static_ as staticUtil,
+  fixed as fixedUtil,
+  absolute as absoluteUtil,
+  relative as relativeUtil,
+  sticky as stickyUtil,
+  float,
+  clear,
+  pointerEvents,
+  resize,
+  srOnly,
+  notSrOnly,
+} from "./cssmaps/layout";
+
+// Flexbox & Grid utilities
+import {
   order,
   placeContent,
   placeItems,
@@ -73,53 +91,89 @@ import {
   alignSelf,
   justifyItems,
   justifySelf,
-  inset,
-  top,
-  left,
-  right,
-  bottom,
-  box,
-  boxDecoration,
-  borderCollapse,
-  borderSeparate,
-  dropShadow,
-  breakInside,
-  breakBefore,
-  breakAfter,
-  decoration,
-  outline,
+} from "./cssmaps/flexbox-grid";
+
+// Interactivity utilities
+import {
+  userSelect,
+  select,
+  cursor,
   accent,
   caret,
-  fill,
-  scheme,
-  visible,
-  invisible,
-  collapse,
+  fieldSizing,
+  fieldSizingFixed,
+  fieldSizingContent,
+} from "./cssmaps/interactivity";
+
+// Transform utilities
+import {
+  origin,
+  transform,
+  transformOrigin,
+  transformStyle,
+  translate,
+  translateX,
+  translateY,
+  translateZ,
+  skew,
+  skewX,
+  skewY,
+  scaleX,
+  scaleY,
+  scaleZ,
+  rotateX,
+  rotateY,
+  rotateZ,
+  perspective,
+  perspectiveOrigin,
+  backfaceHidden,
+  backfaceVisible,
+  backfaceVisibility,
+} from "./cssmaps/transforms";
+
+// Typography extended utilities
+import {
+  truncate,
   whitespace,
-  display,
-  container,
-  cursor,
-  placeholder,
-  static_ as staticUtil,
-  fixed as fixedUtil,
-  absolute as absoluteUtil,
-  relative as relativeUtil,
-  sticky as stickyUtil,
-  sub,
-  sup,
-  srOnly,
-  notSrOnly,
   hyphens,
   list,
   listStyleType,
-  outlineWidth,
-  outlineStyle,
-  outlineOffset,
-  maskType,
-  maskSize,
-  maskRepeat,
-  maskPosition,
-  maskMode,
+  decoration,
+  underline,
+  underlineOffset,
+  overline,
+  lineThrough,
+  noUnderline,
+  normalCase,
+  textEllipsis,
+  textClip,
+  uppercase,
+  lowercase,
+  capitalize,
+  textShadow,
+  indent,
+  overflowWrap,
+  break_ as breakUtil,
+  word,
+} from "./cssmaps/typography-extended";
+
+// Effects utilities
+import {
+  mixBlend,
+  filter,
+  backdrop,
+  dropShadow,
+} from "./cssmaps/effects";
+
+// SVG utilities
+import {
+  fill,
+  stroke,
+  strokeWidth,
+} from "./cssmaps/svg";
+
+// Scroll utilities
+import {
   overscroll,
   overscrollX,
   overscrollY,
@@ -144,72 +198,59 @@ import {
   snapX,
   snapY,
   snapAlign,
-  origin,
-  transform,
-  transformOrigin,
-  transformStyle,
-  translate,
-  translateX,
-  translateY,
-  translateZ,
-  skew,
-  skewX,
-  skewY,
-  scaleX,
-  scaleY,
-  scaleZ,
-  rotateX,
-  rotateY,
-  rotateZ,
-  perspective,
-  perspectiveOrigin,
-  backfaceHidden,
-  backfaceVisible,
-  backfaceVisibility,
-  fieldSizing,
-  fieldSizingFixed,
-  fieldSizingContent,
+} from "./cssmaps/scroll";
+
+// Miscellaneous utilities
+import {
+  writingMode,
+  content,
+  borderCollapse,
+  borderSeparate,
+  breakInside,
+  breakBefore,
+  breakAfter,
+  maskType,
+  maskSize,
+  maskRepeat,
+  maskPosition,
+  maskMode,
   size,
-  stroke,
-  strokeWidth,
-  bgGradient,
-  bgGradientTo,
+  placeholder,
+  scheme,
+  sub,
+  sup,
+  gradient,
+} from "./cssmaps/misc";
+
+// Gradient stop utilities
+import {
   from,
   via,
   to,
-  gradient,
-  indent,
-  overflowWrap,
-  break_ as breakUtil,
-  word,
-  textShadow,
-  underline,
-  underlineOffset,
-  overline,
-  lineThrough,
-  noUnderline,
-  normalCase,
-  textEllipsis,
-  textClip,
-  uppercase,
-  lowercase,
-  capitalize,
-} from "./cssmaps/etc";
+} from "./cssmaps/gradient-stops";
+
+import { bgGradient } from "./cssmaps/bg-gradient";
+import { bgGradientTo } from "./cssmaps/bg-gradient-to";
 import { aspect } from "./cssmaps/aspect";
 import { object } from "./cssmaps/object";
 import { ring } from "./cssmaps/ring";
-import { divide, divideX, divideY } from "./cssmaps/divide";
 import { transition, duration, delay, ease } from "./cssmaps/transition";
 import { animate } from "./cssmaps/animate";
 import { bgSize } from "./cssmaps/bg-size";
 import { bgPosition } from "./cssmaps/bg-position";
+import { rounded, roundedB, roundedBl, roundedBr, roundedE, roundedEe, roundedEs, roundedL, roundedR, roundedS, roundedSe, roundedSs, roundedT, roundedTl, roundedTr } from "./cssmaps/rounded";
+import { outline, outlineOffset } from "./cssmaps/outline";
+import { divideX, divideY } from "./cssmaps/divide";
+
+type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
+
 
 export const utilityToCss: Record<
   string,
   (
     utility: ParsedClassToken,
     context: CssmaContext
-  ) => Record<string, string | undefined> | undefined
+  ) => Record<string, CssmaCssValue> | undefined
 > = {
   bg: bg,
   "bg-none": bg,
@@ -245,6 +286,24 @@ export const utilityToCss: Record<
   "border-r": borderR,
   "border-x": borderX,
   "border-y": borderY,
+  "border-s": borderS,
+  "border-e": borderE,
+  "rounded-ss": roundedSs,
+  "rounded-se": roundedSe,
+  "rounded-es": roundedEs,
+  "rounded-ee": roundedEe,
+  "rounded-bl": roundedBl,
+  "rounded-br": roundedBr,
+  "rounded-tl": roundedTl,
+  "rounded-tr": roundedTr,
+  "rounded-b": roundedB,
+  "rounded-l": roundedL,
+  "rounded-r": roundedR,
+  "rounded-t": roundedT,
+  "rounded-s": roundedS,
+  "rounded-e": roundedE,
+  "rounded": rounded,
+
   shadow: shadow,
   opacity: opacity,
   w: w,
@@ -302,7 +361,6 @@ export const utilityToCss: Record<
   aspect: aspect,
   object: object,
   ring: ring,
-  divide: divide,
   "divide-x": divideX,
   "divide-y": divideY,
   transition: transition,
@@ -319,6 +377,7 @@ export const utilityToCss: Record<
   "break-before": breakBefore,
   "break-after": breakAfter,
   decoration: decoration,
+  "outline-offset": outlineOffset,
   outline: outline,
   accent: accent,
   caret: caret,
@@ -344,9 +403,6 @@ export const utilityToCss: Record<
   hyphens: hyphens,
   list: list,
   "list-style-type": listStyleType,
-  "outline-width": outlineWidth,
-  "outline-style": outlineStyle,
-  "outline-offset": outlineOffset,
   "mask-type": maskType,
   "mask-size": maskSize,
   "mask-repeat": maskRepeat,
