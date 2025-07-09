@@ -47,10 +47,10 @@ export const underline = () => ({
   textDecoration: 'underline' 
 });
 
-// underline-offset
-export const underlineOffset = (utility: ParsedClassToken) => ({ 
-  textUnderlineOffset: utility.value + (utility.important ? ' !important' : '') 
-});
+// // underline-offset
+// export const underlineOffset = (utility: ParsedClassToken) => ({ 
+//   textUnderlineOffset: utility.value + (utility.important ? ' !important' : '') 
+// });
 
 // overline
 export const overline = () => ({ 

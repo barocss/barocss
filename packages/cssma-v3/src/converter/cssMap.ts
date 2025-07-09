@@ -1,3 +1,4 @@
+
 // Tailwind 주요 유틸리티 → CSS 속성/값 매핑 테이블/함수
 import type { ParsedClassToken } from "../parser/utils";
 import type { CssmaContext } from "../theme-types";
@@ -13,7 +14,7 @@ import { bgBlend } from "./cssmaps/bg-blend";
 import { bgFixed } from "./cssmaps/bg-fixed";
 import { bgLocal } from "./cssmaps/bg-local";
 import { bgScroll } from "./cssmaps/bg-scroll";
-import { text } from "./cssmaps/text";
+import { text } from "./cssmaps/text-unified";
 import {
   m,
   mx,
@@ -43,7 +44,40 @@ import {
 } from "./cssmaps/border";
 import { shadow, opacity } from "./cssmaps/effect";
 import { w, h, minW, maxW, minH, maxH } from "./cssmaps/sizing";
-import { font, leading, tracking, lineClamp } from "./cssmaps/typography";
+// Typography utilities (new structure)
+import {
+  font,
+  fontStyle,
+  fontSmoothing,
+  fontVariantNumeric,
+} from "./cssmaps/font";
+import { verticalAlign } from "./cssmaps/text-align";
+import {
+  textDecoration,
+  textDecorationLine,
+  underlineOffset,
+} from "./cssmaps/text-decoration";
+import {
+  textIndent,
+  whiteSpace,
+  wordBreak,
+  overflowWrap as overflowWrapNew,
+  hyphens as hyphensNew,
+  lineHeight,
+  letterSpacing,
+  lineClamp as lineClampNew,
+} from "./cssmaps/text-layout";
+import {
+  textTransform,
+  textShadow as textShadowNew,
+} from "./cssmaps/text-effects";
+import {
+  listStyleType as listStyleTypeNew,
+  listStylePosition,
+  listStyleImage,
+} from "./cssmaps/list-style";
+import { content } from "./cssmaps/content";
+
 import { flex, gridCols, gap, items, justify } from "./cssmaps/flexgrid";
 import { scale, rotate } from "./cssmaps/transform";
 import { table, tableRow, tableCell } from "./cssmaps/table";
@@ -133,44 +167,15 @@ import {
 
 // Typography extended utilities
 import {
-  truncate,
-  whitespace,
-  hyphens,
   list,
-  listStyleType,
-  decoration,
-  underline,
-  underlineOffset,
-  overline,
-  lineThrough,
-  noUnderline,
-  normalCase,
-  textEllipsis,
-  textClip,
-  uppercase,
-  lowercase,
-  capitalize,
-  textShadow,
-  indent,
-  overflowWrap,
-  break_ as breakUtil,
   word,
 } from "./cssmaps/typography-extended";
 
 // Effects utilities
-import {
-  mixBlend,
-  filter,
-  backdrop,
-  dropShadow,
-} from "./cssmaps/effects";
+import { mixBlend, filter, backdrop, dropShadow } from "./cssmaps/effects";
 
 // SVG utilities
-import {
-  fill,
-  stroke,
-  strokeWidth,
-} from "./cssmaps/svg";
+import { fill, stroke, strokeWidth } from "./cssmaps/svg";
 
 // Scroll utilities
 import {
@@ -203,7 +208,6 @@ import {
 // Miscellaneous utilities
 import {
   writingMode,
-  content,
   borderCollapse,
   borderSeparate,
   breakInside,
@@ -223,11 +227,7 @@ import {
 } from "./cssmaps/misc";
 
 // Gradient stop utilities
-import {
-  from,
-  via,
-  to,
-} from "./cssmaps/gradient-stops";
+import { from, via, to } from "./cssmaps/gradient-stops";
 
 import { bgGradient } from "./cssmaps/bg-gradient";
 import { bgGradientTo } from "./cssmaps/bg-gradient-to";
@@ -238,12 +238,27 @@ import { transition, duration, delay, ease } from "./cssmaps/transition";
 import { animate } from "./cssmaps/animate";
 import { bgSize } from "./cssmaps/bg-size";
 import { bgPosition } from "./cssmaps/bg-position";
-import { rounded, roundedB, roundedBl, roundedBr, roundedE, roundedEe, roundedEs, roundedL, roundedR, roundedS, roundedSe, roundedSs, roundedT, roundedTl, roundedTr } from "./cssmaps/rounded";
+import {
+  rounded,
+  roundedB,
+  roundedBl,
+  roundedBr,
+  roundedE,
+  roundedEe,
+  roundedEs,
+  roundedL,
+  roundedR,
+  roundedS,
+  roundedSe,
+  roundedSs,
+  roundedT,
+  roundedTl,
+  roundedTr,
+} from "./cssmaps/rounded";
 import { outline, outlineOffset } from "./cssmaps/outline";
 import { divideX, divideY } from "./cssmaps/divide";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
-
 
 export const utilityToCss: Record<
   string,
@@ -264,7 +279,6 @@ export const utilityToCss: Record<
   "bg-fixed": bgFixed,
   "bg-local": bgLocal,
   "bg-scroll": bgScroll,
-  text: text,
   m: m,
   mx: mx,
   my: my,
@@ -302,7 +316,7 @@ export const utilityToCss: Record<
   "rounded-t": roundedT,
   "rounded-s": roundedS,
   "rounded-e": roundedE,
-  "rounded": rounded,
+  rounded: rounded,
 
   shadow: shadow,
   opacity: opacity,
@@ -312,10 +326,64 @@ export const utilityToCss: Record<
   "max-w": maxW,
   "min-h": minH,
   "max-h": maxH,
+
+  // font utilities
+  italic: fontStyle,
+  "not-italic": fontStyle,
+  
+  // Font smoothing keywords
+  antialiased: fontSmoothing,
+  "subpixel-antialiased": fontSmoothing,
+  
+  // Font variant numeric keywords
+  "normal-nums": fontVariantNumeric,
+  ordinal: fontVariantNumeric,
+  "slashed-zero": fontVariantNumeric,
+  "lining-nums": fontVariantNumeric,
+  "oldstyle-nums": fontVariantNumeric,
+  "proportional-nums": fontVariantNumeric,
+  "tabular-nums": fontVariantNumeric,
+  "diagonal-fractions": fontVariantNumeric,
+  "stacked-fractions": fontVariantNumeric,
+  
+  // Font utilities with values
   font: font,
-  leading: leading,
-  tracking: tracking,
-  "line-clamp": lineClamp,
+  align: verticalAlign,
+  underline: textDecorationLine,
+  overline: textDecorationLine,
+  "line-through": textDecorationLine,
+  "no-underline": textDecorationLine,
+  decoration: textDecoration,
+  "underline-offset": underlineOffset,
+  
+  // Text layout with values
+  indent: textIndent,
+  whitespace: whiteSpace,
+  break: wordBreak,
+  hyphens: hyphensNew,
+  leading: lineHeight,
+  tracking: letterSpacing,
+  "line-clamp": lineClampNew,
+
+  // Text effects utilities (new structure)
+  uppercase: textTransform,
+  lowercase: textTransform,
+  capitalize: textTransform,
+  "normal-case": textTransform,
+  "text-shadow": textShadowNew,
+  "trancate": text,
+  text: text,
+
+  content: content,
+
+  // List style utilities (new structure)
+  "list-style-type": listStyleTypeNew,
+  "list-style-position": listStylePosition,
+  "list-style-image": listStyleImage,
+  "list-inside": listStylePosition,
+  "list-outside": listStylePosition,
+  "list-image": listStyleImage,
+
   flex: flex,
   "grid-cols": gridCols,
   gap: gap,
@@ -334,7 +402,6 @@ export const utilityToCss: Record<
   overflow: overflow,
   "overflow-x": overflowX,
   "overflow-y": overflowY,
-  truncate: truncate,
   "pointer-events": pointerEvents,
   select: select,
   resize: resize,
@@ -342,7 +409,6 @@ export const utilityToCss: Record<
   "mix-blend": mixBlend,
   filter: filter,
   backdrop: backdrop,
-  content: content,
   z: z,
   order: order,
   "place-content": placeContent,
@@ -376,7 +442,6 @@ export const utilityToCss: Record<
   "break-inside": breakInside,
   "break-before": breakBefore,
   "break-after": breakAfter,
-  decoration: decoration,
   "outline-offset": outlineOffset,
   outline: outline,
   accent: accent,
@@ -386,7 +451,6 @@ export const utilityToCss: Record<
   visible: visible,
   invisible: invisible,
   collapse: collapse,
-  whitespace: whitespace,
   display: display,
   container: container,
   cursor: cursor,
@@ -400,9 +464,7 @@ export const utilityToCss: Record<
   sup: sup,
   "sr-only": srOnly,
   "not-sr-only": notSrOnly,
-  hyphens: hyphens,
   list: list,
-  "list-style-type": listStyleType,
   "mask-type": maskType,
   "mask-size": maskSize,
   "mask-repeat": maskRepeat,
@@ -469,21 +531,6 @@ export const utilityToCss: Record<
   via: via,
   to: to,
   gradient: gradient,
-  indent: indent,
-  "overflow-wrap": overflowWrap,
-  break: breakUtil,
   word: word,
-  "text-shadow": textShadow,
-  underline: underline,
-  "underline-offset": underlineOffset,
-  overline: overline,
-  "line-through": lineThrough,
-  "no-underline": noUnderline,
-  "normal-case": normalCase,
-  "text-ellipsis": textEllipsis,
-  "text-clip": textClip,
-  uppercase: uppercase,
-  lowercase: lowercase,
-  capitalize: capitalize,
-  // ... 나머지 prefix도 동일하게 kebab-case로 추가
+
 };

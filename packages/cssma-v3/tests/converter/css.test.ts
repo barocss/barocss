@@ -7,9 +7,15 @@ import { theme as themeGetter } from "../../src/config/theme-getter";
 
 const mockTheme = {
   colors: {
-    "red-500": "#ef4444",
-    "green-500": "#22c55e",
-    "blue-500": "#3b82f6",
+    red: {
+      500: "#ef4444",
+    },
+    green: {
+      500: "#22c55e",
+    },
+    blue: {
+      500: "#3b82f6",
+    },
     white: "#fff",
   },
   spacing: {
@@ -21,12 +27,23 @@ const mockTheme = {
   },
 };
 
+// Helper function to access nested properties
+const getByPath = (obj: any, path: string): any => {
+  return path.split('.').reduce((current, key) => current?.[key], obj);
+};
+
 // Mock CssmaContext
 const mockContext: CssmaContext = {
   theme: (...args) => {
     return themeGetter(mockTheme, ...args);
   },
-  config: () => undefined,
+  config: (path: string) => {
+    if (path.startsWith('theme.')) {
+      const themePath = path.replace('theme.', '');
+      return getByPath(mockTheme, themePath);
+    }
+    return undefined;
+  },
   plugins: [],
 };
 
@@ -90,16 +107,173 @@ describe("cssConverter", () => {
         className: "bg-red-500",
         selectorTree: [{ type: "class", value: ".bg-red-500" }],
         css: "background-color: #ef4444;",
+        selector: ".bg-red-500",
       },
       {
         className: "text-white",
         selectorTree: [{ type: "class", value: ".text-white" }],
         css: "color: #fff;",
+        selector: ".text-white",
       },
       {
         className: "p-4",
         selectorTree: [{ type: "class", value: ".p-4" }],
         css: "padding: 1rem;",
+        selector: ".p-4",
+      },
+    ]);
+  });
+
+  it("converts text-wrap, text-nowrap, text-balance, text-pretty (text-wrap in text-unified)", () => {
+    const parsed: ParsedClass[] = [
+      {
+        original: "text-wrap",
+        utility: {
+          type: "utility",
+          prefix: "text",
+          value: "wrap",
+          preset: false,
+          customProperty: false,
+          arbitrary: false,
+          important: false,
+          negative: false,
+          numeric: false,
+          slash: undefined,
+          raw: "text-wrap",
+        },
+        modifiers: [],
+      },
+      {
+        original: "text-nowrap",
+        utility: {
+          type: "utility",
+          prefix: "text",
+          value: "nowrap",
+          preset: false,
+          customProperty: false,
+          arbitrary: false,
+          important: false,
+          negative: false,
+          numeric: false,
+          slash: undefined,
+          raw: "text-nowrap",
+        },
+        modifiers: [],
+      },
+      {
+        original: "text-balance",
+        utility: {
+          type: "utility",
+          prefix: "text",
+          value: "balance",
+          preset: false,
+          customProperty: false,
+          arbitrary: false,
+          important: false,
+          negative: false,
+          numeric: false,
+          slash: undefined,
+          raw: "text-balance",
+        },
+        modifiers: [],
+      },
+    ];
+    const rules = cssConverter(parsed, mockContext);
+    expect(rules).toEqual([
+      {
+        className: "text-wrap",
+        selectorTree: [{ type: "class", value: ".text-wrap" }],
+        css: "text-wrap: wrap;",
+        selector: ".text-wrap",
+      },
+      {
+        className: "text-nowrap",
+        selectorTree: [{ type: "class", value: ".text-nowrap" }],
+        css: "text-wrap: nowrap;",
+        selector: ".text-nowrap",
+      },
+      {
+        className: "text-balance",
+        selectorTree: [{ type: "class", value: ".text-balance" }],
+        css: "text-wrap: balance;",
+        selector: ".text-balance",
+      },
+    ]);
+  });
+
+  it("converts text-left, text-center, text-right (text-align in text-unified)", () => {
+    const parsed: ParsedClass[] = [
+      {
+        original: "text-left",
+        utility: {
+          type: "utility",
+          prefix: "text",
+          value: "left",
+          preset: false,
+          customProperty: false,
+          arbitrary: false,
+          important: false,
+          negative: false,
+          numeric: false,
+          slash: undefined,
+          raw: "text-left",
+        },
+        modifiers: [],
+      },
+      {
+        original: "text-center",
+        utility: {
+          type: "utility",
+          prefix: "text",
+          value: "center",
+          preset: false,
+          customProperty: false,
+          arbitrary: false,
+          important: false,
+          negative: false,
+          numeric: false,
+          slash: undefined,
+          raw: "text-center",
+        },
+        modifiers: [],
+      },
+      {
+        original: "text-right",
+        utility: {
+          type: "utility",
+          prefix: "text",
+          value: "right",
+          preset: false,
+          customProperty: false,
+          arbitrary: false,
+          important: false,
+          negative: false,
+          numeric: false,
+          slash: undefined,
+          raw: "text-right",
+        },
+        modifiers: [],
+      },
+    ];
+    const rules = cssConverter(parsed, mockContext);
+    expect(rules).toEqual([
+      {
+        className: "text-left",
+        selectorTree: [{ type: "class", value: ".text-left" }],
+        css: "text-align: left;",
+        selector: ".text-left",
+      },
+      {
+        className: "text-center",
+        selectorTree: [{ type: "class", value: ".text-center" }],
+        css: "text-align: center;",
+        selector: ".text-center",
+      },
+      {
+        className: "text-right",
+        selectorTree: [{ type: "class", value: ".text-right" }],
+        css: "text-align: right;",
+        selector: ".text-right",
       },
     ]);
   });

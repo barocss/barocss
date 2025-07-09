@@ -30,9 +30,26 @@ describe('parseUtility (typography)', () => {
 
   describe('underline-offset', () => {
     it('should parse Tailwind v4 underline-offset classes', () => {
+      // Basic numeric values
       expect(parseUtility('underline-offset-1')).toEqual(baseUtility({ prefix: 'underline-offset', value: '1', numeric: true, raw: 'underline-offset-1' }));
       expect(parseUtility('underline-offset-4')).toEqual(baseUtility({ prefix: 'underline-offset', value: '4', numeric: true, raw: 'underline-offset-4' }));
+      expect(parseUtility('underline-offset-8')).toEqual(baseUtility({ prefix: 'underline-offset', value: '8', numeric: true, raw: 'underline-offset-8' }));
+      
+      // Auto keyword
+      expect(parseUtility('underline-offset-auto')).toEqual(baseUtility({ prefix: 'underline-offset', value: 'auto', raw: 'underline-offset-auto' }));
+      
+      // Negative values
+      expect(parseUtility('-underline-offset-1')).toEqual(baseUtility({ prefix: 'underline-offset', value: '1', negative: true, numeric: true, raw: '-underline-offset-1' }));
+      expect(parseUtility('-underline-offset-4')).toEqual(baseUtility({ prefix: 'underline-offset', value: '4', negative: true, numeric: true, raw: '-underline-offset-4' }));
+      
+      // Arbitrary values
       expect(parseUtility('underline-offset-[2px]')).toEqual(baseUtility({ prefix: 'underline-offset', value: '2px', arbitrary: true, arbitraryValue: '2px', raw: 'underline-offset-[2px]' }));
+      expect(parseUtility('underline-offset-[0.5rem]')).toEqual(baseUtility({ prefix: 'underline-offset', value: '0.5rem', arbitrary: true, arbitraryValue: '0.5rem', raw: 'underline-offset-[0.5rem]' }));
+      
+      // Custom properties
+      expect(parseUtility('underline-offset-(--my-offset)')).toEqual(baseUtility({ prefix: 'underline-offset', value: '--my-offset', customProperty: true, raw: 'underline-offset-(--my-offset)' }));
+      
+      // Invalid cases
       expect(parseUtility('underline-offset-')).toEqual({ type: 'unknown', raw: 'underline-offset-' });
     });
   });
@@ -101,9 +118,26 @@ describe('parseUtility (typography)', () => {
 
   describe('indent', () => {
     it('should parse Tailwind v4 indent classes', () => {
+      // Basic numeric values
       expect(parseUtility('indent-0')).toEqual(baseUtility({ prefix: 'indent', value: '0', numeric: true, raw: 'indent-0' }));
       expect(parseUtility('indent-4')).toEqual(baseUtility({ prefix: 'indent', value: '4', numeric: true, raw: 'indent-4' }));
+      expect(parseUtility('indent-8')).toEqual(baseUtility({ prefix: 'indent', value: '8', numeric: true, raw: 'indent-8' }));
+      
+      // Pixel values
+      expect(parseUtility('indent-px')).toEqual(baseUtility({ prefix: 'indent', value: 'px', raw: 'indent-px' }));
+      
+      // Negative values
+      expect(parseUtility('-indent-4')).toEqual(baseUtility({ prefix: 'indent', value: '4', negative: true, numeric: true, raw: '-indent-4' }));
+      expect(parseUtility('-indent-px')).toEqual(baseUtility({ prefix: 'indent', value: 'px', negative: true, raw: '-indent-px' }));
+      
+      // Arbitrary values
       expect(parseUtility('indent-[2em]')).toEqual(baseUtility({ prefix: 'indent', value: '2em', arbitrary: true, arbitraryValue: '2em', raw: 'indent-[2em]' }));
+      expect(parseUtility('indent-[32px]')).toEqual(baseUtility({ prefix: 'indent', value: '32px', arbitrary: true, arbitraryValue: '32px', raw: 'indent-[32px]' }));
+      
+      // Custom properties
+      expect(parseUtility('indent-(--my-indent)')).toEqual(baseUtility({ prefix: 'indent', value: '--my-indent', customProperty: true, raw: 'indent-(--my-indent)' }));
+      
+      // Invalid cases
       expect(parseUtility('indent-')).toEqual({ type: 'unknown', raw: 'indent-' });
     });
   });
