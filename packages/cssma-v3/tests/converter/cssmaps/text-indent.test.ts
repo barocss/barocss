@@ -10,8 +10,10 @@ const mockTheme = {
 const getByPath = (obj: any, path: string): any =>
   path.split('.').reduce((current, key) => current?.[key], obj);
 const mockContext: CssmaContext = {
+  hasPreset: () => false,
   theme: (...args) => themeGetter(mockTheme, ...args),
-  config: (path: string) => {
+  config: (...args: (string|number)[]) => {
+    const path = args[0] as string;
     if (typeof path === "string" && path.startsWith("theme.")) {
       const themePath = path.replace("theme.", "");
       return getByPath(mockTheme, themePath);

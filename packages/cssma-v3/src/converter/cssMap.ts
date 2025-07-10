@@ -42,7 +42,7 @@ import {
   borderS,
   borderE,
 } from "./cssmaps/border";
-import { shadow, opacity } from "./cssmaps/effect";
+import { shadow, opacity, insetShadow } from "./cssmaps/effect";
 import { w, h, minW, maxW, minH, maxH } from "./cssmaps/sizing";
 // Typography utilities (new structure)
 import {
@@ -61,7 +61,6 @@ import {
   textIndent,
   whiteSpace,
   wordBreak,
-  overflowWrap as overflowWrapNew,
   hyphens as hyphensNew,
   lineHeight,
   letterSpacing,
@@ -71,15 +70,21 @@ import {
   textTransform,
   textShadow as textShadowNew,
 } from "./cssmaps/text-effects";
-import {
-  listStyleType as listStyleTypeNew,
-  listStylePosition,
-  listStyleImage,
-} from "./cssmaps/list-style";
+import { list, listStyleImage } from "./cssmaps/list-style";
 import { content } from "./cssmaps/content";
 
-import { flex, gridCols, gap, items, justify } from "./cssmaps/flexgrid";
-import { scale, rotate } from "./cssmaps/transform";
+import {
+  alignContent,
+  alignItems,
+  alignSelf,
+  justify,
+  justifyItems,
+  justifySelf,
+  placeContent,
+  placeItems,
+  placeSelf,
+} from "./cssmaps/flexgrid";
+import { rotate } from "./cssmaps/transform";
 import { table, tableRow, tableCell } from "./cssmaps/table";
 // Layout utilities
 import {
@@ -115,17 +120,7 @@ import {
 } from "./cssmaps/layout";
 
 // Flexbox & Grid utilities
-import {
-  order,
-  placeContent,
-  placeItems,
-  placeSelf,
-  alignContent,
-  alignItems,
-  alignSelf,
-  justifyItems,
-  justifySelf,
-} from "./cssmaps/flexbox-grid";
+import { order } from "./cssmaps/flexbox-grid";
 
 // Interactivity utilities
 import {
@@ -152,9 +147,6 @@ import {
   skew,
   skewX,
   skewY,
-  scaleX,
-  scaleY,
-  scaleZ,
   rotateX,
   rotateY,
   rotateZ,
@@ -166,10 +158,7 @@ import {
 } from "./cssmaps/transforms";
 
 // Typography extended utilities
-import {
-  list,
-  word,
-} from "./cssmaps/typography-extended";
+import { word } from "./cssmaps/typography-extended";
 
 // Effects utilities
 import { mixBlend, filter, backdrop, dropShadow } from "./cssmaps/effects";
@@ -257,6 +246,10 @@ import {
 } from "./cssmaps/rounded";
 import { outline, outlineOffset } from "./cssmaps/outline";
 import { divideX, divideY } from "./cssmaps/divide";
+import { flex } from "./cssmaps/flex";
+import { gridCols } from "./cssmaps/grid-cols";
+import { gap, gapX, gapY } from "./cssmaps/gap";
+import { scale, scaleX, scaleY, scaleZ, scale3d } from "./cssmaps/scale";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -267,129 +260,141 @@ export const utilityToCss: Record<
     context: CssmaContext
   ) => Record<string, CssmaCssValue> | undefined
 > = {
-  bg: bg,
-  "bg-none": bg,
-  "bg-blend": bgBlend,
-  "bg-clip": bgClip,
-  "bg-origin": bgOrigin,
-  "bg-repeat": bgRepeat,
-  "bg-no-repeat": bgNoRepeat,
-  "bg-size": bgSize,
-  "bg-position": bgPosition,
-  "bg-fixed": bgFixed,
-  "bg-local": bgLocal,
-  "bg-scroll": bgScroll,
-  m: m,
-  mx: mx,
-  my: my,
-  mt: mt,
-  mb: mb,
-  ml: ml,
-  mr: mr,
-  p: p,
-  px: px,
-  py: py,
-  pt: pt,
-  pb: pb,
-  pl: pl,
-  pr: pr,
-  border: border,
-  "border-t": borderT,
-  "border-b": borderB,
-  "border-l": borderL,
-  "border-r": borderR,
-  "border-x": borderX,
-  "border-y": borderY,
-  "border-s": borderS,
-  "border-e": borderE,
-  "rounded-ss": roundedSs,
-  "rounded-se": roundedSe,
-  "rounded-es": roundedEs,
-  "rounded-ee": roundedEe,
-  "rounded-bl": roundedBl,
-  "rounded-br": roundedBr,
-  "rounded-tl": roundedTl,
-  "rounded-tr": roundedTr,
-  "rounded-b": roundedB,
-  "rounded-l": roundedL,
-  "rounded-r": roundedR,
-  "rounded-t": roundedT,
-  "rounded-s": roundedS,
-  "rounded-e": roundedE,
-  rounded: rounded,
+  bg: bg, // done
+  "bg-none": bg, // done
+  "bg-blend": bgBlend, // done
+  "bg-clip": bgClip, // done
+  "bg-origin": bgOrigin, // done
+  "bg-repeat": bgRepeat, // done
+  "bg-no-repeat": bgNoRepeat, // done
+  "bg-size": bgSize, // done
+  "bg-position": bgPosition, // done
+  "bg-fixed": bgFixed, // done
+  "bg-local": bgLocal, // done
+  "bg-scroll": bgScroll, // done
+  m: m, // done
+  mx: mx, // done
+  my: my, // done
+  mt: mt, // done
+  mb: mb, // done
+  ml: ml, // done
+  mr: mr, // done
+  p: p, // done
+  px: px, // done
+  py: py, // done
+  pt: pt, // done
+  pb: pb, // done
+  pl: pl, // done
+  pr: pr, // done
+  border: border, // done
+  "border-t": borderT, // done
+  "border-b": borderB, // done
+  "border-l": borderL, // done
+  "border-r": borderR, // done
+  "border-x": borderX, // done
+  "border-y": borderY, // done
+  "border-s": borderS, // done
+  "border-e": borderE, // done
+  "rounded-ss": roundedSs, // done
+  "rounded-se": roundedSe, // done
+  "rounded-es": roundedEs, // done
+  "rounded-ee": roundedEe, // done
+  "rounded-bl": roundedBl, // done
+  "rounded-br": roundedBr, // done
+  "rounded-tl": roundedTl, // done
+  "rounded-tr": roundedTr, // done
+  "rounded-b": roundedB, // done
+  "rounded-l": roundedL, // done
+  "rounded-r": roundedR, // done
+  "rounded-t": roundedT, // done
+  "rounded-s": roundedS, // done
+  "rounded-e": roundedE, // done
+  rounded: rounded, // done
 
-  shadow: shadow,
-  opacity: opacity,
-  w: w,
-  h: h,
-  "min-w": minW,
-  "max-w": maxW,
-  "min-h": minH,
-  "max-h": maxH,
+  shadow: shadow, // done
+  "inset-shadow": insetShadow, // done
+  opacity: opacity, // done
+  w: w, // done
+  h: h, // done
+  "min-w": minW, // done
+  "max-w": maxW, // done
+  "min-h": minH, // done
+  "max-h": maxH, // done
+  size: size, // done
 
   // font utilities
-  italic: fontStyle,
-  "not-italic": fontStyle,
-  
+  italic: fontStyle, // done
+  "not-italic": fontStyle, // done
+
   // Font smoothing keywords
-  antialiased: fontSmoothing,
-  "subpixel-antialiased": fontSmoothing,
-  
+  antialiased: fontSmoothing, // done
+  "subpixel-antialiased": fontSmoothing, // done
+
   // Font variant numeric keywords
-  "normal-nums": fontVariantNumeric,
-  ordinal: fontVariantNumeric,
-  "slashed-zero": fontVariantNumeric,
-  "lining-nums": fontVariantNumeric,
-  "oldstyle-nums": fontVariantNumeric,
-  "proportional-nums": fontVariantNumeric,
-  "tabular-nums": fontVariantNumeric,
-  "diagonal-fractions": fontVariantNumeric,
+  "normal-nums": fontVariantNumeric, // done
+  ordinal: fontVariantNumeric, // done
+  "slashed-zero": fontVariantNumeric, // done
+  "lining-nums": fontVariantNumeric, // done
+  "oldstyle-nums": fontVariantNumeric, // done
+  "proportional-nums": fontVariantNumeric, // done
+  "tabular-nums": fontVariantNumeric, // done
+  "diagonal-fractions": fontVariantNumeric, // done
   "stacked-fractions": fontVariantNumeric,
-  
+
   // Font utilities with values
-  font: font,
-  align: verticalAlign,
-  underline: textDecorationLine,
-  overline: textDecorationLine,
-  "line-through": textDecorationLine,
-  "no-underline": textDecorationLine,
-  decoration: textDecoration,
-  "underline-offset": underlineOffset,
-  
+  font: font, // done
+  align: verticalAlign, // done
+  underline: textDecorationLine, // done
+  overline: textDecorationLine, // done
+  "line-through": textDecorationLine, // done
+  "no-underline": textDecorationLine, // done
+  decoration: textDecoration, // done
+  "underline-offset": underlineOffset, // done
+
   // Text layout with values
-  indent: textIndent,
-  whitespace: whiteSpace,
-  break: wordBreak,
-  hyphens: hyphensNew,
-  leading: lineHeight,
-  tracking: letterSpacing,
-  "line-clamp": lineClampNew,
+  indent: textIndent, // done
+  whitespace: whiteSpace, // done
+  break: wordBreak, // done
+  hyphens: hyphensNew, // done
+  leading: lineHeight, // done
+  tracking: letterSpacing, // done
+  "line-clamp": lineClampNew, // done
 
   // Text effects utilities (new structure)
-  uppercase: textTransform,
-  lowercase: textTransform,
-  capitalize: textTransform,
-  "normal-case": textTransform,
-  "text-shadow": textShadowNew,
-  "trancate": text,
-  text: text,
+  uppercase: textTransform, // done
+  lowercase: textTransform, // done
+  capitalize: textTransform, // done
+  "normal-case": textTransform, // done
+  "text-shadow": textShadowNew, // done
+  trancate: text, // done
+  text: text, // done
 
-  content: content,
+  content: content, // done
 
   // List style utilities (new structure)
-  "list-style-type": listStyleTypeNew,
-  "list-style-position": listStylePosition,
-  "list-style-image": listStyleImage,
-  "list-inside": listStylePosition,
-  "list-outside": listStylePosition,
-  "list-image": listStyleImage,
+  list: list, // done
+  "list-image": listStyleImage, // done
 
-  flex: flex,
-  "grid-cols": gridCols,
-  gap: gap,
-  items: items,
-  justify: justify,
-  scale: scale,
+  flex: flex, // done
+  "grid-cols": gridCols, // done
+  gap: gap, // done
+  "gap-x": gapX, // done
+  "gap-y": gapY, // done
+  justify: justify, // done, justify-content
+  "justify-self": justifySelf, // done,
+  "justify-items": justifyItems, // done
+  "align-content": alignContent, // done
+  items: alignItems, // done
+  self: alignSelf, // done
+  "place-content": placeContent, // done
+  "place-items": placeItems, // done
+  "place-self": placeSelf, // done
+  "scale-3d": scale3d, // done
+  "scale-x": scaleX, // done
+  "scale-y": scaleY, // done
+  "scale-z": scaleZ, // done
+  scale: scale, // done
+
   rotate: rotate,
   table: table,
   "table-row": tableRow,
@@ -411,14 +416,6 @@ export const utilityToCss: Record<
   backdrop: backdrop,
   z: z,
   order: order,
-  "place-content": placeContent,
-  "place-items": placeItems,
-  "place-self": placeSelf,
-  "align-content": alignContent,
-  "align-items": alignItems,
-  "align-self": alignSelf,
-  "justify-items": justifyItems,
-  "justify-self": justifySelf,
   inset: inset,
   top: top,
   left: left,
@@ -464,7 +461,6 @@ export const utilityToCss: Record<
   sup: sup,
   "sr-only": srOnly,
   "not-sr-only": notSrOnly,
-  list: list,
   "mask-type": maskType,
   "mask-size": maskSize,
   "mask-repeat": maskRepeat,
@@ -505,9 +501,6 @@ export const utilityToCss: Record<
   skew: skew,
   "skew-x": skewX,
   "skew-y": skewY,
-  "scale-x": scaleX,
-  "scale-y": scaleY,
-  "scale-z": scaleZ,
   "rotate-x": rotateX,
   "rotate-y": rotateY,
   "rotate-z": rotateZ,
@@ -519,7 +512,6 @@ export const utilityToCss: Record<
   "field-sizing": fieldSizing,
   "field-sizing-fixed": fieldSizingFixed,
   "field-sizing-content": fieldSizingContent,
-  size: size,
   stroke: stroke,
   "stroke-width": strokeWidth,
   "bg-gradient": bgGradient,
@@ -532,5 +524,4 @@ export const utilityToCss: Record<
   to: to,
   gradient: gradient,
   word: word,
-
 };
