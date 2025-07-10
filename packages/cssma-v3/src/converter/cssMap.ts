@@ -1,3 +1,4 @@
+import { rotate } from './cssmaps/rotate';
 
 // Tailwind 주요 유틸리티 → CSS 속성/값 매핑 테이블/함수
 import type { ParsedClassToken } from "../parser/utils";
@@ -84,7 +85,6 @@ import {
   placeItems,
   placeSelf,
 } from "./cssmaps/flexgrid";
-import { rotate } from "./cssmaps/transform";
 import { table, tableRow, tableCell } from "./cssmaps/table";
 // Layout utilities
 import {
@@ -147,9 +147,6 @@ import {
   skew,
   skewX,
   skewY,
-  rotateX,
-  rotateY,
-  rotateZ,
   perspective,
   perspectiveOrigin,
   backfaceHidden,
@@ -250,6 +247,7 @@ import { flex } from "./cssmaps/flex";
 import { gridCols } from "./cssmaps/grid-cols";
 import { gap, gapX, gapY } from "./cssmaps/gap";
 import { scale, scaleX, scaleY, scaleZ, scale3d } from "./cssmaps/scale";
+import { rotateX, rotateY, rotateZ } from "./cssmaps/rotate";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -395,7 +393,13 @@ export const utilityToCss: Record<
   "scale-z": scaleZ, // done
   scale: scale, // done
 
-  rotate: rotate,
+  "rotate-x": rotateX, // done
+  "rotate-y": rotateY, // done
+  "rotate-z": rotateZ, // done
+  rotate: rotate, // done
+
+
+
   table: table,
   "table-row": tableRow,
   "table-cell": tableCell,
@@ -501,9 +505,6 @@ export const utilityToCss: Record<
   skew: skew,
   "skew-x": skewX,
   "skew-y": skewY,
-  "rotate-x": rotateX,
-  "rotate-y": rotateY,
-  "rotate-z": rotateZ,
   perspective: perspective,
   "perspective-origin": perspectiveOrigin,
   "backface-hidden": backfaceHidden,
