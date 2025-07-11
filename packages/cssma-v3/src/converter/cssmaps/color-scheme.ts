@@ -32,4 +32,18 @@ export function colorScheme(utility: ParsedClassToken) {
     return { colorScheme: value + important };
   }
   return undefined;
-} 
+}
+
+const forcedColorAdjustMap: Record<string, string> = {
+  'auto': 'auto',
+  'none': 'none',
+};
+
+export function forcedColorAdjust(utility: ParsedClassToken) {
+  const important = utility.important ? ' !important' : '';
+  const value = forcedColorAdjustMap[utility.value ?? ''];
+  if (value) {
+    return { forcedColorAdjust: value + important };
+  }
+  return undefined;
+}

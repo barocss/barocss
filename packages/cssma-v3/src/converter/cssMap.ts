@@ -234,7 +234,7 @@ import { select } from './cssmaps/select';
 import { willChange } from './cssmaps/willChange';
 import { resize } from './cssmaps/resize';
 import { cursor } from './cssmaps/cursor';
-import { colorScheme } from './cssmaps/color-scheme';
+import { colorScheme, forcedColorAdjust } from './cssmaps/color-scheme';
 import { caret } from './cssmaps/caret';
 import { accent } from './cssmaps/accent';
 
@@ -446,6 +446,11 @@ export const utilityToCss: Record<
   caret: caret, // done
   appearance: appearance, // done
   accent: accent, // done
+  "forced-color-adjust": forcedColorAdjust, // done
+  transition: transition, // done
+  duration: duration, // done
+  delay: delay, // done
+  ease: ease, // done
 
   table: table,
   "table-row": tableRow,
@@ -476,11 +481,7 @@ export const utilityToCss: Record<
   ring: ring,
   "divide-x": divideX,
   "divide-y": divideY,
-  transition: transition,
-  duration: duration,
-  delay: delay,
-  ease: ease,
-  animate: animate,
+  animate: animate, 
   box: box,
   "box-decoration": boxDecoration,
   "border-collapse": borderCollapse,

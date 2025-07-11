@@ -38,15 +38,7 @@ export const ALL_UTILITY_PREFIXES = [
   "text",
 
   // colorScheme
-  "scheme-normal",
-  "scheme-dark",
-  "scheme-light",
-  "scheme-light-dark",
-  "scheme-only-dark",
-  "scheme-only-light",
   "scheme",
-  "forced-color-adjust-auto",
-  "forced-color-adjust-none",
   "forced-color-adjust",
 
   // effects
@@ -309,11 +301,6 @@ export const ALL_UTILITY_PREFIXES = [
   "backface",
 
   // transition/animation
-  "transition-property",
-  "transition-behavior",
-  "transition-timing-function",
-  "transition-duration",
-  "transition-delay",
   "transition",
   "duration",
   "delay",
