@@ -124,8 +124,6 @@ import { order } from "./cssmaps/flexbox-grid";
 
 // Interactivity utilities
 import {
-  userSelect,
-  select,
   cursor,
   accent,
   caret,
@@ -237,6 +235,8 @@ import { gap, gapX, gapY } from "./cssmaps/gap";
 import { scale, scaleX, scaleY, scaleZ, scale3d } from "./cssmaps/scale";
 import { rotateX, rotateY, rotateZ } from "./cssmaps/rotate";
 import { skew, skewX, skewY } from './cssmaps/skew';
+import { touch } from './cssmaps/touch';
+import { select } from './cssmaps/select';
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -431,20 +431,23 @@ export const utilityToCss: Record<
 
   "snap": snap, // done
 
+  "touch": touch, // done
+
+  select: select, // done
+
 
   table: table,
   "table-row": tableRow,
   "table-cell": tableCell,
   appearance: appearance,
   "writing-mode": writingMode,
-  "user-select": userSelect,
   float: float,
   clear: clear,
   overflow: overflow,
   "overflow-x": overflowX,
   "overflow-y": overflowY,
   "pointer-events": pointerEvents,
-  select: select,
+
   resize: resize,
   isolation: isolation,
   "mix-blend": mixBlend,

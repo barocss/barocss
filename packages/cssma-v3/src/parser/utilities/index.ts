@@ -400,8 +400,7 @@ export const ALL_UTILITY_PREFIXES = [
 
   // interactivity
   "pointer-events",
-  "user-select",
-  "touch-action",
+  "select",
   "touch",
   "resize",
   "placeholder",
@@ -417,7 +416,6 @@ export const ALL_UTILITY_PREFIXES = [
   "sticky",
   "container",
   "cursor",
-  "select",
 
 
   // writing-mode
