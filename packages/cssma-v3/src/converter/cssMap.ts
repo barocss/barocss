@@ -138,7 +138,6 @@ import {
 import {
   origin,
   transform,
-  transformStyle,
   translate,
   translateX,
   translateY,
@@ -159,10 +158,6 @@ import { fill, stroke, strokeWidth } from "./cssmaps/svg";
 
 // Scroll utilities
 import {
-  overscroll,
-  overscrollX,
-  overscrollY,
-  scroll,
   scrollMx,
   scrollMy,
   scrollMt,
@@ -177,12 +172,11 @@ import {
   scrollPl,
   scrollPr,
   scrollP,
-  scrollPadding,
-  scrollMargin,
   snap,
-  snapX,
-  snapY,
-  snapAlign,
+  scrollMe,
+  scrollMs,
+  scrollPs,
+  scrollPe,
 } from "./cssmaps/scroll";
 
 // Miscellaneous utilities
@@ -265,6 +259,13 @@ export const utilityToCss: Record<
   "bg-fixed": bgFixed, // done
   "bg-local": bgLocal, // done
   "bg-scroll": bgScroll, // done
+  "bg-linear": bgLinear, // done
+  "bg-radial": bgRadial, // done
+  "bg-conic": bgConic, // done
+  from: from, // done
+  via: via, // done
+  to: to, // done
+
   m: m, // done
   mx: mx, // done
   my: my, // done
@@ -408,6 +409,29 @@ export const utilityToCss: Record<
   "translate-y": translateY, // done
   "translate-z": translateZ, // done
 
+  "scroll-mx": scrollMx, // done
+  "scroll-ms": scrollMs, // done
+  "scroll-me": scrollMe, // done
+  "scroll-my": scrollMy, // done
+  "scroll-mt": scrollMt, // done
+  "scroll-mb": scrollMb, // done
+  "scroll-ml": scrollMl, // done
+  "scroll-mr": scrollMr, // done
+  "scroll-m": scrollM, // done
+
+  "scroll-px": scrollPx, // done
+  "scroll-py": scrollPy, // done
+  "scroll-ps": scrollPs, // done
+  "scroll-pe": scrollPe, // done
+  "scroll-pt": scrollPt, // done
+  "scroll-pb": scrollPb, // done
+  "scroll-pl": scrollPl, // done
+  "scroll-pr": scrollPr, // done
+  "scroll-p": scrollP, // done
+
+  "snap": snap, // done
+
+
   table: table,
   "table-row": tableRow,
   "table-cell": tableCell,
@@ -478,31 +502,6 @@ export const utilityToCss: Record<
   "mask-repeat": maskRepeat,
   "mask-position": maskPosition,
   "mask-mode": maskMode,
-  overscroll: overscroll,
-  "overscroll-x": overscrollX,
-  "overscroll-y": overscrollY,
-  scroll: scroll,
-  "scroll-mx": scrollMx,
-  "scroll-my": scrollMy,
-  "scroll-mt": scrollMt,
-  "scroll-mb": scrollMb,
-  "scroll-ml": scrollMl,
-  "scroll-mr": scrollMr,
-  "scroll-m": scrollM,
-  "scroll-px": scrollPx,
-  "scroll-py": scrollPy,
-  "scroll-pt": scrollPt,
-  "scroll-pb": scrollPb,
-  "scroll-pl": scrollPl,
-  "scroll-pr": scrollPr,
-  "scroll-p": scrollP,
-  "scroll-padding": scrollPadding,
-  "scroll-margin": scrollMargin,
-  snap: snap,
-  "snap-x": snapX,
-  "snap-y": snapY,
-  "snap-align": snapAlign,
-
 
   "field-sizing": fieldSizing,
   "field-sizing-fixed": fieldSizingFixed,
@@ -511,12 +510,8 @@ export const utilityToCss: Record<
   "stroke-width": strokeWidth,
   "bg-gradient": bgGradient,
   "bg-gradient-to": bgGradientTo,
-  "bg-linear": bgLinear,
-  "bg-radial": bgRadial,
-  "bg-conic": bgConic,
-  from: from,
-  via: via,
-  to: to,
+
+
   gradient: gradient,
   word: word,
 };
