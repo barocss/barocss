@@ -5,11 +5,6 @@ import type { ParsedClassToken } from "../../parser/utils";
  * Handles user interaction properties like cursor, user-select, appearance, resize
  */
 
-// cursor
-export const cursor = (utility: ParsedClassToken) => ({ 
-  cursor: utility.value + (utility.important ? ' !important' : '') 
-});
-
 // accent-color
 export const accent = (utility: ParsedClassToken) => ({ 
   accentColor: utility.value + (utility.important ? ' !important' : '') 
@@ -21,16 +16,15 @@ export const caret = (utility: ParsedClassToken) => ({
 });
 
 // field-sizing
-export const fieldSizing = (utility: ParsedClassToken) => ({ 
-  fieldSizing: utility.value + (utility.important ? ' !important' : '') 
-});
+const fieldSizingMap: Record<string, string> = {
+  'fixed': 'fixed',
+  'content': 'content',
+};
 
-// field-sizing-fixed
-export const fieldSizingFixed = () => ({ 
-  fieldSizing: 'fixed' 
-});
-
-// field-sizing-content
-export const fieldSizingContent = () => ({ 
-  fieldSizing: 'content' 
-}); 
+export const fieldSizing = (utility: ParsedClassToken) => {
+  const important = utility.important ? ' !important' : '';
+  if (utility.value && fieldSizingMap[utility.value]) {
+    return { fieldSizing: fieldSizingMap[utility.value] + important };
+  }
+  return undefined;
+};

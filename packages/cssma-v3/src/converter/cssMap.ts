@@ -123,12 +123,9 @@ import { order } from "./cssmaps/flexbox-grid";
 
 // Interactivity utilities
 import {
-  cursor,
   accent,
   caret,
   fieldSizing,
-  fieldSizingFixed,
-  fieldSizingContent,
 } from "./cssmaps/interactivity";
 
 // Transform utilities
@@ -239,6 +236,7 @@ import { touch } from './cssmaps/touch';
 import { select } from './cssmaps/select';
 import { willChange } from './cssmaps/willChange';
 import { resize } from './cssmaps/resize';
+import { cursor } from './cssmaps/cursor';
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -441,7 +439,9 @@ export const utilityToCss: Record<
 
   "scroll": scroll, // done
   resize: resize, // done
-
+  "pointer-events": pointerEvents, // done
+  "field-sizing": fieldSizing, // done
+  "cursor": cursor, // done
 
   table: table,
   "table-row": tableRow,
@@ -453,7 +453,7 @@ export const utilityToCss: Record<
   overflow: overflow,
   "overflow-x": overflowX,
   "overflow-y": overflowY,
-  "pointer-events": pointerEvents,
+
 
 
   isolation: isolation,
@@ -496,7 +496,6 @@ export const utilityToCss: Record<
   collapse: collapse,
   display: display,
   container: container,
-  cursor: cursor,
   placeholder: placeholder,
   static: staticUtil,
   fixed: fixedUtil,
@@ -513,9 +512,7 @@ export const utilityToCss: Record<
   "mask-position": maskPosition,
   "mask-mode": maskMode,
 
-  "field-sizing": fieldSizing,
-  "field-sizing-fixed": fieldSizingFixed,
-  "field-sizing-content": fieldSizingContent,
+
   stroke: stroke,
   "stroke-width": strokeWidth,
   "bg-gradient": bgGradient,

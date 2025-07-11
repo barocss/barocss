@@ -118,10 +118,19 @@ export const clear = (utility: ParsedClassToken) => ({
   clear: utility.value + (utility.important ? ' !important' : '') 
 });
 
+const pointerEventsMap: Record<string, string> = {
+  'auto': 'auto',
+  'none': 'none',
+};
+
 // pointer-events
-export const pointerEvents = (utility: ParsedClassToken) => ({ 
-  pointerEvents: utility.value + (utility.important ? ' !important' : '') 
-});
+export const pointerEvents = (utility: ParsedClassToken) => {
+  const important = utility.important ? ' !important' : '';
+  if (utility.value && pointerEventsMap[utility.value]) {
+    return { pointerEvents: pointerEventsMap[utility.value] + important };
+  }
+  return { pointerEvents: 'auto' + important };
+};
 
 // sr-only
 export const srOnly = () => ({
