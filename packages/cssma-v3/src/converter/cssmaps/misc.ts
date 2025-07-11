@@ -15,16 +15,6 @@ export const content = (utility: ParsedClassToken) => ({
   content: utility.value + (utility.important ? ' !important' : '') 
 });
 
-// border-collapse
-export const borderCollapse = (utility: ParsedClassToken) => ({ 
-  borderCollapse: utility.value 
-});
-
-// border-separate
-export const borderSeparate = (utility: ParsedClassToken) => ({ 
-  borderCollapse: utility.value 
-});
-
 // break-inside
 export const breakInside = (utility: ParsedClassToken) => ({ 
   breakInside: utility.value 

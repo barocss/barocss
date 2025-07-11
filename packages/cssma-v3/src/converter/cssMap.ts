@@ -241,6 +241,7 @@ import {
   borderSpacingY,
 } from "./cssmaps/border-spacing";
 import { blur, brightness, contrast, filter, grayscale, hueRotate, invert, saturate, sepia } from "./cssmaps/filter";
+import { backdropBlur, backdropBrightness, backdropContrast, backdropFilter, backdropGrayscale, backdropHueRotate, backdropInvert, backdropSaturate, backdropSepia } from "./cssmaps/backdrop-filter";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -477,6 +478,16 @@ export const utilityToCss: Record<
   saturate: saturate,     // done
   sepia: sepia,           // done
 
+  "backdrop-blur": backdropBlur, // done
+  "backdrop-filter": backdropFilter, // done
+  "backdrop-brightness": backdropBrightness, // done
+  "backdrop-contrast": backdropContrast, // done
+  "backdrop-grayscale": backdropGrayscale, // done
+  "backdrop-hue-rotate": backdropHueRotate, // done
+  "backdrop-invert": backdropInvert, // done
+  "backdrop-saturate": backdropSaturate, // done
+  "backdrop-sepia": backdropSepia, // done
+
 
   "writing-mode": writingMode,
   float: float,
@@ -503,8 +514,6 @@ export const utilityToCss: Record<
   "divide-y": divideY,
   box: box,
   "box-decoration": boxDecoration,
-  "border-collapse": borderCollapse,
-  "border-separate": borderSeparate,
   "drop-shadow": dropShadow,
   "break-inside": breakInside,
   "break-before": breakBefore,
