@@ -85,7 +85,7 @@ import {
   placeItems,
   placeSelf,
 } from "./cssmaps/flexgrid";
-import { captionSide } from "./cssmaps/table";
+import { captionSide, tableLayout } from "./cssmaps/table";
 // Layout utilities
 import {
   appearance,
@@ -454,6 +454,7 @@ export const utilityToCss: Record<
   animate: animate, // done
 
   caption: captionSide, // done
+  table: tableLayout, // done
 
   "writing-mode": writingMode,
   float: float,
