@@ -124,7 +124,6 @@ import { order } from "./cssmaps/flexbox-grid";
 // Interactivity utilities
 import {
   accent,
-  caret,
   fieldSizing,
 } from "./cssmaps/interactivity";
 
@@ -189,7 +188,6 @@ import {
   maskMode,
   size,
   placeholder,
-  scheme,
   sub,
   sup,
   gradient,
@@ -238,6 +236,7 @@ import { willChange } from './cssmaps/willChange';
 import { resize } from './cssmaps/resize';
 import { cursor } from './cssmaps/cursor';
 import { colorScheme } from './cssmaps/color-scheme';
+import { caret } from './cssmaps/caret';
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -444,6 +443,8 @@ export const utilityToCss: Record<
   "field-sizing": fieldSizing, // done
   "cursor": cursor, // done
   scheme: colorScheme, // done
+  caret: caret, // done
+  
 
   table: table,
   "table-row": tableRow,
@@ -490,7 +491,6 @@ export const utilityToCss: Record<
   "outline-offset": outlineOffset,
   outline: outline,
   accent: accent,
-  caret: caret,
   fill: fill,
 
   visible: visible,

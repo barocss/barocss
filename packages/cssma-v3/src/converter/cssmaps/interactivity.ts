@@ -10,11 +10,6 @@ export const accent = (utility: ParsedClassToken) => ({
   accentColor: utility.value + (utility.important ? ' !important' : '') 
 });
 
-// caret-color
-export const caret = (utility: ParsedClassToken) => ({ 
-  caretColor: utility.value + (utility.important ? ' !important' : '') 
-});
-
 // field-sizing
 const fieldSizingMap: Record<string, string> = {
   'fixed': 'fixed',

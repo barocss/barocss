@@ -56,8 +56,8 @@ export const bg = (utility: ParsedClassToken, ctx: CssmaContext) => {
   // Handle theme colors: bg-red-500
   if (utility.value && utility.value.includes('-')) {
     const colorPath = utility.value.replace(/-(\d+)$/, '.$1');
-    const css = ctx.config(`theme.colors.${colorPath}`);
-    if (css && isColorValue(css)) {
+    const css = ctx.theme(`colors.${colorPath}`);
+    if (css ) {
       return { backgroundColor: css + importantString };
     }
   }
