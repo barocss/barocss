@@ -138,7 +138,6 @@ import {
 import {
   origin,
   transform,
-  transformOrigin,
   transformStyle,
   translate,
   translateX,
@@ -401,6 +400,13 @@ export const utilityToCss: Record<
   backface: backface, // done
   perspective: perspective, // done
   "perspective-origin": perspectiveOrigin, // done
+  transform: transform, // done
+  origin: origin, // done
+
+  translate: translate, // done 
+  "translate-x": translateX, // done
+  "translate-y": translateY, // done
+  "translate-z": translateZ, // done
 
   table: table,
   "table-row": tableRow,
@@ -496,14 +502,8 @@ export const utilityToCss: Record<
   "snap-x": snapX,
   "snap-y": snapY,
   "snap-align": snapAlign,
-  origin: origin,
-  transform: transform,
-  "transform-origin": transformOrigin,
-  "transform-style": transformStyle,
-  translate: translate,
-  "translate-x": translateX,
-  "translate-y": translateY,
-  "translate-z": translateZ,
+
+
   "field-sizing": fieldSizing,
   "field-sizing-fixed": fieldSizingFixed,
   "field-sizing-content": fieldSizingContent,

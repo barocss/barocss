@@ -289,8 +289,7 @@ export const ALL_UTILITY_PREFIXES = [
   "text-shadow",
 
   // transform
-  "transform-origin",
-  "transform-style",
+  "origin",
   "transform",
   "translate-x",
   "translate-y",
