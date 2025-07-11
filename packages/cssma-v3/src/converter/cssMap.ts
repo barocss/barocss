@@ -123,7 +123,6 @@ import { order } from "./cssmaps/flexbox-grid";
 
 // Interactivity utilities
 import {
-  accent,
   fieldSizing,
 } from "./cssmaps/interactivity";
 
@@ -237,6 +236,7 @@ import { resize } from './cssmaps/resize';
 import { cursor } from './cssmaps/cursor';
 import { colorScheme } from './cssmaps/color-scheme';
 import { caret } from './cssmaps/caret';
+import { accent } from './cssmaps/accent';
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
