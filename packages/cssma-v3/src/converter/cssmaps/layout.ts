@@ -123,11 +123,6 @@ export const pointerEvents = (utility: ParsedClassToken) => ({
   pointerEvents: utility.value + (utility.important ? ' !important' : '') 
 });
 
-// resize
-export const resize = (utility: ParsedClassToken) => ({ 
-  resize: utility.value + (utility.important ? ' !important' : '') 
-});
-
 // sr-only
 export const srOnly = () => ({
   position: 'absolute',

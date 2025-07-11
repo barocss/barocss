@@ -114,7 +114,6 @@ import {
   float,
   clear,
   pointerEvents,
-  resize,
   srOnly,
   notSrOnly,
 } from "./cssmaps/layout";
@@ -239,6 +238,7 @@ import { skew, skewX, skewY } from './cssmaps/skew';
 import { touch } from './cssmaps/touch';
 import { select } from './cssmaps/select';
 import { willChange } from './cssmaps/willChange';
+import { resize } from './cssmaps/resize';
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -440,6 +440,7 @@ export const utilityToCss: Record<
   "will-change": willChange, // done
 
   "scroll": scroll, // done
+  resize: resize, // done
 
 
   table: table,
@@ -454,7 +455,7 @@ export const utilityToCss: Record<
   "overflow-y": overflowY,
   "pointer-events": pointerEvents,
 
-  resize: resize,
+
   isolation: isolation,
   "mix-blend": mixBlend,
   filter: filter,
