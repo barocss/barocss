@@ -237,6 +237,7 @@ import { select } from './cssmaps/select';
 import { willChange } from './cssmaps/willChange';
 import { resize } from './cssmaps/resize';
 import { cursor } from './cssmaps/cursor';
+import { colorScheme } from './cssmaps/color-scheme';
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -442,6 +443,7 @@ export const utilityToCss: Record<
   "pointer-events": pointerEvents, // done
   "field-sizing": fieldSizing, // done
   "cursor": cursor, // done
+  scheme: colorScheme, // done
 
   table: table,
   "table-row": tableRow,
@@ -490,7 +492,7 @@ export const utilityToCss: Record<
   accent: accent,
   caret: caret,
   fill: fill,
-  scheme: scheme,
+
   visible: visible,
   invisible: invisible,
   collapse: collapse,

@@ -75,11 +75,6 @@ export const placeholder = (utility: ParsedClassToken) => ({
   color: utility.value + (utility.important ? ' !important' : '') 
 });
 
-// color scheme
-export const scheme = (utility: ParsedClassToken) => ({ 
-  colorScheme: utility.value + (utility.important ? ' !important' : '') 
-});
-
 // vertical align
 export const sub = () => ({ 
   verticalAlign: 'sub' 
