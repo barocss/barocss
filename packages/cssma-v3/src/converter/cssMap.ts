@@ -451,6 +451,7 @@ export const utilityToCss: Record<
   duration: duration, // done
   delay: delay, // done
   ease: ease, // done
+  animate: animate, // done
 
   table: table,
   "table-row": tableRow,
@@ -481,7 +482,6 @@ export const utilityToCss: Record<
   ring: ring,
   "divide-x": divideX,
   "divide-y": divideY,
-  animate: animate, 
   box: box,
   "box-decoration": boxDecoration,
   "border-collapse": borderCollapse,
