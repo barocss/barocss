@@ -173,16 +173,9 @@ import {
 // Miscellaneous utilities
 import {
   writingMode,
-  borderCollapse,
-  borderSeparate,
   breakInside,
   breakBefore,
   breakAfter,
-  maskType,
-  maskSize,
-  maskRepeat,
-  maskPosition,
-  maskMode,
   size,
   placeholder,
   sub,
@@ -240,8 +233,37 @@ import {
   borderSpacingX,
   borderSpacingY,
 } from "./cssmaps/border-spacing";
-import { blur, brightness, contrast, filter, grayscale, hueRotate, invert, saturate, sepia } from "./cssmaps/filter";
-import { backdropBlur, backdropBrightness, backdropContrast, backdropFilter, backdropGrayscale, backdropHueRotate, backdropInvert, backdropSaturate, backdropSepia } from "./cssmaps/backdrop-filter";
+import {
+  blur,
+  brightness,
+  contrast,
+  filter,
+  grayscale,
+  hueRotate,
+  invert,
+  saturate,
+  sepia,
+} from "./cssmaps/filter";
+import {
+  backdropBlur,
+  backdropBrightness,
+  backdropContrast,
+  backdropFilter,
+  backdropGrayscale,
+  backdropHueRotate,
+  backdropInvert,
+  backdropSaturate,
+  backdropSepia,
+} from "./cssmaps/backdrop-filter";
+import {
+  mask,
+  maskClip,
+  maskOrigin,
+  maskPosition,
+  maskRepeat,
+  maskSize,
+  maskType,
+} from "./cssmaps/mask";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -464,19 +486,19 @@ export const utilityToCss: Record<
   "border-spacing-x": borderSpacingX, // done
   "border-spacing-y": borderSpacingY, // done
 
-  // border 에 대한 것을 하고 난 다음 처리 
+  // border 에 대한 것을 하고 난 다음 처리
   // "border-collapse": borderCollapse, // done
   // "border-separate": borderSeparate, // done
 
-  filter: filter,         // done 
-  blur: blur,             // done
+  filter: filter, // done
+  blur: blur, // done
   brightness: brightness, // done
-  contrast: contrast,     // done
-  grayscale: grayscale,   // done
-  hueRotate: hueRotate,   // done
-  invert: invert,         // done
-  saturate: saturate,     // done
-  sepia: sepia,           // done
+  contrast: contrast, // done
+  grayscale: grayscale, // done
+  hueRotate: hueRotate, // done
+  invert: invert, // done
+  saturate: saturate, // done
+  sepia: sepia, // done
 
   "backdrop-blur": backdropBlur, // done
   "backdrop-filter": backdropFilter, // done
@@ -488,6 +510,13 @@ export const utilityToCss: Record<
   "backdrop-saturate": backdropSaturate, // done
   "backdrop-sepia": backdropSepia, // done
 
+  mask: mask, // done
+  "mask-clip": maskClip, // done
+  "mask-origin": maskOrigin, // done
+  "mask-repeat": maskRepeat, // done
+  "mask-size": maskSize, // done
+  "mask-position": maskPosition, // done
+  "mask-type": maskType, // done
 
   "writing-mode": writingMode,
   float: float,
@@ -537,11 +566,6 @@ export const utilityToCss: Record<
   sup: sup,
   "sr-only": srOnly,
   "not-sr-only": notSrOnly,
-  "mask-type": maskType,
-  "mask-size": maskSize,
-  "mask-repeat": maskRepeat,
-  "mask-position": maskPosition,
-  "mask-mode": maskMode,
 
   stroke: stroke,
   "stroke-width": strokeWidth,

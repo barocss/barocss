@@ -30,30 +30,9 @@ export const breakAfter = (utility: ParsedClassToken) => ({
   breakAfter: utility.value 
 });
 
-// mask-type
-export const maskType = (utility: ParsedClassToken) => ({ 
-  maskType: utility.value + (utility.important ? ' !important' : '') 
-});
 
-// mask-size
-export const maskSize = (utility: ParsedClassToken) => ({ 
-  maskSize: utility.value + (utility.important ? ' !important' : '') 
-});
 
-// mask-repeat
-export const maskRepeat = (utility: ParsedClassToken) => ({ 
-  maskRepeat: utility.value + (utility.important ? ' !important' : '') 
-});
 
-// mask-position
-export const maskPosition = (utility: ParsedClassToken) => ({ 
-  maskPosition: utility.value + (utility.important ? ' !important' : '') 
-});
-
-// mask-mode
-export const maskMode = (utility: ParsedClassToken) => ({ 
-  maskMode: utility.value + (utility.important ? ' !important' : '') 
-});
 
 // size
 export const size = (utility: ParsedClassToken) => ({ 
