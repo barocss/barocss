@@ -144,14 +144,9 @@ import {
   translateX,
   translateY,
   translateZ,
-  skew,
-  skewX,
-  skewY,
   perspective,
   perspectiveOrigin,
-  backfaceHidden,
-  backfaceVisible,
-  backfaceVisibility,
+  backface,
 } from "./cssmaps/transforms";
 
 // Typography extended utilities
@@ -248,6 +243,7 @@ import { gridCols } from "./cssmaps/grid-cols";
 import { gap, gapX, gapY } from "./cssmaps/gap";
 import { scale, scaleX, scaleY, scaleZ, scale3d } from "./cssmaps/scale";
 import { rotateX, rotateY, rotateZ } from "./cssmaps/rotate";
+import { skew, skewX, skewY } from './cssmaps/skew';
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -398,7 +394,13 @@ export const utilityToCss: Record<
   "rotate-z": rotateZ, // done
   rotate: rotate, // done
 
+  skew: skew, // done
+  "skew-x": skewX, // done
+  "skew-y": skewY, // done
 
+  backface: backface, // done
+  perspective: perspective, // done
+  "perspective-origin": perspectiveOrigin, // done
 
   table: table,
   "table-row": tableRow,
@@ -502,14 +504,6 @@ export const utilityToCss: Record<
   "translate-x": translateX,
   "translate-y": translateY,
   "translate-z": translateZ,
-  skew: skew,
-  "skew-x": skewX,
-  "skew-y": skewY,
-  perspective: perspective,
-  "perspective-origin": perspectiveOrigin,
-  "backface-hidden": backfaceHidden,
-  "backface-visible": backfaceVisible,
-  "backface-visibility": backfaceVisibility,
   "field-sizing": fieldSizing,
   "field-sizing-fixed": fieldSizingFixed,
   "field-sizing-content": fieldSizingContent,

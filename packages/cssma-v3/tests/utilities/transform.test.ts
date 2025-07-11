@@ -77,4 +77,12 @@ describe('parseUtility (transform)', () => {
       expect(parseUtility('origin-')).toEqual({ type: 'unknown', raw: 'origin-' });
     });
   });
+});
+
+describe('backface-visibility', () => {
+  it('should parse Tailwind v4 backface-visibility classes', () => {
+    expect(parseUtility('backface-hidden')).toEqual(baseUtility({ prefix: 'backface', value: 'hidden', raw: 'backface-hidden' }));
+    expect(parseUtility('backface-visible')).toEqual(baseUtility({ prefix: 'backface', value: 'visible', raw: 'backface-visible' }));
+    expect(parseUtility('backface-hidden!')).toEqual(baseUtility({ prefix: 'backface', value: 'hidden', important: true, raw: 'backface-hidden!' }));
+  });
 }); 

@@ -310,9 +310,7 @@ export const ALL_UTILITY_PREFIXES = [
   "scale-z",
   "scale",
   "origin",
-  "backface-hidden",
-  "backface-visible",
-  "backface-visibility",
+  "backface",
 
   // transition/animation
   "transition-property",
