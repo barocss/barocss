@@ -1,4 +1,4 @@
-import { rotate } from './cssmaps/rotate';
+import { rotate } from "./cssmaps/rotate";
 
 // Tailwind 주요 유틸리티 → CSS 속성/값 매핑 테이블/함수
 import type { ParsedClassToken } from "../parser/utils";
@@ -122,9 +122,7 @@ import {
 import { order } from "./cssmaps/flexbox-grid";
 
 // Interactivity utilities
-import {
-  fieldSizing,
-} from "./cssmaps/interactivity";
+import { fieldSizing } from "./cssmaps/interactivity";
 
 // Transform utilities
 import {
@@ -169,7 +167,7 @@ import {
   scrollMs,
   scrollPs,
   scrollPe,
-  scroll
+  scroll,
 } from "./cssmaps/scroll";
 
 // Miscellaneous utilities
@@ -228,15 +226,20 @@ import { gridCols } from "./cssmaps/grid-cols";
 import { gap, gapX, gapY } from "./cssmaps/gap";
 import { scale, scaleX, scaleY, scaleZ, scale3d } from "./cssmaps/scale";
 import { rotateX, rotateY, rotateZ } from "./cssmaps/rotate";
-import { skew, skewX, skewY } from './cssmaps/skew';
-import { touch } from './cssmaps/touch';
-import { select } from './cssmaps/select';
-import { willChange } from './cssmaps/willChange';
-import { resize } from './cssmaps/resize';
-import { cursor } from './cssmaps/cursor';
-import { colorScheme, forcedColorAdjust } from './cssmaps/color-scheme';
-import { caret } from './cssmaps/caret';
-import { accent } from './cssmaps/accent';
+import { skew, skewX, skewY } from "./cssmaps/skew";
+import { touch } from "./cssmaps/touch";
+import { select } from "./cssmaps/select";
+import { willChange } from "./cssmaps/willChange";
+import { resize } from "./cssmaps/resize";
+import { cursor } from "./cssmaps/cursor";
+import { colorScheme, forcedColorAdjust } from "./cssmaps/color-scheme";
+import { caret } from "./cssmaps/caret";
+import { accent } from "./cssmaps/accent";
+import {
+  borderSpacing,
+  borderSpacingX,
+  borderSpacingY,
+} from "./cssmaps/border-spacing";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -404,7 +407,7 @@ export const utilityToCss: Record<
   transform: transform, // done
   origin: origin, // done
 
-  translate: translate, // done 
+  translate: translate, // done
   "translate-x": translateX, // done
   "translate-y": translateY, // done
   "translate-z": translateZ, // done
@@ -429,19 +432,19 @@ export const utilityToCss: Record<
   "scroll-pr": scrollPr, // done
   "scroll-p": scrollP, // done
 
-  "snap": snap, // done
+  snap: snap, // done
 
-  "touch": touch, // done
+  touch: touch, // done
 
   select: select, // done
 
   "will-change": willChange, // done
 
-  "scroll": scroll, // done
+  scroll: scroll, // done
   resize: resize, // done
   "pointer-events": pointerEvents, // done
   "field-sizing": fieldSizing, // done
-  "cursor": cursor, // done
+  cursor: cursor, // done
   scheme: colorScheme, // done
   caret: caret, // done
   appearance: appearance, // done
@@ -455,6 +458,9 @@ export const utilityToCss: Record<
 
   caption: captionSide, // done
   table: tableLayout, // done
+  "border-spacing": borderSpacing, // done
+  "border-spacing-x": borderSpacingX, // done
+  "border-spacing-y": borderSpacingY, // done
 
   "writing-mode": writingMode,
   float: float,
@@ -462,8 +468,6 @@ export const utilityToCss: Record<
   overflow: overflow,
   "overflow-x": overflowX,
   "overflow-y": overflowY,
-
-
 
   isolation: isolation,
   "mix-blend": mixBlend,
@@ -514,12 +518,10 @@ export const utilityToCss: Record<
   "mask-position": maskPosition,
   "mask-mode": maskMode,
 
-
   stroke: stroke,
   "stroke-width": strokeWidth,
   "bg-gradient": bgGradient,
   "bg-gradient-to": bgGradientTo,
-
 
   gradient: gradient,
   word: word,

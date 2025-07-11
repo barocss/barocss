@@ -258,6 +258,8 @@ export const ALL_UTILITY_PREFIXES = [
 
   // table
   "table",
+  "border-spacing-x",
+  "border-spacing-y",
   "border-spacing",
   "caption",
 
