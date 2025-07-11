@@ -175,6 +175,7 @@ import {
   scrollMs,
   scrollPs,
   scrollPe,
+  scroll
 } from "./cssmaps/scroll";
 
 // Miscellaneous utilities
@@ -437,6 +438,8 @@ export const utilityToCss: Record<
   select: select, // done
 
   "will-change": willChange, // done
+
+  "scroll": scroll, // done
 
 
   table: table,

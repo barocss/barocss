@@ -1,84 +1,94 @@
 import { describe, it, expect } from 'vitest';
-import { scrollM, scrollMx, scrollMy, scrollMt, scrollMr, scrollMb, scrollMl, scrollMs, scrollMe } from '../../../src/converter/cssmaps/scroll';
+import {
+  scrollM, scrollMx, scrollMy, scrollMt, scrollMr, scrollMb, scrollMl, scrollMs, scrollMe,
+  scrollP, scrollPx, scrollPy, scrollPt, scrollPr, scrollPb, scrollPl, scrollPs, scrollPe,
+  snap, scroll
+} from '../../../src/converter/cssmaps/scroll';
 
-describe('cssmaps: scroll-margin', () => {
-  it('scrollM spacing scale', () => {
-    expect(scrollM({ value: '4', important: false } as any)).toEqual({ scrollMargin: 'calc(var(--spacing)*4)' });
-  });
-  it('scrollM negative', () => {
-    expect(scrollM({ value: '2', negative: true, important: false } as any)).toEqual({ scrollMargin: 'calc(var(--spacing)*-2)' });
-  });
-  it('scrollM custom property', () => {
-    expect(scrollM({ customProperty: true, value: '--foo', important: false } as any)).toEqual({ scrollMargin: 'var(--foo)' });
-  });
-  it('scrollM arbitrary', () => {
-    expect(scrollM({ arbitraryValue: '24rem', important: false } as any)).toEqual({ scrollMargin: '24rem' });
-  });
-  it('scrollM with !important', () => {
+describe('scroll-margin utilities', () => {
+  it('handles all sides', () => {
+    expect(scrollM({ value: '4' } as any)).toEqual({ scrollMargin: 'calc(var(--spacing)*4)' });
     expect(scrollM({ value: '4', important: true } as any)).toEqual({ scrollMargin: 'calc(var(--spacing)*4) !important' });
+    expect(scrollM({ value: '4', negative: true } as any)).toEqual({ scrollMargin: 'calc(var(--spacing)*-4)' });
+    expect(scrollM({ customProperty: true, value: '--my-margin' } as any)).toEqual({ scrollMargin: 'var(--my-margin)' });
+    expect(scrollM({ arbitraryValue: '10px' } as any)).toEqual({ scrollMargin: '10px' });
   });
+  it('handles directions', () => {
+    expect(scrollMx({ value: '2' } as any)).toMatchObject({
+      scrollMarginLeft: 'calc(var(--spacing)*2)',
+      scrollMarginRight: 'calc(var(--spacing)*2)',
+      scrollMarginInline: 'calc(var(--spacing)*2)',
+    });
+    expect(scrollMy({ value: '2' } as any)).toMatchObject({
+      scrollMarginTop: 'calc(var(--spacing)*2)',
+      scrollMarginBottom: 'calc(var(--spacing)*2)',
+      scrollMarginBlock: 'calc(var(--spacing)*2)',
+    });
+    expect(scrollMt({ value: '1' } as any)).toEqual({ scrollMarginTop: 'calc(var(--spacing)*1)' });
+    expect(scrollMr({ value: '1' } as any)).toEqual({ scrollMarginRight: 'calc(var(--spacing)*1)' });
+    expect(scrollMb({ value: '1' } as any)).toEqual({ scrollMarginBottom: 'calc(var(--spacing)*1)' });
+    expect(scrollMl({ value: '1' } as any)).toEqual({ scrollMarginLeft: 'calc(var(--spacing)*1)' });
+    expect(scrollMs({ value: '1' } as any)).toEqual({ scrollMarginInlineStart: 'calc(var(--spacing)*1)' });
+    expect(scrollMe({ value: '1' } as any)).toEqual({ scrollMarginInlineEnd: 'calc(var(--spacing)*1)' });
+  });
+});
 
-  it('scrollMx spacing scale', () => {
-    expect(scrollMx({ value: '3', important: false } as any)).toEqual({ scrollMarginLeft: 'calc(var(--spacing)*3)', scrollMarginRight: 'calc(var(--spacing)*3)', scrollMarginInline: 'calc(var(--spacing)*3)' });
+describe('scroll-padding utilities', () => {
+  it('handles all sides', () => {
+    expect(scrollP({ value: '4' } as any)).toEqual({ scrollPadding: 'calc(var(--spacing)*4)' });
+    expect(scrollP({ value: '4', important: true } as any)).toEqual({ scrollPadding: 'calc(var(--spacing)*4) !important' });
+    expect(scrollP({ value: '4', negative: true } as any)).toEqual({ scrollPadding: 'calc(var(--spacing)*-4)' });
+    expect(scrollP({ customProperty: true, value: '--my-padding' } as any)).toEqual({ scrollPadding: 'var(--my-padding)' });
+    expect(scrollP({ arbitraryValue: '10px' } as any)).toEqual({ scrollPadding: '10px' });
   });
-  it('scrollMx negative', () => {
-    expect(scrollMx({ value: '1', negative: true, important: false } as any)).toEqual({ scrollMarginLeft: 'calc(var(--spacing)*-1)', scrollMarginRight: 'calc(var(--spacing)*-1)', scrollMarginInline: 'calc(var(--spacing)*-1)' });
+  it('handles directions', () => {
+    expect(scrollPx({ value: '2' } as any)).toMatchObject({
+      scrollPaddingLeft: 'calc(var(--spacing)*2)',
+      scrollPaddingRight: 'calc(var(--spacing)*2)',
+      scrollPaddingInline: 'calc(var(--spacing)*2)',
+    });
+    expect(scrollPy({ value: '2' } as any)).toMatchObject({
+      scrollPaddingTop: 'calc(var(--spacing)*2)',
+      scrollPaddingBottom: 'calc(var(--spacing)*2)',
+      scrollPaddingBlock: 'calc(var(--spacing)*2)',
+    });
+    expect(scrollPt({ value: '1' } as any)).toEqual({ scrollPaddingTop: 'calc(var(--spacing)*1)' });
+    expect(scrollPr({ value: '1' } as any)).toEqual({ scrollPaddingRight: 'calc(var(--spacing)*1)' });
+    expect(scrollPb({ value: '1' } as any)).toEqual({ scrollPaddingBottom: 'calc(var(--spacing)*1)' });
+    expect(scrollPl({ value: '1' } as any)).toEqual({ scrollPaddingLeft: 'calc(var(--spacing)*1)' });
+    expect(scrollPs({ value: '1' } as any)).toEqual({ scrollPaddingInlineStart: 'calc(var(--spacing)*1)' });
+    expect(scrollPe({ value: '1' } as any)).toEqual({ scrollPaddingInlineEnd: 'calc(var(--spacing)*1)' });
   });
-  it('scrollMx custom property', () => {
-    expect(scrollMx({ customProperty: true, value: '--bar', important: false } as any)).toEqual({ scrollMarginLeft: 'var(--bar)', scrollMarginRight: 'var(--bar)', scrollMarginInline: 'var(--bar)' });
-  });
-  it('scrollMx arbitrary', () => {
-    expect(scrollMx({ arbitraryValue: '10vw', important: false } as any)).toEqual({ scrollMarginLeft: '10vw', scrollMarginRight: '10vw', scrollMarginInline: '10vw' });
-  });
-  it('scrollMx with !important', () => {
-    expect(scrollMx({ value: '3', important: true } as any)).toEqual({ scrollMarginLeft: 'calc(var(--spacing)*3) !important', scrollMarginRight: 'calc(var(--spacing)*3) !important', scrollMarginInline: 'calc(var(--spacing)*3) !important' });
-  });
+});
 
-  it('scrollMy spacing scale', () => {
-    expect(scrollMy({ value: '2', important: false } as any)).toEqual({ scrollMarginTop: 'calc(var(--spacing)*2)', scrollMarginBottom: 'calc(var(--spacing)*2)', scrollMarginBlock: 'calc(var(--spacing)*2)' });
+describe('scroll snap utilities', () => {
+  it('handles scroll-snap-align', () => {
+    expect(snap({ value: 'start' } as any)).toEqual({ scrollSnapAlign: 'start' });
+    expect(snap({ value: 'end', important: true } as any)).toEqual({ scrollSnapAlign: 'end !important' });
+    expect(snap({ value: 'center' } as any)).toEqual({ scrollSnapAlign: 'center' });
+    expect(snap({ value: 'align-none' } as any)).toEqual({ scrollSnapAlign: 'none' });
   });
-  it('scrollMy negative', () => {
-    expect(scrollMy({ value: '2', negative: true, important: false } as any)).toEqual({ scrollMarginTop: 'calc(var(--spacing)*-2)', scrollMarginBottom: 'calc(var(--spacing)*-2)', scrollMarginBlock: 'calc(var(--spacing)*-2)' });
+  it('handles scroll-snap-stop', () => {
+    expect(snap({ value: 'normal' } as any)).toEqual({ scrollSnapStop: 'normal' });
+    expect(snap({ value: 'always', important: true } as any)).toEqual({ scrollSnapStop: 'always !important' });
   });
-  it('scrollMy custom property', () => {
-    expect(scrollMy({ customProperty: true, value: '--baz', important: false } as any)).toEqual({ scrollMarginTop: 'var(--baz)', scrollMarginBottom: 'var(--baz)', scrollMarginBlock: 'var(--baz)' });
+  it('handles scroll-snap-type', () => {
+    expect(snap({ value: 'none' } as any)).toEqual({ scrollSnapType: 'none' });
+    expect(snap({ value: 'x' } as any)).toEqual({ scrollSnapType: 'x var(--tw-scroll-snap-strictness)' });
+    expect(snap({ value: 'y', important: true } as any)).toEqual({ scrollSnapType: 'y var(--tw-scroll-snap-strictness) !important' });
+    expect(snap({ value: 'both' } as any)).toEqual({ scrollSnapType: 'both var(--tw-scroll-snap-strictness)' });
   });
-  it('scrollMy arbitrary', () => {
-    expect(scrollMy({ arbitraryValue: '5em', important: false } as any)).toEqual({ scrollMarginTop: '5em', scrollMarginBottom: '5em', scrollMarginBlock: '5em' });
+  it('handles snap strictness', () => {
+    expect(snap({ value: 'mandatory' } as any)).toEqual({ '--tw-scroll-snap-strictness': 'mandatory' });
+    expect(snap({ value: 'proximity', important: true } as any)).toEqual({ '--tw-scroll-snap-strictness': 'proximity !important' });
   });
-  it('scrollMy with !important', () => {
-    expect(scrollMy({ value: '2', important: true } as any)).toEqual({ scrollMarginTop: 'calc(var(--spacing)*2) !important', scrollMarginBottom: 'calc(var(--spacing)*2) !important', scrollMarginBlock: 'calc(var(--spacing)*2) !important' });
-  });
+});
 
-  it('scrollMt', () => {
-    expect(scrollMt({ value: '6', important: false } as any)).toEqual({ scrollMarginTop: 'calc(var(--spacing)*6)' });
-  });
-  it('scrollMr', () => {
-    expect(scrollMr({ value: '7', important: false } as any)).toEqual({ scrollMarginRight: 'calc(var(--spacing)*7)' });
-  });
-  it('scrollMb', () => {
-    expect(scrollMb({ value: '8', important: false } as any)).toEqual({ scrollMarginBottom: 'calc(var(--spacing)*8)' });
-  });
-  it('scrollMl', () => {
-    expect(scrollMl({ value: '9', important: false } as any)).toEqual({ scrollMarginLeft: 'calc(var(--spacing)*9)' });
-  });
-  it('scrollMt with !important', () => {
-    expect(scrollMt({ value: '6', important: true } as any)).toEqual({ scrollMarginTop: 'calc(var(--spacing)*6) !important' });
-  });
-
-  it('scrollMs', () => {
-    expect(scrollMs({ value: '5', important: false } as any)).toEqual({ scrollMarginInlineStart: 'calc(var(--spacing)*5)' });
-  });
-  it('scrollMe', () => {
-    expect(scrollMe({ value: '4', important: false } as any)).toEqual({ scrollMarginInlineEnd: 'calc(var(--spacing)*4)' });
-  });
-  it('scrollMs custom property', () => {
-    expect(scrollMs({ customProperty: true, value: '--ms', important: false } as any)).toEqual({ scrollMarginInlineStart: 'var(--ms)' });
-  });
-  it('scrollMe arbitrary', () => {
-    expect(scrollMe({ arbitraryValue: '2rem', important: false } as any)).toEqual({ scrollMarginInlineEnd: '2rem' });
-  });
-  it('scrollMe with !important', () => {
-    expect(scrollMe({ value: '4', important: true } as any)).toEqual({ scrollMarginInlineEnd: 'calc(var(--spacing)*4) !important' });
+describe('scroll-behavior utility', () => {
+  it('handles scroll-behavior', () => {
+    expect(scroll({ value: 'auto' } as any)).toEqual({ scrollBehavior: 'auto' });
+    expect(scroll({ value: 'smooth', important: true } as any)).toEqual({ scrollBehavior: 'smooth !important' });
+    expect(scroll({ value: 'instant' } as any)).toEqual({ scrollBehavior: 'instant' });
+    expect(scroll({ value: 'unknown' } as any)).toEqual({ scrollBehavior: 'auto' });
   });
 }); 

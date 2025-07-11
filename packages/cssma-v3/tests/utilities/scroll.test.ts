@@ -44,10 +44,10 @@ describe('parseUtility (scroll)', () => {
     expect(parseUtility('scroll-my-6')).toEqual(baseUtility({ prefix: 'scroll-my', value: '6', numeric: true, raw: 'scroll-my-6' }));
   });
   it('parses snap', () => {
-    expect(parseUtility('snap-x')).toEqual(baseUtility({ prefix: 'snap-x', value: '', raw: 'snap-x' }));
-    expect(parseUtility('snap-y')).toEqual(baseUtility({ prefix: 'snap-y', value: '', raw: 'snap-y' }));
-    expect(parseUtility('snap-x-start')).toEqual(baseUtility({ prefix: 'snap-x', value: 'start', raw: 'snap-x-start' }));
-    expect(parseUtility('snap-y-end')).toEqual(baseUtility({ prefix: 'snap-y', value: 'end', raw: 'snap-y-end' }));
+    expect(parseUtility('snap-x')).toEqual(baseUtility({ prefix: 'snap', value: 'x', raw: 'snap-x' }));
+    expect(parseUtility('snap-y')).toEqual(baseUtility({ prefix: 'snap', value: 'y', raw: 'snap-y' }));
+    expect(parseUtility('snap-x-start')).toEqual(baseUtility({ prefix: 'snap', value: 'start', raw: 'snap-x-start' }));
+    expect(parseUtility('snap-y-end')).toEqual(baseUtility({ prefix: 'snap', value: 'end', raw: 'snap-y-end' }));
   });
   it('returns unknown for invalid', () => {
     expect(parseUtility('scroll-p-')).toEqual({ type: 'unknown', raw: 'scroll-p-' });

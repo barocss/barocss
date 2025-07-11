@@ -228,3 +228,22 @@ export const snap = (utility: ParsedClassToken) => {
   // scroll-snap-align
   return { scrollSnapAlign: snapMap[utility.value] + important };
 };
+
+/**
+ * scroll-behavior utility for Tailwind CSS v4.1
+ * https://tailwindcss.com/docs/scroll-behavior
+ */
+
+const scrollBehaviorMap: Record<string, string> = {
+  'auto': 'auto',
+  'smooth': 'smooth',
+  'instant': 'instant',
+};
+
+export const scroll = (utility: ParsedClassToken) => {
+  const important = utility.important ? ' !important' : '';
+  if (utility.value && scrollBehaviorMap[utility.value]) {
+    return { scrollBehavior: scrollBehaviorMap[utility.value] + important };
+  }
+  return { scrollBehavior: 'auto' + important };
+};
