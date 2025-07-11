@@ -257,18 +257,9 @@ export const ALL_UTILITY_PREFIXES = [
   "fill",
 
   // table
-  "table-caption",
-  "table-header-group",
-  "table-footer-group",
-  "table-row-group",
-  "table-column-group",
-  "table-row",
-  "table-cell",
-  "table-column",
   "table",
   "border-spacing",
-  "caption-top",
-  "caption-bottom",
+  "caption",
 
   // text
   "indent",
