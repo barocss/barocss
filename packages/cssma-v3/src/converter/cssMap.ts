@@ -462,6 +462,10 @@ export const utilityToCss: Record<
   "border-spacing-x": borderSpacingX, // done
   "border-spacing-y": borderSpacingY, // done
 
+  // border 에 대한 것을 하고 난 다음 처리 
+  // "border-collapse": borderCollapse, // done
+  // "border-separate": borderSeparate, // done
+
   "writing-mode": writingMode,
   float: float,
   clear: clear,

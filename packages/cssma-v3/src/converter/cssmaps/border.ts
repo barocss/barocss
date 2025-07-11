@@ -1,6 +1,35 @@
 import { isColorValue, isLengthValue, isNumberValue, type ParsedClassToken } from "../../parser/utils";
 import type { CssmaContext } from "../../theme-types";
 
+/**
+ * TailwindCSS v4.1 border-collapse utilities
+ * https://tailwindcss.com/docs/border-collapse
+ *
+ * Supported classes:
+ * - border-collapse   → border-collapse: collapse;
+ * - border-separate   → border-collapse: separate;
+ * - !important modifier
+ *
+ * [참고]
+ * - https://tailwindcss.com/docs/border-collapse
+ */
+
+const borderCollapseMap: Record<string, string> = {
+  'collapse': 'collapse',
+  'separate': 'separate',
+};
+
+export function borderCollapse(utility: ParsedClassToken) {
+  const important = utility.important ? ' !important' : '';
+  if (utility.value && borderCollapseMap[utility.value]) {
+    return { borderCollapse: borderCollapseMap[utility.value] + important };
+  }
+  if (utility.value) {
+    return { borderCollapse: utility.value + important };
+  }
+  return undefined;
+}
+
 const BORDER_STYLES = [
   'solid', 'dashed', 'dotted', 'double', 'hidden', 'none',
   'groove', 'ridge', 'inset', 'outset'

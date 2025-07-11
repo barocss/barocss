@@ -12,8 +12,8 @@ describe('parseUtility (table)', () => {
     expect(parseUtility('border-spacing-2')).toEqual(baseUtility({ prefix: 'border-spacing', value: '2', numeric: true, raw: 'border-spacing-2' }));
   });
   it('parses caption', () => {
-    expect(parseUtility('caption-top')).toEqual(baseUtility({ prefix: 'caption-top', raw: 'caption-top' }));
-    expect(parseUtility('caption-bottom')).toEqual(baseUtility({ prefix: 'caption-bottom', raw: 'caption-bottom' }));
+    expect(parseUtility('caption-top')).toEqual(baseUtility({ prefix: 'caption', value: 'top', raw: 'caption-top' }));
+    expect(parseUtility('caption-bottom')).toEqual(baseUtility({ prefix: 'caption', value: 'bottom', raw: 'caption-bottom' }));
   });
   it('returns unknown for invalid', () => {
     expect(parseUtility('table-')).toEqual({ type: 'unknown', raw: 'table-' });

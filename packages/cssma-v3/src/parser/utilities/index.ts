@@ -18,8 +18,6 @@ export const ALL_UTILITY_PREFIXES = [
   // box
   "box-decoration",
   "box",
-  "border-collapse",
-  "border-separate",
   "drop-shadow",
 
   // break
