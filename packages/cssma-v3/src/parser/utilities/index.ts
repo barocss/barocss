@@ -144,7 +144,9 @@ export const ALL_UTILITY_PREFIXES = [
   "mask-size",
   "mask-repeat",
   "mask-position",
-  "mask-mode",
+  "mask-clip",
+  "mask-origin",
+  "mask",
 
   // misc
   "whitespace",
