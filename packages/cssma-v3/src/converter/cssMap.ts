@@ -141,7 +141,7 @@ import {
 import { word } from "./cssmaps/typography-extended";
 
 // Effects utilities
-import { mixBlend, filter, backdrop, dropShadow } from "./cssmaps/effects";
+import { mixBlend, backdrop, dropShadow } from "./cssmaps/effects";
 
 // SVG utilities
 import { fill, stroke, strokeWidth } from "./cssmaps/svg";
@@ -240,6 +240,7 @@ import {
   borderSpacingX,
   borderSpacingY,
 } from "./cssmaps/border-spacing";
+import { blur, brightness, contrast, filter, grayscale, hueRotate, invert, saturate, sepia } from "./cssmaps/filter";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -466,6 +467,17 @@ export const utilityToCss: Record<
   // "border-collapse": borderCollapse, // done
   // "border-separate": borderSeparate, // done
 
+  filter: filter,         // done 
+  blur: blur,             // done
+  brightness: brightness, // done
+  contrast: contrast,     // done
+  grayscale: grayscale,   // done
+  hueRotate: hueRotate,   // done
+  invert: invert,         // done
+  saturate: saturate,     // done
+  sepia: sepia,           // done
+
+
   "writing-mode": writingMode,
   float: float,
   clear: clear,
@@ -475,7 +487,7 @@ export const utilityToCss: Record<
 
   isolation: isolation,
   "mix-blend": mixBlend,
-  filter: filter,
+
   backdrop: backdrop,
   z: z,
   order: order,

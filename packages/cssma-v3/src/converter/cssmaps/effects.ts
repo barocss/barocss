@@ -5,11 +5,6 @@ import type { ParsedClassToken } from "../../parser/utils";
  * Handles visual effects like filter, backdrop-filter, mix-blend-mode, drop-shadow
  */
 
-// filter
-export const filter = (utility: ParsedClassToken) => ({ 
-  filter: utility.value + (utility.important ? ' !important' : '') 
-});
-
 // backdrop-filter
 export const backdrop = (utility: ParsedClassToken) => ({ 
   backdropFilter: utility.value + (utility.important ? ' !important' : '') 

@@ -137,7 +137,6 @@ export function dropShadow(utility: ParsedClassToken, ctx: CssmaContext) {
   // Tailwind는 filter: drop-shadow(var(--drop-shadow-<size>))
   const themeKey = value || "DEFAULT";
   const themeVar = ctx.theme?.(`dropShadow.${themeKey}`);
-  console.log(themeVar, value, themeKey);
   if (themeVar) {
     // Tailwind는 filter: drop-shadow(var(--drop-shadow-<size>))
     // themeVar이 이미 var(--drop-shadow-*) 형태라면 그대로, 아니면 감싸기
@@ -267,4 +266,40 @@ export function sepia(utility: ParsedClassToken, ctx: CssmaContext) {
     return { filter: "sepia(1)" + important };
   }
   return { filter: `sepia(${value})` + important };
+}
+
+/**
+ * TailwindCSS v4.1 filter utility
+ * https://tailwindcss.com/docs/filter
+ *
+ * 지원:
+ * - filter-none
+ * - filter-(<custom-property>)
+ * - filter-[<value>]
+ * - !important modifier
+ *
+ * @param utility ParsedClassToken
+ * @param ctx CssmaContext
+ * @returns { [key: string]: string }
+ */
+export function filter(utility: ParsedClassToken, ctx: CssmaContext) {
+  const important = utility.important ? ' !important' : '';
+  const { value, customProperty, arbitrary, arbitraryValue } = utility;
+
+  if (value === 'none') {
+    return { filter: `none${important}` };
+  }
+
+  if (customProperty && value) {
+    // filter-(--my-filter) → filter: var(--my-filter)
+    return { filter: `var(${value})${important}` };
+  }
+
+  if (arbitrary && arbitraryValue) {
+    // filter-[url('filters.svg#filter-id')] → filter: url('filters.svg#filter-id')
+    return { filter: `${arbitraryValue}${important}` };
+  }
+
+  // fallback: treat as custom value (should not happen in normal Tailwind usage)
+  return { filter: `${value}${important}` };
 }
