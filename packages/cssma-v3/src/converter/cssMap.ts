@@ -237,6 +237,7 @@ import { rotateX, rotateY, rotateZ } from "./cssmaps/rotate";
 import { skew, skewX, skewY } from './cssmaps/skew';
 import { touch } from './cssmaps/touch';
 import { select } from './cssmaps/select';
+import { willChange } from './cssmaps/willChange';
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -434,6 +435,8 @@ export const utilityToCss: Record<
   "touch": touch, // done
 
   select: select, // done
+
+  "will-change": willChange, // done
 
 
   table: table,
