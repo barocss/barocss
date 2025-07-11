@@ -5,10 +5,19 @@ import type { ParsedClassToken } from "../../parser/utils";
  * Handles position, display, overflow, visibility, z-index, float, clear, and box-sizing
  */
 
+const appearanceMap: Record<string, string> = {
+  'auto': 'auto',
+  'none': 'none',
+};
+
 // appearance
-export const appearance = (utility: ParsedClassToken) => ({ 
-  appearance: utility.value + (utility.important ? ' !important' : '') 
-});
+export const appearance = (utility: ParsedClassToken) => {
+  const important = utility.important ? ' !important' : '';
+  if (utility.value && appearanceMap[utility.value]) {
+    return { appearance: appearanceMap[utility.value] + important };
+  }
+  return { appearance: 'auto' + important };
+};
 
 // overflow
 export const overflow = (utility: ParsedClassToken) => ({ 

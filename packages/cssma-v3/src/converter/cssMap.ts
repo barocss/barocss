@@ -444,12 +444,13 @@ export const utilityToCss: Record<
   "cursor": cursor, // done
   scheme: colorScheme, // done
   caret: caret, // done
-  
+  appearance: appearance, // done
+  accent: accent, // done
 
   table: table,
   "table-row": tableRow,
   "table-cell": tableCell,
-  appearance: appearance,
+
   "writing-mode": writingMode,
   float: float,
   clear: clear,
@@ -490,7 +491,6 @@ export const utilityToCss: Record<
   "break-after": breakAfter,
   "outline-offset": outlineOffset,
   outline: outline,
-  accent: accent,
   fill: fill,
 
   visible: visible,
