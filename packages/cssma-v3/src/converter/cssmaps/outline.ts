@@ -100,10 +100,10 @@ export const outline = (utility: ParsedClassToken, ctx: CssmaContext) => {
   }
 
   // Handle theme colors: outline-red-500, outline-blue-100 (CHECK BEFORE CSS KEYWORDS AND STYLES)
-  if (utility.value && ctx.config) {
+  if (utility.value) {
     // red-500 → red.500으로 변환
     const colorPath = utility.value.replace(/-(\d+)$/, '.$1');
-    let css = ctx.config(`theme.colors.${colorPath}`);
+    let css = ctx.theme(`colors.${colorPath}`);
     if (css) {
       return { outlineColor: css + importantString };
     }

@@ -523,6 +523,8 @@ export const utilityToCss: Record<
 
   "mix-blend": mixBlend, // done
 
+  "outline-offset": outlineOffset, // done
+  outline: outline, // done
 
   "writing-mode": writingMode,
   float: float,
@@ -553,8 +555,7 @@ export const utilityToCss: Record<
   "break-inside": breakInside,
   "break-before": breakBefore,
   "break-after": breakAfter,
-  "outline-offset": outlineOffset,
-  outline: outline,
+
   fill: fill,
 
   visible: visible,
