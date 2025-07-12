@@ -265,6 +265,7 @@ import {
   maskSize,
   maskType,
 } from "./cssmaps/mask";
+import { columns } from "./cssmaps/columns";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -529,7 +530,8 @@ export const utilityToCss: Record<
   "divide-x": divideX, // done
   "divide-y": divideY, // done
   divide: divide, // done
-  aspect: aspect,
+  aspect: aspect, // done
+  columns: columns, // done
 
   "writing-mode": writingMode,
   float: float,
