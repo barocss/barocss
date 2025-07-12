@@ -529,6 +529,7 @@ export const utilityToCss: Record<
   "divide-x": divideX, // done
   "divide-y": divideY, // done
   divide: divide, // done
+  aspect: aspect,
 
   "writing-mode": writingMode,
   float: float,
@@ -548,7 +549,6 @@ export const utilityToCss: Record<
   left: left,
   right: right,
   bottom: bottom,
-  aspect: aspect,
   object: object,
   ring: ring,
 
