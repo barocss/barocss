@@ -68,11 +68,6 @@ export const box = (utility: ParsedClassToken) => ({
   boxSizing: utility.value 
 });
 
-// box-decoration-break
-export const boxDecoration = (utility: ParsedClassToken) => ({ 
-  boxDecorationBreak: utility.value 
-});
-
 // visibility
 export const visible = () => ({ 
   visibility: 'visible' 

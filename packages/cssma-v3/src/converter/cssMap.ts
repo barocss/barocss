@@ -100,7 +100,6 @@ import {
   right,
   bottom,
   box,
-  boxDecoration,
   visible,
   invisible,
   collapse,
@@ -266,6 +265,7 @@ import { columns } from "./cssmaps/columns";
 import { breakAfter } from "./cssmaps/break-after";
 import { breakBefore } from "./cssmaps/break-before";
 import { breakInside } from "./cssmaps/break-inside";
+import { boxDecorationBreak } from "./cssmaps/box-decoration-break";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -536,6 +536,7 @@ export const utilityToCss: Record<
   "break-after": breakAfter, // done
   "break-before": breakBefore, // done
   "break-inside": breakInside, // done
+  "box-decoration": boxDecorationBreak, // done
 
   "writing-mode": writingMode,
   float: float,
@@ -559,7 +560,7 @@ export const utilityToCss: Record<
   ring: ring,
 
   box: box,
-  "box-decoration": boxDecoration,
+
   "drop-shadow": dropShadow,
 
   fill: fill,
