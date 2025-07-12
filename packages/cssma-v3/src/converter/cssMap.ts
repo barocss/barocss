@@ -174,9 +174,6 @@ import {
 // Miscellaneous utilities
 import {
   writingMode,
-  breakInside,
-  breakBefore,
-  breakAfter,
   size,
   placeholder,
   sub,
@@ -266,6 +263,9 @@ import {
   maskType,
 } from "./cssmaps/mask";
 import { columns } from "./cssmaps/columns";
+import { breakAfter } from "./cssmaps/break-after";
+import { breakBefore } from "./cssmaps/break-before";
+import { breakInside } from "./cssmaps/break-inside";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -533,6 +533,10 @@ export const utilityToCss: Record<
   aspect: aspect, // done
   columns: columns, // done
 
+  "break-after": breakAfter, // done
+  "break-before": breakBefore, // done
+  "break-inside": breakInside, // done
+
   "writing-mode": writingMode,
   float: float,
   clear: clear,
@@ -557,9 +561,6 @@ export const utilityToCss: Record<
   box: box,
   "box-decoration": boxDecoration,
   "drop-shadow": dropShadow,
-  "break-inside": breakInside,
-  "break-before": breakBefore,
-  "break-after": breakAfter,
 
   fill: fill,
 

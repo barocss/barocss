@@ -15,25 +15,6 @@ export const content = (utility: ParsedClassToken) => ({
   content: utility.value + (utility.important ? ' !important' : '') 
 });
 
-// break-inside
-export const breakInside = (utility: ParsedClassToken) => ({ 
-  breakInside: utility.value 
-});
-
-// break-before
-export const breakBefore = (utility: ParsedClassToken) => ({ 
-  breakBefore: utility.value 
-});
-
-// break-after
-export const breakAfter = (utility: ParsedClassToken) => ({ 
-  breakAfter: utility.value 
-});
-
-
-
-
-
 // size
 export const size = (utility: ParsedClassToken) => ({ 
   size: utility.value + (utility.important ? ' !important' : '') 
