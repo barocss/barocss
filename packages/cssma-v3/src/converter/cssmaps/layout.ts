@@ -63,11 +63,6 @@ export const bottom = (utility: ParsedClassToken) => ({
   bottom: utility.value + (utility.important ? ' !important' : '') 
 });
 
-// box-sizing
-export const box = (utility: ParsedClassToken) => ({ 
-  boxSizing: utility.value 
-});
-
 // visibility
 export const visible = () => ({ 
   visibility: 'visible' 
@@ -110,11 +105,6 @@ export const relative = () => ({
 
 export const sticky = () => ({ 
   position: 'sticky' 
-});
-
-// float
-export const float = (utility: ParsedClassToken) => ({ 
-  float: utility.value + (utility.important ? ' !important' : '') 
 });
 
 // clear

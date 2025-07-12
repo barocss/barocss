@@ -36,6 +36,11 @@ function getFlexValue(utility: ParsedClassToken, ctx: CssmaContext) {
 }
 
 export const flex = (utility: ParsedClassToken, ctx: CssmaContext) => {
+
+  if (utility.prefix === "flex" && utility.value === "") {
+    return { display: "flex" };
+  }
+
   const val = getFlexValue(utility, ctx);
   if (val === undefined) return {};
   return { flex: val + (utility.important ? ' !important' : '') };

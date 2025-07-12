@@ -99,7 +99,6 @@ import {
   left,
   right,
   bottom,
-  box,
   visible,
   invisible,
   collapse,
@@ -110,11 +109,8 @@ import {
   absolute as absoluteUtil,
   relative as relativeUtil,
   sticky as stickyUtil,
-  float,
   clear,
   pointerEvents,
-  srOnly,
-  notSrOnly,
 } from "./cssmaps/layout";
 
 // Flexbox & Grid utilities
@@ -266,6 +262,8 @@ import { breakAfter } from "./cssmaps/break-after";
 import { breakBefore } from "./cssmaps/break-before";
 import { breakInside } from "./cssmaps/break-inside";
 import { boxDecorationBreak } from "./cssmaps/box-decoration-break";
+import { boxSizing } from "./cssmaps/box-sizing";
+import { float } from "./cssmaps/float";
 
 type CssmaCssValue = string | { [key: string]: string | undefined } | undefined;
 
@@ -538,8 +536,35 @@ export const utilityToCss: Record<
   "break-inside": breakInside, // done
   "box-decoration": boxDecorationBreak, // done
 
+  "inline": display, // done  
+  "block": display, // done
+  "inline-block": display, // done
+  "flow-root": display, // done
+  // "flex": display,       // flex 함수에서 처리 
+  "inline-flex": display, // done
+  "grid": display, // done
+  "inline-grid": display, // done
+  "contents": display, // done
+  // "table": display,   // table 함수에서 처리 
+  "inline-table": display,    // done
+  "table-caption": display,   // done
+  "table-cell": display,      // done
+  "table-column": display,    // done
+  "table-column-group": display, // done
+  "table-footer-group": display, // done
+  "table-header-group": display, // done
+  "table-row-group": display, // done
+  "table-row": display, // done
+  "list-item": display, // done
+  "hidden": display, // done
+  "sr-only": display,  // done
+  "not-sr-only": display, // done
+  float: float, // done
+
+
+  
   "writing-mode": writingMode,
-  float: float,
+
   clear: clear,
   overflow: overflow,
   "overflow-x": overflowX,
@@ -559,7 +584,7 @@ export const utilityToCss: Record<
   object: object,
   ring: ring,
 
-  box: box,
+  box: boxSizing,
 
   "drop-shadow": dropShadow,
 
@@ -578,8 +603,6 @@ export const utilityToCss: Record<
   sticky: stickyUtil,
   sub: sub,
   sup: sup,
-  "sr-only": srOnly,
-  "not-sr-only": notSrOnly,
 
   stroke: stroke,
   "stroke-width": strokeWidth,
