@@ -78,8 +78,8 @@ describe('mask()', () => {
     expect(maskPosition({ value: '10% 20%', arbitrary: true, arbitraryValue: '10% 20%' } as any, context)).toEqual({ maskPosition: '10% 20%' });
   });
 
-  it('returns mask for none/auto', () => {
-    expect(mask({ value: 'none' } as any, context)).toEqual({ maskSize: 'none' });
+  it('returns maskSize for none/auto', () => {
+    expect(mask({ value: 'none' } as any, context)).toEqual({ maskImage: 'none' });
     expect(mask({ value: 'auto' } as any, context)).toEqual({ maskSize: 'auto' });
   });
 
@@ -87,7 +87,7 @@ describe('mask()', () => {
     expect(mask({ value: 'border', important: true } as any, context)).toEqual({ maskClip: 'border-box !important' });
     expect(mask({ value: 'add', important: true } as any, context)).toEqual({ maskComposite: 'add !important' });
     expect(mask({ value: 'top', important: true } as any, context)).toEqual({ maskPosition: 'top !important' });
-    expect(mask({ value: 'auto', important: true } as any, context)).toEqual({ mask: 'auto !important' });
+    expect(mask({ value: 'auto', important: true } as any, context)).toEqual({ maskSize: 'auto !important' });
   });
 
   it('fallback: returns mask as-is', () => {

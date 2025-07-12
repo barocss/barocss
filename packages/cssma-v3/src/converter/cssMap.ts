@@ -141,7 +141,8 @@ import {
 import { word } from "./cssmaps/typography-extended";
 
 // Effects utilities
-import { mixBlend, backdrop, dropShadow } from "./cssmaps/effects";
+import { backdrop, dropShadow } from "./cssmaps/effects";
+import { mixBlend } from "./cssmaps/mix-blend";
 
 // SVG utilities
 import { fill, stroke, strokeWidth } from "./cssmaps/svg";
@@ -517,6 +518,11 @@ export const utilityToCss: Record<
   "mask-size": maskSize, // done
   "mask-position": maskPosition, // done
   "mask-type": maskType, // done
+  // TODO: mask-image 처리 필요
+  // "mask-image": maskImage, // done
+
+  "mix-blend": mixBlend, // done
+
 
   "writing-mode": writingMode,
   float: float,
@@ -526,7 +532,7 @@ export const utilityToCss: Record<
   "overflow-y": overflowY,
 
   isolation: isolation,
-  "mix-blend": mixBlend,
+
 
   backdrop: backdrop,
   z: z,

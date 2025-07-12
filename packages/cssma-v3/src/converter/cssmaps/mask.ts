@@ -158,7 +158,7 @@ export function mask(utility: ParsedClassToken, ctx: CssmaContext) {
   const { value, customProperty, arbitrary, arbitraryValue } = utility;
 
   if (value === 'none') {
-    return { mask: 'none' + important };
+    return { maskImage: 'none' + important };
   }
 
   if (value === 'no-repeat') {
