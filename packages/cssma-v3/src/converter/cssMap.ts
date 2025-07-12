@@ -562,7 +562,7 @@ export const utilityToCss: Record<
   float: float, // done
 
 
-  
+
   "writing-mode": writingMode,
 
   clear: clear,
@@ -593,7 +593,7 @@ export const utilityToCss: Record<
   visible: visible,
   invisible: invisible,
   collapse: collapse,
-  display: display,
+  
   container: container,
   placeholder: placeholder,
   static: staticUtil,
