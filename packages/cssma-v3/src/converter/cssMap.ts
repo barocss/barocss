@@ -214,7 +214,7 @@ import {
   roundedTr,
 } from "./cssmaps/rounded";
 import { outline, outlineOffset } from "./cssmaps/outline";
-import { divideX, divideY } from "./cssmaps/divide";
+import { divide, divideX, divideY } from "./cssmaps/divide";
 import { flex } from "./cssmaps/flex";
 import { gridCols } from "./cssmaps/grid-cols";
 import { gap, gapX, gapY } from "./cssmaps/gap";
@@ -526,6 +526,10 @@ export const utilityToCss: Record<
   "outline-offset": outlineOffset, // done
   outline: outline, // done
 
+  "divide-x": divideX, // done
+  "divide-y": divideY, // done
+  divide: divide, // done
+
   "writing-mode": writingMode,
   float: float,
   clear: clear,
@@ -547,8 +551,7 @@ export const utilityToCss: Record<
   aspect: aspect,
   object: object,
   ring: ring,
-  "divide-x": divideX,
-  "divide-y": divideY,
+
   box: box,
   "box-decoration": boxDecoration,
   "drop-shadow": dropShadow,

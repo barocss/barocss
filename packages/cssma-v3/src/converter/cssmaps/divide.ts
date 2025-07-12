@@ -74,11 +74,23 @@ export const divideX = (utility: ParsedClassToken, ctx: CssmaContext) => {
   }
 
   // Handle custom properties: divide-x-(color:--my-color)
-  if (utility.customProperty && utility.value) {
+  if (utility.customProperty && utility.value && utility.value.startsWith("color:")) {
     const value = utility.value.replace("color:", "");
     return {
       "& > :not(:last-child)": {
         borderColor: `var(${value})` + importantString,
+      },
+    };
+  }
+
+  // Handle custom properties: divide-x-(length:--my-width)
+  if (utility.customProperty && utility.value && utility.value.startsWith("length:")) {
+    let value = utility.value.replace("length:", "");
+    const finalValue = `var(${value})`;
+    return {
+      "& > :not(:last-child)": {
+        borderInlineStartWidth: "0px" + importantString,
+        borderInlineEndWidth: finalValue + importantString,
       },
     };
   }
@@ -106,19 +118,6 @@ export const divideX = (utility: ParsedClassToken, ctx: CssmaContext) => {
   if (utility.arbitrary && utility.arbitraryValue && isLengthValue(utility.arbitraryValue)) {
     const value = utility.arbitraryValue;
     const finalValue = isNumberValue(value) ? value + "px" : value;
-
-    return {
-      "& > :not(:last-child)": {
-        borderInlineStartWidth: "0px" + importantString,
-        borderInlineEndWidth: finalValue + importantString,
-      },
-    };
-  }
-
-  // Handle custom properties: divide-x-(length:--my-width)
-  if (utility.customProperty && utility.value) {
-    let value = utility.value.replace("length:", "");
-    const finalValue = `var(${value})`;
 
     return {
       "& > :not(:last-child)": {
@@ -198,11 +197,23 @@ export const divideY = (utility: ParsedClassToken, ctx: CssmaContext) => {
   }
 
   // Handle custom properties: divide-y-(color:--my-color)
-  if (utility.customProperty && utility.value) {
+  if (utility.customProperty && utility.value && utility.value.startsWith("color:")) {
     const value = utility.value.replace("color:", "");
     return {
       "& > :not(:last-child)": {
         borderColor: `var(${value})` + importantString,
+      },
+    };
+  }
+
+  // Handle custom properties: divide-y-(length:--my-width)
+  if (utility.customProperty && utility.value && utility.value.startsWith("length:")) {
+    let value = utility.value.replace("length:", "");
+    const finalValue = `var(${value})`;
+    return {
+      "& > :not(:last-child)": {
+        borderTopWidth: "0px" + importantString,
+        borderBottomWidth: finalValue + importantString,
       },
     };
   }
@@ -239,19 +250,6 @@ export const divideY = (utility: ParsedClassToken, ctx: CssmaContext) => {
     };
   }
 
-  // Handle custom properties: divide-y-(length:--my-width)
-  if (utility.customProperty && utility.value) {
-    let value = utility.value.replace("length:", "");
-    const finalValue = `var(${value})`;
-
-    return {
-      "& > :not(:last-child)": {
-        borderTopWidth: "0px" + importantString,
-        borderBottomWidth: finalValue + importantString,
-      },
-    };
-  }
-
   // Handle numeric values: divide-y-2
   if (utility.numeric && isNumberValue(utility.value)) {
     const value = utility.value + "px";
@@ -264,4 +262,20 @@ export const divideY = (utility: ParsedClassToken, ctx: CssmaContext) => {
   }
 
   return {};
+};
+
+export const divide = (utility: ParsedClassToken, ctx: CssmaContext) => {
+  const importantString = utility.important ? " !important" : "";
+
+  if (utility.value && isDivideStyleValue(utility.value)) {
+    return {
+      "& > :not(:last-child)": {
+        borderStyle: utility.value + importantString,
+      },
+    };
+  }
+
+  return {
+    borderStyle: utility.value + importantString,
+  };
 };
