@@ -1,5 +1,13 @@
 import { staticUtility, functionalUtility } from '../core/registry';
 import { decl } from '../core/ast';
+import {
+  parseFractionOrNumber,
+  parseNumber,
+  parseFraction,
+  parseNegative,
+  parseArbitraryValue,
+  parseVar
+} from '../core/utils';
 
 // --- Layout: Isolation ---
 staticUtility('isolate', [['isolation', 'isolate']]);
@@ -13,7 +21,7 @@ functionalUtility({
   supportsArbitrary: true, // z-[999], z-[calc(var(--index)+1)] 등 지원
   supportsCustomProperty: true, // z-(--my-z) 지원
   // Tailwind는 themeKey: 'zIndex'이나, 실제 theme lookup은 ctx.theme에서 처리됨
-  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null, // 정수만 허용
+  handleBareValue: ({ value }) => parseNumber(value), // 정수만 허용
   handle: (value) => [decl('z-index', value)],
   description: 'z-index utility (Tailwind CSS 호환)',
   category: 'layout',
@@ -54,7 +62,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsFraction: true,
-  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
+  handleBareValue: ({ value }) => parseNumber(value),
   description: 'columns utility (theme, arbitrary, custom property, fraction 지원)',
   category: 'layout',
 });
@@ -220,40 +228,176 @@ staticUtility('sticky', [['position', 'sticky']]);
         supportsArbitrary: true,
         supportsCustomProperty: true,
         handleBareValue: ({ value }) => {
-            // spacing scale: inset-4 → calc(var(--spacing) * 4)
-            if (/^\d+$/.test(value)) {
-            return `calc(var(--spacing) * ${value})`;
+            if (parseNumber(value)) {
+              return `calc(var(--spacing) * ${value})`;
             }
-
-            if (value.includes('/')) {
-                const [numerator, denominator] = value.split('/').map(Number);
-                if (!isNaN(numerator) && !isNaN(denominator)) {
-                    const percentage = (numerator / denominator) * 100;
-                    return `${percentage}%`;
-                }
-            }
-
+            const frac = parseFraction(value);
+            if (frac) return frac;
             return null;
         },
         handleNegativeBareValue: ({ value }) => {
-            // negative spacing scale: -inset-4 → calc(var(--spacing) * -4)
-            // value는 이미 음수 부호가 제거된 값 (예: "1" for "-inset-1")
-            if (/^\d+$/.test(value)) {
+            if (parseNumber(value)) {
                 return `calc(var(--spacing) * -${value})`;
             }
-
-            if (value.includes('/')) {
-                const [numerator, denominator] = value.split('/').map(Number);
-                if (!isNaN(numerator) && !isNaN(denominator)) {
-                    const percentage = -(numerator / denominator) * 100;
-                    return `${percentage}%`;
-                }
-            }
-
+            const frac = parseFraction(value);
+            if (frac) return `-${frac}`;
             return null;
         },
         description: `${name} utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)`,
         category: 'layout',
     });
 
+});
+
+// --- Layout: Visibility ---
+staticUtility('visible', [['visibility', 'visible']]);
+staticUtility('invisible', [['visibility', 'hidden']]);
+staticUtility('collapse', [['visibility', 'collapse']]);
+
+// --- Layout: z-index ---
+staticUtility('z-auto', [['z-index', 'auto']]);
+functionalUtility({
+  name: 'z',
+  prop: 'z-index',
+  supportsFraction: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'z-index utility (fraction, arbitrary, custom property 지원)',
+  category: 'layout',
+});
+
+// --- Flexbox & Grid: flex-basis ---
+staticUtility('basis-full', [['flex-basis', '100%']]);
+staticUtility('basis-auto', [['flex-basis', 'auto']]);
+staticUtility('basis-3xs', [['flex-basis', 'var(--container-3xs)']]);
+staticUtility('basis-2xs', [['flex-basis', 'var(--container-2xs)']]);
+staticUtility('basis-xs', [['flex-basis', 'var(--container-xs)']]);
+staticUtility('basis-sm', [['flex-basis', 'var(--container-sm)']]);
+staticUtility('basis-md', [['flex-basis', 'var(--container-md)']]);
+staticUtility('basis-lg', [['flex-basis', 'var(--container-lg)']]);
+staticUtility('basis-xl', [['flex-basis', 'var(--container-xl)']]);
+staticUtility('basis-2xl', [['flex-basis', 'var(--container-2xl)']]);
+staticUtility('basis-3xl', [['flex-basis', 'var(--container-3xl)']]);
+staticUtility('basis-4xl', [['flex-basis', 'var(--container-4xl)']]);
+staticUtility('basis-5xl', [['flex-basis', 'var(--container-5xl)']]);
+staticUtility('basis-6xl', [['flex-basis', 'var(--container-6xl)']]);
+staticUtility('basis-7xl', [['flex-basis', 'var(--container-7xl)']]);
+functionalUtility({
+  name: 'basis',
+  prop: 'flex-basis',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsFraction: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) {
+      return `calc(var(--container-${value}) * 1px)`;
+    }
+    const frac = parseFraction(value);
+    if (frac) return frac;
+    return null;
+  },
+  handleNegativeBareValue: ({ value }) => {
+    if (parseNumber(value)) {
+      return `calc(var(--container-${value}) * -1px)`;
+    }
+    const frac = parseFraction(value);
+    if (frac) return `-${frac}`;
+    return null;
+  },
+  description: 'flex-basis utility (theme, arbitrary, custom property, fraction 지원)',
+  category: 'layout',
+});
+
+// --- Flexbox & Grid: flex-direction ---
+staticUtility('flex-row', [['flex-direction', 'row']]);
+staticUtility('flex-row-reverse', [['flex-direction', 'row-reverse']]);
+staticUtility('flex-col', [['flex-direction', 'column']]);
+staticUtility('flex-col-reverse', [['flex-direction', 'column-reverse']]);
+
+// --- Flexbox & Grid: flex-wrap ---
+staticUtility('flex-wrap', [['flex-wrap', 'wrap']]);
+staticUtility('flex-wrap-reverse', [['flex-wrap', 'wrap-reverse']]);
+staticUtility('flex-nowrap', [['flex-wrap', 'nowrap']]);
+
+// --- Flexbox & Grid: Flex ---
+staticUtility('flex-auto', [['flex', '1 1 auto']]);
+staticUtility('flex-initial', [['flex', '0 1 auto']]);
+staticUtility('flex-none', [['flex', 'none']]);
+
+functionalUtility({
+  name: 'flex',
+  supportsArbitrary: true, // flex-[3_1_auto], flex-[2], flex-[0_0_100%] 등
+  supportsCustomProperty: true, // flex-(--my-flex)
+  supportsFraction: true, // flex-1/2 → flex: 50%;
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) return value;
+    const frac = parseFraction(value);
+    if (frac) return `calc(${frac})`;
+    return null;
+  },
+  handle: (value) => [decl('flex', value)],
+  description: 'flex shorthand utility (number, fraction, arbitrary, custom property 지원)',
+  category: 'flex',
+});
+
+// --- Flexbox & Grid: Flex Grow ---
+staticUtility('grow', [['flex-grow', '1']]);
+
+functionalUtility({
+  name: 'grow',
+  prop: 'flex-grow',
+  supportsArbitrary: true, // grow-[25vw], grow-[2], grow-[var(--factor)] 등
+  supportsCustomProperty: true, // grow-(--my-grow)
+  handleBareValue: ({ value }) => parseNumber(value),
+  handle: (value) => [decl('flex-grow', value)],
+  description: 'flex-grow utility (number, arbitrary, custom property 지원)',
+  category: 'flex',
+});
+
+// --- Flexbox & Grid: Flex Shrink ---
+staticUtility('shrink', [['flex-shrink', '1']]);
+staticUtility('shrink-0', [['flex-shrink', '0']]);
+
+functionalUtility({
+  name: 'shrink',
+  prop: 'flex-shrink',
+  supportsArbitrary: true, // shrink-[2], shrink-[calc(100vw-var(--sidebar))] 등
+  supportsCustomProperty: true, // shrink-(--my-shrink)
+  handleBareValue: ({ value }) => parseNumber(value),
+  description: 'flex-shrink utility (number, arbitrary, custom property 지원)',
+  category: 'flex',
+});
+
+// --- Flexbox & Grid: Order ---
+staticUtility('order-first', [['order', 'calc(-infinity)']]);
+staticUtility('order-last', [['order', 'calc(infinity)']]);
+staticUtility('order-none', [['order', '0']]);
+
+functionalUtility({
+  name: 'order',
+  prop: 'order',
+  supportsNegative: true, // -order-1 → order: calc(1 * -1)
+  supportsArbitrary: true, // order-[min(var(--total-items),10)] 등
+  supportsCustomProperty: true, // order-(--my-order)
+  handleBareValue: ({ value }) => parseNumber(value),
+  handleNegativeBareValue: ({ value }) => {
+    if (parseNumber(value)) return `calc(${value} * -1)`;
+    return null;
+  },
+  description: 'order utility (number, negative, arbitrary, custom property 지원)',
+  category: 'flex',
+});
+
+// --- Flexbox & Grid: Grid Template Columns ---
+staticUtility('grid-cols-none', [['grid-template-columns', 'none']]);
+staticUtility('grid-cols-subgrid', [['grid-template-columns', 'subgrid']]);
+
+functionalUtility({
+  name: 'grid-cols',
+  prop: 'grid-template-columns',
+  supportsArbitrary: true, // grid-cols-[200px_minmax(900px,_1fr)_100px] 등
+  supportsCustomProperty: true, // grid-cols-(--my-grid-cols)
+  handleBareValue: ({ value }) => parseFractionOrNumber(value, { repeat: true }),
+  description: 'grid-template-columns utility (number, arbitrary, custom property 지원)',
+  category: 'grid',
 });

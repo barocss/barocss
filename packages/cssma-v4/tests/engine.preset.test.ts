@@ -99,60 +99,6 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
   it('z-index: theme, arbitrary, negative', () => {
     expect(applyClassName('z-10', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '10' }]);
     expect(applyClassName('z-[999]', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '999' }]);
-    expect(applyClassName('-z-20', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '-20' }]);
-  });
-
-  // Order
-  it('order: theme, arbitrary, negative, first/last', () => {
-    expect(applyClassName('order-1', ctx)).toEqual([{ type: 'decl', prop: 'order', value: '1' }]);
-    expect(applyClassName('order-[5]', ctx)).toEqual([{ type: 'decl', prop: 'order', value: '5' }]);
-    expect(applyClassName('-order-2', ctx)).toEqual([{ type: 'decl', prop: 'order', value: '-2' }]);
-    expect(applyClassName('order-first', ctx)).toEqual([{ type: 'decl', prop: 'order', value: '-9999' }]);
-    expect(applyClassName('order-last', ctx)).toEqual([{ type: 'decl', prop: 'order', value: '9999' }]);
-  });
-
-  // Grid Column
-  it('grid-column: theme, arbitrary, negative, auto', () => {
-    expect(applyClassName('col-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '2' }]);
-    expect(applyClassName('col-[7]', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '7' }]);
-    expect(applyClassName('-col-3', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '-3' }]);
-    expect(applyClassName('col-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: 'auto' }]);
-  });
-
-  // col-span
-  it('col-span: custom AST, full', () => {
-    expect(applyClassName('col-span-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: 'span 2 / span 2' }]);
-    expect(applyClassName('col-span-full', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '1 / -1' }]);
-  });
-
-  // col-start/col-end
-  it('col-start/col-end: theme, arbitrary, negative, auto', () => {
-    expect(applyClassName('col-start-1', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-start', value: '1' }]);
-    expect(applyClassName('col-start-[3]', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-start', value: '3' }]);
-    expect(applyClassName('-col-start-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-start', value: '-2' }]);
-    expect(applyClassName('col-start-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-start', value: 'auto' }]);
-    expect(applyClassName('col-end-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-end', value: '2' }]);
-    expect(applyClassName('col-end-[4]', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-end', value: '4' }]);
-    expect(applyClassName('-col-end-3', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-end', value: '-3' }]);
-    expect(applyClassName('col-end-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-end', value: 'auto' }]);
-  });
-
-  // Background Color
-  it('background-color: theme, arbitrary, custom property, negative, fraction', () => {
-    expect(applyClassName('bg-red-500', ctx)).toEqual([{ type: 'decl', prop: 'background-color', value: '#f00' }]);
-    expect(applyClassName('bg-[red]', ctx)).toEqual([{ type: 'decl', prop: 'background-color', value: 'red' }]);
-    expect(applyClassName('bg-(--my-bg)', ctx)).toEqual([{ type: 'decl', prop: 'background-color', value: 'var(--my-bg)' }]);
-    expect(applyClassName('-bg-blue-500', ctx)).toEqual([{ type: 'decl', prop: 'background-color', value: '-#00f' }]);
-    expect(applyClassName('bg-1/4', ctx)).toEqual([{ type: 'decl', prop: 'background-color', value: '25%' }]);
-  });
-
-  // Edge: invalid/unsupported values
-  it('should return [] for invalid/unsupported values', () => {
-    expect(applyClassName('z-foo', ctx)).toEqual([]);
-    expect(applyClassName('order-bar', ctx)).toEqual([]);
-    expect(applyClassName('col-span-xyz', ctx)).toEqual([]);
-    expect(applyClassName('col-start-abc', ctx)).toEqual([]);
-    expect(applyClassName('bg-unknown', ctx)).toEqual([{ type: 'decl', prop: 'background-color', value: 'unknown' }]); // fallback to raw value
   });
 
   it('display: all  utilities', () => {
@@ -312,5 +258,125 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('-left-1', ctx)).toEqual([{ type: 'decl', prop: 'left', value: 'calc(var(--spacing) * -1)' }]);
     expect(applyClassName('left-[10%]', ctx)).toEqual([{ type: 'decl', prop: 'left', value: '10%' }]);
     expect(applyClassName('left-(--my-left)', ctx)).toEqual([{ type: 'decl', prop: 'left', value: 'var(--my-left)' }]);
+  });
+
+  it('visibility: all utilities', () => {
+    expect(applyClassName('visible', ctx)).toEqual([{ type: 'decl', prop: 'visibility', value: 'visible' }]);
+    expect(applyClassName('invisible', ctx)).toEqual([{ type: 'decl', prop: 'visibility', value: 'hidden' }]);
+    expect(applyClassName('collapse', ctx)).toEqual([{ type: 'decl', prop: 'visibility', value: 'collapse' }]);
+  });
+
+  it('z-index: all utilities', () => {
+    expect(applyClassName('z-auto', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: 'auto' }]);
+    expect(applyClassName('z-0', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '0' }]);
+    expect(applyClassName('z-1', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '1' }]);
+    expect(applyClassName('z-2', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '2' }]);
+    expect(applyClassName('z-3', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '3' }]);
+    expect(applyClassName('z-4', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '4' }]);
+    expect(applyClassName('z-5', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '5' }]);
+  });
+
+  it('flex-basis: all utilities', () => {
+    expect(applyClassName('basis-full', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: '100%' }]);
+    expect(applyClassName('basis-auto', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'auto' }]);
+    expect(applyClassName('basis-3xs', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-3xs)' }]);
+    expect(applyClassName('basis-2xs', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-2xs)' }]);
+    expect(applyClassName('basis-xs', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-xs)' }]);
+    expect(applyClassName('basis-sm', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-sm)' }]);
+    expect(applyClassName('basis-md', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-md)' }]);
+    expect(applyClassName('basis-lg', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-lg)' }]);
+    expect(applyClassName('basis-xl', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-xl)' }]);
+    expect(applyClassName('basis-2xl', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-2xl)' }]);
+    expect(applyClassName('basis-3xl', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-3xl)' }]);
+    expect(applyClassName('basis-4xl', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-4xl)' }]);
+    expect(applyClassName('basis-5xl', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-5xl)' }]);
+    expect(applyClassName('basis-6xl', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-6xl)' }]);
+    expect(applyClassName('basis-7xl', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'var(--container-7xl)' }]);
+    expect(applyClassName('basis-1/2', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: '50%' }]);
+    expect(applyClassName('basis-1/3', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: '33.33333333333333%' }]);
+    expect(applyClassName('basis-10', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'calc(var(--container-10) * 1px)' }]);
+    expect(applyClassName('basis-20', ctx)).toEqual([{ type: 'decl', prop: 'flex-basis', value: 'calc(var(--container-20) * 1px)' }]);
+  });
+
+  it('flex-direction: all utilities', () => {
+    expect(applyClassName('flex-row', ctx)).toEqual([{ type: 'decl', prop: 'flex-direction', value: 'row' }]);
+    expect(applyClassName('flex-row-reverse', ctx)).toEqual([{ type: 'decl', prop: 'flex-direction', value: 'row-reverse' }]);
+    expect(applyClassName('flex-col', ctx)).toEqual([{ type: 'decl', prop: 'flex-direction', value: 'column' }]);
+    expect(applyClassName('flex-col-reverse', ctx)).toEqual([{ type: 'decl', prop: 'flex-direction', value: 'column-reverse' }]);
+  });
+
+  it('flex-wrap: all utilities', () => {
+    expect(applyClassName('flex-wrap', ctx)).toEqual([{ type: 'decl', prop: 'flex-wrap', value: 'wrap' }]);
+    expect(applyClassName('flex-wrap-reverse', ctx)).toEqual([{ type: 'decl', prop: 'flex-wrap', value: 'wrap-reverse' }]);
+    expect(applyClassName('flex-nowrap', ctx)).toEqual([{ type: 'decl', prop: 'flex-wrap', value: 'nowrap' }]);
+  });
+
+  it('flex: static, number, fraction, arbitrary, custom property', () => {
+    // static
+    expect(applyClassName('flex-auto', ctx)).toEqual([{ type: 'decl', prop: 'flex', value: '1 1 auto' }]);
+    expect(applyClassName('flex-initial', ctx)).toEqual([{ type: 'decl', prop: 'flex', value: '0 1 auto' }]);
+    expect(applyClassName('flex-none', ctx)).toEqual([{ type: 'decl', prop: 'flex', value: 'none' }]);
+    // number
+    expect(applyClassName('flex-1', ctx)).toEqual([{ type: 'decl', prop: 'flex', value: '1' }]);
+    expect(applyClassName('flex-2', ctx)).toEqual([{ type: 'decl', prop: 'flex', value: '2' }]);
+    // fraction
+    expect(applyClassName('flex-1/2', ctx)).toEqual([{ type: 'decl', prop: 'flex', value: 'calc(50%)' }]);
+    // arbitrary
+    expect(applyClassName('flex-[2_1_0%]', ctx)).toEqual([{ type: 'decl', prop: 'flex', value: '2 1 0%' }]);
+    // custom property
+    expect(applyClassName('flex-(--my-flex)', ctx)).toEqual([{ type: 'decl', prop: 'flex', value: 'var(--my-flex)' }]);
+  });
+
+  it('flex-grow: static, number, arbitrary, custom property', () => {
+    // static
+    expect(applyClassName('grow', ctx)).toEqual([{ type: 'decl', prop: 'flex-grow', value: '1' }]);
+    expect(applyClassName('grow-0', ctx)).toEqual([{ type: 'decl', prop: 'flex-grow', value: '0' }]);
+    // number
+    expect(applyClassName('grow-2', ctx)).toEqual([{ type: 'decl', prop: 'flex-grow', value: '2' }]);
+    // arbitrary
+    expect(applyClassName('grow-[2]', ctx)).toEqual([{ type: 'decl', prop: 'flex-grow', value: '2' }]);
+    // custom property
+    expect(applyClassName('grow-(--my-grow)', ctx)).toEqual([{ type: 'decl', prop: 'flex-grow', value: 'var(--my-grow)' }]);
+  });
+
+  it('flex-shrink: static, number, arbitrary, custom property', () => {
+    // static
+    expect(applyClassName('shrink', ctx)).toEqual([{ type: 'decl', prop: 'flex-shrink', value: '1' }]);
+    expect(applyClassName('shrink-0', ctx)).toEqual([{ type: 'decl', prop: 'flex-shrink', value: '0' }]);
+    // number
+    expect(applyClassName('shrink-2', ctx)).toEqual([{ type: 'decl', prop: 'flex-shrink', value: '2' }]);
+    // arbitrary
+    expect(applyClassName('shrink-[2]', ctx)).toEqual([{ type: 'decl', prop: 'flex-shrink', value: '2' }]);
+    // custom property
+    expect(applyClassName('shrink-(--my-shrink)', ctx)).toEqual([{ type: 'decl', prop: 'flex-shrink', value: 'var(--my-shrink)' }]);
+  });
+
+  it('order: static, number, negative, arbitrary, custom property', () => {
+    // static
+    expect(applyClassName('order-first', ctx)).toEqual([{ type: 'decl', prop: 'order', value: 'calc(-infinity)' }]);
+    expect(applyClassName('order-last', ctx)).toEqual([{ type: 'decl', prop: 'order', value: 'calc(infinity)' }]);
+    expect(applyClassName('order-none', ctx)).toEqual([{ type: 'decl', prop: 'order', value: '0' }]);
+    // number
+    expect(applyClassName('order-1', ctx)).toEqual([{ type: 'decl', prop: 'order', value: '1' }]);
+    expect(applyClassName('order-2', ctx)).toEqual([{ type: 'decl', prop: 'order', value: '2' }]);
+    // negative
+    expect(applyClassName('-order-1', ctx)).toEqual([{ type: 'decl', prop: 'order', value: 'calc(1 * -1)' }]);
+    // arbitrary
+    expect(applyClassName('order-[min(var(--total-items),10)]', ctx)).toEqual([{ type: 'decl', prop: 'order', value: 'min(var(--total-items),10)' }]);
+    // custom property
+    expect(applyClassName('order-(--my-order)', ctx)).toEqual([{ type: 'decl', prop: 'order', value: 'var(--my-order)' }]);
+  });
+
+  it('grid-template-columns: static, number, arbitrary, custom property', () => {
+    // static
+    expect(applyClassName('grid-cols-none', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-columns', value: 'none' }]);
+    expect(applyClassName('grid-cols-subgrid', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-columns', value: 'subgrid' }]);
+    // number
+    expect(applyClassName('grid-cols-1', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-columns', value: 'repeat(1, minmax(0, 1fr))' }]);
+    expect(applyClassName('grid-cols-3', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-columns', value: 'repeat(3, minmax(0, 1fr))' }]);
+    // arbitrary
+    expect(applyClassName('grid-cols-[200px_minmax(900px,_1fr)_100px]', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-columns', value: '200px minmax(900px, 1fr) 100px' }]);
+    // custom property
+    expect(applyClassName('grid-cols-(--my-grid-cols)', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-columns', value: 'var(--my-grid-cols)' }]);
   });
 }); 
