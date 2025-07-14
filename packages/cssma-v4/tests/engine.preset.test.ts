@@ -393,6 +393,103 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('grid-rows-(--my-grid-rows)', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-rows', value: 'var(--my-grid-rows)' }]);
   });
 
+  it('grid-row: row-span, row-start, row-end, row utilities', () => {
+    // row-span
+    expect(applyClassName('row-span-full', ctx)).toEqual([{ type: 'decl', prop: 'grid-row', value: '1 / -1' }]);
+    expect(applyClassName('row-span-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-row', value: 'span 2 / span 2' }]);
+    expect(applyClassName('row-span-[5]', ctx)).toEqual([{ type: 'decl', prop: 'grid-row', value: 'span 5 / span 5' }]);
+    expect(applyClassName('row-span-(--my-span)', ctx)).toEqual([{ type: 'decl', prop: 'grid-row', value: 'span var(--my-span) / span var(--my-span)' }]);
+    // row-start
+    expect(applyClassName('row-start-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-row-start', value: 'auto' }]);
+    expect(applyClassName('row-start-3', ctx)).toEqual([{ type: 'decl', prop: 'grid-row-start', value: '3' }]);
+    expect(applyClassName('-row-start-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-row-start', value: 'calc(2 * -1)' }]);
+    expect(applyClassName('row-start-(--my-start)', ctx)).toEqual([{ type: 'decl', prop: 'grid-row-start', value: 'var(--my-start)' }]);
+    expect(applyClassName('row-start-[7]', ctx)).toEqual([{ type: 'decl', prop: 'grid-row-start', value: '7' }]);
+    // row-end
+    expect(applyClassName('row-end-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-row-end', value: 'auto' }]);
+    expect(applyClassName('row-end-4', ctx)).toEqual([{ type: 'decl', prop: 'grid-row-end', value: '4' }]);
+    expect(applyClassName('-row-end-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-row-end', value: 'calc(2 * -1)' }]);
+    expect(applyClassName('row-end-(--my-end)', ctx)).toEqual([{ type: 'decl', prop: 'grid-row-end', value: 'var(--my-end)' }]);
+    expect(applyClassName('row-end-[8]', ctx)).toEqual([{ type: 'decl', prop: 'grid-row-end', value: '8' }]);
+    // row
+    expect(applyClassName('row-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-row', value: 'auto' }]);
+    expect(applyClassName('row-3', ctx)).toEqual([{ type: 'decl', prop: 'grid-row', value: '3' }]);
+    expect(applyClassName('-row-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-row', value: 'calc(2 * -1)' }]);
+    expect(applyClassName('row-(--my-row)', ctx)).toEqual([{ type: 'decl', prop: 'grid-row', value: 'var(--my-row)' }]);
+    expect(applyClassName('row-[5]', ctx)).toEqual([{ type: 'decl', prop: 'grid-row', value: '5' }]);
+  });
+
+  it('grid-auto-flow: static utilities', () => {
+    expect(applyClassName('grid-flow-row', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-flow', value: 'row' }]);
+    expect(applyClassName('grid-flow-col', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-flow', value: 'column' }]);
+    expect(applyClassName('grid-flow-dense', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-flow', value: 'dense' }]);
+    expect(applyClassName('grid-flow-row-dense', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-flow', value: 'row dense' }]);
+    expect(applyClassName('grid-flow-col-dense', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-flow', value: 'column dense' }]);
+  });
+
+  it('grid-auto-columns: static, arbitrary, custom property', () => {
+    // static
+    expect(applyClassName('auto-cols-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-columns', value: 'auto' }]);
+    expect(applyClassName('auto-cols-min', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-columns', value: 'min-content' }]);
+    expect(applyClassName('auto-cols-max', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-columns', value: 'max-content' }]);
+    expect(applyClassName('auto-cols-fr', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-columns', value: 'minmax(0, 1fr)' }]);
+    // arbitrary
+    expect(applyClassName('auto-cols-[minmax(0,2fr)]', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-columns', value: 'minmax(0,2fr)' }]);
+    // custom property
+    expect(applyClassName('auto-cols-(--my-auto-cols)', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-columns', value: 'var(--my-auto-cols)' }]);
+  });
+
+  it('grid-auto-rows: static, arbitrary, custom property', () => {
+    // static
+    expect(applyClassName('auto-rows-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-rows', value: 'auto' }]);
+    expect(applyClassName('auto-rows-min', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-rows', value: 'min-content' }]);
+    expect(applyClassName('auto-rows-max', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-rows', value: 'max-content' }]);
+    expect(applyClassName('auto-rows-fr', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-rows', value: 'minmax(0, 1fr)' }]);
+    // arbitrary
+    expect(applyClassName('auto-rows-[minmax(0,2fr)]', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-rows', value: 'minmax(0,2fr)' }]);
+    // custom property
+    expect(applyClassName('auto-rows-(--my-auto-rows)', ctx)).toEqual([{ type: 'decl', prop: 'grid-auto-rows', value: 'var(--my-auto-rows)' }]);
+  });
+
+  it('gap: number, arbitrary, custom property', () => {
+    // number
+    expect(applyClassName('gap-2', ctx)).toEqual([{ type: 'decl', prop: 'gap', value: 'calc(var(--spacing) * 2)' }]);
+    // arbitrary
+    expect(applyClassName('gap-[10vw]', ctx)).toEqual([{ type: 'decl', prop: 'gap', value: '10vw' }]);
+    // custom property
+    expect(applyClassName('gap-(--my-gap)', ctx)).toEqual([{ type: 'decl', prop: 'gap', value: 'var(--my-gap)' }]);
+  });
+  it('gap-x: number, arbitrary, custom property', () => {
+    // number
+    expect(applyClassName('gap-x-3', ctx)).toEqual([{ type: 'decl', prop: 'column-gap', value: 'calc(var(--spacing) * 3)' }]);
+    // arbitrary
+    expect(applyClassName('gap-x-[5vw]', ctx)).toEqual([{ type: 'decl', prop: 'column-gap', value: '5vw' }]);
+    // custom property
+    expect(applyClassName('gap-x-(--my-gap-x)', ctx)).toEqual([{ type: 'decl', prop: 'column-gap', value: 'var(--my-gap-x)' }]);
+  });
+  it('gap-y: number, arbitrary, custom property', () => {
+    // number
+    expect(applyClassName('gap-y-4', ctx)).toEqual([{ type: 'decl', prop: 'row-gap', value: 'calc(var(--spacing) * 4)' }]);
+    // arbitrary
+    expect(applyClassName('gap-y-[2vw]', ctx)).toEqual([{ type: 'decl', prop: 'row-gap', value: '2vw' }]);
+    // custom property
+    expect(applyClassName('gap-y-(--my-gap-y)', ctx)).toEqual([{ type: 'decl', prop: 'row-gap', value: 'var(--my-gap-y)' }]);
+  });
+
+  it('justify-content: static utilities', () => {
+    expect(applyClassName('justify-start', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'flex-start' }]);
+    expect(applyClassName('justify-end', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'flex-end' }]);
+    expect(applyClassName('justify-end-safe', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'safe flex-end' }]);
+    expect(applyClassName('justify-center', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'center' }]);
+    expect(applyClassName('justify-center-safe', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'safe center' }]);
+    expect(applyClassName('justify-between', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'space-between' }]);
+    expect(applyClassName('justify-around', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'space-around' }]);
+    expect(applyClassName('justify-evenly', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'space-evenly' }]);
+    expect(applyClassName('justify-stretch', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'stretch' }]);
+    expect(applyClassName('justify-baseline', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'baseline' }]);
+    expect(applyClassName('justify-normal', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'normal' }]);
+  });
+
   it('grid-column: col-span, col-start, col-end, col utilities', () => {
     // col-span
     expect(applyClassName('col-span-full', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '1 / -1' }]);

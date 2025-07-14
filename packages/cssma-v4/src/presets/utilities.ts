@@ -425,6 +425,198 @@ functionalUtility({
   category: 'grid',
 });
 
+// --- Flexbox & Grid: Grid Row ---
+// row-span utilities
+staticUtility('row-span-full', [['grid-row', '1 / -1']]);
+functionalUtility({
+  name: 'row-span',
+  prop: 'grid-row',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) return `span ${value} / span ${value}`;
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('grid-row', `span var(${value}) / span var(${value})`)],
+  handle: (value) => {
+    if (parseNumber(value)) return [decl('grid-row', `span ${value} / span ${value}`)];
+    // arbitrary value: row-span-[5] → span 5 / span 5
+    return null;
+  },
+  description: 'grid-row span utility (number, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+// row-start utilities
+staticUtility('row-start-auto', [['grid-row-start', 'auto']]);
+functionalUtility({
+  name: 'row-start',
+  prop: 'grid-row-start',
+  supportsNegative: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => parseNumber(value),
+  handleNegativeBareValue: ({ value }) => {
+    if (parseNumber(value)) return `calc(${value} * -1)`;
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('grid-row-start', `var(${value})`)],
+  handle: (value) => {
+    if (parseNumber(value)) return [decl('grid-row-start', value)];
+    if (typeof value === 'string') return [decl('grid-row-start', value)];
+    return null;
+  },
+  description: 'grid-row-start utility (number, negative, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+// row-end utilities
+staticUtility('row-end-auto', [['grid-row-end', 'auto']]);
+functionalUtility({
+  name: 'row-end',
+  prop: 'grid-row-end',
+  supportsNegative: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => parseNumber(value),
+  handleNegativeBareValue: ({ value }) => {
+    if (parseNumber(value)) return `calc(${value} * -1)`;
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('grid-row-end', `var(${value})`)],
+  handle: (value) => {
+    if (parseNumber(value)) return [decl('grid-row-end', value)];
+    if (typeof value === 'string') return [decl('grid-row-end', value)];
+    return null;
+  },
+  description: 'grid-row-end utility (number, negative, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+// row-auto, row-<number>, -row-<number>, row-(<custom-property>), row-[value]
+staticUtility('row-auto', [['grid-row', 'auto']]);
+functionalUtility({
+  name: 'row',
+  prop: 'grid-row',
+  supportsNegative: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => parseNumber(value),
+  handleNegativeBareValue: ({ value }) => {
+    if (parseNumber(value)) return `calc(${value} * -1)`;
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('grid-row', `var(${value})`)],
+  handle: (value) => {
+    if (parseNumber(value)) return [decl('grid-row', value)];
+    if (typeof value === 'string') return [decl('grid-row', value)];
+    return null;
+  },
+  description: 'grid-row utility (number, negative, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+
+// --- Flexbox & Grid: Grid Auto Flow ---
+staticUtility('grid-flow-row', [['grid-auto-flow', 'row']]);
+staticUtility('grid-flow-col', [['grid-auto-flow', 'column']]);
+staticUtility('grid-flow-dense', [['grid-auto-flow', 'dense']]);
+staticUtility('grid-flow-row-dense', [['grid-auto-flow', 'row dense']]);
+staticUtility('grid-flow-col-dense', [['grid-auto-flow', 'column dense']]);
+
+// --- Flexbox & Grid: Grid Auto Columns ---
+staticUtility('auto-cols-auto', [['grid-auto-columns', 'auto']]);
+staticUtility('auto-cols-min', [['grid-auto-columns', 'min-content']]);
+staticUtility('auto-cols-max', [['grid-auto-columns', 'max-content']]);
+staticUtility('auto-cols-fr', [['grid-auto-columns', 'minmax(0, 1fr)']]);
+
+functionalUtility({
+  name: 'auto-cols',
+  prop: 'grid-auto-columns',
+  supportsArbitrary: true, // auto-cols-[minmax(0,2fr)]
+  supportsCustomProperty: true, // auto-cols-(--my-auto-cols)
+  handle: (value) => {
+    if (typeof value === 'string') return [decl('grid-auto-columns', value)];
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('grid-auto-columns', `var(${value})`)],
+  description: 'grid-auto-columns utility (static, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+
+// --- Flexbox & Grid: Grid Auto Rows ---
+staticUtility('auto-rows-auto', [['grid-auto-rows', 'auto']]);
+staticUtility('auto-rows-min', [['grid-auto-rows', 'min-content']]);
+staticUtility('auto-rows-max', [['grid-auto-rows', 'max-content']]);
+staticUtility('auto-rows-fr', [['grid-auto-rows', 'minmax(0, 1fr)']]);
+
+functionalUtility({
+  name: 'auto-rows',
+  prop: 'grid-auto-rows',
+  supportsArbitrary: true, // auto-rows-[minmax(0,2fr)]
+  supportsCustomProperty: true, // auto-rows-(--my-auto-rows)
+  handle: (value) => {
+    if (typeof value === 'string') return [decl('grid-auto-rows', value)];
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('grid-auto-rows', `var(${value})`)],
+  description: 'grid-auto-rows utility (static, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+
+// --- Flexbox & Grid: Gap ---
+functionalUtility({
+  name: 'gap-x',
+  prop: 'column-gap',
+  supportsArbitrary: true, // gap-x-[10vw]
+  supportsCustomProperty: true, // gap-x-(--my-gap-x)
+  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
+  handle: (value) => {
+    if (typeof value === 'string') return [decl('column-gap', value)];
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('column-gap', `var(${value})`)],
+  description: 'gap-x utility (number, arbitrary, custom property 지원)',
+  category: 'layout',
+});
+functionalUtility({
+  name: 'gap-y',
+  prop: 'row-gap',
+  supportsArbitrary: true, // gap-y-[10vw]
+  supportsCustomProperty: true, // gap-y-(--my-gap-y)
+  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
+  handle: (value) => {
+    if (typeof value === 'string') return [decl('row-gap', value)];
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('row-gap', `var(${value})`)],
+  description: 'gap-y utility (number, arbitrary, custom property 지원)',
+  category: 'layout',
+});
+functionalUtility({
+  name: 'gap',
+  prop: 'gap',
+  supportsArbitrary: true, // gap-[10vw]
+  supportsCustomProperty: true, // gap-(--my-gap)
+  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
+  handle: (value) => {
+    if (typeof value === 'string') return [decl('gap', value)];
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('gap', `var(${value})`)],
+  description: 'gap utility (number, arbitrary, custom property 지원)',
+  category: 'layout',
+});
+
+// --- Flexbox & Grid: Justify Content ---
+staticUtility('justify-start', [['justify-content', 'flex-start']]);
+staticUtility('justify-end', [['justify-content', 'flex-end']]);
+staticUtility('justify-end-safe', [['justify-content', 'safe flex-end']]);
+staticUtility('justify-center', [['justify-content', 'center']]);
+staticUtility('justify-center-safe', [['justify-content', 'safe center']]);
+staticUtility('justify-between', [['justify-content', 'space-between']]);
+staticUtility('justify-around', [['justify-content', 'space-around']]);
+staticUtility('justify-evenly', [['justify-content', 'space-evenly']]);
+staticUtility('justify-stretch', [['justify-content', 'stretch']]);
+staticUtility('justify-baseline', [['justify-content', 'baseline']]);
+staticUtility('justify-normal', [['justify-content', 'normal']]);
+
 // --- Flexbox & Grid: Grid Column ---
 // col-span utilities
 staticUtility('col-span-full', [['grid-column', '1 / -1']]);
@@ -498,3 +690,5 @@ functionalUtility({
   description: 'grid-column utility (number, negative, arbitrary, custom property 지원)',
   category: 'grid',
 });
+
+
