@@ -1,5 +1,6 @@
 import type { AstNode } from './ast';
 import { decl, rule, atrule } from './ast';
+import { CssmaContext } from './context';
 
 // Utility registration
 export interface UtilityRegistration {
@@ -12,7 +13,7 @@ export interface UtilityRegistration {
    * @param token Parsed token
    * @param options Registration options
    */
-  handler: (value: string, ctx: import('./context').CssmaContext, token: any, options: UtilityRegistration) => AstNode[] | undefined;
+  handler: (value: string, ctx: CssmaContext, token: any, options: UtilityRegistration) => AstNode[] | undefined;
   description?: string;
   category?: string;
   [key: string]: any;
@@ -58,262 +59,133 @@ export function getRegisteredModifierPrefixes(): string[] {
 }
 
 // --- Demo patterns ---
-registerUtility({
-  name: 'bg',
-  match: (className) => className.startsWith('bg-'),
-  handler: (value, ctx) => {
-    const parts = value.split('-');
-    const color = ctx.theme('colors', ...parts);
-    return [decl('background-color', color ?? value)];
-  },
-  description: 'background-color utility',
-  category: 'color',
-});
 
-registerUtility({
-  name: 'text',
-  match: (className) => className.startsWith('text-'),
-  handler: (value, ctx) => {
-    const parts = value.split('-');
-    const color = ctx.theme('colors', ...parts);
-    return [decl('color', color ?? value)];
-  },
-  description: 'text color utility',
-  category: 'color',
-});
+// --- Utility Helper Factories ---
 
-registerUtility({
-  name: 'p',
-  match: (className) => /^p-/.test(className) || /^-p-/.test(className) || /^p-\[/.test(className) || /^-p-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) {
-      return [decl('padding', token.negative ? `-${value}` : value)];
+/**
+ * staticUtility: 유틸리티 이름과 CSS 선언 쌍 배열을 받아 바로 registry에 등록하는 헬퍼
+ *
+ * 사용 예시:
+ *   staticUtility('block', [['display', 'block']]);
+ *   staticUtility('hidden', [['display', 'none']]);
+ */
+export function staticUtility(
+  name: string,
+  decls: [string, string][],
+  opts?: { description?: string; category?: string }
+) {
+  registerUtility({
+    name,
+    match: (className: string) => className === name,
+    handler: () => decls.map(([prop, value]) => decl(prop, value)),
+    description: opts?.description,
+    category: opts?.category,
+  });
+}
+
+/**
+ * Parse a fraction string (e.g., '1/2', '-2/5') to a percentage string (e.g., '50%').
+ * Returns undefined if not a valid fraction.
+ */
+function parseFraction(value: string): string | undefined {
+  const match = /^(-?)(\d+)\/(\d+)$/.exec(value);
+  if (match) {
+    const sign = match[1] === '-' ? '-' : '';
+    const numerator = parseInt(match[2], 10);
+    const denominator = parseInt(match[3], 10);
+    if (denominator !== 0) {
+      return sign + (numerator / denominator * 100) + '%';
     }
-    const v = ctx.theme('spacing', value) ?? value;
-    return [decl('padding', token.negative ? `-${v}` : v)];
-  },
-  description: 'padding utility',
-  category: 'spacing',
-});
+  }
+  return undefined;
+}
 
-registerUtility({
-  name: 'm',
-  match: (className) => /^m-/.test(className) || /^-m-/.test(className) || /^m-\[/.test(className) || /^-m-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) {
-      return [decl('margin', token.negative ? `-${value}` : value)];
-    }
-    const v = ctx.theme('spacing', value) ?? value;
-    return [decl('margin', token.negative ? `-${v}` : v)];
-  },
-  description: 'margin utility',
-  category: 'spacing',
-});
-
-registerUtility({
-  name: 'rounded',
-  match: (className) => /^rounded-/.test(className),
-  handler: (value, ctx) => [decl('border-radius', ctx.theme('borderRadius', value) ?? value)],
-  description: 'border radius utility',
-  category: 'border',
-});
-
-registerUtility({
-  name: 'w',
-  match: (className) => /^w-/.test(className) || /^-w-/.test(className) || /^w-\[/.test(className) || /^-w-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('width', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('width', value) ?? value;
-    return [decl('width', token.negative ? `-${v}` : v)];
-  },
-  description: 'width utility',
-  category: 'sizing',
-});
-
-registerUtility({
-  name: 'h',
-  match: (className) => /^h-/.test(className) || /^-h-/.test(className) || /^h-\[/.test(className) || /^-h-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('height', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('height', value) ?? value;
-    return [decl('height', token.negative ? `-${v}` : v)];
-  },
-  description: 'height utility',
-  category: 'sizing',
-});
-
-registerUtility({
-  name: 'opacity',
-  match: (className) => /^opacity-/.test(className) || /^-opacity-/.test(className) || /^opacity-\[/.test(className) || /^-opacity-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('opacity', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('opacity', value) ?? value;
-    return [decl('opacity', token.negative ? `-${v}` : v)];
-  },
-  description: 'opacity utility',
-  category: 'effects',
-});
-
-registerUtility({
-  name: 'border',
-  match: (className) => /^border-/.test(className) || /^-border-/.test(className) || /^border-\[/.test(className) || /^-border-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('border', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('borderWidth', value) ?? value;
-    return [decl('border', token.negative ? `-${v}` : v)];
-  },
-  description: 'border utility',
-  category: 'border',
-});
-
-registerUtility({
-  name: 'font',
-  match: (className) => /^font-/.test(className) || /^-font-/.test(className) || /^font-\[/.test(className) || /^-font-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('font-family', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('fontFamily', value) ?? value;
-    return [decl('font-family', token.negative ? `-${v}` : v)];
-  },
-  description: 'font-family utility',
-  category: 'typography',
-});
-
-registerUtility({
-  name: 'flex',
-  match: (className) => /^flex-/.test(className) || /^-flex-/.test(className) || /^flex-\[/.test(className) || /^-flex-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('flex', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('flex', value) ?? value;
-    return [decl('flex', token.negative ? `-${v}` : v)];
-  },
-  description: 'flex utility',
-  category: 'layout',
-});
-
-registerUtility({
-  name: 'z',
-  match: (className) => /^z-/.test(className) || /^-z-/.test(className) || /^z-\[/.test(className) || /^-z-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('z-index', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('zIndex', value) ?? value;
-    return [decl('z-index', token.negative ? `-${v}` : v)];
-  },
-  description: 'z-index utility',
-  category: 'effects',
-});
-
-registerUtility({
-  name: 'gap',
-  match: (className) => /^gap-/.test(className) || /^-gap-/.test(className) || /^gap-\[/.test(className) || /^-gap-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('gap', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('gap', value) ?? value;
-    return [decl('gap', token.negative ? `-${v}` : v)];
-  },
-  description: 'gap utility',
-  category: 'layout',
-});
-
-registerUtility({
-  name: 'shadow',
-  match: (className) => /^shadow-/.test(className) || /^-shadow-/.test(className) || /^shadow-\[/.test(className) || /^-shadow-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('box-shadow', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('boxShadow', value) ?? value;
-    return [decl('box-shadow', token.negative ? `-${v}` : v)];
-  },
-  description: 'box-shadow utility',
-  category: 'effects',
-});
-
-registerUtility({
-  name: 'overflow',
-  match: (className) => /^overflow-/.test(className) || /^-overflow-/.test(className) || /^overflow-\[/.test(className) || /^-overflow-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('overflow', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('overflow', value) ?? value;
-    return [decl('overflow', token.negative ? `-${v}` : v)];
-  },
-  description: 'overflow utility',
-  category: 'layout',
-});
-
-registerUtility({
-  name: 'grid',
-  match: (className) => /^grid-/.test(className) || /^-grid-/.test(className) || /^grid-\[/.test(className) || /^-grid-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('grid-template-columns', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('gridTemplateColumns', value) ?? value;
-    return [decl('grid-template-columns', token.negative ? `-${v}` : v)];
-  },
-  description: 'grid-template-columns utility',
-  category: 'layout',
-});
-
-registerUtility({
-  name: 'grid-cols',
-  match: (className) => /^grid-cols-/.test(className) || /^-grid-cols-/.test(className) || /^grid-cols-\[/.test(className) || /^-grid-cols-\[/.test(className),
-  handler: (value, ctx, token) => {
-    value = String(value).trim();
-    if (token.arbitrary) return [decl('grid-template-columns', token.negative ? `-${value}` : value)];
-    // Try theme lookup with 'cols-' + value (Tailwind style)
-    const key1 = `cols-${value}`;
-    const key2 = value;
-    const keys = Object.keys(ctx.theme('gridTemplateColumns') || {});
-    const codes = value.split('').map(c => c.charCodeAt(0));
-    console.log('DEBUG grid-cols handler:', { value, key1, key2, keys, codes });
-    let v = ctx.theme('gridTemplateColumns', key1);
-    if (v == null) v = ctx.theme('gridTemplateColumns', key2);
-    if (v != null) return [decl('grid-template-columns', token.negative ? `-${v}` : v)];
-    // fallback: if value is a number, use repeat(N, minmax(0, 1fr))
-    if (/^\d+$/.test(value)) {
-      const repeatStr = `repeat(${value}, minmax(0, 1fr))`;
-      return [decl('grid-template-columns', token.negative ? `-${repeatStr}` : repeatStr)];
-    }
-    return [decl('grid-template-columns', token.negative ? `-${value}` : value)];
-  },
-  description: 'grid-template-columns utility',
-  category: 'layout',
-});
-
-registerUtility({
-  name: 'min-w',
-  match: (className) => /^min-w-/.test(className) || /^-min-w-/.test(className) || /^min-w-\[/.test(className) || /^-min-w-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('min-width', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('minWidth', value) ?? value;
-    return [decl('min-width', token.negative ? `-${v}` : v)];
-  },
-  description: 'min-width utility',
-  category: 'sizing',
-});
-
-registerUtility({
-  name: 'max-w',
-  match: (className) => /^max-w-/.test(className) || /^-max-w-/.test(className) || /^max-w-\[/.test(className) || /^-max-w-\[/.test(className),
-  handler: (value, ctx, token) => {
-    if (token.arbitrary) return [decl('max-width', token.negative ? `-${value}` : value)];
-    const v = ctx.theme('maxWidth', value) ?? value;
-    return [decl('max-width', token.negative ? `-${v}` : v)];
-  },
-  description: 'max-width utility',
-  category: 'sizing',
-});
-
-registerModifier({
-  name: 'hover',
-  type: 'pseudo',
-  match: (mod) => mod.type === 'hover' || mod.type === 'pseudo' && mod.value === 'hover',
-  handler: (nodes) => [rule(':hover', nodes)],
-  description: 'hover pseudo-class',
-});
-
-registerModifier({
-  name: 'sm',
-  type: 'media',
-  match: (mod) => mod.type === 'sm' || mod.type === 'media' && mod.value === 'sm',
-  handler: (nodes) => [atrule('media', '(min-width: 640px)', nodes)],
-  description: 'sm media query',
-});
-
-export { utilityRegistry, modifierRegistry };
+/**
+ * functionalUtility: 동적 유틸리티(테마/임의값/커스텀/음수/분수 등) 등록을 바로 처리하는 고급 헬퍼
+ *
+ * 사용 예시:
+ *   functionalUtility({
+ *     name: 'z',
+ *     supportsNegative: true,
+ *     themeKeys: ['--z-index'],
+ *     handleBareValue: ({ value }) => isPositiveInteger(value) ? value : null,
+ *     handle: (value) => [decl('z-index', value)],
+ *     description: 'z-index utility',
+ *     category: 'layout',
+ *   });
+ */
+export function functionalUtility(opts: {
+  name: string;
+  prop?: string;
+  themeKey?: string;
+  themeKeys?: string[];
+  supportsArbitrary?: boolean;
+  supportsCustomProperty?: boolean;
+  supportsNegative?: boolean;
+  valueTransform?: (value: string, ctx: CssmaContext) => string;
+  handle?: (value: string, ctx: CssmaContext, token: any) => AstNode[] | null | undefined;
+  handleBareValue?: (args: { value: string; ctx: CssmaContext; token: any }) => string | null | undefined;
+  description?: string;
+  category?: string;
+}) {
+  registerUtility({
+    name: opts.name,
+    match: (className: string) => className.startsWith(opts.name + '-'),
+    handler: (value, ctx, token, _options) => {
+      let finalValue = value;
+      // 1. theme lookup (themeKey or themeKeys)
+      let themeValue: string | undefined;
+      if (opts.themeKey && ctx.theme) {
+        themeValue = ctx.theme(opts.themeKey, value);
+      }
+      if (!themeValue && opts.themeKeys && ctx.theme) {
+        for (const key of opts.themeKeys) {
+          themeValue = ctx.theme(key, value);
+          if (themeValue !== undefined) break;
+        }
+      }
+      if (themeValue !== undefined) {
+        finalValue = themeValue;
+      }
+      // 2. Fraction value (e.g., 1/2, -2/5)
+      else if (/^-?\d+\/\d+$/.test(value)) {
+        const frac = parseFraction(value);
+        if (frac) finalValue = frac;
+      }
+      // 3. Arbitrary value ([...])
+      else if (opts.supportsArbitrary && /^\[.*\]$/.test(value)) {
+        finalValue = value.slice(1, -1);
+      }
+      // 4. Custom property ((...))
+      else if (opts.supportsCustomProperty && /^\(.*\)$/.test(value)) {
+        finalValue = `var(--${value.slice(1, -1)})`;
+      }
+      // 5. Negative value
+      if (opts.supportsNegative && value.startsWith('-')) {
+        finalValue = '-' + finalValue.replace(/^-/, '');
+      }
+      // 6. handleBareValue (유효성 검사 등)
+      if (opts.handleBareValue) {
+        const bare = opts.handleBareValue({ value: finalValue, ctx, token });
+        if (bare == null) return [];
+        finalValue = bare;
+      }
+      // 7. valueTransform
+      if (opts.valueTransform) {
+        finalValue = opts.valueTransform(finalValue, ctx);
+      }
+      // 8. handle (커스텀 AST 생성)
+      if (opts.handle) {
+        const result = opts.handle(finalValue, ctx, token);
+        if (result) return result;
+      }
+      // 9. 기본 decl
+      if (opts.prop) {
+        return [decl(opts.prop, finalValue)];
+      }
+      return [];
+    },
+    description: opts.description,
+    category: opts.category,
+  });
+}

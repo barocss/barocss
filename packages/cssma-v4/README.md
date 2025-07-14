@@ -42,6 +42,66 @@ Tailwind CSS 스타일의 유틸리티 클래스 기반 CSS 파서 및 변환기
 
 ---
 
+## 프리셋/유틸리티 선언 패턴 (staticUtility & functionalUtility)
+
+cssma-v4는 Tailwind 스타일의 선언적 유틸리티 등록을 지원합니다. 
+
+### 1. 고정값 유틸리티: staticUtility
+
+```ts
+// display: block
+staticUtility('block', [['display', 'block']]);
+// display: none
+staticUtility('hidden', [['display', 'none']]);
+// isolation: isolate
+staticUtility('isolate', [['isolation', 'isolate']]);
+```
+
+### 2. 동적 유틸리티: functionalUtility
+
+```ts
+// z-index: themeKeys, 음수, 값 유효성 검사, 커스텀 핸들러
+functionalUtility({
+  name: 'z',
+  supportsNegative: true,
+  themeKeys: ['--z-index'],
+  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
+  handle: (value) => [decl('z-index', value)],
+  description: 'z-index utility',
+  category: 'layout',
+});
+
+// grid-column span: 커스텀 AST 생성
+functionalUtility({
+  name: 'col-span',
+  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
+  handle: (value) => [decl('grid-column', `span ${value} / span ${value}`)],
+  description: 'grid-column span utility',
+  category: 'grid',
+});
+
+// background-color: theme/arbitrary/custom property/음수/분수 지원
+functionalUtility({
+  name: 'bg',
+  prop: 'background-color',
+  themeKey: 'colors',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsNegative: true,
+  description: 'background-color (theme, arbitrary, custom property, negative, fraction 지원)',
+  category: 'color',
+});
+```
+
+#### 주요 옵션
+- `themeKey`, `themeKeys`: theme에서 값 조회 (여러 key 지원)
+- `supportsArbitrary`, `supportsCustomProperty`, `supportsNegative`: 임의값/커스텀 프로퍼티/음수 지원
+- `handleBareValue`: 값 유효성 검사/후처리 (null 반환 시 무시)
+- `handle`: 최종 AST 커스텀 생성 (없으면 기본 decl)
+- `prop`: 기본 decl용 (handle 미사용 시)
+
+---
+
 ## 사용 예시
 
 ```ts

@@ -34,4 +34,23 @@ describe('parseClassName', () => {
     expect(result.modifiers).toEqual([]);
     expect(result.utility).toEqual({ prefix: 'bg', value: 'blue-100', arbitrary: false, customProperty: false, negative: false });
   });
+
+  it('returns empty result for invalid or malformed class names', () => {
+    // 비정상 입력 케이스
+    const invalidInputs = [
+      '',
+      '-',
+      ':',
+      'hover-',
+      '::',
+      '---',
+      'foo-bar', // 미등록 유틸리티(엔진에서 이미 커버, 파서도 명확히)
+    ];
+    for (const input of invalidInputs) {
+      const result = parseClassName(input);
+      // 기대: modifiers는 빈 배열, utility는 undefined 또는 null
+      expect(result.modifiers).toEqual([]);
+      expect(result.utility == null).toBe(true);
+    }
+  });
 }); 
