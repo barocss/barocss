@@ -67,6 +67,26 @@ functionalUtility({
   category: 'layout',
 });
 
+// --- Layout: Break After ---
+staticUtility('break-after-auto', [['break-after', 'auto']]);
+staticUtility('break-after-avoid', [['break-after', 'avoid']]);
+staticUtility('break-after-all', [['break-after', 'all']]);
+staticUtility('break-after-avoid-page', [['break-after', 'avoid-page']]);
+staticUtility('break-after-page', [['break-after', 'page']]);
+staticUtility('break-after-left', [['break-after', 'left']]);
+staticUtility('break-after-right', [['break-after', 'right']]);
+staticUtility('break-after-column', [['break-after', 'column']]);
+
+// --- Layout: Break Before ---
+staticUtility('break-before-auto', [['break-before', 'auto']]);
+staticUtility('break-before-avoid', [['break-before', 'avoid']]);
+staticUtility('break-before-all', [['break-before', 'all']]);
+staticUtility('break-before-avoid-page', [['break-before', 'avoid-page']]);
+staticUtility('break-before-page', [['break-before', 'page']]);
+staticUtility('break-before-left', [['break-before', 'left']]);
+staticUtility('break-before-right', [['break-before', 'right']]);
+staticUtility('break-before-column', [['break-before', 'column']]);
+
 // --- Flex/Grid Order ---
 staticUtility('order-first', [['order', '-9999']]);
 staticUtility('order-last', [['order', '9999']]);

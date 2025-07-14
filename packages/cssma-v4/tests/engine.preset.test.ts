@@ -59,6 +59,30 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('columns-(--my-columns)', ctx)).toEqual([{ type: 'decl', prop: 'columns', value: 'var(--my-columns)' }]);
   });
 
+  // Break After
+  it('break-after: all static utilities', () => {
+    expect(applyClassName('break-after-auto', ctx)).toEqual([{ type: 'decl', prop: 'break-after', value: 'auto' }]);
+    expect(applyClassName('break-after-avoid', ctx)).toEqual([{ type: 'decl', prop: 'break-after', value: 'avoid' }]);
+    expect(applyClassName('break-after-all', ctx)).toEqual([{ type: 'decl', prop: 'break-after', value: 'all' }]);
+    expect(applyClassName('break-after-avoid-page', ctx)).toEqual([{ type: 'decl', prop: 'break-after', value: 'avoid-page' }]);
+    expect(applyClassName('break-after-page', ctx)).toEqual([{ type: 'decl', prop: 'break-after', value: 'page' }]);
+    expect(applyClassName('break-after-left', ctx)).toEqual([{ type: 'decl', prop: 'break-after', value: 'left' }]);
+    expect(applyClassName('break-after-right', ctx)).toEqual([{ type: 'decl', prop: 'break-after', value: 'right' }]);
+    expect(applyClassName('break-after-column', ctx)).toEqual([{ type: 'decl', prop: 'break-after', value: 'column' }]);
+  });
+
+  // Break Before
+  it('break-before: all static utilities', () => {
+    expect(applyClassName('break-before-auto', ctx)).toEqual([{ type: 'decl', prop: 'break-before', value: 'auto' }]);
+    expect(applyClassName('break-before-avoid', ctx)).toEqual([{ type: 'decl', prop: 'break-before', value: 'avoid' }]);
+    expect(applyClassName('break-before-all', ctx)).toEqual([{ type: 'decl', prop: 'break-before', value: 'all' }]);
+    expect(applyClassName('break-before-avoid-page', ctx)).toEqual([{ type: 'decl', prop: 'break-before', value: 'avoid-page' }]);
+    expect(applyClassName('break-before-page', ctx)).toEqual([{ type: 'decl', prop: 'break-before', value: 'page' }]);
+    expect(applyClassName('break-before-left', ctx)).toEqual([{ type: 'decl', prop: 'break-before', value: 'left' }]);
+    expect(applyClassName('break-before-right', ctx)).toEqual([{ type: 'decl', prop: 'break-before', value: 'right' }]);
+    expect(applyClassName('break-before-column', ctx)).toEqual([{ type: 'decl', prop: 'break-before', value: 'column' }]);
+  });
+
   // Z-Index
   it('z-index: theme, arbitrary, negative, fraction', () => {
     expect(applyClassName('z-10', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '10' }]);
