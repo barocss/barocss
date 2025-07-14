@@ -30,6 +30,19 @@ functionalUtility({
   category: 'layout',
 });
 
+// --- Layout: Aspect Ratio ---
+staticUtility('aspect-square', [['aspect-ratio', '1 / 1']]);
+staticUtility('aspect-video', [['aspect-ratio', 'var(--aspect-ratio-video)']]);
+staticUtility('aspect-auto', [['aspect-ratio', 'auto']]);
+functionalUtility({
+  name: 'aspect',
+  prop: 'aspect-ratio',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'aspect-ratio utility (theme, arbitrary, custom property 지원)',
+  category: 'layout',
+});
+
 // --- Flex/Grid Order ---
 staticUtility('order-first', [['order', '-9999']]);
 staticUtility('order-last', [['order', '9999']]);

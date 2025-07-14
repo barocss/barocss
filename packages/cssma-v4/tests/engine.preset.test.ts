@@ -24,6 +24,24 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('isolation-auto', ctx)).toEqual([{ type: 'decl', prop: 'isolation', value: 'auto' }]);
   });
 
+  // Aspect Ratio
+  it('aspect-ratio: static utilities', () => {
+    expect(applyClassName('aspect-square', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: '1 / 1' }]);
+    expect(applyClassName('aspect-video', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: 'var(--aspect-ratio-video)' }]);
+    expect(applyClassName('aspect-auto', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: 'auto' }]);
+  });
+
+  it('aspect-ratio: fraction, arbitrary, custom property', () => {
+    // fraction value (fraction 검사)
+    expect(applyClassName('aspect-16/9', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: '16/9' }]);
+    expect(applyClassName('aspect-4/3', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: '4/3' }]);
+    // arbitrary value (fraction 검사 안함, 대괄호 제거)
+    expect(applyClassName('aspect-[4/3]', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: '4/3' }]);
+    expect(applyClassName('aspect-[calc(16+9)/9]', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: 'calc(16+9)/9' }]);
+    // custom property
+    expect(applyClassName('aspect-(--my-ratio)', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: 'var(--my-ratio)' }]);
+  });
+
   // Z-Index
   it('z-index: theme, arbitrary, negative, fraction', () => {
     expect(applyClassName('z-10', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '10' }]);
