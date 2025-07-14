@@ -115,3 +115,18 @@ staticUtility('table-row-group', [['display', 'table-row-group']]);
 staticUtility('table-row', [['display', 'table-row']]);
 staticUtility('list-item', [['display', 'list-item']]);
 staticUtility('hidden', [['display', 'none']]);
+
+// --- Layout: Float ---
+staticUtility('float-right', [['float', 'right']]);
+staticUtility('float-left', [['float', 'left']]);
+staticUtility('float-start', [['float', 'inline-start']]);
+staticUtility('float-end', [['float', 'inline-end']]);
+staticUtility('float-none', [['float', 'none']]);
+
+// --- Layout: Clear ---
+staticUtility('clear-left', [['clear', 'left']]);
+staticUtility('clear-right', [['clear', 'right']]);
+staticUtility('clear-both', [['clear', 'both']]);
+staticUtility('clear-start', [['clear', 'inline-start']]);
+staticUtility('clear-end', [['clear', 'inline-end']]);
+staticUtility('clear-none', [['clear', 'none']]);

@@ -155,7 +155,7 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('bg-unknown', ctx)).toEqual([{ type: 'decl', prop: 'background-color', value: 'unknown' }]); // fallback to raw value
   });
 
-  it('display: all Tailwind utilities', () => {
+  it('display: all  utilities', () => {
     expect(applyClassName('block', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'block' }]);
     expect(applyClassName('inline', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'inline' }]);
     expect(applyClassName('inline-block', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'inline-block' }]);
@@ -177,5 +177,22 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('table-row', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'table-row' }]);
     expect(applyClassName('list-item', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'list-item' }]);
     expect(applyClassName('hidden', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'none' }]);
+  });
+
+  it('float: all  utilities', () => {
+    expect(applyClassName('float-right', ctx)).toEqual([{ type: 'decl', prop: 'float', value: 'right' }]);
+    expect(applyClassName('float-left', ctx)).toEqual([{ type: 'decl', prop: 'float', value: 'left' }]);
+    expect(applyClassName('float-start', ctx)).toEqual([{ type: 'decl', prop: 'float', value: 'inline-start' }]);
+    expect(applyClassName('float-end', ctx)).toEqual([{ type: 'decl', prop: 'float', value: 'inline-end' }]);
+    expect(applyClassName('float-none', ctx)).toEqual([{ type: 'decl', prop: 'float', value: 'none' }]);
+  });
+
+  it('clear: all  utilities', () => {
+    expect(applyClassName('clear-left', ctx)).toEqual([{ type: 'decl', prop: 'clear', value: 'left' }]);
+    expect(applyClassName('clear-right', ctx)).toEqual([{ type: 'decl', prop: 'clear', value: 'right' }]);
+    expect(applyClassName('clear-both', ctx)).toEqual([{ type: 'decl', prop: 'clear', value: 'both' }]);
+    expect(applyClassName('clear-start', ctx)).toEqual([{ type: 'decl', prop: 'clear', value: 'inline-start' }]);
+    expect(applyClassName('clear-end', ctx)).toEqual([{ type: 'decl', prop: 'clear', value: 'inline-end' }]);
+    expect(applyClassName('clear-none', ctx)).toEqual([{ type: 'decl', prop: 'clear', value: 'none' }]);
   });
 }); 
