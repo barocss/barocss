@@ -490,6 +490,26 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('justify-normal', ctx)).toEqual([{ type: 'decl', prop: 'justify-content', value: 'normal' }]);
   });
 
+  it('justify-items: static utilities', () => {
+    expect(applyClassName('justify-items-start', ctx)).toEqual([{ type: 'decl', prop: 'justify-items', value: 'start' }]);
+    expect(applyClassName('justify-items-end', ctx)).toEqual([{ type: 'decl', prop: 'justify-items', value: 'end' }]);
+    expect(applyClassName('justify-items-end-safe', ctx)).toEqual([{ type: 'decl', prop: 'justify-items', value: 'safe end' }]);
+    expect(applyClassName('justify-items-center', ctx)).toEqual([{ type: 'decl', prop: 'justify-items', value: 'center' }]);
+    expect(applyClassName('justify-items-center-safe', ctx)).toEqual([{ type: 'decl', prop: 'justify-items', value: 'safe center' }]);
+    expect(applyClassName('justify-items-stretch', ctx)).toEqual([{ type: 'decl', prop: 'justify-items', value: 'stretch' }]);
+    expect(applyClassName('justify-items-normal', ctx)).toEqual([{ type: 'decl', prop: 'justify-items', value: 'normal' }]);
+  });
+
+  it('justify-self: static utilities', () => {
+    expect(applyClassName('justify-self-auto', ctx)).toEqual([{ type: 'decl', prop: 'justify-self', value: 'auto' }]);
+    expect(applyClassName('justify-self-start', ctx)).toEqual([{ type: 'decl', prop: 'justify-self', value: 'start' }]);
+    expect(applyClassName('justify-self-center', ctx)).toEqual([{ type: 'decl', prop: 'justify-self', value: 'center' }]);
+    expect(applyClassName('justify-self-center-safe', ctx)).toEqual([{ type: 'decl', prop: 'justify-self', value: 'safe center' }]);
+    expect(applyClassName('justify-self-end', ctx)).toEqual([{ type: 'decl', prop: 'justify-self', value: 'end' }]);
+    expect(applyClassName('justify-self-end-safe', ctx)).toEqual([{ type: 'decl', prop: 'justify-self', value: 'safe end' }]);
+    expect(applyClassName('justify-self-stretch', ctx)).toEqual([{ type: 'decl', prop: 'justify-self', value: 'stretch' }]);
+  });
+
   it('grid-column: col-span, col-start, col-end, col utilities', () => {
     // col-span
     expect(applyClassName('col-span-full', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '1 / -1' }]);

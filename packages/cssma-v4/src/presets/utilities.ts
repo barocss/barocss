@@ -617,6 +617,24 @@ staticUtility('justify-stretch', [['justify-content', 'stretch']]);
 staticUtility('justify-baseline', [['justify-content', 'baseline']]);
 staticUtility('justify-normal', [['justify-content', 'normal']]);
 
+// --- Flexbox & Grid: Justify Items ---
+staticUtility('justify-items-start', [['justify-items', 'start']]);
+staticUtility('justify-items-end', [['justify-items', 'end']]);
+staticUtility('justify-items-end-safe', [['justify-items', 'safe end']]);
+staticUtility('justify-items-center', [['justify-items', 'center']]);
+staticUtility('justify-items-center-safe', [['justify-items', 'safe center']]);
+staticUtility('justify-items-stretch', [['justify-items', 'stretch']]);
+staticUtility('justify-items-normal', [['justify-items', 'normal']]);
+
+// --- Flexbox & Grid: Justify Self ---
+staticUtility('justify-self-auto', [['justify-self', 'auto']]);
+staticUtility('justify-self-start', [['justify-self', 'start']]);
+staticUtility('justify-self-center', [['justify-self', 'center']]);
+staticUtility('justify-self-center-safe', [['justify-self', 'safe center']]);
+staticUtility('justify-self-end', [['justify-self', 'end']]);
+staticUtility('justify-self-end-safe', [['justify-self', 'safe end']]);
+staticUtility('justify-self-stretch', [['justify-self', 'stretch']]);
+
 // --- Flexbox & Grid: Grid Column ---
 // col-span utilities
 staticUtility('col-span-full', [['grid-column', '1 / -1']]);
