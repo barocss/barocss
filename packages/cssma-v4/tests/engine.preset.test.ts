@@ -42,6 +42,23 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('aspect-(--my-ratio)', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: 'var(--my-ratio)' }]);
   });
 
+  // Columns
+  it('columns: static utilities', () => {
+    expect(applyClassName('columns-auto', ctx)).toEqual([{ type: 'decl', prop: 'columns', value: 'auto' }]);
+    expect(applyClassName('columns-sm', ctx)).toEqual([{ type: 'decl', prop: 'columns', value: 'var(--container-sm)' }]);
+    expect(applyClassName('columns-lg', ctx)).toEqual([{ type: 'decl', prop: 'columns', value: 'var(--container-lg)' }]);
+    expect(applyClassName('columns-xl', ctx)).toEqual([{ type: 'decl', prop: 'columns', value: 'var(--container-xl)' }]);
+    expect(applyClassName('columns-2xl', ctx)).toEqual([{ type: 'decl', prop: 'columns', value: 'var(--container-2xl)' }]);
+  });
+
+  it('columns: dynamic utilities', () => {
+    // arbitrary value
+    expect(applyClassName('columns-[3]', ctx)).toEqual([{ type: 'decl', prop: 'columns', value: '3' }]);
+    expect(applyClassName('columns-[30vw]', ctx)).toEqual([{ type: 'decl', prop: 'columns', value: '30vw' }]);
+    // custom property
+    expect(applyClassName('columns-(--my-columns)', ctx)).toEqual([{ type: 'decl', prop: 'columns', value: 'var(--my-columns)' }]);
+  });
+
   // Z-Index
   it('z-index: theme, arbitrary, negative, fraction', () => {
     expect(applyClassName('z-10', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '10' }]);

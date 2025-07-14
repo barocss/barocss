@@ -43,6 +43,30 @@ functionalUtility({
   category: 'layout',
 });
 
+// --- Layout: Columns ---
+staticUtility('columns-auto', [['columns', 'auto']]);
+staticUtility('columns-3xs', [['columns', 'var(--container-3xs)']]);
+staticUtility('columns-2xs', [['columns', 'var(--container-2xs)']]);
+staticUtility('columns-xs', [['columns', 'var(--container-xs)']]);
+staticUtility('columns-sm', [['columns', 'var(--container-sm)']]);
+staticUtility('columns-md', [['columns', 'var(--container-md)']]);
+staticUtility('columns-lg', [['columns', 'var(--container-lg)']]);
+staticUtility('columns-xl', [['columns', 'var(--container-xl)']]);
+staticUtility('columns-2xl', [['columns', 'var(--container-2xl)']]);
+staticUtility('columns-3xl', [['columns', 'var(--container-3xl)']]);
+staticUtility('columns-4xl', [['columns', 'var(--container-4xl)']]);
+staticUtility('columns-5xl', [['columns', 'var(--container-5xl)']]);
+staticUtility('columns-6xl', [['columns', 'var(--container-6xl)']]);
+staticUtility('columns-7xl', [['columns', 'var(--container-7xl)']]);
+functionalUtility({
+  name: 'columns',
+  prop: 'columns',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'columns utility (theme, arbitrary, custom property 지원)',
+  category: 'layout',
+});
+
 // --- Flex/Grid Order ---
 staticUtility('order-first', [['order', '-9999']]);
 staticUtility('order-last', [['order', '9999']]);
