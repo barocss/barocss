@@ -510,6 +510,74 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('justify-self-stretch', ctx)).toEqual([{ type: 'decl', prop: 'justify-self', value: 'stretch' }]);
   });
 
+  it('align-content: static utilities', () => {
+    expect(applyClassName('content-normal', ctx)).toEqual([{ type: 'decl', prop: 'align-content', value: 'normal' }]);
+    expect(applyClassName('content-center', ctx)).toEqual([{ type: 'decl', prop: 'align-content', value: 'center' }]);
+    expect(applyClassName('content-start', ctx)).toEqual([{ type: 'decl', prop: 'align-content', value: 'flex-start' }]);
+    expect(applyClassName('content-end', ctx)).toEqual([{ type: 'decl', prop: 'align-content', value: 'flex-end' }]);
+    expect(applyClassName('content-between', ctx)).toEqual([{ type: 'decl', prop: 'align-content', value: 'space-between' }]);
+    expect(applyClassName('content-around', ctx)).toEqual([{ type: 'decl', prop: 'align-content', value: 'space-around' }]);
+    expect(applyClassName('content-evenly', ctx)).toEqual([{ type: 'decl', prop: 'align-content', value: 'space-evenly' }]);
+    expect(applyClassName('content-baseline', ctx)).toEqual([{ type: 'decl', prop: 'align-content', value: 'baseline' }]);
+    expect(applyClassName('content-stretch', ctx)).toEqual([{ type: 'decl', prop: 'align-content', value: 'stretch' }]);
+  });
+
+  it('align-items: static utilities', () => {
+    expect(applyClassName('items-start', ctx)).toEqual([{ type: 'decl', prop: 'align-items', value: 'flex-start' }]);
+    expect(applyClassName('items-end', ctx)).toEqual([{ type: 'decl', prop: 'align-items', value: 'flex-end' }]);
+    expect(applyClassName('items-end-safe', ctx)).toEqual([{ type: 'decl', prop: 'align-items', value: 'safe flex-end' }]);
+    expect(applyClassName('items-center', ctx)).toEqual([{ type: 'decl', prop: 'align-items', value: 'center' }]);
+    expect(applyClassName('items-center-safe', ctx)).toEqual([{ type: 'decl', prop: 'align-items', value: 'safe center' }]);
+    expect(applyClassName('items-baseline', ctx)).toEqual([{ type: 'decl', prop: 'align-items', value: 'baseline' }]);
+    expect(applyClassName('items-baseline-last', ctx)).toEqual([{ type: 'decl', prop: 'align-items', value: 'last baseline' }]);
+    expect(applyClassName('items-stretch', ctx)).toEqual([{ type: 'decl', prop: 'align-items', value: 'stretch' }]);
+  });
+
+  it('align-self: static utilities', () => {
+    expect(applyClassName('self-auto', ctx)).toEqual([{ type: 'decl', prop: 'align-self', value: 'auto' }]);
+    expect(applyClassName('self-start', ctx)).toEqual([{ type: 'decl', prop: 'align-self', value: 'flex-start' }]);
+    expect(applyClassName('self-end', ctx)).toEqual([{ type: 'decl', prop: 'align-self', value: 'flex-end' }]);
+    expect(applyClassName('self-end-safe', ctx)).toEqual([{ type: 'decl', prop: 'align-self', value: 'safe flex-end' }]);
+    expect(applyClassName('self-center', ctx)).toEqual([{ type: 'decl', prop: 'align-self', value: 'center' }]);
+    expect(applyClassName('self-center-safe', ctx)).toEqual([{ type: 'decl', prop: 'align-self', value: 'safe center' }]);
+    expect(applyClassName('self-stretch', ctx)).toEqual([{ type: 'decl', prop: 'align-self', value: 'stretch' }]);
+    expect(applyClassName('self-baseline', ctx)).toEqual([{ type: 'decl', prop: 'align-self', value: 'baseline' }]);
+    expect(applyClassName('self-baseline-last', ctx)).toEqual([{ type: 'decl', prop: 'align-self', value: 'last baseline' }]);
+  });
+
+  it('place-content: static utilities', () => {
+    expect(applyClassName('place-content-center', ctx)).toEqual([{ type: 'decl', prop: 'place-content', value: 'center' }]);
+    expect(applyClassName('place-content-center-safe', ctx)).toEqual([{ type: 'decl', prop: 'place-content', value: 'safe center' }]);
+    expect(applyClassName('place-content-start', ctx)).toEqual([{ type: 'decl', prop: 'place-content', value: 'start' }]);
+    expect(applyClassName('place-content-end', ctx)).toEqual([{ type: 'decl', prop: 'place-content', value: 'end' }]);
+    expect(applyClassName('place-content-end-safe', ctx)).toEqual([{ type: 'decl', prop: 'place-content', value: 'safe end' }]);
+    expect(applyClassName('place-content-between', ctx)).toEqual([{ type: 'decl', prop: 'place-content', value: 'space-between' }]);
+    expect(applyClassName('place-content-around', ctx)).toEqual([{ type: 'decl', prop: 'place-content', value: 'space-around' }]);
+    expect(applyClassName('place-content-evenly', ctx)).toEqual([{ type: 'decl', prop: 'place-content', value: 'space-evenly' }]);
+    expect(applyClassName('place-content-baseline', ctx)).toEqual([{ type: 'decl', prop: 'place-content', value: 'baseline' }]);
+    expect(applyClassName('place-content-stretch', ctx)).toEqual([{ type: 'decl', prop: 'place-content', value: 'stretch' }]);
+  });
+
+  it('place-items: static utilities', () => {
+    expect(applyClassName('place-items-start', ctx)).toEqual([{ type: 'decl', prop: 'place-items', value: 'start' }]);
+    expect(applyClassName('place-items-end', ctx)).toEqual([{ type: 'decl', prop: 'place-items', value: 'end' }]);
+    expect(applyClassName('place-items-end-safe', ctx)).toEqual([{ type: 'decl', prop: 'place-items', value: 'safe end' }]);
+    expect(applyClassName('place-items-center', ctx)).toEqual([{ type: 'decl', prop: 'place-items', value: 'center' }]);
+    expect(applyClassName('place-items-center-safe', ctx)).toEqual([{ type: 'decl', prop: 'place-items', value: 'safe center' }]);
+    expect(applyClassName('place-items-baseline', ctx)).toEqual([{ type: 'decl', prop: 'place-items', value: 'baseline' }]);
+    expect(applyClassName('place-items-stretch', ctx)).toEqual([{ type: 'decl', prop: 'place-items', value: 'stretch' }]);
+  });
+
+  it('place-self: static utilities', () => {
+    expect(applyClassName('place-self-auto', ctx)).toEqual([{ type: 'decl', prop: 'place-self', value: 'auto' }]);
+    expect(applyClassName('place-self-start', ctx)).toEqual([{ type: 'decl', prop: 'place-self', value: 'start' }]);
+    expect(applyClassName('place-self-end', ctx)).toEqual([{ type: 'decl', prop: 'place-self', value: 'end' }]);
+    expect(applyClassName('place-self-end-safe', ctx)).toEqual([{ type: 'decl', prop: 'place-self', value: 'safe end' }]);
+    expect(applyClassName('place-self-center', ctx)).toEqual([{ type: 'decl', prop: 'place-self', value: 'center' }]);
+    expect(applyClassName('place-self-center-safe', ctx)).toEqual([{ type: 'decl', prop: 'place-self', value: 'safe center' }]);
+    expect(applyClassName('place-self-stretch', ctx)).toEqual([{ type: 'decl', prop: 'place-self', value: 'stretch' }]);
+  });
+
   it('grid-column: col-span, col-start, col-end, col utilities', () => {
     // col-span
     expect(applyClassName('col-span-full', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '1 / -1' }]);
