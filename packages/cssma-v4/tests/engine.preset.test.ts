@@ -195,4 +195,34 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('clear-end', ctx)).toEqual([{ type: 'decl', prop: 'clear', value: 'inline-end' }]);
     expect(applyClassName('clear-none', ctx)).toEqual([{ type: 'decl', prop: 'clear', value: 'none' }]);
   });
+
+  it('isolation: all utilities', () => {
+    expect(applyClassName('isolate', ctx)).toEqual([{ type: 'decl', prop: 'isolation', value: 'isolate' }]);
+    expect(applyClassName('isolation-auto', ctx)).toEqual([{ type: 'decl', prop: 'isolation', value: 'auto' }]);
+  });
+
+  it('object-fit: all utilities', () => {
+    expect(applyClassName('object-contain', ctx)).toEqual([{ type: 'decl', prop: 'object-fit', value: 'contain' }]);
+    expect(applyClassName('object-cover', ctx)).toEqual([{ type: 'decl', prop: 'object-fit', value: 'cover' }]);
+    expect(applyClassName('object-fill', ctx)).toEqual([{ type: 'decl', prop: 'object-fit', value: 'fill' }]);
+    expect(applyClassName('object-none', ctx)).toEqual([{ type: 'decl', prop: 'object-fit', value: 'none' }]);
+    expect(applyClassName('object-scale-down', ctx)).toEqual([{ type: 'decl', prop: 'object-fit', value: 'scale-down' }]);
+  });
+
+  it('object-position: static utilities', () => {
+    expect(applyClassName('object-top-left', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'top left' }]);
+    expect(applyClassName('object-top', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'top' }]);
+    expect(applyClassName('object-top-right', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'top right' }]);
+    expect(applyClassName('object-left', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'left' }]);
+    expect(applyClassName('object-center', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'center' }]);
+    expect(applyClassName('object-right', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'right' }]);
+    expect(applyClassName('object-bottom-left', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'bottom left' }]);
+    expect(applyClassName('object-bottom', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'bottom' }]);
+    expect(applyClassName('object-bottom-right', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'bottom right' }]);
+  });
+
+  it('object-position: arbitrary, custom property', () => {
+    expect(applyClassName('object-[25%_75%]', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: '25% 75%' }]);
+    expect(applyClassName('object-(--my-position)', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'var(--my-position)' }]);
+  });
 }); 

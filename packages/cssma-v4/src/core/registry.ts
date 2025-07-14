@@ -128,9 +128,11 @@ export function functionalUtility(opts: {
       
       // 1. Arbitrary value - parser.ts에서 이미 파싱됨
       if (opts.supportsArbitrary && parsedUtility.arbitrary) {
-        if (opts.prop) return [decl(opts.prop, value)];
+        // underscore를 space로 변환 (object-position 등에서 필요)
+        const processedValue = value.replace(/_/g, ' ');
+        if (opts.prop) return [decl(opts.prop, processedValue)];
         if (opts.handle) {
-          const result = opts.handle(value, ctx, token);
+          const result = opts.handle(processedValue, ctx, token);
           if (result) return result;
         }
         return [];

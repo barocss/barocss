@@ -130,3 +130,30 @@ staticUtility('clear-both', [['clear', 'both']]);
 staticUtility('clear-start', [['clear', 'inline-start']]);
 staticUtility('clear-end', [['clear', 'inline-end']]);
 staticUtility('clear-none', [['clear', 'none']]);
+
+// --- Layout: Object Fit ---
+staticUtility('object-contain', [['object-fit', 'contain']]);
+staticUtility('object-cover', [['object-fit', 'cover']]);
+staticUtility('object-fill', [['object-fit', 'fill']]);
+staticUtility('object-none', [['object-fit', 'none']]);
+staticUtility('object-scale-down', [['object-fit', 'scale-down']]);
+
+// --- Layout: Object Position ---
+staticUtility('object-top-left', [['object-position', 'top left']]);
+staticUtility('object-top', [['object-position', 'top']]);
+staticUtility('object-top-right', [['object-position', 'top right']]);
+staticUtility('object-left', [['object-position', 'left']]);
+staticUtility('object-center', [['object-position', 'center']]);
+staticUtility('object-right', [['object-position', 'right']]);
+staticUtility('object-bottom-left', [['object-position', 'bottom left']]);
+staticUtility('object-bottom', [['object-position', 'bottom']]);
+staticUtility('object-bottom-right', [['object-position', 'bottom right']]);
+
+functionalUtility({
+  name: 'object',
+  prop: 'object-position',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'object-position utility (arbitrary value, custom property 지원)',
+  category: 'layout',
+});
