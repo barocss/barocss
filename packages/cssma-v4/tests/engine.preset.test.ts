@@ -225,4 +225,42 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('object-[25%_75%]', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: '25% 75%' }]);
     expect(applyClassName('object-(--my-position)', ctx)).toEqual([{ type: 'decl', prop: 'object-position', value: 'var(--my-position)' }]);
   });
+
+  it('overflow: all utilities', () => {
+    expect(applyClassName('overflow-auto', ctx)).toEqual([{ type: 'decl', prop: 'overflow', value: 'auto' }]);
+    expect(applyClassName('overflow-hidden', ctx)).toEqual([{ type: 'decl', prop: 'overflow', value: 'hidden' }]);
+    expect(applyClassName('overflow-clip', ctx)).toEqual([{ type: 'decl', prop: 'overflow', value: 'clip' }]);
+    expect(applyClassName('overflow-visible', ctx)).toEqual([{ type: 'decl', prop: 'overflow', value: 'visible' }]);
+    expect(applyClassName('overflow-scroll', ctx)).toEqual([{ type: 'decl', prop: 'overflow', value: 'scroll' }]);
+    expect(applyClassName('overflow-x-auto', ctx)).toEqual([{ type: 'decl', prop: 'overflow-x', value: 'auto' }]);
+    expect(applyClassName('overflow-y-auto', ctx)).toEqual([{ type: 'decl', prop: 'overflow-y', value: 'auto' }]);
+    expect(applyClassName('overflow-x-hidden', ctx)).toEqual([{ type: 'decl', prop: 'overflow-x', value: 'hidden' }]);
+    expect(applyClassName('overflow-y-hidden', ctx)).toEqual([{ type: 'decl', prop: 'overflow-y', value: 'hidden' }]);
+    expect(applyClassName('overflow-x-clip', ctx)).toEqual([{ type: 'decl', prop: 'overflow-x', value: 'clip' }]);
+    expect(applyClassName('overflow-y-clip', ctx)).toEqual([{ type: 'decl', prop: 'overflow-y', value: 'clip' }]);
+    expect(applyClassName('overflow-x-visible', ctx)).toEqual([{ type: 'decl', prop: 'overflow-x', value: 'visible' }]);
+    expect(applyClassName('overflow-y-visible', ctx)).toEqual([{ type: 'decl', prop: 'overflow-y', value: 'visible' }]);
+    expect(applyClassName('overflow-x-scroll', ctx)).toEqual([{ type: 'decl', prop: 'overflow-x', value: 'scroll' }]);
+    expect(applyClassName('overflow-y-scroll', ctx)).toEqual([{ type: 'decl', prop: 'overflow-y', value: 'scroll' }]);
+  });
+
+  it('overscroll-behavior: all utilities', () => {
+    expect(applyClassName('overscroll-auto', ctx)).toEqual([{ type: 'decl', prop: 'overscroll-behavior', value: 'auto' }]);
+    expect(applyClassName('overscroll-contain', ctx)).toEqual([{ type: 'decl', prop: 'overscroll-behavior', value: 'contain' }]);
+    expect(applyClassName('overscroll-none', ctx)).toEqual([{ type: 'decl', prop: 'overscroll-behavior', value: 'none' }]);
+    expect(applyClassName('overscroll-x-auto', ctx)).toEqual([{ type: 'decl', prop: 'overscroll-behavior-x', value: 'auto' }]);
+    expect(applyClassName('overscroll-x-contain', ctx)).toEqual([{ type: 'decl', prop: 'overscroll-behavior-x', value: 'contain' }]);
+    expect(applyClassName('overscroll-x-none', ctx)).toEqual([{ type: 'decl', prop: 'overscroll-behavior-x', value: 'none' }]);
+    expect(applyClassName('overscroll-y-auto', ctx)).toEqual([{ type: 'decl', prop: 'overscroll-behavior-y', value: 'auto' }]);
+    expect(applyClassName('overscroll-y-contain', ctx)).toEqual([{ type: 'decl', prop: 'overscroll-behavior-y', value: 'contain' }]);
+    expect(applyClassName('overscroll-y-none', ctx)).toEqual([{ type: 'decl', prop: 'overscroll-behavior-y', value: 'none' }]);
+  });
+
+  it('position: all utilities', () => {
+    expect(applyClassName('static', ctx)).toEqual([{ type: 'decl', prop: 'position', value: 'static' }]);
+    expect(applyClassName('fixed', ctx)).toEqual([{ type: 'decl', prop: 'position', value: 'fixed' }]);
+    expect(applyClassName('absolute', ctx)).toEqual([{ type: 'decl', prop: 'position', value: 'absolute' }]);
+    expect(applyClassName('relative', ctx)).toEqual([{ type: 'decl', prop: 'position', value: 'relative' }]);
+    expect(applyClassName('sticky', ctx)).toEqual([{ type: 'decl', prop: 'position', value: 'sticky' }]);
+  });
 }); 

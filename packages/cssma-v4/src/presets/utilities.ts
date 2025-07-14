@@ -157,3 +157,39 @@ functionalUtility({
   description: 'object-position utility (arbitrary value, custom property 지원)',
   category: 'layout',
 });
+
+// --- Layout: Overflow ---
+staticUtility('overflow-auto', [['overflow', 'auto']]);
+staticUtility('overflow-hidden', [['overflow', 'hidden']]);
+staticUtility('overflow-clip', [['overflow', 'clip']]);
+staticUtility('overflow-visible', [['overflow', 'visible']]);
+staticUtility('overflow-scroll', [['overflow', 'scroll']]);
+staticUtility('overflow-x-auto', [['overflow-x', 'auto']]);
+staticUtility('overflow-y-auto', [['overflow-y', 'auto']]);
+staticUtility('overflow-x-hidden', [['overflow-x', 'hidden']]);
+staticUtility('overflow-y-hidden', [['overflow-y', 'hidden']]);
+staticUtility('overflow-x-clip', [['overflow-x', 'clip']]);
+staticUtility('overflow-y-clip', [['overflow-y', 'clip']]);
+staticUtility('overflow-x-visible', [['overflow-x', 'visible']]);
+staticUtility('overflow-y-visible', [['overflow-y', 'visible']]);
+staticUtility('overflow-x-scroll', [['overflow-x', 'scroll']]);
+staticUtility('overflow-y-scroll', [['overflow-y', 'scroll']]);
+
+// --- Layout: Overscroll Behavior ---
+staticUtility('overscroll-auto', [['overscroll-behavior', 'auto']]);
+staticUtility('overscroll-contain', [['overscroll-behavior', 'contain']]);
+staticUtility('overscroll-none', [['overscroll-behavior', 'none']]);
+staticUtility('overscroll-x-auto', [['overscroll-behavior-x', 'auto']]);
+staticUtility('overscroll-x-contain', [['overscroll-behavior-x', 'contain']]);
+staticUtility('overscroll-x-none', [['overscroll-behavior-x', 'none']]);
+staticUtility('overscroll-y-auto', [['overscroll-behavior-y', 'auto']]);
+staticUtility('overscroll-y-contain', [['overscroll-behavior-y', 'contain']]);
+staticUtility('overscroll-y-none', [['overscroll-behavior-y', 'none']]);
+
+// --- Layout: Position ---
+staticUtility('static', [['position', 'static']]);
+staticUtility('fixed', [['position', 'fixed']]);
+staticUtility('absolute', [['position', 'absolute']]);
+staticUtility('relative', [['position', 'relative']]);
+staticUtility('sticky', [['position', 'sticky']]);
+
