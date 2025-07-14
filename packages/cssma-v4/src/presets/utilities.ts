@@ -771,4 +771,27 @@ functionalUtility({
   category: 'grid',
 });
 
-
+// Padding utilities (p-*, px-*, py-*, ps-*, pe-*, pt-*, pr-*, pb-*, pl-*)
+[
+  
+  ['px', 'padding-inline'],
+  ['py', 'padding-block'],
+  ['ps', 'padding-inline-start'],
+  ['pe', 'padding-inline-end'],
+  ['pt', 'padding-top'],
+  ['pr', 'padding-right'],
+  ['pb', 'padding-bottom'],
+  ['pl', 'padding-left'],
+  ['p', 'padding'],
+].forEach(([name, prop]) => {
+  staticUtility(`${name}-px`, [[prop, '1px']]);
+  functionalUtility({
+    name,
+    prop,
+    supportsArbitrary: true,
+    supportsCustomProperty: true,
+    handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
+    description: `${name} utility (number, arbitrary, custom property 지원)`,
+    category: 'layout',
+  });
+});

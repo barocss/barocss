@@ -3,7 +3,7 @@ import '../src/index'; // Ensure all utilities are registered
 import { applyClassName } from '../src/core/engine';
 import { createContext } from '../src/core/context';
 
-// --- New preset utility structure tests ---
+// --- New preset utility structure its ---
 describe('preset utilities (staticUtility/functionalUtility)', () => {
   const ctx = createContext({
     theme: {
@@ -602,5 +602,194 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('col-[3]', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '3' }]);
   });
 
-  
+  describe('padding utilities', () => {
+    it('p-4 → padding: calc(var(--spacing) * 4)', () => {
+      expect(applyClassName('p-4', ctx)).toEqual([
+        { type: 'decl', prop: 'padding', value: 'calc(var(--spacing) * 4)' },
+      ]);
+    });
+    it('p-px → padding: 1px', () => {
+      expect(applyClassName('p-px', ctx)).toEqual([
+        { type: 'decl', prop: 'padding', value: '1px' },
+      ]);
+    });
+    it('p-[5px] → padding: 5px', () => {
+      expect(applyClassName('p-[5px]', ctx)).toEqual([
+        { type: 'decl', prop: 'padding', value: '5px' },
+      ]);
+    });
+    it('p-(--my-padding) → padding: var(--my-padding)', () => {
+      expect(applyClassName('p-(--my-padding)', ctx)).toEqual([
+        { type: 'decl', prop: 'padding', value: 'var(--my-padding)' },
+      ]);
+    });
+
+    it('px-2 → padding-inline: calc(var(--spacing) * 2)', () => {
+      expect(applyClassName('px-2', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline', value: 'calc(var(--spacing) * 2)' },
+      ]);
+    });
+    it('px-px → padding-inline: 1px', () => {
+      expect(applyClassName('px-px', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline', value: '1px' },
+      ]);
+    });
+    it('px-[10%] → padding-inline: 10%', () => {
+      expect(applyClassName('px-[10%]', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline', value: '10%' },
+      ]);
+    });
+    it('px-(--pad-x) → padding-inline: var(--pad-x)', () => {
+      expect(applyClassName('px-(--pad-x)', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline', value: 'var(--pad-x)' },
+      ]);
+    });
+
+    it('py-3 → padding-block: calc(var(--spacing) * 3)', () => {
+      expect(applyClassName('py-3', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-block', value: 'calc(var(--spacing) * 3)' },
+      ]);
+    });
+    it('py-px → padding-block: 1px', () => {
+      expect(applyClassName('py-px', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-block', value: '1px' },
+      ]);
+    });
+    it('py-[2em] → padding-block: 2em', () => {
+      expect(applyClassName('py-[2em]', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-block', value: '2em' },
+      ]);
+    });
+    it('py-(--pad-y) → padding-block: var(--pad-y)', () => {
+      expect(applyClassName('py-(--pad-y)', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-block', value: 'var(--pad-y)' },
+      ]);
+    });
+
+    it('ps-1 → padding-inline-start: calc(var(--spacing) * 1)', () => {
+      expect(applyClassName('ps-1', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline-start', value: 'calc(var(--spacing) * 1)' },
+      ]);
+    });
+    it('ps-px → padding-inline-start: 1px', () => {
+      expect(applyClassName('ps-px', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline-start', value: '1px' },
+      ]);
+    });
+    it('ps-[3vw] → padding-inline-start: 3vw', () => {
+      expect(applyClassName('ps-[3vw]', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline-start', value: '3vw' },
+      ]);
+    });
+    it('ps-(--pad-start) → padding-inline-start: var(--pad-start)', () => {
+      expect(applyClassName('ps-(--pad-start)', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline-start', value: 'var(--pad-start)' },
+      ]);
+    });
+
+    it('pe-5 → padding-inline-end: calc(var(--spacing) * 5)', () => {
+      expect(applyClassName('pe-5', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline-end', value: 'calc(var(--spacing) * 5)' },
+      ]);
+    });
+    it('pe-px → padding-inline-end: 1px', () => {
+      expect(applyClassName('pe-px', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline-end', value: '1px' },
+      ]);
+    });
+    it('pe-[7rem] → padding-inline-end: 7rem', () => {
+      expect(applyClassName('pe-[7rem]', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline-end', value: '7rem' },
+      ]);
+    });
+    it('pe-(--pad-end) → padding-inline-end: var(--pad-end)', () => {
+      expect(applyClassName('pe-(--pad-end)', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-inline-end', value: 'var(--pad-end)' },
+      ]);
+    });
+
+    it('pt-6 → padding-top: calc(var(--spacing) * 6)', () => {
+      expect(applyClassName('pt-6', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-top', value: 'calc(var(--spacing) * 6)' },
+      ]);
+    });
+    it('pt-px → padding-top: 1px', () => {
+      expect(applyClassName('pt-px', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-top', value: '1px' },
+      ]);
+    });
+    it('pt-[8px] → padding-top: 8px', () => {
+      expect(applyClassName('pt-[8px]', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-top', value: '8px' },
+      ]);
+    });
+    it('pt-(--pad-top) → padding-top: var(--pad-top)', () => {
+      expect(applyClassName('pt-(--pad-top)', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-top', value: 'var(--pad-top)' },
+      ]);
+    });
+
+    it('pr-2 → padding-right: calc(var(--spacing) * 2)', () => {
+      expect(applyClassName('pr-2', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-right', value: 'calc(var(--spacing) * 2)' },
+      ]);
+    });
+    it('pr-px → padding-right: 1px', () => {
+      expect(applyClassName('pr-px', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-right', value: '1px' },
+      ]);
+    });
+    it('pr-[9px] → padding-right: 9px', () => {
+      expect(applyClassName('pr-[9px]', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-right', value: '9px' },
+      ]);
+    });
+    it('pr-(--pad-right) → padding-right: var(--pad-right)', () => {
+      expect(applyClassName('pr-(--pad-right)', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-right', value: 'var(--pad-right)' },
+      ]);
+    });
+
+    it('pb-3 → padding-bottom: calc(var(--spacing) * 3)', () => {
+      expect(applyClassName('pb-3', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-bottom', value: 'calc(var(--spacing) * 3)' },
+      ]);
+    });
+    it('pb-px → padding-bottom: 1px', () => {
+      expect(applyClassName('pb-px', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-bottom', value: '1px' },
+      ]);
+    });
+    it('pb-[11px] → padding-bottom: 11px', () => {
+      expect(applyClassName('pb-[11px]', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-bottom', value: '11px' },
+      ]);
+    });
+    it('pb-(--pad-bottom) → padding-bottom: var(--pad-bottom)', () => {
+      expect(applyClassName('pb-(--pad-bottom)', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-bottom', value: 'var(--pad-bottom)' },
+      ]);
+    });
+
+    it('pl-4 → padding-left: calc(var(--spacing) * 4)', () => {
+      expect(applyClassName('pl-4', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-left', value: 'calc(var(--spacing) * 4)' },
+      ]);
+    });
+    it('pl-px → padding-left: 1px', () => {
+      expect(applyClassName('pl-px', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-left', value: '1px' },
+      ]);
+    });
+    it('pl-[13px] → padding-left: 13px', () => {
+      expect(applyClassName('pl-[13px]', ctx)).toEqual([
+        { type: 'decl', prop: 'padding-left', value: '13px' },
+      ]);
+    });
+    it('pl-(--pad-left) → padding-left: var(--pad-left)', () => {
+      expect(applyClassName('pl-(--pad-left)', ctx  )).toEqual([
+        { type: 'decl', prop: 'padding-left', value: 'var(--pad-left)' },
+      ]);
+    });
+  });
 }); 
