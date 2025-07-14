@@ -24,7 +24,7 @@ functionalUtility({
   name: 'z',
   supportsNegative: true,
   themeKeys: ['--z-index'],
-  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
+  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
   handle: (value) => [decl('z-index', value)],
   description: 'z-index utility',
   category: 'layout',
@@ -63,6 +63,7 @@ functionalUtility({
   prop: 'columns',
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
   description: 'columns utility (theme, arbitrary, custom property 지원)',
   category: 'layout',
 });
@@ -93,6 +94,10 @@ staticUtility('break-inside-avoid', [['break-inside', 'avoid']]);
 staticUtility('break-inside-avoid-page', [['break-inside', 'avoid-page']]);
 staticUtility('break-inside-avoid-column', [['break-inside', 'avoid-column']]);
 
+// --- Layout: Box Decoration Break ---
+staticUtility('box-decoration-slice', [['box-decoration-break', 'slice']]);
+staticUtility('box-decoration-clone', [['box-decoration-break', 'clone']]);
+
 // --- Flex/Grid Order ---
 staticUtility('order-first', [['order', '-9999']]);
 staticUtility('order-last', [['order', '9999']]);
@@ -100,7 +105,7 @@ functionalUtility({
   name: 'order',
   supportsNegative: true,
   themeKeys: ['--order'],
-  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
+  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
   handle: (value) => [decl('order', value)],
   description: 'order utility',
   category: 'layout',
@@ -112,7 +117,7 @@ functionalUtility({
   name: 'col',
   supportsNegative: true,
   themeKeys: ['--grid-column'],
-  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
+  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
   handle: (value) => [decl('grid-column', value)],
   description: 'grid-column utility',
   category: 'grid',
@@ -120,7 +125,7 @@ functionalUtility({
 staticUtility('col-span-full', [['grid-column', '1 / -1']]);
 functionalUtility({
   name: 'col-span',
-  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
+  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
   handle: (value) => [decl('grid-column', `span ${value} / span ${value}`)],
   description: 'grid-column span utility',
   category: 'grid',
@@ -132,7 +137,7 @@ functionalUtility({
   name: 'col-start',
   supportsNegative: true,
   themeKeys: ['--grid-column-start'],
-  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
+  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
   handle: (value) => [decl('grid-column-start', value)],
   description: 'grid-column-start utility',
   category: 'grid',
@@ -144,7 +149,7 @@ functionalUtility({
   name: 'col-end',
   supportsNegative: true,
   themeKeys: ['--grid-column-end'],
-  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
+  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
   handle: (value) => [decl('grid-column-end', value)],
   description: 'grid-column-end utility',
   category: 'grid',
@@ -158,6 +163,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsNegative: true,
+  handleBareValue: ({ value }) => value ? value : null,
   description: 'background-color (theme, arbitrary, custom property, negative, fraction 지원)',
   category: 'color',
 });

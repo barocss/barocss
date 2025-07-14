@@ -24,9 +24,13 @@ export function registerUtility(util: UtilityRegistration) {
   utilityRegistry.push(util);
 }
 
+export function getUtility(): UtilityRegistration[] {
+  return utilityRegistry;
+}
+
 export function getRegisteredUtilityPrefixes(): string[] {
   // name이 prefix 역할을 하므로, 중복 없이, 길이 내림차순 정렬
-  return Array.from(new Set(utilityRegistry.map(u => u.name))).sort((a, b) => b.length - a.length);
+  return Array.from(new Set(getUtility().map(u => u.name))).sort((a, b) => b.length - a.length);
 }
 
 // Modifier registration
@@ -121,6 +125,7 @@ export function functionalUtility(opts: {
   themeKey?: string;
   themeKeys?: string[];
   supportsArbitrary?: boolean;
+  supportsFraction?: boolean;
   supportsCustomProperty?: boolean;
   supportsNegative?: boolean;
   valueTransform?: (value: string, ctx: CssmaContext) => string;
@@ -149,7 +154,7 @@ export function functionalUtility(opts: {
         finalValue = themeValue;
       }
       // 2. Fraction value (e.g., 1/2, -2/5)
-      else if (/^-?\d+\/\d+$/.test(value)) {
+      else if (opts.supportsFraction && /^-?\d+\/\d+$/.test(value)) {
         const frac = parseFraction(value);
         if (frac) finalValue = frac;
       }
@@ -159,7 +164,7 @@ export function functionalUtility(opts: {
       }
       // 4. Custom property ((...))
       else if (opts.supportsCustomProperty && /^\(.*\)$/.test(value)) {
-        finalValue = `var(--${value.slice(1, -1)})`;
+        finalValue = `var(${value.slice(1, -1)})`;
       }
       // 5. Negative value
       if (opts.supportsNegative && value.startsWith('-')) {

@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import '../src/index'; // Ensure all utilities are registered
 import { applyClassName } from '../src/core/engine';
 import { createContext } from '../src/core/context';
 
@@ -89,6 +90,12 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('break-inside-avoid', ctx)).toEqual([{ type: 'decl', prop: 'break-inside', value: 'avoid' }]);
     expect(applyClassName('break-inside-avoid-page', ctx)).toEqual([{ type: 'decl', prop: 'break-inside', value: 'avoid-page' }]);
     expect(applyClassName('break-inside-avoid-column', ctx)).toEqual([{ type: 'decl', prop: 'break-inside', value: 'avoid-column' }]);
+  });
+
+  // Box Decoration Break
+  it('box-decoration-break: static utilities', () => {
+    expect(applyClassName('box-decoration-slice', ctx)).toEqual([{ type: 'decl', prop: 'box-decoration-break', value: 'slice' }]);
+    expect(applyClassName('box-decoration-clone', ctx)).toEqual([{ type: 'decl', prop: 'box-decoration-break', value: 'clone' }]);
   });
 
   // Z-Index

@@ -1,7 +1,6 @@
 import type { AstNode } from './ast';
 import { parseClassName } from './parser';
-import { utilityRegistry, modifierRegistry } from './registry';
-import { createContext } from './context';
+import { modifierRegistry, getUtility } from './registry';
 
 /**
  * Generator for modifier application order (outermost first).
@@ -27,9 +26,23 @@ export function applyClassName(className: string, ctx: import('./context').Cssma
   const { modifiers, utility } = parseClassName(className);
   if (!utility) return [];
   // 2. Find matching utility handler
-  const utilReg = utilityRegistry.find(u => u.match(`${utility.prefix}-${utility.value}`));
-  if (!utilReg || !utility.value) return [];
-  let nodes = utilReg.handler(utility.value, ctx, utility, utilReg) || [];
+  const utilReg = getUtility().find(u => {
+    // For static utilities (no value), match by prefix only
+    if (!utility.value) {
+      return u.match(utility.prefix);
+    }
+    // For dynamic utilities, match by prefix-value combination
+    return u.match(`${utility.prefix}-${utility.value}`);
+  });
+  if (!utilReg) return [];
+  
+  // Handle negative values by prepending '-' to the value
+  let value = utility.value;
+  if (utility.negative && value) {
+    value = '-' + value;
+  }
+  
+  let nodes = utilReg.handler(value, ctx, utility, utilReg) || [];
   // 3. Apply matching modifier handlers using generator (outermost first)
   for (const mod of modifierChain(modifiers)) {
     const modReg = modifierRegistry.find(m => m.match(mod));
