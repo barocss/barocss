@@ -1,144 +1,239 @@
-# cssma-v4
+# CSSMA v4
 
-Tailwind CSS 스타일의 유틸리티 클래스 기반 CSS 파서 및 변환기
+Tailwind CSS와 호환되는 유틸리티 클래스 시스템으로, CSS 클래스명을 Figma 스타일로 변환하는 라이브러리입니다.
 
----
+## 🚀 Features
 
-## 소개
+- **Registry-based Parsing**: 등록된 유틸리티만 파싱하여 안전성 보장
+- **Static & Functional Utilities**: 고정값과 동적값 처리 모두 지원
+- **Tailwind CSS Compatibility**: Tailwind CSS 문법과 호환
+- **Arbitrary Values**: `bg-[red]` 형태의 임의값 지원
+- **Custom Properties**: `bg-(--my-bg)` 형태의 커스텀 속성 지원
+- **Negative Values**: `-inset-x-2` 형태의 음수값 지원
 
-**cssma-v4**는 유틸리티 클래스(Tailwind CSS 스타일)를 파싱하여, 미리 등록된 유틸리티/모디파이어만 AST로 변환하고, 이를 표준 CSS 코드로 출력하는 고성능 파서/엔진입니다.
+## 📦 Installation
 
-- **등록 기반 파싱**: registry에 등록된 유틸리티/모디파이어만 인식
-- **AST 기반 변환**: 파싱 결과를 AST로 변환, CSS로 출력
-- **테마/컨텍스트 지원**: theme/config/context 기반 동적 값 지원
-- **확장성**: 플러그인/외부 패키지에서 registry, theme, AST 등 확장 가능
-- **TypeScript 100% 지원**: 엄격한 타입, public API 제공
-
----
-
-## 주요 구조
-
-### 1. Registry 시스템
-- 유틸리티/모디파이어 각각 별도 배열(`utilityRegistry`, `modifierRegistry`)
-- 각 엔트리: `{ name, match, handler, ... }`
-- 동적 등록/해제/조회 가능, 플러그인 확장 지원
-
-### 2. AST 시스템
-- 파싱 결과는 AST(Abstract Syntax Tree)로 반환
-- AST 타입 예시:
-  ```ts
-  type AstNode =
-    | { type: 'decl'; prop: string; value: string }
-    | { type: 'atrule'; name: string; params: string; nodes: AstNode[] }
-    | { type: 'rule'; selector: string; nodes: AstNode[] }
-    | { type: 'comment'; text: string }
-    | { type: 'raw'; value: string };
-  ```
-- AST → CSS 변환: `astToCss(ast)`
-
-### 3. Context/Theme
-- `createContext(config)`로 theme/config/plugins 병합
-- `ctx.theme('colors', 'red', 500)` 등 경로 기반 값 조회
-
----
-
-## 프리셋/유틸리티 선언 패턴 (staticUtility & functionalUtility)
-
-cssma-v4는 Tailwind 스타일의 선언적 유틸리티 등록을 지원합니다. 
-
-### 1. 고정값 유틸리티: staticUtility
-
-```ts
-// display: block
-staticUtility('block', [['display', 'block']]);
-// display: none
-staticUtility('hidden', [['display', 'none']]);
-// isolation: isolate
-staticUtility('isolate', [['isolation', 'isolate']]);
+```bash
+npm install cssma-v4
 ```
 
-### 2. 동적 유틸리티: functionalUtility
+## 🔧 Usage
 
-```ts
-// z-index: themeKeys, 음수, 값 유효성 검사, 커스텀 핸들러
-functionalUtility({
-  name: 'z',
-  supportsNegative: true,
-  themeKeys: ['--z-index'],
-  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
-  handle: (value) => [decl('z-index', value)],
-  description: 'z-index utility',
-  category: 'layout',
-});
+### Basic Usage
 
-// grid-column span: 커스텀 AST 생성
-functionalUtility({
-  name: 'col-span',
-  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
-  handle: (value) => [decl('grid-column', `span ${value} / span ${value}`)],
-  description: 'grid-column span utility',
-  category: 'grid',
-});
+```typescript
+import { applyClassName } from 'cssma-v4';
 
-// background-color: theme/arbitrary/custom property/음수/분수 지원
-functionalUtility({
-  name: 'bg',
-  prop: 'background-color',
-  themeKey: 'colors',
-  supportsArbitrary: true,
-  supportsCustomProperty: true,
-  supportsNegative: true,
-  description: 'background-color (theme, arbitrary, custom property, negative, fraction 지원)',
-  category: 'color',
-});
-```
-
-#### 주요 옵션
-- `themeKey`, `themeKeys`: theme에서 값 조회 (여러 key 지원)
-- `supportsArbitrary`, `supportsCustomProperty`, `supportsNegative`: 임의값/커스텀 프로퍼티/음수 지원
-- `handleBareValue`: 값 유효성 검사/후처리 (null 반환 시 무시)
-- `handle`: 최종 AST 커스텀 생성 (없으면 기본 decl)
-- `prop`: 기본 decl용 (handle 미사용 시)
-
----
-
-## 사용 예시
-
-```ts
-import { applyClassName } from './core/engine';
-import { createContext } from './core/context';
-
-const config = {
-  theme: { colors: { red: { 500: '#f00' } } }
+const ctx = {
+  theme: (key: string, value: string) => {
+    // 테마 값 반환 로직
+    return `var(--${key}-${value})`;
+  }
 };
-const ctx = createContext(config);
-const ast = applyClassName('hover:bg-red-500', ctx);
-// ast → [{ type: 'rule', selector: ':hover', nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }] }]
+
+// Static Utility
+const result1 = applyClassName('inset-x-auto', ctx);
+// [{ type: 'decl', prop: 'inset-inline', value: 'auto' }]
+
+// Functional Utility
+const result2 = applyClassName('inset-x-4', ctx);
+// [{ type: 'decl', prop: 'inset-inline', value: 'calc(var(--spacing) * 4)' }]
+
+// Negative Static Utility
+const result3 = applyClassName('-inset-x-px', ctx);
+// [{ type: 'decl', prop: 'inset-inline', value: '-1px' }]
+
+// Negative Functional Utility
+const result4 = applyClassName('-inset-x-2', ctx);
+// [{ type: 'decl', prop: 'inset-inline', value: 'calc(var(--spacing) * -2)' }]
 ```
 
----
+### Utility Types
 
-## 확장/플러그인 개발
+#### Static Utilities
 
-- `registerUtility`, `registerModifier`로 유틸리티/모디파이어 동적 등록/해제
-- 플러그인에서 registry, theme, AST 후처리 등 확장 가능
-- 공식 API/가이드 제공 예정
+고정된 CSS 값을 반환하는 유틸리티입니다.
 
----
+```typescript
+import { staticUtility } from 'cssma-v4';
 
-## 테스트/문서화
+// 기본 static utility
+staticUtility('inset-x-auto', [['inset-inline', 'auto']]);
+staticUtility('inset-x-full', [['inset-inline', '100%']]);
 
-- 테스트 커버리지 90% 이상 목표
-- mutation test, 통합 테스트, 동적 registry 조작 등 포함
-- 문서: registry 구조, AST 타입, context 사용법, 확장/플러그인 가이드, 예제 코드 등 제공
+// 음수 static utility (음수 부호까지 포함한 전체 이름)
+staticUtility('-inset-x-px', [['inset-inline', '-1px']]);
+staticUtility('-inset-x-full', [['inset-inline', '-100%']]);
+```
 
----
+**특징:**
+- 정확한 클래스명 매칭 (`className === name`)
+- 전달된 값을 무시하고 등록 시점에 정의된 값 반환
+- 음수 부호까지 포함한 전체 이름으로 등록
 
-## PRD/개발 가이드
-- [PRD 상세 보기](./PRD.md)
-- [TODO 진행상황](./TODO.md)
+#### Functional Utilities
 
----
+동적으로 값을 처리하는 유틸리티입니다.
 
-## 라이선스
-MIT
+```typescript
+import { functionalUtility } from 'cssma-v4';
+
+functionalUtility({
+  name: 'inset-x',           // prefix
+  prop: 'inset-inline',      // CSS 속성
+  supportsNegative: true,     // 음수값 지원
+  supportsArbitrary: true,    // 임의값 지원
+  supportsCustomProperty: true, // 커스텀 속성 지원
+  supportsFraction: true,     // 분수값 지원
+  handleBareValue: ({ value }) => {
+    // 숫자값 처리: inset-x-4 → calc(var(--spacing) * 4)
+    if (/^\d+$/.test(value)) {
+      return `calc(var(--spacing) * ${value})`;
+    }
+    return null;
+  },
+  handleNegativeBareValue: ({ value }) => {
+    // 음수값 처리: -inset-x-2 → calc(var(--spacing) * -2)
+    if (/^\d+$/.test(value)) {
+      return `calc(var(--spacing) * -${value})`;
+    }
+    return null;
+  }
+});
+```
+
+**특징:**
+- Prefix 기반 매칭 (`className.startsWith(name + '-')`)
+- 전달된 값을 동적으로 처리
+- 테마, 임의값, 커스텀 속성 등 다양한 값 타입 지원
+
+## 🏗️ Architecture
+
+### Registry System
+
+유틸리티와 수정자를 등록하고 관리하는 시스템입니다.
+
+```typescript
+// 유틸리티 등록
+registerUtility({
+  name: 'my-utility',
+  match: (className) => className.startsWith('my-utility-'),
+  handler: (value, ctx, token) => {
+    // 처리 로직
+    return [decl('my-property', value)];
+  }
+});
+
+// 수정자 등록
+registerModifier({
+  name: 'hover',
+  type: 'pseudo',
+  match: (mod) => mod.type === 'hover',
+  handler: (nodes, mod, ctx) => {
+    // 수정자 처리 로직
+    return nodes;
+  }
+});
+```
+
+### Parser System
+
+클래스명을 파싱하여 유틸리티와 수정자로 분리하는 시스템입니다.
+
+```typescript
+// 파싱 예시
+parseClassName('hover:inset-x-4');
+// {
+//   modifiers: [{ type: 'hover' }],
+//   utility: { prefix: 'inset-x', value: '4', negative: false }
+// }
+```
+
+## 🐛 Known Issues & Solutions
+
+### Issue 1: Negative Static Utilities Not Matching
+
+**문제:**
+- `-inset-x-px`와 같은 음수 static 유틸리티가 제대로 매칭되지 않음
+
+**원인:**
+- 파서에서 음수 부호를 미리 제거하여 staticUtility의 정확한 이름과 매칭 불가
+
+**해결책:**
+1. Static Utility 정확한 매칭을 우선 시도
+2. 매칭되지 않을 때만 음수 부호 제거 후 prefix 매칭
+
+### Issue 2: Prefix Ordering
+
+**문제:**
+- `getRegisteredUtilityPrefixes()`가 staticUtility와 functionalUtility의 name을 모두 반환
+- staticUtility의 name은 전체 유틸리티 이름이므로 prefix가 아님
+
+**해결책:**
+- functionalUtility의 name만 prefix로 사용
+- 길이 순서대로 정렬 (긴 prefix가 먼저 매칭되도록)
+
+## 🧪 Testing
+
+```bash
+# 전체 테스트 실행
+npm test
+
+# 특정 테스트 실행
+npm test -- --grep "inset"
+
+# 커버리지 확인
+npm run test:coverage
+```
+
+### Test Examples
+
+```typescript
+// Static Utility Tests
+expect(applyClassName('-inset-x-px', ctx)).toEqual([
+  { type: 'decl', prop: 'inset-inline', value: '-1px' }
+]);
+
+// Functional Utility Tests
+expect(applyClassName('inset-x-4', ctx)).toEqual([
+  { type: 'decl', prop: 'inset-inline', value: 'calc(var(--spacing) * 4)' }
+]);
+
+// Negative Functional Utility Tests
+expect(applyClassName('-inset-x-2', ctx)).toEqual([
+  { type: 'decl', prop: 'inset-inline', value: 'calc(var(--spacing) * -2)' }
+]);
+```
+
+## 📚 API Reference
+
+### Core Functions
+
+- `applyClassName(className: string, ctx: CssmaContext): AstNode[]`
+- `parseClassName(className: string): { modifiers: ParsedModifier[], utility: ParsedUtility }`
+- `registerUtility(util: UtilityRegistration): void`
+- `registerModifier(mod: ModifierRegistration): void`
+
+### Helper Functions
+
+- `staticUtility(name: string, decls: [string, string][], opts?: object): void`
+- `functionalUtility(opts: FunctionalUtilityOptions): void`
+
+### Types
+
+- `CssmaContext`: 컨텍스트 객체
+- `AstNode`: AST 노드 타입
+- `ParsedUtility`: 파싱된 유틸리티 타입
+- `ParsedModifier`: 파싱된 수정자 타입
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
