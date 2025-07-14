@@ -1,19 +1,6 @@
 import { staticUtility, functionalUtility } from '../core/registry';
 import { decl } from '../core/ast';
 
-// --- Layout: Display ---
-staticUtility('block', [['display', 'block']]);
-staticUtility('hidden', [['display', 'none']]);
-staticUtility('flex', [['display', 'flex']]);
-staticUtility('inline-block', [['display', 'inline-block']]);
-staticUtility('inline', [['display', 'inline']]);
-staticUtility('table', [['display', 'table']]);
-staticUtility('table-row', [['display', 'table-row']]);
-staticUtility('table-cell', [['display', 'table-cell']]);
-staticUtility('table-caption', [['display', 'table-caption']]);
-staticUtility('table-header-group', [['display', 'table-header-group']]);
-staticUtility('table-footer-group', [['display', 'table-footer-group']]);
-
 // --- Layout: Isolation ---
 staticUtility('isolate', [['isolation', 'isolate']]);
 staticUtility('isolation-auto', [['isolation', 'auto']]);
@@ -101,3 +88,30 @@ staticUtility('break-inside-avoid-column', [['break-inside', 'avoid-column']]);
 // --- Layout: Box Decoration Break ---
 staticUtility('box-decoration-slice', [['box-decoration-break', 'slice']]);
 staticUtility('box-decoration-clone', [['box-decoration-break', 'clone']]);
+
+// --- Layout: Box Sizing ---
+staticUtility('box-border', [['box-sizing', 'border-box']]);
+staticUtility('box-content', [['box-sizing', 'content-box']]);
+
+// --- Layout: Display ---
+staticUtility('block', [['display', 'block']]);
+staticUtility('inline', [['display', 'inline']]);
+staticUtility('inline-block', [['display', 'inline-block']]);
+staticUtility('flow-root', [['display', 'flow-root']]);
+staticUtility('flex', [['display', 'flex']]);
+staticUtility('inline-flex', [['display', 'inline-flex']]);
+staticUtility('grid', [['display', 'grid']]);
+staticUtility('inline-grid', [['display', 'inline-grid']]);
+staticUtility('contents', [['display', 'contents']]);
+staticUtility('table', [['display', 'table']]);
+staticUtility('inline-table', [['display', 'inline-table']]);
+staticUtility('table-caption', [['display', 'table-caption']]);
+staticUtility('table-cell', [['display', 'table-cell']]);
+staticUtility('table-column', [['display', 'table-column']]);
+staticUtility('table-column-group', [['display', 'table-column-group']]);
+staticUtility('table-footer-group', [['display', 'table-footer-group']]);
+staticUtility('table-header-group', [['display', 'table-header-group']]);
+staticUtility('table-row-group', [['display', 'table-row-group']]);
+staticUtility('table-row', [['display', 'table-row']]);
+staticUtility('list-item', [['display', 'list-item']]);
+staticUtility('hidden', [['display', 'none']]);

@@ -16,15 +16,6 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     }
   });
 
-  // Display/Isolation
-  it('block/hidden/flex/isolate/isolation-auto', () => {
-    expect(applyClassName('block', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'block' }]);
-    expect(applyClassName('hidden', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'none' }]);
-    expect(applyClassName('flex', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'flex' }]);
-    expect(applyClassName('isolate', ctx)).toEqual([{ type: 'decl', prop: 'isolation', value: 'isolate' }]);
-    expect(applyClassName('isolation-auto', ctx)).toEqual([{ type: 'decl', prop: 'isolation', value: 'auto' }]);
-  });
-
   // Aspect Ratio
   it('aspect-ratio: static utilities', () => {
     expect(applyClassName('aspect-square', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: '1 / 1' }]);
@@ -32,7 +23,7 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('aspect-auto', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: 'auto' }]);
   });
 
-  it.only('aspect-ratio: fraction, arbitrary, custom property', () => {
+  it('aspect-ratio: fraction, arbitrary, custom property', () => {
     // fraction value (fraction 검사)
     expect(applyClassName('aspect-16/9', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: '16/9' }]);
     expect(applyClassName('aspect-4/3', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: '4/3' }]);
@@ -98,6 +89,12 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('box-decoration-clone', ctx)).toEqual([{ type: 'decl', prop: 'box-decoration-break', value: 'clone' }]);
   });
 
+  // Box Sizing
+  it('box-sizing: static utilities', () => {
+    expect(applyClassName('box-border', ctx)).toEqual([{ type: 'decl', prop: 'box-sizing', value: 'border-box' }]);
+    expect(applyClassName('box-content', ctx)).toEqual([{ type: 'decl', prop: 'box-sizing', value: 'content-box' }]);
+  });
+
   // Z-Index
   it('z-index: theme, arbitrary, negative', () => {
     expect(applyClassName('z-10', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '10' }]);
@@ -156,5 +153,29 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('col-span-xyz', ctx)).toEqual([]);
     expect(applyClassName('col-start-abc', ctx)).toEqual([]);
     expect(applyClassName('bg-unknown', ctx)).toEqual([{ type: 'decl', prop: 'background-color', value: 'unknown' }]); // fallback to raw value
+  });
+
+  it('display: all Tailwind utilities', () => {
+    expect(applyClassName('block', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'block' }]);
+    expect(applyClassName('inline', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'inline' }]);
+    expect(applyClassName('inline-block', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'inline-block' }]);
+    expect(applyClassName('flow-root', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'flow-root' }]);
+    expect(applyClassName('flex', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'flex' }]);
+    expect(applyClassName('inline-flex', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'inline-flex' }]);
+    expect(applyClassName('grid', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'grid' }]);
+    expect(applyClassName('inline-grid', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'inline-grid' }]);
+    expect(applyClassName('contents', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'contents' }]);
+    expect(applyClassName('table', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'table' }]);
+    expect(applyClassName('inline-table', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'inline-table' }]);
+    expect(applyClassName('table-caption', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'table-caption' }]);
+    expect(applyClassName('table-cell', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'table-cell' }]);
+    expect(applyClassName('table-column', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'table-column' }]);
+    expect(applyClassName('table-column-group', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'table-column-group' }]);
+    expect(applyClassName('table-footer-group', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'table-footer-group' }]);
+    expect(applyClassName('table-header-group', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'table-header-group' }]);
+    expect(applyClassName('table-row-group', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'table-row-group' }]);
+    expect(applyClassName('table-row', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'table-row' }]);
+    expect(applyClassName('list-item', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'list-item' }]);
+    expect(applyClassName('hidden', ctx)).toEqual([{ type: 'decl', prop: 'display', value: 'none' }]);
   });
 }); 
