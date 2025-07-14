@@ -240,6 +240,69 @@
 
 ---
 
+## Utility Handler Design: handle, handleBareValue, handleNegativeBareValue, handleCustomProperty
+
+### 목적 및 설계 원칙
+
+CSSMA v4의 `functionalUtility`는 다양한 형태의 값(bare value, negative, arbitrary, custom property 등)에 대해 일관되고 확장성 있게 파싱/변환/AST 생성을 지원합니다. 이를 위해 다음과 같은 핸들러 함수들을 제공합니다:
+
+| 함수명                | 적용 대상                | 반환값      | 목적/역할                                                         |
+|----------------------|--------------------------|-------------|-------------------------------------------------------------------|
+| handleBareValue      | 일반 값(bare value)      | string/null | 숫자, 분수 등 일반 값의 파싱/변환                                 |
+| handleNegativeBareValue | 음수 값(negative value)   | string/null | -로 시작하는 값의 파싱/변환                                       |
+| handleCustomProperty | custom property          | AstNode[]   | (--)로 시작하는 커스텀 프로퍼티(`col-span-(--my-span)` 등) 처리   |
+| handle               | 모든 값(최종 AST 생성)   | AstNode[]   | 위의 모든 케이스를 직접 분기/처리하고 싶을 때(고급/커스텀)        |
+
+### 호출 우선순위 및 동작 흐름
+
+1. **Arbitrary Value** (`[value]`)
+   - handle가 있으면 handle 호출 → AstNode[] 반환
+   - 없으면 decl(prop, value)
+2. **Custom Property** (`(--my-prop)`)
+   - handleCustomProperty가 있으면 handleCustomProperty 호출 → AstNode[] 반환
+   - 없으면 decl(prop, var(--my-prop))
+3. **Bare Value** (숫자, 분수 등)
+   - handleNegativeBareValue(음수) → handleBareValue(양수) 순서로 호출
+   - 없으면 decl(prop, value)
+
+### 실전 예시: col-span
+
+```ts
+functionalUtility({
+  name: 'col-span',
+  prop: 'grid-column',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) return `span ${value} / span ${value}`;
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('grid-column', `span var(${value}) / span var(${value})`)],
+  handle: (value) => {
+    if (parseNumber(value)) return [decl('grid-column', `span ${value} / span ${value}`)];
+    return null;
+  },
+  description: 'grid-column span utility (number, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+```
+
+### Best Practice: 언제 어떤 함수를 써야 하나?
+- **일반적인 유틸리티**는 handleBareValue/handleNegativeBareValue/handleCustomProperty만으로 충분합니다.
+- **handle**은 arbitrary value 등 모든 케이스를 직접 분기 처리하고 싶을 때만 사용하세요.
+- **custom property**는 반드시 handleCustomProperty에서 처리하세요. (Tailwind 호환)
+- **세 함수(handleBareValue, handleNegativeBareValue, handleCustomProperty)를 모두 쓸 필요는 없습니다.**
+  - 예: 음수 지원이 필요 없으면 handleNegativeBareValue는 생략
+  - custom property 지원이 필요 없으면 handleCustomProperty는 생략
+  - handle은 고급/특수 케이스에만 사용
+
+### 결론
+- **핸들러 함수는 유틸리티의 특성에 맞게 필요한 것만 정의**하면 됩니다.
+- Tailwind CSS와 100% 호환을 원한다면, custom property는 반드시 handleCustomProperty에서 처리하세요.
+- handleBareValue/handleNegativeBareValue/handleCustomProperty만으로 대부분의 유틸리티를 커버할 수 있습니다.
+
+---
+
 ## 7. Testing & Integration
 
 ### 7.1 테스트 카테고리 및 예시

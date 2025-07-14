@@ -379,4 +379,43 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     // custom property
     expect(applyClassName('grid-cols-(--my-grid-cols)', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-columns', value: 'var(--my-grid-cols)' }]);
   });
+
+  it('grid-template-rows: static, number, arbitrary, custom property', () => {
+    // static
+    expect(applyClassName('grid-rows-none', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-rows', value: 'none' }]);
+    expect(applyClassName('grid-rows-subgrid', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-rows', value: 'subgrid' }]);
+    // number
+    expect(applyClassName('grid-rows-1', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-rows', value: 'repeat(1, minmax(0, 1fr))' }]);
+    expect(applyClassName('grid-rows-3', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-rows', value: 'repeat(3, minmax(0, 1fr))' }]);
+    // arbitrary
+    expect(applyClassName('grid-rows-[200px_minmax(900px,_1fr)_100px]', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-rows', value: '200px minmax(900px, 1fr) 100px' }]);
+    // custom property
+    expect(applyClassName('grid-rows-(--my-grid-rows)', ctx)).toEqual([{ type: 'decl', prop: 'grid-template-rows', value: 'var(--my-grid-rows)' }]);
+  });
+
+  it('grid-column: col-span, col-start, col-end, col utilities', () => {
+    // col-span
+    expect(applyClassName('col-span-full', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '1 / -1' }]);
+    expect(applyClassName('col-span-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: 'span 2 / span 2' }]);
+    expect(applyClassName('col-span-[5]', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: 'span 5 / span 5' }]);
+    expect(applyClassName('col-span-(--my-span)', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: 'span var(--my-span) / span var(--my-span)' }]);
+    // col-start
+    expect(applyClassName('col-start-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-start', value: 'auto' }]);
+    expect(applyClassName('col-start-3', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-start', value: '3' }]);
+    expect(applyClassName('-col-start-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-start', value: 'calc(2 * -1)' }]);
+    expect(applyClassName('col-start-(--my-start)', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-start', value: 'var(--my-start)' }]);
+    // col-end
+    expect(applyClassName('col-end-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-end', value: 'auto' }]);
+    expect(applyClassName('col-end-4', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-end', value: '4' }]);
+    expect(applyClassName('-col-end-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-end', value: 'calc(2 * -1)' }]);
+    expect(applyClassName('col-end-(--my-end)', ctx)).toEqual([{ type: 'decl', prop: 'grid-column-end', value: 'var(--my-end)' }]);
+    // col
+    expect(applyClassName('col-auto', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: 'auto' }]);
+    expect(applyClassName('col-3', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '3' }]);
+    expect(applyClassName('-col-2', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: 'calc(2 * -1)' }]);
+    expect(applyClassName('col-(--my-col)', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: 'var(--my-col)' }]);
+    expect(applyClassName('col-[3]', ctx)).toEqual([{ type: 'decl', prop: 'grid-column', value: '3' }]);
+  });
+
+  
 }); 

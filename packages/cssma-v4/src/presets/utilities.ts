@@ -401,3 +401,100 @@ functionalUtility({
   description: 'grid-template-columns utility (number, arbitrary, custom property 지원)',
   category: 'grid',
 });
+
+// --- Flexbox & Grid: Grid Template Rows ---
+staticUtility('grid-rows-none', [['grid-template-rows', 'none']]);
+staticUtility('grid-rows-subgrid', [['grid-template-rows', 'subgrid']]);
+
+functionalUtility({
+  name: 'grid-rows',
+  prop: 'grid-template-rows',
+  supportsArbitrary: true, // grid-rows-[200px_minmax(900px,_1fr)_100px] 등
+  supportsCustomProperty: true, // grid-rows-(--my-grid-rows)
+  handleBareValue: ({ value }) => parseFractionOrNumber(value, { repeat: true }),
+  handle: (value) => {
+    // Tailwind arbitrary: grid-rows-[200px_minmax(900px,_1fr)_100px]
+    // Just output as-is (spaces instead of underscores)
+    if (typeof value === 'string') {
+      return [decl('grid-template-rows', value.replace(/_/g, ' '))];
+    }
+    return null;
+  },
+  handleCustomProperty: (value) => [decl('grid-template-rows', `var(${value})`)],
+  description: 'grid-template-rows utility (number, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+
+// --- Flexbox & Grid: Grid Column ---
+// col-span utilities
+staticUtility('col-span-full', [['grid-column', '1 / -1']]);
+functionalUtility({
+  name: 'col-span',
+  prop: 'grid-column',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) return `span ${value} / span ${value}`;
+    return null;
+  },
+  handleCustomProperty: (value, ctx, token) => {
+    return [decl('grid-column', `span var(${value}) / span var(${value})`)];
+  },
+  handle: (value, ctx, token) => {
+    if (parseNumber(value)) return [decl('grid-column', `span ${value} / span ${value}`)];
+    return null;
+  },
+  description: 'grid-column span utility (number, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+
+// col-start utilities
+staticUtility('col-start-auto', [['grid-column-start', 'auto']]);
+functionalUtility({
+  name: 'col-start',
+  prop: 'grid-column-start',
+  supportsNegative: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => parseNumber(value),
+  handleNegativeBareValue: ({ value }) => {
+    if (parseNumber(value)) return `calc(${value} * -1)`;
+    return null;
+  },
+  description: 'grid-column-start utility (number, negative, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+
+// col-end utilities
+staticUtility('col-end-auto', [['grid-column-end', 'auto']]);
+functionalUtility({
+  name: 'col-end',
+  prop: 'grid-column-end',
+  supportsNegative: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => parseNumber(value),
+  handleNegativeBareValue: ({ value }) => {
+    if (parseNumber(value)) return `calc(${value} * -1)`;
+    return null;
+  },
+  description: 'grid-column-end utility (number, negative, arbitrary, custom property 지원)',
+  category: 'grid',
+});
+
+// col-auto, col-<number>, -col-<number>, col-(<custom-property>), col-[value]
+staticUtility('col-auto', [['grid-column', 'auto']]);
+functionalUtility({
+  name: 'col',
+  prop: 'grid-column',
+  supportsNegative: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => parseNumber(value),
+  handleNegativeBareValue: ({ value }) => {
+    if (parseNumber(value)) return `calc(${value} * -1)`;
+    return null;
+  },
+  description: 'grid-column utility (number, negative, arbitrary, custom property 지원)',
+  category: 'grid',
+});

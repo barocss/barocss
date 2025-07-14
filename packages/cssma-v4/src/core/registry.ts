@@ -117,9 +117,10 @@ export function functionalUtility(opts: {
   supportsCustomProperty?: boolean;
   supportsNegative?: boolean;
   valueTransform?: (value: string, ctx: CssmaContext) => string;
-  handle?: (value: string, ctx: CssmaContext, token: any) => AstNode[] | null | undefined;
-  handleBareValue?: (args: { value: string; ctx: CssmaContext; token: any }) => string | null | undefined;
-  handleNegativeBareValue?: (args: { value: string; ctx: CssmaContext; token: any }) => string | null | undefined;
+  handle?: (value: string, ctx: CssmaContext, token: ParsedUtility) => AstNode[] | null | undefined;
+  handleBareValue?: (args: { value: string; ctx: CssmaContext; token: ParsedUtility }) => string | null | undefined;
+  handleNegativeBareValue?: (args: { value: string; ctx: CssmaContext; token: ParsedUtility }) => string | null | undefined;
+  handleCustomProperty?: (value: string, ctx: CssmaContext, token: ParsedUtility) => AstNode[] | null | undefined;
   description?: string;
   category?: string;
 }) {
@@ -132,21 +133,30 @@ export function functionalUtility(opts: {
       // 1. Arbitrary value - parser.ts에서 이미 파싱됨
       if (opts.supportsArbitrary && parsedUtility.arbitrary) {
         const processedValue = value.replace(/_/g, ' ');
-        if (opts.prop) return [decl(opts.prop, processedValue)];
+
+        // 8. handle (커스텀 AST 생성)
         if (opts.handle) {
           const result = opts.handle(processedValue, ctx, token);
           if (result) return result;
+        }
+        // 9. 기본 decl
+        if (opts.prop) {
+          return [decl(opts.prop, processedValue)];
         }
         return [];
       }
       // 2. Custom property - parser.ts에서 이미 파싱됨
       if (opts.supportsCustomProperty && parsedUtility.customProperty) {
+        if (opts.handleCustomProperty) {
+          return opts.handleCustomProperty(value, ctx, token);
+        }
         const customValue = `var(${value})`;
-        if (opts.prop) return [decl(opts.prop, customValue)];
+
         if (opts.handle) {
           const result = opts.handle(customValue, ctx, token);
           if (result) return result;
         }
+        if (opts.prop) return [decl(opts.prop, customValue)];
         return [];
       }
       // 3. Theme lookup (themeKey or themeKeys)
