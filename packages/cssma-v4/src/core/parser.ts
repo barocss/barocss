@@ -76,7 +76,7 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
   let utilStr = utilityPart;
   if (utilStr.startsWith('-')) {
     negative = true;
-    utilStr = utilStr.slice(1);
+    // utilStr = utilStr.slice(1);
   }
   // --- PATCH: handle arbitrary/custom property before prefix matching ---
   if (utilStr.includes('-[')) {
@@ -92,17 +92,30 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
   } else {
     // --- 동적 prefix 매칭: registry에서 prefix 목록을 받아 가장 긴 것부터 매칭 ---
     const prefixes = getRegisteredUtilityPrefixes();
-    console.log('DEBUG utility prefixes:', prefixes);
-    let matchedPrefix = prefixes.find(p => utilStr.startsWith(p + '-'));
+
+    let matchedPrefix = prefixes.find(p => utilStr === p);
     if (matchedPrefix) {
       prefix = matchedPrefix;
-      value = utilStr.slice(matchedPrefix.length + 1);
-      console.log('DEBUG prefix/value:', prefix, value);
+      value = "";
+      negative = utilStr.startsWith('-');
     } else {
-      const parts = utilStr.split('-');
-      prefix = parts[0];
-      value = parts.slice(1).join('-');
+
+      if (utilStr.startsWith('-')) {
+        negative = true;
+        utilStr = utilStr.slice(1);
+      }
+
+      matchedPrefix = prefixes.find(p => utilStr.startsWith(p + '-'));
+      if (matchedPrefix) {
+        prefix = matchedPrefix;
+        value = utilStr.slice(matchedPrefix.length + 1);
+      } else {
+        const parts = utilStr.split('-');
+        prefix = parts[0];
+        value = parts.slice(1).join('-');
+      }
     }
+
   }
 
   return {
