@@ -49,6 +49,7 @@ export interface ModifierRegistration {
 }
 
 const modifierRegistry: ModifierRegistration[] = [];
+export { modifierRegistry };
 export function registerModifier(mod: ModifierRegistration) {
   modifierRegistry.push(mod);
 }

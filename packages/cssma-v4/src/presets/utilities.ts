@@ -87,6 +87,12 @@ staticUtility('break-before-left', [['break-before', 'left']]);
 staticUtility('break-before-right', [['break-before', 'right']]);
 staticUtility('break-before-column', [['break-before', 'column']]);
 
+// --- Layout: Break Inside ---
+staticUtility('break-inside-auto', [['break-inside', 'auto']]);
+staticUtility('break-inside-avoid', [['break-inside', 'avoid']]);
+staticUtility('break-inside-avoid-page', [['break-inside', 'avoid-page']]);
+staticUtility('break-inside-avoid-column', [['break-inside', 'avoid-column']]);
+
 // --- Flex/Grid Order ---
 staticUtility('order-first', [['order', '-9999']]);
 staticUtility('order-last', [['order', '9999']]);

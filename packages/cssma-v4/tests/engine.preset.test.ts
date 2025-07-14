@@ -83,6 +83,14 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('break-before-column', ctx)).toEqual([{ type: 'decl', prop: 'break-before', value: 'column' }]);
   });
 
+  // Break Inside
+  it('break-inside: all static utilities', () => {
+    expect(applyClassName('break-inside-auto', ctx)).toEqual([{ type: 'decl', prop: 'break-inside', value: 'auto' }]);
+    expect(applyClassName('break-inside-avoid', ctx)).toEqual([{ type: 'decl', prop: 'break-inside', value: 'avoid' }]);
+    expect(applyClassName('break-inside-avoid-page', ctx)).toEqual([{ type: 'decl', prop: 'break-inside', value: 'avoid-page' }]);
+    expect(applyClassName('break-inside-avoid-column', ctx)).toEqual([{ type: 'decl', prop: 'break-inside', value: 'avoid-column' }]);
+  });
+
   // Z-Index
   it('z-index: theme, arbitrary, negative, fraction', () => {
     expect(applyClassName('z-10', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '10' }]);
