@@ -263,4 +263,54 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('relative', ctx)).toEqual([{ type: 'decl', prop: 'position', value: 'relative' }]);
     expect(applyClassName('sticky', ctx)).toEqual([{ type: 'decl', prop: 'position', value: 'sticky' }]);
   });
+
+  it('inset/top/right/bottom/left: all utilities', () => {
+    // Inset (all)
+    expect(applyClassName('inset-0', ctx)).toEqual([{ type: 'decl', prop: 'inset', value: '0' }]);
+    expect(applyClassName('inset-auto', ctx)).toEqual([{ type: 'decl', prop: 'inset', value: 'auto' }]);
+    expect(applyClassName('inset-full', ctx)).toEqual([{ type: 'decl', prop: 'inset', value: '100%' }]);
+    expect(applyClassName('inset-px', ctx)).toEqual([{ type: 'decl', prop: 'inset', value: '1px' }]);
+    expect(applyClassName('-inset-1', ctx)).toEqual([{ type: 'decl', prop: 'inset', value: '-1' }]);
+    expect(applyClassName('inset-[2.5rem]', ctx)).toEqual([{ type: 'decl', prop: 'inset', value: '2.5rem' }]);
+    expect(applyClassName('inset-(--my-inset)', ctx)).toEqual([{ type: 'decl', prop: 'inset', value: 'var(--my-inset)' }]);
+    // Inset X/Y
+    expect(applyClassName('inset-x-0', ctx)).toEqual([{ type: 'decl', prop: 'left', value: '0' }, { type: 'decl', prop: 'right', value: '0' }]);
+    expect(applyClassName('inset-x-auto', ctx)).toEqual([{ type: 'decl', prop: 'left', value: 'auto' }, { type: 'decl', prop: 'right', value: 'auto' }]);
+    expect(applyClassName('inset-x-full', ctx)).toEqual([{ type: 'decl', prop: 'left', value: '100%' }, { type: 'decl', prop: 'right', value: '100%' }]);
+    expect(applyClassName('-inset-x-px', ctx)).toEqual([{ type: 'decl', prop: 'left', value: '-1px' }, { type: 'decl', prop: 'right', value: '-1px' }]);
+    // Inset Y
+    expect(applyClassName('inset-y-0', ctx)).toEqual([{ type: 'decl', prop: 'top', value: '0' }, { type: 'decl', prop: 'bottom', value: '0' }]);
+    expect(applyClassName('inset-y-auto', ctx)).toEqual([{ type: 'decl', prop: 'top', value: 'auto' }, { type: 'decl', prop: 'bottom', value: 'auto' }]);
+    expect(applyClassName('inset-y-full', ctx)).toEqual([{ type: 'decl', prop: 'top', value: '100%' }, { type: 'decl', prop: 'bottom', value: '100%' }]);
+    expect(applyClassName('-inset-y-px', ctx)).toEqual([{ type: 'decl', prop: 'top', value: '-1px' }, { type: 'decl', prop: 'bottom', value: '-1px' }]);
+    // Top/Right/Bottom/Left
+    expect(applyClassName('top-0', ctx)).toEqual([{ type: 'decl', prop: 'top', value: '0' }]);
+    expect(applyClassName('top-auto', ctx)).toEqual([{ type: 'decl', prop: 'top', value: 'auto' }]);
+    expect(applyClassName('top-full', ctx)).toEqual([{ type: 'decl', prop: 'top', value: '100%' }]);
+    expect(applyClassName('top-px', ctx)).toEqual([{ type: 'decl', prop: 'top', value: '1px' }]);
+    expect(applyClassName('-top-1', ctx)).toEqual([{ type: 'decl', prop: 'top', value: '-1' }]);
+    expect(applyClassName('top-[10%]', ctx)).toEqual([{ type: 'decl', prop: 'top', value: '10%' }]);
+    expect(applyClassName('top-(--my-top)', ctx)).toEqual([{ type: 'decl', prop: 'top', value: 'var(--my-top)' }]);
+    expect(applyClassName('right-0', ctx)).toEqual([{ type: 'decl', prop: 'right', value: '0' }]);
+    expect(applyClassName('right-auto', ctx)).toEqual([{ type: 'decl', prop: 'right', value: 'auto' }]);
+    expect(applyClassName('right-full', ctx)).toEqual([{ type: 'decl', prop: 'right', value: '100%' }]);
+    expect(applyClassName('right-px', ctx)).toEqual([{ type: 'decl', prop: 'right', value: '1px' }]);
+    expect(applyClassName('-right-1', ctx)).toEqual([{ type: 'decl', prop: 'right', value: '-1' }]);
+    expect(applyClassName('right-[10%]', ctx)).toEqual([{ type: 'decl', prop: 'right', value: '10%' }]);
+    expect(applyClassName('right-(--my-right)', ctx)).toEqual([{ type: 'decl', prop: 'right', value: 'var(--my-right)' }]);
+    expect(applyClassName('bottom-0', ctx)).toEqual([{ type: 'decl', prop: 'bottom', value: '0' }]);
+    expect(applyClassName('bottom-auto', ctx)).toEqual([{ type: 'decl', prop: 'bottom', value: 'auto' }]);
+    expect(applyClassName('bottom-full', ctx)).toEqual([{ type: 'decl', prop: 'bottom', value: '100%' }]);
+    expect(applyClassName('bottom-px', ctx)).toEqual([{ type: 'decl', prop: 'bottom', value: '1px' }]);
+    expect(applyClassName('-bottom-1', ctx)).toEqual([{ type: 'decl', prop: 'bottom', value: '-1' }]);
+    expect(applyClassName('bottom-[10%]', ctx)).toEqual([{ type: 'decl', prop: 'bottom', value: '10%' }]);
+    expect(applyClassName('bottom-(--my-bottom)', ctx)).toEqual([{ type: 'decl', prop: 'bottom', value: 'var(--my-bottom)' }]);
+    expect(applyClassName('left-0', ctx)).toEqual([{ type: 'decl', prop: 'left', value: '0' }]);
+    expect(applyClassName('left-auto', ctx)).toEqual([{ type: 'decl', prop: 'left', value: 'auto' }]);
+    expect(applyClassName('left-full', ctx)).toEqual([{ type: 'decl', prop: 'left', value: '100%' }]);
+    expect(applyClassName('left-px', ctx)).toEqual([{ type: 'decl', prop: 'left', value: '1px' }]);
+    expect(applyClassName('-left-1', ctx)).toEqual([{ type: 'decl', prop: 'left', value: '-1' }]);
+    expect(applyClassName('left-[10%]', ctx)).toEqual([{ type: 'decl', prop: 'left', value: '10%' }]);
+    expect(applyClassName('left-(--my-left)', ctx)).toEqual([{ type: 'decl', prop: 'left', value: 'var(--my-left)' }]);
+  });
 }); 

@@ -193,3 +193,157 @@ staticUtility('absolute', [['position', 'absolute']]);
 staticUtility('relative', [['position', 'relative']]);
 staticUtility('sticky', [['position', 'sticky']]);
 
+// --- Layout: Inset/Top/Right/Bottom/Left ---
+// inset
+staticUtility('inset-auto', [['inset', 'auto']]);
+staticUtility('inset-full', [['inset', '100%']]);
+staticUtility('-inset-full', [['inset', '-100%']]);
+staticUtility('inset-px', [['inset', '1px']]);
+staticUtility('-inset-px', [['inset', '-1px']]);
+functionalUtility({
+  name: 'inset',
+  prop: 'inset',
+  supportsNegative: true,
+  supportsFraction: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'inset utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)',
+  category: 'layout',
+});
+
+// inset-x
+staticUtility('inset-x-auto', [['inset-inline', 'auto']]);
+staticUtility('inset-x-full', [['inset-inline', '100%']]);
+staticUtility('-inset-x-full', [['inset-inline', '-100%']]);
+staticUtility('inset-x-px', [['inset-inline', '1px']]);
+staticUtility('-inset-x-px', [['inset-inline', '-1px']]);
+functionalUtility({
+  name: 'inset-x',
+  prop: 'inset-inline',
+  supportsNegative: true,
+  supportsFraction: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'inset-x utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)',
+  category: 'layout',
+});
+
+// inset-y
+staticUtility('inset-y-auto', [['inset-block', 'auto']]);
+staticUtility('inset-y-full', [['inset-block', '100%']]);
+staticUtility('-inset-y-full', [['inset-block', '-100%']]);
+staticUtility('inset-y-px', [['inset-block', '1px']]);
+staticUtility('-inset-y-px', [['inset-block', '-1px']]);
+functionalUtility({
+  name: 'inset-y',
+  prop: 'inset-block',
+  supportsNegative: true,
+  supportsFraction: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'inset-y utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)',
+  category: 'layout',
+});
+
+// start
+staticUtility('start-auto', [['inset-inline-start', 'auto']]);
+staticUtility('start-full', [['inset-inline-start', '100%']]);
+staticUtility('-start-full', [['inset-inline-start', '-100%']]);
+staticUtility('start-px', [['inset-inline-start', '1px']]);
+staticUtility('-start-px', [['inset-inline-start', '-1px']]);
+functionalUtility({
+  name: 'start',
+  prop: 'inset-inline-start',
+  supportsNegative: true,
+  supportsFraction: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'start utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)',
+  category: 'layout',
+});
+
+// end
+staticUtility('end-auto', [['inset-inline-end', 'auto']]);
+staticUtility('end-full', [['inset-inline-end', '100%']]);
+staticUtility('-end-full', [['inset-inline-end', '-100%']]);
+staticUtility('end-px', [['inset-inline-end', '1px']]);
+staticUtility('-end-px', [['inset-inline-end', '-1px']]);
+functionalUtility({
+  name: 'end',
+  prop: 'inset-inline-end',
+  supportsNegative: true,
+  supportsFraction: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'end utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)',
+  category: 'layout',
+});
+
+// top
+staticUtility('top-auto', [['top', 'auto']]);
+staticUtility('top-full', [['top', '100%']]);
+staticUtility('-top-full', [['top', '-100%']]);
+staticUtility('top-px', [['top', '1px']]);
+staticUtility('-top-px', [['top', '-1px']]);
+functionalUtility({
+  name: 'top',
+  prop: 'top',
+  supportsNegative: true,
+  supportsFraction: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'top utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)',
+  category: 'layout',
+});
+
+// right
+staticUtility('right-auto', [['right', 'auto']]);
+staticUtility('right-full', [['right', '100%']]);
+staticUtility('-right-full', [['right', '-100%']]);
+staticUtility('right-px', [['right', '1px']]);
+staticUtility('-right-px', [['right', '-1px']]);
+functionalUtility({
+  name: 'right',
+  prop: 'right',
+  supportsNegative: true,
+  supportsFraction: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'right utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)',
+  category: 'layout',
+});
+
+// bottom
+staticUtility('bottom-auto', [['bottom', 'auto']]);
+staticUtility('bottom-full', [['bottom', '100%']]);
+staticUtility('-bottom-full', [['bottom', '-100%']]);
+staticUtility('bottom-px', [['bottom', '1px']]);
+staticUtility('-bottom-px', [['bottom', '-1px']]);
+functionalUtility({
+  name: 'bottom',
+  prop: 'bottom',
+  supportsNegative: true,
+  supportsFraction: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'bottom utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)',
+  category: 'layout',
+});
+
+// left
+staticUtility('left-auto', [['left', 'auto']]);
+staticUtility('left-full', [['left', '100%']]);
+staticUtility('-left-full', [['left', '-100%']]);
+staticUtility('left-px', [['left', '1px']]);
+staticUtility('-left-px', [['left', '-1px']]);
+functionalUtility({
+  name: 'left',
+  prop: 'left',
+  supportsNegative: true,
+  supportsFraction: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: 'left utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)',
+  category: 'layout',
+});
+
