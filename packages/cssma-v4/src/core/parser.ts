@@ -99,8 +99,9 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
       value = utilStr.slice(matchedPrefix.length + 1);
       console.log('DEBUG prefix/value:', prefix, value);
     } else {
-      [prefix, ...value] = utilStr.split('-');
-      value = value.join('-');
+      const parts = utilStr.split('-');
+      prefix = parts[0];
+      value = parts.slice(1).join('-');
     }
   }
 

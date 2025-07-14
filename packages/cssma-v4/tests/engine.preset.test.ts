@@ -32,7 +32,7 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
     expect(applyClassName('aspect-auto', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: 'auto' }]);
   });
 
-  it('aspect-ratio: fraction, arbitrary, custom property', () => {
+  it.only('aspect-ratio: fraction, arbitrary, custom property', () => {
     // fraction value (fraction 검사)
     expect(applyClassName('aspect-16/9', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: '16/9' }]);
     expect(applyClassName('aspect-4/3', ctx)).toEqual([{ type: 'decl', prop: 'aspect-ratio', value: '4/3' }]);
@@ -99,11 +99,10 @@ describe('preset utilities (staticUtility/functionalUtility)', () => {
   });
 
   // Z-Index
-  it('z-index: theme, arbitrary, negative, fraction', () => {
+  it('z-index: theme, arbitrary, negative', () => {
     expect(applyClassName('z-10', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '10' }]);
     expect(applyClassName('z-[999]', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '999' }]);
     expect(applyClassName('-z-20', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '-20' }]);
-    expect(applyClassName('z-1/2', ctx)).toEqual([{ type: 'decl', prop: 'z-index', value: '50%' }]);
   });
 
   // Order

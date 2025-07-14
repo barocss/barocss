@@ -27,12 +27,9 @@ export function applyClassName(className: string, ctx: import('./context').Cssma
   if (!utility) return [];
   // 2. Find matching utility handler
   const utilReg = getUtility().find(u => {
-    // For static utilities (no value), match by prefix only
-    if (!utility.value) {
-      return u.match(utility.prefix);
-    }
-    // For dynamic utilities, match by prefix-value combination
-    return u.match(`${utility.prefix}-${utility.value}`);
+    // Reconstruct the full className for matching
+    const fullClassName = utility.value ? `${utility.prefix}-${utility.value}` : utility.prefix;
+    return u.match(fullClassName);
   });
   if (!utilReg) return [];
   
@@ -42,7 +39,7 @@ export function applyClassName(className: string, ctx: import('./context').Cssma
     value = '-' + value;
   }
   
-  let nodes = utilReg.handler(value, ctx, utility, utilReg) || [];
+  let nodes = utilReg.handler(value!, ctx, utility, utilReg) || [];
   // 3. Apply matching modifier handlers using generator (outermost first)
   for (const mod of modifierChain(modifiers)) {
     const modReg = modifierRegistry.find(m => m.match(mod));

@@ -1,6 +1,7 @@
 import type { AstNode } from './ast';
 import { decl, rule, atrule } from './ast';
 import { CssmaContext } from './context';
+import { ParsedUtility } from './parser';
 
 // Utility registration
 export interface UtilityRegistration {
@@ -13,7 +14,7 @@ export interface UtilityRegistration {
    * @param token Parsed token
    * @param options Registration options
    */
-  handler: (value: string, ctx: CssmaContext, token: any, options: UtilityRegistration) => AstNode[] | undefined;
+  handler: (value: string, ctx: CssmaContext, token: ParsedUtility, options: UtilityRegistration) => AstNode[] | undefined;
   description?: string;
   category?: string;
   [key: string]: any;
@@ -89,23 +90,6 @@ export function staticUtility(
 }
 
 /**
- * Parse a fraction string (e.g., '1/2', '-2/5') to a percentage string (e.g., '50%').
- * Returns undefined if not a valid fraction.
- */
-function parseFraction(value: string): string | undefined {
-  const match = /^(-?)(\d+)\/(\d+)$/.exec(value);
-  if (match) {
-    const sign = match[1] === '-' ? '-' : '';
-    const numerator = parseInt(match[2], 10);
-    const denominator = parseInt(match[3], 10);
-    if (denominator !== 0) {
-      return sign + (numerator / denominator * 100) + '%';
-    }
-  }
-  return undefined;
-}
-
-/**
  * functionalUtility: 동적 유틸리티(테마/임의값/커스텀/음수/분수 등) 등록을 바로 처리하는 고급 헬퍼
  *
  * 사용 예시:
@@ -138,8 +122,32 @@ export function functionalUtility(opts: {
     name: opts.name,
     match: (className: string) => className.startsWith(opts.name + '-'),
     handler: (value, ctx, token, _options) => {
-      let finalValue = value;
-      // 1. theme lookup (themeKey or themeKeys)
+      let finalValue = value;      
+      // parser.ts에서 이미 파싱된 정보 활용
+      const parsedUtility = token as ParsedUtility;
+      
+      // 1. Arbitrary value - parser.ts에서 이미 파싱됨
+      if (opts.supportsArbitrary && parsedUtility.arbitrary) {
+        if (opts.prop) return [decl(opts.prop, value)];
+        if (opts.handle) {
+          const result = opts.handle(value, ctx, token);
+          if (result) return result;
+        }
+        return [];
+      }
+      
+      // 2. Custom property - parser.ts에서 이미 파싱됨
+      if (opts.supportsCustomProperty && parsedUtility.customProperty) {
+        const customValue = `var(${value})`;
+        if (opts.prop) return [decl(opts.prop, customValue)];
+        if (opts.handle) {
+          const result = opts.handle(customValue, ctx, token);
+          if (result) return result;
+        }
+        return [];
+      }
+      
+      // 3. Theme lookup (themeKey or themeKeys)
       let themeValue: string | undefined;
       if (opts.themeKey && ctx.theme) {
         themeValue = ctx.theme(opts.themeKey, value);
@@ -152,40 +160,39 @@ export function functionalUtility(opts: {
       }
       if (themeValue !== undefined) {
         finalValue = themeValue;
+        // theme lookup 결과 바로 반환
+        if (opts.prop) return [decl(opts.prop, finalValue)];
+        if (opts.handle) {
+          const result = opts.handle(finalValue, ctx, token);
+          if (result) return result;
+        }
+        return [];
       }
-      // 2. Fraction value (e.g., 1/2, -2/5)
-      else if (opts.supportsFraction && /^-?\d+\/\d+$/.test(value)) {
-        const frac = parseFraction(value);
-        if (frac) finalValue = frac;
+      
+      // 4. Fraction value (e.g., 1/2, -2/5)
+      if (opts.supportsFraction && /^-?\d+\/\d+$/.test(value)) {
+        finalValue = value;
       }
-      // 3. Arbitrary value ([...])
-      else if (opts.supportsArbitrary && /^\[.*\]$/.test(value)) {
-        finalValue = value.slice(1, -1);
-      }
-      // 4. Custom property ((...))
-      else if (opts.supportsCustomProperty && /^\(.*\)$/.test(value)) {
-        finalValue = `var(${value.slice(1, -1)})`;
-      }
-      // 5. Negative value
-      if (opts.supportsNegative && value.startsWith('-')) {
-        finalValue = '-' + finalValue.replace(/^-/, '');
-      }
-      // 6. handleBareValue (유효성 검사 등)
+      
+      // 5. handleBareValue (bare value만 검사)
       if (opts.handleBareValue) {
         const bare = opts.handleBareValue({ value: finalValue, ctx, token });
         if (bare == null) return [];
         finalValue = bare;
       }
-      // 7. valueTransform
+      
+      // 6. valueTransform
       if (opts.valueTransform) {
         finalValue = opts.valueTransform(finalValue, ctx);
       }
-      // 8. handle (커스텀 AST 생성)
+      
+      // 7. handle (커스텀 AST 생성)
       if (opts.handle) {
         const result = opts.handle(finalValue, ctx, token);
         if (result) return result;
       }
-      // 9. 기본 decl
+      
+      // 8. 기본 decl
       if (opts.prop) {
         return [decl(opts.prop, finalValue)];
       }

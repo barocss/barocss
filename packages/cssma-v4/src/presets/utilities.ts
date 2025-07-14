@@ -23,10 +23,12 @@ staticUtility('z-auto', [['z-index', 'auto']]);
 functionalUtility({
   name: 'z',
   supportsNegative: true,
-  themeKeys: ['--z-index'],
-  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
+  supportsArbitrary: true, // z-[999], z-[calc(var(--index)+1)] 등 지원
+  supportsCustomProperty: true, // z-(--my-z) 지원
+  // Tailwind는 themeKey: 'zIndex'이나, 실제 theme lookup은 ctx.theme에서 처리됨
+  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null, // 정수만 허용
   handle: (value) => [decl('z-index', value)],
-  description: 'z-index utility',
+  description: 'z-index utility (Tailwind CSS 호환)',
   category: 'layout',
 });
 
@@ -39,7 +41,8 @@ functionalUtility({
   prop: 'aspect-ratio',
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: 'aspect-ratio utility (theme, arbitrary, custom property 지원)',
+  supportsFraction: true,
+  description: 'aspect-ratio utility (theme, arbitrary, custom property, fraction 지원)',
   category: 'layout',
 });
 
@@ -63,8 +66,9 @@ functionalUtility({
   prop: 'columns',
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  supportsFraction: true,
   handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
-  description: 'columns utility (theme, arbitrary, custom property 지원)',
+  description: 'columns utility (theme, arbitrary, custom property, fraction 지원)',
   category: 'layout',
 });
 
@@ -116,6 +120,9 @@ staticUtility('col-auto', [['grid-column', 'auto']]);
 functionalUtility({
   name: 'col',
   supportsNegative: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsFraction: true,
   themeKeys: ['--grid-column'],
   handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
   handle: (value) => [decl('grid-column', value)],
@@ -125,7 +132,9 @@ functionalUtility({
 staticUtility('col-span-full', [['grid-column', '1 / -1']]);
 functionalUtility({
   name: 'col-span',
-  handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
+  supportsArbitrary: false,
+  supportsCustomProperty: false,
+  handleBareValue: ({ value }) => /^\d+$/.test(value) ? value : null,
   handle: (value) => [decl('grid-column', `span ${value} / span ${value}`)],
   description: 'grid-column span utility',
   category: 'grid',
@@ -136,6 +145,8 @@ staticUtility('col-start-auto', [['grid-column-start', 'auto']]);
 functionalUtility({
   name: 'col-start',
   supportsNegative: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
   themeKeys: ['--grid-column-start'],
   handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
   handle: (value) => [decl('grid-column-start', value)],
@@ -148,6 +159,8 @@ staticUtility('col-end-auto', [['grid-column-end', 'auto']]);
 functionalUtility({
   name: 'col-end',
   supportsNegative: true,
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
   themeKeys: ['--grid-column-end'],
   handleBareValue: ({ value }) => /^-?\d+$/.test(value) ? value : null,
   handle: (value) => [decl('grid-column-end', value)],
@@ -163,7 +176,17 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsNegative: true,
+  supportsFraction: true,
   handleBareValue: ({ value }) => value ? value : null,
+  handle: (value, ctx) => {
+    // fraction 처리
+    if (/^-?\d+\/\d+$/.test(value)) {
+      const [a, b] = value.replace(/^-/, '').split('/');
+      const percent = (parseInt(a, 10) / parseInt(b, 10)) * 100;
+      return [{ type: 'decl', prop: 'background-color', value: (value.startsWith('-') ? '-' : '') + percent + '%' }];
+    }
+    return [decl('background-color', value)];
+  },
   description: 'background-color (theme, arbitrary, custom property, negative, fraction 지원)',
   category: 'color',
 });
