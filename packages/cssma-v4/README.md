@@ -132,6 +132,71 @@ expect(applyClassName("space-x-2", ctx)).toEqual([
 - All utilities should have tests written for all possible combinations: static, number, arbitrary, custom property, negative, etc. (tests/presets/)
 - When extending presets, follow existing preset structure/handler patterns
 
+### Theme Function Usage & Best Practices
+
+#### Theme Lookup Pattern
+
+When using the `theme` function (e.g., `ctx.theme('colors', 'red-500')`), **always provide both the category (theme key) and the value key**. This ensures correct and unambiguous theme value resolution.
+
+**Theme structure example:**
+```js
+const theme = {
+  colors: {
+    'red-500': '#ef4444',
+    'blue-400': '#60a5fa',
+    // ...
+  },
+  fontSize: { ... },
+  spacing: { ... },
+  // ...
+};
+```
+
+**Correct usage:**
+```ts
+ctx.theme('colors', 'red-500'); // '#ef4444'
+ctx.theme('fontSize', 'lg');    // '1.125rem'
+```
+
+**Incorrect usage:**
+```ts
+ctx.theme('red-500'); // ❌ undefined or wrong value
+```
+
+#### Why category/key is required
+- Keys like 'red-500' may exist in multiple categories (e.g., colors, borderColor, etc.).
+- Omitting the category can lead to ambiguous or incorrect lookups.
+- Always specify the category for reliable and maintainable handler logic.
+
+#### Handler Implementation Example
+
+In utility handler code, you may see patterns like:
+```ts
+for (const key of opts.themeKeys) {
+  const themeValue = ctx.theme(key, value);
+  if (themeValue !== undefined) break;
+}
+```
+- Here, `opts.themeKeys` is an array of possible categories (e.g., ['colors', 'backgroundColor']).
+- The handler tries each category in order, returning the first match.
+- This is safe only if theme keys are unique across categories, or if the order is well-defined.
+
+#### Best Practices
+- **Always use** `theme('category', 'key')` for lookups.
+- **Never rely on** just the value key (e.g., 'red-500') alone.
+- When writing handlers, pass the correct category (or try a prioritized list if needed).
+- If you extend the theme, avoid duplicate keys across categories, or document/handle them explicitly.
+- Consider adding warnings or errors if a lookup is ambiguous or missing a category.
+
+#### Example Pitfall
+```ts
+// BAD: ambiguous, may return undefined or wrong value
+ctx.theme('red-500');
+
+// GOOD: always specify category
+ctx.theme('colors', 'red-500');
+```
+
 ## 🏗️ Architecture
 
 ### Registry System
