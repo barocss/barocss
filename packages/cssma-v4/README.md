@@ -1,15 +1,16 @@
 # CSSMA v4
 
-Tailwind CSS와 호환되는 유틸리티 클래스 시스템으로, CSS 클래스명을 Figma 스타일로 변환하는 라이브러리입니다.
+A utility class system compatible with Tailwind CSS that converts CSS class names to Figma styles.
 
 ## 🚀 Features
 
-- **Registry-based Parsing**: 등록된 유틸리티만 파싱하여 안전성 보장
-- **Static & Functional Utilities**: 고정값과 동적값 처리 모두 지원
-- **Tailwind CSS Compatibility**: Tailwind CSS 문법과 호환
-- **Arbitrary Values**: `bg-[red]` 형태의 임의값 지원
-- **Custom Properties**: `bg-(--my-bg)` 형태의 커스텀 속성 지원
-- **Negative Values**: `-inset-x-2` 형태의 음수값 지원
+- **Registry-based Parsing**: Ensures safety by parsing only registered utilities
+- **Static & Functional Utilities**: Supports both fixed and dynamic value processing
+- **Tailwind CSS Compatibility**: Compatible with Tailwind CSS syntax
+- **Arbitrary Values**: Supports arbitrary values in `bg-[red]` format
+- **Custom Properties**: Supports custom properties in `bg-(--my-bg)` format
+- **Negative Values**: Supports negative values in `-inset-x-2` format
+- **Preset-based Modular System**: Organized preset structure by categories like background, flexbox, grid, spacing, sizing, typography
 
 ## 📦 Installation
 
@@ -26,7 +27,7 @@ import { applyClassName } from 'cssma-v4';
 
 const ctx = {
   theme: (key: string, value: string) => {
-    // 테마 값 반환 로직
+    // Theme value return logic
     return `var(--${key}-${value})`;
   }
 };
@@ -48,89 +49,113 @@ const result4 = applyClassName('-inset-x-2', ctx);
 // [{ type: 'decl', prop: 'inset-inline', value: 'calc(var(--spacing) * -2)' }]
 ```
 
-### Utility Types
+### Preset Structure & Utility Categories
 
-#### Static Utilities
+CSSMA v4 provides utilities with 1:1 mapping to Tailwind CSS, organized by preset categories.
 
-고정된 CSS 값을 반환하는 유틸리티입니다.
+| Preset File         | Main Utility Examples             | Supported Value Types            |
+|---------------------|-----------------------------------|----------------------------------|
+| background.ts       | bg-*, bg-linear-*, from-*, ...    | static, arbitrary, custom prop   |
+| flexbox-grid.ts     | flex-*, grid-cols-*, gap-*, ...   | static, number, fraction, ...    |
+| layout.ts           | block, inline, z-*, ...           | static, number, arbitrary, ...   |
+| sizing.ts           | w-*, h-*, min-w-*, ...            | static, number, fraction, ...    |
+| spacing.ts          | p-*, m-*, space-x-*, ...          | static, number, negative, ...    |
+| typography.ts       | text-*, font-*, leading-*, ...    | static, number, arbitrary, ...   |
+
+Each preset is located in the `src/presets/` directory and supports all major Tailwind CSS utilities by category.
+
+### Utility Handler Priority & Patterns
+
+Handler functions operate with the following priority:
+
+1. **Arbitrary Value** (`[value]`)
+   - If `handle` exists, call handle → return AstNode[]
+   - Otherwise, decl(prop, value)
+2. **Custom Property** (`(--my-prop)`)
+   - If `handleCustomProperty` exists, call handleCustomProperty → return AstNode[]
+   - Otherwise, decl(prop, var(--my-prop))
+3. **Bare Value** (numbers, fractions, etc.)
+   - Call `handleNegativeBareValue`(negative) → `handleBareValue`(positive) in order
+   - Otherwise, decl(prop, value)
+
+#### Example
 
 ```typescript
-import { staticUtility } from 'cssma-v4';
-
-// 기본 static utility
-staticUtility('inset-x-auto', [['inset-inline', 'auto']]);
-staticUtility('inset-x-full', [['inset-inline', '100%']]);
-
-// 음수 static utility (음수 부호까지 포함한 전체 이름)
-staticUtility('-inset-x-px', [['inset-inline', '-1px']]);
-staticUtility('-inset-x-full', [['inset-inline', '-100%']]);
-```
-
-**특징:**
-- 정확한 클래스명 매칭 (`className === name`)
-- 전달된 값을 무시하고 등록 시점에 정의된 값 반환
-- 음수 부호까지 포함한 전체 이름으로 등록
-
-#### Functional Utilities
-
-동적으로 값을 처리하는 유틸리티입니다.
-
-```typescript
-import { functionalUtility } from 'cssma-v4';
-
 functionalUtility({
-  name: 'inset-x',           // prefix
-  prop: 'inset-inline',      // CSS 속성
-  supportsNegative: true,     // 음수값 지원
-  supportsArbitrary: true,    // 임의값 지원
-  supportsCustomProperty: true, // 커스텀 속성 지원
-  supportsFraction: true,     // 분수값 지원
+  name: "col-span",
+  prop: "grid-column",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
   handleBareValue: ({ value }) => {
-    // 숫자값 처리: inset-x-4 → calc(var(--spacing) * 4)
-    if (/^\d+$/.test(value)) {
-      return `calc(var(--spacing) * ${value})`;
-    }
+    if (parseNumber(value)) return `span ${value} / span ${value}`;
     return null;
   },
-  handleNegativeBareValue: ({ value }) => {
-    // 음수값 처리: -inset-x-2 → calc(var(--spacing) * -2)
-    if (/^\d+$/.test(value)) {
-      return `calc(var(--spacing) * -${value})`;
-    }
+  handleCustomProperty: (value) => [
+    decl("grid-column", `span var(${value}) / span var(${value})`),
+  ],
+  handle: (value) => {
+    if (parseNumber(value))
+      return [decl("grid-column", `span ${value} / span ${value}`)];
     return null;
-  }
+  },
 });
 ```
 
-**특징:**
-- Prefix 기반 매칭 (`className.startsWith(name + '-')`)
-- 전달된 값을 동적으로 처리
-- 테마, 임의값, 커스텀 속성 등 다양한 값 타입 지원
+### Test Examples (Based on Actual Implementation)
+
+```typescript
+expect(applyClassName("bg-linear-[25deg,red_5%,yellow_60%]", ctx)).toEqual([
+  { type: "decl", prop: "background-image", value: "linear-gradient(var(--tw-gradient-stops, 25deg,red 5%,yellow 60%))" },
+]);
+expect(applyClassName("gap-x-(--my-gap-x)", ctx)).toEqual([
+  { type: "decl", prop: "column-gap", value: "var(--my-gap-x)" },
+]);
+expect(applyClassName("w-1/2", ctx)).toEqual([
+  { type: "decl", prop: "width", value: "calc(1/2 * 100%)" },
+]);
+expect(applyClassName("space-x-2", ctx)).toEqual([
+  {
+    type: "rule",
+    selector: "& > :not([hidden]) ~ :not([hidden])",
+    nodes: [
+      { type: "decl", prop: "--tw-space-x-reverse", value: "0" },
+      { type: "decl", prop: "margin-inline-start", value: "calc(var(--spacing) * 2 * calc(1 - var(--tw-space-x-reverse)))" },
+      { type: "decl", prop: "margin-inline-end", value: "calc(var(--spacing) * 2 * var(--tw-space-x-reverse))" },
+    ],
+  },
+]);
+```
+
+### Preset Extension and Testing
+
+- When adding new utilities, register them as static/functionalUtility in the corresponding preset file
+- All utilities should have tests written for all possible combinations: static, number, arbitrary, custom property, negative, etc. (tests/presets/)
+- When extending presets, follow existing preset structure/handler patterns
 
 ## 🏗️ Architecture
 
 ### Registry System
 
-유틸리티와 수정자를 등록하고 관리하는 시스템입니다.
+A system for registering and managing utilities and modifiers.
 
 ```typescript
-// 유틸리티 등록
+// Register utility
 registerUtility({
   name: 'my-utility',
   match: (className) => className.startsWith('my-utility-'),
   handler: (value, ctx, token) => {
-    // 처리 로직
+    // Processing logic
     return [decl('my-property', value)];
   }
 });
 
-// 수정자 등록
+// Register modifier
 registerModifier({
   name: 'hover',
   type: 'pseudo',
   match: (mod) => mod.type === 'hover',
   handler: (nodes, mod, ctx) => {
-    // 수정자 처리 로직
+    // Modifier processing logic
     return nodes;
   }
 });
@@ -138,10 +163,10 @@ registerModifier({
 
 ### Parser System
 
-클래스명을 파싱하여 유틸리티와 수정자로 분리하는 시스템입니다.
+A system that parses class names and separates them into utilities and modifiers.
 
 ```typescript
-// 파싱 예시
+// Parsing example
 parseClassName('hover:inset-x-4');
 // {
 //   modifiers: [{ type: 'hover' }],
@@ -149,40 +174,16 @@ parseClassName('hover:inset-x-4');
 // }
 ```
 
-## 🐛 Known Issues & Solutions
-
-### Issue 1: Negative Static Utilities Not Matching
-
-**문제:**
-- `-inset-x-px`와 같은 음수 static 유틸리티가 제대로 매칭되지 않음
-
-**원인:**
-- 파서에서 음수 부호를 미리 제거하여 staticUtility의 정확한 이름과 매칭 불가
-
-**해결책:**
-1. Static Utility 정확한 매칭을 우선 시도
-2. 매칭되지 않을 때만 음수 부호 제거 후 prefix 매칭
-
-### Issue 2: Prefix Ordering
-
-**문제:**
-- `getRegisteredUtilityPrefixes()`가 staticUtility와 functionalUtility의 name을 모두 반환
-- staticUtility의 name은 전체 유틸리티 이름이므로 prefix가 아님
-
-**해결책:**
-- functionalUtility의 name만 prefix로 사용
-- 길이 순서대로 정렬 (긴 prefix가 먼저 매칭되도록)
-
 ## 🧪 Testing
 
 ```bash
-# 전체 테스트 실행
+# Run all tests
 npm test
 
-# 특정 테스트 실행
+# Run specific tests
 npm test -- --grep "inset"
 
-# 커버리지 확인
+# Check coverage
 npm run test:coverage
 ```
 
@@ -221,10 +222,170 @@ expect(applyClassName('-inset-x-2', ctx)).toEqual([
 
 ### Types
 
-- `CssmaContext`: 컨텍스트 객체
-- `AstNode`: AST 노드 타입
-- `ParsedUtility`: 파싱된 유틸리티 타입
-- `ParsedModifier`: 파싱된 수정자 타입
+- `CssmaContext`: Context object
+- `AstNode`: AST node type
+- `ParsedUtility`: Parsed utility type
+- `ParsedModifier`: Parsed modifier type
+
+## 🏗️ Utility Registration: staticUtility & functionalUtility
+
+### staticUtility
+
+**Definition:**
+- Registers utilities that return fixed CSS values.
+- The entire class name must match exactly, and values are fixed at registration time.
+- Negative static utilities must also be registered with their full name (e.g., `-inset-x-px`).
+
+**Signature:**
+```typescript
+staticUtility(
+  name: string,
+  decls: [string, string][] | [string, string][][],
+  opts?: {
+    description?: string;
+    category?: string;
+  }
+): void
+```
+
+**Parameters:**
+- `name`: Class name to register (exact match)
+- `decls`: Array of CSS declarations or array of selector+declarations pairs
+- `opts`: (Optional) Metadata such as description, category
+
+**Examples:**
+```typescript
+// Single declaration
+staticUtility('inset-x-auto', [['inset-inline', 'auto']]);
+// Multiple declarations
+staticUtility('truncate', [
+  ['overflow', 'hidden'],
+  ['text-overflow', 'ellipsis'],
+  ['white-space', 'nowrap'],
+]);
+// selector + declarations (space-x, etc.)
+staticUtility('space-x-px', [
+  [
+    '& > :not([hidden]) ~ :not([hidden])',
+    [
+      ['--tw-space-x-reverse', '0'],
+      ['margin-inline-start', 'calc(1px * calc(1 - var(--tw-space-x-reverse)))'],
+      ['margin-inline-end', 'calc(1px * var(--tw-space-x-reverse))'],
+    ],
+  ],
+]);
+// Negative static
+staticUtility('-inset-x-px', [['inset-inline', '-1px']]);
+```
+
+**Features/Best Practices:**
+- Only supports exact class name matching (no prefix matching)
+- Negative static utilities must be registered with their full name
+- Supports multiple CSS declarations and selector+declarations
+- Suitable for simple/fixed utilities
+
+---
+
+### functionalUtility
+
+**Definition:**
+- Registers utilities that process values dynamically.
+- Prefix-based matching (`className.startsWith(name + '-')`)
+- Supports various value types: numbers, fractions, arbitrary values, custom properties, negative values, etc.
+- Implements dynamic conversion logic with handler functions
+
+**Signature:**
+```typescript
+functionalUtility({
+  name: string;
+  prop?: string;
+  supportsNegative?: boolean;
+  supportsArbitrary?: boolean;
+  supportsCustomProperty?: boolean;
+  supportsFraction?: boolean;
+  themeKey?: string;
+  description?: string;
+  category?: string;
+  handleBareValue?: (args) => string | null;
+  handleNegativeBareValue?: (args) => string | null;
+  handleCustomProperty?: (value, ctx, token) => AstNode[];
+  handle?: (value, ctx, token) => AstNode[] | null;
+}): void
+```
+
+**Handler Priority:**
+1. `handle` (direct processing of all values)
+2. `handleCustomProperty` (custom property)
+3. `handleNegativeBareValue` (negative)
+4. `handleBareValue` (positive/general)
+
+**Handler Parameters:**
+- `value`: Parsed value (string)
+- `ctx`: Context object
+- `token`: Parsed utility information (negative, arbitrary, etc.)
+
+**Examples:**
+```typescript
+// Supports spacing scale, fraction, arbitrary, custom property
+functionalUtility({
+  name: 'w',
+  prop: 'width',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsFraction: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) {
+      return `calc(var(--spacing) * ${value})`;
+    }
+    if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
+    return null;
+  },
+  description: 'width utility (supports spacing, fraction, arbitrary, custom property, container scale, static)',
+  category: 'sizing',
+});
+
+// grid-column span (number, arbitrary, custom property)
+functionalUtility({
+  name: 'col-span',
+  prop: 'grid-column',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) return `span ${value} / span ${value}`;
+    return null;
+  },
+  handleCustomProperty: (value) => [
+    decl('grid-column', `span var(${value}) / span var(${value})`),
+  ],
+  handle: (value) => {
+    if (parseNumber(value))
+      return [decl('grid-column', `span ${value} / span ${value}`)];
+    return null;
+  },
+});
+```
+
+**Option Descriptions:**
+- `supportsNegative`: Whether -prefix is supported
+- `supportsArbitrary`: Whether [value] arbitrary values are supported
+- `supportsCustomProperty`: Whether (--) custom properties are supported
+- `supportsFraction`: Whether fraction values like 1/2 are supported
+- `themeKey`: Key for theme lookup
+- `description`, `category`: For documentation/classification
+
+**Best Practices:**
+- Most utilities are sufficient with handleBareValue/handleNegativeBareValue/handleCustomProperty only
+- Use handle only when you want to directly handle all cases with branching logic
+- Custom properties must be handled in handleCustomProperty
+- Distinguish registration methods for static/functional utilities (exact matching vs prefix matching)
+- Maintain consistent patterns across presets
+
+**Real Preset Usage Examples:**
+- w-*, h-*, min-w-* etc. in `src/presets/sizing.ts`
+- grid-cols-*, gap-*, col-span-* etc. in `src/presets/flexbox-grid.ts`
+- space-x-*, space-y-* etc. in `src/presets/spacing.ts`
+
+---
 
 ## 🤝 Contributing
 

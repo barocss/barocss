@@ -180,36 +180,102 @@
 
 ---
 
-## 5. Preset System (`presets/utilities.ts`)
+## 5. Preset System (`presets/*.ts`)
 
 ### 5.1 설계 의도
 - **Tailwind CSS와 1:1 매핑**되는 유틸리티 우선 제공
+- **카테고리별 프리셋 구조**: background, flexbox-grid, layout, sizing, spacing, typography 등
 - **확장성**: 새로운 preset 파일 추가로 커스텀 유틸리티 집합 제공 가능
 
-### 5.2 유틸리티 정의 및 예시
+### 5.2 프리셋별 유틸리티/지원 value type
 
-#### Static/Functional Utility 예시
-- `staticUtility('inset-x-auto', [['inset-inline', 'auto']])`
-- `functionalUtility({ name: 'inset-x', ... })`
+| Preset 파일         | 주요 유틸리티 예시                | 지원 value type                  |
+|---------------------|-----------------------------------|----------------------------------|
+| background.ts       | bg-*, bg-linear-*, from-*, ...    | static, arbitrary, custom prop   |
+| flexbox-grid.ts     | flex-*, grid-cols-*, gap-*, ...   | static, number, fraction, ...    |
+| layout.ts           | block, inline, z-*, ...           | static, number, arbitrary, ...   |
+| sizing.ts           | w-*, h-*, min-w-*, ...            | static, number, fraction, ...    |
+| spacing.ts          | p-*, m-*, space-x-*, ...          | static, number, negative, ...    |
+| typography.ts       | text-*, font-*, leading-*, ...    | static, number, arbitrary, ...   |
 
-#### 지원 유틸리티
-- Display, Position, Inset, Z-Index, Aspect, Columns, Overflow, Float, Clear 등
-- **예시**:
-  ```ts
-  // inset-x-4 → inset-inline: calc(var(--spacing) * 4)
-  // -inset-x-2 → inset-inline: calc(var(--spacing) * -2)
-  // inset-x-1/2 → inset-inline: 50%
-  // inset-x-[10px] → inset-inline: 10px
-  // inset-x-(--my-inset) → inset-inline: var(--my-inset)
-  ```
+### 5.3 유틸리티 정의 및 예시
 
-#### 확장 포인트
-- 새로운 preset 파일 추가로 커스텀 유틸리티 집합 제공 가능
-- 플러그인에서 preset 동적 주입 가능
+- 각 preset 파일은 staticUtility/functionalUtility를 사용하여 유틸리티를 등록
+- 예시:
 
-#### 주의점
-- Tailwind와의 호환성(동일한 네이밍/동작) 유지
-- static/functional utility의 등록 방식 구분
+```typescript
+// flexbox-grid.ts
+staticUtility("flex-row", [["flex-direction", "row"]]);
+functionalUtility({
+  name: "gap-x",
+  prop: "column-gap",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
+  handle: (value) => [decl("column-gap", value)],
+  handleCustomProperty: (value) => [decl("column-gap", `var(${value})`)],
+});
+```
+
+### 5.4 핸들러 설계 원칙 (실제 구현 기반)
+
+- handleBareValue/handleNegativeBareValue/handleCustomProperty만으로 대부분의 유틸리티를 커버
+- handle은 고급/특수 케이스에만 사용
+- custom property는 반드시 handleCustomProperty에서 처리
+- static/functional utility의 등록 방식 구분(정확 매칭 vs prefix 매칭)
+- 예시:
+
+```typescript
+functionalUtility({
+  name: "col-span",
+  prop: "grid-column",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) return `span ${value} / span ${value}`;
+    return null;
+  },
+  handleCustomProperty: (value) => [
+    decl("grid-column", `span var(${value}) / span var(${value})`),
+  ],
+  handle: (value) => {
+    if (parseNumber(value))
+      return [decl("grid-column", `span ${value} / span ${value}`)];
+    return null;
+  },
+});
+```
+
+### 5.5 테스트/확장성
+
+- 모든 유틸리티는 static, number, arbitrary, custom property, negative 등 가능한 모든 조합에 대해 테스트 작성
+- 신규 preset 파일 추가 시, 반드시 tests/presets/에 테스트 파일 추가
+- 프리셋 확장 시, 기존 preset 구조/핸들러 패턴을 준수
+
+### 5.6 실제 구현 예시 (테스트 기반)
+
+```typescript
+expect(applyClassName("bg-linear-[25deg,red_5%,yellow_60%]", ctx)).toEqual([
+  { type: "decl", prop: "background-image", value: "linear-gradient(var(--tw-gradient-stops, 25deg,red 5%,yellow 60%))" },
+]);
+expect(applyClassName("gap-x-(--my-gap-x)", ctx)).toEqual([
+  { type: "decl", prop: "column-gap", value: "var(--my-gap-x)" },
+]);
+expect(applyClassName("w-1/2", ctx)).toEqual([
+  { type: "decl", prop: "width", value: "calc(1/2 * 100%)" },
+]);
+expect(applyClassName("space-x-2", ctx)).toEqual([
+  {
+    type: "rule",
+    selector: "& > :not([hidden]) ~ :not([hidden])",
+    nodes: [
+      { type: "decl", prop: "--tw-space-x-reverse", value: "0" },
+      { type: "decl", prop: "margin-inline-start", value: "calc(var(--spacing) * 2 * calc(1 - var(--tw-space-x-reverse)))" },
+      { type: "decl", prop: "margin-inline-end", value: "calc(var(--spacing) * 2 * var(--tw-space-x-reverse))" },
+    ],
+  },
+]);
+```
 
 ---
 

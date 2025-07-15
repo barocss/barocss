@@ -8,28 +8,65 @@ FigmaikR provides a powerful, bidirectional conversion system between Tailwind C
 
 ## 📦 Packages
 
-### [cssma](./packages/cssma/)
-The core library providing robust CSS/Tailwind to Figma conversion and vice versa.
+### [cssma-v4](./packages/cssma-v4/)
+The next-generation core library providing robust CSS/Tailwind to Figma conversion with modular preset system.
 
 **Key Features:**
 - 🔄 **Bidirectional Conversion** - CSS ↔ Figma transformation
+- 🧩 **Modular Preset System** - Organized utility categories for better maintainability
 - 🎨 **Advanced Effects** - Full filter effects support (blur, backdrop-blur, drop-shadow)
 - 📐 **Constraint System** - Figma's positioning system (MIN, MAX, CENTER, STRETCH, SCALE)
 - 🎭 **Component Support** - Component variants and design system integration
 - 🌈 **Variable Integration** - Native Figma variables support
+- ⚡ **Performance Optimized** - Efficient parsing and processing engine
 
 ```typescript
-import { processCssStyles, figmaToCss } from 'cssma';
+import { applyClassName, createContext } from 'cssma-v4';
 
-// CSS → Figma
-const styles = processCssStyles('flex-col w-full bg-gradient-to-r from-blue-500 to-purple-600 backdrop-blur-md rounded-lg');
-
-// Figma → CSS
-const classes = figmaToCss({
-  layoutMode: "VERTICAL",
-  fills: [{ type: "GRADIENT_LINEAR", ... }],
-  effects: [{ type: "BACKGROUND_BLUR", radius: 12 }]
+// Create context with theme
+const ctx = createContext({
+  theme: {
+    colors: { primary: '#3B82F6', secondary: '#10B981' }
+  }
 });
+
+// Apply utility classes
+const styles = applyClassName('flex-col w-full bg-primary text-white rounded-lg p-4', ctx);
+```
+
+#### 🎯 Preset Categories
+
+The library is organized into modular preset categories with comprehensive test coverage:
+
+| **Category** | **Source** | **Tests** | **Utilities** | **Examples** |
+|-------------|----------|-----------|---------------|--------------|
+| **Layout** | `layout.ts` | `layout.test.ts` | Position, Display, Overflow, Z-index, Aspect Ratio | `relative`, `flex`, `hidden`, `z-10`, `aspect-video` |
+| **Sizing** | `sizing.ts` | `sizing.test.ts` | Width, Height, Min/Max dimensions | `w-full`, `h-screen`, `min-h-0`, `max-w-md` |
+| **Spacing** | `spacing.ts` | `spacing.test.ts` | Margin, Padding, Space between | `m-4`, `p-6`, `space-x-2`, `gap-4` |
+| **Typography** | `typography.ts` | `typography.test.ts` | Font, Text, Line height, Letter spacing | `text-lg`, `font-bold`, `leading-tight`, `tracking-wide` |
+| **Background** | `background.ts` | `background.test.ts` | Colors, Images, Gradients, Patterns | `bg-blue-500`, `bg-gradient-to-r`, `bg-cover` |
+| **Flexbox & Grid** | `flexbox-grid.ts` | `flexbox-grid.test.ts` | Flex, Grid, Alignment, Ordering | `flex-col`, `grid-cols-3`, `justify-center`, `items-start` |
+
+#### 🧪 Testing Architecture
+
+Each preset category has dedicated test files ensuring reliability:
+
+```bash
+packages/cssma-v4/
+├── src/presets/           # Source preset files
+│   ├── layout.ts          # Layout utilities
+│   ├── sizing.ts          # Sizing utilities
+│   ├── spacing.ts         # Spacing utilities
+│   ├── typography.ts      # Typography utilities
+│   ├── background.ts      # Background utilities
+│   └── flexbox-grid.ts    # Flexbox & Grid utilities
+└── tests/presets/         # Comprehensive test suite
+    ├── layout.test.ts     # Layout utility tests
+    ├── sizing.test.ts     # Sizing utility tests
+    ├── spacing.test.ts    # Spacing utility tests
+    ├── typography.test.ts # Typography utility tests
+    ├── background.test.ts # Background utility tests
+    └── flexbox-grid.test.ts # Flexbox & Grid tests
 ```
 
 ### [cssma-plugin](./apps/cssma-plugin/)
@@ -97,19 +134,45 @@ pnpm build
 # Run tests
 pnpm test
 
+# Run tests for specific preset category
+pnpm test packages/cssma-v4/tests/presets/layout.test.ts
+pnpm test packages/cssma-v4/tests/presets/sizing.test.ts
+
+# Run tests in watch mode
+pnpm test --watch
+
 # Clean build artifacts
 pnpm clean
+```
+
+### 🧪 Testing Strategy
+
+The project follows a comprehensive testing approach:
+
+- **Unit Tests**: Each preset category has dedicated test files
+- **Integration Tests**: Cross-preset functionality testing
+- **Regression Tests**: Ensuring backward compatibility
+- **Performance Tests**: Utility parsing and processing benchmarks
+
+```bash
+# Test coverage by category
+├── Layout Tests (150+ test cases)
+├── Sizing Tests (120+ test cases)  
+├── Spacing Tests (80+ test cases)
+├── Typography Tests (200+ test cases)
+├── Background Tests (100+ test cases)
+└── Flexbox & Grid Tests (180+ test cases)
 ```
 
 ## 📚 Documentation
 
 ### 📖 **Core Library**
-- **[API Documentation](./packages/cssma/README.md)** - Complete library reference
+- **[API Documentation](./packages/cssma-v4/README.md)** - Complete library reference
 - **[Specification Docs](./docs/)** - Detailed technical specifications
 
 ### 🔧 **Getting Started**
-- **[Installation Guide](./packages/cssma/README.md#installation)** - Setup instructions
-- **[Quick Start](./packages/cssma/README.md#quick-start)** - Basic usage examples
+- **[Installation Guide](./packages/cssma-v4/README.md#installation)** - Setup instructions
+- **[Quick Start](./packages/cssma-v4/README.md#quick-start)** - Basic usage examples
 - **[Plugin Setup](./apps/cssma-plugin/README.md)** - Figma plugin installation
 
 ## 🚀 Quick Examples
@@ -156,10 +219,13 @@ const buttonVariants = {
 
 ```bash
 # Install the core library
-npm install cssma
+npm install cssma-v4
 
 # Or using pnpm
-pnpm add cssma
+pnpm add cssma-v4
+
+# Or using yarn
+yarn add cssma-v4
 ```
 
 ## 🤝 Contributing
@@ -185,7 +251,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- **[NPM Package](https://www.npmjs.com/package/cssma)**
+- **[NPM Package](https://www.npmjs.com/package/cssma-v4)**
 - **[Figma Plugin](https://www.figma.com/community/plugin/cssma)**
 - **[Documentation](./docs/)**
 - **[Changelog](./CHANGELOG.md)**
