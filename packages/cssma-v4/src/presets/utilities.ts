@@ -1092,3 +1092,56 @@ functionalUtility({
   description: 'size utility (spacing, fraction, arbitrary, custom property, static 지원)',
   category: 'sizing',
 });
+
+// --- Sizing: min-width (min-w-*) ---
+// Tailwind: https://tailwindcss.com/docs/min-width
+
+// min-w-* static values
+[
+  ['min-w-auto', 'auto'],
+  ['min-w-px', '1px'],
+  ['min-w-full', '100%'],
+  ['min-w-screen', '100vw'],
+  ['min-w-dvw', '100dvw'],
+  ['min-w-dvh', '100dvh'],
+  ['min-w-lvw', '100lvw'],
+  ['min-w-lvh', '100lvh'],
+  ['min-w-svw', '100svw'],
+  ['min-w-svh', '100svh'],
+  ['min-w-min', 'min-content'],
+  ['min-w-max', 'max-content'],
+  ['min-w-fit', 'fit-content'],
+  ['min-w-3xs', 'var(--container-3xs)'],
+  ['min-w-2xs', 'var(--container-2xs)'],
+  ['min-w-xs', 'var(--container-xs)'],
+  ['min-w-sm', 'var(--container-sm)'],
+  ['min-w-md', 'var(--container-md)'],
+  ['min-w-lg', 'var(--container-lg)'],
+  ['min-w-xl', 'var(--container-xl)'],
+  ['min-w-2xl', 'var(--container-2xl)'],
+  ['min-w-3xl', 'var(--container-3xl)'],
+  ['min-w-4xl', 'var(--container-4xl)'],
+  ['min-w-5xl', 'var(--container-5xl)'],
+  ['min-w-6xl', 'var(--container-6xl)'],
+  ['min-w-7xl', 'var(--container-7xl)'],
+].forEach(([name, value]) => {
+  staticUtility(name, [['min-width', value]]);
+});
+
+// min-w-* functional: spacing scale, fraction, arbitrary, custom property
+functionalUtility({
+  name: 'min-w',
+  prop: 'min-width',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsFraction: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) {
+      return `calc(var(--spacing) * ${value})`;
+    }
+    if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
+    return null;
+  },
+  description: 'min-width utility (spacing, fraction, arbitrary, custom property, static 지원)',
+  category: 'sizing',
+});

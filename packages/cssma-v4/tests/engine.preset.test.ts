@@ -2391,4 +2391,52 @@ describe("preset utilities (staticUtility/functionalUtility)", () => {
       ]);
     });
   });
+
+  describe('min-width utilities', () => {
+    it('min-w-4 → min-width: calc(var(--spacing) * 4)', () => {
+      expect(applyClassName('min-w-4', ctx)).toEqual([
+        { type: 'decl', prop: 'min-width', value: 'calc(var(--spacing) * 4)' },
+      ]);
+    });
+    it('min-w-1/2 → min-width: calc(1/2 * 100%)', () => {
+      expect(applyClassName('min-w-1/2', ctx)).toEqual([
+        { type: 'decl', prop: 'min-width', value: 'calc(1/2 * 100%)' },
+      ]);
+    });
+    it('min-w-auto → min-width: auto', () => {
+      expect(applyClassName('min-w-auto', ctx)).toEqual([
+        { type: 'decl', prop: 'min-width', value: 'auto' },
+      ]);
+    });
+    it('min-w-px → min-width: 1px', () => {
+      expect(applyClassName('min-w-px', ctx)).toEqual([
+        { type: 'decl', prop: 'min-width', value: '1px' },
+      ]);
+    });
+    it('min-w-full → min-width: 100%', () => {
+      expect(applyClassName('min-w-full', ctx)).toEqual([
+        { type: 'decl', prop: 'min-width', value: '100%' },
+      ]);
+    });
+    it('min-w-screen → min-width: 100vw', () => {
+      expect(applyClassName('min-w-screen', ctx)).toEqual([
+        { type: 'decl', prop: 'min-width', value: '100vw' },
+      ]);
+    });
+    it('min-w-3xs → min-width: var(--container-3xs)', () => {
+      expect(applyClassName('min-w-3xs', ctx)).toEqual([
+        { type: 'decl', prop: 'min-width', value: 'var(--container-3xs)' },
+      ]);
+    });
+    it('min-w-[32rem] → min-width: 32rem', () => {
+      expect(applyClassName('min-w-[32rem]', ctx)).toEqual([
+        { type: 'decl', prop: 'min-width', value: '32rem' },
+      ]);
+    });
+    it('min-w-(--my-min-width) → min-width: var(--my-min-width)', () => {
+      expect(applyClassName('min-w-(--my-min-width)', ctx)).toEqual([
+        { type: 'decl', prop: 'min-width', value: 'var(--my-min-width)' },
+      ]);
+    });
+  });
 });
