@@ -356,7 +356,7 @@ staticUtility('-inset-x-px', [['inset-inline', '-1px']]);
 **Definition:**
 - Registers utilities that process values dynamically.
 - Prefix-based matching (`className.startsWith(name + '-')`)
-- Supports various value types: numbers, fractions, arbitrary values, custom properties, negative values, etc.
+- Supports various value types: numbers, fractions, arbitrary values, custom properties, negative values, opacity values, etc.
 - Implements dynamic conversion logic with handler functions
 
 **Signature:**
@@ -368,15 +368,69 @@ functionalUtility({
   supportsArbitrary?: boolean;
   supportsCustomProperty?: boolean;
   supportsFraction?: boolean;
+  supportsOpacity?: boolean; // <-- NEW
   themeKey?: string;
   description?: string;
   category?: string;
   handleBareValue?: (args) => string | null;
   handleNegativeBareValue?: (args) => string | null;
   handleCustomProperty?: (value, ctx, token) => AstNode[];
-  handle?: (value, ctx, token) => AstNode[] | null;
+  handle?: (value, ctx, token, extra?: { opacity?: string }) => AstNode[] | null;
 }): void
 ```
+
+**supportsOpacity:**
+- If `supportsOpacity: true` is set, and the value contains a slash (e.g., `bg-red-500/75`), the opacity value after the slash is automatically extracted and passed to the handler as `extra.opacity`.
+- The handler should return both a color-mix (for modern browsers) and a fallback (hex+alpha) AST node, matching Tailwind v4.1+ background-color opacity behavior.
+
+**Example:**
+```typescript
+functionalUtility({
+  name: 'bg',
+  themeKeys: ['colors'],
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsOpacity: true,
+  handle: (value, ctx, token, extra) => {
+    // value: 'red-500', extra.opacity: '75'
+    if (extra?.opacity) {
+      return [
+        {
+          type: 'atrule',
+          name: 'supports',
+          params: '(color:color-mix(in lab, red, red))',
+          nodes: [
+            decl('background-color', `color-mix(in oklab, var(--color-red-500) 75%, transparent)`)
+          ]
+        },
+        decl('background-color', '#ef4444bf') // fallback
+      ];
+    }
+    return [decl('background-color', 'var(--color-red-500)')];
+  },
+});
+```
+
+**AST Output Example:**
+```js
+applyClassName('bg-red-500/75', ctx)
+// [
+//   {
+//     type: 'atrule',
+//     name: 'supports',
+//     params: '(color:color-mix(in lab, red, red))',
+//     nodes: [
+//       { type: 'decl', prop: 'background-color', value: 'color-mix(in oklab, var(--color-red-500) 75%, transparent)' }
+//     ]
+//   },
+//   { type: 'decl', prop: 'background-color', value: '#ef4444bf' }
+// ]
+```
+
+**Best Practices:**
+- Use supportsOpacity only for utilities that need Tailwind's bg-*-opacity syntax.
+- The handler should always return both color-mix and fallback for maximum browser compatibility.
+- Tests should verify that both the @supports and fallback decl are present in the AST.
 
 **Handler Priority:**
 1. `handle` (direct processing of all values)

@@ -83,6 +83,7 @@ describe("background utilities", () => {
           },
         ],
       },
+      { type: "decl", prop: "background-color", value: "red" },
     ]);
   });
   it("bg-[#bada55] → background-color: #bada55", () => {

@@ -306,6 +306,7 @@ functionalUtility({
           atrule("supports", `(color:color-mix(in lab, red, red))`, [
             decl("background-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
           ]),
+          decl("background-color", value),
         ];
       }
       return [decl("background-color", value)];
@@ -315,8 +316,6 @@ functionalUtility({
     if (color) {
       return [decl("background-color", color)];
     }
-
-    console.log(value, extra);
 
     return [decl("background-size", value)];
   },
