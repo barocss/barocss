@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { decl } from "../core/ast";
+import { atrule, decl } from "../core/ast";
 import { parseColor, parseLength, parseNumber } from "../core/utils";
 
 // --- Background Attachment ---
@@ -41,9 +41,9 @@ staticUtility("bg-origin-content", [["background-origin", "content-box"]]);
   staticUtility(name, [["background-position", value]]);
 });
 
-/** 
+/**
  * background-position utility (arbitrary, custom property 지원)
- * 
+ *
  * bg-position-[length] → background-position: [length]
  * bg-position-[length] → background-position: [length]
  */
@@ -81,11 +81,20 @@ functionalUtility({
 // --- Background Gradients: Linear ---
 [
   ["bg-linear-to-t", "linear-gradient(to top, var(--tw-gradient-stops))"],
-  ["bg-linear-to-tr", "linear-gradient(to top right, var(--tw-gradient-stops))"],
+  [
+    "bg-linear-to-tr",
+    "linear-gradient(to top right, var(--tw-gradient-stops))",
+  ],
   ["bg-linear-to-r", "linear-gradient(to right, var(--tw-gradient-stops))"],
-  ["bg-linear-to-br", "linear-gradient(to bottom right, var(--tw-gradient-stops))"],
+  [
+    "bg-linear-to-br",
+    "linear-gradient(to bottom right, var(--tw-gradient-stops))",
+  ],
   ["bg-linear-to-b", "linear-gradient(to bottom, var(--tw-gradient-stops))"],
-  ["bg-linear-to-bl", "linear-gradient(to bottom left, var(--tw-gradient-stops))"],
+  [
+    "bg-linear-to-bl",
+    "linear-gradient(to bottom left, var(--tw-gradient-stops))",
+  ],
   ["bg-linear-to-l", "linear-gradient(to left, var(--tw-gradient-stops))"],
   ["bg-linear-to-tl", "linear-gradient(to top left, var(--tw-gradient-stops))"],
 ].forEach(([name, value]) => {
@@ -100,25 +109,48 @@ functionalUtility({
   handle: (value, context, token) => {
     if (parseNumber(value)) {
       // bg-linear-45 → linear-gradient(45deg in oklab, var(--tw-gradient-stops))
-      return [decl("background-image", `linear-gradient(${value}deg in oklab, var(--tw-gradient-stops))`)];
+      return [
+        decl(
+          "background-image",
+          `linear-gradient(${value}deg in oklab, var(--tw-gradient-stops))`
+        ),
+      ];
     }
     if (token.arbitrary) {
       // bg-linear-[25deg,red_5%,yellow_60%,lime_90%,teal]
-      return [decl("background-image", `linear-gradient(var(--tw-gradient-stops, ${value}))`)];
+      return [
+        decl(
+          "background-image",
+          `linear-gradient(var(--tw-gradient-stops, ${value}))`
+        ),
+      ];
     }
     if (token.customProperty) {
       // bg-linear-(--my-gradient)
-      return [decl("background-image", `linear-gradient(var(--tw-gradient-stops, var(${value})))`)];
+      return [
+        decl(
+          "background-image",
+          `linear-gradient(var(--tw-gradient-stops, var(${value})))`
+        ),
+      ];
     }
     return null;
   },
-  handleCustomProperty: (value) => [decl("background-image", `linear-gradient(var(--tw-gradient-stops, var(${value})))`)],
-  description: "linear-gradient background-image utility (angle, arbitrary, custom property 지원)",
+  handleCustomProperty: (value) => [
+    decl(
+      "background-image",
+      `linear-gradient(var(--tw-gradient-stops, var(${value})))`
+    ),
+  ],
+  description:
+    "linear-gradient background-image utility (angle, arbitrary, custom property 지원)",
   category: "background",
 });
 
 // --- Background Gradients: Radial ---
-staticUtility("bg-radial", [["background-image", "radial-gradient(in oklab, var(--tw-gradient-stops))"]]);
+staticUtility("bg-radial", [
+  ["background-image", "radial-gradient(in oklab, var(--tw-gradient-stops))"],
+]);
 functionalUtility({
   name: "bg-radial",
   prop: "background-image",
@@ -127,21 +159,42 @@ functionalUtility({
   handle: (value, context, token) => {
     if (token.arbitrary) {
       // bg-radial-[at_50%_75%]
-      return [decl("background-image", `radial-gradient(var(--tw-gradient-stops, ${value}))`)];
+      return [
+        decl(
+          "background-image",
+          `radial-gradient(var(--tw-gradient-stops, ${value}))`
+        ),
+      ];
     }
     if (token.customProperty) {
       // bg-radial-(--my-gradient)
-      return [decl("background-image", `radial-gradient(var(--tw-gradient-stops, var(${value})))`)];
+      return [
+        decl(
+          "background-image",
+          `radial-gradient(var(--tw-gradient-stops, var(${value})))`
+        ),
+      ];
     }
     return null;
   },
-  handleCustomProperty: (value) => [decl("background-image", `radial-gradient(var(--tw-gradient-stops, var(${value})))`)],
-  description: "radial-gradient background-image utility (arbitrary, custom property 지원)",
+  handleCustomProperty: (value) => [
+    decl(
+      "background-image",
+      `radial-gradient(var(--tw-gradient-stops, var(${value})))`
+    ),
+  ],
+  description:
+    "radial-gradient background-image utility (arbitrary, custom property 지원)",
   category: "background",
 });
 
 // --- Background Gradients: Conic ---
-staticUtility("bg-conic", [["background-image", "conic-gradient(from 0deg in oklab, var(--tw-gradient-stops))"]]);
+staticUtility("bg-conic", [
+  [
+    "background-image",
+    "conic-gradient(from 0deg in oklab, var(--tw-gradient-stops))",
+  ],
+]);
 functionalUtility({
   name: "bg-conic",
   prop: "background-image",
@@ -150,7 +203,12 @@ functionalUtility({
   handle: (value, context, token) => {
     if (parseNumber(value)) {
       // bg-conic-180 → conic-gradient(from 180deg in oklab, var(--tw-gradient-stops))
-      return [decl("background-image", `conic-gradient(from ${value}deg in oklab, var(--tw-gradient-stops))`)];
+      return [
+        decl(
+          "background-image",
+          `conic-gradient(from ${value}deg in oklab, var(--tw-gradient-stops))`
+        ),
+      ];
     }
     if (token.arbitrary) {
       // bg-conic-[at_50%_75%]
@@ -158,12 +216,18 @@ functionalUtility({
     }
     if (token.customProperty) {
       // bg-conic-(--my-gradient)
-      return [decl("background-image", `conic-gradient(var(--tw-gradient-stops, var(${value})))`)];
+      return [
+        decl(
+          "background-image",
+          `conic-gradient(var(--tw-gradient-stops, var(${value})))`
+        ),
+      ];
     }
     return null;
   },
   handleCustomProperty: (value) => [decl("background-image", `var(${value})`)],
-  description: "conic-gradient background-image utility (angle, arbitrary, custom property 지원)",
+  description:
+    "conic-gradient background-image utility (angle, arbitrary, custom property 지원)",
   category: "background",
 });
 
@@ -173,7 +237,7 @@ functionalUtility({
   functionalUtility({
     name: stop,
     prop: `--tw-gradient-${stop}`,
-    themeKeys: ['colors'],
+    themeKeys: ["colors"],
     supportsArbitrary: true,
     supportsCustomProperty: true,
     handle: (value) => {
@@ -193,7 +257,9 @@ functionalUtility({
       }
       return null;
     },
-    handleCustomProperty: (value) => [decl(`--tw-gradient-${stop}`, `var(${value})`)],
+    handleCustomProperty: (value) => [
+      decl(`--tw-gradient-${stop}`, `var(${value})`),
+    ],
     description: `${stop} gradient stop utility (color, percent, custom property, arbitrary 지원)`,
     category: "background",
   });
@@ -203,12 +269,13 @@ functionalUtility({
     supportsArbitrary: true,
     supportsCustomProperty: true,
     handle: (value) => [decl(`--tw-gradient-${stop}-position`, value)],
-    handleCustomProperty: (value) => [decl(`--tw-gradient-${stop}-position`, `var(${value})`)],
+    handleCustomProperty: (value) => [
+      decl(`--tw-gradient-${stop}-position`, `var(${value})`),
+    ],
     description: `${stop}-position gradient stop position utility (percent, custom property, arbitrary 지원)`,
     category: "background",
   });
 });
-
 
 /**
  * background-size utility (arbitrary, custom property 지원)
@@ -220,10 +287,11 @@ functionalUtility({
  */
 functionalUtility({
   name: "bg",
-  themeKeys: ['colors'],
+  themeKeys: ["colors"],
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, context) => {
+  supportsOpacity: true,
+  handle: (value, context, token, extra) => {
     if (value.startsWith("url(")) {
       return [decl("background-image", value)];
     }
@@ -232,10 +300,23 @@ functionalUtility({
       return [decl("background-size", value.replace("length:", ""))];
     }
 
+    if (extra?.realThemeValue) {
+      if (extra.opacity) {
+        return [
+          atrule("supports", `(color:color-mix(in lab, red, red))`, [
+            decl("background-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
+          ]),
+        ];
+      }
+      return [decl("background-color", value)];
+    }
+
     const color = parseColor(value);
     if (color) {
       return [decl("background-color", color)];
     }
+
+    console.log(value, extra);
 
     return [decl("background-size", value)];
   },
@@ -243,4 +324,3 @@ functionalUtility({
   description: "background-size utility (arbitrary, custom property 지원)",
   category: "background",
 });
-

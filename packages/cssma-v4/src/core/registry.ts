@@ -115,6 +115,11 @@ export function staticUtility(
   });
 }
 
+export type FunctionalUtilityExtra = {
+  opacity?: string;
+  realThemeValue?: string;
+}
+
 /**
  * functionalUtility: A helper that registers dynamic utilities (theme, arbitrary, custom, negative, fraction, etc.) directly
  *
@@ -138,10 +143,11 @@ export function functionalUtility(opts: {
   supportsFraction?: boolean;
   supportsCustomProperty?: boolean;
   supportsNegative?: boolean;
-  handle?: (value: string, ctx: CssmaContext, token: ParsedUtility) => AstNode[] | null | undefined;
-  handleBareValue?: (args: { value: string; ctx: CssmaContext; token: ParsedUtility }) => string | null | undefined;
-  handleNegativeBareValue?: (args: { value: string; ctx: CssmaContext; token: ParsedUtility }) => string | null | undefined;
-  handleCustomProperty?: (value: string, ctx: CssmaContext, token: ParsedUtility) => AstNode[] | null | undefined;
+  supportsOpacity?: boolean;
+  handle?: (value: string, ctx: CssmaContext, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
+  handleBareValue?: (args: { value: string; ctx: CssmaContext; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
+  handleNegativeBareValue?: (args: { value: string; ctx: CssmaContext; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
+  handleCustomProperty?: (value: string, ctx: CssmaContext, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
   description?: string;
   category?: string;
 }) {
@@ -151,13 +157,26 @@ export function functionalUtility(opts: {
     handler: (value, ctx, token, _options) => {
       let finalValue = value;
       const parsedUtility = token as ParsedUtility;
+      const extra: FunctionalUtilityExtra = {};
+
+      if (opts.supportsOpacity && !token.arbitrary && !token.customProperty && value.includes('/')) {
+        const list = value.split('/');
+
+        if (list.length >= 2) {
+          extra.opacity = list.pop();
+          finalValue = list.join('/');
+
+          console.log(opts.name, value, finalValue, extra.opacity);
+        }
+      }
+
       // 1. Arbitrary value - parser.ts에서 이미 파싱됨
       if (opts.supportsArbitrary && parsedUtility.arbitrary) {
-        const processedValue = value.replace(/_/g, ' ');
+        const processedValue = finalValue.replace(/_/g, ' ');
 
         // 7. handle (custom AST generation)
         if (opts.handle) {
-          const result = opts.handle(processedValue, ctx, token);
+          const result = opts.handle(processedValue, ctx, token, extra);
           if (result) return result;
         }
         // 8. default decl
@@ -169,12 +188,12 @@ export function functionalUtility(opts: {
       // 2. Custom property - parser.ts에서 이미 파싱됨
       if (opts.supportsCustomProperty && parsedUtility.customProperty) {
         if (opts.handleCustomProperty) {
-          return opts.handleCustomProperty(value, ctx, token);
+          return opts.handleCustomProperty(finalValue, ctx, token, extra);
         }
-        const customValue = `var(${value})`;
+        const customValue = `var(${finalValue})`;
 
         if (opts.handle) {
-          const result = opts.handle(customValue, ctx, token);
+          const result = opts.handle(customValue, ctx, token, extra);
           if (result) return result;
         }
         if (opts.prop) return [decl(opts.prop, customValue)];
@@ -183,11 +202,11 @@ export function functionalUtility(opts: {
       // 3. Theme lookup (themeKey or themeKeys)
       let themeValue: string | undefined;
       if (opts.themeKey && ctx.theme) {
-        themeValue = ctx.theme(opts.themeKey, value);
+        themeValue = ctx.theme(opts.themeKey, finalValue);
       }
       if (!themeValue && opts.themeKeys && ctx.theme) {
         for (const key of opts.themeKeys) {
-          themeValue = ctx.theme(key, value);
+          themeValue = ctx.theme(key, finalValue);
           if (themeValue !== undefined) break;
         }
       }
@@ -195,7 +214,8 @@ export function functionalUtility(opts: {
         finalValue = themeValue;
         if (opts.prop) return [decl(opts.prop, finalValue)];
         if (opts.handle) {
-          const result = opts.handle(finalValue, ctx, token);
+          extra.realThemeValue = value;
+          const result = opts.handle(finalValue, ctx, token, extra);
           if (result) return result;
         }
         return [];
@@ -206,19 +226,19 @@ export function functionalUtility(opts: {
       }
       // 5. handleNegativeBareValue (only check negative bare value)
       if (parsedUtility.negative && opts.supportsNegative && opts.handleNegativeBareValue) {
-        const bare = opts.handleNegativeBareValue({ value: String(finalValue).replace(/^-/, ''), ctx, token });
+        const bare = opts.handleNegativeBareValue({ value: String(finalValue).replace(/^-/, ''), ctx, token, extra });
         if (bare == null) return [];
         finalValue = bare;
       }
       // 6. handleBareValue (only check bare value) - only when negative is not true
       else if (opts.handleBareValue) {
-        const bare = opts.handleBareValue({ value: finalValue, ctx, token });
+        const bare = opts.handleBareValue({ value: finalValue, ctx, token, extra });
         if (bare == null) return [];
         finalValue = bare;
       }
       // 7. handle (custom AST generation)
       if (opts.handle) {
-        const result = opts.handle(finalValue, ctx, token);
+        const result = opts.handle(finalValue, ctx, token, extra);
         if (result) return result;
       }
       // 8. default decl
