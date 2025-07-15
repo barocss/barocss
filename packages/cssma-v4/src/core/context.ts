@@ -1,10 +1,12 @@
 // Types for theme/config/context
 export interface CssmaTheme {
+  extend?: CssmaTheme;
   [namespace: string]: any;
 }
 
 export interface CssmaConfig {
-  prefix?: string;  // prefix for class names
+  prefix?: string;  // prefix for class names, default is 'cssma-'
+  darkMode?: boolean | 'media' | 'class';
   theme?: CssmaTheme;
   presets?: { theme: CssmaTheme }[];
   plugins?: any[];
@@ -54,13 +56,44 @@ export function shallowMerge<T>(base: T, override: Partial<T>): T {
 
 // theme getter
 export function themeGetter(themeObj: CssmaTheme, ...path: (string | number)[]): any {
-  let keys: (string | number)[] = [];
+  
+  // Handle dot notation in single path
   if (path.length === 1 && typeof path[0] === 'string' && path[0].includes('.')) {
-    keys = path[0].split('.');
-  } else {
-    keys = path;
+    const keys = path[0].split('.');
+    return keys.reduce((acc, key) => (acc == null ? undefined : acc[key]), themeObj);
   }
-  return keys.reduce((acc, key) => (acc == null ? undefined : acc[key]), themeObj);
+  
+  // For multiple path segments, try different strategies
+  if (path.length >= 2) {
+    const [namespace, ...rest] = path;
+    
+    // Strategy 1: Try exact key match first (flat structure)
+    // e.g., colors['red-500']
+    if (rest.length === 1 && typeof rest[0] === 'string') {
+      const exactResult = themeObj[namespace as string]?.[rest[0]];
+      if (exactResult !== undefined) {
+        return exactResult;
+      }
+    }
+    
+    // Strategy 2: Try nested structure by splitting on '-'
+    // e.g., colors.red.500 (from 'red-500')
+    const expandedKeys = rest.map(key => {
+      if (typeof key === 'string' && key.includes('-')) {
+        return key.split('-');
+      }
+      if (typeof key === 'string' && key.includes('.')) {
+        return key.split('.');
+      }
+      return key;
+    }).flat();
+    
+    const allKeys = [namespace, ...expandedKeys];
+    return allKeys.reduce((acc, key) => (acc == null ? undefined : acc[key]), themeObj);
+  }
+  
+  // Fallback: simple path traversal
+  return path.reduce((acc, key) => (acc == null ? undefined : acc[key]), themeObj);
 }
 
 // config getter

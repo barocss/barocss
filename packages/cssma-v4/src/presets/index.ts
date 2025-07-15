@@ -4,3 +4,4 @@ import "./spacing";
 import "./sizing";
 import "./typography";
 import "./background";
+import "./border";
