@@ -101,7 +101,6 @@ export function resolveTheme(config: CssmaConfig): CssmaTheme {
 // createContext
 export function createContext(configObj: CssmaConfig): CssmaContext {
   const themeObj = resolveTheme(configObj);
-  console.log('DEBUG createContext themeObj:', JSON.stringify(themeObj, null, 2));
   return {
     hasPreset: (category: string, preset: string) => hasPreset(themeObj, category, preset),
     theme: (...args) => themeGetter(themeObj, ...args),

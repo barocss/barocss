@@ -152,7 +152,6 @@ export function functionalUtility(opts: {
     handler: (value, ctx, token, _options) => {
       let finalValue = value;
       const parsedUtility = token as ParsedUtility;
-      console.log(value, ctx, token);
       // 1. Arbitrary value - parser.ts에서 이미 파싱됨
       if (opts.supportsArbitrary && parsedUtility.arbitrary) {
         const processedValue = value.replace(/_/g, ' ');
@@ -171,7 +170,6 @@ export function functionalUtility(opts: {
       // 2. Custom property - parser.ts에서 이미 파싱됨
       if (opts.supportsCustomProperty && parsedUtility.customProperty) {
         if (opts.handleCustomProperty) {
-          console.log(value, ctx, token);
           return opts.handleCustomProperty(value, ctx, token);
         }
         const customValue = `var(${value})`;
