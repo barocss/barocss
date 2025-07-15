@@ -1093,6 +1093,117 @@ functionalUtility({
   category: 'sizing',
 });
 
+// --- Sizing: height (h-*) ---
+// Tailwind: https://tailwindcss.com/docs/height
+
+// h-* static values
+[
+  ['h-auto', 'auto'],
+  ['h-px', '1px'],
+  ['h-full', '100%'],
+  ['h-screen', '100vh'],
+  ['h-dvh', '100dvh'],
+  ['h-lvh', '100lvh'],
+  ['h-svh', '100svh'],
+  ['h-min', 'min-content'],
+  ['h-max', 'max-content'],
+  ['h-fit', 'fit-content'],
+].forEach(([name, value]) => {
+  staticUtility(name, [['height', value]]);
+});
+
+// h-* functional: spacing scale, fraction, arbitrary, custom property
+functionalUtility({
+  name: 'h',
+  prop: 'height',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsFraction: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) {
+      return `calc(var(--spacing) * ${value})`;
+    }
+    if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
+    return null;
+  },
+  description: 'height utility (spacing, fraction, arbitrary, custom property, static 지원)',
+  category: 'sizing',
+});
+
+// --- Sizing: min-height (min-h-*) ---
+// Tailwind: https://tailwindcss.com/docs/min-height
+
+// min-h-* static values
+[
+  ['min-h-0', '0px'],
+  ['min-h-px', '1px'],
+  ['min-h-full', '100%'],
+  ['min-h-screen', '100vh'],
+  ['min-h-dvh', '100dvh'],
+  ['min-h-lvh', '100lvh'],
+  ['min-h-svh', '100svh'],
+  ['min-h-min', 'min-content'],
+  ['min-h-max', 'max-content'],
+  ['min-h-fit', 'fit-content'],
+].forEach(([name, value]) => {
+  staticUtility(name, [['min-height', value]]);
+});
+
+// min-h-* functional: spacing scale, fraction, arbitrary, custom property
+functionalUtility({
+  name: 'min-h',
+  prop: 'min-height',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsFraction: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) {
+      return `calc(var(--spacing) * ${value})`;
+    }
+    if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
+    return null;
+  },
+  description: 'min-height utility (spacing, fraction, arbitrary, custom property, static 지원)',
+  category: 'sizing',
+});
+
+// --- Sizing: max-height (max-h-*) ---
+// Tailwind: https://tailwindcss.com/docs/max-height
+
+// max-h-* static values
+[
+  ['max-h-px', '1px'],
+  ['max-h-full', '100%'],
+  ['max-h-screen', '100vh'],
+  ['max-h-dvh', '100dvh'],
+  ['max-h-lvh', '100lvh'],
+  ['max-h-svh', '100svh'],
+  ['max-h-min', 'min-content'],
+  ['max-h-max', 'max-content'],
+  ['max-h-fit', 'fit-content'],
+  ['max-h-none', 'none'],
+].forEach(([name, value]) => {
+  staticUtility(name, [['max-height', value]]);
+});
+
+// max-h-* functional: spacing scale, fraction, arbitrary, custom property
+functionalUtility({
+  name: 'max-h',
+  prop: 'max-height',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsFraction: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) {
+      return `calc(var(--spacing) * ${value})`;
+    }
+    if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
+    return null;
+  },
+  description: 'max-height utility (spacing, fraction, arbitrary, custom property, static 지원)',
+  category: 'sizing',
+});
+
 // --- Sizing: min-width (min-w-*) ---
 // Tailwind: https://tailwindcss.com/docs/min-width
 
