@@ -993,3 +993,102 @@ functionalUtility({
     "space-y utility (number, negative, px, arbitrary, custom property, reverse 지원)",
   category: "layout",
 });
+
+// --- Sizing: width (w-*) and size (size-*) ---
+// Tailwind: https://tailwindcss.com/docs/width
+
+// w-* static values
+[
+  ['w-auto', 'auto'],
+  ['w-px', '1px'],
+  ['w-full', '100%'],
+  ['w-screen', '100vw'],
+  ['w-dvw', '100dvw'],
+  ['w-dvh', '100dvh'],
+  ['w-lvw', '100lvw'],
+  ['w-lvh', '100lvh'],
+  ['w-svw', '100svw'],
+  ['w-svh', '100svh'],
+  ['w-min', 'min-content'],
+  ['w-max', 'max-content'],
+  ['w-fit', 'fit-content'],
+  ['w-3xs', 'var(--container-3xs)'],
+  ['w-2xs', 'var(--container-2xs)'],
+  ['w-xs', 'var(--container-xs)'],
+  ['w-sm', 'var(--container-sm)'],
+  ['w-md', 'var(--container-md)'],
+  ['w-lg', 'var(--container-lg)'],
+  ['w-xl', 'var(--container-xl)'],
+  ['w-2xl', 'var(--container-2xl)'],
+  ['w-3xl', 'var(--container-3xl)'],
+  ['w-4xl', 'var(--container-4xl)'],
+  ['w-5xl', 'var(--container-5xl)'],
+  ['w-6xl', 'var(--container-6xl)'],
+  ['w-7xl', 'var(--container-7xl)'],
+].forEach(([name, value]) => {
+  staticUtility(name, [['width', value]]);
+});
+
+// w-* functional: spacing scale, fraction, arbitrary, custom property
+functionalUtility({
+  name: 'w',
+  prop: 'width',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsFraction: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) {
+      return `calc(var(--spacing) * ${value})`;
+    }
+    if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
+    return null;
+  },
+  description: 'width utility (spacing, fraction, arbitrary, custom property, container scale, static 지원)',
+  category: 'sizing',
+});
+
+// size-* static values
+[
+  ['size-auto', ['auto', 'auto']],
+  ['size-px', ['1px', '1px']],
+  ['size-full', ['100%', '100%']],
+  ['size-dvw', ['100dvw', '100dvw']],
+  ['size-dvh', ['100dvh', '100dvh']],
+  ['size-lvw', ['100lvw', '100lvw']],
+  ['size-lvh', ['100lvh', '100lvh']],
+  ['size-svw', ['100svw', '100svw']],
+  ['size-svh', ['100svh', '100svh']],
+  ['size-min', ['min-content', 'min-content']],
+  ['size-max', ['max-content', 'max-content']],
+  ['size-fit', ['fit-content', 'fit-content']],
+].forEach(([name, [w, h]]) => {
+  staticUtility(name as string, [ ['width', w], ['height', h] ]);
+});
+
+// size-* functional: spacing scale, fraction, arbitrary, custom property
+functionalUtility({
+  name: 'size',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsFraction: true,
+  handleBareValue: ({ value }) => {
+    if (parseNumber(value)) {
+      return `calc(var(--spacing) * ${value})`;
+    }
+    if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
+    return null;
+  },
+  handle: (value) => {
+    // arbitrary, custom property, etc.
+    return [
+      decl('width', value),
+      decl('height', value),
+    ];
+  },
+  handleCustomProperty: (value) => [
+    decl('width', `var(${value})`),
+    decl('height', `var(${value})`),
+  ],
+  description: 'size utility (spacing, fraction, arbitrary, custom property, static 지원)',
+  category: 'sizing',
+});

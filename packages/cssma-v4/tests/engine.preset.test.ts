@@ -2298,4 +2298,97 @@ describe("preset utilities (staticUtility/functionalUtility)", () => {
       ]);
     });
   });
+
+  describe("width utilities", () => {
+    it("w-4 → width: calc(var(--spacing) * 4)", () => {
+      expect(applyClassName("w-4", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "calc(var(--spacing) * 4)" },
+      ]);
+    });
+    it("w-1/2 → width: calc(1/2 * 100%)", () => {
+      expect(applyClassName("w-1/2", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "calc(1/2 * 100%)" },
+      ]);
+    });
+    it("w-auto → width: auto", () => {
+      expect(applyClassName("w-auto", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "auto" },
+      ]);
+    });
+    it("w-px → width: 1px", () => {
+      expect(applyClassName("w-px", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "1px" },
+      ]);
+    });
+    it("w-full → width: 100%", () => {
+      expect(applyClassName("w-full", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "100%" },
+      ]);
+    });
+    it("w-screen → width: 100vw", () => {
+      expect(applyClassName("w-screen", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "100vw" },
+      ]);
+    });
+    it("w-3xs → width: var(--container-3xs)", () => {
+      expect(applyClassName("w-3xs", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "var(--container-3xs)" },
+      ]);
+    });
+    it("w-[32rem] → width: 32rem", () => {
+      expect(applyClassName("w-[32rem]", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "32rem" },
+      ]);
+    });
+    it("w-(--my-width) → width: var(--my-width)", () => {
+      expect(applyClassName("w-(--my-width)", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "var(--my-width)" },
+      ]);
+    });
+  });
+
+  describe("size utilities", () => {
+    it("size-4 → width/height: calc(var(--spacing) * 4)", () => {
+      expect(applyClassName("size-4", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "calc(var(--spacing) * 4)" },
+        { type: "decl", prop: "height", value: "calc(var(--spacing) * 4)" },
+      ]);
+    });
+    it("size-1/2 → width/height: calc(1/2 * 100%)", () => {
+      expect(applyClassName("size-1/2", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "calc(1/2 * 100%)" },
+        { type: "decl", prop: "height", value: "calc(1/2 * 100%)" },
+      ]);
+    });
+    it("size-auto → width/height: auto", () => {
+      expect(applyClassName("size-auto", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "auto" },
+        { type: "decl", prop: "height", value: "auto" },
+      ]);
+    });
+    it("size-px → width/height: 1px", () => {
+      expect(applyClassName("size-px", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "1px" },
+        { type: "decl", prop: "height", value: "1px" },
+      ]);
+    });
+    it("size-full → width/height: 100%", () => {
+      expect(applyClassName("size-full", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "100%" },
+        { type: "decl", prop: "height", value: "100%" },
+      ]);
+    });
+    it("size-[32rem] → width/height: 32rem", () => {
+      expect(applyClassName("size-[32rem]", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "32rem" },
+        { type: "decl", prop: "height", value: "32rem" },
+      ]);
+    });
+    it("size-(--my-size) → width/height: var(--my-size)", () => {
+      expect(applyClassName("size-(--my-size)", ctx)).toEqual([
+        { type: "decl", prop: "width", value: "var(--my-size)" },
+        { type: "decl", prop: "height", value: "var(--my-size)" },
+      ]);
+    });
+  });
 });
