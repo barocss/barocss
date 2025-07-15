@@ -68,16 +68,29 @@ export function getRegisteredModifierPrefixes(): string[] {
 
 // --- Utility Helper Factories ---
 
+type StaticUtilityValue = 
+  | [string, string] // [prop, value]
+  | [string, [string, string][]]; // [selector, [prop, value][]]
+
 /**
  * staticUtility: 유틸리티 이름과 CSS 선언 쌍 배열을 받아 바로 registry에 등록하는 헬퍼
  *
  * 사용 예시:
  *   staticUtility('block', [['display', 'block']]);
  *   staticUtility('hidden', [['display', 'none']]);
+ *   staticUtility('space-x-px', [
+ *     [
+ *       '& > :not([hidden]) ~ :not([hidden])', // selector
+ *       [
+ *         ['margin-inline-start', '1px'], // [prop, value]
+ *         ['margin-inline-end', '1px'], // [prop, value]
+ *       ],
+ *     ],
+ *   ]);
  */
 export function staticUtility(
   name: string,
-  decls: [string, string][],
+  decls: StaticUtilityValue[],
   opts?: { description?: string; category?: string }
 ) {
   registerUtility({
@@ -86,7 +99,16 @@ export function staticUtility(
       return className === name;
     },
     handler: (value) => {
-      return decls.map(([prop, value]) => decl(prop, value));
+      return decls.flatMap(([a, b]) => {
+        if (typeof b === 'string') {
+          // [prop, value]
+          return [decl(a, b)];
+        } else if (Array.isArray(b)) {
+          // selector, [prop, value][]
+          return [rule(a, b.map(([prop, value]) => decl(prop, value)))];
+        }
+        return [];
+      });
     },
     description: opts?.description,
     category: opts?.category,
