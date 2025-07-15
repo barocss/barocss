@@ -51,7 +51,7 @@ const result4 = applyClassName('-inset-x-2', ctx);
 
 ### Preset Structure & Utility Categories
 
-CSSMA v4 provides utilities with 1:1 mapping to Tailwind CSS, organized by preset categories.
+CSSMA v4 provides utilities organized by preset categories.
 
 | Preset File         | Main Utility Examples             | Supported Value Types            |
 |---------------------|-----------------------------------|----------------------------------|
@@ -62,7 +62,7 @@ CSSMA v4 provides utilities with 1:1 mapping to Tailwind CSS, organized by prese
 | spacing.ts          | p-*, m-*, space-x-*, ...          | static, number, negative, ...    |
 | typography.ts       | text-*, font-*, leading-*, ...    | static, number, arbitrary, ...   |
 
-Each preset is located in the `src/presets/` directory and supports all major Tailwind CSS utilities by category.
+Each preset is located in the `src/presets/` directory
 
 ### Utility Handler Priority & Patterns
 

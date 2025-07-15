@@ -4,6 +4,7 @@ export interface CssmaTheme {
 }
 
 export interface CssmaConfig {
+  prefix?: string;  // prefix for class names
   theme?: CssmaTheme;
   presets?: { theme: CssmaTheme }[];
   plugins?: any[];

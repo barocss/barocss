@@ -160,7 +160,7 @@ functionalUtility({
   handleBareValue: ({ value }) =>
     parseFractionOrNumber(value, { repeat: true }),
   handle: (value) => {
-    // Tailwind arbitrary: grid-rows-[200px_minmax(900px,_1fr)_100px]
+    // grid-rows-[200px_minmax(900px,_1fr)_100px]
     // Just output as-is (spaces instead of underscores)
     if (typeof value === "string") {
       return [decl("grid-template-rows", value.replace(/_/g, " "))];

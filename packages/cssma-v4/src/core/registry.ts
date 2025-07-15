@@ -14,7 +14,7 @@ export interface UtilityRegistration {
    * @param token Parsed token
    * @param options Registration options
    */
-  handler: (value: string, ctx: CssmaContext, token: ParsedUtility, options: UtilityRegistration) => AstNode[] | undefined;
+  handler: (value: string, ctx: CssmaContext, token: ParsedUtility, options: UtilityRegistration) => AstNode[] | null | undefined;
   description?: string;
   category?: string;
   [key: string]: any;
@@ -30,7 +30,7 @@ export function getUtility(): UtilityRegistration[] {
 }
 
 export function getRegisteredUtilityPrefixes(): string[] {
-  // name이 prefix 역할을 하므로, 중복 없이, 길이 내림차순 정렬
+  // name is a prefix, so sort by length in descending order without duplicates
   return Array.from(new Set(getUtility().map(u => u.name))).sort((a, b) => b.length - a.length);
 }
 
@@ -60,7 +60,7 @@ export function registerModifier(mod: ModifierRegistration) {
 }
 
 export function getRegisteredModifierPrefixes(): string[] {
-  // name이 prefix 역할을 하므로, 중복 없이, 길이 내림차순 정렬
+  // name is a prefix, so sort by length in descending order without duplicates
   return Array.from(new Set(modifierRegistry.map(m => m.name))).sort((a, b) => b.length - a.length);
 }
 
@@ -73,9 +73,9 @@ type StaticUtilityValue =
   | [string, [string, string][]]; // [selector, [prop, value][]]
 
 /**
- * staticUtility: 유틸리티 이름과 CSS 선언 쌍 배열을 받아 바로 registry에 등록하는 헬퍼
+ * staticUtility: A helper that registers a utility name and an array of CSS declaration pairs directly to the registry
  *
- * 사용 예시:
+ * Example:
  *   staticUtility('block', [['display', 'block']]);
  *   staticUtility('hidden', [['display', 'none']]);
  *   staticUtility('space-x-px', [
@@ -116,9 +116,9 @@ export function staticUtility(
 }
 
 /**
- * functionalUtility: 동적 유틸리티(테마/임의값/커스텀/음수/분수 등) 등록을 바로 처리하는 고급 헬퍼
+ * functionalUtility: A helper that registers dynamic utilities (theme, arbitrary, custom, negative, fraction, etc.) directly
  *
- * 사용 예시:
+ * Example:
  *   functionalUtility({
  *     name: 'z',
  *     supportsNegative: true,
@@ -155,12 +155,12 @@ export function functionalUtility(opts: {
       if (opts.supportsArbitrary && parsedUtility.arbitrary) {
         const processedValue = value.replace(/_/g, ' ');
 
-        // 7. handle (커스텀 AST 생성)
+        // 7. handle (custom AST generation)
         if (opts.handle) {
           const result = opts.handle(processedValue, ctx, token);
           if (result) return result;
         }
-        // 8. 기본 decl
+        // 8. default decl
         if (opts.prop) {
           return [decl(opts.prop, processedValue)];
         }
@@ -204,24 +204,24 @@ export function functionalUtility(opts: {
       if (opts.supportsFraction && /^-?\d+\/\d+$/.test(value)) {
         finalValue = value;
       }
-      // 5. handleNegativeBareValue (negative bare value만 검사)
+      // 5. handleNegativeBareValue (only check negative bare value)
       if (parsedUtility.negative && opts.supportsNegative && opts.handleNegativeBareValue) {
         const bare = opts.handleNegativeBareValue({ value: String(finalValue).replace(/^-/, ''), ctx, token });
         if (bare == null) return [];
         finalValue = bare;
       }
-      // 6. handleBareValue (bare value만 검사) - negative가 아닐 때만
+      // 6. handleBareValue (only check bare value) - only when negative is not true
       else if (opts.handleBareValue) {
         const bare = opts.handleBareValue({ value: finalValue, ctx, token });
         if (bare == null) return [];
         finalValue = bare;
       }
-      // 7. handle (커스텀 AST 생성)
+      // 7. handle (custom AST generation)
       if (opts.handle) {
         const result = opts.handle(finalValue, ctx, token);
         if (result) return result;
       }
-      // 8. 기본 decl
+      // 8. default decl
       if (opts.prop) {
         return [decl(opts.prop, finalValue)];
       }

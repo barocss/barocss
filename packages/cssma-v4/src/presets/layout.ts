@@ -15,13 +15,14 @@ staticUtility("isolation-auto", [["isolation", "auto"]]);
 staticUtility("z-auto", [["z-index", "auto"]]);
 functionalUtility({
   name: "z",
+  prop: "z-index",
+  themeKey: "zIndex",
   supportsNegative: true,
   supportsArbitrary: true, // z-[999], z-[calc(var(--index)+1)] 등 지원
   supportsCustomProperty: true, // z-(--my-z) 지원
-  // Tailwind는 themeKey: 'zIndex'이나, 실제 theme lookup은 ctx.theme에서 처리됨
-  handleBareValue: ({ value }) => parseNumber(value), // 정수만 허용
-  handle: (value) => [decl("z-index", value)],
-  description: "z-index utility (Tailwind CSS 호환)",
+  // but actual theme lookup is handled in ctx.theme
+  handleBareValue: ({ value }) => parseNumber(value), // only allow integers
+  description: "z-index utility",
   category: "layout",
 });
 
