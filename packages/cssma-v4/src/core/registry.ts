@@ -138,7 +138,6 @@ export function functionalUtility(opts: {
   supportsFraction?: boolean;
   supportsCustomProperty?: boolean;
   supportsNegative?: boolean;
-  valueTransform?: (value: string, ctx: CssmaContext) => string;
   handle?: (value: string, ctx: CssmaContext, token: ParsedUtility) => AstNode[] | null | undefined;
   handleBareValue?: (args: { value: string; ctx: CssmaContext; token: ParsedUtility }) => string | null | undefined;
   handleNegativeBareValue?: (args: { value: string; ctx: CssmaContext; token: ParsedUtility }) => string | null | undefined;
@@ -156,12 +155,12 @@ export function functionalUtility(opts: {
       if (opts.supportsArbitrary && parsedUtility.arbitrary) {
         const processedValue = value.replace(/_/g, ' ');
 
-        // 8. handle (커스텀 AST 생성)
+        // 7. handle (커스텀 AST 생성)
         if (opts.handle) {
           const result = opts.handle(processedValue, ctx, token);
           if (result) return result;
         }
-        // 9. 기본 decl
+        // 8. 기본 decl
         if (opts.prop) {
           return [decl(opts.prop, processedValue)];
         }
@@ -217,16 +216,12 @@ export function functionalUtility(opts: {
         if (bare == null) return [];
         finalValue = bare;
       }
-      // 7. valueTransform
-      if (opts.valueTransform) {
-        finalValue = opts.valueTransform(finalValue, ctx);
-      }
-      // 8. handle (커스텀 AST 생성)
+      // 7. handle (커스텀 AST 생성)
       if (opts.handle) {
         const result = opts.handle(finalValue, ctx, token);
         if (result) return result;
       }
-      // 9. 기본 decl
+      // 8. 기본 decl
       if (opts.prop) {
         return [decl(opts.prop, finalValue)];
       }
