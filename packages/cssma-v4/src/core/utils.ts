@@ -28,6 +28,13 @@ export function parseNumber(input: string): string | null {
 }
 
 /**
+ * Returns the input if it is a valid length string, else null.
+ */
+export function parseLength(input: string): string | null {
+  return /^\d+(px|em|rem|vh|vw|vmin|vmax|%|in|cm|mm|pt|pc|ex|ch|fr)$/.test(input) ? input : null;
+}
+
+/**
  * Returns the input without a leading '-' if negative, else null.
  */
 export function parseNegative(input: string): string | null {

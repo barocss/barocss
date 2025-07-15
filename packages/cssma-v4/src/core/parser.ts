@@ -29,13 +29,16 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
   const parts: string[] = [];
   let buffer = '';
   let inBracket = 0;
+  let inParen = 0;
   for (let i = 0; i < className.length; i++) {
     const c = className[i];
     if (c === '[') inBracket++;
     if (c === ']') inBracket--;
-    if (c === ':' && inBracket === 0) {
+    if (c === '(') inParen++;
+    if (c === ')') inParen--;
+    if (c === ':' && inBracket === 0 && inParen === 0) {
       parts.push(buffer);
-      buffer = '';
+      buffer = '';      
     } else {
       buffer += c;
     }
@@ -67,7 +70,7 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
   });
 
   // Utility parsing
-  // bg-[red], text-[color:var(--foo)], bg-(--my-bg), -m-4, -bg-[red]
+  // bg-[red], text-[color:var(--foo)], bg-(--my-bg), -m-4, -bg-[red], font-(font-name:--my-font)
   let prefix = '';
   let value = '';
   let arbitrary = false;
@@ -84,7 +87,7 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
     [prefix, value] = utilStr.split('-[');
     value = value.replace(/]$/, '');
     arbitrary = true;
-  } else if (utilStr.includes('-(--')) {
+  } else if (utilStr.includes('-(')) {
     // Custom property: bg-(--my-bg)
     [prefix, value] = utilStr.split('-(');
     value = value.replace(/\)$/, '');
