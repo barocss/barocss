@@ -3,3 +3,4 @@ import "./flexbox-grid";
 import "./spacing";
 import "./sizing";
 import "./typography";
+import "./background";

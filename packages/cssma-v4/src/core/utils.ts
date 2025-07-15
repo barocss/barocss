@@ -68,3 +68,66 @@ export function parseFractionOrNumber(value: string, opts: { percent?: boolean; 
   }
   return null;
 } 
+
+/**
+ * Returns the input if it is a valid color string, else null.
+ *
+ * #rgb, #rgba, #rrggbb, #rrggbbaa, rgb(r, g, b), rgb(r, g, b, a), hsl(h, s, l), hsl(h, s, l, a), hwb(h, w, b), hwb(h, w, b, a), lab(l, a, b), lab(l, a, b, a), lch(l, c, h), lch(l, c, h, a), oklab(l, a, b), oklab(l, a, b, a), oklch(l, c, h), oklch(l, c, h, a)
+ */
+export function parseColor(input: string): string | null {
+  if (input.startsWith('color:')) {
+    return input.slice(6);
+  }
+
+  // hex
+  if (input.startsWith('#') && input.length === 4) {
+    return `#${input.slice(1)}`;
+  }
+  if (input.startsWith('#') && input.length === 5) {
+    return `#${input.slice(1)}`;
+  }
+  if (input.startsWith('#') && input.length === 7) {
+    return `#${input.slice(1)}`;
+  }
+  if (input.startsWith('#') && input.length === 9) {
+    return `#${input.slice(1)}`;
+  }
+
+
+  // rgb
+  if (input.startsWith('rgb(')) {
+    return input.slice(4, -1);
+  }
+
+  // hsl
+  if (input.startsWith('hsl(')) {
+    return input.slice(4, -1);
+  }
+
+  // hwb
+  if (input.startsWith('hwb(')) {
+    return input.slice(4, -1);
+  }
+
+  // lab
+  if (input.startsWith('lab(')) {
+    return input.slice(4, -1);
+  }
+
+  // lch
+  if (input.startsWith('lch(')) {
+    return input.slice(4, -1);
+  }
+
+  // oklab
+  if (input.startsWith('oklab(')) {
+    return input.slice(5, -1);
+  }
+
+  // oklch
+  if (input.startsWith('oklch(')) {
+    return input.slice(6, -1);
+  }
+
+  return null;
+}

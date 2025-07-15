@@ -95,7 +95,6 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
   } else {
     // --- 동적 prefix 매칭: registry에서 prefix 목록을 받아 가장 긴 것부터 매칭 ---
     const prefixes = getRegisteredUtilityPrefixes();
-
     let matchedPrefix = prefixes.find(p => utilStr === p);
     if (matchedPrefix) {
       prefix = matchedPrefix;
@@ -118,7 +117,6 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
         value = parts.slice(1).join('-');
       }
     }
-
   }
 
   return {
