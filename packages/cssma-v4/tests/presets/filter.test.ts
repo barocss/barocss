@@ -202,4 +202,57 @@ describe('contrast', () => {
       { type: 'decl', prop: 'filter', value: 'contrast(var(--my-contrast))' },
     ]);
   });
+});
+
+describe('drop-shadow', () => {
+  it('drop-shadow-xs → filter: drop-shadow(var(--drop-shadow-xs))', () => {
+    expect(applyClassName('drop-shadow-xs', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'drop-shadow(var(--drop-shadow-xs))' },
+    ]);
+  });
+  it('drop-shadow-sm → filter: drop-shadow(var(--drop-shadow-sm))', () => {
+    expect(applyClassName('drop-shadow-sm', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'drop-shadow(var(--drop-shadow-sm))' },
+    ]);
+  });
+  it('drop-shadow-md → filter: drop-shadow(var(--drop-shadow-md))', () => {
+    expect(applyClassName('drop-shadow-md', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'drop-shadow(var(--drop-shadow-md))' },
+    ]);
+  });
+  it('drop-shadow-lg → filter: drop-shadow(var(--drop-shadow-lg))', () => {
+    expect(applyClassName('drop-shadow-lg', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'drop-shadow(var(--drop-shadow-lg))' },
+    ]);
+  });
+  it('drop-shadow-xl → filter: drop-shadow(var(--drop-shadow-xl))', () => {
+    expect(applyClassName('drop-shadow-xl', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'drop-shadow(var(--drop-shadow-xl))' },
+    ]);
+  });
+  it('drop-shadow-2xl → filter: drop-shadow(var(--drop-shadow-2xl))', () => {
+    expect(applyClassName('drop-shadow-2xl', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'drop-shadow(var(--drop-shadow-2xl))' },
+    ]);
+  });
+  it('drop-shadow-3xl → filter: drop-shadow(var(--drop-shadow-3xl))', () => {
+    expect(applyClassName('drop-shadow-3xl', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'drop-shadow(var(--drop-shadow-3xl))' },
+    ]);
+  });
+  it('drop-shadow-none → filter: drop-shadow(0 0 #0000)', () => {
+    expect(applyClassName('drop-shadow-none', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'drop-shadow(0 0 #0000)' },
+    ]);
+  });
+  it('drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)] → filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1))', () => {
+    expect(applyClassName('drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' },
+    ]);
+  });
+  it('drop-shadow-(--my-shadow) → filter: drop-shadow(var(--my-shadow))', () => {
+    expect(applyClassName('drop-shadow-(--my-shadow)', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'drop-shadow(var(--my-shadow))' },
+    ]);
+  });
 }); 

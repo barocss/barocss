@@ -80,4 +80,31 @@ functionalUtility({
   category: "effects",
 });
 
+// --- Drop Shadow ---
+[
+  ["drop-shadow-xs", "var(--drop-shadow-xs)"],
+  ["drop-shadow-sm", "var(--drop-shadow-sm)"],
+  ["drop-shadow-md", "var(--drop-shadow-md)"],
+  ["drop-shadow-lg", "var(--drop-shadow-lg)"],
+  ["drop-shadow-xl", "var(--drop-shadow-xl)"],
+  ["drop-shadow-2xl", "var(--drop-shadow-2xl)"],
+  ["drop-shadow-3xl", "var(--drop-shadow-3xl)"],
+].forEach(([name, value]) => {
+  staticUtility(name as string, [["filter", `drop-shadow(${value})`]]);
+});
+staticUtility("drop-shadow-none", [["filter", "drop-shadow(0 0 #0000)"]]);
+
+functionalUtility({
+  name: "drop-shadow",
+  prop: "filter",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handle: (value, ctx, token) => {
+    return [decl("filter", `drop-shadow(${value})`)];
+  },
+  handleCustomProperty: (value) => [decl("filter", `drop-shadow(var(${value}))`)],
+  description: "drop-shadow filter utility (static, arbitrary, custom property 지원)",
+  category: "effects",
+});
+
 export default null; 
