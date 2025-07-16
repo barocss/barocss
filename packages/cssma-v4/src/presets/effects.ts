@@ -509,3 +509,13 @@ functionalUtility({
 ].forEach(([name, value]) => {
   staticUtility(name as string, [["mask-clip", value as string]]);
 });
+
+// --- Mask Composite (Tailwind v4) ---
+[
+  ["mask-add", "add"],
+  ["mask-subtract", "subtract"],
+  ["mask-intersect", "intersect"],
+  ["mask-exclude", "exclude"],
+].forEach(([name, value]) => {
+  staticUtility(name as string, [["mask-composite", value as string]]);
+});

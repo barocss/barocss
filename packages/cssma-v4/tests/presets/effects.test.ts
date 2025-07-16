@@ -795,3 +795,26 @@ describe('mask-clip ', () => {
     ]);
   });
 });
+
+describe('mask-composite (Tailwind v4)', () => {
+  it('mask-add → mask-composite: add', () => {
+    expect(applyClassName('mask-add', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-composite', value: 'add' },
+    ]);
+  });
+  it('mask-subtract → mask-composite: subtract', () => {
+    expect(applyClassName('mask-subtract', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-composite', value: 'subtract' },
+    ]);
+  });
+  it('mask-intersect → mask-composite: intersect', () => {
+    expect(applyClassName('mask-intersect', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-composite', value: 'intersect' },
+    ]);
+  });
+  it('mask-exclude → mask-composite: exclude', () => {
+    expect(applyClassName('mask-exclude', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-composite', value: 'exclude' },
+    ]);
+  });
+});
