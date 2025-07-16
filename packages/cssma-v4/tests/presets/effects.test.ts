@@ -796,7 +796,7 @@ describe('mask-clip ', () => {
   });
 });
 
-describe('mask-composite (Tailwind v4)', () => {
+describe('mask-composite ', () => {
   it('mask-add → mask-composite: add', () => {
     expect(applyClassName('mask-add', ctx)).toEqual([
       { type: 'decl', prop: 'mask-composite', value: 'add' },
@@ -819,7 +819,7 @@ describe('mask-composite (Tailwind v4)', () => {
   });
 });
 
-describe('mask-image (Tailwind v4)', () => {
+describe('mask-image ', () => {
   it('mask-[url(/img/circle.png)] → mask-image: url(/img/circle.png)', () => {
     expect(applyClassName('mask-[url(/img/circle.png)]', ctx)).toEqual([
       { type: 'decl', prop: 'mask-image', value: 'url(/img/circle.png)' },
@@ -833,6 +833,24 @@ describe('mask-image (Tailwind v4)', () => {
   it('mask-none → mask-image: none', () => {
     expect(applyClassName('mask-none', ctx)).toEqual([
       { type: 'decl', prop: 'mask-image', value: 'none' },
+    ]);
+  });
+});
+
+describe('mask-mode ', () => {
+  it('mask-alpha → mask-mode: alpha', () => {
+    expect(applyClassName('mask-alpha', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-mode', value: 'alpha' },
+    ]);
+  });
+  it('mask-luminance → mask-mode: luminance', () => {
+    expect(applyClassName('mask-luminance', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-mode', value: 'luminance' },
+    ]);
+  });
+  it('mask-match → mask-mode: match-source', () => {
+    expect(applyClassName('mask-match', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-mode', value: 'match-source' },
     ]);
   });
 });

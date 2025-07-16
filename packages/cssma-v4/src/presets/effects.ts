@@ -510,7 +510,7 @@ functionalUtility({
   staticUtility(name as string, [["mask-clip", value as string]]);
 });
 
-// --- Mask Composite (Tailwind v4) ---
+// --- Mask Composite  ---
 [
   ["mask-add", "add"],
   ["mask-subtract", "subtract"],
@@ -520,7 +520,18 @@ functionalUtility({
   staticUtility(name as string, [["mask-composite", value as string]]);
 });
 
-// --- Mask Image (Tailwind v4) ---
+
+// --- Mask Mode  ---
+[
+    ["mask-alpha", "alpha"],
+    ["mask-luminance", "luminance"],
+    ["mask-match", "match-source"],
+  ].forEach(([name, value]) => {
+    staticUtility(name as string, [["mask-mode", value as string]]);
+  });
+  
+
+// --- Mask Image  ---
 functionalUtility({
   name: "mask",
   supportsArbitrary: true,
