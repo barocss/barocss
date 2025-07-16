@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { decl } from "../core/ast";
+import { atrule, decl } from "../core/ast";
 import { parseColor, parseNumber } from "../core/utils";
 
 // --- Box Shadow ---
@@ -22,20 +22,75 @@ import { parseColor, parseNumber } from "../core/utils";
 
 // Static inset shadow levels
 [
-  ["inset-shadow-2xs", "var(--inset-shadow-2xs)"],
-  ["inset-shadow-xs", "var(--inset-shadow-xs)"],
-  ["inset-shadow-sm", "var(--inset-shadow-sm)"],
-  ["inset-shadow-md", "var(--inset-shadow-md)"],
-  ["inset-shadow-lg", "var(--inset-shadow-lg)"],
-  ["inset-shadow-xl", "var(--inset-shadow-xl)"],
-  ["inset-shadow-2xl", "var(--inset-shadow-2xl)"],
+  [
+    "inset-shadow-2xs",
+    "inset 0 1px 2px var(--tw-inset-shadow-color, #0000000d)",
+  ],
+  [
+    "inset-shadow-xs",
+    "inset 0 2px 4px var(--tw-inset-shadow-color, #0000000d)",
+  ],
+  [
+    "inset-shadow-sm",
+    "inset 0 2px 4px var(--tw-inset-shadow-color, #0000000d)",
+  ],
+  [
+    "inset-shadow-md",
+    "inset 0 4px 6px -1px var(--tw-inset-shadow-color, #0000000d)",
+  ],
+  [
+    "inset-shadow-lg",
+    "inset 0 10px 15px -3px var(--tw-inset-shadow-color, #0000000d)",
+  ],
+  [
+    "inset-shadow-xl",
+    "inset 0 20px 25px -5px var(--tw-inset-shadow-color, #0000000d)",
+  ],
+  [
+    "inset-shadow-2xl",
+    "inset 0 25px 50px -12px var(--tw-inset-shadow-color, #0000000d)",
+  ],
   ["inset-shadow-none", "0 0 #0000"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["box-shadow", value as string]]);
+  staticUtility(name as string, [
+    ["--tw-inset-shadow", value as string],
+    [
+      "box-shadow",
+      "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+    ],
+  ]);
 });
 
 // --- Box Shadow Color (with opacity, custom property, arbitrary) ---
 // shadow-red-500, shadow-red-500/50, shadow-[#bada55]/80, shadow-(color:--my-shadow), shadow-inherit, etc.
+
+function createShadowThemeColor(
+  key: string,
+  main: string,
+  opacity: string | undefined,
+  realThemeValue: string
+) {
+  let fallbackColor = main;
+  let colorVar = `var(--color-${realThemeValue})`;
+  let colorValue = colorVar;
+  if (opacity) {
+    colorValue = `color-mix(in oklab, color-mix(in oklab, ${colorVar} ${opacity}%, transparent) var(--tw-shadow-alpha),transparent)`;
+    if (parseColor(main)) {
+      if (main.startsWith("#")) {
+        const opacityValue = Math.round((Number(opacity) / 100) * 255);
+        fallbackColor = `${main}${opacityValue.toString(16).padStart(2, "0")}`;
+      } else {
+        fallbackColor = `color-mix(in oklab, ${main} ${opacity}%, transparent)`;
+      }
+    }
+  }
+  return [
+    atrule("supports", "(color:color-mix(in lab, red, red))", [
+      decl(key, colorValue),
+    ]),
+    decl(key, fallbackColor),
+  ];
+}
 
 // shadow-color utilities
 functionalUtility({
@@ -51,12 +106,12 @@ functionalUtility({
 
     // 1. Theme color (e.g. shadow-red-500/60)
     if (realThemeValue) {
-      let colorVar = `var(--color-${realThemeValue})`;
-      let colorValue = colorVar;
-      if (opacity) {
-        colorValue = `color-mix(in oklab, ${colorVar} ${opacity}%, transparent)`;
-      }
-      return [decl("--tw-shadow-color", colorValue)];
+      return createShadowThemeColor(
+        "--tw-shadow-color",
+        main,
+        opacity,
+        realThemeValue
+      );
     }
 
     // Custom property color: shadow-(color:--my-shadow)
@@ -75,7 +130,6 @@ functionalUtility({
 
     // Arbitrary color: shadow-[#bada55] or shadow-[oklch(...)]
     if (token.arbitrary) {
-
       if (parseColor(main)) {
         if (opacity) {
           return [
@@ -90,20 +144,6 @@ functionalUtility({
       }
 
       return [decl("box-shadow", main)];
-    }
-
-    // Theme color: shadow-red-500
-    const themeColor = ctx.theme?.("colors", main);
-    if (themeColor) {
-      if (opacity) {
-        return [
-          decl(
-            "--tw-shadow-color",
-            `color-mix(in oklab, var(--color-${main}) ${opacity}%, transparent)`
-          ),
-        ];
-      }
-      return [decl("--tw-shadow-color", `var(--color-${main})`)];
     }
 
     // Special cases
@@ -132,12 +172,12 @@ functionalUtility({
 
     // 1. Theme color (e.g. inset-shadow-red-500/60)
     if (realThemeValue) {
-      let colorVar = `var(--color-${realThemeValue})`;
-      let colorValue = colorVar;
-      if (opacity) {
-        colorValue = `color-mix(in oklab, ${colorVar} ${opacity}%, transparent)`;
-      }
-      return [decl("--tw-inset-shadow-color", colorValue)];
+      return createShadowThemeColor(
+        "--tw-inset-shadow-color",
+        main,
+        opacity,
+        realThemeValue
+      );
     }
 
     // 2. Custom property color: inset-shadow-(color:--my-shadow)
@@ -176,4 +216,213 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("box-shadow", `var(${value})`)],
+});
+
+// --- Ring (Tailwind-style multi-variable) ---
+// https://tailwindcss.com/docs/ring-width
+
+// Static ring width utilities
+[
+  ["ring", "1px"],
+  ["ring-0", "0px"],
+  ["ring-1", "1px"],
+  ["ring-2", "2px"],
+  ["ring-4", "4px"],
+  ["ring-8", "8px"],
+].forEach(([name, px]) => {
+  staticUtility(name as string, [
+    ["--tw-ring-inset", ""],
+    ["--tw-ring-offset-width", "0px"],
+    ["--tw-ring-offset-color", "#fff"],
+    ["--tw-ring-color", "rgb(59 130 246 / 0.5)"], // default blue-500/50
+    [
+      "--tw-ring-shadow",
+      `var(--tw-ring-inset) 0 0 0 calc(${px} + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor)`,
+    ],
+    ["--tw-ring-offset-shadow", `0 0 #0000`],
+    [
+      "box-shadow",
+      "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+    ],
+  ]);
+});
+
+// Inset ring width utilities
+[
+  ["inset-ring", "1px"],
+  ["inset-ring-0", "0px"],
+  ["inset-ring-1", "1px"],
+  ["inset-ring-2", "2px"],
+  ["inset-ring-4", "4px"],
+  ["inset-ring-8", "8px"],
+].forEach(([name, px]) => {
+  staticUtility(name as string, [
+    ["--tw-ring-inset", "inset"],
+    ["--tw-ring-offset-width", "0px"],
+    ["--tw-ring-offset-color", "#fff"],
+    ["--tw-inset-ring-color", "rgb(59 130 246 / 0.5)"],
+    [
+      "--tw-inset-ring-shadow",
+      `var(--tw-ring-inset) 0 0 0 calc(${px} + var(--tw-ring-offset-width)) var(--tw-inset-ring-color, currentcolor)`,
+    ],
+    ["--tw-ring-offset-shadow", `0 0 #0000`],
+    [
+      "box-shadow",
+      "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+    ],
+  ]);
+});
+
+// Ring inset
+staticUtility("ring-inset", [["--tw-ring-inset", "inset"]]);
+
+// --- Ring color/opacity/arbitrary/custom property (Tailwind-style supports+fallback) ---
+function createRingColorDecls(key: string, main: string, opacity: string | undefined, realThemeValue: string) {
+  let colorVar = `var(--color-${realThemeValue})`;
+  let colorMix = colorVar;
+  let fallback = colorVar;
+  if (opacity) {
+    colorMix = `color-mix(in oklab, ${colorVar} ${opacity}%, transparent)`;
+    if (parseColor(main) && main.startsWith("#")) {
+      const opacityValue = Math.round((Number(opacity) / 100) * 255);
+      fallback = `${main}${opacityValue.toString(16).padStart(2, "0")}`;
+    } else {
+      fallback = colorMix;
+    }
+  }
+  return [
+    atrule("supports", "(color:color-mix(in lab, red, red))", [decl(key, colorMix)]),
+    decl(key, fallback),
+  ];
+}
+
+// Ring color/opacity/arbitrary/custom property
+functionalUtility({
+  name: "ring",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsOpacity: true,
+  themeKeys: ["colors"],
+  handle: (value, ctx, token, extra) => {
+    let main = value;
+    let opacity = extra?.opacity;
+    let realThemeValue = extra?.realThemeValue;
+    if (realThemeValue) {
+      return createRingColorDecls("--tw-ring-color", main, opacity, realThemeValue);
+    }
+    if (main.startsWith("color:")) {
+      const cp = main.replace("color:", "");
+      let colorMix = `var(${cp})`;
+      let fallback = colorMix;
+      if (opacity) {
+        colorMix = `color-mix(in oklab, var(${cp}) ${opacity}%, transparent)`;
+        fallback = colorMix;
+      }
+      return [
+        atrule("supports", "(color:color-mix(in lab, red, red))", [decl("--tw-ring-color", colorMix)]),
+        decl("--tw-ring-color", fallback),
+      ];
+    }
+    if (token.arbitrary) {
+      let colorMix = main;
+      let fallback = main;
+      if (opacity) {
+        colorMix = `color-mix(in oklab, ${main} ${opacity}%, transparent)`;
+        if (parseColor(main) && main.startsWith("#")) {
+          const opacityValue = Math.round((Number(opacity) / 100) * 255);
+          fallback = `${main}${opacityValue.toString(16).padStart(2, "0")}`;
+        } else {
+          fallback = colorMix;
+        }
+
+        return [
+            atrule("supports", "(color:color-mix(in lab, red, red))", [decl("--tw-ring-color", colorMix)]),
+            decl("--tw-ring-color", fallback),
+          ];
+      }
+
+      return [
+        decl("box-shadow", main)
+      ]
+    }
+    if (main === "inherit" || main === "current" || main === "transparent") {
+      return [
+        decl("--tw-ring-color", main === "current" ? "currentColor" : main),
+      ];
+    }
+    return null;
+  },
+  handleCustomProperty: (value) => {
+    if (value.startsWith("color:")) {
+      const cp = value.replace("color:", "");
+      return [decl("--tw-ring-color", `var(${cp})`)];
+    }
+    return [decl("--tw-ring-color", `var(${value})`)];
+  },
+});
+
+// Inset ring color/opacity/arbitrary/custom property (Tailwind-style supports+fallback)
+functionalUtility({
+  name: "inset-ring",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsOpacity: true,
+  themeKeys: ["colors", "shadows"],
+  handle: (value, ctx, token, extra) => {
+    let main = value;
+    let opacity = extra?.opacity;
+    let realThemeValue = extra?.realThemeValue;
+    if (realThemeValue) {
+      return createRingColorDecls("--tw-inset-ring-color", main, opacity, realThemeValue);
+    }
+    if (main.startsWith("color:")) {
+      const cp = main.replace("color:", "");
+      let colorMix = `var(${cp})`;
+      let fallback = colorMix;
+      if (opacity) {
+        colorMix = `color-mix(in oklab, var(${cp}) ${opacity}%, transparent)`;
+        fallback = colorMix;
+      }
+      return [
+        atrule("supports", "(color:color-mix(in lab, red, red))", [decl("--tw-inset-ring-color", colorMix)]),
+        decl("--tw-inset-ring-color", fallback),
+      ];
+    }
+    if (token.arbitrary) {
+      let colorMix = main;
+      let fallback = main;
+      if (opacity) {
+        colorMix = `color-mix(in oklab, ${main} ${opacity}%, transparent)`;
+        if (parseColor(main) && main.startsWith("#")) {
+          const opacityValue = Math.round((Number(opacity) / 100) * 255);
+          fallback = `${main}${opacityValue.toString(16).padStart(2, "0")}`;
+        } else {
+          fallback = colorMix;
+        }
+
+        return [
+            atrule("supports", "(color:color-mix(in lab, red, red))", [decl("--tw-inset-ring-color", colorMix)]),
+            decl("--tw-inset-ring-color", fallback),
+          ];
+      }
+      
+      return [
+        decl("box-shadow", `inset ${main}`)
+      ]
+    }
+
+    if (main === "inherit" || main === "current" || main === "transparent") {
+      return [
+        decl("--tw-inset-ring-color", main === "current" ? "currentColor" : main),
+      ];
+    }
+    return null;
+  },
+  handleCustomProperty: (value) => {
+    if (value.startsWith("color:")) {
+      const cp = value.replace("color:", "");
+      return [decl("--tw-inset-ring-color", `var(${cp})`)];
+    }
+    return [decl("--tw-inset-ring-color", `var(${value})`)];
+  },
 });

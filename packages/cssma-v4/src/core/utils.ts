@@ -72,7 +72,7 @@ export function parseFractionOrNumber(value: string, opts: { percent?: boolean; 
 /**
  * Returns the input if it is a valid color string, else null.
  *
- * #rgb, #rgba, #rrggbb, #rrggbbaa, rgb(r, g, b), rgb(r, g, b, a), hsl(h, s, l), hsl(h, s, l, a), hwb(h, w, b), hwb(h, w, b, a), lab(l, a, b), lab(l, a, b, a), lch(l, c, h), lch(l, c, h, a), oklab(l, a, b), oklab(l, a, b, a), oklch(l, c, h), oklch(l, c, h, a)
+ * #rgb, #rgba, #rrggbb, #rrggbbaa, rgb(r, g, b), rgb(r, g, b, a), hsl(h, s, l), hsl(h, s, l, a), hwb(h, w, b), hwb(h, w, b, a), lab(l, a, b), lab(l, a, b, a), lch(l, c, h), lch(l, c, h, a), oklab(l, a, b), oklab(l, a, b, a), oklch(l, c, h), oklch(l, c, h, a), color-mix(in oklab, var(--color-blue-500) 60%, transparent)
  */
 export function parseColor(input: string): string | null {
   if (input.startsWith('color:')) {
@@ -127,6 +127,11 @@ export function parseColor(input: string): string | null {
   // oklch
   if (input.startsWith('oklch(')) {
     return input.slice(6, -1);
+  }
+
+  // color-mix
+  if (input.startsWith('color-mix(')) {
+    return input.slice(9, -1);
   }
 
   return null;
