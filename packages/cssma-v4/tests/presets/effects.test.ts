@@ -674,3 +674,86 @@ describe('mix-blend-mode ', () => {
     ]);
   });
 });
+
+describe('background-blend-mode ', () => {
+  it('bg-blend-normal → background-blend-mode: normal', () => {
+    expect(applyClassName('bg-blend-normal', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'normal' },
+    ]);
+  });
+  it('bg-blend-multiply → background-blend-mode: multiply', () => {
+    expect(applyClassName('bg-blend-multiply', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'multiply' },
+    ]);
+  });
+  it('bg-blend-screen → background-blend-mode: screen', () => {
+    expect(applyClassName('bg-blend-screen', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'screen' },
+    ]);
+  });
+  it('bg-blend-overlay → background-blend-mode: overlay', () => {
+    expect(applyClassName('bg-blend-overlay', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'overlay' },
+    ]);
+  });
+  it('bg-blend-darken → background-blend-mode: darken', () => {
+    expect(applyClassName('bg-blend-darken', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'darken' },
+    ]);
+  });
+  it('bg-blend-lighten → background-blend-mode: lighten', () => {
+    expect(applyClassName('bg-blend-lighten', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'lighten' },
+    ]);
+  });
+  it('bg-blend-color-dodge → background-blend-mode: color-dodge', () => {
+    expect(applyClassName('bg-blend-color-dodge', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'color-dodge' },
+    ]);
+  });
+  it('bg-blend-color-burn → background-blend-mode: color-burn', () => {
+    expect(applyClassName('bg-blend-color-burn', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'color-burn' },
+    ]);
+  });
+  it('bg-blend-hard-light → background-blend-mode: hard-light', () => {
+    expect(applyClassName('bg-blend-hard-light', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'hard-light' },
+    ]);
+  });
+  it('bg-blend-soft-light → background-blend-mode: soft-light', () => {
+    expect(applyClassName('bg-blend-soft-light', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'soft-light' },
+    ]);
+  });
+  it('bg-blend-difference → background-blend-mode: difference', () => {
+    expect(applyClassName('bg-blend-difference', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'difference' },
+    ]);
+  });
+  it('bg-blend-exclusion → background-blend-mode: exclusion', () => {
+    expect(applyClassName('bg-blend-exclusion', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'exclusion' },
+    ]);
+  });
+  it('bg-blend-hue → background-blend-mode: hue', () => {
+    expect(applyClassName('bg-blend-hue', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'hue' },
+    ]);
+  });
+  it('bg-blend-saturation → background-blend-mode: saturation', () => {
+    expect(applyClassName('bg-blend-saturation', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'saturation' },
+    ]);
+  });
+  it('bg-blend-color → background-blend-mode: color', () => {
+    expect(applyClassName('bg-blend-color', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'color' },
+    ]);
+  });
+  it('bg-blend-luminosity → background-blend-mode: luminosity', () => {
+    expect(applyClassName('bg-blend-luminosity', ctx)).toEqual([
+      { type: 'decl', prop: 'background-blend-mode', value: 'luminosity' },
+    ]);
+  });
+});

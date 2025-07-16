@@ -474,3 +474,25 @@ functionalUtility({
 ].forEach(([name, value]) => {
   staticUtility(name as string, [["mix-blend-mode", value as string]]);
 });
+
+// --- Background Blend Mode  ---
+[
+  ["bg-blend-normal", "normal"],
+  ["bg-blend-multiply", "multiply"],
+  ["bg-blend-screen", "screen"],
+  ["bg-blend-overlay", "overlay"],
+  ["bg-blend-darken", "darken"],
+  ["bg-blend-lighten", "lighten"],
+  ["bg-blend-color-dodge", "color-dodge"],
+  ["bg-blend-color-burn", "color-burn"],
+  ["bg-blend-hard-light", "hard-light"],
+  ["bg-blend-soft-light", "soft-light"],
+  ["bg-blend-difference", "difference"],
+  ["bg-blend-exclusion", "exclusion"],
+  ["bg-blend-hue", "hue"],
+  ["bg-blend-saturation", "saturation"],
+  ["bg-blend-color", "color"],
+  ["bg-blend-luminosity", "luminosity"],
+].forEach(([name, value]) => {
+  staticUtility(name as string, [["background-blend-mode", value as string]]);
+});
