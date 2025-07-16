@@ -854,3 +854,36 @@ describe('mask-mode ', () => {
     ]);
   });
 });
+
+describe('mask-origin ', () => {
+  it('mask-origin-border → mask-origin: border-box', () => {
+    expect(applyClassName('mask-origin-border', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-origin', value: 'border-box' },
+    ]);
+  });
+  it('mask-origin-padding → mask-origin: padding-box', () => {
+    expect(applyClassName('mask-origin-padding', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-origin', value: 'padding-box' },
+    ]);
+  });
+  it('mask-origin-content → mask-origin: content-box', () => {
+    expect(applyClassName('mask-origin-content', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-origin', value: 'content-box' },
+    ]);
+  });
+  it('mask-origin-fill → mask-origin: fill-box', () => {
+    expect(applyClassName('mask-origin-fill', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-origin', value: 'fill-box' },
+    ]);
+  });
+  it('mask-origin-stroke → mask-origin: stroke-box', () => {
+    expect(applyClassName('mask-origin-stroke', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-origin', value: 'stroke-box' },
+    ]);
+  });
+  it('mask-origin-view → mask-origin: view-box', () => {
+    expect(applyClassName('mask-origin-view', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-origin', value: 'view-box' },
+    ]);
+  });
+});

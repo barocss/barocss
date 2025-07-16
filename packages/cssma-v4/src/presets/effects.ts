@@ -277,7 +277,12 @@ functionalUtility({
 staticUtility("ring-inset", [["--tw-ring-inset", "inset"]]);
 
 // --- Ring color/opacity/arbitrary/custom property (Tailwind-style supports+fallback) ---
-function createRingColorDecls(key: string, main: string, opacity: string | undefined, realThemeValue: string) {
+function createRingColorDecls(
+  key: string,
+  main: string,
+  opacity: string | undefined,
+  realThemeValue: string
+) {
   let colorVar = `var(--color-${realThemeValue})`;
   let colorMix = colorVar;
   let fallback = colorVar;
@@ -291,7 +296,9 @@ function createRingColorDecls(key: string, main: string, opacity: string | undef
     }
   }
   return [
-    atrule("supports", "(color:color-mix(in lab, red, red))", [decl(key, colorMix)]),
+    atrule("supports", "(color:color-mix(in lab, red, red))", [
+      decl(key, colorMix),
+    ]),
     decl(key, fallback),
   ];
 }
@@ -308,7 +315,12 @@ functionalUtility({
     let opacity = extra?.opacity;
     let realThemeValue = extra?.realThemeValue;
     if (realThemeValue) {
-      return createRingColorDecls("--tw-ring-color", main, opacity, realThemeValue);
+      return createRingColorDecls(
+        "--tw-ring-color",
+        main,
+        opacity,
+        realThemeValue
+      );
     }
     if (main.startsWith("color:")) {
       const cp = main.replace("color:", "");
@@ -319,7 +331,9 @@ functionalUtility({
         fallback = colorMix;
       }
       return [
-        atrule("supports", "(color:color-mix(in lab, red, red))", [decl("--tw-ring-color", colorMix)]),
+        atrule("supports", "(color:color-mix(in lab, red, red))", [
+          decl("--tw-ring-color", colorMix),
+        ]),
         decl("--tw-ring-color", fallback),
       ];
     }
@@ -336,14 +350,14 @@ functionalUtility({
         }
 
         return [
-            atrule("supports", "(color:color-mix(in lab, red, red))", [decl("--tw-ring-color", colorMix)]),
-            decl("--tw-ring-color", fallback),
-          ];
+          atrule("supports", "(color:color-mix(in lab, red, red))", [
+            decl("--tw-ring-color", colorMix),
+          ]),
+          decl("--tw-ring-color", fallback),
+        ];
       }
 
-      return [
-        decl("box-shadow", main)
-      ]
+      return [decl("box-shadow", main)];
     }
     if (main === "inherit" || main === "current" || main === "transparent") {
       return [
@@ -373,7 +387,12 @@ functionalUtility({
     let opacity = extra?.opacity;
     let realThemeValue = extra?.realThemeValue;
     if (realThemeValue) {
-      return createRingColorDecls("--tw-inset-ring-color", main, opacity, realThemeValue);
+      return createRingColorDecls(
+        "--tw-inset-ring-color",
+        main,
+        opacity,
+        realThemeValue
+      );
     }
     if (main.startsWith("color:")) {
       const cp = main.replace("color:", "");
@@ -384,7 +403,9 @@ functionalUtility({
         fallback = colorMix;
       }
       return [
-        atrule("supports", "(color:color-mix(in lab, red, red))", [decl("--tw-inset-ring-color", colorMix)]),
+        atrule("supports", "(color:color-mix(in lab, red, red))", [
+          decl("--tw-inset-ring-color", colorMix),
+        ]),
         decl("--tw-inset-ring-color", fallback),
       ];
     }
@@ -401,19 +422,22 @@ functionalUtility({
         }
 
         return [
-            atrule("supports", "(color:color-mix(in lab, red, red))", [decl("--tw-inset-ring-color", colorMix)]),
-            decl("--tw-inset-ring-color", fallback),
-          ];
+          atrule("supports", "(color:color-mix(in lab, red, red))", [
+            decl("--tw-inset-ring-color", colorMix),
+          ]),
+          decl("--tw-inset-ring-color", fallback),
+        ];
       }
-      
-      return [
-        decl("box-shadow", `inset ${main}`)
-      ]
+
+      return [decl("box-shadow", `inset ${main}`)];
     }
 
     if (main === "inherit" || main === "current" || main === "transparent") {
       return [
-        decl("--tw-inset-ring-color", main === "current" ? "currentColor" : main),
+        decl(
+          "--tw-inset-ring-color",
+          main === "current" ? "currentColor" : main
+        ),
       ];
     }
     return null;
@@ -520,16 +544,26 @@ functionalUtility({
   staticUtility(name as string, [["mask-composite", value as string]]);
 });
 
-
 // --- Mask Mode  ---
 [
-    ["mask-alpha", "alpha"],
-    ["mask-luminance", "luminance"],
-    ["mask-match", "match-source"],
-  ].forEach(([name, value]) => {
-    staticUtility(name as string, [["mask-mode", value as string]]);
-  });
-  
+  ["mask-alpha", "alpha"],
+  ["mask-luminance", "luminance"],
+  ["mask-match", "match-source"],
+].forEach(([name, value]) => {
+  staticUtility(name as string, [["mask-mode", value as string]]);
+});
+
+// --- Mask Origin  ---
+[
+  ["mask-origin-border", "border-box"],
+  ["mask-origin-padding", "padding-box"],
+  ["mask-origin-content", "content-box"],
+  ["mask-origin-fill", "fill-box"],
+  ["mask-origin-stroke", "stroke-box"],
+  ["mask-origin-view", "view-box"],
+].forEach(([name, value]) => {
+  staticUtility(name as string, [["mask-origin", value as string]]);
+});
 
 // --- Mask Image  ---
 functionalUtility({
