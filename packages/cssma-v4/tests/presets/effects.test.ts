@@ -887,3 +887,61 @@ describe('mask-origin ', () => {
     ]);
   });
 });
+
+describe('mask-position (Tailwind v4)', () => {
+  it('mask-top-left → mask-position: top left', () => {
+    expect(applyClassName('mask-top-left', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'top left' },
+    ]);
+  });
+  it('mask-top → mask-position: top', () => {
+    expect(applyClassName('mask-top', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'top' },
+    ]);
+  });
+  it('mask-top-right → mask-position: top right', () => {
+    expect(applyClassName('mask-top-right', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'top right' },
+    ]);
+  });
+  it('mask-left → mask-position: left', () => {
+    expect(applyClassName('mask-left', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'left' },
+    ]);
+  });
+  it('mask-center → mask-position: center', () => {
+    expect(applyClassName('mask-center', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'center' },
+    ]);
+  });
+  it('mask-right → mask-position: right', () => {
+    expect(applyClassName('mask-right', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'right' },
+    ]);
+  });
+  it('mask-bottom-left → mask-position: bottom left', () => {
+    expect(applyClassName('mask-bottom-left', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'bottom left' },
+    ]);
+  });
+  it('mask-bottom → mask-position: bottom', () => {
+    expect(applyClassName('mask-bottom', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'bottom' },
+    ]);
+  });
+  it('mask-bottom-right → mask-position: bottom right', () => {
+    expect(applyClassName('mask-bottom-right', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'bottom right' },
+    ]);
+  });
+  it('mask-position-(--my-mask-position) → mask-position: var(--my-mask-position)', () => {
+    expect(applyClassName('mask-position-(--my-mask-position)', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'var(--my-mask-position)' },
+    ]);
+  });
+  it('mask-position-[center_top_1rem] → mask-position: center_top_1rem', () => {
+    expect(applyClassName('mask-position-[center_top_1rem]', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-position', value: 'center top 1rem' },
+    ]);
+  });
+});

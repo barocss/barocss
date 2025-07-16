@@ -565,6 +565,36 @@ functionalUtility({
   staticUtility(name as string, [["mask-origin", value as string]]);
 });
 
+
+// --- Mask Position (Tailwind v4) ---
+[
+    ["mask-top-left", "top left"],
+    ["mask-top", "top"],
+    ["mask-top-right", "top right"],
+    ["mask-left", "left"],
+    ["mask-center", "center"],
+    ["mask-right", "right"],
+    ["mask-bottom-left", "bottom left"],
+    ["mask-bottom", "bottom"],
+    ["mask-bottom-right", "bottom right"],
+  ].forEach(([name, value]) => {
+    staticUtility(name as string, [["mask-position", value as string]]);
+  });
+  functionalUtility({
+    name: "mask-position",
+    supportsArbitrary: true,
+    supportsCustomProperty: true,
+    handle: (value, ctx, token) => {
+      if (token.arbitrary) return [decl("mask-position", value)];
+      if (token.customProperty) return [decl("mask-position", `var(${value})`)];
+      return null;
+    },
+    handleCustomProperty: (value) => [decl("mask-position", `var(${value})`)],
+    description: "mask-position utility (static, arbitrary, custom property 지원)",
+    category: "effects",
+  });
+  
+
 // --- Mask Image  ---
 functionalUtility({
   name: "mask",
