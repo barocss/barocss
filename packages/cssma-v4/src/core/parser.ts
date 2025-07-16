@@ -12,6 +12,7 @@ export interface ParsedUtility {
   arbitrary?: boolean;
   customProperty?: boolean;
   negative?: boolean;
+  opacity?: string;
   [key: string]: any;
 }
 
@@ -76,6 +77,7 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
   let arbitrary = false;
   let customProperty = false;
   let negative = false;
+  let opacity = '';
   let utilStr = utilityPart;
   if (utilStr.startsWith('-')) {
     negative = true;
@@ -84,7 +86,19 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
   // --- PATCH: handle arbitrary/custom property before prefix matching ---
   if (utilStr.includes('-[')) {
     // Arbitrary value: bg-[red], min-w-[10vw], etc
+    // shadow-[#bada55]/80 → shadow-[#bada55]
     [prefix, value] = utilStr.split('-[');
+
+    if (value.includes('/')) {
+      let list = value.split('/');
+
+      if (list.length > 1) {
+        opacity = list.pop()!;
+        value = list.join('/');
+        
+      }
+    }
+
     value = value.replace(/]$/, '');
     arbitrary = true;
   } else if (utilStr.includes('-(')) {
@@ -127,6 +141,7 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
       arbitrary: !!arbitrary,
       customProperty: !!customProperty,
       negative: !!negative,
+      opacity,
     },
   };
 }

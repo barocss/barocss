@@ -156,8 +156,10 @@ export function functionalUtility(opts: {
     match: (className: string) => className.startsWith(opts.name + '-'),
     handler: (value, ctx, token, _options) => {
       let finalValue = value;
-      const parsedUtility = token as ParsedUtility;
-      const extra: FunctionalUtilityExtra = {};
+      const parsedUtility = token;
+      const extra: FunctionalUtilityExtra = {
+        opacity: token.opacity,
+      };
 
       if (opts.supportsOpacity && !token.arbitrary && !token.customProperty && value.includes('/')) {
         const list = value.split('/');
@@ -209,10 +211,10 @@ export function functionalUtility(opts: {
         }
       }
       if (themeValue !== undefined) {
+        extra.realThemeValue = finalValue;
         finalValue = themeValue;
         if (opts.prop) return [decl(opts.prop, finalValue)];
         if (opts.handle) {
-          extra.realThemeValue = value;
           const result = opts.handle(finalValue, ctx, token, extra);
           if (result) return result;
         }
