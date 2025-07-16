@@ -519,3 +519,19 @@ functionalUtility({
 ].forEach(([name, value]) => {
   staticUtility(name as string, [["mask-composite", value as string]]);
 });
+
+// --- Mask Image (Tailwind v4) ---
+functionalUtility({
+  name: "mask",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handle: (value, ctx, token) => {
+    if (value === "none") return [decl("mask-image", "none")];
+    if (token.arbitrary) return [decl("mask-image", value)];
+    if (token.customProperty) return [decl("mask-image", `var(${value})`)];
+    return null;
+  },
+  handleCustomProperty: (value) => [decl("mask-image", `var(${value})`)],
+  description: "mask-image utility (arbitrary, custom property 지원)",
+  category: "effects",
+});

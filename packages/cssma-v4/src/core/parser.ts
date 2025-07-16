@@ -89,7 +89,7 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
     // shadow-[#bada55]/80 → shadow-[#bada55]
     [prefix, value] = utilStr.split('-[');
 
-    if (value.includes('/')) {
+    if (value.includes('/') && !value.startsWith('url(')) {
       let list = value.split('/');
 
       if (list.length > 1) {

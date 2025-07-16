@@ -818,3 +818,21 @@ describe('mask-composite (Tailwind v4)', () => {
     ]);
   });
 });
+
+describe('mask-image (Tailwind v4)', () => {
+  it('mask-[url(/img/circle.png)] → mask-image: url(/img/circle.png)', () => {
+    expect(applyClassName('mask-[url(/img/circle.png)]', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-image', value: 'url(/img/circle.png)' },
+    ]);
+  });
+  it('mask-(--my-mask) → mask-image: var(--my-mask)', () => {
+    expect(applyClassName('mask-(--my-mask)', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-image', value: 'var(--my-mask)' },
+    ]);
+  });
+  it('mask-none → mask-image: none', () => {
+    expect(applyClassName('mask-none', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-image', value: 'none' },
+    ]);
+  });
+});
