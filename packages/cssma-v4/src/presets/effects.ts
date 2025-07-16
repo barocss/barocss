@@ -496,3 +496,16 @@ functionalUtility({
 ].forEach(([name, value]) => {
   staticUtility(name as string, [["background-blend-mode", value as string]]);
 });
+
+// --- Mask Clip  ---
+[
+  ["mask-clip-border", "border-box"],
+  ["mask-clip-padding", "padding-box"],
+  ["mask-clip-content", "content-box"],
+  ["mask-clip-fill", "fill-box"],
+  ["mask-clip-stroke", "stroke-box"],
+  ["mask-clip-view", "view-box"],
+  ["mask-no-clip", "no-clip"],
+].forEach(([name, value]) => {
+  staticUtility(name as string, [["mask-clip", value as string]]);
+});

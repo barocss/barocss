@@ -757,3 +757,41 @@ describe('background-blend-mode ', () => {
     ]);
   });
 });
+
+describe('mask-clip ', () => {
+  it('mask-clip-border → mask-clip: border-box', () => {
+    expect(applyClassName('mask-clip-border', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-clip', value: 'border-box' },
+    ]);
+  });
+  it('mask-clip-padding → mask-clip: padding-box', () => {
+    expect(applyClassName('mask-clip-padding', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-clip', value: 'padding-box' },
+    ]);
+  });
+  it('mask-clip-content → mask-clip: content-box', () => {
+    expect(applyClassName('mask-clip-content', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-clip', value: 'content-box' },
+    ]);
+  });
+  it('mask-clip-fill → mask-clip: fill-box', () => {
+    expect(applyClassName('mask-clip-fill', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-clip', value: 'fill-box' },
+    ]);
+  });
+  it('mask-clip-stroke → mask-clip: stroke-box', () => {
+    expect(applyClassName('mask-clip-stroke', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-clip', value: 'stroke-box' },
+    ]);
+  });
+  it('mask-clip-view → mask-clip: view-box', () => {
+    expect(applyClassName('mask-clip-view', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-clip', value: 'view-box' },
+    ]);
+  });
+  it('mask-no-clip → mask-clip: no-clip', () => {
+    expect(applyClassName('mask-no-clip', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-clip', value: 'no-clip' },
+    ]);
+  });
+});
