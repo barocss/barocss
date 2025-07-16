@@ -1,3 +1,4 @@
+import "./filter";
 import "./effects";
 import "./layout";
 import "./flexbox-grid";
