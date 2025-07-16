@@ -6,10 +6,10 @@ import { createContext } from "../../src/core/context";
 describe("border utilities", () => {
   const ctx = createContext({
     theme: {
-      colors: { 
-        red: { 500: "#ef4444" }, 
+      colors: {
+        red: { 500: "#ef4444" },
         blue: { 500: "#3b82f6" },
-        transparent: "transparent"
+        transparent: "transparent",
       },
     },
   });
@@ -20,25 +20,49 @@ describe("border utilities", () => {
         { type: "decl", prop: "border-radius", value: "0px" },
       ]);
       expect(applyClassName("rounded-sm", ctx)).toEqual([
-        { type: "decl", prop: "border-radius", value: "var(--border-radius-sm)" },
+        {
+          type: "decl",
+          prop: "border-radius",
+          value: "var(--border-radius-sm)",
+        },
       ]);
       expect(applyClassName("rounded", ctx)).toEqual([
         { type: "decl", prop: "border-radius", value: "var(--border-radius)" },
       ]);
       expect(applyClassName("rounded-md", ctx)).toEqual([
-        { type: "decl", prop: "border-radius", value: "var(--border-radius-md)" },
+        {
+          type: "decl",
+          prop: "border-radius",
+          value: "var(--border-radius-md)",
+        },
       ]);
       expect(applyClassName("rounded-lg", ctx)).toEqual([
-        { type: "decl", prop: "border-radius", value: "var(--border-radius-lg)" },
+        {
+          type: "decl",
+          prop: "border-radius",
+          value: "var(--border-radius-lg)",
+        },
       ]);
       expect(applyClassName("rounded-xl", ctx)).toEqual([
-        { type: "decl", prop: "border-radius", value: "var(--border-radius-xl)" },
+        {
+          type: "decl",
+          prop: "border-radius",
+          value: "var(--border-radius-xl)",
+        },
       ]);
       expect(applyClassName("rounded-2xl", ctx)).toEqual([
-        { type: "decl", prop: "border-radius", value: "var(--border-radius-2xl)" },
+        {
+          type: "decl",
+          prop: "border-radius",
+          value: "var(--border-radius-2xl)",
+        },
       ]);
       expect(applyClassName("rounded-3xl", ctx)).toEqual([
-        { type: "decl", prop: "border-radius", value: "var(--border-radius-3xl)" },
+        {
+          type: "decl",
+          prop: "border-radius",
+          value: "var(--border-radius-3xl)",
+        },
       ]);
       expect(applyClassName("rounded-full", ctx)).toEqual([
         { type: "decl", prop: "border-radius", value: "9999px" },
@@ -47,7 +71,11 @@ describe("border utilities", () => {
 
     it("rounded-* functional utilities", () => {
       expect(applyClassName("rounded-4", ctx)).toEqual([
-        { type: "decl", prop: "border-radius", value: "calc(var(--spacing) * 4)" },
+        {
+          type: "decl",
+          prop: "border-radius",
+          value: "calc(var(--spacing) * 4)",
+        },
       ]);
       expect(applyClassName("rounded-[12px]", ctx)).toEqual([
         { type: "decl", prop: "border-radius", value: "12px" },
@@ -59,15 +87,35 @@ describe("border utilities", () => {
 
     it("individual corner radius utilities", () => {
       expect(applyClassName("rounded-t-lg", ctx)).toEqual([
-        { type: "decl", prop: "border-top-left-radius", value: "var(--border-radius-lg)" },
-        { type: "decl", prop: "border-top-right-radius", value: "var(--border-radius-lg)" },
+        {
+          type: "decl",
+          prop: "border-top-left-radius",
+          value: "var(--border-radius-lg)",
+        },
+        {
+          type: "decl",
+          prop: "border-top-right-radius",
+          value: "var(--border-radius-lg)",
+        },
       ]);
       expect(applyClassName("rounded-r-md", ctx)).toEqual([
-        { type: "decl", prop: "border-top-right-radius", value: "var(--border-radius-md)" },
-        { type: "decl", prop: "border-bottom-right-radius", value: "var(--border-radius-md)" },
+        {
+          type: "decl",
+          prop: "border-top-right-radius",
+          value: "var(--border-radius-md)",
+        },
+        {
+          type: "decl",
+          prop: "border-bottom-right-radius",
+          value: "var(--border-radius-md)",
+        },
       ]);
       expect(applyClassName("rounded-tl-sm", ctx)).toEqual([
-        { type: "decl", prop: "border-top-left-radius", value: "var(--border-radius-sm)" },
+        {
+          type: "decl",
+          prop: "border-top-left-radius",
+          value: "var(--border-radius-sm)",
+        },
       ]);
       expect(applyClassName("rounded-br-full", ctx)).toEqual([
         { type: "decl", prop: "border-bottom-right-radius", value: "9999px" },
@@ -76,14 +124,26 @@ describe("border utilities", () => {
 
     it("individual corner radius functional utilities", () => {
       expect(applyClassName("rounded-t-4", ctx)).toEqual([
-        { type: "decl", prop: "border-top-left-radius", value: "calc(var(--spacing) * 4)" },
-        { type: "decl", prop: "border-top-right-radius", value: "calc(var(--spacing) * 4)" },
+        {
+          type: "decl",
+          prop: "border-top-left-radius",
+          value: "calc(var(--spacing) * 4)",
+        },
+        {
+          type: "decl",
+          prop: "border-top-right-radius",
+          value: "calc(var(--spacing) * 4)",
+        },
       ]);
       expect(applyClassName("rounded-tl-[8px]", ctx)).toEqual([
         { type: "decl", prop: "border-top-left-radius", value: "8px" },
       ]);
       expect(applyClassName("rounded-br-(--corner-radius)", ctx)).toEqual([
-        { type: "decl", prop: "border-bottom-right-radius", value: "var(--corner-radius)" },
+        {
+          type: "decl",
+          prop: "border-bottom-right-radius",
+          value: "var(--corner-radius)",
+        },
       ]);
     });
   });
@@ -163,6 +223,21 @@ describe("border utilities", () => {
       expect(applyClassName("border-blue-500", ctx)).toEqual([
         { type: "decl", prop: "border-color", value: "#3b82f6" },
       ]);
+      expect(applyClassName("border-red-500/50", ctx)).toEqual([
+        {
+          type: "atrule",
+          name: "supports",
+          params: "(color:color-mix(in lab, red, red))",
+          nodes: [
+            {
+              type: "decl",
+              prop: "border-color",
+              value: "color-mix(in lab, #ef4444 50%, transparent)",
+            },
+          ],
+        },
+        { type: "decl", prop: "border-color", value: "#ef4444" },
+      ]);
     });
 
     it("border-* arbitrary color utilities", () => {
@@ -193,7 +268,11 @@ describe("border utilities", () => {
         { type: "decl", prop: "border-top-color", value: "#00ff00" },
       ]);
       expect(applyClassName("border-r-(--right-color)", ctx)).toEqual([
-        { type: "decl", prop: "border-right-color", value: "var(--right-color)" },
+        {
+          type: "decl",
+          prop: "border-right-color",
+          value: "var(--right-color)",
+        },
       ]);
     });
   });
@@ -247,8 +326,14 @@ describe("border utilities", () => {
       expect(applyClassName("outline-[5px]", ctx)).toEqual([
         { type: "decl", prop: "outline-width", value: "5px" },
       ]);
-      expect(applyClassName("outline-(length:--my-outline-width)", ctx)).toEqual([
-        { type: "decl", prop: "outline-width", value: "var(--my-outline-width)" },
+      expect(
+        applyClassName("outline-(length:--my-outline-width)", ctx)
+      ).toEqual([
+        {
+          type: "decl",
+          prop: "outline-width",
+          value: "var(--my-outline-width)",
+        },
       ]);
     });
   });
@@ -286,7 +371,11 @@ describe("border utilities", () => {
 
     it("outline-* custom property utilities", () => {
       expect(applyClassName("outline-(--my-outline-color)", ctx)).toEqual([
-        { type: "decl", prop: "outline-color", value: "var(--my-outline-color)" },
+        {
+          type: "decl",
+          prop: "outline-color",
+          value: "var(--my-outline-color)",
+        },
       ]);
     });
   });

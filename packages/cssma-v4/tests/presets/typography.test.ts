@@ -25,7 +25,11 @@ describe("preset typography utilities", () => {
     });
     it("font-serif → font-family: var(--font-family-serif)", () => {
       expect(applyClassName("font-serif", ctx)).toEqual([
-        { type: "decl", prop: "font-family", value: "var(--font-family-serif)" },
+        {
+          type: "decl",
+          prop: "font-family",
+          value: "var(--font-family-serif)",
+        },
       ]);
     });
     it("font-mono → font-family: var(--font-family-mono)", () => {
@@ -48,37 +52,61 @@ describe("preset typography utilities", () => {
     it("text-xs → font-size + line-height", () => {
       expect(applyClassName("text-xs", ctx)).toEqual([
         { type: "decl", prop: "font-size", value: "var(--text-xs)" },
-        { type: "decl", prop: "line-height", value: "var(--text-xs--line-height)" },
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--text-xs--line-height)",
+        },
       ]);
     });
     it("text-sm → font-size + line-height", () => {
       expect(applyClassName("text-sm", ctx)).toEqual([
         { type: "decl", prop: "font-size", value: "var(--text-sm)" },
-        { type: "decl", prop: "line-height", value: "var(--text-sm--line-height)" },
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--text-sm--line-height)",
+        },
       ]);
     });
     it("text-base → font-size + line-height", () => {
       expect(applyClassName("text-base", ctx)).toEqual([
         { type: "decl", prop: "font-size", value: "var(--text-base)" },
-        { type: "decl", prop: "line-height", value: "var(--text-base--line-height)" },
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--text-base--line-height)",
+        },
       ]);
     });
     it("text-lg → font-size + line-height", () => {
       expect(applyClassName("text-lg", ctx)).toEqual([
         { type: "decl", prop: "font-size", value: "var(--text-lg)" },
-        { type: "decl", prop: "line-height", value: "var(--text-lg--line-height)" },
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--text-lg--line-height)",
+        },
       ]);
     });
     it("text-xl → font-size + line-height", () => {
       expect(applyClassName("text-xl", ctx)).toEqual([
         { type: "decl", prop: "font-size", value: "var(--text-xl)" },
-        { type: "decl", prop: "line-height", value: "var(--text-xl--line-height)" },
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--text-xl--line-height)",
+        },
       ]);
     });
     it("text-2xl → font-size + line-height", () => {
       expect(applyClassName("text-2xl", ctx)).toEqual([
         { type: "decl", prop: "font-size", value: "var(--text-2xl)" },
-        { type: "decl", prop: "line-height", value: "var(--text-2xl--line-height)" },
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--text-2xl--line-height)",
+        },
       ]);
     });
     it("text-[14px] → font-size: 14px", () => {
@@ -91,6 +119,23 @@ describe("preset typography utilities", () => {
         { type: "decl", prop: "font-size", value: "var(--my-size)" },
       ]);
     });
+    it("text-red-500/75 → color: color-mix(in lab, red-500 75%, transparent)", () => {
+      expect(applyClassName("text-red-500/75", ctx)).toEqual([
+        {
+          type: "atrule",
+          name: "supports",
+          params: "(color:color-mix(in lab, red, red))",
+          nodes: [
+            {
+              type: "decl",
+              prop: "color",
+              value: "color-mix(in lab, #f00 75%, transparent)",
+            },
+          ],
+        },
+        { type: "decl", prop: "color", value: "#f00" },
+      ]);
+    });
 
     // Font Weight
     it("font-thin → font-weight: var(--font-weight-thin)", () => {
@@ -100,17 +145,29 @@ describe("preset typography utilities", () => {
     });
     it("font-normal → font-weight: var(--font-weight-normal)", () => {
       expect(applyClassName("font-normal", ctx)).toEqual([
-        { type: "decl", prop: "font-weight", value: "var(--font-weight-normal)" },
+        {
+          type: "decl",
+          prop: "font-weight",
+          value: "var(--font-weight-normal)",
+        },
       ]);
     });
     it("font-medium → font-weight: var(--font-weight-medium)", () => {
       expect(applyClassName("font-medium", ctx)).toEqual([
-        { type: "decl", prop: "font-weight", value: "var(--font-weight-medium)" },
+        {
+          type: "decl",
+          prop: "font-weight",
+          value: "var(--font-weight-medium)",
+        },
       ]);
     });
     it("font-semibold → font-weight: var(--font-weight-semibold)", () => {
       expect(applyClassName("font-semibold", ctx)).toEqual([
-        { type: "decl", prop: "font-weight", value: "var(--font-weight-semibold)" },
+        {
+          type: "decl",
+          prop: "font-weight",
+          value: "var(--font-weight-semibold)",
+        },
       ]);
     });
     it("font-bold → font-weight: var(--font-weight-bold)", () => {
@@ -120,7 +177,11 @@ describe("preset typography utilities", () => {
     });
     it("font-black → font-weight: var(--font-weight-black)", () => {
       expect(applyClassName("font-black", ctx)).toEqual([
-        { type: "decl", prop: "font-weight", value: "var(--font-weight-black)" },
+        {
+          type: "decl",
+          prop: "font-weight",
+          value: "var(--font-weight-black)",
+        },
       ]);
     });
     it("font-[450] → font-weight: 450", () => {
@@ -149,32 +210,56 @@ describe("preset typography utilities", () => {
     // Letter Spacing
     it("tracking-tighter → letter-spacing: var(--letter-spacing-tighter)", () => {
       expect(applyClassName("tracking-tighter", ctx)).toEqual([
-        { type: "decl", prop: "letter-spacing", value: "var(--letter-spacing-tighter)" },
+        {
+          type: "decl",
+          prop: "letter-spacing",
+          value: "var(--letter-spacing-tighter)",
+        },
       ]);
     });
     it("tracking-tight → letter-spacing: var(--letter-spacing-tight)", () => {
       expect(applyClassName("tracking-tight", ctx)).toEqual([
-        { type: "decl", prop: "letter-spacing", value: "var(--letter-spacing-tight)" },
+        {
+          type: "decl",
+          prop: "letter-spacing",
+          value: "var(--letter-spacing-tight)",
+        },
       ]);
     });
     it("tracking-normal → letter-spacing: var(--letter-spacing-normal)", () => {
       expect(applyClassName("tracking-normal", ctx)).toEqual([
-        { type: "decl", prop: "letter-spacing", value: "var(--letter-spacing-normal)" },
+        {
+          type: "decl",
+          prop: "letter-spacing",
+          value: "var(--letter-spacing-normal)",
+        },
       ]);
     });
     it("tracking-wide → letter-spacing: var(--letter-spacing-wide)", () => {
       expect(applyClassName("tracking-wide", ctx)).toEqual([
-        { type: "decl", prop: "letter-spacing", value: "var(--letter-spacing-wide)" },
+        {
+          type: "decl",
+          prop: "letter-spacing",
+          value: "var(--letter-spacing-wide)",
+        },
       ]);
     });
     it("tracking-wider → letter-spacing: var(--letter-spacing-wider)", () => {
       expect(applyClassName("tracking-wider", ctx)).toEqual([
-        { type: "decl", prop: "letter-spacing", value: "var(--letter-spacing-wider)" },
+        {
+          type: "decl",
+          prop: "letter-spacing",
+          value: "var(--letter-spacing-wider)",
+        },
       ]);
     });
     it("tracking-widest → letter-spacing: var(--letter-spacing-widest)", () => {
       expect(applyClassName("tracking-widest", ctx)).toEqual([
-        { type: "decl", prop: "letter-spacing", value: "var(--letter-spacing-widest)" },
+        {
+          type: "decl",
+          prop: "letter-spacing",
+          value: "var(--letter-spacing-widest)",
+        },
       ]);
     });
     it("tracking-[0.25em] → letter-spacing: 0.25em", () => {
@@ -196,22 +281,38 @@ describe("preset typography utilities", () => {
     });
     it("leading-tight → line-height: var(--line-height-tight)", () => {
       expect(applyClassName("leading-tight", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "var(--line-height-tight)" },
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--line-height-tight)",
+        },
       ]);
     });
     it("leading-normal → line-height: var(--line-height-normal)", () => {
       expect(applyClassName("leading-normal", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "var(--line-height-normal)" },
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--line-height-normal)",
+        },
       ]);
     });
     it("leading-relaxed → line-height: var(--line-height-relaxed)", () => {
       expect(applyClassName("leading-relaxed", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "var(--line-height-relaxed)" },
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--line-height-relaxed)",
+        },
       ]);
     });
     it("leading-loose → line-height: var(--line-height-loose)", () => {
       expect(applyClassName("leading-loose", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "var(--line-height-loose)" },
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--line-height-loose)",
+        },
       ]);
     });
     it("leading-[1.7] → line-height: 1.7", () => {
@@ -325,6 +426,18 @@ describe("preset typography utilities", () => {
     it("no-underline → text-decoration-line: none", () => {
       expect(applyClassName("no-underline", ctx)).toEqual([
         { type: "decl", prop: "text-decoration-line", value: "none" },
+      ]);
+    });
+
+    it("decoration-red-500/75 → text-decoration-color: color-mix(in lab, red-500 75%, transparent)", () => {
+      expect(applyClassName("decoration-red-500/75", ctx)).toEqual([
+        {
+          type: "atrule",
+          name: "supports",
+          params: "(color:color-mix(in lab, red, red))",
+          nodes: [{ type: "decl", prop: "text-decoration-color", value: "color-mix(in lab, #f00 75%, transparent)" }],
+        },
+        { type: "decl", prop: "text-decoration-color", value: "#f00" },
       ]);
     });
 

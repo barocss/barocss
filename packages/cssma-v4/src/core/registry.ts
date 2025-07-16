@@ -165,8 +165,6 @@ export function functionalUtility(opts: {
         if (list.length >= 2) {
           extra.opacity = list.pop();
           finalValue = list.join('/');
-
-          console.log(opts.name, value, finalValue, extra.opacity);
         }
       }
 

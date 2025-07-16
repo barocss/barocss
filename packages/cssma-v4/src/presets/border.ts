@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { decl } from "../core/ast";
+import { atrule, decl } from "../core/ast";
 import { parseNumber, parseLength, parseColor } from "../core/utils";
 
 // --- Border Radius ---
@@ -163,7 +163,20 @@ functionalUtility({
   themeKeys: ["colors", "borderWidth"],
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  supportsOpacity: true,
+  handle: (value, ctx, token, extra) => {
+
+    if (extra?.realThemeValue) {
+      if (extra.opacity) {
+        return [
+          atrule("supports", `(color:color-mix(in lab, red, red))`, [
+            decl("border-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
+          ]),
+          decl("border-color", value),
+        ];
+      }
+      return [decl("border-color", value)];
+    }
 
     if (token.arbitrary) {
       if (parseLength(value)) {

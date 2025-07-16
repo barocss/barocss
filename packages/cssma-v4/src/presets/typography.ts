@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { decl } from "../core/ast";
+import { atrule, decl } from "../core/ast";
 import {
   parseNumber,
   parseLength,
@@ -119,9 +119,24 @@ staticUtility("text-clip", [["text-overflow", "clip"]]);
 
 functionalUtility({
   name: "text",  
+  themeKey: "colors",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value) => {
+  supportsOpacity: true,
+  handle: (value, ctx, token, extra) => {
+    
+    if (extra?.realThemeValue) {
+      if (extra.opacity) {
+        return [
+          atrule("supports", `(color:color-mix(in lab, red, red))`, [
+            decl("color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
+          ]),
+          decl("color", value),
+        ];
+      }
+      return [decl("color", value)];
+    }
+
     if (parseLength(value)) {
       return [decl("font-size", value)];
     }
@@ -292,10 +307,25 @@ functionalUtility({
 // --- Typography: Text Decoration Color ---
 functionalUtility({
   name: "decoration",
-  prop: "text-decoration-color",
   themeKey: "colors",
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  supportsOpacity: true,
+  handle: (value, ctx, token, extra) => {
+    if (extra?.realThemeValue) {
+      if (extra.opacity) {
+        return [
+          atrule("supports", `(color:color-mix(in lab, red, red))`, [
+            decl("text-decoration-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
+          ]),
+          decl("text-decoration-color", value),
+        ];
+      }
+      return [decl("text-decoration-color", value)];
+    }
+    return [decl("text-decoration-color", value)];
+  },
+  handleCustomProperty: (value) => [decl("text-decoration-color", `var(${value})`)],
   description: "text-decoration-color utility (theme, arbitrary, custom property 지원)",
   category: "typography",
 });
