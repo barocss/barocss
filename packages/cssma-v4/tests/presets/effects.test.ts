@@ -553,3 +553,124 @@ describe("effects.ts (box-shadow utilities)", () => {
     ]);
   });
 });
+
+describe('opacity ', () => {
+  it('opacity-100 → opacity: 1', () => {
+    expect(applyClassName('opacity-100', ctx)).toEqual([
+      { type: 'decl', prop: 'opacity', value: '1' },
+    ]);
+  });
+  it('opacity-75 → opacity: 0.75', () => {
+    expect(applyClassName('opacity-75', ctx)).toEqual([
+      { type: 'decl', prop: 'opacity', value: '0.75' },
+    ]);
+  });
+  it('opacity-50 → opacity: 0.5', () => {
+    expect(applyClassName('opacity-50', ctx)).toEqual([
+      { type: 'decl', prop: 'opacity', value: '0.5' },
+    ]);
+  });
+  it('opacity-[.67] → opacity: .67', () => {
+    expect(applyClassName('opacity-[.67]', ctx)).toEqual([
+      { type: 'decl', prop: 'opacity', value: '.67' },
+    ]);
+  });
+  it('opacity-(--my-opacity) → opacity: var(--my-opacity)', () => {
+    expect(applyClassName('opacity-(--my-opacity)', ctx)).toEqual([
+      { type: 'decl', prop: 'opacity', value: 'var(--my-opacity)' },
+    ]);
+  });
+});
+
+describe('mix-blend-mode ', () => {
+  it('mix-blend-normal → mix-blend-mode: normal', () => {
+    expect(applyClassName('mix-blend-normal', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'normal' },
+    ]);
+  });
+  it('mix-blend-multiply → mix-blend-mode: multiply', () => {
+    expect(applyClassName('mix-blend-multiply', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'multiply' },
+    ]);
+  });
+  it('mix-blend-screen → mix-blend-mode: screen', () => {
+    expect(applyClassName('mix-blend-screen', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'screen' },
+    ]);
+  });
+  it('mix-blend-overlay → mix-blend-mode: overlay', () => {
+    expect(applyClassName('mix-blend-overlay', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'overlay' },
+    ]);
+  });
+  it('mix-blend-darken → mix-blend-mode: darken', () => {
+    expect(applyClassName('mix-blend-darken', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'darken' },
+    ]);
+  });
+  it('mix-blend-lighten → mix-blend-mode: lighten', () => {
+    expect(applyClassName('mix-blend-lighten', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'lighten' },
+    ]);
+  });
+  it('mix-blend-color-dodge → mix-blend-mode: color-dodge', () => {
+    expect(applyClassName('mix-blend-color-dodge', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'color-dodge' },
+    ]);
+  });
+  it('mix-blend-color-burn → mix-blend-mode: color-burn', () => {
+    expect(applyClassName('mix-blend-color-burn', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'color-burn' },
+    ]);
+  });
+  it('mix-blend-hard-light → mix-blend-mode: hard-light', () => {
+    expect(applyClassName('mix-blend-hard-light', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'hard-light' },
+    ]);
+  });
+  it('mix-blend-soft-light → mix-blend-mode: soft-light', () => {
+    expect(applyClassName('mix-blend-soft-light', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'soft-light' },
+    ]);
+  });
+  it('mix-blend-difference → mix-blend-mode: difference', () => {
+    expect(applyClassName('mix-blend-difference', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'difference' },
+    ]);
+  });
+  it('mix-blend-exclusion → mix-blend-mode: exclusion', () => {
+    expect(applyClassName('mix-blend-exclusion', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'exclusion' },
+    ]);
+  });
+  it('mix-blend-hue → mix-blend-mode: hue', () => {
+    expect(applyClassName('mix-blend-hue', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'hue' },
+    ]);
+  });
+  it('mix-blend-saturation → mix-blend-mode: saturation', () => {
+    expect(applyClassName('mix-blend-saturation', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'saturation' },
+    ]);
+  });
+  it('mix-blend-color → mix-blend-mode: color', () => {
+    expect(applyClassName('mix-blend-color', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'color' },
+    ]);
+  });
+  it('mix-blend-luminosity → mix-blend-mode: luminosity', () => {
+    expect(applyClassName('mix-blend-luminosity', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'luminosity' },
+    ]);
+  });
+  it('mix-blend-plus-darker → mix-blend-mode: plus-darker', () => {
+    expect(applyClassName('mix-blend-plus-darker', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'plus-darker' },
+    ]);
+  });
+  it('mix-blend-plus-lighter → mix-blend-mode: plus-lighter', () => {
+    expect(applyClassName('mix-blend-plus-lighter', ctx)).toEqual([
+      { type: 'decl', prop: 'mix-blend-mode', value: 'plus-lighter' },
+    ]);
+  });
+});

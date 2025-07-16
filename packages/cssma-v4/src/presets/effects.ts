@@ -426,3 +426,51 @@ functionalUtility({
     return [decl("--tw-inset-ring-color", `var(${value})`)];
   },
 });
+
+// --- Opacity  ---
+
+functionalUtility({
+  name: "opacity",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handle: (value, ctx, token) => {
+    // opacity-100, opacity-75, etc.
+    if (parseNumber(value)) {
+      let num = Number(value);
+      if (num > 1) num = num / 100;
+      return [decl("opacity", String(num))];
+    }
+    // opacity-[.67] → .67
+    if (token.arbitrary) {
+      return [decl("opacity", value)];
+    }
+    return null;
+  },
+  handleCustomProperty: (value) => [decl("opacity", `var(${value})`)],
+  description: "opacity utility (number, arbitrary, custom property 지원)",
+  category: "effects",
+});
+
+// --- Mix Blend Mode  ---
+[
+  ["mix-blend-normal", "normal"],
+  ["mix-blend-multiply", "multiply"],
+  ["mix-blend-screen", "screen"],
+  ["mix-blend-overlay", "overlay"],
+  ["mix-blend-darken", "darken"],
+  ["mix-blend-lighten", "lighten"],
+  ["mix-blend-color-dodge", "color-dodge"],
+  ["mix-blend-color-burn", "color-burn"],
+  ["mix-blend-hard-light", "hard-light"],
+  ["mix-blend-soft-light", "soft-light"],
+  ["mix-blend-difference", "difference"],
+  ["mix-blend-exclusion", "exclusion"],
+  ["mix-blend-hue", "hue"],
+  ["mix-blend-saturation", "saturation"],
+  ["mix-blend-color", "color"],
+  ["mix-blend-luminosity", "luminosity"],
+  ["mix-blend-plus-darker", "plus-darker"],
+  ["mix-blend-plus-lighter", "plus-lighter"],
+].forEach(([name, value]) => {
+  staticUtility(name as string, [["mix-blend-mode", value as string]]);
+});
