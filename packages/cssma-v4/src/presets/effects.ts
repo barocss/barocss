@@ -615,6 +615,15 @@ functionalUtility({
   staticUtility(name as string, [["mask-size", value as string]]);
 });
 
+
+// --- Mask Type  ---
+[
+    ["mask-type-alpha", "alpha"],
+    ["mask-type-luminance", "luminance"],
+  ].forEach(([name, value]) => {
+    staticUtility(name as string, [["mask-type", value as string]]);
+  });
+
 // mask-size-[value] (arbitrary) & mask-size-(--custom-property)
 functionalUtility({
   name: "mask-size",
@@ -640,3 +649,4 @@ functionalUtility({
   description: "mask-image utility (arbitrary, custom property 지원)",
   category: "effects",
 });
+

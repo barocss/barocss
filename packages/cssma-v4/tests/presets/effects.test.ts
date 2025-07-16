@@ -1006,3 +1006,16 @@ describe('mask-size', () => {
     ]);
   });
 });
+
+describe('mask-type', () => {
+  it('mask-type-alpha → mask-type: alpha', () => {
+    expect(applyClassName('mask-type-alpha', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-type', value: 'alpha' },
+    ]);
+  });
+  it('mask-type-luminance → mask-type: luminance', () => {
+    expect(applyClassName('mask-type-luminance', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-type', value: 'luminance' },
+    ]);
+  });
+});
