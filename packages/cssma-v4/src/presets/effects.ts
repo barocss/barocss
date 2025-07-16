@@ -565,35 +565,65 @@ functionalUtility({
   staticUtility(name as string, [["mask-origin", value as string]]);
 });
 
-
-// --- Mask Position (Tailwind v4) ---
+// --- Mask Position  ---
 [
-    ["mask-top-left", "top left"],
-    ["mask-top", "top"],
-    ["mask-top-right", "top right"],
-    ["mask-left", "left"],
-    ["mask-center", "center"],
-    ["mask-right", "right"],
-    ["mask-bottom-left", "bottom left"],
-    ["mask-bottom", "bottom"],
-    ["mask-bottom-right", "bottom right"],
-  ].forEach(([name, value]) => {
-    staticUtility(name as string, [["mask-position", value as string]]);
-  });
-  functionalUtility({
-    name: "mask-position",
-    supportsArbitrary: true,
-    supportsCustomProperty: true,
-    handle: (value, ctx, token) => {
-      if (token.arbitrary) return [decl("mask-position", value)];
-      if (token.customProperty) return [decl("mask-position", `var(${value})`)];
-      return null;
-    },
-    handleCustomProperty: (value) => [decl("mask-position", `var(${value})`)],
-    description: "mask-position utility (static, arbitrary, custom property 지원)",
-    category: "effects",
-  });
-  
+  ["mask-top-left", "top left"],
+  ["mask-top", "top"],
+  ["mask-top-right", "top right"],
+  ["mask-left", "left"],
+  ["mask-center", "center"],
+  ["mask-right", "right"],
+  ["mask-bottom-left", "bottom left"],
+  ["mask-bottom", "bottom"],
+  ["mask-bottom-right", "bottom right"],
+].forEach(([name, value]) => {
+  staticUtility(name as string, [["mask-position", value as string]]);
+});
+functionalUtility({
+  name: "mask-position",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handle: (value, ctx, token) => {
+    if (token.arbitrary) return [decl("mask-position", value)];
+    if (token.customProperty) return [decl("mask-position", `var(${value})`)];
+    return null;
+  },
+  handleCustomProperty: (value) => [decl("mask-position", `var(${value})`)],
+  description:
+    "mask-position utility (static, arbitrary, custom property 지원)",
+  category: "effects",
+});
+
+// --- Mask Repeat  ---
+[
+  ["mask-repeat", "repeat"],
+  ["mask-no-repeat", "no-repeat"],
+  ["mask-repeat-x", "repeat-x"],
+  ["mask-repeat-y", "repeat-y"],
+  ["mask-repeat-space", "space"],
+  ["mask-repeat-round", "round"],
+].forEach(([name, value]) => {
+  staticUtility(name as string, [["mask-repeat", value as string]]);
+});
+
+// --- Mask Size  ---
+[
+  ["mask-auto", "auto"],
+  ["mask-cover", "cover"],
+  ["mask-contain", "contain"],
+].forEach(([name, value]) => {
+  staticUtility(name as string, [["mask-size", value as string]]);
+});
+
+// mask-size-[value] (arbitrary) & mask-size-(--custom-property)
+functionalUtility({
+  name: "mask-size",
+  prop: "mask-size",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: "mask-size utility (static, arbitrary, custom property 지원)",
+  category: "effects",
+});
 
 // --- Mask Image  ---
 functionalUtility({

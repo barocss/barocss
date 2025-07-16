@@ -888,7 +888,7 @@ describe('mask-origin ', () => {
   });
 });
 
-describe('mask-position (Tailwind v4)', () => {
+describe('mask-position ', () => {
   it('mask-top-left → mask-position: top left', () => {
     expect(applyClassName('mask-top-left', ctx)).toEqual([
       { type: 'decl', prop: 'mask-position', value: 'top left' },
@@ -942,6 +942,67 @@ describe('mask-position (Tailwind v4)', () => {
   it('mask-position-[center_top_1rem] → mask-position: center_top_1rem', () => {
     expect(applyClassName('mask-position-[center_top_1rem]', ctx)).toEqual([
       { type: 'decl', prop: 'mask-position', value: 'center top 1rem' },
+    ]);
+  });
+});
+
+describe('mask-repeat', () => {
+  it('mask-repeat → mask-repeat: repeat', () => {
+    expect(applyClassName('mask-repeat', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-repeat', value: 'repeat' },
+    ]);
+  });
+  it('mask-no-repeat → mask-repeat: no-repeat', () => {
+    expect(applyClassName('mask-no-repeat', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-repeat', value: 'no-repeat' },
+    ]);
+  });
+  it('mask-repeat-x → mask-repeat: repeat-x', () => {
+    expect(applyClassName('mask-repeat-x', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-repeat', value: 'repeat-x' },
+    ]);
+  });
+  it('mask-repeat-y → mask-repeat: repeat-y', () => {
+    expect(applyClassName('mask-repeat-y', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-repeat', value: 'repeat-y' },
+    ]);
+  });
+  it('mask-repeat-space → mask-repeat: space', () => {
+    expect(applyClassName('mask-repeat-space', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-repeat', value: 'space' },
+    ]);
+  });
+  it('mask-repeat-round → mask-repeat: round', () => {
+    expect(applyClassName('mask-repeat-round', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-repeat', value: 'round' },
+    ]);
+  });
+});
+
+describe('mask-size', () => {
+  it('mask-auto → mask-size: auto', () => {
+    expect(applyClassName('mask-auto', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-size', value: 'auto' },
+    ]);
+  });
+  it('mask-cover → mask-size: cover', () => {
+    expect(applyClassName('mask-cover', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-size', value: 'cover' },
+    ]);
+  });
+  it('mask-contain → mask-size: contain', () => {
+    expect(applyClassName('mask-contain', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-size', value: 'contain' },
+    ]);
+  });
+  it('mask-size-[50px_50px] → mask-size: 50px 50px', () => {
+    expect(applyClassName('mask-size-[50px_50px]', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-size', value: '50px 50px' },
+    ]);
+  });
+  it('mask-size-(--my-mask-size) → mask-size: var(--my-mask-size)', () => {
+    expect(applyClassName('mask-size-(--my-mask-size)', ctx)).toEqual([
+      { type: 'decl', prop: 'mask-size', value: 'var(--my-mask-size)' },
     ]);
   });
 });
