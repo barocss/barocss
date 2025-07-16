@@ -4,7 +4,13 @@ import { applyClassName } from "../../src/core/engine";
 import { createContext } from "../../src/core/context";
 
 const ctx = createContext({
-  theme: {},
+  theme: {
+    colors: {
+      red: {
+        500: '#bada55',
+      },
+    },
+  },
 });
 
 describe('filter', () => {
@@ -253,6 +259,279 @@ describe('drop-shadow', () => {
   it('drop-shadow-(--my-shadow) → filter: drop-shadow(var(--my-shadow))', () => {
     expect(applyClassName('drop-shadow-(--my-shadow)', ctx)).toEqual([
       { type: 'decl', prop: 'filter', value: 'drop-shadow(var(--my-shadow))' },
+    ]);
+  });
+});
+
+describe('drop-shadow color', () => {
+  it('drop-shadow-inherit → --tw-drop-shadow-color: inherit', () => {
+    expect(applyClassName('drop-shadow-inherit', ctx)).toEqual([
+      { type: 'decl', prop: '--tw-drop-shadow-color', value: 'inherit' },
+    ]);
+  });
+  it('drop-shadow-current → --tw-drop-shadow-color: currentColor', () => {
+    expect(applyClassName('drop-shadow-current', ctx)).toEqual([
+      { type: 'decl', prop: '--tw-drop-shadow-color', value: 'currentColor' },
+    ]);
+  });
+  it('drop-shadow-transparent → --tw-drop-shadow-color: transparent', () => {
+    expect(applyClassName('drop-shadow-transparent', ctx)).toEqual([
+      { type: 'decl', prop: '--tw-drop-shadow-color', value: 'transparent' },
+    ]);
+  });
+  it('drop-shadow-black → --tw-drop-shadow-color: var(--color-black)', () => {
+    expect(applyClassName('drop-shadow-black', ctx)).toEqual([
+      { type: 'decl', prop: '--tw-drop-shadow-color', value: 'var(--color-black)' },
+    ]);
+  });
+  it('drop-shadow-white → --tw-drop-shadow-color: var(--color-white)', () => {
+    expect(applyClassName('drop-shadow-white', ctx)).toEqual([
+      { type: 'decl', prop: '--tw-drop-shadow-color', value: 'var(--color-white)' },
+    ]);
+  });
+  it('drop-shadow-red-500 → --tw-drop-shadow-color: var(--color-red-500)', () => {
+    expect(applyClassName('drop-shadow-red-500', ctx)).toEqual([
+      { type: 'decl', prop: '--tw-drop-shadow-color', value: 'var(--color-red-500)' },
+    ]);
+  });
+  it('drop-shadow-(color:--my-color) → --tw-drop-shadow-color: var(--my-color)', () => {
+    expect(applyClassName('drop-shadow-(color:--my-color)', ctx)).toEqual([
+      { type: 'decl', prop: '--tw-drop-shadow-color', value: 'var(--my-color)' },
+    ]);
+  });
+  it('drop-shadow-[#bada55] → --tw-drop-shadow-color: #bada55', () => {
+    expect(applyClassName('drop-shadow-[#bada55]', ctx)).toEqual([
+      { type: 'decl', prop: '--tw-drop-shadow-color', value: '#bada55' },
+    ]);
+  });
+});
+
+describe('grayscale', () => {
+  it('grayscale → filter: grayscale(100%)', () => {
+    expect(applyClassName('grayscale', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'grayscale(100%)' },
+    ]);
+  });
+  it('grayscale-0 → filter: grayscale(0%)', () => {
+    expect(applyClassName('grayscale-0', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'grayscale(0%)' },
+    ]);
+  });
+  it('grayscale-25 → filter: grayscale(25%)', () => {
+    expect(applyClassName('grayscale-25', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'grayscale(25%)' },
+    ]);
+  });
+  it('grayscale-50 → filter: grayscale(50%)', () => {
+    expect(applyClassName('grayscale-50', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'grayscale(50%)' },
+    ]);
+  });
+  it('grayscale-75 → filter: grayscale(75%)', () => {
+    expect(applyClassName('grayscale-75', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'grayscale(75%)' },
+    ]);
+  });
+  it('grayscale-100 → filter: grayscale(100%)', () => {
+    expect(applyClassName('grayscale-100', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'grayscale(100%)' },
+    ]);
+  });
+  it('grayscale-60 → filter: grayscale(60%)', () => {
+    expect(applyClassName('grayscale-60', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'grayscale(60%)' },
+    ]);
+  });
+  it('grayscale-[.33] → filter: grayscale(.33)', () => {
+    expect(applyClassName('grayscale-[.33]', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'grayscale(.33)' },
+    ]);
+  });
+  it('grayscale-(--my-gray) → filter: grayscale(var(--my-gray))', () => {
+    expect(applyClassName('grayscale-(--my-gray)', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'grayscale(var(--my-gray))' },
+    ]);
+  });
+});
+
+describe('hue-rotate', () => {
+  it('hue-rotate-0 → filter: hue-rotate(0deg)', () => {
+    expect(applyClassName('hue-rotate-0', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(0deg)' },
+    ]);
+  });
+  it('hue-rotate-15 → filter: hue-rotate(15deg)', () => {
+    expect(applyClassName('hue-rotate-15', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(15deg)' },
+    ]);
+  });
+  it('hue-rotate-30 → filter: hue-rotate(30deg)', () => {
+    expect(applyClassName('hue-rotate-30', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(30deg)' },
+    ]);
+  });
+  it('hue-rotate-60 → filter: hue-rotate(60deg)', () => {
+    expect(applyClassName('hue-rotate-60', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(60deg)' },
+    ]);
+  });
+  it('hue-rotate-90 → filter: hue-rotate(90deg)', () => {
+    expect(applyClassName('hue-rotate-90', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(90deg)' },
+    ]);
+  });
+  it('hue-rotate-180 → filter: hue-rotate(180deg)', () => {
+    expect(applyClassName('hue-rotate-180', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(180deg)' },
+    ]);
+  });
+  it('-hue-rotate-0 → filter: hue-rotate(calc(0deg * -1))', () => {
+    expect(applyClassName('-hue-rotate-0', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(calc(0deg * -1))' },
+    ]);
+  });
+  it('-hue-rotate-15 → filter: hue-rotate(calc(15deg * -1))', () => {
+    expect(applyClassName('-hue-rotate-15', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(calc(15deg * -1))' },
+    ]);
+  });
+  it('-hue-rotate-30 → filter: hue-rotate(calc(30deg * -1))', () => {
+    expect(applyClassName('-hue-rotate-30', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(calc(30deg * -1))' },
+    ]);
+  });
+  it('-hue-rotate-60 → filter: hue-rotate(calc(60deg * -1))', () => {
+    expect(applyClassName('-hue-rotate-60', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(calc(60deg * -1))' },
+    ]);
+  });
+  it('-hue-rotate-90 → filter: hue-rotate(calc(90deg * -1))', () => {
+    expect(applyClassName('-hue-rotate-90', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(calc(90deg * -1))' },
+    ]);
+  });
+  it('-hue-rotate-180 → filter: hue-rotate(calc(180deg * -1))', () => {
+    expect(applyClassName('-hue-rotate-180', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(calc(180deg * -1))' },
+    ]);
+  });
+  it('hue-rotate-45 → filter: hue-rotate(45deg)', () => {
+    expect(applyClassName('hue-rotate-45', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(45deg)' },
+    ]);
+  });
+  it('-hue-rotate-45 → filter: hue-rotate(calc(45deg * -1))', () => {
+    expect(applyClassName('-hue-rotate-45', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(calc(45deg * -1))' },
+    ]);
+  });
+  it('hue-rotate-[77deg] → filter: hue-rotate(77deg)', () => {
+    expect(applyClassName('hue-rotate-[77deg]', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(77deg)' },
+    ]);
+  });
+  it('hue-rotate-(--my-hue) → filter: hue-rotate(var(--my-hue))', () => {
+    expect(applyClassName('hue-rotate-(--my-hue)', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'hue-rotate(var(--my-hue))' },
+    ]);
+  });
+});
+
+describe('invert', () => {
+  it('invert → filter: invert(100%)', () => {
+    expect(applyClassName('invert', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'invert(100%)' },
+    ]);
+  });
+  it('invert-0 → filter: invert(0%)', () => {
+    expect(applyClassName('invert-0', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'invert(0%)' },
+    ]);
+  });
+  it('invert-20 → filter: invert(20%)', () => {
+    expect(applyClassName('invert-20', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'invert(20%)' },
+    ]);
+  });
+  it('invert-[.25] → filter: invert(.25)', () => {
+    expect(applyClassName('invert-[.25]', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'invert(.25)' },
+    ]);
+  });
+  it('invert-(--my-inversion) → filter: invert(var(--my-inversion))', () => {
+    expect(applyClassName('invert-(--my-inversion)', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'invert(var(--my-inversion))' },
+    ]);
+  });
+});
+
+describe('saturate', () => {
+  it('saturate-0 → filter: saturate(0%)', () => {
+    expect(applyClassName('saturate-0', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'saturate(0%)' },
+    ]);
+  });
+  it('saturate-50 → filter: saturate(50%)', () => {
+    expect(applyClassName('saturate-50', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'saturate(50%)' },
+    ]);
+  });
+  it('saturate-100 → filter: saturate(100%)', () => {
+    expect(applyClassName('saturate-100', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'saturate(100%)' },
+    ]);
+  });
+  it('saturate-150 → filter: saturate(150%)', () => {
+    expect(applyClassName('saturate-150', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'saturate(150%)' },
+    ]);
+  });
+  it('saturate-200 → filter: saturate(200%)', () => {
+    expect(applyClassName('saturate-200', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'saturate(200%)' },
+    ]);
+  });
+  it('saturate-[.33] → filter: saturate(.33)', () => {
+    expect(applyClassName('saturate-[.33]', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'saturate(.33)' },
+    ]);
+  });
+  it('saturate-(--my-saturate) → filter: saturate(var(--my-saturate))', () => {
+    expect(applyClassName('saturate-(--my-saturate)', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'saturate(var(--my-saturate))' },
+    ]);
+  });
+});
+
+describe('sepia', () => {
+  it('sepia → filter: sepia(100%)', () => {
+    expect(applyClassName('sepia', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'sepia(100%)' },
+    ]);
+  });
+  it('sepia-0 → filter: sepia(0%)', () => {
+    expect(applyClassName('sepia-0', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'sepia(0%)' },
+    ]);
+  });
+  it('sepia-50 → filter: sepia(50%)', () => {
+    expect(applyClassName('sepia-50', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'sepia(50%)' },
+    ]);
+  });
+  it('sepia-100 → filter: sepia(100%)', () => {
+    expect(applyClassName('sepia-100', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'sepia(100%)' },
+    ]);
+  });
+  it('sepia-[.33] → filter: sepia(.33)', () => {
+    expect(applyClassName('sepia-[.33]', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'sepia(.33)' },
+    ]);
+  });
+  it('sepia-(--my-sepia) → filter: sepia(var(--my-sepia))', () => {
+    expect(applyClassName('sepia-(--my-sepia)', ctx)).toEqual([
+      { type: 'decl', prop: 'filter', value: 'sepia(var(--my-sepia))' },
     ]);
   });
 }); 
