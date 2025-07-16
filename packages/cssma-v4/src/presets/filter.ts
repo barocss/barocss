@@ -2,7 +2,6 @@ import { staticUtility, functionalUtility } from "../core/registry";
 import { decl } from "../core/ast";
 import { parseNumber } from "../core/utils";
 import { parseColor } from "../core/utils";
-import { atrule } from "../core/ast";
 
 // --- Filter ---
 staticUtility("filter", [["filter", "var(--tw-filter)"]]);
