@@ -288,3 +288,267 @@ describe("cursor ", () => {
     ]);
   });
 });
+
+
+describe("scroll-margin ", () => {
+
+  [
+    ["m", "scroll-margin"],
+    ["mt", "scroll-margin-top"],
+    ["mr", "scroll-margin-right"],
+    ["mb", "scroll-margin-bottom"],
+    ["ml", "scroll-margin-left"],
+    ["mx", "scroll-margin-inline"],
+    ["my", "scroll-margin-block"],
+    ["ms", "scroll-margin-inline-start"],
+    ["me", "scroll-margin-inline-end"],
+  ].forEach(([name, prop]) => {
+    it(`scroll-${name}-1 → ${prop}: calc(var(--spacing) * 1)`, () => {
+      expect(applyClassName(`scroll-${name}-1`, ctx)).toEqual([
+        { type: "decl", prop, value: `calc(var(--spacing) * 1)` },
+      ]);
+    });
+    it(`-scroll-${name}-1 → ${prop}: calc(var(--spacing) * -1)`, () => {
+      expect(applyClassName(`-scroll-${name}-1`, ctx)).toEqual([
+        { type: "decl", prop, value: `calc(var(--spacing) * -1)` },
+      ]);
+    });
+
+    it(`scroll-${name}-[var(--spacing)] → ${prop}: var(--spacing)`, () => {
+      expect(applyClassName(`scroll-${name}-[var(--spacing)]`, ctx)).toEqual([
+        { type: "decl", prop, value: `var(--spacing)` },
+      ]);
+    });
+
+    it(`scroll-${name}-(--my-scroll-margin) → ${prop}: var(--my-scroll-margin)`, () => {
+      expect(applyClassName(`scroll-${name}-(--my-scroll-margin)`, ctx)).toEqual([
+        { type: "decl", prop, value: `var(--my-scroll-margin)` },
+      ]);
+    });
+
+  });
+  
+  
+});
+
+
+
+
+describe("scroll-padding ", () => {
+
+  [
+    ["p", "scroll-padding"],
+    ["pt", "scroll-padding-top"],
+    ["pr", "scroll-padding-right"],
+    ["pb", "scroll-padding-bottom"],
+    ["pl", "scroll-padding-left"],
+    ["px", "scroll-padding-inline"],
+    ["py", "scroll-padding-block"],
+    ["ps", "scroll-padding-inline-start"],
+    ["pe", "scroll-padding-inline-end"],
+  ].forEach(([name, prop]) => {
+    it(`scroll-${name}-1 → ${prop}: calc(var(--spacing) * 1)`, () => {
+      expect(applyClassName(`scroll-${name}-1`, ctx)).toEqual([
+        { type: "decl", prop, value: `calc(var(--spacing) * 1)` },
+      ]);
+    });
+    it(`-scroll-${name}-1 → ${prop}: calc(var(--spacing) * -1)`, () => {
+      expect(applyClassName(`-scroll-${name}-1`, ctx)).toEqual([
+        { type: "decl", prop, value: `calc(var(--spacing) * -1)` },
+      ]);
+    });
+
+    it(`scroll-${name}-[var(--spacing)] → ${prop}: var(--spacing)`, () => {
+      expect(applyClassName(`scroll-${name}-[var(--spacing)]`, ctx)).toEqual([
+        { type: "decl", prop, value: `var(--spacing)` },
+      ]);
+    });
+
+    it(`scroll-${name}-(--my-scroll-margin) → ${prop}: var(--my-scroll-margin)`, () => {
+      expect(applyClassName(`scroll-${name}-(--my-scroll-margin)`, ctx)).toEqual([
+        { type: "decl", prop, value: `var(--my-scroll-margin)` },
+      ]);
+    });
+
+  });
+  
+  
+});
+
+describe("scroll-snap-align", () => {
+  it("snap-start → scroll-snap-align: start", () => {
+    expect(applyClassName("snap-start", ctx)).toEqual([
+      { type: "decl", prop: "scroll-snap-align", value: "start" },
+    ]);
+  });
+  it("snap-end → scroll-snap-align: end", () => {
+    expect(applyClassName("snap-end", ctx)).toEqual([
+      { type: "decl", prop: "scroll-snap-align", value: "end" },
+    ]);
+  });
+  it("snap-center → scroll-snap-align: center", () => {
+    expect(applyClassName("snap-center", ctx)).toEqual([
+      { type: "decl", prop: "scroll-snap-align", value: "center" },
+    ]);
+  });
+  it("snap-align-none → scroll-snap-align: none", () => {
+    expect(applyClassName("snap-align-none", ctx)).toEqual([
+      { type: "decl", prop: "scroll-snap-align", value: "none" },
+    ]);
+  });
+});
+
+describe("scroll-snap-stop", () => {
+  it("snap-normal → scroll-snap-stop: normal", () => {
+    expect(applyClassName("snap-normal", ctx)).toEqual([
+      { type: "decl", prop: "scroll-snap-stop", value: "normal" },
+    ]);
+  });
+  it("snap-always → scroll-snap-stop: always", () => {
+    expect(applyClassName("snap-always", ctx)).toEqual([
+      { type: "decl", prop: "scroll-snap-stop", value: "always" },
+    ]);
+  });
+});
+
+describe("scroll-snap-type", () => {
+  it("snap-none → scroll-snap-type: none", () => {
+    expect(applyClassName("snap-none", ctx)).toEqual([
+      { type: "decl", prop: "scroll-snap-type", value: "none" },
+    ]);
+  });
+  it("snap-x → scroll-snap-type: x var(--tw-scroll-snap-strictness)", () => {
+    expect(applyClassName("snap-x", ctx)).toEqual([
+      { type: "decl", prop: "scroll-snap-type", value: "x var(--tw-scroll-snap-strictness)" },
+    ]);
+  });
+  it("snap-y → scroll-snap-type: y var(--tw-scroll-snap-strictness)", () => {
+    expect(applyClassName("snap-y", ctx)).toEqual([
+      { type: "decl", prop: "scroll-snap-type", value: "y var(--tw-scroll-snap-strictness)" },
+    ]);
+  });
+  it("snap-both → scroll-snap-type: both var(--tw-scroll-snap-strictness)", () => {
+    expect(applyClassName("snap-both", ctx)).toEqual([
+      { type: "decl", prop: "scroll-snap-type", value: "both var(--tw-scroll-snap-strictness)" },
+    ]);
+  });
+  it("snap-mandatory → --tw-scroll-snap-strictness: mandatory", () => {
+    expect(applyClassName("snap-mandatory", ctx)).toEqual([
+      { type: "decl", prop: "--tw-scroll-snap-strictness", value: "mandatory" },
+    ]);
+  });
+  it("snap-proximity → --tw-scroll-snap-strictness: proximity", () => {
+    expect(applyClassName("snap-proximity", ctx)).toEqual([
+      { type: "decl", prop: "--tw-scroll-snap-strictness", value: "proximity" },
+    ]);
+  });
+});
+
+describe("touch-action", () => {
+  it("touch-auto → touch-action: auto", () => {
+    expect(applyClassName("touch-auto", ctx)).toEqual([
+      { type: "decl", prop: "touch-action", value: "auto" },
+    ]);
+  });
+  it("touch-none → touch-action: none", () => {
+    expect(applyClassName("touch-none", ctx)).toEqual([
+      { type: "decl", prop: "touch-action", value: "none" },
+    ]);
+  });
+  it("touch-pan-x → touch-action: pan-x", () => {
+    expect(applyClassName("touch-pan-x", ctx)).toEqual([
+      { type: "decl", prop: "touch-action", value: "pan-x" },
+    ]);
+  });
+  it("touch-pan-left → touch-action: pan-left", () => {
+    expect(applyClassName("touch-pan-left", ctx)).toEqual([
+      { type: "decl", prop: "touch-action", value: "pan-left" },
+    ]);
+  });
+  it("touch-pan-right → touch-action: pan-right", () => {
+    expect(applyClassName("touch-pan-right", ctx)).toEqual([
+      { type: "decl", prop: "touch-action", value: "pan-right" },
+    ]);
+  });
+  it("touch-pan-y → touch-action: pan-y", () => {
+    expect(applyClassName("touch-pan-y", ctx)).toEqual([
+      { type: "decl", prop: "touch-action", value: "pan-y" },
+    ]);
+  });
+  it("touch-pan-up → touch-action: pan-up", () => {
+    expect(applyClassName("touch-pan-up", ctx)).toEqual([
+      { type: "decl", prop: "touch-action", value: "pan-up" },
+    ]);
+  });
+  it("touch-pan-down → touch-action: pan-down", () => {
+    expect(applyClassName("touch-pan-down", ctx)).toEqual([
+      { type: "decl", prop: "touch-action", value: "pan-down" },
+    ]);
+  });
+  it("touch-pinch-zoom → touch-action: pinch-zoom", () => {
+    expect(applyClassName("touch-pinch-zoom", ctx)).toEqual([
+      { type: "decl", prop: "touch-action", value: "pinch-zoom" },
+    ]);
+  });
+  it("touch-manipulation → touch-action: manipulation", () => {
+    expect(applyClassName("touch-manipulation", ctx)).toEqual([
+      { type: "decl", prop: "touch-action", value: "manipulation" },
+    ]);
+  });
+});
+
+describe("user-select", () => {
+  it("select-none → user-select: none", () => {
+    expect(applyClassName("select-none", ctx)).toEqual([
+      { type: "decl", prop: "user-select", value: "none" },
+    ]);
+  });
+  it("select-text → user-select: text", () => {
+    expect(applyClassName("select-text", ctx)).toEqual([
+      { type: "decl", prop: "user-select", value: "text" },
+    ]);
+  });
+  it("select-all → user-select: all", () => {
+    expect(applyClassName("select-all", ctx)).toEqual([
+      { type: "decl", prop: "user-select", value: "all" },
+    ]);
+  });
+  it("select-auto → user-select: auto", () => {
+    expect(applyClassName("select-auto", ctx)).toEqual([
+      { type: "decl", prop: "user-select", value: "auto" },
+    ]);
+  });
+});
+
+describe("will-change", () => {
+  it("will-change-auto → will-change: auto", () => {
+    expect(applyClassName("will-change-auto", ctx)).toEqual([
+      { type: "decl", prop: "will-change", value: "auto" },
+    ]);
+  });
+  it("will-change-scroll → will-change: scroll-position", () => {
+    expect(applyClassName("will-change-scroll", ctx)).toEqual([
+      { type: "decl", prop: "will-change", value: "scroll-position" },
+    ]);
+  });
+  it("will-change-contents → will-change: contents", () => {
+    expect(applyClassName("will-change-contents", ctx)).toEqual([
+      { type: "decl", prop: "will-change", value: "contents" },
+    ]);
+  });
+  it("will-change-transform → will-change: transform", () => {
+    expect(applyClassName("will-change-transform", ctx)).toEqual([
+      { type: "decl", prop: "will-change", value: "transform" },
+    ]);
+  });
+  it("will-change-[opacity] → will-change: opacity", () => {
+    expect(applyClassName("will-change-[opacity]", ctx)).toEqual([
+      { type: "decl", prop: "will-change", value: "opacity" },
+    ]);
+  });
+  it("will-change-(--my-will) → will-change: var(--my-will)", () => {
+    expect(applyClassName("will-change-(--my-will)", ctx)).toEqual([
+      { type: "decl", prop: "will-change", value: "var(--my-will)" },
+    ]);
+  });
+});

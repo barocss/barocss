@@ -1,5 +1,6 @@
 import { staticUtility, functionalUtility } from "../core/registry";
 import { atRule, decl } from "../core/ast";
+import { parseNumber } from "../core/utils";
 
 // --- Accent Color Utilities  ---
 // https://tailwindcss.com/docs/accent-color
@@ -199,3 +200,122 @@ staticUtility("resize-none", [["resize", "none"]]);
 staticUtility("scroll-auto", [["scroll-behavior", "auto"]]);
 // scroll-smooth: scroll-behavior: smooth;
 staticUtility("scroll-smooth", [["scroll-behavior", "smooth"]]);
+
+// --- Scroll Snap Align Utilities ---
+// https://tailwindcss.com/docs/scroll-snap-align
+staticUtility("snap-start", [["scroll-snap-align", "start"]]);
+staticUtility("snap-end", [["scroll-snap-align", "end"]]);
+staticUtility("snap-center", [["scroll-snap-align", "center"]]);
+staticUtility("snap-align-none", [["scroll-snap-align", "none"]]);
+
+// --- Scroll Snap Stop Utilities ---
+// https://tailwindcss.com/docs/scroll-snap-stop
+staticUtility("snap-normal", [["scroll-snap-stop", "normal"]]);
+staticUtility("snap-always", [["scroll-snap-stop", "always"]]);
+
+// --- Scroll Snap Type Utilities ---
+// https://tailwindcss.com/docs/scroll-snap-type
+staticUtility("snap-none", [["scroll-snap-type", "none"]]);
+staticUtility("snap-x", [["scroll-snap-type", "x var(--tw-scroll-snap-strictness)"]]);
+staticUtility("snap-y", [["scroll-snap-type", "y var(--tw-scroll-snap-strictness)"]]);
+staticUtility("snap-both", [["scroll-snap-type", "both var(--tw-scroll-snap-strictness)"]]);
+staticUtility("snap-mandatory", [["--tw-scroll-snap-strictness", "mandatory"]]);
+staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]]);
+
+
+[
+  ["mt", "scroll-margin-top"],
+  ["mr", "scroll-margin-right"],
+  ["mb", "scroll-margin-bottom"],
+  ["ml", "scroll-margin-left"],
+  ["mx", "scroll-margin-inline"],
+  ["my", "scroll-margin-block"],
+  ["ms", "scroll-margin-inline-start"],
+  ["me", "scroll-margin-inline-end"],
+  ["m", "scroll-margin"],
+].forEach(([name, prop]) => {
+  functionalUtility({
+    name: `scroll-${name}`,
+    prop,
+    supportsArbitrary: true,
+    supportsCustomProperty: true,
+    handle: (value, ctx, token, extra) => {
+      if (parseNumber(value) || token.negative) {
+        return [decl(prop, `calc(var(--spacing) * ${value})`)];
+      }
+      return [decl(prop, value)];
+    },
+    handleCustomProperty: (value) => [decl(prop, `var(${value})`)],
+    description: `${name} utility (static, arbitrary, custom property 지원)`,
+    category: "interactivity",
+  });
+});
+
+
+
+
+
+[
+  ["pt", "scroll-padding-top"],
+  ["pr", "scroll-padding-right"],
+  ["pb", "scroll-padding-bottom"],
+  ["pl", "scroll-padding-left"],
+  ["px", "scroll-padding-inline"],
+  ["py", "scroll-padding-block"],
+  ["ps", "scroll-padding-inline-start"],
+  ["pe", "scroll-padding-inline-end"],
+  ["p", "scroll-padding"],
+].forEach(([name, prop]) => {
+  functionalUtility({
+    name: `scroll-${name}`,
+    prop,
+    supportsArbitrary: true,
+    supportsCustomProperty: true,
+    handle: (value, ctx, token, extra) => {
+      if (parseNumber(value) || token.negative) {
+        return [decl(prop, `calc(var(--spacing) * ${value})`)];
+      }
+      return [decl(prop, value)];
+    },
+    handleCustomProperty: (value) => [decl(prop, `var(${value})`)],
+    description: `scroll-${name} utility (static, arbitrary, custom property 지원)`,
+    category: "interactivity",
+  });
+});
+
+// --- Touch Action Utilities ---
+// https://tailwindcss.com/docs/touch-action
+staticUtility("touch-auto", [["touch-action", "auto"]]);
+staticUtility("touch-none", [["touch-action", "none"]]);
+staticUtility("touch-pan-x", [["touch-action", "pan-x"]]);
+staticUtility("touch-pan-left", [["touch-action", "pan-left"]]);
+staticUtility("touch-pan-right", [["touch-action", "pan-right"]]);
+staticUtility("touch-pan-y", [["touch-action", "pan-y"]]);
+staticUtility("touch-pan-up", [["touch-action", "pan-up"]]);
+staticUtility("touch-pan-down", [["touch-action", "pan-down"]]);
+staticUtility("touch-pinch-zoom", [["touch-action", "pinch-zoom"]]);
+staticUtility("touch-manipulation", [["touch-action", "manipulation"]]);
+
+// --- User Select Utilities ---
+// https://tailwindcss.com/docs/user-select
+staticUtility("select-none", [["user-select", "none"]]);
+staticUtility("select-text", [["user-select", "text"]]);
+staticUtility("select-all", [["user-select", "all"]]);
+staticUtility("select-auto", [["user-select", "auto"]]);
+
+// --- Will Change Utilities ---
+// https://tailwindcss.com/docs/will-change
+staticUtility("will-change-auto", [["will-change", "auto"]]);
+staticUtility("will-change-scroll", [["will-change", "scroll-position"]]);
+staticUtility("will-change-contents", [["will-change", "contents"]]);
+staticUtility("will-change-transform", [["will-change", "transform"]]);
+
+// Functional: will-change-[value], will-change-(--custom-property)
+functionalUtility({
+  name: "will-change",
+  prop: "will-change",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: "will-change utility (static, arbitrary, custom property 지원)",
+  category: "interactivity",
+});
