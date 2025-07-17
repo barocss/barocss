@@ -12,3 +12,5 @@ import "./typography";
 import "./background";
 import "./border";
 import "./transform";
+import "./svg";
+import "./accessibility";
