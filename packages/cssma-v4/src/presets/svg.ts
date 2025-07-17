@@ -19,7 +19,6 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, ctx, token, extra) => {
-    console.log(value, ctx, token, extra);
     if (extra?.realThemeValue) {
       return [decl("fill", `var(--color-${extra.realThemeValue})`)];
     }

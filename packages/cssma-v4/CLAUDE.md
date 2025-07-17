@@ -86,15 +86,6 @@ functionalUtility({
 });
 ```
 
-**Adding New Modifiers**:
-```typescript
-registerModifier({
-  name: 'hover',
-  type: 'pseudo',
-  match: (mod) => mod.type === 'hover',
-  handler: (nodes) => nodes.map(n => ({ ...n, selector: ':hover' })),
-});
-```
 
 ## Important Implementation Details
 

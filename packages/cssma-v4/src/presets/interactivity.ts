@@ -70,7 +70,6 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, ctx, token, extra) => {
-    console.log(extra, "extra", value, "value", ctx, "ctx", token, "token");
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [

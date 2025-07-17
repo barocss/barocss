@@ -6,12 +6,23 @@ export interface CssmaTheme {
 
 export interface CssmaConfig {
   prefix?: string;  // prefix for class names, default is 'cssma-'
-  darkMode?: boolean | 'media' | 'class';
+  /**
+   * Tailwind-style dark mode strategy
+   * - 'media': uses @media (prefers-color-scheme: dark)
+   * - 'class': uses .dark selector
+   * - string[]: custom selectors (e.g. ['class', '[data-theme="dark"]'])
+   */
+  darkMode?: 'media' | 'class' | string[];
   theme?: CssmaTheme;
   presets?: { theme: CssmaTheme }[];
   plugins?: any[];
   [key: string]: any;
 }
+
+export const defaultConfig: CssmaConfig = {
+  prefix: 'cssma-',
+  darkMode: 'media', // Tailwind 기본값과 동일
+};
 
 export interface CssmaContext {
   hasPreset: (category: string, preset: string) => boolean;

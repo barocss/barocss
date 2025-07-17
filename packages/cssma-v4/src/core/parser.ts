@@ -3,6 +3,7 @@ export interface ParsedModifier {
   type: string;
   value?: string;
   negative?: boolean;
+  arbitrary?: boolean;
   [key: string]: any;
 }
 
@@ -16,7 +17,7 @@ export interface ParsedUtility {
   [key: string]: any;
 }
 
-import { getRegisteredUtilityPrefixes, getRegisteredModifierPrefixes } from './registry';
+import { getRegisteredUtilityPrefixes } from './registry';
 
 /**
  * Parses a class name string into modifiers and utility.
@@ -49,25 +50,19 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
   if (parts.length === 0) return { modifiers: [], utility: null };
   const utilityPart = parts[parts.length - 1];
   const modifiers = parts.slice(0, -1).map((mod) => {
-    // registry 기반 prefix 매칭
     let negative = false;
     let modStr = mod;
     if (modStr.startsWith('-')) {
       negative = true;
       modStr = modStr.slice(1);
     }
-    const modPrefixes = getRegisteredModifierPrefixes();
-    let matchedPrefix = modPrefixes.find(p => modStr.startsWith(p + '-'));
-    let type = '';
-    let value = undefined;
-    if (matchedPrefix) {
-      type = matchedPrefix;
-      value = modStr.slice(matchedPrefix.length + 1);
-    } else {
-      [type, ...value] = modStr.split('-');
-      value = value.join('-') || undefined;
+    // --- Arbitrary selector/attribute variant support ---
+    if (modStr.startsWith('[') && modStr.endsWith(']')) {
+      return { type: modStr, negative, arbitrary: true };
     }
-    return value ? { type, value, negative } : { type, negative };
+    // registry 기반 match 함수로만 매칭 (prefix 목록 사용 X)
+    // type은 modStr 전체로 둠
+    return { type: modStr, negative };
   });
 
   // Utility parsing

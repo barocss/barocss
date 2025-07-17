@@ -1,7 +1,7 @@
 import type { AstNode } from './ast';
 import { decl, rule, atRule } from './ast';
 import { CssmaContext } from './context';
-import { ParsedUtility } from './parser';
+import { ParsedModifier, ParsedUtility } from './parser';
 
 // Utility registration
 export interface UtilityRegistration {
@@ -34,37 +34,92 @@ export function getRegisteredUtilityPrefixes(): string[] {
   return Array.from(new Set(getUtility().map(u => u.name))).sort((a, b) => b.length - a.length);
 }
 
-// Modifier registration
+// --- Modifier Registry ---
+type VariantContext = {
+  baseClassName: string;
+  variantPrefixes: string[];
+  selector: string;
+}
+
+type ModifierMatch = (mod: string, variantContext: VariantContext, ctx: CssmaContext) => boolean;
+type ModifierHandler = (nodes: AstNode[], mod: ParsedModifier, variantContext: VariantContext, ctx: CssmaContext) => AstNode[];
+
+// Modifier registration (deduplicated)
 export interface ModifierRegistration {
   name: string;
-  type: string;
-  match: (mod: any) => boolean;
-  /**
-   * Handler for modifier
-   * @param nodes AST nodes to wrap
-   * @param mod Modifier object
-   * @param ctx CssmaContext
-   */
-  handler: (nodes: AstNode[], mod: any, ctx: import('./context').CssmaContext) => AstNode[];
-  selector?: (mod: any) => string;
-  atrule?: (mod: any) => { name: string; params: string };
+  match: ModifierMatch;
+  handler: ModifierHandler;
   description?: string;
   sort?: number;
-  [key: string]: any;
 }
 
-const modifierRegistry: ModifierRegistration[] = [];
-export { modifierRegistry };
-export function registerModifier(mod: ModifierRegistration) {
-  modifierRegistry.push(mod);
+// --- Variant Plugin System ---
+export type ModifierPlugin = {
+  match: (mod: string, context: CssmaContext) => boolean;
+  modifySelector?: (params: { selector: string; className: string; mod: ParsedModifier; context: CssmaContext }) => string;
+  wrap?: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => AstNode[];
+  sort?: number;
+  compounds?: string[];
+  order?: number;
+};
+
+export const modifierPlugins: ModifierPlugin[] = [];
+
+export function staticModifier(name: string, selectors: string[], options: any = {}) {
+  modifierPlugins.push({
+    match: (mod: string) => mod === name,
+    modifySelector: ({ selector }) =>
+      selectors.map(sel => sel.replace('&', selector)).join(', '),
+    ...options
+  });
 }
 
-export function getRegisteredModifierPrefixes(): string[] {
-  // name is a prefix, so sort by length in descending order without duplicates
-  return Array.from(new Set(modifierRegistry.map(m => m.name))).sort((a, b) => b.length - a.length);
+export function functionalModifier(match: ModifierPlugin['match'], modifySelector: ModifierPlugin['modifySelector'], wrap?: ModifierPlugin['wrap'], options: Partial<ModifierPlugin> = {}) {
+  modifierPlugins.push({ match, modifySelector, wrap, ...options });
 }
 
-// --- Demo patterns ---
+export function getModifierPlugins(): ModifierPlugin[] {
+  return modifierPlugins;
+}
+
+// Tailwind-style escapeClassName
+const ESCAPE_REGEX = /[^A-Za-z0-9_-]/g;
+export function escapeClassName(className: string) {
+  return className.replace(ESCAPE_REGEX, (c) => {
+    if (c === ' ') return '\\x20 ';
+    if (c === '.') return '\.';
+    if (c === '/') return '\/';
+    if (c === ':') return '\:';
+    if (c === '[') return '\[';
+    if (c === ']') return '\]';
+    if (c === '(') return '\(';
+    if (c === ')') return '\)';
+    if (c === '%') return '\%';
+    if (c === '#') return '\#';
+    if (c === ',') return '\,';
+    if (c === '=') return '\=';
+    if (c === '&') return '\&';
+    if (c === '~') return '\~';
+    if (c === '*') return '\*';
+    if (c === '$') return '\$';
+    if (c === '^') return '\^';
+    if (c === '+') return '\+';
+    if (c === '?') return '\?';
+    if (c === '!') return '\!';
+    if (c === '@') return '\@';
+    if (c === "'") return "\\'";
+    if (c === '"') return '\"';
+    if (c === '`') return '\`';
+    if (c === ';') return '\;';
+    if (c === '<') return '\<';
+    if (c === '>') return '\>';
+    if (c === '{') return '\{';
+    if (c === '}') return '\}';
+    if (c === '|') return '\|';
+    if (c === '\\') return '\\';
+    return '\\' + c;
+  });
+}
 
 // --- Utility Helper Factories ---
 

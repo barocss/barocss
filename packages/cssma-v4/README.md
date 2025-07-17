@@ -214,17 +214,6 @@ registerUtility({
   }
 });
 
-// Register modifier
-registerModifier({
-  name: 'hover',
-  type: 'pseudo',
-  match: (mod) => mod.type === 'hover',
-  handler: (nodes, mod, ctx) => {
-    // Modifier processing logic
-    return nodes;
-  }
-});
-```
 
 ### Parser System
 
@@ -278,7 +267,6 @@ expect(applyClassName('-inset-x-2', ctx)).toEqual([
 - `applyClassName(className: string, ctx: CssmaContext): AstNode[]`
 - `parseClassName(className: string): { modifiers: ParsedModifier[], utility: ParsedUtility }`
 - `registerUtility(util: UtilityRegistration): void`
-- `registerModifier(mod: ModifierRegistration): void`
 
 ### Helper Functions
 

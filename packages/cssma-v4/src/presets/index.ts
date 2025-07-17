@@ -14,3 +14,4 @@ import "./border";
 import "./transform";
 import "./svg";
 import "./accessibility";
+import "./variants";
