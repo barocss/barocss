@@ -150,3 +150,141 @@ describe("caret-color ", () => {
     ]);
   });
 });
+
+describe("field-sizing ", () => {
+  it("field-sizing-fixed → field-sizing: fixed", () => {
+    expect(applyClassName("field-sizing-fixed", ctx)).toEqual([
+      { type: "decl", prop: "field-sizing", value: "fixed" },
+    ]);
+  });
+  it("field-sizing-content → field-sizing: content", () => {
+    expect(applyClassName("field-sizing-content", ctx)).toEqual([
+      { type: "decl", prop: "field-sizing", value: "content" },
+    ]);
+  });
+});
+
+describe("pointer-events ", () => {
+  it("pointer-events-auto → pointer-events: auto", () => {
+    expect(applyClassName("pointer-events-auto", ctx)).toEqual([
+      { type: "decl", prop: "pointer-events", value: "auto" },
+    ]);
+  });
+  it("pointer-events-none → pointer-events: none", () => {
+    expect(applyClassName("pointer-events-none", ctx)).toEqual([
+      { type: "decl", prop: "pointer-events", value: "none" },
+    ]);
+  });
+});
+
+describe("resize ", () => {
+  it("resize → resize: both", () => {
+    expect(applyClassName("resize", ctx)).toEqual([
+      { type: "decl", prop: "resize", value: "both" },
+    ]);
+  });
+  it("resize-x → resize: horizontal", () => {
+    expect(applyClassName("resize-x", ctx)).toEqual([
+      { type: "decl", prop: "resize", value: "horizontal" },
+    ]);
+  });
+  it("resize-y → resize: vertical", () => {
+    expect(applyClassName("resize-y", ctx)).toEqual([
+      { type: "decl", prop: "resize", value: "vertical" },
+    ]);
+  });
+  it("resize-none → resize: none", () => {
+    expect(applyClassName("resize-none", ctx)).toEqual([
+      { type: "decl", prop: "resize", value: "none" },
+    ]);
+  });
+});
+
+describe("scroll-behavior ", () => {
+  it("scroll-auto → scroll-behavior: auto", () => {
+    expect(applyClassName("scroll-auto", ctx)).toEqual([
+      { type: "decl", prop: "scroll-behavior", value: "auto" },
+    ]);
+  });
+  it("scroll-smooth → scroll-behavior: smooth", () => {
+    expect(applyClassName("scroll-smooth", ctx)).toEqual([
+      { type: "decl", prop: "scroll-behavior", value: "smooth" },
+    ]);
+  });
+});
+
+describe("color-scheme", () => {
+  it("scheme-normal → color-scheme: normal", () => {
+    expect(applyClassName("scheme-normal", ctx)).toEqual([
+      { type: "decl", prop: "color-scheme", value: "normal" },
+    ]);
+  });
+  it("scheme-dark → color-scheme: dark", () => {
+    expect(applyClassName("scheme-dark", ctx)).toEqual([
+      { type: "decl", prop: "color-scheme", value: "dark" },
+    ]);
+  });
+  it("scheme-light → color-scheme: light", () => {
+    expect(applyClassName("scheme-light", ctx)).toEqual([
+      { type: "decl", prop: "color-scheme", value: "light" },
+    ]);
+  });
+  it("scheme-light-dark → color-scheme: light dark", () => {
+    expect(applyClassName("scheme-light-dark", ctx)).toEqual([
+      { type: "decl", prop: "color-scheme", value: "light dark" },
+    ]);
+  });
+  it("scheme-only-dark → color-scheme: only dark", () => {
+    expect(applyClassName("scheme-only-dark", ctx)).toEqual([
+      { type: "decl", prop: "color-scheme", value: "only dark" },
+    ]);
+  });
+  it("scheme-only-light → color-scheme: only light", () => {
+    expect(applyClassName("scheme-only-light", ctx)).toEqual([
+      { type: "decl", prop: "color-scheme", value: "only light" },
+    ]);
+  });
+});
+
+describe("cursor ", () => {
+  it("cursor-auto → cursor: auto", () => {
+    expect(applyClassName("cursor-auto", ctx)).toEqual([
+      { type: "decl", prop: "cursor", value: "auto" },
+    ]);
+  });
+  it("cursor-pointer → cursor: pointer", () => {
+    expect(applyClassName("cursor-pointer", ctx)).toEqual([
+      { type: "decl", prop: "cursor", value: "pointer" },
+    ]);
+  });
+  it("cursor-wait → cursor: wait", () => {
+    expect(applyClassName("cursor-wait", ctx)).toEqual([
+      { type: "decl", prop: "cursor", value: "wait" },
+    ]);
+  });
+  it("cursor-grab → cursor: grab", () => {
+    expect(applyClassName("cursor-grab", ctx)).toEqual([
+      { type: "decl", prop: "cursor", value: "grab" },
+    ]);
+  });
+  it("cursor-ns-resize → cursor: ns-resize", () => {
+    expect(applyClassName("cursor-ns-resize", ctx)).toEqual([
+      { type: "decl", prop: "cursor", value: "ns-resize" },
+    ]);
+  });
+  it("cursor-zoom-in → cursor: zoom-in", () => {
+    expect(applyClassName("cursor-zoom-in", ctx)).toEqual([
+      { type: "decl", prop: "cursor", value: "zoom-in" },
+    ]);
+  });
+  it("cursor-(--my-cursor) → cursor: var(--my-cursor)", () => {
+    expect(applyClassName("cursor-(--my-cursor)", ctx)).toEqual([
+      { type: "decl", prop: "cursor", value: "var(--my-cursor)" },
+    ]);
+  });
+  it("cursor-[url(my-cursor.png),pointer] → cursor: url(my-cursor.png),pointer", () => {
+    expect(applyClassName("cursor-[url(my-cursor.png),pointer]", ctx)).toEqual([
+      { type: "decl", prop: "cursor", value: "url(my-cursor.png),pointer" },
+    ]);
+  });
+});

@@ -69,7 +69,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, ctx, token, extra) => {
-    console.log(extra, 'extra', value, 'value', ctx, 'ctx', token, 'token');
+    console.log(extra, "extra", value, "value", ctx, "ctx", token, "token");
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [
@@ -92,3 +92,110 @@ functionalUtility({
     "caret-color utility (static, theme, arbitrary, custom property 지원)",
   category: "interactivity",
 });
+
+// --- Color Scheme Utilities ---
+// https://tailwindcss.com/docs/color-scheme
+
+// scheme-normal: color-scheme: normal;
+staticUtility("scheme-normal", [["color-scheme", "normal"]]);
+// scheme-dark: color-scheme: dark;
+staticUtility("scheme-dark", [["color-scheme", "dark"]]);
+// scheme-light: color-scheme: light;
+staticUtility("scheme-light", [["color-scheme", "light"]]);
+// scheme-light-dark: color-scheme: light dark;
+staticUtility("scheme-light-dark", [["color-scheme", "light dark"]]);
+// scheme-only-dark: color-scheme: only dark;
+staticUtility("scheme-only-dark", [["color-scheme", "only dark"]]);
+// scheme-only-light: color-scheme: only light;
+staticUtility("scheme-only-light", [["color-scheme", "only light"]]);
+
+// --- Cursor Utilities  ---
+// https://tailwindcss.com/docs/cursor
+
+// Static cursor values
+[
+  "auto",
+  "default",
+  "pointer",
+  "wait",
+  "text",
+  "move",
+  "help",
+  "not-allowed",
+  "none",
+  "context-menu",
+  "progress",
+  "cell",
+  "crosshair",
+  "vertical-text",
+  "alias",
+  "copy",
+  "no-drop",
+  "grab",
+  "grabbing",
+  "all-scroll",
+  "col-resize",
+  "row-resize",
+  "n-resize",
+  "e-resize",
+  "s-resize",
+  "w-resize",
+  "ne-resize",
+  "nw-resize",
+  "se-resize",
+  "sw-resize",
+  "ew-resize",
+  "ns-resize",
+  "nesw-resize",
+  "nwse-resize",
+  "zoom-in",
+  "zoom-out",
+].forEach((cursor) => {
+  staticUtility(`cursor-${cursor}`, [["cursor", cursor]]);
+});
+
+// Functional: custom property (cursor-(--my-cursor)) and arbitrary value (cursor-[value])
+functionalUtility({
+  name: "cursor",
+  prop: "cursor",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  description: "cursor utility (static, arbitrary, custom property 지원)",
+  category: "interactivity",
+});
+
+// --- Field Sizing Utilities  ---
+// https://tailwindcss.com/docs/field-sizing
+
+// field-sizing-fixed: field-sizing: fixed;
+staticUtility("field-sizing-fixed", [["field-sizing", "fixed"]]);
+// field-sizing-content: field-sizing: content;
+staticUtility("field-sizing-content", [["field-sizing", "content"]]);
+
+// --- Pointer Events Utilities  ---
+// https://tailwindcss.com/docs/pointer-events
+
+// pointer-events-auto: pointer-events: auto;
+staticUtility("pointer-events-auto", [["pointer-events", "auto"]]);
+// pointer-events-none: pointer-events: none;
+staticUtility("pointer-events-none", [["pointer-events", "none"]]);
+
+// --- Resize Utilities  ---
+// https://tailwindcss.com/docs/resize
+
+// resize: resize: both;
+staticUtility("resize", [["resize", "both"]]);
+// resize-x: resize: horizontal;
+staticUtility("resize-x", [["resize", "horizontal"]]);
+// resize-y: resize: vertical;
+staticUtility("resize-y", [["resize", "vertical"]]);
+// resize-none: resize: none;
+staticUtility("resize-none", [["resize", "none"]]);
+
+// --- Scroll Behavior Utilities  ---
+// https://tailwindcss.com/docs/scroll-behavior
+
+// scroll-auto: scroll-behavior: auto;
+staticUtility("scroll-auto", [["scroll-behavior", "auto"]]);
+// scroll-smooth: scroll-behavior: smooth;
+staticUtility("scroll-smooth", [["scroll-behavior", "smooth"]]);
