@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atrule, decl } from "../core/ast";
+import { atRule, decl } from "../core/ast";
 import { parseNumber, parseLength, parseColor } from "../core/utils";
 
 // --- Border Radius ---
@@ -169,7 +169,7 @@ functionalUtility({
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [
-          atrule("supports", `(color:color-mix(in lab, red, red))`, [
+          atRule("supports", `(color:color-mix(in lab, red, red))`, [
             decl("border-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
           ]),
           decl("border-color", value),

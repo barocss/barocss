@@ -225,7 +225,7 @@ describe("border utilities", () => {
       ]);
       expect(applyClassName("border-red-500/50", ctx)).toEqual([
         {
-          type: "atrule",
+          type: "at-rule",
           name: "supports",
           params: "(color:color-mix(in lab, red, red))",
           nodes: [

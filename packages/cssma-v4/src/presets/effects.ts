@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atrule, decl } from "../core/ast";
+import { atRule, decl } from "../core/ast";
 import { parseColor, parseNumber } from "../core/utils";
 
 // --- Box Shadow ---
@@ -85,7 +85,7 @@ function createShadowThemeColor(
     }
   }
   return [
-    atrule("supports", "(color:color-mix(in lab, red, red))", [
+    atRule("supports", "(color:color-mix(in lab, red, red))", [
       decl(key, colorValue),
     ]),
     decl(key, fallbackColor),
@@ -296,7 +296,7 @@ function createRingColorDecls(
     }
   }
   return [
-    atrule("supports", "(color:color-mix(in lab, red, red))", [
+    atRule("supports", "(color:color-mix(in lab, red, red))", [
       decl(key, colorMix),
     ]),
     decl(key, fallback),
@@ -331,7 +331,7 @@ functionalUtility({
         fallback = colorMix;
       }
       return [
-        atrule("supports", "(color:color-mix(in lab, red, red))", [
+        atRule("supports", "(color:color-mix(in lab, red, red))", [
           decl("--tw-ring-color", colorMix),
         ]),
         decl("--tw-ring-color", fallback),
@@ -350,7 +350,7 @@ functionalUtility({
         }
 
         return [
-          atrule("supports", "(color:color-mix(in lab, red, red))", [
+          atRule("supports", "(color:color-mix(in lab, red, red))", [
             decl("--tw-ring-color", colorMix),
           ]),
           decl("--tw-ring-color", fallback),
@@ -403,7 +403,7 @@ functionalUtility({
         fallback = colorMix;
       }
       return [
-        atrule("supports", "(color:color-mix(in lab, red, red))", [
+        atRule("supports", "(color:color-mix(in lab, red, red))", [
           decl("--tw-inset-ring-color", colorMix),
         ]),
         decl("--tw-inset-ring-color", fallback),
@@ -422,7 +422,7 @@ functionalUtility({
         }
 
         return [
-          atrule("supports", "(color:color-mix(in lab, red, red))", [
+          atRule("supports", "(color:color-mix(in lab, red, red))", [
             decl("--tw-inset-ring-color", colorMix),
           ]),
           decl("--tw-inset-ring-color", fallback),

@@ -1,5 +1,5 @@
 import type { AstNode } from './ast';
-import { decl, rule, atrule } from './ast';
+import { decl, rule, atRule } from './ast';
 import { CssmaContext } from './context';
 import { ParsedUtility } from './parser';
 
@@ -70,7 +70,8 @@ export function getRegisteredModifierPrefixes(): string[] {
 
 type StaticUtilityValue = 
   | [string, string] // [prop, value]
-  | [string, [string, string][]]; // [selector, [prop, value][]]
+  | [string, [string, string][]] // [selector, [prop, value][]]
+  | ((value: string) => AstNode); // function
 
 /**
  * staticUtility: A helper that registers a utility name and an array of CSS declaration pairs directly to the registry
@@ -99,7 +100,13 @@ export function staticUtility(
       return className === name;
     },
     handler: (value) => {
-      return decls.flatMap(([a, b]) => {
+      return decls.flatMap((params) => {
+        if (typeof params === 'function') {
+          const targetFunction = params as (value: string) => AstNode;
+          return [targetFunction(value)];
+        }
+        const [a, b] = params;
+
         if (typeof b === 'string') {
           // [prop, value]
           return [decl(a, b)];

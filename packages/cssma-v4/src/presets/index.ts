@@ -10,3 +10,4 @@ import "./sizing";
 import "./typography";
 import "./background";
 import "./border";
+import "./transform";

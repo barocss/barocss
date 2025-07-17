@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atrule, decl } from "../core/ast";
+import { atRule, decl } from "../core/ast";
 import {
   parseNumber,
   parseLength,
@@ -128,7 +128,7 @@ functionalUtility({
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [
-          atrule("supports", `(color:color-mix(in lab, red, red))`, [
+          atRule("supports", `(color:color-mix(in lab, red, red))`, [
             decl("color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
           ]),
           decl("color", value),
@@ -315,7 +315,7 @@ functionalUtility({
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [
-          atrule("supports", `(color:color-mix(in lab, red, red))`, [
+          atRule("supports", `(color:color-mix(in lab, red, red))`, [
             decl("text-decoration-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
           ]),
           decl("text-decoration-color", value),

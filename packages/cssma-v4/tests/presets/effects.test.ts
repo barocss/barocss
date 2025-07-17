@@ -70,7 +70,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("shadow-red-500 → --tw-shadow-color: var(--color-red-500)", () => {
     expect(applyClassName("shadow-red-500", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -87,7 +87,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("shadow-black → --tw-shadow-color: #000", () => {
     expect(applyClassName("shadow-black", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -104,7 +104,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("shadow-white → --tw-shadow-color: var(--color-white)", () => {
     expect(applyClassName("shadow-white", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -122,7 +122,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("shadow-red-500/50 → --tw-shadow-color: color-mix(in oklab, var(--color-red-500) 50%, transparent)", () => {
     expect(applyClassName("shadow-red-500/50", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -169,7 +169,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("inset-shadow-red-500/60 → --tw-inset-shadow-color: color-mix(in oklab, var(--color-red-500) 60%, transparent)", () => {
     expect(applyClassName("inset-shadow-red-500/60", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -252,7 +252,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("ring-blue-500 → --tw-ring-color: var(--color-blue-500)", () => {
     expect(applyClassName("ring-blue-500", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -269,7 +269,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("ring-blue-500/50 → --tw-ring-color: color-mix(in oklab, var(--color-blue-500) 50%, transparent)", () => {
     expect(applyClassName("ring-blue-500/50", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -290,7 +290,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("ring-[#bada55]/80 → --tw-ring-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
     expect(applyClassName("ring-[#bada55]/80", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -378,7 +378,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("inset-ring-blue-500/60 → --tw-inset-ring-color: color-mix(in oklab, var(--color-blue-500) 60%, transparent)", () => {
     expect(applyClassName("inset-ring-blue-500/60", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -399,7 +399,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("inset-ring-[#bada55]/80 → --tw-inset-ring-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
     expect(applyClassName("inset-ring-[#bada55]/80", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -441,7 +441,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("ring-blue-500/50 → color-mix + hex fallback", () => {
     expect(applyClassName("ring-blue-500/50", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -458,7 +458,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("ring-[#3080ff]/75 → color-mix + hex fallback", () => {
     expect(applyClassName("ring-[#3080ff]/75", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
@@ -475,7 +475,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("inset-shadow-indigo-500/50 → color-mix + hex fallback", () => {
     expect(applyClassName("inset-shadow-indigo-500/50", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [

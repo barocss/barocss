@@ -2,7 +2,7 @@ import { staticUtility, functionalUtility } from "../core/registry";
 import { decl } from "../core/ast";
 import { parseNumber } from "../core/utils";
 
-// --- Transition Property Utilities (Tailwind v4.1+) ---
+// --- Transition Property Utilities  ---
 // https://tailwindcss.com/docs/transition-property
 
 // 기본 변수 (Tailwind와 동일하게)

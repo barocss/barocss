@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atrule, decl } from "../core/ast";
+import { atRule, decl } from "../core/ast";
 import { parseColor, parseLength, parseNumber } from "../core/utils";
 
 // --- Background Attachment ---
@@ -303,7 +303,7 @@ functionalUtility({
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [
-          atrule("supports", `(color:color-mix(in lab, red, red))`, [
+          atRule("supports", `(color:color-mix(in lab, red, red))`, [
             decl("background-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
           ]),
           decl("background-color", value),

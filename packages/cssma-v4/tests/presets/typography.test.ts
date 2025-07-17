@@ -122,7 +122,7 @@ describe("preset typography utilities", () => {
     it("text-red-500/75 → color: color-mix(in lab, red-500 75%, transparent)", () => {
       expect(applyClassName("text-red-500/75", ctx)).toEqual([
         {
-          type: "atrule",
+          type: "at-rule",
           name: "supports",
           params: "(color:color-mix(in lab, red, red))",
           nodes: [
@@ -432,7 +432,7 @@ describe("preset typography utilities", () => {
     it("decoration-red-500/75 → text-decoration-color: color-mix(in lab, red-500 75%, transparent)", () => {
       expect(applyClassName("decoration-red-500/75", ctx)).toEqual([
         {
-          type: "atrule",
+          type: "at-rule",
           name: "supports",
           params: "(color:color-mix(in lab, red, red))",
           nodes: [{ type: "decl", prop: "text-decoration-color", value: "color-mix(in lab, #f00 75%, transparent)" }],

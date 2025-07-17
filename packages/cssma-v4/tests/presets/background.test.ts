@@ -72,7 +72,7 @@ describe("background utilities", () => {
   it("bg-red-500/75 → background-color: color-mix(in lab, red-500 75%, transparent)", () => {
     expect(applyClassName("bg-red-500/75", ctx)).toEqual([
       {
-        type: "atrule",
+        type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
