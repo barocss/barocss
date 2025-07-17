@@ -220,11 +220,8 @@ export function functionalUtility(opts: {
       if (themeValue !== undefined) {
         extra.realThemeValue = finalValue;
         finalValue = themeValue;
-        console.log("finalValue", finalValue);
-        console.log("extra", extra);
         if (opts.prop) return [decl(opts.prop, finalValue)];
         if (opts.handle) {
-
           const result = opts.handle(finalValue, ctx, token, extra);
           if (result) return result;
         }

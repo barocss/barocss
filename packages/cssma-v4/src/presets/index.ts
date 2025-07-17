@@ -1,3 +1,4 @@
+import "./interactivity";
 import "./transitions";
 import "./table";
 import "./filter";

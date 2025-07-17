@@ -95,7 +95,13 @@ export function themeGetter(themeObj: CssmaTheme, ...path: (string | number)[]):
   if (path.length === 1 && typeof path[0] === 'string' && path[0].includes('.')) {
     keys = path[0].split('.');
   } else {
-    keys = path;
+    if (path[0] === 'colors' && typeof path[1] === 'string' && path[1].includes('-')) {
+      // colors.red-500 → colors.red.500
+      keys = (path[1] as string).split('-');
+      keys = [path[0], ...keys];
+    } else {
+      keys = path;
+    }
   }
   if (keys.length === 0) return undefined;
 
@@ -174,7 +180,9 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
   const themeObj = resolveTheme(configObj);
   return {
     hasPreset: (category: string, preset: string) => hasPreset(themeObj, category, preset),
-    theme: (...args) => themeGetter(themeObj, ...args),
+    theme: (...args) => {
+      return themeGetter(themeObj, ...args);
+    },
     config: (...args) => configGetter(configObj, ...args),
     plugins: configObj.plugins ?? [],
   };

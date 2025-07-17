@@ -123,9 +123,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, ctx, token, extra) => {
-    console.log(extra, 'extra', value, 'value', ctx, 'ctx', token, 'token');
     if (extra?.realThemeValue) {
-        console.log(extra.realThemeValue, 'extra.realThemeValue');
       return [decl("--tw-drop-shadow-color", `var(--color-${extra.realThemeValue})`)];
     }
 
