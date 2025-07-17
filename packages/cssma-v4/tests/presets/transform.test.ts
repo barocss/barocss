@@ -480,7 +480,7 @@ describe("transform-style ", () => {
   });
 });
 
-describe("translate utilities (Tailwind v4.1+)", () => {
+describe("translate utilities ", () => {
   // --- Static ---
   it("translate-none → translate: none", () => {
     expect(applyClassName("translate-none", ctx)).toEqual([

@@ -478,7 +478,7 @@ functionalUtility({
   category: "transform",
 });
 
-// --- Translate (Tailwind v4.1+) ---
+// --- Translate  ---
 // https://tailwindcss.com/docs/translate
 
 let translateProperties = () => (
