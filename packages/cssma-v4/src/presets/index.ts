@@ -1,3 +1,4 @@
+import "./transitions";
 import "./table";
 import "./filter";
 import "./backdrop-filter";

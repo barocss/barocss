@@ -21,7 +21,7 @@ export interface CssmaContext {
 }
 
 // Deep merge utility
-export function deepMerge<T>(base: T, override: Partial<T>): T {
+export function deepMerge<T extends Record<string, any>>(base: T, override: Partial<T>): T {
   const result: any = {};
   const keys = new Set([
     ...Object.keys(base || {}),
@@ -29,8 +29,8 @@ export function deepMerge<T>(base: T, override: Partial<T>): T {
   ]);
   for (const key of keys) {
     const skey = String(key);
-    const baseVal = base && typeof base === 'object' ? base[skey] : undefined;
-    const overrideVal = override && typeof override === 'object' ? override[skey] : undefined;
+    const baseVal = base && typeof base === 'object' ? (base as Record<string, any>)[skey] : undefined;
+    const overrideVal = override && typeof override === 'object' ? (override as Record<string, any>)[skey] : undefined;
     if (
       overrideVal &&
       typeof overrideVal === 'object' &&
@@ -50,50 +50,87 @@ export function deepMerge<T>(base: T, override: Partial<T>): T {
 }
 
 // Shallow merge utility
-export function shallowMerge<T>(base: T, override: Partial<T>): T {
+export function shallowMerge<T extends Record<string, any>>(base: T, override: Partial<T>): T {
   return { ...base, ...override };
 }
 
-// theme getter
+export type ThemeGetter = (...path: (string|number)[]) => any;
+
+/**
+ * Tailwind-style theme getter for CSSMA
+ *
+ * - Supports category-level (first path segment) function values only.
+ *   - If the category (e.g., 'spacing', 'colors') is a function, it will be executed with the theme getter as argument.
+ *   - This allows dynamic theme extension and plugin-style patterns, e.g.:
+ *     spacing: (theme) => ({ ...theme('spacing'), '72': '18rem' })
+ * - Leaf (property) functions are NOT supported and will be ignored (returns undefined).
+ * - Infinite recursion is prevented: If the exact same path is being resolved recursively (directly or indirectly), undefined is returned for that call.
+ *   - Category-level functions can safely call theme('category.otherKey') for dynamic references.
+ *   - Only true recursion on the same path is blocked.
+ * - All theme lookups (theme('category.key')) will always re-execute the category function if present, ensuring dynamic resolution.
+ *
+ * @param themeObj - The theme object (possibly with category functions)
+ * @param path - Path segments (string or number), or dot-path string (e.g. 'colors.red.500')
+ * @returns The resolved theme value, or undefined if not found or if a leaf function is encountered
+ *
+ * @example
+ *   const theme = {
+ *     spacing: (theme) => ({ 1: '0.25rem', 2: theme('spacing.1') }),
+ *   };
+ *   themeGetter(theme, 'spacing.2'); // '0.25rem'
+ *
+ * @example
+ *   // Infinite recursion is prevented:
+ *   const theme = {
+ *     spacing: (theme) => theme('spacing.1'),
+ *   };
+ *   themeGetter(theme, 'spacing.1'); // undefined
+ */
 export function themeGetter(themeObj: CssmaTheme, ...path: (string | number)[]): any {
-  
-  // Handle dot notation in single path
+  // The theme getter function itself, passed to category functions for dynamic resolution
+  const theme: ThemeGetter = (...args: (string | number)[]) => themeGetter(themeObj, ...args);
+
+  // Parse the path: support both dot-path string and array of segments
+  let keys: (string | number)[] = [];
   if (path.length === 1 && typeof path[0] === 'string' && path[0].includes('.')) {
-    const keys = path[0].split('.');
-    return keys.reduce((acc, key) => (acc == null ? undefined : acc[key]), themeObj);
+    keys = path[0].split('.');
+  } else {
+    keys = path;
   }
-  
-  // For multiple path segments, try different strategies
-  if (path.length >= 2) {
-    const [namespace, ...rest] = path;
-    
-    // Strategy 1: Try exact key match first (flat structure)
-    // e.g., colors['red-500']
-    if (rest.length === 1 && typeof rest[0] === 'string') {
-      const exactResult = themeObj[namespace as string]?.[rest[0]];
-      if (exactResult !== undefined) {
-        return exactResult;
-      }
+  if (keys.length === 0) return undefined;
+
+  // Infinite recursion protection: track currently resolving full paths
+  // If the exact same path is being resolved recursively, return undefined
+  const staticInProgress = (themeGetter as any)._inProgress || new Set();
+  (themeGetter as any)._inProgress = staticInProgress;
+  const pathKey = keys.join('.');
+  if (staticInProgress.has(pathKey)) return undefined;
+  staticInProgress.add(pathKey);
+
+  // Get the category value (could be a function or object)
+  let value = themeObj[keys[0]];
+  // If the category is a function, execute it with the theme getter
+  // This enables dynamic theme extension and plugin-style patterns
+  if (typeof value === 'function') {
+    value = value(theme);
+  }
+
+  // Traverse the rest of the path (leaf keys)
+  for (let i = 1; i < keys.length; i++) {
+    if (value == null) {
+      staticInProgress.delete(pathKey);
+      return undefined;
     }
-    
-    // Strategy 2: Try nested structure by splitting on '-'
-    // e.g., colors.red.500 (from 'red-500')
-    const expandedKeys = rest.map(key => {
-      if (typeof key === 'string' && key.includes('-')) {
-        return key.split('-');
-      }
-      if (typeof key === 'string' && key.includes('.')) {
-        return key.split('.');
-      }
-      return key;
-    }).flat();
-    
-    const allKeys = [namespace, ...expandedKeys];
-    return allKeys.reduce((acc, key) => (acc == null ? undefined : acc[key]), themeObj);
+    value = value[keys[i]];
   }
-  
-  // Fallback: simple path traversal
-  return path.reduce((acc, key) => (acc == null ? undefined : acc[key]), themeObj);
+
+  staticInProgress.delete(pathKey);
+  // If the final value is a function (leaf function), do NOT execute it
+  // Only category-level functions are supported; leaf functions are ignored
+  if (typeof value === 'function') return undefined;
+
+  // Return the resolved value (static or dynamically generated)
+  return value;
 }
 
 // config getter
@@ -124,7 +161,7 @@ export function resolveTheme(config: CssmaConfig): CssmaTheme {
   }
   if (config.theme) {
     const { extend, ...overrideTheme } = config.theme as any;
-    theme = shallowMerge(theme, overrideTheme);
+    theme = deepMerge(theme, overrideTheme); // shallowMerge → deepMerge로 변경
     if (extend) {
       theme = deepMerge(theme, extend);
     }
