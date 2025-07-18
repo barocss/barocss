@@ -223,6 +223,7 @@ functionalModifier(
       // not-[open] → :not([open])
       return `${selector}:not(${pseudo})`;
     } else {
+      console.log(pseudo);
       // not-hover → :not(:hover)
       return `${selector}:not(:${pseudo})`;
     }
