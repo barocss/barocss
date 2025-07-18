@@ -1585,7 +1585,7 @@ describe('not- variant (negation)', () => {
 });
 
 // not- variant(negation) 추가 케이스 (기존 테스트 아래에 append)
-describe('not- variant (negation) - 추가 케이스', () => {
+describe('not- variant (negation)', () => {
   it('not-focus:bg-red-500 → &:not(:focus)', () => {
     expect(applyClassName('not-focus:bg-red-500', ctx)).toEqual([
       { type: 'rule', selector: '&:not(:focus)', nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }] }
@@ -1611,7 +1611,7 @@ describe('not- variant (negation) - 추가 케이스', () => {
       { type: 'rule', selector: '&:not(:hover):focus', nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }] }
     ]);
   });
-  it.only('not-hover:not-focus:bg-red-500 → &:not(:hover):not(:focus)', () => {
+  it('not-hover:not-focus:bg-red-500 → &:not(:hover):not(:focus)', () => {
     expect(applyClassName('not-hover:not-focus:bg-red-500', ctx)).toEqual([
       { type: 'rule', selector: '&:not(:hover):not(:focus)', nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }] }
     ]);

@@ -38,7 +38,7 @@ function applyVariantChain(
   let ast = baseAST;
   let prevPlugin: any = null;
 
-  // --- wrap은 등장 순서대로(variantChain 그대로) 적용 ---
+  // --- wrap은 오른쪽→왼쪽(variantChain.length-1→0) 순서로 적용 ---
   for (let i = variantChain.length - 1; i >= 0; i--) {
     const variant = variantChain[i];
     const plugin = plugins.find(p => p.match(variant.type, context));
@@ -48,11 +48,11 @@ function applyVariantChain(
     prevPlugin = plugin;
   }
 
-  // --- selector 변환도 등장 순서대로(variantChain 그대로) 적용 ---
+  // --- selector 변환은 왼쪽→오른쪽(0→variantChain.length-1) 순서로 적용 ---
   selector = baseSelector;
   className = baseClassName;
   prevPlugin = null;
-  for (let i = variantChain.length - 1; i >= 0; i--) {
+  for (let i = 0; i < variantChain.length; i++) {
     const variant = variantChain[i];
     const plugin = plugins.find(p => p.match(variant.type, context));
     if (!plugin) continue;

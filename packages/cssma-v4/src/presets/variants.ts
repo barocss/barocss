@@ -220,10 +220,15 @@ functionalModifier(
   ({ selector, mod }) => {
     const pseudo = mod.type.replace('not-', '');
     if (pseudo.startsWith('[')) {
-      // not-[open] → :not([open])
-      return `${selector}:not(${pseudo})`;
+      const inner = pseudo.slice(1, -1);
+      // 속성 패턴: 식별자(=값)? (예: open, dir=rtl, aria-pressed=true)
+      if (/^[a-zA-Z0-9_-]+(=.+)?$/.test(inner)) {
+        return `${selector}:not([${inner}])`;
+      } else {
+        // 그 외는 selector로 인식
+        return `${selector}:not(${inner})`;
+      }
     } else {
-      console.log(pseudo);
       // not-hover → :not(:hover)
       return `${selector}:not(:${pseudo})`;
     }
@@ -559,4 +564,4 @@ functionalModifier(
   },
   undefined,
   { order: 350 }
-);
+); 
