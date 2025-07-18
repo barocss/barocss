@@ -190,41 +190,6 @@ functionalModifier(
   { order: 200 }
 );
 
-// --- Arbitrary attribute variant: [open]:bg-red-500, [dir=rtl]:bg-red-500, data-[state=open]:bg-red-500 ---
-functionalModifier(
-  (mod: string) => (/^\[.*\]$/.test(mod) && !/^\[&.*\]$/.test(mod)) || /^data-\[.*\]$/.test(mod),
-  ({ selector, mod }) => {
-    // [open] → [open] &
-    // [dir=rtl] → [dir=rtl] &
-    // data-[state=open] → [data-state="open"] &
-    if (mod.type.startsWith('data-[')) {
-      // data-[state=open] → [data-state="open"]
-      const m = /^data-\[([a-zA-Z0-9_-]+)=([^\]]+)\]$/.exec(mod.type);
-      if (m) {
-        return `[data-${m[1]}="${m[2]}"] ${selector}`;
-      }
-    }
-    // [open], [dir=rtl], [foo=bar] 등
-    return `${mod.type} ${selector}`;
-  },
-  undefined,
-  { order: 200 }
-);
-
-// --- Aria arbitrary variant: aria-[expanded=true]:bg-blue-500 ---
-functionalModifier(
-  (mod: string) => /^aria-\[.*\]$/.test(mod),
-  ({ selector, mod }) => {
-    // aria-[expanded=true] → [aria-expanded="true"] { ... }
-    const m = /^aria-\[([a-zA-Z0-9_-]+)=([^\]]+)\]$/.exec(mod.type);
-    if (m) {
-      return `[aria-${m[1]}="${m[2]}"] ${selector}`;
-    }
-    return selector;
-  },
-  undefined,
-  { order: 200 }
-);
 
 // --- Standard aria and not- variants ---
 functionalModifier(
@@ -334,6 +299,7 @@ functionalModifier(
   undefined,
   { order: 200 }
 );
+// has-[]: functionalModifier
 functionalModifier(
   (mod: string) => /^has-\[.*\]$/.test(mod),
   ({ selector, mod }) => {
@@ -448,7 +414,7 @@ functionalModifier(
     let params = '';
     if (/^@max-([a-z0-9]+)$/.test(mod.type)) {
       const m = /^@max-([a-z0-9]+)$/.exec(mod.type);
-      const size = ctx.theme('container.' + m[1]) || ctx.theme('breakpoint.' + m[1]);
+      const size = ctx.theme('container.' + m?.[1]) || ctx.theme('breakpoint.' + m?.[1]);
       if (size) params = `(max-width: ${size})`;
     } else if (/^@min-\[([^\]]+)\]$/.test(mod.type)) {
       const m = /^@min-\[([^\]]+)\]$/.exec(mod.type);
@@ -543,5 +509,36 @@ functionalModifier(
   { order: 15 }
 );
 
-// --- linter 오류(ast 타입 지정) 수정 ---
-// 기존 wrap: (ast) => ... 를 wrap: (ast: AstNode[]) => ... 로 모두 변경 
+
+
+
+// --- Aria arbitrary variant: aria-[expanded=true]:bg-blue-500 ---
+functionalModifier(
+  (mod: string) => /^aria-\[.*\]$/.test(mod),
+  ({ selector, mod }) => {
+    // aria-[expanded=true] → [aria-expanded="true"] { ... }
+    const m = /^aria-\[([a-zA-Z0-9_-]+)=([^\]]+)\]$/.exec(mod.type);
+    if (m) {
+      return `[aria-${m[1]}="${m[2]}"] ${selector}`;
+    }
+    return selector;
+  },
+  undefined,
+  { order: 200 }
+);
+
+// Tailwind-style arbitrary variant ([...]) 지원 (order: 999, always last)
+functionalModifier(
+  (mod: string) => /^\[.*\]$/.test(mod),
+  ({ selector, mod }) => {
+    const m = /^\[(.+)\]$/.exec(mod.type);
+    if (!m) return selector;
+    const inner = m[1].trim();
+    // &로 시작하면 현재 selector와 결합, 아니면 상위 selector로 wrap
+    if (inner.startsWith('&')) return inner.replace('&', selector);
+    return `${inner} ${selector}`.trim();
+  },
+  undefined,
+  { order: 999 }
+);
+// aria-[], data-[], is-[], where-[] 등도 동일하게 처리됨 
