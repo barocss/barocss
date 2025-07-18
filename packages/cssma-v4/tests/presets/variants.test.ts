@@ -1460,18 +1460,18 @@ describe('variants - arbitrary selector/attribute', () => {
       },
     ]);
   });
-  it('aria-[pressed=true]:bg-red-500 → &[aria-pressed="true"] { ... }', () => {
+  it('aria-[pressed=true]:bg-red-500 → [aria-pressed="true"] & { ... }', () => {
     expect(applyClassName('aria-[pressed=true]:bg-red-500', ctx)).toEqual([
       {
         type: 'rule',
-        selector: '&[aria-pressed="true"]',
+        selector: '[aria-pressed="true"] &',
         nodes: [
           { type: 'decl', prop: 'background-color', value: '#f00' },
         ],
       },
     ]);
   });
-  it.only('data-[state=open]:bg-red-500 → &[data-state="open"] { ... }', () => {
+  it('data-[state=open]:bg-red-500 → &[data-state="open"] { ... }', () => {
     expect(applyClassName('data-[state=open]:bg-red-500', ctx)).toEqual([
       {
         type: 'rule',

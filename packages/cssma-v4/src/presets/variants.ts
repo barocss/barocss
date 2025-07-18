@@ -192,16 +192,18 @@ functionalModifier(
 
 
 // --- Standard aria and not- variants ---
+// aria- variant는 아래 하나만 남기고 중복 플러그인 모두 삭제
 functionalModifier(
-  (mod: string) => mod.startsWith('aria-'),
+  (mod: string) => /^aria-/.test(mod),
   ({ selector, mod }) => {
+    // aria-[expanded=true] → [aria-expanded="true"] & { ... }
     const bracket = /^aria-\[([a-zA-Z0-9_-]+)(?:=([^\]]+))?\]$/.exec(mod.type);
     if (bracket) {
       const key = bracket[1];
       const value = bracket[2] ?? 'true';
       return `[aria-${key}="${value}"] ${selector}`;
     }
-    // aria-pressed → [aria-pressed="true"]
+    // aria-pressed → [aria-pressed="true"] & { ... }
     const m2 = /^aria-([a-zA-Z0-9_]+)$/.exec(mod.type);
     if (m2) {
       const key = m2[1];
@@ -536,9 +538,53 @@ functionalModifier(
     const inner = m[1].trim();
     // &로 시작하면 현재 selector와 결합, 아니면 상위 selector로 wrap
     if (inner.startsWith('&')) return inner.replace('&', selector);
+    // 속성 선택자(attr=val) 또는 단순 속성([open])도 대괄호로 감싸서 반환
+    if (/^[a-zA-Z0-9_-]+(=.+)?$/.test(inner)) {
+      return `[${inner}] ${selector}`;
+    }
     return `${inner} ${selector}`.trim();
   },
   undefined,
   { order: 999 }
 );
 // aria-[], data-[], is-[], where-[] 등도 동일하게 처리됨 
+
+// data-[state=open] → &[data-state="open"]
+functionalModifier(
+  (mod: string) => /^data-\[.+\]$/.test(mod),
+  ({ selector, mod }) => {
+    const m = /^data-\[([a-zA-Z0-9_-]+)=([^\]]+)\]$/.exec(mod.type);
+    if (m) {
+      return `${selector}[data-${m[1]}="${m[2]}"]`;
+    }
+    return selector;
+  },
+  undefined,
+  { order: 350 }
+);
+// is-[.foo] → &:is(.foo)
+functionalModifier(
+  (mod: string) => /^is-\[.+\]$/.test(mod),
+  ({ selector, mod }) => {
+    const m = /^is-\[(.+)\]$/.exec(mod.type);
+    if (m) {
+      return `${selector}:is(${m[1]})`;
+    }
+    return selector;
+  },
+  undefined,
+  { order: 352 }
+);
+// where-[.bar] → &:where(.bar)
+functionalModifier(
+  (mod: string) => /^where-\[.+\]$/.test(mod),
+  ({ selector, mod }) => {
+    const m = /^where-\[(.+)\]$/.exec(mod.type);
+    if (m) {
+      return `${selector}:where(${m[1]})`;
+    }
+    return selector;
+  },
+  undefined,
+  { order: 353 }
+); 
