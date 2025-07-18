@@ -511,9 +511,6 @@ functionalModifier(
   { order: 15 }
 );
 
-
-
-
 // --- Aria arbitrary variant: aria-[expanded=true]:bg-blue-500 ---
 functionalModifier(
   (mod: string) => /^aria-\[.*\]$/.test(mod),
@@ -540,7 +537,7 @@ functionalModifier(
     if (inner.startsWith('&')) return inner.replace('&', selector);
     // 속성 선택자(attr=val) 또는 단순 속성([open])도 대괄호로 감싸서 반환
     if (/^[a-zA-Z0-9_-]+(=.+)?$/.test(inner)) {
-      return `[${inner}] ${selector}`;
+      return `${selector}[${inner}]`;
     }
     return `${inner} ${selector}`.trim();
   },
@@ -562,29 +559,3 @@ functionalModifier(
   undefined,
   { order: 350 }
 );
-// is-[.foo] → &:is(.foo)
-functionalModifier(
-  (mod: string) => /^is-\[.+\]$/.test(mod),
-  ({ selector, mod }) => {
-    const m = /^is-\[(.+)\]$/.exec(mod.type);
-    if (m) {
-      return `${selector}:is(${m[1]})`;
-    }
-    return selector;
-  },
-  undefined,
-  { order: 352 }
-);
-// where-[.bar] → &:where(.bar)
-functionalModifier(
-  (mod: string) => /^where-\[.+\]$/.test(mod),
-  ({ selector, mod }) => {
-    const m = /^where-\[(.+)\]$/.exec(mod.type);
-    if (m) {
-      return `${selector}:where(${m[1]})`;
-    }
-    return selector;
-  },
-  undefined,
-  { order: 353 }
-); 

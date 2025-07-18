@@ -56,7 +56,7 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
       negative = true;
       modStr = modStr.slice(1);
     }
-    // --- Arbitrary selector/attribute variant support ---
+    // --- Arbitrary variant support ---
     if (modStr.startsWith('[') && modStr.endsWith(']')) {
       return { type: modStr, negative, arbitrary: true };
     }

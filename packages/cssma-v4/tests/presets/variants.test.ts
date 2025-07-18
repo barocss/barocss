@@ -389,7 +389,7 @@ describe("modifier/variant system", () => {
     expect(applyClassName("data-[state=open]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
-        selector: '[data-state="open"] &',
+        selector: '&[data-state="open"]',
         nodes: [
           { type: "decl", prop: "background-color", value: "#f00" },
         ],
@@ -401,7 +401,7 @@ describe("modifier/variant system", () => {
     expect(applyClassName("[open]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
-        selector: '[open] &',
+        selector: '&[open]',
         nodes: [
           { type: "decl", prop: "background-color", value: "#f00" },
         ],
@@ -413,7 +413,7 @@ describe("modifier/variant system", () => {
     expect(applyClassName("[dir=rtl]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
-        selector: '[dir=rtl] &',
+        selector: '&[dir=rtl]',
         nodes: [
           { type: "decl", prop: "background-color", value: "#f00" },
         ],
@@ -1448,7 +1448,7 @@ describe('variants - has-[]', () => {
   });
 });
 
-describe('variants - arbitrary selector/attribute', () => {
+describe('variants - arbitrary ', () => {
   it('[&>*]:bg-red-500 → &>* { ... }', () => {
     expect(applyClassName('[&>*]:bg-red-500', ctx)).toEqual([
       {
@@ -1506,7 +1506,7 @@ describe('variants - arbitrary selector/attribute', () => {
   });
 });
 
-describe('arbitrary variants (Tailwind style)', () => {
+describe('arbitrary variants ', () => {
   it('[&:hover]:bg-red-500 → &:hover { ... }', () => {
     expect(applyClassName('[&:hover]:bg-red-500', ctx)).toEqual([
       { type: 'rule', selector: '&:hover', nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }] }
