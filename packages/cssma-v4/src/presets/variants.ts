@@ -91,9 +91,26 @@ staticModifier('invalid', ['&:invalid'], { order: 40 });
 staticModifier('empty', ['&:empty'], { order: 40 });
 staticModifier('before', ['&::before'], { order: 100 });
 staticModifier('after', ['&::after'], { order: 100 });
-staticModifier('placeholder', ['&::placeholder'], { order: 100 });
-staticModifier('selection', ['&::selection'], { order: 100 });
-staticModifier('marker', ['&::marker'], { order: 100 });
+staticModifier('placeholder', [
+  '&::placeholder',
+  '&::-webkit-input-placeholder',
+  '&::-moz-placeholder',
+  '&:-ms-input-placeholder',
+], { order: 100 });
+staticModifier('selection', [
+  '&::selection',
+  '&::-moz-selection',
+], { order: 100 });
+staticModifier('file', [
+  '&::file-selector-button',
+  '&::-webkit-file-upload-button',
+], { order: 100 });
+staticModifier('marker', [
+  '&::marker',
+  '&::-webkit-details-marker',
+  '&::-moz-list-bullet',
+  '&::-moz-list-number',
+], { order: 100 });
 // dark variant plugin 개선
 const getDarkSelectors = (ctx: CssmaContext) => {
   const mode = ctx.config('darkMode') || 'media';
@@ -176,23 +193,9 @@ staticModifier('landscape', ['&'], {
   order: 15,
   wrap: (ast: AstNode[]) => [atRule('media', '(orientation: landscape)', ast)]
 });
-// supports-[]는 functionalModifier로 별도 구현 필요 (추후)
-
-// --- Arbitrary selector variant: [&...]:bg-red-500 ---
-functionalModifier(
-  (mod: string) => /^\[&.*\]$/.test(mod),
-  ({ selector, mod }) => {
-    // [&>*] → &>* (임의 selector)
-    const arbitrarySel = mod.type.slice(1, -1);
-    return arbitrarySel.replace('&', selector);
-  },
-  undefined,
-  { order: 200 }
-);
 
 
 // --- Standard aria and not- variants ---
-// aria- variant는 아래 하나만 남기고 중복 플러그인 모두 삭제
 functionalModifier(
   (mod: string) => /^aria-/.test(mod),
   ({ selector, mod }) => {
@@ -288,7 +291,6 @@ functionalModifier(
   undefined,
   { order: 50 }
 );
-// --- is-[], where-[], has-[] (arbitrary selector logic) ---
 functionalModifier(
   (mod: string) => /^is-\[.*\]$/.test(mod),
   ({ selector, mod }) => {

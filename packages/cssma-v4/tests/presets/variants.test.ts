@@ -492,7 +492,7 @@ describe("modifier/variant system", () => {
     expect(applyClassName("placeholder:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
-        selector: "&::placeholder",
+        selector: "&::placeholder, &::-webkit-input-placeholder, &::-moz-placeholder, &:-ms-input-placeholder",
         nodes: [
           { type: "decl", prop: "background-color", value: "#f00" },
         ],
@@ -504,7 +504,7 @@ describe("modifier/variant system", () => {
     expect(applyClassName("selection:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
-        selector: "&::selection",
+        selector: "&::selection, &::-moz-selection",
         nodes: [
           { type: "decl", prop: "background-color", value: "#f00" },
         ],
@@ -516,7 +516,7 @@ describe("modifier/variant system", () => {
     expect(applyClassName("marker:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
-        selector: "&::marker",
+        selector: "&::marker, &::-webkit-details-marker, &::-moz-list-bullet, &::-moz-list-number",
         nodes: [
           { type: "decl", prop: "background-color", value: "#f00" },
         ],
@@ -713,7 +713,7 @@ describe("modifier/variant system", () => {
   });
   it("file:bg-red-500 → &::file-selector-button { ... }", () => {
     expect(applyClassName("file:bg-red-500", ctx)).toEqual([
-      { type: "rule", selector: "&::file-selector-button", nodes: [{ type: "decl", prop: "background-color", value: "#f00" }] }
+      { type: "rule", selector: "&::file-selector-button, &::-webkit-file-upload-button", nodes: [{ type: "decl", prop: "background-color", value: "#f00" }] }
     ]);
   });
   it("motion-safe:hover:bg-red-500 → @media (prefers-reduced-motion: no-preference) { &:hover { ... } }", () => {
@@ -1533,6 +1533,27 @@ describe('arbitrary variants ', () => {
           { type: 'rule', selector: '.foo &:hover', nodes: [{ type: 'decl', prop: 'background-color', value: '#00f' }] }
         ]
       }
+    ]);
+  });
+});
+
+describe('cross-browser pseudo-element variants', () => {
+  it('placeholder:bg-red-500 → 4개 selector', () => {
+    const result = applyClassName('placeholder:bg-red-500', ctx);
+    expect(result).toEqual([
+      { type: 'rule', selector: '&::placeholder, &::-webkit-input-placeholder, &::-moz-placeholder, &:-ms-input-placeholder', nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }] },
+    ]);
+  });
+  it('selection:bg-red-500 → 2개 selector', () => {
+    const result = applyClassName('selection:bg-red-500', ctx);
+    expect(result).toEqual([
+      { type: 'rule', selector: '&::selection, &::-moz-selection', nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }] },
+    ]);
+  });
+  it('file:bg-red-500 → 2개 selector', () => {
+    const result = applyClassName('file:bg-red-500', ctx);
+    expect(result).toEqual([
+      { type: 'rule', selector: '&::file-selector-button, &::-webkit-file-upload-button', nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }] },
     ]);
   });
 });
