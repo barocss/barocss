@@ -1639,7 +1639,7 @@ describe('not- variant (negation)', () => {
   });
 });
 
-describe('Tailwind 4.x universal selector variants (*, **) with chaining and attribute', () => {
+describe(' variants (*, **) with chaining and attribute', () => {
   it('*:rounded-full → :is(.\*:rounded-full > *)', () => {
     const ast = applyClassName('*:rounded-full', ctx);
     expect(ast).toEqual([
