@@ -2,6 +2,7 @@ import { staticModifier, functionalModifier } from "../core/registry";
 import { AstNode, atRule, rule } from "../core/ast";
 import { CssmaContext } from "../core/context";
 import { ParsedModifier } from "../core/parser";
+import { wrapSelector } from '../core/utils';
 
 // --- Variant plugin definitions only ---
 staticModifier('first', ['&:first-child'], { order: 50 });
@@ -199,19 +200,28 @@ staticModifier('landscape', ['&'], {
 functionalModifier(
   (mod: string) => /^aria-/.test(mod),
   ({ selector, mod }) => {
-    // aria-[expanded=true] → [aria-expanded="true"] & { ... }
+    console.log('=== aria functionalModifier modifySelector ===');
+    console.log('mod:', mod);
+    console.log('selector:', selector);
+    
+    // aria-[expanded=true] → &[aria-expanded="true"] { ... }
     const bracket = /^aria-\[([a-zA-Z0-9_-]+)(?:=([^\]]+))?\]$/.exec(mod.type);
     if (bracket) {
       const key = bracket[1];
       const value = bracket[2] ?? 'true';
-      return `[aria-${key}="${value}"] ${selector}`;
+      const result = `${selector}[aria-${key}="${value}"]`;
+      console.log('aria result (bracket):', result);
+      return result;
     }
-    // aria-pressed → [aria-pressed="true"] & { ... }
+    // aria-pressed → &[aria-pressed="true"] { ... }
     const m2 = /^aria-([a-zA-Z0-9_]+)$/.exec(mod.type);
     if (m2) {
       const key = m2[1];
-      return `[aria-${key}="true"] ${selector}`;
+      const result = `${selector}[aria-${key}="true"]`;
+      console.log('aria result (simple):', result);
+      return result;
     }
+    console.log('aria result (default):', selector);
     return selector;
   },
   undefined,
@@ -519,15 +529,32 @@ functionalModifier(
   { order: 15 }
 );
 
-// --- Aria arbitrary variant: aria-[expanded=true]:bg-blue-500 ---
+// --- Standard data- variants (similar to aria-) ---
 functionalModifier(
-  (mod: string) => /^aria-\[.*\]$/.test(mod),
+  (mod: string) => /^data-/.test(mod),
   ({ selector, mod }) => {
-    // aria-[expanded=true] → [aria-expanded="true"] { ... }
-    const m = /^aria-\[([a-zA-Z0-9_-]+)=([^\]]+)\]$/.exec(mod.type);
-    if (m) {
-      return `[aria-${m[1]}="${m[2]}"] ${selector}`;
+    console.log('=== data functionalModifier modifySelector ===');
+    console.log('mod:', mod);
+    console.log('selector:', selector);
+    
+    // data-[state=open] → [data-state="open"] & { ... }
+    const bracket = /^data-\[([a-zA-Z0-9_-]+)(?:=([^\]]+))?\]$/.exec(mod.type);
+    if (bracket) {
+      const key = bracket[1];
+      const value = bracket[2] ?? 'true';
+      const result = `${selector}[data-${key}="${value}"]`;
+      console.log('data result (bracket):', result);
+      return result;
     }
+    // data-avatar → [data-avatar="true"] & { ... }
+    const m2 = /^data-([a-zA-Z0-9_]+)$/.exec(mod.type);
+    if (m2) {
+      const key = m2[1];
+      const result = `${selector}[data-${key}]`;
+      console.log('data result (simple):', result);
+      return result;
+    }
+    console.log('data result (default):', selector);
     return selector;
   },
   undefined,
@@ -552,18 +579,28 @@ functionalModifier(
   undefined,
   { order: 999 }
 );
-// aria-[], data-[], is-[], where-[] 등도 동일하게 처리됨 
 
-// data-[state=open] → &[data-state="open"]
+
+// --- Universal selector variants (Tailwind 4.x style, supports chaining/:is wrapping) ---
+
 functionalModifier(
-  (mod: string) => /^data-\[.+\]$/.test(mod),
-  ({ selector, mod }) => {
-    const m = /^data-\[([a-zA-Z0-9_-]+)=([^\]]+)\]$/.exec(mod.type);
-    if (m) {
-      return `${selector}[data-${m[1]}="${m[2]}"]`;
-    }
-    return selector;
+  (mod) => mod === '*',
+  ({ selector, fullClassName }) => {
+    // Tailwind 4.x: :is(.class > *)
+    const result = `:is(.${fullClassName} > *)`;
+    return result;
   },
   undefined,
-  { order: 350 }
-); 
+  { order: 60 }
+);
+
+functionalModifier(
+  (mod) => mod === '**',
+  ({ selector, fullClassName }) => {
+    // Tailwind 4.x: :is(.class *)
+    const result = `:is(.${fullClassName} *)`;
+    return result;
+  },
+  undefined,
+  { order: 61 }
+);

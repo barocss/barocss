@@ -75,7 +75,7 @@ describe("modifier/variant system", () => {
     expect(applyClassName("aria-pressed:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
-        selector: '[aria-pressed="true"] &',
+        selector: '&[aria-pressed="true"]',
         nodes: [
           { type: "decl", prop: "background-color", value: "#f00" },
         ],
@@ -87,7 +87,7 @@ describe("modifier/variant system", () => {
     expect(applyClassName("aria-[pressed=false]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
-        selector: '[aria-pressed="false"] &',
+        selector: '&[aria-pressed="false"]',
         nodes: [
           { type: "decl", prop: "background-color", value: "#f00" },
         ],
@@ -377,7 +377,7 @@ describe("modifier/variant system", () => {
     expect(applyClassName("aria-[expanded=true]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
-        selector: '[aria-expanded="true"] &',
+        selector: '&[aria-expanded="true"]',
         nodes: [
           { type: "decl", prop: "background-color", value: "#f00" },
         ],
@@ -602,7 +602,7 @@ describe("modifier/variant system", () => {
         nodes: [
           {
             type: "rule",
-            selector: "[aria-expanded=\"true\"] &",
+            selector: "&[aria-expanded=\"true\"]",
             nodes: [
               { type: "decl", prop: "background-color", value: "#f00" },
             ],
@@ -1464,7 +1464,7 @@ describe('variants - arbitrary ', () => {
     expect(applyClassName('aria-[pressed=true]:bg-red-500', ctx)).toEqual([
       {
         type: 'rule',
-        selector: '[aria-pressed="true"] &',
+        selector: '&[aria-pressed="true"]',
         nodes: [
           { type: 'decl', prop: 'background-color', value: '#f00' },
         ],
@@ -1635,6 +1635,86 @@ describe('not- variant (negation)', () => {
   it('not-hover:not-focus:bg-red-500 → &:not(:hover):not(:focus)', () => {
     expect(applyClassName('not-hover:not-focus:bg-red-500', ctx)).toEqual([
       { type: 'rule', selector: '&:not(:hover):not(:focus)', nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }] }
+    ]);
+  });
+});
+
+describe('Tailwind 4.x universal selector variants (*, **) with chaining and attribute', () => {
+  it('*:rounded-full → :is(.\*:rounded-full > *)', () => {
+    const ast = applyClassName('*:rounded-full', ctx);
+    expect(ast).toEqual([
+      {
+        type: 'rule',
+        selector: ':is(.\\*\\:rounded-full > *)',
+        nodes: [
+          { type: 'decl', prop: 'border-radius', value: '9999px' },
+        ],
+      },
+    ]);
+  });
+
+  it('**:rounded-full → :is(.\*\*:rounded-full *)', () => {
+    const ast = applyClassName('**:rounded-full', ctx);
+    expect(ast).toEqual([
+      {
+        type: 'rule',
+        selector: ':is(.\\*\\*\\:rounded-full *)',
+        nodes: [
+          { type: 'decl', prop: 'border-radius', value: '9999px' },
+        ],
+      },
+    ]);
+  });
+
+  it('*:data-avatar:rounded-full → :is(.\*:data-avatar\:rounded-full > *)[data-avatar]', () => {
+    const ast = applyClassName('*:data-avatar:rounded-full', ctx);
+    expect(ast).toEqual([
+      {
+        type: 'rule',
+        selector: ':is(.\\*\\:data-avatar\\:rounded-full > *)[data-avatar]',
+        nodes: [
+          { type: 'decl', prop: 'border-radius', value: '9999px' },
+        ],
+      },
+    ]);
+  });
+
+  it('**:data-avatar:rounded-full → :is(.\*\*:data-avatar\:rounded-full *)[data-avatar]', () => {
+    const ast = applyClassName('**:data-avatar:rounded-full', ctx);
+    expect(ast).toEqual([
+      {
+        type: 'rule',
+        selector: ':is(.\\*\\*\\:data-avatar\\:rounded-full *)[data-avatar]',
+        nodes: [
+          { type: 'decl', prop: 'border-radius', value: '9999px' },
+        ],
+      },
+    ]);
+  });
+
+  it('group-hover:*:rounded-full → :is(.group-hover\\:\\*:rounded-full > *)', () => {
+    const ast = applyClassName('group-hover:*:rounded-full', ctx);
+    expect(ast).toEqual([
+      {
+        type: 'rule',
+        selector: ':is(.group-hover\\:\\*\\:rounded-full > *)',
+        nodes: [
+          { type: 'decl', prop: 'border-radius', value: '9999px' },
+        ],
+      },
+    ]);
+  });
+
+  it('group-hover:**:rounded-full → :is(.group-hover\:\*\*:rounded-full *)', () => {
+    const ast = applyClassName('group-hover:**:rounded-full', ctx);
+    expect(ast).toEqual([
+      {
+        type: 'rule',
+        selector: ':is(.group-hover\\:\\*\\*\\:rounded-full *)',
+        nodes: [
+          { type: 'decl', prop: 'border-radius', value: '9999px' },
+        ],
+      },
     ]);
   });
 }); 

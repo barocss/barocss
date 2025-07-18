@@ -1,4 +1,4 @@
-import type { AstNode } from './ast';
+import { rule, type AstNode } from './ast';
 import { parseClassName } from './parser';
 import { getUtility, getModifierPlugins, escapeClassName } from './registry';
 import { CssmaContext } from './context';
@@ -11,7 +11,7 @@ function setInnermostRuleSelector(ast: any, selector: string): any {
   }
   if (ast.type === 'rule') {
     // 더 안쪽에 rule/at-rule이 있으면 재귀, 없으면 selector 덮어쓰기
-    if (ast.nodes && ast.nodes.some(n => n.type === 'rule' || n.type === 'at-rule')) {
+    if (ast.nodes && ast.nodes.some((n: any) => n.type === 'rule' || n.type === 'at-rule')) {
       return { ...ast, nodes: setInnermostRuleSelector(ast.nodes, selector) };
     } else {
       return { ...ast, selector };
@@ -26,14 +26,13 @@ function setInnermostRuleSelector(ast: any, selector: string): any {
 
 // Variant chain 적용 (with compounds/arbitrary support)
 function applyVariantChain(
-  baseClassName: string,
   baseSelector: string,
   baseAST: AstNode[],
   variantChain: ParsedModifier[],
   context: CssmaContext,
-  plugins: ReturnType<typeof getModifierPlugins>
+  plugins: ReturnType<typeof getModifierPlugins>,
+  fullClassName: string
 ) {
-  let className = baseClassName;
   let selector = baseSelector;
   let ast = baseAST;
   let prevPlugin: any = null;
@@ -41,62 +40,80 @@ function applyVariantChain(
   // --- wrap은 오른쪽→왼쪽(variantChain.length-1→0) 순서로 적용 ---
   for (let i = variantChain.length - 1; i >= 0; i--) {
     const variant = variantChain[i];
+    
     const plugin = plugins.find(p => p.match(variant.type, context));
-    if (!plugin) continue;
-    if (plugin.wrap) ast = plugin.wrap(Array.isArray(ast) ? ast : [ast], variant, context);
-    className = `${variant.type}:${className}`;
+    
+    if (!plugin) {
+      continue;
+    }
+    
+    if (plugin.wrap) {
+      ast = plugin.wrap(Array.isArray(ast) ? ast : [ast], variant, context);
+    }
+    
     prevPlugin = plugin;
   }
 
   // --- selector 변환은 왼쪽→오른쪽(0→variantChain.length-1) 순서로 적용 ---
   selector = baseSelector;
-  className = baseClassName;
   prevPlugin = null;
+  const escapedClassName = escapeClassName(fullClassName);
   for (let i = 0; i < variantChain.length; i++) {
     const variant = variantChain[i];
+    
     const plugin = plugins.find(p => p.match(variant.type, context));
-    if (!plugin) continue;
+    
+    if (!plugin) {
+      continue;
+    }
+    
+
     if (
       prevPlugin &&
       prevPlugin.compounds &&
       prevPlugin.compounds.includes(variant.type)
     ) {
       selector = plugin.modifySelector
-        ? plugin.modifySelector({ selector, className, mod: variant, context })
+        ? plugin.modifySelector({ selector, fullClassName: escapedClassName, mod: variant, context })
         : selector;
     } else {
       selector = plugin.modifySelector
-        ? plugin.modifySelector({ selector, className, mod: variant, context })
+        ? plugin.modifySelector({ selector, fullClassName: escapedClassName, mod: variant, context })
         : selector;
     }
-    className = `${variant.type}:${className}`;
+    
     prevPlugin = plugin;
   }
-
-  // Escape className for CSS
-  const escapedClassName = escapeClassName(className);
   // selector를 ast의 가장 안쪽 rule에 반영
   ast = setInnermostRuleSelector(ast, selector);
+  
   return { className: escapedClassName, selector, ast };
 }
 
 /**
  * Applies a class name string to produce AST nodes.
- * @param className e.g. 'hover:bg-red-500 sm:focus:text-blue-500'
+ * @param fullClassName e.g. 'hover:bg-red-500 sm:focus:text-blue-500'
  * @param ctx CssmaContext (must be created via createContext(config))
  * @returns AstNode[]
  */
-export function applyClassName(className: string, ctx: CssmaContext): AstNode[] {
+export function applyClassName(fullClassName: string, ctx: CssmaContext): AstNode[] {
   // 1. Parse className → { modifiers, utility }
-  const { modifiers, utility } = parseClassName(className);
-  if (!utility) return [];
+  const { modifiers, utility } = parseClassName(fullClassName);
+  
+  if (!utility) {
+    return [];
+  }
+  
   // 2. Find matching utility handler
   const utilReg = getUtility().find(u => {
     // Reconstruct the full className for matching
     const fullClassName = utility.value ? `${utility.prefix}-${utility.value}` : utility.prefix;
     return u.match(fullClassName);
   });
-  if (!utilReg) return [];
+  
+  if (!utilReg) {
+    return [];
+  }
 
   // Handle negative values by prepending '-' to the value
   let value = utility.value;
@@ -108,17 +125,16 @@ export function applyClassName(className: string, ctx: CssmaContext): AstNode[] 
 
   // decl만 반환된 경우 rule로 감싸기
   if (baseAst.length > 0 && baseAst.every(n => n.type === 'decl')) {
-    baseAst = [{ type: 'rule', selector: '&', nodes: baseAst }];
+    baseAst = [rule('&', baseAst)];
   }
-
   // 3. Apply variant chain using plugin system (with compounds/arbitrary)
   const { className: finalClassName, selector, ast } = applyVariantChain(
-    utility.prefix + (utility.value ? `-${utility.value}` : ''),
     '&',
     baseAst,
     modifiers,
     ctx,
-    getModifierPlugins()
+    getModifierPlugins(),
+    fullClassName
   );
 
   // --- variant가 없으면 decl만 반환, 있으면 AST 그대로 반환 ---
@@ -132,8 +148,7 @@ export function applyClassName(className: string, ctx: CssmaContext): AstNode[] 
       return ast;
     }
   }
-  // Optionally, you could attach selector/className to AST or return as needed
-  // For now, just return AST
+  
   return ast;
 }
 
