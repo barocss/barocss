@@ -87,7 +87,7 @@ function applyVariantChain(
   // selector를 ast의 가장 안쪽 rule에 반영
   ast = setInnermostRuleSelector(ast, selector);
   
-  return { className: escapedClassName, selector, ast };
+  return { ast };
 }
 
 /**
@@ -128,7 +128,7 @@ export function applyClassName(fullClassName: string, ctx: CssmaContext): AstNod
     baseAst = [rule('&', baseAst)];
   }
   // 3. Apply variant chain using plugin system (with compounds/arbitrary)
-  const { className: finalClassName, selector, ast } = applyVariantChain(
+  const { ast } = applyVariantChain(
     '&',
     baseAst,
     modifiers,

@@ -18,6 +18,8 @@ import { transitionDelay } from './transition-delay';
 import { animations } from './animations';
 import { keyframes } from './keyframes';
 import { animationVars } from './animation-vars';
+import { breakpoints } from './breakpoints';
+import { container } from './container';
 
 export interface UserTheme {
   [key: string]: any;
@@ -27,6 +29,8 @@ export const defaultTheme = {
   colors,
   spacing,
   borderRadius,
+  breakpoints,
+  container,
   fontSize,
   fontFamily,
   fontWeight,

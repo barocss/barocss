@@ -4,6 +4,55 @@ import { CssmaContext } from "../core/context";
 import { ParsedModifier } from "../core/parser";
 import { wrapSelector } from '../core/utils';
 
+// --- 공통 유틸리티 함수들 ---
+
+/**
+ * Container query 파라미터 생성
+ */
+function createContainerParams(type: 'min' | 'max', value: string, name?: string): string {
+  const condition = type === 'min' ? 'width >=' : 'width <';
+  return name ? `${name} (${condition} ${value})` : `(${condition} ${value})`;
+}
+
+/**
+ * Media query 파라미터 생성
+ */
+function createMediaParams(type: 'min' | 'max', value: string): string {
+  const condition = type === 'min' ? 'min-width' : 'width <';
+  return type === 'min' ? `(min-width: ${value})` : `(width < ${value})`;
+}
+
+/**
+ * Theme에서 size 값 가져오기
+ */
+function getThemeSize(ctx: CssmaContext, key: string): string | undefined {
+  return ctx.theme('container.' + key) || ctx.theme('breakpoint.' + key);
+}
+
+/**
+ * Container query AST 생성
+ */
+function createContainerRule(params: string, ast: AstNode | AstNode[]): AstNode {
+  return {
+    type: 'at-rule',
+    name: 'container',
+    params,
+    nodes: Array.isArray(ast) ? ast : [ast],
+  };
+}
+
+/**
+ * Media query AST 생성
+ */
+function createMediaRule(params: string, ast: AstNode | AstNode[]): AstNode {
+  return {
+    type: 'at-rule',
+    name: 'media',
+    params,
+    nodes: Array.isArray(ast) ? ast : [ast],
+  };
+}
+
 // --- Variant plugin definitions only ---
 staticModifier('first', ['&:first-child'], { order: 50 });
 staticModifier('last', ['&:last-child'], { order: 50 });
@@ -22,67 +71,152 @@ staticModifier('focus-within', ['&:focus-within'], { order: 50 });
 // group-hover/peer-hover: allow chaining with focus/active/hover
 staticModifier('group-hover', ['.group:hover &'], { compounds: ['focus', 'active', 'hover'], order: 30 });
 staticModifier('peer-hover', ['.peer:hover ~ &'], { compounds: ['focus', 'active', 'hover'], order: 30 });
-// responsive (media 쿼리)
-staticModifier('sm', ['&'], {
-  order: 10,
-  wrap: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => [
-    atRule('media', context.theme('breakpoint.sm') || '(min-width: 640px)', ast)
-  ]
-});
-staticModifier('md', ['&'], {
-  order: 10,
-  wrap: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => [
-    atRule('media', context.theme('breakpoint.md') || '(min-width: 768px)', ast)
-  ]
-});
-staticModifier('lg', ['&'], {
-  order: 10,
-  wrap: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => [
-    atRule('media', context.theme('breakpoint.lg') || '(min-width: 1024px)', ast)
-  ]
-});
-staticModifier('xl', ['&'], {
-  order: 10,
-  wrap: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => [
-    atRule('media', context.theme('breakpoint.xl') || '(min-width: 1280px)', ast)
-  ]
-});
-staticModifier('2xl', ['&'], {
-  order: 10,
-  wrap: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => [
-    atRule('media', context.theme('breakpoint.2xl') || '(min-width: 1536px)', ast)
-  ]
-});
+// responsive (media 쿼리) - 동적 breakpoint 지원
+functionalModifier(
+  (mod: string, context: CssmaContext) => {
+    // 1. config에서 정의된 breakpoint 확인 (Tailwind CSS 실제 구현과 일치)
+    const breakpoints = context.theme('breakpoints') || context.config('theme.breakpoints') || {};
+    const breakpointKeys = Object.keys(breakpoints);
+    
+    // 2. 기본 breakpoint 확인 (config에 정의된 모든 breakpoint)
+    if (breakpointKeys.includes(mod)) {
+      return true;
+    }
+    
+    // 3. max-width breakpoint 확인 (max-{breakpoint})
+    if (mod.startsWith('max-')) {
+      const baseBreakpoint = mod.replace('max-', '');
+      // 3-1. 정의된 breakpoint인 경우
+      if (breakpointKeys.includes(baseBreakpoint)) {
+        return true;
+      }
+      // 3-2. arbitrary max-width인 경우 (max-[960px])
+      if (/^\[.*\]$/.test(baseBreakpoint)) {
+        return true;
+      }
+    }
+    
+    // 4. arbitrary min-width 확인 (min-[600px])
+    if (/^min-\[.*\]$/.test(mod)) {
+      return true; // 임의값은 항상 유효
+    }
+    
+    // 5. arbitrary max-width 확인 (max-[960px])
+    if (/^max-\[.*\]$/.test(mod)) {
+      return true; // 임의값은 항상 유효
+    }
+    
+    return false;
+  },
+  undefined,
+  (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => {
+    const breakpoint = mod.type;
+    
+    // 1. config에서 정의된 breakpoint 처리 (Tailwind CSS v4.1 표준)
+    const breakpoints = context.theme('breakpoints') || context.config('theme.breakpoints') || {};
+    
+    // 2. 기본 breakpoint 처리 (config에 정의된 모든 breakpoint)
+    if (Object.keys(breakpoints).includes(breakpoint)) {
+      let mediaQuery = context.theme(`breakpoints.${breakpoint}`) || 
+                      getDefaultBreakpoint(breakpoint);
+      return [atRule('media', mediaQuery, ast)];
+    }
+    
+    // 3. max-width breakpoint 처리 (max-{breakpoint})
+    if (breakpoint.startsWith('max-')) {
+      const baseBreakpoint = breakpoint.replace('max-', '');
+      
+      // 3-1. 정의된 breakpoint인 경우 (max-sm, max-md, etc.)
+      if (Object.keys(breakpoints).includes(baseBreakpoint)) {
+        let mediaQuery = context.theme(`breakpoints.${baseBreakpoint}`) || 
+                        getDefaultBreakpoint(baseBreakpoint);
+        
+        // min-width를 max-width로 변환
+        if (mediaQuery.includes('min-width:')) {
+          const value = mediaQuery.match(/min-width:\s*([^)]+)/)?.[1];
+          if (value) {
+            mediaQuery = `(width < ${value})`;
+          }
+        } else if (mediaQuery.includes('width >=')) {
+          const value = mediaQuery.match(/width >=\s*([^)]+)/)?.[1];
+          if (value) {
+            mediaQuery = `(width < ${value})`;
+          }
+        }
+        
+        return [atRule('media', mediaQuery, ast)];
+      }
+      
+      // 3-2. arbitrary max-width인 경우 (max-[960px])
+      if (/^\[(.*)\]$/.test(baseBreakpoint)) {
+        const value = baseBreakpoint.match(/^\[(.*)\]$/)?.[1];
+        if (value) {
+          return [atRule('media', `(width < ${value})`, ast)];
+        }
+      }
+    }
+    
+    // 4. arbitrary min-width 처리 (min-[600px])
+    if (/^min-\[(.*)\]$/.test(breakpoint)) {
+      const value = breakpoint.match(/^min-\[(.*)\]$/)?.[1];
+      if (value) {
+        return [atRule('media', `(width >= ${value})`, ast)];
+      }
+    }
+    
+    // 5. arbitrary max-width 처리 (max-[960px])
+    if (/^max-\[(.*)\]$/.test(breakpoint)) {
+      const value = breakpoint.match(/^max-\[(.*)\]$/)?.[1];
+      if (value) {
+        return [atRule('media', `(width < ${value})`, ast)];
+      }
+    }
+    return ast;
+  },
+  { order: 5 }
+);
+
+// 기본 breakpoint 값들 (fallback)
+function getDefaultBreakpoint(breakpoint: string): string {
+  const defaults: Record<string, string> = {
+    'sm': '(min-width: 640px)',
+    'md': '(min-width: 768px)', 
+    'lg': '(min-width: 1024px)',
+    'xl': '(min-width: 1280px)',
+    '2xl': '(min-width: 1536px)'
+  };
+  return defaults[breakpoint] || `(min-width: ${breakpoint})`;
+}
 staticModifier('rtl', ['&[dir=rtl]'], { order: 20 });
 staticModifier('ltr', ['&[dir=ltr]'], { order: 20 });
 staticModifier('inert', ['&[inert]'], { order: 40 });
 staticModifier('open', ['&:is([open], :popover-open, :open)'], { order: 40 });
 staticModifier('prefers-contrast-more', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(prefers-contrast: more)', ast)]
 });
 staticModifier('prefers-contrast-less', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(prefers-contrast: less)', ast)]
 });
 staticModifier('forced-colors', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(forced-colors: active)', ast)]
 });
 staticModifier('pointer-coarse', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(pointer: coarse)', ast)]
 });
 staticModifier('pointer-fine', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(pointer: fine)', ast)]
 });
 staticModifier('any-pointer-coarse', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(any-pointer: coarse)', ast)]
 });
 staticModifier('any-pointer-fine', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(any-pointer: fine)', ast)]
 });
 staticModifier('disabled', ['&:disabled'], { order: 40 });
@@ -175,23 +309,23 @@ staticModifier('backdrop', ['&::backdrop'], { order: 100 });
 staticModifier('file', ['&::file-selector-button'], { order: 100 });
 // Media/feature queries
 staticModifier('motion-safe', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(prefers-reduced-motion: no-preference)', ast)]
 });
 staticModifier('motion-reduce', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(prefers-reduced-motion: reduce)', ast)]
 });
 staticModifier('print', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', 'print', ast)]
 });
 staticModifier('portrait', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(orientation: portrait)', ast)]
 });
 staticModifier('landscape', ['&'], {
-  order: 15,
+  order: 5,
   wrap: (ast: AstNode[]) => [atRule('media', '(orientation: landscape)', ast)]
 });
 
@@ -200,17 +334,12 @@ staticModifier('landscape', ['&'], {
 functionalModifier(
   (mod: string) => /^aria-/.test(mod),
   ({ selector, mod }) => {
-    console.log('=== aria functionalModifier modifySelector ===');
-    console.log('mod:', mod);
-    console.log('selector:', selector);
-    
     // aria-[expanded=true] → &[aria-expanded="true"] { ... }
     const bracket = /^aria-\[([a-zA-Z0-9_-]+)(?:=([^\]]+))?\]$/.exec(mod.type);
     if (bracket) {
       const key = bracket[1];
       const value = bracket[2] ?? 'true';
       const result = `${selector}[aria-${key}="${value}"]`;
-      console.log('aria result (bracket):', result);
       return result;
     }
     // aria-pressed → &[aria-pressed="true"] { ... }
@@ -218,10 +347,8 @@ functionalModifier(
     if (m2) {
       const key = m2[1];
       const result = `${selector}[aria-${key}="true"]`;
-      console.log('aria result (simple):', result);
       return result;
     }
-    console.log('aria result (default):', selector);
     return selector;
   },
   undefined,
@@ -367,16 +494,7 @@ functionalModifier(
   undefined,
   { order: 30 }
 );
-// --- container-[]: @container 쿼리 variant ---
-functionalModifier(
-  (mod: string) => /^container-\[.*\]$/.test(mod),
-  undefined,
-  (ast, mod) => {
-    const m = /^container-\[(.+)\]$/.exec(mod.type);
-    return m ? [atRule('container', m[1], ast)] : ast;
-  },
-  { order: 15 }
-);
+
 // --- layer-[]: @layer 쿼리 variant ---
 functionalModifier(
   (mod: string) => /^layer-\[.*\]$/.test(mod),
@@ -403,127 +521,71 @@ staticModifier('starting', ['&'], {
   wrap: (ast: AstNode[]) => [{ type: 'at-rule', name: 'starting-style', params: '', nodes: ast }]
 });
 
-// --- @container query variants ---
-// @sm, @md, ... (container min-width)
+// --- @container query variants (통합) ---
 functionalModifier(
-  (mod) => /^@[a-z0-9]+$/.test(mod),
+  (mod) => /^@/.test(mod),
   undefined,
   (ast, mod, ctx) => {
-    const m = /^@([a-z0-9]+)$/.exec(mod.type);
-    if (m) {
-      const size = ctx.theme('container.' + m[1]) || ctx.theme('breakpoint.' + m[1]);
-      if (size) {
-        // ast가 at-rule이면 flatten하지 않고 중첩 구조 유지
-        return [{
-          type: 'at-rule',
-          name: 'container',
-          params: `(min-width: ${size})`,
-          nodes: Array.isArray(ast) ? ast : [ast],
-        }];
+    // 1. @container/main - named container
+    const containerMatch = /^@container\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
+    if (containerMatch) {
+      return [createContainerRule(containerMatch[1], ast)];
+    }
+
+    // 2. @sm/main, @md/main - named container with size
+    const namedSizeMatch = /^@([a-z0-9]+)\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
+    if (namedSizeMatch) {
+      const [, size, name] = namedSizeMatch;
+      const themeSize = ctx.theme('container.' + size) || ctx.theme('breakpoint.' + size);
+      const params = themeSize ? `${name} ${createContainerParams('min', themeSize)}` : name;
+      return [createContainerRule(params, ast)];
+    }
+
+    // 3. @min-[475px]/main, @max-[600px]/main - arbitrary with named container
+    const arbitraryNamedMatch = /^@(min|max)-\[([^\]]+)\]\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
+    if (arbitraryNamedMatch) {
+      const [, type, value, name] = arbitraryNamedMatch;
+      const params = `${name} ${createContainerParams(type === 'min' ? 'min' : 'max', value)}`;
+      return [createContainerRule(params, ast)];
+    }
+
+    // 4. @max-md, @min-[475px] - max/min with arbitrary
+    const maxMinMatch = /^@(max|min)-([a-z0-9\[\]-]+)$/.exec(mod.type);
+    if (maxMinMatch) {
+      const [, type, value] = maxMinMatch;
+      let params = '';
+      
+      if (type === 'max') {
+        // @max-md or @max-[600px]
+        if (/^[a-z0-9]+$/.test(value)) {
+          // @max-md
+          const themeSize = ctx.theme('container.' + value) || ctx.theme('breakpoint.' + value);
+          if (themeSize) params = createContainerParams('max', themeSize);
+        } else {
+          // @max-[600px]
+          const arbitraryMatch = /^\[([^\]]+)\]$/.exec(value);
+          if (arbitraryMatch) params = createContainerParams('max', arbitraryMatch[1]);
+        }
+      } else {
+        // @min-[475px]
+        const arbitraryMatch = /^\[([^\]]+)\]$/.exec(value);
+        if (arbitraryMatch) params = createContainerParams('min', arbitraryMatch[1]);
+      }
+      
+      if (params) {
+        return [createContainerRule(params, ast)];
       }
     }
-    return ast;
-  },
-  { order: 15 }
-);
-// @max-md, @min-[475px]
-functionalModifier(
-  (mod) => /^@max-[a-z0-9\[\]-]+$/.test(mod) || /^@min-\[[^\]]+\]$/.test(mod),
-  undefined,
-  (ast, mod, ctx) => {
-    let params = '';
-    if (/^@max-([a-z0-9]+)$/.test(mod.type)) {
-      const m = /^@max-([a-z0-9]+)$/.exec(mod.type);
-      const size = ctx.theme('container.' + m?.[1]) || ctx.theme('breakpoint.' + m?.[1]);
-      if (size) params = `(max-width: ${size})`;
-    } else if (/^@min-\[([^\]]+)\]$/.test(mod.type)) {
-      const m = /^@min-\[([^\]]+)\]$/.exec(mod.type);
-      if (m) params = `(min-width: ${m[1]})`;
+
+    // 5. @sm, @md, @lg - basic container queries
+    const basicMatch = /^@([a-z0-9]+)$/.exec(mod.type);
+    if (basicMatch) {
+      const size = ctx.theme('container.' + basicMatch[1]) || ctx.theme('breakpoint.' + basicMatch[1]);
+      if (size) {
+        return [createContainerRule(`(width >= ${size})`, ast)];
+      }
     }
-    if (params) {
-      return [{
-        type: 'at-rule',
-        name: 'container',
-        params,
-        nodes: Array.isArray(ast) ? ast : [ast],
-      }];
-    }
-    return ast;
-  },
-  { order: 15 }
-);
-// @max-[600px]/main, @min-[475px]/main
-functionalModifier(
-  (mod) => /^@min-\[[^\]]+\]\/([a-zA-Z0-9_-]+)$/.test(mod) || /^@max-\[[^\]]+\]\/([a-zA-Z0-9_-]+)$/.test(mod),
-  undefined,
-  (ast, mod) => {
-    // @min-[475px]/main, @max-[600px]/main
-    let params = '';
-    let m;
-    if ((m = /^@min-\[([^\]]+)\]\/([a-zA-Z0-9_-]+)$/.exec(mod.type))) {
-      params = `${m[2]} (min-width: ${m[1]})`;
-    } else if ((m = /^@max-\[([^\]]+)\]\/([a-zA-Z0-9_-]+)$/.exec(mod.type))) {
-      params = `${m[2]} (max-width: ${m[1]})`;
-    }
-    if (params) {
-      return [{
-        type: 'at-rule',
-        name: 'container',
-        params,
-        nodes: Array.isArray(ast) ? ast : [ast],
-      }];
-    }
-    return ast;
-  },
-  { order: 15 }
-);
-// @max-[600px]/main
-functionalModifier(
-  (mod) => /^@max-\[(.+)\]\/([a-zA-Z0-9_-]+)$/.test(mod.type),
-  undefined,
-  (ast, mod) => {
-    const m = /^@max-\[(.+)\]\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
-    if (m) {
-      return [{ type: 'at-rule', name: 'container', params: `${m[2]} (max-width: ${m[1]})`, nodes: ast }];
-    }
-    return ast;
-  },
-  { order: 5 }
-);
-// @container/main
-functionalModifier(
-  (mod) => /^@container\/([a-zA-Z0-9_-]+)$/.test(mod),
-  undefined,
-  (ast, mod) => {
-    const m = /^@container\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
-    if (m) {
-      return [{
-        type: 'at-rule',
-        name: 'container',
-        params: m[1],
-        nodes: Array.isArray(ast) ? ast : [ast],
-      }];
-    }
-    return ast;
-  },
-  { order: 15 }
-);
-// @sm/main, @md/main 등
-functionalModifier(
-  (mod) => /^@([a-z0-9]+)\/([a-zA-Z0-9_-]+)$/.test(mod),
-  undefined,
-  (ast, mod, ctx) => {
-    const m = /^@([a-z0-9]+)\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
-    if (m) {
-      const size = ctx.theme('container.' + m[1]) || ctx.theme('breakpoint.' + m[1]);
-      const params = size ? `${m[2]} (min-width: ${size})` : m[2];
-      return [{
-        type: 'at-rule',
-        name: 'container',
-        params,
-        nodes: Array.isArray(ast) ? ast : [ast],
-      }];
-    }
+
     return ast;
   },
   { order: 15 }
@@ -533,9 +595,6 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^data-/.test(mod),
   ({ selector, mod }) => {
-    console.log('=== data functionalModifier modifySelector ===');
-    console.log('mod:', mod);
-    console.log('selector:', selector);
     
     // data-[state=open] → [data-state="open"] & { ... }
     const bracket = /^data-\[([a-zA-Z0-9_-]+)(?:=([^\]]+))?\]$/.exec(mod.type);
@@ -543,7 +602,6 @@ functionalModifier(
       const key = bracket[1];
       const value = bracket[2] ?? 'true';
       const result = `${selector}[data-${key}="${value}"]`;
-      console.log('data result (bracket):', result);
       return result;
     }
     // data-avatar → [data-avatar="true"] & { ... }
@@ -551,10 +609,8 @@ functionalModifier(
     if (m2) {
       const key = m2[1];
       const result = `${selector}[data-${key}]`;
-      console.log('data result (simple):', result);
       return result;
     }
-    console.log('data result (default):', selector);
     return selector;
   },
   undefined,
