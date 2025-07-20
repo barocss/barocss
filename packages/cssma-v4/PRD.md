@@ -75,6 +75,62 @@
 ### 5.3 Test Coverage
 - Each preset has a corresponding test file (e.g., `background.test.ts`) with comprehensive test cases for all supported utilities and edge cases.
 
+## 6. Variant System (`presets/variants/`)
+
+### 6.1 Modular Variant Structure
+The variant system is organized into modular categories for better maintainability and extensibility:
+
+#### Basic Variants
+- **pseudo-classes.ts**: Basic pseudo-class variants (`:hover`, `:focus`, `:active`, etc.)
+- **form-states.ts**: Form state variants (`:checked`, `:disabled`, `:required`, etc.)
+- **structural-selectors.ts**: Structural selector variants (`:first-child`, `:last-child`, etc.)
+- **media-features.ts**: Media feature variants (`motion-safe`, `print`, `portrait`, etc.)
+- **group-peer.ts**: Group and peer variants (`group-hover`, `peer-hover`, etc.)
+- **attribute-selectors.ts**: Attribute selector variants (`rtl`, `ltr`, `inert`, `open`)
+
+#### Advanced Variants
+- **nth-selectors.ts**: Nth-child selector variants (`nth-1`, `nth-last-1`, etc.)
+- **functional-selectors.ts**: Functional selector variants (`is-[.foo]`, `where-[.bar]`)
+- **at-rules.ts**: At-rule variants (`supports-[display:grid]`, `layer-[utilities]`, `scope-[.parent]`)
+- **group-peer-extensions.ts**: Extended group/peer variants (`group-focus`, `peer-active`, etc.)
+
+#### Specialized Variants
+- **responsive.ts**: Responsive breakpoint variants (`sm:`, `md:`, `lg:`, etc.)
+- **dark-mode.ts**: Dark mode variants with configurable selectors
+- **container-queries.ts**: Container query variants (`@sm:`, `@container/main:`, etc.)
+- **has-variants.ts**: Has selector variants (`has-[.child]`, `has-[.foo>.bar]`)
+- **negation-variants.ts**: Negation variants (`not-hover:`, `not-[open]:`, etc.)
+- **universal-selectors.ts**: Universal selector variants (`*:`, `**:`)
+- **arbitrary-variants.ts**: Arbitrary variants (`[&>*]:`, `aria-[pressed=true]:`, etc.)
+- **attribute-variants.ts**: Attribute variants (`[open]:`, `[dir=rtl]:`, etc.)
+
+### 6.2 Variant Registration Patterns
+
+#### Static Modifiers
+```typescript
+staticModifier('hover', ['&:hover'], { order: 50 });
+staticModifier('focus', ['&:focus'], { order: 50 });
+staticModifier('disabled', ['&:disabled'], { order: 40 });
+```
+
+#### Functional Modifiers
+```typescript
+functionalModifier(
+  (mod: string) => /^has-\[.*\]$/.test(mod),
+  ({ selector, mod }) => {
+    const m = /^has-\[(.+)\]$/.exec(mod.type);
+    return m ? `${selector}:has(${m[1]})` : selector;
+  },
+  undefined,
+  { order: 200 }
+);
+```
+
+### 6.3 Variant Testing
+- Each variant category has comprehensive tests covering all supported patterns
+- Tests include modifier combinations, nesting, and edge cases
+- All 148 variant tests pass, ensuring complete functionality
+
 ### 5.4 Handler Design Principles (based on real implementation)
 
 - Most utilities can be covered with handleBareValue, handleNegativeBareValue, and handleCustomProperty only.

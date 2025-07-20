@@ -2,6 +2,45 @@
 
 ## 📝 TODO 리스트 (진행상황 체크용)
 
+### ✅ Completed Major Refactoring
+
+#### Variant System Modularization (Completed)
+- [x] **Basic Variants Modularization**
+  - [x] pseudo-classes.ts - Basic pseudo-class variants (`:hover`, `:focus`, `:active`, etc.)
+  - [x] form-states.ts - Form state variants (`:checked`, `:disabled`, `:required`, etc.)
+  - [x] structural-selectors.ts - Structural selector variants (`:first-child`, `:last-child`, etc.)
+  - [x] media-features.ts - Media feature variants (`motion-safe`, `print`, `portrait`, etc.)
+  - [x] group-peer.ts - Group and peer variants (`group-hover`, `peer-hover`, etc.)
+  - [x] attribute-selectors.ts - Attribute selector variants (`rtl`, `ltr`, `inert`, `open`)
+
+- [x] **Advanced Variants Modularization**
+  - [x] nth-selectors.ts - Nth-child selector variants (`nth-1`, `nth-last-1`, etc.)
+  - [x] functional-selectors.ts - Functional selector variants (`is-[.foo]`, `where-[.bar]`)
+  - [x] at-rules.ts - At-rule variants (`supports-[display:grid]`, `layer-[utilities]`, `scope-[.parent]`)
+  - [x] group-peer-extensions.ts - Extended group/peer variants (`group-focus`, `peer-active`, etc.)
+
+- [x] **Specialized Variants Modularization**
+  - [x] responsive.ts - Responsive breakpoint variants (`sm:`, `md:`, `lg:`, etc.)
+  - [x] dark-mode.ts - Dark mode variants with configurable selectors
+  - [x] container-queries.ts - Container query variants (`@sm:`, `@container/main:`, etc.)
+  - [x] has-variants.ts - Has selector variants (`has-[.child]`, `has-[.foo>.bar]`)
+  - [x] negation-variants.ts - Negation variants (`not-hover:`, `not-[open]:`, etc.)
+  - [x] universal-selectors.ts - Universal selector variants (`*:`, `**:`)
+  - [x] arbitrary-variants.ts - Arbitrary variants (`[&>*]:`, `aria-[pressed=true]:`, etc.)
+  - [x] attribute-variants.ts - Attribute variants (`[open]:`, `[dir=rtl]:`, etc.)
+
+- [x] **Testing & Validation**
+  - [x] All 148 variant tests pass successfully
+  - [x] Modular structure maintains backward compatibility
+  - [x] Each variant category has comprehensive test coverage
+  - [x] Variant combinations and nesting work correctly
+
+#### Documentation Updates (Completed)
+- [x] README.md updated with new variant system architecture
+- [x] PRD.md updated with modular variant structure
+- [x] TODO.md updated to reflect completed work
+- [x] All documentation reflects the new modular structure
+
 ### 1. 엔진/파서 구조 점검 및 리팩터링 (실제 구현 체크리스트)
 
 **파서(parseClassName, etc) 구현/테스트**

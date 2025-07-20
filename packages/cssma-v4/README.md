@@ -199,8 +199,9 @@ ctx.theme('colors', 'red-500');
 
 ## 🏗️ Architecture
 
-### Registry System
+### Core Systems
 
+#### Registry System
 A system for registering and managing utilities and modifiers.
 
 ```typescript
@@ -213,10 +214,9 @@ registerUtility({
     return [decl('my-property', value)];
   }
 });
+```
 
-
-### Parser System
-
+#### Parser System
 A system that parses class names and separates them into utilities and modifiers.
 
 ```typescript
@@ -226,6 +226,51 @@ parseClassName('hover:inset-x-4');
 //   modifiers: [{ type: 'hover' }],
 //   utility: { prefix: 'inset-x', value: '4', negative: false }
 // }
+```
+
+### Variant System
+
+CSSMA v4 includes a comprehensive variant system organized into modular categories:
+
+#### Basic Variants
+- **pseudo-classes.ts**: `:hover`, `:focus`, `:active`, `:visited`, `:focus-visible`, `:focus-within`
+- **form-states.ts**: `:checked`, `:disabled`, `:required`, `:invalid`, `:enabled`, `:indeterminate`, etc.
+- **structural-selectors.ts**: `:first-child`, `:last-child`, `:only-child`, `:nth-child(odd/even)`, etc.
+- **media-features.ts**: `motion-safe`, `motion-reduce`, `print`, `portrait`, `landscape`, etc.
+- **group-peer.ts**: `group-hover`, `peer-hover`, `peer-checked`
+- **attribute-selectors.ts**: `rtl`, `ltr`, `inert`, `open`
+
+#### Advanced Variants
+- **nth-selectors.ts**: `nth-1`, `nth-last-1`, `nth-of-type-1`, `nth-last-of-type-1`
+- **functional-selectors.ts**: `is-[.foo]`, `where-[.bar]`
+- **at-rules.ts**: `supports-[display:grid]`, `layer-[utilities]`, `scope-[.parent]`
+- **group-peer-extensions.ts**: `group-focus`, `peer-active`, `parent-open`, `child-hover`
+
+#### Specialized Variants
+- **responsive.ts**: `sm:`, `md:`, `lg:`, `xl:`, `2xl:` breakpoints
+- **dark-mode.ts**: `dark:` with configurable selectors
+- **container-queries.ts**: `@sm:`, `@md:`, `@container/main:`, `@min-[475px]:`
+- **has-variants.ts**: `has-[.child]`, `has-[.foo>.bar]`
+- **negation-variants.ts**: `not-hover:`, `not-[open]:`, `not-[.foo]:`
+- **universal-selectors.ts**: `*:`, `**:` for child/descendant selectors
+- **arbitrary-variants.ts**: `[&>*]:`, `aria-[pressed=true]:`, `data-[state=open]:`
+- **attribute-variants.ts**: `[open]:`, `[dir=rtl]:`, `[&>*]:`
+
+#### Variant Registration
+```typescript
+// Static modifier (exact match)
+staticModifier('hover', ['&:hover'], { order: 50 });
+
+// Functional modifier (pattern match)
+functionalModifier(
+  (mod: string) => /^has-\[.*\]$/.test(mod),
+  ({ selector, mod }) => {
+    const m = /^has-\[(.+)\]$/.exec(mod.type);
+    return m ? `${selector}:has(${m[1]})` : selector;
+  },
+  undefined,
+  { order: 200 }
+);
 ```
 
 ## 🧪 Testing
