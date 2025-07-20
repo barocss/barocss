@@ -53,16 +53,39 @@ const result4 = applyClassName('-inset-x-2', ctx);
 
 CSSMA v4 provides utilities organized by preset categories.
 
+#### Core Layout & Spacing
+| Preset File         | Main Utility Examples             | Supported Value Types            |
+|---------------------|-----------------------------------|----------------------------------|
+| layout.ts           | block, inline, z-*, position-*, ... | static, number, arbitrary, ...   |
+| flexbox-grid.ts     | flex-*, grid-cols-*, gap-*, ...   | static, number, fraction, ...    |
+| spacing.ts          | p-*, m-*, space-x-*, ...          | static, number, negative, ...    |
+| sizing.ts           | w-*, h-*, min-w-*, ...            | static, number, fraction, ...    |
+
+#### Styling & Visual Effects
 | Preset File         | Main Utility Examples             | Supported Value Types            |
 |---------------------|-----------------------------------|----------------------------------|
 | background.ts       | bg-*, bg-linear-*, from-*, ...    | static, arbitrary, custom prop   |
-| flexbox-grid.ts     | flex-*, grid-cols-*, gap-*, ...   | static, number, fraction, ...    |
-| layout.ts           | block, inline, z-*, ...           | static, number, arbitrary, ...   |
-| sizing.ts           | w-*, h-*, min-w-*, ...            | static, number, fraction, ...    |
-| spacing.ts          | p-*, m-*, space-x-*, ...          | static, number, negative, ...    |
+| border.ts           | border-*, rounded-*, ...          | static, number, arbitrary, ...   |
 | typography.ts       | text-*, font-*, leading-*, ...    | static, number, arbitrary, ...   |
+| effects.ts          | shadow-*, ring-*, opacity-*, ...  | static, arbitrary, custom prop   |
 
-Each preset is located in the `src/presets/` directory
+#### Advanced Features
+| Preset File         | Main Utility Examples             | Supported Value Types            |
+|---------------------|-----------------------------------|----------------------------------|
+| transform.ts        | rotate-*, scale-*, translate-*, ... | static, number, arbitrary, ...   |
+| filter.ts           | blur-*, brightness-*, ...         | static, number, arbitrary, ...   |
+| backdrop-filter.ts  | backdrop-blur-*, backdrop-*, ...  | static, number, arbitrary, ...   |
+| transitions.ts      | transition-*, duration-*, ...     | static, number, arbitrary, ...   |
+
+#### Interactive & Accessibility
+| Preset File         | Main Utility Examples             | Supported Value Types            |
+|---------------------|-----------------------------------|----------------------------------|
+| interactivity.ts    | cursor-*, select-*, ...           | static, arbitrary, ...           |
+| accessibility.ts    | sr-only, not-sr-only, ...        | static, ...                      |
+| table.ts            | table-*, border-collapse-*, ...   | static, ...                      |
+| svg.ts              | fill-*, stroke-*, ...             | static, arbitrary, ...           |
+
+Each preset is located in the `src/presets/` directory and includes comprehensive test coverage.
 
 ### Utility Handler Priority & Patterns
 

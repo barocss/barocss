@@ -65,15 +65,40 @@
 ## 5. Preset System (`presets/`)
 
 ### 5.1 Preset Structure
-- Each preset file (e.g., `background.ts`, `typography.ts`) registers a group of related utilities.
-- Presets are imported and registered in the main registry.
+- Each preset file registers a group of related utilities with comprehensive functionality.
+- Presets are imported and registered in the main registry (`src/presets/index.ts`).
+- All presets support static, functional, arbitrary, and custom property cases.
 
 ### 5.2 Utility Categories
-- Backgrounds, borders, colors, effects, layout, spacing, typography, etc.
-- Each category covers all Tailwind-compatible utilities, including static, functional, arbitrary, and custom property cases.
+
+#### Core Layout & Spacing
+- **layout.ts**: Display, position, z-index, overflow, visibility utilities
+- **flexbox-grid.ts**: Flexbox and Grid layout utilities (flex, grid, gap, etc.)
+- **spacing.ts**: Padding, margin, and space utilities
+- **sizing.ts**: Width, height, min/max dimensions utilities
+
+#### Styling & Visual Effects
+- **background.ts**: Background colors, gradients, and patterns
+- **border.ts**: Border styles, colors, radius, and width utilities
+- **typography.ts**: Font families, sizes, weights, text alignment, and line height
+- **effects.ts**: Box shadows, ring effects, and opacity utilities
+
+#### Advanced Features
+- **transform.ts**: Transform, rotate, scale, translate, skew utilities
+- **filter.ts**: CSS filter utilities (blur, brightness, contrast, etc.)
+- **backdrop-filter.ts**: Backdrop filter utilities for overlays
+- **transitions.ts**: Transition properties, duration, easing utilities
+
+#### Interactive & Accessibility
+- **interactivity.ts**: Cursor, user-select, pointer-events utilities
+- **accessibility.ts**: Screen reader utilities (sr-only, not-sr-only)
+- **table.ts**: Table layout and styling utilities
+- **svg.ts**: SVG fill, stroke, and styling utilities
 
 ### 5.3 Test Coverage
-- Each preset has a corresponding test file (e.g., `background.test.ts`) with comprehensive test cases for all supported utilities and edge cases.
+- Each preset has a corresponding test file with comprehensive test cases
+- Tests cover static, functional, arbitrary, custom property, and negative value cases
+- All utilities include edge cases and error handling validation
 
 ## 6. Variant System (`presets/variants/`)
 
