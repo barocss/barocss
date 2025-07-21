@@ -14,12 +14,6 @@
 - Parses a single utility class name and returns the corresponding AST nodes.
 - Handles modifiers, negative values, arbitrary values, and custom properties.
 
-#### `applyClassList(classList, ctx): AstNode[]`
-- Parses a space-separated list of class names and returns the merged AST nodes.
-
-#### `applyClassNames(classNames: string[], ctx): AstNode[]`
-- Parses an array of class names and returns the merged AST nodes.
-
 ---
 
 ## 2. AST System (`ast.ts`)
@@ -38,10 +32,10 @@
 
 ## 3. Parser System (`parser.ts`)
 
-### 3.1 Class Name Parsing
-- Splits class name into prefix, value, negative, arbitrary, custom property, and modifiers.
-- Does **not** parse opacity (e.g., `bg-red-500/75` is passed as value: `red-500/75`).
-- Returns a `ParsedUtility` object with all parsed fields.
+- **Tokenizer**: Splits class names by `:`, safely handles nested brackets/parentheses, does not classify.
+- **Parser**: Consumes tokens, classifies as utility/modifier, supports both `modifier:utility` and `utility:modifier` (bidirectional).
+- **Error Handling**: Returns null/empty for invalid or malformed input.
+- **Test Coverage**: tokenizer.test.ts (60+), parser.test.ts (10+), covers advanced Tailwind v4 syntax and edge cases.
 
 ### 3.2 Modifier Parsing
 - Handles responsive, state, and arbitrary modifiers (e.g., `md:hover:bg-red-500`).

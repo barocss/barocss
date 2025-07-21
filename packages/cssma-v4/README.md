@@ -562,6 +562,31 @@ functionalUtility({
 
 ---
 
+## 🧩 Parser & Tokenizer
+
+### Tokenizer
+- Splits class names by `:` while respecting nested brackets/parentheses.
+- Does **not** classify tokens; only splits.
+- Example:
+  ```ts
+  tokenize('hover:bg-red-500') // [{ value: 'hover', ... }, { value: 'bg-red-500', ... }]
+  tokenize('grid-cols-[minmax(200px,calc(100%-var(--width)))]') // [{ value: 'grid-cols-[minmax(200px,calc(100%-var(--width)))]', ... }]
+  ```
+
+### Parser
+- Consumes tokens and classifies as utility or modifier.
+- Supports both `modifier:utility` and `utility:modifier` (bidirectional).
+- Example:
+  ```ts
+  parseClassName('hover:bg-red-500')
+  // { modifiers: [{ type: 'hover' }], utility: { prefix: 'bg', value: 'red-500', ... } }
+  ```
+
+### Testing
+- 60+ tokenizer tests (nested, arbitrary, advanced Tailwind v4)
+- 10+ parser tests (bidirectional, error, edge cases)
+- See `tests/tokenizer.test.ts`, `tests/parser.test.ts`, `tests/parser.basic.test.ts`
+
 ## 🤝 Contributing
 
 1. Fork the repository
