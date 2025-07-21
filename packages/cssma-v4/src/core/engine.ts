@@ -111,19 +111,15 @@ export function applyClassName(fullClassName: string, ctx: CssmaContext): AstNod
     const fullClassName = utility.value ? `${utility.prefix}-${utility.value}` : utility.prefix;
     return u.match(fullClassName);
   });
-  
   if (!utilReg) {
     return [];
   }
-
   // Handle negative values by prepending '-' to the value
   let value = utility.value;
   if (utility.negative && value) {
     value = '-' + value;
   }
-
   let baseAst = utilReg.handler(value!, ctx, utility, utilReg) || [];
-
   // decl만 반환된 경우 rule로 감싸기
   if (baseAst.length > 0 && baseAst.every(n => n.type === 'decl')) {
     baseAst = [rule('&', baseAst)];
@@ -137,7 +133,6 @@ export function applyClassName(fullClassName: string, ctx: CssmaContext): AstNod
     getModifierPlugins(),
     fullClassName
   );
-
   // --- variant가 없으면 decl만 반환, 있으면 AST 그대로 반환 ---
   if (!modifiers || modifiers.length === 0) {
     // ast가 rule 하나이고, 그 안에 decl만 있으면 decl만 반환
@@ -149,7 +144,6 @@ export function applyClassName(fullClassName: string, ctx: CssmaContext): AstNod
       return ast;
     }
   }
-  
   return ast;
 }
 

@@ -82,7 +82,6 @@ function isUtilityPrefix(str: string): boolean {
 export function parseClassName(className: string): { modifiers: ParsedModifier[]; utility: ParsedUtility | null } {
   // 1. 토크나이저로 문자열을 토큰으로 분리
   const tokens = tokenize(className);
-  
   // 2. 토큰을 파싱된 결과로 변환
   return parseTokens(tokens);
 }
@@ -104,10 +103,8 @@ function parseTokens(tokens: Token[]): { modifiers: ParsedModifier[]; utility: P
     // utility only
     utility = parseUtility(tokens[0].value);
   } else if (tokens.length === 2) {
-    // 양방향 파싱 결정
     const firstToken = tokens[0];
     const secondToken = tokens[1];
-    
     const isFirstUtility = isUtilityPrefix(firstToken.value);
     
     if (isFirstUtility) {
@@ -142,7 +139,6 @@ function parseTokens(tokens: Token[]): { modifiers: ParsedModifier[]; utility: P
       utility = parseUtility(tokens[tokens.length - 1].value);
     }
   }
-  
   return { modifiers, utility };
 }
 
@@ -185,16 +181,16 @@ function parseUtility(value: string): ParsedUtility {
   // Handle arbitrary values
   if (value.includes('-[')) {
     [prefix, utilityValue] = value.split('-[');
-    
-    if (utilityValue.includes('/') && !utilityValue.startsWith('url(')) {
-      let list = utilityValue.split('/');
-      if (list.length > 1) {
-        opacity = list.pop()!;
-        utilityValue = list.join('/');
-      }
+    // 대괄호 닫힘 위치
+    const closeIdx = utilityValue.lastIndexOf(']');
+    if (closeIdx !== -1 && closeIdx < utilityValue.length - 1 && utilityValue[closeIdx + 1] === '/') {
+      // 대괄호 뒤에 /가 있으면 opacity 분리
+      opacity = utilityValue.slice(closeIdx + 2); // '/' 다음부터 끝까지
+      utilityValue = utilityValue.slice(0, closeIdx); // 대괄호 안만 value
+    } else {
+      // 대괄호로 끝나면 opacity 없음
+      utilityValue = utilityValue.replace(/]$/, '');
     }
-    
-    utilityValue = utilityValue.replace(/]$/, '');
     arbitrary = true;
   } 
   // Handle custom properties
