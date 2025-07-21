@@ -133,4 +133,149 @@ describe('applyClassName (end-to-end)', () => {
 }`
     );
   });
+
+  it('multiple variants and arbitrary', () => {
+    expect(generateUtilityCss('md:focus:bg-yellow-500', ctx)).toBe(
+      `@media (min-width: 768px) {
+  .md\\:focus\\:bg-yellow-500:focus {
+    background-color: #eab308;
+  }
+}`
+    );
+  });
+
+  it('complex arbitrary value', () => {
+    expect(generateUtilityCss('w-[calc(100%-2rem)]', ctx)).toBe(
+      `.w-\\[calc\\(100\\%-2rem\\)\\] {
+  width: calc(100%-2rem);
+}`
+    );
+  });
+
+  it('container query', () => {
+    expect(generateUtilityCss('container-[size>600px]:p-8', ctx)).toBe(
+      `.container-\\[size\\>600px\\]\\:p-8 {
+  padding: calc(var(--spacing) * 8);
+}`
+    );
+  });
+
+  it('escape edge case', () => {
+    expect(generateUtilityCss('bg-[#abc:def]', ctx)).toBe(
+      `.bg-\\[\\#abc\\:def\\] {
+  background-size: #abc:def;
+}`
+    );
+  });
+
+  it('dark + focus', () => {
+    expect(generateUtilityCss('dark:focus:bg-yellow-500', ctx)).toBe(
+      `@media (prefers-color-scheme: dark) {
+  .dark\\:focus\\:bg-yellow-500:focus {
+    background-color: #eab308;
+  }
+}`
+    );
+  });
+
+  it('peer-checked + text', () => {
+    expect(generateUtilityCss('peer-checked:text-green-500', ctx)).toBe(
+      `.peer:checked ~ .peer-checked\\:text-green-500 {
+  color: #22c55e;
+}`
+    );
+  });
+
+  it('arbitrary variant + important', () => {
+    expect(generateUtilityCss('!bg-[red]', ctx)).toBe(
+      ``
+    );
+  });
+
+  it('container query orientation', () => {
+    expect(generateUtilityCss('container-[orientation=landscape]:flex', ctx)).toBe(
+      `.container-\\[orientation\\=landscape\\]\\:flex {
+  display: flex;
+}`
+    );
+  });
+
+  it('multiple variants + arbitrary', () => {
+    expect(generateUtilityCss('sm:dark:hover:bg-[#123456]', ctx)).toBe(
+      `@media (min-width: 640px) {
+  @media (prefers-color-scheme: dark) {
+    .sm\\:dark\\:hover\\:bg-\\[\\#123456\\]:hover {
+      background-color: #123456;
+    }
+  }
+}`
+    );
+  });
+
+  it('before:content', () => {
+    expect(generateUtilityCss("before:content-['foo']", ctx)).toBe(
+      `.before\\:content-\\[\\'foo\\'\\]::before {
+  content: "'foo'";
+}`
+    );
+  });
+
+  it('peer-[.bar]:text-lg', () => {
+    expect(generateUtilityCss('peer-[.bar]:text-lg', ctx)).toBe(
+      `.peer-\\[\\.bar\\]\\:text-lg {
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+}`
+    );
+  });
+
+  it('group-[.foo]:bg-red-500', () => {
+    expect(generateUtilityCss('group-[.foo]:bg-red-500', ctx)).toBe(
+      `.group-\\[\\.foo\\]\\:bg-red-500 {
+  background-color: #ef4444;
+}`
+    );
+  });
+
+  it('sm:peer-checked:underline', () => {
+    expect(generateUtilityCss('sm:peer-checked:underline', ctx)).toBe(
+      `@media (min-width: 640px) {
+  .peer:checked ~ .sm\\:peer-checked\\:underline {
+    text-decoration-line: underline;
+  }
+}`
+    );
+  });
+
+  it('sm:before:content-[attr(data-label)]', () => {
+    expect(generateUtilityCss('sm:before:content-[attr(data-label)]', ctx)).toBe(
+      `@media (min-width: 640px) {
+  .sm\\:before\\:content-\\[attr\\(data-label\\)\\]::before {
+    content: "attr(data-label)";
+  }
+}`
+    );
+  });
+
+  it('arbitrary + negative', () => {
+    expect(generateUtilityCss('-mt-[12px]', ctx)).toBe(
+      ``
+    );
+  });
+
+  it('arbitrary + custom property', () => {
+    expect(generateUtilityCss('text-[(--my-var)]', ctx)).toBe(
+      `.text-\\[\\(--my-var\\)\\] {
+  color: (--my-var);
+}`
+    );
+  });
+
+  it('arbitrary + pseudo', () => {
+    expect(generateUtilityCss("before:bg-[color:var(--brand)]", ctx)).toBe(
+      `.before\\:bg-\\[color\\:var\\(--brand\\)\\]::before {
+  background-color: var(--brand);
+}`
+    );
+  });
 }); 
