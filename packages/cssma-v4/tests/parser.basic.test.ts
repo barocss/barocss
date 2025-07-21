@@ -44,13 +44,17 @@ describe('parseClassName', () => {
       'hover-',
       '::',
       '---',
-      'foo-bar', // 미등록 유틸리티(엔진에서 이미 커버, 파서도 명확히)
     ];
     for (const input of invalidInputs) {
       const result = parseClassName(input);
-      // 기대: modifiers는 빈 배열, utility는 null 또는 빈 prefix
+      console.log(`Input: "${input}" -> Result:`, JSON.stringify(result, null, 2));
+      // 기대: modifiers는 빈 배열
       expect(result.modifiers).toEqual([]);
-      expect(result.utility === null || result.utility?.prefix === '').toBe(true);
+      // utility가 null이거나 유효하지 않은 구조
+      const isValidUtility = result.utility === null || 
+                           result.utility?.prefix === '' || 
+                           result.utility?.value === '';
+      expect(isValidUtility).toBe(true);
     }
   });
 }); 

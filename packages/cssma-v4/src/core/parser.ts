@@ -17,126 +17,226 @@ export interface ParsedUtility {
   [key: string]: any;
 }
 
-import { getRegisteredUtilityPrefixes } from './registry';
+import { getUtility, getModifierPlugins } from './registry';
+import { tokenize, Token } from './tokenizer';
+
+// 캐시 시스템
+const utilityCache = new Map<string, boolean>();
 
 /**
- * Parses a class name string into modifiers and utility.
- * Supports group-hover, sm, focus, arbitrary values, custom property, etc.
+ * Checks if a string is a utility prefix by checking against registered utilities
+ * Optimized with prefix filtering and caching
+ * @param str The string to check
+ * @returns true if it's a utility prefix
+ */
+function isUtilityPrefix(str: string): boolean {
+  // 캐시 확인
+  if (utilityCache.has(str)) {
+    return utilityCache.get(str)!;
+  }
+  
+  const utilities = getUtility();
+  const modifiers = getModifierPlugins();
+  
+  // 1. Prefix로 빠른 필터링 (O(1) prefix 체크)
+  const candidateUtilities = utilities.filter(util => {
+    const prefix = util.name;
+    return str.startsWith(prefix + '-') || str === prefix || str.startsWith(prefix);
+  });
+    
+  // 2. 필터링된 후보들만 정확한 match 체크
+  const isUtility = candidateUtilities.some(util => util.match(str));
+  
+  // 3. 모디파이어도 동일하게 필터링
+  const candidateModifiers = modifiers.filter(mod => {
+    // modifier의 name이 있으면 사용, 없으면 match 함수의 첫 부분 추출
+    const modName = (mod as any).name || mod.match.toString().split('(')[0];
+    return str.startsWith(modName + ':') || str === modName;
+  });
+  
+  const isModifier = candidateModifiers.some(mod => mod.match(str, {} as any));
+  
+  // 4. 결과 계산
+  const result = isUtility && !isModifier;
+  
+  // 5. 캐시 저장
+  utilityCache.set(str, result);
+  
+  return result;
+}
+
+/**
+ * Parses a class name string into modifiers and utility using tokenization
+ * Supports both directions:
+ * - modifier:utility (traditional Tailwind)
+ * - utility:modifier (Master CSS style)
+ * 
+ * Examples:
+ * - 'group-hover:sm:bg-[red]' → modifier:utility
+ * - 'bg-red-500:hover' → utility:modifier
+ * - 'text-[color:var(--foo)]' → utility only
+ * 
  * @param className e.g. 'group-hover:sm:bg-[red]', 'text-[color:var(--foo)]'
  * @returns { modifiers, utility }
  */
 export function parseClassName(className: string): { modifiers: ParsedModifier[]; utility: ParsedUtility | null } {
-  // Split by ':' for modifiers, but handle arbitrary values with nested colons
-  // e.g. bg-[color:var(--foo):hover] should not split inside []
-  const parts: string[] = [];
-  let buffer = '';
-  let inBracket = 0;
-  let inParen = 0;
-  for (let i = 0; i < className.length; i++) {
-    const c = className[i];
-    if (c === '[') inBracket++;
-    if (c === ']') inBracket--;
-    if (c === '(') inParen++;
-    if (c === ')') inParen--;
-    if (c === ':' && inBracket === 0 && inParen === 0) {
-      parts.push(buffer);
-      buffer = '';      
+  // 1. 토크나이저로 문자열을 토큰으로 분리
+  const tokens = tokenize(className);
+  
+  // 2. 토큰을 파싱된 결과로 변환
+  return parseTokens(tokens);
+}
+
+/**
+ * Parses tokens into modifiers and utility
+ */
+function parseTokens(tokens: Token[]): { modifiers: ParsedModifier[]; utility: ParsedUtility | null } {
+  const modifiers: ParsedModifier[] = [];
+  let utility: ParsedUtility | null = null;
+  
+  // 빈 토큰 배열 처리
+  if (tokens.length === 0) {
+    return { modifiers, utility: null };
+  }
+  
+  // 토큰 타입 판단 및 양방향 파싱
+  if (tokens.length === 1) {
+    // utility only
+    utility = parseUtility(tokens[0].value);
+  } else if (tokens.length === 2) {
+    // 양방향 파싱 결정
+    const firstToken = tokens[0];
+    const secondToken = tokens[1];
+    
+    const isFirstUtility = isUtilityPrefix(firstToken.value);
+    
+    if (isFirstUtility) {
+      // utility:modifier 형태
+      utility = parseUtility(firstToken.value);
+      const parsed = parseModifier(secondToken.value);
+      if (parsed) modifiers.push(parsed);
     } else {
-      buffer += c;
+      // modifier:utility 형태
+      const parsed = parseModifier(firstToken.value);
+      if (parsed) modifiers.push(parsed);
+      utility = parseUtility(secondToken.value);
+    }
+  } else {
+    // 여러 토큰이 있는 경우
+    // 첫 번째 토큰이 유틸리티인지 확인
+    const isFirstUtility = isUtilityPrefix(tokens[0].value);
+    
+    if (isFirstUtility) {
+      // utility:modifier:modifier 형태
+      utility = parseUtility(tokens[0].value);
+      for (let i = 1; i < tokens.length; i++) {
+        const parsed = parseModifier(tokens[i].value);
+        if (parsed) modifiers.push(parsed);
+      }
+    } else {
+      // modifier:modifier:utility 형태
+      for (let i = 0; i < tokens.length - 1; i++) {
+        const parsed = parseModifier(tokens[i].value);
+        if (parsed) modifiers.push(parsed);
+      }
+      utility = parseUtility(tokens[tokens.length - 1].value);
     }
   }
-  if (buffer) parts.push(buffer);
+  
+  return { modifiers, utility };
+}
 
-  if (parts.length === 0) return { modifiers: [], utility: null };
-  const utilityPart = parts[parts.length - 1];
-  const modifiers = parts.slice(0, -1).map((mod) => {
-    let negative = false;
-    let modStr = mod;
-    if (modStr.startsWith('-')) {
-      negative = true;
-      modStr = modStr.slice(1);
-    }
-    // --- Arbitrary variant support ---
-    if (modStr.startsWith('[') && modStr.endsWith(']')) {
-      return { type: modStr, negative, arbitrary: true };
-    }
-    // registry 기반 match 함수로만 매칭 (prefix 목록 사용 X)
-    // type은 modStr 전체로 둠
-    return { type: modStr, negative };
-  });
+/**
+ * Parse modifier token
+ */
+function parseModifier(value: string): ParsedModifier | null {
+  let negative = false;
+  let modStr = value;
+  
+  if (modStr.startsWith('-')) {
+    negative = true;
+    modStr = modStr.slice(1);
+  }
+  
+  // Arbitrary variant support
+  if (modStr.startsWith('[') && modStr.endsWith(']')) {
+    return { type: modStr, negative, arbitrary: true };
+  }
+  
+  return { type: modStr, negative };
+}
 
-  // Utility parsing
-  // bg-[red], text-[color:var(--foo)], bg-(--my-bg), -m-4, -bg-[red], font-(font-name:--my-font)
+/**
+ * Parse utility token
+ */
+function parseUtility(value: string): ParsedUtility {
+  // bg-[red], text-[color:var(--foo)], bg-(--my-bg), -m-4, -bg-[red]
   let prefix = '';
-  let value = '';
+  let utilityValue = '';
   let arbitrary = false;
   let customProperty = false;
   let negative = false;
   let opacity = '';
-  let utilStr = utilityPart;
-  if (utilStr.startsWith('-')) {
+  
+  if (value.startsWith('-')) {
     negative = true;
-    // utilStr = utilStr.slice(1);
   }
-  // --- PATCH: handle arbitrary/custom property before prefix matching ---
-  if (utilStr.includes('-[')) {
-    // Arbitrary value: bg-[red], min-w-[10vw], etc
-    // shadow-[#bada55]/80 → shadow-[#bada55]
-    [prefix, value] = utilStr.split('-[');
-
-    if (value.includes('/') && !value.startsWith('url(')) {
-      let list = value.split('/');
-
+  
+  // Handle arbitrary values
+  if (value.includes('-[')) {
+    [prefix, utilityValue] = value.split('-[');
+    
+    if (utilityValue.includes('/') && !utilityValue.startsWith('url(')) {
+      let list = utilityValue.split('/');
       if (list.length > 1) {
         opacity = list.pop()!;
-        value = list.join('/');
-        
+        utilityValue = list.join('/');
       }
     }
-
-    value = value.replace(/]$/, '');
+    
+    utilityValue = utilityValue.replace(/]$/, '');
     arbitrary = true;
-  } else if (utilStr.includes('-(')) {
-    // Custom property: bg-(--my-bg)
-    [prefix, value] = utilStr.split('-(');
-    value = value.replace(/\)$/, '');
+  } 
+  // Handle custom properties
+  else if (value.includes('-(')) {
+    [prefix, utilityValue] = value.split('-(');
+    utilityValue = utilityValue.replace(/\)$/, '');
     customProperty = true;
-  } else {
-    // --- 동적 prefix 매칭: registry에서 prefix 목록을 받아 가장 긴 것부터 매칭 ---
-    const prefixes = getRegisteredUtilityPrefixes();
-    let matchedPrefix = prefixes.find(p => utilStr === p);
+  } 
+  // Handle regular utilities
+  else {
+    const utilities = getUtility();
+    const prefixes = utilities.map(u => u.name).sort((a, b) => b.length - a.length);
+    
+    let matchedPrefix = prefixes.find(p => value === p);
     if (matchedPrefix) {
       prefix = matchedPrefix;
-      value = "";
-      negative = utilStr.startsWith('-');
+      utilityValue = "";
+      negative = value.startsWith('-');
     } else {
-
-      if (utilStr.startsWith('-')) {
+      if (value.startsWith('-')) {
         negative = true;
-        utilStr = utilStr.slice(1);
+        value = value.slice(1);
       }
-
-      matchedPrefix = prefixes.find(p => utilStr.startsWith(p + '-'));
+      
+      matchedPrefix = prefixes.find(p => value.startsWith(p + '-'));
       if (matchedPrefix) {
         prefix = matchedPrefix;
-        value = utilStr.slice(matchedPrefix.length + 1);
+        utilityValue = value.slice(matchedPrefix.length + 1);
       } else {
-        const parts = utilStr.split('-');
+        const parts = value.split('-');
         prefix = parts[0];
-        value = parts.slice(1).join('-');
+        utilityValue = parts.slice(1).join('-');
       }
     }
   }
-
+  
   return {
-    modifiers,
-    utility: {
-      prefix,
-      value,
-      arbitrary: !!arbitrary,
-      customProperty: !!customProperty,
-      negative: !!negative,
-      opacity,
-    },
+    prefix,
+    value: utilityValue,
+    arbitrary: !!arbitrary,
+    customProperty: !!customProperty,
+    negative: !!negative,
+    opacity,
   };
 }
