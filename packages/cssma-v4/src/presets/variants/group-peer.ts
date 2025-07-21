@@ -1,5 +1,5 @@
 import { staticModifier } from "../../core/registry";
-
+ 
 // --- Group and peer variants ---
 // group-hover/peer-hover: allow chaining with focus/active/hover
 staticModifier('group-hover', ['.group:hover &'], { compounds: ['focus', 'active', 'hover'], order: 30 });

@@ -1,10 +1,23 @@
 import type { AstNode } from './ast';
+import { escapeClassName } from './registry';
 
 /**
  * Converts AST nodes to CSS string.
  * Supports nested rules, at-rules, custom properties, !important, and basic deduplication.
+ * @param ast AST nodes
+ * @param baseSelector (optional) className (점 없이, e.g. 'my-btn')
+ * @param opts { minify?: boolean }
  */
-function astToCss(ast: AstNode[], indent = ''): string {
+function astToCss(
+  ast: AstNode[],
+  baseSelector?: string,
+  opts?: { minify?: boolean },
+  _indent = ''
+): string {
+  const minify = opts?.minify;
+  const indent = minify ? '' : _indent;
+  const nextIndent = minify ? '' : _indent + '  ';
+
   // Basic deduplication: only keep last decl for each prop in a block
   const dedupedAst = [];
   if (Array.isArray(ast)) {
@@ -29,22 +42,44 @@ function astToCss(ast: AstNode[], indent = ''): string {
         }
         return `${indent}${node.prop}: ${value};`;
       }
-      case 'rule':
-        return `${indent}${node.selector} {
-${astToCss(node.nodes, indent + '  ')}
-${indent}}`;
-      case 'atrule':
-        return `${indent}@${node.name} ${node.params} {
-${astToCss(node.nodes, indent + '  ')}
-${indent}}`;
+      case 'rule': {
+        let selector = node.selector;
+        if (baseSelector) {
+          const escBase = '.' + escapeClassName(baseSelector);
+          if (selector && selector.includes('&')) {
+            selector = selector.replace(/&/g, escBase);
+          } else if (!selector.startsWith(escBase)) {
+            selector = selector.split(',').map(sel => {
+              sel = sel.trim();
+              if (sel.startsWith(':') || sel.startsWith('::')) {
+                return escBase + sel;
+              } else {
+                return escBase + (sel.startsWith('.') ? '' : ' ') + sel;
+              }
+            }).join(', ');
+          }
+        }
+        if (minify) {
+          return `${indent}${selector}{${astToCss(node.nodes, baseSelector, opts, nextIndent)}}`;
+        } else {
+          return `${indent}${selector} {\n${astToCss(node.nodes, baseSelector, opts, nextIndent)}\n${indent}}`;
+        }
+      }
+      case 'at-rule': {
+        if (minify) {
+          return `${indent}@${node.name} ${node.params}{${astToCss(node.nodes, baseSelector, opts, nextIndent)}}`;
+        } else {
+          return `${indent}@${node.name} ${node.params} {\n${astToCss(node.nodes, baseSelector, opts, nextIndent)}\n${indent}}`;
+        }
+      }
       case 'comment':
-        return `${indent}/* ${node.text} */`;
+        return minify ? '' : `${indent}/* ${node.text} */`;
       case 'raw':
         return `${indent}${node.value}`;
       default:
         return '';
     }
-  }).join('\n');
+  }).filter(Boolean).join(minify ? '' : '\n');
 }
 
 export { astToCss }; 

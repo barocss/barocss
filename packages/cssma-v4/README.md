@@ -587,6 +587,57 @@ functionalUtility({
 - 10+ parser tests (bidirectional, error, edge cases)
 - See `tests/tokenizer.test.ts`, `tests/parser.test.ts`, `tests/parser.basic.test.ts`
 
+## 🧩 엔진 & CSS 변환 (engine, astToCss)
+
+### 1. 엔진 (engine.ts)
+- `applyClassName(className, ctx)`: 단일 className을 AST로 변환
+- `generateUtilityCss(classList, ctx, opts?)`: 여러 className을 받아 각각 AST → CSS로 변환 (Tailwind 스타일 유틸리티 CSS 생성)
+  - 옵션: `minify`, `dedup` 등 지원
+- breakpoints, variant, arbitrary value, custom property 등 모든 Tailwind 문법 지원
+
+#### 예시
+```ts
+import { generateUtilityCss, createContext } from 'cssma-v4';
+const ctx = createContext({ theme: { breakpoints: { sm: '640px' } } });
+const css = generateUtilityCss('sm:hover:bg-red-500', ctx);
+console.log(css);
+// @media (min-width: 640px) {
+//   .sm\:hover\:bg-red-500:hover {
+//     background-color: #ef4444;
+//   }
+// }
+```
+
+### 2. CSS 변환기 (astToCss.ts)
+- AST를 표준 CSS 문자열로 변환
+- selector escape(`\:` 등)는 Tailwind CSS와 100% 동일
+- 중첩, at-rule(@media), 복합 selector, arbitrary value 등 완벽 지원
+
+#### selector escape 예시
+```css
+.sm\:hover\:bg-red-500:hover { ... }
+```
+- HTML: `<div class="sm:hover:bg-red-500">`
+- CSS: `.sm\:hover\:bg-red-500:hover { ... }`
+
+### 3. style 태그 적용 예시
+```js
+const style = document.createElement('style');
+style.textContent = css;
+document.head.appendChild(style);
+```
+- escape된 selector는 브라우저가 정확히 해석 (Tailwind, CSS-in-JS와 동일)
+
+### 4. End-to-End 흐름
+1. className → AST (`applyClassName`)
+2. AST → CSS (`astToCss`)
+3. 여러 className → 유틸리티 CSS (`generateUtilityCss`)
+4. CSS → `<style>` 태그에 삽입
+
+### 5. 테스트
+- `engine.basic.test.ts`: className → AST → CSS → 기대값까지 end-to-end 검증
+- escape, 반응형, arbitrary, variant, custom property 등 모든 케이스 커버
+
 ## 🤝 Contributing
 
 1. Fork the repository

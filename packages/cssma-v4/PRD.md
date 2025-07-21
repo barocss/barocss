@@ -242,3 +242,30 @@ it('bg-red-500/75 → background-color: var(--color-red-500) with opacity', () =
 - All core systems, presets, and handler patterns must be documented in README.md and PRD.md.
 - Documentation must include API signatures, usage examples, handler design notes, and test examples.
 - All documentation must be in English for international contributors. 
+
+### 4. 엔진 & CSS 변환 (engine, astToCss)
+
+#### 4.1 엔진 (engine.ts)
+- className → AST 변환 (`applyClassName`)
+- 여러 className → 유틸리티 CSS (`generateUtilityCss`)
+- breakpoints, variant, arbitrary value, custom property 등 Tailwind v4 문법 완벽 지원
+
+#### 4.2 CSS 변환기 (astToCss.ts)
+- AST → 표준 CSS 문자열 변환
+- selector escape(`\:` 등)는 Tailwind CSS와 100% 동일
+- at-rule(@media), 중첩, 복합 selector, arbitrary value 등 지원
+
+#### 4.3 style 태그 적용
+- generateUtilityCss 결과물을 그대로 `<style>` 태그에 삽입 가능
+- escape된 selector는 브라우저가 정확히 해석 (Tailwind, CSS-in-JS와 동일)
+
+#### 4.4 End-to-End 흐름
+1. className → AST (`applyClassName`)
+2. AST → CSS (`astToCss`)
+3. 여러 className → 유틸리티 CSS (`generateUtilityCss`)
+4. CSS → `<style>` 태그에 삽입
+
+#### 4.5 테스트 전략
+- `engine.basic.test.ts`: className → AST → CSS → 기대값까지 end-to-end 검증
+- selector escape, 반응형, arbitrary, variant, custom property 등 모든 케이스 커버
+- 기대값은 실제 CSS 출력과 1:1로 맞춤 (Tailwind와 완전 호환) 

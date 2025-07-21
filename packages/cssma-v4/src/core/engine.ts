@@ -3,6 +3,7 @@ import { parseClassName } from './parser';
 import { getUtility, getModifierPlugins, escapeClassName } from './registry';
 import { CssmaContext } from './context';
 import { ParsedModifier } from './parser';
+import { astToCss } from './astToCss';
 
 // AST에서 가장 안쪽 rule의 selector를 덮어쓰는 재귀 함수
 function setInnermostRuleSelector(ast: any, selector: string): any {
@@ -166,3 +167,38 @@ export { applyVariantChain };
  * const ast = applyClassName('bg-red-500', ctx);
  * // ast will use ctx.theme('colors', 'red', 500) for color resolution
  */
+
+/**
+ * 여러 className을 받아 각각의 유틸리티 CSS를 생성한다.
+ * @param classList string (예: 'bg-red-500 text-lg hover:bg-blue-500')
+ * @param ctx CssmaContext
+ * @param opts { minify?: boolean, dedup?: boolean }
+ * @returns string (여러 CSS 블록이 join된 결과)
+ */
+export function generateUtilityCss(
+  classList: string,
+  ctx: CssmaContext,
+  opts?: { minify?: boolean; dedup?: boolean }
+): string {
+  const seen = new Set<string>();
+  return classList
+    .split(/\s+/)
+    .filter(cls => {
+      if (!cls) return false;
+      if (opts?.dedup) {
+        if (seen.has(cls)) return false;
+        seen.add(cls);
+      }
+      return true;
+    })
+    .map(cls => {
+      const ast = applyClassName(cls, ctx);
+      // decl만 반환되면 rule로 감싸기
+      const isDeclOnly = Array.isArray(ast) && ast.length > 0 && ast.every(n => n.type === 'decl');
+      const astForCss = isDeclOnly ? [rule('&', ast)] : ast;
+      const css = astToCss(astForCss, cls, { minify: opts?.minify });
+      console.log('[generateUtilityCss] className:', cls, '\nAST:', JSON.stringify(astForCss, null, 2), '\nCSS:', css);
+      return css;
+    })
+    .join(opts?.minify ? '' : '\n');
+}

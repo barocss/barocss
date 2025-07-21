@@ -52,6 +52,10 @@ functionalModifier(
     if (Object.keys(breakpoints).includes(breakpoint)) {
       let mediaQuery = context.theme(`breakpoints.${breakpoint}`) || 
                       getDefaultBreakpoint(breakpoint);
+      // 숫자(px/em/rem 등)만 오면 (min-width: ...)로 감싸기
+      if (/^\d+(px|em|rem)?$/.test(mediaQuery)) {
+        mediaQuery = `(min-width: ${mediaQuery})`;
+      }
       return [atRule('media', mediaQuery, ast)];
     }
     

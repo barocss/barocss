@@ -1,5 +1,5 @@
 import { staticModifier } from "../../core/registry";
-
+ 
 // --- Attribute selector variants ---
 staticModifier('rtl', ['&[dir=rtl]'], { order: 20 });
 staticModifier('ltr', ['&[dir=ltr]'], { order: 20 });
