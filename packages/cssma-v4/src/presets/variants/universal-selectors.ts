@@ -1,23 +1,29 @@
-import { functionalModifier } from "../../core/registry";
+import { functionalModifier, escapeClassName } from "../../core/registry";
 
 // --- Universal selector variants (Tailwind 4.x style, supports chaining/:is wrapping) ---
 functionalModifier(
-  (mod) => mod === '*',
-  ({ selector, fullClassName }) => {
-    // Tailwind 4.x: :is(.class > *)
-    const result = `:is(.${fullClassName} > *)`;
-    return result;
+  (mod, ctx) => mod === '*',
+  ({ selector, fullClassName, variantChain }) => {
+    const isSingle = !variantChain || variantChain.length === 1;
+    return {
+      selector: `:is(.${escapeClassName(fullClassName)} > *)`,
+      flatten: true,
+      wrappingType: isSingle ? 'rule' : 'style-rule'
+    };
   },
   undefined,
   { order: 60 }
 );
 
 functionalModifier(
-  (mod) => mod === '**',
-  ({ selector, fullClassName }) => {
-    // Tailwind 4.x: :is(.class *)
-    const result = `:is(.${fullClassName} *)`;
-    return result;
+  (mod, ctx) => mod === '**',
+  ({ selector, fullClassName, variantChain }) => {
+    const isSingle = !variantChain || variantChain.length === 1;
+    return {
+      selector: `:is(.${escapeClassName(fullClassName)} *)`,
+      flatten: true,
+      wrappingType: isSingle ? 'rule' : 'style-rule'
+    };
   },
   undefined,
   { order: 61 }

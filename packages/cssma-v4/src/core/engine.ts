@@ -36,59 +36,80 @@ function applyVariantChain(
 ) {
   let selector = baseSelector;
   let ast = baseAST;
-  let prevPlugin: any = null;
+  let wrappers: Array<{ type: 'at-rule' | 'style-rule' | 'rule', params?: string, selector?: string }> = [];
 
-  // --- wrap은 오른쪽→왼쪽(variantChain.length-1→0) 순서로 적용 ---
-  for (let i = variantChain.length - 1; i >= 0; i--) {
-    const variant = variantChain[i];
-    
-    const plugin = plugins.find(p => p.match(variant.type, context));
-    
-    if (!plugin) {
-      continue;
-    }
-    
-    if (plugin.wrap) {
-      ast = plugin.wrap(Array.isArray(ast) ? ast : [ast], variant, context);
-    }
-    
-    prevPlugin = plugin;
-  }
-
-  // --- selector 변환은 왼쪽→오른쪽(0→variantChain.length-1) 순서로 적용 ---
-  selector = baseSelector;
-  prevPlugin = null;
-  const escapedClassName = escapeClassName(fullClassName);
   for (let i = 0; i < variantChain.length; i++) {
     const variant = variantChain[i];
-    
     const plugin = plugins.find(p => p.match(variant.type, context));
-    
-    if (!plugin) {
+    if (!plugin) continue;
+
+    // AST handler 우선 적용
+    if (plugin.astHandler) {
+      ast = plugin.astHandler(ast, variant, context, variantChain, i);
       continue;
     }
-    
 
-    if (
-      prevPlugin &&
-      prevPlugin.compounds &&
-      prevPlugin.compounds.includes(variant.type)
-    ) {
-      selector = plugin.modifySelector
-        ? plugin.modifySelector({ selector, fullClassName: escapedClassName, mod: variant, context })
-        : selector;
-    } else {
-      selector = plugin.modifySelector
-        ? plugin.modifySelector({ selector, fullClassName: escapedClassName, mod: variant, context })
-        : selector;
+    // selector 변환 및 wrapping 정책
+    if (plugin.modifySelector) {
+      const result = plugin.modifySelector({ selector, fullClassName, mod: variant, context, variantChain, index: i });
+      if (typeof result === 'object' && result) {
+        if ('selector' in result) selector = result.selector;
+        // wrappingType/atRule이 있으면 wrappers에 추가
+        if (result.wrappingType === 'at-rule' && result.params) {
+          wrappers.push({ type: 'at-rule', params: result.params });
+        } else if (result.wrappingType === 'style-rule') {
+          wrappers.push({ type: 'style-rule', selector });
+        } else if (result.wrappingType === 'rule') {
+          wrappers.push({ type: 'rule', selector });
+        }
+        // flatten/override 등 추가 정책도 필요시 처리
+      } else if (typeof result === 'string') {
+        selector = result;
+      }
     }
-    
-    prevPlugin = plugin;
   }
-  // selector를 ast의 가장 안쪽 rule에 반영
-  ast = setInnermostRuleSelector(ast, selector);
-  
-  return { ast };
+
+  // wrappers를 바깥→안쪽 순서로 AST에 적용
+  for (let i = wrappers.length - 1; i >= 0; i--) {
+    const wrap = wrappers[i];
+    if (wrap.type === 'at-rule') {
+      ast = [{ type: 'at-rule', name: 'media', params: wrap.params!, nodes: Array.isArray(ast) ? ast : [ast] }];
+    } else if (wrap.type === 'style-rule') {
+      ast = [{ type: 'style-rule', selector: wrap.selector!, nodes: Array.isArray(ast) ? ast : [ast] }];
+    } else if (wrap.type === 'rule') {
+      ast = [{ type: 'rule', selector: wrap.selector!, nodes: Array.isArray(ast) ? ast : [ast] }];
+    }
+  }
+  return ast;
+}
+
+// AST wrapping 최적화: 중첩된 at-rule, style-rule, rule 병합
+export function normalizeWrappers(ast: AstNode[]): AstNode[] {
+  // 중복된 at-rule(name+params), style-rule/rule(selector)는 한 번만 남기고 flatten
+  function mergeNodes(nodes: AstNode[], parentStack: { type: string; key: string }[] = []): AstNode[] {
+    if (!Array.isArray(nodes)) return nodes;
+    return nodes.map(node => {
+      // key 생성: at-rule은 name+params, style-rule/rule은 selector
+      let key = '';
+      if (node.type === 'at-rule') key = `${node.name}:${node.params}`;
+      else if (node.type === 'style-rule' || node.type === 'rule') key = node.selector;
+      // 상위에 동일 구조가 있으면 flatten (중복 제거)
+      const alreadyInParent = parentStack.some(
+        s => s.type === node.type && s.key === key
+      );
+      if (alreadyInParent && node.nodes) {
+        // flatten: 하위 nodes만 상위에 병합
+        return mergeNodes(node.nodes, parentStack);
+      }
+      // 하위 노드 재귀 처리 (stack에 현재 구조 push)
+      if (node.nodes) {
+        const merged = mergeNodes(node.nodes, parentStack.concat({ type: node.type, key }));
+        return { ...node, nodes: merged };
+      }
+      return node;
+    }).flat(); // flatten: 하위에서 배열 반환 시 평탄화
+  }
+  return mergeNodes(ast);
 }
 
 /**

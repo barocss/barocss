@@ -56,7 +56,7 @@ export interface ModifierRegistration {
 // --- Variant Plugin System ---
 export type ModifierPlugin = {
   match: (mod: string, context: CssmaContext) => boolean;
-  modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: CssmaContext }) => string;
+  modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: CssmaContext; variantChain?: ParsedModifier[]; index?: number }) => string | { selector: string; flatten?: boolean; wrappingType?: 'rule' | 'style-rule' | 'at-rule'; override?: boolean };
   wrap?: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => AstNode[];
   sort?: number;
   compounds?: string[];
@@ -68,7 +68,7 @@ export const modifierPlugins: ModifierPlugin[] = [];
 export function staticModifier(name: string, selectors: string[], options: any = {}) {
   modifierPlugins.push({
     match: (mod: string) => mod === name,
-    modifySelector: ({ selector }) =>
+    modifySelector: ({ selector, variantChain, index, ...rest }) =>
       selectors.map(sel => sel.replace('&', selector)).join(', '),
     ...options
   });
@@ -311,5 +311,17 @@ export function functionalUtility(opts: {
     },
     description: opts.description,
     category: opts.category,
+  });
+}
+
+export function staticAstVariant(
+  name: string,
+  astHandler: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext, variantChain?: ParsedModifier[], index?: number) => AstNode[],
+  options: Partial<ModifierPlugin> = {}
+) {
+  modifierPlugins.push({
+    match: (mod: string) => mod === name,
+    astHandler,
+    ...options
   });
 }

@@ -278,4 +278,53 @@ describe('applyClassName (end-to-end)', () => {
 }`
     );
   });
+});
+
+describe('variant chain engine (tailwind v4 style)', () => {
+  const ctx = createContext({
+    theme: { colors: { red: { 500: '#f00' } } }
+  });
+
+  it('hover:focus:bg-red-500 → &:focus:hover', () => {
+    expect(applyClassName('hover:focus:bg-red-500', ctx)).toEqual([
+      {
+        type: 'rule',
+        selector: '&:focus:hover',
+        nodes: [
+          { type: 'decl', prop: 'background-color', value: '#f00' }
+        ]
+      }
+    ]);
+  });
+
+  it('group-hover:*:bg-red-500 → &:is(:where(.group):hover > *)', () => {
+    expect(applyClassName('group-hover:*:bg-red-500', ctx)).toEqual([
+      {
+        type: 'style-rule',
+        selector: '&:is(:where(.group):hover > *)',
+        nodes: [
+          { type: 'decl', prop: 'background-color', value: '#f00' }
+        ]
+      }
+    ]);
+  });
+
+  it('hover:bg-red-500 → @media (hover: hover) { ... }', () => {
+    expect(applyClassName('hover:bg-red-500', ctx)).toEqual([
+      {
+        type: 'style-rule',
+        selector: '&:hover',
+        nodes: [
+          {
+            type: 'at-rule',
+            name: 'media',
+            params: '(hover: hover)',
+            nodes: [
+              { type: 'decl', prop: 'background-color', value: '#f00' }
+            ]
+          }
+        ]
+      }
+    ]);
+  });
 }); 

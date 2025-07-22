@@ -2,6 +2,7 @@
 export type AstNode =
   | { type: "decl"; prop: string; value: string | [string, string][] }
   | { type: "at-rule"; name: string; params: string; nodes: AstNode[] }
+  | { type: "style-rule"; selector: string; nodes: AstNode[] }
   | { type: "rule"; selector: string; nodes: AstNode[] }
   | { type: "at-root"; nodes: AstNode[] }
   | { type: "comment"; text: string }
@@ -26,6 +27,9 @@ export function atRule(
   nodes: AstNode[]
 ): AstNode {
   return { type: "at-rule", name, params, nodes };
+}
+export function styleRule(selector: string, nodes: AstNode[]): AstNode {
+  return { type: "style-rule", selector, nodes };
 }
 export function rule(selector: string, nodes: AstNode[]): AstNode {
   return { type: "rule", selector, nodes };
