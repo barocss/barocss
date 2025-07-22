@@ -1,29 +1,9 @@
-import { rule, type AstNode } from './ast';
-import { parseClassName } from './parser';
-import { getUtility, getModifierPlugins, escapeClassName } from './registry';
-import { CssmaContext } from './context';
-import { ParsedModifier } from './parser';
-import { astToCss } from './astToCss';
-
-// AST에서 가장 안쪽 rule의 selector를 덮어쓰는 재귀 함수
-function setInnermostRuleSelector(ast: any, selector: string): any {
-  if (Array.isArray(ast)) {
-    return ast.map(node => setInnermostRuleSelector(node, selector));
-  }
-  if (ast.type === 'rule') {
-    // 더 안쪽에 rule/at-rule이 있으면 재귀, 없으면 selector 덮어쓰기
-    if (ast.nodes && ast.nodes.some((n: any) => n.type === 'rule' || n.type === 'at-rule')) {
-      return { ...ast, nodes: setInnermostRuleSelector(ast.nodes, selector) };
-    } else {
-      return { ...ast, selector };
-    }
-  }
-  if (ast.type === 'at-rule' && ast.nodes) {
-    // at-rule의 nodes에 at-rule이 있으면, 그 at-rule의 nodes에 selector를 덮어쓰고, 바깥 at-rule의 nodes에도 at-rule이 남아 있도록 flatten하지 않음
-    return { ...ast, nodes: setInnermostRuleSelector(ast.nodes, selector) };
-  }
-  return ast;
-}
+import { rule, type AstNode } from "./ast";
+import { parseClassName } from "./parser";
+import { getUtility, getModifierPlugins, escapeClassName } from "./registry";
+import { CssmaContext } from "./context";
+import { ParsedModifier } from "./parser";
+import { astToCss } from "./astToCss";
 
 // Variant chain 적용 (with compounds/arbitrary support)
 function applyVariantChain(
@@ -34,36 +14,52 @@ function applyVariantChain(
   plugins: ReturnType<typeof getModifierPlugins>,
   fullClassName: string
 ) {
+  console.log('[applyVariantChain] input:', { baseSelector, baseAST, variantChain, fullClassName });
   let selector = baseSelector;
   let ast = baseAST;
-  let wrappers: Array<{ type: 'at-rule' | 'style-rule' | 'rule', params?: string, selector?: string }> = [];
+  let wrappers: Array<{
+    type: "at-rule" | "style-rule" | "rule";
+    params?: string;
+    selector?: string;
+  }> = [];
 
   for (let i = 0; i < variantChain.length; i++) {
     const variant = variantChain[i];
-    const plugin = plugins.find(p => p.match(variant.type, context));
+    const plugin = plugins.find((p) => p.match(variant.type, context));
+    console.log(`[applyVariantChain] variant:`, variant, 'plugin:', plugin);
     if (!plugin) continue;
 
     // AST handler 우선 적용
     if (plugin.astHandler) {
       ast = plugin.astHandler(ast, variant, context, variantChain, i);
+      console.log(`[applyVariantChain] astHandler applied, ast:`, ast);
       continue;
     }
 
     // selector 변환 및 wrapping 정책
     if (plugin.modifySelector) {
-      const result = plugin.modifySelector({ selector, fullClassName, mod: variant, context, variantChain, index: i });
-      if (typeof result === 'object' && result) {
-        if ('selector' in result) selector = result.selector;
+      const result = plugin.modifySelector({
+        selector,
+        fullClassName,
+        mod: variant,
+        context,
+        variantChain,
+        index: i,
+      });
+      console.log(`[applyVariantChain] modifySelector result:`, result);
+      if (typeof result === "object" && result) {
+        if ("selector" in result) selector = result.selector;
         // wrappingType/atRule이 있으면 wrappers에 추가
-        if (result.wrappingType === 'at-rule' && result.params) {
-          wrappers.push({ type: 'at-rule', params: result.params });
-        } else if (result.wrappingType === 'style-rule') {
-          wrappers.push({ type: 'style-rule', selector });
-        } else if (result.wrappingType === 'rule') {
-          wrappers.push({ type: 'rule', selector });
+        if (result.wrappingType === "at-rule" && result.params) {
+          wrappers.push({ type: "at-rule", params: result.params });
+        } else if (result.wrappingType === "style-rule") {
+          wrappers.push({ type: "style-rule", selector });
+        } else if (result.wrappingType === "rule") {
+          wrappers.push({ type: "rule", selector });
         }
         // flatten/override 등 추가 정책도 필요시 처리
-      } else if (typeof result === 'string') {
+      } else if (typeof result === "string") {
+        console.log(`[applyVariantChain] modifySelector result is string, result:`, result);
         selector = result;
       }
     }
@@ -72,44 +68,110 @@ function applyVariantChain(
   // wrappers를 바깥→안쪽 순서로 AST에 적용
   for (let i = wrappers.length - 1; i >= 0; i--) {
     const wrap = wrappers[i];
-    if (wrap.type === 'at-rule') {
-      ast = [{ type: 'at-rule', name: 'media', params: wrap.params!, nodes: Array.isArray(ast) ? ast : [ast] }];
-    } else if (wrap.type === 'style-rule') {
-      ast = [{ type: 'style-rule', selector: wrap.selector!, nodes: Array.isArray(ast) ? ast : [ast] }];
-    } else if (wrap.type === 'rule') {
-      ast = [{ type: 'rule', selector: wrap.selector!, nodes: Array.isArray(ast) ? ast : [ast] }];
+    console.log(`[applyVariantChain] wrapping:`, wrap);
+    if (wrap.type === "at-rule") {
+      ast = [
+        {
+          type: "at-rule",
+          name: "media",
+          params: wrap.params!,
+          nodes: Array.isArray(ast) ? ast : [ast],
+        },
+      ];
+    } else if (wrap.type === "style-rule") {
+      ast = [
+        {
+          type: "style-rule",
+          selector: wrap.selector!,
+          nodes: Array.isArray(ast) ? ast : [ast],
+        },
+      ];
+    } else if (wrap.type === "rule") {
+      ast = [
+        {
+          type: "rule",
+          selector: wrap.selector!,
+          nodes: Array.isArray(ast) ? ast : [ast],
+        },
+      ];
     }
+    console.log(`[applyVariantChain] after wrapping, ast:`, ast);
   }
+
+  if (wrappers.length === 0 && Array.isArray(ast) && ast.length === 1 && ast[0].type === "rule") {
+    ast[0].selector = selector;
+  }
+
+  console.log('[applyVariantChain] final ast:', ast);
   return ast;
 }
 
-// AST wrapping 최적화: 중첩된 at-rule, style-rule, rule 병합
-export function normalizeWrappers(ast: AstNode[]): AstNode[] {
-  // 중복된 at-rule(name+params), style-rule/rule(selector)는 한 번만 남기고 flatten
-  function mergeNodes(nodes: AstNode[], parentStack: { type: string; key: string }[] = []): AstNode[] {
-    if (!Array.isArray(nodes)) return nodes;
-    return nodes.map(node => {
-      // key 생성: at-rule은 name+params, style-rule/rule은 selector
-      let key = '';
-      if (node.type === 'at-rule') key = `${node.name}:${node.params}`;
-      else if (node.type === 'style-rule' || node.type === 'rule') key = node.selector;
-      // 상위에 동일 구조가 있으면 flatten (중복 제거)
-      const alreadyInParent = parentStack.some(
-        s => s.type === node.type && s.key === key
-      );
-      if (alreadyInParent && node.nodes) {
-        // flatten: 하위 nodes만 상위에 병합
-        return mergeNodes(node.nodes, parentStack);
-      }
-      // 하위 노드 재귀 처리 (stack에 현재 구조 push)
-      if (node.nodes) {
-        const merged = mergeNodes(node.nodes, parentStack.concat({ type: node.type, key }));
-        return { ...node, nodes: merged };
-      }
-      return node;
-    }).flat(); // flatten: 하위에서 배열 반환 시 평탄화
+/**
+ * decl-to-root path 리스트 수집 함수 (normalizeAstOrder 등에서 재사용)
+ */
+export type PathNode = Partial<AstNode>;
+export type DeclPath = PathNode[];
+export function collectDeclPaths(
+  nodes: AstNode[] = [],
+  path: PathNode[] = []
+): DeclPath[] {
+  let result: DeclPath[] = [];
+  for (const node of nodes) {
+    const curr = { ...node };
+    delete curr.nodes;
+    if (node.type === "decl") {
+      result.push([...path, curr]);
+    } else if (node.nodes && node.nodes.length > 0) {
+      result = result.concat(collectDeclPaths(node.nodes, [...path, curr]));
+    }
   }
-  return mergeNodes(ast);
+  return result;
+}
+
+// 정렬 기준: at-rule > style-rule > rule > decl, depth 우선, sibling 순서 보장
+function getPriority(type: string): number {
+  if (type === "at-rule") return 0;
+  if (type === "style-rule") return 10;
+  if (type === "rule") return 20;
+  return 30; // decl
+}
+
+/**
+ * DeclPath (decl-to-root path 한 줄)을 variant 정렬, 병합(hoist)하여 중첩 AST로 변환
+ * @param declPath DeclPath (단일 path)
+ * @returns AstNode[] (중첩 AST)
+ */
+export function declPathToAst(declPath: DeclPath): AstNode[] {
+  if (!declPath || declPath.length === 0) return [];
+  // 1. decl(leaf)와 variant chain 분리
+  const variants = declPath.slice(0, -1);
+  const decl = declPath[declPath.length - 1];
+ 
+  const sortedVariants = [...variants].sort((a, b) => getPriority(a.type) - getPriority(b.type));
+  // 3. 연속된 같은 variant(동일 key) 병합 (at-rule: name+params, rule/style-rule: selector)
+  const mergedVariants: typeof sortedVariants = [];
+  for (const v of sortedVariants) {
+    if (mergedVariants.length === 0) {
+      mergedVariants.push(v);
+    } else {
+      const prev = mergedVariants[mergedVariants.length - 1];
+      // at-rule: name+params, rule/style-rule: selector
+      const isSame = v.type === prev.type && (
+        (v.type === 'at-rule' && prev.type === 'at-rule' && v.name === prev.name && v.params === prev.params) ||
+        ((v.type === 'rule' || v.type === 'style-rule') && v.selector === (prev as any).selector)
+      );
+      if (!isSame) {
+        mergedVariants.push(v);
+      }
+      // else: skip(merge)
+    }
+  }
+  // 4. 중첩 AST 생성 (바깥→안쪽)
+  let node: AstNode = { ...decl };
+  for (let i = mergedVariants.length - 1; i >= 0; i--) {
+    node = { ...mergedVariants[i], nodes: [node] };
+  }
+  return [node];
 }
 
 /**
@@ -118,53 +180,79 @@ export function normalizeWrappers(ast: AstNode[]): AstNode[] {
  * @param ctx CssmaContext (must be created via createContext(config))
  * @returns AstNode[]
  */
-export function applyClassName(fullClassName: string, ctx: CssmaContext): AstNode[] {
+export function applyClassName(
+  fullClassName: string,
+  ctx: CssmaContext
+): AstNode[] {
+  console.log('[applyClassName] input:', fullClassName);
   // 1. Parse className → { modifiers, utility }
   const { modifiers, utility } = parseClassName(fullClassName);
-  
+  console.log('[applyClassName] parsed:', { modifiers, utility });
+
   if (!utility) {
+    console.log('[applyClassName] no utility, return []');
     return [];
   }
-  
+
   // 2. Find matching utility handler
-  const utilReg = getUtility().find(u => {
+  const utilReg = getUtility().find((u) => {
     // Reconstruct the full className for matching
-    const fullClassName = utility.value ? `${utility.prefix}-${utility.value}` : utility.prefix;
+    const fullClassName = utility.value
+      ? `${utility.prefix}-${utility.value}`
+      : utility.prefix;
     return u.match(fullClassName);
   });
+  console.log('[applyClassName] utilReg:', utilReg);
   if (!utilReg) {
+    console.log('[applyClassName] no utilReg, return []');
     return [];
   }
   // Handle negative values by prepending '-' to the value
   let value = utility.value;
   if (utility.negative && value) {
-    value = '-' + value;
+    value = "-" + value;
   }
   let baseAst = utilReg.handler(value!, ctx, utility, utilReg) || [];
+  console.log('[applyClassName] baseAst:', baseAst);
   // decl만 반환된 경우 rule로 감싸기
-  if (baseAst.length > 0 && baseAst.every(n => n.type === 'decl')) {
-    baseAst = [rule('&', baseAst)];
+  if (baseAst.length > 0 && baseAst.every((n) => n.type === "decl")) {
+    baseAst = [rule("&", baseAst)];
+    console.log('[applyClassName] wrapped baseAst:', baseAst);
   }
   // 3. Apply variant chain using plugin system (with compounds/arbitrary)
-  const { ast } = applyVariantChain(
-    '&',
+  const ast = applyVariantChain(
+    "&",
     baseAst,
     modifiers,
     ctx,
     getModifierPlugins(),
     fullClassName
   );
+  console.log('[applyClassName] after applyVariantChain:', ast);
   // --- variant가 없으면 decl만 반환, 있으면 AST 그대로 반환 ---
   if (!modifiers || modifiers.length === 0) {
     // ast가 rule 하나이고, 그 안에 decl만 있으면 decl만 반환
-    if (Array.isArray(ast) && ast.length === 1 && ast[0].type === 'rule' && Array.isArray(ast[0].nodes) && ast[0].nodes.every(n => n.type === 'decl')) {
+    if (
+      Array.isArray(ast) &&
+      ast.length === 1 &&
+      ast[0].type === "rule" &&
+      Array.isArray(ast[0].nodes) &&
+      ast[0].nodes.every((n) => n.type === "decl")
+    ) {
+      console.log('[applyClassName] no modifiers, rule with decls:', ast[0].nodes);
       return ast[0].nodes;
     }
     // ast가 at-rule(container 등) 하나이고, 그 안에 rule이 있고 decl만 있으면 flatten하지 않고 그대로 반환
-    if (Array.isArray(ast) && ast.length === 1 && ast[0].type === 'at-rule') {
+    if (Array.isArray(ast) && ast.length === 1 && ast[0].type === "at-rule") {
+      console.log('[applyClassName] no modifiers, at-rule:', ast);
       return ast;
     }
   }
+  if (ast === undefined) {
+    console.log('[applyClassName] applyVariantChain returned undefined, return []');
+    return [];
+  }
+  console.log('[applyClassName] return ast:', ast);
   return ast;
 }
 
@@ -198,7 +286,7 @@ export function generateUtilityCss(
   const seen = new Set<string>();
   return classList
     .split(/\s+/)
-    .filter(cls => {
+    .filter((cls) => {
       if (!cls) return false;
       if (opts?.dedup) {
         if (seen.has(cls)) return false;
@@ -206,14 +294,86 @@ export function generateUtilityCss(
       }
       return true;
     })
-    .map(cls => {
+    .map((cls) => {
       const ast = applyClassName(cls, ctx);
       // decl만 반환되면 rule로 감싸기
-      const isDeclOnly = Array.isArray(ast) && ast.length > 0 && ast.every(n => n.type === 'decl');
-      const astForCss = isDeclOnly ? [rule('&', ast)] : ast;
+      const isDeclOnly =
+        Array.isArray(ast) &&
+        ast.length > 0 &&
+        ast.every((n) => n.type === "decl");
+      const astForCss = isDeclOnly ? [rule("&", ast)] : ast;
       const css = astToCss(astForCss, cls, { minify: opts?.minify });
-      console.log('[generateUtilityCss] className:', cls, '\nAST:', JSON.stringify(astForCss, null, 2), '\nCSS:', css);
+      console.log(
+        "[generateUtilityCss] className:",
+        cls,
+        "\nAST:",
+        JSON.stringify(astForCss, null, 2),
+        "\nCSS:",
+        css
+      );
       return css;
     })
-    .join(opts?.minify ? '' : '\n');
+    .join(opts?.minify ? "" : "\n");
+}
+
+/**
+ * declPathToAst 결과 리스트(AstNode[][])를 받아, 같은 at-rule(name, params) 등은 하나로 합치고 그 아래는 sibling으로 분리하는 방식으로 최종 AST 트리를 반환
+ * @param astList AstNode[][]
+ * @returns AstNode[] (최적화된 AST)
+ */
+export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
+  // AstNode[][] → DeclPath[]
+  const declPaths: DeclPath[] = astList.map(ast => {
+    // declPathToAst는 항상 [rootNode] 형태
+    const path: AstNode[] = [];
+    let node = ast[0];
+    while (node) {
+      path.push({ ...node, nodes: undefined });
+      if (node.nodes && node.nodes.length === 1) node = node.nodes[0];
+      else break;
+    }
+    return path;
+  });
+  // 재그 병합
+  function merge(declPaths: DeclPath[], depth = 0): AstNode[] {
+    if (declPaths.length === 0) return [];
+    if (declPaths[0].length === depth + 1) {
+      // 모두 decl만 남음
+      return declPaths.map(path => path[depth]);
+    }
+    // 현재 depth의 variant(type+key)로 그룹핑
+    const groupMap = new Map<string, DeclPath[]>();
+    for (const path of declPaths) {
+      const node = path[depth];
+      let key = node.type;
+      if (node.type === 'at-rule') key += ':' + node.name + ':' + node.params;
+      else if (node.type === 'rule' || node.type === 'style-rule') key += ':' + node.selector;
+      else key += ':' + JSON.stringify(node);
+      if (!groupMap.has(key)) groupMap.set(key, []);
+      groupMap.get(key)!.push(path);
+    }
+    // 각 그룹별로 재그 병합
+    const result: AstNode[] = [];
+    for (const group of groupMap.values()) {
+      const node = group[0][depth];
+      const children = merge(group, depth + 1);
+      result.push(children.length
+        ? { ...node, nodes: children }
+        : { ...node }
+      );
+    }
+    return result;
+  }
+  return merge(declPaths, 0);
+}
+
+/**
+ * applyClassName 결과 AST를 clean한 최종 AST 트리로 변환
+ * @param ast AstNode[] (applyClassName 결과)
+ * @returns AstNode[] (최적화된 AST)
+ */
+export function buildCleanAst(ast: AstNode[]): AstNode[] {
+  const declPaths = collectDeclPaths(ast);
+  const astList = declPaths.map(declPathToAst);
+  return mergeAstTreeList(astList);
 }

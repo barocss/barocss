@@ -1,5 +1,3 @@
-
-
 import "./variants/basic-variants";
 import "./variants/responsive";
 import "./variants/dark-mode";
@@ -9,15 +7,12 @@ import "./variants/negation-variants";
 import "./variants/universal-selectors";
 import "./variants/arbitrary-variants";
 import "./variants/attribute-variants";
-import "./variants/advanced-variants";
-
 import "./variants/pseudo-classes";
 import "./variants/form-states";
 import "./variants/structural-selectors";
 import "./variants/media-features";
 import "./variants/group-peer";
 import "./variants/attribute-selectors";
-
 import "./variants/nth-selectors";
 import "./variants/functional-selectors";
 import "./variants/at-rules";

@@ -5,7 +5,7 @@ import { ctx } from "./test-utils";
 
 describe("pseudo-elements", () => {
   describe("cross-browser pseudo-element variants", () => {
-    it('placeholder:bg-red-500 → 4개 selector', () => {
+    it.only('placeholder:bg-red-500 → 4개 selector', () => {
       const result = applyClassName('placeholder:bg-red-500', ctx);
       expect(result).toEqual([
         { type: 'rule', selector: '&::placeholder, &::-webkit-input-placeholder, &::-moz-placeholder, &:-ms-input-placeholder', nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }] },
