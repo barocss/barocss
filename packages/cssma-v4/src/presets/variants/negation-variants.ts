@@ -3,7 +3,7 @@ import { functionalModifier } from "../../core/registry";
 // not-[]: functionalModifier for arbitrary negation
 functionalModifier(
   (mod: string) => /^not-\[.*\]$/.test(mod),
-  ({ selector, mod, variantChain, index }) => {
+  ({ selector, mod }) => {
     const m = /^not-\[(.+)\]$/.exec(mod.type);
     if (m) {
 

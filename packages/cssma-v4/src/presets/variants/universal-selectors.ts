@@ -2,7 +2,7 @@ import { functionalModifier, escapeClassName } from "../../core/registry";
 
 // --- Universal selector variants (Tailwind 4.x style, supports chaining/:is wrapping) ---
 functionalModifier(
-  (mod, ctx) => mod === '*',
+  (mod) => mod === '*',
   ({ selector, fullClassName, variantChain }) => {
     const isSingle = !variantChain || variantChain.length === 1;
     return {
@@ -16,7 +16,7 @@ functionalModifier(
 );
 
 functionalModifier(
-  (mod, ctx) => mod === '**',
+  (mod) => mod === '**',
   ({ selector, fullClassName }) => {
     return {
       selector: `:is(.${escapeClassName(fullClassName)} *)`,

@@ -5,7 +5,6 @@ functionalModifier(
   (mod: string) => /^group-(hover|focus|active|visited|checked|disabled|aria-[^:]+)$/.test(mod),
   ({ selector, mod }) => {
     const m = /^group-(.+)$/.exec(mod.type);
-    console.log(`[group-peer-extensions] group-${m[1]}:`, selector);
     return m ? {
       selector: `.group:${m[1]} &`,
       wrappingType: 'rule',

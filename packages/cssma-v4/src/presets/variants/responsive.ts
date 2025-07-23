@@ -1,5 +1,5 @@
 import { functionalModifier } from "../../core/registry";
-import { AstNode, atRule } from "../../core/ast";
+import { atRule } from "../../core/ast";
 import { CssmaContext } from "../../core/context";
 import { ParsedModifier } from "../../core/parser";
 import { getDefaultBreakpoint } from "./utils";
@@ -42,7 +42,7 @@ functionalModifier(
     return false;
   },
   undefined,
-  (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: CssmaContext) => {
     const breakpoint = mod.type;
     
     // 1. config에서 정의된 breakpoint 처리 (Tailwind CSS v4.1 표준)
@@ -56,7 +56,7 @@ functionalModifier(
       if (/^\d+(px|em|rem)?$/.test(mediaQuery)) {
         mediaQuery = `(min-width: ${mediaQuery})`;
       }
-      return [atRule('media', mediaQuery, ast)];
+      return [atRule('media', mediaQuery, [])];
     }
     
     // 3. max-width breakpoint 처리 (max-{breakpoint})
@@ -81,14 +81,14 @@ functionalModifier(
           }
         }
         
-        return [atRule('media', mediaQuery, ast)];
+        return [atRule('media', mediaQuery, [])];
       }
       
       // 3-2. arbitrary max-width인 경우 (max-[960px])
       if (/^\[(.*)\]$/.test(baseBreakpoint)) {
         const value = baseBreakpoint.match(/^\[(.*)\]$/)?.[1];
         if (value) {
-          return [atRule('media', `(width < ${value})`, ast)];
+          return [atRule('media', `(width < ${value})`, [])];
         }
       }
     }
@@ -97,7 +97,7 @@ functionalModifier(
     if (/^min-\[(.*)\]$/.test(breakpoint)) {
       const value = breakpoint.match(/^min-\[(.*)\]$/)?.[1];
       if (value) {
-        return [atRule('media', `(width >= ${value})`, ast)];
+        return [atRule('media', `(width >= ${value})`, [])];
       }
     }
     
@@ -105,10 +105,10 @@ functionalModifier(
     if (/^max-\[(.*)\]$/.test(breakpoint)) {
       const value = breakpoint.match(/^max-\[(.*)\]$/)?.[1];
       if (value) {
-        return [atRule('media', `(width < ${value})`, ast)];
+        return [atRule('media', `(width < ${value})`, [])];
       }
     }
-    return ast;
+    return [];
   },
   { order: 5 }
 ); 

@@ -40,5 +40,5 @@ staticModifier('backdrop', ['&::backdrop'], { order: 100 });
 // --- starting: variant (maps to @starting-style) ---
 staticModifier('starting', ['&'], {
   order: 15,
-  wrap: (ast: AstNode[]) => [{ type: 'at-rule', name: 'starting-style', params: '', nodes: ast }]
+  wrap: () => [atRule('starting-style', '', [])]
 }); 

@@ -52,7 +52,6 @@ describe('parseClassName - tokenizer based', () => {
 
     it('should parse utility:modifier (Master CSS style)', () => {
       const result = parseClassName('bg-red-500:hover');
-      console.log('Debug - bg-red-500:hover result:', JSON.stringify(result, null, 2));
       expect(result.modifiers).toEqual([{ type: 'hover', negative: false }]);
       expect(result.utility).toEqual({
         prefix: 'bg',
@@ -86,7 +85,6 @@ describe('parseClassName - tokenizer based', () => {
 
       // utility:modifier with arbitrary
       const result2 = parseClassName('bg-[#ff0000]:hover');
-      console.log('Debug - bg-[#ff0000]:hover result:', JSON.stringify(result2, null, 2));
       expect(result2.modifiers).toEqual([{ type: 'hover', negative: false }]);
       expect(result2.utility?.arbitrary).toBe(true);
       expect(result2.utility?.value).toBe('#ff0000');

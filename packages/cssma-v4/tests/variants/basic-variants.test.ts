@@ -74,7 +74,7 @@ describe("basic variants", () => {
   it("[&>*]:bg-red-500 → &>* { ... }", () => {
     expect(applyClassName("[&>*]:bg-red-500", ctx)).toEqual([
       {
-        type: "rule",
+        type: "style-rule",
         selector: "&>*",
         nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
       },
@@ -348,7 +348,7 @@ describe("basic variants", () => {
   it("[&>*]:bg-red-500 → &>* { ... }", () => {
     expect(applyClassName("[&>*]:bg-red-500", ctx)).toEqual([
       {
-        type: "rule",
+        type: "style-rule",
         selector: "&>*",
         nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
       },
@@ -552,7 +552,7 @@ describe("basic variants", () => {
         params: "(min-width: 640px)",
         nodes: [
           {
-            type: "rule",
+            type: "style-rule",
             selector: "&>*",
             nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
           },

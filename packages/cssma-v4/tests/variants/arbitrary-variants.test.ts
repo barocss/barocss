@@ -9,7 +9,7 @@ describe("arbitrary variants", () => {
     it("[&>*]:bg-red-500 → &>* { ... }", () => {
       expect(applyClassName("[&>*]:bg-red-500", ctx)).toEqual([
         {
-          type: "rule",
+          type: "style-rule",
           selector: "&>*",
           nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
@@ -85,13 +85,19 @@ describe("arbitrary variants", () => {
       expect(applyClassName("group-hover:[&>*]:bg-red-500", ctx)).toEqual([
         {
           type: "rule",
-          selector: ".group:hover &>*",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          selector: ".group:hover &",
+          nodes: [
+            {
+              type: "style-rule",
+              selector: "&>*",
+              nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            },
+          ],
         },
       ]);
     });
 
-    it.only("dark:[.foo]:hover:bg-blue-500 → .dark .foo:hover { ... }", () => {
+    it("dark:[.foo]:hover:bg-blue-500 → .dark .foo:hover { ... }", () => {
       const ctx2 = createContext({
         darkMode: "class",
         theme: { colors: { blue: { 500: "#00f" } } },

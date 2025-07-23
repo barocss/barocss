@@ -1,8 +1,7 @@
-import { rule, type AstNode } from "./ast";
+import { type AstNode } from "./ast";
 import { parseClassName } from "./parser";
-import { getUtility, getModifierPlugins, escapeClassName } from "./registry";
+import { getUtility, getModifierPlugins } from "./registry";
 import { CssmaContext } from "./context";
-import { ParsedModifier } from "./parser";
 import { astToCss } from "./astToCss";
 
 /**
@@ -10,6 +9,18 @@ import { astToCss } from "./astToCss";
  */
 export type PathNode = Partial<AstNode>;
 export type DeclPath = PathNode[];
+
+/**
+ * collectDeclPaths
+ * AST 트리에서 decl(leaf)까지의 모든 경로(variant chain 포함)를 수집합니다.
+ * - 입력: AST 노드 배열
+ * - 출력: decl-to-root path(variant chain) 배열
+ * - 용도: buildCleanAst, declPathToAst 등에서 AST 최적화/병합을 위한 경로 추출에 사용
+ *
+ * @param nodes AstNode[] - AST 트리
+ * @param path PathNode[] - 재그용(초기값 생략)
+ * @returns DeclPath[] - decl까지의 경로(variant chain) 배열
+ */
 export function collectDeclPaths(
   nodes: AstNode[] = [],
   path: PathNode[] = []
@@ -36,9 +47,14 @@ function getPriority(type: string): number {
 }
 
 /**
- * DeclPath (decl-to-root path 한 줄)을 variant 정렬, 병합(hoist)하여 중첩 AST로 변환
- * @param declPath DeclPath (단일 path)
- * @returns AstNode[] (중첩 AST)
+ * declPathToAst
+ * decl-to-root path(variant chain)를 실제 중첩 AST로 변환합니다.
+ * - 입력: DeclPath(variant chain)
+ * - 출력: 중첩된 AstNode[]
+ * - 연속된 같은 variant(동일 key)는 병합, 바깥→안쪽 순서로 중첩
+ *
+ * @param declPath DeclPath
+ * @returns AstNode[]
  */
 export function declPathToAst(declPath: DeclPath): AstNode[] {
   if (!declPath || declPath.length === 0) return [];
@@ -74,64 +90,58 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
 }
 
 /**
- * Applies a class name string to produce AST nodes.
- * @param fullClassName e.g. 'hover:bg-red-500 sm:focus:text-blue-500'
- * @param ctx CssmaContext (must be created via createContext(config))
+ * applyClassName
+ * className(variant chain 포함)을 파싱하여 AST 트리를 생성합니다.
+ * - 입력: className(string), CssmaContext
+ * - 출력: AstNode[] (variant wrapping path별로 여러 root 가능)
+ * - variant wrapping 구조(데카르트 곱, 중첩, sibling 등) 완벽 지원
+ * - 각 variant의 wrap/modifySelector 결과를 wrappers에 쌓고, 오른쪽→왼쪽 순서로 중첩 적용
+ * - 최종적으로 여러 root ast를 반환할 수 있음
+ *
+ * @param fullClassName string (예: 'sm:dark:hover:bg-red-500')
+ * @param ctx CssmaContext
  * @returns AstNode[]
+ *
+ * @example
+ *   const ast = applyClassName('sm:dark:hover:bg-red-500', ctx);
+ *   // ast는 sm, dark, hover variant가 중첩된 AST 트리
  */
 export function applyClassName(
   fullClassName: string,
   ctx: CssmaContext
 ): AstNode[] {
-  console.log('[applyClassName] input:', fullClassName);
-  // 1. Parse className → { modifiers, utility }
   const { modifiers, utility } = parseClassName(fullClassName);
-  console.log('[applyClassName] parsed:', { modifiers, utility });
 
   if (!utility) {
-    console.log('[applyClassName] no utility, return []');
     return [];
   }
 
-  // 2. Find matching utility handler
   const utilReg = getUtility().find((u) => {
     const fullClassName = utility.value
       ? `${utility.prefix}-${utility.value}`
       : utility.prefix;
     return u.match(fullClassName);
   });
-  console.log('[applyClassName] utilReg:', utilReg);
   if (!utilReg) {
-    console.log('[applyClassName] no utilReg, return []');
     return [];
   }
-  
-  // Handle negative values by prepending '-' to the value
-  let value = utility.value;
-  if (utility.negative && value) {
-    value = "-" + value;
-  }
-  
-  // 3. Generate base AST from utility
-  let ast: AstNode[] = utilReg.handler(value!, ctx, utility, utilReg) || [];
-  console.log('[applyClassName] baseAst:', ast);
 
-  console.log('[applyClassName] modifiers:', JSON.stringify(modifiers, null, 2));
-  // 4. Variant chain을 순회하며 중첩 AST 쌓기
-  let wrappers: Array<{ type: "at-rule" | "style-rule" | "rule"; name?: string; params?: string; selector?: string; }> = [];
+  let value = utility.value;
+  if (utility.negative && value) value = "-" + value;
+  let ast = utilReg.handler(value!, ctx, utility, utilReg) || [];
+
+  let wrappers = [];
   let selector = "&";
   for (let i = 0; i < modifiers.length; i++) {
     const variant = modifiers[i];
     const plugin = getModifierPlugins().find((p) => p.match(variant.type, ctx));
     if (!plugin) continue;
     if (plugin.wrap) {
-      const wrappedAst = plugin.wrap(ast, variant, ctx);
-      if (Array.isArray(wrappedAst) && wrappedAst.length === 1 && wrappedAst[0].type === "at-rule") {
-        wrappers.push({ type: "at-rule", name: wrappedAst[0].name, params: wrappedAst[0].params });
-        ast = wrappedAst[0].nodes || [];
-      } else {
-        ast = wrappedAst;
-      }
+      const items = plugin.wrap(variant, ctx);
+      wrappers.push({
+        type: "wrap",
+        items: items,
+      });
       continue;
     }
     if (plugin.modifySelector) {
@@ -140,52 +150,44 @@ export function applyClassName(
         wrappers.push({ type: "rule", selector: result });
       } else if (typeof result === "object" && result.selector) {
         const wrappingType = result.wrappingType || "rule";
-        wrappers.push({ type: wrappingType as "at-rule" | "style-rule" | "rule", selector: result.selector });
+        wrappers.push({ type: wrappingType, selector: result.selector, flatten: result.flatten });
       }
     }
   }
-  console.log('[applyClassName] wrappers:', JSON.stringify(wrappers, null, 2));
-  // wrappers를 앞에서부터 중첩 적용 (variant chain 순서대로)
-  for (let i = 0; i < wrappers.length; i++) {
-    console.log(`[applyClassName] before wrap[${i}]:`, JSON.stringify(ast, null, 2));
+
+  // wrappers를 N→0(오른쪽→왼쪽) 순서로 중첩
+  for (let i = wrappers.length - 1; i >= 0; i--) {
     const wrap = wrappers[i];
-    if (wrap.type === "style-rule") {
-      if (Array.isArray(ast) && ast.length === 1 && ast[0].type === "decl") {
-        ast = [{ type: "style-rule", selector: wrap.selector!, nodes: ast }];
-      } else if (Array.isArray(ast) && ast.length === 1 && (ast[0].type === "rule" || ast[0].type === "at-rule")) {
-        ast[0].nodes = [{ type: "style-rule", selector: wrap.selector!, nodes: ast[0].nodes }];
-      } else {
-        ast = [{ type: "style-rule", selector: wrap.selector!, nodes: Array.isArray(ast) ? ast : [ast] }];
-      }
+
+    if (wrap.type === "wrap") {
+      // wrap 안에 있는 모든 노드들 앞에 추가 
+      ast = ((wrap as any).items as AstNode[]).map(item => ({ ...item, nodes: Array.isArray(ast) ? ast : [ast] }));
+    } else if (wrap.type === "style-rule") {
+      ast = [{ type: "style-rule", selector: wrap.selector!, nodes: Array.isArray(ast) ? ast : [ast] }];
     } else if (wrap.type === "at-rule") {
       ast = [{ type: "at-rule", name: wrap.name || "media", params: wrap.params!, nodes: Array.isArray(ast) ? ast : [ast] }];
     } else if (wrap.type === "rule") {
       ast = [{ type: "rule", selector: wrap.selector!, nodes: Array.isArray(ast) ? ast : [ast] }];
     }
-    console.log(`[applyClassName] after wrap[${i}]:`, JSON.stringify(ast, null, 2));
   }
   return ast;
 }
 
 /**
- * Example usage:
+ * generateUtilityCss
+ * 여러 className을 받아 각각의 유틸리티 CSS를 생성합니다.
+ * - 입력: classList(string), CssmaContext, 옵션
+ * - 출력: string (여러 CSS 블록이 join된 결과)
+ * - 내부적으로 applyClassName → buildCleanAst → astToCss 순으로 처리
+ * - dedup, minify 등 옵션 지원
  *
- * import { applyClassName, createContext } from './engine';
- *
- * const config = {
- *   theme: { colors: { red: { 500: '#f00' } } }
- * };
- * const ctx = createContext(config);
- * const ast = applyClassName('bg-red-500', ctx);
- * // ast will use ctx.theme('colors', 'red', 500) for color resolution
- */
-
-/**
- * 여러 className을 받아 각각의 유틸리티 CSS를 생성한다.
  * @param classList string (예: 'bg-red-500 text-lg hover:bg-blue-500')
  * @param ctx CssmaContext
  * @param opts { minify?: boolean, dedup?: boolean }
- * @returns string (여러 CSS 블록이 join된 결과)
+ * @returns string
+ *
+ * @example
+ *   const css = generateUtilityCss('sm:dark:hover:bg-red-500 sm:focus:bg-blue-500', ctx);
  */
 export function generateUtilityCss(
   classList: string,
@@ -205,30 +207,23 @@ export function generateUtilityCss(
     })
     .map((cls) => {
       const ast = applyClassName(cls, ctx);
-      // decl만 반환되면 rule로 감싸기
-      const isDeclOnly =
-        Array.isArray(ast) &&
-        ast.length > 0 &&
-        ast.every((n) => n.type === "decl");
-      const astForCss = isDeclOnly ? [rule("&", ast)] : ast;
-      const css = astToCss(astForCss, cls, { minify: opts?.minify });
-      console.log(
-        "[generateUtilityCss] className:",
-        cls,
-        "\nAST:",
-        JSON.stringify(astForCss, null, 2),
-        "\nCSS:",
-        css
-      );
+      const cleanAst = buildCleanAst(ast);
+      const css = astToCss(cleanAst, cls, { minify: opts?.minify });
+
       return css;
     })
     .join(opts?.minify ? "" : "\n");
 }
 
 /**
- * declPathToAst 결과 리스트(AstNode[][])를 받아, 같은 at-rule(name, params) 등은 하나로 합치고 그 아래는 sibling으로 분리하는 방식으로 최종 AST 트리를 반환
+ * mergeAstTreeList
+ * declPathToAst 결과 리스트(AstNode[][])를 받아, 같은 at-rule(name, params) 등은 하나로 합치고 그 아래는 sibling으로 분리하는 방식으로 최종 AST 트리를 반환합니다.
+ * - 입력: AstNode[][] (여러 decl-to-root path의 중첩 AST)
+ * - 출력: 최적화된 AST 트리(AstNode[])
+ * - 용도: buildCleanAst에서 최종 AST 병합/최적화에 사용
+ *
  * @param astList AstNode[][]
- * @returns AstNode[] (최적화된 AST)
+ * @returns AstNode[]
  */
 export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
   // AstNode[][] → DeclPath[]
@@ -277,30 +272,18 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
 }
 
 /**
- * applyClassName 결과 AST를 clean한 최종 AST 트리로 변환
- * @param ast AstNode[] (applyClassName 결과)
- * @returns AstNode[] (최적화된 AST)
+ * buildCleanAst
+ * applyClassName 등에서 생성된 AST를 decl-to-root path 기반으로 최적화된 AST 트리로 병합/정리합니다.
+ * - 입력: AstNode[] (applyClassName 결과)
+ * - 출력: 최적화된 AST 트리(AstNode[])
+ * - 내부적으로 collectDeclPaths, declPathToAst, mergeAstTreeList를 사용
+ * - variant wrapping 구조(중첩, sibling, 병합 등)를 모두 반영
+ *
+ * @param ast AstNode[]
+ * @returns AstNode[]
  */
 export function buildCleanAst(ast: AstNode[]): AstNode[] {
   const declPaths = collectDeclPaths(ast);
   const astList = declPaths.map(declPathToAst);
   return mergeAstTreeList(astList);
 }
-
-// style-rule selector 재귀적으로 붙이기
-function deepPrependSelector(ast: AstNode[], prepend: string): AstNode[] {
-  return ast.map(node => {
-    if ((node.type === "rule" || node.type === "style-rule") && node.selector) {
-      // &가 있으면 그대로 두고, 없으면 prepend
-      if (node.selector.includes("&")) {
-        return { ...node, type: "rule", nodes: node.nodes ? deepPrependSelector(node.nodes, prepend) : node.nodes };
-      } else {
-        return { ...node, type: "rule", selector: `${prepend}${node.selector.startsWith(":") ? "" : " "}` + node.selector, nodes: node.nodes ? deepPrependSelector(node.nodes, prepend) : node.nodes };
-      }
-    } else if (node.nodes) {
-      return { ...node, nodes: deepPrependSelector(node.nodes, prepend) };
-    }
-    return node;
-  });
-}
-

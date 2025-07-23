@@ -31,7 +31,7 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
     ]);
   });
 
-  it.only("variant chain 다르면 별도 트리로 분리", () => {
+  it("variant chain 다르면 별도 트리로 분리", () => {
     const declPaths: DeclPath[] = [
       [
         { type: "at-rule", name: "media", params: "(min-width: 640px)" },

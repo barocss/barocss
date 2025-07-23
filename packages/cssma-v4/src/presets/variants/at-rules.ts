@@ -7,12 +7,12 @@ import { AstNode, atRule } from "../../core/ast";
 functionalModifier(
   (mod: string) => /^supports-\[.*\]$/.test(mod),
   undefined,
-  (ast, mod) => {
+  (mod) => {
     const m = /^supports-\[(.+)\]$/.exec(mod.type);
     if (m) {
-      return [atRule('supports', m[1], ast)];
+      return [atRule('supports', m[1], [])];
     }
-    return ast;
+    return [];
   },
   { order: 15 }
 );
@@ -21,9 +21,9 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^layer-\[.*\]$/.test(mod),
   undefined,
-  (ast, mod) => {
+  (mod) => {
     const m = /^layer-\[(.+)\]$/.exec(mod.type);
-    return m ? [atRule('layer', m[1], ast)] : ast;
+    return m ? [atRule('layer', m[1], [])] : [];
   },
   { order: 15 }
 );
@@ -32,9 +32,9 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^scope-\[.*\]$/.test(mod),
   undefined,
-  (ast, mod) => {
+  (mod) => {
     const m = /^scope-\[(.+)\]$/.exec(mod.type);
-    return m ? [atRule('scope', m[1], ast)] : ast;
+    return m ? [atRule('scope', m[1], [])] : [];
   },
   { order: 15 }
 ); 

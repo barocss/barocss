@@ -10,14 +10,14 @@ import { createContainerRule, createContainerParams, getThemeSize } from "./util
 functionalModifier(
   (mod: string) => /^@container\/([a-zA-Z0-9_-]+)$/.test(mod),
   undefined,
-  (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: CssmaContext) => {
     const containerMatch = /^@container\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
     if (containerMatch) {
       const name = containerMatch[1];
       const params = name; // Just the name, no condition
-      return [createContainerRule(params, ast)];
+      return [createContainerRule(params, [])];
     }
-    return ast;
+    return [];
   },
   { order: 5 }
 );
@@ -26,14 +26,14 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@container\/([a-zA-Z0-9_-]+)\s+\(([^)]+)\)$/.test(mod),
   undefined,
-  (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: CssmaContext) => {
     const containerSizeMatch = /^@container\/([a-zA-Z0-9_-]+)\s+\(([^)]+)\)$/.exec(mod.type);
     if (containerSizeMatch) {
       const [, name, size] = containerSizeMatch;
       const params = createContainerParams('min', size, name);
-      return [createContainerRule(params, ast)];
+      return [createContainerRule(params, [])];
     }
-    return ast;
+    return [];
   },
   { order: 5 }
 );
@@ -42,15 +42,15 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@(sm|md|lg|xl|2xl)\/([a-zA-Z0-9_-]+)$/.test(mod),
   undefined,
-  (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: CssmaContext) => {
     const namedSizeMatch = /^@(sm|md|lg|xl|2xl)\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
     if (namedSizeMatch) {
       const [, size, name] = namedSizeMatch;
       const sizeValue = getThemeSize(context, size) || size;
       const params = createContainerParams('min', sizeValue, name);
-      return [createContainerRule(params, ast)];
+      return [createContainerRule(params, [])];
     }
-    return ast;
+    return [];
   },
   { order: 5 }
 );
@@ -59,15 +59,15 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@(sm|md|lg|xl|2xl)$/.test(mod),
   undefined,
-  (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: CssmaContext) => {
     const themeSizeMatch = /^@(sm|md|lg|xl|2xl)$/.exec(mod.type);
     if (themeSizeMatch) {
       const size = themeSizeMatch[1];
       const sizeValue = getThemeSize(context, size) || size;
       const params = createContainerParams('min', sizeValue);
-      return [createContainerRule(params, ast)];
+      return [createContainerRule(params, [])];
     }
-    return ast;
+    return [];
   },
   { order: 5 }
 );
@@ -76,15 +76,15 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@max-(sm|md|lg|xl|2xl)$/.test(mod),
   undefined,
-  (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: CssmaContext) => {
     const themeSizeMatch = /^@max-(sm|md|lg|xl|2xl)$/.exec(mod.type);
     if (themeSizeMatch) {
       const size = themeSizeMatch[1];
       const sizeValue = getThemeSize(context, size) || size;
       const params = createContainerParams('max', sizeValue);
-      return [createContainerRule(params, ast)];
+      return [createContainerRule(params, [])];
     }
-    return ast;
+    return [];
   },
   { order: 5 }
 );
@@ -93,14 +93,14 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@(min|max)-\[.*\]$/.test(mod),
   undefined,
-  (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: CssmaContext) => {
     const arbitraryMatch = /^@(min|max)-\[(.+)\]$/.exec(mod.type);
     if (arbitraryMatch) {
       const [, type, value] = arbitraryMatch;
       const params = createContainerParams(type as 'min' | 'max', value);
-      return [createContainerRule(params, ast)];
+      return [createContainerRule(params, [])];
     }
-    return ast;
+    return [];
   },
   { order: 5 }
 );
@@ -109,14 +109,14 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@(min|max)-\[.*\]\/([a-zA-Z0-9_-]+)$/.test(mod),
   undefined,
-  (ast: AstNode[], mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: CssmaContext) => {
     const arbitraryNamedMatch = /^@(min|max)-\[(.+)\]\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
     if (arbitraryNamedMatch) {
       const [, type, value, name] = arbitraryNamedMatch;
       const params = createContainerParams(type as 'min' | 'max', value, name);
-      return [createContainerRule(params, ast)];
+      return [createContainerRule(params, [])];
     }
-    return ast;
+    return [];
   },
   { order: 5 }
 ); 

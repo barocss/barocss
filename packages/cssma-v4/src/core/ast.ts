@@ -1,5 +1,6 @@
 // AST node types for cssma-v4
 export type AstNode =
+  | { type: "wrap"; items: AstNode[] }
   | { type: "decl"; prop: string; value: string | [string, string][] }
   | { type: "at-rule"; name: string; params: string; nodes: AstNode[] }
   | { type: "style-rule"; selector: string; nodes: AstNode[] }

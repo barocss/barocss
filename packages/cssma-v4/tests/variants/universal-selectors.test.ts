@@ -79,7 +79,7 @@ describe("universal selectors", () => {
     ]);
   });
 
-  it.only("group-hover:**:rounded-full → :is(.group-hover:**:rounded-full *)", () => {
+  it("group-hover:**:rounded-full → :is(.group-hover:**:rounded-full *)", () => {
     const ast = applyClassName("group-hover:**:rounded-full", ctx);
     expect(ast).toEqual([
       {

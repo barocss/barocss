@@ -47,7 +47,6 @@ describe('parseClassName', () => {
     ];
     for (const input of invalidInputs) {
       const result = parseClassName(input);
-      console.log(`Input: "${input}" -> Result:`, JSON.stringify(result, null, 2));
       // 기대: modifiers는 빈 배열
       expect(result.modifiers).toEqual([]);
       // utility가 null이거나 유효하지 않은 구조

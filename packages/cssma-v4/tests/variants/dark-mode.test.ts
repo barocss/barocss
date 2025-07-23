@@ -16,9 +16,7 @@ describe("dark mode", () => {
           type: "at-rule",
           name: "media",
           params: "(prefers-color-scheme: dark)",
-          nodes: [
-            { type: "decl", prop: "background-color", value: "#f00" },
-          ],
+          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
       ]);
     });
@@ -32,9 +30,7 @@ describe("dark mode", () => {
         {
           type: "rule",
           selector: ".dark",
-          nodes: [
-            { type: "decl", prop: "background-color", value: "#f00" },
-          ],
+          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
       ]);
     });
@@ -53,9 +49,7 @@ describe("dark mode", () => {
           type: "rule",
           selector:
             ":where([data-theme=dark], [data-theme=dark] *), :where(.dark, .dark *)",
-          nodes: [
-            { type: "decl", prop: "background-color", value: "#f00" },
-          ],
+          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
       ]);
     });
@@ -74,9 +68,7 @@ describe("dark mode", () => {
           type: "rule",
           selector:
             ":where([data-theme=dark], [data-theme=dark] *), :where(.dark, .dark *)",
-          nodes: [
-            { type: "decl", prop: "background-color", value: "#f00" },
-          ],
+          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
       ]);
     });
@@ -92,16 +84,12 @@ describe("dark mode", () => {
           type: "at-rule",
           name: "media",
           params: "(prefers-color-scheme: dark)",
-          nodes: [
-            { type: "decl", prop: "background-color", value: "#f00" },
-          ],
+          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
         {
           type: "rule",
           selector: ".dark",
-          nodes: [
-            { type: "decl", prop: "background-color", value: "#f00" },
-          ],
+          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
       ]);
     });
@@ -118,13 +106,13 @@ describe("dark mode", () => {
       });
       expect(applyClassName("dark:sm:bg-red-500", ctx)).toEqual([
         {
-          type: "at-rule",
-          name: "media",
-          params: "(min-width: 640px)",
+          type: "rule",
+          selector: ".dark",
           nodes: [
             {
-              type: "rule",
-              selector: ".dark",
+              type: "at-rule",
+              name: "media",
+              params: "(min-width: 640px)",
               nodes: [
                 { type: "decl", prop: "background-color", value: "#f00" },
               ],
