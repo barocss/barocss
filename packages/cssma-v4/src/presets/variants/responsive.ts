@@ -56,7 +56,7 @@ functionalModifier(
       if (/^\d+(px|em|rem)?$/.test(mediaQuery)) {
         mediaQuery = `(min-width: ${mediaQuery})`;
       }
-      return [atRule('media', mediaQuery, [])];
+      return [atRule('media', mediaQuery, [], 'responsive')];
     }
     
     // 3. max-width breakpoint 처리 (max-{breakpoint})
@@ -81,14 +81,14 @@ functionalModifier(
           }
         }
         
-        return [atRule('media', mediaQuery, [])];
+        return [atRule('media', mediaQuery, [], 'responsive')];
       }
       
       // 3-2. arbitrary max-width인 경우 (max-[960px])
       if (/^\[(.*)\]$/.test(baseBreakpoint)) {
         const value = baseBreakpoint.match(/^\[(.*)\]$/)?.[1];
         if (value) {
-          return [atRule('media', `(width < ${value})`, [])];
+          return [atRule('media', `(width < ${value})`, [], 'responsive')];
         }
       }
     }
@@ -97,7 +97,7 @@ functionalModifier(
     if (/^min-\[(.*)\]$/.test(breakpoint)) {
       const value = breakpoint.match(/^min-\[(.*)\]$/)?.[1];
       if (value) {
-        return [atRule('media', `(width >= ${value})`, [])];
+        return [atRule('media', `(width >= ${value})`, [], 'responsive')];
       }
     }
     
@@ -105,7 +105,7 @@ functionalModifier(
     if (/^max-\[(.*)\]$/.test(breakpoint)) {
       const value = breakpoint.match(/^max-\[(.*)\]$/)?.[1];
       if (value) {
-        return [atRule('media', `(width < ${value})`, [])];
+        return [atRule('media', `(width < ${value})`, [], 'responsive')];
       }
     }
     return [];

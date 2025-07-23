@@ -8,7 +8,11 @@ functionalModifier(
     return m ? {
       selector: `.group:${m[1]} &`,
       wrappingType: 'rule',
-    }: selector;
+      source: 'group'
+    } : {
+      selector,
+      source: 'group'
+    };
   },
   undefined,
   { order: 30 }
@@ -17,7 +21,13 @@ functionalModifier(
   (mod: string) => /^peer-(hover|focus|active|visited|checked|disabled|aria-[^:]+)$/.test(mod),
   ({ selector, mod }) => {
     const m = /^peer-(.+)$/.exec(mod.type);
-    return m ? `.peer:${m[1]} ~ ${selector}` : selector;
+    return m ? {
+      selector: `.peer:${m[1]} ~ &`,
+      source: 'peer'
+    } : {
+      selector,
+      source: 'peer'
+    };
   },
   undefined,
   { order: 30 }
@@ -28,7 +38,13 @@ functionalModifier(
   (mod: string) => /^parent-(open|focus|hover)$/.test(mod),
   ({ selector, mod }) => {
     const m = /^parent-(.+)$/.exec(mod.type);
-    return m ? `.parent:${m[1]} ${selector}` : selector;
+    return m ? {
+      selector: `.parent:${m[1]} &`,
+      source: 'parent'
+    } : {
+      selector,
+      source: 'parent'
+    };
   },
   undefined,
   { order: 30 }
@@ -37,7 +53,13 @@ functionalModifier(
   (mod: string) => /^child-(hover|focus|active)$/.test(mod),
   ({ selector, mod }) => {
     const m = /^child-(.+)$/.exec(mod.type);
-    return m ? `${selector} > .child:${m[1]}` : selector;
+    return m ? {
+      selector: `& > .child:${m[1]}`,
+      source: 'child'
+    } : {
+      selector,
+      source: 'child'
+    };
   },
   undefined,
   { order: 30 }

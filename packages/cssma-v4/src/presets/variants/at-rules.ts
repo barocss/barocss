@@ -10,7 +10,7 @@ functionalModifier(
   (mod) => {
     const m = /^supports-\[(.+)\]$/.exec(mod.type);
     if (m) {
-      return [atRule('supports', m[1], [])];
+      return [atRule('supports', m[1], [], 'supports')];
     }
     return [];
   },

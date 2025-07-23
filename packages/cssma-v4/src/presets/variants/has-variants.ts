@@ -10,15 +10,20 @@ functionalModifier(
       return {
         selector: `&:has(${m[1]})`,
         flatten: false,
-        wrappingType: 'rule'
+        wrappingType: 'rule',
+        source: 'attribute'
       };
     }
 
     return m ? {
       selector: `&:has(${m[1]})`,
       flatten: false,
-      wrappingType: 'rule'
-    } : selector;
+      wrappingType: 'rule',
+      source: 'attribute'
+    } : {
+      selector,
+      source: 'attribute'
+    };
   },
   undefined,
   { order: 200 }

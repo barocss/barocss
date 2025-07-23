@@ -8,7 +8,8 @@ functionalModifier(
     return {
       selector: `:is(.${escapeClassName(fullClassName)} > *)`,
       flatten: true,
-      wrappingType: isSingle ? 'rule' : 'style-rule'
+      wrappingType: isSingle ? 'rule' : 'style-rule',
+      source: 'universal'
     };
   },
   undefined,
@@ -21,7 +22,8 @@ functionalModifier(
     return {
       selector: `:is(.${escapeClassName(fullClassName)} *)`,
       flatten: false,
-      wrappingType: 'style-rule'
+      wrappingType: 'style-rule',
+      source: 'universal'
     };
   },
   undefined,

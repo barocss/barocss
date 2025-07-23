@@ -11,18 +11,23 @@ functionalModifier(
         return {
           selector: `&:not(${m[1]})`,
           flatten: false,
-          wrappingType: 'rule'
+          wrappingType: 'rule',
+          source: 'attribute'
         };
       }
 
       return {
         selector: `&:not([${m[1]}])`,
         flatten: false,
-        wrappingType: 'rule'
+        wrappingType: 'rule',
+        source: 'attribute'
       };
     }
     
-    return selector;
+    return {
+      selector,
+      source: 'attribute'
+    };
   },
   undefined,
   { order: 200 }
@@ -36,7 +41,8 @@ functionalModifier(
     return {
       selector: m ? `&:not(:${m[1]})` : selector,
       flatten: false,
-      wrappingType: 'rule'
+      wrappingType: 'rule',
+      source: 'attribute'
     };
   },
   undefined,

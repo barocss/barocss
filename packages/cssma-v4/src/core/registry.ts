@@ -56,7 +56,7 @@ export interface ModifierRegistration {
 // --- Variant Plugin System ---
 export type ModifierPlugin = {
   match: (mod: string, context: CssmaContext) => boolean;
-  modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: CssmaContext; variantChain?: ParsedModifier[]; index?: number }) => string | { selector: string; flatten?: boolean; wrappingType?: 'rule' | 'style-rule' | 'at-rule'; override?: boolean };
+  modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: CssmaContext; variantChain?: ParsedModifier[]; index?: number }) => string | { selector: string; flatten?: boolean; wrappingType?: 'rule' | 'style-rule' | 'at-rule'; override?: boolean; source?: string };
   wrap?: (mod: ParsedModifier, context: CssmaContext) => AstNode[];
   astHandler?: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext, variantChain?: ParsedModifier[], index?: number) => AstNode[];
   sort?: number;
@@ -67,10 +67,17 @@ export type ModifierPlugin = {
 export const modifierPlugins: ModifierPlugin[] = [];
 
 export function staticModifier(name: string, selectors: string[], options: any = {}) {
+  console.log('[staticModifier] name:', name, 'selectors:', selectors, 'options:', options);
   modifierPlugins.push({
     match: (mod: string) => mod === name,
-    modifySelector: ({ selector, variantChain, index, ...rest }) =>
-      selectors.map(sel => sel.replace('&', selector)).join(', '),
+    modifySelector: ({ selector, variantChain, index, ...rest }) => {
+      const result = selectors.map(sel => ({
+        selector: sel,
+        source: options.source
+      }));
+      console.log('[staticModifier] modifySelector result:', result);
+      return result;
+    },
     ...options
   });
 }

@@ -31,7 +31,7 @@ describe("buildCleanAst ", () => {
         ]
       }
     ];
-    expect(cleanAst).toEqual(expected);
+    expect(cleanAst).toMatchObject(expected);
   });
 
   it("여러 variant chain: sm:hover:bg-red-500 sm:focus:bg-blue-500", () => {
@@ -68,7 +68,7 @@ describe("buildCleanAst ", () => {
         ]
       }
     ];
-    expect(cleanAst).toEqual(expected);
+    expect(cleanAst).toMatchObject(expected);
   });
 
   it("variant chain이 완전히 다르면 sibling 트리로 분리", () => {
@@ -112,7 +112,7 @@ describe("buildCleanAst ", () => {
         ]
       }
     ];
-    expect(cleanAst).toEqual(expected);
+    expect(cleanAst).toMatchObject(expected);
   });
 
   it("복잡한 variant chain: sm:dark:hover:bg-red-500", () => {
@@ -189,6 +189,45 @@ describe("buildCleanAst ", () => {
         ]
       }
     ];
-    expect(cleanAst).toEqual(expected);
+    expect(cleanAst).toMatchObject(expected);
+  });
+
+  it("group-hover + peer-focus + sibling", () => {
+    let ast1 = applyClassName("group-hover:bg-red-500", ctx);
+    let ast2 = applyClassName("peer-focus:bg-blue-500", ctx);
+    const ast = [...ast1, ...ast2];
+    const cleanAst = buildCleanAst(ast);
+    const expected = [
+      {
+        type: "rule",
+        selector: ".group:hover &",
+        nodes: [
+          { type: "decl", prop: "background-color", value: "oklch(63.7% 0.237 25.331)" }
+        ]
+      },
+      {
+        type: "rule",
+        selector: ".peer:focus ~ &",
+        nodes: [
+          { type: "decl", prop: "background-color", value: "oklch(62.3% 0.214 259.815)" }
+        ]
+      }
+    ];
+    expect(cleanAst).toMatchObject(expected);
+  });
+
+  it("data-state + aria-pressed + &:hover", () => {
+    let ast = applyClassName('data-[state=open]:aria-pressed:hover:bg-green-500', ctx);
+    const cleanAst = buildCleanAst(ast);
+    const expected = [
+      {
+        type: "rule",
+        selector: "&[data-state=\"open\"][aria-pressed=\"true\"]:hover",
+        nodes: [
+          { type: "decl", prop: "background-color", value: "oklch(72.3% 0.219 149.579)" }
+        ]
+      }
+    ];
+    expect(cleanAst).toMatchObject(expected);
   });
 }); 

@@ -5,7 +5,13 @@ functionalModifier(
   (mod: string) => /^nth-(\d+)$/.test(mod),
   ({ selector, mod }) => {
     const n = mod.type.match(/^nth-(\d+)$/)?.[1];
-    return n ? `${selector}:nth-child(${n})` : selector;
+    return n ? {
+      selector: `&:nth-child(${n})`,
+      source: 'attribute'
+    } : {
+      selector,
+      source: 'attribute'
+    };
   },
   undefined,
   { order: 50 }
@@ -14,7 +20,13 @@ functionalModifier(
   (mod: string) => /^nth-last-(\d+)$/.test(mod),
   ({ selector, mod }) => {
     const n = mod.type.match(/^nth-last-(\d+)$/)?.[1];
-    return n ? `${selector}:nth-last-child(${n})` : selector;
+    return n ? {
+      selector: `&:nth-last-child(${n})`,
+      source: 'attribute'
+    } : {
+      selector,
+      source: 'attribute'
+    };
   },
   undefined,
   { order: 50 }
@@ -23,7 +35,13 @@ functionalModifier(
   (mod: string) => /^nth-of-type-(\d+)$/.test(mod),
   ({ selector, mod }) => {
     const n = mod.type.match(/^nth-of-type-(\d+)$/)?.[1];
-    return n ? `${selector}:nth-of-type(${n})` : selector;
+    return n ? {
+      selector: `&:nth-of-type(${n})`,
+      source: 'attribute'
+    } : {
+      selector,
+      source: 'attribute'
+    };
   },
   undefined,
   { order: 50 }
@@ -32,7 +50,13 @@ functionalModifier(
   (mod: string) => /^nth-last-of-type-(\d+)$/.test(mod),
   ({ selector, mod }) => {
     const n = mod.type.match(/^nth-last-of-type-(\d+)$/)?.[1];
-    return n ? `${selector}:nth-last-of-type(${n})` : selector;
+    return n ? {
+      selector: `&:nth-last-of-type(${n})`,
+      source: 'attribute'
+    } : {
+      selector,
+      source: 'attribute'
+    };
   },
   undefined,
   { order: 50 }

@@ -33,6 +33,7 @@ export function createContainerRule(params: string, ast: AstNode | AstNode[]): A
     name: 'container',
     params,
     nodes: Array.isArray(ast) ? ast : [ast],
+    source: 'container'
   };
 }
 

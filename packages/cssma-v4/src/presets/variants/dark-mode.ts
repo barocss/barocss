@@ -37,9 +37,9 @@ staticModifier("dark", ["&"], {
 
     return selectors.map((sel) => {
       if (sel.type === "media") {
-        return atRule("media", sel.value, []);
+        return atRule("media", sel.value, [], 'dark');
       }
-      return rule(sel.value, []);
+      return rule(sel.value, [], 'dark');
     });
   },
 });

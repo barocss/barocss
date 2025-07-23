@@ -29,6 +29,7 @@ export function collectDeclPaths(
   for (const node of nodes) {
     const curr = { ...node };
     delete curr.nodes;
+    console.log('[collectDeclPaths] curr:', { type: curr.type, selector: curr.selector, source: curr.source });
     if (node.type === "decl") {
       result.push([...path, curr]);
     } else if (node.nodes && node.nodes.length > 0) {
@@ -46,6 +47,47 @@ function getPriority(type: string): number {
   return 30; // decl
 }
 
+const sourcePriority: Record<string, number> = {
+  media: 0,         // @media
+  supports: 1,      // @supports
+  container: 2,     // @container
+  responsive: 10,   // sm:, md: 등
+  group: 20,        // .group:hover &
+  peer: 30,         // .peer:focus ~ &
+  dark: 40,         // dark:
+  universal: 50,    // :is(), :where()
+  data: 60,         // [data-state=...]
+  aria: 70,         // [aria-pressed=...]
+  attribute: 80,    // [type=...]
+  pseudo: 90,       // :hover, :focus
+  base: 100,        // &
+  starting: 110,    // (루트)
+}
+
+function getRulePriority(rule: Partial<AstNode>): number {
+  return sourcePriority[rule.source || 'base'] || 100;
+}
+
+const mergeSelectorsBySource = (source: string, nodes: Partial<AstNode>[]) => {
+  if (source === "pseudo") {
+    // 안쪽→바깥 (reduce)
+    return nodes.reduce((acc, sel) => {
+      const selector = (sel as any).selector as string;
+      if (acc === "") return selector;
+      if (selector?.includes("&")) return selector.replace(/&/, acc);
+      return selector + " " + acc;
+    }, "");
+  } else {
+    // 바깥→안쪽 (reduceRight)
+    return nodes.reduceRight((acc, sel) => {
+      const selector = (sel as any).selector as string;
+      if (acc === "") return selector;
+      if (selector?.includes("&")) return selector.replace(/&/, acc);
+      return selector + " " + acc;
+    }, "");
+  }
+};
+
 /**
  * declPathToAst
  * decl-to-root path(variant chain)를 실제 중첩 AST로 변환합니다.
@@ -58,19 +100,22 @@ function getPriority(type: string): number {
  */
 export function declPathToAst(declPath: DeclPath): AstNode[] {
   if (!declPath || declPath.length === 0) return [];
+  // declPath 각 node의 type/selector/source 로그
+  console.log('[declPathToAst] declPath:', declPath.map(n => ({ type: n.type, selector: n.selector, source: n.source })));
   // 1. decl(leaf)와 variant chain 분리
   const variants = declPath.slice(0, -1);
   const decl = declPath[declPath.length - 1];
- 
-  const sortedVariants = [...variants].sort((a, b) => getPriority(a.type) - getPriority(b.type));
-  // 3. 연속된 같은 variant(동일 key) 병합 (at-rule: name+params, rule/style-rule: selector)
+  console.log('[declPathToAst] decl:', decl);
+  console.log('[declPathToAst] variants:', variants);
+  // 2. 기존 정렬/병합(hoist) 로직 유지
+  const sortedVariants = [...variants].sort((a, b) => getPriority(a.type!) - getPriority(b.type!));
+  console.log('[declPathToAst] sortedVariants:', sortedVariants);
   const mergedVariants: typeof sortedVariants = [];
   for (const v of sortedVariants) {
     if (mergedVariants.length === 0) {
       mergedVariants.push(v);
     } else {
       const prev = mergedVariants[mergedVariants.length - 1];
-      // at-rule: name+params, rule/style-rule: selector
       const isSame = v.type === prev.type && (
         (v.type === 'at-rule' && prev.type === 'at-rule' && v.name === prev.name && v.params === prev.params) ||
         ((v.type === 'rule' || v.type === 'style-rule') && v.selector === (prev as any).selector)
@@ -81,11 +126,64 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
       // else: skip(merge)
     }
   }
-  // 4. 중첩 AST 생성 (바깥→안쪽)
-  let node: AstNode = { ...decl };
-  for (let i = mergedVariants.length - 1; i >= 0; i--) {
-    node = { ...mergedVariants[i], nodes: [node] };
+  console.log('[declPathToAst] mergedVariants:', mergedVariants);
+  // 3. rule만 따로 모으기 (연속된 rule만)
+  const ruleSelectors: Partial<AstNode>[] = [];
+  const nonRuleVariants: any[] = [];
+  for (const v of mergedVariants) {
+    if (v.type === "rule") ruleSelectors.push(v);
+    else nonRuleVariants.push(v);
   }
+  console.log('[declPathToAst] ruleSelectors:', ruleSelectors.map(r => ({ selector: (r as any).selector, source: r.source })));
+  console.log('[declPathToAst] nonRuleVariants:', nonRuleVariants);
+
+  // 5. selector 합성 및 단일 rule 생성
+  let node: AstNode = { ...decl };
+  let sortedRuleSelectors = [...ruleSelectors].sort((a, b) => getRulePriority(a) - getRulePriority(b));
+  console.log('[declPathToAst] sortedRuleSelectors:', sortedRuleSelectors.map(r => ({ selector: r.selector, source: r.source })));
+  if (sortedRuleSelectors.length > 0) {
+    const grouped = sortedRuleSelectors.reduce((acc, rule) => {
+      const key = rule.source || "base";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(rule);
+      return acc;
+    }, {} as Record<string, Partial<AstNode>[]>);
+    // grouped 상세 로그
+    console.log('[declPathToAst] grouped:');
+    for (const [k, v] of Object.entries(grouped)) {
+      console.log(`  group key=${k}:`, v.map(r => ({ selector: r.selector, source: r.source })));
+    }
+
+    // 1. sourcePriority 기준으로 정렬
+    const mergedBySource = Object.entries(grouped)
+      .sort(([a], [b]) => (sourcePriority[a] ?? 999) - (sourcePriority[b] ?? 999))
+      .map(([source, nodes]) => {
+        const merged = mergeSelectorsBySource(source, nodes);
+        console.log(`[declPathToAst] mergeSelectorsBySource source=${source}:`, merged);
+        return merged;
+      });
+    console.log('[declPathToAst] mergedBySource:', mergedBySource);
+
+    // 2. 바깥→안쪽 순서로 reduce (pseudo가 항상 가장 안쪽)
+    let acc = "";
+    for (let i = 0; i < mergedBySource.length; i++) {
+      const sel = mergedBySource[i];
+      if (acc === "") acc = sel;
+      else if (sel.includes("&")) acc = sel.replace(/&/, acc);
+      else acc = sel + " " + acc;
+      console.log(`[declPathToAst] finalSelector step ${i}:`, acc);
+    }
+    const finalSelector = acc;
+    console.log('[declPathToAst] finalSelector:', finalSelector);
+    node = { type: "rule", selector: finalSelector, nodes: [node] };
+  }
+
+  // 6. 나머지 variant(예: at-rule) 바깥에서 중첩
+  for (let i = nonRuleVariants.length - 1; i >= 0; i--) {
+    node = { ...nonRuleVariants[i], nodes: [node] };
+  }
+  // LOG: 최종 AST 반환
+  console.log("[declPathToAst] RETURN:", JSON.stringify([node], null, 2));
   return [node];
 }
 
@@ -146,30 +244,41 @@ export function applyClassName(
     }
     if (plugin.modifySelector) {
       const result = plugin.modifySelector({ selector, fullClassName, mod: variant, context: ctx, variantChain: modifiers, index: i });
+      console.log('[applyClassName] modifySelector result:', result);
       if (typeof result === "string" && result.includes("&")) {
         wrappers.push({ type: "rule", selector: result });
       } else if (typeof result === "object" && result.selector) {
         const wrappingType = result.wrappingType || "rule";
-        wrappers.push({ type: wrappingType, selector: result.selector, flatten: result.flatten });
+        wrappers.push({ type: wrappingType, selector: result.selector, flatten: result.flatten, source: result.source });
+      } else if (Array.isArray(result)) {
+        for (const r of result) {
+          const wrappingType = r.wrappingType || "rule";
+          wrappers.push({ type: wrappingType, selector: r.selector, source: r.source, flatten: r.flatten });
+        }
       }
     }
   }
+  console.log('[applyClassName] wrappers:', wrappers);
 
   // wrappers를 N→0(오른쪽→왼쪽) 순서로 중첩
   for (let i = wrappers.length - 1; i >= 0; i--) {
     const wrap = wrappers[i];
 
     if (wrap.type === "wrap") {
-      // wrap 안에 있는 모든 노드들 앞에 추가 
       ast = ((wrap as any).items as AstNode[]).map(item => ({ ...item, nodes: Array.isArray(ast) ? ast : [ast] }));
+      console.log('[applyClassName] ast after wrap:', ast.map(n => ({ type: n.type, selector: n.selector, source: n.source })));
     } else if (wrap.type === "style-rule") {
-      ast = [{ type: "style-rule", selector: wrap.selector!, nodes: Array.isArray(ast) ? ast : [ast] }];
+      ast = [{ type: "style-rule", selector: wrap.selector!, source: wrap.source, nodes: Array.isArray(ast) ? ast : [ast] }];
+      console.log('[applyClassName] ast after style-rule:', ast.map(n => ({ type: n.type, selector: n.selector, source: n.source })));
     } else if (wrap.type === "at-rule") {
-      ast = [{ type: "at-rule", name: wrap.name || "media", params: wrap.params!, nodes: Array.isArray(ast) ? ast : [ast] }];
+      ast = [{ type: "at-rule", name: wrap.name || "media", params: wrap.params!, source: wrap.source, nodes: Array.isArray(ast) ? ast : [ast] }];
+      console.log('[applyClassName] ast after at-rule:', ast.map(n => ({ type: n.type, name: n.name, params: n.params, source: n.source })));
     } else if (wrap.type === "rule") {
-      ast = [{ type: "rule", selector: wrap.selector!, nodes: Array.isArray(ast) ? ast : [ast] }];
+      ast = [{ type: "rule", selector: wrap.selector!, source: wrap.source, nodes: Array.isArray(ast) ? ast : [ast] }];
+      console.log('[applyClassName] ast after rule:', ast.map(n => ({ type: n.type, selector: n.selector, source: n.source })));
     }
   }
+  console.log('[applyClassName] final ast:', Array.isArray(ast) ? ast.map(n => ({ type: n.type, selector: n.selector, source: n.source })) : ast);
   return ast;
 }
 
@@ -219,7 +328,7 @@ export function generateUtilityCss(
  * mergeAstTreeList
  * declPathToAst 결과 리스트(AstNode[][])를 받아, 같은 at-rule(name, params) 등은 하나로 합치고 그 아래는 sibling으로 분리하는 방식으로 최종 AST 트리를 반환합니다.
  * - 입력: AstNode[][] (여러 decl-to-root path의 중첩 AST)
- * - 출력: 최적화된 AST 트리(AstNode[])
+ * @returns AstNode[]
  * - 용도: buildCleanAst에서 최종 AST 병합/최적화에 사용
  *
  * @param astList AstNode[][]
@@ -238,11 +347,13 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
     }
     return path;
   });
+  console.log('[mergeAstTreeList] declPaths:', JSON.stringify(declPaths, null, 2));
   // 재그 병합
   function merge(declPaths: DeclPath[], depth = 0): AstNode[] {
     if (declPaths.length === 0) return [];
     if (declPaths[0].length === depth + 1) {
       // 모두 decl만 남음
+      console.log(`[merge][depth=${depth}] leaf decls:`, JSON.stringify(declPaths.map(path => path[depth]), null, 2));
       return declPaths.map(path => path[depth]);
     }
     // 현재 depth의 variant(type+key)로 그룹핑
@@ -256,19 +367,28 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
       if (!groupMap.has(key)) groupMap.set(key, []);
       groupMap.get(key)!.push(path);
     }
+    // LOG: groupMap
+    console.log(`[merge][depth=${depth}] groupMap:`, Array.from(groupMap.entries()).map(([k, v]) => ({ key: k, count: v.length, selectors: v.map(p => (p[depth].selector || p[depth].prop)) })));
     // 각 그룹별로 재그 병합
     const result: AstNode[] = [];
-    for (const group of groupMap.values()) {
+    for (const [key, group] of groupMap.entries()) {
       const node = group[0][depth];
       const children = merge(group, depth + 1);
+      // LOG: children
+      console.log(`[merge][depth=${depth}] group key=${key} children:`, JSON.stringify(children, null, 2));
       result.push(children.length
         ? { ...node, nodes: children }
         : { ...node }
       );
     }
+    // LOG: result
+    console.log(`[merge][depth=${depth}] result:`, JSON.stringify(result, null, 2));
     return result;
   }
-  return merge(declPaths, 0);
+  const merged = merge(declPaths);
+  // LOG: mergeAstTreeList 결과
+  console.log("[mergeAstTreeList] RETURN:", JSON.stringify(merged, null, 2));
+  return merged;
 }
 
 /**
@@ -284,6 +404,13 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
  */
 export function buildCleanAst(ast: AstNode[]): AstNode[] {
   const declPaths = collectDeclPaths(ast);
+  // LOG: buildCleanAst declPaths
+  console.log("[buildCleanAst] declPaths:", JSON.stringify(declPaths, null, 2));
   const astList = declPaths.map(declPathToAst);
-  return mergeAstTreeList(astList);
+  // LOG: buildCleanAst astList
+  console.log("[buildCleanAst] astList:", JSON.stringify(astList, null, 2));
+  const merged = mergeAstTreeList(astList);
+  // LOG: buildCleanAst 최종 merged
+  console.log("[buildCleanAst] RETURN:", JSON.stringify(merged, null, 2));
+  return merged;
 }

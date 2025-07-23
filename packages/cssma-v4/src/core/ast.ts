@@ -1,45 +1,48 @@
 // AST node types for cssma-v4
 export type AstNode =
-  | { type: "wrap"; items: AstNode[] }
-  | { type: "decl"; prop: string; value: string | [string, string][] }
-  | { type: "at-rule"; name: string; params: string; nodes: AstNode[] }
-  | { type: "style-rule"; selector: string; nodes: AstNode[] }
-  | { type: "rule"; selector: string; nodes: AstNode[] }
-  | { type: "at-root"; nodes: AstNode[] }
-  | { type: "comment"; text: string }
-  | { type: "raw"; value: string };
+  | { type: "wrap"; items: AstNode[], source?: string }
+  | { type: "decl"; prop: string; value: string | [string, string][], source?: string }
+  | { type: "at-rule"; name: string; params: string; nodes: AstNode[], source?: string }
+  | { type: "style-rule"; selector: string; nodes: AstNode[], source?: string }
+  | { type: "rule"; selector: string; nodes: AstNode[], source?: string }
+  | { type: "at-root"; nodes: AstNode[], source?: string }
+  | { type: "comment"; text: string, source?: string }
+  | { type: "raw"; value: string, source?: string };
 
 export function decl(
   prop: string,
-  value: string | [string, string][]
+  value: string | [string, string][],
+  source?: string
 ): AstNode {
-  return { type: "decl", prop, value };
+  return { type: "decl", prop, value, source };
 }
-export function atRoot(nodes: AstNode[]): AstNode {
+export function atRoot(nodes: AstNode[], source?: string): AstNode {
   return {
     type: "at-root",
     nodes,
+    source
   };
 }
 
 export function atRule(
   name: string,
   params: string,
-  nodes: AstNode[]
+  nodes: AstNode[],
+  source?: string
 ): AstNode {
-  return { type: "at-rule", name, params, nodes };
+  return { type: "at-rule", name, params, nodes, source };
 }
-export function styleRule(selector: string, nodes: AstNode[]): AstNode {
-  return { type: "style-rule", selector, nodes };
+export function styleRule(selector: string, nodes: AstNode[], source?: string): AstNode {
+  return { type: "style-rule", selector, nodes, source };
 }
-export function rule(selector: string, nodes: AstNode[]): AstNode {
-  return { type: "rule", selector, nodes };
+export function rule(selector: string, nodes: AstNode[], source?: string): AstNode {
+  return { type: "rule", selector, nodes, source };
 }
-export function comment(text: string): AstNode {
-  return { type: "comment", text };
+export function comment(text: string, source?: string): AstNode {
+  return { type: "comment", text, source };
 }
-export function raw(value: string): AstNode {
-  return { type: "raw", value };
+export function raw(value: string, source?: string): AstNode {
+  return { type: "raw", value, source };
 }
 
 export function property(ident: string, initialValue?: string, syntax?: string) {
