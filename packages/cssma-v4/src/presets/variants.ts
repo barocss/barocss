@@ -11,7 +11,6 @@ import "./variants/pseudo-classes";
 import "./variants/form-states";
 import "./variants/structural-selectors";
 import "./variants/media-features";
-import "./variants/group-peer";
 import "./variants/attribute-selectors";
 import "./variants/nth-selectors";
 import "./variants/functional-selectors";

@@ -21,9 +21,13 @@ describe("has variants", () => {
     expect(applyClassName('group-hover:has-[.child]:bg-red-500', ctx)).toEqual([
       {
         type: 'rule',
-        selector: '.group:hover &:has(.child)',
+        selector: '.group:hover &',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          {
+            type: 'rule',
+            selector: '&:has(.child)',
+            nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }],
+          },
         ],
       },
     ]);

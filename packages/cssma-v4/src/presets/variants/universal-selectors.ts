@@ -17,12 +17,11 @@ functionalModifier(
 
 functionalModifier(
   (mod, ctx) => mod === '**',
-  ({ selector, fullClassName, variantChain }) => {
-    const isSingle = !variantChain || variantChain.length === 1;
+  ({ selector, fullClassName }) => {
     return {
       selector: `:is(.${escapeClassName(fullClassName)} *)`,
-      flatten: true,
-      wrappingType: isSingle ? 'rule' : 'style-rule'
+      flatten: false,
+      wrappingType: 'style-rule'
     };
   },
   undefined,

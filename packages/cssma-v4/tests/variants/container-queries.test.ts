@@ -19,7 +19,7 @@ describe("container queries", () => {
         name: 'container',
         params: '(width >= 24rem)',
         nodes: [
-          { type: 'rule', selector: '&', nodes: [ { type: 'decl', prop: 'background-color', value: '#f00' } ] },
+          { type: 'decl', prop: 'background-color', value: '#f00' },
         ],
       },
     ]);
@@ -39,7 +39,7 @@ describe("container queries", () => {
         name: 'container',
         params: '(width < 28rem)',
         nodes: [
-          { type: 'rule', selector: '&', nodes: [ { type: 'decl', prop: 'background-color', value: '#f00' } ] },
+          { type: 'decl', prop: 'background-color', value: '#f00' },
         ],
       },
     ]);
@@ -52,7 +52,7 @@ describe("container queries", () => {
         name: 'container',
         params: '(width >= 475px)',
         nodes: [
-          { type: 'rule', selector: '&', nodes: [ { type: 'decl', prop: 'background-color', value: '#f00' } ] },
+          { type: 'decl', prop: 'background-color', value: '#f00' },
         ],
       },
     ]);
@@ -65,7 +65,7 @@ describe("container queries", () => {
         name: 'container',
         params: 'main',
         nodes: [
-          { type: 'rule', selector: '&', nodes: [ { type: 'decl', prop: 'background-color', value: '#f00' } ] },
+          { type: 'decl', prop: 'background-color', value: '#f00' },
         ],
       },
     ]);
@@ -85,7 +85,7 @@ describe("container queries", () => {
         name: 'container',
         params: 'main (width >= 24rem)',
         nodes: [
-          { type: 'rule', selector: '&', nodes: [ { type: 'decl', prop: 'background-color', value: '#f00' } ] },
+          { type: 'decl', prop: 'background-color', value: '#f00' },
         ],
       },
     ]);
@@ -98,7 +98,7 @@ describe("container queries", () => {
         name: 'container',
         params: 'main (width >= 475px)',
         nodes: [
-          { type: 'rule', selector: '&', nodes: [ { type: 'decl', prop: 'background-color', value: '#f00' } ] },
+          { type: 'decl', prop: 'background-color', value: '#f00' },
         ],
       },
     ]);
@@ -123,7 +123,7 @@ describe("container queries", () => {
             name: 'container',
             params: '(width < 28rem)',
             nodes: [
-              { type: 'rule', selector: '&', nodes: [ { type: 'decl', prop: 'background-color', value: '#f00' } ] },
+              { type: 'decl', prop: 'background-color', value: '#f00' },
             ],
           },
         ],
@@ -138,7 +138,7 @@ describe("container queries", () => {
         name: 'starting-style',
         params: '',
         nodes: [
-          { type: 'rule', selector: '&', nodes: [ { type: 'decl', prop: 'background-color', value: '#f00' } ] },
+          { type: 'decl', prop: 'background-color', value: '#f00' },
         ],
       },
     ]);

@@ -14,11 +14,9 @@ describe("breakpoints", () => {
         params: '(width < 640px)',
         nodes: [
           {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
+            type: 'decl',
+            prop: 'background-color',
+            value: '#f00',
           },
         ],
       },
@@ -33,11 +31,9 @@ describe("breakpoints", () => {
         params: '(width < 768px)',
         nodes: [
           {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
+            type: 'decl',
+            prop: 'background-color',
+            value: '#f00',
           },
         ],
       },
@@ -52,11 +48,9 @@ describe("breakpoints", () => {
         params: '(width >= 600px)',
         nodes: [
           {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
+            type: 'decl',
+            prop: 'background-color',
+            value: '#f00',
           },
         ],
       },
@@ -71,11 +65,9 @@ describe("breakpoints", () => {
         params: '(width < 960px)',
         nodes: [
           {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
+            type: 'decl',
+            prop: 'background-color',
+            value: '#f00',
           },
         ],
       },
@@ -129,11 +121,9 @@ describe("breakpoints", () => {
         params: '(min-width: 768px)',
         nodes: [
           {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
+            type: 'decl',
+            prop: 'background-color',
+            value: '#f00',
           },
         ],
       },
@@ -148,11 +138,9 @@ describe("breakpoints", () => {
         params: '(min-width: 1024px)',
         nodes: [
           {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
+            type: 'decl',
+            prop: 'background-color',
+            value: '#f00',
           },
         ],
       },
@@ -167,11 +155,9 @@ describe("breakpoints", () => {
         params: '(min-width: 1440px)',
         nodes: [
           {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
+            type: 'decl',
+            prop: 'background-color',
+            value: '#f00',
           },
         ],
       },
@@ -185,13 +171,7 @@ describe("breakpoints", () => {
         name: 'media',
         params: '(width < 768px)',
         nodes: [
-          {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
-          },
+          { type: 'decl', prop: 'background-color', value: '#f00' },
         ],
       },
     ]);
@@ -205,11 +185,9 @@ describe("breakpoints", () => {
         params: '(width < 1024px)',
         nodes: [
           {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
+            type: 'decl',
+            prop: 'background-color',
+            value: '#f00',
           },
         ],
       },
@@ -235,11 +213,9 @@ describe("breakpoints", () => {
         params: '(min-width: 30rem)',
         nodes: [
           {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
+            type: 'decl',
+            prop: 'background-color',
+            value: '#f00',
           },
         ],
       },
@@ -264,11 +240,9 @@ describe("breakpoints", () => {
         params: '(min-width: 120rem)',
         nodes: [
           {
-            type: 'rule',
-            selector: '&',
-            nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
-            ],
+            type: 'decl',
+            prop: 'background-color',
+            value: '#f00',
           },
         ],
       },

@@ -3,13 +3,21 @@ import { functionalModifier } from "../../core/registry";
 // has-[]: functionalModifier
 functionalModifier(
   (mod: string) => /^has-\[.*\]$/.test(mod),
-  ({ selector, mod, variantChain }) => {
+  ({ selector, mod }) => {
     const m = /^has-\[(.+)\]$/.exec(mod.type);
-    const isSingle = !variantChain || variantChain.length === 1;
+
+    if (m && m[1].startsWith('.')) {
+      return {
+        selector: `&:has(${m[1]})`,
+        flatten: false,
+        wrappingType: 'rule'
+      };
+    }
+
     return m ? {
-      selector: `${selector}:has(${m[1]})`,
-      flatten: !isSingle,
-      wrappingType: isSingle ? 'rule' : 'style-rule'
+      selector: `&:has(${m[1]})`,
+      flatten: false,
+      wrappingType: 'rule'
     } : selector;
   },
   undefined,
