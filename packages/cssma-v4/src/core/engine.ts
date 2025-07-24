@@ -299,6 +299,40 @@ export function generateCss(
 }
 
 /**
+ * 여러 클래스명을 받아 dedup/filter 후 최적화된 결과를 객체 배열로 반환합니다.
+ * - 각 객체: { cls, ast, css }
+ * - minify, dedup 옵션 지원
+ * - 각 클래스별로 astToCss(cleanAst, cls, opts) 적용
+ * @param classList string (공백 구분)
+ * @param ctx CssmaContext
+ * @param opts { minify?: boolean; dedup?: boolean }
+ * @returns Array<{ cls: string; ast: AstNode[]; css: string }>
+ */
+export function generateCssRules(
+  classList: string,
+  ctx: CssmaContext,
+  opts?: { minify?: boolean; dedup?: boolean }
+): Array<{ cls: string; ast: any; css: string }> {
+  const seen = new Set<string>();
+  return classList
+    .split(/\s+/)
+    .filter((cls) => {
+      if (!cls) return false;
+      if (opts?.dedup) {
+        if (seen.has(cls)) return false;
+        seen.add(cls);
+      }
+      return true;
+    })
+    .map((cls) => {
+      const ast = parseClassToAst(cls, ctx);
+      const cleanAst = optimizeAst(ast);
+      const css = astToCss(cleanAst, cls, { minify: opts?.minify });
+      return { cls, ast: cleanAst, css };
+    });
+}
+
+/**
  * mergeAstTreeList
  * declPathToAst 결과 리스트(AstNode[][])를 받아, 같은 at-rule(name, params) 등은 하나로 합치고 그 아래는 sibling으로 분리하는 방식으로 최종 AST 트리를 반환합니다.
  * - 입력: AstNode[][] (여러 decl-to-root path의 중첩 AST)
