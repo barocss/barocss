@@ -60,11 +60,6 @@ export function deepMerge<T extends Record<string, any>>(base: T, override: Part
   return result;
 }
 
-// Shallow merge utility
-export function shallowMerge<T extends Record<string, any>>(base: T, override: Partial<T>): T {
-  return { ...base, ...override };
-}
-
 export type ThemeGetter = (...path: (string|number)[]) => any;
 
 /**

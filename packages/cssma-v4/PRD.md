@@ -1,69 +1,64 @@
 # CSSMA v4 Product Requirements Document (PRD)
 
----
+## Overview
 
-## 1. Engine System (`engine.ts`)
+CSSMA v4 is a utility-first CSS framework that transforms Tailwind CSS-compatible class names into CSS AST nodes for Figma styling. The system is built around a modular architecture with clear separation of concerns.
 
-### 1.1 Design Intent
-- **Single Entry Point:** All class name transformations start here. Handles parsing, matching, AST transformation, and modifier application in a unified flow.
-- **Extensibility:** Designed so plugins/custom parsers/handlers can easily hook into the process.
+## Core Systems
 
-### 1.2 Main Functions and Internal Flow
+### 1. Engine System (`engine.ts`)
 
-#### `applyClassName(className, ctx): AstNode[]`
-- Parses a single utility class name and returns the corresponding AST nodes.
-- Handles modifiers, negative values, arbitrary values, and custom properties.
+**Design Intent:**
+- **Single Entry Point:** All class name transformations start here
+- **Extensibility:** Plugins/custom parsers/handlers can easily hook into the process
 
----
+**Main Functions:**
+- `applyClassName(className, ctx): AstNode[]` - Parses single utility class and returns AST nodes
+- `generateUtilityCss(classList, ctx, opts?): string` - Converts multiple classes to CSS
+- Handles modifiers, negative values, arbitrary values, and custom properties
 
-## 2. AST System (`ast.ts`)
+### 2. AST System (`ast.ts`)
 
-### 2.1 AST Node Types
+**AST Node Types:**
 - `decl`: CSS property declaration (e.g., `{ type: 'decl', prop: 'color', value: '#fff' }`)
 - `atrule`: CSS at-rule (e.g., `{ type: 'atrule', name: 'supports', params: '...', nodes: [...] }`)
 - `rule`: CSS selector rule (e.g., `{ type: 'rule', selector: '.foo', nodes: [...] }`)
 - `comment`: Comment node
 
-### 2.2 AST Construction
-- All handler functions must return AST nodes in this format.
-- AST is designed to be serializable to CSS or Figma style objects.
+**AST Construction:**
+- All handler functions must return AST nodes in this format
+- AST is designed to be serializable to CSS or Figma style objects
 
----
+### 3. Parser System (`parser.ts`)
 
-## 3. Parser System (`parser.ts`)
+**Components:**
+- **Tokenizer**: Splits class names by `:` while respecting nested brackets/parentheses
+- **Parser**: Consumes tokens, classifies as utility/modifier, supports bidirectional parsing
+- **Error Handling**: Returns null/empty for invalid or malformed input
 
-- **Tokenizer**: Splits class names by `:`, safely handles nested brackets/parentheses, does not classify.
-- **Parser**: Consumes tokens, classifies as utility/modifier, supports both `modifier:utility` and `utility:modifier` (bidirectional).
-- **Error Handling**: Returns null/empty for invalid or malformed input.
-- **Test Coverage**: tokenizer.test.ts (60+), parser.test.ts (10+), covers advanced Tailwind v4 syntax and edge cases.
+**Test Coverage:**
+- 60+ tokenizer tests (nested, arbitrary, advanced Tailwind v4)
+- 10+ parser tests (bidirectional, error, edge cases)
 
-### 3.2 Modifier Parsing
-- Handles responsive, state, and arbitrary modifiers (e.g., `md:hover:bg-red-500`).
-- Modifiers are applied in order of appearance.
+### 4. Registry System (`registry.ts`)
 
----
+**Utility Registration:**
+- **staticUtility:** Registers exact-match utilities (e.g., `block`, `inline-block`)
+- **functionalUtility:** Registers prefix-based utilities (e.g., `bg-`, `text-`, `m-`)
+- Utilities are registered with handler functions and options
 
-## 4. Registry System (`registry.ts`)
+**Handler Resolution:**
+- On class name match, corresponding handler is called with parsed value and context
+- Handler returns AST nodes for the utility
 
-### 4.1 Utility Registration
-- **staticUtility:** Registers exact-match utilities (e.g., `block`, `inline-block`).
-- **functionalUtility:** Registers prefix-based utilities (e.g., `bg-`, `text-`, `m-`).
-- Utilities are registered with handler functions and options (supportsArbitrary, supportsCustomProperty, supportsNegative, supportsOpacity, etc.).
+### 5. Preset System (`presets/`)
 
-### 4.2 Handler Resolution
-- On class name match, the corresponding handler is called with the parsed value and context.
-- Handler returns AST nodes for the utility.
+**Structure:**
+- Each preset file registers a group of related utilities with comprehensive functionality
+- Presets are imported and registered in the main registry (`src/presets/index.ts`)
+- All presets support static, functional, arbitrary, and custom property cases
 
----
-
-## 5. Preset System (`presets/`)
-
-### 5.1 Preset Structure
-- Each preset file registers a group of related utilities with comprehensive functionality.
-- Presets are imported and registered in the main registry (`src/presets/index.ts`).
-- All presets support static, functional, arbitrary, and custom property cases.
-
-### 5.2 Utility Categories
+**Utility Categories:**
 
 #### Core Layout & Spacing
 - **layout.ts**: Display, position, z-index, overflow, visibility utilities
@@ -89,15 +84,14 @@
 - **table.ts**: Table layout and styling utilities
 - **svg.ts**: SVG fill, stroke, and styling utilities
 
-### 5.3 Test Coverage
+**Test Coverage:**
 - Each preset has a corresponding test file with comprehensive test cases
 - Tests cover static, functional, arbitrary, custom property, and negative value cases
 - All utilities include edge cases and error handling validation
 
-## 6. Variant System (`presets/variants/`)
+### 6. Variant System (`presets/variants/`)
 
-### 6.1 Modular Variant Structure
-The variant system is organized into modular categories for better maintainability and extensibility:
+**Modular Structure:**
 
 #### Basic Variants
 - **pseudo-classes.ts**: Basic pseudo-class variants (`:hover`, `:focus`, `:active`, etc.)
@@ -123,17 +117,15 @@ The variant system is organized into modular categories for better maintainabili
 - **arbitrary-variants.ts**: Arbitrary variants (`[&>*]:`, `aria-[pressed=true]:`, etc.)
 - **attribute-variants.ts**: Attribute variants (`[open]:`, `[dir=rtl]:`, etc.)
 
-### 6.2 Variant Registration Patterns
+**Variant Registration Patterns:**
 
-#### Static Modifiers
 ```typescript
+// Static modifiers
 staticModifier('hover', ['&:hover'], { order: 50 });
 staticModifier('focus', ['&:focus'], { order: 50 });
 staticModifier('disabled', ['&:disabled'], { order: 40 });
-```
 
-#### Functional Modifiers
-```typescript
+// Functional modifiers
 functionalModifier(
   (mod: string) => /^has-\[.*\]$/.test(mod),
   ({ selector, mod }) => {
@@ -145,127 +137,59 @@ functionalModifier(
 );
 ```
 
-### 6.3 Variant Testing
+**Variant Testing:**
 - Each variant category has comprehensive tests covering all supported patterns
 - Tests include modifier combinations, nesting, and edge cases
 - All 148 variant tests pass, ensuring complete functionality
 
-### 5.4 Handler Design Principles (based on real implementation)
+### 7. Theme System
 
-- Most utilities can be covered with handleBareValue, handleNegativeBareValue, and handleCustomProperty only.
-- Use handle only for advanced or special cases.
-- Custom properties must always be handled in handleCustomProperty.
-- Distinguish static/functional utility registration (exact match vs prefix match).
-- If `supportsOpacity: true` is set on functionalUtility, and the value contains a slash (e.g., `bg-red-500/75`), the opacity value after the slash is automatically extracted and passed to the handler as `extra.opacity`.
-- The handler must return both a color-mix (for modern browsers) and a fallback (hex+alpha) AST node, matching Tailwind v4.1+ background-color opacity behavior.
-- **Example:**
+**Theme Lookup:**
+- Always use both category and key for theme lookups (e.g., `ctx.theme('colors', 'red-500')`)
+- Never look up by key only (e.g., `'red-500'`), as keys may overlap across categories
+- Handlers must reference the correct theme category for each utility
 
-```typescript
-functionalUtility({
-  name: 'bg',
-  themeKeys: ['colors'],
-  supportsArbitrary: true,
-  supportsCustomProperty: true,
-  supportsOpacity: true,
-  handle: (value, ctx, token, extra) => {
-    let main = value;
-    let opacity = extra?.opacity;
-    if (!opacity && typeof value === 'string' && value.includes('/')) {
-      [main, opacity] = value.split('/');
-    }
-    // ...resolve color...
-    if (opacity) {
-      return [
-        {
-          type: 'atrule',
-          name: 'supports',
-          params: '(color:color-mix(in lab, red, red))',
-          nodes: [
-            { type: 'decl', prop: 'background-color', value: `color-mix(in oklab, ${main} ${opacity}%, transparent)` }
-          ]
-        },
-        { type: 'decl', prop: 'background-color', value: '#hexalpha' }
-      ];
-    }
-    // ...fallback for no opacity...
-  }
-});
-```
+### 8. Engine & CSS Conversion
 
-- **Test Example:**
+#### Engine (`engine.ts`)
+- className → AST conversion (`applyClassName`)
+- Multiple classNames → utility CSS (`generateUtilityCss`)
+- Supports breakpoints, variants, arbitrary values, custom properties, and all Tailwind v4 syntax
 
-```typescript
-it('bg-red-500/75 → background-color: var(--color-red-500) with opacity', () => {
-  expect(applyClassName('bg-red-500/75', ctx)).toEqual([
-    {
-      type: 'atrule',
-      name: 'supports',
-      params: '(color:color-mix(in lab, red, red))',
-      nodes: [
-        { type: 'decl', prop: 'background-color', value: 'color-mix(in oklab, var(--color-red-500) 75%, transparent)' }
-      ]
-    },
-    { type: 'decl', prop: 'background-color', value: '#ef4444bf' }
-  ]);
-});
-```
+#### CSS Converter (`astToCss.ts`)
+- AST → standard CSS string conversion
+- Selector escaping (`\:` etc.) is 100% identical to Tailwind CSS
+- Supports at-rules (@media), nesting, complex selectors, arbitrary values, etc.
 
----
+#### Style Tag Application
+- generateUtilityCss output can be directly inserted into `<style>` tag
+- Escaped selectors are correctly interpreted by browsers (identical to Tailwind, CSS-in-JS)
 
-## 6. Theme System
-
-### 6.1 Theme Lookup
-- Always use both category and key for theme lookups (e.g., `ctx.theme('colors', 'red-500')`).
-- Never look up by key only (e.g., `'red-500'`), as keys may overlap across categories.
-- Handlers must reference the correct theme category for each utility.
-
----
-
-## 7. Extensibility & Best Practices
-
-- All utility registration and handler logic should be modular and easily extendable.
-- New utility categories or custom plugins can be added by creating new preset files and registering them in the registry.
-- All new features must include comprehensive tests and documentation.
-
----
-
-## 8. Testing & Quality Assurance
-
-- 100% test coverage for all core logic and presets.
-- Tests must cover static, functional, arbitrary, custom property, and modifier cases.
-- All tests must be written in clear, unambiguous language, specifying exact expected AST output.
-
----
-
-## 9. Documentation
-
-- All core systems, presets, and handler patterns must be documented in README.md and PRD.md.
-- Documentation must include API signatures, usage examples, handler design notes, and test examples.
-- All documentation must be in English for international contributors. 
-
-### 4. 엔진 & CSS 변환 (engine, astToCss)
-
-#### 4.1 엔진 (engine.ts)
-- className → AST 변환 (`applyClassName`)
-- 여러 className → 유틸리티 CSS (`generateUtilityCss`)
-- breakpoints, variant, arbitrary value, custom property 등 Tailwind v4 문법 완벽 지원
-
-#### 4.2 CSS 변환기 (astToCss.ts)
-- AST → 표준 CSS 문자열 변환
-- selector escape(`\:` 등)는 Tailwind CSS와 100% 동일
-- at-rule(@media), 중첩, 복합 selector, arbitrary value 등 지원
-
-#### 4.3 style 태그 적용
-- generateUtilityCss 결과물을 그대로 `<style>` 태그에 삽입 가능
-- escape된 selector는 브라우저가 정확히 해석 (Tailwind, CSS-in-JS와 동일)
-
-#### 4.4 End-to-End 흐름
+#### End-to-End Flow
 1. className → AST (`applyClassName`)
 2. AST → CSS (`astToCss`)
-3. 여러 className → 유틸리티 CSS (`generateUtilityCss`)
-4. CSS → `<style>` 태그에 삽입
+3. Multiple classNames → utility CSS (`generateUtilityCss`)
+4. CSS → insert into `<style>` tag
 
-#### 4.5 테스트 전략
-- `engine.basic.test.ts`: className → AST → CSS → 기대값까지 end-to-end 검증
-- selector escape, 반응형, arbitrary, variant, custom property 등 모든 케이스 커버
-- 기대값은 실제 CSS 출력과 1:1로 맞춤 (Tailwind와 완전 호환) 
+#### Testing Strategy
+- `engine.basic.test.ts`: End-to-end validation from className → AST → CSS → expected value
+- Covers selector escaping, responsive, arbitrary, variants, custom properties, and all cases
+- Expected values match actual CSS output 1:1 (fully compatible with Tailwind)
+
+## Extensibility & Best Practices
+
+- All utility registration and handler logic should be modular and easily extendable
+- New utility categories or custom plugins can be added by creating new preset files and registering them in the registry
+- All new features must include comprehensive tests and documentation
+
+## Testing & Quality Assurance
+
+- 100% test coverage for all core logic and presets
+- Tests must cover static, functional, arbitrary, custom property, and modifier cases
+- All tests must be written in clear, unambiguous language, specifying exact expected AST output
+
+## Documentation
+
+- All core systems, presets, and handler patterns must be documented in README.md and PRD.md
+- Documentation must include API signatures, usage examples, handler design notes, and test examples
+- All documentation must be in English for international contributors 

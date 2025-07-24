@@ -29,10 +29,6 @@ export function getUtility(): UtilityRegistration[] {
   return utilityRegistry;
 }
 
-export function getRegisteredUtilityPrefixes(): string[] {
-  // name is a prefix, so sort by length in descending order without duplicates
-  return Array.from(new Set(getUtility().map(u => u.name))).sort((a, b) => b.length - a.length);
-}
 
 // --- Modifier Registry ---
 type VariantContext = {
@@ -319,17 +315,5 @@ export function functionalUtility(opts: {
     },
     description: opts.description,
     category: opts.category,
-  });
-}
-
-export function staticAstVariant(
-  name: string,
-  astHandler: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext, variantChain?: ParsedModifier[], index?: number) => AstNode[],
-  options: Partial<ModifierPlugin> = {}
-) {
-  modifierPlugins.push({
-    match: (mod: string) => mod === name,
-    astHandler,
-    ...options
   });
 }

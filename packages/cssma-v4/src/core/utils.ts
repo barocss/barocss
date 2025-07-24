@@ -1,7 +1,5 @@
 // Value parsing helpers inspired by Tailwind CSS value-parser.ts
 
-import { SELECTOR_PLACEHOLDER } from './constants';
-
 /**
  * Extracts the value from [arbitrary] syntax, or returns null if not arbitrary.
  */
@@ -137,20 +135,4 @@ export function parseColor(input: string): string | null {
   }
 
   return null;
-}
-
-/**
- * Replaces all & in a selector string with the SELECTOR_PLACEHOLDER.
- * Use for staticModifier selectors to safely mark insertion points.
- */
-export function wrapSelector(selector: string): string {
-  return selector.replace(/&/g, SELECTOR_PLACEHOLDER);
-}
-
-/**
- * Replaces all SELECTOR_PLACEHOLDER in a selector string with the actual base selector.
- * Use after all variant/selector transformations are complete.
- */
-export function unwrapSelector(selector: string, base: string): string {
-  return selector.replace(new RegExp(SELECTOR_PLACEHOLDER, 'g'), base);
 }

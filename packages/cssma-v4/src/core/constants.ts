@@ -1,1 +1,0 @@
-export const SELECTOR_PLACEHOLDER = '%%CSSMA_SELECTOR%%'; 

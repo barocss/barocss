@@ -326,7 +326,7 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
     if (declPaths.length === 0) return [];
     if (declPaths[0].length === depth + 1) {
       // 모두 decl만 남음
-      return declPaths.map(path => path[depth]);
+      return declPaths.map(path => path[depth]) as AstNode[];
     }
     // 현재 depth의 variant(type+key)로 그룹핑
     const groupMap = new Map<string, DeclPath[]>();
@@ -336,8 +336,8 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
       if (node.type === 'at-rule') key += ':' + node.name + ':' + node.params;
       else if (node.type === 'rule' || node.type === 'style-rule') key += ':' + node.selector;
       else key += ':' + JSON.stringify(node);
-      if (!groupMap.has(key)) groupMap.set(key, []);
-      groupMap.get(key)!.push(path);
+      if (!groupMap.has(key!)) groupMap.set(key!, []);
+      groupMap.get(key!)!.push(path);
     }
     // 각 그룹별로 재그 병합
     const result: AstNode[] = [];
@@ -345,7 +345,7 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
       const node = group[0][depth];
       const children = merge(group, depth + 1);   
       result.push(children.length
-        ? { ...node, nodes: children }
+        ? { ...node, nodes: children as AstNode[] }
         : { ...node }
       );
     }
