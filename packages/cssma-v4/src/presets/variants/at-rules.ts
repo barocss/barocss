@@ -13,8 +13,7 @@ functionalModifier(
       return [atRule('supports', m[1], [], 'supports')];
     }
     return [];
-  },
-  { order: 15 }
+  }
 );
 
 // --- layer-[]: @layer 쿼리 variant ---
@@ -24,8 +23,7 @@ functionalModifier(
   (mod) => {
     const m = /^layer-\[(.+)\]$/.exec(mod.type);
     return m ? [atRule('layer', m[1], [])] : [];
-  },
-  { order: 15 }
+  }
 );
 
 // --- scope-[]: @scope 쿼리 variant ---
@@ -35,6 +33,5 @@ functionalModifier(
   (mod) => {
     const m = /^scope-\[(.+)\]$/.exec(mod.type);
     return m ? [atRule('scope', m[1], [])] : [];
-  },
-  { order: 15 }
+  }
 ); 

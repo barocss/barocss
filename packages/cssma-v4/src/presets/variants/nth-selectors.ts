@@ -13,8 +13,7 @@ functionalModifier(
       source: 'attribute'
     };
   },
-  undefined,
-  { order: 50 }
+  undefined
 );
 functionalModifier(
   (mod: string) => /^nth-last-(\d+)$/.test(mod),
@@ -28,8 +27,7 @@ functionalModifier(
       source: 'attribute'
     };
   },
-  undefined,
-  { order: 50 }
+  undefined
 );
 functionalModifier(
   (mod: string) => /^nth-of-type-(\d+)$/.test(mod),
@@ -43,8 +41,7 @@ functionalModifier(
       source: 'attribute'
     };
   },
-  undefined,
-  { order: 50 }
+  undefined
 );
 functionalModifier(
   (mod: string) => /^nth-last-of-type-(\d+)$/.test(mod),
@@ -58,6 +55,5 @@ functionalModifier(
       source: 'attribute'
     };
   },
-  undefined,
-  { order: 50 }
+  undefined
 ); 

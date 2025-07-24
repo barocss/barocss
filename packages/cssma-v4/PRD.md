@@ -121,9 +121,9 @@ CSSMA v4 is a utility-first CSS framework that transforms Tailwind CSS-compatibl
 
 ```typescript
 // Static modifiers
-staticModifier('hover', ['&:hover'], { order: 50 });
-staticModifier('focus', ['&:focus'], { order: 50 });
-staticModifier('disabled', ['&:disabled'], { order: 40 });
+staticModifier('hover', ['&:hover'], { source: 'pseudo' });
+staticModifier('focus', ['&:focus'], { source: 'pseudo' });
+staticModifier('disabled', ['&:disabled'], { source: 'pseudo' });
 
 // Functional modifiers
 functionalModifier(
@@ -131,12 +131,12 @@ functionalModifier(
   ({ selector, mod }) => {
     const m = /^has-\[(.+)\]$/.exec(mod.type);
     return m ? `${selector}:has(${m[1]})` : selector;
-  },
-  undefined,
-  { order: 200 }
+  }
 );
 ```
 
+> **Note:**
+> The application order of variants is determined by the engine's source/type priority, not by registration or an 
 **Variant Testing:**
 - Each variant category has comprehensive tests covering all supported patterns
 - Tests include modifier combinations, nesting, and edge cases

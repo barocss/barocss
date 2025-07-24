@@ -13,8 +13,7 @@ functionalModifier(
       source: 'attribute'
     };
   },
-  undefined,
-  { order: 200 }
+  undefined
 );
 functionalModifier(
   (mod: string) => /^where-\[.*\]$/.test(mod),
@@ -28,6 +27,5 @@ functionalModifier(
       source: 'attribute'
     };
   },
-  undefined,
-  { order: 200 }
+  undefined
 ); 

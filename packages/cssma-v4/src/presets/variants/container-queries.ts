@@ -18,8 +18,7 @@ functionalModifier(
       return [createContainerRule(params, [])];
     }
     return [];
-  },
-  { order: 5 }
+  }
 );
 
 // 2. @container/size - named container with arbitrary size
@@ -34,8 +33,7 @@ functionalModifier(
       return [createContainerRule(params, [])];
     }
     return [];
-  },
-  { order: 5 }
+  }
 );
 
 // 3. @container/size - theme size with named container
@@ -51,8 +49,7 @@ functionalModifier(
       return [createContainerRule(params, [])];
     }
     return [];
-  },
-  { order: 5 }
+  }
 );
 
 // 4. @container/size - theme size without named container
@@ -68,8 +65,7 @@ functionalModifier(
       return [createContainerRule(params, [])];
     }
     return [];
-  },
-  { order: 5 }
+  }
 );
 
 // 4.5. @max-container/size - max theme size without named container
@@ -85,8 +81,7 @@ functionalModifier(
       return [createContainerRule(params, [])];
     }
     return [];
-  },
-  { order: 5 }
+  }
 );
 
 // 5. @container/size - arbitrary size
@@ -101,8 +96,7 @@ functionalModifier(
       return [createContainerRule(params, [])];
     }
     return [];
-  },
-  { order: 5 }
+  }
 );
 
 // 6. @container/size - arbitrary size with named container
@@ -117,6 +111,5 @@ functionalModifier(
       return [createContainerRule(params, [])];
     }
     return [];
-  },
-  { order: 5 }
+  }
 ); 

@@ -132,7 +132,7 @@ CSSMA v4 includes a comprehensive variant system:
 #### Variant Registration
 ```typescript
 // Static modifier
-staticModifier('hover', ['&:hover'], { order: 50 });
+staticModifier('hover', ['&:hover'], { source: 'pseudo' });
 
 // Functional modifier
 functionalModifier(
@@ -140,11 +140,12 @@ functionalModifier(
   ({ selector, mod }) => {
     const m = /^has-\[(.+)\]$/.exec(mod.type);
     return m ? `${selector}:has(${m[1]})` : selector;
-  },
-  undefined,
-  { order: 200 }
+  }
 );
 ```
+
+> **Note:**
+> The application order of variants is determined by the engine's source/type priority, not by registration or an `order` option. For consistent results, always rely on the engine’s built-in sorting logic.
 
 ## 🏗️ Architecture
 

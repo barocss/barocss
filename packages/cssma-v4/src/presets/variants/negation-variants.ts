@@ -28,9 +28,7 @@ functionalModifier(
       selector,
       source: 'attribute'
     };
-  },
-  undefined,
-  { order: 200 }
+  }
 );
 
 // not-: functionalModifier for pseudo-class negation
@@ -44,7 +42,5 @@ functionalModifier(
       wrappingType: 'rule',
       source: 'attribute'
     };
-  },
-  undefined,
-  { order: 200 }
+  }
 ); 

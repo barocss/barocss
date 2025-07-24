@@ -28,8 +28,7 @@ functionalModifier(
       source: 'aria'
     };
   },
-  undefined,
-  { order: 200 }
+  undefined
 );
 
 functionalModifier(
@@ -59,8 +58,7 @@ functionalModifier(
       };
     }
   },
-  undefined,
-  { order: 200 }
+  undefined
 );
 
 // --- Standard data- variants (similar to aria-) ---
@@ -92,6 +90,5 @@ functionalModifier(
       source: 'attribute'
     };
   },
-  undefined,
-  { order: 200 }
+  undefined
 ); 

@@ -31,7 +31,6 @@ const getDarkSelectors = (ctx: CssmaContext) => {
 };
 
 staticModifier("dark", ["&"], {
-  order: 20,
   wrap: (mod: ParsedModifier, ctx: CssmaContext) => {
     const selectors = getDarkSelectors(ctx);
 

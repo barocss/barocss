@@ -109,6 +109,5 @@ functionalModifier(
       }
     }
     return [];
-  },
-  { order: 5 }
+  }
 ); 

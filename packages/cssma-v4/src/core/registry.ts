@@ -56,23 +56,18 @@ export type ModifierPlugin = {
   wrap?: (mod: ParsedModifier, context: CssmaContext) => AstNode[];
   astHandler?: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext, variantChain?: ParsedModifier[], index?: number) => AstNode[];
   sort?: number;
-  compounds?: string[];
-  order?: number;
 };
 
 export const modifierPlugins: ModifierPlugin[] = [];
 
 export function staticModifier(name: string, selectors: string[], options: any = {}) {
-  console.log('[staticModifier] name:', name, 'selectors:', selectors, 'options:', options);
   modifierPlugins.push({
     match: (mod: string) => mod === name,
     modifySelector: ({ selector, variantChain, index, ...rest }) => {
-      const result = selectors.map(sel => ({
+      return selectors.map(sel => ({
         selector: sel,
         source: options.source
       }));
-      console.log('[staticModifier] modifySelector result:', result);
-      return result;
     },
     ...options
   });
