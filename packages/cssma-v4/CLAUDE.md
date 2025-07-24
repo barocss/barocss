@@ -22,7 +22,7 @@ CSSMA v4 is a utility-first CSS framework that transforms Tailwind CSS-compatibl
 ### Core Components
 
 **Engine (`src/core/engine.ts`)**
-- Main entry point: `applyClassName(className, ctx)` → `AstNode[]`
+- Main entry point: `parseClassToAst(className, ctx)` → `AstNode[]`
 - Orchestrates the entire transformation pipeline: parse → match → transform → apply modifiers
 - Uses a generator-based `modifierChain()` for flexible modifier application order
 - Extensible via plugins and custom handlers

@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { applyClassName, generateUtilityCss } from '../src/core/engine';
+import { parseClassToAst, generateCss } from '../src/core/engine';
 import '../src/presets';
 import { createContext } from '../src/core/context';
 
-describe('applyClassName (end-to-end)', () => {
+describe('parseClassToAst (end-to-end)', () => {
   const ctx = createContext({
     theme: {
       breakpoints: {
@@ -20,8 +20,8 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('basic utility', () => {
-    const ast = applyClassName('bg-red-500', ctx);
-    expect(generateUtilityCss('bg-red-500', ctx)).toBe(
+    const ast = parseClassToAst('bg-red-500', ctx);
+    expect(generateCss('bg-red-500', ctx)).toBe(
       `.bg-red-500 {
   background-color: #ef4444;
 }`
@@ -29,8 +29,8 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('responsive + modifier', () => {
-    const ast = applyClassName('sm:hover:bg-red-500', ctx);
-    expect(generateUtilityCss('sm:hover:bg-red-500', ctx)).toBe(
+    const ast = parseClassToAst('sm:hover:bg-red-500', ctx);
+    expect(generateCss('sm:hover:bg-red-500', ctx)).toBe(
       `@media (min-width: 640px) {
   .sm\\:hover\\:bg-red-500:hover {
     background-color: #ef4444;
@@ -40,8 +40,8 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('group-hover + focus', () => {
-    const ast = applyClassName('group-hover:focus:bg-blue-500', ctx);
-    expect(generateUtilityCss('group-hover:focus:bg-blue-500', ctx)).toBe(
+    const ast = parseClassToAst('group-hover:focus:bg-blue-500', ctx);
+    expect(generateCss('group-hover:focus:bg-blue-500', ctx)).toBe(
       `.group:hover .group-hover\\:focus\\:bg-blue-500:focus {
   background-color: #3b82f6;
 }`
@@ -49,8 +49,8 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('arbitrary value', () => {
-    const ast = applyClassName('bg-[#ff0000]', ctx);
-    expect(generateUtilityCss('bg-[#ff0000]', ctx)).toBe(
+    const ast = parseClassToAst('bg-[#ff0000]', ctx);
+    expect(generateCss('bg-[#ff0000]', ctx)).toBe(
       `.bg-\\[\\#ff0000\\] {
   background-color: #ff0000;
 }`
@@ -58,8 +58,8 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('custom property', () => {
-    const ast = applyClassName('bg-(--my-bg)', ctx);
-    expect(generateUtilityCss('bg-(--my-bg)', ctx)).toBe(
+    const ast = parseClassToAst('bg-(--my-bg)', ctx);
+    expect(generateCss('bg-(--my-bg)', ctx)).toBe(
       `.bg-\\(--my-bg\\) {
   background-size: var(--my-bg);
 }`
@@ -67,8 +67,8 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('negative value', () => {
-    const ast = applyClassName('-mt-4', ctx);
-    expect(generateUtilityCss('-mt-4', ctx)).toBe(
+    const ast = parseClassToAst('-mt-4', ctx);
+    expect(generateCss('-mt-4', ctx)).toBe(
       `.-mt-4 {
   margin-top: calc(var(--spacing) * -4);
 }`
@@ -76,8 +76,8 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('responsive + arbitrary', () => {
-    const ast = applyClassName('md:bg-[rgba(0,0,0,0.5)]', ctx);
-    expect(generateUtilityCss('md:bg-[rgba(0,0,0,0.5)]', ctx)).toBe(
+    const ast = parseClassToAst('md:bg-[rgba(0,0,0,0.5)]', ctx);
+    expect(generateCss('md:bg-[rgba(0,0,0,0.5)]', ctx)).toBe(
       `@media (min-width: 768px) {
   .md\\:bg-\\[rgba\\(0\\,0\\,0\\,0\\.5\\)\\] {
     background-size: rgba(0,0,0,0.5);
@@ -87,8 +87,8 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('complex: sm:group-hover:bg-[red]', () => {
-    const ast = applyClassName('sm:group-hover:bg-[red]', ctx);
-    expect(generateUtilityCss('sm:group-hover:bg-[red]', ctx)).toBe(
+    const ast = parseClassToAst('sm:group-hover:bg-[red]', ctx);
+    expect(generateCss('sm:group-hover:bg-[red]', ctx)).toBe(
       `@media (min-width: 640px) {
   .group:hover .sm\\:group-hover\\:bg-\\[red\\] {
     background-size: red;
@@ -98,8 +98,8 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('font size from theme', () => {
-    const ast = applyClassName('text-lg', ctx);
-    expect(generateUtilityCss('text-lg', ctx)).toBe(
+    const ast = parseClassToAst('text-lg', ctx);
+    expect(generateCss('text-lg', ctx)).toBe(
       `.text-lg {
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
@@ -109,7 +109,7 @@ describe('applyClassName (end-to-end)', () => {
 
   it('multiple classNames (applyClassList)', () => {
     const classList = 'bg-red-500 text-lg hover:bg-blue-500';
-    expect(generateUtilityCss(classList, ctx)).toBe(
+    expect(generateCss(classList, ctx)).toBe(
       `.bg-red-500 {
   background-color: #ef4444;
 }
@@ -124,7 +124,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('multiple variants and arbitrary', () => {
-    expect(generateUtilityCss('md:focus:bg-yellow-500', ctx)).toBe(
+    expect(generateCss('md:focus:bg-yellow-500', ctx)).toBe(
       `@media (min-width: 768px) {
   .md\\:focus\\:bg-yellow-500:focus {
     background-color: #eab308;
@@ -134,7 +134,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('complex arbitrary value', () => {
-    expect(generateUtilityCss('w-[calc(100%-2rem)]', ctx)).toBe(
+    expect(generateCss('w-[calc(100%-2rem)]', ctx)).toBe(
       `.w-\\[calc\\(100\\%-2rem\\)\\] {
   width: calc(100%-2rem);
 }`
@@ -142,7 +142,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('container query', () => {
-    expect(generateUtilityCss('container-[size>600px]:p-8', ctx)).toBe(
+    expect(generateCss('container-[size>600px]:p-8', ctx)).toBe(
       `.container-\\[size\\>600px\\]\\:p-8 {
   padding: calc(var(--spacing) * 8);
 }`
@@ -150,7 +150,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('escape edge case', () => {
-    expect(generateUtilityCss('bg-[#abc:def]', ctx)).toBe(
+    expect(generateCss('bg-[#abc:def]', ctx)).toBe(
       `.bg-\\[\\#abc\\:def\\] {
   background-size: #abc:def;
 }`
@@ -158,7 +158,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('dark + focus', () => {
-    expect(generateUtilityCss('dark:focus:bg-yellow-500', ctx)).toBe(
+    expect(generateCss('dark:focus:bg-yellow-500', ctx)).toBe(
       `@media (prefers-color-scheme: dark) {
   .dark\\:focus\\:bg-yellow-500:focus {
     background-color: #eab308;
@@ -168,7 +168,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('peer-checked + text', () => {
-    expect(generateUtilityCss('peer-checked:text-green-500', ctx)).toBe(
+    expect(generateCss('peer-checked:text-green-500', ctx)).toBe(
       `.peer:checked ~ .peer-checked\\:text-green-500 {
   color: #22c55e;
 }`
@@ -176,13 +176,13 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('arbitrary variant + important', () => {
-    expect(generateUtilityCss('!bg-[red]', ctx)).toBe(
+    expect(generateCss('!bg-[red]', ctx)).toBe(
       ``
     );
   });
 
   it('container query orientation', () => {
-    expect(generateUtilityCss('container-[orientation=landscape]:flex', ctx)).toBe(
+    expect(generateCss('container-[orientation=landscape]:flex', ctx)).toBe(
       `.container-\\[orientation\\=landscape\\]\\:flex {
   display: flex;
 }`
@@ -190,7 +190,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('multiple variants + arbitrary', () => {
-    expect(generateUtilityCss('sm:dark:hover:bg-[#123456]', ctx)).toBe(
+    expect(generateCss('sm:dark:hover:bg-[#123456]', ctx)).toBe(
       `@media (min-width: 640px) {
   @media (prefers-color-scheme: dark) {
     .sm\\:dark\\:hover\\:bg-\\[\\#123456\\]:hover {
@@ -202,7 +202,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('before:content', () => {
-    expect(generateUtilityCss("before:content-['foo']", ctx)).toBe(
+    expect(generateCss("before:content-['foo']", ctx)).toBe(
       `.before\\:content-\\[\\'foo\\'\\]::before {
   content: "'foo'";
 }`
@@ -210,7 +210,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('peer-[.bar]:text-lg', () => {
-    expect(generateUtilityCss('peer-[.bar]:text-lg', ctx)).toBe(
+    expect(generateCss('peer-[.bar]:text-lg', ctx)).toBe(
       `.peer-\\[\\.bar\\]\\:text-lg {
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
@@ -219,7 +219,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('group-[.foo]:bg-red-500', () => {
-    expect(generateUtilityCss('group-[.foo]:bg-red-500', ctx)).toBe(
+    expect(generateCss('group-[.foo]:bg-red-500', ctx)).toBe(
       `.group-\\[\\.foo\\]\\:bg-red-500 {
   background-color: #ef4444;
 }`
@@ -227,7 +227,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('sm:peer-checked:underline', () => {
-    expect(generateUtilityCss('sm:peer-checked:underline', ctx)).toBe(
+    expect(generateCss('sm:peer-checked:underline', ctx)).toBe(
       `@media (min-width: 640px) {
   .peer:checked ~ .sm\\:peer-checked\\:underline {
     text-decoration-line: underline;
@@ -237,7 +237,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('sm:before:content-[attr(data-label)]', () => {
-    expect(generateUtilityCss('sm:before:content-[attr(data-label)]', ctx)).toBe(
+    expect(generateCss('sm:before:content-[attr(data-label)]', ctx)).toBe(
       `@media (min-width: 640px) {
   .sm\\:before\\:content-\\[attr\\(data-label\\)\\]::before {
     content: "attr(data-label)";
@@ -247,13 +247,13 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('arbitrary + negative', () => {
-    expect(generateUtilityCss('-mt-[12px]', ctx)).toBe(
+    expect(generateCss('-mt-[12px]', ctx)).toBe(
       ``
     );
   });
 
   it('arbitrary + custom property', () => {
-    expect(generateUtilityCss('text-[(--my-var)]', ctx)).toBe(
+    expect(generateCss('text-[(--my-var)]', ctx)).toBe(
       `.text-\\[\\(--my-var\\)\\] {
   color: (--my-var);
 }`
@@ -261,7 +261,7 @@ describe('applyClassName (end-to-end)', () => {
   });
 
   it('arbitrary + pseudo', () => {
-    expect(generateUtilityCss("before:bg-[color:var(--brand)]", ctx)).toBe(
+    expect(generateCss("before:bg-[color:var(--brand)]", ctx)).toBe(
       `.before\\:bg-\\[color\\:var\\(--brand\\)\\]::before {
   background-color: var(--brand);
 }`
@@ -275,7 +275,7 @@ describe('variant chain engine (tailwind v4 style)', () => {
   });
 
   it('hover:focus:bg-red-500 → &:focus:hover', () => {
-    expect(applyClassName('hover:focus:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('hover:focus:bg-red-500', ctx)).toEqual([
       {
         type: 'rule',
         selector: '&:focus:hover',
@@ -287,7 +287,7 @@ describe('variant chain engine (tailwind v4 style)', () => {
   });
 
   it('group-hover:*:bg-red-500 → &:is(:where(.group):hover > *)', () => {
-    expect(applyClassName('group-hover:*:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('group-hover:*:bg-red-500', ctx)).toEqual([
       {
         type: 'style-rule',
         selector: '&:is(:where(.group):hover > *)',
@@ -299,7 +299,7 @@ describe('variant chain engine (tailwind v4 style)', () => {
   });
 
   it('hover:bg-red-500 → @media (hover: hover) { ... }', () => {
-    expect(applyClassName('hover:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('hover:bg-red-500', ctx)).toEqual([
       {
         type: 'style-rule',
         selector: '&:hover',

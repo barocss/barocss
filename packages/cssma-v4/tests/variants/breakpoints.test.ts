@@ -1,13 +1,13 @@
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
-import { applyClassName } from "../../src/core/engine";
+import { parseClassToAst } from "../../src/core/engine";
 import { createContext } from "../../src/core/context";
 import { ctx } from "./test-utils";
 
 describe("breakpoints", () => {
   // Max-width breakpoints 테스트
   it('max-sm:bg-red-500 → @media (width < 640px) { & { ... } }', () => {
-    expect(applyClassName('max-sm:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('max-sm:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -24,7 +24,7 @@ describe("breakpoints", () => {
   });
 
   it('max-md:bg-red-500 → @media (width < 768px) { & { ... } }', () => {
-    expect(applyClassName('max-md:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('max-md:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -41,7 +41,7 @@ describe("breakpoints", () => {
   });
 
   it('min-[600px]:bg-red-500 → @media (width >= 600px) { & { ... } }', () => {
-    expect(applyClassName('min-[600px]:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('min-[600px]:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -58,7 +58,7 @@ describe("breakpoints", () => {
   });
 
   it('max-[960px]:bg-red-500 → @media (width < 960px) { & { ... } }', () => {
-    expect(applyClassName('max-[960px]:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('max-[960px]:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -75,7 +75,7 @@ describe("breakpoints", () => {
   });
 
   it('max-sm:hover:bg-red-500 → @media (width < 640px) { &:hover { ... } }', () => {
-    expect(applyClassName('max-sm:hover:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('max-sm:hover:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -94,7 +94,7 @@ describe("breakpoints", () => {
   });
 
   it('min-[600px]:hover:bg-red-500 → @media (width >= 600px) { &:hover { ... } }', () => {
-    expect(applyClassName('min-[600px]:hover:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('min-[600px]:hover:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -114,7 +114,7 @@ describe("breakpoints", () => {
 
   // 사용자 정의 breakpoint 테스트
   it('tablet:bg-red-500 → @media (min-width: 768px) { & { ... } }', () => {
-    expect(applyClassName('tablet:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('tablet:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -131,7 +131,7 @@ describe("breakpoints", () => {
   });
 
   it('desktop:bg-red-500 → @media (min-width: 1024px) { & { ... } }', () => {
-    expect(applyClassName('desktop:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('desktop:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -148,7 +148,7 @@ describe("breakpoints", () => {
   });
 
   it('wide:bg-red-500 → @media (min-width: 1440px) { & { ... } }', () => {
-    expect(applyClassName('wide:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('wide:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -165,7 +165,7 @@ describe("breakpoints", () => {
   });
 
   it('max-tablet:bg-red-500 → @media (width < 768px) { & { ... } }', () => {
-    expect(applyClassName('max-tablet:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('max-tablet:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -178,7 +178,7 @@ describe("breakpoints", () => {
   });
 
   it('max-desktop:bg-red-500 → @media (width < 1024px) { & { ... } }', () => {
-    expect(applyClassName('max-desktop:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('max-desktop:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -206,7 +206,7 @@ describe("breakpoints", () => {
         },
       },
     });
-    expect(applyClassName('xs:bg-red-500', ctxWithBreakpoints)).toEqual([
+    expect(parseClassToAst('xs:bg-red-500', ctxWithBreakpoints)).toEqual([
       {
         type: 'at-rule',
         name: 'media',
@@ -233,7 +233,7 @@ describe("breakpoints", () => {
         },
       },
     });
-    expect(applyClassName('3xl:bg-red-500', ctxWithBreakpoints)).toEqual([
+    expect(parseClassToAst('3xl:bg-red-500', ctxWithBreakpoints)).toEqual([
       {
         type: 'at-rule',
         name: 'media',

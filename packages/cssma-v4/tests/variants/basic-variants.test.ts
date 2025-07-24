@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
-import { applyClassName } from "../../src/core/engine";
+import { parseClassToAst } from "../../src/core/engine";
 import { ctx } from "./test-utils";
 
 describe("basic variants", () => {
   it("hover:bg-red-500 → &:hover { background-color: #f00 }", () => {
-    expect(applyClassName("hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("hover:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:hover",
@@ -15,7 +15,7 @@ describe("basic variants", () => {
   });
 
   it("sm:hover:bg-red-500 → @media (min-width: 640px) { &:hover { ... } }", () => {
-    expect(applyClassName("sm:hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("sm:hover:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -32,7 +32,7 @@ describe("basic variants", () => {
   });
 
   it("group-hover:bg-red-500 → .group:hover & { ... }", () => {
-    expect(applyClassName("group-hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("group-hover:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: ".group:hover &",
@@ -42,7 +42,7 @@ describe("basic variants", () => {
   });
 
   it("peer-hover:bg-red-500 → .peer:hover ~ & { ... }", () => {
-    expect(applyClassName("peer-hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("peer-hover:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: ".peer:hover ~ &",
@@ -52,7 +52,7 @@ describe("basic variants", () => {
   });
 
   it('aria-pressed:bg-red-500 → [aria-pressed="true"] & { ... }', () => {
-    expect(applyClassName("aria-pressed:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("aria-pressed:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: '&[aria-pressed="true"]',
@@ -62,7 +62,7 @@ describe("basic variants", () => {
   });
 
   it('aria-[pressed=false]:bg-red-500 → [aria-pressed="false"] & { ... }', () => {
-    expect(applyClassName("aria-[pressed=false]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("aria-[pressed=false]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: '&[aria-pressed="false"]',
@@ -72,7 +72,7 @@ describe("basic variants", () => {
   });
 
   it("[&>*]:bg-red-500 → &>* { ... }", () => {
-    expect(applyClassName("[&>*]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("[&>*]:bg-red-500", ctx)).toEqual([
       {
         type: "style-rule",
         selector: "&>*",
@@ -82,7 +82,7 @@ describe("basic variants", () => {
   });
 
   it("not-hover:bg-red-500 → &:not(:hover) { ... }", () => {
-    expect(applyClassName("not-hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("not-hover:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:not(:hover)",
@@ -92,7 +92,7 @@ describe("basic variants", () => {
   });
 
   it("group-hover:focus:bg-red-500 → .group:hover &:focus { ... }", () => {
-    expect(applyClassName("group-hover:focus:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("group-hover:focus:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: ".group:hover &",
@@ -108,7 +108,7 @@ describe("basic variants", () => {
   });
 
   it("md:bg-red-500 → @media (min-width: 768px) { & { ... } }", () => {
-    expect(applyClassName("md:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("md:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -119,7 +119,7 @@ describe("basic variants", () => {
   });
 
   it("xl:hover:bg-red-500 → @media (min-width: 1280px) { &:hover { ... } }", () => {
-    expect(applyClassName("xl:hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("xl:hover:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -136,7 +136,7 @@ describe("basic variants", () => {
   });
 
   it("disabled:bg-red-500 → &:disabled { ... }", () => {
-    expect(applyClassName("disabled:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("disabled:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:disabled",
@@ -146,7 +146,7 @@ describe("basic variants", () => {
   });
 
   it("checked:bg-red-500 → &:checked { ... }", () => {
-    expect(applyClassName("checked:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("checked:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:checked",
@@ -156,7 +156,7 @@ describe("basic variants", () => {
   });
 
   it("required:bg-red-500 → &:required { ... }", () => {
-    expect(applyClassName("required:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("required:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:required",
@@ -166,7 +166,7 @@ describe("basic variants", () => {
   });
 
   it("invalid:bg-red-500 → &:invalid { ... }", () => {
-    expect(applyClassName("invalid:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("invalid:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:invalid",
@@ -176,7 +176,7 @@ describe("basic variants", () => {
   });
 
   it("first:bg-red-500 → &:first-child { ... }", () => {
-    expect(applyClassName("first:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("first:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:first-child",
@@ -186,7 +186,7 @@ describe("basic variants", () => {
   });
 
   it("last:bg-red-500 → &:last-child { ... }", () => {
-    expect(applyClassName("last:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("last:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:last-child",
@@ -196,7 +196,7 @@ describe("basic variants", () => {
   });
 
   it("only:bg-red-500 → &:only-child { ... }", () => {
-    expect(applyClassName("only:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("only:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:only-child",
@@ -206,7 +206,7 @@ describe("basic variants", () => {
   });
 
   it("even:bg-red-500 → &:nth-child(even) { ... }", () => {
-    expect(applyClassName("even:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("even:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:nth-child(even)",
@@ -216,7 +216,7 @@ describe("basic variants", () => {
   });
 
   it("odd:bg-red-500 → &:nth-child(odd) { ... }", () => {
-    expect(applyClassName("odd:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("odd:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:nth-child(odd)",
@@ -226,7 +226,7 @@ describe("basic variants", () => {
   });
 
   it("first-of-type:bg-red-500 → &:first-of-type { ... }", () => {
-    expect(applyClassName("first-of-type:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("first-of-type:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:first-of-type",
@@ -236,7 +236,7 @@ describe("basic variants", () => {
   });
 
   it("last-of-type:bg-red-500 → &:last-of-type { ... }", () => {
-    expect(applyClassName("last-of-type:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("last-of-type:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:last-of-type",
@@ -246,7 +246,7 @@ describe("basic variants", () => {
   });
 
   it("only-of-type:bg-red-500 → &:only-of-type { ... }", () => {
-    expect(applyClassName("only-of-type:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("only-of-type:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:only-of-type",
@@ -256,7 +256,7 @@ describe("basic variants", () => {
   });
 
   it("empty:bg-red-500 → &:empty { ... }", () => {
-    expect(applyClassName("empty:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("empty:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:empty",
@@ -266,7 +266,7 @@ describe("basic variants", () => {
   });
 
   it("not-hover:bg-red-500 → &:not(:hover) { ... }", () => {
-    expect(applyClassName("not-hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("not-hover:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:not(:hover)",
@@ -276,7 +276,7 @@ describe("basic variants", () => {
   });
 
   it("not-checked:bg-red-500 → &:not(:checked) { ... }", () => {
-    expect(applyClassName("not-checked:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("not-checked:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:not(:checked)",
@@ -286,7 +286,7 @@ describe("basic variants", () => {
   });
 
   it("not-disabled:bg-red-500 → &:not(:disabled) { ... }", () => {
-    expect(applyClassName("not-disabled:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("not-disabled:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:not(:disabled)",
@@ -296,7 +296,7 @@ describe("basic variants", () => {
   });
 
   it("not-[open]:bg-red-500 → &:not([open]) { ... }", () => {
-    expect(applyClassName("not-[open]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("not-[open]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:not([open])",
@@ -306,7 +306,7 @@ describe("basic variants", () => {
   });
 
   it('aria-[expanded=true]:bg-red-500 → [aria-expanded="true"] & { ... }', () => {
-    expect(applyClassName("aria-[expanded=true]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("aria-[expanded=true]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: '&[aria-expanded="true"]',
@@ -316,7 +316,7 @@ describe("basic variants", () => {
   });
 
   it('data-[state=open]:bg-red-500 → [data-state="open"] & { ... }', () => {
-    expect(applyClassName("data-[state=open]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("data-[state=open]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: '&[data-state="open"]',
@@ -326,7 +326,7 @@ describe("basic variants", () => {
   });
 
   it("[open]:bg-red-500 → [open] & { ... }", () => {
-    expect(applyClassName("[open]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("[open]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&[open]",
@@ -336,7 +336,7 @@ describe("basic variants", () => {
   });
 
   it("[dir=rtl]:bg-red-500 → [dir=rtl] & { ... }", () => {
-    expect(applyClassName("[dir=rtl]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("[dir=rtl]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&[dir=rtl]",
@@ -346,7 +346,7 @@ describe("basic variants", () => {
   });
 
   it("[&>*]:bg-red-500 → &>* { ... }", () => {
-    expect(applyClassName("[&>*]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("[&>*]:bg-red-500", ctx)).toEqual([
       {
         type: "style-rule",
         selector: "&>*",
@@ -356,7 +356,7 @@ describe("basic variants", () => {
   });
 
   it("group-hover:focus:bg-red-500 → .group:hover &:focus { ... }", () => {
-    expect(applyClassName("group-hover:focus:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("group-hover:focus:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: ".group:hover &",
@@ -372,7 +372,7 @@ describe("basic variants", () => {
   });
 
   it("sm:hover:bg-red-500 → @media (min-width: 640px) { &:hover { ... } }", () => {
-    expect(applyClassName("sm:hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("sm:hover:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -389,7 +389,7 @@ describe("basic variants", () => {
   });
 
   it("before:bg-red-500 → &::before { ... }", () => {
-    expect(applyClassName("before:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("before:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&::before",
@@ -399,7 +399,7 @@ describe("basic variants", () => {
   });
 
   it("after:bg-red-500 → &::after { ... }", () => {
-    expect(applyClassName("after:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("after:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&::after",
@@ -409,7 +409,7 @@ describe("basic variants", () => {
   });
 
   it("placeholder:bg-red-500 → cross-browser placeholder selectors { ... }", () => {
-    expect(applyClassName("placeholder:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("placeholder:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector:
@@ -420,7 +420,7 @@ describe("basic variants", () => {
   });
 
   it("selection:bg-red-500 → cross-browser selection selectors { ... }", () => {
-    expect(applyClassName("selection:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("selection:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&::selection, &::-moz-selection",
@@ -430,7 +430,7 @@ describe("basic variants", () => {
   });
 
   it("marker:bg-red-500 → cross-browser marker selectors { ... }", () => {
-    expect(applyClassName("marker:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("marker:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector:
@@ -441,7 +441,7 @@ describe("basic variants", () => {
   });
 
   it("dark:sm:hover:bg-red-500 → @media (prefers-color-scheme: dark) { @media (min-width: 640px) { &:hover { ... } } }", () => {
-    expect(applyClassName("dark:sm:hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("dark:sm:hover:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -467,7 +467,7 @@ describe("basic variants", () => {
   });
 
   it("group-hover:not-disabled:bg-red-500 → .group:hover &:not(:disabled) { ... }", () => {
-    expect(applyClassName("group-hover:not-disabled:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("group-hover:not-disabled:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: ".group:hover &",
@@ -483,7 +483,7 @@ describe("basic variants", () => {
   });
 
   it("peer-checked:focus:bg-red-500 → .peer:checked ~ &:focus { ... }", () => {
-    expect(applyClassName("peer-checked:focus:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("peer-checked:focus:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: ".peer:checked ~ &",
@@ -499,7 +499,7 @@ describe("basic variants", () => {
   });
 
   it("sm:peer-checked:focus:bg-red-500 → @media (min-width: 640px) { .peer:checked ~ &:focus { ... } }", () => {
-    expect(applyClassName("sm:peer-checked:focus:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("sm:peer-checked:focus:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -524,7 +524,7 @@ describe("basic variants", () => {
   });
 
   it('dark:aria-[expanded=true]:bg-red-500 → @media (prefers-color-scheme: dark) { &[aria-expanded="true"] { ... } }', () => {
-    expect(applyClassName("dark:aria-[expanded=true]:bg-red-500", ctx)).toEqual(
+    expect(parseClassToAst("dark:aria-[expanded=true]:bg-red-500", ctx)).toEqual(
       [
         {
           type: "at-rule",
@@ -545,7 +545,7 @@ describe("basic variants", () => {
   });
 
   it("sm:[&>*]:bg-red-500 → @media (min-width: 640px) { &>* { ... } }", () => {
-    expect(applyClassName("sm:[&>*]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("sm:[&>*]:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -562,7 +562,7 @@ describe("basic variants", () => {
   });
 
   it("enabled:bg-red-500 → &:enabled { ... }", () => {
-    expect(applyClassName("enabled:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("enabled:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:enabled",
@@ -572,7 +572,7 @@ describe("basic variants", () => {
   });
 
   it("indeterminate:bg-red-500 → &:indeterminate { ... }", () => {
-    expect(applyClassName("indeterminate:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("indeterminate:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:indeterminate",
@@ -582,7 +582,7 @@ describe("basic variants", () => {
   });
 
   it("default:bg-red-500 → &:default { ... }", () => {
-    expect(applyClassName("default:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("default:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:default",
@@ -592,7 +592,7 @@ describe("basic variants", () => {
   });
 
   it("optional:bg-red-500 → &:optional { ... }", () => {
-    expect(applyClassName("optional:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("optional:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:optional",
@@ -602,7 +602,7 @@ describe("basic variants", () => {
   });
 
   it("valid:bg-red-500 → &:valid { ... }", () => {
-    expect(applyClassName("valid:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("valid:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:valid",
@@ -612,7 +612,7 @@ describe("basic variants", () => {
   });
 
   it("user-valid:bg-red-500 → &:user-valid { ... }", () => {
-    expect(applyClassName("user-valid:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("user-valid:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:user-valid",
@@ -622,7 +622,7 @@ describe("basic variants", () => {
   });
 
   it("user-invalid:bg-red-500 → &:user-invalid { ... }", () => {
-    expect(applyClassName("user-invalid:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("user-invalid:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:user-invalid",
@@ -632,7 +632,7 @@ describe("basic variants", () => {
   });
 
   it("in-range:bg-red-500 → &:in-range { ... }", () => {
-    expect(applyClassName("in-range:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("in-range:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:in-range",
@@ -642,7 +642,7 @@ describe("basic variants", () => {
   });
 
   it("out-of-range:bg-red-500 → &:out-of-range { ... }", () => {
-    expect(applyClassName("out-of-range:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("out-of-range:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:out-of-range",
@@ -652,7 +652,7 @@ describe("basic variants", () => {
   });
 
   it("placeholder-shown:bg-red-500 → &:placeholder-shown { ... }", () => {
-    expect(applyClassName("placeholder-shown:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("placeholder-shown:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:placeholder-shown",
@@ -662,7 +662,7 @@ describe("basic variants", () => {
   });
 
   it("autofill:bg-red-500 → &:autofill { ... }", () => {
-    expect(applyClassName("autofill:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("autofill:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:autofill",
@@ -672,7 +672,7 @@ describe("basic variants", () => {
   });
 
   it("read-only:bg-red-500 → &:read-only { ... }", () => {
-    expect(applyClassName("read-only:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("read-only:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:read-only",
@@ -682,7 +682,7 @@ describe("basic variants", () => {
   });
 
   it("details-content:bg-red-500 → &::details-content { ... }", () => {
-    expect(applyClassName("details-content:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("details-content:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&::details-content",
@@ -692,7 +692,7 @@ describe("basic variants", () => {
   });
 
   it("first-line:bg-red-500 → &::first-line { ... }", () => {
-    expect(applyClassName("first-line:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("first-line:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&::first-line",
@@ -702,7 +702,7 @@ describe("basic variants", () => {
   });
 
   it("first-letter:bg-red-500 → &::first-letter { ... }", () => {
-    expect(applyClassName("first-letter:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("first-letter:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&::first-letter",
@@ -712,7 +712,7 @@ describe("basic variants", () => {
   });
 
   it("backdrop:bg-red-500 → &::backdrop { ... }", () => {
-    expect(applyClassName("backdrop:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("backdrop:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&::backdrop",
@@ -722,7 +722,7 @@ describe("basic variants", () => {
   });
 
   it("file:bg-red-500 → cross-browser file selector button { ... }", () => {
-    expect(applyClassName("file:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("file:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&::file-selector-button, &::-webkit-file-upload-button",
@@ -732,7 +732,7 @@ describe("basic variants", () => {
   });
 
   it("motion-safe:hover:bg-red-500 → @media (prefers-reduced-motion: no-preference) { &:hover { ... } }", () => {
-    expect(applyClassName("motion-safe:hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("motion-safe:hover:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -749,7 +749,7 @@ describe("basic variants", () => {
   });
 
   it("motion-reduce:hover:bg-red-500 → @media (prefers-reduced-motion: reduce) { &:hover { ... } }", () => {
-    expect(applyClassName("motion-reduce:hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("motion-reduce:hover:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -766,7 +766,7 @@ describe("basic variants", () => {
   });
 
   it("print:hover:bg-red-500 → @media print { &:hover { ... } }", () => {
-    expect(applyClassName("print:hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("print:hover:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -783,7 +783,7 @@ describe("basic variants", () => {
   });
 
   it("portrait:hover:bg-red-500 → @media (orientation: portrait) { &:hover { ... } }", () => {
-    expect(applyClassName("portrait:hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("portrait:hover:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -800,7 +800,7 @@ describe("basic variants", () => {
   });
 
   it("landscape:hover:bg-red-500 → @media (orientation: landscape) { &:hover { ... } }", () => {
-    expect(applyClassName("landscape:hover:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("landscape:hover:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -817,7 +817,7 @@ describe("basic variants", () => {
   });
 
   it("2xl:bg-red-500 → @media (min-width: 1536px) { & { ... } }", () => {
-    expect(applyClassName("2xl:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("2xl:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -828,7 +828,7 @@ describe("basic variants", () => {
   });
 
   it("rtl:bg-red-500 → &[dir=rtl] { ... }", () => {
-    expect(applyClassName("rtl:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("rtl:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&[dir=rtl]",
@@ -838,7 +838,7 @@ describe("basic variants", () => {
   });
 
   it("ltr:bg-red-500 → &[dir=ltr] { ... }", () => {
-    expect(applyClassName("ltr:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("ltr:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&[dir=ltr]",
@@ -848,7 +848,7 @@ describe("basic variants", () => {
   });
 
   it("inert:bg-red-500 → &[inert] { ... }", () => {
-    expect(applyClassName("inert:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("inert:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&[inert]",
@@ -858,7 +858,7 @@ describe("basic variants", () => {
   });
 
   it("open:bg-red-500 → &:is([open], :popover-open, :open) { ... }", () => {
-    expect(applyClassName("open:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("open:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:is([open], :popover-open, :open)",
@@ -868,7 +868,7 @@ describe("basic variants", () => {
   });
 
   it("not-[open]:bg-red-500 → &:not([open]) { ... }", () => {
-    expect(applyClassName("not-[open]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("not-[open]:bg-red-500", ctx)).toEqual([
       {
         type: "rule",
         selector: "&:not([open])",
@@ -878,7 +878,7 @@ describe("basic variants", () => {
   });
 
   it("prefers-contrast-more:bg-red-500 → @media (prefers-contrast: more) { & { ... } }", () => {
-    expect(applyClassName("prefers-contrast-more:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("prefers-contrast-more:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -889,7 +889,7 @@ describe("basic variants", () => {
   });
 
   it("prefers-contrast-less:bg-red-500 → @media (prefers-contrast: less) { & { ... } }", () => {
-    expect(applyClassName("prefers-contrast-less:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("prefers-contrast-less:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -900,7 +900,7 @@ describe("basic variants", () => {
   });
 
   it("forced-colors:bg-red-500 → @media (forced-colors: active) { & { ... } }", () => {
-    expect(applyClassName("forced-colors:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("forced-colors:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -911,7 +911,7 @@ describe("basic variants", () => {
   });
 
   it("pointer-coarse:bg-red-500 → @media (pointer: coarse) { & { ... } }", () => {
-    expect(applyClassName("pointer-coarse:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("pointer-coarse:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -922,7 +922,7 @@ describe("basic variants", () => {
   });
 
   it("pointer-fine:bg-red-500 → @media (pointer: fine) { & { ... } }", () => {
-    expect(applyClassName("pointer-fine:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("pointer-fine:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -933,7 +933,7 @@ describe("basic variants", () => {
   });
 
   it("any-pointer-coarse:bg-red-500 → @media (any-pointer: coarse) { & { ... } }", () => {
-    expect(applyClassName("any-pointer-coarse:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("any-pointer-coarse:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -944,7 +944,7 @@ describe("basic variants", () => {
   });
 
   it("any-pointer-fine:bg-red-500 → @media (any-pointer: fine) { & { ... } }", () => {
-    expect(applyClassName("any-pointer-fine:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("any-pointer-fine:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "media",
@@ -955,7 +955,7 @@ describe("basic variants", () => {
   });
 
   it("supports-[display:grid]:bg-red-500 → @supports display:grid { & { ... } }", () => {
-    expect(applyClassName("supports-[display:grid]:bg-red-500", ctx)).toEqual([
+    expect(parseClassToAst("supports-[display:grid]:bg-red-500", ctx)).toEqual([
       {
         type: "at-rule",
         name: "supports",

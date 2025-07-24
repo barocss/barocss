@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import "../../src/index"; // Ensure all utilities are registered
-import { applyClassName } from "../../src/core/engine";
+import { parseClassToAst } from "../../src/core/engine";
 import { createContext } from "../../src/core/context";
 
 describe("border utilities", () => {
@@ -16,77 +16,77 @@ describe("border utilities", () => {
 
   describe("border radius utilities", () => {
     it("rounded-* static utilities", () => {
-      expect(applyClassName("rounded-none", ctx)).toEqual([
+      expect(parseClassToAst("rounded-none", ctx)).toEqual([
         { type: "decl", prop: "border-radius", value: "0px" },
       ]);
-      expect(applyClassName("rounded-sm", ctx)).toEqual([
+      expect(parseClassToAst("rounded-sm", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
           value: "var(--border-radius-sm)",
         },
       ]);
-      expect(applyClassName("rounded", ctx)).toEqual([
+      expect(parseClassToAst("rounded", ctx)).toEqual([
         { type: "decl", prop: "border-radius", value: "var(--border-radius)" },
       ]);
-      expect(applyClassName("rounded-md", ctx)).toEqual([
+      expect(parseClassToAst("rounded-md", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
           value: "var(--border-radius-md)",
         },
       ]);
-      expect(applyClassName("rounded-lg", ctx)).toEqual([
+      expect(parseClassToAst("rounded-lg", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
           value: "var(--border-radius-lg)",
         },
       ]);
-      expect(applyClassName("rounded-xl", ctx)).toEqual([
+      expect(parseClassToAst("rounded-xl", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
           value: "var(--border-radius-xl)",
         },
       ]);
-      expect(applyClassName("rounded-2xl", ctx)).toEqual([
+      expect(parseClassToAst("rounded-2xl", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
           value: "var(--border-radius-2xl)",
         },
       ]);
-      expect(applyClassName("rounded-3xl", ctx)).toEqual([
+      expect(parseClassToAst("rounded-3xl", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
           value: "var(--border-radius-3xl)",
         },
       ]);
-      expect(applyClassName("rounded-full", ctx)).toEqual([
+      expect(parseClassToAst("rounded-full", ctx)).toEqual([
         { type: "decl", prop: "border-radius", value: "9999px" },
       ]);
     });
 
     it("rounded-* functional utilities", () => {
-      expect(applyClassName("rounded-4", ctx)).toEqual([
+      expect(parseClassToAst("rounded-4", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
           value: "calc(var(--spacing) * 4)",
         },
       ]);
-      expect(applyClassName("rounded-[12px]", ctx)).toEqual([
+      expect(parseClassToAst("rounded-[12px]", ctx)).toEqual([
         { type: "decl", prop: "border-radius", value: "12px" },
       ]);
-      expect(applyClassName("rounded-(--my-radius)", ctx)).toEqual([
+      expect(parseClassToAst("rounded-(--my-radius)", ctx)).toEqual([
         { type: "decl", prop: "border-radius", value: "var(--my-radius)" },
       ]);
     });
 
     it("individual corner radius utilities", () => {
-      expect(applyClassName("rounded-t-lg", ctx)).toEqual([
+      expect(parseClassToAst("rounded-t-lg", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-top-left-radius",
@@ -98,7 +98,7 @@ describe("border utilities", () => {
           value: "var(--border-radius-lg)",
         },
       ]);
-      expect(applyClassName("rounded-r-md", ctx)).toEqual([
+      expect(parseClassToAst("rounded-r-md", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-top-right-radius",
@@ -110,20 +110,20 @@ describe("border utilities", () => {
           value: "var(--border-radius-md)",
         },
       ]);
-      expect(applyClassName("rounded-tl-sm", ctx)).toEqual([
+      expect(parseClassToAst("rounded-tl-sm", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-top-left-radius",
           value: "var(--border-radius-sm)",
         },
       ]);
-      expect(applyClassName("rounded-br-full", ctx)).toEqual([
+      expect(parseClassToAst("rounded-br-full", ctx)).toEqual([
         { type: "decl", prop: "border-bottom-right-radius", value: "9999px" },
       ]);
     });
 
     it("individual corner radius functional utilities", () => {
-      expect(applyClassName("rounded-t-4", ctx)).toEqual([
+      expect(parseClassToAst("rounded-t-4", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-top-left-radius",
@@ -135,10 +135,10 @@ describe("border utilities", () => {
           value: "calc(var(--spacing) * 4)",
         },
       ]);
-      expect(applyClassName("rounded-tl-[8px]", ctx)).toEqual([
+      expect(parseClassToAst("rounded-tl-[8px]", ctx)).toEqual([
         { type: "decl", prop: "border-top-left-radius", value: "8px" },
       ]);
-      expect(applyClassName("rounded-br-(--corner-radius)", ctx)).toEqual([
+      expect(parseClassToAst("rounded-br-(--corner-radius)", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-bottom-right-radius",
@@ -150,54 +150,54 @@ describe("border utilities", () => {
 
   describe("border width utilities", () => {
     it("border-* static utilities", () => {
-      expect(applyClassName("border-0", ctx)).toEqual([
+      expect(parseClassToAst("border-0", ctx)).toEqual([
         { type: "decl", prop: "border-width", value: "0px" },
       ]);
-      expect(applyClassName("border", ctx)).toEqual([
+      expect(parseClassToAst("border", ctx)).toEqual([
         { type: "decl", prop: "border-width", value: "1px" },
       ]);
-      expect(applyClassName("border-2", ctx)).toEqual([
+      expect(parseClassToAst("border-2", ctx)).toEqual([
         { type: "decl", prop: "border-width", value: "2px" },
       ]);
-      expect(applyClassName("border-4", ctx)).toEqual([
+      expect(parseClassToAst("border-4", ctx)).toEqual([
         { type: "decl", prop: "border-width", value: "4px" },
       ]);
-      expect(applyClassName("border-8", ctx)).toEqual([
+      expect(parseClassToAst("border-8", ctx)).toEqual([
         { type: "decl", prop: "border-width", value: "8px" },
       ]);
     });
 
     it("border-* functional utilities", () => {
-      expect(applyClassName("border-3", ctx)).toEqual([
+      expect(parseClassToAst("border-3", ctx)).toEqual([
         { type: "decl", prop: "border-width", value: "3px" },
       ]);
-      expect(applyClassName("border-[5px]", ctx)).toEqual([
+      expect(parseClassToAst("border-[5px]", ctx)).toEqual([
         { type: "decl", prop: "border-width", value: "5px" },
       ]);
-      expect(applyClassName("border-(length:--my-width)", ctx)).toEqual([
+      expect(parseClassToAst("border-(length:--my-width)", ctx)).toEqual([
         { type: "decl", prop: "border-width", value: "var(--my-width)" },
       ]);
     });
 
     it("individual side border width utilities", () => {
-      expect(applyClassName("border-x-2", ctx)).toEqual([
+      expect(parseClassToAst("border-x-2", ctx)).toEqual([
         { type: "decl", prop: "border-left-width", value: "2px" },
         { type: "decl", prop: "border-right-width", value: "2px" },
       ]);
-      expect(applyClassName("border-y-4", ctx)).toEqual([
+      expect(parseClassToAst("border-y-4", ctx)).toEqual([
         { type: "decl", prop: "border-top-width", value: "4px" },
         { type: "decl", prop: "border-bottom-width", value: "4px" },
       ]);
-      expect(applyClassName("border-t", ctx)).toEqual([
+      expect(parseClassToAst("border-t", ctx)).toEqual([
         { type: "decl", prop: "border-top-width", value: "1px" },
       ]);
-      expect(applyClassName("border-r-0", ctx)).toEqual([
+      expect(parseClassToAst("border-r-0", ctx)).toEqual([
         { type: "decl", prop: "border-right-width", value: "0px" },
       ]);
-      expect(applyClassName("border-b-8", ctx)).toEqual([
+      expect(parseClassToAst("border-b-8", ctx)).toEqual([
         { type: "decl", prop: "border-bottom-width", value: "8px" },
       ]);
-      expect(applyClassName("border-l-[3px]", ctx)).toEqual([
+      expect(parseClassToAst("border-l-[3px]", ctx)).toEqual([
         { type: "decl", prop: "border-left-width", value: "3px" },
       ]);
     });
@@ -205,25 +205,25 @@ describe("border utilities", () => {
 
   describe("border color utilities", () => {
     it("border-* static color utilities", () => {
-      expect(applyClassName("border-inherit", ctx)).toEqual([
+      expect(parseClassToAst("border-inherit", ctx)).toEqual([
         { type: "decl", prop: "border-color", value: "inherit" },
       ]);
-      expect(applyClassName("border-current", ctx)).toEqual([
+      expect(parseClassToAst("border-current", ctx)).toEqual([
         { type: "decl", prop: "border-color", value: "currentColor" },
       ]);
-      expect(applyClassName("border-transparent", ctx)).toEqual([
+      expect(parseClassToAst("border-transparent", ctx)).toEqual([
         { type: "decl", prop: "border-color", value: "transparent" },
       ]);
     });
 
     it("border-* theme color utilities", () => {
-      expect(applyClassName("border-red-500", ctx)).toEqual([
+      expect(parseClassToAst("border-red-500", ctx)).toEqual([
         { type: "decl", prop: "border-color", value: "#ef4444" },
       ]);
-      expect(applyClassName("border-blue-500", ctx)).toEqual([
+      expect(parseClassToAst("border-blue-500", ctx)).toEqual([
         { type: "decl", prop: "border-color", value: "#3b82f6" },
       ]);
-      expect(applyClassName("border-red-500/50", ctx)).toEqual([
+      expect(parseClassToAst("border-red-500/50", ctx)).toEqual([
         {
           type: "at-rule",
           name: "supports",
@@ -241,33 +241,33 @@ describe("border utilities", () => {
     });
 
     it("border-* arbitrary color utilities", () => {
-      expect(applyClassName("border-[#ff0000]", ctx)).toEqual([
+      expect(parseClassToAst("border-[#ff0000]", ctx)).toEqual([
         { type: "decl", prop: "border-color", value: "#ff0000" },
       ]);
-      expect(applyClassName("border-[rgb(255,0,0)]", ctx)).toEqual([
+      expect(parseClassToAst("border-[rgb(255,0,0)]", ctx)).toEqual([
         { type: "decl", prop: "border-color", value: "rgb(255,0,0)" },
       ]);
     });
 
     it("border-* custom property utilities", () => {
-      expect(applyClassName("border-(--my-color)", ctx)).toEqual([
+      expect(parseClassToAst("border-(--my-color)", ctx)).toEqual([
         { type: "decl", prop: "border-color", value: "var(--my-color)" },
       ]);
     });
 
     it("individual side border color utilities", () => {
-      expect(applyClassName("border-x-red-500", ctx)).toEqual([
+      expect(parseClassToAst("border-x-red-500", ctx)).toEqual([
         { type: "decl", prop: "border-left-color", value: "#ef4444" },
         { type: "decl", prop: "border-right-color", value: "#ef4444" },
       ]);
-      expect(applyClassName("border-y-blue-500", ctx)).toEqual([
+      expect(parseClassToAst("border-y-blue-500", ctx)).toEqual([
         { type: "decl", prop: "border-top-color", value: "#3b82f6" },
         { type: "decl", prop: "border-bottom-color", value: "#3b82f6" },
       ]);
-      expect(applyClassName("border-t-[#00ff00]", ctx)).toEqual([
+      expect(parseClassToAst("border-t-[#00ff00]", ctx)).toEqual([
         { type: "decl", prop: "border-top-color", value: "#00ff00" },
       ]);
-      expect(applyClassName("border-r-(--right-color)", ctx)).toEqual([
+      expect(parseClassToAst("border-r-(--right-color)", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-right-color",
@@ -279,22 +279,22 @@ describe("border utilities", () => {
 
   describe("border style utilities", () => {
     it("border-* style utilities", () => {
-      expect(applyClassName("border-solid", ctx)).toEqual([
+      expect(parseClassToAst("border-solid", ctx)).toEqual([
         { type: "decl", prop: "border-style", value: "solid" },
       ]);
-      expect(applyClassName("border-dashed", ctx)).toEqual([
+      expect(parseClassToAst("border-dashed", ctx)).toEqual([
         { type: "decl", prop: "border-style", value: "dashed" },
       ]);
-      expect(applyClassName("border-dotted", ctx)).toEqual([
+      expect(parseClassToAst("border-dotted", ctx)).toEqual([
         { type: "decl", prop: "border-style", value: "dotted" },
       ]);
-      expect(applyClassName("border-double", ctx)).toEqual([
+      expect(parseClassToAst("border-double", ctx)).toEqual([
         { type: "decl", prop: "border-style", value: "double" },
       ]);
-      expect(applyClassName("border-hidden", ctx)).toEqual([
+      expect(parseClassToAst("border-hidden", ctx)).toEqual([
         { type: "decl", prop: "border-style", value: "hidden" },
       ]);
-      expect(applyClassName("border-none", ctx)).toEqual([
+      expect(parseClassToAst("border-none", ctx)).toEqual([
         { type: "decl", prop: "border-style", value: "none" },
       ]);
     });
@@ -302,32 +302,32 @@ describe("border utilities", () => {
 
   describe("outline width utilities", () => {
     it("outline-* static width utilities", () => {
-      expect(applyClassName("outline-0", ctx)).toEqual([
+      expect(parseClassToAst("outline-0", ctx)).toEqual([
         { type: "decl", prop: "outline-width", value: "0px" },
       ]);
-      expect(applyClassName("outline-1", ctx)).toEqual([
+      expect(parseClassToAst("outline-1", ctx)).toEqual([
         { type: "decl", prop: "outline-width", value: "1px" },
       ]);
-      expect(applyClassName("outline-2", ctx)).toEqual([
+      expect(parseClassToAst("outline-2", ctx)).toEqual([
         { type: "decl", prop: "outline-width", value: "2px" },
       ]);
-      expect(applyClassName("outline-4", ctx)).toEqual([
+      expect(parseClassToAst("outline-4", ctx)).toEqual([
         { type: "decl", prop: "outline-width", value: "4px" },
       ]);
-      expect(applyClassName("outline-8", ctx)).toEqual([
+      expect(parseClassToAst("outline-8", ctx)).toEqual([
         { type: "decl", prop: "outline-width", value: "8px" },
       ]);
     });
 
     it("outline-* functional width utilities", () => {
-      expect(applyClassName("outline-3", ctx)).toEqual([
+      expect(parseClassToAst("outline-3", ctx)).toEqual([
         { type: "decl", prop: "outline-width", value: "3px" },
       ]);
-      expect(applyClassName("outline-[5px]", ctx)).toEqual([
+      expect(parseClassToAst("outline-[5px]", ctx)).toEqual([
         { type: "decl", prop: "outline-width", value: "5px" },
       ]);
       expect(
-        applyClassName("outline-(length:--my-outline-width)", ctx)
+        parseClassToAst("outline-(length:--my-outline-width)", ctx)
       ).toEqual([
         {
           type: "decl",
@@ -340,37 +340,37 @@ describe("border utilities", () => {
 
   describe("outline color utilities", () => {
     it("outline-* static color utilities", () => {
-      expect(applyClassName("outline-inherit", ctx)).toEqual([
+      expect(parseClassToAst("outline-inherit", ctx)).toEqual([
         { type: "decl", prop: "outline-color", value: "inherit" },
       ]);
-      expect(applyClassName("outline-current", ctx)).toEqual([
+      expect(parseClassToAst("outline-current", ctx)).toEqual([
         { type: "decl", prop: "outline-color", value: "currentColor" },
       ]);
-      expect(applyClassName("outline-transparent", ctx)).toEqual([
+      expect(parseClassToAst("outline-transparent", ctx)).toEqual([
         { type: "decl", prop: "outline-color", value: "transparent" },
       ]);
     });
 
     it("outline-* theme color utilities", () => {
-      expect(applyClassName("outline-red-500", ctx)).toEqual([
+      expect(parseClassToAst("outline-red-500", ctx)).toEqual([
         { type: "decl", prop: "outline-color", value: "#ef4444" },
       ]);
-      expect(applyClassName("outline-blue-500", ctx)).toEqual([
+      expect(parseClassToAst("outline-blue-500", ctx)).toEqual([
         { type: "decl", prop: "outline-color", value: "#3b82f6" },
       ]);
     });
 
     it("outline-* arbitrary color utilities", () => {
-      expect(applyClassName("outline-[#ff0000]", ctx)).toEqual([
+      expect(parseClassToAst("outline-[#ff0000]", ctx)).toEqual([
         { type: "decl", prop: "outline-color", value: "#ff0000" },
       ]);
-      expect(applyClassName("outline-[hsl(120,100%,50%)]", ctx)).toEqual([
+      expect(parseClassToAst("outline-[hsl(120,100%,50%)]", ctx)).toEqual([
         { type: "decl", prop: "outline-color", value: "hsl(120,100%,50%)" },
       ]);
     });
 
     it("outline-* custom property utilities", () => {
-      expect(applyClassName("outline-(--my-outline-color)", ctx)).toEqual([
+      expect(parseClassToAst("outline-(--my-outline-color)", ctx)).toEqual([
         {
           type: "decl",
           prop: "outline-color",
@@ -382,20 +382,20 @@ describe("border utilities", () => {
 
   describe("outline style utilities", () => {
     it("outline-* style utilities", () => {
-      expect(applyClassName("outline-none", ctx)).toEqual([
+      expect(parseClassToAst("outline-none", ctx)).toEqual([
         { type: "decl", prop: "outline", value: "2px solid transparent" },
         { type: "decl", prop: "outline-offset", value: "2px" },
       ]);
-      expect(applyClassName("outline", ctx)).toEqual([
+      expect(parseClassToAst("outline", ctx)).toEqual([
         { type: "decl", prop: "outline-style", value: "solid" },
       ]);
-      expect(applyClassName("outline-dashed", ctx)).toEqual([
+      expect(parseClassToAst("outline-dashed", ctx)).toEqual([
         { type: "decl", prop: "outline-style", value: "dashed" },
       ]);
-      expect(applyClassName("outline-dotted", ctx)).toEqual([
+      expect(parseClassToAst("outline-dotted", ctx)).toEqual([
         { type: "decl", prop: "outline-style", value: "dotted" },
       ]);
-      expect(applyClassName("outline-double", ctx)).toEqual([
+      expect(parseClassToAst("outline-double", ctx)).toEqual([
         { type: "decl", prop: "outline-style", value: "double" },
       ]);
     });
@@ -403,31 +403,31 @@ describe("border utilities", () => {
 
   describe("outline offset utilities", () => {
     it("outline-offset-* static utilities", () => {
-      expect(applyClassName("outline-offset-0", ctx)).toEqual([
+      expect(parseClassToAst("outline-offset-0", ctx)).toEqual([
         { type: "decl", prop: "outline-offset", value: "0px" },
       ]);
-      expect(applyClassName("outline-offset-1", ctx)).toEqual([
+      expect(parseClassToAst("outline-offset-1", ctx)).toEqual([
         { type: "decl", prop: "outline-offset", value: "1px" },
       ]);
-      expect(applyClassName("outline-offset-2", ctx)).toEqual([
+      expect(parseClassToAst("outline-offset-2", ctx)).toEqual([
         { type: "decl", prop: "outline-offset", value: "2px" },
       ]);
-      expect(applyClassName("outline-offset-4", ctx)).toEqual([
+      expect(parseClassToAst("outline-offset-4", ctx)).toEqual([
         { type: "decl", prop: "outline-offset", value: "4px" },
       ]);
-      expect(applyClassName("outline-offset-8", ctx)).toEqual([
+      expect(parseClassToAst("outline-offset-8", ctx)).toEqual([
         { type: "decl", prop: "outline-offset", value: "8px" },
       ]);
     });
 
     it("outline-offset-* functional utilities", () => {
-      expect(applyClassName("outline-offset-3", ctx)).toEqual([
+      expect(parseClassToAst("outline-offset-3", ctx)).toEqual([
         { type: "decl", prop: "outline-offset", value: "3px" },
       ]);
-      expect(applyClassName("outline-offset-[5px]", ctx)).toEqual([
+      expect(parseClassToAst("outline-offset-[5px]", ctx)).toEqual([
         { type: "decl", prop: "outline-offset", value: "5px" },
       ]);
-      expect(applyClassName("outline-offset-(--my-offset)", ctx)).toEqual([
+      expect(parseClassToAst("outline-offset-(--my-offset)", ctx)).toEqual([
         { type: "decl", prop: "outline-offset", value: "var(--my-offset)" },
       ]);
     });

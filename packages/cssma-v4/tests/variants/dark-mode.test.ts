@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
-import { applyClassName } from "../../src/core/engine";
+import { parseClassToAst } from "../../src/core/engine";
 import { createContext } from "../../src/core/context";
 import { ctx } from "./test-utils";
 
@@ -11,7 +11,7 @@ describe("dark mode", () => {
         darkMode: "media",
         theme: { colors: { red: { 500: "#f00" } } },
       });
-      expect(applyClassName("dark:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("dark:bg-red-500", ctx)).toEqual([
         {
           type: "at-rule",
           name: "media",
@@ -26,7 +26,7 @@ describe("dark mode", () => {
         darkMode: "class",
         theme: { colors: { red: { 500: "#f00" } } },
       });
-      expect(applyClassName("dark:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("dark:bg-red-500", ctx)).toEqual([
         {
           type: "rule",
           selector: ".dark",
@@ -44,7 +44,7 @@ describe("dark mode", () => {
         ],
         theme: { colors: { red: { 500: "#f00" } } },
       });
-      expect(applyClassName("dark:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("dark:bg-red-500", ctx)).toEqual([
         {
           type: "rule",
           selector:
@@ -63,7 +63,7 @@ describe("dark mode", () => {
         ],
         theme: { colors: { red: { 500: "#f00" } } },
       });
-      expect(applyClassName("dark:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("dark:bg-red-500", ctx)).toEqual([
         {
           type: "rule",
           selector:
@@ -79,7 +79,7 @@ describe("dark mode", () => {
         darkModeSelector: [".dark"],
         theme: { colors: { red: { 500: "#f00" } } },
       });
-      expect(applyClassName("dark:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("dark:bg-red-500", ctx)).toEqual([
         {
           type: "at-rule",
           name: "media",
@@ -104,7 +104,7 @@ describe("dark mode", () => {
           breakpoints: { sm: "(min-width: 640px)" },
         },
       });
-      expect(applyClassName("dark:sm:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("dark:sm:bg-red-500", ctx)).toEqual([
         {
           type: "rule",
           selector: ".dark",
@@ -130,7 +130,7 @@ describe("dark mode", () => {
           breakpoints: { sm: "(min-width: 640px)" },
         },
       });
-      expect(applyClassName("sm:dark:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("sm:dark:bg-red-500", ctx)).toEqual([
         {
           type: "at-rule",
           name: "media",
@@ -160,7 +160,7 @@ describe("dark mode", () => {
         ],
         theme: { colors: { red: { 500: "#f00" } } },
       });
-      expect(applyClassName("dark:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("dark:bg-red-500", ctx)).toEqual([
         {
           type: "rule",
           selector:

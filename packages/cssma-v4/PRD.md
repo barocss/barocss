@@ -13,8 +13,8 @@ CSSMA v4 is a utility-first CSS framework that transforms Tailwind CSS-compatibl
 - **Extensibility:** Plugins/custom parsers/handlers can easily hook into the process
 
 **Main Functions:**
-- `applyClassName(className, ctx): AstNode[]` - Parses single utility class and returns AST nodes
-- `generateUtilityCss(classList, ctx, opts?): string` - Converts multiple classes to CSS
+- `parseClassToAst(className, ctx): AstNode[]` - Parses single utility class and returns AST nodes
+- `generateCss(classList, ctx, opts?): string` - Converts multiple classes to CSS
 - Handles modifiers, negative values, arbitrary values, and custom properties
 
 ### 2. AST System (`ast.ts`)
@@ -152,8 +152,8 @@ functionalModifier(
 ### 8. Engine & CSS Conversion
 
 #### Engine (`engine.ts`)
-- className → AST conversion (`applyClassName`)
-- Multiple classNames → utility CSS (`generateUtilityCss`)
+- className → AST conversion (`parseClassToAst`)
+- Multiple classNames → utility CSS (`generateCss`)
 - Supports breakpoints, variants, arbitrary values, custom properties, and all Tailwind v4 syntax
 
 #### CSS Converter (`astToCss.ts`)
@@ -162,13 +162,13 @@ functionalModifier(
 - Supports at-rules (@media), nesting, complex selectors, arbitrary values, etc.
 
 #### Style Tag Application
-- generateUtilityCss output can be directly inserted into `<style>` tag
+- generateCss output can be directly inserted into `<style>` tag
 - Escaped selectors are correctly interpreted by browsers (identical to Tailwind, CSS-in-JS)
 
 #### End-to-End Flow
-1. className → AST (`applyClassName`)
+1. className → AST (`parseClassToAst`)
 2. AST → CSS (`astToCss`)
-3. Multiple classNames → utility CSS (`generateUtilityCss`)
+3. Multiple classNames → utility CSS (`generateCss`)
 4. CSS → insert into `<style>` tag
 
 #### Testing Strategy

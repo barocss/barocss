@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
-import { applyClassName } from "../../src/core/engine";
+import { parseClassToAst } from "../../src/core/engine";
 import { createContext } from "../../src/core/context";
 import { ctx } from "./test-utils";
 
@@ -13,7 +13,7 @@ describe("container queries", () => {
         breakpoint: { sm: '24rem', md: '28rem' },
       },
     });
-    expect(applyClassName('@sm:bg-red-500', ctx2)).toEqual([
+    expect(parseClassToAst('@sm:bg-red-500', ctx2)).toEqual([
       {
         type: 'at-rule',
         name: 'container',
@@ -33,7 +33,7 @@ describe("container queries", () => {
         breakpoint: { sm: '24rem', md: '28rem' },
       },
     });
-    expect(applyClassName('@max-md:bg-red-500', ctx2)).toEqual([
+    expect(parseClassToAst('@max-md:bg-red-500', ctx2)).toEqual([
       {
         type: 'at-rule',
         name: 'container',
@@ -46,7 +46,7 @@ describe("container queries", () => {
   });
 
   it('@min-[475px]:bg-red-500 → @container (width >= 475px) { ... }', () => {
-    expect(applyClassName('@min-[475px]:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('@min-[475px]:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'container',
@@ -59,7 +59,7 @@ describe("container queries", () => {
   });
 
   it('@container/main:bg-red-500 → @container main { ... }', () => {
-    expect(applyClassName('@container/main:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('@container/main:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'container',
@@ -79,7 +79,7 @@ describe("container queries", () => {
         breakpoint: { sm: '24rem', md: '28rem' },
       },
     });
-    expect(applyClassName('@sm/main:bg-red-500', ctx2)).toEqual([
+    expect(parseClassToAst('@sm/main:bg-red-500', ctx2)).toEqual([
       {
         type: 'at-rule',
         name: 'container',
@@ -92,7 +92,7 @@ describe("container queries", () => {
   });
 
   it('@min-[475px]/main:bg-red-500 → @container main (width >= 475px) { ... }', () => {
-    expect(applyClassName('@min-[475px]/main:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('@min-[475px]/main:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'container',
@@ -112,7 +112,7 @@ describe("container queries", () => {
         breakpoint: { sm: '24rem', md: '28rem' },
       },
     });
-    expect(applyClassName('@sm:@max-md:bg-red-500', ctx2)).toEqual([
+    expect(parseClassToAst('@sm:@max-md:bg-red-500', ctx2)).toEqual([
       {
         type: 'at-rule',
         name: 'container',
@@ -132,7 +132,7 @@ describe("container queries", () => {
   });
 
   it('starting:bg-red-500 → @starting-style { ... }', () => {
-    expect(applyClassName('starting:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('starting:bg-red-500', ctx)).toEqual([
       {
         type: 'at-rule',
         name: 'starting-style',

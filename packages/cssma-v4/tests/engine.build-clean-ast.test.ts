@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildCleanAst, applyClassName } from "../src/core/engine";
+import { optimizeAst, parseClassToAst } from "../src/core/engine";
 import "../src/presets"
 import { createContext } from "../src/core/context";
 import { defaultTheme } from "../src/theme";
@@ -8,13 +8,13 @@ const ctx = createContext({
     theme: defaultTheme
 });
 
-describe("buildCleanAst ", () => {
+describe("optimizeAst ", () => {
   it("단일 variant chain: sm:hover:bg-red-500", () => {
-    let ast = applyClassName("sm:hover:bg-red-500", ctx);
+    let ast = parseClassToAst("sm:hover:bg-red-500", ctx);
     if (ast === undefined) {
       ast = [];
     }
-    const cleanAst = buildCleanAst(ast);
+    const cleanAst = optimizeAst(ast);
     const expected = [
       {
         type: "at-rule",
@@ -35,8 +35,8 @@ describe("buildCleanAst ", () => {
   });
 
   it("여러 variant chain: sm:hover:bg-red-500 sm:focus:bg-blue-500", () => {
-    let ast1 = applyClassName("sm:hover:bg-red-500", ctx);
-    let ast2 = applyClassName("sm:focus:bg-blue-500", ctx);
+    let ast1 = parseClassToAst("sm:hover:bg-red-500", ctx);
+    let ast2 = parseClassToAst("sm:focus:bg-blue-500", ctx);
     if (ast1 === undefined) {
       ast1 = [];
     }
@@ -44,7 +44,7 @@ describe("buildCleanAst ", () => {
       ast2 = [];
     }
     const ast = [...ast1, ...ast2];
-    const cleanAst = buildCleanAst(ast);
+    const cleanAst = optimizeAst(ast);
     const expected = [
       {
         type: "at-rule",
@@ -72,8 +72,8 @@ describe("buildCleanAst ", () => {
   });
 
   it("variant chain이 완전히 다르면 sibling 트리로 분리", () => {
-    let ast1 = applyClassName("sm:hover:bg-red-500", ctx);
-    let ast2 = applyClassName("supports-[display:grid]:focus:bg-blue-500", ctx);
+    let ast1 = parseClassToAst("sm:hover:bg-red-500", ctx);
+    let ast2 = parseClassToAst("supports-[display:grid]:focus:bg-blue-500", ctx);
     if (ast1 === undefined) {
       ast1 = [];
     }
@@ -81,7 +81,7 @@ describe("buildCleanAst ", () => {
       ast2 = [];
     }
     const ast = [...ast1, ...ast2];
-    const cleanAst = buildCleanAst(ast);
+    const cleanAst = optimizeAst(ast);
     const expected = [
       {
         type: "at-rule",
@@ -116,11 +116,11 @@ describe("buildCleanAst ", () => {
   });
 
   it("복잡한 variant chain: sm:dark:hover:bg-red-500", () => {
-    let ast = applyClassName("sm:dark:hover:bg-red-500", ctx);
+    let ast = parseClassToAst("sm:dark:hover:bg-red-500", ctx);
     if (ast === undefined) {        
       ast = [];
     }
-    const cleanAst = buildCleanAst(ast);
+    const cleanAst = optimizeAst(ast);
     // 기대 구조는 sm, dark, hover 계층이 모두 포함된 AST
     // (실제 AST 구조는 프로젝트의 dark variant 구현에 따라 다를 수 있음)
     expect(typeof cleanAst).toBe("object"); // 최소한 객체임을 보장
@@ -128,11 +128,11 @@ describe("buildCleanAst ", () => {
   });
 
   it("복잡한 variant chain: dark:sm:hover:bg-blue-500", () => {
-    let ast = applyClassName("dark:sm:hover:bg-blue-500", ctx);
+    let ast = parseClassToAst("dark:sm:hover:bg-blue-500", ctx);
     if (ast === undefined) {
       ast = [];
     }
-    const cleanAst = buildCleanAst(ast);
+    const cleanAst = optimizeAst(ast);
     expect(typeof cleanAst).toBe("object");
     expect(Array.isArray(cleanAst)).toBe(true);
   });
@@ -153,8 +153,8 @@ describe("buildCleanAst ", () => {
         },
       },
     });
-    let ast1 = applyClassName("dark:bg-green-500", ctx);
-    let ast2 = applyClassName("sm:dark:bg-yellow-500", ctx);
+    let ast1 = parseClassToAst("dark:bg-green-500", ctx);
+    let ast2 = parseClassToAst("sm:dark:bg-yellow-500", ctx);
     if (ast1 === undefined) {
       ast1 = [];
     }
@@ -162,7 +162,7 @@ describe("buildCleanAst ", () => {
       ast2 = [];
     }
     const ast = [...ast1, ...ast2];
-    const cleanAst = buildCleanAst(ast);
+    const cleanAst = optimizeAst(ast);
     // 실제 결과 구조에 맞춰서 기대값을 작성해야 함
     const expected = [
       {
@@ -193,10 +193,10 @@ describe("buildCleanAst ", () => {
   });
 
   it("group-hover + peer-focus + sibling", () => {
-    let ast1 = applyClassName("group-hover:bg-red-500", ctx);
-    let ast2 = applyClassName("peer-focus:bg-blue-500", ctx);
+    let ast1 = parseClassToAst("group-hover:bg-red-500", ctx);
+    let ast2 = parseClassToAst("peer-focus:bg-blue-500", ctx);
     const ast = [...ast1, ...ast2];
-    const cleanAst = buildCleanAst(ast);
+    const cleanAst = optimizeAst(ast);
     const expected = [
       {
         type: "rule",
@@ -217,8 +217,8 @@ describe("buildCleanAst ", () => {
   });
 
   it("data-state + aria-pressed + &:hover", () => {
-    let ast = applyClassName('data-[state=open]:aria-pressed:hover:bg-green-500', ctx);
-    const cleanAst = buildCleanAst(ast);
+    let ast = parseClassToAst('data-[state=open]:aria-pressed:hover:bg-green-500', ctx);
+    const cleanAst = optimizeAst(ast);
     const expected = [
       {
         type: "rule",

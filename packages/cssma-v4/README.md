@@ -23,7 +23,7 @@ npm install cssma-v4
 ### Basic Usage
 
 ```typescript
-import { applyClassName, createContext } from 'cssma-v4';
+import { parseClassToAst, createContext } from 'cssma-v4';
 
 const ctx = createContext({
   theme: {
@@ -33,23 +33,23 @@ const ctx = createContext({
 });
 
 // Static Utility
-const result1 = applyClassName('inset-x-auto', ctx);
+const result1 = parseClassToAst('inset-x-auto', ctx);
 // [{ type: 'decl', prop: 'inset-inline', value: 'auto' }]
 
 // Functional Utility
-const result2 = applyClassName('inset-x-4', ctx);
+const result2 = parseClassToAst('inset-x-4', ctx);
 // [{ type: 'decl', prop: 'inset-inline', value: 'calc(var(--spacing) * 4)' }]
 
 // Negative Values
-const result3 = applyClassName('-inset-x-2', ctx);
+const result3 = parseClassToAst('-inset-x-2', ctx);
 // [{ type: 'decl', prop: 'inset-inline', value: 'calc(var(--spacing) * -2)' }]
 
 // Arbitrary Values
-const result4 = applyClassName('bg-[#ff0000]', ctx);
+const result4 = parseClassToAst('bg-[#ff0000]', ctx);
 // [{ type: 'decl', prop: 'background-color', value: '#ff0000' }]
 
 // Custom Properties
-const result5 = applyClassName('bg-(--my-bg)', ctx);
+const result5 = parseClassToAst('bg-(--my-bg)', ctx);
 // [{ type: 'decl', prop: 'background-color', value: 'var(--my-bg)' }]
 ```
 
@@ -180,10 +180,10 @@ Converts class names to AST and CSS:
 
 ```typescript
 // Single class to AST
-const ast = applyClassName('sm:hover:bg-red-500', ctx);
+const ast = parseClassToAst('sm:hover:bg-red-500', ctx);
 
 // Multiple classes to CSS
-const css = generateUtilityCss('sm:hover:bg-red-500', ctx);
+const css = generateCss('sm:hover:bg-red-500', ctx);
 // @media (min-width: 640px) {
 //   .sm\:hover\:bg-red-500:hover {
 //     background-color: #ef4444;
@@ -208,17 +208,17 @@ npm run test:coverage
 
 ```typescript
 // Static Utility Tests
-expect(applyClassName('-inset-x-px', ctx)).toEqual([
+expect(parseClassToAst('-inset-x-px', ctx)).toEqual([
   { type: 'decl', prop: 'inset-inline', value: '-1px' }
 ]);
 
 // Functional Utility Tests
-expect(applyClassName('inset-x-4', ctx)).toEqual([
+expect(parseClassToAst('inset-x-4', ctx)).toEqual([
   { type: 'decl', prop: 'inset-inline', value: 'calc(var(--spacing) * 4)' }
 ]);
 
 // Arbitrary Value Tests
-expect(applyClassName('bg-[#ff0000]', ctx)).toEqual([
+expect(parseClassToAst('bg-[#ff0000]', ctx)).toEqual([
   { type: 'decl', prop: 'background-color', value: '#ff0000' }
 ]);
 ```
@@ -227,8 +227,8 @@ expect(applyClassName('bg-[#ff0000]', ctx)).toEqual([
 
 ### Core Functions
 
-- `applyClassName(className: string, ctx: CssmaContext): AstNode[]`
-- `generateUtilityCss(classList: string, ctx: CssmaContext, opts?: object): string`
+- `parseClassToAst(className: string, ctx: CssmaContext): AstNode[]`
+- `generateCss(classList: string, ctx: CssmaContext, opts?: object): string`
 - `parseClassName(className: string): { modifiers: ParsedModifier[], utility: ParsedUtility }`
 - `createContext(config: CssmaConfig): CssmaContext`
 

@@ -236,7 +236,7 @@ addVariant('my-variant', (selector) => `:is(.my-parent ${selector})`);
 - AST snapshot, CSS output snapshot, selector 비교 등 자동화 방법
 - 예시:
   ```js
-  expect(applyClassName('dark:sm:group-hover:*:bg-red-500', ctx)).toMatchSnapshot();
+  expect(parseClassToAst('dark:sm:group-hover:*:bg-red-500', ctx)).toMatchSnapshot();
   ```
 
 ### 7) Specificity와 CSS 우선순위

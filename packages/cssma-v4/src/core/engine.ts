@@ -15,7 +15,7 @@ export type DeclPath = PathNode[];
  * AST 트리에서 decl(leaf)까지의 모든 경로(variant chain 포함)를 수집합니다.
  * - 입력: AST 노드 배열
  * - 출력: decl-to-root path(variant chain) 배열
- * - 용도: buildCleanAst, declPathToAst 등에서 AST 최적화/병합을 위한 경로 추출에 사용
+ * - 용도: optimizeAst, declPathToAst 등에서 AST 최적화/병합을 위한 경로 추출에 사용
  *
  * @param nodes AstNode[] - AST 트리
  * @param path PathNode[] - 재그용(초기값 생략)
@@ -169,7 +169,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
 }
 
 /**
- * applyClassName
+ * parseClassToAst
  * className(variant chain 포함)을 파싱하여 AST 트리를 생성합니다.
  * - 입력: className(string), CssmaContext
  * - 출력: AstNode[] (variant wrapping path별로 여러 root 가능)
@@ -182,10 +182,10 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
  * @returns AstNode[]
  *
  * @example
- *   const ast = applyClassName('sm:dark:hover:bg-red-500', ctx);
+ *   const ast = parseClassToAst('sm:dark:hover:bg-red-500', ctx);
  *   // ast는 sm, dark, hover variant가 중첩된 AST 트리
  */
-export function applyClassName(
+export function parseClassToAst(
   fullClassName: string,
   ctx: CssmaContext
 ): AstNode[] {
@@ -257,11 +257,11 @@ export function applyClassName(
 }
 
 /**
- * generateUtilityCss
+ * generateCss
  * 여러 className을 받아 각각의 유틸리티 CSS를 생성합니다.
  * - 입력: classList(string), CssmaContext, 옵션
  * - 출력: string (여러 CSS 블록이 join된 결과)
- * - 내부적으로 applyClassName → buildCleanAst → astToCss 순으로 처리
+ * - 내부적으로 parseClassToAst → optimizeAst → astToCss 순으로 처리
  * - dedup, minify 등 옵션 지원
  *
  * @param classList string (예: 'bg-red-500 text-lg hover:bg-blue-500')
@@ -270,9 +270,9 @@ export function applyClassName(
  * @returns string
  *
  * @example
- *   const css = generateUtilityCss('sm:dark:hover:bg-red-500 sm:focus:bg-blue-500', ctx);
+ *   const css = generateCss('sm:dark:hover:bg-red-500 sm:focus:bg-blue-500', ctx);
  */
-export function generateUtilityCss(
+export function generateCss(
   classList: string,
   ctx: CssmaContext,
   opts?: { minify?: boolean; dedup?: boolean }
@@ -289,8 +289,8 @@ export function generateUtilityCss(
       return true;
     })
     .map((cls) => {
-      const ast = applyClassName(cls, ctx);
-      const cleanAst = buildCleanAst(ast);
+      const ast = parseClassToAst(cls, ctx);
+      const cleanAst = optimizeAst(ast);
       const css = astToCss(cleanAst, cls, { minify: opts?.minify });
 
       return css;
@@ -303,7 +303,7 @@ export function generateUtilityCss(
  * declPathToAst 결과 리스트(AstNode[][])를 받아, 같은 at-rule(name, params) 등은 하나로 합치고 그 아래는 sibling으로 분리하는 방식으로 최종 AST 트리를 반환합니다.
  * - 입력: AstNode[][] (여러 decl-to-root path의 중첩 AST)
  * @returns AstNode[]
- * - 용도: buildCleanAst에서 최종 AST 병합/최적화에 사용
+ * - 용도: optimizeAst에서 최종 AST 병합/최적화에 사용
  *
  * @param astList AstNode[][]
  * @returns AstNode[]
@@ -354,11 +354,10 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
   const merged = merge(declPaths);
   return merged;
 }
-
 /**
- * buildCleanAst
- * applyClassName 등에서 생성된 AST를 decl-to-root path 기반으로 최적화된 AST 트리로 병합/정리합니다.
- * - 입력: AstNode[] (applyClassName 결과)
+ * optimizeAst
+ * parseClassToAst 등에서 생성된 AST를 decl-to-root path 기반으로 최적화된 AST 트리로 병합/정리합니다.
+ * - 입력: AstNode[] (parseClassToAst 결과)
  * - 출력: 최적화된 AST 트리(AstNode[])
  * - 내부적으로 collectDeclPaths, declPathToAst, mergeAstTreeList를 사용
  * - variant wrapping 구조(중첩, sibling, 병합 등)를 모두 반영
@@ -366,7 +365,7 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
  * @param ast AstNode[]
  * @returns AstNode[]
  */
-export function buildCleanAst(ast: AstNode[]): AstNode[] {
+export function optimizeAst(ast: AstNode[]): AstNode[] {
   const declPaths = collectDeclPaths(ast);
   const astList = declPaths.map(declPathToAst);
   const merged = mergeAstTreeList(astList);
