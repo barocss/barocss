@@ -65,6 +65,13 @@ function astToCss(
           return `${indent}${selector} {\n${astToCss(node.nodes, baseSelector, opts, nextIndent)}\n${indent}}`;
         }
       }
+      case 'style-rule': {
+        if (minify) {
+          return `${indent}${node.selector} {${astToCss(node.nodes, baseSelector, opts, nextIndent)}}`;
+        } else {
+          return `${indent}${node.selector} {\n${astToCss(node.nodes, baseSelector, opts, nextIndent)}\n${indent}}`;
+        }
+      }
       case 'at-rule': {
         if (minify) {
           return `${indent}@${node.name} ${node.params}{${astToCss(node.nodes, baseSelector, opts, nextIndent)}}`;
