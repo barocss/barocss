@@ -41,4 +41,4 @@ staticModifier("dark", ["&"], {
       return rule(sel.value, [], 'dark');
     });
   },
-});
+}); 
