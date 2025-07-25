@@ -1,4 +1,4 @@
-import type { AstNode } from './ast';
+import { rule, type AstNode } from './ast';
 import { escapeClassName } from './registry';
 
 /**
@@ -15,11 +15,11 @@ function astToCss(
   _indent = ''
 ): string {
   const minify = opts?.minify;
-  const indent = minify ? '' : _indent;
-  const nextIndent = minify ? '' : _indent + '  ';
+  const indent = _indent;
+  const nextIndent = _indent + '  ';
 
   // Basic deduplication: only keep last decl for each prop in a block
-  const dedupedAst = [];
+  let dedupedAst = [];
   if (Array.isArray(ast)) {
     const seenProps = new Map();
     for (let i = ast.length - 1; i >= 0; i--) {
@@ -32,15 +32,38 @@ function astToCss(
       dedupedAst.unshift(node);
     }
   }
+
+  console.log('[astToCss] dedupedAst:', dedupedAst, JSON.stringify(_indent, null, 2));
+
+  if (_indent === '' && dedupedAst.length === 1 && dedupedAst[0].type === 'decl') {
+    console.log('[astToCss] decl-only branch:', { dedupedAst, baseSelector, indent, nextIndent });
+    const escBase = '.' + escapeClassName(baseSelector || '');
+    console.log('[astToCss] escBase:', {escBase, minify, nextIndent});
+    if (minify) {
+      return `${escBase} {${dedupedAst[0].prop}: ${dedupedAst[0].value};}`;
+    } else {
+      return `${escBase} {\n${nextIndent}${dedupedAst[0].prop}: ${dedupedAst[0].value};\n${nextIndent}}`;
+    }
+  }
+
   return dedupedAst.map(node => {
     switch (node.type) {
       case 'decl': {
         let value = node.value;
         if (node.important) value += ' !important';
         if (node.prop.startsWith('--')) {
-          return `${indent}${node.prop}: ${value};`;
+          if (minify) {
+            return `${node.prop}: ${value};`;
+          } else {
+            return `${indent}${node.prop}: ${value};\n${indent}`;
+          }
+        } else {
+          if (minify) {
+            return `${node.prop}: ${value};`;
+          } else {
+            return `${indent}${node.prop}: ${value};\n${indent}`;
+          }
         }
-        return `${indent}${node.prop}: ${value};`;
       }
       case 'rule': {
         let selector = node.selector;

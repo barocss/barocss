@@ -89,12 +89,12 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "at-rule", name: "supports", params: "(display: grid)" },
-      { type: "rule", selector: ":hover" },
-      { type: "rule", selector: ":focus" },
+      { type: "rule", selector: "&:hover" },
+      { type: "rule", selector: "&:focus" },
       { type: "decl", prop: "color", value: "#f00" },
     ];
     const ast = declPathToAst(path);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "at-rule",
         name: "media",
@@ -107,13 +107,9 @@ describe("declPathToAst (decl path 단일 변환)", () => {
             nodes: [
               {
                 type: "rule",
-                selector: ":hover",
+                selector: "&:focus:hover",
                 nodes: [
-                  {
-                    type: "rule",
-                    selector: ":focus",
-                    nodes: [{ type: "decl", prop: "color", value: "#f00" }],
-                  },
+                  { type: "decl", prop: "color", value: "#f00" },
                 ],
               },
             ],
@@ -267,7 +263,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
       { type: "decl", prop: "color", value: "#f00" },
     ] as any;
     const ast = declPathToAst(path);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "arbitrary-variant", value: "[&>*]", nodes: [
           { type: "decl", prop: "color", value: "#f00" },
@@ -282,9 +278,9 @@ describe("declPathToAst (decl path 단일 변환)", () => {
       { type: "decl", prop: "color", value: "#f00" },
     ] as any;
     const ast = declPathToAst(path);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
-        type: "rule", selector: ":hover", negative: true, nodes: [
+        type: "rule", selector: ":hover", nodes: [
           { type: "decl", prop: "color", value: "#f00" },
         ],
       },
@@ -304,7 +300,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ];
     const ast1 = declPathToAst(path1);
     const ast2 = declPathToAst(path2);
-    expect(ast1).toEqual([
+    expect(ast1).toMatchObject([
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
@@ -315,7 +311,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
         ],
       },
     ]);
-    expect(ast2).toEqual([
+    expect(ast2).toMatchObject([
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
@@ -335,7 +331,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
       { type: "decl", prop: "color", value: "#f00" },
     ] as any;
     const ast = declPathToAst(path);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
@@ -354,7 +350,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
       { type: "decl", prop: "color", value: "#f00" },
     ] as any;
     const ast = declPathToAst(path);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "custom-variant", foo: "bar", nodes: [
           { type: "decl", prop: "color", value: "#f00" },

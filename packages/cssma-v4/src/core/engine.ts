@@ -47,24 +47,24 @@ function getPriority(type: string): number {
 }
 
 const sourcePriority: Record<string, number> = {
-  media: 0,         // @media
-  supports: 1,      // @supports
-  container: 2,     // @container
-  responsive: 10,   // sm:, md: 등
-  group: 20,        // .group:hover &
-  peer: 30,         // .peer:focus ~ &
-  dark: 40,         // dark:
-  universal: 50,    // :is(), :where()
-  data: 60,         // [data-state=...]
-  aria: 70,         // [aria-pressed=...]
-  attribute: 80,    // [type=...]
-  pseudo: 90,       // :hover, :focus
-  base: 100,        // &
-  starting: 110,    // (루트)
-}
+  media: 0, // @media
+  supports: 1, // @supports
+  container: 2, // @container
+  responsive: 10, // sm:, md: 등
+  group: 20, // .group:hover &
+  peer: 30, // .peer:focus ~ &
+  dark: 40, // dark:
+  universal: 50, // :is(), :where()
+  data: 60, // [data-state=...]
+  aria: 70, // [aria-pressed=...]
+  attribute: 80, // [type=...]
+  pseudo: 90, // :hover, :focus
+  base: 100, // &
+  starting: 110, // (루트)
+};
 
 function getRulePriority(rule: Partial<AstNode>): number {
-  return sourcePriority[rule.source || 'base'] || 100;
+  return sourcePriority[rule.source || "base"] || 100;
 }
 
 const mergeSelectorsBySource = (source: string, nodes: Partial<AstNode>[]) => {
@@ -104,17 +104,23 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
   const variants = declPath.slice(0, -1);
   const decl = declPath[declPath.length - 1];
   // 2. 기존 정렬/병합(hoist) 로직 유지
-  const sortedVariants = [...variants].sort((a, b) => getPriority(a.type!) - getPriority(b.type!));
+  const sortedVariants = [...variants].sort(
+    (a, b) => getPriority(a.type!) - getPriority(b.type!)
+  );
   const mergedVariants: typeof sortedVariants = [];
   for (const v of sortedVariants) {
     if (mergedVariants.length === 0) {
       mergedVariants.push(v);
     } else {
       const prev = mergedVariants[mergedVariants.length - 1];
-      const isSame = v.type === prev.type && (
-        (v.type === 'at-rule' && prev.type === 'at-rule' && v.name === prev.name && v.params === prev.params) ||
-        ((v.type === 'rule' || v.type === 'style-rule') && v.selector === (prev as any).selector)
-      );
+      const isSame =
+        v.type === prev.type &&
+        ((v.type === "at-rule" &&
+          prev.type === "at-rule" &&
+          v.name === prev.name &&
+          v.params === prev.params) ||
+          ((v.type === "rule" || v.type === "style-rule") &&
+            v.selector === (prev as any).selector));
       if (!isSame) {
         mergedVariants.push(v);
       }
@@ -131,7 +137,9 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
 
   // 5. selector 합성 및 단일 rule 생성
   let node: AstNode = { ...decl };
-  let sortedRuleSelectors = [...ruleSelectors].sort((a, b) => getRulePriority(a) - getRulePriority(b));
+  let sortedRuleSelectors = [...ruleSelectors].sort(
+    (a, b) => getRulePriority(a) - getRulePriority(b)
+  );
   if (sortedRuleSelectors.length > 0) {
     const grouped = sortedRuleSelectors.reduce((acc, rule) => {
       const key = rule.source || "base";
@@ -143,7 +151,9 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
 
     // 1. sourcePriority 기준으로 정렬
     const mergedBySource = Object.entries(grouped)
-      .sort(([a], [b]) => (sourcePriority[a] ?? 999) - (sourcePriority[b] ?? 999))
+      .sort(
+        ([a], [b]) => (sourcePriority[a] ?? 999) - (sourcePriority[b] ?? 999)
+      )
       .map(([source, nodes]) => {
         const merged = mergeSelectorsBySource(source, nodes);
         return merged;
@@ -224,17 +234,34 @@ export function parseClassToAst(
       continue;
     }
     if (plugin.modifySelector) {
-      const result = plugin.modifySelector({ selector, fullClassName, mod: variant, context: ctx, variantChain: modifiers, index: i });
+      const result = plugin.modifySelector({
+        selector,
+        fullClassName,
+        mod: variant,
+        context: ctx,
+        variantChain: modifiers,
+        index: i,
+      });
       if (typeof result === "string" && result.includes("&")) {
         wrappers.push({ type: "rule", selector: result });
       } else if (typeof result === "object" && result.selector) {
         const wrappingType = result.wrappingType || "rule";
-        wrappers.push({ type: wrappingType, selector: result.selector, flatten: result.flatten, source: result.source });
+        wrappers.push({
+          type: wrappingType,
+          selector: result.selector,
+          flatten: result.flatten,
+          source: result.source,
+        });
       } else if (Array.isArray(result)) {
-        for (const r of result) {
-          const wrappingType = r.wrappingType || "rule";
-          wrappers.push({ type: wrappingType, selector: r.selector, source: r.source, flatten: r.flatten });
-        }
+        wrappers.push({
+          type: "wrap",
+          items: result.map((r) => ({
+            type: r.wrappingType || "rule",
+            selector: r.selector,
+            source: r.source,
+            flatten: r.flatten,
+          })),
+        });
       }
     }
   }
@@ -244,13 +271,38 @@ export function parseClassToAst(
     const wrap = wrappers[i];
 
     if (wrap.type === "wrap") {
-      ast = ((wrap as any).items as AstNode[]).map(item => ({ ...item, nodes: Array.isArray(ast) ? ast : [ast] }));
+      ast = ((wrap as any).items as AstNode[]).map((item) => ({
+        ...item,
+        nodes: Array.isArray(ast) ? ast : [ast],
+      }));
     } else if (wrap.type === "style-rule") {
-      ast = [{ type: "style-rule", selector: wrap.selector!, source: wrap.source, nodes: Array.isArray(ast) ? ast : [ast] }];
+      ast = [
+        {
+          type: "style-rule",
+          selector: wrap.selector!,
+          source: wrap.source,
+          nodes: Array.isArray(ast) ? ast : [ast],
+        },
+      ];
     } else if (wrap.type === "at-rule") {
-      ast = [{ type: "at-rule", name: wrap.name || "media", params: wrap.params!, source: wrap.source, nodes: Array.isArray(ast) ? ast : [ast] }];
+      ast = [
+        {
+          type: "at-rule",
+          name: wrap.name || "media",
+          params: wrap.params!,
+          source: wrap.source,
+          nodes: Array.isArray(ast) ? ast : [ast],
+        },
+      ];
     } else if (wrap.type === "rule") {
-      ast = [{ type: "rule", selector: wrap.selector!, source: wrap.source, nodes: Array.isArray(ast) ? ast : [ast] }];
+      ast = [
+        {
+          type: "rule",
+          selector: wrap.selector!,
+          source: wrap.source,
+          nodes: Array.isArray(ast) ? ast : [ast],
+        },
+      ];
     }
   }
   return ast;
@@ -344,7 +396,7 @@ export function generateCssRules(
  */
 export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
   // AstNode[][] → DeclPath[]
-  const declPaths: DeclPath[] = astList.map(ast => {
+  const declPaths: DeclPath[] = astList.map((ast) => {
     // declPathToAst는 항상 [rootNode] 형태
     const path: AstNode[] = [];
     let node = ast[0];
@@ -360,16 +412,17 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
     if (declPaths.length === 0) return [];
     if (declPaths[0].length === depth + 1) {
       // 모두 decl만 남음
-      return declPaths.map(path => path[depth]) as AstNode[];
+      return declPaths.map((path) => path[depth]) as AstNode[];
     }
     // 현재 depth의 variant(type+key)로 그룹핑
     const groupMap = new Map<string, DeclPath[]>();
     for (const path of declPaths) {
       const node = path[depth];
       let key = node.type;
-      if (node.type === 'at-rule') key += ':' + node.name + ':' + node.params;
-      else if (node.type === 'rule' || node.type === 'style-rule') key += ':' + node.selector;
-      else key += ':' + JSON.stringify(node);
+      if (node.type === "at-rule") key += ":" + node.name + ":" + node.params;
+      else if (node.type === "rule" || node.type === "style-rule")
+        key += ":" + node.selector;
+      else key += ":" + JSON.stringify(node);
       if (!groupMap.has(key!)) groupMap.set(key!, []);
       groupMap.get(key!)!.push(path);
     }
@@ -377,10 +430,11 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
     const result: AstNode[] = [];
     for (const [key, group] of groupMap.entries()) {
       const node = group[0][depth];
-      const children = merge(group, depth + 1);   
-      result.push(children.length
-        ? { ...node, nodes: children as AstNode[] }
-        : { ...node }
+      const children = merge(group, depth + 1);
+      result.push(
+        children.length
+          ? { ...node, nodes: children as AstNode[] }
+          : { ...node }
       );
     }
     return result;

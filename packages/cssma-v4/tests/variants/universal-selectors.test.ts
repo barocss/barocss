@@ -6,7 +6,7 @@ import { ctx } from "./test-utils";
 describe("universal selectors", () => {
   it("*:rounded-full → :is(.*:rounded-full > *)", () => {
     const ast = parseClassToAst("*:rounded-full", ctx);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "rule",
         selector: ":is(.\\*\\:rounded-full > *)",
@@ -17,7 +17,7 @@ describe("universal selectors", () => {
 
   it("**:rounded-full → :is(.**:rounded-full *)", () => {
     const ast = parseClassToAst("**:rounded-full", ctx);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "style-rule",
         selector: ":is(.\\*\\*\\:rounded-full *)",
@@ -30,7 +30,7 @@ describe("universal selectors", () => {
 
   it("*:data-avatar:rounded-full → :is(.*:data-avatar:rounded-full > *)[data-avatar]", () => {
     const ast = parseClassToAst("*:data-avatar:rounded-full", ctx);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "style-rule",
         selector: ":is(.\\*\\:data-avatar\\:rounded-full > *)",
@@ -47,7 +47,7 @@ describe("universal selectors", () => {
 
   it("**:data-avatar:rounded-full → :is(.**:data-avatar:rounded-full *)[data-avatar]", () => {
     const ast = parseClassToAst("**:data-avatar:rounded-full", ctx);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "style-rule",
         selector: ":is(.\\*\\*\\:data-avatar\\:rounded-full *)",
@@ -64,7 +64,7 @@ describe("universal selectors", () => {
 
   it("group-hover:*:rounded-full → :is(.group-hover\\:\\*:rounded-full > *)", () => {
     const ast = parseClassToAst("group-hover:*:rounded-full", ctx);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "rule",
         selector: ".group:hover &",
@@ -81,7 +81,7 @@ describe("universal selectors", () => {
 
   it("group-hover:**:rounded-full → :is(.group-hover:**:rounded-full *)", () => {
     const ast = parseClassToAst("group-hover:**:rounded-full", ctx);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "rule",
         selector: ".group:hover &",

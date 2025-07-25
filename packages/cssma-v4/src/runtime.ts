@@ -83,15 +83,22 @@ export class StyleRuntime {
   addClass(classes: string | string[]): void {
     if (typeof window === 'undefined' || this.isDestroyed) return;
     this.ensureSheet();
+    console.log('[runtime.addClass] input:', classes);
     const classList = this.normalizeClasses(classes);
+    console.log('[runtime.addClass] normalized classList:', classList);
     const newClasses = classList.filter(cls => cls && !this.cache.has(cls));
+    console.log('[runtime.addClass] newClasses:', newClasses);
     if (!this.sheet || newClasses.length === 0) return;
 
     // generateCssRules 사용
     const rules = generateCssRules(newClasses.join(' '), this.context, { dedup: false });
+    console.log('[runtime.addClass] generateCssRules result:', rules);
     const cssRules: string[] = [];
     for (const { cls, css } of rules) {
-      if (!css) continue;
+      if (!css) {
+        console.warn('[StyleRuntime] No CSS generated for:', cls);
+        continue;
+      }
       cssRules.push(css);
       this.cache.set(cls, css);
     }
@@ -105,9 +112,10 @@ export class StyleRuntime {
    *   runtime.observe(document.body);
    *
    * @param root 관찰할 루트 엘리먼트 (기본값: document.body)
+   * @param options scan: true일 경우, observe 직후 root 이하 모든 [class] 요소의 className을 addClass로 등록
    * @returns MutationObserver 인스턴스
    */
-  observe(root: HTMLElement = document.body): MutationObserver {
+  observe(root: HTMLElement = document.body, options?: { scan?: boolean }): MutationObserver {
     const observer = new MutationObserver(mutations => {
       const classNames = new Set<string>();
       for (const mutation of mutations) {
@@ -125,6 +133,7 @@ export class StyleRuntime {
         }
       }
       if (classNames.size > 0) {
+        console.log('[runtime.observe] mutation detected, adding classes:', Array.from(classNames));
         this.addClass(Array.from(classNames));
       }
     });
@@ -134,6 +143,19 @@ export class StyleRuntime {
       attributeFilter: ['class'],
       childList: true
     });
+    if (options?.scan) {
+      // root 자신도 포함
+      if (root.classList && root.className) {
+        console.log('[runtime.observe] scan: adding root className:', root.className);
+        this.addClass(root.className);
+      }
+      root.querySelectorAll('[class]').forEach(el => {
+        if (el.className) {
+          console.log('[runtime.observe] scan: adding className from element:', el.className);
+          this.addClass(el.className);
+        }
+      });
+    }
     return observer;
   }
 
@@ -163,7 +185,9 @@ export class StyleRuntime {
   }
 
   has(cls: string): boolean {
-    return this.cache.has(cls);
+    const result = this.cache.has(cls);
+    console.log('[runtime.has] check:', cls, '=>', result);
+    return result;
   }
 
   getCss(cls: string): string | undefined {
@@ -172,6 +196,10 @@ export class StyleRuntime {
 
   getAllCss(): string {
     return Array.from(this.cache.values()).join('\n');
+  }
+
+  getClasses(): string[] {
+    return Array.from(this.cache.keys());
   }
 
   reset(): void {

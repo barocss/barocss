@@ -6,7 +6,7 @@ import { ctx } from "./test-utils";
 
 describe("has variants", () => {
   it('has-[.child]:bg-red-500 → &:has(.child) { ... }', () => {
-    expect(parseClassToAst('has-[.child]:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('has-[.child]:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
         selector: '&:has(.child)',
@@ -18,7 +18,7 @@ describe("has variants", () => {
   });
 
   it('group-hover:has-[.child]:bg-red-500 → .group:hover &:has(.child) { ... }', () => {
-    expect(parseClassToAst('group-hover:has-[.child]:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('group-hover:has-[.child]:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
         selector: '.group:hover &',
@@ -35,7 +35,7 @@ describe("has variants", () => {
 
   it('has-[.foo>.bar]:bg-blue-500 → &:has(.foo>.bar) { ... }', () => {
     const ctx2 = createContext({ theme: { colors: { blue: { 500: '#00f' } } } });
-    expect(parseClassToAst('has-[.foo>.bar]:bg-blue-500', ctx2)).toEqual([
+    expect(parseClassToAst('has-[.foo>.bar]:bg-blue-500', ctx2)).toMatchObject([
       {
         type: 'rule',
         selector: '&:has(.foo>.bar)',

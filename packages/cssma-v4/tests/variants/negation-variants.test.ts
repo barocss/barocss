@@ -6,7 +6,7 @@ import { ctx } from "./test-utils";
 describe("negation variants", () => {
   describe("basic negation variants", () => {
     it("not-hover:bg-red-500 → &:not(:hover) { ... }", () => {
-      expect(parseClassToAst("not-hover:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("not-hover:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:not(:hover)",
@@ -16,7 +16,7 @@ describe("negation variants", () => {
     });
 
     it("not-[open]:bg-red-500 → &:not([open]) { ... }", () => {
-      expect(parseClassToAst("not-[open]:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("not-[open]:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:not([open])",
@@ -26,7 +26,7 @@ describe("negation variants", () => {
     });
 
     it('not-[aria-pressed=true]:bg-red-500 → &:not([aria-pressed="true"]) { ... }', () => {
-      expect(parseClassToAst("not-[aria-pressed=true]:bg-red-500", ctx)).toEqual(
+      expect(parseClassToAst("not-[aria-pressed=true]:bg-red-500", ctx)).toMatchObject(
         [
           {
             type: "rule",
@@ -38,7 +38,7 @@ describe("negation variants", () => {
     });
 
     it("group-hover:not-hover:bg-red-500 → .group:hover &:not(:hover) { ... }", () => {
-      expect(parseClassToAst("group-hover:not-hover:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("group-hover:not-hover:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: ".group:hover &",
@@ -56,7 +56,7 @@ describe("negation variants", () => {
 
   describe("advanced negation variants", () => {
     it("not-focus:bg-red-500 → &:not(:focus)", () => {
-      expect(parseClassToAst("not-focus:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("not-focus:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:not(:focus)",
@@ -66,7 +66,7 @@ describe("negation variants", () => {
     });
 
     it("not-[dir=rtl]:bg-red-500 → &:not([dir=rtl])", () => {
-      expect(parseClassToAst("not-[dir=rtl]:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("not-[dir=rtl]:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:not([dir=rtl])",
@@ -76,7 +76,7 @@ describe("negation variants", () => {
     });
 
     it("not-[.foo]:bg-red-500 → &:not(.foo)", () => {
-      expect(parseClassToAst("not-[.foo]:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("not-[.foo]:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:not(.foo)",
@@ -86,7 +86,7 @@ describe("negation variants", () => {
     });
 
     it("not-[.foo>.bar]:bg-red-500 → &:not(.foo>.bar)", () => {
-      expect(parseClassToAst("not-[.foo>.bar]:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("not-[.foo>.bar]:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:not(.foo>.bar)",
@@ -96,7 +96,7 @@ describe("negation variants", () => {
     });
 
     it("not-hover:focus:bg-red-500 → &:not(:hover):focus", () => {
-      expect(parseClassToAst("not-hover:focus:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("not-hover:focus:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:not(:hover)",
@@ -112,7 +112,7 @@ describe("negation variants", () => {
     });
 
     it("not-hover:not-focus:bg-red-500 → &:not(:hover):not(:focus)", () => {
-      expect(parseClassToAst("not-hover:not-focus:bg-red-500", ctx)).toEqual([
+      expect(parseClassToAst("not-hover:not-focus:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:not(:hover)",

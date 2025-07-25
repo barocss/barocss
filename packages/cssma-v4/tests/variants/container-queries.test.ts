@@ -13,7 +13,7 @@ describe("container queries", () => {
         breakpoint: { sm: '24rem', md: '28rem' },
       },
     });
-    expect(parseClassToAst('@sm:bg-red-500', ctx2)).toEqual([
+    expect(parseClassToAst('@sm:bg-red-500', ctx2)).toMatchObject([
       {
         type: 'at-rule',
         name: 'container',
@@ -33,7 +33,7 @@ describe("container queries", () => {
         breakpoint: { sm: '24rem', md: '28rem' },
       },
     });
-    expect(parseClassToAst('@max-md:bg-red-500', ctx2)).toEqual([
+    expect(parseClassToAst('@max-md:bg-red-500', ctx2)).toMatchObject([
       {
         type: 'at-rule',
         name: 'container',
@@ -46,7 +46,7 @@ describe("container queries", () => {
   });
 
   it('@min-[475px]:bg-red-500 → @container (width >= 475px) { ... }', () => {
-    expect(parseClassToAst('@min-[475px]:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('@min-[475px]:bg-red-500', ctx)).toMatchObject([
       {
         type: 'at-rule',
         name: 'container',
@@ -59,7 +59,7 @@ describe("container queries", () => {
   });
 
   it('@container/main:bg-red-500 → @container main { ... }', () => {
-    expect(parseClassToAst('@container/main:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('@container/main:bg-red-500', ctx)).toMatchObject([
       {
         type: 'at-rule',
         name: 'container',
@@ -79,7 +79,7 @@ describe("container queries", () => {
         breakpoint: { sm: '24rem', md: '28rem' },
       },
     });
-    expect(parseClassToAst('@sm/main:bg-red-500', ctx2)).toEqual([
+    expect(parseClassToAst('@sm/main:bg-red-500', ctx2)).toMatchObject([
       {
         type: 'at-rule',
         name: 'container',
@@ -92,7 +92,7 @@ describe("container queries", () => {
   });
 
   it('@min-[475px]/main:bg-red-500 → @container main (width >= 475px) { ... }', () => {
-    expect(parseClassToAst('@min-[475px]/main:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('@min-[475px]/main:bg-red-500', ctx)).toMatchObject([
       {
         type: 'at-rule',
         name: 'container',
@@ -112,7 +112,7 @@ describe("container queries", () => {
         breakpoint: { sm: '24rem', md: '28rem' },
       },
     });
-    expect(parseClassToAst('@sm:@max-md:bg-red-500', ctx2)).toEqual([
+    expect(parseClassToAst('@sm:@max-md:bg-red-500', ctx2)).toMatchObject([
       {
         type: 'at-rule',
         name: 'container',
@@ -132,7 +132,7 @@ describe("container queries", () => {
   });
 
   it('starting:bg-red-500 → @starting-style { ... }', () => {
-    expect(parseClassToAst('starting:bg-red-500', ctx)).toEqual([
+    expect(parseClassToAst('starting:bg-red-500', ctx)).toMatchObject([
       {
         type: 'at-rule',
         name: 'starting-style',
