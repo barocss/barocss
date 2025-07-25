@@ -5,14 +5,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"pnpm --filter cssma watch\" \"tsup --watch\"",
-    "build": "pnpm --filter cssma build && tsup",
+    "dev": "concurrently \"pnpm --filter cssma-v4 watch\" \"tsup --watch\"",
+    "build": "pnpm --filter cssma-v4 build && tsup",
     "clean": "rm -rf dist",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",
-    "cssma": "workspace:*",
+    "cssma-v4": "workspace:*",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.3",

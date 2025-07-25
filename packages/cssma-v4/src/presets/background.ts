@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRule, decl } from "../core/ast";
+import { AstNode, atRule, decl } from "../core/ast";
 import { parseColor, parseLength, parseNumber } from "../core/utils";
 
 // --- Background Attachment ---
@@ -79,26 +79,30 @@ functionalUtility({
 });
 
 // --- Background Gradients: Linear ---
+const positionValue = (position: string) => {
+  return [
+    decl(
+      "background-image",
+      `linear-gradient(${position}, var(--tw-gradient-stops))`
+    ),
+    decl("--tw-gradient-position", position),
+    atRule("supports", "(background-image:linear-gradient(in lab, red, red)", [
+      decl("--tw-gradient-position", `${position} in oklab`),
+    ]),
+  ];
+};
+
 [
-  ["bg-linear-to-t", "linear-gradient(to top, var(--tw-gradient-stops))"],
-  [
-    "bg-linear-to-tr",
-    "linear-gradient(to top right, var(--tw-gradient-stops))",
-  ],
-  ["bg-linear-to-r", "linear-gradient(to right, var(--tw-gradient-stops))"],
-  [
-    "bg-linear-to-br",
-    "linear-gradient(to bottom right, var(--tw-gradient-stops))",
-  ],
-  ["bg-linear-to-b", "linear-gradient(to bottom, var(--tw-gradient-stops))"],
-  [
-    "bg-linear-to-bl",
-    "linear-gradient(to bottom left, var(--tw-gradient-stops))",
-  ],
-  ["bg-linear-to-l", "linear-gradient(to left, var(--tw-gradient-stops))"],
-  ["bg-linear-to-tl", "linear-gradient(to top left, var(--tw-gradient-stops))"],
+  ["bg-linear-to-t", positionValue("to top")],
+  ["bg-linear-to-tr", positionValue("to top right")],
+  ["bg-linear-to-r", positionValue("to right")],
+  ["bg-linear-to-br", positionValue("to bottom right")],
+  ["bg-linear-to-b", positionValue("to bottom")],
+  ["bg-linear-to-bl", positionValue("to bottom left")],
+  ["bg-linear-to-l", positionValue("to left")],
+  ["bg-linear-to-tl", positionValue("to top left")],
 ].forEach(([name, value]) => {
-  staticUtility(name, [["background-image", value]]);
+  staticUtility(name as string, value as AstNode[]);
 });
 // bg-linear-<angle> (e.g., bg-linear-45)
 functionalUtility({
@@ -236,7 +240,6 @@ functionalUtility({
 ["from", "via", "to"].forEach((stop) => {
   functionalUtility({
     name: stop,
-    prop: `--tw-gradient-${stop}`,
     themeKeys: ["colors"],
     supportsArbitrary: true,
     supportsCustomProperty: true,
@@ -253,7 +256,13 @@ functionalUtility({
 
       // to-red-500 → --tw-gradient-to: red-500
       if (parseColor(value)) {
-        return [decl(`--tw-gradient-${stop}`, value)];
+        return [
+          decl(`--tw-gradient-${stop}`, value),
+          decl(
+            `--tw-gradient-stops`,
+            `var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))`
+          ),
+        ];
       }
       return null;
     },
@@ -300,11 +309,15 @@ functionalUtility({
       return [decl("background-size", value.replace("length:", ""))];
     }
 
+    console.log("[background.bg] extra:", extra, token);
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [
           atRule("supports", `(color:color-mix(in lab, red, red))`, [
-            decl("background-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
+            decl(
+              "background-color",
+              `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`
+            ),
           ]),
           decl("background-color", value),
         ];
@@ -317,7 +330,11 @@ functionalUtility({
       return [decl("background-color", color)];
     }
 
-    return [decl("background-size", value)];
+    if (parseLength(value)) {
+      return [decl("background-size", value)];
+    }
+
+    return null;
   },
   handleCustomProperty: (value) => [decl("background-size", `var(${value})`)],
   description: "background-size utility (arbitrary, custom property 지원)",

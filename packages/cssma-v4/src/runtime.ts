@@ -11,6 +11,7 @@ export interface StyleRuntimeOptions {
 
 export class StyleRuntime {
   private styleEl: HTMLStyleElement | null = null;
+  private styleCssVarsEl: HTMLStyleElement | null = null;
   private sheet: CSSStyleSheet | null = null;
   private cache: Map<string, string> = new Map(); // 클래스명 -> 생성된 CSS 매핑
   private context: any;
@@ -33,9 +34,29 @@ export class StyleRuntime {
   }
 
   private init() {
+    this.ensureCssVars();
     this.ensureSheet();
     if (this.options.enableDev && typeof window !== 'undefined') {
       this.setupHMR();
+    }
+  }
+
+  private ensureCssVars() {
+    if (this.isDestroyed) return;
+
+    if (!this.styleCssVarsEl) {
+      this.styleCssVarsEl = document.getElementById(`${this.options.styleId}-css-vars`) as HTMLStyleElement;
+      if (!this.styleCssVarsEl) {
+        this.styleCssVarsEl = document.createElement('style');
+        this.styleCssVarsEl.id = `${this.options.styleId}-css-vars`;
+        this.styleCssVarsEl.setAttribute('data-cssma', 'runtime');
+        const cssVars = this.context.themeToCssVars();
+        this.styleCssVarsEl.textContent = cssVars;
+        console.log('[StyleRuntime] styleCssVarsEl created', cssVars);
+        const insertionPoint = this.getInsertionPoint();
+        insertionPoint.appendChild(this.styleCssVarsEl);
+        console.log('[StyleRuntime] styleCssVarsEl created and appended', this.styleCssVarsEl);
+      }
     }
   }
 
@@ -49,10 +70,12 @@ export class StyleRuntime {
         this.styleEl.setAttribute('data-cssma', 'runtime');
         const insertionPoint = this.getInsertionPoint();
         insertionPoint.appendChild(this.styleEl);
+        console.log('[StyleRuntime] styleEl created and appended', this.styleEl);
       }
     }
     if (!this.sheet && this.styleEl) {
       this.sheet = this.styleEl.sheet as CSSStyleSheet;
+      console.log('[StyleRuntime] sheet initialized', this.sheet);
     }
   }
 
@@ -87,6 +110,8 @@ export class StyleRuntime {
     const newClasses = classList.filter(cls => cls && !this.cache.has(cls));
     if (!this.sheet || newClasses.length === 0) return;
 
+    console.log('[StyleRuntime] addClass input', { classList, newClasses });
+
     // generateCssRules 사용
     const rules = generateCssRules(newClasses.join(' '), this.context, { dedup: false });
     const cssRules: string[] = [];
@@ -97,21 +122,16 @@ export class StyleRuntime {
       }
       cssRules.push(css);
       this.cache.set(cls, css);
+      console.log('[StyleRuntime] CSS generated', { cls, css });
     }
     this.insertRules(cssRules);
   }
 
   /**
    * DOM 내 class 속성 변화를 감지하여 자동으로 addClass를 호출하는 MutationObserver 인스턴스 메서드
-   *
-   * 사용 예시:
-   *   runtime.observe(document.body);
-   *
-   * @param root 관찰할 루트 엘리먼트 (기본값: document.body)
-   * @param options scan: true일 경우, observe 직후 root 이하 모든 [class] 요소의 className을 addClass로 등록
-   * @returns MutationObserver 인스턴스
    */
   observe(root: HTMLElement = document.body, options?: { scan?: boolean }): MutationObserver {
+    console.log('[StyleRuntime] observe called', { root, options });
     const observer = new MutationObserver(mutations => {
       const classNames = new Set<string>();
       for (const mutation of mutations) {
@@ -129,6 +149,7 @@ export class StyleRuntime {
         }
       }
       if (classNames.size > 0) {
+        console.log('[StyleRuntime] observe mutation classNames', Array.from(classNames));
         this.addClass(Array.from(classNames));
       }
     });
@@ -141,10 +162,12 @@ export class StyleRuntime {
     if (options?.scan) {
       // root 자신도 포함
       if (root.classList && root.className) {
+        console.log('[StyleRuntime] observe scan root', root.className);
         this.addClass(root.className);
       }
       root.querySelectorAll('[class]').forEach(el => {
         if (el.className) {
+          console.log('[StyleRuntime] observe scan el', el.className);
           this.addClass(el.className);
         }
       });
@@ -165,33 +188,42 @@ export class StyleRuntime {
       for (const rule of rules) {
         try {
           this.sheet.insertRule(rule.trim(), this.sheet.cssRules.length);
+          console.log('[StyleRuntime] insertRule', rule.trim());
         } catch (error) {
-          if (this.styleEl) {
-            this.styleEl.textContent += rule + '\n';
-          }
           if (this.options.enableDev) {
             console.warn('[StyleRuntime] Failed to insert rule:', rule, error);
           }
         }
       }
     }
+    // 항상 cache의 모든 CSS를 합쳐서 textContent에 동기화
+    if (this.styleEl) {
+      this.styleEl.textContent = Array.from(this.cache.values()).join('\n');
+    }
   }
 
   has(cls: string): boolean {
     const result = this.cache.has(cls);
+    console.log('[StyleRuntime] has', { cls, result });
     return result;
   }
 
   getCss(cls: string): string | undefined {
-    return this.cache.get(cls);
+    const css = this.cache.get(cls);
+    console.log('[StyleRuntime] getCss', { cls, css });
+    return css;
   }
 
   getAllCss(): string {
-    return Array.from(this.cache.values()).join('\n');
+    const all = Array.from(this.cache.values()).join('\n');
+    console.log('[StyleRuntime] getAllCss', all);
+    return all;
   }
 
   getClasses(): string[] {
-    return Array.from(this.cache.keys());
+    const keys = Array.from(this.cache.keys());
+    console.log('[StyleRuntime] getClasses', keys);
+    return keys;
   }
 
   reset(): void {
@@ -202,6 +234,7 @@ export class StyleRuntime {
     if (this.styleEl && this.styleEl.sheet) {
       this.sheet = this.styleEl.sheet as CSSStyleSheet;
     }
+    console.log('[StyleRuntime] reset');
   }
 
   updateTheme(newTheme: any): void {
@@ -211,6 +244,7 @@ export class StyleRuntime {
     if (existingClasses.length > 0) {
       this.addClass(existingClasses);
     }
+    console.log('[StyleRuntime] updateTheme', newTheme);
   }
 
   removeClass(classes: string | string[]): void {
@@ -221,6 +255,7 @@ export class StyleRuntime {
     if (this.options.enableDev) {
       console.info('[StyleRuntime] Classes removed from cache:', classList);
     }
+    console.log('[StyleRuntime] removeClass', classList);
   }
 
   destroy(): void {
@@ -231,16 +266,19 @@ export class StyleRuntime {
     this.sheet = null;
     this.cache.clear();
     this.isDestroyed = true;
+    console.log('[StyleRuntime] destroy');
   }
 
   getStats() {
-    return {
+    const stats = {
       cachedClasses: this.cache.size,
       styleElementId: this.options.styleId,
       isDestroyed: this.isDestroyed,
       cssRules: this.sheet?.cssRules.length || 0,
       theme: this.options.theme
     };
+    console.log('[StyleRuntime] getStats', stats);
+    return stats;
   }
 }
 

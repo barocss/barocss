@@ -1,3 +1,5 @@
+import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
+
 // Types for theme/config/context
 export interface CssmaTheme {
   extend?: CssmaTheme;
@@ -29,6 +31,7 @@ export interface CssmaContext {
   theme: (...path: (string|number)[]) => any;
   config: (...path: (string|number)[]) => any;
   plugins: any[];
+  themeToCssVars: (prefix?: string) => string;
 }
 
 // Deep merge utility
@@ -181,6 +184,14 @@ export function resolveTheme(config: CssmaConfig): CssmaTheme {
   return theme;
 }
 
+
+export function themeToCssVars(theme: CssmaTheme): string {
+  const vars = themeToCssVarsAll(theme);
+  return toCssVarsBlock(vars, `
+${keyframesToCss(theme.keyframes || {})}
+`);
+}
+
 // createContext
 export function createContext(configObj: CssmaConfig): CssmaContext {
   const themeObj = resolveTheme(configObj);
@@ -191,5 +202,6 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
     },
     config: (...args) => configGetter(configObj, ...args),
     plugins: configObj.plugins ?? [],
+    themeToCssVars: () => themeToCssVars(themeObj),
   };
 } 

@@ -18,6 +18,8 @@ function astToCss(
   const indent = _indent;
   const nextIndent = _indent + '  ';
 
+  console.log('[astToCss] input', { ast, baseSelector, minify, indent });
+
   // Basic deduplication: only keep last decl for each prop in a block
   let dedupedAst = [];
   if (Array.isArray(ast)) {
@@ -25,7 +27,8 @@ function astToCss(
     for (let i = ast.length - 1; i >= 0; i--) {
       const node = ast[i];
       if (node.type === 'decl') {
-        const key = node.prop + (node.important ? '!important' : '');
+        // node.important이 없으므로 안전하게 처리
+        const key = node.prop;
         if (seenProps.has(key)) continue;
         seenProps.set(key, true);
       }
@@ -33,31 +36,43 @@ function astToCss(
     }
   }
 
-  if (_indent === '' && dedupedAst.length === 1 && dedupedAst[0].type === 'decl') {
+  if (_indent === '' && dedupedAst.every(node => node.type === 'decl')) {
     const escBase = '.' + escapeClassName(baseSelector || '');
     if (minify) {
-      return `${escBase} {${dedupedAst[0].prop}: ${dedupedAst[0].value};}`;
+      const css = `${escBase} {${astToCss(dedupedAst, baseSelector, opts, nextIndent)}}`;
+      console.log('[astToCss] decl-only minify', css);
+      return css;
     } else {
-      return `${escBase} {\n${nextIndent}${dedupedAst[0].prop}: ${dedupedAst[0].value};\n${nextIndent}}`;
+      const css = `${escBase} {\n${astToCss(dedupedAst, baseSelector, opts, nextIndent)}\n${nextIndent}}`;
+      console.log('[astToCss] decl-only pretty', css);
+      return css;
     }
   }
 
-  return dedupedAst.map(node => {
+  const result = dedupedAst.map(node => {
     switch (node.type) {
       case 'decl': {
         let value = node.value;
-        if (node.important) value += ' !important';
+        // node.important이 없으므로 무시
         if (node.prop.startsWith('--')) {
           if (minify) {
-            return `${node.prop}: ${value};`;
+            const css = `${node.prop}: ${value};`;
+            console.log('[astToCss] decl custom property minify', css);
+            return css;
           } else {
-            return `${indent}${node.prop}: ${value};\n${indent}`;
+            const css = `${indent}${node.prop}: ${value};\n${indent}`;
+            console.log('[astToCss] decl custom property pretty', css);
+            return css;
           }
         } else {
           if (minify) {
-            return `${node.prop}: ${value};`;
+            const css = `${node.prop}: ${value};`;
+            console.log('[astToCss] decl minify', css);
+            return css;
           } else {
-            return `${indent}${node.prop}: ${value};\n${indent}`;
+            const css = `${indent}${node.prop}: ${value};\n${indent}`;
+            console.log('[astToCss] decl pretty', css);
+            return css;
           }
         }
       }
@@ -79,23 +94,35 @@ function astToCss(
           }
         }
         if (minify) {
-          return `${indent}${selector}{${astToCss(node.nodes, baseSelector, opts, nextIndent)}}`;
+          const css = `${indent}${selector}{${astToCss(node.nodes, baseSelector, opts, nextIndent)}}`;
+          console.log('[astToCss] rule minify', css);
+          return css;
         } else {
-          return `${indent}${selector} {\n${astToCss(node.nodes, baseSelector, opts, nextIndent)}\n${indent}}`;
+          const css = `${indent}${selector} {\n${astToCss(node.nodes, baseSelector, opts, nextIndent)}\n${indent}}`;
+          console.log('[astToCss] rule pretty', css);
+          return css;
         }
       }
       case 'style-rule': {
         if (minify) {
-          return `${indent}${node.selector} {${astToCss(node.nodes, baseSelector, opts, nextIndent)}}`;
+          const css = `${indent}${node.selector} {${astToCss(node.nodes, baseSelector, opts, nextIndent)}}`;
+          console.log('[astToCss] style-rule minify', css);
+          return css;
         } else {
-          return `${indent}${node.selector} {\n${astToCss(node.nodes, baseSelector, opts, nextIndent)}\n${indent}}`;
+          const css = `${indent}${node.selector} {\n${astToCss(node.nodes, baseSelector, opts, nextIndent)}\n${indent}}`;
+          console.log('[astToCss] style-rule pretty', css);
+          return css;
         }
       }
       case 'at-rule': {
         if (minify) {
-          return `${indent}@${node.name} ${node.params}{${astToCss(node.nodes, baseSelector, opts, nextIndent)}}`;
+          const css = `${indent}@${node.name} ${node.params}{${astToCss(node.nodes, baseSelector, opts, nextIndent)}}`;
+          console.log('[astToCss] at-rule minify', css);
+          return css;
         } else {
-          return `${indent}@${node.name} ${node.params} {\n${astToCss(node.nodes, baseSelector, opts, nextIndent)}\n${indent}}`;
+          const css = `${indent}@${node.name} ${node.params} {\n${astToCss(node.nodes, baseSelector, opts, nextIndent)}\n${indent}}`;
+          console.log('[astToCss] at-rule pretty', css);
+          return css;
         }
       }
       case 'comment':
@@ -106,6 +133,9 @@ function astToCss(
         return '';
     }
   }).filter(Boolean).join(minify ? '' : '\n');
+
+  console.log('[astToCss] output', result);
+  return result;
 }
 
 export { astToCss }; 
