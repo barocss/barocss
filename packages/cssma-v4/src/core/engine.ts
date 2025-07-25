@@ -1,4 +1,4 @@
-import { type AstNode } from "./ast";
+import { rule, type AstNode } from "./ast";
 import { parseClassName } from "./parser";
 import { getUtility, getModifierPlugins } from "./registry";
 import { CssmaContext } from "./context";
@@ -457,5 +457,14 @@ export function optimizeAst(ast: AstNode[]): AstNode[] {
   const declPaths = collectDeclPaths(ast);
   const astList = declPaths.map(declPathToAst);
   const merged = mergeAstTreeList(astList);
+
+  merged.map((node) => {
+    if (node.type === 'decl' ) {
+      return rule('&', [node]);
+    }
+
+    return node;
+  });
+
   return merged;
 }

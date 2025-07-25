@@ -83,16 +83,12 @@ export class StyleRuntime {
   addClass(classes: string | string[]): void {
     if (typeof window === 'undefined' || this.isDestroyed) return;
     this.ensureSheet();
-    console.log('[runtime.addClass] input:', classes);
     const classList = this.normalizeClasses(classes);
-    console.log('[runtime.addClass] normalized classList:', classList);
     const newClasses = classList.filter(cls => cls && !this.cache.has(cls));
-    console.log('[runtime.addClass] newClasses:', newClasses);
     if (!this.sheet || newClasses.length === 0) return;
 
     // generateCssRules 사용
     const rules = generateCssRules(newClasses.join(' '), this.context, { dedup: false });
-    console.log('[runtime.addClass] generateCssRules result:', rules);
     const cssRules: string[] = [];
     for (const { cls, css } of rules) {
       if (!css) {
@@ -133,7 +129,6 @@ export class StyleRuntime {
         }
       }
       if (classNames.size > 0) {
-        console.log('[runtime.observe] mutation detected, adding classes:', Array.from(classNames));
         this.addClass(Array.from(classNames));
       }
     });
@@ -146,12 +141,10 @@ export class StyleRuntime {
     if (options?.scan) {
       // root 자신도 포함
       if (root.classList && root.className) {
-        console.log('[runtime.observe] scan: adding root className:', root.className);
         this.addClass(root.className);
       }
       root.querySelectorAll('[class]').forEach(el => {
         if (el.className) {
-          console.log('[runtime.observe] scan: adding className from element:', el.className);
           this.addClass(el.className);
         }
       });
@@ -186,7 +179,6 @@ export class StyleRuntime {
 
   has(cls: string): boolean {
     const result = this.cache.has(cls);
-    console.log('[runtime.has] check:', cls, '=>', result);
     return result;
   }
 

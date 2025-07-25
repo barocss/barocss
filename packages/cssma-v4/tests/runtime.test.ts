@@ -148,20 +148,11 @@ describe('StyleRuntime', () => {
     document.body.appendChild(div);
     const observer = runtime.observe(document.body);
     div.className = 'bg-blue-500';
-    console.log('className set to:', div.className);
     await new Promise(r => setTimeout(r, 20));
-    console.log('has(bg-blue-500):', runtime.has('bg-blue-500'));
     div.className = 'text-lg';
-    console.log('className set to:', div.className);
     await new Promise(r => setTimeout(r, 20));
-    console.log('has(text-lg):', runtime.has('text-lg'));
     div.className = 'bg-red-500';
-    console.log('className set to:', div.className);
     await new Promise(r => setTimeout(r, 20));
-    console.log('has(bg-red-500):', runtime.has('bg-red-500'));
-    console.log('has(bg-blue-500):', runtime.has('bg-blue-500'));
-    console.log('has(text-lg):', runtime.has('text-lg'));
-    console.log('getAllCss:', runtime.getAllCss());
     expect(runtime.has('bg-blue-500')).toBe(true);
     expect(runtime.has('text-lg')).toBe(true);
     expect(runtime.has('bg-red-500')).toBe(true);
@@ -201,9 +192,6 @@ describe('StyleRuntime', () => {
     div2.className = 'text-lg';
     document.body.appendChild(div1);
     document.body.appendChild(div2);
-    // DEBUG: print the theme used by runtime
-    // @ts-ignore
-    console.log('TEST THEME:', runtime["context"]?.theme?.('colors', 'blue', '500'), runtime["context"]?.theme?.('fontSize', 'lg'));
     // observe with scan: true
     const observer = runtime.observe(document.body, { scan: true });
     // scan은 동기적으로 동작하므로 바로 확인 가능

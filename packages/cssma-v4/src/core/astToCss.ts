@@ -33,12 +33,8 @@ function astToCss(
     }
   }
 
-  console.log('[astToCss] dedupedAst:', dedupedAst, JSON.stringify(_indent, null, 2));
-
   if (_indent === '' && dedupedAst.length === 1 && dedupedAst[0].type === 'decl') {
-    console.log('[astToCss] decl-only branch:', { dedupedAst, baseSelector, indent, nextIndent });
     const escBase = '.' + escapeClassName(baseSelector || '');
-    console.log('[astToCss] escBase:', {escBase, minify, nextIndent});
     if (minify) {
       return `${escBase} {${dedupedAst[0].prop}: ${dedupedAst[0].value};}`;
     } else {
