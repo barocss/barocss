@@ -1,234 +1,41 @@
-# FigmaikR Development Roadmap 🗺️
+# cssma-v4 Development Roadmap 🗺️
 
-## 📋 Project Overview
+cssma-v4 단일 패키지 기준의 장기 개발 로드맵/우선순위/성공지표를 안내합니다.
 
-FigmaikR is a comprehensive design system toolkit that bridges the gap between design and code with seamless Tailwind CSS integration. This roadmap outlines our development priorities and future enhancements across all packages.
+## 🎯 장기 목표
 
-## 🎯 Current Status (Q2 2025)
+- Tailwind CSS 95%+ 호환, <100ms 변환 성능, 90%+ 테스트 커버리지
+- AST 기반 엔진/파서/런타임/테스트/문서화/릴리즈 체계 완성
+- 마이그레이션/확장성/성능/품질/문서화/커뮤니티 기반 강화
 
-### ✅ Completed Features
-- **cssma Core**: Bidirectional CSS ↔ Figma conversion
-- **cssma-react**: React hooks and components
-- **cssma-plugin**: Figma plugin with real-time conversion
-- **figmai-landing**: Marketing website
-- **Class-names Parser System**: 16 specialized parsers
-- **CSS Converter System**: Full CSS generation capability
-- **Runtime Optimization**: 36% CSS size reduction
+## 🚀 단계별 우선순위
 
-## 🚀 Development Phases
+### 1. Animation System
+- CSS animation/transition 파서/컨버터/테스트/문서화
 
-### Phase 1: Core Stability & Performance (Q1-Q2 2025) ✅
-**Status: Completed**
+### 2. 런타임 StyleRuntime 고도화
+- MutationObserver, scan 옵션, 브라우저/Node 호환성
 
-#### cssma Package
-- [x] Complete class-names parser system (16 parsers)
-- [x] CSS converter with property mapping
-- [x] Figma variable support
-- [x] Runtime optimization system
-- [x] Comprehensive test coverage (600+ tests)
+### 3. 엔진/파서/테스트 통합 QA
+- decl-only wrapping, selector flattening 등 edge case
 
-#### cssma-react Package  
-- [x] useCssma hook
-- [x] useCssmaMultiple hook (array & object support)
-- [x] useCssmaRuntime hook
-- [x] NodeRenderer component with cssOptions
+### 4. 문서화/마이그레이션/릴리즈
+- v3→v4 마이그레이션, CHANGELOG, QA, 릴리즈 자동화
 
-### Phase 2: Advanced Features & Integrations (Q3 2025) 🔄
-**Status: In Progress**
+## 📊 성공지표
 
-#### cssma Package Enhancements
-- [ ] **Animation System**
-  - [ ] CSS animations to Figma transitions
-  - [ ] Keyframe animation support
-  - [ ] Easing function mapping
-  - [ ] Timeline-based animations
+- 변환 성능 < 100ms
+- 95%+ Tailwind CSS 호환
+- 90%+ 코드 커버리지
+- 주요 브라우저/Node 호환성
+- 커뮤니티/기여 활성화
 
-- [ ] **Advanced Layout Systems**
-  - [ ] CSS Grid advanced features
-  - [ ] Container queries support
-  - [ ] Subgrid implementation
-  - [ ] Flexbox gap improvements
+## 🔄 관리/업데이트
 
-- [ ] **Design Token Integration**
-  - [ ] Design tokens JSON import/export
-  - [ ] Token validation system
-  - [ ] Multi-brand token support
-  - [ ] Token documentation generator
-
-#### cssma-react Package Enhancements
-- [ ] **Component Library**
-  - [ ] Pre-built design system components
-  - [ ] Theme provider integration
-  - [ ] Dark mode support
-  - [ ] Responsive component variants
-
-- [ ] **Developer Tools**
-  - [ ] React DevTools integration
-  - [ ] Style debugging tools
-  - [ ] Performance monitoring
-  - [ ] Hot reload optimization
-
-### Phase 3: Plugin & Tooling Excellence (Q3-Q4 2025) 📋
-**Status: Planning**
-
-#### cssma-plugin Enhancements
-- [ ] **AI-Powered Features**
-  - [ ] Smart style suggestions
-  - [ ] Design pattern recognition
-  - [ ] Accessibility recommendations
-  - [ ] Code quality analysis
-
-- [ ] **Collaboration Features**
-  - [ ] Team style libraries
-  - [ ] Version control integration
-  - [ ] Comment and review system
-  - [ ] Real-time collaboration
-
-- [ ] **Advanced Export Options**
-  - [ ] Multiple framework support (Vue, Angular, Svelte)
-  - [ ] Component library generation
-  - [ ] Storybook integration
-  - [ ] Design system documentation
-
-#### figmai-landing Enhancements
-- [ ] **Interactive Demos**
-  - [ ] Live code playground
-  - [ ] Interactive tutorials
-  - [ ] Feature showcase
-  - [ ] Performance benchmarks
-
-- [ ] **Community Features**
-  - [ ] User showcase gallery
-  - [ ] Template marketplace
-  - [ ] Community plugins
-  - [ ] Success stories
-
-### Phase 4: Ecosystem & Enterprise (Q4 2025-Q1 2026) 🏢
-**Status: Future Planning**
-
-#### Enterprise Features
-- [ ] **Enterprise Plugin**
-  - [ ] SSO integration
-  - [ ] Advanced permissions
-  - [ ] Audit logging
-  - [ ] Custom branding
-
-- [ ] **API & Integrations**
-  - [ ] REST API for automation
-  - [ ] Webhook support
-  - [ ] CI/CD integrations
-  - [ ] Third-party tool connectors
-
-#### New Packages
-- [ ] **cssma-cli**
-  - [ ] Command-line interface
-  - [ ] Batch processing
-  - [ ] Build tool integration
-  - [ ] Migration utilities
-
-- [ ] **cssma-vscode**
-  - [ ] VS Code extension
-  - [ ] IntelliSense support
-  - [ ] Live preview
-  - [ ] Debugging tools
-
-## 📊 Priority Matrix
-
-### High Priority (Next 3 months)
-1. **Animation System** - High demand feature
-2. **Component Library** - Developer productivity
-3. **AI-Powered Features** - Competitive advantage
-4. **Performance Optimization** - User experience
-
-### Medium Priority (3-6 months)
-1. **Design Token Integration** - Enterprise readiness
-2. **Advanced Export Options** - Market expansion
-3. **Collaboration Features** - Team workflows
-4. **CLI Tools** - Developer tooling
-
-### Low Priority (6+ months)
-1. **Enterprise Features** - Specific market segment
-2. **VS Code Extension** - Nice-to-have
-3. **API Integrations** - Advanced use cases
-4. **Community Marketplace** - Long-term growth
-
-## 🎯 Success Metrics
-
-### Technical Metrics
-- **Performance**: <100ms conversion time
-- **Coverage**: 95%+ Tailwind CSS support
-- **Quality**: <1% bug rate in production
-- **Compatibility**: Support for Figma API updates within 1 week
-
-### Business Metrics
-- **Adoption**: 10K+ plugin installs
-- **Engagement**: 70%+ monthly active users
-- **Satisfaction**: 4.5+ star rating
-- **Community**: 1K+ GitHub stars
-
-## 🛠️ Technical Debt & Maintenance
-
-### Ongoing Maintenance
-- [ ] **Dependency Updates**
-  - [ ] Regular security updates
-  - [ ] Performance improvements
-  - [ ] API compatibility
-
-- [ ] **Code Quality**
-  - [ ] Refactoring legacy code
-  - [ ] Improving test coverage
-  - [ ] Documentation updates
-  - [ ] Performance profiling
-
-### Infrastructure
-- [ ] **CI/CD Improvements**
-  - [ ] Automated testing pipeline
-  - [ ] Performance regression testing
-  - [ ] Security scanning
-  - [ ] Deployment automation
-
-## 🤝 Community & Contributions
-
-### Open Source Strategy
-- [ ] **Contributor Onboarding**
-  - [ ] Contribution guidelines
-  - [ ] Good first issues
-  - [ ] Mentorship program
-  - [ ] Recognition system
-
-- [ ] **Community Building**
-  - [ ] Discord/Slack community
-  - [ ] Regular office hours
-  - [ ] Community challenges
-  - [ ] User feedback sessions
-
-## 📅 Timeline Summary
-
-```mermaid
-gantt
-    title FigmaikR Development Timeline
-    dateFormat  YYYY-MM-DD
-    section Phase 1
-    Core Stability     :done, p1, 2025-01-01, 2025-06-30
-    section Phase 2
-    Advanced Features  :active, p2, 2025-07-01, 2025-09-30
-    section Phase 3
-    Plugin Excellence  :p3, 2025-10-01, 2025-12-31
-    section Phase 4
-    Enterprise         :p4, 2026-01-01, 2026-03-31
-```
-
-## 🔄 Review & Updates
-
-This roadmap is reviewed and updated monthly based on:
-- User feedback and feature requests
-- Market trends and competitive analysis
-- Technical feasibility assessments
-- Resource availability and team capacity
-
-**Last Updated**: June 2025  
-**Next Review**: July 2025
+- 구체적 일정/세부 작업/체크리스트/리스크 등은 CHECKLIST.md, NEXT-ACTIONS.md, TODOS.md에서 관리
+- 로드맵은 월 1회 이상 업데이트
 
 ---
 
-*This roadmap is a living document and subject to change based on user needs, technical constraints, and business priorities.* 
+**이 문서는 cssma-v4 단일 패키지 기준의 장기 개발 로드맵/우선순위/성공지표를 안내합니다.  
+구체적 일정/세부 작업/체크리스트 등은 각 문서를 참고하세요.** 

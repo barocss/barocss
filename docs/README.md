@@ -1,196 +1,36 @@
-# FigmaikR Documentation 📚
+# cssma-v4 Documentation 📚
 
-Welcome to the FigmaikR project documentation. This directory contains comprehensive planning, development guides, and technical specifications for the entire FigmaikR ecosystem.
+cssma-v4 프로젝트의 모든 개발/운영/릴리즈/기여 문서는 이 디렉토리에서 관리됩니다.
 
-## 📋 Planning & Development
+## 📋 핵심 문서 인덱스
 
-### 🗺️ [Development Roadmap](./ROADMAP.md)
-**Complete project roadmap with phases, priorities, and timeline**
-- Current status and completed features
-- 4-phase development plan (Q1-Q4 2024)
-- Priority matrix and success metrics
-- Technical debt and maintenance planning
-- Community and contribution strategy
+- [ROADMAP.md](./ROADMAP.md) — 장기 개발 로드맵, 단계별 목표, 우선순위
+- [CHECKLIST.md](./CHECKLIST.md) — 개발/QA/릴리즈 체크리스트
+- [NEXT-ACTIONS.md](./NEXT-ACTIONS.md) — 실전 우선순위/액션 플랜
+- [HOW-TO-PROCEED.md](./HOW-TO-PROCEED.md) — 실전 개발/릴리즈/협업 가이드
+- [RELEASE-PLAN.md](./RELEASE-PLAN.md) — 릴리즈 전략/일정/QA/롤백
+- [TODOS.md](./TODOS.md) — 구체적 개발 TODO/이슈/세부 작업
 
-### ✅ [Development Checklist](./CHECKLIST.md)
-**Detailed checklists for each package and development phase**
-- Package-specific progress tracking
-- Phase-based development checklists
-- Quality assurance requirements
-- Success metrics and review processes
-- Weekly and monthly review templates
+## 🛠️ 개발/운영 안내
 
-### 🎯 [Next Actions](./NEXT-ACTIONS.md)
-**Immediate action items and quarterly sprint planning**
-- High-priority tasks with timelines
-- Specific implementation details
-- Monthly breakdown for Q3 2025
-- Risk mitigation strategies
-- Success criteria and metrics
+- 개발 환경 준비, 브랜치 전략, 구현/테스트/문서화/릴리즈/협업 등은 HOW-TO-PROCEED.md 참고
+- 세부 작업/우선순위/성공지표/리스크 등은 CHECKLIST.md, ROADMAP.md, NEXT-ACTIONS.md, TODOS.md에서 관리
+- 릴리즈/QA/마이그레이션 등은 RELEASE-PLAN.md 참고
 
-### 🚀 [Release Plan](./RELEASE-PLAN.md)
-**Comprehensive release strategy and versioning**
-- Release timeline with specific dates
-- Version progression (v0.2.0 → v1.0.0)
-- Alpha/Beta release cycles
-- Release criteria and quality gates
-- Risk management and rollback plans
+## 🗂️ 기타
 
-### 📋 [How to Proceed](./HOW-TO-PROCEED.md)
-**Step-by-step execution guide for immediate next steps**
-- Daily action items for first week
-- Development environment setup
-- Technical implementation steps
-- Progress tracking methods
-- Success metrics and checkpoints
-
-## 📦 Package Documentation
-
-### Core Packages
-- **[cssma](../packages/cssma/README.md)** - Core CSS ↔ Figma conversion library
-- **[cssma-react](../packages/cssma-react/README.md)** - React hooks and components
-- **[cssma-generators](../packages/cssma-generators/README.md)** - Code generation utilities
-
-### Applications
-- **[cssma-plugin](../apps/cssma-plugin/README.md)** - Figma plugin application
-- **[figmai-landing](../apps/figmai-landing/README.md)** - Marketing website
-
-## 🔧 Technical Specifications
-
-### 📖 [CSS/Tailwind to Figma Specification](./specs/cssma-react.md)
-Detailed technical specification for the cssma-react package including:
-- Hook APIs and usage patterns
-- Component architecture
-- Runtime optimization system
-- Performance benchmarks
-
-### 🚀 [Dynamic Conversion System](./specs/dynamic-conversion.md)
-Comprehensive guide to the dynamic CSS conversion system:
-- Runtime optimization techniques
-- Smart filtering algorithms
-- Performance improvements (36% CSS reduction)
-- Integration patterns
-
-## 🎯 Current Focus Areas
-
-### Phase 2: Advanced Features (Q3 2025)
-We are currently in Phase 2 of development, focusing on:
-
-1. **Animation System** - CSS animations to Figma transitions
-2. **Component Library** - Pre-built React components with theme support
-3. **AI Integration** - Smart suggestions and accessibility analysis
-4. **Performance Optimization** - Enhanced runtime performance
-
-### Immediate Priorities (July-September 2025)
-- ⚡ **cssma Animation System**: Implement CSS animation parsing and conversion
-- 🎨 **cssma-react Components**: Build foundation component library
-- 🤖 **AI-Powered Plugin**: Integrate Anthropic Claude for smart suggestions
-
-## 📊 Project Status
-
-### ✅ Completed (Phase 1)
-- Complete class-names parser system (16 parsers)
-- CSS converter with comprehensive property mapping
-- React hooks and runtime optimization
-- Figma plugin with real-time conversion
-- 600+ test cases with 90%+ coverage
-
-### 🔄 In Progress (Phase 2)
-- Animation system implementation
-- Component library foundation
-- AI service integration
-- Advanced export features
-
-### 📋 Planned (Phase 3-4)
-- Enterprise features and collaboration tools
-- CLI tools and VS Code extension
-- Community marketplace and templates
-- Advanced integrations and APIs
-
-## 🚀 Quick Start for Contributors
-
-### 1. Review Planning Documents
-```bash
-# Read the roadmap to understand overall direction
-docs/ROADMAP.md
-
-# Check current priorities and tasks
-docs/NEXT-ACTIONS.md
-
-# Use checklists to track progress
-docs/CHECKLIST.md
-```
-
-### 2. Set Up Development Environment
-```bash
-# Install dependencies
-pnpm install
-
-# Start development mode
-pnpm dev
-
-# Run tests
-pnpm test
-```
-
-### 3. Choose Your Focus Area
-- **Core Library**: Work on cssma package features
-- **React Integration**: Enhance cssma-react components
-- **Plugin Development**: Improve Figma plugin experience
-- **Documentation**: Help with guides and examples
-
-## 📈 Success Metrics
-
-### Technical Goals
-- **Performance**: <100ms conversion time
-- **Coverage**: 95%+ Tailwind CSS support
-- **Quality**: <1% bug rate in production
-- **Testing**: 90%+ code coverage
-
-### Business Goals
-- **Adoption**: 10K+ plugin installs
-- **Engagement**: 70%+ monthly active users
-- **Satisfaction**: 4.5+ star rating
-- **Community**: 1K+ GitHub stars
-
-## 🤝 Contributing
-
-### Development Workflow
-1. **Check Current Priorities**: Review [Next Actions](./NEXT-ACTIONS.md)
-2. **Pick a Task**: Choose from high-priority items
-3. **Follow Checklists**: Use [Development Checklist](./CHECKLIST.md)
-4. **Submit PR**: Follow our [Contributing Guide](../CONTRIBUTING.md)
-
-### Documentation Updates
-- Update checklists when completing tasks
-- Add new features to roadmap
-- Keep next actions current
-- Document lessons learned
-
-## 🔗 External Links
-
-- **[Main Repository](https://github.com/easylogic/figmaikr)**
-- **[NPM Package](https://www.npmjs.com/package/cssma)**
-- **[Figma Plugin](https://www.figma.com/community/plugin/cssma)**
-- **[Project Discussions](https://github.com/easylogic/figmaikr/discussions)**
-
-## 📅 Review Schedule
-
-### Weekly Reviews (Fridays)
-- Progress against next actions
-- Blocker identification and resolution
-- Priority adjustments
-- Next week planning
-
-### Monthly Reviews (Last Friday)
-- Roadmap progress assessment
-- Success metrics evaluation
-- Stakeholder feedback integration
-- Next month priority setting
+- 프로젝트/문서 관련 문의/기여는 Discussions 또는 이슈로 남겨주세요.
+- 최신 개발/운영 현황은 각 문서의 “Last Updated” 항목 참고
 
 ---
 
-**Last Updated**: June 2025  
-**Next Review**: Weekly (every Friday)
+## 📑 주요 규칙(Rule) 문서
 
-*This documentation is actively maintained and reflects the current state of FigmaikR development. For questions or suggestions, please open a discussion or issue in the main repository.* 
+- [cssma 변환 규칙 및 스타일 시스템 가이드](../.cursor/rules/cssma-rule.mdc)
+- [FigmaikR Professional Multi-Issue Release Workflow](../.cursor/rules/figmaikr-professional-workflow.mdc)
+- [FigmaikR 프로젝트 관리 가이드](../.cursor/rules/project-management.mdc)
+
+---
+
+**이 디렉토리는 cssma-v4 단일 패키지 기준의 공식 문서 인덱스입니다.  
+구체적 구현/테스트/릴리즈/기여/성공지표 등은 각 문서를 참고하세요.** 

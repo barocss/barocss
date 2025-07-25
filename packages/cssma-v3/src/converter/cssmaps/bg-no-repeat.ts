@@ -1,1 +1,0 @@
-export const bgNoRepeat = () => ({ backgroundRepeat: "no-repeat" }); 
