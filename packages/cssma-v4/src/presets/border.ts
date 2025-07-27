@@ -7,13 +7,13 @@ import { parseNumber, parseLength, parseColor } from "../core/utils";
 
 // Static border radius utilities
 staticUtility("rounded-none", [["border-radius", "0px"]]);
-staticUtility("rounded-sm", [["border-radius", "var(--border-radius-sm)"]]);
-staticUtility("rounded", [["border-radius", "var(--border-radius)"]]);
-staticUtility("rounded-md", [["border-radius", "var(--border-radius-md)"]]);
-staticUtility("rounded-lg", [["border-radius", "var(--border-radius-lg)"]]);
-staticUtility("rounded-xl", [["border-radius", "var(--border-radius-xl)"]]);
-staticUtility("rounded-2xl", [["border-radius", "var(--border-radius-2xl)"]]);
-staticUtility("rounded-3xl", [["border-radius", "var(--border-radius-3xl)"]]);
+staticUtility("rounded-sm", [["border-radius", "var(--radius-sm)"]]);
+staticUtility("rounded", [["border-radius", "var(--radius)"]]);
+staticUtility("rounded-md", [["border-radius", "var(--radius-md)"]]);
+staticUtility("rounded-lg", [["border-radius", "var(--radius-lg)"]]);
+staticUtility("rounded-xl", [["border-radius", "var(--radius-xl)"]]);
+staticUtility("rounded-2xl", [["border-radius", "var(--radius-2xl)"]]);
+staticUtility("rounded-3xl", [["border-radius", "var(--radius-3xl)"]]);
 staticUtility("rounded-full", [["border-radius", "9999px"]]);
 
 
@@ -31,13 +31,13 @@ staticUtility("rounded-full", [["border-radius", "9999px"]]);
   const propList = props as string[];
   // Static utilities
   staticUtility(`${name}-none`, propList.map(prop => [prop, "0px"]));
-  staticUtility(`${name}-sm`, propList.map(prop => [prop, "var(--border-radius-sm)"]));
-  staticUtility(`${name}`, propList.map(prop => [prop, "var(--border-radius)"]));
-  staticUtility(`${name}-md`, propList.map(prop => [prop, "var(--border-radius-md)"]));
-  staticUtility(`${name}-lg`, propList.map(prop => [prop, "var(--border-radius-lg)"]));
-  staticUtility(`${name}-xl`, propList.map(prop => [prop, "var(--border-radius-xl)"]));
-  staticUtility(`${name}-2xl`, propList.map(prop => [prop, "var(--border-radius-2xl)"]));
-  staticUtility(`${name}-3xl`, propList.map(prop => [prop, "var(--border-radius-3xl)"]));
+  staticUtility(`${name}-sm`, propList.map(prop => [prop, "var(--radius-sm)"]));
+  staticUtility(`${name}`, propList.map(prop => [prop, "var(--radius)"]));
+  staticUtility(`${name}-md`, propList.map(prop => [prop, "var(--radius-md)"]));
+  staticUtility(`${name}-lg`, propList.map(prop => [prop, "var(--radius-lg)"]));
+  staticUtility(`${name}-xl`, propList.map(prop => [prop, "var(--radius-xl)"]));
+  staticUtility(`${name}-2xl`, propList.map(prop => [prop, "var(--radius-2xl)"]));
+  staticUtility(`${name}-3xl`, propList.map(prop => [prop, "var(--radius-3xl)"]));
   staticUtility(`${name}-full`, propList.map(prop => [prop, "9999px"]));
 
   // Functional utility

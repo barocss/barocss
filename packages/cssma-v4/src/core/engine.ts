@@ -107,6 +107,30 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
   const sortedVariants = [...variants].sort(
     (a, b) => getPriority(a.type!) - getPriority(b.type!)
   );
+
+  // decl 에 기본 rule 처리 추가
+  // 1. 처음 요소가 decl 이면 rule('&', [decl]) 추가
+  // 2. rule 이 & 를 가지지 않는데 하위가 decl 이면 현재 rule 에 , rule('&', [decl]) 추가
+  if (sortedVariants.length === 0) {
+    sortedVariants.push({
+      type: "rule",
+      selector: "&",
+      source: "base",
+    });
+  } else {
+    const last = sortedVariants[sortedVariants.length - 1];
+    if (
+      last.type !== "rule" ||
+      (last.type === "rule" && last.selector?.includes("&") === false)
+    ) {
+      sortedVariants.push({
+        type: "rule",
+        selector: "&",
+        source: "base",
+      });
+    }
+  }
+
   const mergedVariants: typeof sortedVariants = [];
   for (const v of sortedVariants) {
     if (mergedVariants.length === 0) {
@@ -457,14 +481,6 @@ export function optimizeAst(ast: AstNode[]): AstNode[] {
   const declPaths = collectDeclPaths(ast);
   const astList = declPaths.map(declPathToAst);
   const merged = mergeAstTreeList(astList);
-
-  merged.map((node) => {
-    if (node.type === 'decl' ) {
-      return rule('&', [node]);
-    }
-
-    return node;
-  });
 
   return merged;
 }

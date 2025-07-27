@@ -23,45 +23,45 @@ describe("border utilities", () => {
         {
           type: "decl",
           prop: "border-radius",
-          value: "var(--border-radius-sm)",
+          value: "var(--radius-sm)",
         },
       ]);
       expect(parseClassToAst("rounded", ctx)).toEqual([
-        { type: "decl", prop: "border-radius", value: "var(--border-radius)" },
+        { type: "decl", prop: "border-radius", value: "var(--radius)" },
       ]);
       expect(parseClassToAst("rounded-md", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
-          value: "var(--border-radius-md)",
+          value: "var(--radius-md)",
         },
       ]);
       expect(parseClassToAst("rounded-lg", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
-          value: "var(--border-radius-lg)",
+          value: "var(--radius-lg)",
         },
       ]);
       expect(parseClassToAst("rounded-xl", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
-          value: "var(--border-radius-xl)",
+          value: "var(--radius-xl)",
         },
       ]);
       expect(parseClassToAst("rounded-2xl", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
-          value: "var(--border-radius-2xl)",
+          value: "var(--radius-2xl)",
         },
       ]);
       expect(parseClassToAst("rounded-3xl", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-radius",
-          value: "var(--border-radius-3xl)",
+          value: "var(--radius-3xl)",
         },
       ]);
       expect(parseClassToAst("rounded-full", ctx)).toEqual([
@@ -90,31 +90,31 @@ describe("border utilities", () => {
         {
           type: "decl",
           prop: "border-top-left-radius",
-          value: "var(--border-radius-lg)",
+          value: "var(--radius-lg)",
         },
         {
           type: "decl",
           prop: "border-top-right-radius",
-          value: "var(--border-radius-lg)",
+          value: "var(--radius-lg)",
         },
       ]);
       expect(parseClassToAst("rounded-r-md", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-top-right-radius",
-          value: "var(--border-radius-md)",
+          value: "var(--radius-md)",
         },
         {
           type: "decl",
           prop: "border-bottom-right-radius",
-          value: "var(--border-radius-md)",
+          value: "var(--radius-md)",
         },
       ]);
       expect(parseClassToAst("rounded-tl-sm", ctx)).toEqual([
         {
           type: "decl",
           prop: "border-top-left-radius",
-          value: "var(--border-radius-sm)",
+          value: "var(--radius-sm)",
         },
       ]);
       expect(parseClassToAst("rounded-br-full", ctx)).toEqual([

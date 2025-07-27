@@ -9,6 +9,26 @@ const ctx = createContext({
 });
 
 describe("optimizeAst ", () => {
+
+  it("decl 에 기본 rule 처리 추가", () => {
+    let ast = parseClassToAst("bg-red-500", ctx);
+    if (ast === undefined) {
+      ast = [];
+    }
+    const cleanAst = optimizeAst(ast);
+    const expected = [
+      {
+        type: "rule",
+        selector: "&",
+        nodes: [
+          { type: "decl", prop: "background-color", value: "oklch(63.7% 0.237 25.331)" }
+        ]
+      }
+    ];
+    expect(cleanAst).toMatchObject(expected);
+  });
+
+
   it("단일 variant chain: sm:hover:bg-red-500", () => {
     let ast = parseClassToAst("sm:hover:bg-red-500", ctx);
     if (ast === undefined) {
@@ -170,7 +190,13 @@ describe("optimizeAst ", () => {
         name: "media",
         params: "(prefers-color-scheme: dark)",
         nodes: [
-          { type: "decl", prop: "background-color", value: "green" },
+          {
+            type: "rule",
+            selector: "&",
+            nodes: [
+              { type: "decl", prop: "background-color", value: "green" }
+            ]
+          }
         ]
       },
       {
@@ -183,7 +209,13 @@ describe("optimizeAst ", () => {
                 name: "media",
                 params: "(prefers-color-scheme: dark)",
                 nodes: [
-                    { type: "decl", prop: "background-color", value: "yellow" }
+                  {
+                    type: "rule",
+                    selector: "&",
+                    nodes: [
+                      { type: "decl", prop: "background-color", value: "yellow" }
+                    ]
+                  }
                 ]
             }
         ]

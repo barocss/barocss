@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { AstNode, atRule, decl } from "../core/ast";
+import { AstNode, atRule, decl, rule } from "../core/ast";
 import { parseColor, parseLength, parseNumber } from "../core/utils";
 
 // --- Background Attachment ---
@@ -81,13 +81,18 @@ functionalUtility({
 // --- Background Gradients: Linear ---
 const positionValue = (position: string) => {
   return [
-    decl(
+    rule("&", [
+      decl(
       "background-image",
       `linear-gradient(${position}, var(--tw-gradient-stops))`
-    ),
-    decl("--tw-gradient-position", position),
+    )]),
+    rule("&", [
+      decl("--tw-gradient-position", position),
+    ]),
     atRule("supports", "(background-image:linear-gradient(in lab, red, red)", [
-      decl("--tw-gradient-position", `${position} in oklab`),
+      rule("&", [
+        decl("--tw-gradient-position", `${position} in oklab`),
+      ]),
     ]),
   ];
 };

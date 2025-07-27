@@ -23,7 +23,7 @@
 
 ## 5. Release QA
 - [ ] 모든 테스트 통과
-- [ ] TypeScript strict mode
+  - [ ] TypeScript strict mode
 - [ ] 번들 사이즈/성능 측정
 - [ ] CHANGELOG/릴리즈 노트 작성
 
