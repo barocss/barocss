@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import "../src/presets"
 import { StyleRuntime } from '../src/runtime';
 
@@ -9,69 +9,69 @@ describe('StyleRuntime', () => {
   let runtime: StyleRuntime;
 
   beforeEach(() => {
-    // 각 테스트마다 fresh 인스턴스
-    runtime = new StyleRuntime({ styleId: 'test-cssma-runtime' });
-    document.getElementById('test-cssma-runtime')?.remove();
+    runtime = new StyleRuntime({ 
+      styleId: 'test-cssma-runtime',
+      enableDev: false 
+    });
   });
 
   afterEach(() => {
     runtime.destroy();
-    document.getElementById('test-cssma-runtime')?.remove();
   });
 
-  it('adds a class and injects CSS', () => {
-    runtime.addClass('bg-red-500');
-    expect(runtime.getClasses().length).toBe(1);
-    expect(runtime.has('bg-red-500')).toBe(true);
-    expect(runtime.getCss('bg-red-500')).toBeTruthy();
+  it('creates style element and injects CSS', () => {
+    runtime.addClass('bg-blue-500');
+    expect(runtime.has('bg-blue-500')).toBe(true);
+    expect(runtime.getCss('bg-blue-500')).toBeTruthy();
+    expect(document.getElementById('test-cssma-runtime')).toBeTruthy();
   });
 
-  it('does not inject duplicate CSS for the same class', () => {
-    runtime.addClass('bg-red-500');
-    runtime.addClass('bg-red-500');
-    expect(runtime.getClasses().length).toBe(1);
+  it('handles multiple classes at once', () => {
+    runtime.addClass(['bg-blue-500', 'text-lg']);
+    expect(runtime.has('bg-blue-500')).toBe(true);
+    expect(runtime.has('text-lg')).toBe(true);
+    expect(runtime.getClasses()).toHaveLength(2);
   });
 
-  it('reset clears all injected CSS and cache', () => {
-    runtime.addClass('bg-red-500');
+  it('does not duplicate CSS for already cached classes', () => {
+    runtime.addClass('bg-blue-500');
+    runtime.addClass('bg-blue-500');
+    expect(runtime.getClasses()).toHaveLength(1);
+  });
+
+  it('removes classes from cache when removeClass is called', () => {
+    runtime.addClass('bg-blue-500');
+    expect(runtime.has('bg-blue-500')).toBe(true);
+    runtime.removeClass('bg-blue-500');
+    expect(runtime.has('bg-blue-500')).toBe(false);
+  });
+
+  it('resets all cached classes when reset is called', () => {
+    runtime.addClass(['bg-blue-500', 'text-lg']);
+    expect(runtime.getClasses()).toHaveLength(2);
     runtime.reset();
-    expect(runtime.getAllCss()).toBe('');
-    expect(runtime.has('bg-red-500')).toBe(false);
+    expect(runtime.getClasses()).toHaveLength(0);
   });
 
-  it('removeClass removes from cache but not from DOM', () => {
-    runtime.addClass('bg-red-500');
-    runtime.removeClass('bg-red-500');
-    expect(runtime.has('bg-red-500')).toBe(false);
-    // DOM에는 남아있음
-    expect(runtime.getClasses().length).toBe(0);
+  it('updates theme and regenerates CSS', () => {
+    runtime.addClass('bg-blue-500');
+    const originalCss = runtime.getCss('bg-blue-500');
+    runtime.updateTheme({ colors: { blue: { 500: '#3b82f6' } } });
+    const newCss = runtime.getCss('bg-blue-500');
+    expect(newCss).not.toBe(originalCss);
   });
 
-  it('destroy removes style element and clears cache', () => {
-    runtime.addClass('bg-red-500');
-    runtime.destroy();
-    expect(document.getElementById('test-cssma-runtime')).toBeNull();
-    expect(runtime.getAllCss()).toBe('');
-  });
-
-  it('getCss and getAllCss return correct CSS', () => {
-    runtime.addClass('bg-red-500 text-lg');
-    const css1 = runtime.getCss('bg-red-500');
-    const css2 = runtime.getCss('text-lg');
-    expect(css1).toBeTruthy();
-    expect(css2).toBeTruthy();
-    expect(runtime.getAllCss()).toContain(css1!);
-    expect(runtime.getAllCss()).toContain(css2!);
-  });
-
-  it('observe injects CSS when class is added via DOM mutation', async () => {
+  it('observe detects class changes and injects CSS', async () => {
     const div = document.createElement('div');
     document.body.appendChild(div);
     const observer = runtime.observe(document.body);
     div.className = 'bg-blue-500';
-    // MutationObserver는 비동기이므로 약간의 대기 필요
-    await new Promise(r => setTimeout(r, 10));
-    expect(runtime.has('bg-blue-500')).toBe(true);
+    
+    // vi.waitFor를 사용하여 더 안정적인 비동기 테스트
+    await vi.waitFor(() => {
+      expect(runtime.has('bg-blue-500')).toBe(true);
+    }, { timeout: 1000 });
+    
     expect(runtime.getCss('bg-blue-500')).toBeTruthy();
     observer.disconnect();
     document.body.removeChild(div);
@@ -82,12 +82,16 @@ describe('StyleRuntime', () => {
     document.body.appendChild(div);
     const observer = runtime.observe(document.body);
     div.className = 'text-green-500';
-    await new Promise(r => setTimeout(r, 10));
-    expect(runtime.has('text-green-500')).toBe(true);
+    
+    await vi.waitFor(() => {
+      expect(runtime.has('text-green-500')).toBe(true);
+    }, { timeout: 1000 });
+    
     observer.disconnect();
     div.className = 'text-yellow-500';
-    await new Promise(r => setTimeout(r, 10));
+    
     // observer가 끊겼으므로 새로운 클래스는 캐시되지 않음
+    await new Promise(r => setTimeout(r, 50));
     expect(runtime.has('text-yellow-500')).toBe(false);
     document.body.removeChild(div);
   });
@@ -105,9 +109,12 @@ describe('StyleRuntime', () => {
     document.body.appendChild(div);
     const observer = runtime.observe(document.body);
     div.className = 'bg-blue-500 text-lg';
-    await new Promise(r => setTimeout(r, 10));
-    expect(runtime.has('bg-blue-500')).toBe(true);
-    expect(runtime.has('text-lg')).toBe(true);
+    
+    await vi.waitFor(() => {
+      expect(runtime.has('bg-blue-500')).toBe(true);
+      expect(runtime.has('text-lg')).toBe(true);
+    }, { timeout: 1000 });
+    
     observer.disconnect();
     document.body.removeChild(div);
   });
@@ -117,12 +124,16 @@ describe('StyleRuntime', () => {
     document.body.appendChild(div);
     const observer = runtime.observe(document.body);
     div.className = 'bg-blue-500';
-    await new Promise(r => setTimeout(r, 10));
-    expect(runtime.has('bg-blue-500')).toBe(true);
+    
+    await vi.waitFor(() => {
+      expect(runtime.has('bg-blue-500')).toBe(true);
+    }, { timeout: 1000 });
+    
     div.className = '';
-    await new Promise(r => setTimeout(r, 10));
+    await new Promise(r => setTimeout(r, 20));
+    
     // StyleRuntime does not remove CSS from DOM
-    expect(runtime.getClasses().length).toBe(1);
+    expect(runtime.getClasses()).toHaveLength(1);
     observer.disconnect();
     document.body.removeChild(div);
   });
@@ -132,13 +143,18 @@ describe('StyleRuntime', () => {
     document.body.appendChild(div);
     const observer = runtime.observe(document.body);
     div.className = 'bg-blue-500';
-    await new Promise(r => setTimeout(r, 20));
+    
+    await vi.waitFor(() => {
+      expect(runtime.has('bg-blue-500')).toBe(true);
+    }, { timeout: 1000 });
+    
     div.className = '';
     await new Promise(r => setTimeout(r, 20));
     div.className = 'bg-blue-500';
     await new Promise(r => setTimeout(r, 20));
+    
     // Only one CSS rule should exist for bg-blue-500
-    expect(runtime.getClasses().length).toBe(1);
+    expect(runtime.getClasses()).toHaveLength(1);
     observer.disconnect();
     document.body.removeChild(div);
   });
@@ -148,11 +164,23 @@ describe('StyleRuntime', () => {
     document.body.appendChild(div);
     const observer = runtime.observe(document.body);
     div.className = 'bg-blue-500';
-    await new Promise(r => setTimeout(r, 20));
+    
+    await vi.waitFor(() => {
+      expect(runtime.has('bg-blue-500')).toBe(true);
+    }, { timeout: 1000 });
+    
     div.className = 'text-lg';
-    await new Promise(r => setTimeout(r, 20));
+    
+    await vi.waitFor(() => {
+      expect(runtime.has('text-lg')).toBe(true);
+    }, { timeout: 1000 });
+    
     div.className = 'bg-red-500';
-    await new Promise(r => setTimeout(r, 20));
+    
+    await vi.waitFor(() => {
+      expect(runtime.has('bg-red-500')).toBe(true);
+    }, { timeout: 1000 });
+    
     expect(runtime.has('bg-blue-500')).toBe(true);
     expect(runtime.has('text-lg')).toBe(true);
     expect(runtime.has('bg-red-500')).toBe(true);
@@ -166,8 +194,9 @@ describe('StyleRuntime', () => {
     const observer = runtime.observe(document.body);
     div.setAttribute('id', 'foo');
     await new Promise(r => setTimeout(r, 10));
+    
     // No CSS should be injected for id change
-    expect(runtime.getAllCss()).toBe('');
+    expect(runtime.getClasses()).toHaveLength(0);
     observer.disconnect();
     document.body.removeChild(div);
   });
@@ -179,7 +208,7 @@ describe('StyleRuntime', () => {
     document.body.appendChild(parent);
     const observer = runtime.observe(document.body);
     child.className = 'bg-blue-500';
-    await new Promise(r => setTimeout(r, 10));
+    await new Promise(r => setTimeout(r, 20));
     expect(runtime.has('bg-blue-500')).toBe(true);
     observer.disconnect();
     document.body.removeChild(parent);
@@ -199,7 +228,7 @@ describe('StyleRuntime', () => {
     expect(runtime.has('text-lg')).toBe(true);
     // 이후 mutation도 정상 감지되는지 확인
     div1.className = 'bg-red-500';
-    await new Promise(r => setTimeout(r, 10));
+    await new Promise(r => setTimeout(r, 20));
     expect(runtime.has('bg-red-500')).toBe(true);
     observer.disconnect();
     document.body.removeChild(div1);

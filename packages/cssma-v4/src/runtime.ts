@@ -102,19 +102,31 @@ export class StyleRuntime {
 
   /**
    * 동적으로 하나 이상의 클래스명을 받아 CSS를 생성/삽입합니다.
+   * 최적화: 배치 처리, 중복 제거, 캐시 확인
    */
   addClass(classes: string | string[]): void {
     if (typeof window === 'undefined' || this.isDestroyed) return;
     this.ensureSheet();
+    
     const classList = this.normalizeClasses(classes);
-    const newClasses = classList.filter(cls => cls && !this.cache.has(cls));
+    
+    // 중복 제거 및 캐시되지 않은 클래스만 필터링
+    const newClasses = classList.filter(cls => {
+      return cls && !this.cache.has(cls);
+    });
+    
     if (!this.sheet || newClasses.length === 0) return;
 
-    console.log('[StyleRuntime] addClass input', { classList, newClasses });
+    console.log('[StyleRuntime] addClass input', { 
+      classList, 
+      newClasses
+    });
 
-    // generateCssRules 사용
+    // 배치로 CSS 생성
     const rules = generateCssRules(newClasses.join(' '), this.context, { dedup: false });
     const cssRules: string[] = [];
+    const processedClasses: string[] = [];
+    
     for (const { cls, css } of rules) {
       if (!css) {
         console.warn('[StyleRuntime] No CSS generated for:', cls);
@@ -122,56 +134,135 @@ export class StyleRuntime {
       }
       cssRules.push(css);
       this.cache.set(cls, css);
+      processedClasses.push(cls);
       console.log('[StyleRuntime] CSS generated', { cls, css });
     }
-    this.insertRules(cssRules);
+    
+    // 배치로 CSS 삽입
+    if (cssRules.length > 0) {
+      this.insertRules(cssRules);
+      console.log('[StyleRuntime] Batch processed', { 
+        processed: processedClasses.length,
+        classes: processedClasses 
+      });
+    }
   }
 
   /**
    * DOM 내 class 속성 변화를 감지하여 자동으로 addClass를 호출하는 MutationObserver 인스턴스 메서드
+   * 최적화: 디바운싱, 중복 제거, 배치 처리
    */
-  observe(root: HTMLElement = document.body, options?: { scan?: boolean }): MutationObserver {
+  observe(root: HTMLElement = document.body, options?: { scan?: boolean; debounceMs?: number }): MutationObserver {
     console.log('[StyleRuntime] observe called', { root, options });
+    
+    // 디바운싱을 위한 타이머
+    let debounceTimer: number | null = null;
+    const debounceMs = options?.debounceMs ?? 16; // 기본 16ms (1프레임)
+    
+    // 중복 제거를 위한 Set
+    const pendingClasses = new Set<string>();
+    
+    const processPendingClasses = () => {
+      if (pendingClasses.size > 0) {
+        const classes = Array.from(pendingClasses);
+        pendingClasses.clear();
+        console.log('[StyleRuntime] observe batch processing', classes);
+        this.addClass(classes);
+      }
+    };
+    
+    const debouncedProcess = () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = window.setTimeout(() => {
+        processPendingClasses();
+        debounceTimer = null;
+      }, debounceMs);
+    };
+    
     const observer = new MutationObserver(mutations => {
-      const classNames = new Set<string>();
+      // 변경된 요소들의 클래스만 수집
+      const changedElements = new Set<HTMLElement>();
+      
       for (const mutation of mutations) {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
           const target = mutation.target as HTMLElement;
-          target.classList.forEach(cls => classNames.add(cls));
+          changedElements.add(target);
         }
+        
         // childList 변화도 감지 (새로운 노드의 class)
         if (mutation.type === 'childList') {
           mutation.addedNodes.forEach(node => {
             if (node instanceof HTMLElement) {
-              node.classList.forEach(cls => classNames.add(cls));
+              changedElements.add(node);
+              // 하위 요소들도 포함
+              node.querySelectorAll('[class]').forEach(el => {
+                changedElements.add(el as HTMLElement);
+              });
             }
           });
         }
       }
-      if (classNames.size > 0) {
-        console.log('[StyleRuntime] observe mutation classNames', Array.from(classNames));
-        this.addClass(Array.from(classNames));
+      
+      // 변경된 요소들의 클래스만 처리
+      for (const element of changedElements) {
+        if (element.classList && element.className) {
+          element.classList.forEach(cls => {
+            if (cls && !this.cache.has(cls)) {
+              pendingClasses.add(cls);
+            }
+          });
+        }
+      }
+      
+      // 디바운싱된 처리
+      if (pendingClasses.size > 0) {
+        debouncedProcess();
       }
     });
+    
     observer.observe(root, {
       attributes: true,
       subtree: true,
       attributeFilter: ['class'],
       childList: true
     });
+    
     if (options?.scan) {
+      // 초기 스캔을 배치로 처리
+      const scanClasses = new Set<string>();
+      
       // root 자신도 포함
       if (root.classList && root.className) {
         console.log('[StyleRuntime] observe scan root', root.className);
-        this.addClass(root.className);
+        root.classList.forEach(cls => {
+          if (cls && !this.cache.has(cls)) {
+            scanClasses.add(cls);
+          }
+        });
       }
-      root.querySelectorAll('[class]').forEach(el => {
+      
+      // 모든 하위 요소들을 한 번에 수집
+      const elementsWithClass = root.querySelectorAll('[class]');
+      for (const el of elementsWithClass) {
         if (el.className) {
           console.log('[StyleRuntime] observe scan el', el.className);
-          this.addClass(el.className);
+          el.classList.forEach(cls => {
+            if (cls && !this.cache.has(cls)) {
+              scanClasses.add(cls);
+            }
+          });
         }
-      });
+      }
+      
+      // 배치 처리
+      if (scanClasses.size > 0) {
+        console.log('[StyleRuntime] observe scan batch processing', Array.from(scanClasses));
+        this.addClass(Array.from(scanClasses));
+      }
     }
+    
     return observer;
   }
 
@@ -183,19 +274,37 @@ export class StyleRuntime {
 
   private insertRules(cssRules: string[]) {
     if (!this.sheet || cssRules.length === 0) return;
+    
+    const successfulRules: string[] = [];
+    const failedRules: string[] = [];
+    
+    // 배치로 규칙 삽입
     for (const css of cssRules) {
       const rules = css.split(/(?<=})\s*/).filter(Boolean);
       for (const rule of rules) {
         try {
           this.sheet.insertRule(rule.trim(), this.sheet.cssRules.length);
+          successfulRules.push(rule.trim());
           console.log('[StyleRuntime] insertRule', rule.trim());
         } catch (error) {
+          failedRules.push(rule.trim());
           if (this.options.enableDev) {
             console.warn('[StyleRuntime] Failed to insert rule:', rule, error);
           }
         }
       }
     }
+    
+    // 성공/실패 통계
+    if (this.options.enableDev) {
+      console.log('[StyleRuntime] insertRules stats', {
+        total: cssRules.length,
+        successful: successfulRules.length,
+        failed: failedRules.length,
+        failedRules
+      });
+    }
+    
     // 항상 cache의 모든 CSS를 합쳐서 textContent에 동기화
     if (this.styleEl) {
       this.styleEl.textContent = Array.from(this.cache.values()).join('\n');
