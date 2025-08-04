@@ -500,49 +500,50 @@ describe("translate utilities ", () => {
   it("translate-full → translate: 100% 100%", () => {
     expect(parseClassToAst("translate-full", ctx)).toEqual([
       {type: "at-root", nodes: [
-        {type: "at-rule", name: "@property", params: "--tw-translate-x", nodes: [
-          {type: "decl", prop: "syntax", value: `"*"`},
+        {type: "at-rule", name: "property", params: "--tw-translate-x", nodes: [
+          {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
-        {type: "at-rule", name: "@property", params: "--tw-translate-y", nodes: [
-          {type: "decl", prop: "syntax", value: `"*"`},
+        {type: "at-rule", name: "property", params: "--tw-translate-y", nodes: [
+          {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
-        {type: "at-rule", name: "@property", params: "--tw-translate-z", nodes: [
-          {type: "decl", prop: "syntax", value: `"*"`},
+        {type: "at-rule", name: "property", params: "--tw-translate-z", nodes: [
+          {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
       ]},
-      { type: "decl", "prop": "--tw-translate-x", "value": "100%"},
-      { type: "decl", "prop": "--tw-translate-y", "value": "100%"},
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y)" },
+      {type: "decl", prop: "--tw-translate-x", value: "100%"},
+      {type: "decl", prop: "--tw-translate-y", value: "100%"},
+      {type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y)"},
     ]);
   });
+
   it("-translate-full → translate: -100% -100%", () => {
     expect(parseClassToAst("-translate-full", ctx)).toEqual([
       {type: "at-root", nodes: [
-        {type: "at-rule", name: "@property", params: "--tw-translate-x", nodes: [
-          {type: "decl", prop: "syntax", value: `"*"`},
+        {type: "at-rule", name: "property", params: "--tw-translate-x", nodes: [
+          {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
-        {type: "at-rule", name: "@property", params: "--tw-translate-y", nodes: [
-          {type: "decl", prop: "syntax", value: `"*"`},
+        {type: "at-rule", name: "property", params: "--tw-translate-y", nodes: [
+          {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
-        {type: "at-rule", name: "@property", params: "--tw-translate-z", nodes: [
-          {type: "decl", prop: "syntax", value: `"*"`},
+        {type: "at-rule", name: "property", params: "--tw-translate-z", nodes: [
+          {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
       ]},
-      { type: "decl", "prop": "--tw-translate-x", "value": "-100%"},
-      { type: "decl", "prop": "--tw-translate-y", "value": "-100%"},
-      { type: "decl", "prop": "translate", "value": "var(--tw-translate-x) var(--tw-translate-y)" },
+      {type: "decl", prop: "--tw-translate-x", value: "-100%"},
+      {type: "decl", prop: "--tw-translate-y", value: "-100%"},
+      {type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y)"},
     ]);
   });
   it("translate-x-px → translate: 1px var(--tw-translate-y)", () => {

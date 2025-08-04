@@ -1,12 +1,29 @@
-import { generateCssRules } from './core/engine';
 import { createContext } from './core/context';
 import { defaultTheme } from './theme';
+import { astCache } from './utils/cache';
+import { cssCache } from './utils/cache';
+import { IncrementalParser, ChangeDetector } from './core/incremental-parser';
+import { CompressedCache, MemoryPool } from './utils/cache';
 
 export interface StyleRuntimeOptions {
   theme?: any;
   styleId?: string;
   enableDev?: boolean;
   insertionPoint?: 'head' | 'body' | HTMLElement;
+  cacheSize?: {
+    ast?: number;
+    css?: number;
+    parseResult?: number;
+  };
+  optimization?: {
+    // 기본 최적화 (항상 활성화)
+    performanceMonitoring?: boolean;
+    
+    // 고급 최적화 (선택적)
+    advancedCompression?: boolean;  // 더 강력한 압축
+    aggressiveMemoryPool?: boolean; // 더 적극적인 메모리 풀 사용
+    customCacheStrategies?: boolean; // 사용자 정의 캐시 전략
+  };
 }
 
 export class StyleRuntime {
@@ -21,15 +38,41 @@ export class StyleRuntime {
   private options: Required<StyleRuntimeOptions>;
   private isDestroyed = false;
 
+  // Optimization components
+  private incrementalParser: IncrementalParser;
+  private changeDetector: ChangeDetector;
+  private compressedCache: CompressedCache;
+  private memoryPool: MemoryPool<any>;
+
   constructor(options: StyleRuntimeOptions = {}) {
     this.options = {
       theme: options.theme || defaultTheme,
       styleId: options.styleId || 'cssma-runtime',
       enableDev: options.enableDev ?? (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'),
-      insertionPoint: options.insertionPoint || 'head'
+      insertionPoint: options.insertionPoint || 'head',
+      cacheSize: {
+        ast: options.cacheSize?.ast || 1000,
+        css: options.cacheSize?.css || 2000,
+        parseResult: options.cacheSize?.parseResult || 500
+      },
+      optimization: {
+        // 기본 최적화 (항상 활성화)
+        performanceMonitoring: options.optimization?.performanceMonitoring ?? true,
+        
+        // 고급 최적화 (선택적)
+        advancedCompression: options.optimization?.advancedCompression ?? false,
+        aggressiveMemoryPool: options.optimization?.aggressiveMemoryPool ?? false,
+        customCacheStrategies: options.optimization?.customCacheStrategies ?? false
+      }
     };
 
     this.context = createContext({ theme: this.options.theme });
+
+    // Initialize optimization components
+    this.incrementalParser = new IncrementalParser(this.context);
+    this.changeDetector = new ChangeDetector(this.incrementalParser, this);
+    this.compressedCache = new CompressedCache();
+    this.memoryPool = new MemoryPool(() => ({}), 100);
 
     if (typeof window !== 'undefined') {
       this.init();
@@ -149,51 +192,77 @@ export class StyleRuntime {
    * Optimizations: batch processing, deduplication, cache checking, common CSS caching
    */
   addClass(classes: string | string[]): void {
-    if (typeof window === 'undefined' || this.isDestroyed) return;
-    this.ensureSheet();
+    if (this.isDestroyed) return;
+
+    const isBrowser = typeof window !== 'undefined';
+    
+    if (isBrowser) {
+      this.ensureSheet();
+    }
     
     const classList = this.normalizeClasses(classes);
+    // console.log('[StyleRuntime] addClass called with:', classList);
     
-    // Filter out duplicates and classes not in cache
-    const newClasses = classList.filter(cls => {
-      return cls && !this.cache.has(cls);
-    });
+    this.processClasses(classList);
+  }
+
+  /**
+   * Process classes with performance monitoring
+   */
+  private processClasses(classList: string[]): void {
+    const isBrowser = typeof window !== 'undefined';
     
-    if (!this.sheet || newClasses.length === 0) return;
+    // 기본적으로 incremental parsing 사용 (항상 활성화)
+    // console.log('[StyleRuntime] Using incremental parsing');
+    
+    this.processClassesIncremental(classList);
+  }
 
-    console.log('[StyleRuntime] addClass input', { 
-      classList, 
-      newClasses
-    });
-
-    // Generate CSS in batch
-    const rules = generateCssRules(newClasses.join(' '), this.context, { dedup: false });
-    const rootCssRules: string[] = [];
+  /**
+   * Process classes using incremental parsing
+   */
+  private processClassesIncremental(classList: string[]): void {
+    const isBrowser = typeof window !== 'undefined';
+    
+    // Process classes immediately for testing environment
+    const results = this.incrementalParser.processClasses(classList);
+    // console.log('[StyleRuntime] Incremental parser results:', results.length);
+    
+    // Add processed results to cache and generate CSS
     const cssRules: string[] = [];
-    const processedClasses: string[] = [];
+    const rootCssRules: string[] = [];
     
-    for (const { cls, css, rootCss } of rules) {
-      if (!css) {
-        console.warn('[StyleRuntime] No CSS generated for:', cls);
-        continue;
+    for (const result of results) {
+      if (result.css) {
+        cssRules.push(result.css);
+        this.cache.set(result.className, result.css);
+        // console.log('[StyleRuntime] Added to cache:', result.className);
+        
+        // Use compressed cache if enabled
+        if (this.options.optimization.advancedCompression) {
+          this.compressedCache.setAst(result.className, result.ast);
+          this.compressedCache.setCss(result.className, result.css);
+        }
+        
+        // Use memory pool if enabled
+        if (this.options.optimization.aggressiveMemoryPool) {
+          const obj = this.memoryPool.acquire();
+          // Use the object briefly and then release it back to the pool
+          this.memoryPool.release(obj);
+        }
       }
-      cssRules.push(css);
-      rootCssRules.push(rootCss);
-      this.cache.set(cls, css);
-      processedClasses.push(cls);
-      console.log('[StyleRuntime] CSS generated', { cls, css });
     }
     
-    // Insert CSS in batch
-    if (cssRules.length > 0) {
+    // Insert CSS in batch only in browser environment
+    if (cssRules.length > 0 && isBrowser) {
       this.insertRules(cssRules);
-      console.log('[StyleRuntime] Batch processed', { 
-        processed: processedClasses.length,
-        classes: processedClasses 
-      });
+      // console.log('[StyleRuntime] Incremental processed', { 
+      //   processed: results.length,
+      //   classes: results.map(r => r.className) 
+      // });
     }
-
-    if (rootCssRules.length > 0) {
+    
+    if (rootCssRules.length > 0 && isBrowser) {
       this.insertRootRules(rootCssRules.filter(Boolean));
     }
   }
@@ -205,115 +274,8 @@ export class StyleRuntime {
   observe(root: HTMLElement = document.body, options?: { scan?: boolean; debounceMs?: number }): MutationObserver {
     console.log('[StyleRuntime] observe called', { root, options });
     
-    // Timer for debouncing
-    let debounceTimer: number | null = null;
-    const debounceMs = options?.debounceMs ?? 16; // Default 16ms (1 frame)
-    
-    // Set for deduplication
-    const pendingClasses = new Set<string>();
-    
-    const processPendingClasses = () => {
-      if (pendingClasses.size > 0) {
-        const classes = Array.from(pendingClasses);
-        pendingClasses.clear();
-        console.log('[StyleRuntime] observe batch processing', classes);
-        this.addClass(classes);
-      }
-    };
-    
-    const debouncedProcess = () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
-      debounceTimer = window.setTimeout(() => {
-        processPendingClasses();
-        debounceTimer = null;
-      }, debounceMs);
-    };
-    
-    const observer = new MutationObserver(mutations => {
-      // Collect only changed elements' classes
-      const changedElements = new Set<HTMLElement>();
-      
-      for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          const target = mutation.target as HTMLElement;
-          changedElements.add(target);
-        }
-        
-        // Detect childList changes (new nodes' classes)
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach(node => {
-            if (node instanceof HTMLElement) {
-              changedElements.add(node);
-              // Include child elements
-              node.querySelectorAll('[class]').forEach(el => {
-                changedElements.add(el as HTMLElement);
-              });
-            }
-          });
-        }
-      }
-      
-      // Process only changed elements' classes
-      for (const element of changedElements) {
-        if (element.classList && element.className) {
-          element.classList.forEach(cls => {
-            if (cls && !this.cache.has(cls)) {
-              pendingClasses.add(cls);
-            }
-          });
-        }
-      }
-      
-      // Debounced processing
-      if (pendingClasses.size > 0) {
-        debouncedProcess();
-      }
-    });
-    
-    observer.observe(root, {
-      attributes: true,
-      subtree: true,
-      attributeFilter: ['class'],
-      childList: true
-    });
-    
-    if (options?.scan) {
-      // Initial scan in batch
-      const scanClasses = new Set<string>();
-      
-      // Include root itself
-      if (root.classList && root.className) {
-        console.log('[StyleRuntime] observe scan root', root.className);
-        root.classList.forEach(cls => {
-          if (cls && !this.cache.has(cls)) {
-            scanClasses.add(cls);
-          }
-        });
-      }
-      
-      // Collect all child elements at once
-      const elementsWithClass = root.querySelectorAll('[class]');
-      for (const el of elementsWithClass) {
-        if (el.className) {
-          console.log('[StyleRuntime] observe scan el', el.className);
-          el.classList.forEach(cls => {
-            if (cls && !this.cache.has(cls)) {
-              scanClasses.add(cls);
-            }
-          });
-        }
-      }
-      
-      // Batch processing
-      if (scanClasses.size > 0) {
-        console.log('[StyleRuntime] observe scan batch processing', Array.from(scanClasses));
-        this.addClass(Array.from(scanClasses));
-      }
-    }
-    
-    return observer;
+    // ChangeDetector가 이미 MutationObserver를 생성하므로 그대로 반환
+    return this.changeDetector.observe(root, options);
   }
 
   private normalizeClasses(classes: string | string[]): string[] {
@@ -433,6 +395,54 @@ export class StyleRuntime {
     return keys;
   }
 
+  /**
+   * Get comprehensive cache statistics
+   */
+  getCacheStats() {
+    return {
+      runtime: {
+        cachedClasses: this.cache.size,
+        rootCacheSize: this.rootCache.size
+      },
+      ast: astCache.getStats(),
+      css: cssCache.getStats(),
+      incremental: this.incrementalParser.getStats(),
+      compressed: this.compressedCache.getStats(),
+      memoryPool: this.memoryPool.getStats()
+    };
+  }
+
+  /**
+   * Clear all caches (useful for debugging or memory management)
+   */
+  clearCaches(): void {
+    this.cache.clear();
+    this.rootCache.clear();
+    astCache.clear();
+    cssCache.clear();
+    this.incrementalParser.clearProcessed();
+    this.compressedCache.clear();
+    this.memoryPool.clear();
+    console.log('[StyleRuntime] All caches cleared');
+  }
+
+  /**
+   * Get optimization statistics
+   */
+  getOptimizationStats() {
+    return {
+      // 기본 최적화 (항상 활성화)
+      performanceMonitoring: this.options.optimization.performanceMonitoring,
+      
+      // 고급 최적화 (선택적)
+      advancedCompression: this.options.optimization.advancedCompression,
+      aggressiveMemoryPool: this.options.optimization.aggressiveMemoryPool,
+      customCacheStrategies: this.options.optimization.customCacheStrategies,
+      
+      stats: this.getCacheStats()
+    };
+  }
+
   reset(): void {
     if (this.styleEl) {
       this.styleEl.textContent = '';
@@ -496,7 +506,9 @@ export class StyleRuntime {
       styleElementId: this.options.styleId,
       isDestroyed: this.isDestroyed,
       cssRules: this.sheet?.cssRules.length || 0,
-      theme: this.options.theme
+      theme: this.options.theme,
+      cacheStats: this.getCacheStats(),
+      optimizationStats: this.getOptimizationStats()
     };
     console.log('[StyleRuntime] getStats', stats);
     return stats;

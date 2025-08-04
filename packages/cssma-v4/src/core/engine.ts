@@ -1,25 +1,26 @@
 import { rule, type AstNode } from "./ast";
 import { parseClassName } from "./parser";
+import { astCache } from "../utils/cache";
 import { getUtility, getModifierPlugins } from "./registry";
 import { CssmaContext } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
 
 /**
- * decl-to-root path 리스트 수집 함수 (normalizeAstOrder 등에서 재사용)
+ * decl-to-root path collection function (reused in normalizeAstOrder, etc.)
  */
 export type PathNode = Partial<AstNode>;
 export type DeclPath = PathNode[];
 
 /**
  * collectDeclPaths
- * AST 트리에서 decl(leaf)까지의 모든 경로(variant chain 포함)를 수집합니다.
- * - 입력: AST 노드 배열
- * - 출력: decl-to-root path(variant chain) 배열
- * - 용도: optimizeAst, declPathToAst 등에서 AST 최적화/병합을 위한 경로 추출에 사용
+ * Collects all paths from AST tree to decl(leaf) (including variant chains).
+ * - Input: AST node array
+ * - Output: decl-to-root path(variant chain) array
+ * - Usage: Used for path extraction for AST optimization/merging in optimizeAst, declPathToAst, etc.
  *
- * @param nodes AstNode[] - AST 트리
- * @param path PathNode[] - 재그용(초기값 생략)
- * @returns DeclPath[] - decl까지의 경로(variant chain) 배열
+ * @param nodes AstNode[] - AST tree
+ * @param path PathNode[] - Recursive use (initial value omitted)
+ * @returns DeclPath[] - Array of paths to decl (variant chains)
  */
 export function collectDeclPaths(
   nodes: AstNode[] = [],
@@ -38,7 +39,7 @@ export function collectDeclPaths(
   return result;
 }
 
-// 정렬 기준: at-rule > style-rule > rule > decl, depth 우선, sibling 순서 보장
+// Sort criteria: at-rule > style-rule > rule > decl, depth first, sibling order preserved
 function getPriority(type: string): number {
   if (type === "at-root") return -1;
   if (type === "at-rule") return 0;
@@ -51,7 +52,7 @@ const sourcePriority: Record<string, number> = {
   media: 0, // @media
   supports: 1, // @supports
   container: 2, // @container
-  responsive: 10, // sm:, md: 등
+  responsive: 10, // sm:, md: etc.
   group: 20, // .group:hover &
   peer: 30, // .peer:focus ~ &
   dark: 40, // dark:
@@ -61,7 +62,7 @@ const sourcePriority: Record<string, number> = {
   attribute: 80, // [type=...]
   pseudo: 90, // :hover, :focus
   base: 100, // &
-  starting: 110, // (루트)
+  starting: 110, // (root)
 };
 
 function getRulePriority(rule: Partial<AstNode>): number {
@@ -70,7 +71,7 @@ function getRulePriority(rule: Partial<AstNode>): number {
 
 const mergeSelectorsBySource = (source: string, nodes: Partial<AstNode>[]) => {
   if (source === "pseudo") {
-    // 안쪽→바깥 (reduce)
+    // Inside → outside (reduce)
     return nodes.reduce((acc, sel) => {
       const selector = (sel as any).selector as string;
       if (acc === "") return selector;
@@ -78,7 +79,7 @@ const mergeSelectorsBySource = (source: string, nodes: Partial<AstNode>[]) => {
       return selector + " " + acc;
     }, "");
   } else {
-    // 바깥→안쪽 (reduceRight)
+    // Outside → inside (reduceRight)
     return nodes.reduceRight((acc, sel) => {
       const selector = (sel as any).selector as string;
       if (acc === "") return selector;
@@ -90,10 +91,10 @@ const mergeSelectorsBySource = (source: string, nodes: Partial<AstNode>[]) => {
 
 /**
  * declPathToAst
- * decl-to-root path(variant chain)를 실제 중첩 AST로 변환합니다.
- * - 입력: DeclPath(variant chain)
- * - 출력: 중첩된 AstNode[]
- * - 연속된 같은 variant(동일 key)는 병합, 바깥→안쪽 순서로 중첩
+ * Converts decl-to-root path(variant chain) to actual nested AST.
+ * - Input: DeclPath(variant chain)
+ * - Output: Nested AstNode[]
+ * - Consecutive same variants (same key) are merged, nested in outside→inside order
  *
  * @param declPath DeclPath
  * @returns AstNode[]
@@ -125,7 +126,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
       (last.type == "style-rule") ||
       (last.type === "rule" && last.selector?.includes("&") === false)
     ) {
-      console.log("[declPathToAst] add rule", last);
+      // console.log("[declPathToAst] add rule", last);
       sortedVariants.push({
         type: "rule",
         selector: "&",
@@ -207,25 +208,32 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
 
 /**
  * parseClassToAst
- * className(variant chain 포함)을 파싱하여 AST 트리를 생성합니다.
- * - 입력: className(string), CssmaContext
- * - 출력: AstNode[] (variant wrapping path별로 여러 root 가능)
- * - variant wrapping 구조(데카르트 곱, 중첩, sibling 등) 완벽 지원
- * - 각 variant의 wrap/modifySelector 결과를 wrappers에 쌓고, 오른쪽→왼쪽 순서로 중첩 적용
- * - 최종적으로 여러 root ast를 반환할 수 있음
+ * Parses className(including variant chain) to generate AST tree.
+ * - Input: className(string), CssmaContext
+ * - Output: AstNode[] (multiple roots possible for variant wrapping path)
+ * - Perfectly supports variant wrapping structure (Cartesian product, nesting, siblings, etc.)
+ * - Accumulates wrappers in wrappers and applies them from right to left.
+ * - Can return multiple root asts.
  *
- * @param fullClassName string (예: 'sm:dark:hover:bg-red-500')
+ * @param fullClassName string (e.g., 'sm:dark:hover:bg-red-500')
  * @param ctx CssmaContext
  * @returns AstNode[]
  *
  * @example
  *   const ast = parseClassToAst('sm:dark:hover:bg-red-500', ctx);
- *   // ast는 sm, dark, hover variant가 중첩된 AST 트리
+ *   // ast is an AST tree with sm, dark, hover variants nested
  */
 export function parseClassToAst(
   fullClassName: string,
   ctx: CssmaContext
 ): AstNode[] {
+  // Check AST cache first
+  const cacheKey = `${fullClassName}:${JSON.stringify(ctx.theme)}`;
+  if (astCache.has(cacheKey)) {
+    // console.log('[parseClassToAst] Cache hit for', fullClassName);
+    return astCache.get(cacheKey)!;
+  }
+
   const { modifiers, utility } = parseClassName(fullClassName);
 
   if (!utility) {
@@ -293,7 +301,7 @@ export function parseClassToAst(
     }
   }
 
-  // wrappers를 N→0(오른쪽→왼쪽) 순서로 중첩
+  // Nest wrappers in N→0 (right→left) order
   for (let i = wrappers.length - 1; i >= 0; i--) {
     const wrap = wrappers[i];
 
@@ -332,18 +340,23 @@ export function parseClassToAst(
       ];
     }
   }
+
+  // Cache the result
+  astCache.set(cacheKey, ast);
+  // console.log('[parseClassToAst] Cache miss, generated AST for', fullClassName);
+
   return ast;
 }
 
 /**
  * generateCss
- * 여러 className을 받아 각각의 유틸리티 CSS를 생성합니다.
- * - 입력: classList(string), CssmaContext, 옵션
- * - 출력: string (여러 CSS 블록이 join된 결과)
- * - 내부적으로 parseClassToAst → optimizeAst → astToCss 순으로 처리
- * - dedup, minify 등 옵션 지원
+ * Takes multiple classNames and generates CSS for each, joining them.
+ * - Input: classList(string), CssmaContext, options
+ * - Output: string (result of joining multiple CSS blocks)
+ * - Processes internally parseClassToAst → optimizeAst → astToCss in sequence
+ * - Supports options like dedup, minify
  *
- * @param classList string (예: 'bg-red-500 text-lg hover:bg-blue-500')
+ * @param classList string (e.g., 'bg-red-500 text-lg hover:bg-blue-500')
  * @param ctx CssmaContext
  * @param opts { minify?: boolean, dedup?: boolean }
  * @returns string
@@ -377,7 +390,7 @@ export function generateCss(
       cleanAst.forEach((node) => {
         if (node.type === 'at-root') {
           allAtRootNodes.push(...node.nodes);
-          console.log('[generateCss] Found atRoot nodes for', cls, node.nodes);
+          // console.log('[generateCss] Found atRoot nodes for', cls, node.nodes);
         }
       });
       
@@ -431,12 +444,12 @@ export function generateCssRules(
       cleanAst.forEach((node) => {
         if (node.type === 'at-root') {
           allAtRootNodes.push(...node.nodes);
-          console.log('[generateCss] Found atRoot nodes for', cls, node.nodes);
+          // console.log('[generateCss] Found atRoot nodes for', cls, node.nodes);
         }
       });
 
       const css = astToCss(cleanAst, cls, { minify: opts?.minify });
-      console.log('[generateCssRules] css', cls);
+      // console.log('[generateCssRules] css', cls);
       const rootCss = rootToCss(allAtRootNodes);
       return { cls, ast: cleanAst, css, rootCss };
     });
@@ -444,10 +457,10 @@ export function generateCssRules(
 
 /**
  * mergeAstTreeList
- * declPathToAst 결과 리스트(AstNode[][])를 받아, 같은 at-rule(name, params) 등은 하나로 합치고 그 아래는 sibling으로 분리하는 방식으로 최종 AST 트리를 반환합니다.
- * - 입력: AstNode[][] (여러 decl-to-root path의 중첩 AST)
+ * Takes a list of declPathToAst results (AstNode[][]), merges same at-rule(name, params) etc., and returns the final AST tree.
+ * - Input: AstNode[][] (nested ASTs of multiple decl-to-root paths)
  * @returns AstNode[]
- * - 용도: optimizeAst에서 최종 AST 병합/최적화에 사용
+ * - Usage: Used in optimizeAst for final AST merging/optimization
  *
  * @param astList AstNode[][]
  * @returns AstNode[]
@@ -455,7 +468,7 @@ export function generateCssRules(
 export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
   // AstNode[][] → DeclPath[]
   const declPaths: DeclPath[] = astList.map((ast) => {
-    // declPathToAst는 항상 [rootNode] 형태
+    // declPathToAst always returns [rootNode]
     const path: AstNode[] = [];
     let node = ast[0];
     while (node) {
@@ -465,14 +478,14 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
     }
     return path;
   });
-  // 재그 병합
+  // Recursive merge
   function merge(declPaths: DeclPath[], depth = 0): AstNode[] {
     if (declPaths.length === 0) return [];
     if (declPaths[0].length === depth + 1) {
-      // 모두 decl만 남음
+      // All decls remain
       return declPaths.map((path) => path[depth]) as AstNode[];
     }
-    // 현재 depth의 variant(type+key)로 그룹핑
+    // Group by variant(type+key) at current depth
     const groupMap = new Map<string, DeclPath[]>();
     for (const path of declPaths) {
       const node = path[depth];
@@ -484,7 +497,7 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
       if (!groupMap.has(key!)) groupMap.set(key!, []);
       groupMap.get(key!)!.push(path);
     }
-    // 각 그룹별로 재그 병합
+    // Recursive merge for each group
     const result: AstNode[] = [];
     for (const [key, group] of groupMap.entries()) {
       const node = group[0][depth];
@@ -502,11 +515,11 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
 }
 /**
  * optimizeAst
- * parseClassToAst 등에서 생성된 AST를 decl-to-root path 기반으로 최적화된 AST 트리로 병합/정리합니다.
- * - 입력: AstNode[] (parseClassToAst 결과)
- * - 출력: 최적화된 AST 트리(AstNode[])
- * - 내부적으로 collectDeclPaths, declPathToAst, mergeAstTreeList를 사용
- * - variant wrapping 구조(중첩, sibling, 병합 등)를 모두 반영
+ * Merges/organizes AST generated by parseClassToAst into an optimized AST tree based on decl-to-root path.
+ * - Input: AstNode[] (result of parseClassToAst)
+ * - Output: Optimized AST tree (AstNode[])
+ * - Uses collectDeclPaths, declPathToAst, mergeAstTreeList internally
+ * - Reflects all variant wrapping structures (nesting, siblings, merging, etc.)
  *
  * @param ast AstNode[]
  * @returns AstNode[]

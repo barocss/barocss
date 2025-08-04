@@ -2,7 +2,7 @@
 
 ## Overview
 
-CSSMA v4 is a utility-first CSS framework that transforms Tailwind CSS-compatible class names into CSS AST nodes for Figma styling. The system is built around a modular architecture with clear separation of concerns, including an optimized runtime system for dynamic CSS injection.
+CSSMA v4 is a utility-first CSS framework that transforms Tailwind CSS-compatible class names into CSS AST nodes for Figma styling. The system is built around a modular architecture with clear separation of concerns, including an optimized runtime system for dynamic CSS injection, universal incremental parsing, and comprehensive caching architecture.
 
 ## Core Systems
 
@@ -208,14 +208,166 @@ runtime.getStats();
 runtime.destroy();
 ```
 
-### 8. Theme System
+### 8. Incremental Parser System (`incremental-parser.ts`)
+
+**Design Intent:**
+- **Universal Compatibility:** Works in both Node.js and browser environments
+- **Efficient Processing:** Processes only new or changed classes to avoid redundant work
+- **Smart Caching:** Tracks processed classes to prevent duplicate processing
+- **Batch Processing:** Groups multiple operations for optimal performance
+
+**Core Components:**
+
+#### **IncrementalParser Class**
+- **Universal Design:** Pure CSS processing logic without browser dependencies
+- **Class Tracking:** Maintains set of processed classes to avoid duplicates
+- **Batch Processing:** Configurable batch size for optimal performance
+- **Debouncing:** Server-appropriate debouncing (immediate processing in Node.js)
+
+**Key Methods:**
+```typescript
+// Process multiple classes with caching
+const results = parser.processClasses(['bg-blue-500', 'text-lg']);
+// Returns: [{ className: 'bg-blue-500', ast: [...], css: '...' }, ...]
+
+// Process single class
+const result = parser.processClass('bg-red-500');
+// Returns: { ast: [...], css: '...' }
+
+// Get performance statistics
+const stats = parser.getStats();
+// Returns: { processedClasses: 2, pendingClasses: 0, ... }
+
+// Clear processed classes (useful for theme changes)
+parser.clearProcessed();
+```
+
+#### **ChangeDetector Class**
+- **Browser-Only:** Uses MutationObserver for DOM change detection
+- **Automatic Processing:** Scans existing classes and monitors for new additions
+- **StyleRuntime Integration:** Directly updates StyleRuntime cache and injects CSS
+- **Flexible Configuration:** Supports scan options and debouncing
+
+**Key Features:**
+```typescript
+// Create change detector with parser and runtime
+const detector = new ChangeDetector(parser, styleRuntime);
+
+// Start observing with options
+const observer = detector.observe(document.body, {
+  scan: true,        // Scan existing elements
+  debounceMs: 16     // Debounce mutations
+});
+
+// Automatically:
+// - Scans existing classes in the DOM
+// - Monitors for new class additions
+// - Processes classes and injects CSS
+// - Updates StyleRuntime cache
+```
+
+**Architecture Benefits:**
+- **Separation of Concerns:** Parser handles pure logic, ChangeDetector handles DOM
+- **Server Compatibility:** IncrementalParser works in Node.js environments
+- **Performance Optimization:** Avoids redundant processing through smart tracking
+- **Memory Efficiency:** Uses WeakMap and compression for optimal memory usage
+
+### 9. Cache System (`utils/cache.ts`)
+
+**Design Intent:**
+- **Comprehensive Caching:** Multiple cache types for different performance needs
+- **Memory Optimization:** Uses WeakMap and compression for efficient memory usage
+- **Performance Monitoring:** Real-time cache statistics and hit rate tracking
+- **Modular Design:** Centralized cache management with clear separation of concerns
+
+**Cache Components:**
+
+#### **Core Caches**
+- **AstCache:** Caches parsed AST nodes for class names
+- **CssCache:** Caches generated CSS strings for AST nodes
+- **ParseResultCache:** Caches parsed class name results
+- **UtilityCache:** Caches utility prefix checks
+
+#### **Advanced Cache Features**
+- **CompressedCache:** Memory-optimized storage with compression
+- **MemoryPool:** Object reuse for garbage collection optimization
+- **WeakCache:** Memory-optimized cache using WeakMap
+
+**Cache API:**
+```typescript
+// Core caches
+import { astCache, cssCache, parseResultCache, utilityCache } from 'cssma-v4/utils/cache';
+
+const ast = astCache.get('bg-blue-500');
+const css = cssCache.get('bg-blue-500');
+const parsed = parseResultCache.get('bg-blue-500');
+const isUtility = utilityCache.get('bg-');
+
+// Advanced caches
+import { CompressedCache, MemoryPool, WeakCache } from 'cssma-v4/utils/cache';
+
+const compressedCache = new CompressedCache();
+compressedCache.setAst('bg-blue-500', ast);
+compressedCache.setCss('bg-blue-500', css);
+
+const memoryPool = new MemoryPool(() => ({}), 100);
+const obj = memoryPool.acquire();
+// Use object...
+memoryPool.release(obj);
+
+const weakCache = new WeakCache();
+weakCache.set(element, css);
+```
+
+### 10. Performance Monitoring System (`utils/performance.ts`)
+
+**Design Intent:**
+- **Real-time Monitoring:** Track performance metrics across all operations
+- **Comprehensive Statistics:** Detailed performance analysis and reporting
+- **Alert System:** Performance threshold monitoring with alerts
+- **Memory Tracking:** Monitor memory usage and optimization opportunities
+
+**Core Components:**
+
+#### **CSSMAPerformanceMonitor**
+- **Metric Recording:** Track parser, AST, CSS generation times
+- **Statistics Calculation:** Average, total, count for each metric
+- **Memory Monitoring:** Track memory usage and garbage collection
+- **Alert System:** Performance threshold monitoring
+
+#### **PerformanceMixin**
+- **Composition Pattern:** Mixin for performance monitoring without inheritance
+- **Automatic Integration:** Easy integration with existing classes
+- **Minimal Overhead:** Efficient performance tracking with minimal impact
+
+**Performance API:**
+```typescript
+import { CSSMAPerformanceMonitor } from 'cssma-v4/utils/performance';
+
+const monitor = new CSSMAPerformanceMonitor();
+
+// Record performance metrics
+monitor.record('parser', 1.5);
+monitor.record('ast', 2.1);
+monitor.record('css', 0.8);
+
+// Get statistics
+const stats = monitor.getStats();
+// { parser: { count: 1, total: 1.5, average: 1.5 }, ... }
+
+// Get detailed report
+const report = monitor.getDetailedReport();
+// Comprehensive performance analysis
+```
+
+### 11. Theme System
 
 **Theme Lookup:**
 - Always use both category and key for theme lookups (e.g., `ctx.theme('colors', 'red-500')`)
 - Never look up by key only (e.g., `'red-500'`), as keys may overlap across categories
 - Handlers must reference the correct theme category for each utility
 
-### 9. Engine & CSS Conversion
+### 12. Engine & CSS Conversion
 
 #### Engine (`engine.ts`)
 - className → AST conversion (`parseClassToAst`)
@@ -253,6 +405,8 @@ runtime.destroy();
 - All new features must include comprehensive tests and documentation
 - Runtime system provides hooks for custom CSS injection strategies
 - Common CSS caching can be extended for custom caching strategies
+- Incremental parser can be extended for custom processing strategies
+- Performance monitoring can be customized for specific use cases
 
 ## Testing & Quality Assurance
 
@@ -260,6 +414,9 @@ runtime.destroy();
 - Tests must cover static, functional, arbitrary, custom property, and modifier cases
 - All tests must be written in clear, unambiguous language, specifying exact expected AST output
 - Runtime tests cover CSS injection, caching, performance, and error handling
+- Incremental parser tests cover server and browser compatibility
+- Change detection tests cover DOM observation and automatic processing
+- Cache tests cover memory optimization and performance
 - Performance benchmarks for large-scale CSS generation and injection
 
 ## Documentation
@@ -267,4 +424,7 @@ runtime.destroy();
 - All core systems, presets, and handler patterns must be documented in README.md and PRD.md
 - Documentation must include API signatures, usage examples, handler design notes, and test examples
 - All documentation must be in English for international contributors
-- Runtime system documentation includes performance optimization strategies and best practices 
+- Runtime system documentation includes performance optimization strategies and best practices
+- Incremental parser documentation includes server/browser compatibility guidelines
+- Cache system documentation includes memory optimization strategies
+- Performance monitoring documentation includes alert configuration and optimization tips 

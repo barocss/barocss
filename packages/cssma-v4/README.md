@@ -13,6 +13,9 @@ A utility class system compatible with Tailwind CSS that converts CSS class name
 - **Modular Preset System**: Organized preset structure by categories
 - **Runtime CSS Injection**: Optimized runtime CSS injection with caching and batch processing
 - **Common CSS Caching**: Efficient caching system for shared CSS variables and rules
+- **Incremental Parsing**: Server and browser-compatible incremental parsing system
+- **Change Detection**: Automatic DOM change detection with MutationObserver
+- **Performance Monitoring**: Real-time performance tracking and optimization
 
 ## 📦 Installation
 
@@ -89,6 +92,63 @@ runtime.getCss('bg-red-500'); // Get generated CSS
 runtime.destroy();
 ```
 
+### Incremental Parsing (Server & Browser)
+
+CSSMA v4 provides a universal incremental parsing system that works in both server and browser environments:
+
+```typescript
+import { IncrementalParser, createContext } from 'cssma-v4';
+
+// Create context with theme
+const ctx = createContext({ theme: defaultTheme });
+
+// Universal parser (works in Node.js and browser)
+const parser = new IncrementalParser(ctx);
+
+// Process classes synchronously
+const results = parser.processClasses(['bg-blue-500', 'text-lg']);
+// Returns: [{ className: 'bg-blue-500', ast: [...], css: '...' }, ...]
+
+// Process single class
+const result = parser.processClass('bg-red-500');
+// Returns: { ast: [...], css: '...' }
+
+// Get statistics
+const stats = parser.getStats();
+// Returns: { processedClasses: 2, pendingClasses: 0, ... }
+
+// Clear processed classes (useful for theme changes)
+parser.clearProcessed();
+```
+
+### Change Detection (Browser Only)
+
+For browser environments, CSSMA v4 provides automatic DOM change detection:
+
+```typescript
+import { IncrementalParser, ChangeDetector, StyleRuntime } from 'cssma-v4';
+
+// Create components
+const parser = new IncrementalParser(ctx);
+const styleRuntime = new StyleRuntime();
+const detector = new ChangeDetector(parser, styleRuntime);
+
+// Start observing DOM changes
+const observer = detector.observe(document.body, {
+  scan: true,        // Scan existing elements
+  debounceMs: 16     // Debounce mutations
+});
+
+// The detector automatically:
+// - Scans existing classes in the DOM
+// - Monitors for new class additions
+// - Processes classes and injects CSS
+// - Updates StyleRuntime cache
+
+// Disconnect when done
+observer.disconnect();
+```
+
 ### Runtime Features
 
 #### **Optimized Performance**
@@ -96,6 +156,8 @@ runtime.destroy();
 - **Batch Processing**: Groups multiple class additions for efficient CSS injection
 - **Smart Caching**: Avoids regenerating CSS for already processed classes
 - **Common CSS Caching**: Shares common CSS variables and rules across multiple classes
+- **Incremental Parsing**: Processes only new or changed classes
+- **Memory Optimization**: Uses WeakMap and compression for efficient memory usage
 
 #### **Flexible Style Management**
 - **Multiple Style Elements**: Separate elements for regular CSS, root CSS variables, and CSS variables
@@ -108,6 +170,12 @@ runtime.destroy();
 - **Statistics Tracking**: Monitor cache size, rule count, and performance metrics
 - **Memory Management**: Proper cleanup of style elements and caches
 - **Error Handling**: Robust error handling for invalid CSS rules
+- **Performance Monitoring**: Real-time performance tracking with alerts
+
+### Cache Architecture
+
+CSSMA v4 implements a comprehensive caching system for optimal performance
+
 
 ### Preset Categories
 
@@ -269,6 +337,38 @@ runtime.addClass(['bg-red-500', 'text-white']);
 runtime.getStats(); // { cachedClasses: 2, cssRules: 2, ... }
 ```
 
+#### Incremental Parser System
+Universal parsing for server and browser environments:
+
+```typescript
+// Create universal parser
+const parser = new IncrementalParser(ctx);
+
+// Process classes with caching
+const results = parser.processClasses(['bg-blue-500', 'text-lg']);
+// Each result contains: { className, ast, css }
+
+// Get performance statistics
+const stats = parser.getStats();
+// { processedClasses: 2, pendingClasses: 0, ... }
+```
+
+#### Change Detection System
+Browser-only DOM change monitoring:
+
+```typescript
+// Create change detector with parser and runtime
+const detector = new ChangeDetector(parser, styleRuntime);
+
+// Start observing with options
+const observer = detector.observe(document.body, {
+  scan: true,        // Scan existing elements
+  debounceMs: 16     // Debounce mutations
+});
+
+// Automatically processes new classes and injects CSS
+```
+
 ## 🧪 Testing
 
 ```bash
@@ -305,6 +405,17 @@ const runtime = new StyleRuntime();
 runtime.addClass('bg-red-500');
 expect(runtime.has('bg-red-500')).toBe(true);
 expect(runtime.getCss('bg-red-500')).toContain('background-color');
+
+// Incremental Parser Tests
+const parser = new IncrementalParser(ctx);
+const results = parser.processClasses(['bg-blue-500']);
+expect(results[0].className).toBe('bg-blue-500');
+expect(results[0].css).toContain('background-color');
+
+// Change Detection Tests
+const detector = new ChangeDetector(parser, runtime);
+const observer = detector.observe(document.body, { scan: true });
+expect(observer).toBeInstanceOf(MutationObserver);
 ```
 
 ## 📚 API Reference
@@ -326,6 +437,34 @@ expect(runtime.getCss('bg-red-500')).toContain('background-color');
 - `runtime.getStats(): RuntimeStats`
 - `runtime.destroy(): void`
 
+### Incremental Parser Functions
+
+- `new IncrementalParser(ctx: CssmaContext): IncrementalParser`
+- `parser.processClasses(classes: string[]): Array<{ className: string; ast: any[]; css: string }>`
+- `parser.processClass(className: string): { ast: any[]; css: string } | null`
+- `parser.getStats(): ParserStats`
+- `parser.clearProcessed(): void`
+
+### Change Detection Functions
+
+- `new ChangeDetector(parser: IncrementalParser, styleRuntime?: StyleRuntime): ChangeDetector`
+- `detector.observe(root: HTMLElement, options?: object): MutationObserver`
+- `detector.disconnect(): void`
+
+### Cache Functions
+
+- `astCache.get(key: string): AstNode[] | undefined`
+- `cssCache.get(key: string): string | undefined`
+- `parseResultCache.get(key: string): ParsedResult | undefined`
+- `utilityCache.get(key: string): boolean | undefined`
+
+### Performance Monitoring Functions
+
+- `new CSSMAPerformanceMonitor(): CSSMAPerformanceMonitor`
+- `monitor.record(metric: string, value: number): void`
+- `monitor.getStats(): PerformanceStats`
+- `monitor.getDetailedReport(): DetailedReport`
+
 ### Registration Functions
 
 - `staticUtility(name: string, decls: [string, string][], opts?: object): void`
@@ -341,6 +480,8 @@ expect(runtime.getCss('bg-red-500')).toContain('background-color');
 - `ParsedModifier`: Parsed modifier type
 - `StyleRuntimeOptions`: Runtime configuration options
 - `RuntimeStats`: Runtime performance statistics
+- `ParserStats`: Parser performance statistics
+- `PerformanceStats`: Performance monitoring statistics
 
 ## 🤝 Contributing
 

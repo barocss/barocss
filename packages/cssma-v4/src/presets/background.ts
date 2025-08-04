@@ -261,7 +261,6 @@ const gradientStopProperties = () => {
     supportsCustomProperty: true,
     handle: (value, context, token, extra) => {
       if (extra?.realThemeValue) {
-        console.log("[background.gradient-stop] extra:", extra);
         return [
           gradientStopProperties(),
           decl(`--tw-gradient-${stop}`, value),
@@ -338,7 +337,6 @@ functionalUtility({
       return [decl("background-size", value.replace("length:", ""))];
     }
 
-    console.log("[background.bg] extra:", extra, token);
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [

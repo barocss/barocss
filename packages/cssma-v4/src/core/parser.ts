@@ -19,9 +19,9 @@ export interface ParsedUtility {
 
 import { getUtility, getModifierPlugins } from './registry';
 import { tokenize, Token } from './tokenizer';
+import { parseResultCache, utilityCache } from '../utils/cache';
 
-// 캐시 시스템
-const utilityCache = new Map<string, boolean>();
+// Cache systems
 
 /**
  * Checks if a string is a utility prefix by checking against registered utilities
@@ -30,7 +30,7 @@ const utilityCache = new Map<string, boolean>();
  * @returns true if it's a utility prefix
  */
 function isUtilityPrefix(str: string): boolean {
-  // 캐시 확인
+  // Check cache
   if (utilityCache.has(str)) {
     return utilityCache.get(str)!;
   }
@@ -38,28 +38,28 @@ function isUtilityPrefix(str: string): boolean {
   const utilities = getUtility();
   const modifiers = getModifierPlugins();
   
-  // 1. Prefix로 빠른 필터링 (O(1) prefix 체크)
+  // 1. Fast prefix filtering (O(1) prefix check)
   const candidateUtilities = utilities.filter(util => {
     const prefix = util.name;
     return str.startsWith(prefix + '-') || str === prefix || str.startsWith(prefix);
   });
     
-  // 2. 필터링된 후보들만 정확한 match 체크
+  // 2. Exact match check only on filtered candidates
   const isUtility = candidateUtilities.some(util => util.match(str));
   
-  // 3. 모디파이어도 동일하게 필터링
+  // 3. Filter modifiers similarly
   const candidateModifiers = modifiers.filter(mod => {
-    // modifier의 name이 있으면 사용, 없으면 match 함수의 첫 부분 추출
+    // Use modifier name if available, otherwise extract from match function
     const modName = (mod as any).name || mod.match.toString().split('(')[0];
     return str.startsWith(modName + ':') || str === modName;
   });
   
   const isModifier = candidateModifiers.some(mod => mod.match(str, {} as any));
   
-  // 4. 결과 계산
+  // 4. Calculate result
   const result = isUtility && !isModifier;
   
-  // 5. 캐시 저장
+  // 5. Cache result
   utilityCache.set(str, result);
   
   return result;
@@ -80,10 +80,20 @@ function isUtilityPrefix(str: string): boolean {
  * @returns { modifiers, utility }
  */
 export function parseClassName(className: string): { modifiers: ParsedModifier[]; utility: ParsedUtility | null } {
-  // 1. 토크나이저로 문자열을 토큰으로 분리
+  // Check parse result cache first
+  if (parseResultCache.has(className)) {
+    return parseResultCache.get(className)!;
+  }
+  
+  // 1. Tokenize string into tokens
   const tokens = tokenize(className);
-  // 2. 토큰을 파싱된 결과로 변환
-  return parseTokens(tokens);
+  // 2. Convert tokens to parsed result
+  const result = parseTokens(tokens);
+  
+  // Cache the result
+  parseResultCache.set(className, result);
+  
+  return result;
 }
 
 /**

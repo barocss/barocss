@@ -351,15 +351,438 @@ describe("background utilities", () => {
 
   // Gradient stops
   it("from-red-500 → --tw-gradient-from: red-500", () => {
-    expect(parseClassToAst("from-red-500", ctx)).toEqual([
-      { type: "decl", prop: "--tw-gradient-from", value: "red" },
-      { type: "decl", prop: "--tw-gradient-stops", value: "var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))"}
+    const result = parseClassToAst("from-red-500", ctx);
+    
+    // Remove source properties for comparison
+    const cleanResult = result.map(node => {
+      if (node.type === 'at-root') {
+        return {
+          ...node,
+          nodes: node.nodes.map(n => {
+            if (n.type === 'at-rule') {
+              return {
+                ...n,
+                nodes: n.nodes.map(d => {
+                  if (d.type === 'decl') {
+                    const { source, ...rest } = d;
+                    return rest;
+                  }
+                  return d;
+                })
+              };
+            }
+            return n;
+          })
+        };
+      }
+      if (node.type === 'decl') {
+        const { source, ...rest } = node;
+        return rest;
+      }
+      return node;
+    });
+    
+    expect(cleanResult).toEqual([
+      {
+        type: "at-root",
+        nodes: [
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-from",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-via",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-to",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-stops",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-via-stops",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "0%",
+              },
+            ],
+            params: "--tw-gradient-from-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "50%",
+              },
+            ],
+            params: "--tw-gradient-via-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "100%",
+              },
+            ],
+            params: "--tw-gradient-to-position",
+            type: "at-rule",
+          },
+        ],
+      },
+      {
+        prop: "--tw-gradient-from",
+        type: "decl",
+        value: "red",
+      },
+      {
+        prop: "--tw-gradient-stops",
+        type: "decl",
+        value: "var(--tw-gradient-via-stops, var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))",
+      },
     ]);
   });
   it("from-[rgba(0,0,0,0.5)] → --tw-gradient-from: rgba(0,0,0,0.5)", () => {
     expect(parseClassToAst("from-[rgba(0,0,0,0.5)]", ctx)).toEqual([
-      { type: "decl", prop: "--tw-gradient-from", value: "rgba(0,0,0,0.5)" },
-      { type: "decl", prop: "--tw-gradient-stops", value: "var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))"}
+      {
+        type: "at-root",
+        nodes: [
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-from",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-via",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-to",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-stops",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-via-stops",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "0%",
+              },
+            ],
+            params: "--tw-gradient-from-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "50%",
+              },
+            ],
+            params: "--tw-gradient-via-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "100%",
+              },
+            ],
+            params: "--tw-gradient-to-position",
+            type: "at-rule",
+          },
+        ],
+      },
+      {
+        prop: "--tw-gradient-from",
+        type: "decl",
+        value: "rgba(0,0,0,0.5)",
+      },
+      {
+        prop: "--tw-gradient-stops",
+        type: "decl",
+        value: "var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))",
+      },
     ]);
   });
   it("from-(--my-color) → --tw-gradient-from: var(--my-color)", () => {
@@ -379,8 +802,204 @@ describe("background utilities", () => {
   });
   it("via-blue-500 → --tw-gradient-via: blue-500", () => {
     expect(parseClassToAst("via-blue-500", ctx)).toEqual([
-      { type: "decl", prop: "--tw-gradient-via", value: "blue-500" },
-      { type: "decl", prop: "--tw-gradient-stops", value: "var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))"}
+      {
+        type: "at-root",
+        nodes: [
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-from",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-via",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-to",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-stops",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-via-stops",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "0%",
+              },
+            ],
+            params: "--tw-gradient-from-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "50%",
+              },
+            ],
+            params: "--tw-gradient-via-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "100%",
+              },
+            ],
+            params: "--tw-gradient-to-position",
+            type: "at-rule",
+          },
+        ],
+      },
+      {
+        prop: "--tw-gradient-via",
+        type: "decl",
+        value: "blue-500",
+      },
+      {
+        prop: "--tw-gradient-stops",
+        type: "decl",
+        value: "var(--tw-gradient-via-stops, var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))",
+      },
     ]);
   });
   it("via-position-30% → --tw-gradient-via-position: 30%", () => {
@@ -390,8 +1009,204 @@ describe("background utilities", () => {
   });
   it("to-green-700 → --tw-gradient-to: green-700", () => {
     expect(parseClassToAst("to-green-700", ctx)).toEqual([
-      { type: "decl", prop: "--tw-gradient-to", value: "green-700" },
-      { type: "decl", prop: "--tw-gradient-stops", value: "var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))"}
+      {
+        type: "at-root",
+        nodes: [
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-from",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-via",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<color>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "#0000",
+              },
+            ],
+            params: "--tw-gradient-to",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-stops",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"*"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+            ],
+            params: "--tw-gradient-via-stops",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "0%",
+              },
+            ],
+            params: "--tw-gradient-from-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "50%",
+              },
+            ],
+            params: "--tw-gradient-via-position",
+            type: "at-rule",
+          },
+          {
+            name: "property",
+            nodes: [
+              {
+                prop: "syntax",
+                type: "decl",
+                value: '"<length-percentage>"',
+              },
+              {
+                prop: "inherits",
+                type: "decl",
+                value: "false",
+              },
+              {
+                prop: "initial-value",
+                type: "decl",
+                value: "100%",
+              },
+            ],
+            params: "--tw-gradient-to-position",
+            type: "at-rule",
+          },
+        ],
+      },
+      {
+        prop: "--tw-gradient-to",
+        type: "decl",
+        value: "green-700",
+      },
+      {
+        prop: "--tw-gradient-stops",
+        type: "decl",
+        value: "var(--tw-gradient-via-stops, var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))",
+      },
     ]);
   });
   it("to-position-90% → --tw-gradient-to-position: 90%", () => {

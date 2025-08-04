@@ -229,7 +229,7 @@ export function functionalUtility(opts: {
         opacity: token.opacity,
       };
 
-      console.log('[functionalUtility] input', { name: opts.name, value, token });
+      // console.log('[functionalUtility] input', { name: opts.name, value, token });
 
       if (opts.supportsOpacity && !token.arbitrary && !token.customProperty && value.includes('/')) {
         const list = value.split('/');
@@ -243,36 +243,36 @@ export function functionalUtility(opts: {
       // 1. Arbitrary value - parser.ts에서 이미 파싱됨
       if (opts.supportsArbitrary && parsedUtility.arbitrary) {
         const processedValue = finalValue.replace(/_/g, ' ');
-        console.log('[functionalUtility] arbitrary', { processedValue });
+        // console.log('[functionalUtility] arbitrary', { processedValue });
         // 7. handle (custom AST generation)
         if (opts.handle) {
           const result = opts.handle(processedValue, ctx, token, extra);
-          console.log('[functionalUtility] arbitrary handle result', result);
+          // console.log('[functionalUtility] arbitrary handle result', result);
           if (result) return result;
         }
         // 8. default decl
         if (opts.prop) {
-          console.log('[functionalUtility] arbitrary default decl', { prop: opts.prop, processedValue });
+          // console.log('[functionalUtility] arbitrary default decl', { prop: opts.prop, processedValue });
           return [decl(opts.prop, processedValue)];
         }
         return [];
       }
       // 2. Custom property - parser.ts에서 이미 파싱됨
       if (opts.supportsCustomProperty && parsedUtility.customProperty) {
-        console.log('[functionalUtility] customProperty', { finalValue });
+        // console.log('[functionalUtility] customProperty', { finalValue });
         if (opts.handleCustomProperty) {
           const result = opts.handleCustomProperty(finalValue, ctx, token, extra);
-          console.log('[functionalUtility] customProperty handleCustomProperty result', result);
+          // console.log('[functionalUtility] customProperty handleCustomProperty result', result);
           return result;
         }
         const customValue = `var(${finalValue})`;
         if (opts.handle) {
           const result = opts.handle(customValue, ctx, token, extra);
-          console.log('[functionalUtility] customProperty handle result', result);
+          // console.log('[functionalUtility] customProperty handle result', result);
           if (result) return result;
         }
         if (opts.prop) {
-          console.log('[functionalUtility] customProperty default decl', { prop: opts.prop, customValue });
+          // console.log('[functionalUtility] customProperty default decl', { prop: opts.prop, customValue });
           return [decl(opts.prop, customValue)];
         }
         return [];
@@ -281,12 +281,12 @@ export function functionalUtility(opts: {
       let themeValue: string | undefined;
       if (opts.themeKey && ctx.theme) {
         themeValue = ctx.theme(opts.themeKey, finalValue);
-        console.log('[functionalUtility] themeKey lookup', { themeKey: opts.themeKey, finalValue, themeValue });
+        // console.log('[functionalUtility] themeKey lookup', { themeKey: opts.themeKey, finalValue, themeValue });
       }
       if (!themeValue && opts.themeKeys && ctx.theme) {
         for (const key of opts.themeKeys) {
           themeValue = ctx.theme(key, finalValue);
-          console.log('[functionalUtility] themeKeys lookup', { key, finalValue, themeValue });
+          // console.log('[functionalUtility] themeKeys lookup', { key, finalValue, themeValue });
           if (themeValue !== undefined) break;
         }
       }
@@ -294,12 +294,12 @@ export function functionalUtility(opts: {
         extra.realThemeValue = finalValue;
         finalValue = themeValue;
         if (opts.prop) {
-          console.log('[functionalUtility] themeValue default decl', { prop: opts.prop, finalValue });
+          // console.log('[functionalUtility] themeValue default decl', { prop: opts.prop, finalValue });
           return [decl(opts.prop, finalValue)];
         }
         if (opts.handle) {
           const result = opts.handle(finalValue, ctx, token, extra);
-          console.log('[functionalUtility] themeValue handle result', result);
+          // console.log('[functionalUtility] themeValue handle result', result);
           if (result) return result;
         }
         return [];
@@ -307,34 +307,34 @@ export function functionalUtility(opts: {
       // 4. Fraction value (e.g., 1/2, -2/5)
       if (opts.supportsFraction && /^-?\d+\/\d+$/.test(value)) {
         finalValue = value;
-        console.log('[functionalUtility] fraction', { finalValue });
+        // console.log('[functionalUtility] fraction', { finalValue });
       }
       // 5. handleNegativeBareValue (only check negative bare value)
       if (parsedUtility.negative && opts.supportsNegative && opts.handleNegativeBareValue) {
         const bare = opts.handleNegativeBareValue({ value: String(finalValue).replace(/^-/, ''), ctx, token, extra });
-        console.log('[functionalUtility] negative bare', { bare });
+        // console.log('[functionalUtility] negative bare', { bare });
         if (bare == null) return [];
         finalValue = bare;
       }
       // 6. handleBareValue (only check bare value) - only when negative is not true
       else if (opts.handleBareValue) {
         const bare = opts.handleBareValue({ value: finalValue, ctx, token, extra });
-        console.log('[functionalUtility] bare', { bare });
+        // console.log('[functionalUtility] bare', { bare });
         if (bare == null) return [];
         finalValue = bare;
       }
       // 7. handle (custom AST generation)
       if (opts.handle) {
         const result = opts.handle(finalValue, ctx, token, extra);
-        console.log('[functionalUtility] handle result', result);
+        // console.log('[functionalUtility] handle result', result);
         if (result) return result;
       }
       // 8. default decl
       if (opts.prop) {
-        console.log('[functionalUtility] default decl', { prop: opts.prop, finalValue });
+        // console.log('[functionalUtility] default decl', { prop: opts.prop, finalValue });
         return [decl(opts.prop, finalValue)];
       }
-      console.log('[functionalUtility] fallback empty', { finalValue });
+      // console.log('[functionalUtility] fallback empty', { finalValue });
       return [];
     },
     description: opts.description,

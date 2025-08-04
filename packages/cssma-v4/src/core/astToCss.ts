@@ -1,11 +1,15 @@
 import { rule, type AstNode } from "./ast";
 import { escapeClassName } from "./registry";
+import { cssCache } from "../utils/cache";
+
+// Re-export cssCache for backward compatibility
+export { cssCache };
 
 /**
  * Converts AST nodes to CSS string.
  * Supports nested rules, at-rules, custom properties, !important, and basic deduplication.
  * @param ast AST nodes
- * @param baseSelector (optional) className (점 없이, e.g. 'my-btn')
+ * @param baseSelector (optional) className (without dot, e.g. 'my-btn')
  * @param opts { minify?: boolean }
  */
 function astToCss(
@@ -18,7 +22,16 @@ function astToCss(
   const indent = _indent;
   const nextIndent = _indent + "  ";
 
-  console.log("[astToCss] input", { ast, baseSelector, minify, indent });
+  // Create cache key based on AST content and options
+  const cacheKey = `${baseSelector}:${minify}:${indent}`;
+  
+  // Check CSS cache first
+  if (cssCache.has(cacheKey)) {
+    // console.log('[astToCss] Cache hit for AST');
+    return cssCache.get(cacheKey)!;
+  }
+
+  // console.log("[astToCss] input", { ast, baseSelector, minify, indent });
 
   // Basic deduplication: only keep last decl for each prop in a block
   let dedupedAst = [];
@@ -45,21 +58,21 @@ function astToCss(
           if (node.prop.startsWith("--")) {
             if (minify) {
               const css = `${node.prop}: ${value};`;
-              console.log("[astToCss] decl custom property minify", css);
+              // console.log("[astToCss] decl custom property minify", css);
               return css;
             } else {
               const css = `${indent}${node.prop}: ${value};\n${indent}`;
-              console.log("[astToCss] decl custom property pretty", css);
+              // console.log("[astToCss] decl custom property pretty", css);
               return css;
             }
           } else {
             if (minify) {
               const css = `${node.prop}: ${value};`;
-              console.log("[astToCss] decl minify", css);
+              // console.log("[astToCss] decl minify", css);
               return css;
             } else {
               const css = `${indent}${node.prop}: ${value};\n${indent}`;
-              console.log("[astToCss] decl pretty", css);
+              // console.log("[astToCss] decl pretty", css);
               return css;
             }
           }
@@ -91,7 +104,7 @@ function astToCss(
               opts,
               nextIndent
             )}}`;
-            console.log("[astToCss] rule minify", css);
+            // console.log("[astToCss] rule minify", css);
             return css;
           } else {
             const css = `${indent}${selector} {\n${astToCss(
@@ -100,7 +113,7 @@ function astToCss(
               opts,
               nextIndent
             )}\n${indent}}`;
-            console.log("[astToCss] rule pretty", css);
+            // console.log("[astToCss] rule pretty", css);
             return css;
           }
         }
@@ -112,7 +125,7 @@ function astToCss(
               opts,
               nextIndent
             )}}`;
-            console.log("[astToCss] style-rule minify", css);
+            // console.log("[astToCss] style-rule minify", css);
             return css;
           } else {
             const css = `${indent}${node.selector} {\n${astToCss(
@@ -121,7 +134,7 @@ function astToCss(
               opts,
               nextIndent
             )}\n${indent}}`;
-            console.log("[astToCss] style-rule pretty", css);
+            // console.log("[astToCss] style-rule pretty", css);
             return css;
           }
         }
@@ -133,7 +146,7 @@ function astToCss(
               opts,
               nextIndent
             )}}`;
-            console.log("[astToCss] at-rule minify", css);
+            // console.log("[astToCss] at-rule minify", css);
             return css;
           } else {
             const css = `${indent}@${node.name} ${node.params} {\n${astToCss(
@@ -142,7 +155,7 @@ function astToCss(
               opts,
               nextIndent
             )}\n${indent}}`;
-            console.log("[astToCss] at-rule pretty", css);
+            // console.log("[astToCss] at-rule pretty", css);
             return css;
           }
         }
@@ -157,12 +170,16 @@ function astToCss(
     .filter(Boolean)
     .join(minify ? "" : "\n");
 
-  console.log("[astToCss] output", result);
+  // console.log("[astToCss] output", result);
+  
+  // Cache the result
+  cssCache.set(cacheKey, result);
+  
   return result;
 }
 
 function rootToCss(nodes: AstNode[]): string {
-  console.log("[rootToCss] input", { nodes });
+  // console.log("[rootToCss] input", { nodes });
   return nodes
     .map((node) => {
       const list: string[] = [];
@@ -172,7 +189,7 @@ function rootToCss(nodes: AstNode[]): string {
       } else if (node.type === "at-rule") {
         list.push(`@${node.name} ${node.params} {
 ${node.nodes.map((node) => {
-  console.log("[rootToCss] node", node);
+  // console.log("[rootToCss] node", node);
   if (node.type === "decl") {
     return `${node.prop}: ${node.value};`;
   }

@@ -45,11 +45,15 @@ export function raw(value: string, source?: string): AstNode {
   return { type: "raw", value, source };
 }
 
-export function property(ident: string, initialValue?: string, syntax?: string) {
-  return atRule('property', ident, [
-    decl('syntax', syntax ? `"${syntax}"` : `"*"`),
-    decl('inherits', 'false'),
-
-    ...(initialValue ? [decl('initial-value', initialValue)] : []),
-  ])
+export function property(name: string, initialValue?: string, syntax?: string, source?: string): AstNode {
+  const nodes: AstNode[] = [
+    decl("syntax", `"${syntax || "*"}"`, source),
+    decl("inherits", "false", source),
+  ];
+  
+  if (initialValue) {
+    nodes.push(decl("initial-value", initialValue, source));
+  }
+  
+  return atRule("property", name, nodes, source);
 }
