@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { AstNode, atRule, decl, rule } from "../core/ast";
+import { AstNode, atRoot, atRule, decl, property, rule } from "../core/ast";
 import { parseColor, parseLength, parseNumber } from "../core/utils";
 
 // --- Background Attachment ---
@@ -81,19 +81,14 @@ functionalUtility({
 // --- Background Gradients: Linear ---
 const positionValue = (position: string) => {
   return [
-    rule("&", [
-      decl(
+    decl("--tw-gradient-position", position),    
+    rule("@supports (background-image:linear-gradient(in lab, red, red))", [
+      decl("--tw-gradient-position", `${position} in oklab`),
+    ]),
+    decl(
       "background-image",
       `linear-gradient(${position}, var(--tw-gradient-stops))`
-    )]),
-    rule("&", [
-      decl("--tw-gradient-position", position),
-    ]),
-    atRule("supports", "(background-image:linear-gradient(in lab, red, red)", [
-      rule("&", [
-        decl("--tw-gradient-position", `${position} in oklab`),
-      ]),
-    ]),
+    ),
   ];
 };
 
@@ -241,6 +236,22 @@ functionalUtility({
 });
 
 // --- Gradient Stops ---
+
+const gradientStopProperties = () => {
+  return atRoot([
+    property('--tw-gradient-position'),
+    property('--tw-gradient-from', '#0000', '<color>'),
+    property('--tw-gradient-via', '#0000', '<color>'),
+    property('--tw-gradient-to', '#0000', '<color>'),
+    property('--tw-gradient-stops'),
+    property('--tw-gradient-via-stops'),
+    property('--tw-gradient-from-position', '0%', '<length-percentage>'),
+    property('--tw-gradient-via-position', '50%', '<length-percentage>'),
+    property('--tw-gradient-to-position', '100%', '<length-percentage>'),
+  ])
+}
+
+
 // from-*, via-*, to-* (color, percentage, custom property, arbitrary)
 ["from", "via", "to"].forEach((stop) => {
   functionalUtility({
@@ -248,7 +259,19 @@ functionalUtility({
     themeKeys: ["colors"],
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handle: (value) => {
+    handle: (value, context, token, extra) => {
+      if (extra?.realThemeValue) {
+        console.log("[background.gradient-stop] extra:", extra);
+        return [
+          gradientStopProperties(),
+          decl(`--tw-gradient-${stop}`, value),
+          decl(
+            `--tw-gradient-stops`,
+            `var(--tw-gradient-via-stops, var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))`
+          ),
+        ];
+      }
+
       // to-50% → --tw-gradient-to-position: 50%
       if (parseLength(value)) {
         return [decl(`--tw-gradient-${stop}-position`, value)];
@@ -262,6 +285,7 @@ functionalUtility({
       // to-red-500 → --tw-gradient-to: red-500
       if (parseColor(value)) {
         return [
+          gradientStopProperties(),
           decl(`--tw-gradient-${stop}`, value),
           decl(
             `--tw-gradient-stops`,

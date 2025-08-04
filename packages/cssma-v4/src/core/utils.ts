@@ -99,9 +99,19 @@ export function parseColor(input: string): string | null {
     return input.slice(4, -1);
   }
 
+  // rgba
+  if (input.startsWith('rgba(')) {
+    return input.slice(5, -1);
+  }
+
   // hsl
   if (input.startsWith('hsl(')) {
     return input.slice(4, -1);
+  }
+
+  // hsla
+  if (input.startsWith('hsla(')) {
+    return input.slice(5, -1);
   }
 
   // hwb

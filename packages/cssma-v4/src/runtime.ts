@@ -11,9 +11,12 @@ export interface StyleRuntimeOptions {
 
 export class StyleRuntime {
   private styleEl: HTMLStyleElement | null = null;
+  private styleRootEl: HTMLStyleElement | null = null;
   private styleCssVarsEl: HTMLStyleElement | null = null;
   private sheet: CSSStyleSheet | null = null;
+  private rootSheet: CSSStyleSheet | null = null;
   private cache: Map<string, string> = new Map(); // 클래스명 -> 생성된 CSS 매핑
+  private rootCache: Set<string> = new Set(); // 클래스명 -> 생성된 CSS 매핑
   private context: any;
   private options: Required<StyleRuntimeOptions>;
   private isDestroyed = false;
@@ -73,9 +76,24 @@ export class StyleRuntime {
         console.log('[StyleRuntime] styleEl created and appended', this.styleEl);
       }
     }
+    if (!this.styleRootEl) {
+      this.styleRootEl = document.getElementById(`${this.options.styleId}-root`) as HTMLStyleElement;
+      if (!this.styleRootEl) {
+        this.styleRootEl = document.createElement('style');
+        this.styleRootEl.id = `${this.options.styleId}-root`;
+        this.styleRootEl.setAttribute('data-cssma', 'runtime');
+        const insertionPoint = this.getInsertionPoint();
+        insertionPoint.appendChild(this.styleRootEl);
+        console.log('[StyleRuntime] styleRootEl created and appended', this.styleRootEl);
+      }
+    }
     if (!this.sheet && this.styleEl) {
       this.sheet = this.styleEl.sheet as CSSStyleSheet;
       console.log('[StyleRuntime] sheet initialized', this.sheet);
+    }
+    if (!this.rootSheet && this.styleRootEl) {
+      this.rootSheet = this.styleRootEl.sheet as CSSStyleSheet;
+      console.log('[StyleRuntime] rootSheet initialized', this.rootSheet);
     }
   }
 
@@ -124,15 +142,17 @@ export class StyleRuntime {
 
     // 배치로 CSS 생성
     const rules = generateCssRules(newClasses.join(' '), this.context, { dedup: false });
+    const rootCssRules: string[] = [];
     const cssRules: string[] = [];
     const processedClasses: string[] = [];
     
-    for (const { cls, css } of rules) {
+    for (const { cls, css, rootCss } of rules) {
       if (!css) {
         console.warn('[StyleRuntime] No CSS generated for:', cls);
         continue;
       }
       cssRules.push(css);
+      rootCssRules.push(rootCss);
       this.cache.set(cls, css);
       processedClasses.push(cls);
       console.log('[StyleRuntime] CSS generated', { cls, css });
@@ -145,6 +165,10 @@ export class StyleRuntime {
         processed: processedClasses.length,
         classes: processedClasses 
       });
+    }
+
+    if (rootCssRules.length > 0) {
+      this.insertRootRules(rootCssRules.filter(Boolean));
     }
   }
 
@@ -311,6 +335,22 @@ export class StyleRuntime {
     }
   }
 
+  private insertRootRules(cssRules: string[]) {
+    console.log('[StyleRuntime] insertRootRules', this.rootSheet
+    );
+    if (!this.rootSheet || cssRules.length === 0) return;
+
+    for (const css of cssRules) {
+      this.rootCache.add(css);
+    }
+
+    const css = Array.from(this.rootCache).join('\n');
+    if (this.styleRootEl) {
+      this.styleRootEl.textContent = css;
+    }
+    this.rootSheet.insertRule(`:root,:host {${css}}`, this.rootSheet.cssRules.length);
+  }
+
   has(cls: string): boolean {
     const result = this.cache.has(cls);
     console.log('[StyleRuntime] has', { cls, result });
@@ -339,9 +379,15 @@ export class StyleRuntime {
     if (this.styleEl) {
       this.styleEl.textContent = '';
     }
+    if (this.styleRootEl) {
+      this.styleRootEl.textContent = '';
+    }
     this.cache.clear();
     if (this.styleEl && this.styleEl.sheet) {
       this.sheet = this.styleEl.sheet as CSSStyleSheet;
+    }
+    if (this.rootSheet && this.styleRootEl) {
+      this.rootSheet = this.styleRootEl.sheet as CSSStyleSheet;
     }
     console.log('[StyleRuntime] reset');
   }

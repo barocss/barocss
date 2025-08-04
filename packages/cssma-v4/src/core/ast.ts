@@ -46,7 +46,7 @@ export function raw(value: string, source?: string): AstNode {
 }
 
 export function property(ident: string, initialValue?: string, syntax?: string) {
-  return atRule('@property', ident, [
+  return atRule('property', ident, [
     decl('syntax', syntax ? `"${syntax}"` : `"*"`),
     decl('inherits', 'false'),
 

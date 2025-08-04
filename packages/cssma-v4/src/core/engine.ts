@@ -2,7 +2,7 @@ import { rule, type AstNode } from "./ast";
 import { parseClassName } from "./parser";
 import { getUtility, getModifierPlugins } from "./registry";
 import { CssmaContext } from "./context";
-import { astToCss } from "./astToCss";
+import { astToCss, rootToCss } from "./astToCss";
 
 /**
  * decl-to-root path 리스트 수집 함수 (normalizeAstOrder 등에서 재사용)
@@ -40,6 +40,7 @@ export function collectDeclPaths(
 
 // 정렬 기준: at-rule > style-rule > rule > decl, depth 우선, sibling 순서 보장
 function getPriority(type: string): number {
+  if (type === "at-root") return -1;
   if (type === "at-rule") return 0;
   if (type === "style-rule") return 10;
   if (type === "rule") return 20;
@@ -120,9 +121,11 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
   } else {
     const last = sortedVariants[sortedVariants.length - 1];
     if (
-      last.type !== "rule" ||
+      (last.type == "at-rule" && last.name !== "property") ||
+      (last.type == "style-rule") ||
       (last.type === "rule" && last.selector?.includes("&") === false)
     ) {
+      console.log("[declPathToAst] add rule", last);
       sortedVariants.push({
         type: "rule",
         selector: "&",
@@ -354,7 +357,9 @@ export function generateCss(
   opts?: { minify?: boolean; dedup?: boolean }
 ): string {
   const seen = new Set<string>();
-  return classList
+  const allAtRootNodes: AstNode[] = []; // atRoot 노드들을 수집
+  
+  const results = classList
     .split(/\s+/)
     .filter((cls) => {
       if (!cls) return false;
@@ -367,11 +372,29 @@ export function generateCss(
     .map((cls) => {
       const ast = parseClassToAst(cls, ctx);
       const cleanAst = optimizeAst(ast);
+      
+      // atRoot 노드들을 수집
+      cleanAst.forEach((node) => {
+        if (node.type === 'at-root') {
+          allAtRootNodes.push(...node.nodes);
+          console.log('[generateCss] Found atRoot nodes for', cls, node.nodes);
+        }
+      });
+      
       const css = astToCss(cleanAst, cls, { minify: opts?.minify });
 
-      return css;
+      const rootCss = rootToCss(allAtRootNodes);
+
+      return `${rootCss ?  `:root,:host {${rootCss}}` : ''}${css}`;
     })
     .join(opts?.minify ? "" : "\n");
+  
+  // 수집된 atRoot 노드들 로그 출력
+  if (allAtRootNodes.length > 0) {
+    console.log('[generateCss] All collected atRoot nodes:', allAtRootNodes);
+  }
+  
+  return results;
 }
 
 /**
@@ -388,7 +411,7 @@ export function generateCssRules(
   classList: string,
   ctx: CssmaContext,
   opts?: { minify?: boolean; dedup?: boolean }
-): Array<{ cls: string; ast: any; css: string }> {
+): Array<{ cls: string; ast: any; css: string; rootCss: string }> {
   const seen = new Set<string>();
   return classList
     .split(/\s+/)
@@ -403,8 +426,19 @@ export function generateCssRules(
     .map((cls) => {
       const ast = parseClassToAst(cls, ctx);
       const cleanAst = optimizeAst(ast);
+
+      const allAtRootNodes: AstNode[] = [];
+      cleanAst.forEach((node) => {
+        if (node.type === 'at-root') {
+          allAtRootNodes.push(...node.nodes);
+          console.log('[generateCss] Found atRoot nodes for', cls, node.nodes);
+        }
+      });
+
       const css = astToCss(cleanAst, cls, { minify: opts?.minify });
-      return { cls, ast: cleanAst, css };
+      console.log('[generateCssRules] css', cls);
+      const rootCss = rootToCss(allAtRootNodes);
+      return { cls, ast: cleanAst, css, rootCss };
     });
 }
 

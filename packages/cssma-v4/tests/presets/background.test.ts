@@ -9,6 +9,13 @@ const ctx = createContext({
       red: {
         500: "red",
       },
+      blue: {
+        500: "blue-500",
+      },
+      green: {
+        500: "green",
+        700: "green-700",
+      },
     },
   },
 });
@@ -216,6 +223,18 @@ describe("background utilities", () => {
     expect(parseClassToAst("bg-linear-to-t", ctx)).toEqual([
       {
         type: "decl",
+        prop: "--tw-gradient-position",
+        value: "to top",
+      },
+      {
+        type: "rule",
+        selector: "@supports (background-image:linear-gradient(in lab, red, red))",
+        nodes: [
+          { type: "decl", prop: "--tw-gradient-position", value: "to top in oklab" },
+        ],
+      },
+      {
+        type: "decl",
         prop: "background-image",
         value: "linear-gradient(to top, var(--tw-gradient-stops))",
       },
@@ -223,6 +242,18 @@ describe("background utilities", () => {
   });
   it("bg-linear-to-br → background-image: linear-gradient(to bottom right, var(--tw-gradient-stops))", () => {
     expect(parseClassToAst("bg-linear-to-br", ctx)).toEqual([
+      {
+        type: "decl",
+        prop: "--tw-gradient-position",
+        value: "to bottom right",
+      },
+      {
+        type: "rule",
+        selector: "@supports (background-image:linear-gradient(in lab, red, red))",
+        nodes: [
+          { type: "decl", prop: "--tw-gradient-position", value: "to bottom right in oklab" },
+        ],
+      },
       {
         type: "decl",
         prop: "background-image",
@@ -322,11 +353,13 @@ describe("background utilities", () => {
   it("from-red-500 → --tw-gradient-from: red-500", () => {
     expect(parseClassToAst("from-red-500", ctx)).toEqual([
       { type: "decl", prop: "--tw-gradient-from", value: "red" },
+      { type: "decl", prop: "--tw-gradient-stops", value: "var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))"}
     ]);
   });
   it("from-[rgba(0,0,0,0.5)] → --tw-gradient-from: rgba(0,0,0,0.5)", () => {
     expect(parseClassToAst("from-[rgba(0,0,0,0.5)]", ctx)).toEqual([
       { type: "decl", prop: "--tw-gradient-from", value: "rgba(0,0,0,0.5)" },
+      { type: "decl", prop: "--tw-gradient-stops", value: "var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))"}
     ]);
   });
   it("from-(--my-color) → --tw-gradient-from: var(--my-color)", () => {
@@ -347,6 +380,7 @@ describe("background utilities", () => {
   it("via-blue-500 → --tw-gradient-via: blue-500", () => {
     expect(parseClassToAst("via-blue-500", ctx)).toEqual([
       { type: "decl", prop: "--tw-gradient-via", value: "blue-500" },
+      { type: "decl", prop: "--tw-gradient-stops", value: "var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))"}
     ]);
   });
   it("via-position-30% → --tw-gradient-via-position: 30%", () => {
@@ -357,6 +391,7 @@ describe("background utilities", () => {
   it("to-green-700 → --tw-gradient-to: green-700", () => {
     expect(parseClassToAst("to-green-700", ctx)).toEqual([
       { type: "decl", prop: "--tw-gradient-to", value: "green-700" },
+      { type: "decl", prop: "--tw-gradient-stops", value: "var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))"}
     ]);
   });
   it("to-position-90% → --tw-gradient-to-position: 90%", () => {
