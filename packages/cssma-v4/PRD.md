@@ -2,7 +2,7 @@
 
 ## Overview
 
-CSSMA v4 is a utility-first CSS framework that transforms Tailwind CSS-compatible class names into CSS AST nodes for Figma styling. The system is built around a modular architecture with clear separation of concerns.
+CSSMA v4 is a utility-first CSS framework that transforms Tailwind CSS-compatible class names into CSS AST nodes for Figma styling. The system is built around a modular architecture with clear separation of concerns, including an optimized runtime system for dynamic CSS injection.
 
 ## Core Systems
 
@@ -11,11 +11,13 @@ CSSMA v4 is a utility-first CSS framework that transforms Tailwind CSS-compatibl
 **Design Intent:**
 - **Single Entry Point:** All class name transformations start here
 - **Extensibility:** Plugins/custom parsers/handlers can easily hook into the process
+- **Common CSS Caching:** Efficient caching system for shared CSS variables and rules
 
 **Main Functions:**
 - `parseClassToAst(className, ctx): AstNode[]` - Parses single utility class and returns AST nodes
-- `generateCss(classList, ctx, opts?): string` - Converts multiple classes to CSS
+- `generateCss(classList, ctx, opts?): string` - Converts multiple classes to CSS with common CSS caching
 - Handles modifiers, negative values, arbitrary values, and custom properties
+- Supports atRoot nodes for common CSS variable management
 
 ### 2. AST System (`ast.ts`)
 
@@ -23,11 +25,13 @@ CSSMA v4 is a utility-first CSS framework that transforms Tailwind CSS-compatibl
 - `decl`: CSS property declaration (e.g., `{ type: 'decl', prop: 'color', value: '#fff' }`)
 - `atrule`: CSS at-rule (e.g., `{ type: 'atrule', name: 'supports', params: '...', nodes: [...] }`)
 - `rule`: CSS selector rule (e.g., `{ type: 'rule', selector: '.foo', nodes: [...] }`)
+- `atRoot`: Common CSS variables and rules (e.g., `{ type: 'atRoot', nodes: [...] }`)
 - `comment`: Comment node
 
 **AST Construction:**
 - All handler functions must return AST nodes in this format
 - AST is designed to be serializable to CSS or Figma style objects
+- atRoot nodes are automatically collected and cached for efficiency
 
 ### 3. Parser System (`parser.ts`)
 
@@ -136,60 +140,131 @@ functionalModifier(
 ```
 
 > **Note:**
-> The application order of variants is determined by the engine's source/type priority, not by registration or an 
+> The application order of variants is determined by the engine's source/type priority, not by registration or an `order` option. For consistent results, always rely on the engine's built-in sorting logic.
+
 **Variant Testing:**
 - Each variant category has comprehensive tests covering all supported patterns
 - Tests include modifier combinations, nesting, and edge cases
 - All 148 variant tests pass, ensuring complete functionality
 
-### 7. Theme System
+### 7. Runtime System (`runtime.ts`)
+
+**Design Intent:**
+- **Optimized Performance:** Efficient CSS injection with debouncing and batch processing
+- **Smart Caching:** Avoids regenerating CSS for already processed classes
+- **Common CSS Management:** Shares common CSS variables and rules across multiple classes
+- **Safe DOM Operations:** Graceful handling of style sheet access and rule insertion
+
+**Core Features:**
+
+#### **Style Element Management**
+- **Multiple Style Elements:** Separate elements for regular CSS, root CSS variables, and CSS variables
+- **Safe Creation:** `createStyleElement()` method for consistent style element creation
+- **Flexible Insertion:** Custom insertion points (head, body, or specific HTMLElement)
+- **Memory Management:** Proper cleanup of style elements and caches
+
+#### **CSS Rule Injection**
+- **Safe Rule Insertion:** `insertRuleToSheet()` with error handling and logging
+- **Batch Processing:** `insertRulesToSheet()` for efficient multiple rule insertion
+- **Content Synchronization:** `syncStyleElementContent()` for consistent textContent management
+- **Success/Failure Tracking:** Comprehensive statistics for rule insertion success rates
+
+#### **Performance Optimizations**
+- **Debounced MutationObserver:** Prevents excessive CSS generation during rapid DOM changes
+- **Smart Caching:** Avoids regenerating CSS for already processed classes
+- **Batch Processing:** Groups multiple class additions for efficient CSS injection
+- **Common CSS Caching:** Shares common CSS variables and rules across multiple classes
+
+#### **Advanced Features**
+- **Theme Hot Reloading:** Update theme at runtime with automatic CSS regeneration
+- **Statistics Tracking:** Monitor cache size, rule count, and performance metrics
+- **Development Mode:** Enhanced logging and debugging capabilities
+- **Error Handling:** Robust error handling for invalid CSS rules
+
+**Runtime API:**
+```typescript
+// Runtime initialization
+const runtime = new StyleRuntime({
+  theme: customTheme,
+  styleId: 'app-styles',
+  enableDev: process.env.NODE_ENV === 'development',
+  insertionPoint: 'head'
+});
+
+// Class management
+runtime.addClass('bg-red-500 text-white');
+runtime.removeClass('bg-red-500');
+runtime.has('text-white');
+runtime.getCss('bg-red-500');
+
+// DOM observation
+const observer = runtime.observe(document.body, {
+  scan: true,
+  debounceMs: 16
+});
+
+// Statistics and cleanup
+runtime.getStats();
+runtime.destroy();
+```
+
+### 8. Theme System
 
 **Theme Lookup:**
 - Always use both category and key for theme lookups (e.g., `ctx.theme('colors', 'red-500')`)
 - Never look up by key only (e.g., `'red-500'`), as keys may overlap across categories
 - Handlers must reference the correct theme category for each utility
 
-### 8. Engine & CSS Conversion
+### 9. Engine & CSS Conversion
 
 #### Engine (`engine.ts`)
 - className → AST conversion (`parseClassToAst`)
 - Multiple classNames → utility CSS (`generateCss`)
 - Supports breakpoints, variants, arbitrary values, custom properties, and all Tailwind v4 syntax
+- Common CSS caching for shared variables and rules
 
 #### CSS Converter (`astToCss.ts`)
 - AST → standard CSS string conversion
 - Selector escaping (`\:` etc.) is 100% identical to Tailwind CSS
 - Supports at-rules (@media), nesting, complex selectors, arbitrary values, etc.
+- atRoot nodes converted to `:root` or `:host` selectors
 
 #### Style Tag Application
 - generateCss output can be directly inserted into `<style>` tag
 - Escaped selectors are correctly interpreted by browsers (identical to Tailwind, CSS-in-JS)
+- Runtime system provides optimized CSS injection with caching and batch processing
 
 #### End-to-End Flow
 1. className → AST (`parseClassToAst`)
 2. AST → CSS (`astToCss`)
 3. Multiple classNames → utility CSS (`generateCss`)
-4. CSS → insert into `<style>` tag
+4. CSS → insert into `<style>` tag (via runtime system)
 
 #### Testing Strategy
 - `engine.basic.test.ts`: End-to-end validation from className → AST → CSS → expected value
 - Covers selector escaping, responsive, arbitrary, variants, custom properties, and all cases
 - Expected values match actual CSS output 1:1 (fully compatible with Tailwind)
+- Runtime tests cover CSS injection, caching, and performance optimizations
 
 ## Extensibility & Best Practices
 
 - All utility registration and handler logic should be modular and easily extendable
 - New utility categories or custom plugins can be added by creating new preset files and registering them in the registry
 - All new features must include comprehensive tests and documentation
+- Runtime system provides hooks for custom CSS injection strategies
+- Common CSS caching can be extended for custom caching strategies
 
 ## Testing & Quality Assurance
 
 - 100% test coverage for all core logic and presets
 - Tests must cover static, functional, arbitrary, custom property, and modifier cases
 - All tests must be written in clear, unambiguous language, specifying exact expected AST output
+- Runtime tests cover CSS injection, caching, performance, and error handling
+- Performance benchmarks for large-scale CSS generation and injection
 
 ## Documentation
 
 - All core systems, presets, and handler patterns must be documented in README.md and PRD.md
 - Documentation must include API signatures, usage examples, handler design notes, and test examples
-- All documentation must be in English for international contributors 
+- All documentation must be in English for international contributors
+- Runtime system documentation includes performance optimization strategies and best practices 

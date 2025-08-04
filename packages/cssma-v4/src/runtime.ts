@@ -15,8 +15,8 @@ export class StyleRuntime {
   private styleCssVarsEl: HTMLStyleElement | null = null;
   private sheet: CSSStyleSheet | null = null;
   private rootSheet: CSSStyleSheet | null = null;
-  private cache: Map<string, string> = new Map(); // 클래스명 -> 생성된 CSS 매핑
-  private rootCache: Set<string> = new Set(); // 클래스명 -> 생성된 CSS 매핑
+  private cache: Map<string, string> = new Map(); // class name -> generated CSS mapping
+  private rootCache: Set<string> = new Set(); // class name -> generated CSS mapping
   private context: any;
   private options: Required<StyleRuntimeOptions>;
   private isDestroyed = false;
@@ -44,55 +44,81 @@ export class StyleRuntime {
     }
   }
 
+  /**
+   * Common method to create and insert style elements into DOM
+   */
+  private createStyleElement(id: string, content?: string): HTMLStyleElement {
+    let styleEl = document.getElementById(id) as HTMLStyleElement;
+    
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = id;
+      styleEl.setAttribute('data-cssma', 'runtime');
+      
+      if (content) {
+        styleEl.textContent = content;
+      }
+      
+      const insertionPoint = this.getInsertionPoint();
+      insertionPoint.appendChild(styleEl);
+      console.log(`[StyleRuntime] ${id} created and appended`, styleEl);
+    }
+    
+    return styleEl;
+  }
+
+  /**
+   * Safely get CSSStyleSheet from style element
+   */
+  private getStyleSheet(styleEl: HTMLStyleElement): CSSStyleSheet | null {
+    try {
+      return styleEl.sheet as CSSStyleSheet;
+    } catch (error) {
+      console.warn('[StyleRuntime] Failed to get stylesheet for', styleEl.id, error);
+      return null;
+    }
+  }
+
+  /**
+   * Safely remove style element
+   */
+  private removeStyleElement(styleEl: HTMLStyleElement | null): void {
+    if (styleEl && styleEl.parentNode) {
+      styleEl.parentNode.removeChild(styleEl);
+    }
+  }
+
   private ensureCssVars() {
     if (this.isDestroyed) return;
 
     if (!this.styleCssVarsEl) {
-      this.styleCssVarsEl = document.getElementById(`${this.options.styleId}-css-vars`) as HTMLStyleElement;
-      if (!this.styleCssVarsEl) {
-        this.styleCssVarsEl = document.createElement('style');
-        this.styleCssVarsEl.id = `${this.options.styleId}-css-vars`;
-        this.styleCssVarsEl.setAttribute('data-cssma', 'runtime');
-        const cssVars = this.context.themeToCssVars();
-        this.styleCssVarsEl.textContent = cssVars;
-        console.log('[StyleRuntime] styleCssVarsEl created', cssVars);
-        const insertionPoint = this.getInsertionPoint();
-        insertionPoint.appendChild(this.styleCssVarsEl);
-        console.log('[StyleRuntime] styleCssVarsEl created and appended', this.styleCssVarsEl);
-      }
+      const cssVars = this.context.themeToCssVars();
+      this.styleCssVarsEl = this.createStyleElement(
+        `${this.options.styleId}-css-vars`,
+        cssVars
+      );
+      console.log('[StyleRuntime] styleCssVarsEl created', cssVars);
     }
   }
 
   private ensureSheet() {
     if (this.isDestroyed) return;
+    
     if (!this.styleEl) {
-      this.styleEl = document.getElementById(this.options.styleId) as HTMLStyleElement;
-      if (!this.styleEl) {
-        this.styleEl = document.createElement('style');
-        this.styleEl.id = this.options.styleId;
-        this.styleEl.setAttribute('data-cssma', 'runtime');
-        const insertionPoint = this.getInsertionPoint();
-        insertionPoint.appendChild(this.styleEl);
-        console.log('[StyleRuntime] styleEl created and appended', this.styleEl);
-      }
+      this.styleEl = this.createStyleElement(this.options.styleId);
     }
+    
     if (!this.styleRootEl) {
-      this.styleRootEl = document.getElementById(`${this.options.styleId}-root`) as HTMLStyleElement;
-      if (!this.styleRootEl) {
-        this.styleRootEl = document.createElement('style');
-        this.styleRootEl.id = `${this.options.styleId}-root`;
-        this.styleRootEl.setAttribute('data-cssma', 'runtime');
-        const insertionPoint = this.getInsertionPoint();
-        insertionPoint.appendChild(this.styleRootEl);
-        console.log('[StyleRuntime] styleRootEl created and appended', this.styleRootEl);
-      }
+      this.styleRootEl = this.createStyleElement(`${this.options.styleId}-root`);
     }
+    
     if (!this.sheet && this.styleEl) {
-      this.sheet = this.styleEl.sheet as CSSStyleSheet;
+      this.sheet = this.getStyleSheet(this.styleEl);
       console.log('[StyleRuntime] sheet initialized', this.sheet);
     }
+    
     if (!this.rootSheet && this.styleRootEl) {
-      this.rootSheet = this.styleRootEl.sheet as CSSStyleSheet;
+      this.rootSheet = this.getStyleSheet(this.styleRootEl);
       console.log('[StyleRuntime] rootSheet initialized', this.rootSheet);
     }
   }
@@ -119,8 +145,8 @@ export class StyleRuntime {
   }
 
   /**
-   * 동적으로 하나 이상의 클래스명을 받아 CSS를 생성/삽입합니다.
-   * 최적화: 배치 처리, 중복 제거, 캐시 확인
+   * Dynamically add one or more class names and generate/insert CSS
+   * Optimizations: batch processing, deduplication, cache checking, common CSS caching
    */
   addClass(classes: string | string[]): void {
     if (typeof window === 'undefined' || this.isDestroyed) return;
@@ -128,7 +154,7 @@ export class StyleRuntime {
     
     const classList = this.normalizeClasses(classes);
     
-    // 중복 제거 및 캐시되지 않은 클래스만 필터링
+    // Filter out duplicates and classes not in cache
     const newClasses = classList.filter(cls => {
       return cls && !this.cache.has(cls);
     });
@@ -140,7 +166,7 @@ export class StyleRuntime {
       newClasses
     });
 
-    // 배치로 CSS 생성
+    // Generate CSS in batch
     const rules = generateCssRules(newClasses.join(' '), this.context, { dedup: false });
     const rootCssRules: string[] = [];
     const cssRules: string[] = [];
@@ -158,7 +184,7 @@ export class StyleRuntime {
       console.log('[StyleRuntime] CSS generated', { cls, css });
     }
     
-    // 배치로 CSS 삽입
+    // Insert CSS in batch
     if (cssRules.length > 0) {
       this.insertRules(cssRules);
       console.log('[StyleRuntime] Batch processed', { 
@@ -173,17 +199,17 @@ export class StyleRuntime {
   }
 
   /**
-   * DOM 내 class 속성 변화를 감지하여 자동으로 addClass를 호출하는 MutationObserver 인스턴스 메서드
-   * 최적화: 디바운싱, 중복 제거, 배치 처리
+   * MutationObserver instance method to automatically call addClass when class attributes change in DOM
+   * Optimizations: debouncing, deduplication, batch processing
    */
   observe(root: HTMLElement = document.body, options?: { scan?: boolean; debounceMs?: number }): MutationObserver {
     console.log('[StyleRuntime] observe called', { root, options });
     
-    // 디바운싱을 위한 타이머
+    // Timer for debouncing
     let debounceTimer: number | null = null;
-    const debounceMs = options?.debounceMs ?? 16; // 기본 16ms (1프레임)
+    const debounceMs = options?.debounceMs ?? 16; // Default 16ms (1 frame)
     
-    // 중복 제거를 위한 Set
+    // Set for deduplication
     const pendingClasses = new Set<string>();
     
     const processPendingClasses = () => {
@@ -206,7 +232,7 @@ export class StyleRuntime {
     };
     
     const observer = new MutationObserver(mutations => {
-      // 변경된 요소들의 클래스만 수집
+      // Collect only changed elements' classes
       const changedElements = new Set<HTMLElement>();
       
       for (const mutation of mutations) {
@@ -215,12 +241,12 @@ export class StyleRuntime {
           changedElements.add(target);
         }
         
-        // childList 변화도 감지 (새로운 노드의 class)
+        // Detect childList changes (new nodes' classes)
         if (mutation.type === 'childList') {
           mutation.addedNodes.forEach(node => {
             if (node instanceof HTMLElement) {
               changedElements.add(node);
-              // 하위 요소들도 포함
+              // Include child elements
               node.querySelectorAll('[class]').forEach(el => {
                 changedElements.add(el as HTMLElement);
               });
@@ -229,7 +255,7 @@ export class StyleRuntime {
         }
       }
       
-      // 변경된 요소들의 클래스만 처리
+      // Process only changed elements' classes
       for (const element of changedElements) {
         if (element.classList && element.className) {
           element.classList.forEach(cls => {
@@ -240,7 +266,7 @@ export class StyleRuntime {
         }
       }
       
-      // 디바운싱된 처리
+      // Debounced processing
       if (pendingClasses.size > 0) {
         debouncedProcess();
       }
@@ -254,10 +280,10 @@ export class StyleRuntime {
     });
     
     if (options?.scan) {
-      // 초기 스캔을 배치로 처리
+      // Initial scan in batch
       const scanClasses = new Set<string>();
       
-      // root 자신도 포함
+      // Include root itself
       if (root.classList && root.className) {
         console.log('[StyleRuntime] observe scan root', root.className);
         root.classList.forEach(cls => {
@@ -267,7 +293,7 @@ export class StyleRuntime {
         });
       }
       
-      // 모든 하위 요소들을 한 번에 수집
+      // Collect all child elements at once
       const elementsWithClass = root.querySelectorAll('[class]');
       for (const el of elementsWithClass) {
         if (el.className) {
@@ -280,7 +306,7 @@ export class StyleRuntime {
         }
       }
       
-      // 배치 처리
+      // Batch processing
       if (scanClasses.size > 0) {
         console.log('[StyleRuntime] observe scan batch processing', Array.from(scanClasses));
         this.addClass(Array.from(scanClasses));
@@ -296,59 +322,91 @@ export class StyleRuntime {
       : classes.split(/\s+/);
   }
 
-  private insertRules(cssRules: string[]) {
-    if (!this.sheet || cssRules.length === 0) return;
-    
+  /**
+   * Safely insert CSS rule into stylesheet
+   */
+  private insertRuleToSheet(sheet: CSSStyleSheet, rule: string): boolean {
+    try {
+      sheet.insertRule(rule.trim(), sheet.cssRules.length);
+      console.log('[StyleRuntime] insertRule', rule.trim());
+      return true;
+    } catch (error) {
+      if (this.options.enableDev) {
+        console.warn('[StyleRuntime] Failed to insert rule:', rule, error);
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Insert multiple CSS rules in batch
+   */
+  private insertRulesToSheet(sheet: CSSStyleSheet, cssRules: string[]): { successful: string[], failed: string[] } {
     const successfulRules: string[] = [];
     const failedRules: string[] = [];
     
-    // 배치로 규칙 삽입
     for (const css of cssRules) {
       const rules = css.split(/(?<=})\s*/).filter(Boolean);
       for (const rule of rules) {
-        try {
-          this.sheet.insertRule(rule.trim(), this.sheet.cssRules.length);
+        if (this.insertRuleToSheet(sheet, rule)) {
           successfulRules.push(rule.trim());
-          console.log('[StyleRuntime] insertRule', rule.trim());
-        } catch (error) {
+        } else {
           failedRules.push(rule.trim());
-          if (this.options.enableDev) {
-            console.warn('[StyleRuntime] Failed to insert rule:', rule, error);
-          }
         }
       }
     }
     
-    // 성공/실패 통계
+    return { successful: successfulRules, failed: failedRules };
+  }
+
+  /**
+   * Synchronize style element's textContent with cache
+   */
+  private syncStyleElementContent(styleEl: HTMLStyleElement, cssRules: string[]): void {
+    if (styleEl) {
+      styleEl.textContent = cssRules.join('\n');
+    }
+  }
+
+  private insertRules(cssRules: string[]) {
+    if (!this.sheet || cssRules.length === 0) return;
+    
+    const { successful, failed } = this.insertRulesToSheet(this.sheet, cssRules);
+    
+    // Success/failure statistics
     if (this.options.enableDev) {
       console.log('[StyleRuntime] insertRules stats', {
         total: cssRules.length,
-        successful: successfulRules.length,
-        failed: failedRules.length,
-        failedRules
+        successful: successful.length,
+        failed: failed.length,
+        failedRules: failed
       });
     }
     
-    // 항상 cache의 모든 CSS를 합쳐서 textContent에 동기화
+    // Always sync all CSS from cache to textContent
     if (this.styleEl) {
-      this.styleEl.textContent = Array.from(this.cache.values()).join('\n');
+      this.syncStyleElementContent(this.styleEl, Array.from(this.cache.values()));
     }
   }
 
   private insertRootRules(cssRules: string[]) {
-    console.log('[StyleRuntime] insertRootRules', this.rootSheet
-    );
+    console.log('[StyleRuntime] insertRootRules', this.rootSheet);
     if (!this.rootSheet || cssRules.length === 0) return;
 
+    // Add to rootCache
     for (const css of cssRules) {
       this.rootCache.add(css);
     }
 
-    const css = Array.from(this.rootCache).join('\n');
-    if (this.styleRootEl) {
-      this.styleRootEl.textContent = css;
-    }
-    this.rootSheet.insertRule(`:root,:host {${css}}`, this.rootSheet.cssRules.length);
+    // Combine all root CSS
+    const allRootCss = Array.from(this.rootCache).join('\n');
+    
+    // Sync style element content
+    this.syncStyleElementContent(this.styleRootEl!, [allRootCss]);
+    
+    // Insert as :root, :host rule
+    const rootRule = `:root,:host {${allRootCss}}`;
+    this.insertRuleToSheet(this.rootSheet, rootRule);
   }
 
   has(cls: string): boolean {
@@ -383,11 +441,14 @@ export class StyleRuntime {
       this.styleRootEl.textContent = '';
     }
     this.cache.clear();
-    if (this.styleEl && this.styleEl.sheet) {
-      this.sheet = this.styleEl.sheet as CSSStyleSheet;
+    this.rootCache.clear();
+    
+    // Reinitialize stylesheets
+    if (this.styleEl) {
+      this.sheet = this.getStyleSheet(this.styleEl);
     }
-    if (this.rootSheet && this.styleRootEl) {
-      this.rootSheet = this.styleRootEl.sheet as CSSStyleSheet;
+    if (this.styleRootEl) {
+      this.rootSheet = this.getStyleSheet(this.styleRootEl);
     }
     console.log('[StyleRuntime] reset');
   }
@@ -414,12 +475,17 @@ export class StyleRuntime {
   }
 
   destroy(): void {
-    if (this.styleEl && this.styleEl.parentNode) {
-      this.styleEl.parentNode.removeChild(this.styleEl);
-    }
+    this.removeStyleElement(this.styleEl);
+    this.removeStyleElement(this.styleRootEl);
+    this.removeStyleElement(this.styleCssVarsEl);
+    
     this.styleEl = null;
+    this.styleRootEl = null;
+    this.styleCssVarsEl = null;
     this.sheet = null;
+    this.rootSheet = null;
     this.cache.clear();
+    this.rootCache.clear();
     this.isDestroyed = true;
     console.log('[StyleRuntime] destroy');
   }

@@ -11,6 +11,8 @@ A utility class system compatible with Tailwind CSS that converts CSS class name
 - **Custom Properties**: Supports custom properties in `bg-(--my-bg)` format
 - **Negative Values**: Supports negative values in `-inset-x-2` format
 - **Modular Preset System**: Organized preset structure by categories
+- **Runtime CSS Injection**: Optimized runtime CSS injection with caching and batch processing
+- **Common CSS Caching**: Efficient caching system for shared CSS variables and rules
 
 ## 📦 Installation
 
@@ -52,6 +54,60 @@ const result4 = parseClassToAst('bg-[#ff0000]', ctx);
 const result5 = parseClassToAst('bg-(--my-bg)', ctx);
 // [{ type: 'decl', prop: 'background-color', value: 'var(--my-bg)' }]
 ```
+
+### Runtime CSS Injection
+
+CSSMA v4 provides an optimized runtime system for dynamic CSS injection:
+
+```typescript
+import { StyleRuntime } from 'cssma-v4';
+
+// Initialize runtime with custom options
+const runtime = new StyleRuntime({
+  theme: defaultTheme,
+  styleId: 'my-app-styles',
+  enableDev: true,
+  insertionPoint: 'head' // or 'body' or HTMLElement
+});
+
+// Add classes dynamically
+runtime.addClass('bg-red-500 text-white p-4');
+
+// Observe DOM changes automatically
+const observer = runtime.observe(document.body, {
+  scan: true,        // Scan existing elements
+  debounceMs: 16     // Debounce mutations
+});
+
+// Manual class management
+runtime.addClass(['hover:bg-blue-500', 'focus:ring-2']);
+runtime.removeClass('bg-red-500');
+runtime.has('text-white'); // Check if class is cached
+runtime.getCss('bg-red-500'); // Get generated CSS
+
+// Cleanup
+runtime.destroy();
+```
+
+### Runtime Features
+
+#### **Optimized Performance**
+- **Debounced MutationObserver**: Prevents excessive CSS generation during rapid DOM changes
+- **Batch Processing**: Groups multiple class additions for efficient CSS injection
+- **Smart Caching**: Avoids regenerating CSS for already processed classes
+- **Common CSS Caching**: Shares common CSS variables and rules across multiple classes
+
+#### **Flexible Style Management**
+- **Multiple Style Elements**: Separate elements for regular CSS, root CSS variables, and CSS variables
+- **Safe DOM Operations**: Graceful handling of style sheet access and rule insertion
+- **Development Mode**: Enhanced logging and debugging capabilities
+- **Custom Insertion Points**: Control where style elements are placed in the DOM
+
+#### **Advanced Features**
+- **Theme Hot Reloading**: Update theme at runtime with automatic CSS regeneration
+- **Statistics Tracking**: Monitor cache size, rule count, and performance metrics
+- **Memory Management**: Proper cleanup of style elements and caches
+- **Error Handling**: Robust error handling for invalid CSS rules
 
 ### Preset Categories
 
@@ -145,7 +201,7 @@ functionalModifier(
 ```
 
 > **Note:**
-> The application order of variants is determined by the engine's source/type priority, not by registration or an `order` option. For consistent results, always rely on the engine’s built-in sorting logic.
+> The application order of variants is determined by the engine's source/type priority, not by registration or an `order` option. For consistent results, always rely on the engine's built-in sorting logic.
 
 ## 🏗️ Architecture
 
@@ -191,6 +247,28 @@ const css = generateCss('sm:hover:bg-red-500', ctx);
 // }
 ```
 
+#### Runtime System
+Optimized CSS injection and management:
+
+```typescript
+// Runtime initialization with custom options
+const runtime = new StyleRuntime({
+  theme: customTheme,
+  styleId: 'app-styles',
+  enableDev: process.env.NODE_ENV === 'development'
+});
+
+// Automatic DOM observation with debouncing
+const observer = runtime.observe(document.body, {
+  scan: true,
+  debounceMs: 16
+});
+
+// Manual class management with caching
+runtime.addClass(['bg-red-500', 'text-white']);
+runtime.getStats(); // { cachedClasses: 2, cssRules: 2, ... }
+```
+
 ## 🧪 Testing
 
 ```bash
@@ -221,6 +299,12 @@ expect(parseClassToAst('inset-x-4', ctx)).toEqual([
 expect(parseClassToAst('bg-[#ff0000]', ctx)).toEqual([
   { type: 'decl', prop: 'background-color', value: '#ff0000' }
 ]);
+
+// Runtime Tests
+const runtime = new StyleRuntime();
+runtime.addClass('bg-red-500');
+expect(runtime.has('bg-red-500')).toBe(true);
+expect(runtime.getCss('bg-red-500')).toContain('background-color');
 ```
 
 ## 📚 API Reference
@@ -231,6 +315,16 @@ expect(parseClassToAst('bg-[#ff0000]', ctx)).toEqual([
 - `generateCss(classList: string, ctx: CssmaContext, opts?: object): string`
 - `parseClassName(className: string): { modifiers: ParsedModifier[], utility: ParsedUtility }`
 - `createContext(config: CssmaConfig): CssmaContext`
+
+### Runtime Functions
+
+- `new StyleRuntime(options?: StyleRuntimeOptions): StyleRuntime`
+- `runtime.addClass(classes: string | string[]): void`
+- `runtime.observe(root: HTMLElement, options?: object): MutationObserver`
+- `runtime.has(cls: string): boolean`
+- `runtime.getCss(cls: string): string | undefined`
+- `runtime.getStats(): RuntimeStats`
+- `runtime.destroy(): void`
 
 ### Registration Functions
 
@@ -245,6 +339,8 @@ expect(parseClassToAst('bg-[#ff0000]', ctx)).toEqual([
 - `AstNode`: AST node type for CSS representation
 - `ParsedUtility`: Parsed utility type
 - `ParsedModifier`: Parsed modifier type
+- `StyleRuntimeOptions`: Runtime configuration options
+- `RuntimeStats`: Runtime performance statistics
 
 ## 🤝 Contributing
 
