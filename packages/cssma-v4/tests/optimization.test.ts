@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import '../src/presets'; // Load presets to register utilities
-import { StyleRuntime } from '../src/runtime';
+import { StyleRuntime } from '../src/runtime/browser-runtime';
 import { astCache } from '../src/utils/cache';
 import { CompressedCache, MemoryPool } from '../src/utils/cache';
+import { AstNode } from '../src/core/ast';
 
 describe('Optimization Features', () => {
   let runtime: StyleRuntime;
@@ -92,7 +93,7 @@ describe('Optimization Features', () => {
       
       // Add AST to compressed cache
       const ast = [{ type: 'decl', prop: 'background-color', value: '#ef4444' }];
-      compressedCache.setAst(className, ast);
+      compressedCache.setAst(className, ast as AstNode[]);
       
       // Retrieve and verify
       const retrieved = compressedCache.getAst(className);

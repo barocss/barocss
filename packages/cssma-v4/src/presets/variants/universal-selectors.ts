@@ -13,7 +13,6 @@ functionalModifier(
     };
   },
   undefined,
-  { order: 60 }
 );
 
 functionalModifier(
@@ -27,5 +26,4 @@ functionalModifier(
     };
   },
   undefined,
-  { order: 61 }
 ); 

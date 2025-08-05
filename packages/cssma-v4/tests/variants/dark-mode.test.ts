@@ -1,10 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import "../../src/presets";
-import { parseClassToAst } from "../../src/core/engine";
+import { parseClassToAst, clearAstCache } from "../../src/core/engine";
 import { createContext } from "../../src/core/context";
-import { ctx } from "./test-utils";
 
 describe("dark mode", () => {
+  beforeEach(() => {
+    clearAstCache();
+  });
+  
   describe("dark mode config", () => {
     it("darkMode: media (default)", () => {
       const ctx = createContext({
@@ -30,6 +33,7 @@ describe("dark mode", () => {
         {
           type: "rule",
           selector: ".dark",
+          source: "dark",
           nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
       ]);
@@ -47,8 +51,8 @@ describe("dark mode", () => {
       expect(parseClassToAst("dark:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
-          selector:
-            ":where([data-theme=dark], [data-theme=dark] *), :where(.dark, .dark *)",
+          selector: ":where([data-theme=dark], [data-theme=dark] *), :where(.dark, .dark *)",
+          source: "dark",
           nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
       ]);
@@ -66,8 +70,8 @@ describe("dark mode", () => {
       expect(parseClassToAst("dark:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
-          selector:
-            ":where([data-theme=dark], [data-theme=dark] *), :where(.dark, .dark *)",
+          selector: ":where([data-theme=dark], [data-theme=dark] *), :where(.dark, .dark *)",
+          source: "dark",
           nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
       ]);
@@ -84,11 +88,13 @@ describe("dark mode", () => {
           type: "at-rule",
           name: "media",
           params: "(prefers-color-scheme: dark)",
+          source: "dark",
           nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
         {
           type: "rule",
           selector: ".dark",
+          source: "dark",
           nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
       ]);
@@ -160,12 +166,20 @@ describe("dark mode", () => {
         ],
         theme: { colors: { red: { 500: "#f00" } } },
       });
-      expect(parseClassToAst("dark:bg-red-500", ctx)).toMatchObject([
+      
+      console.log('=== Test Environment Debug ===');
+      console.log('ctx.config("darkMode"):', ctx.config("darkMode"));
+      console.log('ctx.config("darkModeSelector"):', ctx.config("darkModeSelector"));
+      
+      const result = parseClassToAst("dark:bg-red-500", ctx);
+      console.log('Test result:', JSON.stringify(result, null, 2));
+      expect(result).toMatchObject([
         {
           type: "rule",
           selector:
             ":where([data-theme=dark], [data-theme=dark] *), :where(.dark, .dark *)",
           nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          source: "dark"
         },
       ]);
     });

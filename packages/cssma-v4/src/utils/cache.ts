@@ -169,6 +169,17 @@ export class UtilityCache {
 export const utilityCache = new UtilityCache();
 
 /**
+ * Clear all caches (for context changes or testing)
+ */
+export function clearAllCaches(): void {
+  astCache.clear();
+  cssCache.clear();
+  parseResultCache.clear();
+  utilityCache.clear();
+  console.log('[clearAllCaches] All caches cleared');
+}
+
+/**
  * WeakMap-based cache for memory optimization
  */
 export class WeakCache<T> {

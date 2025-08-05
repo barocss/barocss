@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import "../src/presets"
-import { StyleRuntime } from '../src/runtime';
+import { StyleRuntime } from '../src/runtime/browser-runtime';
 
 describe('StyleRuntime', () => {
   let runtime: StyleRuntime;
@@ -56,7 +56,7 @@ describe('StyleRuntime', () => {
   it('updates theme and regenerates CSS', () => {
     runtime.addClass('bg-blue-500');
     const originalCss = runtime.getCss('bg-blue-500');
-    runtime.updateTheme({ colors: { blue: { 500: '#3b82f6' } } });
+    runtime.updateConfig({ theme: { colors: { blue: { 500: '#3b82f6' } } } });
     const newCss = runtime.getCss('bg-blue-500');
     expect(newCss).not.toBe(originalCss);
   });

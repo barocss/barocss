@@ -1,12 +1,236 @@
-import { createContext } from './core/context';
-import { defaultTheme } from './theme';
-import { astCache } from './utils/cache';
-import { cssCache } from './utils/cache';
-import { IncrementalParser, ChangeDetector } from './core/incremental-parser';
-import { CompressedCache, MemoryPool } from './utils/cache';
+import { createContext, astCache, cssCache, IncrementalParser, CompressedCache, MemoryPool } from '../index';
+import type { CssmaConfig } from '../core/context';
+
+/**
+ * Change detection system for DOM mutations
+ * 
+ * ⚠️ BROWSER-ONLY: This class is designed for browser environments only.
+ * It uses MutationObserver and DOM APIs that are not available in Node.js.
+ * 
+ * This class monitors DOM changes and automatically processes new CSS classes
+ * that are added to elements. It uses MutationObserver to detect:
+ * - Class attribute changes on existing elements
+ * - New elements being added to the DOM
+ * - Changes in child elements
+ * 
+ * For server-side usage, use IncrementalParser directly with processClassesSync()
+ * or processClasses() methods.
+ */
+export class ChangeDetector {
+  /** MutationObserver instance for DOM change detection */
+  private observer: MutationObserver | null = null;
+  
+  /** Reference to IncrementalParser for class processing */
+  private incrementalParser: IncrementalParser;
+  
+  /** Reference to StyleRuntime for CSS injection (optional) */
+  private styleRuntime?: any;
+  
+  /** Set of elements that have already been processed to avoid duplicates */
+  private processedElements = new WeakSet<Element>();
+
+  /**
+   * Create a new ChangeDetector instance
+   * 
+   * @param incrementalParser - IncrementalParser instance for class processing
+   * @param styleRuntime - Optional StyleRuntime instance for CSS injection
+   */
+  constructor(incrementalParser: IncrementalParser, styleRuntime?: any) {
+    this.incrementalParser = incrementalParser;
+    this.styleRuntime = styleRuntime;
+  }
+
+  /**
+   * Starts observing DOM changes for new CSS classes
+   * 
+   * This method sets up a MutationObserver that monitors:
+   * - Attribute changes (specifically class attribute modifications)
+   * - Child list changes (new elements being added)
+   * - Subtree changes (changes in descendant elements)
+   * 
+   * The observer automatically processes any new classes it discovers
+   * by adding them to the IncrementalParser's pending queue.
+   * 
+   * @param root - The root element to observe (defaults to document.body)
+   * @param options - Configuration options including scan and debounce settings
+   * @returns The MutationObserver instance for external control
+   */
+  observe(root: HTMLElement = document.body, options?: { scan?: boolean; debounceMs?: number }): MutationObserver {
+    if (typeof window === 'undefined') {
+      // Return dummy observer for Node.js environment
+      return new MutationObserver(() => {});
+    }
+
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+
+    this.observer = new MutationObserver((mutations) => {
+      const newClasses = new Set<string>();
+
+      mutations.forEach(mutation => {
+        // Handle attribute changes (class modifications)
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const target = mutation.target as HTMLElement;
+          if (target.className) {
+            const classes = target.className.split(/\s+/).filter(Boolean);
+            classes.forEach(cls => {
+              if (!this.incrementalParser.isProcessed(cls)) {
+                newClasses.add(cls);
+              }
+            });
+          }
+        }
+
+        // Handle new nodes
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach(node => {
+            if (node instanceof HTMLElement) {
+              this.processElement(node, newClasses);
+              // Process child elements
+              node.querySelectorAll('[class]').forEach(el => {
+                this.processElement(el as HTMLElement, newClasses);
+              });
+            }
+          });
+        }
+      });
+
+      // Process new classes in batch
+      if (newClasses.size > 0) {
+        const classesArray = Array.from(newClasses);
+        
+        // Process classes directly and update StyleRuntime cache
+        const results = this.incrementalParser.processClasses(classesArray);
+        
+        // If StyleRuntime is available, inject CSS and update cache
+        if (this.styleRuntime) {
+          const cssRules: string[] = [];
+          results.forEach(result => {
+            if (result.css) {
+              cssRules.push(result.css);
+              // Add to StyleRuntime cache
+              this.styleRuntime.cache.set(result.className, result.css);
+            }
+          });
+          if (cssRules.length > 0) {
+            this.styleRuntime.insertRules(cssRules);
+          }
+        }
+      }
+    });
+
+    this.observer.observe(root, {
+      attributes: true,
+      subtree: true,
+      attributeFilter: ['class'],
+      childList: true
+    });
+
+    // Handle scan option - process existing classes
+    if (options?.scan) {
+      this.scanExistingClasses(root);
+    }
+
+    return this.observer;
+  }
+
+  /**
+   * Scan existing classes in the DOM and process them
+   */
+  private scanExistingClasses(root: HTMLElement): void {
+    const existingClasses = new Set<string>();
+    
+    // Include root itself
+    if (root.className) {
+      const classes = root.className.split(/\s+/).filter(Boolean);
+      classes.forEach(cls => {
+        if (!this.incrementalParser.isProcessed(cls)) {
+          existingClasses.add(cls);
+        }
+      });
+    }
+    
+    // Scan all child elements
+    const elementsWithClass = root.querySelectorAll('[class]');
+    for (const el of elementsWithClass) {
+      if (el.className) {
+        const classes = el.className.split(/\s+/).filter(Boolean);
+        classes.forEach(cls => {
+          if (!this.incrementalParser.isProcessed(cls)) {
+            existingClasses.add(cls);
+          }
+        });
+      }
+    }
+
+    if (existingClasses.size > 0) {
+      // Process classes using IncrementalParser
+      const results = this.incrementalParser.processClasses(Array.from(existingClasses));
+      
+      // If StyleRuntime is available, inject CSS and update cache
+      if (this.styleRuntime) {
+        const cssRules: string[] = [];
+        results.forEach(result => {
+          if (result.css) {
+            cssRules.push(result.css);
+            // Add to StyleRuntime cache
+            this.styleRuntime.cache.set(result.className, result.css);
+          }
+        });
+        if (cssRules.length > 0) {
+          this.styleRuntime.insertRules(cssRules);
+        }
+      }
+    }
+  }
+
+  /**
+   * Processes an individual element and extracts new classes
+   * 
+   * This method is called for each element discovered during DOM mutations.
+   * It:
+   * - Checks if the element has already been processed
+   * - Extracts all class names from the element's className
+   * - Filters out already processed classes
+   * - Adds new classes to the collection for batch processing
+   * - Marks the element as processed to avoid duplicates
+   * 
+   * @param element - The HTML element to process
+   * @param newClasses - Set to collect newly discovered class names
+   */
+  private processElement(element: HTMLElement, newClasses: Set<string>): void {
+    if (this.processedElements.has(element)) return;
+
+    if (element.className) {
+      const classes = element.className.split(/\s+/).filter(Boolean);
+      classes.forEach(cls => {
+        if (!this.incrementalParser.isProcessed(cls)) {
+          newClasses.add(cls);
+        }
+      });
+    }
+
+    this.processedElements.add(element);
+  }
+
+  /**
+   * Stops observing DOM changes and cleans up resources
+   * 
+   * This method disconnects the MutationObserver and clears the
+   * observer reference to prevent memory leaks and allow the
+   * ChangeDetector to be properly garbage collected.
+   */
+  disconnect(): void {
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+  }
+} 
 
 export interface StyleRuntimeOptions {
-  theme?: any;
+  config?: CssmaConfig;  // 전체 config 받기
   styleId?: string;
   enableDev?: boolean;
   insertionPoint?: 'head' | 'body' | HTMLElement;
@@ -45,8 +269,11 @@ export class StyleRuntime {
   private memoryPool: MemoryPool<any>;
 
   constructor(options: StyleRuntimeOptions = {}) {
+    // 기본 config 설정 - createContext에서 defaultTheme 자동 처리
+    const defaultConfig: CssmaConfig = {};
+
     this.options = {
-      theme: options.theme || defaultTheme,
+      config: options.config || defaultConfig,
       styleId: options.styleId || 'cssma-runtime',
       enableDev: options.enableDev ?? (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'),
       insertionPoint: options.insertionPoint || 'head',
@@ -66,7 +293,8 @@ export class StyleRuntime {
       }
     };
 
-    this.context = createContext({ theme: this.options.theme });
+    // createContext에 전체 config 전달 (defaultTheme 자동 포함)
+    this.context = createContext(this.options.config);
 
     // Initialize optimization components
     this.incrementalParser = new IncrementalParser(this.context);
@@ -135,7 +363,7 @@ export class StyleRuntime {
     if (this.isDestroyed) return;
 
     if (!this.styleCssVarsEl) {
-      const cssVars = this.context.themeToCssVars();
+      const cssVars = this.context.themeToCssVars ? this.context.themeToCssVars() : ':root { /* CSS Variables will be generated here */ }';
       this.styleCssVarsEl = this.createStyleElement(
         `${this.options.styleId}-css-vars`,
         cssVars
@@ -181,8 +409,8 @@ export class StyleRuntime {
 
   private setupHMR() {
     if (typeof module !== 'undefined' && (module as any).hot) {
-      (module as any).hot.accept('./theme', () => {
-        this.updateTheme(defaultTheme);
+      (module as any).hot.accept(() => {
+        this.reset();
       });
     }
   }
@@ -463,14 +691,15 @@ export class StyleRuntime {
     console.log('[StyleRuntime] reset');
   }
 
-  updateTheme(newTheme: any): void {
-    this.context = createContext({ theme: newTheme });
+  updateConfig(newConfig: CssmaConfig): void {
+    this.options.config = newConfig;
+    this.context = createContext(newConfig);
     const existingClasses = Array.from(this.cache.keys());
     this.reset();
     if (existingClasses.length > 0) {
       this.addClass(existingClasses);
     }
-    console.log('[StyleRuntime] updateTheme', newTheme);
+    console.log('[StyleRuntime] updateConfig', newConfig);
   }
 
   removeClass(classes: string | string[]): void {
@@ -506,7 +735,7 @@ export class StyleRuntime {
       styleElementId: this.options.styleId,
       isDestroyed: this.isDestroyed,
       cssRules: this.sheet?.cssRules.length || 0,
-      theme: this.options.theme,
+      config: this.options.config,
       cacheStats: this.getCacheStats(),
       optimizationStats: this.getOptimizationStats()
     };
@@ -515,6 +744,7 @@ export class StyleRuntime {
   }
 }
 
+// Export runtime with automatic defaultTheme - createContext handles it
 export const runtime = new StyleRuntime();
 export const addClass = (classes: string | string[]) => runtime.addClass(classes);
 export const hasClass = (cls: string) => runtime.has(cls);

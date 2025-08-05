@@ -26,5 +26,4 @@ functionalModifier(
     };
   },
   undefined,
-  { order: 200 }
 ); 

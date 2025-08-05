@@ -1,9 +1,10 @@
-import { rule, type AstNode } from "./ast";
+import { type AstNode } from "./ast";
 import { parseClassName } from "./parser";
 import { astCache } from "../utils/cache";
 import { getUtility, getModifierPlugins } from "./registry";
 import { CssmaContext } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
+import { clearAllCaches } from '../utils/cache';
 
 /**
  * decl-to-root path collection function (reused in normalizeAstOrder, etc.)
@@ -29,11 +30,11 @@ export function collectDeclPaths(
   let result: DeclPath[] = [];
   for (const node of nodes) {
     const curr = { ...node };
-    delete curr.nodes;
+    delete (curr as any).nodes;
     if (node.type === "decl") {
       result.push([...path, curr]);
-    } else if (node.nodes && node.nodes.length > 0) {
-      result = result.concat(collectDeclPaths(node.nodes, [...path, curr]));
+    } else if ((node as any).nodes && (node as any).nodes.length > 0) {
+      result = result.concat(collectDeclPaths((node as any).nodes, [...path, curr]));
     }
   }
   return result;
@@ -105,6 +106,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
   // 1. decl(leaf)와 variant chain 분리
   const variants = declPath.slice(0, -1);
   const decl = declPath[declPath.length - 1];
+
   // 2. 기존 정렬/병합(hoist) 로직 유지
   const sortedVariants = [...variants].sort(
     (a, b) => getPriority(a.type!) - getPriority(b.type!)
@@ -114,11 +116,13 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
   // 1. 처음 요소가 decl 이면 rule('&', [decl]) 추가
   // 2. rule 이 & 를 가지지 않는데 하위가 decl 이면 현재 rule 에 , rule('&', [decl]) 추가
   if (sortedVariants.length === 0) {
-    sortedVariants.push({
-      type: "rule",
-      selector: "&",
-      source: "base",
-    });
+    if (decl.type === "decl") { // 첫 요소가 decl 이면 rule('&', [decl]) 추가
+      sortedVariants.push({
+        type: "rule",
+        selector: "&",
+        source: "base",
+      });
+    }
   } else {
     const last = sortedVariants[sortedVariants.length - 1];
     if (
@@ -164,7 +168,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
   }
 
   // 5. selector 합성 및 단일 rule 생성
-  let node: AstNode = { ...decl };
+  let node: AstNode = { ...decl } as any;
   let sortedRuleSelectors = [...ruleSelectors].sort(
     (a, b) => getRulePriority(a) - getRulePriority(b)
   );
@@ -203,6 +207,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
   for (let i = nonRuleVariants.length - 1; i >= 0; i--) {
     node = { ...nonRuleVariants[i], nodes: [node] };
   }
+
   return [node];
 }
 
@@ -228,9 +233,14 @@ export function parseClassToAst(
   ctx: CssmaContext
 ): AstNode[] {
   // Check AST cache first
-  const cacheKey = `${fullClassName}:${JSON.stringify(ctx.theme)}`;
+  // 더 간단한 캐시 키: className + context hash
+  const contextHash = JSON.stringify({
+    darkMode: ctx.config("darkMode"),
+    darkModeSelector: ctx.config("darkModeSelector"),
+    theme: ctx.theme
+  });
+  const cacheKey = `${fullClassName}:${contextHash}`;
   if (astCache.has(cacheKey)) {
-    // console.log('[parseClassToAst] Cache hit for', fullClassName);
     return astCache.get(cacheKey)!;
   }
 
@@ -256,10 +266,16 @@ export function parseClassToAst(
 
   let wrappers = [];
   let selector = "&";
+  
   for (let i = 0; i < modifiers.length; i++) {
     const variant = modifiers[i];
+    
     const plugin = getModifierPlugins().find((p) => p.match(variant.type, ctx));
-    if (!plugin) continue;
+    
+    if (!plugin) {
+      continue;
+    }
+    
     if (plugin.wrap) {
       const items = plugin.wrap(variant, ctx);
       wrappers.push({
@@ -323,8 +339,8 @@ export function parseClassToAst(
       ast = [
         {
           type: "at-rule",
-          name: wrap.name || "media",
-          params: wrap.params!,
+          name: (wrap as any).name || "media",
+          params: (wrap as any).params!,
           source: wrap.source,
           nodes: Array.isArray(ast) ? ast : [ast],
         },
@@ -343,9 +359,17 @@ export function parseClassToAst(
 
   // Cache the result
   astCache.set(cacheKey, ast);
-  // console.log('[parseClassToAst] Cache miss, generated AST for', fullClassName);
 
   return ast;
+}
+
+
+
+/**
+ * Clear all AST caches (mainly for testing)
+ */
+export function clearAstCache(): void {
+  clearAllCaches();
 }
 
 /**
@@ -472,8 +496,8 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
     const path: AstNode[] = [];
     let node = ast[0];
     while (node) {
-      path.push({ ...node, nodes: undefined });
-      if (node.nodes && node.nodes.length === 1) node = node.nodes[0];
+      path.push({ ...node, nodes: undefined } as any);
+      if ((node as any).nodes && (node as any).nodes.length === 1) node = (node as any).nodes[0];
       else break;
     }
     return path;
@@ -504,8 +528,8 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
       const children = merge(group, depth + 1);
       result.push(
         children.length
-          ? { ...node, nodes: children as AstNode[] }
-          : { ...node }
+          ? { ...node, nodes: children as AstNode[] } as any
+          : { ...node } as any
       );
     }
     return result;

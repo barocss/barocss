@@ -6,7 +6,6 @@ import "./pseudo-classes";
 import "./form-states";
 import "./structural-selectors";
 import "./media-features";
-import "./group-peer";
 import "./attribute-selectors";
 
 // --- Pseudo-elements (cross-browser) ---

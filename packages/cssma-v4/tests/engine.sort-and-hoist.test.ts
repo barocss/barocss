@@ -51,13 +51,13 @@ describe("declPathToAst (decl path 단일 변환)", () => {
   it("공통 prefix 없는 path (decl만)", () => {
     const path: DeclPath = [{ type: "decl", prop: "color", value: "#111" }];
     const ast = declPathToAst(path);
-    expect(ast).toEqual([{ type: "decl", prop: "color", value: "#111" }]);
+    expect(ast).toEqual([{ type: "rule", selector: "&", nodes: [{ type: "decl", prop: "color", value: "#111" }] }]);
   });
 
   it("복잡한 중첩/branch 구조 (실제 Tailwind variant chain, 단일 path)", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
-      { type: "rule", selector: ":hover" },
+      { type: "rule", selector: "&:hover" },
       { type: "at-rule", name: "supports", params: "(display: grid)" },
       { type: "decl", prop: "color", value: "#f00" },
     ];
@@ -75,7 +75,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
             nodes: [
               {
                 type: "rule",
-                selector: ":hover",
+                selector: "&:hover",
                 nodes: [{ type: "decl", prop: "color", value: "#f00" }],
               },
             ],
@@ -122,7 +122,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
   it("style-rule + rule + at-rule + decl (variant 순서 뒤섞임)", () => {
     const path: DeclPath = [
       { type: "style-rule", selector: ".foo" },
-      { type: "rule", selector: ":hover" },
+      { type: "rule", selector: "&:hover" },
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "decl", prop: "color", value: "#f00" },
     ];
@@ -141,7 +141,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
             nodes: [
               {
                 type: "rule",
-                selector: ":hover",
+                selector: "&:hover",
                 nodes: [{ type: "decl", prop: "color", value: "#f00" }],
               },
             ],
@@ -155,8 +155,8 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
-      { type: "rule", selector: ":hover" },
-      { type: "rule", selector: ":hover" },
+      { type: "rule", selector: "&:hover" },
+      { type: "rule", selector: "&:hover" },
       { type: "style-rule", selector: ".foo" },
       { type: "style-rule", selector: ".foo" },
       { type: "decl", prop: "color", value: "#f00" },
@@ -174,7 +174,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
             nodes: [
               {
                 type: "rule",
-                selector: ":hover",
+                selector: "&:hover",
                 nodes: [{ type: "decl", prop: "color", value: "#f00" }],
               },
             ],
@@ -190,7 +190,11 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ];
     const ast = declPathToAst(path);
     expect(ast).toEqual([
-      { type: "decl", prop: "border", value: "1px solid #000" },
+      {
+        type: "rule",
+        selector: "&",
+        nodes: [{ type: "decl", prop: "border", value: "1px solid #000" }],
+      },
     ]);
   });
 
@@ -230,7 +234,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
         name: "media",
         params: "(prefers-color-scheme: dark)",
       }, // dark
-      { type: "rule", selector: ":hover" },
+      { type: "rule", selector: "&:hover" },
       { type: "decl", prop: "background", value: "#f00" },
     ];
     const ast = declPathToAst(path);
@@ -247,7 +251,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
             nodes: [
               {
                 type: "rule",
-                selector: ":hover",
+                selector: "&:hover",
                 nodes: [{ type: "decl", prop: "background", value: "#f00" }],
               },
             ],
@@ -274,13 +278,13 @@ describe("declPathToAst (decl path 단일 변환)", () => {
 
   it("negative variant (type: 'rule', negative: true)", () => {
     const path: DeclPath = [
-      { type: "rule", selector: ":hover", negative: true },
+      { type: "rule", selector: "&:hover", negative: true },
       { type: "decl", prop: "color", value: "#f00" },
     ] as any;
     const ast = declPathToAst(path);
     expect(ast).toMatchObject([
       {
-        type: "rule", selector: ":hover", nodes: [
+        type: "rule", selector: "&:hover", nodes: [
           { type: "decl", prop: "color", value: "#f00" },
         ],
       },
@@ -290,12 +294,12 @@ describe("declPathToAst (decl path 단일 변환)", () => {
   it("복수 decl (동일 variant chain, decl만 다름)", () => {
     const path1: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
-      { type: "rule", selector: ":hover" },
+      { type: "rule", selector: "&:hover" },
       { type: "decl", prop: "color", value: "#f00" },
     ];
     const path2: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
-      { type: "rule", selector: ":hover" },
+      { type: "rule", selector: "&:hover" },
       { type: "decl", prop: "background", value: "#fff" },
     ];
     const ast1 = declPathToAst(path1);
@@ -304,7 +308,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
-            type: "rule", selector: ":hover", nodes: [
+            type: "rule", selector: "&:hover", nodes: [
               { type: "decl", prop: "color", value: "#f00" },
             ],
           },
@@ -315,7 +319,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
-            type: "rule", selector: ":hover", nodes: [
+            type: "rule", selector: "&:hover", nodes: [
               { type: "decl", prop: "background", value: "#fff" },
             ],
           },

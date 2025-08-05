@@ -15,7 +15,6 @@ functionalModifier(
     };
   },
   undefined,
-  { order: 30 }
 );
 functionalModifier(
   (mod: string) => /^peer-(hover|focus|active|visited|checked|disabled|aria-[^:]+)$/.test(mod),
@@ -30,7 +29,6 @@ functionalModifier(
     };
   },
   undefined,
-  { order: 30 }
 );
 
 // --- parent/child 확장(실제 Tailwind에는 없지만 확장성 예시) ---
@@ -47,7 +45,6 @@ functionalModifier(
     };
   },
   undefined,
-  { order: 30 }
 );
 functionalModifier(
   (mod: string) => /^child-(hover|focus|active)$/.test(mod),
@@ -62,5 +59,4 @@ functionalModifier(
     };
   },
   undefined,
-  { order: 30 }
 ); 

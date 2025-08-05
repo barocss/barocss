@@ -22,6 +22,5 @@ functionalModifier(
 
     return { selector: `${inner} &`.trim(), wrappingType: 'rule', source: 'base' };
   },
-  undefined,
-  { order: 999 }
+  undefined
 ); 

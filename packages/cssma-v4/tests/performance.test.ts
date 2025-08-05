@@ -5,6 +5,7 @@ import { parseClassToAst } from '../src/core/engine';
 import { astToCss, cssCache } from '../src/core/astToCss';
 import { createContext } from '../src/core/context';
 import { defaultTheme } from '../src/theme';
+import '../src/presets';
 
 describe('Performance Optimization Tests', () => {
   let ctx: any;

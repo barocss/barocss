@@ -1,4 +1,6 @@
+import { defaultTheme } from "../theme";
 import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
+import { clearAllCaches } from "../utils/cache";
 
 // Types for theme/config/context
 export interface CssmaTheme {
@@ -18,6 +20,12 @@ export interface CssmaConfig {
   theme?: CssmaTheme;
   presets?: { theme: CssmaTheme }[];
   plugins?: any[];
+  /**
+   * Whether to clear all caches when context is created/changed
+   * - true (default): Clear all caches on context change
+   * - false: Keep existing caches
+   */
+  clearCacheOnContextChange?: boolean;
   [key: string]: any;
 }
 
@@ -194,14 +202,29 @@ ${keyframesToCss(theme.keyframes || {})}
 
 // createContext
 export function createContext(configObj: CssmaConfig): CssmaContext {
-  const themeObj = resolveTheme(configObj);
+  // defaultTheme를 기본 preset으로 자동 추가
+  const configWithDefaults = {
+    presets: [
+      { theme: defaultTheme },  // 항상 기본 preset으로 defaultTheme 포함
+      ...(configObj.presets || [])
+    ],
+    ...configObj
+  };
+  
+  const themeObj = resolveTheme(configWithDefaults);
+  
+  // Context 변경 시 캐시 자동 클리어 (선택적)
+  if (configObj.clearCacheOnContextChange !== false) {
+    clearAllCaches();
+  }
+  
   return {
     hasPreset: (category: string, preset: string) => hasPreset(themeObj, category, preset),
     theme: (...args) => {
       return themeGetter(themeObj, ...args);
     },
-    config: (...args) => configGetter(configObj, ...args),
-    plugins: configObj.plugins ?? [],
+    config: (...args) => configGetter(configWithDefaults, ...args),
+    plugins: configWithDefaults.plugins ?? [],
     themeToCssVars: () => themeToCssVars(themeObj),
   };
 } 

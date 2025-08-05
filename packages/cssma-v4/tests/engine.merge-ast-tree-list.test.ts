@@ -11,7 +11,7 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
       ],
       [
         { type: "at-rule", name: "media", params: "(min-width: 640px)" },
-        { type: "rule", selector: ":hover" },
+        { type: "rule", selector: "&:hover" },
         { type: "decl", prop: "background", value: "#fff" },
       ],
     ];
@@ -21,7 +21,7 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
-            type: "rule", selector: ":hover", nodes: [
+            type: "rule", selector: "&:hover", nodes: [
               { type: "decl", prop: "color", value: "#f00" },
               { type: "decl", prop: "background", value: "#fff" },
             ],
@@ -35,12 +35,12 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
     const declPaths: DeclPath[] = [
       [
         { type: "at-rule", name: "media", params: "(min-width: 640px)" },
-        { type: "rule", selector: ":hover" },
+        { type: "rule", selector: "&:hover" },
         { type: "decl", prop: "color", value: "#f00" },
       ],
       [
         { type: "at-rule", name: "media", params: "(min-width: 640px)" },
-        { type: "rule", selector: ":focus" },
+        { type: "rule", selector: "&:focus" },
         { type: "decl", prop: "background", value: "#fff" },
       ],
     ];
@@ -50,12 +50,12 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
-            type: "rule", selector: ":hover", nodes: [
+            type: "rule", selector: "&:hover", nodes: [
               { type: "decl", prop: "color", value: "#f00" },
             ],
           },
           {
-            type: "rule", selector: ":focus", nodes: [
+            type: "rule", selector: "&:focus", nodes: [
               { type: "decl", prop: "background", value: "#fff" },
             ],
           },
@@ -68,12 +68,12 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
     const declPaths: DeclPath[] = [
       [
         { type: "at-rule", name: "media", params: "(min-width: 640px)" },
-        { type: "rule", selector: ":hover" },
+        { type: "rule", selector: "&:hover" },
         { type: "decl", prop: "color", value: "#f00" },
       ],
       [
         { type: "at-rule", name: "supports", params: "(display: grid)" },
-        { type: "rule", selector: ":focus" },
+        { type: "rule", selector: "&:focus" },
         { type: "decl", prop: "background", value: "#fff" },
       ],
     ];
@@ -83,7 +83,7 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
-            type: "rule", selector: ":hover", nodes: [
+            type: "rule", selector: "&:hover", nodes: [
               { type: "decl", prop: "color", value: "#f00" },
             ],
           },
@@ -92,7 +92,7 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
       {
         type: "at-rule", name: "supports", params: "(display: grid)", nodes: [
           {
-            type: "rule", selector: ":focus", nodes: [
+            type: "rule", selector: "&:focus", nodes: [
               { type: "decl", prop: "background", value: "#fff" },
             ],
           },
@@ -109,8 +109,12 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
     const astList = declPaths.map(declPathToAst);
     const ast = mergeAstTreeList(astList);
     expect(ast).toEqual([
-      { type: "decl", prop: "color", value: "#111" },
-      { type: "decl", prop: "background", value: "#222" },
+      {
+        type: "rule", selector: "&", nodes: [
+          { type: "decl", prop: "color", value: "#111" },
+          { type: "decl", prop: "background", value: "#222" },
+        ],
+      },
     ]);
   });
 }); 

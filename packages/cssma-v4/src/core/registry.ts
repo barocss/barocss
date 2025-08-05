@@ -1,5 +1,5 @@
 import type { AstNode } from './ast';
-import { decl, rule, atRule, AstNode } from './ast';
+import { decl, rule } from './ast';
 import { CssmaContext } from './context';
 import { ParsedModifier, ParsedUtility } from './parser';
 
@@ -155,18 +155,18 @@ export function staticUtility(
     match: (className: string) => {
       return className === name;
     },
-    handler: (value) => {
+    handler: (value: string): AstNode[] | null | undefined => {
       return decls.flatMap((params) => {
 
         if ((params as AstNode).type) {
-          return params;
+          return [params as AstNode];
         }
 
         if (typeof params === 'function') {
           const targetFunction = params as (value: string) => AstNode;
           return [targetFunction(value)];
         }
-        const [a, b] = params;
+        const [a, b] = params as [string, string | [string, string][]];
 
         if (typeof b === 'string') {
           // [prop, value]

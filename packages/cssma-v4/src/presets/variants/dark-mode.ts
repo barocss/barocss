@@ -1,4 +1,4 @@
-import { staticModifier } from "../../core/registry";
+import { functionalModifier } from "../../core/registry";
 import { AstNode, atRule, rule } from "../../core/ast";
 import { CssmaContext } from "../../core/context";
 import { ParsedModifier } from "../../core/parser";
@@ -30,15 +30,24 @@ const getDarkSelectors = (ctx: CssmaContext) => {
   return selectors;
 };
 
-staticModifier("dark", ["&"], {
-  wrap: (mod: ParsedModifier, ctx: CssmaContext) => {
+functionalModifier(
+  (mod: string) => mod === "dark",
+  undefined, // modifySelector는 사용하지 않음
+  (_mod: ParsedModifier, ctx: CssmaContext) => {
     const selectors = getDarkSelectors(ctx);
+    
+    const result: AstNode[] = [];
 
-    return selectors.map((sel) => {
+    selectors.forEach((sel) => {
       if (sel.type === "media") {
-        return atRule("media", sel.value, [], 'dark');
+        const atRuleNode = atRule("media", sel.value, [], 'dark');
+        result.push(atRuleNode);
+      } else {
+        const ruleNode = rule(sel.value, [], 'dark');
+        result.push(ruleNode);
       }
-      return rule(sel.value, [], 'dark');
     });
-  },
-}); 
+
+    return result;
+  }
+); 

@@ -152,16 +152,40 @@ describe("effects.ts (box-shadow utilities)", () => {
   // Special cases
   it("shadow-inherit → --tw-shadow-color: inherit", () => {
     expect(parseClassToAst("shadow-inherit", ctx)).toEqual([
+      {
+        type: "at-rule",
+        name: "supports",
+        params: "(color:color-mix(in lab, red, red))",
+        nodes: [
+          { type: "decl", prop: "--tw-shadow-color", value: "var(--color-inherit)" },
+        ],
+      },
       { type: "decl", prop: "--tw-shadow-color", value: "inherit" },
     ]);
   });
   it("shadow-current → --tw-shadow-color: currentColor", () => {
     expect(parseClassToAst("shadow-current", ctx)).toEqual([
-      { type: "decl", prop: "--tw-shadow-color", value: "currentColor" },
+      {
+        type: "at-rule",
+        name: "supports",
+        params: "(color:color-mix(in lab, red, red))",
+        nodes: [
+          { type: "decl", prop: "--tw-shadow-color", value: "var(--color-current)" },
+        ],
+      },
+      { type: "decl", prop: "--tw-shadow-color", value: "currentcolor" },
     ]);
   });
   it("shadow-transparent → --tw-shadow-color: transparent", () => {
     expect(parseClassToAst("shadow-transparent", ctx)).toEqual([
+      {
+        type: "at-rule",
+        name: "supports",
+        params: "(color:color-mix(in lab, red, red))",
+        nodes: [
+          { type: "decl", prop: "--tw-shadow-color", value: "var(--color-transparent)" },
+        ],
+      },
       { type: "decl", prop: "--tw-shadow-color", value: "transparent" },
     ]);
   });
@@ -315,7 +339,15 @@ describe("effects.ts (box-shadow utilities)", () => {
   });
   it("ring-inherit → --tw-ring-color: inherit", () => {
     expect(parseClassToAst("ring-inherit", ctx)).toEqual([
-      { type: "decl", prop: "--tw-ring-color", value: "inherit" },
+      {
+        type: "at-rule",
+        name: "supports",
+        params: "(color:color-mix(in lab, red, red))",
+        nodes: [
+          { type: "decl", prop: "--tw-ring-color", value: "var(--color-inherit)" },
+        ],
+      },
+      { type: "decl", prop: "--tw-ring-color", value: "var(--color-inherit)" },
     ]);
   });
   it("ring-[0_0_0_3px_rgba(0,0,0,0.5)] → box-shadow: 0 0 0 3px rgba(0,0,0,0.5)", () => {
@@ -424,7 +456,15 @@ describe("effects.ts (box-shadow utilities)", () => {
   });
   it("inset-ring-inherit → --tw-inset-ring-color: inherit", () => {
     expect(parseClassToAst("inset-ring-inherit", ctx)).toEqual([
-      { type: "decl", prop: "--tw-inset-ring-color", value: "inherit" },
+      {
+        type: "at-rule",
+        name: "supports",
+        params: "(color:color-mix(in lab, red, red))",
+        nodes: [
+          { type: "decl", prop: "--tw-inset-ring-color", value: "var(--color-inherit)" },
+        ],
+      },
+      { type: "decl", prop: "--tw-inset-ring-color", value: "var(--color-inherit)" },
     ]);
   });
   it("inset-ring-[0_0_0_3px_rgba(0,0,0,0.5)] → box-shadow: inset 0 0 0 3px rgba(0,0,0,0.5)", () => {
