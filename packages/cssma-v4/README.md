@@ -15,7 +15,10 @@ A utility class system compatible with Tailwind CSS that converts CSS class name
 - **Common CSS Caching**: Efficient caching system for shared CSS variables and rules
 - **Incremental Parsing**: Server and browser-compatible incremental parsing system
 - **Change Detection**: Automatic DOM change detection with MutationObserver
-- **Performance Monitoring**: Real-time performance tracking and optimization
+- **Comprehensive Cache Architecture**: Multi-layer caching with automatic invalidation
+- **Universal Runtime System**: Separate browser and server runtimes for optimal performance
+- **Context-based Theme Management**: Automatic theme extension with preset support
+- **Automatic Cache Invalidation**: Context changes trigger comprehensive cache clearing
 
 ## 📦 Installation
 
@@ -60,14 +63,19 @@ const result5 = parseClassToAst('bg-(--my-bg)', ctx);
 
 ### Runtime CSS Injection
 
-CSSMA v4 provides an optimized runtime system for dynamic CSS injection:
+CSSMA v4 provides optimized runtime systems for both browser and server environments:
 
+#### Browser Runtime
 ```typescript
-import { StyleRuntime } from 'cssma-v4';
+import { StyleRuntime } from 'cssma-v4/runtime/browser';
 
 // Initialize runtime with custom options
 const runtime = new StyleRuntime({
-  theme: defaultTheme,
+  config: {
+    theme: {
+      colors: { 'red-500': '#ef4444' }
+    }
+  },
   styleId: 'my-app-styles',
   enableDev: true,
   insertionPoint: 'head' // or 'body' or HTMLElement
@@ -92,6 +100,28 @@ runtime.getCss('bg-red-500'); // Get generated CSS
 runtime.destroy();
 ```
 
+#### Server Runtime
+```typescript
+import { ServerRuntime } from 'cssma-v4/runtime/server';
+
+// Initialize server runtime
+const serverRuntime = new ServerRuntime({
+  config: {
+    theme: {
+      colors: { 'red-500': '#ef4444' }
+    }
+  }
+});
+
+// Parse classes and generate CSS
+const css = serverRuntime.generateCss('bg-red-500 text-white p-4');
+// Returns: CSS string for server-side rendering
+
+// Process multiple classes
+const results = serverRuntime.processClasses(['bg-blue-500', 'text-lg']);
+// Returns: Array of { className, ast, css } objects
+```
+
 ### Incremental Parsing (Server & Browser)
 
 CSSMA v4 provides a universal incremental parsing system that works in both server and browser environments:
@@ -99,8 +129,12 @@ CSSMA v4 provides a universal incremental parsing system that works in both serv
 ```typescript
 import { IncrementalParser, createContext } from 'cssma-v4';
 
-// Create context with theme
-const ctx = createContext({ theme: defaultTheme });
+// Create context with theme configuration
+const ctx = createContext({
+  theme: {
+    colors: { 'red-500': '#ef4444', 'blue-500': '#3b82f6' }
+  }
+});
 
 // Universal parser (works in Node.js and browser)
 const parser = new IncrementalParser(ctx);
@@ -126,11 +160,11 @@ parser.clearProcessed();
 For browser environments, CSSMA v4 provides automatic DOM change detection:
 
 ```typescript
-import { IncrementalParser, ChangeDetector, StyleRuntime } from 'cssma-v4';
+import { IncrementalParser, ChangeDetector, StyleRuntime } from 'cssma-v4/runtime/browser';
 
 // Create components
 const parser = new IncrementalParser(ctx);
-const styleRuntime = new StyleRuntime();
+const styleRuntime = new StyleRuntime({ config: ctx });
 const detector = new ChangeDetector(parser, styleRuntime);
 
 // Start observing DOM changes
@@ -158,6 +192,8 @@ observer.disconnect();
 - **Common CSS Caching**: Shares common CSS variables and rules across multiple classes
 - **Incremental Parsing**: Processes only new or changed classes
 - **Memory Optimization**: Uses WeakMap and compression for efficient memory usage
+- **Automatic Cache Invalidation**: Context changes trigger comprehensive cache clearing
+- **Universal Runtime System**: Separate browser and server runtimes for optimal performance
 
 #### **Flexible Style Management**
 - **Multiple Style Elements**: Separate elements for regular CSS, root CSS variables, and CSS variables
@@ -170,11 +206,30 @@ observer.disconnect();
 - **Statistics Tracking**: Monitor cache size, rule count, and performance metrics
 - **Memory Management**: Proper cleanup of style elements and caches
 - **Error Handling**: Robust error handling for invalid CSS rules
-- **Performance Monitoring**: Real-time performance tracking with alerts
+- **Context-based Theme Management**: Automatic theme extension with preset support
+- **Automatic Cache Invalidation**: Context changes trigger comprehensive cache clearing
 
 ### Cache Architecture
 
-CSSMA v4 implements a comprehensive caching system for optimal performance
+CSSMA v4 implements a comprehensive caching system with automatic invalidation for optimal performance:
+
+```typescript
+import { clearAllCaches } from 'cssma-v4/utils/cache';
+
+// Automatic cache invalidation on context changes
+const ctx1 = createContext({ theme: { colors: { red: '#ff0000' } } });
+const ctx2 = createContext({ theme: { colors: { red: '#cc0000' } } });
+// All caches are automatically cleared when context changes
+
+// Manual cache clearing
+clearAllCaches(); // Clears all caches: astCache, cssCache, parseResultCache, utilityCache
+
+// Cache configuration
+const ctx = createContext({
+  theme: { colors: { blue: '#0000ff' } },
+  clearCacheOnContextChange: false // Disable automatic cache clearing
+});
+```
 
 
 ### Preset Categories
@@ -429,6 +484,7 @@ expect(observer).toBeInstanceOf(MutationObserver);
 
 ### Runtime Functions
 
+#### Browser Runtime
 - `new StyleRuntime(options?: StyleRuntimeOptions): StyleRuntime`
 - `runtime.addClass(classes: string | string[]): void`
 - `runtime.observe(root: HTMLElement, options?: object): MutationObserver`
@@ -436,6 +492,12 @@ expect(observer).toBeInstanceOf(MutationObserver);
 - `runtime.getCss(cls: string): string | undefined`
 - `runtime.getStats(): RuntimeStats`
 - `runtime.destroy(): void`
+
+#### Server Runtime
+- `new ServerRuntime(config?: CssmaConfig): ServerRuntime`
+- `serverRuntime.generateCss(classList: string): string`
+- `serverRuntime.processClasses(classes: string[]): Array<{ className: string; ast: any[]; css: string }>`
+- `serverRuntime.processClass(className: string): { ast: any[]; css: string } | null`
 
 ### Incremental Parser Functions
 
@@ -457,13 +519,16 @@ expect(observer).toBeInstanceOf(MutationObserver);
 - `cssCache.get(key: string): string | undefined`
 - `parseResultCache.get(key: string): ParsedResult | undefined`
 - `utilityCache.get(key: string): boolean | undefined`
+- `clearAllCaches(): void` - Clear all caches
+- `clearAstCache(): void` - Clear AST cache specifically
 
-### Performance Monitoring Functions
+### Context Management Functions
 
-- `new CSSMAPerformanceMonitor(): CSSMAPerformanceMonitor`
-- `monitor.record(metric: string, value: number): void`
-- `monitor.getStats(): PerformanceStats`
-- `monitor.getDetailedReport(): DetailedReport`
+- `createContext(config: CssmaConfig): CssmaContext` - Create context with automatic theme extension
+- `resolveTheme(config: CssmaConfig): CssmaTheme` - Resolve theme with preset support
+- `ctx.theme(category: string, key: string): any` - Theme lookup with category and key
+- `ctx.config(key: string): any` - Configuration lookup
+- `ctx.hasPreset(category: string, preset: string): boolean` - Check if preset exists
 
 ### Registration Functions
 
@@ -475,13 +540,14 @@ expect(observer).toBeInstanceOf(MutationObserver);
 ### Types
 
 - `CssmaContext`: Context object with theme and configuration
+- `CssmaConfig`: Configuration interface with theme, presets, and cache options
+- `CssmaTheme`: Theme interface for color, spacing, and other design tokens
 - `AstNode`: AST node type for CSS representation
 - `ParsedUtility`: Parsed utility type
 - `ParsedModifier`: Parsed modifier type
 - `StyleRuntimeOptions`: Runtime configuration options
 - `RuntimeStats`: Runtime performance statistics
 - `ParserStats`: Parser performance statistics
-- `PerformanceStats`: Performance monitoring statistics
 
 ## 🤝 Contributing
 

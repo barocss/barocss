@@ -25,6 +25,10 @@
 - [x] Custom insertion points (head, body, or specific HTMLElement)
 - [x] Content synchronization for consistent textContent management
 - [x] Success/failure tracking for rule insertion
+- [x] Universal runtime system (browser and server runtimes)
+- [x] Context-based configuration with automatic theme extension
+- [x] Separate browser runtime for DOM operations
+- [x] Separate server runtime for CSS generation
 
 ### Incremental Parser System
 - [x] Universal compatibility (Node.js and browser environments)
@@ -60,18 +64,21 @@
 - [x] Object reuse for garbage collection optimization
 - [x] Memory-optimized cache using WeakMap
 - [x] Clear separation of concerns in cache management
+- [x] Automatic cache invalidation on context changes
+- [x] Comprehensive cache clearing with clearAllCaches()
+- [x] Configurable cache invalidation with clearCacheOnContextChange option
 
-### Performance Monitoring System
-- [x] Real-time performance monitoring across all operations
-- [x] Comprehensive statistics with detailed performance analysis
-- [x] Performance threshold monitoring with alerts
-- [x] Memory usage tracking and optimization opportunities
-- [x] CSSMAPerformanceMonitor for metric recording
-- [x] PerformanceMixin for composition-based monitoring
-- [x] Statistics calculation (average, total, count for each metric)
-- [x] Memory monitoring and garbage collection tracking
-- [x] Alert system for performance threshold monitoring
-- [x] Minimal overhead with efficient performance tracking
+### Context Management System
+- [x] Automatic theme extension with default theme as base preset
+- [x] Preset support with multiple preset merging
+- [x] Cache invalidation on context changes
+- [x] Flexible configuration with theme override and extension patterns
+- [x] createContext function with automatic theme extension
+- [x] resolveTheme function with preset and configuration support
+- [x] Theme lookup with category and key requirements
+- [x] Configuration lookup with full CssmaConfig support
+- [x] Preset checking with hasPreset functionality
+- [x] Context-based cache invalidation with configurable options
 
 ### Utility System
 - [x] Static utilities (exact match)
@@ -122,12 +129,13 @@
 - [x] Memory-optimized WeakMap caching
 - [x] Compressed cache for AST and CSS
 - [x] Memory pool for object reuse
-- [x] Performance monitoring system
-- [x] Real-time performance alerts
 - [x] Cache statistics and hit rate tracking
 - [x] Debounced MutationObserver for rapid DOM changes
 - [x] Smart caching to avoid regenerating CSS
 - [x] Common CSS caching for shared variables and rules
+- [x] Automatic cache invalidation on context changes
+- [x] Universal runtime system for optimal performance
+- [x] Context-based theme management with preset support
 
 ### Testing
 - [x] Parser tests
@@ -135,22 +143,24 @@
 - [x] Engine tests
 - [x] Preset tests
 - [x] Variant tests
-- [x] Runtime tests
+- [x] Runtime tests (browser and server)
 - [x] Performance tests
 - [x] Optimization tests
 - [x] Incremental parser tests (server and browser compatibility)
 - [x] Change detection tests (DOM observation and automatic processing)
 - [x] Cache tests (memory optimization and performance)
+- [x] Context management tests (theme extension and cache invalidation)
+- [x] Dark mode tests with cache interference prevention
 
 ### Documentation
 - [x] README with usage examples
 - [x] API documentation
 - [x] Performance optimization guide
 - [x] Development workflow documentation
-- [x] Runtime system documentation with performance optimization strategies
+- [x] Runtime system documentation with browser and server runtime strategies
 - [x] Incremental parser documentation with server/browser compatibility guidelines
-- [x] Cache system documentation with memory optimization strategies
-- [x] Performance monitoring documentation with alert configuration
+- [x] Cache system documentation with memory optimization and automatic invalidation
+- [x] Context management documentation with theme extension and preset support
 
 ## 🔄 In Progress
 
@@ -214,6 +224,9 @@
 - **Batch Processing**: 70% reduction in DOM operations
 - **Memory Optimization**: 40% reduction in memory usage
 - **Cache Efficiency**: 95% hit rate for common utilities
+- **Automatic Cache Invalidation**: Context changes trigger comprehensive cache clearing
+- **Universal Runtime System**: Separate browser and server runtimes for optimal performance
+- **Context-based Theme Management**: Automatic theme extension with preset support
 
 ### Runtime System Performance
 - **CSS Injection**: < 5ms for batch operations
@@ -222,6 +235,8 @@
 - **Error Handling**: Robust with comprehensive logging
 - **Memory Management**: Proper cleanup with minimal leaks
 - **Theme Hot Reloading**: Automatic regeneration with caching
+- **Universal Runtime System**: Separate browser and server runtimes
+- **Context-based Configuration**: Automatic theme extension with preset support
 
 ### Incremental Parser Performance
 - **Server Compatibility**: Full Node.js support
@@ -246,14 +261,16 @@
 - **WeakMap Usage**: Memory-efficient caching
 - **Statistics Tracking**: Real-time cache monitoring
 - **Modular Design**: Clear separation of concerns
+- **Automatic Invalidation**: Context changes trigger comprehensive cache clearing
+- **Configurable Clearing**: Optional cache invalidation with clearCacheOnContextChange
 
-### Performance Monitoring Performance
-- **Real-time Tracking**: Minimal overhead monitoring
-- **Comprehensive Statistics**: Detailed performance analysis
-- **Alert System**: Performance threshold monitoring
-- **Memory Tracking**: Usage and optimization monitoring
-- **Composition Pattern**: Easy integration without inheritance
-- **Minimal Overhead**: Efficient performance tracking
+### Context Management Performance
+- **Automatic Theme Extension**: Default theme included as base preset
+- **Preset Support**: Multiple presets merged with user configuration
+- **Cache Invalidation**: Context changes trigger comprehensive cache clearing
+- **Flexible Configuration**: Support for theme override and extension patterns
+- **Theme Resolution**: Efficient merging of default theme, presets, and user config
+- **Configuration Lookup**: Fast access to theme and configuration values
 
 ### Optimization Results
 - **Incremental Parsing**: 50% faster for new classes
@@ -263,7 +280,9 @@
 - **Runtime Performance**: Optimized CSS injection and management
 - **Change Detection**: Real-time DOM monitoring with debouncing
 - **Cache Performance**: Comprehensive caching with memory optimization
-- **Performance Monitoring**: Real-time tracking with minimal overhead
+- **Automatic Cache Invalidation**: Context changes trigger comprehensive cache clearing
+- **Universal Runtime System**: Separate browser and server runtimes for optimal performance
+- **Context-based Theme Management**: Automatic theme extension with preset support
 
 ## 🎯 Success Criteria
 
@@ -275,18 +294,20 @@
 - ✅ Optimized CSS output
 - ✅ Universal incremental parsing (server and browser)
 - ✅ Real-time change detection with DOM monitoring
-- ✅ Comprehensive caching architecture
-- ✅ Real-time performance monitoring
+- ✅ Comprehensive caching architecture with automatic invalidation
+- ✅ Universal runtime system (browser and server)
+- ✅ Context-based theme management with preset support
 
 ### Developer Experience
 - ✅ Intuitive API
 - ✅ Comprehensive documentation
 - ✅ Extensive test coverage
-- ✅ Performance monitoring
+- ✅ Universal runtime system with browser and server support
 - ✅ Runtime system with optimized CSS injection
 - ✅ Incremental parser with universal compatibility
 - ✅ Change detection with automatic processing
-- ✅ Cache system with memory optimization
+- ✅ Cache system with memory optimization and automatic invalidation
+- ✅ Context-based theme management with preset support
 
 ### Production Readiness
 - ✅ Error handling
@@ -297,8 +318,8 @@
 - ✅ Runtime system with robust error handling
 - ✅ Incremental parser with efficient processing
 - ✅ Change detection with reliable DOM monitoring
-- ✅ Cache system with memory optimization
-- ✅ Performance monitoring with real-time tracking
+- ✅ Cache system with memory optimization and automatic invalidation
+- ✅ Context-based theme management with preset support
 
 ## 📈 Next Steps
 

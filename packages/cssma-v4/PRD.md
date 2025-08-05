@@ -147,13 +147,15 @@ functionalModifier(
 - Tests include modifier combinations, nesting, and edge cases
 - All 148 variant tests pass, ensuring complete functionality
 
-### 7. Runtime System (`runtime.ts`)
+### 7. Runtime System (`browser-runtime.ts` & `server-runtime.ts`)
 
 **Design Intent:**
+- **Universal Runtime System:** Separate browser and server runtimes for optimal performance
 - **Optimized Performance:** Efficient CSS injection with debouncing and batch processing
 - **Smart Caching:** Avoids regenerating CSS for already processed classes
 - **Common CSS Management:** Shares common CSS variables and rules across multiple classes
 - **Safe DOM Operations:** Graceful handling of style sheet access and rule insertion
+- **Context-based Configuration:** Automatic theme extension with preset support
 
 **Core Features:**
 
@@ -183,21 +185,38 @@ functionalModifier(
 
 **Runtime API:**
 ```typescript
-// Runtime initialization
+// Browser Runtime initialization
 const runtime = new StyleRuntime({
-  theme: customTheme,
+  config: {
+    theme: {
+      colors: { 'red-500': '#ef4444' }
+    }
+  },
   styleId: 'app-styles',
   enableDev: process.env.NODE_ENV === 'development',
   insertionPoint: 'head'
 });
 
-// Class management
+// Server Runtime initialization
+const serverRuntime = new ServerRuntime({
+  config: {
+    theme: {
+      colors: { 'red-500': '#ef4444' }
+    }
+  }
+});
+
+// Class management (Browser)
 runtime.addClass('bg-red-500 text-white');
 runtime.removeClass('bg-red-500');
 runtime.has('text-white');
 runtime.getCss('bg-red-500');
 
-// DOM observation
+// CSS generation (Server)
+const css = serverRuntime.generateCss('bg-red-500 text-white');
+const results = serverRuntime.processClasses(['bg-blue-500', 'text-lg']);
+
+// DOM observation (Browser)
 const observer = runtime.observe(document.body, {
   scan: true,
   debounceMs: 16
@@ -277,8 +296,9 @@ const observer = detector.observe(document.body, {
 **Design Intent:**
 - **Comprehensive Caching:** Multiple cache types for different performance needs
 - **Memory Optimization:** Uses WeakMap and compression for efficient memory usage
-- **Performance Monitoring:** Real-time cache statistics and hit rate tracking
+- **Automatic Invalidation:** Context changes trigger comprehensive cache clearing
 - **Modular Design:** Centralized cache management with clear separation of concerns
+- **Performance Monitoring:** Real-time cache statistics and hit rate tracking
 
 **Cache Components:**
 
@@ -296,12 +316,15 @@ const observer = detector.observe(document.body, {
 **Cache API:**
 ```typescript
 // Core caches
-import { astCache, cssCache, parseResultCache, utilityCache } from 'cssma-v4/utils/cache';
+import { astCache, cssCache, parseResultCache, utilityCache, clearAllCaches } from 'cssma-v4/utils/cache';
 
 const ast = astCache.get('bg-blue-500');
 const css = cssCache.get('bg-blue-500');
 const parsed = parseResultCache.get('bg-blue-500');
 const isUtility = utilityCache.get('bg-');
+
+// Automatic cache invalidation
+clearAllCaches(); // Clears all caches when context changes
 
 // Advanced caches
 import { CompressedCache, MemoryPool, WeakCache } from 'cssma-v4/utils/cache';
@@ -319,45 +342,53 @@ const weakCache = new WeakCache();
 weakCache.set(element, css);
 ```
 
-### 10. Performance Monitoring System (`utils/performance.ts`)
+### 10. Context Management System (`context.ts`)
 
 **Design Intent:**
-- **Real-time Monitoring:** Track performance metrics across all operations
-- **Comprehensive Statistics:** Detailed performance analysis and reporting
-- **Alert System:** Performance threshold monitoring with alerts
-- **Memory Tracking:** Monitor memory usage and optimization opportunities
+- **Automatic Theme Extension:** Default theme is automatically included as base preset
+- **Preset Support:** Multiple presets can be merged with user configuration
+- **Cache Invalidation:** Context changes trigger automatic cache clearing
+- **Flexible Configuration:** Support for theme override and extension patterns
 
 **Core Components:**
 
-#### **CSSMAPerformanceMonitor**
-- **Metric Recording:** Track parser, AST, CSS generation times
-- **Statistics Calculation:** Average, total, count for each metric
-- **Memory Monitoring:** Track memory usage and garbage collection
-- **Alert System:** Performance threshold monitoring
+#### **createContext Function**
+- **Automatic Theme Extension:** Default theme is automatically included as base preset
+- **Preset Merging:** User presets are merged with default theme
+- **Cache Invalidation:** Context changes trigger automatic cache clearing
+- **Configuration Support:** Full CssmaConfig support with theme and presets
 
-#### **PerformanceMixin**
-- **Composition Pattern:** Mixin for performance monitoring without inheritance
-- **Automatic Integration:** Easy integration with existing classes
-- **Minimal Overhead:** Efficient performance tracking with minimal impact
+#### **resolveTheme Function**
+- **Theme Resolution:** Merges default theme, presets, and user configuration
+- **Override Support:** User theme overrides default theme values
+- **Extension Support:** User theme extends default theme values
+- **Preset Support:** Multiple presets can be applied in order
 
-**Performance API:**
+**Context API:**
 ```typescript
-import { CSSMAPerformanceMonitor } from 'cssma-v4/utils/performance';
+import { createContext, resolveTheme } from 'cssma-v4';
 
-const monitor = new CSSMAPerformanceMonitor();
+// Create context with automatic theme extension
+const ctx = createContext({
+  theme: {
+    colors: { 'custom-red': '#ff0000' }
+  },
+  presets: [
+    { theme: { spacing: { 'custom': '2rem' } } }
+  ],
+  clearCacheOnContextChange: true // Default: true
+});
 
-// Record performance metrics
-monitor.record('parser', 1.5);
-monitor.record('ast', 2.1);
-monitor.record('css', 0.8);
+// Theme lookup with category and key
+const color = ctx.theme('colors', 'red-500');
+const spacing = ctx.theme('spacing', '4');
 
-// Get statistics
-const stats = monitor.getStats();
-// { parser: { count: 1, total: 1.5, average: 1.5 }, ... }
+// Configuration lookup
+const darkMode = ctx.config('darkMode');
+const prefix = ctx.config('prefix');
 
-// Get detailed report
-const report = monitor.getDetailedReport();
-// Comprehensive performance analysis
+// Preset checking
+const hasPreset = ctx.hasPreset('colors', 'red-500');
 ```
 
 ### 11. Theme System
