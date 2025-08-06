@@ -459,3 +459,370 @@ const hasPreset = ctx.hasPreset('colors', 'red-500');
 - Incremental parser documentation includes server/browser compatibility guidelines
 - Cache system documentation includes memory optimization strategies
 - Performance monitoring documentation includes alert configuration and optimization tips 
+
+### 13. Plugin System (`core/plugin.ts` & `core/registry.ts`)
+
+**Design Intent:**
+- **Extensible Architecture**: Comprehensive plugin system for custom utilities, variants, and themes
+- **Type Safety**: Full TypeScript support with comprehensive type definitions
+- **AST Integration**: Direct integration with AST functions (`decl`, `rule`, `atRule`, `atRoot`)
+- **Safe APIs**: Encapsulated theme extension with `extendTheme()` API
+- **Multiple Plugin Types**: Support for utility, variant, theme, and general plugins
+- **Configuration Management**: Plugin-specific settings and dependency handling
+
+**Core Components:**
+
+#### **Plugin Types and Interfaces**
+
+**General Plugin:**
+```typescript
+interface CssmaPlugin {
+  name?: string;
+  version?: string;
+  description?: string;
+  handler: (ctx: CssmaContext, config?: any) => void;
+  dependencies?: string[];
+  optionsSchema?: Record<string, any>;
+}
+```
+
+**Utility Plugin:**
+```typescript
+interface UtilityPlugin {
+  name: string;
+  version?: string;
+  description?: string;
+  utilities?: (ctx: CssmaContext, config?: any) => void;
+  theme?: (ctx: CssmaContext, config?: any) => Record<string, any>;
+  dependencies?: string[];
+  optionsSchema?: Record<string, any>;
+}
+```
+
+**Variant Plugin:**
+```typescript
+interface VariantPlugin {
+  name: string;
+  version?: string;
+  description?: string;
+  variants?: (ctx: CssmaContext, config?: any) => void;
+  dependencies?: string[];
+  optionsSchema?: Record<string, any>;
+}
+```
+
+**Theme Plugin:**
+```typescript
+interface ThemePlugin {
+  name: string;
+  version?: string;
+  description?: string;
+  theme?: (ctx: CssmaContext, config?: any) => Record<string, any>;
+  dependencies?: string[];
+  optionsSchema?: Record<string, any>;
+}
+```
+
+#### **Plugin Helper Functions**
+
+**createUtilityPlugin:**
+```typescript
+export function createUtilityPlugin(plugin: UtilityPlugin): CssmaPlugin {
+  return {
+    name: plugin.name,
+    version: plugin.version,
+    description: plugin.description,
+    handler: (ctx: CssmaContext, config?: any) => {
+      if (plugin.utilities) {
+        plugin.utilities(ctx, config);
+      }
+      if (plugin.theme) {
+        const pluginTheme = plugin.theme(ctx, config);
+        if (pluginTheme) {
+          // Extend the context's theme with plugin theme
+          const currentTheme = ctx.theme();
+          Object.assign(currentTheme, pluginTheme);
+        }
+      }
+    }
+  };
+}
+```
+
+**createVariantPlugin:**
+```typescript
+export function createVariantPlugin(plugin: VariantPlugin): CssmaPlugin {
+  return {
+    name: plugin.name,
+    version: plugin.version,
+    description: plugin.description,
+    handler: (ctx: CssmaContext, config?: any) => {
+      if (plugin.variants) {
+        plugin.variants(ctx, config);
+      }
+    }
+  };
+}
+```
+
+**createThemePlugin:**
+```typescript
+export function createThemePlugin(plugin: ThemePlugin): CssmaPlugin {
+  return {
+    name: plugin.name,
+    version: plugin.version,
+    description: plugin.description,
+    handler: (ctx: CssmaContext, config?: any) => {
+      if (plugin.theme) {
+        const pluginTheme = plugin.theme(ctx, config);
+        if (pluginTheme) {
+          // Extend the context's theme with plugin theme
+          const currentTheme = ctx.theme();
+          Object.assign(currentTheme, pluginTheme);
+        }
+      }
+    }
+  };
+}
+```
+
+#### **Safe Theme Extension API**
+
+**extendTheme Function:**
+```typescript
+// Context interface includes safe theme extension
+interface CssmaContext {
+  hasPreset: (category: string, preset: string) => boolean;
+  theme: (...path: (string|number)[]) => any;
+  config: (...path: (string|number)[]) => any;
+  plugins: any[];
+  themeToCssVars: (prefix?: string) => string;
+  // Safe theme extension API
+  extendTheme: (category: string, values: Record<string, any> | Function) => void;
+}
+
+// Implementation in context.ts
+extendTheme: (category: string, values: Record<string, any> | Function) => {
+  if (typeof values === 'function') {
+    // Function-based theme extension
+    const themeFunction = values as (theme: ThemeGetter) => any;
+    const result = themeFunction(ctx.theme);
+    if (result && typeof result === 'object') {
+      const existingValues = themeObj[category] || {};
+      themeObj[category] = {
+        ...existingValues,
+        ...result
+      };
+    }
+  } else if (typeof values === 'object' && values !== null && !Array.isArray(values)) {
+    // Object-based theme extension
+    const existingValues = themeObj[category] || {};
+    themeObj[category] = {
+      ...existingValues,
+      ...values
+    };
+  }
+}
+```
+
+#### **Advanced Plugin Capabilities with AST Functions**
+
+**Theme Extension Patterns:**
+```typescript
+// Object-based extension
+ctx.extendTheme('colors', {
+  'brand-primary': '#3b82f6',
+  'brand-secondary': '#10b981'
+});
+
+// Function-based extension
+ctx.extendTheme('colors', (theme) => ({
+  'primary': theme('colors', 'blue', '500'),
+  'secondary': theme('colors', 'gray', '500')
+}));
+```
+
+**Complex Utility with AST Functions:**
+```typescript
+import { decl, rule, atRule, atRoot } from 'cssma-v4/core/ast';
+
+const complexUtilityPlugin = (ctx, config) => {
+  // Utility with CSS custom properties using atRoot
+  staticUtility('custom-theme-vars', [
+    atRoot([
+      decl('--custom-primary', ctx.theme('colors', 'blue', '500')),
+      decl('--custom-secondary', ctx.theme('colors', 'gray', '500'))
+    ])
+  ]);
+  
+  // Utility with media query using atRule
+  staticUtility('responsive-utility', [
+    atRule('media', '(min-width: 768px)', [
+      rule('.md\\:custom-utility', [
+        decl('display', 'block'),
+        decl('padding', '1rem')
+      ])
+    ])
+  ]);
+  
+  // Functional utility with complex AST
+  functionalUtility({
+    name: 'custom-layout',
+    prop: 'display',
+    supportsArbitrary: true,
+    handle: (value, ctx) => {
+      if (value === 'grid') {
+        return [
+          decl('display', 'grid'),
+          decl('grid-template-columns', 'repeat(auto-fit, minmax(200px, 1fr))'),
+          decl('gap', '1rem')
+        ];
+      }
+      return [decl('display', value)];
+    }
+  });
+};
+```
+
+**Variant Plugin with AST Functions:**
+```typescript
+import { atRule, rule } from 'cssma-v4/core/ast';
+
+const variantPlugin = (ctx, config) => {
+  // Static modifier with atRule for media queries
+  staticModifier('print', [
+    atRule('media', 'print', [
+      rule('&', [])
+    ])
+  ]);
+  
+  // Functional modifier with complex logic
+  functionalModifier(
+    (mod) => mod.startsWith('dark-'),
+    ({ selector, mod, ctx }) => {
+      const darkMode = ctx.theme('darkMode') || 'media';
+      if (darkMode === 'class') {
+        return rule('.dark ' + selector, []);
+      } else {
+        return atRule('media', '(prefers-color-scheme: dark)', [
+          rule(selector, [])
+        ]);
+      }
+    }
+  );
+};
+```
+
+#### **Plugin Configuration and Dependencies**
+
+**Configuration Support:**
+```typescript
+const configurablePlugin = {
+  name: 'configurable-plugin',
+  version: '1.0.0',
+  description: 'Plugin with configuration',
+  handler: (ctx, config) => {
+    if (config?.enableCustomUtilities) {
+      staticUtility('custom-enabled', [
+        decl('background-color', config.customColor || '#000000')
+      ]);
+    }
+  }
+};
+
+const ctx = createContext({
+  plugins: [configurablePlugin],
+  pluginConfig: {
+    enableCustomUtilities: true,
+    customColor: '#ff6600'
+  }
+});
+```
+
+**Dependency Management:**
+```typescript
+const basePlugin = {
+  name: 'base-plugin',
+  version: '1.0.0',
+  handler: (ctx) => {
+    staticUtility('base-color', [
+      decl('--base-color', '#333333')
+    ]);
+  }
+};
+
+const dependentPlugin = {
+  name: 'dependent-plugin',
+  version: '1.0.0',
+  dependencies: ['base-plugin'],
+  handler: (ctx) => {
+    staticUtility('dependent-utility', [
+      decl('color', 'var(--base-color)')
+    ]);
+  }
+};
+
+const ctx = createContext({
+  plugins: [basePlugin, dependentPlugin]
+});
+```
+
+#### **Plugin Error Handling and Recovery**
+
+**Graceful Error Handling:**
+```typescript
+const errorPlugin = {
+  name: 'error-plugin',
+  handler: () => {
+    throw new Error('Plugin error for testing');
+  }
+};
+
+const workingPlugin = {
+  name: 'working-plugin',
+  handler: (ctx) => {
+    staticUtility('working-utility', [
+      decl('background-color', '#ffffff')
+    ]);
+  }
+};
+
+// Error plugin fails gracefully, working plugin continues
+const ctx = createContext({
+  plugins: [errorPlugin, workingPlugin]
+});
+```
+
+#### **Plugin Best Practices and Guidelines**
+
+**Best Practices:**
+1. **Use AST Functions**: Always use `decl()`, `rule()`, `atRule()`, `atRoot()` for creating AST nodes
+2. **Use Safe APIs**: Use `ctx.extendTheme()` instead of direct theme manipulation
+3. **Handle Errors**: Wrap plugin logic in try-catch blocks for graceful error handling
+4. **Validate Configuration**: Check plugin configuration before using it
+5. **Document Dependencies**: Clearly declare plugin dependencies
+6. **Test Thoroughly**: Write comprehensive tests for plugin functionality
+7. **Follow Naming Conventions**: Use consistent naming for utilities and theme values
+8. **Provide Examples**: Include usage examples in plugin documentation
+
+**Performance Guidelines:**
+- Use efficient data structures for theme lookups
+- Minimize plugin execution time
+- Cache expensive computations
+- Use batch operations when possible
+- Monitor memory usage in long-running plugins
+
+**Security Guidelines:**
+- Validate all plugin inputs
+- Sanitize theme values before use
+- Avoid eval() or similar dynamic code execution
+- Use safe APIs for theme manipulation
+- Implement proper error boundaries
+
+**Testing Guidelines:**
+- Write unit tests for all plugin functions
+- Test plugin configuration handling
+- Test plugin dependency resolution
+- Test plugin error handling
+- Test plugin performance impact
+- Test plugin integration with core systems 

@@ -1,6 +1,7 @@
 import { defaultTheme } from "../theme";
 import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
 import { clearAllCaches } from "../utils/cache";
+import { type CssmaPlugin } from "./plugin";
 
 // Types for theme/config/context
 export interface CssmaTheme {
@@ -19,7 +20,12 @@ export interface CssmaConfig {
   darkMode?: 'media' | 'class' | string[];
   theme?: CssmaTheme;
   presets?: { theme: CssmaTheme }[];
-  plugins?: any[];
+  /**
+   * CSSMA plugins for extending functionality
+   * - Can be plugin functions, plugin objects, or plugin arrays
+   * - Plugins are executed in order and can register utilities, variants, and theme extensions
+   */
+  plugins?: (CssmaPlugin | ((ctx: CssmaContext, config?: any) => void))[];
   /**
    * Whether to clear all caches when context is created/changed
    * - true (default): Clear all caches on context change
@@ -40,6 +46,8 @@ export interface CssmaContext {
   config: (...path: (string|number)[]) => any;
   plugins: any[];
   themeToCssVars: (prefix?: string) => string;
+  // 플러그인에서 theme 확장을 위한 안전한 API
+  extendTheme: (category: string, values: Record<string, any> | Function) => void;
 }
 
 // Deep merge utility
@@ -113,9 +121,17 @@ export function themeGetter(themeObj: CssmaTheme, ...path: (string | number)[]):
     keys = path[0].split('.');
   } else {
     if (path[0] === 'colors' && typeof path[1] === 'string' && path[1].includes('-')) {
-      // colors.red-500 → colors.red.500
-      keys = (path[1] as string).split('-');
-      keys = [path[0], ...keys];
+      // colors.red-500 → colors.red.500 (only for color names with numbers)
+      // But custom-blue should remain as custom-blue
+      const colorKey = path[1] as string;
+      if (colorKey.match(/^[a-zA-Z]+-\d+$/)) {
+        // Only split if it's a pattern like "red-500", "blue-600", etc.
+        keys = colorKey.split('-');
+        keys = [path[0], ...keys];
+      } else {
+        // For custom keys like "custom-blue", keep as is
+        keys = path;
+      }
     } else {
       keys = path;
     }
@@ -132,27 +148,37 @@ export function themeGetter(themeObj: CssmaTheme, ...path: (string | number)[]):
 
   // Get the category value (could be a function or object)
   let value = themeObj[keys[0]];
+  // console.log(`[themeGetter] category '${keys[0]}' value:`, value, `type:`, typeof value);
+  
   // If the category is a function, execute it with the theme getter
   // This enables dynamic theme extension and plugin-style patterns
   if (typeof value === 'function') {
+    // console.log(`[themeGetter] executing category function for '${keys[0]}'`);
     value = value(theme);
+    // console.log(`[themeGetter] category function result:`, value);
   }
 
   // Traverse the rest of the path (leaf keys)
   for (let i = 1; i < keys.length; i++) {
+    // console.log(`[themeGetter] traversing key '${keys[i]}', current value:`, value);
     if (value == null) {
+      // console.log(`[themeGetter] value is null/undefined at key '${keys[i]}'`);
       staticInProgress.delete(pathKey);
       return undefined;
     }
     value = value[keys[i]];
+    // console.log(`[themeGetter] after accessing '${keys[i]}', value:`, value);
   }
 
   staticInProgress.delete(pathKey);
   // If the final value is a function (leaf function), do NOT execute it
   // Only category-level functions are supported; leaf functions are ignored
-  if (typeof value === 'function') return undefined;
+  if (typeof value === 'function') {
+    return undefined;
+  }
 
   // Return the resolved value (static or dynamically generated)
+  // console.log(`[themeGetter] final result:`, value);
   return value;
 }
 
@@ -211,20 +237,133 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
     ...configObj
   };
   
-  const themeObj = resolveTheme(configWithDefaults);
+  let themeObj = resolveTheme(configWithDefaults);
   
   // Context 변경 시 캐시 자동 클리어 (선택적)
   if (configObj.clearCacheOnContextChange !== false) {
     clearAllCaches();
   }
-  
-  return {
-    hasPreset: (category: string, preset: string) => hasPreset(themeObj, category, preset),
-    theme: (...args) => {
-      return themeGetter(themeObj, ...args);
+
+  // 1. ctx를 먼저 빈 객체로 선언
+  const ctx: CssmaContext = {
+    hasPreset: (category: string, preset: string) => {
+      const result = hasPreset(themeObj, category, preset);
+      // console.log(`[hasPreset] category: ${category}, preset: ${preset} =>`, result);
+      return result;
     },
-    config: (...args) => configGetter(configWithDefaults, ...args),
+    theme: (...args) => {
+      const result = themeGetter(themeObj, ...args);
+      // console.log(`[theme] path:`, args, `=>`, result);
+      return result;
+    },
+    config: (...args) => {
+      const result = configGetter(configWithDefaults, ...args);
+      // console.log(`[config] path:`, args, `=>`, result);
+      return result;
+    },
     plugins: configWithDefaults.plugins ?? [],
     themeToCssVars: () => themeToCssVars(themeObj),
+    // 플러그인에서 theme 확장을 위한 안전한 API
+    extendTheme: (category: string, values: Record<string, any> | Function) => {
+      // console.log(`[extendTheme] category: ${category}, values:`, values);
+      
+      if (typeof values === 'function') {
+        // 함수인 경우 theme getter를 전달하여 실행
+        const themeFunction = values as (theme: ThemeGetter) => any;
+        const result = themeFunction(ctx.theme);
+        if (result && typeof result === 'object') {
+          // 기존 값과 병합
+          const existingValues = themeObj[category] || {};
+          themeObj[category] = {
+            ...existingValues,
+            ...result
+          };
+          // console.log(`[extendTheme] function result merged for ${category}:`, themeObj[category]);
+        }
+      } else if (typeof values === 'object' && values !== null && !Array.isArray(values)) {
+        // 기존 category 값 가져오기
+        const existingValues = themeObj[category] || {};
+        
+        // 기존 값과 새로운 값을 병합
+        themeObj[category] = {
+          ...existingValues,
+          ...values
+        };
+        // console.log(`[extendTheme] merged ${category}:`, themeObj[category]);
+      } else {
+        // console.warn(`[extendTheme] Invalid values for category ${category}:`, values);
+      }
+    }
   };
+
+  // 2. 프로퍼티 할당 (모든 함수에서 themeObj, configWithDefaults 등 참조)
+  // ctx.hasPreset = (category: string, preset: string) => {
+  //   const result = hasPreset(themeObj, category, preset);
+  //   console.log(`[hasPreset] category: ${category}, preset: ${preset} =>`, result);
+  //   return result;
+  // };
+  // ctx.theme = (...args) => {
+  //   const value = themeGetter(themeObj, ...args);
+  //   console.log(`[theme] path:`, args, '=>', value);
+  //   return value;
+  // };
+  // ctx.config = (...args) => {
+  //   const value = configGetter(configWithDefaults, ...args);
+  //   console.log(`[config] path:`, args, '=>', value);
+  //   return value;
+  // };
+  // ctx.plugins = configWithDefaults.plugins ?? [];
+  // ctx.themeToCssVars = () => themeToCssVars(themeObj);
+
+  // 3. ctx가 완전히 준비된 후 플러그인 실행
+  if (configWithDefaults.plugins && configWithDefaults.plugins.length > 0) {
+    // console.log('--- Plugin execution start ---');
+    for (const plugin of configWithDefaults.plugins) {
+      try {
+        // Extract pluginConfig from the config
+        const pluginConfig = configWithDefaults.pluginConfig || {};
+        // console.log('Executing plugin:', plugin.name || '[function]', plugin);
+        
+        if (typeof plugin === 'function') {
+          // Plugin function - pass the full config
+          plugin(ctx, configWithDefaults);
+          // console.log('Executed plugin function');
+        } else if (plugin && typeof plugin.handler === 'function') {
+          // Plugin object - pass pluginConfig if available, otherwise full config
+          const configToPass = Object.keys(pluginConfig).length > 0 ? pluginConfig : configWithDefaults;
+          plugin.handler(ctx, configToPass);
+          // console.log('Executed plugin.handler for', plugin.name);
+          
+          // Handle theme extensions from plugins
+          // Check if this plugin has a theme function
+          if (plugin.theme && typeof plugin.theme === 'function') {
+            // console.log(`Calling theme function for plugin: ${plugin.name}`);
+            const pluginTheme = plugin.theme(ctx, configToPass);
+            // console.log(`Plugin theme result:`, pluginTheme);
+            if (pluginTheme) {
+              // console.log(`Merging theme:`, pluginTheme);
+              // In-place merge for debugging
+              for (const key in pluginTheme) {
+                if (typeof pluginTheme[key] === 'object' && pluginTheme[key] !== null) {
+                  themeObj[key] = themeObj[key] || {};
+                  Object.assign(themeObj[key], pluginTheme[key]);
+                  // console.log(`themeObj[${key}] after merge:`, themeObj[key]);
+                } else {
+                  themeObj[key] = pluginTheme[key];
+                  // console.log(`themeObj[${key}] set to:`, themeObj[key]);
+                }
+              }
+              // console.log(`Updated themeObj:`, themeObj);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error executing plugin ${plugin.name || 'unknown'}:`, error);
+      }
+    }
+    // console.log('--- Plugin execution end ---');
+  }
+
+  // 4. 반환
+  return ctx;
 } 
