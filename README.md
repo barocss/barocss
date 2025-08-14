@@ -1,261 +1,167 @@
 # FigmaikR
 
-A comprehensive design system toolkit that bridges the gap between design and code with seamless Tailwind CSS integration.
+A powerful CSS-in-JS framework with plugin system, TypeScript support, and modern development experience.
 
-## 🎯 Project Overview
+## 📚 Documentation
 
-FigmaikR provides a powerful, bidirectional conversion system between Tailwind CSS and Figma, enabling designers and developers to work together more efficiently.
+Visit our comprehensive documentation site: **[CSSMA v4 Documentation](https://your-username.github.io/figmaikr/)**
 
-## 📦 Packages
+The documentation includes:
+- Getting Started guide
+- Installation instructions
+- Core concepts explanation
+- Plugin system documentation
+- Complete API reference
+- Real-world examples
 
-### [cssma-v4](./packages/cssma-v4/)
-The next-generation core library providing robust CSS/Tailwind to Figma conversion with modular preset system.
+## 🚀 Features
 
-**Key Features:**
-- 🔄 **Bidirectional Conversion** - CSS ↔ Figma transformation
-- 🧩 **Modular Preset System** - Organized utility categories for better maintainability
-- 🎨 **Advanced Effects** - Full filter effects support (blur, backdrop-blur, drop-shadow)
-- 📐 **Constraint System** - Figma's positioning system (MIN, MAX, CENTER, STRETCH, SCALE)
-- 🎭 **Component Support** - Component variants and design system integration
-- 🌈 **Variable Integration** - Native Figma variables support
-- ⚡ **Performance Optimized** - Efficient parsing and processing engine
+- **Plugin System**: Extensible architecture for custom utilities, variants, and theme extensions
+- **TypeScript Support**: Full TypeScript support with comprehensive type definitions
+- **Performance Optimized**: Lightning-fast CSS generation with intelligent caching
+- **Modern API**: Clean, intuitive API designed for modern development workflows
+- **AST-based**: Uses Abstract Syntax Tree for precise CSS control and optimization
+
+## 📦 Installation
+
+```bash
+# Using pnpm (recommended)
+pnpm add cssma@latest
+
+# Using npm
+npm install cssma@latest
+
+# Using yarn
+yarn add cssma@latest
+```
+
+## 🎯 Quick Start
 
 ```typescript
-import { applyClassName, createContext } from 'cssma-v4';
+import { createContext, parseClassToAst, astToCss } from 'cssma'
 
-// Create context with theme
+// Create a context with your configuration
 const ctx = createContext({
   theme: {
-    colors: { primary: '#3B82F6', secondary: '#10B981' }
-  }
-});
+    colors: {
+      primary: '#3b82f6',
+      secondary: '#64748b',
+    },
+    spacing: {
+      sm: '0.5rem',
+      md: '1rem',
+      lg: '1.5rem',
+    },
+  },
+})
 
-// Apply utility classes
-const styles = applyClassName('flex-col w-full bg-primary text-white rounded-lg p-4', ctx);
+// Parse CSS classes to AST
+const ast = parseClassToAst('bg-primary p-md text-white', ctx)
+
+// Convert AST to CSS
+const css = astToCss(ast)
+console.log(css)
 ```
 
-#### 🎯 Preset Categories
+## 🔌 Plugin System
 
-The library is organized into modular preset categories with comprehensive test coverage:
+Extend CSSMA with custom utilities and variants:
 
-| **Category** | **Source** | **Tests** | **Utilities** | **Examples** |
-|-------------|----------|-----------|---------------|--------------|
-| **Layout** | `layout.ts` | `layout.test.ts` | Position, Display, Overflow, Z-index, Aspect Ratio | `relative`, `flex`, `hidden`, `z-10`, `aspect-video` |
-| **Sizing** | `sizing.ts` | `sizing.test.ts` | Width, Height, Min/Max dimensions | `w-full`, `h-screen`, `min-h-0`, `max-w-md` |
-| **Spacing** | `spacing.ts` | `spacing.test.ts` | Margin, Padding, Space between | `m-4`, `p-6`, `space-x-2`, `gap-4` |
-| **Typography** | `typography.ts` | `typography.test.ts` | Font, Text, Line height, Letter spacing | `text-lg`, `font-bold`, `leading-tight`, `tracking-wide` |
-| **Background** | `background.ts` | `background.test.ts` | Colors, Images, Gradients, Patterns | `bg-blue-500`, `bg-gradient-to-r`, `bg-cover` |
-| **Flexbox & Grid** | `flexbox-grid.ts` | `flexbox-grid.test.ts` | Flex, Grid, Alignment, Ordering | `flex-col`, `grid-cols-3`, `justify-center`, `items-start` |
+```typescript
+import { createUtilityPlugin, staticUtility, decl } from 'cssma'
 
-#### 🧪 Testing Architecture
+const customPlugin = createUtilityPlugin({
+  name: 'custom-plugin',
+  version: '1.0.0',
+  utilities: (ctx) => {
+    staticUtility('custom-bg', [
+      decl('background-color', 'var(--custom-color)'),
+      decl('border-radius', '8px'),
+    ])
+  },
+})
 
-Each preset category has dedicated test files ensuring reliability:
-
-```bash
-packages/cssma-v4/
-├── src/presets/           # Source preset files
-│   ├── layout.ts          # Layout utilities
-│   ├── sizing.ts          # Sizing utilities
-│   ├── spacing.ts         # Spacing utilities
-│   ├── typography.ts      # Typography utilities
-│   ├── background.ts      # Background utilities
-│   └── flexbox-grid.ts    # Flexbox & Grid utilities
-└── tests/presets/         # Comprehensive test suite
-    ├── layout.test.ts     # Layout utility tests
-    ├── sizing.test.ts     # Sizing utility tests
-    ├── spacing.test.ts    # Spacing utility tests
-    ├── typography.test.ts # Typography utility tests
-    ├── background.test.ts # Background utility tests
-    └── flexbox-grid.test.ts # Flexbox & Grid tests
+const ctx = createContext({
+  plugins: [customPlugin],
+})
 ```
 
-### [cssma-plugin](./apps/cssma-plugin/)
-A powerful Figma plugin that brings the cssma library directly into the Figma interface.
+## 📁 Project Structure
 
-**Plugin Features:**
-- ⚡ **Real-time Conversion** - Convert between CSS and Figma styles instantly
-- 🔄 **Bulk Operations** - Apply styles to multiple elements simultaneously  
-- 🎨 **Design System Integration** - Work with Figma variables and components
-- 📤 **Code Export** - Export designs as clean Tailwind CSS code
-
-## 🚀 Development & Release
-
-### 📋 Release Management with Changesets
-
-This project uses [Changesets](https://github.com/changesets/changesets) for version management and automated releases.
-
-#### Creating a Changeset
-
-When you make changes that should be included in a release:
-
-```bash
-# Create a new changeset
-pnpm changeset
-
-# Check current changeset status
-pnpm changeset:status
+```
+figmaikr/
+├── apps/
+│   ├── cssma-docs/          # Documentation site
+│   ├── cssma-plugin/        # Figma plugin
+│   └── figmai-landing/      # Landing page
+├── packages/
+│   └── cssma-v4/           # Core CSSMA framework
+└── docs/                    # Project documentation
 ```
 
-#### Release Process
+## 🛠️ Development
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+
+### Setup
 
 ```bash
-# 1. Version packages (updates package.json and CHANGELOG.md)
-pnpm changeset:version
+# Clone the repository
+git clone https://github.com/your-username/figmaikr.git
+cd figmaikr
 
-# 2. Build and publish packages
-pnpm release
-```
-
-#### Changeset Types
-
-- **patch** - Bug fixes and small improvements
-- **minor** - New features that don't break existing functionality
-- **major** - Breaking changes
-
-#### Automated Releases
-
-The project includes GitHub Actions workflow that automatically:
-- Creates release PRs when changesets are added
-- Publishes packages to NPM when release PRs are merged
-- Updates changelogs and version numbers
-
-### 🔧 Development Commands
-
-```bash
 # Install dependencies
 pnpm install
-
-# Start development mode
-pnpm dev
-
-# Build all packages
-pnpm build
 
 # Run tests
 pnpm test
 
-# Run tests for specific preset category
-pnpm test packages/cssma-v4/tests/presets/layout.test.ts
-pnpm test packages/cssma-v4/tests/presets/sizing.test.ts
-
-# Run tests in watch mode
-pnpm test --watch
-
-# Clean build artifacts
-pnpm clean
+# Start development servers
+pnpm dev
 ```
 
-### 🧪 Testing Strategy
+### Documentation Site
 
-The project follows a comprehensive testing approach:
-
-- **Unit Tests**: Each preset category has dedicated test files
-- **Integration Tests**: Cross-preset functionality testing
-- **Regression Tests**: Ensuring backward compatibility
-- **Performance Tests**: Utility parsing and processing benchmarks
+The documentation site is built with Next.js and deployed to GitHub Pages:
 
 ```bash
-# Test coverage by category
-├── Layout Tests (150+ test cases)
-├── Sizing Tests (120+ test cases)  
-├── Spacing Tests (80+ test cases)
-├── Typography Tests (200+ test cases)
-├── Background Tests (100+ test cases)
-└── Flexbox & Grid Tests (180+ test cases)
+# Navigate to docs directory
+cd apps/cssma-docs
+
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+
+# Build for production
+pnpm build
 ```
 
-## 📚 Documentation
+## 📖 Documentation
 
-### 📖 **Core Library**
-- **[API Documentation](./packages/cssma-v4/README.md)** - Complete library reference
-- **[Specification Docs](./docs/)** - Detailed technical specifications
+For detailed documentation, visit our [documentation site](https://your-username.github.io/figmaikr/) or check the local docs:
 
-### 🔧 **Getting Started**
-- **[Installation Guide](./packages/cssma-v4/README.md#installation)** - Setup instructions
-- **[Quick Start](./packages/cssma-v4/README.md#quick-start)** - Basic usage examples
-- **[Plugin Setup](./apps/cssma-plugin/README.md)** - Figma plugin installation
-
-## 🚀 Quick Examples
-
-### Glass Morphism Card
-```typescript
-const glassCard = {
-  type: 'FRAME',
-  name: 'Glass Card',
-  styles: 'w-[320] h-[200] bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-[24]',
-  children: [
-    {
-      type: 'TEXT',
-      name: 'Title',
-      styles: 'text-white text-xl font-bold',
-      text: 'Glass Effect'
-    }
-  ]
-};
-```
-
-### Modern Button System
-```typescript
-const buttonVariants = {
-  primary: 'px-[20] py-[12] bg-blue-600 text-white rounded-lg font-medium shadow-md',
-  secondary: 'px-[20] py-[12] bg-gray-100 text-gray-900 rounded-lg font-medium',
-  ghost: 'px-[20] py-[12] text-blue-600 hover:bg-blue-50 rounded-lg font-medium'
-};
-```
-
-## 🎨 Supported Features
-
-| Category | Support | Examples |
-|----------|---------|----------|
-| **Layout** | ✅ Complete | `flex-col`, `grid`, `w-full`, `gap-4` |
-| **Colors** | ✅ Complete | `bg-blue-500`, `text-[#FF0000]`, gradients |
-| **Typography** | ✅ Complete | `text-lg`, `font-bold`, `leading-tight` |
-| **Effects** | ✅ Complete | `shadow-lg`, `blur-md`, `backdrop-blur-xl` |
-| **Position** | ✅ Complete | `absolute`, `center-x`, `stretch-y` |
-| **Borders** | ✅ Complete | `border-2`, `rounded-lg`, `border-dashed` |
-| **Variables** | ✅ Complete | `bg-$[color/primary]`, variable binding |
-
-## 🛠️ Installation
-
-```bash
-# Install the core library
-npm install cssma-v4
-
-# Or using pnpm
-pnpm add cssma-v4
-
-# Or using yarn
-yarn add cssma-v4
-```
+- [Getting Started](apps/cssma-docs/src/app/docs/getting-started/page.tsx)
+- [Installation Guide](apps/cssma-docs/src/app/docs/installation/page.tsx)
+- [Core Concepts](apps/cssma-docs/src/app/docs/core-concepts/page.tsx)
+- [Plugin System](apps/cssma-docs/src/app/docs/plugin-system/page.tsx)
+- [API Reference](apps/cssma-docs/src/app/docs/api-reference/page.tsx)
+- [Examples](apps/cssma-docs/src/app/docs/examples/page.tsx)
 
 ## 🤝 Contributing
 
-We welcome contributions! Please check out:
-
-- **[Contributing Guide](./CONTRIBUTING.md)** - Guidelines for contributors
-- **[Issue Tracker](https://github.com/easylogic/figmaikr/issues)** - Bug reports and feature requests
-- **[Discussions](https://github.com/easylogic/figmaikr/discussions)** - Community discussions
-
-### Contributing Workflow
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add a changeset: `pnpm changeset`
-5. Commit your changes
-6. Create a pull request
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Links
+## 🆘 Support
 
-- **[NPM Package](https://www.npmjs.com/package/cssma-v4)**
-- **[Figma Plugin](https://www.figma.com/community/plugin/cssma)**
-- **[Documentation](./docs/)**
-- **[Changelog](./CHANGELOG.md)**
-
----
-
-**Made with ❤️ for the design and development community**
+- 📚 [Documentation](https://your-username.github.io/figmaikr/)
+- 🐛 [Issue Tracker](https://github.com/your-username/figmaikr/issues)
+- 💬 [Discussions](https://github.com/your-username/figmaikr/discussions)
