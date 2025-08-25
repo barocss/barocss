@@ -39,7 +39,7 @@ export function boxShadowToCssVars(boxShadow: Record<string, string>): Record<st
 
 /**
  * fontSize: { xs: ['0.75rem', '1rem'], ... }
- * → { '--text-xs': '0.75rem', '--text-xs-line-height': '1rem' }
+ * → { '--text-xs': '0.75rem', '--text-xs--line-height': '1rem' }
  */
 export function fontSizeToCssVars(fontSize: Record<string, string | [string, string]>): Record<string, string> {
   const result: Record<string, string> = {};
@@ -47,10 +47,23 @@ export function fontSizeToCssVars(fontSize: Record<string, string | [string, str
     const value = fontSize[key];
     if (Array.isArray(value)) {
       result[`--text-${key}`] = value[0];
-      if (value[1]) result[`--text-${key}-line-height`] = value[1];
+      if (value[1]) result[`--text-${key}--line-height`] = value[1];
     } else {
       result[`--text-${key}`] = value;
     }
+  }
+  console.log('[fontSizeToCssVars] result', result);
+  return result;
+}
+
+/**
+ * fontWeight: { normal: '400', ... }
+ * → { '--font-weight-normal': '400' }
+ */
+export function fontWeightToCssVars(fontWeight: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const key in fontWeight) {
+    result[`--font-weight-${key}`] = fontWeight[key];
   }
   return result;
 }
@@ -162,6 +175,7 @@ export function themeToCssVarsAll(theme: CssmaTheme): Record<string, string> {
     ...colorsToCssVars(theme.colors || {}),
     ...boxShadowToCssVars(theme.boxShadow || {}),
     ...fontSizeToCssVars(theme.fontSize || {}),
+    ...fontWeightToCssVars(theme.fontWeight || {}),
     ...fontFamilyToCssVars(theme.fontFamily || {}),
     '--spacing': theme.spacing['4'],
     ...spacingToCssVars(theme.spacing || {}),

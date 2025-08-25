@@ -448,7 +448,7 @@ export function generateCssRules(
   classList: string,
   ctx: CssmaContext,
   opts?: { minify?: boolean; dedup?: boolean }
-): Array<{ cls: string; ast: any; css: string; rootCss: string }> {
+): Array<{ cls: string; ast: any; css: string; rootCss: string; cssList: string[] }> {
   const seen = new Set<string>();
   return classList
     .split(/\s+/)
@@ -472,10 +472,22 @@ export function generateCssRules(
         }
       });
 
-      const css = astToCss(cleanAst, cls, { minify: opts?.minify });
+      // console.log('[generateCssRules] cleanAst', cleanAst);
+
+      let cssList = [];
+      for (const node of cleanAst) {
+        const css = astToCss([node], cls, { minify: opts?.minify });
+        cssList.push(css);
+      }
       // console.log('[generateCssRules] css', cls);
       const rootCss = rootToCss(allAtRootNodes);
-      return { cls, ast: cleanAst, css, rootCss };
+      return { 
+        cls, 
+        ast: cleanAst, 
+        css: cssList.join(opts?.minify ? "" : "\n"), 
+        cssList,
+        rootCss 
+      };
     });
 }
 

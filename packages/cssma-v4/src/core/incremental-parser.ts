@@ -1,6 +1,5 @@
 import { parseClassName } from './parser';
 import { parseClassToAst, generateCssRules } from './engine';
-import { cssCache } from './astToCss';
 import type { CssmaContext } from './context';
 import { astCache } from '../utils/cache';
 
@@ -93,7 +92,7 @@ export class IncrementalParser {
    * @param className - The CSS class name to process (e.g., 'bg-blue-500')
    * @returns Object containing AST and CSS, or null if processing failed or class was already processed
    */
-  processClass(className: string): { ast: any[]; css: string } | null {
+  processClass(className: string): { ast: any[]; css: string; cssList: string[] } | null {
     // Check if already processed
     if (this.processedClasses.has(className)) {
       // console.log('[IncrementalParser] Class already processed:', className);
@@ -140,7 +139,7 @@ export class IncrementalParser {
       this.processedClasses.add(className);
       // console.log('[IncrementalParser] Successfully processed:', className, 'CSS:', rule.css.substring(0, 50) + '...');
 
-      return { ast, css: rule.css };
+      return { ast, css: rule.css, cssList: rule.cssList };
     } catch (error) {
       console.warn('[IncrementalParser] Failed to process class:', className, error);
       return null;
@@ -158,8 +157,8 @@ export class IncrementalParser {
    * @param classes - Array of CSS class names to process
    * @returns Array of processing results, each containing className, AST, and CSS
    */
-  processClasses(classes: string[]): Array<{ className: string; ast: any[]; css: string }> {
-    const results: Array<{ className: string; ast: any[]; css: string }> = [];
+  processClasses(classes: string[]): Array<{ className: string; ast: any[]; css: string; cssList: string[] }> {
+    const results: Array<{ className: string; ast: any[]; css: string; cssList: string[] }> = [];
     const newClasses = classes.filter(cls => !this.processedClasses.has(cls));
 
     if (newClasses.length === 0) {
@@ -176,7 +175,8 @@ export class IncrementalParser {
           results.push({
             className,
             ast: result.ast,
-            css: result.css
+            css: result.css,
+            cssList: result.cssList
           });
         }
       });
@@ -273,7 +273,7 @@ export class IncrementalParser {
       pendingClasses: this.pendingClasses.size,
       cacheStats: {
         ast: astCache.getStats(),
-        css: cssCache.getStats()
+        css: {} // No CSS cache, so return empty object
       }
     };
   }
