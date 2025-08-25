@@ -7,18 +7,18 @@ describe('astToCss', () => {
   it('converts nested media and hover rules', () => {
     const ast = [
       atRule('media', '(min-width: 640px)', [
-        rule(':hover', [
+        rule('&:hover', [
           decl('background-color', '#f00')
         ])
       ])
     ];
     expect(astToCss(ast)).toBe(
 `@media (min-width: 640px) {
-  :hover {
+  &:hover {
     background-color: #f00;
-    
   }
-}`
+}
+`
     );
   });
 
@@ -29,7 +29,6 @@ describe('astToCss', () => {
     ];
     expect(astToCss(ast)).toBe(
 `--my-var: 42;
-
 color: red !important;
 `
     );
@@ -41,9 +40,9 @@ color: red !important;
       decl('color', 'blue')
     ];
     expect(astToCss(ast, 'color-blue')).toBe(
-`.color-blue {
-  color: blue;
-  }`);
+`color: blue;
+`
+    );
   });
 
   it('prepends baseSelector to :hover', () => {
@@ -55,8 +54,8 @@ color: red !important;
     expect(astToCss(ast, 'my-btn')).toBe(
 `.my-btn:hover {
   background-color: #f00;
-  
-}`
+}
+`
     );
   });
 
@@ -72,9 +71,9 @@ color: red !important;
 `@media (min-width: 640px) {
   .my-btn:hover {
     background-color: #f00;
-    
   }
-}`
+}
+`
     );
   });
 
@@ -108,8 +107,8 @@ color: red !important;
     expect(astToCss(ast, 'hover:bg-red-500')).toBe(
 `.hover\\:bg-red-500:hover {
   background-color: #f00;
-  
-}`
+}
+`
     );
   });
 
@@ -125,9 +124,9 @@ color: red !important;
 `@media (min-width: 640px) {
   .group-hover\\:sm\\:bg-\\[red\\].group-hover:hover {
     background-color: red;
-    
   }
-}`
+}
+`
     );
   });
 
@@ -140,8 +139,8 @@ color: red !important;
     expect(astToCss(ast, 'sm:hover:bg-red-500')).toBe(
 `.sm\\:hover\\:bg-red-500:hover {
   background-color: #f00;
-  
-}`
+}
+`
     );
   });
 
@@ -154,8 +153,8 @@ color: red !important;
     expect(astToCss(ast, 'md:group-hover:bg-[red]')).toBe(
 `.md\\:group-hover\\:bg-\\[red\\]:focus {
   background-color: #f00;
-  
-}`
+}
+`
     );
   });
 
@@ -182,10 +181,9 @@ color: red !important;
     expect(astToCss(ast, 'alert:before')).toBe(
 `&[data-active]::before {
   content: "!";
-  
   color: red;
-  
-}`
+}
+`
     );
   });
 });
@@ -204,8 +202,8 @@ describe('style-rule selector & replacement', () => {
     expect(astToCss(ast, 'alert:before')).toBe(
 `&[data-active]::before {
   content: "!";
-  
-}`
+}
+`
     );
   });
   it('replaces & at the end', () => {
@@ -221,8 +219,8 @@ describe('style-rule selector & replacement', () => {
     expect(astToCss(ast, 'alert:after')).toBe(
 `[data-active] & {
   color: red;
-  
-}`
+}
+`
     );
   });
   it('replaces & in the middle', () => {
@@ -238,8 +236,8 @@ describe('style-rule selector & replacement', () => {
     expect(astToCss(ast, 'alert:icon')).toBe(
 `[data-x] &::before {
   color: blue;
-  
-}`
+}
+`
     );
   });
   it('replaces multiple & in selector', () => {
@@ -255,8 +253,8 @@ describe('style-rule selector & replacement', () => {
     expect(astToCss(ast, 'alert')).toBe(
 `& + & {
   margin-left: 8px;
-  
-}`
+}
+`
     );
   });
   it('does not replace & if baseSelector is not given', () => {
@@ -272,8 +270,47 @@ describe('style-rule selector & replacement', () => {
     expect(astToCss(ast)).toBe(
 `&[data-active]::before {
   content: "!";
-  
-}`
+}
+`
+    );
+  });
+
+  it('handles @supports rule', () => {
+    const ast: AstNode[] = [
+      {
+        type: 'at-rule',
+        name: 'supports',
+        params: '(color:color-mix(in lab, red, red))',
+        nodes: [
+          {
+            type: 'style-rule',
+            selector: '.bg-red-500\\/75',
+            nodes: [
+              { type: 'decl', prop: 'background-color', value: 'color-mix(in lab, red 75%, transparent)' },
+            ],
+          },
+        ],
+      },
+      {
+        type: 'style-rule',
+        selector: '.bg-red-500\\/75',
+        nodes: [
+          { type: 'decl', prop: 'background-color', value: 'color-mix(in lab, red 75%, transparent)' },
+        ],
+      },
+    ];
+    const result = astToCss(ast);
+    console.log(result);
+    expect(result).toBe(
+`@supports (color:color-mix(in lab, red, red)) {
+  .bg-red-500\\/75 {
+    background-color: color-mix(in lab, red 75%, transparent);
+  }
+}
+.bg-red-500\\/75 {
+  background-color: color-mix(in lab, red 75%, transparent);
+}
+`
     );
   });
 }); 

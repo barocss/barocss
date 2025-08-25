@@ -20,7 +20,7 @@ export default defineConfig({
       // Insert types into the bundle
       insertTypesEntry: true,
       // Skip type checking for faster builds
-      skipDiagnostics: true,
+      // skipDiagnostics: true,
       // Generate source maps for declarations
       compilerOptions: {
         sourceMap: true,
@@ -71,9 +71,5 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src')
     }
-  },
-  test: {
-    globals: true,
-    environment: 'node'
   }
 }); 

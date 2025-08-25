@@ -152,10 +152,12 @@ export class ChangeDetector {
     }
     
     // Scan all child elements
-    const elementsWithClass = root.querySelectorAll('[class]');
+    const elementsWithClass = root.querySelectorAll('[class]') as unknown as HTMLElement[];
     for (const el of elementsWithClass) {
       if (el.className) {
-        const classes = el.className.split(/\s+/).filter(Boolean);
+        // SVG 의 className 은 SVGAnimatedString 타입이므로 toString() 으로 문자열로 변환
+        // HTMLElement 의 className 은 string 타입이므로 그대로 사용
+        const classes = el.className.toString().split(/\s+/).filter(Boolean);
         classes.forEach(cls => {
           if (!this.incrementalParser.isProcessed(cls)) {
             existingClasses.add(cls);
@@ -536,13 +538,11 @@ export class StyleRuntime {
     const failedRules: string[] = [];
     
     for (const css of cssRules) {
-      const rules = css.split(/(?<=})\s*/).filter(Boolean);
-      for (const rule of rules) {
-        if (this.insertRuleToSheet(sheet, rule)) {
-          successfulRules.push(rule.trim());
-        } else {
-          failedRules.push(rule.trim());
-        }
+      // 각 CSS는 이미 완전한 규칙이므로 분할하지 않고 그대로 삽입
+      if (this.insertRuleToSheet(sheet, css)) {
+        successfulRules.push(css.trim());
+      } else {
+        failedRules.push(css.trim());
       }
     }
     
