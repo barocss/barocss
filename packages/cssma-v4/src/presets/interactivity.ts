@@ -39,7 +39,7 @@ functionalUtility({
     return [decl("accent-color", value)];
   },
   handleCustomProperty: (value) => [decl("accent-color", `var(${value})`)],
-  description: "accent-color utility (static, arbitrary, custom property 지원)",
+  description: "accent-color utility (static, arbitrary, custom property supported)",
   category: "interactivity",
 });
 
@@ -89,7 +89,7 @@ functionalUtility({
   },
   handleCustomProperty: (value) => [decl("caret-color", `var(${value})`)],
   description:
-    "caret-color utility (static, theme, arbitrary, custom property 지원)",
+    "caret-color utility (static, theme, arbitrary, custom property supported)",
   category: "interactivity",
 });
 
@@ -160,7 +160,7 @@ functionalUtility({
   prop: "cursor",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: "cursor utility (static, arbitrary, custom property 지원)",
+  description: "cursor utility (static, arbitrary, custom property supported)",
   category: "interactivity",
 });
 
@@ -245,7 +245,7 @@ staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]]);
       return [decl(prop, value)];
     },
     handleCustomProperty: (value) => [decl(prop, `var(${value})`)],
-    description: `${name} utility (static, arbitrary, custom property 지원)`,
+    description: `${name} utility (static, arbitrary, custom property supported)`,
     category: "interactivity",
   });
 });
@@ -277,7 +277,7 @@ staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]]);
       return [decl(prop, value)];
     },
     handleCustomProperty: (value) => [decl(prop, `var(${value})`)],
-    description: `scroll-${name} utility (static, arbitrary, custom property 지원)`,
+    description: `scroll-${name} utility (static, arbitrary, custom property supported)`,
     category: "interactivity",
   });
 });
@@ -315,6 +315,6 @@ functionalUtility({
   prop: "will-change",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: "will-change utility (static, arbitrary, custom property 지원)",
+  description: "will-change utility (static, arbitrary, custom property supported)",
   category: "interactivity",
 });

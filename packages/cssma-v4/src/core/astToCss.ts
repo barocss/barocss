@@ -73,7 +73,7 @@ function astToCss(
           // Handle CSS property declaration (e.g., color: red;)
           let value = node.value;
           
-          // node.important이 없으므로 무시
+          // node.important is absent; ignore
           if (node.prop.startsWith("--")) {
             // Handle CSS custom property (e.g., --primary-color: #007bff;)
             if (minify) {
@@ -217,15 +217,15 @@ function astToCss(
           // Handle CSS comments (removed in minify mode)
           return minify ? "" : `${indent}/* ${node.text} */`;
         case "raw":
-          // 📝 원시 CSS 코드 처리 (그대로 출력)
+          // Handle raw CSS code (output as-is)
           return `${indent}${node.value}`;
         default:
           console.warn('[astToCss] Unknown node type:', node);
           return "";
       }
     })
-    .filter(Boolean) // 🔍 빈 문자열 제거
-    .join(minify ? "" : "\n"); // 🔗 노드들을 연결 (minify: 공백 없음, pretty: 줄바꿈)
+    .filter(Boolean) // Remove empty strings
+    .join(minify ? "" : "\n"); // Join nodes (minify: no whitespace, pretty: newlines)
 
   // Add trailing newline for consistency with expected format
   const finalResult = result + (minify ? "" : "\n");

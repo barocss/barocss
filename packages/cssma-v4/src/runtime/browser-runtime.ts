@@ -88,8 +88,8 @@ export class ChangeDetector {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
           const target = mutation.target as HTMLElement;
           if (target.className) {
-            // SVG 의 className 은 SVGAnimatedString 타임이므로 toString() 으로 문자열로 변환
-            // HTMLElement 의 className 은 string 타임이므로 그대로 사용
+            // SVG className is SVGAnimatedString; convert to string with toString()
+            // HTMLElement className is string; use as-is
             const classes = normalizeClassNameList(target.className);
             classes.forEach(cls => {
               if (!this.incrementalParser.isProcessed(cls)) {
@@ -127,8 +127,8 @@ export class ChangeDetector {
             if (result.css) {
               cssRules.push(...result.cssList);
               // Add to StyleRuntime cache
-              // SVG 의 className 은 SVGAnimatedString 타임이므로 toString() 으로 문자열로 변환
-              // HTMLElement 의 className 은 string 타임이므로 그대로 사용
+              // SVG className is SVGAnimatedString; convert to string with toString()
+              // HTMLElement className is string; use as-is
               const className = normalizeClassName(result.className);
               this.styleRuntime.cache.set(className, result.cssList);
             }
@@ -175,8 +175,8 @@ export class ChangeDetector {
     const elementsWithClass = root.querySelectorAll('[class]') as unknown as HTMLElement[];
     for (const el of elementsWithClass) {
       if (el.className) {
-        // SVG 의 className 은 SVGAnimatedString 타입이므로 toString() 으로 문자열로 변환
-        // HTMLElement 의 className 은 string 타입이므로 그대로 사용
+        // SVG className is SVGAnimatedString; convert to string with toString()
+        // HTMLElement className is string; use as-is
         const classes = normalizeClassNameList(el.className);
         classes.forEach(cls => {
           if (!this.incrementalParser.isProcessed(cls)) {
@@ -226,8 +226,8 @@ export class ChangeDetector {
     if (this.processedElements.has(element)) return;
 
     if (element.className) {
-      // SVG 의 className 은 SVGAnimatedString 타임이므로 toString() 으로 문자열로 변환
-      // HTMLElement 의 className 은 string 타임이므로 그대로 사용
+      // SVG className is SVGAnimatedString; convert to string with toString()
+      // HTMLElement className is string; use as-is
       const classes = normalizeClassNameList(element.className);
       classes.forEach(cls => {
         if (!this.incrementalParser.isProcessed(cls)) {

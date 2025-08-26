@@ -24,7 +24,7 @@ functionalUtility({
     }
     return [decl("fill", value)];
   },
-  description: "fill utility (static, theme, arbitrary, custom property 지원)",
+  description: "fill utility (static, theme, arbitrary, custom property supported)",
   category: "svg",
 });
 
@@ -59,7 +59,7 @@ functionalUtility({
     }
     return [decl("stroke", `var(${value})`)];
   },
-  description: "stroke utility (static, theme, arbitrary, custom property 지원)",
+  description: "stroke utility (static, theme, arbitrary, custom property supported)",
   category: "svg",
 });
 

@@ -20,7 +20,7 @@ import { decl, rule } from "../core/ast";
     supportsArbitrary: true,
     supportsCustomProperty: true,
     handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
-    description: `${name} utility (number, arbitrary, custom property 지원)`,
+    description: `${name} utility (number, arbitrary, custom property supported)`,
     category: "layout",
   });
 });
@@ -48,7 +48,7 @@ import { decl, rule } from "../core/ast";
     supportsCustomProperty: true,
     handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
     handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
-    description: `${name} margin utility (number, negative, arbitrary, custom property, auto, px 지원)`,
+    description: `${name} margin utility (number, negative, arbitrary, custom property, auto, px supported)`,
     category: "layout",
   });
 });
@@ -125,7 +125,7 @@ functionalUtility({
     ]),
   ],
   description:
-    "space-x utility (number, negative, px, arbitrary, custom property, reverse 지원)",
+    "space-x utility (number, negative, px, arbitrary, custom property, reverse supported)",
   category: "layout",
 });
 
@@ -195,6 +195,6 @@ functionalUtility({
     ]),
   ],
   description:
-    "space-y utility (number, negative, px, arbitrary, custom property, reverse 지원)",
+    "space-y utility (number, negative, px, arbitrary, custom property, reverse supported)",
   category: "layout",
 });

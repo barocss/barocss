@@ -1,6 +1,6 @@
-// 카테고리별 theme → CSS 변수 변환 함수 모음 ( v4 스타일)
-// 각 함수는 해당 카테고리의 theme 객체를 받아 Record<string, string> 반환
-// 네임스페이스/네이밍 규칙은  v4와 동일하게 적용
+// Collection of converters from theme categories to CSS variables (v4 style)
+// Each function takes a category theme object and returns Record<string, string>
+// Namespace/naming rules aligned with v4
 
 import type { CssmaTheme } from './context';
 
@@ -147,7 +147,7 @@ export function animationToCssVars(animations: Record<string, string>): Record<s
 
 /**
  * keyframes: { spin: { 'to': { transform: 'rotate(360deg)' } }, ... }
- * → 별도 @keyframes 블록 생성 필요 (여기서는 변수 변환은 생략)
+ * → Requires separate @keyframes block generation (variable conversion omitted here)
  */
 export function keyframesToCss(keyframes: Record<string, any>): string {
   let css = '';
@@ -168,7 +168,7 @@ export function keyframesToCss(keyframes: Record<string, any>): string {
 }
 
 /**
- * themeToCssVarsAll: theme 객체에서 주요 카테고리별로 CSS 변수 모두 합치기
+ * themeToCssVarsAll: merge CSS variables from major theme categories
  */
 export function themeToCssVarsAll(theme: CssmaTheme): Record<string, string> {
   return {
@@ -188,7 +188,7 @@ export function themeToCssVarsAll(theme: CssmaTheme): Record<string, string> {
 }
 
 /**
- * toCssVarsBlock: Record<string, string> → :root { ... } CSS 블록 문자열로 변환
+ * toCssVarsBlock: convert Record<string, string> → :root { ... } CSS block string
  */
 export function toCssVarsBlock(vars: Record<string, string>, extra: string = ''): string {
   return ':root {\n' + Object.entries(vars).map(([k, v]) => `  ${k}: ${v};`).join('\n') + '\n' + extra + '\n}';

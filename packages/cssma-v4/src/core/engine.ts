@@ -102,21 +102,21 @@ const mergeSelectorsBySource = (source: string, nodes: Partial<AstNode>[]) => {
  */
 export function declPathToAst(declPath: DeclPath): AstNode[] {
   if (!declPath || declPath.length === 0) return [];
-  // declPath 각 node의 type/selector/source 로그
-  // 1. decl(leaf)와 variant chain 분리
+  // Log type/selector/source for each node in declPath
+  // 1. Separate decl (leaf) and variant chain
   const variants = declPath.slice(0, -1);
   const decl = declPath[declPath.length - 1];
 
-  // 2. 기존 정렬/병합(hoist) 로직 유지
+  // 2. Keep existing sort/merge (hoist) logic
   const sortedVariants = [...variants].sort(
     (a, b) => getPriority(a.type!) - getPriority(b.type!)
   );
 
-  // decl 에 기본 rule 처리 추가
-  // 1. 처음 요소가 decl 이면 rule('&', [decl]) 추가
-  // 2. rule 이 & 를 가지지 않는데 하위가 decl 이면 현재 rule 에 , rule('&', [decl]) 추가
+  // Add default rule handling for decl
+  // 1. If first element is decl, add rule('&', [decl])
+  // 2. If rule lacks '&' while child is decl, add current rule and rule('&', [decl])
   if (sortedVariants.length === 0) {
-    if (decl.type === "decl") { // 첫 요소가 decl 이면 rule('&', [decl]) 추가
+    if (decl.type === "decl") { // If first element is decl, add rule('&', [decl])
       sortedVariants.push({
         type: "rule",
         selector: "&",
@@ -159,7 +159,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
       // else: skip(merge)
     }
   }
-  // 3. rule만 따로 모으기 (연속된 rule만)
+  // 3. Gather only rule nodes (consecutive rules only)
   const ruleSelectors: Partial<AstNode>[] = [];
   const nonRuleVariants: any[] = [];
   for (const v of mergedVariants) {
@@ -167,7 +167,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
     else nonRuleVariants.push(v);
   }
 
-  // 5. selector 합성 및 단일 rule 생성
+  // 5. Compose selector and create a single rule
   let node: AstNode = { ...decl } as any;
   let sortedRuleSelectors = [...ruleSelectors].sort(
     (a, b) => getRulePriority(a) - getRulePriority(b)
@@ -179,9 +179,9 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
       acc[key].push(rule);
       return acc;
     }, {} as Record<string, Partial<AstNode>[]>);
-    // grouped 상세 로그
+    // Detailed grouped log
 
-    // 1. sourcePriority 기준으로 정렬
+    // 1. Sort by sourcePriority
     const mergedBySource = Object.entries(grouped)
       .sort(
         ([a], [b]) => (sourcePriority[a] ?? 999) - (sourcePriority[b] ?? 999)
@@ -191,7 +191,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
         return merged;
       });
 
-    // 2. 바깥→안쪽 순서로 reduce (pseudo가 항상 가장 안쪽)
+    // 2. Reduce from outside→inside (pseudo is always innermost)
     let acc = "";
     for (let i = 0; i < mergedBySource.length; i++) {
       const sel = mergedBySource[i];
@@ -203,7 +203,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
     node = { type: "rule", selector: finalSelector, nodes: [node] };
   }
 
-  // 6. 나머지 variant(예: at-rule) 바깥에서 중첩
+  // 6. Nest remaining variants (e.g., at-rule) outside
   for (let i = nonRuleVariants.length - 1; i >= 0; i--) {
     node = { ...nonRuleVariants[i], nodes: [node] };
   }
@@ -233,7 +233,7 @@ export function parseClassToAst(
   ctx: CssmaContext
 ): AstNode[] {
   // Check AST cache first
-  // 더 간단한 캐시 키: className + context hash
+  // Simpler cache key: className + context hash
   const contextHash = JSON.stringify({
     darkMode: ctx.config("darkMode"),
     darkModeSelector: ctx.config("darkModeSelector"),
@@ -416,7 +416,7 @@ export function generateCss(
         }
       });
       
-      // style-rule이 이미 완전한 셀렉터를 포함하고 있다면 baseSelector 전달 안함
+      // If style-rule already has a complete selector, do not pass baseSelector
       const hasStyleRule = cleanAst.some(node => node.type === 'style-rule');
       const css = astToCss(cleanAst, hasStyleRule ? undefined : cls, { minify: opts?.minify }); // Conditional baseSelector
 
@@ -456,11 +456,11 @@ export function generateCss(
 }
 
 /**
- * 여러 클래스명을 받아 dedup/filter 후 최적화된 결과를 객체 배열로 반환합니다.
- * - 각 객체: { cls, ast, css }
- * - minify, dedup 옵션 지원
- * - 각 클래스별로 astToCss(cleanAst, cls, opts) 적용
- * @param classList string (공백 구분)
+ * Returns an array of optimized results for multiple class names with dedup/filter.
+ * - Each object: { cls, ast, css }
+ * - Supports minify, dedup options
+ * - Applies astToCss(cleanAst, cls, opts) per class
+ * @param classList string (space-separated)
  * @param ctx CssmaContext
  * @param opts { minify?: boolean; dedup?: boolean }
  * @returns Array<{ cls: string; ast: AstNode[]; css: string }>

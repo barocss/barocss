@@ -54,7 +54,7 @@ functionalUtility({
     }
     return [decl("font-weight", `var(${value})`)];
   },
-  description: "font-weight utility (theme, number, arbitrary, custom property 지원)",
+  description: "font-weight utility (theme, number, arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -76,7 +76,7 @@ functionalUtility({
   themeKey: "letterSpacing",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: "letter-spacing utility (theme, arbitrary, custom property 지원)",
+  description: "letter-spacing utility (theme, arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -95,7 +95,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handleBareValue: ({ value }) => parseNumber(value),
-  description: "line-height utility (theme, number, arbitrary, custom property 지원)",
+  description: "line-height utility (theme, number, arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -148,7 +148,7 @@ functionalUtility({
     }
     return [decl("font-size", `var(${value})`)];
   },
-  description: "text color utility (theme, arbitrary, custom property 지원)",
+  description: "text color utility (theme, arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -181,7 +181,7 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("font-size", `var(${value})`)],
-  description: "font-size utility (theme, arbitrary, custom property 지원)",
+  description: "font-size utility (theme, arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -233,7 +233,7 @@ functionalUtility({
   prop: "font-stretch",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: "font-stretch utility (arbitrary, custom property 지원)",
+  description: "font-stretch utility (arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -267,7 +267,7 @@ functionalUtility({
     decl("-webkit-box-orient", "vertical"),
     decl("-webkit-line-clamp", `var(${value})`)
   ],
-  description: "line-clamp utility (number, arbitrary, custom property 지원)",
+  description: "line-clamp utility (number, arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -282,7 +282,7 @@ functionalUtility({
   themeKey: "listStyleType",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: "list-style-type utility (theme, arbitrary, custom property 지원)",
+  description: "list-style-type utility (theme, arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -300,7 +300,7 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value) => [decl("list-style-image", `url(${value})`)],
   handleCustomProperty: (value) => [decl("list-style-image", `var(${value})`)],
-  description: "list-style-image utility (arbitrary, custom property 지원)",
+  description: "list-style-image utility (arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -326,7 +326,7 @@ functionalUtility({
     return [decl("text-decoration-color", value)];
   },
   handleCustomProperty: (value) => [decl("text-decoration-color", `var(${value})`)],
-  description: "text-decoration-color utility (theme, arbitrary, custom property 지원)",
+  description: "text-decoration-color utility (theme, arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -352,7 +352,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handleBareValue: ({ value }) => `${value}px`,
-  description: "text-decoration-thickness utility (arbitrary, custom property 지원)",
+  description: "text-decoration-thickness utility (arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -370,7 +370,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handleBareValue: ({ value }) => `${value}px`,
-  description: "text-underline-offset utility (arbitrary, custom property 지원)",
+  description: "text-underline-offset utility (arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -389,7 +389,7 @@ functionalUtility({
   supportsCustomProperty: true,
   handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
   handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
-  description: "text-indent utility (spacing, negative, arbitrary, custom property 지원)",
+  description: "text-indent utility (spacing, negative, arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -408,7 +408,7 @@ functionalUtility({
   prop: "vertical-align",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: "vertical-align utility (arbitrary, custom property 지원)",
+  description: "vertical-align utility (arbitrary, custom property supported)",
   category: "typography",
 });
 
@@ -427,6 +427,6 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value) => [decl("content", `"${value}"`)],
   handleCustomProperty: (value) => [decl("content", `var(${value})`)],
-  description: "content utility (arbitrary, custom property 지원)",
+  description: "content utility (arbitrary, custom property supported)",
   category: "typography",
 });

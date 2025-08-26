@@ -26,7 +26,7 @@ functionalUtility({
     return [decl("border-spacing", `${value} var(--tw-border-spacing-y)`)]
   },
   handleCustomProperty: (value) => [decl("border-spacing", `var(${value}) var(--tw-border-spacing-y)`)],
-  description: "border-spacing-x utility (static, number, arbitrary, custom property 지원)",
+  description: "border-spacing-x utility (static, number, arbitrary, custom property supported)",
   category: "tables",
 });
 
@@ -42,7 +42,7 @@ functionalUtility({
     return [decl("border-spacing", `var(--tw-border-spacing-x) ${value}`)]
   },
   handleCustomProperty: (value) => [decl("border-spacing", `var(--tw-border-spacing-x) var(${value})`)],
-  description: "border-spacing-y utility (static, number, arbitrary, custom property 지원)",
+  description: "border-spacing-y utility (static, number, arbitrary, custom property supported)",
   category: "tables",
 }); 
 
@@ -58,7 +58,7 @@ functionalUtility({
       return [decl("border-spacing", value)];
     },
     handleCustomProperty: (value) => [decl("border-spacing", `var(${value})`)],
-    description: "border-spacing utility (static, number, arbitrary, custom property 지원)",
+    description: "border-spacing utility (static, number, arbitrary, custom property supported)",
     category: "tables",
   });
 

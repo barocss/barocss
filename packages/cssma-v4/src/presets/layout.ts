@@ -19,7 +19,7 @@ functionalUtility({
   themeKey: "zIndex",
   supportsNegative: true,
   supportsArbitrary: true, // z-[999], z-[calc(var(--index)+1)] 등 지원
-  supportsCustomProperty: true, // z-(--my-z) 지원
+  supportsCustomProperty: true, // z-(--my-z) supported
   // but actual theme lookup is handled in ctx.theme
   handleBareValue: ({ value }) => parseNumber(value), // only allow integers
   description: "z-index utility",
@@ -37,7 +37,7 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsFraction: true,
   description:
-    "aspect-ratio utility (theme, arbitrary, custom property, fraction 지원)",
+    "aspect-ratio utility (theme, arbitrary, custom property, fraction supported)",
   category: "layout",
 });
 
@@ -64,7 +64,7 @@ functionalUtility({
   supportsFraction: true,
   handleBareValue: ({ value }) => parseNumber(value),
   description:
-    "columns utility (theme, arbitrary, custom property, fraction 지원)",
+    "columns utility (theme, arbitrary, custom property, fraction supported)",
   category: "layout",
 });
 
@@ -164,7 +164,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   description:
-    "object-position utility (arbitrary value, custom property 지원)",
+    "object-position utility (arbitrary value, custom property supported)",
   category: "layout",
 });
 
@@ -266,7 +266,7 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("column-gap", `var(${value})`)],
-  description: "gap-x utility (number, arbitrary, custom property 지원)",
+  description: "gap-x utility (number, arbitrary, custom property supported)",
   category: "layout",
 });
 functionalUtility({
@@ -280,7 +280,7 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("row-gap", `var(${value})`)],
-  description: "gap-y utility (number, arbitrary, custom property 지원)",
+  description: "gap-y utility (number, arbitrary, custom property supported)",
   category: "layout",
 });
 functionalUtility({
@@ -294,6 +294,6 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("gap", `var(${value})`)],
-  description: "gap utility (number, arbitrary, custom property 지원)",
+  description: "gap utility (number, arbitrary, custom property supported)",
   category: "layout",
 });

@@ -115,7 +115,7 @@ functionalUtility({
     decl("perspective-origin", `var(${value})`),
   ],
   description:
-    "perspective-origin utility (named, arbitrary, custom property 지원)",
+    "perspective-origin utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -130,7 +130,7 @@ functionalUtility({
     return [decl("perspective", value)];
   },
   handleCustomProperty: (value) => [decl("perspective", `var(${value})`)],
-  description: "perspective utility (named, arbitrary, custom property 지원)",
+  description: "perspective utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -161,7 +161,7 @@ functionalUtility({
   handleCustomProperty: (value) => [
     decl("transform", `rotateX(var(${value})) var(--tw-rotate-y)`),
   ],
-  description: "rotate-x utility (named, arbitrary, custom property 지원)",
+  description: "rotate-x utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -186,7 +186,7 @@ functionalUtility({
   handleCustomProperty: (value) => [
     decl("transform", `var(--tw-rotate-x) rotateY(var(${value}))`),
   ],
-  description: "rotate-y utility (named, arbitrary, custom property 지원)",
+  description: "rotate-y utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -224,7 +224,7 @@ functionalUtility({
       `var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(var(${value}))`
     ),
   ],
-  description: "rotate-z utility (named, arbitrary, custom property 지원)",
+  description: "rotate-z utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -250,7 +250,7 @@ functionalUtility({
     return [decl("rotate", value)];
   },
   handleCustomProperty: (value) => [decl("rotate", `var(${value})`)],
-  description: "rotate utility (named, arbitrary, custom property 지원)",
+  description: "rotate utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -285,7 +285,7 @@ functionalUtility({
   handleCustomProperty: (value) => [
     decl("scale", `var(${value}) var(--tw-scale-y)`),
   ],
-  description: "scale-x utility (named, arbitrary, custom property 지원)",
+  description: "scale-x utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -310,7 +310,7 @@ functionalUtility({
   handleCustomProperty: (value) => [
     decl("scale", `var(--tw-scale-x) var(${value})`),
   ],
-  description: "scale-y utility (named, arbitrary, custom property 지원)",
+  description: "scale-y utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -340,7 +340,7 @@ functionalUtility({
   handleCustomProperty: (value) => [
     decl("scale", `var(--tw-scale-x) var(--tw-scale-y) var(${value})`),
   ],
-  description: "scale-z utility (named, arbitrary, custom property 지원)",
+  description: "scale-z utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -367,7 +367,7 @@ functionalUtility({
   handleCustomProperty: (value) => [
     decl("scale", `var(${value}) var(${value})`),
   ],
-  description: "scale utility (named, arbitrary, custom property 지원)",
+  description: "scale utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -393,7 +393,7 @@ functionalUtility({
     return [decl("transform", `skewX(${value})`)];
   },
   handleCustomProperty: (value) => [decl("transform", `skewX(var(${value}))`)],
-  description: "skew-x utility (named, arbitrary, custom property 지원)",
+  description: "skew-x utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -416,7 +416,7 @@ functionalUtility({
     return [decl("transform", `skewY(${value})`)];
   },
   handleCustomProperty: (value) => [decl("transform", `skewY(var(${value}))`)],
-  description: "skew-y utility (named, arbitrary, custom property 지원)",
+  description: "skew-y utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -441,7 +441,7 @@ functionalUtility({
   handleCustomProperty: (value) => [
     decl("transform", `skewX(var(${value})) skewY(var(${value}))`),
   ],
-  description: "skew utility (named, arbitrary, custom property 지원)",
+  description: "skew utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -539,7 +539,7 @@ staticUtility("-translate-z-px", [
 
 // --- Functional translate utilities ---
 
-// translate-x-<number|fraction|arbitrary|custom>, negative 지원
+// translate-x-<number|fraction|arbitrary|custom>, negative supported
 functionalUtility({
   name: "translate-x",
   prop: "translate",
@@ -565,7 +565,7 @@ functionalUtility({
   category: "transform",
 });
 
-// translate-y-<number|fraction|arbitrary|custom>, negative 지원
+// translate-y-<number|fraction|arbitrary|custom>, negative supported
 functionalUtility({
   name: "translate-y",
   prop: "translate",
@@ -591,7 +591,7 @@ functionalUtility({
   category: "transform",
 });
 
-// translate-z-<number|fraction|arbitrary|custom>, negative 지원
+// translate-z-<number|fraction|arbitrary|custom>, negative supported
 functionalUtility({
   name: "translate-z",
   prop: "translate",
@@ -628,7 +628,7 @@ functionalUtility({
   category: "transform",
 });
 
-// translate-<number|fraction|arbitrary|custom>, negative 지원
+// translate-<number|fraction|arbitrary|custom>, negative supported
 functionalUtility({
   name: "translate",
   prop: "translate",

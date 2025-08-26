@@ -42,7 +42,7 @@ staticUtility("bg-origin-content", [["background-origin", "content-box"]]);
 });
 
 /**
- * background-position utility (arbitrary, custom property 지원)
+ * background-position utility (arbitrary, custom property supported)
  *
  * bg-position-[length] → background-position: [length]
  * bg-position-[length] → background-position: [length]
@@ -52,7 +52,7 @@ functionalUtility({
   prop: "background-position",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: "background-position utility (arbitrary, custom property 지원)",
+  description: "background-position utility (arbitrary, custom property supported)",
   category: "background",
 });
 
@@ -74,7 +74,7 @@ functionalUtility({
   prop: "background-size",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: "background-size utility (arbitrary, custom property 지원)",
+  description: "background-size utility (arbitrary, custom property supported)",
   category: "background",
 });
 
@@ -157,7 +157,7 @@ functionalUtility({
     ),
   ],
   description:
-    "linear-gradient background-image utility (angle, arbitrary, custom property 지원)",
+    "linear-gradient background-image utility (angle, arbitrary, custom property supported)",
   category: "background",
 });
 
@@ -198,7 +198,7 @@ functionalUtility({
     ),
   ],
   description:
-    "radial-gradient background-image utility (arbitrary, custom property 지원)",
+    "radial-gradient background-image utility (arbitrary, custom property supported)",
   category: "background",
 });
 
@@ -241,7 +241,7 @@ functionalUtility({
   },
   handleCustomProperty: (value) => [decl("background-image", `var(${value})`)],
   description:
-    "conic-gradient background-image utility (angle, arbitrary, custom property 지원)",
+    "conic-gradient background-image utility (angle, arbitrary, custom property supported)",
   category: "background",
 });
 
@@ -307,7 +307,7 @@ const gradientStopProperties = () => {
     handleCustomProperty: (value) => [
       decl(`--tw-gradient-${stop}`, `var(${value})`),
     ],
-    description: `${stop} gradient stop utility (color, percent, custom property, arbitrary 지원)`,
+    description: `${stop} gradient stop utility (color, percent, custom property, arbitrary supported)`,
     category: "background",
   });
   // position variant: from-10%, via-30%, to-90%
@@ -319,13 +319,13 @@ const gradientStopProperties = () => {
     handleCustomProperty: (value) => [
       decl(`--tw-gradient-${stop}-position`, `var(${value})`),
     ],
-    description: `${stop}-position gradient stop position utility (percent, custom property, arbitrary 지원)`,
+    description: `${stop}-position gradient stop position utility (percent, custom property, arbitrary supported)`,
     category: "background",
   });
 });
 
 /**
- * background-size utility (arbitrary, custom property 지원)
+ * background-size utility (arbitrary, custom property supported)
  * bg-[length] → background-size: [length]
  * bg-[length] → background-size: [length]
  * bg-[color] → background-color: [color]
@@ -374,6 +374,6 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("background-size", `var(${value})`)],
-  description: "background-size utility (arbitrary, custom property 지원)",
+  description: "background-size utility (arbitrary, custom property supported)",
   category: "background",
 });

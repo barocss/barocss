@@ -46,7 +46,7 @@ functionalUtility({
     return null;
   },
   description:
-    "flex-basis utility (theme, arbitrary, custom property, fraction 지원)",
+    "flex-basis utility (theme, arbitrary, custom property, fraction supported)",
   category: "layout",
 });
 
@@ -79,7 +79,7 @@ functionalUtility({
   },
   handle: (value) => [decl("flex", value)],
   description:
-    "flex shorthand utility (number, fraction, arbitrary, custom property 지원)",
+    "flex shorthand utility (number, fraction, arbitrary, custom property supported)",
   category: "flex",
 });
 
@@ -93,7 +93,7 @@ functionalUtility({
   supportsCustomProperty: true, // grow-(--my-grow)
   handleBareValue: ({ value }) => parseNumber(value),
   handle: (value) => [decl("flex-grow", value)],
-  description: "flex-grow utility (number, arbitrary, custom property 지원)",
+  description: "flex-grow utility (number, arbitrary, custom property supported)",
   category: "flex",
 });
 
@@ -107,7 +107,7 @@ functionalUtility({
   supportsArbitrary: true, // shrink-[2], shrink-[calc(100vw-var(--sidebar))] 등
   supportsCustomProperty: true, // shrink-(--my-shrink)
   handleBareValue: ({ value }) => parseNumber(value),
-  description: "flex-shrink utility (number, arbitrary, custom property 지원)",
+  description: "flex-shrink utility (number, arbitrary, custom property supported)",
   category: "flex",
 });
 
@@ -128,7 +128,7 @@ functionalUtility({
     return null;
   },
   description:
-    "order utility (number, negative, arbitrary, custom property 지원)",
+    "order utility (number, negative, arbitrary, custom property supported)",
   category: "flex",
 });
 
@@ -144,7 +144,7 @@ functionalUtility({
   handleBareValue: ({ value }) =>
     parseFractionOrNumber(value, { repeat: true }),
   description:
-    "grid-template-columns utility (number, arbitrary, custom property 지원)",
+    "grid-template-columns utility (number, arbitrary, custom property supported)",
   category: "grid",
 });
 
@@ -171,7 +171,7 @@ functionalUtility({
     decl("grid-template-rows", `var(${value})`),
   ],
   description:
-    "grid-template-rows utility (number, arbitrary, custom property 지원)",
+    "grid-template-rows utility (number, arbitrary, custom property supported)",
   category: "grid",
 });
 
@@ -197,7 +197,7 @@ functionalUtility({
     return null;
   },
   description:
-    "grid-row span utility (number, arbitrary, custom property 지원)",
+    "grid-row span utility (number, arbitrary, custom property supported)",
   category: "grid",
 });
 // row-start utilities
@@ -220,7 +220,7 @@ functionalUtility({
     return null;
   },
   description:
-    "grid-row-start utility (number, negative, arbitrary, custom property 지원)",
+    "grid-row-start utility (number, negative, arbitrary, custom property supported)",
   category: "grid",
 });
 // row-end utilities
@@ -243,7 +243,7 @@ functionalUtility({
     return null;
   },
   description:
-    "grid-row-end utility (number, negative, arbitrary, custom property 지원)",
+    "grid-row-end utility (number, negative, arbitrary, custom property supported)",
   category: "grid",
 });
 // row-auto, row-<number>, -row-<number>, row-(<custom-property>), row-[value]
@@ -266,7 +266,7 @@ functionalUtility({
     return null;
   },
   description:
-    "grid-row utility (number, negative, arbitrary, custom property 지원)",
+    "grid-row utility (number, negative, arbitrary, custom property supported)",
   category: "grid",
 });
 
@@ -294,7 +294,7 @@ functionalUtility({
   },
   handleCustomProperty: (value) => [decl("grid-auto-columns", `var(${value})`)],
   description:
-    "grid-auto-columns utility (static, arbitrary, custom property 지원)",
+    "grid-auto-columns utility (static, arbitrary, custom property supported)",
   category: "grid",
 });
 
@@ -315,7 +315,7 @@ functionalUtility({
   },
   handleCustomProperty: (value) => [decl("grid-auto-rows", `var(${value})`)],
   description:
-    "grid-auto-rows utility (static, arbitrary, custom property 지원)",
+    "grid-auto-rows utility (static, arbitrary, custom property supported)",
   category: "grid",
 });
 
@@ -331,7 +331,7 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("column-gap", `var(${value})`)],
-  description: "gap-x utility (number, arbitrary, custom property 지원)",
+  description: "gap-x utility (number, arbitrary, custom property supported)",
   category: "layout",
 });
 functionalUtility({
@@ -345,7 +345,7 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("row-gap", `var(${value})`)],
-  description: "gap-y utility (number, arbitrary, custom property 지원)",
+  description: "gap-y utility (number, arbitrary, custom property supported)",
   category: "layout",
 });
 functionalUtility({
@@ -359,7 +359,7 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("gap", `var(${value})`)],
-  description: "gap utility (number, arbitrary, custom property 지원)",
+  description: "gap utility (number, arbitrary, custom property supported)",
   category: "layout",
 });
 
@@ -477,7 +477,7 @@ functionalUtility({
     return null;
   },
   description:
-    "grid-column span utility (number, arbitrary, custom property 지원)",
+    "grid-column span utility (number, arbitrary, custom property supported)",
   category: "grid",
 });
 
@@ -495,7 +495,7 @@ functionalUtility({
     return null;
   },
   description:
-    "grid-column-start utility (number, negative, arbitrary, custom property 지원)",
+    "grid-column-start utility (number, negative, arbitrary, custom property supported)",
   category: "grid",
 });
 
@@ -513,7 +513,7 @@ functionalUtility({
     return null;
   },
   description:
-    "grid-column-end utility (number, negative, arbitrary, custom property 지원)",
+    "grid-column-end utility (number, negative, arbitrary, custom property supported)",
   category: "grid",
 });
 
@@ -531,6 +531,6 @@ functionalUtility({
     return null;
   },
   description:
-    "grid-column utility (number, negative, arbitrary, custom property 지원)",
+    "grid-column utility (number, negative, arbitrary, custom property supported)",
   category: "grid",
 });

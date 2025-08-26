@@ -5,7 +5,7 @@ import { parseNumber } from "../core/utils";
 // --- Transition Property Utilities  ---
 //  transition-property documentation
 
-// 기본 변수 (와 동일하게)
+// Default variable (same as Tailwind)
 const defaultTiming = "var(--default-transition-timing-function)"; // cubic-bezier(0.4, 0, 0.2, 1)
 const defaultDuration = "var(--default-transition-duration)"; // 150ms
 
@@ -84,7 +84,7 @@ functionalUtility({
     decl("transition-duration", defaultDuration),
   ],
   description:
-    "transition-property utility (static, arbitrary value, custom property 지원)",
+    "transition-property utility (static, arbitrary value, custom property supported)",
   category: "transitions",
 });
 
@@ -103,7 +103,7 @@ functionalUtility({
     return [decl("transition-duration", value)];
   },
   handleCustomProperty: (value) => [decl("transition-duration", `var(${value})`)],
-  description: "transition-duration utility (static, number, arbitrary, custom property 지원)",
+  description: "transition-duration utility (static, number, arbitrary, custom property supported)",
   category: "transitions",
 });
 
@@ -123,7 +123,7 @@ functionalUtility({
     return [decl("transition-timing-function", value)];
   },
   handleCustomProperty: (value) => [decl("transition-timing-function", `var(${value})`)],
-  description: "transition-timing-function utility (static, arbitrary, custom property 지원)",
+  description: "transition-timing-function utility (static, arbitrary, custom property supported)",
   category: "transitions",
 });
 
@@ -140,7 +140,7 @@ functionalUtility({
     return [decl("transition-delay", value)];
   },
   handleCustomProperty: (value) => [decl("transition-delay", `var(${value})`)],
-  description: "transition-delay utility (number, arbitrary, custom property 지원)",
+  description: "transition-delay utility (number, arbitrary, custom property supported)",
   category: "transitions",
 });
 
@@ -165,6 +165,6 @@ functionalUtility({
     return [decl("animation", value)];
   },
   handleCustomProperty: (value) => [decl("animation", `var(${value})`)],
-  description: "animation utility (static, arbitrary, custom property 지원)",
+  description: "animation utility (static, arbitrary, custom property supported)",
   category: "transitions",
 });

@@ -12,7 +12,7 @@ functionalUtility({
   prop: "filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: "filter utility (static, arbitrary, custom property 지원)",
+  description: "filter utility (static, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -40,7 +40,7 @@ functionalUtility({
     return [decl("filter", `blur(${value})`)];
   },
   handleCustomProperty: (value) => [decl("filter", `blur(var(${value}))`)],
-  description: "blur filter utility (static, arbitrary, custom property 지원)",
+  description: "blur filter utility (static, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -63,7 +63,7 @@ functionalUtility({
     decl("filter", `brightness(var(${value}))`),
   ],
   description:
-    "brightness filter utility (static, number, arbitrary, custom property 지원)",
+    "brightness filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -83,7 +83,7 @@ functionalUtility({
   },
   handleCustomProperty: (value) => [decl("filter", `contrast(var(${value}))`)],
   description:
-    "contrast filter utility (static, number, arbitrary, custom property 지원)",
+    "contrast filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -143,7 +143,7 @@ functionalUtility({
     return [decl("filter", `drop-shadow(var(${value}))`)];
   },
   description:
-    "drop-shadow filter utility (static, arbitrary, custom property 지원)",
+    "drop-shadow filter utility (static, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -162,7 +162,7 @@ functionalUtility({
     return [decl("filter", `grayscale(${value})`)];
   },
   handleCustomProperty: (value) => [decl("filter", `grayscale(var(${value}))`)],
-  description: "grayscale filter utility (static, number, arbitrary, custom property 지원)",
+  description: "grayscale filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -185,7 +185,7 @@ functionalUtility({
     return [decl("filter", `hue-rotate(${value})`)];
   },
   handleCustomProperty: (value) => [decl("filter", `hue-rotate(var(${value}))`)],
-  description: "hue-rotate filter utility (static, negative, number, arbitrary, custom property 지원)",
+  description: "hue-rotate filter utility (static, negative, number, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -204,7 +204,7 @@ functionalUtility({
 
     return [decl("filter", `invert(${value})`)];
   },
-  description: "invert filter utility (static, number, arbitrary, custom property 지원)",
+  description: "invert filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -221,7 +221,7 @@ functionalUtility({
     return [decl("filter", `saturate(${value})`)];
   },
   handleCustomProperty: (value) => [decl("filter", `saturate(var(${value}))`)],
-  description: "saturate filter utility (static, number, arbitrary, custom property 지원)",
+  description: "saturate filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -240,6 +240,6 @@ functionalUtility({
     return [decl("filter", `sepia(${value})`)];
   },
   handleCustomProperty: (value) => [decl("filter", `sepia(var(${value}))`)],
-  description: "sepia filter utility (static, number, arbitrary, custom property 지원)",
+  description: "sepia filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });

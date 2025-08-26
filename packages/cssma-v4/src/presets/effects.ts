@@ -471,7 +471,7 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("opacity", `var(${value})`)],
-  description: "opacity utility (number, arbitrary, custom property 지원)",
+  description: "opacity utility (number, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -590,7 +590,7 @@ functionalUtility({
   },
   handleCustomProperty: (value) => [decl("mask-position", `var(${value})`)],
   description:
-    "mask-position utility (static, arbitrary, custom property 지원)",
+    "mask-position utility (static, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -630,7 +630,7 @@ functionalUtility({
   prop: "mask-size",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  description: "mask-size utility (static, arbitrary, custom property 지원)",
+  description: "mask-size utility (static, arbitrary, custom property supported)",
   category: "effects",
 });
 
@@ -646,7 +646,7 @@ functionalUtility({
     return null;
   },
   handleCustomProperty: (value) => [decl("mask-image", `var(${value})`)],
-  description: "mask-image utility (arbitrary, custom property 지원)",
+  description: "mask-image utility (arbitrary, custom property supported)",
   category: "effects",
 });
 
