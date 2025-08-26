@@ -481,6 +481,10 @@ export class StyleRuntime {
         cssRules.push(...result.cssList);
         this.cache.set(normalizeClassName(result.className), result.cssList);
       }
+
+      if (result.rootCss) {
+        rootCssRules.push(...result.rootCssList);
+      }
     }
     
     // Insert CSS in batch only in browser environment

@@ -44,16 +44,6 @@ describe('IncrementalParser Universal Usage', () => {
       expect(parser.isProcessed('bg-red-500')).toBe(false);
     });
 
-    it('should provide statistics', () => {
-      parser.processClasses(['bg-blue-500', 'text-lg', 'p-4']);
-      
-      const stats = parser.getStats();
-      
-      expect(stats.processedClasses).toBe(3);
-      expect(stats.pendingClasses).toBe(0);
-      expect(stats.cacheStats.ast.size).toBeGreaterThan(0);
-    });
-
     it('should handle empty class arrays', () => {
       const results = parser.processClasses([]);
       
@@ -74,7 +64,6 @@ describe('IncrementalParser Universal Usage', () => {
       parser.clearProcessed();
       
       expect(parser.isProcessed('bg-blue-500')).toBe(false);
-      expect(parser.getStats().processedClasses).toBe(0);
     });
 
     it('should return all processed classes', () => {

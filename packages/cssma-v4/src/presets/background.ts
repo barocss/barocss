@@ -101,6 +101,16 @@ const positionValue = (position: string) => {
   ["bg-linear-to-bl", positionValue("to bottom left")],
   ["bg-linear-to-l", positionValue("to left")],
   ["bg-linear-to-tl", positionValue("to top left")],
+
+  // fallback , tailwind v3 compatibility
+  ["bg-gradient-to-t", positionValue("to top")],
+  ["bg-gradient-to-tr", positionValue("to top right")],
+  ["bg-gradient-to-r", positionValue("to right")],
+  ["bg-gradient-to-br", positionValue("to bottom right")],
+  ["bg-gradient-to-b", positionValue("to bottom")],
+  ["bg-gradient-to-bl", positionValue("to bottom left")],
+  ["bg-gradient-to-l", positionValue("to left")],
+  ["bg-gradient-to-tl", positionValue("to top left")],
 ].forEach(([name, value]) => {
   staticUtility(name as string, value as AstNode[]);
 });

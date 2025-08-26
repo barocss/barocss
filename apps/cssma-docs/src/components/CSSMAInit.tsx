@@ -11,15 +11,7 @@ export default function CSSMAInit() {
 
     const runtime = new StyleRuntime({
       styleId: 'cssma-docs-runtime',
-      enableDev: true, // Always enable dev mode for debugging
-      debugging: {
-        disableParseFailureTracking: false,
-        disablePerformanceMetrics: false,
-        disableDetailedLogging: false,
-        disableConsoleGrouping: false,
-        disableCacheLogging: false,
-        disableDOMLogging: false
-      }
+      enableDev: true
     })
     runtime.observe(document.body, { scan: true })
 

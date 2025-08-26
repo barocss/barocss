@@ -499,7 +499,7 @@ export default function EffectsUtilities() {
 
 <!-- Artistic blend mode composition -->
 <div class="relative w-64 h-48">
-  <div class="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 mix-blend-multiply"></div>
+          <div class="absolute inset-0 bg-linear-to-r from-purple-500 to-pink-500 mix-blend-multiply"></div>
   <img class="relative z-10 w-full h-full object-cover rounded" src="https://via.placeholder.com/400x300/8b5cf6/ffffff?text=Artwork" alt="Artistic composition">
 </div>`}
         </CodeBlock>

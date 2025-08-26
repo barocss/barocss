@@ -16,11 +16,9 @@
     "@mdx-js/react": "^3.1.0",
     "@next/mdx": "^15.4.5",
     "@types/mdx": "^2.0.13",
-    "@types/prismjs": "^1.26.5",
     "cssma-v4": "workspace:*",
     "lucide-react": "^0.536.0",
     "next": "15.4.5",
-    "prismjs": "^1.30.0",
     "react": "^18",
     "react-dom": "^18"
   },

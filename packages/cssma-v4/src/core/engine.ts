@@ -485,18 +485,11 @@ export function generateCssRules(
       const ast = parseClassToAst(cls, ctx);
       const cleanAst = optimizeAst(ast);
 
-      const allAtRootNodes: AstNode[] = [];
-      cleanAst.forEach((node) => {
-        if (node.type === 'at-root') {
-          allAtRootNodes.push(...node.nodes);
-          // console.log('[generateCss] Found atRoot nodes for', cls, node.nodes);
-        }
-      });
-
-      // console.log('[generateCssRules] cleanAst', cleanAst);
+      const allAtRootNodes: AstNode[] = cleanAst.filter(node => node.type === 'at-root');
+      const allCleanAst: AstNode[] = cleanAst.filter(node => node.type !== 'at-root');
 
       let cssList = [];
-      for (const node of cleanAst) {
+      for (const node of allCleanAst) {
         const css = astToCss([node], cls, { minify: opts?.minify });
         cssList.push(css);
       }

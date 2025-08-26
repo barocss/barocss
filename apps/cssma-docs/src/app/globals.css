@@ -1,157 +1,104 @@
-/* CSSMA v4 Documentation Styles */
+/* CSSMA v4 Documentation - Basic Global Styles */
 
-/* Fixed navigation scroll offset for hash anchors */
-h1[id], h2[id], h3[id], h4[id], h5[id], h6[id] {
-  scroll-margin-top: 4.5rem;
+/* Base styles */
+html {
+  scroll-behavior: smooth;
 }
 
-/* Base typography improvements */
 body {
-  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
-  text-rendering: optimizeLegibility;
-}
-
-/* MDX Content Styles - More compact and professional */
-.prose {
-  max-width: none;
-}
-
-.prose h1 {
-  font-size: 2.25rem;
-  font-weight: 700;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
   color: #111827;
-  margin-bottom: 1.5rem;
-  margin-top: 2rem;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 1rem;
+  background-color: white;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "rlig" 1, "calt" 1;
 }
 
-.prose h2 {
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #111827;
+}
+
+h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+h3 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #111827;
-  margin-bottom: 1rem;
-  margin-top: 2rem;
-  padding-top: 0.5rem;
 }
 
-.prose h3 {
+h4 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
-  margin-bottom: 0.75rem;
-  margin-top: 1.5rem;
 }
 
-.prose h4 {
-  font-size: 1.125rem;
-  font-weight: 500;
-  color: #111827;
-  margin-bottom: 0.5rem;
-  margin-top: 1rem;
-}
-
-.prose p {
+p {
+  margin: 0 0 1rem 0;
   color: #374151;
-  line-height: 1.625;
-  margin-bottom: 1rem;
 }
 
-.prose ul, .prose ol {
-  color: #374151;
-  margin-bottom: 1rem;
-  padding-left: 1.5rem;
-}
-
-.prose li {
-  margin-bottom: 0.25rem;
-}
-
-.prose code {
-  background-color: #f3f4f6;
-  color: #dc2626;
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.25rem;
-  font-size: 0.875em;
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
-}
-
-.prose pre {
-  background-color: #1f2937;
-  color: #f9fafb;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  overflow-x: auto;
-  margin-bottom: 1.5rem;
-}
-
-.prose pre code {
-  background-color: transparent;
-  color: inherit;
-  padding: 0;
-  border-radius: 0;
-}
-
-.prose blockquote {
-  border-left: 4px solid #e5e7eb;
-  padding-left: 1rem;
-  margin: 1.5rem 0;
-  color: #6b7280;
-  font-style: italic;
-}
-
-.prose table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 1.5rem;
-}
-
-.prose th, .prose td {
-  border: 1px solid #e5e7eb;
-  padding: 0.75rem;
-  text-align: left;
-}
-
-.prose th {
-  background-color: #f9fafb;
-  font-weight: 600;
-  color: #111827;
-}
-
-.prose a {
+a {
   color: #2563eb;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
+  text-decoration: none;
+  transition: color 0.15s ease-in-out;
 }
 
-.prose a:hover {
+a:hover {
   color: #1d4ed8;
 }
 
-/* Documentation specific styles */
-.docs-content {
-  line-height: 1.7;
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.docs-content > * + * {
-  margin-top: 1.5rem;
+::-webkit-scrollbar-track {
+  background-color: #f3f4f6;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .prose h1 {
-    font-size: 1.875rem;
-    margin-top: 1.5rem;
-  }
-  
-  .prose h2 {
-    font-size: 1.25rem;
-    margin-top: 1.5rem;
-  }
-  
-  .prose h3 {
-    font-size: 1.125rem;
-    margin-top: 1.25rem;
-  }
+::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+}
+
+/* Selection styles */
+::selection {
+  background-color: #dbeafe;
+  color: #1e3a8a;
+}
+
+::-moz-selection {
+  background-color: #dbeafe;
+  color: #1e3a8a;
+}
+
+/* Focus styles */
+*:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; }
 }
