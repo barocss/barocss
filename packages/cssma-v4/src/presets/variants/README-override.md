@@ -66,7 +66,7 @@ flowchart TD
 - **compoundable/compoundsWith**: declare whether a variant compounds and which compounds require override
 - **overrideSelector**: if generator returns `{ selector, override: true }`, stop accumulation
 
-### (A) 주요 함수 시그니처/타입 예시 (variants.ts)
+### (A) Key Function Signatures/Types Example (variants.ts)
 ```ts
 addVariant(
   name: string,
@@ -74,8 +74,8 @@ addVariant(
   options?: { compoundable?: boolean, compoundsWith?: string[], ... }
 )
 ```
-- **generator**: selector 변환 함수. `{ selector, override: true }` 반환 시 이후 누적 중단
-- **compoundable/compoundsWith**: 조합 가능성/override 필요성 선언
+- **generator**: selector transformation function. When returning `{ selector, override: true }`, stops subsequent accumulation
+- **compoundable/compoundsWith**: declares combination possibility/override necessity
 
 ### (B) Custom variant registration example
 ```ts

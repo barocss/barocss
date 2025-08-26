@@ -68,7 +68,7 @@ staticUtility("flex-none", [["flex", "none"]]);
 
 functionalUtility({
   name: "flex",
-  supportsArbitrary: true, // flex-[3_1_auto], flex-[2], flex-[0_0_100%] 등
+  supportsArbitrary: true, // flex-[3_1_auto], flex-[2], flex-[0_0_100%], etc.
   supportsCustomProperty: true, // flex-(--my-flex)
   supportsFraction: true, // flex-1/2 → flex: 50%;
   handleBareValue: ({ value }) => {
@@ -89,7 +89,7 @@ staticUtility("grow", [["flex-grow", "1"]]);
 functionalUtility({
   name: "grow",
   prop: "flex-grow",
-  supportsArbitrary: true, // grow-[25vw], grow-[2], grow-[var(--factor)] 등
+  supportsArbitrary: true, // grow-[25vw], grow-[2], grow-[var(--factor)], etc.
   supportsCustomProperty: true, // grow-(--my-grow)
   handleBareValue: ({ value }) => parseNumber(value),
   handle: (value) => [decl("flex-grow", value)],
@@ -104,7 +104,7 @@ staticUtility("shrink-0", [["flex-shrink", "0"]]);
 functionalUtility({
   name: "shrink",
   prop: "flex-shrink",
-  supportsArbitrary: true, // shrink-[2], shrink-[calc(100vw-var(--sidebar))] 등
+  supportsArbitrary: true, // shrink-[2], shrink-[calc(100vw-var(--sidebar))], etc.
   supportsCustomProperty: true, // shrink-(--my-shrink)
   handleBareValue: ({ value }) => parseNumber(value),
   description: "flex-shrink utility (number, arbitrary, custom property supported)",
@@ -120,7 +120,7 @@ functionalUtility({
   name: "order",
   prop: "order",
   supportsNegative: true, // -order-1 → order: calc(1 * -1)
-  supportsArbitrary: true, // order-[min(var(--total-items),10)] 등
+  supportsArbitrary: true, // order-[min(var(--total-items),10)], etc.
   supportsCustomProperty: true, // order-(--my-order)
   handleBareValue: ({ value }) => parseNumber(value),
   handleNegativeBareValue: ({ value }) => {
@@ -139,7 +139,7 @@ staticUtility("grid-cols-subgrid", [["grid-template-columns", "subgrid"]]);
 functionalUtility({
   name: "grid-cols",
   prop: "grid-template-columns",
-  supportsArbitrary: true, // grid-cols-[200px_minmax(900px,_1fr)_100px] 등
+  supportsArbitrary: true, // grid-cols-[200px_minmax(900px,_1fr)_100px], etc.
   supportsCustomProperty: true, // grid-cols-(--my-grid-cols)
   handleBareValue: ({ value }) =>
     parseFractionOrNumber(value, { repeat: true }),
@@ -155,7 +155,7 @@ staticUtility("grid-rows-subgrid", [["grid-template-rows", "subgrid"]]);
 functionalUtility({
   name: "grid-rows",
   prop: "grid-template-rows",
-  supportsArbitrary: true, // grid-rows-[200px_minmax(900px,_1fr)_100px] 등
+  supportsArbitrary: true, // grid-rows-[200px_minmax(900px,_1fr)_100px], etc.
   supportsCustomProperty: true, // grid-rows-(--my-grid-rows)
   handleBareValue: ({ value }) =>
     parseFractionOrNumber(value, { repeat: true }),

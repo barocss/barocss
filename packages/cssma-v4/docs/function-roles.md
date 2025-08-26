@@ -195,7 +195,7 @@ graph TD
   7. Nest remaining variants (e.g., at-rule) outside
 - **Output**: optimized nested AST
 
-### 상세 알고리즘 및 내부 처리
+### Detailed Algorithm and Internal Processing
 
 #### 1. Sort and merge (hoist) variants
 
@@ -230,7 +230,7 @@ graph TD
 
 - Nest non-rule variants from outside in
 
-### 주요 상수/함수
+### Key Constants/Functions
 
 #### sourcePriority
 
@@ -255,12 +255,12 @@ const sourcePriority = {
 
 #### getRulePriority
 
-- rule.source를 기반으로 sourcePriority에서 우선순위 반환
+- Returns priority from sourcePriority based on rule.source
 
 #### mergeSelectorsBySource
 
-- source가 pseudo면 reduce(안→바깥), 아니면 reduceRight(바깥→안)
-- &가 있으면 한 번만 치환, 없으면 공백으로 연결
+- If source is pseudo, use reduce (inside→outside), otherwise use reduceRight (outside→inside)
+- Replace '&' only once if present, otherwise connect with space
 
 ### Example Output
 
@@ -357,7 +357,7 @@ const sourcePriority = {
 ### Input: `'sm:dark:hover:bg-red-500 sm:focus:bg-blue-500'`
 
 1. **parseClassName**: `{ modifiers: [...], utility: {...} }`
-2. **parseClassToAst**: `[{ type: 'at-rule', ... }, ...]` (여러 root 가능)
+2. **parseClassToAst**: `[{ type: 'at-rule', ... }, ...]` (multiple roots possible)
 3. **optimizeAst**: `[...optimized AST tree...]`
 4. **astToCss**: `final CSS string`
 
@@ -542,3 +542,14 @@ optimizeAst result:
 - The cssma-v4 engine fully supports modern CSS variant wrapping (Cartesian product, siblings, nesting, merging)
 - Understand and document roles, inputs/outputs, flows, AST structures, and caveats clearly
 - Keep documentation, tests, and code consistently aligned
+
+### (A) Key Function Signatures/Types Example (variants.ts)
+```ts
+addVariant(
+  name: string,
+  generator: (selector: string, context: { ... }) => string | { selector: string, override?: boolean },
+  options?: { compoundable?: boolean, compoundsWith?: string[], ... }
+)
+```
+- **generator**: selector transformation function. When returning `{ selector, override: true }`, stops subsequent accumulation
+- **compoundable/compoundsWith**: declares combination possibility/override necessity
