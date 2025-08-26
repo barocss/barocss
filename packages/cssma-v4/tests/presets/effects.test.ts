@@ -530,7 +530,7 @@ describe("effects.ts (box-shadow utilities)", () => {
       { type: "decl", prop: "--tw-inset-shadow-color", value: "#625fff80" },
     ]);
   });
-  it("ring → box-shadow 변수 조합", () => {
+  it("ring → box-shadow variable combination", () => {
     expect(parseClassToAst("ring", ctx)).toEqual([
       { type: "decl", prop: "--tw-ring-inset", value: "" },
       { type: "decl", prop: "--tw-ring-offset-width", value: "0px" },
@@ -551,7 +551,7 @@ describe("effects.ts (box-shadow utilities)", () => {
       },
     ]);
   });
-  it("ring-4 → box-shadow 변수 조합", () => {
+  it("ring-4 → box-shadow variable combination", () => {
     expect(parseClassToAst("ring-4", ctx)).toEqual([
       { type: "decl", prop: "--tw-ring-inset", value: "" },
       { type: "decl", prop: "--tw-ring-offset-width", value: "0px" },
@@ -577,7 +577,7 @@ describe("effects.ts (box-shadow utilities)", () => {
       { type: "decl", prop: "--tw-ring-inset", value: "inset" },
     ]);
   });
-  it("inset-shadow-sm → box-shadow 변수 조합", () => {
+  it("inset-shadow-sm → box-shadow variable combination", () => {
     expect(parseClassToAst("inset-shadow-sm", ctx)).toEqual([
       {
         type: "decl",

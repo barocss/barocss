@@ -10,7 +10,7 @@ const ctx = createContext({
 
 describe("optimizeAst ", () => {
 
-  it("decl 에 기본 rule 처리 추가", () => {
+  it("Add default rule handling for decl", () => {
     let ast = parseClassToAst("bg-red-500", ctx);
     if (ast === undefined) {
       ast = [];
@@ -29,7 +29,7 @@ describe("optimizeAst ", () => {
   });
 
 
-  it("단일 variant chain: sm:hover:bg-red-500", () => {
+  it("Single variant chain: sm:hover:bg-red-500", () => {
     let ast = parseClassToAst("sm:hover:bg-red-500", ctx);
     if (ast === undefined) {
       ast = [];
@@ -54,7 +54,7 @@ describe("optimizeAst ", () => {
     expect(cleanAst).toMatchObject(expected);
   });
 
-  it("여러 variant chain: sm:hover:bg-red-500 sm:focus:bg-blue-500", () => {
+  it("Multiple variant chains: sm:hover:bg-red-500 sm:focus:bg-blue-500", () => {
     let ast1 = parseClassToAst("sm:hover:bg-red-500", ctx);
     let ast2 = parseClassToAst("sm:focus:bg-blue-500", ctx);
     if (ast1 === undefined) {
@@ -91,7 +91,7 @@ describe("optimizeAst ", () => {
     expect(cleanAst).toMatchObject(expected);
   });
 
-  it("variant chain이 완전히 다르면 sibling 트리로 분리", () => {
+  it("Completely different variant chains split into sibling trees", () => {
     let ast1 = parseClassToAst("sm:hover:bg-red-500", ctx);
     let ast2 = parseClassToAst("supports-[display:grid]:focus:bg-blue-500", ctx);
     if (ast1 === undefined) {
@@ -135,19 +135,19 @@ describe("optimizeAst ", () => {
     expect(cleanAst).toMatchObject(expected);
   });
 
-  it("복잡한 variant chain: sm:dark:hover:bg-red-500", () => {
+  it("Complex variant chain: sm:dark:hover:bg-red-500", () => {
     let ast = parseClassToAst("sm:dark:hover:bg-red-500", ctx);
     if (ast === undefined) {        
       ast = [];
     }
     const cleanAst = optimizeAst(ast);
-    // 기대 구조는 sm, dark, hover 계층이 모두 포함된 AST
-    // (실제 AST 구조는 프로젝트의 dark variant 구현에 따라 다를 수 있음)
-    expect(typeof cleanAst).toBe("object"); // 최소한 객체임을 보장
+    // Expected structure includes sm, dark, hover layers in AST
+    // (Actual AST may vary depending on dark variant implementation)
+    expect(typeof cleanAst).toBe("object"); // ensure at least object
     expect(Array.isArray(cleanAst)).toBe(true);
   });
 
-  it("복잡한 variant chain: dark:sm:hover:bg-blue-500", () => {
+  it("Complex variant chain: dark:sm:hover:bg-blue-500", () => {
     let ast = parseClassToAst("dark:sm:hover:bg-blue-500", ctx);
     if (ast === undefined) {
       ast = [];
@@ -157,7 +157,7 @@ describe("optimizeAst ", () => {
     expect(Array.isArray(cleanAst)).toBe(true);
   });
 
-  it("여러 dark 조합: dark:bg-green-500 sm:dark:bg-yellow-500", () => {
+  it("Multiple dark combinations: dark:bg-green-500 sm:dark:bg-yellow-500", () => {
     const ctx = createContext({
       theme: {
         colors: {
@@ -183,7 +183,7 @@ describe("optimizeAst ", () => {
     }
     const ast = [...ast1, ...ast2];
     const cleanAst = optimizeAst(ast);
-    // 실제 결과 구조에 맞춰서 기대값을 작성해야 함
+    // Expectations should match actual result structure
     const expected = [
       {
         type: "at-rule",

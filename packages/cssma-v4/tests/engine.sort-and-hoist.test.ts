@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { DeclPath, declPathToAst } from "../src/core/engine";
 
-describe("declPathToAst (decl path 단일 변환)", () => {
-  it("단일 path: at-rule > rule > decl", () => {
+describe("declPathToAst (single decl path conversion)", () => {
+  it("single path: at-rule > rule > decl", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "rule", selector: "&:hover" },
@@ -25,7 +25,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ]);
   });
 
-  it("공통 prefix hoist 및 sibling decl 병합 (불가, 단일 path)", () => {
+  it("Common prefix hoist and sibling decl merge (not applicable for single path)", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "rule", selector: "&:hover" },
@@ -48,13 +48,13 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ]);
   });
 
-  it("공통 prefix 없는 path (decl만)", () => {
+  it("Path without common prefix (decl only)", () => {
     const path: DeclPath = [{ type: "decl", prop: "color", value: "#111" }];
     const ast = declPathToAst(path);
     expect(ast).toEqual([{ type: "rule", selector: "&", nodes: [{ type: "decl", prop: "color", value: "#111" }] }]);
   });
 
-      it("복잡한 중첩/branch 구조 (실제  variant chain, 단일 path)", () => {
+  it("Complex nesting/branch structure (real variant chain, single path)", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "rule", selector: "&:hover" },
@@ -85,7 +85,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ]);
   });
 
-  it("복수 at-rule + 복수 rule + decl", () => {
+  it("Multiple at-rules + multiple rules + decl", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "at-rule", name: "supports", params: "(display: grid)" },
@@ -119,7 +119,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ]);
   });
 
-  it("style-rule + rule + at-rule + decl (variant 순서 뒤섞임)", () => {
+  it("style-rule + rule + at-rule + decl (variant order shuffled)", () => {
     const path: DeclPath = [
       { type: "style-rule", selector: ".foo" },
       { type: "rule", selector: "&:hover" },
@@ -151,7 +151,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ]);
   });
 
-  it("중복 at-rule/rule/style-rule 병합(hoist)", () => {
+  it("Merge (hoist) duplicate at-rule/rule/style-rule", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
@@ -184,7 +184,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ]);
   });
 
-  it("decl만 (variant 없음)", () => {
+  it("decl only (no variant)", () => {
     const path: DeclPath = [
       { type: "decl", prop: "border", value: "1px solid #000" },
     ];
@@ -198,7 +198,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ]);
   });
 
-  it("at-rule만 (decl 없음, 비정상)", () => {
+  it("at-rule only (no decl, edge case)", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
     ];
@@ -208,25 +208,25 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ]);
   });
 
-  it("rule만 (decl 없음, 비정상)", () => {
+  it("rule only (no decl, edge case)", () => {
     const path: DeclPath = [{ type: "rule", selector: ":hover" }];
     const ast = declPathToAst(path);
     expect(ast).toEqual([{ type: "rule", selector: ":hover" }]);
   });
 
-  it("style-rule만 (decl 없음, 비정상)", () => {
+  it("style-rule only (no decl, edge case)", () => {
     const path: DeclPath = [{ type: "style-rule", selector: ".foo" }];
     const ast = declPathToAst(path);
     expect(ast).toEqual([{ type: "style-rule", selector: ".foo" }]);
   });
 
-  it("빈 path (비정상)", () => {
+  it("empty path (edge case)", () => {
     const path: DeclPath = [];
     const ast = declPathToAst(path);
     expect(ast).toEqual([]);
   });
 
-      it("실전  variant chain: sm:dark:hover:bg-red-500", () => {
+  it("Real variant chain: sm:dark:hover:bg-red-500", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" }, // sm
       {
@@ -291,7 +291,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ]);
   });
 
-  it("복수 decl (동일 variant chain, decl만 다름)", () => {
+  it("Multiple decls (same variant chain, different decl)", () => {
     const path1: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "rule", selector: "&:hover" },
@@ -328,7 +328,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     ]);
   });
 
-  it("comment 노드 포함", () => {
+  it("Includes comment node", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "comment", text: "hello" },

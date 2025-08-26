@@ -455,6 +455,14 @@ export function generateCss(
   return results;
 }
 
+export type GenerateCssRulesResult = {
+  cls: string;
+  ast: AstNode[];
+  css: string;
+  cssList: string[];
+  rootCss: string;
+}
+
 /**
  * Returns an array of optimized results for multiple class names with dedup/filter.
  * - Each object: { cls, ast, css }
@@ -469,7 +477,7 @@ export function generateCssRules(
   classList: string,
   ctx: CssmaContext,
   opts?: { minify?: boolean; dedup?: boolean }
-): Array<{ cls: string; ast: any; css: string; rootCss: string; cssList: string[] }> {
+): Array<GenerateCssRulesResult> {
   const seen = new Set<string>();
   return classList
     .split(/\s+/)

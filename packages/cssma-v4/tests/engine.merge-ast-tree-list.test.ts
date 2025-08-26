@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { mergeAstTreeList, declPathToAst, DeclPath } from "../src/core/engine";
 
-describe("mergeAstTreeList (AstNode[][] 병합)", () => {
-  it("동일 variant chain decl 병합 (sibling decl)", () => {
+describe("mergeAstTreeList (merge AstNode[][])", () => {
+  it("Merge same variant chain decl (sibling decl)", () => {
     const declPaths: DeclPath[] = [
       [
         { type: "at-rule", name: "media", params: "(min-width: 640px)" },
@@ -31,7 +31,7 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
     ]);
   });
 
-  it("variant chain 다르면 별도 트리로 분리", () => {
+  it("Different variant chains are split into separate trees", () => {
     const declPaths: DeclPath[] = [
       [
         { type: "at-rule", name: "media", params: "(min-width: 640px)" },
@@ -64,7 +64,7 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
     ]);
   });
 
-  it("variant chain이 완전히 다르면 sibling 트리로 분리", () => {
+  it("Completely different variant chains split into sibling trees", () => {
     const declPaths: DeclPath[] = [
       [
         { type: "at-rule", name: "media", params: "(min-width: 640px)" },
@@ -101,7 +101,7 @@ describe("mergeAstTreeList (AstNode[][] 병합)", () => {
     ]);
   });
 
-  it("decl만 여러 개 (variant 없음)", () => {
+  it("Multiple decl only (no variant)", () => {
     const declPaths: DeclPath[] = [
       [ { type: "decl", prop: "color", value: "#111" } ],
       [ { type: "decl", prop: "background", value: "#222" } ],

@@ -129,7 +129,7 @@ export class ChangeDetector {
               // Add to StyleRuntime cache
               // SVG className is SVGAnimatedString; convert to string with toString()
               // HTMLElement className is string; use as-is
-              const className = normalizeClassName(result.className);
+              const className = normalizeClassName(result.cls);
               this.styleRuntime.cache.set(className, result.cssList);
             }
           });
@@ -197,7 +197,7 @@ export class ChangeDetector {
           if (result.css) {
             cssRules.push(...result.cssList);
             // Add to StyleRuntime cache
-            const className = normalizeClassName(result.className);
+            const className = normalizeClassName(result.cls);
             this.styleRuntime.cache.set(className, result.cssList);
           }
         });
@@ -255,7 +255,7 @@ export class ChangeDetector {
 } 
 
 export interface StyleRuntimeOptions {
-  config?: CssmaConfig;  // 전체 config 받기
+  config?: CssmaConfig;  // full config object
   styleId?: string;
   enableDev?: boolean;
   insertionPoint?: 'head' | 'body' | HTMLElement;
@@ -282,7 +282,7 @@ export class StyleRuntime {
   private changeDetector: ChangeDetector;
 
   constructor(options: StyleRuntimeOptions = {}) {
-    // 기본 config 설정 - createContext에서 defaultTheme 자동 처리
+    // Default config - createContext handles defaultTheme automatically
     const defaultConfig: CssmaConfig = {};
 
     this.options = {
@@ -297,7 +297,7 @@ export class StyleRuntime {
       }
     };
 
-    // createContext에 전체 config 전달 (defaultTheme 자동 포함)
+    // Pass full config to createContext (defaultTheme auto-included)
     this.context = createContext(this.options.config);
 
     this.incrementalParser = new IncrementalParser(this.context);
@@ -308,15 +308,15 @@ export class StyleRuntime {
     }
   }
 
-  // 🔍 디버깅 및 로깅 메서드들
+  // Debugging and logging helpers
   
   /**
-   * 디버깅 로그 추가 (레벨별)
+   * Add debug logs (by level)
    */
   private debugLog(level: 'info' | 'warn' | 'error' | 'debug', message: string, data?: any): void {
     
     
-    // 콘솔 출력
+    // Console output
     const consoleMethod = console[level] || console.log;
     consoleMethod(`[StyleRuntime:${level.toUpperCase()}] ${message}`, data || '');
   }
@@ -453,10 +453,8 @@ export class StyleRuntime {
   /**
    * Process classes
    */
-  private processClasses(classList: string[]): void {
-    const isBrowser = typeof window !== 'undefined';
-    
-    // 기본적으로 incremental parsing 사용 (항상 활성화)
+  private processClasses(classList: string[]): void {    
+    // Use incremental parsing by default (always enabled)
     
     this.processClassesIncremental(classList);
   }
@@ -479,11 +477,7 @@ export class StyleRuntime {
       if (result.css) {
         // console.log('[StyleRuntime] result.cssList', result.cssList);
         cssRules.push(...result.cssList);
-        this.cache.set(normalizeClassName(result.className), result.cssList);
-      }
-
-      if (result.rootCss) {
-        rootCssRules.push(...result.rootCssList);
+        this.cache.set(normalizeClassName(result.cls), result.cssList);
       }
     }
     
@@ -496,7 +490,7 @@ export class StyleRuntime {
       this.insertRootRules(rootCssRules.filter(Boolean));
     }
     
-    // 🔍 디버깅 로그
+    // Debug log
     this.debugLog('info', `Processed ${classList.length} classes`, {
       successful: cssRules.length,
       failed: results.length - cssRules.length
@@ -521,7 +515,7 @@ export class StyleRuntime {
    */
   private insertRuleToSheet(sheet: CSSStyleSheet, rule: string): boolean {
     try {
-      // 빈 문자열이나 공백만 있는 규칙은 건너뛰기
+      // Skip empty or whitespace-only rules
       if (!rule || rule.trim() === '') {
         if (this.options.enableDev) {
           console.warn('[StyleRuntime] Skipping empty rule:', { rule, length: rule.length, trimmed: rule.trim() });
@@ -547,12 +541,12 @@ export class StyleRuntime {
   }
 
   /**
-   * 🔍 CSS 규칙 escape 처리
-   * - 특수 문자들을 올바르게 escape
-   * - CSS 문법 오류 방지
+   * Escape CSS rule text
+   * - Properly escape special characters
+   * - Prevent CSS syntax errors
    */
   private escapeCssRule(rule: string): string {
-    // 🔍 기본적인 CSS 문자열 정리
+    // Basic CSS string normalization
     let escaped = rule.replace(/\\\//g, '\\/');
 
     return escaped;
@@ -566,7 +560,7 @@ export class StyleRuntime {
     let failed = 0;
 
     for (const rule of cssRules) {
-      // 빈 규칙은 건너뛰기
+      // Skip empty rules
       if (!rule || rule.trim() === '') {
         if (this.options.enableDev) {
           console.warn('[StyleRuntime] Skipping empty rule in batch:', { rule, length: rule.length });

@@ -8,15 +8,15 @@ describe('atRoot Collection', () => {
   const ctx = createContext({ theme: defaultTheme });
 
   it('should collect atRoot nodes from multiple classes', () => {
-    // atRoot를 포함하는 클래스들을 테스트
+    // Test classes containing atRoot
     const css = generateCss('bg-linear-to-r bg-linear-to-l', ctx);
     
-    // 로그에서 atRoot 노드들이 수집되는지 확인
+    // Verify atRoot nodes are collected in logs
     console.log('Generated CSS:', css);
   });
 
   it('should handle atRoot nodes in AST', () => {
-    // 직접 atRoot 노드를 포함한 AST 생성
+    // Create AST containing atRoot nodes directly
     const astWithAtRoot = [
       atRoot([
         decl('--tw-gradient-position', 'to right'),

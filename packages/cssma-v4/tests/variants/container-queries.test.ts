@@ -104,7 +104,7 @@ describe("container queries", () => {
     ]);
   });
 
-  it('중첩: @sm:@max-md:bg-red-500', () => {
+  it('Nested: @sm:@max-md:bg-red-500', () => {
     const ctx2 = createContext({
       theme: {
         colors: { red: { 500: '#f00' } },

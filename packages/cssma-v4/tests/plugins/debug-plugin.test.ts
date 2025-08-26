@@ -6,15 +6,15 @@ import '../../src/presets';
 
 describe('Plugin Debug Test', () => {
   it('should debug utility registration', () => {
-    // 1. 직접 등록
+    // 1. Direct registration
     staticUtility('debug-bg-red', [
       ['background-color', '#ff0000']
     ]);
 
-    // 2. Context 생성
+    // 2. Create context
     const ctx = createContext({});
 
-    // 3. 테스트
+    // 3. Assertions
     const result = parseClassToAst('debug-bg-red', ctx);
     console.log('Direct registration result:', result);
     
@@ -32,12 +32,12 @@ describe('Plugin Debug Test', () => {
       ]);
     };
 
-    // 2. Context 생성
+    // 2. Create context
     const ctx = createContext({
       plugins: [pluginFunction]
     });
 
-    // 3. 테스트
+    // 3. Assertions
     const result = parseClassToAst('plugin-debug-bg-red', ctx);
     console.log('Plugin registration result:', result);
     
@@ -61,12 +61,12 @@ describe('Plugin Debug Test', () => {
       })
     };
 
-    // 2. Context 생성
+    // 2. Create context
     const ctx = createContext({
       plugins: [themePlugin]
     });
 
-    // 3. 테스트
+    // 3. Assertions
     console.log('Theme lookup result:', ctx.theme('colors', 'debug-blue'));
     
     // This should work if theme extension is working

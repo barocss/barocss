@@ -5,7 +5,7 @@ import { createContext } from "../../src/core/context";
 import { ctx } from "./test-utils";
 
 describe("breakpoints", () => {
-  // Max-width breakpoints 테스트
+  // Max-width breakpoints tests
   it('max-sm:bg-red-500 → @media (width < 640px) { & { ... } }', () => {
     expect(parseClassToAst('max-sm:bg-red-500', ctx)).toMatchObject([
       {
@@ -112,7 +112,7 @@ describe("breakpoints", () => {
     ]);
   });
 
-  // 사용자 정의 breakpoint 테스트
+  // Custom breakpoint tests
   it('tablet:bg-red-500 → @media (min-width: 768px) { & { ... } }', () => {
     expect(parseClassToAst('tablet:bg-red-500', ctx)).toMatchObject([
       {
@@ -194,12 +194,12 @@ describe("breakpoints", () => {
     ]);
   });
 
-  // Tailwind v4.1 breakpoints 테스트
+  // Tailwind v4.1 breakpoints tests
   it('xs:bg-red-500 with breakpoints → @media (min-width: 30rem) { & { ... } }', () => {
     const ctxWithBreakpoints = createContext({
       theme: {
         colors: { red: { 500: "#f00" } },
-        breakpoints: {  // Tailwind CSS v4.1 표준
+        breakpoints: {  // Tailwind CSS v4.1 standard
           xs: "(min-width: 30rem)",
           "2xl": "(min-width: 100rem)",
           "3xl": "(min-width: 120rem)",
@@ -226,7 +226,7 @@ describe("breakpoints", () => {
     const ctxWithBreakpoints = createContext({
       theme: {
         colors: { red: { 500: "#f00" } },
-        breakpoints: {  // Tailwind CSS v4.1 표준
+        breakpoints: {  // Tailwind CSS v4.1 standard
           xs: "(min-width: 30rem)",
           "2xl": "(min-width: 100rem)",
           "3xl": "(min-width: 120rem)",

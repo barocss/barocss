@@ -3,7 +3,7 @@ import { collectDeclPaths } from "../src/core/engine";
 import { AstNode } from "../src/core/ast";
 
 describe("collectDeclPaths ", () => {
-  it("기본 중첩/branch 구조", () => {
+  it("Basic nested/branch structure", () => {
     const ast: AstNode[] = [
       {
         type: "rule",
@@ -50,7 +50,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("복잡한 sibling/branch 구조", () => {
+  it("Complex sibling/branch structure", () => {
     const ast: AstNode[] = [
       {
         type: "rule",
@@ -106,7 +106,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("복수 at-rule + deeply nested + sibling/branch", () => {
+  it("Multiple at-rules + deeply nested + sibling/branch", () => {
     const ast: AstNode[] = [
       {
         type: "at-rule",
@@ -175,7 +175,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("중첩 style-rule + 중첩 rule + deeply nested decl", () => {
+  it("Nested style-rule + nested rule + deeply nested decl", () => {
     const ast: AstNode[] = [
       {
         type: "style-rule",
@@ -226,7 +226,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("중첩 at-rule + sibling decl + branch", () => {
+  it("Nested at-rule + sibling decl + branch", () => {
     const ast: AstNode[] = [
       {
         type: "at-rule",
@@ -269,7 +269,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("root decl만 여러 개", () => {
+  it("Multiple root decl only", () => {
     const ast: AstNode[] = [
       { type: "decl", prop: "color", value: "#111" },
       { type: "decl", prop: "background", value: "#222" },
@@ -283,7 +283,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("at-rule, style-rule, rule, decl이 한 레벨에 모두 혼합", () => {
+  it("at-rule, style-rule, rule, decl all mixed at one level", () => {
     const ast: AstNode[] = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [{ type: "decl", prop: "color", value: "#f00" }] },
       { type: "style-rule", selector: ".foo", nodes: [{ type: "decl", prop: "background", value: "#fff" }] },
@@ -299,7 +299,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("3중 이상 deeply nested 구조", () => {
+  it("3+ levels deeply nested structure", () => {
     const ast: AstNode[] = [
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
@@ -333,7 +333,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("빈 nodes, 빈 배열, decl만 있는 경우", () => {
+  it("Empty nodes, empty arrays, decl-only cases", () => {
     const ast: AstNode[] = [
       { type: "style-rule", selector: ".foo", nodes: [] },
       { type: "rule", selector: "&:hover", nodes: [] },
@@ -346,7 +346,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("at-rule/decl이 반복적으로 교차", () => {
+  it("Repeated alternation of at-rule/decl", () => {
     const ast: AstNode[] = [
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
@@ -372,7 +372,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("style-rule, rule, at-rule이 branch로 여러 개", () => {
+  it("style-rule, rule, at-rule in multiple branches", () => {
     const ast: AstNode[] = [
       {
         type: "style-rule", selector: ".foo", nodes: [
@@ -404,7 +404,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("실제 Tailwind variant chain 예시", () => {
+  it("Real Tailwind variant chain example", () => {
     const ast: AstNode[] = [
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
@@ -434,7 +434,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("style-rule, rule, at-rule이 모두 중첩 + sibling decl", () => {
+  it("style-rule, rule, at-rule all nested + sibling decl", () => {
     const ast: AstNode[] = [
       {
         type: "style-rule", selector: ".foo", nodes: [
@@ -469,7 +469,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("decl이 없는 branch (decl 없는 노드)", () => {
+  it("Branch without decl (node without decl)", () => {
     const ast: AstNode[] = [
       {
         type: "style-rule", selector: ".foo", nodes: [
@@ -484,7 +484,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("매우 깊은 중첩(5~6단계)", () => {
+  it("Very deep nesting (5–6 levels)", () => {
     const ast: AstNode[] = [
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [

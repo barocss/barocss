@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { DeclPath, declPathToAst } from "../src/core/engine";
 
-// DeclPath 타입: Array<{ type: 'rule', selector: string } | { type: 'decl', ... }>
+// DeclPath type: Array<{ type: 'rule', selector: string } | { type: 'decl', ... }>
 
-describe("declPathToAst selector 합성 ", () => {
-  it("단일 rule: &:hover", () => {
+describe("declPathToAst selector composition", () => {
+  it("Single rule: &:hover", () => {
     const declPath = [
       { type: "rule", selector: "&:hover" },
       { type: "decl", prop: "color", value: "red" }
@@ -21,13 +21,13 @@ describe("declPathToAst selector 합성 ", () => {
     ]);
   });
 
-  it("중첩 rule: group:hover & → &:hover", () => {
+  it("Nested rule: group:hover & → &:hover", () => {
     const declPath = [
       { type: "rule", selector: "group:hover &" },
       { type: "rule", selector: "&:hover" },
       { type: "decl", prop: "color", value: "red" }
     ];
-    // 기대: group:hover &:hover
+    // Expect: group:hover &:hover
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {
@@ -40,14 +40,14 @@ describe("declPathToAst selector 합성 ", () => {
     ]);
   });
 
-  it("3중첩: group:hover & → &:hover → &:focus", () => {
+  it("3 nested: group:hover & → &:hover → &:focus", () => {
     const declPath = [
       { type: "rule", selector: "group:hover &", source: 'group' },
       { type: "rule", selector: "&:hover", source: 'pseudo' },
       { type: "rule", selector: "&:focus", source: 'pseudo' },
       { type: "decl", prop: "color", value: "red" }
     ];
-    // 기대: group:hover &:hover:focus
+    // Expect: group:hover &:hover:focus
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {
@@ -60,7 +60,7 @@ describe("declPathToAst selector 합성 ", () => {
     ]);
   });
 
-  it("rule + at-rule 중첩: @media + &:hover", () => {
+  it("rule + at-rule nesting: @media + &:hover", () => {
     const declPath = [
       { type: "at-rule", name: "media", params: "(min-width: 40rem)" },
       { type: "rule", selector: "&:hover" },
@@ -85,7 +85,7 @@ describe("declPathToAst selector 합성 ", () => {
     ]);
   });
 
-  it("4중 rule: group:active & → group:hover & → &:focus → &:hover", () => {
+  it("4 nested rules: group:active & → group:hover & → &:focus → &:hover", () => {
     const declPath = [
       { type: "rule", selector: ".group:active &", source: 'group' },
       { type: "rule", selector: ".group:hover &", source: 'group' },
@@ -93,7 +93,7 @@ describe("declPathToAst selector 합성 ", () => {
       { type: "rule", selector: "&:hover", source: 'pseudo' },
       { type: "decl", prop: "color", value: "blue" }
     ];
-    // 기대: group:active group:hover &:focus:hover
+    // Expect: group:active group:hover &:focus:hover
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {
@@ -106,7 +106,7 @@ describe("declPathToAst selector 합성 ", () => {
     ]);
   });
 
-  it("at-rule + 3중첩 rule: @media + group:hover & → &:focus → &:hover", () => {
+  it("at-rule + 3 nested rules: @media + group:hover & → &:focus → &:hover", () => {
     const declPath = [
       { type: "at-rule", name: "media", params: "(min-width: 40rem)", source: 'responsive' },
       { type: "rule", selector: "group:hover &", source: 'group' },
@@ -114,7 +114,7 @@ describe("declPathToAst selector 합성 ", () => {
       { type: "rule", selector: "&:hover", source: 'pseudo' },
       { type: "decl", prop: "color", value: "green" }
     ];
-    // 기대: @media { group:hover &:focus:hover }
+    // Expect: @media { group:hover &:focus:hover }
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {
@@ -135,13 +135,13 @@ describe("declPathToAst selector 합성 ", () => {
     ]);
   });
 
-  it("&가 여러 번 등장하는 selector", () => {
+  it("Selector with multiple & occurrences", () => {
     const declPath = [
       { type: "rule", selector: ".foo .bar &", source: 'base' },
       { type: "rule", selector: "&:hover", source: 'pseudo' },
       { type: "decl", prop: "color", value: "purple" }
     ];
-    // 기대: &.foo &.bar:hover
+    // Expect: &.foo &.bar:hover
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {
@@ -154,12 +154,12 @@ describe("declPathToAst selector 합성 ", () => {
     ]);
   });
 
-  it("공백 없는 조합: .foo&:hover", () => {
+  it("Combination without spaces: .foo&:hover", () => {
     const declPath = [
       { type: "rule", selector: ".foo&:hover" },
       { type: "decl", prop: "color", value: "orange" }
     ];
-    // 기대: .foo&:hover
+    // Expect: .foo&:hover
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {
@@ -179,7 +179,7 @@ describe("declPathToAst selector 합성 ", () => {
       { type: "rule", selector: "&:hover", source: 'pseudo' },
       { type: "decl", prop: "color", value: "red" }
     ];
-    // 기대: .group:hover &:focus:hover
+    // Expect: .group:hover &:focus:hover
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {
@@ -198,7 +198,7 @@ describe("declPathToAst selector 합성 ", () => {
       { type: "rule", selector: "&:focus" },
       { type: "decl", prop: "color", value: "blue" }
     ];
-    // 기대: .peer:hover ~ &:focus
+    // Expect: .peer:hover ~ &:focus
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {
@@ -218,7 +218,7 @@ describe("declPathToAst selector 합성 ", () => {
       { type: "rule", selector: "&:hover", source: 'pseudo' },
       { type: "decl", prop: "color", value: "green" }
     ];
-    // 기대: &[aria-pressed="true"] .group:hover &:hover
+    // Expect: &[aria-pressed="true"] .group:hover &:hover
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {
@@ -238,7 +238,7 @@ describe("declPathToAst selector 합성 ", () => {
       { type: "rule", selector: "&:hover" },
       { type: "decl", prop: "border-radius", value: "9999px" }
     ];
-    // 기대: :is(.group-hover\:\*\:rounded-full > *) .group:hover &:hover
+    // Expect: :is(.group-hover\:\*\:rounded-full > *) .group:hover &:hover
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {
@@ -264,7 +264,7 @@ describe("declPathToAst selector 합성 ", () => {
       { type: "rule", selector: "&:focus", source: 'pseudo' },
       { type: "decl", prop: "color", value: "purple" }
     ];
-    // 기대: &:not(:hover) .group:hover &:focus
+    // Expect: &:not(:hover) .group:hover &:focus
     const ast = declPathToAst(declPath as DeclPath);
     expect(ast).toEqual([
       {

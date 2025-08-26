@@ -7,7 +7,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
   describe('Theme Extension Capabilities', () => {
     it('should extend colors via plugin', () => {
       const colorPlugin = (ctx: any, config: any) => {
-        // 안전한 extendTheme API 사용
+        // Use safe extendTheme API
         ctx.extendTheme('colors', {
           'brand-primary': '#3b82f6',
           'brand-secondary': '#10b981',
@@ -44,19 +44,19 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
 
     it('should extend multiple theme categories', () => {
       const multiPlugin = (ctx: any, config: any) => {
-        // Colors 확장
+        // Extend colors
         ctx.extendTheme('colors', {
           'custom-red': '#ef4444',
           'custom-green': '#22c55e'
         })
         
-        // Spacing 확장
+        // Extend spacing
         ctx.extendTheme('spacing', {
           '13': '3.25rem',
           '15': '3.75rem'
         })
         
-        // Border radius 확장
+        // Extend border radius
         ctx.extendTheme('borderRadius', {
           '2xl': '1rem',
           '3xl': '1.5rem'
@@ -99,7 +99,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
         const prefix = config.prefix || 'cssma-'
         const darkMode = config.darkMode || 'media'
         
-        // 설정에 따라 다른 동작
+        // Behavior depends on configuration
         ctx.extendTheme('custom', {
           prefix,
           darkMode,
@@ -122,7 +122,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
   describe('Dynamic Theme Generation', () => {
     it('should generate theme values dynamically', () => {
       const dynamicPlugin = (ctx: any, config: any) => {
-        // 동적으로 색상 팔레트 생성
+        // Generate color palette dynamically
         const baseColors = ['red', 'blue', 'green']
         const shades = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900']
         
@@ -148,7 +148,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
 
     it('should generate spacing scale dynamically', () => {
       const spacingPlugin = (ctx: any, config: any) => {
-        // 0부터 100까지의 spacing 값 동적 생성
+        // Generate spacing values from 0 to 100 dynamically
         ctx.extendTheme('spacing', {
           ...Array.from({ length: 101 }, (_, i) => i).reduce((acc, i) => {
             acc[i] = `${i * 0.25}rem`
@@ -171,14 +171,14 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
   describe('Theme Function Support', () => {
     it('should support theme functions for dynamic values', () => {
       const functionPlugin = (ctx: any, config: any) => {
-        // extendTheme으로 기본 값 추가
+        // Add base values via extendTheme
         ctx.extendTheme('spacing', {
           'custom-lg': '2rem',
           'custom-xl': '3rem',
           'custom-2xl': '4rem'
         });
         
-        // 함수형 theme 확장
+        // Functional theme extension
         ctx.extendTheme('colors', (theme: any) => ({
           'primary': theme('colors', 'blue', '500'),
           'secondary': theme('colors', 'gray', '500'),
@@ -241,7 +241,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
       }
       
       const dependentPlugin = (ctx: any, config: any) => {
-        // base plugin이 먼저 실행되어야 함
+        // base plugin must execute first
         const baseVersion = ctx.theme('base', 'version')
         ctx.extendTheme('dependent', {
           'depends-on': baseVersion,
@@ -275,13 +275,13 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
         plugins: [errorPlugin, workingPlugin]
       })
 
-      // 에러가 발생해도 working plugin은 정상 실행되어야 함
+      // Even if an error occurs, working plugin should still execute
       expect(ctx.theme('working', 'status')).toBe('success')
     })
 
     it('should handle invalid theme access', () => {
       const invalidPlugin = (ctx: any, config: any) => {
-        // 존재하지 않는 theme 경로에 접근
+        // Access a non-existent theme path
         const invalidValue = ctx.theme('nonexistent', 'category', 'value')
         ctx.extendTheme('invalid', {
           'result': invalidValue
@@ -330,10 +330,10 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
 
     it('should support theme transformation', () => {
       const transformPlugin = (ctx: any, config: any) => {
-        // 기존 theme 값을 변환
+        // Transform existing theme values
         const originalColors = ctx.theme('colors') || {}
         
-        // 모든 색상을 CSS 변수로 변환
+        // Convert all colors to CSS variables
         ctx.extendTheme('transformedColors', Object.entries(originalColors).reduce((acc, [key, value]) => {
           acc[key] = `var(--color-${key})`
           return acc
@@ -404,14 +404,14 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
   describe('CSS Generation Capabilities', () => {
     it('should generate CSS utilities via plugin', () => {
       const cssPlugin = (ctx: any, config: any) => {
-        // CSS 유틸리티 클래스 생성
+        // Create CSS utility classes
         const cssRules = [
           '.bg-brand { background-color: #3b82f6; }',
           '.text-brand { color: #3b82f6; }',
           '.border-brand { border-color: #3b82f6; }'
         ];
         
-        // brand 색상을 colors에 추가하여 CSS 변수에 포함되도록 함
+        // Add brand color into colors so CSS variables include it
         ctx.extendTheme('colors', {
           'brand': '#3b82f6'
         });
@@ -447,7 +447,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
       })
 
       expect(ctx.theme('responsiveCSS', 'rules')).toContain('@media')
-      // 실제로는 이스케이프된 형태로 생성됨
+      // Actually generated in escaped form
       expect(ctx.theme('responsiveCSS', 'rules')).toContain('sm\\:bg-brand')
     })
   })
@@ -455,7 +455,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
   describe('Utility Class Registration', () => {
     it('should register custom utility classes', () => {
       const utilityPlugin = (ctx: any, config: any) => {
-        // 커스텀 유틸리티 클래스 등록
+        // Register custom utility classes
         const utilities = {
           'custom-shadow': 'box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);',
           'custom-gradient': 'background: linear-gradient(45deg, #3b82f6, #10b981);',
@@ -598,7 +598,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
   describe('Plugin State Management', () => {
     it('should manage plugin state across executions', () => {
       const statePlugin = (ctx: any, config: any) => {
-        // 플러그인 상태 관리
+        // Manage plugin state
         const currentState = ctx.theme('pluginState') || { executions: 0 };
         const newState = {
           ...currentState,
@@ -622,7 +622,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
   describe('Plugin Error Recovery and Fallbacks', () => {
     it('should provide fallback values when theme access fails', () => {
       const fallbackPlugin = (ctx: any, config: any) => {
-        // 안전한 theme 접근
+        // Safe theme access
         const safeColors = ctx.theme('colors') || {};
         const safeSpacing = ctx.theme('spacing') || {};
         
@@ -688,20 +688,20 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
       const transformPlugin = (ctx: any, config: any) => {
         const originalColors = ctx.theme('colors') || {};
         
-        // 색상을 HSL로 변환
+        // Convert colors to HSL (simulation)
         const hslColors = Object.entries(originalColors).reduce((acc, [name, value]) => {
           if (typeof value === 'string' && value.startsWith('#')) {
-            acc[name] = `hsl(${Math.random() * 360}, 70%, 50%)`; // 시뮬레이션
+            acc[name] = `hsl(${Math.random() * 360}, 70%, 50%)`; // simulate
           } else {
             acc[name] = value;
           }
           return acc;
         }, {} as any);
         
-        // 색상을 RGB로 변환
+        // Convert colors to RGB (simulation)
         const rgbColors = Object.entries(originalColors).reduce((acc, [name, value]) => {
           if (typeof value === 'string' && value.startsWith('#')) {
-            acc[name] = `rgb(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)})`; // 시뮬레이션
+            acc[name] = `rgb(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)})`; // simulate
           } else {
             acc[name] = value;
           }
@@ -729,7 +729,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
     it('should register static utilities via plugin', () => {
       
       const utilityPlugin = (ctx: any, config: any) => {
-        // 정적 유틸리티 등록
+        // Register static utilities
         staticUtility('custom-block', [
           ['display', 'block']
         ]);
@@ -765,7 +765,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
     it('should register functional utilities via plugin', () => {
       
       const functionalPlugin = (ctx: any, config: any) => {
-        // 함수형 유틸리티 등록
+        // Register functional utilities
         functionalUtility({
           name: 'custom-text',
           prop: 'color',
@@ -806,7 +806,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
     it('should register static modifiers via plugin', () => {
       
       const modifierPlugin = (ctx: any, config: any) => {
-        // 정적 수정자 등록
+        // Register static modifiers
         staticModifier('hover', [':hover']);
         staticModifier('focus', [':focus']);
         staticModifier('active', [':active']);
@@ -830,7 +830,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
     it('should register functional modifiers via plugin', () => {
       
       const functionalModifierPlugin = (ctx: any, config: any) => {
-        // 함수형 수정자 등록
+        // Register functional modifiers
         functionalModifier(
           (mod: string) => mod.startsWith('custom-'),
           ({ selector, mod }) => {
@@ -862,7 +862,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
     it('should register complex utility combinations via plugin', () => {
       
       const complexPlugin = (ctx: any, config: any) => {
-        // 복합 유틸리티 등록
+        // Register composite utilities
         staticUtility('custom-flex-center', [
           ['display', 'flex'],
           ['justify-content', 'center'],
@@ -910,7 +910,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
     it('should register theme-aware utilities via plugin', () => {
       
       const themeAwarePlugin = (ctx: any, config: any) => {
-        // 테마 인식 유틸리티 등록
+        // Register theme-aware utilities
         functionalUtility({
           name: 'custom-color',
           prop: 'color',
@@ -958,7 +958,7 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
     it('should register conditional modifiers via plugin', () => {
       
       const conditionalPlugin = (ctx: any, config: any) => {
-        // 조건부 수정자 등록
+        // Register conditional modifiers
         functionalModifier(
           (mod: string) => mod.startsWith('dark-'),
           ({ selector, mod, ctx }) => {

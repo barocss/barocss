@@ -36,7 +36,7 @@ describe('parseClassName', () => {
   });
 
   it('returns empty result for invalid or malformed class names', () => {
-    // 비정상 입력 케이스
+    // Invalid input cases
     const invalidInputs = [
       '',
       '-',
@@ -47,9 +47,9 @@ describe('parseClassName', () => {
     ];
     for (const input of invalidInputs) {
       const result = parseClassName(input);
-      // 기대: modifiers는 빈 배열
+      // Expect: modifiers is an empty array
       expect(result.modifiers).toEqual([]);
-      // utility가 null이거나 유효하지 않은 구조
+      // utility is null or invalid structure
       const isValidUtility = result.utility === null || 
                            result.utility?.prefix === '' || 
                            result.utility?.value === '';

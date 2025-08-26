@@ -1,6 +1,6 @@
 import { createContext } from "../../src/core/context";
 
-// 공통 테스트 컨텍스트 생성
+// Create common test context
 export const createTestContext = (overrides = {}) => {
   return createContext({
     theme: {
@@ -11,7 +11,7 @@ export const createTestContext = (overrides = {}) => {
         lg: "(min-width: 1024px)",
         xl: "(min-width: 1280px)",
         "2xl": "(min-width: 1536px)",
-        // 사용자 정의 breakpoint
+        // Custom breakpoint
         tablet: "(min-width: 768px)",
         desktop: "(min-width: 1024px)",
         wide: "(min-width: 1440px)",
@@ -21,5 +21,5 @@ export const createTestContext = (overrides = {}) => {
   });
 };
 
-// 기본 테스트 컨텍스트
+// Default test context
 export const ctx = createTestContext(); 

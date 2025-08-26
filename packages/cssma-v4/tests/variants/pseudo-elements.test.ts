@@ -5,7 +5,7 @@ import { ctx } from "./test-utils";
 
 describe("pseudo-elements", () => {
   describe("cross-browser pseudo-element variants", () => {
-    it("placeholder:bg-red-500 → 4개 selector", () => {
+    it("placeholder:bg-red-500 → 4 selectors", () => {
       const result = parseClassToAst("placeholder:bg-red-500", ctx);
       expect(result).toMatchObject([
         {
@@ -31,7 +31,7 @@ describe("pseudo-elements", () => {
       ]);
     });
 
-    it("selection:bg-red-500 → 2개 selector", () => {
+    it("selection:bg-red-500 → 2 selectors", () => {
       const result = parseClassToAst("selection:bg-red-500", ctx);
       expect(result).toMatchObject([
         {
@@ -47,7 +47,7 @@ describe("pseudo-elements", () => {
       ]);
     });
 
-    it("file:bg-red-500 → 2개 selector", () => {
+    it("file:bg-red-500 → 2 selectors", () => {
       const result = parseClassToAst("file:bg-red-500", ctx);
       expect(result).toMatchObject([
         {

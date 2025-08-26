@@ -1,6 +1,6 @@
-# CSSMA Engine 함수 역할 및 결과물 정의
+# CSSMA Engine Function Roles and Outputs
 
-## 전체 파이프라인 개요
+## Full Pipeline Overview
 
 ```mermaid
 graph TD
@@ -9,23 +9,23 @@ graph TD
     C --> D[collectDeclPaths]
     D --> E[declPathToAst]
     E --> F[mergeAstTreeList]
-    F --> G[최종 최적화된 AST]
+    F --> G[Final Optimized AST]
 ```
 
 ---
 
 ## 1. parseClassName()
 
-### 역할
+### Role
 
-- **입력**: className 문자열 (예: `'group-hover:**:rounded-full'`)
-- **처리**: className을 파싱하여 modifiers와 utility로 분리
-- **출력**: 파싱된 데이터 구조
+- **Input**: className string (e.g., `'group-hover:**:rounded-full'`)
+- **Process**: parse className into modifiers and utility
+- **Output**: parsed data structure
 
-### 결과물 예시
+### Example Output
 
 ```typescript
-// 입력: 'group-hover:**:rounded-full'
+// Input: 'group-hover:**:rounded-full'
 {
   modifiers: [
     { type: 'group-hover', negative: false },
@@ -46,27 +46,27 @@ graph TD
 
 ## 2. parseClassToAst()
 
-### 역할
+### Role
 
-- **입력**: className 문자열 + CssmaContext
-- **처리**:
-  1. utility를 AST로 변환
-  2. variant chain을 적용 (각 variant의 wrap/modifySelector 결과를 wrappers에 쌓음)
-  3. 모든 variant wrapping path의 데카르트 곱을 계산하여, 각 path별로 baseAst를 바깥→안쪽 순서로 중첩
-  4. 여러 root ast를 반환할 수 있음 (sibling 지원)
-- **출력**: 개별 className의 AST(variant wrapping 구조 반영)
+- **Input**: className string + CssmaContext
+- **Process**:
+  1. Convert utility to AST
+  2. Apply variant chain (accumulate wrap/modifySelector results into wrappers)
+  3. Compute Cartesian product of wrapping paths; nest baseAst outer→inner per path
+  4. Can return multiple root ASTs (supports siblings)
+- **Output**: AST for each className (variant wrapping reflected)
 
-### 내부 처리 흐름
+### Internal Flow
 
-- modifiers를 순서대로 순회하며, 각 variant의 wrap/modifySelector 결과를 wrappers에 쌓음
-- wrap이 여러 wrapping path를 반환하면, 데카르트 곱으로 모든 조합을 생성
-- wrappers를 오른쪽→왼쪽(가장 안쪽→가장 바깥) 순서로 baseAst에 적용
-- 최종적으로 여러 root ast(AstNode[])를 반환 (sibling 구조 가능)
+- Traverse modifiers in order; push each variant's wrap/modifySelector to wrappers
+- If wrap returns multiple paths, generate all via Cartesian product
+- Apply wrappers right→left (inner→outer) to baseAst
+- Return multiple root ASTs (siblings possible)
 
-### 결과물 예시
+### Example Output
 
 ```typescript
-// 입력: 'sm:dark:hover:bg-red-500'
+// Input: 'sm:dark:hover:bg-red-500'
 [
   {
     type: "at-rule",
@@ -96,61 +96,61 @@ graph TD
 ];
 ```
 
-### 주의사항
+### Notes
 
-- **selector 조합/최적화는 하지 않음** (optimizeAst에서 처리)
-- **여러 root ast(sibling) 반환 가능**
-- **variant wrapping 구조(중첩, sibling, 데카르트 곱) 완벽 지원**
+- **No selector combination/optimization here** (handled in optimizeAst)
+- **May return multiple root ASTs (siblings)**
+- **Fully supports variant wrapping (nesting/sibling/Cartesian)**
 
 ---
 
 ## 3. optimizeAst()
 
-### 역할
+### Role
 
-- **입력**: parseClassToAst의 결과 AST 배열
-- **처리**: 전체 파이프라인 조율 및 최적화
-- **출력**: 최종 최적화된 AST
+- **Input**: AST array from parseClassToAst
+- **Process**: pipeline orchestration and optimization
+- **Output**: final optimized AST
 
-### 내부 처리 흐름
+### Internal Flow
 
-1. `collectDeclPaths()` - AST를 decl-to-root path 리스트로 평탄화
-2. `declPathToAst()` - 각 path를 variant 정렬/병합/중첩하여 최적화
-3. `mergeAstTreeList()` - 공통 variant prefix 그룹화, 중복 제거, sibling/병합 처리
+1. `collectDeclPaths()` - flatten AST to decl-to-root paths
+2. `declPathToAst()` - optimize each path by sorting/merging/nesting variants
+3. `mergeAstTreeList()` - group common prefixes, dedupe, merge siblings
 
-### 결과물 예시
+### Example Output
 
 ```typescript
-// 입력: parseClassToAst 결과 (여러 root 가능)
+// Input: parseClassToAst result (multiple roots possible)
 [
   { type: 'at-rule', name: 'media', ... },
   { type: 'at-rule', name: 'media', ... }
 ]
-// 출력: 병합/최적화된 단일 AST
+// Output: single merged/optimized AST
 [
   { type: 'at-rule', name: 'media', ... }
 ]
 ```
 
-### 주의사항
+### Notes
 
-- **AST 트리의 sibling, 중첩, 병합 등 모든 구조를 최적화**
-- **variant wrapping 구조를 완벽하게 반영**
+- **Optimize siblings/nesting/merging in AST**
+- **Fully reflect variant wrapping structure**
 
 ---
 
 ## 4. collectDeclPaths()
 
-### 역할
+### Role
 
-- **입력**: AST 배열
-- **처리**: AST를 decl-to-root path 리스트로 평탄화 (variant chain 추출)
-- **출력**: DeclPath 배열 (각 decl까지의 variant chain)
+- **Input**: AST array
+- **Process**: flatten AST to decl-to-root paths (extract variant chains)
+- **Output**: DeclPath array (variant chain to each decl)
 
-### 결과물 예시
+### Example Output
 
 ```typescript
-// 입력: parseClassToAst 결과
+// Input: parseClassToAst result
 [
   {
     type: "rule",
@@ -164,7 +164,7 @@ graph TD
     ],
   },
 ][
-  // 출력: DeclPath 배열
+  // Output: DeclPath array
   [
     { type: "rule", selector: "&" },
     { type: "style-rule", selector: ":is(...)" },
@@ -173,62 +173,62 @@ graph TD
 ];
 ```
 
-### 주의사항
+### Notes
 
-- **wrap/variant용 노드가 있으면 decl까지의 모든 계층을 path로 추출**
-- **sibling 구조도 모두 path로 분리**
+- **If wrap/variant nodes exist, extract all levels to decl as paths**
+- **Split sibling structures into paths as well**
 
 ---
 
 ## 5. declPathToAst()
 
-### 역할
+### Role
 
-- **입력**: 단일 DeclPath (decl-to-root path)
-- **처리**:
-  1. variant 정렬 (at-rule > style-rule > rule > decl)
-  2. 연속된 동일 variant 병합 (hoist)
-  3. rule 계열만 분리하여 source(variant role)별로 그룹핑
-  4. sourcePriority 기준으로 그룹 정렬
-  5. 각 그룹 내에서 selector 합성 (pseudo는 reduce, 나머지는 reduceRight)
-  6. 그룹별 selector를 바깥→안쪽 순서로 최종 합성
-  7. 나머지 variant(예: at-rule)는 바깥에서 중첩
-- **출력**: 최적화된 중첩 AST
+- **Input**: single DeclPath (decl-to-root path)
+- **Process**:
+  1. Sort variants (at-rule > style-rule > rule > decl)
+  2. Merge consecutive identical variants (hoist)
+  3. Extract rule variants and group by source (variant role)
+  4. Sort groups by sourcePriority
+  5. Compose selectors within group (pseudo: reduce, others: reduceRight)
+  6. Compose group selectors outer→inner
+  7. Nest remaining variants (e.g., at-rule) outside
+- **Output**: optimized nested AST
 
 ### 상세 알고리즘 및 내부 처리
 
-#### 1. variant 정렬 및 병합(hoist)
+#### 1. Sort and merge (hoist) variants
 
-- type(at-rule, style-rule, rule, decl) 우선순위로 정렬
-- 연속된 동일 variant(동일 key)는 병합(hoist)
+- Sort by type priority (at-rule, style-rule, rule, decl)
+- Merge consecutive identical variants (same key)
 
-#### 2. rule 계열만 분리 및 source별 그룹핑
+#### 2. Extract rule variants and group by source
 
-- type이 "rule"인 variant만 추출
-- 각 rule에 source(variant 역할: group, pseudo, attribute 등) 필드 부여
-- source별로 그룹핑
+- Extract only variants of type "rule"
+- Assign source (variant role: group, pseudo, attribute, etc.)
+- Group by source
 
-#### 3. sourcePriority 기준 정렬
+#### 3. Sort by sourcePriority
 
-- sourcePriority 테이블에 따라 그룹을 바깥→안쪽 순서로 정렬  
-  (예: media > responsive > group > attribute > pseudo > base)
+- Order groups outer→inner based on sourcePriority  
+  (e.g., media > responsive > group > attribute > pseudo > base)
 
-#### 4. 그룹 내 selector 합성
+#### 4. Compose selectors within groups
 
-- **pseudo**: 안쪽→바깥(reduce)  
-  (예: &:focus, &:hover → &:focus:hover)
-- **나머지**: 바깥→안쪽(reduceRight)  
-  (예: .group:hover &, .peer:focus ~ & → .group:hover .peer:focus ~ &)
-- 각 그룹 내에서 selector를 합성하여 하나의 selector로 만듦
+- **pseudo**: inside→outside (reduce)  
+  (e.g., &:focus, &:hover → &:focus:hover)
+- **others**: outside→inside (reduceRight)  
+  (e.g., .group:hover &, .peer:focus ~ & → .group:hover .peer:focus ~ &)
+- Compose a single selector per group
 
-#### 5. 그룹별 selector 최종 합성
+#### 5. Final composition per group
 
-- 그룹별로 합성된 selector를 바깥→안쪽 순서로 reduce  
-  (예: group > attribute > pseudo → .group:hover &[aria-pressed]:hover)
+- Reduce composed selectors outer→inner  
+  (e.g., group > attribute > pseudo → .group:hover &[aria-pressed]:hover)
 
-#### 6. 나머지 variant(예: at-rule) 바깥에서 중첩
+#### 6. Nest remaining variants outside (e.g., at-rule)
 
-- rule 이외의 variant는 바깥에서부터 차례로 중첩
+- Nest non-rule variants from outside in
 
 ### 주요 상수/함수
 
@@ -262,17 +262,17 @@ const sourcePriority = {
 - source가 pseudo면 reduce(안→바깥), 아니면 reduceRight(바깥→안)
 - &가 있으면 한 번만 치환, 없으면 공백으로 연결
 
-### 결과물 예시
+### Example Output
 
 ```typescript
-// 입력: DeclPath
+// Input: DeclPath
 [
   { type: "rule", selector: ".group:hover &", source: "group" },
   { type: "rule", selector: '&[aria-pressed="true"]', source: "attribute" },
   { type: "rule", selector: "&:hover", source: "pseudo" },
   { type: "decl", prop: "color", value: "green" },
 ][
-  // 출력: 최적화된 AST
+  // Output: optimized AST
   {
     type: "rule",
     selector: '.group:hover &[aria-pressed="true"]:hover',
@@ -281,34 +281,34 @@ const sourcePriority = {
 ];
 ```
 
-### 주의사항
+### Notes
 
-- source가 없는 경우 base로 처리
-- selector 합성 순서가 꼬이지 않도록 sourcePriority와 그룹 내 합성 규칙을 반드시 지킬 것
-- &가 여러 번 등장하는 경우, 가장 바깥 &만 치환
+- Treat missing source as base
+- Follow sourcePriority and group composition rules to avoid order issues
+- If '&' appears multiple times, replace only the outermost
 
 ---
 
 ## 6. mergeAstTreeList()
 
-### 역할
+### Role
 
-- **입력**: declPathToAst 결과 배열 (AstNode[][])
-- **처리**:
-  1. 공통 variant prefix 그룹화
-  2. 중복 제거 및 병합
-  3. sibling 구조/최적화
-- **출력**: 단일 최적화된 AST
+- **Input**: array of declPathToAst results (AstNode[][])
+- **Process**:
+  1. Group common variant prefixes
+  2. Remove duplicates and merge
+  3. Optimize sibling structure
+- **Output**: single optimized AST
 
-### 결과물 예시
+### Example Output
 
 ```typescript
-// 입력: 여러 개의 최적화된 AST
+// Input: multiple optimized ASTs
 [
   [{ type: 'style-rule', selector: ':is(...)', nodes: [...] }],
   [{ type: 'style-rule', selector: ':is(...)', nodes: [...] }]
 ]
-// 출력: 병합된 단일 AST
+// Output: merged single AST
 [
   {
     type: 'style-rule',
@@ -320,48 +320,48 @@ const sourcePriority = {
 ]
 ```
 
-### 주의사항
+### Notes
 
-- **공통 variant prefix(예: 같은 at-rule, rule 등)는 하나로 합치고, 그 아래는 sibling으로 분리**
-- **최적화된 AST 트리로 재구성**
+- **Merge common variant prefixes (e.g., same at-rule/rule) and split siblings below**
+- **Reconstruct into optimized AST**
 
 ---
 
 ## 7. generateCss()
 
-### 역할
+### Role
 
-- **입력**: classList(string), CssmaContext, 옵션
-- **처리**:
-  1. classList를 공백 기준으로 분리
-  2. 각 className마다 parseClassToAst → optimizeAst → astToCss 순으로 처리
-  3. dedup, minify 등 옵션 적용
-- **출력**: string (여러 CSS 블록이 join된 결과)
+- **Input**: classList(string), CssmaContext, options
+- **Process**:
+  1. Split classList by whitespace
+  2. For each className, run parseClassToAst → optimizeAst → astToCss
+  3. Apply options (dedup, minify)
+- **Output**: string (joined CSS blocks)
 
-### 결과물 예시
+### Example Output
 
 ```typescript
-// 입력: 'sm:dark:hover:bg-red-500 sm:focus:bg-blue-500'
-/* ...최적화된 CSS ... */
+// Input: 'sm:dark:hover:bg-red-500 sm:focus:bg-blue-500'
+/* ...optimized CSS ... */
 ```
 
-### 주의사항
+### Notes
 
-- **각 className별로 AST 생성/최적화/변환을 독립적으로 수행**
-- **dedup, minify 등 옵션 지원**
+- **Build/optimize/convert AST independently per className**
+- **Support options like dedup, minify**
 
 ---
 
-## 전체 플로우 예시 (복잡한 variant chain)
+## Full Flow Example (complex variant chain)
 
-### 입력: `'sm:dark:hover:bg-red-500 sm:focus:bg-blue-500'`
+### Input: `'sm:dark:hover:bg-red-500 sm:focus:bg-blue-500'`
 
 1. **parseClassName**: `{ modifiers: [...], utility: {...} }`
 2. **parseClassToAst**: `[{ type: 'at-rule', ... }, ...]` (여러 root 가능)
-3. **optimizeAst**: `[...최적화된 AST 트리...]`
-4. **astToCss**: `최종 CSS 문자열`
+3. **optimizeAst**: `[...optimized AST tree...]`
+4. **astToCss**: `final CSS string`
 
-### 최종 결과 예시
+### Final Result Example
 
 ```typescript
 /*
@@ -376,25 +376,25 @@ const sourcePriority = {
 
 ---
 
-## 역할 분담 원칙 (단일 책임)
+## Role Separation Principles (Single Responsibility)
 
-- **parseClassName**: 파싱만
-- **parseClassToAst**: AST 생성(variant wrapping 구조 반영)
-- **optimizeAst**: AST 최적화/병합/정리
-- **collectDeclPaths**: AST 평탄화(variant chain 추출)
-- **declPathToAst**: 개별 path 최적화(variant 정렬/병합/중첩)
-- **mergeAstTreeList**: 최종 트리 재구성/병합/최적화
-- **generateCss**: 전체 파이프라인 orchestration 및 CSS 변환
+- **parseClassName**: parsing only
+- **parseClassToAst**: build AST (reflect variant wrapping)
+- **optimizeAst**: optimize/merge/clean AST
+- **collectDeclPaths**: flatten AST (extract variant chains)
+- **declPathToAst**: optimize path (sort/merge/nest variants)
+- **mergeAstTreeList**: reconstruct/merge/optimize final tree
+- **generateCss**: orchestrate pipeline and generate CSS
 
 ---
 
-## AST 트리 구조와 variant wrapping의 실제 예시
+## Real Examples of AST Tree Structure and Variant Wrapping
 
-### 1. 단일 variant chain
+### 1. Single variant chain
 
 ```typescript
-// 입력: 'sm:hover:bg-red-500'
-parseClassToAst 결과:
+// Input: 'sm:hover:bg-red-500'
+parseClassToAst result:
 [
   {
     type: 'at-rule',
@@ -413,16 +413,16 @@ parseClassToAst 결과:
 ]
 ```
 
-### 2. 다중 variant chain (sibling)
+### 2. Multiple variant chains (sibling)
 
 ```typescript
-// 입력: 'sm:hover:bg-red-500 sm:focus:bg-blue-500'
-parseClassToAst 결과:
+// Input: 'sm:hover:bg-red-500 sm:focus:bg-blue-500'
+parseClassToAst result:
 [
   { ...sm:hover... },
   { ...sm:focus... }
 ]
-optimizeAst 결과:
+optimizeAst result:
 [
   {
     type: 'at-rule',
@@ -436,11 +436,11 @@ optimizeAst 결과:
 ]
 ```
 
-### 3. dark + responsive + interaction 중첩
+### 3. dark + responsive + interaction nesting
 
 ```typescript
-// 입력: 'sm:dark:hover:bg-red-500'
-parseClassToAst 결과:
+// Input: 'sm:dark:hover:bg-red-500'
+parseClassToAst result:
 [
   {
     type: 'at-rule',
@@ -469,8 +469,8 @@ parseClassToAst 결과:
 ### 4. dark + responsive + sibling
 
 ```typescript
-// 입력: 'dark:bg-green-500 sm:dark:bg-yellow-500'
-parseClassToAst 결과:
+// Input: 'dark:bg-green-500 sm:dark:bg-yellow-500'
+parseClassToAst result:
 [
   {
     type: 'at-rule',
@@ -496,7 +496,7 @@ parseClassToAst 결과:
     ]
   }
 ]
-optimizeAst 결과:
+optimizeAst result:
 [
   {
     type: 'at-rule',
@@ -526,19 +526,19 @@ optimizeAst 결과:
 
 ---
 
-## 예외/주의사항 및 베스트 프랙티스
+## Exceptions/Notes and Best Practices
 
-- 각 함수는 단일 책임 원칙을 지켜야 하며, 파이프라인의 역할 분담을 명확히 해야 함
-- variant wrapping 구조(중첩, sibling, 데카르트 곱 등)는 반드시 parseClassToAst에서 완성되어야 함
-- optimizeAst는 AST 트리의 sibling/중첩/병합/최적화만 담당
-- AST 구조가 바뀌면 테스트/스냅샷을 반드시 갱신
-- dedup, minify 등 옵션은 generateCss에서만 처리
-- AST 트리의 undefined/누락 필드 등은 toEqual로 비교할 때만 신경
+- Each function should follow single responsibility; clarify pipeline role separation
+- Complete variant wrapping (nesting/sibling/Cartesian) in parseClassToAst
+- optimizeAst only handles sibling/nesting/merge/optimization
+- Update tests/snapshots if AST structure changes
+- Only handle options like dedup, minify in generateCss
+- For undefined/missing fields, care only when asserting with toEqual
 
 ---
 
-## 결론
+## Conclusion
 
-- cssma-v4 엔진은 현대적인 CSS variant wrapping 구조(데카르트 곱, sibling, 중첩, 병합 등)를 완벽하게 지원
-- 각 함수의 역할, 입력/출력, 내부 처리 흐름, AST 트리 구조, 예외/주의사항을 명확히 이해하고 작성해야 함
-- 문서/테스트/코드가 항상 일치하도록 관리할 것
+- The cssma-v4 engine fully supports modern CSS variant wrapping (Cartesian product, siblings, nesting, merging)
+- Understand and document roles, inputs/outputs, flows, AST structures, and caveats clearly
+- Keep documentation, tests, and code consistently aligned

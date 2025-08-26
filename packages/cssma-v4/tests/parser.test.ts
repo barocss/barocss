@@ -1,16 +1,17 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { parseClassName } from '../src/core/parser';
 import { functionalUtility, staticModifier } from '../src/core/registry';
+import { decl } from '../src';
 
 describe('parseClassName - tokenizer based', () => {
   beforeAll(() => {
-    // Register utilities with functionalUtility (정확한 match 함수)
+    // Register utilities with functionalUtility (precise match function)
     functionalUtility({
       name: 'bg',
       prop: 'background-color',
       supportsArbitrary: true,
       supportsNegative: true,
-      handle: (value) => [{ type: 'declaration', prop: 'background-color', value }]
+      handle: (value) => [decl('background-color', value)]
     });
     
     functionalUtility({
@@ -26,10 +27,10 @@ describe('parseClassName - tokenizer based', () => {
       prop: 'min-width',
       supportsArbitrary: true,
       supportsNegative: true,
-      handle: (value) => [{ type: 'declaration', prop: 'min-width', value }]
+      handle: (value) => [decl('min-width', value)]
     });
     
-    // Register modifiers (모디파이어 등록)
+    // Register modifiers
     staticModifier('hover', ['&:hover']);
     staticModifier('focus', ['&:focus']);
     staticModifier('active', ['&:active']);

@@ -1,5 +1,5 @@
 import { parseClassName } from './parser';
-import { parseClassToAst, generateCssRules } from './engine';
+import { parseClassToAst, generateCssRules, GenerateCssRulesResult } from './engine';
 import type { CssmaContext } from './context';
 import { astCache } from '../utils/cache';
 
@@ -92,54 +92,44 @@ export class IncrementalParser {
    * @param className - The CSS class name to process (e.g., 'bg-blue-500')
    * @returns Object containing AST and CSS, or null if processing failed or class was already processed
    */
-  processClass(className: string): { ast: any[]; css: string; cssList: string[] } | null {
+  processClass(className: string): GenerateCssRulesResult | null {
     // Check if already processed
     if (this.processedClasses.has(className)) {
       // console.log('[IncrementalParser] Class already processed:', className);
       return null; // Already processed
     }
 
-    try {
-      // console.log('[IncrementalParser] Processing class:', className);
-      
+    try {      
       // Parse class
       const parseResult = parseClassName(className);
-      // console.log('[IncrementalParser] Parse result:', parseResult);
       
       if (!parseResult.utility) {
-        // console.log('[IncrementalParser] No utility found for:', className);
         return null;
       }
 
       // Generate AST
       const ast = parseClassToAst(className, this.ctx);
-      // console.log('[IncrementalParser] AST generated:', ast.length, 'nodes');
       
       if (ast.length === 0) {
-        // console.log('[IncrementalParser] No AST generated for:', className);
         return null;
       }
 
       // Generate CSS using the same method as runtime
       const rules = generateCssRules(className, this.ctx, { dedup: false });
-      // console.log('[IncrementalParser] CSS rules generated:', rules.length);
       
       if (rules.length === 0) {
-        // console.log('[IncrementalParser] No CSS rules generated for:', className);
         return null;
       }
 
       const rule = rules[0];
       if (!rule.css) {
-        // console.log('[IncrementalParser] No CSS in rule for:', className);
         return null;
       }
 
       // Mark as processed
       this.processedClasses.add(className);
-      // console.log('[IncrementalParser] Successfully processed:', className, 'CSS:', rule.css.substring(0, 50) + '...');
 
-      return { ast, css: rule.css, cssList: rule.cssList };
+      return { cls: className, ast, css: rule.css, cssList: rule.cssList, rootCss: rule.rootCss };
     } catch (error) {
       console.warn('[IncrementalParser] Failed to process class:', className, error);
       return null;
@@ -157,8 +147,8 @@ export class IncrementalParser {
    * @param classes - Array of CSS class names to process
    * @returns Array of processing results, each containing className, AST, and CSS
    */
-  processClasses(classes: string[]): Array<{ className: string; ast: any[]; css: string; cssList: string[] }> {
-    const results: Array<{ className: string; ast: any[]; css: string; cssList: string[] }> = [];
+  processClasses(classes: string[]): Array<GenerateCssRulesResult> {
+    const results: Array<GenerateCssRulesResult> = [];
     const newClasses = classes.filter(cls => !this.processedClasses.has(cls));
 
     if (newClasses.length === 0) {
@@ -173,10 +163,11 @@ export class IncrementalParser {
         const result = this.processClass(className);
         if (result) {
           results.push({
-            className,
+            cls: result.cls,
             ast: result.ast,
             css: result.css,
-            cssList: result.cssList
+            cssList: result.cssList,
+            rootCss: result.rootCss
           });
         }
       });
@@ -231,8 +222,6 @@ export class IncrementalParser {
 
     const classesToProcess = Array.from(this.pendingClasses);
     this.pendingClasses.clear();
-
-    // console.log('[IncrementalParser] Processing pending classes:', classesToProcess);
 
     // Use common method for processing
     this.applyClasses(classesToProcess);

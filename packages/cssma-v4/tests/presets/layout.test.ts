@@ -34,14 +34,14 @@ describe("preset layout utilities", () => {
   });
 
   it("aspect-ratio: fraction, arbitrary, custom property", () => {
-    // fraction value (fraction 검사)
+    // fraction value (check fraction)
     expect(parseClassToAst("aspect-16/9", ctx)).toEqual([
       { type: "decl", prop: "aspect-ratio", value: "16/9" },
     ]);
     expect(parseClassToAst("aspect-4/3", ctx)).toEqual([
       { type: "decl", prop: "aspect-ratio", value: "4/3" },
     ]);
-    // arbitrary value (fraction 검사 안함, 대괄호 제거)
+    // arbitrary value (do not check fraction, strip brackets)
     expect(parseClassToAst("aspect-[4/3]", ctx)).toEqual([
       { type: "decl", prop: "aspect-ratio", value: "4/3" },
     ]);

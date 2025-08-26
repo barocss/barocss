@@ -31,11 +31,11 @@ describe('theme() getter', () => {
     const extend = { colors: { red: { 500: '#ff0000' } }, spacing: { 8: '2rem' } };
     const config = { theme: { ...base, extend } };
     const merged = resolveTheme(config);
-    expect(merged.colors.red['500']).toBe('#ff0000'); // extend 적용
-    expect(merged.colors.red['600']).toBe('#e00');    // base 유지
-    expect(merged.spacing['4']).toBe('1rem');         // base 유지
-    expect(merged.spacing['8']).toBe('2rem');         // extend 추가
-    // context 기반 접근
+    expect(merged.colors.red['500']).toBe('#ff0000'); // applied via extend
+    expect(merged.colors.red['600']).toBe('#e00');    // base preserved
+    expect(merged.spacing['4']).toBe('1rem');         // base preserved
+    expect(merged.spacing['8']).toBe('2rem');         // extend added
+    // context-based access
     const ctx = createContext(config);
     expect(ctx.theme('colors.red.500')).toBe('#ff0000');
     expect(ctx.theme('colors.red.600')).toBe('#e00');
@@ -52,7 +52,7 @@ describe('theme() getter', () => {
     expect(merged.colors.red['600']).toBe('#e00');    // preset2
     expect(merged.spacing['4']).toBe('1rem');         // preset1
     expect(merged.spacing['8']).toBe('2rem');         // preset2
-    // context 기반 접근
+    // context-based access
     const ctx = createContext(config);
     expect(ctx.theme('colors.red.500')).toBe('#ff0000');
     expect(ctx.theme('colors.red.600')).toBe('#e00');
@@ -74,7 +74,7 @@ describe('theme() getter', () => {
       },
     };
     const ctx = createContext(config);
-    // 플러그인 스타일: context.theme('colors.secondary')가 동적으로 primary를 참조
+    // Plugin style: context.theme('colors.secondary') dynamically references primary
     expect(ctx.theme('colors.secondary')).toBe('#123456');
     expect(ctx.theme('spacing.2')).toBe('0.25rem');
   });

@@ -67,7 +67,7 @@ describe('StyleRuntime', () => {
     const observer = runtime.observe(document.body);
     div.className = 'bg-blue-500';
     
-    // vi.waitFor를 사용하여 더 안정적인 비동기 테스트
+    // Use vi.waitFor for more reliable async testing
     await vi.waitFor(() => {
       expect(runtime.has('bg-blue-500')).toBe(true);
     }, { timeout: 1000 });
@@ -90,7 +90,7 @@ describe('StyleRuntime', () => {
     observer.disconnect();
     div.className = 'text-yellow-500';
     
-    // observer가 끊겼으므로 새로운 클래스는 캐시되지 않음
+    // After disconnecting observer, new classes should not be cached
     await new Promise(r => setTimeout(r, 50));
     expect(runtime.has('text-yellow-500')).toBe(false);
     document.body.removeChild(div);
@@ -223,10 +223,10 @@ describe('StyleRuntime', () => {
     document.body.appendChild(div2);
     // observe with scan: true
     const observer = runtime.observe(document.body, { scan: true });
-    // scan은 동기적으로 동작하므로 바로 확인 가능
+    // scan runs synchronously, so we can assert immediately
     expect(runtime.has('bg-blue-500')).toBe(true);
     expect(runtime.has('text-lg')).toBe(true);
-    // 이후 mutation도 정상 감지되는지 확인
+    // Verify subsequent mutations are detected
     div1.className = 'bg-red-500';
     await new Promise(r => setTimeout(r, 20));
     expect(runtime.has('bg-red-500')).toBe(true);
@@ -236,31 +236,31 @@ describe('StyleRuntime', () => {
   });
 
   it('scan option detects SVG element classes correctly', async () => {
-    // SVG 요소 생성
+    // Create SVG element
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'w-4 h-4 text-blue-500');
     
-    // 일반 HTML 요소도 함께 생성
+    // Create a regular HTML element as well
     const div = document.createElement('div');
     div.className = 'bg-red-500 p-4';
     
     document.body.appendChild(svg);
     document.body.appendChild(div);
     
-    // scan: true로 observe 시작
+    // Start observe with scan: true
     const observer = runtime.observe(document.body, { scan: true });
     
-    // SVG 클래스들이 제대로 파싱되었는지 확인
+    // Verify SVG classes are parsed correctly
     console.log('🔍 [TEST] SVG classes found:', svg.getAttribute('class'));
     console.log('🔍 [TEST] Runtime cached classes:', runtime.getClasses());
     console.log('🔍 [TEST] Runtime cache stats:', runtime.getCacheStats());
     
-    // SVG 클래스들이 캐시되었는지 확인
+    // Verify SVG classes are cached
     expect(runtime.has('w-4')).toBe(true);
     expect(runtime.has('h-4')).toBe(true);
     expect(runtime.has('text-blue-500')).toBe(true);
     
-    // HTML 요소 클래스들도 확인
+    // Verify HTML element classes as well
     expect(runtime.has('bg-red-500')).toBe(true);
     expect(runtime.has('p-4')).toBe(true);
     
@@ -270,22 +270,22 @@ describe('StyleRuntime', () => {
   });
 
   it('SVG element class changes are detected and processed', async () => {
-    // SVG 요소 생성
+    // Create SVG element
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'w-4 h-4');
     document.body.appendChild(svg);
     
-    // observe 시작 (scan: false로 시작)
+    // Start observe (scan: false)
     const observer = runtime.observe(document.body, { scan: false });
     
-    // 초기에는 클래스가 없어야 함
+    // Initially, there should be no classes
     expect(runtime.has('w-4')).toBe(false);
     expect(runtime.has('h-4')).toBe(false);
     
-    // SVG 클래스 변경
+    // Change SVG classes
     svg.setAttribute('class', 'w-4 h-4 text-blue-500');
     
-    // 변경 감지 대기
+    // Wait for mutation detection
     await vi.waitFor(() => {
       expect(runtime.has('w-4')).toBe(true);
     }, { timeout: 1000 });
@@ -298,7 +298,7 @@ describe('StyleRuntime', () => {
       expect(runtime.has('text-blue-500')).toBe(true);
     }, { timeout: 1000 });
     
-    // CSS가 제대로 생성되었는지 확인
+    // Verify CSS is generated properly
     const w4Css = runtime.getCss('w-4');
     const h4Css = runtime.getCss('h-4');
     const textBlueCss = runtime.getCss('text-blue-500');
@@ -316,14 +316,14 @@ describe('StyleRuntime', () => {
   });
 
   it('SVG and HTML elements with classes are all detected during scan', async () => {
-    // SVG 요소들 생성
+    // Create SVG elements
     const svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg1.setAttribute('class', 'w-4 h-4');
     
     const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg2.setAttribute('class', 'text-red-500');
     
-    // HTML 요소들 생성
+    // Create HTML elements
     const div1 = document.createElement('div');
     div1.className = 'bg-blue-500 p-2';
     
@@ -335,13 +335,13 @@ describe('StyleRuntime', () => {
     document.body.appendChild(div1);
     document.body.appendChild(div2);
     
-    // scan: true로 observe 시작
+    // Start observe with scan: true
     const observer = runtime.observe(document.body, { scan: true });
     
-    // 모든 클래스들이 제대로 감지되었는지 확인
+    // Verify all classes are detected correctly
     const expectedClasses = [
-      'w-4', 'h-4', 'text-red-500',  // SVG 클래스들
-      'bg-blue-500', 'p-2', 'text-lg', 'm-4'  // HTML 클래스들
+      'w-4', 'h-4', 'text-red-500',  // SVG classes
+      'bg-blue-500', 'p-2', 'text-lg', 'm-4'  // HTML classes
     ];
     
     console.log('🔍 [TEST] Expected classes:', expectedClasses);
