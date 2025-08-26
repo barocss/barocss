@@ -358,7 +358,7 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
     for (const plugin of configWithDefaults.plugins) {
       try {
         // Extract pluginConfig from the config
-        const pluginConfig = configWithDefaults.pluginConfig || {};
+        // const pluginConfig = configWithDefaults.pluginConfig || {}; // This line is removed
         // console.log('Executing plugin:', plugin.name || '[function]', plugin);
         
         if (typeof plugin === 'function') {
@@ -366,16 +366,15 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
           plugin(ctx, configWithDefaults);
           // console.log('Executed plugin function');
         } else if (plugin && typeof plugin.handler === 'function') {
-          // Plugin object - pass pluginConfig if available, otherwise full config
-          const configToPass = Object.keys(pluginConfig).length > 0 ? pluginConfig : configWithDefaults;
-          plugin.handler(ctx, configToPass);
+          // Plugin object - pass full config
+          plugin.handler(ctx, configWithDefaults);
           // console.log('Executed plugin.handler for', plugin.name);
           
           // Handle theme extensions from plugins
           // Check if this plugin has a theme function
           if (plugin.theme && typeof plugin.theme === 'function') {
             // console.log(`Calling theme function for plugin: ${plugin.name}`);
-            const pluginTheme = plugin.theme(ctx, configToPass);
+            const pluginTheme = plugin.theme(ctx, configWithDefaults);
             // console.log(`Plugin theme result:`, pluginTheme);
             if (pluginTheme) {
               // console.log(`Merging theme:`, pluginTheme);
@@ -387,7 +386,7 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
                   // console.log(`themeObj[${key}] after merge:`, themeObj[key]);
                 } else {
                   themeObj[key] = pluginTheme[key];
-                  // console.log(`themeObj[${key}] set to:`, themeObj[key]);
+                  // console.log(`themeObj[${key}] set to:`, pluginTheme[key]);
                 }
               }
               // console.log(`Updated themeObj:`, themeObj);

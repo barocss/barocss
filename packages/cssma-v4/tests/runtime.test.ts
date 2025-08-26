@@ -234,4 +234,128 @@ describe('StyleRuntime', () => {
     document.body.removeChild(div1);
     document.body.removeChild(div2);
   });
+
+  it('scan option detects SVG element classes correctly', async () => {
+    // SVG 요소 생성
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'w-4 h-4 text-blue-500');
+    
+    // 일반 HTML 요소도 함께 생성
+    const div = document.createElement('div');
+    div.className = 'bg-red-500 p-4';
+    
+    document.body.appendChild(svg);
+    document.body.appendChild(div);
+    
+    // scan: true로 observe 시작
+    const observer = runtime.observe(document.body, { scan: true });
+    
+    // SVG 클래스들이 제대로 파싱되었는지 확인
+    console.log('🔍 [TEST] SVG classes found:', svg.getAttribute('class'));
+    console.log('🔍 [TEST] Runtime cached classes:', runtime.getClasses());
+    console.log('🔍 [TEST] Runtime cache stats:', runtime.getCacheStats());
+    
+    // SVG 클래스들이 캐시되었는지 확인
+    expect(runtime.has('w-4')).toBe(true);
+    expect(runtime.has('h-4')).toBe(true);
+    expect(runtime.has('text-blue-500')).toBe(true);
+    
+    // HTML 요소 클래스들도 확인
+    expect(runtime.has('bg-red-500')).toBe(true);
+    expect(runtime.has('p-4')).toBe(true);
+    
+    observer.disconnect();
+    document.body.removeChild(svg);
+    document.body.removeChild(div);
+  });
+
+  it('SVG element class changes are detected and processed', async () => {
+    // SVG 요소 생성
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'w-4 h-4');
+    document.body.appendChild(svg);
+    
+    // observe 시작 (scan: false로 시작)
+    const observer = runtime.observe(document.body, { scan: false });
+    
+    // 초기에는 클래스가 없어야 함
+    expect(runtime.has('w-4')).toBe(false);
+    expect(runtime.has('h-4')).toBe(false);
+    
+    // SVG 클래스 변경
+    svg.setAttribute('class', 'w-4 h-4 text-blue-500');
+    
+    // 변경 감지 대기
+    await vi.waitFor(() => {
+      expect(runtime.has('w-4')).toBe(true);
+    }, { timeout: 1000 });
+    
+    await vi.waitFor(() => {
+      expect(runtime.has('h-4')).toBe(true);
+    }, { timeout: 1000 });
+    
+    await vi.waitFor(() => {
+      expect(runtime.has('text-blue-500')).toBe(true);
+    }, { timeout: 1000 });
+    
+    // CSS가 제대로 생성되었는지 확인
+    const w4Css = runtime.getCss('w-4');
+    const h4Css = runtime.getCss('h-4');
+    const textBlueCss = runtime.getCss('text-blue-500');
+    
+    console.log('🔍 [TEST] w-4 CSS:', w4Css);
+    console.log('🔍 [TEST] h-4 CSS:', h4Css);
+    console.log('🔍 [TEST] text-blue-500 CSS:', textBlueCss);
+    
+    expect(w4Css).toBeTruthy();
+    expect(h4Css).toBeTruthy();
+    expect(textBlueCss).toBeTruthy();
+    
+    observer.disconnect();
+    document.body.removeChild(svg);
+  });
+
+  it('SVG and HTML elements with classes are all detected during scan', async () => {
+    // SVG 요소들 생성
+    const svg1 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg1.setAttribute('class', 'w-4 h-4');
+    
+    const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg2.setAttribute('class', 'text-red-500');
+    
+    // HTML 요소들 생성
+    const div1 = document.createElement('div');
+    div1.className = 'bg-blue-500 p-2';
+    
+    const div2 = document.createElement('div');
+    div2.className = 'text-lg m-4';
+    
+    document.body.appendChild(svg1);
+    document.body.appendChild(svg2);
+    document.body.appendChild(div1);
+    document.body.appendChild(div2);
+    
+    // scan: true로 observe 시작
+    const observer = runtime.observe(document.body, { scan: true });
+    
+    // 모든 클래스들이 제대로 감지되었는지 확인
+    const expectedClasses = [
+      'w-4', 'h-4', 'text-red-500',  // SVG 클래스들
+      'bg-blue-500', 'p-2', 'text-lg', 'm-4'  // HTML 클래스들
+    ];
+    
+    console.log('🔍 [TEST] Expected classes:', expectedClasses);
+    console.log('🔍 [TEST] Actually cached classes:', runtime.getClasses());
+    
+    expectedClasses.forEach(className => {
+      expect(runtime.has(className)).toBe(true);
+      console.log(`✅ [TEST] ${className} is cached`);
+    });
+    
+    observer.disconnect();
+    document.body.removeChild(svg1);
+    document.body.removeChild(svg2);
+    document.body.removeChild(div1);
+    document.body.removeChild(div2);
+  });
 }); 

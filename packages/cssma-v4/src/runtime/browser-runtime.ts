@@ -1,6 +1,21 @@
 import { createContext, astCache, cssCache, IncrementalParser, CompressedCache, MemoryPool } from '../index';
 import type { CssmaConfig, CssmaContext } from '../core/context';
 
+function normalizeClassName(className: any): string {
+  if (!className) return '';
+
+  if (className instanceof SVGAnimatedString) {
+    return className.baseVal.toString();
+  }
+
+  return className.toString();
+}
+
+function normalizeClassNameList(className: any): string[] {
+  if (!className) return [];
+  return normalizeClassName(className).split(/\s+/).filter(Boolean);
+}
+
 /**
  * Change detection system for DOM mutations
  * 
@@ -73,7 +88,9 @@ export class ChangeDetector {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
           const target = mutation.target as HTMLElement;
           if (target.className) {
-            const classes = target.className.split(/\s+/).filter(Boolean);
+            // SVG 의 className 은 SVGAnimatedString 타임이므로 toString() 으로 문자열로 변환
+            // HTMLElement 의 className 은 string 타임이므로 그대로 사용
+            const classes = normalizeClassNameList(target.className);
             classes.forEach(cls => {
               if (!this.incrementalParser.isProcessed(cls)) {
                 newClasses.add(cls);
@@ -110,7 +127,10 @@ export class ChangeDetector {
             if (result.css) {
               cssRules.push(...result.cssList);
               // Add to StyleRuntime cache
-              this.styleRuntime.cache.set(result.className, result.cssList);
+              // SVG 의 className 은 SVGAnimatedString 타임이므로 toString() 으로 문자열로 변환
+              // HTMLElement 의 className 은 string 타임이므로 그대로 사용
+              const className = normalizeClassName(result.className);
+              this.styleRuntime.cache.set(className, result.cssList);
             }
           });
           if (cssRules.length > 0) {
@@ -140,10 +160,10 @@ export class ChangeDetector {
    */
   private scanExistingClasses(root: HTMLElement): void {
     const existingClasses = new Set<string>();
-    
+        
     // Include root itself
     if (root.className) {
-      const classes = root.className.split(/\s+/).filter(Boolean);
+      const classes = normalizeClassNameList(root.className);
       classes.forEach(cls => {
         if (!this.incrementalParser.isProcessed(cls)) {
           existingClasses.add(cls);
@@ -157,7 +177,7 @@ export class ChangeDetector {
       if (el.className) {
         // SVG 의 className 은 SVGAnimatedString 타입이므로 toString() 으로 문자열로 변환
         // HTMLElement 의 className 은 string 타입이므로 그대로 사용
-        const classes = el.className.toString().split(/\s+/).filter(Boolean);
+        const classes = normalizeClassNameList(el.className);
         classes.forEach(cls => {
           if (!this.incrementalParser.isProcessed(cls)) {
             existingClasses.add(cls);
@@ -177,7 +197,8 @@ export class ChangeDetector {
           if (result.css) {
             cssRules.push(...result.cssList);
             // Add to StyleRuntime cache
-            this.styleRuntime.cache.set(result.className, result.cssList);
+            const className = normalizeClassName(result.className);
+            this.styleRuntime.cache.set(className, result.cssList);
           }
         });
         if (cssRules.length > 0) {
@@ -205,7 +226,9 @@ export class ChangeDetector {
     if (this.processedElements.has(element)) return;
 
     if (element.className) {
-      const classes = element.className.toString().split(/\s+/).filter(Boolean);
+      // SVG 의 className 은 SVGAnimatedString 타임이므로 toString() 으로 문자열로 변환
+      // HTMLElement 의 className 은 string 타임이므로 그대로 사용
+      const classes = normalizeClassNameList(element.className);
       classes.forEach(cls => {
         if (!this.incrementalParser.isProcessed(cls)) {
           newClasses.add(cls);
@@ -735,7 +758,7 @@ export class StyleRuntime {
       if (result.css) {
         console.log('[StyleRuntime] result.cssList', result.cssList);
         cssRules.push(...result.cssList);
-        this.cache.set(result.className, result.cssList);
+        this.cache.set(normalizeClassName(result.className), result.cssList);
         
         // 🔍 캐시 히트/미스 추적
         this.updatePerformanceMetrics('cacheHit');
@@ -744,8 +767,8 @@ export class StyleRuntime {
         
         // Use compressed cache if enabled
         if (this.options.optimization.advancedCompression) {
-          this.compressedCache.setAst(result.className, result.ast);
-          this.compressedCache.setCss(result.className, result.css);
+          this.compressedCache.setAst(normalizeClassName(result.className), result.ast);
+          this.compressedCache.setCss(normalizeClassName(result.className), result.css);
         }
         
         // Use memory pool if enabled
@@ -756,7 +779,7 @@ export class StyleRuntime {
         }
       } else {
         // 🔍 파싱 실패 추적
-        this.trackParseFailure(result.className, 'CSS generation failed');
+        this.trackParseFailure(normalizeClassName(result.className), 'CSS generation failed');
         this.updatePerformanceMetrics('cacheMiss');
       }
     }

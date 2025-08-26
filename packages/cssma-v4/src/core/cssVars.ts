@@ -177,7 +177,7 @@ export function themeToCssVarsAll(theme: CssmaTheme): Record<string, string> {
     ...fontSizeToCssVars(theme.fontSize || {}),
     ...fontWeightToCssVars(theme.fontWeight || {}),
     ...fontFamilyToCssVars(theme.fontFamily || {}),
-    '--spacing': theme.spacing['4'],
+    '--spacing': theme.spacing['1'],
     ...spacingToCssVars(theme.spacing || {}),
     ...borderRadiusToCssVars(theme.borderRadius || {}),
     ...zIndexToCssVars(theme.zIndex || {}),
