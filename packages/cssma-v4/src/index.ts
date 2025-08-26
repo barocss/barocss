@@ -7,4 +7,5 @@ export * from './core/context';
 export * from './core/registry';
 export * from './core/astToCss';
 export * from './utils/cache';
+export * from './utils/logger';
 import './presets';
