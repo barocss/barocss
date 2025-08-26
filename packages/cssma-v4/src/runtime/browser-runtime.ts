@@ -39,7 +39,7 @@ export class ChangeDetector {
   private incrementalParser: IncrementalParser;
   
   /** Reference to StyleRuntime for CSS injection (optional) */
-  private styleRuntime?: any;
+  private styleRuntime?: StyleRuntime;
   
   /** Set of elements that have already been processed to avoid duplicates */
   private processedElements = new WeakSet<Element>();
@@ -119,24 +119,8 @@ export class ChangeDetector {
         
         // Process classes directly and update StyleRuntime cache
         const results = this.incrementalParser.processClasses(classesArray);
-        
-        // If StyleRuntime is available, inject CSS and update cache
-        if (this.styleRuntime) {
-          const cssRules: string[] = [];
-          results.forEach(result => {
-            if (result.css) {
-              cssRules.push(...result.cssList);
-              // Add to StyleRuntime cache
-              // SVG className is SVGAnimatedString; convert to string with toString()
-              // HTMLElement className is string; use as-is
-              const className = normalizeClassName(result.cls);
-              this.styleRuntime.cache.set(className, result.cssList);
-            }
-          });
-          if (cssRules.length > 0) {
-            this.styleRuntime.insertRules(cssRules);
-          }
-        }
+        // If StyleRuntime is available, apply results via public API
+        this.styleRuntime?.applyParseResults(results);
       }
     });
 
@@ -186,25 +170,16 @@ export class ChangeDetector {
       }
     }
 
+    console.log('[StyleRuntime] scanExistingClasses', existingClasses);
+
     if (existingClasses.size > 0) {
       // Process classes using IncrementalParser
       const results = this.incrementalParser.processClasses(Array.from(existingClasses));
+
+      console.log('[StyleRuntime] scanExistingClasses results', results, ...existingClasses);
       
-      // If StyleRuntime is available, inject CSS and update cache
-      if (this.styleRuntime) {
-        const cssRules: string[] = [];
-        results.forEach(result => {
-          if (result.css) {
-            cssRules.push(...result.cssList);
-            // Add to StyleRuntime cache
-            const className = normalizeClassName(result.cls);
-            this.styleRuntime.cache.set(className, result.cssList);
-          }
-        });
-        if (cssRules.length > 0) {
-          this.styleRuntime.insertRules(cssRules);
-        }
-      }
+      // Apply results via public API
+      this.styleRuntime?.applyParseResults(results);
     }
   }
 
@@ -468,32 +443,42 @@ export class StyleRuntime {
     // Process classes immediately for testing environment
     const results = this.incrementalParser.processClasses(classList);
     
-    // Add processed results to cache and generate CSS
+    console.log('[StyleRuntime] results', results, ...classList);
+    // Apply results and inject CSS
+    this.applyParseResults(results, { isBrowser });
+  }
+
+  /**
+   * Public method to apply parser results, update internal caches, and inject CSS
+   */
+  public applyParseResults(results: Array<{ cls: string; css?: string; cssList?: string[]; rootCss?: string }>, opts?: { isBrowser?: boolean }): void {
+    const isBrowser = opts?.isBrowser ?? (typeof window !== 'undefined');
+
     const cssRules: string[] = [];
     const rootCssRules: string[] = [];
-    
+
     for (const result of results) {
-      // console.log('[StyleRuntime] result', result);
-      if (result.css) {
-        // console.log('[StyleRuntime] result.cssList', result.cssList);
+      if (result.css && Array.isArray(result.cssList)) {
         cssRules.push(...result.cssList);
         this.cache.set(normalizeClassName(result.cls), result.cssList);
       }
+
+      if (result.rootCss) {
+        rootCssRules.push(result.rootCss);
+      }
     }
-    
-    // Insert CSS in batch only in browser environment
+
     if (cssRules.length > 0 && isBrowser) {
       this.insertRules(cssRules);
     }
-    
+
     if (rootCssRules.length > 0 && isBrowser) {
       this.insertRootRules(rootCssRules.filter(Boolean));
     }
-    
-    // Debug log
-    this.debugLog('info', `Processed ${classList.length} classes`, {
-      successful: cssRules.length,
-      failed: results.length - cssRules.length
+
+    this.debugLog('info', `Applied ${results.length} parser results`, {
+      cssRuleCount: cssRules.length,
+      rootCssCount: rootCssRules.length,
     });
   }
 
@@ -588,17 +573,17 @@ export class StyleRuntime {
     }
   }
 
-  private insertRules(cssRules: string[]) {
+  public insertRules(cssRules: string[]) {
     if (!this.sheet || cssRules.length === 0) return;
     
-    const { successful, failed } = this.insertRulesToSheet(this.sheet, cssRules);
+    this.insertRulesToSheet(this.sheet, cssRules);
     
     if (this.styleEl) {
       this.syncStyleElementContent(this.styleEl, Array.from(this.cache.values()).flat());
     }
   }
 
-  private insertRootRules(cssRules: string[]) {
+  public insertRootRules(cssRules: string[]) {
     if (!this.rootSheet || cssRules.length === 0) return;
 
     // Add to rootCache

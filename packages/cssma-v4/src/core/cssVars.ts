@@ -86,6 +86,18 @@ export function fontFamilyToCssVars(fontFamily: Record<string, string[] | string
 }
 
 /**
+ * letterSpacing: { tight: '0.05em', ... }
+ * → { '--letter-spacing-tight': '0.05em' }
+ */
+export function letterSpacingToCssVars(letterSpacing: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const key in letterSpacing) {
+    result[`--letter-spacing-${key}`] = letterSpacing[key];
+  }
+  return result;
+}
+
+/**
  * spacing: { 0: '0px', 1: '0.25rem', ... }
  * → { '--spacing-0': '0px', '--spacing-1': '0.25rem', ... }
  */
@@ -177,6 +189,7 @@ export function themeToCssVarsAll(theme: CssmaTheme): Record<string, string> {
     ...fontSizeToCssVars(theme.fontSize || {}),
     ...fontWeightToCssVars(theme.fontWeight || {}),
     ...fontFamilyToCssVars(theme.fontFamily || {}),
+    ...letterSpacingToCssVars(theme.letterSpacing || {}),
     '--spacing': theme.spacing['1'],
     ...spacingToCssVars(theme.spacing || {}),
     ...borderRadiusToCssVars(theme.borderRadius || {}),

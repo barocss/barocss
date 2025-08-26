@@ -258,7 +258,7 @@ function rootToCss(nodes: AstNode[]): string {
 ${node.nodes.map((node) => {
   // console.log("[rootToCss] node", node);
   if (node.type === "decl") {
-    return `${node.prop}: ${node.value};`;
+    return `\t${node.prop}: ${node.value};`;
   }
 })
 .join("\n")}

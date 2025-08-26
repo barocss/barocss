@@ -399,7 +399,7 @@ describe('StyleConverter', () => {
   
   describe('Performance', () => {
     it('should convert complex styles within 100ms', async () => {
-      const complexCSS = 'flex-col w-full bg-gradient-to-r from-blue-500 to-purple-600 p-8 rounded-lg shadow-xl';
+      const complexCSS = 'flex-col w-full bg-linear-to-r from-blue-500 to-purple-600 p-8 rounded-lg shadow-xl';
       
       const startTime = performance.now();
       await processCssStyles(complexCSS);

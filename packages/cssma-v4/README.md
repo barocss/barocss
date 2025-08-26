@@ -73,7 +73,7 @@ CSSMA works like Tailwind CSS's JIT mode, but in real-time:
 ```typescript
 // Just add classes - CSSMA handles the rest
 document.body.innerHTML = `
-  <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl">
+  <div class="bg-linear-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl">
     <h1 class="text-4xl font-bold mb-6">Real-time Styling</h1>
     <p class="text-xl opacity-90">This gets styled instantly!</p>
   </div>
@@ -233,7 +233,7 @@ CSSMA supports **95%+ of Tailwind CSS utilities**:
 - **Spacing**: `p-4`, `m-2`, `space-x-4`, `space-y-2`
 - **Sizing**: `w-full`, `h-screen`, `min-h-screen`, `max-w-md`
 - **Typography**: `text-sm`, `font-bold`, `leading-relaxed`
-- **Backgrounds**: `bg-blue-500`, `bg-gradient-to-r`, `bg-[url(...)]`
+- **Backgrounds**: `bg-blue-500`, `bg-linear-to-r`, `bg-[url(...)]`
 - **Borders**: `border-2`, `rounded-lg`, `border-blue-500`
 - **Effects**: `shadow-lg`, `opacity-50`, `blur-sm`
 - **Transitions**: `transition-all`, `duration-300`, `ease-in-out`

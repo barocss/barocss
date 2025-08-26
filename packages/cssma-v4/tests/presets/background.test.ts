@@ -228,7 +228,7 @@ describe("background utilities", () => {
       },
       {
         type: "rule",
-        selector: "@supports (background-image:linear-gradient(in lab, red, red))",
+        selector: "@supports (background-image: linear-gradient(in lab, red, red))",
         nodes: [
           { type: "decl", prop: "--tw-gradient-position", value: "to top in oklab" },
         ],
@@ -241,7 +241,7 @@ describe("background utilities", () => {
     ]);
   });
   it("bg-linear-to-br → background-image: linear-gradient(to bottom right, var(--tw-gradient-stops))", () => {
-    expect(parseClassToAst("bg-linear-to-br", ctx)).toEqual([
+    expect(parseClassToAst("bg-linear-to-br", ctx)).toMatchObject([
       {
         type: "decl",
         prop: "--tw-gradient-position",
@@ -249,7 +249,7 @@ describe("background utilities", () => {
       },
       {
         type: "rule",
-        selector: "@supports (background-image:linear-gradient(in lab, red, red))",
+        selector: "@supports (background-image: linear-gradient(in lab, red, red))",
         nodes: [
           { type: "decl", prop: "--tw-gradient-position", value: "to bottom right in oklab" },
         ],

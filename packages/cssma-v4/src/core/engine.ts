@@ -4,7 +4,7 @@ import { astCache } from "../utils/cache";
 import { getUtility, getModifierPlugins } from "./registry";
 import { CssmaContext } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
-import { clearAllCaches } from '../utils/cache';
+import { clearAllCaches } from "../utils/cache";
 
 /**
  * decl-to-root path collection function (reused in normalizeAstOrder, etc.)
@@ -34,7 +34,9 @@ export function collectDeclPaths(
     if (node.type === "decl") {
       result.push([...path, curr]);
     } else if ((node as any).nodes && (node as any).nodes.length > 0) {
-      result = result.concat(collectDeclPaths((node as any).nodes, [...path, curr]));
+      result = result.concat(
+        collectDeclPaths((node as any).nodes, [...path, curr])
+      );
     }
   }
   return result;
@@ -116,7 +118,8 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
   // 1. If first element is decl, add rule('&', [decl])
   // 2. If rule lacks '&' while child is decl, add current rule and rule('&', [decl])
   if (sortedVariants.length === 0) {
-    if (decl.type === "decl") { // If first element is decl, add rule('&', [decl])
+    if (decl.type === "decl") {
+      // If first element is decl, add rule('&', [decl])
       sortedVariants.push({
         type: "rule",
         selector: "&",
@@ -127,7 +130,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
     const last = sortedVariants[sortedVariants.length - 1];
     if (
       (last.type == "at-rule" && last.name !== "property") ||
-      (last.type == "style-rule") ||
+      last.type == "style-rule" ||
       (last.type === "rule" && last.selector?.includes("&") === false)
     ) {
       // console.log("[declPathToAst] add rule", last);
@@ -237,7 +240,7 @@ export function parseClassToAst(
   const contextHash = JSON.stringify({
     darkMode: ctx.config("darkMode"),
     darkModeSelector: ctx.config("darkModeSelector"),
-    theme: ctx.theme
+    theme: ctx.theme,
   });
   const cacheKey = `${fullClassName}:${contextHash}`;
   if (astCache.has(cacheKey)) {
@@ -266,16 +269,16 @@ export function parseClassToAst(
 
   let wrappers = [];
   let selector = "&";
-  
+
   for (let i = 0; i < modifiers.length; i++) {
     const variant = modifiers[i];
-    
+
     const plugin = getModifierPlugins().find((p) => p.match(variant.type, ctx));
-    
+
     if (!plugin) {
       continue;
     }
-    
+
     if (plugin.wrap) {
       const items = plugin.wrap(variant, ctx);
       wrappers.push({
@@ -363,8 +366,6 @@ export function parseClassToAst(
   return ast;
 }
 
-
-
 /**
  * Clear all AST caches (mainly for testing)
  */
@@ -395,7 +396,7 @@ export function generateCss(
 ): string {
   const seen = new Set<string>();
   const allAtRootNodes: AstNode[] = [];
-  
+
   const results = classList
     .split(/\s+/)
     .filter((cls) => {
@@ -411,47 +412,49 @@ export function generateCss(
       const cleanAst = optimizeAst(ast);
 
       cleanAst.forEach((node) => {
-        if (node.type === 'at-root') {
+        if (node.type === "at-root") {
           allAtRootNodes.push(...node.nodes);
         }
       });
-      
+
       // If style-rule already has a complete selector, do not pass baseSelector
-      const hasStyleRule = cleanAst.some(node => node.type === 'style-rule');
-      const css = astToCss(cleanAst, hasStyleRule ? undefined : cls, { minify: opts?.minify }); // Conditional baseSelector
+      const hasStyleRule = cleanAst.some((node) => node.type === "style-rule");
+      const css = astToCss(cleanAst, hasStyleRule ? undefined : cls, {
+        minify: opts?.minify,
+      }); // Conditional baseSelector
 
       const rootCss = rootToCss(allAtRootNodes);
-      const result = `${rootCss ?  `:root,:host {${rootCss}}` : ''}${css}`;
-      
+      const result = `${rootCss ? `:root,:host {${rootCss}}` : ""}${css}`;
+
       // Debug logging for empty CSS
-      if (!result || result.trim() === '') {
-        console.warn('[generateCss] Empty CSS generated for class:', {
+      if (!result || result.trim() === "") {
+        console.warn("[generateCss] Empty CSS generated for class:", {
           class: cls,
           ast: cleanAst,
           hasStyleRule,
           css,
           rootCss,
-          result
+          result,
         });
       }
-      
+
       return result;
     })
     .join(opts?.minify ? "" : "\n");
-  
+
   if (allAtRootNodes.length > 0) {
-    console.log('[generateCss] All collected atRoot nodes:', allAtRootNodes);
+    console.log("[generateCss] All collected atRoot nodes:", allAtRootNodes);
   }
-  
+
   // Debug logging for final result
-  if (!results || results.trim() === '') {
-    console.warn('[generateCss] Empty final result:', {
+  if (!results || results.trim() === "") {
+    console.warn("[generateCss] Empty final result:", {
       classList,
       results,
-      allAtRootNodes
+      allAtRootNodes,
     });
   }
-  
+
   return results;
 }
 
@@ -461,7 +464,7 @@ export type GenerateCssRulesResult = {
   css: string;
   cssList: string[];
   rootCss: string;
-}
+};
 
 /**
  * Returns an array of optimized results for multiple class names with dedup/filter.
@@ -493,8 +496,13 @@ export function generateCssRules(
       const ast = parseClassToAst(cls, ctx);
       const cleanAst = optimizeAst(ast);
 
-      const allAtRootNodes: AstNode[] = cleanAst.filter(node => node.type === 'at-root');
-      const allCleanAst: AstNode[] = cleanAst.filter(node => node.type !== 'at-root');
+      const allAtRootNodes: AstNode[] = cleanAst
+        .filter((node) => node.type === "at-root")
+        .map((node) => node.nodes)
+        .flat();
+      const allCleanAst: AstNode[] = cleanAst.filter(
+        (node) => node.type !== "at-root"
+      );
 
       let cssList = [];
       for (const node of allCleanAst) {
@@ -503,12 +511,13 @@ export function generateCssRules(
       }
       // console.log('[generateCssRules] css', cls);
       const rootCss = rootToCss(allAtRootNodes);
-      return { 
-        cls, 
-        ast: cleanAst, 
-        css: cssList.join(opts?.minify ? "" : "\n"), 
+      // console.log("[generateCssRules] rootCss", rootCss, allAtRootNodes);
+      return {
+        cls,
+        ast: allCleanAst,
+        css: cssList.join(opts?.minify ? "" : "\n"),
         cssList,
-        rootCss 
+        rootCss,
       };
     });
 }
@@ -531,7 +540,8 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
     let node = ast[0];
     while (node) {
       path.push({ ...node, nodes: undefined } as any);
-      if ((node as any).nodes && (node as any).nodes.length === 1) node = (node as any).nodes[0];
+      if ((node as any).nodes && (node as any).nodes.length === 1)
+        node = (node as any).nodes[0];
       else break;
     }
     return path;
@@ -562,8 +572,8 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
       const children = merge(group, depth + 1);
       result.push(
         children.length
-          ? { ...node, nodes: children as AstNode[] } as any
-          : { ...node } as any
+          ? ({ ...node, nodes: children as AstNode[] } as any)
+          : ({ ...node } as any)
       );
     }
     return result;

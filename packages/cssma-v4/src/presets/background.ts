@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { AstNode, atRoot, atRule, decl, property, rule } from "../core/ast";
+import { AstNode, atRoot, atRule, decl, property, rule, styleRule } from "../core/ast";
 import { parseColor, parseLength, parseNumber } from "../core/utils";
 
 // --- Background Attachment ---
@@ -82,7 +82,7 @@ functionalUtility({
 const positionValue = (position: string) => {
   return [
     decl("--tw-gradient-position", position),    
-    rule("@supports (background-image:linear-gradient(in lab, red, red))", [
+    styleRule("@supports (background-image: linear-gradient(in lab, red, red))", [
       decl("--tw-gradient-position", `${position} in oklab`),
     ]),
     decl(
@@ -105,7 +105,7 @@ const positionValue = (position: string) => {
   // fallback , legacy CSS compatibility
   ["bg-gradient-to-t", positionValue("to top")],
   ["bg-gradient-to-tr", positionValue("to top right")],
-  ["bg-gradient-to-r", positionValue("to right")],
+  ["bg-linear-to-r", positionValue("to right")],
   ["bg-gradient-to-br", positionValue("to bottom right")],
   ["bg-gradient-to-b", positionValue("to bottom")],
   ["bg-gradient-to-bl", positionValue("to bottom left")],

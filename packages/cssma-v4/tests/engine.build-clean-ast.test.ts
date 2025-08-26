@@ -262,4 +262,31 @@ describe("optimizeAst ", () => {
     ];
     expect(cleanAst).toMatchObject(expected);
   });
+
+  it("bg-linear-to-r", () => {
+    let ast = parseClassToAst("bg-linear-to-r", ctx);
+    if (ast === undefined) {
+      ast = [];
+    }
+    const cleanAst = optimizeAst(ast);
+    expect(cleanAst).toMatchObject([
+      {
+        type: "rule",
+        selector: "&",
+        nodes: [
+          { type: "decl", prop: "--tw-gradient-position", value: "to right" },
+          { type: "decl", prop: "background-image", value: "linear-gradient(to right, var(--tw-gradient-stops))" }
+        ]
+      },
+      {
+        type: "style-rule",
+        selector: "@supports (background-image: linear-gradient(in lab, red, red))",
+        nodes: [
+          { type: "rule", selector: "&", nodes: [
+            { type: "decl", prop: "--tw-gradient-position", value: "to right in oklab" },
+          ]},          
+        ]
+      }
+    ]);
+  });
 }); 

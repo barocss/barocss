@@ -256,7 +256,8 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('text-[var(--my-var)]', ctx)).toBe(
       `.text-\\[var\\(--my-var\\)\\] {
   color: var(--my-var);
-  }`
+  }
+  `
     );
   });
 

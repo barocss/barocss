@@ -20,6 +20,7 @@ import { keyframes } from './keyframes';
 import { animationVars } from './animation-vars';
 import { breakpoints } from './breakpoints';
 import { container } from './container';
+import { letterSpacing } from './letter-spacing';
 
 export interface UserTheme {
   [key: string]: any;
@@ -34,6 +35,7 @@ export const defaultTheme = {
   fontSize,
   fontFamily,
   fontWeight,
+  letterSpacing,
   lineHeight,
   boxShadow,
   zIndex,
