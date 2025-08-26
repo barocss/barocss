@@ -170,13 +170,13 @@ export class ChangeDetector {
       }
     }
 
-    console.log('[StyleRuntime] scanExistingClasses', existingClasses);
+    // console.log('[StyleRuntime] scanExistingClasses', existingClasses);
 
     if (existingClasses.size > 0) {
       // Process classes using IncrementalParser
       const results = this.incrementalParser.processClasses(Array.from(existingClasses));
 
-      console.log('[StyleRuntime] scanExistingClasses results', results, ...existingClasses);
+      // console.log('[StyleRuntime] scanExistingClasses results', results);
       
       // Apply results via public API
       this.styleRuntime?.applyParseResults(results);
@@ -464,7 +464,10 @@ export class StyleRuntime {
       }
 
       if (result.rootCss) {
-        rootCssRules.push(result.rootCss);
+        if (!this.rootCache.has(result.rootCss)) {
+          this.rootCache.add(result.rootCss);
+          rootCssRules.push(result.rootCss);
+        }
       }
     }
 
@@ -588,6 +591,9 @@ export class StyleRuntime {
 
     // Add to rootCache
     for (const css of cssRules) {
+      if (this.rootCache.has(css)) {
+        continue;
+      }
       this.rootCache.add(css);
     }
 

@@ -215,6 +215,33 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
 }
 
 /**
+ * extractAtRootNodes
+ * Extracts at-root nodes from AST tree and returns them as an array.
+ * - Input: AstNode[]
+ * - Output: AstNode[]
+ * - Usage: Used in parseClassToAst for at-root node extraction
+ *
+ * @param nodes AstNode[]
+ * @param parent AstNode
+ * @param atRootNodes AstNode[]
+ */
+function extractAtRootNodes(nodes: AstNode[], parent?: AstNode, atRootNodes: AstNode[] = []) {
+  for(var i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (node.type === "at-root") {
+      atRootNodes.push(node);
+      delete nodes[i];
+    } else if (node.type === "rule" || node.type === "style-rule") {
+      extractAtRootNodes(node.nodes , node, atRootNodes);
+    }
+  }
+
+  if (parent) {
+    (parent as any).nodes = nodes.filter(Boolean) as AstNode[];
+  }
+}
+
+/**
  * parseClassToAst
  * Parses className(including variant chain) to generate AST tree.
  * - Input: className(string), CssmaContext
@@ -360,6 +387,18 @@ export function parseClassToAst(
     }
   }
 
+  // console.log("[parseClassToAst] ast", ast);
+
+  // ast 에서 at-root 노드만 추출해서 ast 앞으로 추가 
+  // ast 내부에서는 at-root 노드를 제거
+  // 재귀적으로 실행되어야 함 
+  const atRootNodes: AstNode[] = [];
+
+  extractAtRootNodes(ast, undefined, atRootNodes);
+
+  ast = [...atRootNodes, ...ast].filter(Boolean);
+
+  // console.log("[parseClassToAst] ast", ast);
   // Cache the result
   astCache.set(cacheKey, ast);
 
@@ -493,8 +532,11 @@ export function generateCssRules(
       return true;
     })
     .map((cls) => {
+      // console.log("[generateCssRules] cls", cls);
       const ast = parseClassToAst(cls, ctx);
       const cleanAst = optimizeAst(ast);
+
+      // console.log("[generateCssRules] cleanAst", cleanAst);
 
       const allAtRootNodes: AstNode[] = cleanAst
         .filter((node) => node.type === "at-root")
@@ -593,9 +635,13 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
  * @returns AstNode[]
  */
 export function optimizeAst(ast: AstNode[]): AstNode[] {
+  // console.log("[optimizeAst] ast", ast);
   const declPaths = collectDeclPaths(ast);
+  // console.log("[optimizeAst] declPaths", declPaths);
   const astList = declPaths.map(declPathToAst);
+  // console.log("[optimizeAst] astList", astList);
   const merged = mergeAstTreeList(astList);
+  // console.log("[optimizeAst] merged", merged);
 
   return merged;
 }

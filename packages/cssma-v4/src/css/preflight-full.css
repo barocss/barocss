@@ -48,6 +48,12 @@ img, picture, video, canvas, svg {
   height: auto;
 }
 
+/* SVG defaults */
+svg {
+  width: 24px;
+  height: 24px;
+}
+
 /* Inherit fonts for inputs and buttons */
 input, button, textarea, select {
   font: inherit;
