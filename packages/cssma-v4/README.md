@@ -6,7 +6,6 @@ A modern CSS utility library inspired by Tailwind CSS v4, designed for high perf
 
 ### Core Features
 - **Tailwind v4 Compatible**: Matches Tailwind CSS v4's AST structure and CSS generation
-- **High Performance**: Optimized parsing, caching, and memory management
 - **TypeScript First**: Full TypeScript support with comprehensive type definitions
 - **Universal Runtime**: Works in both browser and server environments
 
@@ -84,7 +83,7 @@ const css = serverRuntime.generateCss('bg-primary text-white');
 
 ## 🔌 Plugin System
 
-CSSMA v4 provides a comprehensive plugin system for extending functionality with full type safety and performance optimization.
+CSSMA v4 provides a comprehensive plugin system for extending functionality with full type safety.
 
 ### Plugin Types
 
@@ -436,42 +435,9 @@ interface CssmaConfig {
 ```typescript
 interface StyleRuntimeOptions {
   config?: CssmaConfig;  // CSSMA configuration
-  optimization?: {
-    advancedCompression?: boolean;  // Enable compression
-    aggressiveMemoryPool?: boolean;  // Enable memory pooling
-  };
   scan?: boolean;  // Scan existing classes
   observe?: boolean;  // Observe DOM changes
 }
-```
-
-## 🚀 Performance Features
-
-### Memory Optimization
-
-```typescript
-const runtime = new StyleRuntime({
-  config: { theme: ctx.theme },
-  optimization: {
-    advancedCompression: true,      // Compress CSS output
-    aggressiveMemoryPool: true      // Use memory pooling
-  }
-});
-```
-
-### Cache Management
-
-```typescript
-import { clearAllCaches } from 'cssma-v4/utils/cache';
-
-// Clear all caches manually
-clearAllCaches();
-
-// Automatic cache clearing on context changes
-const ctx = createContext({
-  clearCacheOnContextChange: true,  // Default: true
-  theme: { /* ... */ }
-});
 ```
 
 ## 📚 API Reference

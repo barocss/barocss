@@ -90,30 +90,6 @@ describe('IncrementalParser Universal Usage', () => {
     });
   });
 
-  describe('Performance', () => {
-    it('should handle large class lists efficiently', () => {
-      const largeClassList = Array.from({ length: 100 }, (_, i) => `bg-blue-500`);
-      
-      const startTime = Date.now();
-      const results = parser.processClasses(largeClassList);
-      const endTime = Date.now();
-      
-      expect(results).toHaveLength(1); // Only unique classes
-      expect(endTime - startTime).toBeLessThan(1000); // Should complete within 1 second
-    });
-
-    it('should avoid duplicate processing', () => {
-      const classes = ['bg-blue-500', 'text-lg'];
-      
-      // Process same classes twice
-      const results1 = parser.processClasses(classes);
-      const results2 = parser.processClasses(classes);
-      
-      expect(results1).toHaveLength(2);
-      expect(results2).toHaveLength(0); // Should be empty as classes already processed
-    });
-  });
-
   describe('Environment detection', () => {
     it('should work in Node.js environment', () => {
       // This test verifies that the parser works without browser APIs

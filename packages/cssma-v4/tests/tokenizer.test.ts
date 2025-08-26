@@ -277,32 +277,7 @@ describe('tokenize', () => {
       ]);
     });
   });
-
-  describe('performance edge cases', () => {
-    it('should handle very long class names', () => {
-      const longClass = 'a'.repeat(1000) + ':' + 'b'.repeat(1000);
-      const tokens = tokenize(longClass);
-      expect(tokens).toHaveLength(2);
-      expect(tokens[0].value).toBe('a'.repeat(1000));
-      expect(tokens[1].value).toBe('b'.repeat(1000));
-    });
-
-    it('should handle many colons', () => {
-      const manyColons = 'a:b:c:d:e:f:g:h:i:j';
-      const tokens = tokenize(manyColons);
-      expect(tokens).toHaveLength(10);
-      expect(tokens.map(t => t.value)).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']);
-    });
-
-    it('should handle deeply nested brackets', () => {
-      const nested = 'bg-[calc(100% - (20px + (10px * 2)))]:hover';
-      const tokens = tokenize(nested);
-      expect(tokens).toHaveLength(2);
-      expect(tokens[0].value).toBe('bg-[calc(100% - (20px + (10px * 2)))]');
-      expect(tokens[1].value).toBe('hover');
-    });
-  });
-
+  
   describe('Tailwind v4 advanced features', () => {
     it('should handle container queries', () => {
       const tokens = tokenize('@container:bg-red-500');

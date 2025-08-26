@@ -619,38 +619,6 @@ describe('CSSMA v4 Plugin System - Comprehensive Capabilities', () => {
     })
   })
 
-  describe('Plugin Performance Monitoring', () => {
-    it('should monitor plugin performance', () => {
-      const performancePlugin = (ctx: any, config: any) => {
-        const startTime = performance.now();
-        
-        // 시뮬레이션된 작업
-        const colors = ctx.theme('colors') || {};
-        const colorCount = Object.keys(colors).length;
-        
-        const endTime = performance.now();
-        const executionTime = endTime - startTime;
-        
-        const performanceMetrics = {
-          'executionTime': executionTime,
-          'colorCount': colorCount,
-          'memoryUsage': process.memoryUsage?.() || 'N/A',
-          'timestamp': Date.now()
-        };
-        
-        ctx.extendTheme('performance', performanceMetrics);
-      }
-
-      const ctx = createContext({
-        plugins: [performancePlugin]
-      })
-
-      expect(ctx.theme('performance', 'executionTime')).toBeGreaterThan(0)
-      expect(ctx.theme('performance', 'colorCount')).toBeGreaterThan(0)
-      expect(ctx.theme('performance', 'timestamp')).toBeDefined()
-    })
-  })
-
   describe('Plugin Error Recovery and Fallbacks', () => {
     it('should provide fallback values when theme access fails', () => {
       const fallbackPlugin = (ctx: any, config: any) => {
