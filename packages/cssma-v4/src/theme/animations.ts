@@ -1,5 +1,5 @@
-// Tailwind CSS v4.1+ animation preset
-// https://github.com/tailwindlabs/tailwindcss/blob/master/src/compat/default-theme.ts
+// Modern CSS v4.1+ animation preset
+// Modern CSS default theme reference
 
 export const animations = {
   spin: 'spin 1s linear infinite',

@@ -3,7 +3,7 @@ import { staticUtility, functionalUtility } from "../core/registry";
 import { parseNumber } from "../core/utils";
 
 // --- Fill Utilities ---
-// https://tailwindcss.com/docs/fill
+// Modern CSS fill documentation
 
 // Static fill values
 staticUtility("fill-inherit", [["fill", "inherit"]]);
@@ -29,7 +29,7 @@ functionalUtility({
 });
 
 // --- Stroke Utilities ---
-// https://tailwindcss.com/docs/stroke
+// Modern CSS stroke documentation
 staticUtility("stroke-inherit", [["stroke", "inherit"]]);
 staticUtility("stroke-current", [["stroke", "currentColor"]]);
 staticUtility("stroke-transparent", [["stroke", "transparent"]]);

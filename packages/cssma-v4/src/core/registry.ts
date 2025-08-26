@@ -81,7 +81,7 @@ export function getModifierPlugins(): ModifierPlugin[] {
   return modifierPlugins;
 }
 
-// Tailwind-style escapeClassName
+// Modern CSS escapeClassName
 const ESCAPE_REGEX = /[^A-Za-z0-9_-]/g;
 export function escapeClassName(className: string) {
   return className.replace(ESCAPE_REGEX, (c) => {

@@ -3,7 +3,7 @@ import { atRule, decl } from "../core/ast";
 import { parseNumber } from "../core/utils";
 
 // --- Accent Color Utilities  ---
-// https://tailwindcss.com/docs/accent-color
+// Modern CSS accent-color documentation
 
 // Theme color utilities (e.g. accent-inherit, accent-blue-500)
 // (Assume theme color registration is handled elsewhere, or extend as needed)
@@ -44,7 +44,7 @@ functionalUtility({
 });
 
 // --- Appearance Utilities  ---
-// https://tailwindcss.com/docs/appearance
+// Modern CSS appearance documentation
 
 // appearance-none: removes native form control styling
 staticUtility("appearance-none", [["appearance", "none"]]);
@@ -52,7 +52,7 @@ staticUtility("appearance-none", [["appearance", "none"]]);
 staticUtility("appearance-auto", [["appearance", "auto"]]);
 
 // --- Caret Color Utilities  ---
-// https://tailwindcss.com/docs/caret-color
+// Modern CSS caret-color documentation
 
 // Static caret colors
 staticUtility("caret-inherit", [["caret-color", "inherit"]]);
@@ -94,7 +94,7 @@ functionalUtility({
 });
 
 // --- Color Scheme Utilities ---
-// https://tailwindcss.com/docs/color-scheme
+// Modern CSS color-scheme documentation
 
 // scheme-normal: color-scheme: normal;
 staticUtility("scheme-normal", [["color-scheme", "normal"]]);
@@ -110,7 +110,7 @@ staticUtility("scheme-only-dark", [["color-scheme", "only dark"]]);
 staticUtility("scheme-only-light", [["color-scheme", "only light"]]);
 
 // --- Cursor Utilities  ---
-// https://tailwindcss.com/docs/cursor
+// Modern CSS cursor documentation
 
 // Static cursor values
 [
@@ -165,7 +165,7 @@ functionalUtility({
 });
 
 // --- Field Sizing Utilities  ---
-// https://tailwindcss.com/docs/field-sizing
+// Modern CSS field-sizing documentation
 
 // field-sizing-fixed: field-sizing: fixed;
 staticUtility("field-sizing-fixed", [["field-sizing", "fixed"]]);
@@ -173,7 +173,7 @@ staticUtility("field-sizing-fixed", [["field-sizing", "fixed"]]);
 staticUtility("field-sizing-content", [["field-sizing", "content"]]);
 
 // --- Pointer Events Utilities  ---
-// https://tailwindcss.com/docs/pointer-events
+// Modern CSS pointer-events documentation
 
 // pointer-events-auto: pointer-events: auto;
 staticUtility("pointer-events-auto", [["pointer-events", "auto"]]);
@@ -181,7 +181,7 @@ staticUtility("pointer-events-auto", [["pointer-events", "auto"]]);
 staticUtility("pointer-events-none", [["pointer-events", "none"]]);
 
 // --- Resize Utilities  ---
-// https://tailwindcss.com/docs/resize
+// Modern CSS resize documentation
 
 // resize: resize: both;
 staticUtility("resize", [["resize", "both"]]);
@@ -193,7 +193,7 @@ staticUtility("resize-y", [["resize", "vertical"]]);
 staticUtility("resize-none", [["resize", "none"]]);
 
 // --- Scroll Behavior Utilities  ---
-// https://tailwindcss.com/docs/scroll-behavior
+// Modern CSS scroll-behavior documentation
 
 // scroll-auto: scroll-behavior: auto;
 staticUtility("scroll-auto", [["scroll-behavior", "auto"]]);
@@ -201,19 +201,19 @@ staticUtility("scroll-auto", [["scroll-behavior", "auto"]]);
 staticUtility("scroll-smooth", [["scroll-behavior", "smooth"]]);
 
 // --- Scroll Snap Align Utilities ---
-// https://tailwindcss.com/docs/scroll-snap-align
+// Modern CSS scroll-snap-align documentation
 staticUtility("snap-start", [["scroll-snap-align", "start"]]);
 staticUtility("snap-end", [["scroll-snap-align", "end"]]);
 staticUtility("snap-center", [["scroll-snap-align", "center"]]);
 staticUtility("snap-align-none", [["scroll-snap-align", "none"]]);
 
 // --- Scroll Snap Stop Utilities ---
-// https://tailwindcss.com/docs/scroll-snap-stop
+// Modern CSS scroll-snap-stop documentation
 staticUtility("snap-normal", [["scroll-snap-stop", "normal"]]);
 staticUtility("snap-always", [["scroll-snap-stop", "always"]]);
 
 // --- Scroll Snap Type Utilities ---
-// https://tailwindcss.com/docs/scroll-snap-type
+// Modern CSS scroll-snap-type documentation
 staticUtility("snap-none", [["scroll-snap-type", "none"]]);
 staticUtility("snap-x", [["scroll-snap-type", "x var(--tw-scroll-snap-strictness)"]]);
 staticUtility("snap-y", [["scroll-snap-type", "y var(--tw-scroll-snap-strictness)"]]);
@@ -283,7 +283,7 @@ staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]]);
 });
 
 // --- Touch Action Utilities ---
-// https://tailwindcss.com/docs/touch-action
+// Modern CSS touch-action documentation
 staticUtility("touch-auto", [["touch-action", "auto"]]);
 staticUtility("touch-none", [["touch-action", "none"]]);
 staticUtility("touch-pan-x", [["touch-action", "pan-x"]]);
@@ -296,14 +296,14 @@ staticUtility("touch-pinch-zoom", [["touch-action", "pinch-zoom"]]);
 staticUtility("touch-manipulation", [["touch-action", "manipulation"]]);
 
 // --- User Select Utilities ---
-// https://tailwindcss.com/docs/user-select
+// Modern CSS user-select documentation
 staticUtility("select-none", [["user-select", "none"]]);
 staticUtility("select-text", [["user-select", "text"]]);
 staticUtility("select-all", [["user-select", "all"]]);
 staticUtility("select-auto", [["user-select", "auto"]]);
 
 // --- Will Change Utilities ---
-// https://tailwindcss.com/docs/will-change
+// Modern CSS will-change documentation
 staticUtility("will-change-auto", [["will-change", "auto"]]);
 staticUtility("will-change-scroll", [["will-change", "scroll-position"]]);
 staticUtility("will-change-contents", [["will-change", "contents"]]);

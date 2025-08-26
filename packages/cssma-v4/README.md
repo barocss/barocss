@@ -1,11 +1,11 @@
 # CSSMA v4
 
-A modern CSS utility library inspired by Tailwind CSS v4, designed for high performance and developer experience.
+A modern CSS utility library designed for high performance and developer experience.
 
 ## 🚀 Features
 
 ### Core Features
-- **Tailwind v4 Compatible**: Matches Tailwind CSS v4's AST structure and CSS generation
+- **Modern CSS Compatible**: Matches modern CSS AST structure and CSS generation
 - **TypeScript First**: Full TypeScript support with comprehensive type definitions
 - **Universal Runtime**: Works in both browser and server environments
 

@@ -3,7 +3,7 @@ import { atRule, decl } from "../core/ast";
 import { parseColor, parseNumber } from "../core/utils";
 
 // --- Box Shadow ---
-// https://tailwindcss.com/docs/box-shadow
+// Modern CSS box-shadow documentation
 
 // Static shadow levels
 [
@@ -218,8 +218,8 @@ functionalUtility({
   handleCustomProperty: (value) => [decl("box-shadow", `var(${value})`)],
 });
 
-// --- Ring (Tailwind-style multi-variable) ---
-// https://tailwindcss.com/docs/ring-width
+// --- Ring (Modern CSS multi-variable) ---
+// Modern CSS ring-width documentation
 
 // Static ring width utilities
 [
@@ -276,7 +276,7 @@ functionalUtility({
 // Ring inset
 staticUtility("ring-inset", [["--tw-ring-inset", "inset"]]);
 
-// --- Ring color/opacity/arbitrary/custom property (Tailwind-style supports+fallback) ---
+// --- Ring color/opacity/arbitrary/custom property (Modern CSS supports+fallback) ---
 function createRingColorDecls(
   key: string,
   main: string,
@@ -375,7 +375,7 @@ functionalUtility({
   },
 });
 
-// Inset ring color/opacity/arbitrary/custom property (Tailwind-style supports+fallback)
+// Inset ring color/opacity/arbitrary/custom property (Modern CSS supports+fallback)
 functionalUtility({
   name: "inset-ring",
   supportsArbitrary: true,

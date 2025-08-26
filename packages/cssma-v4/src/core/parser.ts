@@ -68,7 +68,7 @@ function isUtilityPrefix(str: string): boolean {
 /**
  * Parses a class name string into modifiers and utility using tokenization
  * Supports both directions:
- * - modifier:utility (traditional Tailwind)
+ * - modifier:utility (traditional CSS)
  * - utility:modifier (Master CSS style)
  * 
  * Examples:

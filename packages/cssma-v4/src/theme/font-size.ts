@@ -1,5 +1,5 @@
-// Tailwind CSS v4.1+ fontSize 전체
-// https://github.com/tailwindlabs/tailwindcss/blob/master/src/compat/default-theme.ts
+// Modern CSS fontSize 전체
+// Modern CSS default theme reference
 
 export const fontSize = {
   xs: ['0.75rem', '1rem'],

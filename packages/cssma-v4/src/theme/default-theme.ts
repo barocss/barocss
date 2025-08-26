@@ -1,5 +1,5 @@
-// Tailwind CSS v4.1+ default theme 전체 구조를 최대한 유사하게 구현
-// https://github.com/tailwindlabs/tailwindcss/blob/master/src/compat/default-theme.ts
+// Modern CSS v4.1+ default theme 전체 구조를 최대한 유사하게 구현
+// Modern CSS default theme reference
 
 import { colors } from './colors';
 import { spacing } from './spacing';

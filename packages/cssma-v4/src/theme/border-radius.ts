@@ -1,5 +1,5 @@
-// Tailwind CSS v4.1+ borderRadius 전체
-// https://github.com/tailwindlabs/tailwindcss/blob/master/src/compat/default-theme.ts
+// Modern CSS v4.1+ borderRadius 전체
+// Modern CSS default theme reference
 
 export const borderRadius = {
   none: '0px',

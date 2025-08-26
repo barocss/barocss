@@ -3,7 +3,7 @@ import { atRule, decl } from "../core/ast";
 import { parseNumber, parseLength, parseColor } from "../core/utils";
 
 // --- Border Radius ---
-// https://tailwindcss.com/docs/border-radius
+// Modern CSS border-radius documentation
 
 // Static border radius utilities
 staticUtility("rounded-none", [["border-radius", "0px"]]);
@@ -75,7 +75,7 @@ functionalUtility({
 });
 
 // --- Border Width ---
-// https://tailwindcss.com/docs/border-width
+// Modern CSS border-width documentation
 
 // Static border width utilities
 staticUtility("border-0", [["border-width", "0px"]]);
@@ -138,7 +138,7 @@ staticUtility("border", [["border-width", "1px"]]);
 });
 
 // --- Border Color ---
-// https://tailwindcss.com/docs/border-color
+// Modern CSS border-color documentation
 
 // Static border color utilities
 staticUtility("border-inherit", [["border-color", "inherit"]]);
@@ -146,7 +146,7 @@ staticUtility("border-current", [["border-color", "currentColor"]]);
 staticUtility("border-transparent", [["border-color", "transparent"]]);
 
 // --- Border Style ---
-// https://tailwindcss.com/docs/border-style
+// Modern CSS border-style documentation
 
 // Static border style utilities
 staticUtility("border-solid", [["border-style", "solid"]]);
@@ -204,7 +204,7 @@ functionalUtility({
 });
 
 // --- Outline Width ---
-// https://tailwindcss.com/docs/outline-width
+// Modern CSS outline-width documentation
 
 // Static outline width utilities
 staticUtility("outline-0", [["outline-width", "0px"]]);
@@ -214,7 +214,7 @@ staticUtility("outline-4", [["outline-width", "4px"]]);
 staticUtility("outline-8", [["outline-width", "8px"]]);
 
 // --- Outline Color ---
-// https://tailwindcss.com/docs/outline-color
+// Modern CSS outline-color documentation
 
 // Static outline color utilities
 staticUtility("outline-inherit", [["outline-color", "inherit"]]);
@@ -223,7 +223,7 @@ staticUtility("outline-transparent", [["outline-color", "transparent"]]);
 
 
 // --- Outline Style ---
-// https://tailwindcss.com/docs/outline-style
+// Modern CSS outline-style documentation
 
 // Static outline style utilities
 staticUtility("outline-none", [["outline", "2px solid transparent"], ["outline-offset", "2px"]]);
@@ -233,7 +233,7 @@ staticUtility("outline-dotted", [["outline-style", "dotted"]]);
 staticUtility("outline-double", [["outline-style", "double"]]);
 
 // --- Outline Offset ---
-// https://tailwindcss.com/docs/outline-offset
+// Modern CSS outline-offset documentation
 
 // Static outline offset utilities
 staticUtility("outline-offset-0", [["outline-offset", "0px"]]);

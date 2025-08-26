@@ -1,6 +1,6 @@
 import { functionalModifier } from "../../core/registry";
 
-// Tailwind-style arbitrary variant ([...]) 지원 (order: 999, always last)
+// Modern CSS-style arbitrary variant ([...]) 지원 (order: 999, always last)
 functionalModifier(
   (mod: string) => /^\[.*\]$/.test(mod),
   ({ selector, mod }) => {

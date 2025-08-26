@@ -54,7 +54,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     expect(ast).toEqual([{ type: "rule", selector: "&", nodes: [{ type: "decl", prop: "color", value: "#111" }] }]);
   });
 
-  it("복잡한 중첩/branch 구조 (실제 Tailwind variant chain, 단일 path)", () => {
+      it("복잡한 중첩/branch 구조 (실제 Modern CSS variant chain, 단일 path)", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" },
       { type: "rule", selector: "&:hover" },
@@ -226,7 +226,7 @@ describe("declPathToAst (decl path 단일 변환)", () => {
     expect(ast).toEqual([]);
   });
 
-  it("실전 Tailwind variant chain: sm:dark:hover:bg-red-500", () => {
+      it("실전 Modern CSS variant chain: sm:dark:hover:bg-red-500", () => {
     const path: DeclPath = [
       { type: "at-rule", name: "media", params: "(min-width: 640px)" }, // sm
       {

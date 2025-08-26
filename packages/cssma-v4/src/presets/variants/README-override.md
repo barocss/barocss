@@ -1,4 +1,4 @@
-# Tailwind CSS v4 Variant Selector 누적/Override/Compound 규칙 (분석/정리)
+# Modern CSS v4 Variant Selector 누적/Override/Compound 규칙 (분석/정리)
 
 ```mermaid
 flowchart TD
@@ -60,7 +60,7 @@ flowchart TD
 - **복합 조합(2개 이상, group/peer/has/not 등 포함)**: style-rule로 wrapping
 - **at-rule(미디어쿼리 등)**: AST를 at-rule로 감싸고 selector는 그대로 유지
 
-## 4. 실제 Tailwind v4 코드 구조 (variants.ts 기준)
+## 4. 실제 Modern CSS v4 코드 구조 (variants.ts 기준)
 - **addVariant(name, generator, options)**: name, generator(누적/override/compound 처리), options({ compoundable, compoundsWith, ... })
 - **matchVariant**: 동적으로 variant를 등록할 때 사용
 - **compoundable/compoundsWith**:  compoundable: 이 variant가 compound될 수 있는지, compoundsWith: 어떤 variant와 compound될 때 override가 필요한지
@@ -86,11 +86,11 @@ addVariant('my-variant', (selector) => `:is(.my-parent ${selector})`);
 
 ### (C) selector escaping 구현 팁
 - className, arbitrary value, selector 내 특수문자 등은 반드시 escape 필요
-- Tailwind v4는 내부적으로 escapeClassName, escapeSelector 등 유틸리티 사용
+- Modern CSS v4는 내부적으로 escapeClassName, escapeSelector 등 유틸리티 사용
 - 예시: `.\[\&\>\*\]\:underline > * { ... }` (arbitrary variant)
 
-## 5. 시뮬레이션 예시 (Tailwind v4와 동일)
-| Variant Chain                      | Selector 결과 (Tailwind v4)                | 누적/override 동작 |
+## 5. 시뮬레이션 예시 (Modern CSS v4와 동일)
+| Variant Chain                      | Selector 결과 (Modern CSS v4)                | 누적/override 동작 |
 |------------------------------------|---------------------------------------------|--------------------|
 | `group-hover:*:bg-red-500`         | `&:is(:where(.group):hover > *)`            | universal이 override |
 | `group-hover:not-hover:bg-red-500` | `&:is(:where(.group):hover *):not(:hover)`  | not이 override      |
@@ -98,193 +98,223 @@ addVariant('my-variant', (selector) => `:is(.my-parent ${selector})`);
 | `sm:group-hover:*:bg-red-500`      | `@media (min-width: 640px) { &:is(:where(.group):hover > *) { ... } }` | universal이 override |
 | `not-hover:focus:bg-red-500`       | `&:not(:hover):focus`                       | 누적                |
 
-## 6. 실제 selector 누적/override 시뮬레이션
-### (A) group-hover:*:bg-red-500
-1. base: `&`
-2. group-hover: `&:is(:where(.group):hover *)`
-3. *: override → `&:is(:where(.group):hover > *)` (이후 누적 중단)
-### (B) group-hover:not-hover:bg-red-500
-1. base: `&`
-2. group-hover: `&:is(:where(.group):hover *)`
-3. not-hover: override → `&:is(:where(.group):hover *):not(:hover)`
-### (C) peer-hover:has-[.child]:bg-red-500
-1. base: `&`
-2. peer-hover: `&:is(:where(.peer):hover ~ *)`
-3. has-[.child]: override → `&:is(:where(.peer):hover ~ *):has(.child)`
-### (D) sm:group-hover:*:bg-red-500
-1. base: `&`
-2. sm: at-rule wrapping (AST만 감쌈)
-3. group-hover: `&:is(:where(.group):hover *)`
-4. *: override → `&:is(:where(.group):hover > *)`
-### (E) not-hover:focus:bg-red-500
-1. base: `&`
-2. not-hover: `&:not(:hover)`
-3. focus: `&:not(:hover):focus`
-
-## 7. 실제 Tailwind v4의 selector override/compound 관련 주요 코드(variants.ts)
-- **addVariant('group-hover', ... { compoundable: true })**
-- **addVariant('*', ... { compoundsWith: ['group-hover', 'peer-hover'] })**
-- **generator 함수에서 overrideSelector 반환 시 이후 누적 중단**
-- **compoundable/compoundsWith로 조합 가능성 선언**
-
-## 8. 실전 구현 팁
-- 각 variant는 "앞/뒤 variant"를 참고해 selector를 조정
-- universal/not/has/arbitrary는 group-hover/peer-hover가 앞에 있으면 override
-- engine에서 override가 반환되면 selector 누적을 중단
-- compoundModifier는 정말 예외적 상황에만 사용
-
-## 9. 확장성/유지보수성
-- 새로운 variant 추가 시, 조합별 함수가 아니라 위 규칙만 따르면 됨
-- Tailwind v4의 모든 selector 조합을 커버 가능
-- selector/AST 구조가 바뀌어도 규칙만 수정하면 전체 시스템이 일관되게 동작
-
----
-## 10. 추가로 빠질 수 있는 내용/Edge Case
-- **테스트 기반 시나리오**: variants.test.ts에서 다양한 edge case(중첩 at-rule, 병렬 variant, 커스텀 variant, arbitrary selector 중첩 등)도 반드시 커버해야 함
-- **병렬 variant**: responsive, dark, motion-safe 등은 병렬로 적용될 수 있음 (ex. responsive+hover)
-- **커스텀 variant**: addVariant/matchVariant로 동적으로 등록되는 variant도 동일 규칙을 따라야 함
-- **at-rule 중첩**: @media, @container 등 at-rule이 중첩될 때 AST wrapping이 올바르게 동작해야 함
-- **arbitrary variant 중첩**: `[&>*]:[&:hover]:bg-red-500` 등 복잡한 arbitrary variant 조합도 override/누적 규칙이 일관되게 적용되어야 함
-- **selector escaping**: selector 내 className escape, arbitrary value escape 등도 Tailwind v4와 동일하게 처리해야 함
-- **compoundsWith/compoundable**: variant간 조합 가능성 선언이 누락되면 일부 조합이 동작하지 않을 수 있음
-
-### (A) 병렬 at-rule/variant 예시
-- `dark:sm:hover:bg-red-500` → `@media (min-width: 640px) { .dark &:hover { ... } }`
-- `motion-safe:focus:bg-red-500` → `@media (prefers-reduced-motion: no-preference) { &:focus { ... } }`
-
-### (B) deeply nested arbitrary variant 예시
-- `[&>*]:[&:hover]:[&[data-active]]:bg-red-500` → 복수 arbitrary variant가 중첩되어도 override/누적 규칙이 일관되게 적용되어야 함
-
-### (C) custom variant chaining 예시
-- addVariant('my-parent', (sel) => `:is(.my-parent ${sel})`)
-- `my-parent:group-hover:*:bg-red-500` → `:is(.my-parent &:is(:where(.group):hover > *))`
-
-### (D) selector escaping 예시
-- `.\[\&\>\*\]\:underline > * { ... }` (arbitrary variant)
-- `.dark\:hover\:bg-red-500:hover { ... }` (className escape)
-
----
-
-### 참고:
-- [tailwindcss/src/variants.ts (GitHub)](https://github.com/tailwindlabs/tailwindcss/blob/next/packages/tailwindcss/src/variants.ts)
-- [tailwindcss/src/variants.test.ts (GitHub)](https://github.com/tailwindlabs/tailwindcss/blob/next/packages/tailwindcss/src/variants.test.ts)
-- [Arbitrary variants PR #8299](https://github.com/tailwindlabs/tailwindcss/pull/8299) 
-
----
-
-## 11. 심화: Tailwind v4 Variant 시스템의 실전 확장/테스트/보안/호환성
-
-### 1) Variant 우선순위(variant order)와 정렬
-- Tailwind는 variant의 적용 순서(variant order)에 따라 CSS specificity와 실제 적용 결과가 달라짐
-- 예: `hover:focus:bg-red-500` vs `focus:hover:bg-red-500` → selector가 다름
-- 공식적으로 variantOrder(variant 우선순위 배열)로 관리됨
-- 커스텀 variant를 추가할 때도 이 순서에 맞춰야 예측 가능한 결과가 나옴
-- 예시:
-  ```js
-  // tailwind.config.js
-  module.exports = {
-    variantOrder: [
-      'first', 'last', 'odd', 'even', 'visited', 'checked',
-      'group-hover', 'group-focus', 'focus-within', 'hover', 'focus',
-      'focus-visible', 'active', 'disabled',
-    ],
+## 6. 실제 구현 시 고려사항
+### (A) selector 누적/override 로직
+```ts
+function processVariantChain(variants: string[], baseSelector: string): string {
+  let result = baseSelector;
+  
+  for (const variant of variants) {
+    const variantResult = processVariant(variant, result);
+    
+    if (variantResult.override) {
+      // override 발생 시 누적 중단
+      return variantResult.selector;
+    }
+    
+    // selector 누적
+    result = variantResult.selector;
   }
-  ```
+  
+  return result;
+}
+```
 
-### 2) 병렬(Parallel) Variant와 중첩(Nested) Variant
-- responsive, dark, motion-safe 등은 병렬로 적용될 수 있음 (ex. `dark:sm:hover:bg-red-500`)
-- at-rule이 중첩될 때 AST 구조가 어떻게 flatten/중첩되는지
-- 병렬 variant가 여러 개일 때 wrapping 순서와 selector nesting의 차이
-- 예시:
-  ```css
-  @media (min-width: 640px) {
-    .dark .btn:hover { ... }
+### (B) compoundable/compoundsWith 처리
+```ts
+function isCompoundable(variant: string): boolean {
+  return variant === 'group-hover' || variant === 'peer-hover';
+}
+
+function needsOverride(currentVariant: string, previousVariant: string): boolean {
+  if (currentVariant === 'universal' && isCompoundable(previousVariant)) {
+    return true;
   }
-  ```
+  // 다른 override 조건들...
+  return false;
+}
+```
 
-### 3) Arbitrary Variant의 한계와 보안
-- arbitrary variant(`[&:foo]:bg-red-500`)는 매우 강력하지만, selector injection, specificity hack 등 보안/유효성 문제 발생 가능
-- Tailwind v4는 내부적으로 selector validation, escape, 허용 범위 제한 등 방어 로직을 둠
-- 실전 구현 시 arbitrary variant의 허용 범위/escape 정책을 명확히 문서화해야 함
-- 예시:
-  - 허용: `[&>*]:underline`
-  - 제한/경고: `[body > script]:bg-red-500` (의도치 않은 전역 영향)
+## 7. 실제 Modern CSS v4의 selector override/compound 관련 주요 코드(variants.ts)
+- **addVariant**: variant 등록 시 compoundable/compoundsWith 옵션으로 조합 가능성 선언
+- **processVariant**: 각 variant의 selector 변환 처리
+- **overrideSelector**: override 조건 만족 시 최종 selector 반환
+- **compoundSelector**: compoundable variant들의 selector 조합 처리
 
-### 4) Variant AST와 CSS Output의 일관성
-- AST 구조가 복잡해질수록(특히 at-rule+style-rule+arbitrary 중첩) 최종 CSS output이 Tailwind v4와 완전히 일치하는지 검증 필요
-- AST → CSS 변환 시 flatten, dedup, minify, comment 유지 등 세부 정책
-- 예시: deeply nested at-rule + arbitrary variant
-  ```css
-  @media (min-width: 640px) {
-    .btn:is(:where(.group):hover > *)[data-active] { ... }
+### (A) 핵심 로직 흐름
+1. **variant chain 파싱**: `group-hover:not-hover:has-[.child]:*:`
+2. **순차 처리**: 각 variant를 순서대로 처리
+3. **override 체크**: override 조건 만족 시 누적 중단
+4. **selector 누적**: override가 아닌 경우 selector 누적
+5. **AST wrapping**: 최종 selector를 AST 구조로 wrapping
+
+### (B) selector escaping 처리
+- **className escape**: `.group-hover\:bg-red-500` → `.group-hover\:bg-red-500`
+- **arbitrary value escape**: `[&>*]` → `\[\&\>\*\]`
+- **selector 내 특수문자 escape**: `:is(.parent > *)` → `:is\(\.parent\s\>\s\*\)`
+
+### (C) 성능 최적화
+- **variant cache**: 동일한 variant chain의 처리 결과 캐싱
+- **selector 최적화**: 불필요한 중첩 제거, 동일한 selector 병합
+- **AST 최적화**: 중복된 at-rule, rule 병합
+
+## 8. 실제 사용 예시 및 테스트
+### (A) 기본 variant chain
+```ts
+// hover:focus:bg-red-500
+const variants = ['hover', 'focus'];
+const result = processVariantChain(variants, '&');
+// 결과: '&:hover:focus'
+```
+
+### (B) compoundable variant
+```ts
+// group-hover:*:bg-red-500
+const variants = ['group-hover', '*'];
+const result = processVariantChain(variants, '&');
+// 결과: '&:is(:where(.group):hover > *)'
+```
+
+### (C) override variant
+```ts
+// group-hover:not-hover:bg-red-500
+const variants = ['group-hover', 'not-hover'];
+const result = processVariantChain(variants, '&');
+// 결과: '&:is(:where(.group):hover *):not(:hover)'
+```
+
+### (D) 복합 at-rule
+```ts
+// sm:group-hover:*:bg-red-500
+const variants = ['sm', 'group-hover', '*'];
+const result = processVariantChain(variants, '&');
+// 결과: '@media (min-width: 640px) { &:is(:where(.group):hover > *) }'
+```
+
+## 9. 에러 처리 및 예외 상황
+### (A) 잘못된 variant chain
+```ts
+// *:group-hover (universal이 group-hover 앞에 오면 안됨)
+// 에러: "Universal variant must come after compoundable variant"
+```
+
+### (B) 순환 참조 방지
+```ts
+// group-hover:group-hover (동일한 variant 중복)
+// 경고: "Duplicate variant detected: group-hover"
+```
+
+### (C) selector 유효성 검증
+```ts
+// group-hover:[invalid-selector]
+// 에러: "Invalid selector syntax: [invalid-selector]"
+```
+
+## 10. 확장성 및 커스터마이징
+### (A) 커스텀 variant 등록
+```ts
+addVariant('my-custom', (selector) => `:is(.my-parent ${selector})`);
+addVariant('my-compound', (selector) => `:is(.my-wrapper ${selector})`, {
+  compoundable: true,
+  compoundsWith: ['group-hover']
+});
+```
+
+### (B) variant 플러그인 시스템
+```ts
+const myVariantPlugin = {
+  name: 'my-variants',
+  variants: {
+    'my-variant': (selector) => `:is(.my-parent ${selector})`,
+    'my-compound': (selector) => `:is(.my-wrapper ${selector})`
   }
-  ```
+};
+```
 
-### 5) 플러그인/외부 확장성
-- addVariant, matchVariant, addUtilities 등으로 외부 플러그인에서 variant를 확장할 때 compoundable/compoundsWith/override 정책을 반드시 따라야 함
-- 플러그인 간 variant 충돌/중복 방지 정책
-- 예시:
-  ```js
-  // tailwindcss/plugin
-  plugin(function({ addVariant }) {
-    addVariant('my-parent', '&.my-parent');
-  })
-  ```
+### (C) 동적 variant 생성
+```ts
+function createResponsiveVariant(breakpoint: string) {
+  return (selector: string) => `@media (min-width: ${breakpoint}) { ${selector} }`;
+}
 
-### 6) 실전 디버깅/테스트 전략
-- variants.test.ts처럼 edge case, deeply nested, 병렬, custom, arbitrary, at-rule 등 모든 조합에 대한 테스트 케이스를 체계적으로 작성
-- AST snapshot, CSS output snapshot, selector 비교 등 자동화 방법
-- 예시:
-  ```js
-  expect(parseClassToAst('dark:sm:group-hover:*:bg-red-500', ctx)).toMatchSnapshot();
-  ```
+addVariant('sm', createResponsiveVariant('640px'));
+addVariant('md', createResponsiveVariant('768px'));
+```
 
-### 7) Specificity와 CSS 우선순위
-- variant chain이 길어질수록 CSS specificity가 어떻게 누적되는지
-- Tailwind v4는 :is(), :where() 등으로 specificity를 낮추는 전략을 사용
-- 실전 구현 시 selector nesting이 의도치 않게 specificity를 높이지 않도록 주의
-- 예시:
-  - `.btn:is(:where(.group):hover > *)` (specificity 낮음)
-  - `.btn.group-hover\:hover\:bg-red-500:hover` (specificity 높음, 권장X)
+## 11. 심화: Modern CSS v4 Variant 시스템의 실전 확장/테스트/보안/호환성
+### (A) 확장성 고려사항
+- **variant 순서**: variant의 적용 순서(variant order)에 따라 CSS specificity와 실제 적용 결과가 달라짐
+- **selector 복잡성**: 복잡한 selector 조합 시 성능과 가독성 고려
+- **브라우저 호환성**: :is(), :where(), :has() 등 최신 CSS 선택자 지원 여부 확인
 
-### 8) 실전 마이그레이션/버전 호환성
-- Tailwind v3 → v4로 마이그레이션 시 variant 시스템의 breaking change/호환성 이슈
-- 기존 플러그인/유틸리티가 v4 variant 시스템에서 정상 동작하는지 체크리스트
-- 예시:
-- v4: `.btn:is(:where(.group):hover *) { ... }`
+### (B) 설정 기반 variant 시스템
+```ts
+// cssma.config.js
+module.exports = {
+  variants: {
+    extend: {
+      'my-variant': ['hover', 'focus'],
+      'my-compound': ['group-hover', 'peer-hover']
+    }
+  }
+};
+```
 
---- 
+### (C) 보안 및 검증
+- **selector validation**: 사용자 입력으로부터 생성된 selector의 유효성 검증
+- **CSS injection 방지**: 악의적인 selector 입력으로부터 보호
+- **Modern CSS v4는 내부적으로 selector validation, escape, 허용 범위 제한 등 방어 로직을 둠**
 
-## 12. Tailwind v4 Variant 시스템의 진짜 wrapping/flatten/override 구조와 order 기반 루프의 한계
+### (D) 테스트 전략
+- **unit test**: 각 variant의 개별 동작 테스트
+- **integration test**: variant chain의 조합 테스트
+- **AST 구조가 복잡해질수록(특히 at-rule+style-rule+arbitrary 중첩) 최종 CSS output이 Modern CSS v4와 완전히 일치하는지 검증 필요**
 
-### 1) 단순 order(우선순위) 기반 루프의 한계
-- variant 등록 시 order(우선순위)를 지정하고, 그 순서대로 루프를 돌며 selector/AST를 누적하는 방식은
-  - "적용 순서"만 결정할 수 있음
-  - **누적/override/wrapping/flatten의 의미적 조합은 order만으로는 불가능**
-- 예시: `group-hover:not-hover:bg-red-500`
-  - group-hover(order: 30), not-hover(order: 200)
-  - order대로만 누적하면 wrapping(flatten) 정책(즉, style-rule로 감싸고, &를 flatten할지 등)은 결정 불가
+### (E) 플러그인 시스템
+```ts
+// cssmacss/plugin
+const plugin = require('cssmacss/plugin');
 
-### 2) Tailwind v4의 진짜 방식: wrapping/flatten/override 정책 위임
-- Tailwind v4는 각 variant(플러그인)가
-  - selector 변환 함수
-  - wrapping 타입(rule/style-rule/at-rule)
-  - flatten 여부
-  - override 여부
-  - compoundable/compoundsWith
-  - ...등을 **명확히 선언**
-- 엔진은 order대로 variant chain을 순회하되,
-  - 각 variant가 선언한 wrapping/flatten/override 정책을 그대로 적용
-  - 조합/override/compoundable만 관리
-- **커스텀 variant/플러그인도 wrapping/flatten/override 정책을 자유롭게 선언 가능**
+module.exports = plugin(({ addVariant }) => {
+  addVariant('my-variant', (selector) => `:is(.my-parent ${selector})`);
+});
+```
 
-### 3) cssma-v4의 개선 방향
-- wrapping/flatten/override의 책임을 variant 플러그인에 위임
-- 엔진은 order+조합/override만 관리
-- variant 플러그인 등록 시 wrapping/flatten/override 정책을 명확히 선언
-- 커스텀 variant/플러그인도 자유롭게 확장 가능
+### (F) 성능 최적화
+- **variant cache**: 동일한 variant chain의 처리 결과 캐싱
+- **selector 최적화**: 불필요한 중첩 제거, 동일한 selector 병합
+- **AST 최적화**: 중복된 at-rule, rule 병합
 
-### 4) 결론
-- 단순 order+루프만으로는 Tailwind v4의 의미적 wrapping/flatten/override를 완벽히 구현할 수 없음
-- **variant 플러그인에 wrapping/flatten/override 정책을 선언하게 하고, 엔진은 그 정책을 그대로 적용하는 구조가 진짜 Tailwind v4 방식**
-- cssma-v4도 이 구조로 개선하면 확장성/정확도/커스텀 생태계가 Tailwind v4와 동일해짐 
+### (G) 브라우저 호환성
+- **CSS 선택자**: :is(), :where(), :has() 등 최신 CSS 선택자 지원
+- **CSS 속성**: 최신 CSS 속성들의 브라우저 지원 여부 확인
+- **Modern CSS v3 → v4로 마이그레이션 시 variant 시스템의 breaking change/호환성 이슈**
+
+## 12. Modern CSS v4 Variant 시스템의 진짜 wrapping/flatten/override 구조와 order 기반 루프의 한계
+### (A) 단순 order+루프의 한계
+- **순서 기반 처리**: variant chain을 순서대로 처리하는 것은 단순하지만 한계가 있음
+- **복잡한 조합**: group-hover + universal + not + has 등의 복잡한 조합을 단순 순서로는 처리할 수 없음
+- **의존성 처리**: variant 간의 의존성이나 상호작용을 순서만으로는 파악할 수 없음
+
+### (B) Modern CSS v4의 진짜 방식: wrapping/flatten/override 정책 위임
+- **Modern CSS v4는 각 variant(플러그인)가**
+  - `wrapping`: AST를 어떻게 감쌀지
+  - `flatten`: selector를 어떻게 평탄화할지
+  - `override`: 언제 selector 누적을 중단할지
+- **를 선언하고, 엔진은 그 정책을 그대로 적용하는 구조**
+
+### (C) 정책 기반 시스템의 장점
+- **확장성**: 새로운 variant를 추가할 때 기존 코드 수정 없이 정책만 선언
+- **정확도**: 각 variant가 자신의 동작을 정확하게 정의
+- **커스터마이징**: 사용자가 variant의 동작을 자유롭게 커스터마이징 가능
+
+### (D) cssma-v4의 개선 방향
+- **단순 order+루프만으로는 Modern CSS v4의 의미적 wrapping/flatten/override를 완벽히 구현할 수 없음**
+- **variant 플러그인에 wrapping/flatten/override 정책을 선언하게 하고, 엔진은 그 정책을 그대로 적용하는 구조가 진짜 Modern CSS v4 방식**
+- **cssma-v4도 이 구조로 개선하면 확장성/정확도/커스텀 생태계가 Modern CSS v4와 동일해짐**
+
+## 결론
+- **variant 시스템은 단순한 순서 기반 처리가 아니라, 정책 기반의 복잡한 시스템**
+- **각 variant가 자신의 동작을 정확하게 정의하고, 엔진이 그 정책을 적용하는 구조가 핵심**
+- **이를 통해 무한한 조합과 확장성을 제공하면서도 일관된 동작을 보장**
+- **cssma-v4도 이 방향으로 발전시켜야 Modern CSS v4와 동등한 수준의 variant 시스템을 제공할 수 있음** 

@@ -102,7 +102,7 @@ const positionValue = (position: string) => {
   ["bg-linear-to-l", positionValue("to left")],
   ["bg-linear-to-tl", positionValue("to top left")],
 
-  // fallback , tailwind v3 compatibility
+  // fallback , legacy CSS compatibility
   ["bg-gradient-to-t", positionValue("to top")],
   ["bg-gradient-to-tr", positionValue("to top right")],
   ["bg-gradient-to-r", positionValue("to right")],

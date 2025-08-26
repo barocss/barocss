@@ -1,5 +1,5 @@
-// Tailwind CSS v4.1+ transitionTimingFunction 전체
-// https://github.com/tailwindlabs/tailwindcss/blob/master/src/compat/default-theme.ts
+// Modern CSS v4.1+ transitionTimingFunction 전체
+// Modern CSS default theme reference
 
 export const transitionTimingFunction = {
   DEFAULT: 'cubic-bezier(0.4, 0, 0.2, 1)',

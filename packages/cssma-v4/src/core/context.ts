@@ -33,7 +33,7 @@ export interface CssmaTheme {
 export interface CssmaConfig {
   prefix?: string;  // prefix for class names, default is 'cssma-'
   /**
-   * Tailwind-style dark mode strategy
+   * Modern dark mode strategy
    * - 'media': uses @media (prefers-color-scheme: dark)
    * - 'class': uses .dark selector
    * - string[]: custom selectors (e.g. ['class', '[data-theme="dark"]'])
@@ -70,7 +70,7 @@ export interface CssmaConfig {
 
 export const defaultConfig: CssmaConfig = {
   prefix: 'cssma-',
-  darkMode: 'media', // Tailwind 기본값과 동일
+  darkMode: 'media', // Modern CSS 기본값과 동일
 };
 
 export interface CssmaContext {
@@ -116,7 +116,7 @@ export function deepMerge<T extends Record<string, any>>(base: T, override: Part
 export type ThemeGetter = (...path: (string|number)[]) => any;
 
 /**
- * Tailwind-style theme getter for CSSMA
+ * Modern theme getter for CSSMA
  *
  * - Supports category-level (first path segment) function values only.
  *   - If the category (e.g., 'spacing', 'colors') is a function, it will be executed with the theme getter as argument.

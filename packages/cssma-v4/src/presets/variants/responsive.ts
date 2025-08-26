@@ -7,7 +7,7 @@ import { getDefaultBreakpoint } from "./utils";
 // responsive (media 쿼리) - 동적 breakpoint 지원
 functionalModifier(
   (mod: string, context: CssmaContext) => {
-    // 1. config에서 정의된 breakpoint 확인 (Tailwind CSS 실제 구현과 일치)
+    // 1. config에서 정의된 breakpoint 확인 (Modern CSS 실제 구현과 일치)
     const breakpoints = context.theme('breakpoints') || context.config('theme.breakpoints') || {};
     const breakpointKeys = Object.keys(breakpoints);
     
@@ -45,7 +45,7 @@ functionalModifier(
   (mod: ParsedModifier, context: CssmaContext) => {
     const breakpoint = mod.type;
     
-    // 1. config에서 정의된 breakpoint 처리 (Tailwind CSS v4.1 표준)
+    // 1. config에서 정의된 breakpoint 처리 (Modern CSS v4.1 표준)
     const breakpoints = context.theme('breakpoints') || context.config('theme.breakpoints') || {};
     
     // 2. 기본 breakpoint 처리 (config에 정의된 모든 breakpoint)

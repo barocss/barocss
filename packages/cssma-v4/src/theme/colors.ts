@@ -1,5 +1,5 @@
-// Tailwind CSS v4.1+ colors 전체 팔레트 (OKLCH/HEX 등)
-// https://github.com/tailwindlabs/tailwindcss/blob/master/src/compat/default-theme.ts
+// Modern CSS v4.1+ colors 전체 팔레트 (OKLCH/HEX 등)
+// Modern CSS default theme reference
 
 export const colors = {
   inherit: 'inherit',

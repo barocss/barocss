@@ -1,4 +1,4 @@
-// Value parsing helpers inspired by Tailwind CSS value-parser.ts
+// Value parsing helpers inspired by modern CSS value-parser.ts
 
 /**
  * Extracts the value from [arbitrary] syntax, or returns null if not arbitrary.

@@ -12,7 +12,7 @@ import "./spacing";
 
 
 // --- Sizing: width (w-*) and size (size-*) ---
-// Tailwind: https://tailwindcss.com/docs/width
+// Modern CSS width documentation
 
 // w-* static values
 [
@@ -111,7 +111,7 @@ functionalUtility({
 });
 
 // --- Sizing: height (h-*) ---
-// Tailwind: https://tailwindcss.com/docs/height
+// Modern CSS height documentation
 
 // h-* static values
 [
@@ -148,7 +148,7 @@ functionalUtility({
 });
 
 // --- Sizing: min-height (min-h-*) ---
-// Tailwind: https://tailwindcss.com/docs/min-height
+// Modern CSS min-height documentation
 
 // min-h-* static values
 [
@@ -185,7 +185,7 @@ functionalUtility({
 });
 
 // --- Sizing: max-height (max-h-*) ---
-// Tailwind: https://tailwindcss.com/docs/max-height
+// Modern CSS max-height documentation
 
 // max-h-* static values
 [
@@ -222,7 +222,7 @@ functionalUtility({
 });
 
 // --- Sizing: min-width (min-w-*) ---
-// Tailwind: https://tailwindcss.com/docs/min-width
+// Modern CSS min-width documentation
 
 // min-w-* static values
 [

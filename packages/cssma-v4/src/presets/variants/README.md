@@ -7,7 +7,7 @@
 
 ---
 
-## 2. 핵심 규칙 (Tailwind v4 완전 호환 목표)
+## 2. 핵심 규칙 (Modern CSS v4 완전 호환 목표)
 
 ### (1) Selector 누적/override
 - 기본: variant chain을 왼→오로 순차 누적 (modifySelector)
@@ -34,9 +34,9 @@
 
 ---
 
-## 3. 예시 (Tailwind v4와 동일하게)
+## 3. 예시 (Modern CSS v4와 동일하게)
 
-| Variant Chain                      | Selector 결과 (Tailwind v4)                |
+| Variant Chain                      | Selector 결과 (Modern CSS v4)                |
 |------------------------------------|---------------------------------------------|
 | `group-hover:*:bg-red-500`         | `&:is(:where(.group):hover > *)`            |
 | `group-hover:not-hover:bg-red-500` | `&:is(:where(.group):hover *):not(:hover)`  |
@@ -87,5 +87,5 @@
 
 ## 6. 확장성/유지보수성
 - 새로운 variant 추가 시, 조합별 함수가 아니라 위 규칙만 따르면 됨
-- Tailwind v4의 모든 selector 조합을 커버 가능
+- Modern CSS v4의 모든 selector 조합을 커버 가능
 - selector/AST 구조가 바뀌어도 규칙만 수정하면 전체 시스템이 일관되게 동작 

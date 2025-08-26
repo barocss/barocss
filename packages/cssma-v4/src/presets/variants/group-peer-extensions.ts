@@ -31,7 +31,7 @@ functionalModifier(
   undefined,
 );
 
-// --- parent/child 확장(실제 Tailwind에는 없지만 확장성 예시) ---
+// --- parent/child 확장(실제 Modern CSS에는 없지만 확장성 예시) ---
 functionalModifier(
   (mod: string) => /^parent-(open|focus|hover)$/.test(mod),
   ({ selector, mod }) => {

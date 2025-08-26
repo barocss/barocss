@@ -1,4 +1,4 @@
-// https://tailwindcss.com/docs/responsive-design#container-size-reference
+// Modern CSS responsive design documentation
 
 export const container = {
   '3xs': '16rem',

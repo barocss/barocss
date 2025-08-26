@@ -1,5 +1,5 @@
 // --- Transform Utilities ---
-// https://tailwindcss.com/docs/backface-visibility
+// Modern CSS backface-visibility documentation
 import { atRoot, decl, property } from "../core/ast";
 import { staticUtility, functionalUtility } from "../core/registry";
 import {
@@ -9,7 +9,7 @@ import {
 } from "../core/utils";
 
 // --- Transform  ---
-// https://tailwindcss.com/docs/transform
+// Modern CSS transform documentation
 
 // transform-none: disables all transforms
 staticUtility("transform-none", [["transform", "none"]]);
@@ -33,7 +33,7 @@ staticUtility("transform-cpu", [
 ]);
 
 // --- Transform Style  ---
-// https://tailwindcss.com/docs/transform-style
+// Modern CSS transform-style documentation
 
 // transform-3d: transform-style: preserve-3d;
 staticUtility("transform-3d", [["transform-style", "preserve-3d"]]);
@@ -64,12 +64,12 @@ functionalUtility({
 });
 
 // --- Backface Visibility ---
-// https://tailwindcss.com/docs/backface-visibility
+// Modern CSS backface-visibility documentation
 staticUtility("backface-hidden", [["backface-visibility", "hidden"]]);
 staticUtility("backface-visible", [["backface-visibility", "visible"]]);
 
 // --- Perspective ---
-// https://tailwindcss.com/docs/perspective
+// Modern CSS perspective documentation
 staticUtility("perspective-dramatic", [
   ["perspective", "var(--perspective-dramatic)"],
 ]); // 100px
@@ -86,7 +86,7 @@ staticUtility("perspective-distant", [
 staticUtility("perspective-none", [["perspective", "none"]]);
 
 // --- Perspective Origin ---
-// https://tailwindcss.com/docs/perspective-origin
+// Modern CSS perspective-origin documentation
 staticUtility("perspective-origin-center", [["perspective-origin", "center"]]);
 staticUtility("perspective-origin-top", [["perspective-origin", "top"]]);
 staticUtility("perspective-origin-top-right", [
@@ -135,7 +135,7 @@ functionalUtility({
 });
 
 // --- Rotate ---
-// https://tailwindcss.com/docs/rotate
+// Modern CSS rotate documentation
 
 // rotate-none
 staticUtility("rotate-none", [["rotate", "none"]]);
@@ -255,7 +255,7 @@ functionalUtility({
 });
 
 // --- Scale ---
-// https://tailwindcss.com/docs/scale
+// Modern CSS scale documentation
 
 // scale-none
 staticUtility("scale-none", [["scale", "none"]]);
@@ -372,7 +372,7 @@ functionalUtility({
 });
 
 // --- Skew ---
-// https://tailwindcss.com/docs/skew
+// Modern CSS skew documentation
 
 // skew-x-<number>, -skew-x-<number>, skew-x-(<custom-property>), skew-x-[<value>]
 functionalUtility({
@@ -446,7 +446,7 @@ functionalUtility({
 });
 
 // --- Transform Origin  ---
-// https://tailwindcss.com/docs/transform-origin
+// Modern CSS transform-origin documentation
 
 // origin-center: transform-origin: center;
 staticUtility("origin-center", [["transform-origin", "center"]]);
@@ -479,7 +479,7 @@ functionalUtility({
 });
 
 // --- Translate  ---
-// https://tailwindcss.com/docs/translate
+// Modern CSS translate documentation
 
 let translateProperties = () => (
     atRoot([

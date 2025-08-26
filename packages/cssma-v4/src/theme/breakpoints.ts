@@ -1,4 +1,4 @@
-// https://tailwindcss.com/docs/responsive-design#targeting-a-breakpoint-range
+// Modern CSS responsive design documentation
 
 export const breakpoints = {
   sm: '40rem',

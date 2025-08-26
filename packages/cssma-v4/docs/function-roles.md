@@ -539,6 +539,6 @@ optimizeAst 결과:
 
 ## 결론
 
-- cssma-v4 엔진은 Tailwind v4와 동일한 variant wrapping 구조(데카르트 곱, sibling, 중첩, 병합 등)를 완벽하게 지원
+- cssma-v4 엔진은 현대적인 CSS variant wrapping 구조(데카르트 곱, sibling, 중첩, 병합 등)를 완벽하게 지원
 - 각 함수의 역할, 입력/출력, 내부 처리 흐름, AST 트리 구조, 예외/주의사항을 명확히 이해하고 작성해야 함
 - 문서/테스트/코드가 항상 일치하도록 관리할 것

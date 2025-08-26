@@ -54,7 +54,7 @@ import { decl, rule } from "../core/ast";
 });
 
 // --- Spacing: space-x, space-y, space-x-reverse, space-y-reverse ---
-// Tailwind: https://github.com/tailwindlabs/tailwindcss/blob/main/packages/tailwindcss/src/utilities.ts
+// Modern CSS spacing utilities reference
 
 // space-x-*, -space-x-*, space-x-px, -space-x-px, space-x-[...], space-x-(...)
 

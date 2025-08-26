@@ -3,9 +3,9 @@ import { decl } from "../core/ast";
 import { parseNumber } from "../core/utils";
 
 // --- Transition Property Utilities  ---
-// https://tailwindcss.com/docs/transition-property
+// Modern CSS transition-property documentation
 
-// 기본 변수 (Tailwind와 동일하게)
+// 기본 변수 (Modern CSS와 동일하게)
 const defaultTiming = "var(--default-transition-timing-function)"; // cubic-bezier(0.4, 0, 0.2, 1)
 const defaultDuration = "var(--default-transition-duration)"; // 150ms
 
