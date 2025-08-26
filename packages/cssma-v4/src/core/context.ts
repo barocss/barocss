@@ -70,7 +70,7 @@ export interface CssmaConfig {
 
 export const defaultConfig: CssmaConfig = {
   prefix: 'cssma-',
-  darkMode: 'media', //  기본값과 동일
+  darkMode: 'media', // same as default
 };
 
 export interface CssmaContext {
@@ -79,7 +79,7 @@ export interface CssmaContext {
   config: (...path: (string|number)[]) => any;
   plugins: any[];
   themeToCssVars: (prefix?: string) => string;
-  // 플러그인에서 theme 확장을 위한 안전한 API
+  // Safe API for extending theme from plugins
   extendTheme: (category: string, values: Record<string, any> | Function) => void;
   getPreflightCSS: (level?: PreflightLevel) => string;
 }
@@ -262,10 +262,10 @@ ${keyframesToCss(theme.keyframes || {})}
 
 // createContext
 export function createContext(configObj: CssmaConfig): CssmaContext {
-  // defaultTheme를 기본 preset으로 자동 추가
+  // Automatically include defaultTheme as the base preset
   const configWithDefaults = {
     presets: [
-      { theme: defaultTheme },  // 항상 기본 preset으로 defaultTheme 포함
+      { theme: defaultTheme },  // always include defaultTheme as base preset
       ...(configObj.presets || [])
     ],
     ...configObj
@@ -273,12 +273,12 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
   
   let themeObj = resolveTheme(configWithDefaults);
   
-  // Context 변경 시 캐시 자동 클리어 (선택적)
+  // Auto-clear caches on context change (optional)
   if (configObj.clearCacheOnContextChange !== false) {
     clearAllCaches();
   }
 
-  // 1. ctx를 먼저 빈 객체로 선언
+  // 1. Declare ctx first as an object
   const ctx: CssmaContext = {
     hasPreset: (category: string, preset: string) => {
       const result = hasPreset(themeObj, category, preset);
@@ -297,16 +297,16 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
     },
     plugins: configWithDefaults.plugins ?? [],
     themeToCssVars: () => themeToCssVars(themeObj),
-    // 플러그인에서 theme 확장을 위한 안전한 API
+    // Safe API for theme extension from plugins
     extendTheme: (category: string, values: Record<string, any> | Function) => {
       // console.log(`[extendTheme] category: ${category}, values:`, values);
       
       if (typeof values === 'function') {
-        // 함수인 경우 theme getter를 전달하여 실행
+        // If it's a function, execute with theme getter
         const themeFunction = values as (theme: ThemeGetter) => any;
         const result = themeFunction(ctx.theme);
         if (result && typeof result === 'object') {
-          // 기존 값과 병합
+          // Merge with existing values
           const existingValues = themeObj[category] || {};
           themeObj[category] = {
             ...existingValues,
@@ -315,10 +315,10 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
           // console.log(`[extendTheme] function result merged for ${category}:`, themeObj[category]);
         }
       } else if (typeof values === 'object' && values !== null && !Array.isArray(values)) {
-        // 기존 category 값 가져오기
+        // Get existing category values
         const existingValues = themeObj[category] || {};
         
-        // 기존 값과 새로운 값을 병합
+        // Merge existing and new values
         themeObj[category] = {
           ...existingValues,
           ...values
@@ -333,7 +333,7 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
     }
   };
 
-  // 2. 프로퍼티 할당 (모든 함수에서 themeObj, configWithDefaults 등 참조)
+  // 2. Property assignment (functions reference themeObj, configWithDefaults, etc.)
   // ctx.hasPreset = (category: string, preset: string) => {
   //   const result = hasPreset(themeObj, category, preset);
   //   console.log(`[hasPreset] category: ${category}, preset: ${preset} =>`, result);
@@ -352,7 +352,7 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
   // ctx.plugins = configWithDefaults.plugins ?? [];
   // ctx.themeToCssVars = () => themeToCssVars(themeObj);
 
-  // 3. ctx가 완전히 준비된 후 플러그인 실행
+  // 3. Execute plugins after ctx is fully ready
   if (configWithDefaults.plugins && configWithDefaults.plugins.length > 0) {
     // console.log('--- Plugin execution start ---');
     for (const plugin of configWithDefaults.plugins) {

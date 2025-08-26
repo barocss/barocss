@@ -1,5 +1,5 @@
-//  v4.1+ borderRadius 전체
-//  default theme reference
+// v4.1+ complete borderRadius scale
+// Default theme reference
 
 export const borderRadius = {
   none: '0px',

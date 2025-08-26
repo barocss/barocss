@@ -1,5 +1,5 @@
-//  v4.1+ transitionProperty 전체
-//  default theme reference
+// v4.1+ complete transitionProperty map
+// Default theme reference
 
 export const transitionProperty = {
   none: 'none',

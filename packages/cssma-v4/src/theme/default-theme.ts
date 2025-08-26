@@ -1,5 +1,5 @@
-//  v4.1+ default theme 전체 구조를 최대한 유사하게 구현
-//  default theme reference
+// v4.1+ default theme structure implemented to closely match reference
+// Default theme reference
 
 import { colors } from './colors';
 import { spacing } from './spacing';

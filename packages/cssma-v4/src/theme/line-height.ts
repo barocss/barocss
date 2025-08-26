@@ -1,5 +1,5 @@
-//  v4.1+ lineHeight 전체
-//  default theme reference
+// v4.1+ complete lineHeight scale
+// Default theme reference
 
 export const lineHeight = {
   none: '1',

@@ -1,6 +1,6 @@
 import { functionalModifier } from "../../core/registry";
 
-// --- group/peer/parent/child 확장 (예시: group-focus, peer-active 등) ---
+// --- group/peer/parent/child extensions (examples: group-focus, peer-active, etc.) ---
 functionalModifier(
   (mod: string) => /^group-(hover|focus|active|visited|checked|disabled|aria-[^:]+)$/.test(mod),
   ({ selector, mod }) => {
@@ -31,7 +31,7 @@ functionalModifier(
   undefined,
 );
 
-// --- parent/child 확장(실제 에는 없지만 확장성 예시) ---
+// --- parent/child extensions (not in the actual spec, but extensibility example) ---
 functionalModifier(
   (mod: string) => /^parent-(open|focus|hover)$/.test(mod),
   ({ selector, mod }) => {

@@ -1,13 +1,13 @@
 import { functionalModifier } from "../../core/registry";
 
-// -style arbitrary variant ([...]) 지원 (order: 999, always last)
+// Master CSS-style arbitrary variant ([...]) support (order: 999, always last)
 functionalModifier(
   (mod: string) => /^\[.*\]$/.test(mod),
   ({ selector, mod }) => {
     const m = /^\[(.+)\]$/.exec(mod.type);
     if (!m) return { selector };
     const inner = m[1].trim();
-    // 속성 선택자(attr=val) 또는 단순 속성([open])도 대괄호로 감싸서 반환
+    // For attribute selectors (attr=val) or simple attributes ([open]), wrap with brackets
     if (/^[a-zA-Z0-9_-]+(=.+)?$/.test(inner)) {
       return { selector: `&[${inner}]`, wrappingType: 'rule', source: 'attribute' };
     }

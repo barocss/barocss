@@ -4,39 +4,39 @@ import { CssmaContext } from "../../core/context";
 import { ParsedModifier } from "../../core/parser";
 import { getDefaultBreakpoint } from "./utils";
 
-// responsive (media 쿼리) - 동적 breakpoint 지원
+// responsive (media queries) - dynamic breakpoint support
 functionalModifier(
   (mod: string, context: CssmaContext) => {
-    // 1. config에서 정의된 breakpoint 확인 ( 실제 구현과 일치)
+    // 1. Check breakpoints defined in config (matches actual implementation)
     const breakpoints = context.theme('breakpoints') || context.config('theme.breakpoints') || {};
     const breakpointKeys = Object.keys(breakpoints);
     
-    // 2. 기본 breakpoint 확인 (config에 정의된 모든 breakpoint)
+    // 2. Check basic breakpoints (all breakpoints defined in config)
     if (breakpointKeys.includes(mod)) {
       return true;
     }
     
-    // 3. max-width breakpoint 확인 (max-{breakpoint})
+    // 3. Check max-width breakpoint (max-{breakpoint})
     if (mod.startsWith('max-')) {
       const baseBreakpoint = mod.replace('max-', '');
-      // 3-1. 정의된 breakpoint인 경우
+      // 3-1. When it is a defined breakpoint
       if (breakpointKeys.includes(baseBreakpoint)) {
         return true;
       }
-      // 3-2. arbitrary max-width인 경우 (max-[960px])
+      // 3-2. When it is an arbitrary max-width (max-[960px])
       if (/^\[.*\]$/.test(baseBreakpoint)) {
         return true;
       }
     }
     
-    // 4. arbitrary min-width 확인 (min-[600px])
+    // 4. Check arbitrary min-width (min-[600px])
     if (/^min-\[.*\]$/.test(mod)) {
-      return true; // 임의값은 항상 유효
+      return true; // arbitrary values are always valid
     }
     
-    // 5. arbitrary max-width 확인 (max-[960px])
+    // 5. Check arbitrary max-width (max-[960px])
     if (/^max-\[.*\]$/.test(mod)) {
-      return true; // 임의값은 항상 유효
+      return true; // arbitrary values are always valid
     }
     
     return false;
@@ -45,30 +45,30 @@ functionalModifier(
   (mod: ParsedModifier, context: CssmaContext) => {
     const breakpoint = mod.type;
     
-    // 1. config에서 정의된 breakpoint 처리 ( v4.1 표준)
+    // 1. Handle breakpoints defined in config (v4.1 standard)
     const breakpoints = context.theme('breakpoints') || context.config('theme.breakpoints') || {};
     
-    // 2. 기본 breakpoint 처리 (config에 정의된 모든 breakpoint)
+    // 2. Handle basic breakpoints (all breakpoints defined in config)
     if (Object.keys(breakpoints).includes(breakpoint)) {
       let mediaQuery = context.theme(`breakpoints.${breakpoint}`) || 
                       getDefaultBreakpoint(breakpoint);
-      // 숫자(px/em/rem 등)만 오면 (min-width: ...)로 감싸기
+      // If only a number (px/em/rem etc.) is provided, wrap with (min-width: ...)
       if (/^\d+(px|em|rem)?$/.test(mediaQuery)) {
         mediaQuery = `(min-width: ${mediaQuery})`;
       }
       return [atRule('media', mediaQuery, [], 'responsive')];
     }
     
-    // 3. max-width breakpoint 처리 (max-{breakpoint})
+    // 3. Handle max-width breakpoint (max-{breakpoint})
     if (breakpoint.startsWith('max-')) {
       const baseBreakpoint = breakpoint.replace('max-', '');
       
-      // 3-1. 정의된 breakpoint인 경우 (max-sm, max-md, etc.)
+      // 3-1. When it is a defined breakpoint (max-sm, max-md, etc.)
       if (Object.keys(breakpoints).includes(baseBreakpoint)) {
         let mediaQuery = context.theme(`breakpoints.${baseBreakpoint}`) || 
                         getDefaultBreakpoint(baseBreakpoint);
         
-        // min-width를 max-width로 변환
+        // Convert min-width to max-width
         if (mediaQuery.includes('min-width:')) {
           const value = mediaQuery.match(/min-width:\s*([^)]+)/)?.[1];
           if (value) {
@@ -84,7 +84,7 @@ functionalModifier(
         return [atRule('media', mediaQuery, [], 'responsive')];
       }
       
-      // 3-2. arbitrary max-width인 경우 (max-[960px])
+      // 3-2. When it is an arbitrary max-width (max-[960px])
       if (/^\[(.*)\]$/.test(baseBreakpoint)) {
         const value = baseBreakpoint.match(/^\[(.*)\]$/)?.[1];
         if (value) {
@@ -93,7 +93,7 @@ functionalModifier(
       }
     }
     
-    // 4. arbitrary min-width 처리 (min-[600px])
+    // 4. Handle arbitrary min-width (min-[600px])
     if (/^min-\[(.*)\]$/.test(breakpoint)) {
       const value = breakpoint.match(/^min-\[(.*)\]$/)?.[1];
       if (value) {
@@ -101,7 +101,7 @@ functionalModifier(
       }
     }
     
-    // 5. arbitrary max-width 처리 (max-[960px])
+    // 5. Handle arbitrary max-width (max-[960px])
     if (/^max-\[(.*)\]$/.test(breakpoint)) {
       const value = breakpoint.match(/^max-\[(.*)\]$/)?.[1];
       if (value) {

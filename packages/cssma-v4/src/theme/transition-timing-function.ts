@@ -1,5 +1,5 @@
-//  v4.1+ transitionTimingFunction 전체
-//  default theme reference
+// v4.1+ complete transitionTimingFunction scale
+// Default theme reference
 
 export const transitionTimingFunction = {
   DEFAULT: 'cubic-bezier(0.4, 0, 0.2, 1)',

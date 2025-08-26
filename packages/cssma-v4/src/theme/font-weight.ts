@@ -1,5 +1,5 @@
-//  v4.1+ fontWeight 전체
-//  default theme reference
+// v4.1+ complete fontWeight scale
+// Default theme reference
 
 export const fontWeight = {
   thin: '100',

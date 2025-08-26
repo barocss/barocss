@@ -1,4 +1,4 @@
-#  v4 Variant Selector 누적/Override/Compound 규칙 (분석/정리)
+# v4 Variant Selector Accumulation/Override/Compound Rules (Analysis/Summary)
 
 ```mermaid
 flowchart TD
@@ -38,33 +38,33 @@ flowchart TD
     note3 --- F
 ```
 
-## 1. Variant 시스템의 핵심 구조
-- **Variant Chain**: `group-hover:not-hover:has-[.child]:*:` 처럼 여러 variant가 순서대로 적용된 것.
-- **각 variant는 "자기 역할"만 정의**:  selector 변환(누적/override), AST wrapping, at-rule wrapping 등
-- **조합별 함수가 아니라, "누적/override 규칙"으로 모든 조합을 커버**
+## 1. Core Structure of the Variant System
+- **Variant Chain**: Multiple variants applied in order, e.g., `group-hover:not-hover:has-[.child]:*:`.
+- **Each variant defines only its own role**: selector transform (accumulate/override), AST wrapping, at-rule wrapping, etc.
+- **Cover combinations via accumulation/override rules rather than per-combination functions**
 
-## 2. Selector 누적/override의 공식 규칙
-### (1) 기본 누적
-- variant chain은 **왼→오**로 순차적으로 selector를 변환(누적)
-  - ex) `hover:focus:bg-red-500` → `&:hover:focus`
-### (2) override(누적 중단) 규칙
-- **특정 variant(예: universal, not, has, arbitrary)**는  "앞 variant"가 group-hover/peer-hover 등일 때  **override(최종 selector)로 반환** → 이후 누적 중단
-- override가 발생하면, 이후 variant의 selector 변환은 무시됨
-### (3) compound(복합) 규칙
-- **compoundable**: 어떤 variant가 다른 variant와 "compound"될 수 있는지 선언
-- **compoundsWith**: 어떤 variant와 compound될 때 override가 필요한지 선언
-- **실제 동작**:  universal이 group-hover 뒤에 오면,  universal이 override selector(`&:is(:where(.group):hover > *)`)를 반환, 이후 누적 중단
+## 2. Official Rules for Selector Accumulation/Override
+### (1) Basic accumulation
+- The variant chain transforms (accumulates) selectors left → right
+  - e.g., `hover:focus:bg-red-500` → `&:hover:focus`
+### (2) Override (stop accumulation)
+- **Certain variants (e.g., universal, not, has, arbitrary)** return an **override (final selector)** when preceded by group-hover/peer-hover, then accumulation stops
+- Once override occurs, subsequent selector transforms are ignored
+### (3) Compound rules
+- **compoundable**: declare whether a variant can compound with others
+- **compoundsWith**: declare when override is required in specific compounds
+- **Actual behavior**: if universal comes after group-hover, universal returns the override selector (`&:is(:where(.group):hover > *)`) and stops accumulation
 
-## 3. AST Wrapping 규칙
-- **단일 pseudo/universal/not/has/arbitrary**: rule로 wrapping
-- **복합 조합(2개 이상, group/peer/has/not 등 포함)**: style-rule로 wrapping
-- **at-rule(미디어쿼리 등)**: AST를 at-rule로 감싸고 selector는 그대로 유지
+## 3. AST Wrapping Rules
+- **Single pseudo/universal/not/has/arbitrary**: wrap as rule
+- **Compound combinations (2+ including group/peer/has/not)**: wrap as style-rule
+- **At-rules (media queries, etc.)**: wrap AST with at-rule; keep selector unchanged
 
-## 4. 실제  v4 코드 구조 (variants.ts 기준)
-- **addVariant(name, generator, options)**: name, generator(누적/override/compound 처리), options({ compoundable, compoundsWith, ... })
-- **matchVariant**: 동적으로 variant를 등록할 때 사용
-- **compoundable/compoundsWith**:  compoundable: 이 variant가 compound될 수 있는지, compoundsWith: 어떤 variant와 compound될 때 override가 필요한지
-- **overrideSelector**:  generator가 `{ selector, override: true }`를 반환하면 이후 누적 중단
+## 4. Actual v4 Code Structure (based on variants.ts)
+- **addVariant(name, generator, options)**: name, generator (accumulation/override/compound handling), options ({ compoundable, compoundsWith, ... })
+- **matchVariant**: used for dynamic variant registration
+- **compoundable/compoundsWith**: declare whether a variant compounds and which compounds require override
+- **overrideSelector**: if generator returns `{ selector, override: true }`, stop accumulation
 
 ### (A) 주요 함수 시그니처/타입 예시 (variants.ts)
 ```ts
@@ -77,29 +77,29 @@ addVariant(
 - **generator**: selector 변환 함수. `{ selector, override: true }` 반환 시 이후 누적 중단
 - **compoundable/compoundsWith**: 조합 가능성/override 필요성 선언
 
-### (B) 커스텀 variant 등록 예시
+### (B) Custom variant registration example
 ```ts
 addVariant('children', '& > *');
 // children:pl-4 → .children\:pl-4 > * { ... }
 addVariant('my-variant', (selector) => `:is(.my-parent ${selector})`);
 ```
 
-### (C) selector escaping 구현 팁
-- className, arbitrary value, selector 내 특수문자 등은 반드시 escape 필요
--  v4는 내부적으로 escapeClassName, escapeSelector 등 유틸리티 사용
-- 예시: `.\[\&\>\*\]\:underline > * { ... }` (arbitrary variant)
+### (C) Tips for selector escaping
+- Always escape className, arbitrary values, and special characters in selectors
+- v4 internally uses utilities like escapeClassName and escapeSelector
+- Example: `.\[\&\>\*\]\:underline > * { ... }` (arbitrary variant)
 
-## 5. 시뮬레이션 예시 ( v4와 동일)
-| Variant Chain                      | Selector 결과 ( v4)                | 누적/override 동작 |
+## 5. Simulation Examples (same as v4)
+| Variant Chain                      | Selector result (v4)               | Accumulation/override |
 |------------------------------------|---------------------------------------------|--------------------|
-| `group-hover:*:bg-red-500`         | `&:is(:where(.group):hover > *)`            | universal이 override |
-| `group-hover:not-hover:bg-red-500` | `&:is(:where(.group):hover *):not(:hover)`  | not이 override      |
-| `peer-hover:has-[.child]:bg-red-500`| `&:is(:where(.peer):hover ~ *):has(.child)` | has가 override      |
-| `sm:group-hover:*:bg-red-500`      | `@media (min-width: 640px) { &:is(:where(.group):hover > *) { ... } }` | universal이 override |
-| `not-hover:focus:bg-red-500`       | `&:not(:hover):focus`                       | 누적                |
+| `group-hover:*:bg-red-500`         | `&:is(:where(.group):hover > *)`            | universal overrides |
+| `group-hover:not-hover:bg-red-500` | `&:is(:where(.group):hover *):not(:hover)`  | not overrides       |
+| `peer-hover:has-[.child]:bg-red-500`| `&:is(:where(.peer):hover ~ *):has(.child)` | has overrides       |
+| `sm:group-hover:*:bg-red-500`      | `@media (min-width: 640px) { &:is(:where(.group):hover > *) { ... } }` | universal overrides |
+| `not-hover:focus:bg-red-500`       | `&:not(:hover):focus`                       | accumulate          |
 
-## 6. 실제 구현 시 고려사항
-### (A) selector 누적/override 로직
+## 6. Implementation Considerations
+### (A) Selector accumulation/override logic
 ```ts
 function processVariantChain(variants: string[], baseSelector: string): string {
   let result = baseSelector;
@@ -108,11 +108,11 @@ function processVariantChain(variants: string[], baseSelector: string): string {
     const variantResult = processVariant(variant, result);
     
     if (variantResult.override) {
-      // override 발생 시 누적 중단
+      // Stop accumulation when override occurs
       return variantResult.selector;
     }
     
-    // selector 누적
+    // Accumulate selector
     result = variantResult.selector;
   }
   
@@ -120,7 +120,7 @@ function processVariantChain(variants: string[], baseSelector: string): string {
 }
 ```
 
-### (B) compoundable/compoundsWith 처리
+### (B) Handling compoundable/compoundsWith
 ```ts
 function isCompoundable(variant: string): boolean {
   return variant === 'group-hover' || variant === 'peer-hover';
@@ -130,33 +130,33 @@ function needsOverride(currentVariant: string, previousVariant: string): boolean
   if (currentVariant === 'universal' && isCompoundable(previousVariant)) {
     return true;
   }
-  // 다른 override 조건들...
+  // Other override conditions...
   return false;
 }
 ```
 
-## 7. 실제  v4의 selector override/compound 관련 주요 코드(variants.ts)
-- **addVariant**: variant 등록 시 compoundable/compoundsWith 옵션으로 조합 가능성 선언
-- **processVariant**: 각 variant의 selector 변환 처리
-- **overrideSelector**: override 조건 만족 시 최종 selector 반환
-- **compoundSelector**: compoundable variant들의 selector 조합 처리
+## 7. Key v4 code related to selector override/compound (variants.ts)
+- **addVariant**: declare compoundability with options
+- **processVariant**: handle each variant's selector transform
+- **overrideSelector**: return final selector when override conditions are met
+- **compoundSelector**: combine selectors for compoundable variants
 
-### (A) 핵심 로직 흐름
-1. **variant chain 파싱**: `group-hover:not-hover:has-[.child]:*:`
-2. **순차 처리**: 각 variant를 순서대로 처리
-3. **override 체크**: override 조건 만족 시 누적 중단
-4. **selector 누적**: override가 아닌 경우 selector 누적
-5. **AST wrapping**: 최종 selector를 AST 구조로 wrapping
+### (A) Core logic flow
+1. **Parse variant chain**: `group-hover:not-hover:has-[.child]:*:`
+2. **Process sequentially**: handle each variant in order
+3. **Check override**: stop accumulation when conditions are met
+4. **Accumulate selector**: if not overridden, keep accumulating
+5. **AST wrapping**: wrap final selector into AST structure
 
-### (B) selector escaping 처리
+### (B) Selector escaping
 - **className escape**: `.group-hover\:bg-red-500` → `.group-hover\:bg-red-500`
 - **arbitrary value escape**: `[&>*]` → `\[\&\>\*\]`
-- **selector 내 특수문자 escape**: `:is(.parent > *)` → `:is\(\.parent\s\>\s\*\)`
+- **special characters in selectors**: `:is(.parent > *)` → `:is\(\.parent\s\>\s\*\)`
 
-### (C) 성능 최적화
-- **variant cache**: 동일한 variant chain의 처리 결과 캐싱
-- **selector 최적화**: 불필요한 중첩 제거, 동일한 selector 병합
-- **AST 최적화**: 중복된 at-rule, rule 병합
+### (C) Performance optimizations
+- **variant cache**: cache results for identical variant chains
+- **selector optimization**: remove unnecessary nesting, merge identical selectors
+- **AST optimization**: merge duplicate at-rules and rules
 
 ## 8. 실제 사용 예시 및 테스트
 ### (A) 기본 variant chain

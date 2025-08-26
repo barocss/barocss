@@ -103,12 +103,12 @@ function parseTokens(tokens: Token[]): { modifiers: ParsedModifier[]; utility: P
   const modifiers: ParsedModifier[] = [];
   let utility: ParsedUtility | null = null;
   
-  // 빈 토큰 배열 처리
+  // Handle empty token array
   if (tokens.length === 0) {
     return { modifiers, utility: null };
   }
   
-  // 토큰 타입 판단 및 양방향 파싱
+  // Determine token types and parse in both directions
   if (tokens.length === 1) {
     // utility only
     utility = parseUtility(tokens[0].value);
@@ -118,30 +118,30 @@ function parseTokens(tokens: Token[]): { modifiers: ParsedModifier[]; utility: P
     const isFirstUtility = isUtilityPrefix(firstToken.value);
     
     if (isFirstUtility) {
-      // utility:modifier 형태
+      // utility:modifier form
       utility = parseUtility(firstToken.value);
       const parsed = parseModifier(secondToken.value);
       if (parsed) modifiers.push(parsed);
     } else {
-      // modifier:utility 형태
+      // modifier:utility form
       const parsed = parseModifier(firstToken.value);
       if (parsed) modifiers.push(parsed);
       utility = parseUtility(secondToken.value);
     }
   } else {
-    // 여러 토큰이 있는 경우
-    // 첫 번째 토큰이 유틸리티인지 확인
+    // Multiple tokens
+    // Check if the first token is a utility
     const isFirstUtility = isUtilityPrefix(tokens[0].value);
     
     if (isFirstUtility) {
-      // utility:modifier:modifier 형태
+      // utility:modifier:modifier form
       utility = parseUtility(tokens[0].value);
       for (let i = 1; i < tokens.length; i++) {
         const parsed = parseModifier(tokens[i].value);
         if (parsed) modifiers.push(parsed);
       }
     } else {
-      // modifier:modifier:utility 형태
+      // modifier:modifier:utility form
       for (let i = 0; i < tokens.length - 1; i++) {
         const parsed = parseModifier(tokens[i].value);
         if (parsed) modifiers.push(parsed);
@@ -176,7 +176,7 @@ function parseModifier(value: string): ParsedModifier | null {
  * Parse utility token
  */
 function parseUtility(value: string): ParsedUtility {
-  // bg-[red], text-[color:var(--foo)], bg-(--my-bg), -m-4, -bg-[red]
+  // Examples: bg-[red], text-[color:var(--foo)], bg-(--my-bg), -m-4, -bg-[red]
   let prefix = '';
   let utilityValue = '';
   let arbitrary = false;
@@ -191,14 +191,14 @@ function parseUtility(value: string): ParsedUtility {
   // Handle arbitrary values
   if (value.includes('-[')) {
     [prefix, utilityValue] = value.split('-[');
-    // 대괄호 닫힘 위치
+    // Closing bracket position
     const closeIdx = utilityValue.lastIndexOf(']');
     if (closeIdx !== -1 && closeIdx < utilityValue.length - 1 && utilityValue[closeIdx + 1] === '/') {
-      // 대괄호 뒤에 /가 있으면 opacity 분리
-      opacity = utilityValue.slice(closeIdx + 2); // '/' 다음부터 끝까지
-      utilityValue = utilityValue.slice(0, closeIdx); // 대괄호 안만 value
+      // If '/' follows the closing bracket, split opacity
+      opacity = utilityValue.slice(closeIdx + 2); // after '/'
+      utilityValue = utilityValue.slice(0, closeIdx); // keep inside brackets only
     } else {
-      // 대괄호로 끝나면 opacity 없음
+      // If ends with ']', no opacity
       utilityValue = utilityValue.replace(/]$/, '');
     }
     arbitrary = true;

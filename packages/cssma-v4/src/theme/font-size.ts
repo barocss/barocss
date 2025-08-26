@@ -1,5 +1,5 @@
-//  fontSize 전체
-//  default theme reference
+// Complete fontSize scale
+// Default theme reference
 
 export const fontSize = {
   xs: ['0.75rem', '1rem'],

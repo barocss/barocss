@@ -1,5 +1,5 @@
-//  v4.1+ opacity 전체
-//  default theme reference
+// v4.1+ complete opacity scale
+// Default theme reference
 
 export const opacity = {
   0: '0',

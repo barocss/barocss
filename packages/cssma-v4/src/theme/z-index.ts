@@ -1,5 +1,5 @@
-//  v4.1+ zIndex 전체
-//  default theme reference
+// v4.1+ complete zIndex scale
+// Default theme reference
 
 export const zIndex = {
   auto: 'auto',

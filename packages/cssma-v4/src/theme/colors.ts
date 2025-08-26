@@ -1,5 +1,5 @@
-//  v4.1+ colors 전체 팔레트 (OKLCH/HEX 등)
-//  default theme reference
+// v4.1+ complete color palette (OKLCH/HEX, etc.)
+// Default theme reference
 
 export const colors = {
   inherit: 'inherit',

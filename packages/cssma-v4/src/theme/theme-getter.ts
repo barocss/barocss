@@ -1,5 +1,5 @@
-//  스타일의 theme() 함수 (v4)
-// theme(themeObj, 'colors.red.500') 또는 theme(themeObj, 'colors', 'red', 500) 모두 지원
+// Theme getter function for styles (v4)
+// Supports both theme(themeObj, 'colors.red.500') and theme(themeObj, 'colors', 'red', 500)
 
 /**
  * -style theme getter

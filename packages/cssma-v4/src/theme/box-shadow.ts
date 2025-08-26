@@ -1,5 +1,5 @@
-//  boxShadow 전체
-//  default theme reference
+// Complete boxShadow map
+// Default theme reference
 
 export const boxShadow = {
   sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',

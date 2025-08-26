@@ -1,5 +1,5 @@
-//  v4.1+ fontFamily 전체
-//  default theme reference
+// v4.1+ complete fontFamily list
+// Default theme reference
 
 export const fontFamily = {
   sans: [

@@ -60,7 +60,7 @@ functionalUtility({
     if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
     return null;
   },
-  description: 'width utility (spacing, fraction, arbitrary, custom property, container scale, static 지원)',
+  description: 'width utility (spacing, fraction, arbitrary, custom property, container scale, static supported)',
   category: 'sizing',
 });
 
@@ -106,7 +106,7 @@ functionalUtility({
     decl('width', `var(${value})`),
     decl('height', `var(${value})`),
   ],
-  description: 'size utility (spacing, fraction, arbitrary, custom property, static 지원)',
+  description: 'size utility (spacing, fraction, arbitrary, custom property, static supported)',
   category: 'sizing',
 });
 
@@ -143,7 +143,7 @@ functionalUtility({
     if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
     return null;
   },
-  description: 'height utility (spacing, fraction, arbitrary, custom property, static 지원)',
+  description: 'height utility (spacing, fraction, arbitrary, custom property, static supported)',
   category: 'sizing',
 });
 
@@ -180,7 +180,7 @@ functionalUtility({
     if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
     return null;
   },
-  description: 'min-height utility (spacing, fraction, arbitrary, custom property, static 지원)',
+  description: 'min-height utility (spacing, fraction, arbitrary, custom property, static supported)',
   category: 'sizing',
 });
 
@@ -217,7 +217,7 @@ functionalUtility({
     if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
     return null;
   },
-  description: 'max-height utility (spacing, fraction, arbitrary, custom property, static 지원)',
+  description: 'max-height utility (spacing, fraction, arbitrary, custom property, static supported)',
   category: 'sizing',
 });
 
@@ -270,6 +270,6 @@ functionalUtility({
     if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
     return null;
   },
-  description: 'min-width utility (spacing, fraction, arbitrary, custom property, static 지원)',
+  description: 'min-width utility (spacing, fraction, arbitrary, custom property, static supported)',
   category: 'sizing',
 });

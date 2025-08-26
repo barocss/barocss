@@ -1,5 +1,5 @@
-//  v4.1+ transitionDuration 전체
-//  default theme reference
+// v4.1+ complete transitionDuration scale
+// Default theme reference
 
 export const transitionDuration = {
   DEFAULT: '150ms',

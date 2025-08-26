@@ -1,42 +1,41 @@
-# CSSMA v4 Variant System: 조합/누적 규칙 설계
+# CSSMA v4 Variant System: Combination/Accumulation Rules Design
 
-## 1. Variant Chain의 본질
-- variant chain: 여러 variant가 순서대로 적용된 것 (ex. `group-hover:not-hover:has-[.child]:*:`)
-- 각 variant는 자신의 역할만 명확히 정의 (modifySelector, astHandler, wrap)
-- 조합별 함수가 아니라, 각 variant가 "앞/뒤 variant"를 참고해 selector를 조정
-
----
-
-## 2. 핵심 규칙 ( v4 완전 호환 목표)
-
-### (1) Selector 누적/override
-- 기본: variant chain을 왼→오로 순차 누적 (modifySelector)
-- 단, **universal/not/has/arbitrary** 등은 "앞 variant"가 group-hover/peer-hover 등일 때
-  - `{ selector, override: true }`로 반환 → 이후 누적 중단
-  - (ex. `group-hover:*` → `&:is(:where(.group):hover > *)`)
-- engine.ts에서 override가 반환되면 selector 누적을 즉시 중단
-
-### (2) AST wrapping 규칙
-- 단일 pseudo/universal/not/has/arbitrary: rule로 wrapping
-- 복합 조합(2개 이상, group/peer/has/not 등 포함): style-rule로 wrapping
-- at-rule이 있으면 selector wrapping 없이 그대로 유지
-
-### (3) 각 variant의 역할
-- **group-hover/peer-hover**: selector를 `:is(:where(.group):hover *)` 등으로 변환
-  - 뒤에 universal/not/has/arbitrary가 오면, universal/not/has/arbitrary가 override로 selector 완성
-- **universal/not/has/arbitrary**: 앞에 group-hover/peer-hover가 있으면 override, 아니면 누적
-- **responsive/dark 등 at-rule**: AST를 at-rule로 감싸고 selector는 그대로 유지
-- **compoundModifier**: 정말 예외적 상황(동시 등장시 특별 AST 필요)만 사용
-
-### (4) selector의 & 처리
-- selector는 항상 &로 시작 (engine에서 보장)
-- override 시에도 & prefix를 유지
+## 1. Essence of the Variant Chain
+- Variant chain: multiple variants applied sequentially (e.g., `group-hover:not-hover:has-[.child]:*:`)
+- Each variant defines only its own role (modifySelector, astHandler, wrap)
+- Rather than per-combination functions, each variant adjusts selector with awareness of preceding/following variants
 
 ---
 
-## 3. 예시 ( v4와 동일하게)
+## 2. Core Rules (aiming for full v4 compatibility)
 
-| Variant Chain                      | Selector 결과 ( v4)                |
+### (1) Selector accumulation/override
+- Default: accumulate left → right (modifySelector)
+- However, when preceded by group-hover/peer-hover, variants like **universal/not/has/arbitrary** return `{ selector, override: true }` and stop accumulation
+  - e.g., `group-hover:*` → `&:is(:where(.group):hover > *)`
+- When override is returned, the engine stops accumulation immediately
+
+### (2) AST wrapping rules
+- Single pseudo/universal/not/has/arbitrary: wrap as rule
+- Compound combinations (2+ including group/peer/has/not): wrap as style-rule
+- If at-rule exists, keep selector as-is and wrap AST only
+
+### (3) Roles of each variant
+- **group-hover/peer-hover**: transform selector to forms like `:is(:where(.group):hover *)`
+  - If followed by universal/not/has/arbitrary, they complete selector via override
+- **universal/not/has/arbitrary**: override when preceded by group-hover/peer-hover, otherwise accumulate
+- **responsive/dark (at-rules)**: wrap AST with at-rule, keep selector as-is
+- **compoundModifier**: use only for rare cases requiring special AST on co-occurrence
+
+### (4) Handling '&' in selector
+- Selector always starts with & (guaranteed by the engine)
+- Preserve & prefix on override
+
+---
+
+## 3. Examples (aligned with v4)
+
+| Variant Chain                      | Selector result (v4)               |
 |------------------------------------|---------------------------------------------|
 | `group-hover:*:bg-red-500`         | `&:is(:where(.group):hover > *)`            |
 | `group-hover:not-hover:bg-red-500` | `&:is(:where(.group):hover *):not(:hover)`  |
@@ -47,12 +46,12 @@
 
 ---
 
-## 4. 시뮬레이션: selector 누적/override 동작
+## 4. Simulation: selector accumulation/override behavior
 
 ### (A) group-hover:*:bg-red-500
 1. base: `&`
 2. group-hover: `&:is(:where(.group):hover *)`
-3. *: override → `&:is(:where(.group):hover > *)` (이후 누적 중단)
+3. *: override → `&:is(:where(.group):hover > *)` (stop accumulation)
 
 ### (B) group-hover:not-hover:bg-red-500
 1. base: `&`
@@ -66,7 +65,7 @@
 
 ### (D) sm:group-hover:*:bg-red-500
 1. base: `&`
-2. sm: at-rule wrapping (AST만 감쌈)
+2. sm: at-rule wrapping (wrap AST only)
 3. group-hover: `&:is(:where(.group):hover *)`
 4. *: override → `&:is(:where(.group):hover > *)`
 
@@ -77,15 +76,15 @@
 
 ---
 
-## 5. 구현 전략
-- 각 variant는 "앞/뒤 variant"를 참고해 selector를 조정
-- universal/not/has/arbitrary는 앞에 group-hover/peer-hover가 있으면 override
-- engine.ts에서 override가 반환되면 selector 누적을 중단
-- compoundModifier는 정말 예외적 상황에만 사용
+## 5. Implementation Strategy
+- Each variant adjusts selector considering previous/next variants
+- universal/not/has/arbitrary override when preceded by group-hover/peer-hover
+- engine stops accumulation when override is returned
+- Use compoundModifier only for exceptional cases
 
 ---
 
-## 6. 확장성/유지보수성
-- 새로운 variant 추가 시, 조합별 함수가 아니라 위 규칙만 따르면 됨
--  v4의 모든 selector 조합을 커버 가능
-- selector/AST 구조가 바뀌어도 규칙만 수정하면 전체 시스템이 일관되게 동작 
+## 6. Extensibility/Maintainability
+- When adding new variants, follow these rules instead of per-combination functions
+- Can cover all v4 selector combinations
+- Adjust rules if selector/AST structure changes; the system stays consistent

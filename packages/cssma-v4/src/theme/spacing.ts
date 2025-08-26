@@ -1,5 +1,5 @@
-//  v4.1+ spacing 전체
-//  default theme reference
+// v4.1+ complete spacing scale
+// Default theme reference
 
 export const spacing = {
   px: '1px',

@@ -240,7 +240,7 @@ export function functionalUtility(opts: {
         }
       }
 
-      // 1. Arbitrary value - parser.ts에서 이미 파싱됨
+      // 1. Arbitrary value - already parsed in parser.ts
       if (opts.supportsArbitrary && parsedUtility.arbitrary) {
         const processedValue = finalValue.replace(/_/g, ' ');
         // console.log('[functionalUtility] arbitrary', { processedValue });
@@ -257,7 +257,7 @@ export function functionalUtility(opts: {
         }
         return [];
       }
-      // 2. Custom property - parser.ts에서 이미 파싱됨
+      // 2. Custom property - already parsed in parser.ts
       if (opts.supportsCustomProperty && parsedUtility.customProperty) {
         // console.log('[functionalUtility] customProperty', { finalValue });
         if (opts.handleCustomProperty) {

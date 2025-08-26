@@ -1,5 +1,5 @@
-//  v4.1+ transitionDelay 전체
-//  default theme reference
+// v4.1+ complete transitionDelay scale
+// Default theme reference
 
 export const transitionDelay = {
   75: '75ms',

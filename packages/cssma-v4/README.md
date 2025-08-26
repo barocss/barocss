@@ -1,597 +1,312 @@
-# CSSMA v4
+# CSSMA
 
-A  utility library designed for high performance and developer experience.
+[![npm version](https://img.shields.io/npm/v/cssma-v4.svg)](https://www.npmjs.com/package/cssma-v4)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 
-## 🚀 Features
+A **realtime CSS library** that brings Tailwind CSS JIT mode to life. CSSMA analyzes DOM classes instantly and generates styles on-the-fly, requiring no build environment. Write Tailwind classes anywhere, anytime, and see them styled immediately.
 
-### Core Features
-- ** Compatible**: Matches  AST structure and CSS generation
-- **TypeScript First**: Full TypeScript support with comprehensive type definitions
-- **Universal Runtime**: Works in both browser and server environments
+## ✨ Features
 
-### Runtime System
-- **Browser Runtime**: Dynamic CSS injection with DOM manipulation
-- **Server Runtime**: Static CSS generation for server-side rendering
-- **Incremental Parsing**: Efficient class processing with change detection
-- **Memory Optimization**: WeakMap caching, compression, and memory pooling
+- **🚀 Realtime JIT Mode** - Generate CSS instantly as you use it
+- **🔍 DOM Analysis** - Automatically detects and processes class changes
+- **⚡ Zero Build Time** - No build step, no waiting, instant styling
+- **🎯 95%+ Tailwind Compatible** - Use familiar Tailwind syntax everywhere
+- **🌐 Universal** - Works in browsers, Node.js, and any JavaScript environment
+- **🎨 Full Utility Support** - Layout, spacing, colors, typography, and more
+- **📱 Responsive & Interactive** - All variants work out of the box
 
-### Cache Architecture
-- **Multi-Level Caching**: AST, CSS, and utility caches for optimal performance
-- **Automatic Invalidation**: Cache clearing on context changes
-- **Memory Efficient**: WeakMap-based caching with automatic cleanup
+## 🚀 Quick Start
 
-### Plugin System
-- **Extensible Architecture**: Plugin system for custom utilities, variants, and themes
-- **Multiple Plugin Types**: Utility, Variant, and Theme plugins
-- **Configuration Support**: Plugin-specific configuration options
-- **Error Handling**: Graceful error handling for plugin failures
+### Browser (CDN)
 
-## 📦 Installation
+```html
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSSMA App</title>
+  <script type="module" src="https://unpkg.com/cssma-v4/dist/browser.js"></script>
+</head>
+<body>
+  <div class="bg-blue-500 text-white p-6 rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold mb-4">Hello CSSMA!</h1>
+    <p class="text-lg opacity-90">Instant styling, no build required.</p>
+    <button class="mt-4 bg-white text-blue-500 px-4 py-2 rounded hover:bg-gray-100 transition-colors">
+      Get Started
+    </button>
+  </div>
+</body>
+</html>
+```
+
+### Installation
 
 ```bash
+npm install cssma-v4
+
+or
+
 pnpm add cssma-v4
 ```
 
-## 🎯 Quick Start
-
-### Basic Usage
-
 ```typescript
-import { createContext, StyleRuntime } from 'cssma-v4';
+import { StyleRuntime } from 'cssma-v4/runtime/browser';
 
-// Create context with configuration
-const ctx = createContext({
-  theme: {
-    colors: {
-      primary: '#007bff',
-      secondary: '#6c757d'
-    }
-  }
-});
+// Initialize runtime
+const runtime = new StyleRuntime();
 
-// Browser runtime for dynamic CSS injection
-const runtime = new StyleRuntime({
-  config: {
-    theme: ctx.theme
-  }
-});
-
-// Process classes
-runtime.processClasses('bg-primary text-white p-4 rounded');
+// Add classes and watch for changes
+runtime.observe(document.body, { scan: true });
 ```
 
-### Server-Side Usage
+## 🎯 How It Works
+
+CSSMA works like Tailwind CSS's JIT mode, but in real-time:
+
+1. **Watch DOM Changes** - Automatically detects new classes
+2. **Parse Classes** - Analyzes Tailwind syntax (95%+ compatible)
+3. **Generate CSS** - Creates styles instantly using JIT approach
+4. **Inject Styles** - Adds CSS to the page in real-time
 
 ```typescript
-import { createContext, ServerRuntime } from 'cssma-v4/runtime/server';
+// Just add classes - CSSMA handles the rest
+document.body.innerHTML = `
+  <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl">
+    <h1 class="text-4xl font-bold mb-6">Real-time Styling</h1>
+    <p class="text-xl opacity-90">This gets styled instantly!</p>
+  </div>
+`;
 
-const ctx = createContext({
-  theme: {
-    colors: { primary: '#007bff' }
-  }
-});
-
-const serverRuntime = new ServerRuntime({
-  config: {
-    theme: ctx.theme
-  }
-});
-
-// Generate static CSS
-const css = serverRuntime.generateCss('bg-primary text-white');
+// CSSMA automatically:
+// ✅ Detects new classes
+// ✅ Generates CSS
+// ✅ Applies styles
+// ✅ No build step needed
 ```
 
-## 🔌 Plugin System
+## 🛠️ Usage Examples
 
-CSSMA v4 provides a comprehensive plugin system for extending functionality with full type safety.
+### Basic Styling
 
-### Plugin Types
-
-#### 1. General Plugin
 ```typescript
-import { createContext } from 'cssma-v4';
+import { StyleRuntime } from 'cssma-v4/runtime/browser';
 
-const myPlugin = {
-  name: 'my-plugin',
-  version: '1.0.0',
-  description: 'Custom plugin example',
-  handler: (ctx, config) => {
-    // Register utilities, modify theme, etc.
-    console.log('Plugin executed with config:', config);
-  }
-};
+const runtime = new StyleRuntime();
 
-const ctx = createContext({
-  plugins: [myPlugin]
-});
+// Add classes dynamically
+runtime.addClass('bg-red-500 text-white p-4 rounded-lg shadow-md');
+
+// Classes work immediately
+document.body.innerHTML = `
+  <div class="bg-red-500 text-white p-4 rounded-lg shadow-md">
+    Styled instantly!
+  </div>
+`;
 ```
 
-#### 2. Utility Plugin with AST Functions
-```typescript
-import { createUtilityPlugin } from 'cssma-v4/core/plugin';
-import { staticUtility, functionalUtility } from 'cssma-v4/core/registry';
-import { decl, rule, atRule, atRoot } from 'cssma-v4/core/ast';
+### Responsive Design
 
-const utilityPlugin = createUtilityPlugin({
-  name: 'custom-utilities',
-  version: '1.0.0',
-  description: 'Adds custom utility classes with AST functions',
-  utilities: (ctx) => {
-    // Static utility with complex selector using rule()
-    staticUtility('custom-space-x-2', [
-      rule('& > :not([hidden]) ~ :not([hidden])', [
-        decl('margin-inline-start', '0.5rem'),
-        decl('margin-inline-end', '0.5rem')
-      ])
-    ]);
-    
-    // Functional utility with theme awareness
-    functionalUtility({
-      name: 'custom-text',
-      prop: 'color',
-      supportsArbitrary: true,
-      handle: (value, ctx) => {
-        const themeColor = ctx.theme('colors', value);
-        return [decl('color', themeColor || value)];
-      }
-    });
-  }
-});
+```html
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+    <h3 class="text-lg font-semibold mb-2">Card 1</h3>
+    <p class="text-gray-600">Responsive grid with hover effects</p>
+  </div>
+  <!-- More cards... -->
+</div>
 ```
 
-#### 3. Theme Plugin with Safe API
-```typescript
-import { createThemePlugin } from 'cssma-v4/core/plugin';
+### Interactive States
 
-const themePlugin = createThemePlugin({
-  name: 'custom-theme',
-  version: '1.0.0',
-  description: 'Extends theme with custom values',
-  theme: (ctx) => ({
-    colors: {
-      'custom-blue': '#0066cc',
-      'custom-green': '#00cc66'
-    },
-    spacing: {
-      'custom-lg': '2rem',
-      'custom-xl': '3rem'
-    }
-  })
-});
-
-const ctx = createContext({
-  plugins: [themePlugin]
-});
-
-// Custom theme values are now available
-console.log(ctx.theme('colors', 'custom-blue')); // '#0066cc'
+```html
+<button class="bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-white font-medium py-2 px-4 rounded transition-colors">
+  Interactive Button
+</button>
 ```
 
-#### 4. Variant Plugin with AST Functions
-```typescript
-import { createVariantPlugin } from 'cssma-v4/core/plugin';
-import { staticModifier, functionalModifier } from 'cssma-v4/core/registry';
-import { atRule, rule } from 'cssma-v4/core/ast';
+### Dark Mode
 
-const variantPlugin = createVariantPlugin({
-  name: 'custom-variants',
-  version: '1.0.0',
-  description: 'Adds custom variant modifiers with AST functions',
-  variants: (ctx) => {
-    // Static modifier with atRule for media queries
-    staticModifier('print', [
-      atRule('media', 'print', [
-        rule('&', [])
-      ])
-    ]);
-    
-    // Functional modifier with complex logic
-    functionalModifier(
-      (mod) => mod.startsWith('dark-'),
-      ({ selector, mod, ctx }) => {
-        const darkMode = ctx.theme('darkMode') || 'media';
-        if (darkMode === 'class') {
-          return rule('.dark ' + selector, []);
-        } else {
-          return atRule('media', '(prefers-color-scheme: dark)', [
-            rule(selector, [])
-          ]);
-        }
-      }
-    );
-  }
-});
+```html
+<div class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg">
+  <h2 class="text-xl font-semibold">Dark Mode Support</h2>
+  <p>Automatically adapts to system preferences</p>
+</div>
 ```
 
-### Advanced Plugin Capabilities
+### Arbitrary Values
 
-#### Theme Extension with Safe API
-```typescript
-const themeExtensionPlugin = (ctx, config) => {
-  // Safe theme extension using extendTheme API
-  ctx.extendTheme('colors', {
-    'brand-primary': '#3b82f6',
-    'brand-secondary': '#10b981'
-  });
-  
-  // Function-based theme extension
-  ctx.extendTheme('colors', (theme) => ({
-    'primary': theme('colors', 'blue', '500'),
-    'secondary': theme('colors', 'gray', '500')
-  }));
-};
-```
-
-#### Complex Utility with AST Functions
-```typescript
-import { decl, rule, atRule, atRoot } from 'cssma-v4/core/ast';
-
-const complexUtilityPlugin = (ctx, config) => {
-  // Utility with CSS custom properties using atRoot
-  staticUtility('custom-theme-vars', [
-    atRoot([
-      decl('--custom-primary', ctx.theme('colors', 'blue', '500')),
-      decl('--custom-secondary', ctx.theme('colors', 'gray', '500'))
-    ])
-  ]);
-  
-  // Utility with media query using atRule
-  staticUtility('responsive-utility', [
-    atRule('media', '(min-width: 768px)', [
-      rule('.md\\:custom-utility', [
-        decl('display', 'block'),
-        decl('padding', '1rem')
-      ])
-    ])
-  ]);
-  
-  // Functional utility with complex AST
-  functionalUtility({
-    name: 'custom-layout',
-    prop: 'display',
-    supportsArbitrary: true,
-    handle: (value, ctx) => {
-      if (value === 'grid') {
-        return [
-          decl('display', 'grid'),
-          decl('grid-template-columns', 'repeat(auto-fit, minmax(200px, 1fr))'),
-          decl('gap', '1rem')
-        ];
-      }
-      return [decl('display', value)];
-    }
-  });
-};
-```
-
-### Plugin Configuration
-
-```typescript
-const configurablePlugin = {
-  name: 'configurable-plugin',
-  version: '1.0.0',
-  description: 'Plugin with configuration',
-  handler: (ctx, config) => {
-    if (config?.enableCustomUtilities) {
-      staticUtility('custom-enabled', [
-        decl('background-color', config.customColor || '#000000')
-      ]);
-    }
-  }
-};
-
-const ctx = createContext({
-  plugins: [configurablePlugin],
-  pluginConfig: {
-    enableCustomUtilities: true,
-    customColor: '#ff6600'
-  }
-});
-```
-
-### Plugin Dependencies
-
-```typescript
-const basePlugin = {
-  name: 'base-plugin',
-  version: '1.0.0',
-  handler: (ctx) => {
-    staticUtility('base-color', [
-      decl('--base-color', '#333333')
-    ]);
-  }
-};
-
-const dependentPlugin = {
-  name: 'dependent-plugin',
-  version: '1.0.0',
-  dependencies: ['base-plugin'],
-  handler: (ctx) => {
-    staticUtility('dependent-utility', [
-      decl('color', 'var(--base-color)')
-    ]);
-  }
-};
-
-const ctx = createContext({
-  plugins: [basePlugin, dependentPlugin]
-});
-```
-
-### Plugin Error Handling
-
-```typescript
-const errorPlugin = {
-  name: 'error-plugin',
-  handler: () => {
-    throw new Error('Plugin error for testing');
-  }
-};
-
-const workingPlugin = {
-  name: 'working-plugin',
-  handler: (ctx) => {
-    staticUtility('working-utility', [
-      decl('background-color', '#ffffff')
-    ]);
-  }
-};
-
-// Error plugin fails gracefully, working plugin continues
-const ctx = createContext({
-  plugins: [errorPlugin, workingPlugin]
-});
-```
-
-### Plugin Best Practices
-
-1. **Use AST Functions**: Always use `decl()`, `rule()`, `atRule()`, `atRoot()` for creating AST nodes
-2. **Use Safe APIs**: Use `ctx.extendTheme()` instead of direct theme manipulation
-3. **Handle Errors**: Wrap plugin logic in try-catch blocks
-4. **Validate Configuration**: Check plugin configuration before use
-5. **Test Thoroughly**: Write comprehensive tests for plugin functionality
-
-## 🎨 Theme System
-
-### Theme Configuration
-
-```typescript
-import { createContext } from 'cssma-v4';
-
-const ctx = createContext({
-  theme: {
-    colors: {
-      primary: '#007bff',
-      secondary: '#6c757d',
-      success: '#28a745',
-      danger: '#dc3545'
-    },
-    spacing: {
-      xs: '0.25rem',
-      sm: '0.5rem',
-      md: '1rem',
-      lg: '1.5rem',
-      xl: '3rem'
-    },
-    borderRadius: {
-      sm: '0.125rem',
-      md: '0.25rem',
-      lg: '0.5rem',
-      full: '9999px'
-    }
-  }
-});
-```
-
-### Theme Extension
-
-```typescript
-const ctx = createContext({
-  theme: {
-    extend: {
-      colors: {
-        'brand-blue': '#1e40af',
-        'brand-green': '#059669'
-      }
-    }
-  }
-});
-```
-
-### Presets
-
-```typescript
-const ctx = createContext({
-  presets: [
-    {
-      theme: {
-        colors: {
-          'preset-red': '#ef4444',
-          'preset-blue': '#3b82f6'
-        }
-      }
-    }
-  ]
-});
+```html
+<div class="w-[calc(100%-2rem)] bg-[#ff6b6b] text-[rgb(255,255,255)] p-4">
+  Custom values with arbitrary value syntax
+</div>
 ```
 
 ## 🔧 Configuration
 
-### CssmaConfig Interface
+### Custom Theme
 
 ```typescript
-interface CssmaConfig {
-  prefix?: string;  // Class name prefix
-  darkMode?: 'media' | 'class' | string[];  // Dark mode strategy
-  theme?: CssmaTheme;  // Theme configuration
-  presets?: { theme: CssmaTheme }[];  // Theme presets
-  plugins?: (CssmaPlugin | ((ctx: CssmaContext, config?: any) => void))[];  // Plugins
-  clearCacheOnContextChange?: boolean;  // Cache invalidation
-}
-```
-
-### Runtime Configuration
-
-```typescript
-interface StyleRuntimeOptions {
-  config?: CssmaConfig;  // CSSMA configuration
-  scan?: boolean;  // Scan existing classes
-  observe?: boolean;  // Observe DOM changes
-}
-```
-
-## 📚 API Reference
-
-### Core Functions
-
-#### `createContext(config: CssmaConfig): CssmaContext`
-Creates a CSSMA context with resolved theme and configuration.
-
-#### `parseClassToAst(className: string, ctx: CssmaContext): AstNode[]`
-Parses a CSS class name into an AST representation.
-
-### Runtime Classes
-
-#### `StyleRuntime` (Browser)
-```typescript
-class StyleRuntime {
-  constructor(options: StyleRuntimeOptions);
-  processClasses(classes: string): void;
-  updateConfig(newConfig: CssmaConfig): void;
-  getStats(): RuntimeStats;
-}
-```
-
-#### `ServerRuntime` (Server)
-```typescript
-class ServerRuntime {
-  constructor(options: { config: CssmaConfig });
-  generateCss(classes: string): string;
-  getStats(): RuntimeStats;
-}
-```
-
-### Plugin Functions
-
-#### `createUtilityPlugin(plugin: UtilityPlugin): UtilityPlugin`
-Creates a utility plugin for registering custom utilities.
-
-#### `createVariantPlugin(plugin: VariantPlugin): VariantPlugin`
-Creates a variant plugin for registering custom variants.
-
-#### `createThemePlugin(plugin: ThemePlugin): ThemePlugin`
-Creates a theme plugin for extending themes.
-
-### Cache Functions
-
-#### `clearAllCaches(): void`
-Clears all global caches (AST, CSS, utility, parse result).
-
-### Types
-
-#### `CssmaConfig`
-Configuration interface for CSSMA.
-
-#### `CssmaContext`
-Context object with theme and configuration access.
-
-#### `CssmaPlugin`
-Base plugin interface.
-
-#### `UtilityPlugin`
-Plugin interface for utility registration.
-
-#### `VariantPlugin`
-Plugin interface for variant registration.
-
-#### `ThemePlugin`
-Plugin interface for theme extension.
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-pnpm test
-
-# Run specific test file
-pnpm test tests/plugins/plugin-system.test.ts
-
-# Run tests with coverage
-pnpm test --coverage
-```
-
-## 📖 Examples
-
-### Complete Plugin Example
-
-```typescript
-import { createContext } from 'cssma-v4';
-import { createUtilityPlugin } from 'cssma-v4/core/plugin';
-import { staticUtility, functionalUtility } from 'cssma-v4/core/registry';
-
-// Create a comprehensive plugin
-const comprehensivePlugin = {
-  name: 'comprehensive-example-plugin',
-  version: '1.0.0',
-  description: 'A comprehensive plugin example',
-  handler: (ctx, config) => {
-    // 1. Register custom utilities
-    staticUtility('btn', [
-      ['display', 'inline-block'],
-      ['padding', '0.5rem 1rem'],
-      ['border-radius', '0.25rem'],
-      ['text-decoration', 'none'],
-      ['cursor', 'pointer']
-    ]);
-
-    functionalUtility({
-      name: 'btn',
-      prop: 'background-color',
-      supportsArbitrary: true,
-      handleBareValue: ({ value }) => {
-        return `var(--btn-color-${value})`;
+const runtime = new StyleRuntime({
+  config: {
+    theme: {
+      extend: {
+        colors: {
+          'brand': {
+            50: '#f0f9ff',
+            500: '#0ea5e9',
+            900: '#0c4a6e',
+          }
+        },
+        spacing: {
+          '18': '4.5rem',
+          '88': '22rem',
+        }
       }
-    });
-
-    // 2. Register custom variants
-    staticModifier('btn-hover', ['&:hover'], { source: 'button' });
-    staticModifier('btn-active', ['&:active'], { source: 'button' });
-
-    // 3. Extend theme with custom values
-    const customTheme = {
-      colors: {
-        'btn-primary': '#007bff',
-        'btn-secondary': '#6c757d',
-        'btn-success': '#28a745'
-      },
-      spacing: {
-        'btn-sm': '0.25rem 0.5rem',
-        'btn-lg': '0.75rem 1.5rem'
-      }
-    };
-
-    // Theme extension would be handled by the plugin system
+    }
   }
-};
+});
+```
 
-// Use the plugin
+### Dark Mode Strategy
+
+```typescript
+const runtime = new StyleRuntime({
+  config: {
+    darkMode: 'class', // or 'media'
+    theme: {
+      extend: {
+        colors: {
+          gray: {
+            900: '#111827',
+            800: '#1f2937',
+          }
+        }
+      }
+    }
+  }
+});
+```
+
+## 🌐 Environment Support
+
+### Browser Runtime
+
+```typescript
+import { StyleRuntime } from 'cssma-v4/runtime/browser';
+
+const runtime = new StyleRuntime();
+runtime.observe(document.body, { scan: true });
+```
+
+### Server Runtime
+
+```typescript
+import { ServerRuntime } from 'cssma-v4/runtime/server';
+
+const serverRuntime = new ServerRuntime();
+const css = serverRuntime.generateCss('bg-blue-500 text-white p-4');
+```
+
+### Core Engine
+
+```typescript
+import { parseClassToAst, generateCss, createContext } from 'cssma-v4';
+
 const ctx = createContext({
-  plugins: [comprehensivePlugin]
+  theme: {
+    colors: { red: { 500: '#ef4444' } },
+    spacing: { 4: '1rem' }
+  }
 });
 
-// Test the plugin functionality
-const result = parseClassToAst('btn btn-primary', ctx);
-console.log(result);
+const css = generateCss('bg-red-500 text-white p-4', ctx);
+```
+
+## 📱 Supported Utilities
+
+CSSMA supports **95%+ of Tailwind CSS utilities**:
+
+- **Layout**: `container`, `columns`, `break-after`, `break-before`
+- **Flexbox & Grid**: `flex`, `grid`, `order`, `gap`
+- **Spacing**: `p-4`, `m-2`, `space-x-4`, `space-y-2`
+- **Sizing**: `w-full`, `h-screen`, `min-h-screen`, `max-w-md`
+- **Typography**: `text-sm`, `font-bold`, `leading-relaxed`
+- **Backgrounds**: `bg-blue-500`, `bg-gradient-to-r`, `bg-[url(...)]`
+- **Borders**: `border-2`, `rounded-lg`, `border-blue-500`
+- **Effects**: `shadow-lg`, `opacity-50`, `blur-sm`
+- **Transitions**: `transition-all`, `duration-300`, `ease-in-out`
+- **Transforms**: `rotate-45`, `scale-110`, `translate-x-4`
+- **Interactivity**: `hover:bg-blue-600`, `focus:ring-2`, `active:scale-95`
+
+## 🚀 Performance Features
+
+- **JIT Generation** - Only generates CSS you actually use
+- **Smart Caching** - Avoids regenerating existing styles
+- **Efficient Parsing** - Fast class name processing
+- **Tree Shaking** - Removes unused utilities automatically
+- **Minimal Output** - Generates optimized CSS
+
+## 🔌 Plugin System
+
+Extend CSSMA with custom utilities and variants:
+
+```typescript
+const customPlugin = (ctx: CssmaContext) => {
+  // Register custom utilities
+  ctx.extendTheme('colors', {
+    'custom-blue': '#1e40af',
+    'custom-green': '#059669'
+  });
+  
+  // Add custom variants
+  // ... plugin implementation
+};
+
+const runtime = new StyleRuntime({
+  config: {
+    plugins: [customPlugin]
+  }
+});
 ```
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+We welcome contributions! Please see our [Contributing Guide](../../CONTRIBUTING.md) for details.
+
+### Development
+
+```bash
+# Clone the repository
+git clone https://github.com/easylogic/figmaikr.git
+cd figmaikr
+
+# Install dependencies
+pnpm install
+
+# Start development
+pnpm dev
+
+# Run tests
+pnpm test
+
+# Build packages
+pnpm build
+```
 
 ## 📄 License
 
-MIT License - see LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](../../LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **Tailwind CSS** - For the amazing utility-first approach and JIT inspiration
+- **CSS Working Group** - For advancing CSS standards
+- **Community Contributors** - For feedback and contributions
+
+---
+
+**CSSMA** - Where Tailwind meets realtime. Style anything, anywhere, instantly.
+
+*No build step. No waiting. Just pure, instant CSS magic.* ✨
