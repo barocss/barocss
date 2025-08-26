@@ -1,151 +1,157 @@
-/* CSSMA v4 Real-time Styling */
+/* CSSMA v4 Documentation Styles */
 
 /* Fixed navigation scroll offset for hash anchors */
 h1[id], h2[id], h3[id], h4[id], h5[id], h6[id] {
-  scroll-margin-top: 5rem; /* Navigation height (4rem/64px) + extra padding (1rem/16px) */
+  scroll-margin-top: 4.5rem;
 }
 
-/* MDX Content Styles */
+/* Base typography improvements */
+body {
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  text-rendering: optimizeLegibility;
+}
+
+/* MDX Content Styles - More compact and professional */
 .prose {
-  @apply max-w-none;
+  max-width: none;
 }
 
 .prose h1 {
-  @apply text-3xl font-bold text-gray-900 mb-6 mt-8;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1.5rem;
+  margin-top: 2rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1rem;
 }
 
 .prose h2 {
-  @apply text-2xl font-semibold text-gray-900 mb-4 mt-8;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+  margin-top: 2rem;
+  padding-top: 0.5rem;
 }
 
 .prose h3 {
-  @apply text-xl font-semibold text-gray-900 mb-3 mt-6;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.75rem;
+  margin-top: 1.5rem;
 }
 
 .prose h4 {
-  @apply text-lg font-medium text-gray-900 mb-2 mt-4;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
 }
 
 .prose p {
-  @apply text-gray-700 leading-relaxed mb-4;
+  color: #374151;
+  line-height: 1.625;
+  margin-bottom: 1rem;
 }
 
-.prose ul {
-  @apply list-disc list-inside mb-4 space-y-2;
-}
-
-.prose ol {
-  @apply list-decimal list-inside mb-4 space-y-2;
+.prose ul, .prose ol {
+  color: #374151;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
 }
 
 .prose li {
-  @apply text-gray-700;
-}
-
-.prose blockquote {
-  @apply border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 rounded-r-lg mb-4;
-}
-
-.prose blockquote p {
-  @apply text-gray-700 italic mb-0;
-}
-
-.prose a {
-  @apply text-blue-600 hover:text-blue-800 underline;
-}
-
-.prose strong {
-  @apply font-semibold text-gray-900;
-}
-
-.prose em {
-  @apply italic;
+  margin-bottom: 0.25rem;
 }
 
 .prose code {
-  @apply bg-gray-100 text-gray-800 px-1 py-0.5 rounded text-sm font-mono;
+  background-color: #f3f4f6;
+  color: #dc2626;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
 .prose pre {
-  @apply bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto mb-4;
+  background-color: #1f2937;
+  color: #f9fafb;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
 }
 
 .prose pre code {
-  @apply bg-transparent text-gray-100 p-0;
+  background-color: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
 }
 
-/* Code Block Styles */
-.code-block {
-  @apply relative rounded-lg overflow-hidden;
+.prose blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: #6b7280;
+  font-style: italic;
 }
 
-.code-block-header {
-  @apply flex items-center justify-between px-4 py-2 bg-gray-800 text-gray-200 text-sm font-medium;
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.5rem;
 }
 
-.code-block-content {
-  @apply p-4 bg-gray-900 text-gray-100 overflow-x-auto;
+.prose th, .prose td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: left;
 }
 
-/* Syntax Highlighting */
-.hljs {
-  @apply text-gray-100;
+.prose th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #111827;
 }
 
-.hljs-keyword {
-  @apply text-purple-400;
+.prose a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
 
-.hljs-string {
-  @apply text-green-400;
+.prose a:hover {
+  color: #1d4ed8;
 }
 
-.hljs-number {
-  @apply text-yellow-400;
+/* Documentation specific styles */
+.docs-content {
+  line-height: 1.7;
 }
 
-.hljs-comment {
-  @apply text-gray-500;
+.docs-content > * + * {
+  margin-top: 1.5rem;
 }
 
-.hljs-function {
-  @apply text-blue-400;
-}
-
-.hljs-variable {
-  @apply text-cyan-400;
-}
-
-.hljs-operator {
-  @apply text-gray-300;
-}
-
-.hljs-punctuation {
-  @apply text-gray-300;
-}
-
-.hljs-class {
-  @apply text-yellow-300;
-}
-
-.hljs-property {
-  @apply text-orange-400;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-gray-100;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .prose h1 {
+    font-size: 1.875rem;
+    margin-top: 1.5rem;
+  }
+  
+  .prose h2 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  
+  .prose h3 {
+    font-size: 1.125rem;
+    margin-top: 1.25rem;
+  }
 }

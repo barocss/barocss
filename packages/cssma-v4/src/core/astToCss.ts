@@ -20,7 +20,11 @@ function astToCss(
 
   // Note: 캐시는 상위 레벨(IncrementalParser)에서 이미 처리되므로 여기서는 제거
 
-  // console.log("[astToCss] input", { ast, baseSelector, minify, indent });
+  // Debug logging for empty AST
+  if (!ast || ast.length === 0) {
+    console.warn('[astToCss] Empty AST received:', { ast, baseSelector, minify });
+    return '';
+  }
 
   // 🔍 중복 제거 로직: CSS 속성 선언(decl)의 중복만 제거
   // 
@@ -188,10 +192,11 @@ function astToCss(
           // - @규칙 내부의 노드들에게 baseSelector 전달
           // - 중첩된 규칙들이 올바른 셀렉터를 가질 수 있도록 함
           // - 예시: @media (min-width: 768px) { .parent .child { ... } }
+          const shouldUseBaseSelector = node.name !== 'supports'; // Added logic for @supports
           if (minify) {
             const css = `${indent}@${node.name} ${node.params}{${astToCss(
               node.nodes, // 🔄 @규칙 내부 노드들 재귀 처리
-              baseSelector, // 🔄 baseSelector 전달 (내부 규칙에서 사용)
+              shouldUseBaseSelector ? baseSelector : undefined, // Conditional baseSelector
               opts,
               nextIndent
             )}}`;
@@ -200,7 +205,7 @@ function astToCss(
           } else {
             const css = `${indent}@${node.name} ${node.params} {\n${astToCss(
               node.nodes, // 🔄 @규칙 내부 노드들 재귀 처리
-              baseSelector, // 🔄 baseSelector 전달 (내부 규칙에서 사용)
+              shouldUseBaseSelector ? baseSelector : undefined, // Conditional baseSelector
               opts,
               nextIndent
             )}${indent}}`;
@@ -215,6 +220,7 @@ function astToCss(
           // 📝 원시 CSS 코드 처리 (그대로 출력)
           return `${indent}${node.value}`;
         default:
+          console.warn('[astToCss] Unknown node type:', node);
           return "";
       }
     })
@@ -224,7 +230,17 @@ function astToCss(
   // Add trailing newline for consistency with expected format
   const finalResult = result + (minify ? "" : "\n");
   
-  // console.log("[astToCss] output", finalResult);
+  // Debug logging for empty result
+  if (!finalResult || finalResult.trim() === '') {
+    console.warn('[astToCss] Empty result generated:', { 
+      ast, 
+      baseSelector, 
+      minify, 
+      result, 
+      finalResult,
+      dedupedAst 
+    });
+  }
   
   return finalResult;
 }

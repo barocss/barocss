@@ -2,6 +2,27 @@ import { defaultTheme } from "../theme";
 import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
 import { clearAllCaches } from "../utils/cache";
 import { type CssmaPlugin } from "./plugin";
+import preflightMinimalCSS from "../css/preflight-minimal.css?raw";
+import preflightStandardCSS from "../css/preflight-standard.css?raw";
+import preflightFullCSS from "../css/preflight-full.css?raw";
+
+
+type PreflightLevel = 'minimal' | 'standard' | 'full' | true | false;
+
+export function getPreflightCSS(level: PreflightLevel = true): string {
+  if (level === 'minimal') {
+    return preflightMinimalCSS;
+  } else if (level === 'standard') {
+    return preflightStandardCSS;
+  } else if (level === 'full') {
+    return preflightFullCSS;
+  } else if (level === true) {
+    return preflightFullCSS;
+  } else if (level === false) {
+    return '';
+  }
+  return '';
+}
 
 // Types for theme/config/context
 export interface CssmaTheme {
@@ -20,12 +41,24 @@ export interface CssmaConfig {
   darkMode?: 'media' | 'class' | string[];
   theme?: CssmaTheme;
   presets?: { theme: CssmaTheme }[];
+
+  /**
+   * Whether to include preflight CSS
+   * - 'minimal': Minimal preflight CSS
+   * - 'standard': Standard preflight CSS
+   * - 'full': Full preflight CSS
+   * - true: Full preflight CSS (default)
+   * - false: No preflight CSS
+   * 
+   * default: true (full preflight)
+   */
+  preflight?: PreflightLevel;
   /**
    * CSSMA plugins for extending functionality
    * - Can be plugin functions, plugin objects, or plugin arrays
    * - Plugins are executed in order and can register utilities, variants, and theme extensions
    */
-  plugins?: (CssmaPlugin | ((ctx: CssmaContext, config?: any) => void))[];
+  plugins?: (CssmaPlugin | ((ctx: CssmaContext, config?: CssmaConfig) => void))[];
   /**
    * Whether to clear all caches when context is created/changed
    * - true (default): Clear all caches on context change
@@ -48,6 +81,7 @@ export interface CssmaContext {
   themeToCssVars: (prefix?: string) => string;
   // 플러그인에서 theme 확장을 위한 안전한 API
   extendTheme: (category: string, values: Record<string, any> | Function) => void;
+  getPreflightCSS: (level?: PreflightLevel) => string;
 }
 
 // Deep merge utility
@@ -293,6 +327,9 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
       } else {
         // console.warn(`[extendTheme] Invalid values for category ${category}:`, values);
       }
+    },
+    getPreflightCSS: (level: PreflightLevel = true) => {
+      return getPreflightCSS(level);
     }
   };
 

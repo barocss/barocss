@@ -1,23 +1,34 @@
 'use client'
 
 import { useEffect } from 'react'
-import { StyleRuntime } from 'cssma-v4/runtime/browser'
-
-
+import { StyleRuntime } from 'cssma-v4/runtime/browser' // Static import for type safety
 
 export default function CSSMAInit() {
   useEffect(() => {
-    // Browser에서만 실행
     if (typeof window === 'undefined') return
+
+    console.log('[CSSMA] Initializing real-time CSS engine...')
 
     const runtime = new StyleRuntime({
       styleId: 'cssma-docs-runtime',
-      enableDev: process.env.NODE_ENV === 'development',
+      enableDev: true, // Always enable dev mode for debugging
+      debugging: {
+        disableParseFailureTracking: false,
+        disablePerformanceMetrics: false,
+        disableDetailedLogging: false,
+        disableConsoleGrouping: false,
+        disableCacheLogging: false,
+        disableDOMLogging: false
+      }
     })
     runtime.observe(document.body, { scan: true })
 
-    console.log('[CSSMA] Initializing real-time CSS engine...')
-  }, [])
+    console.log('[CSSMA] Real-time DOM scanning active! 🚀')
 
-  return null // UI 없는 초기화 컴포넌트
+    // Cleanup function
+    return () => {
+      runtime.destroy()
+    }
+  }, [])
+  return null
 }

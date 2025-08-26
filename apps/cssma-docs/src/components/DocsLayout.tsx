@@ -7,13 +7,15 @@ interface DocsLayoutProps {
 
 export default function DocsLayout({ children }: DocsLayoutProps) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navigation />
-      <div className="flex pt-16"> {/* Fixed navigation 때문에 pt-16 추가 */}
+      <div className="flex pt-16">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {children}
+        <main className="flex-1 overflow-y-auto bg-white">
+          <div className="max-w-5xl mx-auto px-6 sm:px-8 lg:px-10 py-8">
+            <div className="docs-content">
+              {children}
+            </div>
           </div>
         </main>
       </div>

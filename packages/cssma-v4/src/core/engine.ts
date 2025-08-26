@@ -394,7 +394,7 @@ export function generateCss(
   opts?: { minify?: boolean; dedup?: boolean }
 ): string {
   const seen = new Set<string>();
-  const allAtRootNodes: AstNode[] = []; // atRoot 노드들을 수집
+  const allAtRootNodes: AstNode[] = [];
   
   const results = classList
     .split(/\s+/)
@@ -409,26 +409,47 @@ export function generateCss(
     .map((cls) => {
       const ast = parseClassToAst(cls, ctx);
       const cleanAst = optimizeAst(ast);
-      
-      // atRoot 노드들을 수집
+
       cleanAst.forEach((node) => {
         if (node.type === 'at-root') {
           allAtRootNodes.push(...node.nodes);
-          // console.log('[generateCss] Found atRoot nodes for', cls, node.nodes);
         }
       });
       
-      const css = astToCss(cleanAst, cls, { minify: opts?.minify });
+      // style-rule이 이미 완전한 셀렉터를 포함하고 있다면 baseSelector 전달 안함
+      const hasStyleRule = cleanAst.some(node => node.type === 'style-rule');
+      const css = astToCss(cleanAst, hasStyleRule ? undefined : cls, { minify: opts?.minify }); // Conditional baseSelector
 
       const rootCss = rootToCss(allAtRootNodes);
-
-      return `${rootCss ?  `:root,:host {${rootCss}}` : ''}${css}`;
+      const result = `${rootCss ?  `:root,:host {${rootCss}}` : ''}${css}`;
+      
+      // Debug logging for empty CSS
+      if (!result || result.trim() === '') {
+        console.warn('[generateCss] Empty CSS generated for class:', {
+          class: cls,
+          ast: cleanAst,
+          hasStyleRule,
+          css,
+          rootCss,
+          result
+        });
+      }
+      
+      return result;
     })
     .join(opts?.minify ? "" : "\n");
   
-  // 수집된 atRoot 노드들 로그 출력
   if (allAtRootNodes.length > 0) {
     console.log('[generateCss] All collected atRoot nodes:', allAtRootNodes);
+  }
+  
+  // Debug logging for final result
+  if (!results || results.trim() === '') {
+    console.warn('[generateCss] Empty final result:', {
+      classList,
+      results,
+      allAtRootNodes
+    });
   }
   
   return results;

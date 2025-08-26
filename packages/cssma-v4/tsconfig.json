@@ -11,6 +11,6 @@
     "declaration": true,
     "outDir": "dist"
   },
-  "include": ["src/**/*", "tests/**/*"],
+  "include": ["src/**/*", "vite-env.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

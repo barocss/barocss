@@ -563,10 +563,19 @@ export class StyleRuntime {
   }
 
   private init() {
+    this.injectPreflightCSS();
     this.ensureCssVars();
     this.ensureSheet();
     if (this.options.enableDev && typeof window !== 'undefined') {
       this.setupHMR();
+    }
+  }
+
+  private injectPreflightCSS() {
+    if (this.options.config.preflight) {
+      const preflightCSS = this.context.getPreflightCSS(this.options.config.preflight);
+      this.createStyleElement(`${this.options.styleId}-preflight-${this.options.config.preflight}`, preflightCSS);
+      console.log('[StyleRuntime] preflightCSS injected', preflightCSS);
     }
   }
 
@@ -796,17 +805,35 @@ export class StyleRuntime {
    */
   private insertRuleToSheet(sheet: CSSStyleSheet, rule: string): boolean {
     try {
-      // 🔍 CSS 규칙 escape 처리
-      const escapedRule = this.escapeCssRule(rule);
+      // 빈 문자열이나 공백만 있는 규칙은 건너뛰기
+      if (!rule || rule.trim() === '') {
+        if (this.options.enableDev) {
+          console.warn('[StyleRuntime] Skipping empty rule:', { rule, length: rule.length, trimmed: rule.trim() });
+        }
+        return false;
+      }
 
-      console.log('[StyleRuntime] insertRule', escapedRule);
+      const escapedRule = this.escapeCssRule(rule);
+      
+      if (this.options.enableDev) {
+        console.log('[StyleRuntime] insertRule', { 
+          original: rule, 
+          escaped: escapedRule, 
+          length: rule.length,
+          trimmedLength: rule.trim().length 
+        });
+      }
       
       sheet.insertRule(escapedRule.trim(), sheet.cssRules.length);
-      console.log('[StyleRuntime] insertRule', escapedRule.trim());
       return true;
     } catch (error) {
       if (this.options.enableDev) {
-        console.warn('[StyleRuntime] Failed to insert rule:', rule, error);
+        console.warn('[StyleRuntime] Failed to insert rule:', { 
+          rule, 
+          length: rule.length, 
+          trimmed: rule.trim(),
+          error: error instanceof Error ? error.message : String(error)
+        });
       }
       return false;
     }
@@ -827,20 +854,39 @@ export class StyleRuntime {
   /**
    * Insert multiple CSS rules in batch
    */
-  private insertRulesToSheet(sheet: CSSStyleSheet, cssRules: string[]): { successful: string[], failed: string[] } {
-    const successfulRules: string[] = [];
-    const failedRules: string[] = [];
-    
-    for (const css of cssRules) {
-      // 각 CSS는 이미 완전한 규칙이므로 분할하지 않고 그대로 삽입
-      if (this.insertRuleToSheet(sheet, css)) {
-        successfulRules.push(css.trim());
+  private insertRulesToSheet(sheet: CSSStyleSheet, cssRules: string[]): { successful: number; failed: number } {
+    let successful = 0;
+    let failed = 0;
+
+    if (this.options.enableDev) {
+      console.log('[StyleRuntime] insertRulesToSheet called with:', {
+        totalRules: cssRules.length,
+        rules: cssRules.map((rule, index) => ({ index, rule, length: rule.length, isEmpty: !rule || rule.trim() === '' }))
+      });
+    }
+
+    for (const rule of cssRules) {
+      // 빈 규칙은 건너뛰기
+      if (!rule || rule.trim() === '') {
+        if (this.options.enableDev) {
+          console.warn('[StyleRuntime] Skipping empty rule in batch:', { rule, length: rule.length });
+        }
+        failed++;
+        continue;
+      }
+
+      if (this.insertRuleToSheet(sheet, rule)) {
+        successful++;
       } else {
-        failedRules.push(css.trim());
+        failed++;
       }
     }
-    
-    return { successful: successfulRules, failed: failedRules };
+
+    if (this.options.enableDev) {
+      console.log('[StyleRuntime] insertRulesToSheet result:', { successful, failed, total: cssRules.length });
+    }
+
+    return { successful, failed };
   }
 
   /**
@@ -854,22 +900,20 @@ export class StyleRuntime {
 
   private insertRules(cssRules: string[]) {
     if (!this.sheet || cssRules.length === 0) return;
-
-    console.log('[StyleRuntime] insertRules', cssRules);
     
-    const { successful, failed } = this.insertRulesToSheet(this.sheet, cssRules);
-    
-    // Success/failure statistics
     if (this.options.enableDev) {
-      console.log('[StyleRuntime] insertRules stats', {
-        total: cssRules.length,
-        successful: successful.length,
-        failed: failed.length,
-        failedRules: failed
+      console.log('[StyleRuntime] insertRules called with:', {
+        totalRules: cssRules.length,
+        rules: cssRules.map((rule, index) => ({ index, rule, length: rule.length, isEmpty: !rule || rule.trim() === '' }))
       });
     }
+
+    const { successful, failed } = this.insertRulesToSheet(this.sheet, cssRules);
     
-    // Always sync all CSS from cache to textContent
+    if (this.options.enableDev) {
+      console.log('[StyleRuntime] insertRules result:', { successful, failed, total: cssRules.length });
+    }
+
     if (this.styleEl) {
       this.syncStyleElementContent(this.styleEl, Array.from(this.cache.values()).flat());
     }
