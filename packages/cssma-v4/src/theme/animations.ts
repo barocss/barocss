@@ -1,5 +1,5 @@
-// Modern CSS v4.1+ animation preset
-// Modern CSS default theme reference
+//  v4.1+ animation preset
+//  default theme reference
 
 export const animations = {
   spin: 'spin 1s linear infinite',

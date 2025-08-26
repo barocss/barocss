@@ -1,11 +1,11 @@
 # CSSMA v4
 
-A modern CSS utility library designed for high performance and developer experience.
+A  utility library designed for high performance and developer experience.
 
 ## 🚀 Features
 
 ### Core Features
-- **Modern CSS Compatible**: Matches modern CSS AST structure and CSS generation
+- ** Compatible**: Matches  AST structure and CSS generation
 - **TypeScript First**: Full TypeScript support with comprehensive type definitions
 - **Universal Runtime**: Works in both browser and server environments
 

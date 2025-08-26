@@ -70,7 +70,7 @@ export interface CssmaConfig {
 
 export const defaultConfig: CssmaConfig = {
   prefix: 'cssma-',
-  darkMode: 'media', // Modern CSS 기본값과 동일
+  darkMode: 'media', //  기본값과 동일
 };
 
 export interface CssmaContext {

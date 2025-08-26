@@ -1,5 +1,5 @@
-// Modern CSS v4.1+ keyframes preset
-// Modern CSS default theme reference
+//  v4.1+ keyframes preset
+//  default theme reference
 
 export const keyframes = {
   spin: {

@@ -1,5 +1,5 @@
-// Modern CSS v4.1+ animationVars preset
-// Modern CSS default theme reference
+//  v4.1+ animationVars preset
+//  default theme reference
 import { animations } from './animations';
 
 export const animationVars = {

@@ -1,4 +1,4 @@
-/* CSSMA v4 Preflight - Modern CSS Reset */
+/* CSSMA v4 Preflight -  Reset */
 
 /* Box sizing rules */
 *, *::before, *::after {
@@ -223,7 +223,7 @@ meter {
   vertical-align: baseline;
 }
 
-/* Modern CSS improvements */
+/*  improvements */
 /* Better text selection */
 ::selection {
   background-color: #b3d4fc;

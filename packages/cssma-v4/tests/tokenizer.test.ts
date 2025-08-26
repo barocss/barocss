@@ -278,7 +278,7 @@ describe('tokenize', () => {
     });
   });
   
-  describe('Modern CSS v4 advanced features', () => {
+  describe(' v4 advanced features', () => {
     it('should handle container queries', () => {
       const tokens = tokenize('@container:bg-red-500');
       expect(tokens).toEqual([
@@ -476,7 +476,7 @@ describe('tokenize', () => {
       ]);
     });
 
-    it('should handle ultimate complex scenario with all Modern CSS v4 features', () => {
+    it('should handle ultimate complex scenario with all  v4 features', () => {
       const tokens = tokenize('@container/sidebar:hover:focus:grid-cols-["sidebar-start" minmax(200px,calc(100%-var(--main-width))) "main-start" var(--main-width)]:grid-rows-["header-start" var(--header-height) "main-start" calc(100%-var(--header-height)-var(--footer-height)) "footer-start" var(--footer-height)]:bg-[linear-gradient(45deg, rgba(255,0,0,0.5), rgba(0,255,0,0.5))]:text-(--primary):active');
       expect(tokens).toEqual([
         { value: '@container/sidebar', start: 0, end: 18 },

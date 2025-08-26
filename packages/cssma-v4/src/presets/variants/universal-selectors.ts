@@ -1,6 +1,6 @@
 import { functionalModifier, escapeClassName } from "../../core/registry";
 
-// --- Universal selector variants (Modern CSS 4.x style, supports chaining/:is wrapping) ---
+// --- Universal selector variants ( 4.x style, supports chaining/:is wrapping) ---
 functionalModifier(
   (mod) => mod === '*',
   ({ selector, fullClassName, variantChain }) => {

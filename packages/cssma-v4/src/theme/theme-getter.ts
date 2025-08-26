@@ -1,8 +1,8 @@
-// Modern CSS 스타일의 theme() 함수 (v4)
+//  스타일의 theme() 함수 (v4)
 // theme(themeObj, 'colors.red.500') 또는 theme(themeObj, 'colors', 'red', 500) 모두 지원
 
 /**
- * Modern CSS-style theme getter
+ * -style theme getter
  * - Only supports function at category (first path segment) level.
  * - Leaf (property) functions are NOT supported (will be ignored).
  * - Example: theme('spacing') can be a function, theme('spacing.1') cannot.

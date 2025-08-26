@@ -1,6 +1,6 @@
-// 카테고리별 theme → CSS 변수 변환 함수 모음 (Modern CSS v4 스타일)
+// 카테고리별 theme → CSS 변수 변환 함수 모음 ( v4 스타일)
 // 각 함수는 해당 카테고리의 theme 객체를 받아 Record<string, string> 반환
-// 네임스페이스/네이밍 규칙은 Modern CSS v4와 동일하게 적용
+// 네임스페이스/네이밍 규칙은  v4와 동일하게 적용
 
 import type { CssmaTheme } from './context';
 

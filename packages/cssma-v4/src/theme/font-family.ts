@@ -1,5 +1,5 @@
-// Modern CSS v4.1+ fontFamily 전체
-// Modern CSS default theme reference
+//  v4.1+ fontFamily 전체
+//  default theme reference
 
 export const fontFamily = {
   sans: [

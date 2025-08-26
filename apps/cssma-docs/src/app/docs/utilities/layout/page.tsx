@@ -8,7 +8,7 @@ export default function LayoutUtilities() {
         <h1 id="layout-utilities">Layout & Flexbox Utilities</h1>
         
         <p>
-          CSSMA v4 provides comprehensive layout utilities for modern CSS layouts including Flexbox and Grid. 
+          CSSMA v4 provides comprehensive layout utilities for  layouts including Flexbox and Grid. 
           All utilities support real-time generation, arbitrary values, and custom properties.
         </p>
 

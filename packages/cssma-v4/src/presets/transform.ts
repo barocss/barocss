@@ -1,5 +1,5 @@
 // --- Transform Utilities ---
-// Modern CSS backface-visibility documentation
+//  backface-visibility documentation
 import { atRoot, decl, property } from "../core/ast";
 import { staticUtility, functionalUtility } from "../core/registry";
 import {
@@ -9,7 +9,7 @@ import {
 } from "../core/utils";
 
 // --- Transform  ---
-// Modern CSS transform documentation
+//  transform documentation
 
 // transform-none: disables all transforms
 staticUtility("transform-none", [["transform", "none"]]);
@@ -33,7 +33,7 @@ staticUtility("transform-cpu", [
 ]);
 
 // --- Transform Style  ---
-// Modern CSS transform-style documentation
+//  transform-style documentation
 
 // transform-3d: transform-style: preserve-3d;
 staticUtility("transform-3d", [["transform-style", "preserve-3d"]]);
@@ -64,12 +64,12 @@ functionalUtility({
 });
 
 // --- Backface Visibility ---
-// Modern CSS backface-visibility documentation
+//  backface-visibility documentation
 staticUtility("backface-hidden", [["backface-visibility", "hidden"]]);
 staticUtility("backface-visible", [["backface-visibility", "visible"]]);
 
 // --- Perspective ---
-// Modern CSS perspective documentation
+//  perspective documentation
 staticUtility("perspective-dramatic", [
   ["perspective", "var(--perspective-dramatic)"],
 ]); // 100px
@@ -86,7 +86,7 @@ staticUtility("perspective-distant", [
 staticUtility("perspective-none", [["perspective", "none"]]);
 
 // --- Perspective Origin ---
-// Modern CSS perspective-origin documentation
+//  perspective-origin documentation
 staticUtility("perspective-origin-center", [["perspective-origin", "center"]]);
 staticUtility("perspective-origin-top", [["perspective-origin", "top"]]);
 staticUtility("perspective-origin-top-right", [
@@ -135,7 +135,7 @@ functionalUtility({
 });
 
 // --- Rotate ---
-// Modern CSS rotate documentation
+//  rotate documentation
 
 // rotate-none
 staticUtility("rotate-none", [["rotate", "none"]]);
@@ -255,7 +255,7 @@ functionalUtility({
 });
 
 // --- Scale ---
-// Modern CSS scale documentation
+//  scale documentation
 
 // scale-none
 staticUtility("scale-none", [["scale", "none"]]);
@@ -372,7 +372,7 @@ functionalUtility({
 });
 
 // --- Skew ---
-// Modern CSS skew documentation
+//  skew documentation
 
 // skew-x-<number>, -skew-x-<number>, skew-x-(<custom-property>), skew-x-[<value>]
 functionalUtility({
@@ -446,7 +446,7 @@ functionalUtility({
 });
 
 // --- Transform Origin  ---
-// Modern CSS transform-origin documentation
+//  transform-origin documentation
 
 // origin-center: transform-origin: center;
 staticUtility("origin-center", [["transform-origin", "center"]]);
@@ -479,7 +479,7 @@ functionalUtility({
 });
 
 // --- Translate  ---
-// Modern CSS translate documentation
+//  translate documentation
 
 let translateProperties = () => (
     atRoot([

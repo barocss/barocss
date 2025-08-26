@@ -1,4 +1,4 @@
-// Modern CSS responsive design documentation
+//  responsive design documentation
 
 export const breakpoints = {
   sm: '40rem',

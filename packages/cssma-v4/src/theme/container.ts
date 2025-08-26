@@ -1,4 +1,4 @@
-// Modern CSS responsive design documentation
+//  responsive design documentation
 
 export const container = {
   '3xs': '16rem',

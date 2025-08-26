@@ -145,7 +145,7 @@ export default function Home() {
               <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <PaintBrushIcon className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Modern CSS Features</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3"> Features</h3>
               <p className="text-gray-600 leading-relaxed">
                 Support for CSS Grid, Container Queries, OKLCH colors, and more. 
                 CSSMA uses the latest web standards to give you the best developer experience.

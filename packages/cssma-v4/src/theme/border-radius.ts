@@ -1,5 +1,5 @@
-// Modern CSS v4.1+ borderRadius 전체
-// Modern CSS default theme reference
+//  v4.1+ borderRadius 전체
+//  default theme reference
 
 export const borderRadius = {
   none: '0px',

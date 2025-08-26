@@ -12,7 +12,7 @@ import "./spacing";
 
 
 // --- Sizing: width (w-*) and size (size-*) ---
-// Modern CSS width documentation
+//  width documentation
 
 // w-* static values
 [
@@ -111,7 +111,7 @@ functionalUtility({
 });
 
 // --- Sizing: height (h-*) ---
-// Modern CSS height documentation
+//  height documentation
 
 // h-* static values
 [
@@ -148,7 +148,7 @@ functionalUtility({
 });
 
 // --- Sizing: min-height (min-h-*) ---
-// Modern CSS min-height documentation
+//  min-height documentation
 
 // min-h-* static values
 [
@@ -185,7 +185,7 @@ functionalUtility({
 });
 
 // --- Sizing: max-height (max-h-*) ---
-// Modern CSS max-height documentation
+//  max-height documentation
 
 // max-h-* static values
 [
@@ -222,7 +222,7 @@ functionalUtility({
 });
 
 // --- Sizing: min-width (min-w-*) ---
-// Modern CSS min-width documentation
+//  min-width documentation
 
 // min-w-* static values
 [
