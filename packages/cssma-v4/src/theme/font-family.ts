@@ -1,4 +1,4 @@
-// v4.1+ complete fontFamily list
+//  complete fontFamily list
 // Default theme reference
 
 export const fontFamily = {

@@ -244,7 +244,7 @@ export function resolveTheme(config: CssmaConfig): CssmaTheme {
   }
   if (config.theme) {
     const { extend, ...overrideTheme } = config.theme as any;
-    theme = deepMerge(theme, overrideTheme); // shallowMerge → deepMerge로 변경
+    theme = deepMerge(theme, overrideTheme); // switch from shallowMerge to deepMerge
     if (extend) {
       theme = deepMerge(theme, extend);
     }
@@ -400,6 +400,6 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
     // console.log('--- Plugin execution end ---');
   }
 
-  // 4. 반환
+  // 4. Return
   return ctx;
 } 

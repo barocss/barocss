@@ -1,4 +1,4 @@
-//  v4.1+ keyframes preset
+//   keyframes preset
 //  default theme reference
 
 export const keyframes = {

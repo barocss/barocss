@@ -2,7 +2,7 @@ import { AstNode, atRule } from "../../core/ast";
 import { CssmaContext } from "../../core/context";
 
 /**
- * Container query 파라미터 생성
+ * Create container query parameters
  */
 export function createContainerParams(type: 'min' | 'max', value: string, name?: string): string {
   const condition = type === 'min' ? 'width >=' : 'width <';
@@ -10,7 +10,7 @@ export function createContainerParams(type: 'min' | 'max', value: string, name?:
 }
 
 /**
- * Media query 파라미터 생성
+ * Create media query parameters
  */
 export function createMediaParams(type: 'min' | 'max', value: string): string {
   const condition = type === 'min' ? 'min-width' : 'width <';
@@ -18,14 +18,14 @@ export function createMediaParams(type: 'min' | 'max', value: string): string {
 }
 
 /**
- * Theme에서 size 값 가져오기
+ * Get size value from theme
  */
 export function getThemeSize(ctx: CssmaContext, key: string): string | undefined {
   return ctx.theme('container.' + key) || ctx.theme('breakpoint.' + key);
 }
 
 /**
- * Container query AST 생성
+ * Create container query AST
  */
 export function createContainerRule(params: string, ast: AstNode | AstNode[]): AstNode {
   return {
@@ -38,7 +38,7 @@ export function createContainerRule(params: string, ast: AstNode | AstNode[]): A
 }
 
 /**
- * Media query AST 생성
+ * Create media query AST
  */
 export function createMediaRule(params: string, ast: AstNode | AstNode[]): AstNode {
   return {
@@ -49,7 +49,7 @@ export function createMediaRule(params: string, ast: AstNode | AstNode[]): AstNo
   };
 }
 
-// 기본 breakpoint 값들 (fallback)
+// Default breakpoint values (fallback)
 export function getDefaultBreakpoint(breakpoint: string): string {
   const defaults: Record<string, string> = {
     'sm': '(min-width: 640px)',

@@ -1,4 +1,4 @@
-// v4.1+ complete transitionProperty map
+//  complete transitionProperty map
 // Default theme reference
 
 export const transitionProperty = {

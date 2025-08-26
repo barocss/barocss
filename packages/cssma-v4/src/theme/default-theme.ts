@@ -1,4 +1,4 @@
-// v4.1+ default theme structure implemented to closely match reference
+//  default theme structure implemented to closely match reference
 // Default theme reference
 
 import { colors } from './colors';

@@ -183,7 +183,7 @@ export function themeToCssVarsAll(theme: CssmaTheme): Record<string, string> {
     ...zIndexToCssVars(theme.zIndex || {}),
     ...opacityToCssVars(theme.opacity || {}),
     ...animationToCssVars(theme.animations || {}),
-    // keyframes는 별도
+    // keyframes handled separately
   };
 }
 

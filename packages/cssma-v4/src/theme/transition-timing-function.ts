@@ -1,4 +1,4 @@
-// v4.1+ complete transitionTimingFunction scale
+//  complete transitionTimingFunction scale
 // Default theme reference
 
 export const transitionTimingFunction = {

@@ -37,14 +37,14 @@ functionalModifier(
     const pseudo = mod.type.replace('not-', '');
     if (pseudo.startsWith('[')) {
       const inner = pseudo.slice(1, -1);
-      // 속성 패턴: 식별자(=값)? (예: open, dir=rtl, aria-pressed=true)
+      // Attribute pattern: identifier(=value)? (e.g., open, dir=rtl, aria-pressed=true)
       if (/^[a-zA-Z0-9_-]+(=.+)?$/.test(inner)) {
         return {
           selector: `&:not([${inner}])`,
           source: 'attribute'
         };
       } else {
-        // 그 외는 selector로 인식
+        // Otherwise, treat as a selector
         return {
           selector: `&:not(${inner})`,
           source: 'attribute'
@@ -76,7 +76,7 @@ functionalModifier(
         source: 'data'
       };
     }
-    // data-avatar → [data-avatar="true"] & { ... }
+    // data-avatar → [data-avatar] & { ... }
     const m2 = /^data-([a-zA-Z0-9_]+)$/.exec(mod.type);
     if (m2) {
       const key = m2[1];

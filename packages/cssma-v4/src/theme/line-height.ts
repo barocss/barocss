@@ -1,4 +1,4 @@
-// v4.1+ complete lineHeight scale
+//  complete lineHeight scale
 // Default theme reference
 
 export const lineHeight = {

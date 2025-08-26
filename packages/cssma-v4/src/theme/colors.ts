@@ -1,4 +1,4 @@
-// v4.1+ complete color palette (OKLCH/HEX, etc.)
+//  complete color palette (OKLCH/HEX, etc.)
 // Default theme reference
 
 export const colors = {

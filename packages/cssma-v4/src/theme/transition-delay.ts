@@ -1,4 +1,4 @@
-// v4.1+ complete transitionDelay scale
+//  complete transitionDelay scale
 // Default theme reference
 
 export const transitionDelay = {

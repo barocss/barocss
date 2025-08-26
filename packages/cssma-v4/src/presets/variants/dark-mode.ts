@@ -3,7 +3,7 @@ import { AstNode, atRule, rule } from "../../core/ast";
 import { CssmaContext } from "../../core/context";
 import { ParsedModifier } from "../../core/parser";
 
-// dark variant plugin 개선
+// Dark variant plugin
 const getDarkSelectors = (ctx: CssmaContext) => {
   const mode = ctx.config("darkMode") || "media";
   const custom = ctx.config("darkModeSelector");
@@ -32,7 +32,7 @@ const getDarkSelectors = (ctx: CssmaContext) => {
 
 functionalModifier(
   (mod: string) => mod === "dark",
-  undefined, // modifySelector는 사용하지 않음
+  undefined, // modifySelector is not used
   (_mod: ParsedModifier, ctx: CssmaContext) => {
     const selectors = getDarkSelectors(ctx);
     

@@ -1,4 +1,4 @@
-// v4.1+ complete opacity scale
+//  complete opacity scale
 // Default theme reference
 
 export const opacity = {

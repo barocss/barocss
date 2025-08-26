@@ -244,7 +244,7 @@ staticUtility("sticky", [["position", "sticky"]]);
       if (frac) return `-${frac}`;
       return null;
     },
-    description: `${name} utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative 지원)`,
+    description: `${name} utility (spacing, fraction, px, full, auto, custom property, arbitrary, negative supported)`,
     category: "layout",
   });
 });

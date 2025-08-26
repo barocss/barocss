@@ -1,4 +1,4 @@
-//  v4.1+ animationVars preset
+//   animationVars preset
 //  default theme reference
 import { animations } from './animations';
 

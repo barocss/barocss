@@ -1,4 +1,4 @@
-// v4.1+ complete zIndex scale
+//  complete zIndex scale
 // Default theme reference
 
 export const zIndex = {

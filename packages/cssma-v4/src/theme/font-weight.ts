@@ -1,4 +1,4 @@
-// v4.1+ complete fontWeight scale
+//  complete fontWeight scale
 // Default theme reference
 
 export const fontWeight = {

@@ -1,4 +1,4 @@
-// v4.1+ complete transitionDuration scale
+//  complete transitionDuration scale
 // Default theme reference
 
 export const transitionDuration = {

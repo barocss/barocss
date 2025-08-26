@@ -1,4 +1,4 @@
-// v4.1+ complete spacing scale
+//  complete spacing scale
 // Default theme reference
 
 export const spacing = {

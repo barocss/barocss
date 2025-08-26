@@ -1,4 +1,4 @@
-//  v4.1+ animation preset
+//   animation preset
 //  default theme reference
 
 export const animations = {

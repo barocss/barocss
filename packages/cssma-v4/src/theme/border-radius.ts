@@ -1,4 +1,4 @@
-// v4.1+ complete borderRadius scale
+//  complete borderRadius scale
 // Default theme reference
 
 export const borderRadius = {
