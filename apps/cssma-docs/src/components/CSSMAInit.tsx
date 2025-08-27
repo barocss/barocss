@@ -11,7 +11,8 @@ export default function CSSMAInit() {
 
     const runtime = new StyleRuntime({
       styleId: 'cssma-docs-runtime',
-      enableDev: true
+      enableDev: true,
+      maxRulesPerPartition: 10,
     })
     runtime.observe(document.body, { scan: true })
 

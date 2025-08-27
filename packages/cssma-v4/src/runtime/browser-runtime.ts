@@ -1,5 +1,6 @@
 import { createContext, astCache, cssCache, IncrementalParser } from '../index';
 import type { CssmaConfig, CssmaContext } from '../core/context';
+import { StylePartitionManager } from './style-partition-manager';
 
 function normalizeClassName(className: any): string {
   if (!className) return '';
@@ -239,6 +240,7 @@ export interface StyleRuntimeOptions {
     css?: number;
     parseResult?: number;
   };
+  maxRulesPerPartition?: number;
 }
 
 export class StyleRuntime {
@@ -255,6 +257,7 @@ export class StyleRuntime {
 
   private incrementalParser: IncrementalParser;
   private changeDetector: ChangeDetector;
+  private stylePartitionManager: StylePartitionManager;
 
   constructor(options: StyleRuntimeOptions = {}) {
     // Default config - createContext handles defaultTheme automatically
@@ -269,7 +272,8 @@ export class StyleRuntime {
         ast: options.cacheSize?.ast || 1000,
         css: options.cacheSize?.css || 2000,
         parseResult: options.cacheSize?.parseResult || 500
-      }
+      },
+      maxRulesPerPartition: options.maxRulesPerPartition || 50,
     };
 
     // Pass full config to createContext (defaultTheme auto-included)
@@ -278,9 +282,9 @@ export class StyleRuntime {
     this.incrementalParser = new IncrementalParser(this.context);
     this.changeDetector = new ChangeDetector(this.incrementalParser, this);
 
-    if (typeof window !== 'undefined') {
-      this.init();
-    }
+    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`);
+
+    this.init();
   }
 
   // Debugging and logging helpers
@@ -472,7 +476,7 @@ export class StyleRuntime {
     }
 
     if (cssRules.length > 0 && isBrowser) {
-      this.insertRules(cssRules);
+      this.stylePartitionManager.addRules(cssRules);
     }
 
     if (rootCssRules.length > 0 && isBrowser) {
@@ -652,6 +656,7 @@ export class StyleRuntime {
     astCache.clear();
     cssCache.clear();
     this.incrementalParser.clearProcessed();
+    this.stylePartitionManager.cleanup();
   }
 
 
@@ -664,6 +669,7 @@ export class StyleRuntime {
     }
     this.cache.clear();
     this.rootCache.clear();
+    this.stylePartitionManager.cleanup();
     
     // Reinitialize stylesheets
     if (this.styleEl) {
@@ -698,7 +704,9 @@ export class StyleRuntime {
     this.removeStyleElement(this.styleEl);
     this.removeStyleElement(this.styleRootEl);
     this.removeStyleElement(this.styleCssVarsEl);
-    
+
+    this.stylePartitionManager.cleanup();
+
     this.styleEl = null;
     this.styleRootEl = null;
     this.styleCssVarsEl = null;
@@ -707,6 +715,7 @@ export class StyleRuntime {
     this.cache.clear();
     this.rootCache.clear();
     this.isDestroyed = true;
+
   }
 
   getStats() {
