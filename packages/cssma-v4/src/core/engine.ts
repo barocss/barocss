@@ -526,6 +526,10 @@ export function generateCssRules(
   opts?: { minify?: boolean; dedup?: boolean }
 ): Array<GenerateCssRulesResult> {
   const seen = new Set<string>();
+  const options = {
+    minify: opts?.minify,
+    dedup: opts?.dedup,
+  };
   return classList
     .split(/\s+/)
     .filter((cls) => {
@@ -560,11 +564,11 @@ export function generateCssRules(
       for (const node of allCleanAst) {
         if (node.type === "at-root") {
           node.nodes.forEach((node) => {
-            const css = astToCss([node], "", { minify: opts?.minify });
+            const css = astToCss([node], "", options);
             cssList.push(css);
           });
         } else {
-          const css = astToCss([node], cls, { minify: opts?.minify });
+          const css = astToCss([node], cls, options);
           cssList.push(css);
         }
       }
@@ -578,9 +582,9 @@ export function generateCssRules(
       return {
         cls,
         ast: allCleanAst,
-        css: cssList.join(opts?.minify ? "" : "\n"),
+        css: cssList.join(options.minify ? "" : "\n"),
         cssList,
-        rootCss: rootCssList.join(opts?.minify ? "" : "\n"),
+        rootCss: rootCssList.join(options.minify ? "" : "\n"),
         rootCssList,
       };
     });
