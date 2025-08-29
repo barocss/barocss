@@ -281,6 +281,7 @@ export function parseClassToAst(
   const { modifiers, utility } = parseClassName(fullClassName);
 
   if (!utility) {
+    console.warn(`[CSSMA] Invalid class name format: "${fullClassName}"`);
     return [];
   }
 
@@ -291,6 +292,10 @@ export function parseClassToAst(
     return u.match(fullClassName);
   });
   if (!utilReg) {
+    const utilityName = utility.value
+      ? `${utility.prefix}-${utility.value}`
+      : utility.prefix;
+    console.warn(`[CSSMA] Unknown utility class: "${utilityName}" in "${fullClassName}"`);
     return [];
   }
 
@@ -307,6 +312,7 @@ export function parseClassToAst(
     const plugin = getModifierPlugins().find((p) => p.match(variant.type, ctx));
 
     if (!plugin) {
+      console.warn(`[CSSMA] Unknown variant: "${variant.type}" in "${fullClassName}"`);
       continue;
     }
 
