@@ -255,6 +255,7 @@ export function resolveTheme(config: CssmaConfig): CssmaTheme {
 
 export function themeToCssVars(theme: CssmaTheme): string {
   const vars = themeToCssVarsAll(theme);
+  // console.log('[themeToCssVars] vars', vars);
   return toCssVarsBlock(vars, `
 ${keyframesToCss(theme.keyframes || {})}
 `);

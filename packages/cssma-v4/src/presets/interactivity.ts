@@ -8,9 +8,9 @@ import { parseNumber } from "../core/utils";
 // Theme color utilities (e.g. accent-inherit, accent-blue-500)
 // (Assume theme color registration is handled elsewhere, or extend as needed)
 
-staticUtility("accent-inherit", [["accent-color", "inherit"]]);
-staticUtility("accent-current", [["accent-color", "currentColor"]]);
-staticUtility("accent-transparent", [["accent-color", "transparent"]]);
+staticUtility("accent-inherit", [["accent-color", "inherit"]], { category: 'interactivity' });
+staticUtility("accent-current", [["accent-color", "currentColor"]], { category: 'interactivity' });
+staticUtility("accent-transparent", [["accent-color", "transparent"]], { category: 'interactivity' });
 
 // Functional: arbitrary value (accent-[value])
 functionalUtility({
@@ -47,17 +47,17 @@ functionalUtility({
 //  appearance documentation
 
 // appearance-none: removes native form control styling
-staticUtility("appearance-none", [["appearance", "none"]]);
+staticUtility("appearance-none", [["appearance", "none"]], { category: 'interactivity' });
 // appearance-auto: restores default browser styling
-staticUtility("appearance-auto", [["appearance", "auto"]]);
+staticUtility("appearance-auto", [["appearance", "auto"]], { category: 'interactivity' });
 
 // --- Caret Color Utilities  ---
 //  caret-color documentation
 
 // Static caret colors
-staticUtility("caret-inherit", [["caret-color", "inherit"]]);
-staticUtility("caret-current", [["caret-color", "currentColor"]]);
-staticUtility("caret-transparent", [["caret-color", "transparent"]]);
+staticUtility("caret-inherit", [["caret-color", "inherit"]], { category: 'interactivity' });
+staticUtility("caret-current", [["caret-color", "currentColor"]], { category: 'interactivity' });
+staticUtility("caret-transparent", [["caret-color", "transparent"]], { category: 'interactivity' });
 
 // Theme color utilities (e.g. caret-blue-500)
 // (Assume theme color registration is handled elsewhere)
@@ -97,17 +97,17 @@ functionalUtility({
 //  color-scheme documentation
 
 // scheme-normal: color-scheme: normal;
-staticUtility("scheme-normal", [["color-scheme", "normal"]]);
+staticUtility("scheme-normal", [["color-scheme", "normal"]], { category: 'interactivity' });
 // scheme-dark: color-scheme: dark;
-staticUtility("scheme-dark", [["color-scheme", "dark"]]);
+staticUtility("scheme-dark", [["color-scheme", "dark"]], { category: 'interactivity' });
 // scheme-light: color-scheme: light;
-staticUtility("scheme-light", [["color-scheme", "light"]]);
+staticUtility("scheme-light", [["color-scheme", "light"]], { category: 'interactivity' });
 // scheme-light-dark: color-scheme: light dark;
-staticUtility("scheme-light-dark", [["color-scheme", "light dark"]]);
+staticUtility("scheme-light-dark", [["color-scheme", "light dark"]], { category: 'interactivity' });
 // scheme-only-dark: color-scheme: only dark;
-staticUtility("scheme-only-dark", [["color-scheme", "only dark"]]);
+staticUtility("scheme-only-dark", [["color-scheme", "only dark"]], { category: 'interactivity' });
 // scheme-only-light: color-scheme: only light;
-staticUtility("scheme-only-light", [["color-scheme", "only light"]]);
+staticUtility("scheme-only-light", [["color-scheme", "only light"]], { category: 'interactivity' });
 
 // --- Cursor Utilities  ---
 //  cursor documentation
@@ -151,7 +151,7 @@ staticUtility("scheme-only-light", [["color-scheme", "only light"]]);
   "zoom-in",
   "zoom-out",
 ].forEach((cursor) => {
-  staticUtility(`cursor-${cursor}`, [["cursor", cursor]]);
+  staticUtility(`cursor-${cursor}`, [["cursor", cursor]], { category: 'interactivity' });
 });
 
 // Functional: custom property (cursor-(--my-cursor)) and arbitrary value (cursor-[value])
@@ -168,58 +168,58 @@ functionalUtility({
 //  field-sizing documentation
 
 // field-sizing-fixed: field-sizing: fixed;
-staticUtility("field-sizing-fixed", [["field-sizing", "fixed"]]);
+staticUtility("field-sizing-fixed", [["field-sizing", "fixed"]], { category: 'interactivity' });
 // field-sizing-content: field-sizing: content;
-staticUtility("field-sizing-content", [["field-sizing", "content"]]);
+staticUtility("field-sizing-content", [["field-sizing", "content"]], { category: 'interactivity' });
 
 // --- Pointer Events Utilities  ---
 //  pointer-events documentation
 
 // pointer-events-auto: pointer-events: auto;
-staticUtility("pointer-events-auto", [["pointer-events", "auto"]]);
+staticUtility("pointer-events-auto", [["pointer-events", "auto"]], { category: 'interactivity' });
 // pointer-events-none: pointer-events: none;
-staticUtility("pointer-events-none", [["pointer-events", "none"]]);
+staticUtility("pointer-events-none", [["pointer-events", "none"]], { category: 'interactivity' });
 
 // --- Resize Utilities  ---
 //  resize documentation
 
 // resize: resize: both;
-staticUtility("resize", [["resize", "both"]]);
+staticUtility("resize", [["resize", "both"]], { category: 'interactivity' });
 // resize-x: resize: horizontal;
-staticUtility("resize-x", [["resize", "horizontal"]]);
+staticUtility("resize-x", [["resize", "horizontal"]], { category: 'interactivity' });
 // resize-y: resize: vertical;
-staticUtility("resize-y", [["resize", "vertical"]]);
+staticUtility("resize-y", [["resize", "vertical"]], { category: 'interactivity' });
 // resize-none: resize: none;
-staticUtility("resize-none", [["resize", "none"]]);
+staticUtility("resize-none", [["resize", "none"]], { category: 'interactivity' });
 
 // --- Scroll Behavior Utilities  ---
 //  scroll-behavior documentation
 
 // scroll-auto: scroll-behavior: auto;
-staticUtility("scroll-auto", [["scroll-behavior", "auto"]]);
+staticUtility("scroll-auto", [["scroll-behavior", "auto"]], { category: 'interactivity' });
 // scroll-smooth: scroll-behavior: smooth;
-staticUtility("scroll-smooth", [["scroll-behavior", "smooth"]]);
+staticUtility("scroll-smooth", [["scroll-behavior", "smooth"]], { category: 'interactivity' });
 
 // --- Scroll Snap Align Utilities ---
 //  scroll-snap-align documentation
-staticUtility("snap-start", [["scroll-snap-align", "start"]]);
-staticUtility("snap-end", [["scroll-snap-align", "end"]]);
-staticUtility("snap-center", [["scroll-snap-align", "center"]]);
-staticUtility("snap-align-none", [["scroll-snap-align", "none"]]);
+staticUtility("snap-start", [["scroll-snap-align", "start"]], { category: 'interactivity' });
+staticUtility("snap-end", [["scroll-snap-align", "end"]], { category: 'interactivity' });
+staticUtility("snap-center", [["scroll-snap-align", "center"]], { category: 'interactivity' });
+staticUtility("snap-align-none", [["scroll-snap-align", "none"]], { category: 'interactivity' });
 
 // --- Scroll Snap Stop Utilities ---
 //  scroll-snap-stop documentation
-staticUtility("snap-normal", [["scroll-snap-stop", "normal"]]);
-staticUtility("snap-always", [["scroll-snap-stop", "always"]]);
+staticUtility("snap-normal", [["scroll-snap-stop", "normal"]], { category: 'interactivity' });
+staticUtility("snap-always", [["scroll-snap-stop", "always"]], { category: 'interactivity' });
 
 // --- Scroll Snap Type Utilities ---
 //  scroll-snap-type documentation
-staticUtility("snap-none", [["scroll-snap-type", "none"]]);
-staticUtility("snap-x", [["scroll-snap-type", "x var(--tw-scroll-snap-strictness)"]]);
-staticUtility("snap-y", [["scroll-snap-type", "y var(--tw-scroll-snap-strictness)"]]);
-staticUtility("snap-both", [["scroll-snap-type", "both var(--tw-scroll-snap-strictness)"]]);
-staticUtility("snap-mandatory", [["--tw-scroll-snap-strictness", "mandatory"]]);
-staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]]);
+staticUtility("snap-none", [["scroll-snap-type", "none"]], { category: 'interactivity' });
+staticUtility("snap-x", [["scroll-snap-type", "x var(--tw-scroll-snap-strictness)"]], { category: 'interactivity' });
+staticUtility("snap-y", [["scroll-snap-type", "y var(--tw-scroll-snap-strictness)"]], { category: 'interactivity' });
+staticUtility("snap-both", [["scroll-snap-type", "both var(--tw-scroll-snap-strictness)"]], { category: 'interactivity' });
+staticUtility("snap-mandatory", [["--tw-scroll-snap-strictness", "mandatory"]], { category: 'interactivity' });
+staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]], { category: 'interactivity' });
 
 
 [
@@ -284,30 +284,30 @@ staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]]);
 
 // --- Touch Action Utilities ---
 //  touch-action documentation
-staticUtility("touch-auto", [["touch-action", "auto"]]);
-staticUtility("touch-none", [["touch-action", "none"]]);
-staticUtility("touch-pan-x", [["touch-action", "pan-x"]]);
-staticUtility("touch-pan-left", [["touch-action", "pan-left"]]);
-staticUtility("touch-pan-right", [["touch-action", "pan-right"]]);
-staticUtility("touch-pan-y", [["touch-action", "pan-y"]]);
-staticUtility("touch-pan-up", [["touch-action", "pan-up"]]);
-staticUtility("touch-pan-down", [["touch-action", "pan-down"]]);
-staticUtility("touch-pinch-zoom", [["touch-action", "pinch-zoom"]]);
-staticUtility("touch-manipulation", [["touch-action", "manipulation"]]);
+staticUtility("touch-auto", [["touch-action", "auto"]], { category: 'interactivity' });
+staticUtility("touch-none", [["touch-action", "none"]], { category: 'interactivity' });
+staticUtility("touch-pan-x", [["touch-action", "pan-x"]], { category: 'interactivity' });
+staticUtility("touch-pan-left", [["touch-action", "pan-left"]], { category: 'interactivity' });
+staticUtility("touch-pan-right", [["touch-action", "pan-right"]], { category: 'interactivity' });
+staticUtility("touch-pan-y", [["touch-action", "pan-y"]], { category: 'interactivity' });
+staticUtility("touch-pan-up", [["touch-action", "pan-up"]], { category: 'interactivity' });
+staticUtility("touch-pan-down", [["touch-action", "pan-down"]], { category: 'interactivity' });
+staticUtility("touch-pinch-zoom", [["touch-action", "pinch-zoom"]], { category: 'interactivity' });
+staticUtility("touch-manipulation", [["touch-action", "manipulation"]], { category: 'interactivity' });
 
 // --- User Select Utilities ---
 //  user-select documentation
-staticUtility("select-none", [["user-select", "none"]]);
-staticUtility("select-text", [["user-select", "text"]]);
-staticUtility("select-all", [["user-select", "all"]]);
-staticUtility("select-auto", [["user-select", "auto"]]);
+staticUtility("select-none", [["user-select", "none"]], { category: 'interactivity' });
+staticUtility("select-text", [["user-select", "text"]], { category: 'interactivity' });
+staticUtility("select-all", [["user-select", "all"]], { category: 'interactivity' });
+staticUtility("select-auto", [["user-select", "auto"]], { category: 'interactivity' });
 
 // --- Will Change Utilities ---
 //  will-change documentation
-staticUtility("will-change-auto", [["will-change", "auto"]]);
-staticUtility("will-change-scroll", [["will-change", "scroll-position"]]);
-staticUtility("will-change-contents", [["will-change", "contents"]]);
-staticUtility("will-change-transform", [["will-change", "transform"]]);
+staticUtility("will-change-auto", [["will-change", "auto"]], { category: 'interactivity' });
+staticUtility("will-change-scroll", [["will-change", "scroll-position"]], { category: 'interactivity' });
+staticUtility("will-change-contents", [["will-change", "contents"]], { category: 'interactivity' });
+staticUtility("will-change-transform", [["will-change", "transform"]], { category: 'interactivity' });
 
 // Functional: will-change-[value], will-change-(--custom-property)
 functionalUtility({

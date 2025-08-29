@@ -4,12 +4,12 @@ import { decl } from "../core/ast";
 import { parseNumber } from "../core/utils";
 
 // --- Table Layout Utilities (border-collapse, border-separate) ---
-staticUtility("border-collapse", [["border-collapse", "collapse"]]);
-staticUtility("border-separate", [["border-collapse", "separate"]]);
+staticUtility("border-collapse", [["border-collapse", "collapse"]], { category: 'table' });
+staticUtility("border-separate", [["border-collapse", "separate"]], { category: 'table' });
 
 // --- Table Layout ---
-staticUtility("table-auto", [["table-layout", "auto"]]);
-staticUtility("table-fixed", [["table-layout", "fixed"]]);
+staticUtility("table-auto", [["table-layout", "auto"]], { category: 'table' });
+staticUtility("table-fixed", [["table-layout", "fixed"]], { category: 'table' });
 
 // --- Border Spacing ---
 
@@ -27,7 +27,7 @@ functionalUtility({
   },
   handleCustomProperty: (value) => [decl("border-spacing", `var(${value}) var(--tw-border-spacing-y)`)],
   description: "border-spacing-x utility (static, number, arbitrary, custom property supported)",
-  category: "tables",
+  category: "table",
 });
 
 functionalUtility({
@@ -43,7 +43,7 @@ functionalUtility({
   },
   handleCustomProperty: (value) => [decl("border-spacing", `var(--tw-border-spacing-x) var(${value})`)],
   description: "border-spacing-y utility (static, number, arbitrary, custom property supported)",
-  category: "tables",
+  category: "table",
 }); 
 
 functionalUtility({
@@ -59,9 +59,9 @@ functionalUtility({
     },
     handleCustomProperty: (value) => [decl("border-spacing", `var(${value})`)],
     description: "border-spacing utility (static, number, arbitrary, custom property supported)",
-    category: "tables",
+    category: "table",
   });
 
 // --- Caption Side ---
-staticUtility("caption-top", [["caption-side", "top"]]);
-staticUtility("caption-bottom", [["caption-side", "bottom"]]);
+staticUtility("caption-top", [["caption-side", "top"]], { category: 'table' });
+staticUtility("caption-bottom", [["caption-side", "bottom"]], { category: 'table' });

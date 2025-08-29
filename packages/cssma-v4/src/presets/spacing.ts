@@ -13,7 +13,7 @@ import { decl, rule } from "../core/ast";
   ["pl", "padding-left"],
   ["p", "padding"],
 ].forEach(([name, prop]) => {
-  staticUtility(`${name}-px`, [[prop, "1px"]]);
+  staticUtility(`${name}-px`, [[prop, "1px"]], { category: 'spacing' });
   functionalUtility({
     name,
     prop,
@@ -21,7 +21,7 @@ import { decl, rule } from "../core/ast";
     supportsCustomProperty: true,
     handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
     description: `${name} utility (number, arbitrary, custom property supported)`,
-    category: "layout",
+    category: "spacing",
   });
 });
 
@@ -37,9 +37,9 @@ import { decl, rule } from "../core/ast";
   ["ml", "margin-left"],
   ["m", "margin"],
 ].forEach(([name, prop]) => {
-  staticUtility(`${name}-auto`, [[prop, "auto"]]);
-  staticUtility(`${name}-px`, [[prop, "1px"]]);
-  staticUtility(`-${name}-px`, [[prop, "-1px"]]);
+  staticUtility(`${name}-auto`, [[prop, "auto"]], { category: 'spacing' });
+  staticUtility(`${name}-px`, [[prop, "1px"]], { category: 'spacing' });
+  staticUtility(`-${name}-px`, [[prop, "-1px"]], { category: 'spacing' });
   functionalUtility({
     name,
     prop,
@@ -49,7 +49,7 @@ import { decl, rule } from "../core/ast";
     handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
     handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
     description: `${name} margin utility (number, negative, arbitrary, custom property, auto, px supported)`,
-    category: "layout",
+    category: "spacing",
   });
 });
 
@@ -70,7 +70,7 @@ staticUtility("space-x-px", [
       ["margin-inline-end", "calc(1px * var(--tw-space-x-reverse))"],
     ],
   ],
-]);
+], { category: 'spacing' });
 staticUtility("-space-x-px", [
   [
     "& > :not([hidden]) ~ :not([hidden])",
@@ -83,10 +83,10 @@ staticUtility("-space-x-px", [
       ["margin-inline-end", "calc(-1px * var(--tw-space-x-reverse))"],
     ],
   ],
-]);
+], { category: 'spacing' });
 staticUtility("space-x-reverse", [
   ["& > :not([hidden]) ~ :not([hidden])", [["--tw-space-x-reverse", "1"]]],
-]);
+], { category: 'spacing' });
 
 functionalUtility({
   name: "space-x",
@@ -126,7 +126,7 @@ functionalUtility({
   ],
   description:
     "space-x utility (number, negative, px, arbitrary, custom property, reverse supported)",
-  category: "layout",
+  category: "spacing",
 });
 
 // space-y-*, -space-y-*, space-y-px, -space-y-px, space-y-[...], space-y-(...)
@@ -140,7 +140,7 @@ staticUtility("space-y-px", [
       ["margin-block-end", "calc(1px * var(--tw-space-y-reverse))"],
     ],
   ],
-]);
+], { category: 'spacing' });
 staticUtility("-space-y-px", [
   [
     "& > :not([hidden]) ~ :not([hidden])",
@@ -153,10 +153,10 @@ staticUtility("-space-y-px", [
       ["margin-block-end", "calc(-1px * var(--tw-space-y-reverse))"],
     ],
   ],
-]);
+], { category: 'spacing' });
 staticUtility("space-y-reverse", [
   ["& > :not([hidden]) ~ :not([hidden])", [["--tw-space-y-reverse", "1"]]],
-]);
+], { category: 'spacing' });
 
 functionalUtility({
   name: "space-y",
@@ -196,5 +196,5 @@ functionalUtility({
   ],
   description:
     "space-y utility (number, negative, px, arbitrary, custom property, reverse supported)",
-  category: "layout",
+  category: "spacing",
 });

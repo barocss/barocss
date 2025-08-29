@@ -39,7 +39,6 @@ ul, ol {
 
 /* Link Reset */
 a {
-  background-color: transparent;
   text-decoration: inherit;
   color: inherit;
 }

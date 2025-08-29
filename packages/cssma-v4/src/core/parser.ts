@@ -8,12 +8,14 @@ export interface ParsedModifier {
 }
 
 export interface ParsedUtility {
+  category?: string;
   prefix: string;
   value?: string;
   arbitrary?: boolean;
   customProperty?: boolean;
   negative?: boolean;
   opacity?: string;
+  priority?: number;
   [key: string]: any;
 }
 
@@ -183,6 +185,8 @@ function parseUtility(value: string): ParsedUtility {
   let customProperty = false;
   let negative = false;
   let opacity = '';
+  let category = '';
+  let priority = 0;
   
   if (value.startsWith('-')) {
     negative = true;
@@ -212,23 +216,27 @@ function parseUtility(value: string): ParsedUtility {
   // Handle regular utilities
   else {
     const utilities = getUtility();
-    const prefixes = utilities.map(u => u.name).sort((a, b) => b.length - a.length);
+    const sortedUtilities = utilities.sort((a, b) => b.name.length - a.name.length);
     
-    let matchedPrefix = prefixes.find(p => value === p);
-    if (matchedPrefix) {
-      prefix = matchedPrefix;
+    let matchedUtility = sortedUtilities.find(p => value === p.name);
+    if (matchedUtility) {
+      prefix = matchedUtility.name;
       utilityValue = "";
       negative = value.startsWith('-');
+      category = matchedUtility.category!;
+      priority = matchedUtility.priority!;
     } else {
       if (value.startsWith('-')) {
         negative = true;
         value = value.slice(1);
       }
       
-      matchedPrefix = prefixes.find(p => value.startsWith(p + '-'));
-      if (matchedPrefix) {
-        prefix = matchedPrefix;
-        utilityValue = value.slice(matchedPrefix.length + 1);
+      matchedUtility = sortedUtilities.find(p => value.startsWith(p.name + '-'));
+      if (matchedUtility) {
+        prefix = matchedUtility.name;
+        utilityValue = value.slice(matchedUtility.name.length + 1);
+        category = matchedUtility.category!;
+        priority = matchedUtility.priority!;
       } else {
         const parts = value.split('-');
         prefix = parts[0];
@@ -244,5 +252,7 @@ function parseUtility(value: string): ParsedUtility {
     customProperty: !!customProperty,
     negative: !!negative,
     opacity,
+    category,
+    priority,
   };
 }

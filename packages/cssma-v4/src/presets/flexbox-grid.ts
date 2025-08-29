@@ -8,21 +8,21 @@ import {
 
 
 // --- Flexbox & Grid: flex-basis ---
-staticUtility("basis-full", [["flex-basis", "100%"]]);
-staticUtility("basis-auto", [["flex-basis", "auto"]]);
-staticUtility("basis-3xs", [["flex-basis", "var(--container-3xs)"]]);
-staticUtility("basis-2xs", [["flex-basis", "var(--container-2xs)"]]);
-staticUtility("basis-xs", [["flex-basis", "var(--container-xs)"]]);
-staticUtility("basis-sm", [["flex-basis", "var(--container-sm)"]]);
-staticUtility("basis-md", [["flex-basis", "var(--container-md)"]]);
-staticUtility("basis-lg", [["flex-basis", "var(--container-lg)"]]);
-staticUtility("basis-xl", [["flex-basis", "var(--container-xl)"]]);
-staticUtility("basis-2xl", [["flex-basis", "var(--container-2xl)"]]);
-staticUtility("basis-3xl", [["flex-basis", "var(--container-3xl)"]]);
-staticUtility("basis-4xl", [["flex-basis", "var(--container-4xl)"]]);
-staticUtility("basis-5xl", [["flex-basis", "var(--container-5xl)"]]);
-staticUtility("basis-6xl", [["flex-basis", "var(--container-6xl)"]]);
-staticUtility("basis-7xl", [["flex-basis", "var(--container-7xl)"]]);
+staticUtility("basis-full", [["flex-basis", "100%"]], { category: 'flex-grid' });
+staticUtility("basis-auto", [["flex-basis", "auto"]], { category: 'flex-grid' });
+staticUtility("basis-3xs", [["flex-basis", "var(--container-3xs)"]], { category: 'flex-grid' });
+staticUtility("basis-2xs", [["flex-basis", "var(--container-2xs)"]], { category: 'flex-grid' });
+staticUtility("basis-xs", [["flex-basis", "var(--container-xs)"]], { category: 'flex-grid' });
+staticUtility("basis-sm", [["flex-basis", "var(--container-sm)"]], { category: 'flex-grid' });
+staticUtility("basis-md", [["flex-basis", "var(--container-md)"]], { category: 'flex-grid' });
+staticUtility("basis-lg", [["flex-basis", "var(--container-lg)"]], { category: 'flex-grid' });
+staticUtility("basis-xl", [["flex-basis", "var(--container-xl)"]], { category: 'flex-grid' });
+staticUtility("basis-2xl", [["flex-basis", "var(--container-2xl)"]], { category: 'flex-grid' });
+staticUtility("basis-3xl", [["flex-basis", "var(--container-3xl)"]], { category: 'flex-grid' });
+staticUtility("basis-4xl", [["flex-basis", "var(--container-4xl)"]], { category: 'flex-grid' });
+staticUtility("basis-5xl", [["flex-basis", "var(--container-5xl)"]], { category: 'flex-grid' });
+staticUtility("basis-6xl", [["flex-basis", "var(--container-6xl)"]], { category: 'flex-grid' });
+staticUtility("basis-7xl", [["flex-basis", "var(--container-7xl)"]], { category: 'flex-grid' });
 functionalUtility({
   name: "basis",
   prop: "flex-basis",
@@ -47,24 +47,24 @@ functionalUtility({
   },
   description:
     "flex-basis utility (theme, arbitrary, custom property, fraction supported)",
-  category: "layout",
+  category: "flex-grid",
 });
 
 // --- Flexbox & Grid: flex-direction ---
-staticUtility("flex-row", [["flex-direction", "row"]]);
-staticUtility("flex-row-reverse", [["flex-direction", "row-reverse"]]);
-staticUtility("flex-col", [["flex-direction", "column"]]);
-staticUtility("flex-col-reverse", [["flex-direction", "column-reverse"]]);
+staticUtility("flex-row", [["flex-direction", "row"]], { category: 'flex-grid' });
+staticUtility("flex-row-reverse", [["flex-direction", "row-reverse"]], { category: 'flex-grid' });
+staticUtility("flex-col", [["flex-direction", "column"]], { category: 'flex-grid' });
+staticUtility("flex-col-reverse", [["flex-direction", "column-reverse"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: flex-wrap ---
-staticUtility("flex-wrap", [["flex-wrap", "wrap"]]);
-staticUtility("flex-wrap-reverse", [["flex-wrap", "wrap-reverse"]]);
-staticUtility("flex-nowrap", [["flex-wrap", "nowrap"]]);
+staticUtility("flex-wrap", [["flex-wrap", "wrap"]], { category: 'flex-grid' });
+staticUtility("flex-wrap-reverse", [["flex-wrap", "wrap-reverse"]], { category: 'flex-grid' });
+staticUtility("flex-nowrap", [["flex-wrap", "nowrap"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Flex ---
-staticUtility("flex-auto", [["flex", "1 1 auto"]]);
-staticUtility("flex-initial", [["flex", "0 1 auto"]]);
-staticUtility("flex-none", [["flex", "none"]]);
+staticUtility("flex-auto", [["flex", "1 1 auto"]], { category: 'flex-grid' });
+staticUtility("flex-initial", [["flex", "0 1 auto"]], { category: 'flex-grid' });
+staticUtility("flex-none", [["flex", "none"]], { category: 'flex-grid' });
 
 functionalUtility({
   name: "flex",
@@ -80,11 +80,11 @@ functionalUtility({
   handle: (value) => [decl("flex", value)],
   description:
     "flex shorthand utility (number, fraction, arbitrary, custom property supported)",
-  category: "flex",
+  category: "flex-grid",
 });
 
 // --- Flexbox & Grid: Flex Grow ---
-staticUtility("grow", [["flex-grow", "1"]]);
+staticUtility("grow", [["flex-grow", "1"]], { category: 'flex-grid' });
 
 functionalUtility({
   name: "grow",
@@ -94,12 +94,12 @@ functionalUtility({
   handleBareValue: ({ value }) => parseNumber(value),
   handle: (value) => [decl("flex-grow", value)],
   description: "flex-grow utility (number, arbitrary, custom property supported)",
-  category: "flex",
+  category: "flex-grid",
 });
 
 // --- Flexbox & Grid: Flex Shrink ---
-staticUtility("shrink", [["flex-shrink", "1"]]);
-staticUtility("shrink-0", [["flex-shrink", "0"]]);
+staticUtility("shrink", [["flex-shrink", "1"]], { category: 'flex-grid' });
+staticUtility("shrink-0", [["flex-shrink", "0"]], { category: 'flex-grid' });
 
 functionalUtility({
   name: "shrink",
@@ -108,13 +108,13 @@ functionalUtility({
   supportsCustomProperty: true, // shrink-(--my-shrink)
   handleBareValue: ({ value }) => parseNumber(value),
   description: "flex-shrink utility (number, arbitrary, custom property supported)",
-  category: "flex",
+  category: "flex-grid",
 });
 
 // --- Flexbox & Grid: Order ---
-staticUtility("order-first", [["order", "calc(-infinity)"]]);
-staticUtility("order-last", [["order", "calc(infinity)"]]);
-staticUtility("order-none", [["order", "0"]]);
+staticUtility("order-first", [["order", "calc(-infinity)"]], { category: 'flex-grid' });
+staticUtility("order-last", [["order", "calc(infinity)"]], { category: 'flex-grid' });
+staticUtility("order-none", [["order", "0"]], { category: 'flex-grid' });
 
 functionalUtility({
   name: "order",
@@ -129,12 +129,12 @@ functionalUtility({
   },
   description:
     "order utility (number, negative, arbitrary, custom property supported)",
-  category: "flex",
+  category: "flex-grid",
 });
 
 // --- Flexbox & Grid: Grid Template Columns ---
-staticUtility("grid-cols-none", [["grid-template-columns", "none"]]);
-staticUtility("grid-cols-subgrid", [["grid-template-columns", "subgrid"]]);
+staticUtility("grid-cols-none", [["grid-template-columns", "none"]], { category: 'flex-grid' });
+staticUtility("grid-cols-subgrid", [["grid-template-columns", "subgrid"]], { category: 'flex-grid' });
 
 functionalUtility({
   name: "grid-cols",
@@ -145,12 +145,12 @@ functionalUtility({
     parseFractionOrNumber(value, { repeat: true }),
   description:
     "grid-template-columns utility (number, arbitrary, custom property supported)",
-  category: "grid",
+  category: "flex-grid",
 });
 
 // --- Flexbox & Grid: Grid Template Rows ---
-staticUtility("grid-rows-none", [["grid-template-rows", "none"]]);
-staticUtility("grid-rows-subgrid", [["grid-template-rows", "subgrid"]]);
+staticUtility("grid-rows-none", [["grid-template-rows", "none"]], { category: 'flex-grid' });
+staticUtility("grid-rows-subgrid", [["grid-template-rows", "subgrid"]], { category: 'flex-grid' });
 
 functionalUtility({
   name: "grid-rows",
@@ -172,12 +172,12 @@ functionalUtility({
   ],
   description:
     "grid-template-rows utility (number, arbitrary, custom property supported)",
-  category: "grid",
+  category: "flex-grid",
 });
 
 // --- Flexbox & Grid: Grid Row ---
 // row-span utilities
-staticUtility("row-span-full", [["grid-row", "1 / -1"]]);
+staticUtility("row-span-full", [["grid-row", "1 / -1"]], { category: 'flex-grid' });
 functionalUtility({
   name: "row-span",
   prop: "grid-row",
@@ -198,10 +198,10 @@ functionalUtility({
   },
   description:
     "grid-row span utility (number, arbitrary, custom property supported)",
-  category: "grid",
+  category: "flex-grid",
 });
 // row-start utilities
-staticUtility("row-start-auto", [["grid-row-start", "auto"]]);
+staticUtility("row-start-auto", [["grid-row-start", "auto"]], { category: 'flex-grid' });
 functionalUtility({
   name: "row-start",
   prop: "grid-row-start",
@@ -221,10 +221,10 @@ functionalUtility({
   },
   description:
     "grid-row-start utility (number, negative, arbitrary, custom property supported)",
-  category: "grid",
+  category: "flex-grid",
 });
 // row-end utilities
-staticUtility("row-end-auto", [["grid-row-end", "auto"]]);
+staticUtility("row-end-auto", [["grid-row-end", "auto"]], { category: 'flex-grid' });
 functionalUtility({
   name: "row-end",
   prop: "grid-row-end",
@@ -244,10 +244,10 @@ functionalUtility({
   },
   description:
     "grid-row-end utility (number, negative, arbitrary, custom property supported)",
-  category: "grid",
+  category: "flex-grid",
 });
 // row-auto, row-<number>, -row-<number>, row-(<custom-property>), row-[value]
-staticUtility("row-auto", [["grid-row", "auto"]]);
+staticUtility("row-auto", [["grid-row", "auto"]], { category: 'flex-grid' });
 functionalUtility({
   name: "row",
   prop: "grid-row",
@@ -267,21 +267,21 @@ functionalUtility({
   },
   description:
     "grid-row utility (number, negative, arbitrary, custom property supported)",
-  category: "grid",
+  category: "flex-grid",
 });
 
 // --- Flexbox & Grid: Grid Auto Flow ---
-staticUtility("grid-flow-row", [["grid-auto-flow", "row"]]);
-staticUtility("grid-flow-col", [["grid-auto-flow", "column"]]);
-staticUtility("grid-flow-dense", [["grid-auto-flow", "dense"]]);
-staticUtility("grid-flow-row-dense", [["grid-auto-flow", "row dense"]]);
-staticUtility("grid-flow-col-dense", [["grid-auto-flow", "column dense"]]);
+  staticUtility("grid-flow-row", [["grid-auto-flow", "row"]], { category: 'flex-grid' });
+staticUtility("grid-flow-col", [["grid-auto-flow", "column"]], { category: 'flex-grid' });
+staticUtility("grid-flow-dense", [["grid-auto-flow", "dense"]], { category: 'flex-grid' });
+staticUtility("grid-flow-row-dense", [["grid-auto-flow", "row dense"]], { category: 'flex-grid' });
+staticUtility("grid-flow-col-dense", [["grid-auto-flow", "column dense"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Grid Auto Columns ---
-staticUtility("auto-cols-auto", [["grid-auto-columns", "auto"]]);
-staticUtility("auto-cols-min", [["grid-auto-columns", "min-content"]]);
-staticUtility("auto-cols-max", [["grid-auto-columns", "max-content"]]);
-staticUtility("auto-cols-fr", [["grid-auto-columns", "minmax(0, 1fr)"]]);
+staticUtility("auto-cols-auto", [["grid-auto-columns", "auto"]], { category: 'flex-grid' });
+staticUtility("auto-cols-min", [["grid-auto-columns", "min-content"]], { category: 'flex-grid' });
+staticUtility("auto-cols-max", [["grid-auto-columns", "max-content"]], { category: 'flex-grid' });
+staticUtility("auto-cols-fr", [["grid-auto-columns", "minmax(0, 1fr)"]], { category: 'flex-grid' });
 
 functionalUtility({
   name: "auto-cols",
@@ -295,14 +295,14 @@ functionalUtility({
   handleCustomProperty: (value) => [decl("grid-auto-columns", `var(${value})`)],
   description:
     "grid-auto-columns utility (static, arbitrary, custom property supported)",
-  category: "grid",
+  category: "flex-grid",
 });
 
 // --- Flexbox & Grid: Grid Auto Rows ---
-staticUtility("auto-rows-auto", [["grid-auto-rows", "auto"]]);
-staticUtility("auto-rows-min", [["grid-auto-rows", "min-content"]]);
-staticUtility("auto-rows-max", [["grid-auto-rows", "max-content"]]);
-staticUtility("auto-rows-fr", [["grid-auto-rows", "minmax(0, 1fr)"]]);
+staticUtility("auto-rows-auto", [["grid-auto-rows", "auto"]], { category: 'flex-grid' });
+staticUtility("auto-rows-min", [["grid-auto-rows", "min-content"]], { category: 'flex-grid' });
+staticUtility("auto-rows-max", [["grid-auto-rows", "max-content"]], { category: 'flex-grid' });
+staticUtility("auto-rows-fr", [["grid-auto-rows", "minmax(0, 1fr)"]], { category: 'flex-grid' });
 
 functionalUtility({
   name: "auto-rows",
@@ -316,7 +316,7 @@ functionalUtility({
   handleCustomProperty: (value) => [decl("grid-auto-rows", `var(${value})`)],
   description:
     "grid-auto-rows utility (static, arbitrary, custom property supported)",
-  category: "grid",
+  category: "flex-grid",
 });
 
 // --- Flexbox & Grid: Gap ---
@@ -364,101 +364,101 @@ functionalUtility({
 });
 
 // --- Flexbox & Grid: Justify Content ---
-staticUtility("justify-start", [["justify-content", "flex-start"]]);
-staticUtility("justify-end", [["justify-content", "flex-end"]]);
-staticUtility("justify-end-safe", [["justify-content", "safe flex-end"]]);
-staticUtility("justify-center", [["justify-content", "center"]]);
-staticUtility("justify-center-safe", [["justify-content", "safe center"]]);
-staticUtility("justify-between", [["justify-content", "space-between"]]);
-staticUtility("justify-around", [["justify-content", "space-around"]]);
-staticUtility("justify-evenly", [["justify-content", "space-evenly"]]);
-staticUtility("justify-stretch", [["justify-content", "stretch"]]);
-staticUtility("justify-baseline", [["justify-content", "baseline"]]);
-staticUtility("justify-normal", [["justify-content", "normal"]]);
+staticUtility("justify-start", [["justify-content", "flex-start"]], { category: 'flex-grid' });
+staticUtility("justify-end", [["justify-content", "flex-end"]], { category: 'flex-grid' });
+staticUtility("justify-end-safe", [["justify-content", "safe flex-end"]], { category: 'flex-grid' });
+staticUtility("justify-center", [["justify-content", "center"]], { category: 'flex-grid' });
+staticUtility("justify-center-safe", [["justify-content", "safe center"]], { category: 'flex-grid' });
+staticUtility("justify-between", [["justify-content", "space-between"]], { category: 'flex-grid' });
+staticUtility("justify-around", [["justify-content", "space-around"]], { category: 'flex-grid' });
+staticUtility("justify-evenly", [["justify-content", "space-evenly"]], { category: 'flex-grid' });
+  staticUtility("justify-stretch", [["justify-content", "stretch"]], { category: 'flex-grid' });
+staticUtility("justify-baseline", [["justify-content", "baseline"]], { category: 'flex-grid' });
+staticUtility("justify-normal", [["justify-content", "normal"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Justify Items ---
-staticUtility("justify-items-start", [["justify-items", "start"]]);
-staticUtility("justify-items-end", [["justify-items", "end"]]);
-staticUtility("justify-items-end-safe", [["justify-items", "safe end"]]);
-staticUtility("justify-items-center", [["justify-items", "center"]]);
-staticUtility("justify-items-center-safe", [["justify-items", "safe center"]]);
-staticUtility("justify-items-stretch", [["justify-items", "stretch"]]);
-staticUtility("justify-items-normal", [["justify-items", "normal"]]);
+staticUtility("justify-items-start", [["justify-items", "start"]], { category: 'flex-grid' });
+staticUtility("justify-items-end", [["justify-items", "end"]], { category: 'flex-grid' });
+staticUtility("justify-items-end-safe", [["justify-items", "safe end"]], { category: 'flex-grid' });
+staticUtility("justify-items-center", [["justify-items", "center"]], { category: 'flex-grid' });
+staticUtility("justify-items-center-safe", [["justify-items", "safe center"]], { category: 'flex-grid' });
+staticUtility("justify-items-stretch", [["justify-items", "stretch"]], { category: 'flex-grid' });
+staticUtility("justify-items-normal", [["justify-items", "normal"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Justify Self ---
-staticUtility("justify-self-auto", [["justify-self", "auto"]]);
-staticUtility("justify-self-start", [["justify-self", "start"]]);
-staticUtility("justify-self-center", [["justify-self", "center"]]);
-staticUtility("justify-self-center-safe", [["justify-self", "safe center"]]);
-staticUtility("justify-self-end", [["justify-self", "end"]]);
-staticUtility("justify-self-end-safe", [["justify-self", "safe end"]]);
-staticUtility("justify-self-stretch", [["justify-self", "stretch"]]);
+staticUtility("justify-self-auto", [["justify-self", "auto"]], { category: 'flex-grid' });
+staticUtility("justify-self-start", [["justify-self", "start"]], { category: 'flex-grid' });
+staticUtility("justify-self-center", [["justify-self", "center"]], { category: 'flex-grid' });
+staticUtility("justify-self-center-safe", [["justify-self", "safe center"]], { category: 'flex-grid' });
+staticUtility("justify-self-end", [["justify-self", "end"]], { category: 'flex-grid' });
+staticUtility("justify-self-end-safe", [["justify-self", "safe end"]], { category: 'flex-grid' });
+staticUtility("justify-self-stretch", [["justify-self", "stretch"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Align Content ---
-staticUtility("content-normal", [["align-content", "normal"]]);
-staticUtility("content-center", [["align-content", "center"]]);
-staticUtility("content-start", [["align-content", "flex-start"]]);
-staticUtility("content-end", [["align-content", "flex-end"]]);
-staticUtility("content-between", [["align-content", "space-between"]]);
-staticUtility("content-around", [["align-content", "space-around"]]);
-staticUtility("content-evenly", [["align-content", "space-evenly"]]);
-staticUtility("content-baseline", [["align-content", "baseline"]]);
-staticUtility("content-stretch", [["align-content", "stretch"]]);
+  staticUtility("content-normal", [["align-content", "normal"]], { category: 'flex-grid' });
+staticUtility("content-center", [["align-content", "center"]], { category: 'flex-grid' });
+staticUtility("content-start", [["align-content", "flex-start"]], { category: 'flex-grid' });
+staticUtility("content-end", [["align-content", "flex-end"]], { category: 'flex-grid' });
+staticUtility("content-between", [["align-content", "space-between"]], { category: 'flex-grid' });
+staticUtility("content-around", [["align-content", "space-around"]], { category: 'flex-grid' });
+staticUtility("content-evenly", [["align-content", "space-evenly"]], { category: 'flex-grid' });
+staticUtility("content-baseline", [["align-content", "baseline"]], { category: 'flex-grid' });
+staticUtility("content-stretch", [["align-content", "stretch"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Align Items ---
-staticUtility("items-start", [["align-items", "flex-start"]]);
-staticUtility("items-end", [["align-items", "flex-end"]]);
-staticUtility("items-end-safe", [["align-items", "safe flex-end"]]);
-staticUtility("items-center", [["align-items", "center"]]);
-staticUtility("items-center-safe", [["align-items", "safe center"]]);
-staticUtility("items-baseline", [["align-items", "baseline"]]);
-staticUtility("items-baseline-last", [["align-items", "last baseline"]]);
-staticUtility("items-stretch", [["align-items", "stretch"]]);
+staticUtility("items-start", [["align-items", "flex-start"]], { category: 'flex-grid' });
+staticUtility("items-end", [["align-items", "flex-end"]], { category: 'flex-grid' });
+staticUtility("items-end-safe", [["align-items", "safe flex-end"]], { category: 'flex-grid' });
+staticUtility("items-center", [["align-items", "center"]], { category: 'flex-grid' });
+staticUtility("items-center-safe", [["align-items", "safe center"]], { category: 'flex-grid' });
+staticUtility("items-baseline", [["align-items", "baseline"]], { category: 'flex-grid' });
+staticUtility("items-baseline-last", [["align-items", "last baseline"]], { category: 'flex-grid' });
+staticUtility("items-stretch", [["align-items", "stretch"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Align Self ---
-staticUtility("self-auto", [["align-self", "auto"]]);
-staticUtility("self-start", [["align-self", "flex-start"]]);
-staticUtility("self-end", [["align-self", "flex-end"]]);
-staticUtility("self-end-safe", [["align-self", "safe flex-end"]]);
-staticUtility("self-center", [["align-self", "center"]]);
-staticUtility("self-center-safe", [["align-self", "safe center"]]);
-staticUtility("self-stretch", [["align-self", "stretch"]]);
-staticUtility("self-baseline", [["align-self", "baseline"]]);
-staticUtility("self-baseline-last", [["align-self", "last baseline"]]);
+staticUtility("self-auto", [["align-self", "auto"]], { category: 'flex-grid' });
+staticUtility("self-start", [["align-self", "flex-start"]], { category: 'flex-grid' });
+staticUtility("self-end", [["align-self", "flex-end"]], { category: 'flex-grid' });
+staticUtility("self-end-safe", [["align-self", "safe flex-end"]], { category: 'flex-grid' });
+staticUtility("self-center", [["align-self", "center"]], { category: 'flex-grid' });
+staticUtility("self-center-safe", [["align-self", "safe center"]], { category: 'flex-grid' });
+staticUtility("self-stretch", [["align-self", "stretch"]], { category: 'flex-grid' });
+staticUtility("self-baseline", [["align-self", "baseline"]], { category: 'flex-grid' });
+staticUtility("self-baseline-last", [["align-self", "last baseline"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Place Content ---
-staticUtility("place-content-center", [["place-content", "center"]]);
-staticUtility("place-content-center-safe", [["place-content", "safe center"]]);
-staticUtility("place-content-start", [["place-content", "start"]]);
-staticUtility("place-content-end", [["place-content", "end"]]);
-staticUtility("place-content-end-safe", [["place-content", "safe end"]]);
-staticUtility("place-content-between", [["place-content", "space-between"]]);
-staticUtility("place-content-around", [["place-content", "space-around"]]);
-staticUtility("place-content-evenly", [["place-content", "space-evenly"]]);
-staticUtility("place-content-baseline", [["place-content", "baseline"]]);
-staticUtility("place-content-stretch", [["place-content", "stretch"]]);
+staticUtility("place-content-center", [["place-content", "center"]], { category: 'flex-grid' });
+staticUtility("place-content-center-safe", [["place-content", "safe center"]], { category: 'flex-grid' });
+staticUtility("place-content-start", [["place-content", "start"]], { category: 'flex-grid' });
+staticUtility("place-content-end", [["place-content", "end"]], { category: 'flex-grid' });
+staticUtility("place-content-end-safe", [["place-content", "safe end"]], { category: 'flex-grid' });
+staticUtility("place-content-between", [["place-content", "space-between"]], { category: 'flex-grid' });
+staticUtility("place-content-around", [["place-content", "space-around"]], { category: 'flex-grid' });
+staticUtility("place-content-evenly", [["place-content", "space-evenly"]], { category: 'flex-grid' });
+staticUtility("place-content-baseline", [["place-content", "baseline"]], { category: 'flex-grid' });
+staticUtility("place-content-stretch", [["place-content", "stretch"]], { category: 'flex-grid' }  );
 
 // --- Flexbox & Grid: Place Items ---
-staticUtility("place-items-start", [["place-items", "start"]]);
-staticUtility("place-items-end", [["place-items", "end"]]);
-staticUtility("place-items-end-safe", [["place-items", "safe end"]]);
-staticUtility("place-items-center", [["place-items", "center"]]);
-staticUtility("place-items-center-safe", [["place-items", "safe center"]]);
-staticUtility("place-items-baseline", [["place-items", "baseline"]]);
-staticUtility("place-items-stretch", [["place-items", "stretch"]]);
+staticUtility("place-items-start", [["place-items", "start"]], { category: 'flex-grid' });
+staticUtility("place-items-end", [["place-items", "end"]], { category: 'flex-grid' });
+staticUtility("place-items-end-safe", [["place-items", "safe end"]], { category: 'flex-grid' });
+staticUtility("place-items-center", [["place-items", "center"]], { category: 'flex-grid' });
+staticUtility("place-items-center-safe", [["place-items", "safe center"]], { category: 'flex-grid' });
+staticUtility("place-items-baseline", [["place-items", "baseline"]], { category: 'flex-grid' });
+staticUtility("place-items-stretch", [["place-items", "stretch"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Place Self ---
-staticUtility("place-self-auto", [["place-self", "auto"]]);
-staticUtility("place-self-start", [["place-self", "start"]]);
-staticUtility("place-self-end", [["place-self", "end"]]);
-staticUtility("place-self-end-safe", [["place-self", "safe end"]]);
-staticUtility("place-self-center", [["place-self", "center"]]);
-staticUtility("place-self-center-safe", [["place-self", "safe center"]]);
-staticUtility("place-self-stretch", [["place-self", "stretch"]]);
+staticUtility("place-self-auto", [["place-self", "auto"]], { category: 'flex-grid' });
+staticUtility("place-self-start", [["place-self", "start"]], { category: 'flex-grid' });
+staticUtility("place-self-end", [["place-self", "end"]], { category: 'flex-grid' });
+staticUtility("place-self-end-safe", [["place-self", "safe end"]], { category: 'flex-grid' });
+staticUtility("place-self-center", [["place-self", "center"]], { category: 'flex-grid' });
+staticUtility("place-self-center-safe", [["place-self", "safe center"]], { category: 'flex-grid' });
+staticUtility("place-self-stretch", [["place-self", "stretch"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Grid Column ---
 // col-span utilities
-staticUtility("col-span-full", [["grid-column", "1 / -1"]]);
+staticUtility("col-span-full", [["grid-column", "1 / -1"]], { category: 'flex-grid' });
 functionalUtility({
   name: "col-span",
   prop: "grid-column",
@@ -482,7 +482,7 @@ functionalUtility({
 });
 
 // col-start utilities
-staticUtility("col-start-auto", [["grid-column-start", "auto"]]);
+staticUtility("col-start-auto", [["grid-column-start", "auto"]], { category: 'flex-grid' });
 functionalUtility({
   name: "col-start",
   prop: "grid-column-start",
@@ -500,7 +500,7 @@ functionalUtility({
 });
 
 // col-end utilities
-staticUtility("col-end-auto", [["grid-column-end", "auto"]]);
+staticUtility("col-end-auto", [["grid-column-end", "auto"]], { category: 'flex-grid' });
 functionalUtility({
   name: "col-end",
   prop: "grid-column-end",
@@ -518,7 +518,7 @@ functionalUtility({
 });
 
 // col-auto, col-<number>, -col-<number>, col-(<custom-property>), col-[value]
-staticUtility("col-auto", [["grid-column", "auto"]]);
+staticUtility("col-auto", [["grid-column", "auto"]], { category: 'flex-grid' });
 functionalUtility({
   name: "col",
   prop: "grid-column",
@@ -532,5 +532,5 @@ functionalUtility({
   },
   description:
     "grid-column utility (number, negative, arbitrary, custom property supported)",
-  category: "grid",
+  category: "flex-grid",
 });

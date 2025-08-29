@@ -6,11 +6,11 @@ import { parseNumber } from "../core/utils";
 //  fill documentation
 
 // Static fill values
-staticUtility("fill-inherit", [["fill", "inherit"]]);
-staticUtility("fill-current", [["fill", "currentColor"]]);
-staticUtility("fill-transparent", [["fill", "transparent"]]);
-staticUtility("fill-black", [["fill", "#000"]]);
-staticUtility("fill-white", [["fill", "#fff"]]);
+staticUtility("fill-inherit", [["fill", "inherit"]], { category: 'svg' });
+staticUtility("fill-current", [["fill", "currentColor"]], { category: 'svg' });
+staticUtility("fill-transparent", [["fill", "transparent"]], { category: 'svg' });
+staticUtility("fill-black", [["fill", "#000"]], { category: 'svg' });
+staticUtility("fill-white", [["fill", "#fff"]], { category: 'svg' });
 
 // Functional: theme color, arbitrary, custom property
 functionalUtility({
@@ -30,11 +30,11 @@ functionalUtility({
 
 // --- Stroke Utilities ---
 //  stroke documentation
-staticUtility("stroke-inherit", [["stroke", "inherit"]]);
-staticUtility("stroke-current", [["stroke", "currentColor"]]);
-staticUtility("stroke-transparent", [["stroke", "transparent"]]);
-staticUtility("stroke-black", [["stroke", "#000"]]);
-staticUtility("stroke-white", [["stroke", "#fff"]]);
+staticUtility("stroke-inherit", [["stroke", "inherit"]], { category: 'svg' });
+staticUtility("stroke-current", [["stroke", "currentColor"]], { category: 'svg' });
+staticUtility("stroke-transparent", [["stroke", "transparent"]], { category: 'svg' });
+staticUtility("stroke-black", [["stroke", "#000"]], { category: 'svg' });
+staticUtility("stroke-white", [["stroke", "#fff"]], { category: 'svg' });
 
 functionalUtility({
   name: "stroke",

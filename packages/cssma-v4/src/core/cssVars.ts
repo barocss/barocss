@@ -52,7 +52,7 @@ export function fontSizeToCssVars(fontSize: Record<string, string | [string, str
       result[`--text-${key}`] = value;
     }
   }
-  console.log('[fontSizeToCssVars] result', result);
+  // console.log('[fontSizeToCssVars] result', result);
   return result;
 }
 
@@ -180,6 +180,73 @@ export function keyframesToCss(keyframes: Record<string, any>): string {
 }
 
 /**
+ * transition: { duration: '150ms', ... }
+ * → { '--transition-duration': '150ms' }
+ */
+export function transitionTimingFunctionToCssVars(transition: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const key in transition) {
+
+    if (key === 'DEFAULT') {
+      result[`--default-transition-timing-function`] = transition[key];
+    } else {
+      result[`--transition-timing-function-${key}`] = transition[key];
+    }
+  }
+  return result;
+}
+
+/**
+ * transitionDuration: { DEFAULT: '150ms', ... }
+ * → { '--default-transition-duration': '150ms' }
+ */
+export function transitionDurationToCssVars(transitionDuration: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const key in transitionDuration) {
+    if (key === 'DEFAULT') {
+      result[`--default-transition-duration`] = transitionDuration[key];
+    } else {
+      result[`--transition-duration-${key}`] = transitionDuration[key];
+    }
+  }
+  return result;
+}
+
+
+/**
+ * transitionDelay: { DEFAULT: '0ms', ... }
+ * → { '--default-transition-delay': '0ms' }
+ */
+export function transitionDelayToCssVars(transitionDelay: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+
+  for (const key in transitionDelay) {
+    if (key === 'DEFAULT') {
+      result[`--default-transition-delay`] = transitionDelay[key];
+    } else {
+      result[`--transition-delay-${key}`] = transitionDelay[key];
+    }
+  } 
+  return result;
+}
+
+/**
+ * blur: { DEFAULT: '0px', ... }
+ * → { '--default-blur': '0px' }
+ */
+export function blurToCssVars(blur: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+  for (const key in blur) {
+    if (key === 'DEFAULT') {
+      result[`--default-blur`] = blur[key];
+    } else {
+      result[`--blur-${key}`] = blur[key];
+    }
+  }
+  return result;
+}
+
+/**
  * themeToCssVarsAll: merge CSS variables from major theme categories
  */
 export function themeToCssVarsAll(theme: CssmaTheme): Record<string, string> {
@@ -196,6 +263,10 @@ export function themeToCssVarsAll(theme: CssmaTheme): Record<string, string> {
     ...zIndexToCssVars(theme.zIndex || {}),
     ...opacityToCssVars(theme.opacity || {}),
     ...animationToCssVars(theme.animations || {}),
+    ...transitionTimingFunctionToCssVars(theme.transitionTimingFunction || {}),
+    ...transitionDurationToCssVars(theme.transitionDuration || {}),
+    ...transitionDelayToCssVars(theme.transitionDelay || {}),
+    ...blurToCssVars(theme.blur || {}),
     // keyframes handled separately
   };
 }

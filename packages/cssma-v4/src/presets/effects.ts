@@ -17,7 +17,7 @@ import { parseColor, parseNumber } from "../core/utils";
   ["shadow-2xl", "var(--shadow-2xl)"],
   ["shadow-none", "0 0 #0000"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["box-shadow", value as string]]);
+  staticUtility(name as string, [["box-shadow", value as string]], { category: 'effects' });
 });
 
 // Static inset shadow levels
@@ -58,7 +58,7 @@ import { parseColor, parseNumber } from "../core/utils";
       "box-shadow",
       "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
     ],
-  ]);
+  ], { category: 'effects' });
 });
 
 // --- Box Shadow Color (with opacity, custom property, arbitrary) ---
@@ -274,7 +274,7 @@ functionalUtility({
 });
 
 // Ring inset
-staticUtility("ring-inset", [["--tw-ring-inset", "inset"]]);
+staticUtility("ring-inset", [["--tw-ring-inset", "inset"]], { category: 'effects' });
 
 // --- Ring color/opacity/arbitrary/custom property ( supports+fallback) ---
 function createRingColorDecls(
@@ -518,7 +518,7 @@ functionalUtility({
   ["bg-blend-color", "color"],
   ["bg-blend-luminosity", "luminosity"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["background-blend-mode", value as string]]);
+  staticUtility(name as string, [["background-blend-mode", value as string]], { category: 'effects' });
 });
 
 // --- Mask Clip  ---
@@ -531,7 +531,7 @@ functionalUtility({
   ["mask-clip-view", "view-box"],
   ["mask-no-clip", "no-clip"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["mask-clip", value as string]]);
+  staticUtility(name as string, [["mask-clip", value as string]], { category: 'effects' });
 });
 
 // --- Mask Composite  ---
@@ -541,7 +541,7 @@ functionalUtility({
   ["mask-intersect", "intersect"],
   ["mask-exclude", "exclude"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["mask-composite", value as string]]);
+  staticUtility(name as string, [["mask-composite", value as string]], { category: 'effects' });
 });
 
 // --- Mask Mode  ---
@@ -550,7 +550,7 @@ functionalUtility({
   ["mask-luminance", "luminance"],
   ["mask-match", "match-source"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["mask-mode", value as string]]);
+  staticUtility(name as string, [["mask-mode", value as string]], { category: 'effects' });
 });
 
 // --- Mask Origin  ---
@@ -562,7 +562,7 @@ functionalUtility({
   ["mask-origin-stroke", "stroke-box"],
   ["mask-origin-view", "view-box"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["mask-origin", value as string]]);
+  staticUtility(name as string, [["mask-origin", value as string]], { category: 'effects' });
 });
 
 // --- Mask Position  ---
@@ -577,7 +577,7 @@ functionalUtility({
   ["mask-bottom", "bottom"],
   ["mask-bottom-right", "bottom right"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["mask-position", value as string]]);
+  staticUtility(name as string, [["mask-position", value as string]], { category: 'effects' });
 });
 functionalUtility({
   name: "mask-position",
@@ -603,7 +603,7 @@ functionalUtility({
   ["mask-repeat-space", "space"],
   ["mask-repeat-round", "round"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["mask-repeat", value as string]]);
+  staticUtility(name as string, [["mask-repeat", value as string]], { category: 'effects' });
 });
 
 // --- Mask Size  ---
@@ -612,7 +612,7 @@ functionalUtility({
   ["mask-cover", "cover"],
   ["mask-contain", "contain"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["mask-size", value as string]]);
+  staticUtility(name as string, [["mask-size", value as string]], { category: 'effects' });
 });
 
 
@@ -621,7 +621,7 @@ functionalUtility({
     ["mask-type-alpha", "alpha"],
     ["mask-type-luminance", "luminance"],
   ].forEach(([name, value]) => {
-    staticUtility(name as string, [["mask-type", value as string]]);
+    staticUtility(name as string, [["mask-type", value as string]], { category: 'effects' });
   });
 
 // mask-size-[value] (arbitrary) & mask-size-(--custom-property)

@@ -6,6 +6,9 @@
  *
  */
 
+import { GenerateCssRulesResult } from "../core/engine";
+import { parseResultCache } from "../utils/cache";
+
 export interface StylePartition {
   id: string;
   styles: string[];
@@ -14,10 +17,12 @@ export interface StylePartition {
 
 export class StylePartitionManager {
   private partitions: StylePartition[] = [];
+  private categoryPartitions: Map<string, StylePartition> = new Map();
   private partitionCounter = 0;
   private maxRulesPerPartition = 50;
   private insertionPoint: HTMLElement;
   private classToPartitionMap = new Map<string, number>();
+  private classToCategoryPartitionMap = new Map<string, string>();
   private styleIdPrefix = "cssma-style-partition-";
 
   constructor(
@@ -34,6 +39,26 @@ export class StylePartitionManager {
 
   private initializeDefaultPartition() {
     this.createNewPartition();
+  }
+
+  private createNewCategoryPartition(category: string) {
+    const newPartition: StylePartition = {
+      id: this.styleIdPrefix + `-${category}`,
+      styles: [],
+      styleElement: document.createElement("style"),
+    };
+
+    // set id
+    newPartition.styleElement.id = newPartition.id;
+    newPartition.styleElement.setAttribute("data-cssma", "partition");
+    newPartition.styleElement.setAttribute("data-category", category);
+
+    // set insertion point
+    this.insertionPoint.appendChild(newPartition.styleElement);
+
+    this.categoryPartitions.set(category, newPartition);
+
+    return newPartition;
   }
 
   private createNewPartition() {
@@ -62,12 +87,24 @@ export class StylePartitionManager {
     return this.classToPartitionMap.has(rule);
   }
 
+  hasCategoryRule(rule: string, category: string) {
+    return this.classToCategoryPartitionMap.get(rule) === category;
+  }
+
   setRuleCache(rule: string, partitionIndex: number) {
     this.classToPartitionMap.set(rule, partitionIndex);
   }
 
+  setCategoryRuleCache(rule: string, category: string) {
+    this.classToCategoryPartitionMap.set(rule, category);
+  }
+
   get currentPartition() {
     return this.partitions[this.partitions.length - 1];
+  }
+
+  getCategoryPartition(category: string) {
+    return this.categoryPartitions.get(category);
   }
 
   addRule(rule: string) {
@@ -106,15 +143,63 @@ export class StylePartitionManager {
     }
   }
 
-  addRules(rules: string[]) {
+  addCategoryRule(rule: string, category: string) {
+    if (this.hasCategoryRule(rule, category)) {
+      return false;
+    }
+
+    let categoryPartition = this.getCategoryPartition(category);
+    if (!categoryPartition) {
+      categoryPartition = this.createNewCategoryPartition(category);
+    }
+
+    try {
+      const sheet = categoryPartition.styleElement.sheet;
+      if (sheet) {
+        sheet.insertRule(rule, sheet.cssRules.length);
+      } else {
+        categoryPartition.styleElement.textContent += rule + "\n";
+      }
+    } catch (error) {
+      console.warn(
+        `[StylePartitionManager] Failed to insert rule in category: ${category} ${rule}`,
+        error
+      );
+      return false;
+    }
+
+    this.setCategoryRuleCache(rule, category);
+    categoryPartition.styles.push(rule);
+
+    return true;
+  }
+
+  addRules(rules: GenerateCssRulesResult[]) {
     let success = 0;
     let failed = 0;
 
+    // rules.sort((a, b) => {
+    //   const aPriority = parseResultCache.get(a.cls)?.utility?.priority;
+    //   const bPriority = parseResultCache.get(b.cls)?.utility?.priority;
+    //   return (aPriority ?? 0) - (bPriority ?? 0);
+    // });
+
     for (const rule of rules) {
-      if (this.addRule(rule)) {
-        success++;
+      const parsedResult = parseResultCache.get(rule.cls);
+      const category = parsedResult?.utility?.category;
+
+      if (category) {
+        for (const css of rule.cssList) {
+          this.addCategoryRule(css, category);
+        }
       } else {
-        failed++;
+        for (const css of rule.cssList) {
+          if (this.addRule(css)) {
+            success++;
+          } else {
+            failed++;
+          }
+        }
       }
     }
 
@@ -129,6 +214,12 @@ export class StylePartitionManager {
     if (partitionIndex !== undefined && this.partitions[partitionIndex]) {
       return this.partitions[partitionIndex];
     }
+
+    const categoryPartition = this.classToCategoryPartitionMap.get(rule);
+    if (categoryPartition !== undefined) {
+      return this.categoryPartitions.get(categoryPartition) || null;
+    }
+
     return null;
   }
 
@@ -143,9 +234,16 @@ export class StylePartitionManager {
       }
     });
 
+    this.categoryPartitions.forEach((partition) => {
+      if (partition.styleElement.parentNode) {
+        partition.styleElement.parentNode.removeChild(partition.styleElement);
+      }
+    });
+
     // 상태 초기화
     this.partitions = [];
     this.partitionCounter = 0;
     this.classToPartitionMap.clear();
+    this.classToCategoryPartitionMap.clear();
   }
 }

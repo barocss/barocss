@@ -225,14 +225,18 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
  * @param parent AstNode
  * @param atRootNodes AstNode[]
  */
-function extractAtRootNodes(nodes: AstNode[], parent?: AstNode, atRootNodes: AstNode[] = []) {
-  for(var i = 0; i < nodes.length; i++) {
+function extractAtRootNodes(
+  nodes: AstNode[],
+  parent?: AstNode,
+  atRootNodes: AstNode[] = []
+) {
+  for (var i = 0; i < nodes.length; i++) {
     const node = nodes[i];
     if (node.type === "at-root") {
       atRootNodes.push(node);
       delete nodes[i];
     } else if (node.type === "rule" || node.type === "style-rule") {
-      extractAtRootNodes(node.nodes , node, atRootNodes);
+      extractAtRootNodes(node.nodes, node, atRootNodes);
     }
   }
 
@@ -389,9 +393,9 @@ export function parseClassToAst(
 
   // console.log("[parseClassToAst] ast", ast);
 
-  // ast 에서 at-root 노드만 추출해서 ast 앞으로 추가 
+  // ast 에서 at-root 노드만 추출해서 ast 앞으로 추가
   // ast 내부에서는 at-root 노드를 제거
-  // 재귀적으로 실행되어야 함 
+  // 재귀적으로 실행되어야 함
   const atRootNodes: AstNode[] = [];
 
   extractAtRootNodes(ast, undefined, atRootNodes);
@@ -503,6 +507,7 @@ export type GenerateCssRulesResult = {
   css: string;
   cssList: string[];
   rootCss: string;
+  rootCssList: string[];
 };
 
 /**
@@ -539,27 +544,44 @@ export function generateCssRules(
       // console.log("[generateCssRules] cleanAst", cleanAst);
 
       const allAtRootNodes: AstNode[] = cleanAst
-        .filter((node) => node.type === "at-root")
+        .filter(
+          (node) => node.type === "at-root" && !node.source
+        )
         .map((node) => node.nodes)
         .flat();
       const allCleanAst: AstNode[] = cleanAst.filter(
-        (node) => node.type !== "at-root"
+        (node) =>
+          node.type !== "at-root" ||
+          (node.type === "at-root" && node.source)
       );
+
 
       let cssList = [];
       for (const node of allCleanAst) {
-        const css = astToCss([node], cls, { minify: opts?.minify });
-        cssList.push(css);
+        if (node.type === "at-root") {
+          node.nodes.forEach((node) => {
+            const css = astToCss([node], "", { minify: opts?.minify });
+            cssList.push(css);
+          });
+        } else {
+          const css = astToCss([node], cls, { minify: opts?.minify });
+          cssList.push(css);
+        }
       }
       // console.log('[generateCssRules] css', cls);
-      const rootCss = rootToCss(allAtRootNodes);
-      // console.log("[generateCssRules] rootCss", rootCss, allAtRootNodes);
+      let rootCssList = [];
+      for (const node of allAtRootNodes) {
+        const css = rootToCss([node]);
+        rootCssList.push(css);
+      }
+      // console.log("[generateCssRules] rootCss", rootCssList, allAtRootNodes);
       return {
         cls,
         ast: allCleanAst,
         css: cssList.join(opts?.minify ? "" : "\n"),
         cssList,
-        rootCss,
+        rootCss: rootCssList.join(opts?.minify ? "" : "\n"),
+        rootCssList,
       };
     });
 }

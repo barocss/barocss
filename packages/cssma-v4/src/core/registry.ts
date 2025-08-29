@@ -148,7 +148,7 @@ type StaticUtilityValue =
 export function staticUtility(
   name: string,
   decls: StaticUtilityValue[],
-  opts?: { description?: string; category?: string }
+  opts?: { description?: string; category?: string; priority?: number }
 ) {
   registerUtility({
     name,
@@ -180,6 +180,7 @@ export function staticUtility(
     },
     description: opts?.description,
     category: opts?.category,
+    priority: opts?.priority,
   });
 }
 
@@ -218,6 +219,7 @@ export function functionalUtility(opts: {
   handleCustomProperty?: (value: string, ctx: CssmaContext, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
   description?: string;
   category?: string;
+  priority?: number;
 }) {
   registerUtility({
     name: opts.name,
@@ -228,8 +230,6 @@ export function functionalUtility(opts: {
       const extra: FunctionalUtilityExtra = {
         opacity: token.opacity,
       };
-
-      // console.log('[functionalUtility] input', { name: opts.name, value, token });
 
       if (opts.supportsOpacity && !token.arbitrary && !token.customProperty && value.includes('/')) {
         const list = value.split('/');
@@ -339,5 +339,6 @@ export function functionalUtility(opts: {
     },
     description: opts.description,
     category: opts.category,
+    priority: opts.priority,
   });
 }

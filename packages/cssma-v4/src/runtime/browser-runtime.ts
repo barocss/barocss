@@ -1,4 +1,5 @@
-import { createContext, astCache, cssCache, IncrementalParser } from '../index';
+import { GenerateCssRulesResult } from './../core/engine';
+import { createContext, astCache, IncrementalParser } from '../index';
 import type { CssmaConfig, CssmaContext } from '../core/context';
 import { StylePartitionManager } from './style-partition-manager';
 
@@ -158,11 +159,13 @@ export class ChangeDetector {
     
     // Scan all child elements
     const elementsWithClass = root.querySelectorAll('[class]') as unknown as HTMLElement[];
+    // console.log('[StyleRuntime] scanExistingClasses', elementsWithClass);
     for (const el of elementsWithClass) {
       if (el.className) {
         // SVG className is SVGAnimatedString; convert to string with toString()
         // HTMLElement className is string; use as-is
         const classes = normalizeClassNameList(el.className);
+        // console.log('[StyleRuntime] scanExistingClasses', classes);
         classes.forEach(cls => {
           if (!this.incrementalParser.isProcessed(cls)) {
             existingClasses.add(cls);
@@ -249,7 +252,7 @@ export class StyleRuntime {
   private styleCssVarsEl: HTMLStyleElement | null = null;
   private sheet: CSSStyleSheet | null = null;
   private rootSheet: CSSStyleSheet | null = null;
-  private cache: Map<string, string[]> = new Map(); // class name -> generated CSS mapping
+  private cache: Map<string, GenerateCssRulesResult> = new Map(); // class name -> generated CSS mapping
   private rootCache: Set<string> = new Set(); // class name -> generated CSS mapping
   private context: CssmaContext;
   private options: Required<StyleRuntimeOptions>;
@@ -302,8 +305,8 @@ export class StyleRuntime {
 
   private init() {
     this.injectPreflightCSS();
-    this.ensureCssVars();
     this.ensureSheet();
+    this.ensureCssVars();    
     if (this.options.enableDev && typeof window !== 'undefined') {
       this.setupHMR();
     }
@@ -374,12 +377,12 @@ export class StyleRuntime {
   private ensureSheet() {
     if (this.isDestroyed) return;
     
-    if (!this.styleEl) {
-      this.styleEl = this.createStyleElement(this.options.styleId);
-    }
-    
     if (!this.styleRootEl) {
       this.styleRootEl = this.createStyleElement(`${this.options.styleId}-root`);
+    }
+
+    if (!this.styleEl) {
+      this.styleEl = this.createStyleElement(this.options.styleId);
     }
     
     if (!this.sheet && this.styleEl) {
@@ -455,32 +458,35 @@ export class StyleRuntime {
   /**
    * Public method to apply parser results, update internal caches, and inject CSS
    */
-  public applyParseResults(results: Array<{ cls: string; css?: string; cssList?: string[]; rootCss?: string }>, opts?: { isBrowser?: boolean }): void {
+  public applyParseResults(results: Array<GenerateCssRulesResult>, opts?: { isBrowser?: boolean }): void {
     const isBrowser = opts?.isBrowser ?? (typeof window !== 'undefined');
 
-    const cssRules: string[] = [];
+    const cssRules: GenerateCssRulesResult[] = [];
     const rootCssRules: string[] = [];
 
     for (const result of results) {
       if (result.css && Array.isArray(result.cssList)) {
-        cssRules.push(...result.cssList);
-        this.cache.set(normalizeClassName(result.cls), result.cssList);
+        cssRules.push(result);
+        // this.cache.set(normalizeClassName(result.cls), result);
       }
 
-      if (result.rootCss) {
-        if (!this.rootCache.has(result.rootCss)) {
-          this.rootCache.add(result.rootCss);
-          rootCssRules.push(result.rootCss);
+      if (result.rootCss && Array.isArray(result.rootCssList)) {
+
+        for (const rootCss of result.rootCssList) {
+          if (!this.rootCache.has(rootCss)) {
+            this.rootCache.add(rootCss);
+            rootCssRules.push(rootCss);
+          }
         }
       }
     }
 
-    if (cssRules.length > 0 && isBrowser) {
-      this.stylePartitionManager.addRules(cssRules);
+    if (rootCssRules.length > 0) {
+      this.insertRootRules(rootCssRules.filter(Boolean));
     }
 
-    if (rootCssRules.length > 0 && isBrowser) {
-      this.insertRootRules(rootCssRules.filter(Boolean));
+    if (cssRules.length > 0) {
+      this.stylePartitionManager.addRules(cssRules);
     }
 
     this.debugLog('info', `Applied ${results.length} parser results`, {
@@ -580,36 +586,13 @@ export class StyleRuntime {
     }
   }
 
-  public insertRules(cssRules: string[]) {
-    if (!this.sheet || cssRules.length === 0) return;
-    
-    this.insertRulesToSheet(this.sheet, cssRules);
-    
-    if (this.styleEl) {
-      this.syncStyleElementContent(this.styleEl, Array.from(this.cache.values()).flat());
-    }
-  }
-
   public insertRootRules(cssRules: string[]) {
     if (!this.rootSheet || cssRules.length === 0) return;
 
-    // Add to rootCache
     for (const css of cssRules) {
-      if (this.rootCache.has(css)) {
-        continue;
-      }
-      this.rootCache.add(css);
+      // console.log('[StyleRuntime] insertRootRules', css);
+      this.insertRuleToSheet(this.rootSheet, css);
     }
-
-    // Combine all root CSS
-    const allRootCss = Array.from(this.rootCache).join('\n');
-    
-    // Sync style element content
-    this.syncStyleElementContent(this.styleRootEl!, [allRootCss]);
-    
-    // Insert as :root, :host rule
-    const rootRule = `:root,:host {${allRootCss}}`;
-    this.insertRuleToSheet(this.rootSheet, rootRule);
   }
 
   has(cls: string): boolean {
@@ -618,12 +601,12 @@ export class StyleRuntime {
   }
 
   getCss(cls: string): string | undefined {
-    const css = this.cache.get(cls)?.join('\n');
+    const css = this.cache.get(cls)?.cssList.join('\n');
     return css;
   }
 
   getAllCss(): string {
-    const all = Array.from(this.cache.values()).flat().join('\n');
+    const all = Array.from(this.cache.values()).flatMap(result => result.cssList).join('\n');
     return all;
   }
 
@@ -642,7 +625,6 @@ export class StyleRuntime {
         rootCacheSize: this.rootCache.size
       },
       ast: astCache.getStats(),
-      css: cssCache.getStats(),
       incremental: this.incrementalParser.getStats(),
     };
   }
@@ -654,7 +636,6 @@ export class StyleRuntime {
     this.cache.clear();
     this.rootCache.clear();
     astCache.clear();
-    cssCache.clear();
     this.incrementalParser.clearProcessed();
     this.stylePartitionManager.cleanup();
   }

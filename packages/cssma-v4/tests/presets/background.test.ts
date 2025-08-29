@@ -492,23 +492,6 @@ describe("background utilities", () => {
               {
                 prop: "syntax",
                 type: "decl",
-                value: '"*"',
-              },
-              {
-                prop: "inherits",
-                type: "decl",
-                value: "false",
-              },
-            ],
-            params: "--tw-gradient-via-stops",
-            type: "at-rule",
-          },
-          {
-            name: "property",
-            nodes: [
-              {
-                prop: "syntax",
-                type: "decl",
                 value: '"<length-percentage>"',
               },
               {
@@ -575,11 +558,6 @@ describe("background utilities", () => {
         prop: "--tw-gradient-from",
         type: "decl",
         value: "red",
-      },
-      {
-        prop: "--tw-gradient-stops",
-        type: "decl",
-        value: "var(--tw-gradient-via-stops, var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))",
       },
     ]);
   });
@@ -694,23 +672,6 @@ describe("background utilities", () => {
               {
                 prop: "syntax",
                 type: "decl",
-                value: '"*"',
-              },
-              {
-                prop: "inherits",
-                type: "decl",
-                value: "false",
-              },
-            ],
-            params: "--tw-gradient-via-stops",
-            type: "at-rule",
-          },
-          {
-            name: "property",
-            nodes: [
-              {
-                prop: "syntax",
-                type: "decl",
                 value: '"<length-percentage>"',
               },
               {
@@ -777,11 +738,6 @@ describe("background utilities", () => {
         prop: "--tw-gradient-from",
         type: "decl",
         value: "rgba(0,0,0,0.5)",
-      },
-      {
-        prop: "--tw-gradient-stops",
-        type: "decl",
-        value: "var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))",
       },
     ]);
   });
@@ -911,23 +867,6 @@ describe("background utilities", () => {
               {
                 prop: "syntax",
                 type: "decl",
-                value: '"*"',
-              },
-              {
-                prop: "inherits",
-                type: "decl",
-                value: "false",
-              },
-            ],
-            params: "--tw-gradient-via-stops",
-            type: "at-rule",
-          },
-          {
-            name: "property",
-            nodes: [
-              {
-                prop: "syntax",
-                type: "decl",
                 value: '"<length-percentage>"',
               },
               {
@@ -994,11 +933,6 @@ describe("background utilities", () => {
         prop: "--tw-gradient-via",
         type: "decl",
         value: "blue-500",
-      },
-      {
-        prop: "--tw-gradient-stops",
-        type: "decl",
-        value: "var(--tw-gradient-via-stops, var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))",
       },
     ]);
   });
@@ -1112,23 +1046,7 @@ describe("background utilities", () => {
             params: "--tw-gradient-stops",
             type: "at-rule",
           },
-          {
-            name: "property",
-            nodes: [
-              {
-                prop: "syntax",
-                type: "decl",
-                value: '"*"',
-              },
-              {
-                prop: "inherits",
-                type: "decl",
-                value: "false",
-              },
-            ],
-            params: "--tw-gradient-via-stops",
-            type: "at-rule",
-          },
+
           {
             name: "property",
             nodes: [
@@ -1201,11 +1119,6 @@ describe("background utilities", () => {
         prop: "--tw-gradient-to",
         type: "decl",
         value: "green-700",
-      },
-      {
-        prop: "--tw-gradient-stops",
-        type: "decl",
-        value: "var(--tw-gradient-via-stops, var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))",
       },
     ]);
   });

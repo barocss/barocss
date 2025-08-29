@@ -1,3 +1,4 @@
+"use client";
 export * from './core/ast';
 export * from './core/parser';
 export * from './core/incremental-parser';

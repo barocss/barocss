@@ -2,29 +2,43 @@ import { staticUtility, functionalUtility } from "../core/registry";
 import { AstNode, atRoot, atRule, decl, property, rule, styleRule } from "../core/ast";
 import { parseColor, parseLength, parseNumber } from "../core/utils";
 
+const gradientStopProperties = () => {
+  return atRoot([
+    property('--tw-gradient-position'),
+    property('--tw-gradient-from', '#0000', '<color>'),
+    property('--tw-gradient-via', '#0000', '<color>'),
+    property('--tw-gradient-to', '#0000', '<color>'),
+    property('--tw-gradient-stops', "transparent"),
+    property('--tw-gradient-from-position', '0%', '<length-percentage>'),
+    property('--tw-gradient-via-position', '50%', '<length-percentage>'),
+    property('--tw-gradient-to-position', '100%', '<length-percentage>'),
+  ], "background")
+}
+
+
 // --- Background Attachment ---
-staticUtility("bg-fixed", [["background-attachment", "fixed"]]);
-staticUtility("bg-local", [["background-attachment", "local"]]);
-staticUtility("bg-scroll", [["background-attachment", "scroll"]]);
+staticUtility("bg-fixed", [["background-attachment", "fixed"]], { category: 'background' });
+staticUtility("bg-local", [["background-attachment", "local"]], { category: 'background' });
+staticUtility("bg-scroll", [["background-attachment", "scroll"]], { category: 'background' });
 
 // --- Background Clip ---
-staticUtility("bg-clip-border", [["background-clip", "border-box"]]);
-staticUtility("bg-clip-padding", [["background-clip", "padding-box"]]);
-staticUtility("bg-clip-content", [["background-clip", "content-box"]]);
-staticUtility("bg-clip-text", [["background-clip", "text"]]);
+staticUtility("bg-clip-border", [["background-clip", "border-box"]], { category: 'background' });
+staticUtility("bg-clip-padding", [["background-clip", "padding-box"]], { category: 'background' });
+staticUtility("bg-clip-content", [["background-clip", "content-box"]], { category: 'background' });
+staticUtility("bg-clip-text", [["background-clip", "text"]], { category: 'background' });
 
 // --- Background Color ---
-staticUtility("bg-inherit", [["background-color", "inherit"]]);
-staticUtility("bg-current", [["background-color", "currentColor"]]);
-staticUtility("bg-transparent", [["background-color", "transparent"]]);
+staticUtility("bg-inherit", [["background-color", "inherit"]], { category: 'background' });
+staticUtility("bg-current", [["background-color", "currentColor"]], { category: 'background' });
+staticUtility("bg-transparent", [["background-color", "transparent"]], { category: 'background' });
 
 // --- Background Image ---
-staticUtility("bg-none", [["background-image", "none"]]);
+staticUtility("bg-none", [["background-image", "none"]], { category: 'background' });
 
 // --- Background Origin ---
-staticUtility("bg-origin-border", [["background-origin", "border-box"]]);
-staticUtility("bg-origin-padding", [["background-origin", "padding-box"]]);
-staticUtility("bg-origin-content", [["background-origin", "content-box"]]);
+staticUtility("bg-origin-border", [["background-origin", "border-box"]], { category: 'background' });
+staticUtility("bg-origin-padding", [["background-origin", "padding-box"]], { category: 'background' });
+staticUtility("bg-origin-content", [["background-origin", "content-box"]], { category: 'background' });
 
 // --- Background Position ---
 [
@@ -38,7 +52,7 @@ staticUtility("bg-origin-content", [["background-origin", "content-box"]]);
   ["bg-right-top", "right top"],
   ["bg-top", "top"],
 ].forEach(([name, value]) => {
-  staticUtility(name, [["background-position", value]]);
+  staticUtility(name, [["background-position", value]], { category: 'background' });
 });
 
 /**
@@ -57,17 +71,17 @@ functionalUtility({
 });
 
 // --- Background Repeat ---
-staticUtility("bg-repeat", [["background-repeat", "repeat"]]);
-staticUtility("bg-no-repeat", [["background-repeat", "no-repeat"]]);
-staticUtility("bg-repeat-x", [["background-repeat", "repeat-x"]]);
-staticUtility("bg-repeat-y", [["background-repeat", "repeat-y"]]);
-staticUtility("bg-repeat-round", [["background-repeat", "round"]]);
-staticUtility("bg-repeat-space", [["background-repeat", "space"]]);
+staticUtility("bg-repeat", [["background-repeat", "repeat"]], { category: 'background' });
+staticUtility("bg-no-repeat", [["background-repeat", "no-repeat"]], { category: 'background' });
+staticUtility("bg-repeat-x", [["background-repeat", "repeat-x"]], { category: 'background' });
+staticUtility("bg-repeat-y", [["background-repeat", "repeat-y"]], { category: 'background' });
+staticUtility("bg-repeat-round", [["background-repeat", "round"]], { category: 'background' });
+staticUtility("bg-repeat-space", [["background-repeat", "space"]], { category: 'background' });
 
 // --- Background Size ---
-staticUtility("bg-auto", [["background-size", "auto"]]);
-staticUtility("bg-cover", [["background-size", "cover"]]);
-staticUtility("bg-contain", [["background-size", "contain"]]);
+staticUtility("bg-auto", [["background-size", "auto"]], { category: 'background' });
+staticUtility("bg-cover", [["background-size", "cover"]], { category: 'background' });
+staticUtility("bg-contain", [["background-size", "contain"]], { category: 'background' });
 
 functionalUtility({
   name: "bg-size",
@@ -105,14 +119,14 @@ const positionValue = (position: string) => {
   // fallback , legacy CSS compatibility
   ["bg-gradient-to-t", positionValue("to top")],
   ["bg-gradient-to-tr", positionValue("to top right")],
-  ["bg-linear-to-r", positionValue("to right")],
+  ["bg-gradient-to-r", positionValue("to right")],
   ["bg-gradient-to-br", positionValue("to bottom right")],
   ["bg-gradient-to-b", positionValue("to bottom")],
   ["bg-gradient-to-bl", positionValue("to bottom left")],
   ["bg-gradient-to-l", positionValue("to left")],
   ["bg-gradient-to-tl", positionValue("to top left")],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, value as AstNode[]);
+  staticUtility(name as string, value as AstNode[], { category: 'background', priority: 1000 });
 });
 // bg-linear-<angle> (e.g., bg-linear-45)
 functionalUtility({
@@ -164,7 +178,7 @@ functionalUtility({
 // --- Background Gradients: Radial ---
 staticUtility("bg-radial", [
   ["background-image", "radial-gradient(in oklab, var(--tw-gradient-stops))"],
-]);
+], { category: 'background' });
 functionalUtility({
   name: "bg-radial",
   prop: "background-image",
@@ -208,7 +222,7 @@ staticUtility("bg-conic", [
     "background-image",
     "conic-gradient(from 0deg in oklab, var(--tw-gradient-stops))",
   ],
-]);
+], { category: 'background' });
 functionalUtility({
   name: "bg-conic",
   prop: "background-image",
@@ -247,19 +261,6 @@ functionalUtility({
 
 // --- Gradient Stops ---
 
-const gradientStopProperties = () => {
-  return atRoot([
-    property('--tw-gradient-position'),
-    property('--tw-gradient-from', '#0000', '<color>'),
-    property('--tw-gradient-via', '#0000', '<color>'),
-    property('--tw-gradient-to', '#0000', '<color>'),
-    property('--tw-gradient-stops'),
-    property('--tw-gradient-via-stops'),
-    property('--tw-gradient-from-position', '0%', '<length-percentage>'),
-    property('--tw-gradient-via-position', '50%', '<length-percentage>'),
-    property('--tw-gradient-to-position', '100%', '<length-percentage>'),
-  ])
-}
 
 
 // from-*, via-*, to-* (color, percentage, custom property, arbitrary)
@@ -271,14 +272,29 @@ const gradientStopProperties = () => {
     supportsCustomProperty: true,
     handle: (value, context, token, extra) => {
       if (extra?.realThemeValue) {
-        return [
-          gradientStopProperties(),
-          decl(`--tw-gradient-${stop}`, value),
-          decl(
-            `--tw-gradient-stops`,
-            `var(--tw-gradient-via-stops, var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))`
-          ),
-        ];
+        if (stop === "from") {
+          return [
+            gradientStopProperties(),
+            decl(`--tw-gradient-from`, value),
+            decl(`--tw-gradient-to`, "transparent"),
+            decl(`--tw-gradient-stops`, "var(--tw-gradient-from),var(--tw-gradient-to)")
+          ];
+        }
+
+        if (stop === "via") {
+          return [
+            gradientStopProperties(),
+            decl(`--tw-gradient-to`, value),
+            decl(`--tw-gradient-stops`, `var(--tw-gradient-from), ${value} var(--tw-gradient-via-position), var(--tw-gradient-to)`)  // via 포함 stops
+          ];
+        }
+
+        if (stop === "to") {
+          return [
+            gradientStopProperties(),
+            decl(`--tw-gradient-to`, value),
+          ];
+        }
       }
 
       // to-50% → --tw-gradient-to-position: 50%
@@ -286,21 +302,37 @@ const gradientStopProperties = () => {
         return [decl(`--tw-gradient-${stop}-position`, value)];
       }
 
-      // to-50% → --tw-gradient-to: 50%
+      // to-50% → --tw-gradient-to-position: 50%
       if (parseNumber(value)) {
-        return [decl(`--tw-gradient-${stop}`, `${value}%`)];
+        return [decl(`--tw-gradient-${stop}-position`, `${value}%`)];
       }
 
       // to-red-500 → --tw-gradient-to: red-500
       if (parseColor(value)) {
-        return [
-          gradientStopProperties(),
-          decl(`--tw-gradient-${stop}`, value),
-          decl(
-            `--tw-gradient-stops`,
-            `var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position))`
-          ),
-        ];
+
+        if (stop === "from") {
+          return [
+            gradientStopProperties(),
+            decl(`--tw-gradient-from`, value),
+            decl(`--tw-gradient-to`, "transparent"),
+            decl(`--tw-gradient-stops`, "var(--tw-gradient-from),var(--tw-gradient-to)")
+          ];
+        }
+
+        if (stop === "via") {
+          return [
+            gradientStopProperties(),
+            decl(`--tw-gradient-to`, value),
+            decl(`--tw-gradient-stops`, `var(--tw-gradient-from), ${value} var(--tw-gradient-via-position), var(--tw-gradient-to)`)  // via 포함 stops
+          ];
+        }
+
+        if (stop === "to") {
+          return [
+            gradientStopProperties(),
+            decl(`--tw-gradient-to`, value),
+          ];
+        }
       }
       return null;
     },

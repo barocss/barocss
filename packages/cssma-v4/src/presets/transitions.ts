@@ -17,14 +17,14 @@ staticUtility("transition", [
   ],
   ["transition-timing-function", defaultTiming],
   ["transition-duration", defaultDuration],
-]);
+], { category: 'transitions' });
 
 // transition-all
 staticUtility("transition-all", [
   ["transition-property", "all"],
   ["transition-timing-function", defaultTiming],
   ["transition-duration", defaultDuration],
-]);
+], { category: 'transitions' });
 
 // transition-colors
 staticUtility("transition-colors", [
@@ -34,36 +34,36 @@ staticUtility("transition-colors", [
   ],
   ["transition-timing-function", defaultTiming],
   ["transition-duration", defaultDuration],
-]);
+], { category: 'transitions' });
 
 // transition-opacity
 staticUtility("transition-opacity", [
   ["transition-property", "opacity"],
   ["transition-timing-function", defaultTiming],
   ["transition-duration", defaultDuration],
-]);
+], { category: 'transitions' });
 
 // transition-shadow
 staticUtility("transition-shadow", [
   ["transition-property", "box-shadow"],
   ["transition-timing-function", defaultTiming],
   ["transition-duration", defaultDuration],
-]);
+], { category: 'transitions' });
 
 // transition-transform
 staticUtility("transition-transform", [
   ["transition-property", "transform, translate, scale, rotate"],
   ["transition-timing-function", defaultTiming],
   ["transition-duration", defaultDuration],
-]);
+], { category: 'transitions' }  );
 
 
 // --- Transition Behavior ---
-staticUtility("transition-normal", [["transition-behavior", "normal"]]);
-staticUtility("transition-discrete", [["transition-behavior", "allow-discrete"]]); 
+staticUtility("transition-normal", [["transition-behavior", "normal"]], { category: 'transitions' });
+staticUtility("transition-discrete", [["transition-behavior", "allow-discrete"]], { category: 'transitions' }); 
 
 // transition-none
-staticUtility("transition-none", [["transition-property", "none"]]);
+staticUtility("transition-none", [["transition-property", "none"]], { category: 'transitions' });
 
 // transition-[value] (arbitrary value)
 functionalUtility({
@@ -89,7 +89,7 @@ functionalUtility({
 });
 
 // --- Transition Duration ---
-staticUtility("duration-initial", [["transition-duration", "initial"]]);
+staticUtility("duration-initial", [["transition-duration", "initial"]], { category: 'transitions' });
 
 functionalUtility({
   name: "duration",
@@ -108,11 +108,11 @@ functionalUtility({
 });
 
 // --- Transition Timing Function ---
-staticUtility("ease-linear", [["transition-timing-function", "linear"]]);
-staticUtility("ease-in", [["transition-timing-function", "var(--ease-in)"]]);
-staticUtility("ease-out", [["transition-timing-function", "var(--ease-out)"]]);
-staticUtility("ease-in-out", [["transition-timing-function", "var(--ease-in-out)"]]);
-staticUtility("ease-initial", [["transition-timing-function", "initial"]]);
+staticUtility("ease-linear", [["transition-timing-function", "linear"]], { category: 'transitions' });
+staticUtility("ease-in", [["transition-timing-function", "var(--ease-in)"]], { category: 'transitions' });
+staticUtility("ease-out", [["transition-timing-function", "var(--ease-out)"]], { category: 'transitions' });
+staticUtility("ease-in-out", [["transition-timing-function", "var(--ease-in-out)"]], { category: 'transitions' });
+staticUtility("ease-initial", [["transition-timing-function", "initial"]], { category: 'transitions' });
 
 functionalUtility({
   name: "ease",
@@ -147,11 +147,11 @@ functionalUtility({
 // --- Animation ---
 staticUtility("animate-spin", [
     ["animation", "var(--animate-spin)"],
-]);
-staticUtility("animate-ping", [["animation", "var(--animate-ping)"]]);
-staticUtility("animate-pulse", [["animation", "var(--animate-pulse)"]]);
-staticUtility("animate-bounce", [["animation", "var(--animate-bounce)"]]);
-staticUtility("animate-none", [["animation", "none"]]);
+], { category: 'transitions' });
+staticUtility("animate-ping", [["animation", "var(--animate-ping)"]], { category: 'transitions' });
+staticUtility("animate-pulse", [["animation", "var(--animate-pulse)"]], { category: 'transitions' });
+staticUtility("animate-bounce", [["animation", "var(--animate-bounce)"]], { category: 'transitions' });
+staticUtility("animate-none", [["animation", "none"]], { category: 'transitions' }  );
 
 functionalUtility({
   name: "animate",

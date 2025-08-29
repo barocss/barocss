@@ -12,7 +12,7 @@ import {
 //  transform documentation
 
 // transform-none: disables all transforms
-staticUtility("transform-none", [["transform", "none"]]);
+staticUtility("transform-none", [["transform", "none"]], { category: 'transform' });
 
 // transform-gpu: enables GPU acceleration for transforms
 // Output: transform: translateZ(0) var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y);
@@ -21,7 +21,7 @@ staticUtility("transform-gpu", [
     "transform",
     "translateZ(0) var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y)",
   ],
-]);
+], { category: 'transform' });
 
 // transform-cpu: disables GPU acceleration, uses only CPU transforms
 // Output: transform: var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y);
@@ -36,9 +36,9 @@ staticUtility("transform-cpu", [
 //  transform-style documentation
 
 // transform-3d: transform-style: preserve-3d;
-staticUtility("transform-3d", [["transform-style", "preserve-3d"]]);
+staticUtility("transform-3d", [["transform-style", "preserve-3d"]], { category: 'transform' });
 // transform-flat: transform-style: flat;
-staticUtility("transform-flat", [["transform-style", "flat"]]);
+staticUtility("transform-flat", [["transform-style", "flat"]], { category: 'transform' });
 
 // transform-(<custom-property>): sets transform to a CSS custom property value
 // Example: transform-(--my-transform) → transform: var(--my-transform);
@@ -65,45 +65,45 @@ functionalUtility({
 
 // --- Backface Visibility ---
 //  backface-visibility documentation
-staticUtility("backface-hidden", [["backface-visibility", "hidden"]]);
-staticUtility("backface-visible", [["backface-visibility", "visible"]]);
+staticUtility("backface-hidden", [["backface-visibility", "hidden"]], { category: 'transform' });
+staticUtility("backface-visible", [["backface-visibility", "visible"]], { category: 'transform' });
 
 // --- Perspective ---
 //  perspective documentation
 staticUtility("perspective-dramatic", [
   ["perspective", "var(--perspective-dramatic)"],
-]); // 100px
-staticUtility("perspective-near", [["perspective", "var(--perspective-near)"]]); // 300px
+], { category: 'transform' }); // 100px
+staticUtility("perspective-near", [["perspective", "var(--perspective-near)"]], { category: 'transform' }); // 300px
 staticUtility("perspective-normal", [
   ["perspective", "var(--perspective-normal)"],
-]); // 500px
+], { category: 'transform' }); // 500px
 staticUtility("perspective-midrange", [
   ["perspective", "var(--perspective-midrange)"],
-]); // 800px
+], { category: 'transform' }); // 800px
 staticUtility("perspective-distant", [
   ["perspective", "var(--perspective-distant)"],
-]); // 1200px
-staticUtility("perspective-none", [["perspective", "none"]]);
+], { category: 'transform' }); // 1200px
+staticUtility("perspective-none", [["perspective", "none"]], { category: 'transform' });
 
 // --- Perspective Origin ---
 //  perspective-origin documentation
-staticUtility("perspective-origin-center", [["perspective-origin", "center"]]);
-staticUtility("perspective-origin-top", [["perspective-origin", "top"]]);
+    staticUtility("perspective-origin-center", [["perspective-origin", "center"]], { category: 'transform' });
+staticUtility("perspective-origin-top", [["perspective-origin", "top"]], { category: 'transform' });
 staticUtility("perspective-origin-top-right", [
   ["perspective-origin", "top right"],
-]);
-staticUtility("perspective-origin-right", [["perspective-origin", "right"]]);
+], { category: 'transform' });
+staticUtility("perspective-origin-right", [["perspective-origin", "right"]], { category: 'transform' });
 staticUtility("perspective-origin-bottom-right", [
   ["perspective-origin", "bottom right"],
-]);
-staticUtility("perspective-origin-bottom", [["perspective-origin", "bottom"]]);
+], { category: 'transform' });
+staticUtility("perspective-origin-bottom", [["perspective-origin", "bottom"]], { category: 'transform' });
 staticUtility("perspective-origin-bottom-left", [
   ["perspective-origin", "bottom left"],
-]);
-staticUtility("perspective-origin-left", [["perspective-origin", "left"]]);
+], { category: 'transform' });
+staticUtility("perspective-origin-left", [["perspective-origin", "left"]], { category: 'transform' });
 staticUtility("perspective-origin-top-left", [
   ["perspective-origin", "top left"],
-]);
+], { category: 'transform' });
 
 functionalUtility({
   name: "perspective-origin",
@@ -138,7 +138,7 @@ functionalUtility({
 //  rotate documentation
 
 // rotate-none
-staticUtility("rotate-none", [["rotate", "none"]]);
+staticUtility("rotate-none", [["rotate", "none"]], { category: 'transform' });
 
 // rotate-x-<number>, -rotate-x-<number>, rotate-x-(<custom-property>), rotate-x-[<value>]
 functionalUtility({
@@ -258,11 +258,11 @@ functionalUtility({
 //  scale documentation
 
 // scale-none
-staticUtility("scale-none", [["scale", "none"]]);
+staticUtility("scale-none", [["scale", "none"]], { category: 'transform' }  );
 // scale-3d
 staticUtility("scale-3d", [
   ["scale", "var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z)"],
-]);
+], { category: 'transform' });
 
 // scale-x-<number>, -scale-x-<number>, scale-x-(<custom-property>), scale-x-[<value>]
 functionalUtility({
@@ -449,23 +449,23 @@ functionalUtility({
 //  transform-origin documentation
 
 // origin-center: transform-origin: center;
-staticUtility("origin-center", [["transform-origin", "center"]]);
+staticUtility("origin-center", [["transform-origin", "center"]], { category: 'transform' });
 // origin-top: transform-origin: top;
-staticUtility("origin-top", [["transform-origin", "top"]]);
+staticUtility("origin-top", [["transform-origin", "top"]], { category: 'transform' });
 // origin-top-right: transform-origin: top right;
-staticUtility("origin-top-right", [["transform-origin", "top right"]]);
+staticUtility("origin-top-right", [["transform-origin", "top right"]], { category: 'transform' });
 // origin-right: transform-origin: right;
-staticUtility("origin-right", [["transform-origin", "right"]]);
+staticUtility("origin-right", [["transform-origin", "right"]], { category: 'transform' });
 // origin-bottom-right: transform-origin: bottom right;
-staticUtility("origin-bottom-right", [["transform-origin", "bottom right"]]);
+staticUtility("origin-bottom-right", [["transform-origin", "bottom right"]], { category: 'transform' });
 // origin-bottom: transform-origin: bottom;
-staticUtility("origin-bottom", [["transform-origin", "bottom"]]);
+staticUtility("origin-bottom", [["transform-origin", "bottom"]], { category: 'transform' });
 // origin-bottom-left: transform-origin: bottom left;
-staticUtility("origin-bottom-left", [["transform-origin", "bottom left"]]);
+staticUtility("origin-bottom-left", [["transform-origin", "bottom left"]], { category: 'transform' });
 // origin-left: transform-origin: left;
-staticUtility("origin-left", [["transform-origin", "left"]]);
+staticUtility("origin-left", [["transform-origin", "left"]], { category: 'transform' });
 // origin-top-left: transform-origin: top left;
-staticUtility("origin-top-left", [["transform-origin", "top left"]]);
+staticUtility("origin-top-left", [["transform-origin", "top left"]], { category: 'transform' });
 
 // origin-(<custom-property>): transform-origin: var(--custom-property);
 functionalUtility({
@@ -491,51 +491,51 @@ let translateProperties = () => (
 
 // --- Static translate utilities ---
 // translate-none: disables all translation
-staticUtility("translate-none", [["translate", "none"]]);
+staticUtility("translate-none", [["translate", "none"]], { category: 'transform' });
 
 // translate-px, -translate-px, translate-full, -translate-full
-staticUtility("translate-px", [["translate", "1px 1px"]]);
-staticUtility("-translate-px", [["translate", "-1px -1px"]]);
+staticUtility("translate-px", [["translate", "1px 1px"]], { category: 'transform' });
+staticUtility("-translate-px", [["translate", "-1px -1px"]], { category: 'transform' });
 staticUtility("translate-full", [
     translateProperties,
     ["--tw-translate-x", "100%"],
     ["--tw-translate-y", "100%"],
     ["translate", "var(--tw-translate-x) var(--tw-translate-y)"]
-]);
+], { category: 'transform' });
 staticUtility("-translate-full", [
     translateProperties,
     ["--tw-translate-x", "-100%"],
     ["--tw-translate-y", "-100%"],
     ["translate", "var(--tw-translate-x) var(--tw-translate-y)"]
-]);
+], { category: 'transform' });
 
 // translate-x-px, -translate-x-px, translate-x-full, -translate-x-full
-staticUtility("translate-x-px", [["translate", "1px var(--tw-translate-y)"]]);
-staticUtility("-translate-x-px", [["translate", "-1px var(--tw-translate-y)"]]);
+staticUtility("translate-x-px", [["translate", "1px var(--tw-translate-y)"]], { category: 'transform' });
+staticUtility("-translate-x-px", [["translate", "-1px var(--tw-translate-y)"]], { category: 'transform' });
 staticUtility("translate-x-full", [
   ["translate", "100% var(--tw-translate-y)"],
-]);
+], { category: 'transform' });
 staticUtility("-translate-x-full", [
   ["translate", "-100% var(--tw-translate-y)"],
-]);
+], { category: 'transform' }  );
 
 // translate-y-px, -translate-y-px, translate-y-full, -translate-y-full
-staticUtility("translate-y-px", [["translate", "var(--tw-translate-x) 1px"]]);
-staticUtility("-translate-y-px", [["translate", "var(--tw-translate-x) -1px"]]);
+staticUtility("translate-y-px", [["translate", "var(--tw-translate-x) 1px"]], { category: 'transform' });
+staticUtility("-translate-y-px", [["translate", "var(--tw-translate-x) -1px"]], { category: 'transform' });
 staticUtility("translate-y-full", [
   ["translate", "var(--tw-translate-x) 100%"],
-]);
+], { category: 'transform' });
 staticUtility("-translate-y-full", [
   ["translate", "var(--tw-translate-x) -100%"],
-]);
+], { category: 'transform' });
 
 // translate-z-px, -translate-z-px
 staticUtility("translate-z-px", [
   ["translate", "var(--tw-translate-x) var(--tw-translate-y) 1px"],
-]);
+  ], { category: 'transform' });
 staticUtility("-translate-z-px", [
   ["translate", "var(--tw-translate-x) var(--tw-translate-y) -1px"],
-]);
+], { category: 'transform' });
 
 // --- Functional translate utilities ---
 

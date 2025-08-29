@@ -6,15 +6,15 @@ import { parseNumber, parseLength, parseColor } from "../core/utils";
 //  border-radius documentation
 
 // Static border radius utilities
-staticUtility("rounded-none", [["border-radius", "0px"]]);
-staticUtility("rounded-sm", [["border-radius", "var(--radius-sm)"]]);
-staticUtility("rounded", [["border-radius", "var(--radius)"]]);
-staticUtility("rounded-md", [["border-radius", "var(--radius-md)"]]);
-staticUtility("rounded-lg", [["border-radius", "var(--radius-lg)"]]);
-staticUtility("rounded-xl", [["border-radius", "var(--radius-xl)"]]);
-staticUtility("rounded-2xl", [["border-radius", "var(--radius-2xl)"]]);
-staticUtility("rounded-3xl", [["border-radius", "var(--radius-3xl)"]]);
-staticUtility("rounded-full", [["border-radius", "9999px"]]);
+staticUtility("rounded-none", [["border-radius", "0px"]], { category: 'borders' });
+staticUtility("rounded-sm", [["border-radius", "var(--radius-sm)"]], { category: 'borders' });
+staticUtility("rounded", [["border-radius", "var(--radius)"]], { category: 'borders' });
+staticUtility("rounded-md", [["border-radius", "var(--radius-md)"]], { category: 'borders' });
+staticUtility("rounded-lg", [["border-radius", "var(--radius-lg)"]], { category: 'borders' });
+staticUtility("rounded-xl", [["border-radius", "var(--radius-xl)"]], { category: 'borders' });
+staticUtility("rounded-2xl", [["border-radius", "var(--radius-2xl)"]], { category: 'borders' });
+staticUtility("rounded-3xl", [["border-radius", "var(--radius-3xl)"]], { category: 'borders' });
+staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'borders' });
 
 
 // Individual corner radius utilities
@@ -30,15 +30,15 @@ staticUtility("rounded-full", [["border-radius", "9999px"]]);
 ].forEach(([name, props]) => {
   const propList = props as string[];
   // Static utilities
-  staticUtility(`${name}-none`, propList.map(prop => [prop, "0px"]));
-  staticUtility(`${name}-sm`, propList.map(prop => [prop, "var(--radius-sm)"]));
-  staticUtility(`${name}`, propList.map(prop => [prop, "var(--radius)"]));
-  staticUtility(`${name}-md`, propList.map(prop => [prop, "var(--radius-md)"]));
-  staticUtility(`${name}-lg`, propList.map(prop => [prop, "var(--radius-lg)"]));
-  staticUtility(`${name}-xl`, propList.map(prop => [prop, "var(--radius-xl)"]));
-  staticUtility(`${name}-2xl`, propList.map(prop => [prop, "var(--radius-2xl)"]));
-  staticUtility(`${name}-3xl`, propList.map(prop => [prop, "var(--radius-3xl)"]));
-  staticUtility(`${name}-full`, propList.map(prop => [prop, "9999px"]));
+  staticUtility(`${name}-none`, propList.map(prop => [prop, "0px"]), { category: 'borders' });
+  staticUtility(`${name}-sm`, propList.map(prop => [prop, "var(--radius-sm)"]), { category: 'borders' });
+  staticUtility(`${name}`, propList.map(prop => [prop, "var(--radius)"]), { category: 'borders' });
+  staticUtility(`${name}-md`, propList.map(prop => [prop, "var(--radius-md)"]), { category: 'borders' });
+  staticUtility(`${name}-lg`, propList.map(prop => [prop, "var(--radius-lg)"]), { category: 'borders' });
+  staticUtility(`${name}-xl`, propList.map(prop => [prop, "var(--radius-xl)"]), { category: 'borders' });
+  staticUtility(`${name}-2xl`, propList.map(prop => [prop, "var(--radius-2xl)"]), { category: 'borders' });
+  staticUtility(`${name}-3xl`, propList.map(prop => [prop, "var(--radius-3xl)"]), { category: 'borders' });
+  staticUtility(`${name}-full`, propList.map(prop => [prop, "9999px"]), { category: 'borders' });
 
   // Functional utility
   functionalUtility({
@@ -78,11 +78,11 @@ functionalUtility({
 //  border-width documentation
 
 // Static border width utilities
-staticUtility("border-0", [["border-width", "0px"]]);
-staticUtility("border-2", [["border-width", "2px"]]);
-staticUtility("border-4", [["border-width", "4px"]]);
-staticUtility("border-8", [["border-width", "8px"]]);
-staticUtility("border", [["border-width", "1px"]]);
+staticUtility("border-0", [["border-width", "0px"]], { category: 'borders' });
+staticUtility("border-2", [["border-width", "2px"]], { category: 'borders' });
+staticUtility("border-4", [["border-width", "4px"]], { category: 'borders' });
+staticUtility("border-8", [["border-width", "8px"]], { category: 'borders' });
+staticUtility("border", [["border-width", "1px"]], { category: 'borders' });
 
 
 
@@ -141,20 +141,20 @@ staticUtility("border", [["border-width", "1px"]]);
 //  border-color documentation
 
 // Static border color utilities
-staticUtility("border-inherit", [["border-color", "inherit"]]);
-staticUtility("border-current", [["border-color", "currentColor"]]);
-staticUtility("border-transparent", [["border-color", "transparent"]]);
+staticUtility("border-inherit", [["border-color", "inherit"]], { category: 'borders' });
+staticUtility("border-current", [["border-color", "currentColor"]], { category: 'borders' });
+staticUtility("border-transparent", [["border-color", "transparent"]], { category: 'borders' });
 
 // --- Border Style ---
 //  border-style documentation
 
 // Static border style utilities
-staticUtility("border-solid", [["border-style", "solid"]]);
-staticUtility("border-dashed", [["border-style", "dashed"]]);
-staticUtility("border-dotted", [["border-style", "dotted"]]);
-staticUtility("border-double", [["border-style", "double"]]);
-staticUtility("border-hidden", [["border-style", "hidden"]]);
-staticUtility("border-none", [["border-style", "none"]]);
+staticUtility("border-solid", [["border-style", "solid"]], { category: 'borders' });
+staticUtility("border-dashed", [["border-style", "dashed"]], { category: 'borders' });
+staticUtility("border-dotted", [["border-style", "dotted"]], { category: 'borders' });
+staticUtility("border-double", [["border-style", "double"]], { category: 'borders' });
+staticUtility("border-hidden", [["border-style", "hidden"]], { category: 'borders' });
+staticUtility("border-none", [["border-style", "none"]], { category: 'borders' });
 
 
 // Functional border width utility
@@ -207,40 +207,40 @@ functionalUtility({
 //  outline-width documentation
 
 // Static outline width utilities
-staticUtility("outline-0", [["outline-width", "0px"]]);
-staticUtility("outline-1", [["outline-width", "1px"]]);
-staticUtility("outline-2", [["outline-width", "2px"]]);
-staticUtility("outline-4", [["outline-width", "4px"]]);
-staticUtility("outline-8", [["outline-width", "8px"]]);
+staticUtility("outline-0", [["outline-width", "0px"]], { category: 'borders' });
+staticUtility("outline-1", [["outline-width", "1px"]], { category: 'borders' });
+staticUtility("outline-2", [["outline-width", "2px"]], { category: 'borders' });
+staticUtility("outline-4", [["outline-width", "4px"]], { category: 'borders' });
+staticUtility("outline-8", [["outline-width", "8px"]], { category: 'borders' });
 
 // --- Outline Color ---
 //  outline-color documentation
 
 // Static outline color utilities
-staticUtility("outline-inherit", [["outline-color", "inherit"]]);
-staticUtility("outline-current", [["outline-color", "currentColor"]]);
-staticUtility("outline-transparent", [["outline-color", "transparent"]]);
+staticUtility("outline-inherit", [["outline-color", "inherit"]], { category: 'borders' });
+staticUtility("outline-current", [["outline-color", "currentColor"]], { category: 'borders' });
+staticUtility("outline-transparent", [["outline-color", "transparent"]], { category: 'borders' });
 
 
 // --- Outline Style ---
 //  outline-style documentation
 
 // Static outline style utilities
-staticUtility("outline-none", [["outline", "2px solid transparent"], ["outline-offset", "2px"]]);
-staticUtility("outline", [["outline-style", "solid"]]);
-staticUtility("outline-dashed", [["outline-style", "dashed"]]);
-staticUtility("outline-dotted", [["outline-style", "dotted"]]);
-staticUtility("outline-double", [["outline-style", "double"]]);
+staticUtility("outline-none", [["outline", "2px solid transparent"], ["outline-offset", "2px"]], { category: 'borders' });
+staticUtility("outline", [["outline-style", "solid"]], { category: 'borders' });
+staticUtility("outline-dashed", [["outline-style", "dashed"]], { category: 'borders' });
+staticUtility("outline-dotted", [["outline-style", "dotted"]], { category: 'borders' });
+staticUtility("outline-double", [["outline-style", "double"]], { category: 'borders' });
 
 // --- Outline Offset ---
 //  outline-offset documentation
 
 // Static outline offset utilities
-staticUtility("outline-offset-0", [["outline-offset", "0px"]]);
-staticUtility("outline-offset-1", [["outline-offset", "1px"]]);
-staticUtility("outline-offset-2", [["outline-offset", "2px"]]);
-staticUtility("outline-offset-4", [["outline-offset", "4px"]]);
-staticUtility("outline-offset-8", [["outline-offset", "8px"]]);
+staticUtility("outline-offset-0", [["outline-offset", "0px"]], { category: 'borders' });
+staticUtility("outline-offset-1", [["outline-offset", "1px"]], { category: 'borders' });
+staticUtility("outline-offset-2", [["outline-offset", "2px"]], { category: 'borders' });
+staticUtility("outline-offset-4", [["outline-offset", "4px"]], { category: 'borders' });
+staticUtility("outline-offset-8", [["outline-offset", "8px"]], { category: 'borders' });
 
 // Functional outline offset utility
 functionalUtility({

@@ -86,16 +86,9 @@ function astToCss(
               return css;
             }
           } else {
-            // Handle normal CSS property (e.g., color: red;)
-            if (minify) {
-              const css = `${node.prop}: ${value};`;
-              // console.log("[astToCss] decl minify", css);
-              return css;
-            } else {
-              const css = `${indent}${node.prop}: ${value};`;
-              // console.log("[astToCss] decl pretty", css);
-              return css;
-            }
+            const localIndent = minify ? "" : indent;
+            const css = `${localIndent}${node.prop}: ${value};`;
+            return css;
           }
         }
         case "rule": {

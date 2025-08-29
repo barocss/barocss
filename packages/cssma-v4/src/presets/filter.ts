@@ -4,8 +4,8 @@ import { parseNumber } from "../core/utils";
 import { parseColor } from "../core/utils";
 
 // --- Filter ---
-staticUtility("filter", [["filter", "var(--tw-filter)"]]);
-staticUtility("filter-none", [["filter", "none"]]);
+staticUtility("filter", [["filter", "var(--tw-filter)"]], { category: 'effects' });
+staticUtility("filter-none", [["filter", "none"]], { category: 'effects' });
 
 functionalUtility({
   name: "filter",
@@ -26,9 +26,9 @@ functionalUtility({
   ["blur-2xl", "var(--blur-2xl)"],
   ["blur-3xl", "var(--blur-3xl)"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["filter", `blur(${value})`]]);
+  staticUtility(name as string, [["filter", `blur(${value})`]], { category: 'effects' });
 });
-staticUtility("blur-none", [["filter", ""]]);
+staticUtility("blur-none", [["filter", ""]], { category: 'effects' });
 
 functionalUtility({
   name: "blur",
@@ -148,7 +148,7 @@ functionalUtility({
 });
 
 // --- Grayscale ---
-staticUtility("grayscale", [["filter", "grayscale(100%)"]]);
+staticUtility("grayscale", [["filter", "grayscale(100%)"]], { category: "effects" });
 
 functionalUtility({
   name: "grayscale",
@@ -190,7 +190,7 @@ functionalUtility({
 });
 
 // --- Invert ---
-staticUtility("invert", [["filter", "invert(100%)"]]);
+staticUtility("invert", [["filter", "invert(100%)"]], { category: "effects" });
 
 functionalUtility({
   name: "invert",
@@ -226,7 +226,7 @@ functionalUtility({
 });
 
 // --- Sepia ---
-staticUtility("sepia", [["filter", "sepia(100%)"]]);
+staticUtility("sepia", [["filter", "sepia(100%)"]], { category: "effects" });
 
 functionalUtility({
   name: "sepia",

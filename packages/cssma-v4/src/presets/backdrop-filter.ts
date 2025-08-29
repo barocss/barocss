@@ -4,8 +4,8 @@ import { parseNumber } from "../core/utils";
 import { parseColor } from "../core/utils";
 
 // --- Backdrop Filter ---
-staticUtility("backdrop-filter", [["backdrop-filter", "var(--tw-backdrop-filter)"]]);
-staticUtility("backdrop-filter-none", [["backdrop-filter", "none"]]);
+staticUtility("backdrop-filter", [["backdrop-filter", "var(--tw-backdrop-filter)"]], { category: 'effects' });
+staticUtility("backdrop-filter-none", [["backdrop-filter", "none"]], { category: 'effects' });
 
 functionalUtility({
   name: "backdrop-filter",
@@ -26,9 +26,9 @@ functionalUtility({
   ["backdrop-blur-2xl", "var(--blur-2xl)"],
   ["backdrop-blur-3xl", "var(--blur-3xl)"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["backdrop-filter", `blur(${value})`]]);
+  staticUtility(name as string, [["backdrop-filter", `blur(${value})`]], { category: 'effects' });
 });
-staticUtility("backdrop-blur-none", [["backdrop-filter", ""]]);
+staticUtility("backdrop-blur-none", [["backdrop-filter", ""]], { category: 'effects' });
 
 functionalUtility({
   name: "backdrop-blur",
@@ -88,7 +88,7 @@ functionalUtility({
 });
 
 // --- Grayscale ---
-staticUtility("backdrop-grayscale", [["backdrop-filter", "grayscale(100%)"]]);
+staticUtility("backdrop-grayscale", [["backdrop-filter", "grayscale(100%)"]], { category: 'effects' });
 
 functionalUtility({
   name: "backdrop-grayscale",
@@ -129,7 +129,7 @@ functionalUtility({
 });
 
 // --- Invert ---
-staticUtility("backdrop-invert", [["backdrop-filter", "invert(100%)"]]);
+staticUtility("backdrop-invert", [["backdrop-filter", "invert(100%)"]], { category: 'effects' });
 
 functionalUtility({
   name: "backdrop-invert",
@@ -165,7 +165,7 @@ functionalUtility({
 });
 
 // --- Sepia ---
-staticUtility("backdrop-sepia", [["backdrop-filter", "sepia(100%)"]]);
+staticUtility("backdrop-sepia", [["backdrop-filter", "sepia(100%)"]], {category: "effects"});
 
 functionalUtility({
   name: "backdrop-sepia",

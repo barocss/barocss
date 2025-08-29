@@ -21,6 +21,7 @@ import { animationVars } from './animation-vars';
 import { breakpoints } from './breakpoints';
 import { container } from './container';
 import { letterSpacing } from './letter-spacing';
+import { blur } from './blur';
 
 export interface UserTheme {
   [key: string]: any;
@@ -47,4 +48,5 @@ export const defaultTheme = {
   animations,
   keyframes,
   animationVars,
+  blur,
 } as UserTheme; 

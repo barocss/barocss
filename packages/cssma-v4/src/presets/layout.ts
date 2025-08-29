@@ -8,11 +8,11 @@ import {
 } from "../core/utils";
 
 // --- Layout: Isolation ---
-staticUtility("isolate", [["isolation", "isolate"]]);
-staticUtility("isolation-auto", [["isolation", "auto"]]);
+staticUtility("isolate", [["isolation", "isolate"]], { category: 'layout' });
+staticUtility("isolation-auto", [["isolation", "auto"]], { category: 'layout' });
 
 // --- Layout: Z-Index ---
-staticUtility("z-auto", [["z-index", "auto"]]);
+staticUtility("z-auto", [["z-index", "auto"]], { category: 'layout' });
 functionalUtility({
   name: "z",
   prop: "z-index",
@@ -27,9 +27,9 @@ functionalUtility({
 });
 
 // --- Layout: Aspect Ratio ---
-staticUtility("aspect-square", [["aspect-ratio", "1 / 1"]]);
-staticUtility("aspect-video", [["aspect-ratio", "var(--aspect-ratio-video)"]]);
-staticUtility("aspect-auto", [["aspect-ratio", "auto"]]);
+staticUtility("aspect-square", [["aspect-ratio", "1 / 1"]], { category: 'layout' });
+staticUtility("aspect-video", [["aspect-ratio", "var(--aspect-ratio-video)"]], { category: 'layout' });
+staticUtility("aspect-auto", [["aspect-ratio", "auto"]], { category: 'layout' });
 functionalUtility({
   name: "aspect",
   prop: "aspect-ratio",
@@ -42,20 +42,20 @@ functionalUtility({
 });
 
 // --- Layout: Columns ---
-staticUtility("columns-auto", [["columns", "auto"]]);
-staticUtility("columns-3xs", [["columns", "var(--container-3xs)"]]);
-staticUtility("columns-2xs", [["columns", "var(--container-2xs)"]]);
-staticUtility("columns-xs", [["columns", "var(--container-xs)"]]);
-staticUtility("columns-sm", [["columns", "var(--container-sm)"]]);
-staticUtility("columns-md", [["columns", "var(--container-md)"]]);
-staticUtility("columns-lg", [["columns", "var(--container-lg)"]]);
-staticUtility("columns-xl", [["columns", "var(--container-xl)"]]);
-staticUtility("columns-2xl", [["columns", "var(--container-2xl)"]]);
-staticUtility("columns-3xl", [["columns", "var(--container-3xl)"]]);
-staticUtility("columns-4xl", [["columns", "var(--container-4xl)"]]);
-staticUtility("columns-5xl", [["columns", "var(--container-5xl)"]]);
-staticUtility("columns-6xl", [["columns", "var(--container-6xl)"]]);
-staticUtility("columns-7xl", [["columns", "var(--container-7xl)"]]);
+staticUtility("columns-auto", [["columns", "auto"]], { category: 'layout' });
+staticUtility("columns-3xs", [["columns", "var(--container-3xs)"]], { category: 'layout' });
+staticUtility("columns-2xs", [["columns", "var(--container-2xs)"]], { category: 'layout' });
+staticUtility("columns-xs", [["columns", "var(--container-xs)"]], { category: 'layout' });
+staticUtility("columns-sm", [["columns", "var(--container-sm)"]], { category: 'layout' });
+staticUtility("columns-md", [["columns", "var(--container-md)"]], { category: 'layout' });
+staticUtility("columns-lg", [["columns", "var(--container-lg)"]], { category: 'layout' });
+staticUtility("columns-xl", [["columns", "var(--container-xl)"]], { category: 'layout' });
+staticUtility("columns-2xl", [["columns", "var(--container-2xl)"]], { category: 'layout' });
+staticUtility("columns-3xl", [["columns", "var(--container-3xl)"]], { category: 'layout' });
+staticUtility("columns-4xl", [["columns", "var(--container-4xl)"]], { category: 'layout' });
+staticUtility("columns-5xl", [["columns", "var(--container-5xl)"]], { category: 'layout' });
+staticUtility("columns-6xl", [["columns", "var(--container-6xl)"]], { category: 'layout' });
+staticUtility("columns-7xl", [["columns", "var(--container-7xl)"]], { category: 'layout' });
 functionalUtility({
   name: "columns",
   prop: "columns",
@@ -69,94 +69,94 @@ functionalUtility({
 });
 
 // --- Layout: Break After ---
-staticUtility("break-after-auto", [["break-after", "auto"]]);
-staticUtility("break-after-avoid", [["break-after", "avoid"]]);
-staticUtility("break-after-all", [["break-after", "all"]]);
-staticUtility("break-after-avoid-page", [["break-after", "avoid-page"]]);
-staticUtility("break-after-page", [["break-after", "page"]]);
-staticUtility("break-after-left", [["break-after", "left"]]);
-staticUtility("break-after-right", [["break-after", "right"]]);
-staticUtility("break-after-column", [["break-after", "column"]]);
+staticUtility("break-after-auto", [["break-after", "auto"]], { category: 'layout' });
+staticUtility("break-after-avoid", [["break-after", "avoid"]], { category: 'layout' });
+staticUtility("break-after-all", [["break-after", "all"]], { category: 'layout' });
+staticUtility("break-after-avoid-page", [["break-after", "avoid-page"]], { category: 'layout' });
+staticUtility("break-after-page", [["break-after", "page"]], { category: 'layout' });
+staticUtility("break-after-left", [["break-after", "left"]], { category: 'layout' });
+staticUtility("break-after-right", [["break-after", "right"]], { category: 'layout' });
+staticUtility("break-after-column", [["break-after", "column"]], { category: 'layout' });
 
 // --- Layout: Break Before ---
-staticUtility("break-before-auto", [["break-before", "auto"]]);
-staticUtility("break-before-avoid", [["break-before", "avoid"]]);
-staticUtility("break-before-all", [["break-before", "all"]]);
-staticUtility("break-before-avoid-page", [["break-before", "avoid-page"]]);
-staticUtility("break-before-page", [["break-before", "page"]]);
-staticUtility("break-before-left", [["break-before", "left"]]);
-staticUtility("break-before-right", [["break-before", "right"]]);
-staticUtility("break-before-column", [["break-before", "column"]]);
+staticUtility("break-before-auto", [["break-before", "auto"]], { category: 'layout' });
+staticUtility("break-before-avoid", [["break-before", "avoid"]], { category: 'layout' });
+staticUtility("break-before-all", [["break-before", "all"]], { category: 'layout' });
+staticUtility("break-before-avoid-page", [["break-before", "avoid-page"]], { category: 'layout' });
+staticUtility("break-before-page", [["break-before", "page"]], { category: 'layout' });
+staticUtility("break-before-left", [["break-before", "left"]], { category: 'layout' });
+staticUtility("break-before-right", [["break-before", "right"]], { category: 'layout' });
+staticUtility("break-before-column", [["break-before", "column"]], { category: 'layout' });
 
 // --- Layout: Break Inside ---
-staticUtility("break-inside-auto", [["break-inside", "auto"]]);
-staticUtility("break-inside-avoid", [["break-inside", "avoid"]]);
-staticUtility("break-inside-avoid-page", [["break-inside", "avoid-page"]]);
-staticUtility("break-inside-avoid-column", [["break-inside", "avoid-column"]]);
+staticUtility("break-inside-auto", [["break-inside", "auto"]], { category: 'layout' });
+staticUtility("break-inside-avoid", [["break-inside", "avoid"]], { category: 'layout' });
+staticUtility("break-inside-avoid-page", [["break-inside", "avoid-page"]], { category: 'layout' });
+staticUtility("break-inside-avoid-column", [["break-inside", "avoid-column"]], { category: 'layout' });
 
 // --- Layout: Box Decoration Break ---
-staticUtility("box-decoration-slice", [["box-decoration-break", "slice"]]);
-staticUtility("box-decoration-clone", [["box-decoration-break", "clone"]]);
+staticUtility("box-decoration-slice", [["box-decoration-break", "slice"]], { category: 'layout' });
+staticUtility("box-decoration-clone", [["box-decoration-break", "clone"]], { category: 'layout' });
 
 // --- Layout: Box Sizing ---
-staticUtility("box-border", [["box-sizing", "border-box"]]);
-staticUtility("box-content", [["box-sizing", "content-box"]]);
+  staticUtility("box-border", [["box-sizing", "border-box"]], { category: 'layout' });
+staticUtility("box-content", [["box-sizing", "content-box"]], { category: 'layout' });
 
 // --- Layout: Display ---
-staticUtility("block", [["display", "block"]]);
-staticUtility("inline", [["display", "inline"]]);
-staticUtility("inline-block", [["display", "inline-block"]]);
-staticUtility("flow-root", [["display", "flow-root"]]);
-staticUtility("flex", [["display", "flex"]]);
-staticUtility("inline-flex", [["display", "inline-flex"]]);
-staticUtility("grid", [["display", "grid"]]);
-staticUtility("inline-grid", [["display", "inline-grid"]]);
-staticUtility("contents", [["display", "contents"]]);
-staticUtility("table", [["display", "table"]]);
-staticUtility("inline-table", [["display", "inline-table"]]);
-staticUtility("table-caption", [["display", "table-caption"]]);
-staticUtility("table-cell", [["display", "table-cell"]]);
-staticUtility("table-column", [["display", "table-column"]]);
-staticUtility("table-column-group", [["display", "table-column-group"]]);
-staticUtility("table-footer-group", [["display", "table-footer-group"]]);
-staticUtility("table-header-group", [["display", "table-header-group"]]);
-staticUtility("table-row-group", [["display", "table-row-group"]]);
-staticUtility("table-row", [["display", "table-row"]]);
-staticUtility("list-item", [["display", "list-item"]]);
-staticUtility("hidden", [["display", "none"]]);
+staticUtility("block", [["display", "block"]], { category: 'layout' });
+staticUtility("inline", [["display", "inline"]], { category: 'layout' });
+staticUtility("inline-block", [["display", "inline-block"]], { category: 'layout' });
+staticUtility("flow-root", [["display", "flow-root"]], { category: 'layout' });
+staticUtility("flex", [["display", "flex"]], { category: 'layout' });
+staticUtility("inline-flex", [["display", "inline-flex"]], { category: 'layout' });
+staticUtility("grid", [["display", "grid"]], { category: 'layout' });
+staticUtility("inline-grid", [["display", "inline-grid"]], { category: 'layout' });
+staticUtility("contents", [["display", "contents"]], { category: 'layout' });
+staticUtility("table", [["display", "table"]], { category: 'layout' });
+staticUtility("inline-table", [["display", "inline-table"]], { category: 'layout' });
+staticUtility("table-caption", [["display", "table-caption"]], { category: 'layout' });
+staticUtility("table-cell", [["display", "table-cell"]], { category: 'layout' });
+staticUtility("table-column", [["display", "table-column"]], { category: 'layout' });
+staticUtility("table-column-group", [["display", "table-column-group"]], { category: 'layout' });
+staticUtility("table-footer-group", [["display", "table-footer-group"]], { category: 'layout' });
+staticUtility("table-header-group", [["display", "table-header-group"]], { category: 'layout' });
+staticUtility("table-row-group", [["display", "table-row-group"]], { category: 'layout' });
+staticUtility("table-row", [["display", "table-row"]], { category: 'layout' });
+staticUtility("list-item", [["display", "list-item"]], { category: 'layout' });
+staticUtility("hidden", [["display", "none"]], { category: 'layout' });
 
 // --- Layout: Float ---
-staticUtility("float-right", [["float", "right"]]);
-staticUtility("float-left", [["float", "left"]]);
-staticUtility("float-start", [["float", "inline-start"]]);
-staticUtility("float-end", [["float", "inline-end"]]);
-staticUtility("float-none", [["float", "none"]]);
+staticUtility("float-right", [["float", "right"]], { category: 'layout' });
+staticUtility("float-left", [["float", "left"]], { category: 'layout' });
+staticUtility("float-start", [["float", "inline-start"]], { category: 'layout' });
+staticUtility("float-end", [["float", "inline-end"]], { category: 'layout' });
+staticUtility("float-none", [["float", "none"]], { category: 'layout' });
 
 // --- Layout: Clear ---
-staticUtility("clear-left", [["clear", "left"]]);
-staticUtility("clear-right", [["clear", "right"]]);
-staticUtility("clear-both", [["clear", "both"]]);
-staticUtility("clear-start", [["clear", "inline-start"]]);
-staticUtility("clear-end", [["clear", "inline-end"]]);
-staticUtility("clear-none", [["clear", "none"]]);
+staticUtility("clear-left", [["clear", "left"]], { category: 'layout' });
+staticUtility("clear-right", [["clear", "right"]], { category: 'layout' });
+staticUtility("clear-both", [["clear", "both"]], { category: 'layout' });
+staticUtility("clear-start", [["clear", "inline-start"]], { category: 'layout' });
+staticUtility("clear-end", [["clear", "inline-end"]], { category: 'layout' });
+staticUtility("clear-none", [["clear", "none"]], { category: 'layout' });
 
 // --- Layout: Object Fit ---
-staticUtility("object-contain", [["object-fit", "contain"]]);
-staticUtility("object-cover", [["object-fit", "cover"]]);
-staticUtility("object-fill", [["object-fit", "fill"]]);
-staticUtility("object-none", [["object-fit", "none"]]);
-staticUtility("object-scale-down", [["object-fit", "scale-down"]]);
+staticUtility("object-contain", [["object-fit", "contain"]], { category: 'layout' });
+staticUtility("object-cover", [["object-fit", "cover"]], { category: 'layout' });
+staticUtility("object-fill", [["object-fit", "fill"]], { category: 'layout' });
+staticUtility("object-none", [["object-fit", "none"]], { category: 'layout' });
+staticUtility("object-scale-down", [["object-fit", "scale-down"]], { category: 'layout' });
 
 // --- Layout: Object Position ---
-staticUtility("object-top-left", [["object-position", "top left"]]);
-staticUtility("object-top", [["object-position", "top"]]);
-staticUtility("object-top-right", [["object-position", "top right"]]);
-staticUtility("object-left", [["object-position", "left"]]);
-staticUtility("object-center", [["object-position", "center"]]);
-staticUtility("object-right", [["object-position", "right"]]);
-staticUtility("object-bottom-left", [["object-position", "bottom left"]]);
-staticUtility("object-bottom", [["object-position", "bottom"]]);
-staticUtility("object-bottom-right", [["object-position", "bottom right"]]);
+staticUtility("object-top-left", [["object-position", "top left"]], { category: 'layout' });
+staticUtility("object-top", [["object-position", "top"]], { category: 'layout' });
+staticUtility("object-top-right", [["object-position", "top right"]], { category: 'layout' });
+staticUtility("object-left", [["object-position", "left"]], { category: 'layout' });
+staticUtility("object-center", [["object-position", "center"]], { category: 'layout' });
+staticUtility("object-right", [["object-position", "right"]], { category: 'layout' });
+staticUtility("object-bottom-left", [["object-position", "bottom left"]], { category: 'layout' });
+staticUtility("object-bottom", [["object-position", "bottom"]], { category: 'layout' });
+staticUtility("object-bottom-right", [["object-position", "bottom right"]], { category: 'layout' });
 
 functionalUtility({
   name: "object",
@@ -169,39 +169,39 @@ functionalUtility({
 });
 
 // --- Layout: Overflow ---
-staticUtility("overflow-auto", [["overflow", "auto"]]);
-staticUtility("overflow-hidden", [["overflow", "hidden"]]);
-staticUtility("overflow-clip", [["overflow", "clip"]]);
-staticUtility("overflow-visible", [["overflow", "visible"]]);
-staticUtility("overflow-scroll", [["overflow", "scroll"]]);
-staticUtility("overflow-x-auto", [["overflow-x", "auto"]]);
-staticUtility("overflow-y-auto", [["overflow-y", "auto"]]);
-staticUtility("overflow-x-hidden", [["overflow-x", "hidden"]]);
-staticUtility("overflow-y-hidden", [["overflow-y", "hidden"]]);
-staticUtility("overflow-x-clip", [["overflow-x", "clip"]]);
-staticUtility("overflow-y-clip", [["overflow-y", "clip"]]);
-staticUtility("overflow-x-visible", [["overflow-x", "visible"]]);
-staticUtility("overflow-y-visible", [["overflow-y", "visible"]]);
-staticUtility("overflow-x-scroll", [["overflow-x", "scroll"]]);
-staticUtility("overflow-y-scroll", [["overflow-y", "scroll"]]);
+  staticUtility("overflow-auto", [["overflow", "auto"]], { category: 'layout' });
+staticUtility("overflow-hidden", [["overflow", "hidden"]], { category: 'layout' });
+staticUtility("overflow-clip", [["overflow", "clip"]], { category: 'layout' });
+staticUtility("overflow-visible", [["overflow", "visible"]], { category: 'layout' });
+staticUtility("overflow-scroll", [["overflow", "scroll"]], { category: 'layout' });
+staticUtility("overflow-x-auto", [["overflow-x", "auto"]], { category: 'layout' });
+staticUtility("overflow-y-auto", [["overflow-y", "auto"]], { category: 'layout' });
+staticUtility("overflow-x-hidden", [["overflow-x", "hidden"]], { category: 'layout' });
+staticUtility("overflow-y-hidden", [["overflow-y", "hidden"]], { category: 'layout' });
+staticUtility("overflow-x-clip", [["overflow-x", "clip"]], { category: 'layout' });
+staticUtility("overflow-y-clip", [["overflow-y", "clip"]], { category: 'layout' });
+staticUtility("overflow-x-visible", [["overflow-x", "visible"]], { category: 'layout' });
+staticUtility("overflow-y-visible", [["overflow-y", "visible"]], { category: 'layout' });
+staticUtility("overflow-x-scroll", [["overflow-x", "scroll"]], { category: 'layout' });
+staticUtility("overflow-y-scroll", [["overflow-y", "scroll"]], { category: 'layout' });
 
 // --- Layout: Overscroll Behavior ---
-staticUtility("overscroll-auto", [["overscroll-behavior", "auto"]]);
-staticUtility("overscroll-contain", [["overscroll-behavior", "contain"]]);
-staticUtility("overscroll-none", [["overscroll-behavior", "none"]]);
-staticUtility("overscroll-x-auto", [["overscroll-behavior-x", "auto"]]);
-staticUtility("overscroll-x-contain", [["overscroll-behavior-x", "contain"]]);
-staticUtility("overscroll-x-none", [["overscroll-behavior-x", "none"]]);
-staticUtility("overscroll-y-auto", [["overscroll-behavior-y", "auto"]]);
-staticUtility("overscroll-y-contain", [["overscroll-behavior-y", "contain"]]);
-staticUtility("overscroll-y-none", [["overscroll-behavior-y", "none"]]);
+staticUtility("overscroll-auto", [["overscroll-behavior", "auto"]], { category: 'layout' });
+staticUtility("overscroll-contain", [["overscroll-behavior", "contain"]], { category: 'layout' });
+staticUtility("overscroll-none", [["overscroll-behavior", "none"]], { category: 'layout' });
+staticUtility("overscroll-x-auto", [["overscroll-behavior-x", "auto"]], { category: 'layout' });
+staticUtility("overscroll-x-contain", [["overscroll-behavior-x", "contain"]], { category: 'layout' });
+staticUtility("overscroll-x-none", [["overscroll-behavior-x", "none"]], { category: 'layout' });
+staticUtility("overscroll-y-auto", [["overscroll-behavior-y", "auto"]], { category: 'layout' });
+staticUtility("overscroll-y-contain", [["overscroll-behavior-y", "contain"]], { category: 'layout' });
+staticUtility("overscroll-y-none", [["overscroll-behavior-y", "none"]], { category: 'layout' });
 
 // --- Layout: Position ---
-staticUtility("static", [["position", "static"]]);
-staticUtility("fixed", [["position", "fixed"]]);
-staticUtility("absolute", [["position", "absolute"]]);
-staticUtility("relative", [["position", "relative"]]);
-staticUtility("sticky", [["position", "sticky"]]);
+staticUtility("static", [["position", "static"]], { category: 'layout' });
+staticUtility("fixed", [["position", "fixed"]], { category: 'layout' });
+staticUtility("absolute", [["position", "absolute"]], { category: 'layout' });
+staticUtility("relative", [["position", "relative"]], { category: 'layout' });
+staticUtility("sticky", [["position", "sticky"]], { category: 'layout' });
 
 // --- Layout: Inset/Top/Right/Bottom/Left ---
 [
@@ -216,11 +216,11 @@ staticUtility("sticky", [["position", "sticky"]]);
   ["left", "left"],
 ].forEach(([name, prop]) => {
   // inset
-  staticUtility(`${name}-auto`, [[prop, "auto"]]);
-  staticUtility(`${name}-full`, [[prop, "100%"]]);
-  staticUtility(`-${name}-full`, [[prop, "-100%"]]);
-  staticUtility(`${name}-px`, [[prop, "1px"]]);
-  staticUtility(`-${name}-px`, [[prop, "-1px"]]);
+  staticUtility(`${name}-auto`, [[prop, "auto"]], { category: 'layout' });
+  staticUtility(`${name}-full`, [[prop, "100%"]], { category: 'layout' });
+  staticUtility(`-${name}-full`, [[prop, "-100%"]], { category: 'layout' });
+  staticUtility(`${name}-px`, [[prop, "1px"]], { category: 'layout' });
+  staticUtility(`-${name}-px`, [[prop, "-1px"]], { category: 'layout' });
   functionalUtility({
     name: name,
     prop: prop,
@@ -250,9 +250,9 @@ staticUtility("sticky", [["position", "sticky"]]);
 });
 
 // --- Layout: Visibility ---
-staticUtility("visible", [["visibility", "visible"]]);
-staticUtility("invisible", [["visibility", "hidden"]]);
-staticUtility("collapse", [["visibility", "collapse"]]);
+staticUtility("visible", [["visibility", "visible"]], { category: 'layout' });
+staticUtility("invisible", [["visibility", "hidden"]], { category: 'layout' });
+staticUtility("collapse", [["visibility", "collapse"]], { category: 'layout' });
 
 // --- Layout: Gap ---
 functionalUtility({

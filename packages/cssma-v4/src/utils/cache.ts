@@ -1,46 +1,5 @@
 import type { AstNode } from '../core/ast';
-
-/**
- * CSS cache management
- */
-export class CssCache {
-  private cache = new Map<string, string>();
-  private maxSize = 2000; // Prevent memory leaks
-  
-  set(key: string, css: string): void {
-    if (this.cache.size >= this.maxSize) {
-      // Remove oldest entries (simple LRU)
-      const firstKey = this.cache.keys().next().value;
-      if (firstKey) {
-        this.cache.delete(firstKey);
-      }
-    }
-    this.cache.set(key, css);
-  }
-  
-  get(key: string): string | undefined {
-    return this.cache.get(key);
-  }
-  
-  has(key: string): boolean {
-    return this.cache.has(key);
-  }
-  
-  clear(): void {
-    this.cache.clear();
-  }
-  
-  getStats() {
-    return {
-      size: this.cache.size,
-      maxSize: this.maxSize,
-      hitRate: this.cache.size / this.maxSize
-    };
-  }
-}
-
-// Global CSS cache instance
-export const cssCache = new CssCache();
+import { ParsedModifier, ParsedUtility } from '../core/parser';
 
 /**
  * AST cache management
@@ -88,10 +47,10 @@ export const astCache = new AstCache();
  * Parse result cache management
  */
 export class ParseResultCache {
-  private cache = new Map<string, { modifiers: any[]; utility: any | null }>();
+  private cache = new Map<string, { modifiers: ParsedModifier[]; utility: ParsedUtility | null }>();
   private maxSize = 2000; // Prevent memory leaks
   
-  set(key: string, result: { modifiers: any[]; utility: any | null }): void {
+  set(key: string, result: { modifiers: ParsedModifier[]; utility: ParsedUtility | null }): void {
     if (this.cache.size >= this.maxSize) {
       // Remove oldest entries (simple LRU)
       const firstKey = this.cache.keys().next().value;
@@ -102,7 +61,7 @@ export class ParseResultCache {
     this.cache.set(key, result);
   }
   
-  get(key: string): { modifiers: any[]; utility: any | null } | undefined {
+  get(key: string): { modifiers: ParsedModifier[]; utility: ParsedUtility | null } | undefined {
     return this.cache.get(key);
   }
   
@@ -173,7 +132,6 @@ export const utilityCache = new UtilityCache();
  */
 export function clearAllCaches(): void {
   astCache.clear();
-  cssCache.clear();
   parseResultCache.clear();
   utilityCache.clear();
   console.log('[clearAllCaches] All caches cleared');

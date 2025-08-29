@@ -6,36 +6,36 @@ import {
 } from "../core/utils";
 
 // --- Typography: Font Family ---
-staticUtility("font-sans", [["font-family", "var(--font-family-sans)"]]);
-staticUtility("font-serif", [["font-family", "var(--font-family-serif)"]]);
-staticUtility("font-mono", [["font-family", "var(--font-family-mono)"]]);
+staticUtility("font-sans", [["font-family", "var(--font-family-sans)"]], { category: 'typography' });
+staticUtility("font-serif", [["font-family", "var(--font-family-serif)"]], { category: 'typography' });
+staticUtility("font-mono", [["font-family", "var(--font-family-mono)"]], { category: 'typography' });
 
 // --- Typography: Font Size ---
-staticUtility("text-xs", [["font-size", "var(--text-xs)"], ["line-height", "var(--text-xs--line-height)"]]);
-staticUtility("text-sm", [["font-size", "var(--text-sm)"], ["line-height", "var(--text-sm--line-height)"]]);
-staticUtility("text-base", [["font-size", "var(--text-base)"], ["line-height", "var(--text-base--line-height)"]]);
-staticUtility("text-lg", [["font-size", "var(--text-lg)"], ["line-height", "var(--text-lg--line-height)"]]);
-staticUtility("text-xl", [["font-size", "var(--text-xl)"], ["line-height", "var(--text-xl--line-height)"]]);
-staticUtility("text-2xl", [["font-size", "var(--text-2xl)"], ["line-height", "var(--text-2xl--line-height)"]]);
-staticUtility("text-3xl", [["font-size", "var(--text-3xl)"], ["line-height", "var(--text-3xl--line-height)"]]);
-staticUtility("text-4xl", [["font-size", "var(--text-4xl)"], ["line-height", "var(--text-4xl--line-height)"]]);
-staticUtility("text-5xl", [["font-size", "var(--text-5xl)"], ["line-height", "var(--text-5xl--line-height)"]]);
-staticUtility("text-6xl", [["font-size", "var(--text-6xl)"], ["line-height", "var(--text-6xl--line-height)"]]);
-staticUtility("text-7xl", [["font-size", "var(--text-7xl)"], ["line-height", "var(--text-7xl--line-height)"]]);
-staticUtility("text-8xl", [["font-size", "var(--text-8xl)"], ["line-height", "var(--text-8xl--line-height)"]]);
-staticUtility("text-9xl", [["font-size", "var(--text-9xl)"], ["line-height", "var(--text-9xl--line-height)"]]);
+staticUtility("text-xs", [["font-size", "var(--text-xs)"], ["line-height", "var(--text-xs--line-height)"]], { category: 'typography' });
+staticUtility("text-sm", [["font-size", "var(--text-sm)"], ["line-height", "var(--text-sm--line-height)"]], { category: 'typography' });
+staticUtility("text-base", [["font-size", "var(--text-base)"], ["line-height", "var(--text-base--line-height)"]], { category: 'typography' });
+staticUtility("text-lg", [["font-size", "var(--text-lg)"], ["line-height", "var(--text-lg--line-height)"]], { category: 'typography' });
+staticUtility("text-xl", [["font-size", "var(--text-xl)"], ["line-height", "var(--text-xl--line-height)"]], { category: 'typography' });
+staticUtility("text-2xl", [["font-size", "var(--text-2xl)"], ["line-height", "var(--text-2xl--line-height)"]], { category: 'typography' });
+staticUtility("text-3xl", [["font-size", "var(--text-3xl)"], ["line-height", "var(--text-3xl--line-height)"]], { category: 'typography' });
+staticUtility("text-4xl", [["font-size", "var(--text-4xl)"], ["line-height", "var(--text-4xl--line-height)"]], { category: 'typography' });
+staticUtility("text-5xl", [["font-size", "var(--text-5xl)"], ["line-height", "var(--text-5xl--line-height)"]], { category: 'typography' });
+staticUtility("text-6xl", [["font-size", "var(--text-6xl)"], ["line-height", "var(--text-6xl--line-height)"]], { category: 'typography' });
+staticUtility("text-7xl", [["font-size", "var(--text-7xl)"], ["line-height", "var(--text-7xl--line-height)"]], { category: 'typography' });
+staticUtility("text-8xl", [["font-size", "var(--text-8xl)"], ["line-height", "var(--text-8xl--line-height)"]], { category: 'typography' });
+staticUtility("text-9xl", [["font-size", "var(--text-9xl)"], ["line-height", "var(--text-9xl--line-height)"]], { category: 'typography' });
 
 
 // --- Typography: Font Weight ---
-staticUtility("font-thin", [["font-weight", "var(--font-weight-thin)"]]);
-staticUtility("font-extralight", [["font-weight", "var(--font-weight-extralight)"]]);
-staticUtility("font-light", [["font-weight", "var(--font-weight-light)"]]);
-staticUtility("font-normal", [["font-weight", "var(--font-weight-normal)"]]);
-staticUtility("font-medium", [["font-weight", "var(--font-weight-medium)"]]);
-staticUtility("font-semibold", [["font-weight", "var(--font-weight-semibold)"]]);
-staticUtility("font-bold", [["font-weight", "var(--font-weight-bold)"]]);
-staticUtility("font-extrabold", [["font-weight", "var(--font-weight-extrabold)"]]);
-staticUtility("font-black", [["font-weight", "var(--font-weight-black)"]]);
+staticUtility("font-thin", [["font-weight", "var(--font-weight-thin)"]], { category: 'typography' });
+staticUtility("font-extralight", [["font-weight", "var(--font-weight-extralight)"]], { category: 'typography' });
+staticUtility("font-light", [["font-weight", "var(--font-weight-light)"]], { category: 'typography' });
+staticUtility("font-normal", [["font-weight", "var(--font-weight-normal)"]], { category: 'typography' });
+staticUtility("font-medium", [["font-weight", "var(--font-weight-medium)"]], { category: 'typography' });
+staticUtility("font-semibold", [["font-weight", "var(--font-weight-semibold)"]], { category: 'typography' });
+staticUtility("font-bold", [["font-weight", "var(--font-weight-bold)"]], { category: 'typography' });
+staticUtility("font-extrabold", [["font-weight", "var(--font-weight-extrabold)"]], { category: 'typography' });
+staticUtility("font-black", [["font-weight", "var(--font-weight-black)"]], { category: 'typography' });
 
 functionalUtility({
   name: "font",
@@ -59,16 +59,16 @@ functionalUtility({
 });
 
 // --- Typography: Font Style ---
-staticUtility("italic", [["font-style", "italic"]]);
-staticUtility("not-italic", [["font-style", "normal"]]);
+staticUtility("italic", [["font-style", "italic"]], { category: 'typography' });
+staticUtility("not-italic", [["font-style", "normal"]], { category: 'typography' });
 
 // --- Typography: Letter Spacing ---
-staticUtility("tracking-tighter", [["letter-spacing", "var(--letter-spacing-tighter)"]]);
-staticUtility("tracking-tight", [["letter-spacing", "var(--letter-spacing-tight)"]]);
-staticUtility("tracking-normal", [["letter-spacing", "var(--letter-spacing-normal)"]]);
-staticUtility("tracking-wide", [["letter-spacing", "var(--letter-spacing-wide)"]]);
-staticUtility("tracking-wider", [["letter-spacing", "var(--letter-spacing-wider)"]]);
-staticUtility("tracking-widest", [["letter-spacing", "var(--letter-spacing-widest)"]]);
+staticUtility("tracking-tighter", [["letter-spacing", "var(--letter-spacing-tighter)"]], { category: 'typography' });
+staticUtility("tracking-tight", [["letter-spacing", "var(--letter-spacing-tight)"]], { category: 'typography' });
+staticUtility("tracking-normal", [["letter-spacing", "var(--letter-spacing-normal)"]], { category: 'typography' });
+staticUtility("tracking-wide", [["letter-spacing", "var(--letter-spacing-wide)"]], { category: 'typography' });
+staticUtility("tracking-wider", [["letter-spacing", "var(--letter-spacing-wider)"]], { category: 'typography' });
+staticUtility("tracking-widest", [["letter-spacing", "var(--letter-spacing-widest)"]], { category: 'typography' });
 
 functionalUtility({
   name: "tracking",
@@ -81,12 +81,12 @@ functionalUtility({
 });
 
 // --- Typography: Line Height ---
-staticUtility("leading-none", [["line-height", "var(--line-height-none)"]]);
-staticUtility("leading-tight", [["line-height", "var(--line-height-tight)"]]);
-staticUtility("leading-snug", [["line-height", "var(--line-height-snug)"]]);
-staticUtility("leading-normal", [["line-height", "var(--line-height-normal)"]]);
-staticUtility("leading-relaxed", [["line-height", "var(--line-height-relaxed)"]]);
-staticUtility("leading-loose", [["line-height", "var(--line-height-loose)"]]);
+staticUtility("leading-none", [["line-height", "var(--line-height-none)"]], { category: 'typography' });
+staticUtility("leading-tight", [["line-height", "var(--line-height-tight)"]], { category: 'typography' });
+staticUtility("leading-snug", [["line-height", "var(--line-height-snug)"]], { category: 'typography' });
+staticUtility("leading-normal", [["line-height", "var(--line-height-normal)"]], { category: 'typography' });
+staticUtility("leading-relaxed", [["line-height", "var(--line-height-relaxed)"]], { category: 'typography' });
+staticUtility("leading-loose", [["line-height", "var(--line-height-loose)"]], { category: 'typography' });
 
 functionalUtility({
   name: "leading",
@@ -100,22 +100,22 @@ functionalUtility({
 });
 
 // --- Typography: Text Align ---
-staticUtility("text-left", [["text-align", "left"]]);
-staticUtility("text-center", [["text-align", "center"]]);
-staticUtility("text-right", [["text-align", "right"]]);
-staticUtility("text-justify", [["text-align", "justify"]]);
-staticUtility("text-start", [["text-align", "start"]]);
-staticUtility("text-end", [["text-align", "end"]]);
+staticUtility("text-left", [["text-align", "left"]], { category: 'typography' });
+staticUtility("text-center", [["text-align", "center"]], { category: 'typography' });
+staticUtility("text-right", [["text-align", "right"]], { category: 'typography' });
+staticUtility("text-justify", [["text-align", "justify"]], { category: 'typography' });
+staticUtility("text-start", [["text-align", "start"]], { category: 'typography' });
+staticUtility("text-end", [["text-align", "end"]], { category: 'typography' });
 
 // --- Typography: Text Color ---
-staticUtility("text-inherit", [["color", "inherit"]]);
-staticUtility("text-current", [["color", "currentColor"]]);
-staticUtility("text-transparent", [["color", "transparent"]]);
+staticUtility("text-inherit", [["color", "inherit"]], { category: 'typography' });
+staticUtility("text-current", [["color", "currentColor"]], { category: 'typography' });
+staticUtility("text-transparent", [["color", "transparent"]], { category: 'typography' });
 
 // --- Typography: Text Overflow ---
-staticUtility("truncate", [["overflow", "hidden"], ["text-overflow", "ellipsis"], ["white-space", "nowrap"]]);
-staticUtility("text-ellipsis", [["text-overflow", "ellipsis"]]);
-staticUtility("text-clip", [["text-overflow", "clip"]]);
+staticUtility("truncate", [["overflow", "hidden"], ["text-overflow", "ellipsis"], ["white-space", "nowrap"]], { category: 'typography' });
+staticUtility("text-ellipsis", [["text-overflow", "ellipsis"]], { category: 'typography' });
+staticUtility("text-clip", [["text-overflow", "clip"]], { category: 'typography' });
 
 functionalUtility({
   name: "text",  
@@ -124,7 +124,6 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
-    
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [
@@ -134,6 +133,7 @@ functionalUtility({
           decl("color", value),
         ];
       }
+
       return [decl("color", value)];
     }
 
@@ -186,47 +186,47 @@ functionalUtility({
 });
 
 // --- Typography: Text Transform ---
-staticUtility("uppercase", [["text-transform", "uppercase"]]);
-staticUtility("lowercase", [["text-transform", "lowercase"]]);
-staticUtility("capitalize", [["text-transform", "capitalize"]]);
-staticUtility("normal-case", [["text-transform", "none"]]);
+  staticUtility("uppercase", [["text-transform", "uppercase"]], { category: 'typography' });
+staticUtility("lowercase", [["text-transform", "lowercase"]], { category: 'typography' });
+staticUtility("capitalize", [["text-transform", "capitalize"]], { category: 'typography' });
+staticUtility("normal-case", [["text-transform", "none"]], { category: 'typography' });
 
 // --- Typography: Text Decoration ---
-staticUtility("underline", [["text-decoration-line", "underline"]]);
-staticUtility("overline", [["text-decoration-line", "overline"]]);
-staticUtility("line-through", [["text-decoration-line", "line-through"]]);
-staticUtility("no-underline", [["text-decoration-line", "none"]]);
+staticUtility("underline", [["text-decoration-line", "underline"]], { category: 'typography' });
+staticUtility("overline", [["text-decoration-line", "overline"]], { category: 'typography' });
+staticUtility("line-through", [["text-decoration-line", "line-through"]], { category: 'typography' });
+staticUtility("no-underline", [["text-decoration-line", "none"]], { category: 'typography' });
 
 
 
 // --- Typography: Whitespace ---
-staticUtility("whitespace-normal", [["white-space", "normal"]]);
-staticUtility("whitespace-nowrap", [["white-space", "nowrap"]]);
-staticUtility("whitespace-pre", [["white-space", "pre"]]);
-staticUtility("whitespace-pre-line", [["white-space", "pre-line"]]);
-staticUtility("whitespace-pre-wrap", [["white-space", "pre-wrap"]]);
-staticUtility("whitespace-break-spaces", [["white-space", "break-spaces"]]);
+staticUtility("whitespace-normal", [["white-space", "normal"]], { category: 'typography' });
+staticUtility("whitespace-nowrap", [["white-space", "nowrap"]], { category: 'typography' });
+staticUtility("whitespace-pre", [["white-space", "pre"]], { category: 'typography' });
+staticUtility("whitespace-pre-line", [["white-space", "pre-line"]], { category: 'typography' });
+staticUtility("whitespace-pre-wrap", [["white-space", "pre-wrap"]], { category: 'typography' });
+staticUtility("whitespace-break-spaces", [["white-space", "break-spaces"]], { category: 'typography' });
 
 // --- Typography: Word Break ---
-staticUtility("break-normal", [["overflow-wrap", "normal"], ["word-break", "normal"]]);
-staticUtility("break-words", [["overflow-wrap", "break-word"]]);
-staticUtility("break-all", [["word-break", "break-all"]]);
-staticUtility("break-keep", [["word-break", "keep-all"]]);
+staticUtility("break-normal", [["overflow-wrap", "normal"], ["word-break", "normal"]], { category: 'typography' });
+staticUtility("break-words", [["overflow-wrap", "break-word"]], { category: 'typography' });
+staticUtility("break-all", [["word-break", "break-all"]], { category: 'typography' });
+staticUtility("break-keep", [["word-break", "keep-all"]], { category: 'typography' });
 
 // --- Typography: Font Smoothing ---
-staticUtility("antialiased", [["-webkit-font-smoothing", "antialiased"], ["-moz-osx-font-smoothing", "grayscale"]]);
-staticUtility("subpixel-antialiased", [["-webkit-font-smoothing", "auto"], ["-moz-osx-font-smoothing", "auto"]]);
+staticUtility("antialiased", [["-webkit-font-smoothing", "antialiased"], ["-moz-osx-font-smoothing", "grayscale"]], { category: 'typography' });
+staticUtility("subpixel-antialiased", [["-webkit-font-smoothing", "auto"], ["-moz-osx-font-smoothing", "auto"]], { category: 'typography' });
 
 // --- Typography: Font Stretch ---
-staticUtility("font-stretch-normal", [["font-stretch", "normal"]]);
-staticUtility("font-stretch-ultra-condensed", [["font-stretch", "ultra-condensed"]]);
-staticUtility("font-stretch-extra-condensed", [["font-stretch", "extra-condensed"]]);
-staticUtility("font-stretch-condensed", [["font-stretch", "condensed"]]);
-staticUtility("font-stretch-semi-condensed", [["font-stretch", "semi-condensed"]]);
-staticUtility("font-stretch-semi-expanded", [["font-stretch", "semi-expanded"]]);
-staticUtility("font-stretch-expanded", [["font-stretch", "expanded"]]);
-staticUtility("font-stretch-extra-expanded", [["font-stretch", "extra-expanded"]]);
-staticUtility("font-stretch-ultra-expanded", [["font-stretch", "ultra-expanded"]]);
+staticUtility("font-stretch-normal", [["font-stretch", "normal"]], { category: 'typography' });
+staticUtility("font-stretch-ultra-condensed", [["font-stretch", "ultra-condensed"]], { category: 'typography' });
+staticUtility("font-stretch-extra-condensed", [["font-stretch", "extra-condensed"]], { category: 'typography' });
+staticUtility("font-stretch-condensed", [["font-stretch", "condensed"]], { category: 'typography' });
+staticUtility("font-stretch-semi-condensed", [["font-stretch", "semi-condensed"]], { category: 'typography' });
+staticUtility("font-stretch-semi-expanded", [["font-stretch", "semi-expanded"]], { category: 'typography' });
+staticUtility("font-stretch-expanded", [["font-stretch", "expanded"]], { category: 'typography' });
+staticUtility("font-stretch-extra-expanded", [["font-stretch", "extra-expanded"]], { category: 'typography' });
+staticUtility("font-stretch-ultra-expanded", [["font-stretch", "ultra-expanded"]], { category: 'typography' });
 
 functionalUtility({
   name: "font-stretch",
@@ -238,18 +238,18 @@ functionalUtility({
 });
 
 // --- Typography: Font Variant Numeric ---
-staticUtility("normal-nums", [["font-variant-numeric", "normal"]]);
-staticUtility("ordinal", [["font-variant-numeric", "ordinal"]]);
-staticUtility("slashed-zero", [["font-variant-numeric", "slashed-zero"]]);
-staticUtility("lining-nums", [["font-variant-numeric", "lining-nums"]]);
-staticUtility("oldstyle-nums", [["font-variant-numeric", "oldstyle-nums"]]);
-staticUtility("proportional-nums", [["font-variant-numeric", "proportional-nums"]]);
-staticUtility("tabular-nums", [["font-variant-numeric", "tabular-nums"]]);
-staticUtility("diagonal-fractions", [["font-variant-numeric", "diagonal-fractions"]]);
-staticUtility("stacked-fractions", [["font-variant-numeric", "stacked-fractions"]]);
+staticUtility("normal-nums", [["font-variant-numeric", "normal"]], { category: 'typography' });
+staticUtility("ordinal", [["font-variant-numeric", "ordinal"]], { category: 'typography' });
+staticUtility("slashed-zero", [["font-variant-numeric", "slashed-zero"]], { category: 'typography' });
+staticUtility("lining-nums", [["font-variant-numeric", "lining-nums"]], { category: 'typography' });
+staticUtility("oldstyle-nums", [["font-variant-numeric", "oldstyle-nums"]], { category: 'typography' });
+staticUtility("proportional-nums", [["font-variant-numeric", "proportional-nums"]], { category: 'typography' });
+staticUtility("tabular-nums", [["font-variant-numeric", "tabular-nums"]], { category: 'typography' });
+staticUtility("diagonal-fractions", [["font-variant-numeric", "diagonal-fractions"]], { category: 'typography' });
+staticUtility("stacked-fractions", [["font-variant-numeric", "stacked-fractions"]], { category: 'typography' });
 
 // --- Typography: Line Clamp ---
-staticUtility("line-clamp-none", [["-webkit-line-clamp", "none"]]);
+staticUtility("line-clamp-none", [["-webkit-line-clamp", "none"]], { category: 'typography' });
 functionalUtility({
   name: "line-clamp",
   supportsArbitrary: true,
@@ -272,9 +272,9 @@ functionalUtility({
 });
 
 // --- Typography: List Style Type ---
-staticUtility("list-none", [["list-style-type", "none"]]);
-staticUtility("list-disc", [["list-style-type", "disc"]]);
-staticUtility("list-decimal", [["list-style-type", "decimal"]]);
+staticUtility("list-none", [["list-style-type", "none"]], { category: 'typography' });
+staticUtility("list-disc", [["list-style-type", "disc"]], { category: 'typography' });
+staticUtility("list-decimal", [["list-style-type", "decimal"]], { category: 'typography' });
 
 functionalUtility({
   name: "list",
@@ -287,11 +287,11 @@ functionalUtility({
 });
 
 // --- Typography: List Style Position ---
-staticUtility("list-inside", [["list-style-position", "inside"]]);
-staticUtility("list-outside", [["list-style-position", "outside"]]);
+staticUtility("list-inside", [["list-style-position", "inside"]], { category: 'typography' });
+staticUtility("list-outside", [["list-style-position", "outside"]], { category: 'typography' });
 
 // --- Typography: List Style Image ---
-staticUtility("list-image-none", [["list-style-image", "none"]]);
+staticUtility("list-image-none", [["list-style-image", "none"]], { category: 'typography' });
 
 functionalUtility({
   name: "list-image",
@@ -331,20 +331,20 @@ functionalUtility({
 });
 
 // --- Typography: Text Decoration Style ---
-staticUtility("decoration-solid", [["text-decoration-style", "solid"]]);
-staticUtility("decoration-double", [["text-decoration-style", "double"]]);
-staticUtility("decoration-dotted", [["text-decoration-style", "dotted"]]);
-staticUtility("decoration-dashed", [["text-decoration-style", "dashed"]]);
-staticUtility("decoration-wavy", [["text-decoration-style", "wavy"]]);
+  staticUtility("decoration-solid", [["text-decoration-style", "solid"]], { category: 'typography' });
+staticUtility("decoration-double", [["text-decoration-style", "double"]], { category: 'typography' });
+staticUtility("decoration-dotted", [["text-decoration-style", "dotted"]], { category: 'typography' });
+staticUtility("decoration-dashed", [["text-decoration-style", "dashed"]], { category: 'typography' });
+staticUtility("decoration-wavy", [["text-decoration-style", "wavy"]], { category: 'typography' });
 
 // --- Typography: Text Decoration Thickness ---
-staticUtility("decoration-auto", [["text-decoration-thickness", "auto"]]);
-staticUtility("decoration-from-font", [["text-decoration-thickness", "from-font"]]);
-staticUtility("decoration-0", [["text-decoration-thickness", "0px"]]);
-staticUtility("decoration-1", [["text-decoration-thickness", "1px"]]);
-staticUtility("decoration-2", [["text-decoration-thickness", "2px"]]);
-staticUtility("decoration-4", [["text-decoration-thickness", "4px"]]);
-staticUtility("decoration-8", [["text-decoration-thickness", "8px"]]);
+staticUtility("decoration-auto", [["text-decoration-thickness", "auto"]], { category: 'typography' });
+staticUtility("decoration-from-font", [["text-decoration-thickness", "from-font"]], { category: 'typography' });
+staticUtility("decoration-0", [["text-decoration-thickness", "0px"]], { category: 'typography' });
+staticUtility("decoration-1", [["text-decoration-thickness", "1px"]], { category: 'typography' });
+staticUtility("decoration-2", [["text-decoration-thickness", "2px"]], { category: 'typography' });
+staticUtility("decoration-4", [["text-decoration-thickness", "4px"]], { category: 'typography' });
+staticUtility("decoration-8", [["text-decoration-thickness", "8px"]], { category: 'typography' });
 
 functionalUtility({
   name: "decoration",
@@ -357,12 +357,12 @@ functionalUtility({
 });
 
 // --- Typography: Text Underline Offset ---
-staticUtility("underline-offset-auto", [["text-underline-offset", "auto"]]);
-staticUtility("underline-offset-0", [["text-underline-offset", "0px"]]);
-staticUtility("underline-offset-1", [["text-underline-offset", "1px"]]);
-staticUtility("underline-offset-2", [["text-underline-offset", "2px"]]);
-staticUtility("underline-offset-4", [["text-underline-offset", "4px"]]);
-staticUtility("underline-offset-8", [["text-underline-offset", "8px"]]);
+staticUtility("underline-offset-auto", [["text-underline-offset", "auto"]], { category: 'typography' });
+staticUtility("underline-offset-0", [["text-underline-offset", "0px"]], { category: 'typography' });
+staticUtility("underline-offset-1", [["text-underline-offset", "1px"]], { category: 'typography' });
+staticUtility("underline-offset-2", [["text-underline-offset", "2px"]], { category: 'typography' });
+staticUtility("underline-offset-4", [["text-underline-offset", "4px"]], { category: 'typography' });
+staticUtility("underline-offset-8", [["text-underline-offset", "8px"]], { category: 'typography' });
 
 functionalUtility({
   name: "underline-offset",
@@ -375,10 +375,10 @@ functionalUtility({
 });
 
 // --- Typography: Text Wrap ---
-staticUtility("text-wrap", [["text-wrap", "wrap"]]);
-staticUtility("text-nowrap", [["text-wrap", "nowrap"]]);
-staticUtility("text-balance", [["text-wrap", "balance"]]);
-staticUtility("text-pretty", [["text-wrap", "pretty"]]);
+staticUtility("text-wrap", [["text-wrap", "wrap"]], { category: 'typography' });
+staticUtility("text-nowrap", [["text-wrap", "nowrap"]], { category: 'typography' });
+staticUtility("text-balance", [["text-wrap", "balance"]], { category: 'typography' });
+staticUtility("text-pretty", [["text-wrap", "pretty"]], { category: 'typography' });
 
 // --- Typography: Text Indent ---
 functionalUtility({
@@ -394,14 +394,14 @@ functionalUtility({
 });
 
 // --- Typography: Vertical Align ---
-staticUtility("align-baseline", [["vertical-align", "baseline"]]);
-staticUtility("align-top", [["vertical-align", "top"]]);
-staticUtility("align-middle", [["vertical-align", "middle"]]);
-staticUtility("align-bottom", [["vertical-align", "bottom"]]);
-staticUtility("align-text-top", [["vertical-align", "text-top"]]);
-staticUtility("align-text-bottom", [["vertical-align", "text-bottom"]]);
-staticUtility("align-sub", [["vertical-align", "sub"]]);
-staticUtility("align-super", [["vertical-align", "super"]]);
+staticUtility("align-baseline", [["vertical-align", "baseline"]], { category: 'typography' });
+staticUtility("align-top", [["vertical-align", "top"]], { category: 'typography' });
+staticUtility("align-middle", [["vertical-align", "middle"]], { category: 'typography' });
+staticUtility("align-bottom", [["vertical-align", "bottom"]], { category: 'typography' });
+staticUtility("align-text-top", [["vertical-align", "text-top"]], { category: 'typography' });
+staticUtility("align-text-bottom", [["vertical-align", "text-bottom"]], { category: 'typography' });
+staticUtility("align-sub", [["vertical-align", "sub"]], { category: 'typography' });
+staticUtility("align-super", [["vertical-align", "super"]], { category: 'typography' });
 
 functionalUtility({
   name: "align",
@@ -413,12 +413,12 @@ functionalUtility({
 });
 
 // --- Typography: Hyphens ---
-staticUtility("hyphens-none", [["hyphens", "none"]]);
-staticUtility("hyphens-manual", [["hyphens", "manual"]]);
-staticUtility("hyphens-auto", [["hyphens", "auto"]]);
+staticUtility("hyphens-none", [["hyphens", "none"]], { category: 'typography' });
+staticUtility("hyphens-manual", [["hyphens", "manual"]], { category: 'typography' });
+staticUtility("hyphens-auto", [["hyphens", "auto"]], { category: 'typography' });
 
 // --- Typography: Content ---
-staticUtility("content-none", [["content", "none"]]);
+staticUtility("content-none", [["content", "none"]], { category: 'typography' });
 
 functionalUtility({
   name: "content",

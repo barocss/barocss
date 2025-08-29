@@ -163,7 +163,7 @@ functionalUtility({
   ['min-h-max', 'max-content'],
   ['min-h-fit', 'fit-content'],
 ].forEach(([name, value]) => {
-  staticUtility(name, [['min-height', value]]);
+  staticUtility(name, [['min-height', value]], { category: 'sizing' });
 });
 
 // min-h-* functional: spacing scale, fraction, arbitrary, custom property
@@ -200,7 +200,7 @@ functionalUtility({
   ['max-h-fit', 'fit-content'],
   ['max-h-none', 'none'],
 ].forEach(([name, value]) => {
-  staticUtility(name, [['max-height', value]]);
+  staticUtility(name, [['max-height', value]], { category: 'sizing' });
 });
 
 // max-h-* functional: spacing scale, fraction, arbitrary, custom property
@@ -253,7 +253,7 @@ functionalUtility({
   ['min-w-6xl', 'var(--container-6xl)'],
   ['min-w-7xl', 'var(--container-7xl)'],
 ].forEach(([name, value]) => {
-  staticUtility(name, [['min-width', value]]);
+  staticUtility(name, [['min-width', value]], { category: 'sizing' });
 });
 
 // min-w-* functional: spacing scale, fraction, arbitrary, custom property

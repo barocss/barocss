@@ -129,7 +129,14 @@ export class IncrementalParser {
       // Mark as processed
       this.processedClasses.add(className);
 
-      return { cls: className, ast, css: rule.css, cssList: rule.cssList, rootCss: rule.rootCss };
+      return { 
+        cls: className, 
+        ast, 
+        css: rule.css, 
+        cssList: rule.cssList, 
+        rootCss: rule.rootCss,
+        rootCssList: rule.rootCssList
+      };
     } catch (error) {
       console.warn('[IncrementalParser] Failed to process class:', className, error);
       return null;
@@ -162,13 +169,7 @@ export class IncrementalParser {
       batch.forEach(className => {
         const result = this.processClass(className);
         if (result) {
-          results.push({
-            cls: result.cls,
-            ast: result.ast,
-            css: result.css,
-            cssList: result.cssList,
-            rootCss: result.rootCss
-          });
+          results.push(result);
         }
       });
     }
