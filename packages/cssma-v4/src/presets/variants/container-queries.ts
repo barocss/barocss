@@ -1,6 +1,6 @@
 import { functionalModifier } from "../../core/registry";
 import { AstNode, atRule } from "../../core/ast";
-import { CssmaContext } from "../../core/context";
+import { Context } from "../../core/context";
 import { ParsedModifier } from "../../core/parser";
 import { createContainerRule, createContainerParams, getThemeSize } from "./utils";
 
@@ -10,7 +10,7 @@ import { createContainerRule, createContainerParams, getThemeSize } from "./util
 functionalModifier(
   (mod: string) => /^@container\/([a-zA-Z0-9_-]+)$/.test(mod),
   undefined,
-  (mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: Context) => {
     const containerMatch = /^@container\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
     if (containerMatch) {
       const name = containerMatch[1];
@@ -25,7 +25,7 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@container\/([a-zA-Z0-9_-]+)\s+\(([^)]+)\)$/.test(mod),
   undefined,
-  (mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: Context) => {
     const containerSizeMatch = /^@container\/([a-zA-Z0-9_-]+)\s+\(([^)]+)\)$/.exec(mod.type);
     if (containerSizeMatch) {
       const [, name, size] = containerSizeMatch;
@@ -40,7 +40,7 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@(sm|md|lg|xl|2xl)\/([a-zA-Z0-9_-]+)$/.test(mod),
   undefined,
-  (mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: Context) => {
     const namedSizeMatch = /^@(sm|md|lg|xl|2xl)\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
     if (namedSizeMatch) {
       const [, size, name] = namedSizeMatch;
@@ -56,7 +56,7 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@(sm|md|lg|xl|2xl)$/.test(mod),
   undefined,
-  (mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: Context) => {
     const themeSizeMatch = /^@(sm|md|lg|xl|2xl)$/.exec(mod.type);
     if (themeSizeMatch) {
       const size = themeSizeMatch[1];
@@ -72,7 +72,7 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@max-(sm|md|lg|xl|2xl)$/.test(mod),
   undefined,
-  (mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: Context) => {
     const themeSizeMatch = /^@max-(sm|md|lg|xl|2xl)$/.exec(mod.type);
     if (themeSizeMatch) {
       const size = themeSizeMatch[1];
@@ -88,7 +88,7 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@(min|max)-\[.*\]$/.test(mod),
   undefined,
-  (mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: Context) => {
     const arbitraryMatch = /^@(min|max)-\[(.+)\]$/.exec(mod.type);
     if (arbitraryMatch) {
       const [, type, value] = arbitraryMatch;
@@ -103,7 +103,7 @@ functionalModifier(
 functionalModifier(
   (mod: string) => /^@(min|max)-\[.*\]\/([a-zA-Z0-9_-]+)$/.test(mod),
   undefined,
-  (mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: Context) => {
     const arbitraryNamedMatch = /^@(min|max)-\[(.+)\]\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
     if (arbitraryNamedMatch) {
       const [, type, value, name] = arbitraryNamedMatch;

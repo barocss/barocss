@@ -1,12 +1,12 @@
 import { functionalModifier } from "../../core/registry";
 import { atRule } from "../../core/ast";
-import { CssmaContext } from "../../core/context";
+import { Context } from "../../core/context";
 import { ParsedModifier } from "../../core/parser";
 import { getDefaultBreakpoint } from "./utils";
 
 // responsive (media queries) - dynamic breakpoint support
 functionalModifier(
-  (mod: string, context: CssmaContext) => {
+  (mod: string, context: Context) => {
     // 1. Check breakpoints defined in config (matches actual implementation)
     const breakpoints = context.theme('breakpoints') || context.config('theme.breakpoints') || {};
     const breakpointKeys = Object.keys(breakpoints);
@@ -42,7 +42,7 @@ functionalModifier(
     return false;
   },
   undefined,
-  (mod: ParsedModifier, context: CssmaContext) => {
+  (mod: ParsedModifier, context: Context) => {
     const breakpoint = mod.type;
     
     // 1. Handle breakpoints defined in config (v4.1 standard)

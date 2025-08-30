@@ -1,6 +1,6 @@
 import { GenerateCssRulesResult } from './../core/engine';
 import { createContext, astCache, IncrementalParser } from '../index';
-import type { CssmaConfig, CssmaContext } from '../core/context';
+import type { Config, Context } from '../core/context';
 import { StylePartitionManager } from './style-partition-manager';
 
 function normalizeClassName(className: any): string {
@@ -234,7 +234,7 @@ export class ChangeDetector {
 } 
 
 export interface StyleRuntimeOptions {
-  config?: CssmaConfig;  // full config object
+  config?: Config;  // full config object
   styleId?: string;
   enableDev?: boolean;
   insertionPoint?: 'head' | 'body' | HTMLElement;
@@ -254,7 +254,7 @@ export class StyleRuntime {
   private rootSheet: CSSStyleSheet | null = null;
   private cache: Map<string, GenerateCssRulesResult> = new Map(); // class name -> generated CSS mapping
   private rootCache: Set<string> = new Set(); // class name -> generated CSS mapping
-  private context: CssmaContext;
+  private context: Context;
   private options: Required<StyleRuntimeOptions>;
   private isDestroyed = false;
 
@@ -264,7 +264,7 @@ export class StyleRuntime {
 
   constructor(options: StyleRuntimeOptions = {}) {
     // Default config - createContext handles defaultTheme automatically
-    const defaultConfig: CssmaConfig = {};
+    const defaultConfig: Config = {};
 
     this.options = {
       config: options.config || defaultConfig,
@@ -661,7 +661,7 @@ export class StyleRuntime {
     }
   }
 
-  updateConfig(newConfig: CssmaConfig): void {
+  updateConfig(newConfig: Config): void {
     this.options.config = newConfig;
     this.context = createContext(newConfig);
     const existingClasses = Array.from(this.cache.keys());

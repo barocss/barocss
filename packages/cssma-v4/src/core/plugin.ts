@@ -1,4 +1,4 @@
-import { CssmaContext, CssmaConfig } from './context';
+import { Context, Config } from './context';
 
 /**
  * CSSMA v4 Plugin System
@@ -8,7 +8,7 @@ import { CssmaContext, CssmaConfig } from './context';
  * modifiers, theme extensions, and other customizations.
  */
 
-export interface CssmaPlugin {
+export interface Plugin {
   /**
    * Plugin name for identification and debugging
    */
@@ -29,14 +29,14 @@ export interface CssmaPlugin {
    * @param ctx - CSSMA context with theme, config, and utilities
    * @param config - User configuration passed to the plugin
    */
-  handler: (ctx: CssmaContext, config?: any) => void;
+  handler: (ctx: Context, config?: any) => void;
 
   /**
    * Plugin theme function that receives the CSSMA context
    * @param ctx - CSSMA context with theme, config, and utilities
    * @param config - User configuration passed to the plugin
    */
-  theme?: (ctx: CssmaContext, config?: any) => Record<string, any>;
+  theme?: (ctx: Context, config?: any) => Record<string, any>;
   
   /**
    * Plugin dependencies (other plugin names)
@@ -73,14 +73,14 @@ export interface UtilityPlugin {
    * @param ctx - CSSMA context
    * @param config - Plugin configuration
    */
-  utilities?: (ctx: CssmaContext, config?: any) => void;
+  utilities?: (ctx: Context, config?: any) => void;
   
   /**
    * Extend theme with custom values
    * @param ctx - CSSMA context
    * @param config - Plugin configuration
    */
-  theme?: (ctx: CssmaContext, config?: any) => Record<string, any>;
+  theme?: (ctx: Context, config?: any) => Record<string, any>;
   
   /**
    * Plugin dependencies
@@ -117,7 +117,7 @@ export interface VariantPlugin {
    * @param ctx - CSSMA context
    * @param config - Plugin configuration
    */
-  variants?: (ctx: CssmaContext, config?: any) => void;
+  variants?: (ctx: Context, config?: any) => void;
   
   /**
    * Plugin dependencies
@@ -154,7 +154,7 @@ export interface ThemePlugin {
    * @param ctx - CSSMA context
    * @param config - Plugin configuration
    */
-  theme?: (ctx: CssmaContext, config?: any) => Record<string, any>;
+  theme?: (ctx: Context, config?: any) => Record<string, any>;
   
   /**
    * Plugin dependencies
@@ -171,7 +171,7 @@ export interface ThemePlugin {
  * Plugin Registry
  */
 export class PluginRegistry {
-  private plugins: Map<string, CssmaPlugin> = new Map();
+  private plugins: Map<string, Plugin> = new Map();
   private utilityPlugins: Map<string, UtilityPlugin> = new Map();
   private variantPlugins: Map<string, VariantPlugin> = new Map();
   private themePlugins: Map<string, ThemePlugin> = new Map();
@@ -179,7 +179,7 @@ export class PluginRegistry {
   /**
    * Register a general plugin
    */
-  register(plugin: CssmaPlugin): void {
+  register(plugin: Plugin): void {
     const name = plugin.name || `plugin-${Date.now()}`;
     this.plugins.set(name, plugin);
   }
@@ -208,7 +208,7 @@ export class PluginRegistry {
   /**
    * Get all registered plugins
    */
-  getPlugins(): CssmaPlugin[] {
+  getPlugins(): Plugin[] {
     return Array.from(this.plugins.values());
   }
 
@@ -236,7 +236,7 @@ export class PluginRegistry {
   /**
    * Execute all plugins with context
    */
-  executePlugins(ctx: CssmaContext, config: CssmaConfig): void {
+  executePlugins(ctx: Context, config: Config): void {
     // Execute general plugins
     for (const plugin of this.plugins.values()) {
       try {
@@ -272,7 +272,7 @@ export class PluginRegistry {
   /**
    * Execute theme plugins and return merged theme
    */
-  executeThemePlugins(ctx: CssmaContext, config: CssmaConfig): Record<string, any> {
+  executeThemePlugins(ctx: Context, config: Config): Record<string, any> {
     let mergedTheme: Record<string, any> = {};
 
     for (const plugin of this.themePlugins.values()) {
@@ -310,12 +310,12 @@ export const pluginRegistry = new PluginRegistry();
 /**
  * Create a utility plugin
  */
-export function createUtilityPlugin(plugin: UtilityPlugin): CssmaPlugin {
+export function createUtilityPlugin(plugin: UtilityPlugin): Plugin {
   return {
     name: plugin.name,
     version: plugin.version,
     description: plugin.description,
-    handler: (ctx: CssmaContext, config?: any) => {
+    handler: (ctx: Context, config?: any) => {
       if (plugin.utilities) {
         plugin.utilities(ctx, config);
       }
@@ -334,12 +334,12 @@ export function createUtilityPlugin(plugin: UtilityPlugin): CssmaPlugin {
 /**
  * Create a variant plugin
  */
-export function createVariantPlugin(plugin: VariantPlugin): CssmaPlugin {
+export function createVariantPlugin(plugin: VariantPlugin): Plugin {
   return {
     name: plugin.name,
     version: plugin.version,
     description: plugin.description,
-    handler: (ctx: CssmaContext, config?: any) => {
+    handler: (ctx: Context, config?: any) => {
       if (plugin.variants) {
         plugin.variants(ctx, config);
       }
@@ -350,12 +350,12 @@ export function createVariantPlugin(plugin: VariantPlugin): CssmaPlugin {
 /**
  * Create a theme plugin
  */
-export function createThemePlugin(plugin: ThemePlugin): CssmaPlugin {
+export function createThemePlugin(plugin: ThemePlugin): Plugin {
   return {
     name: plugin.name,
     version: plugin.version,
     description: plugin.description,
-    handler: (ctx: CssmaContext, config?: any) => {
+    handler: (ctx: Context, config?: any) => {
       // Theme extension is handled in context.ts
       // But we need to call the theme function to register it
       if (plugin.theme) {
@@ -370,7 +370,7 @@ export function createThemePlugin(plugin: ThemePlugin): CssmaPlugin {
 /**
  * Register a plugin with the global registry
  */
-export function registerPlugin(plugin: CssmaPlugin): void {
+export function registerPlugin(plugin: Plugin): void {
   pluginRegistry.register(plugin);
 }
 

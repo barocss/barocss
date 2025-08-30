@@ -1,5 +1,5 @@
 import { AstNode, atRule } from "../../core/ast";
-import { CssmaContext } from "../../core/context";
+import { Context } from "../../core/context";
 
 /**
  * Create container query parameters
@@ -20,7 +20,7 @@ export function createMediaParams(type: 'min' | 'max', value: string): string {
 /**
  * Get size value from theme
  */
-export function getThemeSize(ctx: CssmaContext, key: string): string | undefined {
+export function getThemeSize(ctx: Context, key: string): string | undefined {
   return ctx.theme('container.' + key) || ctx.theme('breakpoint.' + key);
 }
 

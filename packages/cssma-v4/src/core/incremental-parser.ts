@@ -1,6 +1,6 @@
 import { parseClassName } from './parser';
 import { parseClassToAst, generateCssRules, GenerateCssRulesResult } from './engine';
-import type { CssmaContext } from './context';
+import type { Context } from './context';
 import { astCache } from '../utils/cache';
 
 /**
@@ -56,7 +56,7 @@ export class IncrementalParser {
   private processedClasses = new Set<string>();
   
   /** CSSMA context for theme and utility resolution */
-  private ctx: CssmaContext;
+  private ctx: Context;
   
   /** Maximum number of classes to process in a single batch */
   private batchSize = 50;
@@ -75,7 +75,7 @@ export class IncrementalParser {
    * 
    * @param ctx - CSSMA context for theme and utility resolution
    */
-  constructor(ctx: CssmaContext) {
+  constructor(ctx: Context) {
     this.ctx = ctx;
   }
 

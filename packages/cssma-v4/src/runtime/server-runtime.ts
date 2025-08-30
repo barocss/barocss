@@ -1,5 +1,5 @@
 import { parseClassToAst, generateCssRules, createContext } from '../index';
-import type { CssmaConfig } from '../core/context';
+import type { Config } from '../core/context';
 
 /**
  * Server-side runtime for CSSMA v4
@@ -10,7 +10,7 @@ import type { CssmaConfig } from '../core/context';
 export class ServerRuntime {
   private context: any;
 
-  constructor(config: CssmaConfig = {}) {
+  constructor(config: Config = {}) {
     this.context = createContext(config);
   }
 

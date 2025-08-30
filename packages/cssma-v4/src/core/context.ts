@@ -1,7 +1,7 @@
 import { defaultTheme } from "../theme";
 import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
 import { clearAllCaches } from "../utils/cache";
-import { type CssmaPlugin } from "./plugin";
+import { type Plugin } from "./plugin";
 import preflightMinimalCSS from "../css/preflight-minimal.css?raw";
 import preflightStandardCSS from "../css/preflight-standard.css?raw";
 import preflightFullCSS from "../css/preflight-full.css?raw";
@@ -25,12 +25,12 @@ export function getPreflightCSS(level: PreflightLevel = true): string {
 }
 
 // Types for theme/config/context
-export interface CssmaTheme {
-  extend?: CssmaTheme;
+export interface Theme {
+  extend?: Theme;
   [namespace: string]: any;
 }
 
-export interface CssmaConfig {
+export interface Config {
   prefix?: string;  // prefix for class names, default is 'cssma-'
   /**
    * Modern dark mode strategy
@@ -39,8 +39,8 @@ export interface CssmaConfig {
    * - string[]: custom selectors (e.g. ['class', '[data-theme="dark"]'])
    */
   darkMode?: 'media' | 'class' | string[];
-  theme?: CssmaTheme;
-  presets?: { theme: CssmaTheme }[];
+  theme?: Theme;
+  presets?: { theme: Theme }[];
 
   /**
    * Whether to include preflight CSS
@@ -58,7 +58,7 @@ export interface CssmaConfig {
    * - Can be plugin functions, plugin objects, or plugin arrays
    * - Plugins are executed in order and can register utilities, variants, and theme extensions
    */
-  plugins?: (CssmaPlugin | ((ctx: CssmaContext, config?: CssmaConfig) => void))[];
+  plugins?: (Plugin | ((ctx: Context, config?: Config) => void))[];
   /**
    * Whether to clear all caches when context is created/changed
    * - true (default): Clear all caches on context change
@@ -68,12 +68,12 @@ export interface CssmaConfig {
   [key: string]: any;
 }
 
-export const defaultConfig: CssmaConfig = {
+export const defaultConfig: Config = {
   prefix: 'cssma-',
   darkMode: 'media', // same as default
 };
 
-export interface CssmaContext {
+export interface Context {
   hasPreset: (category: string, preset: string) => boolean;
   theme: (...path: (string|number)[]) => any;
   config: (...path: (string|number)[]) => any;
@@ -145,7 +145,7 @@ export type ThemeGetter = (...path: (string|number)[]) => any;
  *   };
  *   themeGetter(theme, 'spacing.1'); // undefined
  */
-export function themeGetter(themeObj: CssmaTheme, ...path: (string | number)[]): any {
+export function themeGetter(themeObj: Theme, ...path: (string | number)[]): any {
   // The theme getter function itself, passed to category functions for dynamic resolution
   const theme: ThemeGetter = (...args: (string | number)[]) => themeGetter(themeObj, ...args);
 
@@ -228,13 +228,13 @@ export function configGetter(config: any, ...path: (string|number)[]): any {
 }
 
 // hasPreset
-export function hasPreset(themeObj: CssmaTheme, category: string, preset: string): any {
+export function hasPreset(themeObj: Theme, category: string, preset: string): any {
   return themeObj[category]?.includes?.(preset);
 }
 
 // resolveTheme
-export function resolveTheme(config: CssmaConfig): CssmaTheme {
-  let theme: CssmaTheme = {};
+export function resolveTheme(config: Config): Theme {
+  let theme: Theme = {};
   if (config.presets) {
     for (const preset of config.presets) {
       if (preset.theme) {
@@ -253,7 +253,7 @@ export function resolveTheme(config: CssmaConfig): CssmaTheme {
 }
 
 
-export function themeToCssVars(theme: CssmaTheme): string {
+export function themeToCssVars(theme: Theme): string {
   const vars = themeToCssVarsAll(theme);
   // console.log('[themeToCssVars] vars', vars);
   return toCssVarsBlock(vars, `
@@ -262,7 +262,7 @@ ${keyframesToCss(theme.keyframes || {})}
 }
 
 // createContext
-export function createContext(configObj: CssmaConfig): CssmaContext {
+export function createContext(configObj: Config): Context {
   // Automatically include defaultTheme as the base preset
   const configWithDefaults = {
     presets: [
@@ -280,7 +280,7 @@ export function createContext(configObj: CssmaConfig): CssmaContext {
   }
 
   // 1. Declare ctx first as an object
-  const ctx: CssmaContext = {
+  const ctx: Context = {
     hasPreset: (category: string, preset: string) => {
       const result = hasPreset(themeObj, category, preset);
       // console.log(`[hasPreset] category: ${category}, preset: ${preset} =>`, result);

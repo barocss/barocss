@@ -1,10 +1,10 @@
 import { functionalModifier } from "../../core/registry";
 import { AstNode, atRule, rule } from "../../core/ast";
-import { CssmaContext } from "../../core/context";
+import { Context } from "../../core/context";
 import { ParsedModifier } from "../../core/parser";
 
 // Dark variant plugin
-const getDarkSelectors = (ctx: CssmaContext) => {
+const getDarkSelectors = (ctx: Context) => {
   const mode = ctx.config("darkMode") || "media";
   const custom = ctx.config("darkModeSelector");
   const selectors: { type: "media" | "selector"; value: string }[] = [];
@@ -33,7 +33,7 @@ const getDarkSelectors = (ctx: CssmaContext) => {
 functionalModifier(
   (mod: string) => mod === "dark",
   undefined, // modifySelector is not used
-  (_mod: ParsedModifier, ctx: CssmaContext) => {
+  (_mod: ParsedModifier, ctx: Context) => {
     const selectors = getDarkSelectors(ctx);
     
     const result: AstNode[] = [];

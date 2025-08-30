@@ -2,7 +2,7 @@ import { type AstNode } from "./ast";
 import { parseClassName } from "./parser";
 import { astCache } from "../utils/cache";
 import { getUtility, getModifierPlugins } from "./registry";
-import { CssmaContext } from "./context";
+import { Context } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
 import { clearAllCaches } from "../utils/cache";
 
@@ -264,7 +264,7 @@ function extractAtRootNodes(
  */
 export function parseClassToAst(
   fullClassName: string,
-  ctx: CssmaContext
+  ctx: Context
 ): AstNode[] {
   // Check AST cache first
   // Simpler cache key: className + context hash
@@ -440,7 +440,7 @@ export function clearAstCache(): void {
  */
 export function generateCss(
   classList: string,
-  ctx: CssmaContext,
+  ctx: Context,
   opts?: { minify?: boolean; dedup?: boolean }
 ): string {
   const seen = new Set<string>();
@@ -528,7 +528,7 @@ export type GenerateCssRulesResult = {
  */
 export function generateCssRules(
   classList: string,
-  ctx: CssmaContext,
+  ctx: Context,
   opts?: { minify?: boolean; dedup?: boolean }
 ): Array<GenerateCssRulesResult> {
   const seen = new Set<string>();

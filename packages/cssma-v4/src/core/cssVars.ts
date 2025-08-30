@@ -2,7 +2,7 @@
 // Each function takes a category theme object and returns Record<string, string>
 // Namespace/naming rules aligned with v4
 
-import type { CssmaTheme } from './context';
+import type { Theme } from './context';
 
 /**
  * colors: { blue: { 500: '#123456' }, red: { 500: '#ff0000' } }
@@ -249,7 +249,7 @@ export function blurToCssVars(blur: Record<string, string>): Record<string, stri
 /**
  * themeToCssVarsAll: merge CSS variables from major theme categories
  */
-export function themeToCssVarsAll(theme: CssmaTheme): Record<string, string> {
+export function themeToCssVarsAll(theme: Theme): Record<string, string> {
   return {
     ...colorsToCssVars(theme.colors || {}),
     ...boxShadowToCssVars(theme.boxShadow || {}),

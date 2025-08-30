@@ -1,6 +1,6 @@
 import type { AstNode } from './ast';
 import { decl, rule } from './ast';
-import { CssmaContext } from './context';
+import { Context } from './context';
 import { ParsedModifier, ParsedUtility } from './parser';
 
 // Utility registration
@@ -14,7 +14,7 @@ export interface UtilityRegistration {
    * @param token Parsed token
    * @param options Registration options
    */
-  handler: (value: string, ctx: CssmaContext, token: ParsedUtility, options: UtilityRegistration) => AstNode[] | null | undefined;
+  handler: (value: string, ctx: Context, token: ParsedUtility, options: UtilityRegistration) => AstNode[] | null | undefined;
   description?: string;
   category?: string;
   [key: string]: any;
@@ -37,8 +37,8 @@ type VariantContext = {
   selector: string;
 }
 
-type ModifierMatch = (mod: string, variantContext: VariantContext, ctx: CssmaContext) => boolean;
-type ModifierHandler = (nodes: AstNode[], mod: ParsedModifier, variantContext: VariantContext, ctx: CssmaContext) => AstNode[];
+type ModifierMatch = (mod: string, variantContext: VariantContext, ctx: Context) => boolean;
+type ModifierHandler = (nodes: AstNode[], mod: ParsedModifier, variantContext: VariantContext, ctx: Context) => AstNode[];
 
 // Modifier registration (deduplicated)
 export interface ModifierRegistration {
@@ -51,10 +51,10 @@ export interface ModifierRegistration {
 
 // --- Variant Plugin System ---
 export type ModifierPlugin = {
-  match: (mod: string, context: CssmaContext) => boolean;
-  modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: CssmaContext; variantChain?: ParsedModifier[]; index?: number }) => string | { selector: string; flatten?: boolean; wrappingType?: 'rule' | 'style-rule' | 'at-rule'; override?: boolean; source?: string };
-  wrap?: (mod: ParsedModifier, context: CssmaContext) => AstNode[];
-  astHandler?: (ast: AstNode[], mod: ParsedModifier, context: CssmaContext, variantChain?: ParsedModifier[], index?: number) => AstNode[];
+  match: (mod: string, context: Context) => boolean;
+  modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: Context; variantChain?: ParsedModifier[]; index?: number }) => string | { selector: string; flatten?: boolean; wrappingType?: 'rule' | 'style-rule' | 'at-rule'; override?: boolean; source?: string };
+  wrap?: (mod: ParsedModifier, context: Context) => AstNode[];
+  astHandler?: (ast: AstNode[], mod: ParsedModifier, context: Context, variantChain?: ParsedModifier[], index?: number) => AstNode[];
   sort?: number;
 };
 
@@ -213,10 +213,10 @@ export function functionalUtility(opts: {
   supportsCustomProperty?: boolean;
   supportsNegative?: boolean;
   supportsOpacity?: boolean;
-  handle?: (value: string, ctx: CssmaContext, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
-  handleBareValue?: (args: { value: string; ctx: CssmaContext; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
-  handleNegativeBareValue?: (args: { value: string; ctx: CssmaContext; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
-  handleCustomProperty?: (value: string, ctx: CssmaContext, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
+  handle?: (value: string, ctx: Context, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
+  handleBareValue?: (args: { value: string; ctx: Context; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
+  handleNegativeBareValue?: (args: { value: string; ctx: Context; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
+  handleCustomProperty?: (value: string, ctx: Context, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
   description?: string;
   category?: string;
   priority?: number;
