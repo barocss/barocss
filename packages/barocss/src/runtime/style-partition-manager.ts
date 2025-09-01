@@ -107,6 +107,18 @@ export class StylePartitionManager {
     return this.categoryPartitions.get(category);
   }
 
+  /**
+   * Escape CSS rule text
+   * - Properly escape special characters
+   * - Prevent CSS syntax errors
+   */
+  private escapeCssRule(rule: string): string {
+    // Basic CSS string normalization
+    let escaped = rule.replace(/\\\//g, '\\/');
+
+    return escaped;
+  }
+
   addRule(rule: string) {
     if (this.hasRule(rule)) {
       return false;
@@ -123,7 +135,7 @@ export class StylePartitionManager {
       // CSS 규칙 삽입
       const sheet = currentPartition.styleElement.sheet;
       if (sheet) {
-        sheet.insertRule(rule, sheet.cssRules.length);
+        sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
       } else {
         // sheet가 없는 경우 textContent로 폴백
         currentPartition.styleElement.textContent += rule + "\n";
@@ -156,7 +168,7 @@ export class StylePartitionManager {
     try {
       const sheet = categoryPartition.styleElement.sheet;
       if (sheet) {
-        sheet.insertRule(rule, sheet.cssRules.length);
+        sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
       } else {
         categoryPartition.styleElement.textContent += rule + "\n";
       }
@@ -172,6 +184,34 @@ export class StylePartitionManager {
     categoryPartition.styles.push(rule);
 
     return true;
+  }
+  
+  addRootRules(rules: string[]) {
+    let categoryPartition = this.getCategoryPartition("root");
+    if (!categoryPartition) {
+      categoryPartition = this.createNewCategoryPartition("root");
+    }   
+
+    try {
+
+      const sheet = categoryPartition.styleElement.sheet;
+
+      for (const rule of rules) {
+        if (sheet) {
+          sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
+        } else {
+          categoryPartition.styleElement.textContent += rule + "\n";
+        }
+      }
+    } catch (error) {
+      console.warn(
+        `[StylePartitionManager] Failed to insert rule in category: root ${rules.join("\n")}`,
+        error
+      );
+      return { success: 0, failed: rules.length };
+    }
+
+    return { success: rules.length, failed: 0 };
   }
 
   addRules(rules: GenerateCssRulesResult[]) {
@@ -221,6 +261,17 @@ export class StylePartitionManager {
     }
 
     return null;
+  }
+
+
+  updateRuleContent(category: string, ruleContent: string) {
+    const partition = this.getCategoryPartition(category);
+    if (partition) {
+      partition.styleElement.textContent = ruleContent;
+    } else {
+      const newPartition = this.createNewCategoryPartition(category);
+      newPartition.styleElement.textContent = ruleContent;
+    }
   }
 
   /**

@@ -40,8 +40,8 @@ export class ChangeDetector {
   /** Reference to IncrementalParser for class processing */
   private incrementalParser: IncrementalParser;
   
-  /** Reference to StyleRuntime for CSS injection (optional) */
-  private styleRuntime?: StyleRuntime;
+  /** Reference to BrowserRuntime for CSS injection (optional) */
+  private BrowserRuntime?: BrowserRuntime;
   
   /** Set of elements that have already been processed to avoid duplicates */
   private processedElements = new WeakSet<Element>();
@@ -50,11 +50,11 @@ export class ChangeDetector {
    * Create a new ChangeDetector instance
    * 
    * @param incrementalParser - IncrementalParser instance for class processing
-   * @param styleRuntime - Optional StyleRuntime instance for CSS injection
+   * @param BrowserRuntime - Optional BrowserRuntime instance for CSS injection
    */
-  constructor(incrementalParser: IncrementalParser, styleRuntime?: StyleRuntime) {
+  constructor(incrementalParser: IncrementalParser, BrowserRuntime?: BrowserRuntime) {
     this.incrementalParser = incrementalParser;
-    this.styleRuntime = styleRuntime;
+    this.BrowserRuntime = BrowserRuntime;
   }
 
   /**
@@ -119,10 +119,10 @@ export class ChangeDetector {
       if (newClasses.size > 0) {
         const classesArray = Array.from(newClasses);
         
-        // Process classes directly and update StyleRuntime cache
+        // Process classes directly and update BrowserRuntime cache
         const results = this.incrementalParser.processClasses(classesArray);
-        // If StyleRuntime is available, apply results via public API
-        this.styleRuntime?.applyParseResults(results);
+        // If BrowserRuntime is available, apply results via public API
+        this.BrowserRuntime?.applyParseResults(results);
       }
     });
 
@@ -159,13 +159,13 @@ export class ChangeDetector {
     
     // Scan all child elements
     const elementsWithClass = root.querySelectorAll('[class]') as unknown as HTMLElement[];
-    // console.log('[StyleRuntime] scanExistingClasses', elementsWithClass);
+    // console.log('[BrowserRuntime] scanExistingClasses', elementsWithClass);
     for (const el of elementsWithClass) {
       if (el.className) {
         // SVG className is SVGAnimatedString; convert to string with toString()
         // HTMLElement className is string; use as-is
         const classes = normalizeClassNameList(el.className);
-        // console.log('[StyleRuntime] scanExistingClasses', classes);
+        // console.log('[BrowserRuntime] scanExistingClasses', classes);
 
         for (const cls of classes) {
           if (!this.incrementalParser.isProcessed(cls)) {
@@ -175,7 +175,7 @@ export class ChangeDetector {
       }
     }
 
-    // console.log('[StyleRuntime] scanExistingClasses', existingClasses);
+    // console.log('[BrowserRuntime] scanExistingClasses', existingClasses);
 
     if (existingClasses.size > 0) {
       // Process classes using IncrementalParser
@@ -187,11 +187,11 @@ export class ChangeDetector {
 
       
       // Apply layout results
-      this.styleRuntime?.applyParseResults(layoutResults);
+      this.BrowserRuntime?.applyParseResults(layoutResults);
       options?.onReady?.();
 
       // Apply non-layout results
-      this.styleRuntime?.applyParseResults(nonLayoutResults);
+      this.BrowserRuntime?.applyParseResults(nonLayoutResults);
     }
   }
 
@@ -241,7 +241,7 @@ export class ChangeDetector {
   }
 } 
 
-export interface StyleRuntimeOptions {
+export interface BrowserRuntimeOptions {
   config?: Config;  // full config object
   styleId?: string;
   enableDev?: boolean;
@@ -254,23 +254,18 @@ export interface StyleRuntimeOptions {
   maxRulesPerPartition?: number;
 }
 
-export class StyleRuntime {
-  private styleEl: HTMLStyleElement | null = null;
-  private styleRootEl: HTMLStyleElement | null = null;
-  private styleCssVarsEl: HTMLStyleElement | null = null;
-  private sheet: CSSStyleSheet | null = null;
-  private rootSheet: CSSStyleSheet | null = null;
+export class BrowserRuntime {
   private cache: Map<string, GenerateCssRulesResult> = new Map(); // class name -> generated CSS mapping
   private rootCache: Set<string> = new Set(); // class name -> generated CSS mapping
   private context: Context;
-  private options: Required<StyleRuntimeOptions>;
+  private options: Required<BrowserRuntimeOptions>;
   private isDestroyed = false;
 
   private incrementalParser: IncrementalParser;
   private changeDetector: ChangeDetector;
   private stylePartitionManager: StylePartitionManager;
 
-  constructor(options: StyleRuntimeOptions = {}) {
+  constructor(options: BrowserRuntimeOptions = {}) {
     // Default config - createContext handles defaultTheme automatically
     const defaultConfig: Config = {};
 
@@ -304,102 +299,29 @@ export class StyleRuntime {
    * Add debug logs (by level)
    */
   private debugLog(level: 'info' | 'warn' | 'error' | 'debug', message: string, data?: any): void {
-    
-    
     // Console output
     const consoleMethod = console[level] || console.log;
-    consoleMethod(`[StyleRuntime:${level.toUpperCase()}] ${message}`, data || '');
+    consoleMethod(`[BrowserRuntime:${level.toUpperCase()}] ${message}`, data || '');
   }
 
   private init() {
+    console.log('[BrowserRuntime] init');
     this.injectPreflightCSS();
-    this.ensureSheet();
-    this.ensureCssVars();    
-    if (this.options.enableDev && typeof window !== 'undefined') {
-      this.setupHMR();
-    }
+    this.ensureCssVars();
   }
 
   private injectPreflightCSS() {
     if (this.options.config.preflight) {
       const preflightCSS = this.context.getPreflightCSS(this.options.config.preflight);
-      this.createStyleElement(`${this.options.styleId}-preflight-${this.options.config.preflight}`, preflightCSS);
-    }
-  }
-
-  /**
-   * Common method to create and insert style elements into DOM
-   */
-  private createStyleElement(id: string, content?: string): HTMLStyleElement {
-    let styleEl = document.getElementById(id) as HTMLStyleElement;
-    
-    if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = id;
-      styleEl.setAttribute('data-barocss', 'runtime');
-      
-      if (content) {
-        styleEl.textContent = content;
-      }
-      
-      const insertionPoint = this.getInsertionPoint();
-      insertionPoint.appendChild(styleEl);
-    }
-    
-    return styleEl;
-  }
-
-  /**
-   * Safely get CSSStyleSheet from style element
-   */
-  private getStyleSheet(styleEl: HTMLStyleElement): CSSStyleSheet | null {
-    try {
-      return styleEl.sheet as CSSStyleSheet;
-    } catch (error) {
-      console.warn('[StyleRuntime] Failed to get stylesheet for', styleEl.id, error);
-      return null;
-    }
-  }
-
-  /**
-   * Safely remove style element
-   */
-  private removeStyleElement(styleEl: HTMLStyleElement | null): void {
-    if (styleEl && styleEl.parentNode) {
-      styleEl.parentNode.removeChild(styleEl);
+      this.stylePartitionManager.updateRuleContent("preflight", preflightCSS);
     }
   }
 
   private ensureCssVars() {
     if (this.isDestroyed) return;
 
-    if (!this.styleCssVarsEl) {
-      const cssVars = this.context.themeToCssVars ? this.context.themeToCssVars() : ':root { /* CSS Variables will be generated here */ }';
-      this.styleCssVarsEl = this.createStyleElement(
-        `${this.options.styleId}-css-vars`,
-        cssVars
-      );
-    }
-  }
-
-  private ensureSheet() {
-    if (this.isDestroyed) return;
-    
-    if (!this.styleRootEl) {
-      this.styleRootEl = this.createStyleElement(`${this.options.styleId}-root`);
-    }
-
-    if (!this.styleEl) {
-      this.styleEl = this.createStyleElement(this.options.styleId);
-    }
-    
-    if (!this.sheet && this.styleEl) {
-      this.sheet = this.getStyleSheet(this.styleEl);
-    }
-    
-    if (!this.rootSheet && this.styleRootEl) {
-      this.rootSheet = this.getStyleSheet(this.styleRootEl);
-    }
+    const cssVars = this.context.themeToCssVars ? this.context.themeToCssVars() : ':root { /* CSS Variables will be generated here */ }';
+    this.stylePartitionManager.updateRuleContent("css-vars", cssVars);
   }
 
   private getInsertionPoint(): HTMLElement {
@@ -415,25 +337,11 @@ export class StyleRuntime {
     }
   }
 
-  private setupHMR() {
-    if (typeof module !== 'undefined' && (module as any).hot) {
-      (module as any).hot.accept(() => {
-        this.reset();
-      });
-    }
-  }
-
   /**
    * Dynamically add one or more class names and generate/insert CSS
    */
   addClass(classes: string | string[]): void {
     if (this.isDestroyed) return;
-
-    const isBrowser = typeof window !== 'undefined';
-    
-    if (isBrowser) {
-      this.ensureSheet();
-    }
     
     const classList = this.normalizeClasses(classes);
     
@@ -458,7 +366,7 @@ export class StyleRuntime {
     // Process classes immediately for testing environment
     const results = this.incrementalParser.processClasses(classList);
     
-    console.log('[StyleRuntime] results', results, ...classList);
+    // console.log('[BrowserRuntime] results', results, ...classList);
     // Apply results and inject CSS
     this.applyParseResults(results, { isBrowser });
   }
@@ -490,7 +398,7 @@ export class StyleRuntime {
     }
 
     if (rootCssRules.length > 0) {
-      this.insertRootRules(rootCssRules.filter(Boolean));
+      this.stylePartitionManager.addRootRules(rootCssRules.filter(Boolean));
     }
 
     if (cssRules.length > 0) {
@@ -514,57 +422,6 @@ export class StyleRuntime {
     return Array.isArray(classes)
       ? classes.flatMap(cls => cls.split(/\s+/))
       : classes.split(/\s+/);
-  }
-
-  /**
-   * Safely insert CSS rule into stylesheet
-   */
-  private insertRuleToSheet(sheet: CSSStyleSheet, rule: string): boolean {
-    try {
-      // Skip empty or whitespace-only rules
-      if (!rule || rule.trim() === '') {
-        if (this.options.enableDev) {
-          console.warn('[StyleRuntime] Skipping empty rule:', { rule, length: rule.length, trimmed: rule.trim() });
-        }
-        return false;
-      }
-
-      const escapedRule = this.escapeCssRule(rule);
-      
-      sheet.insertRule(escapedRule.trim(), sheet.cssRules.length);
-      return true;
-    } catch (error) {
-      if (this.options.enableDev) {
-        console.warn('[StyleRuntime] Failed to insert rule:', { 
-          rule, 
-          length: rule.length, 
-          trimmed: rule.trim(),
-          error: error instanceof Error ? error.message : String(error)
-        });
-      }
-      return false;
-    }
-  }
-
-  /**
-   * Escape CSS rule text
-   * - Properly escape special characters
-   * - Prevent CSS syntax errors
-   */
-  private escapeCssRule(rule: string): string {
-    // Basic CSS string normalization
-    let escaped = rule.replace(/\\\//g, '\\/');
-
-    return escaped;
-  }
-
-  public insertRootRules(cssRules: string[]) {
-    if (!this.rootSheet || cssRules.length === 0) return;
-
-    for (const css of cssRules) {
-      // console.log('[StyleRuntime] insertRootRules', css);
-      this.insertRuleToSheet(this.rootSheet, css);
-    }
   }
 
   has(cls: string): boolean {
@@ -614,23 +471,10 @@ export class StyleRuntime {
 
 
   reset(): void {
-    if (this.styleEl) {
-      this.styleEl.textContent = '';
-    }
-    if (this.styleRootEl) {
-      this.styleRootEl.textContent = '';
-    }
     this.cache.clear();
     this.rootCache.clear();
     this.stylePartitionManager.cleanup();
     
-    // Reinitialize stylesheets
-    if (this.styleEl) {
-      this.sheet = this.getStyleSheet(this.styleEl);
-    }
-    if (this.styleRootEl) {
-      this.rootSheet = this.getStyleSheet(this.styleRootEl);
-    }
   }
 
   updateConfig(newConfig: Config): void {
@@ -649,22 +493,14 @@ export class StyleRuntime {
       this.cache.delete(cls);
     }
     if (this.options.enableDev) {
-      console.info('[StyleRuntime] Classes removed from cache:', classList);
+      console.info('[BrowserRuntime] Classes removed from cache:', classList);
     }
   }
 
   destroy(): void {
-    this.removeStyleElement(this.styleEl);
-    this.removeStyleElement(this.styleRootEl);
-    this.removeStyleElement(this.styleCssVarsEl);
 
     this.stylePartitionManager.cleanup();
 
-    this.styleEl = null;
-    this.styleRootEl = null;
-    this.styleCssVarsEl = null;
-    this.sheet = null;
-    this.rootSheet = null;
     this.cache.clear();
     this.rootCache.clear();
     this.isDestroyed = true;
@@ -676,7 +512,6 @@ export class StyleRuntime {
       cachedClasses: this.cache.size,
       styleElementId: this.options.styleId,
       isDestroyed: this.isDestroyed,
-      cssRules: this.sheet?.cssRules.length || 0,
       config: this.options.config,
       cacheStats: this.getCacheStats(),
     };
@@ -684,8 +519,5 @@ export class StyleRuntime {
   }
 }
 
-// Export runtime with automatic defaultTheme - createContext handles it
-export const runtime = new StyleRuntime();
-export const addClass = (classes: string | string[]) => runtime.addClass(classes);
-export const hasClass = (cls: string) => runtime.has(cls);
-export const resetRuntime = () => runtime.reset();
+// Export only the BrowserRuntime class
+// Users should create their own instances with custom options

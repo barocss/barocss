@@ -3,13 +3,13 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import "../src/presets"
-import { StyleRuntime } from '../src/runtime/browser-runtime';
+import { BrowserRuntime } from '../src/runtime/browser-runtime';
 
-describe('StyleRuntime', () => {
-  let runtime: StyleRuntime;
+describe('BrowserRuntime', () => {
+  let runtime: BrowserRuntime;
 
   beforeEach(() => {
-    runtime = new StyleRuntime({ 
+    runtime = new BrowserRuntime({ 
       styleId: 'test-barocss-runtime',
       enableDev: false 
     });
@@ -132,7 +132,7 @@ describe('StyleRuntime', () => {
     div.className = '';
     await new Promise(r => setTimeout(r, 20));
     
-    // StyleRuntime does not remove CSS from DOM
+    // BrowserRuntime does not remove CSS from DOM
     expect(runtime.getClasses()).toHaveLength(1);
     observer.disconnect();
     document.body.removeChild(div);

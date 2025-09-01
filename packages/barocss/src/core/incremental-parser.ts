@@ -30,13 +30,13 @@ import { astCache } from '../utils/cache';
  * ### Browser Integration
  * ```typescript
  * const parser = new IncrementalParser(ctx);
- * const styleRuntime = new StyleRuntime();
+ * const BrowserRuntime = new BrowserRuntime();
  * 
  * // Process classes and manually inject CSS
  * const results = parser.processClasses(['bg-blue-500', 'text-lg']);
  * results.forEach(result => {
  *   if (result.css) {
- *     styleRuntime.insertRule(result.css);
+ *     BrowserRuntime.insertRule(result.css);
  *   }
  * });
  * 
@@ -49,7 +49,7 @@ import { astCache } from '../utils/cache';
  * 
  * - **IncrementalParser**: Pure CSS processing (works in Node.js and browser)
  * - **ChangeDetector**: Browser-only DOM monitoring (uses MutationObserver)
- * - **StyleRuntime**: Browser-only CSS injection (uses DOM APIs)
+ * - **BrowserRuntime**: Browser-only CSS injection (uses DOM APIs)
  */
 export class IncrementalParser {
   /** Set of class names that have already been processed to avoid duplicates */
@@ -306,7 +306,7 @@ export class IncrementalParser {
   }
 
   /**
-   * Process classes synchronously and update StyleRuntime cache
+   * Process classes synchronously and update BrowserRuntime cache
    * This method is used by ChangeDetector for scan operations
    */
   processClassesSync(classes: string[]): void {

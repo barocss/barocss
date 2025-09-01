@@ -14,22 +14,22 @@ describe('IncrementalParser Universal Usage', () => {
       theme: defaultTheme
     });
     
-    // Create parser without StyleRuntime (universal mode)
+    // Create parser without BrowserRuntime (universal mode)
     parser = new IncrementalParser(ctx);
   });
 
   describe('Universal methods', () => {
-    it('should process classes without StyleRuntime dependency', () => {
+    it('should process classes without BrowserRuntime dependency', () => {
       const results = parser.processClasses(['bg-blue-500', 'text-lg']);
       
       expect(results).toHaveLength(2);
-      expect(results[0].className).toBe('bg-blue-500');
+      expect(results[0].cls).toBe('bg-blue-500');
       expect(results[0].css).toContain('background-color');
-      expect(results[1].className).toBe('text-lg');
+      expect(results[1].cls).toBe('text-lg');
       expect(results[1].css).toContain('font-size');
     });
 
-    it('should process single class without StyleRuntime dependency', () => {
+    it('should process single class without BrowserRuntime dependency', () => {
       const result = parser.processClass('bg-red-500');
       
       expect(result).not.toBeNull();

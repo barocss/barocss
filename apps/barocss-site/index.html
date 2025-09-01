@@ -6,63 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BaroCSS - Instant CSS with Baroque Elegance</title>
     <meta name="description" content="Instant CSS - AI-powered CSS utilities with baroque elegance. Real-time CSS generation without build process." />
-    <style>
-      /* 로딩 중일 때는 전체 화면을 숨김 */
-      .barocss-loading {
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.2s ease-in-out;        
-      }
-      
-      /* 로딩 완료 후 부드럽게 나타남 */
-      .barocss-loaded {
-        visibility: visible;
-        opacity: 1;
-
-      }
-    </style>
-    <script type="module">
-      // BaroCSS integration
-      import { StyleRuntime } from 'barocss/runtime/browser';
-      
-      let barocssRuntime = null;
-      
-      // 로딩 완료 처리
-      function onBaroCSSReady() {
-        // 로딩 클래스 제거하고 완료 클래스 추가
-        document.body.classList.remove('barocss-loading');
-        document.body.classList.add('barocss-loaded');
-      }
-      
-      // Initialize BaroCSS immediately
-      function initializeBaroCSS() {
-        try {
-          // Create and initialize runtime
-          barocssRuntime = new StyleRuntime();
-          
-          // Observe the entire document for utility classes
-          barocssRuntime.observe(document.body, { scan: true, onReady: onBaroCSSReady });
-          
-          console.log('BaroCSS initialized successfully');
-          
-          // 초기화 완료 후 로딩 상태 해제
-          // onBaroCSSReady();
-          
-        } catch (error) {
-          console.error('Failed to initialize BaroCSS:', error);
-          // 에러가 나도 로딩 상태는 해제
-          onBaroCSSReady();
-        }
-      }
-      
-      // Initialize when DOM is ready
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeBaroCSS);
-      } else {
-        // DOM is already ready
-        initializeBaroCSS();
-      }
-    </script>
+    <link rel="stylesheet" href="/src/common.css">
+    <script type="module" src="/src/common.js"></script>
   </head>
   <body class="barocss-loading">
     <!-- Navigation -->

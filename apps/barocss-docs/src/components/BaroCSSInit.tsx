@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { StyleRuntime } from 'barocss/runtime/browser' // Static import for type safety
+import { BrowserRuntime } from 'barocss/runtime/browser' // Static import for type safety
 
 export default function BAROCSSInit() {
   useEffect(() => {
@@ -9,7 +9,7 @@ export default function BAROCSSInit() {
 
     console.log('[BAROCSS] Initializing real-time CSS engine...')
 
-    const runtime = new StyleRuntime({
+    const runtime = new BrowserRuntime({
       styleId: 'barocss-docs-runtime',
       enableDev: true,
       maxRulesPerPartition: 10,

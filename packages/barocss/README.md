@@ -60,10 +60,10 @@ yarn add barocss
 ### Basic Usage
 
 ```typescript
-import { StyleRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from 'barocss/runtime/browser';
 
 // Initialize runtime
-const runtime = new StyleRuntime();
+const runtime = new BrowserRuntime();
 
 // Watch DOM changes and auto-style
 runtime.observe(document.body, { scan: true });
@@ -99,9 +99,9 @@ document.body.innerHTML = `
 ### Basic Styling
 
 ```typescript
-import { StyleRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from 'barocss/runtime/browser';
 
-const runtime = new StyleRuntime();
+const runtime = new BrowserRuntime();
 
 // Add classes dynamically
 runtime.addClass('bg-red-500 text-white p-4 rounded-lg shadow-md');
@@ -156,7 +156,7 @@ document.body.innerHTML = `
 ### Custom Theme
 
 ```typescript
-const runtime = new StyleRuntime({
+const runtime = new BrowserRuntime({
   config: {
     theme: {
       extend: {
@@ -180,7 +180,7 @@ const runtime = new StyleRuntime({
 ### Dark Mode Strategy
 
 ```typescript
-const runtime = new StyleRuntime({
+const runtime = new BrowserRuntime({
   config: {
     darkMode: 'class', // or 'media'
     theme: {
@@ -202,9 +202,9 @@ const runtime = new StyleRuntime({
 ### Browser Runtime
 
 ```typescript
-import { StyleRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from 'barocss/runtime/browser';
 
-const runtime = new StyleRuntime();
+const runtime = new BrowserRuntime();
 runtime.observe(document.body, { scan: true });
 ```
 
@@ -303,7 +303,7 @@ const customPlugin = (ctx: BaroCSSContext) => {
   // ... plugin implementation
 };
 
-const runtime = new StyleRuntime({
+const runtime = new BrowserRuntime({
   config: {
     plugins: [customPlugin]
   }
@@ -312,11 +312,11 @@ const runtime = new StyleRuntime({
 
 ## 📚 API Reference
 
-### StyleRuntime
+### BrowserRuntime
 
 ```typescript
-class StyleRuntime {
-  constructor(options?: StyleRuntimeOptions)
+class BrowserRuntime {
+  constructor(options?: BrowserRuntimeOptions)
   
   // Add classes
   addClass(classes: string | string[]): void
