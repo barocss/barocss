@@ -270,6 +270,7 @@ export class StylePartitionManager {
       partition.styleElement.textContent = ruleContent;
     } else {
       const newPartition = this.createNewCategoryPartition(category);
+      console.log(`[StylePartitionManager] Created new partition for category: ${category}`);
       newPartition.styleElement.textContent = ruleContent;
     }
   }

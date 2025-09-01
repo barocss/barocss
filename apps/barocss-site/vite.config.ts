@@ -1,37 +1,39 @@
-import { defineConfig } from 'vite';
-import { resolve } from 'path';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 
 export default defineConfig({
+  plugins: [react()],
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
-    },
-  },
-  server: {
-    port: 3000,
-    open: true,
-    // Vite 7의 새로운 기능들
-    hmr: {
-      overlay: true,
-    },
+      '@': resolve(__dirname, 'src')
+    }
   },
   build: {
-    outDir: 'dist',
-    sourcemap: true,
-    // Vite 7의 새로운 빌드 최적화
     target: 'esnext',
     minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: undefined,
-      },
-    },
+        manualChunks: undefined
+      }
+    }
+  },
+  server: {
+    hmr: true,
+    port: 3000,
+    open: true
   },
   // Vite 7의 새로운 기능들
   experimental: {
-    renderBuiltUrl: true,
+    renderBuiltUrl(filename, { hostType }) {
+      if (hostType === 'js') {
+        return { js: `/${filename}` }
+      } else {
+        return { relative: true }
+      }
+    }
   },
   optimizeDeps: {
-    force: true,
-  },
-});
+    include: ['barocss/runtime/browser']
+  }
+})

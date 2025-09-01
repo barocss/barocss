@@ -25,7 +25,11 @@ function initializeBaroCSS() {
   try {
     console.log('Initializing BaroCSS');
     // Create and initialize runtime
-    barocssRuntime = new BrowserRuntime();
+    barocssRuntime = new BrowserRuntime({
+      config: {
+        preflight: true,
+      },
+    });
     
     // Observe the entire document for utility classes
     barocssRuntime.observe(document.body, { scan: true, onReady: onBaroCSSReady });
