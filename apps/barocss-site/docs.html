@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/file.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documentation - BaroCSS</title>
+    <meta name="description" content="BaroCSS documentation and API reference" />
+    <link rel="stylesheet" href="/src/globals.css" />
+    <script type="module" src="/src/main.js"></script>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <a href="/" class="flex items-center space-x-2">
+              <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z" />
+                </svg>
+              </div>
+              <span class="text-xl font-bold text-gray-900">BaroCSS</span>
+            </a>
+          </div>
+          
+          <div class="flex items-center space-x-8">
+            <a href="/" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 hover:text-blue-600 hover:bg-gray-50">
+              Home
+            </a>
+            <a href="/docs.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-blue-600 bg-blue-50">
+              Documentation
+            </a>
+            <a href="/examples.html" class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 hover:text-blue-600 hover:bg-gray-50">
+              Examples
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <h1 class="text-4xl font-bold text-gray-900 mb-8">Documentation</h1>
+      
+      <div class="prose prose-lg max-w-none">
+        <section class="mb-12">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-4">Getting Started</h2>
+          <p class="text-gray-600 mb-4">
+            BaroCSS is a real-time CSS library that brings the power of Tailwind CSS's JIT mode 
+            to your development workflow without any build process.
+          </p>
+          
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Installation</h3>
+          <div class="bg-gray-900 text-green-400 p-4 rounded-lg mb-4 overflow-x-auto">
+            <code>npm install barocss</code>
+          </div>
+          
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Basic Usage</h3>
+          <div class="bg-gray-900 text-green-400 p-4 rounded-lg mb-4 overflow-x-auto">
+            <pre><code>import { decl } from 'barocss';
+import { StyleRuntime } from 'barocss/runtime/browser';
+
+// Initialize runtime
+const runtime = new StyleRuntime();
+runtime.init();
+
+// Generate CSS
+const css = decl('bg-blue-500 text-white p-4 rounded-lg');
+console.log(css);</code></pre>
+          </div>
+        </section>
+
+        <section class="mb-12">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-4">Core Concepts</h2>
+          
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Utility Classes</h3>
+          <p class="text-gray-600 mb-4">
+            BaroCSS supports all standard Tailwind CSS utility classes including spacing, colors, 
+            typography, layout, and more.
+          </p>
+          
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Variants</h3>
+          <p class="text-gray-600 mb-4">
+            Use variants like hover:, focus:, dark: to create responsive and interactive designs.
+          </p>
+          
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">Custom CSS</h3>
+          <p class="text-gray-600 mb-4">
+            Extend BaroCSS with custom utilities and plugins for your specific needs.
+          </p>
+        </section>
+
+        <section class="mb-12">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-4">API Reference</h2>
+          
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">decl()</h3>
+          <p class="text-gray-600 mb-4">
+            The main function for generating CSS from utility classes.
+          </p>
+          
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">StyleRuntime</h3>
+          <p class="text-gray-600 mb-4">
+            Browser runtime for injecting and managing CSS styles.
+          </p>
+          
+          <h3 class="text-xl font-semibold text-gray-900 mb-3">ServerRuntime</h3>
+          <p class="text-gray-600 mb-4">
+            Server-side runtime for generating CSS during build time.
+          </p>
+        </section>
+
+        <section class="mb-12">
+          <h2 class="text-2xl font-semibold text-gray-900 mb-4">Examples</h2>
+          <p class="text-gray-600 mb-4">
+            Check out our examples page for real-world usage patterns and advanced techniques.
+          </p>
+          <a href="/examples.html" class="text-blue-600 hover:text-blue-800 font-medium">
+            View Examples →
+          </a>
+        </section>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-16">
+      <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="text-center text-gray-500">
+          <p>&copy; 2025 BaroCSS. Made with ❤️ for instant CSS development.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -4,7 +4,7 @@ A powerful CSS-in-JS framework with plugin system, TypeScript support, and moder
 
 ## 📚 Documentation
 
-Visit our comprehensive documentation site: **[CSSMA v4 Documentation](https://your-username.github.io/figmaikr/)**
+Visit our comprehensive documentation site: **[Barocss Documentation](https://your-username.github.io/barocss/)**
 
 The documentation includes:
 - Getting Started guide
@@ -26,19 +26,19 @@ The documentation includes:
 
 ```bash
 # Using pnpm (recommended)
-pnpm add cssma@latest
+pnpm add barocss@latest
 
 # Using npm
-npm install cssma@latest
+npm install barocss@latest
 
 # Using yarn
-yarn add cssma@latest
+yarn add barocss@latest
 ```
 
 ## 🎯 Quick Start
 
 ```typescript
-import { createContext, parseClassToAst, astToCss } from 'cssma'
+import { createContext, parseClassToAst, astToCss } from 'barocss'
 
 // Create a context with your configuration
 const ctx = createContext({
@@ -65,10 +65,10 @@ console.log(css)
 
 ## 🔌 Plugin System
 
-Extend CSSMA with custom utilities and variants:
+Extend BAROCSS with custom utilities and variants:
 
 ```typescript
-import { createUtilityPlugin, staticUtility, decl } from 'cssma'
+import { createUtilityPlugin, staticUtility, decl } from 'barocss'
 
 const customPlugin = createUtilityPlugin({
   name: 'custom-plugin',
@@ -89,13 +89,13 @@ const ctx = createContext({
 ## 📁 Project Structure
 
 ```
-figmaikr/
+barocss/
 ├── apps/
-│   ├── cssma-docs/          # Documentation site
-│   ├── cssma-plugin/        # Figma plugin
+│   ├── barocss-docs/          # Documentation site
+│   ├── barocss-plugin/        # Figma plugin
 │   └── figmai-landing/      # Landing page
 ├── packages/
-│   └── cssma-v4/           # Core CSSMA framework
+│   └── barocss/           # Core BAROCSS framework
 └── docs/                    # Project documentation
 ```
 
@@ -110,8 +110,8 @@ figmaikr/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/figmaikr.git
-cd figmaikr
+git clone https://github.com/your-username/barocss.git
+cd barocss
 
 # Install dependencies
 pnpm install
@@ -129,7 +129,7 @@ The documentation site is built with Next.js and deployed to GitHub Pages:
 
 ```bash
 # Navigate to docs directory
-cd apps/cssma-docs
+cd apps/barocss-docs
 
 # Install dependencies
 pnpm install
@@ -143,14 +143,14 @@ pnpm build
 
 ## 📖 Documentation
 
-For detailed documentation, visit our [documentation site](https://your-username.github.io/figmaikr/) or check the local docs:
+For detailed documentation, visit our [documentation site](https://your-username.github.io/barocss/) or check the local docs:
 
-- [Getting Started](apps/cssma-docs/src/app/docs/getting-started/page.tsx)
-- [Installation Guide](apps/cssma-docs/src/app/docs/installation/page.tsx)
-- [Core Concepts](apps/cssma-docs/src/app/docs/core-concepts/page.tsx)
-- [Plugin System](apps/cssma-docs/src/app/docs/plugin-system/page.tsx)
-- [API Reference](apps/cssma-docs/src/app/docs/api-reference/page.tsx)
-- [Examples](apps/cssma-docs/src/app/docs/examples/page.tsx)
+- [Getting Started](apps/barocss-docs/src/app/docs/getting-started/page.tsx)
+- [Installation Guide](apps/barocss-docs/src/app/docs/installation/page.tsx)
+- [Core Concepts](apps/barocss-docs/src/app/docs/core-concepts/page.tsx)
+- [Plugin System](apps/barocss-docs/src/app/docs/plugin-system/page.tsx)
+- [API Reference](apps/barocss-docs/src/app/docs/api-reference/page.tsx)
+- [Examples](apps/barocss-docs/src/app/docs/examples/page.tsx)
 
 ## 🤝 Contributing
 
@@ -162,6 +162,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- 📚 [Documentation](https://your-username.github.io/figmaikr/)
-- 🐛 [Issue Tracker](https://github.com/your-username/figmaikr/issues)
-- 💬 [Discussions](https://github.com/your-username/figmaikr/discussions)
+- 📚 [Documentation](https://your-username.github.io/barocss/)
+- 🐛 [Issue Tracker](https://github.com/your-username/barocss/issues)
+- 💬 [Discussions](https://github.com/your-username/barocss/discussions)

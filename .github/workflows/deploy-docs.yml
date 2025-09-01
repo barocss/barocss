@@ -1,4 +1,4 @@
-name: Deploy CSSMA Docs
+name: Deploy BAROCSS Docs
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '22'
         cache: 'npm'
         
     - name: Setup pnpm
@@ -27,18 +27,18 @@ jobs:
         
     - name: Install dependencies
       run: |
-        cd apps/cssma-docs
+        cd apps/barocss-docs
         pnpm install
         
     - name: Build docs
       run: |
-        cd apps/cssma-docs
-        pnpm run build
+        cd apps/barocss-docs
+        pnpm run deploy
         
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./apps/cssma-docs/out
+        publish_dir: ./apps/barocss-docs/out
         force_orphan: true 

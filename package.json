@@ -2,8 +2,8 @@
   "name": "monorepo-root",
   "private": true,
   "scripts": {
-    "build": "pnpm --filter cssma build",
-    "build:all": "pnpm -r build",
+    "build": "pnpm --filter barocss build",
+    "build:library": "pnpm -r build:library",
     "dev": "pnpm -r dev",
     "test": "pnpm -r test",
     "clean": "pnpm -r clean",
@@ -11,15 +11,10 @@
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
     "changeset:status": "changeset status",
-    "release": "pnpm build && changeset publish",
-    "ai:feature": "node scripts/ai-feature.js",
-    "ai:release": "node scripts/ai-release.js",
-    "ai:plan": "node scripts/ai-plan.js"
+    "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
-    "@figma/plugin-typings": "1.113.0",
-    "@types/node": "^20.11.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.9.2"
   }
 }

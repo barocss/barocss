@@ -1,5 +1,3 @@
 packages:
-  # 모든 패키지는 packages 디렉토리 아래에 위치합니다
-  - 'packages/*'
-  # apps 디렉토리의 모든 애플리케이션
-  - 'apps/*' 
+  - 'apps/*'
+  - 'packages/*' 
