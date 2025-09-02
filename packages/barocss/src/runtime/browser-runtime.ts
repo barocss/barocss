@@ -69,10 +69,10 @@ export class ChangeDetector {
    * by adding them to the IncrementalParser's pending queue.
    * 
    * @param root - The root element to observe (defaults to document.body)
-   * @param options - Configuration options including scan and debounce settings
+   * @param options - Configuration options including initial scan and onReady callback
    * @returns The MutationObserver instance for external control
    */
-  observe(root: HTMLElement = document.body, options?: { scan?: boolean; debounceMs?: number, onReady?: () => void }): MutationObserver {
+  observe(root: HTMLElement = document.body, options?: { scan?: boolean; onReady?: () => void }): MutationObserver {
     if (typeof window === 'undefined') {
       // Return dummy observer for Node.js environment
       return new MutationObserver(() => {});
@@ -244,13 +244,7 @@ export class ChangeDetector {
 export interface BrowserRuntimeOptions {
   config?: Config;  // full config object
   styleId?: string;
-  enableDev?: boolean;
   insertionPoint?: 'head' | 'body' | HTMLElement;
-  cacheSize?: {
-    ast?: number;
-    css?: number;
-    parseResult?: number;
-  };
   maxRulesPerPartition?: number;
 }
 
@@ -272,13 +266,7 @@ export class BrowserRuntime {
     this.options = {
       config: options.config || defaultConfig,
       styleId: options.styleId || 'barocss-runtime',
-      enableDev: options.enableDev ?? (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development'),
       insertionPoint: options.insertionPoint || 'head',
-      cacheSize: {
-        ast: options.cacheSize?.ast || 1000,
-        css: options.cacheSize?.css || 2000,
-        parseResult: options.cacheSize?.parseResult || 500
-      },
       maxRulesPerPartition: options.maxRulesPerPartition || 50,
     };
 
@@ -414,7 +402,7 @@ export class BrowserRuntime {
   /**
    * MutationObserver instance method to automatically call addClass when class attributes change in DOM
    */
-  observe(root: HTMLElement = document.body, options?: { scan?: boolean; debounceMs?: number, onReady?: () => void }): MutationObserver {
+  observe(root: HTMLElement = document.body, options?: { scan?: boolean; onReady?: () => void }): MutationObserver {
     return this.changeDetector.observe(root, options);
   }
 
@@ -491,9 +479,6 @@ export class BrowserRuntime {
     const classList = this.normalizeClasses(classes);
     for (const cls of classList) {
       this.cache.delete(cls);
-    }
-    if (this.options.enableDev) {
-      console.info('[BrowserRuntime] Classes removed from cache:', classList);
     }
   }
 

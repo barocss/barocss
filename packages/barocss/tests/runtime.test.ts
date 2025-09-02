@@ -10,8 +10,7 @@ describe('BrowserRuntime', () => {
 
   beforeEach(() => {
     runtime = new BrowserRuntime({ 
-      styleId: 'test-barocss-runtime',
-      enableDev: false 
+      styleId: 'test-barocss-runtime'
     });
   });
 
