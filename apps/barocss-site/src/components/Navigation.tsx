@@ -13,11 +13,11 @@ const Navigation: React.FC = () => {
     <nav className="bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-200/50 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="group">
-              <Logo size="md" />
-            </Link>
-          </div>
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-3 group">
+            <Logo size="md" />
+            <span className="text-2xl font-bold text-gray-900">BaroCSS</span>
+          </Link>
           
           <div className="flex items-center space-x-1">
             <Link 
@@ -31,16 +31,6 @@ const Navigation: React.FC = () => {
               Home
             </Link>
             <Link 
-              to="/docs" 
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${
-                isActive('/docs') 
-                  ? 'text-blue-600 bg-blue-50 border-blue-200' 
-                  : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50 hover:border-gray-200 border-transparent'
-              }`}
-            >
-              Documentation
-            </Link>
-            <Link 
               to="/examples" 
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${
                 isActive('/examples') 
@@ -50,6 +40,14 @@ const Navigation: React.FC = () => {
             >
               Examples
             </Link>
+            <a 
+              href="https://docs.barocss.com" 
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border text-gray-700 hover:text-blue-600 hover:bg-gray-50 hover:border-gray-200 border-transparent"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Documentation
+            </a>
           </div>
         </div>
       </div>

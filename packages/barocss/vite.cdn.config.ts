@@ -12,7 +12,6 @@ export default defineConfig({
     rollupOptions: {
       external: [],
       output: {
-        globals: {},
         // 모든 의존성을 단일 파일에 번들링
         inlineDynamicImports: true
       }

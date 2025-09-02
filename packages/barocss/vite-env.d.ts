@@ -1,11 +1,8 @@
 /// <reference types="vite/client" />
 
-declare module "*.css?raw" {
-  const content: string;
-  export default content;
-}
 
-declare module "*.css.template?raw" {
-  const content: string;
-  export default content;
-}
+
+
+
+// This file is no longer needed since we removed ?raw imports
+// All CSS content is now exported as TypeScript variables

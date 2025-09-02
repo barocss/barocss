@@ -2,9 +2,7 @@ import { defaultTheme } from "../theme";
 import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
 import { clearAllCaches } from "../utils/cache";
 import { type Plugin } from "./plugin";
-import preflightMinimalCSS from "../css/preflight-minimal.css?raw";
-import preflightStandardCSS from "../css/preflight-standard.css?raw";
-import preflightFullCSS from "../css/preflight-full.css?raw";
+import { preflightMinimalCSS, preflightStandardCSS, preflightFullCSS } from "../css/preflight";
 
 type PreflightLevel = 'minimal' | 'standard' | 'full' | true | false;
 

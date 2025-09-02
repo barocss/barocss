@@ -127,7 +127,7 @@ import { BrowserRuntime } from 'barocss/runtime/browser';
 const runtime = new BrowserRuntime({
   config: {
     // Preflight level: true | false | 'minimal' | 'standard' | 'full'
-    // true는 전체 프리플라이트 CSS 삽입, false는 비활성화
+    // true inserts full preflight CSS; false disables preflight
     preflight: 'minimal',
     theme: {
       colors: {
@@ -187,11 +187,11 @@ const runtime = new BrowserRuntime({
   },
 });
 
-// observe 옵션
+// observe options
 runtime.observe(document.body, {
-  // DOM 초기 스캔 수행 여부 (기존 class 속성 즉시 처리)
+  // Whether to perform an initial DOM scan (process existing class attributes immediately)
   scan: true,
-  // scan 처리 이후 호출되는 콜백
+  // Callback invoked after the scan completes
   onReady: () => {},
 });
 ```

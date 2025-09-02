@@ -6,13 +6,19 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-gray-900 text-white py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-4 gap-8 mb-12">
-          <div className="space-y-4">
-            <Logo size="sm" showText={true} />
-            <p className="text-gray-400 text-sm">
-              Instant CSS with Baroque Elegance. Transform your development workflow.
-            </p>
+        {/* Logo and Description */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <Logo size="md" />
+            <span className="text-2xl font-bold text-gray-900">BaroCSS</span>
           </div>
+          <p className="text-gray-600 max-w-md">
+            Revolutionary real-time CSS library that implements Tailwind CSS's JIT mode. 
+            Generate beautiful, responsive styles instantly.
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-4 gap-8 mb-12">
           
           <div className="space-y-4">
             <h3 className="font-semibold text-lg">Product</h3>
