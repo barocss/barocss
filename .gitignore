@@ -189,3 +189,6 @@ lerna-debug.log*
 
 # turbo
 .turbo
+
+# vitepress
+.vitepress/cache
