@@ -13,7 +13,7 @@ Brief description of the changes made in this PR.
 - [ ] **Changeset created** (`pnpm changeset`)
 - [ ] **Correct change type selected** (patch/minor/major)
 - [ ] **Clear description provided** in changeset
-- [ ] **Package selection verified** (cssma for core library changes)
+- [ ] **Package selection verified** (barocss for core library changes)
 
 ## Testing Checklist
 - [ ] **Tests pass locally** (`pnpm test`)

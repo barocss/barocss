@@ -38,7 +38,7 @@ body:
     attributes:
       label: Which component does this relate to?
       options:
-        - Core Library (cssma)
+        - Core Library (barocss)
         - Figma Plugin
         - Documentation
         - Build System

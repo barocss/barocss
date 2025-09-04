@@ -1,0 +1,109 @@
+---
+title: Blog
+description: Latest updates, tutorials, and insights about BaroCSS
+---
+
+<div class="blog-layout">
+  <div class="blog-header">
+    <h1>BaroCSS Blog</h1>
+    <p>Stay updated with the latest news, tutorials, and insights about BaroCSS. Discover new features, best practices, and community stories.</p>
+    <div class="blog-subscribe">
+      <a href="/blog/feed.xml" class="rss-link" title="Subscribe to RSS feed">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M6.503 20.752c0 1.794-1.456 3.248-3.251 3.248S0 22.546 0 20.752s1.456-3.248 3.252-3.248 3.251 1.454 3.251 3.248zM2.111 0C9.465 0 16.9 7.434 16.9 16.788h-3.252C13.648 10.28 8.62 5.252 2.111 5.252V0zm0 5.252c5.238 0 9.49 4.252 9.49 9.49h-3.252c0-3.446-2.792-6.238-6.238-6.238V5.252z"/>
+        </svg>
+        RSS Feed
+      </a>
+    </div>
+  </div>
+
+  <div class="blog-posts-list">
+    <article class="blog-post-item">
+      <div class="blog-post-meta">
+        <span class="blog-post-date">Jan 25, 2025</span>
+        <span class="blog-post-category">announcements</span>
+      </div>
+      <h2 class="blog-post-title">
+        <a href="/blog/2025/new-features-announcement">New Features in BaroCSS v1.1</a>
+      </h2>
+      <p class="blog-post-excerpt">
+        Exciting new features including improved performance, new utility classes, and enhanced developer experience.
+      </p>
+      <div class="blog-post-tags">
+        <a href="/blog/tags/features" class="blog-post-tag">features</a><a href="/blog/tags/update" class="blog-post-tag">update</a><a href="/blog/tags/performance" class="blog-post-tag">performance</a>
+      </div>
+    </article>
+    <article class="blog-post-item">
+      <div class="blog-post-meta">
+        <span class="blog-post-date">Jan 20, 2025</span>
+        <span class="blog-post-category">test</span>
+      </div>
+      <h2 class="blog-post-title">
+        <a href="/blog/2025/test-post">Test Blog Post</a>
+      </h2>
+      <p class="blog-post-excerpt">
+        A simple test post to verify blog functionality
+      </p>
+      <div class="blog-post-tags">
+        <a href="/blog/tags/test" class="blog-post-tag">test</a>
+      </div>
+    </article>
+    <article class="blog-post-item">
+      <div class="blog-post-meta">
+        <span class="blog-post-date">Jan 15, 2025</span>
+        <span class="blog-post-category">announcements</span>
+      </div>
+      <h2 class="blog-post-title">
+        <a href="/blog/2025/introducing-barocss">Introducing BaroCSS</a>
+      </h2>
+      <p class="blog-post-excerpt">
+        We're excited to announce the release of BaroCSS, a modern utility-first CSS framework built for the next generation of web development.
+      </p>
+      <div class="blog-post-tags">
+        <a href="/blog/tags/announcement" class="blog-post-tag">announcement</a><a href="/blog/tags/release" class="blog-post-tag">release</a><a href="/blog/tags/framework" class="blog-post-tag">framework</a>
+      </div>
+    </article>
+    <article class="blog-post-item">
+      <div class="blog-post-meta">
+        <span class="blog-post-date">Jan 15, 2025</span>
+        <span class="blog-post-category">"Innovation"</span>
+      </div>
+      <h2 class="blog-post-title">
+        <a href="/blog/2025/the-future-of-ai-driven-ui">"The Future of AI-Driven UI Development with BaroCSS"</a>
+      </h2>
+      <p class="blog-post-excerpt">
+        "How BaroCSS is paving the way for AI-generated UI components that render instantly without build processes"
+      </p>
+      <div class="blog-post-tags">
+        <a href="/blog/tags/ai" class="blog-post-tag">ai</a><a href="/blog/tags/future" class="blog-post-tag">future</a><a href="/blog/tags/ui-generation" class="blog-post-tag">ui-generation</a><a href="/blog/tags/innovation" class="blog-post-tag">innovation</a>
+      </div>
+    </article>
+    <article class="blog-post-item">
+      <div class="blog-post-meta">
+        <span class="blog-post-date">Jan 10, 2025</span>
+        <span class="blog-post-category">tutorials</span>
+      </div>
+      <h2 class="blog-post-title">
+        <a href="/blog/2025/utility-first-approach">The Utility-First Approach</a>
+      </h2>
+      <p class="blog-post-excerpt">
+        Learn about the philosophy behind utility-first CSS and how it can transform your development workflow.
+      </p>
+      <div class="blog-post-tags">
+        <a href="/blog/tags/philosophy" class="blog-post-tag">philosophy</a><a href="/blog/tags/methodology" class="blog-post-tag">methodology</a><a href="/blog/tags/css" class="blog-post-tag">css</a>
+      </div>
+    </article>
+  </div>
+
+  <div class="blog-categories">
+    <a href="/blog/category/announcements" class="blog-category-link">Announcements</a><a href="/blog/category/test" class="blog-category-link">Test</a><a href="/blog/category/"Innovation"" class="blog-category-link">"Innovation"</a><a href="/blog/category/tutorials" class="blog-category-link">Tutorials</a>
+    <a href="/blog/tags/" class="blog-category-link">All Tags</a>
+  </div>
+
+  <div class="blog-archive">
+    <h3>Archive</h3>
+    <div class="blog-archive-links">
+      <a href="/blog/2025" class="blog-archive-link">2025</a>
+    </div>
+  </div>
+</div>

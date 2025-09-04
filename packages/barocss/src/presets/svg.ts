@@ -1,0 +1,65 @@
+import { decl } from "../core/ast";
+import { staticUtility, functionalUtility } from "../core/registry";
+import { parseNumber } from "../core/utils";
+
+// --- Fill Utilities ---
+//  fill documentation
+
+// Static fill values
+staticUtility("fill-inherit", [["fill", "inherit"]], { category: 'svg' });
+staticUtility("fill-current", [["fill", "currentColor"]], { category: 'svg' });
+staticUtility("fill-transparent", [["fill", "transparent"]], { category: 'svg' });
+staticUtility("fill-black", [["fill", "#000"]], { category: 'svg' });
+staticUtility("fill-white", [["fill", "#fff"]], { category: 'svg' });
+
+// Functional: theme color, arbitrary, custom property
+functionalUtility({
+  name: "fill",
+  themeKeys: ["colors"],
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handle: (value, ctx, token, extra) => {
+    if (extra?.realThemeValue) {
+      return [decl("fill", `var(--color-${extra.realThemeValue})`)];
+    }
+    return [decl("fill", value)];
+  },
+  description: "fill utility (static, theme, arbitrary, custom property supported)",
+  category: "svg",
+});
+
+// --- Stroke Utilities ---
+//  stroke documentation
+staticUtility("stroke-inherit", [["stroke", "inherit"]], { category: 'svg' });
+staticUtility("stroke-current", [["stroke", "currentColor"]], { category: 'svg' });
+staticUtility("stroke-transparent", [["stroke", "transparent"]], { category: 'svg' });
+staticUtility("stroke-black", [["stroke", "#000"]], { category: 'svg' });
+staticUtility("stroke-white", [["stroke", "#fff"]], { category: 'svg' });
+
+functionalUtility({
+  name: "stroke",
+  themeKeys: ["colors"],
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handle: (value, ctx, token, extra) => {
+
+    if (parseNumber(value)) {
+      return [decl("stroke-width", value)];
+    }
+
+    if (extra?.realThemeValue) {
+      return [decl("stroke", `var(--color-${extra.realThemeValue})`)];
+    }
+    return [decl("stroke", value)];
+  },
+  handleCustomProperty: (value) => {
+    if (value.startsWith("length:")) {
+      const cp = value.replace("length:", "");
+      return [decl("stroke-width", `var(${cp})`)];
+    }
+    return [decl("stroke", `var(${value})`)];
+  },
+  description: "stroke utility (static, theme, arbitrary, custom property supported)",
+  category: "svg",
+});
+

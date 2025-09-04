@@ -1,0 +1,46 @@
+import { functionalModifier } from "../../core/registry";
+
+// not-[]: functionalModifier for arbitrary negation
+functionalModifier(
+  (mod: string) => /^not-\[.*\]$/.test(mod),
+  ({ selector, mod }) => {
+    const m = /^not-\[(.+)\]$/.exec(mod.type);
+    if (m) {
+
+      if (m[1].startsWith('.')) {
+        return {
+          selector: `&:not(${m[1]})`,
+          flatten: false,
+          wrappingType: 'rule',
+          source: 'attribute'
+        };
+      }
+
+      return {
+        selector: `&:not([${m[1]}])`,
+        flatten: false,
+        wrappingType: 'rule',
+        source: 'attribute'
+      };
+    }
+    
+    return {
+      selector,
+      source: 'attribute'
+    };
+  }
+);
+
+// not-: functionalModifier for pseudo-class negation
+functionalModifier(
+  (mod: string) => /^not-/.test(mod),
+  ({ selector, mod }) => {
+    const m = /^not-(.+)$/.exec(mod.type);
+    return {
+      selector: m ? `&:not(:${m[1]})` : selector,
+      flatten: false,
+      wrappingType: 'rule',
+      source: 'attribute'
+    };
+  }
+); 

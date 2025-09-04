@@ -1,0 +1,19 @@
+import { staticModifier } from "../../core/registry";
+
+// --- Form state variants ---
+staticModifier('disabled', ['&:disabled'], { source: 'pseudo' });
+staticModifier('checked', ['&:checked'], { source: 'pseudo' });
+staticModifier('required', ['&:required'], { source: 'pseudo' });
+staticModifier('invalid', ['&:invalid'], { source: 'pseudo' });
+staticModifier('enabled', ['&:enabled'], { source: 'pseudo' });
+staticModifier('indeterminate', ['&:indeterminate'], { source: 'pseudo' });
+staticModifier('default', ['&:default'], { source: 'pseudo' });
+staticModifier('optional', ['&:optional'], { source: 'pseudo' });
+staticModifier('valid', ['&:valid'], { source: 'pseudo' });
+staticModifier('user-valid', ['&:user-valid'], { source: 'pseudo' });
+staticModifier('user-invalid', ['&:user-invalid'], { source: 'pseudo' });
+staticModifier('in-range', ['&:in-range'], { source: 'pseudo' });
+staticModifier('out-of-range', ['&:out-of-range'], { source: 'pseudo' });
+staticModifier('placeholder-shown', ['&:placeholder-shown'], { source: 'pseudo' });
+staticModifier('autofill', ['&:autofill'], { source: 'pseudo' });
+staticModifier('read-only', ['&:read-only'], { source: 'pseudo' }); 

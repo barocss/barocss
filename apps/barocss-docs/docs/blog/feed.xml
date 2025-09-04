@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>BaroCSS Blog</title>
+    <description>Latest updates, tutorials, and insights about BaroCSS</description>
+    <link>https://barocss.com/blog</link>
+    <atom:link href="https://barocss.com/blog/feed.xml" rel="self" type="application/rss+xml"/>
+    <language>en-US</language>
+    <lastBuildDate>Thu, 04 Sep 2025 15:54:25 GMT</lastBuildDate>
+    <generator>BaroCSS RSS Generator</generator>
+    <item>
+      <title><![CDATA[New Features in BaroCSS v1.1]]></title>
+      <description><![CDATA[Exciting new features including improved performance, new utility classes, and enhanced developer experience.]]></description>
+      <link>https://barocss.com/blog/2025/new-features-announcement</link>
+      <guid isPermaLink="true">https://barocss.com/blog/2025/new-features-announcement</guid>
+      <pubDate>Sat, 25 Jan 2025 00:00:00 GMT</pubDate>
+      <author><![CDATA[BaroCSS Team]]></author>
+      <category><![CDATA[announcements]]></category>
+      <category><![CDATA[features]]></category>
+      <category><![CDATA[update]]></category>
+      <category><![CDATA[performance]]></category>
+    </item>
+    <item>
+      <title><![CDATA[Test Blog Post]]></title>
+      <description><![CDATA[A simple test post to verify blog functionality]]></description>
+      <link>https://barocss.com/blog/2025/test-post</link>
+      <guid isPermaLink="true">https://barocss.com/blog/2025/test-post</guid>
+      <pubDate>Mon, 20 Jan 2025 00:00:00 GMT</pubDate>
+      <author><![CDATA[Test Author]]></author>
+      <category><![CDATA[test]]></category>
+      <category><![CDATA[test]]></category>
+    </item>
+    <item>
+      <title><![CDATA[Introducing BaroCSS]]></title>
+      <description><![CDATA[We're excited to announce the release of BaroCSS, a modern utility-first CSS framework built for the next generation of web development.]]></description>
+      <link>https://barocss.com/blog/2025/introducing-barocss</link>
+      <guid isPermaLink="true">https://barocss.com/blog/2025/introducing-barocss</guid>
+      <pubDate>Wed, 15 Jan 2025 00:00:00 GMT</pubDate>
+      <author><![CDATA[BaroCSS Team]]></author>
+      <category><![CDATA[announcements]]></category>
+      <category><![CDATA[announcement]]></category>
+      <category><![CDATA[release]]></category>
+      <category><![CDATA[framework]]></category>
+    </item>
+    <item>
+      <title><![CDATA["The Future of AI-Driven UI Development with BaroCSS"]]></title>
+      <description><![CDATA["How BaroCSS is paving the way for AI-generated UI components that render instantly without build processes"]]></description>
+      <link>https://barocss.com/blog/2025/the-future-of-ai-driven-ui</link>
+      <guid isPermaLink="true">https://barocss.com/blog/2025/the-future-of-ai-driven-ui</guid>
+      <pubDate>Wed, 15 Jan 2025 00:00:00 GMT</pubDate>
+      <author><![CDATA["BaroCSS Team"]]></author>
+      <category><![CDATA["Innovation"]]></category>
+      <category><![CDATA[ai]]></category>
+      <category><![CDATA[future]]></category>
+      <category><![CDATA[ui-generation]]></category>
+      <category><![CDATA[innovation]]></category>
+    </item>
+    <item>
+      <title><![CDATA[The Utility-First Approach]]></title>
+      <description><![CDATA[Learn about the philosophy behind utility-first CSS and how it can transform your development workflow.]]></description>
+      <link>https://barocss.com/blog/2025/utility-first-approach</link>
+      <guid isPermaLink="true">https://barocss.com/blog/2025/utility-first-approach</guid>
+      <pubDate>Fri, 10 Jan 2025 00:00:00 GMT</pubDate>
+      <author><![CDATA[BaroCSS Team]]></author>
+      <category><![CDATA[tutorials]]></category>
+      <category><![CDATA[philosophy]]></category>
+      <category><![CDATA[methodology]]></category>
+      <category><![CDATA[css]]></category>
+    </item>
+    <item>
+      <title><![CDATA[Getting Started with BaroCSS]]></title>
+      <description><![CDATA[A comprehensive guide to setting up BaroCSS in your project and writing your first utility classes.]]></description>
+      <link>https://barocss.com/blog/2025/getting-started</link>
+      <guid isPermaLink="true">https://barocss.com/blog/2025/getting-started</guid>
+      <pubDate>Sun, 05 Jan 2025 00:00:00 GMT</pubDate>
+      <author><![CDATA[BaroCSS Team]]></author>
+      <category><![CDATA[tutorials]]></category>
+      <category><![CDATA[tutorial]]></category>
+      <category><![CDATA[setup]]></category>
+      <category><![CDATA[beginner]]></category>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,18 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Main background circle -->
+  <circle cx="32" cy="32" r="30" fill="url(#bgGradient)"/>
+  
+  <!-- Lightning bolt for "바로" (instant) -->
+  <path d="M32 12 L20 32 L32 28 L28 52" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Center accent -->
+  <circle cx="32" cy="32" r="3" fill="white"/>
+</svg>

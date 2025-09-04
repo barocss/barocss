@@ -1,0 +1,62 @@
+{
+  "name": "barocss",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    },
+    "./theme/default": {
+      "types": "./src/theme/default.ts",
+      "import": "./src/theme/default.ts"
+    },
+    "./runtime/browser": {
+      "types": "./src/runtime/browser-runtime.ts",
+      "import": "./src/runtime/browser-runtime.ts"
+    },
+    "./runtime/server": {
+      "types": "./src/runtime/server-runtime.ts",
+      "import": "./src/runtime/server-runtime.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./runtime/browser": {
+        "types": "./dist/runtime/browser.d.ts",
+        "import": "./dist/runtime/browser.js"
+      },
+      "./runtime/server": {
+        "types": "./dist/runtime/server.d.ts",
+        "import": "./dist/runtime/server.js"
+      },
+      "./theme/default": {
+        "types": "./dist/theme/default.d.ts",
+        "import": "./dist/theme/default.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "build:cdn": "vite build --config vite.cdn.config.ts",
+    "build:library": "pnpm run build && pnpm run build:cdn",
+    "test:watch": "vitest",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "vite": "^7.1.3",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.4"
+  }
+}
