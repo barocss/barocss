@@ -5,7 +5,7 @@ description: Understanding BaroCSS's Just-In-Time CSS generation and its advanta
 
 # JIT Mode
 
-BaroCSS implements a revolutionary Just-In-Time (JIT) CSS generation system that creates styles only when they're needed, providing optimal performance and minimal bundle sizes.
+BaroCSS implements a revolutionary Just-In-Time (JIT) CSS generation system that creates styles only when they're needed, providing optimal performance and minimal bundle sizes. Built from the ground up to support the complete utility-first syntax in real-time.
 
 ## What is JIT Mode?
 

@@ -9,10 +9,10 @@ BaroCSS revolutionizes CSS development by generating styles in real-time, elimin
 
 ## The Problem with Traditional CSS Frameworks
 
-Traditional CSS frameworks like Tailwind CSS require a build step that can take 30+ seconds:
+Traditional utility-first CSS frameworks require a build step that can take 30+ seconds:
 
 ```bash
-# Traditional Tailwind CSS workflow
+# Traditional utility-first CSS workflow
 npm run build  # 30+ seconds of waiting
 # CSS is generated from source files
 # Changes require rebuilding

@@ -1,9 +1,14 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from "vitepress-plugin-mermaid";
 
-export default defineConfig({
+export default defineConfig(withMermaid({
   title: 'BaroCSS',
   description: 'real-time CSS engine',
   lang: 'en-US',
+
+  mermaidPlugin: {
+    class: "mermaid my-class", // set additional css classes for parent container 
+  },
   
   // Blog configuration
   blog: {
@@ -45,6 +50,7 @@ export default defineConfig({
           items: [
             { text: 'Introduction', link: '/guide/' },
             { text: 'Installation', link: '/guide/installation' },
+            { text: 'CDN Usage', link: '/guide/cdn-usage' },
             { text: 'Quick Start', link: '/guide/quick-start' }
           ]
         },
@@ -58,6 +64,20 @@ export default defineConfig({
             { text: 'Smart Caching', link: '/guide/smart-caching' },
             { text: 'Runtime APIs', link: '/guide/runtime-apis' },
             { text: 'CSS Variables', link: '/guide/css-variables' }
+          ]
+        },
+        {
+          text: 'AI Integration',
+          items: [
+            { text: 'Overview', link: '/guide/ai-integration' },
+            { text: 'Build-free UI Generation', link: '/guide/ai-integration/build-free-ui' },
+            { text: 'Vanilla HTML', link: '/guide/ai-integration/vanilla-html' },
+            { text: 'React', link: '/guide/ai-integration/react' },
+            { text: 'Vue', link: '/guide/ai-integration/vue' },
+            { text: 'Svelte', link: '/guide/ai-integration/svelte' },
+            { text: 'SolidJS', link: '/guide/ai-integration/solid' },
+            { text: 'jQuery', link: '/guide/ai-integration/jquery' },
+            { text: 'Partial UI Updates', link: '/guide/ai-integration/partial-updates' }
           ]
         },
         {
@@ -432,4 +452,4 @@ export default defineConfig({
   markdown: {
     lineNumbers: true
   }
-})
+}))

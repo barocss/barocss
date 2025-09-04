@@ -65,6 +65,21 @@ description: Latest updates, tutorials, and insights about BaroCSS
     </article>
     <article class="blog-post-item">
       <div class="blog-post-meta">
+        <span class="blog-post-date">Jan 15, 2025</span>
+        <span class="blog-post-category">"Innovation"</span>
+      </div>
+      <h2 class="blog-post-title">
+        <a href="/blog/2025/the-future-of-ai-driven-ui">"The Future of AI-Driven UI Development with BaroCSS"</a>
+      </h2>
+      <p class="blog-post-excerpt">
+        "How BaroCSS is paving the way for AI-generated UI components that render instantly without build processes"
+      </p>
+      <div class="blog-post-tags">
+        <a href="/blog/tags/ai" class="blog-post-tag">ai</a><a href="/blog/tags/future" class="blog-post-tag">future</a><a href="/blog/tags/ui-generation" class="blog-post-tag">ui-generation</a><a href="/blog/tags/innovation" class="blog-post-tag">innovation</a>
+      </div>
+    </article>
+    <article class="blog-post-item">
+      <div class="blog-post-meta">
         <span class="blog-post-date">Jan 10, 2025</span>
         <span class="blog-post-category">tutorials</span>
       </div>
@@ -78,25 +93,10 @@ description: Latest updates, tutorials, and insights about BaroCSS
         <a href="/blog/tags/philosophy" class="blog-post-tag">philosophy</a><a href="/blog/tags/methodology" class="blog-post-tag">methodology</a><a href="/blog/tags/css" class="blog-post-tag">css</a>
       </div>
     </article>
-    <article class="blog-post-item">
-      <div class="blog-post-meta">
-        <span class="blog-post-date">Jan 5, 2025</span>
-        <span class="blog-post-category">tutorials</span>
-      </div>
-      <h2 class="blog-post-title">
-        <a href="/blog/2025/getting-started">Getting Started with BaroCSS</a>
-      </h2>
-      <p class="blog-post-excerpt">
-        A comprehensive guide to setting up BaroCSS in your project and writing your first utility classes.
-      </p>
-      <div class="blog-post-tags">
-        <a href="/blog/tags/tutorial" class="blog-post-tag">tutorial</a><a href="/blog/tags/setup" class="blog-post-tag">setup</a><a href="/blog/tags/beginner" class="blog-post-tag">beginner</a>
-      </div>
-    </article>
   </div>
 
   <div class="blog-categories">
-    <a href="/blog/category/announcements" class="blog-category-link">Announcements</a><a href="/blog/category/test" class="blog-category-link">Test</a><a href="/blog/category/tutorials" class="blog-category-link">Tutorials</a>
+    <a href="/blog/category/announcements" class="blog-category-link">Announcements</a><a href="/blog/category/test" class="blog-category-link">Test</a><a href="/blog/category/"Innovation"" class="blog-category-link">"Innovation"</a><a href="/blog/category/tutorials" class="blog-category-link">Tutorials</a>
     <a href="/blog/tags/" class="blog-category-link">All Tags</a>
   </div>
 

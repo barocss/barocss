@@ -8,11 +8,11 @@ description: Browse all blog posts by tags
   <p>Browse blog posts by tags to find content that interests you. Click on any tag to see related posts.</p>
   <div class="tags-stats">
     <div class="stat-item">
-      <span class="stat-number">13</span>
+      <span class="stat-number">17</span>
       <span class="stat-label">Total Tags</span>
     </div>
     <div class="stat-item">
-      <span class="stat-number">5</span>
+      <span class="stat-number">6</span>
       <span class="stat-label">Blog Posts</span>
     </div>
   </div>
@@ -27,6 +27,10 @@ description: Browse all blog posts by tags
     <a href="/blog/tags/announcement" class="tag-link tag-small">announcement</a>
     <a href="/blog/tags/release" class="tag-link tag-small">release</a>
     <a href="/blog/tags/framework" class="tag-link tag-small">framework</a>
+    <a href="/blog/tags/ai" class="tag-link tag-small">ai</a>
+    <a href="/blog/tags/future" class="tag-link tag-small">future</a>
+    <a href="/blog/tags/ui-generation" class="tag-link tag-small">ui-generation</a>
+    <a href="/blog/tags/innovation" class="tag-link tag-small">innovation</a>
     <a href="/blog/tags/philosophy" class="tag-link tag-small">philosophy</a>
     <a href="/blog/tags/methodology" class="tag-link tag-small">methodology</a>
     <a href="/blog/tags/css" class="tag-link tag-small">css</a>

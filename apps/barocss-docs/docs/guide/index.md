@@ -1,44 +1,50 @@
 # Introduction to BaroCSS
 
-BaroCSS is a revolutionary real-time CSS library that implements Tailwind CSS's JIT (Just-In-Time) mode with advanced features for modern web development.
+BaroCSS is a **next-generation CSS runtime** that brings the power of utility-first CSS to real-time development. We've built a completely new parser from the ground up to support the full Tailwind syntax in the browser, eliminating build processes while maintaining all the performance benefits of JIT compilation.
 
 ## What is BaroCSS?
 
-BaroCSS combines the utility-first approach of Tailwind CSS with real-time CSS generation, eliminating the need for build processes while maintaining the performance benefits of JIT compilation.
+BaroCSS is a revolutionary CSS runtime designed for real-time development. It supports the complete Tailwind syntax without requiring build processes, making it perfect for AI-generated UI components and developers who need instant feedback.
 
 ### Core Philosophy
 
+- **Next-Generation Runtime**: Built from the ground up for real-time CSS generation
+- **Full Syntax Support**: Complete Tailwind syntax support without build processes
 - **Real-time Generation**: CSS is generated instantly as you type
-- **JIT Optimization**: Only generate the CSS you actually use
-- **Developer Experience**: Intuitive API with comprehensive tooling
+- **AI-Ready Architecture**: Designed for AI-generated UI components
+- **Zero Build Time**: Eliminate compilation delays completely
 - **Performance First**: Optimized for speed and efficiency
 
 ## Key Features
 
-### ⚡ Real-time CSS Generation
-No more waiting for builds to complete. CSS is generated on-the-fly as you develop, providing instant feedback and a seamless development experience.
+### ⚡ Next-Generation Runtime
+Built from the ground up with advanced parsing capabilities. Experience the power of utility-first CSS without build processes.
 
-### 🎯 JIT Mode
-Just-In-Time compilation ensures that only the CSS classes you actually use are generated, resulting in minimal bundle sizes and optimal performance.
+### 🎯 Real-time JIT Compilation
+Just-In-Time compilation happens instantly in the browser. Only the CSS classes you actually use are generated, resulting in minimal bundle sizes and optimal performance.
 
-### 🎨 Baroque Elegance
-Beautiful, artistic CSS with attention to detail, visual harmony, and sophisticated design patterns that go beyond basic utility classes.
+### 🤖 AI-Ready Architecture
+Designed for the future of AI-driven development. When AI generates Tailwind-based UI components, BaroCSS ensures they render instantly without any build steps.
+
+### 🧠 Intelligent Parsing
+Advanced incremental parsing with smart caching, DOM change detection, and optimized performance for real-time development.
 
 ### 🔧 TypeScript Support
 Full TypeScript support with autocomplete, error checking, and type safety throughout the development process.
 
-### 🌐 Responsive Design
-Built-in responsive utilities for all screen sizes with a mobile-first approach, making responsive design effortless.
+### 🌐 Production Ready
+Battle-tested runtime that scales from development to production with consistent performance and reliability.
 
 ## Quick Comparison
 
-| Feature | Traditional CSS | BaroCSS |
-|---------|----------------|---------|
+| Feature | Traditional Tailwind | BaroCSS |
+|---------|---------------------|---------|
 | Build Time | 30s+ | 0ms |
 | Bundle Size | Large | Minimal |
 | Development Speed | Slow | Instant |
-| Type Safety | None | Full |
-| Responsive | Manual | Built-in |
+| AI Integration | Complex | Native |
+| Type Safety | Limited | Full |
+| Runtime Performance | N/A | Optimized |
 
 ## Next Steps
 

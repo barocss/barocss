@@ -11,20 +11,20 @@ category: announcements
 
 **By BaroCSS Team • January 15, 2025 • Announcements**
 
-We're excited to announce the release of BaroCSS, a modern utility-first CSS framework built for the next generation of web development.
+We're excited to announce the release of BaroCSS, a next-generation CSS runtime built for real-time development and AI-driven UI generation.
 
 ## What is BaroCSS?
 
-BaroCSS is a utility-first CSS framework that provides low-level utility classes to build complex designs directly in your markup. It's designed to be fast, flexible, and developer-friendly.
+BaroCSS is a revolutionary CSS runtime that brings the power of utility-first CSS to real-time development. Built from the ground up with a completely new parser, it supports the complete Tailwind syntax without requiring build processes, making it perfect for AI-generated UI components and developers who need instant feedback.
 
 ### Key Features
 
-- **Utility-First**: Build complex designs with utility classes
-- **Responsive Design**: Mobile-first responsive utilities
-- **Dark Mode**: Built-in dark mode support
-- **Customizable**: Easy to customize and extend
-- **Performance**: Optimized for production builds
-- **Modern CSS**: Uses the latest CSS features and best practices
+- **Real-time Generation**: CSS generated instantly without build processes
+- **Full Syntax Support**: Complete Tailwind syntax support in the browser
+- **AI-Ready Architecture**: Perfect for AI-generated UI components
+- **Zero Build Time**: Eliminate compilation delays completely
+- **Intelligent Parsing**: Advanced incremental parsing with smart caching
+- **TypeScript Support**: Full TypeScript support with comprehensive APIs
 
 ## Why BaroCSS?
 

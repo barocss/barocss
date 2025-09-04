@@ -27,7 +27,9 @@ pnpm add barocss
 
 ## CDN Installation
 
-For quick prototyping or when you don't want to use a package manager, you can include BaroCSS directly via CDN:
+For quick prototyping or when you don't want to use a package manager, you can include BaroCSS directly via CDN. BaroCSS provides both UMD and ES module builds for maximum compatibility.
+
+### Option 1: UMD Build (Recommended for Simple HTML)
 
 ```html
 <!DOCTYPE html>
@@ -37,21 +39,106 @@ For quick prototyping or when you don't want to use a package manager, you can i
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BaroCSS Demo</title>
   
-  <!-- BaroCSS Runtime -->
-  <script src="https://unpkg.com/barocss@latest/dist/runtime/browser.js"></script>
-  
-  <!-- BaroCSS Runtime -->
-   <script>
-    const runtime = new BaroCSS.BrowserRuntime();
-    runtime.observe(document.body, { scan: true });
-   </script>
+  <!-- BaroCSS UMD Build -->
+  <script src="https://unpkg.com/barocss@latest/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body>
   <div class="bg-blue-500 text-white p-4 rounded-lg">
     Hello BaroCSS!
   </div>
+
+  <script>
+    // Initialize BaroCSS Runtime
+    const runtime = new BaroCSS.BrowserRuntime();
+    runtime.observe(document.body, { scan: true });
+  </script>
 </body>
 </html>
+```
+
+### Option 2: ES Module Build
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BaroCSS Demo</title>
+</head>
+<body>
+  <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-6 rounded-xl">
+    <h1 class="text-3xl font-bold mb-4">BaroCSS ES Module</h1>
+    <p class="text-lg opacity-90">Modern ES modules with dynamic imports</p>
+  </div>
+
+  <script type="module">
+    // Import BaroCSS as ES module
+    import { BrowserRuntime } from 'https://unpkg.com/barocss@latest/dist/cdn/barocss.js';
+    
+    // Initialize with configuration
+    const runtime = new BrowserRuntime({
+      config: {
+        preflight: 'minimal',
+        theme: {
+          colors: {
+            brand: '#8b5cf6'
+          }
+        }
+      }
+    });
+    
+    runtime.observe(document.body, { 
+      scan: true,
+      onReady: () => console.log('BaroCSS initialized!')
+    });
+  </script>
+</body>
+</html>
+```
+
+### Option 3: Dynamic Import (Advanced)
+
+```html
+<script>
+async function initBaroCSS() {
+  // Dynamically import BaroCSS
+  const { BrowserRuntime } = await import('https://unpkg.com/barocss@latest/dist/cdn/barocss.js');
+  
+  const runtime = new BrowserRuntime();
+  runtime.observe(document.body, { scan: true });
+  
+  // Add some dynamic content
+  document.body.innerHTML += `
+    <div class="mt-4 p-4 bg-green-500 text-white rounded-lg">
+      Dynamically loaded BaroCSS!
+    </div>
+  `;
+}
+
+// Load when needed
+initBaroCSS();
+</script>
+```
+
+### CDN Providers
+
+BaroCSS is available on multiple CDN providers:
+
+- **unpkg**: `https://unpkg.com/barocss@latest/dist/cdn/`
+- **jsDelivr**: `https://cdn.jsdelivr.net/npm/barocss@latest/dist/cdn/`
+- **esm.sh**: `https://esm.sh/barocss/runtime/browser` (ES modules only)
+
+### Version Pinning
+
+For production use, always pin to a specific version:
+
+```html
+<!-- Pin to specific version -->
+<script src="https://unpkg.com/barocss@0.1.0/dist/cdn/barocss.umd.cjs"></script>
+
+<!-- Or use version range -->
+<script src="https://unpkg.com/barocss@^0.1.0/dist/cdn/barocss.umd.cjs"></script>
 ```
 
 ## Framework Integration
