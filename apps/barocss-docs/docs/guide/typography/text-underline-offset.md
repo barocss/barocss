@@ -6,13 +6,13 @@ Utilities for controlling the offset of a text underline.
 
 | Class                       | Styles                                   |
 |-----------------------------|------------------------------------------|
-| `underline-offset-<number>` | `text-underline-offset: <number>px;`     |
-| `-underline-offset-<number>`| `text-underline-offset: calc(<number>px * -1);` |
+| `underline-offset-&lt;number&gt;` | `text-underline-offset: &lt;number&gt;px;`     |
+| `-underline-offset-&lt;number&gt;`| `text-underline-offset: calc(&lt;number&gt;px * -1);` |
 | `underline-offset-auto`     | `text-underline-offset: auto;`           |
-| `underline-offset-(<custom-property>)` | `text-underline-offset: var(<custom-property>);` |
-| `underline-offset-[<value>]`| `text-underline-offset: <value>;`        |
+| `underline-offset-(&lt;custom-property&gt;)` | `text-underline-offset: var(&lt;custom-property&gt;);` |
+| `underline-offset-[&lt;value&gt;]`| `text-underline-offset: &lt;value&gt;;`        |
 
-Source: https://tailwindcss.com/docs/text-underline-offset
+Source: https://tailwindcss.com/guide/text-underline-offset
 
 ## Examples
 
@@ -29,19 +29,19 @@ Use utilities like `underline-offset-1` and `underline-offset-4` to control the 
 
 ### Using a custom value
 
-Use the `underline-offset-[<value>]` syntax to set the text underline offset based on a completely custom value:
+Use the `underline-offset-[&lt;value&gt;]` syntax to set the text underline offset based on a completely custom value:
 
 ```html
 <p class="underline underline-offset-[3px] ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-For CSS variables, you can also use the `underline-offset-(<custom-property>)` syntax:
+For CSS variables, you can also use the `underline-offset-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <p class="underline underline-offset-(--my-offset) ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-This is just a shorthand for `underline-offset-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `underline-offset-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

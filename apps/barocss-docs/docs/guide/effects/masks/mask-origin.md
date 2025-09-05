@@ -13,7 +13,7 @@ Utilities for controlling how an element's mask image is positioned relative to 
 | `mask-origin-stroke`  | `mask-origin: stroke-box;`  |
 | `mask-origin-view`    | `mask-origin: view-box;`    |
 
-Source: https://tailwindcss.com/docs/mask-origin
+Source: https://tailwindcss.com/guide/mask-origin
 
 ## Examples
 

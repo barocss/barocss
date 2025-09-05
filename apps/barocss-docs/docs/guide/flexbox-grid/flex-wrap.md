@@ -10,7 +10,7 @@ Utilities for controlling how flex items wrap.
 | `flex-wrap` | `flex-wrap: wrap;` |
 | `flex-wrap-reverse` | `flex-wrap: wrap-reverse;` |
 
-Source: https://tailwindcss.com/docs/flex-wrap
+Source: https://tailwindcss.com/guide/flex-wrap
 
 ## Examples
 

@@ -2,7 +2,7 @@
 
 Utilities for specifying the origin for an element's transformations.
 
-Source: https://tailwindcss.com/docs/transform-origin
+Source: https://tailwindcss.com/guide/transform-origin
 
 ## Quick reference
 
@@ -17,8 +17,8 @@ Source: https://tailwindcss.com/docs/transform-origin
 | origin-bottom-left  | transform-origin: bottom left;  |
 | origin-left         | transform-origin: left;         |
 | origin-top-left     | transform-origin: top left;     |
-| origin-(<custom-property>) | transform-origin: var(<custom-property>); |
-| origin-[<value>]    | transform-origin: <value>;      |
+| origin-(&lt;custom-property&gt;) | transform-origin: var(&lt;custom-property&gt;); |
+| origin-[&lt;value&gt;]    | transform-origin: &lt;value&gt;;      |
 
 ## Examples
 
@@ -34,19 +34,19 @@ Use utilities like `origin-center` and `origin-top-left` to control where an ele
 
 ### Using a custom value
 
-Use the `origin-[<value>]` syntax to set the transform origin based on a completely custom value:
+Use the `origin-[&lt;value&gt;]` syntax to set the transform origin based on a completely custom value:
 
 ```html
 <img class="origin-[33%_75%] ..." src="/img/mountains.jpg" />
 ```
 
-For CSS variables, you can also use the `origin-(<custom-property>)` syntax:
+For CSS variables, you can also use the `origin-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <img class="origin-(--my-origin) ..." src="/img/mountains.jpg" />
 ```
 
-This is just a shorthand for `origin-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `origin-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

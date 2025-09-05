@@ -12,14 +12,14 @@ Utilities for controlling the shadow of a text element.
 | `text-shadow-md` | `text-shadow: var(--text-shadow-md); /* 0px 1px 1px rgb(0 0 0 / 0.1), 0px 1px 2px rgb(0 0 0 / 0.1), 0px 2px 4px rgb(0 0 0 / 0.1) */` |
 | `text-shadow-lg` | `text-shadow: var(--text-shadow-lg); /* 0px 1px 2px rgb(0 0 0 / 0.1), 0px 3px 2px rgb(0 0 0 / 0.1), 0px 4px 8px rgb(0 0 0 / 0.1) */` |
 | `text-shadow-none` | `text-shadow: none;` |
-| `text-shadow-(<custom-property>)` | `text-shadow: var(<custom-property>);` |
-| `text-shadow-(color:<custom-property>)` | `--tw-shadow-color var(<custom-property>);` |
-| `text-shadow-[<value>]` | `text-shadow: <value>;` |
+| `text-shadow-(&lt;custom-property&gt;)` | `text-shadow: var(&lt;custom-property&gt;);` |
+| `text-shadow-(color:&lt;custom-property&gt;)` | `--tw-shadow-color var(&lt;custom-property&gt;);` |
+| `text-shadow-[&lt;value&gt;]` | `text-shadow: &lt;value&gt;;` |
 | `text-shadow-inherit` | `--tw-shadow-color inherit;` |
 | `text-shadow-current` | `--tw-shadow-color currentColor;` |
 | `text-shadow-transparent` | `--tw-shadow-color transparent;` |
 
-Source: https://tailwindcss.com/docs/text-shadow
+Source: https://tailwindcss.com/guide/text-shadow
 
 ## Examples
 
@@ -74,7 +74,7 @@ Use the `text-shadow-none` utility to remove an existing text shadow from an ele
 
 ### Using a custom value
 
-Use the `text-shadow-[<value>]` syntax to set the text shadow based on a completely custom value:
+Use the `text-shadow-[&lt;value&gt;]` syntax to set the text shadow based on a completely custom value:
 
 ```html
 <p class="text-shadow-[0_35px_35px_rgb(0_0_0_/_0.25)]">
@@ -82,7 +82,7 @@ Use the `text-shadow-[<value>]` syntax to set the text shadow based on a complet
 </p>
 ```
 
-For CSS variables, you can also use the `text-shadow-(<custom-property>)` syntax:
+For CSS variables, you can also use the `text-shadow-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <p class="text-shadow-(--my-text-shadow)">
@@ -90,7 +90,7 @@ For CSS variables, you can also use the `text-shadow-(<custom-property>)` syntax
 </p>
 ```
 
-This is just a shorthand for `text-shadow-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `text-shadow-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

@@ -2,7 +2,7 @@
 
 Utilities for controlling whether an element responds to pointer events.
 
-Source: https://tailwindcss.com/docs/pointer-events
+Source: https://tailwindcss.com/guide/pointer-events
 
 ## Quick reference
 

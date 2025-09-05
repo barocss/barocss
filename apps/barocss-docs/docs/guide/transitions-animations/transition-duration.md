@@ -2,16 +2,16 @@
 
 Utilities for controlling the duration of CSS transitions.
 
-Source: https://tailwindcss.com/docs/transition-duration
+Source: https://tailwindcss.com/guide/transition-duration
 
 ## Quick reference
 
 | Class                    | Styles                              |
 | ------------------------ | ----------------------------------- |
-| duration-<number>        | transition-duration: <number>ms;    |
+| duration-&lt;number&gt;        | transition-duration: &lt;number&gt;ms;    |
 | duration-initial         | transition-duration: initial;       |
-| duration-(<custom-property>) | transition-duration: var(<custom-property>); |
-| duration-\[<value>\]     | transition-duration: <value>;       |
+| duration-(&lt;custom-property&gt;) | transition-duration: var(&lt;custom-property&gt;); |
+| duration-\[&lt;value&gt;\]     | transition-duration: &lt;value&gt;;       |
 
 ## Examples
 
@@ -27,7 +27,7 @@ Use utilities like `duration-150` and `duration-700` to set the transition durat
 
 ### Using a custom value
 
-Use the `duration-[<value>]` syntax to set the transition duration based on a completely custom value:
+Use the `duration-[&lt;value&gt;]` syntax to set the transition duration based on a completely custom value:
 
 ```html
 <button class="duration-[1s,15s] ...">
@@ -35,7 +35,7 @@ Use the `duration-[<value>]` syntax to set the transition duration based on a co
 </button>
 ```
 
-For CSS variables, you can also use the `duration-(<custom-property>)` syntax:
+For CSS variables, you can also use the `duration-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <button class="duration-(--my-duration) ...">
@@ -43,7 +43,7 @@ For CSS variables, you can also use the `duration-(<custom-property>)` syntax:
 </button>
 ```
 
-This is just a shorthand for `duration-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `duration-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

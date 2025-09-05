@@ -2,7 +2,7 @@
 
 Utilities for controlling the scroll offset around items in a snap container.
 
-Source: https://tailwindcss.com/docs/scroll-margin
+Source: https://tailwindcss.com/guide/scroll-margin
 
 ## Quick reference
 
@@ -10,7 +10,7 @@ Prefixes map to properties:
 - `scroll-m*`: scroll-margin
 - `scroll-mx/*-my/*-ms/*-me/*-mt/*-mr/*-mb/*-ml`: per-side logical/physical
 
-Supports: `<number>`, negative, `(<var>)`, `[<value>]`.
+Supports: `&lt;number&gt;`, negative, `(<var>)`, `[&lt;value&gt;]`.
 
 ## Examples
 
@@ -61,7 +61,7 @@ Use logical properties like `scroll-ms-6` to control the scroll offset based on 
 
 ### Using a custom value
 
-Use the `scroll-margin-[<value>]` syntax to set the scroll margin based on a completely custom value:
+Use the `scroll-margin-[&lt;value&gt;]` syntax to set the scroll margin based on a completely custom value:
 
 ```html
 <div class="scroll-margin-[24rem] ...">
@@ -69,7 +69,7 @@ Use the `scroll-margin-[<value>]` syntax to set the scroll margin based on a com
 </div>
 ```
 
-For CSS variables, you can also use the `scroll-margin-(<custom-property>)` syntax:
+For CSS variables, you can also use the `scroll-margin-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="scroll-margin-(--my-margin) ...">
@@ -77,7 +77,7 @@ For CSS variables, you can also use the `scroll-margin-(<custom-property>)` synt
 </div>
 ```
 
-This is just a shorthand for `scroll-margin-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `scroll-margin-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

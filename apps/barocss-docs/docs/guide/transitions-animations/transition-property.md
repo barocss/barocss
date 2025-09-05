@@ -2,7 +2,7 @@
 
 Utilities for controlling which CSS properties transition.
 
-Source: https://tailwindcss.com/docs/transition-property
+Source: https://tailwindcss.com/guide/transition-property
 
 ## Quick reference
 
@@ -15,8 +15,8 @@ Source: https://tailwindcss.com/docs/transition-property
 | transition-shadow              | transition-property: box-shadow; transition-timing-function: var(--default-transition-timing-function); /* cubic-bezier(0.4, 0, 0.2, 1) */transition-duration: var(--default-transition-duration); /* 150ms */                                                                                                                                                                                                                                                                                                                       |
 | transition-transform           | transition-property: transform, translate, scale, rotate; transition-timing-function: var(--default-transition-timing-function); /* cubic-bezier(0.4, 0, 0.2, 1) */transition-duration: var(--default-transition-duration); /* 150ms */                                                                                                                                                                                                                                                                                              |
 | transition-none                | transition-property: none;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| transition-(<custom-property>) | transition-property: var(<custom-property>); transition-timing-function: var(--default-transition-timing-function); /* cubic-bezier(0.4, 0, 0.2, 1) */transition-duration: var(--default-transition-duration); /* 150ms */                                                                                                                                                                                                                                                                                                           |
-| transition-\[<value>\]         | transition-property: <value>; transition-timing-function: var(--default-transition-timing-function); /* cubic-bezier(0.4, 0, 0.2, 1) */transition-duration: var(--default-transition-duration); /* 150ms */                                                                                                                                                                                                                                                                                                                          |
+| transition-(&lt;custom-property&gt;) | transition-property: var(&lt;custom-property&gt;); transition-timing-function: var(--default-transition-timing-function); /* cubic-bezier(0.4, 0, 0.2, 1) */transition-duration: var(--default-transition-duration); /* 150ms */                                                                                                                                                                                                                                                                                                           |
+| transition-\[&lt;value&gt;\]         | transition-property: &lt;value&gt;; transition-timing-function: var(--default-transition-timing-function); /* cubic-bezier(0.4, 0, 0.2, 1) */transition-duration: var(--default-transition-duration); /* 150ms */                                                                                                                                                                                                                                                                                                                          |
 
 ## Examples
 
@@ -46,7 +46,7 @@ For situations where the user has specified that they prefer reduced motion, you
 
 ### Using a custom value
 
-Use the `transition-[<value>]` syntax to set the transition properties based on a completely custom value:
+Use the `transition-[&lt;value&gt;]` syntax to set the transition properties based on a completely custom value:
 
 ```html
 <button class="transition-[height] ...">
@@ -54,7 +54,7 @@ Use the `transition-[<value>]` syntax to set the transition properties based on 
 </button>
 ```
 
-For CSS variables, you can also use the `transition-(<custom-property>)` syntax:
+For CSS variables, you can also use the `transition-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <button class="transition-(--my-properties) ...">
@@ -62,7 +62,7 @@ For CSS variables, you can also use the `transition-(<custom-property>)` syntax:
 </button>
 ```
 
-This is just a shorthand for `transition-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `transition-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

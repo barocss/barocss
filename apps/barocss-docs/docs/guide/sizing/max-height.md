@@ -6,8 +6,8 @@ Utilities for setting the maximum height of an element.
 
 | Class                    | Styles                                                                             |
 | ------------------------ | ---------------------------------------------------------------------------------- |
-| max-h-<number>           | max-height: calc(var(--spacing) \* <number>);                                      |
-| max-h-<fraction>         | max-height: calc(<fraction> \* 100%);                                              |
+| max-h-&lt;number&gt;           | max-height: calc(var(--spacing) \* &lt;number&gt;);                                      |
+| max-h-&lt;fraction&gt;         | max-height: calc(&lt;fraction&gt; \* 100%);                                              |
 | max-h-none               | max-height: none;                                                                  |
 | max-h-px                 | max-height: 1px;                                                                   |
 | max-h-full               | max-height: 100%;                                                                  |
@@ -22,16 +22,16 @@ Utilities for setting the maximum height of an element.
 | max-h-max                | max-height: max-content;                                                           |
 | max-h-fit                | max-height: fit-content;                                                           |
 | max-h-lh                 | max-height: 1lh;                                                                   |
-| max-h-(<custom-property>)| max-height: var(<custom-property>);                                                |
-| max-h-\[<value>\]        | max-height: <value>;                                                               |
+| max-h-(&lt;custom-property&gt;)| max-height: var(&lt;custom-property&gt;);                                                |
+| max-h-\[&lt;value&gt;\]        | max-height: &lt;value&gt;;                                                               |
 
-Source: https://tailwindcss.com/docs/max-height
+Source: https://tailwindcss.com/guide/max-height
 
 ## Examples
 
 ### Basic example
 
-Use `max-h-<number>` utilities like `max-h-24` and `max-h-64` to set an element to a fixed maximum height based on the spacing scale:
+Use `max-h-&lt;number&gt;` utilities like `max-h-24` and `max-h-64` to set an element to a fixed maximum height based on the spacing scale:
 
 max-h-80
 
@@ -58,7 +58,7 @@ max-h-24
 
 ### Using a percentage
 
-Use `max-h-full` or `max-h-<fraction>` utilities like `max-h-1/2` and `max-h-3/4` to give an element a percentage-based maximum height:
+Use `max-h-full` or `max-h-&lt;fraction&gt;` utilities like `max-h-1/2` and `max-h-3/4` to give an element a percentage-based maximum height:
 
 max-h-9/10
 
@@ -104,7 +104,7 @@ Use the `max-h-none` utility to remove an element's assigned maximum height unde
 
 ### Using a custom value
 
-Use the `max-h-[<value>]` syntax to set the maximum height based on a completely custom value:
+Use the `max-h-[&lt;value&gt;]` syntax to set the maximum height based on a completely custom value:
 
 ```
 <div class="max-h-[220px] ...">
@@ -112,7 +112,7 @@ Use the `max-h-[<value>]` syntax to set the maximum height based on a completely
 </div>
 ```
 
-For CSS variables, you can also use the `max-h-(<custom-property>)` syntax:
+For CSS variables, you can also use the `max-h-(&lt;custom-property&gt;)` syntax:
 
 ```
 <div class="max-h-(--my-max-height) ...">
@@ -120,7 +120,7 @@ For CSS variables, you can also use the `max-h-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `max-h-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `max-h-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 
@@ -136,7 +136,7 @@ Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-The `max-h-<number>` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
+The `max-h-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
 @theme {

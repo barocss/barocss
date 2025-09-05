@@ -19,10 +19,10 @@ Utilities for controlling the font size of an element.
 | `text-7xl` | `font-size: var(--text-7xl); /* 4.5rem (72px) */ line-height: var(--text-7xl--line-height); /* 1 */` |
 | `text-8xl` | `font-size: var(--text-8xl); /* 6rem (96px) */ line-height: var(--text-8xl--line-height); /* 1 */` |
 | `text-9xl` | `font-size: var(--text-9xl); /* 8rem (128px) */ line-height: var(--text-9xl--line-height); /* 1 */` |
-| `text-(length:<custom-property>)` | `font-size: var(<custom-property>);` |
-| `text-[<value>]` | `font-size: <value>;` |
+| `text-(length:&lt;custom-property&gt;)` | `font-size: var(&lt;custom-property&gt;);` |
+| `text-[&lt;value&gt;]` | `font-size: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/font-size
+Source: https://tailwindcss.com/guide/font-size
 
 ## Examples
 
@@ -52,19 +52,19 @@ Use utilities like `text-sm/6` and `text-lg/7` to set the font size and line-hei
 
 ### Using a custom value
 
-Use the `text-[<value>]` syntax to set the font size based on a completely custom value:
+Use the `text-[&lt;value&gt;]` syntax to set the font size based on a completely custom value:
 
 ```html
 <p class="text-[14px] ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-For CSS variables, you can also use the `text-(length:<custom-property>)` syntax:
+For CSS variables, you can also use the `text-(length:&lt;custom-property&gt;)` syntax:
 
 ```html
 <p class="text-(length:--my-text-size) ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-This is just a shorthand for `text-[length:var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `text-[length:var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

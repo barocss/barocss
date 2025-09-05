@@ -9,11 +9,11 @@ Utilities for controlling the color of an element's outline.
 | `outline-inherit`         | `outline-color: inherit;`                |
 | `outline-current`         | `outline-color: currentColor;`           |
 | `outline-transparent`     | `outline-color: transparent;`            |
-| `outline-<color>`         | `outline-color: var(--color-<color>);`   |
-| `outline-(<custom-property>)` | `outline-color: var(<custom-property>);` |
-| `outline-[<value>]`       | `outline-color: <value>;`                |
+| `outline-&lt;color&gt;`         | `outline-color: var(--color-&lt;color&gt;);`   |
+| `outline-(&lt;custom-property&gt;)` | `outline-color: var(&lt;custom-property&gt;);` |
+| `outline-[&lt;value&gt;]`       | `outline-color: &lt;value&gt;;`                |
 
-Source: https://tailwindcss.com/docs/outline-color
+Source: https://tailwindcss.com/guide/outline-color
 
 ## Examples
 
@@ -39,7 +39,7 @@ Use the color opacity modifier to control the opacity of an element's outline co
 
 ### Using a custom value
 
-Use the `outline-[<value>]` syntax to set the outline color based on a completely custom value:
+Use the `outline-[&lt;value&gt;]` syntax to set the outline color based on a completely custom value:
 
 ```
 <button class="outline-[#243c5a] outline-2">
@@ -47,7 +47,7 @@ Use the `outline-[<value>]` syntax to set the outline color based on a completel
 </button>
 ```
 
-For CSS variables, you can also use the `outline-(<custom-property>)` syntax:
+For CSS variables, you can also use the `outline-(&lt;custom-property&gt;)` syntax:
 
 ```
 <button class="outline-(--my-outline-color) outline-2">
@@ -55,7 +55,7 @@ For CSS variables, you can also use the `outline-(<custom-property>)` syntax:
 </button>
 ```
 
-This is just a shorthand for `outline-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `outline-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

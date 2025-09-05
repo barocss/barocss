@@ -9,10 +9,10 @@ Utilities for controlling the background size of an element's background image.
 | `bg-auto` | `background-size: auto;` |
 | `bg-cover` | `background-size: cover;` |
 | `bg-contain` | `background-size: contain;` |
-| `bg-size-(<custom-property>)` | `background-size: var(<custom-property>);` |
-| `bg-size-[<value>]` | `background-size: <value>;` |
+| `bg-size-(&lt;custom-property&gt;)` | `background-size: var(&lt;custom-property&gt;);` |
+| `bg-size-[&lt;value&gt;]` | `background-size: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/background-size
+Source: https://tailwindcss.com/guide/background-size
 
 ## Examples
 
@@ -45,7 +45,7 @@ Use the `bg-auto` utility to display the background image at its default size:
 
 ### Using a custom value
 
-Use the `bg-size-[<value>]` syntax to set the background size based on a completely custom value:
+Use the `bg-size-[&lt;value&gt;]` syntax to set the background size based on a completely custom value:
 
 ```html
 <div class="bg-size-[auto_100px] ...">
@@ -53,7 +53,7 @@ Use the `bg-size-[<value>]` syntax to set the background size based on a complet
 </div>
 ```
 
-For CSS variables, you can also use the `bg-size-(<custom-property>)` syntax:
+For CSS variables, you can also use the `bg-size-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="bg-size-(--my-size) ...">
@@ -61,7 +61,7 @@ For CSS variables, you can also use the `bg-size-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `bg-size-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `bg-size-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

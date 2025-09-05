@@ -11,7 +11,7 @@ Utilities for controlling how multiple masks are combined together.
 | `mask-intersect` | `mask-composite: intersect;` |
 | `mask-exclude`   | `mask-composite: exclude;` |
 
-Source: https://tailwindcss.com/docs/mask-composite
+Source: https://tailwindcss.com/guide/mask-composite
 
 ## Examples
 

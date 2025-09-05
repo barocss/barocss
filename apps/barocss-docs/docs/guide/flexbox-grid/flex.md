@@ -6,21 +6,21 @@ Utilities for controlling how flex items both grow and shrink.
 
 | Class | Styles |
 |---|---|
-| `flex-<number>` | `flex: <number>;` |
-| `flex-<fraction>` | `flex: calc(<fraction> * 100%);` |
+| `flex-&lt;number&gt;` | `flex: &lt;number&gt;;` |
+| `flex-&lt;fraction&gt;` | `flex: calc(&lt;fraction&gt; * 100%);` |
 | `flex-auto` | `flex: auto;` |
 | `flex-initial` | `flex: 0 auto;` |
 | `flex-none` | `flex: none;` |
-| `flex-(<custom-property>)` | `flex: var(<custom-property>);` |
-| `flex-[<value>]` | `flex: <value>;` |
+| `flex-(&lt;custom-property&gt;)` | `flex: var(&lt;custom-property&gt;);` |
+| `flex-[&lt;value&gt;]` | `flex: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/flex
+Source: https://tailwindcss.com/guide/flex
 
 ## Examples
 
 ### Basic example
 
-Use `flex-<number>` utilities like `flex-1` to allow a flex item to grow and shrink as needed, ignoring its initial size:
+Use `flex-&lt;number&gt;` utilities like `flex-1` to allow a flex item to grow and shrink as needed, ignoring its initial size:
 
 ```html
 <!-- [!code word:flex-1] -->
@@ -72,19 +72,19 @@ Use `flex-none` to prevent a flex item from growing or shrinking:
 
 ### Using a custom value
 
-Use the `flex-[<value>]` syntax to set the flex based on a completely custom value:
+Use the `flex-[&lt;value&gt;]` syntax to set the flex based on a completely custom value:
 
 ```html
 <div class="flex-[3_1_auto] ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-For CSS variables, you can also use the `flex-(<custom-property>)` syntax:
+For CSS variables, you can also use the `flex-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="flex-(--my-flex) ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-This is just a shorthand for `flex-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `flex-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

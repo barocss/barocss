@@ -2,7 +2,7 @@
 
 Utilities for suppressing native form control styling.
 
-Source: https://tailwindcss.com/docs/appearance
+Source: https://tailwindcss.com/guide/appearance
 
 ## Quick reference
 

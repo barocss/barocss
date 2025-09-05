@@ -15,10 +15,10 @@ Utilities for controlling the font weight of an element.
 | `font-bold` | `font-weight: 700;` |
 | `font-extrabold` | `font-weight: 800;` |
 | `font-black` | `font-weight: 900;` |
-| `font-(<custom-property>)` | `font-weight: var(<custom-property>);` |
-| `font-[<value>]` | `font-weight: <value>;` |
+| `font-(&lt;custom-property&gt;)` | `font-weight: var(&lt;custom-property&gt;);` |
+| `font-[&lt;value&gt;]` | `font-weight: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/font-weight
+Source: https://tailwindcss.com/guide/font-weight
 
 ## Examples
 

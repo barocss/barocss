@@ -6,9 +6,9 @@ Utilities for controlling the horizontal stretching of text.
 
 | Class | Styles |
 |-------|--------|
-| `font-stretch-<value>` | `font-stretch: <value>;` |
-| `font-stretch-(<custom-property>)` | `font-stretch: var(<custom-property>);` |
-| `font-stretch-[<value>]` | `font-stretch: <value>;` |
+| `font-stretch-&lt;value&gt;` | `font-stretch: &lt;value&gt;;` |
+| `font-stretch-(&lt;custom-property&gt;)` | `font-stretch: var(&lt;custom-property&gt;);` |
+| `font-stretch-[&lt;value&gt;]` | `font-stretch: &lt;value&gt;;` |
 
 ## Examples
 

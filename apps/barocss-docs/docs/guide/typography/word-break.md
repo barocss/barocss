@@ -10,7 +10,7 @@ Utilities for controlling word breaks in an element.
 | `break-all`     | `word-break: break-all;`    |
 | `break-keep`    | `word-break: keep-all;`     |
 
-Source: https://tailwindcss.com/docs/word-break
+Source: https://tailwindcss.com/guide/word-break
 
 ## Examples
 

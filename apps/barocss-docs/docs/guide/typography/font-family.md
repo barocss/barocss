@@ -9,10 +9,10 @@ Utilities for controlling the font family of an element.
 | `font-sans` | `font-family: var(--font-sans); /* ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji' */` |
 | `font-serif` | `font-family: var(--font-serif); /* ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif */` |
 | `font-mono` | `font-family: var(--font-mono); /* ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace */` |
-| `font-(family-name:<custom-property>)` | `font-family: var(<custom-property>);` |
-| `font-[<value>]` | `font-family: <value>;` |
+| `font-(family-name:&lt;custom-property&gt;)` | `font-family: var(&lt;custom-property&gt;);` |
+| `font-[&lt;value&gt;]` | `font-family: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/font-family
+Source: https://tailwindcss.com/guide/font-family
 
 ## Examples
 
@@ -29,19 +29,19 @@ Use utilities like `font-sans` and `font-mono` to set the font family of an elem
 
 ### Using a custom value
 
-Use the `font-[<value>]` syntax to set the font family based on a completely custom value:
+Use the `font-[&lt;value&gt;]` syntax to set the font family based on a completely custom value:
 
 ```html
 <p class="font-[Open_Sans] ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-For CSS variables, you can also use the `font-(family-name:<custom-property>)` syntax:
+For CSS variables, you can also use the `font-(family-name:&lt;custom-property&gt;)` syntax:
 
 ```html
 <p class="font-(family-name:--my-font) ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-This is just a shorthand for `font-[family-name:var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `font-[family-name:var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

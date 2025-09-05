@@ -2,21 +2,21 @@
 
 Utilities for styling the stroke width of SVG elements.
 
-Source: https://tailwindcss.com/docs/stroke-width
+Source: https://tailwindcss.com/guide/stroke-width
 
 ## Quick reference
 
 | Class | Styles |
 |---|---|
-| stroke-<number> | stroke-width: <number>; |
-| stroke-(length:<custom-property>) | stroke-width: var(<custom-property>); |
-| stroke-[<value>] | stroke-width: <value>; |
+| stroke-&lt;number&gt; | stroke-width: &lt;number&gt;; |
+| stroke-(length:&lt;custom-property&gt;) | stroke-width: var(&lt;custom-property&gt;); |
+| stroke-[&lt;value&gt;] | stroke-width: &lt;value&gt;; |
 
 ## Examples
 
 ### Basic example
 
-Use `stroke-<number>` utilities like `stroke-1` and `stroke-2` to set the stroke width of an SVG:
+Use `stroke-&lt;number&gt;` utilities like `stroke-1` and `stroke-2` to set the stroke width of an SVG:
 
 ```html
 <svg class="stroke-1 ...">
@@ -31,7 +31,7 @@ This can be useful for styling icon sets like Heroicons.
 
 ### Using a custom value
 
-Use the `stroke-[<value>]` syntax to set the stroke width based on a completely custom value:
+Use the `stroke-[&lt;value&gt;]` syntax to set the stroke width based on a completely custom value:
 
 ```html
 <svg class="stroke-[1.5] ...">
@@ -39,7 +39,7 @@ Use the `stroke-[<value>]` syntax to set the stroke width based on a completely 
 </svg>
 ```
 
-For CSS variables, you can also use the `stroke-(length:<custom-property>)` syntax:
+For CSS variables, you can also use the `stroke-(length:&lt;custom-property&gt;)` syntax:
 
 ```html
 <svg class="stroke-(length:--my-stroke-width) ...">
@@ -47,7 +47,7 @@ For CSS variables, you can also use the `stroke-(length:<custom-property>)` synt
 </svg>
 ```
 
-This is just a shorthand for `stroke-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `stroke-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

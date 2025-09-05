@@ -2,15 +2,15 @@
 
 Utilities for applying filters to an element.
 
-Source: https://tailwindcss.com/docs/filter
+Source: https://tailwindcss.com/guide/filter
 
 ## Quick reference
 
 | Class | Styles |
 |---|---|
 | `filter-none` | `filter: none;` |
-| `filter-(<custom-property>)` | `filter: var(<custom-property>);` |
-| `filter-[<value>]` | `filter: <value>;` |
+| `filter-(&lt;custom-property&gt;)` | `filter: var(&lt;custom-property&gt;);` |
+| `filter-[&lt;value&gt;]` | `filter: &lt;value&gt;;` |
 
 You can combine filter utilities:
 - `blur`, `brightness`, `contrast`, `drop-shadow`, `grayscale`, `hue-rotate`, `invert`, `saturate`, `sepia`

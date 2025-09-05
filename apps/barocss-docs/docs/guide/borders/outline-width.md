@@ -7,17 +7,17 @@ Utilities for controlling the width of an element's outline.
 | Class                | Styles                               |
 |----------------------|--------------------------------------|
 | `outline`            | `outline-width: 1px;`                |
-| `outline-<number>`   | `outline-width: <number>px;`         |
-| `outline-(<custom-property>)` | `outline-width: var(<custom-property>);` |
-| `outline-[<value>]`  | `outline-width: <value>;`            |
+| `outline-&lt;number&gt;`   | `outline-width: &lt;number&gt;px;`         |
+| `outline-(&lt;custom-property&gt;)` | `outline-width: var(&lt;custom-property&gt;);` |
+| `outline-[&lt;value&gt;]`  | `outline-width: &lt;value&gt;;`            |
 
-Source: https://tailwindcss.com/docs/outline-width
+Source: https://tailwindcss.com/guide/outline-width
 
 ## Examples
 
 ### Basic example
 
-Use `outline` or `outline-<number>` utilities like `outline-2` and `outline-4` to set the outline width of an element:
+Use `outline` or `outline-&lt;number&gt;` utilities like `outline-2` and `outline-4` to set the outline width of an element:
 
 ```
 <button class="outline outline-offset-2">Button A</button>
@@ -37,7 +37,7 @@ Use the `focus:` prefix to conditionally apply an outline width on focus:
 
 ### Using a custom value
 
-Use the `outline-[<value>]` syntax to set the outline width based on a completely custom value:
+Use the `outline-[&lt;value&gt;]` syntax to set the outline width based on a completely custom value:
 
 ```
 <button class="outline-[2vw] outline-offset-2">
@@ -45,7 +45,7 @@ Use the `outline-[<value>]` syntax to set the outline width based on a completel
 </button>
 ```
 
-For CSS variables, you can also use the `outline-(<custom-property>)` syntax:
+For CSS variables, you can also use the `outline-(&lt;custom-property&gt;)` syntax:
 
 ```
 <button class="outline-(--my-outline-width) outline-offset-2">
@@ -53,7 +53,7 @@ For CSS variables, you can also use the `outline-(<custom-property>)` syntax:
 </button>
 ```
 
-This is just a shorthand for `outline-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `outline-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

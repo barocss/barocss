@@ -2,12 +2,12 @@
 
 Utilities for applying drop-shadow filters to an element.
 
-Source: https://tailwindcss.com/docs/filter-drop-shadow
+Source: https://tailwindcss.com/guide/filter-drop-shadow
 
 ## Quick reference
 
 - Presets like `drop-shadow-sm`, `drop-shadow-md`, `drop-shadow-lg`, `drop-shadow-xl`, `drop-shadow-2xl`, `drop-shadow-none`
-- `drop-shadow-[<value>]`, `drop-shadow-(<custom-property>)`
+- `drop-shadow-[&lt;value&gt;]`, `drop-shadow-(&lt;custom-property&gt;)`
 
 ## Examples
 

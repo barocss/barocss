@@ -25,7 +25,7 @@ Utilities for controlling how an element should blend with the background.
 | `mix-blend-plus-darker` | `mix-blend-mode: plus-darker;` |
 | `mix-blend-plus-lighter` | `mix-blend-mode: plus-lighter;` |
 
-Source: https://tailwindcss.com/docs/mix-blend-mode
+Source: https://tailwindcss.com/guide/mix-blend-mode
 
 ## Examples
 

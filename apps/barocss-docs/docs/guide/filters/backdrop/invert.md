@@ -2,11 +2,11 @@
 
 Utilities for applying backdrop invert filters to an element.
 
-Source: https://tailwindcss.com/docs/backdrop-filter-invert
+Source: https://tailwindcss.com/guide/backdrop-filter-invert
 
 ## Quick reference
 
-- `backdrop-invert`, `backdrop-invert-0`, `backdrop-invert-[<value>]`, `backdrop-invert-(<custom-property>)`
+- `backdrop-invert`, `backdrop-invert-0`, `backdrop-invert-[&lt;value&gt;]`, `backdrop-invert-(&lt;custom-property&gt;)`
 
 ## Examples
 
@@ -25,7 +25,7 @@ Use utilities like `backdrop-invert` and `backdrop-invert-0` to control the inve
 
 ### Using a custom value
 
-Use the `backdrop-invert-[<value>]` syntax to set the backdrop invert based on a completely custom value:
+Use the `backdrop-invert-[&lt;value&gt;]` syntax to set the backdrop invert based on a completely custom value:
 
 ```html
 <div class="backdrop-invert-[.8] ...">
@@ -33,7 +33,7 @@ Use the `backdrop-invert-[<value>]` syntax to set the backdrop invert based on a
 </div>
 ```
 
-For CSS variables, you can also use the `backdrop-invert-(<custom-property>)` syntax:
+For CSS variables, you can also use the `backdrop-invert-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="backdrop-invert-(--my-backdrop-invert) ...">
@@ -41,7 +41,7 @@ For CSS variables, you can also use the `backdrop-invert-(<custom-property>)` sy
 </div>
 ```
 
-This is just a shorthand for `backdrop-invert-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `backdrop-invert-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

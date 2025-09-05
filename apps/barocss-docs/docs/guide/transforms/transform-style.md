@@ -2,7 +2,7 @@
 
 Utilities for controlling if an element's children are placed in 3D space.
 
-Source: https://tailwindcss.com/docs/transform-style
+Source: https://tailwindcss.com/guide/transform-style
 
 ## Quick reference
 

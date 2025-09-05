@@ -2,11 +2,11 @@
 
 Utilities for applying backdrop saturate filters to an element.
 
-Source: https://tailwindcss.com/docs/backdrop-filter-saturate
+Source: https://tailwindcss.com/guide/backdrop-filter-saturate
 
 ## Quick reference
 
-- `backdrop-saturate-[<value>]`, `backdrop-saturate-(<custom-property>)`, preset utilities like `backdrop-saturate-150`, `backdrop-saturate-200`
+- `backdrop-saturate-[&lt;value&gt;]`, `backdrop-saturate-(&lt;custom-property&gt;)`, preset utilities like `backdrop-saturate-150`, `backdrop-saturate-200`
 
 ## Examples
 
@@ -25,7 +25,7 @@ Use utilities like `backdrop-saturate-150` and `backdrop-saturate-200` to increa
 
 ### Using a custom value
 
-Use the `backdrop-saturate-[<value>]` syntax to set the backdrop saturate based on a completely custom value:
+Use the `backdrop-saturate-[&lt;value&gt;]` syntax to set the backdrop saturate based on a completely custom value:
 
 ```html
 <div class="backdrop-saturate-[1.75] ...">
@@ -33,7 +33,7 @@ Use the `backdrop-saturate-[<value>]` syntax to set the backdrop saturate based 
 </div>
 ```
 
-For CSS variables, you can also use the `backdrop-saturate-(<custom-property>)` syntax:
+For CSS variables, you can also use the `backdrop-saturate-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="backdrop-saturate-(--my-backdrop-saturate) ...">
@@ -41,7 +41,7 @@ For CSS variables, you can also use the `backdrop-saturate-(<custom-property>)` 
 </div>
 ```
 
-This is just a shorthand for `backdrop-saturate-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `backdrop-saturate-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

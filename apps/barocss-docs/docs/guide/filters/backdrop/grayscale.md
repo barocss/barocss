@@ -2,11 +2,11 @@
 
 Utilities for applying backdrop grayscale filters to an element.
 
-Source: https://tailwindcss.com/docs/backdrop-filter-grayscale
+Source: https://tailwindcss.com/guide/backdrop-filter-grayscale
 
 ## Quick reference
 
-- `backdrop-grayscale`, `backdrop-grayscale-0`, `backdrop-grayscale-[<value>]`, `backdrop-grayscale-(<custom-property>)`
+- `backdrop-grayscale`, `backdrop-grayscale-0`, `backdrop-grayscale-[&lt;value&gt;]`, `backdrop-grayscale-(&lt;custom-property&gt;)`
 
 ## Examples
 
@@ -25,7 +25,7 @@ Use utilities like `backdrop-grayscale` and `backdrop-grayscale-0` to control th
 
 ### Using a custom value
 
-Use the `backdrop-grayscale-[<value>]` syntax to set the backdrop grayscale based on a completely custom value:
+Use the `backdrop-grayscale-[&lt;value&gt;]` syntax to set the backdrop grayscale based on a completely custom value:
 
 ```html
 <div class="backdrop-grayscale-[.8] ...">
@@ -33,7 +33,7 @@ Use the `backdrop-grayscale-[<value>]` syntax to set the backdrop grayscale base
 </div>
 ```
 
-For CSS variables, you can also use the `backdrop-grayscale-(<custom-property>)` syntax:
+For CSS variables, you can also use the `backdrop-grayscale-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="backdrop-grayscale-(--my-backdrop-grayscale) ...">
@@ -41,7 +41,7 @@ For CSS variables, you can also use the `backdrop-grayscale-(<custom-property>)`
 </div>
 ```
 
-This is just a shorthand for `backdrop-grayscale-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `backdrop-grayscale-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

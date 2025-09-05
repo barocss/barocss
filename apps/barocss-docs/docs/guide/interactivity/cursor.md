@@ -2,7 +2,7 @@
 
 Utilities for controlling the cursor style when hovering over an element.
 
-Source: https://tailwindcss.com/docs/cursor
+Source: https://tailwindcss.com/guide/cursor
 
 ## Quick reference
 
@@ -44,8 +44,8 @@ Source: https://tailwindcss.com/docs/cursor
 | cursor-nwse-resize | cursor: nwse-resize; |
 | cursor-zoom-in | cursor: zoom-in; |
 | cursor-zoom-out | cursor: zoom-out; |
-| cursor-(<custom-property>) | cursor: var(<custom-property>); |
-| cursor-[<value>] | cursor: <value>; |
+| cursor-(&lt;custom-property&gt;) | cursor: var(&lt;custom-property&gt;); |
+| cursor-[&lt;value&gt;] | cursor: &lt;value&gt;; |
 
 ## Examples
 
@@ -61,7 +61,7 @@ Use utilities like `cursor-pointer` and `cursor-grab` to control which cursor is
 
 ### Using a custom value
 
-Use the `cursor-[<value>]` syntax to set the cursor based on a completely custom value:
+Use the `cursor-[&lt;value&gt;]` syntax to set the cursor based on a completely custom value:
 
 ```html
 <button class="cursor-[url(hand.cur),_pointer] ...">
@@ -69,7 +69,7 @@ Use the `cursor-[<value>]` syntax to set the cursor based on a completely custom
 </button>
 ```
 
-For CSS variables, you can also use the `cursor-(<custom-property>)` syntax:
+For CSS variables, you can also use the `cursor-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <button class="cursor-(--my-cursor) ...">
@@ -77,7 +77,7 @@ For CSS variables, you can also use the `cursor-(<custom-property>)` syntax:
 </button>
 ```
 
-This is just a shorthand for `cursor-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `cursor-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

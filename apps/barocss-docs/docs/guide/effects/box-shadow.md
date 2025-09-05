@@ -14,25 +14,25 @@ Utilities for controlling the box shadow of an element.
 | `shadow-xl` | `box-shadow: var(--shadow-xl); /* 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) */` |
 | `shadow-2xl` | `box-shadow: var(--shadow-2xl); /* 0 25px 50px -12px rgb(0 0 0 / 0.25) */` |
 | `shadow-none` | `box-shadow: 0 0 #0000;` |
-| `shadow-(<custom-property>)` | `box-shadow: var(<custom-property>);` |
-| `shadow-(color:<custom-property>)` | `--tw-shadow-color: var(<custom-property>);` |
-| `shadow-[<value>]` | `box-shadow: <value>;` |
+| `shadow-(&lt;custom-property&gt;)` | `box-shadow: var(&lt;custom-property&gt;);` |
+| `shadow-(color:&lt;custom-property&gt;)` | `--tw-shadow-color: var(&lt;custom-property&gt;);` |
+| `shadow-[&lt;value&gt;]` | `box-shadow: &lt;value&gt;;` |
 | `inset-shadow-2xs` | `box-shadow: var(--inset-shadow-2xs); /* inset 0 1px rgb(0 0 0 / 0.05) */` |
 | `inset-shadow-xs` | `box-shadow: var(--inset-shadow-xs); /* inset 0 1px 1px rgb(0 0 0 / 0.05) */` |
 | `inset-shadow-sm` | `box-shadow: var(--inset-shadow-sm); /* inset 0 2px 4px rgb(0 0 0 / 0.05) */` |
 | `inset-shadow-none` | `box-shadow: inset 0 0 #0000;` |
-| `inset-shadow-(<custom-property>)` | `box-shadow: var(<custom-property>);` |
-| `inset-shadow-[<value>]` | `box-shadow: <value>;` |
+| `inset-shadow-(&lt;custom-property&gt;)` | `box-shadow: var(&lt;custom-property&gt;);` |
+| `inset-shadow-[&lt;value&gt;]` | `box-shadow: &lt;value&gt;;` |
 | `ring` | `--tw-ring-shadow: 0 0 0 1px;` |
-| `ring-<number>` | `--tw-ring-shadow: 0 0 0 <number>px;` |
-| `ring-(<custom-property>)` | `--tw-ring-shadow: 0 0 0 var(<custom-property>);` |
-| `ring-[<value>]` | `--tw-ring-shadow: 0 0 0 <value>;` |
+| `ring-&lt;number&gt;` | `--tw-ring-shadow: 0 0 0 &lt;number&gt;px;` |
+| `ring-(&lt;custom-property&gt;)` | `--tw-ring-shadow: 0 0 0 var(&lt;custom-property&gt;);` |
+| `ring-[&lt;value&gt;]` | `--tw-ring-shadow: 0 0 0 &lt;value&gt;;` |
 | `inset-ring` | `--tw-inset-ring-shadow: inset 0 0 0 1px` |
-| `inset-ring-<number>` | `--tw-inset-ring-shadow: inset 0 0 0 <number>px` |
-| `inset-ring-(<custom-property>)` | `--tw-inset-ring-shadow: inset 0 0 0 var(<custom-property>);` |
-| `inset-ring-[<value>]` | `--tw-inset-ring-shadow: inset 0 0 0 <value>;` |
+| `inset-ring-&lt;number&gt;` | `--tw-inset-ring-shadow: inset 0 0 0 &lt;number&gt;px` |
+| `inset-ring-(&lt;custom-property&gt;)` | `--tw-inset-ring-shadow: inset 0 0 0 var(&lt;custom-property&gt;);` |
+| `inset-ring-[&lt;value&gt;]` | `--tw-inset-ring-shadow: inset 0 0 0 &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/box-shadow
+Source: https://tailwindcss.com/guide/effects/box-shadow
 
 ## Examples
 
@@ -100,7 +100,7 @@ By default colored shadows have an opacity of 100% but you can adjust this using
 
 ### Adding a ring
 
-Use `ring` or `ring-<number>` utilities like `ring-2` and `ring-4` to apply a solid box-shadow to an element:
+Use `ring` or `ring-&lt;number&gt;` utilities like `ring-2` and `ring-4` to apply a solid box-shadow to an element:
 
 ```html
 <!-- [!code classes:ring,ring-2,ring-4] -->
@@ -125,7 +125,7 @@ By default rings have an opacity of 100% but you can adjust this using the opaci
 
 ### Adding an inset ring
 
-Use `inset-ring` or `inset-ring-<number>` utilities like `inset-ring-2` and `inset-ring-4` to apply a solid inset box-shadow to an element:
+Use `inset-ring` or `inset-ring-&lt;number&gt;` utilities like `inset-ring-2` and `inset-ring-4` to apply a solid inset box-shadow to an element:
 
 ```html
 <!-- [!code classes:inset-ring,inset-ring-2,inset-ring-4] -->
@@ -159,7 +159,7 @@ Use the `shadow-none`, `inset-shadow-none`,`ring-0`, and `inset-ring-0` utilitie
 
 ### Using a custom value
 
-Use utilities like `shadow-[<value>]`, `inset-shadow-[<value>]`, `ring-[<value>]`, and `inset-ring-[<value>]` to set the box shadow based on a completely custom value:
+Use utilities like `shadow-[&lt;value&gt;]`, `inset-shadow-[&lt;value&gt;]`, `ring-[&lt;value&gt;]`, and `inset-ring-[&lt;value&gt;]` to set the box shadow based on a completely custom value:
 
 ```html
 <div class="shadow-[0_35px_35px_rgba(0,0,0,0.25)] ...">
@@ -167,7 +167,7 @@ Use utilities like `shadow-[<value>]`, `inset-shadow-[<value>]`, `ring-[<value>]
 </div>
 ```
 
-For CSS variables, you can also use the `shadow-(<custom-property>)` syntax:
+For CSS variables, you can also use the `shadow-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="shadow-(--my-shadow) ...">
@@ -175,7 +175,7 @@ For CSS variables, you can also use the `shadow-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `shadow-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `shadow-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

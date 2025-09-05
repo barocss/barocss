@@ -6,13 +6,13 @@ Utilities for controlling the thickness of text decorations.
 
 | Class                      | Styles                                      |
 |----------------------------|---------------------------------------------|
-| `decoration-<number>`      | `text-decoration-thickness: <number>px;`    |
+| `decoration-&lt;number&gt;`      | `text-decoration-thickness: &lt;number&gt;px;`    |
 | `decoration-from-font`     | `text-decoration-thickness: from-font;`     |
 | `decoration-auto`          | `text-decoration-thickness: auto;`          |
-| `decoration-(length:<custom-property>)` | `text-decoration-thickness: var(<custom-property>);` |
-| `decoration-[<value>]`     | `text-decoration-thickness: <value>;`       |
+| `decoration-(length:&lt;custom-property&gt;)` | `text-decoration-thickness: var(&lt;custom-property&gt;);` |
+| `decoration-[&lt;value&gt;]`     | `text-decoration-thickness: &lt;value&gt;;`       |
 
-Source: https://tailwindcss.com/docs/text-decoration-thickness
+Source: https://tailwindcss.com/guide/text-decoration-thickness
 
 ## Examples
 
@@ -28,19 +28,19 @@ Use utilities like `decoration-1` and `decoration-4` to control the thickness of
 
 ### Using a custom value
 
-Use the `decoration-[<value>]` syntax to set the text decoration thickness based on a completely custom value:
+Use the `decoration-[&lt;value&gt;]` syntax to set the text decoration thickness based on a completely custom value:
 
 ```html
 <p class="underline decoration-[0.25rem] ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-For CSS variables, you can also use the `decoration-(length:<custom-property>)` syntax:
+For CSS variables, you can also use the `decoration-(length:&lt;custom-property&gt;)` syntax:
 
 ```html
 <p class="underline decoration-(length:--my-thickness) ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-This is just a shorthand for `decoration-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `decoration-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

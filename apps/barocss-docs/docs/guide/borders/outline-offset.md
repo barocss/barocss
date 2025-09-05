@@ -6,18 +6,18 @@ Utilities for controlling the offset of an element's outline.
 
 | Class                       | Styles                              |
 |-----------------------------|-------------------------------------|
-| `outline-offset-<number>`   | `outline-offset: <number>px;`       |
-| `-outline-offset-<number>`  | `outline-offset: calc(<number>px * -1);` |
-| `outline-offset-(<custom-property>)` | `outline-offset: var(<custom-property>);` |
-| `outline-offset-[<value>]`  | `outline-offset: <value>;`          |
+| `outline-offset-&lt;number&gt;`   | `outline-offset: &lt;number&gt;px;`       |
+| `-outline-offset-&lt;number&gt;`  | `outline-offset: calc(&lt;number&gt;px * -1);` |
+| `outline-offset-(&lt;custom-property&gt;)` | `outline-offset: var(&lt;custom-property&gt;);` |
+| `outline-offset-[&lt;value&gt;]`  | `outline-offset: &lt;value&gt;;`          |
 
-Source: https://tailwindcss.com/docs/outline-offset
+Source: https://tailwindcss.com/guide/outline-offset
 
 ## Examples
 
 ### Basic example
 
-Use `outline-offset-<number>` utilities like `outline-offset-2` and `outline-offset-4` to set the outline offset of an element:
+Use `outline-offset-&lt;number&gt;` utilities like `outline-offset-2` and `outline-offset-4` to set the outline offset of an element:
 
 ```
 <button class="outline-2 outline-offset-0">Button A</button>
@@ -37,7 +37,7 @@ To use a negative outline offset value, prefix the class name with a dash to con
 
 ### Using a custom value
 
-Use the `outline-offset-[<value>]` syntax to set the outline offset based on a completely custom value:
+Use the `outline-offset-[&lt;value&gt;]` syntax to set the outline offset based on a completely custom value:
 
 ```
 <button class="outline-2 outline-offset-[2vw]">
@@ -45,7 +45,7 @@ Use the `outline-offset-[<value>]` syntax to set the outline offset based on a c
 </button>
 ```
 
-For CSS variables, you can also use the `outline-offset-(<custom-property>)` syntax:
+For CSS variables, you can also use the `outline-offset-(&lt;custom-property&gt;)` syntax:
 
 ```
 <button class="outline-2 outline-offset-(--my-offset)">
@@ -53,7 +53,7 @@ For CSS variables, you can also use the `outline-offset-(<custom-property>)` syn
 </button>
 ```
 
-This is just a shorthand for `outline-offset-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `outline-offset-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

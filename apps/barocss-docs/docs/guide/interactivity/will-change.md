@@ -2,7 +2,7 @@
 
 Utilities for optimizing upcoming animations of elements that are expected to change.
 
-Source: https://tailwindcss.com/docs/will-change
+Source: https://tailwindcss.com/guide/will-change
 
 ## Quick reference
 
@@ -12,8 +12,8 @@ Source: https://tailwindcss.com/docs/will-change
 | will-change-scroll            | will-change: scroll-position;        |
 | will-change-contents          | will-change: contents;               |
 | will-change-transform         | will-change: transform;              |
-| will-change-<custom-property> | will-change: var(<custom-property>); |
-| will-change-[<value>]         | will-change: <value>;                |
+| will-change-&lt;custom-property&gt; | will-change: var(&lt;custom-property&gt;); |
+| will-change-[&lt;value&gt;]         | will-change: &lt;value&gt;;                |
 
 ## Examples
 
@@ -33,7 +33,7 @@ The `will-change` property is intended to be used as a last resort when dealing 
 
 ### Using a custom value
 
-Use the `will-change-[<value>]` syntax to set the `will-change` property based on a completely custom value:
+Use the `will-change-[&lt;value&gt;]` syntax to set the `will-change` property based on a completely custom value:
 
 ```html
 <div class="will-change-[top,left] ...">
@@ -41,7 +41,7 @@ Use the `will-change-[<value>]` syntax to set the `will-change` property based o
 </div>
 ```
 
-For CSS variables, you can also use the `will-change-(<custom-property>)` syntax:
+For CSS variables, you can also use the `will-change-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="will-change-(--my-properties) ...">
@@ -49,7 +49,7 @@ For CSS variables, you can also use the `will-change-(<custom-property>)` syntax
 </div>
 ```
 
-This is just a shorthand for `will-change-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `will-change-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

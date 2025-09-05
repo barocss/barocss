@@ -6,19 +6,19 @@ Utilities for specifying the columns in a grid layout.
 
 | Class | Styles |
 |---|---|
-| `grid-cols-<number>` | `grid-template-columns: repeat(<number>, minmax(0, 1fr));` |
+| `grid-cols-&lt;number&gt;` | `grid-template-columns: repeat(&lt;number&gt;, minmax(0, 1fr));` |
 | `grid-cols-none` | `grid-template-columns: none;` |
 | `grid-cols-subgrid` | `grid-template-columns: subgrid;` |
-| `grid-cols-[<value>]` | `grid-template-columns: <value>;` |
-| `grid-cols-(<custom-property>)` | `grid-template-columns: var(<custom-property>);` |
+| `grid-cols-[&lt;value&gt;]` | `grid-template-columns: &lt;value&gt;;` |
+| `grid-cols-(&lt;custom-property&gt;)` | `grid-template-columns: var(&lt;custom-property&gt;);` |
 
-Source: https://tailwindcss.com/docs/grid-template-columns
+Source: https://tailwindcss.com/guide/grid-template-columns
 
 ## Examples
 
 ### Specifying the grid columns
 
-Use `grid-cols-<number>` utilities like `grid-cols-2` and `grid-cols-4` to create grids with _n_ equally sized columns:
+Use `grid-cols-&lt;number&gt;` utilities like `grid-cols-2` and `grid-cols-4` to create grids with _n_ equally sized columns:
 
 ```html
 <!-- [!code classes:grid-cols-4] -->
@@ -47,7 +47,7 @@ Use the `grid-cols-subgrid` utility to adopt the column tracks defined by the it
 
 ### Using a custom value
 
-Use the `grid-cols-[<value>]` syntax to set the grid template columns based on a completely custom value:
+Use the `grid-cols-[&lt;value&gt;]` syntax to set the grid template columns based on a completely custom value:
 
 ```html
 <div class="grid grid-cols-[200px_minmax(900px,_1fr)_100px] ...">
@@ -55,7 +55,7 @@ Use the `grid-cols-[<value>]` syntax to set the grid template columns based on a
 </div>
 ```
 
-For CSS variables, you can also use the `grid-cols-(<custom-property>)` syntax:
+For CSS variables, you can also use the `grid-cols-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="grid grid-cols-(--my-columns) ...">
@@ -63,7 +63,7 @@ For CSS variables, you can also use the `grid-cols-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `grid-cols-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `grid-cols-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

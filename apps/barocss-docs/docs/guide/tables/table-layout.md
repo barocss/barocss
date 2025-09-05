@@ -2,7 +2,7 @@
 
 Utilities for controlling the table layout algorithm.
 
-Source: https://tailwindcss.com/docs/table-layout
+Source: https://tailwindcss.com/guide/table-layout
 
 ## Quick reference
 

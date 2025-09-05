@@ -23,7 +23,7 @@ Utilities for controlling how an element's background image should blend with it
 | `bg-blend-color` | `background-blend-mode: color;` |
 | `bg-blend-luminosity` | `background-blend-mode: luminosity;` |
 
-Source: https://tailwindcss.com/docs/background-blend-mode
+Source: https://tailwindcss.com/guide/background-blend-mode
 
 ## Examples
 

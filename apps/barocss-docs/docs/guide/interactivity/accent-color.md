@@ -2,7 +2,7 @@
 
 Utilities for controlling the accented color of a form control.
 
-Source: https://tailwindcss.com/docs/accent-color
+Source: https://tailwindcss.com/guide/accent-color
 
 ## Quick reference
 
@@ -13,8 +13,8 @@ Source: https://tailwindcss.com/docs/accent-color
 | accent-transparent       | accent-color: transparent;                                                 |
 | accent-black             | accent-color: var(--color-black); /* #000 */                             |
 | accent-white             | accent-color: var(--color-white); /* #fff */                             |
-| accent-<custom-property> | accent-color: var(<custom-property>);                                      |
-| accent-\[<value>\]       | accent-color: <value>;                                                     |
+| accent-&lt;custom-property&gt; | accent-color: var(&lt;custom-property&gt;);                                      |
+| accent-\[&lt;value&gt;\]       | accent-color: &lt;value&gt;;                                                     |
 
 ## Examples
 
@@ -56,19 +56,19 @@ Setting the accent color opacity has limited browser-support and only works in F
 
 ### Using a custom value
 
-Use the `accent-[<value>]` syntax to set the accent color based on a completely custom value:
+Use the `accent-[&lt;value&gt;]` syntax to set the accent color based on a completely custom value:
 
 ```html
 <input class="accent-[#50d71e] ..." type="checkbox" />
 ```
 
-For CSS variables, you can also use the `accent-(<custom-property>)` syntax:
+For CSS variables, you can also use the `accent-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <input class="accent-(--my-accent-color) ..." type="checkbox" />
 ```
 
-This is just a shorthand for `accent-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `accent-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Applying on hover
 

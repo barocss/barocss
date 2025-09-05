@@ -2,7 +2,7 @@
 
 Utilities for styling the fill of SVG elements.
 
-Source: https://tailwindcss.com/docs/fill
+Source: https://tailwindcss.com/guide/fill
 
 ## Quick reference
 
@@ -14,8 +14,8 @@ Source: https://tailwindcss.com/docs/fill
 | fill-transparent         | fill: transparent;                                                 |
 | fill-black               | fill: var(--color-black); /* #000 */                             |
 | fill-white               | fill: var(--color-white); /* #fff */                             |
-| fill-<custom-property>   | fill: var(<custom-property>);                                      |
-| fill-\[<color>\]         | fill: <color>;                                                     |
+| fill-&lt;custom-property&gt;   | fill: var(&lt;custom-property&gt;);                                      |
+| fill-\[&lt;color&gt;\]         | fill: &lt;color&gt;;                                                     |
 
 ## Examples
 
@@ -50,7 +50,7 @@ Check for updates
 
 ### Using a custom value
 
-Use the `fill-[<value>]` syntax to set the fill color based on a completely custom value:
+Use the `fill-[&lt;value&gt;]` syntax to set the fill color based on a completely custom value:
 
 ```html
 <svg class="fill-[#243c5a] ...">
@@ -58,7 +58,7 @@ Use the `fill-[<value>]` syntax to set the fill color based on a completely cust
 </svg>
 ```
 
-For CSS variables, you can also use the `fill-(<custom-property>)` syntax:
+For CSS variables, you can also use the `fill-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <svg class="fill-(--my-fill-color) ...">
@@ -66,7 +66,7 @@ For CSS variables, you can also use the `fill-(<custom-property>)` syntax:
 </svg>
 ```
 
-This is just a shorthand for `fill-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `fill-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

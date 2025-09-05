@@ -6,7 +6,7 @@ Using responsive utility variants to build adaptive user interfaces.
 
 Every utility class in Tailwind can be applied conditionally at different breakpoints, which makes it a piece of cake to build complex responsive interfaces without ever leaving your HTML.
 
-First, make sure you've added the [viewport meta tag](https://developer.mozilla.org/en-US/docs/Web/HTML/Viewport_meta_tag) to the `<head>` of your document:
+First, make sure you've added the [viewport meta tag](https://developer.mozilla.org/en-US/guide/Web/HTML/Viewport_meta_tag) to the `<head>` of your document:
 
 ```html
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -153,7 +153,7 @@ Note that it's important to always use the same unit for defining your breakpoin
 
 Tailwind uses `rem` for the default breakpoints, so if you are adding additional breakpoints to the defaults, make sure you use `rem` as well.
 
-Learn more about customizing your theme in the [theme documentation](/docs/theme).
+Learn more about customizing your theme in the [theme documentation](/guide/theme).
 
 ### Removing default breakpoints
 
@@ -180,7 +180,7 @@ You can also reset all of the default breakpoints using `--breakpoint-*: initial
 }
 ```
 
-Learn more removing default theme values in the [theme documentation](/docs/theme).
+Learn more removing default theme values in the [theme documentation](/guide/theme).
 
 ### Using arbitrary values
 
@@ -192,13 +192,13 @@ If you need to use a one-off breakpoint that doesn't make sense to include in yo
 </div>
 ```
 
-Learn more about arbitrary value support in the [arbitrary values](/docs/adding-custom-styles#using-arbitrary-values) documentation.
+Learn more about arbitrary value support in the [arbitrary values](/guide/adding-custom-styles#using-arbitrary-values) documentation.
 
 ## Container queries
 
 ### What are container queries?
 
-[Container queries](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries) are a modern CSS feature that let you style something based on the size of a parent element instead of the size of the entire viewport. They let you build components that are a lot more portable and reusable because they can change based on the actual space available for that component.
+[Container queries](https://developer.mozilla.org/en-US/guide/Web/CSS/CSS_containment/Container_queries) are a modern CSS feature that let you style something based on the size of a parent element instead of the size of the entire viewport. They let you build components that are a lot more portable and reusable because they can change based on the actual space available for that component.
 
 ### Basic example
 
@@ -275,7 +275,7 @@ This adds a new `8xl` container query variant that can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the [theme documentation](/docs/theme).
+Learn more about customizing your theme in the [theme documentation](/guide/theme).
 
 ### Using arbitrary values
 
@@ -291,7 +291,7 @@ Use variants like `@min-[475px]` and `@max-[960px]` for one-off container query 
 
 ### Using container query units
 
-Use [container query length units](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment/Container_queries#container_query_length_units) like `cqw` as arbitrary values in other utility classes to reference the container size:
+Use [container query length units](https://developer.mozilla.org/en-US/guide/Web/CSS/CSS_containment/Container_queries#container_query_length_units) like `cqw` as arbitrary values in other utility classes to reference the container size:
 
 ```html
 <div class="@container">

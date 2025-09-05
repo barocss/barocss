@@ -2,7 +2,7 @@
 
 Utilities for controlling how strictly snap points are enforced in a snap container.
 
-Source: https://tailwindcss.com/docs/scroll-snap-type
+Source: https://tailwindcss.com/guide/scroll-snap-type
 
 ## Quick reference
 

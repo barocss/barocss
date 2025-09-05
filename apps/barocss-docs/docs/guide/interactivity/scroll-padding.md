@@ -2,7 +2,7 @@
 
 Utilities for controlling an element's scroll offset within a snap container.
 
-Source: https://tailwindcss.com/docs/scroll-padding
+Source: https://tailwindcss.com/guide/scroll-padding
 
 ## Quick reference
 
@@ -10,7 +10,7 @@ Prefixes map to properties:
 - `scroll-p*`: scroll-padding
 - `scroll-px/*-py/*-ps/*-pe/*-pt/*-pr/*-pb/*-pl`: per-side logical/physical
 
-Supports: `<number>`, negative, `(<var>)`, `[<value>]`.
+Supports: `&lt;number&gt;`, negative, `(<var>)`, `[&lt;value&gt;]`.
 
 ## Examples
 
@@ -57,7 +57,7 @@ Use negative values to reduce the scroll padding:
 
 ### Using a custom value
 
-Use the `scroll-padding-[<value>]` syntax to set the scroll padding based on a completely custom value:
+Use the `scroll-padding-[&lt;value&gt;]` syntax to set the scroll padding based on a completely custom value:
 
 ```html
 <div class="scroll-padding-[24rem] ...">
@@ -65,7 +65,7 @@ Use the `scroll-padding-[<value>]` syntax to set the scroll padding based on a c
 </div>
 ```
 
-For CSS variables, you can also use the `scroll-padding-(<custom-property>)` syntax:
+For CSS variables, you can also use the `scroll-padding-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="scroll-padding-(--my-padding) ...">
@@ -73,7 +73,7 @@ For CSS variables, you can also use the `scroll-padding-(<custom-property>)` syn
 </div>
 ```
 
-This is just a shorthand for `scroll-padding-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `scroll-padding-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

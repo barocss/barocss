@@ -453,4 +453,4 @@ Smart caching is a cornerstone of BaroCSS's performance, providing dramatic impr
 
 The system automatically manages cache invalidation, provides comprehensive statistics, and scales efficiently for applications of any size.
 
-Ready to experience smart caching? Check out the [Performance Guide](/guide/performance) for optimization tips and best practices.
+Ready to experience smart caching? Check out the [Performance Guide](/guide/smart-caching) for optimization tips and best practices.

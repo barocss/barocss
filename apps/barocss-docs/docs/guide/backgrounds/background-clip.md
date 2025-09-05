@@ -11,7 +11,7 @@ Utilities for controlling the bounding box of an element's background.
 | `bg-clip-content` | `background-clip: content-box;` |
 | `bg-clip-text` | `background-clip: text;` |
 
-Source: https://tailwindcss.com/docs/background-clip
+Source: https://tailwindcss.com/guide/background-clip
 
 ## Examples
 

@@ -2,11 +2,11 @@
 
 Utilities for applying saturate filters to an element.
 
-Source: https://tailwindcss.com/docs/filter-saturate
+Source: https://tailwindcss.com/guide/filter-saturate
 
 ## Quick reference
 
-- `saturate-[<value>]`, `saturate-(<custom-property>)`, presets like `saturate-150`, `saturate-200`
+- `saturate-[&lt;value&gt;]`, `saturate-(&lt;custom-property&gt;)`, presets like `saturate-150`, `saturate-200`
 
 ## Examples
 

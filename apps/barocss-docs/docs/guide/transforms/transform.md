@@ -2,14 +2,14 @@
 
 Utilities for transforming elements.
 
-Source: https://tailwindcss.com/docs/transform
+Source: https://tailwindcss.com/guide/transform
 
 ## Quick reference
 
 | Class | Styles |
 |---|---|
-| transform-(<custom-property>) | transform: var(<custom-property>); |
-| transform-[<value>] | transform: <value>; |
+| transform-(&lt;custom-property&gt;) | transform: var(&lt;custom-property&gt;); |
+| transform-[&lt;value&gt;] | transform: &lt;value&gt;; |
 | transform-none | transform: none; |
 | transform-gpu | transform: translateZ(0) var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y); |
 | transform-cpu | transform: var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y); |
@@ -40,7 +40,7 @@ Use the `transform-none` utility to remove all of the transforms on an element a
 
 ### Using a custom value
 
-Use the `transform-[<value>]` syntax to set the transform based on a completely custom value:
+Use the `transform-[&lt;value&gt;]` syntax to set the transform based on a completely custom value:
 
 ```html
 <div class="transform-[matrix(1,2,3,4,5,6)] ...">
@@ -48,7 +48,7 @@ Use the `transform-[<value>]` syntax to set the transform based on a completely 
 </div>
 ```
 
-For CSS variables, you can also use the `transform-(<custom-property>)` syntax:
+For CSS variables, you can also use the `transform-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="transform-(--my-transform) ...">
@@ -56,7 +56,7 @@ For CSS variables, you can also use the `transform-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `transform-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `transform-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

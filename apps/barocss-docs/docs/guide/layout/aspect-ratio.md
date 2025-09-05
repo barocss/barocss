@@ -6,20 +6,20 @@ Utilities for controlling the aspect ratio of an element.
 
 | Class                      | Styles                                                  |
 | -------------------------- | ------------------------------------------------------- |
-| aspect-<ratio>             | aspect-ratio: <ratio>;                                  |
+| aspect-&lt;ratio&gt;             | aspect-ratio: &lt;ratio&gt;;                                  |
 | aspect-square              | aspect-ratio: 1 / 1;                                    |
 | aspect-video               | aspect-ratio: var(--aspect-ratio-video); /* 16 / 9 */ |
 | aspect-auto                | aspect-ratio: auto;                                     |
-| aspect-(<custom-property>) | aspect-ratio: var(<custom-property>);                   |
-| aspect-\[<value>\]         | aspect-ratio: <value>;                                  |
+| aspect-(&lt;custom-property&gt;) | aspect-ratio: var(&lt;custom-property&gt;);                   |
+| aspect-\[&lt;value&gt;\]         | aspect-ratio: &lt;value&gt;;                                  |
 
-Source: https://tailwindcss.com/docs/aspect-ratio
+Source: https://tailwindcss.com/guide/aspect-ratio
 
 ## Examples
 
 ### Basic example
 
-Use `aspect-<ratio>` utilities like `aspect-3/2` to give an element a specific aspect ratio:
+Use `aspect-&lt;ratio&gt;` utilities like `aspect-3/2` to give an element a specific aspect ratio:
 
 Resize the example to see the expected behavior
 
@@ -39,19 +39,19 @@ Resize the example to see the expected behavior
 
 ### Using a custom value
 
-Use the `aspect-[<value>]` syntax to set the aspect ratio based on a completely custom value:
+Use the `aspect-[&lt;value&gt;]` syntax to set the aspect ratio based on a completely custom value:
 
 ```html
 <img class="aspect-[calc(4*3+1)/3] ..." src="/img/villas.jpg" />
 ```
 
-For CSS variables, you can also use the `aspect-(<custom-property>)` syntax:
+For CSS variables, you can also use the `aspect-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <img class="aspect-(--my-aspect-ratio) ..." src="/img/villas.jpg" />
 ```
 
-This is just a shorthand for `aspect-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `aspect-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

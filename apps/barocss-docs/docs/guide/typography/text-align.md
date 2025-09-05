@@ -13,7 +13,7 @@ Utilities for controlling the alignment of text.
 | `text-start`  | `text-align: start;`    |
 | `text-end`    | `text-align: end;`      |
 
-Source: https://tailwindcss.com/docs/text-align
+Source: https://tailwindcss.com/guide/text-align
 
 ## Examples
 

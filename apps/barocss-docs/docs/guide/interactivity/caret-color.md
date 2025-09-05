@@ -2,7 +2,7 @@
 
 Utilities for controlling the color of the text input cursor.
 
-Source: https://tailwindcss.com/docs/caret-color
+Source: https://tailwindcss.com/guide/caret-color
 
 ## Quick reference
 
@@ -13,8 +13,8 @@ Source: https://tailwindcss.com/docs/caret-color
 | caret-transparent   | caret-color: transparent;         |
 | caret-black         | caret-color: var(--color-black);  |
 | caret-white         | caret-color: var(--color-white);  |
-| caret-<custom-property> | caret-color: var(<custom-property>); |
-| caret-\[<value>\]   | caret-color: <value>;             |
+| caret-&lt;custom-property&gt; | caret-color: var(&lt;custom-property&gt;); |
+| caret-\[&lt;value&gt;\]   | caret-color: &lt;value&gt;;             |
 
 ## Examples
 
@@ -30,7 +30,7 @@ Use utilities like `caret-pink-500` and `caret-lime-600` to change the color of 
 
 ### Using a custom value
 
-Use the `caret-[<value>]` syntax to set the caret color based on a completely custom value:
+Use the `caret-[&lt;value&gt;]` syntax to set the caret color based on a completely custom value:
 
 ```html
 <textarea class="caret-[#50d71e] ...">
@@ -38,7 +38,7 @@ Use the `caret-[<value>]` syntax to set the caret color based on a completely cu
 </textarea>
 ```
 
-For CSS variables, you can also use the `caret-(<custom-property>)` syntax:
+For CSS variables, you can also use the `caret-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <textarea class="caret-(--my-caret-color) ...">
@@ -46,7 +46,7 @@ For CSS variables, you can also use the `caret-(<custom-property>)` syntax:
 </textarea>
 ```
 
-This is just a shorthand for `caret-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `caret-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

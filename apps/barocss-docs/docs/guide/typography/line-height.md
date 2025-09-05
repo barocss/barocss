@@ -6,15 +6,15 @@ Utilities for controlling the leading, or line height, of an element.
 
 | Class | Styles |
 |---|---|
-| `text-<size>/<number>` | `font-size: <size>; line-height: calc(var(--spacing) * <number>);` |
-| `text-<size>/(<custom-property>)` | `font-size: <size>; line-height: var(<custom-property>);` |
-| `text-<size>/[<value>]` | `font-size: <size>; line-height: <value>;` |
+| `text-<size>/&lt;number&gt;` | `font-size: <size>; line-height: calc(var(--spacing) * &lt;number&gt;);` |
+| `text-<size>/(&lt;custom-property&gt;)` | `font-size: <size>; line-height: var(&lt;custom-property&gt;);` |
+| `text-<size>/[&lt;value&gt;]` | `font-size: <size>; line-height: &lt;value&gt;;` |
 | `leading-none` | `line-height: 1;` |
-| `leading-<number>` | `line-height: calc(var(--spacing) * <number>)` |
-| `leading-(<custom-property>)` | `line-height: var(<custom-property>);` |
-| `leading-[<value>]` | `line-height: <value>;` |
+| `leading-&lt;number&gt;` | `line-height: calc(var(--spacing) * &lt;number&gt;)` |
+| `leading-(&lt;custom-property&gt;)` | `line-height: var(&lt;custom-property&gt;);` |
+| `leading-[&lt;value&gt;]` | `line-height: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/line-height
+Source: https://tailwindcss.com/guide/line-height
 
 ## Examples
 
@@ -33,7 +33,7 @@ Each font size utility also sets a default line height when one isn't provided. 
 
 ### Setting independently
 
-Use `leading-<number>` utilities like `leading-6` and `leading-7` to set the line height of an element independent of the font-size:
+Use `leading-&lt;number&gt;` utilities like `leading-6` and `leading-7` to set the line height of an element independent of the font-size:
 
 ```html
 <!-- [!code classes:leading-6,leading-7,leading-8] -->
@@ -53,19 +53,19 @@ Use the `leading-none` utility to set the line height of an element equal to its
 
 ### Using a custom value
 
-Use the `leading-[<value>]` syntax to set the line height based on a completely custom value:
+Use the `leading-[&lt;value&gt;]` syntax to set the line height based on a completely custom value:
 
 ```html
 <p class="leading-[1.5] ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-For CSS variables, you can also use the `leading-(<custom-property>)` syntax:
+For CSS variables, you can also use the `leading-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <p class="leading-(--my-leading) ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-This is just a shorthand for `leading-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `leading-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

@@ -6,8 +6,8 @@ Utilities for setting the minimum height of an element.
 
 | Class                    | Styles                                                                             |
 | ------------------------ | ---------------------------------------------------------------------------------- |
-| min-h-<number>           | min-height: calc(var(--spacing) \* <number>);                                      |
-| min-h-<fraction>         | min-height: calc(<fraction> \* 100%);                                              |
+| min-h-&lt;number&gt;           | min-height: calc(var(--spacing) \* &lt;number&gt;);                                      |
+| min-h-&lt;fraction&gt;         | min-height: calc(&lt;fraction&gt; \* 100%);                                              |
 | min-h-px                 | min-height: 1px;                                                                   |
 | min-h-full               | min-height: 100%;                                                                  |
 | min-h-screen             | min-height: 100vh;                                                                 |
@@ -22,16 +22,16 @@ Utilities for setting the minimum height of an element.
 | min-h-max                | min-height: max-content;                                                           |
 | min-h-fit                | min-height: fit-content;                                                           |
 | min-h-lh                 | min-height: 1lh;                                                                   |
-| min-h-(<custom-property>)| min-height: var(<custom-property>);                                                |
-| min-h-\[<value>\]        | min-height: <value>;                                                               |
+| min-h-(&lt;custom-property&gt;)| min-height: var(&lt;custom-property&gt;);                                                |
+| min-h-\[&lt;value&gt;\]        | min-height: &lt;value&gt;;                                                               |
 
-Source: https://tailwindcss.com/docs/min-height
+Source: https://tailwindcss.com/guide/min-height
 
 ## Examples
 
 ### Basic example
 
-Use `min-h-<number>` utilities like `min-h-24` and `min-h-64` to set an element to a fixed minimum height based on the spacing scale:
+Use `min-h-&lt;number&gt;` utilities like `min-h-24` and `min-h-64` to set an element to a fixed minimum height based on the spacing scale:
 
 min-h-96
 
@@ -61,7 +61,7 @@ min-h-24
 
 ### Using a percentage
 
-Use `min-h-full` or `min-h-<fraction>` utilities like `min-h-1/2` and `min-h-3/4` to give an element a percentage-based minimum height:
+Use `min-h-full` or `min-h-&lt;fraction&gt;` utilities like `min-h-1/2` and `min-h-3/4` to give an element a percentage-based minimum height:
 
 min-h-full
 
@@ -107,7 +107,7 @@ Use the `min-h-0` utility to remove an element's assigned minimum height under a
 
 ### Using a custom value
 
-Use the `min-h-[<value>]` syntax to set the minimum height based on a completely custom value:
+Use the `min-h-[&lt;value&gt;]` syntax to set the minimum height based on a completely custom value:
 
 ```
 <div class="min-h-[220px] ...">
@@ -115,7 +115,7 @@ Use the `min-h-[<value>]` syntax to set the minimum height based on a completely
 </div>
 ```
 
-For CSS variables, you can also use the `min-h-(<custom-property>)` syntax:
+For CSS variables, you can also use the `min-h-(&lt;custom-property&gt;)` syntax:
 
 ```
 <div class="min-h-(--my-min-height) ...">
@@ -123,7 +123,7 @@ For CSS variables, you can also use the `min-h-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `min-h-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `min-h-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 
@@ -139,7 +139,7 @@ Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-The `min-h-<number>` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
+The `min-h-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
 @theme {

@@ -9,7 +9,7 @@ Utilities for controlling how the browser should calculate an element's total si
 | `box-border`  | `box-sizing: border-box;`|
 | `box-content` | `box-sizing: content-box;`|
 
-Source: https://tailwindcss.com/docs/box-sizing
+Source: https://tailwindcss.com/guide/box-sizing
 
 ## Examples
 

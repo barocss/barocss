@@ -10,7 +10,7 @@ Utilities for controlling how the text of an element overflows.
 | `text-ellipsis`| `text-overflow: ellipsis;`                  |
 | `text-clip`    | `text-overflow: clip;`                      |
 
-Source: https://tailwindcss.com/docs/text-overflow
+Source: https://tailwindcss.com/guide/text-overflow
 
 ## Examples
 

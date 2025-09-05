@@ -6,19 +6,19 @@ Utilities for specifying the rows in a grid layout.
 
 | Class | Styles |
 |---|---|
-| `grid-rows-<number>` | `grid-template-rows: repeat(<number>, minmax(0, 1fr));` |
+| `grid-rows-&lt;number&gt;` | `grid-template-rows: repeat(&lt;number&gt;, minmax(0, 1fr));` |
 | `grid-rows-none` | `grid-template-rows: none;` |
 | `grid-rows-subgrid` | `grid-template-rows: subgrid;` |
-| `grid-rows-[<value>]` | `grid-template-rows: <value>;` |
-| `grid-rows-(<custom-property>)` | `grid-template-rows: var(<custom-property>);` |
+| `grid-rows-[&lt;value&gt;]` | `grid-template-rows: &lt;value&gt;;` |
+| `grid-rows-(&lt;custom-property&gt;)` | `grid-template-rows: var(&lt;custom-property&gt;);` |
 
-Source: https://tailwindcss.com/docs/grid-template-rows
+Source: https://tailwindcss.com/guide/grid-template-rows
 
 ## Examples
 
 ### Specifying the grid rows
 
-Use `grid-rows-<number>` utilities like `grid-rows-2` and `grid-rows-4` to create grids with _n_ equally sized rows:
+Use `grid-rows-&lt;number&gt;` utilities like `grid-rows-2` and `grid-rows-4` to create grids with _n_ equally sized rows:
 
 ```html
 <!-- [!code classes:grid-rows-4] -->
@@ -50,7 +50,7 @@ Use the `grid-rows-subgrid` utility to adopt the row tracks defined by the item'
 
 ### Using a custom value
 
-Use the `grid-rows-[<value>]` syntax to set the grid template rows based on a completely custom value:
+Use the `grid-rows-[&lt;value&gt;]` syntax to set the grid template rows based on a completely custom value:
 
 ```html
 <div class="grid grid-rows-[200px_minmax(900px,1fr)_100px] ...">
@@ -58,7 +58,7 @@ Use the `grid-rows-[<value>]` syntax to set the grid template rows based on a co
 </div>
 ```
 
-For CSS variables, you can also use the `grid-rows-(<custom-property>)` syntax:
+For CSS variables, you can also use the `grid-rows-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="grid grid-rows-(--my-rows) ...">
@@ -66,7 +66,7 @@ For CSS variables, you can also use the `grid-rows-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `grid-rows-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `grid-rows-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

@@ -14,7 +14,7 @@ Utilities for controlling the bounding box of an element's mask.
 | `mask-clip-view`    | `mask-clip: view-box;`    |
 | `mask-no-clip`      | `mask-clip: no-clip;`     |
 
-Source: https://tailwindcss.com/docs/mask-clip
+Source: https://tailwindcss.com/guide/mask-clip
 
 ## Examples
 

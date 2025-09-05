@@ -2,11 +2,11 @@
 
 Utilities for applying backdrop sepia filters to an element.
 
-Source: https://tailwindcss.com/docs/backdrop-filter-sepia
+Source: https://tailwindcss.com/guide/backdrop-filter-sepia
 
 ## Quick reference
 
-- `backdrop-sepia`, `backdrop-sepia-0`, `backdrop-sepia-[<value>]`, `backdrop-sepia-(<custom-property>)`
+- `backdrop-sepia`, `backdrop-sepia-0`, `backdrop-sepia-[&lt;value&gt;]`, `backdrop-sepia-(&lt;custom-property&gt;)`
 
 ## Examples
 
@@ -25,7 +25,7 @@ Use utilities like `backdrop-sepia` and `backdrop-sepia-0` to control the sepia 
 
 ### Using a custom value
 
-Use the `backdrop-sepia-[<value>]` syntax to set the backdrop sepia based on a completely custom value:
+Use the `backdrop-sepia-[&lt;value&gt;]` syntax to set the backdrop sepia based on a completely custom value:
 
 ```html
 <div class="backdrop-sepia-[.8] ...">
@@ -33,7 +33,7 @@ Use the `backdrop-sepia-[<value>]` syntax to set the backdrop sepia based on a c
 </div>
 ```
 
-For CSS variables, you can also use the `backdrop-sepia-(<custom-property>)` syntax:
+For CSS variables, you can also use the `backdrop-sepia-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="backdrop-sepia-(--my-backdrop-sepia) ...">
@@ -41,7 +41,7 @@ For CSS variables, you can also use the `backdrop-sepia-(<custom-property>)` syn
 </div>
 ```
 
-This is just a shorthand for `backdrop-sepia-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `backdrop-sepia-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

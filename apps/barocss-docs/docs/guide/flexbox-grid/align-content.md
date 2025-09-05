@@ -16,7 +16,7 @@ Utilities for controlling how rows are positioned in multi-row flex and grid con
 | `content-baseline` | `align-content: baseline;` |
 | `content-stretch` | `align-content: stretch;` |
 
-Source: https://tailwindcss.com/docs/align-content
+Source: https://tailwindcss.com/guide/align-content
 
 ## Examples
 

@@ -16,7 +16,7 @@ Utilities for controlling how an individual flex or grid item is positioned alon
 | `self-baseline` | `align-self: baseline;` |
 | `self-baseline-last` | `align-self: last baseline;` |
 
-Source: https://tailwindcss.com/docs/align-self
+Source: https://tailwindcss.com/guide/align-self
 
 ## Examples
 

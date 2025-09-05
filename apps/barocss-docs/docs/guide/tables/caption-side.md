@@ -2,7 +2,7 @@
 
 Utilities for controlling the alignment of a caption element inside of a table.
 
-Source: https://tailwindcss.com/docs/caption-side
+Source: https://tailwindcss.com/guide/caption-side
 
 ## Quick reference
 

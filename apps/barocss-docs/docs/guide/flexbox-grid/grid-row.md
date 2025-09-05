@@ -6,33 +6,33 @@ Utilities for controlling how elements are sized and placed across grid rows.
 
 | Class | Styles |
 |---|---|
-| `row-span-<number>` | `grid-row: span <number> / span <number>;` |
+| `row-span-&lt;number&gt;` | `grid-row: span &lt;number&gt; / span &lt;number&gt;;` |
 | `row-span-full` | `grid-row: 1 / -1;` |
-| `row-span-(<custom-property>)` | `grid-row: span var(<custom-property>) / span var(<custom-property>);` |
-| `row-span-[<value>]` | `grid-row: span <value> / span <value>;` |
-| `row-start-<number>` | `grid-row-start: <number>;` |
-| `-row-start-<number>` | `grid-row-start: calc(<number> * -1);` |
+| `row-span-(&lt;custom-property&gt;)` | `grid-row: span var(&lt;custom-property&gt;) / span var(&lt;custom-property&gt;);` |
+| `row-span-[&lt;value&gt;]` | `grid-row: span &lt;value&gt; / span &lt;value&gt;;` |
+| `row-start-&lt;number&gt;` | `grid-row-start: &lt;number&gt;;` |
+| `-row-start-&lt;number&gt;` | `grid-row-start: calc(&lt;number&gt; * -1);` |
 | `row-start-auto` | `grid-row-start: auto;` |
-| `row-start-(<custom-property>)` | `grid-row-start: var(<custom-property>);` |
-| `row-start-[<value>]` | `grid-row-start: <value>;` |
-| `row-end-<number>` | `grid-row-end: <number>;` |
-| `-row-end-<number>` | `grid-row-end: calc(<number> * -1);` |
+| `row-start-(&lt;custom-property&gt;)` | `grid-row-start: var(&lt;custom-property&gt;);` |
+| `row-start-[&lt;value&gt;]` | `grid-row-start: &lt;value&gt;;` |
+| `row-end-&lt;number&gt;` | `grid-row-end: &lt;number&gt;;` |
+| `-row-end-&lt;number&gt;` | `grid-row-end: calc(&lt;number&gt; * -1);` |
 | `row-end-auto` | `grid-row-end: auto;` |
-| `row-end-(<custom-property>)` | `grid-row-end: var(<custom-property>);` |
-| `row-end-[<value>]` | `grid-row-end: <value>;` |
+| `row-end-(&lt;custom-property&gt;)` | `grid-row-end: var(&lt;custom-property&gt;);` |
+| `row-end-[&lt;value&gt;]` | `grid-row-end: &lt;value&gt;;` |
 | `row-auto` | `grid-row: auto;` |
-| `row-<number>` | `grid-row: <number>;` |
-| `-row-<number>` | `grid-row: calc(<number> * -1);` |
-| `row-(<custom-property>)` | `grid-row: var(<custom-property>);` |
-| `row-[<value>]` | `grid-row: <value>;` |
+| `row-&lt;number&gt;` | `grid-row: &lt;number&gt;;` |
+| `-row-&lt;number&gt;` | `grid-row: calc(&lt;number&gt; * -1);` |
+| `row-(&lt;custom-property&gt;)` | `grid-row: var(&lt;custom-property&gt;);` |
+| `row-[&lt;value&gt;]` | `grid-row: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/grid-row
+Source: https://tailwindcss.com/guide/grid-row
 
 ## Examples
 
 ### Spanning rows
 
-Use `row-span-<number>` utilities like `row-span-2` and `row-span-4` to make an element span _n_ rows:
+Use `row-span-&lt;number&gt;` utilities like `row-span-2` and `row-span-4` to make an element span _n_ rows:
 
 ```html
 <!-- [!code classes:row-span-2,row-span-3] -->
@@ -45,7 +45,7 @@ Use `row-span-<number>` utilities like `row-span-2` and `row-span-4` to make an 
 
 ### Starting and ending lines
 
-Use `row-start-<number>` or `row-end-<number>` utilities like `row-start-2` and `row-end-3` to make an element start or end at the _nth_ grid line:
+Use `row-start-&lt;number&gt;` or `row-end-&lt;number&gt;` utilities like `row-start-2` and `row-end-3` to make an element start or end at the _nth_ grid line:
 
 ```html
 <!-- [!code classes:row-start-1,row-start-2,row-end-3,row-end-4] -->
@@ -56,23 +56,23 @@ Use `row-start-<number>` or `row-end-<number>` utilities like `row-start-2` and 
 </div>
 ```
 
-These can also be combined with the `row-span-<number>` utilities to span a specific number of rows.
+These can also be combined with the `row-span-&lt;number&gt;` utilities to span a specific number of rows.
 
 ### Using a custom value
 
-Use the `row-[<value>]` syntax to set the grid row based on a completely custom value:
+Use the `row-[&lt;value&gt;]` syntax to set the grid row based on a completely custom value:
 
 ```html
 <div class="row-[16] row-span-[span_16_/_span_16] ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-For CSS variables, you can also use the `row-(<custom-property>)` syntax:
+For CSS variables, you can also use the `row-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="row-(--my-row) ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-This is just a shorthand for `row-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `row-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

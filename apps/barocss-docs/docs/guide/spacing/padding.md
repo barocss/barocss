@@ -6,50 +6,50 @@ Utilities for controlling an element's padding.
 
 | Class | Styles |
 |---|---|
-| `p-<number>` | `padding: calc(var(--spacing) * <number>);` |
+| `p-&lt;number&gt;` | `padding: calc(var(--spacing) * &lt;number&gt;);` |
 | `p-px` | `padding: 1px;` |
-| `p-(<custom-property>)` | `padding: var(<custom-property>);` |
-| `p-[<value>]` | `padding: <value>;` |
-| `px-<number>` | `padding-inline: calc(var(--spacing) * <number>);` |
+| `p-(&lt;custom-property&gt;)` | `padding: var(&lt;custom-property&gt;);` |
+| `p-[&lt;value&gt;]` | `padding: &lt;value&gt;;` |
+| `px-&lt;number&gt;` | `padding-inline: calc(var(--spacing) * &lt;number&gt;);` |
 | `px-px` | `padding-inline: 1px;` |
-| `px-(<custom-property>)` | `padding-inline: var(<custom-property>);` |
-| `px-[<value>]` | `padding-inline: <value>;` |
-| `py-<number>` | `padding-block: calc(var(--spacing) * <number>);` |
+| `px-(&lt;custom-property&gt;)` | `padding-inline: var(&lt;custom-property&gt;);` |
+| `px-[&lt;value&gt;]` | `padding-inline: &lt;value&gt;;` |
+| `py-&lt;number&gt;` | `padding-block: calc(var(--spacing) * &lt;number&gt;);` |
 | `py-px` | `padding-block: 1px;` |
-| `py-(<custom-property>)` | `padding-block: var(<custom-property>);` |
-| `py-[<value>]` | `padding-block: <value>;` |
-| `ps-<number>` | `padding-inline-start: calc(var(--spacing) * <number>);` |
+| `py-(&lt;custom-property&gt;)` | `padding-block: var(&lt;custom-property&gt;);` |
+| `py-[&lt;value&gt;]` | `padding-block: &lt;value&gt;;` |
+| `ps-&lt;number&gt;` | `padding-inline-start: calc(var(--spacing) * &lt;number&gt;);` |
 | `ps-px` | `padding-inline-start: 1px;` |
-| `ps-(<custom-property>)` | `padding-inline-start: var(<custom-property>);` |
-| `ps-[<value>]` | `padding-inline-start: <value>;` |
-| `pe-<number>` | `padding-inline-end: calc(var(--spacing) * <number>);` |
+| `ps-(&lt;custom-property&gt;)` | `padding-inline-start: var(&lt;custom-property&gt;);` |
+| `ps-[&lt;value&gt;]` | `padding-inline-start: &lt;value&gt;;` |
+| `pe-&lt;number&gt;` | `padding-inline-end: calc(var(--spacing) * &lt;number&gt;);` |
 | `pe-px` | `padding-inline-end: 1px;` |
-| `pe-(<custom-property>)` | `padding-inline-end: var(<custom-property>);` |
-| `pe-[<value>]` | `padding-inline-end: <value>;` |
-| `pt-<number>` | `padding-top: calc(var(--spacing) * <number>);` |
+| `pe-(&lt;custom-property&gt;)` | `padding-inline-end: var(&lt;custom-property&gt;);` |
+| `pe-[&lt;value&gt;]` | `padding-inline-end: &lt;value&gt;;` |
+| `pt-&lt;number&gt;` | `padding-top: calc(var(--spacing) * &lt;number&gt;);` |
 | `pt-px` | `padding-top: 1px;` |
-| `pt-(<custom-property>)` | `padding-top: var(<custom-property>);` |
-| `pt-[<value>]` | `padding-top: <value>;` |
-| `pr-<number>` | `padding-right: calc(var(--spacing) * <number>);` |
+| `pt-(&lt;custom-property&gt;)` | `padding-top: var(&lt;custom-property&gt;);` |
+| `pt-[&lt;value&gt;]` | `padding-top: &lt;value&gt;;` |
+| `pr-&lt;number&gt;` | `padding-right: calc(var(--spacing) * &lt;number&gt;);` |
 | `pr-px` | `padding-right: 1px;` |
-| `pr-(<custom-property>)` | `padding-right: var(<custom-property>);` |
-| `pr-[<value>]` | `padding-right: <value>;` |
-| `pb-<number>` | `padding-bottom: calc(var(--spacing) * <number>);` |
+| `pr-(&lt;custom-property&gt;)` | `padding-right: var(&lt;custom-property&gt;);` |
+| `pr-[&lt;value&gt;]` | `padding-right: &lt;value&gt;;` |
+| `pb-&lt;number&gt;` | `padding-bottom: calc(var(--spacing) * &lt;number&gt;);` |
 | `pb-px` | `padding-bottom: 1px;` |
-| `pb-(<custom-property>)` | `padding-bottom: var(<custom-property>);` |
-| `pb-[<value>]` | `padding-bottom: <value>;` |
-| `pl-<number>` | `padding-left: calc(var(--spacing) * <number>);` |
+| `pb-(&lt;custom-property&gt;)` | `padding-bottom: var(&lt;custom-property&gt;);` |
+| `pb-[&lt;value&gt;]` | `padding-bottom: &lt;value&gt;;` |
+| `pl-&lt;number&gt;` | `padding-left: calc(var(--spacing) * &lt;number&gt;);` |
 | `pl-px` | `padding-left: 1px;` |
-| `pl-(<custom-property>)` | `padding-left: var(<custom-property>);` |
-| `pl-[<value>]` | `padding-left: <value>;` |
+| `pl-(&lt;custom-property&gt;)` | `padding-left: var(&lt;custom-property&gt;);` |
+| `pl-[&lt;value&gt;]` | `padding-left: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/padding
+Source: https://tailwindcss.com/guide/padding
 
 ## Examples
 
 ### Basic example
 
-Use `p-<number>` utilities like `p-4` and `p-8` to control the padding on all sides of an element:
+Use `p-&lt;number&gt;` utilities like `p-4` and `p-8` to control the padding on all sides of an element:
 
 ```html
 <!-- [!code classes:p-8] -->
@@ -58,7 +58,7 @@ Use `p-<number>` utilities like `p-4` and `p-8` to control the padding on all si
 
 ### Adding padding to one side
 
-Use `pt-<number>`, `pr-<number>`, `pb-<number>`, and `pl-<number>` utilities like `pt-6` and `pr-4` to control the padding on one side of an element:
+Use `pt-&lt;number&gt;`, `pr-&lt;number&gt;`, `pb-&lt;number&gt;`, and `pl-&lt;number&gt;` utilities like `pt-6` and `pr-4` to control the padding on one side of an element:
 
 ```html
 <!-- [!code classes:pt-6,pr-4,pb-8,pl-2] -->
@@ -70,7 +70,7 @@ Use `pt-<number>`, `pr-<number>`, `pb-<number>`, and `pl-<number>` utilities lik
 
 ### Adding horizontal padding
 
-Use `px-<number>` utilities like `px-4` and `px-8` to control the horizontal padding of an element:
+Use `px-&lt;number&gt;` utilities like `px-4` and `px-8` to control the horizontal padding of an element:
 
 ```html
 <!-- [!code classes:px-8] -->
@@ -79,7 +79,7 @@ Use `px-<number>` utilities like `px-4` and `px-8` to control the horizontal pad
 
 ### Adding vertical padding
 
-Use `py-<number>` utilities like `py-4` and `py-8` to control the vertical padding of an element:
+Use `py-&lt;number&gt;` utilities like `py-4` and `py-8` to control the vertical padding of an element:
 
 ```html
 <!-- [!code classes:py-8] -->
@@ -88,7 +88,7 @@ Use `py-<number>` utilities like `py-4` and `py-8` to control the vertical paddi
 
 ### Using logical properties
 
-Use `ps-<number>` or `pe-<number>` utilities like `ps-4` and `pe-8` to set the `padding-inline-start` and `padding-inline-end` logical properties, which map to either the left or right side based on the text direction:
+Use `ps-&lt;number&gt;` or `pe-&lt;number&gt;` utilities like `ps-4` and `pe-8` to set the `padding-inline-start` and `padding-inline-end` logical properties, which map to either the left or right side based on the text direction:
 
 ```html
 <!-- [!code classes:ps-8,pe-8] -->
@@ -110,7 +110,7 @@ For more control, you can also use the LTR and RTL modifiers to conditionally ap
 
 ### Using a custom value
 
-Use utilities like `p-[<value>]`,`px-[<value>]`, and `pb-[<value>]` to set the padding based on a completely custom value:
+Use utilities like `p-[&lt;value&gt;]`,`px-[&lt;value&gt;]`, and `pb-[&lt;value&gt;]` to set the padding based on a completely custom value:
 
 ```html
 <div class="p-[5px] ...">
@@ -118,7 +118,7 @@ Use utilities like `p-[<value>]`,`px-[<value>]`, and `pb-[<value>]` to set the p
 </div>
 ```
 
-For CSS variables, you can also use the `p-(<custom-property>)` syntax:
+For CSS variables, you can also use the `p-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="p-(--my-padding) ...">
@@ -126,7 +126,7 @@ For CSS variables, you can also use the `p-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `p-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `p-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 
@@ -142,7 +142,7 @@ Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-The `p-<number>`,`px-<number>`,`py-<number>`,`ps-<number>`,`pe-<number>`,`pt-<number>`,`pr-<number>`,`pb-<number>`, and `pl-<number>` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
+The `p-&lt;number&gt;`,`px-&lt;number&gt;`,`py-&lt;number&gt;`,`ps-&lt;number&gt;`,`pe-&lt;number&gt;`,`pt-&lt;number&gt;`,`pr-&lt;number&gt;`,`pb-&lt;number&gt;`, and `pl-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
 @theme {

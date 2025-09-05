@@ -6,15 +6,15 @@ Utilities for controlling the order of flex and grid items.
 
 | Class               | Styles                            |
 |---------------------|-----------------------------------|
-| `order-<number>`    | `order: <number>;`                |
-| `-order-<number>`   | `order: calc(<number> * -1);`     |
+| `order-&lt;number&gt;`    | `order: &lt;number&gt;;`                |
+| `-order-&lt;number&gt;`   | `order: calc(&lt;number&gt; * -1);`     |
 | `order-first`       | `order: -9999;`                   |
 | `order-last`        | `order: 9999;`                    |
 | `order-none`        | `order: 0;`                       |
-| `order-(<custom-property>)` | `order: var(<custom-property>);` |
-| `order-[<value>]`   | `order: <value>;`                 |
+| `order-(&lt;custom-property&gt;)` | `order: var(&lt;custom-property&gt;);` |
+| `order-[&lt;value&gt;]`   | `order: &lt;value&gt;;`                 |
 
-Source: https://tailwindcss.com/docs/order
+Source: https://tailwindcss.com/guide/order
 
 ## Examples
 
@@ -46,19 +46,19 @@ Source: https://tailwindcss.com/docs/order
 
 ### Using a custom value
 
-Use the `order-[<value>]` syntax to set the order based on a completely custom value:
+Use the `order-[&lt;value&gt;]` syntax to set the order based on a completely custom value:
 
 ```html
 <div class="order-[min(var(--total-items),10)] ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-For CSS variables, you can also use the `order-(<custom-property>)` syntax:
+For CSS variables, you can also use the `order-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="order-(--my-order) ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-This is just a shorthand for `order-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `order-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

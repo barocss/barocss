@@ -9,7 +9,7 @@ Utilities for controlling whether an element should explicitly create a new stac
 | `isolate`        | `isolation: isolate;` |
 | `isolation-auto` | `isolation: auto;`    |
 
-Source: https://tailwindcss.com/docs/isolation
+Source: https://tailwindcss.com/guide/isolation
 
 ## Examples
 

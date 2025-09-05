@@ -10,8 +10,8 @@ Utilities for controlling the color of an element's borders.
 | `border-current` | `border-color: currentColor;` |
 | `border-transparent` | `border-color: transparent;` |
 | `border-{name}` | `border-color: var(--color-{name});` |
-| `border-(<custom-property>)` | `border-color: var(<custom-property>);` |
-| `border-[<value>]` | `border-color: <value>;` |
+| `border-(&lt;custom-property&gt;)` | `border-color: var(&lt;custom-property&gt;);` |
+| `border-[&lt;value&gt;]` | `border-color: &lt;value&gt;;` |
 | `border-x-{name}` | `border-inline-color: var(--color-{name});` |
 | `border-y-{name}` | `border-block-color: var(--color-{name});` |
 | `border-s-{name}` | `border-inline-start-color: var(--color-{name});` |
@@ -22,7 +22,7 @@ Utilities for controlling the color of an element's borders.
 | `border-l-{name}` | `border-left-color: var(--color-{name});` |
 | `divide-{name}` | `& > :not(:last-child) { border-color: var(--color-{name}); }` |
 
-Source: https://tailwindcss.com/docs/border-color
+Source: https://tailwindcss.com/guide/border-color
 
 ## Examples
 
@@ -74,7 +74,7 @@ Use utilities like `border-x-indigo-500` and `border-y-lime-100` to set the bord
 
 ### Using logical properties
 
-Use utilities like `border-s-indigo-500` and `border-e-lime-100` to set the `border-inline-start-color` and `border-inline-end-color` [logical properties](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Logical_Properties/Basic_concepts), which map to either the left or right border based on the text direction:
+Use utilities like `border-s-indigo-500` and `border-e-lime-100` to set the `border-inline-start-color` and `border-inline-end-color` [logical properties](https://developer.mozilla.org/en-US/guide/Web/CSS/CSS_Logical_Properties/Basic_concepts), which map to either the left or right border based on the text direction:
 
 ```html
 <!-- [!code classes:border-s-indigo-500,border-s-indigo-500] -->
@@ -103,7 +103,7 @@ Use utilities like `divide-indigo-500` and `divide-lime-100` to control the bord
 
 ### Using a custom value
 
-Use the `border-[<value>]` syntax to set the border color based on a completely custom value:
+Use the `border-[&lt;value&gt;]` syntax to set the border color based on a completely custom value:
 
 ```html
 <div class="border-[#243c5a] ...">
@@ -111,7 +111,7 @@ Use the `border-[<value>]` syntax to set the border color based on a completely 
 </div>
 ```
 
-For CSS variables, you can also use the `border-(<custom-property>)` syntax:
+For CSS variables, you can also use the `border-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="border-(--my-border-color) ...">
@@ -119,7 +119,7 @@ For CSS variables, you can also use the `border-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `border-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `border-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Applying on focus
 
@@ -143,7 +143,7 @@ Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-Use your design tokens to populate `--color-*` variables and reference them with `border-{name}` (for example, `border-blue-500`). You can also use arbitrary values with `border-[<value>]` and custom properties with `border-(<custom-property>)`.
+Use your design tokens to populate `--color-*` variables and reference them with `border-{name}` (for example, `border-blue-500`). You can also use arbitrary values with `border-[&lt;value&gt;]` and custom properties with `border-(&lt;custom-property&gt;)`.
 
 For example, to add a custom border color to your theme:
 

@@ -10,9 +10,9 @@ Utilities for controlling the size of an element's mask image.
 | `mask-cover`        | `mask-size: cover;`   |
 | `mask-contain`      | `mask-size: contain;` |
 | `mask-size-(<var>)` | `mask-size: var(<var>);` |
-| `mask-size-[<value>]` | `mask-size: <value>;` |
+| `mask-size-[&lt;value&gt;]` | `mask-size: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/mask-size
+Source: https://tailwindcss.com/guide/mask-size
 
 ## Examples
 
@@ -36,7 +36,7 @@ Source: https://tailwindcss.com/docs/mask-size
 
 ### Using a custom value
 
-Use the `mask-size-[<value>]` syntax to set the mask size based on a completely custom value:
+Use the `mask-size-[&lt;value&gt;]` syntax to set the mask size based on a completely custom value:
 
 ```html
 <div class="mask-size-[auto_100px]">
@@ -44,7 +44,7 @@ Use the `mask-size-[<value>]` syntax to set the mask size based on a completely 
 </div>
 ```
 
-For CSS variables, you can also use the `mask-size-(<custom-property>)` syntax:
+For CSS variables, you can also use the `mask-size-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="mask-size-(--my-mask-size)">
@@ -52,7 +52,7 @@ For CSS variables, you can also use the `mask-size-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `mask-size-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `mask-size-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

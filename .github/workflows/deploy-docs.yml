@@ -24,18 +24,16 @@ jobs:
         
     - name: Install dependencies
       run: |
-        cd apps/barocss-docs
-        pnpm install
+        pnpm install --frozen-lockfile
         
     - name: Build docs
       run: |
-        cd apps/barocss-docs
-        pnpm run deploy
+        pnpm build
         
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./apps/barocss-docs/out
+        publish_dir: ./apps/barocss-docs/docs/.vitepress/dist
         force_orphan: true 

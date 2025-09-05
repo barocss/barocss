@@ -6,8 +6,8 @@ Utilities for setting the height of an element.
 
 | Class | Styles |
 |---|---|
-| `h-<number>` | `height: calc(var(--spacing) * <number>);` |
-| `h-<fraction>` | `height: calc(<fraction> * 100%);` |
+| `h-&lt;number&gt;` | `height: calc(var(--spacing) * &lt;number&gt;);` |
+| `h-&lt;fraction&gt;` | `height: calc(&lt;fraction&gt; * 100%);` |
 | `h-auto` | `height: auto;` |
 | `h-px` | `height: 1px;` |
 | `h-full` | `height: 100%;` |
@@ -22,10 +22,10 @@ Utilities for setting the height of an element.
 | `h-max` | `height: max-content;` |
 | `h-fit` | `height: fit-content;` |
 | `h-lh` | `height: 1lh;` |
-| `h-(<custom-property>)` | `height: var(<custom-property>);` |
-| `h-[<value>]` | `height: <value>;` |
-| `size-<number>` | `width: calc(var(--spacing) * <number>); height: calc(var(--spacing) * <number>);` |
-| `size-<fraction>` | `width: calc(<fraction> * 100%); height: calc(<fraction> * 100%);` |
+| `h-(&lt;custom-property&gt;)` | `height: var(&lt;custom-property&gt;);` |
+| `h-[&lt;value&gt;]` | `height: &lt;value&gt;;` |
+| `size-&lt;number&gt;` | `width: calc(var(--spacing) * &lt;number&gt;); height: calc(var(--spacing) * &lt;number&gt;);` |
+| `size-&lt;fraction&gt;` | `width: calc(&lt;fraction&gt; * 100%); height: calc(&lt;fraction&gt; * 100%);` |
 | `size-auto` | `width: auto; height: auto;` |
 | `size-px` | `width: 1px; height: 1px;` |
 | `size-full` | `width: 100%; height: 100%;` |
@@ -38,16 +38,16 @@ Utilities for setting the height of an element.
 | `size-min` | `width: min-content; height: min-content;` |
 | `size-max` | `width: max-content; height: max-content;` |
 | `size-fit` | `width: fit-content; height: fit-content;` |
-| `size-(<custom-property>)` | `width: var(<custom-property>); height: var(<custom-property>);` |
-| `size-[<value>]` | `width: <value>; height: <value>;` |
+| `size-(&lt;custom-property&gt;)` | `width: var(&lt;custom-property&gt;); height: var(&lt;custom-property&gt;);` |
+| `size-[&lt;value&gt;]` | `width: &lt;value&gt;; height: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/height
+Source: https://tailwindcss.com/guide/height
 
 ## Examples
 
 ### Basic example
 
-Use `h-<number>` utilities like `h-24` and `h-64` to set an element to a fixed height based on the spacing scale:
+Use `h-&lt;number&gt;` utilities like `h-24` and `h-64` to set an element to a fixed height based on the spacing scale:
 
 ```html
 <!-- [!code classes:h-96,h-80,h-64,h-48,h-40,h-32,h-24] -->
@@ -62,7 +62,7 @@ Use `h-<number>` utilities like `h-24` and `h-64` to set an element to a fixed h
 
 ### Using a percentage
 
-Use `h-full` or `h-<fraction>` utilities like `h-1/2` and `h-2/5` to give an element a percentage-based height:
+Use `h-full` or `h-&lt;fraction&gt;` utilities like `h-1/2` and `h-2/5` to give an element a percentage-based height:
 
 ```html
 <!-- [!code classes:h-9/10,h-3/4,h-1/2,h-1/3,h-full] -->
@@ -132,7 +132,7 @@ Use utilities like `size-px`, `size-4`, and `size-full` to set both the width an
 
 ### Using a custom value
 
-Use the `h-[<value>]` syntax to set the height based on a completely custom value:
+Use the `h-[&lt;value&gt;]` syntax to set the height based on a completely custom value:
 
 ```html
 <div class="h-[32rem] ...">
@@ -140,7 +140,7 @@ Use the `h-[<value>]` syntax to set the height based on a completely custom valu
 </div>
 ```
 
-For CSS variables, you can also use the `h-(<custom-property>)` syntax:
+For CSS variables, you can also use the `h-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="h-(--my-height) ...">
@@ -148,7 +148,7 @@ For CSS variables, you can also use the `h-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `h-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `h-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 
@@ -164,7 +164,7 @@ Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-The `h-<number>` and `size-<number>` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
+The `h-&lt;number&gt;` and `size-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
 @theme {

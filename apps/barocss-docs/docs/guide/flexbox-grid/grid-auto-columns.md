@@ -10,10 +10,10 @@ Utilities for controlling the size of implicitly-created grid columns.
 | `auto-cols-min` | `grid-auto-columns: min-content;` |
 | `auto-cols-max` | `grid-auto-columns: max-content;` |
 | `auto-cols-fr` | `grid-auto-columns: minmax(0, 1fr);` |
-| `auto-cols-(<custom-property>)` | `grid-auto-columns: var(<custom-property>);` |
-| `auto-cols-[<value>]` | `grid-auto-columns: <value>;` |
+| `auto-cols-(&lt;custom-property&gt;)` | `grid-auto-columns: var(&lt;custom-property&gt;);` |
+| `auto-cols-[&lt;value&gt;]` | `grid-auto-columns: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/grid-auto-columns
+Source: https://tailwindcss.com/guide/grid-auto-columns
 
 ## Examples
 
@@ -32,7 +32,7 @@ Use utilities like `auto-cols-min` and `auto-cols-max` to control the size of im
 
 ### Using a custom value
 
-Use the `auto-cols-[<value>]` syntax to set the grid auto columns based on a completely custom value:
+Use the `auto-cols-[&lt;value&gt;]` syntax to set the grid auto columns based on a completely custom value:
 
 ```html
 <div class="grid grid-flow-col auto-cols-[minmax(0,2fr)] ...">
@@ -40,7 +40,7 @@ Use the `auto-cols-[<value>]` syntax to set the grid auto columns based on a com
 </div>
 ```
 
-For CSS variables, you can also use the `auto-cols-(<custom-property>)` syntax:
+For CSS variables, you can also use the `auto-cols-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="grid grid-flow-col auto-cols-(--my-columns) ...">
@@ -48,7 +48,7 @@ For CSS variables, you can also use the `auto-cols-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `auto-cols-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `auto-cols-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

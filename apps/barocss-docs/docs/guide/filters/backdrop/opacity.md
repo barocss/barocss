@@ -2,11 +2,11 @@
 
 Utilities for applying backdrop opacity filters to an element.
 
-Source: https://tailwindcss.com/docs/backdrop-filter-opacity
+Source: https://tailwindcss.com/guide/backdrop-filter-opacity
 
 ## Quick reference
 
-- `backdrop-opacity-[<value>]`, `backdrop-opacity-(<custom-property>)`, preset utilities like `backdrop-opacity-25`, `backdrop-opacity-50`, `backdrop-opacity-75`
+- `backdrop-opacity-[&lt;value&gt;]`, `backdrop-opacity-(&lt;custom-property&gt;)`, preset utilities like `backdrop-opacity-25`, `backdrop-opacity-50`, `backdrop-opacity-75`
 
 ## Examples
 
@@ -28,7 +28,7 @@ Use utilities like `backdrop-opacity-25` and `backdrop-opacity-75` to control th
 
 ### Using a custom value
 
-Use the `backdrop-opacity-[<value>]` syntax to set the backdrop opacity based on a completely custom value:
+Use the `backdrop-opacity-[&lt;value&gt;]` syntax to set the backdrop opacity based on a completely custom value:
 
 ```html
 <div class="backdrop-opacity-[.3] ...">
@@ -36,7 +36,7 @@ Use the `backdrop-opacity-[<value>]` syntax to set the backdrop opacity based on
 </div>
 ```
 
-For CSS variables, you can also use the `backdrop-opacity-(<custom-property>)` syntax:
+For CSS variables, you can also use the `backdrop-opacity-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="backdrop-opacity-(--my-backdrop-opacity) ...">
@@ -44,7 +44,7 @@ For CSS variables, you can also use the `backdrop-opacity-(<custom-property>)` s
 </div>
 ```
 
-This is just a shorthand for `backdrop-opacity-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `backdrop-opacity-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

@@ -7,11 +7,11 @@ Utilities for controlling how flex items grow.
 | Class | Styles |
 |---|---|
 | `grow` | `flex-grow: 1;` |
-| `grow-<number>` | `flex-grow: <number>;` |
-| `grow-[<value>]` | `flex-grow: <value>;` |
-| `grow-(<custom-property>)` | `flex-grow: var(<custom-property>);` |
+| `grow-&lt;number&gt;` | `flex-grow: &lt;number&gt;;` |
+| `grow-[&lt;value&gt;]` | `flex-grow: &lt;value&gt;;` |
+| `grow-(&lt;custom-property&gt;)` | `flex-grow: var(&lt;custom-property&gt;);` |
 
-Source: https://tailwindcss.com/docs/flex-grow
+Source: https://tailwindcss.com/guide/flex-grow
 
 ## Examples
 
@@ -30,7 +30,7 @@ Use `grow` to allow a flex item to grow to fill any available space:
 
 ### Growing items based on factor
 
-Use `grow-<number>` utilities like `grow-3` to make flex items grow proportionally based on their growth factor, allowing them to fill the available space relative to each other:
+Use `grow-&lt;number&gt;` utilities like `grow-3` to make flex items grow proportionally based on their growth factor, allowing them to fill the available space relative to each other:
 
 ```html
 <!-- [!code classes:grow-3,grow-7] -->
@@ -56,19 +56,19 @@ Use `grow-0` to prevent a flex item from growing:
 
 ### Using a custom value
 
-Use the `grow-[<value>]` syntax to set the flex grow based on a completely custom value:
+Use the `grow-[&lt;value&gt;]` syntax to set the flex grow based on a completely custom value:
 
 ```html
 <div class="grow-[25vw] ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-For CSS variables, you can also use the `grow-(<custom-property>)` syntax:
+For CSS variables, you can also use the `grow-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="grow-(--my-grow) ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-This is just a shorthand for `grow-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `grow-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

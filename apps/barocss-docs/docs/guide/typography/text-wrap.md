@@ -11,7 +11,7 @@ Utilities for controlling how text wraps within an element.
 | `text-balance` | `text-wrap: balance;`  |
 | `text-pretty`  | `text-wrap: pretty;`   |
 
-Source: https://tailwindcss.com/docs/text-wrap
+Source: https://tailwindcss.com/guide/text-wrap
 
 ## Examples
 

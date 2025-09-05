@@ -12,7 +12,7 @@ Utilities for controlling the style of text decorations.
 | `decoration-dashed`   | `text-decoration-style: dashed;`   |
 | `decoration-wavy`     | `text-decoration-style: wavy;`     |
 
-Source: https://tailwindcss.com/docs/text-decoration-style
+Source: https://tailwindcss.com/guide/text-decoration-style
 
 ## Examples
 

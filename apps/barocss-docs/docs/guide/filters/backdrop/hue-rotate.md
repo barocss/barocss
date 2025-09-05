@@ -2,12 +2,12 @@
 
 Utilities for applying backdrop hue-rotate filters to an element.
 
-Source: https://tailwindcss.com/docs/backdrop-filter-hue-rotate
+Source: https://tailwindcss.com/guide/backdrop-filter-hue-rotate
 
 ## Quick reference
 
 - Presets like `backdrop-hue-rotate-15`, `backdrop-hue-rotate-30`, `backdrop-hue-rotate-60`, negative variants `-backdrop-hue-rotate-15`, etc.
-- `backdrop-hue-rotate-[<angle>]`, `backdrop-hue-rotate-(<custom-property>)`
+- `backdrop-hue-rotate-[<angle>]`, `backdrop-hue-rotate-(&lt;custom-property&gt;)`
 
 ## Examples
 
@@ -34,7 +34,7 @@ Use the `backdrop-hue-rotate-[<angle>]` syntax to set the backdrop hue rotation 
 </div>
 ```
 
-For CSS variables, you can also use the `backdrop-hue-rotate-(<custom-property>)` syntax:
+For CSS variables, you can also use the `backdrop-hue-rotate-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="backdrop-hue-rotate-(--my-backdrop-hue) ...">
@@ -42,7 +42,7 @@ For CSS variables, you can also use the `backdrop-hue-rotate-(<custom-property>)
 </div>
 ```
 
-This is just a shorthand for `backdrop-hue-rotate-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `backdrop-hue-rotate-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

@@ -428,6 +428,6 @@ Gradually migrate from other CSS frameworks:
 Ready to go beyond CDN usage?
 
 - **[Installation Guide](/guide/installation)** - Set up BaroCSS in your build process
-- **[Framework Integration](/guide/ai-integration/)** - Use with React, Vue, Svelte, etc.
+- **[Framework Integration](/guide/ai-integration)** - Use with React, Vue, Svelte, etc.
 - **[API Reference](/api/)** - Explore all configuration options
 - **[Examples](/examples/)** - See more advanced use cases

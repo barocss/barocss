@@ -14,7 +14,7 @@ Utilities for controlling how an individual item is justified and aligned at the
 | `place-self-center-safe` | `place-self: safe center;` |
 | `place-self-stretch`     | `place-self: stretch;` |
 
-Source: https://tailwindcss.com/docs/place-self
+Source: https://tailwindcss.com/guide/place-self
 
 ## Examples
 

@@ -2,7 +2,7 @@
 
 Utilities for controlling the scroll snap alignment of an element.
 
-Source: https://tailwindcss.com/docs/scroll-snap-align
+Source: https://tailwindcss.com/guide/scroll-snap-align
 
 ## Quick reference
 

@@ -22,7 +22,7 @@ Utilities for controlling how an element handles content that is too large for t
 | `overflow-x-scroll` | `overflow-x: scroll;` |
 | `overflow-y-scroll` | `overflow-y: scroll;` |
 
-Source: https://tailwindcss.com/docs/overflow
+Source: https://tailwindcss.com/guide/overflow
 
 ## Examples
 

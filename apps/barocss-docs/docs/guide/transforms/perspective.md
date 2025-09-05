@@ -2,7 +2,7 @@
 
 Utilities for controlling an element's perspective when placed in 3D space.
 
-Source: https://tailwindcss.com/docs/perspective
+Source: https://tailwindcss.com/guide/perspective
 
 ## Quick reference
 
@@ -14,8 +14,8 @@ Source: https://tailwindcss.com/docs/perspective
 | perspective-midrange            | perspective: var(--perspective-midrange); /* 800px */   |
 | perspective-distant             | perspective: var(--perspective-distant); /* 1200px */   |
 | perspective-none                | perspective: none;                                      |
-| perspective-(<custom-property>) | perspective: var(<custom-property>);                    |
-| perspective-\[<value>\]         | perspective: <value>;                                   |
+| perspective-(&lt;custom-property&gt;) | perspective: var(&lt;custom-property&gt;);                    |
+| perspective-\[&lt;value&gt;\]         | perspective: &lt;value&gt;;                                   |
 
 ## Examples
 
@@ -84,7 +84,7 @@ Use the `perspective-none` utility to remove a perspective transform from an ele
 
 ### Using a custom value
 
-Use the `perspective-[<value>]` syntax to set the perspective based on a completely custom value:
+Use the `perspective-[&lt;value&gt;]` syntax to set the perspective based on a completely custom value:
 
 ```html
 <div class="perspective-[750px] ...">
@@ -92,7 +92,7 @@ Use the `perspective-[<value>]` syntax to set the perspective based on a complet
 </div>
 ```
 
-For CSS variables, you can also use the `perspective-(<custom-property>)` syntax:
+For CSS variables, you can also use the `perspective-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="perspective-(--my-perspective) ...">
@@ -100,7 +100,7 @@ For CSS variables, you can also use the `perspective-(<custom-property>)` syntax
 </div>
 ```
 
-This is just a shorthand for `perspective-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `perspective-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

@@ -289,7 +289,7 @@ Now that you have BaroCSS installed, continue with:
 
 - [Quick Start](/guide/quick-start) - Create your first styled component
 - [JIT Mode](/guide/jit-mode) - Understand how JIT compilation works
-- [Theme Configuration](/guide/theme-configuration) - Customize your design system
+- [Theme Configuration](/guide/theme-variables) - Customize your design system
 - [Examples](/examples/) - See BaroCSS in action
 
 ## Troubleshooting

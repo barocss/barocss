@@ -14,7 +14,7 @@ Utilities for controlling how items are justified and aligned at the same time.
 | `place-items-baseline`   | `place-items: baseline;` |
 | `place-items-stretch`    | `place-items: stretch;` |
 
-Source: https://tailwindcss.com/docs/place-items
+Source: https://tailwindcss.com/guide/place-items
 
 ## Examples
 

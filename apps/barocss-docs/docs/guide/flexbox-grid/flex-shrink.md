@@ -7,11 +7,11 @@ Utilities for controlling how flex items shrink.
 | Class | Styles |
 |---|---|
 | `shrink` | `flex-shrink: 1;` |
-| `shrink-<number>` | `flex-shrink: <number>;` |
-| `shrink-[<value>]` | `flex-shrink: <value>;` |
-| `shrink-(<custom-property>)` | `flex-shrink: var(<custom-property>);` |
+| `shrink-&lt;number&gt;` | `flex-shrink: &lt;number&gt;;` |
+| `shrink-[&lt;value&gt;]` | `flex-shrink: &lt;value&gt;;` |
+| `shrink-(&lt;custom-property&gt;)` | `flex-shrink: var(&lt;custom-property&gt;);` |
 
-Source: https://tailwindcss.com/docs/flex-shrink
+Source: https://tailwindcss.com/guide/flex-shrink
 
 ## Examples
 
@@ -43,19 +43,19 @@ Use `shrink-0` to prevent a flex item from shrinking:
 
 ### Using a custom value
 
-Use the `shrink-[<value>]` syntax to set the flex shrink based on a completely custom value:
+Use the `shrink-[&lt;value&gt;]` syntax to set the flex shrink based on a completely custom value:
 
 ```html
 <div class="shrink-[calc(100vw-var(--sidebar))] ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-For CSS variables, you can also use the `shrink-(<custom-property>)` syntax:
+For CSS variables, you can also use the `shrink-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="shrink-(--my-shrink) ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-This is just a shorthand for `shrink-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `shrink-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

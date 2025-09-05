@@ -11,7 +11,7 @@ Utilities for controlling the capitalization of text.
 | `capitalize`  | `text-transform: capitalize;`|
 | `normal-case` | `text-transform: none;`      |
 
-Source: https://tailwindcss.com/docs/text-transform
+Source: https://tailwindcss.com/guide/text-transform
 
 ## Examples
 

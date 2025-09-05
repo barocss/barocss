@@ -13,7 +13,7 @@ Utilities for controlling the repetition of an element's background image.
 | `bg-repeat-round` | `background-repeat: round;` |
 | `bg-no-repeat` | `background-repeat: no-repeat;` |
 
-Source: https://tailwindcss.com/docs/background-repeat
+Source: https://tailwindcss.com/guide/background-repeat
 
 ## Examples
 

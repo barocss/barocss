@@ -40,7 +40,7 @@ npm install barocss@latest
 
 ## Migration Guide
 
-Most changes are backward compatible, but check our [migration guide](/guide/migration) for any breaking changes.
+Most changes are backward compatible, but check our [migration guide](/guide/installation) for any breaking changes.
 
 ## What's Next
 

@@ -16,8 +16,8 @@ Utilities for controlling the border radius of an element.
 | `rounded-4xl` | `border-radius: var(--radius-4xl); /* 2rem (32px) */` |
 | `rounded-none` | `border-radius: 0;` |
 | `rounded-full` | `border-radius: calc(infinity * 1px);` |
-| `rounded-(<custom-property>)` | `border-radius: var(<custom-property>);` |
-| `rounded-[<value>]` | `border-radius: <value>;` |
+| `rounded-(&lt;custom-property&gt;)` | `border-radius: var(&lt;custom-property&gt;);` |
+| `rounded-[&lt;value&gt;]` | `border-radius: &lt;value&gt;;` |
 | `rounded-s-{size}` | `border-start-start-radius: var(--radius-{size}); border-end-start-radius: var(--radius-{size});` |
 | `rounded-e-{size}` | `border-start-end-radius: var(--radius-{size}); border-end-end-radius: var(--radius-{size});` |
 | `rounded-t-{size}` | `border-top-left-radius: var(--radius-{size}); border-top-right-radius: var(--radius-{size});` |
@@ -33,7 +33,7 @@ Utilities for controlling the border radius of an element.
 | `rounded-br-{size}` | `border-bottom-right-radius: var(--radius-{size});` |
 | `rounded-bl-{size}` | `border-bottom-left-radius: var(--radius-{size});` |
 
-Source: https://tailwindcss.com/docs/border-radius
+Source: https://tailwindcss.com/guide/border-radius
 
 ## Examples
 
@@ -75,7 +75,7 @@ Use utilities like `rounded-tr-md` and `rounded-tl-lg` utilities to only round o
 
 ### Using logical properties
 
-Use utilities like `rounded-s-md` and `rounded-se-xl` to set the border radius using [logical properties](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Logical_Properties/Basic_concepts), which map to the appropriate corners based on the text direction:
+Use utilities like `rounded-s-md` and `rounded-se-xl` to set the border radius using [logical properties](https://developer.mozilla.org/en-US/guide/Web/CSS/CSS_Logical_Properties/Basic_concepts), which map to the appropriate corners based on the text direction:
 
 ```html
 <!-- [!code classes:rounded-s-lg] -->
@@ -101,7 +101,7 @@ Here are all the available border radius logical property utilities and their ph
 | `rounded-es-*` | `rounded-bl-*` | `rounded-br-*` |
 | `rounded-ee-*` | `rounded-br-*` | `rounded-bl-*` |
 
-For more control, you can also use the [LTR and RTL modifiers](/docs/hover-focus-and-other-states#rtl-support) to conditionally apply specific styles depending on the current text direction.
+For more control, you can also use the [LTR and RTL modifiers](/guide/hover-focus-and-other-states#rtl-support) to conditionally apply specific styles depending on the current text direction.
 
 ### Creating pill buttons
 
@@ -123,7 +123,7 @@ Use the `rounded-none` utility to remove an existing border radius from an eleme
 
 ### Using a custom value
 
-Use the `rounded-[<value>]` syntax to set the border radius based on a completely custom value:
+Use the `rounded-[&lt;value&gt;]` syntax to set the border radius based on a completely custom value:
 
 ```html
 <div class="rounded-[2vw] ...">
@@ -131,7 +131,7 @@ Use the `rounded-[<value>]` syntax to set the border radius based on a completel
 </div>
 ```
 
-For CSS variables, you can also use the `rounded-(<custom-property>)` syntax:
+For CSS variables, you can also use the `rounded-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="rounded-(--my-radius) ...">
@@ -139,7 +139,7 @@ For CSS variables, you can also use the `rounded-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `rounded-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `rounded-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

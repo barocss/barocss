@@ -2,7 +2,7 @@
 
 Utilities for controlling whether you can skip past possible snap positions.
 
-Source: https://tailwindcss.com/docs/scroll-snap-stop
+Source: https://tailwindcss.com/guide/scroll-snap-stop
 
 ## Quick reference
 

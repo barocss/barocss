@@ -11,7 +11,7 @@ Utilities for controlling the decoration of text.
 | `line-through` | `text-decoration-line: line-through;` |
 | `no-underline` | `text-decoration-line: none;`      |
 
-Source: https://tailwindcss.com/docs/text-decoration-line
+Source: https://tailwindcss.com/guide/text-decoration-line
 
 ## Examples
 

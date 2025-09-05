@@ -253,8 +253,8 @@ Utilities for controlling the text color of an element.
 | text-stone-800           | color: var(--color-stone-800); /* oklch(26.8% 0.007 34.298) */    |
 | text-stone-900           | color: var(--color-stone-900); /* oklch(21.6% 0.006 56.043) */    |
 | text-stone-950           | color: var(--color-stone-950); /* oklch(14.7% 0.004 49.25) */     |
-| text-(<custom-property>) | color: var(<custom-property>);                                      |
-| text-\[<value>\]         | color: <value>;                                                     |
+| text-(&lt;custom-property&gt;) | color: var(&lt;custom-property&gt;);                                      |
+| text-\[&lt;value&gt;\]         | color: &lt;value&gt;;                                                     |
 
 Show more
 
@@ -291,19 +291,19 @@ The quick brown fox jumps over the lazy dog.
 
 ### Using a custom value
 
-Use the `text-[<value>]` syntax to set the text color based on a completely custom value:
+Use the `text-[&lt;value&gt;]` syntax to set the text color based on a completely custom value:
 
 ```html
 <p class="text-[#50d71e] ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-For CSS variables, you can also use the `text-(<custom-property>)` syntax:
+For CSS variables, you can also use the `text-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <p class="text-(--my-color) ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-This is just a shorthand for `text-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `text-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Applying on hover
 

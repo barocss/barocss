@@ -2,11 +2,11 @@
 
 Utilities for applying grayscale filters to an element.
 
-Source: https://tailwindcss.com/docs/filter-grayscale
+Source: https://tailwindcss.com/guide/filter-grayscale
 
 ## Quick reference
 
-- `grayscale`, `grayscale-0`, `grayscale-[<value>]`, `grayscale-(<custom-property>)`
+- `grayscale`, `grayscale-0`, `grayscale-[&lt;value&gt;]`, `grayscale-(&lt;custom-property&gt;)`
 
 ## Examples
 

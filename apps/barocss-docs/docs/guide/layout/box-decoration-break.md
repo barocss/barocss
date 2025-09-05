@@ -9,7 +9,7 @@ Utilities for controlling how element fragments should be rendered across multip
 | `box-decoration-clone` | `box-decoration-break: clone;` |
 | `box-decoration-slice` | `box-decoration-break: slice;` |
 
-Source: https://tailwindcss.com/docs/box-decoration-break
+Source: https://tailwindcss.com/guide/box-decoration-break
 
 ## Examples
 

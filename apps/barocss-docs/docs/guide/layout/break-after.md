@@ -15,7 +15,7 @@ Utilities for controlling how a column or page should break after an element.
 | `break-after-right`   | `break-after: right;`   |
 | `break-after-column`  | `break-after: column;`  |
 
-Source: https://tailwindcss.com/docs/break-after
+Source: https://tailwindcss.com/guide/break-after
 
 ## Examples
 

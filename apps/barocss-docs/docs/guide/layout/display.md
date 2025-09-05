@@ -30,7 +30,7 @@ Utilities for controlling the display box type of an element.
 | `sr-only` | `position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;` |
 | `not-sr-only` | `position: static; width: auto; height: auto; padding: 0; margin: 0; overflow: visible; clip: auto; white-space: normal;` |
 
-Source: https://tailwindcss.com/docs/display
+Source: https://tailwindcss.com/guide/display
 
 ## Examples
 

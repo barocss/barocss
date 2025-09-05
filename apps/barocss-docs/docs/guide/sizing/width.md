@@ -6,8 +6,8 @@ Utilities for setting the width of an element.
 
 | Class | Styles |
 |---|---|
-| `w-<number>` | `width: calc(var(--spacing) * <number>);` |
-| `w-<fraction>` | `width: calc(<fraction> * 100%);` |
+| `w-&lt;number&gt;` | `width: calc(var(--spacing) * &lt;number&gt;);` |
+| `w-&lt;fraction&gt;` | `width: calc(&lt;fraction&gt; * 100%);` |
 | `w-3xs` | `width: var(--container-3xs); /* 16rem (256px) */` |
 | `w-2xs` | `width: var(--container-2xs); /* 18rem (288px) */` |
 | `w-xs` | `width: var(--container-xs); /* 20rem (320px) */` |
@@ -34,10 +34,10 @@ Utilities for setting the width of an element.
 | `w-min` | `width: min-content;` |
 | `w-max` | `width: max-content;` |
 | `w-fit` | `width: fit-content;` |
-| `w-(<custom-property>)` | `width: var(<custom-property>);` |
-| `w-[<value>]` | `width: <value>;` |
-| `size-<number>` | `width: calc(var(--spacing) * <number>); height: calc(var(--spacing) * <number>);` |
-| `size-<fraction>` | `width: calc(<fraction> * 100%); height: calc(<fraction> * 100%);` |
+| `w-(&lt;custom-property&gt;)` | `width: var(&lt;custom-property&gt;);` |
+| `w-[&lt;value&gt;]` | `width: &lt;value&gt;;` |
+| `size-&lt;number&gt;` | `width: calc(var(--spacing) * &lt;number&gt;); height: calc(var(--spacing) * &lt;number&gt;);` |
+| `size-&lt;fraction&gt;` | `width: calc(&lt;fraction&gt; * 100%); height: calc(&lt;fraction&gt; * 100%);` |
 | `size-auto` | `width: auto; height: auto;` |
 | `size-px` | `width: 1px; height: 1px;` |
 | `size-full` | `width: 100%; height: 100%;` |
@@ -50,16 +50,16 @@ Utilities for setting the width of an element.
 | `size-min` | `width: min-content; height: min-content;` |
 | `size-max` | `width: max-content; height: max-content;` |
 | `size-fit` | `width: fit-content; height: fit-content;` |
-| `size-(<custom-property>)` | `width: var(<custom-property>); height: var(<custom-property>);` |
-| `size-[<value>]` | `width: <value>; height: <value>;` |
+| `size-(&lt;custom-property&gt;)` | `width: var(&lt;custom-property&gt;); height: var(&lt;custom-property&gt;);` |
+| `size-[&lt;value&gt;]` | `width: &lt;value&gt;; height: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/width
+Source: https://tailwindcss.com/guide/width
 
 ## Examples
 
 ### Basic example
 
-Use `w-<number>` utilities like `w-24` and `w-64` to set an element to a fixed width based on the spacing scale:
+Use `w-&lt;number&gt;` utilities like `w-24` and `w-64` to set an element to a fixed width based on the spacing scale:
 
 ```html
 <!-- [!code classes:w-96,w-80,w-64,w-48,w-40,w-32,w-24] -->
@@ -74,7 +74,7 @@ Use `w-<number>` utilities like `w-24` and `w-64` to set an element to a fixed w
 
 ### Using a percentage
 
-Use `w-full` or `w-<fraction>` utilities like `w-1/2` and `w-2/5` to give an element a percentage-based width:
+Use `w-full` or `w-&lt;fraction&gt;` utilities like `w-1/2` and `w-2/5` to give an element a percentage-based width:
 
 ```html
 <!-- [!code classes:w-1/2,w-2/5,w-3/5,w-1/3,w-2/3,w-1/4,w-3/4,w-1/5,w-4/5,w-1/6,w-5/6,w-full] -->
@@ -159,7 +159,7 @@ Use utilities like `size-px`, `size-4`, and `size-full` to set both the width an
 
 ### Using a custom value
 
-Use the `w-[<value>]` syntax to set the width based on a completely custom value:
+Use the `w-[&lt;value&gt;]` syntax to set the width based on a completely custom value:
 
 ```html
 <div class="w-[5px] ...">
@@ -167,7 +167,7 @@ Use the `w-[<value>]` syntax to set the width based on a completely custom value
 </div>
 ```
 
-For CSS variables, you can also use the `w-(<custom-property>)` syntax:
+For CSS variables, you can also use the `w-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="w-(--my-width) ...">
@@ -175,7 +175,7 @@ For CSS variables, you can also use the `w-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `w-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `w-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 
@@ -191,7 +191,7 @@ Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-The `w-<number>` and `size-<number>` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
+The `w-&lt;number&gt;` and `size-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
 @theme {

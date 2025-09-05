@@ -2,15 +2,15 @@
 
 Utilities for controlling the delay of CSS transitions.
 
-Source: https://tailwindcss.com/docs/transition-delay
+Source: https://tailwindcss.com/guide/transition-delay
 
 ## Quick reference
 
 | Class                    | Styles                              |
 | ------------------------ | ----------------------------------- |
-| delay-<number>           | transition-delay: <number>ms;        |
-| delay-(<custom-property>) | transition-delay: var(<custom-property>); |
-| delay-\[<value>\]        | transition-delay: <value>;          |
+| delay-&lt;number&gt;           | transition-delay: &lt;number&gt;ms;        |
+| delay-(&lt;custom-property&gt;) | transition-delay: var(&lt;custom-property&gt;); |
+| delay-\[&lt;value&gt;\]        | transition-delay: &lt;value&gt;;          |
 
 ## Examples
 
@@ -26,7 +26,7 @@ Use utilities like `delay-150` and `delay-700` to set the transition delay of an
 
 ### Using a custom value
 
-Use the `delay-[<value>]` syntax to set the transition delay based on a completely custom value:
+Use the `delay-[&lt;value&gt;]` syntax to set the transition delay based on a completely custom value:
 
 ```html
 <button class="delay-[1s,250ms] ...">
@@ -34,7 +34,7 @@ Use the `delay-[<value>]` syntax to set the transition delay based on a complete
 </button>
 ```
 
-For CSS variables, you can also use the `delay-(<custom-property>)` syntax:
+For CSS variables, you can also use the `delay-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <button class="delay-(--my-delay) ...">
@@ -42,7 +42,7 @@ For CSS variables, you can also use the `delay-(<custom-property>)` syntax:
 </button>
 ```
 
-This is just a shorthand for `delay-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `delay-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

@@ -6,7 +6,7 @@ Utilities for controlling the number of columns within an element.
 
 | Class                       | Styles                                                |
 | --------------------------- | ----------------------------------------------------- |
-| columns-<number>            | columns: <number>;                                    |
+| columns-&lt;number&gt;            | columns: &lt;number&gt;;                                    |
 | columns-3xs                 | columns: var(--container-3xs); /* 16rem (256px) */  |
 | columns-2xs                 | columns: var(--container-2xs); /* 18rem (288px) */  |
 | columns-xs                  | columns: var(--container-xs); /* 20rem (320px) */   |
@@ -21,16 +21,16 @@ Utilities for controlling the number of columns within an element.
 | columns-6xl                 | columns: var(--container-6xl); /* 72rem (1152px) */ |
 | columns-7xl                 | columns: var(--container-7xl); /* 80rem (1280px) */ |
 | columns-auto                | columns: auto;                                        |
-| columns-(<custom-property>) | columns: var(<custom-property>);                      |
-| columns-\[<value>\]         | columns: <value>;                                     |
+| columns-(&lt;custom-property&gt;) | columns: var(&lt;custom-property&gt;);                      |
+| columns-\[&lt;value&gt;\]         | columns: &lt;value&gt;;                                     |
 
-Source: https://tailwindcss.com/docs/columns
+Source: https://tailwindcss.com/guide/columns
 
 ## Examples
 
 ### Setting by number
 
-Use `columns-<number>` utilities like `columns-3` to set the number of columns that should be created for the content within an element:
+Use `columns-&lt;number&gt;` utilities like `columns-3` to set the number of columns that should be created for the content within an element:
 
 ```html
 <div class="columns-3 ...">
@@ -77,7 +77,7 @@ Learn more about the gap utilities in the gap documentation.
 
 ### Using a custom value
 
-Use the `columns-[<value>]` syntax to set the columns based on a completely custom value:
+Use the `columns-[&lt;value&gt;]` syntax to set the columns based on a completely custom value:
 
 ```html
 <div class="columns-[30vw] ...">
@@ -85,7 +85,7 @@ Use the `columns-[<value>]` syntax to set the columns based on a completely cust
 </div>
 ```
 
-For CSS variables, you can also use the `columns-(<custom-property>)` syntax:
+For CSS variables, you can also use the `columns-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="columns-(--my-columns) ...">
@@ -93,7 +93,7 @@ For CSS variables, you can also use the `columns-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `columns-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `columns-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

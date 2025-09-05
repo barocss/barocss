@@ -2,11 +2,11 @@
 
 Utilities for applying brightness filters to an element.
 
-Source: https://tailwindcss.com/docs/filter-brightness
+Source: https://tailwindcss.com/guide/filter-brightness
 
 ## Quick reference
 
-- `brightness-[<value>]`, `brightness-(<custom-property>)`, preset utilities like `brightness-110`, `brightness-150`
+- `brightness-[&lt;value&gt;]`, `brightness-(&lt;custom-property&gt;)`, preset utilities like `brightness-110`, `brightness-150`
 
 ## Examples
 
@@ -21,19 +21,19 @@ Use utilities like `brightness-110` and `brightness-150` to increase the brightn
 
 ### Using a custom value
 
-Use the `brightness-[<value>]` syntax to set the brightness based on a completely custom value:
+Use the `brightness-[&lt;value&gt;]` syntax to set the brightness based on a completely custom value:
 
 ```html
 <img class="brightness-[1.25] ..." src="/img/mountains.jpg" />
 ```
 
-For CSS variables, you can also use the `brightness-(<custom-property>)` syntax:
+For CSS variables, you can also use the `brightness-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <img class="brightness-(--my-brightness) ..." src="/img/mountains.jpg" />
 ```
 
-This is just a shorthand for `brightness-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `brightness-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

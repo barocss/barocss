@@ -7,10 +7,10 @@ Utilities for applying backdrop filters to an element.
 | Class | Styles |
 |---|---|
 | `backdrop-filter-none` | `backdrop-filter: none;` |
-| `backdrop-filter-(<custom-property>)` | `backdrop-filter: var(<custom-property>);` |
-| `backdrop-filter-[<value>]` | `backdrop-filter: <value>;` |
+| `backdrop-filter-(&lt;custom-property&gt;)` | `backdrop-filter: var(&lt;custom-property&gt;);` |
+| `backdrop-filter-[&lt;value&gt;]` | `backdrop-filter: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/backdrop-filter
+Source: https://tailwindcss.com/guide/backdrop-filter
 
 ## Examples
 
@@ -44,7 +44,7 @@ Use the `backdrop-filter-none` utility to remove all of the backdrop filters app
 
 ### Using a custom value
 
-Use the `backdrop-filter-[<value>]` syntax to set the backdrop filter based on a completely custom value:
+Use the `backdrop-filter-[&lt;value&gt;]` syntax to set the backdrop filter based on a completely custom value:
 
 ```html
 <div class="backdrop-filter-[url('filters.svg#filter-id')] ...">
@@ -52,7 +52,7 @@ Use the `backdrop-filter-[<value>]` syntax to set the backdrop filter based on a
 </div>
 ```
 
-For CSS variables, you can also use the `backdrop-filter-(<custom-property>)` syntax:
+For CSS variables, you can also use the `backdrop-filter-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="backdrop-filter-(--my-backdrop-filter) ...">
@@ -60,7 +60,7 @@ For CSS variables, you can also use the `backdrop-filter-(<custom-property>)` sy
 </div>
 ```
 
-This is just a shorthand for `backdrop-filter-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `backdrop-filter-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Applying on hover
 

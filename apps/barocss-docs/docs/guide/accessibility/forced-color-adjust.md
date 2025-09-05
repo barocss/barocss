@@ -2,7 +2,7 @@
 
 Utilities for opting in and out of forced colors.
 
-Source: https://tailwindcss.com/docs/forced-color-adjust
+Source: https://tailwindcss.com/guide/forced-color-adjust
 
 ## Quick reference
 

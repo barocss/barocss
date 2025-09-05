@@ -13,7 +13,7 @@ Utilities for controlling the repetition of an element's mask image.
 | `mask-repeat-space`| `mask-repeat: space;`    |
 | `mask-repeat-round`| `mask-repeat: round;`    |
 
-Source: https://tailwindcss.com/docs/mask-repeat
+Source: https://tailwindcss.com/guide/mask-repeat
 
 ## Examples
 

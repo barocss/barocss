@@ -10,7 +10,7 @@ Utilities for controlling how an element's background is positioned relative to 
 | `bg-origin-padding` | `background-origin: padding-box;` |
 | `bg-origin-content` | `background-origin: content-box;` |
 
-Source: https://tailwindcss.com/docs/background-origin
+Source: https://tailwindcss.com/guide/background-origin
 
 ## Examples
 

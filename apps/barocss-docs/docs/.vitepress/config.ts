@@ -421,7 +421,7 @@ export default defineConfig(withMermaid({
   },
   
   // Build configuration
-  outDir: '../../dist/docs',
+  // outDir: '../../dist/docs',
   
   // Custom CSS - minimal version
   head: [

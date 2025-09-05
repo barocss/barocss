@@ -12,7 +12,7 @@ Utilities for controlling the wrapping of content around an element.
 | `float-end`   | `float: inline-end;`   |
 | `float-none`  | `float: none;`    |
 
-Source: https://tailwindcss.com/docs/float
+Source: https://tailwindcss.com/guide/float
 
 ## Examples
 

@@ -2,11 +2,11 @@
 
 Utilities for applying sepia filters to an element.
 
-Source: https://tailwindcss.com/docs/filter-sepia
+Source: https://tailwindcss.com/guide/filter-sepia
 
 ## Quick reference
 
-- `sepia`, `sepia-0`, `sepia-[<value>]`, `sepia-(<custom-property>)`
+- `sepia`, `sepia-0`, `sepia-[&lt;value&gt;]`, `sepia-(&lt;custom-property&gt;)`
 
 ## Examples
 

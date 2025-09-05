@@ -10,7 +10,7 @@ Utilities for controlling an element's mask mode.
 | `mask-luminance` | `mask-mode: luminance;` |
 | `mask-match`     | `mask-mode: match-source;` |
 
-Source: https://tailwindcss.com/docs/mask-mode
+Source: https://tailwindcss.com/guide/mask-mode
 
 ## Examples
 

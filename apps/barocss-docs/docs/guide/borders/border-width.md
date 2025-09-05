@@ -7,59 +7,59 @@ Utilities for controlling the width of an element's borders.
 | Class | Styles |
 |---|---|
 | `border` | `border-width: 1px;` |
-| `border-<number>` | `border-width: <number>px;` |
-| `border-(length:<custom-property>)` | `border-width: var(<custom-property>);` |
-| `border-[<value>]` | `border-width: <value>;` |
+| `border-&lt;number&gt;` | `border-width: &lt;number&gt;px;` |
+| `border-(length:&lt;custom-property&gt;)` | `border-width: var(&lt;custom-property&gt;);` |
+| `border-[&lt;value&gt;]` | `border-width: &lt;value&gt;;` |
 | `border-x` | `border-inline-width: 1px;` |
-| `border-x-<number>` | `border-inline-width: <number>px;` |
-| `border-x-(length:<custom-property>)` | `border-inline-width: var(<custom-property>);` |
-| `border-x-[<value>]` | `border-inline-width: <value>;` |
+| `border-x-&lt;number&gt;` | `border-inline-width: &lt;number&gt;px;` |
+| `border-x-(length:&lt;custom-property&gt;)` | `border-inline-width: var(&lt;custom-property&gt;);` |
+| `border-x-[&lt;value&gt;]` | `border-inline-width: &lt;value&gt;;` |
 | `border-y` | `border-block-width: 1px;` |
-| `border-y-<number>` | `border-block-width: <number>px;` |
-| `border-y-(length:<custom-property>)` | `border-block-width: var(<custom-property>);` |
-| `border-y-[<value>]` | `border-block-width: <value>;` |
+| `border-y-&lt;number&gt;` | `border-block-width: &lt;number&gt;px;` |
+| `border-y-(length:&lt;custom-property&gt;)` | `border-block-width: var(&lt;custom-property&gt;);` |
+| `border-y-[&lt;value&gt;]` | `border-block-width: &lt;value&gt;;` |
 | `border-s` | `border-inline-start-width: 1px;` |
-| `border-s-<number>` | `border-inline-start-width: <number>px;` |
-| `border-s-(length:<custom-property>)` | `border-inline-start-width: var(<custom-property>);` |
-| `border-s-[<value>]` | `border-inline-start-width: <value>;` |
+| `border-s-&lt;number&gt;` | `border-inline-start-width: &lt;number&gt;px;` |
+| `border-s-(length:&lt;custom-property&gt;)` | `border-inline-start-width: var(&lt;custom-property&gt;);` |
+| `border-s-[&lt;value&gt;]` | `border-inline-start-width: &lt;value&gt;;` |
 | `border-e` | `border-inline-end-width: 1px;` |
-| `border-e-<number>` | `border-inline-end-width: <number>px;` |
-| `border-e-(length:<custom-property>)` | `border-inline-end-width: var(<custom-property>);` |
-| `border-e-[<value>]` | `border-inline-end-width: <value>;` |
+| `border-e-&lt;number&gt;` | `border-inline-end-width: &lt;number&gt;px;` |
+| `border-e-(length:&lt;custom-property&gt;)` | `border-inline-end-width: var(&lt;custom-property&gt;);` |
+| `border-e-[&lt;value&gt;]` | `border-inline-end-width: &lt;value&gt;;` |
 | `border-t` | `border-top-width: 1px;` |
-| `border-t-<number>` | `border-top-width: <number>px;` |
-| `border-t-(length:<custom-property>)` | `border-top-width: var(<custom-property>);` |
-| `border-t-[<value>]` | `border-top-width: <value>;` |
+| `border-t-&lt;number&gt;` | `border-top-width: &lt;number&gt;px;` |
+| `border-t-(length:&lt;custom-property&gt;)` | `border-top-width: var(&lt;custom-property&gt;);` |
+| `border-t-[&lt;value&gt;]` | `border-top-width: &lt;value&gt;;` |
 | `border-r` | `border-right-width: 1px;` |
-| `border-r-<number>` | `border-right-width: <number>px;` |
-| `border-r-(length:<custom-property>)` | `border-right-width: var(<custom-property>);` |
-| `border-r-[<value>]` | `border-right-width: <value>;` |
+| `border-r-&lt;number&gt;` | `border-right-width: &lt;number&gt;px;` |
+| `border-r-(length:&lt;custom-property&gt;)` | `border-right-width: var(&lt;custom-property&gt;);` |
+| `border-r-[&lt;value&gt;]` | `border-right-width: &lt;value&gt;;` |
 | `border-b` | `border-bottom-width: 1px;` |
-| `border-b-<number>` | `border-bottom-width: <number>px;` |
-| `border-b-(length:<custom-property>)` | `border-bottom-width: var(<custom-property>);` |
-| `border-b-[<value>]` | `border-bottom-width: <value>;` |
+| `border-b-&lt;number&gt;` | `border-bottom-width: &lt;number&gt;px;` |
+| `border-b-(length:&lt;custom-property&gt;)` | `border-bottom-width: var(&lt;custom-property&gt;);` |
+| `border-b-[&lt;value&gt;]` | `border-bottom-width: &lt;value&gt;;` |
 | `border-l` | `border-left-width: 1px;` |
-| `border-l-<number>` | `border-left-width: <number>px;` |
-| `border-l-(length:<custom-property>)` | `border-left-width: var(<custom-property>);` |
-| `border-l-[<value>]` | `border-left-width: <value>;` |
+| `border-l-&lt;number&gt;` | `border-left-width: &lt;number&gt;px;` |
+| `border-l-(length:&lt;custom-property&gt;)` | `border-left-width: var(&lt;custom-property&gt;);` |
+| `border-l-[&lt;value&gt;]` | `border-left-width: &lt;value&gt;;` |
 | `divide-x` | `& > :not(:last-child) { border-inline-start-width: 0px; border-inline-end-width: 1px; }` |
-| `divide-x-<number>` | `& > :not(:last-child) { border-inline-start-width: 0px; border-inline-end-width: <number>px; }` |
-| `divide-x-(length:<custom-property>)` | `& > :not(:last-child) { border-inline-start-width: 0px; border-inline-end-width: var(<custom-property>); }` |
-| `divide-x-[<value>]` | `& > :not(:last-child) { border-inline-start-width: 0px; border-inline-end-width: <value>; }` |
+| `divide-x-&lt;number&gt;` | `& > :not(:last-child) { border-inline-start-width: 0px; border-inline-end-width: &lt;number&gt;px; }` |
+| `divide-x-(length:&lt;custom-property&gt;)` | `& > :not(:last-child) { border-inline-start-width: 0px; border-inline-end-width: var(&lt;custom-property&gt;); }` |
+| `divide-x-[&lt;value&gt;]` | `& > :not(:last-child) { border-inline-start-width: 0px; border-inline-end-width: &lt;value&gt;; }` |
 | `divide-y` | `& > :not(:last-child) { border-top-width: 0px; border-bottom-width: 1px; }` |
-| `divide-y-<number>` | `& > :not(:last-child) { border-top-width: 0px; border-bottom-width: <number>px; }` |
-| `divide-y-(length:<custom-property>)` | `& > :not(:last-child) { border-top-width: 0px; border-bottom-width: var(<custom-property>); }` |
-| `divide-y-[<value>]` | `& > :not(:last-child) { border-top-width: 0px; border-bottom-width: <value>; }` |
+| `divide-y-&lt;number&gt;` | `& > :not(:last-child) { border-top-width: 0px; border-bottom-width: &lt;number&gt;px; }` |
+| `divide-y-(length:&lt;custom-property&gt;)` | `& > :not(:last-child) { border-top-width: 0px; border-bottom-width: var(&lt;custom-property&gt;); }` |
+| `divide-y-[&lt;value&gt;]` | `& > :not(:last-child) { border-top-width: 0px; border-bottom-width: &lt;value&gt;; }` |
 | `divide-x-reverse` | `--tw-divide-x-reverse: 1;` |
 | `divide-y-reverse` | `--tw-divide-y-reverse: 1;` |
 
-Source: https://tailwindcss.com/docs/border-width
+Source: https://tailwindcss.com/guide/border-width
 
 ## Examples
 
 ### Basic example
 
-Use `border` or `border-<number>` utilities like `border-2` and `border-4` to set the border width for all sides of an element:
+Use `border` or `border-&lt;number&gt;` utilities like `border-2` and `border-4` to set the border width for all sides of an element:
 
 ```html
 <!-- [!code classes:border,border-2,border-4,border-8] -->
@@ -93,7 +93,7 @@ Use utilities like `border-x` and `border-y-4` to set the border width on two si
 
 ### Using logical properties
 
-Use utilities like `border-s` and `border-e-4` to set the `border-inline-start-width` and `border-inline-end-width` [logical properties](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Logical_Properties/Basic_concepts), which map to either the left or right border based on the text direction:
+Use utilities like `border-s` and `border-e-4` to set the `border-inline-start-width` and `border-inline-end-width` [logical properties](https://developer.mozilla.org/en-US/guide/Web/CSS/CSS_Logical_Properties/Basic_concepts), which map to either the left or right border based on the text direction:
 
 ```html
 <!-- [!code word:dir="ltr"] -->
@@ -135,7 +135,7 @@ If your elements are in reverse order (using say `flex-row-reverse` or `flex-col
 
 ### Using a custom value
 
-Use the `border-[<value>]` syntax to set the border width based on a completely custom value:
+Use the `border-[&lt;value&gt;]` syntax to set the border width based on a completely custom value:
 
 ```html
 <div class="border-[2vw] ...">
@@ -143,7 +143,7 @@ Use the `border-[<value>]` syntax to set the border width based on a completely 
 </div>
 ```
 
-For CSS variables, you can also use the `border-(length:<custom-property>)` syntax:
+For CSS variables, you can also use the `border-(length:&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="border-(length:--my-border-width) ...">
@@ -151,7 +151,7 @@ For CSS variables, you can also use the `border-(length:<custom-property>)` synt
 </div>
 ```
 
-This is just a shorthand for `border-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `border-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

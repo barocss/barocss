@@ -19,7 +19,7 @@ Utilities for controlling the style of an element's borders.
 | `divide-hidden` | `& > :not(:last-child) { border-style: hidden; }` |
 | `divide-none` | `& > :not(:last-child) { border-style: none; }` |
 
-Source: https://tailwindcss.com/docs/border-style
+Source: https://tailwindcss.com/guide/border-style
 
 ## Examples
 

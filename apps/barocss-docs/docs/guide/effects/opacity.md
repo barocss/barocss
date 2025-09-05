@@ -6,17 +6,17 @@ Utilities for controlling the opacity of an element.
 
 | Class | Styles |
 |---|---|
-| `opacity-<number>` | `opacity: <number>%;` |
-| `opacity-(<custom-property>)` | `opacity: var(<custom-property>);` |
-| `opacity-[<value>]` | `opacity: <value>;` |
+| `opacity-&lt;number&gt;` | `opacity: &lt;number&gt;%;` |
+| `opacity-(&lt;custom-property&gt;)` | `opacity: var(&lt;custom-property&gt;);` |
+| `opacity-[&lt;value&gt;]` | `opacity: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/opacity
+Source: https://tailwindcss.com/guide/opacity
 
 ## Examples
 
 ### Basic example
 
-Use `opacity-<number>` utilities like `opacity-25` and `opacity-100` to set the opacity of an element:
+Use `opacity-&lt;number&gt;` utilities like `opacity-25` and `opacity-100` to set the opacity of an element:
 
 ```
 <button class="bg-indigo-500 opacity-100 ..."></button>
@@ -35,7 +35,7 @@ Use the `disabled:` prefix to conditionally apply an opacity on disabled element
 
 ### Using a custom value
 
-Use the `opacity-[<value>]` syntax to set the opacity based on a completely custom value:
+Use the `opacity-[&lt;value&gt;]` syntax to set the opacity based on a completely custom value:
 
 ```
 <button class="opacity-[.67]">
@@ -43,7 +43,7 @@ Use the `opacity-[<value>]` syntax to set the opacity based on a completely cust
 </button>
 ```
 
-For CSS variables, you can also use the `opacity-(<custom-property>)` syntax:
+For CSS variables, you can also use the `opacity-(&lt;custom-property&gt;)` syntax:
 
 ```
 <button class="opacity-(--my-opacity)">
@@ -51,7 +51,7 @@ For CSS variables, you can also use the `opacity-(<custom-property>)` syntax:
 </button>
 ```
 
-This is just a shorthand for `opacity-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `opacity-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

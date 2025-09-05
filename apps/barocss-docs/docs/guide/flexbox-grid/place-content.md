@@ -17,7 +17,7 @@ Utilities for controlling how content is justified and aligned at the same time.
 | `place-content-baseline`   | `place-content: baseline;`     |
 | `place-content-stretch`    | `place-content: stretch;`      |
 
-Source: https://tailwindcss.com/docs/place-content
+Source: https://tailwindcss.com/guide/place-content
 
 ## Examples
 

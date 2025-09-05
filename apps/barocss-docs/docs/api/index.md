@@ -36,7 +36,7 @@ runtime.observe(document.body, { scan: true });
 
 - **[Context API](/api/context)** - Theme and configuration management
 - **[Engine API](/api/engine)** - CSS generation and AST processing
-- **[Parser API](/api/parser)** - Class name parsing and tokenization
+- **[Parser API](/api/engine)** - Class name parsing and tokenization
 
 ### Runtime APIs
 

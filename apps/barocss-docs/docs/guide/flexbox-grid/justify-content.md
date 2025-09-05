@@ -18,7 +18,7 @@ Utilities for controlling how flex and grid items are positioned along a contain
 | `justify-baseline` | `justify-content: baseline;` |
 | `justify-normal` | `justify-content: normal;` |
 
-Source: https://tailwindcss.com/docs/justify-content
+Source: https://tailwindcss.com/guide/justify-content
 
 ## Examples
 

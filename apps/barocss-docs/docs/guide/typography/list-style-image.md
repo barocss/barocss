@@ -7,8 +7,8 @@ Utilities for controlling the image of a list item marker.
 | Class | Styles |
 |-------|--------|
 | `list-image-none` | `list-style-image: none;` |
-| `list-image-(<custom-property>)` | `list-style-image: var(<custom-property>);` |
-| `list-image-[<value>]` | `list-style-image: <value>;` |
+| `list-image-(&lt;custom-property&gt;)` | `list-style-image: var(&lt;custom-property&gt;);` |
+| `list-image-[&lt;value&gt;]` | `list-style-image: &lt;value&gt;;` |
 
 ## Examples
 
@@ -26,7 +26,7 @@ Use utilities like `list-image-none` to control the image of a list item marker:
 
 ### Using a custom value
 
-Use the `list-image-[<value>]` syntax to set the list style image based on a completely custom value:
+Use the `list-image-[&lt;value&gt;]` syntax to set the list style image based on a completely custom value:
 
 ```html
 <ul class="list-image-[url('/path/to/image.png')] ...">
@@ -36,7 +36,7 @@ Use the `list-image-[<value>]` syntax to set the list style image based on a com
 </ul>
 ```
 
-For CSS variables, you can also use the `list-image-(<custom-property>)` syntax:
+For CSS variables, you can also use the `list-image-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <ul class="list-image-(--my-image) ...">
@@ -46,7 +46,7 @@ For CSS variables, you can also use the `list-image-(<custom-property>)` syntax:
 </ul>
 ```
 
-This is just a shorthand for `list-image-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `list-image-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

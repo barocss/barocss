@@ -2,7 +2,7 @@
 
 Utilities for controlling whether the user can select text in an element.
 
-Source: https://tailwindcss.com/docs/user-select
+Source: https://tailwindcss.com/guide/user-select
 
 ## Quick reference
 

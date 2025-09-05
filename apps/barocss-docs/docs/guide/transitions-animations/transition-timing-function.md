@@ -2,7 +2,7 @@
 
 Utilities for controlling the easing of CSS transitions.
 
-Source: https://tailwindcss.com/docs/transition-timing-function
+Source: https://tailwindcss.com/guide/transition-timing-function
 
 ## Quick reference
 
@@ -13,8 +13,8 @@ Source: https://tailwindcss.com/docs/transition-timing-function
 | ease-out                 | transition-timing-function: var(--ease-out); /* cubic-bezier(0, 0, 0.2, 1) */ |
 | ease-in-out              | transition-timing-function: var(--ease-in-out); /* cubic-bezier(0.4, 0, 0.2, 1) */ |
 | ease-initial             | transition-timing-function: initial;                                      |
-| ease-(<custom-property>) | transition-timing-function: var(<custom-property>);                       |
-| ease-\[<value>\]         | transition-timing-function: <value>;                                      |
+| ease-(&lt;custom-property&gt;) | transition-timing-function: var(&lt;custom-property&gt;);                       |
+| ease-\[&lt;value&gt;\]         | transition-timing-function: &lt;value&gt;;                                      |
 
 ## Examples
 
@@ -30,7 +30,7 @@ Use utilities like `ease-in` and `ease-out` to control the easing curve of an el
 
 ### Using a custom value
 
-Use the `ease-[<value>]` syntax to set the transition timing function based on a completely custom value:
+Use the `ease-[&lt;value&gt;]` syntax to set the transition timing function based on a completely custom value:
 
 ```html
 <button class="ease-[cubic-bezier(0.95,0.05,0.795,0.035)] ...">
@@ -38,7 +38,7 @@ Use the `ease-[<value>]` syntax to set the transition timing function based on a
 </button>
 ```
 
-For CSS variables, you can also use the `ease-(<custom-property>)` syntax:
+For CSS variables, you can also use the `ease-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <button class="ease-(--my-easing) ...">
@@ -46,7 +46,7 @@ For CSS variables, you can also use the `ease-(<custom-property>)` syntax:
 </button>
 ```
 
-This is just a shorthand for `ease-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `ease-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

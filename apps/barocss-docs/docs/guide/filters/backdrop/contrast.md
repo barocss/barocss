@@ -2,11 +2,11 @@
 
 Utilities for applying backdrop contrast filters to an element.
 
-Source: https://tailwindcss.com/docs/backdrop-filter-contrast
+Source: https://tailwindcss.com/guide/backdrop-filter-contrast
 
 ## Quick reference
 
-- `backdrop-contrast-[<value>]`, `backdrop-contrast-(<custom-property>)`, preset utilities like `backdrop-contrast-125`, `backdrop-contrast-200`
+- `backdrop-contrast-[&lt;value&gt;]`, `backdrop-contrast-(&lt;custom-property&gt;)`, preset utilities like `backdrop-contrast-125`, `backdrop-contrast-200`
 
 ## Examples
 
@@ -25,7 +25,7 @@ Use utilities like `backdrop-contrast-125` and `backdrop-contrast-200` to increa
 
 ### Using a custom value
 
-Use the `backdrop-contrast-[<value>]` syntax to set the backdrop contrast based on a completely custom value:
+Use the `backdrop-contrast-[&lt;value&gt;]` syntax to set the backdrop contrast based on a completely custom value:
 
 ```html
 <div class="backdrop-contrast-[1.2] ...">
@@ -33,7 +33,7 @@ Use the `backdrop-contrast-[<value>]` syntax to set the backdrop contrast based 
 </div>
 ```
 
-For CSS variables, you can also use the `backdrop-contrast-(<custom-property>)` syntax:
+For CSS variables, you can also use the `backdrop-contrast-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="backdrop-contrast-(--my-backdrop-contrast) ...">
@@ -41,7 +41,7 @@ For CSS variables, you can also use the `backdrop-contrast-(<custom-property>)` 
 </div>
 ```
 
-This is just a shorthand for `backdrop-contrast-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `backdrop-contrast-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

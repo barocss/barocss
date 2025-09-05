@@ -6,8 +6,8 @@ Utilities for setting the maximum width of an element.
 
 | Class                    | Styles                                                                             |
 | ------------------------ | ---------------------------------------------------------------------------------- |
-| max-w-<number>           | max-width: calc(var(--spacing) \* <number>);                                       |
-| max-w-<fraction>         | max-width: calc(<fraction> \* 100%);                                               |
+| max-w-&lt;number&gt;           | max-width: calc(var(--spacing) \* &lt;number&gt;);                                       |
+| max-w-&lt;fraction&gt;         | max-width: calc(&lt;fraction&gt; \* 100%);                                               |
 | max-w-3xs                | max-width: var(--container-3xs); /\* 16rem (256px) \*/                             |
 | max-w-2xs                | max-width: var(--container-2xs); /\* 18rem (288px) \*/                             |
 | max-w-xs                 | max-width: var(--container-xs); /\* 20rem (320px) \*/                              |
@@ -34,16 +34,16 @@ Utilities for setting the maximum width of an element.
 | max-w-min                | max-width: min-content;                                                            |
 | max-w-max                | max-width: max-content;                                                            |
 | max-w-fit                | max-width: fit-content;                                                            |
-| max-w-(<custom-property>)| max-width: var(<custom-property>);                                                 |
-| max-w-\[<value>\]        | max-width: <value>;                                                                |
+| max-w-(&lt;custom-property&gt;)| max-width: var(&lt;custom-property&gt;);                                                 |
+| max-w-\[&lt;value&gt;\]        | max-width: &lt;value&gt;;                                                                |
 
-Source: https://tailwindcss.com/docs/max-width
+Source: https://tailwindcss.com/guide/max-width
 
 ## Examples
 
 ### Basic example
 
-Use `max-w-<number>` utilities like `max-w-24` and `max-w-64` to set an element to a fixed maximum width based on the spacing scale:
+Use `max-w-&lt;number&gt;` utilities like `max-w-24` and `max-w-64` to set an element to a fixed maximum width based on the spacing scale:
 
 max-w-96
 
@@ -71,7 +71,7 @@ max-w-24
 
 ### Using a percentage
 
-Use `max-w-full` or `max-w-<fraction>` utilities like `max-w-1/2` and `max-w-3/4` to give an element a percentage-based maximum width:
+Use `max-w-full` or `max-w-&lt;fraction&gt;` utilities like `max-w-1/2` and `max-w-3/4` to give an element a percentage-based maximum width:
 
 max-w-9/10
 
@@ -140,7 +140,7 @@ Use the `max-w-none` utility to remove an element's assigned maximum width under
 
 ### Using a custom value
 
-Use the `max-w-[<value>]` syntax to set the maximum width based on a completely custom value:
+Use the `max-w-[&lt;value&gt;]` syntax to set the maximum width based on a completely custom value:
 
 ```
 <div class="max-w-[220px] ...">
@@ -148,7 +148,7 @@ Use the `max-w-[<value>]` syntax to set the maximum width based on a completely 
 </div>
 ```
 
-For CSS variables, you can also use the `max-w-(<custom-property>)` syntax:
+For CSS variables, you can also use the `max-w-(&lt;custom-property&gt;)` syntax:
 
 ```
 <div class="max-w-(--my-max-width) ...">
@@ -156,7 +156,7 @@ For CSS variables, you can also use the `max-w-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `max-w-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `max-w-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 
@@ -172,7 +172,7 @@ Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-The `max-w-<number>` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
+The `max-w-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
 @theme {

@@ -14,7 +14,7 @@ Utilities for controlling how an individual grid item is aligned along its inlin
 | `justify-self-end-safe` | `justify-self: safe end;` |
 | `justify-self-stretch` | `justify-self: stretch;` |
 
-Source: https://tailwindcss.com/docs/justify-self
+Source: https://tailwindcss.com/guide/justify-self
 
 ## Examples
 

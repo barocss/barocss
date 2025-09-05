@@ -10,7 +10,7 @@ Utilities for controlling how a background image behaves when scrolling.
 | `bg-local` | `background-attachment: local;` |
 | `bg-scroll` | `background-attachment: scroll;` |
 
-Source: https://tailwindcss.com/docs/background-attachment
+Source: https://tailwindcss.com/guide/background-attachment
 
 ## Examples
 

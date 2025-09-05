@@ -6,8 +6,8 @@ Utilities for setting the minimum width of an element.
 
 | Class                    | Styles                                                                             |
 | ------------------------ | ---------------------------------------------------------------------------------- |
-| min-w-<number>           | min-width: calc(var(--spacing) \* <number>);                                       |
-| min-w-<fraction>         | min-width: calc(<fraction> \* 100%);                                               |
+| min-w-&lt;number&gt;           | min-width: calc(var(--spacing) \* &lt;number&gt;);                                       |
+| min-w-&lt;fraction&gt;         | min-width: calc(&lt;fraction&gt; \* 100%);                                               |
 | min-w-3xs                | min-width: var(--container-3xs); /\* 16rem (256px) \*/                             |
 | min-w-2xs                | min-width: var(--container-2xs); /\* 18rem (288px) \*/                             |
 | min-w-xs                 | min-width: var(--container-xs); /\* 20rem (320px) \*/                              |
@@ -34,16 +34,16 @@ Utilities for setting the minimum width of an element.
 | min-w-min                | min-width: min-content;                                                            |
 | min-w-max                | min-width: max-content;                                                            |
 | min-w-fit                | min-width: fit-content;                                                            |
-| min-w-(<custom-property>)| min-width: var(<custom-property>);                                                 |
-| min-w-\[<value>\]        | min-width: <value>;                                                                |
+| min-w-(&lt;custom-property&gt;)| min-width: var(&lt;custom-property&gt;);                                                 |
+| min-w-\[&lt;value&gt;\]        | min-width: &lt;value&gt;;                                                                |
 
-Source: https://tailwindcss.com/docs/min-width
+Source: https://tailwindcss.com/guide/min-width
 
 ## Examples
 
 ### Basic example
 
-Use `min-w-<number>` utilities like `min-w-24` and `min-w-64` to set an element to a fixed minimum width based on the spacing scale:
+Use `min-w-&lt;number&gt;` utilities like `min-w-24` and `min-w-64` to set an element to a fixed minimum width based on the spacing scale:
 
 min-w-80
 
@@ -70,7 +70,7 @@ min-w-24
 
 ### Using a percentage
 
-Use `min-w-full` or `min-w-<fraction>` utilities like `min-w-1/2` and `min-w-3/4` to give an element a percentage-based minimum width:
+Use `min-w-full` or `min-w-&lt;fraction&gt;` utilities like `min-w-1/2` and `min-w-3/4` to give an element a percentage-based minimum width:
 
 min-w-3/4
 
@@ -134,7 +134,7 @@ Use the `min-w-0` utility to remove an element's assigned minimum width under a 
 
 ### Using a custom value
 
-Use the `min-w-[<value>]` syntax to set the minimum width based on a completely custom value:
+Use the `min-w-[&lt;value&gt;]` syntax to set the minimum width based on a completely custom value:
 
 ```
 <div class="min-w-[220px] ...">
@@ -142,7 +142,7 @@ Use the `min-w-[<value>]` syntax to set the minimum width based on a completely 
 </div>
 ```
 
-For CSS variables, you can also use the `min-w-(<custom-property>)` syntax:
+For CSS variables, you can also use the `min-w-(&lt;custom-property&gt;)` syntax:
 
 ```
 <div class="min-w-(--my-min-width) ...">
@@ -150,7 +150,7 @@ For CSS variables, you can also use the `min-w-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `min-w-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `min-w-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 
@@ -166,7 +166,7 @@ Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-The `min-w-<number>` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
+The `min-w-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
 @theme {

@@ -2,7 +2,7 @@
 
 Utilities for controlling how an element can be resized.
 
-Source: https://tailwindcss.com/docs/resize
+Source: https://tailwindcss.com/guide/resize
 
 ## Quick reference
 

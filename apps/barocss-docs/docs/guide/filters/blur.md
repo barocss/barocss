@@ -2,7 +2,7 @@
 
 Utilities for applying blur filters to an element.
 
-Source: https://tailwindcss.com/docs/filter-blur
+Source: https://tailwindcss.com/guide/filter-blur
 
 ## Quick reference
 
@@ -16,8 +16,8 @@ Source: https://tailwindcss.com/docs/filter-blur
 | `blur-xl` | `filter: blur(var(--blur-xl));` |
 | `blur-2xl` | `filter: blur(var(--blur-2xl));` |
 | `blur-3xl` | `filter: blur(var(--blur-3xl));` |
-| `blur-(<custom-property>)` | `filter: blur(var(<custom-property>));` |
-| `blur-[<value>]` | `filter: blur(<value>);` |
+| `blur-(&lt;custom-property&gt;)` | `filter: blur(var(&lt;custom-property&gt;));` |
+| `blur-[&lt;value&gt;]` | `filter: blur(&lt;value&gt;);` |
 
 ## Examples
 
@@ -34,19 +34,19 @@ Use utilities like `blur-sm` and `blur-lg` to blur an element:
 
 ### Using a custom value
 
-Use the `blur-[<value>]` syntax to set the blur based on a completely custom value:
+Use the `blur-[&lt;value&gt;]` syntax to set the blur based on a completely custom value:
 
 ```html
 <img class="blur-[2px] ..." src="/img/mountains.jpg" />
 ```
 
-For CSS variables, you can also use the `blur-(<custom-property>)` syntax:
+For CSS variables, you can also use the `blur-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <img class="blur-(--my-blur) ..." src="/img/mountains.jpg" />
 ```
 
-This is just a shorthand for `blur-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `blur-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

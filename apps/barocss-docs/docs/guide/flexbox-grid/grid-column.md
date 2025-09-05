@@ -6,33 +6,33 @@ Utilities for controlling how elements are sized and placed across grid columns.
 
 | Class | Styles |
 |---|---|
-| `col-span-<number>` | `grid-column: span <number> / span <number>;` |
+| `col-span-&lt;number&gt;` | `grid-column: span &lt;number&gt; / span &lt;number&gt;;` |
 | `col-span-full` | `grid-column: 1 / -1;` |
-| `col-span-(<custom-property>)` | `grid-column: span var(<custom-property>) / span var(<custom-property>);` |
-| `col-span-[<value>]` | `grid-column: span <value> / span <value>;` |
-| `col-start-<number>` | `grid-column-start: <number>;` |
-| `-col-start-<number>` | `grid-column-start: calc(<number> * -1);` |
+| `col-span-(&lt;custom-property&gt;)` | `grid-column: span var(&lt;custom-property&gt;) / span var(&lt;custom-property&gt;);` |
+| `col-span-[&lt;value&gt;]` | `grid-column: span &lt;value&gt; / span &lt;value&gt;;` |
+| `col-start-&lt;number&gt;` | `grid-column-start: &lt;number&gt;;` |
+| `-col-start-&lt;number&gt;` | `grid-column-start: calc(&lt;number&gt; * -1);` |
 | `col-start-auto` | `grid-column-start: auto;` |
-| `col-start-(<custom-property>)` | `grid-column-start: var(<custom-property>);` |
-| `col-start-[<value>]` | `grid-column-start: <value>;` |
-| `col-end-<number>` | `grid-column-end: <number>;` |
-| `-col-end-<number>` | `grid-column-end: calc(<number> * -1);` |
+| `col-start-(&lt;custom-property&gt;)` | `grid-column-start: var(&lt;custom-property&gt;);` |
+| `col-start-[&lt;value&gt;]` | `grid-column-start: &lt;value&gt;;` |
+| `col-end-&lt;number&gt;` | `grid-column-end: &lt;number&gt;;` |
+| `-col-end-&lt;number&gt;` | `grid-column-end: calc(&lt;number&gt; * -1);` |
 | `col-end-auto` | `grid-column-end: auto;` |
-| `col-end-(<custom-property>)` | `grid-column-end: var(<custom-property>);` |
-| `col-end-[<value>]` | `grid-column-end: <value>;` |
+| `col-end-(&lt;custom-property&gt;)` | `grid-column-end: var(&lt;custom-property&gt;);` |
+| `col-end-[&lt;value&gt;]` | `grid-column-end: &lt;value&gt;;` |
 | `col-auto` | `grid-column: auto;` |
-| `col-<number>` | `grid-column: <number>;` |
-| `-col-<number>` | `grid-column: calc(<number> * -1);` |
-| `col-(<custom-property>)` | `grid-column: var(<custom-property>);` |
-| `col-[<value>]` | `grid-column: <value>;` |
+| `col-&lt;number&gt;` | `grid-column: &lt;number&gt;;` |
+| `-col-&lt;number&gt;` | `grid-column: calc(&lt;number&gt; * -1);` |
+| `col-(&lt;custom-property&gt;)` | `grid-column: var(&lt;custom-property&gt;);` |
+| `col-[&lt;value&gt;]` | `grid-column: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/grid-column
+Source: https://tailwindcss.com/guide/grid-column
 
 ## Examples
 
 ### Spanning columns
 
-Use `col-span-<number>` utilities like `col-span-2` and `col-span-4` to make an element span _n_ columns:
+Use `col-span-&lt;number&gt;` utilities like `col-span-2` and `col-span-4` to make an element span _n_ columns:
 
 ```html
 <!-- [!code classes:col-span-2] -->
@@ -49,7 +49,7 @@ Use `col-span-<number>` utilities like `col-span-2` and `col-span-4` to make an 
 
 ### Starting and ending lines
 
-Use `col-start-<number>` or `col-end-<number>` utilities like `col-start-2` and `col-end-3` to make an element start or end at the _nth_ grid line:
+Use `col-start-&lt;number&gt;` or `col-end-&lt;number&gt;` utilities like `col-start-2` and `col-end-3` to make an element start or end at the _nth_ grid line:
 
 ```html
 <!-- [!code classes:col-start-1,col-start-2,col-end-3,col-end-7] -->
@@ -61,23 +61,23 @@ Use `col-start-<number>` or `col-end-<number>` utilities like `col-start-2` and 
 </div>
 ```
 
-These can also be combined with the `col-span-<number>` utilities to span a specific number of columns.
+These can also be combined with the `col-span-&lt;number&gt;` utilities to span a specific number of columns.
 
 ### Using a custom value
 
-Use the `col-[<value>]` syntax to set the grid column based on a completely custom value:
+Use the `col-[&lt;value&gt;]` syntax to set the grid column based on a completely custom value:
 
 ```html
 <div class="col-[16] col-span-[span_16_/_span_16] ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-For CSS variables, you can also use the `col-(<custom-property>)` syntax:
+For CSS variables, you can also use the `col-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="col-(--my-column) ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-This is just a shorthand for `col-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `col-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

@@ -16,9 +16,9 @@ Utilities for controlling the position of an element's mask image.
 | `mask-bottom`       | `mask-position: bottom;`       |
 | `mask-bottom-right` | `mask-position: bottom right;` |
 | `mask-position-(<var>)` | `mask-position: var(<var>);` |
-| `mask-position-[<value>]` | `mask-position: <value>;` |
+| `mask-position-[&lt;value&gt;]` | `mask-position: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/mask-position
+Source: https://tailwindcss.com/guide/mask-position
 
 ## Examples
 
@@ -38,7 +38,7 @@ Source: https://tailwindcss.com/docs/mask-position
 
 ### Using a custom value
 
-Use the `mask-position-[<value>]` syntax to set the mask position based on a completely custom value:
+Use the `mask-position-[&lt;value&gt;]` syntax to set the mask position based on a completely custom value:
 
 ```html
 <div class="mask-position-[center_top_1rem]">
@@ -46,7 +46,7 @@ Use the `mask-position-[<value>]` syntax to set the mask position based on a com
 </div>
 ```
 
-For CSS variables, you can also use the `mask-position-(<custom-property>)` syntax:
+For CSS variables, you can also use the `mask-position-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="mask-position-(--my-mask-position)">
@@ -54,7 +54,7 @@ For CSS variables, you can also use the `mask-position-(<custom-property>)` synt
 </div>
 ```
 
-This is just a shorthand for `mask-position-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `mask-position-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

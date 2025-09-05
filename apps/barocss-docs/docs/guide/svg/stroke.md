@@ -2,7 +2,7 @@
 
 Utilities for styling the stroke of SVG elements.
 
-Source: https://tailwindcss.com/docs/stroke
+Source: https://tailwindcss.com/guide/stroke
 
 ## Quick reference
 
@@ -14,8 +14,8 @@ Source: https://tailwindcss.com/docs/stroke
 | stroke-transparent       | stroke: transparent;                                                |
 | stroke-black             | stroke: var(--color-black); /* #000 */                            |
 | stroke-white             | stroke: var(--color-white); /* #fff */                            |
-| stroke-<custom-property> | stroke: var(<custom-property>);                                     |
-| stroke-\[<color>\]       | stroke: <color>;                                                    |
+| stroke-&lt;custom-property&gt; | stroke: var(&lt;custom-property&gt;);                                     |
+| stroke-\[&lt;color&gt;\]       | stroke: &lt;color&gt;;                                                    |
 
 ## Examples
 
@@ -46,7 +46,7 @@ Use the `stroke-current` utility to set the stroke color to the current text col
 
 ### Using a custom value
 
-Use the `stroke-[<value>]` syntax to set the stroke color based on a completely custom value:
+Use the `stroke-[&lt;value&gt;]` syntax to set the stroke color based on a completely custom value:
 
 ```html
 <svg class="stroke-[#243c5a] ...">
@@ -54,7 +54,7 @@ Use the `stroke-[<value>]` syntax to set the stroke color based on a completely 
 </svg>
 ```
 
-For CSS variables, you can also use the `stroke-(<custom-property>)` syntax:
+For CSS variables, you can also use the `stroke-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <svg class="stroke-(--my-stroke-color) ...">
@@ -62,7 +62,7 @@ For CSS variables, you can also use the `stroke-(<custom-property>)` syntax:
 </svg>
 ```
 
-This is just a shorthand for `stroke-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `stroke-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

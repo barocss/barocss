@@ -13,7 +13,7 @@ Utilities for controlling the wrapping of content around an element.
 | `clear-end`   | `clear: inline-end;`   |
 | `clear-none`  | `clear: none;`    |
 
-Source: https://tailwindcss.com/docs/clear
+Source: https://tailwindcss.com/guide/clear
 
 ## Examples
 

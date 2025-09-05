@@ -10,8 +10,8 @@ Utilities for controlling an element's background color.
 | `bg-current` | `background-color: currentColor;` |
 | `bg-transparent` | `background-color: transparent;` |
 | `bg-{name}` | `background-color: var(--color-{name});` |
-| `bg-(<custom-property>)` | `background-color: var(<custom-property>);` |
-| `bg-[<value>]` | `background-color: <value>;` |
+| `bg-(&lt;custom-property&gt;)` | `background-color: var(&lt;custom-property&gt;);` |
+| `bg-[&lt;value&gt;]` | `background-color: &lt;value&gt;;` |
 
 ### Complete class list
 
@@ -221,7 +221,7 @@ Utilities for controlling an element's background color.
 | `bg-violet-900` | `background-color: var(--color-violet-900);` |
 | `bg-violet-950` | `background-color: var(--color-violet-950);` |
 
-Source: https://tailwindcss.com/docs/background-color
+Source: https://tailwindcss.com/guide/background-color
 
 ## Examples
 
@@ -251,7 +251,7 @@ Use the color opacity modifier to control the opacity of an element's background
 
 ### Using a custom value
 
-Use the `bg-[<value>]` syntax to set the background color based on a completely custom value:
+Use the `bg-[&lt;value&gt;]` syntax to set the background color based on a completely custom value:
 
 ```html
 <div class="bg-[#50d71e] ...">
@@ -259,7 +259,7 @@ Use the `bg-[<value>]` syntax to set the background color based on a completely 
 </div>
 ```
 
-For CSS variables, you can also use the `bg-(<custom-property>)` syntax:
+For CSS variables, you can also use the `bg-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="bg-(--my-color) ...">
@@ -267,7 +267,7 @@ For CSS variables, you can also use the `bg-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `bg-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `bg-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Applying on hover
 
@@ -293,7 +293,7 @@ Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-Use your design tokens to populate `--color-*` variables and reference them with `bg-{name}` (for example, `bg-blue-500`). You can also use arbitrary values with `bg-[<value>]` and custom properties with `bg-(<custom-property>)`.
+Use your design tokens to populate `--color-*` variables and reference them with `bg-{name}` (for example, `bg-blue-500`). You can also use arbitrary values with `bg-[&lt;value&gt;]` and custom properties with `bg-(&lt;custom-property&gt;)`.
 
 For example, to add a custom color to your theme:
 

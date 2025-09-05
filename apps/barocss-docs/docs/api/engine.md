@@ -386,6 +386,6 @@ try {
 ## Related APIs
 
 - [Context API](/api/context) - Theme and configuration management
-- [Parser API](/api/parser) - Class name parsing details
+- [Parser API](/api/engine) - Class name parsing details
 - [Browser Runtime](/api/browser-runtime) - Browser integration
 - [Server Runtime](/api/server-runtime) - Server-side usage

@@ -10,7 +10,7 @@ Utilities for controlling line breaks within words in an overflowing element.
 | `wrap-anywhere`   | `overflow-wrap: anywhere;`     |
 | `wrap-normal`     | `overflow-wrap: normal;`       |
 
-Source: https://tailwindcss.com/docs/overflow-wrap
+Source: https://tailwindcss.com/guide/overflow-wrap
 
 ## Examples
 

@@ -14,10 +14,10 @@ Utilities for controlling the vertical alignment of an inline or table-cell box.
 | `align-text-bottom`| `vertical-align: text-bottom;` |
 | `align-sub`        | `vertical-align: sub;`         |
 | `align-super`      | `vertical-align: super;`       |
-| `align-(<custom-property>)` | `vertical-align: var(<custom-property>);` |
-| `align-[<value>]`  | `vertical-align: <value>;`     |
+| `align-(&lt;custom-property&gt;)` | `vertical-align: var(&lt;custom-property&gt;);` |
+| `align-[&lt;value&gt;]`  | `vertical-align: &lt;value&gt;;`     |
 
-Source: https://tailwindcss.com/docs/vertical-align
+Source: https://tailwindcss.com/guide/vertical-align
 
 ## Examples
 
@@ -64,19 +64,19 @@ Use the `align-text-top` and `align-text-bottom` utilities to align to the paren
 
 ### Using a custom value
 
-Use the `align-[<value>]` syntax to set the vertical alignment based on a completely custom value:
+Use the `align-[&lt;value&gt;]` syntax to set the vertical alignment based on a completely custom value:
 
 ```html
 <span class="align-[4px] ...">Lorem ipsum dolor sit amet...</span>
 ```
 
-For CSS variables, you can also use the `align-(<custom-property>)` syntax:
+For CSS variables, you can also use the `align-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <span class="align-(--my-align) ...">Lorem ipsum dolor sit amet...</span>
 ```
 
-This is just a shorthand for `align-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `align-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

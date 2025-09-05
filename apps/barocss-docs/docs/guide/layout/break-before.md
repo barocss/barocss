@@ -15,7 +15,7 @@ Utilities for controlling how a column or page should break before an element.
 | `break-before-right`   | `break-before: right;`   |
 | `break-before-column`  | `break-before: column;`  |
 
-Source: https://tailwindcss.com/docs/break-before
+Source: https://tailwindcss.com/guide/break-before
 
 ## Examples
 

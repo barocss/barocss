@@ -6,91 +6,91 @@ Utilities for controlling an element's margin.
 
 | Class | Styles |
 |---|---|
-| `m-<number>` | `margin: calc(var(--spacing) * <number>);` |
-| `-m-<number>` | `margin: calc(var(--spacing) * -<number>);` |
+| `m-&lt;number&gt;` | `margin: calc(var(--spacing) * &lt;number&gt;);` |
+| `-m-&lt;number&gt;` | `margin: calc(var(--spacing) * -&lt;number&gt;);` |
 | `m-auto` | `margin: auto;` |
 | `m-px` | `margin: 1px;` |
 | `-m-px` | `margin: -1px;` |
-| `m-(<custom-property>)` | `margin: var(<custom-property>);` |
-| `m-[<value>]` | `margin: <value>;` |
-| `mx-<number>` | `margin-inline: calc(var(--spacing) * <number>);` |
-| `-mx-<number>` | `margin-inline: calc(var(--spacing) * -<number>);` |
+| `m-(&lt;custom-property&gt;)` | `margin: var(&lt;custom-property&gt;);` |
+| `m-[&lt;value&gt;]` | `margin: &lt;value&gt;;` |
+| `mx-&lt;number&gt;` | `margin-inline: calc(var(--spacing) * &lt;number&gt;);` |
+| `-mx-&lt;number&gt;` | `margin-inline: calc(var(--spacing) * -&lt;number&gt;);` |
 | `mx-auto` | `margin-inline: auto;` |
 | `mx-px` | `margin-inline: 1px;` |
 | `-mx-px` | `margin-inline: -1px;` |
-| `mx-(<custom-property>)` | `margin-inline: var(<custom-property>);` |
-| `mx-[<value>]` | `margin-inline: <value>;` |
-| `my-<number>` | `margin-block: calc(var(--spacing) * <number>);` |
-| `-my-<number>` | `margin-block: calc(var(--spacing) * -<number>);` |
+| `mx-(&lt;custom-property&gt;)` | `margin-inline: var(&lt;custom-property&gt;);` |
+| `mx-[&lt;value&gt;]` | `margin-inline: &lt;value&gt;;` |
+| `my-&lt;number&gt;` | `margin-block: calc(var(--spacing) * &lt;number&gt;);` |
+| `-my-&lt;number&gt;` | `margin-block: calc(var(--spacing) * -&lt;number&gt;);` |
 | `my-auto` | `margin-block: auto;` |
 | `my-px` | `margin-block: 1px;` |
 | `-my-px` | `margin-block: -1px;` |
-| `my-(<custom-property>)` | `margin-block: var(<custom-property>);` |
-| `my-[<value>]` | `margin-block: <value>;` |
-| `ms-<number>` | `margin-inline-start: calc(var(--spacing) * <number>);` |
-| `-ms-<number>` | `margin-inline-start: calc(var(--spacing) * -<number>);` |
+| `my-(&lt;custom-property&gt;)` | `margin-block: var(&lt;custom-property&gt;);` |
+| `my-[&lt;value&gt;]` | `margin-block: &lt;value&gt;;` |
+| `ms-&lt;number&gt;` | `margin-inline-start: calc(var(--spacing) * &lt;number&gt;);` |
+| `-ms-&lt;number&gt;` | `margin-inline-start: calc(var(--spacing) * -&lt;number&gt;);` |
 | `ms-auto` | `margin-inline-start: auto;` |
 | `ms-px` | `margin-inline-start: 1px;` |
 | `-ms-px` | `margin-inline-start: -1px;` |
-| `ms-(<custom-property>)` | `margin-inline-start: var(<custom-property>);` |
-| `ms-[<value>]` | `margin-inline-start: <value>;` |
-| `me-<number>` | `margin-inline-end: calc(var(--spacing) * <number>);` |
-| `-me-<number>` | `margin-inline-end: calc(var(--spacing) * -<number>);` |
+| `ms-(&lt;custom-property&gt;)` | `margin-inline-start: var(&lt;custom-property&gt;);` |
+| `ms-[&lt;value&gt;]` | `margin-inline-start: &lt;value&gt;;` |
+| `me-&lt;number&gt;` | `margin-inline-end: calc(var(--spacing) * &lt;number&gt;);` |
+| `-me-&lt;number&gt;` | `margin-inline-end: calc(var(--spacing) * -&lt;number&gt;);` |
 | `me-auto` | `margin-inline-end: auto;` |
 | `me-px` | `margin-inline-end: 1px;` |
 | `-me-px` | `margin-inline-end: -1px;` |
-| `me-(<custom-property>)` | `margin-inline-end: var(<custom-property>);` |
-| `me-[<value>]` | `margin-inline-end: <value>;` |
-| `mt-<number>` | `margin-top: calc(var(--spacing) * <number>);` |
-| `-mt-<number>` | `margin-top: calc(var(--spacing) * -<number>);` |
+| `me-(&lt;custom-property&gt;)` | `margin-inline-end: var(&lt;custom-property&gt;);` |
+| `me-[&lt;value&gt;]` | `margin-inline-end: &lt;value&gt;;` |
+| `mt-&lt;number&gt;` | `margin-top: calc(var(--spacing) * &lt;number&gt;);` |
+| `-mt-&lt;number&gt;` | `margin-top: calc(var(--spacing) * -&lt;number&gt;);` |
 | `mt-auto` | `margin-top: auto;` |
 | `mt-px` | `margin-top: 1px;` |
 | `-mt-px` | `margin-top: -1px;` |
-| `mt-(<custom-property>)` | `margin-top: var(<custom-property>);` |
-| `mt-[<value>]` | `margin-top: <value>;` |
-| `mr-<number>` | `margin-right: calc(var(--spacing) * <number>);` |
-| `-mr-<number>` | `margin-right: calc(var(--spacing) * -<number>);` |
+| `mt-(&lt;custom-property&gt;)` | `margin-top: var(&lt;custom-property&gt;);` |
+| `mt-[&lt;value&gt;]` | `margin-top: &lt;value&gt;;` |
+| `mr-&lt;number&gt;` | `margin-right: calc(var(--spacing) * &lt;number&gt;);` |
+| `-mr-&lt;number&gt;` | `margin-right: calc(var(--spacing) * -&lt;number&gt;);` |
 | `mr-auto` | `margin-right: auto;` |
 | `mr-px` | `margin-right: 1px;` |
 | `-mr-px` | `margin-right: -1px;` |
-| `mr-(<custom-property>)` | `margin-right: var(<custom-property>);` |
-| `mr-[<value>]` | `margin-right: <value>;` |
-| `mb-<number>` | `margin-bottom: calc(var(--spacing) * <number>);` |
-| `-mb-<number>` | `margin-bottom: calc(var(--spacing) * -<number>);` |
+| `mr-(&lt;custom-property&gt;)` | `margin-right: var(&lt;custom-property&gt;);` |
+| `mr-[&lt;value&gt;]` | `margin-right: &lt;value&gt;;` |
+| `mb-&lt;number&gt;` | `margin-bottom: calc(var(--spacing) * &lt;number&gt;);` |
+| `-mb-&lt;number&gt;` | `margin-bottom: calc(var(--spacing) * -&lt;number&gt;);` |
 | `mb-auto` | `margin-bottom: auto;` |
 | `mb-px` | `margin-bottom: 1px;` |
 | `-mb-px` | `margin-bottom: -1px;` |
-| `mb-(<custom-property>)` | `margin-bottom: var(<custom-property>);` |
-| `mb-[<value>]` | `margin-bottom: <value>;` |
-| `ml-<number>` | `margin-left: calc(var(--spacing) * <number>);` |
-| `-ml-<number>` | `margin-left: calc(var(--spacing) * -<number>);` |
+| `mb-(&lt;custom-property&gt;)` | `margin-bottom: var(&lt;custom-property&gt;);` |
+| `mb-[&lt;value&gt;]` | `margin-bottom: &lt;value&gt;;` |
+| `ml-&lt;number&gt;` | `margin-left: calc(var(--spacing) * &lt;number&gt;);` |
+| `-ml-&lt;number&gt;` | `margin-left: calc(var(--spacing) * -&lt;number&gt;);` |
 | `ml-auto` | `margin-left: auto;` |
 | `ml-px` | `margin-left: 1px;` |
 | `-ml-px` | `margin-left: -1px;` |
-| `ml-(<custom-property>)` | `margin-left: var(<custom-property>);` |
-| `ml-[<value>]` | `margin-left: <value>;` |
-| `space-x-<number>` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(calc(var(--spacing) * <number>) * var(--tw-space-x-reverse)); margin-inline-end: calc(calc(var(--spacing) * <number>) * calc(1 - var(--tw-space-x-reverse))); }` |
-| `-space-x-<number>` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(calc(var(--spacing) * -<number>) * var(--tw-space-x-reverse)); margin-inline-end: calc(calc(var(--spacing) * -<number>) * calc(1 - var(--tw-space-x-reverse))); }` |
+| `ml-(&lt;custom-property&gt;)` | `margin-left: var(&lt;custom-property&gt;);` |
+| `ml-[&lt;value&gt;]` | `margin-left: &lt;value&gt;;` |
+| `space-x-&lt;number&gt;` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(calc(var(--spacing) * &lt;number&gt;) * var(--tw-space-x-reverse)); margin-inline-end: calc(calc(var(--spacing) * &lt;number&gt;) * calc(1 - var(--tw-space-x-reverse))); }` |
+| `-space-x-&lt;number&gt;` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(calc(var(--spacing) * -&lt;number&gt;) * var(--tw-space-x-reverse)); margin-inline-end: calc(calc(var(--spacing) * -&lt;number&gt;) * calc(1 - var(--tw-space-x-reverse))); }` |
 | `space-x-px` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(1px * var(--tw-space-x-reverse)); margin-inline-end: calc(1px * calc(1 - var(--tw-space-x-reverse))); }` |
 | `-space-x-px` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(-1px * var(--tw-space-x-reverse)); margin-inline-end: calc(-1px * calc(1 - var(--tw-space-x-reverse))); }` |
-| `space-x-(<custom-property>)` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(var(<custom-property>) * var(--tw-space-x-reverse)); margin-inline-end: calc(var(<custom-property>) * calc(1 - var(--tw-space-x-reverse))); }` |
-| `space-x-[<value>]` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(<value> * var(--tw-space-x-reverse)); margin-inline-end: calc(<value> * calc(1 - var(--tw-space-x-reverse))); }` |
-| `space-y-<number>` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(calc(var(--spacing) * <number>) * var(--tw-space-y-reverse)); margin-block-end: calc(calc(var(--spacing) * <number>) * calc(1 - var(--tw-space-y-reverse))); }` |
-| `-space-y-<number>` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(calc(var(--spacing) * -<number>) * var(--tw-space-y-reverse)); margin-block-end: calc(calc(var(--spacing) * -<number>) * calc(1 - var(--tw-space-y-reverse))); }` |
+| `space-x-(&lt;custom-property&gt;)` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(var(&lt;custom-property&gt;) * var(--tw-space-x-reverse)); margin-inline-end: calc(var(&lt;custom-property&gt;) * calc(1 - var(--tw-space-x-reverse))); }` |
+| `space-x-[&lt;value&gt;]` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(&lt;value&gt; * var(--tw-space-x-reverse)); margin-inline-end: calc(&lt;value&gt; * calc(1 - var(--tw-space-x-reverse))); }` |
+| `space-y-&lt;number&gt;` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(calc(var(--spacing) * &lt;number&gt;) * var(--tw-space-y-reverse)); margin-block-end: calc(calc(var(--spacing) * &lt;number&gt;) * calc(1 - var(--tw-space-y-reverse))); }` |
+| `-space-y-&lt;number&gt;` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(calc(var(--spacing) * -&lt;number&gt;) * var(--tw-space-y-reverse)); margin-block-end: calc(calc(var(--spacing) * -&lt;number&gt;) * calc(1 - var(--tw-space-y-reverse))); }` |
 | `space-y-px` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(1px * var(--tw-space-y-reverse)); margin-block-end: calc(1px * calc(1 - var(--tw-space-y-reverse))); }` |
 | `-space-y-px` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(-1px * var(--tw-space-y-reverse)); margin-block-end: calc(-1px * calc(1 - var(--tw-space-y-reverse))); }` |
-| `space-y-(<custom-property>)` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(var(<custom-property>) * var(--tw-space-y-reverse)); margin-block-end: calc(var(<custom-property>) * calc(1 - var(--tw-space-y-reverse))); }` |
-| `space-y-[<value>]` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(<value> * var(--tw-space-y-reverse)); margin-block-end: calc(<value> * calc(1 - var(--tw-space-y-reverse))); }` |
+| `space-y-(&lt;custom-property&gt;)` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(var(&lt;custom-property&gt;) * var(--tw-space-y-reverse)); margin-block-end: calc(var(&lt;custom-property&gt;) * calc(1 - var(--tw-space-y-reverse))); }` |
+| `space-y-[&lt;value&gt;]` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(&lt;value&gt; * var(--tw-space-y-reverse)); margin-block-end: calc(&lt;value&gt; * calc(1 - var(--tw-space-y-reverse))); }` |
 | `space-x-reverse` | `& > :not(:last-child) { --tw-space-x-reverse: 1; }` |
 | `space-y-reverse` | `& > :not(:last-child) { --tw-space-y-reverse: 1; }` |
 
-Source: https://tailwindcss.com/docs/margin
+Source: https://tailwindcss.com/guide/margin
 
 ## Examples
 
 ### Basic example
 
-Use `m-<number>` utilities like `m-4` and `m-8` to control the margin on all sides of an element:
+Use `m-&lt;number&gt;` utilities like `m-4` and `m-8` to control the margin on all sides of an element:
 
 ```html
 <!-- [!code classes:m-8] -->
@@ -99,7 +99,7 @@ Use `m-<number>` utilities like `m-4` and `m-8` to control the margin on all sid
 
 ### Adding margin to a single side
 
-Use `mt-<number>`, `mr-<number>`, `mb-<number>`, and `ml-<number>` utilities like `ml-2` and `mt-6` to control the margin on one side of an element:
+Use `mt-&lt;number&gt;`, `mr-&lt;number&gt;`, `mb-&lt;number&gt;`, and `ml-&lt;number&gt;` utilities like `ml-2` and `mt-6` to control the margin on one side of an element:
 
 ```html
 <!-- [!code classes:mt-6,mr-4,mb-8,ml-2] -->
@@ -111,7 +111,7 @@ Use `mt-<number>`, `mr-<number>`, `mb-<number>`, and `ml-<number>` utilities lik
 
 ### Adding horizontal margin
 
-Use `mx-<number>` utilities like `mx-4` and `mx-8` to control the horizontal margin of an element:
+Use `mx-&lt;number&gt;` utilities like `mx-4` and `mx-8` to control the horizontal margin of an element:
 
 ```html
 <!-- [!code classes:mx-8] -->
@@ -120,7 +120,7 @@ Use `mx-<number>` utilities like `mx-4` and `mx-8` to control the horizontal mar
 
 ### Adding vertical margin
 
-Use `my-<number>` utilities like `my-4` and `my-8` to control the vertical margin of an element:
+Use `my-&lt;number&gt;` utilities like `my-4` and `my-8` to control the vertical margin of an element:
 
 ```html
 <!-- [!code classes:my-8] -->
@@ -139,7 +139,7 @@ To use a negative margin value, prefix the class name with a dash to convert it 
 
 ### Using logical properties
 
-Use `ms-<number>` or `me-<number>` utilities like `ms-4` and `me-8` to set the `margin-inline-start` and `margin-inline-end` logical properties:
+Use `ms-&lt;number&gt;` or `me-&lt;number&gt;` utilities like `ms-4` and `me-8` to set the `margin-inline-start` and `margin-inline-end` logical properties:
 
 ```html
 <!-- [!code classes:ms-8,me-8] -->
@@ -159,7 +159,7 @@ Use `ms-<number>` or `me-<number>` utilities like `ms-4` and `me-8` to set the `
 
 ### Adding space between children
 
-Use `space-x-<number>` or `space-y-<number>` utilities like `space-x-4` and `space-y-8` to control the space between elements:
+Use `space-x-&lt;number&gt;` or `space-y-&lt;number&gt;` utilities like `space-x-4` and `space-y-8` to control the space between elements:
 
 ```html
 <!-- [!code classes:space-x-4] -->
@@ -193,7 +193,7 @@ Additionally, the space utilities are not designed to work together with the div
 
 ### Using a custom value
 
-Use utilities like `m-[<value>]`,`mx-[<value>]`, and `mb-[<value>]` to set the margin based on a completely custom value:
+Use utilities like `m-[&lt;value&gt;]`,`mx-[&lt;value&gt;]`, and `mb-[&lt;value&gt;]` to set the margin based on a completely custom value:
 
 ```html
 <div class="m-[5px] ...">
@@ -201,7 +201,7 @@ Use utilities like `m-[<value>]`,`mx-[<value>]`, and `mb-[<value>]` to set the m
 </div>
 ```
 
-For CSS variables, you can also use the `m-(<custom-property>)` syntax:
+For CSS variables, you can also use the `m-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="m-(--my-margin) ...">
@@ -209,7 +209,7 @@ For CSS variables, you can also use the `m-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `m-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `m-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 
@@ -225,7 +225,7 @@ Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-The `m-<number>`,`mx-<number>`,`my-<number>`,`ms-<number>`,`me-<number>`,`mt-<number>`,`mr-<number>`,`mb-<number>`, and `ml-<number>` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
+The `m-&lt;number&gt;`,`mx-&lt;number&gt;`,`my-&lt;number&gt;`,`ms-&lt;number&gt;`,`me-&lt;number&gt;`,`mt-&lt;number&gt;`,`mr-&lt;number&gt;`,`mb-&lt;number&gt;`, and `ml-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
 @theme {

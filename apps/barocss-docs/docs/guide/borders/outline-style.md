@@ -13,7 +13,7 @@ Utilities for controlling the style of an element's outline.
 | `outline-none`    | `outline-style: none;`   |
 | `outline-hidden`  | `outline: 2px solid transparent; outline-offset: 2px;` |
 
-Source: https://tailwindcss.com/docs/outline-style
+Source: https://tailwindcss.com/guide/outline-style
 
 ## Examples
 

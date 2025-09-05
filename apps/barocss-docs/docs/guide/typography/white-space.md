@@ -13,7 +13,7 @@ Utilities for controlling an element's white-space property.
 | `whitespace-pre-wrap`   | `white-space: pre-wrap;`    |
 | `whitespace-break-spaces` | `white-space: break-spaces;` |
 
-Source: https://tailwindcss.com/docs/white-space
+Source: https://tailwindcss.com/guide/white-space
 
 ## Examples
 

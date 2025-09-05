@@ -2,7 +2,7 @@
 
 Utilities for controlling the sizing of form controls.
 
-Source: https://tailwindcss.com/docs/field-sizing
+Source: https://tailwindcss.com/guide/field-sizing
 
 ## Quick reference
 

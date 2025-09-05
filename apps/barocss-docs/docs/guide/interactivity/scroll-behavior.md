@@ -2,7 +2,7 @@
 
 Utilities for controlling the scroll behavior of an element.
 
-Source: https://tailwindcss.com/docs/scroll-behavior
+Source: https://tailwindcss.com/guide/scroll-behavior
 
 ## Quick reference
 

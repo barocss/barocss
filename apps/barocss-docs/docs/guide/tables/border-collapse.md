@@ -2,7 +2,7 @@
 
 Utilities for controlling whether table borders should collapse or be separated.
 
-Source: https://tailwindcss.com/docs/border-collapse
+Source: https://tailwindcss.com/guide/border-collapse
 
 ## Quick reference
 

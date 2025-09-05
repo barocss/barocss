@@ -12,7 +12,7 @@ Utilities for controlling how an element is positioned in the document.
 | `relative` | `position: relative;` |
 | `sticky` | `position: sticky;` |
 
-Source: https://tailwindcss.com/docs/position
+Source: https://tailwindcss.com/guide/position
 
 ## Examples
 

@@ -9,7 +9,7 @@ Utilities for controlling how an SVG mask is interpreted.
 | `mask-type-alpha`   | `mask-type: alpha;`     |
 | `mask-type-luminance` | `mask-type: luminance;` |
 
-Source: https://tailwindcss.com/docs/mask-type
+Source: https://tailwindcss.com/guide/mask-type
 
 ## Examples
 

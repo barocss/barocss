@@ -10,7 +10,7 @@ Utilities for controlling the visibility of an element.
 | `invisible`| `visibility: hidden;` |
 | `collapse` | `visibility: collapse;`|
 
-Source: https://tailwindcss.com/docs/visibility
+Source: https://tailwindcss.com/guide/visibility
 
 ## Examples
 

@@ -13,8 +13,8 @@ Utilities for controlling the text shadow of an element.
 | `text-shadow-xl` | `text-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);` |
 | `text-shadow-2xl` | `text-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);` |
 | `text-shadow-none` | `text-shadow: none;` |
-| `text-shadow-(<custom-property>)` | `text-shadow: var(<custom-property>);` |
-| `text-shadow-[<value>]` | `text-shadow: <value>;` |
+| `text-shadow-(&lt;custom-property&gt;)` | `text-shadow: var(&lt;custom-property&gt;);` |
+| `text-shadow-[&lt;value&gt;]` | `text-shadow: &lt;value&gt;;` |
 
 ## Examples
 

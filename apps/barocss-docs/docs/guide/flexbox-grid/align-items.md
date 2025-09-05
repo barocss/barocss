@@ -15,7 +15,7 @@ Utilities for controlling how flex and grid items are positioned along a contain
 | `items-baseline-last` | `align-items: last baseline;` |
 | `items-stretch` | `align-items: stretch;` |
 
-Source: https://tailwindcss.com/docs/align-items
+Source: https://tailwindcss.com/guide/align-items
 
 ## Examples
 

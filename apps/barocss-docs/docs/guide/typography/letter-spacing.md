@@ -12,10 +12,10 @@ Utilities for controlling the tracking, or letter spacing, of an element.
 | `tracking-wide`     | `letter-spacing: var(--tracking-wide);`    |
 | `tracking-wider`    | `letter-spacing: var(--tracking-wider);`   |
 | `tracking-widest`   | `letter-spacing: var(--tracking-widest);`  |
-| `tracking-(<custom-property>)` | `letter-spacing: var(<custom-property>);` |
-| `tracking-[<value>]` | `letter-spacing: <value>;`                |
+| `tracking-(&lt;custom-property&gt;)` | `letter-spacing: var(&lt;custom-property&gt;);` |
+| `tracking-[&lt;value&gt;]` | `letter-spacing: &lt;value&gt;;`                |
 
-Source: https://tailwindcss.com/docs/letter-spacing
+Source: https://tailwindcss.com/guide/letter-spacing
 
 ## Examples
 
@@ -62,19 +62,19 @@ To use a negative letter spacing value, prefix the class name with a dash to con
 
 ### Using a custom value
 
-Use the `tracking-[<value>]` syntax to set the letter spacing based on a completely custom value:
+Use the `tracking-[&lt;value&gt;]` syntax to set the letter spacing based on a completely custom value:
 
 ```html
 <p class="tracking-[.25em] ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-For CSS variables, you can also use the `tracking-(<custom-property>)` syntax:
+For CSS variables, you can also use the `tracking-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <p class="tracking-(--my-tracking) ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-This is just a shorthand for `tracking-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `tracking-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

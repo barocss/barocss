@@ -96,7 +96,7 @@ description: Latest updates, tutorials, and insights about BaroCSS
   </div>
 
   <div class="blog-categories">
-    <a href="/blog/category/announcements" class="blog-category-link">Announcements</a><a href="/blog/category/test" class="blog-category-link">Test</a><a href="/blog/category/"Innovation"" class="blog-category-link">"Innovation"</a><a href="/blog/category/tutorials" class="blog-category-link">Tutorials</a>
+    <a href="/blog/category/announcements" class="blog-category-link">Announcements</a><a href="/blog/category/test" class="blog-category-link">Test</a><a href="/blog/category/Innovation" class="blog-category-link">Innovation</a><a href="/blog/category/tutorials" class="blog-category-link">Tutorials</a>
     <a href="/blog/tags/" class="blog-category-link">All Tags</a>
   </div>
 

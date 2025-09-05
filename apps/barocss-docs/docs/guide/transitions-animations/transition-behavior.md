@@ -2,7 +2,7 @@
 
 Utilities to control the behavior of CSS transitions.
 
-Source: https://tailwindcss.com/docs/transition-behavior
+Source: https://tailwindcss.com/guide/transition-behavior
 
 ## Quick reference
 

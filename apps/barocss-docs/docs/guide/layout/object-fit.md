@@ -12,7 +12,7 @@ Utilities for controlling how a replaced element's content should be resized.
 | `object-none`       | `object-fit: none;`       |
 | `object-scale-down` | `object-fit: scale-down;` |
 
-Source: https://tailwindcss.com/docs/object-fit
+Source: https://tailwindcss.com/guide/object-fit
 
 ## Examples
 

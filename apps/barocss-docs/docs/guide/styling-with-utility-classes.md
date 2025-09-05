@@ -84,7 +84,7 @@ To style an element on states like hover or focus, prefix any utility with the s
 <button class="bg-sky-500 hover:bg-sky-700 ...">Save changes</button>
 ```
 
-These prefixes are called [variants](/docs/hover-focus-and-other-states) in Tailwind, and they only apply the styles from a utility class when the condition for that variant matches.
+These prefixes are called [variants](/guide/hover-focus-and-other-states) in Tailwind, and they only apply the styles from a utility class when the condition for that variant matches.
 
 Here's what the generated CSS looks like for the `hover:bg-sky-700` class:
 
@@ -119,7 +119,7 @@ You can even stack variants in Tailwind to apply a utility when multiple conditi
 <button class="bg-sky-500 disabled:hover:bg-sky-500 ...">Save changes</button>
 ```
 
-Learn more in the documentation styling elements on [hover, focus, and other states](/docs/hover-focus-and-other-states).
+Learn more in the documentation styling elements on [hover, focus, and other states](/guide/hover-focus-and-other-states).
 
 ### Media queries and breakpoints
 
@@ -141,7 +141,7 @@ In the example above, the `sm:` prefix makes sure that `grid-cols-3` only trigge
 }
 ```
 
-Learn more in the [responsive design](/docs/responsive-design) documentation.
+Learn more in the [responsive design](/guide/responsive-design) documentation.
 
 ### Targeting dark mode
 
@@ -173,7 +173,7 @@ Just like with hover states or media queries, the important thing to understand 
 }
 ```
 
-Learn more in the [dark mode](/docs/dark-mode) documentation.
+Learn more in the [dark mode](/guide/dark-mode) documentation.
 
 ### Using class composition
 
@@ -200,11 +200,11 @@ Both of these effects rely on the `filter` property in CSS, so Tailwind uses CSS
 
 The generated CSS above is slightly simplified, but the trick here is that each utility sets a CSS variable just for the effect it's meant to apply. Then the `filter` property looks at all of these variables, falling back to nothing if the variable hasn't been set.
 
-Tailwind uses this same approach for [gradients](/docs/background-image#adding-a-linear-gradient), [shadow colors](/docs/box-shadow#setting-the-shadow-color), [transforms](/docs/translate), and more.
+Tailwind uses this same approach for [gradients](/guide/backgrounds/background-image#adding-a-linear-gradient), [shadow colors](/guide/effects/box-shadow#setting-the-shadow-color), [transforms](/guide/transforms/translate), and more.
 
 ### Using arbitrary values
 
-Many utilities in Tailwind are driven by [theme variables](/docs/theme), like `bg-blue-500`, `text-xl`, and `shadow-md`, which map to your underlying color palette, type scale, and shadows.
+Many utilities in Tailwind are driven by [theme variables](/guide/theme), like `bg-blue-500`, `text-xl`, and `shadow-md`, which map to your underlying color palette, type scale, and shadows.
 
 When you need to use a one-off value outside of your theme, use the special square bracket syntax for specifying arbitrary values:
 
@@ -238,7 +238,7 @@ There's even a syntax for generating completely arbitrary CSS including an arbit
 </div>
 ```
 
-Learn more in the documentation on [using arbitrary values](/docs/adding-custom-styles#using-arbitrary-values).
+Learn more in the documentation on [using arbitrary values](/guide/adding-custom-styles#using-arbitrary-values).
 
 #### How does this even work?
 
@@ -265,7 +265,7 @@ After it's found all of the potential classes, Tailwind generates the CSS for ea
 
 Since the CSS is generated based on the class name, Tailwind can recognize classes using arbitrary values like `bg-[#316ff6]` and generate the necessary CSS, even when the value isn't part of your theme.
 
-Learn more about how this works in [detecting classes in source files](/docs/detecting-classes-in-source-files).
+Learn more about how this works in [detecting classes in source files](/guide/dom-change-detection).
 
 ### Complex selectors
 
@@ -304,9 +304,9 @@ Tailwind also supports things like `group-hover`, which let you style an element
 }
 ```
 
-This `group-*` syntax works with other variants too, like `group-focus`, `group-active`, and [many more](/docs/hover-focus-and-other-states#styling-based-on-parent-state).
+This `group-*` syntax works with other variants too, like `group-focus`, `group-active`, and [many more](/guide/hover-focus-and-other-states#styling-based-on-parent-state).
 
-For really complex scenarios _(especially when styling HTML you don't control)_, Tailwind supports [arbitrary variants](/docs/adding-custom-styles#arbitrary-variants) which let you write any selector you want, directly in a class name:
+For really complex scenarios _(especially when styling HTML you don't control)_, Tailwind supports [arbitrary variants](/guide/adding-custom-styles#arbitrary-variants) which let you write any selector you want, directly in a class name:
 
 ```html
 <div class="[&>[data-active]+span]:text-blue-600 ...">

@@ -2,7 +2,7 @@
 
 Utilities for controlling how an element can be scrolled and zoomed on touchscreens.
 
-Source: https://tailwindcss.com/docs/touch-action
+Source: https://tailwindcss.com/guide/touch-action
 
 ## Quick reference
 

@@ -10,10 +10,10 @@ Utilities for controlling the size of implicitly-created grid rows.
 | `auto-rows-min` | `grid-auto-rows: min-content;` |
 | `auto-rows-max` | `grid-auto-rows: max-content;` |
 | `auto-rows-fr` | `grid-auto-rows: minmax(0, 1fr);` |
-| `auto-rows-(<custom-property>)` | `grid-auto-rows: var(<custom-property>);` |
-| `auto-rows-[<value>]` | `grid-auto-rows: <value>;` |
+| `auto-rows-(&lt;custom-property&gt;)` | `grid-auto-rows: var(&lt;custom-property&gt;);` |
+| `auto-rows-[&lt;value&gt;]` | `grid-auto-rows: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/grid-auto-rows
+Source: https://tailwindcss.com/guide/grid-auto-rows
 
 ## Examples
 
@@ -32,7 +32,7 @@ Use utilities like `auto-rows-min` and `auto-rows-max` to control the size of im
 
 ### Using a custom value
 
-Use the `auto-rows-[<value>]` syntax to set the grid auto rows based on a completely custom value:
+Use the `auto-rows-[&lt;value&gt;]` syntax to set the grid auto rows based on a completely custom value:
 
 ```html
 <div class="grid grid-flow-row auto-rows-[minmax(0,2fr)] ...">
@@ -40,7 +40,7 @@ Use the `auto-rows-[<value>]` syntax to set the grid auto rows based on a comple
 </div>
 ```
 
-For CSS variables, you can also use the `auto-rows-(<custom-property>)` syntax:
+For CSS variables, you can also use the `auto-rows-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="grid grid-flow-row auto-rows-(--my-rows) ...">
@@ -48,7 +48,7 @@ For CSS variables, you can also use the `auto-rows-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `auto-rows-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `auto-rows-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

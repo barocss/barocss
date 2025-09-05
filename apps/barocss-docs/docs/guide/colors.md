@@ -261,7 +261,7 @@ Use `@theme` to add custom colors to your project under the `--color-*` theme na
 
 Now utilities like `bg-midnight`, `text-tahiti`, and `fill-bermuda` will be available in your project in addition to the default colors.
 
-Learn more about theme variables in the [theme variables documentation](/docs/theme).
+Learn more about theme variables in the [theme variables documentation](/guide/theme).
 
 ### Overriding default colors
 
@@ -337,7 +337,7 @@ Use `@theme inline` when defining colors that reference other colors:
 }
 ```
 
-Learn more in the theme documentation on [referencing other variables](/docs/theme#referencing-other-variables).
+Learn more in the theme documentation on [referencing other variables](/guide/theme#referencing-other-variables).
 
 ## Default color palette reference
 

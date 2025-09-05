@@ -11,10 +11,10 @@ Utilities for animating elements with CSS animations.
 | `animate-pulse` | `animation: var(--animate-pulse); /* pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite */ @keyframes pulse { 50% { opacity: 0.5; } }` |
 | `animate-bounce` | `animation: var(--animate-bounce); /* bounce 1s infinite */ @keyframes bounce { 0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); } 50% { transform: none; animation-timing-function: cubic-bezier(0, 0, 0.2, 1); } }` |
 | `animate-none` | `animation: none;` |
-| `animate-(<custom-property>)` | `animation: var(<custom-property>);` |
-| `animate-[<value>]` | `animation: <value>;` |
+| `animate-(&lt;custom-property&gt;)` | `animation: var(&lt;custom-property&gt;);` |
+| `animate-[&lt;value&gt;]` | `animation: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/animation
+Source: https://tailwindcss.com/guide/animation
 
 ## Examples
 
@@ -106,4 +106,4 @@ For situations where the user has specified that they prefer reduced motion, you
 
 ## Customizing your theme
 
-Use your design tokens to populate `--animate-*` variables and reference them with `animate-{name}` (for example, `animate-spin`). You can also use arbitrary values with `animate-[<value>]` and custom properties with `animate-(<custom-property>)`.
+Use your design tokens to populate `--animate-*` variables and reference them with `animate-{name}` (for example, `animate-spin`). You can also use arbitrary values with `animate-[&lt;value&gt;]` and custom properties with `animate-(&lt;custom-property&gt;)`.

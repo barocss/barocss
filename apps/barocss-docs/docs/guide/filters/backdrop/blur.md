@@ -2,7 +2,7 @@
 
 Utilities for applying backdrop blur filters to an element.
 
-Source: https://tailwindcss.com/docs/backdrop-filter-blur
+Source: https://tailwindcss.com/guide/backdrop-filter-blur
 
 ## Quick reference
 
@@ -16,8 +16,8 @@ Source: https://tailwindcss.com/docs/backdrop-filter-blur
 | `backdrop-blur-xl` | `backdrop-filter: blur(var(--blur-xl));` |
 | `backdrop-blur-2xl` | `backdrop-filter: blur(var(--blur-2xl));` |
 | `backdrop-blur-3xl` | `backdrop-filter: blur(var(--blur-3xl));` |
-| `backdrop-blur-(<custom-property>)` | `backdrop-filter: blur(var(<custom-property>));` |
-| `backdrop-blur-[<value>]` | `backdrop-filter: blur(<value>);` |
+| `backdrop-blur-(&lt;custom-property&gt;)` | `backdrop-filter: blur(var(&lt;custom-property&gt;));` |
+| `backdrop-blur-[&lt;value&gt;]` | `backdrop-filter: blur(&lt;value&gt;);` |
 
 ## Examples
 
@@ -42,7 +42,7 @@ Use utilities like `backdrop-blur-sm` and `backdrop-blur-lg` to blur an element'
 
 ### Using a custom value
 
-Use the `backdrop-blur-[<value>]` syntax to set the backdrop blur based on a completely custom value:
+Use the `backdrop-blur-[&lt;value&gt;]` syntax to set the backdrop blur based on a completely custom value:
 
 ```html
 <div class="backdrop-blur-[2px] ...">
@@ -50,7 +50,7 @@ Use the `backdrop-blur-[<value>]` syntax to set the backdrop blur based on a com
 </div>
 ```
 
-For CSS variables, you can also use the `backdrop-blur-(<custom-property>)` syntax:
+For CSS variables, you can also use the `backdrop-blur-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="backdrop-blur-(--my-backdrop-blur) ...">
@@ -58,7 +58,7 @@ For CSS variables, you can also use the `backdrop-blur-(<custom-property>)` synt
 </div>
 ```
 
-This is just a shorthand for `backdrop-blur-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `backdrop-blur-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

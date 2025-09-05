@@ -10,7 +10,7 @@ Utilities for controlling how words should be hyphenated.
 | `hyphens-manual`| `hyphens: manual;`|
 | `hyphens-auto`  | `hyphens: auto;`  |
 
-Source: https://tailwindcss.com/docs/hyphens
+Source: https://tailwindcss.com/guide/hyphens
 
 ## Examples
 

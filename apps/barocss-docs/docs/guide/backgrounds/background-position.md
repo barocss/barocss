@@ -15,10 +15,10 @@ Utilities for controlling the position of an element's background image.
 | `bg-bottom-left` | `background-position: bottom left;` |
 | `bg-bottom` | `background-position: bottom;` |
 | `bg-bottom-right` | `background-position: bottom right;` |
-| `bg-position-(<custom-property>)` | `background-position: var(<custom-property>);` |
-| `bg-position-[<value>]` | `background-position: <value>;` |
+| `bg-position-(&lt;custom-property&gt;)` | `background-position: var(&lt;custom-property&gt;);` |
+| `bg-position-[&lt;value&gt;]` | `background-position: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/background-position
+Source: https://tailwindcss.com/guide/background-position
 
 ## Examples
 
@@ -41,7 +41,7 @@ Use utilities like `bg-center`, `bg-right`, and `bg-top-left` to control the pos
 
 ### Using a custom value
 
-Use the `bg-position-[<value>]` syntax to set the background position based on a completely custom value:
+Use the `bg-position-[&lt;value&gt;]` syntax to set the background position based on a completely custom value:
 
 ```html
 <div class="bg-position-[center_top_1rem] ...">
@@ -49,7 +49,7 @@ Use the `bg-position-[<value>]` syntax to set the background position based on a
 </div>
 ```
 
-For CSS variables, you can also use the `bg-position-(<custom-property>)` syntax:
+For CSS variables, you can also use the `bg-position-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="bg-position-(--my-position) ...">
@@ -57,7 +57,7 @@ For CSS variables, you can also use the `bg-position-(<custom-property>)` syntax
 </div>
 ```
 
-This is just a shorthand for `bg-position-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `bg-position-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

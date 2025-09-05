@@ -84,7 +84,7 @@ Now dark mode utilities will be applied whenever the `data-theme` attribute is s
 
 ### With system theme support
 
-To build three-way theme toggles that support light mode, dark mode, and your system theme, use a custom dark mode selector and the [`window.matchMedia()` API](https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia) to detect the system theme and update the `html` element when needed.
+To build three-way theme toggles that support light mode, dark mode, and your system theme, use a custom dark mode selector and the [`window.matchMedia()` API](https://developer.mozilla.org/en-US/guide/Web/API/Window/matchMedia) to detect the system theme and update the `html` element when needed.
 
 Here's a simple example of how you can support light mode, dark mode, as well as respecting the operating system preference:
 

@@ -2,11 +2,11 @@
 
 Utilities for applying invert filters to an element.
 
-Source: https://tailwindcss.com/docs/filter-invert
+Source: https://tailwindcss.com/guide/filter-invert
 
 ## Quick reference
 
-- `invert`, `invert-0`, `invert-[<value>]`, `invert-(<custom-property>)`
+- `invert`, `invert-0`, `invert-[&lt;value&gt;]`, `invert-(&lt;custom-property&gt;)`
 
 ## Examples
 

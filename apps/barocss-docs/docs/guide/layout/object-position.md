@@ -15,10 +15,10 @@ Utilities for controlling how a replaced element's content should be positioned 
 | `object-bottom-left`   | `object-position: bottom left;` |
 | `object-bottom`        | `object-position: bottom;`      |
 | `object-bottom-right`  | `object-position: bottom right;`|
-| `object-(<custom-property>)` | `object-position: var(<custom-property>);` |
-| `object-[<value>]`     | `object-position: <value>;`     |
+| `object-(&lt;custom-property&gt;)` | `object-position: var(&lt;custom-property&gt;);` |
+| `object-[&lt;value&gt;]`     | `object-position: &lt;value&gt;;`     |
 
-Source: https://tailwindcss.com/docs/object-position
+Source: https://tailwindcss.com/guide/object-position
 
 ## Examples
 
@@ -38,19 +38,19 @@ Source: https://tailwindcss.com/docs/object-position
 
 ### Using a custom value
 
-Use the `object-[<value>]` syntax to set the object position based on a completely custom value:
+Use the `object-[&lt;value&gt;]` syntax to set the object position based on a completely custom value:
 
 ```html
 <img class="object-[25%_75%] ..." src="/img/mountains.jpg" />
 ```
 
-For CSS variables, you can also use the `object-(<custom-property>)` syntax:
+For CSS variables, you can also use the `object-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <img class="object-(--my-position) ..." src="/img/mountains.jpg" />
 ```
 
-This is just a shorthand for `object-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `object-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

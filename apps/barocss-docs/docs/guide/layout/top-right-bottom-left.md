@@ -16,17 +16,17 @@ Prefixes and properties:
 - `left-*`: `left`
 
 Values (per prefix):
-- `<number>`: `calc(var(--spacing) * <number>)`
-- `-<number>`: `calc(var(--spacing) * -<number>)`
-- `<fraction>`: `calc(<fraction> * 100%)`
-- `-<fraction>`: `calc(<fraction> * -100%)`
+- `&lt;number&gt;`: `calc(var(--spacing) * &lt;number&gt;)`
+- `-&lt;number&gt;`: `calc(var(--spacing) * -&lt;number&gt;)`
+- `&lt;fraction&gt;`: `calc(&lt;fraction&gt; * 100%)`
+- `-&lt;fraction&gt;`: `calc(&lt;fraction&gt; * -100%)`
 - `px`: `1px` (also `-px`)
 - `full`: `100%` (also `-full`)
 - `auto`: `auto`
-- `(<custom-property>)`: `var(<custom-property>)`
-- `[<value>]`: `<value>`
+- `(&lt;custom-property&gt;)`: `var(&lt;custom-property&gt;)`
+- `[&lt;value&gt;]`: `&lt;value&gt;`
 
-Source: https://tailwindcss.com/docs/top-right-bottom-left
+Source: https://tailwindcss.com/guide/top-right-bottom-left
 
 ## Examples
 

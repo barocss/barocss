@@ -2,7 +2,7 @@
 
 Utilities for controlling if an element's backface is visible.
 
-Source: https://tailwindcss.com/docs/backface-visibility
+Source: https://tailwindcss.com/guide/backface-visibility
 
 ## Quick reference
 

@@ -14,7 +14,7 @@ Utilities for controlling how grid items are aligned along their inline axis.
 | `justify-items-stretch` | `justify-items: stretch;` |
 | `justify-items-normal` | `justify-items: normal;` |
 
-Source: https://tailwindcss.com/docs/justify-items
+Source: https://tailwindcss.com/guide/justify-items
 
 ## Examples
 

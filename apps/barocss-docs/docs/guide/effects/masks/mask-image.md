@@ -4,13 +4,13 @@ Utilities for controlling an element's mask image.
 
 ## Quick reference
 
-- `mask-[<value>]`, `mask-(<var>)`, `mask-none`
+- `mask-[&lt;value&gt;]`, `mask-(<var>)`, `mask-none`
 - Linear: `mask-linear-<angle>`, `mask-linear-from-*`, `mask-linear-to-*`
 - Side masks: `mask-t/r/b/l-from-*`, `mask-t/r/b/l-to-*`, `mask-x/y-from-*`, `mask-x/y-to-*`
-- Radial: `mask-radial-[<value>]`, size/pos modifiers, `mask-circle`, `mask-ellipse`
+- Radial: `mask-radial-[&lt;value&gt;]`, size/pos modifiers, `mask-circle`, `mask-ellipse`
 - Conic: `mask-conic-<angle>`, `mask-conic-from-*`, `mask-conic-to-*`
 
-Source: https://tailwindcss.com/docs/mask-image
+Source: https://tailwindcss.com/guide/mask-image
 
 ## Examples
 

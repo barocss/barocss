@@ -2,7 +2,7 @@
 
 Utilities for controlling an element's perspective origin when placed in 3D space.
 
-Source: https://tailwindcss.com/docs/perspective-origin
+Source: https://tailwindcss.com/guide/perspective-origin
 
 ## Quick reference
 
@@ -17,8 +17,8 @@ Source: https://tailwindcss.com/docs/perspective-origin
 | perspective-origin-bottom-left | perspective-origin: bottom left; |
 | perspective-origin-left        | perspective-origin: left;   |
 | perspective-origin-top-left    | perspective-origin: top left; |
-| perspective-origin-(<custom-property>) | perspective-origin: var(<custom-property>); |
-| perspective-origin-\[<value>\] | perspective-origin: <value>; |
+| perspective-origin-(&lt;custom-property&gt;) | perspective-origin: var(&lt;custom-property&gt;); |
+| perspective-origin-\[&lt;value&gt;\] | perspective-origin: &lt;value&gt;; |
 
 ## Examples
 
@@ -37,7 +37,7 @@ Use utilities like `perspective-origin-top-left` and `perspective-origin-bottom-
 
 ### Using a custom value
 
-Use the `perspective-origin-[<value>]` syntax to set the perspective origin based on a completely custom value:
+Use the `perspective-origin-[&lt;value&gt;]` syntax to set the perspective origin based on a completely custom value:
 
 ```html
 <div class="perspective-origin-[200%_150%] ...">
@@ -45,7 +45,7 @@ Use the `perspective-origin-[<value>]` syntax to set the perspective origin base
 </div>
 ```
 
-For CSS variables, you can also use the `perspective-origin-(<custom-property>)` syntax:
+For CSS variables, you can also use the `perspective-origin-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="perspective-origin-(--my-perspective-origin) ...">
@@ -53,7 +53,7 @@ For CSS variables, you can also use the `perspective-origin-(<custom-property>)`
 </div>
 ```
 
-This is just a shorthand for `perspective-origin-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `perspective-origin-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 

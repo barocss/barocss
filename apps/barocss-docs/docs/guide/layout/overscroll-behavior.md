@@ -16,7 +16,7 @@ Utilities for controlling how the browser behaves when reaching the boundary of 
 | `overscroll-y-contain`  | `overscroll-behavior-y: contain;` |
 | `overscroll-y-none`     | `overscroll-behavior-y: none;`  |
 
-Source: https://tailwindcss.com/docs/overscroll-behavior
+Source: https://tailwindcss.com/guide/overscroll-behavior
 
 ## Examples
 

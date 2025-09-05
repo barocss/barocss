@@ -12,7 +12,7 @@ Utilities for controlling how elements in a grid are auto-placed.
 | `grid-flow-row-dense` | `grid-auto-flow: row dense;` |
 | `grid-flow-col-dense` | `grid-auto-flow: column dense;` |
 
-Source: https://tailwindcss.com/docs/grid-auto-flow
+Source: https://tailwindcss.com/guide/grid-auto-flow
 
 ## Examples
 

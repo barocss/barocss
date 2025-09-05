@@ -2,7 +2,7 @@
 
 Utilities for controlling the color scheme of an element.
 
-Source: https://tailwindcss.com/docs/color-scheme
+Source: https://tailwindcss.com/guide/color-scheme
 
 ## Quick reference
 

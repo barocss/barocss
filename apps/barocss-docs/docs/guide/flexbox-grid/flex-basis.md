@@ -6,8 +6,8 @@ Utilities for controlling the initial size of flex items.
 
 | Class | Styles |
 |---|---|
-| `basis-<number>` | `flex-basis: calc(var(--spacing) * <number>);` |
-| `basis-<fraction>` | `flex-basis: calc(<fraction> * 100%);` |
+| `basis-&lt;number&gt;` | `flex-basis: calc(var(--spacing) * &lt;number&gt;);` |
+| `basis-&lt;fraction&gt;` | `flex-basis: calc(&lt;fraction&gt; * 100%);` |
 | `basis-full` | `flex-basis: 100%;` |
 | `basis-auto` | `flex-basis: auto;` |
 | `basis-3xs` | `flex-basis: var(--container-3xs); /* 16rem (256px) */` |
@@ -23,16 +23,16 @@ Utilities for controlling the initial size of flex items.
 | `basis-5xl` | `flex-basis: var(--container-5xl); /* 64rem (1024px) */` |
 | `basis-6xl` | `flex-basis: var(--container-6xl); /* 72rem (1152px) */` |
 | `basis-7xl` | `flex-basis: var(--container-7xl); /* 80rem (1280px) */` |
-| `basis-(<custom-property>)` | `flex-basis: var(<custom-property>);` |
-| `basis-[<value>]` | `flex-basis: <value>;` |
+| `basis-(&lt;custom-property&gt;)` | `flex-basis: var(&lt;custom-property&gt;);` |
+| `basis-[&lt;value&gt;]` | `flex-basis: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/docs/flex-basis
+Source: https://tailwindcss.com/guide/flex-basis
 
 ## Examples
 
 ### Using the spacing scale
 
-Use `basis-<number>` utilities like `basis-64` and `basis-128` to set the initial size of flex items based on the spacing scale:
+Use `basis-&lt;number&gt;` utilities like `basis-64` and `basis-128` to set the initial size of flex items based on the spacing scale:
 
 ```html
 <!-- [!code classes:basis-64,basis-128] -->
@@ -59,7 +59,7 @@ Use utilities like `basis-xs` and `basis-sm` to set the initial size of flex ite
 
 ### Using percentages
 
-Use `basis-<fraction>` utilities like `basis-1/2` and `basis-2/3` to set the initial size of flex items:
+Use `basis-&lt;fraction&gt;` utilities like `basis-1/2` and `basis-2/3` to set the initial size of flex items:
 
 ```html
 <!-- [!code classes:basis-1/3,basis-2/3] -->
@@ -71,7 +71,7 @@ Use `basis-<fraction>` utilities like `basis-1/2` and `basis-2/3` to set the ini
 
 ### Using a custom value
 
-Use the `basis-[<value>]` syntax to set the basis based on a completely custom value:
+Use the `basis-[&lt;value&gt;]` syntax to set the basis based on a completely custom value:
 
 ```html
 <div class="basis-[30vw] ...">
@@ -79,7 +79,7 @@ Use the `basis-[<value>]` syntax to set the basis based on a completely custom v
 </div>
 ```
 
-For CSS variables, you can also use the `basis-(<custom-property>)` syntax:
+For CSS variables, you can also use the `basis-(&lt;custom-property&gt;)` syntax:
 
 ```html
 <div class="basis-(--my-basis) ...">
@@ -87,7 +87,7 @@ For CSS variables, you can also use the `basis-(<custom-property>)` syntax:
 </div>
 ```
 
-This is just a shorthand for `basis-[var(<custom-property>)]` that adds the `var()` function for you automatically.
+This is just a shorthand for `basis-[var(&lt;custom-property&gt;)]` that adds the `var()` function for you automatically.
 
 ### Responsive design
 
@@ -121,7 +121,7 @@ Now the `basis-4xs` utility can be used in your markup:
 </div>
 ```
 
-The `basis-<number>` utilities are driven by the `--spacing` theme variable, which you can also customize:
+The `basis-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which you can also customize:
 
 ```css
 @theme {
