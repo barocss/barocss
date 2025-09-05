@@ -1,0 +1,23 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Main background circle -->
+  <circle cx="32" cy="32" r="30" fill="url(#bgGradient)"/>
+  
+  <!-- CSS brackets simplified -->
+  <path d="M20 20 L32 32 L20 44" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M44 20 L32 32 L44 44" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Center dot representing instant generation -->
+  <circle cx="32" cy="32" r="6" fill="white"/>
+  
+  <!-- Small accent dots for elegance -->
+  <circle cx="26" cy="26" r="2" fill="rgba(255,255,255,0.8)"/>
+  <circle cx="38" cy="38" r="2" fill="rgba(255,255,255,0.8)"/>
+</svg>
