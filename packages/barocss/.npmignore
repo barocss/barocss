@@ -1,0 +1,46 @@
+# Source files
+src/
+tests/
+*.test.ts
+*.test.js
+*.spec.ts
+*.spec.js
+
+# Development files
+vite.config.ts
+vite.cdn.config.ts
+vitest.config.ts
+tsconfig.json
+vite-env.d.ts
+
+# Build artifacts (except dist/)
+*.log
+*.tmp
+.cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Dependencies
+node_modules/
+
+# Documentation (keep README.md and LICENSE)
+docs/
+*.md
+!README.md
+
+# Other
+.env*
+coverage/
+.nyc_output/

@@ -1,6 +1,6 @@
 {
   "name": "barocss",
-  "version": "0.1.0",
+  "version": "0.0.2",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -22,6 +22,11 @@
       "import": "./src/runtime/server-runtime.ts"
     }
   },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
   "publishConfig": {
     "access": "public",
     "main": "./dist/index.js",
