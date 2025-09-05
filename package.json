@@ -6,7 +6,9 @@
     "build": "pnpm --filter barocss-docs docs:build",
     "serve": "pnpm --filter barocss-docs docs:serve",
     "preview": "pnpm --filter barocss-docs docs:preview",
-    "release": "pnpm --filter barocss changeset version && pnpm --filter barocss changeset publish"
+    "build:library": "pnpm --filter barocss build:library",
+    "changeset:version": "pnpm changeset version",
+    "changeset:publish": "pnpm changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",

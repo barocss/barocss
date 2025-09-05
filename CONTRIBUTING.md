@@ -37,11 +37,21 @@ There are many ways to contribute to BaroCSS:
 
 3. **Start development**
    ```bash
+   # Start documentation site
    pnpm dev
+   
+   # Or work on specific package
+   cd packages/barocss
+   pnpm build
    ```
 
 4. **Run tests**
    ```bash
+   # Run all tests
+   pnpm test
+   
+   # Or run tests for specific package
+   cd packages/barocss
    pnpm test
    ```
 
@@ -114,7 +124,8 @@ git checkout -b fix/your-bug-fix
 # Run all tests
 pnpm test
 
-# Run tests in watch mode
+# Run tests in watch mode (for specific package)
+cd packages/barocss
 pnpm test:watch
 
 # Check build
@@ -292,17 +303,21 @@ For feature requests:
 ## 🏗️ Project Structure
 
 ```
-packages/barocss/
-├── src/
-│   ├── core/           # Core parsing and generation logic
-│   ├── presets/        # Utility presets and variants
-│   ├── runtime/        # Browser and server runtime
-│   ├── theme/          # Theme system and defaults
-│   └── utils/          # Utility functions and helpers
-├── tests/              # Test files
-├── docs/               # Documentation
-├── .changeset/         # Changeset files for versioning
-└── dist/               # Build output
+barocss/
+├── apps/
+│   └── barocss-docs/          # Documentation site
+├── packages/
+│   └── barocss/               # Core BaroCSS framework
+│       ├── src/
+│       │   ├── core/          # Core parsing and generation logic
+│       │   ├── presets/       # Utility presets and variants
+│       │   ├── runtime/       # Browser and server runtime
+│       │   ├── theme/         # Theme system and defaults
+│       │   └── utils/         # Utility functions and helpers
+│       ├── tests/             # Test files
+│       └── dist/              # Build output
+├── .changeset/                # Changeset files for versioning
+└── docs/                      # Project documentation
 ```
 
 ## 🔍 Code Review Process
