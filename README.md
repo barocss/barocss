@@ -304,7 +304,7 @@ BaroCSS supports **95%+ of Tailwind CSS utilities**:
 Extend BaroCSS with custom utilities and variants:
 
 ```typescript
-const customPlugin = (ctx: BaroCSSContext) => {
+const customPlugin = (ctx: Context) => {
   // Register custom utilities
   ctx.extendTheme('colors', {
     'custom-blue': '#1e40af',

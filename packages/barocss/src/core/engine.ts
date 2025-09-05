@@ -251,14 +251,14 @@ function extractAtRootNodes(
 /**
  * parseClassToAst
  * Parses className(including variant chain) to generate AST tree.
- * - Input: className(string), BarocssContext
+ * - Input: className(string), Context
  * - Output: AstNode[] (multiple roots possible for variant wrapping path)
  * - Perfectly supports variant wrapping structure (Cartesian product, nesting, siblings, etc.)
  * - Accumulates wrappers in wrappers and applies them from right to left.
  * - Can return multiple root asts.
  *
  * @param fullClassName string (e.g., 'sm:dark:hover:bg-red-500')
- * @param ctx BarocssContext
+ * @param ctx Context
  * @returns AstNode[]
  *
  * @example
@@ -436,13 +436,13 @@ export function clearAstCache(): void {
 /**
  * generateCss
  * Takes multiple classNames and generates CSS for each, joining them.
- * - Input: classList(string), BarocssContext, options
+ * - Input: classList(string), Context, options
  * - Output: string (result of joining multiple CSS blocks)
  * - Processes internally parseClassToAst → optimizeAst → astToCss in sequence
  * - Supports options like dedup, minify
  *
  * @param classList string (e.g., 'bg-red-500 text-lg hover:bg-blue-500')
- * @param ctx BarocssContext
+ * @param ctx Context
  * @param opts { minify?: boolean, dedup?: boolean }
  * @returns string
  *
@@ -533,7 +533,7 @@ export type GenerateCssRulesResult = {
  * - Supports minify, dedup options
  * - Applies astToCss(cleanAst, cls, opts) per class
  * @param classList string (space-separated)
- * @param ctx BarocssContext
+ * @param ctx Context
  * @param opts { minify?: boolean; dedup?: boolean }
  * @returns Array<{ cls: string; ast: AstNode[]; css: string }>
  */

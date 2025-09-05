@@ -10,7 +10,7 @@ export interface UtilityRegistration {
   /**
    * Handler for utility value
    * @param value Utility value (e.g. 'red-500')
-   * @param ctx BarocssContext
+   * @param ctx Context
    * @param token Parsed token
    * @param options Registration options
    */
