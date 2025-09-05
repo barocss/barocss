@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write    
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
