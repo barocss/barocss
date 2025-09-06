@@ -89,7 +89,7 @@ function extractMetadata(content) {
 
 // Generate RSS XML content
 function generateRSSXML(posts) {
-  const siteUrl = 'https://barocss.com'
+  const siteUrl = 'https://@barocss/kit.com'
   const blogUrl = `${siteUrl}/blog`
   const feedUrl = `${blogUrl}/feed.xml`
   

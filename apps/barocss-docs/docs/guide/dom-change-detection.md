@@ -32,7 +32,7 @@ This approach has limitations:
 BaroCSS automatically detects DOM changes using the MutationObserver API:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime();
 
@@ -110,7 +110,7 @@ Generated CSS is immediately injected into the page:
 
 ```typescript
 function injectCSS(css: string) {
-  const styleElement = document.getElementById('barocss-runtime') || 
+  const styleElement = document.getElementById('@barocss/kit-runtime') || 
     createStyleElement();
   
   styleElement.textContent += css;

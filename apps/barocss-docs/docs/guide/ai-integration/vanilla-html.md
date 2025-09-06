@@ -13,7 +13,7 @@ BaroCSS works seamlessly with vanilla HTML and JavaScript, providing immediate C
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BaroCSS + AI Integration</title>
-    <script src="https://unpkg.com/barocss@latest/dist/cdn/barocss.umd.cjs"></script>
+    <script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body>
     <div id="app"></div>

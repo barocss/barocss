@@ -29,14 +29,14 @@ export interface Plugin {
    * @param ctx - BAROCSS context with theme, config, and utilities
    * @param config - User configuration passed to the plugin
    */
-  handler: (ctx: Context, config?: any) => void;
+  handler: (ctx: Context, config?: Config) => void;
 
   /**
    * Plugin theme function that receives the BAROCSS context
    * @param ctx - BAROCSS context with theme, config, and utilities
    * @param config - User configuration passed to the plugin
    */
-  theme?: (ctx: Context, config?: any) => Record<string, any>;
+  theme?: (ctx: Context, config?: Config) => Record<string, unknown>;
   
   /**
    * Plugin dependencies (other plugin names)
@@ -46,7 +46,7 @@ export interface Plugin {
   /**
    * Plugin options schema for validation
    */
-  optionsSchema?: Record<string, any>;
+  optionsSchema?: Record<string, unknown>;
 }
 
 /**
@@ -73,14 +73,14 @@ export interface UtilityPlugin {
    * @param ctx - BAROCSS context
    * @param config - Plugin configuration
    */
-  utilities?: (ctx: Context, config?: any) => void;
+  utilities?: (ctx: Context, config?: Config) => void;
   
   /**
    * Extend theme with custom values
    * @param ctx - BAROCSS context
    * @param config - Plugin configuration
    */
-  theme?: (ctx: Context, config?: any) => Record<string, any>;
+  theme?: (ctx: Context, config?: Config) => Record<string, unknown>;
   
   /**
    * Plugin dependencies
@@ -90,7 +90,7 @@ export interface UtilityPlugin {
   /**
    * Plugin options schema
    */
-  optionsSchema?: Record<string, any>;
+  optionsSchema?: Record<string, unknown>;
 }
 
 /**
@@ -117,7 +117,7 @@ export interface VariantPlugin {
    * @param ctx - BAROCSS context
    * @param config - Plugin configuration
    */
-  variants?: (ctx: Context, config?: any) => void;
+  variants?: (ctx: Context, config?: Config) => void;
   
   /**
    * Plugin dependencies
@@ -127,7 +127,7 @@ export interface VariantPlugin {
   /**
    * Plugin options schema
    */
-  optionsSchema?: Record<string, any>;
+  optionsSchema?: Record<string, unknown>;
 }
 
 /**
@@ -154,7 +154,7 @@ export interface ThemePlugin {
    * @param ctx - BAROCSS context
    * @param config - Plugin configuration
    */
-  theme?: (ctx: Context, config?: any) => Record<string, any>;
+  theme?: (ctx: Context, config?: Config) => Record<string, unknown>;
   
   /**
    * Plugin dependencies
@@ -164,7 +164,7 @@ export interface ThemePlugin {
   /**
    * Plugin options schema
    */
-  optionsSchema?: Record<string, any>;
+  optionsSchema?: Record<string, unknown>;
 }
 
 /**
@@ -242,6 +242,7 @@ export class PluginRegistry {
       try {
         plugin.handler(ctx, config);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`Error executing plugin ${plugin.name}:`, error);
       }
     }
@@ -253,6 +254,7 @@ export class PluginRegistry {
           plugin.utilities(ctx, config);
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`Error executing utility plugin ${plugin.name}:`, error);
       }
     }
@@ -264,6 +266,7 @@ export class PluginRegistry {
           plugin.variants(ctx, config);
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`Error executing variant plugin ${plugin.name}:`, error);
       }
     }
@@ -272,8 +275,8 @@ export class PluginRegistry {
   /**
    * Execute theme plugins and return merged theme
    */
-  executeThemePlugins(ctx: Context, config: Config): Record<string, any> {
-    let mergedTheme: Record<string, any> = {};
+  executeThemePlugins(ctx: Context, config: Config): Record<string, unknown> {
+    let mergedTheme: Record<string, unknown> = {};
 
     for (const plugin of this.themePlugins.values()) {
       try {
@@ -282,6 +285,7 @@ export class PluginRegistry {
           mergedTheme = { ...mergedTheme, ...pluginTheme };
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`Error executing theme plugin ${plugin.name}:`, error);
       }
     }
@@ -315,7 +319,7 @@ export function createUtilityPlugin(plugin: UtilityPlugin): Plugin {
     name: plugin.name,
     version: plugin.version,
     description: plugin.description,
-    handler: (ctx: Context, config?: any) => {
+    handler: (ctx: Context, config?: Config) => {
       if (plugin.utilities) {
         plugin.utilities(ctx, config);
       }
@@ -324,7 +328,7 @@ export function createUtilityPlugin(plugin: UtilityPlugin): Plugin {
         if (pluginTheme) {
           // Extend the context's theme with plugin theme
           const currentTheme = ctx.theme();
-          Object.assign(currentTheme, pluginTheme);
+          Object.assign(currentTheme as Record<string, unknown>, pluginTheme);
         }
       }
     }
@@ -339,7 +343,7 @@ export function createVariantPlugin(plugin: VariantPlugin): Plugin {
     name: plugin.name,
     version: plugin.version,
     description: plugin.description,
-    handler: (ctx: Context, config?: any) => {
+    handler: (ctx: Context, config?: Config) => {
       if (plugin.variants) {
         plugin.variants(ctx, config);
       }
@@ -355,7 +359,7 @@ export function createThemePlugin(plugin: ThemePlugin): Plugin {
     name: plugin.name,
     version: plugin.version,
     description: plugin.description,
-    handler: (ctx: Context, config?: any) => {
+    handler: (ctx: Context, config?: Config) => {
       // Theme extension is handled in context.ts
       // But we need to call the theme function to register it
       if (plugin.theme) {

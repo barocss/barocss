@@ -24,7 +24,7 @@ interface Plugin {
 ## Basic Plugin Structure
 
 ```typescript
-import { Context } from 'barocss';
+import { Context } from '@barocss/kit';
 
 const myPlugin = (ctx: Context, config?: any) => {
   // Plugin logic here
@@ -46,7 +46,7 @@ const runtime = new BrowserRuntime({
 Extends BaroCSS with custom utility classes.
 
 ```typescript
-import { staticUtility, functionalUtility } from 'barocss';
+import { staticUtility, functionalUtility } from '@barocss/kit';
 
 const utilityPlugin = (ctx: Context, config?: any) => {
   // Register static utility
@@ -73,7 +73,7 @@ const utilityPlugin = (ctx: Context, config?: any) => {
 Extends BaroCSS with custom variants/modifiers.
 
 ```typescript
-import { staticModifier, functionalModifier } from 'barocss';
+import { staticModifier, functionalModifier } from '@barocss/kit';
 
 const variantPlugin = (ctx: Context, config?: any) => {
   // Register static variant
@@ -164,7 +164,7 @@ const runtime = new BrowserRuntime({
 Creates a utility-focused plugin.
 
 ```typescript
-import { createUtilityPlugin } from 'barocss';
+import { createUtilityPlugin } from '@barocss/kit';
 
 const utilityPlugin = createUtilityPlugin({
   name: 'brand-utilities',
@@ -188,7 +188,7 @@ const utilityPlugin = createUtilityPlugin({
 Creates a variant-focused plugin.
 
 ```typescript
-import { createVariantPlugin } from 'barocss';
+import { createVariantPlugin } from '@barocss/kit';
 
 const variantPlugin = createVariantPlugin({
   name: 'data-variants',
@@ -208,7 +208,7 @@ const variantPlugin = createVariantPlugin({
 Creates a theme-focused plugin.
 
 ```typescript
-import { createThemePlugin } from 'barocss';
+import { createThemePlugin } from '@barocss/kit';
 
 const themePlugin = createThemePlugin({
   name: 'brand-theme',
@@ -231,7 +231,7 @@ const themePlugin = createThemePlugin({
 ### Global Registry
 
 ```typescript
-import { registerPlugin, pluginRegistry } from 'barocss';
+import { registerPlugin, pluginRegistry } from '@barocss/kit';
 
 // Register plugin globally
 registerPlugin({
@@ -489,7 +489,7 @@ const brandColorsPlugin = (ctx: Context, config?: any) => {
 ### Unit Testing
 
 ```typescript
-import { createContext } from 'barocss';
+import { createContext } from '@barocss/kit';
 
 describe('Brand Colors Plugin', () => {
   it('should extend theme with brand colors', () => {
@@ -505,7 +505,7 @@ describe('Brand Colors Plugin', () => {
 ### Integration Testing
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 describe('Plugin Integration', () => {
   it('should work with runtime', () => {

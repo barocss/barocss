@@ -12,7 +12,7 @@ The Browser Runtime API provides browser-specific functionality for DOM integrat
 The main class for browser-based BaroCSS functionality.
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -126,7 +126,7 @@ runtime.removeClass(['bg-blue-500', 'text-white']);
 The `ChangeDetector` class monitors DOM changes and automatically processes new classes.
 
 ```typescript
-import { ChangeDetector, IncrementalParser } from 'barocss';
+import { ChangeDetector, IncrementalParser } from '@barocss/kit';
 
 const parser = new IncrementalParser(ctx);
 const detector = new ChangeDetector(parser, runtime);
@@ -263,7 +263,7 @@ const runtime = new BrowserRuntime({
 
 // Custom style ID
 const runtime = new BrowserRuntime({
-  styleId: 'my-barocss-styles'
+  styleId: 'my-@barocss/kit-styles'
 });
 ```
 
@@ -284,7 +284,7 @@ console.log(css);
 
 ```typescript
 import { useEffect, useRef } from 'react';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 function App() {
   const runtimeRef = useRef<BrowserRuntime>();
@@ -321,7 +321,7 @@ function App() {
 
 ```typescript
 import { createApp } from 'vue';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const app = createApp({
   mounted() {
@@ -380,7 +380,7 @@ try {
 ### Basic Setup
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 // Initialize
 const runtime = new BrowserRuntime({

@@ -31,7 +31,7 @@ The Browser Runtime is designed for client-side applications with real-time DOM 
 ### Basic Usage
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -72,7 +72,7 @@ const runtime = new BrowserRuntime({
       }
     }
   },
-  styleId: 'my-barocss-styles',
+  styleId: 'my-@barocss/kit-styles',
   insertionPoint: 'head',
   maxRulesPerPartition: 100
 });
@@ -154,7 +154,7 @@ The Server Runtime is designed for server-side rendering and static generation.
 ### Basic Usage
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 
 const runtime = new ServerRuntime({
   config: {
@@ -205,7 +205,7 @@ export default function handler(req, res) {
 
 ```typescript
 // Gatsby/Next.js build-time generation
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 
 const runtime = new ServerRuntime();
 
@@ -259,7 +259,7 @@ console.log(`Processed ${stats.totalClasses} classes in ${stats.totalTime}ms`);
 
 ```typescript
 // Perfect for React, Vue, Angular apps
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime();
 runtime.observe(document.body, { scan: true });
@@ -275,7 +275,7 @@ runtime.observe(document.body, { scan: true });
 
 ```typescript
 // Perfect for Next.js, Gatsby, Nuxt
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 
 const runtime = new ServerRuntime();
 const css = runtime.generateCssForClasses(classes);
@@ -289,13 +289,13 @@ Use both runtimes in a full-stack application:
 
 ```typescript
 // Server-side: Generate initial CSS
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 
 const serverRuntime = new ServerRuntime();
 const initialCSS = serverRuntime.generateCssForClasses(initialClasses);
 
 // Client-side: Handle dynamic updates
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const browserRuntime = new BrowserRuntime();
 browserRuntime.observe(document.body, { scan: true });
@@ -306,7 +306,7 @@ browserRuntime.observe(document.body, { scan: true });
 Create a custom runtime for specific needs:
 
 ```typescript
-import { Context, generateCss } from 'barocss';
+import { Context, generateCss } from '@barocss/kit';
 
 class CustomRuntime {
   private ctx: Context;

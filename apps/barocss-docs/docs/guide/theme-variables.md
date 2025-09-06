@@ -15,7 +15,7 @@ Theme configuration in BaroCSS is done through JavaScript/TypeScript objects tha
 For example, you can add a new color to your project by defining it in your theme configuration:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -93,7 +93,7 @@ See the [Configuration API](/api/configuration) documentation for a complete ref
 BaroCSS comes with a comprehensive set of default theme values that you can extend or override. Here's a small sample of the default configuration:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -228,7 +228,7 @@ const runtime = new BrowserRuntime({
 To add new values to the default theme without replacing it entirely, you can extend the default theme by adding your custom values:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -254,7 +254,7 @@ const runtime = new BrowserRuntime({
 To completely replace the default theme with your own values, you can override the entire theme:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -296,7 +296,7 @@ const runtime = new BrowserRuntime({
 You can also use a completely custom theme by importing it from a separate file:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 import { customTheme } from './my-custom-theme';
 
 const runtime = new BrowserRuntime({
@@ -311,7 +311,7 @@ const runtime = new BrowserRuntime({
 You can define custom animation keyframes within your theme:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -337,7 +337,7 @@ const runtime = new BrowserRuntime({
 You can reference other theme values within your theme definition using JavaScript functions:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -359,7 +359,7 @@ const runtime = new BrowserRuntime({
 BaroCSS generates CSS variables in real-time based on the classes you use. You can also generate all CSS variables by using the `generateCss` function:
 
 ```typescript
-import { createContext, generateCss } from 'barocss';
+import { createContext, generateCss } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {
@@ -395,7 +395,7 @@ export const sharedTheme = {
 Then import it in your projects:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 import { sharedTheme } from './shared-theme';
 
 const runtime = new BrowserRuntime({
@@ -445,7 +445,7 @@ console.log(mintColor); // #10b981
 You can also access theme values programmatically using the Context API:
 
 ```typescript
-import { createContext } from 'barocss';
+import { createContext } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {

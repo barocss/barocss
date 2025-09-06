@@ -13,14 +13,14 @@ const getDarkSelectors = (ctx: Context) => {
     selectors.push({ type: "media", value: "(prefers-color-scheme: dark)" });
     if (custom) {
       const joined = Array.isArray(custom) ? custom.join(", ") : custom;
-      selectors.push({ type: "selector", value: joined });
+      selectors.push({ type: "selector", value: joined as string });
     }
     return selectors;
   }
   if (mode === "class") {
     if (custom) {
       const joined = Array.isArray(custom) ? custom.join(", ") : custom;
-      selectors.push({ type: "selector", value: joined });
+      selectors.push({ type: "selector", value: joined as string });
       return selectors;
     }
     selectors.push({ type: "selector", value: ".dark" });

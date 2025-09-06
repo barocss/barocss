@@ -2,7 +2,7 @@
   "name": "barocss-docs",
   "version": "1.0.0",
   "private": true,
-  "description": "Documentation for BaroCSS - Revolutionary real-time CSS library",
+  "description": "Documentation for @barocss/kit - Revolutionary real-time CSS library",
   "type": "module",
   "scripts": {
     "dev": "vitepress dev docs",

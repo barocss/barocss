@@ -6,8 +6,8 @@
  *
  */
 
-import { GenerateCssRulesResult } from "../core/engine";
-import { parseResultCache } from "../utils/cache";
+import { GenerateCssRulesResult } from "@barocss/kit";
+import { parseResultCache } from "@barocss/kit";
 
 export interface StylePartition {
   id: string;

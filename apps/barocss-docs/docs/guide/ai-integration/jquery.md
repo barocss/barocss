@@ -18,7 +18,7 @@ BaroCSS works seamlessly with jQuery, enabling dynamic AI-driven styling with bu
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
     <!-- BaroCSS -->
-    <script src="https://unpkg.com/barocss@latest/dist/cdn/barocss.umd.cjs"></script>
+    <script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body>
     <div id="app"></div>

@@ -1,0 +1,48 @@
+{
+  "name": "@barocss/server",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.cjs.js",
+    "module": "./dist/index.es.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.es.js",
+        "require": "./dist/index.cjs.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "vite build",
+    "build:library": "pnpm run build",
+    "test:watch": "vitest",
+    "test": "vitest run",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts"
+  },
+  "dependencies": {
+    "@barocss/kit": "workspace:*",
+    "jsdom": "^26.1.0"
+  },
+  "devDependencies": {
+    "vite": "^7.1.3",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.4"
+  }
+}

@@ -13,7 +13,7 @@ This guide covers topics like customizing your design tokens, how to break out o
 If you want to change things like your color palette, spacing scale, typography scale, or breakpoints, add your customizations using the theme configuration in your BaroCSS setup:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {

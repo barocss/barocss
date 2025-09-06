@@ -7,18 +7,18 @@ BaroCSS integrates seamlessly with React applications, enabling build-free UI ge
 ### 1. Installation
 
 ```bash
-npm install barocss
+npm install @barocss/kit
 # or
-yarn add barocss
+yarn add @barocss/kit
 # or
-pnpm add barocss@latest
+pnpm add @barocss/kit@latest
 ```
 
 ### 2. Initialize BaroCSS
 
 ```jsx
 import React, { useEffect } from 'react';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 function App() {
   useEffect(() => {

@@ -5,13 +5,13 @@ Get productive with BaroCSS in minutes.
 ## 1. Install
 
 ```bash
-pnpm add barocss
+pnpm add @barocss/kit
 ```
 
 Or use the CDN for prototypes:
 
 ```html
-<script src="https://unpkg.com/barocss@latest/dist/runtime/browser.js"></script>
+<script src="https://unpkg.com/@barocss/kit@latest/dist/runtime/browser.js"></script>
 <script>
   const runtime = new BaroCSS.BrowserRuntime();
   runtime.observe(document.body, { scan: true });
@@ -21,7 +21,7 @@ Or use the CDN for prototypes:
 ## 2. Initialize Runtime
 
 ```ts
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -43,7 +43,7 @@ runtime.observe(document.body, { scan: true });
 ## 4. Customize Theme
 
 ```ts
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {

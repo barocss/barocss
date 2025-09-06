@@ -14,7 +14,7 @@ Controls base styles injection.
 ## Colors
 
 ```ts
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -36,7 +36,7 @@ const runtime = new BrowserRuntime({
 Use `extend` to merge values.
 
 ```ts
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -54,7 +54,7 @@ const runtime = new BrowserRuntime({
 Categories can be functions that receive a theme getter.
 
 ```ts
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {

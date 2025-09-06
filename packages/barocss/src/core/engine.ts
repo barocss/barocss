@@ -1,4 +1,4 @@
-import { type AstNode } from "./ast";
+import { HasItems, HasName, HasParams, HasSelector, type AstNode, type HasNodes } from "./ast";
 import { parseClassName } from "./parser";
 import { astCache } from "../utils/cache";
 import { getUtility, getModifierPlugins } from "./registry";
@@ -32,13 +32,15 @@ export function collectDeclPaths(
 ): DeclPath[] {
   let result: DeclPath[] = [];
   for (const node of nodes) {
-    const curr = { ...node };
-    delete (curr as any).nodes;
+    const curr = { ...node} as HasNodes;
+    delete curr.nodes;
+
+    const nodes = (node as HasNodes).nodes;
     if (node.type === "decl") {
       result.push([...path, curr]);
-    } else if ((node as any).nodes && (node as any).nodes.length > 0) {
+    } else if (nodes && nodes.length > 0) {
       result = result.concat(
-        collectDeclPaths((node as any).nodes, [...path, curr])
+        collectDeclPaths(nodes, [...path, curr])
       );
     }
   }
@@ -79,7 +81,7 @@ const mergeSelectorsBySource = (source: string, nodes: Partial<AstNode>[]) => {
   if (source === "pseudo") {
     // Inside → outside (reduce)
     return nodes.reduce((acc, sel) => {
-      const selector = (sel as any).selector as string;
+      const selector = (sel as HasSelector).selector as string;
       if (acc === "") return selector;
       if (selector?.includes("&")) return selector.replace(/&/, acc);
       return selector + " " + acc;
@@ -87,7 +89,7 @@ const mergeSelectorsBySource = (source: string, nodes: Partial<AstNode>[]) => {
   } else {
     // Outside → inside (reduceRight)
     return nodes.reduceRight((acc, sel) => {
-      const selector = (sel as any).selector as string;
+      const selector = (sel as HasSelector).selector as string;
       if (acc === "") return selector;
       if (selector?.includes("&")) return selector.replace(/&/, acc);
       return selector + " " + acc;
@@ -158,7 +160,7 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
           v.name === prev.name &&
           v.params === prev.params) ||
           ((v.type === "rule" || v.type === "style-rule") &&
-            v.selector === (prev as any).selector));
+            v.selector === (prev as HasSelector).selector));
       if (!isSame) {
         mergedVariants.push(v);
       }
@@ -167,15 +169,15 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
   }
   // 3. Gather only rule nodes (consecutive rules only)
   const ruleSelectors: Partial<AstNode>[] = [];
-  const nonRuleVariants: any[] = [];
+  const nonRuleVariants: Partial<AstNode>[] = [];
   for (const v of mergedVariants) {
     if (v.type === "rule") ruleSelectors.push(v);
     else nonRuleVariants.push(v);
   }
 
   // 5. Compose selector and create a single rule
-  let node: AstNode = { ...decl } as any;
-  let sortedRuleSelectors = [...ruleSelectors].sort(
+  let node: Partial<AstNode> = { ...decl };
+  const sortedRuleSelectors = [...ruleSelectors].sort(
     (a, b) => getRulePriority(a) - getRulePriority(b)
   );
   if (sortedRuleSelectors.length > 0) {
@@ -206,15 +208,15 @@ export function declPathToAst(declPath: DeclPath): AstNode[] {
       else acc = sel + " " + acc;
     }
     const finalSelector = acc;
-    node = { type: "rule", selector: finalSelector, nodes: [node] };
+    node = { type: "rule", selector: finalSelector, nodes: [node as AstNode] };
   }
 
   // 6. Nest remaining variants (e.g., at-rule) outside
   for (let i = nonRuleVariants.length - 1; i >= 0; i--) {
-    node = { ...nonRuleVariants[i], nodes: [node] };
+    node = { ...nonRuleVariants[i], nodes: [node as AstNode] };
   }
 
-  return [node];
+  return [node as AstNode];
 }
 
 /**
@@ -233,7 +235,7 @@ function extractAtRootNodes(
   parent?: AstNode,
   atRootNodes: AstNode[] = []
 ) {
-  for (var i = 0; i < nodes.length; i++) {
+  for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i];
     if (node.type === "at-root") {
       atRootNodes.push(node);
@@ -244,7 +246,7 @@ function extractAtRootNodes(
   }
 
   if (parent) {
-    (parent as any).nodes = nodes.filter(Boolean) as AstNode[];
+    (parent as HasNodes).nodes = nodes.filter(Boolean) as AstNode[];
   }
 }
 
@@ -289,6 +291,7 @@ export function parseClassToAst(
   const { modifiers, utility } = parseClassName(fullClassName);
 
   if (!utility) {
+    // eslint-disable-next-line no-console
     console.warn(`[BAROCSS] Invalid class name format: "${fullClassName}"`);
     failureCache.set(fullClassName, true);
     return [];
@@ -304,6 +307,7 @@ export function parseClassToAst(
     const utilityName = utility.value
       ? `${utility.prefix}-${utility.value}`
       : utility.prefix;
+    // eslint-disable-next-line no-console
     console.warn(`[BAROCSS] Unknown utility class: "${utilityName}" in "${fullClassName}"`);
     failureCache.set(fullClassName, true);
     return [];
@@ -313,8 +317,8 @@ export function parseClassToAst(
   if (utility.negative && value) value = "-" + value;
   let ast = utilReg.handler(value!, ctx, utility, utilReg) || [];
 
-  let wrappers = [];
-  let selector = "&";
+  const wrappers = [];
+  const selector = "&";
 
   for (let i = 0; i < modifiers.length; i++) {
     const variant = modifiers[i];
@@ -322,6 +326,7 @@ export function parseClassToAst(
     const plugin = getModifierPlugins().find((p) => p.match(variant.type, ctx));
 
     if (!plugin) {
+      // eslint-disable-next-line no-console
       console.warn(`[BAROCSS] Unknown variant: "${variant.type}" in "${fullClassName}"`);
       continue;
     }
@@ -372,7 +377,7 @@ export function parseClassToAst(
     const wrap = wrappers[i];
 
     if (wrap.type === "wrap") {
-      ast = ((wrap as any).items as AstNode[]).map((item) => ({
+      ast = ((wrap as HasItems).items as AstNode[]).map((item) => ({
         ...item,
         nodes: Array.isArray(ast) ? ast : [ast],
       }));
@@ -389,8 +394,8 @@ export function parseClassToAst(
       ast = [
         {
           type: "at-rule",
-          name: (wrap as any).name || "media",
-          params: (wrap as any).params!,
+          name: (wrap as HasName).name || "media",
+          params: (wrap as HasParams).params!,
           source: wrap.source,
           nodes: Array.isArray(ast) ? ast : [ast],
         },
@@ -488,6 +493,7 @@ export function generateCss(
 
       // Debug logging for empty CSS
       if (!result || result.trim() === "") {
+        // eslint-disable-next-line no-console
         console.warn("[generateCss] Empty CSS generated for class:", {
           class: cls,
           ast: cleanAst,
@@ -503,11 +509,13 @@ export function generateCss(
     .join(opts?.minify ? "" : "\n");
 
   if (allAtRootNodes.length > 0) {
+    // eslint-disable-next-line no-console
     console.log("[generateCss] All collected atRoot nodes:", allAtRootNodes);
   }
 
   // Debug logging for final result
   if (!results || results.trim() === "") {
+    // eslint-disable-next-line no-console
     console.warn("[generateCss] Empty final result:", {
       classList,
       results,
@@ -568,7 +576,7 @@ export function generateCssRules(
         .filter(
           (node) => node.type === "at-root" && !node.source
         )
-        .map((node) => (node as any).nodes)
+        .map((node) => (node as HasNodes).nodes || [])
         .flat();
       const allCleanAst: AstNode[] = cleanAst.filter(
         (node) =>
@@ -577,7 +585,7 @@ export function generateCssRules(
       );
 
 
-      let cssList = [];
+      const cssList = [];
       for (const node of allCleanAst) {
         if (node.type === "at-root") {
           node.nodes.forEach((node) => {
@@ -590,7 +598,7 @@ export function generateCssRules(
         }
       }
       // console.log('[generateCssRules] css', cls);
-      let rootCssList = [];
+      const rootCssList = [];
       for (const node of allAtRootNodes) {
         const css = rootToCss([node]);
         rootCssList.push(css);
@@ -624,9 +632,9 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
     const path: AstNode[] = [];
     let node = ast[0];
     while (node) {
-      path.push({ ...node, nodes: undefined } as any);
-      if ((node as any).nodes && (node as any).nodes.length === 1)
-        node = (node as any).nodes[0];
+      path.push({ ...node, nodes: undefined } as AstNode & HasNodes);
+      if ((node as HasNodes).nodes && (node as HasNodes)?.nodes?.length === 1)
+        node = (node as HasNodes).nodes?.[0] as AstNode;
       else break;
     }
     return path;
@@ -652,13 +660,13 @@ export function mergeAstTreeList(astList: AstNode[][]): AstNode[] {
     }
     // Recursive merge for each group
     const result: AstNode[] = [];
-    for (const [key, group] of groupMap.entries()) {
+    for (const [, group] of groupMap.entries()) {
       const node = group[0][depth];
       const children = merge(group, depth + 1);
       result.push(
         children.length
-          ? ({ ...node, nodes: children as AstNode[] } as any)
-          : ({ ...node } as any)
+          ? ({ ...node, nodes: children as AstNode[] } as AstNode & HasNodes)
+          : ({ ...node } as AstNode & HasNodes)
       );
     }
     return result;

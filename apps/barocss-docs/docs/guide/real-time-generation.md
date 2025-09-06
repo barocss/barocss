@@ -29,7 +29,7 @@ This creates several pain points:
 BaroCSS generates CSS instantly as you use it, with zero build time:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime();
 
@@ -133,7 +133,7 @@ Start using BaroCSS immediately without complex setup:
 
 ```html
 <!-- Just include the script and start styling -->
-<script type="module" src="https://unpkg.com/barocss/dist/cdn/barocss.js"></script>
+<script type="module" src="https://unpkg.com/@barocss/kit/dist/cdn/barocss.js"></script>
 ```
 
 ## Advanced Real-time Features
@@ -254,7 +254,7 @@ if (process.env.NODE_ENV === 'development') {
 // tailwind.config.js, webpack config, etc.
 
 // After: BaroCSS with real-time generation
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 const runtime = new BrowserRuntime();
 // That's it! No build configuration needed
 ```

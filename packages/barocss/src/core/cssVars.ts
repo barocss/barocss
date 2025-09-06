@@ -12,16 +12,17 @@ function escapeKey(key: string): string {
  * colors: { blue: { 500: '#123456' }, red: { 500: '#ff0000' } }
  * → { '--color-blue-500': '#123456', '--color-red-500': '#ff0000' }
  */
-export function colorsToCssVars(colors: Record<string, any>): Record<string, string> {
+export function colorsToCssVars(colors?: Record<string, unknown>): Record<string, string> {
+  if (!colors) return {};
   const result: Record<string, string> = {};
-  function walk(obj: any, prefix: string[] = []) {
+  function walk(obj: Record<string, unknown>, prefix: string[] = []) {
     for (const key in obj) {
-      const value = obj[key];
+      const value = obj[key] as unknown;
       if (typeof value === 'object' && value !== null) {
-        walk(value, [...prefix, key]);
+        walk(value as Record<string, unknown>, [...prefix, key]);
       } else {
         const varName = '--color-' + [...prefix, key].join('-');
-        result[varName] = value;
+        result[varName] = value as string;
       }
     }
   }
@@ -33,10 +34,11 @@ export function colorsToCssVars(colors: Record<string, any>): Record<string, str
  * boxShadow: { lg: '0 10px 15px ...', ... }
  * → { '--shadow-lg': '...' }
  */
-export function boxShadowToCssVars(boxShadow: Record<string, string>): Record<string, string> {
+export function boxShadowToCssVars(boxShadow?: Record<string, unknown>): Record<string, string> {
+  if (!boxShadow) return {};
   const result: Record<string, string> = {};
   for (const key in boxShadow) {
-    result[`--shadow-${key}`] = boxShadow[key];
+    result[`--shadow-${key}`] = boxShadow[key] as string;
   }
   return result;
 }
@@ -45,15 +47,16 @@ export function boxShadowToCssVars(boxShadow: Record<string, string>): Record<st
  * fontSize: { xs: ['0.75rem', '1rem'], ... }
  * → { '--text-xs': '0.75rem', '--text-xs--line-height': '1rem' }
  */
-export function fontSizeToCssVars(fontSize: Record<string, string | [string, string]>): Record<string, string> {
+export function fontSizeToCssVars(fontSize?: Record<string, unknown>): Record<string, string> {
+  if (!fontSize) return {};
   const result: Record<string, string> = {};
   for (const key in fontSize) {
-    const value = fontSize[key];
+    const value = fontSize[key] as unknown;
     if (Array.isArray(value)) {
-      result[`--text-${key}`] = value[0];
+      result[`--text-${key}`] = value[0] as string;
       if (value[1]) result[`--text-${key}--line-height`] = value[1];
     } else {
-      result[`--text-${key}`] = value;
+      result[`--text-${key}`] = value as string;
     }
   }
   // console.log('[fontSizeToCssVars] result', result);
@@ -64,10 +67,11 @@ export function fontSizeToCssVars(fontSize: Record<string, string | [string, str
  * fontWeight: { normal: '400', ... }
  * → { '--font-weight-normal': '400' }
  */
-export function fontWeightToCssVars(fontWeight: Record<string, string>): Record<string, string> {
+export function fontWeightToCssVars(fontWeight?: Record<string, unknown>): Record<string, string> {
+  if (!fontWeight) return {};
   const result: Record<string, string> = {};
   for (const key in fontWeight) {
-    result[`--font-weight-${key}`] = fontWeight[key];
+    result[`--font-weight-${key}`] = fontWeight[key] as string;
   }
   return result;
 }
@@ -76,14 +80,15 @@ export function fontWeightToCssVars(fontWeight: Record<string, string>): Record<
  * fontFamily: { sans: ['ui-sans-serif', ...], ... }
  * → { '--font-sans-0': 'ui-sans-serif', ... }
  */
-export function fontFamilyToCssVars(fontFamily: Record<string, string[] | string>): Record<string, string> {
+export function fontFamilyToCssVars(fontFamily?: Record<string, unknown>): Record<string, string> {
+  if (!fontFamily) return {};
   const result: Record<string, string> = {};
   for (const key in fontFamily) {
-    const value = fontFamily[key];
+    const value = fontFamily[key] as unknown;
     if (Array.isArray(value)) {
       result[`--font-${key}`] = value.join(', ');
     } else {
-      result[`--font-${key}`] = value;
+      result[`--font-${key}`] = value as string;
     }
   }
   return result;
@@ -93,10 +98,11 @@ export function fontFamilyToCssVars(fontFamily: Record<string, string[] | string
  * letterSpacing: { tight: '0.05em', ... }
  * → { '--letter-spacing-tight': '0.05em' }
  */
-export function letterSpacingToCssVars(letterSpacing: Record<string, string>): Record<string, string> {
+export function letterSpacingToCssVars(letterSpacing?: Record<string, unknown>): Record<string, string> {
+  if (!letterSpacing) return {};
   const result: Record<string, string> = {};
   for (const key in letterSpacing) {
-    result[`--letter-spacing-${key}`] = letterSpacing[key];
+    result[`--letter-spacing-${key}`] = letterSpacing[key] as string;
   }
   return result;
 }
@@ -105,10 +111,11 @@ export function letterSpacingToCssVars(letterSpacing: Record<string, string>): R
  * spacing: { 0: '0px', 1: '0.25rem', ... }
  * → { '--spacing-0': '0px', '--spacing-1': '0.25rem', ... }
  */
-export function spacingToCssVars(spacing: Record<string, string>): Record<string, string> {
+export function spacingToCssVars(spacing?: Record<string, unknown>): Record<string, string> {
+  if (!spacing) return {};
   const result: Record<string, string> = {};
   for (const key in spacing) {
-    result[`--spacing-${escapeKey(key)}`] = spacing[key];
+    result[`--spacing-${escapeKey(key)}`] = spacing[key] as string;
   }
   return result;
 }
@@ -117,10 +124,11 @@ export function spacingToCssVars(spacing: Record<string, string>): Record<string
  * borderRadius: { xl: '0.75rem', ... }
  * → { '--radius-xl': '0.75rem' }
  */
-export function borderRadiusToCssVars(borderRadius: Record<string, string>): Record<string, string> {
+export function borderRadiusToCssVars(borderRadius?: Record<string, unknown>): Record<string, string> {
+  if (!borderRadius) return {};
   const result: Record<string, string> = {};
   for (const key in borderRadius) {
-    result[`--radius-${escapeKey(key)}`] = borderRadius[key];
+    result[`--radius-${escapeKey(key)}`] = borderRadius[key] as string;
   }
   return result;
 }
@@ -129,10 +137,11 @@ export function borderRadiusToCssVars(borderRadius: Record<string, string>): Rec
  * zIndex: { 10: '10', ... }
  * → { '--z-10': '10' }
  */
-export function zIndexToCssVars(zIndex: Record<string, string | number>): Record<string, string> {
+export function zIndexToCssVars(zIndex?: Record<string, unknown>): Record<string, string> {
+  if (!zIndex) return {};
   const result: Record<string, string> = {};
   for (const key in zIndex) {
-    result[`--z-${escapeKey(key)}`] = String(zIndex[key]);
+    result[`--z-${escapeKey(key)}`] = String(zIndex[key] as number);
   }
   return result;
 }
@@ -141,10 +150,11 @@ export function zIndexToCssVars(zIndex: Record<string, string | number>): Record
  * opacity: { 50: '0.5', ... }
  * → { '--opacity-50': '0.5' }
  */
-export function opacityToCssVars(opacity: Record<string, string | number>): Record<string, string> {
+export function opacityToCssVars(opacity?: Record<string, unknown>): Record<string, string> {
+  if (!opacity) return {};
   const result: Record<string, string> = {};
   for (const key in opacity) {
-    result[`--opacity-${escapeKey(key)}`] = String(opacity[key]);
+    result[`--opacity-${escapeKey(key)}`] = String(opacity[key] as number);
   }
   return result;
 }
@@ -153,10 +163,11 @@ export function opacityToCssVars(opacity: Record<string, string | number>): Reco
  * animations: { spin: 'spin 1s linear infinite', ... }
  * → { '--animate-spin': 'spin 1s linear infinite' }
  */
-export function animationToCssVars(animations: Record<string, string>): Record<string, string> {
+export function animationToCssVars(animations?: Record<string, unknown>): Record<string, string> {
+  if (!animations) return {};
   const result: Record<string, string> = {};
   for (const key in animations) {
-    result[`--animate-${escapeKey(key)}`] = animations[key];
+    result[`--animate-${escapeKey(key)}`] = animations[key] as string;
   }
   return result;
 }
@@ -165,16 +176,17 @@ export function animationToCssVars(animations: Record<string, string>): Record<s
  * keyframes: { spin: { 'to': { transform: 'rotate(360deg)' } }, ... }
  * → Requires separate @keyframes block generation (variable conversion omitted here)
  */
-export function keyframesToCss(keyframes: Record<string, any>): string {
+export function keyframesToCss(keyframes?: Record<string, unknown>): string {
+  if (!keyframes) return '';
   let css = '';
   for (const name in keyframes) {
-    const frames = keyframes[name];
+    const frames = keyframes[name] as unknown;
     css += `@keyframes ${name} {\n`;
-    for (const step in frames) {
+    for (const step in frames as Record<string, unknown>) {
       css += `  ${step} {`;
-      const props = frames[step];
+      const props = (frames as Record<string, unknown>)[step] as Record<string, unknown>;
       for (const prop in props) {
-        css += ` ${prop}: ${props[prop]};`;
+        css += ` ${prop}: ${props[prop] as string};`;
       }
       css += ' }\n';
     }
@@ -267,23 +279,23 @@ export function containerToCssVars(container: Record<string, string>): Record<st
  */
 export function themeToCssVarsAll(theme: Theme): Record<string, string> {
   return {
-    ...colorsToCssVars(theme.colors || {}),
-    ...boxShadowToCssVars(theme.boxShadow || {}),
-    ...fontSizeToCssVars(theme.fontSize || {}),
-    ...fontWeightToCssVars(theme.fontWeight || {}),
-    ...fontFamilyToCssVars(theme.fontFamily || {}),
-    ...letterSpacingToCssVars(theme.letterSpacing || {}),
-    '--spacing': theme.spacing['1'],
-    ...spacingToCssVars(theme.spacing || {}),
-    ...containerToCssVars(theme.container || {}),
-    ...borderRadiusToCssVars(theme.borderRadius || {}),
-    ...zIndexToCssVars(theme.zIndex || {}),
-    ...opacityToCssVars(theme.opacity || {}),
-    ...animationToCssVars(theme.animations || {}),
-    ...transitionTimingFunctionToCssVars(theme.transitionTimingFunction || {}),
-    ...transitionDurationToCssVars(theme.transitionDuration || {}),
-    ...transitionDelayToCssVars(theme.transitionDelay || {}),
-    ...blurToCssVars(theme.blur || {}),
+    ...colorsToCssVars(theme.colors! as Record<string, unknown>),
+    ...boxShadowToCssVars(theme.boxShadow! as Record<string, unknown>),
+    ...fontSizeToCssVars(theme.fontSize! as Record<string, unknown>),
+    ...fontWeightToCssVars(theme.fontWeight! as Record<string, unknown>),
+    ...fontFamilyToCssVars(theme.fontFamily! as Record<string, unknown>),
+    ...letterSpacingToCssVars(theme.letterSpacing! as Record<string, unknown>),
+    '--spacing': (theme.spacing! as Record<string, unknown>)['1'] as string,
+    ...spacingToCssVars(theme.spacing! as Record<string, unknown>),
+    ...containerToCssVars(theme.container! as Record<string, string>),
+    ...borderRadiusToCssVars(theme.borderRadius! as Record<string, unknown>),
+    ...zIndexToCssVars(theme.zIndex! as Record<string, unknown>),
+    ...opacityToCssVars(theme.opacity! as Record<string, unknown>),
+    ...animationToCssVars(theme.animations! as Record<string, unknown>),
+    ...transitionTimingFunctionToCssVars(theme.transitionTimingFunction! as Record<string, string>),
+    ...transitionDurationToCssVars(theme.transitionDuration! as Record<string, string>),
+    ...transitionDelayToCssVars(theme.transitionDelay! as Record<string, string>),
+    ...blurToCssVars(theme.blur! as Record<string, string>),
     // keyframes handled separately
   };
 }

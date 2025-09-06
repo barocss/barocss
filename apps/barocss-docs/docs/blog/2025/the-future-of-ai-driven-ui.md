@@ -121,7 +121,7 @@ BaroCSS is not just preparing for the future of AI-driven development—it's ena
 
 Ready to build the future of AI-driven UI development? Here's how to get started:
 
-1. **Install BaroCSS**: `npm install barocss`
+1. **Install BaroCSS**: `npm install @barocss/kit`
 2. **Set up the runtime**: Initialize `BrowserRuntime` in your AI tool
 3. **Generate components**: Let AI create Tailwind-based components
 4. **Render instantly**: BaroCSS handles the rest

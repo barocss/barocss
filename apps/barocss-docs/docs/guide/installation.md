@@ -12,17 +12,17 @@ Get BaroCSS up and running in your project with these simple steps.
 
 ### Using npm
 ```bash
-npm install barocss
+npm install @barocss/kit
 ```
 
 ### Using yarn
 ```bash
-yarn add barocss
+yarn add @barocss/kit
 ```
 
 ### Using pnpm
 ```bash
-pnpm add barocss
+pnpm add @barocss/kit
 ```
 
 ## CDN Installation
@@ -40,7 +40,7 @@ For quick prototyping or when you don't want to use a package manager, you can i
   <title>BaroCSS Demo</title>
   
   <!-- BaroCSS UMD Build -->
-  <script src="https://unpkg.com/barocss@latest/dist/cdn/barocss.umd.cjs"></script>
+  <script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body>
   <div class="bg-blue-500 text-white p-4 rounded-lg">
@@ -74,7 +74,7 @@ For quick prototyping or when you don't want to use a package manager, you can i
 
   <script type="module">
     // Import BaroCSS as ES module
-    import { BrowserRuntime } from 'https://unpkg.com/barocss@latest/dist/cdn/barocss.js';
+    import { BrowserRuntime } from 'https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.js';
     
     // Initialize with configuration
     const runtime = new BrowserRuntime({
@@ -103,7 +103,7 @@ For quick prototyping or when you don't want to use a package manager, you can i
 <script>
 async function initBaroCSS() {
   // Dynamically import BaroCSS
-  const { BrowserRuntime } = await import('https://unpkg.com/barocss@latest/dist/cdn/barocss.js');
+  const { BrowserRuntime } = await import('https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.js');
   
   const runtime = new BrowserRuntime();
   runtime.observe(document.body, { scan: true });
@@ -125,9 +125,9 @@ initBaroCSS();
 
 BaroCSS is available on multiple CDN providers:
 
-- **unpkg**: `https://unpkg.com/barocss@latest/dist/cdn/`
-- **jsDelivr**: `https://cdn.jsdelivr.net/npm/barocss@latest/dist/cdn/`
-- **esm.sh**: `https://esm.sh/barocss/runtime/browser` (ES modules only)
+- **unpkg**: `https://unpkg.com/@barocss/kit@latest/dist/cdn/`
+- **jsDelivr**: `https://cdn.jsdelivr.net/npm/@barocss/kit@latest/dist/cdn/`
+- **esm.sh**: `https://esm.sh/@barocss/kit/runtime/browser` (ES modules only)
 
 ### Version Pinning
 
@@ -135,10 +135,10 @@ For production use, always pin to a specific version:
 
 ```html
 <!-- Pin to specific version -->
-<script src="https://unpkg.com/barocss@0.1.0/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/kit@0.1.0/dist/cdn/barocss.umd.cjs"></script>
 
 <!-- Or use version range -->
-<script src="https://unpkg.com/barocss@^0.1.0/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/kit@^0.1.0/dist/cdn/barocss.umd.cjs"></script>
 ```
 
 ## Framework Integration
@@ -146,7 +146,7 @@ For production use, always pin to a specific version:
 ### React
 ```tsx
 import React from 'react';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 // Initialize BaroCSS
 const runtime = new BrowserRuntime();
@@ -181,7 +181,7 @@ export default App;
 
 <script setup>
 import { onMounted } from 'vue';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 onMounted(() => {
   // Initialize BaroCSS
@@ -193,7 +193,7 @@ onMounted(() => {
 
 ### Vanilla JavaScript
 ```javascript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 // Initialize BaroCSS
 const runtime = new BrowserRuntime();
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 ### Basic Configuration
 ```javascript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -239,7 +239,7 @@ const runtime = new BrowserRuntime({
       },
     },
   },
-  styleId: 'barocss-runtime', // id of the style element
+  styleId: '@barocss/kit-runtime', // id of the style element
   insertionPoint: 'head', // insertion point for the style element
   maxRulesPerPartition: 50, // maximum number of rules per partition
 }
@@ -248,8 +248,8 @@ const runtime = new BrowserRuntime({
 
 ### Advanced Configuration
 ```javascript
-import { BrowserRuntime } from 'barocss/runtime/browser';
-import { createTheme } from 'barocss/theme';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { createTheme } from '@barocss/kit/theme';
 
 const customTheme = createTheme({
   colors: {
@@ -298,7 +298,7 @@ Now that you have BaroCSS installed, continue with:
 
 **Module not found error**
 ```bash
-Error: Cannot find module 'barocss'
+Error: Cannot find module '@barocss/kit'
 ```
 Make sure you've installed the package correctly and your Node.js version is compatible.
 
@@ -308,4 +308,4 @@ If styles aren't being generated, ensure you've initialized the BrowserRuntime b
 **Build errors**
 For build tool issues, check that your bundler is configured to handle ES modules correctly.
 
-Need help? Check our [GitHub issues](https://github.com/your-org/barocss/issues) or [Discord community](https://discord.gg/barocss).
+Need help? Check our [GitHub issues](https://github.com/your-org/@barocss/kit/issues) or [Discord community](https://discord.gg/@barocss/kit).

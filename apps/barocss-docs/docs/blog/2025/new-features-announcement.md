@@ -35,7 +35,7 @@ We're thrilled to announce the release of BaroCSS v1.1 with several exciting new
 Update to the latest version:
 
 ```bash
-npm install barocss@latest
+npm install @barocss/kit@latest
 ```
 
 ## Migration Guide

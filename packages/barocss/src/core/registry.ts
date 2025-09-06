@@ -280,12 +280,12 @@ export function functionalUtility(opts: {
       // 3. Theme lookup (themeKey or themeKeys)
       let themeValue: string | undefined;
       if (opts.themeKey && ctx.theme) {
-        themeValue = ctx.theme(opts.themeKey, finalValue);
+        themeValue = ctx.theme(opts.themeKey, finalValue) as string;
         // console.log('[functionalUtility] themeKey lookup', { themeKey: opts.themeKey, finalValue, themeValue });
       }
       if (!themeValue && opts.themeKeys && ctx.theme) {
         for (const key of opts.themeKeys) {
-          themeValue = ctx.theme(key, finalValue);
+          themeValue = ctx.theme(key, finalValue) as string;
           // console.log('[functionalUtility] themeKeys lookup', { key, finalValue, themeValue });
           if (themeValue !== undefined) break;
         }

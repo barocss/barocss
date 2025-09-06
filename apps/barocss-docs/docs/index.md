@@ -1,7 +1,7 @@
 ---
 layout: home
 hero:
-  name: BaroCSS
+  name: @barocss/kit
   text: Enhanced Tailwind Runtime
   tagline: The next-generation CSS parser that brings Tailwind's JIT mode to real-time development
   actions:
@@ -13,7 +13,7 @@ hero:
       link: /examples/
     - theme: alt
       text: View on GitHub
-      link: https://github.com/your-org/barocss
+      link: https://github.com/your-org/@barocss/kit
       external: true
 
 features:
@@ -101,10 +101,10 @@ See the full guide: [AI Integration](/guide/ai-integration)
 
 ```bash
 # Install BaroCSS
-npm install barocss
+npm install @barocss/kit
 
 # Import and start using
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime();
 runtime.observe(document.body, { scan: true });

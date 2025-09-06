@@ -39,7 +39,7 @@ processClasses(['bg-red-500', 'text-white', 'p-4']); // Reprocesses all 3
 ### BaroCSS Incremental Approach
 
 ```typescript
-import { IncrementalParser } from 'barocss';
+import { IncrementalParser } from '@barocss/kit';
 
 const parser = new IncrementalParser(ctx);
 
@@ -201,8 +201,8 @@ try {
 ### Browser Runtime Integration
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
-import { IncrementalParser } from 'barocss';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { IncrementalParser } from '@barocss/kit';
 
 const runtime = new BrowserRuntime();
 const parser = new IncrementalParser(runtime.context);
@@ -219,8 +219,8 @@ results.forEach(result => {
 ### Server Runtime Integration
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
-import { IncrementalParser } from 'barocss';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
+import { IncrementalParser } from '@barocss/kit';
 
 const runtime = new ServerRuntime();
 const parser = new IncrementalParser(runtime.context);

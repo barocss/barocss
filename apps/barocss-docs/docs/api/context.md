@@ -12,7 +12,7 @@ The Context API is the central system for managing themes, configuration, and pl
 Creates a new BaroCSS context with the provided configuration.
 
 ```typescript
-import { createContext } from 'barocss';
+import { createContext } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {
@@ -222,7 +222,7 @@ interface Theme {
 ### Basic Context Creation
 
 ```typescript
-import { createContext } from 'barocss';
+import { createContext } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {

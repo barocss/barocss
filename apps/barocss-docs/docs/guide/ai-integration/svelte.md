@@ -7,11 +7,11 @@ BaroCSS pairs beautifully with Svelte's reactive stores and simple syntax, enabl
 ### 1. Installation
 
 ```bash
-npm install barocss
+npm install @barocss/kit
 # or
-yarn add barocss
+yarn add @barocss/kit
 # or
-pnpm add barocss@latest
+pnpm add @barocss/kit@latest
 ```
 
 ### 2. Initialize in App.svelte
@@ -20,7 +20,7 @@ pnpm add barocss@latest
 <!-- App.svelte -->
 <script>
   import { onMount } from 'svelte';
-  import { BrowserRuntime } from 'barocss/runtime/browser';
+  import { BrowserRuntime } from '@barocss/kit/runtime/browser';
   import AIComponentSystem from './AIComponentSystem.svelte';
 
   let runtime;

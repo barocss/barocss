@@ -47,7 +47,7 @@ sequenceDiagram
 ## Minimal Setup
 
 ```ts
-import { BrowserRuntime } from 'barocss/runtime/browser'
+import { BrowserRuntime } from '@barocss/kit/runtime/browser'
 
 // 1) Initialize runtime once
 const runtime = new BrowserRuntime({

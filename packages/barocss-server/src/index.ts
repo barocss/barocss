@@ -1,5 +1,5 @@
-import { parseClassToAst, generateCssRules, createContext } from '../index';
-import type { Config } from '../core/context';
+import { parseClassToAst, generateCssRules, createContext } from '@barocss/kit';
+import type { Config, Context } from '@barocss/kit';
 
 /**
  * Server-side runtime for Barocss
@@ -8,7 +8,7 @@ import type { Config } from '../core/context';
  * without browser-specific features like DOM manipulation or MutationObserver.
  */
 export class ServerRuntime {
-  private context: any;
+  private context: Context;
 
   constructor(config: Config = {}) {
     this.context = createContext(config);
@@ -40,7 +40,3 @@ export class ServerRuntime {
     return results;
   }
 }
-
-// Export individual functions for direct use
-export { parseClassToAst, generateCssRules } from '../core/engine';
-export { createContext } from '../core/context'; 

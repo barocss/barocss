@@ -6,13 +6,21 @@
     "build": "pnpm --filter barocss-docs docs:build",
     "serve": "pnpm --filter barocss-docs docs:serve",
     "preview": "pnpm --filter barocss-docs docs:preview",
-    "build:library": "pnpm --filter barocss build:library",
+    "build:library": "pnpm run -r build:library",
+    "test": "pnpm run -r test",
+    "lint": "pnpm run -r lint",
+    "type-check": "pnpm run -r type-check",
+    "check": "pnpm type-check && pnpm lint && pnpm test && pnpm build:library",
     "changeset:version": "pnpm changeset version",
     "changeset:publish": "pnpm changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
+    "@eslint/js": "^9.35.0",
     "esbuild": "^0.25.9",
-    "typescript": "^5.9.2"
+    "eslint": "^9.35.0",
+    "globals": "^16.3.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.42.0"
   }
 }

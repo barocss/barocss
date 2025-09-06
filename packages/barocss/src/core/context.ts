@@ -6,6 +6,9 @@ import { preflightMinimalCSS, preflightStandardCSS, preflightFullCSS } from "../
 
 type PreflightLevel = 'minimal' | 'standard' | 'full' | true | false;
 
+type Function = (...args: unknown[]) => unknown;
+type ContextRecord = Record<string, unknown>;
+
 export function getPreflightCSS(level: PreflightLevel = true): string {
   if (level === 'minimal') {
     return preflightMinimalCSS;
@@ -24,7 +27,7 @@ export function getPreflightCSS(level: PreflightLevel = true): string {
 // Types for theme/config/context
 export interface Theme {
   extend?: Theme;
-  [namespace: string]: any;
+  [namespace: string]: unknown;
 }
 
 export interface Config {
@@ -62,7 +65,7 @@ export interface Config {
    * - false: Keep existing caches
    */
   clearCacheOnContextChange?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const defaultConfig: Config = {
@@ -72,33 +75,33 @@ export const defaultConfig: Config = {
 
 export interface Context {
   hasPreset: (category: string, preset: string) => boolean;
-  theme: (...path: (string|number)[]) => any;
-  config: (...path: (string|number)[]) => any;
-  plugins: any[];
+  theme: (...path: (string|number)[]) => unknown;
+  config: (...path: (string|number)[]) => unknown;
+  plugins: Plugin[];
   themeToCssVars: (prefix?: string) => string;
   // Safe API for extending theme from plugins
-  extendTheme: (category: string, values: Record<string, any> | Function) => void;
+  extendTheme: (category: string, values: Record<string, unknown> | Function) => void;
   getPreflightCSS: (level?: PreflightLevel) => string;
 }
 
 // Deep merge utility
-export function deepMerge<T extends Record<string, any>>(base: T, override: Partial<T>): T {
-  const result: any = {};
+export function deepMerge<T extends Record<string, unknown>>(base: T, override: Partial<T>): T {
+  const result: Record<string, unknown> = {};
   const keys = new Set([
     ...Object.keys(base || {}),
     ...Object.keys(override || {}),
   ]);
   for (const key of keys) {
     const skey = String(key);
-    const baseVal = base && typeof base === 'object' ? (base as Record<string, any>)[skey] : undefined;
-    const overrideVal = override && typeof override === 'object' ? (override as Record<string, any>)[skey] : undefined;
+    const baseVal = base && typeof base === 'object' ? (base as T)[skey] : undefined;
+    const overrideVal = override && typeof override === 'object' ? (override as T)[skey] : undefined;
     if (
       overrideVal &&
       typeof overrideVal === 'object' &&
       !Array.isArray(overrideVal)
     ) {
       result[skey] = deepMerge(
-        (typeof baseVal === 'object' && baseVal !== null) ? baseVal : {},
+        (typeof baseVal === 'object' && baseVal !== null) ? baseVal as T : {} as T,
         overrideVal
       );
     } else if (overrideVal !== undefined) {
@@ -107,10 +110,12 @@ export function deepMerge<T extends Record<string, any>>(base: T, override: Part
       result[skey] = baseVal;
     }
   }
-  return result;
+  return result as T;
 }
 
-export type ThemeGetter = (...path: (string|number)[]) => any;
+export type ThemeGetter = (...path: (string|number)[]) => unknown;
+
+let staticInProgress: Set<string> | undefined;
 
 /**
  * Modern theme getter for BAROCSS
@@ -142,7 +147,7 @@ export type ThemeGetter = (...path: (string|number)[]) => any;
  *   };
  *   themeGetter(theme, 'spacing.1'); // undefined
  */
-export function themeGetter(themeObj: Theme, ...path: (string | number)[]): any {
+export function themeGetter(themeObj: Theme, ...path: (string | number)[]): unknown {
   // The theme getter function itself, passed to category functions for dynamic resolution
   const theme: ThemeGetter = (...args: (string | number)[]) => themeGetter(themeObj, ...args);
 
@@ -171,11 +176,10 @@ export function themeGetter(themeObj: Theme, ...path: (string | number)[]): any 
 
   // Infinite recursion protection: track currently resolving full paths
   // If the exact same path is being resolved recursively, return undefined
-  const staticInProgress = (themeGetter as any)._inProgress || new Set();
-  (themeGetter as any)._inProgress = staticInProgress;
+  staticInProgress = staticInProgress || new Set();
   const pathKey = keys.join('.');
-  if (staticInProgress.has(pathKey)) return undefined;
-  staticInProgress.add(pathKey);
+  if (staticInProgress?.has(pathKey)) return undefined;
+  staticInProgress?.add(pathKey);
 
   // Get the category value (could be a function or object)
   let value = themeObj[keys[0]];
@@ -194,14 +198,14 @@ export function themeGetter(themeObj: Theme, ...path: (string | number)[]): any 
     // console.log(`[themeGetter] traversing key '${keys[i]}', current value:`, value);
     if (value == null) {
       // console.log(`[themeGetter] value is null/undefined at key '${keys[i]}'`);
-      staticInProgress.delete(pathKey);
+      staticInProgress?.delete(pathKey);
       return undefined;
     }
     value = value[keys[i]];
     // console.log(`[themeGetter] after accessing '${keys[i]}', value:`, value);
   }
 
-  staticInProgress.delete(pathKey);
+  staticInProgress?.delete(pathKey);
   // If the final value is a function (leaf function), do NOT execute it
   // Only category-level functions are supported; leaf functions are ignored
   if (typeof value === 'function') {
@@ -214,19 +218,19 @@ export function themeGetter(themeObj: Theme, ...path: (string | number)[]): any 
 }
 
 // config getter
-export function configGetter(config: any, ...path: (string|number)[]): any {
+export function configGetter(config: ContextRecord, ...path: (string|number)[]): unknown {
   let keys: (string|number)[] = [];
   if (path.length === 1 && typeof path[0] === 'string' && path[0].includes('.')) {
     keys = path[0].split('.');
   } else {
     keys = path;
   }
-  return keys.reduce((acc, key) => (acc ? acc[key] : undefined), config);
+  return keys.reduce((acc, key) => (acc ? acc[key] : undefined), config) as unknown as ContextRecord;
 }
 
 // hasPreset
-export function hasPreset(themeObj: Theme, category: string, preset: string): any {
-  return themeObj[category]?.includes?.(preset);
+export function hasPreset(themeObj: Theme, category: string, preset: string): boolean {
+  return (themeObj[category] as string[])?.includes?.(preset) as boolean;
 }
 
 // resolveTheme
@@ -240,7 +244,7 @@ export function resolveTheme(config: Config): Theme {
     }
   }
   if (config.theme) {
-    const { extend, ...overrideTheme } = config.theme as any;
+    const { extend, ...overrideTheme } = config.theme as Theme;
     theme = deepMerge(theme, overrideTheme); // switch from shallowMerge to deepMerge
     if (extend) {
       theme = deepMerge(theme, extend);
@@ -254,7 +258,7 @@ export function themeToCssVars(theme: Theme): string {
   const vars = themeToCssVarsAll(theme);
   // console.log('[themeToCssVars] vars', vars);
   const result = toCssVarsBlock(vars, `
-${keyframesToCss(theme.keyframes || {})}
+${keyframesToCss((theme.keyframes || {}) as Record<string, unknown>)}
 `);
 
 // console.log('[themeToCssVars] result', result);
@@ -273,7 +277,7 @@ export function createContext(configObj: Config): Context {
     ...configObj
   };
   
-  let themeObj = resolveTheme(configWithDefaults);
+  const themeObj = resolveTheme(configWithDefaults);
   
   // Auto-clear caches on context change (optional)
   if (configObj.clearCacheOnContextChange !== false) {
@@ -282,10 +286,10 @@ export function createContext(configObj: Config): Context {
 
   // 1. Declare ctx first as an object
   const ctx: Context = {
-    hasPreset: (category: string, preset: string) => {
+    hasPreset: (category: string, preset: string): boolean => {
       const result = hasPreset(themeObj, category, preset);
       // console.log(`[hasPreset] category: ${category}, preset: ${preset} =>`, result);
-      return result;
+      return result as boolean;
     },
     theme: (...args) => {
       const result = themeGetter(themeObj, ...args);
@@ -297,19 +301,19 @@ export function createContext(configObj: Config): Context {
       // console.log(`[config] path:`, args, `=>`, result);
       return result;
     },
-    plugins: configWithDefaults.plugins ?? [],
+    plugins: (configWithDefaults.plugins ?? []) as Plugin[],
     themeToCssVars: () => themeToCssVars(themeObj),
     // Safe API for theme extension from plugins
-    extendTheme: (category: string, values: Record<string, any> | Function) => {
+    extendTheme: (category: string, values: Record<string, unknown> | Function) => {
       // console.log(`[extendTheme] category: ${category}, values:`, values);
       
       if (typeof values === 'function') {
         // If it's a function, execute with theme getter
-        const themeFunction = values as (theme: ThemeGetter) => any;
+        const themeFunction = values as (theme: ThemeGetter) => unknown;
         const result = themeFunction(ctx.theme);
         if (result && typeof result === 'object') {
           // Merge with existing values
-          const existingValues = themeObj[category] || {};
+          const existingValues = themeObj[category] || {} as Record<string, unknown>;
           themeObj[category] = {
             ...existingValues,
             ...result
@@ -318,7 +322,7 @@ export function createContext(configObj: Config): Context {
         }
       } else if (typeof values === 'object' && values !== null && !Array.isArray(values)) {
         // Get existing category values
-        const existingValues = themeObj[category] || {};
+        const existingValues = themeObj[category] || {} as Record<string, unknown>;
         
         // Merge existing and new values
         themeObj[category] = {
@@ -383,11 +387,11 @@ export function createContext(configObj: Config): Context {
               // In-place merge for debugging
               for (const key in pluginTheme) {
                 if (typeof pluginTheme[key] === 'object' && pluginTheme[key] !== null) {
-                  themeObj[key] = themeObj[key] || {};
-                  Object.assign(themeObj[key], pluginTheme[key]);
+                  themeObj[key] = (themeObj[key] || {}) as Record<string, unknown>;
+                  Object.assign(themeObj[key] as Record<string, unknown>, pluginTheme[key] as Record<string, unknown>);
                   // console.log(`themeObj[${key}] after merge:`, themeObj[key]);
                 } else {
-                  themeObj[key] = pluginTheme[key];
+                  themeObj[key] = pluginTheme[key] as unknown;
                   // console.log(`themeObj[${key}] set to:`, pluginTheme[key]);
                 }
               }
@@ -396,6 +400,7 @@ export function createContext(configObj: Config): Context {
           }
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error(`Error executing plugin ${plugin.name || 'unknown'}:`, error);
       }
     }

@@ -7,18 +7,18 @@ BaroCSS integrates perfectly with SolidJS's fine-grained reactivity system, enab
 ### 1. Installation
 
 ```bash
-npm install barocss
+npm install @barocss/kit
 # or
-yarn add barocss  
+yarn add @barocss/kit  
 # or
-pnpm add barocss@latest
+pnpm add @barocss/kit@latest
 ```
 
 ### 2. Initialize in App.jsx
 
 ```jsx
 import { onMount, onCleanup } from 'solid-js';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 import AIComponentSystem from './AIComponentSystem';
 
 function App() {

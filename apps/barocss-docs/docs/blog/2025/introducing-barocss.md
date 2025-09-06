@@ -40,19 +40,19 @@ While there are many CSS frameworks available, BaroCSS was created with a focus 
 Getting started with BaroCSS is simple:
 
 ```bash
-npm install barocss
+npm install @barocss/kit
 ```
 
 Then import it in your CSS:
 
 ```css
-@import "barocss";
+@import "@barocss/kit";
 ```
 
 Or use it via CDN:
 
 ```html
-<link href="https://cdn.barocss.com/barocss.min.css" rel="stylesheet">
+<link href="https://cdn.@barocss/kit.com/@barocss/kit.min.css" rel="stylesheet">
 ```
 
 ## What's Next?
@@ -69,9 +69,9 @@ This is just the beginning. We have exciting plans for BaroCSS including:
 
 We'd love to hear your feedback and see what you build with BaroCSS:
 
-- [GitHub](https://github.com/barocss/barocss)
-- [Discord](https://discord.gg/barocss)
-- [Twitter](https://twitter.com/barocss)
+- [GitHub](https://github.com/@barocss/kit/@barocss/kit)
+- [Discord](https://discord.gg/@barocss/kit)
+- [Twitter](https://twitter.com/@barocss/kit)
 
 Thank you for being part of the BaroCSS journey!
 

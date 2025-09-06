@@ -5,7 +5,7 @@ description: All blog posts tagged with announcement
 
 # Posts tagged with "announcement"
 
-## [Introducing BaroCSS](/blog/2025/introducing-barocss)
+## [Introducing BaroCSS](/blog/2025/introducing-@barocss/kit)
 
 **Jan 15, 2025** • **announcements**
 

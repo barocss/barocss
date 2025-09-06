@@ -160,7 +160,7 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, ctx, token) => {
     // Check if it's a theme value first
-    const themeValue = ctx.theme("fontSize", value);
+    const themeValue = ctx.theme("fontSize", value) as string | [string, string];
     if (themeValue) {
       if (Array.isArray(themeValue)) {
         // [fontSize, lineHeight] format
@@ -169,7 +169,7 @@ functionalUtility({
           decl("line-height", themeValue[1])
         ];
       } else {
-        return [decl("font-size", themeValue)];
+        return [decl("font-size", themeValue as string)];
       }
     }
 

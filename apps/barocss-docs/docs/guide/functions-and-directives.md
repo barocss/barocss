@@ -11,7 +11,7 @@ BaroCSS provides a comprehensive set of APIs for managing themes, generating CSS
 Use the `createContext` function to create a BaroCSS context with your theme configuration:
 
 ```typescript
-import { createContext } from 'barocss';
+import { createContext } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {
@@ -42,7 +42,7 @@ Learn more about the Context API in the [Context API documentation](/api/context
 Use the Engine API to parse class names and generate CSS:
 
 ```typescript
-import { parseClassToAst, generateCss } from 'barocss';
+import { parseClassToAst, generateCss } from '@barocss/kit';
 
 // Parse a class name to AST
 const ast = parseClassToAst('bg-blue-500', ctx);
@@ -60,7 +60,7 @@ BaroCSS provides different runtime implementations for different environments:
 #### Browser Runtime
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -81,7 +81,7 @@ runtime.observe(document.body, { scan: true });
 #### Server Runtime
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 
 const runtime = new ServerRuntime({
   config: {
@@ -106,7 +106,7 @@ Learn more about runtime APIs in the [Browser Runtime](/api/browser-runtime) and
 Use the Plugin System to extend BaroCSS functionality:
 
 ```typescript
-import { createUtilityPlugin, createVariantPlugin } from 'barocss';
+import { createUtilityPlugin, createVariantPlugin } from '@barocss/kit';
 
 // Create a custom utility plugin
 const customUtilityPlugin = createUtilityPlugin('tab-4', {
@@ -135,7 +135,7 @@ BaroCSS provides utility functions to make working with colors and spacing easie
 Use color functions to manipulate colors dynamically:
 
 ```typescript
-import { createContext } from 'barocss';
+import { createContext } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {
@@ -157,7 +157,7 @@ const colorWithOpacity = ctx.theme('colors.lime-300', { opacity: 0.5 });
 Use spacing functions to generate spacing values based on your theme:
 
 ```typescript
-import { createContext } from 'barocss';
+import { createContext } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {
@@ -186,7 +186,7 @@ BaroCSS uses JavaScript/TypeScript configuration instead of CSS directives.
 Use the configuration object to define your theme and behavior:
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {

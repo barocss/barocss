@@ -9,6 +9,16 @@ export type AstNode =
   | { type: "comment"; text: string, source?: string }
   | { type: "raw"; value: string, source?: string };
 
+export type HasNodes = { nodes?: AstNode[] };
+export type HasSource = { source?: string };
+export type HasSelector = { selector?: string };
+export type HasName = { name?: string };
+export type HasParams = { params?: string };
+export type HasValue = { value?: string | [string, string][] };
+export type HasProp = { prop?: string };
+export type HasItems = { items?: AstNode[] };
+export type HasText = { text?: string };
+
 export function decl(
   prop: string,
   value: string | [string, string][],

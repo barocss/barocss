@@ -22,6 +22,7 @@ function astToCss(
 
   // Debug logging for empty AST
   if (!ast || ast.length === 0) {
+    // eslint-disable-next-line no-console
     console.warn('[astToCss] Empty AST received:', { ast, baseSelector, minify });
     return '';
   }
@@ -37,7 +38,7 @@ function astToCss(
   // - Does not dedupe rule or at-rule nodes
   // - When background.ts returns @supports + decl together, dedupe may not apply
   // - This can yield duplicate CSS rules in output
-  let dedupedAst = [];
+  const dedupedAst = [];
   if (Array.isArray(ast)) {
     const seenProps = new Map(); // Tracks property names already seen
     
@@ -71,7 +72,7 @@ function astToCss(
       switch (node.type) {
         case "decl": {
           // Handle CSS property declaration (e.g., color: red;)
-          let value = node.value;
+          const value = node.value;
           
           // node.important is absent; ignore
           if (node.prop.startsWith("--")) {
@@ -213,6 +214,7 @@ function astToCss(
           // Handle raw CSS code (output as-is)
           return `${indent}${node.value}`;
         default:
+          // eslint-disable-next-line no-console
           console.warn('[astToCss] Unknown node type:', node);
           return "";
       }
@@ -225,6 +227,7 @@ function astToCss(
   
   // Debug logging for empty result
   if (!finalResult || finalResult.trim() === '') {
+    // eslint-disable-next-line no-console
     console.warn('[astToCss] Empty result generated:', { 
       ast, 
       baseSelector, 

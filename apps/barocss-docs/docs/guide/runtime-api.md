@@ -5,7 +5,7 @@ BaroCSS provides a lightweight runtime for generating and injecting CSS in the b
 ## BrowserRuntime
 
 ```ts
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime(options?);
 ```
@@ -14,7 +14,7 @@ const runtime = new BrowserRuntime(options?);
 ```ts
 {
   config?: Config;              // Full BaroCSS config (theme, preflight, etc.)
-  styleId?: string;             // ID of the style element (default: 'barocss-runtime')
+  styleId?: string;             // ID of the style element (default: '@barocss/kit-runtime')
   insertionPoint?: 'head' | 'body' | HTMLElement; // Where to insert style partitions (default: 'head')
   maxRulesPerPartition?: number; // Max CSS rules per <style> partition (default: 50)
 }

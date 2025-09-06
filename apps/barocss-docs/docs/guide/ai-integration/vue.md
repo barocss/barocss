@@ -7,30 +7,30 @@ BaroCSS integrates seamlessly with Vue 3, enabling reactive AI-driven component 
 ### 1. Installation
 
 ```bash
-npm install barocss
+npm install @barocss/kit
 # or
-yarn add barocss
+yarn add @barocss/kit
 # or
-pnpm add barocss@latest
+pnpm add @barocss/kit@latest
 ```
 
 ### 2. Vue Plugin Setup
 
 ```javascript
 // plugins/barocss.js
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 export default {
   install(app, options) {
     const runtime = new BrowserRuntime(options);
     
-    app.config.globalProperties.$barocss = runtime;
+    app.config.globalProperties.$@barocss/kit = runtime;
     
     app.mixin({
       mounted() {
-        if (!window.__barocss_initialized) {
+        if (!window.__@barocss/kit_initialized) {
           runtime.init();
-          window.__barocss_initialized = true;
+          window.__@barocss/kit_initialized = true;
         }
       }
     });

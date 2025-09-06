@@ -10,8 +10,8 @@ BaroCSS provides a comprehensive API for real-time CSS generation and utility-fi
 ## 🚀 Quick Start
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
-import { createContext } from 'barocss';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { createContext } from '@barocss/kit';
 
 // Initialize runtime
 const runtime = new BrowserRuntime({
@@ -54,17 +54,17 @@ runtime.observe(document.body, { scan: true });
 
 ```typescript
 // CDN
-import { BrowserRuntime } from 'https://unpkg.com/barocss/dist/cdn/barocss.js';
+import { BrowserRuntime } from 'https://unpkg.com/@barocss/kit/dist/cdn/barocss.js';
 
 // NPM
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 ```
 
 ### Server Usage
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
-import { createContext, generateCss } from 'barocss';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
+import { createContext, generateCss } from '@barocss/kit';
 ```
 
 ### Core Usage
@@ -75,7 +75,7 @@ import {
   parseClassToAst, 
   generateCss,
   IncrementalParser 
-} from 'barocss';
+} from '@barocss/kit';
 ```
 
 ## 🔧 Key Concepts

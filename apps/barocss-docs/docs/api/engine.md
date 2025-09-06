@@ -14,7 +14,7 @@ The Engine API provides the core functionality for parsing class names, building
 Parses a CSS class name into an Abstract Syntax Tree.
 
 ```typescript
-import { parseClassToAst, createContext } from 'barocss';
+import { parseClassToAst, createContext } from '@barocss/kit';
 
 const ctx = createContext();
 const ast = parseClassToAst('bg-blue-500 hover:bg-blue-600', ctx);
@@ -38,7 +38,7 @@ const ast = parseClassToAst('sm:dark:hover:bg-red-500', ctx);
 Generates CSS from a space-separated list of class names.
 
 ```typescript
-import { generateCss, createContext } from 'barocss';
+import { generateCss, createContext } from '@barocss/kit';
 
 const ctx = createContext();
 const css = generateCss('bg-blue-500 text-white p-4', ctx);
@@ -73,7 +73,7 @@ const css = generateCss('bg-blue-500 hover:bg-blue-600 focus:ring-2', ctx, {
 Generates detailed CSS rules for multiple classes with metadata.
 
 ```typescript
-import { generateCssRules, createContext } from 'barocss';
+import { generateCssRules, createContext } from '@barocss/kit';
 
 const ctx = createContext();
 const rules = generateCssRules('bg-blue-500 text-white', ctx);
@@ -106,7 +106,7 @@ interface GenerateCssRulesResult {
 Optimizes AST by merging and organizing nodes for efficient CSS generation.
 
 ```typescript
-import { optimizeAst, parseClassToAst } from 'barocss';
+import { optimizeAst, parseClassToAst } from '@barocss/kit';
 
 const ast = parseClassToAst('bg-blue-500', ctx);
 const optimized = optimizeAst(ast);
@@ -117,7 +117,7 @@ const optimized = optimizeAst(ast);
 Collects all declaration paths from an AST tree.
 
 ```typescript
-import { collectDeclPaths } from 'barocss';
+import { collectDeclPaths } from '@barocss/kit';
 
 const paths = collectDeclPaths(ast);
 // Returns array of paths from root to declarations
@@ -128,7 +128,7 @@ const paths = collectDeclPaths(ast);
 Converts a declaration path back to an AST structure.
 
 ```typescript
-import { declPathToAst } from 'barocss';
+import { declPathToAst } from '@barocss/kit';
 
 const ast = declPathToAst(declPath);
 ```
@@ -140,7 +140,7 @@ The `IncrementalParser` class provides efficient processing of CSS classes with 
 ### Basic Usage
 
 ```typescript
-import { IncrementalParser, createContext } from 'barocss';
+import { IncrementalParser, createContext } from '@barocss/kit';
 
 const ctx = createContext();
 const parser = new IncrementalParser(ctx);
@@ -226,7 +226,7 @@ import {
   atRoot, 
   comment, 
   raw 
-} from 'barocss';
+} from '@barocss/kit';
 
 // Create declaration
 const colorDecl = decl('color', 'red');
@@ -303,7 +303,7 @@ parser.addToPending(['new-class-1', 'new-class-2']);
 ### Basic CSS Generation
 
 ```typescript
-import { createContext, generateCss } from 'barocss';
+import { createContext, generateCss } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {
@@ -326,7 +326,7 @@ import {
   parseClassToAst, 
   optimizeAst, 
   astToCss 
-} from 'barocss';
+} from '@barocss/kit';
 
 const ctx = createContext();
 
@@ -343,7 +343,7 @@ const css = astToCss(optimized, 'sm:dark:hover:bg-red-500/50');
 ### Incremental Processing
 
 ```typescript
-import { IncrementalParser, createContext } from 'barocss';
+import { IncrementalParser, createContext } from '@barocss/kit';
 
 const ctx = createContext();
 const parser = new IncrementalParser(ctx);

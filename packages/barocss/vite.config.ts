@@ -34,8 +34,6 @@ export default defineConfig({
       entry: {
         index: resolve(__dirname, 'src/index.ts'),
         'theme/default': resolve(__dirname, 'src/theme/index.ts'),
-        'runtime/browser': resolve(__dirname, 'src/runtime/browser-runtime.ts'),
-        'runtime/server': resolve(__dirname, 'src/runtime/server-runtime.ts'),
       },
       formats: ['es'],
       fileName: (format, entryName) => `${entryName}.js`

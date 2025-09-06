@@ -5,7 +5,7 @@ Extend BaroCSS with plugins that can register utilities, variants, and theme ext
 ## Using Plugins
 
 ```ts
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 function myPlugin(ctx, config) {
   // Extend theme

@@ -18,25 +18,25 @@ This guide will walk you through setting up BaroCSS in your project and writing 
 ### Using npm
 
 ```bash
-npm install barocss
+npm install @barocss/kit
 ```
 
 ### Using yarn
 
 ```bash
-yarn add barocss
+yarn add @barocss/kit
 ```
 
 ### Using pnpm
 
 ```bash
-pnpm add barocss
+pnpm add @barocss/kit
 ```
 
 ### Using CDN
 
 ```html
-<link href="https://cdn.barocss.com/barocss.min.css" rel="stylesheet">
+<link href="https://cdn.@barocss/kit.com/@barocss/kit.min.css" rel="stylesheet">
 ```
 
 ## Basic Setup
@@ -46,7 +46,7 @@ pnpm add barocss
 Create a CSS file (e.g., `styles.css`) and import BaroCSS:
 
 ```css
-@import "barocss";
+@import "@barocss/kit";
 ```
 
 ### 2. Include in Your HTML
@@ -196,8 +196,8 @@ Now that you have BaroCSS set up, here are some next steps:
 ## Resources
 
 - [Documentation](/guide/)
-- [GitHub Repository](https://github.com/barocss/barocss)
-- [Discord Community](https://discord.gg/barocss)
-- [Examples and Templates](https://github.com/barocss/examples)
+- [GitHub Repository](https://github.com/@barocss/kit/@barocss/kit)
+- [Discord Community](https://discord.gg/@barocss/kit)
+- [Examples and Templates](https://github.com/@barocss/kit/examples)
 
 Happy coding with BaroCSS!

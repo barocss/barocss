@@ -96,7 +96,7 @@ function generateAICard(data: any) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BaroCSS Example</title>
-  <script type="module" src="https://unpkg.com/barocss/dist/cdn/barocss.js"></script>
+  <script type="module" src="https://unpkg.com/@barocss/kit/dist/cdn/barocss.js"></script>
 </head>
 <body>
   <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl shadow-2xl">
@@ -114,7 +114,7 @@ function generateAICard(data: any) {
 
 ```typescript
 import React, { useEffect, useRef } from 'react';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 function App() {
   const runtimeRef = useRef<BrowserRuntime>();
@@ -168,7 +168,7 @@ export default App;
 
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = ref<BrowserRuntime>();
 
@@ -429,7 +429,7 @@ if (savedDarkMode === 'true') {
 ### Brand Colors
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -501,7 +501,7 @@ const runtime = new BrowserRuntime({
 ```typescript
 // pages/_app.tsx
 import { useEffect, useRef } from 'react';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 function MyApp({ Component, pageProps }) {
   const runtimeRef = useRef<BrowserRuntime>();
@@ -535,8 +535,8 @@ export default MyApp;
 ### Nuxt.js Integration
 
 ```typescript
-// plugins/barocss.client.ts
-import { BrowserRuntime } from 'barocss/runtime/browser';
+// plugins/@barocss/kit.client.ts
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 export default defineNuxtPlugin(() => {
   const runtime = new BrowserRuntime({
@@ -555,7 +555,7 @@ export default defineNuxtPlugin(() => {
 
   return {
     provide: {
-      barocss: runtime
+      @barocss/kit: runtime
     }
   };
 });
@@ -567,7 +567,7 @@ export default defineNuxtPlugin(() => {
 <!-- App.svelte -->
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { BrowserRuntime } from 'barocss/runtime/browser';
+  import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
   let runtime;
 
@@ -605,7 +605,7 @@ export default defineNuxtPlugin(() => {
 ```typescript
 // Lazy load BaroCSS for better performance
 const loadBaroCSS = async () => {
-  const { BrowserRuntime } = await import('barocss/runtime/browser');
+  const { BrowserRuntime } = await import('@barocss/kit/runtime/browser');
   
   const runtime = new BrowserRuntime({
     config: {
@@ -635,7 +635,7 @@ loadBaroCSS().then(runtime => {
 ```typescript
 // Only load BaroCSS in development
 if (process.env.NODE_ENV === 'development') {
-  const { BrowserRuntime } = await import('barocss/runtime/browser');
+  const { BrowserRuntime } = await import('@barocss/kit/runtime/browser');
   
   const runtime = new BrowserRuntime();
   runtime.observe(document.body, { scan: true });

@@ -12,7 +12,7 @@ The Server Runtime API provides server-side functionality for generating CSS wit
 The main class for server-side BaroCSS functionality.
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 
 const serverRuntime = new ServerRuntime({
   theme: {
@@ -141,7 +141,7 @@ You can also use the core functions directly for more control.
 ### parseClassToAst()
 
 ```typescript
-import { parseClassToAst, createContext } from 'barocss';
+import { parseClassToAst, createContext } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {
@@ -159,7 +159,7 @@ const ast = parseClassToAst('bg-brand', ctx);
 ### generateCss()
 
 ```typescript
-import { generateCss, createContext } from 'barocss';
+import { generateCss, createContext } from '@barocss/kit';
 
 const ctx = createContext();
 const css = generateCss('bg-blue-500 text-white p-4', ctx, {
@@ -171,7 +171,7 @@ const css = generateCss('bg-blue-500 text-white p-4', ctx, {
 ### generateCssRules()
 
 ```typescript
-import { generateCssRules, createContext } from 'barocss';
+import { generateCssRules, createContext } from '@barocss/kit';
 
 const ctx = createContext();
 const rules = generateCssRules('bg-blue-500 text-white', ctx);
@@ -188,7 +188,7 @@ rules.forEach(rule => {
 ### Static Site Generation
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 import fs from 'fs';
 
 // Initialize server runtime
@@ -223,7 +223,7 @@ fs.writeFileSync('dist/styles.css', css);
 ### Server-Side Rendering (SSR)
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 
 // Initialize once per request or globally
 const serverRuntime = new ServerRuntime({
@@ -261,7 +261,7 @@ function renderPage(componentClasses: string[]) {
 ### Build-Time CSS Generation
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 import { glob } from 'glob';
 
 // Initialize server runtime
@@ -301,7 +301,7 @@ async function generateCSS() {
 ### API Endpoint
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 import express from 'express';
 
 const app = express();
@@ -425,7 +425,7 @@ const css2 = serverRuntime.generateCss('bg-blue-500'); // Retrieved from cache
 For long-running processes, consider clearing caches periodically:
 
 ```typescript
-import { clearAllCaches } from 'barocss';
+import { clearAllCaches } from '@barocss/kit';
 
 // Clear caches periodically
 setInterval(() => {
@@ -438,7 +438,7 @@ setInterval(() => {
 ### Complete Build Script
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 import fs from 'fs';
 import path from 'path';
 

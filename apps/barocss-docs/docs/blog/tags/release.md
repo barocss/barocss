@@ -5,7 +5,7 @@ description: All blog posts tagged with release
 
 # Posts tagged with "release"
 
-## [Introducing BaroCSS](/blog/2025/introducing-barocss)
+## [Introducing BaroCSS](/blog/2025/introducing-@barocss/kit)
 
 **Jan 15, 2025** • **announcements**
 

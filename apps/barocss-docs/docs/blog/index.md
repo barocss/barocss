@@ -54,7 +54,7 @@ description: Latest updates, tutorials, and insights about BaroCSS
         <span class="blog-post-category">announcements</span>
       </div>
       <h2 class="blog-post-title">
-        <a href="/blog/2025/introducing-barocss">Introducing BaroCSS</a>
+        <a href="/blog/2025/introducing-@barocss/kit">Introducing BaroCSS</a>
       </h2>
       <p class="blog-post-excerpt">
         We're excited to announce the release of BaroCSS, a modern utility-first CSS framework built for the next generation of web development.
