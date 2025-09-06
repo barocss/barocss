@@ -20,7 +20,7 @@ const runtime = new BrowserRuntime(options?);
 }
 ```
 
-- config: See Configuration for `theme`, `preflight`, and plugins. Preflight values: true | false | 'minimal' | 'standard' | 'full'.
+- config: See Configuration for `theme` and `preflight`. Preflight values: true | false | 'minimal' | 'standard' | 'full'.
 - styleId: Prefix used when creating partitioned style elements.
 - insertionPoint: Determines where style tags are appended. You can pass a specific HTMLElement.
 - maxRulesPerPartition: Splits rules across multiple `<style>` tags to avoid large sheets.

@@ -1,7 +1,6 @@
 import { defaultTheme } from "../theme";
 import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
 import { clearAllCaches } from "../utils/cache";
-import { type Plugin } from "./plugin";
 import { preflightMinimalCSS, preflightStandardCSS, preflightFullCSS } from "../css/preflight";
 
 type PreflightLevel = 'minimal' | 'standard' | 'full' | true | false;
@@ -54,12 +53,6 @@ export interface Config {
    */
   preflight?: PreflightLevel;
   /**
-   * BAROCSS plugins for extending functionality
-   * - Can be plugin functions, plugin objects, or plugin arrays
-   * - Plugins are executed in order and can register utilities, variants, and theme extensions
-   */
-  plugins?: (Plugin | ((ctx: Context, config?: Config) => void))[];
-  /**
    * Whether to clear all caches when context is created/changed
    * - true (default): Clear all caches on context change
    * - false: Keep existing caches
@@ -77,7 +70,6 @@ export interface Context {
   hasPreset: (category: string, preset: string) => boolean;
   theme: (...path: (string|number)[]) => unknown;
   config: (...path: (string|number)[]) => unknown;
-  plugins: Plugin[];
   themeToCssVars: (prefix?: string) => string;
   // Safe API for extending theme from plugins
   extendTheme: (category: string, values: Record<string, unknown> | Function) => void;
@@ -201,7 +193,7 @@ export function themeGetter(themeObj: Theme, ...path: (string | number)[]): unkn
       staticInProgress?.delete(pathKey);
       return undefined;
     }
-    value = value[keys[i]];
+    value = (value as Record<string, unknown>)[keys[i]];
     // console.log(`[themeGetter] after accessing '${keys[i]}', value:`, value);
   }
 
@@ -225,7 +217,7 @@ export function configGetter(config: ContextRecord, ...path: (string|number)[]):
   } else {
     keys = path;
   }
-  return keys.reduce((acc, key) => (acc ? acc[key] : undefined), config) as unknown as ContextRecord;
+  return keys.reduce((acc: unknown, key) => (acc ? (acc as Record<string, unknown>)[key] : undefined), config) as unknown as ContextRecord;
 }
 
 // hasPreset
@@ -301,7 +293,6 @@ export function createContext(configObj: Config): Context {
       // console.log(`[config] path:`, args, `=>`, result);
       return result;
     },
-    plugins: (configWithDefaults.plugins ?? []) as Plugin[],
     themeToCssVars: () => themeToCssVars(themeObj),
     // Safe API for theme extension from plugins
     extendTheme: (category: string, values: Record<string, unknown> | Function) => {
@@ -358,54 +349,6 @@ export function createContext(configObj: Config): Context {
   // ctx.plugins = configWithDefaults.plugins ?? [];
   // ctx.themeToCssVars = () => themeToCssVars(themeObj);
 
-  // 3. Execute plugins after ctx is fully ready
-  if (configWithDefaults.plugins && configWithDefaults.plugins.length > 0) {
-    // console.log('--- Plugin execution start ---');
-    for (const plugin of configWithDefaults.plugins) {
-      try {
-        // Extract pluginConfig from the config
-        // const pluginConfig = configWithDefaults.pluginConfig || {}; // This line is removed
-        // console.log('Executing plugin:', plugin.name || '[function]', plugin);
-        
-        if (typeof plugin === 'function') {
-          // Plugin function - pass the full config
-          plugin(ctx, configWithDefaults);
-          // console.log('Executed plugin function');
-        } else if (plugin && typeof plugin.handler === 'function') {
-          // Plugin object - pass full config
-          plugin.handler(ctx, configWithDefaults);
-          // console.log('Executed plugin.handler for', plugin.name);
-          
-          // Handle theme extensions from plugins
-          // Check if this plugin has a theme function
-          if (plugin.theme && typeof plugin.theme === 'function') {
-            // console.log(`Calling theme function for plugin: ${plugin.name}`);
-            const pluginTheme = plugin.theme(ctx, configWithDefaults);
-            // console.log(`Plugin theme result:`, pluginTheme);
-            if (pluginTheme) {
-              // console.log(`Merging theme:`, pluginTheme);
-              // In-place merge for debugging
-              for (const key in pluginTheme) {
-                if (typeof pluginTheme[key] === 'object' && pluginTheme[key] !== null) {
-                  themeObj[key] = (themeObj[key] || {}) as Record<string, unknown>;
-                  Object.assign(themeObj[key] as Record<string, unknown>, pluginTheme[key] as Record<string, unknown>);
-                  // console.log(`themeObj[${key}] after merge:`, themeObj[key]);
-                } else {
-                  themeObj[key] = pluginTheme[key] as unknown;
-                  // console.log(`themeObj[${key}] set to:`, pluginTheme[key]);
-                }
-              }
-              // console.log(`Updated themeObj:`, themeObj);
-            }
-          }
-        }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error(`Error executing plugin ${plugin.name || 'unknown'}:`, error);
-      }
-    }
-    // console.log('--- Plugin execution end ---');
-  }
 
   // 4. Return
   return ctx;

@@ -225,7 +225,7 @@ Reset the runtime to initial state.
 runtime.reset();
 ```
 
-## Performance and Statistics
+## Statistics
 
 ### getStats()
 
@@ -371,7 +371,7 @@ try {
 
 1. **Initialize Once**: Create runtime once and reuse it
 2. **Use observe()**: Let the runtime handle DOM changes automatically
-3. **Monitor Performance**: Use `getStats()` to monitor performance
+3. **Monitor Statistics**: Use `getStats()` to monitor runtime statistics
 4. **Clean Up**: Call `destroy()` when done
 5. **Error Handling**: Always handle initialization errors
 
@@ -448,4 +448,4 @@ runtime.observe(document.body, {
 - [Context API](/api/context) - Configuration management
 - [Engine API](/api/engine) - Core CSS generation
 - [Server Runtime](/api/server-runtime) - Server-side usage
-- [Plugin System](/api/plugins) - Extending functionality
+- [Static Utility API](/api/static-utility) - Creating custom utilities

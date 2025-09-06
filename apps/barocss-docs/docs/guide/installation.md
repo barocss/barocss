@@ -1,14 +1,28 @@
 # Installation
 
-Get BaroCSS up and running in your project with these simple steps.
+::: tip Get Started Quickly
+BaroCSS can be installed via package manager or CDN. Choose the method that best fits your project setup.
+:::
 
 ## Prerequisites
 
-- Node.js 18+ or 20+
-- npm, yarn, or pnpm package manager
-- A modern web project (React, Vue, vanilla JS, etc.)
+::: details System Requirements
+- **Node.js**: 18+ or 20+ (for package manager installation)
+- **Package Manager**: npm, yarn, or pnpm
+- **Project Type**: Any modern web project (React, Vue, Svelte, vanilla JS, etc.)
+- **Browser Support**: Modern browsers with ES6+ support
+:::
 
-## Quick Install
+## Package Manager Installation
+
+::: details Recommended for Production
+Use a package manager for production applications with build tools.
+:::
+
+### Using pnpm (Recommended)
+```bash
+pnpm add @barocss/kit
+```
 
 ### Using npm
 ```bash
@@ -20,16 +34,24 @@ npm install @barocss/kit
 yarn add @barocss/kit
 ```
 
-### Using pnpm
-```bash
-pnpm add @barocss/kit
-```
+::: tip Why pnpm?
+- Faster installation
+- Better disk space efficiency
+- More reliable dependency resolution
+- Works great with monorepos
+:::
 
 ## CDN Installation
 
-For quick prototyping or when you don't want to use a package manager, you can include BaroCSS directly via CDN. BaroCSS provides both UMD and ES module builds for maximum compatibility.
+::: details Perfect for Prototyping
+Use CDN for quick prototypes, demos, or when you don't want to use a package manager. BaroCSS provides both UMD and ES module builds for maximum compatibility.
+:::
 
 ### Option 1: UMD Build (Recommended for Simple HTML)
+
+::: details Best for Simple HTML Pages
+UMD builds work in any environment and don't require module support.
+:::
 
 ```html
 <!DOCTYPE html>
@@ -57,6 +79,10 @@ For quick prototyping or when you don't want to use a package manager, you can i
 ```
 
 ### Option 2: ES Module Build
+
+::: details Best for Modern Development
+ES modules provide better tree-shaking and modern JavaScript features.
+:::
 
 ```html
 <!DOCTYPE html>
@@ -99,6 +125,10 @@ For quick prototyping or when you don't want to use a package manager, you can i
 
 ### Option 3: Dynamic Import (Advanced)
 
+::: details Best for Conditional Loading
+Load BaroCSS only when needed, perfect for progressive enhancement.
+:::
+
 ```html
 <script>
 async function initBaroCSS() {
@@ -123,7 +153,9 @@ initBaroCSS();
 
 ### CDN Providers
 
-BaroCSS is available on multiple CDN providers:
+::: details Available CDN Options
+BaroCSS is available on multiple CDN providers for maximum compatibility and performance.
+:::
 
 - **unpkg**: `https://unpkg.com/@barocss/kit@latest/dist/cdn/`
 - **jsDelivr**: `https://cdn.jsdelivr.net/npm/@barocss/kit@latest/dist/cdn/`
@@ -131,7 +163,9 @@ BaroCSS is available on multiple CDN providers:
 
 ### Version Pinning
 
-For production use, always pin to a specific version:
+::: warning Production Best Practice
+For production use, always pin to a specific version to ensure stability and avoid breaking changes.
+:::
 
 ```html
 <!-- Pin to specific version -->
@@ -143,7 +177,13 @@ For production use, always pin to a specific version:
 
 ## Framework Integration
 
+::: details Framework-Specific Setup
+BaroCSS works with any JavaScript framework. Here are examples for popular frameworks.
+:::
+
 ### React
+
+::: details React Integration
 ```tsx
 import React from 'react';
 import { BrowserRuntime } from '@barocss/kit/runtime/browser';
@@ -167,8 +207,11 @@ function App() {
 
 export default App;
 ```
+:::
 
 ### Vue
+
+::: details Vue Integration
 ```vue
 <template>
   <div class="bg-gradient-to-r from-green-500 to-blue-600 text-white p-6 rounded-xl">
@@ -190,8 +233,11 @@ onMounted(() => {
 });
 </script>
 ```
+:::
 
 ### Vanilla JavaScript
+
+::: details Vanilla JS Integration
 ```javascript
 import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
@@ -204,10 +250,17 @@ document.addEventListener('DOMContentLoaded', () => {
   runtime.observe(document.body, { scan: true });
 });
 ```
+:::
 
 ## Configuration
 
+::: details Runtime Configuration
+Configure BaroCSS behavior, theme, and runtime options to match your project needs.
+:::
+
 ### Basic Configuration
+
+::: details Essential Settings
 ```javascript
 import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
@@ -225,28 +278,11 @@ const runtime = new BrowserRuntime({
   },
 });
 ```
-
-```javascript
-{
-  // Runtime options
-  config: {
-    // Preflight level: true | false | 'minimal' | 'standard' | 'full'
-    preflight: true,
-    theme: {
-      colors: {
-        primary: '#3B82F6',
-        secondary: '#8B5CF6',
-      },
-    },
-  },
-  styleId: '@barocss/kit-runtime', // id of the style element
-  insertionPoint: 'head', // insertion point for the style element
-  maxRulesPerPartition: 50, // maximum number of rules per partition
-}
-```
-
+:::
 
 ### Advanced Configuration
+
+::: details Complete Runtime Options
 ```javascript
 import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 import { createTheme } from '@barocss/kit/theme';
@@ -272,6 +308,10 @@ const runtime = new BrowserRuntime({
     // Preflight level: true | false | 'minimal' | 'standard' | 'full'
     preflight: true,
   },
+  // Runtime options
+  styleId: '@barocss/kit-runtime', // id of the style element
+  insertionPoint: 'head', // insertion point for the style element
+  maxRulesPerPartition: 50, // maximum number of rules per partition
 });
 
 // observe options
@@ -282,30 +322,69 @@ runtime.observe(document.body, {
   onReady: () => {},
 });
 ```
+:::
 
 ## Next Steps
 
-Now that you have BaroCSS installed, continue with:
+::: tip Ready to Build?
+Now that you have BaroCSS installed, continue with these guides:
+:::
 
-- [Quick Start](/guide/quick-start) - Create your first styled component
-- [JIT Mode](/guide/jit-mode) - Understand how JIT compilation works
-- [Theme Configuration](/guide/theme-variables) - Customize your design system
-- [Examples](/examples/) - See BaroCSS in action
+- **[Quick Start](/guide/quick-start)** - Create your first styled component
+- **[JIT Mode](/guide/jit-mode)** - Understand how JIT compilation works
+- **[Theme Configuration](/guide/theme-variables)** - Customize your design system
+- **[Examples](/examples/)** - See BaroCSS in action
 
 ## Troubleshooting
 
-### Common Issues
+::: details Common Issues and Solutions
+If you encounter issues during installation or setup, check these common problems and solutions.
+:::
 
-**Module not found error**
+### Module not found error
+
+::: warning Package Installation Issue
 ```bash
 Error: Cannot find module '@barocss/kit'
 ```
-Make sure you've installed the package correctly and your Node.js version is compatible.
 
-**Runtime not working**
+**Solutions:**
+- Verify the package is installed: `pnpm list @barocss/kit`
+- Check your Node.js version: `node --version` (should be 18+)
+- Clear package manager cache and reinstall
+- Ensure you're in the correct project directory
+:::
+
+### Runtime not working
+
+::: warning Runtime Initialization Issue
 If styles aren't being generated, ensure you've initialized the BrowserRuntime before using BaroCSS classes.
 
-**Build errors**
+**Checklist:**
+- ✅ BrowserRuntime is imported correctly
+- ✅ Runtime is initialized before DOM manipulation
+- ✅ `runtime.observe()` is called with correct element
+- ✅ Classes are added after runtime initialization
+:::
+
+### Build errors
+
+::: warning Build Tool Configuration
 For build tool issues, check that your bundler is configured to handle ES modules correctly.
 
-Need help? Check our [GitHub issues](https://github.com/your-org/@barocss/kit/issues) or [Discord community](https://discord.gg/@barocss/kit).
+**Common fixes:**
+- Update your bundler to latest version
+- Check ES module configuration
+- Verify import/export syntax
+- Clear build cache and rebuild
+:::
+
+### Getting Help
+
+::: tip Community Support
+Need help? Check these resources:
+:::
+
+- **[GitHub Issues](https://github.com/your-org/@barocss/kit/issues)** - Report bugs and request features
+- **[Discord Community](https://discord.gg/@barocss/kit)** - Get help from the community
+- **[Documentation](/guide/)** - Comprehensive guides and API reference

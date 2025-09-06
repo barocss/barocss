@@ -55,7 +55,7 @@ Theme configuration in BaroCSS isn't _just_ CSS variables — it also instructs 
 Since BaroCSS generates CSS in real-time, JavaScript/TypeScript configuration provides:
 - **Type safety** with TypeScript
 - **Dynamic configuration** based on runtime conditions
-- **Plugin integration** for extending functionality
+- **Custom utilities** for extending functionality
 - **Better IDE support** with autocomplete and validation
 
 You can still use regular CSS variables with `:root` in BaroCSS projects when you want to define a variable that isn't meant to be connected to a utility class. Use theme configuration when you want a design token to map directly to a utility class.

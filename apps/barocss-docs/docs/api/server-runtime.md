@@ -361,9 +361,7 @@ const serverRuntime = new ServerRuntime({
         }
       }
     },
-    plugins: [
-      // Custom plugins
-    ]
+    // Custom utilities are registered globally
   }
 });
 ```
@@ -408,11 +406,9 @@ try {
 }
 ```
 
-## Performance Considerations
+## Caching
 
-### Caching
-
-The server runtime includes built-in caching for optimal performance:
+The server runtime includes built-in caching:
 
 ```typescript
 // Classes are cached automatically
@@ -420,7 +416,7 @@ const css1 = serverRuntime.generateCss('bg-blue-500'); // Parsed and cached
 const css2 = serverRuntime.generateCss('bg-blue-500'); // Retrieved from cache
 ```
 
-### Memory Management
+### Cache Management
 
 For long-running processes, consider clearing caches periodically:
 
@@ -498,4 +494,4 @@ buildCSS().catch(console.error);
 - [Context API](/api/context) - Configuration management
 - [Engine API](/api/engine) - Core CSS generation
 - [Browser Runtime](/api/browser-runtime) - Browser integration
-- [Plugin System](/api/plugins) - Extending functionality
+- [Static Utility API](/api/static-utility) - Creating custom utilities

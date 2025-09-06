@@ -5,32 +5,404 @@ description: Core CSS generation and AST processing in BaroCSS
 
 # Engine API
 
+::: tip Learning Path
+This is **Step 2** in the BaroCSS API learning path. Learn how CSS is generated from utility classes.
+:::
+
 The Engine API provides the core functionality for parsing class names, building Abstract Syntax Trees (ASTs), and generating CSS. This is the foundation that powers all CSS generation in BaroCSS.
+
+## 🎯 What You'll Learn
+
+- How utility classes are parsed into ASTs
+- The CSS generation process step by step
+- Core functions for processing classes
+- How to use the engine directly
+
+## 📚 Prerequisites
+
+- **[Context API](/api/context)** - Understanding contexts and configuration
+- **[Parser API](/api/parser)** - Understanding class parsing and tokenization
+
+## 📚 Next Steps
+
+After mastering the Engine API, continue with:
+- **[AST Processing API](/api/ast-processing)** - Detailed AST manipulation
+- **[Static Utility API](/api/static-utility)** - Creating custom utilities
+- **[Functional Utility API](/api/functional-utility)** - Creating dynamic utilities
+
+## CSS Generation Process
+
+BaroCSS transforms utility classes into optimized CSS through a sophisticated AST processing pipeline. The `@optimizeAst()` function is the core of this process.
+
+### Process Overview
+
+```mermaid
+graph TD
+    A[Utility Classes] --> B[parseClassToAst]
+    B --> C[Raw AST Nodes]
+    C --> D[collectDeclPaths]
+    D --> E[Declaration Paths]
+    E --> F[declPathToAst]
+    F --> G[Nested AST Structures]
+    G --> H[mergeAstTreeList]
+    H --> I[Optimized AST Tree]
+    I --> J[astToCss]
+    J --> K[Final CSS Output]
+    
+    style A fill:#e1f5fe
+    style K fill:#c8e6c9
+    style D fill:#fff3e0
+    style F fill:#fff3e0
+    style H fill:#fff3e0
+```
+
+### Step-by-Step Breakdown
+
+#### 1. Parse Utility Classes
+```typescript
+// Input: "hover:bg-blue-500"
+const ast = parseClassToAst('hover:bg-blue-500', ctx);
+// Output: Raw AST nodes with variant structure
+```
+
+#### 2. Collect Declaration Paths
+```typescript
+const declPaths = collectDeclPaths(ast);
+// Extracts all paths from AST tree to declaration nodes
+```
+
+#### 3. Convert to Nested AST
+```typescript
+const astList = declPaths.map(declPathToAst);
+// Converts each path to properly nested AST structure
+```
+
+#### 4. Merge and Optimize
+```typescript
+const merged = mergeAstTreeList(astList);
+// Merges multiple AST trees into single optimized tree
+```
+
+#### 5. Generate CSS
+```typescript
+const css = astToCss(merged);
+// Converts optimized AST to final CSS output
+```
+
+For detailed information about this process, see the [AST Processing API](/api/ast-processing).
+
+## Utility and Modifier Connection
+
+The Engine API is responsible for connecting utilities with their modifiers to generate CSS. This process involves several key components working together:
+
+### 1. Utility Registration System
+
+Utilities are registered in the global registry and matched against class names:
+
+```typescript
+// Utility registration example
+registerUtility({
+  name: 'bg',
+  match: (className) => className.startsWith('bg-'),
+  handler: (value, ctx, token) => {
+    const color = ctx.theme('colors', value);
+    return [decl('background-color', color)];
+  },
+  category: 'background',
+  description: 'Background color utilities'
+});
+```
+
+### 2. Modifier Plugin System
+
+Modifiers (variants) are handled through a plugin system that can modify selectors and wrap AST nodes:
+
+```typescript
+// Static modifier example
+staticModifier('hover', ['&:hover'], {
+  source: 'pseudo',
+  sort: 10
+});
+
+// Functional modifier example
+functionalModifier(
+  (mod) => mod.startsWith('sm:'),
+  ({ selector }) => ({
+    selector: `@media (min-width: 640px) { ${selector} }`,
+    wrappingType: 'at-rule',
+    source: 'responsive'
+  })
+);
+```
+
+### 3. Class Name Parsing Process
+
+When a class name like `hover:bg-blue-500` is processed:
+
+1. **Tokenization**: Split into `['hover', 'bg-blue-500']`
+2. **Utility Matching**: Find `bg` utility that matches `bg-blue-500`
+3. **Modifier Processing**: Apply `hover` modifier to the utility
+4. **Value Extraction**: Extract `blue-500` as the utility value
+5. **AST Generation**: Create AST nodes with proper nesting
+
+### 4. Connection Flow
+
+```mermaid
+graph TD
+    A[Class Name: hover:bg-blue-500] --> B[Tokenize]
+    B --> C[Parse Modifiers: hover]
+    B --> D[Parse Utility: bg-blue-500]
+    D --> E[Match Utility: bg]
+    E --> F[Extract Value: blue-500]
+    F --> G[Generate Base AST]
+    C --> H[Apply Modifier: hover]
+    H --> I[Wrap AST with :hover selector]
+    G --> I
+    I --> J[Final AST with nested structure]
+    
+    style A fill:#e1f5fe
+    style J fill:#c8e6c9
+    style E fill:#fff3e0
+    style H fill:#fff3e0
+```
+
+### 5. Modifier Processing Details
+
+Modifiers can affect CSS generation in multiple ways:
+
+#### Selector Modification
+```typescript
+// Input: hover:bg-blue-500
+// Modifier: hover
+// Result: &:hover { background-color: #3b82f6; }
+```
+
+#### Media Query Wrapping
+```typescript
+// Input: sm:bg-blue-500
+// Modifier: sm (responsive)
+// Result: @media (min-width: 640px) { & { background-color: #3b82f6; } }
+```
+
+#### Complex Nesting
+```typescript
+// Input: sm:dark:hover:bg-blue-500
+// Modifiers: sm, dark, hover
+// Result: @media (min-width: 640px) { .dark &:hover { background-color: #3b82f6; } }
+```
+
+### 6. Utility Value Resolution
+
+The engine resolves utility values through the context system:
+
+```typescript
+// Theme-based resolution
+const color = ctx.theme('colors', 'blue-500'); // #3b82f6
+
+// Arbitrary value handling
+const arbitrary = ctx.theme('colors', '[#ff0000]'); // #ff0000
+
+// Custom property handling
+const custom = ctx.theme('colors', '(var(--my-color))'); // var(--my-color)
+```
+
+### 7. Priority and Sorting
+
+Utilities and modifiers are processed in priority order:
+
+```typescript
+// Utility priority example
+registerUtility({
+  name: 'bg',
+  priority: 10, // Higher priority = processed first
+  // ...
+});
+
+// Modifier priority example
+staticModifier('hover', ['&:hover'], {
+  sort: 20, // Higher sort = applied later (outer wrapper)
+});
+```
+
+## parseClassToAst: The Core Connection Function
+
+The `parseClassToAst` function is the heart of the Engine API, responsible for connecting utilities with their modifiers to generate AST structures. This function orchestrates the entire process from class name parsing to final AST generation.
+
+### Function Signature
+
+```typescript
+function parseClassToAst(
+  fullClassName: string,
+  ctx: Context
+): AstNode[]
+```
+
+### Step-by-Step Process
+
+#### 1. **Caching and Validation**
+```typescript
+// Check failure cache for invalid classes
+if (failureCache.has(fullClassName)) {
+  return [];
+}
+
+// Check AST cache for previously processed classes
+const cacheKey = `${fullClassName}:${contextHash}`;
+if (astCache.has(cacheKey)) {
+  return astCache.get(cacheKey)!;
+}
+```
+
+#### 2. **Class Name Parsing**
+```typescript
+const { modifiers, utility } = parseClassName(fullClassName);
+// Example: 'sm:dark:hover:bg-blue-500'
+// modifiers: [{ type: 'sm' }, { type: 'dark' }, { type: 'hover' }]
+// utility: { prefix: 'bg', value: 'blue-500', ... }
+```
+
+#### 3. **Utility Matching and Handler Execution**
+```typescript
+const utilReg = getUtility().find((u) => {
+  const fullClassName = utility.value
+    ? `${utility.prefix}-${utility.value}`
+    : utility.prefix;
+  return u.match(fullClassName);
+});
+
+// Execute utility handler to generate base AST
+let ast = utilReg.handler(value!, ctx, utility, utilReg) || [];
+// Result: [{ type: "decl", prop: "background-color", value: "#3b82f6" }]
+```
+
+#### 4. **Modifier Processing Loop**
+```typescript
+const wrappers = [];
+const selector = "&";
+
+for (let i = 0; i < modifiers.length; i++) {
+  const variant = modifiers[i];
+  const plugin = getModifierPlugins().find((p) => p.match(variant.type, ctx));
+  
+  if (plugin.modifySelector) {
+    const result = plugin.modifySelector({
+      selector,
+      fullClassName,
+      mod: variant,
+      context: ctx,
+      variantChain: modifiers,
+      index: i,
+    });
+    // Process result and add to wrappers array
+  }
+}
+```
+
+#### 5. **Wrapper Nesting (Right-to-Left)**
+```typescript
+// Nest wrappers in N→0 (right→left) order
+for (let i = wrappers.length - 1; i >= 0; i--) {
+  const wrap = wrappers[i];
+  
+  if (wrap.type === "rule") {
+    ast = [{
+      type: "rule",
+      selector: wrap.selector!,
+      source: wrap.source,
+      nodes: Array.isArray(ast) ? ast : [ast],
+    }];
+  } else if (wrap.type === "at-rule") {
+    ast = [{
+      type: "at-rule",
+      name: wrap.name || "media",
+      params: wrap.params!,
+      source: wrap.source,
+      nodes: Array.isArray(ast) ? ast : [ast],
+    }];
+  }
+}
+```
+
+
+### Key Features
+
+#### 1. **Caching System**
+- **Failure Cache**: Remembers invalid classes to avoid reprocessing
+- **AST Cache**: Caches successful results with context hash
+- **Context-Aware**: Cache keys include theme and configuration changes
+
+#### 2. **Error Handling**
+- Graceful handling of unknown utilities and modifiers
+- Warning messages for debugging
+- Returns empty array for invalid classes
+
+#### 3. **Flexible Wrapper System**
+- Supports multiple wrapper types: `rule`, `at-rule`, `style-rule`, `wrap`
+- Right-to-left nesting for proper CSS structure
+- Source tracking for debugging and optimization
+
+#### 4. **At-Root Extraction**
+- Automatically extracts `@at-root` nodes to the top level
+- Maintains proper CSS structure for root-level declarations
+
+### Performance Optimizations
+
+1. **Multi-level Caching**: Prevents redundant processing
+2. **Early Returns**: Fails fast for invalid classes
+3. **Efficient Lookups**: Uses optimized utility and modifier matching
+4. **Memory Management**: Clears caches when context changes
 
 ## Core Functions
 
-### parseClassToAst()
 
-Parses a CSS class name into an Abstract Syntax Tree.
+### optimizeAst()
+
+The core function that merges and organizes AST generated by `parseClassToAst` into an optimized AST tree based on declaration-to-root paths.
 
 ```typescript
-import { parseClassToAst, createContext } from '@barocss/kit';
+import { optimizeAst, parseClassToAst, createContext } from '@barocss/kit';
 
 const ctx = createContext();
-const ast = parseClassToAst('bg-blue-500 hover:bg-blue-600', ctx);
+const ast = parseClassToAst('hover:bg-blue-500 focus:ring-2', ctx);
+const optimized = optimizeAst(ast);
 ```
 
 **Parameters:**
-- `className` (string): The CSS class name to parse
-- `ctx` (Context): BaroCSS context
+- `ast` (AstNode[]): AST nodes from `parseClassToAst`
 
 **Returns:**
-- `AstNode[]`: Array of AST nodes representing the parsed class
+- `AstNode[]`: Optimized AST tree with merged and organized structure
+
+**Process:**
+1. **Collect Declaration Paths**: Extracts all paths from AST tree to declaration nodes
+2. **Convert to Nested AST**: Converts each path to properly nested AST structure
+3. **Merge and Optimize**: Merges multiple AST trees into single optimized tree
 
 **Example:**
 ```typescript
-const ast = parseClassToAst('sm:dark:hover:bg-red-500', ctx);
-// Returns AST with media query, dark mode, and hover variants
+// Input AST from parseClassToAst
+const ast = [
+  {
+    type: "rule",
+    selector: "&:hover",
+    source: "pseudo",
+    nodes: [
+      { type: "decl", prop: "background-color", value: "#3b82f6" }
+    ]
+  },
+  {
+    type: "rule",
+    selector: "&:focus",
+    source: "pseudo",
+    nodes: [
+      { type: "decl", prop: "box-shadow", value: "0 0 0 2px #3b82f6" }
+    ]
+  }
+];
+
+// After optimizeAst
+const optimized = optimizeAst(ast);
+// Returns merged and optimized AST structure
 ```
 
 ### generateCss()
@@ -99,103 +471,7 @@ interface GenerateCssRulesResult {
 }
 ```
 
-## AST Processing
 
-### optimizeAst()
-
-Optimizes AST by merging and organizing nodes for efficient CSS generation.
-
-```typescript
-import { optimizeAst, parseClassToAst } from '@barocss/kit';
-
-const ast = parseClassToAst('bg-blue-500', ctx);
-const optimized = optimizeAst(ast);
-```
-
-### collectDeclPaths()
-
-Collects all declaration paths from an AST tree.
-
-```typescript
-import { collectDeclPaths } from '@barocss/kit';
-
-const paths = collectDeclPaths(ast);
-// Returns array of paths from root to declarations
-```
-
-### declPathToAst()
-
-Converts a declaration path back to an AST structure.
-
-```typescript
-import { declPathToAst } from '@barocss/kit';
-
-const ast = declPathToAst(declPath);
-```
-
-## Incremental Parser
-
-The `IncrementalParser` class provides efficient processing of CSS classes with caching and batch processing.
-
-### Basic Usage
-
-```typescript
-import { IncrementalParser, createContext } from '@barocss/kit';
-
-const ctx = createContext();
-const parser = new IncrementalParser(ctx);
-
-// Process single class
-const result = parser.processClass('bg-blue-500');
-
-// Process multiple classes
-const results = parser.processClasses(['bg-blue-500', 'text-white', 'p-4']);
-```
-
-### Class: IncrementalParser
-
-```typescript
-class IncrementalParser {
-  constructor(ctx: Context);
-  
-  // Process single class
-  processClass(className: string): GenerateCssRulesResult | null;
-  
-  // Process multiple classes
-  processClasses(classes: string[]): GenerateCssRulesResult[];
-  
-  // Add classes to pending queue
-  addToPending(classes: string[]): void;
-  
-  // Get processing statistics
-  getStats(): ParserStats;
-  
-  // Clear processed classes
-  clearProcessed(): void;
-  
-  // Check if class is processed
-  isProcessed(cls: string): boolean;
-  
-  // Mark class as processed
-  markProcessed(cls: string): void;
-  
-  // Get all processed classes
-  getProcessedClasses(): string[];
-}
-```
-
-### Parser Statistics
-
-```typescript
-interface ParserStats {
-  processedClasses: number;
-  pendingClasses: number;
-  cacheStats: {
-    ast: CacheStats;
-    css: CacheStats;
-  };
-}
-```
 
 ## AST Node Types
 
@@ -267,125 +543,14 @@ const optimized = optimizeAst(ast);
 const css = astToCss(optimized, className);
 ```
 
-## Performance Features
 
-### Caching
-
-BaroCSS includes multiple caching layers for optimal performance:
-
-- **AST Cache**: Caches parsed ASTs
-- **Parse Result Cache**: Caches parsed class names
-- **Utility Cache**: Caches utility prefix lookups
-- **Failure Cache**: Caches invalid class names
-
-### Batch Processing
-
-The IncrementalParser supports efficient batch processing:
-
-```typescript
-const parser = new IncrementalParser(ctx);
-
-// Process classes in batches
-const results = parser.processClasses([
-  'bg-blue-500',
-  'text-white',
-  'p-4',
-  'hover:bg-blue-600',
-  'focus:ring-2'
-]);
-
-// Add to pending queue for async processing
-parser.addToPending(['new-class-1', 'new-class-2']);
-```
-
-## Examples
-
-### Basic CSS Generation
-
-```typescript
-import { createContext, generateCss } from '@barocss/kit';
-
-const ctx = createContext({
-  theme: {
-    extend: {
-      colors: {
-        brand: '#3b82f6'
-      }
-    }
-  }
-});
-
-const css = generateCss('bg-brand text-white p-4 rounded-lg', ctx);
-```
-
-### Advanced AST Processing
-
-```typescript
-import { 
-  createContext, 
-  parseClassToAst, 
-  optimizeAst, 
-  astToCss 
-} from '@barocss/kit';
-
-const ctx = createContext();
-
-// Parse complex class
-const ast = parseClassToAst('sm:dark:hover:bg-red-500/50', ctx);
-
-// Optimize AST
-const optimized = optimizeAst(ast);
-
-// Generate CSS
-const css = astToCss(optimized, 'sm:dark:hover:bg-red-500/50');
-```
-
-### Incremental Processing
-
-```typescript
-import { IncrementalParser, createContext } from '@barocss/kit';
-
-const ctx = createContext();
-const parser = new IncrementalParser(ctx);
-
-// Process classes incrementally
-const results = parser.processClasses([
-  'bg-blue-500',
-  'text-white',
-  'p-4'
-]);
-
-// Get statistics
-const stats = parser.getStats();
-console.log(`Processed ${stats.processedClasses} classes`);
-```
-
-## Error Handling
-
-The Engine API includes comprehensive error handling:
-
-```typescript
-try {
-  const ast = parseClassToAst('invalid-class', ctx);
-  if (ast.length === 0) {
-    console.warn('Invalid class name');
-  }
-} catch (error) {
-  console.error('Parsing error:', error);
-}
-```
-
-## Best Practices
-
-1. **Reuse Contexts**: Create contexts once and reuse them
-2. **Use IncrementalParser**: For applications with many classes
-3. **Batch Processing**: Process multiple classes together
-4. **Cache Management**: Monitor cache statistics for performance
-5. **Error Handling**: Always handle parsing errors gracefully
 
 ## Related APIs
 
 - [Context API](/api/context) - Theme and configuration management
-- [Parser API](/api/engine) - Class name parsing details
+- [Parser API](/api/parser) - Class name parsing and tokenization
+- [AST Processing API](/api/ast-processing) - Advanced AST manipulation
+- [Static Utility API](/api/static-utility) - Creating custom utilities
+- [Functional Utility API](/api/functional-utility) - Creating dynamic utilities
 - [Browser Runtime](/api/browser-runtime) - Browser integration
 - [Server Runtime](/api/server-runtime) - Server-side usage

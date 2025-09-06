@@ -89,7 +89,11 @@ Ready to get started? Continue with:
 - [Engine API](/api/engine) - CSS generation engine
 - [Browser Runtime](/api/browser-runtime) - Browser-specific APIs
 - [Server Runtime](/api/server-runtime) - Server-side rendering
-- [Plugin System](/api/plugins) - Extending functionality
+- [Static Utility API](/api/static-utility) - Creating fixed utilities
+- [Functional Utility API](/api/functional-utility) - Creating dynamic utilities
+- [Static Modifier API](/api/static-modifier) - Creating fixed modifiers
+- [Functional Modifier API](/api/functional-modifier) - Creating dynamic modifiers
+- [Custom Utilities](/guide/adding-custom-styles) - Extending functionality
 - [Configuration](/api/configuration) - Setup and options
 
 ### Examples

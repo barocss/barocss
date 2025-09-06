@@ -646,6 +646,6 @@ if (process.env.NODE_ENV === 'development') {
 
 - [API Reference](/api/) - Complete API documentation
 - [Configuration](/api/configuration) - Configuration options
-- [Plugin System](/api/plugins) - Extending BaroCSS
+- [Custom Utilities](/guide/adding-custom-styles) - Extending BaroCSS
 - [Browser Runtime](/api/browser-runtime) - Browser integration
 - [Server Runtime](/api/server-runtime) - Server-side usage

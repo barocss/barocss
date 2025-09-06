@@ -42,9 +42,11 @@ By default this uses the `prefers-color-scheme` CSS media feature, but you can a
 
 If you want your dark theme to be driven by a CSS selector instead of the `prefers-color-scheme` media query, override the `dark` variant to use your custom selector:
 
-```css
-@import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
+```typescript
+import { staticModifier } from '@barocss/kit';
+
+// Register custom dark mode variant
+staticModifier('dark', ['.dark', '.dark *']);
 ```
 
 Now instead of `dark:*` utilities being applied based on `prefers-color-scheme`, they will be applied whenever the `dark` class is present earlier in the HTML tree:
@@ -65,9 +67,11 @@ How you add the `dark` class to the `html` element is up to you, but a common ap
 
 To use a data attribute instead of a class to activate dark mode, just override the `dark` variant with an attribute selector instead:
 
-```css
-@import "tailwindcss";
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+```typescript
+import { staticModifier } from '@barocss/kit';
+
+// Register custom dark mode variant with data-theme attribute
+staticModifier('dark', ['[data-theme=dark]', '[data-theme=dark] *']);
 ```
 
 Now dark mode utilities will be applied whenever the `data-theme` attribute is set to `dark` somewhere up the tree:

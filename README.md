@@ -27,7 +27,6 @@ The documentation includes:
 - Getting Started guide
 - Installation instructions
 - Core concepts explanation
-- Plugin system documentation
 - Complete API reference
 - Real-world examples
 
@@ -42,7 +41,7 @@ The documentation includes:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BaroCSS App</title>
-  <script type="module" src="https://unpkg.com/@barocss/kit/dist/cdn/barocss.js"></script>
+  <script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
 </head>
 <body>
   <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl shadow-2xl">
@@ -299,26 +298,24 @@ BaroCSS supports **95%+ of Tailwind CSS utilities**:
 - **Tree Shaking** - Removes unused utilities automatically
 - **Minimal Output** - Generates optimized CSS
 
-## 🔌 Plugin System
+## 🔧 Custom Utilities
 
-Extend BaroCSS with custom utilities and variants:
+Extend BaroCSS with custom utilities using the global registry functions:
 
 ```typescript
-const customPlugin = (ctx: Context) => {
-  // Register custom utilities
-  ctx.extendTheme('colors', {
-    'custom-blue': '#1e40af',
-    'custom-green': '#059669'
-  });
-  
-  // Add custom variants
-  // ... plugin implementation
-};
+import { staticUtility, functionalUtility } from '@barocss/kit';
 
-const runtime = new BrowserRuntime({
-  config: {
-    plugins: [customPlugin]
-  }
+// Register static utilities
+staticUtility('custom-bg', [
+  ['background-color', 'var(--custom-color)'],
+  ['border-radius', '8px']
+]);
+
+// Register functional utilities
+functionalUtility({
+  name: 'custom-text',
+  prop: 'color',
+  handle: (value) => [decl('color', value)]
 });
 ```
 
@@ -382,7 +379,6 @@ For detailed documentation, visit our [documentation site](https://barocss.com/)
 - [Getting Started](apps/barocss-docs/docs/guide/getting-started.md)
 - [Installation Guide](apps/barocss-docs/docs/guide/installation.md)
 - [Core Concepts](apps/barocss-docs/docs/guide/index.md)
-- [Plugin System](apps/barocss-docs/docs/guide/plugins.md)
 - [API Reference](apps/barocss-docs/docs/api/index.md)
 - [Examples](apps/barocss-docs/docs/examples/index.md)
 

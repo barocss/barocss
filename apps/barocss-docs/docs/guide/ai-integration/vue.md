@@ -14,38 +14,52 @@ yarn add @barocss/kit
 pnpm add @barocss/kit@latest
 ```
 
-### 2. Vue Plugin Setup
+### 2. Vue Integration Setup
 
 ```javascript
 // plugins/barocss.js
 import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
-export default {
-  install(app, options) {
-    const runtime = new BrowserRuntime(options);
-    
-    app.config.globalProperties.$@barocss/kit = runtime;
-    
-    app.mixin({
-      mounted() {
-        if (!window.__@barocss/kit_initialized) {
-          runtime.init();
-          window.__@barocss/kit_initialized = true;
-        }
-      }
-    });
-  }
-};
+export function setupBaroCSS(options) {
+  const runtime = new BrowserRuntime(options);
+  
+  return runtime;
+}
 ```
 
 ```javascript
 // main.js
 import { createApp } from 'vue';
 import App from './App.vue';
-import BaroCSSPlugin from './plugins/barocss.js';
+import { setupBaroCSS } from './plugins/barocss.js';
 
 const app = createApp(App);
-app.use(BaroCSSPlugin);
+
+// Initialize BaroCSS
+const barocssRuntime = setupBaroCSS({
+  config: {
+    theme: {
+      extend: {
+        colors: {
+          'brand-primary': '#3b82f6',
+          'brand-secondary': '#64748b'
+        }
+      }
+    }
+  }
+});
+
+app.config.globalProperties.$barocss = barocssRuntime;
+
+app.mixin({
+  mounted() {
+    if (!window.__barocss_initialized) {
+      barocssRuntime.observe(document.body, { scan: true });
+      window.__barocss_initialized = true;
+    }
+  }
+});
+
 app.mount('#app');
 ```
 

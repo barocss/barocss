@@ -1,7 +1,7 @@
 ---
 layout: home
 hero:
-  name: @barocss/kit
+  name: "@barocss/kit"
   text: Enhanced Tailwind Runtime
   tagline: The next-generation CSS parser that brings Tailwind's JIT mode to real-time development
   actions:

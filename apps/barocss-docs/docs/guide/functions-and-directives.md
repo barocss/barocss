@@ -4,7 +4,7 @@ A reference for the core APIs and functions that BaroCSS exposes for real-time C
 
 ## Core APIs
 
-BaroCSS provides a comprehensive set of APIs for managing themes, generating CSS, and extending functionality through plugins.
+BaroCSS provides a comprehensive set of APIs for managing themes, generating CSS, and extending functionality through custom utilities.
 
 ### Context API
 
@@ -101,30 +101,27 @@ const css = runtime.generateCssForClasses(['bg-brand-primary', 'text-white']);
 
 Learn more about runtime APIs in the [Browser Runtime](/api/browser-runtime) and [Server Runtime](/api/server-runtime) documentation.
 
-### Plugin System
+### Custom Utilities
 
-Use the Plugin System to extend BaroCSS functionality:
+Use the global registry functions to extend BaroCSS functionality:
 
 ```typescript
-import { createUtilityPlugin, createVariantPlugin } from '@barocss/kit';
+import { staticUtility, functionalUtility } from '@barocss/kit';
 
-// Create a custom utility plugin
-const customUtilityPlugin = createUtilityPlugin('tab-4', {
-  'tab-size': '4'
-});
+// Register static utility
+staticUtility('tab-4', [
+  ['tab-size', '4']
+]);
 
-// Create a custom variant plugin
-const customVariantPlugin = createVariantPlugin('theme-midnight', {
-  selector: '&:where([data-theme="midnight"] *)'
-});
-
-// Register plugins
-const ctx = createContext({
-  plugins: [customUtilityPlugin, customVariantPlugin]
+// Register functional utility
+functionalUtility({
+  name: 'theme-midnight',
+  match: (className) => className === 'theme-midnight',
+  handler: () => [decl('&:where([data-theme="midnight"] *)', [])]
 });
 ```
 
-Learn more about the Plugin System in the [Plugin System documentation](/api/plugins).
+Learn more about custom utilities in the [Adding Custom Styles](/guide/adding-custom-styles) documentation.
 
 ## Utility Functions
 
@@ -199,9 +196,7 @@ const runtime = new BrowserRuntime({
         }
       }
     },
-    plugins: [
-      // Custom plugins
-    ]
+    // Custom utilities are registered globally
   }
 });
 ```
@@ -233,11 +228,11 @@ runtime.updateConfig({
 
 4. **Use runtime APIs efficiently**: Use the appropriate runtime API (Browser vs Server) for your environment.
 
-5. **Create reusable plugins**: Create custom plugins for project-specific utilities and variants.
+5. **Create reusable utilities**: Create custom utilities and modifiers for project-specific needs.
 
-6. **Document custom APIs**: Document any custom plugins and configurations you create for team members.
+6. **Document custom APIs**: Document any custom utilities and configurations you create for team members.
 
-7. **Test thoroughly**: Test your configuration and custom plugins across different browsers and environments.
+7. **Test thoroughly**: Test your configuration and custom utilities across different browsers and environments.
 
 8. **Use incremental parsing**: Leverage BaroCSS's incremental parsing for better performance in large applications.
 

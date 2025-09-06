@@ -132,18 +132,21 @@ You can customize BaroCSS using CSS variables:
 
 ### Custom Utilities
 
-You can also create your own utility classes:
+You can also create your own utility classes using JavaScript:
 
-```css
-@utility text-shadow {
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+```typescript
+import { staticUtility } from '@barocss/kit';
+import { decl } from '@barocss/kit';
 
-@utility glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
+staticUtility('text-shadow', [
+  decl('text-shadow', '0 2px 4px rgba(0, 0, 0, 0.1)')
+]);
+
+staticUtility('glass', [
+  decl('background', 'rgba(255, 255, 255, 0.1)'),
+  decl('backdrop-filter', 'blur(10px)'),
+  decl('border', '1px solid rgba(255, 255, 255, 0.2)')
+]);
 ```
 
 ## Common Patterns

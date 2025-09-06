@@ -385,15 +385,41 @@ export default defineConfig(withMermaid({
       ],
       '/api/': [
         {
-          text: 'API Reference',
+          text: 'API Learning Path',
           items: [
-            { text: 'Overview', link: '/api/' },
+            { text: 'Overview', link: '/api/' }
+          ]
+        },
+        {
+          text: '🎯 Step 1: Getting Started',
+          items: [
             { text: 'Context API', link: '/api/context' },
-            { text: 'Engine API', link: '/api/engine' },
+            { text: 'Configuration', link: '/api/configuration' },
             { text: 'Browser Runtime', link: '/api/browser-runtime' },
-            { text: 'Server Runtime', link: '/api/server-runtime' },
-            { text: 'Plugin System', link: '/api/plugins' },
-            { text: 'Configuration', link: '/api/configuration' }
+            { text: 'Server Runtime', link: '/api/server-runtime' }
+          ]
+        },
+        {
+          text: '🔧 Step 2: Core Engine',
+          items: [
+            { text: 'Parser API', link: '/api/parser' },
+            { text: 'Engine API', link: '/api/engine' }
+          ]
+        },
+        {
+          text: '🛠️ Step 3: Customization',
+          items: [
+            { text: 'Static Utility API', link: '/api/static-utility' },
+            { text: 'Functional Utility API', link: '/api/functional-utility' },
+            { text: 'Static Modifier API', link: '/api/static-modifier' },
+            { text: 'Functional Modifier API', link: '/api/functional-modifier' },
+            { text: 'Custom Utilities', link: '/guide/adding-custom-styles' }
+          ]
+        },
+        {
+          text: '🔬 Step 4: Advanced',
+          items: [
+            { text: 'AST Processing API', link: '/api/ast-processing' }
           ]
         }
       ],

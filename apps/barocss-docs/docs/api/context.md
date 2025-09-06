@@ -5,7 +5,25 @@ description: Theme and configuration management in BaroCSS
 
 # Context API
 
-The Context API is the central system for managing themes, configuration, and plugin functionality in BaroCSS. It provides a unified interface for accessing theme values, configuration options, and extending functionality.
+::: tip Learning Path
+This is **Step 1** in the BaroCSS API learning path. Start here to understand how themes and configuration work.
+:::
+
+The Context API is the central system for managing themes and configuration in BaroCSS. It provides a unified interface for accessing theme values, configuration options, and extending functionality.
+
+## 🎯 What You'll Learn
+
+- How to create and configure BaroCSS contexts
+- Theme management and customization
+- Configuration options and their effects
+- How contexts work with other APIs
+
+## 📚 Next Steps
+
+After mastering the Context API, continue with:
+- **[Configuration API](/api/configuration)** - Detailed configuration options
+- **[Browser Runtime](/api/browser-runtime)** - Using contexts in browsers
+- **[Server Runtime](/api/server-runtime)** - Using contexts on servers
 
 ## createContext()
 
@@ -22,8 +40,7 @@ const ctx = createContext({
       }
     }
   },
-  darkMode: 'class',
-  plugins: [customPlugin]
+  darkMode: 'class'
 });
 ```
 
@@ -44,9 +61,6 @@ interface Context {
   
   // Configuration access
   config: (...path: (string|number)[]) => any;
-  
-  // Plugin management
-  plugins: any[];
   
   // Theme extension
   extendTheme: (category: string, values: Record<string, any> | Function) => void;
@@ -197,9 +211,6 @@ interface Config {
   // Preflight CSS level
   preflight?: 'minimal' | 'standard' | 'full' | true | false;
   
-  // Plugins
-  plugins?: Plugin[];
-  
   // Cache management
   clearCacheOnContextChange?: boolean;
 }
@@ -265,40 +276,17 @@ ctx.extendTheme('spacing', (theme) => {
 });
 ```
 
-### Plugin Integration
-
-```typescript
-const customPlugin = (ctx, config) => {
-  // Extend theme
-  ctx.extendTheme('colors', {
-    'plugin-color': '#10b981'
-  });
-  
-  // Access configuration
-  const pluginConfig = config.pluginOptions || {};
-  
-  // Register utilities (see Plugin API)
-  // ...
-};
-
-const ctx = createContext({
-  plugins: [customPlugin],
-  pluginOptions: {
-    customSetting: true
-  }
-});
-```
 
 ## Best Practices
 
 1. **Reuse Contexts**: Create contexts once and reuse them across your application
 2. **Theme Functions**: Use theme functions for dynamic values that depend on other theme values
-3. **Plugin Order**: Plugins are executed in order, so consider dependencies
-4. **Cache Management**: Use `clearCacheOnContextChange: false` for better performance when context doesn't change
+3. **Custom Utilities**: Register custom utilities using global registry functions
+4. **Cache Management**: Use `clearCacheOnContextChange: false` when context doesn't change
 5. **Type Safety**: Use TypeScript for better theme and configuration type safety
 
 ## Related APIs
 
 - [Engine API](/api/engine) - CSS generation using context
-- [Plugin System](/api/plugins) - Extending context functionality
+- [Custom Utilities](/guide/adding-custom-styles) - Extending context functionality
 - [Configuration](/api/configuration) - Detailed configuration options

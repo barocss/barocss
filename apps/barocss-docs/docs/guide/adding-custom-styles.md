@@ -1,14 +1,27 @@
-# Adding custom styles
+# Adding Custom Styles
 
-Best practices for adding your own custom styles in BaroCSS projects.
+::: tip Framework Extensibility
+BaroCSS has been designed from the ground up to be extensible and customizable, so that no matter what you're building you never feel like you're fighting the framework.
+:::
 
 Often the biggest challenge when working with a framework is figuring out what you're supposed to do when there's something you need that the framework doesn't handle for you.
 
-BaroCSS has been designed from the ground up to be extensible and customizable, so that no matter what you're building you never feel like you're fighting the framework.
+This guide covers topics like customizing your design tokens, how to break out of those constraints when necessary, adding your own custom CSS, and extending the framework with custom utilities.
 
-This guide covers topics like customizing your design tokens, how to break out of those constraints when necessary, adding your own custom CSS, and extending the framework with plugins.
+## What You'll Learn
 
-## Customizing your theme
+- **Theme Customization**: Modify design tokens and color palettes
+- **Arbitrary Values**: Break out of design constraints when needed
+- **Custom CSS**: Add base styles and component classes
+- **Custom Utilities**: Create your own utility functions
+- **Custom Modifiers**: Add new variants and modifiers
+- **Advanced Patterns**: Complex styling scenarios and solutions
+
+## Customizing Your Theme
+
+::: details Purpose
+Modify design tokens like colors, spacing, typography, and breakpoints to match your brand and design system.
+:::
 
 If you want to change things like your color palette, spacing scale, typography scale, or breakpoints, add your customizations using the theme configuration in your BaroCSS setup:
 
@@ -45,13 +58,19 @@ const runtime = new BrowserRuntime({
 });
 ```
 
-Learn more about customizing your theme in the theme variables documentation.
+::: tip Learn More
+For comprehensive theme customization, see the [Theme Variables documentation](/guide/theme-variables).
+:::
 
-## Using arbitrary values
+## Using Arbitrary Values
+
+::: details Purpose
+Break out of design token constraints when you need pixel-perfect control or values not covered by your theme.
+:::
 
 While you can usually build the bulk of a well-crafted design using a constrained set of design tokens, once in a while you need to break out of those constraints to get things pixel-perfect.
 
-When you find yourself really needing something like `top: 117px` to get a background image in just the right spot, use Tailwind's square bracket notation to generate a class on the fly with any arbitrary value:
+When you find yourself really needing something like `top: 117px` to get a background image in just the right spot, use BaroCSS's square bracket notation to generate a class on the fly with any arbitrary value:
 
 ```html
 <div class="top-[117px]">
@@ -75,7 +94,11 @@ This works for everything in the framework, including things like background col
 </div>
 ```
 
+### CSS Variables
+
+::: details Custom Property Syntax
 If you're referencing a CSS variable as an arbitrary value, you can use the custom property syntax:
+:::
 
 ```html
 <div class="fill-(--my-brand-color) ...">
@@ -85,9 +108,13 @@ If you're referencing a CSS variable as an arbitrary value, you can use the cust
 
 This is just a shorthand for `fill-[var(--my-brand-color)]` that adds the `var()` function for you automatically.
 
-### Arbitrary properties
+### Arbitrary Properties
 
-If you ever need to use a CSS property that Tailwind doesn't include a utility for out of the box, you can also use square bracket notation to write completely arbitrary CSS:
+::: details Purpose
+Use CSS properties that BaroCSS doesn't include utilities for out of the box.
+:::
+
+If you ever need to use a CSS property that BaroCSS doesn't include a utility for out of the box, you can also use square bracket notation to write completely arbitrary CSS:
 
 ```html
 <div class="[mask-type:luminance]">
@@ -111,7 +138,11 @@ This can be useful for things like CSS variables as well, especially when they n
 </div>
 ```
 
-### Arbitrary variants
+### Arbitrary Variants
+
+::: details Purpose
+Create custom selectors on-the-fly using square bracket notation.
+:::
 
 Arbitrary _variants_ are like arbitrary values but for doing on-the-fly selector modification, like you can with built-in pseudo-class variants like `hover:{utility}` or responsive variants like `md:{utility}` but using square bracket notation directly in your HTML.
 
@@ -123,11 +154,17 @@ Arbitrary _variants_ are like arbitrary values but for doing on-the-fly selector
 </ul>
 ```
 
-Learn more in the arbitrary variants documentation.
+::: tip Learn More
+For detailed information about arbitrary variants, see the [Arbitrary Variants documentation](/guide/arbitrary-variants).
+:::
 
-### Handling whitespace
+### Handling Whitespace
 
-When an arbitrary value needs to contain a space, use an underscore (`_`) instead and Tailwind will automatically convert it to a space at build-time:
+::: details Purpose
+Handle spaces in arbitrary values using underscores.
+:::
+
+When an arbitrary value needs to contain a space, use an underscore (`_`) instead and BaroCSS will automatically convert it to a space at build-time:
 
 ```html
 <div class="grid grid-cols-[1fr_500px_2fr]">
@@ -143,9 +180,13 @@ In situations where underscores are meaningful (like in CSS custom property name
 </div>
 ```
 
-### Resolving ambiguities
+### Resolving Ambiguities
 
-When Tailwind can't tell which utility you're trying to use, you can be more explicit by prefixing the arbitrary value with the utility type:
+::: details Purpose
+Be explicit when BaroCSS can't determine which utility you're trying to use.
+:::
+
+When BaroCSS can't tell which utility you're trying to use, you can be more explicit by prefixing the arbitrary value with the utility type:
 
 ```html
 <div class="[color:red]">
@@ -153,9 +194,17 @@ When Tailwind can't tell which utility you're trying to use, you can be more exp
 </div>
 ```
 
-## Using custom CSS
+## Using Custom CSS
 
-### Adding base styles
+::: details Purpose
+Add base styles, component classes, and custom CSS that works alongside BaroCSS utilities.
+:::
+
+### Adding Base Styles
+
+::: details Purpose
+Set global styles like font families, default link styles, and other base element styling.
+:::
 
 Use the `@layer base` directive to add base styles to your project. Base styles are things like setting font families on the `html` element, setting default link styles, and so on.
 
@@ -175,7 +224,11 @@ Use the `@layer base` directive to add base styles to your project. Base styles 
 }
 ```
 
-### Adding component classes
+### Adding Component Classes
+
+::: details Purpose
+Create reusable component classes that combine multiple utilities for common UI patterns.
+:::
 
 Use the `@layer components` directive to add more complex, reusable component classes to your project:
 
@@ -198,7 +251,9 @@ You can now use these component classes in your HTML:
 <button class="btn-secondary">Secondary Button</button>
 ```
 
-Component classes are a great way to organize styles that are used together frequently, but remember that you probably don't need these types of classes as often as you think. Read our guide on managing duplication for our recommendations.
+::: tip Best Practice
+Component classes are great for organizing frequently used style combinations, but remember that you probably don't need these types of classes as often as you think. Consider using utility classes directly when possible.
+:::
 
 The `components` layer is also a good place to put custom styles for any third-party components you're using:
 
@@ -210,9 +265,13 @@ The `components` layer is also a good place to put custom styles for any third-p
 }
 ```
 
-### Using variants
+### Using Variants
 
-Use the `@variant` directive to apply a Tailwind variant within custom CSS:
+::: details Purpose
+Apply BaroCSS variants within custom CSS using the `@variant` directive.
+:::
+
+Use the `@variant` directive to apply a BaroCSS variant within custom CSS:
 
 ```css
 .my-element {
@@ -223,8 +282,7 @@ Use the `@variant` directive to apply a Tailwind variant within custom CSS:
 }
 ```
 
-Compiled CSS:
-
+**Compiled CSS:**
 ```css
 .my-element {
   background: white;
@@ -247,8 +305,7 @@ If you need to apply multiple variants at the same time, use nesting:
 }
 ```
 
-Compiled CSS:
-
+**Compiled CSS:**
 ```css
 .my-element {
   background: white;
@@ -262,234 +319,370 @@ Compiled CSS:
 }
 ```
 
-## Adding custom utilities
+## Adding Custom Utilities
 
-### Simple utilities
+::: details Purpose
+Create your own utility functions that integrate seamlessly with BaroCSS's utility system.
+:::
 
-In addition to using the utilities that ship with Tailwind, you can also add your own custom utilities. This can be useful when there's a CSS feature you'd like to use in your project that Tailwind doesn't include utilities for out of the box.
+In addition to using the utilities that ship with BaroCSS, you can also add your own custom utilities using the global registry functions. This is the recommended approach for adding custom utilities programmatically.
 
-Use the `@utility` directive to add a custom utility to your project:
+### AST Helper Functions
 
-```css
-@utility content-auto {
-  content-visibility: auto;
-}
+::: details Purpose
+BaroCSS provides helper functions for creating AST nodes that you can use in your custom utilities.
+:::
+
+```typescript
+import { 
+  decl,      // CSS declaration: decl('color', 'red')
+  rule,      // CSS rule with & replacement: rule('&:hover', [decl('color', 'red')])
+  styleRule, // CSS rule without & replacement: styleRule('&:hover', [decl('color', 'red')])
+  atRule,    // @-rule: atRule('media', '(min-width: 768px)', [rule('.selector', [...])])
+  atRoot,    // @at-root: atRoot([rule('.selector', [...])])
+  comment,   // CSS comment: comment('This is a comment')
+  raw,       // Raw CSS: raw('/* custom css */')
+  property   // CSS custom property: property('--my-var', 'initial', 'length')
+} from '@barocss/kit';
 ```
 
-You can now use this utility in your HTML:
+**Common patterns:**
 
-```html
-<div class="content-auto">
-  <!-- ... -->
-</div>
+- **`decl(prop, value)`** - Create CSS declarations
+- **`rule(selector, nodes)`** - Create CSS rules where `&` is replaced with the final class name
+- **`styleRule(selector, nodes)`** - Create CSS rules where `&` is kept as-is (no replacement)
+- **`atRule(name, params, nodes)`** - Create @-rules like `@media`, `@keyframes`
+- **`atRoot(nodes)`** - Create `@at-root` rules
+- **`comment(text)`** - Add CSS comments
+- **`raw(value)`** - Insert raw CSS
+- **`property(name, initialValue, syntax)`** - Define CSS custom properties
+
+### Understanding Rule Types
+
+::: details Purpose
+Learn the difference between `rule` and `styleRule` and when to use each.
+:::
+
+**Key difference between `rule` and `styleRule`:**
+
+```typescript
+// rule: & gets replaced with the final class name
+rule('&:hover', [decl('color', 'red')])
+// For class 'btn' → generates: .btn:hover { color: red; }
+
+// styleRule: & stays as-is
+styleRule('&:hover', [decl('color', 'red')])
+// For class 'btn' → generates: &:hover { color: red; }
 ```
 
-It will also work with variants like `hover`, `focus` and `lg`:
+**When to use each:**
 
-```html
-<div class="hover:content-auto">
-  <!-- ... -->
-</div>
+- **Use `rule`** when you want `&` to be replaced with the actual class name (most common case)
+- **Use `styleRule`** when you want to keep `&` as-is, typically for global styles or when you need the literal `&` character
+
+### Static Utilities
+
+::: details Purpose
+Create utilities with fixed CSS declarations that don't change based on input values.
+:::
+
+Use `staticUtility` to register utilities with fixed CSS declarations:
+
+```typescript
+import { staticUtility } from '@barocss/kit';
+import { decl, rule, styleRule } from '@barocss/kit';
+
+// Simple utility
+staticUtility('block', [decl('display', 'block')]);
+
+// Complex utility with selectors (using rule for & replacement)
+staticUtility('space-x-custom', [
+  rule('& > :not([hidden]) ~ :not([hidden])', [
+    decl('margin-inline-start', 'var(--space-x)'),
+    decl('margin-inline-end', 'var(--space-x)')
+  ])
+]);
+
+// Utility with options
+staticUtility('custom-bg', [
+  decl('background-color', 'var(--custom-color)'),
+  decl('border-radius', '8px')
+], {
+  description: 'Custom background utility',
+  category: 'background'
+});
 ```
 
-Custom utilities are automatically inserted into the `utilities` layer along with all of the built-in utilities in the framework.
+### Functional Utilities
 
-### Complex utilities
+::: details Purpose
+Create utilities that accept dynamic values and can process theme values, arbitrary values, and custom properties.
+:::
 
-If your custom utility is more complex than a single class name, use nesting to define the utility:
+Use `functionalUtility` to register utilities that accept dynamic values:
 
-```css
-@utility scrollbar-hidden {
-  &::-webkit-scrollbar {
-    display: none;
+```typescript
+import { functionalUtility } from '@barocss/kit';
+import { decl } from '@barocss/kit';
+
+// Basic functional utility
+functionalUtility({
+  name: 'custom-text',
+  prop: 'color',
+  handle: (value) => [decl('color', value)]
+});
+
+// Advanced functional utility with theme support
+functionalUtility({
+  name: 'custom-spacing',
+  prop: 'margin',
+  themeKey: 'spacing',
+  supportsArbitrary: true,
+  supportsNegative: true,
+  supportsCustomProperty: true,
+  handle: (value, ctx, token) => {
+    return [decl('margin', value)];
+  },
+  description: 'Custom spacing utility',
+  category: 'spacing'
+});
+```
+
+### Real-World Examples
+
+::: details Purpose
+See practical examples of custom utilities you might add to your project.
+:::
+
+Here are some real-world examples of custom utilities you might add to your project:
+
+```typescript
+import { staticUtility, functionalUtility } from '@barocss/kit';
+import { decl, rule, styleRule } from '@barocss/kit';
+
+// Custom button utilities
+staticUtility('btn', [
+  decl('display', 'inline-flex'),
+  decl('align-items', 'center'),
+  decl('justify-content', 'center'),
+  decl('padding', '0.5rem 1rem'),
+  decl('border-radius', '0.375rem'),
+  decl('font-weight', '500'),
+  decl('transition', 'all 0.2s')
+]);
+
+staticUtility('btn-primary', [
+  decl('background-color', 'var(--color-primary)'),
+  decl('color', 'white'),
+  decl('border', '1px solid var(--color-primary)')
+]);
+
+staticUtility('btn-secondary', [
+  decl('background-color', 'transparent'),
+  decl('color', 'var(--color-primary)'),
+  decl('border', '1px solid var(--color-primary)')
+]);
+
+// Custom spacing utilities (using rule for & replacement)
+functionalUtility({
+  name: 'space-x',
+  prop: 'margin-inline-start',
+  themeKey: 'spacing',
+  supportsArbitrary: true,
+  supportsNegative: true,
+  handle: (value, ctx, token) => {
+    const spacing = ctx.theme('spacing', value) || value;
+    return [
+      rule('& > :not([hidden]) ~ :not([hidden])', [
+        decl('margin-inline-start', spacing)
+      ])
+    ];
   }
-}
-```
+});
 
-### Functional utilities
-
-In addition to registering simple utilities with the `@utility` directive, you can also register functional utilities that accept an argument:
-
-```css
-@utility tab-* {
-  tab-size: --value(--tab-size-*);
-}
-```
-
-The special `--value()` function is used to resolve the utility value.
-
-#### Matching theme values
-
-Use the `--value(--theme-key-*)` syntax to resolve the utility value against a set of theme keys:
-
-```css
-@theme {
-  --tab-size-2: 2;
-  --tab-size-4: 4;
-  --tab-size-github: 8;
-}
-
-@utility tab-* {
-  tab-size: --value(--tab-size-*);
-}
-```
-
-This will match utilities like `tab-2`, `tab-4`, and `tab-github`.
-
-#### Bare values
-
-To resolve the value as a bare value, use the `--value({type})` syntax, where `{type}` is the data type you want to validate the bare value as:
-
-```css
-@utility tab-* {
-  tab-size: --value(integer);
-}
-```
-
-This will match utilities like `tab-1` and `tab-76`.
-
-#### Literal values
-
-To support literal values, use the `--value('literal')` syntax (notice the quotes):
-
-```css
-@utility tab-* {
-  tab-size: --value("inherit", "initial", "unset");
-}
-```
-
-This will match utilities like `tab-inherit`, `tab-initial`, and `tab-unset`.
-
-#### Arbitrary values
-
-To support arbitrary values, use the `--value([{type}])` syntax (notice the square brackets) to tell Tailwind which types are supported as an arbitrary value:
-
-```css
-@utility tab-* {
-  tab-size: --value([integer]);
-}
-```
-
-This will match utilities like `tab-[1]` and `tab-[76]`. If you want to support any data type, you can use `--value([*])`.
-
-#### Supporting theme, bare, and arbitrary values together
-
-All three forms of the `--value()` function can be used within a rule as multiple declarations, and any declarations that fail to resolve will be omitted in the output:
-
-```css
-@theme {
-  --tab-size-github: 8;
-}
-
-@utility tab-* {
-  tab-size: --value([integer]);
-  tab-size: --value(integer);
-  tab-size: --value(--tab-size-*);
-}
-```
-
-This makes it possible to treat the value differently in each case if necessary, for example translating a bare integer to a percentage:
-
-```css
-@utility opacity-* {
-  opacity: --value([percentage]);
-  opacity: calc(--value(integer) * 1%);
-  opacity: --value(--opacity-*);
-}
-```
-
-The `--value()` function can also take multiple arguments and resolve them left to right if you don't need to treat the return value differently in different cases:
-
-```css
-@theme {
-  --tab-size-github: 8;
-}
-
-@utility tab-* {
-  tab-size: --value(--tab-size-*, integer, [integer]);
-}
-
-@utility opacity-* {
-  opacity: calc(--value(integer) * 1%);
-  opacity: --value(--opacity-*, [percentage]);
-}
-```
-
-#### Negative values
-
-To support negative values, register separate positive and negative utilities into separate declarations:
-
-```css
-@utility inset-* {
-  inset: --spacing(--value(integer));
-  inset: --value([percentage], [length]);
-}
-
-@utility -inset-* {
-  inset: --spacing(--value(integer) * -1);
-  inset: calc(--value([percentage], [length]) * -1);
-}
-```
-
-#### Modifiers
-
-Modifiers are handled using the `--modifier()` function which works exactly like the `--value()` function but operates on a modifier if present:
-
-```css
-@utility text-* {
-  font-size: --value(--text-*, [length]);
-  line-height: --modifier(--leading-*, [length], [*]);
-}
-```
-
-If a modifier isn't present, any declaration depending on a modifier is just not included in the output.
-
-#### Fractions
-
-To handle fractions, we rely on the CSS `ratio` data type. If this is used with `--value()`, it's a signal to Tailwind to treat the value and modifier as a single value:
-
-```css
-@utility aspect-* {
-  aspect-ratio: --value(--aspect-ratio-*, ratio, [ratio]);
-}
-```
-
-This will match utilities like `aspect-square`, `aspect-3/4`, and `aspect-[7/9]`.
-
-## Adding custom variants
-
-In addition to using the variants that ship with Tailwind, you can also add your own custom variants using the `@custom-variant` directive:
-
-```css
-@custom-variant theme-midnight {
-  &:where([data-theme="midnight"] *) {
-    @slot;
+// Custom typography utilities
+functionalUtility({
+  name: 'text-fluid',
+  prop: 'font-size',
+  supportsArbitrary: true,
+  handle: (value) => {
+    return [decl('font-size', `clamp(1rem, ${value}, 2rem)`)];
   }
-}
+});
 ```
 
-Now you can use the `theme-midnight:<utility>` variant in your HTML:
+### When to Use Each Approach
 
-```html
-<html data-theme="midnight">
-  <button class="theme-midnight:bg-black ..."></button>
-</html>
-```
+::: details Purpose
+Understand when to use static vs functional utilities based on your needs.
+:::
 
-You can create variants using the shorthand syntax when nesting isn't required:
+**Use `staticUtility` when:**
+- You have fixed CSS declarations that don't change
+- You want simple, predictable utilities
+- You need complex selectors or multiple CSS rules
 
-```css
-@custom-variant theme-midnight (&:where([data-theme="midnight"] *));
-```
+**Use `functionalUtility` when:**
+- You need dynamic values (theme values, arbitrary values, etc.)
+- You want to support multiple value types (theme, arbitrary, custom properties)
+- You need complex logic for value processing
 
-When a custom variant has multiple rules, they can be nested within each other:
+### Advanced Examples
 
-```css
-@custom-variant any-hover {
-  @media (any-hover: hover) {
-    &:hover {
-      @slot;
+::: details Purpose
+See complex examples with @-rules, theme integration, and advanced patterns.
+:::
+
+For more complex examples and detailed API reference, see:
+
+- **[Static Utility API](/api/static-utility)** - Complete reference for `staticUtility`
+- **[Functional Utility API](/api/functional-utility)** - Complete reference for `functionalUtility`
+
+Here are some quick examples:
+
+```typescript
+import { staticUtility, functionalUtility } from '@barocss/kit';
+import { decl, rule, atRule, property } from '@barocss/kit';
+
+// Complex static utility with @-rules
+staticUtility('dark-mode-toggle', [
+  decl('position', 'relative'),
+  rule('&::before', [
+    decl('content', '""'),
+    decl('opacity', '0'),
+    decl('transition', 'opacity 0.3s ease')
+  ]),
+  atRule('media', '(prefers-color-scheme: dark)', [
+    rule('&::before', [decl('opacity', '1')])
+  ])
+]);
+
+// Functional utility with theme support
+functionalUtility({
+  name: 'text',
+  themeKey: 'fontSize',
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handle: (value, ctx, token, extra) => {
+    if (token.theme) {
+      const themeValue = ctx.theme('fontSize', value);
+      if (themeValue) return [decl('font-size', themeValue)];
     }
+    if (token.arbitrary) return [decl('font-size', value)];
+    if (token.customProperty) return [decl('font-size', `var(${value})`)];
+    return null;
   }
-}
+});
 ```
+
+## Adding Custom Modifiers
+
+::: details Purpose
+Create custom modifiers (variants) that conditionally apply styles based on states or conditions.
+:::
+
+Modifiers (also called variants) allow you to conditionally apply styles based on certain states or conditions. BaroCSS provides two ways to create custom modifiers.
+
+### Static Modifiers
+
+::: details Purpose
+Create modifiers with fixed CSS selectors for simple, predictable behavior.
+:::
+
+Use `staticModifier` to register modifiers with fixed CSS selectors:
+
+```typescript
+import { staticModifier } from '@barocss/kit';
+
+// Basic pseudo-class modifier
+staticModifier('hover', ['&:hover']);
+
+// Dark mode modifier
+staticModifier('dark', ['.dark', '.dark *']);
+
+// Group modifier
+staticModifier('group-hover', ['.group:hover &']);
+
+// Custom theme modifier
+staticModifier('theme-midnight', ['[data-theme="midnight"]']);
+```
+
+### Functional Modifiers
+
+::: details Purpose
+Create modifiers with dynamic pattern matching for complex, flexible behavior.
+:::
+
+Use `functionalModifier` to register modifiers with dynamic pattern matching:
+
+```typescript
+import { functionalModifier } from '@barocss/kit';
+
+// Arbitrary variant support
+functionalModifier(
+  (mod: string) => /^\[.*\]$/.test(mod),
+  ({ selector, mod }) => {
+    const m = /^\[(.+)\]$/.exec(mod.type);
+    if (!m) return { selector };
+    
+    const inner = m[1].trim();
+    if (inner.startsWith('&')) {
+      return { selector: `${inner}`, wrappingType: 'rule' };
+    }
+    return { selector: `${inner} &`.trim(), wrappingType: 'rule' };
+  }
+);
+
+// Data attribute modifiers
+functionalModifier(
+  (mod: string) => /^data-/.test(mod),
+  ({ selector, mod }) => {
+    const m = /^data-\[([a-zA-Z0-9_-]+)(?:=([^\]]+))?\]$/.exec(mod.type);
+    if (m) {
+      const key = m[1];
+      const value = m[2] ?? 'true';
+      return { selector: `&[data-${key}="${value}"]` };
+    }
+    return { selector };
+  }
+);
+```
+
+::: tip Learn More
+For detailed information about modifiers, see:
+
+- **[Static Modifier API](/api/static-modifier)** - Complete reference for `staticModifier`
+- **[Functional Modifier API](/api/functional-modifier)** - Complete reference for `functionalModifier`
+:::
+
+## Understanding CSS Generation
+
+::: details Purpose
+Learn how BaroCSS transforms your utility classes into optimized CSS.
+:::
+
+To understand how BaroCSS transforms your utility classes into optimized CSS, see:
+
+- **[Engine API](/api/engine)** - CSS generation process and `@optimizeAst()` function
+- **[AST Processing API](/api/ast-processing)** - Detailed AST manipulation and optimization
+
+## Best Practices
+
+::: tip Customization Guidelines
+- **Start with theme customization** before creating custom utilities
+- **Use arbitrary values** for one-off styles that don't need reusability
+- **Create custom utilities** for patterns you use frequently
+- **Use static utilities** for simple, fixed styles
+- **Use functional utilities** for dynamic, theme-aware styles
+- **Test your custom utilities** with different values and contexts
+- **Document your custom utilities** for team consistency
+:::
+
+## Next Steps
+
+- **[Theme Configuration](/guide/theme)** - Learn about theme customization
+- **[JIT Mode](/guide/jit-mode)** - Understand real-time CSS generation
+- **[API Reference](/api/)** - Complete API documentation
+- **[Examples](/examples/)** - See BaroCSS in action
+
+
