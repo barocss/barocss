@@ -221,7 +221,7 @@ Utilities for controlling an element's background color.
 | `bg-violet-900` | `background-color: var(--color-violet-900);` |
 | `bg-violet-950` | `background-color: var(--color-violet-950);` |
 
-Source: https://tailwindcss.com/guide/background-color
+
 
 ## Examples
 
@@ -289,7 +289,6 @@ Prefix a `background-color` utility with a breakpoint variant like `md:` to only
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
@@ -311,4 +310,4 @@ Then use it in your HTML:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

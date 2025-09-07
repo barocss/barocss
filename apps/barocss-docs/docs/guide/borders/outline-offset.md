@@ -11,7 +11,7 @@ Utilities for controlling the offset of an element's outline.
 | `outline-offset-(&lt;custom-property&gt;)` | `outline-offset: var(&lt;custom-property&gt;);` |
 | `outline-offset-[&lt;value&gt;]`  | `outline-offset: &lt;value&gt;;`          |
 
-Source: https://tailwindcss.com/guide/outline-offset
+
 
 ## Examples
 
@@ -65,4 +65,3 @@ Prefix an `outline-offset` utility with a breakpoint variant like `md:` to only 
 </button>
 ```
 
-Learn more about using variants in the variants documentation.

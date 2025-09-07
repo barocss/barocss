@@ -13,7 +13,6 @@ Utilities for controlling the aspect ratio of an element.
 | aspect-(&lt;custom-property&gt;) | aspect-ratio: var(&lt;custom-property&gt;);                   |
 | aspect-\[&lt;value&gt;\]         | aspect-ratio: &lt;value&gt;;                                  |
 
-Source: https://tailwindcss.com/guide/aspect-ratio
 
 ## Examples
 
@@ -61,7 +60,6 @@ Prefix an `aspect-ratio` utility with a breakpoint variant like `md:` to only ap
 <iframe class="aspect-video md:aspect-square ..." src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

@@ -10,7 +10,6 @@ Utilities for controlling how flex items wrap.
 | `flex-wrap` | `flex-wrap: wrap;` |
 | `flex-wrap-reverse` | `flex-wrap: wrap-reverse;` |
 
-Source: https://tailwindcss.com/guide/flex-wrap
 
 ## Examples
 
@@ -63,4 +62,3 @@ Prefix a `flex-wrap` utility with a breakpoint variant like `md:` to only apply 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

@@ -18,7 +18,6 @@ Utilities for controlling how a replaced element's content should be positioned 
 | `object-(&lt;custom-property&gt;)` | `object-position: var(&lt;custom-property&gt;);` |
 | `object-[&lt;value&gt;]`     | `object-position: &lt;value&gt;;`     |
 
-Source: https://tailwindcss.com/guide/object-position
 
 ## Examples
 
@@ -60,4 +59,3 @@ Prefix an `object-position` utility with a breakpoint variant like `md:` to only
 <img class="object-center md:object-top ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.

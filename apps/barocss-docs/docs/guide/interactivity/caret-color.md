@@ -2,7 +2,7 @@
 
 Utilities for controlling the color of the text input cursor.
 
-Source: https://tailwindcss.com/guide/caret-color
+
 
 ## Quick reference
 
@@ -58,7 +58,6 @@ Prefix a `caret-color` utility with a breakpoint variant like `md:` to only appl
 </textarea>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

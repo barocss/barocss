@@ -436,4 +436,4 @@ BaroCSS runtime APIs provide specialized solutions for different environments, e
 
 Choose the Browser Runtime for client-side applications with real-time updates, or the Server Runtime for static generation and SSR scenarios.
 
-Ready to get started? Check out the [Quick Start Guide](/guide/quick-start) for your chosen runtime.
+Ready to get started? Check out the [Quick Start Guide](/guide/installation) for your chosen runtime.

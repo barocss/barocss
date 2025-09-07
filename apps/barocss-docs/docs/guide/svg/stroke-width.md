@@ -2,7 +2,7 @@
 
 Utilities for styling the stroke width of SVG elements.
 
-Source: https://tailwindcss.com/guide/stroke-width
+
 
 ## Quick reference
 
@@ -59,4 +59,3 @@ Prefix a `stroke-width` utility with a breakpoint variant like `md:` to only app
 </svg>
 ```
 
-Learn more about using variants in the variants documentation.

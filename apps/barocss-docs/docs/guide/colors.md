@@ -1,8 +1,10 @@
 # Colors
 
-Using and customizing the color palette in Tailwind CSS projects.
+::: tip Beautiful Color Palette
+Using and customizing the color palette in BaroCSS projects.
+:::
 
-Tailwind CSS includes a vast, beautiful color palette out of the box, carefully crafted by expert designers and suitable for a wide range of different design styles.
+BaroCSS includes a vast, beautiful color palette out of the box, carefully crafted by expert designers and suitable for a wide range of different design styles.
 
 50
 
@@ -72,7 +74,9 @@ stone
 
 Click to copy the OKLCH value or shift+click to copy the nearest hex value.
 
+::: details Color Scale System
 Every color in the default palette includes 11 steps, with 50 being the lightest, and 950 being the darkest:
+:::
 
 50
 
@@ -114,9 +118,13 @@ Every color in the default palette includes 11 steps, with 50 being the lightest
 
 The entire color palette is available across all color related utilities, including things like background color, border color, fill, caret color, and many more.
 
-## Working with colors
+## Working with Colors
 
-### Using color utilities
+### Using Color Utilities
+
+::: details Purpose
+Learn how to use color utilities to style different elements in your design.
+:::
 
 Use color utilities like `bg-white`, `border-pink-300`, and `text-gray-950` to set the different color properties of elements in your design:
 
@@ -157,7 +165,11 @@ Here's a full list of utilities that use your color palette:
 | `fill-*` | Sets the fill color of SVG elements |
 | `stroke-*` | Sets the stroke color of SVG elements |
 
-### Adjusting opacity
+### Adjusting Opacity
+
+::: details Purpose
+Learn how to adjust color opacity using the slash notation for alpha transparency.
+:::
 
 You can adjust the opacity of a color using syntax like `bg-black/75`, where `75` sets the alpha channel of the color to 75%:
 
@@ -183,7 +195,11 @@ This syntax also supports arbitrary values and the CSS variable shorthand:
 <div class="bg-cyan-400/(--my-alpha-value)"><!-- ... --></div>
 ```
 
-### Targeting dark mode
+### Targeting Dark Mode
+
+::: details Purpose
+Learn how to use the dark variant to apply colors only when dark mode is active.
+:::
 
 Use the `dark` variant to write classes like `dark:bg-gray-800` that only apply a color when dark mode is active:
 
@@ -206,6 +222,10 @@ Use the `dark` variant to write classes like `dark:bg-gray-800` that only apply 
 Learn more about styling for dark mode in the dark mode documentation.
 
 ### Referencing in CSS
+
+::: details Purpose
+Learn how to reference colors as CSS variables in your custom CSS.
+:::
 
 Colors are exposed as CSS variables in the `--color-*` namespace, so you can reference them in CSS with variables like `--color-blue-500` and `--color-pink-700`:
 
@@ -245,7 +265,11 @@ To quickly adjust the opacity of a color when referencing it as a variable in CS
 }
 ```
 
-## Customizing your colors
+## Customizing Your Colors
+
+::: details Purpose
+Learn how to add custom colors to your project using theme variables.
+:::
 
 Use `@theme` to add custom colors to your project under the `--color-*` theme namespace:
 
@@ -263,7 +287,11 @@ Now utilities like `bg-midnight`, `text-tahiti`, and `fill-bermuda` will be avai
 
 Learn more about theme variables in the [theme variables documentation](/guide/theme).
 
-### Overriding default colors
+### Overriding Default Colors
+
+::: details Purpose
+Learn how to override default colors by redefining theme variables.
+:::
 
 Override any of the default colors by defining new theme variables with the same name:
 
@@ -285,7 +313,11 @@ Override any of the default colors by defining new theme variables with the same
 }
 ```
 
-### Disabling default colors
+### Disabling Default Colors
+
+::: details Purpose
+Learn how to disable default colors by setting theme variables to initial.
+:::
 
 Disable any default color by setting the theme namespace for that color to `initial`:
 
@@ -300,7 +332,11 @@ Disable any default color by setting the theme namespace for that color to `init
 
 This is especially useful for removing the corresponding CSS variables from your output for colors you don't intend to use.
 
-### Using a custom palette
+### Using a Custom Palette
+
+::: details Purpose
+Learn how to create a completely custom color palette by disabling all defaults.
+:::
 
 Use `--color-*: initial` to completely disable all of the default colors and define your own custom color palette:
 
@@ -317,7 +353,11 @@ Use `--color-*: initial` to completely disable all of the default colors and def
 }
 ```
 
-### Referencing other variables
+### Referencing Other Variables
+
+::: details Purpose
+Learn how to reference other CSS variables when defining colors using @theme inline.
+:::
 
 Use `@theme inline` when defining colors that reference other colors:
 
@@ -339,7 +379,11 @@ Use `@theme inline` when defining colors that reference other colors:
 
 Learn more in the theme documentation on [referencing other variables](/guide/theme#referencing-other-variables).
 
-## Default color palette reference
+## Default Color Palette Reference
+
+::: details Purpose
+Complete reference of all default colors and their OKLCH values for easy lookup.
+:::
 
 Here's a complete list of the default colors and their values for reference:
 
@@ -614,4 +658,6 @@ Here's a complete list of the default colors and their values for reference:
 }
 ```
 
+::: tip Reusing Color Scales
 This can be useful if you want to reuse any of these scales but under a different name, like redefining `--color-gray-*` to use the `--color-slate-*` scale.
+:::

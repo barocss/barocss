@@ -2,7 +2,7 @@
 
 Utilities for controlling which CSS properties transition.
 
-Source: https://tailwindcss.com/guide/transition-property
+
 
 ## Quick reference
 
@@ -74,4 +74,3 @@ Prefix a `transition-property` utility with a breakpoint variant like `md:` to o
 </button>
 ```
 
-Learn more about using variants in the variants documentation.

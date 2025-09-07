@@ -13,7 +13,7 @@ Utilities for controlling the repetition of an element's mask image.
 | `mask-repeat-space`| `mask-repeat: space;`    |
 | `mask-repeat-round`| `mask-repeat: round;`    |
 
-Source: https://tailwindcss.com/guide/mask-repeat
+
 
 ## Examples
 
@@ -63,4 +63,3 @@ Prefix a `mask-repeat` utility with a breakpoint variant like `md:` to only appl
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

@@ -12,7 +12,6 @@ Utilities for controlling the font family of an element.
 | `font-(family-name:&lt;custom-property&gt;)` | `font-family: var(&lt;custom-property&gt;);` |
 | `font-[&lt;value&gt;]` | `font-family: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/font-family
 
 ## Examples
 
@@ -51,7 +50,6 @@ Prefix a `font-family` utility with a breakpoint variant like `md:` to only appl
 <p class="font-sans md:font-serif ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
@@ -86,4 +84,4 @@ If needed, use the `@font-face` at-rule to load custom fonts:
 }
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

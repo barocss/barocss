@@ -26,7 +26,6 @@ Values (per prefix):
 - `(&lt;custom-property&gt;)`: `var(&lt;custom-property&gt;)`
 - `[&lt;value&gt;]`: `&lt;value&gt;`
 
-Source: https://tailwindcss.com/guide/top-right-bottom-left
 
 ## Examples
 

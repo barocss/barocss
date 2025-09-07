@@ -24,7 +24,6 @@ Utilities for controlling the number of columns within an element.
 | columns-(&lt;custom-property&gt;) | columns: var(&lt;custom-property&gt;);                      |
 | columns-\[&lt;value&gt;\]         | columns: &lt;value&gt;;                                     |
 
-Source: https://tailwindcss.com/guide/columns
 
 ## Examples
 
@@ -110,7 +109,6 @@ Resize the example to see the expected behavior
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

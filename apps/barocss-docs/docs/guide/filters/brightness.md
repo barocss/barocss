@@ -2,11 +2,14 @@
 
 Utilities for applying brightness filters to an element.
 
-Source: https://tailwindcss.com/guide/filter-brightness
 
 ## Quick reference
 
-- `brightness-[&lt;value&gt;]`, `brightness-(&lt;custom-property&gt;)`, preset utilities like `brightness-110`, `brightness-150`
+| Class | Styles |
+|---|---|
+| `brightness-&lt;number&gt;` | `filter: brightness(&lt;number&gt;%);` |
+| `brightness-(&lt;custom-property&gt;)` | `filter: brightness(var(&lt;custom-property&gt;));` |
+| `brightness-[&lt;value&gt;]` | `filter: brightness(&lt;value&gt;);` |
 
 ## Examples
 

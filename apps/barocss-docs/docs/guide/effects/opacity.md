@@ -10,7 +10,7 @@ Utilities for controlling the opacity of an element.
 | `opacity-(&lt;custom-property&gt;)` | `opacity: var(&lt;custom-property&gt;);` |
 | `opacity-[&lt;value&gt;]` | `opacity: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/opacity
+
 
 ## Examples
 
@@ -63,4 +63,3 @@ Prefix an `opacity` utility with a breakpoint variant like `md:` to only apply t
 </button>
 ```
 
-Learn more about using variants in the variants documentation.

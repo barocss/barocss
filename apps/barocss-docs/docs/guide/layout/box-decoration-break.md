@@ -9,7 +9,6 @@ Utilities for controlling how element fragments should be rendered across multip
 | `box-decoration-clone` | `box-decoration-break: clone;` |
 | `box-decoration-slice` | `box-decoration-break: slice;` |
 
-Source: https://tailwindcss.com/guide/box-decoration-break
 
 ## Examples
 
@@ -34,4 +33,3 @@ Prefix a `box-decoration-break` utility with a breakpoint variant like `md:` to 
 <span class="box-decoration-clone md:box-decoration-slice ...">Lorem ipsum dolor sit amet...</span>
 ```
 
-Learn more about using variants in the variants documentation.

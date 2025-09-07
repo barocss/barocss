@@ -2,7 +2,7 @@
 
 Utilities for controlling the easing of CSS transitions.
 
-Source: https://tailwindcss.com/guide/transition-timing-function
+
 
 ## Quick reference
 
@@ -58,7 +58,6 @@ Prefix a `transition-timing-function` utility with a breakpoint variant like `md
 </button>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

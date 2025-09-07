@@ -4,7 +4,6 @@ import { parseNumber } from "../core/utils";
 import { parseColor } from "../core/utils";
 
 // --- Filter ---
-staticUtility("filter", [["filter", "var(--tw-filter)"]], { category: 'effects' });
 staticUtility("filter-none", [["filter", "none"]], { category: 'effects' });
 
 functionalUtility({
@@ -16,6 +15,10 @@ functionalUtility({
   category: "effects",
 });
 
+const filters = () => {
+  return decl("filter", "var(--tw-blur, ) var(--tw-brightness, ) var(--tw-contrast, ) var(--tw-grayscale, ) var(--tw-hue-rotate, ) var(--tw-invert, ) var(--tw-saturate, ) var(--tw-sepia, ) var(--tw-drop-shadow, )");
+}
+
 // --- Blur ---
 [
   ["blur-xs", "var(--blur-xs)"],
@@ -26,20 +29,23 @@ functionalUtility({
   ["blur-2xl", "var(--blur-2xl)"],
   ["blur-3xl", "var(--blur-3xl)"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["filter", `blur(${value})`]], { category: 'effects' });
+  staticUtility(name as string, [
+    decl("--tw-blur", `blur(${value})`),
+    filters()
+  ], { category: 'effects' });
 });
-staticUtility("blur-none", [["filter", ""]], { category: 'effects' });
+staticUtility("blur-none", [decl("--tw-blur", ""), filters()], { category: 'effects' });
 
 functionalUtility({
   name: "blur",
   prop: "filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
-    if (token.customProperty) return [decl("filter", `blur(var(${value}))`)];
-    return [decl("filter", `blur(${value})`)];
+  handle: (value, _ctx, token) => {
+    if (token.customProperty) return [decl("--tw-blur", `blur(var(${value}))`), filters()];
+    return [decl("--tw-blur", `blur(${value})`), filters()];
   },
-  handleCustomProperty: (value) => [decl("filter", `blur(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-blur", `blur(var(${value}))`), filters()],
   description: "blur filter utility (static, arbitrary, custom property supported)",
   category: "effects",
 });
@@ -53,14 +59,15 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, ctx, token) => {
     if (parseNumber(value)) {
-      return [decl("filter", `brightness(${value}%)`)];
+      return [decl("--tw-brightness", `brightness(${value}%)`), filters()];
     }
     if (token.customProperty)
-      return [decl("filter", `brightness(var(${value}))`)];
-    return [decl("filter", `brightness(${value})`)];
+      return [decl("--tw-brightness", `brightness(var(${value}))`), filters()];
+    return [decl("--tw-brightness", `brightness(${value})`), filters()];
   },
   handleCustomProperty: (value) => [
-    decl("filter", `brightness(var(${value}))`),
+    decl("--tw-brightness", `brightness(var(${value}))`),
+    filters()
   ],
   description:
     "brightness filter utility (static, number, arbitrary, custom property supported)",
@@ -73,15 +80,15 @@ functionalUtility({
   prop: "filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, token) => {
     if (parseNumber(value)) {
-      return [decl("filter", `contrast(${value}%)`)];
+      return [decl("--tw-contrast", `contrast(${value}%)`), filters()];
     }
     if (token.customProperty)
-      return [decl("filter", `contrast(var(${value}))`)];
-    return [decl("filter", `contrast(${value})`)];
+      return [decl("--tw-contrast", `contrast(var(${value}))`), filters()];
+    return [decl("--tw-contrast", `contrast(${value})`), filters()];
   },
-  handleCustomProperty: (value) => [decl("filter", `contrast(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-contrast", `contrast(var(${value}))`), filters()],
   description:
     "contrast filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
@@ -89,30 +96,33 @@ functionalUtility({
 
 // --- Drop Shadow ---
 [
-  ["drop-shadow-xs", "var(--drop-shadow-xs)"],
-  ["drop-shadow-sm", "var(--drop-shadow-sm)"],
-  ["drop-shadow-md", "var(--drop-shadow-md)"],
-  ["drop-shadow-lg", "var(--drop-shadow-lg)"],
-  ["drop-shadow-xl", "var(--drop-shadow-xl)"],
-  ["drop-shadow-2xl", "var(--drop-shadow-2xl)"],
-  ["drop-shadow-3xl", "var(--drop-shadow-3xl)"],
-].forEach(([name, value]) => {
-  staticUtility(name as string, [["filter", `drop-shadow(${value})`]]);
+  ["drop-shadow-xs", "xs", '0 1px 1px var(--tw-drop-shadow-color, #0000001a)'],
+  ["drop-shadow-sm", "sm", '0 1px 2px var(--tw-drop-shadow-color, #0000001a)'],
+  ["drop-shadow-md", "md", '0 3px 3px var(--tw-drop-shadow-color, #0000001a)'],
+  ["drop-shadow-lg", "lg", '0 4px 4px var(--tw-drop-shadow-color, #0000001a)'],
+  ["drop-shadow-xl", "xl", '0 9px 7px var(--tw-drop-shadow-color, #0000001a)'],
+  ["drop-shadow-2xl", "2xl", '0 25px 25px var(--tw-drop-shadow-color, #0000001a)'],
+].forEach(([name, size, sizeValue]) => {
+  staticUtility(name as string, [
+    decl("--tw-drop-shadow-size", `drop-shadow(${sizeValue})`),
+    decl("--tw-drop-shadow", `var(--drop-shadow-${size})`),
+    filters()
+  ]);
 });
-staticUtility("drop-shadow-none", [["filter", "drop-shadow(0 0 #0000)"]]);
+staticUtility("drop-shadow-none", [decl("--tw-drop-shadow", "drop-shadow(0 0 #0000)"), filters()]);
 
 // --- Drop Shadow Color ---
 // drop-shadow-inherit, drop-shadow-current, drop-shadow-transparent
 ["inherit", "current", "transparent"].forEach((name) => {
   staticUtility(`drop-shadow-${name}`, [
-    ["--tw-drop-shadow-color", name === "current" ? "currentColor" : name],
+    decl("--tw-drop-shadow-color", name === "current" ? "currentColor" : name),
   ]);
 });
 
 // drop-shadow-black, drop-shadow-white, drop-shadow-{color}-{shade}
 ["black", "white"].forEach((name) => {
   staticUtility(`drop-shadow-${name}`, [
-    ["--tw-drop-shadow-color", `var(--color-${name})`],
+    decl("--tw-drop-shadow-color", `var(--color-${name})`),
   ]);
 });
 
@@ -122,7 +132,7 @@ functionalUtility({
   themeKeys: ['colors'],
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token, extra) => {
+  handle: (value, _ctx, _token, extra) => {
     if (extra?.realThemeValue) {
       return [decl("--tw-drop-shadow-color", `var(--color-${extra.realThemeValue})`)];
     }
@@ -131,7 +141,10 @@ functionalUtility({
       return [decl("--tw-drop-shadow-color", value)];
     }
 
-    return [decl("filter", `drop-shadow(${value})`)];
+    return [
+      decl("--tw-drop-shadow-size", `drop-shadow(${value})`),
+      decl("--tw-drop-shadow", `var(--tw-drop-shadow-size)`),
+    ];
   },
   handleCustomProperty: (value) => {
     if (value.startsWith("color:")) {
@@ -140,7 +153,10 @@ functionalUtility({
       ];
     }
 
-    return [decl("filter", `drop-shadow(var(${value}))`)];
+    return [
+      decl("--tw-drop-shadow-size", `drop-shadow(var(${value}))`),
+      decl("--tw-drop-shadow", `var(--tw-drop-shadow-size)`),
+    ];
   },
   description:
     "drop-shadow filter utility (static, arbitrary, custom property supported)",
@@ -148,20 +164,20 @@ functionalUtility({
 });
 
 // --- Grayscale ---
-staticUtility("grayscale", [["filter", "grayscale(100%)"]], { category: "effects" });
+staticUtility("grayscale", [decl("--tw-grayscale", "grayscale(100%)"), filters()], { category: "effects" });
 
 functionalUtility({
   name: "grayscale",
   prop: "filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value) => {
     if (parseNumber(value)) {
-      return [decl("filter", `grayscale(${value}%)`)];
+        return [decl("--tw-grayscale", `grayscale(${value}%)`), filters()];
     }
-    return [decl("filter", `grayscale(${value})`)];
+    return [decl("--tw-grayscale", `grayscale(${value})`), filters()];
   },
-  handleCustomProperty: (value) => [decl("filter", `grayscale(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-grayscale", `grayscale(var(${value}))`), filters()],
   description: "grayscale filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
@@ -174,35 +190,35 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsNegative: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, token) => {
     if (token.negative && parseNumber(token.value!)) {
-      return [decl("filter", `hue-rotate(calc(${token.value}deg * -1))`)];
+      return [decl("--tw-hue-rotate", `hue-rotate(calc(${token.value}deg * -1))`), filters()];
     }
     if (parseNumber(value)) {
-      return [decl("filter", `hue-rotate(${value}deg)`)]
+      return [decl("--tw-hue-rotate", `hue-rotate(${value}deg)`), filters()];
     }
-    if (token.customProperty) return [decl("filter", `hue-rotate(var(${value}))`)];
-    return [decl("filter", `hue-rotate(${value})`)];
+    if (token.customProperty) return [decl("--tw-hue-rotate", `hue-rotate(var(${value}))`), filters()];
+    return [decl("--tw-hue-rotate", `hue-rotate(${value})`), filters()];
   },
-  handleCustomProperty: (value) => [decl("filter", `hue-rotate(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-hue-rotate", `hue-rotate(var(${value}))`), filters()],
   description: "hue-rotate filter utility (static, negative, number, arbitrary, custom property supported)",
   category: "effects",
 });
 
 // --- Invert ---
-staticUtility("invert", [["filter", "invert(100%)"]], { category: "effects" });
+staticUtility("invert", [decl("--tw-invert", "invert(100%)"), filters()], { category: "effects" });
 
 functionalUtility({
   name: "invert",
   prop: "filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value) => {
     if (parseNumber(value)) {
-      return [decl("filter", `invert(${value}%)`)];
+      return [decl("--tw-invert", `invert(${value}%)`), filters()];
     }
 
-    return [decl("filter", `invert(${value})`)];
+    return [decl("--tw-invert", `invert(${value})`), filters()];
   },
   description: "invert filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
@@ -214,32 +230,32 @@ functionalUtility({
   prop: "filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value) => {
     if (parseNumber(value)) {
-      return [decl("filter", `saturate(${value}%)`)];
+      return [decl("--tw-saturate", `saturate(${value}%)`), filters()];
     }
-    return [decl("filter", `saturate(${value})`)];
+    return [decl("--tw-saturate", `saturate(${value})`), filters()];
   },
-  handleCustomProperty: (value) => [decl("filter", `saturate(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-saturate", `saturate(var(${value}))`), filters()],
   description: "saturate filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
 
 // --- Sepia ---
-staticUtility("sepia", [["filter", "sepia(100%)"]], { category: "effects" });
+staticUtility("sepia", [decl("--tw-sepia", "sepia(100%)"), filters()], { category: "effects" });
 
 functionalUtility({
   name: "sepia",
   prop: "filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value) => {
     if (parseNumber(value)) {
-      return [decl("filter", `sepia(${value}%)`)];
+      return [decl("--tw-sepia", `sepia(${value}%)`), filters()];
     }
-    return [decl("filter", `sepia(${value})`)];
+    return [decl("--tw-sepia", `sepia(${value})`), filters()];
   },
-  handleCustomProperty: (value) => [decl("filter", `sepia(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-sepia", `sepia(var(${value}))`), filters()],
   description: "sepia filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });

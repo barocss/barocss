@@ -165,7 +165,7 @@ Most of the time when you need to reference your theme variables in JS you can j
 
 ### With Animation Libraries
 
-For example, the popular [Motion](https://motion.dev/guide/react-quick-start) library for React lets you animate to and from CSS variable values:
+For example, the popular [Motion](https://motion.dev/guide/react-installation) library for React lets you animate to and from CSS variable values:
 
 ```jsx
 import { motion } from "framer-motion";

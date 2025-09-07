@@ -10,7 +10,7 @@ Utilities for controlling how a background image behaves when scrolling.
 | `bg-local` | `background-attachment: local;` |
 | `bg-scroll` | `background-attachment: scroll;` |
 
-Source: https://tailwindcss.com/guide/background-attachment
+
 
 ## Examples
 
@@ -57,4 +57,3 @@ Prefix a `background-attachment` utility with a breakpoint variant like `md:` to
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

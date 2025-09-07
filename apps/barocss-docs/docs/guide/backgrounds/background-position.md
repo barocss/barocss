@@ -18,7 +18,7 @@ Utilities for controlling the position of an element's background image.
 | `bg-position-(&lt;custom-property&gt;)` | `background-position: var(&lt;custom-property&gt;);` |
 | `bg-position-[&lt;value&gt;]` | `background-position: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/background-position
+
 
 ## Examples
 
@@ -69,4 +69,3 @@ Prefix a `background-position` utility with a breakpoint variant like `md:` to o
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

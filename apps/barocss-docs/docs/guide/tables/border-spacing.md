@@ -2,7 +2,7 @@
 
 Utilities for controlling the spacing between table borders.
 
-Source: https://tailwindcss.com/guide/border-spacing
+
 
 ## Quick reference
 
@@ -85,7 +85,6 @@ Prefix a `border-spacing` utility with a breakpoint variant like `md:` to only a
 </table>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

@@ -14,7 +14,6 @@ Utilities for controlling how grid items are aligned along their inline axis.
 | `justify-items-stretch` | `justify-items: stretch;` |
 | `justify-items-normal` | `justify-items: normal;` |
 
-Source: https://tailwindcss.com/guide/justify-items
 
 ## Examples
 
@@ -112,4 +111,4 @@ Prefix a `justify-items` utility with a breakpoint variant like `md:` to only ap
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+

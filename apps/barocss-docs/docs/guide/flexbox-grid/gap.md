@@ -16,7 +16,6 @@ Utilities for controlling gutters between grid and flexbox items.
 | `gap-y-(&lt;custom-property&gt;)` | `row-gap: var(&lt;custom-property&gt;);` |
 | `gap-y-[&lt;value&gt;]` | `row-gap: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/gap
 
 ## Examples
 
@@ -80,4 +79,3 @@ Prefix a `gap` utility with a breakpoint variant like `md:` to only apply the ut
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

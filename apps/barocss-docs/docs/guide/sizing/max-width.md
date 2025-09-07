@@ -37,7 +37,7 @@ Utilities for setting the maximum width of an element.
 | max-w-(&lt;custom-property&gt;)| max-width: var(&lt;custom-property&gt;);                                                 |
 | max-w-\[&lt;value&gt;\]        | max-width: &lt;value&gt;;                                                                |
 
-Source: https://tailwindcss.com/guide/max-width
+
 
 ## Examples
 
@@ -168,7 +168,6 @@ Prefix a `max-width` utility with a breakpoint variant like `md:` to only apply 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

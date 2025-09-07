@@ -22,7 +22,7 @@ Utilities for controlling the color of an element's borders.
 | `border-l-{name}` | `border-left-color: var(--color-{name});` |
 | `divide-{name}` | `& > :not(:last-child) { border-color: var(--color-{name}); }` |
 
-Source: https://tailwindcss.com/guide/border-color
+
 
 ## Examples
 
@@ -139,7 +139,6 @@ Prefix a `border-color` utility with a breakpoint variant like `md:` to only app
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

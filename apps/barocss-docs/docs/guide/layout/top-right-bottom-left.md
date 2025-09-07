@@ -26,7 +26,6 @@ Values (per prefix):
 - `(&lt;custom-property&gt;)`: `var(&lt;custom-property&gt;)`
 - `[&lt;value&gt;]`: `&lt;value&gt;`
 
-Source: https://tailwindcss.com/guide/top-right-bottom-left
 
 ## Examples
 
@@ -121,7 +120,6 @@ Prefix a positioning utility with a breakpoint variant like `md:` to only apply 
 <div class="relative top-4 md:top-6 ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

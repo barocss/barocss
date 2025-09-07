@@ -2,7 +2,7 @@
 
 Utilities for styling the stroke of SVG elements.
 
-Source: https://tailwindcss.com/guide/stroke
+
 
 ## Quick reference
 
@@ -74,7 +74,6 @@ Prefix a `stroke` utility with a breakpoint variant like `md:` to only apply the
 </svg>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

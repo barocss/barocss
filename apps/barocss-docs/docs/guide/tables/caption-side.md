@@ -2,7 +2,7 @@
 
 Utilities for controlling the alignment of a caption element inside of a table.
 
-Source: https://tailwindcss.com/guide/caption-side
+
 
 ## Quick reference
 
@@ -63,4 +63,3 @@ Prefix a `caption-side` utility with a breakpoint variant like `md:` to only app
 </caption>
 ```
 
-Learn more about using variants in the variants documentation.

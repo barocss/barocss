@@ -2,7 +2,6 @@
 
 Utilities for applying blur filters to an element.
 
-Source: https://tailwindcss.com/guide/filter-blur
 
 ## Quick reference
 

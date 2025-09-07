@@ -1,8 +1,10 @@
-# Hover, focus, and other states
+# Hover, Focus, and Other States
 
+::: tip Conditional Styling
 Using utilities to style elements on hover, focus, and more.
+:::
 
-Every utility class in Tailwind can be applied _conditionally_ by adding a variant to the beginning of the class name that describes the condition you want to target.
+Every utility class in BaroCSS can be applied _conditionally_ by adding a variant to the beginning of the class name that describes the condition you want to target.
 
 For example, to apply the `bg-sky-700` class on hover, use the `hover:bg-sky-700` class:
 
@@ -14,7 +16,11 @@ Save changes
 <button class="bg-sky-500 hover:bg-sky-700 ...">Save changes</button>
 ```
 
-How does this compare to traditional CSS?
+## How Does This Compare to Traditional CSS?
+
+::: details Purpose
+Understand the difference between traditional CSS and BaroCSS's conditional utility approach.
+:::
 
 When writing CSS the traditional way, a single class name would do different things based on the current state:
 
@@ -29,9 +35,9 @@ Traditionally the same class name applies different styles on hover
 }
 ```
 
-In Tailwind, rather than adding the styles for a hover state to an existing class, you add another class to the element that _only_ does something on hover:
+In BaroCSS, rather than adding the styles for a hover state to an existing class, you add another class to the element that _only_ does something on hover:
 
-In Tailwind, separate classes are used for the default state and the hover state
+In BaroCSS, separate classes are used for the default state and the hover state
 
 ```css
 .bg-sky-500 {
@@ -46,7 +52,7 @@ Notice how `hover:bg-sky-700` _only_ defines styles for the `:hover` state? It d
 
 This is what we mean when we say a utility class can be applied _conditionally_ — by using variants you can control exactly how your design behaves in different states, without ever leaving your HTML.
 
-Tailwind includes variants for just about everything you'll ever need, including:
+BaroCSS includes variants for just about everything you'll ever need, including:
 
 - [Pseudo-classes](./variants/pseudo-classes.md), like `:hover`, `:focus`, `:first-child`, and `:required`
 - [Pseudo-elements](./variants/pseudo-elements.md), like `::before`, `::after`, `::placeholder`, and `::selection`
@@ -54,15 +60,21 @@ Tailwind includes variants for just about everything you'll ever need, including
 - [Attribute selectors](./variants/attribute-selectors.md), like `[dir="rtl"]` and `[open]`
 - [Child selectors](./variants/child-selectors.md), like `& > *` and `& *`
 
+::: tip Variant Stacking
 These variants can even be stacked to target more specific situations, for example changing the background color in dark mode, at the medium breakpoint, on hover:
 
 ```html
 <button class="dark:md:hover:bg-fuchsia-600 ...">Save changes</button>
 ```
+:::
 
 In this guide you'll learn about every variant available in the framework, how to use them with your own custom classes, and even how to create your own.
 
-## Quick reference
+## Quick Reference
+
+::: details Purpose
+Quick reference table of the most commonly used variants for easy lookup.
+:::
 
 Here's a quick reference of the most commonly used variants:
 

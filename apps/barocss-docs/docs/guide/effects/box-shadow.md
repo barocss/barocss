@@ -32,7 +32,7 @@ Utilities for controlling the box shadow of an element.
 | `inset-ring-(&lt;custom-property&gt;)` | `--tw-inset-ring-shadow: inset 0 0 0 var(&lt;custom-property&gt;);` |
 | `inset-ring-[&lt;value&gt;]` | `--tw-inset-ring-shadow: inset 0 0 0 &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/effects/box-shadow
+
 
 ## Examples
 
@@ -187,7 +187,7 @@ Prefix a `box-shadow` utility with a breakpoint variant like `md:` to only apply
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+
 
 ## Customizing your theme
 
@@ -209,7 +209,7 @@ Now the `shadow-3xl` utility can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+
 
 ### Customizing inset shadows
 
@@ -229,7 +229,7 @@ Now the `inset-shadow-md` utility can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+
 
 ### Customizing shadow colors
 
@@ -249,4 +249,4 @@ Now utilities like `shadow-regal-blue`, `inset-shadow-regal-blue`, `ring-regal-b
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

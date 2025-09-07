@@ -15,7 +15,6 @@ Utilities for controlling how a column or page should break after an element.
 | `break-after-right`   | `break-after: right;`   |
 | `break-after-column`  | `break-after: column;`  |
 
-Source: https://tailwindcss.com/guide/break-after
 
 ## Examples
 
@@ -40,4 +39,3 @@ Prefix a `break-after` utility with a breakpoint variant like `md:` to only appl
 <div class="break-after-column md:break-after-auto ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

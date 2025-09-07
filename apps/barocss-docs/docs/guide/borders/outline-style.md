@@ -13,7 +13,7 @@ Utilities for controlling the style of an element's outline.
 | `outline-none`    | `outline-style: none;`   |
 | `outline-hidden`  | `outline: 2px solid transparent; outline-offset: 2px;` |
 
-Source: https://tailwindcss.com/guide/outline-style
+
 
 ## Examples
 
@@ -54,4 +54,3 @@ Prefix an `outline-style` utility with a breakpoint variant like `md:` to only a
 </button>
 ```
 
-Learn more about using variants in the variants documentation.

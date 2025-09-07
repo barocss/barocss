@@ -1,7 +1,15 @@
 import { staticUtility, functionalUtility } from "../core/registry";
 import { decl } from "../core/ast";
 import { parseNumber } from "../core/utils";
-import { parseColor } from "../core/utils";
+
+
+
+const filters = () => {
+  return [
+    decl("-webkit-backdrop-filter", "var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, )"),
+    decl("backdrop-filter", "var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, )"),
+  ]
+}
 
 // --- Backdrop Filter ---
 staticUtility("backdrop-filter", [["backdrop-filter", "var(--tw-backdrop-filter)"]], { category: 'effects' });
@@ -26,20 +34,23 @@ functionalUtility({
   ["backdrop-blur-2xl", "var(--blur-2xl)"],
   ["backdrop-blur-3xl", "var(--blur-3xl)"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["backdrop-filter", `blur(${value})`]], { category: 'effects' });
+  staticUtility(name as string, [
+    decl("--tw-backdrop-blur", `blur(${value})`),
+    ...filters()
+  ], { category: 'effects' });
 });
-staticUtility("backdrop-blur-none", [["backdrop-filter", ""]], { category: 'effects' });
+staticUtility("backdrop-blur-none", [decl("--tw-backdrop-blur", ""), ...filters()], { category: 'effects' });
 
 functionalUtility({
   name: "backdrop-blur",
   prop: "backdrop-filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
-    if (token.customProperty) return [decl("backdrop-filter", `blur(var(${value}))`)];
-    return [decl("backdrop-filter", `blur(${value})`)];
+  handle: (value, _ctx, token) => {
+    if (token.customProperty) return [decl("--tw-backdrop-blur", `blur(var(${value}))`), ...filters()];
+    return [decl("--tw-backdrop-blur", `blur(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("backdrop-filter", `blur(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-backdrop-blur", `blur(var(${value}))`), ...filters()],
   description: "blur filter utility (static, arbitrary, custom property supported)",
   category: "effects",
 });
@@ -51,16 +62,17 @@ functionalUtility({
   prop: "backdrop-filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, token) => {
     if (parseNumber(value)) {
-      return [decl("backdrop-filter", `brightness(${value}%)`)];
+        return [decl("--tw-backdrop-brightness", `brightness(${value}%)`), ...filters()];
     }
     if (token.customProperty)
-      return [decl("backdrop-filter", `brightness(var(${value}))`)];
-    return [decl("backdrop-filter", `brightness(${value})`)];
+      return [decl("--tw-backdrop-brightness", `brightness(var(${value}))`), ...filters()];
+    return [decl("--tw-backdrop-brightness", `brightness(${value})`), ...filters()];
   },
   handleCustomProperty: (value) => [
-    decl("backdrop-filter", `brightness(var(${value}))`),
+    decl("--tw-backdrop-brightness", `brightness(var(${value}))`),
+    ...filters()
   ],
   description:
     "brightness filter utility (static, number, arbitrary, custom property supported)",
@@ -73,15 +85,15 @@ functionalUtility({
   prop: "backdrop-filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, token) => {
     if (parseNumber(value)) {
-      return [decl("backdrop-filter", `contrast(${value}%)`)];
+      return [decl("--tw-backdrop-contrast", `contrast(${value}%)`), ...filters()];
     }
     if (token.customProperty)
-      return [decl("backdrop-filter", `contrast(var(${value}))`)];
-    return [decl("backdrop-filter", `contrast(${value})`)];
+      return [decl("--tw-backdrop-contrast", `contrast(var(${value}))`), ...filters()];
+    return [decl("--tw-backdrop-contrast", `contrast(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("backdrop-filter", `contrast(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-backdrop-contrast", `contrast(var(${value}))`), ...filters()],
   description:
     "contrast filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
@@ -95,13 +107,13 @@ functionalUtility({
   prop: "backdrop-filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, _token) => {
     if (parseNumber(value)) {
-      return [decl("backdrop-filter", `grayscale(${value}%)`)];
+      return [decl("--tw-backdrop-grayscale", `grayscale(${value}%)`), ...filters()];
     }
-    return [decl("backdrop-filter", `grayscale(${value})`)];
+    return [decl("--tw-backdrop-grayscale", `grayscale(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("backdrop-filter", `grayscale(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-backdrop-grayscale", `grayscale(var(${value}))`), ...filters()],
   description: "grayscale filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
@@ -114,16 +126,16 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsNegative: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, token) => {
     if (token.negative && parseNumber(token.value!)) {
-      return [decl("backdrop-filter", `hue-rotate(calc(${token.value}deg * -1))`)];
+        return [decl("--tw-backdrop-hue-rotate", `hue-rotate(calc(${token.value}deg * -1))`), ...filters()];
     }
     if (parseNumber(value)) {
-      return [decl("backdrop-filter", `hue-rotate(${value}deg)`)]
+      return [decl("--tw-backdrop-hue-rotate", `hue-rotate(${value}deg)`), ...filters()];
     }
-    return [decl("backdrop-filter", `hue-rotate(${value})`)];
+    return [decl("--tw-backdrop-hue-rotate", `hue-rotate(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("backdrop-filter", `hue-rotate(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-backdrop-hue-rotate", `hue-rotate(var(${value}))`), ...filters()],
   description: "hue-rotate filter utility (static, negative, number, arbitrary, custom property supported)",
   category: "effects",
 });
@@ -136,12 +148,12 @@ functionalUtility({
   prop: "backdrop-filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, _token) => {
     if (parseNumber(value)) {
-      return [decl("backdrop-filter", `invert(${value}%)`)];
+      return [decl("--tw-backdrop-invert", `invert(${value}%)`), ...filters()];
     }
 
-    return [decl("backdrop-filter", `invert(${value})`)];
+    return [decl("--tw-backdrop-invert", `invert(${value})`), ...filters()];
   },
   description: "invert filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
@@ -153,13 +165,13 @@ functionalUtility({
   prop: "backdrop-filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, _token) => {
     if (parseNumber(value)) {
-      return [decl("backdrop-filter", `saturate(${value}%)`)];
+      return [decl("--tw-backdrop-saturate", `saturate(${value}%)`), ...filters()];
     }
-    return [decl("backdrop-filter", `saturate(${value})`)];
+    return [decl("--tw-backdrop-saturate", `saturate(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("backdrop-filter", `saturate(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-backdrop-saturate", `saturate(var(${value}))`), ...filters()],
   description: "saturate filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
@@ -172,13 +184,13 @@ functionalUtility({
   prop: "backdrop-filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, _token) => {
     if (parseNumber(value)) {
-      return [decl("backdrop-filter", `sepia(${value}%)`)];
+      return [decl("--tw-backdrop-sepia", `sepia(${value}%)`), ...filters()];
     }
-    return [decl("backdrop-filter", `sepia(${value})`)];
+    return [decl("--tw-backdrop-sepia", `sepia(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("backdrop-filter", `sepia(var(${value}))`)],
+  handleCustomProperty: (value) => [decl("--tw-backdrop-sepia", `sepia(var(${value}))`), ...filters()],
   description: "sepia filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });

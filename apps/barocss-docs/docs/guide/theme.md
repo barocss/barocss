@@ -391,7 +391,7 @@ const runtime = new BrowserRuntime({
 
 ## Next Steps
 
-- **[Theme Variables](/guide/theme-variables)** - Learn about CSS custom properties
+- **[CSS Variables](/guide/theme#css-variables)** - Learn about CSS custom properties
 - **[Dark Mode](/guide/dark-mode)** - Implement dark theme support
 - **[Custom Utilities](/guide/adding-custom-styles)** - Create utilities that use your theme
 - **[API Reference](/api/context)** - Complete theme API documentation

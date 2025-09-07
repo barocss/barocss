@@ -41,7 +41,7 @@ Utilities for controlling an element's background image.
 | `to-(&lt;custom-property&gt;)` | `--tw-gradient-to: var(&lt;custom-property&gt;);` |
 | `to-[&lt;value&gt;]` | `--tw-gradient-to: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/backgrounds/background-image
+
 
 ## Examples
 
@@ -170,7 +170,6 @@ Prefix a `background-image` utility with a breakpoint variant like `md:` to only
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
@@ -192,4 +191,4 @@ Then use it in your HTML:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

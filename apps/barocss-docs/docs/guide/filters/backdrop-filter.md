@@ -10,8 +10,6 @@ Utilities for applying backdrop filters to an element.
 | `backdrop-filter-(&lt;custom-property&gt;)` | `backdrop-filter: var(&lt;custom-property&gt;);` |
 | `backdrop-filter-[&lt;value&gt;]` | `backdrop-filter: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/backdrop-filter
-
 ## Examples
 
 ### Basic example
@@ -72,7 +70,6 @@ Prefix a `backdrop-filter` utility with a variant like `hover:*` to only apply t
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ### Responsive design
 
@@ -84,7 +81,6 @@ Prefix a `backdrop-filter` utility with a breakpoint variant like `md:` to only 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 See also:
 - Blur: /guide/filters/backdrop/blur

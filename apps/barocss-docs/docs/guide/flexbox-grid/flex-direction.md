@@ -11,7 +11,6 @@ Utilities for controlling the direction of flex items.
 | `flex-col` | `flex-direction: column;` |
 | `flex-col-reverse` | `flex-direction: column-reverse;` |
 
-Source: https://tailwindcss.com/guide/flex-direction
 
 ## Examples
 
@@ -77,4 +76,4 @@ Prefix a `flex-direction` utility with a breakpoint variant like `md:` to only a
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+

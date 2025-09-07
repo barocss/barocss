@@ -11,7 +11,6 @@ Utilities for controlling how flex items shrink.
 | `shrink-[&lt;value&gt;]` | `flex-shrink: &lt;value&gt;;` |
 | `shrink-(&lt;custom-property&gt;)` | `flex-shrink: var(&lt;custom-property&gt;);` |
 
-Source: https://tailwindcss.com/guide/flex-shrink
 
 ## Examples
 
@@ -65,4 +64,3 @@ Prefix a `flex-shrink` utility with a breakpoint variant like `md:` to only appl
 <div class="shrink md:shrink-0 ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

@@ -2,7 +2,7 @@
 
 Utilities for controlling how strictly snap points are enforced in a snap container.
 
-Source: https://tailwindcss.com/guide/scroll-snap-type
+
 
 ## Quick reference
 
@@ -102,4 +102,3 @@ Prefix a `scroll-snap-type` utility with a breakpoint variant like `md:` to only
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

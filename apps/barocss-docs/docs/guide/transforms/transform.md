@@ -2,7 +2,7 @@
 
 Utilities for transforming elements.
 
-Source: https://tailwindcss.com/guide/transform
+
 
 ## Quick reference
 
@@ -68,4 +68,3 @@ Prefix a `transform` utility with a breakpoint variant like `md:` to only apply 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

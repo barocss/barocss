@@ -2,7 +2,7 @@
 
 Utilities for rotating elements.
 
-Source: https://tailwindcss.com/guide/rotate
+
 
 ## Quick reference
 
@@ -82,4 +82,3 @@ Prefix a `rotate` utility with a breakpoint variant like `md:` to only apply the
 <img class="rotate-45 md:rotate-60 ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.

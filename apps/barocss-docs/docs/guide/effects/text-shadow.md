@@ -19,7 +19,6 @@ Utilities for controlling the shadow of a text element.
 | `text-shadow-current` | `--tw-shadow-color currentColor;` |
 | `text-shadow-transparent` | `--tw-shadow-color transparent;` |
 
-Source: https://tailwindcss.com/guide/text-shadow
 
 ## Examples
 
@@ -102,7 +101,6 @@ Prefix a `text-shadow` utility with a breakpoint variant like `md:` to only appl
 </p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
@@ -122,4 +120,4 @@ Now the `text-shadow-3xl` utility can be used in your markup:
 </p>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

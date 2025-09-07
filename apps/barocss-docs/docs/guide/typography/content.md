@@ -10,7 +10,7 @@ Utilities for controlling the content of the before and after pseudo-elements.
 | `content-(&lt;custom-property&gt;)` | `content: var(&lt;custom-property&gt;);` |
 | `content-none`      | `content: none;`               |
 
-Source: https://tailwindcss.com/guide/content
+
 
 ## Examples
 
@@ -66,4 +66,3 @@ Prefix a `content` utility with a breakpoint variant like `md:` to only apply th
 <p class="before:content-['Mobile'] md:before:content-['Desktop'] ..."></p>
 ```
 
-Learn more about using variants in the variants documentation.

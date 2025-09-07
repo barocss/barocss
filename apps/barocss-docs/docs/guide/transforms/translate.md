@@ -2,7 +2,7 @@
 
 Utilities for translating elements.
 
-Source: https://tailwindcss.com/guide/transforms/translate
+
 
 ## Quick reference
 
@@ -126,4 +126,3 @@ Prefix a `translate` utility with a breakpoint variant like `md:` to only apply 
 <img class="translate-45 md:translate-60 ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.

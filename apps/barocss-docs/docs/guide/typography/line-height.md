@@ -14,7 +14,6 @@ Utilities for controlling the leading, or line height, of an element.
 | `leading-(&lt;custom-property&gt;)` | `line-height: var(&lt;custom-property&gt;);` |
 | `leading-[&lt;value&gt;]` | `line-height: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/line-height
 
 ## Examples
 
@@ -75,7 +74,6 @@ Prefix a `line-height` utility with a breakpoint variant like `md:` to only appl
 <p class="leading-5 md:leading-6 ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
@@ -95,4 +93,4 @@ Now the `leading-extra-loose` and `leading-12` utilities can be used in your mar
 <p class="leading-12">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

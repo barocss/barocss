@@ -26,7 +26,6 @@ Utilities for controlling how elements are sized and placed across grid columns.
 | `col-(&lt;custom-property&gt;)` | `grid-column: var(&lt;custom-property&gt;);` |
 | `col-[&lt;value&gt;]` | `grid-column: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/grid-column
 
 ## Examples
 
@@ -87,4 +86,3 @@ Prefix a `grid-column` utility with a breakpoint variant like `md:` to only appl
 <div class="col-span-2 md:col-span-6 ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

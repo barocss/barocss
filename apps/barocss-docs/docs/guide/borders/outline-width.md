@@ -11,7 +11,7 @@ Utilities for controlling the width of an element's outline.
 | `outline-(&lt;custom-property&gt;)` | `outline-width: var(&lt;custom-property&gt;);` |
 | `outline-[&lt;value&gt;]`  | `outline-width: &lt;value&gt;;`            |
 
-Source: https://tailwindcss.com/guide/outline-width
+
 
 ## Examples
 
@@ -65,4 +65,3 @@ Prefix an `outline-width` utility with a breakpoint variant like `md:` to only a
 </button>
 ```
 
-Learn more about using variants in the variants documentation.

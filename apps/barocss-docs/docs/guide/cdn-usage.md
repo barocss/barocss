@@ -1,8 +1,14 @@
 # CDN Usage Guide
 
+::: tip Zero Build Setup
 BaroCSS can be used directly from a CDN without any build process or package installation. This is perfect for rapid prototyping, educational projects, or when you want to test BaroCSS quickly.
+:::
 
 ## Quick Start
+
+::: details Purpose
+Get started with BaroCSS in under 30 seconds using CDN.
+:::
 
 Get started with BaroCSS in under 30 seconds:
 
@@ -31,9 +37,17 @@ Get started with BaroCSS in under 30 seconds:
 
 ## CDN Build Options
 
+::: details Purpose
+Choose the right CDN build for your project needs.
+:::
+
 BaroCSS provides two main CDN builds:
 
 ### 1. UMD Build (Universal Module Definition)
+
+::: details Purpose
+Universal build that works in all browsers without module system requirements.
+:::
 
 **Best for**: Simple HTML pages, legacy browsers, quick prototypes
 
@@ -53,6 +67,10 @@ BaroCSS provides two main CDN builds:
 - Larger file size (~45KB gzipped)
 
 ### 2. ES Module Build
+
+::: details Purpose
+Modern ES6+ build with better performance and tree-shaking support.
+:::
 
 **Best for**: Modern browsers, module-based development
 
@@ -74,6 +92,10 @@ BaroCSS provides two main CDN builds:
 
 ## CDN Providers
 
+::: details Purpose
+Choose your preferred CDN provider for optimal performance and reliability.
+:::
+
 Choose your preferred CDN provider:
 
 | Provider | UMD Build | ES Module Build |
@@ -85,6 +107,10 @@ Choose your preferred CDN provider:
 ## Complete Examples
 
 ### Basic Styling Example
+
+::: details Purpose
+Complete example showing basic BaroCSS styling with interactive demo.
+:::
 
 ```html
 <!DOCTYPE html>
@@ -205,6 +231,10 @@ Choose your preferred CDN provider:
 
 ### Advanced Configuration Example
 
+::: details Purpose
+Advanced example with custom theme configuration and ES modules.
+:::
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -297,6 +327,10 @@ Choose your preferred CDN provider:
 
 ## Performance Considerations
 
+::: details Purpose
+Understand performance implications and optimization strategies for CDN usage.
+:::
+
 ### File Sizes
 
 | Build Type | Size (minified) | Size (gzipped) |
@@ -308,12 +342,20 @@ Choose your preferred CDN provider:
 
 #### 1. Preload for Critical Rendering
 
+::: details Purpose
+Optimize loading performance with preloading strategies.
+:::
+
 ```html
 <link rel="preload" href="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs" as="script">
 <script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
 ```
 
 #### 2. Lazy Loading for Non-Critical
+
+::: details Purpose
+Load BaroCSS only when needed to improve initial page load performance.
+:::
 
 ```html
 <script>
@@ -333,6 +375,10 @@ document.addEventListener('click', async () => {
 
 #### 3. Service Worker Caching
 
+::: details Purpose
+Cache BaroCSS files using service workers for offline support and faster subsequent loads.
+:::
+
 ```javascript
 // In your service worker
 self.addEventListener('install', (event) => {
@@ -347,6 +393,10 @@ self.addEventListener('install', (event) => {
 ```
 
 ## Version Management
+
+::: details Purpose
+Learn best practices for version management in production environments.
+:::
 
 ### Production Best Practices
 
@@ -363,6 +413,10 @@ self.addEventListener('install', (event) => {
 
 ### Checking Available Versions
 
+::: details Purpose
+Learn how to check and manage available BaroCSS versions.
+:::
+
 ```bash
 # View all available versions
 npm view @barocss/kit versions --json
@@ -375,6 +429,10 @@ npm view @barocss/kit version
 
 ### 1. Educational/Learning
 
+::: details Purpose
+Perfect for CodePen, JSFiddle, or learning environments.
+:::
+
 Perfect for CodePen, JSFiddle, or learning environments:
 
 ```html
@@ -383,6 +441,10 @@ Perfect for CodePen, JSFiddle, or learning environments:
 ```
 
 ### 2. Rapid Prototyping
+
+::: details Purpose
+Quick mockups and proof of concepts.
+:::
 
 Quick mockups and proof of concepts:
 
@@ -395,6 +457,10 @@ Quick mockups and proof of concepts:
 ```
 
 ### 3. A/B Testing
+
+::: details Purpose
+Test BaroCSS in existing applications.
+:::
 
 Test BaroCSS in existing applications:
 
@@ -411,6 +477,10 @@ if (window.location.search.includes('@barocss/kit=true')) {
 
 ### 4. Migration Testing
 
+::: details Purpose
+Gradually migrate from other CSS frameworks.
+:::
+
 Gradually migrate from other CSS frameworks:
 
 ```html
@@ -425,7 +495,9 @@ Gradually migrate from other CSS frameworks:
 
 ## Next Steps
 
+::: tip Ready to Go Further?
 Ready to go beyond CDN usage?
+:::
 
 - **[Installation Guide](/guide/installation)** - Set up BaroCSS in your build process
 - **[Framework Integration](/guide/ai-integration)** - Use with React, Vue, Svelte, etc.

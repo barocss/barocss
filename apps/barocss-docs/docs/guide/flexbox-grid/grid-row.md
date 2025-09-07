@@ -26,7 +26,6 @@ Utilities for controlling how elements are sized and placed across grid rows.
 | `row-(&lt;custom-property&gt;)` | `grid-row: var(&lt;custom-property&gt;);` |
 | `row-[&lt;value&gt;]` | `grid-row: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/grid-row
 
 ## Examples
 
@@ -82,4 +81,4 @@ Prefix a `grid-row` utility with a breakpoint variant like `md:` to only apply t
 <div class="row-span-3 md:row-span-4 ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.
+

@@ -10,7 +10,7 @@ Utilities for controlling how words should be hyphenated.
 | `hyphens-manual`| `hyphens: manual;`|
 | `hyphens-auto`  | `hyphens: auto;`  |
 
-Source: https://tailwindcss.com/guide/hyphens
+
 
 ## Examples
 
@@ -46,4 +46,3 @@ Prefix a `hyphens` utility with a breakpoint variant like `md:` to only apply th
 <p class="hyphens-none md:hyphens-auto ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

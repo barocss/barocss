@@ -2,7 +2,7 @@
 
 Utilities for optimizing upcoming animations of elements that are expected to change.
 
-Source: https://tailwindcss.com/guide/will-change
+
 
 ## Quick reference
 
@@ -61,4 +61,3 @@ Prefix a `will-change` utility with a breakpoint variant like `md:` to only appl
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

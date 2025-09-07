@@ -2,7 +2,7 @@
 
 Utilities for skewing elements with transform.
 
-Source: https://tailwindcss.com/guide/skew
+
 
 ## Quick reference
 
@@ -87,4 +87,3 @@ Prefix a `skew` utility with a breakpoint variant like `md:` to only apply the u
 <img class="skew-3 md:skew-12 ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.

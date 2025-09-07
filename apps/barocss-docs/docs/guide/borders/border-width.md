@@ -53,7 +53,7 @@ Utilities for controlling the width of an element's borders.
 | `divide-x-reverse` | `--tw-divide-x-reverse: 1;` |
 | `divide-y-reverse` | `--tw-divide-y-reverse: 1;` |
 
-Source: https://tailwindcss.com/guide/border-width
+
 
 ## Examples
 
@@ -163,4 +163,3 @@ Prefix a `border-width` utility with a breakpoint variant like `md:` to only app
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

@@ -13,7 +13,7 @@ Utilities for controlling the repetition of an element's background image.
 | `bg-repeat-round` | `background-repeat: round;` |
 | `bg-no-repeat` | `background-repeat: no-repeat;` |
 
-Source: https://tailwindcss.com/guide/background-repeat
+
 
 ## Examples
 
@@ -81,4 +81,3 @@ Prefix a `background-repeat` utility with a breakpoint variant like `md:` to onl
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

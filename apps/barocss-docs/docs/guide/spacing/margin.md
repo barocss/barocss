@@ -84,7 +84,7 @@ Utilities for controlling an element's margin.
 | `space-x-reverse` | `& > :not(:last-child) { --tw-space-x-reverse: 1; }` |
 | `space-y-reverse` | `& > :not(:last-child) { --tw-space-y-reverse: 1; }` |
 
-Source: https://tailwindcss.com/guide/margin
+
 
 ## Examples
 
@@ -221,7 +221,6 @@ Prefix a `margin` utility with a breakpoint variant like `md:` to only apply the
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

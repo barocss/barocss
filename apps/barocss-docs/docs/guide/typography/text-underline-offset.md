@@ -12,7 +12,7 @@ Utilities for controlling the offset of a text underline.
 | `underline-offset-(&lt;custom-property&gt;)` | `text-underline-offset: var(&lt;custom-property&gt;);` |
 | `underline-offset-[&lt;value&gt;]`| `text-underline-offset: &lt;value&gt;;`        |
 
-Source: https://tailwindcss.com/guide/text-underline-offset
+
 
 ## Examples
 
@@ -51,4 +51,3 @@ Prefix a `text-underline-offset` utility with a breakpoint variant like `md:` to
 <p class="underline md:underline-offset-4 ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

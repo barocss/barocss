@@ -59,7 +59,7 @@ const runtime = new BrowserRuntime({
 ```
 
 ::: tip Learn More
-For comprehensive theme customization, see the [Theme Variables documentation](/guide/theme-variables).
+For comprehensive theme customization, see the [Theme Configuration documentation](/guide/theme).
 :::
 
 ## Using Arbitrary Values

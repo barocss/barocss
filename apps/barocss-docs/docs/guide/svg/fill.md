@@ -2,7 +2,7 @@
 
 Utilities for styling the fill of SVG elements.
 
-Source: https://tailwindcss.com/guide/fill
+
 
 ## Quick reference
 
@@ -78,7 +78,6 @@ Prefix a `fill` utility with a breakpoint variant like `md:` to only apply the u
 </svg>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

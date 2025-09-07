@@ -2,11 +2,14 @@
 
 Utilities for applying contrast filters to an element.
 
-Source: https://tailwindcss.com/guide/filter-contrast
 
 ## Quick reference
 
-- `contrast-[&lt;value&gt;]`, `contrast-(&lt;custom-property&gt;)`, preset utilities like `contrast-125`, `contrast-200`
+| Class | Styles |
+|---|---|
+| `contrast-&lt;number&gt;` | `filter: contrast(&lt;number&gt;%);` |
+| `contrast-(&lt;custom-property&gt;)` | `filter: contrast(var(&lt;custom-property&gt;));` |
+| `contrast-[&lt;value&gt;]` | `filter: contrast(&lt;value&gt;);` |
 
 ## Examples
 

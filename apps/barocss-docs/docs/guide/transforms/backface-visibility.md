@@ -2,7 +2,7 @@
 
 Utilities for controlling if an element's backface is visible.
 
-Source: https://tailwindcss.com/guide/backface-visibility
+
 
 ## Quick reference
 
@@ -74,4 +74,3 @@ Prefix a `backface-visibility` utility with a breakpoint variant like `md:` to o
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

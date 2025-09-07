@@ -22,7 +22,6 @@ Utilities for controlling the font size of an element.
 | `text-(length:&lt;custom-property&gt;)` | `font-size: var(&lt;custom-property&gt;);` |
 | `text-[&lt;value&gt;]` | `font-size: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/font-size
 
 ## Examples
 
@@ -74,7 +73,6 @@ Prefix a `font-size` utility with a breakpoint variant like `md:` to only apply 
 <p class="text-sm md:text-base ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
@@ -105,4 +103,4 @@ You can also provide default `line-height`, `letter-spacing`, and `font-weight` 
 }
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

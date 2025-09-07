@@ -2,11 +2,15 @@
 
 Utilities for applying backdrop contrast filters to an element.
 
-Source: https://tailwindcss.com/guide/backdrop-filter-contrast
 
 ## Quick reference
 
-- `backdrop-contrast-[&lt;value&gt;]`, `backdrop-contrast-(&lt;custom-property&gt;)`, preset utilities like `backdrop-contrast-125`, `backdrop-contrast-200`
+| Class | Styles |
+|---|---|
+| `backdrop-contrast-125` | `backdrop-filter: contrast(var(--backdrop-contrast-125));` |
+| `backdrop-contrast-200` | `backdrop-filter: contrast(var(--backdrop-contrast-200));` |
+| `backdrop-contrast-(&lt;custom-property&gt;)` | `backdrop-filter: contrast(var(&lt;custom-property&gt;));` |
+| `backdrop-contrast-[&lt;value&gt;]` | `backdrop-filter: contrast(&lt;value&gt;);` |
 
 ## Examples
 
@@ -53,4 +57,3 @@ Prefix a `backdrop-filter: contrast()` utility with a breakpoint variant like `m
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

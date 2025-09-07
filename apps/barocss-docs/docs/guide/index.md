@@ -53,7 +53,7 @@ Ready to get started? Continue with:
 ### Getting Started
 - [Installation Guide](/guide/installation) - Set up BaroCSS in your project
 - [CDN Usage](/guide/cdn-usage) - Use BaroCSS via CDN
-- [Quick Start](/guide/quick-start) - Create your first styled component
+- [Quick Start](/guide/installation) - Create your first styled component
 
 ### Core Concepts
 - [JIT Mode](/guide/jit-mode) - Understand how JIT compilation works
@@ -78,7 +78,7 @@ Ready to get started? Continue with:
 - [Hover, Focus and Other States](/guide/hover-focus-and-other-states) - Interactive states
 - [Responsive Design](/guide/responsive-design) - Mobile-first approach
 - [Dark Mode](/guide/dark-mode) - Dark theme support
-- [Theme Variables](/guide/theme-variables) - Customizing your theme
+- [Theme Configuration](/guide/theme) - Customizing your theme
 - [Colors](/guide/colors) - Color system
 - [Adding Custom Styles](/guide/adding-custom-styles) - Extending BaroCSS
 - [Functions and Directives](/guide/functions-and-directives) - Advanced features

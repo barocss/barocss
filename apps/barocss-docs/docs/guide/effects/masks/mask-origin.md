@@ -13,7 +13,7 @@ Utilities for controlling how an element's mask image is positioned relative to 
 | `mask-origin-stroke`  | `mask-origin: stroke-box;`  |
 | `mask-origin-view`    | `mask-origin: view-box;`    |
 
-Source: https://tailwindcss.com/guide/mask-origin
+
 
 ## Examples
 
@@ -37,4 +37,3 @@ Prefix a `mask-origin` utility with a breakpoint variant like `md:` to only appl
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

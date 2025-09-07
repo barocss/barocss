@@ -2,7 +2,6 @@
 
 Utilities for controlling an element's perspective when placed in 3D space.
 
-Source: https://tailwindcss.com/guide/perspective
 
 ## Quick reference
 
@@ -112,7 +111,6 @@ Prefix a `perspective` utility with a breakpoint variant like `md:` to only appl
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
@@ -132,4 +130,4 @@ Now the `perspective-remote` utility can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

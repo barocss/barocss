@@ -26,7 +26,6 @@ Utilities for controlling the initial size of flex items.
 | `basis-(&lt;custom-property&gt;)` | `flex-basis: var(&lt;custom-property&gt;);` |
 | `basis-[&lt;value&gt;]` | `flex-basis: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/flex-basis
 
 ## Examples
 
@@ -101,7 +100,6 @@ Prefix a `flex-basis` utility with a breakpoint variant like `md:` to only apply
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

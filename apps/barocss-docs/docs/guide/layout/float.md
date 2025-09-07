@@ -12,7 +12,6 @@ Utilities for controlling the wrapping of content around an element.
 | `float-end`   | `float: inline-end;`   |
 | `float-none`  | `float: none;`    |
 
-Source: https://tailwindcss.com/guide/float
 
 ## Examples
 
@@ -67,4 +66,3 @@ Prefix a `float` utility with a breakpoint variant like `md:` to only apply the 
 <img class="float-right md:float-left ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.

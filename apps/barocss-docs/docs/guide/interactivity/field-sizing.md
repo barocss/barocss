@@ -2,7 +2,6 @@
 
 Utilities for controlling the sizing of form controls.
 
-Source: https://tailwindcss.com/guide/field-sizing
 
 ## Quick reference
 
@@ -41,4 +40,3 @@ Prefix a `field-sizing` utility with a breakpoint variant like `md:` to only app
 <input class="field-sizing-content md:field-sizing-fixed ..." />
 ```
 
-Learn more about using variants in the variants documentation.

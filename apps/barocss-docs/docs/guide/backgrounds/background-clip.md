@@ -11,7 +11,7 @@ Utilities for controlling the bounding box of an element's background.
 | `bg-clip-content` | `background-clip: content-box;` |
 | `bg-clip-text` | `background-clip: text;` |
 
-Source: https://tailwindcss.com/guide/background-clip
+
 
 ## Examples
 
@@ -47,4 +47,3 @@ Prefix a `background-clip` utility with a breakpoint variant like `md:` to only 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

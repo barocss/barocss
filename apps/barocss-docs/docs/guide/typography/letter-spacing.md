@@ -15,7 +15,6 @@ Utilities for controlling the tracking, or letter spacing, of an element.
 | `tracking-(&lt;custom-property&gt;)` | `letter-spacing: var(&lt;custom-property&gt;);` |
 | `tracking-[&lt;value&gt;]` | `letter-spacing: &lt;value&gt;;`                |
 
-Source: https://tailwindcss.com/guide/letter-spacing
 
 ## Examples
 
@@ -84,7 +83,6 @@ Prefix a `letter-spacing` utility with a breakpoint variant like `md:` to only a
 <p class="tracking-tight md:tracking-wide ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
@@ -102,4 +100,4 @@ Now the `tracking-tightest` utility can be used in your markup:
 <p class="tracking-tightest">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

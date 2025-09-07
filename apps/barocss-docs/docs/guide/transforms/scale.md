@@ -2,7 +2,7 @@
 
 Utilities for scaling elements.
 
-Source: https://tailwindcss.com/guide/scale
+
 
 ## Quick reference
 
@@ -93,7 +93,6 @@ Prefix a `scale` utility with a variant like `hover:*` to only apply the utility
 <img class="scale-95 hover:scale-120 ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.
 
 ### Responsive design
 
@@ -103,4 +102,3 @@ Prefix a `scale` utility with a breakpoint variant like `md:` to only apply the 
 <img class="scale-95 md:scale-120 ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.

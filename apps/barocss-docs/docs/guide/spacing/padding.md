@@ -43,7 +43,7 @@ Utilities for controlling an element's padding.
 | `pl-(&lt;custom-property&gt;)` | `padding-left: var(&lt;custom-property&gt;);` |
 | `pl-[&lt;value&gt;]` | `padding-left: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/padding
+
 
 ## Examples
 
@@ -138,7 +138,6 @@ Prefix a `padding` utility with a breakpoint variant like `md:` to only apply th
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

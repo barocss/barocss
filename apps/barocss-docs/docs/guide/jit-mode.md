@@ -537,5 +537,5 @@ JIT mode is the cornerstone of BaroCSS's performance and efficiency. By generati
 JIT mode makes BaroCSS perfect for modern web applications that need optimal performance and developer experience.
 
 ::: tip Ready to Get Started?
-Check out the [Quick Start Guide](/guide/quick-start) to get started with BaroCSS and experience JIT mode in action.
+Check out the [Quick Start Guide](/guide/installation) to get started with BaroCSS and experience JIT mode in action.
 :::

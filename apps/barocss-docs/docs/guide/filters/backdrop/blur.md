@@ -2,7 +2,6 @@
 
 Utilities for applying backdrop blur filters to an element.
 
-Source: https://tailwindcss.com/guide/backdrop-filter-blur
 
 ## Quick reference
 
@@ -70,7 +69,6 @@ Prefix a `backdrop-filter: blur()` utility with a breakpoint variant like `md:` 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

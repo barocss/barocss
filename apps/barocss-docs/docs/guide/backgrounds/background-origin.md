@@ -10,7 +10,7 @@ Utilities for controlling how an element's background is positioned relative to 
 | `bg-origin-padding` | `background-origin: padding-box;` |
 | `bg-origin-content` | `background-origin: content-box;` |
 
-Source: https://tailwindcss.com/guide/background-origin
+
 
 ## Examples
 
@@ -35,4 +35,3 @@ Prefix a `background-origin` utility with a breakpoint variant like `md:` to onl
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

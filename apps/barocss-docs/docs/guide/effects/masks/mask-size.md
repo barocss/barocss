@@ -12,7 +12,7 @@ Utilities for controlling the size of an element's mask image.
 | `mask-size-(<var>)` | `mask-size: var(<var>);` |
 | `mask-size-[&lt;value&gt;]` | `mask-size: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/mask-size
+
 
 ## Examples
 
@@ -64,4 +64,3 @@ Prefix a `mask-size` utility with a breakpoint variant like `md:` to only apply 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

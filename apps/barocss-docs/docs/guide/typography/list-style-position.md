@@ -47,6 +47,5 @@ Prefix a `list-style-position` utility with a breakpoint variant like `md:` to o
 </ul>
 ```
 
-Learn more about using variants in the variants documentation.
 
 

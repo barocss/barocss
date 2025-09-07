@@ -11,7 +11,6 @@ Utilities for controlling how flex items grow.
 | `grow-[&lt;value&gt;]` | `flex-grow: &lt;value&gt;;` |
 | `grow-(&lt;custom-property&gt;)` | `flex-grow: var(&lt;custom-property&gt;);` |
 
-Source: https://tailwindcss.com/guide/flex-grow
 
 ## Examples
 
@@ -78,4 +77,4 @@ Prefix a `flex-grow` utility with a breakpoint variant like `md:` to only apply 
 <div class="grow md:grow-0 ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.
+

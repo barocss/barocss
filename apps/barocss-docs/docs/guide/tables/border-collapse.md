@@ -2,7 +2,7 @@
 
 Utilities for controlling whether table borders should collapse or be separated.
 
-Source: https://tailwindcss.com/guide/border-collapse
+
 
 ## Quick reference
 
@@ -95,4 +95,3 @@ Prefix a `border-collapse` utility with a breakpoint variant like `md:` to only 
 </table>
 ```
 
-Learn more about using variants in the variants documentation.

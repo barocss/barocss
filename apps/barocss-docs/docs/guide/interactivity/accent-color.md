@@ -2,7 +2,7 @@
 
 Utilities for controlling the accented color of a form control.
 
-Source: https://tailwindcss.com/guide/accent-color
+
 
 ## Quick reference
 
@@ -80,7 +80,6 @@ Agree to terms
 <input class="accent-black hover:accent-pink-500" type="checkbox" />
 ```
 
-Learn more about using variants in the variants documentation.
 
 ### Responsive design
 
@@ -90,7 +89,6 @@ Prefix an `accent-color` utility with a breakpoint variant like `md:` to only ap
 <input class="accent-black md:accent-pink-500 ..." type="checkbox" />
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

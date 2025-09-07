@@ -11,7 +11,6 @@ Utilities for controlling how a column or page should break within an element.
 | `break-inside-avoid-page` | `break-inside: avoid-page;` |
 | `break-inside-avoid-column` | `break-inside: avoid-column;` |
 
-Source: https://tailwindcss.com/guide/break-inside
 
 ## Examples
 
@@ -36,4 +35,3 @@ Prefix a `break-inside` utility with a breakpoint variant like `md:` to only app
 <div class="break-inside-avoid-column md:break-inside-auto ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

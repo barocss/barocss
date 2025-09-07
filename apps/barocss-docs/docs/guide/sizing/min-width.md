@@ -37,7 +37,7 @@ Utilities for setting the minimum width of an element.
 | min-w-(&lt;custom-property&gt;)| min-width: var(&lt;custom-property&gt;);                                                 |
 | min-w-\[&lt;value&gt;\]        | min-width: &lt;value&gt;;                                                                |
 
-Source: https://tailwindcss.com/guide/min-width
+
 
 ## Examples
 
@@ -162,7 +162,6 @@ Prefix a `min-width` utility with a breakpoint variant like `md:` to only apply 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 

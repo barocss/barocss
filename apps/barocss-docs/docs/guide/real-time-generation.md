@@ -274,4 +274,4 @@ element.className = 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded'
 
 Real-time CSS generation is the future of CSS development. BaroCSS eliminates build complexity while providing instant feedback, making development faster and more enjoyable.
 
-Ready to experience real-time CSS generation? Check out the [Quick Start Guide](/guide/quick-start) to get started with BaroCSS.
+Ready to experience real-time CSS generation? Check out the [Quick Start Guide](/guide/installation) to get started with BaroCSS.
