@@ -42,37 +42,37 @@ describe("border-spacing", () => {
 });
 
 describe("border-spacing-x", () => {
-  it("border-spacing-x-4 → border-spacing: calc(var(--spacing) * 4) var(--tw-border-spacing-y)", () => {
+  it("border-spacing-x-4 → border-spacing: calc(var(--spacing) * 4) var(--baro-border-spacing-y)", () => {
     expect(parseClassToAst("border-spacing-x-4", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "calc(var(--spacing) * 4) var(--tw-border-spacing-y)" },
+      { type: "decl", prop: "border-spacing", value: "calc(var(--spacing) * 4) var(--baro-border-spacing-y)" },
     ]);
   });
-  it("border-spacing-x-[8px] → border-spacing: 8px var(--tw-border-spacing-y)", () => {
+  it("border-spacing-x-[8px] → border-spacing: 8px var(--baro-border-spacing-y)", () => {
     expect(parseClassToAst("border-spacing-x-[8px]", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "8px var(--tw-border-spacing-y)" },
+      { type: "decl", prop: "border-spacing", value: "8px var(--baro-border-spacing-y)" },
     ]);
   });
-  it("border-spacing-x-(--my-x) → border-spacing: var(--my-x) var(--tw-border-spacing-y)", () => {
+  it("border-spacing-x-(--my-x) → border-spacing: var(--my-x) var(--baro-border-spacing-y)", () => {
     expect(parseClassToAst("border-spacing-x-(--my-x)", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "var(--my-x) var(--tw-border-spacing-y)" },
+      { type: "decl", prop: "border-spacing", value: "var(--my-x) var(--baro-border-spacing-y)" },
     ]);
   });
 });
 
 describe("border-spacing-y", () => {
-  it("border-spacing-y-3 → border-spacing: var(--tw-border-spacing-x) calc(var(--spacing) * 3)", () => {
+  it("border-spacing-y-3 → border-spacing: var(--baro-border-spacing-x) calc(var(--spacing) * 3)", () => {
     expect(parseClassToAst("border-spacing-y-3", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "var(--tw-border-spacing-x) calc(var(--spacing) * 3)" },
+      { type: "decl", prop: "border-spacing", value: "var(--baro-border-spacing-x) calc(var(--spacing) * 3)" },
     ]);
   });
-  it("border-spacing-y-[12px] → border-spacing: var(--tw-border-spacing-x) 12px", () => {
+  it("border-spacing-y-[12px] → border-spacing: var(--baro-border-spacing-x) 12px", () => {
     expect(parseClassToAst("border-spacing-y-[12px]", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "var(--tw-border-spacing-x) 12px" },
+      { type: "decl", prop: "border-spacing", value: "var(--baro-border-spacing-x) 12px" },
     ]);
   });
-  it("border-spacing-y-(--my-y) → border-spacing: var(--tw-border-spacing-x) var(--my-y)", () => {
+  it("border-spacing-y-(--my-y) → border-spacing: var(--baro-border-spacing-x) var(--my-y)", () => {
     expect(parseClassToAst("border-spacing-y-(--my-y)", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "var(--tw-border-spacing-x) var(--my-y)" },
+      { type: "decl", prop: "border-spacing", value: "var(--baro-border-spacing-x) var(--my-y)" },
     ]);
   });
 });

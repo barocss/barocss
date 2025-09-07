@@ -24,39 +24,39 @@ import { parseColor, parseNumber } from "../core/utils";
 [
   [
     "inset-shadow-2xs",
-    "inset 0 1px 2px var(--tw-inset-shadow-color, #0000000d)",
+    "inset 0 1px 2px var(--baro-inset-shadow-color, #0000000d)",
   ],
   [
     "inset-shadow-xs",
-    "inset 0 2px 4px var(--tw-inset-shadow-color, #0000000d)",
+    "inset 0 2px 4px var(--baro-inset-shadow-color, #0000000d)",
   ],
   [
     "inset-shadow-sm",
-    "inset 0 2px 4px var(--tw-inset-shadow-color, #0000000d)",
+    "inset 0 2px 4px var(--baro-inset-shadow-color, #0000000d)",
   ],
   [
     "inset-shadow-md",
-    "inset 0 4px 6px -1px var(--tw-inset-shadow-color, #0000000d)",
+    "inset 0 4px 6px -1px var(--baro-inset-shadow-color, #0000000d)",
   ],
   [
     "inset-shadow-lg",
-    "inset 0 10px 15px -3px var(--tw-inset-shadow-color, #0000000d)",
+    "inset 0 10px 15px -3px var(--baro-inset-shadow-color, #0000000d)",
   ],
   [
     "inset-shadow-xl",
-    "inset 0 20px 25px -5px var(--tw-inset-shadow-color, #0000000d)",
+    "inset 0 20px 25px -5px var(--baro-inset-shadow-color, #0000000d)",
   ],
   [
     "inset-shadow-2xl",
-    "inset 0 25px 50px -12px var(--tw-inset-shadow-color, #0000000d)",
+    "inset 0 25px 50px -12px var(--baro-inset-shadow-color, #0000000d)",
   ],
   ["inset-shadow-none", "0 0 #0000"],
 ].forEach(([name, value]) => {
   staticUtility(name as string, [
-    ["--tw-inset-shadow", value as string],
+    ["--baro-inset-shadow", value as string],
     [
       "box-shadow",
-      "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+      "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
     ],
   ], { category: 'effects' });
 });
@@ -74,7 +74,7 @@ function createShadowThemeColor(
   let colorVar = `var(--color-${realThemeValue})`;
   let colorValue = colorVar;
   if (opacity) {
-    colorValue = `color-mix(in oklab, color-mix(in oklab, ${colorVar} ${opacity}%, transparent) var(--tw-shadow-alpha),transparent)`;
+    colorValue = `color-mix(in oklab, color-mix(in oklab, ${colorVar} ${opacity}%, transparent) var(--baro-shadow-alpha),transparent)`;
     if (parseColor(main)) {
       if (main.startsWith("#")) {
         const opacityValue = Math.round((Number(opacity) / 100) * 255);
@@ -107,7 +107,7 @@ functionalUtility({
     // 1. Theme color (e.g. shadow-red-500/60)
     if (realThemeValue) {
       return createShadowThemeColor(
-        "--tw-shadow-color",
+        "--baro-shadow-color",
         main,
         opacity,
         realThemeValue
@@ -120,12 +120,12 @@ functionalUtility({
       if (opacity) {
         return [
           decl(
-            "--tw-shadow-color",
+            "--baro-shadow-color",
             `color-mix(in oklab, var(${cp}) ${opacity}%, transparent)`
           ),
         ];
       }
-      return [decl("--tw-shadow-color", `var(${cp})`)];
+      return [decl("--baro-shadow-color", `var(${cp})`)];
     }
 
     // Arbitrary color: shadow-[#bada55] or shadow-[oklch(...)]
@@ -134,7 +134,7 @@ functionalUtility({
         if (opacity) {
           return [
             decl(
-              "--tw-shadow-color",
+              "--baro-shadow-color",
               `color-mix(in oklab, ${main} ${opacity}%, transparent)`
             ),
           ];
@@ -149,7 +149,7 @@ functionalUtility({
     // Special cases
     if (main === "inherit" || main === "current" || main === "transparent") {
       return [
-        decl("--tw-shadow-color", main === "current" ? "currentColor" : main),
+        decl("--baro-shadow-color", main === "current" ? "currentColor" : main),
       ];
     }
 
@@ -173,7 +173,7 @@ functionalUtility({
     // 1. Theme color (e.g. inset-shadow-red-500/60)
     if (realThemeValue) {
       return createShadowThemeColor(
-        "--tw-inset-shadow-color",
+        "--baro-inset-shadow-color",
         main,
         opacity,
         realThemeValue
@@ -187,7 +187,7 @@ functionalUtility({
       if (opacity) {
         colorValue = `color-mix(in oklab, var(${cp}) ${opacity}%, transparent)`;
       }
-      return [decl("--tw-inset-shadow-color", colorValue)];
+      return [decl("--baro-inset-shadow-color", colorValue)];
     }
 
     // 3. Arbitrary color: inset-shadow-[#bada55] or inset-shadow-[oklch(...)]
@@ -197,7 +197,7 @@ functionalUtility({
         if (opacity) {
           colorValue = `color-mix(in oklab, ${main} ${opacity}%, transparent)`;
         }
-        return [decl("--tw-inset-shadow-color", colorValue)];
+        return [decl("--baro-inset-shadow-color", colorValue)];
       }
 
       return [decl("box-shadow", `inset ${main}`)];
@@ -207,7 +207,7 @@ functionalUtility({
     if (main === "inherit" || main === "current" || main === "transparent") {
       return [
         decl(
-          "--tw-inset-shadow-color",
+          "--baro-inset-shadow-color",
           main === "current" ? "currentColor" : main
         ),
       ];
@@ -231,18 +231,18 @@ functionalUtility({
   ["ring-8", "8px"],
 ].forEach(([name, px]) => {
   staticUtility(name as string, [
-    ["--tw-ring-inset", ""],
-    ["--tw-ring-offset-width", "0px"],
-    ["--tw-ring-offset-color", "#fff"],
-    ["--tw-ring-color", "rgb(59 130 246 / 0.5)"], // default blue-500/50
+    ["--baro-ring-inset", ""],
+    ["--baro-ring-offset-width", "0px"],
+    ["--baro-ring-offset-color", "#fff"],
+    ["--baro-ring-color", "rgb(59 130 246 / 0.5)"], // default blue-500/50
     [
-      "--tw-ring-shadow",
-      `var(--tw-ring-inset) 0 0 0 calc(${px} + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor)`,
+      "--baro-ring-shadow",
+      `var(--baro-ring-inset) 0 0 0 calc(${px} + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)`,
     ],
-    ["--tw-ring-offset-shadow", `0 0 #0000`],
+    ["--baro-ring-offset-shadow", `0 0 #0000`],
     [
       "box-shadow",
-      "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+      "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
     ],
   ]);
 });
@@ -257,24 +257,24 @@ functionalUtility({
   ["inset-ring-8", "8px"],
 ].forEach(([name, px]) => {
   staticUtility(name as string, [
-    ["--tw-ring-inset", "inset"],
-    ["--tw-ring-offset-width", "0px"],
-    ["--tw-ring-offset-color", "#fff"],
-    ["--tw-inset-ring-color", "rgb(59 130 246 / 0.5)"],
+    ["--baro-ring-inset", "inset"],
+    ["--baro-ring-offset-width", "0px"],
+    ["--baro-ring-offset-color", "#fff"],
+    ["--baro-inset-ring-color", "rgb(59 130 246 / 0.5)"],
     [
-      "--tw-inset-ring-shadow",
-      `var(--tw-ring-inset) 0 0 0 calc(${px} + var(--tw-ring-offset-width)) var(--tw-inset-ring-color, currentcolor)`,
+      "--baro-inset-ring-shadow",
+      `var(--baro-ring-inset) 0 0 0 calc(${px} + var(--baro-ring-offset-width)) var(--baro-inset-ring-color, currentcolor)`,
     ],
-    ["--tw-ring-offset-shadow", `0 0 #0000`],
+    ["--baro-ring-offset-shadow", `0 0 #0000`],
     [
       "box-shadow",
-      "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+      "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
     ],
   ]);
 });
 
 // Ring inset
-staticUtility("ring-inset", [["--tw-ring-inset", "inset"]], { category: 'effects' });
+staticUtility("ring-inset", [["--baro-ring-inset", "inset"]], { category: 'effects' });
 
 // --- Ring color/opacity/arbitrary/custom property ( supports+fallback) ---
 function createRingColorDecls(
@@ -316,7 +316,7 @@ functionalUtility({
     let realThemeValue = extra?.realThemeValue;
     if (realThemeValue) {
       return createRingColorDecls(
-        "--tw-ring-color",
+        "--baro-ring-color",
         main,
         opacity,
         realThemeValue
@@ -332,9 +332,9 @@ functionalUtility({
       }
       return [
         atRule("supports", "(color:color-mix(in lab, red, red))", [
-          decl("--tw-ring-color", colorMix),
+          decl("--baro-ring-color", colorMix),
         ]),
-        decl("--tw-ring-color", fallback),
+        decl("--baro-ring-color", fallback),
       ];
     }
     if (token.arbitrary) {
@@ -351,9 +351,9 @@ functionalUtility({
 
         return [
           atRule("supports", "(color:color-mix(in lab, red, red))", [
-            decl("--tw-ring-color", colorMix),
+            decl("--baro-ring-color", colorMix),
           ]),
-          decl("--tw-ring-color", fallback),
+          decl("--baro-ring-color", fallback),
         ];
       }
 
@@ -361,7 +361,7 @@ functionalUtility({
     }
     if (main === "inherit" || main === "current" || main === "transparent") {
       return [
-        decl("--tw-ring-color", main === "current" ? "currentColor" : main),
+        decl("--baro-ring-color", main === "current" ? "currentColor" : main),
       ];
     }
     return null;
@@ -369,9 +369,9 @@ functionalUtility({
   handleCustomProperty: (value) => {
     if (value.startsWith("color:")) {
       const cp = value.replace("color:", "");
-      return [decl("--tw-ring-color", `var(${cp})`)];
+      return [decl("--baro-ring-color", `var(${cp})`)];
     }
-    return [decl("--tw-ring-color", `var(${value})`)];
+    return [decl("--baro-ring-color", `var(${value})`)];
   },
 });
 
@@ -388,7 +388,7 @@ functionalUtility({
     let realThemeValue = extra?.realThemeValue;
     if (realThemeValue) {
       return createRingColorDecls(
-        "--tw-inset-ring-color",
+        "--baro-inset-ring-color",
         main,
         opacity,
         realThemeValue
@@ -404,9 +404,9 @@ functionalUtility({
       }
       return [
         atRule("supports", "(color:color-mix(in lab, red, red))", [
-          decl("--tw-inset-ring-color", colorMix),
+          decl("--baro-inset-ring-color", colorMix),
         ]),
-        decl("--tw-inset-ring-color", fallback),
+        decl("--baro-inset-ring-color", fallback),
       ];
     }
     if (token.arbitrary) {
@@ -423,9 +423,9 @@ functionalUtility({
 
         return [
           atRule("supports", "(color:color-mix(in lab, red, red))", [
-            decl("--tw-inset-ring-color", colorMix),
+            decl("--baro-inset-ring-color", colorMix),
           ]),
-          decl("--tw-inset-ring-color", fallback),
+          decl("--baro-inset-ring-color", fallback),
         ];
       }
 
@@ -435,7 +435,7 @@ functionalUtility({
     if (main === "inherit" || main === "current" || main === "transparent") {
       return [
         decl(
-          "--tw-inset-ring-color",
+          "--baro-inset-ring-color",
           main === "current" ? "currentColor" : main
         ),
       ];
@@ -445,9 +445,9 @@ functionalUtility({
   handleCustomProperty: (value) => {
     if (value.startsWith("color:")) {
       const cp = value.replace("color:", "");
-      return [decl("--tw-inset-ring-color", `var(${cp})`)];
+      return [decl("--baro-inset-ring-color", `var(${cp})`)];
     }
-    return [decl("--tw-inset-ring-color", `var(${value})`)];
+    return [decl("--baro-inset-ring-color", `var(${value})`)];
   },
 });
 

@@ -219,122 +219,122 @@ describe("background utilities", () => {
   });
 
   // --- Gradient background-image utilities ---
-  it("bg-linear-to-t → background-image: linear-gradient(to top, var(--tw-gradient-stops))", () => {
+  it("bg-linear-to-t → background-image: linear-gradient(to top, var(--baro-gradient-stops))", () => {
     expect(parseClassToAst("bg-linear-to-t", ctx)).toEqual([
       {
         type: "decl",
-        prop: "--tw-gradient-position",
+        prop: "--baro-gradient-position",
         value: "to top",
       },
       {
         type: "rule",
         selector: "@supports (background-image: linear-gradient(in lab, red, red))",
         nodes: [
-          { type: "decl", prop: "--tw-gradient-position", value: "to top in oklab" },
+          { type: "decl", prop: "--baro-gradient-position", value: "to top in oklab" },
         ],
       },
       {
         type: "decl",
         prop: "background-image",
-        value: "linear-gradient(to top, var(--tw-gradient-stops))",
+        value: "linear-gradient(to top, var(--baro-gradient-stops))",
       },
     ]);
   });
-  it("bg-linear-to-br → background-image: linear-gradient(to bottom right, var(--tw-gradient-stops))", () => {
+  it("bg-linear-to-br → background-image: linear-gradient(to bottom right, var(--baro-gradient-stops))", () => {
     expect(parseClassToAst("bg-linear-to-br", ctx)).toMatchObject([
       {
         type: "decl",
-        prop: "--tw-gradient-position",
+        prop: "--baro-gradient-position",
         value: "to bottom right",
       },
       {
         type: "rule",
         selector: "@supports (background-image: linear-gradient(in lab, red, red))",
         nodes: [
-          { type: "decl", prop: "--tw-gradient-position", value: "to bottom right in oklab" },
+          { type: "decl", prop: "--baro-gradient-position", value: "to bottom right in oklab" },
         ],
       },
       {
         type: "decl",
         prop: "background-image",
-        value: "linear-gradient(to bottom right, var(--tw-gradient-stops))",
+        value: "linear-gradient(to bottom right, var(--baro-gradient-stops))",
       },
     ]);
   });
-  it("bg-linear-45 → background-image: linear-gradient(45deg in oklab, var(--tw-gradient-stops))", () => {
+  it("bg-linear-45 → background-image: linear-gradient(45deg in oklab, var(--baro-gradient-stops))", () => {
     expect(parseClassToAst("bg-linear-45", ctx)).toEqual([
       {
         type: "decl",
         prop: "background-image",
-        value: "linear-gradient(45deg in oklab, var(--tw-gradient-stops))",
+        value: "linear-gradient(45deg in oklab, var(--baro-gradient-stops))",
       },
     ]);
   });
-  it("bg-linear-[25deg,red_5%,yellow_60%] → background-image: linear-gradient(var(--tw-gradient-stops, 25deg,red 5%,yellow 60%))", () => {
+  it("bg-linear-[25deg,red_5%,yellow_60%] → background-image: linear-gradient(var(--baro-gradient-stops, 25deg,red 5%,yellow 60%))", () => {
     expect(parseClassToAst("bg-linear-[25deg,red_5%,yellow_60%]", ctx)).toEqual([
       {
         type: "decl",
         prop: "background-image",
         value:
-          "linear-gradient(var(--tw-gradient-stops, 25deg,red 5%,yellow 60%))",
+          "linear-gradient(var(--baro-gradient-stops, 25deg,red 5%,yellow 60%))",
       },
     ]);
   });
-  it("bg-linear-(--my-gradient) → background-image: linear-gradient(var(--tw-gradient-stops, var(--my-gradient)))", () => {
+  it("bg-linear-(--my-gradient) → background-image: linear-gradient(var(--baro-gradient-stops, var(--my-gradient)))", () => {
     expect(parseClassToAst("bg-linear-(--my-gradient)", ctx)).toEqual([
       {
         type: "decl",
         prop: "background-image",
-        value: "linear-gradient(var(--tw-gradient-stops, var(--my-gradient)))",
+        value: "linear-gradient(var(--baro-gradient-stops, var(--my-gradient)))",
       },
     ]);
   });
 
   // Radial gradient
-  it("bg-radial → background-image: radial-gradient(in oklab, var(--tw-gradient-stops))", () => {
+  it("bg-radial → background-image: radial-gradient(in oklab, var(--baro-gradient-stops))", () => {
     expect(parseClassToAst("bg-radial", ctx)).toEqual([
       {
         type: "decl",
         prop: "background-image",
-        value: "radial-gradient(in oklab, var(--tw-gradient-stops))",
+        value: "radial-gradient(in oklab, var(--baro-gradient-stops))",
       },
     ]);
   });
-  it("bg-radial-[at_50%_75%] → background-image: radial-gradient(var(--tw-gradient-stops, at 50% 75%))", () => {
+  it("bg-radial-[at_50%_75%] → background-image: radial-gradient(var(--baro-gradient-stops, at 50% 75%))", () => {
     expect(parseClassToAst("bg-radial-[at_50%_75%]", ctx)).toEqual([
       {
         type: "decl",
         prop: "background-image",
-        value: "radial-gradient(var(--tw-gradient-stops, at 50% 75%))",
+        value: "radial-gradient(var(--baro-gradient-stops, at 50% 75%))",
       },
     ]);
   });
-  it("bg-radial-(--my-gradient) → background-image: radial-gradient(var(--tw-gradient-stops, var(--my-gradient)))", () => {
+  it("bg-radial-(--my-gradient) → background-image: radial-gradient(var(--baro-gradient-stops, var(--my-gradient)))", () => {
     expect(parseClassToAst("bg-radial-(--my-gradient)", ctx)).toEqual([
       {
         type: "decl",
         prop: "background-image",
-        value: "radial-gradient(var(--tw-gradient-stops, var(--my-gradient)))",
+        value: "radial-gradient(var(--baro-gradient-stops, var(--my-gradient)))",
       },
     ]);
   });
 
   // Conic gradient
-  it("bg-conic → background-image: conic-gradient(from 0deg in oklab, var(--tw-gradient-stops))", () => {
+  it("bg-conic → background-image: conic-gradient(from 0deg in oklab, var(--baro-gradient-stops))", () => {
     expect(parseClassToAst("bg-conic", ctx)).toEqual([
       {
         type: "decl",
         prop: "background-image",
-        value: "conic-gradient(from 0deg in oklab, var(--tw-gradient-stops))",
+        value: "conic-gradient(from 0deg in oklab, var(--baro-gradient-stops))",
       },
     ]);
   });
-  it("bg-conic-180 → background-image: conic-gradient(from 180deg in oklab, var(--tw-gradient-stops))", () => {
+  it("bg-conic-180 → background-image: conic-gradient(from 180deg in oklab, var(--baro-gradient-stops))", () => {
     expect(parseClassToAst("bg-conic-180", ctx)).toEqual([
       {
         type: "decl",
         prop: "background-image",
-        value: "conic-gradient(from 180deg in oklab, var(--tw-gradient-stops))",
+        value: "conic-gradient(from 180deg in oklab, var(--baro-gradient-stops))",
       },
     ]);
   });
@@ -350,7 +350,7 @@ describe("background utilities", () => {
   });
 
   // Gradient stops
-  it("from-red-500 → --tw-gradient-from: red-500", () => {
+  it("from-red-500 → --baro-gradient-from: red-500", () => {
     const result = parseClassToAst("from-red-500", ctx);
     
     // Remove source properties for comparison
@@ -400,7 +400,7 @@ describe("background utilities", () => {
                 value: "false",
               },
             ],
-            params: "--tw-gradient-position",
+            params: "--baro-gradient-position",
             type: "at-rule",
           },
           {
@@ -422,7 +422,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-from",
+            params: "--baro-gradient-from",
             type: "at-rule",
           },
           {
@@ -444,7 +444,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-via",
+            params: "--baro-gradient-via",
             type: "at-rule",
           },
           {
@@ -466,7 +466,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-to",
+            params: "--baro-gradient-to",
             type: "at-rule",
           },
           {
@@ -483,7 +483,7 @@ describe("background utilities", () => {
                 value: "false",
               },
             ],
-            params: "--tw-gradient-stops",
+            params: "--baro-gradient-stops",
             type: "at-rule",
           },
           {
@@ -505,7 +505,7 @@ describe("background utilities", () => {
                 value: "0%",
               },
             ],
-            params: "--tw-gradient-from-position",
+            params: "--baro-gradient-from-position",
             type: "at-rule",
           },
           {
@@ -527,7 +527,7 @@ describe("background utilities", () => {
                 value: "50%",
               },
             ],
-            params: "--tw-gradient-via-position",
+            params: "--baro-gradient-via-position",
             type: "at-rule",
           },
           {
@@ -549,19 +549,19 @@ describe("background utilities", () => {
                 value: "100%",
               },
             ],
-            params: "--tw-gradient-to-position",
+            params: "--baro-gradient-to-position",
             type: "at-rule",
           },
         ],
       },
       {
-        prop: "--tw-gradient-from",
+        prop: "--baro-gradient-from",
         type: "decl",
         value: "red",
       },
     ]);
   });
-  it("from-[rgba(0,0,0,0.5)] → --tw-gradient-from: rgba(0,0,0,0.5)", () => {
+  it("from-[rgba(0,0,0,0.5)] → --baro-gradient-from: rgba(0,0,0,0.5)", () => {
     expect(parseClassToAst("from-[rgba(0,0,0,0.5)]", ctx)).toEqual([
       {
         type: "at-root",
@@ -580,7 +580,7 @@ describe("background utilities", () => {
                 value: "false",
               },
             ],
-            params: "--tw-gradient-position",
+            params: "--baro-gradient-position",
             type: "at-rule",
           },
           {
@@ -602,7 +602,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-from",
+            params: "--baro-gradient-from",
             type: "at-rule",
           },
           {
@@ -624,7 +624,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-via",
+            params: "--baro-gradient-via",
             type: "at-rule",
           },
           {
@@ -646,7 +646,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-to",
+            params: "--baro-gradient-to",
             type: "at-rule",
           },
           {
@@ -663,7 +663,7 @@ describe("background utilities", () => {
                 value: "false",
               },
             ],
-            params: "--tw-gradient-stops",
+            params: "--baro-gradient-stops",
             type: "at-rule",
           },
           {
@@ -685,7 +685,7 @@ describe("background utilities", () => {
                 value: "0%",
               },
             ],
-            params: "--tw-gradient-from-position",
+            params: "--baro-gradient-from-position",
             type: "at-rule",
           },
           {
@@ -707,7 +707,7 @@ describe("background utilities", () => {
                 value: "50%",
               },
             ],
-            params: "--tw-gradient-via-position",
+            params: "--baro-gradient-via-position",
             type: "at-rule",
           },
           {
@@ -729,34 +729,34 @@ describe("background utilities", () => {
                 value: "100%",
               },
             ],
-            params: "--tw-gradient-to-position",
+            params: "--baro-gradient-to-position",
             type: "at-rule",
           },
         ],
       },
       {
-        prop: "--tw-gradient-from",
+        prop: "--baro-gradient-from",
         type: "decl",
         value: "rgba(0,0,0,0.5)",
       },
     ]);
   });
-  it("from-(--my-color) → --tw-gradient-from: var(--my-color)", () => {
+  it("from-(--my-color) → --baro-gradient-from: var(--my-color)", () => {
     expect(parseClassToAst("from-(--my-color)", ctx)).toEqual([
-      { type: "decl", prop: "--tw-gradient-from", value: "var(--my-color)" },
+      { type: "decl", prop: "--baro-gradient-from", value: "var(--my-color)" },
     ]);
   });
-  it("from-position-10% → --tw-gradient-from-position: 10%", () => {
+  it("from-position-10% → --baro-gradient-from-position: 10%", () => {
     expect(parseClassToAst("from-position-10%", ctx)).toEqual([
-      { type: "decl", prop: "--tw-gradient-from-position", value: "10%" },
+      { type: "decl", prop: "--baro-gradient-from-position", value: "10%" },
     ]);
   });
-  it("from-(--my-pos) → --tw-gradient-from: var(--my-pos)", () => {
+  it("from-(--my-pos) → --baro-gradient-from: var(--my-pos)", () => {
     expect(parseClassToAst("from-(--my-pos)", ctx)).toEqual([
-      { type: "decl", prop: "--tw-gradient-from", value: "var(--my-pos)" },
+      { type: "decl", prop: "--baro-gradient-from", value: "var(--my-pos)" },
     ]);
   });
-  it("via-blue-500 → --tw-gradient-via: blue-500", () => {
+  it("via-blue-500 → --baro-gradient-via: blue-500", () => {
     expect(parseClassToAst("via-blue-500", ctx)).toEqual([
       {
         type: "at-root",
@@ -775,7 +775,7 @@ describe("background utilities", () => {
                 value: "false",
               },
             ],
-            params: "--tw-gradient-position",
+            params: "--baro-gradient-position",
             type: "at-rule",
           },
           {
@@ -797,7 +797,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-from",
+            params: "--baro-gradient-from",
             type: "at-rule",
           },
           {
@@ -819,7 +819,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-via",
+            params: "--baro-gradient-via",
             type: "at-rule",
           },
           {
@@ -841,7 +841,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-to",
+            params: "--baro-gradient-to",
             type: "at-rule",
           },
           {
@@ -858,7 +858,7 @@ describe("background utilities", () => {
                 value: "false",
               },
             ],
-            params: "--tw-gradient-stops",
+            params: "--baro-gradient-stops",
             type: "at-rule",
           },
           {
@@ -880,7 +880,7 @@ describe("background utilities", () => {
                 value: "0%",
               },
             ],
-            params: "--tw-gradient-from-position",
+            params: "--baro-gradient-from-position",
             type: "at-rule",
           },
           {
@@ -902,7 +902,7 @@ describe("background utilities", () => {
                 value: "50%",
               },
             ],
-            params: "--tw-gradient-via-position",
+            params: "--baro-gradient-via-position",
             type: "at-rule",
           },
           {
@@ -924,24 +924,24 @@ describe("background utilities", () => {
                 value: "100%",
               },
             ],
-            params: "--tw-gradient-to-position",
+            params: "--baro-gradient-to-position",
             type: "at-rule",
           },
         ],
       },
       {
-        prop: "--tw-gradient-via",
+        prop: "--baro-gradient-via",
         type: "decl",
         value: "blue-500",
       },
     ]);
   });
-  it("via-position-30% → --tw-gradient-via-position: 30%", () => {
+  it("via-position-30% → --baro-gradient-via-position: 30%", () => {
     expect(parseClassToAst("via-position-30%", ctx)).toEqual([
-      { type: "decl", prop: "--tw-gradient-via-position", value: "30%" },
+      { type: "decl", prop: "--baro-gradient-via-position", value: "30%" },
     ]);
   });
-  it("to-green-700 → --tw-gradient-to: green-700", () => {
+  it("to-green-700 → --baro-gradient-to: green-700", () => {
     expect(parseClassToAst("to-green-700", ctx)).toEqual([
       {
         type: "at-root",
@@ -960,7 +960,7 @@ describe("background utilities", () => {
                 value: "false",
               },
             ],
-            params: "--tw-gradient-position",
+            params: "--baro-gradient-position",
             type: "at-rule",
           },
           {
@@ -982,7 +982,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-from",
+            params: "--baro-gradient-from",
             type: "at-rule",
           },
           {
@@ -1004,7 +1004,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-via",
+            params: "--baro-gradient-via",
             type: "at-rule",
           },
           {
@@ -1026,7 +1026,7 @@ describe("background utilities", () => {
                 value: "#0000",
               },
             ],
-            params: "--tw-gradient-to",
+            params: "--baro-gradient-to",
             type: "at-rule",
           },
           {
@@ -1043,7 +1043,7 @@ describe("background utilities", () => {
                 value: "false",
               },
             ],
-            params: "--tw-gradient-stops",
+            params: "--baro-gradient-stops",
             type: "at-rule",
           },
 
@@ -1066,7 +1066,7 @@ describe("background utilities", () => {
                 value: "0%",
               },
             ],
-            params: "--tw-gradient-from-position",
+            params: "--baro-gradient-from-position",
             type: "at-rule",
           },
           {
@@ -1088,7 +1088,7 @@ describe("background utilities", () => {
                 value: "50%",
               },
             ],
-            params: "--tw-gradient-via-position",
+            params: "--baro-gradient-via-position",
             type: "at-rule",
           },
           {
@@ -1110,21 +1110,21 @@ describe("background utilities", () => {
                 value: "100%",
               },
             ],
-            params: "--tw-gradient-to-position",
+            params: "--baro-gradient-to-position",
             type: "at-rule",
           },
         ],
       },
       {
-        prop: "--tw-gradient-to",
+        prop: "--baro-gradient-to",
         type: "decl",
         value: "green-700",
       },
     ]);
   });
-  it("to-position-90% → --tw-gradient-to-position: 90%", () => {
+  it("to-position-90% → --baro-gradient-to-position: 90%", () => {
     expect(parseClassToAst("to-position-90%", ctx)).toEqual([
-      { type: "decl", prop: "--tw-gradient-to-position", value: "90%" },
+      { type: "decl", prop: "--baro-gradient-to-position", value: "90%" },
     ]);
   });
 });

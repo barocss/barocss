@@ -6,13 +6,13 @@ import { parseNumber } from "../core/utils";
 
 const filters = () => {
   return [
-    decl("-webkit-backdrop-filter", "var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, )"),
-    decl("backdrop-filter", "var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, )"),
+    decl("-webkit-backdrop-filter", "var(--baro-backdrop-blur, ) var(--baro-backdrop-brightness, ) var(--baro-backdrop-contrast, ) var(--baro-backdrop-grayscale, ) var(--baro-backdrop-hue-rotate, ) var(--baro-backdrop-invert, ) var(--baro-backdrop-saturate, ) var(--baro-backdrop-sepia, )"),
+    decl("backdrop-filter", "var(--baro-backdrop-blur, ) var(--baro-backdrop-brightness, ) var(--baro-backdrop-contrast, ) var(--baro-backdrop-grayscale, ) var(--baro-backdrop-hue-rotate, ) var(--baro-backdrop-invert, ) var(--baro-backdrop-saturate, ) var(--baro-backdrop-sepia, )"),
   ]
 }
 
 // --- Backdrop Filter ---
-staticUtility("backdrop-filter", [["backdrop-filter", "var(--tw-backdrop-filter)"]], { category: 'effects' });
+staticUtility("backdrop-filter", [["backdrop-filter", "var(--baro-backdrop-filter)"]], { category: 'effects' });
 staticUtility("backdrop-filter-none", [["backdrop-filter", "none"]], { category: 'effects' });
 
 functionalUtility({
@@ -35,11 +35,11 @@ functionalUtility({
   ["backdrop-blur-3xl", "var(--blur-3xl)"],
 ].forEach(([name, value]) => {
   staticUtility(name as string, [
-    decl("--tw-backdrop-blur", `blur(${value})`),
+    decl("--baro-backdrop-blur", `blur(${value})`),
     ...filters()
   ], { category: 'effects' });
 });
-staticUtility("backdrop-blur-none", [decl("--tw-backdrop-blur", ""), ...filters()], { category: 'effects' });
+staticUtility("backdrop-blur-none", [decl("--baro-backdrop-blur", ""), ...filters()], { category: 'effects' });
 
 functionalUtility({
   name: "backdrop-blur",
@@ -47,10 +47,10 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, _ctx, token) => {
-    if (token.customProperty) return [decl("--tw-backdrop-blur", `blur(var(${value}))`), ...filters()];
-    return [decl("--tw-backdrop-blur", `blur(${value})`), ...filters()];
+    if (token.customProperty) return [decl("--baro-backdrop-blur", `blur(var(${value}))`), ...filters()];
+    return [decl("--baro-backdrop-blur", `blur(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("--tw-backdrop-blur", `blur(var(${value}))`), ...filters()],
+  handleCustomProperty: (value) => [decl("--baro-backdrop-blur", `blur(var(${value}))`), ...filters()],
   description: "blur filter utility (static, arbitrary, custom property supported)",
   category: "effects",
 });
@@ -64,14 +64,14 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, _ctx, token) => {
     if (parseNumber(value)) {
-        return [decl("--tw-backdrop-brightness", `brightness(${value}%)`), ...filters()];
+        return [decl("--baro-backdrop-brightness", `brightness(${value}%)`), ...filters()];
     }
     if (token.customProperty)
-      return [decl("--tw-backdrop-brightness", `brightness(var(${value}))`), ...filters()];
-    return [decl("--tw-backdrop-brightness", `brightness(${value})`), ...filters()];
+      return [decl("--baro-backdrop-brightness", `brightness(var(${value}))`), ...filters()];
+    return [decl("--baro-backdrop-brightness", `brightness(${value})`), ...filters()];
   },
   handleCustomProperty: (value) => [
-    decl("--tw-backdrop-brightness", `brightness(var(${value}))`),
+    decl("--baro-backdrop-brightness", `brightness(var(${value}))`),
     ...filters()
   ],
   description:
@@ -87,13 +87,13 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, _ctx, token) => {
     if (parseNumber(value)) {
-      return [decl("--tw-backdrop-contrast", `contrast(${value}%)`), ...filters()];
+      return [decl("--baro-backdrop-contrast", `contrast(${value}%)`), ...filters()];
     }
     if (token.customProperty)
-      return [decl("--tw-backdrop-contrast", `contrast(var(${value}))`), ...filters()];
-    return [decl("--tw-backdrop-contrast", `contrast(${value})`), ...filters()];
+      return [decl("--baro-backdrop-contrast", `contrast(var(${value}))`), ...filters()];
+    return [decl("--baro-backdrop-contrast", `contrast(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("--tw-backdrop-contrast", `contrast(var(${value}))`), ...filters()],
+  handleCustomProperty: (value) => [decl("--baro-backdrop-contrast", `contrast(var(${value}))`), ...filters()],
   description:
     "contrast filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
@@ -109,11 +109,11 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, _ctx, _token) => {
     if (parseNumber(value)) {
-      return [decl("--tw-backdrop-grayscale", `grayscale(${value}%)`), ...filters()];
+      return [decl("--baro-backdrop-grayscale", `grayscale(${value}%)`), ...filters()];
     }
-    return [decl("--tw-backdrop-grayscale", `grayscale(${value})`), ...filters()];
+    return [decl("--baro-backdrop-grayscale", `grayscale(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("--tw-backdrop-grayscale", `grayscale(var(${value}))`), ...filters()],
+  handleCustomProperty: (value) => [decl("--baro-backdrop-grayscale", `grayscale(var(${value}))`), ...filters()],
   description: "grayscale filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
@@ -128,14 +128,14 @@ functionalUtility({
   supportsNegative: true,
   handle: (value, _ctx, token) => {
     if (token.negative && parseNumber(token.value!)) {
-        return [decl("--tw-backdrop-hue-rotate", `hue-rotate(calc(${token.value}deg * -1))`), ...filters()];
+        return [decl("--baro-backdrop-hue-rotate", `hue-rotate(calc(${token.value}deg * -1))`), ...filters()];
     }
     if (parseNumber(value)) {
-      return [decl("--tw-backdrop-hue-rotate", `hue-rotate(${value}deg)`), ...filters()];
+      return [decl("--baro-backdrop-hue-rotate", `hue-rotate(${value}deg)`), ...filters()];
     }
-    return [decl("--tw-backdrop-hue-rotate", `hue-rotate(${value})`), ...filters()];
+    return [decl("--baro-backdrop-hue-rotate", `hue-rotate(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("--tw-backdrop-hue-rotate", `hue-rotate(var(${value}))`), ...filters()],
+  handleCustomProperty: (value) => [decl("--baro-backdrop-hue-rotate", `hue-rotate(var(${value}))`), ...filters()],
   description: "hue-rotate filter utility (static, negative, number, arbitrary, custom property supported)",
   category: "effects",
 });
@@ -150,10 +150,10 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, _ctx, _token) => {
     if (parseNumber(value)) {
-      return [decl("--tw-backdrop-invert", `invert(${value}%)`), ...filters()];
+      return [decl("--baro-backdrop-invert", `invert(${value}%)`), ...filters()];
     }
 
-    return [decl("--tw-backdrop-invert", `invert(${value})`), ...filters()];
+    return [decl("--baro-backdrop-invert", `invert(${value})`), ...filters()];
   },
   description: "invert filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
@@ -167,11 +167,11 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, _ctx, _token) => {
     if (parseNumber(value)) {
-      return [decl("--tw-backdrop-saturate", `saturate(${value}%)`), ...filters()];
+      return [decl("--baro-backdrop-saturate", `saturate(${value}%)`), ...filters()];
     }
-    return [decl("--tw-backdrop-saturate", `saturate(${value})`), ...filters()];
+    return [decl("--baro-backdrop-saturate", `saturate(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("--tw-backdrop-saturate", `saturate(var(${value}))`), ...filters()],
+  handleCustomProperty: (value) => [decl("--baro-backdrop-saturate", `saturate(var(${value}))`), ...filters()],
   description: "saturate filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });
@@ -186,11 +186,11 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, _ctx, _token) => {
     if (parseNumber(value)) {
-      return [decl("--tw-backdrop-sepia", `sepia(${value}%)`), ...filters()];
+      return [decl("--baro-backdrop-sepia", `sepia(${value}%)`), ...filters()];
     }
-    return [decl("--tw-backdrop-sepia", `sepia(${value})`), ...filters()];
+    return [decl("--baro-backdrop-sepia", `sepia(${value})`), ...filters()];
   },
-  handleCustomProperty: (value) => [decl("--tw-backdrop-sepia", `sepia(var(${value}))`), ...filters()],
+  handleCustomProperty: (value) => [decl("--baro-backdrop-sepia", `sepia(var(${value}))`), ...filters()],
   description: "sepia filter utility (static, number, arbitrary, custom property supported)",
   category: "effects",
 });

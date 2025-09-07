@@ -234,19 +234,19 @@ const rawAst = [
               {
                 type: "at-root",
                 nodes: [
-                  { type: "property", prop: "--tw-gradient-position" },
-                  { type: "property", prop: "--tw-gradient-from", value: "#0000", syntax: "<color>" },
-                  { type: "property", prop: "--tw-gradient-via", value: "#0000", syntax: "<color>" },
-                  { type: "property", prop: "--tw-gradient-to", value: "#0000", syntax: "<color>" },
-                  { type: "property", prop: "--tw-gradient-stops", value: "transparent" },
-                  { type: "property", prop: "--tw-gradient-from-position", value: "0%", syntax: "<length-percentage>" },
-                  { type: "property", prop: "--tw-gradient-via-position", value: "50%", syntax: "<length-percentage>" },
-                  { type: "property", prop: "--tw-gradient-to-position", value: "100%", syntax: "<length-percentage>" }
+                  { type: "property", prop: "--baro-gradient-position" },
+                  { type: "property", prop: "--baro-gradient-from", value: "#0000", syntax: "<color>" },
+                  { type: "property", prop: "--baro-gradient-via", value: "#0000", syntax: "<color>" },
+                  { type: "property", prop: "--baro-gradient-to", value: "#0000", syntax: "<color>" },
+                  { type: "property", prop: "--baro-gradient-stops", value: "transparent" },
+                  { type: "property", prop: "--baro-gradient-from-position", value: "0%", syntax: "<length-percentage>" },
+                  { type: "property", prop: "--baro-gradient-via-position", value: "50%", syntax: "<length-percentage>" },
+                  { type: "property", prop: "--baro-gradient-to-position", value: "100%", syntax: "<length-percentage>" }
                 ]
               },
               {
                 type: "decl",
-                prop: "--tw-gradient-position",
+                prop: "--baro-gradient-position",
                 value: "to right"
               },
               {
@@ -255,7 +255,7 @@ const rawAst = [
                 nodes: [
                   {
                     type: "decl",
-                    prop: "--tw-gradient-position",
+                    prop: "--baro-gradient-position",
                     value: "to right in oklab"
                   }
                 ]
@@ -263,7 +263,7 @@ const rawAst = [
               {
                 type: "decl",
                 prop: "background-image",
-                value: "linear-gradient(to right, var(--tw-gradient-stops))"
+                value: "linear-gradient(to right, var(--baro-gradient-stops))"
               }
             ]
           }
@@ -275,48 +275,48 @@ const rawAst = [
   {
     type: "at-root",
     nodes: [
-      { type: "property", prop: "--tw-gradient-position" },
-      { type: "property", prop: "--tw-gradient-from", value: "#0000", syntax: "<color>" },
-      { type: "property", prop: "--tw-gradient-via", value: "#0000", syntax: "<color>" },
-      { type: "property", prop: "--tw-gradient-to", value: "#0000", syntax: "<color>" },
-      { type: "property", prop: "--tw-gradient-stops", value: "transparent" },
-      { type: "property", prop: "--tw-gradient-from-position", value: "0%", syntax: "<length-percentage>" },
-      { type: "property", prop: "--tw-gradient-via-position", value: "50%", syntax: "<length-percentage>" },
-      { type: "property", prop: "--tw-gradient-to-position", value: "100%", syntax: "<length-percentage>" }
+      { type: "property", prop: "--baro-gradient-position" },
+      { type: "property", prop: "--baro-gradient-from", value: "#0000", syntax: "<color>" },
+      { type: "property", prop: "--baro-gradient-via", value: "#0000", syntax: "<color>" },
+      { type: "property", prop: "--baro-gradient-to", value: "#0000", syntax: "<color>" },
+      { type: "property", prop: "--baro-gradient-stops", value: "transparent" },
+      { type: "property", prop: "--baro-gradient-from-position", value: "0%", syntax: "<length-percentage>" },
+      { type: "property", prop: "--baro-gradient-via-position", value: "50%", syntax: "<length-percentage>" },
+      { type: "property", prop: "--baro-gradient-to-position", value: "100%", syntax: "<length-percentage>" }
     ]
   },
   {
     type: "decl",
-    prop: "--tw-gradient-from",
+    prop: "--baro-gradient-from",
     value: "#3b82f6"
   },
   {
     type: "decl",
-    prop: "--tw-gradient-to",
+    prop: "--baro-gradient-to",
     value: "transparent"
   },
   {
     type: "decl",
-    prop: "--tw-gradient-stops",
-    value: "var(--tw-gradient-from),var(--tw-gradient-to)"
+    prop: "--baro-gradient-stops",
+    value: "var(--baro-gradient-from),var(--baro-gradient-to)"
   },
   // to-red-500 utility - Gradient stop definition
   {
     type: "at-root",
     nodes: [
-      { type: "property", prop: "--tw-gradient-position" },
-      { type: "property", prop: "--tw-gradient-from", value: "#0000", syntax: "<color>" },
-      { type: "property", prop: "--tw-gradient-via", value: "#0000", syntax: "<color>" },
-      { type: "property", prop: "--tw-gradient-to", value: "#0000", syntax: "<color>" },
-      { type: "property", prop: "--tw-gradient-stops", value: "transparent" },
-      { type: "property", prop: "--tw-gradient-from-position", value: "0%", syntax: "<length-percentage>" },
-      { type: "property", prop: "--tw-gradient-via-position", value: "50%", syntax: "<length-percentage>" },
-      { type: "property", prop: "--tw-gradient-to-position", value: "100%", syntax: "<length-percentage>" }
+      { type: "property", prop: "--baro-gradient-position" },
+      { type: "property", prop: "--baro-gradient-from", value: "#0000", syntax: "<color>" },
+      { type: "property", prop: "--baro-gradient-via", value: "#0000", syntax: "<color>" },
+      { type: "property", prop: "--baro-gradient-to", value: "#0000", syntax: "<color>" },
+      { type: "property", prop: "--baro-gradient-stops", value: "transparent" },
+      { type: "property", prop: "--baro-gradient-from-position", value: "0%", syntax: "<length-percentage>" },
+      { type: "property", prop: "--baro-gradient-via-position", value: "50%", syntax: "<length-percentage>" },
+      { type: "property", prop: "--baro-gradient-to-position", value: "100%", syntax: "<length-percentage>" }
     ]
   },
   {
     type: "decl",
-    prop: "--tw-gradient-to",
+    prop: "--baro-gradient-to",
     value: "#ef4444"
   },
   // focus:ring-2 utility
@@ -346,38 +346,38 @@ const declPaths = collectDeclPaths(rawAst);
 //     { type: "at-rule", name: "media", params: "(min-width: 640px)", source: "responsive" },
 //     { type: "rule", selector: ".dark &", source: "dark" },
 //     { type: "at-root", nodes: [...] },
-//     { type: "decl", prop: "--tw-gradient-position", value: "to right" }
+//     { type: "decl", prop: "--baro-gradient-position", value: "to right" }
 //   ],
 //   [
 //     { type: "rule", selector: "&:hover", source: "pseudo" },
 //     { type: "at-rule", name: "media", params: "(min-width: 640px)", source: "responsive" },
 //     { type: "rule", selector: ".dark &", source: "dark" },
 //     { type: "style-rule", selector: "@supports (background-image: linear-gradient(in lab, red, red))" },
-//     { type: "decl", prop: "--tw-gradient-position", value: "to right in oklab" }
+//     { type: "decl", prop: "--baro-gradient-position", value: "to right in oklab" }
 //   ],
 //   [
 //     { type: "rule", selector: "&:hover", source: "pseudo" },
 //     { type: "at-rule", name: "media", params: "(min-width: 640px)", source: "responsive" },
 //     { type: "rule", selector: ".dark &", source: "dark" },
-//     { type: "decl", prop: "background-image", value: "linear-gradient(to right, var(--tw-gradient-stops))" }
+//     { type: "decl", prop: "background-image", value: "linear-gradient(to right, var(--baro-gradient-stops))" }
 //   ],
 //   // Declarations from from-blue-500
 //   [
 //     { type: "at-root", nodes: [...] },
-//     { type: "decl", prop: "--tw-gradient-from", value: "#3b82f6" }
+//     { type: "decl", prop: "--baro-gradient-from", value: "#3b82f6" }
 //   ],
 //   [
 //     { type: "at-root", nodes: [...] },
-//     { type: "decl", prop: "--tw-gradient-to", value: "transparent" }
+//     { type: "decl", prop: "--baro-gradient-to", value: "transparent" }
 //   ],
 //   [
 //     { type: "at-root", nodes: [...] },
-//     { type: "decl", prop: "--tw-gradient-stops", value: "var(--tw-gradient-from),var(--tw-gradient-to)" }
+//     { type: "decl", prop: "--baro-gradient-stops", value: "var(--baro-gradient-from),var(--baro-gradient-to)" }
 //   ],
 //   // Declarations from to-red-500
 //   [
 //     { type: "at-root", nodes: [...] },
-//     { type: "decl", prop: "--tw-gradient-to", value: "#ef4444" }
+//     { type: "decl", prop: "--baro-gradient-to", value: "#ef4444" }
 //   ],
 //   // Declaration from focus:ring-2
 //   [
@@ -408,14 +408,14 @@ const astList = declPaths.map(declPathToAst);
 //             {
 //               type: "at-root",
 //               nodes: [
-//                 { type: "property", prop: "--tw-gradient-position" },
-//                 { type: "property", prop: "--tw-gradient-from", value: "#0000", syntax: "<color>" },
+//                 { type: "property", prop: "--baro-gradient-position" },
+//                 { type: "property", prop: "--baro-gradient-from", value: "#0000", syntax: "<color>" },
 //                 // ... other gradient variables
 //               ]
 //             },
 //             {
 //               type: "decl",
-//               prop: "--tw-gradient-position",
+//               prop: "--baro-gradient-position",
 //               value: "to right"
 //             },
 //             {
@@ -424,7 +424,7 @@ const astList = declPaths.map(declPathToAst);
 //               nodes: [
 //                 {
 //                   type: "decl",
-//                   prop: "--tw-gradient-position",
+//                   prop: "--baro-gradient-position",
 //                   value: "to right in oklab"
 //                 }
 //               ]
@@ -432,7 +432,7 @@ const astList = declPaths.map(declPathToAst);
 //             {
 //               type: "decl",
 //               prop: "background-image",
-//               value: "linear-gradient(to right, var(--tw-gradient-stops))"
+//               value: "linear-gradient(to right, var(--baro-gradient-stops))"
 //             }
 //           ]
 //         }
@@ -444,14 +444,14 @@ const astList = declPaths.map(declPathToAst);
 //     {
 //       type: "at-root",
 //       nodes: [
-//         { type: "property", prop: "--tw-gradient-position" },
-//         { type: "property", prop: "--tw-gradient-from", value: "#0000", syntax: "<color>" },
+//         { type: "property", prop: "--baro-gradient-position" },
+//         { type: "property", prop: "--baro-gradient-from", value: "#0000", syntax: "<color>" },
 //         // ... other gradient variables
 //       ]
 //     },
 //     {
 //       type: "decl",
-//       prop: "--tw-gradient-from",
+//       prop: "--baro-gradient-from",
 //       value: "#3b82f6"
 //     }
 //   ],
@@ -460,14 +460,14 @@ const astList = declPaths.map(declPathToAst);
 //     {
 //       type: "at-root",
 //       nodes: [
-//         { type: "property", prop: "--tw-gradient-position" },
-//         { type: "property", prop: "--tw-gradient-from", value: "#0000", syntax: "<color>" },
+//         { type: "property", prop: "--baro-gradient-position" },
+//         { type: "property", prop: "--baro-gradient-from", value: "#0000", syntax: "<color>" },
 //         // ... other gradient variables
 //       ]
 //     },
 //     {
 //       type: "decl",
-//       prop: "--tw-gradient-to",
+//       prop: "--baro-gradient-to",
 //       value: "#ef4444"
 //     }
 //   ],
@@ -498,36 +498,36 @@ const merged = mergeAstTreeList(astList);
 //   {
 //     type: "at-root",
 //     nodes: [
-//       { type: "property", prop: "--tw-gradient-position" },
-//       { type: "property", prop: "--tw-gradient-from", value: "#0000", syntax: "<color>" },
-//       { type: "property", prop: "--tw-gradient-via", value: "#0000", syntax: "<color>" },
-//       { type: "property", prop: "--tw-gradient-to", value: "#0000", syntax: "<color>" },
-//       { type: "property", prop: "--tw-gradient-stops", value: "transparent" },
-//       { type: "property", prop: "--tw-gradient-from-position", value: "0%", syntax: "<length-percentage>" },
-//       { type: "property", prop: "--tw-gradient-via-position", value: "50%", syntax: "<length-percentage>" },
-//       { type: "property", prop: "--tw-gradient-to-position", value: "100%", syntax: "<length-percentage>" }
+//       { type: "property", prop: "--baro-gradient-position" },
+//       { type: "property", prop: "--baro-gradient-from", value: "#0000", syntax: "<color>" },
+//       { type: "property", prop: "--baro-gradient-via", value: "#0000", syntax: "<color>" },
+//       { type: "property", prop: "--baro-gradient-to", value: "#0000", syntax: "<color>" },
+//       { type: "property", prop: "--baro-gradient-stops", value: "transparent" },
+//       { type: "property", prop: "--baro-gradient-from-position", value: "0%", syntax: "<length-percentage>" },
+//       { type: "property", prop: "--baro-gradient-via-position", value: "50%", syntax: "<length-percentage>" },
+//       { type: "property", prop: "--baro-gradient-to-position", value: "100%", syntax: "<length-percentage>" }
 //     ]
 //   },
 //   // Gradient stops from from-blue-500
 //   {
 //     type: "decl",
-//     prop: "--tw-gradient-from",
+//     prop: "--baro-gradient-from",
 //     value: "#3b82f6"
 //   },
 //   {
 //     type: "decl",
-//     prop: "--tw-gradient-to",
+//     prop: "--baro-gradient-to",
 //     value: "transparent"
 //   },
 //   {
 //     type: "decl",
-//     prop: "--tw-gradient-stops",
-//     value: "var(--tw-gradient-from),var(--tw-gradient-to)"
+//     prop: "--baro-gradient-stops",
+//     value: "var(--baro-gradient-from),var(--baro-gradient-to)"
 //   },
 //   // Gradient stops from to-red-500 (overwrites existing to value)
 //   {
 //     type: "decl",
-//     prop: "--tw-gradient-to",
+//     prop: "--baro-gradient-to",
 //     value: "#ef4444"
 //   },
 //   // Media query and gradient background
@@ -544,7 +544,7 @@ const merged = mergeAstTreeList(astList);
 //         nodes: [
 //           {
 //             type: "decl",
-//             prop: "--tw-gradient-position",
+//             prop: "--baro-gradient-position",
 //             value: "to right"
 //           },
 //           {
@@ -553,7 +553,7 @@ const merged = mergeAstTreeList(astList);
 //             nodes: [
 //               {
 //                 type: "decl",
-//                 prop: "--tw-gradient-position",
+//                 prop: "--baro-gradient-position",
 //                 value: "to right in oklab"
 //               }
 //             ]
@@ -561,7 +561,7 @@ const merged = mergeAstTreeList(astList);
 //           {
 //             type: "decl",
 //             prop: "background-image",
-//             value: "linear-gradient(to right, var(--tw-gradient-stops))"
+//             value: "linear-gradient(to right, var(--baro-gradient-stops))"
 //           }
 //         ]
 //       }
@@ -588,49 +588,49 @@ const merged = mergeAstTreeList(astList);
 ```typescript
 const css = astToCss(merged);
 // Output:
-// @property --tw-gradient-position;
-// @property --tw-gradient-from {
+// @property --baro-gradient-position;
+// @property --baro-gradient-from {
 //   syntax: "<color>";
 //   initial-value: #0000;
 // }
-// @property --tw-gradient-via {
+// @property --baro-gradient-via {
 //   syntax: "<color>";
 //   initial-value: #0000;
 // }
-// @property --tw-gradient-to {
+// @property --baro-gradient-to {
 //   syntax: "<color>";
 //   initial-value: #0000;
 // }
-// @property --tw-gradient-stops {
+// @property --baro-gradient-stops {
 //   initial-value: transparent;
 // }
-// @property --tw-gradient-from-position {
+// @property --baro-gradient-from-position {
 //   syntax: "<length-percentage>";
 //   initial-value: 0%;
 // }
-// @property --tw-gradient-via-position {
+// @property --baro-gradient-via-position {
 //   syntax: "<length-percentage>";
 //   initial-value: 50%;
 // }
-// @property --tw-gradient-to-position {
+// @property --baro-gradient-to-position {
 //   syntax: "<length-percentage>";
 //   initial-value: 100%;
 // }
 // 
-// --tw-gradient-from: #3b82f6;
-// --tw-gradient-to: transparent;
-// --tw-gradient-stops: var(--tw-gradient-from),var(--tw-gradient-to);
-// --tw-gradient-to: #ef4444;
+// --baro-gradient-from: #3b82f6;
+// --baro-gradient-to: transparent;
+// --baro-gradient-stops: var(--baro-gradient-from),var(--baro-gradient-to);
+// --baro-gradient-to: #ef4444;
 // 
 // @media (min-width: 640px) {
 //   .dark .sm\\:dark\\:hover\\:bg-linear-to-r:hover {
-//     --tw-gradient-position: to right;
+//     --baro-gradient-position: to right;
 //   }
 //   .dark .sm\\:dark\\:hover\\:bg-linear-to-r:hover {
-//     --tw-gradient-position: to right in oklab;
+//     --baro-gradient-position: to right in oklab;
 //   }
 //   .dark .sm\\:dark\\:hover\\:bg-linear-to-r:hover {
-//     background-image: linear-gradient(to right, var(--tw-gradient-stops));
+//     background-image: linear-gradient(to right, var(--baro-gradient-stops));
 //   }
 // }
 // .focus\\:ring-2:focus {

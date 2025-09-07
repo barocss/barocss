@@ -11,23 +11,23 @@ describe("transform ", () => {
       { type: "decl", prop: "transform", value: "none" },
     ]);
   });
-  it("transform-gpu → transform: translateZ(0) var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y)", () => {
+  it("transform-gpu → transform: translateZ(0) var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)", () => {
     expect(parseClassToAst("transform-gpu", ctx)).toEqual([
       {
         type: "decl",
         prop: "transform",
         value:
-          "translateZ(0) var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y)",
+          "translateZ(0) var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)",
       },
     ]);
   });
-  it("transform-cpu → transform: var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y)", () => {
+  it("transform-cpu → transform: var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)", () => {
     expect(parseClassToAst("transform-cpu", ctx)).toEqual([
       {
         type: "decl",
         prop: "transform",
         value:
-          "var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y)",
+          "var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)",
       },
     ]);
   });
@@ -184,66 +184,66 @@ describe("rotate utilities", () => {
     ]);
   });
 
-  it("rotate-x-50 → transform: rotateX(50deg) var(--tw-rotate-y)", () => {
+  it("rotate-x-50 → transform: rotateX(50deg) var(--baro-rotate-y)", () => {
     expect(parseClassToAst("rotate-x-50", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "rotateX(50deg) var(--tw-rotate-y)" },
+      { type: "decl", prop: "transform", value: "rotateX(50deg) var(--baro-rotate-y)" },
     ]);
   });
-  it("-rotate-x-15 → transform: rotateX(-15deg) var(--tw-rotate-y)", () => {
+  it("-rotate-x-15 → transform: rotateX(-15deg) var(--baro-rotate-y)", () => {
     expect(parseClassToAst("-rotate-x-15", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "rotateX(-15deg) var(--tw-rotate-y)" },
+      { type: "decl", prop: "transform", value: "rotateX(-15deg) var(--baro-rotate-y)" },
     ]);
   });
-  it("rotate-x-(--my-rotation) → transform: rotateX(var(--my-rotation)) var(--tw-rotate-y)", () => {
+  it("rotate-x-(--my-rotation) → transform: rotateX(var(--my-rotation)) var(--baro-rotate-y)", () => {
     expect(parseClassToAst("rotate-x-(--my-rotation)", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "rotateX(var(--my-rotation)) var(--tw-rotate-y)" },
+      { type: "decl", prop: "transform", value: "rotateX(var(--my-rotation)) var(--baro-rotate-y)" },
     ]);
   });
-  it("rotate-x-[1.5turn] → transform: rotateX(1.5turn) var(--tw-rotate-y)", () => {
+  it("rotate-x-[1.5turn] → transform: rotateX(1.5turn) var(--baro-rotate-y)", () => {
     expect(parseClassToAst("rotate-x-[1.5turn]", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "rotateX(1.5turn) var(--tw-rotate-y)" },
+      { type: "decl", prop: "transform", value: "rotateX(1.5turn) var(--baro-rotate-y)" },
     ]);
   });
 
-  it("rotate-y-25 → transform: var(--tw-rotate-x) rotateY(25deg)", () => {
+  it("rotate-y-25 → transform: var(--baro-rotate-x) rotateY(25deg)", () => {
     expect(parseClassToAst("rotate-y-25", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "var(--tw-rotate-x) rotateY(25deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) rotateY(25deg)" },
     ]);
   });
-  it("-rotate-y-30 → transform: var(--tw-rotate-x) rotateY(-30deg)", () => {
+  it("-rotate-y-30 → transform: var(--baro-rotate-x) rotateY(-30deg)", () => {
     expect(parseClassToAst("-rotate-y-30", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "var(--tw-rotate-x) rotateY(-30deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) rotateY(-30deg)" },
     ]);
   });
-  it("rotate-y-(--my-rotation) → transform: var(--tw-rotate-x) rotateY(var(--my-rotation))", () => {
+  it("rotate-y-(--my-rotation) → transform: var(--baro-rotate-x) rotateY(var(--my-rotation))", () => {
     expect(parseClassToAst("rotate-y-(--my-rotation)", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "var(--tw-rotate-x) rotateY(var(--my-rotation))" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) rotateY(var(--my-rotation))" },
     ]);
   });
-  it("rotate-y-[2rad] → transform: var(--tw-rotate-x) rotateY(2rad)", () => {
+  it("rotate-y-[2rad] → transform: var(--baro-rotate-x) rotateY(2rad)", () => {
     expect(parseClassToAst("rotate-y-[2rad]", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "var(--tw-rotate-x) rotateY(2rad)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) rotateY(2rad)" },
     ]);
   });
 
-  it("rotate-z-45 → transform: var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(45deg)", () => {
+  it("rotate-z-45 → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(45deg)", () => {
     expect(parseClassToAst("rotate-z-45", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(45deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(45deg)" },
     ]);
   });
-  it("-rotate-z-30 → transform: var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(-30deg)", () => {
+  it("-rotate-z-30 → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(-30deg)", () => {
     expect(parseClassToAst("-rotate-z-30", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(-30deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(-30deg)" },
     ]);
   });
-  it("rotate-z-(--my-rotation) → transform: var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(var(--my-rotation))", () => {
+  it("rotate-z-(--my-rotation) → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(var(--my-rotation))", () => {
     expect(parseClassToAst("rotate-z-(--my-rotation)", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(var(--my-rotation))" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(var(--my-rotation))" },
     ]);
   });
-  it("rotate-z-[0.5turn] → transform: var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(0.5turn)", () => {
+  it("rotate-z-[0.5turn] → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(0.5turn)", () => {
     expect(parseClassToAst("rotate-z-[0.5turn]", ctx)).toEqual([
-      { type: "decl", prop: "transform", value: "var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(0.5turn)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(0.5turn)" },
     ]);
   });
 });
@@ -254,9 +254,9 @@ describe("scale utilities", () => {
       { type: "decl", prop: "scale", value: "none" },
     ]);
   });
-  it("scale-3d → scale: var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z)", () => {
+  it("scale-3d → scale: var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)", () => {
     expect(parseClassToAst("scale-3d", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)" },
     ]);
   });
   it("scale-75 → scale: 75% 75%", () => {
@@ -280,66 +280,66 @@ describe("scale utilities", () => {
     ]);
   });
 
-  it("scale-x-90 → scale: calc(90% * 1) var(--tw-scale-y)", () => {
+  it("scale-x-90 → scale: calc(90% * 1) var(--baro-scale-y)", () => {
     expect(parseClassToAst("scale-x-90", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "calc(90% * 1) var(--tw-scale-y)" },
+      { type: "decl", prop: "scale", value: "calc(90% * 1) var(--baro-scale-y)" },
     ]);
   });
-  it("-scale-x-60 → scale: calc(60% * -1) var(--tw-scale-y)", () => {
+  it("-scale-x-60 → scale: calc(60% * -1) var(--baro-scale-y)", () => {
     expect(parseClassToAst("-scale-x-60", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "calc(60% * -1) var(--tw-scale-y)" },
+      { type: "decl", prop: "scale", value: "calc(60% * -1) var(--baro-scale-y)" },
     ]);
   });
-  it("scale-x-(--my-scale) → scale: var(--my-scale) var(--tw-scale-y)", () => {
+  it("scale-x-(--my-scale) → scale: var(--my-scale) var(--baro-scale-y)", () => {
     expect(parseClassToAst("scale-x-(--my-scale)", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "var(--my-scale) var(--tw-scale-y)" },
+      { type: "decl", prop: "scale", value: "var(--my-scale) var(--baro-scale-y)" },
     ]);
   });
-  it("scale-x-[2.5] → scale: 2.5 var(--tw-scale-y)", () => {
+  it("scale-x-[2.5] → scale: 2.5 var(--baro-scale-y)", () => {
     expect(parseClassToAst("scale-x-[2.5]", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "2.5 var(--tw-scale-y)" },
+      { type: "decl", prop: "scale", value: "2.5 var(--baro-scale-y)" },
     ]);
   });
 
-  it("scale-y-110 → scale: var(--tw-scale-x) calc(110% * 1)", () => {
+  it("scale-y-110 → scale: var(--baro-scale-x) calc(110% * 1)", () => {
     expect(parseClassToAst("scale-y-110", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "var(--tw-scale-x) calc(110% * 1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) calc(110% * 1)" },
     ]);
   });
-  it("-scale-y-95 → scale: var(--tw-scale-x) calc(95% * -1)", () => {
+  it("-scale-y-95 → scale: var(--baro-scale-x) calc(95% * -1)", () => {
     expect(parseClassToAst("-scale-y-95", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "var(--tw-scale-x) calc(95% * -1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) calc(95% * -1)" },
     ]);
   });
-  it("scale-y-(--my-scale) → scale: var(--tw-scale-x) var(--my-scale)", () => {
+  it("scale-y-(--my-scale) → scale: var(--baro-scale-x) var(--my-scale)", () => {
     expect(parseClassToAst("scale-y-(--my-scale)", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "var(--tw-scale-x) var(--my-scale)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--my-scale)" },
     ]);
   });
-  it("scale-y-[0.8] → scale: var(--tw-scale-x) 0.8", () => {
+  it("scale-y-[0.8] → scale: var(--baro-scale-x) 0.8", () => {
     expect(parseClassToAst("scale-y-[0.8]", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "var(--tw-scale-x) 0.8" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) 0.8" },
     ]);
   });
 
-  it("scale-z-120 → scale: var(--tw-scale-x) var(--tw-scale-y) calc(120% * 1)", () => {
+  it("scale-z-120 → scale: var(--baro-scale-x) var(--baro-scale-y) calc(120% * 1)", () => {
     expect(parseClassToAst("scale-z-120", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "var(--tw-scale-x) var(--tw-scale-y) calc(120% * 1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) calc(120% * 1)" },
     ]);
   });
-  it("-scale-z-70 → scale: var(--tw-scale-x) var(--tw-scale-y) calc(70% * -1)", () => {
+  it("-scale-z-70 → scale: var(--baro-scale-x) var(--baro-scale-y) calc(70% * -1)", () => {
     expect(parseClassToAst("-scale-z-70", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "var(--tw-scale-x) var(--tw-scale-y) calc(70% * -1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) calc(70% * -1)" },
     ]);
   });
-  it("scale-z-(--my-scale) → scale: var(--tw-scale-x) var(--tw-scale-y) var(--my-scale)", () => {
+  it("scale-z-(--my-scale) → scale: var(--baro-scale-x) var(--baro-scale-y) var(--my-scale)", () => {
     expect(parseClassToAst("scale-z-(--my-scale)", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "var(--tw-scale-x) var(--tw-scale-y) var(--my-scale)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) var(--my-scale)" },
     ]);
   });
-  it("scale-z-[1.2] → scale: var(--tw-scale-x) var(--tw-scale-y) 1.2", () => {
+  it("scale-z-[1.2] → scale: var(--baro-scale-x) var(--baro-scale-y) 1.2", () => {
     expect(parseClassToAst("scale-z-[1.2]", ctx)).toEqual([
-      { type: "decl", prop: "scale", value: "var(--tw-scale-x) var(--tw-scale-y) 1.2" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) 1.2" },
     ]);
   });
 });
@@ -500,100 +500,100 @@ describe("translate utilities ", () => {
   it("translate-full → translate: 100% 100%", () => {
     expect(parseClassToAst("translate-full", ctx)).toEqual([
       {type: "at-root", nodes: [
-        {type: "at-rule", name: "property", params: "--tw-translate-x", nodes: [
+        {type: "at-rule", name: "property", params: "--baro-translate-x", nodes: [
           {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
-        {type: "at-rule", name: "property", params: "--tw-translate-y", nodes: [
+        {type: "at-rule", name: "property", params: "--baro-translate-y", nodes: [
           {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
-        {type: "at-rule", name: "property", params: "--tw-translate-z", nodes: [
+        {type: "at-rule", name: "property", params: "--baro-translate-z", nodes: [
           {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
       ]},
-      {type: "decl", prop: "--tw-translate-x", value: "100%"},
-      {type: "decl", prop: "--tw-translate-y", value: "100%"},
-      {type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y)"},
+      {type: "decl", prop: "--baro-translate-x", value: "100%"},
+      {type: "decl", prop: "--baro-translate-y", value: "100%"},
+      {type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y)"},
     ]);
   });
 
   it("-translate-full → translate: -100% -100%", () => {
     expect(parseClassToAst("-translate-full", ctx)).toEqual([
       {type: "at-root", nodes: [
-        {type: "at-rule", name: "property", params: "--tw-translate-x", nodes: [
+        {type: "at-rule", name: "property", params: "--baro-translate-x", nodes: [
           {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
-        {type: "at-rule", name: "property", params: "--tw-translate-y", nodes: [
+        {type: "at-rule", name: "property", params: "--baro-translate-y", nodes: [
           {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
-        {type: "at-rule", name: "property", params: "--tw-translate-z", nodes: [
+        {type: "at-rule", name: "property", params: "--baro-translate-z", nodes: [
           {type: "decl", prop: "syntax", value: '"*"'},
           {type: "decl", prop: "inherits", value: "false"},
           {type: "decl", prop: "initial-value", value: "0"},
         ]},
       ]},
-      {type: "decl", prop: "--tw-translate-x", value: "-100%"},
-      {type: "decl", prop: "--tw-translate-y", value: "-100%"},
-      {type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y)"},
+      {type: "decl", prop: "--baro-translate-x", value: "-100%"},
+      {type: "decl", prop: "--baro-translate-y", value: "-100%"},
+      {type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y)"},
     ]);
   });
-  it("translate-x-px → translate: 1px var(--tw-translate-y)", () => {
+  it("translate-x-px → translate: 1px var(--baro-translate-y)", () => {
     expect(parseClassToAst("translate-x-px", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "1px var(--tw-translate-y)" },
+      { type: "decl", prop: "translate", value: "1px var(--baro-translate-y)" },
     ]);
   });
-  it("-translate-x-px → translate: -1px var(--tw-translate-y)", () => {
+  it("-translate-x-px → translate: -1px var(--baro-translate-y)", () => {
     expect(parseClassToAst("-translate-x-px", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "-1px var(--tw-translate-y)" },
+      { type: "decl", prop: "translate", value: "-1px var(--baro-translate-y)" },
     ]);
   });
-  it("translate-x-full → translate: 100% var(--tw-translate-y)", () => {
+  it("translate-x-full → translate: 100% var(--baro-translate-y)", () => {
     expect(parseClassToAst("translate-x-full", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "100% var(--tw-translate-y)" },
+      { type: "decl", prop: "translate", value: "100% var(--baro-translate-y)" },
     ]);
   });
-  it("-translate-x-full → translate: -100% var(--tw-translate-y)", () => {
+  it("-translate-x-full → translate: -100% var(--baro-translate-y)", () => {
     expect(parseClassToAst("-translate-x-full", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "-100% var(--tw-translate-y)" },
+      { type: "decl", prop: "translate", value: "-100% var(--baro-translate-y)" },
     ]);
   });
-  it("translate-y-px → translate: var(--tw-translate-x) 1px", () => {
+  it("translate-y-px → translate: var(--baro-translate-x) 1px", () => {
     expect(parseClassToAst("translate-y-px", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) 1px" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) 1px" },
     ]);
   });
-  it("-translate-y-px → translate: var(--tw-translate-x) -1px", () => {
+  it("-translate-y-px → translate: var(--baro-translate-x) -1px", () => {
     expect(parseClassToAst("-translate-y-px", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) -1px" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) -1px" },
     ]);
   });
-  it("translate-y-full → translate: var(--tw-translate-x) 100%", () => {
+  it("translate-y-full → translate: var(--baro-translate-x) 100%", () => {
     expect(parseClassToAst("translate-y-full", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) 100%" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) 100%" },
     ]);
   });
-  it("-translate-y-full → translate: var(--tw-translate-x) -100%", () => {
+  it("-translate-y-full → translate: var(--baro-translate-x) -100%", () => {
     expect(parseClassToAst("-translate-y-full", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) -100%" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) -100%" },
     ]);
   });
-  it("translate-z-px → translate: var(--tw-translate-x) var(--tw-translate-y) 1px", () => {
+  it("translate-z-px → translate: var(--baro-translate-x) var(--baro-translate-y) 1px", () => {
     expect(parseClassToAst("translate-z-px", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y) 1px" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) 1px" },
     ]);
   });
-  it("-translate-z-px → translate: var(--tw-translate-x) var(--tw-translate-y) -1px", () => {
+  it("-translate-z-px → translate: var(--baro-translate-x) var(--baro-translate-y) -1px", () => {
     expect(parseClassToAst("-translate-z-px", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y) -1px" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) -1px" },
     ]);
   });
 
@@ -608,34 +608,34 @@ describe("translate utilities ", () => {
       { type: "decl", prop: "translate", value: "calc(var(--spacing) * -3) calc(var(--spacing) * -3)" },
     ]);
   });
-  it("translate-x-4 → translate: calc(4 * 100%) var(--tw-translate-y)", () => {
+  it("translate-x-4 → translate: calc(4 * 100%) var(--baro-translate-y)", () => {
     expect(parseClassToAst("translate-x-4", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "calc(4 * 100%) var(--tw-translate-y)" },
+      { type: "decl", prop: "translate", value: "calc(4 * 100%) var(--baro-translate-y)" },
     ]);
   });
-  it("-translate-x-1 → translate: calc(var(--spacing) * -1) var(--tw-translate-y)", () => {
+  it("-translate-x-1 → translate: calc(var(--spacing) * -1) var(--baro-translate-y)", () => {
     expect(parseClassToAst("-translate-x-1", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "calc(var(--spacing) * -1) var(--tw-translate-y)" },
+      { type: "decl", prop: "translate", value: "calc(var(--spacing) * -1) var(--baro-translate-y)" },
     ]);
   });
-  it("translate-y-5 → translate: var(--tw-translate-x) calc(5 * 100%)", () => {
+  it("translate-y-5 → translate: var(--baro-translate-x) calc(5 * 100%)", () => {
     expect(parseClassToAst("translate-y-5", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) calc(5 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) calc(5 * 100%)" },
     ]);
   });
-  it("-translate-y-2 → translate: var(--tw-translate-x) calc(var(--spacing) * -2)", () => {
+  it("-translate-y-2 → translate: var(--baro-translate-x) calc(var(--spacing) * -2)", () => {
     expect(parseClassToAst("-translate-y-2", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) calc(var(--spacing) * -2)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) calc(var(--spacing) * -2)" },
     ]);
   });
-  it("translate-z-6 → translate: var(--tw-translate-x) var(--tw-translate-y) calc(6 * 100%)", () => {
+  it("translate-z-6 → translate: var(--baro-translate-x) var(--baro-translate-y) calc(6 * 100%)", () => {
     expect(parseClassToAst("translate-z-6", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y) calc(6 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) calc(6 * 100%)" },
     ]);
   });
-  it("-translate-z-2 → translate: var(--tw-translate-x) var(--tw-translate-y) calc(var(--spacing) * -2)", () => {
+  it("-translate-z-2 → translate: var(--baro-translate-x) var(--baro-translate-y) calc(var(--spacing) * -2)", () => {
     expect(parseClassToAst("-translate-z-2", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y) calc(var(--spacing) * -2)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) calc(var(--spacing) * -2)" },
     ]);
   });
 
@@ -650,34 +650,34 @@ describe("translate utilities ", () => {
       { type: "decl", prop: "translate", value: "calc(-1/4 * 100%) calc(-1/4 * 100%)" },
     ]);
   });
-  it("translate-x-3/5 → translate: calc(3/5 * 100%) var(--tw-translate-y)", () => {
+  it("translate-x-3/5 → translate: calc(3/5 * 100%) var(--baro-translate-y)", () => {
     expect(parseClassToAst("translate-x-3/5", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "calc(3/5 * 100%) var(--tw-translate-y)" },
+      { type: "decl", prop: "translate", value: "calc(3/5 * 100%) var(--baro-translate-y)" },
     ]);
   });
-  it("-translate-x-2/3 → translate: calc(-2/3 * 100%) var(--tw-translate-y)", () => {
+  it("-translate-x-2/3 → translate: calc(-2/3 * 100%) var(--baro-translate-y)", () => {
     expect(parseClassToAst("-translate-x-2/3", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "calc(-2/3 * 100%) var(--tw-translate-y)" },
+      { type: "decl", prop: "translate", value: "calc(-2/3 * 100%) var(--baro-translate-y)" },
     ]);
   });
-  it("translate-y-1/6 → translate: var(--tw-translate-x) calc(1/6 * 100%)", () => {
+  it("translate-y-1/6 → translate: var(--baro-translate-x) calc(1/6 * 100%)", () => {
     expect(parseClassToAst("translate-y-1/6", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) calc(1/6 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) calc(1/6 * 100%)" },
     ]);
   });
-  it("-translate-y-1/3 → translate: var(--tw-translate-x) calc(-1/3 * 100%)", () => {
+  it("-translate-y-1/3 → translate: var(--baro-translate-x) calc(-1/3 * 100%)", () => {
     expect(parseClassToAst("-translate-y-1/3", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) calc(-1/3 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) calc(-1/3 * 100%)" },
     ]);
   });
-  it("translate-z-2/7 → translate: var(--tw-translate-x) var(--tw-translate-y) calc(2/7 * 100%)", () => {
+  it("translate-z-2/7 → translate: var(--baro-translate-x) var(--baro-translate-y) calc(2/7 * 100%)", () => {
     expect(parseClassToAst("translate-z-2/7", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y) calc(2/7 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) calc(2/7 * 100%)" },
     ]);
   });
-  it("-translate-z-1/8 → translate: var(--tw-translate-x) var(--tw-translate-y) calc(-1/8 * 100%)", () => {
+  it("-translate-z-1/8 → translate: var(--baro-translate-x) var(--baro-translate-y) calc(-1/8 * 100%)", () => {
     expect(parseClassToAst("-translate-z-1/8", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y) calc(-1/8 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) calc(-1/8 * 100%)" },
     ]);
   });
 
@@ -687,19 +687,19 @@ describe("translate utilities ", () => {
       { type: "decl", prop: "translate", value: "42px 42px" },
     ]);
   });
-  it("translate-x-[10vw] → translate: 10vw var(--tw-translate-y)", () => {
+  it("translate-x-[10vw] → translate: 10vw var(--baro-translate-y)", () => {
     expect(parseClassToAst("translate-x-[10vw]", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "10vw var(--tw-translate-y)" },
+      { type: "decl", prop: "translate", value: "10vw var(--baro-translate-y)" },
     ]);
   });
-  it("translate-y-[5rem] → translate: var(--tw-translate-x) 5rem", () => {
+  it("translate-y-[5rem] → translate: var(--baro-translate-x) 5rem", () => {
     expect(parseClassToAst("translate-y-[5rem]", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) 5rem" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) 5rem" },
     ]);
   });
-  it("translate-z-[2em] → translate: var(--tw-translate-x) var(--tw-translate-y) 2em", () => {
+  it("translate-z-[2em] → translate: var(--baro-translate-x) var(--baro-translate-y) 2em", () => {
     expect(parseClassToAst("translate-z-[2em]", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y) 2em" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) 2em" },
     ]);
   });
 
@@ -709,19 +709,19 @@ describe("translate utilities ", () => {
       { type: "decl", prop: "translate", value: "var(--my-translate) var(--my-translate)" },
     ]);
   });
-  it("translate-x-(--my-x) → translate: var(--my-x) var(--tw-translate-y)", () => {
+  it("translate-x-(--my-x) → translate: var(--my-x) var(--baro-translate-y)", () => {
     expect(parseClassToAst("translate-x-(--my-x)", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--my-x) var(--tw-translate-y)" },
+      { type: "decl", prop: "translate", value: "var(--my-x) var(--baro-translate-y)" },
     ]);
   });
-  it("translate-y-(--my-y) → translate: var(--tw-translate-x) var(--my-y)", () => {
+  it("translate-y-(--my-y) → translate: var(--baro-translate-x) var(--my-y)", () => {
     expect(parseClassToAst("translate-y-(--my-y)", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--my-y)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--my-y)" },
     ]);
   });
-  it("translate-z-(--my-z) → translate: var(--tw-translate-x) var(--tw-translate-y) var(--my-z)", () => {
+  it("translate-z-(--my-z) → translate: var(--baro-translate-x) var(--baro-translate-y) var(--my-z)", () => {
     expect(parseClassToAst("translate-z-(--my-z)", ctx)).toEqual([
-      { type: "decl", prop: "translate", value: "var(--tw-translate-x) var(--tw-translate-y) var(--my-z)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--my-z)" },
     ]);
   });
 }); 

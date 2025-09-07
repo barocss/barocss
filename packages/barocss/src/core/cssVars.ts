@@ -4,6 +4,32 @@
 
 import type { Theme } from './context';
 
+// Global CSS variable prefix helper
+let CSS_VAR_PREFIX = '--bcss-';
+
+function normalizePrefix(prefix: string): string {
+  let p = prefix.trim();
+  if (!p.startsWith('--')) p = `--${p}`;
+  if (!p.endsWith('-')) p = `${p}-`;
+  return p;
+}
+
+export function setVarPrefix(prefix: string | undefined): void {
+  if (typeof prefix !== 'string' || prefix.trim() === '') {
+    CSS_VAR_PREFIX = '--bcss-';
+    return;
+  }
+  CSS_VAR_PREFIX = normalizePrefix(prefix);
+}
+
+export function getVarName(key: string): string {
+  return `${CSS_VAR_PREFIX}${key}`;
+}
+
+// Aliases for brevity
+export const varName = getVarName;
+export function v(key: string): string { return getVarName(key); }
+
 function escapeKey(key: string): string {
   return key.replace('.', '\\.');
 }

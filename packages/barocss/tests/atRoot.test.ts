@@ -19,10 +19,10 @@ describe('atRoot Collection', () => {
     // Create AST containing atRoot nodes directly
     const astWithAtRoot = [
       atRoot([
-        decl('--tw-gradient-position', 'to right'),
-        decl('--tw-gradient-stops', 'var(--tw-gradient-from), var(--tw-gradient-to)')
+        decl('--baro-gradient-position', 'to right'),
+        decl('--baro-gradient-stops', 'var(--baro-gradient-from), var(--baro-gradient-to)')
       ]),
-      decl('background-image', 'linear-gradient(var(--tw-gradient-stops))')
+      decl('background-image', 'linear-gradient(var(--baro-gradient-stops))')
     ];
     
     console.log('AST with atRoot:', astWithAtRoot);

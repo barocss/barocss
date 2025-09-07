@@ -13,7 +13,7 @@ const defaultDuration = "var(--default-transition-duration)"; // 150ms
 staticUtility("transition", [
   [
     "transition-property",
-    "color, background-color, border-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter",
+    "color, background-color, border-color, text-decoration-color, fill, stroke, --baro-gradient-from, --baro-gradient-via, --baro-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter",
   ],
   ["transition-timing-function", defaultTiming],
   ["transition-duration", defaultDuration],
@@ -30,7 +30,7 @@ staticUtility("transition-all", [
 staticUtility("transition-colors", [
   [
     "transition-property",
-    "color, background-color, border-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to",
+    "color, background-color, border-color, text-decoration-color, fill, stroke, --baro-gradient-from, --baro-gradient-via, --baro-gradient-to",
   ],
   ["transition-timing-function", defaultTiming],
   ["transition-duration", defaultDuration],

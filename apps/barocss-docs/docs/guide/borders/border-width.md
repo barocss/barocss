@@ -50,8 +50,8 @@ Utilities for controlling the width of an element's borders.
 | `divide-y-&lt;number&gt;` | `& > :not(:last-child) { border-top-width: 0px; border-bottom-width: &lt;number&gt;px; }` |
 | `divide-y-(length:&lt;custom-property&gt;)` | `& > :not(:last-child) { border-top-width: 0px; border-bottom-width: var(&lt;custom-property&gt;); }` |
 | `divide-y-[&lt;value&gt;]` | `& > :not(:last-child) { border-top-width: 0px; border-bottom-width: &lt;value&gt;; }` |
-| `divide-x-reverse` | `--tw-divide-x-reverse: 1;` |
-| `divide-y-reverse` | `--tw-divide-y-reverse: 1;` |
+| `divide-x-reverse` | `--baro-divide-x-reverse: 1;` |
+| `divide-y-reverse` | `--baro-divide-y-reverse: 1;` |
 
 
 

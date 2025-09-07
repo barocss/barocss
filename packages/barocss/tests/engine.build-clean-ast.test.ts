@@ -274,8 +274,8 @@ describe("optimizeAst ", () => {
         type: "rule",
         selector: "&",
         nodes: [
-          { type: "decl", prop: "--tw-gradient-position", value: "to right" },
-          { type: "decl", prop: "background-image", value: "linear-gradient(to right, var(--tw-gradient-stops))" }
+          { type: "decl", prop: "--baro-gradient-position", value: "to right" },
+          { type: "decl", prop: "background-image", value: "linear-gradient(to right, var(--baro-gradient-stops))" }
         ]
       },
       {
@@ -283,7 +283,7 @@ describe("optimizeAst ", () => {
         selector: "@supports (background-image: linear-gradient(in lab, red, red))",
         nodes: [
           { type: "rule", selector: "&", nodes: [
-            { type: "decl", prop: "--tw-gradient-position", value: "to right in oklab" },
+            { type: "decl", prop: "--baro-gradient-position", value: "to right in oklab" },
           ]},          
         ]
       }

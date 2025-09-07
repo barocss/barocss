@@ -223,12 +223,12 @@ Both of these effects rely on the `filter` property in CSS, so BaroCSS uses CSS 
 
 ```css
 .blur-sm {
-  --tw-blur: blur(var(--blur-sm));
-  filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-grayscale,);
+  --baro-blur: blur(var(--blur-sm));
+  filter: var(--baro-blur,) var(--baro-brightness,) var(--baro-grayscale,);
 }
 .grayscale {
-  --tw-grayscale: grayscale(100%);
-  filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-grayscale,);
+  --baro-grayscale: grayscale(100%);
+  filter: var(--baro-blur,) var(--baro-brightness,) var(--baro-grayscale,);
 }
 ```
 
@@ -713,12 +713,12 @@ Compiled CSS
 ```css
 @layer theme {
   :root {
-    --tw-color-red-500: oklch(0.637 0.237 25.331);
+    --baro-color-red-500: oklch(0.637 0.237 25.331);
   }
 }
 @layer utilities {
   .tw\:text-red-500 {
-    color: var(--tw-color-red-500);
+    color: var(--baro-color-red-500);
   }
 }
 ```

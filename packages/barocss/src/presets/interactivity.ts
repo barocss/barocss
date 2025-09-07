@@ -215,11 +215,11 @@ staticUtility("snap-always", [["scroll-snap-stop", "always"]], { category: 'inte
 // --- Scroll Snap Type Utilities ---
 //  scroll-snap-type documentation
 staticUtility("snap-none", [["scroll-snap-type", "none"]], { category: 'interactivity' });
-staticUtility("snap-x", [["scroll-snap-type", "x var(--tw-scroll-snap-strictness)"]], { category: 'interactivity' });
-staticUtility("snap-y", [["scroll-snap-type", "y var(--tw-scroll-snap-strictness)"]], { category: 'interactivity' });
-staticUtility("snap-both", [["scroll-snap-type", "both var(--tw-scroll-snap-strictness)"]], { category: 'interactivity' });
-staticUtility("snap-mandatory", [["--tw-scroll-snap-strictness", "mandatory"]], { category: 'interactivity' });
-staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]], { category: 'interactivity' });
+staticUtility("snap-x", [["scroll-snap-type", "x var(--baro-scroll-snap-strictness)"]], { category: 'interactivity' });
+staticUtility("snap-y", [["scroll-snap-type", "y var(--baro-scroll-snap-strictness)"]], { category: 'interactivity' });
+staticUtility("snap-both", [["scroll-snap-type", "both var(--baro-scroll-snap-strictness)"]], { category: 'interactivity' });
+staticUtility("snap-mandatory", [["--baro-scroll-snap-strictness", "mandatory"]], { category: 'interactivity' });
+staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]], { category: 'interactivity' });
 
 
 [

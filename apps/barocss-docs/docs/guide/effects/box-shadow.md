@@ -15,7 +15,7 @@ Utilities for controlling the box shadow of an element.
 | `shadow-2xl` | `box-shadow: var(--shadow-2xl); /* 0 25px 50px -12px rgb(0 0 0 / 0.25) */` |
 | `shadow-none` | `box-shadow: 0 0 #0000;` |
 | `shadow-(&lt;custom-property&gt;)` | `box-shadow: var(&lt;custom-property&gt;);` |
-| `shadow-(color:&lt;custom-property&gt;)` | `--tw-shadow-color: var(&lt;custom-property&gt;);` |
+| `shadow-(color:&lt;custom-property&gt;)` | `--baro-shadow-color: var(&lt;custom-property&gt;);` |
 | `shadow-[&lt;value&gt;]` | `box-shadow: &lt;value&gt;;` |
 | `inset-shadow-2xs` | `box-shadow: var(--inset-shadow-2xs); /* inset 0 1px rgb(0 0 0 / 0.05) */` |
 | `inset-shadow-xs` | `box-shadow: var(--inset-shadow-xs); /* inset 0 1px 1px rgb(0 0 0 / 0.05) */` |
@@ -23,14 +23,14 @@ Utilities for controlling the box shadow of an element.
 | `inset-shadow-none` | `box-shadow: inset 0 0 #0000;` |
 | `inset-shadow-(&lt;custom-property&gt;)` | `box-shadow: var(&lt;custom-property&gt;);` |
 | `inset-shadow-[&lt;value&gt;]` | `box-shadow: &lt;value&gt;;` |
-| `ring` | `--tw-ring-shadow: 0 0 0 1px;` |
-| `ring-&lt;number&gt;` | `--tw-ring-shadow: 0 0 0 &lt;number&gt;px;` |
-| `ring-(&lt;custom-property&gt;)` | `--tw-ring-shadow: 0 0 0 var(&lt;custom-property&gt;);` |
-| `ring-[&lt;value&gt;]` | `--tw-ring-shadow: 0 0 0 &lt;value&gt;;` |
-| `inset-ring` | `--tw-inset-ring-shadow: inset 0 0 0 1px` |
-| `inset-ring-&lt;number&gt;` | `--tw-inset-ring-shadow: inset 0 0 0 &lt;number&gt;px` |
-| `inset-ring-(&lt;custom-property&gt;)` | `--tw-inset-ring-shadow: inset 0 0 0 var(&lt;custom-property&gt;);` |
-| `inset-ring-[&lt;value&gt;]` | `--tw-inset-ring-shadow: inset 0 0 0 &lt;value&gt;;` |
+| `ring` | `--baro-ring-shadow: 0 0 0 1px;` |
+| `ring-&lt;number&gt;` | `--baro-ring-shadow: 0 0 0 &lt;number&gt;px;` |
+| `ring-(&lt;custom-property&gt;)` | `--baro-ring-shadow: 0 0 0 var(&lt;custom-property&gt;);` |
+| `ring-[&lt;value&gt;]` | `--baro-ring-shadow: 0 0 0 &lt;value&gt;;` |
+| `inset-ring` | `--baro-inset-ring-shadow: inset 0 0 0 1px` |
+| `inset-ring-&lt;number&gt;` | `--baro-inset-ring-shadow: inset 0 0 0 &lt;number&gt;px` |
+| `inset-ring-(&lt;custom-property&gt;)` | `--baro-inset-ring-shadow: inset 0 0 0 var(&lt;custom-property&gt;);` |
+| `inset-ring-[&lt;value&gt;]` | `--baro-inset-ring-shadow: inset 0 0 0 &lt;value&gt;;` |
 
 
 

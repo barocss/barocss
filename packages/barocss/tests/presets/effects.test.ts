@@ -38,14 +38,14 @@ describe("effects.ts (box-shadow utilities)", () => {
   // Static inset shadow levels
   it("inset-shadow-xs → box-shadow: var(--inset-shadow-xs)", () => {
     expect(parseClassToAst("inset-shadow-xs", ctx)).toEqual([
-      { type: "decl", prop: "--tw-inset-shadow", value: "inset 0 2px 4px var(--tw-inset-shadow-color, #0000000d)" },
-      { type: "decl", prop: "box-shadow", value: "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)" },
+      { type: "decl", prop: "--baro-inset-shadow", value: "inset 0 2px 4px var(--baro-inset-shadow-color, #0000000d)" },
+      { type: "decl", prop: "box-shadow", value: "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)" },
     ]);
   });
   it("inset-shadow-none → box-shadow: 0 0 #0000", () => {
     expect(parseClassToAst("inset-shadow-none", ctx)).toEqual([
-      { type: "decl", prop: "--tw-inset-shadow", value: "0 0 #0000" },
-      { type: "decl", prop: "box-shadow", value: "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)" },
+      { type: "decl", prop: "--baro-inset-shadow", value: "0 0 #0000" },
+      { type: "decl", prop: "box-shadow", value: "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)" },
     ]);
   });
   // Custom property
@@ -67,7 +67,7 @@ describe("effects.ts (box-shadow utilities)", () => {
     ]);
   });
   // Shadow color
-  it("shadow-red-500 → --tw-shadow-color: var(--color-red-500)", () => {
+  it("shadow-red-500 → --baro-shadow-color: var(--color-red-500)", () => {
     expect(parseClassToAst("shadow-red-500", ctx)).toEqual([
       {
         type: "at-rule",
@@ -76,15 +76,15 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-shadow-color",
+            prop: "--baro-shadow-color",
             value: "var(--color-red-500)",
           },
         ],
       },
-      { type: "decl", prop: "--tw-shadow-color", value: "#ef4444" },
+      { type: "decl", prop: "--baro-shadow-color", value: "#ef4444" },
     ]);
   });
-  it("shadow-black → --tw-shadow-color: #000", () => {
+  it("shadow-black → --baro-shadow-color: #000", () => {
     expect(parseClassToAst("shadow-black", ctx)).toEqual([
       {
         type: "at-rule",
@@ -93,15 +93,15 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-shadow-color",
+            prop: "--baro-shadow-color",
             value: "var(--color-black)",
           },
         ],
       },
-      { type: "decl", prop: "--tw-shadow-color", value: "#000" },
+      { type: "decl", prop: "--baro-shadow-color", value: "#000" },
     ]);
   });
-  it("shadow-white → --tw-shadow-color: var(--color-white)", () => {
+  it("shadow-white → --baro-shadow-color: var(--color-white)", () => {
     expect(parseClassToAst("shadow-white", ctx)).toEqual([
       {
         type: "at-rule",
@@ -110,16 +110,16 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-shadow-color",
+            prop: "--baro-shadow-color",
             value: "var(--color-white)",
           },
         ],
       },
-      { type: "decl", prop: "--tw-shadow-color", value: "#fff" },
+      { type: "decl", prop: "--baro-shadow-color", value: "#fff" },
     ]);
   });
   // Shadow color with opacity
-  it("shadow-red-500/50 → --tw-shadow-color: color-mix(in oklab, var(--color-red-500) 50%, transparent)", () => {
+  it("shadow-red-500/50 → --baro-shadow-color: color-mix(in oklab, var(--color-red-500) 50%, transparent)", () => {
     expect(parseClassToAst("shadow-red-500/50", ctx)).toEqual([
       {
         type: "at-rule",
@@ -128,69 +128,69 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-shadow-color",
-            value: "color-mix(in oklab, color-mix(in oklab, var(--color-red-500) 50%, transparent) var(--tw-shadow-alpha),transparent)",
+            prop: "--baro-shadow-color",
+            value: "color-mix(in oklab, color-mix(in oklab, var(--color-red-500) 50%, transparent) var(--baro-shadow-alpha),transparent)",
           },
         ],
       },
       {
         type: "decl",
-        prop: "--tw-shadow-color",
+        prop: "--baro-shadow-color",
         value: "#ef444480",
       },
     ]);
   });
-  it("shadow-[#bada55]/80 → --tw-shadow-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
+  it("shadow-[#bada55]/80 → --baro-shadow-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
     expect(parseClassToAst("shadow-[#bada55]/80", ctx)).toEqual([
       {
         type: "decl",
-        prop: "--tw-shadow-color",
+        prop: "--baro-shadow-color",
         value: "color-mix(in oklab, #bada55 80%, transparent)",
       },
     ]);
   });
   // Special cases
-  it("shadow-inherit → --tw-shadow-color: inherit", () => {
+  it("shadow-inherit → --baro-shadow-color: inherit", () => {
     expect(parseClassToAst("shadow-inherit", ctx)).toEqual([
       {
         type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
-          { type: "decl", prop: "--tw-shadow-color", value: "var(--color-inherit)" },
+          { type: "decl", prop: "--baro-shadow-color", value: "var(--color-inherit)" },
         ],
       },
-      { type: "decl", prop: "--tw-shadow-color", value: "inherit" },
+      { type: "decl", prop: "--baro-shadow-color", value: "inherit" },
     ]);
   });
-  it("shadow-current → --tw-shadow-color: currentColor", () => {
+  it("shadow-current → --baro-shadow-color: currentColor", () => {
     expect(parseClassToAst("shadow-current", ctx)).toEqual([
       {
         type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
-          { type: "decl", prop: "--tw-shadow-color", value: "var(--color-current)" },
+          { type: "decl", prop: "--baro-shadow-color", value: "var(--color-current)" },
         ],
       },
-      { type: "decl", prop: "--tw-shadow-color", value: "currentcolor" },
+      { type: "decl", prop: "--baro-shadow-color", value: "currentcolor" },
     ]);
   });
-  it("shadow-transparent → --tw-shadow-color: transparent", () => {
+  it("shadow-transparent → --baro-shadow-color: transparent", () => {
     expect(parseClassToAst("shadow-transparent", ctx)).toEqual([
       {
         type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
-          { type: "decl", prop: "--tw-shadow-color", value: "var(--color-transparent)" },
+          { type: "decl", prop: "--baro-shadow-color", value: "var(--color-transparent)" },
         ],
       },
-      { type: "decl", prop: "--tw-shadow-color", value: "transparent" },
+      { type: "decl", prop: "--baro-shadow-color", value: "transparent" },
     ]);
   });
   // Inset shadow color and opacity
-  it("inset-shadow-red-500/60 → --tw-inset-shadow-color: color-mix(in oklab, var(--color-red-500) 60%, transparent)", () => {
+  it("inset-shadow-red-500/60 → --baro-inset-shadow-color: color-mix(in oklab, var(--color-red-500) 60%, transparent)", () => {
     expect(parseClassToAst("inset-shadow-red-500/60", ctx)).toEqual([
       {
         type: "at-rule",
@@ -199,14 +199,14 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-inset-shadow-color",
-            value: "color-mix(in oklab, color-mix(in oklab, var(--color-red-500) 60%, transparent) var(--tw-shadow-alpha),transparent)",
+            prop: "--baro-inset-shadow-color",
+            value: "color-mix(in oklab, color-mix(in oklab, var(--color-red-500) 60%, transparent) var(--baro-shadow-alpha),transparent)",
           },
         ],
       },
       {
         type: "decl",
-        prop: "--tw-inset-shadow-color",
+        prop: "--baro-inset-shadow-color",
         value: "#ef444499",
       },
     ]);
@@ -233,47 +233,47 @@ describe("effects.ts (box-shadow utilities)", () => {
   // --- Ring ---
   it("ring → Tailwind multi-var box-shadow", () => {
     expect(parseClassToAst("ring", ctx)).toEqual([
-      { type: "decl", prop: "--tw-ring-inset", value: "" },
-      { type: "decl", prop: "--tw-ring-offset-width", value: "0px" },
-      { type: "decl", prop: "--tw-ring-offset-color", value: "#fff" },
-      { type: "decl", prop: "--tw-ring-color", value: "rgb(59 130 246 / 0.5)" },
+      { type: "decl", prop: "--baro-ring-inset", value: "" },
+      { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
+      { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
+      { type: "decl", prop: "--baro-ring-color", value: "rgb(59 130 246 / 0.5)" },
       {
         type: "decl",
-        prop: "--tw-ring-shadow",
+        prop: "--baro-ring-shadow",
         value:
-          "var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor)",
+          "var(--baro-ring-inset) 0 0 0 calc(1px + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)",
       },
-      { type: "decl", prop: "--tw-ring-offset-shadow", value: "0 0 #0000" },
+      { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
       {
         type: "decl",
         prop: "box-shadow",
         value:
-          "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
       },
     ]);
   });
   it("ring-2 → Tailwind multi-var box-shadow", () => {
     expect(parseClassToAst("ring-2", ctx)).toEqual([
-      { type: "decl", prop: "--tw-ring-inset", value: "" },
-      { type: "decl", prop: "--tw-ring-offset-width", value: "0px" },
-      { type: "decl", prop: "--tw-ring-offset-color", value: "#fff" },
-      { type: "decl", prop: "--tw-ring-color", value: "rgb(59 130 246 / 0.5)" },
+      { type: "decl", prop: "--baro-ring-inset", value: "" },
+      { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
+      { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
+      { type: "decl", prop: "--baro-ring-color", value: "rgb(59 130 246 / 0.5)" },
       {
         type: "decl",
-        prop: "--tw-ring-shadow",
+        prop: "--baro-ring-shadow",
         value:
-          "var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor)",
+          "var(--baro-ring-inset) 0 0 0 calc(2px + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)",
       },
-      { type: "decl", prop: "--tw-ring-offset-shadow", value: "0 0 #0000" },
+      { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
       {
         type: "decl",
         prop: "box-shadow",
         value:
-          "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
       },
     ]);
   });
-  it("ring-blue-500 → --tw-ring-color: var(--color-blue-500)", () => {
+  it("ring-blue-500 → --baro-ring-color: var(--color-blue-500)", () => {
     expect(parseClassToAst("ring-blue-500", ctx)).toEqual([
       {
         type: "at-rule",
@@ -282,15 +282,15 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-ring-color",
+            prop: "--baro-ring-color",
             value: "var(--color-blue-500)",
           },
         ],
       },
-      { type: "decl", prop: "--tw-ring-color", value: "var(--color-blue-500)" },
+      { type: "decl", prop: "--baro-ring-color", value: "var(--color-blue-500)" },
     ]);
   });
-  it("ring-blue-500/50 → --tw-ring-color: color-mix(in oklab, var(--color-blue-500) 50%, transparent)", () => {
+  it("ring-blue-500/50 → --baro-ring-color: color-mix(in oklab, var(--color-blue-500) 50%, transparent)", () => {
     expect(parseClassToAst("ring-blue-500/50", ctx)).toEqual([
       {
         type: "at-rule",
@@ -299,19 +299,19 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-ring-color",
+            prop: "--baro-ring-color",
             value: "color-mix(in oklab, var(--color-blue-500) 50%, transparent)",
           },
         ],
       },
       {
         type: "decl",
-        prop: "--tw-ring-color",
+        prop: "--baro-ring-color",
         value: "#3080ff80",
       },
     ]);
   });
-  it("ring-[#bada55]/80 → --tw-ring-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
+  it("ring-[#bada55]/80 → --baro-ring-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
     expect(parseClassToAst("ring-[#bada55]/80", ctx)).toEqual([
       {
         type: "at-rule",
@@ -320,34 +320,34 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-ring-color",
+            prop: "--baro-ring-color",
             value: "color-mix(in oklab, #bada55 80%, transparent)",
           },
         ],
       },
       {
         type: "decl",
-        prop: "--tw-ring-color",
+        prop: "--baro-ring-color",
         value: "#bada55cc",
       },
     ]);
   });
-  it("ring-(color:--my-ring) → --tw-ring-color: var(--my-ring)", () => {
+  it("ring-(color:--my-ring) → --baro-ring-color: var(--my-ring)", () => {
     expect(parseClassToAst("ring-(color:--my-ring)", ctx)).toEqual([
-      { type: "decl", prop: "--tw-ring-color", value: "var(--my-ring)" },
+      { type: "decl", prop: "--baro-ring-color", value: "var(--my-ring)" },
     ]);
   });
-  it("ring-inherit → --tw-ring-color: inherit", () => {
+  it("ring-inherit → --baro-ring-color: inherit", () => {
     expect(parseClassToAst("ring-inherit", ctx)).toEqual([
       {
         type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
-          { type: "decl", prop: "--tw-ring-color", value: "var(--color-inherit)" },
+          { type: "decl", prop: "--baro-ring-color", value: "var(--color-inherit)" },
         ],
       },
-      { type: "decl", prop: "--tw-ring-color", value: "var(--color-inherit)" },
+      { type: "decl", prop: "--baro-ring-color", value: "var(--color-inherit)" },
     ]);
   });
   it("ring-[0_0_0_3px_rgba(0,0,0,0.5)] → box-shadow: 0 0 0 3px rgba(0,0,0,0.5)", () => {
@@ -359,55 +359,55 @@ describe("effects.ts (box-shadow utilities)", () => {
   // --- Inset Ring ---
   it("inset-ring → Tailwind multi-var box-shadow", () => {
     expect(parseClassToAst("inset-ring", ctx)).toEqual([
-      { type: "decl", prop: "--tw-ring-inset", value: "inset" },
-      { type: "decl", prop: "--tw-ring-offset-width", value: "0px" },
-      { type: "decl", prop: "--tw-ring-offset-color", value: "#fff" },
+      { type: "decl", prop: "--baro-ring-inset", value: "inset" },
+      { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
+      { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
       {
         type: "decl",
-        prop: "--tw-inset-ring-color",
+        prop: "--baro-inset-ring-color",
         value: "rgb(59 130 246 / 0.5)",
       },
       {
         type: "decl",
-        prop: "--tw-inset-ring-shadow",
+        prop: "--baro-inset-ring-shadow",
         value:
-          "var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-inset-ring-color, currentcolor)",
+          "var(--baro-ring-inset) 0 0 0 calc(1px + var(--baro-ring-offset-width)) var(--baro-inset-ring-color, currentcolor)",
       },
-      { type: "decl", prop: "--tw-ring-offset-shadow", value: "0 0 #0000" },
+      { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
       {
         type: "decl",
         prop: "box-shadow",
         value:
-          "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
       },
     ]);
   });
   it("inset-ring-2 → Tailwind multi-var box-shadow", () => {
     expect(parseClassToAst("inset-ring-2", ctx)).toEqual([
-      { type: "decl", prop: "--tw-ring-inset", value: "inset" },
-      { type: "decl", prop: "--tw-ring-offset-width", value: "0px" },
-      { type: "decl", prop: "--tw-ring-offset-color", value: "#fff" },
+      { type: "decl", prop: "--baro-ring-inset", value: "inset" },
+      { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
+      { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
       {
         type: "decl",
-        prop: "--tw-inset-ring-color",
+        prop: "--baro-inset-ring-color",
         value: "rgb(59 130 246 / 0.5)",
       },
       {
         type: "decl",
-        prop: "--tw-inset-ring-shadow",
+        prop: "--baro-inset-ring-shadow",
         value:
-          "var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-inset-ring-color, currentcolor)",
+          "var(--baro-ring-inset) 0 0 0 calc(2px + var(--baro-ring-offset-width)) var(--baro-inset-ring-color, currentcolor)",
       },
-      { type: "decl", prop: "--tw-ring-offset-shadow", value: "0 0 #0000" },
+      { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
       {
         type: "decl",
         prop: "box-shadow",
         value:
-          "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
       },
     ]);
   });
-  it("inset-ring-blue-500/60 → --tw-inset-ring-color: color-mix(in oklab, var(--color-blue-500) 60%, transparent)", () => {
+  it("inset-ring-blue-500/60 → --baro-inset-ring-color: color-mix(in oklab, var(--color-blue-500) 60%, transparent)", () => {
     expect(parseClassToAst("inset-ring-blue-500/60", ctx)).toEqual([
       {
         type: "at-rule",
@@ -416,19 +416,19 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-inset-ring-color",
+            prop: "--baro-inset-ring-color",
             value: "color-mix(in oklab, var(--color-blue-500) 60%, transparent)",
           },
         ],
       },
       {
         type: "decl",
-        prop: "--tw-inset-ring-color",
+        prop: "--baro-inset-ring-color",
         value: "#3080ff99",
       },
     ]);
   });
-  it("inset-ring-[#bada55]/80 → --tw-inset-ring-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
+  it("inset-ring-[#bada55]/80 → --baro-inset-ring-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
     expect(parseClassToAst("inset-ring-[#bada55]/80", ctx)).toEqual([
       {
         type: "at-rule",
@@ -437,34 +437,34 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-inset-ring-color",
+            prop: "--baro-inset-ring-color",
             value: "color-mix(in oklab, #bada55 80%, transparent)",
           },
         ],
       },
       {
         type: "decl",
-        prop: "--tw-inset-ring-color",
+        prop: "--baro-inset-ring-color",
         value: "#bada55cc",
       },
     ]);
   });
-  it("inset-ring-(color:--my-inset) → --tw-inset-ring-color: var(--my-inset)", () => {
+  it("inset-ring-(color:--my-inset) → --baro-inset-ring-color: var(--my-inset)", () => {
     expect(parseClassToAst("inset-ring-(color:--my-inset)", ctx)).toEqual([
-      { type: "decl", prop: "--tw-inset-ring-color", value: "var(--my-inset)" },
+      { type: "decl", prop: "--baro-inset-ring-color", value: "var(--my-inset)" },
     ]);
   });
-  it("inset-ring-inherit → --tw-inset-ring-color: inherit", () => {
+  it("inset-ring-inherit → --baro-inset-ring-color: inherit", () => {
     expect(parseClassToAst("inset-ring-inherit", ctx)).toEqual([
       {
         type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
         nodes: [
-          { type: "decl", prop: "--tw-inset-ring-color", value: "var(--color-inherit)" },
+          { type: "decl", prop: "--baro-inset-ring-color", value: "var(--color-inherit)" },
         ],
       },
-      { type: "decl", prop: "--tw-inset-ring-color", value: "var(--color-inherit)" },
+      { type: "decl", prop: "--baro-inset-ring-color", value: "var(--color-inherit)" },
     ]);
   });
   it("inset-ring-[0_0_0_3px_rgba(0,0,0,0.5)] → box-shadow: inset 0 0 0 3px rgba(0,0,0,0.5)", () => {
@@ -487,12 +487,12 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-ring-color",
+            prop: "--baro-ring-color",
             value: "color-mix(in oklab, var(--color-blue-500) 50%, transparent)",
           },
         ],
       },
-      { type: "decl", prop: "--tw-ring-color", value: "#3080ff80" },
+      { type: "decl", prop: "--baro-ring-color", value: "#3080ff80" },
     ]);
   });
   it("ring-[#3080ff]/75 → color-mix + hex fallback", () => {
@@ -504,12 +504,12 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-ring-color",
+            prop: "--baro-ring-color",
             value: "color-mix(in oklab, #3080ff 75%, transparent)",
           },
         ],
       },
-      { type: "decl", prop: "--tw-ring-color", value: "#3080ffbf" },
+      { type: "decl", prop: "--baro-ring-color", value: "#3080ffbf" },
     ]);
   });
   it("inset-shadow-indigo-500/50 → color-mix + hex fallback", () => {
@@ -521,74 +521,74 @@ describe("effects.ts (box-shadow utilities)", () => {
         nodes: [
           {
             type: "decl",
-            prop: "--tw-inset-shadow-color",
+            prop: "--baro-inset-shadow-color",
             value:
-              "color-mix(in oklab, color-mix(in oklab, var(--color-indigo-500) 50%, transparent) var(--tw-shadow-alpha),transparent)",
+              "color-mix(in oklab, color-mix(in oklab, var(--color-indigo-500) 50%, transparent) var(--baro-shadow-alpha),transparent)",
           },
         ],
       },
-      { type: "decl", prop: "--tw-inset-shadow-color", value: "#625fff80" },
+      { type: "decl", prop: "--baro-inset-shadow-color", value: "#625fff80" },
     ]);
   });
   it("ring → box-shadow variable combination", () => {
     expect(parseClassToAst("ring", ctx)).toEqual([
-      { type: "decl", prop: "--tw-ring-inset", value: "" },
-      { type: "decl", prop: "--tw-ring-offset-width", value: "0px" },
-      { type: "decl", prop: "--tw-ring-offset-color", value: "#fff" },
-      { type: "decl", prop: "--tw-ring-color", value: "rgb(59 130 246 / 0.5)" },
+      { type: "decl", prop: "--baro-ring-inset", value: "" },
+      { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
+      { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
+      { type: "decl", prop: "--baro-ring-color", value: "rgb(59 130 246 / 0.5)" },
       {
         type: "decl",
-        prop: "--tw-ring-shadow",
+        prop: "--baro-ring-shadow",
         value:
-          "var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor)",
+          "var(--baro-ring-inset) 0 0 0 calc(1px + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)",
       },
-      { type: "decl", prop: "--tw-ring-offset-shadow", value: "0 0 #0000" },
+      { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
       {
         type: "decl",
         prop: "box-shadow",
         value:
-          "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
       },
     ]);
   });
   it("ring-4 → box-shadow variable combination", () => {
     expect(parseClassToAst("ring-4", ctx)).toEqual([
-      { type: "decl", prop: "--tw-ring-inset", value: "" },
-      { type: "decl", prop: "--tw-ring-offset-width", value: "0px" },
-      { type: "decl", prop: "--tw-ring-offset-color", value: "#fff" },
-      { type: "decl", prop: "--tw-ring-color", value: "rgb(59 130 246 / 0.5)" },
+      { type: "decl", prop: "--baro-ring-inset", value: "" },
+      { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
+      { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
+      { type: "decl", prop: "--baro-ring-color", value: "rgb(59 130 246 / 0.5)" },
       {
         type: "decl",
-        prop: "--tw-ring-shadow",
+        prop: "--baro-ring-shadow",
         value:
-          "var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor)",
+          "var(--baro-ring-inset) 0 0 0 calc(4px + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)",
       },
-      { type: "decl", prop: "--tw-ring-offset-shadow", value: "0 0 #0000" },
+      { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
       {
         type: "decl",
         prop: "box-shadow",
         value:
-          "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
       },
     ]);
   });
-  it("ring-inset → --tw-ring-inset: inset", () => {
+  it("ring-inset → --baro-ring-inset: inset", () => {
     expect(parseClassToAst("ring-inset", ctx)).toEqual([
-      { type: "decl", prop: "--tw-ring-inset", value: "inset" },
+      { type: "decl", prop: "--baro-ring-inset", value: "inset" },
     ]);
   });
   it("inset-shadow-sm → box-shadow variable combination", () => {
     expect(parseClassToAst("inset-shadow-sm", ctx)).toEqual([
       {
         type: "decl",
-        prop: "--tw-inset-shadow",
-        value: "inset 0 2px 4px var(--tw-inset-shadow-color, #0000000d)",
+        prop: "--baro-inset-shadow",
+        value: "inset 0 2px 4px var(--baro-inset-shadow-color, #0000000d)",
       },
       {
         type: "decl",
         prop: "box-shadow",
         value:
-          "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)",
+          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
       },
     ]);
   });

@@ -14,9 +14,9 @@ const ctx = createContext({
 });
 
 describe('backdrop-filter', () => {
-  it('backdrop-filter → backdrop-filter: var(--tw-backdrop-filter)', () => {
+  it('backdrop-filter → backdrop-filter: var(--baro-backdrop-filter)', () => {
     expect(parseClassToAst('backdrop-filter', ctx)).toEqual([
-      { type: 'decl', prop: 'backdrop-filter', value: 'var(--tw-backdrop-filter)' },
+      { type: 'decl', prop: 'backdrop-filter', value: 'var(--baro-backdrop-filter)' },
     ]);
   });
   it('backdrop-filter-none → backdrop-filter: none', () => {

@@ -632,18 +632,18 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-x-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-inline-start",
               value:
-                "calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-x-reverse)))",
+                "calc(calc(var(--spacing) * 4) * calc(1 - var(--baro-space-x-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-inline-end",
               value:
-                "calc(calc(var(--spacing) * 4) * var(--tw-space-x-reverse))",
+                "calc(calc(var(--spacing) * 4) * var(--baro-space-x-reverse))",
             },
           ],
         },
@@ -655,18 +655,18 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-x-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-inline-start",
               value:
-                "calc(calc(var(--spacing) * -2) * calc(1 - var(--tw-space-x-reverse)))",
+                "calc(calc(var(--spacing) * -2) * calc(1 - var(--baro-space-x-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-inline-end",
               value:
-                "calc(calc(var(--spacing) * -2) * var(--tw-space-x-reverse))",
+                "calc(calc(var(--spacing) * -2) * var(--baro-space-x-reverse))",
             },
           ],
         },
@@ -678,16 +678,16 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-x-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-inline-start",
-              value: "calc(1px * calc(1 - var(--tw-space-x-reverse)))",
+              value: "calc(1px * calc(1 - var(--baro-space-x-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-inline-end",
-              value: "calc(1px * var(--tw-space-x-reverse))",
+              value: "calc(1px * var(--baro-space-x-reverse))",
             },
           ],
         },
@@ -699,16 +699,16 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-x-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-inline-start",
-              value: "calc(-1px * calc(1 - var(--tw-space-x-reverse)))",
+              value: "calc(-1px * calc(1 - var(--baro-space-x-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-inline-end",
-              value: "calc(-1px * var(--tw-space-x-reverse))",
+              value: "calc(-1px * var(--baro-space-x-reverse))",
             },
           ],
         },
@@ -719,7 +719,7 @@ describe("preset spacing utilities", () => {
         {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
-          nodes: [{ type: "decl", prop: "--tw-space-x-reverse", value: "1" }],
+          nodes: [{ type: "decl", prop: "--baro-space-x-reverse", value: "1" }],
         },
       ]);
     });
@@ -729,16 +729,16 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-x-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-inline-start",
-              value: "calc(5vw * calc(1 - var(--tw-space-x-reverse)))",
+              value: "calc(5vw * calc(1 - var(--baro-space-x-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-inline-end",
-              value: "calc(5vw * var(--tw-space-x-reverse))",
+              value: "calc(5vw * var(--baro-space-x-reverse))",
             },
           ],
         },
@@ -750,16 +750,16 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-x-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-inline-start",
-              value: "calc(var(--gap-x) * calc(1 - var(--tw-space-x-reverse)))",
+              value: "calc(var(--gap-x) * calc(1 - var(--baro-space-x-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-inline-end",
-              value: "calc(var(--gap-x) * var(--tw-space-x-reverse))",
+              value: "calc(var(--gap-x) * var(--baro-space-x-reverse))",
             },
           ],
         },
@@ -772,18 +772,18 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-y-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-block-start",
               value:
-                "calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)))",
+                "calc(calc(var(--spacing) * 3) * calc(1 - var(--baro-space-y-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-block-end",
               value:
-                "calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse))",
+                "calc(calc(var(--spacing) * 3) * var(--baro-space-y-reverse))",
             },
           ],
         },
@@ -795,18 +795,18 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-y-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-block-start",
               value:
-                "calc(calc(var(--spacing) * -1) * calc(1 - var(--tw-space-y-reverse)))",
+                "calc(calc(var(--spacing) * -1) * calc(1 - var(--baro-space-y-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-block-end",
               value:
-                "calc(calc(var(--spacing) * -1) * var(--tw-space-y-reverse))",
+                "calc(calc(var(--spacing) * -1) * var(--baro-space-y-reverse))",
             },
           ],
         },
@@ -818,16 +818,16 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-y-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-block-start",
-              value: "calc(1px * calc(1 - var(--tw-space-y-reverse)))",
+              value: "calc(1px * calc(1 - var(--baro-space-y-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-block-end",
-              value: "calc(1px * var(--tw-space-y-reverse))",
+              value: "calc(1px * var(--baro-space-y-reverse))",
             },
           ],
         },
@@ -839,16 +839,16 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-y-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-block-start",
-              value: "calc(-1px * calc(1 - var(--tw-space-y-reverse)))",
+              value: "calc(-1px * calc(1 - var(--baro-space-y-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-block-end",
-              value: "calc(-1px * var(--tw-space-y-reverse))",
+              value: "calc(-1px * var(--baro-space-y-reverse))",
             },
           ],
         },
@@ -862,7 +862,7 @@ describe("preset spacing utilities", () => {
           nodes: [
             {
               type: "decl",
-              prop: "--tw-space-y-reverse",
+              prop: "--baro-space-y-reverse",
               value: "1",
             },
           ],
@@ -875,16 +875,16 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-y-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-block-start",
-              value: "calc(2em * calc(1 - var(--tw-space-y-reverse)))",
+              value: "calc(2em * calc(1 - var(--baro-space-y-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-block-end",
-              value: "calc(2em * var(--tw-space-y-reverse))",
+              value: "calc(2em * var(--baro-space-y-reverse))",
             },
           ],
         },
@@ -896,16 +896,16 @@ describe("preset spacing utilities", () => {
           selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
           nodes: [
-            { type: "decl", prop: "--tw-space-y-reverse", value: "0" },
+            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
             {
               type: "decl",
               prop: "margin-block-start",
-              value: "calc(var(--gap-y) * calc(1 - var(--tw-space-y-reverse)))",
+              value: "calc(var(--gap-y) * calc(1 - var(--baro-space-y-reverse)))",
             },
             {
               type: "decl",
               prop: "margin-block-end",
-              value: "calc(var(--gap-y) * var(--tw-space-y-reverse))",
+              value: "calc(var(--gap-y) * var(--baro-space-y-reverse))",
             },
           ],
         },

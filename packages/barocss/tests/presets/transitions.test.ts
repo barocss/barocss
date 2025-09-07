@@ -6,9 +6,9 @@ import { createContext } from "../../src/core/context";
 const ctx = createContext({});
 
 describe("transition-property", () => {
-  it("transition → transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter", () => {
+  it("transition → transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, --baro-gradient-from, --baro-gradient-via, --baro-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter", () => {
     expect(parseClassToAst("transition", ctx)).toEqual([
-      { type: "decl", prop: "transition-property", value: "color, background-color, border-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter" },
+      { type: "decl", prop: "transition-property", value: "color, background-color, border-color, text-decoration-color, fill, stroke, --baro-gradient-from, --baro-gradient-via, --baro-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter" },
       { type: "decl", prop: "transition-timing-function", value: "var(--default-transition-timing-function)" },
       { type: "decl", prop: "transition-duration", value: "var(--default-transition-duration)" },
     ]);
@@ -20,9 +20,9 @@ describe("transition-property", () => {
       { type: "decl", prop: "transition-duration", value: "var(--default-transition-duration)" },
     ]);
   });
-  it("transition-colors → transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to", () => {
+  it("transition-colors → transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, --baro-gradient-from, --baro-gradient-via, --baro-gradient-to", () => {
     expect(parseClassToAst("transition-colors", ctx)).toEqual([
-      { type: "decl", prop: "transition-property", value: "color, background-color, border-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to" },
+      { type: "decl", prop: "transition-property", value: "color, background-color, border-color, text-decoration-color, fill, stroke, --baro-gradient-from, --baro-gradient-via, --baro-gradient-to" },
       { type: "decl", prop: "transition-timing-function", value: "var(--default-transition-timing-function)" },
       { type: "decl", prop: "transition-duration", value: "var(--default-transition-duration)" },
     ]);

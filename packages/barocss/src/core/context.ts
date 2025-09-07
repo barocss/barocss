@@ -1,5 +1,5 @@
 import { defaultTheme } from "../theme";
-import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
+import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock, setVarPrefix } from "./cssVars";
 import { clearAllCaches } from "../utils/cache";
 import { preflightMinimalCSS, preflightStandardCSS, preflightFullCSS } from "../css/preflight";
 
@@ -31,6 +31,7 @@ export interface Theme {
 
 export interface Config {
   prefix?: string;  // prefix for class names, default is 'barocss-'
+  cssVarPrefix?: string; // prefix for generated CSS custom properties, default '--bcss-'
   /**
    * Modern dark mode strategy
    * - 'media': uses @media (prefers-color-scheme: dark)
@@ -268,6 +269,8 @@ export function createContext(configObj: Config): Context {
     ],
     ...configObj
   };
+  // Initialize global CSS var prefix
+  setVarPrefix(configWithDefaults.cssVarPrefix || '--bcss-');
   
   const themeObj = resolveTheme(configWithDefaults);
   
@@ -349,7 +352,5 @@ export function createContext(configObj: Config): Context {
   // ctx.plugins = configWithDefaults.plugins ?? [];
   // ctx.themeToCssVars = () => themeToCssVars(themeObj);
 
-
-  // 4. Return
   return ctx;
 } 

@@ -13,19 +13,19 @@ Utilities for scaling elements.
 | -scale-&lt;number&gt; | scale: calc(&lt;number&gt;% * -1) calc(&lt;number&gt;% * -1); |
 | scale-(&lt;custom-property&gt;) | scale: var(&lt;custom-property&gt;) var(&lt;custom-property&gt;); |
 | scale-[&lt;value&gt;] | scale: &lt;value&gt;; |
-| scale-x-&lt;number&gt; | scale: &lt;number&gt;% var(--tw-scale-y); |
-| -scale-x-&lt;number&gt; | scale: calc(&lt;number&gt;% * -1) var(--tw-scale-y); |
-| scale-x-(&lt;custom-property&gt;) | scale: var(&lt;custom-property&gt;) var(--tw-scale-y); |
-| scale-x-[&lt;value&gt;] | scale: &lt;value&gt; var(--tw-scale-y); |
-| scale-y-&lt;number&gt; | scale: var(--tw-scale-x) &lt;number&gt;%; |
-| -scale-y-&lt;number&gt; | scale: var(--tw-scale-x) calc(&lt;number&gt;% * -1); |
-| scale-y-(&lt;custom-property&gt;) | scale: var(--tw-scale-x) var(&lt;custom-property&gt;); |
-| scale-y-[&lt;value&gt;] | scale: var(--tw-scale-x) &lt;value&gt;; |
-| scale-z-&lt;number&gt; | scale: var(--tw-scale-x) var(--tw-scale-y) &lt;number&gt;%; |
-| -scale-z-&lt;number&gt; | scale: var(--tw-scale-x) var(--tw-scale-y) calc(&lt;number&gt;% * -1); |
-| scale-z-(&lt;custom-property&gt;) | scale: var(--tw-scale-x) var(--tw-scale-y) var(&lt;custom-property&gt;); |
-| scale-z-[&lt;value&gt;] | scale: var(--tw-scale-x) var(--tw-scale-y) &lt;value&gt;; |
-| scale-3d | scale: var(--tw-scale-x) var(--tw-scale-y) var(--tw-scale-z); |
+| scale-x-&lt;number&gt; | scale: &lt;number&gt;% var(--baro-scale-y); |
+| -scale-x-&lt;number&gt; | scale: calc(&lt;number&gt;% * -1) var(--baro-scale-y); |
+| scale-x-(&lt;custom-property&gt;) | scale: var(&lt;custom-property&gt;) var(--baro-scale-y); |
+| scale-x-[&lt;value&gt;] | scale: &lt;value&gt; var(--baro-scale-y); |
+| scale-y-&lt;number&gt; | scale: var(--baro-scale-x) &lt;number&gt;%; |
+| -scale-y-&lt;number&gt; | scale: var(--baro-scale-x) calc(&lt;number&gt;% * -1); |
+| scale-y-(&lt;custom-property&gt;) | scale: var(--baro-scale-x) var(&lt;custom-property&gt;); |
+| scale-y-[&lt;value&gt;] | scale: var(--baro-scale-x) &lt;value&gt;; |
+| scale-z-&lt;number&gt; | scale: var(--baro-scale-x) var(--baro-scale-y) &lt;number&gt;%; |
+| -scale-z-&lt;number&gt; | scale: var(--baro-scale-x) var(--baro-scale-y) calc(&lt;number&gt;% * -1); |
+| scale-z-(&lt;custom-property&gt;) | scale: var(--baro-scale-x) var(--baro-scale-y) var(&lt;custom-property&gt;); |
+| scale-z-[&lt;value&gt;] | scale: var(--baro-scale-x) var(--baro-scale-y) &lt;value&gt;; |
+| scale-3d | scale: var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z); |
 
 ## Examples
 

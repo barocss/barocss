@@ -69,20 +69,20 @@ Utilities for controlling an element's margin.
 | `-ml-px` | `margin-left: -1px;` |
 | `ml-(&lt;custom-property&gt;)` | `margin-left: var(&lt;custom-property&gt;);` |
 | `ml-[&lt;value&gt;]` | `margin-left: &lt;value&gt;;` |
-| `space-x-&lt;number&gt;` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(calc(var(--spacing) * &lt;number&gt;) * var(--tw-space-x-reverse)); margin-inline-end: calc(calc(var(--spacing) * &lt;number&gt;) * calc(1 - var(--tw-space-x-reverse))); }` |
-| `-space-x-&lt;number&gt;` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(calc(var(--spacing) * -&lt;number&gt;) * var(--tw-space-x-reverse)); margin-inline-end: calc(calc(var(--spacing) * -&lt;number&gt;) * calc(1 - var(--tw-space-x-reverse))); }` |
-| `space-x-px` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(1px * var(--tw-space-x-reverse)); margin-inline-end: calc(1px * calc(1 - var(--tw-space-x-reverse))); }` |
-| `-space-x-px` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(-1px * var(--tw-space-x-reverse)); margin-inline-end: calc(-1px * calc(1 - var(--tw-space-x-reverse))); }` |
-| `space-x-(&lt;custom-property&gt;)` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(var(&lt;custom-property&gt;) * var(--tw-space-x-reverse)); margin-inline-end: calc(var(&lt;custom-property&gt;) * calc(1 - var(--tw-space-x-reverse))); }` |
-| `space-x-[&lt;value&gt;]` | `& > :not(:last-child) { --tw-space-x-reverse: 0; margin-inline-start: calc(&lt;value&gt; * var(--tw-space-x-reverse)); margin-inline-end: calc(&lt;value&gt; * calc(1 - var(--tw-space-x-reverse))); }` |
-| `space-y-&lt;number&gt;` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(calc(var(--spacing) * &lt;number&gt;) * var(--tw-space-y-reverse)); margin-block-end: calc(calc(var(--spacing) * &lt;number&gt;) * calc(1 - var(--tw-space-y-reverse))); }` |
-| `-space-y-&lt;number&gt;` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(calc(var(--spacing) * -&lt;number&gt;) * var(--tw-space-y-reverse)); margin-block-end: calc(calc(var(--spacing) * -&lt;number&gt;) * calc(1 - var(--tw-space-y-reverse))); }` |
-| `space-y-px` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(1px * var(--tw-space-y-reverse)); margin-block-end: calc(1px * calc(1 - var(--tw-space-y-reverse))); }` |
-| `-space-y-px` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(-1px * var(--tw-space-y-reverse)); margin-block-end: calc(-1px * calc(1 - var(--tw-space-y-reverse))); }` |
-| `space-y-(&lt;custom-property&gt;)` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(var(&lt;custom-property&gt;) * var(--tw-space-y-reverse)); margin-block-end: calc(var(&lt;custom-property&gt;) * calc(1 - var(--tw-space-y-reverse))); }` |
-| `space-y-[&lt;value&gt;]` | `& > :not(:last-child) { --tw-space-y-reverse: 0; margin-block-start: calc(&lt;value&gt; * var(--tw-space-y-reverse)); margin-block-end: calc(&lt;value&gt; * calc(1 - var(--tw-space-y-reverse))); }` |
-| `space-x-reverse` | `& > :not(:last-child) { --tw-space-x-reverse: 1; }` |
-| `space-y-reverse` | `& > :not(:last-child) { --tw-space-y-reverse: 1; }` |
+| `space-x-&lt;number&gt;` | `& > :not(:last-child) { --baro-space-x-reverse: 0; margin-inline-start: calc(calc(var(--spacing) * &lt;number&gt;) * var(--baro-space-x-reverse)); margin-inline-end: calc(calc(var(--spacing) * &lt;number&gt;) * calc(1 - var(--baro-space-x-reverse))); }` |
+| `-space-x-&lt;number&gt;` | `& > :not(:last-child) { --baro-space-x-reverse: 0; margin-inline-start: calc(calc(var(--spacing) * -&lt;number&gt;) * var(--baro-space-x-reverse)); margin-inline-end: calc(calc(var(--spacing) * -&lt;number&gt;) * calc(1 - var(--baro-space-x-reverse))); }` |
+| `space-x-px` | `& > :not(:last-child) { --baro-space-x-reverse: 0; margin-inline-start: calc(1px * var(--baro-space-x-reverse)); margin-inline-end: calc(1px * calc(1 - var(--baro-space-x-reverse))); }` |
+| `-space-x-px` | `& > :not(:last-child) { --baro-space-x-reverse: 0; margin-inline-start: calc(-1px * var(--baro-space-x-reverse)); margin-inline-end: calc(-1px * calc(1 - var(--baro-space-x-reverse))); }` |
+| `space-x-(&lt;custom-property&gt;)` | `& > :not(:last-child) { --baro-space-x-reverse: 0; margin-inline-start: calc(var(&lt;custom-property&gt;) * var(--baro-space-x-reverse)); margin-inline-end: calc(var(&lt;custom-property&gt;) * calc(1 - var(--baro-space-x-reverse))); }` |
+| `space-x-[&lt;value&gt;]` | `& > :not(:last-child) { --baro-space-x-reverse: 0; margin-inline-start: calc(&lt;value&gt; * var(--baro-space-x-reverse)); margin-inline-end: calc(&lt;value&gt; * calc(1 - var(--baro-space-x-reverse))); }` |
+| `space-y-&lt;number&gt;` | `& > :not(:last-child) { --baro-space-y-reverse: 0; margin-block-start: calc(calc(var(--spacing) * &lt;number&gt;) * var(--baro-space-y-reverse)); margin-block-end: calc(calc(var(--spacing) * &lt;number&gt;) * calc(1 - var(--baro-space-y-reverse))); }` |
+| `-space-y-&lt;number&gt;` | `& > :not(:last-child) { --baro-space-y-reverse: 0; margin-block-start: calc(calc(var(--spacing) * -&lt;number&gt;) * var(--baro-space-y-reverse)); margin-block-end: calc(calc(var(--spacing) * -&lt;number&gt;) * calc(1 - var(--baro-space-y-reverse))); }` |
+| `space-y-px` | `& > :not(:last-child) { --baro-space-y-reverse: 0; margin-block-start: calc(1px * var(--baro-space-y-reverse)); margin-block-end: calc(1px * calc(1 - var(--baro-space-y-reverse))); }` |
+| `-space-y-px` | `& > :not(:last-child) { --baro-space-y-reverse: 0; margin-block-start: calc(-1px * var(--baro-space-y-reverse)); margin-block-end: calc(-1px * calc(1 - var(--baro-space-y-reverse))); }` |
+| `space-y-(&lt;custom-property&gt;)` | `& > :not(:last-child) { --baro-space-y-reverse: 0; margin-block-start: calc(var(&lt;custom-property&gt;) * var(--baro-space-y-reverse)); margin-block-end: calc(var(&lt;custom-property&gt;) * calc(1 - var(--baro-space-y-reverse))); }` |
+| `space-y-[&lt;value&gt;]` | `& > :not(:last-child) { --baro-space-y-reverse: 0; margin-block-start: calc(&lt;value&gt; * var(--baro-space-y-reverse)); margin-block-end: calc(&lt;value&gt; * calc(1 - var(--baro-space-y-reverse))); }` |
+| `space-x-reverse` | `& > :not(:last-child) { --baro-space-x-reverse: 1; }` |
+| `space-y-reverse` | `& > :not(:last-child) { --baro-space-y-reverse: 1; }` |
 
 
 
