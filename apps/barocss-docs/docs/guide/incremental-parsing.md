@@ -201,7 +201,7 @@ try {
 ### Browser Runtime Integration
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 import { IncrementalParser } from '@barocss/kit';
 
 const runtime = new BrowserRuntime();
@@ -219,7 +219,7 @@ results.forEach(result => {
 ### Server Runtime Integration
 
 ```typescript
-import { ServerRuntime } from '@barocss/kit/runtime/server';
+import { ServerRuntime } from '@barocss/server';
 import { IncrementalParser } from '@barocss/kit';
 
 const runtime = new ServerRuntime();

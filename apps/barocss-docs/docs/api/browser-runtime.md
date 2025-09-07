@@ -12,7 +12,7 @@ The Browser Runtime API provides browser-specific functionality for DOM integrat
 The main class for browser-based BaroCSS functionality.
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -284,7 +284,7 @@ console.log(css);
 
 ```typescript
 import { useEffect, useRef } from 'react';
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 function App() {
   const runtimeRef = useRef<BrowserRuntime>();
@@ -321,7 +321,7 @@ function App() {
 
 ```typescript
 import { createApp } from 'vue';
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const app = createApp({
   mounted() {
@@ -372,7 +372,7 @@ try {
 ### Basic Setup
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 // Initialize
 const runtime = new BrowserRuntime({

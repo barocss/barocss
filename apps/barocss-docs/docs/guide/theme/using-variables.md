@@ -27,26 +27,22 @@ This makes it easy to reference all of your design tokens in any of your custom 
 Use your theme variables to get access to your design tokens when you're writing custom CSS that needs to use the same values:
 
 ```css
-@import "tailwindcss";
+.typography {
+  p {
+    font-size: var(--text-base);
+    color: var(--color-gray-700);
+  }
 
-@layer components {
-  .typography {
-    p {
-      font-size: var(--text-base);
-      color: var(--color-gray-700);
-    }
+  h1 {
+    font-size: var(--text-2xl--line-height);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-950);
+  }
 
-    h1 {
-      font-size: var(--text-2xl--line-height);
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-gray-950);
-    }
-
-    h2 {
-      font-size: var(--text-xl);
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-gray-950);
-    }
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-950);
   }
 }
 ```
@@ -56,47 +52,48 @@ This is often useful when styling HTML you don't control, like Markdown content 
 ### Component Styling
 
 ```css
-@layer components {
-  .btn {
-    @apply px-4 py-2 rounded-md font-medium;
-    background-color: var(--color-primary);
-    color: var(--color-white);
-  }
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
   
-  .btn:hover {
-    background-color: var(--color-primary-dark);
-  }
+.btn:hover {
+  background-color: var(--color-primary-dark);
+}
   
-  .card {
-    background-color: var(--color-white);
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: var(--spacing-6);
-  }
+.card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-6);
 }
 ```
 
 ### Third-party Library Overrides
 
 ```css
-@layer components {
-  .select2-dropdown {
-    @apply rounded-b-lg shadow-md;
-    background-color: var(--color-white);
-    border: 1px solid var(--color-gray-300);
-  }
+.select2-dropdown {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+}
 
-  .select2-search {
-    @apply rounded border border-gray-300;
-    background-color: var(--color-gray-50);
-  }
+.select2-search {
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-gray-300);
+  background-color: var(--color-gray-50);
+}
 
-  .select2-results__group {
-    @apply text-lg font-bold text-gray-900;
-    color: var(--color-gray-900);
-    font-weight: var(--font-weight-bold);
-  }
+.select2-results__group {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: var(--color-gray-900);
 }
 ```
 

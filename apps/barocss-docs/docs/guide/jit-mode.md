@@ -50,7 +50,7 @@ Just-In-Time (JIT) compilation is a technique where code is compiled at runtime,
 
 ::: tip Benefits of JIT Mode
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime();
 

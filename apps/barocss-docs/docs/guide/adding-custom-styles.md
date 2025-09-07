@@ -26,7 +26,7 @@ Modify design tokens like colors, spacing, typography, and breakpoints to match 
 If you want to change things like your color palette, spacing scale, typography scale, or breakpoints, add your customizations using the theme configuration in your BaroCSS setup:
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -206,21 +206,20 @@ Add base styles, component classes, and custom CSS that works alongside BaroCSS 
 Set global styles like font families, default link styles, and other base element styling.
 :::
 
-Use the `@layer base` directive to add base styles to your project. Base styles are things like setting font families on the `html` element, setting default link styles, and so on.
+Add base styles directly to your CSS. Base styles are things like setting font families on the `html` element, setting default link styles, and so on.
 
 ```css
-@layer base {
-  html {
-    font-family: "Inter", sans-serif;
-  }
-  
-  a {
-    @apply text-blue-600 underline;
-  }
-  
-  a:hover {
-    @apply text-blue-800;
-  }
+html {
+  font-family: "Inter", sans-serif;
+}
+
+a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #1d4ed8;
 }
 ```
 
@@ -230,17 +229,31 @@ Use the `@layer base` directive to add base styles to your project. Base styles 
 Create reusable component classes that combine multiple utilities for common UI patterns.
 :::
 
-Use the `@layer components` directive to add more complex, reusable component classes to your project:
+Create component classes using regular CSS:
 
 ```css
-@layer components {
-  .btn-primary {
-    @apply bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded;
-  }
-  
-  .btn-secondary {
-    @apply bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded;
-  }
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-secondary {
+  background-color: #6b7280;
+  color: white;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+}
+
+.btn-secondary:hover {
+  background-color: #374151;
 }
 ```
 
@@ -255,66 +268,60 @@ You can now use these component classes in your HTML:
 Component classes are great for organizing frequently used style combinations, but remember that you probably don't need these types of classes as often as you think. Consider using utility classes directly when possible.
 :::
 
-The `components` layer is also a good place to put custom styles for any third-party components you're using:
+You can also add custom styles for any third-party components you're using:
 
 ```css
-@layer components {
-  .select2-dropdown {
-    /* ... */
-  }
+.select2-dropdown {
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  /* ... */
 }
 ```
 
-### Using Variants
+### Using Media Queries
 
 ::: details Purpose
-Apply BaroCSS variants within custom CSS using the `@variant` directive.
+Apply responsive and state-based styles within custom CSS using standard CSS media queries.
 :::
 
-Use the `@variant` directive to apply a BaroCSS variant within custom CSS:
+Use standard CSS media queries to apply responsive and state-based styles:
 
 ```css
 .my-element {
   background: white;
-  @variant dark {
+}
+
+@media (prefers-color-scheme: dark) {
+  .my-element {
     background: black;
   }
 }
 ```
 
-**Compiled CSS:**
+For hover states, use the hover media query:
+
 ```css
 .my-element {
   background: white;
-  @media (prefers-color-scheme: dark) {
-    background: black;
+}
+
+@media (hover: hover) {
+  .my-element:hover {
+    background: gray;
   }
 }
 ```
 
-If you need to apply multiple variants at the same time, use nesting:
+For responsive design, use standard breakpoint media queries:
 
 ```css
 .my-element {
-  background: white;
-  @variant dark {
-    @variant hover {
-      background: black;
-    }
-  }
+  padding: 1rem;
 }
-```
 
-**Compiled CSS:**
-```css
-.my-element {
-  background: white;
-  @media (prefers-color-scheme: dark) {
-    &:hover {
-      @media (hover: hover) {
-        background: black;
-      }
-    }
+@media (min-width: 768px) {
+  .my-element {
+    padding: 2rem;
   }
 }
 ```

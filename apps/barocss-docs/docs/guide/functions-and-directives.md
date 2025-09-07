@@ -60,7 +60,7 @@ BaroCSS provides different runtime implementations for different environments:
 #### Browser Runtime
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -81,7 +81,7 @@ runtime.observe(document.body, { scan: true });
 #### Server Runtime
 
 ```typescript
-import { ServerRuntime } from '@barocss/kit/runtime/server';
+import { ServerRuntime } from '@barocss/server';
 
 const runtime = new ServerRuntime({
   config: {
@@ -183,7 +183,7 @@ BaroCSS uses JavaScript/TypeScript configuration instead of CSS directives.
 Use the configuration object to define your theme and behavior:
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {

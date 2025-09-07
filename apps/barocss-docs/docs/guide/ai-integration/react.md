@@ -18,7 +18,7 @@ pnpm add @barocss/kit@latest
 
 ```jsx
 import React, { useEffect } from 'react';
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 function App() {
   useEffect(() => {

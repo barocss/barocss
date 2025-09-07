@@ -114,7 +114,7 @@ function generateAICard(data: any) {
 
 ```typescript
 import React, { useEffect, useRef } from 'react';
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 function App() {
   const runtimeRef = useRef<BrowserRuntime>();
@@ -168,7 +168,7 @@ export default App;
 
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = ref<BrowserRuntime>();
 
@@ -429,7 +429,7 @@ if (savedDarkMode === 'true') {
 ### Brand Colors
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -501,7 +501,7 @@ const runtime = new BrowserRuntime({
 ```typescript
 // pages/_app.tsx
 import { useEffect, useRef } from 'react';
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 function MyApp({ Component, pageProps }) {
   const runtimeRef = useRef<BrowserRuntime>();
@@ -536,7 +536,7 @@ export default MyApp;
 
 ```typescript
 // plugins/@barocss/kit.client.ts
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 export default defineNuxtPlugin(() => {
   const runtime = new BrowserRuntime({
@@ -567,7 +567,7 @@ export default defineNuxtPlugin(() => {
 <!-- App.svelte -->
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+  import { BrowserRuntime } from '@barocss/browser';
 
   let runtime;
 
@@ -605,7 +605,7 @@ export default defineNuxtPlugin(() => {
 ```typescript
 // Lazy load BaroCSS for better performance
 const loadBaroCSS = async () => {
-  const { BrowserRuntime } = await import('@barocss/kit/runtime/browser');
+  const { BrowserRuntime } = await import('@barocss/browser');
   
   const runtime = new BrowserRuntime({
     config: {
@@ -635,7 +635,7 @@ loadBaroCSS().then(runtime => {
 ```typescript
 // Only load BaroCSS in development
 if (process.env.NODE_ENV === 'development') {
-  const { BrowserRuntime } = await import('@barocss/kit/runtime/browser');
+  const { BrowserRuntime } = await import('@barocss/browser');
   
   const runtime = new BrowserRuntime();
   runtime.observe(document.body, { scan: true });

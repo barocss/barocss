@@ -18,7 +18,7 @@ pnpm add @barocss/kit@latest
 
 ```jsx
 import { onMount, onCleanup } from 'solid-js';
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 import AIComponentSystem from './AIComponentSystem';
 
 function App() {

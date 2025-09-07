@@ -238,7 +238,7 @@ Learn how to add custom colors to your project using theme variables.
 Use `@theme` to add custom colors to your project under the `--color-*` theme namespace:
 
 ```css
-@import "tailwindcss";
+
 
 @theme {
   --color-midnight: #121063;
@@ -260,7 +260,7 @@ Learn how to override default colors by redefining theme variables.
 Override any of the default colors by defining new theme variables with the same name:
 
 ```css
-@import "tailwindcss";
+
 
 @theme {
   --color-gray-50: oklch(0.984 0.003 247.858);
@@ -286,7 +286,7 @@ Learn how to disable default colors by setting theme variables to initial.
 Disable any default color by setting the theme namespace for that color to `initial`:
 
 ```css
-@import "tailwindcss";
+
 
 @theme {
   --color-lime-*: initial;
@@ -305,7 +305,7 @@ Learn how to create a completely custom color palette by disabling all defaults.
 Use `--color-*: initial` to completely disable all of the default colors and define your own custom color palette:
 
 ```css
-@import "tailwindcss";
+
 
 @theme {
   --color-*: initial;
@@ -326,7 +326,7 @@ Learn how to reference other CSS variables when defining colors using @theme inl
 Use `@theme inline` when defining colors that reference other colors:
 
 ```css
-@import "tailwindcss";
+
 
 :root {
   --acme-canvas-color: oklch(0.967 0.003 264.542);

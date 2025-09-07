@@ -32,7 +32,7 @@ This approach has limitations:
 BaroCSS automatically detects DOM changes using the MutationObserver API:
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime();
 

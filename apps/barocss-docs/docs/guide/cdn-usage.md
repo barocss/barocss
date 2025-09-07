@@ -102,7 +102,7 @@ Choose your preferred CDN provider:
 |----------|-----------|-----------------|
 | **unpkg** | `https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs` | `https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.js` |
 | **jsDelivr** | `https://cdn.jsdelivr.net/npm/@barocss/kit@latest/dist/cdn/barocss.umd.cjs` | `https://cdn.jsdelivr.net/npm/@barocss/kit@latest/dist/cdn/barocss.js` |
-| **esm.sh** | N/A | `https://esm.sh/@barocss/kit/runtime/browser` |
+| **esm.sh** | N/A | `https://esm.sh/@barocss/browser` |
 
 ## Complete Examples
 

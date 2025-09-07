@@ -164,7 +164,7 @@ Learn how to customize breakpoints using theme variables to match your design ne
 Use the `--breakpoint-*` theme variables to customize your breakpoints:
 
 ```css
-@import "tailwindcss";
+
 
 @theme {
   --breakpoint-xs: 30rem;
@@ -198,7 +198,7 @@ Learn how to remove default breakpoints and create a completely custom breakpoin
 To remove a default breakpoint, reset its value to the `initial` keyword:
 
 ```css
-@import "tailwindcss";
+
 
 @theme {
   --breakpoint-2xl: initial;
@@ -208,7 +208,7 @@ To remove a default breakpoint, reset its value to the `initial` keyword:
 You can also reset all of the default breakpoints using `--breakpoint-*: initial`, then define all of your breakpoints from scratch:
 
 ```css
-@import "tailwindcss";
+
 
 @theme {
   --breakpoint-*: initial;
@@ -324,7 +324,7 @@ Learn how to customize container sizes using theme variables.
 Use the `--container-*` theme variables to customize your container sizes:
 
 ```css
-@import "tailwindcss";
+
 
 @theme {
   --container-8xl: 96rem;

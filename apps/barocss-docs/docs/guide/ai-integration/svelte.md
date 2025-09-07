@@ -20,7 +20,7 @@ pnpm add @barocss/kit@latest
 <!-- App.svelte -->
 <script>
   import { onMount } from 'svelte';
-  import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+  import { BrowserRuntime } from '@barocss/browser';
   import AIComponentSystem from './AIComponentSystem.svelte';
 
   let runtime;

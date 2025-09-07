@@ -159,7 +159,7 @@ BaroCSS is available on multiple CDN providers for maximum compatibility and per
 
 - **unpkg**: `https://unpkg.com/@barocss/kit@latest/dist/cdn/`
 - **jsDelivr**: `https://cdn.jsdelivr.net/npm/@barocss/kit@latest/dist/cdn/`
-- **esm.sh**: `https://esm.sh/@barocss/kit/runtime/browser` (ES modules only)
+- **esm.sh**: `https://esm.sh/@barocss/browser` (ES modules only)
 
 ### Version Pinning
 
@@ -186,7 +186,7 @@ BaroCSS works with any JavaScript framework. Here are examples for popular frame
 ::: details React Integration
 ```tsx
 import React from 'react';
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 // Initialize BaroCSS
 const runtime = new BrowserRuntime();
@@ -224,7 +224,7 @@ export default App;
 
 <script setup>
 import { onMounted } from 'vue';
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 onMounted(() => {
   // Initialize BaroCSS
@@ -239,7 +239,7 @@ onMounted(() => {
 
 ::: details Vanilla JS Integration
 ```javascript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 // Initialize BaroCSS
 const runtime = new BrowserRuntime();
@@ -262,7 +262,7 @@ Configure BaroCSS behavior, theme, and runtime options to match your project nee
 
 ::: details Essential Settings
 ```javascript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -284,7 +284,7 @@ const runtime = new BrowserRuntime({
 
 ::: details Complete Runtime Options
 ```javascript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 import { createTheme } from '@barocss/kit/theme';
 
 const customTheme = createTheme({
@@ -334,7 +334,7 @@ Now that you have BaroCSS installed, let's create your first styled component in
 
 ::: details Basic Setup
 ```ts
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -372,7 +372,7 @@ runtime.observe(document.body, { scan: true });
 
 ::: details Theme Configuration
 ```ts
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {

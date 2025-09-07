@@ -29,7 +29,7 @@ This creates several pain points:
 BaroCSS generates CSS instantly as you use it, with zero build time:
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime();
 

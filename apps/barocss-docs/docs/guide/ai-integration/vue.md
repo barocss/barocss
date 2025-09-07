@@ -18,7 +18,7 @@ pnpm add @barocss/kit@latest
 
 ```javascript
 // plugins/barocss.js
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 export function setupBaroCSS(options) {
   const runtime = new BrowserRuntime(options);

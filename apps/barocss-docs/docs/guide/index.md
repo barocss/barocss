@@ -1,30 +1,34 @@
-# Introduction to BaroCSS
+# BaroCSS Guide
 
-BaroCSS is a **CSS runtime** that brings the power of utility-first CSS to real-time development. We've built a new parser from the ground up to support the full Tailwind syntax in the browser, eliminating build processes while maintaining all the performance benefits of JIT compilation.
+Welcome to the BaroCSS documentation! This guide will help you understand and use BaroCSS effectively.
 
 ## What is BaroCSS?
 
-BaroCSS is a CSS runtime designed for real-time development. It supports the complete Tailwind syntax without requiring build processes, making it perfect for AI-generated UI components and developers who need instant feedback.
+BaroCSS is a **CSS parsing and generation engine** that brings Tailwind's utility-first approach to runtime environments. It consists of three main packages:
+
+- **`@barocss/kit`** - Core parsing and generation engine
+- **`@barocss/browser`** - Browser runtime with DOM change detection  
+- **`@barocss/server`** - Server runtime for static CSS generation
 
 ## Key Features
 
-### ⚡ Runtime-First Architecture
-Built from the ground up for real-time CSS generation with advanced parsing capabilities. Experience the power of utility-first CSS without build processes.
+### ⚡ Runtime-First
+Parse and generate CSS at runtime without build processes. Perfect for dynamic content and real-time styling.
 
-### 🎯 Real-time JIT Compilation
-Just-In-Time compilation happens instantly in the browser. Only the CSS classes you actually use are generated, resulting in minimal bundle sizes and optimal performance.
+### 🎯 Tailwind Compatible
+Full support for Tailwind CSS syntax including utilities, variants, and arbitrary values.
 
-### 🤖 AI-Ready Architecture
-Designed for AI-driven development. When AI generates Tailwind-based UI components, BaroCSS ensures they render instantly without any build steps.
+### 🧠 Smart Parsing
+Advanced AST processing with incremental parsing and intelligent caching for optimal performance.
 
-### 🧠 Intelligent Parsing
-Advanced incremental parsing with smart caching, DOM change detection, and optimized performance for real-time development.
+### 🚀 Multiple Runtimes
+Browser runtime for real-time DOM detection and server runtime for static CSS generation.
 
-### 🔧 TypeScript Support
-Full TypeScript support with autocomplete, error checking, and type safety throughout the development process.
+### 🔧 TypeScript API
+Comprehensive TypeScript API with full type safety and excellent developer experience.
 
-### 🌐 Production Ready
-Runtime that scales from development to production with consistent performance and reliability.
+### 🌐 Universal
+Works in browsers, Node.js, and any JavaScript environment with consistent behavior.
 
 ## Next Steps
 
@@ -33,7 +37,6 @@ Ready to get started? Continue with:
 ### Getting Started
 - [Installation Guide](/guide/installation) - Set up BaroCSS in your project
 - [CDN Usage](/guide/cdn-usage) - Use BaroCSS via CDN
-- [Quick Start](/guide/installation) - Create your first styled component
 
 ### Core Concepts
 - [JIT Mode](/guide/jit-mode) - Understand how JIT compilation works

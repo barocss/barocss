@@ -42,7 +42,7 @@ Define your color palette with semantic naming and multiple shades.
 :::
 
 ```ts
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -86,7 +86,7 @@ Add new values to existing categories without replacing defaults.
 :::
 
 ```ts
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -136,7 +136,7 @@ Create theme values that depend on other theme values or context.
 :::
 
 ```ts
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -275,7 +275,7 @@ Complete theme configuration with all available options.
 :::
 
 ```ts
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {

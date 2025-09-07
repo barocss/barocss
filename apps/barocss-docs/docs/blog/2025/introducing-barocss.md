@@ -11,20 +11,20 @@ category: announcements
 
 **By BaroCSS Team • January 15, 2025 • Announcements**
 
-We're excited to announce the release of BaroCSS, a next-generation CSS runtime built for real-time development and AI-driven UI generation.
+We're excited to announce the release of BaroCSS, a CSS parsing and generation engine built for runtime environments.
 
 ## What is BaroCSS?
 
-BaroCSS is a revolutionary CSS runtime that brings the power of utility-first CSS to real-time development. Built from the ground up with a completely new parser, it supports the complete Tailwind syntax without requiring build processes, making it perfect for AI-generated UI components and developers who need instant feedback.
+BaroCSS is a CSS parsing and generation engine that brings Tailwind's utility-first approach to runtime environments. Built from the ground up with a new parser, it supports Tailwind syntax without requiring build processes, making it perfect for dynamic content and real-time styling.
 
 ### Key Features
 
-- **Real-time Generation**: CSS generated instantly without build processes
-- **Full Syntax Support**: Complete Tailwind syntax support in the browser
-- **AI-Ready Architecture**: Perfect for AI-generated UI components
-- **Zero Build Time**: Eliminate compilation delays completely
-- **Intelligent Parsing**: Advanced incremental parsing with smart caching
-- **TypeScript Support**: Full TypeScript support with comprehensive APIs
+- **Runtime Generation**: CSS generated at runtime without build processes
+- **Tailwind Compatible**: Full support for Tailwind CSS syntax
+- **Multiple Runtimes**: Browser and server runtime implementations
+- **Smart Parsing**: Advanced AST processing with incremental parsing
+- **TypeScript API**: Comprehensive TypeScript API with type safety
+- **Universal**: Works in browsers, Node.js, and any JavaScript environment
 
 ## Why BaroCSS?
 
