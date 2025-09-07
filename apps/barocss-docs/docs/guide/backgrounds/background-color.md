@@ -297,9 +297,6 @@ Use your design tokens to populate `--color-*` variables and reference them with
 For example, to add a custom color to your theme:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Then use it in your HTML:

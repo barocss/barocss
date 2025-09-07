@@ -109,7 +109,6 @@ Here's what the generated CSS looks like for the `hover:bg-sky-700` class:
   &:hover {
     background-color: var(--color-sky-700);
   }
-}
 ```
 
 Notice how this class does nothing _unless_ the element is hovered? Its _only_ job is to provide hover styles — nothing else.
@@ -160,7 +159,6 @@ In the example above, the `sm:` prefix makes sure that `grid-cols-3` only trigge
   @media (width >= 40rem) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-}
 ```
 
 ::: tip Learn More
@@ -198,7 +196,6 @@ Just like with hover states or media queries, the important thing to understand 
   @media (prefers-color-scheme: dark) {
     background-color: var(--color-gray-800);
   }
-}
 ```
 
 ::: tip Learn More
@@ -223,13 +220,9 @@ Both of these effects rely on the `filter` property in CSS, so BaroCSS uses CSS 
 
 ```css
 .blur-sm {
-  --baro-blur: blur(var(--blur-sm));
   filter: var(--baro-blur,) var(--baro-brightness,) var(--baro-grayscale,);
-}
 .grayscale {
-  --baro-grayscale: grayscale(100%);
   filter: var(--baro-blur,) var(--baro-brightness,) var(--baro-grayscale,);
-}
 ```
 
 The generated CSS above is slightly simplified, but the trick here is that each utility sets a CSS variable just for the effect it's meant to apply. Then the `filter` property looks at all of these variables, falling back to nothing if the variable hasn't been set.
@@ -302,7 +295,6 @@ export default function Button({ size, children }) {
       {children}
     </button>
   );
-}
 ```
 
 After it's found all of the potential classes, BaroCSS generates the CSS for each one and compiles it all into one stylesheet of just the styles you actually need.
@@ -334,7 +326,6 @@ Here's an example of what that looks like with BaroCSS:
   button[data-current]:hover {
     background-color: var(--color-indigo-600);
   }
-}
 ```
 
 BaroCSS also supports things like `group-hover`, which let you style an element when a specific parent is hovered:
@@ -351,7 +342,6 @@ BaroCSS also supports things like `group-hover`, which let you style an element 
   a:hover span {
     text-decoration-line: underline;
   }
-}
 ```
 
 This `group-*` syntax works with other variants too, like `group-focus`, `group-active`, and [many more](/guide/hover-focus-and-other-states#styling-based-on-parent-state).
@@ -368,7 +358,6 @@ For really complex scenarios _(especially when styling HTML you don't control)_,
 ```css
 div > [data-active] + span {
   color: var(--color-blue-600);
-}
 ```
 
 ### When to Use Inline Styles
@@ -392,7 +381,6 @@ export function BrandedButton({ buttonColor, textColor, children }) {
       {children}
     </button>
   );
-}
 ```
 
 You might also reach for an inline style for very complicated arbitrary values that are difficult to read when formatted as a class name:
@@ -419,7 +407,6 @@ export function BrandedButton({ buttonColor, buttonColorHover, textColor, childr
       {children}
     </button>
   );
-}
 ```
 
 ## Managing Duplication
@@ -553,7 +540,6 @@ export function VacationCard({ img, imgAlt, eyebrow, title, pricing, url }) {
       </div>
     </div>
   );
-}
 ```
 
 Now you can use this component in as many places as you like, while still having a single source of truth for the styles so they can easily be updated together in one place.
@@ -589,11 +575,9 @@ CSS
   font-weight: var(--font-weight-semibold);
   color: var(--color-white);
   box-shadow: var(--shadow-md);
-}
 
 .btn-primary:hover {
   background-color: var(--color-violet-700);
-}
 ```
 
 ::: tip Best Practice
@@ -619,10 +603,8 @@ When you add two classes that target the same CSS property, the class that appea
 ```css
 .flex {
   display: flex;
-}
 .grid {
   display: grid;
-}
 ```
 
 In general, you should just never add two conflicting classes to the same element — only ever add the one you actually want to take effect:
@@ -630,7 +612,6 @@ In general, you should just never add two conflicting classes to the same elemen
 ```jsx
 export function Example({ gridLayout }) {
   return <div className={gridLayout ? "grid" : "flex"}>{/* ... */}</div>;
-}
 ```
 
 Using component-based libraries like React or Vue, this often means exposing specific props for styling customizations instead of letting consumers add extra classes from outside of a component, since those styles will often conflict.
@@ -654,8 +635,6 @@ Generated CSS
 ```css
 .bg-red-500\! {
   background-color: var(--color-red-500) !important;
-}
 .bg-teal-500 {
   background-color: var(--color-teal-500);
-}
 ```

@@ -69,7 +69,6 @@ Modifies the CSS selector based on the modifier and context. Returns either a si
   wrappingType?: 'rule' | 'style-rule' | 'at-rule'; 
   override?: boolean; 
   source?: string 
-}
 ```
 
 ### Wrap Function
@@ -91,7 +90,6 @@ interface ModifierConfig {
   wrap?: (mod: ParsedModifier, context: Context) => AstNode[];
   astHandler?: (ast: AstNode[], mod: ParsedModifier, context: Context, variantChain?: ParsedModifier[], index?: number) => AstNode[];
   sort?: number;
-}
 ```
 
 - **`astHandler`**: Advanced handler for modifying AST nodes directly

@@ -133,7 +133,7 @@ Start using BaroCSS immediately without complex setup:
 
 ```html
 <!-- Just include the script and start styling -->
-<script type="module" src="https://unpkg.com/@barocss/kit/dist/cdn/barocss.js"></script>
+<script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
 ```
 
 ## Advanced Real-time Features
@@ -198,7 +198,6 @@ Change themes in real-time:
 function switchTheme(theme) {
   document.documentElement.className = theme;
   // All theme-specific classes are generated instantly
-}
 ```
 
 ### 3. Component Libraries
@@ -211,7 +210,6 @@ function createButton(variant, size) {
   button.className = `btn-${variant} btn-${size}`;
   // CSS is generated automatically
   return button;
-}
 ```
 ## Conclusion
 

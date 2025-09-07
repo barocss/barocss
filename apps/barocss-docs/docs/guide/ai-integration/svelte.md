@@ -7,7 +7,7 @@ BaroCSS pairs beautifully with Svelte's reactive stores and simple syntax, enabl
 ### 1. Installation
 
 ```bash
-npm install @barocss/kit
+pnpm add @barocss/kit
 # or
 yarn add @barocss/kit
 # or
@@ -178,7 +178,6 @@ async function simulateAIGeneration(prompt, config) {
   );
   
   return templates[matched] || templates['modern card'];
-}
 
 async function processStyleInstruction(currentStyles, instruction) {
   const updates = { ...currentStyles };
@@ -205,7 +204,6 @@ async function processStyleInstruction(currentStyles, instruction) {
   }
   
   return updates;
-}
 ```
 
 ### Main AI Component System

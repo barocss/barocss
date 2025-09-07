@@ -29,11 +29,9 @@ Utility-first CSS is a methodology where you build complex designs by composing 
   font-weight: 500;
   border: none;
   cursor: pointer;
-}
 
 .button:hover {
   background-color: #2563eb;
-}
 ```
 
 ### Utility-First Approach
@@ -79,7 +77,7 @@ Utility classes are semantic in their own way - they describe what the element l
 
 ### "It's hard to customize"
 
-BaroCSS makes customization easy with CSS variables and the `@theme` directive. You can customize colors, spacing, fonts, and more.
+BaroCSS makes customization easy with theme configuration. You can customize colors, spacing, fonts, and more through the theme object.
 
 ## Best Practices
 

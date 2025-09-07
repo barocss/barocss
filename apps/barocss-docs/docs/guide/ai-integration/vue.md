@@ -7,7 +7,7 @@ BaroCSS integrates seamlessly with Vue 3, enabling reactive AI-driven component 
 ### 1. Installation
 
 ```bash
-npm install @barocss/kit
+pnpm add @barocss/kit
 # or
 yarn add @barocss/kit
 # or
@@ -24,7 +24,6 @@ export function setupBaroCSS(options) {
   const runtime = new BrowserRuntime(options);
   
   return runtime;
-}
 ```
 
 ```javascript
@@ -130,7 +129,6 @@ function useAIComponentGenerator() {
     updateComponent,
     removeComponent
   };
-}
 
 // AI simulation function
 async function simulateAIGeneration(prompt, config) {
@@ -174,7 +172,6 @@ async function simulateAIGeneration(prompt, config) {
   );
   
   return templates[matched] || templates['modern card'];
-}
 
 // Main component logic
 const { components, isGenerating, generateComponent, updateComponent, removeComponent } = useAIComponentGenerator();
@@ -386,7 +383,6 @@ async function processStyleInstruction(instruction) {
   }
   
   return updates;
-}
 </script>
 
 <template>
@@ -581,7 +577,6 @@ async function processAIInstruction(instruction) {
   }
   
   return updates;
-}
 </script>
 
 <template>

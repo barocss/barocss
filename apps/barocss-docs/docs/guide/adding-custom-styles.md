@@ -211,16 +211,13 @@ Add base styles directly to your CSS. Base styles are things like setting font f
 ```css
 html {
   font-family: "Inter", sans-serif;
-}
 
 a {
   color: #2563eb;
   text-decoration: underline;
-}
 
 a:hover {
   color: #1d4ed8;
-}
 ```
 
 ### Adding Component Classes
@@ -238,11 +235,9 @@ Create component classes using regular CSS:
   font-weight: bold;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
-}
 
 .btn-primary:hover {
   background-color: #1d4ed8;
-}
 
 .btn-secondary {
   background-color: #6b7280;
@@ -250,11 +245,9 @@ Create component classes using regular CSS:
   font-weight: bold;
   padding: 0.5rem 1rem;
   border-radius: 0.375rem;
-}
 
 .btn-secondary:hover {
   background-color: #374151;
-}
 ```
 
 You can now use these component classes in your HTML:
@@ -275,7 +268,6 @@ You can also add custom styles for any third-party components you're using:
   border-radius: 0.5rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   /* ... */
-}
 ```
 
 ### Using Media Queries
@@ -289,13 +281,11 @@ Use standard CSS media queries to apply responsive and state-based styles:
 ```css
 .my-element {
   background: white;
-}
 
 @media (prefers-color-scheme: dark) {
   .my-element {
     background: black;
   }
-}
 ```
 
 For hover states, use the hover media query:
@@ -303,13 +293,11 @@ For hover states, use the hover media query:
 ```css
 .my-element {
   background: white;
-}
 
 @media (hover: hover) {
   .my-element:hover {
     background: gray;
   }
-}
 ```
 
 For responsive design, use standard breakpoint media queries:
@@ -317,13 +305,11 @@ For responsive design, use standard breakpoint media queries:
 ```css
 .my-element {
   padding: 1rem;
-}
 
 @media (min-width: 768px) {
   .my-element {
     padding: 2rem;
   }
-}
 ```
 
 ## Adding Custom Utilities

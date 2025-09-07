@@ -193,9 +193,5 @@ Prefix a `width` utility with a breakpoint variant like `md:` to only apply the 
 The `w-&lt;number&gt;` and `size-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
-@theme {
-  --spacing: 1px;
-}
 ```
 
-Learn more about customizing the spacing scale in the theme variable documentation.

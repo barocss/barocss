@@ -138,9 +138,5 @@ Prefix a `max-height` utility with a breakpoint variant like `md:` to only apply
 The `max-h-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
-@theme {
-  --spacing: 1px;
-}
 ```
 
-Learn more about customizing the spacing scale in the theme variable documentation.

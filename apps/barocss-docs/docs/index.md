@@ -13,7 +13,7 @@ hero:
       link: /examples/
     - theme: alt
       text: View on GitHub
-      link: https://github.com/your-org/barocss
+      link: https://github.com/barocss/barocss
       external: true
 
 features:
@@ -113,11 +113,11 @@ const userContent = `
 
 ```bash
 # Install the core engine
-npm install @barocss/kit
+pnpm add @barocss/kit
 
 # Or install specific runtimes
-npm install @barocss/browser  # For browser usage
-npm install @barocss/server   # For server usage
+pnpm add @barocss/browser  # For browser usage
+pnpm add @barocss/server   # For server usage
 ```
 
 Ready to get started? Check out our [installation guide](/guide/installation) or explore [examples](/examples/).

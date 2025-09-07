@@ -13,7 +13,7 @@ BaroCSS works seamlessly with vanilla HTML and JavaScript, providing immediate C
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BaroCSS + AI Integration</title>
-    <script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+    <script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body>
     <div id="app"></div>
@@ -49,14 +49,12 @@ async function generateAIComponent(prompt) {
             <p class="${aiResponse.styles.content}">${aiResponse.content}</p>
         </div>
     `;
-}
 
 // Add component to DOM
 async function addAIComponent() {
     const component = await generateAIComponent('Create a modern card');
     document.getElementById('app').innerHTML += component;
     // BaroCSS automatically processes the new classes
-}
 ```
 
 ## Dynamic Style Generation
@@ -128,7 +126,6 @@ class DynamicStyleGenerator {
         
         return form;
     }
-}
 
 // Usage
 const generator = new DynamicStyleGenerator();
@@ -357,7 +354,6 @@ class AIComponentSystem {
         
         return notification;
     }
-}
 
 // Usage Examples
 const aiSystem = new AIComponentSystem();
@@ -401,7 +397,6 @@ async function createDashboard() {
     dashboard.appendChild(chart);
     
     app.appendChild(dashboard);
-}
 
 // Create notification system
 function showNotifications() {
@@ -416,7 +411,6 @@ function showNotifications() {
             aiSystem.generateComponent('notification', notif);
         }, index * 1000);
     });
-}
 
 // Initialize the demo
 createDashboard();
@@ -509,7 +503,6 @@ class LiveStyleEditor {
         
         return updates;
     }
-}
 
 // Usage
 const editableElements = document.querySelectorAll('[data-editable]');
@@ -569,7 +562,6 @@ class BatchOperationManager {
         this.pendingOperations = [];
         this.batchTimeout = null;
     }
-}
 
 const batchManager = new BatchOperationManager();
 
@@ -584,7 +576,6 @@ function addMultipleComponents(components) {
             element: element.firstElementChild
         });
     });
-}
 ```
 
 This comprehensive vanilla HTML/JavaScript integration shows how BaroCSS enables true build-free UI generation with AI-driven components, real-time style updates, and optimal performance through smart caching and batching.

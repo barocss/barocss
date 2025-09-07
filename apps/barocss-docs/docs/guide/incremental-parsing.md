@@ -29,7 +29,6 @@ function processClasses(classes: string[]) {
     const css = generateCss(ast);
     return { cls, css };
   });
-}
 
 // Inefficient: Reprocesses everything
 processClasses(['bg-red-500', 'text-white']); // Processes both
@@ -69,7 +68,6 @@ class IncrementalParser {
     this.processedClasses.add(className);
     return result;
   }
-}
 ```
 
 ### 2. Batch Processing
@@ -118,7 +116,6 @@ function traditionalProcess(classes: string[]) {
     ast: parseClassToAst(cls), // New AST every time
     css: generateCss(cls)      // New CSS every time
   }));
-}
 
 // Incremental: Reuses cached results
 const parser = new IncrementalParser(ctx);
@@ -193,7 +190,6 @@ try {
   });
 } catch (error) {
   console.error('Batch processing failed:', error);
-}
 ```
 
 ## Integration with Runtime APIs
@@ -262,7 +258,6 @@ function updateElementClasses(element: HTMLElement, newClasses: string[]) {
       runtime.insertRule(result.css);
     }
   });
-}
 ```
 
 ### 3. Component Libraries
@@ -284,7 +279,6 @@ class ComponentLibrary {
       css: results.map(r => r.css).join('\n')
     };
   }
-}
 ```
 
 ## Best Practices

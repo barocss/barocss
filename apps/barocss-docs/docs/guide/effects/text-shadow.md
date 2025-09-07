@@ -107,9 +107,7 @@ Prefix a `text-shadow` utility with a breakpoint variant like `md:` to only appl
 Use the `--text-shadow-*` theme variables to customize the text shadow utilities in your project:
 
 ```css
-@theme {
   --text-shadow-3xl: 0 35px 35px rgb(0 0 0 / 0.25);
-}
 ```
 
 Now the `text-shadow-3xl` utility can be used in your markup:

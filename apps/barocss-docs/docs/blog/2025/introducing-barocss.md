@@ -40,19 +40,19 @@ While there are many CSS frameworks available, BaroCSS was created with a focus 
 Getting started with BaroCSS is simple:
 
 ```bash
-npm install @barocss/kit
+pnpm add @barocss/kit
 ```
 
-Then import it in your CSS:
+Then use it in your JavaScript:
 
-```css
-@import "@barocss/kit";
+```typescript
+import { createContext, generateCss } from '@barocss/kit';
 ```
 
 Or use it via CDN:
 
 ```html
-<link href="https://cdn.@barocss/kit.com/@barocss/kit.min.css" rel="stylesheet">
+<script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
 ```
 
 ## What's Next?
@@ -69,9 +69,9 @@ This is just the beginning. We have exciting plans for BaroCSS including:
 
 We'd love to hear your feedback and see what you build with BaroCSS:
 
-- [GitHub](https://github.com/@barocss/kit/@barocss/kit)
-- [Discord](https://discord.gg/@barocss/kit)
-- [Twitter](https://twitter.com/@barocss/kit)
+- [GitHub](https://github.com/barocss/barocss)
+- [Discord](https://discord.gg/barocss)
+- [Twitter](https://twitter.com/barocss)
 
 Thank you for being part of the BaroCSS journey!
 

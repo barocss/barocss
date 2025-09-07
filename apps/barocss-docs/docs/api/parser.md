@@ -118,7 +118,6 @@ class IncrementalParser {
   
   // Clear processed classes
   clearCache(): void;
-}
 ```
 
 ### Parser Statistics
@@ -130,7 +129,6 @@ interface ParserStats {
   cacheHits: number;
   cacheMisses: number;
   averageProcessingTime: number;
-}
 ```
 
 ## Parsing Process
@@ -190,7 +188,6 @@ try {
   }
 } catch (error) {
   console.error('Parsing error:', error);
-}
 ```
 
 **Common Error Cases:**

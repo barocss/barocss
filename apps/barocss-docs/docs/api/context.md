@@ -73,7 +73,6 @@ interface Context {
   
   // Preset checking
   hasPreset: (category: string, preset: string) => boolean;
-}
 ```
 
 ## Theme Access
@@ -157,9 +156,7 @@ Output:
 :root,:host {
   --color-blue-500: #3b82f6;
   --spacing-4: 1rem;
-  --text-lg: 1.125rem;
   /* ... more variables */
-}
 ```
 
 ## Preflight CSS
@@ -213,7 +210,6 @@ interface Config {
   
   // Cache management
   clearCacheOnContextChange?: boolean;
-}
 ```
 
 ### Theme Configuration
@@ -225,7 +221,6 @@ interface Theme {
   
   // Override theme values
   [namespace: string]: any;
-}
 ```
 
 ## Examples
@@ -264,7 +259,6 @@ if (isProduction) {
   ctx.extendTheme('colors', {
     'production-blue': '#1e40af'
   });
-}
 
 // Extend with function for dynamic values
 ctx.extendTheme('spacing', (theme) => {

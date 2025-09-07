@@ -64,11 +64,5 @@ Prefix a `transition-timing-function` utility with a breakpoint variant like `md
 The `ease-*` utilities are driven by the `--ease-*` theme variables, which can be customized in your own theme:
 
 ```css
-@theme {
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-}
 ```
 
-Learn more about customizing the easing scale in the theme variable documentation.

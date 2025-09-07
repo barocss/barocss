@@ -66,9 +66,6 @@ Prefix an `aspect-ratio` utility with a breakpoint variant like `md:` to only ap
 Use the `--aspect-*` theme variables to customize the aspect ratio utilities in your project:
 
 ```css
-@theme {
-  --aspect-retro: 4 / 3;
-}
 ```
 
 Now the `aspect-retro` utility can be used in your markup:
@@ -77,4 +74,3 @@ Now the `aspect-retro` utility can be used in your markup:
 <iframe class="aspect-retro" src="https://www.youtube.com/embed/dQw4w9WgXcQ"></iframe>
 ```
 
-Learn more about customizing your theme in the theme documentation.

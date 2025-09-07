@@ -198,7 +198,6 @@ export default function handler(req, res) {
   
   res.setHeader('Content-Type', 'text/css');
   res.send(css);
-}
 ```
 
 ### Static Site Generation
@@ -321,7 +320,6 @@ class CustomRuntime {
       css: generateCss(cls, this.ctx)
     }));
   }
-}
 ```
 
 ### Runtime Switching
@@ -337,7 +335,6 @@ function createRuntime(config: Config) {
     // Server environment
     return new ServerRuntime(config);
   }
-}
 
 const runtime = createRuntime(config);
 ```
@@ -376,7 +373,6 @@ const runtime = new ServerRuntime({
 const chunks = chunkArray(allClasses, 1000);
 for (const chunk of chunks) {
   runtime.processClasses(chunk);
-}
 ```
 
 ## Conclusion

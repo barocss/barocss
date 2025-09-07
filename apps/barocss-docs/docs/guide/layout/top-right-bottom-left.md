@@ -126,9 +126,7 @@ Prefix a positioning utility with a breakpoint variant like `md:` to only apply 
 Use the `--spacing-*` theme variables to customize the positioning utilities in your project:
 
 ```css
-@theme {
   --spacing-18: 4.5rem;
-}
 ```
 
 Now the `top-18`, `right-18`, `bottom-18`, `left-18`, `inset-18`, `start-18`, and `end-18` utilities can be used in your markup:
@@ -137,4 +135,3 @@ Now the `top-18`, `right-18`, `bottom-18`, `left-18`, `inset-18`, `start-18`, an
 <div class="relative top-18 ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about customizing your theme in the theme documentation.

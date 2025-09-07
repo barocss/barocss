@@ -338,9 +338,6 @@ Prefix a `color` utility with a breakpoint variant like `md:` to only apply the 
 Use the `--color-*` theme variables to customize the color utilities in your project:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Now the `text-regal-blue` utility can be used in your markup:

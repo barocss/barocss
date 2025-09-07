@@ -19,7 +19,7 @@ Get started with BaroCSS in under 30 seconds:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BaroCSS Quick Start</title>
-  <script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+  <script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body>
   <div class="bg-blue-500 text-white p-8 rounded-xl text-center">
@@ -52,7 +52,7 @@ Universal build that works in all browsers without module system requirements.
 **Best for**: Simple HTML pages, legacy browsers, quick prototypes
 
 ```html
-<script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 <script>
   // Global BaroCSS object is available
   const runtime = new BaroCSS.BrowserRuntime();
@@ -76,7 +76,7 @@ Modern ES6+ build with better performance and tree-shaking support.
 
 ```html
 <script type="module">
-  import { BrowserRuntime } from 'https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.js';
+  import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js';
   
   const runtime = new BrowserRuntime();
   runtime.observe(document.body, { scan: true });
@@ -100,8 +100,8 @@ Choose your preferred CDN provider:
 
 | Provider | UMD Build | ES Module Build |
 |----------|-----------|-----------------|
-| **unpkg** | `https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs` | `https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.js` |
-| **jsDelivr** | `https://cdn.jsdelivr.net/npm/@barocss/kit@latest/dist/cdn/barocss.umd.cjs` | `https://cdn.jsdelivr.net/npm/@barocss/kit@latest/dist/cdn/barocss.js` |
+| **unpkg** | `https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs` | `https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js` |
+| **jsDelivr** | `https://cdn.jsdelivr.net/npm/@barocss/browser@latest/dist/cdn/barocss.umd.cjs` | `https://cdn.jsdelivr.net/npm/@barocss/browser@latest/dist/cdn/barocss.js` |
 | **esm.sh** | N/A | `https://esm.sh/@barocss/browser` |
 
 ## Complete Examples
@@ -119,7 +119,7 @@ Complete example showing basic BaroCSS styling with interactive demo.
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BaroCSS Styling Demo</title>
-  <script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+  <script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body class="bg-gray-100 min-h-screen p-8">
   
@@ -288,7 +288,7 @@ Advanced example with custom theme configuration and ES modules.
   </div>
 
   <script type="module">
-    import { BrowserRuntime } from 'https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.js';
+    import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js';
     
     // Advanced configuration with custom theme
     const runtime = new BrowserRuntime({
@@ -347,8 +347,8 @@ Optimize loading performance with preloading strategies.
 :::
 
 ```html
-<link rel="preload" href="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs" as="script">
-<script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+<link rel="preload" href="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs" as="script">
+<script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 ```
 
 #### 2. Lazy Loading for Non-Critical
@@ -361,8 +361,7 @@ Load BaroCSS only when needed to improve initial page load performance.
 <script>
 // Load BaroCSS only when needed
 function loadBaroCSS() {
-  return import('https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.js');
-}
+  return import('https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js');
 
 // Load on user interaction
 document.addEventListener('click', async () => {
@@ -385,7 +384,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open('@barocss/kit-v1').then((cache) => {
       return cache.addAll([
-        'https://unpkg.com/@barocss/kit@0.1.0/dist/cdn/barocss.umd.cjs'
+        'https://unpkg.com/@barocss/browser@0.1.0/dist/cdn/barocss.umd.cjs'
       ]);
     })
   );
@@ -402,13 +401,13 @@ Learn best practices for version management in production environments.
 
 ```html
 <!-- ❌ Don't use @latest in production -->
-<script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 
 <!-- ✅ Pin to specific version -->
-<script src="https://unpkg.com/@barocss/kit@0.1.0/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@0.1.0/dist/cdn/barocss.umd.cjs"></script>
 
 <!-- ✅ Or use semantic version range -->
-<script src="https://unpkg.com/@barocss/kit@^0.1.0/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@^0.1.0/dist/cdn/barocss.umd.cjs"></script>
 ```
 
 ### Checking Available Versions
@@ -437,7 +436,7 @@ Perfect for CodePen, JSFiddle, or learning environments:
 
 ```html
 <!-- Single file, no build process needed -->
-<script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 ```
 
 ### 2. Rapid Prototyping
@@ -450,7 +449,7 @@ Quick mockups and proof of concepts:
 
 ```html
 <!-- Get started in seconds -->
-<script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 <script>
   new BaroCSS.BrowserRuntime().observe();
 </script>
@@ -468,10 +467,9 @@ Test BaroCSS in existing applications:
 <!-- Load conditionally -->
 <script>
 if (window.location.search.includes('@barocss/kit=true')) {
-  loadScript('https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs', () => {
+  loadScript('https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs', () => {
     new BaroCSS.BrowserRuntime().observe(document.body, { scan: true });
   });
-}
 </script>
 ```
 
@@ -486,7 +484,7 @@ Gradually migrate from other CSS frameworks:
 ```html
 <!-- Load alongside existing frameworks -->
 <link rel="stylesheet" href="existing-framework.css">
-<script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 <script>
   // Initialize with limited scope
   new BaroCSS.BrowserRuntime().observe(document.querySelector('.@barocss/kit-zone'));
@@ -502,4 +500,4 @@ Ready to go beyond CDN usage?
 - **[Installation Guide](/guide/installation)** - Set up BaroCSS in your build process
 - **[Framework Integration](/guide/ai-integration)** - Use with React, Vue, Svelte, etc.
 - **[API Reference](/api/)** - Explore all configuration options
-- **[Examples](/examples/)** - See more advanced use cases
+- **[Examples](/examples/)** - Advanced use cases

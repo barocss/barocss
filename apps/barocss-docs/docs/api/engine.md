@@ -244,13 +244,11 @@ function parseClassToAst(
 // Check failure cache for invalid classes
 if (failureCache.has(fullClassName)) {
   return [];
-}
 
 // Check AST cache for previously processed classes
 const cacheKey = `${fullClassName}:${contextHash}`;
 if (astCache.has(cacheKey)) {
   return astCache.get(cacheKey)!;
-}
 ```
 
 #### 2. **Class Name Parsing**
@@ -295,7 +293,6 @@ for (let i = 0; i < modifiers.length; i++) {
     });
     // Process result and add to wrappers array
   }
-}
 ```
 
 #### 5. **Wrapper Nesting (Right-to-Left)**
@@ -320,7 +317,6 @@ for (let i = wrappers.length - 1; i >= 0; i--) {
       nodes: Array.isArray(ast) ? ast : [ast],
     }];
   }
-}
 ```
 
 
@@ -426,7 +422,6 @@ const css = generateCss('bg-blue-500 text-white p-4', ctx);
 interface GenerateOptions {
   minify?: boolean;  // Minify CSS output
   dedup?: boolean;   // Remove duplicate classes
-}
 ```
 
 **Returns:**
@@ -468,7 +463,6 @@ interface GenerateCssRulesResult {
   cssList: string[];  // Individual CSS rules
   rootCss: string;    // Root CSS variables
   rootCssList: string[]; // Individual root rules
-}
 ```
 
 

@@ -35,7 +35,6 @@ interface BrowserRuntimeOptions {
   styleId?: string;                   // Custom style element ID
   insertionPoint?: 'head' | 'body' | HTMLElement; // CSS insertion point
   maxRulesPerPartition?: number;      // Max rules per style partition
-}
 ```
 
 ### Basic Usage
@@ -104,7 +103,6 @@ runtime.observe(document.body, {
 interface ObserveOptions {
   scan?: boolean;        // Scan existing elements
   onReady?: () => void;  // Callback when ready
-}
 ```
 
 ### removeClass()
@@ -314,7 +312,6 @@ function App() {
       <h1>Hello BaroCSS!</h1>
     </div>
   );
-}
 ```
 
 #### Vue Integration
@@ -364,7 +361,6 @@ try {
   runtime.observe(document.body, { scan: true });
 } catch (error) {
   console.error('Runtime initialization failed:', error);
-}
 ```
 
 ## Examples

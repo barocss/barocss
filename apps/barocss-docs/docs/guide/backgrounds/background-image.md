@@ -178,9 +178,6 @@ Use your theme colors with the gradient stop utilities `from`, `via`, and `to`. 
 For example, to add a custom gradient to your theme:
 
 ```css
-@theme {
-  --gradient-custom: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-}
 ```
 
 Then use it in your HTML:

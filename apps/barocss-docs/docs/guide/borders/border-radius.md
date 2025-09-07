@@ -157,9 +157,7 @@ Prefix a `border-radius` utility with a breakpoint variant like `md:` to only ap
 Use the `--radius-*` theme variables to customize the border radius utilities in your project:
 
 ```css
-@theme {
   --radius-5xl: 3rem;
-}
 ```
 
 Now the `rounded-5xl` utility can be used in your markup:
@@ -170,4 +168,3 @@ Now the `rounded-5xl` utility can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.

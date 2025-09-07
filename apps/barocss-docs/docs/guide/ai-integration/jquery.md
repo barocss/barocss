@@ -18,7 +18,7 @@ BaroCSS works seamlessly with jQuery, enabling dynamic AI-driven styling with bu
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
     <!-- BaroCSS -->
-    <script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+    <script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body>
     <div id="app"></div>
@@ -554,7 +554,6 @@ class jQueryAISystem {
     generateContent(prompt) {
         return `This component was generated using AI based on: "${prompt}"`;
     }
-}
 
 // Initialize the AI system
 function initAISystem() {
@@ -637,7 +636,6 @@ function initAISystem() {
         aiSystem.generateComponent('data widget');
         updateComponentCount();
     }, 1000);
-}
 ```
 
 ## Real-time Style Updates
@@ -742,7 +740,6 @@ class jQueryStyleAnimator {
         });
         this.activeAnimations.clear();
     }
-}
 
 // Usage example
 const animator = new jQueryStyleAnimator();
@@ -844,7 +841,6 @@ class jQueryBatchManager {
             $(op.selector).remove();
         });
     }
-}
 
 // Global batch manager
 const batchManager = new jQueryBatchManager();
@@ -857,7 +853,6 @@ function addMultipleComponents(components) {
             element: createComponent(component)
         });
     });
-}
 
 function updateMultipleStyles(updates) {
     updates.forEach(update => {
@@ -867,7 +862,6 @@ function updateMultipleStyles(updates) {
             newClasses: update.classes
         });
     });
-}
 ```
 
 This jQuery integration demonstrates how BaroCSS enables sophisticated AI-driven component generation with build-free styling, complete with real-time style editing, animations, and performance optimization - all using familiar jQuery patterns.

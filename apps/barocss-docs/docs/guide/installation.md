@@ -26,7 +26,7 @@ pnpm add @barocss/kit
 
 ### Using npm
 ```bash
-npm install @barocss/kit
+pnpm add @barocss/kit
 ```
 
 ### Using yarn
@@ -62,7 +62,7 @@ UMD builds work in any environment and don't require module support.
   <title>BaroCSS Demo</title>
   
   <!-- BaroCSS UMD Build -->
-  <script src="https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.umd.cjs"></script>
+  <script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body>
   <div class="bg-blue-500 text-white p-4 rounded-lg">
@@ -100,7 +100,7 @@ ES modules provide better tree-shaking and modern JavaScript features.
 
   <script type="module">
     // Import BaroCSS as ES module
-    import { BrowserRuntime } from 'https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.js';
+    import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js';
     
     // Initialize with configuration
     const runtime = new BrowserRuntime({
@@ -133,7 +133,7 @@ Load BaroCSS only when needed, perfect for progressive enhancement.
 <script>
 async function initBaroCSS() {
   // Dynamically import BaroCSS
-  const { BrowserRuntime } = await import('https://unpkg.com/@barocss/kit@latest/dist/cdn/barocss.js');
+  const { BrowserRuntime } = await import('https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js');
   
   const runtime = new BrowserRuntime();
   runtime.observe(document.body, { scan: true });
@@ -144,7 +144,6 @@ async function initBaroCSS() {
       Dynamically loaded BaroCSS!
     </div>
   `;
-}
 
 // Load when needed
 initBaroCSS();
@@ -157,8 +156,8 @@ initBaroCSS();
 BaroCSS is available on multiple CDN providers for maximum compatibility and performance.
 :::
 
-- **unpkg**: `https://unpkg.com/@barocss/kit@latest/dist/cdn/`
-- **jsDelivr**: `https://cdn.jsdelivr.net/npm/@barocss/kit@latest/dist/cdn/`
+- **unpkg**: `https://unpkg.com/@barocss/browser@latest/dist/cdn/`
+- **jsDelivr**: `https://cdn.jsdelivr.net/npm/@barocss/browser@latest/dist/cdn/`
 - **esm.sh**: `https://esm.sh/@barocss/browser` (ES modules only)
 
 ### Version Pinning
@@ -169,10 +168,10 @@ For production use, always pin to a specific version to ensure stability and avo
 
 ```html
 <!-- Pin to specific version -->
-<script src="https://unpkg.com/@barocss/kit@0.1.0/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@0.1.0/dist/cdn/barocss.umd.cjs"></script>
 
 <!-- Or use version range -->
-<script src="https://unpkg.com/@barocss/kit@^0.1.0/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@^0.1.0/dist/cdn/barocss.umd.cjs"></script>
 ```
 
 ## Framework Integration
@@ -203,7 +202,6 @@ function App() {
       </p>
     </div>
   );
-}
 
 export default App;
 ```
@@ -456,6 +454,6 @@ For build tool issues, check that your bundler is configured to handle ES module
 Need help? Check these resources:
 :::
 
-- **[GitHub Issues](https://github.com/your-org/@barocss/kit/issues)** - Report bugs and request features
-- **[Discord Community](https://discord.gg/@barocss/kit)** - Get help from the community
+- **[GitHub Issues](https://github.com/barocss/barocss/issues)** - Report bugs and request features
+- **[Discord Community](https://discord.gg/barocss)** - Get help from the community
 - **[Documentation](/guide/)** - Comprehensive guides and API reference

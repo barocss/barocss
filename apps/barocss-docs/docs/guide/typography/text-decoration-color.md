@@ -75,9 +75,6 @@ Prefix a `text-decoration-color` utility with a breakpoint variant like `md:` to
 Use the `--color-*` theme variables to customize the text decoration color utilities in your project:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Now the `decoration-regal-blue` utility can be used in your markup:

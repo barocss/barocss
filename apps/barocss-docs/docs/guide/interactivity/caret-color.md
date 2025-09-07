@@ -64,9 +64,6 @@ Prefix a `caret-color` utility with a breakpoint variant like `md:` to only appl
 Use the `--color-*` theme variables to customize the color utilities in your project:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Now the `caret-regal-blue` utility can be used in your markup:
@@ -77,4 +74,3 @@ Now the `caret-regal-blue` utility can be used in your markup:
 </textarea>
 ```
 
-Learn more about customizing your theme in the theme documentation.

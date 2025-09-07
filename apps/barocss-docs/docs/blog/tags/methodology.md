@@ -23,7 +23,6 @@ Learn about the philosophy behind utility-first CSS and how it can transform you
 .back-to-blog {
   text-align: center;
   margin: 3rem 0;
-}
 
 .back-link {
   display: inline-block;
@@ -35,11 +34,9 @@ Learn about the philosophy behind utility-first CSS and how it can transform you
   border: 1px solid var(--vp-c-divider);
   transition: all 0.2s ease;
   font-weight: 500;
-}
 
 .back-link:hover {
   background: var(--vp-c-brand);
   color: white;
   border-color: var(--vp-c-brand);
-}
 </style>

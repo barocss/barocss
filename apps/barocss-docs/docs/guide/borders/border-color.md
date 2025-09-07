@@ -147,9 +147,6 @@ Use your design tokens to populate `--color-*` variables and reference them with
 For example, to add a custom border color to your theme:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Then use it in your HTML:
@@ -160,4 +157,3 @@ Then use it in your HTML:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.

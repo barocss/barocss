@@ -31,7 +31,6 @@ interface Config {
   
   // Custom configuration
   [key: string]: any;
-}
 ```
 
 ## Basic Configuration
@@ -167,7 +166,6 @@ theme: {
       })
     }
   }
-}
 ```
 
 #### Spacing
@@ -194,7 +192,6 @@ theme: {
       })
     }
   }
-}
 ```
 
 #### Typography
@@ -235,7 +232,6 @@ theme: {
       'mono': ['ui-monospace', 'SFMono-Regular', 'monospace']
     }
   }
-}
 ```
 
 #### Layout
@@ -260,7 +256,6 @@ theme: {
       }
     }
   }
-}
 ```
 
 #### Effects
@@ -307,7 +302,6 @@ theme: {
       '100': '1'
     }
   }
-}
 ```
 
 #### Animations
@@ -334,7 +328,6 @@ theme: {
       }
     }
   }
-}
 ```
 
 ## Preflight Configuration

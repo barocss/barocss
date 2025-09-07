@@ -7,7 +7,7 @@ BaroCSS integrates perfectly with SolidJS's fine-grained reactivity system, enab
 ### 1. Installation
 
 ```bash
-npm install @barocss/kit
+pnpm add @barocss/kit
 # or
 yarn add @barocss/kit  
 # or
@@ -39,7 +39,6 @@ function App() {
       <AIComponentSystem />
     </main>
   );
-}
 
 export default App;
 ```
@@ -187,7 +186,6 @@ async function simulateAIGeneration(prompt, config) {
   );
   
   return templates[matched] || templates['modern card'];
-}
 
 async function processStyleInstruction(currentStyles, instruction) {
   const updates = { ...currentStyles };
@@ -221,7 +219,6 @@ async function processStyleInstruction(currentStyles, instruction) {
   }
   
   return updates;
-}
 
 // Export signals and functions
 export { 
@@ -379,7 +376,6 @@ function AIComponentSystem() {
       </Show>
     </div>
   );
-}
 
 export default AIComponentSystem;
 ```
@@ -558,7 +554,6 @@ function AIComponent(props) {
       </Show>
     </div>
   );
-}
 
 export default AIComponent;
 ```
@@ -604,7 +599,6 @@ export function usePerformanceMonitor() {
     performanceData,
     measureRender
   };
-}
 
 // Performance Monitor Component
 function PerformanceMonitor() {
@@ -622,7 +616,6 @@ function PerformanceMonitor() {
       <div>Avg: {performanceData().avgRender.toFixed(2)}ms</div>
     </div>
   );
-}
 
 export default PerformanceMonitor;
 ```
@@ -714,19 +707,16 @@ export function useAnimatedStyles(initialStyles) {
     animateProperty,
     morphStyles
   };
-}
 
 function extractValueFromStyle(styles, property) {
   const styleValue = styles[property] || styles.container || '';
   const regex = new RegExp(`${property}-\\[(\\d+)px\\]`);
   const match = styleValue.match(regex);
   return match ? match[1] : '0';
-}
 
 function updateStyleProperty(styleString, property, value) {
   const regex = new RegExp(`${property}-\\[\\d+px\\]`);
   return styleString.replace(regex, `${property}-[${Math.round(value)}px]`);
-}
 
 function interpolateStyleString(start, end, progress) {
   // Simple interpolation for numeric values in arbitrary classes
@@ -742,7 +732,6 @@ function interpolateStyleString(start, end, progress) {
     
     return match;
   });
-}
 ```
 
 ### Reactive Style Pipeline
@@ -847,7 +836,6 @@ function StylePipeline() {
       </div>
     </div>
   );
-}
 
 async function processStyleInstruction(instruction, targetId) {
   // Simulate AI processing time
@@ -855,7 +843,6 @@ async function processStyleInstruction(instruction, targetId) {
   
   // Update the target component's styles
   updateComponentStyle(targetId, instruction);
-}
 
 export default StylePipeline;
 ```

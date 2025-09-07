@@ -33,7 +33,6 @@ staticModifier('modifier-name', [
 interface StaticModifierOptions {
   source?: string;     // Source identifier for debugging
   sort?: number;       // Sort order for modifier processing
-}
 ```
 
 ## Wrapping Types

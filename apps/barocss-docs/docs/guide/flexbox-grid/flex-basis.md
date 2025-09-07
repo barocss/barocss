@@ -106,9 +106,7 @@ Prefix a `flex-basis` utility with a breakpoint variant like `md:` to only apply
 Use the `--container-*` theme variables to customize the fixed-width basis utilities in your project:
 
 ```css
-@theme {
   --container-4xs: 14rem;
-}
 ```
 
 Now the `basis-4xs` utility can be used in your markup:
@@ -122,9 +120,5 @@ Now the `basis-4xs` utility can be used in your markup:
 The `basis-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which you can also customize:
 
 ```css
-@theme {
-  --spacing: 1px;
-}
 ```
 
-Learn more about customizing the spacing scale in the theme documentation. 

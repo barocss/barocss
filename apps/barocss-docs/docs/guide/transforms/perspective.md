@@ -117,9 +117,6 @@ Prefix a `perspective` utility with a breakpoint variant like `md:` to only appl
 Use the `--perspective-*` theme variables to customize the perspective utilities in your project:
 
 ```css
-@theme {
-  --perspective-remote: 1800px;
-}
 ```
 
 Now the `perspective-remote` utility can be used in your markup:

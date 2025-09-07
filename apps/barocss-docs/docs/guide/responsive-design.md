@@ -163,14 +163,20 @@ Learn how to customize breakpoints using theme variables to match your design ne
 
 Use the `--breakpoint-*` theme variables to customize your breakpoints:
 
-```css
+```typescript
+import { createContext } from '@barocss/kit';
 
-
-@theme {
-  --breakpoint-xs: 30rem;
-  --breakpoint-2xl: 100rem;
-  --breakpoint-3xl: 120rem;
-}
+const ctx = createContext({
+  theme: {
+    extend: {
+      screens: {
+        xs: '30rem',
+        '2xl': '100rem',
+        '3xl': '120rem'
+      }
+    }
+  }
+});
 ```
 
 This updates the `2xl` breakpoint to use `100rem` instead of the default `96rem`, and creates new `xs` and `3xl` breakpoints that can be used in your markup:
@@ -187,7 +193,6 @@ Note that it's important to always use the same unit for defining your breakpoin
 BaroCSS uses `rem` for the default breakpoints, so if you are adding additional breakpoints to the defaults, make sure you use `rem` as well.
 :::
 
-Learn more about customizing your theme in the [theme documentation](/guide/theme).
 
 ### Removing Default Breakpoints
 
@@ -197,25 +202,36 @@ Learn how to remove default breakpoints and create a completely custom breakpoin
 
 To remove a default breakpoint, reset its value to the `initial` keyword:
 
-```css
+```typescript
+import { createContext } from '@barocss/kit';
 
-
-@theme {
-  --breakpoint-2xl: initial;
-}
+const ctx = createContext({
+  theme: {
+    screens: {
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px'
+      // 2xl is not included, so it won't be available
+    }
+  }
+});
 ```
 
 You can also reset all of the default breakpoints using `--breakpoint-*: initial`, then define all of your breakpoints from scratch:
 
-```css
+```typescript
+import { createContext } from '@barocss/kit';
 
-
-@theme {
-  --breakpoint-*: initial;
-  --breakpoint-tablet: 40rem;
-  --breakpoint-laptop: 64rem;
-  --breakpoint-desktop: 80rem;
-}
+const ctx = createContext({
+  theme: {
+    screens: {
+      tablet: '40rem',
+      laptop: '64rem',
+      desktop: '80rem'
+    }
+  }
+});
 ```
 
 Learn more removing default theme values in the [theme documentation](/guide/theme).
@@ -234,7 +250,6 @@ If you need to use a one-off breakpoint that doesn't make sense to include in yo
 </div>
 ```
 
-Learn more about arbitrary value support in the [arbitrary values](/guide/adding-custom-styles#using-arbitrary-values) documentation.
 
 ## Container Queries
 
@@ -323,12 +338,18 @@ Learn how to customize container sizes using theme variables.
 
 Use the `--container-*` theme variables to customize your container sizes:
 
-```css
+```typescript
+import { createContext } from '@barocss/kit';
 
-
-@theme {
-  --container-8xl: 96rem;
-}
+const ctx = createContext({
+  theme: {
+    extend: {
+      container: {
+        '8xl': '96rem'
+      }
+    }
+  }
+});
 ```
 
 This adds a new `8xl` container query variant that can be used in your markup:
@@ -341,7 +362,6 @@ This adds a new `8xl` container query variant that can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the [theme documentation](/guide/theme).
 
 ### Using Arbitrary Values
 

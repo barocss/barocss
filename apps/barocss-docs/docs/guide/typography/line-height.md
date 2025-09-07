@@ -80,10 +80,7 @@ Prefix a `line-height` utility with a breakpoint variant like `md:` to only appl
 Use the `--leading-*` theme variables to customize the line height utilities in your project:
 
 ```css
-@theme {
-  --leading-extra-loose: 2.5;
   --leading-12: 3rem;
-}
 ```
 
 Now the `leading-extra-loose` and `leading-12` utilities can be used in your markup:

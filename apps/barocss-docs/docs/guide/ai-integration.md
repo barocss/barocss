@@ -97,7 +97,6 @@ function renderAICard(data: { color: string; title: string; description: string 
       <p class="text-[0.875rem] text-${color}-700 leading-[1.5]">${description}</p>
     </div>
   `
-}
 ```
 
 ## Notes

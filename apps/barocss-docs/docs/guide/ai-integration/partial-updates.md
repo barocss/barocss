@@ -127,7 +127,6 @@ class PartialStyleUpdater {
         this.element.classList.remove(...classesToRemove);
         this.element.classList.add(...classesToAdd);
     }
-}
 
 // Usage
 const updater = new PartialStyleUpdater(document.getElementById('my-element'));
@@ -315,7 +314,6 @@ class AIAnimationController {
             )
         );
     }
-}
 
 // Usage
 const animator = new AIAnimationController();
@@ -637,7 +635,6 @@ class ContextAwareUpdater {
         
         this.elementContexts.delete(element);
     }
-}
 
 // Usage
 const contextUpdater = new ContextAwareUpdater();
@@ -696,7 +693,6 @@ function usePartialStyleUpdates(initialClassName = '') {
         updateProperties,
         animateProperty
     };
-}
 
 // Usage in React component
 function AIEditableCard({ title, content }) {
@@ -726,7 +722,6 @@ function AIEditableCard({ title, content }) {
             </button>
         </div>
     );
-}
 ```
 
 ### Vue Composition API
@@ -775,7 +770,6 @@ export function usePartialUpdates() {
         updateProperty,
         animateProperty
     };
-}
 ```
 
 Partial UI updates with BaroCSS enable precise, efficient styling modifications that respond immediately to AI instructions, creating fluid and responsive user experiences without any build process.

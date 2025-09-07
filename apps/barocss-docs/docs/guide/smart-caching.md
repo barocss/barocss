@@ -47,7 +47,6 @@ interface ParseResult {
   modifiers: string[];
   utility: string;
   arbitrary?: string;
-}
 
 // Cache key: 'bg-blue-500'
 // Cache value: { modifiers: [], utility: 'bg', arbitrary: 'blue-500' }
@@ -64,7 +63,6 @@ interface ASTNode {
   selector?: string;
   property?: string;
   value?: string;
-}
 
 // Cache key: 'bg-blue-500' + context hash
 // Cache value: [ASTNode, ASTNode, ...]
@@ -146,7 +144,6 @@ function processClass(className: string, ctx: Context) {
   cssCache.set(cssKey, css);
   
   return css;
-}
 ```
 
 ### 2. Context-Aware Caching
@@ -158,7 +155,6 @@ function getCacheKey(className: string, ctx: Context) {
   // Include theme hash in cache key
   const themeHash = hashObject(ctx.theme);
   return `${className}:${themeHash}`;
-}
 
 // Different themes = different cache entries
 const lightTheme = createContext({ theme: { colors: { blue: '#3b82f6' } } });
@@ -201,7 +197,6 @@ class SmartCache {
       }
     }
   }
-}
 ```
 
 ## Performance Benefits
@@ -215,7 +210,6 @@ function traditionalProcess(className: string) {
   const ast = parseClassToAst(className, ctx);      // New object
   const css = astToCss(ast);                        // New string
   return css;
-}
 
 // Smart caching: Reuse cached objects
 function cachedProcess(className: string) {
@@ -223,7 +217,6 @@ function cachedProcess(className: string) {
     return cssCache.get(className); // Reuse cached string
   }
   // ... process and cache
-}
 ```
 
 ### CPU Optimization
@@ -294,7 +287,6 @@ class LRUCache<K, V> {
     }
     this.cache.set(key, value);
   }
-}
 ```
 
 ### 2. Cache Warming
@@ -315,7 +307,6 @@ class CacheWarmer {
       processClass(className, ctx); // Populate cache
     });
   }
-}
 ```
 
 ### 3. Cache Statistics
@@ -337,7 +328,6 @@ class CacheStats {
       memoryEfficiency: this.calculateMemoryEfficiency()
     };
   }
-}
 ```
 
 ## Use Cases
@@ -369,7 +359,6 @@ class Button {
     this.className = `${Button.commonClasses} ${this.getVariantClasses(variant)}`;
     // Common classes are cached, only variant classes are processed
   }
-}
 ```
 
 ### 3. Dynamic Theming
@@ -389,7 +378,6 @@ function switchTheme(theme: 'light' | 'dark') {
     const css = processClass(className, newContext); // Uses new cache
     updateElementStyles(element, css);
   });
-}
 ```
 
 ## Best Practices

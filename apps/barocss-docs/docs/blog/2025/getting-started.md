@@ -18,7 +18,7 @@ This guide will walk you through setting up BaroCSS in your project and writing 
 ### Using npm
 
 ```bash
-npm install @barocss/kit
+pnpm add @barocss/kit
 ```
 
 ### Using yarn
@@ -36,17 +36,17 @@ pnpm add @barocss/kit
 ### Using CDN
 
 ```html
-<link href="https://cdn.@barocss/kit.com/@barocss/kit.min.css" rel="stylesheet">
+<script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
 ```
 
 ## Basic Setup
 
 ### 1. Import BaroCSS
 
-Create a CSS file (e.g., `styles.css`) and import BaroCSS:
+Create a JavaScript file and import BaroCSS:
 
-```css
-@import "@barocss/kit";
+```typescript
+import { createContext, generateCss } from '@barocss/kit';
 ```
 
 ### 2. Include in Your HTML
@@ -122,12 +122,6 @@ BaroCSS includes built-in dark mode support:
 You can customize BaroCSS using CSS variables:
 
 ```css
-@theme {
-  --color-primary: #3b82f6;
-  --color-primary-dark: #1d4ed8;
-  --font-sans: "Inter", sans-serif;
-  --spacing-unit: 0.25rem;
-}
 ```
 
 ### Custom Utilities
@@ -199,8 +193,8 @@ Now that you have BaroCSS set up, here are some next steps:
 ## Resources
 
 - [Documentation](/guide/)
-- [GitHub Repository](https://github.com/@barocss/kit/@barocss/kit)
-- [Discord Community](https://discord.gg/@barocss/kit)
-- [Examples and Templates](https://github.com/@barocss/kit/examples)
+- [GitHub Repository](https://github.com/barocss/barocss)
+- [Discord Community](https://discord.gg/barocss)
+- [Examples and Templates](https://github.com/barocss/barocss/tree/main/examples)
 
 Happy coding with BaroCSS!

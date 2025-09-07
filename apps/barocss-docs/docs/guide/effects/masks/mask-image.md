@@ -77,9 +77,6 @@ Prefix a `mask-image` utility with a breakpoint variant like `md:` to only apply
 Use the `--mask-*` theme variables to customize the mask image utilities in your project:
 
 ```css
-@theme {
-  --mask-custom: url('/img/custom-mask.png');
-}
 ```
 
 Now the `mask-custom` utility can be used in your markup:

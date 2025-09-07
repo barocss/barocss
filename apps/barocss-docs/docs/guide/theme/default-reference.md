@@ -534,7 +534,6 @@ For reference, here's a complete list of the theme variables included by default
   to {
     transform: rotate(360deg);
   }
-}
 
 @keyframes ping {
   75%,
@@ -542,13 +541,11 @@ For reference, here's a complete list of the theme variables included by default
     transform: scale(2);
     opacity: 0;
   }
-}
 
 @keyframes pulse {
   50% {
     opacity: 0.5;
   }
-}
 
 @keyframes bounce {
   0%,
@@ -561,5 +558,4 @@ For reference, here's a complete list of the theme variables included by default
     transform: none;
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
   }
-}
 ```

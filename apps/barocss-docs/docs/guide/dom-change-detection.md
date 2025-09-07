@@ -18,7 +18,6 @@ module.exports = {
   content: [
     './src/**/*.{html,js,ts,jsx,tsx}', // Must specify file patterns
   ],
-}
 ```
 
 This approach has limitations:
@@ -72,7 +71,6 @@ class ChangeDetector {
       });
     });
   }
-}
 ```
 
 ### 2. Intelligent Class Extraction
@@ -101,7 +99,6 @@ function processNewElements(nodes: NodeList) {
       processNewElements(element.children);
     }
   });
-}
 ```
 
 ### 3. Real-time CSS Injection
@@ -114,7 +111,6 @@ function injectCSS(css: string) {
     createStyleElement();
   
   styleElement.textContent += css;
-}
 ```
 
 ## Configuration Options
@@ -172,7 +168,6 @@ class ChangeDetector {
       this.debounceTimer = null;
     }, 16); // ~60fps
   }
-}
 ```
 
 ### Batch Processing
@@ -191,7 +186,6 @@ function processMutations(mutations: MutationRecord[]) {
   // Process all classes in one batch
   const results = parser.processClasses(Array.from(allClasses));
   results.forEach(result => injectCSS(result.css));
-}
 ```
 
 ### Smart Caching
@@ -207,7 +201,6 @@ function processClass(className: string) {
   const css = generateCss(className, ctx);
   injectCSS(css);
   processedClasses.add(className);
-}
 ```
 
 ## Use Cases
@@ -255,7 +248,6 @@ class Modal {
     document.body.appendChild(modal);
     // All classes are automatically processed
   }
-}
 ```
 
 ### 3. Theme Switching
@@ -273,7 +265,6 @@ function switchTheme(theme: 'light' | 'dark') {
     element.className = newClasses;
     // BaroCSS detects the class changes and generates new CSS
   });
-}
 ```
 
 ### 4. User-Generated Content
@@ -289,7 +280,6 @@ function createUserPost(content: string, styles: string) {
   
   document.querySelector('#posts').appendChild(post);
   // BaroCSS processes the user's custom classes automatically
-}
 ```
 
 ## Advanced Features

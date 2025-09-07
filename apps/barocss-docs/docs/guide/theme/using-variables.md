@@ -4,9 +4,6 @@ All of your theme variables are turned into regular CSS variables when you compi
 
 ```css
 :root {
-  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   --color-red-50: oklch(0.971 0.013 17.38);
   --color-red-100: oklch(0.936 0.032 17.717);
@@ -14,10 +11,7 @@ All of your theme variables are turned into regular CSS variables when you compi
   /* ... */
 
   --shadow-2xs: 0 1px rgb(0 0 0 / 0.05);
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   /* ... */
-}
 ```
 
 This makes it easy to reference all of your design tokens in any of your custom CSS or inline styles.
@@ -44,7 +38,6 @@ Use your theme variables to get access to your design tokens when you're writing
     font-weight: var(--font-weight-semibold);
     color: var(--color-gray-950);
   }
-}
 ```
 
 This is often useful when styling HTML you don't control, like Markdown content coming from a database or API and rendered to HTML.
@@ -58,11 +51,9 @@ This is often useful when styling HTML you don't control, like Markdown content 
   font-weight: 500;
   background-color: var(--color-primary);
   color: var(--color-white);
-}
   
 .btn:hover {
   background-color: var(--color-primary-dark);
-}
   
 .card {
   background-color: var(--color-white);
@@ -70,7 +61,6 @@ This is often useful when styling HTML you don't control, like Markdown content 
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   padding: var(--spacing-6);
-}
 ```
 
 ### Third-party Library Overrides
@@ -82,19 +72,16 @@ This is often useful when styling HTML you don't control, like Markdown content 
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
   background-color: var(--color-white);
   border: 1px solid var(--color-gray-300);
-}
 
 .select2-search {
   border-radius: 0.375rem;
   border: 1px solid var(--color-gray-300);
   background-color: var(--color-gray-50);
-}
 
 .select2-results__group {
   font-size: 1.125rem;
   font-weight: bold;
   color: var(--color-gray-900);
-}
 ```
 
 ## With Arbitrary Values
@@ -181,7 +168,6 @@ function AnimatedComponent() {
       Animated with theme colors
     </motion.div>
   );
-}
 ```
 
 ### With CSS-in-JS
@@ -233,7 +219,6 @@ function getThemeValues() {
   }
   
   return theme;
-}
 
 const themeValues = getThemeValues();
 console.log(themeValues['--color-primary']); // "oklch(0.72 0.11 221.19)"
@@ -259,6 +244,5 @@ function switchTheme(themeName) {
     root.style.setProperty('--color-primary', 'var(--color-blue-600)');
     root.style.setProperty('--color-background', 'var(--color-white)');
   }
-}
 ```
 

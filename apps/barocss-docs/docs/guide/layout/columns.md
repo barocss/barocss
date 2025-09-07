@@ -72,7 +72,6 @@ Use the `gap-<width>` utilities to specify the width between columns:
 </div>
 ```
 
-Learn more about the gap utilities in the gap documentation.
 
 ### Using a custom value
 
@@ -115,9 +114,7 @@ Resize the example to see the expected behavior
 Use the `--container-*` theme variables to customize the fixed-width column utilities in your project:
 
 ```css
-@theme {
   --container-4xs: 14rem;
-}
 ```
 
 Now the `columns-4xs` utility can be used in your markup:
@@ -128,4 +125,3 @@ Now the `columns-4xs` utility can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.

@@ -255,7 +255,6 @@ function renderPage(componentClasses: string[]) {
       </body>
     </html>
   `;
-}
 ```
 
 ### Build-Time CSS Generation
@@ -295,7 +294,6 @@ async function generateCSS() {
   
   // Write to file
   fs.writeFileSync('dist/generated.css', css);
-}
 ```
 
 ### API Endpoint
@@ -403,7 +401,6 @@ try {
   }
 } catch (error) {
   console.error('CSS generation failed:', error);
-}
 ```
 
 ## Caching
@@ -470,7 +467,6 @@ async function buildCSS() {
   // Write to output
   fs.writeFileSync('dist/styles.css', css);
   console.log(`Generated CSS for ${results.length} classes`);
-}
 
 function extractClassesFromContent(content: string): string[] {
   // Simple regex to extract class names (implement your own logic)
@@ -484,7 +480,6 @@ function extractClassesFromContent(content: string): string[] {
   }
 
   return classes;
-}
 
 buildCSS().catch(console.error);
 ```

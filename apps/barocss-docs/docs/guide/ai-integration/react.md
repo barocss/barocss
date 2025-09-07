@@ -7,7 +7,7 @@ BaroCSS integrates seamlessly with React applications, enabling build-free UI ge
 ### 1. Installation
 
 ```bash
-npm install @barocss/kit
+pnpm add @barocss/kit
 # or
 yarn add @barocss/kit
 # or
@@ -37,7 +37,6 @@ function App() {
       <AIComponentSystem />
     </div>
   );
-}
 
 export default App;
 ```
@@ -97,7 +96,6 @@ function useAIComponentGenerator() {
     updateComponent,
     isGenerating
   };
-}
 
 // Simulate AI generation
 async function simulateAIGeneration(prompt, config) {
@@ -143,7 +141,6 @@ async function simulateAIGeneration(prompt, config) {
   );
   
   return componentTypes[matchedType] || componentTypes['modern card'];
-}
 ```
 
 ### AI Component Renderer
@@ -224,7 +221,6 @@ function AIComponentRenderer({ component, onUpdate, onRemove }) {
       {component.type === 'widget' && renderWidget()}
     </div>
   );
-}
 
 async function simulateStyleUpdate(currentStyles, instruction) {
   // Simulate AI processing the style update instruction
@@ -248,7 +244,6 @@ async function simulateStyleUpdate(currentStyles, instruction) {
   }
   
   return updates;
-}
 ```
 
 ## Real-time Style Editor
@@ -311,7 +306,6 @@ function useLiveStyleEditor(initialClassName = '') {
     removeClasses,
     resetStyles
   };
-}
 
 // Usage example
 function EditableComponent({ children, initialClass = '' }) {
@@ -381,7 +375,6 @@ function EditableComponent({ children, initialClass = '' }) {
       </div>
     </div>
   );
-}
 ```
 
 ## Advanced AI Component System
@@ -490,7 +483,6 @@ function AIDashboard() {
       )}
     </div>
   );
-}
 
 function AIPromptInput({ onSubmit, disabled }) {
   const [prompt, setPrompt] = useState('');
@@ -522,7 +514,6 @@ function AIPromptInput({ onSubmit, disabled }) {
       </button>
     </form>
   );
-}
 ```
 
 ## Performance Optimization
@@ -588,7 +579,6 @@ function useBatchedUpdates() {
   }, []);
 
   return batchUpdate;
-}
 ```
 
 This React integration demonstrates how BaroCSS enables build-free AI-driven component generation with real-time styling, performance optimization, and seamless developer experience.

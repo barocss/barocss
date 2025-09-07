@@ -95,9 +95,6 @@ Prefix an `accent-color` utility with a breakpoint variant like `md:` to only ap
 Use the `--color-*` theme variables to customize the color utilities in your project:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Now the `accent-regal-blue` utility can be used in your markup:
@@ -106,4 +103,3 @@ Now the `accent-regal-blue` utility can be used in your markup:
 <input class="accent-regal-blue" type="checkbox" />
 ```
 
-Learn more about customizing your theme in the theme documentation.

@@ -57,7 +57,6 @@ interface StaticUtilityOptions {
   description?: string;  // Description for documentation
   category?: string;     // Category for organization
   priority?: number;     // Priority for utility ordering
-}
 ```
 
 ## Declaration Types

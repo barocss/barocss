@@ -75,7 +75,6 @@ function generateAICard(data: any) {
       </div>
     </div>
   `;
-}
 
 // BaroCSS generates all these dynamic arbitrary values instantly:
 // - w-[${randomWidth}px], h-[${randomHeight}px] (dynamic dimensions)
@@ -96,7 +95,7 @@ function generateAICard(data: any) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BaroCSS Example</title>
-  <script type="module" src="https://unpkg.com/@barocss/kit/dist/cdn/barocss.js"></script>
+  <script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
 </head>
 <body>
   <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl shadow-2xl">
@@ -145,7 +144,6 @@ function App() {
       <p className="text-lg opacity-90">Seamless integration with React</p>
     </div>
   );
-}
 
 export default App;
 ```
@@ -421,7 +419,6 @@ darkModeToggle.addEventListener('click', () => {
 const savedDarkMode = localStorage.getItem('darkMode');
 if (savedDarkMode === 'true') {
   html.classList.add('dark');
-}
 ```
 
 ## 🔧 Custom Configuration Examples
@@ -527,7 +524,6 @@ function MyApp({ Component, pageProps }) {
   }, []);
 
   return <Component {...pageProps} />;
-}
 
 export default MyApp;
 ```
@@ -639,7 +635,6 @@ if (process.env.NODE_ENV === 'development') {
   
   const runtime = new BrowserRuntime();
   runtime.observe(document.body, { scan: true });
-}
 ```
 
 ## 🔗 Related Documentation

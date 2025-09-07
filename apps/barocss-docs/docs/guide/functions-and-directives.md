@@ -35,7 +35,6 @@ const ctx = createContext({
 });
 ```
 
-Learn more about the Context API in the [Context API documentation](/api/context).
 
 ### Engine API
 
@@ -51,7 +50,6 @@ const ast = parseClassToAst('bg-blue-500', ctx);
 const css = generateCss(['bg-blue-500', 'text-white', 'p-4'], ctx);
 ```
 
-Learn more about the Engine API in the [Engine API documentation](/api/engine).
 
 ### Runtime APIs
 
@@ -99,7 +97,6 @@ const runtime = new ServerRuntime({
 const css = runtime.generateCssForClasses(['bg-brand-primary', 'text-white']);
 ```
 
-Learn more about runtime APIs in the [Browser Runtime](/api/browser-runtime) and [Server Runtime](/api/server-runtime) documentation.
 
 ### Custom Utilities
 
@@ -121,7 +118,6 @@ functionalUtility({
 });
 ```
 
-Learn more about custom utilities in the [Adding Custom Styles](/guide/adding-custom-styles) documentation.
 
 ## Utility Functions
 

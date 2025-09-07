@@ -56,9 +56,6 @@ Prefix a `font-family` utility with a breakpoint variant like `md:` to only appl
 Use the `--font-*` theme variables to customize the font family utilities in your project:
 
 ```css
-@theme {
-  --font-display: "Oswald", sans-serif;
-}
 ```
 
 Now the `font-display` utility can be used in your markup:
@@ -81,7 +78,6 @@ If needed, use the `@font-face` at-rule to load custom fonts:
   font-weight: 200 700;
   font-display: swap;
   src: url("/fonts/Oswald.woff2") format("woff2");
-}
 ```
 
 

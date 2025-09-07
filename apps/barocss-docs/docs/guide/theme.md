@@ -26,7 +26,6 @@ Controls base styles injection. Preflight provides CSS reset and normalization.
   config: { 
     preflight: true | false | 'minimal' | 'standard' | 'full' 
   } 
-}
 ```
 
 **Options:**
@@ -193,7 +192,6 @@ Configure how dark mode is applied across your application.
   config: { 
     darkMode: 'media' | 'class' | string[] 
   } 
-}
 ```
 
 **Options:**
@@ -258,14 +256,9 @@ const customCSS = `
 **Generated CSS variables:**
 ```css
 :root {
-  --color-primary: #3b82f6;
-  --color-secondary: #64748b;
   --spacing-1: 0.25rem;
   --spacing-2: 0.5rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
   /* ... more variables */
-}
 ```
 
 ## Advanced Configuration

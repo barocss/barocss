@@ -219,7 +219,6 @@ Use the `dark` variant to write classes like `dark:bg-gray-800` that only apply 
 </div>
 ```
 
-Learn more about styling for dark mode in the dark mode documentation.
 
 You can also use these as arbitrary values in utility classes:
 
@@ -235,21 +234,26 @@ You can also use these as arbitrary values in utility classes:
 Learn how to add custom colors to your project using theme variables.
 :::
 
-Use `@theme` to add custom colors to your project under the `--color-*` theme namespace:
+Add custom colors to your project using the theme configuration:
 
-```css
+```typescript
+import { createContext } from '@barocss/kit';
 
-
-@theme {
-  --color-midnight: #121063;
-  --color-tahiti: #3ab7bf;
-  --color-bermuda: #78dcca;
-}
+const ctx = createContext({
+  theme: {
+    extend: {
+      colors: {
+        midnight: '#121063',
+        tahiti: '#3ab7bf',
+        bermuda: '#78dcca'
+      }
+    }
+  }
+});
 ```
 
 Now utilities like `bg-midnight`, `text-tahiti`, and `fill-bermuda` will be available in your project in addition to the default colors.
 
-Learn more about theme variables in the [theme variables documentation](/guide/theme).
 
 ### Overriding Default Colors
 
@@ -257,24 +261,30 @@ Learn more about theme variables in the [theme variables documentation](/guide/t
 Learn how to override default colors by redefining theme variables.
 :::
 
-Override any of the default colors by defining new theme variables with the same name:
+Override any of the default colors by defining new colors with the same name:
 
-```css
+```typescript
+import { createContext } from '@barocss/kit';
 
-
-@theme {
-  --color-gray-50: oklch(0.984 0.003 247.858);
-  --color-gray-100: oklch(0.968 0.007 247.896);
-  --color-gray-200: oklch(0.929 0.013 255.508);
-  --color-gray-300: oklch(0.869 0.022 252.894);
-  --color-gray-400: oklch(0.704 0.04 256.788);
-  --color-gray-500: oklch(0.554 0.046 257.417);
-  --color-gray-600: oklch(0.446 0.043 257.281);
-  --color-gray-700: oklch(0.372 0.044 257.287);
-  --color-gray-800: oklch(0.279 0.041 260.031);
-  --color-gray-900: oklch(0.208 0.042 265.755);
-  --color-gray-950: oklch(0.129 0.042 264.695);
-}
+const ctx = createContext({
+  theme: {
+    colors: {
+      gray: {
+        50: 'oklch(0.984 0.003 247.858)',
+        100: 'oklch(0.968 0.007 247.896)',
+        200: 'oklch(0.929 0.013 255.508)',
+        300: 'oklch(0.869 0.022 252.894)',
+        400: 'oklch(0.704 0.04 256.788)',
+        500: 'oklch(0.554 0.046 257.417)',
+        600: 'oklch(0.446 0.043 257.281)',
+        700: 'oklch(0.372 0.044 257.287)',
+        800: 'oklch(0.279 0.041 260.031)',
+        900: 'oklch(0.208 0.042 265.755)',
+        950: 'oklch(0.129 0.042 264.695)'
+      }
+    }
+  }
+});
 ```
 
 ### Disabling Default Colors
@@ -283,15 +293,21 @@ Override any of the default colors by defining new theme variables with the same
 Learn how to disable default colors by setting theme variables to initial.
 :::
 
-Disable any default color by setting the theme namespace for that color to `initial`:
+Disable any default color by not including them in your theme configuration:
 
-```css
+```typescript
+import { createContext } from '@barocss/kit';
 
-
-@theme {
-  --color-lime-*: initial;
-  --color-fuchsia-*: initial;
-}
+const ctx = createContext({
+  theme: {
+    colors: {
+      // Only include the colors you want
+      // lime and fuchsia are not included, so they won't be available
+      red: { /* ... */ },
+      blue: { /* ... */ }
+    }
+  }
+});
 ```
 
 This is especially useful for removing the corresponding CSS variables from your output for colors you don't intend to use.
@@ -302,43 +318,50 @@ This is especially useful for removing the corresponding CSS variables from your
 Learn how to create a completely custom color palette by disabling all defaults.
 :::
 
-Use `--color-*: initial` to completely disable all of the default colors and define your own custom color palette:
+Define your own custom color palette by overriding the entire colors object:
 
-```css
+```typescript
+import { createContext } from '@barocss/kit';
 
-
-@theme {
-  --color-*: initial;
-  --color-white: #fff;
-  --color-purple: #3f3cbb;
-  --color-midnight: #121063;
-  --color-tahiti: #3ab7bf;
-  --color-bermuda: #78dcca;
-}
+const ctx = createContext({
+  theme: {
+    colors: {
+      white: '#fff',
+      purple: '#3f3cbb',
+      midnight: '#121063',
+      tahiti: '#3ab7bf',
+      bermuda: '#78dcca'
+    }
+  }
+});
 ```
 
 ### Referencing Other Variables
 
 ::: details Purpose
-Learn how to reference other CSS variables when defining colors using @theme inline.
+Learn how to reference other CSS variables when defining colors in your theme configuration.
 :::
 
-Use `@theme inline` when defining colors that reference other colors:
+You can reference CSS variables when defining colors in your theme:
+
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    colors: {
+      canvas: 'var(--acme-canvas-color)'
+    }
+  }
+});
+```
+
+Make sure the referenced CSS variables are defined in your CSS:
 
 ```css
-
-
 :root {
-  --acme-canvas-color: oklch(0.967 0.003 264.542);
-}
 
 [data-theme="dark"] {
-  --acme-canvas-color: oklch(0.21 0.034 264.665);
-}
-
-@theme inline {
-  --color-canvas: var(--acme-canvas-color);
-}
 ```
 
 Learn more in the theme documentation on [referencing other variables](/guide/theme#referencing-other-variables).
@@ -352,7 +375,7 @@ Complete reference of all default colors and their OKLCH values for easy lookup.
 Here's a complete list of the default colors and their values for reference:
 
 ```css
-@theme {
+:root {
   --color-red-50: oklch(0.971 0.013 17.38);
   --color-red-100: oklch(0.936 0.032 17.717);
   --color-red-200: oklch(0.885 0.062 18.334);
@@ -617,9 +640,6 @@ Here's a complete list of the default colors and their values for reference:
   --color-stone-900: oklch(0.216 0.006 56.043);
   --color-stone-950: oklch(0.147 0.004 49.25);
 
-  --color-black: #000;
-  --color-white: #fff;
-}
 ```
 
 ::: tip Reusing Color Scales

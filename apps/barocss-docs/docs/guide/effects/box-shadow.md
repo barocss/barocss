@@ -193,12 +193,20 @@ Prefix a `box-shadow` utility with a breakpoint variant like `md:` to only apply
 
 ### Customizing shadows
 
-Use the `--shadow-*` theme variables to customize the box shadow utilities in your project:
+Customize the box shadow utilities in your project using theme configuration:
 
-```css
-@theme {
-  --shadow-3xl: 0 35px 35px rgba(0, 0, 0, 0.25);
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      boxShadow: {
+        '3xl': '0 35px 35px rgba(0, 0, 0, 0.25)'
+      }
+    }
+  }
+});
 ```
 
 Now the `shadow-3xl` utility can be used in your markup:
@@ -213,15 +221,23 @@ Now the `shadow-3xl` utility can be used in your markup:
 
 ### Customizing inset shadows
 
-Use the `--inset-shadow-*` theme variables to customize the inset box shadow utilities in your project:
+Customize the inset box shadow utilities in your project using theme configuration:
 
-```css
-@theme {
-  --inset-shadow-md: inset 0 2px 3px rgba(0, 0, 0, 0.25);
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      boxShadow: {
+        'inset-md': 'inset 0 2px 3px rgba(0, 0, 0, 0.25)'
+      }
+    }
+  }
+});
 ```
 
-Now the `inset-shadow-md` utility can be used in your markup:
+Now the `shadow-inset-md` utility can be used in your markup:
 
 ```html
 <div class="inset-shadow-md">
@@ -233,15 +249,23 @@ Now the `inset-shadow-md` utility can be used in your markup:
 
 ### Customizing shadow colors
 
-Use the `--color-*` theme variables to customize the color utilities in your project:
+Customize the color utilities in your project using theme configuration:
 
-```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      colors: {
+        'regal-blue': '#243c5a'
+      }
+    }
+  }
+});
 ```
 
-Now utilities like `shadow-regal-blue`, `inset-shadow-regal-blue`, `ring-regal-blue`, and `inset-ring-regal-blue` can be used in your markup:
+Now utilities like `shadow-regal-blue`, `ring-regal-blue` can be used in your markup:
 
 ```html
 <div class="shadow-regal-blue">

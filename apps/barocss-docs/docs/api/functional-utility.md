@@ -57,7 +57,6 @@ handle: (value, context, token, extra) => {
   // extra: Extra - Additional metadata (opacity, realThemeValue, etc.)
   
   return AstNode[] | null; // Return AST nodes or null if not handled
-}
 ```
 
 ### Token Object
@@ -72,7 +71,6 @@ interface Token {
   arbitrary?: boolean;    // true if value is arbitrary (e.g., [value])
   customProperty?: boolean; // true if value is custom property (e.g., (--var))
   negative?: boolean;     // true if value is negative
-}
 ```
 
 ### Extra Object
@@ -85,7 +83,6 @@ Contains additional metadata that can be used for advanced value processing.
 interface Extra {
   opacity?: string;       // Opacity value if supportsOpacity is true
   realThemeValue?: string; // Actual theme value if found
-}
 ```
 
 ## Advanced Patterns

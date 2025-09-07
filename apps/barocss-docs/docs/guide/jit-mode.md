@@ -5,8 +5,8 @@ description: Understanding BaroCSS's Just-In-Time CSS generation and its advanta
 
 # JIT Mode
 
-::: tip Revolutionary CSS Generation
-BaroCSS implements a revolutionary Just-In-Time (JIT) CSS generation system that creates styles only when they're needed, providing optimal performance and minimal bundle sizes. Built from the ground up to support the complete utility-first syntax in real-time.
+::: tip JIT CSS Generation
+BaroCSS implements a Just-In-Time (JIT) CSS generation system that creates styles only when they're needed, providing optimal performance and minimal bundle sizes. Built to support utility-first syntax in real-time.
 :::
 
 ## What is JIT Mode?
@@ -137,7 +137,6 @@ class JITCache {
     this.cssCache.set(className, css);
     return css;
   }
-}
 ```
 
 ## JIT Mode Benefits
@@ -223,7 +222,6 @@ function createButton(variant: string, size: string) {
   
   // JIT generates CSS for 'btn-primary btn-large' on first use
   return element;
-}
 
 const button = createButton('primary', 'large');
 ```
@@ -368,7 +366,6 @@ class JITManager {
       }
     }
   }
-}
 ```
 
 ## Use Cases
@@ -391,7 +388,6 @@ class ComponentLibrary {
     // JIT generates CSS for new combinations
     return element;
   }
-}
 
 const library = new ComponentLibrary();
 const card = library.createCard('primary', 'large'); // CSS generated on-demand
@@ -415,7 +411,6 @@ function switchTheme(theme: string) {
     const newClasses = element.className.replace(/theme-\w+/g, `theme-${theme}`);
     element.className = newClasses;
   });
-}
 ```
 
 ### 3. User-Generated Content
@@ -435,7 +430,6 @@ function createUserStyle(backgroundColor: string, textColor: string) {
   
   // JIT generates CSS for user's custom classes
   return element;
-}
 ```
 
 ## Performance Comparison

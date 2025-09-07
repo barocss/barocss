@@ -53,12 +53,10 @@ Stay updated with the latest BaroCSS announcements, releases, and news.
 .tagged-posts {
   max-width: 800px;
   margin: 2rem auto;
-}
 
 .back-to-blog {
   text-align: center;
   margin: 3rem 0;
-}
 
 .back-link {
   display: inline-block;
@@ -70,11 +68,9 @@ Stay updated with the latest BaroCSS announcements, releases, and news.
   border: 1px solid var(--vp-c-divider);
   transition: all 0.2s ease;
   font-weight: 500;
-}
 
 .back-link:hover {
   background: var(--vp-c-brand);
   color: white;
   border-color: var(--vp-c-brand);
-}
 </style>
