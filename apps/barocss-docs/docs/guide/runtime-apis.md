@@ -379,57 +379,6 @@ for (const chunk of chunks) {
 }
 ```
 
-## Best Practices
-
-### 1. Choose the Right Runtime
-
-```typescript
-// Good: Use appropriate runtime for environment
-const runtime = typeof window !== 'undefined' 
-  ? new BrowserRuntime(config)
-  : new ServerRuntime(config);
-
-// Avoid: Using wrong runtime for environment
-const runtime = new BrowserRuntime(config); // Won't work in Node.js
-```
-
-### 2. Configure for Your Use Case
-
-```typescript
-// Browser: Optimize for real-time updates
-const browserRuntime = new BrowserRuntime({
-  maxRulesPerPartition: 50,
-  debounceTime: 16
-});
-
-// Server: Optimize for batch processing
-const serverRuntime = new ServerRuntime({
-  batchSize: 1000,
-  enableMinification: true
-});
-```
-
-### 3. Monitor Performance
-
-```typescript
-// Track runtime performance
-const stats = runtime.getStats();
-if (stats.averageGenerationTime > '5ms') {
-  console.warn('Slow CSS generation detected');
-}
-```
-
-### 4. Handle Errors Gracefully
-
-```typescript
-try {
-  const css = runtime.generateCss(classes);
-} catch (error) {
-  console.error('CSS generation failed:', error);
-  // Fallback to static CSS
-}
-```
-
 ## Conclusion
 
 BaroCSS runtime APIs provide specialized solutions for different environments, each optimized for their specific use cases and constraints.

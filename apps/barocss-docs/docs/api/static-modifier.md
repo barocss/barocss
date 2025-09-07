@@ -361,55 +361,6 @@ staticModifier('parent-hover', [
 ], { source: 'parent' });
 ```
 
-## Best Practices
-
-### 1. Use Descriptive Names
-
-```typescript
-// Good
-staticModifier('hover', ['&:hover']);
-staticModifier('dark', ['.dark', '.dark *']);
-staticModifier('group-focus', ['.group:focus &']);
-
-// Avoid
-staticModifier('h', ['&:hover']);
-staticModifier('d', ['.dark']);
-staticModifier('gf', ['.group:focus &']);
-```
-
-### 2. Use Source Identifiers
-
-```typescript
-staticModifier('hover', ['&:hover'], { source: 'pseudo' });
-staticModifier('dark', ['.dark'], { source: 'theme' });
-staticModifier('group-hover', ['.group:hover &'], { source: 'group' });
-```
-
-### 3. Order Matters
-
-```typescript
-// Higher sort numbers are processed first
-staticModifier('important', ['&:important'], { sort: 1000 });
-staticModifier('hover', ['&:hover'], { sort: 100 });
-staticModifier('focus', ['&:focus'], { sort: 50 });
-```
-
-### 4. Use Appropriate Selectors
-
-```typescript
-// Good - specific and clear
-staticModifier('dark', ['.dark', '.dark *']);
-
-// Avoid - too broad
-staticModifier('dark', ['*']);
-
-// Good - proper pseudo-class
-staticModifier('hover', ['&:hover']);
-
-// Avoid - incorrect syntax
-staticModifier('hover', [':hover']);
-```
-
 ## Common Use Cases
 
 ### 1. Interactive States

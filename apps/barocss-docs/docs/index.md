@@ -1,9 +1,9 @@
 ---
 layout: home
 hero:
-  name: "@barocss/kit"
-  text: Enhanced Tailwind Runtime
-  tagline: The next-generation CSS parser that brings Tailwind's JIT mode to real-time development
+  name: "BaroCSS"
+  text: CSS Runtime Engine
+  tagline: A CSS parsing and generation engine that brings Tailwind's utility-first approach to runtime environments
   actions:
     - theme: brand
       text: Get Started
@@ -13,102 +13,111 @@ hero:
       link: /examples/
     - theme: alt
       text: View on GitHub
-      link: https://github.com/your-org/@barocss/kit
+      link: https://github.com/your-org/barocss
       external: true
 
 features:
   - icon: ⚡
-    title: Real-time Parser
-    details: Next-generation CSS runtime with instant CSS generation. No build process, no waiting, pure development speed.
+    title: Runtime-First
+    details: Parse and generate CSS at runtime without build processes. Perfect for dynamic content and real-time styling.
   - icon: 🎯
-    title: Full Syntax Support
-    details: Complete Tailwind syntax support with advanced JIT compilation, intelligent caching, and incremental parsing.
-  - icon: 🤖
-    title: AI-Ready Architecture
-    details: Built for the future of AI-driven UI generation. Create interfaces instantly without build steps.
+    title: Tailwind Compatible
+    details: Full support for Tailwind CSS syntax including utilities, variants, and arbitrary values.
+  - icon: 🧠
+    title: Smart Parsing
+    details: Advanced AST processing with incremental parsing and intelligent caching for optimal performance.
   - icon: 🚀
-    title: Zero Build Time
-    details: Lightning-fast CSS generation with smart caching, DOM change detection, and minimal runtime overhead.
+    title: Multiple Runtimes
+    details: Browser runtime for real-time DOM detection and server runtime for static CSS generation.
   - icon: 🔧
-    title: Developer Experience
-    details: Intuitive TypeScript API with comprehensive documentation, examples, and full IDE support.
+    title: TypeScript API
+    details: Comprehensive TypeScript API with full type safety and excellent developer experience.
   - icon: 🌐
-    title: Production Ready
-    details: Battle-tested runtime that scales from development to production with consistent performance.
+    title: Universal
+    details: Works in browsers, Node.js, and any JavaScript environment with consistent behavior.
 ---
 
-## Why Choose BaroCSS?
+## What is BaroCSS?
 
-BaroCSS is a **next-generation CSS runtime** designed to bring Tailwind's powerful utility-first approach to real-time development. We've built a completely new parser from the ground up to support the full Tailwind syntax in the browser, eliminating build processes while maintaining all the performance benefits of JIT compilation.
+BaroCSS is a **CSS parsing and generation engine** that brings Tailwind's utility-first approach to runtime environments. Built from the ground up to support Tailwind CSS syntax, it enables dynamic CSS generation without build processes.
 
-### The Future of CSS Development
+### Core Architecture
 
-**Traditional Approach:**
+BaroCSS consists of three main packages:
+
+- **`@barocss/kit`** - Core parsing and generation engine
+- **`@barocss/browser`** - Browser runtime with DOM change detection  
+- **`@barocss/server`** - Server runtime for static CSS generation
+
+### Runtime-First Approach
+
+**Traditional Build Process:**
 ```bash
-# Write CSS classes → Build process → Wait → See changes
+# Write classes → Build → Wait → Deploy
 <div class="bg-blue-500 hover:bg-blue-700">Button</div>
-# 30+ seconds of build time...
+# Requires build step and deployment
 ```
 
-**BaroCSS Approach:**
+**BaroCSS Runtime:**
 ```bash
-# Write CSS classes → Instant results
+# Write classes → Generate CSS instantly
 <div class="bg-blue-500 hover:bg-blue-700">Button</div>
-# 0ms - CSS generated instantly!
+# CSS generated at runtime, no build needed
 ```
 
-### Built for AI-Driven Development
+### Key Capabilities
 
-BaroCSS is architected for the future where AI generates UI components. When AI creates utility-first interfaces using Tailwind syntax, BaroCSS ensures they render instantly without any build steps:
-
+**Core Engine (`@barocss/kit`):**
 ```typescript
-// AI generates this component with arbitrary values
-const component = `
-<div class="flex items-center justify-between p-[1.5rem] bg-white rounded-[0.75rem] shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] w-[400px] h-[120px]">
-  <h2 class="text-[1.25rem] font-semibold text-gray-800 leading-[1.4]">AI Generated Card</h2>
-  <button class="px-[1rem] py-[0.5rem] bg-blue-500 text-white rounded-[0.375rem] hover:bg-blue-600 transition-colors duration-[200ms] w-[120px]">
-    Action
-  </button>
-</div>
-`;
+import { parseClassToAst, generateCss, createContext } from '@barocss/kit';
 
-// BaroCSS parses arbitrary values like w-[400px], p-[1.5rem] instantly!
-// No build process needed - pure JIT magic in real-time!
+const context = createContext();
+const ast = parseClassToAst('bg-blue-500 text-white p-4', context);
+const css = generateCss('bg-blue-500 text-white p-4', context);
 ```
 
-### AI Integration Flow
-
-```mermaid
-sequenceDiagram
-  participant AI as AI
-  participant App as App
-  participant DOM as DOM
-  participant BaroCSS as BaroCSS Runtime
-
-  AI->>App: Generate UI markup
-  App->>DOM: Insert HTML
-  DOM->>BaroCSS: Detect changes
-  BaroCSS->>DOM: Generate CSS instantly
-```
-
-- AI generates utility-first markup (Tailwind syntax supported)
-- App injects markup into the DOM
-- `BrowserRuntime` observes changes and generates CSS in real time
-
-See the full guide: [AI Integration](/guide/ai-integration)
-
-### Get Started in Minutes
-
-```bash
-# Install BaroCSS
-npm install @barocss/kit
-
-# Import and start using
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+**Browser Runtime (`@barocss/browser`):**
+```typescript
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime();
 runtime.observe(document.body, { scan: true });
-// Start generating CSS instantly!
+// Automatically detects and styles new classes
 ```
 
-Ready to experience the future of CSS development? [Get started now](/guide/) or explore our [examples](/examples/).
+**Server Runtime (`@barocss/server`):**
+```typescript
+import { ServerRuntime } from '@barocss/server';
+
+const runtime = new ServerRuntime();
+const css = runtime.generateCss('bg-blue-500 text-white p-4');
+// Generate CSS for server-side rendering
+```
+
+### Perfect for Dynamic Content
+
+BaroCSS excels when you need to generate CSS for dynamic content:
+
+```typescript
+// User-generated content with arbitrary values
+const userContent = `
+<div class="w-[${width}px] h-[${height}px] bg-[${color}] rounded-[${radius}px]">
+  Dynamic content styled instantly
+</div>
+`;
+
+// BaroCSS parses arbitrary values like w-[400px], bg-[#ff0000] at runtime
+```
+
+### Get Started
+
+```bash
+# Install the core engine
+npm install @barocss/kit
+
+# Or install specific runtimes
+npm install @barocss/browser  # For browser usage
+npm install @barocss/server   # For server usage
+```
+
+Ready to get started? Check out our [installation guide](/guide/installation) or explore [examples](/examples/).

@@ -404,7 +404,7 @@ describe("collectDeclPaths ", () => {
     ]);
   });
 
-  it("Real Tailwind variant chain example", () => {
+  it("Real variant chain example", () => {
     const ast: AstNode[] = [
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [

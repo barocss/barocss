@@ -155,57 +155,6 @@ Instead of generic classes, use specific arbitrary values for AI-generated conte
 `w-64 h-32`
 ```
 
-### 2. Leverage Complex Arbitrary Values
-
-Take advantage of BaroCSS's full CSS value support:
-
-```javascript
-// Complex gradients
-`bg-[linear-gradient(45deg,_#ff0000_0%,_#00ff00_50%,_#0000ff_100%)]`
-
-// Complex shadows
-`shadow-[inset_0_1px_0_rgba(255,255,255,0.1),_0_1px_3px_rgba(0,0,0,0.3)]`
-
-// Complex transforms
-`transform-[rotate(${angle}deg)_scale(${scale})_translateX(${x}px)]`
-```
-
-### 3. Batch DOM Changes
-
-When adding multiple elements, batch them for better performance:
-
-```javascript
-// Good: Batch changes
-const fragment = document.createDocumentFragment();
-aiComponents.forEach(component => {
-  fragment.appendChild(createElementFromHTML(component));
-});
-document.body.appendChild(fragment);
-
-// Avoid: Individual insertions
-aiComponents.forEach(component => {
-  document.body.appendChild(createElementFromHTML(component));
-});
-```
-
-### 4. Cache AI Responses
-
-Cache frequently used AI-generated styles to reduce API calls:
-
-```javascript
-const styleCache = new Map();
-
-const getCachedStyle = async (prompt) => {
-  if (styleCache.has(prompt)) {
-    return styleCache.get(prompt);
-  }
-  
-  const style = await aiService.generateStyle(prompt);
-  styleCache.set(prompt, style);
-  return style;
-};
-```
-
 ## Next Steps
 
 - [Vanilla HTML Implementation](/guide/ai-integration/vanilla-html)

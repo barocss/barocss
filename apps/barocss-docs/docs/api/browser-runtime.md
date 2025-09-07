@@ -367,14 +367,6 @@ try {
 }
 ```
 
-## Best Practices
-
-1. **Initialize Once**: Create runtime once and reuse it
-2. **Use observe()**: Let the runtime handle DOM changes automatically
-3. **Monitor Statistics**: Use `getStats()` to monitor runtime statistics
-4. **Clean Up**: Call `destroy()` when done
-5. **Error Handling**: Always handle initialization errors
-
 ## Examples
 
 ### Basic Setup

@@ -95,33 +95,6 @@ While utility-first is powerful, sometimes a component class makes more sense:
 </div>
 ```
 
-### 2. Group Related Utilities
-
-Use line breaks and comments to group related utilities:
-
-```html
-<!-- Layout -->
-<div class="flex items-center justify-between
-            <!-- Spacing -->
-            p-4 mb-6
-            <!-- Colors -->
-            bg-white text-gray-900
-            <!-- Effects -->
-            shadow-lg rounded-lg">
-```
-
-### 3. Extract to Components
-
-When you find yourself repeating the same utility combinations, consider extracting them to a component class:
-
-```css
-@layer components {
-  .btn-primary {
-    @apply bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-medium;
-  }
-}
-```
-
 ## Conclusion
 
 The utility-first approach isn't for everyone, but it can significantly improve your development workflow when used correctly. BaroCSS makes it easy to adopt this methodology with its comprehensive set of utility classes and excellent developer experience.

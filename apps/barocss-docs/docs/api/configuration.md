@@ -636,16 +636,6 @@ const useBaroCSS = (config: Config) => {
 };
 ```
 
-## Best Practices
-
-1. **Use extend**: Prefer `theme.extend` over direct theme overrides
-2. **Function-based themes**: Use functions for dynamic theme values
-3. **Utility organization**: Group related functionality in utility modules
-4. **Configuration validation**: Validate configuration in production
-5. **Environment-specific**: Use different configs for different environments
-6. **Caching**: Use `clearCacheOnContextChange: false` when context doesn't change
-7. **Type safety**: Use TypeScript for configuration type safety
-
 ## Related APIs
 
 - [Context API](/api/context) - Using configuration in context

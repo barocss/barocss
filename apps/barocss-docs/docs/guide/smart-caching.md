@@ -406,37 +406,6 @@ setInterval(() => {
 }, 5000);
 ```
 
-### 2. Optimize Cache Size
-
-```typescript
-// Configure appropriate cache sizes
-const runtime = new BrowserRuntime({
-  cache: {
-    maxSize: 1000,        // Maximum cached classes
-    maxMemory: '10MB',    // Maximum memory usage
-    ttl: 300000          // Time to live (5 minutes)
-  }
-});
-```
-
-### 3. Use Semantic Class Names
-
-```typescript
-// Good: Reusable semantic classes
-const buttonClasses = 'btn btn-primary btn-large';
-
-// Avoid: Too specific classes
-const specificClasses = 'bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600';
-```
-
-### 4. Warm Cache on Startup
-
-```typescript
-// Pre-populate cache with common classes
-const cacheWarmer = new CacheWarmer();
-cacheWarmer.warmCache(runtime.context);
-```
-
 ## Performance Comparison
 
 | Scenario | Without Caching | With Smart Caching | Improvement |

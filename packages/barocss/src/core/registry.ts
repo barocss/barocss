@@ -63,7 +63,7 @@ export const modifierPlugins: ModifierPlugin[] = [];
 export function staticModifier(name: string, selectors: string[], options: any = {}) {
   modifierPlugins.push({
     match: (mod: string) => mod === name,
-    modifySelector: ({ selector, variantChain, index, ...rest }) => {
+    modifySelector: ({ ..._rest }) => {
       return selectors.map(sel => ({
         selector: sel,
         source: options.source

@@ -1,4 +1,4 @@
-import { AstNode, atRule } from "../../core/ast";
+import { AstNode } from "../../core/ast";
 import { Context } from "../../core/context";
 
 /**

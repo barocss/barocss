@@ -277,14 +277,6 @@ ctx.extendTheme('spacing', (theme) => {
 ```
 
 
-## Best Practices
-
-1. **Reuse Contexts**: Create contexts once and reuse them across your application
-2. **Theme Functions**: Use theme functions for dynamic values that depend on other theme values
-3. **Custom Utilities**: Register custom utilities using global registry functions
-4. **Cache Management**: Use `clearCacheOnContextChange: false` when context doesn't change
-5. **Type Safety**: Use TypeScript for better theme and configuration type safety
-
 ## Related APIs
 
 - [Engine API](/api/engine) - CSS generation using context

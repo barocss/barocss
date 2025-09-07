@@ -1,6 +1,6 @@
 # Default Theme Variable Reference
 
-For reference, here's a complete list of the theme variables included by default when you import Tailwind CSS into your project:
+For reference, here's a complete list of the theme variables included by default
 
 ## Font Families
 

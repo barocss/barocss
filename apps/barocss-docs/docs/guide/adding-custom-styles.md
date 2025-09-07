@@ -666,18 +666,6 @@ To understand how BaroCSS transforms your utility classes into optimized CSS, se
 - **[Engine API](/api/engine)** - CSS generation process and `@optimizeAst()` function
 - **[AST Processing API](/api/ast-processing)** - Detailed AST manipulation and optimization
 
-## Best Practices
-
-::: tip Customization Guidelines
-- **Start with theme customization** before creating custom utilities
-- **Use arbitrary values** for one-off styles that don't need reusability
-- **Create custom utilities** for patterns you use frequently
-- **Use static utilities** for simple, fixed styles
-- **Use functional utilities** for dynamic, theme-aware styles
-- **Test your custom utilities** with different values and contexts
-- **Document your custom utilities** for team consistency
-:::
-
 ## Next Steps
 
 - **[Theme Configuration](/guide/theme)** - Learn about theme customization

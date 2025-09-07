@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { AstNode, atRoot, atRule, decl, property, rule, styleRule } from "../core/ast";
+import { AstNode, atRoot, atRule, decl, property, styleRule } from "../core/ast";
 import { parseColor, parseLength, parseNumber } from "../core/utils";
 
 const gradientStopProperties = () => {

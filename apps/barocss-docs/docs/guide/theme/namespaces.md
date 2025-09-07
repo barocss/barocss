@@ -10,7 +10,7 @@ Defining new theme variables in these namespaces will make new corresponding uti
 |-----------|-----------------|
 | `--color-*` | Color utilities like `bg-red-500`, `text-sky-300`, `border-blue-200`, `fill-green-400`, and many more |
 
-The color namespace is one of the most powerful in Tailwind. Any color you define will automatically generate utilities for:
+The color namespace is one of the most. Any color you define will automatically generate utilities for:
 
 - Background colors: `bg-{name}`
 - Text colors: `text-{name}`
@@ -125,10 +125,3 @@ When creating custom theme variables, follow these naming conventions:
 3. **Use consistent scales**: For colors, use numbers like `50`, `100`, `200`, etc.
 4. **Group related variables**: Keep related variables together in your `@theme` block
 
-## Best Practices
-
-1. **Start with the default theme**: Don't reinvent the wheel - extend the default theme first
-2. **Use semantic names**: Choose names that describe purpose, not appearance
-3. **Document your choices**: Keep a record of why you chose specific values
-4. **Test across contexts**: Ensure your variables work well in different use cases
-5. **Consider accessibility**: Make sure your color choices meet contrast requirements

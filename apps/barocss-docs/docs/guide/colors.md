@@ -221,48 +221,12 @@ Use the `dark` variant to write classes like `dark:bg-gray-800` that only apply 
 
 Learn more about styling for dark mode in the dark mode documentation.
 
-### Referencing in CSS
-
-::: details Purpose
-Learn how to reference colors as CSS variables in your custom CSS.
-:::
-
-Colors are exposed as CSS variables in the `--color-*` namespace, so you can reference them in CSS with variables like `--color-blue-500` and `--color-pink-700`:
-
-```css
-@import "tailwindcss";
-
-@layer components {
-  .typography {
-    color: var(--color-gray-950);
-    a {
-      color: var(--color-blue-500);
-      &:hover {
-        color: var(--color-blue-800);
-      }
-    }
-  }
-}
-```
-
 You can also use these as arbitrary values in utility classes:
 
 ```html
 <div class="bg-[light-dark(var(--color-white),var(--color-gray-950))]">
   <!-- ... -->
 </div>
-```
-
-To quickly adjust the opacity of a color when referencing it as a variable in CSS, Tailwind includes a special `--alpha()` function:
-
-```css
-@import "tailwindcss";
-
-@layer components {
-  .DocSearch-Hit--Result {
-    background-color: --alpha(var(--color-gray-950) / 10%);
-  }
-}
 ```
 
 ## Customizing Your Colors

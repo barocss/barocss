@@ -213,63 +213,6 @@ function createButton(variant, size) {
   return button;
 }
 ```
-
-## Best Practices
-
-### 1. Use Semantic Class Names
-
-```typescript
-// Good: Semantic and maintainable
-element.className = 'btn-primary btn-large';
-
-// Avoid: Too specific
-element.className = 'bg-blue-500 text-white px-4 py-2 rounded';
-```
-
-### 2. Leverage Caching
-
-```typescript
-// Reuse common class combinations
-const commonStyles = 'bg-white shadow-md rounded-lg p-4';
-element1.className = commonStyles;
-element2.className = commonStyles; // Uses cache
-```
-
-### 3. Monitor Performance
-
-```typescript
-// Check performance in development
-if (process.env.NODE_ENV === 'development') {
-  const stats = runtime.getStats();
-  console.log('CSS Generation Stats:', stats);
-}
-```
-
-## Migration from Build-based Frameworks
-
-### From Tailwind CSS
-
-```typescript
-// Before: Tailwind with build process
-// tailwind.config.js, webpack config, etc.
-
-// After: BaroCSS with real-time generation
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
-const runtime = new BrowserRuntime();
-// That's it! No build configuration needed
-```
-
-### From Other CSS Frameworks
-
-```typescript
-// Before: Static CSS classes
-element.className = 'my-custom-button';
-
-// After: Dynamic utility classes
-element.className = 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded';
-// CSS generated instantly
-```
-
 ## Conclusion
 
 Real-time CSS generation is the future of CSS development. BaroCSS eliminates build complexity while providing instant feedback, making development faster and more enjoyable.

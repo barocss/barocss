@@ -231,7 +231,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   });
 
   // --- Ring ---
-  it("ring → Tailwind multi-var box-shadow", () => {
+  it("ring → multi-var box-shadow", () => {
     expect(parseClassToAst("ring", ctx)).toEqual([
       { type: "decl", prop: "--baro-ring-inset", value: "" },
       { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
@@ -252,7 +252,7 @@ describe("effects.ts (box-shadow utilities)", () => {
       },
     ]);
   });
-  it("ring-2 → Tailwind multi-var box-shadow", () => {
+  it("ring-2 → multi-var box-shadow", () => {
     expect(parseClassToAst("ring-2", ctx)).toEqual([
       { type: "decl", prop: "--baro-ring-inset", value: "" },
       { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
@@ -357,7 +357,7 @@ describe("effects.ts (box-shadow utilities)", () => {
   });
 
   // --- Inset Ring ---
-  it("inset-ring → Tailwind multi-var box-shadow", () => {
+  it("inset-ring → multi-var box-shadow", () => {
     expect(parseClassToAst("inset-ring", ctx)).toEqual([
       { type: "decl", prop: "--baro-ring-inset", value: "inset" },
       { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
@@ -382,7 +382,7 @@ describe("effects.ts (box-shadow utilities)", () => {
       },
     ]);
   });
-  it("inset-ring-2 → Tailwind multi-var box-shadow", () => {
+  it("inset-ring-2 → multi-var box-shadow", () => {
     expect(parseClassToAst("inset-ring-2", ctx)).toEqual([
       { type: "decl", prop: "--baro-ring-inset", value: "inset" },
       { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },

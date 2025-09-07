@@ -71,7 +71,7 @@ function createShadowThemeColor(
   realThemeValue: string
 ) {
   let fallbackColor = main;
-  let colorVar = `var(--color-${realThemeValue})`;
+  const colorVar = `var(--color-${realThemeValue})`;
   let colorValue = colorVar;
   if (opacity) {
     colorValue = `color-mix(in oklab, color-mix(in oklab, ${colorVar} ${opacity}%, transparent) var(--baro-shadow-alpha),transparent)`;
@@ -100,9 +100,9 @@ functionalUtility({
   supportsOpacity: true,
   themeKeys: ["colors", "shadows"],
   handle: (value, ctx, token, extra) => {
-    let main = value;
-    let opacity = extra?.opacity;
-    let realThemeValue = extra?.realThemeValue;
+    const main = value;
+    const opacity = extra?.opacity;
+    const realThemeValue = extra?.realThemeValue;
 
     // 1. Theme color (e.g. shadow-red-500/60)
     if (realThemeValue) {
@@ -166,9 +166,9 @@ functionalUtility({
   supportsOpacity: true,
   themeKeys: ["colors", "shadows"],
   handle: (value, ctx, token, extra) => {
-    let main = value;
-    let opacity = extra?.opacity;
-    let realThemeValue = extra?.realThemeValue;
+    const main = value;
+    const opacity = extra?.opacity;
+    const realThemeValue = extra?.realThemeValue;
 
     // 1. Theme color (e.g. inset-shadow-red-500/60)
     if (realThemeValue) {
@@ -283,7 +283,7 @@ function createRingColorDecls(
   opacity: string | undefined,
   realThemeValue: string
 ) {
-  let colorVar = `var(--color-${realThemeValue})`;
+  const colorVar = `var(--color-${realThemeValue})`;
   let colorMix = colorVar;
   let fallback = colorVar;
   if (opacity) {
@@ -311,9 +311,9 @@ functionalUtility({
   supportsOpacity: true,
   themeKeys: ["colors"],
   handle: (value, ctx, token, extra) => {
-    let main = value;
-    let opacity = extra?.opacity;
-    let realThemeValue = extra?.realThemeValue;
+    const main = value;
+    const opacity = extra?.opacity;
+    const realThemeValue = extra?.realThemeValue;
     if (realThemeValue) {
       return createRingColorDecls(
         "--baro-ring-color",
@@ -383,9 +383,9 @@ functionalUtility({
   supportsOpacity: true,
   themeKeys: ["colors", "shadows"],
   handle: (value, ctx, token, extra) => {
-    let main = value;
-    let opacity = extra?.opacity;
-    let realThemeValue = extra?.realThemeValue;
+    const main = value;
+    const opacity = extra?.opacity;
+    const realThemeValue = extra?.realThemeValue;
     if (realThemeValue) {
       return createRingColorDecls(
         "--baro-inset-ring-color",

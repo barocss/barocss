@@ -581,7 +581,6 @@ HTML
 CSS
 
 ```css
-@import "tailwindcss";
 @layer components {
   .btn-primary {
     border-radius: calc(infinity * 1px);
@@ -661,64 +660,5 @@ Generated CSS
 }
 .bg-teal-500 {
   background-color: var(--color-teal-500);
-}
-```
-
-### Using the Important Flag
-
-::: details Purpose
-Learn how to mark all utilities as `!important` when working with existing high-specificity CSS.
-:::
-
-If you're adding BaroCSS to a project that has existing complex CSS with high specificity rules, you can use the `important` flag when importing BaroCSS to mark _all_ utilities as `!important`:
-
-app.css
-
-```css
-@import "tailwindcss" important;
-```
-
-Compiled CSS
-
-```css
-@layer utilities {
-  .flex {
-    display: flex !important;
-  }
-  .gap-4 {
-    gap: 1rem !important;
-  }
-  .underline {
-    text-decoration-line: underline !important;
-  }
-}
-```
-
-### Using the Prefix Option
-
-::: details Purpose
-Learn how to use prefixes to avoid conflicts with existing class names in your project.
-:::
-
-If your project has class names that conflict with BaroCSS utilities, you can prefix all BaroCSS-generated classes and CSS variables using the `prefix` option:
-
-app.css
-
-```css
-@import "tailwindcss" prefix(tw);
-```
-
-Compiled CSS
-
-```css
-@layer theme {
-  :root {
-    --baro-color-red-500: oklch(0.637 0.237 25.331);
-  }
-}
-@layer utilities {
-  .tw\:text-red-500 {
-    color: var(--baro-color-red-500);
-  }
 }
 ```

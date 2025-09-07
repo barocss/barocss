@@ -199,14 +199,6 @@ try {
 - **Invalid Values**: Values that don't match utility expectations
 - **Context Errors**: Missing or invalid context
 
-## Best Practices
-
-1. **Reuse Contexts**: Create contexts once and reuse them
-2. **Use IncrementalParser**: For applications with many classes
-3. **Batch Processing**: Process multiple classes together
-4. **Cache Management**: Monitor cache statistics for performance
-5. **Error Handling**: Always handle parsing errors gracefully
-
 ## Related APIs
 
 - [Engine API](/api/engine) - CSS generation and AST processing

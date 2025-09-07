@@ -343,57 +343,6 @@ runtime.observe(document.body, {
 });
 ```
 
-## Best Practices
-
-### 1. Optimize Observer Scope
-
-```typescript
-// Good: Monitor specific containers
-const dynamicContainer = document.querySelector('#dynamic-content');
-runtime.observe(dynamicContainer, { scan: true });
-
-// Avoid: Monitor entire document unnecessarily
-runtime.observe(document, { scan: true });
-```
-
-### 2. Use Semantic Class Names
-
-```typescript
-// Good: Semantic and maintainable
-element.className = 'card-header bg-blue-500 text-white p-4';
-
-// Avoid: Too many utility classes
-element.className = 'bg-blue-500 text-white p-4 rounded-t-lg border-b border-blue-600';
-```
-
-### 3. Batch DOM Operations
-
-```typescript
-// Good: Batch multiple changes
-const fragment = document.createDocumentFragment();
-posts.forEach(post => {
-  const element = createPostElement(post);
-  fragment.appendChild(element);
-});
-document.body.appendChild(fragment);
-
-// Avoid: Individual DOM operations
-posts.forEach(post => {
-  const element = createPostElement(post);
-  document.body.appendChild(element); // Triggers mutation observer each time
-});
-```
-
-### 4. Monitor Performance
-
-```typescript
-// Track detection performance
-const stats = runtime.getStats();
-if (stats.mutationsPerSecond > 100) {
-  console.warn('High mutation rate detected:', stats);
-}
-```
-
 ## Browser Compatibility
 
 BaroCSS's DOM change detection works in all modern browsers:

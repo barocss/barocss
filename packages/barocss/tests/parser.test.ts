@@ -38,7 +38,7 @@ describe('parseClassName - tokenizer based', () => {
   });
 
   describe('tokenizer-based bidirectional parsing', () => {
-    it('should parse modifier:utility (traditional Tailwind)', () => {
+    it('should parse modifier:utility', () => {
       const result = parseClassName('hover:bg-red-500');
       expect(result.modifiers).toEqual([{ type: 'hover', negative: false }]);
       expect(result.utility).toEqual({

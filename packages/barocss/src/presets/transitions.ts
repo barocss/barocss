@@ -5,7 +5,7 @@ import { parseNumber } from "../core/utils";
 // --- Transition Property Utilities  ---
 //  transition-property documentation
 
-// Default variable (same as Tailwind)
+// Default variable
 const defaultTiming = "var(--default-transition-timing-function)"; // cubic-bezier(0.4, 0, 0.2, 1)
 const defaultDuration = "var(--default-transition-duration)"; // 150ms
 
@@ -71,7 +71,7 @@ functionalUtility({
   prop: "transition-property",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, _token) => {
     return [
       decl("transition-property", value),
       decl("transition-timing-function", defaultTiming),
@@ -96,7 +96,7 @@ functionalUtility({
   prop: "transition-duration",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, _token) => {
     if (parseNumber(value)) {
       return [decl("transition-duration", `${value}ms`)];
     }
@@ -119,7 +119,7 @@ functionalUtility({
   prop: "transition-timing-function",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, _token) => {
     return [decl("transition-timing-function", value)];
   },
   handleCustomProperty: (value) => [decl("transition-timing-function", `var(${value})`)],
@@ -133,7 +133,7 @@ functionalUtility({
   prop: "transition-delay",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, _token) => {
     if (parseNumber(value)) {
       return [decl("transition-delay", `${value}ms`)];
     }

@@ -265,12 +265,3 @@ function switchTheme(themeName) {
 }
 ```
 
-## Best Practices
-
-1. **Use semantic names**: Choose theme variable names that describe purpose, not appearance
-2. **Consistent naming**: Follow the same naming pattern across your project
-3. **Document your variables**: Keep a record of what each variable is used for
-4. **Test across contexts**: Ensure your variables work well in different use cases
-5. **Consider performance**: Be mindful of how many variables you're using
-6. **Use fallbacks**: Always provide fallback values when using CSS variables
-7. **Validate values**: Check that your theme variables resolve to valid CSS values

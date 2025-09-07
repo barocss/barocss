@@ -399,24 +399,3 @@ By default, BaroCSS includes container sizes ranging from 16rem _(256px)_ to 80r
 | `@6xl` | 72rem _(1152px)_ | `@container (width >= 72rem) { … }` |
 | `@7xl` | 80rem _(1280px)_ | `@container (width >= 80rem) { … }` |
 
-## Best Practices
-
-::: tip Responsive Design Guidelines
-Follow these best practices to create effective responsive designs with BaroCSS.
-:::
-
-1. **Start mobile-first**: Design for mobile devices first, then progressively enhance for larger screens.
-
-2. **Use semantic breakpoints**: Choose breakpoints based on your content and design needs, not just device sizes.
-
-3. **Test across devices**: Always test your responsive design on actual devices and different screen sizes.
-
-4. **Consider container queries**: For component-level responsive behavior, consider using container queries instead of viewport-based breakpoints.
-
-5. **Keep it simple**: Don't over-engineer your responsive design. Start with the essentials and add complexity only when needed.
-
-6. **Use consistent spacing**: Maintain consistent spacing and typography across different breakpoints.
-
-7. **Optimize for touch**: On mobile devices, ensure interactive elements are large enough for touch interaction.
-
-8. **Consider performance**: Be mindful of the CSS bundle size when using many responsive variants.

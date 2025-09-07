@@ -270,7 +270,7 @@ describe('parseClassToAst (end-to-end)', () => {
   });
 });
 
-describe('variant chain engine (tailwind v4 style)', () => {
+describe('variant chain engine', () => {
   const ctx = createContext({
     theme: { colors: { red: { 500: '#f00' } } }
   });

@@ -300,44 +300,6 @@ parser.processClasses(buttonClasses);
 buttonClasses.forEach(cls => parser.processClass(cls));
 ```
 
-### 2. Monitor Performance
-
-```typescript
-// Track performance in development
-if (process.env.NODE_ENV === 'development') {
-  const stats = parser.getStats();
-  if (stats.averageProcessingTime > '5ms') {
-    console.warn('Slow parsing detected:', stats);
-  }
-}
-```
-
-### 3. Handle Errors Gracefully
-
-```typescript
-const results = parser.processClasses(classes);
-const successful = results.filter(r => !r.error);
-const failed = results.filter(r => r.error);
-
-if (failed.length > 0) {
-  console.warn(`${failed.length} classes failed to process:`, failed);
-}
-```
-
-### 4. Optimize Batch Sizes
-
-```typescript
-// Adjust batch size based on your use case
-const parser = new IncrementalParser(ctx, {
-  batchSize: 50 // Good for most applications
-});
-
-// For very large applications
-const largeParser = new IncrementalParser(ctx, {
-  batchSize: 200 // Process more at once
-});
-```
-
 ## Performance Comparison
 
 | Scenario | Traditional | Incremental | Improvement |

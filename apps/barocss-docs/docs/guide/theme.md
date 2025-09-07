@@ -379,16 +379,6 @@ const runtime = new BrowserRuntime({
 });
 ```
 
-## Best Practices
-
-::: tip Theme Design Guidelines
-- **Use semantic naming**: `primary`, `secondary`, `success` instead of `blue`, `gray`, `green`
-- **Create consistent scales**: Use consistent spacing and sizing scales
-- **Document your tokens**: Keep a design system documentation
-- **Test accessibility**: Ensure sufficient color contrast
-- **Use CSS variables**: Export theme values for custom CSS
-:::
-
 ## Next Steps
 
 - **[CSS Variables](/guide/theme#css-variables)** - Learn about CSS custom properties
