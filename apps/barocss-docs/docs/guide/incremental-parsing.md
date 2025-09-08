@@ -16,215 +16,78 @@ Incremental parsing is a performance optimization technique that processes only 
 - **Support both sync and async** processing modes
 - **Optimize memory usage** with intelligent caching
 
-## Traditional vs Incremental Approach
-
-### Traditional Approach (Tailwind CSS)
-
-```typescript
-// Traditional: Process all classes every time
-function processClasses(classes: string[]) {
-  return classes.map(cls => {
-    // Always parse, even if already processed
-    const ast = parseClassToAst(cls, ctx);
-    const css = generateCss(ast);
-    return { cls, css };
-  });
-
-// Inefficient: Reprocesses everything
-processClasses(['bg-red-500', 'text-white']); // Processes both
-processClasses(['bg-red-500', 'text-white', 'p-4']); // Reprocesses all 3
-```
-
-### BaroCSS Incremental Approach
-
-```typescript
-import { IncrementalParser } from '@barocss/kit';
-
-const parser = new IncrementalParser(ctx);
-
-// Efficient: Only processes new classes
-parser.processClasses(['bg-red-500', 'text-white']); // Processes both
-parser.processClasses(['bg-red-500', 'text-white', 'p-4']); // Only processes 'p-4'
-```
-
 ## How Incremental Parsing Works
+
+```mermaid
+graph TD
+    A[New Classes Input] --> B{Already Processed?}
+    B -->|Yes| C[Skip - Use Cache]
+    B -->|No| D[Parse Class]
+    D --> E[Generate CSS]
+    E --> F[Store in Cache]
+    F --> G[Return CSS]
+    C --> G
+    G --> H[Inject CSS]
+    
+    style A fill:#e1f5fe
+    style C fill:#c8e6c9
+    style D fill:#fff3e0
+    style F fill:#f3e5f5
+    style H fill:#e8f5e8
+```
+
+## How BaroCSS Incremental Parsing Works
+
+::: tip Smart Processing
+BaroCSS only processes new classes, reusing cached results for previously processed classes.
+:::
+
+```mermaid
+graph LR
+    A[Classes: bg-red-500, text-white] --> B[Process New]
+    C[Classes: bg-red-500, text-white, p-4] --> D[Process Only New]
+    
+    B --> E[bg-red-500 ✓]
+    B --> F[text-white ✓]
+    D --> G[bg-red-500 - Use Cache]
+    D --> H[text-white - Use Cache]
+    D --> I[p-4 ✓ New]
+    
+    style G fill:#c8e6c9
+    style H fill:#c8e6c9
+    style I fill:#fff3e0
+```
+
+**Key Benefits:**
+- Only processes new classes
+- Reuses cached results
+- Scales efficiently with large class counts
+
+## Key Features
 
 ### 1. Class Tracking
 
-BaroCSS maintains a set of processed classes to avoid redundant work:
+::: details Purpose
+BaroCSS maintains a registry of processed classes to avoid redundant work.
+:::
 
-```typescript
-class IncrementalParser {
-  private processedClasses = new Set<string>();
-  
-  processClass(className: string) {
-    // Skip if already processed
-    if (this.processedClasses.has(className)) {
-      return null; // Already processed
-    }
-    
-    // Process new class
-    const result = this.generateCSS(className);
-    this.processedClasses.add(className);
-    return result;
-  }
-```
+The system tracks which classes have been processed and skips them on subsequent requests, using cached results instead.
 
 ### 2. Batch Processing
 
-Process multiple classes efficiently in batches:
+::: details Purpose
+Process multiple classes efficiently in optimal batches for better performance.
+:::
 
-```typescript
-const parser = new IncrementalParser(ctx);
-
-// Process classes in optimal batches
-const results = parser.processClasses([
-  'bg-blue-500',
-  'text-white', 
-  'p-4',
-  'hover:bg-blue-600',
-  'focus:ring-2'
-]);
-
-// Results contain only newly processed classes
-results.forEach(result => {
-  console.log(`Generated CSS for: ${result.cls}`);
-});
-```
+Instead of processing classes one by one, BaroCSS groups them into batches and processes them together, reducing overhead and improving efficiency.
 
 ### 3. Async Processing Support
 
-Handle large numbers of classes without blocking:
+::: details Purpose
+Handle large numbers of classes without blocking the main thread.
+:::
 
-```typescript
-// Add classes to pending queue
-parser.addToPending(['class1', 'class2', 'class3']);
-
-// Process asynchronously
-const results = await parser.processPending();
-```
-
-## Performance Benefits
-
-### Memory Efficiency
-
-```typescript
-// Traditional: Creates new objects every time
-function traditionalProcess(classes: string[]) {
-  return classes.map(cls => ({
-    cls,
-    ast: parseClassToAst(cls), // New AST every time
-    css: generateCss(cls)      // New CSS every time
-  }));
-
-// Incremental: Reuses cached results
-const parser = new IncrementalParser(ctx);
-parser.processClasses(['bg-red-500']); // Creates and caches
-parser.processClasses(['bg-red-500']); // Uses cache, no new objects
-```
-
-### CPU Optimization
-
-```typescript
-// Performance comparison
-const classes = ['bg-red-500', 'text-white', 'p-4'];
-
-// Traditional: O(n) every time
-traditionalProcess(classes); // 3ms
-traditionalProcess(classes); // 3ms again
-
-// Incremental: O(n) first time, O(1) subsequent
-parser.processClasses(classes); // 3ms
-parser.processClasses(classes); // 0.1ms (cache hit)
-```
-
-## Advanced Features
-
-### Statistics and Monitoring
-
-```typescript
-const parser = new IncrementalParser(ctx);
-
-// Process some classes
-parser.processClasses(['bg-blue-500', 'text-white', 'p-4']);
-
-// Get performance statistics
-const stats = parser.getStats();
-console.log(stats);
-// {
-//   totalProcessed: 3,
-//   cacheHits: 0,
-//   averageProcessingTime: '0.8ms',
-//   memoryUsage: '2.1KB'
-// }
-```
-
-### Batch Size Optimization
-
-```typescript
-// Configure optimal batch size for your use case
-const parser = new IncrementalParser(ctx, {
-  batchSize: 100 // Process up to 100 classes at once
-});
-
-// Large batch processing
-const largeClassList = Array.from({length: 500}, (_, i) => `class-${i}`);
-const results = parser.processClasses(largeClassList);
-```
-
-### Error Handling
-
-```typescript
-const parser = new IncrementalParser(ctx);
-
-try {
-  const results = parser.processClasses(['valid-class', 'invalid-class']);
-  
-  // Handle partial failures gracefully
-  results.forEach(result => {
-    if (result.error) {
-      console.warn(`Failed to process: ${result.cls}`, result.error);
-    } else {
-      console.log(`Success: ${result.cls}`);
-    }
-  });
-} catch (error) {
-  console.error('Batch processing failed:', error);
-```
-
-## Integration with Runtime APIs
-
-### Browser Runtime Integration
-
-```typescript
-import { BrowserRuntime } from '@barocss/browser';
-import { IncrementalParser } from '@barocss/kit';
-
-const runtime = new BrowserRuntime();
-const parser = new IncrementalParser(runtime.context);
-
-// Process classes and inject CSS
-const results = parser.processClasses(['bg-blue-500', 'text-white']);
-results.forEach(result => {
-  if (result.css) {
-    runtime.insertRule(result.css);
-  }
-});
-```
-
-### Server Runtime Integration
-
-```typescript
-import { ServerRuntime } from '@barocss/server';
-import { IncrementalParser } from '@barocss/kit';
-
-const runtime = new ServerRuntime();
-const parser = new IncrementalParser(runtime.context);
-
-// Process classes for server-side rendering
-const results = parser.processClasses(['bg-red-500', 'text-white']);
-const css = results.map(r => r.css).join('\n');
-```
+For applications with many classes, BaroCSS can process them asynchronously, ensuring smooth user experience even during heavy CSS generation.
 
 ## Use Cases
 
@@ -232,82 +95,91 @@ const css = results.map(r => r.css).join('\n');
 
 Perfect for applications with many dynamic classes:
 
-```typescript
-// Handle thousands of classes efficiently
-const parser = new IncrementalParser(ctx);
-
-// Process initial classes
-parser.processClasses(initialClasses); // ~50ms
-
-// Add new classes incrementally
-parser.processClasses(newClasses); // ~5ms (only new ones)
-```
+- **Component libraries** with hundreds of utility combinations
+- **Dynamic theming** systems that change classes frequently
+- **User-generated content** with custom styling
 
 ### 2. Dynamic Content
 
 Ideal for content that changes frequently:
 
+- **Real-time editors** where users add/remove classes
+- **Interactive dashboards** with dynamic widgets
+- **E-commerce sites** with product-specific styling
+
+### 3. Performance-Critical Applications
+
+Essential for applications where performance matters:
+
+- **Mobile applications** with limited resources
+- **Large-scale web apps** with thousands of components
+- **Real-time applications** requiring smooth interactions
+
+## Benefits
+
+### Memory Efficiency
+
+::: tip Smart Caching
+BaroCSS uses multi-layer caching to store results at each processing stage.
+:::
+
+- **Parse Cache** - Stores parsed class structures
+- **AST Cache** - Stores generated Abstract Syntax Trees  
+- **CSS Cache** - Stores final CSS output
+- **Reduced memory footprint** - Only stores unique class results
+- **Faster access** - Cached results are retrieved instantly
+- **Lower garbage collection** - Fewer temporary objects created
+
+### CPU Optimization
+
+::: tip Intelligent Processing
+Only new classes require CPU-intensive parsing and CSS generation.
+:::
+
+- **Faster initial loads** - Processes only what's needed
+- **Efficient updates** - Skips already-processed classes
+- **Better scalability** - Performance doesn't degrade with class count
+
+### Developer Experience
+
+::: tip Seamless Integration
+Works automatically without additional configuration.
+:::
+
+- **Zero configuration** - Works out of the box
+- **Transparent operation** - No changes to existing code
+- **Consistent performance** - Predictable behavior across applications
+
+## Integration
+
+### Browser Runtime
+
+Incremental parsing is automatically enabled in the browser runtime:
+
 ```typescript
-// User adds/removes classes dynamically
-function updateElementClasses(element: HTMLElement, newClasses: string[]) {
-  const results = parser.processClasses(newClasses);
-  
-  // Only process new classes
-  results.forEach(result => {
-    if (result.css) {
-      runtime.insertRule(result.css);
-    }
-  });
+import { BrowserRuntime } from '@barocss/browser';
+
+const runtime = new BrowserRuntime();
+// Incremental parsing is automatically active
 ```
 
-### 3. Component Libraries
+### Server Runtime
 
-Build efficient component systems:
-
-```typescript
-class ComponentLibrary {
-  private parser = new IncrementalParser(ctx);
-  
-  createButton(variant: string, size: string) {
-    const classes = [`btn-${variant}`, `btn-${size}`];
-    
-    // Only process new combinations
-    const results = this.parser.processClasses(classes);
-    
-    return {
-      classes: classes.join(' '),
-      css: results.map(r => r.css).join('\n')
-    };
-  }
-```
-
-## Best Practices
-
-### 1. Batch Similar Operations
+Server-side applications also benefit from incremental parsing:
 
 ```typescript
-// Good: Batch related classes
-const buttonClasses = ['btn', 'btn-primary', 'btn-large'];
-parser.processClasses(buttonClasses);
+import { ServerRuntime } from '@barocss/server';
 
-// Avoid: Process classes one by one
-buttonClasses.forEach(cls => parser.processClass(cls));
+const runtime = new ServerRuntime();
+// Efficient processing for SSR applications
 ```
-
-## Performance Comparison
-
-| Scenario | Traditional | Incremental | Improvement |
-|----------|-------------|-------------|-------------|
-| **First Load** | 100ms | 100ms | Same |
-| **Add 10 Classes** | 50ms | 5ms | 10x faster |
-| **Add 100 Classes** | 500ms | 20ms | 25x faster |
-| **Memory Usage** | High | Low | 60% less |
-| **Cache Hit Rate** | 0% | 85% | Significant |
 
 ## Conclusion
 
 Incremental parsing is a key differentiator of BaroCSS, providing significant performance improvements for applications with dynamic content and large numbers of CSS classes.
 
-The system intelligently tracks processed classes, batches operations efficiently, and provides comprehensive monitoring tools to ensure optimal performance.
+The system intelligently tracks processed classes, batches operations efficiently, and provides seamless integration with both browser and server runtimes.
 
-Ready to experience incremental parsing? Check out the [API Reference](/api/engine) for detailed implementation examples.
+::: tip Ready to Learn More?
+Check out the [Engine API](/api/engine) for detailed implementation examples and advanced usage patterns.
+:::

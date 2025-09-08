@@ -19,6 +19,7 @@ Just-In-Time (JIT) compilation is a technique where code is compiled at runtime,
 - **Zero unused CSS** - No bloated stylesheets with unused utilities
 - **Real-time compilation** - Generate styles instantly as you develop
 - **Optimal performance** - Minimal memory usage and fast loading times
+- **Zero build time** - No build processes or configuration required
 
 ## Traditional CSS vs JIT Mode
 
@@ -44,6 +45,8 @@ Just-In-Time (JIT) compilation is a technique where code is compiled at runtime,
 - **Unused CSS** - Most utilities are never used
 - **Slow loading** - Large CSS files take time to download
 - **Memory waste** - Unused styles consume memory
+- **Build complexity** - Configure webpack, PostCSS, etc.
+- **Slow development cycles** - Wait for builds to see changes
 :::
 
 ### BaroCSS JIT Mode
@@ -74,6 +77,8 @@ document.body.innerHTML = `
 - **Zero unused CSS** - No waste
 - **Fast loading** - Small CSS files
 - **Memory efficient** - Only loads what's needed
+- **Zero build time** - No build processes required
+- **Instant feedback** - See changes immediately
 :::
 
 ## How JIT Mode Works
@@ -202,6 +207,19 @@ npm run build; // 30+ seconds
 // JIT: Instant CSS generation
 element.className = 'new-class'; // 0ms
 ```
+
+### 5. Zero Build Configuration
+
+::: details Purpose
+Start using BaroCSS immediately without complex setup or build processes.
+:::
+
+```html
+<!-- Just include the script and start styling -->
+<script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
+```
+
+No webpack, PostCSS, or build tools required!
 
 ## Advanced JIT Features
 
@@ -442,6 +460,8 @@ function createUserStyle(backgroundColor: string, textColor: string) {
 | **Unused CSS** | 2.95MB | 0KB | 100% elimination |
 | **Build Time** | 30s+ | 0ms | Instant |
 | **Development Speed** | Slow | Instant | Immediate feedback |
+| **Change Detection** | Manual file scanning | Automatic DOM monitoring | Real-time |
+| **Dynamic Content** | Limited | Full support | Complete |
 
 ## Conclusion
 

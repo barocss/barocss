@@ -39,11 +39,9 @@ Ready to get started? Continue with:
 - [CDN Usage](/guide/cdn-usage) - Use BaroCSS via CDN
 
 ### Core Concepts
-- [JIT Mode](/guide/jit-mode) - Understand how JIT compilation works
-- [Real-time Generation](/guide/real-time-generation) - Learn about real-time CSS generation
-- [Incremental Parsing](/guide/incremental-parsing) - Advanced parsing capabilities
+- [JIT Mode](/guide/jit-mode) - Understand how JIT compilation and real-time generation works
+- [Incremental Parsing](/guide/incremental-parsing) - Advanced parsing capabilities with smart caching
 - [DOM Change Detection](/guide/dom-change-detection) - Automatic DOM monitoring
-- [Smart Caching](/guide/smart-caching) - Multi-layer caching system
 - [Runtime APIs](/guide/runtime-apis) - Browser and Server runtime APIs
 
 ### AI Integration

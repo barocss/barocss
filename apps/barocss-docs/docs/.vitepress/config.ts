@@ -58,12 +58,9 @@ export default defineConfig(withMermaid({
           text: 'Core Concepts',
           items: [
             { text: 'JIT Mode', link: '/guide/jit-mode' },
-            { text: 'Real-time Generation', link: '/guide/real-time-generation' },
             { text: 'Incremental Parsing', link: '/guide/incremental-parsing' },
             { text: 'DOM Change Detection', link: '/guide/dom-change-detection' },
-            { text: 'Smart Caching', link: '/guide/smart-caching' },
-            { text: 'Runtime APIs', link: '/guide/runtime-apis' },
-            { text: 'CSS Variables', link: '/guide/css-variables' }
+            { text: 'Runtime APIs', link: '/guide/runtime-apis' }
           ]
         },
         {
