@@ -22,9 +22,15 @@ export function parseFraction(input: string): string | null {
 
 /**
  * Returns the input if it is a valid non-negative integer string, else null.
+ * 
+ * @example
+ * parseNumber("10") // "10"
+ * parseNumber("-10") // "-10"
+ * parseNumber("10.5") // "10.5"
  */
 export function parseNumber(input: string): string | null {
-  return /^\d+$/.test(input) ? input : null;
+  // Accept integers and decimals (e.g., 1, -2, 1.5, -0.25)
+  return /^-?\d+(?:\.\d+)?$/.test(input) ? input : null;
 }
 
 /**

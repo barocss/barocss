@@ -186,7 +186,7 @@ functionalUtility({
 });
 
 // --- Typography: Text Transform ---
-  staticUtility("uppercase", [["text-transform", "uppercase"]], { category: 'typography' });
+staticUtility("uppercase", [["text-transform", "uppercase"]], { category: 'typography' });
 staticUtility("lowercase", [["text-transform", "lowercase"]], { category: 'typography' });
 staticUtility("capitalize", [["text-transform", "capitalize"]], { category: 'typography' });
 staticUtility("normal-case", [["text-transform", "none"]], { category: 'typography' });

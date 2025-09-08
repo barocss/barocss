@@ -109,8 +109,11 @@ export class IncrementalParser {
 
       // Generate AST
       const ast = parseClassToAst(className, this.ctx);
+
+      // console.log('[IncrementalParser] ast', className, ast);
       
       if (ast.length === 0) {
+        console.warn('[IncrementalParser] ast is empty', className);
         return null;
       }
 

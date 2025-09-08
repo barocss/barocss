@@ -305,6 +305,7 @@ export function functionalUtility(opts: {
         return [];
       }
       // 4. Fraction value (e.g., 1/2, -2/5)
+      // console.log('[functionalUtility] fraction', { value });
       if (opts.supportsFraction && /^-?\d+\/\d+$/.test(value)) {
         finalValue = value;
         // console.log('[functionalUtility] fraction', { finalValue });
@@ -325,6 +326,7 @@ export function functionalUtility(opts: {
       }
       // 7. handle (custom AST generation)
       if (opts.handle) {
+        // console.log('[functionalUtility] handle', { finalValue });
         const result = opts.handle(finalValue, ctx, token, extra);
         // console.log('[functionalUtility] handle result', result);
         if (result) return result;

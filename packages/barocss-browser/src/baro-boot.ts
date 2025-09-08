@@ -28,3 +28,5 @@ export function baroBoot({ loadingClassName = 'baro-boot', ...options }: BaroBoo
         console.error('BaroCSS boot failed:', error);
     }
 }
+
+export const baroStart = baroBoot;

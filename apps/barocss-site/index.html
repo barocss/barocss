@@ -5,32 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BaroCSS — Runtime CSS Engine</title>
     <meta name="description" content="BaroCSS landing page" />
+    <style type="text/css">
+
+      @view-transition {
+        navigation: auto;
+      }
+
+      .baro-boot-doing {
+        opacity: 0;
+      }
+      .baro-boot-done {
+        opacity: 1;
+      }
+    </style>
     <script type="module">
-      import { baroBoot } from '@barocss/browser';
-      baroBoot({
-        config: {
-          preflight: true,
-        }
+      import { baroStart } from '@barocss/browser';
+
+
+      document.startViewTransition(() => {
+        baroStart({
+          config: {
+            preflight: true,
+          }
+        });
       });
     </script>
   </head>
-  <body class="bg-slate-900 text-slate-100 antialiased">
+  <body class="bg-white text-slate-900 antialiased baro-boot-doing">
     <!-- Navbar -->
-    <header class="sticky top-0 z-40 backdrop:blur-sm supports-[backdrop-filter]:bg-slate-900/60 border-b border-white/10">
+    <header class="sticky top-0 z-40 backdrop-blur-sm supports-[backdrop-filter]:bg-white/70 border-b border-slate-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <a href="#" class="flex items-center gap-2">
-          <span class="inline-block w-7 h-7 rounded-md bg-blue-500 shadow-[0_0_40px_0_rgba(59,130,246,.5)]"></span>
+          <span class="inline-block w-7 h-7 rounded-md bg-blue-600 shadow-[0_0_24px_0_rgba(37,99,235,.25)]"></span>
           <span class="text-lg font-semibold tracking-tight">BaroCSS</span>
         </a>
-        <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
-          <a class="hover:text-white transition-colors" href="#features">Features</a>
-          <a class="hover:text-white transition-colors" href="#demo">Demo</a>
-          <a class="hover:text-white transition-colors" href="#install">Install</a>
-          <a class="hover:text-white transition-colors" href="#footer">GitHub</a>
+        <nav class="hidden md:flex items-center gap-6 text-sm text-slate-600">
+          <a class="hover:text-slate-900 transition-colors" href="#features">Features</a>
+          <a class="hover:text-slate-900 transition-colors" href="#demo">Demo</a>
+          <a class="hover:text-slate-900 transition-colors" href="#install">Install</a>
+          <a class="hover:text-slate-900 transition-colors" href="#footer">GitHub</a>
         </nav>
         <div class="flex items-center gap-2">
-          <button id="toggle-dark" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 hover:bg-slate-100 border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">Toggle dark</button>
-          <a href="#install" class="hidden sm:inline-flex px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 hover:bg-slate-100 transition shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">
+          <button id="toggle-dark" class="px-3 py-1.5 text-sm rounded-md bg-slate-900 text-white hover:bg-slate-800 border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">Toggle dark</button>
+          <a href="#install" class="hidden sm:inline-flex px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 transition shadow focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">
             Get Started
           </a>
         </div>
@@ -38,102 +55,563 @@
     </header>
 
     <!-- Hero -->
-    <section class="relative overflow-hidden">
-      <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-transparent"></div>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-        <div class="max-w-3xl">
-          <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight">
-            Real‑time CSS generation,
-            <span class="text-blue-400">runtime‑first</span>
-          </h1>
-          <p class="mt-6 text-lg text-slate-300 leading-relaxed">
-            BaroCSS generates CSS on demand from utility classes in the DOM. No build steps, instant feedback, and minimal CSS.
-          </p>
-          <div class="mt-8 flex flex-col sm:flex-row gap-3">
-            <a href="#demo" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-500 hover:bg-blue-600 transition text-white font-medium">
-              Live Demo
-            </a>
-            <a href="#install" class="inline-flex items-center justify-center px-4 py-2 rounded-md border border-white/10 hover:bg-white/10 transition font-medium">
-              Install
-            </a>
+    <section class="relative">
+      <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--baro-gradient-stops))] from-blue-200/40 via-transparent to-transparent"></div>
+      <div class="pointer-events-none absolute -top-24 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-300/30 via-cyan-200/20 to-indigo-300/30 blur-3xl"></div>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
+        <div class="grid lg:grid-cols-2 gap-10 items-center">
+          <div class="max-w-2xl">
+            <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
+              <span class="inline-block h-1.5 w-1.5 rounded-full bg-blue-600"></span>
+              Runtime‑first CSS engine
+            </span>
+            <h1 class="mt-3 text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight text-slate-900">
+              Generate CSS <span class="bg-gradient-to-r from-blue-600 via-cyan-600 to-indigo-600 bg-clip-text text-transparent">as you code</span>
+            </h1>
+            <p class="mt-5 text-lg text-slate-600 leading-relaxed">
+              BaroCSS parses utility classes and emits CSS in real time. No build steps, minimal output, instant feedback.
+            </p>
+            <div class="mt-8 flex flex-col sm:flex-row gap-3">
+              <a href="#demo" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">Live Demo</a>
+              <a href="#install" class="inline-flex items-center justify-center px-4 py-2 rounded-md border border-slate-300 hover:bg-slate-50 transition font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">Install</a>
+              <a href="https://github.com/barocss/barocss" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center px-4 py-2 rounded-md border border-slate-300 hover:bg-slate-50 transition font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">GitHub</a>
+            </div>
+            <div class="mt-10 grid grid-cols-3 gap-4 text-slate-700">
+              <div class="rounded-lg border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md">
+                <div class="text-2xl font-bold text-slate-900">0ms</div>
+                <div class="text-sm">Build time</div>
+              </div>
+              <div class="rounded-lg border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md">
+                <div class="text-2xl font-bold text-slate-900">100%</div>
+                <div class="text-sm">On‑demand</div>
+              </div>
+              <div class="rounded-lg border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md">
+                <div class="text-2xl font-bold text-slate-900">Tiny</div>
+                <div class="text-sm">CSS output</div>
+              </div>
+            </div>
+          </div>
+          <div class="relative">
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-xl">
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <pre class="text-sm overflow-auto">&lt;div class="bg-blue-500 text-white p-6 rounded-xl shadow-2xl hover:scale-105 transition duration-300 sm:p-10"&gt;
+  Live preview updates instantly
+&lt;/div&gt;</pre>
+              </div>
+              <div class="mt-4 flex items-center gap-2 text-xs text-slate-600">
+                <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+                Real‑time generation active
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- Header Section (with stats) -->
+    <section class="py-16 sm:py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <span class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600">Overview</span>
+          <h2 class="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">Why teams choose BaroCSS</h2>
+          <p class="mt-3 text-slate-600">Real‑time CSS, tiny output, and zero build configuration make it ideal for rapid product teams.</p>
+        </div>
+        <div class="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+          <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition">
+            <div class="text-3xl font-extrabold text-slate-900">0&nbsp;ms</div>
+            <div class="mt-1 text-sm text-slate-600">Build time</div>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition">
+            <div class="text-3xl font-extrabold text-slate-900">100%</div>
+            <div class="mt-1 text-sm text-slate-600">On‑demand generation</div>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition">
+            <div class="text-3xl font-extrabold text-slate-900">KB‑level</div>
+            <div class="mt-1 text-sm text-slate-600">Typical CSS size</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- What is BaroCSS? -->
+    <section class="py-16 sm:py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">What is BaroCSS?</h2>
+        <p class="mt-4 text-slate-600 max-w-3xl">
+          BaroCSS is a <strong>CSS parsing and generation engine</strong> that brings Tailwind's utility‑first approach to runtime environments.
+          Built from the ground up to support Tailwind‑style syntax, it enables dynamic CSS generation without build processes.
+        </p>
+      </div>
+    </section>
+
+    <!-- Core Architecture -->
+    <section class="py-16 sm:py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Core Architecture</h2>
+        <ul class="mt-4 grid sm:grid-cols-3 gap-4 list-none p-0">
+          <li class="rounded-lg border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md"><code class="text-slate-800">@barocss/kit</code> — Core parsing and generation engine</li>
+          <li class="rounded-lg border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md"><code class="text-slate-800">@barocss/browser</code> — Browser runtime with DOM change detection</li>
+          <li class="rounded-lg border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md"><code class="text-slate-800">@barocss/server</code> — Server runtime for static CSS generation</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Runtime‑First Approach -->
+    <section class="py-16 sm:py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <h2 class="text-2xl sm:text-3xl font-bold">Runtime‑First Approach</h2>
+          <p class="mt-3 text-slate-600">How BaroCSS differs from traditional build pipelines, and why it matters for UX and DX.</p>
+        </div>
+        <div class="mt-8 grid md:grid-cols-2 gap-6">
+          <!-- Traditional -->
+          <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <span class="inline-block h-2 w-2 rounded-full bg-slate-400"></span>
+              Traditional Build Pipeline
+            </div>
+            <ol class="mt-3 space-y-2 text-sm text-slate-600 list-decimal pl-5">
+              <li>Write classes in templates/components</li>
+              <li>Run build (PostCSS, bundler)</li>
+              <li>Wait for rebuild on changes</li>
+              <li>Deploy/reload to see results</li>
+            </ol>
+            <pre class="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm overflow-auto"># Build‑based flow
+# Write → Build → Wait → Deploy
+<button class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-md border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-600">Button</button></pre>
+            <ul class="mt-4 space-y-1 text-sm text-slate-600">
+              <li>• Larger CSS payloads (precompiled)</li>
+              <li>• Slower feedback while iterating</li>
+              <li>• Requires tooling configuration</li>
+            </ul>
+          </div>
+          <!-- BaroCSS Runtime -->
+          <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <span class="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+              BaroCSS Runtime
+            </div>
+            <ol class="mt-3 space-y-2 text-sm text-slate-600 list-decimal pl-5">
+              <li>Write classes in the DOM</li>
+              <li>Runtime parses and generates on demand</li>
+              <li>Styles apply immediately</li>
+              <li>No build step required</li>
+            </ol>
+            <pre class="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm overflow-auto"># Runtime flow
+# Write → Instant CSS
+<button class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-md border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-600">Button</button></pre>
+            <ul class="mt-4 space-y-1 text-sm text-slate-600">
+              <li>• Tiny CSS (only used utilities)</li>
+              <li>• Instant feedback for designers and devs</li>
+              <li>• Works in browser and server runtimes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Capabilities -->
+    <section class="py-16 sm:py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Key Capabilities</h2>
+        <div class="mt-6 grid lg:grid-cols-3 gap-6">
+          <div class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md">
+            <div class="text-sm font-semibold text-slate-700">Core Engine (<code>@barocss/kit</code>)</div>
+            <pre class="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm overflow-auto">import { parseClassToAst, generateCss, createContext } from '@barocss/kit'
+
+const context = createContext()
+const ast = parseClassToAst('bg-blue-500 text-white p-4', context)
+const css = generateCss('bg-blue-500 text-white p-4', context)</pre>
+          </div>
+          <div class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md">
+            <div class="text-sm font-semibold text-slate-700">Browser Runtime (<code>@barocss/browser</code>)</div>
+            <pre class="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm overflow-auto">import { BrowserRuntime } from '@barocss/browser'
+
+const runtime = new BrowserRuntime()
+runtime.observe(document.body, { scan: true })
+// Automatically detects and styles new classes</pre>
+          </div>
+          <div class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md">
+            <div class="text-sm font-semibold text-slate-700">Server Runtime (<code>@barocss/server</code>)</div>
+            <pre class="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm overflow-auto">import { ServerRuntime } from '@barocss/server'
+
+const runtime = new ServerRuntime()
+const css = runtime.generateCss('bg-blue-500 text-white p-4')
+// Generate CSS for server-side rendering</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Perfect for Dynamic Content -->
+    <section class="py-16 sm:py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Perfect for Dynamic Content</h2>
+        <pre class="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm overflow-auto">// User-generated content with arbitrary values
+const userContent = `
+<div class="w-[${width}px] h-[${height}px] bg-[${color}] rounded-[${radius}px]">
+  Dynamic content styled instantly
+</div>
+`
+
+// BaroCSS parses arbitrary values like w-[400px], bg-[#ff0000] at runtime</pre>
+      </div>
+    </section>
+
+    <!-- Get Started -->
+    <section class="py-16 sm:py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Get Started</h2>
+        <pre class="mt-4 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm overflow-auto"># Install the core engine
+pnpm add @barocss/kit
+
+# Or install specific runtimes
+pnpm add @barocss/browser  # For browser usage
+pnpm add @barocss/server   # For server usage</pre>
+      </div>
+    </section>
+
     <!-- Features -->
-    <section id="features" class="py-16 sm:py-20 border-t border-white/10">
+    <section id="features" class="py-16 sm:py-20 border-t border-slate-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid md:grid-cols-3 gap-6">
-          <div class="rounded-xl border border-white/10 p-6 bg-white/5">
-            <h3 class="text-lg font-semibold">On‑demand CSS</h3>
-            <p class="mt-2 text-slate-300">Only classes you use are generated. Zero unused CSS.</p>
+          <div class="rounded-xl border border-slate-200 p-6 bg-white shadow-sm">
+            <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 text-white">⚡</div>
+            <h3 class="mt-4 text-lg font-semibold">Runtime‑first</h3>
+            <p class="mt-2 text-slate-600">Generate CSS at runtime for dynamic UIs and real‑time feedback.</p>
           </div>
-          <div class="rounded-xl border border-white/10 p-6 bg-white/5">
-            <h3 class="text-lg font-semibold">Instant feedback</h3>
-            <p class="mt-2 text-slate-300">Changes reflect immediately with DOM observation.</p>
+          <div class="rounded-xl border border-slate-200 p-6 bg-white shadow-sm">
+            <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 text-white">🎯</div>
+            <h3 class="mt-4 text-lg font-semibold">Utility syntax</h3>
+            <p class="mt-2 text-slate-600">Tailwind‑style utilities, variants, and arbitrary values supported.</p>
           </div>
-          <div class="rounded-xl border border-white/10 p-6 bg-white/5">
-            <h3 class="text-lg font-semibold">No build required</h3>
-            <p class="mt-2 text-slate-300">Drop in the runtime. No PostCSS or bundler setup needed.</p>
+          <div class="rounded-xl border border-slate-200 p-6 bg-white shadow-sm">
+            <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 text-white">🧠</div>
+            <h3 class="mt-4 text-lg font-semibold">Smart parsing</h3>
+            <p class="mt-2 text-slate-600">Incremental parsing and caching keep output tiny and fast.</p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Demo -->
-    <section id="demo" class="py-16 sm:py-20 border-t border-white/10">
+    <section id="demo" class="py-16 sm:py-20 border-t border-slate-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl font-bold">Live Demo</h2>
-        <p class="mt-2 text-slate-300">Click to add classes and see styles generate in real time.</p>
+        <p class="mt-2 text-slate-600">Click to add classes and see styles generate in real time.</p>
 
         <div class="mt-6 flex flex-wrap gap-3">
-          <button data-class="bg-blue-500 text-white" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">bg‑blue‑500</button>
-          <button data-class="p-6" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">p‑6</button>
-          <button data-class="rounded-xl" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">rounded‑xl</button>
-          <button data-class="shadow-2xl" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">shadow‑2xl</button>
-          <button data-class="hover:scale-105 transition duration-300" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">hover:scale‑105</button>
-          <button data-class="sm:p-10" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">sm:p‑10</button>
-          <button data-class="backdrop:blur-sm" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">backdrop:blur‑sm</button>
+          <button data-class="bg-blue-500 text-white" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">bg‑blue‑500</button>
+          <button data-class="p-6" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">p‑6</button>
+          <button data-class="rounded-xl" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">rounded‑xl</button>
+          <button data-class="shadow-2xl" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">shadow‑2xl</button>
+          <button data-class="hover:scale-105 transition duration-300" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">hover:scale‑105</button>
+          <button data-class="sm:p-10" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">sm:p‑10</button>
+          <button data-class="backdrop-blur-sm" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">backdrop‑blur‑sm</button>
         </div>
 
         <div class="mt-6 grid md:grid-cols-2 gap-6">
-          <div id="demoBox" class="min-h-[140px] rounded-xl border border-white/10 bg-white/5 p-4 flex items-center justify-center">
-            <span class="text-slate-300">Classes will be applied here</span>
+          <div id="demoBox" class="min-h-[180px] rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-center backdrop-blur-sm transition-all duration-300 shadow-sm">
+            <span class="text-slate-600">Classes will be applied here</span>
           </div>
-          <pre id="classOut" class="bg-slate-950/70 border border-white/10 rounded-xl p-4 text-sm overflow-auto">/* current classes */</pre>
+          <div class="space-y-3">
+            <pre id="classOut" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm overflow-auto">/* current classes */</pre>
+            <pre class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm overflow-auto">&lt;div class="bg-blue-500 text-white p-6 rounded-xl shadow-2xl hover:scale-105 transition duration-300 sm:p-10"&gt;&lt;/div&gt;</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Showcase -->
+    <section class="py-16 sm:py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Why BaroCSS</h2>
+        <div class="mt-6 grid md:grid-cols-3 gap-6">
+          <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition">
+            <div class="text-sm font-semibold text-blue-600">Runtime‑first</div>
+            <p class="mt-2 text-slate-600">No pipelines. CSS is generated directly in the browser or server as you use it.</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition">
+            <div class="text-sm font-semibold text-blue-600">Composable</div>
+            <p class="mt-2 text-slate-600">Filters, transforms, and variants compose via CSS variables for powerful combinations.</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition">
+            <div class="text-sm font-semibold text-blue-600">Framework‑agnostic</div>
+            <p class="mt-2 text-slate-600">Works in plain HTML, React, Vue, or any framework—no build plugins required.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-8 sm:p-12">
+          <div class="max-w-2xl">
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900">Build faster with runtime CSS</h2>
+            <p class="mt-3 text-slate-600">Skip the build step and style interactively. Works in plain HTML or any framework.</p>
+            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+              <a href="#install" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition font-medium">Get Started</a>
+              <a href="#demo" class="inline-flex items-center justify-center px-4 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 transition font-medium">Try the Demo</a>
+            </div>
+          </div>
+          <div class="pointer-events-none absolute -right-10 -top-10 h-56 w-56 rounded-full bg-blue-200/40 blur-3xl"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bento Grid -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Showcase</h2>
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="col-span-1 lg:col-span-2 row-span-1 rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md">
+            <h3 class="font-semibold">Variants</h3>
+            <p class="mt-2 text-sm text-slate-600">Hover, focus, media queries, and more with clean composition.</p>
+          </div>
+          <div class="col-span-1 row-span-1 rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md">
+            <h3 class="font-semibold">Filters</h3>
+            <p class="mt-2 text-sm text-slate-600">Composable filter pipeline via CSS variables.</p>
+          </div>
+          <div class="col-span-1 row-span-2 rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md flex items-end" style="min-height: 220px;">
+            <div>
+              <h3 class="font-semibold">Tiny output</h3>
+              <p class="mt-2 text-sm text-slate-600">Only the classes you use become CSS.</p>
+            </div>
+          </div>
+          <div class="col-span-1 lg:col-span-2 row-span-1 rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md">
+            <h3 class="font-semibold">Framework‑agnostic</h3>
+            <p class="mt-2 text-sm text-slate-600">Use in React, Vue, Svelte, or just HTML.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter Section -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h2 class="text-2xl font-bold text-slate-900 text-center">Stay in the loop</h2>
+          <p class="mt-2 text-center text-slate-600">Get updates about new features and examples.</p>
+          <form class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+            <input type="email" placeholder="you@example.com" class="w-full sm:w-80 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600" />
+            <button type="button" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition text-sm border border-transparent">Subscribe</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+          <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition">
+            <div class="text-3xl font-extrabold text-slate-900">~1ms</div>
+            <div class="mt-1 text-sm text-slate-600">Avg gen time</div>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition">
+            <div class="text-3xl font-extrabold text-slate-900">0 setup</div>
+            <div class="mt-1 text-sm text-slate-600">No build tools</div>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition">
+            <div class="text-3xl font-extrabold text-slate-900">∞</div>
+            <div class="mt-1 text-sm text-slate-600">Arbitrary values</div>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition">
+            <div class="text-3xl font-extrabold text-slate-900">SSG/SSR</div>
+            <div class="mt-1 text-sm text-slate-600">Server ready</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">What developers say</h2>
+        <div class="mt-6 grid md:grid-cols-3 gap-6">
+          <figure class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md">
+            <blockquote class="text-slate-700">“Swapping Tailwind builds for runtime generation made our UI iterations instant.”</blockquote>
+            <figcaption class="mt-4 text-sm text-slate-500">— Frontend Engineer</figcaption>
+          </figure>
+          <figure class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md">
+            <blockquote class="text-slate-700">“The output stays tiny even as our components grow. Exactly what we needed.”</blockquote>
+            <figcaption class="mt-4 text-sm text-slate-500">— Product Designer</figcaption>
+          </figure>
+          <figure class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md">
+            <blockquote class="text-slate-700">“No build step and great DX. Works in our SSR and client apps alike.”</blockquote>
+            <figcaption class="mt-4 text-sm text-slate-500">— Full‑stack Dev</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-end justify-between gap-4">
+          <h2 class="text-2xl font-bold">From the blog</h2>
+          <a href="/blog/" class="text-sm text-blue-700 hover:text-blue-800">View all</a>
+        </div>
+        <div class="mt-6 grid md:grid-cols-3 gap-6">
+          <article class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md">
+            <div class="text-xs text-slate-500">2025</div>
+            <h3 class="mt-2 font-semibold">Introducing BaroCSS</h3>
+            <p class="mt-2 text-sm text-slate-600">Why we built a runtime CSS engine and how it works.</p>
+            <a href="/blog/2025/introducing-barocss" class="mt-3 inline-flex text-sm text-blue-700 hover:text-blue-800">Read →</a>
+          </article>
+          <article class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md">
+            <div class="text-xs text-slate-500">2025</div>
+            <h3 class="mt-2 font-semibold">Getting Started</h3>
+            <p class="mt-2 text-sm text-slate-600">Basics of installing and trying BaroCSS in the browser.</p>
+            <a href="/blog/2025/getting-started" class="mt-3 inline-flex text-sm text-blue-700 hover:text-blue-800">Read →</a>
+          </article>
+          <article class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md">
+            <div class="text-xs text-slate-500">2025</div>
+            <h3 class="mt-2 font-semibold">JIT Mode Deep Dive</h3>
+            <p class="mt-2 text-sm text-slate-600">How our JIT engine transforms classes to styles in real‑time.</p>
+            <a href="/guide/jit-mode" class="mt-3 inline-flex text-sm text-blue-700 hover:text-blue-800">Read →</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Section -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <h2 class="text-2xl font-bold">Runtime‑first architecture</h2>
+            <p class="mt-3 text-slate-600">BaroCSS avoids large precompiled styles by generating only what you use. This keeps payloads small and development fast.</p>
+            <ul class="mt-4 list-disc pl-5 text-slate-600 space-y-2">
+              <li>On‑demand utilities and variants</li>
+              <li>Composable filters/transforms via CSS variables</li>
+              <li>Works with static and server renderers</li>
+            </ul>
+          </div>
+          <div class="rounded-2xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md">
+            <pre class="text-sm overflow-auto">import { generateCss, createContext } from '@barocss/kit'
+
+const ctx = createContext()
+const css = generateCss('bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-lg', ctx)
+// → CSS is emitted instantly</pre>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Install -->
-    <section id="install" class="py-16 sm:py-20 border-t border-white/10">
+    <section id="install" class="py-16 sm:py-20 border-t border-slate-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 class="text-2xl font-bold">Install</h2>
         <div class="mt-4 grid md:grid-cols-2 gap-6">
-          <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md">
             <h3 class="font-semibold">Using pnpm</h3>
-            <pre class="mt-2 bg-slate-950/70 border border-white/10 rounded-lg p-4 text-sm">pnpm add @barocss/browser</pre>
+            <pre class="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm">pnpm add @barocss/browser</pre>
           </div>
-          <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+          <div class="rounded-xl border border-slate-300 bg-gradient-to-br from-slate-50 to-white p-4 shadow-md">
             <h3 class="font-semibold">CDN (ESM)</h3>
-            <pre class="mt-2 bg-slate-950/70 border border-white/10 rounded-lg p-4 text-sm">&lt;script type="module" src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js"&gt;&lt;/script&gt;</pre>
+            <pre class="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm">&lt;script type="module" src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js"&gt;&lt;/script&gt;</pre>
           </div>
         </div>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer id="footer" class="border-t border-white/10 py-10">
+    <footer id="footer" class="border-t border-slate-200 py-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p class="text-slate-400 text-sm">MIT © 2025 BaroCSS</p>
-        <div class="flex items-center gap-3 text-sm">
-          <a class="hover:text-white" href="https://github.com/barocss/barocss">GitHub</a>
+        <p class="text-slate-500 text-sm">MIT © 2025 BaroCSS</p>
+        <div class="flex items-center gap-3 text-sm text-slate-600">
+          <a class="hover:text-slate-900" href="https://github.com/barocss/barocss">GitHub</a>
           <span class="opacity-30">/</span>
-          <a class="hover:text-white" href="/">Docs</a>
+          <a class="hover:text-slate-900" href="/">Docs</a>
         </div>
       </div>
     </footer>
+
+    <!-- Docs Quick Links -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Documentation</h2>
+        <div class="mt-6 grid md:grid-cols-3 gap-6">
+          <a href="/guide/" class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition block">
+            <h3 class="font-semibold text-slate-900">Guide</h3>
+            <p class="mt-2 text-slate-600 text-sm">Getting started, concepts, JIT, incremental parsing, DOM change detection.</p>
+          </a>
+          <a href="/api/" class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition block">
+            <h3 class="font-semibold text-slate-900">API</h3>
+            <p class="mt-2 text-slate-600 text-sm">Context, Engine, Parser, Browser Runtime, Server Runtime, AST Processing.</p>
+          </a>
+          <a href="/examples/" class="rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition block">
+            <h3 class="font-semibold text-slate-900">Examples</h3>
+            <p class="mt-2 text-slate-600 text-sm">Example snippets and common patterns to try right away.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- API Learning Path (from /api/) -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">API Learning Path</h2>
+        <div class="mt-6 grid md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+          <a href="/api/context" class="rounded-lg border border-slate-200 bg-white p-4 shadow-md hover:shadow-lg transition">
+            <div class="font-semibold text-slate-900">Context API</div>
+            <div class="mt-1 text-slate-600">Create and configure a context for generation.</div>
+          </a>
+          <a href="/api/engine" class="rounded-lg border border-slate-200 bg-white p-4 shadow-md hover:shadow-lg transition">
+            <div class="font-semibold text-slate-900">Engine API</div>
+            <div class="mt-1 text-slate-600">From class to AST to CSS, with utilities/modifiers.</div>
+          </a>
+          <a href="/api/parser" class="rounded-lg border border-slate-200 bg-white p-4 shadow-md hover:shadow-lg transition">
+            <div class="font-semibold text-slate-900">Parser API</div>
+            <div class="mt-1 text-slate-600">Parse utilities, variants, and arbitrary values.</div>
+          </a>
+          <a href="/api/ast-processing" class="rounded-lg border border-slate-200 bg-white p-4 shadow-md hover:shadow-lg transition">
+            <div class="font-semibold text-slate-900">AST Processing</div>
+            <div class="mt-1 text-slate-600">Optimize and serialize AST safely.</div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Runtimes Overview -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Runtimes</h2>
+        <div class="mt-6 grid md:grid-cols-2 gap-6">
+          <a href="/api/browser-runtime" class="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg transition block">
+            <h3 class="font-semibold text-slate-900">Browser Runtime</h3>
+            <p class="mt-2 text-slate-600 text-sm">MutationObserver-based class detection, incremental parsing, real-time CSS injection.</p>
+          </a>
+          <a href="/api/server-runtime" class="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-md hover:shadow-lg transition block">
+            <h3 class="font-semibold text-slate-900">Server Runtime</h3>
+            <p class="mt-2 text-slate-600 text-sm">Static CSS generation for SSR/SSG pipelines with batch processing.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Integrations (from Guide → AI Integration) -->
+    <section class="py-20 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Integrations</h2>
+        <div class="mt-6 grid md:grid-cols-3 gap-6 text-sm">
+          <a href="/guide/ai-integration/vanilla-html" class="rounded-xl border border-slate-200 bg-white p-6 shadow-md hover:shadow-lg transition block">
+            <div class="font-semibold text-slate-900">Vanilla HTML</div>
+            <p class="mt-2 text-slate-600">Drop-in script with zero tooling.</p>
+          </a>
+          <a href="/guide/ai-integration/react" class="rounded-xl border border-slate-200 bg-white p-6 shadow-md hover:shadow-lg transition block">
+            <div class="font-semibold text-slate-900">React</div>
+            <p class="mt-2 text-slate-600">Works in SPA and frameworks seamlessly.</p>
+          </a>
+          <a href="/guide/ai-integration/vue" class="rounded-xl border border-slate-200 bg-white p-6 shadow-md hover:shadow-lg transition block">
+            <div class="font-semibold text-slate-900">Vue</div>
+            <p class="mt-2 text-slate-600">Reactive templates with runtime CSS.</p>
+          </a>
+        </div>
+      </div>
+    </section>
 
     <script>
       // Dark toggle

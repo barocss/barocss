@@ -119,7 +119,7 @@ export class BrowserRuntime {
     // Process classes immediately for testing environment
     const results = this.incrementalParser.processClasses(classList);
     
-    // console.log('[BrowserRuntime] results', results, ...classList);
+    console.log('[BrowserRuntime] results', results, ...classList);
     // Apply results and inject CSS
     this.applyParseResults(results, { isBrowser });
   }
@@ -133,13 +133,11 @@ export class BrowserRuntime {
 
     for (const result of results) {
       if (result.css && Array.isArray(result.cssList)) {
-        console.log('[BrowserRuntime] result', result);
         cssRules.push(result);
         // this.cache.set(normalizeClassName(result.cls), result);
       }
 
       if (result.rootCss && Array.isArray(result.rootCssList)) {
-
         for (const rootCss of result.rootCssList) {
           if (!this.rootCache.has(rootCss)) {
             this.rootCache.add(rootCss);

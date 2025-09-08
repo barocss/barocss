@@ -290,6 +290,8 @@ export function parseClassToAst(
 
   const { modifiers, utility } = parseClassName(fullClassName);
 
+  // console.log('[parseClassToAst] modifiers', modifiers, utility);
+
   if (!utility) {
     // eslint-disable-next-line no-console
     console.warn(`[BAROCSS] Invalid class name format: "${fullClassName}"`);
@@ -303,6 +305,7 @@ export function parseClassToAst(
       : utility.prefix;
     return u.match(fullClassName);
   });
+  // console.log('[parseClassToAst] utilReg', utilReg);
   if (!utilReg) {
     const utilityName = utility.value
       ? `${utility.prefix}-${utility.value}`
@@ -315,7 +318,10 @@ export function parseClassToAst(
 
   let value = utility.value;
   if (utility.negative && value) value = "-" + value;
+  // console.log('[parseClassToAst] value', value, utility);
   let ast = utilReg.handler(value!, ctx, utility, utilReg) || [];
+
+  // console.log('[parseClassToAst] ast', ast);
 
   const wrappers = [];
   const selector = "&";
