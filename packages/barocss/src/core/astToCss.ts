@@ -186,11 +186,10 @@ function astToCss(
           // - Pass baseSelector to inner nodes of the at-rule
           // - Ensure nested rules get correct selectors
           // - Example: @media (min-width: 768px) { .parent .child { ... } }
-          const shouldUseBaseSelector = node.name !== 'supports'; // Added logic for @supports
           if (minify) {
             const css = `${indent}@${node.name} ${node.params}{${astToCss(
               node.nodes, // Recursively process inner nodes of the at-rule
-              shouldUseBaseSelector ? baseSelector : undefined, // Conditional baseSelector
+              baseSelector, // Always propagate baseSelector so '&' resolves inside at-rules
               opts,
               nextIndent
             )}}`;
@@ -199,7 +198,7 @@ function astToCss(
           } else {
             const css = `${indent}@${node.name} ${node.params} {\n${astToCss(
               node.nodes, // Recursively process inner nodes of the at-rule
-              shouldUseBaseSelector ? baseSelector : undefined, // Conditional baseSelector
+              baseSelector, // Always propagate baseSelector so '&' resolves inside at-rules
               opts,
               nextIndent
             )}${indent}}`;

@@ -172,7 +172,7 @@ functionalUtility({
           atRule("supports", `(color:color-mix(in lab, red, red))`, [
             decl("border-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
           ]),
-          decl("border-color", value),
+          decl("border-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
         ];
       }
       return [decl("border-color", value)];

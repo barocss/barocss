@@ -388,7 +388,7 @@ functionalUtility({
               `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`
             ),
           ]),
-          decl("background-color", value),
+          decl("background-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
         ];
       }
       return [decl("background-color", value)];

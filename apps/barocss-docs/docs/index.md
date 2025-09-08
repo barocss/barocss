@@ -121,3 +121,8 @@ pnpm add @barocss/server   # For server usage
 ```
 
 Ready to get started? Check out our [installation guide](/guide/installation) or explore [examples](/examples/).
+
+
+<div class="bg-blue-500 text-white p-4 rounded-lg">
+  Hello BaroCSS!
+</div>

@@ -130,7 +130,7 @@ functionalUtility({
           atRule("supports", `(color:color-mix(in lab, red, red))`, [
             decl("color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
           ]),
-          decl("color", value),
+          decl("color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
         ];
       }
 

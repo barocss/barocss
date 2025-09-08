@@ -49,13 +49,15 @@ export class BrowserRuntime {
   /**
    * Add debug logs (by level)
    */
-  private debugLog(level: 'info' | 'warn' | 'error' | 'debug', message: string, data?: any): void {
+  private debugLog(level: 'info' | 'warn' | 'error' | 'debug', message: string, data?: unknown): void {
     // Console output
+    // eslint-disable-next-line no-console
     const consoleMethod = console[level] || console.log;
     consoleMethod(`[BrowserRuntime:${level.toUpperCase()}] ${message}`, data || '');
   }
 
   private init() {
+    // eslint-disable-next-line no-console
     console.log('[BrowserRuntime] init');
     this.injectPreflightCSS();
     this.ensureCssVars();
@@ -125,14 +127,13 @@ export class BrowserRuntime {
   /**
    * Public method to apply parser results, update internal caches, and inject CSS
    */
-  public applyParseResults(results: Array<GenerateCssRulesResult>, opts?: { isBrowser?: boolean }): void {
-    const isBrowser = opts?.isBrowser ?? (typeof window !== 'undefined');
-
+  public applyParseResults(results: Array<GenerateCssRulesResult>, _opts?: { isBrowser?: boolean }): void {
     const cssRules: GenerateCssRulesResult[] = [];
     const rootCssRules: string[] = [];
 
     for (const result of results) {
       if (result.css && Array.isArray(result.cssList)) {
+        console.log('[BrowserRuntime] result', result);
         cssRules.push(result);
         // this.cache.set(normalizeClassName(result.cls), result);
       }

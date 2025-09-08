@@ -1,5 +1,5 @@
 import { functionalModifier } from "../../core/registry";
-import { AstNode, atRule } from "../../core/ast";
+import { atRule } from "../../core/ast";
 
 // --- At-rule variants ---
 
@@ -10,7 +10,7 @@ functionalModifier(
   (mod) => {
     const m = /^supports-\[(.+)\]$/.exec(mod.type);
     if (m) {
-      return [atRule('supports', m[1], [], 'supports')];
+      return [atRule('supports', `(${m[1]})`, [], 'supports')];
     }
     return [];
   }

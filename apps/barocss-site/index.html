@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BaroCSS — Runtime CSS Engine</title>
+    <meta name="description" content="BaroCSS landing page" />
+    <script type="module">
+      import { baroBoot } from '@barocss/browser';
+      baroBoot({
+        config: {
+          preflight: true,
+        }
+      });
+    </script>
+  </head>
+  <body class="bg-slate-900 text-slate-100 antialiased">
+    <!-- Navbar -->
+    <header class="sticky top-0 z-40 backdrop:blur-sm supports-[backdrop-filter]:bg-slate-900/60 border-b border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-2">
+          <span class="inline-block w-7 h-7 rounded-md bg-blue-500 shadow-[0_0_40px_0_rgba(59,130,246,.5)]"></span>
+          <span class="text-lg font-semibold tracking-tight">BaroCSS</span>
+        </a>
+        <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+          <a class="hover:text-white transition-colors" href="#features">Features</a>
+          <a class="hover:text-white transition-colors" href="#demo">Demo</a>
+          <a class="hover:text-white transition-colors" href="#install">Install</a>
+          <a class="hover:text-white transition-colors" href="#footer">GitHub</a>
+        </nav>
+        <div class="flex items-center gap-2">
+          <button id="toggle-dark" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 hover:bg-slate-100 border border-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">Toggle dark</button>
+          <a href="#install" class="hidden sm:inline-flex px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 hover:bg-slate-100 transition shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">
+            Get Started
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="relative overflow-hidden">
+      <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-transparent"></div>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+        <div class="max-w-3xl">
+          <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight">
+            Real‑time CSS generation,
+            <span class="text-blue-400">runtime‑first</span>
+          </h1>
+          <p class="mt-6 text-lg text-slate-300 leading-relaxed">
+            BaroCSS generates CSS on demand from utility classes in the DOM. No build steps, instant feedback, and minimal CSS.
+          </p>
+          <div class="mt-8 flex flex-col sm:flex-row gap-3">
+            <a href="#demo" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-500 hover:bg-blue-600 transition text-white font-medium">
+              Live Demo
+            </a>
+            <a href="#install" class="inline-flex items-center justify-center px-4 py-2 rounded-md border border-white/10 hover:bg-white/10 transition font-medium">
+              Install
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="py-16 sm:py-20 border-t border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="rounded-xl border border-white/10 p-6 bg-white/5">
+            <h3 class="text-lg font-semibold">On‑demand CSS</h3>
+            <p class="mt-2 text-slate-300">Only classes you use are generated. Zero unused CSS.</p>
+          </div>
+          <div class="rounded-xl border border-white/10 p-6 bg-white/5">
+            <h3 class="text-lg font-semibold">Instant feedback</h3>
+            <p class="mt-2 text-slate-300">Changes reflect immediately with DOM observation.</p>
+          </div>
+          <div class="rounded-xl border border-white/10 p-6 bg-white/5">
+            <h3 class="text-lg font-semibold">No build required</h3>
+            <p class="mt-2 text-slate-300">Drop in the runtime. No PostCSS or bundler setup needed.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demo -->
+    <section id="demo" class="py-16 sm:py-20 border-t border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Live Demo</h2>
+        <p class="mt-2 text-slate-300">Click to add classes and see styles generate in real time.</p>
+
+        <div class="mt-6 flex flex-wrap gap-3">
+          <button data-class="bg-blue-500 text-white" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">bg‑blue‑500</button>
+          <button data-class="p-6" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">p‑6</button>
+          <button data-class="rounded-xl" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">rounded‑xl</button>
+          <button data-class="shadow-2xl" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">shadow‑2xl</button>
+          <button data-class="hover:scale-105 transition duration-300" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">hover:scale‑105</button>
+          <button data-class="sm:p-10" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">sm:p‑10</button>
+          <button data-class="backdrop:blur-sm" class="px-3 py-1.5 text-sm rounded-md bg-white text-slate-900 border border-transparent hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900">backdrop:blur‑sm</button>
+        </div>
+
+        <div class="mt-6 grid md:grid-cols-2 gap-6">
+          <div id="demoBox" class="min-h-[140px] rounded-xl border border-white/10 bg-white/5 p-4 flex items-center justify-center">
+            <span class="text-slate-300">Classes will be applied here</span>
+          </div>
+          <pre id="classOut" class="bg-slate-950/70 border border-white/10 rounded-xl p-4 text-sm overflow-auto">/* current classes */</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Install -->
+    <section id="install" class="py-16 sm:py-20 border-t border-white/10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-bold">Install</h2>
+        <div class="mt-4 grid md:grid-cols-2 gap-6">
+          <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+            <h3 class="font-semibold">Using pnpm</h3>
+            <pre class="mt-2 bg-slate-950/70 border border-white/10 rounded-lg p-4 text-sm">pnpm add @barocss/browser</pre>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-white/5 p-4">
+            <h3 class="font-semibold">CDN (ESM)</h3>
+            <pre class="mt-2 bg-slate-950/70 border border-white/10 rounded-lg p-4 text-sm">&lt;script type="module" src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js"&gt;&lt;/script&gt;</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="footer" class="border-t border-white/10 py-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-slate-400 text-sm">MIT © 2025 BaroCSS</p>
+        <div class="flex items-center gap-3 text-sm">
+          <a class="hover:text-white" href="https://github.com/barocss/barocss">GitHub</a>
+          <span class="opacity-30">/</span>
+          <a class="hover:text-white" href="/">Docs</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Dark toggle
+      document.getElementById('toggle-dark').addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+      });
+      // Demo buttons
+      const box = document.getElementById('demoBox');
+      const out = document.getElementById('classOut');
+      document.querySelectorAll('[data-class]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const c = btn.getAttribute('data-class');
+          c.split(' ').forEach(k => k && box.classList.add(k));
+          out.textContent = box.className || '(none)';
+        });
+      });
+    </script>
+  </body>
+</html>

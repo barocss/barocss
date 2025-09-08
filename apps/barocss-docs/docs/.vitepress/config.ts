@@ -450,6 +450,7 @@ export default defineConfig(withMermaid({
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
     ['meta', { name: 'theme-color', content: '#3B82F6' }],
+    ['script', { src: '/custom-runtime-boot.js' }],
     ['style', {}, `
       /* Code block customization */
       .vp-code-block {
