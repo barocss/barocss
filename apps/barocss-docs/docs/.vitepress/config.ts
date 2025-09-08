@@ -64,17 +64,11 @@ export default defineConfig(withMermaid({
           ]
         },
         {
-          text: 'AI Integration',
+          text: 'Integration',
           items: [
-            { text: 'Overview', link: '/guide/ai-integration' },
-            { text: 'Build-free UI Generation', link: '/guide/ai-integration/build-free-ui' },
-            { text: 'Vanilla HTML', link: '/guide/ai-integration/vanilla-html' },
-            { text: 'React', link: '/guide/ai-integration/react' },
-            { text: 'Vue', link: '/guide/ai-integration/vue' },
-            { text: 'Svelte', link: '/guide/ai-integration/svelte' },
-            { text: 'SolidJS', link: '/guide/ai-integration/solid' },
-            { text: 'jQuery', link: '/guide/ai-integration/jquery' },
-            { text: 'Partial UI Updates', link: '/guide/ai-integration/partial-updates' }
+            { text: 'Overview', link: '/guide/integration/overview' },
+            { text: 'Frameworks (React, Vue, Svelte, Solid)', link: '/guide/integration/frameworks' },
+            { text: 'jQuery', link: '/guide/integration/jquery' }
           ]
         },
         {

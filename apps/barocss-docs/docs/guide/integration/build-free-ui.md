@@ -23,6 +23,26 @@ sequenceDiagram
     DOM->>App: UI renders with new styles
 ```
 
+## Quick Start (Vanilla HTML)
+
+```html
+<script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
+<script>
+  const runtime = new BaroCSS.BrowserRuntime()
+  runtime.observe(document.body, { scan: true })
+</script>
+```
+
+## Quick Start (ESM)
+
+```html
+<script type="module">
+  import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js'
+  const runtime = new BrowserRuntime()
+  runtime.observe(document.body, { scan: true })
+</script>
+```
+
 ## Key Benefits
 
 ### 1. Zero Build Time
@@ -141,19 +161,7 @@ const updateProperty = async (element, property, value) => {
 };
 ```
 
-## Best Practices
-
-### 1. Use Specific Arbitrary Values
-
-Instead of generic classes, use specific arbitrary values for AI-generated content:
-
-```javascript
-// Good: Specific values
-`w-[${exactWidth}px] h-[${exactHeight}px]`
-
-// Avoid: Generic values that might not match intent
-`w-64 h-32`
-```
+ 
 
 ## Next Steps
 

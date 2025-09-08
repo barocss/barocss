@@ -1,71 +1,88 @@
+---
+title: jQuery Integration
+description: Using BaroCSS with jQuery for build-free runtime styling
+---
+
 # jQuery Integration
 
-BaroCSS works seamlessly with jQuery, enabling dynamic AI-driven styling with build-free CSS generation. Perfect for existing jQuery applications that want to add modern AI-powered UI capabilities.
+BaroCSS works in existing jQuery apps without any build step. This guide shows minimal setup and common patterns.
 
 ## Setup
 
-### 1. Include Dependencies
+### Option 1. CDN (UMD)
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>jQuery + BaroCSS AI Integration</title>
-    
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    
-    <!-- BaroCSS -->
-    <script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>jQuery + BaroCSS</title>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body>
-    <div id="app"></div>
-    
-    <script>
-        $(document).ready(function() {
-            // Initialize BaroCSS
-            const runtime = new BaroCSS.BrowserRuntime();
-            runtime.init();
-            
-            // Initialize AI component system
-            initAISystem();
-        });
-    </script>
+  <div id="app"></div>
+  <script>
+    const runtime = new BaroCSS.BrowserRuntime()
+    runtime.observe(document.body, { scan: true })
+  </script>
 </body>
 </html>
 ```
 
-## AI-Driven Component System
+### Option 2. ESM
 
-### jQuery AI Component Generator
+```html
+<script type="module">
+  import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js'
+  const runtime = new BrowserRuntime()
+  runtime.observe(document.body, { scan: true })
+</script>
+```
 
-```javascript
-class jQueryAISystem {
-    constructor() {
-        this.components = [];
-        this.isGenerating = false;
-        this.cache = new Map();
-        this.templates = {
-            'modern card': {
-                type: 'card',
-                generator: this.generateCard.bind(this)
-            },
-            'data widget': {
-                type: 'widget', 
-                generator: this.generateWidget.bind(this)
-            },
-            'notification': {
-                type: 'notification',
-                generator: this.generateNotification.bind(this)
-            },
-            'form panel': {
-                type: 'form',
-                generator: this.generateForm.bind(this)
-            }
-        };
-    }
+## Basic Usage
+
+Add or update classes with jQuery; BaroCSS generates CSS on demand.
+
+```html
+<div id="card" class="p-4 rounded-md bg-white shadow">Hello</div>
+
+<script>
+  // Add utilities
+  $('#card').addClass('bg-blue-500 text-white')
+
+  // Update on hover
+  $('#card').addClass('hover:bg-blue-600 transition')
+
+  // Responsive
+  $('#card').addClass('sm:p-6 lg:p-8')
+</script>
+```
+
+## Partial UI Updates
+
+Use delegated events and apply classes only where needed.
+
+```html
+<ul id="items"></ul>
+
+<script>
+  // Append items dynamically
+  for (let i = 0; i < 5; i++) {
+    $('#items').append(
+      `<li class="px-4 py-2 border-b border-slate-200 hover:bg-slate-50">Item ${i+1}</li>`
+    )
+  }
+
+  // Toggle selected state
+  $('#items').on('click', 'li', function () {
+    $(this).toggleClass('bg-emerald-50 border-emerald-300')
+  })
+</script>
+```
+
+That’s it — no build, just utilities and jQuery. BaroCSS emits only the CSS you actually use. 
 
     // Main component generation method
     async generateComponent(prompt, config = {}) {
@@ -756,112 +773,4 @@ $('#morph-btn').on('click', function() {
 });
 ```
 
-## Performance Optimization
-
-### Batch Operations Manager
-
-```javascript
-class jQueryBatchManager {
-    constructor() {
-        this.pendingOperations = [];
-        this.batchTimeout = null;
-        this.isProcessing = false;
-    }
-
-    // Add operation to batch
-    addOperation(operation) {
-        this.pendingOperations.push(operation);
-        
-        if (this.batchTimeout) {
-            clearTimeout(this.batchTimeout);
-        }
-        
-        this.batchTimeout = setTimeout(() => {
-            this.processBatch();
-        }, 16); // Next frame
-    }
-
-    // Process all pending operations
-    processBatch() {
-        if (this.isProcessing || this.pendingOperations.length === 0) {
-            return;
-        }
-
-        this.isProcessing = true;
-        
-        // Group operations by type
-        const grouped = this.groupOperations(this.pendingOperations);
-        
-        // Process DOM additions first
-        if (grouped.add.length > 0) {
-            this.batchDOMAdditions(grouped.add);
-        }
-        
-        // Process style updates
-        if (grouped.update.length > 0) {
-            this.batchStyleUpdates(grouped.update);
-        }
-        
-        // Process removals last
-        if (grouped.remove.length > 0) {
-            this.batchDOMRemovals(grouped.remove);
-        }
-        
-        this.pendingOperations = [];
-        this.batchTimeout = null;
-        this.isProcessing = false;
-    }
-
-    groupOperations(operations) {
-        return operations.reduce((acc, op) => {
-            acc[op.type].push(op);
-            return acc;
-        }, { add: [], update: [], remove: [] });
-    }
-
-    batchDOMAdditions(operations) {
-        const $container = $('#app');
-        const $fragment = $(document.createDocumentFragment());
-        
-        operations.forEach(op => {
-            $fragment.append(op.element);
-        });
-        
-        $container.append($fragment);
-    }
-
-    batchStyleUpdates(operations) {
-        operations.forEach(op => {
-            $(op.selector).attr('class', op.newClasses);
-        });
-    }
-
-    batchDOMRemovals(operations) {
-        operations.forEach(op => {
-            $(op.selector).remove();
-        });
-    }
-
-// Global batch manager
-const batchManager = new jQueryBatchManager();
-
-// Usage
-function addMultipleComponents(components) {
-    components.forEach(component => {
-        batchManager.addOperation({
-            type: 'add',
-            element: createComponent(component)
-        });
-    });
-
-function updateMultipleStyles(updates) {
-    updates.forEach(update => {
-        batchManager.addOperation({
-            type: 'update',
-            selector: update.selector,
-            newClasses: update.classes
-        });
-    });
-```
-
-This jQuery integration demonstrates how BaroCSS enables sophisticated AI-driven component generation with build-free styling, complete with real-time style editing, animations, and performance optimization - all using familiar jQuery patterns.
+ 

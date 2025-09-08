@@ -44,15 +44,10 @@ Ready to get started? Continue with:
 - [DOM Change Detection](/guide/dom-change-detection) - Automatic DOM monitoring
 - [Runtime APIs](/guide/runtime-apis) - Browser and Server runtime APIs
 
-### AI Integration
-- [AI Integration Overview](/guide/ai-integration) - Build-free UI generation
-- [Vanilla HTML](/guide/ai-integration/vanilla-html) - Pure HTML/JavaScript examples
-- [React](/guide/ai-integration/react) - React integration
-- [Vue](/guide/ai-integration/vue) - Vue.js integration
-- [Svelte](/guide/ai-integration/svelte) - Svelte integration
-- [SolidJS](/guide/ai-integration/solid) - SolidJS integration
-- [jQuery](/guide/ai-integration/jquery) - jQuery integration
-- [Partial UI Updates](/guide/ai-integration/partial-updates) - Advanced update patterns
+### Integration
+- [Integration Overview](/guide/integration/overview) - Build-free UI generation
+- [Frameworks](/guide/integration/frameworks) - React, Vue, Svelte, Solid
+- [jQuery](/guide/integration/jquery) - jQuery integration
 
 ### Styling & Theming
 - [Styling with Utility Classes](/guide/styling-with-utility-classes) - Core utility usage
