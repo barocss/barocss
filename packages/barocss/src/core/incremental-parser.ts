@@ -113,6 +113,7 @@ export class IncrementalParser {
       // console.log('[IncrementalParser] ast', className, ast);
       
       if (ast.length === 0) {
+        // eslint-disable-next-line no-console
         console.warn('[IncrementalParser] ast is empty', className);
         return null;
       }
@@ -141,6 +142,7 @@ export class IncrementalParser {
         rootCssList: rule.rootCssList
       };
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('[IncrementalParser] Failed to process class:', className, error);
       return null;
     }
@@ -242,7 +244,7 @@ export class IncrementalParser {
    * @param classes - Array of CSS class names to process
    */
   private applyClasses(classes: string[]): void {
-    const results = this.processClasses(classes);
+    this.processClasses(classes);
     
     // Mark classes as processed
     classes.forEach(cls => {

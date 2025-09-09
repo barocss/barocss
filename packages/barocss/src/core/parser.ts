@@ -4,7 +4,7 @@ export interface ParsedModifier {
   value?: string;
   negative?: boolean;
   arbitrary?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ParsedUtility {
@@ -16,7 +16,7 @@ export interface ParsedUtility {
   negative?: boolean;
   opacity?: string;
   priority?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 import { getUtility, getModifier, UtilityRegistration } from './registry';
@@ -52,10 +52,11 @@ function isUtilityPrefix(str: string): boolean {
   // 3. Filter modifiers similarly
   const candidateModifiers = modifiers.filter(mod => {
     // Use modifier name if available, otherwise extract from match function
-    const modName = (mod as any).name || mod.match.toString().split('(')[0];
+    const modName = (mod as unknown as { name: string }).name || mod.match.toString().split('(')[0];
     return str.startsWith(modName + ':') || str === modName;
   });
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const isModifier = candidateModifiers.some(mod => mod.match(str, {} as any));
   
   // 4. Calculate result

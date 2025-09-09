@@ -19,7 +19,7 @@ functionalUtility({
   supportsOpacity: true,
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token, extra) => {
+  handle: (value, _ctx, _token, extra) => {
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [
@@ -238,7 +238,7 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
     prop,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handle: (value, ctx, token, extra) => {
+    handle: (value, _ctx, token, _extra) => {
       if (parseNumber(value) || token.negative) {
         return [decl(prop, `calc(var(--spacing) * ${value})`)];
       }
@@ -270,7 +270,7 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
     prop,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handle: (value, ctx, token, extra) => {
+    handle: (value, _ctx, token, _extra) => {
       if (parseNumber(value) || token.negative) {
         return [decl(prop, `calc(var(--spacing) * ${value})`)];
       }

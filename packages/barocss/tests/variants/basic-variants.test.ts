@@ -1017,7 +1017,7 @@ describe("basic variants", () => {
       {
         type: "at-rule",
         name: "supports",
-        params: "display:grid",
+        params: "(display:grid)",
         nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
       },
     ]);

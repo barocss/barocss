@@ -119,6 +119,7 @@ export class BrowserRuntime {
     // Process classes immediately for testing environment
     const results = this.incrementalParser.processClasses(classList);
     
+    // eslint-disable-next-line no-console
     console.log('[BrowserRuntime] results', results, ...classList);
     // Apply results and inject CSS
     this.applyParseResults(results, { isBrowser });

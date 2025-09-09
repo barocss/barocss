@@ -3,8 +3,8 @@
 import { atRoot, decl, property } from "../core/ast";
 import { staticUtility, functionalUtility } from "../core/registry";
 import {
-  parseFraction,
   parseFractionOrNumber,
+  parseInteger,
   parseNumber,
 } from "../core/utils";
 
@@ -271,7 +271,13 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsNegative: true,
-  handle: (value, ctx, { negative }) => {
+  handle: (value, ctx, { negative, arbitrary }) => {
+
+
+    if (arbitrary) {
+      return [decl("scale", `${value}`)];
+    }
+
     // scale-x-75 → scale: 75% var(--baro-scale-y)
     // -scale-x-75 → scale: calc(75% * -1) var(--baro-scale-y)
     if (parseNumber(value) || negative) {
@@ -481,7 +487,7 @@ functionalUtility({
 // --- Translate  ---
 //  translate documentation
 
-let translateProperties = () => (
+const translateProperties = () => (
     atRoot([
         property('--baro-translate-x', '0'),
         property('--baro-translate-y', '0'),

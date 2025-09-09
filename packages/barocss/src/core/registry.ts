@@ -39,6 +39,14 @@ export interface UtilityRegistration {
    * ```
    */
   category?: string;
+  /**
+   * The priority of the utility
+   * @example
+   * ```
+   * priority: 10,
+   * ```
+   */
+  priority?: number;
   [key: string]: unknown;
 }
 
@@ -78,6 +86,7 @@ export const modifierRegistry: ModifierRegistration[] = [];
  * 
  * @returns {void}
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function staticModifier(name: string, selectors: string[], options: any = {}): void {
   modifierRegistry.push({
     match: (mod: string) => mod === name,

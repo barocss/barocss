@@ -34,6 +34,18 @@ export function parseNumber(input: string): string | null {
 }
 
 /**
+ * Returns the input if it is a valid non-negative integer string, else null.
+ * 
+ * @example
+ * parseInteger("10") // "10"
+ * parseInteger("-10") // null
+ * parseInteger("10.5") // null
+ */
+export function parseInteger(input: string): string | null {
+  return /^-?\d+$/.test(input) ? input : null;
+}
+
+/**
  * Returns the input if it is a valid length string, else null.
  */
 export function parseLength(input: string): string | null {

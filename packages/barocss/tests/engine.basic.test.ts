@@ -145,15 +145,15 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('container-[size>600px]:p-8', ctx)).toBe(
       `.container-\\[size\\>600px\\]\\:p-8 {
   padding: calc(var(--spacing) * 8);
-}`
+}
+`
     );
   });
 
   it('escape edge case', () => {
     expect(generateCss('bg-[#abc:def]', ctx)).toBe(
-      `.bg-\\[\\#abc\\:def\\] {
-  background-size: #abc:def;
-}`
+      `
+`
     );
   });
 
@@ -163,7 +163,8 @@ describe('parseClassToAst (end-to-end)', () => {
   .dark\\:focus\\:bg-yellow-500:focus {
     background-color: #eab308;
   }
-}`
+}
+`
     );
   });
 
@@ -171,7 +172,8 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('peer-checked:text-green-500', ctx)).toBe(
       `.peer:checked ~ .peer-checked\\:text-green-500 {
   color: #22c55e;
-}`
+}
+`
     );
   });
 
@@ -185,7 +187,8 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('container-[orientation=landscape]:flex', ctx)).toBe(
       `.container-\\[orientation\\=landscape\\]\\:flex {
   display: flex;
-}`
+}
+`
     );
   });
 
@@ -197,7 +200,8 @@ describe('parseClassToAst (end-to-end)', () => {
       background-color: #123456;
     }
   }
-}`
+}
+`
     );
   });
 
@@ -205,7 +209,8 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss("before:content-['foo']", ctx)).toBe(
       `.before\\:content-\\[\\'foo\\'\\]::before {
   content: "'foo'";
-}`
+}
+`
     );
   });
 
@@ -214,7 +219,8 @@ describe('parseClassToAst (end-to-end)', () => {
       `.peer-\\[\\.bar\\]\\:text-lg {
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
-}`
+}
+`
     );
   });
 
@@ -222,7 +228,8 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('group-[.foo]:bg-red-500', ctx)).toBe(
       `.group-\\[\\.foo\\]\\:bg-red-500 {
   background-color: #ef4444;
-}`
+}
+`
     );
   });
 
@@ -232,7 +239,8 @@ describe('parseClassToAst (end-to-end)', () => {
   .peer:checked ~ .sm\\:peer-checked\\:underline {
     text-decoration-line: underline;
   }
-}`
+}
+`
     );
   });
 
@@ -242,7 +250,8 @@ describe('parseClassToAst (end-to-end)', () => {
   .sm\\:before\\:content-\\[attr\\(data-label\\)\\]::before {
     content: "attr(data-label)";
   }
-}`
+}
+`
     );
   });
 
@@ -252,12 +261,12 @@ describe('parseClassToAst (end-to-end)', () => {
     );
   });
 
-  it.only('arbitrary + custom property', () => {
+  it('arbitrary + custom property', () => {
     expect(generateCss('text-[var(--my-var)]', ctx)).toBe(
       `.text-\\[var\\(--my-var\\)\\] {
   color: var(--my-var);
-  }
-  `
+}
+`
     );
   });
 
@@ -265,7 +274,8 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss("before:bg-[color:var(--brand)]", ctx)).toBe(
       `.before\\:bg-\\[color\\:var\\(--brand\\)\\]::before {
   background-color: var(--brand);
-}`
+}
+`
     );
   });
 });

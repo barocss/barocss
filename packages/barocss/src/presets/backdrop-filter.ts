@@ -1,6 +1,6 @@
 import { staticUtility, functionalUtility } from "../core/registry";
 import { decl } from "../core/ast";
-import { parseNumber } from "../core/utils";
+import { parseInteger, parseNumber } from "../core/utils";
 
 
 
@@ -63,6 +63,10 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, _ctx, token) => {
+    if (token.arbitrary) {
+      return [decl("--baro-backdrop-brightness", `brightness(${value})`), ...filters()];
+    }
+
     if (parseNumber(value)) {
         return [decl("--baro-backdrop-brightness", `brightness(${value}%)`), ...filters()];
     }
@@ -85,7 +89,12 @@ functionalUtility({
   prop: "backdrop-filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  supportsFraction: true,
   handle: (value, _ctx, token) => {
+    if (token.arbitrary) {
+      return [decl("--baro-backdrop-contrast", `contrast(${value})`), ...filters()];
+    }
+
     if (parseNumber(value)) {
       return [decl("--baro-backdrop-contrast", `contrast(${value}%)`), ...filters()];
     }
@@ -100,7 +109,10 @@ functionalUtility({
 });
 
 // --- Grayscale ---
-staticUtility("backdrop-grayscale", [["backdrop-filter", "grayscale(100%)"]], { category: 'effects' });
+staticUtility("backdrop-grayscale", [
+  ["--baro-backdrop-grayscale", "grayscale(100%)"],
+  ...filters()
+], { category: 'effects' });
 
 functionalUtility({
   name: "backdrop-grayscale",
@@ -141,7 +153,7 @@ functionalUtility({
 });
 
 // --- Invert ---
-staticUtility("backdrop-invert", [["backdrop-filter", "invert(100%)"]], { category: 'effects' });
+staticUtility("backdrop-invert", [["--baro-backdrop-invert", "invert(100%)"], ...filters()], { category: 'effects' });
 
 functionalUtility({
   name: "backdrop-invert",
@@ -177,7 +189,7 @@ functionalUtility({
 });
 
 // --- Sepia ---
-staticUtility("backdrop-sepia", [["backdrop-filter", "sepia(100%)"]], {category: "effects"});
+staticUtility("backdrop-sepia", [["--baro-backdrop-sepia", "sepia(100%)"], ...filters()], {category: "effects"});
 
 functionalUtility({
   name: "backdrop-sepia",

@@ -114,7 +114,7 @@ export class StylePartitionManager {
    */
   private escapeCssRule(rule: string): string {
     // Basic CSS string normalization
-    let escaped = rule.replace(/\\\//g, '\\/');
+    const escaped = rule.replace(/\\\//g, '\\/');
 
     return escaped;
   }
@@ -147,6 +147,7 @@ export class StylePartitionManager {
 
       return true;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn(
         `[StylePartitionManager] Failed to insert rule: ${rule}`,
         error
@@ -173,6 +174,7 @@ export class StylePartitionManager {
         categoryPartition.styleElement.textContent += rule + "\n";
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn(
         `[StylePartitionManager] Failed to insert rule in category: ${category} ${rule}`,
         error
@@ -204,6 +206,7 @@ export class StylePartitionManager {
         }
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn(
         `[StylePartitionManager] Failed to insert rule in category: root ${rules.join("\n")}`,
         error
@@ -270,6 +273,7 @@ export class StylePartitionManager {
       partition.styleElement.textContent = ruleContent;
     } else {
       const newPartition = this.createNewCategoryPartition(category);
+      // eslint-disable-next-line no-console
       console.log(`[StylePartitionManager] Created new partition for category: ${category}`);
       newPartition.styleElement.textContent = ruleContent;
     }
