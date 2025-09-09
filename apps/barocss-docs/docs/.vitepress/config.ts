@@ -10,13 +10,6 @@ export default defineConfig(withMermaid({
     class: "mermaid my-class", // set additional css classes for parent container 
   },
   
-  // Blog configuration
-  blog: {
-    postsPerPage: 10,
-    postDir: 'blog',
-    tagDir: 'blog/tags',
-    categoryDir: 'blog/categories'
-  },
   
   // Theme configuration
   themeConfig: {
@@ -38,7 +31,6 @@ export default defineConfig(withMermaid({
       { text: 'Guide', link: '/guide/' },
       { text: 'API', link: '/api/' },
       { text: 'Examples', link: '/examples/' },
-      { text: 'Blog', link: '/blog/' },
       { text: 'GitHub', link: 'https://github.com/barocss/barocss' }
     ],
     
@@ -49,8 +41,6 @@ export default defineConfig(withMermaid({
           text: 'Getting Started',
           items: [
             { text: 'Introduction', link: '/guide/' },
-            { text: 'Installation', link: '/guide/installation' },
-            { text: 'CDN Usage', link: '/guide/cdn-usage' },
             { text: 'Quick Start', link: '/guide/quick-start' }
           ]
         },
@@ -90,24 +80,8 @@ export default defineConfig(withMermaid({
             },
             { text: 'Responsive Design', link: '/guide/responsive-design' },
             { text: 'Dark Mode', link: '/guide/dark-mode' },
-            { text: 'Theme Variables', link: '/guide/theme-variables' },
+            { text: 'Theme', link: '/guide/theme/' },
             { text: 'Colors', link: '/guide/colors' },
-            { text: 'Adding Custom Styles', link: '/guide/adding-custom-styles' }
-          ]
-        },
-
-        {
-          text: 'Theme',
-          items: [
-            { text: 'Theme Overview', link: '/guide/theme/' },
-            { text: 'Using Theme Variables', link: '/guide/theme-variables' },
-            { text: 'Default Theme Reference', link: '/guide/theme/default-reference' }
-          ]
-        },
-        {
-          text: 'Configuration',
-          items: [
-            { text: 'Detecting Classes in Source Files', link: '/guide/detecting-classes-in-source-files' },
           ]
         },
         {
