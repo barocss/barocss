@@ -5,7 +5,15 @@ import { ParsedModifier, ParsedUtility } from './parser';
 
 // Utility registration
 export interface UtilityRegistration {
+  /**
+   * The name of the utility
+   */
   name: string;
+  /**
+   * The match function for the utility
+   * @param className The class name of the utility
+   * @returns {boolean} Whether the utility matches the class name
+   */
   match: (className: string) => boolean;
   /**
    * Handler for utility value
@@ -15,9 +23,23 @@ export interface UtilityRegistration {
    * @param options Registration options
    */
   handler: (value: string, ctx: Context, token: ParsedUtility, options: UtilityRegistration) => AstNode[] | null | undefined;
+  /**
+   * The description of the utility
+   * @example
+   * ```
+   * description: 'Custom utility description',
+   * ```
+   */
   description?: string;
+  /**
+   * The category of the utility
+   * @example
+   * ```
+   * category: 'background',
+   * ```
+   */
   category?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const utilityRegistry: UtilityRegistration[] = [];
@@ -29,39 +51,35 @@ export function getUtility(): UtilityRegistration[] {
   return utilityRegistry;
 }
 
-
-// --- Modifier Registry ---
-type VariantContext = {
-  baseClassName: string;
-  variantPrefixes: string[];
-  selector: string;
-}
-
-type ModifierMatch = (mod: string, variantContext: VariantContext, ctx: Context) => boolean;
-type ModifierHandler = (nodes: AstNode[], mod: ParsedModifier, variantContext: VariantContext, ctx: Context) => AstNode[];
-
-// Modifier registration (deduplicated)
-export interface ModifierRegistration {
-  name: string;
-  match: ModifierMatch;
-  handler: ModifierHandler;
-  description?: string;
-  sort?: number;
-}
-
-// --- Variant Plugin System ---
-export type ModifierPlugin = {
+// --- Modifier Registration ---
+export type ModifierRegistration = {
   match: (mod: string, context: Context) => boolean;
   modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: Context; variantChain?: ParsedModifier[]; index?: number }) => string | { selector: string; flatten?: boolean; wrappingType?: 'rule' | 'style-rule' | 'at-rule'; override?: boolean; source?: string };
   wrap?: (mod: ParsedModifier, context: Context) => AstNode[];
   astHandler?: (ast: AstNode[], mod: ParsedModifier, context: Context, variantChain?: ParsedModifier[], index?: number) => AstNode[];
   sort?: number;
+  description?: string;
+  source?: string;
 };
 
-export const modifierPlugins: ModifierPlugin[] = [];
+export const modifierRegistry: ModifierRegistration[] = [];
 
-export function staticModifier(name: string, selectors: string[], options: any = {}) {
-  modifierPlugins.push({
+/**
+ * staticModifier: A helper that registers a modifier name and an array of CSS selectors directly to the registry
+ * 
+ * @example
+ * ```
+ * staticModifier('disabled', ['&:disabled'], { source: 'pseudo' });
+ * ```
+ * 
+ * @param name The name of the modifier
+ * @param selectors The selectors of the modifier
+ * @param options The options of the modifier
+ * 
+ * @returns {void}
+ */
+export function staticModifier(name: string, selectors: string[], options: any = {}): void {
+  modifierRegistry.push({
     match: (mod: string) => mod === name,
     modifySelector: ({ ..._rest }) => {
       return selectors.map(sel => ({
@@ -73,12 +91,12 @@ export function staticModifier(name: string, selectors: string[], options: any =
   });
 }
 
-export function functionalModifier(match: ModifierPlugin['match'], modifySelector: ModifierPlugin['modifySelector'], wrap?: ModifierPlugin['wrap'], options: Partial<ModifierPlugin> = {}) {
-  modifierPlugins.push({ match, modifySelector, wrap, ...options });
+export function functionalModifier(match: ModifierRegistration['match'], modifySelector: ModifierRegistration['modifySelector'], wrap?: ModifierRegistration['wrap'], options: Partial<ModifierRegistration> = {}) {
+  modifierRegistry.push({ match, modifySelector, wrap, ...options });
 }
 
-export function getModifierPlugins(): ModifierPlugin[] {
-  return modifierPlugins;
+export function getModifier(): ModifierRegistration[] {
+  return modifierRegistry;
 }
 
 //  escapeClassName
@@ -132,7 +150,8 @@ type StaticUtilityValue =
 /**
  * staticUtility: A helper that registers a utility name and an array of CSS declaration pairs directly to the registry
  *
- * Example:
+ * @example
+ * ```
  *   staticUtility('block', [['display', 'block']]);
  *   staticUtility('hidden', [['display', 'none']]);
  *   staticUtility('space-x-px', [
@@ -144,12 +163,19 @@ type StaticUtilityValue =
  *       ],
  *     ],
  *   ]);
+ * ```
+ * 
+ * @param name The name of the utility
+ * @param decls The declarations of the utility
+ * @param opts The options of the utility
+ * 
+ * @returns {void}
  */
 export function staticUtility(
   name: string,
   decls: StaticUtilityValue[],
   opts?: { description?: string; category?: string; priority?: number }
-) {
+): void {
   registerUtility({
     name,
     match: (className: string) => {
@@ -189,6 +215,190 @@ export type FunctionalUtilityExtra = {
   realThemeValue?: string;
 }
 
+export type FunctionalUtilityOptions = {
+  /**
+   * The name of the utility
+   * 
+   * prefix is automatically added to the name
+   */
+  name: string;
+  /**
+   * The CSS property to set
+   * 
+   * css property is automatically added to the prop
+   */
+  prop?: string;
+  /**
+   * The theme key to look up values
+   * 
+   * theme key is automatically added to the themeKey
+   * 
+   * @example
+   * ```
+   * themeKey: 'colors'
+   * ```
+   */
+  themeKey?: string;
+  /**
+   * The theme keys to look up values
+   * 
+   * theme keys are automatically added to the themeKeys
+   * 
+   * @example
+   * ```
+   * themeKeys: ['colors', 'spacing']
+   * ```
+   */
+  themeKeys?: string[];
+  /**
+   * Whether to support arbitrary values
+   * 
+   * `bg-[#ff0000]`
+   * 
+   * @example
+   * ```
+   * supportsArbitrary: true
+   * ```
+   */
+  supportsArbitrary?: boolean;
+  /**
+   * Whether to support fraction values
+   * 
+   * `m-4`
+   * 
+   * @example
+   * ```
+   * supportsFraction: true
+   * ```
+   */
+  supportsFraction?: boolean;
+  /**
+   * Whether to support custom properties
+   * 
+   * `bg-(--my-bg)`
+   * 
+   * @example
+   * ```
+   * supportsCustomProperty: true
+   * ```
+   */
+  supportsCustomProperty?: boolean;
+  /**
+   * Whether to support negative values
+   * 
+   * `-m-4`
+   * 
+   * @example
+   * ```
+   * supportsNegative: true
+   * ```
+   */
+  supportsNegative?: boolean;
+  /**
+   * Whether to support opacity values
+   */
+  supportsOpacity?: boolean;
+  /**
+   * The handler function that processes values
+   * 
+   * @example
+   * ```
+   * handle: (value, ctx, token, extra) => {
+   *  return [decl('background-color', value)];
+   * }
+   * ```
+   * 
+   * @param value The value to process
+   * @param ctx The context
+   * @param token The parsed utility
+   * @param extra The extra metadata
+   * 
+   * @returns {AstNode[] | null | undefined} The AST nodes or null | undefined
+   */
+  handle?: (value: string, ctx: Context, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
+  /**
+   * The handler function that processes bare values
+   * 
+   * @example
+   * ```
+   * handleBareValue: ({ value }) => isPositiveInteger(value) ? value : null,
+   * ```
+   * 
+   * @param args The arguments
+   * @param args.value The value to process
+   * @param args.ctx The context
+   * @param args.token The parsed utility
+   * @param args.extra The extra metadata
+   * 
+   * @returns {string | null | undefined} The processed value or null | undefined
+   */
+  handleBareValue?: (args: { value: string; ctx: Context; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
+  /**
+   * The handler function that processes negative bare values
+   * 
+   * @example
+   * ```
+   * handleNegativeBareValue: ({ value }) => isPositiveInteger(value) ? value : null,
+   * ```
+   */
+  handleNegativeBareValue?: (args: { value: string; ctx: Context; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
+
+  /**
+   * The handler function that processes custom property values
+   * 
+   *  
+   * @example
+   * ```
+   * handleCustomProperty: (value, ctx, token, extra) => [decl('background-color', value)],
+   * ```
+   * 
+   * @param args The arguments
+   * @param args.value The value to process
+   * @param args.ctx The context
+   * @param args.token The parsed utility
+   * @param args.extra The extra metadata
+   * 
+   * @returns {AstNode[] | null | undefined} The AST nodes or null | undefined
+   */
+  handleCustomProperty?: (value: string, ctx: Context, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
+  /**
+   * The description of the utility
+   * 
+   * @example
+   * ```
+   * description: 'Custom utility description',
+   * ```
+   */
+  description?: string;
+  /**
+   * The category of the utility
+   * 
+   * It is used to group utilities in the documentation and styles
+   * 
+   * 
+   * @example
+   * ```
+   * category: 'background',
+   * ```
+   */
+  category?: string;
+  /**
+   * The priority of the utility
+   * 
+   * It is used to sort utilities in the styles
+   * 
+   * @example
+   * ```
+   * priority: 10,
+   * ```
+   * 
+   * The higher the number, the higher the priority
+   * 
+   * @default 0
+   */
+  priority?: number;
+}
+
 /**
  * functionalUtility: A helper that registers dynamic utilities (theme, arbitrary, custom, negative, fraction, etc.) directly
  *
@@ -203,24 +413,7 @@ export type FunctionalUtilityExtra = {
  *     category: 'layout',
  *   });
  */
-export function functionalUtility(opts: {
-  name: string;
-  prop?: string;
-  themeKey?: string;
-  themeKeys?: string[];
-  supportsArbitrary?: boolean;
-  supportsFraction?: boolean;
-  supportsCustomProperty?: boolean;
-  supportsNegative?: boolean;
-  supportsOpacity?: boolean;
-  handle?: (value: string, ctx: Context, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
-  handleBareValue?: (args: { value: string; ctx: Context; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
-  handleNegativeBareValue?: (args: { value: string; ctx: Context; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
-  handleCustomProperty?: (value: string, ctx: Context, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
-  description?: string;
-  category?: string;
-  priority?: number;
-}) {
+export function functionalUtility(opts: FunctionalUtilityOptions) {
   registerUtility({
     name: opts.name,
     match: (className: string) => className.startsWith(opts.name + '-'),

@@ -163,9 +163,4 @@ const updateProperty = async (element, property, value) => {
 
  
 
-## Next Steps
-
-- [Vanilla HTML Implementation](/guide/ai-integration/vanilla-html)
-- [React Integration](/guide/ai-integration/react)
-- [Vue Integration](/guide/ai-integration/vue)
-- [Partial UI Updates](/guide/ai-integration/partial-updates)
+ 

@@ -91,5 +91,4 @@ Automatic DOM change detection is one of BaroCSS's most powerful features, enabl
 The system intelligently monitors your page, processes only new classes, and provides excellent performance through smart caching and batching.
 
 ::: tip Ready to Get Started?
-Check out the [Installation Guide](/guide/installation) to start using BaroCSS with automatic DOM change detection.
 :::

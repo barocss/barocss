@@ -1,7 +1,7 @@
 import { HasItems, HasName, HasParams, HasSelector, type AstNode, type HasNodes } from "./ast";
 import { parseClassName } from "./parser";
 import { astCache } from "../utils/cache";
-import { getUtility, getModifierPlugins } from "./registry";
+import { getUtility, getModifier } from "./registry";
 import { Context } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
 import { clearAllCaches } from "../utils/cache";
@@ -329,7 +329,7 @@ export function parseClassToAst(
   for (let i = 0; i < modifiers.length; i++) {
     const variant = modifiers[i];
 
-    const plugin = getModifierPlugins().find((p) => p.match(variant.type, ctx));
+    const plugin = getModifier().find((p) => p.match(variant.type, ctx));
 
     if (!plugin) {
       // eslint-disable-next-line no-console

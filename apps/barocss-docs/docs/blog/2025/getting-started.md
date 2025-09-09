@@ -181,15 +181,6 @@ staticUtility('glass', [
 </form>
 ```
 
-## Next Steps
-
-Now that you have BaroCSS set up, here are some next steps:
-
-1. **Explore the Documentation**: Check out our comprehensive documentation for all available utility classes
-2. **Build a Project**: Try building a small project to get familiar with the utility-first approach
-3. **Customize Your Theme**: Experiment with customizing colors, fonts, and spacing
-4. **Join the Community**: Connect with other BaroCSS users on Discord and GitHub
-
 ## Resources
 
 - [Documentation](/guide/)

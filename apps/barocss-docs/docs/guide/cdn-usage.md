@@ -362,6 +362,7 @@ Load BaroCSS only when needed to improve initial page load performance.
 // Load BaroCSS only when needed
 function loadBaroCSS() {
   return import('https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js');
+}
 
 // Load on user interaction
 document.addEventListener('click', async () => {
@@ -470,6 +471,7 @@ if (window.location.search.includes('@barocss/kit=true')) {
   loadScript('https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs', () => {
     new BaroCSS.BrowserRuntime().observe(document.body, { scan: true });
   });
+}
 </script>
 ```
 
@@ -490,14 +492,3 @@ Gradually migrate from other CSS frameworks:
   new BaroCSS.BrowserRuntime().observe(document.querySelector('.@barocss/kit-zone'));
 </script>
 ```
-
-## Next Steps
-
-::: tip Ready to Go Further?
-Ready to go beyond CDN usage?
-:::
-
-- **[Installation Guide](/guide/installation)** - Set up BaroCSS in your build process
-- **[Framework Integration](/guide/ai-integration)** - Use with React, Vue, Svelte, etc.
-- **[API Reference](/api/)** - Explore all configuration options
-- **[Examples](/examples/)** - Advanced use cases

@@ -181,5 +181,4 @@ Incremental parsing is a key differentiator of BaroCSS, providing significant pe
 The system intelligently tracks processed classes, batches operations efficiently, and provides seamless integration with both browser and server runtimes.
 
 ::: tip Ready to Learn More?
-Check out the [Engine API](/api/engine) for detailed implementation examples and advanced usage patterns.
 :::

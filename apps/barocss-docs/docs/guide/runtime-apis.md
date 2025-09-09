@@ -155,5 +155,4 @@ const css = runtime.generateCssForClasses(classes);
 BaroCSS runtime APIs provide specialized solutions for different environments. Choose the Browser Runtime for client-side applications with real-time updates, or the Server Runtime for static generation and SSR scenarios.
 
 ::: tip Ready to Get Started?
-Check out the [Installation Guide](/guide/installation) to set up your chosen runtime.
 :::

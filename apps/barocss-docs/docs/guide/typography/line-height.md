@@ -28,7 +28,7 @@ Use font size utilities like `text-sm/6` and `text-lg/7` to set the font size an
 <p class="text-base/8 ...">So I started to walk into the water...</p>
 ```
 
-Each font size utility also sets a default line height when one isn't provided. You can learn more about these values and how to customize them in the font-size documentation.
+Each font size utility also sets a default line height when one isn't provided.
 
 ### Setting independently
 

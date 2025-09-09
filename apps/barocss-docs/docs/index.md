@@ -109,18 +109,7 @@ const userContent = `
 // BaroCSS parses arbitrary values like w-[400px], bg-[#ff0000] at runtime
 ```
 
-### Get Started
-
-```bash
-# Install the core engine
-pnpm add @barocss/kit
-
-# Or install specific runtimes
-pnpm add @barocss/browser  # For browser usage
-pnpm add @barocss/server   # For server usage
-```
-
-Ready to get started? Check out our [installation guide](/guide/installation) or explore [examples](/examples/).
+ 
 
 
 <div class="bg-blue-500 text-white p-4 rounded-lg">

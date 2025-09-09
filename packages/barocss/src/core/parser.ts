@@ -19,7 +19,7 @@ export interface ParsedUtility {
   [key: string]: any;
 }
 
-import { getUtility, getModifierPlugins, UtilityRegistration } from './registry';
+import { getUtility, getModifier, UtilityRegistration } from './registry';
 import { tokenize, Token } from './tokenizer';
 import { parseResultCache, utilityCache } from '../utils/cache';
 
@@ -38,7 +38,7 @@ function isUtilityPrefix(str: string): boolean {
   }
   
   const utilities = getUtility();
-  const modifiers = getModifierPlugins();
+  const modifiers = getModifier();
   
   // 1. Fast prefix filtering (O(1) prefix check)
   const candidateUtilities = utilities.filter(util => {

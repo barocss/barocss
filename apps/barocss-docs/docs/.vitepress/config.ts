@@ -92,8 +92,7 @@ export default defineConfig(withMermaid({
             { text: 'Dark Mode', link: '/guide/dark-mode' },
             { text: 'Theme Variables', link: '/guide/theme-variables' },
             { text: 'Colors', link: '/guide/colors' },
-            { text: 'Adding Custom Styles', link: '/guide/adding-custom-styles' },
-            { text: 'Functions and Directives', link: '/guide/functions-and-directives' }
+            { text: 'Adding Custom Styles', link: '/guide/adding-custom-styles' }
           ]
         },
 
@@ -101,17 +100,8 @@ export default defineConfig(withMermaid({
           text: 'Theme',
           items: [
             { text: 'Theme Overview', link: '/guide/theme/' },
-            { text: 'Theme Namespaces', link: '/guide/theme/namespaces' },
-            { text: 'Customizing Theme', link: '/guide/theme/customizing' },
-            { text: 'Using Theme Variables', link: '/guide/theme/using-variables' },
-            { text: 'Default Theme Reference', link: '/guide/theme/default-reference' },
-            { text: 'Theme Best Practices', link: '/guide/theme/best-practices' }
-          ]
-        },
-        {
-          text: 'Functions & Directives',
-          items: [
-            { text: 'Functions and Directives', link: '/guide/functions-and-directives' }
+            { text: 'Using Theme Variables', link: '/guide/theme-variables' },
+            { text: 'Default Theme Reference', link: '/guide/theme/default-reference' }
           ]
         },
         {

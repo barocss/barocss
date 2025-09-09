@@ -135,7 +135,6 @@ You can even stack variants in BaroCSS to apply a utility when multiple conditio
 ```
 
 ::: tip Learn More
-For comprehensive information about styling elements on different states, see the [hover, focus, and other states](/guide/hover-focus-and-other-states) documentation.
 :::
 
 ### Media Queries and Breakpoints
@@ -162,7 +161,6 @@ In the example above, the `sm:` prefix makes sure that `grid-cols-3` only trigge
 ```
 
 ::: tip Learn More
-For comprehensive information about responsive design, see the [responsive design](/guide/responsive-design) documentation.
 :::
 
 ### Targeting Dark Mode
@@ -199,7 +197,6 @@ Just like with hover states or media queries, the important thing to understand 
 ```
 
 ::: tip Learn More
-For comprehensive information about dark mode, see the [dark mode](/guide/dark-mode) documentation.
 :::
 
 ### Using Class Composition
@@ -270,7 +267,6 @@ There's even a syntax for generating completely arbitrary CSS including an arbit
 ```
 
 ::: tip Learn More
-For comprehensive information about arbitrary values, see the [using arbitrary values](/guide/adding-custom-styles#using-arbitrary-values) documentation.
 :::
 
 #### How Does This Even Work?
@@ -302,7 +298,6 @@ After it's found all of the potential classes, BaroCSS generates the CSS for eac
 Since the CSS is generated based on the class name, BaroCSS can recognize classes using arbitrary values like `bg-[#316ff6]` and generate the necessary CSS, even when the value isn't part of your theme.
 
 ::: tip Learn More
-For detailed information about how this works, see [detecting classes in source files](/guide/dom-change-detection).
 :::
 
 ### Complex Selectors
@@ -333,7 +328,7 @@ BaroCSS also supports things like `group-hover`, which let you style an element 
 ```html
 <a href="#" class="group rounded-lg p-8">
   <!-- ... -->
-  <span class="group-hover:underline">Read more…</span>
+  <span class="group-hover:underline">Read more</span>
 </a>
 ```
 

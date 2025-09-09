@@ -116,7 +116,7 @@ Every color in the default palette includes 11 steps, with 50 being the lightest
 </div>
 ```
 
-The entire color palette is available across all color related utilities, including things like background color, border color, fill, caret color, and many more.
+The entire color palette is available across all color related utilities, including background color, border color, fill, caret color, and more.
 
 ## Working with Colors
 

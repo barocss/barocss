@@ -58,9 +58,6 @@ const runtime = new BrowserRuntime({
 });
 ```
 
-::: tip Learn More
-For comprehensive theme customization, see the [Theme Configuration documentation](/guide/theme).
-:::
 
 ## Using Arbitrary Values
 
@@ -154,9 +151,6 @@ Arbitrary _variants_ are like arbitrary values but for doing on-the-fly selector
 </ul>
 ```
 
-::: tip Learn More
-For detailed information about arbitrary variants, see the [Arbitrary Variants documentation](/guide/arbitrary-variants).
-:::
 
 ### Handling Whitespace
 
@@ -641,12 +635,6 @@ functionalModifier(
 );
 ```
 
-::: tip Learn More
-For detailed information about modifiers, see:
-
-- **[Static Modifier API](/api/static-modifier)** - Complete reference for `staticModifier`
-- **[Functional Modifier API](/api/functional-modifier)** - Complete reference for `functionalModifier`
-:::
 
 ## Understanding CSS Generation
 
@@ -659,11 +647,4 @@ To understand how BaroCSS transforms your utility classes into optimized CSS, se
 - **[Engine API](/api/engine)** - CSS generation process and `@optimizeAst()` function
 - **[AST Processing API](/api/ast-processing)** - Detailed AST manipulation and optimization
 
-## Next Steps
-
-- **[Theme Configuration](/guide/theme)** - Learn about theme customization
-- **[JIT Mode](/guide/jit-mode)** - Understand real-time CSS generation
-- **[API Reference](/api/)** - Complete API documentation
-- **[Examples](/examples/)** - See BaroCSS in action
-
-
+ 

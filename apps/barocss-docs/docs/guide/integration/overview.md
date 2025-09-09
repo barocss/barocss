@@ -106,19 +106,3 @@ function renderAICard(data: { color: string; title: string; description: string 
   `
 }
 ```
-
-## Why Build‑free Matters
-
-- Zero build time – styles appear immediately
-- Dynamic classes – arbitrary values supported
-- Incremental processing – only new/changed classes are parsed
-- Memory‑efficient caches – AST/parse/utility/failure caches
-
-## Frameworks
-
-Works seamlessly with:
-- Vanilla HTML/JS
-- React, Vue, Svelte, Solid
-- jQuery
-
-See: [Frameworks](/guide/integration/frameworks) and [jQuery](/guide/integration/jquery) for concrete usage.
