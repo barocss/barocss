@@ -57,7 +57,7 @@ Follow this path to understand BaroCSS APIs from basic to advanced concepts.
 - **[Functional Utility API](/api/functional-utility)** - Creating dynamic utilities
 - **[Static Modifier API](/api/static-modifier)** - Creating fixed modifiers
 - **[Functional Modifier API](/api/functional-modifier)** - Creating dynamic modifiers
-- **[Custom Utilities](/guide/adding-custom-styles)** - Custom utilities and variants
+- **[Custom Utilities](/guide/styling-with-utility-classes)** - Custom utilities and variants
 
 ### 🔬 Step 4: Advanced Concepts
 **Deep dive into internal mechanisms**
@@ -207,12 +207,6 @@ functionalUtility({
 });
 ```
 
-## 🔗 Related Documentation
-
-- [Installation Guide](/guide/installation)
-- [Configuration](/guide/theme)
-- [Custom Styles](/guide/adding-custom-styles)
-- [Custom Utilities](/guide/adding-custom-styles)
 
 ---
 

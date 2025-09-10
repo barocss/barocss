@@ -403,8 +403,3 @@ staticModifier('theme-brand', ['[data-theme="brand"]']);
 ```
 
 
-## Related APIs
-
-- [Functional Modifier API](/api/functional-modifier) - For dynamic modifiers
-- [Static Utility API](/api/static-utility) - For creating utilities
-- [Functional Utility API](/api/functional-utility) - For dynamic utilities

@@ -431,9 +431,3 @@ runtime.observe(document.body, {
 });
 ```
 
-## Related APIs
-
-- [Context API](/api/context) - Configuration management
-- [Engine API](/api/engine) - Core CSS generation
-- [Server Runtime](/api/server-runtime) - Server-side usage
-- [Static Utility API](/api/static-utility) - Creating custom utilities

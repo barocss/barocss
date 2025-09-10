@@ -536,15 +536,3 @@ const optimized = optimizeAst(ast);
 // 4. Generate CSS
 const css = astToCss(optimized, className);
 ```
-
-
-
-## Related APIs
-
-- [Context API](/api/context) - Theme and configuration management
-- [Parser API](/api/parser) - Class name parsing and tokenization
-- [AST Processing API](/api/ast-processing) - Advanced AST manipulation
-- [Static Utility API](/api/static-utility) - Creating custom utilities
-- [Functional Utility API](/api/functional-utility) - Creating dynamic utilities
-- [Browser Runtime](/api/browser-runtime) - Browser integration
-- [Server Runtime](/api/server-runtime) - Server-side usage

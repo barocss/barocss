@@ -68,7 +68,7 @@ functionalModifier(
     if (m?.[1].startsWith('[') && m?.[1].endsWith(']')) {
       const value = m?.[1].slice(1, -1).replace(/_/g, '');
       return {
-        selector: `&:is(:where(.peer)\\:\\[${value}\\]~*)`,
+        selector: `&:is(:where(.peer):is(${value})~*)`,
         wrappingType: 'rule',
         source: 'peer'
       };

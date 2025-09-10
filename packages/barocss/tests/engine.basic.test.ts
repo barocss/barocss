@@ -224,7 +224,7 @@ describe('parseClassToAst (end-to-end)', () => {
 
   it('peer-[.bar]:text-lg', () => {
     expect(generateCss('peer-[.bar]:text-lg', ctx)).toBe(
-      `.peer-\\[\\.bar\\]\\:text-lg:is(:where(.peer)\\:\\[.bar\\]~*) {
+      `.peer-\\[\\.bar\\]\\:text-lg:is(:where(.peer):is(.bar)~*) {
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
 }

@@ -629,9 +629,3 @@ const useBaroCSS = (config: Config) => {
 };
 ```
 
-## Related APIs
-
-- [Context API](/api/context) - Using configuration in context
-- [Custom Utilities](/guide/adding-custom-styles) - Custom utilities configuration
-- [Browser Runtime](/api/browser-runtime) - Runtime configuration
-- [Server Runtime](/api/server-runtime) - Server configuration

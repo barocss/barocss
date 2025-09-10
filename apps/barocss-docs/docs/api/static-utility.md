@@ -175,8 +175,3 @@ staticUtility('theme-vars', [
 
 
 
-## Related APIs
-
-- [Functional Utility API](/api/functional-utility) - For dynamic utilities
-- [AST Helper Functions](/guide/adding-custom-styles#ast-helper-functions) - For creating AST nodes
-- [Configuration](/api/configuration) - For utility configuration

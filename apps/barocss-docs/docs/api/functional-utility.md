@@ -198,9 +198,3 @@ functionalUtility({
 - Custom property support with `supportsCustomProperty: true`
 - Special handlers with `handleCustomProperty`
 
-## Related APIs
-
-- [Static Utility API](/api/static-utility) - For simple, fixed utilities
-- [AST Helper Functions](/guide/adding-custom-styles#ast-helper-functions) - For creating AST nodes
-- [Theme API](/api/context) - For accessing theme values
-- [Configuration](/api/configuration) - For utility configuration

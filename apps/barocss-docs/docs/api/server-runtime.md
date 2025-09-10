@@ -484,9 +484,3 @@ function extractClassesFromContent(content: string): string[] {
 buildCSS().catch(console.error);
 ```
 
-## Related APIs
-
-- [Context API](/api/context) - Configuration management
-- [Engine API](/api/engine) - Core CSS generation
-- [Browser Runtime](/api/browser-runtime) - Browser integration
-- [Static Utility API](/api/static-utility) - Creating custom utilities

@@ -637,10 +637,3 @@ if (process.env.NODE_ENV === 'development') {
   runtime.observe(document.body, { scan: true });
 ```
 
-## 🔗 Related Documentation
-
-- [API Reference](/api/) - Complete API documentation
-- [Configuration](/api/configuration) - Configuration options
-- [Custom Utilities](/guide/adding-custom-styles) - Extending BaroCSS
-- [Browser Runtime](/api/browser-runtime) - Browser integration
-- [Server Runtime](/api/server-runtime) - Server-side usage

@@ -271,8 +271,3 @@ ctx.extendTheme('spacing', (theme) => {
 ```
 
 
-## Related APIs
-
-- [Engine API](/api/engine) - CSS generation using context
-- [Custom Utilities](/guide/adding-custom-styles) - Extending context functionality
-- [Configuration](/api/configuration) - Detailed configuration options

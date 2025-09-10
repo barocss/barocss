@@ -665,8 +665,3 @@ functionalModifier(
 );
 ```
 
-## Related APIs
-
-- [Static Modifier API](/api/static-modifier) - For simple, fixed modifiers
-- [Static Utility API](/api/static-utility) - For creating utilities
-- [Functional Utility API](/api/functional-utility) - For dynamic utilities
