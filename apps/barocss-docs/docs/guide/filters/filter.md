@@ -2,7 +2,6 @@
 
 Utilities for applying filters to an element.
 
-Source: https://tailwindcss.com/guide/filter
 
 ## Quick reference
 

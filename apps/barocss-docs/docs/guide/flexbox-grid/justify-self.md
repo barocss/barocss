@@ -14,7 +14,6 @@ Utilities for controlling how an individual grid item is aligned along its inlin
 | `justify-self-end-safe` | `justify-self: safe end;` |
 | `justify-self-stretch` | `justify-self: stretch;` |
 
-Source: https://tailwindcss.com/guide/justify-self
 
 ## Examples
 
@@ -117,4 +116,3 @@ Prefix a `justify-self` utility with a breakpoint variant like `md:` to only app
 <div class="justify-self-start md:justify-self-end ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

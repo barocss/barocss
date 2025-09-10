@@ -1,226 +1,97 @@
-# BaroCSS
+# @barocss/kit
 
-[![npm version](https://img.shields.io/npm/v/barocss.svg)](https://www.npmjs.com/package/barocss)
+[![npm version](https://img.shields.io/npm/v/@barocss/kit.svg)](https://www.npmjs.com/package/@barocss/kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 
-**Instant CSS** - AI-powered CSS utilities with baroque elegance
+**CSS Engine** - Core parsing and generation engine
 
-BaroCSS is a real-time CSS library that implements Tailwind CSS's JIT (Just-In-Time) mode. It automatically detects DOM class changes and generates styles instantly, allowing immediate styling without any build process.
+@barocss/kit is the core CSS engine that parses Tailwind CSS syntax and generates CSS. It provides the fundamental parsing, AST processing, and CSS generation capabilities used by BaroCSS runtimes.
 
 ## ✨ Key Features
 
-- **🚀 Real-time JIT Mode** - Generate CSS instantly as you use it
-- **🔍 Automatic DOM Detection** - Automatically detects and processes class changes
-- **⚡ Zero Build Time** - No build step, immediate styling
-- **🎯 95%+ Tailwind Compatible** - Use familiar Tailwind syntax everywhere
+- **🚀 JIT Parsing** - Parse Tailwind syntax and generate CSS instantly
+- **🔍 AST Processing** - Advanced Abstract Syntax Tree manipulation
+- **⚡ Incremental Parsing** - Efficient parsing with caching
+- **🎯 Tailwind Compatible** - Full Tailwind CSS syntax support
 - **🌐 Universal** - Works in browsers, Node.js, and any JavaScript environment
 - **🎨 Complete Utility Support** - Layout, spacing, colors, typography, and more
 - **📱 Responsive & Interactive** - All variants work out of the box
-- **🧠 Smart Caching** - Intelligent caching system for performance optimization
+- **🧠 Smart Caching** - Caching system for performance optimization
 
 ## 🚀 Quick Start
-
-### CDN Usage (Browser)
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BaroCSS App</title>
-  <script type="module" src="https://unpkg.com/barocss/dist/cdn/barocss.js"></script>
-</head>
-<body>
-  <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl shadow-2xl">
-    <h1 class="text-4xl font-bold mb-6">Hello BaroCSS!</h1>
-    <p class="text-xl opacity-90">Instant styling without build</p>
-    <button class="mt-6 bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105">
-      Get Started
-    </button>
-  </div>
-</body>
-</html>
-```
 
 ### NPM Installation
 
 ```bash
 # npm
-npm install barocss
+npm install @barocss/kit
 
 # pnpm
-pnpm add barocss
+pnpm add @barocss/kit
 
 # yarn
-yarn add barocss
+yarn add @barocss/kit
 ```
 
 ### Basic Usage
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { parseClassToAst, generateCss, createContext } from '@barocss/kit';
 
-// Initialize runtime
-const runtime = new BrowserRuntime();
+// Create context with theme
+const ctx = createContext({
+  theme: {
+    colors: { 
+      blue: { 500: '#3b82f6' },
+      white: '#ffffff'
+    },
+    spacing: { 
+      4: '1rem',
+      8: '2rem'
+    }
+  }
+});
 
-// Watch DOM changes and auto-style
-runtime.observe(document.body, { scan: true });
+// Parse and generate CSS
+const ast = parseClassToAst('bg-blue-500 text-white p-4', ctx);
+const css = generateCss('bg-blue-500 text-white p-4', ctx);
+
+console.log(css);
+// Output: .bg-blue-500 { background-color: #3b82f6; }
+//         .text-white { color: #ffffff; }
+//         .p-4 { padding: 1rem; }
 ```
 
 ## 🎯 How It Works
 
-BaroCSS works like Tailwind CSS's JIT mode but processes everything in real-time:
+@barocss/kit provides the core parsing and generation engine:
 
-1. **DOM Change Detection** - Automatically detects new classes
-2. **Class Parsing** - Analyzes Tailwind syntax (95%+ compatible)
-3. **CSS Generation** - Creates styles instantly using JIT approach
-4. **Style Injection** - Adds CSS to the page in real-time
+1. **Class Parsing** - Analyzes Tailwind syntax into AST nodes
+2. **AST Processing** - Manipulates and optimizes the Abstract Syntax Tree
+3. **CSS Generation** - Converts AST nodes into CSS rules
+4. **Context Management** - Handles theme, configuration, and caching
 
 ```typescript
-// Just add classes - BaroCSS handles the rest
-document.body.innerHTML = `
-  <div class="bg-linear-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl">
-    <h1 class="text-4xl font-bold mb-6">Real-time Styling</h1>
-    <p class="text-xl opacity-90">This gets styled instantly!</p>
-  </div>
-`;
+import { parseClassToAst, generateCss, createContext } from '@barocss/kit';
 
-// BaroCSS automatically:
-// ✅ Detects new classes
-// ✅ Generates CSS
-// ✅ Applies styles
-// ✅ No build step needed
+// Parse class names into AST
+const ast = parseClassToAst('bg-blue-500 hover:bg-blue-600', ctx);
+
+// Generate CSS from AST or class names
+const css = generateCss('bg-blue-500 hover:bg-blue-600', ctx);
+
+// Result:
+// .bg-blue-500 { background-color: #3b82f6; }
+// .hover\:bg-blue-600:hover { background-color: #2563eb; }
 ```
 
 ## 🛠️ Usage Examples
 
-### Basic Styling
+### Basic CSS Generation
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
-
-const runtime = new BrowserRuntime();
-
-// Add classes dynamically
-runtime.addClass('bg-red-500 text-white p-4 rounded-lg shadow-md');
-
-// Classes work immediately
-document.body.innerHTML = `
-  <div class="bg-red-500 text-white p-4 rounded-lg shadow-md">
-    Styled instantly!
-  </div>
-`;
-```
-
-### Responsive Design
-
-```html
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-    <h3 class="text-lg font-semibold mb-2">Card 1</h3>
-    <p class="text-gray-600">Responsive grid with hover effects</p>
-  </div>
-  <!-- More cards... -->
-</div>
-```
-
-### Interactive States
-
-```html
-<button class="bg-blue-500 hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-white font-medium py-2 px-4 rounded transition-colors">
-  Interactive Button
-</button>
-```
-
-### Dark Mode
-
-```html
-<div class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6 rounded-lg">
-  <h2 class="text-xl font-semibold">Dark Mode Support</h2>
-  <p>Automatically adapts to system preferences</p>
-</div>
-```
-
-### Arbitrary Values
-
-```html
-<div class="w-[calc(100%-2rem)] bg-[#ff6b6b] text-[rgb(255,255,255)] p-4">
-  Custom values with arbitrary value syntax
-</div>
-```
-
-## 🔧 Configuration
-
-### Custom Theme
-
-```typescript
-const runtime = new BrowserRuntime({
-  config: {
-    theme: {
-      extend: {
-        colors: {
-          'brand': {
-            50: '#f0f9ff',
-            500: '#0ea5e9',
-            900: '#0c4a6e',
-          }
-        },
-        spacing: {
-          '18': '4.5rem',
-          '88': '22rem',
-        }
-      }
-    }
-  }
-});
-```
-
-### Dark Mode Strategy
-
-```typescript
-const runtime = new BrowserRuntime({
-  config: {
-    darkMode: 'class', // or 'media'
-    theme: {
-      extend: {
-        colors: {
-          gray: {
-            900: '#111827',
-            800: '#1f2937',
-          }
-        }
-      }
-    }
-  }
-});
-```
-
-## 🌐 Environment Support
-
-### Browser Runtime
-
-```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
-
-const runtime = new BrowserRuntime();
-runtime.observe(document.body, { scan: true });
-```
-
-### Server Runtime
-
-```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
-
-const serverRuntime = new ServerRuntime();
-const css = serverRuntime.generateCss('bg-blue-500 text-white p-4');
-```
-
-### Core Engine
-
-```typescript
-import { parseClassToAst, generateCss, createContext } from 'barocss';
+import { generateCss, createContext } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {
@@ -230,11 +101,140 @@ const ctx = createContext({
 });
 
 const css = generateCss('bg-red-500 text-white p-4', ctx);
+console.log(css);
+```
+
+### AST Processing
+
+```typescript
+import { parseClassToAst, optimizeAst, astToCss } from '@barocss/kit';
+
+// Parse to AST
+const ast = parseClassToAst('bg-blue-500 hover:bg-blue-600 p-4', ctx);
+
+// Optimize AST
+const optimizedAst = optimizeAst(ast);
+
+// Convert to CSS
+const css = astToCss(optimizedAst);
+```
+
+### Incremental Parsing
+
+```typescript
+import { IncrementalParser, createContext } from '@barocss/kit';
+
+const ctx = createContext();
+const parser = new IncrementalParser(ctx);
+
+// Process classes incrementally
+const result = parser.processClass('bg-blue-500');
+const result2 = parser.processClass('text-white');
+```
+
+### Custom Theme
+
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      colors: {
+        'brand': {
+          50: '#f0f9ff',
+          500: '#0ea5e9',
+          900: '#0c4a6e',
+        }
+      }
+    }
+  }
+});
+```
+
+## 🔧 Configuration
+
+### Context Configuration
+
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      colors: {
+        'brand': {
+          50: '#f0f9ff',
+          500: '#0ea5e9',
+          900: '#0c4a6e',
+        }
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+      }
+    }
+  },
+  darkMode: 'class', // or 'media'
+  cssVarPrefix: '--baro-'
+});
+```
+
+### Theme Functions
+
+```typescript
+const ctx = createContext({
+  theme: {
+    spacing: (theme) => ({
+      ...theme('spacing'),
+      '18': '4.5rem',
+      '88': '22rem',
+    })
+  }
+});
+```
+
+## 🌐 API Reference
+
+### Core Functions
+
+```typescript
+// Parse class to AST
+parseClassToAst(className: string, ctx: Context): AstNode[]
+
+// Generate CSS from class names
+generateCss(classList: string, ctx: Context): string
+
+// Generate CSS from AST
+astToCss(ast: AstNode[]): string
+
+// Optimize AST
+optimizeAst(ast: AstNode[]): AstNode[]
+
+// Create context
+createContext(config?: Config): Context
+```
+
+### Incremental Parser
+
+```typescript
+import { IncrementalParser } from '@barocss/kit';
+
+const parser = new IncrementalParser(ctx);
+
+// Process single class
+const result = parser.processClass('bg-blue-500');
+
+// Process multiple classes
+const results = parser.processClasses(['bg-blue-500', 'text-white']);
+
+// Get statistics
+const stats = parser.getStats();
 ```
 
 ## 📱 Supported Utilities
 
-BaroCSS supports **95%+ of Tailwind CSS utilities**:
+BaroCSS supports **most Tailwind CSS utilities**:
 
 ### Layout
 - `container`, `columns`, `break-after`, `break-before`
@@ -285,78 +285,45 @@ BaroCSS supports **95%+ of Tailwind CSS utilities**:
 - **Smart Caching** - Avoids regenerating existing styles
 - **Efficient Parsing** - Fast class name processing
 - **Tree Shaking** - Removes unused utilities automatically
-- **Minimal Output** - Generates optimized CSS
+- **Optimized Output** - Generates efficient CSS
 
-## 🔌 Plugin System
+## 🔌 Extending the Engine
 
-Extend BaroCSS with custom utilities and variants:
+### Custom Utilities
 
 ```typescript
-const customPlugin = (ctx: Context) => {
-  // Register custom utilities
-  ctx.extendTheme('colors', {
-    'custom-blue': '#1e40af',
-    'custom-green': '#059669'
-  });
-  
-  // Add custom variants
-  // ... plugin implementation
-};
+import { staticUtility, functionalUtility } from '@barocss/kit';
 
-const runtime = new BrowserRuntime({
-  config: {
-    plugins: [customPlugin]
-  }
+// Static utility
+staticUtility('custom-shadow', [
+  decl('box-shadow', '0 4px 6px -1px rgba(0, 0, 0, 0.1)')
+]);
+
+// Functional utility
+functionalUtility({
+  name: 'custom-spacing',
+  prop: 'margin',
+  themeKey: 'spacing',
+  supportsArbitrary: true,
+  handle: (value) => [decl('margin', value)]
 });
 ```
 
-## 📚 API Reference
-
-### BrowserRuntime
+### Custom Modifiers
 
 ```typescript
-class BrowserRuntime {
-  constructor(options?: BrowserRuntimeOptions)
-  
-  // Add classes
-  addClass(classes: string | string[]): void
-  
-  // Watch DOM changes
-  observe(root: HTMLElement, options?: ObserveOptions): MutationObserver
-  
-  // Get cache statistics
-  getStats(): RuntimeStats
-  
-  // Clear caches
-  clearCaches(): void
-}
-```
+import { staticModifier, functionalModifier } from '@barocss/kit';
 
-### ServerRuntime
+// Static modifier
+staticModifier('custom-hover', ['&:hover']);
 
-```typescript
-class ServerRuntime {
-  constructor(config?: Config)
-  
-  // Generate CSS for single class
-  generateCss(className: string): string
-  
-  // Generate CSS for multiple classes
-  generateCssForClasses(classes: string[]): string
-}
-```
-
-### Core Functions
-
-```typescript
-// Parse class to AST
-parseClassToAst(className: string, ctx: Context): AstNode[]
-
-// Generate CSS
-generateCss(classList: string, ctx: Context, options?: GenerateOptions): string
-
-// Create context
-createContext(config: Config): Context
+// Functional modifier
+functionalModifier(
+  (mod: string) => /^custom-/.test(mod),
+  ({ selector, mod }) => ({
+    selector: `&[data-custom="${mod.replace('custom-', '')}"]`
+  })
+);
 ```
 
 ## 🤝 Contributing
@@ -390,11 +357,10 @@ This project is licensed under the MIT License - see the [LICENSE](../../LICENSE
 ## 🙏 Acknowledgments
 
 - **Tailwind CSS** - For the amazing utility-first approach and JIT inspiration
-- **CSS Working Group** - For advancing CSS standards
-- **Community Contributors** - For feedback and contributions
+- **UnoCSS** - For ideas around on-demand, utility-first generation at runtime
 
 ---
 
-**BaroCSS** - Where Tailwind meets realtime. Style anything, anywhere, instantly.
+**@barocss/kit** - Core CSS parsing and generation engine.
 
-*No build step. No waiting. Just pure, instant CSS magic.* ✨
+*Parse Tailwind syntax. Generate CSS. Build amazing things.* ✨

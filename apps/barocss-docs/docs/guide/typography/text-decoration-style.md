@@ -12,7 +12,7 @@ Utilities for controlling the style of text decorations.
 | `decoration-dashed`   | `text-decoration-style: dashed;`   |
 | `decoration-wavy`     | `text-decoration-style: wavy;`     |
 
-Source: https://tailwindcss.com/guide/text-decoration-style
+
 
 ## Examples
 
@@ -36,4 +36,3 @@ Prefix a `text-decoration-style` utility with a breakpoint variant like `md:` to
 <p class="underline md:decoration-dashed ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

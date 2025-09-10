@@ -468,10 +468,10 @@ functionalUtility({
     if (parseNumber(value)) return `span ${value} / span ${value}`;
     return null;
   },
-  handleCustomProperty: (value, ctx, token) => {
+  handleCustomProperty: (value, _ctx, _token) => {
     return [decl("grid-column", `span var(${value}) / span var(${value})`)];
   },
-  handle: (value, ctx, token) => {
+  handle: (value, _ctx, _token) => {
     if (parseNumber(value))
       return [decl("grid-column", `span ${value} / span ${value}`)];
     return null;

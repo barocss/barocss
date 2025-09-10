@@ -11,7 +11,7 @@ Utilities for controlling how multiple masks are combined together.
 | `mask-intersect` | `mask-composite: intersect;` |
 | `mask-exclude`   | `mask-composite: exclude;` |
 
-Source: https://tailwindcss.com/guide/mask-composite
+
 
 ## Examples
 
@@ -36,4 +36,3 @@ Prefix a `mask-composite` utility with a breakpoint variant like `md:` to only a
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

@@ -134,6 +134,7 @@ export function clearAllCaches(): void {
   astCache.clear();
   parseResultCache.clear();
   utilityCache.clear();
+  // eslint-disable-next-line no-console
   console.log('[clearAllCaches] All caches cleared');
 }
 

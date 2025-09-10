@@ -2,7 +2,7 @@
 
 Utilities for controlling whether you can skip past possible snap positions.
 
-Source: https://tailwindcss.com/guide/scroll-snap-stop
+
 
 ## Quick reference
 
@@ -49,4 +49,3 @@ Prefix a `scroll-snap-stop` utility with a breakpoint variant like `md:` to only
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

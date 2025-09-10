@@ -2,7 +2,6 @@
 
 Utilities for applying blur filters to an element.
 
-Source: https://tailwindcss.com/guide/filter-blur
 
 ## Quick reference
 
@@ -61,9 +60,7 @@ Prefix a `filter: blur()` utility with a breakpoint variant like `md:` to only a
 Use the `--blur-*` theme variables to customize the blur utilities in your project:
 
 ```css
-@theme {
   --blur-2xs: 2px;
-}
 ```
 
 Now the `blur-2xs` utility can be used in your markup:

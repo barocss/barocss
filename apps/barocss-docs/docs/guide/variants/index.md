@@ -23,10 +23,8 @@ Traditionally the same class name applies different styles on hover
 ```css
 .btn-primary {
   background-color: #0ea5e9;
-}
 .btn-primary:hover {
   background-color: #0369a1;
-}
 ```
 
 In Tailwind, rather than adding the styles for a hover state to an existing class, you add another class to the element that _only_ does something on hover:
@@ -36,10 +34,8 @@ In Tailwind, separate classes are used for the default state and the hover state
 ```css
 .bg-sky-500 {
   background-color: #0ea5e9;
-}
 .hover\:bg-sky-700:hover {
   background-color: #0369a1;
-}
 ```
 
 Notice how `hover:bg-sky-700` _only_ defines styles for the `:hover` state? It does nothing by default, but as soon as you hover over an element with that class, the background color will change to `sky-700`.

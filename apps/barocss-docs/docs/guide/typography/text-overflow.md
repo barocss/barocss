@@ -10,7 +10,7 @@ Utilities for controlling how the text of an element overflows.
 | `text-ellipsis`| `text-overflow: ellipsis;`                  |
 | `text-clip`    | `text-overflow: clip;`                      |
 
-Source: https://tailwindcss.com/guide/text-overflow
+
 
 ## Examples
 
@@ -46,4 +46,4 @@ Prefix a `text-overflow` utility with a breakpoint variant like `md:` to only ap
 <p class="text-ellipsis md:text-clip ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
+

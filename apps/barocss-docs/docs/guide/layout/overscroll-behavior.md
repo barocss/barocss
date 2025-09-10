@@ -16,7 +16,7 @@ Utilities for controlling how the browser behaves when reaching the boundary of 
 | `overscroll-y-contain`  | `overscroll-behavior-y: contain;` |
 | `overscroll-y-none`     | `overscroll-behavior-y: none;`  |
 
-Source: https://tailwindcss.com/guide/overscroll-behavior
+
 
 ## Examples
 
@@ -58,4 +58,3 @@ Prefix an `overscroll-behavior` utility with a breakpoint variant like `md:` to 
 <div class="overscroll-auto md:overscroll-contain ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

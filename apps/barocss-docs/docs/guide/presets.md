@@ -3,8 +3,8 @@
 Presets let you compose theme foundations.
 
 ```ts
-import { BrowserRuntime } from 'barocss/runtime/browser';
-import { defaultTheme } from 'barocss/theme';
+import { BrowserRuntime } from '@barocss/browser';
+import { defaultTheme } from '@barocss/kit/theme';
 
 new BrowserRuntime({
   config: {

@@ -194,12 +194,11 @@ describe("breakpoints", () => {
     ]);
   });
 
-  // Tailwind v4.1 breakpoints tests
   it('xs:bg-red-500 with breakpoints → @media (min-width: 30rem) { & { ... } }', () => {
     const ctxWithBreakpoints = createContext({
       theme: {
         colors: { red: { 500: "#f00" } },
-        breakpoints: {  // Tailwind CSS v4.1 standard
+        breakpoints: {
           xs: "(min-width: 30rem)",
           "2xl": "(min-width: 100rem)",
           "3xl": "(min-width: 120rem)",
@@ -226,7 +225,7 @@ describe("breakpoints", () => {
     const ctxWithBreakpoints = createContext({
       theme: {
         colors: { red: { 500: "#f00" } },
-        breakpoints: {  // Tailwind CSS v4.1 standard
+        breakpoints: { 
           xs: "(min-width: 30rem)",
           "2xl": "(min-width: 100rem)",
           "3xl": "(min-width: 120rem)",

@@ -2,7 +2,7 @@
 
 Utilities for controlling the spacing between table borders.
 
-Source: https://tailwindcss.com/guide/border-spacing
+
 
 ## Quick reference
 
@@ -11,12 +11,12 @@ Source: https://tailwindcss.com/guide/border-spacing
 | border-spacing-&lt;number&gt;              | border-spacing: calc(var(--spacing) \* &lt;number&gt;);                            |
 | border-spacing-(&lt;custom-property&gt;)   | border-spacing: var(&lt;custom-property&gt;);                                      |
 | border-spacing-\[&lt;value&gt;\]           | border-spacing: &lt;value&gt;;                                                     |
-| border-spacing-x-&lt;number&gt;            | border-spacing: calc(var(--spacing) \* &lt;number&gt;) var(--tw-border-spacing-y); |
-| border-spacing-x-(&lt;custom-property&gt;) | border-spacing: var(&lt;custom-property&gt;) var(--tw-border-spacing-y);           |
-| border-spacing-x-\[&lt;value&gt;\]         | border-spacing: &lt;value&gt; var(--tw-border-spacing-y);                          |
-| border-spacing-y-&lt;number&gt;            | border-spacing: var(--tw-border-spacing-x) calc(var(--spacing) \* &lt;number&gt;); |
-| border-spacing-y-(&lt;custom-property&gt;) | border-spacing: var(--tw-border-spacing-x) var(&lt;custom-property&gt;);           |
-| border-spacing-y-\[&lt;value&gt;\]         | border-spacing: var(--tw-border-spacing-x) &lt;value&gt;;                          |
+| border-spacing-x-&lt;number&gt;            | border-spacing: calc(var(--spacing) \* &lt;number&gt;) var(--baro-border-spacing-y); |
+| border-spacing-x-(&lt;custom-property&gt;) | border-spacing: var(&lt;custom-property&gt;) var(--baro-border-spacing-y);           |
+| border-spacing-x-\[&lt;value&gt;\]         | border-spacing: &lt;value&gt; var(--baro-border-spacing-y);                          |
+| border-spacing-y-&lt;number&gt;            | border-spacing: var(--baro-border-spacing-x) calc(var(--spacing) \* &lt;number&gt;); |
+| border-spacing-y-(&lt;custom-property&gt;) | border-spacing: var(--baro-border-spacing-x) var(&lt;custom-property&gt;);           |
+| border-spacing-y-\[&lt;value&gt;\]         | border-spacing: var(--baro-border-spacing-x) &lt;value&gt;;                          |
 
 ## Examples
 
@@ -85,16 +85,11 @@ Prefix a `border-spacing` utility with a breakpoint variant like `md:` to only a
 </table>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 The `border-spacing-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
-@theme {
-  --spacing: 1px;
-}
 ```
 
-Learn more about customizing the spacing scale in the theme variable documentation.

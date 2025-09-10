@@ -17,7 +17,6 @@ Utilities for controlling how content is justified and aligned at the same time.
 | `place-content-baseline`   | `place-content: baseline;`     |
 | `place-content-stretch`    | `place-content: stretch;`      |
 
-Source: https://tailwindcss.com/guide/place-content
 
 ## Examples
 
@@ -108,4 +107,4 @@ Prefix a `place-content` utility with a breakpoint variant like `md:` to only ap
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+

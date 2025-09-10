@@ -1,4 +1,4 @@
-import { AstNode, atRule } from "../../core/ast";
+import { AstNode } from "../../core/ast";
 import { Context } from "../../core/context";
 
 /**
@@ -13,7 +13,6 @@ export function createContainerParams(type: 'min' | 'max', value: string, name?:
  * Create media query parameters
  */
 export function createMediaParams(type: 'min' | 'max', value: string): string {
-  const condition = type === 'min' ? 'min-width' : 'width <';
   return type === 'min' ? `(min-width: ${value})` : `(width < ${value})`;
 }
 
@@ -21,7 +20,7 @@ export function createMediaParams(type: 'min' | 'max', value: string): string {
  * Get size value from theme
  */
 export function getThemeSize(ctx: Context, key: string): string | undefined {
-  return ctx.theme('container.' + key) || ctx.theme('breakpoint.' + key);
+  return ctx.theme('container.' + key) as string || ctx.theme('breakpoint.' + key) as string;
 }
 
 /**

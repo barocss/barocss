@@ -22,7 +22,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -32,13 +31,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run tests
-        run: pnpm test
-
-      - name: Build packages
-        run: pnpm build:library
+      - name: Run CI checks
+        run: pnpm check
 
       - name: Check build output
         run: |
+          echo "=== @barocss/kit build output ==="
           ls -la packages/barocss/dist/
-          echo "Build completed successfully"
+          echo ""
+          echo "=== @barocss/browser build output ==="
+          ls -la packages/barocss-browser/dist/
+          echo ""
+          echo "=== @barocss/server build output ==="
+          ls -la packages/barocss-server/dist/
+          echo ""
+          echo "All packages built successfully!"

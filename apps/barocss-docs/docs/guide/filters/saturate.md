@@ -2,11 +2,14 @@
 
 Utilities for applying saturate filters to an element.
 
-Source: https://tailwindcss.com/guide/filter-saturate
 
 ## Quick reference
 
-- `saturate-[&lt;value&gt;]`, `saturate-(&lt;custom-property&gt;)`, presets like `saturate-150`, `saturate-200`
+| Class | Styles |
+|---|---|
+| `saturate-&lt;number&gt;` | `filter: saturate(&lt;number&gt;%);` |
+| `saturate-(&lt;custom-property&gt;)` | `filter: saturate(var(&lt;custom-property&gt;));` |
+| `saturate-[&lt;value&gt;]` | `filter: saturate(&lt;value&gt;);` |
 
 ## Examples
 

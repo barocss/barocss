@@ -13,7 +13,7 @@ Utilities for controlling the amount of empty space shown before text in a block
 | `indent-(&lt;custom-property&gt;)` | `text-indent: var(&lt;custom-property&gt;);`   |
 | `indent-[&lt;value&gt;]` | `text-indent: &lt;value&gt;;`                            |
 
-Source: https://tailwindcss.com/guide/text-indent
+
 
 ## Examples
 
@@ -57,4 +57,3 @@ Prefix a `text-indent` utility with a breakpoint variant like `md:` to only appl
 <p class="indent-4 md:indent-8 ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

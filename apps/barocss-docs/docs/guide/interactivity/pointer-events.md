@@ -2,7 +2,7 @@
 
 Utilities for controlling whether an element responds to pointer events.
 
-Source: https://tailwindcss.com/guide/pointer-events
+
 
 ## Quick reference
 
@@ -59,4 +59,3 @@ Prefix a `pointer-events` utility with a breakpoint variant like `md:` to only a
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

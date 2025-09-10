@@ -1,17 +1,17 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { AstNode, atRoot, atRule, decl, property, rule, styleRule } from "../core/ast";
+import { AstNode, atRoot, atRule, decl, property, styleRule } from "../core/ast";
 import { parseColor, parseLength, parseNumber } from "../core/utils";
 
 const gradientStopProperties = () => {
   return atRoot([
-    property('--tw-gradient-position'),
-    property('--tw-gradient-from', '#0000', '<color>'),
-    property('--tw-gradient-via', '#0000', '<color>'),
-    property('--tw-gradient-to', '#0000', '<color>'),
-    property('--tw-gradient-stops', "transparent"),
-    property('--tw-gradient-from-position', '0%', '<length-percentage>'),
-    property('--tw-gradient-via-position', '50%', '<length-percentage>'),
-    property('--tw-gradient-to-position', '100%', '<length-percentage>'),
+    property('--baro-gradient-position'),
+    property('--baro-gradient-from', '#0000', '<color>'),
+    property('--baro-gradient-via', '#0000', '<color>'),
+    property('--baro-gradient-to', '#0000', '<color>'),
+    property('--baro-gradient-stops', "transparent"),
+    property('--baro-gradient-from-position', '0%', '<length-percentage>'),
+    property('--baro-gradient-via-position', '50%', '<length-percentage>'),
+    property('--baro-gradient-to-position', '100%', '<length-percentage>'),
   ], "background")
 }
 
@@ -95,13 +95,13 @@ functionalUtility({
 // --- Background Gradients: Linear ---
 const positionValue = (position: string) => {
   return [
-    decl("--tw-gradient-position", position),    
+    decl("--baro-gradient-position", position),    
     styleRule("@supports (background-image: linear-gradient(in lab, red, red))", [
-      decl("--tw-gradient-position", `${position} in oklab`),
+      decl("--baro-gradient-position", `${position} in oklab`),
     ]),
     decl(
       "background-image",
-      `linear-gradient(${position}, var(--tw-gradient-stops))`
+      `linear-gradient(${position}, var(--baro-gradient-stops))`
     ),
   ];
 };
@@ -136,11 +136,11 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, context, token) => {
     if (parseNumber(value)) {
-      // bg-linear-45 → linear-gradient(45deg in oklab, var(--tw-gradient-stops))
+      // bg-linear-45 → linear-gradient(45deg in oklab, var(--baro-gradient-stops))
       return [
         decl(
           "background-image",
-          `linear-gradient(${value}deg in oklab, var(--tw-gradient-stops))`
+          `linear-gradient(${value}deg in oklab, var(--baro-gradient-stops))`
         ),
       ];
     }
@@ -149,7 +149,7 @@ functionalUtility({
       return [
         decl(
           "background-image",
-          `linear-gradient(var(--tw-gradient-stops, ${value}))`
+          `linear-gradient(var(--baro-gradient-stops, ${value}))`
         ),
       ];
     }
@@ -158,7 +158,7 @@ functionalUtility({
       return [
         decl(
           "background-image",
-          `linear-gradient(var(--tw-gradient-stops, var(${value})))`
+          `linear-gradient(var(--baro-gradient-stops, var(${value})))`
         ),
       ];
     }
@@ -167,7 +167,7 @@ functionalUtility({
   handleCustomProperty: (value) => [
     decl(
       "background-image",
-      `linear-gradient(var(--tw-gradient-stops, var(${value})))`
+      `linear-gradient(var(--baro-gradient-stops, var(${value})))`
     ),
   ],
   description:
@@ -177,7 +177,7 @@ functionalUtility({
 
 // --- Background Gradients: Radial ---
 staticUtility("bg-radial", [
-  ["background-image", "radial-gradient(in oklab, var(--tw-gradient-stops))"],
+  ["background-image", "radial-gradient(in oklab, var(--baro-gradient-stops))"],
 ], { category: 'background' });
 functionalUtility({
   name: "bg-radial",
@@ -190,7 +190,7 @@ functionalUtility({
       return [
         decl(
           "background-image",
-          `radial-gradient(var(--tw-gradient-stops, ${value}))`
+          `radial-gradient(var(--baro-gradient-stops, ${value}))`
         ),
       ];
     }
@@ -199,7 +199,7 @@ functionalUtility({
       return [
         decl(
           "background-image",
-          `radial-gradient(var(--tw-gradient-stops, var(${value})))`
+          `radial-gradient(var(--baro-gradient-stops, var(${value})))`
         ),
       ];
     }
@@ -208,7 +208,7 @@ functionalUtility({
   handleCustomProperty: (value) => [
     decl(
       "background-image",
-      `radial-gradient(var(--tw-gradient-stops, var(${value})))`
+      `radial-gradient(var(--baro-gradient-stops, var(${value})))`
     ),
   ],
   description:
@@ -220,7 +220,7 @@ functionalUtility({
 staticUtility("bg-conic", [
   [
     "background-image",
-    "conic-gradient(from 0deg in oklab, var(--tw-gradient-stops))",
+    "conic-gradient(from 0deg in oklab, var(--baro-gradient-stops))",
   ],
 ], { category: 'background' });
 functionalUtility({
@@ -230,11 +230,11 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, context, token) => {
     if (parseNumber(value)) {
-      // bg-conic-180 → conic-gradient(from 180deg in oklab, var(--tw-gradient-stops))
+      // bg-conic-180 → conic-gradient(from 180deg in oklab, var(--baro-gradient-stops))
       return [
         decl(
           "background-image",
-          `conic-gradient(from ${value}deg in oklab, var(--tw-gradient-stops))`
+          `conic-gradient(from ${value}deg in oklab, var(--baro-gradient-stops))`
         ),
       ];
     }
@@ -247,7 +247,7 @@ functionalUtility({
       return [
         decl(
           "background-image",
-          `conic-gradient(var(--tw-gradient-stops, var(${value})))`
+          `conic-gradient(var(--baro-gradient-stops, var(${value})))`
         ),
       ];
     }
@@ -270,74 +270,90 @@ functionalUtility({
     themeKeys: ["colors"],
     supportsArbitrary: true,
     supportsCustomProperty: true,
+    supportsOpacity: true,
     handle: (value, context, token, extra) => {
+      // console.log('[gradient stop] value', value, context, token, extra);
       if (extra?.realThemeValue) {
         if (stop === "from") {
+
+          let color = value; 
+          if (extra?.opacity) {
+            color = `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`;
+          }
+
           return [
             gradientStopProperties(),
-            decl(`--tw-gradient-from`, value),
-            // decl(`--tw-gradient-to`, "var(--tw-gradient-to, transparent)"),
-            decl(`--tw-gradient-stops`, "var(--tw-gradient-from),var(--tw-gradient-to)")
+            decl(`--baro-gradient-from`, color),
+            // decl(`--baro-gradient-to`, "var(--baro-gradient-to, transparent)"),
+            decl(`--baro-gradient-stops`, "var(--baro-gradient-from),var(--baro-gradient-to)")
           ];
         }
 
         if (stop === "via") {
+          let color = value; 
+          if (extra?.opacity) {
+            color = `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`;
+          }
           return [
             gradientStopProperties(),
-            decl(`--tw-gradient-to`, value),
-            decl(`--tw-gradient-stops`, `var(--tw-gradient-from), ${value} var(--tw-gradient-via-position), var(--tw-gradient-to)`)  // via 포함 stops
+            decl(`--baro-gradient-to`, color),
+            decl(`--baro-gradient-stops`, `var(--baro-gradient-from), ${value} var(--baro-gradient-via-position), var(--baro-gradient-to)`)  // via 포함 stops
           ];
         }
 
         if (stop === "to") {
+          let color = value; 
+          if (extra?.opacity) {
+            color = `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`;
+          }
           return [
             gradientStopProperties(),
-            decl(`--tw-gradient-to`, value),
+            decl(`--baro-gradient-to`, color),
           ];
         }
       }
 
-      // to-50% → --tw-gradient-to-position: 50%
+      // to-50% → --baro-gradient-to-position: 50%
       if (parseLength(value)) {
-        return [decl(`--tw-gradient-${stop}-position`, value)];
+        return [decl(`--baro-gradient-${stop}-position`, value)];
       }
 
-      // to-50% → --tw-gradient-to-position: 50%
+      // to-50% → --baro-gradient-to-position: 50%
       if (parseNumber(value)) {
-        return [decl(`--tw-gradient-${stop}-position`, `${value}%`)];
+        return [decl(`--baro-gradient-${stop}-position`, `${value}%`)];
       }
 
-      // to-red-500 → --tw-gradient-to: red-500
+      // to-red-500 → --baro-gradient-to: red-500
       if (parseColor(value)) {
 
         if (stop === "from") {
           return [
             gradientStopProperties(),
-            decl(`--tw-gradient-from`, value),
-            decl(`--tw-gradient-to`, "transparent"),
-            decl(`--tw-gradient-stops`, "var(--tw-gradient-from),var(--tw-gradient-to)")
+            decl(`--baro-gradient-from`, value),
+            decl(`--baro-gradient-to`, "transparent"),
+            decl(`--baro-gradient-stops`, "var(--baro-gradient-from),var(--baro-gradient-to)")
           ];
         }
 
         if (stop === "via") {
           return [
             gradientStopProperties(),
-            decl(`--tw-gradient-to`, value),
-            decl(`--tw-gradient-stops`, `var(--tw-gradient-from), ${value} var(--tw-gradient-via-position), var(--tw-gradient-to)`)  // via 포함 stops
+            decl(`--baro-gradient-to`, value),
+            decl(`--baro-gradient-stops`, `var(--baro-gradient-from), ${value} var(--baro-gradient-via-position), var(--baro-gradient-to)`)  // via 포함 stops
           ];
         }
 
         if (stop === "to") {
           return [
             gradientStopProperties(),
-            decl(`--tw-gradient-to`, value),
+            decl(`--baro-gradient-to`, value),
           ];
         }
       }
       return null;
     },
     handleCustomProperty: (value) => [
-      decl(`--tw-gradient-${stop}`, `var(${value})`),
+      decl(`--baro-gradient-${stop}`, `var(${value})`),
     ],
     description: `${stop} gradient stop utility (color, percent, custom property, arbitrary supported)`,
     category: "background",
@@ -347,9 +363,9 @@ functionalUtility({
     name: `${stop}-position`,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handle: (value) => [decl(`--tw-gradient-${stop}-position`, value)],
+    handle: (value) => [decl(`--baro-gradient-${stop}-position`, value)],
     handleCustomProperty: (value) => [
-      decl(`--tw-gradient-${stop}-position`, `var(${value})`),
+      decl(`--baro-gradient-${stop}-position`, `var(${value})`),
     ],
     description: `${stop}-position gradient stop position utility (percent, custom property, arbitrary supported)`,
     category: "background",
@@ -362,6 +378,7 @@ functionalUtility({
  * bg-[length] → background-size: [length]
  * bg-[color] → background-color: [color]
  * bg-[url] → background-image: [url]
+ * bg-[radial-gradient()] → background-image: radial-gradient(var(--baro-gradient-stops))
  * bg-red-500 → background-color: var(--color-red-500)
  */
 functionalUtility({
@@ -374,6 +391,10 @@ functionalUtility({
     if (value.startsWith("url(")) {
       return [decl("background-image", value)];
     }
+
+    // if (value.startsWith("radial-gradient(")) {
+    //   return [decl("background-image", value)];
+    // }
 
     if (value.startsWith("length:")) {
       return [decl("background-size", value.replace("length:", ""))];
@@ -388,15 +409,20 @@ functionalUtility({
               `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`
             ),
           ]),
-          decl("background-color", value),
+          decl("background-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
         ];
       }
       return [decl("background-color", value)];
     }
 
-    const color = parseColor(value);
-    if (color) {
-      return [decl("background-color", color)];
+    if (parseColor(value)) {
+      const parsedColor = parseColor(value);
+
+      if (value.startsWith("color:")) {
+        return [decl("background-color", parsedColor || value)];
+      }
+
+      return [decl("background-color", value)];
     }
 
     if (parseLength(value)) {

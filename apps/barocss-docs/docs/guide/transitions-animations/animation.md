@@ -14,7 +14,6 @@ Utilities for animating elements with CSS animations.
 | `animate-(&lt;custom-property&gt;)` | `animation: var(&lt;custom-property&gt;);` |
 | `animate-[&lt;value&gt;]` | `animation: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/animation
 
 ## Examples
 

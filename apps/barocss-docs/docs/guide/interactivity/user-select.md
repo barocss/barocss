@@ -2,7 +2,7 @@
 
 Utilities for controlling whether the user can select text in an element.
 
-Source: https://tailwindcss.com/guide/user-select
+
 
 ## Quick reference
 
@@ -65,4 +65,3 @@ Prefix a `user-select` utility with a breakpoint variant like `md:` to only appl
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

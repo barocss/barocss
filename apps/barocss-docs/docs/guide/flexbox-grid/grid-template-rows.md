@@ -12,7 +12,6 @@ Utilities for specifying the rows in a grid layout.
 | `grid-rows-[&lt;value&gt;]` | `grid-template-rows: &lt;value&gt;;` |
 | `grid-rows-(&lt;custom-property&gt;)` | `grid-template-rows: var(&lt;custom-property&gt;);` |
 
-Source: https://tailwindcss.com/guide/grid-template-rows
 
 ## Examples
 
@@ -78,4 +77,3 @@ Prefix a `grid-template-rows` utility with a breakpoint variant like `md:` to on
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

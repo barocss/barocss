@@ -2,11 +2,14 @@
 
 Utilities for applying backdrop saturate filters to an element.
 
-Source: https://tailwindcss.com/guide/backdrop-filter-saturate
 
 ## Quick reference
 
-- `backdrop-saturate-[&lt;value&gt;]`, `backdrop-saturate-(&lt;custom-property&gt;)`, preset utilities like `backdrop-saturate-150`, `backdrop-saturate-200`
+| Class | Styles |
+|---|---|
+| `backdrop-saturate-&lt;number&gt;` | `backdrop-filter: saturate(&lt;number&gt;%);` |
+| `backdrop-saturate-(&lt;custom-property&gt;)` | `backdrop-filter: saturate(var(&lt;custom-property&gt;));` |
+| `backdrop-saturate-[&lt;value&gt;]` | `backdrop-filter: saturate(&lt;value&gt;);` |
 
 ## Examples
 
@@ -53,4 +56,3 @@ Prefix a `backdrop-filter: saturate()` utility with a breakpoint variant like `m
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

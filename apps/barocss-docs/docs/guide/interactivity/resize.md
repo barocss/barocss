@@ -2,7 +2,7 @@
 
 Utilities for controlling how an element can be resized.
 
-Source: https://tailwindcss.com/guide/resize
+
 
 ## Quick reference
 
@@ -65,4 +65,3 @@ Prefix a `resize` utility with a breakpoint variant like `md:` to only apply the
 </textarea>
 ```
 
-Learn more about using variants in the variants documentation.

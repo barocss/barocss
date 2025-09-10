@@ -2,7 +2,7 @@
 
 Utilities for opting in and out of forced colors.
 
-Source: https://tailwindcss.com/guide/forced-color-adjust
+
 
 ## Quick reference
 
@@ -88,4 +88,4 @@ Prefix a `forced-color-adjust` utility with a breakpoint variant like `md:` to o
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+

@@ -54,9 +54,11 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsFraction: true,
   handleBareValue: ({ value }) => {
+    
     if (parseNumber(value)) {
       return `calc(var(--spacing) * ${value})`;
     }
+
     if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
     return null;
   },

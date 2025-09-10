@@ -2,11 +2,15 @@
 
 Utilities for applying invert filters to an element.
 
-Source: https://tailwindcss.com/guide/filter-invert
 
 ## Quick reference
 
-- `invert`, `invert-0`, `invert-[&lt;value&gt;]`, `invert-(&lt;custom-property&gt;)`
+| Class | Styles |
+|---|---|
+| `invert` | `filter: invert(100%);` |
+| `invert-&lt;number&gt;` | `filter: invert(&lt;number&gt;%);` |
+| `invert-(&lt;custom-property&gt;)` | `filter: invert(var(&lt;custom-property&gt;));` |
+| `invert-[&lt;value&gt;]` | `filter: invert(&lt;value&gt;);` |
 
 ## Examples
 

@@ -43,7 +43,7 @@ Utilities for controlling an element's padding.
 | `pl-(&lt;custom-property&gt;)` | `padding-left: var(&lt;custom-property&gt;);` |
 | `pl-[&lt;value&gt;]` | `padding-left: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/padding
+
 
 ## Examples
 
@@ -138,16 +138,11 @@ Prefix a `padding` utility with a breakpoint variant like `md:` to only apply th
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 The `p-&lt;number&gt;`,`px-&lt;number&gt;`,`py-&lt;number&gt;`,`ps-&lt;number&gt;`,`pe-&lt;number&gt;`,`pt-&lt;number&gt;`,`pr-&lt;number&gt;`,`pb-&lt;number&gt;`, and `pl-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
-@theme {
-  --spacing: 1px;
-}
 ```
 
-Learn more about customizing the spacing scale in the theme variable documentation.

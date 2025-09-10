@@ -14,7 +14,6 @@ Utilities for controlling how an individual item is justified and aligned at the
 | `place-self-center-safe` | `place-self: safe center;` |
 | `place-self-stretch`     | `place-self: stretch;` |
 
-Source: https://tailwindcss.com/guide/place-self
 
 ## Examples
 
@@ -91,4 +90,4 @@ Prefix a `place-self` utility with a breakpoint variant like `md:` to only apply
 <div class="place-self-start md:place-self-end ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.
+

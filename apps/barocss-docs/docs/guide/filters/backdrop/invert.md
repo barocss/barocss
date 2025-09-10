@@ -2,11 +2,15 @@
 
 Utilities for applying backdrop invert filters to an element.
 
-Source: https://tailwindcss.com/guide/backdrop-filter-invert
 
 ## Quick reference
 
-- `backdrop-invert`, `backdrop-invert-0`, `backdrop-invert-[&lt;value&gt;]`, `backdrop-invert-(&lt;custom-property&gt;)`
+| Class | Styles |
+|---|---|
+| `backdrop-invert` | `backdrop-filter: invert(100%);` |
+| `backdrop-invert-&lt;number&gt;` | `backdrop-filter: invert(&lt;number&gt;%);` |
+| `backdrop-invert-(&lt;custom-property&gt;)` | `backdrop-filter: invert(var(&lt;custom-property&gt;));` |
+| `backdrop-invert-[&lt;value&gt;]` | `backdrop-filter: invert(&lt;value&gt;);` |
 
 ## Examples
 
@@ -53,4 +57,3 @@ Prefix a `backdrop-filter: invert()` utility with a breakpoint variant like `md:
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

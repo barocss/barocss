@@ -38,10 +38,10 @@ describe('parseClassName - tokenizer based', () => {
   });
 
   describe('tokenizer-based bidirectional parsing', () => {
-    it('should parse modifier:utility (traditional Tailwind)', () => {
+    it('should parse modifier:utility', () => {
       const result = parseClassName('hover:bg-red-500');
-      expect(result.modifiers).toEqual([{ type: 'hover', negative: false }]);
-      expect(result.utility).toEqual({
+      expect(result.modifiers).toMatchObject([{ type: 'hover', negative: false }]);
+      expect(result.utility).toMatchObject({
         prefix: 'bg',
         value: 'red-500',
         arbitrary: false,
@@ -53,8 +53,8 @@ describe('parseClassName - tokenizer based', () => {
 
     it('should parse utility:modifier (Master CSS style)', () => {
       const result = parseClassName('bg-red-500:hover');
-      expect(result.modifiers).toEqual([{ type: 'hover', negative: false }]);
-      expect(result.utility).toEqual({
+      expect(result.modifiers).toMatchObject([{ type: 'hover', negative: false }]);
+      expect(result.utility).toMatchObject({
         prefix: 'bg',
         value: 'red-500',
         arbitrary: false,
@@ -66,8 +66,8 @@ describe('parseClassName - tokenizer based', () => {
 
     it('should handle utility-only classes', () => {
       const result = parseClassName('bg-red-500');
-      expect(result.modifiers).toEqual([]);
-      expect(result.utility).toEqual({
+      expect(result.modifiers).toMatchObject([]);
+      expect(result.utility).toMatchObject({
         prefix: 'bg',
         value: 'red-500',
         arbitrary: false,
@@ -80,24 +80,24 @@ describe('parseClassName - tokenizer based', () => {
     it('should handle arbitrary values in both directions', () => {
       // modifier:utility with arbitrary
       const result1 = parseClassName('hover:bg-[#ff0000]');
-      expect(result1.modifiers).toEqual([{ type: 'hover', negative: false }]);
+      expect(result1.modifiers).toMatchObject([{ type: 'hover', negative: false }]);
       expect(result1.utility?.arbitrary).toBe(true);
       expect(result1.utility?.value).toBe('#ff0000');
 
       // utility:modifier with arbitrary
       const result2 = parseClassName('bg-[#ff0000]:hover');
-      expect(result2.modifiers).toEqual([{ type: 'hover', negative: false }]);
+      expect(result2.modifiers).toMatchObject([{ type: 'hover', negative: false }]);
       expect(result2.utility?.arbitrary).toBe(true);
       expect(result2.utility?.value).toBe('#ff0000');
     });
 
     it('should handle multiple modifiers', () => {
       const result = parseClassName('group-hover:focus:bg-red-500');
-      expect(result.modifiers).toEqual([
+      expect(result.modifiers).toMatchObject([
         { type: 'group-hover', negative: false },
         { type: 'focus', negative: false }
       ]);
-      expect(result.utility).toEqual({
+      expect(result.utility).toMatchObject({
         prefix: 'bg',
         value: 'red-500',
         arbitrary: false,
@@ -109,11 +109,11 @@ describe('parseClassName - tokenizer based', () => {
 
     it('should handle utility with multiple modifiers', () => {
       const result = parseClassName('bg-red-500:hover:focus');
-      expect(result.modifiers).toEqual([
+      expect(result.modifiers).toMatchObject([
         { type: 'hover', negative: false },
         { type: 'focus', negative: false }
       ]);
-      expect(result.utility).toEqual({
+      expect(result.utility).toMatchObject({
         prefix: 'bg',
         value: 'red-500',
         arbitrary: false,

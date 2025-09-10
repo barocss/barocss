@@ -14,7 +14,6 @@ Utilities for controlling how items are justified and aligned at the same time.
 | `place-items-baseline`   | `place-items: baseline;` |
 | `place-items-stretch`    | `place-items: stretch;` |
 
-Source: https://tailwindcss.com/guide/place-items
 
 ## Examples
 
@@ -80,4 +79,4 @@ Prefix a `place-items` utility with a breakpoint variant like `md:` to only appl
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+

@@ -26,7 +26,6 @@ Values (per prefix):
 - `(&lt;custom-property&gt;)`: `var(&lt;custom-property&gt;)`
 - `[&lt;value&gt;]`: `&lt;value&gt;`
 
-Source: https://tailwindcss.com/guide/top-right-bottom-left
 
 ## Examples
 
@@ -121,16 +120,13 @@ Prefix a positioning utility with a breakpoint variant like `md:` to only apply 
 <div class="relative top-4 md:top-6 ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 Use the `--spacing-*` theme variables to customize the positioning utilities in your project:
 
 ```css
-@theme {
   --spacing-18: 4.5rem;
-}
 ```
 
 Now the `top-18`, `right-18`, `bottom-18`, `left-18`, `inset-18`, `start-18`, and `end-18` utilities can be used in your markup:
@@ -139,4 +135,3 @@ Now the `top-18`, `right-18`, `bottom-18`, `left-18`, `inset-18`, `start-18`, an
 <div class="relative top-18 ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about customizing your theme in the theme documentation.

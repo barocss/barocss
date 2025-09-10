@@ -15,7 +15,6 @@ Utilities for controlling the tracking, or letter spacing, of an element.
 | `tracking-(&lt;custom-property&gt;)` | `letter-spacing: var(&lt;custom-property&gt;);` |
 | `tracking-[&lt;value&gt;]` | `letter-spacing: &lt;value&gt;;`                |
 
-Source: https://tailwindcss.com/guide/letter-spacing
 
 ## Examples
 
@@ -46,12 +45,10 @@ The quick brown fox jumps over the lazy dog.
 Using negative values doesn't make a ton of sense with the named letter spacing scale Tailwind includes out of the box, but if you've customized your scale to use numbers it can be useful:
 
 ```css
-@theme {
   --tracking-1: 0em;
   --tracking-2: 0.025em;
   --tracking-3: 0.05em;
   --tracking-4: 0.1em;
-}
 ```
 
 To use a negative letter spacing value, prefix the class name with a dash to convert it to a negative value:
@@ -84,16 +81,12 @@ Prefix a `letter-spacing` utility with a breakpoint variant like `md:` to only a
 <p class="tracking-tight md:tracking-wide ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 Use the `--tracking-*` theme variables to customize the letter spacing utilities in your project:
 
 ```css
-@theme {
-  --tracking-tightest: -0.075em;
-}
 ```
 
 Now the `tracking-tightest` utility can be used in your markup:
@@ -102,4 +95,4 @@ Now the `tracking-tightest` utility can be used in your markup:
 <p class="tracking-tightest">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

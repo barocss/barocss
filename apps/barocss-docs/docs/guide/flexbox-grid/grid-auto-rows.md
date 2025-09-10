@@ -13,7 +13,6 @@ Utilities for controlling the size of implicitly-created grid rows.
 | `auto-rows-(&lt;custom-property&gt;)` | `grid-auto-rows: var(&lt;custom-property&gt;);` |
 | `auto-rows-[&lt;value&gt;]` | `grid-auto-rows: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/grid-auto-rows
 
 ## Examples
 
@@ -60,4 +59,4 @@ Prefix a `grid-auto-rows` utility with a breakpoint variant like `md:` to only a
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+

@@ -12,7 +12,6 @@ Utilities for controlling the thickness of text decorations.
 | `decoration-(length:&lt;custom-property&gt;)` | `text-decoration-thickness: var(&lt;custom-property&gt;);` |
 | `decoration-[&lt;value&gt;]`     | `text-decoration-thickness: &lt;value&gt;;`       |
 
-Source: https://tailwindcss.com/guide/text-decoration-thickness
 
 ## Examples
 
@@ -50,4 +49,3 @@ Prefix a `text-decoration-thickness` utility with a breakpoint variant like `md:
 <p class="underline md:decoration-4 ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

@@ -18,7 +18,7 @@ Utilities for controlling the position of an element's mask image.
 | `mask-position-(<var>)` | `mask-position: var(<var>);` |
 | `mask-position-[&lt;value&gt;]` | `mask-position: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/mask-position
+
 
 ## Examples
 
@@ -66,4 +66,3 @@ Prefix a `mask-position` utility with a breakpoint variant like `md:` to only ap
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

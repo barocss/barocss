@@ -2,7 +2,7 @@
 
 Utilities for controlling an element's scroll offset within a snap container.
 
-Source: https://tailwindcss.com/guide/scroll-padding
+
 
 ## Quick reference
 
@@ -85,4 +85,3 @@ Prefix a `scroll-padding` utility with a breakpoint variant like `md:` to only a
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

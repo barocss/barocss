@@ -2,7 +2,7 @@
 
 Utilities for controlling the table layout algorithm.
 
-Source: https://tailwindcss.com/guide/table-layout
+
 
 ## Quick reference
 
@@ -91,4 +91,3 @@ Prefix a `table-layout` utility with a breakpoint variant like `md:` to only app
 </table>
 ```
 
-Learn more about using variants in the variants documentation.

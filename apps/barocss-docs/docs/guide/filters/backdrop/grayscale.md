@@ -2,11 +2,15 @@
 
 Utilities for applying backdrop grayscale filters to an element.
 
-Source: https://tailwindcss.com/guide/backdrop-filter-grayscale
 
 ## Quick reference
 
-- `backdrop-grayscale`, `backdrop-grayscale-0`, `backdrop-grayscale-[&lt;value&gt;]`, `backdrop-grayscale-(&lt;custom-property&gt;)`
+| Class | Styles |
+|---|---|
+| `backdrop-grayscale` | `backdrop-filter: grayscale(100%);` |
+| `backdrop-grayscale-&lt;number&gt;` | `backdrop-filter: grayscale(&lt;number&gt;%);` |
+| `backdrop-grayscale-(&lt;custom-property&gt;)` | `backdrop-filter: grayscale(var(&lt;custom-property&gt;));` |
+| `backdrop-grayscale-[&lt;value&gt;]` | `backdrop-filter: grayscale(&lt;value&gt;);` |
 
 ## Examples
 
@@ -53,4 +57,3 @@ Prefix a `backdrop-filter: grayscale()` utility with a breakpoint variant like `
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

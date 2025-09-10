@@ -22,7 +22,7 @@ Utilities for controlling the color of an element's borders.
 | `border-l-{name}` | `border-left-color: var(--color-{name});` |
 | `divide-{name}` | `& > :not(:last-child) { border-color: var(--color-{name}); }` |
 
-Source: https://tailwindcss.com/guide/border-color
+
 
 ## Examples
 
@@ -139,7 +139,6 @@ Prefix a `border-color` utility with a breakpoint variant like `md:` to only app
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
@@ -148,9 +147,6 @@ Use your design tokens to populate `--color-*` variables and reference them with
 For example, to add a custom border color to your theme:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Then use it in your HTML:
@@ -161,4 +157,3 @@ Then use it in your HTML:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.

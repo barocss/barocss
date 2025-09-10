@@ -50,7 +50,7 @@ functionalModifier(
     
     // 2. Handle basic breakpoints (all breakpoints defined in config)
     if (Object.keys(breakpoints).includes(breakpoint)) {
-      let mediaQuery = context.theme(`breakpoints.${breakpoint}`) || 
+      let mediaQuery: string = context.theme(`breakpoints.${breakpoint}`) as string || 
                       getDefaultBreakpoint(breakpoint);
       // If only a number (px/em/rem etc.) is provided, wrap with (min-width: ...)
       if (/^\d+(px|em|rem)?$/.test(mediaQuery)) {
@@ -65,7 +65,7 @@ functionalModifier(
       
       // 3-1. When it is a defined breakpoint (max-sm, max-md, etc.)
       if (Object.keys(breakpoints).includes(baseBreakpoint)) {
-        let mediaQuery = context.theme(`breakpoints.${baseBreakpoint}`) || 
+        let mediaQuery = context.theme(`breakpoints.${baseBreakpoint}`) as string || 
                         getDefaultBreakpoint(baseBreakpoint);
         
         // Convert min-width to max-width

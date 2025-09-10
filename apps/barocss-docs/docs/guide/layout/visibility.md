@@ -10,7 +10,6 @@ Utilities for controlling the visibility of an element.
 | `invisible`| `visibility: hidden;` |
 | `collapse` | `visibility: collapse;`|
 
-Source: https://tailwindcss.com/guide/visibility
 
 ## Examples
 
@@ -79,4 +78,3 @@ Prefix a `visibility` utility with a breakpoint variant like `md:` to only apply
 <div class="visible md:invisible ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

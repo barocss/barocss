@@ -10,7 +10,7 @@ Utilities for controlling word breaks in an element.
 | `break-all`     | `word-break: break-all;`    |
 | `break-keep`    | `word-break: keep-all;`     |
 
-Source: https://tailwindcss.com/guide/word-break
+
 
 ## Examples
 
@@ -46,4 +46,3 @@ Prefix a `word-break` utility with a breakpoint variant like `md:` to only apply
 <p class="break-normal md:break-all ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

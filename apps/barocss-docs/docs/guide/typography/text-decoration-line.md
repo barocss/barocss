@@ -11,7 +11,7 @@ Utilities for controlling the decoration of text.
 | `line-through` | `text-decoration-line: line-through;` |
 | `no-underline` | `text-decoration-line: none;`      |
 
-Source: https://tailwindcss.com/guide/text-decoration-line
+
 
 ## Examples
 
@@ -55,7 +55,6 @@ Prefix a `text-decoration-line` utility with a variant like `hover:*` to only ap
 <a class="no-underline hover:underline ...">quick brown fox</a>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ### Responsive design
 
@@ -65,4 +64,3 @@ Prefix a `text-decoration-line` utility with a breakpoint variant like `md:` to 
 <a class="no-underline md:underline ...">Lorem ipsum dolor sit amet...</a>
 ```
 
-Learn more about using variants in the variants documentation.

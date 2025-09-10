@@ -2,7 +2,7 @@
 
 Utilities for controlling the color scheme of an element.
 
-Source: https://tailwindcss.com/guide/color-scheme
+
 
 ## Quick reference
 
@@ -53,4 +53,3 @@ Prefix a `color-scheme` utility with a breakpoint variant like `md:` to only app
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

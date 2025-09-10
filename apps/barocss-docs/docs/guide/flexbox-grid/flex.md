@@ -14,7 +14,6 @@ Utilities for controlling how flex items both grow and shrink.
 | `flex-(&lt;custom-property&gt;)` | `flex: var(&lt;custom-property&gt;);` |
 | `flex-[&lt;value&gt;]` | `flex: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/flex
 
 ## Examples
 
@@ -94,4 +93,3 @@ Prefix a `flex` utility with a breakpoint variant like `md:` to only apply the u
 <div class="flex-none md:flex-1 ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

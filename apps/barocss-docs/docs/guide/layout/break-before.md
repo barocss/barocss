@@ -15,7 +15,6 @@ Utilities for controlling how a column or page should break before an element.
 | `break-before-right`   | `break-before: right;`   |
 | `break-before-column`  | `break-before: column;`  |
 
-Source: https://tailwindcss.com/guide/break-before
 
 ## Examples
 
@@ -40,4 +39,3 @@ Prefix a `break-before` utility with a breakpoint variant like `md:` to only app
 <div class="break-before-column md:break-before-auto ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

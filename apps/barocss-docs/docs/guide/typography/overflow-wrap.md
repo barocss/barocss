@@ -10,7 +10,7 @@ Utilities for controlling line breaks within words in an overflowing element.
 | `wrap-anywhere`   | `overflow-wrap: anywhere;`     |
 | `wrap-normal`     | `overflow-wrap: normal;`       |
 
-Source: https://tailwindcss.com/guide/overflow-wrap
+
 
 ## Examples
 
@@ -49,4 +49,3 @@ Prefix an `overflow-wrap` utility with a breakpoint variant like `md:` to only a
 <p class="wrap-normal md:wrap-break-word ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

@@ -39,6 +39,5 @@ Prefix a `font-style` utility with a breakpoint variant like `md:` to only apply
 <p class="italic md:not-italic ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 

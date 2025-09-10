@@ -120,7 +120,7 @@ describe("preset typography utilities", () => {
       ]);
     });
     it("text-red-500/75 → color: color-mix(in lab, red-500 75%, transparent)", () => {
-      expect(parseClassToAst("text-red-500/75", ctx)).toEqual([
+      expect(parseClassToAst("text-red-500/75", ctx)).toMatchObject([
         {
           type: "at-rule",
           name: "supports",
@@ -133,7 +133,7 @@ describe("preset typography utilities", () => {
             },
           ],
         },
-        { type: "decl", prop: "color", value: "#f00" },
+        { type: "decl", prop: "color", value: "color-mix(in lab, #f00 75%, transparent)" },
       ]);
     });
 

@@ -12,7 +12,7 @@ The Browser Runtime API provides browser-specific functionality for DOM integrat
 The main class for browser-based BaroCSS functionality.
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -35,7 +35,6 @@ interface BrowserRuntimeOptions {
   styleId?: string;                   // Custom style element ID
   insertionPoint?: 'head' | 'body' | HTMLElement; // CSS insertion point
   maxRulesPerPartition?: number;      // Max rules per style partition
-}
 ```
 
 ### Basic Usage
@@ -104,7 +103,6 @@ runtime.observe(document.body, {
 interface ObserveOptions {
   scan?: boolean;        // Scan existing elements
   onReady?: () => void;  // Callback when ready
-}
 ```
 
 ### removeClass()
@@ -126,7 +124,7 @@ runtime.removeClass(['bg-blue-500', 'text-white']);
 The `ChangeDetector` class monitors DOM changes and automatically processes new classes.
 
 ```typescript
-import { ChangeDetector, IncrementalParser } from 'barocss';
+import { ChangeDetector, IncrementalParser } from '@barocss/kit';
 
 const parser = new IncrementalParser(ctx);
 const detector = new ChangeDetector(parser, runtime);
@@ -225,7 +223,7 @@ Reset the runtime to initial state.
 runtime.reset();
 ```
 
-## Performance and Statistics
+## Statistics
 
 ### getStats()
 
@@ -263,7 +261,7 @@ const runtime = new BrowserRuntime({
 
 // Custom style ID
 const runtime = new BrowserRuntime({
-  styleId: 'my-barocss-styles'
+  styleId: 'my-@barocss/kit-styles'
 });
 ```
 
@@ -284,7 +282,7 @@ console.log(css);
 
 ```typescript
 import { useEffect, useRef } from 'react';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 function App() {
   const runtimeRef = useRef<BrowserRuntime>();
@@ -314,14 +312,13 @@ function App() {
       <h1>Hello BaroCSS!</h1>
     </div>
   );
-}
 ```
 
 #### Vue Integration
 
 ```typescript
 import { createApp } from 'vue';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const app = createApp({
   mounted() {
@@ -364,23 +361,14 @@ try {
   runtime.observe(document.body, { scan: true });
 } catch (error) {
   console.error('Runtime initialization failed:', error);
-}
 ```
-
-## Best Practices
-
-1. **Initialize Once**: Create runtime once and reuse it
-2. **Use observe()**: Let the runtime handle DOM changes automatically
-3. **Monitor Performance**: Use `getStats()` to monitor performance
-4. **Clean Up**: Call `destroy()` when done
-5. **Error Handling**: Always handle initialization errors
 
 ## Examples
 
 ### Basic Setup
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 // Initialize
 const runtime = new BrowserRuntime({
@@ -443,9 +431,3 @@ runtime.observe(document.body, {
 });
 ```
 
-## Related APIs
-
-- [Context API](/api/context) - Configuration management
-- [Engine API](/api/engine) - Core CSS generation
-- [Server Runtime](/api/server-runtime) - Server-side usage
-- [Plugin System](/api/plugins) - Extending functionality

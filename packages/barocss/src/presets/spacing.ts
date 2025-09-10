@@ -62,12 +62,12 @@ staticUtility("space-x-px", [
   [
     "& > :not([hidden]) ~ :not([hidden])",
     [
-      ["--tw-space-x-reverse", "0"],
+      ["--baro-space-x-reverse", "0"],
       [
         "margin-inline-start",
-        "calc(1px * calc(1 - var(--tw-space-x-reverse)))",
+        "calc(1px * calc(1 - var(--baro-space-x-reverse)))",
       ],
-      ["margin-inline-end", "calc(1px * var(--tw-space-x-reverse))"],
+      ["margin-inline-end", "calc(1px * var(--baro-space-x-reverse))"],
     ],
   ],
 ], { category: 'spacing' });
@@ -75,17 +75,17 @@ staticUtility("-space-x-px", [
   [
     "& > :not([hidden]) ~ :not([hidden])",
     [
-      ["--tw-space-x-reverse", "0"],
+      ["--baro-space-x-reverse", "0"],
       [
         "margin-inline-start",
-        "calc(-1px * calc(1 - var(--tw-space-x-reverse)))",
+        "calc(-1px * calc(1 - var(--baro-space-x-reverse)))",
       ],
-      ["margin-inline-end", "calc(-1px * var(--tw-space-x-reverse))"],
+      ["margin-inline-end", "calc(-1px * var(--baro-space-x-reverse))"],
     ],
   ],
 ], { category: 'spacing' });
 staticUtility("space-x-reverse", [
-  ["& > :not([hidden]) ~ :not([hidden])", [["--tw-space-x-reverse", "1"]]],
+  ["& > :not([hidden]) ~ :not([hidden])", [["--baro-space-x-reverse", "1"]]],
 ], { category: 'spacing' });
 
 functionalUtility({
@@ -102,25 +102,25 @@ functionalUtility({
     }
     return [
       rule("& > :not([hidden]) ~ :not([hidden])", [
-        decl("--tw-space-x-reverse", "0"),
+        decl("--baro-space-x-reverse", "0"),
         decl(
           "margin-inline-start",
-          `calc(${v} * calc(1 - var(--tw-space-x-reverse)))`
+          `calc(${v} * calc(1 - var(--baro-space-x-reverse)))`
         ),
-        decl("margin-inline-end", `calc(${v} * var(--tw-space-x-reverse))`),
+        decl("margin-inline-end", `calc(${v} * var(--baro-space-x-reverse))`),
       ]),
     ];
   },
   handleCustomProperty: (value) => [
     rule("& > :not([hidden]) ~ :not([hidden])", [
-      decl("--tw-space-x-reverse", "0"),
+      decl("--baro-space-x-reverse", "0"),
       decl(
         "margin-inline-start",
-        `calc(var(${value}) * calc(1 - var(--tw-space-x-reverse)))`
+        `calc(var(${value}) * calc(1 - var(--baro-space-x-reverse)))`
       ),
       decl(
         "margin-inline-end",
-        `calc(var(${value}) * var(--tw-space-x-reverse))`
+        `calc(var(${value}) * var(--baro-space-x-reverse))`
       ),
     ]),
   ],
@@ -135,9 +135,9 @@ staticUtility("space-y-px", [
   [
     "& > :not([hidden]) ~ :not([hidden])",
     [
-      ["--tw-space-y-reverse", "0"],
-      ["margin-block-start", "calc(1px * calc(1 - var(--tw-space-y-reverse)))"],
-      ["margin-block-end", "calc(1px * var(--tw-space-y-reverse))"],
+      ["--baro-space-y-reverse", "0"],
+      ["margin-block-start", "calc(1px * calc(1 - var(--baro-space-y-reverse)))"],
+      ["margin-block-end", "calc(1px * var(--baro-space-y-reverse))"],
     ],
   ],
 ], { category: 'spacing' });
@@ -145,17 +145,17 @@ staticUtility("-space-y-px", [
   [
     "& > :not([hidden]) ~ :not([hidden])",
     [
-      ["--tw-space-y-reverse", "0"],
+      ["--baro-space-y-reverse", "0"],
       [
         "margin-block-start",
-        "calc(-1px * calc(1 - var(--tw-space-y-reverse)))",
+        "calc(-1px * calc(1 - var(--baro-space-y-reverse)))",
       ],
-      ["margin-block-end", "calc(-1px * var(--tw-space-y-reverse))"],
+      ["margin-block-end", "calc(-1px * var(--baro-space-y-reverse))"],
     ],
   ],
 ], { category: 'spacing' });
 staticUtility("space-y-reverse", [
-  ["& > :not([hidden]) ~ :not([hidden])", [["--tw-space-y-reverse", "1"]]],
+  ["& > :not([hidden]) ~ :not([hidden])", [["--baro-space-y-reverse", "1"]]],
 ], { category: 'spacing' });
 
 functionalUtility({
@@ -172,25 +172,25 @@ functionalUtility({
     }
     return [
       rule("& > :not([hidden]) ~ :not([hidden])", [
-        decl("--tw-space-y-reverse", "0"),
+        decl("--baro-space-y-reverse", "0"),
         decl(
           "margin-block-start",
-          `calc(${v} * calc(1 - var(--tw-space-y-reverse)))`
+          `calc(${v} * calc(1 - var(--baro-space-y-reverse)))`
         ),
-        decl("margin-block-end", `calc(${v} * var(--tw-space-y-reverse))`),
+        decl("margin-block-end", `calc(${v} * var(--baro-space-y-reverse))`),
       ]),
     ];
   },
   handleCustomProperty: (value) => [
     rule("& > :not([hidden]) ~ :not([hidden])", [
-      decl("--tw-space-y-reverse", "0"),
+      decl("--baro-space-y-reverse", "0"),
       decl(
         "margin-block-start",
-        `calc(var(${value}) * calc(1 - var(--tw-space-y-reverse)))`
+        `calc(var(${value}) * calc(1 - var(--baro-space-y-reverse)))`
       ),
       decl(
         "margin-block-end",
-        `calc(var(${value}) * var(--tw-space-y-reverse))`
+        `calc(var(${value}) * var(--baro-space-y-reverse))`
       ),
     ]),
   ],

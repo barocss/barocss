@@ -41,7 +41,7 @@ Utilities for setting the height of an element.
 | `size-(&lt;custom-property&gt;)` | `width: var(&lt;custom-property&gt;); height: var(&lt;custom-property&gt;);` |
 | `size-[&lt;value&gt;]` | `width: &lt;value&gt;; height: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/height
+
 
 ## Examples
 
@@ -160,16 +160,11 @@ Prefix a `height` utility with a breakpoint variant like `md:` to only apply the
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 The `h-&lt;number&gt;` and `size-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
-@theme {
-  --spacing: 1px;
-}
 ```
 
-Learn more about customizing the spacing scale in the theme variable documentation.

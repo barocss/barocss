@@ -2,11 +2,15 @@
 
 Utilities for applying backdrop sepia filters to an element.
 
-Source: https://tailwindcss.com/guide/backdrop-filter-sepia
 
 ## Quick reference
 
-- `backdrop-sepia`, `backdrop-sepia-0`, `backdrop-sepia-[&lt;value&gt;]`, `backdrop-sepia-(&lt;custom-property&gt;)`
+| Class | Styles |
+|---|---|
+| `backdrop-sepia` | `backdrop-filter: sepia(100%);` |
+| `backdrop-sepia-&lt;number&gt;` | `backdrop-filter: sepia(&lt;number&gt;%);` |
+| `backdrop-sepia-(&lt;custom-property&gt;)` | `backdrop-filter: sepia(var(&lt;custom-property&gt;));` |
+| `backdrop-sepia-[&lt;value&gt;]` | `backdrop-filter: sepia(&lt;value&gt;);` |
 
 ## Examples
 
@@ -53,4 +57,3 @@ Prefix a `backdrop-filter: sepia()` utility with a breakpoint variant like `md:`
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

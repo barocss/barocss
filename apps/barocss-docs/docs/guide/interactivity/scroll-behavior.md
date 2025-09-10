@@ -2,7 +2,7 @@
 
 Utilities for controlling the scroll behavior of an element.
 
-Source: https://tailwindcss.com/guide/scroll-behavior
+
 
 ## Quick reference
 
@@ -45,4 +45,3 @@ Prefix a `scroll-behavior` utility with a breakpoint variant like `md:` to only 
 </html>
 ```
 
-Learn more about using variants in the variants documentation.

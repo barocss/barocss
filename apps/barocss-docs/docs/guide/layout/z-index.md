@@ -11,7 +11,6 @@ Utilities for controlling the stack order of an element.
 | `z-[&lt;value&gt;]` | `z-index: &lt;value&gt;;` |
 | `z-(&lt;custom-property&gt;)` | `z-index: var(&lt;custom-property&gt;);` |
 
-Source: https://tailwindcss.com/guide/z-index
 
 ## Examples
 
@@ -66,4 +65,3 @@ Prefix a `z-index` utility with a breakpoint variant like `md:` to only apply th
 <div class="z-0 md:z-50 ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

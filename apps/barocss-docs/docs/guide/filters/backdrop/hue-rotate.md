@@ -2,12 +2,15 @@
 
 Utilities for applying backdrop hue-rotate filters to an element.
 
-Source: https://tailwindcss.com/guide/backdrop-filter-hue-rotate
 
 ## Quick reference
 
-- Presets like `backdrop-hue-rotate-15`, `backdrop-hue-rotate-30`, `backdrop-hue-rotate-60`, negative variants `-backdrop-hue-rotate-15`, etc.
-- `backdrop-hue-rotate-[<angle>]`, `backdrop-hue-rotate-(&lt;custom-property&gt;)`
+| Class | Styles |
+|---|---|
+| `backdrop-hue-rotate-&lt;number&gt;` | `backdrop-filter: hue-rotate(&lt;number&gt;deg);` |
+| `-backdrop-hue-rotate-&lt;number&gt;` | `backdrop-filter: hue-rotate(calc(&lt;number&gt;deg * -1));` |
+| `backdrop-hue-rotate-(&lt;custom-property&gt;)` | `backdrop-filter: hue-rotate(var(&lt;custom-property&gt;));` |
+| `backdrop-hue-rotate-[&lt;value&gt;]` | `backdrop-filter: hue-rotate(&lt;value&gt;);` |
 
 ## Examples
 
@@ -54,4 +57,3 @@ Prefix a `backdrop-filter: hue-rotate()` utility with a breakpoint variant like 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

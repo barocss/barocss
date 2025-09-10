@@ -1,10 +1,16 @@
-# Responsive design
+# Responsive Design
 
+::: tip Adaptive User Interfaces
 Using responsive utility variants to build adaptive user interfaces.
+:::
 
 ## Overview
 
-Every utility class in Tailwind can be applied conditionally at different breakpoints, which makes it a piece of cake to build complex responsive interfaces without ever leaving your HTML.
+::: details Purpose
+Learn how to use BaroCSS responsive variants to create layouts that adapt to different screen sizes.
+:::
+
+Every utility class in BaroCSS can be applied conditionally at different breakpoints, which makes it a piece of cake to build complex responsive interfaces without ever leaving your HTML.
 
 First, make sure you've added the [viewport meta tag](https://developer.mozilla.org/en-US/guide/Web/HTML/Viewport_meta_tag) to the `<head>` of your document:
 
@@ -29,7 +35,9 @@ There are five breakpoints by default, inspired by common device resolutions:
 | `xl` | 80rem _(1280px)_ | `@media (width >= 80rem) { ... }` |
 | `2xl` | 96rem _(1536px)_ | `@media (width >= 96rem) { ... }` |
 
+::: tip Universal Responsive Support
 This works for **every utility class in the framework**, which means you can change literally anything at a given breakpoint — even things like letter spacing or cursor styles.
+:::
 
 Here's a simple example of a marketing page component that uses a stacked layout on small screens, and a side-by-side layout on larger screens:
 
@@ -57,6 +65,7 @@ Here's a simple example of a marketing page component that uses a stacked layout
 </div>
 ```
 
+::: details How This Example Works
 Here's how the example above works:
 
 - By default, the outer `div` is `display: block`, but by adding the `md:flex` utility, it becomes `display: flex` on medium screens and larger.
@@ -64,14 +73,23 @@ Here's how the example above works:
 - On small screens the image is automatically full width by default. On medium screens and up, we've constrained the width to a fixed size and ensured the image is full height using `md:h-full md:w-48`.
 
 We've only used one breakpoint in this example, but you could easily customize this component at other sizes using the `sm`, `lg`, `xl`, or `2xl` responsive prefixes as well.
+:::
 
-## Working mobile-first
+## Working Mobile-First
 
-Tailwind uses a mobile-first breakpoint system, similar to what you might be used to in other frameworks like Bootstrap.
+::: details Purpose
+Learn how BaroCSS's mobile-first breakpoint system works and how to target different screen sizes effectively.
+:::
+
+BaroCSS uses a mobile-first breakpoint system, similar to what you might be used to in other frameworks like Bootstrap.
 
 What this means is that unprefixed utilities (like `uppercase`) take effect on all screen sizes, while prefixed utilities (like `md:uppercase`) only take effect at the specified breakpoint _and above_.
 
-### Targeting mobile screens
+### Targeting Mobile Screens
+
+::: details Purpose
+Understand how to properly target mobile devices using unprefixed utilities.
+:::
 
 Where this approach surprises people most often is that to style something for mobile, you need to use the unprefixed version of a utility, not the `sm:` prefixed version. Don't think of `sm:` as meaning "on small screens", think of it as "at the small _breakpoint_".
 
@@ -89,9 +107,15 @@ Where this approach surprises people most often is that to style something for m
 <div class="text-center sm:text-left"></div>
 ```
 
+::: tip Best Practice
 For this reason, it's often a good idea to implement the mobile layout for a design first, then layer on any changes that make sense for `sm` screens, followed by `md` screens, etc.
+:::
 
-### Targeting a breakpoint range
+### Targeting a Breakpoint Range
+
+::: details Purpose
+Learn how to apply styles only within specific breakpoint ranges using max-width variants.
+:::
 
 By default, styles applied by rules like `md:flex` will apply at that breakpoint and stay applied at larger breakpoints.
 
@@ -103,7 +127,7 @@ If you'd like to apply a utility _only_ when a specific breakpoint range is acti
 </div>
 ```
 
-Tailwind generates a corresponding `max-*` variant for each breakpoint, so out of the box the following variants are available:
+BaroCSS generates a corresponding `max-*` variant for each breakpoint, so out of the box the following variants are available:
 
 | Variant | Media query |
 |---------|-------------|
@@ -113,7 +137,11 @@ Tailwind generates a corresponding `max-*` variant for each breakpoint, so out o
 | `max-xl` | `@media (width < 80rem) { ... }` |
 | `max-2xl` | `@media (width < 96rem) { ... }` |
 
-### Targeting a single breakpoint
+### Targeting a Single Breakpoint
+
+::: details Purpose
+Learn how to target a specific breakpoint by combining min and max variants.
+:::
 
 To target a single breakpoint, target the range for that breakpoint by stacking a responsive variant like `md` with the `max-*` variant for the next breakpoint:
 
@@ -125,20 +153,30 @@ To target a single breakpoint, target the range for that breakpoint by stacking 
 
 Read about [targeting breakpoint ranges](#targeting-a-breakpoint-range) to learn more.
 
-## Using custom breakpoints
+## Using Custom Breakpoints
 
-### Customizing your theme
+### Customizing Your Theme
+
+::: details Purpose
+Learn how to customize breakpoints using theme variables to match your design needs.
+:::
 
 Use the `--breakpoint-*` theme variables to customize your breakpoints:
 
-```css
-@import "tailwindcss";
+```typescript
+import { createContext } from '@barocss/kit';
 
-@theme {
-  --breakpoint-xs: 30rem;
-  --breakpoint-2xl: 100rem;
-  --breakpoint-3xl: 120rem;
-}
+const ctx = createContext({
+  theme: {
+    extend: {
+      screens: {
+        xs: '30rem',
+        '2xl': '100rem',
+        '3xl': '120rem'
+      }
+    }
+  }
+});
 ```
 
 This updates the `2xl` breakpoint to use `100rem` instead of the default `96rem`, and creates new `xs` and `3xl` breakpoints that can be used in your markup:
@@ -149,40 +187,60 @@ This updates the `2xl` breakpoint to use `100rem` instead of the default `96rem`
 </div>
 ```
 
+::: warning Important
 Note that it's important to always use the same unit for defining your breakpoints or the generated utilities may be sorted in an unexpected order, causing breakpoint classes to override each other in unexpected ways.
 
-Tailwind uses `rem` for the default breakpoints, so if you are adding additional breakpoints to the defaults, make sure you use `rem` as well.
+BaroCSS uses `rem` for the default breakpoints, so if you are adding additional breakpoints to the defaults, make sure you use `rem` as well.
+:::
 
-Learn more about customizing your theme in the [theme documentation](/guide/theme).
 
-### Removing default breakpoints
+### Removing Default Breakpoints
+
+::: details Purpose
+Learn how to remove default breakpoints and create a completely custom breakpoint system.
+:::
 
 To remove a default breakpoint, reset its value to the `initial` keyword:
 
-```css
-@import "tailwindcss";
+```typescript
+import { createContext } from '@barocss/kit';
 
-@theme {
-  --breakpoint-2xl: initial;
-}
+const ctx = createContext({
+  theme: {
+    screens: {
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px'
+      // 2xl is not included, so it won't be available
+    }
+  }
+});
 ```
 
 You can also reset all of the default breakpoints using `--breakpoint-*: initial`, then define all of your breakpoints from scratch:
 
-```css
-@import "tailwindcss";
+```typescript
+import { createContext } from '@barocss/kit';
 
-@theme {
-  --breakpoint-*: initial;
-  --breakpoint-tablet: 40rem;
-  --breakpoint-laptop: 64rem;
-  --breakpoint-desktop: 80rem;
-}
+const ctx = createContext({
+  theme: {
+    screens: {
+      tablet: '40rem',
+      laptop: '64rem',
+      desktop: '80rem'
+    }
+  }
+});
 ```
 
 Learn more removing default theme values in the [theme documentation](/guide/theme).
 
-### Using arbitrary values
+### Using Arbitrary Values
+
+::: details Purpose
+Learn how to use arbitrary values for one-off breakpoints without modifying your theme.
+:::
 
 If you need to use a one-off breakpoint that doesn't make sense to include in your theme, use the `min` or `max` variants to generate a custom breakpoint on the fly using any arbitrary value.
 
@@ -192,15 +250,22 @@ If you need to use a one-off breakpoint that doesn't make sense to include in yo
 </div>
 ```
 
-Learn more about arbitrary value support in the [arbitrary values](/guide/adding-custom-styles#using-arbitrary-values) documentation.
 
-## Container queries
+## Container Queries
 
-### What are container queries?
+### What Are Container Queries?
+
+::: details Purpose
+Learn about container queries and how they differ from viewport-based breakpoints.
+:::
 
 [Container queries](https://developer.mozilla.org/en-US/guide/Web/CSS/CSS_containment/Container_queries) are a modern CSS feature that let you style something based on the size of a parent element instead of the size of the entire viewport. They let you build components that are a lot more portable and reusable because they can change based on the actual space available for that component.
 
-### Basic example
+### Basic Example
+
+::: details Purpose
+Learn how to use container queries with BaroCSS to create responsive components.
+:::
 
 Use the `@container` class to mark an element as a container, then use variants like `@sm` and `@md` to style child elements based on the size of the container:
 
@@ -212,9 +277,13 @@ Use the `@container` class to mark an element as a container, then use variants 
 </div>
 ```
 
-Just like breakpoint variants, container queries are mobile-first in Tailwind CSS and apply at the target container size and up.
+Just like breakpoint variants, container queries are mobile-first in BaroCSS and apply at the target container size and up.
 
-### Max-width container queries
+### Max-Width Container Queries
+
+::: details Purpose
+Learn how to apply styles below specific container sizes using max-width variants.
+:::
 
 Use variants like `@max-sm` and `@max-md` to apply a style below a specific container size:
 
@@ -226,7 +295,11 @@ Use variants like `@max-sm` and `@max-md` to apply a style below a specific cont
 </div>
 ```
 
-### Container query ranges
+### Container Query Ranges
+
+::: details Purpose
+Learn how to target specific container size ranges by combining min and max variants.
+:::
 
 Stack a regular container query variant with a max-width container query variant to target a specific range:
 
@@ -238,7 +311,11 @@ Stack a regular container query variant with a max-width container query variant
 </div>
 ```
 
-### Named containers
+### Named Containers
+
+::: details Purpose
+Learn how to use named containers for complex designs with multiple nested containers.
+:::
 
 For complex designs that use multiple nested containers, you can name containers using `@container/{name}` and target specific containers with variants like `@sm/{name}` and `@md/{name}`:
 
@@ -253,16 +330,26 @@ For complex designs that use multiple nested containers, you can name containers
 
 This makes it possible to style something based on the size of a distant container, rather than just the nearest container.
 
-### Using custom container sizes
+### Using Custom Container Sizes
+
+::: details Purpose
+Learn how to customize container sizes using theme variables.
+:::
 
 Use the `--container-*` theme variables to customize your container sizes:
 
-```css
-@import "tailwindcss";
+```typescript
+import { createContext } from '@barocss/kit';
 
-@theme {
-  --container-8xl: 96rem;
-}
+const ctx = createContext({
+  theme: {
+    extend: {
+      container: {
+        '8xl': '96rem'
+      }
+    }
+  }
+});
 ```
 
 This adds a new `8xl` container query variant that can be used in your markup:
@@ -275,9 +362,12 @@ This adds a new `8xl` container query variant that can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the [theme documentation](/guide/theme).
 
-### Using arbitrary values
+### Using Arbitrary Values
+
+::: details Purpose
+Learn how to use arbitrary values for one-off container query sizes.
+:::
 
 Use variants like `@min-[475px]` and `@max-[960px]` for one-off container query sizes you don't want to add to your theme:
 
@@ -289,7 +379,11 @@ Use variants like `@min-[475px]` and `@max-[960px]` for one-off container query 
 </div>
 ```
 
-### Using container query units
+### Using Container Query Units
+
+::: details Purpose
+Learn how to use container query length units for responsive sizing.
+:::
 
 Use [container query length units](https://developer.mozilla.org/en-US/guide/Web/CSS/CSS_containment/Container_queries#container_query_length_units) like `cqw` as arbitrary values in other utility classes to reference the container size:
 
@@ -301,9 +395,13 @@ Use [container query length units](https://developer.mozilla.org/en-US/guide/Web
 </div>
 ```
 
-### Container size reference
+### Container Size Reference
 
-By default, Tailwind includes container sizes ranging from 16rem _(256px)_ to 80rem _(1280px)_:
+::: details Purpose
+Reference table of all available container query variants and their sizes.
+:::
+
+By default, BaroCSS includes container sizes ranging from 16rem _(256px)_ to 80rem _(1280px)_:
 
 | Variant | Minimum width | CSS |
 |---------|---------------|-----|
@@ -321,20 +419,3 @@ By default, Tailwind includes container sizes ranging from 16rem _(256px)_ to 80
 | `@6xl` | 72rem _(1152px)_ | `@container (width >= 72rem) { … }` |
 | `@7xl` | 80rem _(1280px)_ | `@container (width >= 80rem) { … }` |
 
-## Best practices
-
-1. **Start mobile-first**: Design for mobile devices first, then progressively enhance for larger screens.
-
-2. **Use semantic breakpoints**: Choose breakpoints based on your content and design needs, not just device sizes.
-
-3. **Test across devices**: Always test your responsive design on actual devices and different screen sizes.
-
-4. **Consider container queries**: For component-level responsive behavior, consider using container queries instead of viewport-based breakpoints.
-
-5. **Keep it simple**: Don't over-engineer your responsive design. Start with the essentials and add complexity only when needed.
-
-6. **Use consistent spacing**: Maintain consistent spacing and typography across different breakpoints.
-
-7. **Optimize for touch**: On mobile devices, ensure interactive elements are large enough for touch interaction.
-
-8. **Consider performance**: Be mindful of the CSS bundle size when using many responsive variants.

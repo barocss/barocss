@@ -11,7 +11,7 @@ Utilities for controlling how text wraps within an element.
 | `text-balance` | `text-wrap: balance;`  |
 | `text-pretty`  | `text-wrap: pretty;`   |
 
-Source: https://tailwindcss.com/guide/text-wrap
+
 
 ## Examples
 
@@ -61,4 +61,3 @@ Prefix a `text-wrap` utility with a breakpoint variant like `md:` to only apply 
 <h1 class="text-pretty md:text-balance ...">Lorem ipsum dolor sit amet...</h1>
 ```
 
-Learn more about using variants in the variants documentation.

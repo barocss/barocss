@@ -12,7 +12,7 @@ The Server Runtime API provides server-side functionality for generating CSS wit
 The main class for server-side BaroCSS functionality.
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/server';
 
 const serverRuntime = new ServerRuntime({
   theme: {
@@ -141,7 +141,7 @@ You can also use the core functions directly for more control.
 ### parseClassToAst()
 
 ```typescript
-import { parseClassToAst, createContext } from 'barocss';
+import { parseClassToAst, createContext } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {
@@ -159,7 +159,7 @@ const ast = parseClassToAst('bg-brand', ctx);
 ### generateCss()
 
 ```typescript
-import { generateCss, createContext } from 'barocss';
+import { generateCss, createContext } from '@barocss/kit';
 
 const ctx = createContext();
 const css = generateCss('bg-blue-500 text-white p-4', ctx, {
@@ -171,7 +171,7 @@ const css = generateCss('bg-blue-500 text-white p-4', ctx, {
 ### generateCssRules()
 
 ```typescript
-import { generateCssRules, createContext } from 'barocss';
+import { generateCssRules, createContext } from '@barocss/kit';
 
 const ctx = createContext();
 const rules = generateCssRules('bg-blue-500 text-white', ctx);
@@ -188,7 +188,7 @@ rules.forEach(rule => {
 ### Static Site Generation
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/server';
 import fs from 'fs';
 
 // Initialize server runtime
@@ -223,7 +223,7 @@ fs.writeFileSync('dist/styles.css', css);
 ### Server-Side Rendering (SSR)
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/server';
 
 // Initialize once per request or globally
 const serverRuntime = new ServerRuntime({
@@ -255,13 +255,12 @@ function renderPage(componentClasses: string[]) {
       </body>
     </html>
   `;
-}
 ```
 
 ### Build-Time CSS Generation
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/server';
 import { glob } from 'glob';
 
 // Initialize server runtime
@@ -295,13 +294,12 @@ async function generateCSS() {
   
   // Write to file
   fs.writeFileSync('dist/generated.css', css);
-}
 ```
 
 ### API Endpoint
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/server';
 import express from 'express';
 
 const app = express();
@@ -361,9 +359,7 @@ const serverRuntime = new ServerRuntime({
         }
       }
     },
-    plugins: [
-      // Custom plugins
-    ]
+    // Custom utilities are registered globally
   }
 });
 ```
@@ -405,14 +401,11 @@ try {
   }
 } catch (error) {
   console.error('CSS generation failed:', error);
-}
 ```
 
-## Performance Considerations
+## Caching
 
-### Caching
-
-The server runtime includes built-in caching for optimal performance:
+The server runtime includes built-in caching:
 
 ```typescript
 // Classes are cached automatically
@@ -420,12 +413,12 @@ const css1 = serverRuntime.generateCss('bg-blue-500'); // Parsed and cached
 const css2 = serverRuntime.generateCss('bg-blue-500'); // Retrieved from cache
 ```
 
-### Memory Management
+### Cache Management
 
 For long-running processes, consider clearing caches periodically:
 
 ```typescript
-import { clearAllCaches } from 'barocss';
+import { clearAllCaches } from '@barocss/kit';
 
 // Clear caches periodically
 setInterval(() => {
@@ -438,7 +431,7 @@ setInterval(() => {
 ### Complete Build Script
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/server';
 import fs from 'fs';
 import path from 'path';
 
@@ -474,7 +467,6 @@ async function buildCSS() {
   // Write to output
   fs.writeFileSync('dist/styles.css', css);
   console.log(`Generated CSS for ${results.length} classes`);
-}
 
 function extractClassesFromContent(content: string): string[] {
   // Simple regex to extract class names (implement your own logic)
@@ -488,14 +480,7 @@ function extractClassesFromContent(content: string): string[] {
   }
 
   return classes;
-}
 
 buildCSS().catch(console.error);
 ```
 
-## Related APIs
-
-- [Context API](/api/context) - Configuration management
-- [Engine API](/api/engine) - Core CSS generation
-- [Browser Runtime](/api/browser-runtime) - Browser integration
-- [Plugin System](/api/plugins) - Extending functionality

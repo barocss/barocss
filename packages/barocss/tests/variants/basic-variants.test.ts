@@ -35,7 +35,7 @@ describe("basic variants", () => {
     expect(parseClassToAst("group-hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
-        selector: ".group:hover &",
+        selector: "&:is(:where(.group):hover *)",
         nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
       },
     ]);
@@ -45,7 +45,7 @@ describe("basic variants", () => {
     expect(parseClassToAst("peer-hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
-        selector: ".peer:hover ~ &",
+        selector: "&:is(:where(.peer):hover~*)",
         nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
       },
     ]);
@@ -97,7 +97,7 @@ describe("basic variants", () => {
     expect(parseClassToAst("group-hover:focus:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
-        selector: ".group:hover &",
+        selector: "&:is(:where(.group):hover *)",
         nodes: [
           {
             type: "rule",
@@ -363,7 +363,7 @@ describe("basic variants", () => {
     expect(parseClassToAst("group-hover:focus:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
-        selector: ".group:hover &",
+        selector: "&:is(:where(.group):hover *)",
         nodes: [
           {
             type: "rule",
@@ -509,7 +509,7 @@ describe("basic variants", () => {
     ).toMatchObject([
       {
         type: "rule",
-        selector: ".group:hover &",
+        selector: "&:is(:where(.group):hover *)",
         nodes: [
           {
             type: "rule",
@@ -526,7 +526,7 @@ describe("basic variants", () => {
       [
         {
           type: "rule",
-          selector: ".peer:checked ~ &",
+          selector: "&:is(:where(.peer):checked~*)",
           nodes: [
             {
               type: "rule",
@@ -552,7 +552,7 @@ describe("basic variants", () => {
         nodes: [
           {
             type: "rule",
-            selector: ".peer:checked ~ &",
+            selector: "&:is(:where(.peer):checked~*)",
             nodes: [
               {
                 type: "rule",
@@ -1017,7 +1017,7 @@ describe("basic variants", () => {
       {
         type: "at-rule",
         name: "supports",
-        params: "display:grid",
+        params: "(display:grid)",
         nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
       },
     ]);

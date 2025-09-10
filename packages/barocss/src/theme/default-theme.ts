@@ -24,7 +24,7 @@ import { letterSpacing } from './letter-spacing';
 import { blur } from './blur';
 
 export interface UserTheme {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export const defaultTheme = {

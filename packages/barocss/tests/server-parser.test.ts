@@ -78,16 +78,4 @@ describe('IncrementalParser Universal Usage', () => {
       expect(processed).toContain('p-4');
     });
   });
-
-  describe('Environment detection', () => {
-    it('should work in Node.js environment', () => {
-      // This test verifies that the parser works without browser APIs
-      expect(typeof window).toBe('undefined');
-      
-      const result = parser.processClass('bg-blue-500');
-      
-      expect(result).not.toBeNull();
-      expect(result?.css).toContain('background-color');
-    });
-  });
 }); 

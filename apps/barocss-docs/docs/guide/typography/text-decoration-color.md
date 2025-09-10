@@ -13,7 +13,6 @@ Utilities for controlling the color of text decorations.
 | `decoration-(&lt;custom-property&gt;)` | `text-decoration-color: var(&lt;custom-property&gt;);` |
 | `decoration-[&lt;value&gt;]`   | `text-decoration-color: &lt;value&gt;;`        |
 
-Source: https://tailwindcss.com/guide/text-decoration-color
 
 ## Examples
 
@@ -61,7 +60,6 @@ Prefix a `text-decoration-color` utility with a variant like `hover:*` to only a
 <a class="underline hover:decoration-pink-500 ...">quick brown fox</a>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ### Responsive design
 
@@ -71,16 +69,12 @@ Prefix a `text-decoration-color` utility with a breakpoint variant like `md:` to
 <p class="underline decoration-sky-600 md:decoration-blue-400 ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 Use the `--color-*` theme variables to customize the text decoration color utilities in your project:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Now the `decoration-regal-blue` utility can be used in your markup:
@@ -89,4 +83,4 @@ Now the `decoration-regal-blue` utility can be used in your markup:
 <a class="underline decoration-regal-blue">Lorem ipsum dolor sit amet...</a>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

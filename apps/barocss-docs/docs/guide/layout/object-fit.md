@@ -12,7 +12,6 @@ Utilities for controlling how a replaced element's content should be resized.
 | `object-none`       | `object-fit: none;`       |
 | `object-scale-down` | `object-fit: scale-down;` |
 
-Source: https://tailwindcss.com/guide/object-fit
 
 ## Examples
 
@@ -54,5 +53,4 @@ Prefix an `object-fit` utility with a breakpoint variant like `md:` to only appl
 <img class="object-contain md:object-cover ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.
 

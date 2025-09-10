@@ -13,13 +13,12 @@ Utilities for controlling the shadow of a text element.
 | `text-shadow-lg` | `text-shadow: var(--text-shadow-lg); /* 0px 1px 2px rgb(0 0 0 / 0.1), 0px 3px 2px rgb(0 0 0 / 0.1), 0px 4px 8px rgb(0 0 0 / 0.1) */` |
 | `text-shadow-none` | `text-shadow: none;` |
 | `text-shadow-(&lt;custom-property&gt;)` | `text-shadow: var(&lt;custom-property&gt;);` |
-| `text-shadow-(color:&lt;custom-property&gt;)` | `--tw-shadow-color var(&lt;custom-property&gt;);` |
+| `text-shadow-(color:&lt;custom-property&gt;)` | `--baro-shadow-color var(&lt;custom-property&gt;);` |
 | `text-shadow-[&lt;value&gt;]` | `text-shadow: &lt;value&gt;;` |
-| `text-shadow-inherit` | `--tw-shadow-color inherit;` |
-| `text-shadow-current` | `--tw-shadow-color currentColor;` |
-| `text-shadow-transparent` | `--tw-shadow-color transparent;` |
+| `text-shadow-inherit` | `--baro-shadow-color inherit;` |
+| `text-shadow-current` | `--baro-shadow-color currentColor;` |
+| `text-shadow-transparent` | `--baro-shadow-color transparent;` |
 
-Source: https://tailwindcss.com/guide/text-shadow
 
 ## Examples
 
@@ -102,16 +101,13 @@ Prefix a `text-shadow` utility with a breakpoint variant like `md:` to only appl
 </p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 Use the `--text-shadow-*` theme variables to customize the text shadow utilities in your project:
 
 ```css
-@theme {
   --text-shadow-3xl: 0 35px 35px rgb(0 0 0 / 0.25);
-}
 ```
 
 Now the `text-shadow-3xl` utility can be used in your markup:
@@ -122,4 +118,4 @@ Now the `text-shadow-3xl` utility can be used in your markup:
 </p>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

@@ -12,7 +12,6 @@ Utilities for specifying the columns in a grid layout.
 | `grid-cols-[&lt;value&gt;]` | `grid-template-columns: &lt;value&gt;;` |
 | `grid-cols-(&lt;custom-property&gt;)` | `grid-template-columns: var(&lt;custom-property&gt;);` |
 
-Source: https://tailwindcss.com/guide/grid-template-columns
 
 ## Examples
 
@@ -75,4 +74,3 @@ Prefix a `grid-template-columns` utility with a breakpoint variant like `md:` to
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

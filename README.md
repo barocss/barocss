@@ -1,6 +1,6 @@
 # BaroCSS
 
-[![npm version](https://img.shields.io/npm/v/barocss.svg)](https://www.npmjs.com/package/barocss)
+[![npm version](https://img.shields.io/npm/v/@barocss/kit.svg)](https://www.npmjs.com/package/@barocss/kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 
@@ -21,13 +21,12 @@ BaroCSS is a next-generation CSS runtime that brings the power of utility-first 
 
 ## 📚 Documentation
 
-Visit our comprehensive documentation site: **[BaroCSS Documentation](https://your-username.github.io/barocss/)**
+Visit our comprehensive documentation site: **[BaroCSS Documentation](https://barocss.com/)**
 
 The documentation includes:
 - Getting Started guide
 - Installation instructions
 - Core concepts explanation
-- Plugin system documentation
 - Complete API reference
 - Real-world examples
 
@@ -42,7 +41,7 @@ The documentation includes:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BaroCSS App</title>
-  <script type="module" src="https://unpkg.com/barocss/dist/cdn/barocss.js"></script>
+  <script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
 </head>
 <body>
   <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl shadow-2xl">
@@ -60,19 +59,19 @@ The documentation includes:
 
 ```bash
 # Using pnpm (recommended)
-pnpm add barocss@latest
+pnpm add @barocss/kit@latest
 
 # Using npm
-npm install barocss@latest
+npm install @barocss/kit@latest
 
 # Using yarn
-yarn add barocss@latest
+yarn add @barocss/kit@latest
 ```
 
 ### Basic Usage
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 // Initialize runtime
 const runtime = new BrowserRuntime();
@@ -111,7 +110,7 @@ document.body.innerHTML = `
 ### Basic Styling
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime();
 
@@ -214,7 +213,7 @@ const runtime = new BrowserRuntime({
 ### Browser Runtime
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/kit/runtime/browser';
 
 const runtime = new BrowserRuntime();
 runtime.observe(document.body, { scan: true });
@@ -223,7 +222,7 @@ runtime.observe(document.body, { scan: true });
 ### Server Runtime
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
+import { ServerRuntime } from '@barocss/kit/runtime/server';
 
 const serverRuntime = new ServerRuntime();
 const css = serverRuntime.generateCss('bg-blue-500 text-white p-4');
@@ -232,7 +231,7 @@ const css = serverRuntime.generateCss('bg-blue-500 text-white p-4');
 ### Core Engine
 
 ```typescript
-import { parseClassToAst, generateCss, createContext } from 'barocss';
+import { parseClassToAst, generateCss, createContext } from '@barocss/kit';
 
 const ctx = createContext({
   theme: {
@@ -299,26 +298,24 @@ BaroCSS supports **95%+ of Tailwind CSS utilities**:
 - **Tree Shaking** - Removes unused utilities automatically
 - **Minimal Output** - Generates optimized CSS
 
-## 🔌 Plugin System
+## 🔧 Custom Utilities
 
-Extend BaroCSS with custom utilities and variants:
+Extend BaroCSS with custom utilities using the global registry functions:
 
 ```typescript
-const customPlugin = (ctx: Context) => {
-  // Register custom utilities
-  ctx.extendTheme('colors', {
-    'custom-blue': '#1e40af',
-    'custom-green': '#059669'
-  });
-  
-  // Add custom variants
-  // ... plugin implementation
-};
+import { staticUtility, functionalUtility } from '@barocss/kit';
 
-const runtime = new BrowserRuntime({
-  config: {
-    plugins: [customPlugin]
-  }
+// Register static utilities
+staticUtility('custom-bg', [
+  ['background-color', 'var(--custom-color)'],
+  ['border-radius', '8px']
+]);
+
+// Register functional utilities
+functionalUtility({
+  name: 'custom-text',
+  prop: 'color',
+  handle: (value) => [decl('color', value)]
 });
 ```
 
@@ -382,13 +379,12 @@ For detailed documentation, visit our [documentation site](https://barocss.com/)
 - [Getting Started](apps/barocss-docs/docs/guide/getting-started.md)
 - [Installation Guide](apps/barocss-docs/docs/guide/installation.md)
 - [Core Concepts](apps/barocss-docs/docs/guide/index.md)
-- [Plugin System](apps/barocss-docs/docs/guide/plugins.md)
 - [API Reference](apps/barocss-docs/docs/api/index.md)
 - [Examples](apps/barocss-docs/docs/examples/index.md)
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](packages/barocss/CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## 📄 License
 
@@ -403,8 +399,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - **Tailwind CSS** - For the amazing utility-first approach and JIT inspiration
-- **CSS Working Group** - For advancing CSS standards
-- **Community Contributors** - For feedback and contributions
+- **UnoCSS** - For ideas around on-demand, utility-first generation at runtime
 
 ---
 
