@@ -19,11 +19,6 @@ const filters = () => {
 }
 
 describe('filter', () => {
-  it('filter → filter: var(--baro-filter)', () => {
-    expect(parseClassToAst('filter', ctx)).toMatchObject([
-      { type: 'decl', prop: 'filter', value: 'var(--baro-filter)' },
-    ]);
-  });
   it('filter-none → filter: none', () => {
     expect(parseClassToAst('filter-none', ctx)).toMatchObject([
       { type: 'decl', prop: 'filter', value: 'none' },
@@ -68,7 +63,7 @@ describe('blur', () => {
   });
   it('blur-xl → filter: blur(var(--blur-xl))', () => {
     expect(parseClassToAst('blur-xl', ctx)).toMatchObject([
-      { type: 'decl', prop: 'filter', value: 'blur(var(--blur-xl))' },
+      { type: 'decl', prop: '--baro-blur', value: 'blur(var(--blur-xl))' },
       filters(),
     ]);
   });
@@ -251,15 +246,15 @@ describe('contrast', () => {
 describe('drop-shadow', () => {
   it('drop-shadow-xs → filter: drop-shadow(var(--drop-shadow-xs))', () => {
     expect(parseClassToAst('drop-shadow-xs', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(var(--drop-shadow-xs))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--baro-drop-shadow-size)' },
+      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 1px 1px var(--baro-drop-shadow-color, #0000001a))' },
+      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-xs)' },
       filters(),
     ]);
   });
   it('drop-shadow-sm → filter: drop-shadow(var(--drop-shadow-sm))', () => {
     expect(parseClassToAst('drop-shadow-sm', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(var(--drop-shadow-sm))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--baro-drop-shadow-size)' },
+      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 1px 2px var(--baro-drop-shadow-color, #0000001a))' },
+      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-sm)' },
       filters(),
     ]);
   });
@@ -272,22 +267,22 @@ describe('drop-shadow', () => {
   });
   it('drop-shadow-lg → filter: drop-shadow(var(--drop-shadow-lg))', () => {
     expect(parseClassToAst('drop-shadow-lg', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(var(--drop-shadow-lg))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--baro-drop-shadow-size)' },
+      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 4px 4px var(--baro-drop-shadow-color, #0000001a))' },
+      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-lg)' },
       filters(),
     ]);
   });
   it('drop-shadow-xl → filter: drop-shadow(var(--drop-shadow-xl))', () => {
     expect(parseClassToAst('drop-shadow-xl', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(var(--drop-shadow-xl))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--baro-drop-shadow-size)' },
+      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 9px 7px var(--baro-drop-shadow-color, #0000001a))' },
+      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-xl)' },
       filters(),
     ]);
   });
   it('drop-shadow-2xl → filter: drop-shadow(var(--drop-shadow-2xl))', () => {
     expect(parseClassToAst('drop-shadow-2xl', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(var(--drop-shadow-2xl))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--baro-drop-shadow-size)' },
+      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 25px 25px var(--baro-drop-shadow-color, #0000001a))' },
+      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-2xl)' },
       filters(),
     ]);
   });

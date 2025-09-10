@@ -1,6 +1,6 @@
 import { HasItems, HasName, HasParams, HasSelector, type AstNode, type HasNodes } from "./ast";
 import { parseClassName } from "./parser";
-import { astCache } from "../utils/cache";
+import { astCache, parseResultCache } from "../utils/cache";
 import { getUtility, getModifier } from "./registry";
 import { Context } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
@@ -480,6 +480,7 @@ export function generateCss(
     })
     .map((cls) => {
       const ast = parseClassToAst(cls, ctx);
+      const parsedResult = parseResultCache.get(cls);
       const cleanAst = optimizeAst(ast);
 
       cleanAst.forEach((node) => {
@@ -492,6 +493,7 @@ export function generateCss(
       const hasStyleRule = cleanAst.some((node) => node.type === "style-rule");
       const css = astToCss(cleanAst, hasStyleRule ? undefined : cls, {
         minify: opts?.minify,
+        important: parsedResult?.utility?.important ?? false,
       }); // Conditional baseSelector
 
       const rootCss = rootToCss(allAtRootNodes);

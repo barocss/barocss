@@ -41,7 +41,7 @@ describe("negation variants", () => {
       expect(parseClassToAst("group-hover:not-hover:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
-          selector: ".group:hover &",
+          selector: "&:is(:where(.group):hover *)",
           nodes: [
             {
               type: "rule",

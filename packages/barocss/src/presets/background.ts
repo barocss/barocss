@@ -415,9 +415,14 @@ functionalUtility({
       return [decl("background-color", value)];
     }
 
-    const color = parseColor(value);
-    if (color) {
-      return [decl("background-color", color)];
+    if (parseColor(value)) {
+      const parsedColor = parseColor(value);
+
+      if (value.startsWith("color:")) {
+        return [decl("background-color", parsedColor || value)];
+      }
+
+      return [decl("background-color", value)];
     }
 
     if (parseLength(value)) {

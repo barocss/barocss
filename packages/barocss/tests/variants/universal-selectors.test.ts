@@ -67,7 +67,7 @@ describe("universal selectors", () => {
     expect(ast).toMatchObject([
       {
         type: "rule",
-        selector: ".group:hover &",
+        selector: "&:is(:where(.group):hover *)",
         nodes: [
           {
             type: "style-rule",
@@ -84,7 +84,7 @@ describe("universal selectors", () => {
     expect(ast).toMatchObject([
       {
         type: "rule",
-        selector: ".group:hover &",
+        selector: "&:is(:where(.group):hover *)",
         nodes: [
           {
             type: "style-rule",

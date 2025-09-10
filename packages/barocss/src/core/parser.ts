@@ -16,6 +16,7 @@ export interface ParsedUtility {
   negative?: boolean;
   opacity?: string;
   priority?: number;
+  important?: boolean;
   [key: string]: unknown;
 }
 
@@ -87,11 +88,22 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
   if (parseResultCache.has(className)) {
     return parseResultCache.get(className)!;
   }
+
+  // Examples: !bg-[red]
+  let important = false;
+  let realClassName = className;
+  if (className.startsWith('!')) {
+    important = true;
+    realClassName = className.slice(1);
+  }
   
   // 1. Tokenize string into tokens
-  const tokens = tokenize(className);
+  const tokens = tokenize(realClassName);
   // 2. Convert tokens to parsed result
   const result = parseTokens(tokens);
+  if (result.utility) {
+    result.utility.important = important;
+  }
   
   // Cache the result
   parseResultCache.set(className, result);

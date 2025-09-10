@@ -1,6 +1,8 @@
 import { type AstNode } from "./ast";
 import { escapeClassName } from "./registry";
 
+const importantPrefix = "!important";
+
 /**
  * Converts AST nodes to CSS string
  * @param ast { AstNode[] } - Array of AST nodes to convert
@@ -11,13 +13,14 @@ import { escapeClassName } from "./registry";
 function astToCss(
   ast: AstNode[],
   baseSelector?: string,
-  opts?: { minify?: boolean },
+  opts?: { minify?: boolean, important?: boolean },
   _indent = ""
 ): string {
   const minify = opts?.minify;
   const indent = _indent;
   const nextIndent = _indent + "  "; // Next-level indentation: current + 2 spaces
-
+  const important = opts?.important ?? false;
+  const importantString = important ? ` ${importantPrefix}` : "";
   // Note: Caching is handled at a higher level (IncrementalParser); omit here
 
   // Debug logging for empty AST
@@ -73,22 +76,21 @@ function astToCss(
         case "decl": {
           // Handle CSS property declaration (e.g., color: red;)
           const value = node.value;
-          
           // node.important is absent; ignore
           if (node.prop.startsWith("--")) {
             // Handle CSS custom property (e.g., --primary-color: #007bff;)
             if (minify) {
-              const css = `${node.prop}: ${value};`;
+              const css = `${node.prop}: ${value}${importantString};`;
               // console.log("[astToCss] decl custom property minify", css);
               return css;
             } else {
-              const css = `${indent}${node.prop}: ${value};`;
+              const css = `${indent}${node.prop}: ${value}${importantString};`;
               // console.log("[astToCss] decl custom property pretty", css);
               return css;
             }
           } else {
             const localIndent = minify ? "" : indent;
-            const css = `${localIndent}${node.prop}: ${value};`;
+            const css = `${localIndent}${node.prop}: ${value}${importantString};`;
             return css;
           }
         }

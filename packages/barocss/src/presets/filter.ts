@@ -58,6 +58,9 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, ctx, token) => {
+    if (token.arbitrary) {
+      return [decl("--baro-brightness", `brightness(${value})`), filters()];
+    }
     if (parseNumber(value)) {
       return [decl("--baro-brightness", `brightness(${value}%)`), filters()];
     }
@@ -81,6 +84,9 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, _ctx, token) => {
+    if (token.arbitrary) {
+      return [decl("--baro-contrast", `contrast(${value})`), filters()];
+    }
     if (parseNumber(value)) {
       return [decl("--baro-contrast", `contrast(${value}%)`), filters()];
     }

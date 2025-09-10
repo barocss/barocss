@@ -302,7 +302,13 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsNegative: true,
-  handle: (value, ctx, { negative }) => {
+  handle: (value, ctx, { negative, arbitrary }) => {
+
+
+    if (arbitrary) {
+      return [decl("scale", `var(--baro-scale-x) ${value}`)];
+    }
+
     // scale-y-75 → scale: var(--baro-scale-x) 75%
     // -scale-y-75 → scale: var(--baro-scale-x) calc(75% * -1)
     if (parseNumber(value) || negative) {
@@ -327,7 +333,12 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsNegative: true,
-  handle: (value, ctx, { negative }) => {
+  handle: (value, ctx, { negative, arbitrary }) => {
+
+    if (arbitrary) {
+      return [decl("scale", `var(--baro-scale-x) var(--baro-scale-y) ${value}`)];
+    }
+
     // scale-z-75 → scale: var(--baro-scale-x) var(--baro-scale-y) 75%
     // -scale-z-75 → scale: var(--baro-scale-x) var(--baro-scale-y) calc(75% * -1)
     if (parseNumber(value) || negative) {
@@ -357,7 +368,11 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsNegative: true,
-  handle: (value, ctx, { negative }) => {
+  handle: (value, ctx, { negative, arbitrary }) => {
+    if (arbitrary) {
+      return [decl("scale", `${value}`)];
+    }
+
     // scale-75 → scale: 75% 75%
     // -scale-75 → scale: calc(75% * -1) calc(75% * -1)
     if (parseNumber(value) || negative) {

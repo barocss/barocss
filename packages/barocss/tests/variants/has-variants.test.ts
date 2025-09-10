@@ -21,7 +21,7 @@ describe("has variants", () => {
     expect(parseClassToAst('group-hover:has-[.child]:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
-        selector: '.group:hover &',
+        selector: '&:is(:where(.group):hover *)',
         nodes: [
           {
             type: 'rule',

@@ -12,6 +12,7 @@ export interface Token {
  * - 'hover:bg-red-500' → [{ value: 'hover' }, { value: 'bg-red-500' }]
  * - 'bg-[#ff0000]:hover' → [{ value: 'bg-[#ff0000]' }, { value: 'hover' }]
  * - 'text-[color:var(--foo)]' → [{ value: 'text-[color:var(--foo)]' }]
+ * - '!bg-[red]' → [{ value: '!bg-[red]' }]
  */
 export function tokenize(className: string): Token[] {
   const tokens: Token[] = [];

@@ -318,7 +318,7 @@ describe("scale utilities", () => {
   });
   it("scale-y-[0.8] → scale: var(--baro-scale-x) 0.8", () => {
     expect(parseClassToAst("scale-y-[0.8]", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--baro-scale-x) calc(0.8% * 1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) 0.8" },
     ]);
   });
 
@@ -339,7 +339,7 @@ describe("scale utilities", () => {
   });
   it("scale-z-[1.2] → scale: var(--baro-scale-x) var(--baro-scale-y) 1.2", () => {
     expect(parseClassToAst("scale-z-[1.2]", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) calc(1.2% * 1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) 1.2" },
     ]);
   });
 });

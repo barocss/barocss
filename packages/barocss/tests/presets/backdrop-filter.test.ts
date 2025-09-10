@@ -230,7 +230,7 @@ describe('contrast', () => {
       ...filters(),
     ]);
   });
-  it.only('backdrop-contrast-120 → backdrop-filter: contrast(120%)', () => {
+  it('backdrop-contrast-120 → backdrop-filter: contrast(120%)', () => {
     expect(parseClassToAst('backdrop-contrast-120', ctx)).toMatchObject([
       { type: 'decl', prop: '--baro-backdrop-contrast', value: 'contrast(120%)' },
       ...filters(),
@@ -238,7 +238,7 @@ describe('contrast', () => {
   });
   it('backdrop-contrast-[1.5] → backdrop-filter: contrast(1.5)', () => {
     expect(parseClassToAst('backdrop-contrast-[1.5]', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-backdrop-contrast', value: 'contrast(1.5%)' },
+      { type: 'decl', prop: '--baro-backdrop-contrast', value: 'contrast(1.5)' },
       ...filters(),
     ]);
   });

@@ -225,21 +225,21 @@ describe("optimizeAst ", () => {
   });
 
   it("group-hover + peer-focus + sibling", () => {
-    let ast1 = parseClassToAst("group-hover:bg-red-500", ctx);
-    let ast2 = parseClassToAst("peer-focus:bg-blue-500", ctx);
+    const ast1 = parseClassToAst("group-hover:bg-red-500", ctx);
+    const ast2 = parseClassToAst("peer-focus:bg-blue-500", ctx);
     const ast = [...ast1, ...ast2];
     const cleanAst = optimizeAst(ast);
     const expected = [
       {
         type: "rule",
-        selector: ".group:hover &",
+        selector: "&:is(:where(.group):hover *)",
         nodes: [
           { type: "decl", prop: "background-color", value: "oklch(63.7% 0.237 25.331)" }
         ]
       },
       {
         type: "rule",
-        selector: ".peer:focus ~ &",
+        selector: "&:is(:where(.peer):focus~*)",
         nodes: [
           { type: "decl", prop: "background-color", value: "oklch(62.3% 0.214 259.815)" }
         ]
@@ -249,7 +249,7 @@ describe("optimizeAst ", () => {
   });
 
   it("data-state + aria-pressed + &:hover", () => {
-    let ast = parseClassToAst('data-[state=open]:aria-pressed:hover:bg-green-500', ctx);
+    const ast = parseClassToAst('data-[state=open]:aria-pressed:hover:bg-green-500', ctx);
     const cleanAst = optimizeAst(ast);
     const expected = [
       {
