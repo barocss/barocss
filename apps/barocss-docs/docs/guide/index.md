@@ -4,7 +4,7 @@ Welcome to the BaroCSS documentation! This guide will help you understand and us
 
 ## What is BaroCSS?
 
-BaroCSS is a **CSS parsing and generation engine** that brings Tailwind's utility-first approach to runtime environments. It consists of three main packages:
+BaroCSS is a **CSS parsing and generation engine** that brings Tailwind's utility-first approach to runtime environments. Inspired by Tailwind CSS and UnoCSS. It consists of three main packages:
 
 - **`@barocss/kit`** - Core parsing and generation engine
 - **`@barocss/browser`** - Browser runtime with DOM change detection  

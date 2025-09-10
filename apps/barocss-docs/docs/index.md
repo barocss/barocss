@@ -39,7 +39,7 @@ features:
 
 ## What is BaroCSS?
 
-BaroCSS is a **CSS parsing and generation engine** that brings Tailwind's utility-first approach to runtime environments. Built from the ground up to support Tailwind CSS syntax, it enables dynamic CSS generation without build processes.
+BaroCSS is a **CSS parsing and generation engine** that brings Tailwind's utility-first approach to runtime environments. Built from the ground up to support Tailwind CSS syntax, it enables dynamic CSS generation without build processes. Inspired by Tailwind CSS and UnoCSS.
 
 ### Core Architecture
 

@@ -399,8 +399,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - **Tailwind CSS** - For the amazing utility-first approach and JIT inspiration
-- **CSS Working Group** - For advancing CSS standards
-- **Community Contributors** - For feedback and contributions
+- **UnoCSS** - For ideas around on-demand, utility-first generation at runtime
 
 ---
 

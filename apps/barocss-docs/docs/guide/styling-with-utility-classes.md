@@ -341,7 +341,7 @@ BaroCSS also supports things like `group-hover`, which let you style an element 
 
 This `group-*` syntax works with other variants too, like `group-focus`, `group-active`, and [many more](/guide/hover-focus-and-other-states#styling-based-on-parent-state).
 
-For really complex scenarios _(especially when styling HTML you don't control)_, BaroCSS supports [arbitrary variants](/guide/adding-custom-styles#arbitrary-variants) which let you write any selector you want, directly in a class name:
+For really complex scenarios _(especially when styling HTML you don't control)_, BaroCSS supports arbitrary variants which let you write any selector you want, directly in a class name:
 
 ```html
 <div class="[&>[data-active]+span]:text-blue-600 ...">
