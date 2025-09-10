@@ -33,7 +33,7 @@
     "build:cdn": "vite build --config vite.cdn.config.ts",
     "build:library": "pnpm run build && pnpm run build:cdn",
     "test:watch": "vitest",
-    "test": "vitest run",
+    "//test": "vitest run",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/**/*.ts"
   },

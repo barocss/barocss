@@ -1,27 +1,26 @@
 // --- Transform Utilities ---
-//  backface-visibility documentation
 import { atRoot, decl, property } from "../core/ast";
 import { staticUtility, functionalUtility } from "../core/registry";
-import {
-  parseFractionOrNumber,
-  parseInteger,
-  parseNumber,
-} from "../core/utils";
+import { parseFractionOrNumber, parseNumber } from "../core/utils";
 
 // --- Transform  ---
-//  transform documentation
-
 // transform-none: disables all transforms
-staticUtility("transform-none", [["transform", "none"]], { category: 'transform' });
+staticUtility("transform-none", [["transform", "none"]], {
+  category: "transform",
+});
 
 // transform-gpu: enables GPU acceleration for transforms
 // Output: transform: translateZ(0) var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y);
-staticUtility("transform-gpu", [
+staticUtility(
+  "transform-gpu",
   [
-    "transform",
-    "translateZ(0) var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)",
+    [
+      "transform",
+      "translateZ(0) var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)",
+    ],
   ],
-], { category: 'transform' });
+  { category: "transform" }
+);
 
 // transform-cpu: disables GPU acceleration, uses only CPU transforms
 // Output: transform: var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y);
@@ -36,9 +35,13 @@ staticUtility("transform-cpu", [
 //  transform-style documentation
 
 // transform-3d: transform-style: preserve-3d;
-staticUtility("transform-3d", [["transform-style", "preserve-3d"]], { category: 'transform' });
+staticUtility("transform-3d", [["transform-style", "preserve-3d"]], {
+  category: "transform",
+});
 // transform-flat: transform-style: flat;
-staticUtility("transform-flat", [["transform-style", "flat"]], { category: 'transform' });
+staticUtility("transform-flat", [["transform-style", "flat"]], {
+  category: "transform",
+});
 
 // transform-(<custom-property>): sets transform to a CSS custom property value
 // Example: transform-(--my-transform) → transform: var(--my-transform);
@@ -65,45 +68,81 @@ functionalUtility({
 
 // --- Backface Visibility ---
 //  backface-visibility documentation
-staticUtility("backface-hidden", [["backface-visibility", "hidden"]], { category: 'transform' });
-staticUtility("backface-visible", [["backface-visibility", "visible"]], { category: 'transform' });
+staticUtility("backface-hidden", [["backface-visibility", "hidden"]], {
+  category: "transform",
+});
+staticUtility("backface-visible", [["backface-visibility", "visible"]], {
+  category: "transform",
+});
 
 // --- Perspective ---
 //  perspective documentation
-staticUtility("perspective-dramatic", [
-  ["perspective", "var(--perspective-dramatic)"],
-], { category: 'transform' }); // 100px
-staticUtility("perspective-near", [["perspective", "var(--perspective-near)"]], { category: 'transform' }); // 300px
-staticUtility("perspective-normal", [
-  ["perspective", "var(--perspective-normal)"],
-], { category: 'transform' }); // 500px
-staticUtility("perspective-midrange", [
-  ["perspective", "var(--perspective-midrange)"],
-], { category: 'transform' }); // 800px
-staticUtility("perspective-distant", [
-  ["perspective", "var(--perspective-distant)"],
-], { category: 'transform' }); // 1200px
-staticUtility("perspective-none", [["perspective", "none"]], { category: 'transform' });
+staticUtility(
+  "perspective-dramatic",
+  [["perspective", "var(--perspective-dramatic)"]],
+  { category: "transform" }
+); // 100px
+staticUtility(
+  "perspective-near",
+  [["perspective", "var(--perspective-near)"]],
+  { category: "transform" }
+); // 300px
+staticUtility(
+  "perspective-normal",
+  [["perspective", "var(--perspective-normal)"]],
+  { category: "transform" }
+); // 500px
+staticUtility(
+  "perspective-midrange",
+  [["perspective", "var(--perspective-midrange)"]],
+  { category: "transform" }
+); // 800px
+staticUtility(
+  "perspective-distant",
+  [["perspective", "var(--perspective-distant)"]],
+  { category: "transform" }
+); // 1200px
+staticUtility("perspective-none", [["perspective", "none"]], {
+  category: "transform",
+});
 
 // --- Perspective Origin ---
 //  perspective-origin documentation
-    staticUtility("perspective-origin-center", [["perspective-origin", "center"]], { category: 'transform' });
-staticUtility("perspective-origin-top", [["perspective-origin", "top"]], { category: 'transform' });
-staticUtility("perspective-origin-top-right", [
-  ["perspective-origin", "top right"],
-], { category: 'transform' });
-staticUtility("perspective-origin-right", [["perspective-origin", "right"]], { category: 'transform' });
-staticUtility("perspective-origin-bottom-right", [
-  ["perspective-origin", "bottom right"],
-], { category: 'transform' });
-staticUtility("perspective-origin-bottom", [["perspective-origin", "bottom"]], { category: 'transform' });
-staticUtility("perspective-origin-bottom-left", [
-  ["perspective-origin", "bottom left"],
-], { category: 'transform' });
-staticUtility("perspective-origin-left", [["perspective-origin", "left"]], { category: 'transform' });
-staticUtility("perspective-origin-top-left", [
-  ["perspective-origin", "top left"],
-], { category: 'transform' });
+staticUtility("perspective-origin-center", [["perspective-origin", "center"]], {
+  category: "transform",
+});
+staticUtility("perspective-origin-top", [["perspective-origin", "top"]], {
+  category: "transform",
+});
+staticUtility(
+  "perspective-origin-top-right",
+  [["perspective-origin", "top right"]],
+  { category: "transform" }
+);
+staticUtility("perspective-origin-right", [["perspective-origin", "right"]], {
+  category: "transform",
+});
+staticUtility(
+  "perspective-origin-bottom-right",
+  [["perspective-origin", "bottom right"]],
+  { category: "transform" }
+);
+staticUtility("perspective-origin-bottom", [["perspective-origin", "bottom"]], {
+  category: "transform",
+});
+staticUtility(
+  "perspective-origin-bottom-left",
+  [["perspective-origin", "bottom left"]],
+  { category: "transform" }
+);
+staticUtility("perspective-origin-left", [["perspective-origin", "left"]], {
+  category: "transform",
+});
+staticUtility(
+  "perspective-origin-top-left",
+  [["perspective-origin", "top left"]],
+  { category: "transform" }
+);
 
 functionalUtility({
   name: "perspective-origin",
@@ -130,7 +169,8 @@ functionalUtility({
     return [decl("perspective", value)];
   },
   handleCustomProperty: (value) => [decl("perspective", `var(${value})`)],
-  description: "perspective utility (named, arbitrary, custom property supported)",
+  description:
+    "perspective utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
 
@@ -138,7 +178,7 @@ functionalUtility({
 //  rotate documentation
 
 // rotate-none
-staticUtility("rotate-none", [["rotate", "none"]], { category: 'transform' });
+staticUtility("rotate-none", [["rotate", "none"]], { category: "transform" });
 
 // rotate-x-<number>, -rotate-x-<number>, rotate-x-(<custom-property>), rotate-x-[<value>]
 functionalUtility({
@@ -258,11 +298,13 @@ functionalUtility({
 //  scale documentation
 
 // scale-none
-staticUtility("scale-none", [["scale", "none"]], { category: 'transform' }  );
+staticUtility("scale-none", [["scale", "none"]], { category: "transform" });
 // scale-3d
-staticUtility("scale-3d", [
-  ["scale", "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)"],
-], { category: 'transform' });
+staticUtility(
+  "scale-3d",
+  [["scale", "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)"]],
+  { category: "transform" }
+);
 
 // scale-x-<number>, -scale-x-<number>, scale-x-(<custom-property>), scale-x-[<value>]
 functionalUtility({
@@ -272,8 +314,6 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative, arbitrary }) => {
-
-
     if (arbitrary) {
       return [decl("scale", `${value}`)];
     }
@@ -303,8 +343,6 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative, arbitrary }) => {
-
-
     if (arbitrary) {
       return [decl("scale", `var(--baro-scale-x) ${value}`)];
     }
@@ -334,9 +372,10 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative, arbitrary }) => {
-
     if (arbitrary) {
-      return [decl("scale", `var(--baro-scale-x) var(--baro-scale-y) ${value}`)];
+      return [
+        decl("scale", `var(--baro-scale-x) var(--baro-scale-y) ${value}`),
+      ];
     }
 
     // scale-z-75 → scale: var(--baro-scale-x) var(--baro-scale-y) 75%
@@ -470,23 +509,41 @@ functionalUtility({
 //  transform-origin documentation
 
 // origin-center: transform-origin: center;
-staticUtility("origin-center", [["transform-origin", "center"]], { category: 'transform' });
+staticUtility("origin-center", [["transform-origin", "center"]], {
+  category: "transform",
+});
 // origin-top: transform-origin: top;
-staticUtility("origin-top", [["transform-origin", "top"]], { category: 'transform' });
+staticUtility("origin-top", [["transform-origin", "top"]], {
+  category: "transform",
+});
 // origin-top-right: transform-origin: top right;
-staticUtility("origin-top-right", [["transform-origin", "top right"]], { category: 'transform' });
+staticUtility("origin-top-right", [["transform-origin", "top right"]], {
+  category: "transform",
+});
 // origin-right: transform-origin: right;
-staticUtility("origin-right", [["transform-origin", "right"]], { category: 'transform' });
+staticUtility("origin-right", [["transform-origin", "right"]], {
+  category: "transform",
+});
 // origin-bottom-right: transform-origin: bottom right;
-staticUtility("origin-bottom-right", [["transform-origin", "bottom right"]], { category: 'transform' });
+staticUtility("origin-bottom-right", [["transform-origin", "bottom right"]], {
+  category: "transform",
+});
 // origin-bottom: transform-origin: bottom;
-staticUtility("origin-bottom", [["transform-origin", "bottom"]], { category: 'transform' });
+staticUtility("origin-bottom", [["transform-origin", "bottom"]], {
+  category: "transform",
+});
 // origin-bottom-left: transform-origin: bottom left;
-staticUtility("origin-bottom-left", [["transform-origin", "bottom left"]], { category: 'transform' });
+staticUtility("origin-bottom-left", [["transform-origin", "bottom left"]], {
+  category: "transform",
+});
 // origin-left: transform-origin: left;
-staticUtility("origin-left", [["transform-origin", "left"]], { category: 'transform' });
+staticUtility("origin-left", [["transform-origin", "left"]], {
+  category: "transform",
+});
 // origin-top-left: transform-origin: top left;
-staticUtility("origin-top-left", [["transform-origin", "top left"]], { category: 'transform' });
+staticUtility("origin-top-left", [["transform-origin", "top left"]], {
+  category: "transform",
+});
 
 // origin-(<custom-property>): transform-origin: var(--custom-property);
 functionalUtility({
@@ -502,61 +559,102 @@ functionalUtility({
 // --- Translate  ---
 //  translate documentation
 
-const translateProperties = () => (
-    atRoot([
-        property('--baro-translate-x', '0'),
-        property('--baro-translate-y', '0'),
-        property('--baro-translate-z', '0'),
-    ])
-)
+const translateProperties = () =>
+  atRoot([
+    property("--baro-translate-x", "0"),
+    property("--baro-translate-y", "0"),
+    property("--baro-translate-z", "0"),
+  ]);
 
 // --- Static translate utilities ---
 // translate-none: disables all translation
-staticUtility("translate-none", [["translate", "none"]], { category: 'transform' });
+staticUtility("translate-none", [["translate", "none"]], {
+  category: "transform",
+});
 
 // translate-px, -translate-px, translate-full, -translate-full
-staticUtility("translate-px", [["translate", "1px 1px"]], { category: 'transform' });
-staticUtility("-translate-px", [["translate", "-1px -1px"]], { category: 'transform' });
-staticUtility("translate-full", [
+staticUtility("translate-px", [["translate", "1px 1px"]], {
+  category: "transform",
+});
+staticUtility("-translate-px", [["translate", "-1px -1px"]], {
+  category: "transform",
+});
+staticUtility(
+  "translate-full",
+  [
     translateProperties,
     ["--baro-translate-x", "100%"],
     ["--baro-translate-y", "100%"],
-    ["translate", "var(--baro-translate-x) var(--baro-translate-y)"]
-], { category: 'transform' });
-staticUtility("-translate-full", [
+    ["translate", "var(--baro-translate-x) var(--baro-translate-y)"],
+  ],
+  { category: "transform" }
+);
+staticUtility(
+  "-translate-full",
+  [
     translateProperties,
     ["--baro-translate-x", "-100%"],
     ["--baro-translate-y", "-100%"],
-    ["translate", "var(--baro-translate-x) var(--baro-translate-y)"]
-], { category: 'transform' });
+    ["translate", "var(--baro-translate-x) var(--baro-translate-y)"],
+  ],
+  { category: "transform" }
+);
 
 // translate-x-px, -translate-x-px, translate-x-full, -translate-x-full
-staticUtility("translate-x-px", [["translate", "1px var(--baro-translate-y)"]], { category: 'transform' });
-staticUtility("-translate-x-px", [["translate", "-1px var(--baro-translate-y)"]], { category: 'transform' });
-staticUtility("translate-x-full", [
-  ["translate", "100% var(--baro-translate-y)"],
-], { category: 'transform' });
-staticUtility("-translate-x-full", [
-  ["translate", "-100% var(--baro-translate-y)"],
-], { category: 'transform' }  );
+staticUtility(
+  "translate-x-px",
+  [["translate", "1px var(--baro-translate-y)"]],
+  { category: "transform" }
+);
+staticUtility(
+  "-translate-x-px",
+  [["translate", "-1px var(--baro-translate-y)"]],
+  { category: "transform" }
+);
+staticUtility(
+  "translate-x-full",
+  [["translate", "100% var(--baro-translate-y)"]],
+  { category: "transform" }
+);
+staticUtility(
+  "-translate-x-full",
+  [["translate", "-100% var(--baro-translate-y)"]],
+  { category: "transform" }
+);
 
 // translate-y-px, -translate-y-px, translate-y-full, -translate-y-full
-staticUtility("translate-y-px", [["translate", "var(--baro-translate-x) 1px"]], { category: 'transform' });
-staticUtility("-translate-y-px", [["translate", "var(--baro-translate-x) -1px"]], { category: 'transform' });
-staticUtility("translate-y-full", [
-  ["translate", "var(--baro-translate-x) 100%"],
-], { category: 'transform' });
-staticUtility("-translate-y-full", [
-  ["translate", "var(--baro-translate-x) -100%"],
-], { category: 'transform' });
+staticUtility(
+  "translate-y-px",
+  [["translate", "var(--baro-translate-x) 1px"]],
+  { category: "transform" }
+);
+staticUtility(
+  "-translate-y-px",
+  [["translate", "var(--baro-translate-x) -1px"]],
+  { category: "transform" }
+);
+staticUtility(
+  "translate-y-full",
+  [["translate", "var(--baro-translate-x) 100%"]],
+  { category: "transform" }
+);
+staticUtility(
+  "-translate-y-full",
+  [["translate", "var(--baro-translate-x) -100%"]],
+  { category: "transform" }
+);
 
 // translate-z-px, -translate-z-px
-staticUtility("translate-z-px", [
-  ["translate", "var(--baro-translate-x) var(--baro-translate-y) 1px"],
-  ], { category: 'transform' });
-staticUtility("-translate-z-px", [
-  ["translate", "var(--baro-translate-x) var(--baro-translate-y) -1px"],
-], { category: 'transform' });
+staticUtility(
+  "translate-z-px",
+  [["translate", "var(--baro-translate-x) var(--baro-translate-y) 1px"]],
+  { category: "transform" }
+);
+staticUtility(
+  "-translate-z-px",
+  [["translate", "var(--baro-translate-x) var(--baro-translate-y) -1px"]],
+  { category: "transform" }
+);
 
 // --- Functional translate utilities ---
 
@@ -623,19 +721,28 @@ functionalUtility({
     if (parseFractionOrNumber(value)) {
       const v = `calc(${value} * 100%)`;
       return [
-        decl("translate", `var(--baro-translate-x) var(--baro-translate-y) ${v}`),
+        decl(
+          "translate",
+          `var(--baro-translate-x) var(--baro-translate-y) ${v}`
+        ),
       ];
     }
 
     if (parseNumber(value) || negative) {
       const v = `calc(var(--spacing) * ${value})`;
       return [
-        decl("translate", `var(--baro-translate-x) var(--baro-translate-y) ${v}`),
+        decl(
+          "translate",
+          `var(--baro-translate-x) var(--baro-translate-y) ${v}`
+        ),
       ];
     }
 
     return [
-      decl("translate", `var(--baro-translate-x) var(--baro-translate-y) ${value}`),
+      decl(
+        "translate",
+        `var(--baro-translate-x) var(--baro-translate-y) ${value}`
+      ),
     ];
   },
   handleCustomProperty: (value) => [
@@ -664,9 +771,9 @@ functionalUtility({
     }
     // Number (spacing scale)
     if (parseNumber(value) || negative) {
-        const v = `calc(var(--spacing) * ${value})`;
-        return [decl("translate", `${v} ${v}`)];
-      }    
+      const v = `calc(var(--spacing) * ${value})`;
+      return [decl("translate", `${v} ${v}`)];
+    }
     // Arbitrary value
     return [decl("translate", `${value} ${value}`)];
   },

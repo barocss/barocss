@@ -1,40 +1,5 @@
 import { functionalModifier } from "../../core/registry";
 
-const STATE = new Set([
-  'focus',
-  'active',
-  'visited',
-  'checked',
-  'disabled',
-  'required',
-  'invalid',
-  'valid',
-  'empty',
-  'only-child',
-  'first-child',
-  'last-child',
-  'nth-child',
-  'nth-last-child',
-  'nth-of-type',
-  'nth-last-of-type',
-  'first-of-type',
-  'last-of-type',
-  'only-of-type',
-  'empty',
-]);
-
-const ARIA = new Set([
-  'expanded',
-  'pressed',
-  'checked',
-  'disabled',
-  'required',
-  'invalid',
-  'valid',
-  'empty',
-]);
-
-
 // --- group/peer/parent/child extensions (examples: group-focus, peer-active, etc.) ---
 functionalModifier(
   (mod: string) => /^group-(.+)$/.test(mod),
