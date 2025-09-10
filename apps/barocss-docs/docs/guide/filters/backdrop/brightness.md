@@ -2,11 +2,15 @@
 
 Utilities for applying backdrop brightness filters to an element.
 
-Source: https://tailwindcss.com/guide/backdrop-filter-brightness
 
 ## Quick reference
 
-- `backdrop-brightness-[&lt;value&gt;]`, `backdrop-brightness-(&lt;custom-property&gt;)`, preset utilities like `backdrop-brightness-110`, `backdrop-brightness-150`
+| Class | Styles |
+|---|---|
+| `backdrop-brightness-110` | `backdrop-filter: brightness(var(--backdrop-brightness-110));` |
+| `backdrop-brightness-150` | `backdrop-filter: brightness(var(--backdrop-brightness-150));` |
+| `backdrop-brightness-(&lt;custom-property&gt;)` | `backdrop-filter: brightness(var(&lt;custom-property&gt;));` |
+| `backdrop-brightness-[&lt;value&gt;]` | `backdrop-filter: brightness(&lt;value&gt;);` |
 
 ## Examples
 
@@ -53,4 +57,3 @@ Prefix a `backdrop-filter: brightness()` utility with a breakpoint variant like 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

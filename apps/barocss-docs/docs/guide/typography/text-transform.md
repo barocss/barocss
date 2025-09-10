@@ -11,7 +11,7 @@ Utilities for controlling the capitalization of text.
 | `capitalize`  | `text-transform: capitalize;`|
 | `normal-case` | `text-transform: none;`      |
 
-Source: https://tailwindcss.com/guide/text-transform
+
 
 ## Examples
 
@@ -55,4 +55,3 @@ Prefix a `text-transform` utility with a breakpoint variant like `md:` to only a
 <p class="capitalize md:uppercase ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

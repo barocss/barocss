@@ -2,7 +2,7 @@
 
 Utilities for suppressing native form control styling.
 
-Source: https://tailwindcss.com/guide/appearance
+
 
 ## Quick reference
 
@@ -52,4 +52,3 @@ Prefix an `appearance` utility with a breakpoint variant like `md:` to only appl
 </select>
 ```
 
-Learn more about using variants in the variants documentation.

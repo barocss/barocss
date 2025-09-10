@@ -2,7 +2,7 @@
 
 Utilities for controlling the delay of CSS transitions.
 
-Source: https://tailwindcss.com/guide/transition-delay
+
 
 ## Quick reference
 
@@ -54,4 +54,3 @@ Prefix a `transition-delay` utility with a breakpoint variant like `md:` to only
 </button>
 ```
 
-Learn more about using variants in the variants documentation.

@@ -10,8 +10,8 @@ BaroCSS provides a comprehensive API for real-time CSS generation and utility-fi
 ## 🚀 Quick Start
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
-import { createContext } from 'barocss';
+import { BrowserRuntime } from '@barocss/browser';
+import { createContext } from '@barocss/kit';
 
 // Initialize runtime
 const runtime = new BrowserRuntime({
@@ -30,23 +30,68 @@ const runtime = new BrowserRuntime({
 runtime.observe(document.body, { scan: true });
 ```
 
-## 📚 API Overview
+## 📚 API Learning Path
 
-### Core APIs
+::: tip Recommended Reading Order
+Follow this path to understand BaroCSS APIs from basic to advanced concepts.
+:::
+
+### 🎯 Step 1: Getting Started
+**Essential APIs for basic usage**
 
 - **[Context API](/api/context)** - Theme and configuration management
-- **[Engine API](/api/engine)** - CSS generation and AST processing
-- **[Parser API](/api/engine)** - Class name parsing and tokenization
-
-### Runtime APIs
-
+- **[Configuration](/api/configuration)** - Theme and behavior customization
 - **[Browser Runtime](/api/browser-runtime)** - Browser-specific DOM integration
 - **[Server Runtime](/api/server-runtime)** - Server-side CSS generation
 
-### Extension APIs
+### 🔧 Step 2: Core Engine
+**Understanding how CSS is generated**
 
-- **[Plugin System](/api/plugins)** - Custom utilities and variants
-- **[Configuration](/api/configuration)** - Theme and behavior customization
+- **[Parser API](/api/parser)** - Class name parsing and tokenization
+- **[Engine API](/api/engine)** - CSS generation and AST processing
+
+### 🛠️ Step 3: Customization
+**Creating custom utilities and modifiers**
+
+- **[Static Utility API](/api/static-utility)** - Creating fixed utilities
+- **[Functional Utility API](/api/functional-utility)** - Creating dynamic utilities
+- **[Static Modifier API](/api/static-modifier)** - Creating fixed modifiers
+- **[Functional Modifier API](/api/functional-modifier)** - Creating dynamic modifiers
+- **[Custom Utilities](/guide/styling-with-utility-classes)** - Custom utilities and variants
+
+### 🔬 Step 4: Advanced Concepts
+**Deep dive into internal mechanisms**
+
+- **[AST Processing API](/api/ast-processing)** - Advanced AST manipulation functions
+
+## 📖 Quick Reference
+
+### By Use Case
+
+::: details Browser Development
+- [Browser Runtime](/api/browser-runtime) - DOM integration
+- [Context API](/api/context) - Configuration
+- [Static Utility API](/api/static-utility) - Custom utilities
+:::
+
+::: details Server-Side Rendering
+- [Server Runtime](/api/server-runtime) - CSS generation
+- [Engine API](/api/engine) - Core processing
+- [Configuration](/api/configuration) - Theme setup
+:::
+
+::: details Custom Development
+- [Static Utility API](/api/static-utility) - Fixed utilities
+- [Functional Utility API](/api/functional-utility) - Dynamic utilities
+- [Static Modifier API](/api/static-modifier) - Fixed modifiers
+- [Functional Modifier API](/api/functional-modifier) - Dynamic modifiers
+:::
+
+::: details Advanced Usage
+- [Parser API](/api/parser) - Class parsing details
+- [AST Processing API](/api/ast-processing) - AST manipulation
+- [Engine API](/api/engine) - Core functions
+:::
 
 ## 🎯 Main Entry Points
 
@@ -54,17 +99,17 @@ runtime.observe(document.body, { scan: true });
 
 ```typescript
 // CDN
-import { BrowserRuntime } from 'https://unpkg.com/barocss/dist/cdn/barocss.js';
+import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser/dist/cdn/barocss.js';
 
 // NPM
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 ```
 
 ### Server Usage
 
 ```typescript
-import { ServerRuntime } from 'barocss/runtime/server';
-import { createContext, generateCss } from 'barocss';
+import { ServerRuntime } from '@barocss/server';
+import { createContext, generateCss } from '@barocss/kit';
 ```
 
 ### Core Usage
@@ -75,13 +120,13 @@ import {
   parseClassToAst, 
   generateCss,
   IncrementalParser 
-} from 'barocss';
+} from '@barocss/kit';
 ```
 
 ## 🔧 Key Concepts
 
 ### Context
-The central configuration and theme management system that provides access to theme values, configuration options, and plugin functionality.
+The central configuration and theme management system that provides access to theme values and configuration options.
 
 ### Engine
 The core CSS generation system that parses class names, builds ASTs, and converts them to CSS rules.
@@ -89,8 +134,8 @@ The core CSS generation system that parses class names, builds ASTs, and convert
 ### Runtime
 Environment-specific implementations that handle CSS injection (browser) or generation (server).
 
-### Plugins
-Extensible system for adding custom utilities, variants, and theme extensions.
+### Custom Utilities
+Global registry system for adding custom utilities, variants, and theme extensions.
 
 ## 📖 API Categories
 
@@ -105,10 +150,13 @@ Extensible system for adding custom utilities, variants, and theme extensions.
 - `ServerRuntime` - Server-side processing
 - `ChangeDetector` - DOM change monitoring
 
-### Plugin System
-- `registerUtility()` - Register custom utilities
-- `registerModifier()` - Register custom variants
-- `Plugin` interface - Plugin development
+### Custom Utilities
+- `staticUtility()` - Register static utilities with fixed CSS
+- `functionalUtility()` - Register dynamic utilities with value processing
+
+### Custom Modifiers
+- `staticModifier()` - Register static modifiers with fixed selectors
+- `functionalModifier()` - Register dynamic modifiers with pattern matching
 
 ### Configuration
 - `Config` interface - Configuration options
@@ -140,21 +188,25 @@ const ctx = createContext({
 });
 ```
 
-### Plugin Development
+### Custom Utilities
 ```typescript
-const customPlugin = (ctx) => {
-  ctx.extendTheme('colors', {
-    'custom-blue': '#1e40af'
-  });
-};
+import { staticUtility, functionalUtility } from '@barocss/kit';
+import { decl } from '@barocss/kit';
+
+// Register static utility
+staticUtility('custom-bg', [
+  decl('background-color', 'var(--custom-color)'),
+  decl('border-radius', '8px')
+]);
+
+// Register functional utility
+functionalUtility({
+  name: 'custom-text',
+  prop: 'color',
+  handle: (value) => [decl('color', value)]
+});
 ```
 
-## 🔗 Related Documentation
-
-- [Installation Guide](/guide/installation)
-- [Configuration](/guide/theme)
-- [Custom Styles](/guide/adding-custom-styles)
-- [Plugin Development](/api/plugins)
 
 ---
 

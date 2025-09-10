@@ -3,8 +3,6 @@ import { decl } from "../core/ast";
 import {
   parseNumber,
   parseFraction,
-  parseArbitraryValue,
-  parseVar,
 } from "../core/utils";
 
 // --- Layout: Isolation ---
@@ -18,10 +16,13 @@ functionalUtility({
   prop: "z-index",
   themeKey: "zIndex",
   supportsNegative: true,
+  supportsFraction: true,
   supportsArbitrary: true, // z-[999], z-[calc(var(--index)+1)] 등 지원
   supportsCustomProperty: true, // z-(--my-z) supported
   // but actual theme lookup is handled in ctx.theme
-  handleBareValue: ({ value }) => parseNumber(value), // only allow integers
+  handleBareValue: ({ value }) => {
+    return parseNumber(value); // only allow integers
+  },
   description: "z-index utility",
   category: "layout",
 });

@@ -1,7 +1,8 @@
 {
   "name": "barocss-docs",
   "version": "1.0.0",
-  "description": "Documentation for BaroCSS - Revolutionary real-time CSS library",
+  "private": true,
+  "description": "Documentation for @barocss/kit - Revolutionary real-time CSS library",
   "type": "module",
   "scripts": {
     "dev": "vitepress dev docs",
@@ -11,16 +12,14 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "docs:serve": "vitepress serve docs",
-    "blog:update": "node scripts/blog-metadata.js",
-    "blog:rss": "node scripts/generate-rss.js"
+    "docs:serve": "vitepress serve docs"
   },
   "keywords": [
     "css",
     "framework",
     "jit",
     "real-time",
-    "tailwind",
+    "barocss",
     "documentation"
   ],
   "author": "BaroCSS Team",

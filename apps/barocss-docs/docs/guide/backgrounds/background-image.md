@@ -9,39 +9,39 @@ Utilities for controlling an element's background image.
 | `bg-[&lt;value&gt;]` | `background-image: &lt;value&gt;;` |
 | `bg-(image:&lt;custom-property&gt;)` | `background-image: var(&lt;custom-property&gt;);` |
 | `bg-none` | `background-image: none;` |
-| `bg-linear-to-t` | `background-image: linear-gradient(to top, var(--tw-gradient-stops));` |
-| `bg-linear-to-tr` | `background-image: linear-gradient(to top right, var(--tw-gradient-stops));` |
-| `bg-linear-to-r` | `background-image: linear-gradient(to right, var(--tw-gradient-stops));` |
-| `bg-linear-to-br` | `background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));` |
-| `bg-linear-to-b` | `background-image: linear-gradient(to bottom, var(--tw-gradient-stops));` |
-| `bg-linear-to-bl` | `background-image: linear-gradient(to bottom left, var(--tw-gradient-stops));` |
-| `bg-linear-to-l` | `background-image: linear-gradient(to left, var(--tw-gradient-stops));` |
-| `bg-linear-to-tl` | `background-image: linear-gradient(to top left, var(--tw-gradient-stops));` |
-| `bg-linear-<angle>` | `background-image: linear-gradient(<angle> in oklab, var(--tw-gradient-stops));` |
-| `-bg-linear-<angle>` | `background-image: linear-gradient(-<angle> in oklab, var(--tw-gradient-stops));` |
-| `bg-linear-(&lt;custom-property&gt;)` | `background-image: linear-gradient(var(--tw-gradient-stops, var(&lt;custom-property&gt;)));` |
-| `bg-linear-[&lt;value&gt;]` | `background-image: linear-gradient(var(--tw-gradient-stops, &lt;value&gt;));` |
-| `bg-radial` | `background-image: radial-gradient(in oklab, var(--tw-gradient-stops));` |
-| `bg-radial-(&lt;custom-property&gt;)` | `background-image: radial-gradient(var(--tw-gradient-stops,  var(&lt;custom-property&gt;)));` |
-| `bg-radial-[&lt;value&gt;]` | `background-image: radial-gradient(var(--tw-gradient-stops, &lt;value&gt;));` |
-| `bg-conic-<angle>` | `background-image: conic-gradient(from <angle> in oklab, var(--tw-gradient-stops));` |
-| `-bg-conic-<angle>` | `background-image: conic-gradient(from -<angle> in oklab, var(--tw-gradient-stops));` |
+| `bg-linear-to-t` | `background-image: linear-gradient(to top, var(--baro-gradient-stops));` |
+| `bg-linear-to-tr` | `background-image: linear-gradient(to top right, var(--baro-gradient-stops));` |
+| `bg-linear-to-r` | `background-image: linear-gradient(to right, var(--baro-gradient-stops));` |
+| `bg-linear-to-br` | `background-image: linear-gradient(to bottom right, var(--baro-gradient-stops));` |
+| `bg-linear-to-b` | `background-image: linear-gradient(to bottom, var(--baro-gradient-stops));` |
+| `bg-linear-to-bl` | `background-image: linear-gradient(to bottom left, var(--baro-gradient-stops));` |
+| `bg-linear-to-l` | `background-image: linear-gradient(to left, var(--baro-gradient-stops));` |
+| `bg-linear-to-tl` | `background-image: linear-gradient(to top left, var(--baro-gradient-stops));` |
+| `bg-linear-<angle>` | `background-image: linear-gradient(<angle> in oklab, var(--baro-gradient-stops));` |
+| `-bg-linear-<angle>` | `background-image: linear-gradient(-<angle> in oklab, var(--baro-gradient-stops));` |
+| `bg-linear-(&lt;custom-property&gt;)` | `background-image: linear-gradient(var(--baro-gradient-stops, var(&lt;custom-property&gt;)));` |
+| `bg-linear-[&lt;value&gt;]` | `background-image: linear-gradient(var(--baro-gradient-stops, &lt;value&gt;));` |
+| `bg-radial` | `background-image: radial-gradient(in oklab, var(--baro-gradient-stops));` |
+| `bg-radial-(&lt;custom-property&gt;)` | `background-image: radial-gradient(var(--baro-gradient-stops,  var(&lt;custom-property&gt;)));` |
+| `bg-radial-[&lt;value&gt;]` | `background-image: radial-gradient(var(--baro-gradient-stops, &lt;value&gt;));` |
+| `bg-conic-<angle>` | `background-image: conic-gradient(from <angle> in oklab, var(--baro-gradient-stops));` |
+| `-bg-conic-<angle>` | `background-image: conic-gradient(from -<angle> in oklab, var(--baro-gradient-stops));` |
 | `bg-conic-(&lt;custom-property&gt;)` | `background-image: var(&lt;custom-property&gt;);` |
 | `bg-conic-[&lt;value&gt;]` | `background-image: <image>;` |
-| `from-&lt;color&gt;` | `--tw-gradient-from: &lt;color&gt;;` |
-| `from-<percentage>` | `--tw-gradient-from-position: <percentage>;` |
-| `from-(&lt;custom-property&gt;)` | `--tw-gradient-from: var(&lt;custom-property&gt;);` |
-| `from-[&lt;value&gt;]` | `--tw-gradient-from: &lt;value&gt;;` |
-| `via-&lt;color&gt;` | `--tw-gradient-via: &lt;color&gt;;` |
-| `via-<percentage>` | `--tw-gradient-via-position: <percentage>;` |
-| `via-(&lt;custom-property&gt;)` | `--tw-gradient-via: var(&lt;custom-property&gt;);` |
-| `via-[&lt;value&gt;]` | `--tw-gradient-via: &lt;value&gt;;` |
-| `to-&lt;color&gt;` | `--tw-gradient-to: &lt;color&gt;;` |
-| `to-<percentage>` | `--tw-gradient-to-position: <percentage>;` |
-| `to-(&lt;custom-property&gt;)` | `--tw-gradient-to: var(&lt;custom-property&gt;);` |
-| `to-[&lt;value&gt;]` | `--tw-gradient-to: &lt;value&gt;;` |
+| `from-&lt;color&gt;` | `--baro-gradient-from: &lt;color&gt;;` |
+| `from-<percentage>` | `--baro-gradient-from-position: <percentage>;` |
+| `from-(&lt;custom-property&gt;)` | `--baro-gradient-from: var(&lt;custom-property&gt;);` |
+| `from-[&lt;value&gt;]` | `--baro-gradient-from: &lt;value&gt;;` |
+| `via-&lt;color&gt;` | `--baro-gradient-via: &lt;color&gt;;` |
+| `via-<percentage>` | `--baro-gradient-via-position: <percentage>;` |
+| `via-(&lt;custom-property&gt;)` | `--baro-gradient-via: var(&lt;custom-property&gt;);` |
+| `via-[&lt;value&gt;]` | `--baro-gradient-via: &lt;value&gt;;` |
+| `to-&lt;color&gt;` | `--baro-gradient-to: &lt;color&gt;;` |
+| `to-<percentage>` | `--baro-gradient-to-position: <percentage>;` |
+| `to-(&lt;custom-property&gt;)` | `--baro-gradient-to: var(&lt;custom-property&gt;);` |
+| `to-[&lt;value&gt;]` | `--baro-gradient-to: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/backgrounds/background-image
+
 
 ## Examples
 
@@ -170,7 +170,6 @@ Prefix a `background-image` utility with a breakpoint variant like `md:` to only
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
@@ -179,9 +178,6 @@ Use your theme colors with the gradient stop utilities `from`, `via`, and `to`. 
 For example, to add a custom gradient to your theme:
 
 ```css
-@theme {
-  --gradient-custom: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-}
 ```
 
 Then use it in your HTML:
@@ -192,4 +188,4 @@ Then use it in your HTML:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

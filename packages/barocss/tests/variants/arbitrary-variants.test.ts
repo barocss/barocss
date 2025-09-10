@@ -85,7 +85,7 @@ describe("arbitrary variants", () => {
       expect(parseClassToAst("group-hover:[&>*]:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
-          selector: ".group:hover &",
+          selector: "&:is(:where(.group):hover *)",
           nodes: [
             {
               type: "style-rule",

@@ -13,7 +13,7 @@ Utilities for controlling the color of an element's outline.
 | `outline-(&lt;custom-property&gt;)` | `outline-color: var(&lt;custom-property&gt;);` |
 | `outline-[&lt;value&gt;]`       | `outline-color: &lt;value&gt;;`                |
 
-Source: https://tailwindcss.com/guide/outline-color
+
 
 ## Examples
 
@@ -67,4 +67,3 @@ Prefix an `outline-color` utility with a breakpoint variant like `md:` to only a
 </button>
 ```
 
-Learn more about using variants in the variants documentation.

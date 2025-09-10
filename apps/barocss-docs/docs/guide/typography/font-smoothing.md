@@ -35,6 +35,6 @@ Prefix `-webkit-font-smoothing` and `-moz-osx-font-smoothing` utilities with a b
 <p class="antialiased md:subpixel-antialiased ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
+
 
 

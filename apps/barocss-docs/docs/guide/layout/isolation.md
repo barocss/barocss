@@ -9,7 +9,6 @@ Utilities for controlling whether an element should explicitly create a new stac
 | `isolate`        | `isolation: isolate;` |
 | `isolation-auto` | `isolation: auto;`    |
 
-Source: https://tailwindcss.com/guide/isolation
 
 ## Examples
 
@@ -31,4 +30,3 @@ Prefix an `isolation` utility with a breakpoint variant like `md:` to only apply
 <div class="isolate md:isolation-auto ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

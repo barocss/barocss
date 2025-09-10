@@ -9,7 +9,6 @@ Utilities for controlling how the browser should calculate an element's total si
 | `box-border`  | `box-sizing: border-box;`|
 | `box-content` | `box-sizing: content-box;`|
 
-Source: https://tailwindcss.com/guide/box-sizing
 
 ## Examples
 
@@ -37,4 +36,3 @@ Prefix a `box-sizing` utility with a breakpoint variant like `md:` to only apply
 <div class="box-content md:box-border ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

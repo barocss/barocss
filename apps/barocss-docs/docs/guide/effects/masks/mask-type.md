@@ -9,7 +9,7 @@ Utilities for controlling how an SVG mask is interpreted.
 | `mask-type-alpha`   | `mask-type: alpha;`     |
 | `mask-type-luminance` | `mask-type: luminance;` |
 
-Source: https://tailwindcss.com/guide/mask-type
+
 
 ## Examples
 
@@ -41,4 +41,3 @@ Prefix a `mask-type` utility with a breakpoint variant like `md:` to only apply 
 </mask>
 ```
 
-Learn more about using variants in the variants documentation.

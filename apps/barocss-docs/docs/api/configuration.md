@@ -26,15 +26,11 @@ interface Config {
   // Preflight CSS level
   preflight?: 'minimal' | 'standard' | 'full' | true | false;
   
-  // Plugins
-  plugins?: Plugin[];
-  
   // Cache management
   clearCacheOnContextChange?: boolean;
   
   // Custom configuration
   [key: string]: any;
-}
 ```
 
 ## Basic Configuration
@@ -42,7 +38,7 @@ interface Config {
 ### Minimal Configuration
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -170,7 +166,6 @@ theme: {
       })
     }
   }
-}
 ```
 
 #### Spacing
@@ -197,7 +192,6 @@ theme: {
       })
     }
   }
-}
 ```
 
 #### Typography
@@ -238,7 +232,6 @@ theme: {
       'mono': ['ui-monospace', 'SFMono-Regular', 'monospace']
     }
   }
-}
 ```
 
 #### Layout
@@ -263,7 +256,6 @@ theme: {
       }
     }
   }
-}
 ```
 
 #### Effects
@@ -310,7 +302,6 @@ theme: {
       '100': '1'
     }
   }
-}
 ```
 
 #### Animations
@@ -337,7 +328,6 @@ theme: {
       }
     }
   }
-}
 ```
 
 ## Preflight Configuration
@@ -374,66 +364,65 @@ const runtime = new BrowserRuntime({
 });
 ```
 
-## Plugin Configuration
+## Custom Utilities Configuration
 
-### Basic Plugin Usage
+### Basic Custom Utilities
 
 ```typescript
-const customPlugin = (ctx: Context, config?: any) => {
-  ctx.extendTheme('colors', {
-    'brand': '#3b82f6'
-  });
-};
+import { staticUtility, functionalUtility } from '@barocss/kit';
+import { decl } from '@barocss/kit';
 
-const runtime = new BrowserRuntime({
-  config: {
-    plugins: [customPlugin]
-  }
+// Register static utilities
+staticUtility('custom-bg', [
+  decl('background-color', 'var(--custom-color)'),
+  decl('border-radius', '8px')
+]);
+
+// Register functional utilities
+functionalUtility({
+  name: 'custom-text',
+  prop: 'color',
+  handle: (value) => [decl('color', value)]
 });
-```
-
-### Plugin with Configuration
-
-```typescript
-const configurablePlugin = (ctx: Context, config?: any) => {
-  const options = config?.pluginOptions || {};
-  
-  if (options.enableBrandColors) {
-    ctx.extendTheme('colors', {
-      'brand': options.brandColor || '#3b82f6'
-    });
-  }
-};
 
 const runtime = new BrowserRuntime({
   config: {
-    plugins: [configurablePlugin],
-    pluginOptions: {
-      enableBrandColors: true,
-      brandColor: '#10b981'
+    theme: {
+      extend: {
+        colors: {
+          'brand': '#3b82f6'
+        }
+      }
     }
   }
 });
 ```
 
-### Multiple Plugins
+### Advanced Custom Utilities
 
 ```typescript
-const colorPlugin = (ctx: Context) => {
-  ctx.extendTheme('colors', {
-    'brand': '#3b82f6'
-  });
-};
+import { staticUtility, functionalUtility } from '@barocss/kit';
 
-const spacingPlugin = (ctx: Context) => {
-  ctx.extendTheme('spacing', {
-    '18': '4.5rem'
-  });
-};
+// Complex static utility with selectors
+staticUtility('space-x-custom', [
+  [
+    '& > :not([hidden]) ~ :not([hidden])',
+    [
+      ['margin-inline-start', 'var(--space-x)'],
+      ['margin-inline-end', 'var(--space-x)']
+    ]
+  ]
+]);
 
-const runtime = new BrowserRuntime({
-  config: {
-    plugins: [colorPlugin, spacingPlugin]
+// Functional utility with theme support
+functionalUtility({
+  name: 'custom-spacing',
+  prop: 'margin',
+  themeKey: 'spacing',
+  supportsArbitrary: true,
+  supportsNegative: true,
+  handle: (value, ctx, token) => {
+    return [decl('margin', value)];
   }
 });
 ```
@@ -493,7 +482,7 @@ const runtime = new BrowserRuntime({
   }
 });
 
-// Keep cache for better performance
+// Keep cache when context doesn't change
 const runtime = new BrowserRuntime({
   config: {
     clearCacheOnContextChange: false
@@ -517,7 +506,7 @@ const runtime = new BrowserRuntime({
         }
       }
     },
-    plugins: isDevelopment ? [debugPlugin] : []
+    // Custom utilities are registered globally
   }
 });
 ```
@@ -595,10 +584,7 @@ const runtime = new BrowserRuntime({
         }
       }
     },
-    plugins: [
-      customPlugin,
-      responsivePlugin
-    ],
+    // Custom utilities are registered globally
     customOptions: {
       enableAnimations: true,
       debugMode: false
@@ -643,19 +629,3 @@ const useBaroCSS = (config: Config) => {
 };
 ```
 
-## Best Practices
-
-1. **Use extend**: Prefer `theme.extend` over direct theme overrides
-2. **Function-based themes**: Use functions for dynamic theme values
-3. **Plugin organization**: Group related functionality in plugins
-4. **Configuration validation**: Validate configuration in production
-5. **Environment-specific**: Use different configs for different environments
-6. **Performance**: Use `clearCacheOnContextChange: false` for better performance
-7. **Type safety**: Use TypeScript for configuration type safety
-
-## Related APIs
-
-- [Context API](/api/context) - Using configuration in context
-- [Plugin System](/api/plugins) - Plugin configuration
-- [Browser Runtime](/api/browser-runtime) - Runtime configuration
-- [Server Runtime](/api/server-runtime) - Server configuration

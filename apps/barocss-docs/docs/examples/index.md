@@ -75,7 +75,6 @@ function generateAICard(data: any) {
       </div>
     </div>
   `;
-}
 
 // BaroCSS generates all these dynamic arbitrary values instantly:
 // - w-[${randomWidth}px], h-[${randomHeight}px] (dynamic dimensions)
@@ -96,7 +95,7 @@ function generateAICard(data: any) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BaroCSS Example</title>
-  <script type="module" src="https://unpkg.com/barocss/dist/cdn/barocss.js"></script>
+  <script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
 </head>
 <body>
   <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl shadow-2xl">
@@ -114,7 +113,7 @@ function generateAICard(data: any) {
 
 ```typescript
 import React, { useEffect, useRef } from 'react';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 function App() {
   const runtimeRef = useRef<BrowserRuntime>();
@@ -145,7 +144,6 @@ function App() {
       <p className="text-lg opacity-90">Seamless integration with React</p>
     </div>
   );
-}
 
 export default App;
 ```
@@ -168,7 +166,7 @@ export default App;
 
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = ref<BrowserRuntime>();
 
@@ -421,7 +419,6 @@ darkModeToggle.addEventListener('click', () => {
 const savedDarkMode = localStorage.getItem('darkMode');
 if (savedDarkMode === 'true') {
   html.classList.add('dark');
-}
 ```
 
 ## 🔧 Custom Configuration Examples
@@ -429,7 +426,7 @@ if (savedDarkMode === 'true') {
 ### Brand Colors
 
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime({
   config: {
@@ -501,7 +498,7 @@ const runtime = new BrowserRuntime({
 ```typescript
 // pages/_app.tsx
 import { useEffect, useRef } from 'react';
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 function MyApp({ Component, pageProps }) {
   const runtimeRef = useRef<BrowserRuntime>();
@@ -527,7 +524,6 @@ function MyApp({ Component, pageProps }) {
   }, []);
 
   return <Component {...pageProps} />;
-}
 
 export default MyApp;
 ```
@@ -535,8 +531,8 @@ export default MyApp;
 ### Nuxt.js Integration
 
 ```typescript
-// plugins/barocss.client.ts
-import { BrowserRuntime } from 'barocss/runtime/browser';
+// plugins/@barocss/kit.client.ts
+import { BrowserRuntime } from '@barocss/browser';
 
 export default defineNuxtPlugin(() => {
   const runtime = new BrowserRuntime({
@@ -555,7 +551,7 @@ export default defineNuxtPlugin(() => {
 
   return {
     provide: {
-      barocss: runtime
+      @barocss/kit: runtime
     }
   };
 });
@@ -567,7 +563,7 @@ export default defineNuxtPlugin(() => {
 <!-- App.svelte -->
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { BrowserRuntime } from 'barocss/runtime/browser';
+  import { BrowserRuntime } from '@barocss/browser';
 
   let runtime;
 
@@ -605,7 +601,7 @@ export default defineNuxtPlugin(() => {
 ```typescript
 // Lazy load BaroCSS for better performance
 const loadBaroCSS = async () => {
-  const { BrowserRuntime } = await import('barocss/runtime/browser');
+  const { BrowserRuntime } = await import('@barocss/browser');
   
   const runtime = new BrowserRuntime({
     config: {
@@ -635,17 +631,9 @@ loadBaroCSS().then(runtime => {
 ```typescript
 // Only load BaroCSS in development
 if (process.env.NODE_ENV === 'development') {
-  const { BrowserRuntime } = await import('barocss/runtime/browser');
+  const { BrowserRuntime } = await import('@barocss/browser');
   
   const runtime = new BrowserRuntime();
   runtime.observe(document.body, { scan: true });
-}
 ```
 
-## 🔗 Related Documentation
-
-- [API Reference](/api/) - Complete API documentation
-- [Configuration](/api/configuration) - Configuration options
-- [Plugin System](/api/plugins) - Extending BaroCSS
-- [Browser Runtime](/api/browser-runtime) - Browser integration
-- [Server Runtime](/api/server-runtime) - Server-side usage

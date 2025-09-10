@@ -25,7 +25,7 @@ Utilities for setting the minimum height of an element.
 | min-h-(&lt;custom-property&gt;)| min-height: var(&lt;custom-property&gt;);                                                |
 | min-h-\[&lt;value&gt;\]        | min-height: &lt;value&gt;;                                                               |
 
-Source: https://tailwindcss.com/guide/min-height
+
 
 ## Examples
 
@@ -135,16 +135,11 @@ Prefix a `min-height` utility with a breakpoint variant like `md:` to only apply
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 The `min-h-&lt;number&gt;` utilities are driven by the `--spacing` theme variable, which can be customized in your own theme:
 
 ```css
-@theme {
-  --spacing: 1px;
-}
 ```
 
-Learn more about customizing the spacing scale in the theme variable documentation.

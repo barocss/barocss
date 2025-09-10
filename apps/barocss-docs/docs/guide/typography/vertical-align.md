@@ -17,7 +17,7 @@ Utilities for controlling the vertical alignment of an inline or table-cell box.
 | `align-(&lt;custom-property&gt;)` | `vertical-align: var(&lt;custom-property&gt;);` |
 | `align-[&lt;value&gt;]`  | `vertical-align: &lt;value&gt;;`     |
 
-Source: https://tailwindcss.com/guide/vertical-align
+
 
 ## Examples
 
@@ -86,4 +86,3 @@ Prefix a `vertical-align` utility with a breakpoint variant like `md:` to only a
 <span class="align-middle md:align-top ...">Lorem ipsum dolor sit amet...</span>
 ```
 
-Learn more about using variants in the variants documentation.

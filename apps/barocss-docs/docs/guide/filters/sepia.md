@@ -2,11 +2,15 @@
 
 Utilities for applying sepia filters to an element.
 
-Source: https://tailwindcss.com/guide/filter-sepia
 
 ## Quick reference
 
-- `sepia`, `sepia-0`, `sepia-[&lt;value&gt;]`, `sepia-(&lt;custom-property&gt;)`
+| Class | Styles |
+|---|---|
+| `sepia` | `filter: sepia(100%);` |
+| `sepia-&lt;number&gt;` | `filter: sepia(&lt;number&gt;%);` |
+| `sepia-(&lt;custom-property&gt;)` | `filter: sepia(var(&lt;custom-property&gt;));` |
+| `sepia-[&lt;value&gt;]` | `filter: sepia(&lt;value&gt;);` |
 
 ## Examples
 

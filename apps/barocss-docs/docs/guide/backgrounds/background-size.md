@@ -12,7 +12,7 @@ Utilities for controlling the background size of an element's background image.
 | `bg-size-(&lt;custom-property&gt;)` | `background-size: var(&lt;custom-property&gt;);` |
 | `bg-size-[&lt;value&gt;]` | `background-size: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/background-size
+
 
 ## Examples
 
@@ -73,4 +73,4 @@ Prefix a `background-size` utility with a breakpoint variant like `md:` to only 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+

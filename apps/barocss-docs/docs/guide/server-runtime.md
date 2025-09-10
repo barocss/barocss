@@ -6,8 +6,8 @@ Use the server runtime or core parser to pre-generate CSS on the server.
 - Use `createContext` and parser APIs directly
 
 ```ts
-import { createContext } from 'barocss';
-import { IncrementalParser } from 'barocss';
+import { createContext } from '@barocss/kit';
+import { IncrementalParser } from '@barocss/kit';
 
 const ctx = createContext({ /* config */ });
 const parser = new IncrementalParser(ctx);

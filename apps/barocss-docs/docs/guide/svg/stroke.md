@@ -2,7 +2,7 @@
 
 Utilities for styling the stroke of SVG elements.
 
-Source: https://tailwindcss.com/guide/stroke
+
 
 ## Quick reference
 
@@ -74,16 +74,12 @@ Prefix a `stroke` utility with a breakpoint variant like `md:` to only apply the
 </svg>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 Use the `--color-*` theme variables to customize the color utilities in your project:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Now the `stroke-regal-blue` utility can be used in your markup:
@@ -94,4 +90,3 @@ Now the `stroke-regal-blue` utility can be used in your markup:
 </svg>
 ```
 
-Learn more about customizing your theme in the theme documentation.

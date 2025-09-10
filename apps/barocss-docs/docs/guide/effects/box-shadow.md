@@ -15,7 +15,7 @@ Utilities for controlling the box shadow of an element.
 | `shadow-2xl` | `box-shadow: var(--shadow-2xl); /* 0 25px 50px -12px rgb(0 0 0 / 0.25) */` |
 | `shadow-none` | `box-shadow: 0 0 #0000;` |
 | `shadow-(&lt;custom-property&gt;)` | `box-shadow: var(&lt;custom-property&gt;);` |
-| `shadow-(color:&lt;custom-property&gt;)` | `--tw-shadow-color: var(&lt;custom-property&gt;);` |
+| `shadow-(color:&lt;custom-property&gt;)` | `--baro-shadow-color: var(&lt;custom-property&gt;);` |
 | `shadow-[&lt;value&gt;]` | `box-shadow: &lt;value&gt;;` |
 | `inset-shadow-2xs` | `box-shadow: var(--inset-shadow-2xs); /* inset 0 1px rgb(0 0 0 / 0.05) */` |
 | `inset-shadow-xs` | `box-shadow: var(--inset-shadow-xs); /* inset 0 1px 1px rgb(0 0 0 / 0.05) */` |
@@ -23,16 +23,16 @@ Utilities for controlling the box shadow of an element.
 | `inset-shadow-none` | `box-shadow: inset 0 0 #0000;` |
 | `inset-shadow-(&lt;custom-property&gt;)` | `box-shadow: var(&lt;custom-property&gt;);` |
 | `inset-shadow-[&lt;value&gt;]` | `box-shadow: &lt;value&gt;;` |
-| `ring` | `--tw-ring-shadow: 0 0 0 1px;` |
-| `ring-&lt;number&gt;` | `--tw-ring-shadow: 0 0 0 &lt;number&gt;px;` |
-| `ring-(&lt;custom-property&gt;)` | `--tw-ring-shadow: 0 0 0 var(&lt;custom-property&gt;);` |
-| `ring-[&lt;value&gt;]` | `--tw-ring-shadow: 0 0 0 &lt;value&gt;;` |
-| `inset-ring` | `--tw-inset-ring-shadow: inset 0 0 0 1px` |
-| `inset-ring-&lt;number&gt;` | `--tw-inset-ring-shadow: inset 0 0 0 &lt;number&gt;px` |
-| `inset-ring-(&lt;custom-property&gt;)` | `--tw-inset-ring-shadow: inset 0 0 0 var(&lt;custom-property&gt;);` |
-| `inset-ring-[&lt;value&gt;]` | `--tw-inset-ring-shadow: inset 0 0 0 &lt;value&gt;;` |
+| `ring` | `--baro-ring-shadow: 0 0 0 1px;` |
+| `ring-&lt;number&gt;` | `--baro-ring-shadow: 0 0 0 &lt;number&gt;px;` |
+| `ring-(&lt;custom-property&gt;)` | `--baro-ring-shadow: 0 0 0 var(&lt;custom-property&gt;);` |
+| `ring-[&lt;value&gt;]` | `--baro-ring-shadow: 0 0 0 &lt;value&gt;;` |
+| `inset-ring` | `--baro-inset-ring-shadow: inset 0 0 0 1px` |
+| `inset-ring-&lt;number&gt;` | `--baro-inset-ring-shadow: inset 0 0 0 &lt;number&gt;px` |
+| `inset-ring-(&lt;custom-property&gt;)` | `--baro-inset-ring-shadow: inset 0 0 0 var(&lt;custom-property&gt;);` |
+| `inset-ring-[&lt;value&gt;]` | `--baro-inset-ring-shadow: inset 0 0 0 &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/effects/box-shadow
+
 
 ## Examples
 
@@ -187,18 +187,26 @@ Prefix a `box-shadow` utility with a breakpoint variant like `md:` to only apply
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+
 
 ## Customizing your theme
 
 ### Customizing shadows
 
-Use the `--shadow-*` theme variables to customize the box shadow utilities in your project:
+Customize the box shadow utilities in your project using theme configuration:
 
-```css
-@theme {
-  --shadow-3xl: 0 35px 35px rgba(0, 0, 0, 0.25);
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      boxShadow: {
+        '3xl': '0 35px 35px rgba(0, 0, 0, 0.25)'
+      }
+    }
+  }
+});
 ```
 
 Now the `shadow-3xl` utility can be used in your markup:
@@ -209,19 +217,27 @@ Now the `shadow-3xl` utility can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+
 
 ### Customizing inset shadows
 
-Use the `--inset-shadow-*` theme variables to customize the inset box shadow utilities in your project:
+Customize the inset box shadow utilities in your project using theme configuration:
 
-```css
-@theme {
-  --inset-shadow-md: inset 0 2px 3px rgba(0, 0, 0, 0.25);
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      boxShadow: {
+        'inset-md': 'inset 0 2px 3px rgba(0, 0, 0, 0.25)'
+      }
+    }
+  }
+});
 ```
 
-Now the `inset-shadow-md` utility can be used in your markup:
+Now the `shadow-inset-md` utility can be used in your markup:
 
 ```html
 <div class="inset-shadow-md">
@@ -229,19 +245,27 @@ Now the `inset-shadow-md` utility can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+
 
 ### Customizing shadow colors
 
-Use the `--color-*` theme variables to customize the color utilities in your project:
+Customize the color utilities in your project using theme configuration:
 
-```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      colors: {
+        'regal-blue': '#243c5a'
+      }
+    }
+  }
+});
 ```
 
-Now utilities like `shadow-regal-blue`, `inset-shadow-regal-blue`, `ring-regal-blue`, and `inset-ring-regal-blue` can be used in your markup:
+Now utilities like `shadow-regal-blue`, `ring-regal-blue` can be used in your markup:
 
 ```html
 <div class="shadow-regal-blue">
@@ -249,4 +273,4 @@ Now utilities like `shadow-regal-blue`, `inset-shadow-regal-blue`, `ring-regal-b
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

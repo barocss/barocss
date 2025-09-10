@@ -2,7 +2,6 @@
 
 Utilities for controlling an element's perspective origin when placed in 3D space.
 
-Source: https://tailwindcss.com/guide/perspective-origin
 
 ## Quick reference
 
@@ -65,4 +64,3 @@ Prefix a `perspective-origin` utility with a breakpoint variant like `md:` to on
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

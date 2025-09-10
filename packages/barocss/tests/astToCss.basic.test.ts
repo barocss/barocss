@@ -300,7 +300,6 @@ describe('style-rule selector & replacement', () => {
       },
     ];
     const result = astToCss(ast);
-    console.log(result);
     expect(result).toBe(
 `@supports (color:color-mix(in lab, red, red)) {
   .bg-red-500\\/75 {

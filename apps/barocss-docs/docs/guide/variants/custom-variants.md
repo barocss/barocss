@@ -13,16 +13,19 @@ Use arbitrary variants to create custom selectors:
 
 ## Registering a custom variant
 
-Register custom variants using the `@variant` directive:
+Register custom variants using the `functionalModifier` API:
 
-```css
-@variant custom-hover {
-  @media (hover: hover) {
-    &:hover {
-      @apply;
-    }
+```typescript
+import { functionalModifier } from '@barocss/kit';
+
+functionalModifier({
+  name: 'custom-hover',
+  match: (input) => input.startsWith('custom-hover:'),
+  handle: (input, { wrap }) => {
+    const className = input.slice('custom-hover:'.length);
+    return wrap('rule', '&:hover', [/* utility styles */]);
   }
-}
+});
 ```
 
 Then use it in your HTML:

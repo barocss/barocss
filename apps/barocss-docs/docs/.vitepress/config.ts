@@ -10,13 +10,6 @@ export default defineConfig(withMermaid({
     class: "mermaid my-class", // set additional css classes for parent container 
   },
   
-  // Blog configuration
-  blog: {
-    postsPerPage: 10,
-    postDir: 'blog',
-    tagDir: 'blog/tags',
-    categoryDir: 'blog/categories'
-  },
   
   // Theme configuration
   themeConfig: {
@@ -38,7 +31,6 @@ export default defineConfig(withMermaid({
       { text: 'Guide', link: '/guide/' },
       { text: 'API', link: '/api/' },
       { text: 'Examples', link: '/examples/' },
-      { text: 'Blog', link: '/blog/' },
       { text: 'GitHub', link: 'https://github.com/barocss/barocss' }
     ],
     
@@ -49,8 +41,6 @@ export default defineConfig(withMermaid({
           text: 'Getting Started',
           items: [
             { text: 'Introduction', link: '/guide/' },
-            { text: 'Installation', link: '/guide/installation' },
-            { text: 'CDN Usage', link: '/guide/cdn-usage' },
             { text: 'Quick Start', link: '/guide/quick-start' }
           ]
         },
@@ -58,26 +48,17 @@ export default defineConfig(withMermaid({
           text: 'Core Concepts',
           items: [
             { text: 'JIT Mode', link: '/guide/jit-mode' },
-            { text: 'Real-time Generation', link: '/guide/real-time-generation' },
             { text: 'Incremental Parsing', link: '/guide/incremental-parsing' },
             { text: 'DOM Change Detection', link: '/guide/dom-change-detection' },
-            { text: 'Smart Caching', link: '/guide/smart-caching' },
-            { text: 'Runtime APIs', link: '/guide/runtime-apis' },
-            { text: 'CSS Variables', link: '/guide/css-variables' }
+            { text: 'Runtime APIs', link: '/guide/runtime-apis' }
           ]
         },
         {
-          text: 'AI Integration',
+          text: 'Integration',
           items: [
-            { text: 'Overview', link: '/guide/ai-integration' },
-            { text: 'Build-free UI Generation', link: '/guide/ai-integration/build-free-ui' },
-            { text: 'Vanilla HTML', link: '/guide/ai-integration/vanilla-html' },
-            { text: 'React', link: '/guide/ai-integration/react' },
-            { text: 'Vue', link: '/guide/ai-integration/vue' },
-            { text: 'Svelte', link: '/guide/ai-integration/svelte' },
-            { text: 'SolidJS', link: '/guide/ai-integration/solid' },
-            { text: 'jQuery', link: '/guide/ai-integration/jquery' },
-            { text: 'Partial UI Updates', link: '/guide/ai-integration/partial-updates' }
+            { text: 'Overview', link: '/guide/integration/overview' },
+            { text: 'Frameworks (React, Vue, Svelte, Solid)', link: '/guide/integration/frameworks' },
+            { text: 'jQuery', link: '/guide/integration/jquery' }
           ]
         },
         {
@@ -99,34 +80,8 @@ export default defineConfig(withMermaid({
             },
             { text: 'Responsive Design', link: '/guide/responsive-design' },
             { text: 'Dark Mode', link: '/guide/dark-mode' },
-            { text: 'Theme Variables', link: '/guide/theme-variables' },
+            { text: 'Theme', link: '/guide/theme/' },
             { text: 'Colors', link: '/guide/colors' },
-            { text: 'Adding Custom Styles', link: '/guide/adding-custom-styles' },
-            { text: 'Functions and Directives', link: '/guide/functions-and-directives' }
-          ]
-        },
-
-        {
-          text: 'Theme',
-          items: [
-            { text: 'Theme Overview', link: '/guide/theme/' },
-            { text: 'Theme Namespaces', link: '/guide/theme/namespaces' },
-            { text: 'Customizing Theme', link: '/guide/theme/customizing' },
-            { text: 'Using Theme Variables', link: '/guide/theme/using-variables' },
-            { text: 'Default Theme Reference', link: '/guide/theme/default-reference' },
-            { text: 'Theme Best Practices', link: '/guide/theme/best-practices' }
-          ]
-        },
-        {
-          text: 'Functions & Directives',
-          items: [
-            { text: 'Functions and Directives', link: '/guide/functions-and-directives' }
-          ]
-        },
-        {
-          text: 'Configuration',
-          items: [
-            { text: 'Detecting Classes in Source Files', link: '/guide/detecting-classes-in-source-files' },
           ]
         },
         {
@@ -385,15 +340,41 @@ export default defineConfig(withMermaid({
       ],
       '/api/': [
         {
-          text: 'API Reference',
+          text: 'API Learning Path',
           items: [
-            { text: 'Overview', link: '/api/' },
+            { text: 'Overview', link: '/api/' }
+          ]
+        },
+        {
+          text: '🎯 Step 1: Getting Started',
+          items: [
             { text: 'Context API', link: '/api/context' },
-            { text: 'Engine API', link: '/api/engine' },
+            { text: 'Configuration', link: '/api/configuration' },
             { text: 'Browser Runtime', link: '/api/browser-runtime' },
-            { text: 'Server Runtime', link: '/api/server-runtime' },
-            { text: 'Plugin System', link: '/api/plugins' },
-            { text: 'Configuration', link: '/api/configuration' }
+            { text: 'Server Runtime', link: '/api/server-runtime' }
+          ]
+        },
+        {
+          text: '🔧 Step 2: Core Engine',
+          items: [
+            { text: 'Parser API', link: '/api/parser' },
+            { text: 'Engine API', link: '/api/engine' }
+          ]
+        },
+        {
+          text: '🛠️ Step 3: Customization',
+          items: [
+            { text: 'Static Utility API', link: '/api/static-utility' },
+            { text: 'Functional Utility API', link: '/api/functional-utility' },
+            { text: 'Static Modifier API', link: '/api/static-modifier' },
+            { text: 'Functional Modifier API', link: '/api/functional-modifier' },
+            { text: 'Custom Utilities', link: '/guide/adding-custom-styles' }
+          ]
+        },
+        {
+          text: '🔬 Step 4: Advanced',
+          items: [
+            { text: 'AST Processing API', link: '/api/ast-processing' }
           ]
         }
       ],
@@ -427,6 +408,7 @@ export default defineConfig(withMermaid({
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
     ['meta', { name: 'theme-color', content: '#3B82F6' }],
+    ['script', { src: '/custom-runtime-boot.js' }],
     ['style', {}, `
       /* Code block customization */
       .vp-code-block {

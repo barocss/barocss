@@ -5,21 +5,27 @@ description: Understanding BaroCSS's Just-In-Time CSS generation and its advanta
 
 # JIT Mode
 
-BaroCSS implements a revolutionary Just-In-Time (JIT) CSS generation system that creates styles only when they're needed, providing optimal performance and minimal bundle sizes. Built from the ground up to support the complete utility-first syntax in real-time.
+::: tip JIT CSS Generation
+BaroCSS implements a Just-In-Time (JIT) CSS generation system that creates styles only when they're needed, providing optimal performance and minimal bundle sizes. Built to support utility-first syntax in real-time.
+:::
 
 ## What is JIT Mode?
 
+::: details Purpose
 Just-In-Time (JIT) compilation is a technique where code is compiled at runtime, just before it's needed. In BaroCSS, this means:
+:::
 
 - **Generate CSS on-demand** - Only create styles for classes you actually use
 - **Zero unused CSS** - No bloated stylesheets with unused utilities
 - **Real-time compilation** - Generate styles instantly as you develop
 - **Optimal performance** - Minimal memory usage and fast loading times
+- **Zero build time** - No build processes or configuration required
 
 ## Traditional CSS vs JIT Mode
 
 ### Traditional CSS Approach
 
+::: warning Problems with Traditional CSS
 ```css
 /* Traditional: Generate all possible utilities */
 .bg-red-500 { background-color: rgb(239 68 68); }
@@ -39,11 +45,15 @@ Just-In-Time (JIT) compilation is a technique where code is compiled at runtime,
 - **Unused CSS** - Most utilities are never used
 - **Slow loading** - Large CSS files take time to download
 - **Memory waste** - Unused styles consume memory
+- **Build complexity** - Configure webpack, PostCSS, etc.
+- **Slow development cycles** - Wait for builds to see changes
+:::
 
 ### BaroCSS JIT Mode
 
+::: tip Benefits of JIT Mode
 ```typescript
-import { BrowserRuntime } from 'barocss/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime();
 
@@ -67,10 +77,17 @@ document.body.innerHTML = `
 - **Zero unused CSS** - No waste
 - **Fast loading** - Small CSS files
 - **Memory efficient** - Only loads what's needed
+- **Zero build time** - No build processes required
+- **Instant feedback** - See changes immediately
+:::
 
 ## How JIT Mode Works
 
 ### 1. Class Detection
+
+::: details Purpose
+BaroCSS automatically detects which classes are being used through DOM monitoring.
+:::
 
 BaroCSS automatically detects which classes are being used:
 
@@ -84,6 +101,10 @@ element.className = 'bg-red-500 text-white p-4 rounded-lg';
 ```
 
 ### 2. On-Demand Generation
+
+::: details Purpose
+CSS is generated only when a class is first encountered, with intelligent caching for subsequent uses.
+:::
 
 CSS is generated only when a class is first encountered:
 
@@ -99,6 +120,10 @@ element3.className = 'bg-green-500'; // Generates new CSS
 ```
 
 ### 3. Smart Caching
+
+::: details Purpose
+Generated CSS is cached to avoid regeneration and improve performance.
+:::
 
 Generated CSS is cached to avoid regeneration:
 
@@ -117,12 +142,15 @@ class JITCache {
     this.cssCache.set(className, css);
     return css;
   }
-}
 ```
 
 ## JIT Mode Benefits
 
 ### 1. Minimal Bundle Size
+
+::: details Purpose
+JIT mode generates only the CSS you actually use, resulting in dramatically smaller bundle sizes.
+:::
 
 ```typescript
 // Traditional CSS: ~3MB (all utilities)
@@ -140,6 +168,10 @@ console.log(stats);
 
 ### 2. Faster Loading
 
+::: details Purpose
+Smaller CSS files mean faster download times and better user experience.
+:::
+
 ```typescript
 // Performance comparison
 const traditionalCSS = '3MB'; // Download time: ~2.5s
@@ -149,6 +181,10 @@ const jitCSS = '50KB';        // Download time: ~0.1s
 ```
 
 ### 3. Memory Efficiency
+
+::: details Purpose
+JIT mode uses significantly less memory by only storing CSS for classes that are actually used.
+:::
 
 ```typescript
 // Memory usage comparison
@@ -160,6 +196,10 @@ const jitMemory = '500KB';        // Only used utilities
 
 ### 4. Development Speed
 
+::: details Purpose
+JIT mode provides instant feedback during development with zero build time.
+:::
+
 ```typescript
 // Traditional: Rebuild entire CSS
 npm run build; // 30+ seconds
@@ -168,9 +208,26 @@ npm run build; // 30+ seconds
 element.className = 'new-class'; // 0ms
 ```
 
+### 5. Zero Build Configuration
+
+::: details Purpose
+Start using BaroCSS immediately without complex setup or build processes.
+:::
+
+```html
+<!-- Just include the script and start styling -->
+<script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
+```
+
+No webpack, PostCSS, or build tools required!
+
 ## Advanced JIT Features
 
 ### 1. Dynamic Class Generation
+
+::: details Purpose
+JIT mode handles dynamic class names generated at runtime, perfect for component libraries and dynamic UIs.
+:::
 
 JIT mode handles dynamic class names:
 
@@ -183,12 +240,15 @@ function createButton(variant: string, size: string) {
   
   // JIT generates CSS for 'btn-primary btn-large' on first use
   return element;
-}
 
 const button = createButton('primary', 'large');
 ```
 
 ### 2. Arbitrary Value Support
+
+::: details Purpose
+JIT mode supports arbitrary values with square bracket notation, generating CSS on-demand for any value.
+:::
 
 JIT mode supports arbitrary values:
 
@@ -203,6 +263,10 @@ element.className = 'bg-[#ff6b6b] text-[18px] p-[2rem]';
 ```
 
 ### 3. Variant Generation
+
+::: details Purpose
+Complex variants with multiple modifiers are generated only when needed, with proper CSS nesting.
+:::
 
 Complex variants are generated only when needed:
 
@@ -220,21 +284,37 @@ element.className = 'sm:dark:hover:bg-red-500/50';
 // }
 ```
 
-### 4. Plugin Integration
+### 4. Custom Utilities Integration
 
-JIT mode works seamlessly with plugins:
+::: details Purpose
+JIT mode works seamlessly with custom utilities, generating CSS for your custom classes on-demand.
+:::
+
+JIT mode works seamlessly with custom utilities:
 
 ```typescript
-const customPlugin = (ctx) => {
-  ctx.extendTheme('colors', {
-    'brand-primary': '#3b82f6',
-    'brand-secondary': '#64748b'
-  });
-};
+import { staticUtility } from '@barocss/kit';
+import { decl } from '@barocss/kit';
+
+// Register custom utilities globally
+staticUtility('brand-primary', [
+  decl('color', '#3b82f6')
+]);
+
+staticUtility('brand-secondary', [
+  decl('color', '#64748b')
+]);
 
 const runtime = new BrowserRuntime({
   config: {
-    plugins: [customPlugin]
+    theme: {
+      extend: {
+        colors: {
+          'brand-primary': '#3b82f6',
+          'brand-secondary': '#64748b'
+        }
+      }
+    }
   }
 });
 
@@ -245,6 +325,10 @@ element.className = 'bg-brand-primary text-brand-secondary';
 ## Performance Optimization
 
 ### 1. Lazy Loading
+
+::: details Purpose
+CSS is generated only when elements are visible, reducing initial load time and memory usage.
+:::
 
 CSS is generated only when elements are visible:
 
@@ -264,6 +348,10 @@ observer.observe(element);
 
 ### 2. Batch Processing
 
+::: details Purpose
+Multiple classes are processed together for better performance and efficiency.
+:::
+
 Multiple classes are processed together:
 
 ```typescript
@@ -275,6 +363,10 @@ const css = runtime.generateCss(classes.join(' '));
 ```
 
 ### 3. Memory Management
+
+::: details Purpose
+Unused CSS is automatically cleaned up to prevent memory leaks and maintain optimal performance.
+:::
 
 Unused CSS is automatically cleaned up:
 
@@ -292,12 +384,15 @@ class JITManager {
       }
     }
   }
-}
 ```
 
 ## Use Cases
 
 ### 1. Component Libraries
+
+::: details Purpose
+Perfect for dynamic component systems that generate classes at runtime.
+:::
 
 Perfect for dynamic component systems:
 
@@ -311,13 +406,16 @@ class ComponentLibrary {
     // JIT generates CSS for new combinations
     return element;
   }
-}
 
 const library = new ComponentLibrary();
 const card = library.createCard('primary', 'large'); // CSS generated on-demand
 ```
 
 ### 2. Dynamic Theming
+
+::: details Purpose
+Handle theme changes efficiently with JIT-generated theme-specific CSS.
+:::
 
 Handle theme changes efficiently:
 
@@ -331,10 +429,13 @@ function switchTheme(theme: string) {
     const newClasses = element.className.replace(/theme-\w+/g, `theme-${theme}`);
     element.className = newClasses;
   });
-}
 ```
 
 ### 3. User-Generated Content
+
+::: details Purpose
+Handle user-created styles and dynamic content with JIT CSS generation.
+:::
 
 Handle user-created styles:
 
@@ -347,64 +448,6 @@ function createUserStyle(backgroundColor: string, textColor: string) {
   
   // JIT generates CSS for user's custom classes
   return element;
-}
-```
-
-## Best Practices
-
-### 1. Use Semantic Class Names
-
-```typescript
-// Good: Semantic and reusable
-const buttonClasses = 'btn btn-primary btn-large';
-
-// Avoid: Too specific
-const specificClasses = 'bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600';
-```
-
-### 2. Batch Class Operations
-
-```typescript
-// Good: Batch multiple classes
-const classes = ['bg-red-500', 'text-white', 'p-4'];
-runtime.generateCss(classes.join(' '));
-
-// Avoid: Process classes individually
-classes.forEach(cls => runtime.generateCss(cls));
-```
-
-### 3. Monitor Performance
-
-```typescript
-// Track JIT performance
-const stats = runtime.getStats();
-if (stats.generatedCSS > '100KB') {
-  console.warn('Large CSS generated:', stats);
-}
-```
-
-### 4. Optimize for Your Use Case
-
-```typescript
-// For applications with many dynamic classes
-const runtime = new BrowserRuntime({
-  config: {
-    cache: {
-      maxSize: 1000,        // Larger cache
-      ttl: 300000          // 5 minute TTL
-    }
-  }
-});
-
-// For applications with mostly static classes
-const runtime = new BrowserRuntime({
-  config: {
-    cache: {
-      maxSize: 100,         // Smaller cache
-      ttl: 60000           // 1 minute TTL
-    }
-  }
-});
 ```
 
 ## Performance Comparison
@@ -417,10 +460,14 @@ const runtime = new BrowserRuntime({
 | **Unused CSS** | 2.95MB | 0KB | 100% elimination |
 | **Build Time** | 30s+ | 0ms | Instant |
 | **Development Speed** | Slow | Instant | Immediate feedback |
+| **Change Detection** | Manual file scanning | Automatic DOM monitoring | Real-time |
+| **Dynamic Content** | Limited | Full support | Complete |
 
 ## Conclusion
 
+::: tip JIT Mode Benefits
 JIT mode is the cornerstone of BaroCSS's performance and efficiency. By generating CSS only when needed, it provides:
+:::
 
 - **Minimal bundle sizes** - Only includes used utilities
 - **Fast loading times** - Small CSS files
@@ -430,4 +477,5 @@ JIT mode is the cornerstone of BaroCSS's performance and efficiency. By generati
 
 JIT mode makes BaroCSS perfect for modern web applications that need optimal performance and developer experience.
 
-Ready to experience JIT mode? Check out the [Quick Start Guide](/guide/quick-start) to get started with BaroCSS.
+::: tip Ready to Get Started?
+:::

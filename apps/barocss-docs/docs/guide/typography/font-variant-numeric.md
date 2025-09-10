@@ -149,6 +149,5 @@ Prefix a `font-variant-numeric` utility with a breakpoint variant like `md:` to 
 <p class="proportional-nums md:tabular-nums ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 

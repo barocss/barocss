@@ -2,7 +2,7 @@
 
 Utilities for controlling the duration of CSS transitions.
 
-Source: https://tailwindcss.com/guide/transition-duration
+
 
 ## Quick reference
 
@@ -55,4 +55,3 @@ Prefix a `transition-duration` utility with a breakpoint variant like `md:` to o
 </button>
 ```
 
-Learn more about using variants in the variants documentation.

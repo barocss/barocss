@@ -10,7 +10,6 @@ Utilities for controlling an element's mask image.
 - Radial: `mask-radial-[&lt;value&gt;]`, size/pos modifiers, `mask-circle`, `mask-ellipse`
 - Conic: `mask-conic-<angle>`, `mask-conic-from-*`, `mask-conic-to-*`
 
-Source: https://tailwindcss.com/guide/mask-image
 
 ## Examples
 
@@ -72,16 +71,12 @@ Prefix a `mask-image` utility with a breakpoint variant like `md:` to only apply
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 Use the `--mask-*` theme variables to customize the mask image utilities in your project:
 
 ```css
-@theme {
-  --mask-custom: url('/img/custom-mask.png');
-}
 ```
 
 Now the `mask-custom` utility can be used in your markup:
@@ -92,4 +87,4 @@ Now the `mask-custom` utility can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

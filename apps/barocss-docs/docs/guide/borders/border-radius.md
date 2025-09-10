@@ -33,7 +33,7 @@ Utilities for controlling the border radius of an element.
 | `rounded-br-{size}` | `border-bottom-right-radius: var(--radius-{size});` |
 | `rounded-bl-{size}` | `border-bottom-left-radius: var(--radius-{size});` |
 
-Source: https://tailwindcss.com/guide/border-radius
+
 
 ## Examples
 
@@ -151,16 +151,13 @@ Prefix a `border-radius` utility with a breakpoint variant like `md:` to only ap
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 Use the `--radius-*` theme variables to customize the border radius utilities in your project:
 
 ```css
-@theme {
   --radius-5xl: 3rem;
-}
 ```
 
 Now the `rounded-5xl` utility can be used in your markup:
@@ -171,4 +168,3 @@ Now the `rounded-5xl` utility can be used in your markup:
 </div>
 ```
 
-Learn more about customizing your theme in the theme documentation.

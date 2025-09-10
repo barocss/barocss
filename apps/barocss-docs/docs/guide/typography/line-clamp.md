@@ -47,6 +47,5 @@ Prefix a `line-clamp` utility with a breakpoint variant like `md:` to only apply
 <p class="line-clamp-2 md:line-clamp-4 ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 

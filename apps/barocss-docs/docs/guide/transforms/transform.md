@@ -2,7 +2,7 @@
 
 Utilities for transforming elements.
 
-Source: https://tailwindcss.com/guide/transform
+
 
 ## Quick reference
 
@@ -11,8 +11,8 @@ Source: https://tailwindcss.com/guide/transform
 | transform-(&lt;custom-property&gt;) | transform: var(&lt;custom-property&gt;); |
 | transform-[&lt;value&gt;] | transform: &lt;value&gt;; |
 | transform-none | transform: none; |
-| transform-gpu | transform: translateZ(0) var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y); |
-| transform-cpu | transform: var(--tw-rotate-x) var(--tw-rotate-y) var(--tw-rotate-z) var(--tw-skew-x) var(--tw-skew-y); |
+| transform-gpu | transform: translateZ(0) var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y); |
+| transform-cpu | transform: var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y); |
 
 ## Examples
 
@@ -68,4 +68,3 @@ Prefix a `transform` utility with a breakpoint variant like `md:` to only apply 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

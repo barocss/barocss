@@ -4,9 +4,6 @@ All of your theme variables are turned into regular CSS variables when you compi
 
 ```css
 :root {
-  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   --color-red-50: oklch(0.971 0.013 17.38);
   --color-red-100: oklch(0.936 0.032 17.717);
@@ -14,10 +11,7 @@ All of your theme variables are turned into regular CSS variables when you compi
   /* ... */
 
   --shadow-2xs: 0 1px rgb(0 0 0 / 0.05);
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   /* ... */
-}
 ```
 
 This makes it easy to reference all of your design tokens in any of your custom CSS or inline styles.
@@ -27,28 +21,23 @@ This makes it easy to reference all of your design tokens in any of your custom 
 Use your theme variables to get access to your design tokens when you're writing custom CSS that needs to use the same values:
 
 ```css
-@import "tailwindcss";
-
-@layer components {
-  .typography {
-    p {
-      font-size: var(--text-base);
-      color: var(--color-gray-700);
-    }
-
-    h1 {
-      font-size: var(--text-2xl--line-height);
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-gray-950);
-    }
-
-    h2 {
-      font-size: var(--text-xl);
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-gray-950);
-    }
+.typography {
+  p {
+    font-size: var(--text-base);
+    color: var(--color-gray-700);
   }
-}
+
+  h1 {
+    font-size: var(--text-2xl--line-height);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-950);
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray-950);
+  }
 ```
 
 This is often useful when styling HTML you don't control, like Markdown content coming from a database or API and rendered to HTML.
@@ -56,48 +45,43 @@ This is often useful when styling HTML you don't control, like Markdown content 
 ### Component Styling
 
 ```css
-@layer components {
-  .btn {
-    @apply px-4 py-2 rounded-md font-medium;
-    background-color: var(--color-primary);
-    color: var(--color-white);
-  }
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  background-color: var(--color-primary);
+  color: var(--color-white);
   
-  .btn:hover {
-    background-color: var(--color-primary-dark);
-  }
+.btn:hover {
+  background-color: var(--color-primary-dark);
   
-  .card {
-    background-color: var(--color-white);
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: var(--spacing-6);
-  }
-}
+.card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-6);
 ```
 
 ### Third-party Library Overrides
 
 ```css
-@layer components {
-  .select2-dropdown {
-    @apply rounded-b-lg shadow-md;
-    background-color: var(--color-white);
-    border: 1px solid var(--color-gray-300);
-  }
+.select2-dropdown {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-300);
 
-  .select2-search {
-    @apply rounded border border-gray-300;
-    background-color: var(--color-gray-50);
-  }
+.select2-search {
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-gray-300);
+  background-color: var(--color-gray-50);
 
-  .select2-results__group {
-    @apply text-lg font-bold text-gray-900;
-    color: var(--color-gray-900);
-    font-weight: var(--font-weight-bold);
-  }
-}
+.select2-results__group {
+  font-size: 1.125rem;
+  font-weight: bold;
+  color: var(--color-gray-900);
 ```
 
 ## With Arbitrary Values
@@ -165,7 +149,7 @@ Most of the time when you need to reference your theme variables in JS you can j
 
 ### With Animation Libraries
 
-For example, the popular [Motion](https://motion.dev/guide/react-quick-start) library for React lets you animate to and from CSS variable values:
+For example, the popular [Motion](https://motion.dev/guide/react-installation) library for React lets you animate to and from CSS variable values:
 
 ```jsx
 import { motion } from "framer-motion";
@@ -184,7 +168,6 @@ function AnimatedComponent() {
       Animated with theme colors
     </motion.div>
   );
-}
 ```
 
 ### With CSS-in-JS
@@ -236,7 +219,6 @@ function getThemeValues() {
   }
   
   return theme;
-}
 
 const themeValues = getThemeValues();
 console.log(themeValues['--color-primary']); // "oklch(0.72 0.11 221.19)"
@@ -262,15 +244,5 @@ function switchTheme(themeName) {
     root.style.setProperty('--color-primary', 'var(--color-blue-600)');
     root.style.setProperty('--color-background', 'var(--color-white)');
   }
-}
 ```
 
-## Best Practices
-
-1. **Use semantic names**: Choose theme variable names that describe purpose, not appearance
-2. **Consistent naming**: Follow the same naming pattern across your project
-3. **Document your variables**: Keep a record of what each variable is used for
-4. **Test across contexts**: Ensure your variables work well in different use cases
-5. **Consider performance**: Be mindful of how many variables you're using
-6. **Use fallbacks**: Always provide fallback values when using CSS variables
-7. **Validate values**: Check that your theme variables resolve to valid CSS values

@@ -12,7 +12,6 @@ Utilities for controlling the font family of an element.
 | `font-(family-name:&lt;custom-property&gt;)` | `font-family: var(&lt;custom-property&gt;);` |
 | `font-[&lt;value&gt;]` | `font-family: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/font-family
 
 ## Examples
 
@@ -51,16 +50,12 @@ Prefix a `font-family` utility with a breakpoint variant like `md:` to only appl
 <p class="font-sans md:font-serif ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 Use the `--font-*` theme variables to customize the font family utilities in your project:
 
 ```css
-@theme {
-  --font-display: "Oswald", sans-serif;
-}
 ```
 
 Now the `font-display` utility can be used in your markup:
@@ -83,7 +78,6 @@ If needed, use the `@font-face` at-rule to load custom fonts:
   font-weight: 200 700;
   font-display: swap;
   src: url("/fonts/Oswald.woff2") format("woff2");
-}
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

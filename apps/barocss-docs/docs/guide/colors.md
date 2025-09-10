@@ -1,8 +1,10 @@
 # Colors
 
-Using and customizing the color palette in Tailwind CSS projects.
+::: tip Beautiful Color Palette
+Using and customizing the color palette in BaroCSS projects.
+:::
 
-Tailwind CSS includes a vast, beautiful color palette out of the box, carefully crafted by expert designers and suitable for a wide range of different design styles.
+BaroCSS includes a vast, beautiful color palette out of the box, carefully crafted by expert designers and suitable for a wide range of different design styles.
 
 50
 
@@ -72,7 +74,9 @@ stone
 
 Click to copy the OKLCH value or shift+click to copy the nearest hex value.
 
+::: details Color Scale System
 Every color in the default palette includes 11 steps, with 50 being the lightest, and 950 being the darkest:
+:::
 
 50
 
@@ -112,11 +116,15 @@ Every color in the default palette includes 11 steps, with 50 being the lightest
 </div>
 ```
 
-The entire color palette is available across all color related utilities, including things like background color, border color, fill, caret color, and many more.
+The entire color palette is available across all color related utilities, including background color, border color, fill, caret color, and more.
 
-## Working with colors
+## Working with Colors
 
-### Using color utilities
+### Using Color Utilities
+
+::: details Purpose
+Learn how to use color utilities to style different elements in your design.
+:::
 
 Use color utilities like `bg-white`, `border-pink-300`, and `text-gray-950` to set the different color properties of elements in your design:
 
@@ -157,7 +165,11 @@ Here's a full list of utilities that use your color palette:
 | `fill-*` | Sets the fill color of SVG elements |
 | `stroke-*` | Sets the stroke color of SVG elements |
 
-### Adjusting opacity
+### Adjusting Opacity
+
+::: details Purpose
+Learn how to adjust color opacity using the slash notation for alpha transparency.
+:::
 
 You can adjust the opacity of a color using syntax like `bg-black/75`, where `75` sets the alpha channel of the color to 75%:
 
@@ -183,7 +195,11 @@ This syntax also supports arbitrary values and the CSS variable shorthand:
 <div class="bg-cyan-400/(--my-alpha-value)"><!-- ... --></div>
 ```
 
-### Targeting dark mode
+### Targeting Dark Mode
+
+::: details Purpose
+Learn how to use the dark variant to apply colors only when dark mode is active.
+:::
 
 Use the `dark` variant to write classes like `dark:bg-gray-800` that only apply a color when dark mode is active:
 
@@ -203,27 +219,6 @@ Use the `dark` variant to write classes like `dark:bg-gray-800` that only apply 
 </div>
 ```
 
-Learn more about styling for dark mode in the dark mode documentation.
-
-### Referencing in CSS
-
-Colors are exposed as CSS variables in the `--color-*` namespace, so you can reference them in CSS with variables like `--color-blue-500` and `--color-pink-700`:
-
-```css
-@import "tailwindcss";
-
-@layer components {
-  .typography {
-    color: var(--color-gray-950);
-    a {
-      color: var(--color-blue-500);
-      &:hover {
-        color: var(--color-blue-800);
-      }
-    }
-  }
-}
-```
 
 You can also use these as arbitrary values in utility classes:
 
@@ -233,118 +228,154 @@ You can also use these as arbitrary values in utility classes:
 </div>
 ```
 
-To quickly adjust the opacity of a color when referencing it as a variable in CSS, Tailwind includes a special `--alpha()` function:
+## Customizing Your Colors
 
-```css
-@import "tailwindcss";
+::: details Purpose
+Learn how to add custom colors to your project using theme variables.
+:::
 
-@layer components {
-  .DocSearch-Hit--Result {
-    background-color: --alpha(var(--color-gray-950) / 10%);
+Add custom colors to your project using the theme configuration:
+
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      colors: {
+        midnight: '#121063',
+        tahiti: '#3ab7bf',
+        bermuda: '#78dcca'
+      }
+    }
   }
-}
-```
-
-## Customizing your colors
-
-Use `@theme` to add custom colors to your project under the `--color-*` theme namespace:
-
-```css
-@import "tailwindcss";
-
-@theme {
-  --color-midnight: #121063;
-  --color-tahiti: #3ab7bf;
-  --color-bermuda: #78dcca;
-}
+});
 ```
 
 Now utilities like `bg-midnight`, `text-tahiti`, and `fill-bermuda` will be available in your project in addition to the default colors.
 
-Learn more about theme variables in the [theme variables documentation](/guide/theme).
 
-### Overriding default colors
+### Overriding Default Colors
 
-Override any of the default colors by defining new theme variables with the same name:
+::: details Purpose
+Learn how to override default colors by redefining theme variables.
+:::
 
-```css
-@import "tailwindcss";
+Override any of the default colors by defining new colors with the same name:
 
-@theme {
-  --color-gray-50: oklch(0.984 0.003 247.858);
-  --color-gray-100: oklch(0.968 0.007 247.896);
-  --color-gray-200: oklch(0.929 0.013 255.508);
-  --color-gray-300: oklch(0.869 0.022 252.894);
-  --color-gray-400: oklch(0.704 0.04 256.788);
-  --color-gray-500: oklch(0.554 0.046 257.417);
-  --color-gray-600: oklch(0.446 0.043 257.281);
-  --color-gray-700: oklch(0.372 0.044 257.287);
-  --color-gray-800: oklch(0.279 0.041 260.031);
-  --color-gray-900: oklch(0.208 0.042 265.755);
-  --color-gray-950: oklch(0.129 0.042 264.695);
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    colors: {
+      gray: {
+        50: 'oklch(0.984 0.003 247.858)',
+        100: 'oklch(0.968 0.007 247.896)',
+        200: 'oklch(0.929 0.013 255.508)',
+        300: 'oklch(0.869 0.022 252.894)',
+        400: 'oklch(0.704 0.04 256.788)',
+        500: 'oklch(0.554 0.046 257.417)',
+        600: 'oklch(0.446 0.043 257.281)',
+        700: 'oklch(0.372 0.044 257.287)',
+        800: 'oklch(0.279 0.041 260.031)',
+        900: 'oklch(0.208 0.042 265.755)',
+        950: 'oklch(0.129 0.042 264.695)'
+      }
+    }
+  }
+});
 ```
 
-### Disabling default colors
+### Disabling Default Colors
 
-Disable any default color by setting the theme namespace for that color to `initial`:
+::: details Purpose
+Learn how to disable default colors by setting theme variables to initial.
+:::
 
-```css
-@import "tailwindcss";
+Disable any default color by not including them in your theme configuration:
 
-@theme {
-  --color-lime-*: initial;
-  --color-fuchsia-*: initial;
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    colors: {
+      // Only include the colors you want
+      // lime and fuchsia are not included, so they won't be available
+      red: { /* ... */ },
+      blue: { /* ... */ }
+    }
+  }
+});
 ```
 
 This is especially useful for removing the corresponding CSS variables from your output for colors you don't intend to use.
 
-### Using a custom palette
+### Using a Custom Palette
 
-Use `--color-*: initial` to completely disable all of the default colors and define your own custom color palette:
+::: details Purpose
+Learn how to create a completely custom color palette by disabling all defaults.
+:::
 
-```css
-@import "tailwindcss";
+Define your own custom color palette by overriding the entire colors object:
 
-@theme {
-  --color-*: initial;
-  --color-white: #fff;
-  --color-purple: #3f3cbb;
-  --color-midnight: #121063;
-  --color-tahiti: #3ab7bf;
-  --color-bermuda: #78dcca;
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    colors: {
+      white: '#fff',
+      purple: '#3f3cbb',
+      midnight: '#121063',
+      tahiti: '#3ab7bf',
+      bermuda: '#78dcca'
+    }
+  }
+});
 ```
 
-### Referencing other variables
+### Referencing Other Variables
 
-Use `@theme inline` when defining colors that reference other colors:
+::: details Purpose
+Learn how to reference other CSS variables when defining colors in your theme configuration.
+:::
+
+You can reference CSS variables when defining colors in your theme:
+
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    colors: {
+      canvas: 'var(--acme-canvas-color)'
+    }
+  }
+});
+```
+
+Make sure the referenced CSS variables are defined in your CSS:
 
 ```css
-@import "tailwindcss";
-
 :root {
-  --acme-canvas-color: oklch(0.967 0.003 264.542);
-}
 
 [data-theme="dark"] {
-  --acme-canvas-color: oklch(0.21 0.034 264.665);
-}
-
-@theme inline {
-  --color-canvas: var(--acme-canvas-color);
-}
 ```
 
 Learn more in the theme documentation on [referencing other variables](/guide/theme#referencing-other-variables).
 
-## Default color palette reference
+## Default Color Palette Reference
+
+::: details Purpose
+Complete reference of all default colors and their OKLCH values for easy lookup.
+:::
 
 Here's a complete list of the default colors and their values for reference:
 
 ```css
-@theme {
+:root {
   --color-red-50: oklch(0.971 0.013 17.38);
   --color-red-100: oklch(0.936 0.032 17.717);
   --color-red-200: oklch(0.885 0.062 18.334);
@@ -609,9 +640,8 @@ Here's a complete list of the default colors and their values for reference:
   --color-stone-900: oklch(0.216 0.006 56.043);
   --color-stone-950: oklch(0.147 0.004 49.25);
 
-  --color-black: #000;
-  --color-white: #fff;
-}
 ```
 
+::: tip Reusing Color Scales
 This can be useful if you want to reuse any of these scales but under a different name, like redefining `--color-gray-*` to use the `--color-slate-*` scale.
+:::

@@ -14,7 +14,7 @@ Utilities for controlling the bounding box of an element's mask.
 | `mask-clip-view`    | `mask-clip: view-box;`    |
 | `mask-no-clip`      | `mask-clip: no-clip;`     |
 
-Source: https://tailwindcss.com/guide/mask-clip
+
 
 ## Examples
 
@@ -38,4 +38,3 @@ Prefix a `mask-clip` utility with a breakpoint variant like `md:` to only apply 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

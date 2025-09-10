@@ -321,7 +321,7 @@ Oh I gotta get on that internet, I'm late on everything!
 </p>
 ```
 
-Learn more about using variants in the variants documentation.
+
 
 ### Responsive design
 
@@ -331,16 +331,13 @@ Prefix a `color` utility with a breakpoint variant like `md:` to only apply the 
 <p class="text-blue-600 md:text-green-600 ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
+
 
 ## Customizing your theme
 
 Use the `--color-*` theme variables to customize the color utilities in your project:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Now the `text-regal-blue` utility can be used in your markup:
@@ -349,4 +346,4 @@ Now the `text-regal-blue` utility can be used in your markup:
 <p class="text-regal-blue">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

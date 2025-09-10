@@ -18,7 +18,7 @@ Utilities for controlling how flex and grid items are positioned along a contain
 | `justify-baseline` | `justify-content: baseline;` |
 | `justify-normal` | `justify-content: normal;` |
 
-Source: https://tailwindcss.com/guide/justify-content
+
 
 ## Examples
 
@@ -166,4 +166,4 @@ Prefix a `justify-content` utility with a breakpoint variant like `md:` to only 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+

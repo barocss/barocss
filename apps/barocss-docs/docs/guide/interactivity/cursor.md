@@ -2,7 +2,7 @@
 
 Utilities for controlling the cursor style when hovering over an element.
 
-Source: https://tailwindcss.com/guide/cursor
+
 
 ## Quick reference
 
@@ -89,4 +89,4 @@ Prefix a `cursor` utility with a breakpoint variant like `md:` to only apply the
 </button>
 ```
 
-Learn more about using variants in the variants documentation.
+

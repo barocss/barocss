@@ -10,7 +10,7 @@ Utilities for controlling an element's mask mode.
 | `mask-luminance` | `mask-mode: luminance;` |
 | `mask-match`     | `mask-mode: match-source;` |
 
-Source: https://tailwindcss.com/guide/mask-mode
+
 
 ## Examples
 
@@ -33,4 +33,3 @@ Prefix a `mask-mode` utility with a breakpoint variant like `md:` to only apply 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

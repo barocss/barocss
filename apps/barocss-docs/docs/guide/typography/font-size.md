@@ -22,7 +22,6 @@ Utilities for controlling the font size of an element.
 | `text-(length:&lt;custom-property&gt;)` | `font-size: var(&lt;custom-property&gt;);` |
 | `text-[&lt;value&gt;]` | `font-size: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/font-size
 
 ## Examples
 
@@ -74,16 +73,23 @@ Prefix a `font-size` utility with a breakpoint variant like `md:` to only apply 
 <p class="text-sm md:text-base ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
-Use the `--text-*` theme variables to customize the font size utilities in your project:
+Customize the font size utilities in your project using theme configuration:
 
-```css
-@theme {
-  --text-tiny: 0.625rem;
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      fontSize: {
+        tiny: '0.625rem'
+      }
+    }
+  }
+});
 ```
 
 Now the `text-tiny` utility can be used in your markup:
@@ -96,13 +102,18 @@ Now the `text-tiny` utility can be used in your markup:
 
 You can also provide default `line-height`, `letter-spacing`, and `font-weight` values for a font size:
 
-```css
-@theme {
-  --text-tiny: 0.625rem;
-  --text-tiny--line-height: 1.5rem;
-  --text-tiny--letter-spacing: 0.125rem;
-  --text-tiny--font-weight: 500;
-}
+```typescript
+import { createContext } from '@barocss/kit';
+
+const ctx = createContext({
+  theme: {
+    extend: {
+      fontSize: {
+        tiny: ['0.625rem', { lineHeight: '1.5rem', letterSpacing: '0.125rem', fontWeight: '500' }]
+      }
+    }
+  }
+});
 ```
 
-Learn more about customizing your theme in the theme documentation.
+

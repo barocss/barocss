@@ -2,7 +2,7 @@
 
 Utilities for controlling how an element can be scrolled and zoomed on touchscreens.
 
-Source: https://tailwindcss.com/guide/touch-action
+
 
 ## Quick reference
 
@@ -71,4 +71,3 @@ Prefix a `touch-action` utility with a breakpoint variant like `md:` to only app
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

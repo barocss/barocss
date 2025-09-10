@@ -60,6 +60,5 @@ Prefix a `list-style-type` utility with a breakpoint variant like `md:` to only 
 </ul>
 ```
 
-Learn more about using variants in the variants documentation.
 
 

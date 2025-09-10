@@ -2,7 +2,7 @@
 
 Utilities for controlling if an element's children are placed in 3D space.
 
-Source: https://tailwindcss.com/guide/transform-style
+
 
 ## Quick reference
 
@@ -38,4 +38,3 @@ Prefix a `transform-style` utility with a breakpoint variant like `md:` to only 
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

@@ -2,11 +2,14 @@
 
 Utilities for applying backdrop opacity filters to an element.
 
-Source: https://tailwindcss.com/guide/backdrop-filter-opacity
 
 ## Quick reference
 
-- `backdrop-opacity-[&lt;value&gt;]`, `backdrop-opacity-(&lt;custom-property&gt;)`, preset utilities like `backdrop-opacity-25`, `backdrop-opacity-50`, `backdrop-opacity-75`
+| Class | Styles |
+|---|---|
+| `backdrop-opacity-&lt;number&gt;` | `backdrop-filter: opacity(&lt;number&gt;%);` |
+| `backdrop-opacity-(&lt;custom-property&gt;)` | `backdrop-filter: opacity(var(&lt;custom-property&gt;));` |
+| `backdrop-opacity-[&lt;value&gt;]` | `backdrop-filter: opacity(&lt;value&gt;);` |
 
 ## Examples
 
@@ -56,4 +59,3 @@ Prefix a `backdrop-filter: opacity()` utility with a breakpoint variant like `md
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

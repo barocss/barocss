@@ -13,7 +13,7 @@ Utilities for controlling the alignment of text.
 | `text-start`  | `text-align: start;`    |
 | `text-end`    | `text-align: end;`      |
 
-Source: https://tailwindcss.com/guide/text-align
+
 
 ## Examples
 
@@ -66,4 +66,3 @@ Prefix a `text-align` utility with a breakpoint variant like `md:` to only apply
 <p class="text-left md:text-center ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

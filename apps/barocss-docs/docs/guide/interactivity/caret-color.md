@@ -2,7 +2,7 @@
 
 Utilities for controlling the color of the text input cursor.
 
-Source: https://tailwindcss.com/guide/caret-color
+
 
 ## Quick reference
 
@@ -58,16 +58,12 @@ Prefix a `caret-color` utility with a breakpoint variant like `md:` to only appl
 </textarea>
 ```
 
-Learn more about using variants in the variants documentation.
 
 ## Customizing your theme
 
 Use the `--color-*` theme variables to customize the color utilities in your project:
 
 ```css
-@theme {
-  --color-regal-blue: #243c5a;
-}
 ```
 
 Now the `caret-regal-blue` utility can be used in your markup:
@@ -78,4 +74,3 @@ Now the `caret-regal-blue` utility can be used in your markup:
 </textarea>
 ```
 
-Learn more about customizing your theme in the theme documentation.

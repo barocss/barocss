@@ -2,7 +2,7 @@
 
 Utilities for specifying the origin for an element's transformations.
 
-Source: https://tailwindcss.com/guide/transform-origin
+
 
 ## Quick reference
 
@@ -56,4 +56,3 @@ Prefix a `transform-origin` utility with a breakpoint variant like `md:` to only
 <img class="origin-center md:origin-top ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.

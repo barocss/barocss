@@ -13,7 +13,6 @@ Utilities for controlling the wrapping of content around an element.
 | `clear-end`   | `clear: inline-end;`   |
 | `clear-none`  | `clear: none;`    |
 
-Source: https://tailwindcss.com/guide/clear
 
 ## Examples
 
@@ -75,4 +74,3 @@ Prefix a `clear` utility with a breakpoint variant like `md:` to only apply the 
 <p class="clear-left md:clear-none ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

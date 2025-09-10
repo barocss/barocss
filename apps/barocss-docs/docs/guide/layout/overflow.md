@@ -22,7 +22,6 @@ Utilities for controlling how an element handles content that is too large for t
 | `overflow-x-scroll` | `overflow-x: scroll;` |
 | `overflow-y-scroll` | `overflow-y: scroll;` |
 
-Source: https://tailwindcss.com/guide/overflow
 
 ## Examples
 
@@ -128,4 +127,3 @@ Prefix an `overflow` utility with a breakpoint variant like `md:` to only apply 
 <div class="overflow-auto md:overflow-scroll ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

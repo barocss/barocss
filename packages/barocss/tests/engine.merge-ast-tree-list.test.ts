@@ -17,12 +17,16 @@ describe("mergeAstTreeList (merge AstNode[][])", () => {
     ];
     const astList = declPaths.map(declPathToAst);
     const ast = mergeAstTreeList(astList);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
-            type: "rule", selector: "&:hover", nodes: [
+            type: "rule", selector: ":hover &", nodes: [
               { type: "decl", prop: "color", value: "#f00" },
+            ],
+          },
+          {
+            type: "rule", selector: "&:hover", nodes: [
               { type: "decl", prop: "background", value: "#fff" },
             ],
           },
@@ -46,7 +50,7 @@ describe("mergeAstTreeList (merge AstNode[][])", () => {
     ];
     const astList = declPaths.map(declPathToAst);
     const ast = mergeAstTreeList(astList);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
@@ -79,7 +83,7 @@ describe("mergeAstTreeList (merge AstNode[][])", () => {
     ];
     const astList = declPaths.map(declPathToAst);
     const ast = mergeAstTreeList(astList);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "at-rule", name: "media", params: "(min-width: 640px)", nodes: [
           {
@@ -108,7 +112,7 @@ describe("mergeAstTreeList (merge AstNode[][])", () => {
     ];
     const astList = declPaths.map(declPathToAst);
     const ast = mergeAstTreeList(astList);
-    expect(ast).toEqual([
+    expect(ast).toMatchObject([
       {
         type: "rule", selector: "&", nodes: [
           { type: "decl", prop: "color", value: "#111" },

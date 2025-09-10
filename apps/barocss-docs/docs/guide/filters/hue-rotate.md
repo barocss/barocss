@@ -2,12 +2,14 @@
 
 Utilities for applying hue-rotate filters to an element.
 
-Source: https://tailwindcss.com/guide/filter-hue-rotate
-
 ## Quick reference
 
-- Presets like `hue-rotate-15`, `hue-rotate-30`, `hue-rotate-60`, negative variants `-hue-rotate-15`, etc.
-- `hue-rotate-[<angle>]`, `hue-rotate-(&lt;custom-property&gt;)`
+| Class | Styles |
+|---|---|
+| `hue-rotate-&lt;number&gt;` | `filter: hue-rotate(&lt;number&gt;deg);` |
+| `-hue-rotate-&lt;number&gt;` | `filter: hue-rotate(calc(&lt;number&gt;deg * -1));` |
+| `hue-rotate-(&lt;custom-property&gt;)` | `filter: hue-rotate(var(&lt;custom-property&gt;));` |
+| `hue-rotate-[&lt;value&gt;]` | `filter: hue-rotate(&lt;value&gt;);` |
 
 ## Examples
 

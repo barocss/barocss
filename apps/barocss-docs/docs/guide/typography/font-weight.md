@@ -18,7 +18,7 @@ Utilities for controlling the font weight of an element.
 | `font-(&lt;custom-property&gt;)` | `font-weight: var(&lt;custom-property&gt;);` |
 | `font-[&lt;value&gt;]` | `font-weight: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/font-weight
+
 
 ## Examples
 
@@ -63,5 +63,4 @@ module.exports = {
       }
     }
   }
-}
 ```

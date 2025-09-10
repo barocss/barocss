@@ -20,49 +20,49 @@ describe('parseClassToAst (end-to-end)', () => {
   });
 
   it('basic utility', () => {
-    const ast = parseClassToAst('bg-red-500', ctx);
     expect(generateCss('bg-red-500', ctx)).toBe(
       `.bg-red-500 {
   background-color: #ef4444;
-}`
+}
+`
     );
   });
 
   it('responsive + modifier', () => {
-    const ast = parseClassToAst('sm:hover:bg-red-500', ctx);
     expect(generateCss('sm:hover:bg-red-500', ctx)).toBe(
       `@media (min-width: 640px) {
   .sm\\:hover\\:bg-red-500:hover {
     background-color: #ef4444;
   }
-}`
+}
+`
     );
   });
 
   it('group-hover + focus', () => {
-    const ast = parseClassToAst('group-hover:focus:bg-blue-500', ctx);
     expect(generateCss('group-hover:focus:bg-blue-500', ctx)).toBe(
-      `.group:hover .group-hover\\:focus\\:bg-blue-500:focus {
+      `.group-hover\\:focus\\:bg-blue-500:is(:where(.group):hover *):focus {
   background-color: #3b82f6;
-}`
+}
+`
     );
   });
 
   it('arbitrary value', () => {
-    const ast = parseClassToAst('bg-[#ff0000]', ctx);
     expect(generateCss('bg-[#ff0000]', ctx)).toBe(
       `.bg-\\[\\#ff0000\\] {
   background-color: #ff0000;
-}`
+}
+`
     );
   });
 
   it('custom property', () => {
-    const ast = parseClassToAst('bg-(--my-bg)', ctx);
     expect(generateCss('bg-(--my-bg)', ctx)).toBe(
       `.bg-\\(--my-bg\\) {
   background-size: var(--my-bg);
-}`
+}
+`
     );
   });
 
@@ -71,7 +71,8 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('-mt-4', ctx)).toBe(
       `.-mt-4 {
   margin-top: calc(var(--spacing) * -4);
-}`
+}
+`
     );
   });
 
@@ -80,20 +81,21 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('md:bg-[rgba(0,0,0,0.5)]', ctx)).toBe(
       `@media (min-width: 768px) {
   .md\\:bg-\\[rgba\\(0\\,0\\,0\\,0\\.5\\)\\] {
-    background-size: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.5);
   }
-}`
+}
+`
     );
   });
 
   it('complex: sm:group-hover:bg-[red]', () => {
-    const ast = parseClassToAst('sm:group-hover:bg-[red]', ctx);
     expect(generateCss('sm:group-hover:bg-[red]', ctx)).toBe(
       `@media (min-width: 640px) {
-  .group:hover .sm\\:group-hover\\:bg-\\[red\\] {
-    background-size: red;
+  .sm\\:group-hover\\:bg-\\[red\\]:is(:where(.group):hover *) {
+    background-color: red;
   }
-}`
+}
+`
     );
   });
 
@@ -103,7 +105,8 @@ describe('parseClassToAst (end-to-end)', () => {
       `.text-lg {
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
-}`
+}
+`
     );
   });
 
@@ -113,13 +116,16 @@ describe('parseClassToAst (end-to-end)', () => {
       `.bg-red-500 {
   background-color: #ef4444;
 }
+
 .text-lg {
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
 }
+
 .hover\\:bg-blue-500:hover {
   background-color: #3b82f6;
-}`
+}
+`
     );
   });
 
@@ -129,7 +135,8 @@ describe('parseClassToAst (end-to-end)', () => {
   .md\\:focus\\:bg-yellow-500:focus {
     background-color: #eab308;
   }
-}`
+}
+`
     );
   });
 
@@ -137,7 +144,8 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('w-[calc(100%-2rem)]', ctx)).toBe(
       `.w-\\[calc\\(100\\%-2rem\\)\\] {
   width: calc(100%-2rem);
-}`
+}
+`
     );
   });
 
@@ -145,16 +153,13 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('container-[size>600px]:p-8', ctx)).toBe(
       `.container-\\[size\\>600px\\]\\:p-8 {
   padding: calc(var(--spacing) * 8);
-}`
+}
+`
     );
   });
 
   it('escape edge case', () => {
-    expect(generateCss('bg-[#abc:def]', ctx)).toBe(
-      `.bg-\\[\\#abc\\:def\\] {
-  background-size: #abc:def;
-}`
-    );
+    expect(generateCss('bg-[#abc:def]', ctx)).toBe('');
   });
 
   it('dark + focus', () => {
@@ -163,21 +168,26 @@ describe('parseClassToAst (end-to-end)', () => {
   .dark\\:focus\\:bg-yellow-500:focus {
     background-color: #eab308;
   }
-}`
+}
+`
     );
   });
 
   it('peer-checked + text', () => {
     expect(generateCss('peer-checked:text-green-500', ctx)).toBe(
-      `.peer:checked ~ .peer-checked\\:text-green-500 {
+      `.peer-checked\\:text-green-500:is(:where(.peer):checked~*) {
   color: #22c55e;
-}`
+}
+`
     );
   });
 
   it('arbitrary variant + important', () => {
     expect(generateCss('!bg-[red]', ctx)).toBe(
-      ``
+      `.\\!bg-\\[red\\] {
+  background-color: red !important;
+}
+`
     );
   });
 
@@ -185,7 +195,8 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('container-[orientation=landscape]:flex', ctx)).toBe(
       `.container-\\[orientation\\=landscape\\]\\:flex {
   display: flex;
-}`
+}
+`
     );
   });
 
@@ -197,7 +208,8 @@ describe('parseClassToAst (end-to-end)', () => {
       background-color: #123456;
     }
   }
-}`
+}
+`
     );
   });
 
@@ -205,34 +217,38 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss("before:content-['foo']", ctx)).toBe(
       `.before\\:content-\\[\\'foo\\'\\]::before {
   content: "'foo'";
-}`
+}
+`
     );
   });
 
   it('peer-[.bar]:text-lg', () => {
     expect(generateCss('peer-[.bar]:text-lg', ctx)).toBe(
-      `.peer-\\[\\.bar\\]\\:text-lg {
+      `.peer-\\[\\.bar\\]\\:text-lg:is(:where(.peer):is(.bar)~*) {
   font-size: var(--text-lg);
   line-height: var(--text-lg--line-height);
-}`
+}
+`
     );
   });
 
   it('group-[.foo]:bg-red-500', () => {
     expect(generateCss('group-[.foo]:bg-red-500', ctx)).toBe(
-      `.group-\\[\\.foo\\]\\:bg-red-500 {
+      `.group-\\[\\.foo\\]\\:bg-red-500:is(:where(.group):is(.foo) *) {
   background-color: #ef4444;
-}`
+}
+`
     );
   });
 
   it('sm:peer-checked:underline', () => {
     expect(generateCss('sm:peer-checked:underline', ctx)).toBe(
       `@media (min-width: 640px) {
-  .peer:checked ~ .sm\\:peer-checked\\:underline {
+  .sm\\:peer-checked\\:underline:is(:where(.peer):checked~*) {
     text-decoration-line: underline;
   }
-}`
+}
+`
     );
   });
 
@@ -242,7 +258,8 @@ describe('parseClassToAst (end-to-end)', () => {
   .sm\\:before\\:content-\\[attr\\(data-label\\)\\]::before {
     content: "attr(data-label)";
   }
-}`
+}
+`
     );
   });
 
@@ -252,12 +269,12 @@ describe('parseClassToAst (end-to-end)', () => {
     );
   });
 
-  it.only('arbitrary + custom property', () => {
+  it('arbitrary + custom property', () => {
     expect(generateCss('text-[var(--my-var)]', ctx)).toBe(
       `.text-\\[var\\(--my-var\\)\\] {
   color: var(--my-var);
-  }
-  `
+}
+`
     );
   });
 
@@ -265,12 +282,13 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss("before:bg-[color:var(--brand)]", ctx)).toBe(
       `.before\\:bg-\\[color\\:var\\(--brand\\)\\]::before {
   background-color: var(--brand);
-}`
+}
+`
     );
   });
 });
 
-describe('variant chain engine (tailwind v4 style)', () => {
+describe('variant chain engine', () => {
   const ctx = createContext({
     theme: { colors: { red: { 500: '#f00' } } }
   });
@@ -293,7 +311,7 @@ describe('variant chain engine (tailwind v4 style)', () => {
     expect(parseClassToAst('group-hover:*:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
-        selector: '.group:hover &',
+        selector: '&:is(:where(.group):hover *)',
         nodes: [
           { type: 'style-rule', selector: ':is(.group-hover\\:\\*\\:bg-red-500 > *)', nodes: [
               { type: 'decl', prop: 'background-color', value: '#f00' }

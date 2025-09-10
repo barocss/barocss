@@ -2,7 +2,7 @@
 
 Utilities for translating elements.
 
-Source: https://tailwindcss.com/guide/transforms/translate
+
 
 ## Quick reference
 
@@ -18,32 +18,32 @@ Source: https://tailwindcss.com/guide/transforms/translate
 | -translate-px | translate: -1px -1px; |
 | translate-(&lt;custom-property&gt;) | translate: var(&lt;custom-property&gt;) var(&lt;custom-property&gt;); |
 | translate-[&lt;value&gt;] | translate: &lt;value&gt;; |
-| translate-x-&lt;number&gt; | translate: calc(var(--spacing) * &lt;number&gt;) var(--tw-translate-y); |
-| -translate-x-&lt;number&gt; | translate: calc(var(--spacing) * -&lt;number&gt;) var(--tw-translate-y); |
-| translate-x-&lt;fraction&gt; | translate: calc(&lt;fraction&gt; * 100%) var(--tw-translate-y); |
-| -translate-x-&lt;fraction&gt; | translate: calc(&lt;fraction&gt; * -100%) var(--tw-translate-y); |
-| translate-x-full | translate: 100% var(--tw-translate-y); |
-| -translate-x-full | translate: -100% var(--tw-translate-y); |
-| translate-x-px | translate: 1px var(--tw-translate-y); |
-| -translate-x-px | translate: -1px var(--tw-translate-y); |
-| translate-x-(&lt;custom-property&gt;) | translate: var(&lt;custom-property&gt;) var(--tw-translate-y); |
-| translate-x-[&lt;value&gt;] | translate: &lt;value&gt; var(--tw-translate-y); |
-| translate-y-&lt;number&gt; | translate: var(--tw-translate-x) calc(var(--spacing) * &lt;number&gt;); |
-| -translate-y-&lt;number&gt; | translate: var(--tw-translate-x) calc(var(--spacing) * -&lt;number&gt;); |
-| translate-y-&lt;fraction&gt; | translate: var(--tw-translate-x) calc(&lt;fraction&gt; * 100%); |
-| -translate-y-&lt;fraction&gt; | translate: var(--tw-translate-x) calc(&lt;fraction&gt; * -100%); |
-| translate-y-full | translate: var(--tw-translate-x) 100%; |
-| -translate-y-full | translate: var(--tw-translate-x) -100%; |
-| translate-y-px | translate: var(--tw-translate-x) 1px; |
-| -translate-y-px | translate: var(--tw-translate-x) -1px; |
-| translate-y-(&lt;custom-property&gt;) | translate: var(--tw-translate-x) var(&lt;custom-property&gt;); |
-| translate-y-[&lt;value&gt;] | translate: var(--tw-translate-x) &lt;value&gt;; |
-| translate-z-&lt;number&gt; | translate: var(--tw-translate-x) var(--tw-translate-y) calc(var(--spacing) * &lt;number&gt;); |
-| -translate-z-&lt;number&gt; | translate: var(--tw-translate-x) var(--tw-translate-y) calc(var(--spacing) * -&lt;number&gt;); |
-| translate-z-px | translate: var(--tw-translate-x) var(--tw-translate-y) 1px; |
-| -translate-z-px | translate: var(--tw-translate-x) var(--tw-translate-y) -1px; |
-| translate-z-(&lt;custom-property&gt;) | translate: var(--tw-translate-x) var(--tw-translate-y) var(&lt;custom-property&gt;); |
-| translate-z-[&lt;value&gt;] | translate: var(--tw-translate-x) var(--tw-translate-y) &lt;value&gt;; |
+| translate-x-&lt;number&gt; | translate: calc(var(--spacing) * &lt;number&gt;) var(--baro-translate-y); |
+| -translate-x-&lt;number&gt; | translate: calc(var(--spacing) * -&lt;number&gt;) var(--baro-translate-y); |
+| translate-x-&lt;fraction&gt; | translate: calc(&lt;fraction&gt; * 100%) var(--baro-translate-y); |
+| -translate-x-&lt;fraction&gt; | translate: calc(&lt;fraction&gt; * -100%) var(--baro-translate-y); |
+| translate-x-full | translate: 100% var(--baro-translate-y); |
+| -translate-x-full | translate: -100% var(--baro-translate-y); |
+| translate-x-px | translate: 1px var(--baro-translate-y); |
+| -translate-x-px | translate: -1px var(--baro-translate-y); |
+| translate-x-(&lt;custom-property&gt;) | translate: var(&lt;custom-property&gt;) var(--baro-translate-y); |
+| translate-x-[&lt;value&gt;] | translate: &lt;value&gt; var(--baro-translate-y); |
+| translate-y-&lt;number&gt; | translate: var(--baro-translate-x) calc(var(--spacing) * &lt;number&gt;); |
+| -translate-y-&lt;number&gt; | translate: var(--baro-translate-x) calc(var(--spacing) * -&lt;number&gt;); |
+| translate-y-&lt;fraction&gt; | translate: var(--baro-translate-x) calc(&lt;fraction&gt; * 100%); |
+| -translate-y-&lt;fraction&gt; | translate: var(--baro-translate-x) calc(&lt;fraction&gt; * -100%); |
+| translate-y-full | translate: var(--baro-translate-x) 100%; |
+| -translate-y-full | translate: var(--baro-translate-x) -100%; |
+| translate-y-px | translate: var(--baro-translate-x) 1px; |
+| -translate-y-px | translate: var(--baro-translate-x) -1px; |
+| translate-y-(&lt;custom-property&gt;) | translate: var(--baro-translate-x) var(&lt;custom-property&gt;); |
+| translate-y-[&lt;value&gt;] | translate: var(--baro-translate-x) &lt;value&gt;; |
+| translate-z-&lt;number&gt; | translate: var(--baro-translate-x) var(--baro-translate-y) calc(var(--spacing) * &lt;number&gt;); |
+| -translate-z-&lt;number&gt; | translate: var(--baro-translate-x) var(--baro-translate-y) calc(var(--spacing) * -&lt;number&gt;); |
+| translate-z-px | translate: var(--baro-translate-x) var(--baro-translate-y) 1px; |
+| -translate-z-px | translate: var(--baro-translate-x) var(--baro-translate-y) -1px; |
+| translate-z-(&lt;custom-property&gt;) | translate: var(--baro-translate-x) var(--baro-translate-y) var(&lt;custom-property&gt;); |
+| translate-z-[&lt;value&gt;] | translate: var(--baro-translate-x) var(--baro-translate-y) &lt;value&gt;; |
 | translate-none | translate: none; |
 
 ## Examples
@@ -126,4 +126,3 @@ Prefix a `translate` utility with a breakpoint variant like `md:` to only apply 
 <img class="translate-45 md:translate-60 ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.

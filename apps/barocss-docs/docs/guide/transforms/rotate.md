@@ -2,7 +2,7 @@
 
 Utilities for rotating elements.
 
-Source: https://tailwindcss.com/guide/rotate
+
 
 ## Quick reference
 
@@ -13,18 +13,18 @@ Source: https://tailwindcss.com/guide/rotate
 | -rotate-&lt;number&gt; | rotate: calc(&lt;number&gt;deg * -1); |
 | rotate-(&lt;custom-property&gt;) | rotate: var(&lt;custom-property&gt;); |
 | rotate-[&lt;value&gt;] | rotate: &lt;value&gt;; |
-| rotate-x-&lt;number&gt; | transform: rotateX(&lt;number&gt;deg) var(--tw-rotate-y); |
-| -rotate-x-&lt;number&gt; | transform: rotateX(-&lt;number&gt;deg) var(--tw-rotate-y); |
-| rotate-x-(&lt;custom-property&gt;) | transform: rotateX(var(&lt;custom-property&gt;)) var(--tw-rotate-y); |
-| rotate-x-[&lt;value&gt;] | transform: rotateX(&lt;value&gt;) var(--tw-rotate-y); |
-| rotate-y-&lt;number&gt; | transform: var(--tw-rotate-x) rotateY(&lt;number&gt;deg); |
-| -rotate-y-&lt;number&gt; | transform: var(--tw-rotate-x) rotateY(-&lt;number&gt;deg); |
-| rotate-y-(&lt;custom-property&gt;) | transform: var(--tw-rotate-x) rotateY(var(&lt;custom-property&gt;)); |
-| rotate-y-[&lt;value&gt;] | transform: var(--tw-rotate-x) rotateY(&lt;value&gt;); |
-| rotate-z-&lt;number&gt; | transform: var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(&lt;number&gt;deg); |
-| -rotate-z-&lt;number&gt; | transform: var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(-&lt;number&gt;deg); |
-| rotate-z-(&lt;custom-property&gt;) | transform: var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(var(&lt;custom-property&gt;)); |
-| rotate-z-[&lt;value&gt;] | transform: var(--tw-rotate-x) var(--tw-rotate-y) rotateZ(&lt;value&gt;); |
+| rotate-x-&lt;number&gt; | transform: rotateX(&lt;number&gt;deg) var(--baro-rotate-y); |
+| -rotate-x-&lt;number&gt; | transform: rotateX(-&lt;number&gt;deg) var(--baro-rotate-y); |
+| rotate-x-(&lt;custom-property&gt;) | transform: rotateX(var(&lt;custom-property&gt;)) var(--baro-rotate-y); |
+| rotate-x-[&lt;value&gt;] | transform: rotateX(&lt;value&gt;) var(--baro-rotate-y); |
+| rotate-y-&lt;number&gt; | transform: var(--baro-rotate-x) rotateY(&lt;number&gt;deg); |
+| -rotate-y-&lt;number&gt; | transform: var(--baro-rotate-x) rotateY(-&lt;number&gt;deg); |
+| rotate-y-(&lt;custom-property&gt;) | transform: var(--baro-rotate-x) rotateY(var(&lt;custom-property&gt;)); |
+| rotate-y-[&lt;value&gt;] | transform: var(--baro-rotate-x) rotateY(&lt;value&gt;); |
+| rotate-z-&lt;number&gt; | transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(&lt;number&gt;deg); |
+| -rotate-z-&lt;number&gt; | transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(-&lt;number&gt;deg); |
+| rotate-z-(&lt;custom-property&gt;) | transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(var(&lt;custom-property&gt;)); |
+| rotate-z-[&lt;value&gt;] | transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(&lt;value&gt;); |
 
 ## Examples
 
@@ -82,4 +82,3 @@ Prefix a `rotate` utility with a breakpoint variant like `md:` to only apply the
 <img class="rotate-45 md:rotate-60 ..." src="/img/mountains.jpg" />
 ```
 
-Learn more about using variants in the variants documentation.

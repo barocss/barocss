@@ -12,7 +12,6 @@ Utilities for controlling how an element is positioned in the document.
 | `relative` | `position: relative;` |
 | `sticky` | `position: sticky;` |
 
-Source: https://tailwindcss.com/guide/position
 
 ## Examples
 
@@ -135,5 +134,4 @@ Prefix a `position` utility with a breakpoint variant like `md:` to only apply t
 <div class="relative md:absolute ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.
 

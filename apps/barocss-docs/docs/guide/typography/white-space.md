@@ -13,7 +13,7 @@ Utilities for controlling an element's white-space property.
 | `whitespace-pre-wrap`   | `white-space: pre-wrap;`    |
 | `whitespace-break-spaces` | `white-space: break-spaces;` |
 
-Source: https://tailwindcss.com/guide/white-space
+
 
 ## Examples
 
@@ -73,4 +73,3 @@ Prefix a `white-space` utility with a breakpoint variant like `md:` to only appl
 <p class="whitespace-pre md:whitespace-normal ...">Lorem ipsum dolor sit amet...</p>
 ```
 
-Learn more about using variants in the variants documentation.

@@ -417,29 +417,29 @@ describe("scroll-snap-type", () => {
       { type: "decl", prop: "scroll-snap-type", value: "none" },
     ]);
   });
-  it("snap-x → scroll-snap-type: x var(--tw-scroll-snap-strictness)", () => {
+  it("snap-x → scroll-snap-type: x var(--baro-scroll-snap-strictness)", () => {
     expect(parseClassToAst("snap-x", ctx)).toEqual([
-      { type: "decl", prop: "scroll-snap-type", value: "x var(--tw-scroll-snap-strictness)" },
+      { type: "decl", prop: "scroll-snap-type", value: "x var(--baro-scroll-snap-strictness)" },
     ]);
   });
-  it("snap-y → scroll-snap-type: y var(--tw-scroll-snap-strictness)", () => {
+  it("snap-y → scroll-snap-type: y var(--baro-scroll-snap-strictness)", () => {
     expect(parseClassToAst("snap-y", ctx)).toEqual([
-      { type: "decl", prop: "scroll-snap-type", value: "y var(--tw-scroll-snap-strictness)" },
+      { type: "decl", prop: "scroll-snap-type", value: "y var(--baro-scroll-snap-strictness)" },
     ]);
   });
-  it("snap-both → scroll-snap-type: both var(--tw-scroll-snap-strictness)", () => {
+  it("snap-both → scroll-snap-type: both var(--baro-scroll-snap-strictness)", () => {
     expect(parseClassToAst("snap-both", ctx)).toEqual([
-      { type: "decl", prop: "scroll-snap-type", value: "both var(--tw-scroll-snap-strictness)" },
+      { type: "decl", prop: "scroll-snap-type", value: "both var(--baro-scroll-snap-strictness)" },
     ]);
   });
-  it("snap-mandatory → --tw-scroll-snap-strictness: mandatory", () => {
+  it("snap-mandatory → --baro-scroll-snap-strictness: mandatory", () => {
     expect(parseClassToAst("snap-mandatory", ctx)).toEqual([
-      { type: "decl", prop: "--tw-scroll-snap-strictness", value: "mandatory" },
+      { type: "decl", prop: "--baro-scroll-snap-strictness", value: "mandatory" },
     ]);
   });
-  it("snap-proximity → --tw-scroll-snap-strictness: proximity", () => {
+  it("snap-proximity → --baro-scroll-snap-strictness: proximity", () => {
     expect(parseClassToAst("snap-proximity", ctx)).toEqual([
-      { type: "decl", prop: "--tw-scroll-snap-strictness", value: "proximity" },
+      { type: "decl", prop: "--baro-scroll-snap-strictness", value: "proximity" },
     ]);
   });
 });

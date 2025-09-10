@@ -2,18 +2,18 @@
 
 Utilities for controlling how strictly snap points are enforced in a snap container.
 
-Source: https://tailwindcss.com/guide/scroll-snap-type
+
 
 ## Quick reference
 
 | Class            | Styles                                              |
 |------------------|-----------------------------------------------------|
 | snap-none        | scroll-snap-type: none;                             |
-| snap-x           | scroll-snap-type: x var(--tw-scroll-snap-strictness); |
-| snap-y           | scroll-snap-type: y var(--tw-scroll-snap-strictness); |
-| snap-both        | scroll-snap-type: both var(--tw-scroll-snap-strictness); |
-| snap-mandatory   | --tw-scroll-snap-strictness: mandatory;            |
-| snap-proximity   | --tw-scroll-snap-strictness: proximity;            |
+| snap-x           | scroll-snap-type: x var(--baro-scroll-snap-strictness); |
+| snap-y           | scroll-snap-type: y var(--baro-scroll-snap-strictness); |
+| snap-both        | scroll-snap-type: both var(--baro-scroll-snap-strictness); |
+| snap-mandatory   | --baro-scroll-snap-strictness: mandatory;            |
+| snap-proximity   | --baro-scroll-snap-strictness: proximity;            |
 
 ## Examples
 
@@ -102,4 +102,3 @@ Prefix a `scroll-snap-type` utility with a breakpoint variant like `md:` to only
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

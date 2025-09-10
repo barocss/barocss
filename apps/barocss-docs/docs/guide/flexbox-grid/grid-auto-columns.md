@@ -13,7 +13,6 @@ Utilities for controlling the size of implicitly-created grid columns.
 | `auto-cols-(&lt;custom-property&gt;)` | `grid-auto-columns: var(&lt;custom-property&gt;);` |
 | `auto-cols-[&lt;value&gt;]` | `grid-auto-columns: &lt;value&gt;;` |
 
-Source: https://tailwindcss.com/guide/grid-auto-columns
 
 ## Examples
 
@@ -60,4 +59,4 @@ Prefix a `grid-auto-columns` utility with a breakpoint variant like `md:` to onl
 </div>
 ```
 
-Learn more about using variants in the variants documentation.
+

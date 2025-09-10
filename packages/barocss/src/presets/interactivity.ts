@@ -19,7 +19,7 @@ functionalUtility({
   supportsOpacity: true,
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token, extra) => {
+  handle: (value, _ctx, _token, extra) => {
     if (extra?.realThemeValue) {
       if (extra.opacity) {
         return [
@@ -215,11 +215,11 @@ staticUtility("snap-always", [["scroll-snap-stop", "always"]], { category: 'inte
 // --- Scroll Snap Type Utilities ---
 //  scroll-snap-type documentation
 staticUtility("snap-none", [["scroll-snap-type", "none"]], { category: 'interactivity' });
-staticUtility("snap-x", [["scroll-snap-type", "x var(--tw-scroll-snap-strictness)"]], { category: 'interactivity' });
-staticUtility("snap-y", [["scroll-snap-type", "y var(--tw-scroll-snap-strictness)"]], { category: 'interactivity' });
-staticUtility("snap-both", [["scroll-snap-type", "both var(--tw-scroll-snap-strictness)"]], { category: 'interactivity' });
-staticUtility("snap-mandatory", [["--tw-scroll-snap-strictness", "mandatory"]], { category: 'interactivity' });
-staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]], { category: 'interactivity' });
+staticUtility("snap-x", [["scroll-snap-type", "x var(--baro-scroll-snap-strictness)"]], { category: 'interactivity' });
+staticUtility("snap-y", [["scroll-snap-type", "y var(--baro-scroll-snap-strictness)"]], { category: 'interactivity' });
+staticUtility("snap-both", [["scroll-snap-type", "both var(--baro-scroll-snap-strictness)"]], { category: 'interactivity' });
+staticUtility("snap-mandatory", [["--baro-scroll-snap-strictness", "mandatory"]], { category: 'interactivity' });
+staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]], { category: 'interactivity' });
 
 
 [
@@ -238,7 +238,7 @@ staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]], 
     prop,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handle: (value, ctx, token, extra) => {
+    handle: (value, _ctx, token, _extra) => {
       if (parseNumber(value) || token.negative) {
         return [decl(prop, `calc(var(--spacing) * ${value})`)];
       }
@@ -270,7 +270,7 @@ staticUtility("snap-proximity", [["--tw-scroll-snap-strictness", "proximity"]], 
     prop,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handle: (value, ctx, token, extra) => {
+    handle: (value, _ctx, token, _extra) => {
       if (parseNumber(value) || token.negative) {
         return [decl(prop, `calc(var(--spacing) * ${value})`)];
       }

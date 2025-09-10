@@ -16,7 +16,6 @@ Utilities for controlling how an individual flex or grid item is positioned alon
 | `self-baseline` | `align-self: baseline;` |
 | `self-baseline-last` | `align-self: last baseline;` |
 
-Source: https://tailwindcss.com/guide/align-self
 
 ## Examples
 
@@ -124,4 +123,3 @@ Prefix an `align-self` utility with a breakpoint variant like `md:` to only appl
 <div class="self-auto md:self-end ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

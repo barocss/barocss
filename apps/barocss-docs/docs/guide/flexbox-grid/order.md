@@ -14,7 +14,6 @@ Utilities for controlling the order of flex and grid items.
 | `order-(&lt;custom-property&gt;)` | `order: var(&lt;custom-property&gt;);` |
 | `order-[&lt;value&gt;]`   | `order: &lt;value&gt;;`                 |
 
-Source: https://tailwindcss.com/guide/order
 
 ## Examples
 
@@ -68,4 +67,3 @@ Prefix an `order` utility with a breakpoint variant like `md:` to only apply the
 <div class="order-first md:order-last ...">Lorem ipsum dolor sit amet...</div>
 ```
 
-Learn more about using variants in the variants documentation.

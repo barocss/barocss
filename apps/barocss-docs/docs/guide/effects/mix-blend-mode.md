@@ -25,7 +25,7 @@ Utilities for controlling how an element should blend with the background.
 | `mix-blend-plus-darker` | `mix-blend-mode: plus-darker;` |
 | `mix-blend-plus-lighter` | `mix-blend-mode: plus-lighter;` |
 
-Source: https://tailwindcss.com/guide/mix-blend-mode
+
 
 ## Examples
 
@@ -68,4 +68,3 @@ Prefix a `mix-blend-mode` utility with a breakpoint variant like `md:` to only a
 </div>
 ```
 
-Learn more about using variants in the variants documentation.

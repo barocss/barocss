@@ -1,6 +1,8 @@
 import { type AstNode } from "./ast";
 import { escapeClassName } from "./registry";
 
+const importantPrefix = "!important";
+
 /**
  * Converts AST nodes to CSS string
  * @param ast { AstNode[] } - Array of AST nodes to convert
@@ -11,17 +13,19 @@ import { escapeClassName } from "./registry";
 function astToCss(
   ast: AstNode[],
   baseSelector?: string,
-  opts?: { minify?: boolean },
+  opts?: { minify?: boolean, important?: boolean },
   _indent = ""
 ): string {
   const minify = opts?.minify;
   const indent = _indent;
   const nextIndent = _indent + "  "; // Next-level indentation: current + 2 spaces
-
+  const important = opts?.important ?? false;
+  const importantString = important ? ` ${importantPrefix}` : "";
   // Note: Caching is handled at a higher level (IncrementalParser); omit here
 
   // Debug logging for empty AST
   if (!ast || ast.length === 0) {
+    // eslint-disable-next-line no-console
     console.warn('[astToCss] Empty AST received:', { ast, baseSelector, minify });
     return '';
   }
@@ -37,7 +41,7 @@ function astToCss(
   // - Does not dedupe rule or at-rule nodes
   // - When background.ts returns @supports + decl together, dedupe may not apply
   // - This can yield duplicate CSS rules in output
-  let dedupedAst = [];
+  const dedupedAst = [];
   if (Array.isArray(ast)) {
     const seenProps = new Map(); // Tracks property names already seen
     
@@ -71,23 +75,22 @@ function astToCss(
       switch (node.type) {
         case "decl": {
           // Handle CSS property declaration (e.g., color: red;)
-          let value = node.value;
-          
+          const value = node.value;
           // node.important is absent; ignore
           if (node.prop.startsWith("--")) {
             // Handle CSS custom property (e.g., --primary-color: #007bff;)
             if (minify) {
-              const css = `${node.prop}: ${value};`;
+              const css = `${node.prop}: ${value}${importantString};`;
               // console.log("[astToCss] decl custom property minify", css);
               return css;
             } else {
-              const css = `${indent}${node.prop}: ${value};`;
+              const css = `${indent}${node.prop}: ${value}${importantString};`;
               // console.log("[astToCss] decl custom property pretty", css);
               return css;
             }
           } else {
             const localIndent = minify ? "" : indent;
-            const css = `${localIndent}${node.prop}: ${value};`;
+            const css = `${localIndent}${node.prop}: ${value}${importantString};`;
             return css;
           }
         }
@@ -185,11 +188,10 @@ function astToCss(
           // - Pass baseSelector to inner nodes of the at-rule
           // - Ensure nested rules get correct selectors
           // - Example: @media (min-width: 768px) { .parent .child { ... } }
-          const shouldUseBaseSelector = node.name !== 'supports'; // Added logic for @supports
           if (minify) {
             const css = `${indent}@${node.name} ${node.params}{${astToCss(
               node.nodes, // Recursively process inner nodes of the at-rule
-              shouldUseBaseSelector ? baseSelector : undefined, // Conditional baseSelector
+              baseSelector, // Always propagate baseSelector so '&' resolves inside at-rules
               opts,
               nextIndent
             )}}`;
@@ -198,7 +200,7 @@ function astToCss(
           } else {
             const css = `${indent}@${node.name} ${node.params} {\n${astToCss(
               node.nodes, // Recursively process inner nodes of the at-rule
-              shouldUseBaseSelector ? baseSelector : undefined, // Conditional baseSelector
+              baseSelector, // Always propagate baseSelector so '&' resolves inside at-rules
               opts,
               nextIndent
             )}${indent}}`;
@@ -213,6 +215,7 @@ function astToCss(
           // Handle raw CSS code (output as-is)
           return `${indent}${node.value}`;
         default:
+          // eslint-disable-next-line no-console
           console.warn('[astToCss] Unknown node type:', node);
           return "";
       }
@@ -225,6 +228,7 @@ function astToCss(
   
   // Debug logging for empty result
   if (!finalResult || finalResult.trim() === '') {
+    // eslint-disable-next-line no-console
     console.warn('[astToCss] Empty result generated:', { 
       ast, 
       baseSelector, 
