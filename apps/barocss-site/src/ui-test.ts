@@ -11,37 +11,37 @@ class MockAIService implements AIService {
       'login': {
         html: `
           <!-- Modal Content Container -->
-          <div style="background-color: white; border-radius: 0.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); width: 100%;">
+          <div class="bg-white rounded-lg shadow-2xl w-full">
             
             <!-- Modal Header -->
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.5rem; border-bottom: 1px solid #e5e7eb;">
-              <h3 style="font-size: 1.25rem; font-weight: 600; color: #111827;">Login</h3>
-              <button style="color: #9ca3af; padding: 0.25rem; border-radius: 0.375rem; background: none; border: none; cursor: pointer;" data-action="close">
-                <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 class="text-xl font-semibold text-gray-900">Login</h3>
+              <button class="text-gray-400 p-1 rounded-md hover:bg-gray-100" data-action="close">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
               </button>
             </div>
             
             <!-- Modal Content -->
-            <div style="padding: 1.5rem;">
-              <form style="display: flex; flex-direction: column; gap: 1rem;" data-action="submit">
+            <div class="p-6">
+              <form class="flex flex-col gap-4" data-action="submit">
                 <div>
-                  <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Email</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                   <input type="email" name="email" required
-                         style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; outline: none;"
+                         class="w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500"
                          placeholder="Enter your email">
                 </div>
                 
                 <div>
-                  <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Password</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                   <input type="password" name="password" required
-                         style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; outline: none;"
+                         class="w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500"
                          placeholder="Enter your password">
                 </div>
                 
                 <button type="submit" 
-                        style="width: 100%; background-color: #2563eb; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.375rem; border: none; cursor: pointer;">
+                        class="w-full bg-blue-600 text-white font-medium px-4 py-2 rounded-md hover:bg-blue-700">
                   Login
                 </button>
               </form>

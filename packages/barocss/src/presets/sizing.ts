@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { decl } from "../core/ast";
+import { atRule, decl } from "../core/ast";
 import {
   parseFractionOrNumber,
   parseNumber,
@@ -283,6 +283,8 @@ functionalUtility({
 // max-w-* static values
 [
   ['max-w-none', 'none'],
+  ['max-w-3xs', 'var(--container-3xs)'],
+  ['max-w-2xs', 'var(--container-2xs)'],
   ['max-w-xs', 'var(--container-xs)'],
   ['max-w-sm', 'var(--container-sm)'],
   ['max-w-md', 'var(--container-md)'],
@@ -294,9 +296,31 @@ functionalUtility({
   ['max-w-5xl', 'var(--container-5xl)'],
   ['max-w-6xl', 'var(--container-6xl)'],
   ['max-w-7xl', 'var(--container-7xl)'],
+  ['max-w-px', '1px'],
+  ['max-w-full', '100%'],
+  ['max-w-screen', '100vw'],
+  ['max-w-dvw', '100dvw'],
+  ['max-w-dvh', '100dvh'],
+  ['max-w-lvw', '100lvw'],
+  ['max-w-lvh', '100lvh'],
+  ['max-w-svw', '100svw'],
+  ['max-w-svh', '100svh'],
+  ['max-w-min', 'min-content'],
+  ['max-w-max', 'max-content'],
+  ['max-w-fit', 'fit-content'],
 ].forEach(([name, value]) => {
   staticUtility(name, [['max-width', value]], { category: 'sizing' });
 });
+
+// container 
+staticUtility('container', [
+  ['width', '100%'],
+  atRule('media', "(width >= 40rem)", [ decl('max-width', '40rem') ], "sizing"),
+  atRule('media', "(width >= 48rem)", [ decl('max-width', '48rem') ], "sizing"),
+  atRule('media', "(width >= 64rem)", [ decl('max-width', '64rem') ], "sizing"),
+  atRule('media', "(width >= 80rem)", [ decl('max-width', '80rem') ], "sizing"),
+  atRule('media', "(width >= 96rem)", [ decl('max-width', '96rem') ], "sizing"),
+], { category: 'sizing' });
 
 // max-w-* functional: spacing scale, fraction, arbitrary, custom property
 functionalUtility({
