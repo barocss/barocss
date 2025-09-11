@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BaroCSS UI Runtime Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .demo-container {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            margin: 0 5px;
+            border-radius: 8px;
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+        }
+        .step.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #2563eb;
+        }
+        .step.completed {
+            background: #10b981;
+            color: white;
+            border-color: #059669;
+        }
+        .log-container {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #374151;
+        }
+        .log-timestamp {
+            color: #6b7280;
+            font-size: 12px;
+        }
+        .log-ai { color: #60a5fa; }
+        .log-user { color: #34d399; }
+        .log-system { color: #fbbf24; }
+        .log-error { color: #f87171; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="demo-container max-w-6xl mx-auto p-6">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">BaroCSS UI Runtime Demo</h1>
+            <p class="text-gray-600">대화형 AI UI 생성 시스템 시연</p>
+        </header>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" id="step1">
+                <div class="font-semibold">1. 로그인 폼</div>
+                <div class="text-sm">사용자 요청</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="font-semibold">2. 폼 제출</div>
+                <div class="text-sm">데이터 수집</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="font-semibold">3. 대시보드</div>
+                <div class="text-sm">다음 단계</div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">시뮬레이션 컨트롤</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">사용자 입력 시뮬레이션</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="userInput" placeholder="사용자 입력을 입력하세요" 
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <button onclick="simulateUserInput()" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            실행
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="runPredefinedWorkflow()" 
+                            class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        전체 워크플로우 실행
+                    </button>
+                    <button onclick="clearLogs()" 
+                            class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                        로그 초기화
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Display -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">실행 로그</h2>
+            <div class="log-container" id="logContainer">
+                <div class="log-entry log-system">
+                    <span class="log-timestamp">[시스템]</span> BaroCSS UI Runtime Demo가 시작되었습니다.
+                </div>
+            </div>
+        </div>
+
+        <!-- UI Output Area -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-semibold mb-4">생성된 UI</h2>
+            <div id="uiOutput" class="min-h-[200px] border-2 border-dashed border-gray-300 rounded-lg p-4">
+                <p class="text-gray-500 text-center">UI가 여기에 표시됩니다...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Mock AI Service for Demo
+        class DemoAIService {
+            constructor() {
+                this.conversationCount = 0;
+            }
+
+            async generateResponse(input, context) {
+                this.conversationCount++;
+                this.log(`🤖 AI Service - Conversation #${this.conversationCount}`);
+                this.log(`📥 Input: ${input}`);
+                this.log(`📊 Context: ${JSON.stringify({
+                    windowsCount: context.currentState.windows.length,
+                    deviceType: context.environment.deviceType,
+                    availableSpace: context.environment.availableSpace,
+                    entities: Object.keys(context.entities),
+                    historyLength: context.history.length
+                }, null, 2)}`);
+
+                return this.generateAIResponse(input, context);
+            }
+
+            generateAIResponse(input, context) {
+                const lowerInput = input.toLowerCase();
+
+                if (lowerInput.includes('로그인') || lowerInput.includes('login')) {
+                    return {
+                        html: `
+                            <div class="barocss-modal-frame custom-positioned" 
+                                 data-positioning-strategy="center"
+                                 data-z-index="9999">
+                                
+                                <div class="modal-backdrop fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                    <div class="modal-container bg-white rounded-lg shadow-2xl max-w-md w-full mx-4">
+                                        
+                                        <div class="modal-header flex items-center justify-between p-6 border-b border-gray-200">
+                                            <h3 class="text-xl font-semibold text-gray-900">로그인</h3>
+                                            <button class="text-gray-400 hover:text-gray-600" data-action="close">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        
+                                        <div class="modal-content p-6">
+                                            <form class="space-y-4" data-action="submit">
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                        이메일
+                                                    </label>
+                                                    <input type="email" name="email" required
+                                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                           placeholder="이메일을 입력하세요">
+                                                </div>
+                                                
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                        비밀번호
+                                                    </label>
+                                                    <input type="password" name="password" required
+                                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                           placeholder="비밀번호를 입력하세요">
+                                                </div>
+                                                
+                                                <button type="submit" 
+                                                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                                                    로그인
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        display: {
+                            type: 'modal',
+                            size: 'medium',
+                            position: 'center',
+                            priority: 'high',
+                            backdrop: 'blur'
+                        },
+                        context: {
+                            id: `login-form-${Date.now()}`,
+                            parent: null,
+                            purpose: 'user_authentication',
+                            workflow: 'user_onboarding'
+                        },
+                        interactions: {
+                            'submit': {
+                                action: 'validate_and_submit',
+                                dataExtraction: { 
+                                    email: 'input[name="email"]', 
+                                    password: 'input[name="password"]' 
+                                },
+                                nextPrompt: '사용자 정보를 확인하고 다음 단계로 진행해주세요'
+                            },
+                            'close': {
+                                action: 'close_modal',
+                                nextPrompt: '로그인을 취소하고 처음으로 돌아가세요'
+                            }
+                        },
+                        effects: {
+                            entrance: 'fadeIn',
+                            duration: 300
+                        }
+                    };
+                }
+
+                if (lowerInput.includes('사용자 정보를 확인') || lowerInput.includes('form submitted')) {
+                    const formData = context.entities.form_data || {};
+                    const email = formData.email || '';
+                    const password = formData.password || '';
+
+                    if (!email || !password) {
+                        return {
+                            html: `
+                                <div class="barocss-overlay custom-positioned" 
+                                     data-positioning-strategy="center">
+                                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                                        <strong>오류:</strong> 이메일과 비밀번호를 모두 입력해주세요.
+                                        <button class="ml-2 text-red-500 hover:text-red-700" data-action="retry">
+                                            다시 시도
+                                        </button>
+                                    </div>
+                                </div>
+                            `,
+                            display: { type: 'overlay', size: 'small', position: 'center' },
+                            context: { id: `error-${Date.now()}`, parent: null, purpose: 'error_display' },
+                            interactions: {
+                                'retry': {
+                                    action: 'retry_login',
+                                    nextPrompt: '로그인 폼을 다시 표시해주세요'
+                                }
+                            }
+                        };
+                    }
+
+                    return {
+                        html: `
+                            <div class="barocss-window-frame custom-positioned" 
+                                 data-positioning-strategy="center">
+                                
+                                <div class="window-titlebar bg-green-50 border-b border-green-200 p-4">
+                                    <h3 class="text-lg font-semibold text-green-800">로그인 성공!</h3>
+                                </div>
+                                
+                                <div class="window-content p-6">
+                                    <div class="text-center space-y-4">
+                                        <div class="text-green-600">
+                                            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            <p class="text-xl font-medium">환영합니다, ${email}님!</p>
+                                        </div>
+                                        
+                                        <div class="space-y-2">
+                                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md" data-action="dashboard">
+                                                대시보드로 이동
+                                            </button>
+                                            <button class="w-full bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md" data-action="profile">
+                                                프로필 설정
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        display: { type: 'window', size: 'medium', position: 'center' },
+                        context: { 
+                            id: `success-${Date.now()}`, 
+                            parent: null, 
+                            purpose: 'login_success',
+                            workflow: 'user_onboarding'
+                        },
+                        interactions: {
+                            'dashboard': {
+                                action: 'navigate_dashboard',
+                                nextPrompt: '사용자 대시보드를 생성해주세요'
+                            },
+                            'profile': {
+                                action: 'navigate_profile',
+                                nextPrompt: '프로필 설정 페이지를 생성해주세요'
+                            }
+                        },
+                        effects: {
+                            entrance: 'slideInFromTop',
+                            duration: 500
+                        }
+                    };
+                }
+
+                if (lowerInput.includes('대시보드') || lowerInput.includes('dashboard')) {
+                    const userEmail = context.entities.form_data?.email || 'user@example.com';
+                    
+                    return {
+                        html: `
+                            <div class="barocss-window-frame custom-positioned" 
+                                 data-positioning-strategy="smart">
+                                
+                                <div class="window-titlebar bg-blue-50 border-b border-blue-200 p-4">
+                                    <h3 class="text-lg font-semibold text-blue-800">대시보드</h3>
+                                    <div class="text-sm text-blue-600">${userEmail}</div>
+                                </div>
+                                
+                                <div class="window-content p-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div class="bg-white rounded-lg shadow p-4 border">
+                                            <h4 class="font-semibold text-gray-800 mb-2">총 프로젝트</h4>
+                                            <p class="text-3xl font-bold text-blue-600">12</p>
+                                        </div>
+                                        
+                                        <div class="bg-white rounded-lg shadow p-4 border">
+                                            <h4 class="font-semibold text-gray-800 mb-2">완료된 작업</h4>
+                                            <p class="text-3xl font-bold text-green-600">8</p>
+                                        </div>
+                                        
+                                        <div class="bg-white rounded-lg shadow p-4 border">
+                                            <h4 class="font-semibold text-gray-800 mb-2">진행 중</h4>
+                                            <p class="text-3xl font-bold text-yellow-600">4</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-6 space-y-2">
+                                        <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md" data-action="new_project">
+                                            새 프로젝트 생성
+                                        </button>
+                                        <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-md" data-action="view_reports">
+                                            보고서 보기
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                        display: { type: 'window', size: 'large', position: 'smart' },
+                        context: { 
+                            id: `dashboard-${Date.now()}`, 
+                            parent: null, 
+                            purpose: 'main_dashboard',
+                            workflow: 'user_onboarding'
+                        },
+                        interactions: {
+                            'new_project': {
+                                action: 'create_project',
+                                nextPrompt: '새 프로젝트 생성 폼을 만들어주세요'
+                            },
+                            'view_reports': {
+                                action: 'view_reports',
+                                nextPrompt: '보고서 페이지를 생성해주세요'
+                            }
+                        },
+                        effects: {
+                            entrance: 'zoomIn',
+                            duration: 400
+                        }
+                    };
+                }
+
+                return {
+                    html: `<div class="p-4 bg-gray-100 rounded">알 수 없는 요청입니다: ${input}</div>`,
+                    display: { type: 'inline', size: 'small', position: 'center' },
+                    context: { id: `fallback-${Date.now()}`, parent: null, purpose: 'fallback' }
+                };
+            }
+
+            log(message) {
+                const logContainer = document.getElementById('logContainer');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry log-ai';
+                logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+
+        // Simplified UIRuntime for Demo
+        class DemoUIRuntime {
+            constructor(options) {
+                this.ai = options.ai;
+                this.context = {
+                    entities: {},
+                    setCustomContext: (key, value) => {
+                        this.context.entities[key] = value;
+                    },
+                    buildAIContext: (input, active, focused) => ({
+                        currentState: { windows: active, focused },
+                        environment: {
+                            screenSize: { width: window.innerWidth, height: window.innerHeight },
+                            availableSpace: { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight },
+                            theme: 'light',
+                            deviceType: 'desktop'
+                        },
+                        guidelines: {
+                            preferredDisplayType: 'modal',
+                            maxWindowSize: 'large',
+                            positioningStrategy: 'center',
+                            stylePreferences: {
+                                colorScheme: 'blue',
+                                animationStyle: 'subtle',
+                                layoutDensity: 'comfortable'
+                            }
+                        },
+                        resources: {
+                            availableEffects: ['fadeIn', 'slideInFromTop', 'zoomIn'],
+                            customPositioningStrategies: [],
+                            registeredHandlers: ['window', 'modal', 'overlay', 'inline', 'embedded']
+                        },
+                        history: [],
+                        entities: this.context.entities,
+                        intentions: [input]
+                    })
+                };
+                this.windows = {
+                    getActiveWindows: () => [],
+                    getFocusedWindow: () => null
+                };
+                this.step = 1;
+            }
+
+            async processUserInput(input) {
+                this.log(`👤 사용자 입력: ${input}`);
+                
+                const aiContext = this.context.buildAIContext(input, [], null);
+                const aiResponse = await this.ai.generateResponse(input, aiContext);
+                
+                this.log(`🎨 AI 응답 생성 완료: ${aiResponse.display.type} 타입`);
+                
+                // Render UI
+                this.renderUI(aiResponse);
+                
+                // Set up interactions
+                this.setupInteractions(aiResponse);
+                
+                // Update step indicator
+                this.updateStepIndicator();
+                
+                return { success: true, response: aiResponse };
+            }
+
+            renderUI(aiResponse) {
+                const uiOutput = document.getElementById('uiOutput');
+                uiOutput.innerHTML = aiResponse.html;
+            }
+
+            setupInteractions(aiResponse) {
+                if (!aiResponse.interactions) return;
+
+                Object.entries(aiResponse.interactions).forEach(([action, handler]) => {
+                    const elements = document.querySelectorAll(`[data-action="${action}"]`);
+                    elements.forEach(el => {
+                        el.addEventListener('click', async (e) => {
+                            e.preventDefault();
+                            this.log(`🖱️ 사용자 상호작용: ${action}`);
+                            
+                            if (handler.dataExtraction) {
+                                const formData = this.extractFormData();
+                                this.context.setCustomContext('form_data', formData);
+                                this.log(`📝 폼 데이터 추출: ${JSON.stringify(formData)}`);
+                            }
+                            
+                            if (handler.nextPrompt) {
+                                await this.processUserInput(handler.nextPrompt);
+                            }
+                        });
+                    });
+                });
+            }
+
+            extractFormData() {
+                const form = document.querySelector('form');
+                if (!form) return {};
+                
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+                return data;
+            }
+
+            updateStepIndicator() {
+                const steps = document.querySelectorAll('.step');
+                steps.forEach((step, index) => {
+                    step.classList.remove('active', 'completed');
+                    if (index < this.step) {
+                        step.classList.add('completed');
+                    } else if (index === this.step - 1) {
+                        step.classList.add('active');
+                    }
+                });
+                this.step++;
+            }
+
+            log(message) {
+                const logContainer = document.getElementById('logContainer');
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = document.createElement('div');
+                logEntry.className = 'log-entry log-user';
+                logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+                logContainer.appendChild(logEntry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        }
+
+        // Initialize Demo
+        const aiService = new DemoAIService();
+        const uiRuntime = new DemoUIRuntime({ ai: aiService });
+
+        // Global functions for HTML buttons
+        window.simulateUserInput = async () => {
+            const input = document.getElementById('userInput').value;
+            if (input.trim()) {
+                await uiRuntime.processUserInput(input);
+                document.getElementById('userInput').value = '';
+            }
+        };
+
+        window.runPredefinedWorkflow = async () => {
+            const steps = [
+                '로그인 폼을 만들어주세요',
+                '사용자 정보를 확인하고 다음 단계로 진행해주세요',
+                '사용자 대시보드를 생성해주세요'
+            ];
+
+            for (const step of steps) {
+                await uiRuntime.processUserInput(step);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
+            }
+        };
+
+        window.clearLogs = () => {
+            const logContainer = document.getElementById('logContainer');
+            logContainer.innerHTML = '<div class="log-entry log-system"><span class="log-timestamp">[시스템]</span> 로그가 초기화되었습니다.</div>';
+            document.getElementById('uiOutput').innerHTML = '<p class="text-gray-500 text-center">UI가 여기에 표시됩니다...</p>';
+            
+            // Reset step indicator
+            const steps = document.querySelectorAll('.step');
+            steps.forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index === 0) step.classList.add('active');
+            });
+            uiRuntime.step = 1;
+        };
+
+        // Auto-run demo
+        setTimeout(() => {
+            uiRuntime.log('🚀 데모가 준비되었습니다. 버튼을 클릭하여 시작하세요!');
+        }, 1000);
+    </script>
+</body>
+</html>

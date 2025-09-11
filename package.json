@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter barocss-docs docs:dev",
+    "dev:site": "pnpm --filter barocss-site dev:site",
     "build": "pnpm --filter barocss-docs docs:build",
     "serve": "pnpm --filter barocss-docs docs:serve",
     "preview": "pnpm --filter barocss-docs docs:preview",

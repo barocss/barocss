@@ -1,5 +1,5 @@
 {
-  "name": "@barocss/site",
+  "name": "barocss-site",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,6 +9,7 @@
     "preview": "vite preview --port 5180"
   },
   "dependencies": {
-    "@barocss/browser": "workspace:*"
+    "@barocss/browser": "workspace:*",
+    "@barocss/ui": "workspace:*"
   }
 }
