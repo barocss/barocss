@@ -25,16 +25,16 @@ class BaseDOMHandler implements DOMHandler {
 class WindowHandler extends BaseDOMHandler {
   create(aiResponse: AIResponse): HTMLElement {
     const windowFrame = document.createElement('div');
-    windowFrame.className = 'barocss-window-frame';
+    windowFrame.className = 'barocss-window-frame fixed top-4 right-4 w-96 h-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50';
     windowFrame.setAttribute('data-display-type', 'window');
     windowFrame.setAttribute('data-context-id', aiResponse.context.id);
 
     // Basic window structure - LLM can override with custom classes
     const titleBar = document.createElement('div');
-    titleBar.className = 'barocss-window-titlebar';
+    titleBar.className = 'barocss-window-titlebar flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50 rounded-t-lg';
     
     const contentArea = document.createElement('div');
-    contentArea.className = 'barocss-window-content';
+    contentArea.className = 'barocss-window-content p-4 h-full overflow-auto';
     
     // Let LLM generate the actual content and styling
     const aiContent = this.parseHtml(aiResponse.html);
@@ -51,17 +51,20 @@ class WindowHandler extends BaseDOMHandler {
 class ModalHandler extends BaseDOMHandler {
   create(aiResponse: AIResponse): HTMLElement {
     const modalBackdrop = document.createElement('div');
-    modalBackdrop.className = 'barocss-modal-backdrop';
+    modalBackdrop.className = 'barocss-modal-backdrop w-full h-full';
     modalBackdrop.setAttribute('data-display-type', 'modal');
     modalBackdrop.setAttribute('data-context-id', aiResponse.context.id);
 
+    const modalDropPanel = document.createElement('div');
+    modalDropPanel.className = 'barocss-modal-drop-panel fixed inset-0 bg-black/50';
+
     const modalContainer = document.createElement('div');
-    modalContainer.className = 'barocss-modal-container';
+    modalContainer.className = 'barocss-modal-container absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 max-w-2xl w-[90%] min-w-80';
     
-    // Let LLM generate the actual content and styling
     const aiContent = this.parseHtml(aiResponse.html);
     modalContainer.appendChild(aiContent);
     
+    modalBackdrop.appendChild(modalDropPanel);
     modalBackdrop.appendChild(modalContainer);
 
     return modalBackdrop;
@@ -72,7 +75,7 @@ class ModalHandler extends BaseDOMHandler {
 class OverlayHandler extends BaseDOMHandler {
   create(aiResponse: AIResponse): HTMLElement {
     const overlay = document.createElement('div');
-    overlay.className = 'barocss-overlay';
+    overlay.className = 'barocss-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40';
     overlay.setAttribute('data-display-type', 'overlay');
     overlay.setAttribute('data-context-id', aiResponse.context.id);
     
@@ -88,7 +91,7 @@ class OverlayHandler extends BaseDOMHandler {
 class InlineHandler extends BaseDOMHandler {
   create(aiResponse: AIResponse): HTMLElement {
     const container = document.createElement('div');
-    container.className = 'barocss-inline';
+    container.className = 'barocss-inline inline-block p-2 bg-blue-50 border border-blue-200 rounded-md';
     container.setAttribute('data-display-type', 'inline');
     container.setAttribute('data-context-id', aiResponse.context.id);
     

@@ -93,10 +93,16 @@ export class ValidationManager {
     const xssPatterns = [
       /<script[^>]*>.*?<\/script>/gi,
       /javascript:/gi,
-      /on\w+\s*=/gi,
+      // 실제 이벤트 핸들러만 검사 (onclick="...", onload="..." 등)
+      /on(click|load|error|focus|blur|change|submit|reset|select|keydown|keyup|keypress|mousedown|mouseup|mouseover|mouseout|mousemove|mouseenter|mouseleave)\s*=\s*["'][^"']*["']/gi,
       /<iframe[^>]*>.*?<\/iframe>/gi,
       /<object[^>]*>.*?<\/object>/gi,
-      /<embed[^>]*>.*?<\/embed>/gi
+      /<embed[^>]*>.*?<\/embed>/gi,
+      // eval, alert 등 위험한 함수 호출
+      /\beval\s*\(/gi,
+      /\balert\s*\(/gi,
+      /\bconfirm\s*\(/gi,
+      /\bprompt\s*\(/gi
     ];
 
     return xssPatterns.some(pattern => pattern.test(html));
@@ -107,9 +113,15 @@ export class ValidationManager {
     return html
       .replace(/<script[^>]*>.*?<\/script>/gi, '')
       .replace(/javascript:/gi, '')
-      .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+      // 실제 이벤트 핸들러만 제거
+      .replace(/on(click|load|error|focus|blur|change|submit|reset|select|keydown|keyup|keypress|mousedown|mouseup|mouseover|mouseout|mousemove|mouseenter|mouseleave)\s*=\s*["'][^"']*["']/gi, '')
       .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
       .replace(/<object[^>]*>.*?<\/object>/gi, '')
-      .replace(/<embed[^>]*>.*?<\/embed>/gi, '');
+      .replace(/<embed[^>]*>.*?<\/embed>/gi, '')
+      // 위험한 함수 호출 제거
+      .replace(/\beval\s*\([^)]*\)/gi, '')
+      .replace(/\balert\s*\([^)]*\)/gi, '')
+      .replace(/\bconfirm\s*\([^)]*\)/gi, '')
+      .replace(/\bprompt\s*\([^)]*\)/gi, '');
   }
 }

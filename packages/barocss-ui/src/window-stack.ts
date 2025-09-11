@@ -145,8 +145,26 @@ export class WindowStackManager {
 
     // Check if positioning is handled via CSS classes
     if (element.classList.contains('custom-positioned')) {
-      // Positioning handled via CSS, just apply minimal fallback
-      this.applyMinimalPositioning(element);
+      // Check if this is a modal that needs special handling
+      const isModal = element.querySelector('[data-component="modal-backdrop"]') || 
+                     element.getAttribute('data-component') === 'modal-frame';
+      
+      if (isModal) {
+        // For modals, ensure the container covers the full screen
+        element.style.position = 'fixed';
+        element.style.top = '0';
+        element.style.left = '0';
+        element.style.right = '0';
+        element.style.bottom = '0';
+        element.style.width = '100vw';
+        element.style.height = '100vh';
+        element.style.display = 'flex';
+        element.style.alignItems = 'center';
+        element.style.justifyContent = 'center';
+      } else {
+        // Positioning handled via CSS, just apply minimal fallback
+        this.applyMinimalPositioning(element);
+      }
       return;
     }
 
@@ -178,6 +196,19 @@ export class WindowStackManager {
   private applyMinimalPositioning(element: HTMLElement): void {
     if (!element.style.position) {
       element.style.position = 'fixed';
+    }
+    
+    // Check if this is a modal backdrop that needs full screen coverage
+    const isModalBackdrop = element.getAttribute('data-component') === 'modal-backdrop' || 
+                           element.querySelector('[data-component="modal-backdrop"]');
+    
+    if (isModalBackdrop) {
+      element.style.top = '0';
+      element.style.left = '0';
+      element.style.right = '0';
+      element.style.bottom = '0';
+      element.style.width = '100vw';
+      element.style.height = '100vh';
     }
   }
 
