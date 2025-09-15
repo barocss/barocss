@@ -1,5 +1,5 @@
 /**
- * AI Agent OS
+ * Director
  * AI 에이전트 운영체제의 메인 클래스
  */
 
@@ -108,7 +108,7 @@ export class AIAgentOS {
   }
 
   /**
-   * AI Agent OS 초기화
+   * Director 초기화
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
@@ -130,12 +130,12 @@ export class AIAgentOS {
       console.log('[AIAgentOS] Initialized successfully');
       
     } catch (error) {
-      throw new AIAgentOSError('Failed to initialize AI Agent OS', { error });
+      throw new AIAgentOSError('Failed to initialize Director', { error });
     }
   }
 
   /**
-   * AI Agent OS 종료
+   * Director 종료
    */
   async shutdown(): Promise<void> {
     if (!this.isInitialized) {
@@ -157,7 +157,7 @@ export class AIAgentOS {
       console.log('[AIAgentOS] Shutdown successfully');
       
     } catch (error) {
-      throw new AIAgentOSError('Failed to shutdown AI Agent OS', { error });
+      throw new AIAgentOSError('Failed to shutdown Director', { error });
     }
   }
 
@@ -208,7 +208,7 @@ export class AIAgentOS {
    */
   async sendRequest(request: AgentRequest): Promise<AgentResponse> {
     if (!this.isReady()) {
-      throw new AIAgentOSError('AI Agent OS is not ready');
+      throw new AIAgentOSError('Director is not ready');
     }
 
     try {
@@ -223,7 +223,7 @@ export class AIAgentOS {
    */
   async sendStreamRequest(request: AgentRequest): Promise<AsyncIterable<AgentResponse>> {
     if (!this.isReady()) {
-      throw new AIAgentOSError('AI Agent OS is not ready');
+      throw new AIAgentOSError('Director is not ready');
     }
 
     try {

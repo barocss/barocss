@@ -1,6 +1,6 @@
 /**
  * Context Manager
- * AI Agent OS의 컨텍스트 관리를 담당하는 클래스
+ * Director의 컨텍스트 관리를 담당하는 클래스
  */
 
 import {

@@ -1,4 +1,4 @@
-# AI Agent OS
+# Director
 
 AI 에이전트가 사용자 인터페이스를 동적으로 생성하고 관리할 수 있는 운영체제 수준의 플랫폼입니다.
 
@@ -48,15 +48,15 @@ const openai = new OpenAI({
 });
 
 // AIAgentOS와 연동
-const aiAgentOS = new AIAgentOS(
+const director = new AIAgentOS(
   { debug: true },
   createOpenAIWrapper(openai, { model: 'gpt-4' })
 );
 
-await aiAgentOS.initialize();
+await director.initialize();
 
 // Agent에 요청 전송
-const response = await aiAgentOS.sendRequest({
+const response = await director.sendRequest({
   id: 'req-1',
   type: 'create_scene',
   payload: { message: 'Hello, create a login form' }
@@ -76,7 +76,7 @@ const anthropic = new Anthropic({
   apiKey: 'your-claude-api-key'
 });
 
-const aiAgentOS = new AIAgentOS(
+const director = new AIAgentOS(
   { debug: true },
   createAnthropicWrapper(anthropic, { model: 'claude-3-sonnet-20240229' })
 );
@@ -96,7 +96,7 @@ const agentComm = await createAgentCommunicationAdapterWithHandlers(
   {
     // 요청을 Agent에 보낼 때 변환
     request: async (request) => {
-      // AI Agent OS 요청을 실제 Agent 형식으로 변환
+      // Director 요청을 실제 Agent 형식으로 변환
       return {
         messages: [
           { role: 'user', content: request.payload?.message || 'Hello' }
@@ -106,7 +106,7 @@ const agentComm = await createAgentCommunicationAdapterWithHandlers(
       };
     },
     
-    // Agent 응답을 AI Agent OS 형식으로 변환
+    // Agent 응답을 Director 형식으로 변환
     response: async (agentResponse) => {
       return {
         type: 'success',
@@ -140,8 +140,8 @@ const agentComm = await createAgentCommunicationAdapterWithHandlers(
   }
 );
 
-const aiAgentOS = createAIAgentOS({ debug: true }, agentComm);
-await aiAgentOS.initialize();
+const director = createAIAgentOS({ debug: true }, agentComm);
+await director.initialize();
 ```
 
 #### 3. Mock Agent 사용 (개발/테스트)
@@ -157,8 +157,8 @@ const agentComm = createMockAgentCommunicationAdapter({
   capabilities: ['text-generation', 'ui-creation']
 });
 
-const aiAgentOS = createAIAgentOS({ debug: true }, agentComm);
-await aiAgentOS.initialize();
+const director = createAIAgentOS({ debug: true }, agentComm);
+await director.initialize();
 ```
 
 #### 4. Custom Agent 사용 (기존 방식)
@@ -189,18 +189,18 @@ const customAgent: CustomAgent = {
 
 // Agent와 함께 Adapter 생성
 const agentComm = await createAgentCommunicationAdapterWithAgent(customAgent);
-const aiAgentOS = createAIAgentOS({ debug: true }, agentComm);
-await aiAgentOS.initialize();
+const director = createAIAgentOS({ debug: true }, agentComm);
+await director.initialize();
 ```
 
 // Agent에 요청 전송
-const response = await aiAgentOS.sendRequest({
+const response = await director.sendRequest({
   id: 'req-1',
   type: 'create_scene',
   timestamp: Date.now(),
   priority: 'normal',
   source: 'user',
-  context: aiAgentOS.getCurrentContext(),
+  context: director.getCurrentContext(),
   metadata: {
     version: '1.0.0',
     correlationId: 'corr-1',
@@ -230,7 +230,7 @@ import {
   SystemEvent 
 } from '@barocss/ui';
 
-const aiAgentOS = createAIAgentOS({
+const director = createAIAgentOS({
   debug: true,
   communication: {
     websocket: {
@@ -246,7 +246,7 @@ const aiAgentOS = createAIAgentOS({
 });
 
 // 이벤트 구독
-aiAgentOS.subscribeToEvents((event: SystemEvent) => {
+director.subscribeToEvents((event: SystemEvent) => {
   switch (event.type) {
     case 'agent_response':
       console.log('Agent responded:', event.data);
@@ -258,11 +258,11 @@ aiAgentOS.subscribeToEvents((event: SystemEvent) => {
 });
 
 // 컨텍스트 구독
-const unsubscribe = aiAgentOS.subscribeContext('global.user', (user) => {
+const unsubscribe = director.subscribeContext('global.user', (user) => {
   console.log('User updated:', user);
 });
 
-await aiAgentOS.initialize();
+await director.initialize();
 ```
 
 ## 🏗️ 아키텍처
@@ -271,7 +271,7 @@ await aiAgentOS.initialize();
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    AI Agent OS                             │
+│                    Director                             │
 ├─────────────────────────────────────────────────────────────┤
 │  Communication Layer                                       │
 │  ┌─────────────────┐  ┌─────────────────┐                  │
@@ -308,13 +308,13 @@ await aiAgentOS.initialize();
 
 ```typescript
 // 컨텍스트 조회
-const userContext = aiAgentOS.getContext('global.user');
+const userContext = director.getContext('global.user');
 
 // 컨텍스트 설정
-aiAgentOS.setContext('global.user.id', 'user-123');
+director.setContext('global.user.id', 'user-123');
 
 // 컨텍스트 구독
-const unsubscribe = aiAgentOS.subscribeContext('global.user', (user) => {
+const unsubscribe = director.subscribeContext('global.user', (user) => {
   console.log('User updated:', user);
 });
 ```
@@ -324,10 +324,10 @@ AI 에이전트와의 실시간 통신
 
 ```typescript
 // 요청 전송
-const response = await aiAgentOS.sendRequest(request);
+const response = await director.sendRequest(request);
 
 // 스트리밍 요청
-const stream = await aiAgentOS.sendStreamRequest(request);
+const stream = await director.sendStreamRequest(request);
 for await (const chunk of stream) {
   console.log('Stream chunk:', chunk);
 }
@@ -358,8 +358,8 @@ const createSceneRequest = {
 
 #### 메서드
 
-- `initialize()`: AI Agent OS 초기화
-- `shutdown()`: AI Agent OS 종료
+- `initialize()`: Director 초기화
+- `shutdown()`: Director 종료
 - `isReady()`: 초기화 상태 확인
 - `sendRequest(request)`: Agent에 요청 전송
 - `sendStreamRequest(request)`: 스트리밍 요청 전송
@@ -544,7 +544,7 @@ AIAgentOSDevTools.setContext('global.user.id', 'debug-user');
 ### 이벤트 모니터링
 
 ```typescript
-aiAgentOS.subscribeToEvents((event) => {
+director.subscribeToEvents((event) => {
   console.log('System event:', event);
   
   // 특정 이벤트 필터링
@@ -568,7 +568,7 @@ aiAgentOS.subscribeToEvents((event) => {
 
 ```typescript
 try {
-  const response = await aiAgentOS.sendRequest(request);
+  const response = await director.sendRequest(request);
 } catch (error) {
   if (error instanceof CommunicationError) {
     // 통신 에러 처리
@@ -576,7 +576,7 @@ try {
     
     // 자동 재연결 시도
     if (error.code === 'CONNECTION_LOST') {
-      await aiAgentOS.initialize();
+      await director.initialize();
     }
   }
 }
@@ -587,7 +587,7 @@ try {
 ### 통계 조회
 
 ```typescript
-const stats = aiAgentOS.getStats();
+const stats = director.getStats();
 console.log('Connection state:', stats.connectionState);
 console.log('Communication stats:', stats.communicationStats);
 console.log('Context debug info:', stats.contextDebugInfo);
@@ -596,7 +596,7 @@ console.log('Context debug info:', stats.contextDebugInfo);
 ### 메모리 모니터링
 
 ```typescript
-aiAgentOS.subscribeToEvents((event) => {
+director.subscribeToEvents((event) => {
   if (event.type === 'memory_warning') {
     console.warn('Memory usage high:', event.data.usage);
     
@@ -651,4 +651,4 @@ MIT License - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.
 
 ---
 
-**AI Agent OS**로 AI와 함께하는 미래의 UI 개발을 시작하세요! 🚀
+**Director**로 AI와 함께하는 미래의 UI 개발을 시작하세요! 🚀

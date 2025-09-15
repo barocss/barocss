@@ -12,7 +12,7 @@ import { AgentRequest, AgentResponse } from '../types';
 export interface AgentBridgeHandlers {
   /**
    * Agent에 요청을 보낼 때 호출되는 핸들러
-   * @param request - AI Agent OS에서 생성된 요청
+   * @param request - Director에서 생성된 요청
    * @returns - Agent에 전달할 실제 요청 데이터
    */
   request?: (request: AgentRequest) => Promise<any> | any;
@@ -20,13 +20,13 @@ export interface AgentBridgeHandlers {
   /**
    * Agent로부터 응답을 받을 때 호출되는 핸들러
    * @param response - Agent로부터 받은 원시 응답
-   * @returns - AI Agent OS 형식으로 변환된 응답
+   * @returns - Director 형식으로 변환된 응답
    */
   response?: (response: any) => Promise<AgentResponse> | AgentResponse;
 
   /**
    * 스트리밍 요청을 보낼 때 호출되는 핸들러
-   * @param request - AI Agent OS에서 생성된 요청
+   * @param request - Director에서 생성된 요청
    * @returns - Agent에 전달할 실제 스트리밍 요청 데이터
    */
   streamRequest?: (request: AgentRequest) => Promise<any> | any;
@@ -34,7 +34,7 @@ export interface AgentBridgeHandlers {
   /**
    * 스트리밍 응답을 받을 때 호출되는 핸들러
    * @param chunk - Agent로부터 받은 스트림 청크
-   * @returns - AI Agent OS 형식으로 변환된 응답 청크
+   * @returns - Director 형식으로 변환된 응답 청크
    */
   streamResponse?: (chunk: any) => Promise<AgentResponse> | AgentResponse;
 

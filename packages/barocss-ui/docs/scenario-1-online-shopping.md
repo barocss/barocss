@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("온라인 쇼핑몰을 만들어줘. 상품을 검색하고 구매할 수 있게 해줘");
+const scene1 = await director.request("온라인 쇼핑몰을 만들어줘. 상품을 검색하고 구매할 수 있게 해줘");
 ```
 
 #### AI가 받는 컨텍스트
@@ -132,7 +132,7 @@ const scene1 = await aiAgentOS.request("온라인 쇼핑몰을 만들어줘. 상
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("전자제품 카테고리의 상품들을 보여줘");
+const scene2 = await director.request("전자제품 카테고리의 상품들을 보여줘");
 ```
 
 #### AI 응답 및 생성된 UI
@@ -204,7 +204,7 @@ const scene2 = await aiAgentOS.request("전자제품 카테고리의 상품들�
 
 #### AI 요청
 ```typescript
-const scene3 = await aiAgentOS.request("iPhone 15 Pro를 장바구니에 추가했어. 장바구니를 보여줘");
+const scene3 = await director.request("iPhone 15 Pro를 장바구니에 추가했어. 장바구니를 보여줘");
 ```
 
 #### AI 응답 및 생성된 UI

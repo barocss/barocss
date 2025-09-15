@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("사용자 등록 폼을 만들어줘. 여러 단계로 나누어서 단계별로 입력할 수 있게 해줘");
+const scene1 = await director.request("사용자 등록 폼을 만들어줘. 여러 단계로 나누어서 단계별로 입력할 수 있게 해줘");
 ```
 
 #### AI가 받는 컨텍스트
@@ -143,7 +143,7 @@ const scene1 = await aiAgentOS.request("사용자 등록 폼을 만들어줘. �
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("1단계가 완료되었어. 2단계 연락처 정보 입력 폼으로 업데이트해줘");
+const scene2 = await director.request("1단계가 완료되었어. 2단계 연락처 정보 입력 폼으로 업데이트해줘");
 ```
 
 #### AI 응답 및 SubScene 업데이트
@@ -223,7 +223,7 @@ const scene2 = await aiAgentOS.request("1단계가 완료되었어. 2단계 연�
 
 #### AI 요청
 ```typescript
-const scene3 = await aiAgentOS.request("2단계가 완료되었어. 3단계 선호도 설정 폼으로 업데이트해줘");
+const scene3 = await director.request("2단계가 완료되었어. 3단계 선호도 설정 폼으로 업데이트해줘");
 ```
 
 #### AI 응답 및 SubScene 업데이트
@@ -334,7 +334,7 @@ const scene3 = await aiAgentOS.request("2단계가 완료되었어. 3단계 선�
 
 #### AI 요청
 ```typescript
-const scene4 = await aiAgentOS.request("3단계가 완료되었어. 4단계 최종 확인 페이지로 업데이트해줘");
+const scene4 = await director.request("3단계가 완료되었어. 4단계 최종 확인 페이지로 업데이트해줘");
 ```
 
 #### AI 응답 및 SubScene 업데이트
@@ -458,14 +458,14 @@ const scene4 = await aiAgentOS.request("3단계가 완료되었어. 4단계 최�
 ### 4. SubScene 업데이트 패턴
 ```typescript
 // 단계별 SubScene 업데이트
-aiAgentOS.updateSubScene('form-step-2', {
+director.updateSubScene('form-step-2', {
   step: 2,
   formData: step1Data,
   validation: step2Validation
 });
 
 // 이전 단계로 이동
-aiAgentOS.updateSubScene('form-step-1', {
+director.updateSubScene('form-step-1', {
   step: 1,
   formData: preservedData,
   allowEdit: true

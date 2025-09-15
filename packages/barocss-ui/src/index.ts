@@ -1,5 +1,5 @@
 /**
- * AI Agent OS
+ * Director
  * AI 에이전트 운영체제의 메인 진입점
  */
 

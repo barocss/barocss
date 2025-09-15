@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("내 구매 패턴을 분석해서 맞춤 상품을 추천해줘");
+const scene1 = await director.request("내 구매 패턴을 분석해서 맞춤 상품을 추천해줘");
 ```
 
 #### AI가 받는 컨텍스트
@@ -237,7 +237,7 @@ const scene1 = await aiAgentOS.request("내 구매 패턴을 분석해서 맞춤
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("장바구니에 MacBook을 추가했어. 이제 액세서리나 추가 상품을 추천해줘");
+const scene2 = await director.request("장바구니에 MacBook을 추가했어. 이제 액세서리나 추가 상품을 추천해줘");
 ```
 
 #### AI가 받는 컨텍스트

@@ -1,8 +1,8 @@
-# AI Agent OS 구현 가이드 (업데이트)
+# Director 구현 가이드 (업데이트)
 
 ## 개요
 
-이 문서는 시나리오 분석을 통해 도출된 요구사항을 바탕으로 AI Agent OS의 구현 방법을 상세히 설명합니다. Scene/SubScene 시스템, 상태 관리, 렌더링 시스템의 실제 구현 방법을 다룹니다.
+이 문서는 시나리오 분석을 통해 도출된 요구사항을 바탕으로 Director의 구현 방법을 상세히 설명합니다. Scene/SubScene 시스템, 상태 관리, 렌더링 시스템의 실제 구현 방법을 다룹니다.
 
 ## 구현 단계
 
@@ -757,21 +757,21 @@ export class AIAgentOS {
 ### 1. 기본 사용법
 
 ```typescript
-// AI Agent OS 초기화
-const aiAgentOS = new AIAgentOS({
+// Director 초기화
+const director = new AIAgentOS({
   theme: 'light',
   language: 'ko'
 });
 
 // 사용자 요청 처리
-const scene = await aiAgentOS.request('온라인 쇼핑몰을 만들어줘');
+const scene = await director.request('온라인 쇼핑몰을 만들어줘');
 ```
 
 ### 2. SubScene 사용법
 
 ```typescript
 // SubScene 생성
-const subScene = aiAgentOS.createSubScene('shopping-mall', {
+const subScene = director.createSubScene('shopping-mall', {
   id: 'product-list',
   type: 'partial',
   selector: '#product-list',
@@ -783,7 +783,7 @@ const subScene = aiAgentOS.createSubScene('shopping-mall', {
 });
 
 // SubScene 업데이트
-aiAgentOS.updateSubScene('product-list', {
+director.updateSubScene('product-list', {
   ui: {
     content: '<div class="product-list">업데이트된 상품 목록...</div>'
   }
@@ -794,7 +794,7 @@ aiAgentOS.updateSubScene('product-list', {
 
 ```typescript
 // 모달 열기
-const modal = aiAgentOS.openModal({
+const modal = director.openModal({
   id: 'product-detail',
   parentSceneId: 'shopping-mall',
   ui: {
@@ -810,14 +810,14 @@ const modal = aiAgentOS.openModal({
 });
 
 // 모달 닫기
-aiAgentOS.closeModal('product-detail');
+director.closeModal('product-detail');
 ```
 
 ### 4. 상태 관리 사용법
 
 ```typescript
 // 전역 상태 설정
-aiAgentOS.setGlobalState({
+director.setGlobalState({
   user: {
     id: 'john@example.com',
     role: 'admin',
@@ -826,7 +826,7 @@ aiAgentOS.setGlobalState({
 });
 
 // 상태 구독
-const unsubscribe = aiAgentOS.subscribeToState('user.preferences.theme', (theme) => {
+const unsubscribe = director.subscribeToState('user.preferences.theme', (theme) => {
   document.body.className = theme;
 });
 

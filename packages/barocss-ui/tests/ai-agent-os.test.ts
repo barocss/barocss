@@ -1,6 +1,6 @@
 /**
- * AI Agent OS Tests
- * AI Agent OS의 핵심 기능 테스트
+ * Director Tests
+ * Director의 핵심 기능 테스트
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -65,8 +65,8 @@ class MockWebSocket {
 // Mock WebSocket globally
 (global as any).WebSocket = MockWebSocket;
 
-describe('AI Agent OS', () => {
-  let aiAgentOS: AIAgentOS;
+describe('Director', () => {
+  let director: AIAgentOS;
 
   beforeEach(() => {
     // Clean up DOM
@@ -80,24 +80,24 @@ describe('AI Agent OS', () => {
       capabilities: ['text-generation', 'ui-creation']
     });
     
-    // Create AI Agent OS instance
-    aiAgentOS = createAIAgentOS({
+    // Create Director instance
+    director = createAIAgentOS({
       debug: true
     }, agentComm);
   });
 
   afterEach(async () => {
     // Clean up
-    if (aiAgentOS && aiAgentOS.shutdown) {
-      await aiAgentOS.shutdown();
+    if (director && director.shutdown) {
+      await director.shutdown();
     }
     document.body.innerHTML = '';
   });
 
   describe('Initialization', () => {
     it('should initialize successfully', async () => {
-      await aiAgentOS.initialize();
-      expect(aiAgentOS.isReady()).toBe(true);
+      await director.initialize();
+      expect(director.isReady()).toBe(true);
     });
 
     it('should handle initialization errors', async () => {
@@ -113,28 +113,28 @@ describe('AI Agent OS', () => {
 
   describe('Context Management', () => {
     beforeEach(async () => {
-      await aiAgentOS.initialize();
+      await director.initialize();
     });
 
     it('should get and set context', () => {
-      aiAgentOS.setContext('global.user.id', 'test-user');
-      const userId = aiAgentOS.getContext('global.user.id');
+      director.setContext('global.user.id', 'test-user');
+      const userId = director.getContext('global.user.id');
       expect(userId).toBe('test-user');
     });
 
     it('should update context', () => {
-      aiAgentOS.setContext('global.user.preferences', { theme: 'light' });
-      aiAgentOS.updateContext('global.user.preferences', (current) => ({
+      director.setContext('global.user.preferences', { theme: 'light' });
+      director.updateContext('global.user.preferences', (current) => ({
         ...current,
         language: 'en'
       }));
       
-      const preferences = aiAgentOS.getContext('global.user.preferences');
+      const preferences = director.getContext('global.user.preferences');
       expect(preferences).toEqual({ theme: 'light', language: 'en' });
     });
 
     it('should subscribe to context changes', (done) => {
-      const unsubscribe = aiAgentOS.subscribeContext('global.user.id', (value) => {
+      const unsubscribe = director.subscribeContext('global.user.id', (value) => {
         if (value === 'new-user') {
           expect(value).toBe('new-user');
           unsubscribe();
@@ -142,13 +142,13 @@ describe('AI Agent OS', () => {
         }
       });
 
-      aiAgentOS.setContext('global.user.id', 'new-user');
+      director.setContext('global.user.id', 'new-user');
     });
   });
 
   describe('Scene Management', () => {
     beforeEach(async () => {
-      await aiAgentOS.initialize();
+      await director.initialize();
     });
 
     it('should create a scene', () => {
@@ -162,7 +162,7 @@ describe('AI Agent OS', () => {
         }
       };
 
-      const scene = aiAgentOS.createScene(sceneConfig);
+      const scene = director.createScene(sceneConfig);
       expect(scene).toBeDefined();
       expect(scene.id).toBeDefined();
       expect(scene.title).toBe('Test Scene');
@@ -180,10 +180,10 @@ describe('AI Agent OS', () => {
         }
       };
 
-      const scene = aiAgentOS.createScene(sceneConfig);
-      aiAgentOS.updateScene(scene.id, { title: 'Updated Scene' });
+      const scene = director.createScene(sceneConfig);
+      director.updateScene(scene.id, { title: 'Updated Scene' });
       
-      const updatedScene = aiAgentOS.getScene(scene.id);
+      const updatedScene = director.getScene(scene.id);
       expect(updatedScene?.title).toBe('Updated Scene');
     });
 
@@ -198,59 +198,59 @@ describe('AI Agent OS', () => {
         }
       };
 
-      const scene = aiAgentOS.createScene(sceneConfig);
-      aiAgentOS.removeScene(scene.id);
+      const scene = director.createScene(sceneConfig);
+      director.removeScene(scene.id);
       
-      const removedScene = aiAgentOS.getScene(scene.id);
+      const removedScene = director.getScene(scene.id);
       expect(removedScene).toBeNull();
     });
 
     it('should get all scenes', () => {
-      const scene1 = aiAgentOS.createScene({
+      const scene1 = director.createScene({
         type: 'window',
         title: 'Scene 1',
         component: { type: 'div', name: 'Component1', props: {} }
       });
 
-      const scene2 = aiAgentOS.createScene({
+      const scene2 = director.createScene({
         type: 'modal',
         title: 'Scene 2',
         component: { type: 'div', name: 'Component2', props: {} }
       });
 
-      const allScenes = aiAgentOS.getAllScenes();
+      const allScenes = director.getAllScenes();
       expect(allScenes).toHaveLength(2);
       expect(allScenes.map(s => s.id)).toContain(scene1.id);
       expect(allScenes.map(s => s.id)).toContain(scene2.id);
     });
 
     it('should set and get active scene', () => {
-      const scene = aiAgentOS.createScene({
+      const scene = director.createScene({
         type: 'window',
         title: 'Test Scene',
         component: { type: 'div', name: 'TestComponent', props: {} }
       });
 
-      aiAgentOS.setActiveScene(scene.id);
-      const activeScene = aiAgentOS.getActiveScene();
+      director.setActiveScene(scene.id);
+      const activeScene = director.getActiveScene();
       expect(activeScene?.id).toBe(scene.id);
     });
 
     it('should validate scene consistency', () => {
-      const parentScene = aiAgentOS.createScene({
+      const parentScene = director.createScene({
         type: 'window',
         title: 'Parent Scene',
         component: { type: 'div', name: 'ParentComponent', props: {} }
       });
 
-      const childScene = aiAgentOS.createScene({
+      const childScene = director.createScene({
         type: 'popover',
         title: 'Child Scene',
         component: { type: 'div', name: 'ChildComponent', props: {} },
         parentId: parentScene.id
       });
 
-      const validation = aiAgentOS.validateSceneConsistency();
+      const validation = director.validateSceneConsistency();
       expect(validation.ok).toBe(true);
       expect(validation.summary.totalScenes).toBe(2);
       expect(validation.summary.rootScenes).toBe(1);
@@ -259,7 +259,7 @@ describe('AI Agent OS', () => {
 
   describe('Agent Communication', () => {
     beforeEach(async () => {
-      await aiAgentOS.initialize();
+      await director.initialize();
     });
 
     it('should send request to agent', async () => {
@@ -269,7 +269,7 @@ describe('AI Agent OS', () => {
         timestamp: Date.now(),
         priority: 'normal' as const,
         source: 'user' as const,
-        context: aiAgentOS.getCurrentContext(),
+        context: director.getCurrentContext(),
         metadata: {
           version: '1.0.0',
           correlationId: 'test-correlation',
@@ -287,7 +287,7 @@ describe('AI Agent OS', () => {
         }
       };
 
-      const response = await aiAgentOS.sendRequest(request);
+      const response = await director.sendRequest(request);
       expect(response).toBeDefined();
       expect(response.status.success).toBe(true);
     });
@@ -335,11 +335,11 @@ describe('AI Agent OS', () => {
 
   describe('System Events', () => {
     beforeEach(async () => {
-      await aiAgentOS.initialize();
+      await director.initialize();
     });
 
     it('should emit and handle system events', (done) => {
-      const unsubscribe = aiAgentOS.subscribeToEvents((event) => {
+      const unsubscribe = director.subscribeToEvents((event) => {
         expect(event.type).toBe('context_change');
         expect(event.data.path).toBe('global.user.id');
         expect(event.data.newValue).toBe('test-user');
@@ -347,17 +347,17 @@ describe('AI Agent OS', () => {
         done();
       });
 
-      aiAgentOS.setContext('global.user.id', 'test-user');
+      director.setContext('global.user.id', 'test-user');
     });
   });
 
   describe('Statistics', () => {
     beforeEach(async () => {
-      await aiAgentOS.initialize();
+      await director.initialize();
     });
 
     it('should provide system statistics', () => {
-      const stats = aiAgentOS.getStats();
+      const stats = director.getStats();
       expect(stats).toBeDefined();
       expect(stats.isReady).toBe(true);
       expect(stats.agentConnection).toBeDefined();
@@ -371,12 +371,12 @@ describe('AI Agent OS', () => {
 
   describe('Error Handling', () => {
     beforeEach(async () => {
-      await aiAgentOS.initialize();
+      await director.initialize();
     });
 
     it('should handle scene creation errors', () => {
       expect(() => {
-        aiAgentOS.createScene({
+        director.createScene({
           type: 'window',
           title: '', // Invalid: empty title
           component: {
@@ -390,40 +390,40 @@ describe('AI Agent OS', () => {
 
     it('should handle scene update errors', () => {
       expect(() => {
-        aiAgentOS.updateScene('non-existent-scene', { title: 'Updated' });
+        director.updateScene('non-existent-scene', { title: 'Updated' });
       }).toThrow();
     });
 
     it('should handle scene removal errors', () => {
       expect(() => {
-        aiAgentOS.removeScene('non-existent-scene');
+        director.removeScene('non-existent-scene');
       }).toThrow();
     });
   });
 
   describe('Cleanup', () => {
     it('should cleanup properly on shutdown', async () => {
-      await aiAgentOS.initialize();
+      await director.initialize();
       
       // Create some scenes
-      const scene1 = aiAgentOS.createScene({
+      const scene1 = director.createScene({
         type: 'window',
         title: 'Scene 1',
         component: { type: 'div', name: 'Component1', props: {} }
       });
 
-      const scene2 = aiAgentOS.createScene({
+      const scene2 = director.createScene({
         type: 'modal',
         title: 'Scene 2',
         component: { type: 'div', name: 'Component2', props: {} }
       });
 
       // Shutdown
-      await aiAgentOS.shutdown();
+      await director.shutdown();
 
       // Verify cleanup
-      expect(aiAgentOS.isReady()).toBe(false);
-      expect(aiAgentOS.getAllScenes()).toHaveLength(0);
+      expect(director.isReady()).toBe(false);
+      expect(director.getAllScenes()).toHaveLength(0);
     });
   });
 });

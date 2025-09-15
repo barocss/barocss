@@ -1,14 +1,14 @@
-# AI Agent OS Architecture
+# Director Architecture
 
 ## 개요
 
-AI Agent OS는 AI 에이전트가 사용자 인터페이스를 동적으로 생성하고 관리할 수 있는 운영체제 수준의 플랫폼입니다. 이 시스템은 AI와 사용자 간의 상호작용을 원활하게 하며, 실시간으로 UI를 생성, 수정, 제거할 수 있는 환경을 제공합니다.
+Director는 AI 에이전트가 사용자 인터페이스를 동적으로 생성하고 관리할 수 있는 운영체제 수준의 플랫폼입니다. 이 시스템은 AI와 사용자 간의 상호작용을 원활하게 하며, 실시간으로 UI를 생성, 수정, 제거할 수 있는 환경을 제공합니다.
 
 **중요**: AIAgentOS는 외부 Agent와의 통신 인터페이스만 제공하며, 실제 AI API 호출이나 네트워크 통신은 외부에서 관리됩니다. Third-party Agent 래퍼를 통해 기존 AI 라이브러리와 쉽게 연동할 수 있습니다.
 
 ## 패키지 구조
 
-AI Agent OS는 모듈화된 패키지 구조로 설계되어 있습니다:
+Director는 모듈화된 패키지 구조로 설계되어 있습니다:
 
 ```
 @barocss/ui (핵심)
@@ -53,7 +53,7 @@ AI Agent OS는 모듈화된 패키지 구조로 설계되어 있습니다:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    AI Agent OS                             │
+│                    Director                             │
 ├─────────────────────────────────────────────────────────────┤
 │  Third-party Agent Layer                                   │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
@@ -266,15 +266,15 @@ SceneManager ← (새 Scene 생성) ← AISceneProcessor
 
 ### Conversation Chain Flow
 ```
-1. aiAgentOS.request("첫 번째 요구사항")
+1. director.request("첫 번째 요구사항")
    ↓
 2. Root Scene 생성 + AI 요청 + Scene 생성
    ↓
-3. aiAgentOS.request("두 번째 요구사항")
+3. director.request("두 번째 요구사항")
    ↓
 4. 이전 대화 컨텍스트 포함 + AI 요청 + 새 Scene 생성
    ↓
-5. aiAgentOS.request("세 번째 요구사항")
+5. director.request("세 번째 요구사항")
    ↓
 6. 모든 이전 대화 컨텍스트 포함 + AI 요청 + 새 Scene 생성
    ↓
@@ -297,7 +297,7 @@ interface ThirdPartyAgent {
   getStats?(): Record<string, any>;
 }
 
-// AI Agent OS 요청/응답 형식
+// Director 요청/응답 형식
 interface AgentRequest {
   id: string;
   type: 'create_scene' | 'update_scene' | 'delete_scene' | 'navigate' | 'user_action' | 'ai_query' | 'custom';

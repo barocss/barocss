@@ -1,5 +1,5 @@
 /**
- * AI Agent OS - Core Types
+ * Director - Core Types
  * AI 에이전트 운영체제의 핵심 타입 정의
  */
 

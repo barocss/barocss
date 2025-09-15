@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("개인 비서 시스템을 만들어줘. 내 일정과 업무를 관리해줘");
+const scene1 = await director.request("개인 비서 시스템을 만들어줘. 내 일정과 업무를 관리해줘");
 ```
 
 #### AI가 받는 컨텍스트
@@ -211,7 +211,7 @@ const scene1 = await aiAgentOS.request("개인 비서 시스템을 만들어줘.
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("새 업무를 추가할 수 있는 폼을 만들어줘");
+const scene2 = await director.request("새 업무를 추가할 수 있는 폼을 만들어줘");
 ```
 
 #### AI 응답 및 생성된 UI
@@ -345,7 +345,7 @@ const scene2 = await aiAgentOS.request("새 업무를 추가할 수 있는 폼�
 
 #### AI 요청
 ```typescript
-const scene3 = await aiAgentOS.request("내 일정을 분석해서 최적의 시간을 제안해줘");
+const scene3 = await director.request("내 일정을 분석해서 최적의 시간을 제안해줘");
 ```
 
 #### AI 응답 및 생성된 UI

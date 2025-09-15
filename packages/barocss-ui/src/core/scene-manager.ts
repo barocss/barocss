@@ -1,6 +1,6 @@
 /**
  * Scene Manager
- * AI Agent OS의 씬 관리를 담당하는 클래스
+ * Director의 씬 관리를 담당하는 클래스
  */
 
 import {

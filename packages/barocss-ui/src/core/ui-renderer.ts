@@ -1,6 +1,6 @@
 /**
  * UI Renderer
- * AI Agent OS의 UI 렌더링을 담당하는 클래스
+ * Director의 UI 렌더링을 담당하는 클래스
  */
 
 import {

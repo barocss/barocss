@@ -1,6 +1,6 @@
 /**
  * Action Handler
- * AI Agent OS의 사용자 액션 처리를 담당하는 클래스
+ * Director의 사용자 액션 처리를 담당하는 클래스
  */
 
 import {

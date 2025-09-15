@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("실시간 데이터 모니터링 대시보드를 만들어줘. 차트와 테이블이 실시간으로 업데이트되어야 해");
+const scene1 = await director.request("실시간 데이터 모니터링 대시보드를 만들어줘. 차트와 테이블이 실시간으로 업데이트되어야 해");
 ```
 
 #### AI가 받는 컨텍스트
@@ -310,7 +310,7 @@ startAutoRefresh();
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("차트의 시간 범위를 6시간으로 변경해줘. 차트 데이터만 업데이트하면 돼");
+const scene2 = await director.request("차트의 시간 범위를 6시간으로 변경해줘. 차트 데이터만 업데이트하면 돼");
 ```
 
 #### AI 응답 및 SubScene 업데이트
@@ -371,7 +371,7 @@ const scene2 = await aiAgentOS.request("차트의 시간 범위를 6시간으로
 
 #### AI 요청
 ```typescript
-const scene3 = await aiAgentOS.request("로그를 에러만 보이게 하고, 테이블에서 'john'으로 검색해줘");
+const scene3 = await director.request("로그를 에러만 보이게 하고, 테이블에서 'john'으로 검색해줘");
 ```
 
 #### AI 응답 및 다중 SubScene 업데이트
@@ -469,7 +469,7 @@ const scene3 = await aiAgentOS.request("로그를 에러만 보이게 하고, �
 
 #### AI 요청
 ```typescript
-const scene4 = await aiAgentOS.request("john@example.com 사용자의 상세 정보를 차트에 표시해줘");
+const scene4 = await director.request("john@example.com 사용자의 상세 정보를 차트에 표시해줘");
 ```
 
 #### AI 응답 및 SubScene 간 연동
@@ -585,7 +585,7 @@ const scene4 = await aiAgentOS.request("john@example.com 사용자의 상세 정
 ### 1. 단일 SubScene 업데이트
 ```typescript
 // 특정 SubScene만 업데이트
-aiAgentOS.updateSubScene('realtime-chart', {
+director.updateSubScene('realtime-chart', {
   data: newChartData,
   config: { timeRange: '6h' }
 });
@@ -594,7 +594,7 @@ aiAgentOS.updateSubScene('realtime-chart', {
 ### 2. 다중 SubScene 업데이트
 ```typescript
 // 여러 SubScene 동시 업데이트
-aiAgentOS.updateMultipleSubScenes([
+director.updateMultipleSubScenes([
   { id: 'realtime-chart', data: chartData },
   { id: 'realtime-logs', data: filteredLogs },
   { id: 'realtime-table', data: searchResults }
@@ -604,7 +604,7 @@ aiAgentOS.updateMultipleSubScenes([
 ### 3. SubScene 간 연동
 ```typescript
 // SubScene 간 상호작용
-aiAgentOS.linkSubScenes('realtime-table', 'realtime-chart', {
+director.linkSubScenes('realtime-table', 'realtime-chart', {
   onUserSelect: (userData) => {
     // 테이블에서 사용자 선택 시 차트 업데이트
     updateUserChart(userData);
