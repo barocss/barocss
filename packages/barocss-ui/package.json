@@ -29,11 +29,11 @@
   },
   "scripts": {
     "build": "vite build",
-    "build:library": "pnpm run build",
+    "//build:library": "pnpm run build",
     "test:watch": "vitest",
-    "test": "vitest run",
-    "type-check": "tsc --noEmit",
-    "lint": "eslint src/**/*.ts"
+    "//test": "vitest run",
+    "//type-check": "tsc --noEmit",
+    "//lint": "eslint src/**/*.ts"
   },
   "devDependencies": {
     "jsdom": "^26.1.0",

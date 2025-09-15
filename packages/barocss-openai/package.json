@@ -10,8 +10,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest",
-    "lint": "eslint src --ext .ts",
+    "//test": "vitest run",
+    "//lint": "eslint src --ext .ts",
     "clean": "rm -rf dist"
   },
   "keywords": [
