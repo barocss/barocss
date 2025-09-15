@@ -194,7 +194,7 @@ export class SceneManager {
   private conversationChain: ConversationChain | null = null;
   private contextAggregator: ConversationContextAggregator;
   private aiRequestBuilder: AIRequestBuilder;
-  private director: AIAgentOS;
+  private director: Director;
 
   // 메인 API - 대화형 Scene 생성
   async request(userInput: string): Promise<Scene>;
@@ -1075,7 +1075,7 @@ describe('ContextManager', () => {
 
 ```typescript
 // Director 통합 테스트
-describe('AIAgentOS Integration', () => {
+describe('Director Integration', () => {
   it('should handle complete workflow with Third-party Agent', async () => {
     // Mock Third-party Agent 생성
     const mockAgent = createMockAgentCommunicationAdapter({
@@ -1083,7 +1083,7 @@ describe('AIAgentOS Integration', () => {
       errorRate: 0.1
     });
 
-    const director = new AIAgentOS({ debug: true }, mockAgent);
+    const director = new Director({ debug: true }, mockAgent);
     await director.initialize();
 
     // 씬 생성
@@ -1108,7 +1108,7 @@ describe('AIAgentOS Integration', () => {
     const openai = new OpenAI({ apiKey: 'test-key' });
     const openaiWrapper = createOpenAIWrapper(openai, { model: 'gpt-4' });
     
-    const director = new AIAgentOS({ debug: true }, openaiWrapper);
+    const director = new Director({ debug: true }, openaiWrapper);
     await director.initialize();
 
     // 테스트 로직...
@@ -1246,7 +1246,7 @@ class RecoveryManager {
 // 브라우저 개발자 도구
 class DevTools {
   static enableDebugMode(): void {
-    (window as any).AIAgentOS = {
+    (window as any).Director = {
       getInstance: () => globalInstance,
       getStats: () => globalInstance?.getStats(),
       getContext: (path: string) => globalInstance?.getContext(path),

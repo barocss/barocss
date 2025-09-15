@@ -10,12 +10,12 @@ import { SceneManager, createSceneManager } from './scene-manager';
 import { UIRenderer, createUIRenderer } from './ui-renderer';
 import { ActionHandler, createActionHandler } from './action-handler';
 import { 
-  AIAgentOSConfig, 
+  DirectorConfig, 
   AgentRequest, 
   AgentResponse, 
   ContextHierarchy,
   SystemEvent,
-  AIAgentOSError,
+  DirectorError,
   Scene,
   SceneConfig,
   UserRequest,
@@ -24,7 +24,7 @@ import {
 } from '../types';
 
 // DEFAULT_CONFIG는 순환 import를 피하기 위해 여기에 정의
-const DEFAULT_CONFIG: AIAgentOSConfig = {
+const DEFAULT_CONFIG: DirectorConfig = {
   version: '1.0.0',
   environment: 'development',
   debug: false,
@@ -68,18 +68,18 @@ const DEFAULT_CONFIG: AIAgentOSConfig = {
   }
 };
 
-export class AIAgentOS {
+export class Director {
   private contextManager: ContextManager;
   private agentCommunication: AgentCommunicationInterface;
   private sceneManager: SceneManager;
   private uiRenderer: UIRenderer;
   private actionHandler: ActionHandler;
-  private config: AIAgentOSConfig;
+  private config: DirectorConfig;
   private isInitialized: boolean = false;
   private eventListeners: Set<(event: SystemEvent) => void> = new Set();
 
   constructor(
-    config: Partial<AIAgentOSConfig> = {},
+    config: Partial<DirectorConfig> = {},
     agentCommunication?: AgentCommunicationInterface | ThirdPartyAgent
   ) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -127,10 +127,10 @@ export class AIAgentOS {
 
       this.isInitialized = true;
       
-      console.log('[AIAgentOS] Initialized successfully');
+      console.log('[Director] Initialized successfully');
       
     } catch (error) {
-      throw new AIAgentOSError('Failed to initialize Director', { error });
+      throw new DirectorError('Failed to initialize Director', { error });
     }
   }
 
@@ -154,10 +154,10 @@ export class AIAgentOS {
 
       this.isInitialized = false;
       
-      console.log('[AIAgentOS] Shutdown successfully');
+      console.log('[Director] Shutdown successfully');
       
     } catch (error) {
-      throw new AIAgentOSError('Failed to shutdown Director', { error });
+      throw new DirectorError('Failed to shutdown Director', { error });
     }
   }
 
@@ -208,13 +208,13 @@ export class AIAgentOS {
    */
   async sendRequest(request: AgentRequest): Promise<AgentResponse> {
     if (!this.isReady()) {
-      throw new AIAgentOSError('Director is not ready');
+      throw new DirectorError('Director is not ready');
     }
 
     try {
       return await this.agentCommunication.sendRequest(request);
     } catch (error) {
-      throw new AIAgentOSError('Failed to send request to agent', { error, request });
+      throw new DirectorError('Failed to send request to agent', { error, request });
     }
   }
 
@@ -223,13 +223,13 @@ export class AIAgentOS {
    */
   async sendStreamRequest(request: AgentRequest): Promise<AsyncIterable<AgentResponse>> {
     if (!this.isReady()) {
-      throw new AIAgentOSError('Director is not ready');
+      throw new DirectorError('Director is not ready');
     }
 
     try {
       return await this.agentCommunication.sendStreamRequest(request);
     } catch (error) {
-      throw new AIAgentOSError('Failed to send stream request to agent', { error, request });
+      throw new DirectorError('Failed to send stream request to agent', { error, request });
     }
   }
 
@@ -331,7 +331,7 @@ export class AIAgentOS {
   /**
    * 설정 업데이트
    */
-  updateConfig(updates: Partial<AIAgentOSConfig>): void {
+  updateConfig(updates: Partial<DirectorConfig>): void {
     this.config = { ...this.config, ...updates };
     
     // Agent Communication 설정 업데이트
@@ -349,7 +349,7 @@ export class AIAgentOS {
     this.actionHandler.setSceneManager(this.sceneManager);
     this.actionHandler.setUIRenderer(this.uiRenderer);
     
-    console.log('[AIAgentOS] Component dependencies set up');
+    console.log('[Director] Component dependencies set up');
   }
 
   /**
@@ -373,7 +373,7 @@ export class AIAgentOS {
       error: null
     }));
 
-    console.log('[AIAgentOS] Initial context set up');
+    console.log('[Director] Initial context set up');
   }
 
   /**
@@ -509,7 +509,7 @@ export class AIAgentOS {
       });
     });
 
-    console.log('[AIAgentOS] System event listeners set up');
+    console.log('[Director] System event listeners set up');
   }
 
   /**
@@ -520,7 +520,7 @@ export class AIAgentOS {
       try {
         listener(event);
       } catch (error) {
-        console.error('[AIAgentOS] Error in event listener:', error);
+        console.error('[Director] Error in event listener:', error);
       }
     });
   }
@@ -530,34 +530,34 @@ export class AIAgentOS {
 // 팩토리 함수들
 // ============================================================================
 
-export function createAIAgentOS(
-  config?: Partial<AIAgentOSConfig>,
+export function createDirector(
+  config?: Partial<DirectorConfig>,
   agentCommunication?: AgentCommunicationInterface
-): AIAgentOS {
-  return new AIAgentOS(config, agentCommunication);
+): Director {
+  return new Director(config, agentCommunication);
 }
 
-export function getAIAgentOS(): AIAgentOS | null {
-  return (globalThis as any).__AIAgentOSInstance || null;
+export function getDirector(): Director | null {
+  return (globalThis as any).__DirectorInstance || null;
 }
 
-export async function initializeAIAgentOS(
-  config?: Partial<AIAgentOSConfig>,
+export async function initializeDirector(
+  config?: Partial<DirectorConfig>,
   agentCommunication?: AgentCommunicationInterface
-): Promise<AIAgentOS> {
-  const instance = createAIAgentOS(config, agentCommunication);
+): Promise<Director> {
+  const instance = createDirector(config, agentCommunication);
   await instance.initialize();
   
   // 전역 인스턴스로 저장
-  (globalThis as any).__AIAgentOSInstance = instance;
+  (globalThis as any).__DirectorInstance = instance;
   
   return instance;
 }
 
-export async function shutdownAIAgentOS(): Promise<void> {
-  const instance = getAIAgentOS();
+export async function shutdownDirector(): Promise<void> {
+  const instance = getDirector();
   if (instance) {
     await instance.shutdown();
-    (globalThis as any).__AIAgentOSInstance = null;
+    (globalThis as any).__DirectorInstance = null;
   }
 }

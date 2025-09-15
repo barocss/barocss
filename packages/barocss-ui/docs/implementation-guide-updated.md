@@ -617,11 +617,11 @@ export class PartialUpdateEngine {
 
 ### Phase 4: 통합 및 최적화
 
-#### 4.1 AIAgentOS 통합
+#### 4.1 Director 통합
 
 ```typescript
 // src/core/ai-agent-os.ts
-export class AIAgentOS {
+export class Director {
   private sceneManager: SceneManager;
   private subSceneManager: SubSceneManager;
   private modalManager: ModalManager;
@@ -630,7 +630,7 @@ export class AIAgentOS {
   private animationEngine: AnimationEngine;
   private eventEmitter: EventEmitter;
 
-  constructor(config?: Partial<AIAgentOSConfig>, agentCommunication?: AgentCommunicationInterface | ThirdPartyAgent) {
+  constructor(config?: Partial<DirectorConfig>, agentCommunication?: AgentCommunicationInterface | ThirdPartyAgent) {
     this.stateManager = new StateManager();
     this.sceneManager = new SceneManager(this.stateManager);
     this.subSceneManager = new SubSceneManager(this.stateManager);
@@ -758,7 +758,7 @@ export class AIAgentOS {
 
 ```typescript
 // Director 초기화
-const director = new AIAgentOS({
+const director = new Director({
   theme: 'light',
   language: 'ko'
 });

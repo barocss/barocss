@@ -1,6 +1,6 @@
 /**
  * Third-party Agent Wrapper
- * 기존 AI 라이브러리를 AIAgentOS와 연동하기 위한 래퍼
+ * 기존 AI 라이브러리를 Director와 연동하기 위한 래퍼
  */
 
 import { AgentRequest, AgentResponse } from '../types';

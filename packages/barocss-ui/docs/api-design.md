@@ -6,12 +6,12 @@ Director의 API는 직관적이고 일관성 있는 인터페이스를 제공하
 
 ## 메인 API
 
-### AIAgentOS 클래스
+### Director 클래스
 
 ```typescript
-class AIAgentOS {
+class Director {
   // 초기화 및 생명주기
-  constructor(config?: Partial<AIAgentOSConfig>, agentCommunication?: AgentCommunicationInterface | ThirdPartyAgent)
+  constructor(config?: Partial<DirectorConfig>, agentCommunication?: AgentCommunicationInterface | ThirdPartyAgent)
   async initialize(): Promise<void>
   async shutdown(): Promise<void>
   isReady(): boolean
@@ -81,7 +81,7 @@ class AIAgentOS {
   // 시스템 정보
   getAgentConnectionState(): { isConnected: boolean; stats: any }
   getStats(): SystemStats
-  updateConfig(updates: Partial<AIAgentOSConfig>): void
+  updateConfig(updates: Partial<DirectorConfig>): void
 
   // 내부 컴포넌트 접근 (고급 사용자용)
   getSceneManager(): SceneManager
@@ -755,7 +755,7 @@ type SystemEvent =
 
 ```typescript
 // Director 설정
-interface AIAgentOSConfig {
+interface DirectorConfig {
   version: string;
   environment: 'development' | 'staging' | 'production';
   debug: boolean;
@@ -1047,12 +1047,12 @@ interface SceneDefinition {
 
 ```typescript
 import OpenAI from 'openai';
-import { AIAgentOS } from '@barocss/ui';
+import { Director } from '@barocss/ui';
 import { createOpenAIWrapper } from '@barocss/openai';
 
 // Director 초기화
 const openai = new OpenAI({ apiKey: 'your-openai-api-key' });
-const director = new AIAgentOS(
+const director = new Director(
   { debug: true },
   createOpenAIWrapper(openai, { model: 'gpt-4' })
 );
@@ -1077,11 +1077,11 @@ console.log('대화 체인:', currentChain);
 
 ```typescript
 import Anthropic from '@anthropic-ai/sdk';
-import { AIAgentOS } from '@barocss/ui';
+import { Director } from '@barocss/ui';
 import { createAnthropicWrapper } from '@barocss/anthropic';
 
 const anthropic = new Anthropic({ apiKey: 'your-claude-api-key' });
-const director = new AIAgentOS(
+const director = new Director(
   { debug: true },
   createAnthropicWrapper(anthropic, { model: 'claude-3-sonnet-20240229' })
 );
@@ -1097,7 +1097,7 @@ const scene3 = await director.request("장바구니 기능도 구현해줘");
 #### 3. Mock Agent 사용 (개발/테스트)
 
 ```typescript
-import { AIAgentOS, createMockAgentCommunicationAdapter } from '@barocss/ui';
+import { Director, createMockAgentCommunicationAdapter } from '@barocss/ui';
 
 // Mock Agent로 테스트
 const agentComm = createMockAgentCommunicationAdapter({
@@ -1105,7 +1105,7 @@ const agentComm = createMockAgentCommunicationAdapter({
   errorRate: 0.1
 });
 
-const director = new AIAgentOS({ debug: true }, agentComm);
+const director = new Director({ debug: true }, agentComm);
 await director.initialize();
 
 // 테스트용 Scene 생성
@@ -1262,7 +1262,7 @@ for await (const chunk of stream) {
 
 ```typescript
 // 기본 에러 클래스
-class AIAgentOSError extends Error {
+class DirectorError extends Error {
   constructor(
     message: string,
     public code: string,
@@ -1272,10 +1272,10 @@ class AIAgentOSError extends Error {
 }
 
 // 특화된 에러 클래스들
-class ContextError extends AIAgentOSError;
-class SceneError extends AIAgentOSError;
-class CommunicationError extends AIAgentOSError;
-class ValidationError extends AIAgentOSError;
+class ContextError extends DirectorError;
+class SceneError extends DirectorError;
+class CommunicationError extends DirectorError;
+class ValidationError extends DirectorError;
 ```
 
 ### 에러 처리 예제
@@ -1332,9 +1332,9 @@ if (cachedScene) {
 ### Mock 객체
 
 ```typescript
-import { createMockAIAgentOS } from '@barocss/ui/testing';
+import { createMockDirector } from '@barocss/ui/testing';
 
-const mockOS = createMockAIAgentOS({
+const mockOS = createMockDirector({
   // Mock 설정
 });
 ```

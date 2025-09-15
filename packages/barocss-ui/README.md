@@ -39,7 +39,7 @@ npm install @barocss/openai @barocss/anthropic openai @anthropic-ai/sdk
 
 ```typescript
 import OpenAI from 'openai';
-import { AIAgentOS } from '@barocss/ui';
+import { Director } from '@barocss/ui';
 import { createOpenAIWrapper } from '@barocss/openai';
 
 // 기존 AI 라이브러리 사용
@@ -47,8 +47,8 @@ const openai = new OpenAI({
   apiKey: 'your-openai-api-key'
 });
 
-// AIAgentOS와 연동
-const director = new AIAgentOS(
+// Director와 연동
+const director = new Director(
   { debug: true },
   createOpenAIWrapper(openai, { model: 'gpt-4' })
 );
@@ -69,14 +69,14 @@ console.log(response.data.result);
 
 ```typescript
 import Anthropic from '@anthropic-ai/sdk';
-import { AIAgentOS } from '@barocss/ui';
+import { Director } from '@barocss/ui';
 import { createAnthropicWrapper } from '@barocss/anthropic';
 
 const anthropic = new Anthropic({
   apiKey: 'your-claude-api-key'
 });
 
-const director = new AIAgentOS(
+const director = new Director(
   { debug: true },
   createAnthropicWrapper(anthropic, { model: 'claude-3-sonnet-20240229' })
 );
@@ -86,7 +86,7 @@ const director = new AIAgentOS(
 
 ```typescript
 import { 
-  createAIAgentOS, 
+  createDirector, 
   createAgentCommunicationAdapterWithHandlers 
 } from '@barocss/ui';
 
@@ -140,14 +140,14 @@ const agentComm = await createAgentCommunicationAdapterWithHandlers(
   }
 );
 
-const director = createAIAgentOS({ debug: true }, agentComm);
+const director = createDirector({ debug: true }, agentComm);
 await director.initialize();
 ```
 
 #### 3. Mock Agent 사용 (개발/테스트)
 
 ```typescript
-import { createAIAgentOS, createMockAgentCommunicationAdapter } from '@barocss/ui';
+import { createDirector, createMockAgentCommunicationAdapter } from '@barocss/ui';
 
 // Mock Agent로 테스트
 const agentComm = createMockAgentCommunicationAdapter({
@@ -157,7 +157,7 @@ const agentComm = createMockAgentCommunicationAdapter({
   capabilities: ['text-generation', 'ui-creation']
 });
 
-const director = createAIAgentOS({ debug: true }, agentComm);
+const director = createDirector({ debug: true }, agentComm);
 await director.initialize();
 ```
 
@@ -165,7 +165,7 @@ await director.initialize();
 
 ```typescript
 import { 
-  createAIAgentOS, 
+  createDirector, 
   createAgentCommunicationAdapterWithAgent,
   CustomAgent 
 } from '@barocss/ui';
@@ -189,7 +189,7 @@ const customAgent: CustomAgent = {
 
 // Agent와 함께 Adapter 생성
 const agentComm = await createAgentCommunicationAdapterWithAgent(customAgent);
-const director = createAIAgentOS({ debug: true }, agentComm);
+const director = createDirector({ debug: true }, agentComm);
 await director.initialize();
 ```
 
@@ -225,12 +225,12 @@ console.log('Agent response:', response);
 
 ```typescript
 import { 
-  createAIAgentOS, 
-  initializeAIAgentOS,
+  createDirector, 
+  initializeDirector,
   SystemEvent 
 } from '@barocss/ui';
 
-const director = createAIAgentOS({
+const director = createDirector({
   debug: true,
   communication: {
     websocket: {
@@ -354,7 +354,7 @@ const createSceneRequest = {
 
 ## 📋 API 참조
 
-### AIAgentOS 클래스
+### Director 클래스
 
 #### 메서드
 
@@ -533,12 +533,12 @@ const config = {
 ### 개발자 도구
 
 ```typescript
-import { AIAgentOSDevTools } from '@barocss/ui';
+import { DirectorDevTools } from '@barocss/ui';
 
 // 브라우저 콘솔에서 사용 가능
-console.log('Stats:', AIAgentOSDevTools.getStats());
-console.log('Context:', AIAgentOSDevTools.getContext('global.user'));
-AIAgentOSDevTools.setContext('global.user.id', 'debug-user');
+console.log('Stats:', DirectorDevTools.getStats());
+console.log('Context:', DirectorDevTools.getContext('global.user'));
+DirectorDevTools.setContext('global.user.id', 'debug-user');
 ```
 
 ### 이벤트 모니터링
@@ -558,7 +558,7 @@ director.subscribeToEvents((event) => {
 
 ### 에러 타입
 
-- `AIAgentOSError`: 기본 에러 클래스
+- `DirectorError`: 기본 에러 클래스
 - `ContextError`: 컨텍스트 관련 에러
 - `SceneError`: 씬 관리 관련 에러
 - `CommunicationError`: 통신 관련 에러

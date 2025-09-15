@@ -479,7 +479,7 @@ export type SystemEvent =
 // Configuration Types
 // ============================================================================
 
-export interface AIAgentOSConfig {
+export interface DirectorConfig {
   version: string;
   environment: 'development' | 'staging' | 'production';
   debug: boolean;
@@ -672,7 +672,7 @@ export interface Schema {
 // Error Types
 // ============================================================================
 
-export class AIAgentOSError extends Error {
+export class DirectorError extends Error {
   constructor(
     message: string,
     public code: string,
@@ -680,32 +680,32 @@ export class AIAgentOSError extends Error {
     public recovery?: RecoveryAction[]
   ) {
     super(message);
-    this.name = 'AIAgentOSError';
+    this.name = 'DirectorError';
   }
 }
 
-export class ContextError extends AIAgentOSError {
+export class ContextError extends DirectorError {
   constructor(message: string, details?: any) {
     super(message, 'CONTEXT_ERROR', details);
     this.name = 'ContextError';
   }
 }
 
-export class SceneError extends AIAgentOSError {
+export class SceneError extends DirectorError {
   constructor(message: string, details?: any) {
     super(message, 'SCENE_ERROR', details);
     this.name = 'SceneError';
   }
 }
 
-export class CommunicationError extends AIAgentOSError {
+export class CommunicationError extends DirectorError {
   constructor(message: string, details?: any) {
     super(message, 'COMMUNICATION_ERROR', details);
     this.name = 'CommunicationError';
   }
 }
 
-export class ValidationError extends AIAgentOSError {
+export class ValidationError extends DirectorError {
   constructor(message: string, details?: any) {
     super(message, 'VALIDATION_ERROR', details);
     this.name = 'ValidationError';

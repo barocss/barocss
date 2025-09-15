@@ -14,12 +14,12 @@ export * from './types';
 // ============================================================================
 
 export { 
-  AIAgentOS, 
-  createAIAgentOS, 
-  getAIAgentOS, 
-  initializeAIAgentOS, 
-  shutdownAIAgentOS 
-} from './core/ai-agent-os';
+  Director, 
+  createDirector, 
+  getDirector, 
+  initializeDirector, 
+  shutdownDirector 
+} from './core/director';
 export { ContextManager, createContextManager, createGlobalContext, createSessionContext } from './core/context-manager';
 export { 
   AgentCommunicationInterface, 
@@ -53,6 +53,7 @@ export {
 export { SceneManager, createSceneManager } from './core/scene-manager';
 export { UIRenderer, createUIRenderer } from './core/ui-renderer';
 export { ActionHandler, createActionHandler } from './core/action-handler';
+export { Stage, createStage } from './core/stage';
 
 // ============================================================================
 // 상수 정의
@@ -65,7 +66,7 @@ export const API_VERSION = '1.0.0';
 // 기본 설정
 // ============================================================================
 
-export const DEFAULT_CONFIG: AIAgentOSConfig = {
+export const DEFAULT_CONFIG: DirectorConfig = {
   version: VERSION,
   environment: 'development',
   debug: false,

@@ -4,7 +4,7 @@
 
 Director는 AI 에이전트가 사용자 인터페이스를 동적으로 생성하고 관리할 수 있는 운영체제 수준의 플랫폼입니다. 이 시스템은 AI와 사용자 간의 상호작용을 원활하게 하며, 실시간으로 UI를 생성, 수정, 제거할 수 있는 환경을 제공합니다.
 
-**중요**: AIAgentOS는 외부 Agent와의 통신 인터페이스만 제공하며, 실제 AI API 호출이나 네트워크 통신은 외부에서 관리됩니다. Third-party Agent 래퍼를 통해 기존 AI 라이브러리와 쉽게 연동할 수 있습니다.
+**중요**: Director는 외부 Agent와의 통신 인터페이스만 제공하며, 실제 AI API 호출이나 네트워크 통신은 외부에서 관리됩니다. Third-party Agent 래퍼를 통해 기존 AI 라이브러리와 쉽게 연동할 수 있습니다.
 
 ## 패키지 구조
 
@@ -18,7 +18,7 @@ Director는 모듈화된 패키지 구조로 설계되어 있습니다:
 ```
 
 ### 핵심 패키지 (@barocss/ui)
-- **AIAgentOS**: 메인 클래스
+- **Director**: 메인 클래스
 - **AgentCommunicationInterface**: Agent 통신 인터페이스
 - **ThirdPartyAgent**: Third-party Agent 인터페이스
 - **SceneManager**: 씬 관리
@@ -95,7 +95,7 @@ Director는 모듈화된 패키지 구조로 설계되어 있습니다:
 
 ## 핵심 컴포넌트
 
-### 1. AIAgentOS (메인 클래스)
+### 1. Director (메인 클래스)
 - 전체 시스템의 진입점
 - 모든 컴포넌트의 조율
 - 생명주기 관리
@@ -234,7 +234,7 @@ AgentResponse
 
 ### Request/Response Flow
 ```
-User Input → AIAgentOS.request() → SceneManager → ContextAggregator → AIRequestBuilder → AgentCommunication → AI Agent
+User Input → Director.request() → SceneManager → ContextAggregator → AIRequestBuilder → AgentCommunication → AI Agent
                 ↓
 AI Agent → AgentCommunication → AISceneProcessor → SceneManager → HybridUIRenderer → DOM
                 ↓
