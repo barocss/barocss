@@ -1,3 +1,8 @@
+export function splitClassName(className: string): string[] {
+    return className.split(/\s+/).filter(Boolean);
+}
+
+
 export function normalizeClassName(className: any): string {
     if (!className) return '';
   
@@ -10,5 +15,5 @@ export function normalizeClassName(className: any): string {
   
 export function normalizeClassNameList(className: any): string[] {
     if (!className) return [];
-    return normalizeClassName(className).split(/\s+/).filter(Boolean);
+    return splitClassName(normalizeClassName(className));
 }

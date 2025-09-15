@@ -1,6 +1,9 @@
 {
   "name": "monorepo-root",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "pnpm --filter barocss-docs docs:dev",
     "dev:site": "pnpm --filter barocss-site dev:site",

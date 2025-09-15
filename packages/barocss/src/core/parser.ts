@@ -77,7 +77,7 @@ function isUtilityPrefix(str: string): boolean {
  * 
  * Examples:
  * - 'group-hover:sm:bg-[red]' → modifier:utility
- * - 'bg-red-500:hover' → utility:modifier
+ * - 'hover:bg-red-500' → utility:modifier
  * - 'text-[color:var(--foo)]' → utility only
  * 
  * @param className e.g. 'group-hover:sm:bg-[red]', 'text-[color:var(--foo)]'

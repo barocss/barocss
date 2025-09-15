@@ -321,6 +321,27 @@ export function parseClassToAst(
   // console.log('[parseClassToAst] value', value, utility);
   let ast = utilReg.handler(value!, ctx, utility, utilReg) || [];
 
+  const nestedAsts: AstNode[] = [];
+  ast.forEach((node) => {
+    if (typeof node === 'string') {
+      const selectors = node.split(/\s+/);
+      for (const selector of selectors) {
+
+        // prevent circular reference
+        if (fullClassName === selector) {
+          continue;
+        }
+        
+        nestedAsts.push(...parseClassToAst(selector, ctx));
+      }
+    } else {
+      nestedAsts.push(node);
+    }
+  });
+
+  // nestedAsts is AstNode[]
+  ast = nestedAsts;
+
   // console.log('[parseClassToAst] ast', ast);
 
   const wrappers = [];
@@ -386,7 +407,7 @@ export function parseClassToAst(
       ast = ((wrap as HasItems).items as AstNode[]).map((item) => ({
         ...item,
         nodes: Array.isArray(ast) ? ast : [ast],
-      }));
+      })) as AstNode[];
     } else if (wrap.type === "style-rule") {
       ast = [
         {
@@ -395,7 +416,7 @@ export function parseClassToAst(
           source: wrap.source,
           nodes: Array.isArray(ast) ? ast : [ast],
         },
-      ];
+      ] as AstNode[];
     } else if (wrap.type === "at-rule") {
       ast = [
         {
@@ -405,7 +426,7 @@ export function parseClassToAst(
           source: wrap.source,
           nodes: Array.isArray(ast) ? ast : [ast],
         },
-      ];
+      ] as AstNode[];
     } else if (wrap.type === "rule") {
       ast = [
         {
@@ -414,7 +435,7 @@ export function parseClassToAst(
           source: wrap.source,
           nodes: Array.isArray(ast) ? ast : [ast],
         },
-      ];
+      ] as AstNode[];
     }
   }
 
@@ -425,15 +446,15 @@ export function parseClassToAst(
   // 재귀적으로 실행되어야 함
   const atRootNodes: AstNode[] = [];
 
-  extractAtRootNodes(ast, undefined, atRootNodes);
+  extractAtRootNodes(ast as AstNode[], undefined, atRootNodes);
 
   ast = [...atRootNodes, ...ast].filter(Boolean);
 
   // console.log("[parseClassToAst] ast", ast);
   // Cache the result
-  astCache.set(cacheKey, ast);
+  astCache.set(cacheKey, ast as AstNode[]);
 
-  return ast;
+  return ast as AstNode[];
 }
 
 /**
