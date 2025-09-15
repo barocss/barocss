@@ -2,7 +2,7 @@
 
 ## 개요
 
-Director는 AI 에이전트가 사용자 인터페이스를 동적으로 생성하고 관리할 수 있는 운영체제 수준의 플랫폼입니다. 이 시스템은 AI와 사용자 간의 상호작용을 원활하게 하며, 실시간으로 UI를 생성, 수정, 제거할 수 있는 환경을 제공합니다.
+Director는 AI 에이전트가 사용자 인터페이스를 동적으로 생성하고 관리할 수 있도록 오케스트레이션하는 런타임입니다. 이 시스템은 AI와 사용자 간 상호작용을 조율하고, 실시간으로 UI를 생성/수정/제거합니다. 렌더링은 `Stage`가 담당하며, Director는 DOM에 직접 접근하지 않습니다.
 
 **중요**: Director는 외부 Agent와의 통신 인터페이스만 제공하며, 실제 AI API 호출이나 네트워크 통신은 외부에서 관리됩니다. Third-party Agent 래퍼를 통해 기존 AI 라이브러리와 쉽게 연동할 수 있습니다.
 
@@ -18,12 +18,13 @@ Director는 모듈화된 패키지 구조로 설계되어 있습니다:
 ```
 
 ### 핵심 패키지 (@barocss/ui)
-- **Director**: 메인 클래스
+- **Director**: 메인 오케스트레이터
+- **Stage**: 렌더링 서피스 (DOM/Renderer 보유)
 - **AgentCommunicationInterface**: Agent 통신 인터페이스
 - **ThirdPartyAgent**: Third-party Agent 인터페이스
 - **SceneManager**: 씬 관리
 - **ContextManager**: 컨텍스트 관리
-- **UIRenderer**: UI 렌더링
+- **UIRenderer**: UI 렌더링 엔진 (Stage가 사용)
 
 ### AI 제공업체별 래퍼 패키지
 - **@barocss/openai**: OpenAI SDK 래퍼
@@ -52,45 +53,38 @@ Director는 모듈화된 패키지 구조로 설계되어 있습니다:
 ## 아키텍처 다이어그램
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Director                             │
-├─────────────────────────────────────────────────────────────┤
-│  Third-party Agent Layer                                   │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
-│  │ @barocss/openai │  │@barocss/anthropic│ │@barocss/... │ │
-│  │   (OpenAI)      │  │    (Claude)     │ │  (Others)   │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│  Communication Interface Layer                             │
-│  ┌─────────────────┐  ┌─────────────────┐                  │
-│  │ThirdPartyAgent  │  │AgentCommAdapter │                  │
-│  │   Interface     │  │                 │                  │
-│  └─────────────────┘  └─────────────────┘                  │
-├─────────────────────────────────────────────────────────────┤
-│  Scene Management Layer                                    │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
-│  │ Scene Manager   │  │ SubScene Manager│  │ Modal       │ │
-│  │                 │  │                 │  │ Manager     │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│  State Management Layer                                    │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
-│  │ Global State    │  │ Scene State     │  │ SubScene    │ │
-│  │ Manager         │  │ Manager         │  │ State Mgr   │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│  Interaction Layer                                         │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
-│  │ Action Handler  │  │ Form Manager    │  │ Event       │ │
-│  │                 │  │                 │  │ System      │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│  Rendering Layer                                           │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐ │
-│  │ Hybrid Renderer │  │ Partial Update  │  │ Animation   │ │
-│  │                 │  │ Engine          │  │ Engine      │ │
-│  └─────────────────┘  └─────────────────┘  └─────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────┐
+│                              Director                                  │
+├───────────────────────────────────────────────────────────────────────┤
+│  Third-party Agent Layer                                              │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────┐            │
+│  │ @barocss/openai │  │@barocss/anthropic│ │@barocss/... │            │
+│  │   (OpenAI)      │  │    (Claude)     │ │  (Others)   │            │
+│  └─────────────────┘  └─────────────────┘  └─────────────┘            │
+├───────────────────────────────────────────────────────────────────────┤
+│  Communication Interface Layer                                        │
+│  ┌─────────────────┐  ┌─────────────────┐                             │
+│  │ThirdPartyAgent  │  │AgentCommAdapter │                             │
+│  │   Interface     │  │                 │                             │
+│  └─────────────────┘  └─────────────────┘                             │
+├───────────────────────────────────────────────────────────────────────┤
+│  Scene/State/Interaction Management                                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌───────────────────────┐  │
+│  │ Scene Manager   │  │ Context Manager │  │ Action/Event Handling │  │
+│  └─────────────────┘  └─────────────────┘  └───────────────────────┘  │
+└───────────────────────────────────────────────────────────────────────┘
+                                │ events/updates
+                                ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                                Stage                                   │
+├───────────────────────────────────────────────────────────────────────┤
+│  ┌────────────────────────┐   ┌─────────────────────────────────────┐ │
+│  │   UIRenderer (DOM)     │   │  DOM Delegation (data-action, form) │ │
+│  └────────────────────────┘   └─────────────────────────────────────┘ │
+└───────────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+                               DOM
 ```
 
 ## 핵심 컴포넌트
@@ -100,6 +94,11 @@ Director는 모듈화된 패키지 구조로 설계되어 있습니다:
 - 모든 컴포넌트의 조율
 - 생명주기 관리
 - 단일 API: `request(userInput: string)`
+
+### 1-1. Stage (렌더링 서피스)
+- DOM 컨테이너에 마운트되고, `UIRenderer`를 통해 Scene을 렌더링
+- DOM 이벤트 위임(`data-action`, `form submit`)을 표준화하여 Director로 전달
+- Director와의 연결은 이벤트/업데이트 스트림으로만 이루어짐 (양방향 의존 제거)
 
 ### 2. Scene Management Layer
 - **SceneManager**: 메인 Scene 생명주기 관리
@@ -121,7 +120,7 @@ Director는 모듈화된 패키지 구조로 설계되어 있습니다:
 - AI 연동 및 대화 관리
 
 ### 5. Rendering Layer
-- **HybridRenderer**: 다중 렌더링 방식 지원 (HTML, 컴포넌트, JSON)
+- **UIRenderer**: Stage가 보유하는 렌더링 엔진 (HTML/컴포넌트/부분 업데이트)
 - **PartialUpdateEngine**: 부분 업데이트 및 성능 최적화
 - **AnimationEngine**: 애니메이션 및 전환 효과
 - **VirtualDOM**: 효율적인 DOM 조작
@@ -236,9 +235,10 @@ AgentResponse
 ```
 User Input → Director.request() → SceneManager → ContextAggregator → AIRequestBuilder → AgentCommunication → AI Agent
                 ↓
-AI Agent → AgentCommunication → AISceneProcessor → SceneManager → HybridUIRenderer → DOM
+AI Agent → AgentCommunication → (parse/process) → SceneManager → Stage(UIRenderer) → DOM
                 ↓
-SceneManager ← (새 Scene 생성) ← AISceneProcessor
+SceneManager ← (새 Scene 생성/업데이트)
+Stage ↔ Director (events: scene_create/scene_update/user_action)
 ```
 
 ### AI UI Generation Flow
@@ -259,7 +259,7 @@ SceneManager ← (새 Scene 생성) ← AISceneProcessor
    ↓
 8. SceneManager (새 Scene 생성 및 체인에 추가)
    ↓
-9. HybridUIRenderer (렌더링)
+9. Stage/UIRenderer (렌더링)
    ↓
 10. DOM (최종 렌더링)
 ```
