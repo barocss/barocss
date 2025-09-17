@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>barocss-ui-manager</title>
+    <style type="text/css">
+
+      @view-transition {
+        navigation: auto;
+      }
+
+      html, body { height: 100%; margin: 0; overflow: hidden; }
+
+      .baro-boot-doing {
+        opacity: 0;
+      }
+      .baro-boot-done {
+        opacity: 1;
+      }
+    </style>
+    <script type="module">
+      import { baroStart } from '@barocss/browser';
+
+
+      document.startViewTransition(() => {
+        baroStart({
+          config: {
+            preflight: true,
+          }
+        });
+      });
+    </script>
+  </head>
+  <body class="bg-gray-50 baro-boot-doing m-0 min-h-screen">
+    <div id="app" class="w-screen h-dvh flex flex-col">
+      <main class="grow flex overflow-hidden h-full w-full">
+        <!-- Left: Chat panel -->
+        <section class="min-w-[320px] w-[360px] lg:w-[380px] shrink-0 border-r bg-white/90 backdrop-blur-sm flex flex-col h-full">
+          <!-- Chat header -->
+          <div class="px-4 py-3 border-b flex items-center justify-between sticky top-0 bg-white/90 backdrop-blur z-10">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold tracking-tight">Chat</span>
+              <span class="text-[11px] text-gray-500">mock agent</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button class="text-[11px] px-2.5 py-1.5 rounded-md border-none bg-gray-100 hover:bg-gray-200 text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition">New</button>
+            </div>
+          </div>
+
+          <!-- Messages list -->
+          <div id="bc-messages" class="flex-1 overflow-auto p-4 space-y-3">
+            <!-- Assistant welcome bubble -->
+            <div class="flex items-start gap-2">
+              <div class="h-7 w-7 shrink-0 rounded-full bg-indigo-600 text-white grid place-items-center text-[11px]">AI</div>
+              <div class="max-w-[85%] rounded-2xl rounded-tl-none px-3 py-2 text-sm bg-indigo-50 ring-1 ring-indigo-100 text-gray-800 shadow-sm">
+                BaroCSS에 오신 것을 환영합니다. 무엇을 만들까요?
+              </div>
+            </div>
+
+            <!-- Suggestions -->
+            <div class="grid grid-cols-1 gap-2 pt-1">
+              <button data-prompt="온라인 쇼핑몰을 만들어줘" class="text-left w-full text-xs px-3 py-2 rounded-md border-none bg-white hover:bg-gray-50 shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">온라인 쇼핑몰을 만들어줘</button>
+              <button data-prompt="전자제품 카테고리를 보여줘" class="text-left w-full text-xs px-3 py-2 rounded-md border-none bg-white hover:bg-gray-50 shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">전자제품 카테고리를 보여줘</button>
+              <button data-prompt="장바구니 페이지를 만들어줘" class="text-left w-full text-xs px-3 py-2 rounded-md border-none bg-white hover:bg-gray-50 shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">장바구니 페이지를 만들어줘</button>
+            </div>
+          </div>
+
+          <!-- Composer -->
+          <div class="border-t bg-white p-3">
+            <div class="rounded-xl border-none bg-white ring-1 ring-gray-200 shadow-sm">
+              <div class="flex items-center gap-2 px-3 py-2">
+                <button title="Attach" class="hidden sm:inline-flex h-8 w-8 grid place-items-center rounded-md border-none bg-white hover:bg-gray-50 text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition">+</button>
+                <input id="bc-input" class="flex-1 px-3 py-2 text-sm focus:outline-none" placeholder="메시지를 입력하세요 (Enter로 전송)" />
+                <button id="bc-send" class="inline-flex items-center gap-1 rounded-md border-none bg-blue-600 text-white px-3.5 py-2 text-sm shadow hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition">Send</button>
+              </div>
+              <div class="px-3 pb-2">
+                <div class="flex items-center justify-between text-[11px] text-gray-500">
+                  <div class="hidden md:block">Shift+Enter: 줄바꿈 • /: 명령어</div>
+                  <div>모델: <span class="px-1.5 py-0.5 rounded bg-gray-50 border">mock</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right: Render canvas -->
+        <section class="grow overflow-hidden h-full relative">
+          <!-- decorative background (no padding; full-bleed) -->
+          <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50"></div>
+          <div class="pointer-events-none absolute inset-0 -z-10 opacity-40" style="background-image: radial-gradient(circle at 20% 20%, rgba(59,130,246,0.08) 0, transparent 40%), radial-gradient(circle at 80% 30%, rgba(147,51,234,0.08) 0, transparent 40%), radial-gradient(circle at 30% 80%, rgba(99,102,241,0.08) 0, transparent 40%);"></div>
+
+          <!-- Canvas window (large app window where all UI will be rendered) -->
+          <div id="bc-output" class="h-full w-full relative border border-gray-200 shadow-2xl overflow-hidden p-4 md:p-6">
+            <div class="h-full w-full grid place-items-center text-center text-gray-600 select-none bg-white/95 rounded-2xl">
+              <div>
+                <div class="text-sm font-medium">이 영역에서 모든 UI가 생성됩니다.</div>
+                <div class="text-xs mt-2 text-gray-500">좌측에서 프롬프트를 입력하거나 예시를 눌러 시작하세요.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

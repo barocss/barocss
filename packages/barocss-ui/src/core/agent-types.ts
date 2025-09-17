@@ -103,11 +103,20 @@ export class MockAgentImplementation implements AgentImplementation {
     return this.responses.get(request.id) || {
       type: 'success',
       id: `mock-${Date.now()}`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      version: 1,
       requestId: request.id,
       timestamp: Date.now(),
       processingTime: this.delay,
       status: { success: true, code: 200, message: 'OK' },
-      data: { result: { message: 'Mock response', requestType: request.type } },
+      data: { 
+        result: { 
+          content: 'Mock response',
+          type: 'text',
+          metadata: { requestType: request.type }
+        } 
+      },
       metadata: { version: '1.0.0', correlationId: request.metadata?.correlationId || 'mock' }
     };
   }

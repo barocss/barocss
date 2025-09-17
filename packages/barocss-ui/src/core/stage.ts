@@ -6,6 +6,7 @@
 import { Scene } from '../types';
 import { UIRenderer, createUIRenderer } from './ui-renderer';
 import { Director } from './director';
+import { formDataToRecord } from '../utils/form-data-helpers';
 
 export interface StageOptions {
   mount: string | HTMLElement;
@@ -90,9 +91,8 @@ export class Stage {
     if (!form || form.tagName.toLowerCase() !== 'form') return;
     const action = form.getAttribute('data-action') || 'form-submit';
     const sceneId = form.closest('[data-scene-id]')?.getAttribute('data-scene-id') || null;
-    const data: Record<string, any> = {};
     const fd = new FormData(form);
-    for (const [key, value] of fd.entries()) data[key] = value;
+    const data = formDataToRecord(fd);
 
     const custom = new CustomEvent('ui-form-submit', {
       detail: { action, sceneId, data },

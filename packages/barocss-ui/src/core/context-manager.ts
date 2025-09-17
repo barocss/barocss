@@ -14,8 +14,9 @@ import {
   ValidationResult,
   Schema,
   ContextError,
-  ValidationError
+  ValidationError,
 } from '../types';
+import { generateId } from '../utils/id-generator';
 
 export interface ContextManagerOptions {
   enableValidation?: boolean;
@@ -36,7 +37,7 @@ export interface ContextDebugInfo {
 }
 
 export class ContextManager {
-  private contexts: ContextHierarchy;
+  private contexts: ContextHierarchy = {} as ContextHierarchy;
   private subscribers: Map<string, Set<(value: any) => void>>;
   private validationSchemas: Map<string, Schema>;
   private options: ContextManagerOptions;
@@ -89,12 +90,14 @@ export class ContextManager {
         role: 'user',
         permissions: [],
         preferences: {
-          theme: 'auto',
+          theme: 'auto' as const,
           language: 'en',
-          fontSize: 'medium',
+          fontSize: 'medium' as const,
           animations: true,
           sounds: true,
-          notifications: true
+          notifications: true,
+          accessibility: {},
+          ui: {}
         },
         locale: 'en-US',
         timezone: 'UTC'
@@ -105,6 +108,9 @@ export class ContextManager {
         capabilities: this.detectCapabilities(),
         performance: {
           memory: { used: 0, total: 0, limit: 0 },
+          timing: 0,
+          fps: 60,
+          bandwidth: 0,
           cpu: { usage: 0, cores: navigator.hardwareConcurrency || 1 },
           network: { latency: 0, bandwidth: 0 },
           rendering: { fps: 60, frameTime: 16.67 }
@@ -119,7 +125,7 @@ export class ContextManager {
   private createDefaultSessionContext(): SessionContext {
     const now = Date.now();
     return {
-      sessionId: this.generateSessionId(),
+      sessionId: generateId('session'),
       startTime: now,
       lastActivity: now,
       duration: 0,
@@ -176,7 +182,7 @@ export class ContextManager {
       }
 
       this.updateContextValue(path, value);
-      this.notifySubscribers(path, value, oldValue);
+      this.notifySubscribers(path, value);
       this.addToHistory({ [path]: value });
       
     } catch (error) {
@@ -200,7 +206,7 @@ export class ContextManager {
       }
 
       this.updateContextValue(path, newValue);
-      this.notifySubscribers(path, newValue, currentValue);
+      this.notifySubscribers(path, newValue);
       this.addToHistory({ [path]: newValue });
       
     } catch (error) {
@@ -326,7 +332,7 @@ export class ContextManager {
   /**
    * 구독자에게 알림
    */
-  private notifySubscribers(path: string, newValue: any, oldValue: any): void {
+  private notifySubscribers(path: string, newValue: any): void {
     const subscribers = this.subscribers.get(path);
     if (subscribers) {
       subscribers.forEach(callback => {
@@ -343,10 +349,11 @@ export class ContextManager {
    * 히스토리에 추가
    */
   private addToHistory(update: ContextUpdate): void {
-    this.history.push({
+    const historyEntry: ContextUpdate = {
       ...update,
       timestamp: Date.now()
-    } as any);
+    };
+    this.history.push(historyEntry);
 
     // 히스토리 크기 제한
     if (this.history.length > this.options.maxHistory!) {
@@ -458,8 +465,8 @@ export class ContextManager {
 
     return {
       webgl: !!window.WebGLRenderingContext,
-      webRTC: !!(window.RTCPeerConnection || window.webkitRTCPeerConnection),
-      webAudio: !!(window.AudioContext || window.webkitAudioContext),
+      webRTC: !!(window.RTCPeerConnection || ('webkitRTCPeerConnection' in window)),
+      webAudio: !!(window.AudioContext || ('webkitAudioContext' in window)),
       webWorkers: typeof Worker !== 'undefined',
       serviceWorkers: 'serviceWorker' in navigator,
       pushNotifications: 'PushManager' in window,
@@ -472,9 +479,6 @@ export class ContextManager {
   /**
    * 세션 ID 생성
    */
-  private generateSessionId(): string {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
 
   /**
    * 기본 검증 스키마 설정
@@ -565,12 +569,14 @@ export function createGlobalContext(overrides?: Partial<GlobalContext>): GlobalC
       role: 'user',
       permissions: [],
       preferences: {
-        theme: 'auto',
+        theme: 'auto' as const,
         language: 'en',
-        fontSize: 'medium',
+        fontSize: 'medium' as const,
         animations: true,
         sounds: true,
-        notifications: true
+        notifications: true,
+        accessibility: {},
+        ui: {}
       },
       locale: 'en-US',
       timezone: 'UTC'
@@ -579,18 +585,24 @@ export function createGlobalContext(overrides?: Partial<GlobalContext>): GlobalC
       platform: 'unknown',
       browser: 'unknown',
       capabilities: {
-        webgl: false,
+        webGL: false,
         webRTC: false,
         webAudio: false,
-        webWorkers: false,
-        serviceWorkers: false,
-        pushNotifications: false,
+        fullscreen: false,
+        clipboard: false,
         geolocation: false,
         camera: false,
-        microphone: false
+        microphone: false,
+        webgl: false,
+        webWorkers: false,
+        serviceWorkers: false,
+        pushNotifications: false
       },
       performance: {
         memory: { used: 0, total: 0, limit: 0 },
+        timing: 0,
+        fps: 60,
+        bandwidth: 0,
         cpu: { usage: 0, cores: 1 },
         network: { latency: 0, bandwidth: 0 },
         rendering: { fps: 60, frameTime: 16.67 }
@@ -604,7 +616,7 @@ export function createGlobalContext(overrides?: Partial<GlobalContext>): GlobalC
 export function createSessionContext(overrides?: Partial<SessionContext>): SessionContext {
   const now = Date.now();
   const defaultContext: SessionContext = {
-    sessionId: `session_${now}_${Math.random().toString(36).substr(2, 9)}`,
+    sessionId: generateId('session'),
     startTime: now,
     lastActivity: now,
     duration: 0,

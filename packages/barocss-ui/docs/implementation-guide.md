@@ -53,11 +53,9 @@
 - AISceneProcessor 구현
 - 다중 렌더링 방식 지원
 
-### 9단계: 메인 클래스
-- 컴포넌트 통합
-- 생명주기 관리
-- 이벤트 시스템
-- 설정 관리
+### 9단계: 메인 런타임
+- Director: 컴포넌트 통합, 생명주기, 이벤트, 설정 관리
+- Stage: DOM 마운트, 렌더링, DOM 이벤트 위임
 
 ### 10단계: 테스트
 - 단위 테스트
@@ -91,7 +89,8 @@ packages/
 │   │   │   ├── ai-conversation-manager.ts # AI 대화 관리
 │   │   │   ├── hybrid-ui-renderer.ts # 하이브리드 UI 렌더러
 │   │   │   ├── ai-scene-processor.ts # AI 씬 프로세서
-│   │   │   └── ai-agent-os.ts        # 메인 클래스
+│   │   │   ├── director.ts           # 메인 오케스트레이터 (Director)
+│   │   │   └── stage.ts              # 렌더링 서피스 (Stage)
 │   │   ├── utils/
 │   │   │   ├── validation.ts         # 검증 유틸리티
 │   │   │   ├── error-handling.ts     # 에러 처리
@@ -1074,8 +1073,8 @@ describe('ContextManager', () => {
 ### 통합 테스트
 
 ```typescript
-// Director 통합 테스트
-describe('Director Integration', () => {
+// Director + Stage 통합 테스트 (개요)
+describe('Director + Stage Integration', () => {
   it('should handle complete workflow with Third-party Agent', async () => {
     // Mock Third-party Agent 생성
     const mockAgent = createMockAgentCommunicationAdapter({
@@ -1085,6 +1084,8 @@ describe('Director Integration', () => {
 
     const director = new Director({ debug: true }, mockAgent);
     await director.initialize();
+    const stage = new Stage({ mount: '#app', director });
+    stage.mount();
 
     // 씬 생성
     const scene = director.createScene({

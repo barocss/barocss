@@ -8,6 +8,7 @@
 // ============================================================================
 
 export * from './types';
+export type { DirectorConfig } from './types';
 
 // ============================================================================
 // 메인 클래스들
@@ -22,7 +23,6 @@ export {
 } from './core/director';
 export { ContextManager, createContextManager, createGlobalContext, createSessionContext } from './core/context-manager';
 export { 
-  AgentCommunicationInterface, 
   AgentCommunicationAdapter, 
   createAgentCommunicationAdapter,
   createAgentCommunicationAdapterWithAgent,
@@ -30,26 +30,23 @@ export {
   createAgentCommunicationAdapterWithHandlers,
   createMockAgentCommunicationAdapter
 } from './core/agent-communication-interface';
+export type { AgentCommunicationInterface } from './core/agent-communication-interface';
 export {
   AgentBridge,
-  AgentBridgeConfig,
-  AgentBridgeHandlers,
   createAgentBridge,
   createSimpleAgentBridge
 } from './core/agent-bridge';
+export type { AgentBridgeConfig, AgentBridgeHandlers } from './core/agent-bridge';
 export {
-  ThirdPartyAgent,
   ThirdPartyAgentWrapper,
   createCustomWrapper
 } from './core/third-party-agent';
+export type { ThirdPartyAgent } from './core/third-party-agent';
 export {
-  AgentConfig,
-  AgentImplementation,
-  MockAgent,
-  CustomAgent,
   createMockAgent,
   createCustomAgent
 } from './core/agent-types';
+export type { AgentConfig, AgentImplementation, MockAgent, CustomAgent } from './core/agent-types';
 export { SceneManager, createSceneManager } from './core/scene-manager';
 export { UIRenderer, createUIRenderer } from './core/ui-renderer';
 export { ActionHandler, createActionHandler } from './core/action-handler';
@@ -66,7 +63,7 @@ export const API_VERSION = '1.0.0';
 // 기본 설정
 // ============================================================================
 
-export const DEFAULT_CONFIG: DirectorConfig = {
+export const DEFAULT_CONFIG = {
   version: VERSION,
   environment: 'development',
   debug: false,

@@ -13,8 +13,8 @@ import { AgentRequest, AgentResponse } from '@barocss/ui';
 export class OpenAIWrapper implements ThirdPartyAgent {
   private openai: any;
   private model: string;
-  private name: string;
-  private type: string;
+  public name: string;
+  public type: string;
 
   constructor(openai: any, options?: { model?: string; name?: string }) {
     this.openai = openai;
@@ -42,10 +42,11 @@ export class OpenAIWrapper implements ThirdPartyAgent {
 
       const stream = await this.openai.chat.completions.create(transformedRequest);
 
+      const self = this;
       return {
         async *[Symbol.asyncIterator]() {
           for await (const chunk of stream) {
-            yield this.transformResponse(chunk, request.id);
+            yield self.transformResponse(chunk, request.id);
           }
         }
       };
@@ -79,7 +80,7 @@ export class OpenAIWrapper implements ThirdPartyAgent {
     return {
       model: this.model,
       messages: [
-        { role: 'user', content: request.payload?.message || 'Hello' }
+        { role: 'user', content: (request.payload as any)?.message || 'Hello' }
       ],
       temperature: 0.7,
       max_tokens: 2000
@@ -90,6 +91,9 @@ export class OpenAIWrapper implements ThirdPartyAgent {
     return {
       type: 'success',
       id: `openai-${Date.now()}`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      version: 1,
       requestId: requestId,
       timestamp: Date.now(),
       processingTime: 1000,
@@ -103,8 +107,8 @@ export class OpenAIWrapper implements ThirdPartyAgent {
       },
       metadata: {
         version: '1.0.0',
-        agent: 'openai',
-        model: response.model
+        correlationId: `openai-${Date.now()}`,
+        agent: 'openai'
       }
     };
   }

@@ -9,6 +9,13 @@ import { ThirdPartyAgent } from './third-party-agent';
 import { SceneManager, createSceneManager } from './scene-manager';
 import { UIRenderer, createUIRenderer } from './ui-renderer';
 import { ActionHandler, createActionHandler } from './action-handler';
+import { SubSceneManager, createSubSceneManager } from './subscene-manager';
+import { ModalManager, createModalManager } from './modal-manager';
+import { AnimationEngine, createAnimationEngine } from './animation-engine';
+import { AIStateManager, createAIStateManager } from './ai-state-manager';
+import { AIConversationManager, createAIConversationManager } from './ai-conversation-manager';
+import { VirtualDOM, createVirtualDOM } from './virtual-dom';
+import { HybridRenderer, createHybridRenderer } from './hybrid-renderer';
 import { 
   DirectorConfig, 
   AgentRequest, 
@@ -18,10 +25,10 @@ import {
   DirectorError,
   Scene,
   SceneConfig,
-  UserRequest,
-  AIResponse,
-  SceneContext
+  DirectorGlobalThis,
+  ConversationChain
 } from '../types';
+import { registerServiceInstance } from './service-container';
 
 // DEFAULT_CONFIG는 순환 import를 피하기 위해 여기에 정의
 const DEFAULT_CONFIG: DirectorConfig = {
@@ -74,6 +81,13 @@ export class Director {
   private sceneManager: SceneManager;
   private uiRenderer: UIRenderer;
   private actionHandler: ActionHandler;
+  private subSceneManager: SubSceneManager;
+  private modalManager: ModalManager;
+  private animationEngine: AnimationEngine;
+  private aiStateManager: AIStateManager;
+  private aiConversationManager: AIConversationManager;
+  private virtualDOM: VirtualDOM;
+  private hybridRenderer: HybridRenderer;
   private config: DirectorConfig;
   private isInitialized: boolean = false;
   private eventListeners: Set<(event: SystemEvent) => void> = new Set();
@@ -90,12 +104,24 @@ export class Director {
       this.agentCommunication = createAgentCommunicationAdapter();
       (this.agentCommunication as AgentCommunicationAdapter).setThirdPartyAgent(agentCommunication as ThirdPartyAgent);
     } else {
-      this.agentCommunication = agentCommunication || createAgentCommunicationAdapter();
+      this.agentCommunication = agentCommunication as AgentCommunicationInterface || createAgentCommunicationAdapter();
     }
     
     this.sceneManager = createSceneManager();
     this.uiRenderer = createUIRenderer();
     this.actionHandler = createActionHandler();
+    this.subSceneManager = createSubSceneManager();
+    this.modalManager = createModalManager();
+    this.animationEngine = createAnimationEngine();
+    this.aiStateManager = createAIStateManager();
+    this.virtualDOM = createVirtualDOM();
+    this.hybridRenderer = createHybridRenderer();
+    
+    // AI Conversation Manager는 다른 시스템들이 초기화된 후에 생성
+    this.aiConversationManager = createAIConversationManager(
+      this.aiStateManager,
+      this.agentCommunication
+    );
     
     this.setupEventHandlers();
   }
@@ -127,10 +153,11 @@ export class Director {
 
       this.isInitialized = true;
       
+      // eslint-disable-next-line
       console.log('[Director] Initialized successfully');
       
     } catch (error) {
-      throw new DirectorError('Failed to initialize Director', { error });
+      throw new DirectorError('Failed to initialize Director', 'INIT_ERROR', { error });
     }
   }
 
@@ -154,10 +181,11 @@ export class Director {
 
       this.isInitialized = false;
       
+      // eslint-disable-next-line
       console.log('[Director] Shutdown successfully');
       
     } catch (error) {
-      throw new DirectorError('Failed to shutdown Director', { error });
+      throw new DirectorError('Failed to shutdown Director', 'SHUTDOWN_ERROR', { error });
     }
   }
 
@@ -168,9 +196,75 @@ export class Director {
     return this.isInitialized;
   }
 
+  // ============================================================================
+  // 메인 API - 사용자 요청 처리
+  // ============================================================================
+
+  /**
+   * 메인 API - 사용자 요청을 AI를 통해 Scene으로 변환
+   */
+  async request(userInput: string): Promise<Scene> {
+    if (!this.isInitialized) {
+      throw new DirectorError('Director is not initialized. Call initialize() first.', 'NOT_INITIALIZED');
+    }
+
+    try {
+      return await this.sceneManager.request(userInput);
+    } catch (error) {
+      // eslint-disable-next-line
+      console.error('[Director] Request failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new DirectorError(`Request failed: ${errorMessage}`, 'REQUEST_ERROR', error as Record<string, unknown>);
+    }
+  }
+
+  /**
+   * 현재 대화 체인 조회
+   */
+  getCurrentConversationChain(): ConversationChain | null {
+    return this.sceneManager.getCurrentConversationChain();
+  }
+
+  /**
+   * 대화 이력 조회
+   */
+  getConversationHistory(): Scene[] {
+    return this.sceneManager.getConversationHistory();
+  }
+
+  /**
+   * 대화 계속하기
+   */
+  async continueConversation(userInput: string): Promise<Scene> {
+    return await this.request(userInput);
+  }
+
+  // ============================================================================
+  // Agent 통신 API (SceneManager에서 사용)
+  // ============================================================================
+
+  /**
+   * Agent에 요청 전송 (SceneManager에서 사용)
+   */
+  async sendRequest(request: AgentRequest): Promise<AgentResponse> {
+    if (!this.agentCommunication) {
+      throw new DirectorError('Agent communication not configured', 'NO_AGENT_COMM');
+    }
+
+    try {
+      return await this.agentCommunication.sendRequest(request);
+    } catch (error) {
+      // eslint-disable-next-line
+      console.error('[Director] Agent request failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new DirectorError(`Agent request failed: ${errorMessage}`, 'AGENT_REQUEST_ERROR', error as Record<string, unknown>);
+    }
+  }
+
   /**
    * 컨텍스트 조회
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getContext<T = any>(path: string): T | null {
     return this.contextManager.getContext<T>(path);
   }
@@ -178,21 +272,21 @@ export class Director {
   /**
    * 컨텍스트 설정
    */
-  setContext(path: string, value: any): void {
+  setContext(path: string, value: unknown): void {
     this.contextManager.setContext(path, value);
   }
 
   /**
    * 컨텍스트 업데이트
    */
-  updateContext(path: string, updater: (current: any) => any): void {
+  updateContext(path: string, updater: (current: unknown) => unknown): void {
     this.contextManager.updateContext(path, updater);
   }
 
   /**
    * 컨텍스트 구독
    */
-  subscribeContext(path: string, callback: (value: any) => void): () => void {
+  subscribeContext(path: string, callback: (value: unknown) => void): () => void {
     return this.contextManager.subscribeContext(path, callback);
   }
 
@@ -203,33 +297,19 @@ export class Director {
     return this.contextManager.getCurrentContext();
   }
 
-  /**
-   * Agent에 요청 전송
-   */
-  async sendRequest(request: AgentRequest): Promise<AgentResponse> {
-    if (!this.isReady()) {
-      throw new DirectorError('Director is not ready');
-    }
-
-    try {
-      return await this.agentCommunication.sendRequest(request);
-    } catch (error) {
-      throw new DirectorError('Failed to send request to agent', { error, request });
-    }
-  }
 
   /**
    * 스트리밍 요청 전송
    */
   async sendStreamRequest(request: AgentRequest): Promise<AsyncIterable<AgentResponse>> {
     if (!this.isReady()) {
-      throw new DirectorError('Director is not ready');
+      throw new DirectorError('Director is not ready', 'NOT_READY');
     }
 
     try {
       return await this.agentCommunication.sendStreamRequest(request);
     } catch (error) {
-      throw new DirectorError('Failed to send stream request to agent', { error, request });
+      throw new DirectorError('Failed to send stream request to agent', 'STREAM_REQUEST_ERROR', { error, request });
     }
   }
 
@@ -335,20 +415,21 @@ export class Director {
     this.config = { ...this.config, ...updates };
     
     // Agent Communication 설정 업데이트
-    this.agentCommunication.updateConfig(this.config);
+    if (this.agentCommunication) {
+      this.agentCommunication.updateConfig(this.config);
+    }
   }
 
   /**
    * 컴포넌트 간 의존성 설정
    */
   private setupComponentDependencies(): void {
-    // UIRenderer에 SceneManager 설정
-    this.uiRenderer.setSceneManager(this.sceneManager);
+    // 서비스 컨테이너에 인스턴스 등록
+    registerServiceInstance('director', this);
+    registerServiceInstance('sceneManager', this.sceneManager);
+    registerServiceInstance('uiRenderer', this.uiRenderer);
     
-    // ActionHandler에 SceneManager와 UIRenderer 설정
-    this.actionHandler.setSceneManager(this.sceneManager);
-    this.actionHandler.setUIRenderer(this.uiRenderer);
-    
+    // eslint-disable-next-line
     console.log('[Director] Component dependencies set up');
   }
 
@@ -373,13 +454,14 @@ export class Director {
       error: null
     }));
 
+    // eslint-disable-next-line
     console.log('[Director] Initial context set up');
   }
 
   /**
    * 시스템 정보 수집
    */
-  private collectSystemInfo(): any {
+  private collectSystemInfo(): Record<string, unknown> {
     if (typeof window === 'undefined') {
       return {
         platform: 'server',
@@ -394,9 +476,9 @@ export class Director {
       capabilities: this.detectCapabilities(),
       performance: {
         memory: {
-          used: (performance as any).memory?.usedJSHeapSize || 0,
-          total: (performance as any).memory?.totalJSHeapSize || 0,
-          limit: (performance as any).memory?.jsHeapSizeLimit || 0
+          used: ('memory' in performance && performance.memory && typeof performance.memory === 'object' && performance.memory !== null) ? (performance.memory as any).usedJSHeapSize || 0 : 0,
+          total: ('memory' in performance && performance.memory && typeof performance.memory === 'object' && performance.memory !== null) ? (performance.memory as any).totalJSHeapSize || 0 : 0,
+          limit: ('memory' in performance && performance.memory && typeof performance.memory === 'object' && performance.memory !== null) ? (performance.memory as any).jsHeapSizeLimit || 0 : 0
         },
         cpu: {
           usage: 0,
@@ -448,7 +530,7 @@ export class Director {
   /**
    * 시스템 기능 감지
    */
-  private detectCapabilities(): any {
+  private detectCapabilities(): Record<string, boolean> {
     if (typeof window === 'undefined') {
       return {
         webgl: false,
@@ -465,8 +547,8 @@ export class Director {
 
     return {
       webgl: !!window.WebGLRenderingContext,
-      webRTC: !!(window.RTCPeerConnection || (window as any).webkitRTCPeerConnection),
-      webAudio: !!(window.AudioContext || (window as any).webkitAudioContext),
+      webRTC: !!(window.RTCPeerConnection || ('webkitRTCPeerConnection' in window)),
+      webAudio: !!(window.AudioContext || ('webkitAudioContext' in window)),
       webWorkers: typeof Worker !== 'undefined',
       serviceWorkers: 'serviceWorker' in navigator,
       pushNotifications: 'PushManager' in window,
@@ -486,7 +568,9 @@ export class Director {
         type: 'agent_response',
         timestamp: Date.now(),
         source: 'agent',
-        data: response
+        data: {
+          response: response
+        }
       });
     });
 
@@ -505,10 +589,11 @@ export class Director {
         type: 'context_change',
         timestamp: Date.now(),
         source: 'context',
-        data: { path: 'global', newValue: value }
+        data: { path: 'global', oldValue: null, newValue: value }
       });
     });
 
+    // eslint-disable-next-line
     console.log('[Director] System event listeners set up');
   }
 
@@ -520,9 +605,195 @@ export class Director {
       try {
         listener(event);
       } catch (error) {
+        // eslint-disable-next-line
         console.error('[Director] Error in event listener:', error);
       }
     });
+  }
+
+  // ============================================================================
+  // SubScene 관리
+  // ============================================================================
+
+  /**
+   * SubScene 생성
+   */
+  createSubScene(parentSceneId: string, config: any): any {
+    return this.subSceneManager.createSubScene(parentSceneId, config);
+  }
+
+  /**
+   * SubScene 업데이트
+   */
+  updateSubScene(subSceneId: string, updates: any): void {
+    this.subSceneManager.updateSubScene(subSceneId, updates);
+  }
+
+  /**
+   * SubScene 제거
+   */
+  removeSubScene(subSceneId: string): void {
+    this.subSceneManager.removeSubScene(subSceneId);
+  }
+
+  /**
+   * SubScene 조회
+   */
+  getSubScene(subSceneId: string): any {
+    return this.subSceneManager.getSubScene(subSceneId);
+  }
+
+  // ============================================================================
+  // Modal 관리
+  // ============================================================================
+
+  /**
+   * Modal 열기
+   */
+  openModal(config: any): any {
+    return this.modalManager.openModal(config);
+  }
+
+  /**
+   * Modal 닫기
+   */
+  closeModal(modalId: string): void {
+    this.modalManager.closeModal(modalId);
+  }
+
+  /**
+   * Modal 조회
+   */
+  getModal(modalId: string): any {
+    return this.modalManager.getModal(modalId);
+  }
+
+  /**
+   * 모든 Modal 닫기
+   */
+  closeAllModals(): void {
+    this.modalManager.closeAllModals();
+  }
+
+  // 애니메이션 제어는 렌더러/엔진 내부로 캡슐화합니다.
+
+  // ============================================================================
+  // AI 상태 관리
+  // ============================================================================
+
+  /**
+   * Scene 상태 설정
+   */
+  setSceneState(sceneId: string, key: string, value: any): void {
+    this.aiStateManager.setSceneState(sceneId, key, value);
+  }
+
+  /**
+   * Scene 상태 조회
+   */
+  getSceneState(sceneId: string, key: string): any {
+    return this.aiStateManager.getSceneState(sceneId, key);
+  }
+
+  /**
+   * 전역 상태 설정
+   */
+  setGlobalState(key: string, value: any): void {
+    this.aiStateManager.setGlobalState(key, value);
+  }
+
+  /**
+   * 전역 상태 조회
+   */
+  getGlobalState(key: string): any {
+    return this.aiStateManager.getGlobalState(key);
+  }
+
+  /**
+   * 대화 컨텍스트 설정
+   */
+  setConversationContext(key: string, value: any): void {
+    this.aiStateManager.setConversationContext(key, value);
+  }
+
+  /**
+   * 대화 컨텍스트 조회
+   */
+  getConversationContext(key: string): any {
+    return this.aiStateManager.getConversationContext(key);
+  }
+
+  // ============================================================================
+  // AI 대화 관리
+  // ============================================================================
+
+  /**
+   * 사용자 액션 처리
+   */
+  async handleUserAction(action: string, data: any, sceneId: string): Promise<AgentResponse> {
+    return this.aiConversationManager.handleUserAction(action, data, sceneId);
+  }
+
+  /**
+   * 사용자 입력 처리
+   */
+  async handleUserInput(userInput: string, sceneId: string): Promise<AgentResponse> {
+    return this.aiConversationManager.handleUserInput(userInput, sceneId);
+  }
+
+  /**
+   * 대화 단계 조회
+   */
+  getConversationStep(): number {
+    return this.aiConversationManager.getConversationStep();
+  }
+
+  /**
+   * 대화 초기화
+   */
+  resetConversation(): void {
+    this.aiConversationManager.resetConversation();
+  }
+
+  // ============================================================================
+  // 하이브리드 렌더러 관리
+  // ============================================================================
+
+  /**
+   * 렌더링 모드 설정
+   */
+  setRenderingMode(mode: 'html' | 'virtual-dom' | 'component' | 'hybrid'): void {
+    this.hybridRenderer.setRenderingMode(mode);
+  }
+
+  /**
+   * 성능 통계 조회
+   */
+  getPerformanceStats(): any {
+    return this.hybridRenderer.getPerformanceStats();
+  }
+
+  // ============================================================================
+  // 정리
+  // ============================================================================
+
+  /**
+   * 모든 시스템 정리
+   */
+  cleanup(): void {
+    this.subSceneManager.cleanup();
+    this.modalManager.cleanup();
+    this.animationEngine.cleanup();
+    this.aiStateManager.cleanup();
+    this.aiConversationManager.cleanup();
+    this.virtualDOM.cleanup();
+    this.hybridRenderer.cleanup();
+    
+    // 기존 시스템들도 정리
+    this.contextManager.cleanup();
+    this.sceneManager.cleanup();
+    this.uiRenderer.cleanup();
+    this.actionHandler.cleanup();
   }
 }
 
@@ -538,7 +809,7 @@ export function createDirector(
 }
 
 export function getDirector(): Director | null {
-  return (globalThis as any).__DirectorInstance || null;
+  return (globalThis as DirectorGlobalThis).__DirectorInstance || null;
 }
 
 export async function initializeDirector(
@@ -549,7 +820,7 @@ export async function initializeDirector(
   await instance.initialize();
   
   // 전역 인스턴스로 저장
-  (globalThis as any).__DirectorInstance = instance;
+  (globalThis as DirectorGlobalThis).__DirectorInstance = instance;
   
   return instance;
 }
@@ -558,6 +829,6 @@ export async function shutdownDirector(): Promise<void> {
   const instance = getDirector();
   if (instance) {
     await instance.shutdown();
-    (globalThis as any).__DirectorInstance = null;
+    (globalThis as DirectorGlobalThis).__DirectorInstance = null;
   }
 }

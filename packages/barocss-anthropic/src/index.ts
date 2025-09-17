@@ -13,8 +13,8 @@ import { AgentRequest, AgentResponse } from '@barocss/ui';
 export class AnthropicWrapper implements ThirdPartyAgent {
   private anthropic: any;
   private model: string;
-  private name: string;
-  private type: string;
+  public name: string;
+  public type: string;
 
   constructor(anthropic: any, options?: { model?: string; name?: string }) {
     this.anthropic = anthropic;
@@ -42,10 +42,11 @@ export class AnthropicWrapper implements ThirdPartyAgent {
 
       const stream = await this.anthropic.messages.create(transformedRequest);
 
+      const self = this;
       return {
         async *[Symbol.asyncIterator]() {
           for await (const chunk of stream) {
-            yield this.transformResponse(chunk, request.id);
+            yield self.transformResponse(chunk, request.id);
           }
         }
       };
@@ -80,7 +81,7 @@ export class AnthropicWrapper implements ThirdPartyAgent {
       model: this.model,
       max_tokens: 1000,
       messages: [
-        { role: 'user', content: request.payload?.message || 'Hello' }
+        { role: 'user', content: (request.payload as any)?.message || 'Hello' }
       ]
     };
   }
@@ -89,6 +90,9 @@ export class AnthropicWrapper implements ThirdPartyAgent {
     return {
       type: 'success',
       id: `claude-${Date.now()}`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      version: 1,
       requestId: requestId,
       timestamp: Date.now(),
       processingTime: 1200,
@@ -102,8 +106,8 @@ export class AnthropicWrapper implements ThirdPartyAgent {
       },
       metadata: {
         version: '1.0.0',
-        agent: 'anthropic',
-        model: response.model
+        correlationId: `anthropic-${Date.now()}`,
+        agent: 'anthropic'
       }
     };
   }

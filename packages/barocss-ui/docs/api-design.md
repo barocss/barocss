@@ -6,6 +6,19 @@ Director의 API는 직관적이고 일관성 있는 인터페이스를 제공하
 
 ## 메인 API
 
+### Stage 클래스
+
+```typescript
+class Stage {
+  constructor(options: { mount: string | HTMLElement; director?: Director; renderer?: UIRenderer })
+  mount(): void
+  render(scene: Scene): Promise<void>
+  update(scene: Scene): void
+  clear(): void
+  dispose(): void
+}
+```
+
 ### Director 클래스
 
 ```typescript
