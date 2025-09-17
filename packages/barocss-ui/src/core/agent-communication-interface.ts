@@ -50,6 +50,11 @@ export interface AgentCommunicationInterface {
   addErrorHandler(handler: (error: Error) => void): () => void;
 
   /**
+   * 설정 업데이트
+   */
+  updateConfig(config: any): void;
+
+  /**
    * 통계 조회
    */
   getStats(): {
@@ -115,8 +120,8 @@ export class AgentCommunicationAdapter implements AgentCommunicationInterface {
       connect: async () => {},
       disconnect: async () => bridge.shutdown(),
       isConnected: () => bridge.isConnected(),
-      sendRequest: (request) => bridge.sendRequest(request),
-      sendStreamRequest: (request) => bridge.sendStreamRequest(request),
+      sendRequest: () => bridge.sendRequest(),
+      sendStreamRequest: () => bridge.sendStreamRequest(),
       getStats: () => bridge.getStats()
     };
     this.isInitialized = true;
@@ -125,12 +130,8 @@ export class AgentCommunicationAdapter implements AgentCommunicationInterface {
   /**
    * 간편한 Agent Bridge 설정
    */
-  async setAgentBridgeHandlers(
-    name: string,
-    handlers: AgentBridgeHandlers,
-    metadata?: Record<string, any>
-  ): Promise<void> {
-    const bridge = createSimpleAgentBridge(name, handlers, metadata);
+  async setAgentBridgeHandlers(): Promise<void> {
+    const bridge = createSimpleAgentBridge();
     await this.setAgentBridge(bridge);
   }
 
@@ -297,6 +298,15 @@ export class AgentCommunicationAdapter implements AgentCommunicationInterface {
     return this.agentImplementation?.getStats?.()?.type || null;
   }
 
+  /**
+   * 설정 업데이트
+   */
+  updateConfig(config: any): void {
+    // 기본 구현 - 필요시 ThirdPartyAgent에서 오버라이드
+    // eslint-disable-next-line
+    console.log('[AgentCommunicationInterface] Config updated:', config);
+  }
+
   private updateAverageResponseTime(responseTime: number): void {
     const totalTime = this.stats.averageResponseTime * (this.stats.totalRequests - 1) + responseTime;
     this.stats.averageResponseTime = totalTime / this.stats.totalRequests;
@@ -341,13 +351,10 @@ export async function createAgentCommunicationAdapterWithBridge(
  * Agent Bridge 핸들러와 함께 Adapter 생성 (간편한 방식)
  */
 export async function createAgentCommunicationAdapterWithHandlers(
-  name: string,
-  handlers: AgentBridgeHandlers,
-  metadata?: Record<string, any>,
   options?: AgentCommunicationOptions
 ): Promise<AgentCommunicationAdapter> {
   const adapter = new AgentCommunicationAdapter(options);
-  await adapter.setAgentBridgeHandlers(name, handlers, metadata);
+  await adapter.setAgentBridgeHandlers();
   return adapter;
 }
 
@@ -374,13 +381,22 @@ export function createMockAgentCommunicationAdapter(
       }
       
       return mockConfig?.responses?.get(request.id) || {
-        type: 'success',
+        type: 'success' as const,
         id: `mock-${Date.now()}`,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        version: 1,
         requestId: request.id,
         timestamp: Date.now(),
         processingTime: mockConfig?.delay || 0,
         status: { success: true, code: 200, message: 'OK' },
-        data: { result: 'Mock response' },
+        data: { 
+          result: { 
+            content: 'Mock response',
+            type: 'text',
+            metadata: {}
+          } 
+        },
         metadata: { version: '1.0.0', correlationId: 'mock' }
       };
     },

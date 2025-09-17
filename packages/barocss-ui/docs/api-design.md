@@ -1,17 +1,30 @@
-# AI Agent OS API Design
+# Director API Design
 
 ## 개요
 
-AI Agent OS의 API는 직관적이고 일관성 있는 인터페이스를 제공하여 개발자가 쉽게 사용할 수 있도록 설계되었습니다.
+Director의 API는 직관적이고 일관성 있는 인터페이스를 제공하여 개발자가 쉽게 사용할 수 있도록 설계되었습니다.
 
 ## 메인 API
 
-### AIAgentOS 클래스
+### Stage 클래스
 
 ```typescript
-class AIAgentOS {
+class Stage {
+  constructor(options: { mount: string | HTMLElement; director?: Director; renderer?: UIRenderer })
+  mount(): void
+  render(scene: Scene): Promise<void>
+  update(scene: Scene): void
+  clear(): void
+  dispose(): void
+}
+```
+
+### Director 클래스
+
+```typescript
+class Director {
   // 초기화 및 생명주기
-  constructor(config?: Partial<AIAgentOSConfig>, agentCommunication?: AgentCommunicationInterface | ThirdPartyAgent)
+  constructor(config?: Partial<DirectorConfig>, agentCommunication?: AgentCommunicationInterface | ThirdPartyAgent)
   async initialize(): Promise<void>
   async shutdown(): Promise<void>
   isReady(): boolean
@@ -81,7 +94,7 @@ class AIAgentOS {
   // 시스템 정보
   getAgentConnectionState(): { isConnected: boolean; stats: any }
   getStats(): SystemStats
-  updateConfig(updates: Partial<AIAgentOSConfig>): void
+  updateConfig(updates: Partial<DirectorConfig>): void
 
   // 내부 컴포넌트 접근 (고급 사용자용)
   getSceneManager(): SceneManager
@@ -754,8 +767,8 @@ type SystemEvent =
 ### 설정 타입
 
 ```typescript
-// AI Agent OS 설정
-interface AIAgentOSConfig {
+// Director 설정
+interface DirectorConfig {
   version: string;
   environment: 'development' | 'staging' | 'production';
   debug: boolean;
@@ -1047,29 +1060,29 @@ interface SceneDefinition {
 
 ```typescript
 import OpenAI from 'openai';
-import { AIAgentOS } from '@barocss/ui';
+import { Director } from '@barocss/ui';
 import { createOpenAIWrapper } from '@barocss/openai';
 
-// AI Agent OS 초기화
+// Director 초기화
 const openai = new OpenAI({ apiKey: 'your-openai-api-key' });
-const aiAgentOS = new AIAgentOS(
+const director = new Director(
   { debug: true },
   createOpenAIWrapper(openai, { model: 'gpt-4' })
 );
 
-await aiAgentOS.initialize();
+await director.initialize();
 
 // 간단한 사용법 - 모든 복잡한 로직이 내부에서 처리됨
-const loginScene = await aiAgentOS.request("로그인 폼을 만들어줘");
-const dashboardScene = await aiAgentOS.request("이제 대시보드를 만들어줘");
-const profileScene = await aiAgentOS.request("사용자 프로필 페이지도 추가해줘");
+const loginScene = await director.request("로그인 폼을 만들어줘");
+const dashboardScene = await director.request("이제 대시보드를 만들어줘");
+const profileScene = await director.request("사용자 프로필 페이지도 추가해줘");
 
 // 대화 이력 확인
-const history = aiAgentOS.getConversationHistory();
+const history = director.getConversationHistory();
 console.log('생성된 Scene들:', history);
 
 // 현재 대화 체인 확인
-const currentChain = aiAgentOS.getCurrentConversationChain();
+const currentChain = director.getCurrentConversationChain();
 console.log('대화 체인:', currentChain);
 ```
 
@@ -1077,27 +1090,27 @@ console.log('대화 체인:', currentChain);
 
 ```typescript
 import Anthropic from '@anthropic-ai/sdk';
-import { AIAgentOS } from '@barocss/ui';
+import { Director } from '@barocss/ui';
 import { createAnthropicWrapper } from '@barocss/anthropic';
 
 const anthropic = new Anthropic({ apiKey: 'your-claude-api-key' });
-const aiAgentOS = new AIAgentOS(
+const director = new Director(
   { debug: true },
   createAnthropicWrapper(anthropic, { model: 'claude-3-sonnet-20240229' })
 );
 
-await aiAgentOS.initialize();
+await director.initialize();
 
 // 동일한 간단한 API 사용
-const scene1 = await aiAgentOS.request("쇼핑몰 메인 페이지를 만들어줘");
-const scene2 = await aiAgentOS.request("상품 목록 페이지도 추가해줘");
-const scene3 = await aiAgentOS.request("장바구니 기능도 구현해줘");
+const scene1 = await director.request("쇼핑몰 메인 페이지를 만들어줘");
+const scene2 = await director.request("상품 목록 페이지도 추가해줘");
+const scene3 = await director.request("장바구니 기능도 구현해줘");
 ```
 
 #### 3. Mock Agent 사용 (개발/테스트)
 
 ```typescript
-import { AIAgentOS, createMockAgentCommunicationAdapter } from '@barocss/ui';
+import { Director, createMockAgentCommunicationAdapter } from '@barocss/ui';
 
 // Mock Agent로 테스트
 const agentComm = createMockAgentCommunicationAdapter({
@@ -1105,18 +1118,18 @@ const agentComm = createMockAgentCommunicationAdapter({
   errorRate: 0.1
 });
 
-const aiAgentOS = new AIAgentOS({ debug: true }, agentComm);
-await aiAgentOS.initialize();
+const director = new Director({ debug: true }, agentComm);
+await director.initialize();
 
 // 테스트용 Scene 생성
-const testScene = await aiAgentOS.request("테스트용 폼을 만들어줘");
+const testScene = await director.request("테스트용 폼을 만들어줘");
 ```
 
 #### 4. 고급 사용법 (기존 Scene 관리)
 
 ```typescript
 // 고급 사용자를 위한 기존 Scene 관리 API
-const customScene = aiAgentOS.createScene({
+const customScene = director.createScene({
   type: 'window',
   title: 'Custom Scene',
   component: {
@@ -1127,23 +1140,23 @@ const customScene = aiAgentOS.createScene({
 });
 
 // Scene 업데이트
-aiAgentOS.updateScene(customScene.id, {
+director.updateScene(customScene.id, {
   title: 'Updated Custom Scene'
 });
 
 // 모든 Scene 조회
-const allScenes = aiAgentOS.getAllScenes();
+const allScenes = director.getAllScenes();
 
 // 정리
-await aiAgentOS.shutdown();
+await director.shutdown();
 ```
 
 ### Interaction Layer 사용법
 
 ```typescript
 // 상태 관리
-const stateManager = aiAgentOS.getStateManager();
-const conversationManager = aiAgentOS.getConversationManager();
+const stateManager = director.getStateManager();
+const conversationManager = director.getConversationManager();
 
 // Scene별 상태 저장
 stateManager.setSceneState('scene-1', 'formData', { 
@@ -1170,7 +1183,7 @@ await conversationManager.handleUserAction(
 );
 
 // AI 응답 처리
-const aiResponse = await aiAgentOS.sendRequest({
+const aiResponse = await director.sendRequest({
   type: 'ai_query',
   payload: { query: 'Create a dashboard for the user' }
 });
@@ -1182,11 +1195,11 @@ await conversationManager.processAIResponse(aiResponse);
 
 ```typescript
 // 렌더러와 프로세서 가져오기
-const uiRenderer = aiAgentOS.getUIRenderer();
-const sceneProcessor = aiAgentOS.getSceneProcessor();
+const uiRenderer = director.getUIRenderer();
+const sceneProcessor = director.getSceneProcessor();
 
 // AI 응답 렌더링
-const aiResponse = await aiAgentOS.sendRequest({
+const aiResponse = await director.sendRequest({
   type: 'ai_query',
   payload: { query: 'Create a login form' }
 });
@@ -1240,17 +1253,17 @@ await uiRenderer.renderComponents(components);
 
 ```typescript
 // 이벤트 구독
-const unsubscribe = aiAgentOS.subscribeToEvents((event) => {
+const unsubscribe = director.subscribeToEvents((event) => {
   console.log('System event:', event);
 });
 
 // 컨텍스트 구독
-const unsubscribeContext = aiAgentOS.subscribeContext('global.user', (user) => {
+const unsubscribeContext = director.subscribeContext('global.user', (user) => {
   console.log('User updated:', user);
 });
 
 // 스트리밍 요청
-const stream = await aiAgentOS.sendStreamRequest(request);
+const stream = await director.sendStreamRequest(request);
 for await (const chunk of stream) {
   console.log('Stream chunk:', chunk);
 }
@@ -1262,7 +1275,7 @@ for await (const chunk of stream) {
 
 ```typescript
 // 기본 에러 클래스
-class AIAgentOSError extends Error {
+class DirectorError extends Error {
   constructor(
     message: string,
     public code: string,
@@ -1272,23 +1285,23 @@ class AIAgentOSError extends Error {
 }
 
 // 특화된 에러 클래스들
-class ContextError extends AIAgentOSError;
-class SceneError extends AIAgentOSError;
-class CommunicationError extends AIAgentOSError;
-class ValidationError extends AIAgentOSError;
+class ContextError extends DirectorError;
+class SceneError extends DirectorError;
+class CommunicationError extends DirectorError;
+class ValidationError extends DirectorError;
 ```
 
 ### 에러 처리 예제
 
 ```typescript
 try {
-  const response = await aiAgentOS.sendRequest(request);
+  const response = await director.sendRequest(request);
 } catch (error) {
   if (error instanceof CommunicationError) {
     console.error('Communication failed:', error.message);
     // 재연결 시도
     if (error.code === 'CONNECTION_LOST') {
-      await aiAgentOS.initialize();
+      await director.initialize();
     }
   } else if (error instanceof ValidationError) {
     console.error('Validation failed:', error.details);
@@ -1302,15 +1315,15 @@ try {
 
 ```typescript
 // 메모리 사용량 모니터링
-const stats = aiAgentOS.getStats();
+const stats = director.getStats();
 console.log('Memory usage:', stats.sceneStats.memoryUsage);
 
 // 메모리 정리
 if (stats.sceneStats.memoryUsage > threshold) {
   // 오래된 씬들 제거
-  const oldScenes = aiAgentOS.getAllScenes()
+  const oldScenes = director.getAllScenes()
     .filter(scene => Date.now() - scene.metadata.updatedAt > maxAge);
-  oldScenes.forEach(scene => aiAgentOS.removeScene(scene.id));
+  oldScenes.forEach(scene => director.removeScene(scene.id));
 }
 ```
 
@@ -1318,10 +1331,10 @@ if (stats.sceneStats.memoryUsage > threshold) {
 
 ```typescript
 // 컨텍스트 캐싱
-aiAgentOS.setContext('cache.scene-templates', templates);
+director.setContext('cache.scene-templates', templates);
 
 // 씬 캐싱
-const cachedScene = aiAgentOS.getScene('cached-scene-id');
+const cachedScene = director.getScene('cached-scene-id');
 if (cachedScene) {
   // 캐시된 씬 사용
 }
@@ -1332,9 +1345,9 @@ if (cachedScene) {
 ### Mock 객체
 
 ```typescript
-import { createMockAIAgentOS } from '@barocss/ui/testing';
+import { createMockDirector } from '@barocss/ui/testing';
 
-const mockOS = createMockAIAgentOS({
+const mockOS = createMockDirector({
   // Mock 설정
 });
 ```

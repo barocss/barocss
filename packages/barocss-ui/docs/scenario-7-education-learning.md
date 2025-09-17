@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("교육 및 학습 관리 시스템을 만들어줘. 내 학습 목표를 달성할 수 있도록 도와줘");
+const scene1 = await director.request("교육 및 학습 관리 시스템을 만들어줘. 내 학습 목표를 달성할 수 있도록 도와줘");
 ```
 
 #### AI가 받는 컨텍스트
@@ -360,7 +360,7 @@ const scene1 = await aiAgentOS.request("교육 및 학습 관리 시스템을 �
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("내 학습 목표에 맞는 새로운 코스를 추천해줘");
+const scene2 = await director.request("내 학습 목표에 맞는 새로운 코스를 추천해줘");
 ```
 
 #### AI 응답 및 생성된 UI

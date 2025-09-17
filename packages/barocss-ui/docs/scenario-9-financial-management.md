@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("금융 관리 시스템을 만들어줘. 내 수입과 지출을 관리하고 투자 조언을 받고 싶어");
+const scene1 = await director.request("금융 관리 시스템을 만들어줘. 내 수입과 지출을 관리하고 투자 조언을 받고 싶어");
 ```
 
 #### AI가 받는 컨텍스트
@@ -313,7 +313,7 @@ const scene1 = await aiAgentOS.request("금융 관리 시스템을 만들어줘.
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("내 투자 포트폴리오를 분석하고 개선 방안을 제안해줘");
+const scene2 = await director.request("내 투자 포트폴리오를 분석하고 개선 방안을 제안해줘");
 ```
 
 #### AI 응답 및 생성된 UI

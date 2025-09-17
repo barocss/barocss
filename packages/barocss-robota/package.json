@@ -1,0 +1,39 @@
+{
+  "name": "@barocss/robota",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Robota SDK integration for AI Agent OS (BaroCSS UI Director)",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "docs"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "test": "echo 'Tests not implemented yet'",
+    "test:watch": "echo 'Tests not implemented yet'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@barocss/ui": "workspace:*",
+    "typescript": "^5.9.2"
+  },
+  "peerDependencies": {
+    "@barocss/ui": "^1.0.0"
+  },
+  "optionalDependencies": {
+    "@robota-sdk/agents": "^1.0.0",
+    "@robota-sdk/openai": "^1.0.0",
+    "@robota-sdk/anthropic": "^1.0.0",
+    "@robota-sdk/team": "^1.0.0"
+  }
+}

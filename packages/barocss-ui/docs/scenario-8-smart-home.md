@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("스마트 홈 관리 시스템을 만들어줘. 집 안의 모든 기기를 제어하고 싶어");
+const scene1 = await director.request("스마트 홈 관리 시스템을 만들어줘. 집 안의 모든 기기를 제어하고 싶어");
 ```
 
 #### AI가 받는 컨텍스트
@@ -346,7 +346,7 @@ const scene1 = await aiAgentOS.request("스마트 홈 관리 시스템을 만들
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("편안한 모드로 설정해줘. 집 안을 편안하게 만들어줘");
+const scene2 = await director.request("편안한 모드로 설정해줘. 집 안을 편안하게 만들어줘");
 ```
 
 #### AI 응답 및 생성된 UI

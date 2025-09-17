@@ -1,16 +1,20 @@
 /**
  * UI Renderer
- * AI Agent OS의 UI 렌더링을 담당하는 클래스
+ * Director의 UI 렌더링을 담당하는 클래스
  */
 
 import {
   Scene,
   ComponentDefinition,
   UIAction,
-  UserEvent,
   Position,
-  Size
+  Size,
+  ISceneManager,
+  AgentResponse
 } from '../types';
+
+import { getService } from './service-container';
+import { formDataToRecord } from '../utils/form-data-helpers';
 
 export interface RenderOptions {
   container?: HTMLElement;
@@ -32,7 +36,6 @@ export interface RenderStats {
 export class UIRenderer {
   private container: HTMLElement;
   private renderedScenes: Map<string, HTMLElement> = new Map();
-  private sceneManager: any; // SceneManager 타입은 순환 참조를 피하기 위해 any 사용
   private options: RenderOptions;
   private renderStats: RenderStats;
   private eventListeners: Map<string, (event: Event) => void> = new Map();
@@ -55,10 +58,10 @@ export class UIRenderer {
   }
 
   /**
-   * SceneManager 설정
+   * SceneManager 조회
    */
-  setSceneManager(sceneManager: any): void {
-    this.sceneManager = sceneManager;
+  private getSceneManager(): ISceneManager | null {
+    return getService<ISceneManager>('sceneManager');
   }
 
   /**
@@ -68,8 +71,8 @@ export class UIRenderer {
     const startTime = performance.now();
     
     try {
-      // 기존 렌더링 제거
-      this.removeScene(scene.id);
+      // 기존 씬들 모두 제거 (새 Scene으로 교체)
+      this.clearAll();
 
       // 새 씬 렌더링
       const element = this.createSceneElement(scene);
@@ -82,9 +85,11 @@ export class UIRenderer {
       // 렌더링 통계 업데이트
       this.updateRenderStats(startTime);
 
+      // eslint-disable-next-line
       console.log(`[UIRenderer] Rendered scene: ${scene.id}`);
       
     } catch (error) {
+      // eslint-disable-next-line
       console.error(`[UIRenderer] Failed to render scene ${scene.id}:`, error);
       throw error;
     }
@@ -108,9 +113,11 @@ export class UIRenderer {
       // 액션 핸들러 재설정
       this.attachActionHandlers(existingElement, scene);
 
+      // eslint-disable-next-line
       console.log(`[UIRenderer] Updated scene: ${scene.id}`);
       
     } catch (error) {
+      // eslint-disable-next-line
       console.error(`[UIRenderer] Failed to update scene ${scene.id}:`, error);
       throw error;
     }
@@ -131,6 +138,7 @@ export class UIRenderer {
       }
       
       this.renderedScenes.delete(sceneId);
+      // eslint-disable-next-line
       console.log(`[UIRenderer] Removed scene: ${sceneId}`);
     }
   }
@@ -139,13 +147,14 @@ export class UIRenderer {
    * 모든 씬 제거
    */
   clearAll(): void {
-    for (const [sceneId, element] of this.renderedScenes) {
+    for (const [, element] of Array.from(this.renderedScenes)) {
       this.removeActionHandlers(element);
       if (element.parentNode) {
         element.parentNode.removeChild(element);
       }
     }
     this.renderedScenes.clear();
+    // eslint-disable-next-line
     console.log('[UIRenderer] Cleared all scenes');
   }
 
@@ -171,13 +180,64 @@ export class UIRenderer {
    * 씬 내용 렌더링
    */
   private renderSceneContent(container: HTMLElement, scene: Scene): void {
-    // HTML 렌더링
-    if (scene.ui?.html) {
+    // AI 응답에서 HTML 추출 시도
+    const aiHtml = this.extractAIHtmlContent(scene);
+    
+    if (aiHtml) {
+      container.innerHTML = aiHtml;
+    } else if (scene.ui && 'html' in scene.ui && typeof scene.ui.html === 'string') {
       container.innerHTML = scene.ui.html;
     } else {
       // 컴포넌트 기반 렌더링
       this.renderComponent(container, scene.component);
     }
+  }
+
+  /**
+   * Scene에서 AI가 생성한 HTML 콘텐츠 추출
+   */
+  private extractAIHtmlContent(scene: Scene): string | null {
+    // Scene.ui.content에서 직접 추출 (가장 우선순위)
+    if (scene.ui?.content && typeof scene.ui.content === 'string') {
+      return scene.ui.content;
+    }
+
+    // state.data.aiHtml에서 추출
+    if (scene.state?.data?.aiHtml) {
+      return scene.state.data.aiHtml as string;
+    }
+    
+    // context에서 AI HTML 찾기
+    if (scene.context?.data?.state?.aiHtml) {
+      return scene.context.data.state.aiHtml;
+    }
+
+    // ComponentDefinition에서 AI HTML 추출
+    if (scene.component?.props?.['data-ui-type'] === 'html') {
+      // SceneManager에서 AI 응답 HTML을 저장한 위치를 찾기
+      const metadata = scene.metadata;
+      if (metadata && 'aiResponse' in metadata) {
+        const aiResponse = metadata.aiResponse as AgentResponse;
+        if (aiResponse.type === 'success' && 'result' in aiResponse.data) {
+          const result = aiResponse.data.result;
+          if (result && typeof result === 'object' && 'ui' in result && result.ui && typeof result.ui === 'object' && 'content' in result.ui) {
+            return result.ui.content as string || null;
+          }
+          return null;
+        }
+        return null;
+      }
+    }
+    
+    // 기본 HTML 렌더링을 위한 fallback
+    if (scene.component?.name === 'AIGeneratedContent') {
+      return `<div class="ai-scene p-4 bg-gray-50 rounded">
+        <h2 class="text-lg font-bold mb-2">${scene.title}</h2>
+        <p class="text-gray-600">AI 응답을 렌더링 중...</p>
+      </div>`;
+    }
+    
+    return null;
   }
 
   /**
@@ -196,7 +256,13 @@ export class UIRenderer {
         } else if (key.startsWith('data-')) {
           element.setAttribute(key, String(value));
         } else {
-          (element as any)[key] = value;
+          // 표준 HTML 속성으로 설정
+          if (key in element) {
+            // eslint-disable-next-line
+            (element as Record<string, any>)[key] = value;
+          } else {
+            element.setAttribute(key, String(value));
+          }
         }
       });
     }
@@ -204,8 +270,12 @@ export class UIRenderer {
     // 자식 컴포넌트 렌더링
     if (component.children && component.children.length > 0) {
       component.children.forEach(child => {
-        const childElement = this.renderComponent(document.createElement('div'), child);
-        element.appendChild(childElement);
+        const childContainer = document.createElement('div');
+        this.renderComponent(childContainer, child);
+        // childContainer의 첫 번째 자식을 현재 element에 추가
+        if (childContainer.firstChild) {
+          element.appendChild(childContainer.firstChild);
+        }
       });
     }
 
@@ -217,7 +287,7 @@ export class UIRenderer {
    */
   private updateSceneContent(element: HTMLElement, scene: Scene): void {
     // HTML 업데이트
-    if (scene.ui?.html) {
+    if (scene.ui && 'html' in scene.ui && typeof scene.ui.html === 'string') {
       element.innerHTML = scene.ui.html;
     } else {
       // 컴포넌트 업데이트
@@ -302,15 +372,47 @@ export class UIRenderer {
     // 기존 핸들러 제거
     this.removeActionHandlers(element);
 
-    // 새 핸들러 설정
-    if (scene.ui?.actions) {
-      scene.ui.actions.forEach(action => {
-        this.attachActionHandler(element, action);
+    // 새 핸들러 설정 - actions는 Record<string, string> 형태
+    if (scene.ui?.actions && typeof scene.ui.actions === 'object') {
+      Object.entries(scene.ui.actions).forEach(([selector, actionName]) => {
+        // selector: '[data-action="save"]', actionName: 'save'
+        const actionElements = element.querySelectorAll(selector);
+        actionElements.forEach(actionElement => {
+          this.attachSelectorActionHandler(actionElement as HTMLElement, actionName as string, scene);
+        });
       });
     }
 
     // 일반적인 UI 액션들 설정
     this.attachCommonActionHandlers(element, scene);
+  }
+
+  /**
+   * 셀렉터 기반 액션 핸들러 설정
+   */
+  private attachSelectorActionHandler(element: HTMLElement, actionName: string, scene: Scene): void {
+    const handler = (event: Event) => {
+      event.preventDefault();
+      // eslint-disable-next-line
+      console.log(`[UIRenderer] Action triggered: ${actionName}`);
+      
+      // ActionHandler가 있으면 위임, 없으면 기본 처리
+      const sceneManager = this.getSceneManager();
+      if (sceneManager?.getActionHandler) {
+        const actionHandler = sceneManager.getActionHandler();
+        actionHandler.executeAction(actionName, {
+          element: element,
+          scene: scene,
+          event: event
+        });
+      }
+    };
+
+    element.addEventListener('click', handler);
+    
+    // 정리를 위해 핸들러 저장
+    const handlerId = `${scene.id}-${actionName}-${Date.now()}`;
+    this.eventListeners.set(handlerId, handler);
   }
 
   /**
@@ -323,7 +425,7 @@ export class UIRenderer {
     const handler = (event: Event) => {
       event.preventDefault();
       event.stopPropagation();
-      this.handleUIAction(action, actionElement as HTMLElement, event);
+      this.handleUIAction(action, actionElement as HTMLElement);
     };
 
     actionElement.addEventListener('click', handler);
@@ -359,7 +461,7 @@ export class UIRenderer {
     // 입력 필드 변경
     const inputs = element.querySelectorAll('input, textarea, select');
     inputs.forEach(input => {
-      const handler = (event: Event) => {
+      const handler = () => {
         this.handleInputChange(input as HTMLInputElement, scene);
       };
       input.addEventListener('change', handler);
@@ -373,7 +475,7 @@ export class UIRenderer {
    */
   private removeActionHandlers(element: HTMLElement): void {
     // 이벤트 리스너 정리
-    for (const [key, handler] of this.eventListeners) {
+    for (const [key, handler] of Array.from(this.eventListeners)) {
       if (key.startsWith(element.getAttribute('data-scene-id') || '')) {
         element.removeEventListener('click', handler);
         element.removeEventListener('submit', handler);
@@ -387,13 +489,14 @@ export class UIRenderer {
   /**
    * UI 액션 처리
    */
-  private handleUIAction(action: UIAction, element: HTMLElement, event: Event): void {
+  private handleUIAction(action: UIAction, element: HTMLElement): void {
+    // eslint-disable-next-line
     console.log(`[UIRenderer] Handling action: ${action.id} (${action.type})`);
     
     try {
       switch (action.type) {
         case 'navigate':
-          this.handleNavigateAction(action, element);
+          this.handleNavigateAction(element);
           break;
         case 'create-scene':
           this.handleCreateSceneAction(action, element);
@@ -402,15 +505,17 @@ export class UIRenderer {
           this.handleUpdateSceneAction(action, element);
           break;
         case 'close-scene':
-          this.handleCloseSceneAction(action, element);
+          this.handleCloseSceneAction(element);
           break;
         case 'custom':
           this.handleCustomAction(action, element);
           break;
         default:
+          // eslint-disable-next-line
           console.warn(`[UIRenderer] Unknown action type: ${action.type}`);
       }
     } catch (error) {
+      // eslint-disable-next-line
       console.error(`[UIRenderer] Error handling action ${action.id}:`, error);
     }
   }
@@ -418,10 +523,11 @@ export class UIRenderer {
   /**
    * 네비게이션 액션 처리
    */
-  private handleNavigateAction(action: UIAction, element: HTMLElement): void {
+  private handleNavigateAction(element: HTMLElement): void {
     const targetSceneId = element.getAttribute('data-target-scene');
-    if (targetSceneId && this.sceneManager) {
-      this.sceneManager.setActiveScene(targetSceneId);
+    const sceneManager = this.getSceneManager();
+    if (targetSceneId && sceneManager) {
+      sceneManager.setActiveScene(targetSceneId);
     }
   }
 
@@ -450,7 +556,7 @@ export class UIRenderer {
   /**
    * 씬 닫기 액션 처리
    */
-  private handleCloseSceneAction(action: UIAction, element: HTMLElement): void {
+  private handleCloseSceneAction(element: HTMLElement): void {
     const sceneId = element.closest('[data-scene-id]')?.getAttribute('data-scene-id');
     if (sceneId) {
       this.handleCloseScene(sceneId);
@@ -472,8 +578,9 @@ export class UIRenderer {
    * 씬 닫기 처리
    */
   private handleCloseScene(sceneId: string): void {
-    if (this.sceneManager) {
-      this.sceneManager.removeScene(sceneId);
+    const sceneManager = this.getSceneManager();
+    if (sceneManager) {
+      sceneManager.removeScene(sceneId);
     }
     this.removeScene(sceneId);
   }
@@ -483,16 +590,21 @@ export class UIRenderer {
    */
   private handleFormSubmit(form: HTMLFormElement, scene: Scene): void {
     const formData = new FormData(form);
+    // eslint-disable-next-line
     const data: Record<string, any> = {};
     
-    for (const [key, value] of formData.entries()) {
-      data[key] = value;
-    }
+    const formDataRecord = formDataToRecord(formData);
+    Object.assign(data, formDataRecord);
 
     // 폼 데이터를 씬 상태에 저장
-    if (this.sceneManager) {
-      this.sceneManager.updateScene(scene.id, {
-        state: { ...scene.state.data, formData: data }
+    const sceneManager = this.getSceneManager();
+    if (sceneManager) {
+      sceneManager.updateScene(scene.id, {
+        state: { 
+          ...scene.state, 
+          formData: data,
+          data: { ...scene.state.data }
+        }
       });
     }
 
@@ -513,14 +625,16 @@ export class UIRenderer {
     const value = input.type === 'checkbox' ? input.checked : input.value;
     
     // 입력 값을 씬 상태에 저장
-    if (this.sceneManager) {
-      this.sceneManager.updateScene(scene.id, {
+    const sceneManager = this.getSceneManager();
+    if (sceneManager) {
+      sceneManager.updateScene(scene.id, {
         state: { 
-          ...scene.state.data, 
+          ...scene.state,
           inputs: { 
-            ...scene.state.data.inputs, 
+            ...scene.state.inputs, 
             [name]: value 
-          } 
+          },
+          data: { ...scene.state.data }
         }
       });
     }
@@ -548,7 +662,7 @@ export class UIRenderer {
    */
   private estimateMemoryUsage(): number {
     let totalSize = 0;
-    for (const element of this.renderedScenes.values()) {
+    for (const element of Array.from(this.renderedScenes.values())) {
       totalSize += element.innerHTML.length * 2; // 대략적인 계산
     }
     return totalSize;

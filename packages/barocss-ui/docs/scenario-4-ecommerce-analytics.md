@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("내 쇼핑 데이터를 분석해서 인사이트를 보여줘");
+const scene1 = await director.request("내 쇼핑 데이터를 분석해서 인사이트를 보여줘");
 ```
 
 #### AI가 받는 컨텍스트
@@ -227,7 +227,7 @@ const scene1 = await aiAgentOS.request("내 쇼핑 데이터를 분석해서 인
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("더 자세한 구매 분석 리포트를 만들어줘");
+const scene2 = await director.request("더 자세한 구매 분석 리포트를 만들어줘");
 ```
 
 #### AI 응답 및 생성된 UI

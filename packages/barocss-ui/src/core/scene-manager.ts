@@ -1,20 +1,25 @@
 /**
  * Scene Manager
- * AI Agent OS의 씬 관리를 담당하는 클래스
+ * Director의 씬 관리를 담당하는 클래스
  */
 
 import {
   Scene,
   SceneConfig,
-  SceneType,
-  SceneState,
   ComponentDefinition,
   Position,
   Size,
   SceneError,
-  ValidationResult,
-  Schema
+  Schema,
+  ConversationChain,
+  AgentResponse,
+  IDirector,
+  UIContent
 } from '../types';
+import { ConversationContextAggregator } from './conversation-context-aggregator';
+import { AIRequestBuilder } from './ai-request-builder';
+import { getService } from './service-container';
+import { generateId, getCurrentTimestamp } from '../utils/id-generator';
 
 export interface SceneRelations {
   parent?: string;
@@ -48,17 +53,274 @@ export class SceneManager {
   private sceneRelations: Map<string, SceneRelations> = new Map();
   private activeSceneId: string | null = null;
   private sceneCounter: number = 0;
+  
+  // 대화형 Scene 체인 관리
+  private conversationChain: ConversationChain | null = null;
+  private contextAggregator: ConversationContextAggregator;
+  private aiRequestBuilder: AIRequestBuilder;
   private validationSchemas: Map<string, Schema> = new Map();
 
   constructor() {
+    this.contextAggregator = new ConversationContextAggregator();
+    this.aiRequestBuilder = new AIRequestBuilder();
     this.setupDefaultValidationSchemas();
   }
+
+  // ============================================================================
+  // 대화형 Scene 생성 API (핵심 기능)
+  // ============================================================================
+
+  /**
+   * 메인 API - 대화형 Scene 생성
+   * 사용자 입력을 받아 AI를 통해 새로운 Scene을 생성합니다.
+   */
+  async request(userInput: string): Promise<Scene> {
+    try {
+      // 1. 대화 체인이 없으면 새로 생성
+      if (!this.conversationChain) {
+        this.conversationChain = this.createNewConversationChain(userInput);
+      }
+
+      // 2. AI 요청 생성
+      const request = this.conversationChain.scenes.length === 0
+        ? this.aiRequestBuilder.buildInitialRequest(userInput)
+        : this.aiRequestBuilder.buildRequest(userInput, this.conversationChain);
+
+      // 3. AI Agent에 요청 (Director를 통해)
+      const director = getService<IDirector>('director');
+      if (!director || !director.sendRequest) {
+        throw new SceneError('Director instance or sendRequest method not available');
+      }
+      const aiResponse = await director.sendRequest(request);
+
+      // 4. AI 응답을 Scene으로 변환
+      const newScene = this.createSceneFromAIResponse(aiResponse);
+
+      // 5. 대화 체인에 추가
+      this.addSceneToChain(newScene, userInput, aiResponse);
+
+      // 6. Scene 등록
+      this.scenes.set(newScene.id, newScene);
+
+      return newScene;
+    } catch (error) {
+      // eslint-disable-next-line
+      console.error('Scene request failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new SceneError(`Failed to process request: ${errorMessage}`, error as Record<string, unknown>);
+    }
+  }
+
+  /**
+   * 대화 이력 조회
+   */
+  getConversationHistory(): Scene[] {
+    return this.conversationChain?.scenes || [];
+  }
+
+  /**
+   * 현재 대화 체인 조회
+   */
+  getCurrentConversationChain(): ConversationChain | null {
+    return this.conversationChain;
+  }
+
+  /**
+   * 대화 계속하기 (alias for request)
+   */
+  async continueConversation(userInput: string): Promise<Scene> {
+    return await this.request(userInput);
+  }
+
+  // ============================================================================
+  // 내부 메서드들
+  // ============================================================================
+
+  private createNewConversationChain(userInput: string): ConversationChain {
+    const chainId = generateId('chain');
+    const timestamp = getCurrentTimestamp();
+    
+    return {
+      id: chainId,
+      scenes: [],
+      currentSceneId: '',
+      context: {
+        userInputs: [{
+          id: generateId('input'),
+          input: userInput,
+          timestamp,
+          sceneId: '', // 아직 씬이 생성되지 않았으므로 빈 문자열
+          metadata: {
+            isInitial: true,
+            source: 'user'
+          }
+        }],
+        aiOutputs: [],
+        globalState: {},
+        sceneStates: {}
+      },
+      metadata: {
+        createdAt: timestamp,
+        lastUpdated: timestamp,
+        totalSteps: 0
+      }
+    };
+  }
+
+  private createSceneFromAIResponse(aiResponse: AgentResponse): Scene {
+    const sceneId = generateId('scene');
+    const timestamp = getCurrentTimestamp();
+    
+    // AI 응답에서 UI 정보 추출
+    const responseData = aiResponse.data && 'result' in aiResponse.data ? aiResponse.data.result : null;
+    const ui = responseData?.ui || {
+      type: 'html',
+      content: '<div class="p-4 bg-gray-100 rounded">AI 응답을 처리할 수 없습니다.</div>'
+    };
+    
+    return {
+      id: sceneId,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      version: 1,
+      type: 'window',
+      title: responseData?.title || `AI Scene - ${new Date().toLocaleTimeString()}`,
+      component: this.convertUIToComponentDefinition(ui),
+      state: { 
+        visible: true, 
+        active: true, 
+        focused: false, 
+        loading: false, 
+        error: null, 
+        data: { 
+          ...responseData?.state || {},
+          aiHtml: ui.content // AI 생성 HTML을 상태에 저장
+        }
+      },
+      ui: {
+        type: ui.type || 'html',
+        content: ui.content as string,
+        actions: ui.actions || this.extractActionsFromHTML(ui.content as string),
+        metadata: ui.metadata || {}
+      },
+      context: {
+        sceneId,
+        type: 'window',
+        title: responseData?.title || 'AI Generated Scene',
+        parent: {
+          sceneId: null,
+          relationship: 'parent'
+        },
+        children: {
+          sceneIds: [],
+          relationships: {}
+        },
+        state: {
+          visible: true,
+          active: true,
+          focused: false,
+          loading: false
+        },
+        data: {
+          props: {},
+          state: {
+            ...responseData?.state || {},
+            aiHtml: ui.content // context에도 저장
+          },
+          computed: {}
+        },
+        metadata: {
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          createdBy: 'ai',
+          version: 1
+        }
+      },
+      relationships: { 
+        parent: undefined, 
+        children: [], 
+        siblings: [] 
+      },
+      metadata: {
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        createdBy: 'ai',
+        version: 1,
+        aiResponse: aiResponse // AI 응답 전체를 메타데이터에 저장
+      }
+    };
+  }
+
+  private extractActionsFromHTML(html: string): Record<string, string> {
+    if (!html || typeof html !== 'string') {
+      return {};
+    }
+
+    const actions: Record<string, string> = {};
+    const actionMatches = html.matchAll(/data-action="([^"]+)"/g);
+    
+    for (const match of Array.from(actionMatches)) {
+      const actionName = match[1];
+      actions[`[data-action="${actionName}"]`] = actionName;
+    }
+    
+    return actions;
+  }
+
+  private convertUIToComponentDefinition(ui: UIContent): ComponentDefinition {
+    return {
+        id: generateId('comp'),
+      type: 'div',
+      name: 'AIGeneratedContent',
+      props: { 
+        className: 'ai-generated-scene',
+        'data-ui-type': ui.type 
+      },
+      children: ui.type === 'html' ? undefined : [],
+      events: ui.actions || {},
+      styles: {}
+    };
+  }
+
+  private addSceneToChain(scene: Scene, userInput: string, aiResponse: AgentResponse): void {
+    if (this.conversationChain) {
+      // UserInput 추가
+      const userInputObj = {
+        id: generateId('input'),
+        input: userInput,
+        timestamp: getCurrentTimestamp(),
+        sceneId: scene.id,
+        metadata: {}
+      };
+
+      // AIOutput 추가
+      const aiOutputObj = {
+        id: generateId('output'),
+        response: aiResponse,
+        timestamp: getCurrentTimestamp(),
+        sceneId: scene.id,
+        metadata: {}
+      };
+
+      // 대화 체인 업데이트
+      this.conversationChain.scenes.push(scene);
+      this.conversationChain.currentSceneId = scene.id;
+      this.conversationChain.context.userInputs.push(userInputObj);
+      this.conversationChain.context.aiOutputs.push(aiOutputObj);
+      this.conversationChain.metadata.lastUpdated = getCurrentTimestamp();
+      this.conversationChain.metadata.totalSteps++;
+    }
+  }
+
+  // ============================================================================
+  // 기존 Scene 관리 (고급 사용자용)
+  // ============================================================================
 
   /**
    * 씬 생성
    */
   createScene(config: SceneConfig): Scene {
-    const sceneId = config.id || this.generateSceneId();
+    const sceneId = config.id || generateId('scene');
     
     // 중복 ID 검사
     if (this.scenes.has(sceneId)) {
@@ -71,6 +333,9 @@ export class SceneManager {
     const now = Date.now();
     const scene: Scene = {
       id: sceneId,
+      createdAt: now,
+      updatedAt: now,
+      version: 1,
       type: config.type,
       title: config.title,
       component: config.component,
@@ -288,7 +553,7 @@ export class SceneManager {
     if (childRelations) {
       childRelations.parent = parentId;
       childScene.relationships.parent = parentId;
-      childScene.context.parent.sceneId = parentId;
+      childScene.context.parent.sceneId = parentId || null;
     }
   }
 
@@ -411,7 +676,7 @@ export class SceneManager {
     let circularReferences = 0;
 
     // 모든 씬 검사
-    for (const [sceneId, scene] of this.scenes) {
+    for (const [sceneId, scene] of Array.from(this.scenes)) {
       totalScenes++;
 
       // 루트 씬 카운트
@@ -494,7 +759,7 @@ export class SceneManager {
         return true;
       }
       const relations = this.sceneRelations.get(currentId);
-      currentId = relations?.parent;
+      currentId = relations?.parent || '';
     }
     return false;
   }
@@ -512,7 +777,7 @@ export class SceneManager {
       }
       visited.add(currentId);
       const relations = this.sceneRelations.get(currentId);
-      currentId = relations?.parent;
+      currentId = relations?.parent || '';
     }
     
     return false;
@@ -554,9 +819,6 @@ export class SceneManager {
   /**
    * 씬 ID 생성
    */
-  private generateSceneId(): string {
-    return `scene_${++this.sceneCounter}_${Date.now()}`;
-  }
 
   /**
    * 통계 정보 조회
@@ -583,7 +845,7 @@ export class SceneManager {
   private calculateMaxDepth(): number {
     let maxDepth = 0;
     
-    for (const scene of this.scenes.values()) {
+    for (const scene of Array.from(this.scenes.values())) {
       if (!scene.relationships.parent) {
         const depth = this.calculateSceneDepth(scene.id);
         maxDepth = Math.max(maxDepth, depth);
@@ -602,7 +864,7 @@ export class SceneManager {
     
     while (currentId) {
       const relations = this.sceneRelations.get(currentId);
-      currentId = relations?.parent;
+      currentId = relations?.parent || '';
       depth++;
     }
     
@@ -628,10 +890,10 @@ export class SceneManager {
   }
 }
 
-// ============================================================================
-// 팩토리 함수
-// ============================================================================
-
+/**
+ * SceneManager 팩토리 함수
+ */
 export function createSceneManager(): SceneManager {
   return new SceneManager();
 }
+

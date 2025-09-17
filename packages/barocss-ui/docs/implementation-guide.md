@@ -1,4 +1,4 @@
-# AI Agent OS Implementation Guide
+# Director Implementation Guide
 
 ## 구현 순서
 
@@ -53,11 +53,9 @@
 - AISceneProcessor 구현
 - 다중 렌더링 방식 지원
 
-### 9단계: 메인 클래스
-- 컴포넌트 통합
-- 생명주기 관리
-- 이벤트 시스템
-- 설정 관리
+### 9단계: 메인 런타임
+- Director: 컴포넌트 통합, 생명주기, 이벤트, 설정 관리
+- Stage: DOM 마운트, 렌더링, DOM 이벤트 위임
 
 ### 10단계: 테스트
 - 단위 테스트
@@ -91,7 +89,8 @@ packages/
 │   │   │   ├── ai-conversation-manager.ts # AI 대화 관리
 │   │   │   ├── hybrid-ui-renderer.ts # 하이브리드 UI 렌더러
 │   │   │   ├── ai-scene-processor.ts # AI 씬 프로세서
-│   │   │   └── ai-agent-os.ts        # 메인 클래스
+│   │   │   ├── director.ts           # 메인 오케스트레이터 (Director)
+│   │   │   └── stage.ts              # 렌더링 서피스 (Stage)
 │   │   ├── utils/
 │   │   │   ├── validation.ts         # 검증 유틸리티
 │   │   │   ├── error-handling.ts     # 에러 처리
@@ -194,7 +193,7 @@ export class SceneManager {
   private conversationChain: ConversationChain | null = null;
   private contextAggregator: ConversationContextAggregator;
   private aiRequestBuilder: AIRequestBuilder;
-  private aiAgentOS: AIAgentOS;
+  private director: Director;
 
   // 메인 API - 대화형 Scene 생성
   async request(userInput: string): Promise<Scene>;
@@ -352,7 +351,7 @@ export class SceneManager {
     const request = this.aiRequestBuilder.buildRequest(userInput, this.conversationChain);
 
     // 4. AI Agent에 요청
-    const aiResponse = await this.aiAgentOS.sendRequest(request);
+    const aiResponse = await this.director.sendRequest(request);
 
     // 5. AI 응답을 Scene으로 변환
     const newScene = this.createSceneFromAIResponse(aiResponse);
@@ -1074,8 +1073,8 @@ describe('ContextManager', () => {
 ### 통합 테스트
 
 ```typescript
-// AI Agent OS 통합 테스트
-describe('AIAgentOS Integration', () => {
+// Director + Stage 통합 테스트 (개요)
+describe('Director + Stage Integration', () => {
   it('should handle complete workflow with Third-party Agent', async () => {
     // Mock Third-party Agent 생성
     const mockAgent = createMockAgentCommunicationAdapter({
@@ -1083,36 +1082,38 @@ describe('AIAgentOS Integration', () => {
       errorRate: 0.1
     });
 
-    const aiAgentOS = new AIAgentOS({ debug: true }, mockAgent);
-    await aiAgentOS.initialize();
+    const director = new Director({ debug: true }, mockAgent);
+    await director.initialize();
+    const stage = new Stage({ mount: '#app', director });
+    stage.mount();
 
     // 씬 생성
-    const scene = aiAgentOS.createScene({
+    const scene = director.createScene({
       type: 'window',
       title: 'Test Scene',
       component: { type: 'div', name: 'TestComponent', props: {} }
     });
 
     // Agent 요청
-    const response = await aiAgentOS.sendRequest({
+    const response = await director.sendRequest({
       id: 'test-request',
       type: 'create_scene',
       payload: { message: 'Create a test scene' }
     });
 
     expect(response.status.success).toBe(true);
-    await aiAgentOS.shutdown();
+    await director.shutdown();
   });
 
   it('should work with OpenAI wrapper', async () => {
     const openai = new OpenAI({ apiKey: 'test-key' });
     const openaiWrapper = createOpenAIWrapper(openai, { model: 'gpt-4' });
     
-    const aiAgentOS = new AIAgentOS({ debug: true }, openaiWrapper);
-    await aiAgentOS.initialize();
+    const director = new Director({ debug: true }, openaiWrapper);
+    await director.initialize();
 
     // 테스트 로직...
-    await aiAgentOS.shutdown();
+    await director.shutdown();
   });
 });
 ```
@@ -1123,7 +1124,7 @@ describe('AIAgentOS Integration', () => {
 // End-to-End 테스트
 describe('E2E Workflow', () => {
   it('should handle user interaction flow', async () => {
-    // 1. AI Agent OS 초기화
+    // 1. Director 초기화
     // 2. 사용자 액션 시뮬레이션
     // 3. AI 응답 처리
     // 4. UI 업데이트 확인
@@ -1246,7 +1247,7 @@ class RecoveryManager {
 // 브라우저 개발자 도구
 class DevTools {
   static enableDebugMode(): void {
-    (window as any).AIAgentOS = {
+    (window as any).Director = {
       getInstance: () => globalInstance,
       getStats: () => globalInstance?.getStats(),
       getContext: (path: string) => globalInstance?.getContext(path),

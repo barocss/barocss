@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("건강 관리 시스템을 만들어줘. 운동과 식단을 관리하고 싶어");
+const scene1 = await director.request("건강 관리 시스템을 만들어줘. 운동과 식단을 관리하고 싶어");
 ```
 
 #### AI가 받는 컨텍스트
@@ -281,7 +281,7 @@ const scene1 = await aiAgentOS.request("건강 관리 시스템을 만들어줘.
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("조깅 운동을 시작했어. 실시간으로 추적하고 동기부여를 해줘");
+const scene2 = await director.request("조깅 운동을 시작했어. 실시간으로 추적하고 동기부여를 해줘");
 ```
 
 #### AI 응답 및 생성된 UI
@@ -434,7 +434,7 @@ setInterval(updateWorkoutStats, 1000);
 
 #### AI 요청
 ```typescript
-const scene3 = await aiAgentOS.request("조깅을 완료했어. 결과를 분석하고 다음 운동 계획을 세워줘");
+const scene3 = await director.request("조깅을 완료했어. 결과를 분석하고 다음 운동 계획을 세워줘");
 ```
 
 #### AI 응답 및 생성된 UI

@@ -1,6 +1,6 @@
 /**
  * Third-party Agent Wrapper
- * 기존 AI 라이브러리를 AIAgentOS와 연동하기 위한 래퍼
+ * 기존 AI 라이브러리를 Director와 연동하기 위한 래퍼
  */
 
 import { AgentRequest, AgentResponse } from '../types';
@@ -57,8 +57,8 @@ export interface ThirdPartyAgent {
 
 export class ThirdPartyAgentWrapper implements ThirdPartyAgent {
   private agent: any;
-  private name: string;
-  private type: string;
+  public name: string;
+  public type: string;
   private requestTransformer: (request: AgentRequest) => any;
   private responseTransformer: (response: any) => AgentResponse;
 
@@ -84,7 +84,8 @@ export class ThirdPartyAgentWrapper implements ThirdPartyAgent {
       const response = await this.agent.chat.completions.create(transformedRequest);
       return this.responseTransformer(response);
     } catch (error) {
-      throw new Error(`Third-party agent error: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Third-party agent error: ${errorMessage}`);
     }
   }
 
@@ -100,15 +101,17 @@ export class ThirdPartyAgentWrapper implements ThirdPartyAgent {
         stream: true
       });
 
+      const self = this;
       return {
         async *[Symbol.asyncIterator]() {
           for await (const chunk of stream) {
-            yield this.responseTransformer(chunk);
+            yield self.responseTransformer(chunk);
           }
         }
       };
     } catch (error) {
-      throw new Error(`Third-party agent stream error: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Third-party agent stream error: ${errorMessage}`);
     }
   }
 

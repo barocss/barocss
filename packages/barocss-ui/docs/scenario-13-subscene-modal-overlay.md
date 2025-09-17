@@ -9,7 +9,7 @@
 
 #### 사용자 요청
 ```typescript
-const scene1 = await aiAgentOS.request("프로젝트 관리 대시보드를 만들어줘. 프로젝트를 클릭하면 상세 정보를 모달로 보여줘");
+const scene1 = await director.request("프로젝트 관리 대시보드를 만들어줘. 프로젝트를 클릭하면 상세 정보를 모달로 보여줘");
 ```
 
 #### AI가 받는 컨텍스트
@@ -156,7 +156,7 @@ const scene1 = await aiAgentOS.request("프로젝트 관리 대시보드를 만�
 
 #### AI 요청
 ```typescript
-const scene2 = await aiAgentOS.request("AI 쇼핑몰 개발 프로젝트의 상세 정보를 모달로 보여줘");
+const scene2 = await director.request("AI 쇼핑몰 개발 프로젝트의 상세 정보를 모달로 보여줘");
 ```
 
 #### AI 응답 및 SubScene 모달 생성
@@ -298,7 +298,7 @@ const scene2 = await aiAgentOS.request("AI 쇼핑몰 개발 프로젝트의 상�
 
 #### AI 요청
 ```typescript
-const scene3 = await aiAgentOS.request("프로젝트에 새 작업을 추가할 수 있는 폼을 모달 안에 보여줘");
+const scene3 = await director.request("프로젝트에 새 작업을 추가할 수 있는 폼을 모달 안에 보여줘");
 ```
 
 #### AI 응답 및 SubScene 업데이트
@@ -416,7 +416,7 @@ const scene3 = await aiAgentOS.request("프로젝트에 새 작업을 추가할 
 
 #### AI 요청
 ```typescript
-const scene4 = await aiAgentOS.request("작업이 추가되었어. 모달을 닫고 메인 화면을 업데이트해줘");
+const scene4 = await director.request("작업이 추가되었어. 모달을 닫고 메인 화면을 업데이트해줘");
 ```
 
 #### AI 응답 및 SubScene 업데이트
@@ -493,19 +493,19 @@ const scene4 = await aiAgentOS.request("작업이 추가되었어. 모달을 닫
 ### 4. SubScene 모달 패턴
 ```typescript
 // 모달 SubScene 열기
-aiAgentOS.openModalSubScene('project-detail', {
+director.openModalSubScene('project-detail', {
   projectId: 'proj1',
   data: projectData,
   onClose: () => updateMainScene()
 });
 
 // 모달 SubScene 닫기
-aiAgentOS.closeModalSubScene('project-detail', {
+director.closeModalSubScene('project-detail', {
   updateMainScene: true
 });
 
 // 중첩 모달 처리
-aiAgentOS.openModalSubScene('add-task', {
+director.openModalSubScene('add-task', {
   parentModal: 'project-detail',
   projectId: 'proj1'
 });

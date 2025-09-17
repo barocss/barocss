@@ -1,15 +1,20 @@
 /**
  * Action Handler
- * AI Agent OS의 사용자 액션 처리를 담당하는 클래스
+ * Director의 사용자 액션 처리를 담당하는 클래스
  */
 
 import {
   UIAction,
-  UserEvent,
-  AgentRequest,
-  UserActionRequest,
-  SystemEvent
+  ActionData,
+  ISceneManager,
+  IUIRenderer,
+  Scene,
+  ComponentProp,
+  SceneState
 } from '../types';
+
+import { getService } from './service-container';
+import { formDataToRecord } from '../utils/form-data-helpers';
 
 export interface ActionHandlerOptions {
   enableEventDelegation?: boolean;
@@ -23,7 +28,7 @@ export interface ActionLog {
   id: string;
   action: string;
   target: string;
-  data: any;
+  data: ActionData;
   timestamp: number;
   success: boolean;
   error?: string;
@@ -31,8 +36,6 @@ export interface ActionLog {
 }
 
 export class ActionHandler {
-  private sceneManager: any; // SceneManager 타입은 순환 참조를 피하기 위해 any 사용
-  private uiRenderer: any;   // UIRenderer 타입은 순환 참조를 피하기 위해 any 사용
   private options: ActionHandlerOptions;
   private actionLogs: ActionLog[] = [];
   private eventListeners: Map<string, (event: Event) => void> = new Map();
@@ -52,17 +55,17 @@ export class ActionHandler {
   }
 
   /**
-   * SceneManager 설정
+   * SceneManager 조회
    */
-  setSceneManager(sceneManager: any): void {
-    this.sceneManager = sceneManager;
+  private getSceneManager(): ISceneManager | null {
+    return getService<ISceneManager>('sceneManager');
   }
 
   /**
-   * UIRenderer 설정
+   * UIRenderer 조회
    */
-  setUIRenderer(uiRenderer: any): void {
-    this.uiRenderer = uiRenderer;
+  private getUIRenderer(): IUIRenderer | null {
+    return getService<IUIRenderer>('uiRenderer');
   }
 
   /**
@@ -70,22 +73,22 @@ export class ActionHandler {
    */
   private setupEventListeners(): void {
     // 씬 생성 이벤트
-    document.addEventListener('request-new-scene', this.handleNewSceneRequest.bind(this));
+    document.addEventListener('request-new-scene', this.handleNewSceneRequest.bind(this) as EventListener);
     
     // 씬 네비게이션 이벤트
-    document.addEventListener('navigate-to-scene', this.handleNavigateToScene.bind(this));
+    document.addEventListener('navigate-to-scene', this.handleNavigateToScene.bind(this) as EventListener);
     
     // 씬 업데이트 이벤트
-    document.addEventListener('request-scene-update', this.handleSceneUpdate.bind(this));
+    document.addEventListener('request-scene-update', this.handleSceneUpdate.bind(this) as EventListener);
     
     // 커스텀 액션 이벤트
-    document.addEventListener('custom-action', this.handleCustomAction.bind(this));
+    document.addEventListener('custom-action', this.handleCustomAction.bind(this) as EventListener);
     
     // 폼 제출 이벤트
-    document.addEventListener('form-submit', this.handleFormSubmit.bind(this));
+    document.addEventListener('form-submit', this.handleFormSubmit.bind(this) as EventListener);
     
     // 입력 변경 이벤트
-    document.addEventListener('input-change', this.handleInputChange.bind(this));
+    document.addEventListener('input-change', this.handleInputChange.bind(this) as EventListener);
     
     // 전역 클릭 이벤트 (이벤트 위임)
     if (this.options.enableEventDelegation) {
@@ -96,26 +99,32 @@ export class ActionHandler {
   /**
    * 새 씬 생성 요청 처리
    */
-  private handleNewSceneRequest(event: CustomEvent): void {
-    const { action, element } = event.detail;
+  private async handleNewSceneRequest(event: Event): Promise<void> {
+    const customEvent = event as CustomEvent;
+    const { action } = customEvent.detail;
     
     try {
-      this.logAction('request-new-scene', action.id, element, action.data);
+      this.logAction('request-new-scene', action.id, action.data);
       
       // 씬 생성 로직
-      if (this.sceneManager) {
-        const sceneConfig = this.createSceneConfigFromAction(action, element);
-        const scene = this.sceneManager.createScene(sceneConfig);
+      const sceneManager = this.getSceneManager();
+      const uiRenderer = this.getUIRenderer();
+      
+      if (sceneManager) {
+        const sceneConfig = this.createSceneConfigFromAction(action);
+        const scene = await sceneManager.createScene(sceneConfig);
         
         // UI 렌더링
-        if (this.uiRenderer) {
-          this.uiRenderer.renderScene(scene);
+        if (uiRenderer && scene) {
+          uiRenderer.renderScene(scene);
         }
         
-        console.log(`[ActionHandler] Created new scene: ${scene.id}`);
+        // eslint-disable-next-line
+        console.log(`[ActionHandler] Created new scene: ${scene?.id}`);
       }
       
     } catch (error) {
+      // eslint-disable-next-line
       console.error('[ActionHandler] Failed to create new scene:', error);
       this.handleActionError('request-new-scene', action.id, error);
     }
@@ -124,19 +133,23 @@ export class ActionHandler {
   /**
    * 씬 네비게이션 처리
    */
-  private handleNavigateToScene(event: CustomEvent): void {
-    const { action, element } = event.detail;
+  private handleNavigateToScene(event: Event): void {
+    const customEvent = event as CustomEvent;
+    const { action, element } = customEvent.detail;
     
     try {
-      this.logAction('navigate-to-scene', action.id, element, action.data);
+      this.logAction('navigate-to-scene', action.id, action.data);
       
       const targetSceneId = element.getAttribute('data-target-scene');
-      if (targetSceneId && this.sceneManager) {
-        this.sceneManager.setActiveScene(targetSceneId);
+      const sceneManager = this.getSceneManager();
+      if (targetSceneId && sceneManager) {
+        sceneManager.setActiveScene(targetSceneId);
+        // eslint-disable-next-line
         console.log(`[ActionHandler] Navigated to scene: ${targetSceneId}`);
       }
       
     } catch (error) {
+      // eslint-disable-next-line
       console.error('[ActionHandler] Failed to navigate to scene:', error);
       this.handleActionError('navigate-to-scene', action.id, error);
     }
@@ -145,29 +158,35 @@ export class ActionHandler {
   /**
    * 씬 업데이트 처리
    */
-  private handleSceneUpdate(event: CustomEvent): void {
-    const { action, element } = event.detail;
+  private async handleSceneUpdate(event: Event): Promise<void> {
+    const customEvent = event as CustomEvent;
+    const { action, element } = customEvent.detail;
     
     try {
-      this.logAction('request-scene-update', action.id, element, action.data);
+      this.logAction('request-scene-update', action.id, action.data);
       
       const sceneId = element.closest('[data-scene-id]')?.getAttribute('data-scene-id');
-      if (sceneId && this.sceneManager) {
-        const updates = this.createUpdateConfigFromAction(action, element);
-        this.sceneManager.updateScene(sceneId, updates);
+      const sceneManager = this.getSceneManager();
+      const uiRenderer = this.getUIRenderer();
+      
+      if (sceneId && sceneManager) {
+        const updates = this.createUpdateConfigFromAction(action);
+        await sceneManager.updateScene(sceneId, updates);
         
         // UI 업데이트
-        if (this.uiRenderer) {
-          const scene = this.sceneManager.getScene(sceneId);
+        if (uiRenderer) {
+          const scene = sceneManager.getScene(sceneId);
           if (scene) {
-            this.uiRenderer.updateScene(scene);
+            uiRenderer.updateScene(sceneId, scene);
           }
         }
         
+        // eslint-disable-next-line
         console.log(`[ActionHandler] Updated scene: ${sceneId}`);
       }
       
     } catch (error) {
+      // eslint-disable-next-line
       console.error('[ActionHandler] Failed to update scene:', error);
       this.handleActionError('request-scene-update', action.id, error);
     }
@@ -176,16 +195,18 @@ export class ActionHandler {
   /**
    * 커스텀 액션 처리
    */
-  private handleCustomAction(event: CustomEvent): void {
-    const { action, element } = event.detail;
+  private handleCustomAction(event: Event): void {
+    const customEvent = event as CustomEvent;
+    const { action, element } = customEvent.detail;
     
     try {
-      this.logAction('custom-action', action.id, element, action.data);
+      this.logAction('custom-action', action.id, action.data);
       
       // 커스텀 액션 로직
       this.executeCustomAction(action, element);
       
     } catch (error) {
+      // eslint-disable-next-line
       console.error('[ActionHandler] Failed to execute custom action:', error);
       this.handleActionError('custom-action', action.id, error);
     }
@@ -194,26 +215,34 @@ export class ActionHandler {
   /**
    * 폼 제출 처리
    */
-  private handleFormSubmit(event: CustomEvent): void {
-    const { sceneId, data } = event.detail;
+  private async handleFormSubmit(event: Event): Promise<void> {
+    const customEvent = event as CustomEvent;
+    const { sceneId, data } = customEvent.detail;
     
     try {
-      this.logAction('form-submit', 'form-submit', null, data);
+      this.logAction('form-submit', 'form-submit', data);
       
       // 폼 데이터 처리
-      if (this.sceneManager) {
-        const scene = this.sceneManager.getScene(sceneId);
+      const sceneManager = this.getSceneManager();
+      if (sceneManager) {
+        const scene = sceneManager.getScene(sceneId);
         if (scene) {
           // 폼 데이터를 씬 상태에 저장
-          this.sceneManager.updateScene(sceneId, {
-            state: { ...scene.state.data, formData: data }
+          await sceneManager.updateScene(sceneId, {
+            state: { 
+              ...scene.state, 
+              formData: data,
+              data: { ...scene.state.data }
+            }
           });
         }
       }
       
+      // eslint-disable-next-line
       console.log(`[ActionHandler] Form submitted for scene: ${sceneId}`);
       
     } catch (error) {
+      // eslint-disable-next-line
       console.error('[ActionHandler] Failed to handle form submit:', error);
       this.handleActionError('form-submit', 'form-submit', error);
     }
@@ -222,29 +251,33 @@ export class ActionHandler {
   /**
    * 입력 변경 처리
    */
-  private handleInputChange(event: CustomEvent): void {
-    const { sceneId, name, value } = event.detail;
+  private async handleInputChange(event: Event): Promise<void> {
+    const customEvent = event as CustomEvent;
+    const { sceneId, name, value } = customEvent.detail;
     
     try {
-      this.logAction('input-change', name, null, { name, value });
+      this.logAction('input-change', name, { name, value });
       
       // 입력 값 처리
-      if (this.sceneManager) {
-        const scene = this.sceneManager.getScene(sceneId);
+      const sceneManager = this.getSceneManager();
+      if (sceneManager) {
+        const scene = sceneManager.getScene(sceneId);
         if (scene) {
-          this.sceneManager.updateScene(sceneId, {
+          await sceneManager.updateScene(sceneId, {
             state: { 
-              ...scene.state.data, 
+              ...scene.state,
               inputs: { 
-                ...scene.state.data.inputs, 
+                ...scene.state.inputs, 
                 [name]: value 
-              } 
+              },
+              data: { ...scene.state.data }
             }
           });
         }
       }
       
     } catch (error) {
+      // eslint-disable-next-line
       console.error('[ActionHandler] Failed to handle input change:', error);
       this.handleActionError('input-change', name, error);
     }
@@ -260,46 +293,47 @@ export class ActionHandler {
     // 액션 버튼 클릭 처리
     const actionButton = target.closest('[data-action]') as HTMLElement;
     if (actionButton) {
-      this.handleButtonClick(actionButton, event);
+      this.handleButtonClick(actionButton);
     }
   }
 
   /**
    * 버튼 클릭 처리
    */
-  private handleButtonClick(button: HTMLElement, event: Event): void {
+  private handleButtonClick(button: HTMLElement): void {
     const actionType = button.getAttribute('data-action');
     if (!actionType) return;
 
     try {
       // 액션 데이터 추출
-      const actionData = this.extractActionData(button);
+      this.extractActionData(button);
       
       // 액션 타입에 따른 처리
       switch (actionType) {
         case 'navigate':
-          this.handleNavigateAction(button, actionData);
+          this.handleNavigateAction(button);
           break;
         case 'create-scene':
-          this.handleCreateSceneAction(button, actionData);
+          this.handleCreateSceneAction(button);
           break;
         case 'update-scene':
-          this.handleUpdateSceneAction(button, actionData);
+          this.handleUpdateSceneAction(button);
           break;
         case 'close-scene':
-          this.handleCloseSceneAction(button, actionData);
+          this.handleCloseSceneAction(button);
           break;
         case 'submit':
-          this.handleSubmitAction(button, actionData);
+          this.handleSubmitAction(button);
           break;
         case 'cancel':
-          this.handleCancelAction(button, actionData);
+          this.handleCancelAction(button);
           break;
         default:
-          this.handleCustomButtonAction(button, actionType, actionData);
+          this.handleCustomButtonAction(button, actionType);
       }
       
     } catch (error) {
+      // eslint-disable-next-line
       console.error('[ActionHandler] Failed to handle button click:', error);
       this.handleActionError('button-click', actionType, error);
     }
@@ -308,10 +342,13 @@ export class ActionHandler {
   /**
    * 네비게이션 액션 처리
    */
-  private handleNavigateAction(button: HTMLElement, data: any): void {
+  private handleNavigateAction(button: HTMLElement): void {
     const targetSceneId = button.getAttribute('data-target-scene');
-    if (targetSceneId && this.sceneManager) {
-      this.sceneManager.setActiveScene(targetSceneId);
+    const sceneManager = this.getSceneManager();
+    
+    if (targetSceneId && sceneManager) {
+      sceneManager.setActiveScene(targetSceneId);
+      // eslint-disable-next-line
       console.log(`[ActionHandler] Navigated to scene: ${targetSceneId}`);
     }
   }
@@ -319,13 +356,13 @@ export class ActionHandler {
   /**
    * 씬 생성 액션 처리
    */
-  private handleCreateSceneAction(button: HTMLElement, data: any): void {
+  private handleCreateSceneAction(button: HTMLElement): void {
     const event = new CustomEvent('request-new-scene', {
       detail: { 
         action: { 
           id: 'create-scene', 
           type: 'create-scene', 
-          data 
+          data: {}
         }, 
         element: button 
       }
@@ -336,13 +373,13 @@ export class ActionHandler {
   /**
    * 씬 업데이트 액션 처리
    */
-  private handleUpdateSceneAction(button: HTMLElement, data: any): void {
+  private handleUpdateSceneAction(button: HTMLElement): void {
     const event = new CustomEvent('request-scene-update', {
       detail: { 
         action: { 
           id: 'update-scene', 
           type: 'update-scene', 
-          data 
+          data: {} 
         }, 
         element: button 
       }
@@ -353,13 +390,16 @@ export class ActionHandler {
   /**
    * 씬 닫기 액션 처리
    */
-  private handleCloseSceneAction(button: HTMLElement, data: any): void {
+  private handleCloseSceneAction(button: HTMLElement): void {
     const sceneId = button.closest('[data-scene-id]')?.getAttribute('data-scene-id');
-    if (sceneId && this.sceneManager) {
-      this.sceneManager.removeScene(sceneId);
-      if (this.uiRenderer) {
-        this.uiRenderer.removeScene(sceneId);
+    const sceneManager = this.getSceneManager();
+    if (sceneId && sceneManager) {
+      sceneManager.removeScene(sceneId);
+      const uiRenderer = this.getUIRenderer();
+      if (uiRenderer) {
+        uiRenderer.removeScene(sceneId);
       }
+      // eslint-disable-next-line
       console.log(`[ActionHandler] Closed scene: ${sceneId}`);
     }
   }
@@ -367,15 +407,15 @@ export class ActionHandler {
   /**
    * 제출 액션 처리
    */
-  private handleSubmitAction(button: HTMLElement, data: any): void {
+  private handleSubmitAction(button: HTMLElement): void {
     const form = button.closest('form');
     if (form) {
       const formData = new FormData(form);
+      // eslint-disable-next-line
       const data: Record<string, any> = {};
       
-      for (const [key, value] of formData.entries()) {
-        data[key] = value;
-      }
+      const formDataRecord = formDataToRecord(formData);
+      Object.assign(data, formDataRecord);
       
       const event = new CustomEvent('form-submit', {
         detail: { 
@@ -390,23 +430,23 @@ export class ActionHandler {
   /**
    * 취소 액션 처리
    */
-  private handleCancelAction(button: HTMLElement, data: any): void {
+  private handleCancelAction(button: HTMLElement): void {
     const sceneId = button.closest('[data-scene-id]')?.getAttribute('data-scene-id');
     if (sceneId) {
-      this.handleCloseSceneAction(button, data);
+      this.handleCloseSceneAction(button);
     }
   }
 
   /**
    * 커스텀 버튼 액션 처리
    */
-  private handleCustomButtonAction(button: HTMLElement, actionType: string, data: any): void {
+  private handleCustomButtonAction(button: HTMLElement, actionType: string): void {
     const event = new CustomEvent('custom-action', {
       detail: { 
         action: { 
           id: actionType, 
           type: 'custom', 
-          data 
+          data: {}
         }, 
         element: button 
       }
@@ -417,11 +457,11 @@ export class ActionHandler {
   /**
    * 액션 데이터 추출
    */
-  private extractActionData(element: HTMLElement): any {
-    const data: any = {};
+  private extractActionData(element: HTMLElement): ActionData {
+    const data: ActionData = {};
     
     // data-* 속성들 추출
-    for (const attr of element.attributes) {
+    for (const attr of Array.from(element.attributes)) {
       if (attr.name.startsWith('data-') && attr.name !== 'data-action') {
         const key = attr.name.replace('data-', '');
         data[key] = attr.value;
@@ -432,9 +472,8 @@ export class ActionHandler {
     const form = element.closest('form');
     if (form) {
       const formData = new FormData(form);
-      for (const [key, value] of formData.entries()) {
-        data[key] = value;
-      }
+      const formDataRecord = formDataToRecord(formData);
+      Object.assign(data, formDataRecord);
     }
     
     return data;
@@ -445,11 +484,12 @@ export class ActionHandler {
    */
   private executeCustomAction(action: UIAction, element: HTMLElement): void {
     // 커스텀 액션 로직 구현
+    // eslint-disable-next-line
     console.log(`[ActionHandler] Executing custom action: ${action.id}`);
     
     // 예시: 토글 액션
     if (action.id === 'toggle') {
-      const target = element.querySelector(action.data.target);
+      const target = element.querySelector(action.data?.target || '');
       if (target) {
         target.classList.toggle('hidden');
       }
@@ -458,7 +498,7 @@ export class ActionHandler {
     // 예시: 애니메이션 액션
     if (action.id === 'animate') {
       element.style.transition = 'all 0.3s ease';
-      element.style.transform = action.data.transform || 'scale(1.1)';
+      element.style.transform = (action.data?.transform as string) || 'scale(1.1)';
       setTimeout(() => {
         element.style.transform = 'scale(1)';
       }, 300);
@@ -468,19 +508,20 @@ export class ActionHandler {
   /**
    * 액션 에러 처리
    */
-  private handleActionError(actionType: string, actionId: string, error: any): void {
+  private handleActionError(actionType: string, actionId: string, error: unknown): void {
+    // eslint-disable-next-line
     console.error(`[ActionHandler] Action error: ${actionType}.${actionId}`, error);
     
     // 에러 복구 시도
     if (this.options.enableErrorRecovery) {
-      this.attemptActionRecovery(actionType, actionId, error);
+      this.attemptActionRecovery(actionType, actionId);
     }
   }
 
   /**
    * 액션 복구 시도
    */
-  private attemptActionRecovery(actionType: string, actionId: string, error: any): void {
+  private attemptActionRecovery(actionType: string, actionId: string): void {
     const retryKey = `${actionType}.${actionId}`;
     const currentAttempts = this.retryAttempts.get(retryKey) || 0;
     
@@ -488,11 +529,13 @@ export class ActionHandler {
       this.retryAttempts.set(retryKey, currentAttempts + 1);
       
       setTimeout(() => {
+        // eslint-disable-next-line
         console.log(`[ActionHandler] Retrying action: ${retryKey} (attempt ${currentAttempts + 1})`);
         // 복구 로직 구현
         this.retryAttempts.delete(retryKey);
       }, this.options.retryDelay! * (currentAttempts + 1));
     } else {
+      // eslint-disable-next-line
       console.error(`[ActionHandler] Max retry attempts reached for: ${retryKey}`);
       this.retryAttempts.delete(retryKey);
     }
@@ -501,7 +544,7 @@ export class ActionHandler {
   /**
    * 액션 로깅
    */
-  private logAction(actionType: string, actionId: string, element: HTMLElement | null, data: any): void {
+  private logAction(actionType: string, actionId: string, data: ActionData): void {
     if (!this.options.enableActionLogging) return;
     
     const log: ActionLog = {
@@ -596,34 +639,48 @@ export class ActionHandler {
   /**
    * 씬 설정 생성 (액션에서)
    */
-  private createSceneConfigFromAction(action: UIAction, element: HTMLElement): any {
+  private createSceneConfigFromAction(action: UIAction): Partial<Scene> {
     return {
-      type: action.data.sceneType || 'window',
-      title: action.data.title || 'New Scene',
+      type: action.data?.sceneType || 'window',
+      title: action.data?.title || 'New Scene',
       component: {
         type: 'div',
         name: 'DynamicComponent',
-        props: action.data.props || {}
+        props: (action.data?.props as Record<string, ComponentProp>) || {}
       },
-      parentId: action.data.parentSceneId,
-      position: action.data.position,
-      size: action.data.size,
-      props: action.data.props,
-      state: action.data.state
+      // parentId: action.data?.parentSceneId, // Scene 인터페이스에 없음
+      // position: action.data?.position,      // Scene 인터페이스에 없음
+      // size: action.data?.size,             // Scene 인터페이스에 없음
+      // props: action.data?.props,           // Scene 인터페이스에 없음
+      state: action.data?.state as SceneState || {
+        visible: true,
+        active: false,
+        focused: false,
+        loading: false,
+        error: null,
+        data: {}
+      }
     };
   }
 
   /**
    * 업데이트 설정 생성 (액션에서)
    */
-  private createUpdateConfigFromAction(action: UIAction, element: HTMLElement): any {
+  private createUpdateConfigFromAction(action: UIAction): Partial<Scene> {
     return {
-      title: action.data.title,
-      component: action.data.component,
-      props: action.data.props,
-      state: action.data.state,
-      position: action.data.position,
-      size: action.data.size
+      title: action.data?.title,
+      component: action.data?.component,
+      // props: action.data?.props,    // Scene 인터페이스에 없음
+      state: action.data?.state as SceneState || {
+        visible: true,
+        active: false,
+        focused: false,
+        loading: false,
+        error: null,
+        data: {}
+      }
+      // position: action.data?.position, // Scene 인터페이스에 없음
+      // size: action.data?.size          // Scene 인터페이스에 없음
     };
   }
 }
