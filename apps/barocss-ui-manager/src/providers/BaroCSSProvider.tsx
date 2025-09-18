@@ -25,7 +25,20 @@ class MockAgent {
   }
   
   async sendRequest(request: any) {
-    const message = request.payload?.message || ''
+    // Extract user message robustly across various shapes
+    let message = ''
+    if (typeof request === 'string') {
+      message = request
+    } else if (request && typeof request === 'object') {
+      message = request.payload?.message
+        || request.payload?.input
+        || request.payload?.text
+        || request.message
+        || request.input
+        || request.text
+        || request.query
+        || ''
+    }
     
     // Parse message to determine response type
     let responseType: AIRenderType = 'content'
@@ -140,13 +153,13 @@ class MockAgent {
         </div>`
     }
 
-    // Create AI Response
+    // Create AI Response with stable id and default fallbacks
     const aiResponse: AIResponse = {
       type: responseType,
-      id: `response-${Date.now()}`,
+      id: `scene-${Date.now()}`,
       title,
       content,
-      metadata
+      metadata: metadata || {}
     }
 
     // Call the callback if provided
@@ -156,12 +169,12 @@ class MockAgent {
     
     return {
       type: 'success',
-      id: 'res-1',
+      id: `req-${Date.now()}`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       version: 1,
-      requestId: request.id,
-      correlationId: request.metadata?.correlationId,
+      requestId: request?.id || `local-${Date.now()}`,
+      correlationId: request?.metadata?.correlationId,
       data: {
         result: {
           content: aiResponse.content,
