@@ -15,6 +15,16 @@ export interface StylePartition {
   styleElement: HTMLStyleElement;
 }
 
+/**
+ * StylePartitionManager is a singleton class that manages the partition of styles into different parts.
+ * It is used to manage the partition of styles into different parts.
+ * 
+ * // TODO
+ * - browser optimization
+ *   - ::-moz-placeholder -> :placeholder-shown
+ *   - like browser specific rules
+ */
+
 export class StylePartitionManager {
   private partitions: StylePartition[] = [];
   private categoryPartitions: Map<string, StylePartition> = new Map();

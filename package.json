@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "pnpm --filter barocss-docs docs:dev",
     "dev:site": "pnpm --filter barocss-site dev:site",
+    "ui:site": "pnpm --filter barocss-ui-manager dev",
     "build": "pnpm --filter barocss-docs docs:build",
     "serve": "pnpm --filter barocss-docs docs:serve",
     "preview": "pnpm --filter barocss-docs docs:preview",
