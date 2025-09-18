@@ -88,7 +88,12 @@ export const ChatPanel: React.FC = () => {
 
     try {
       if (director && !isDirectorLoading) {
-        const result = await director.request(content)
+        const result: any = await director.request(content)
+        // Best-effort: pass aiResponse to window manager if present
+        const aiResponse = result?.data?.result?.metadata?.aiResponse
+        if (aiResponse && handleAIResponse) {
+          handleAIResponse(aiResponse)
+        }
         // Assistant acknowledgement in chat
         addMessage(activeSession.id, {
           role: 'assistant',
