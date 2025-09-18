@@ -142,7 +142,7 @@ export const ChatPanel: React.FC = () => {
 
   return (
     <TooltipProvider>
-      <div className="h-full flex flex-col bg-white">
+      <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Chat header */}
         <div className="px-6 py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
           <div className="flex items-center justify-between mb-4">
