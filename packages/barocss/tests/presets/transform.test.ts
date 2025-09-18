@@ -2,8 +2,29 @@ import { describe, it, expect } from "vitest";
 import "../../src/presets";
 import { parseClassToAst } from "../../src/core/engine";
 import { createContext } from "../../src/core/context";
+import { atRoot, property } from "../../src";
 
 const ctx = createContext({});
+
+
+const transformProperties = () => {
+  return atRoot(
+    [
+      property("--baro-translate-x", "0"),
+      property("--baro-translate-y", "0"),
+      property("--baro-translate-z", "0"),
+      property("--baro-rotate-x", "0"),
+      property("--baro-rotate-y", "0"),
+      property("--baro-rotate-z", "0"),
+      property("--baro-skew-x", "0"),
+      property("--baro-skew-y", "0"),
+      property("--baro-scale-x", "1"),
+      property("--baro-scale-y", "1"),
+      property("--baro-scale-z", "1"),
+    ],
+    "transform"
+  );
+};
 
 describe("transform ", () => {
   it("transform-none → transform: none", () => {
@@ -13,6 +34,7 @@ describe("transform ", () => {
   });
   it("transform-gpu → transform: translateZ(0) var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)", () => {
     expect(parseClassToAst("transform-gpu", ctx)).toMatchObject([
+      transformProperties(),
       {
         type: "decl",
         prop: "transform",
@@ -23,6 +45,7 @@ describe("transform ", () => {
   });
   it("transform-cpu → transform: var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)", () => {
     expect(parseClassToAst("transform-cpu", ctx)).toMatchObject([
+      transformProperties(),
       {
         type: "decl",
         prop: "transform",
@@ -186,64 +209,88 @@ describe("rotate utilities", () => {
 
   it("rotate-x-50 → transform: rotateX(50deg) var(--baro-rotate-y)", () => {
     expect(parseClassToAst("rotate-x-50", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "rotateX(50deg) var(--baro-rotate-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-x", value: "rotateX(50deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("-rotate-x-15 → transform: rotateX(-15deg) var(--baro-rotate-y)", () => {
     expect(parseClassToAst("-rotate-x-15", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "rotateX(-15deg) var(--baro-rotate-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-x", value: "rotateX(-15deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("rotate-x-(--my-rotation) → transform: rotateX(var(--my-rotation)) var(--baro-rotate-y)", () => {
     expect(parseClassToAst("rotate-x-(--my-rotation)", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "rotateX(var(--my-rotation)) var(--baro-rotate-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-x", value: "rotateX(var(--my-rotation))" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("rotate-x-[1.5turn] → transform: rotateX(1.5turn) var(--baro-rotate-y)", () => {
     expect(parseClassToAst("rotate-x-[1.5turn]", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "rotateX(1.5turn) var(--baro-rotate-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-x", value: "rotateX(1.5turn)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
 
   it("rotate-y-25 → transform: var(--baro-rotate-x) rotateY(25deg)", () => {
     expect(parseClassToAst("rotate-y-25", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) rotateY(25deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-y", value: "rotateY(25deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("-rotate-y-30 → transform: var(--baro-rotate-x) rotateY(-30deg)", () => {
     expect(parseClassToAst("-rotate-y-30", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) rotateY(-30deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-y", value: "rotateY(-30deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("rotate-y-(--my-rotation) → transform: var(--baro-rotate-x) rotateY(var(--my-rotation))", () => {
     expect(parseClassToAst("rotate-y-(--my-rotation)", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) rotateY(var(--my-rotation))" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-y", value: "rotateY(var(--my-rotation))" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("rotate-y-[2rad] → transform: var(--baro-rotate-x) rotateY(2rad)", () => {
     expect(parseClassToAst("rotate-y-[2rad]", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) rotateY(2rad)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-y", value: "rotateY(2rad)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
 
   it("rotate-z-45 → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(45deg)", () => {
     expect(parseClassToAst("rotate-z-45", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(45deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-z", value: "rotateZ(45deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("-rotate-z-30 → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(-30deg)", () => {
     expect(parseClassToAst("-rotate-z-30", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(-30deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-z", value: "rotateZ(-30deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("rotate-z-(--my-rotation) → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(var(--my-rotation))", () => {
     expect(parseClassToAst("rotate-z-(--my-rotation)", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(var(--my-rotation))" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-z", value: "rotateZ(var(--my-rotation))" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("rotate-z-[0.5turn] → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(0.5turn)", () => {
     expect(parseClassToAst("rotate-z-[0.5turn]", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(0.5turn)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-rotate-z", value: "rotateZ(0.5turn)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
 });
@@ -256,90 +303,130 @@ describe("scale utilities", () => {
   });
   it("scale-3d → scale: var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)", () => {
     expect(parseClassToAst("scale-3d", ctx)).toMatchObject([
+      transformProperties(),
       { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)" },
     ]);
   });
   it("scale-75 → scale: 75% 75%", () => {
     expect(parseClassToAst("scale-75", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "75% 75%" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-x", value: "75%" },
+      { type: "decl", prop: "--baro-scale-y", value: "75%" },
+      { type: "decl", prop: "--baro-scale-z", value: "75%" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
   it("-scale-80 → scale: calc(80% * -1) calc(80% * -1)", () => {
     expect(parseClassToAst("-scale-80", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "calc(80% * -1) calc(80% * -1)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-x", value: "calc(80% * -1)" },
+      { type: "decl", prop: "--baro-scale-y", value: "calc(80% * -1)" },
+      { type: "decl", prop: "--baro-scale-z", value: "calc(80% * -1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
   it("scale-(--my-scale) → scale: var(--my-scale) var(--my-scale)", () => {
     expect(parseClassToAst("scale-(--my-scale)", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--my-scale) var(--my-scale)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-x", value: "var(--my-scale)" },
+      { type: "decl", prop: "--baro-scale-y", value: "var(--my-scale)" },
+      { type: "decl", prop: "--baro-scale-z", value: "var(--my-scale)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
   it("scale-[1.7] → scale: 1.7", () => {
     expect(parseClassToAst("scale-[1.7]", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "1.7" },
+      { type: "decl", prop: "--baro-scale-x", value: "1.7" },
+      { type: "decl", prop: "--baro-scale-y", value: "1.7" },
+      { type: "decl", prop: "--baro-scale-z", value: "1.7" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
 
   it("scale-x-90 → scale: calc(90% * 1) var(--baro-scale-y)", () => {
     expect(parseClassToAst("scale-x-90", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "calc(90% * 1) var(--baro-scale-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-x", value: "calc(90% * 1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
   it("-scale-x-60 → scale: calc(60% * -1) var(--baro-scale-y)", () => {
     expect(parseClassToAst("-scale-x-60", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "calc(60% * -1) var(--baro-scale-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-x", value: "calc(60% * -1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
   it("scale-x-(--my-scale) → scale: var(--my-scale) var(--baro-scale-y)", () => {
     expect(parseClassToAst("scale-x-(--my-scale)", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--my-scale) var(--baro-scale-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-x", value: "var(--my-scale)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
   it("scale-x-[2.5] → scale: 2.5 var(--baro-scale-y)", () => {
     expect(parseClassToAst("scale-x-[2.5]", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "2.5" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-x", value: "2.5" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
 
   it("scale-y-110 → scale: var(--baro-scale-x) calc(110% * 1)", () => {
     expect(parseClassToAst("scale-y-110", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--baro-scale-x) calc(110% * 1)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-y", value: "calc(110% * 1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
   it("-scale-y-95 → scale: var(--baro-scale-x) calc(95% * -1)", () => {
     expect(parseClassToAst("-scale-y-95", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--baro-scale-x) calc(95% * -1)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-y", value: "calc(95% * -1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
   it("scale-y-(--my-scale) → scale: var(--baro-scale-x) var(--my-scale)", () => {
     expect(parseClassToAst("scale-y-(--my-scale)", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--my-scale)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-y", value: "var(--my-scale)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
   it("scale-y-[0.8] → scale: var(--baro-scale-x) 0.8", () => {
     expect(parseClassToAst("scale-y-[0.8]", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--baro-scale-x) 0.8" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-y", value: "0.8" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y)" },
     ]);
   });
 
   it("scale-z-120 → scale: var(--baro-scale-x) var(--baro-scale-y) calc(120% * 1)", () => {
     expect(parseClassToAst("scale-z-120", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) calc(120% * 1)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-z", value: "calc(120% * 1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)" },
     ]);
   });
   it("-scale-z-70 → scale: var(--baro-scale-x) var(--baro-scale-y) calc(70% * -1)", () => {
     expect(parseClassToAst("-scale-z-70", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) calc(70% * -1)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-z", value: "calc(70% * -1)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)" },
     ]);
   });
   it("scale-z-(--my-scale) → scale: var(--baro-scale-x) var(--baro-scale-y) var(--my-scale)", () => {
     expect(parseClassToAst("scale-z-(--my-scale)", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) var(--my-scale)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-z", value: "var(--my-scale)" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)" },
     ]);
   });
   it("scale-z-[1.2] → scale: var(--baro-scale-x) var(--baro-scale-y) 1.2", () => {
     expect(parseClassToAst("scale-z-[1.2]", ctx)).toMatchObject([
-      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) 1.2" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-scale-z", value: "1.2" },
+      { type: "decl", prop: "scale", value: "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)" },
     ]);
   });
 });
@@ -347,64 +434,92 @@ describe("scale utilities", () => {
 describe("skew utilities", () => {
   it("skew-4 → transform: skewX(4deg) skewY(4deg)", () => {
     expect(parseClassToAst("skew-4", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(4deg) skewY(4deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(4deg)" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(4deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("-skew-12 → transform: skewX(-12deg) skewY(-12deg)", () => {
     expect(parseClassToAst("-skew-12", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(-12deg) skewY(-12deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(-12deg)" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(-12deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("skew-(--my-skew) → transform: skewX(var(--my-skew)) skewY(var(--my-skew))", () => {
     expect(parseClassToAst("skew-(--my-skew)", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(var(--my-skew)) skewY(var(--my-skew))" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(var(--my-skew))" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(var(--my-skew))" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("skew-[0.5turn] → transform: skewX(0.5turn) skewY(0.5turn)", () => {
     expect(parseClassToAst("skew-[0.5turn]", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(0.5turn) skewY(0.5turn)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(0.5turn)" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(0.5turn)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
 
   it("skew-x-8 → transform: skewX(8deg)", () => {
     expect(parseClassToAst("skew-x-8", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(8deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(8deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("-skew-x-3 → transform: skewX(-3deg)", () => {
     expect(parseClassToAst("-skew-x-3", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(-3deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(-3deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("skew-x-(--my-skew) → transform: skewX(var(--my-skew))", () => {
     expect(parseClassToAst("skew-x-(--my-skew)", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(var(--my-skew))" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(var(--my-skew))" },
+      { type: "decl", prop: "transform", value: "var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("skew-x-[1.2rad] → transform: skewX(1.2rad)", () => {
     expect(parseClassToAst("skew-x-[1.2rad]", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(1.2rad)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(1.2rad)" },
+      { type: "decl", prop: "transform", value: "var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
 
   it("skew-y-6 → transform: skewY(6deg)", () => {
     expect(parseClassToAst("skew-y-6", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewY(6deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(6deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("-skew-y-2 → transform: skewY(-2deg)", () => {
     expect(parseClassToAst("-skew-y-2", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewY(-2deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(-2deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("skew-y-(--my-skew) → transform: skewY(var(--my-skew))", () => {
     expect(parseClassToAst("skew-y-(--my-skew)", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewY(var(--my-skew))" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(var(--my-skew))" },
+      { type: "decl", prop: "transform", value: "var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
   it("skew-y-[45deg] → transform: skewY(45deg)", () => {
     expect(parseClassToAst("skew-y-[45deg]", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewY(45deg)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(45deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-skew-x, ) var(--baro-skew-y, )" },
     ]);
   });
 });
@@ -499,48 +614,16 @@ describe("translate utilities ", () => {
   });
   it("translate-full → translate: 100% 100%", () => {
     expect(parseClassToAst("translate-full", ctx)).toMatchObject([
-      {type: "at-root", nodes: [
-        {type: "at-rule", name: "property", params: "--baro-translate-x", nodes: [
-          {type: "decl", prop: "syntax", value: '"*"'},
-          {type: "decl", prop: "inherits", value: "false"},
-          {type: "decl", prop: "initial-value", value: "0"},
-        ]},
-        {type: "at-rule", name: "property", params: "--baro-translate-y", nodes: [
-          {type: "decl", prop: "syntax", value: '"*"'},
-          {type: "decl", prop: "inherits", value: "false"},
-          {type: "decl", prop: "initial-value", value: "0"},
-        ]},
-        {type: "at-rule", name: "property", params: "--baro-translate-z", nodes: [
-          {type: "decl", prop: "syntax", value: '"*"'},
-          {type: "decl", prop: "inherits", value: "false"},
-          {type: "decl", prop: "initial-value", value: "0"},
-        ]},
-      ]},
+      transformProperties(),
       {type: "decl", prop: "--baro-translate-x", value: "100%"},
-      {type: "decl", prop: "--baro-translate-y", value: "100%"},
+      {type: "decl", prop: "--baro-translate-y", value: "100%"},  
       {type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y)"},
     ]);
   });
 
   it("-translate-full → translate: -100% -100%", () => {
     expect(parseClassToAst("-translate-full", ctx)).toMatchObject([
-      {type: "at-root", nodes: [
-        {type: "at-rule", name: "property", params: "--baro-translate-x", nodes: [
-          {type: "decl", prop: "syntax", value: '"*"'},
-          {type: "decl", prop: "inherits", value: "false"},
-          {type: "decl", prop: "initial-value", value: "0"},
-        ]},
-        {type: "at-rule", name: "property", params: "--baro-translate-y", nodes: [
-          {type: "decl", prop: "syntax", value: '"*"'},
-          {type: "decl", prop: "inherits", value: "false"},
-          {type: "decl", prop: "initial-value", value: "0"},
-        ]},
-        {type: "at-rule", name: "property", params: "--baro-translate-z", nodes: [
-          {type: "decl", prop: "syntax", value: '"*"'},
-          {type: "decl", prop: "inherits", value: "false"},
-          {type: "decl", prop: "initial-value", value: "0"},
-        ]},
-      ]},
+      transformProperties(),
       {type: "decl", prop: "--baro-translate-x", value: "-100%"},
       {type: "decl", prop: "--baro-translate-y", value: "-100%"},
       {type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y)"},
@@ -600,128 +683,180 @@ describe("translate utilities ", () => {
   // --- Functional: spacing scale (number) ---
   it("translate-2 → translate: calc(2 * 100%) calc(2 * 100%)", () => {
     expect(parseClassToAst("translate-2", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "calc(2 * 100%) calc(2 * 100%)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-x", value: "calc(2 * 100%)" },
+      { type: "decl", prop: "--baro-translate-y", value: "calc(2 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("-translate-3 → translate: calc(var(--spacing) * -3) calc(var(--spacing) * -3)", () => {
     expect(parseClassToAst("-translate-3", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "calc(var(--spacing) * -3) calc(var(--spacing) * -3)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-x", value: "calc(var(--spacing) * -3)" },
+      { type: "decl", prop: "--baro-translate-y", value: "calc(var(--spacing) * -3)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-x-4 → translate: calc(4 * 100%) var(--baro-translate-y)", () => {
     expect(parseClassToAst("translate-x-4", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "calc(4 * 100%) var(--baro-translate-y)" },
+      // transformProperties(),
+      { type: "decl", prop: "--baro-translate-x", value: "calc(4 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("-translate-x-1 → translate: calc(var(--spacing) * -1) var(--baro-translate-y)", () => {
     expect(parseClassToAst("-translate-x-1", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "calc(var(--spacing) * -1) var(--baro-translate-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-x", value: "calc(var(--spacing) * -1)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-y-5 → translate: var(--baro-translate-x) calc(5 * 100%)", () => {
     expect(parseClassToAst("translate-y-5", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) calc(5 * 100%)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-y", value: "calc(5 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("-translate-y-2 → translate: var(--baro-translate-x) calc(var(--spacing) * -2)", () => {
     expect(parseClassToAst("-translate-y-2", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) calc(var(--spacing) * -2)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-y", value: "calc(var(--spacing) * -2)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-z-6 → translate: var(--baro-translate-x) var(--baro-translate-y) calc(6 * 100%)", () => {
     expect(parseClassToAst("translate-z-6", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) calc(6 * 100%)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-z", value: "calc(6 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("-translate-z-2 → translate: var(--baro-translate-x) var(--baro-translate-y) calc(var(--spacing) * -2)", () => {
     expect(parseClassToAst("-translate-z-2", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) calc(var(--spacing) * -2)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-z", value: "calc(var(--spacing) * -2)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
 
   // --- Functional: fraction ---
   it("translate-1/2 → translate: calc(1/2 * 100%) calc(1/2 * 100%)", () => {
     expect(parseClassToAst("translate-1/2", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "calc(1/2 * 100%) calc(1/2 * 100%)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-x", value: "calc(1/2 * 100%)" },
+      { type: "decl", prop: "--baro-translate-y", value: "calc(1/2 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("-translate-1/4 → translate: calc(-1/4 * 100%) calc(-1/4 * 100%)", () => {
     expect(parseClassToAst("-translate-1/4", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "calc(-1/4 * 100%) calc(-1/4 * 100%)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-x", value: "calc(-1/4 * 100%)" },
+      { type: "decl", prop: "--baro-translate-y", value: "calc(-1/4 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-x-3/5 → translate: calc(3/5 * 100%) var(--baro-translate-y)", () => {
     expect(parseClassToAst("translate-x-3/5", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "calc(3/5 * 100%) var(--baro-translate-y)" },
+      { type: "decl", prop: "--baro-translate-x", value: "calc(3/5 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("-translate-x-2/3 → translate: calc(-2/3 * 100%) var(--baro-translate-y)", () => {
     expect(parseClassToAst("-translate-x-2/3", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "calc(-2/3 * 100%) var(--baro-translate-y)" },
+      { type: "decl", prop: "--baro-translate-x", value: "calc(-2/3 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-y-1/6 → translate: var(--baro-translate-x) calc(1/6 * 100%)", () => {
     expect(parseClassToAst("translate-y-1/6", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) calc(1/6 * 100%)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-y", value: "calc(1/6 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("-translate-y-1/3 → translate: var(--baro-translate-x) calc(-1/3 * 100%)", () => {
     expect(parseClassToAst("-translate-y-1/3", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) calc(-1/3 * 100%)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-y", value: "calc(-1/3 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-z-2/7 → translate: var(--baro-translate-x) var(--baro-translate-y) calc(2/7 * 100%)", () => {
     expect(parseClassToAst("translate-z-2/7", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) calc(2/7 * 100%)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-z", value: "calc(2/7 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("-translate-z-1/8 → translate: var(--baro-translate-x) var(--baro-translate-y) calc(-1/8 * 100%)", () => {
     expect(parseClassToAst("-translate-z-1/8", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) calc(-1/8 * 100%)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-z", value: "calc(-1/8 * 100%)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
 
   // --- Functional: arbitrary ---
   it("translate-[42px] → translate: 42px 42px", () => {
     expect(parseClassToAst("translate-[42px]", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "42px 42px" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-x", value: "42px" },
+      { type: "decl", prop: "--baro-translate-y", value: "42px" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-x-[10vw] → translate: 10vw var(--baro-translate-y)", () => {
     expect(parseClassToAst("translate-x-[10vw]", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "10vw var(--baro-translate-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-x", value: "10vw" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-y-[5rem] → translate: var(--baro-translate-x) 5rem", () => {
     expect(parseClassToAst("translate-y-[5rem]", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) 5rem" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-y", value: "5rem" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-z-[2em] → translate: var(--baro-translate-x) var(--baro-translate-y) 2em", () => {
     expect(parseClassToAst("translate-z-[2em]", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) 2em" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-z", value: "2em" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
 
   // --- Functional: custom property ---
   it("translate-(--my-translate) → translate: var(--my-translate) var(--my-translate)", () => {
     expect(parseClassToAst("translate-(--my-translate)", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--my-translate) var(--my-translate)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-x", value: "var(--my-translate)" },
+      { type: "decl", prop: "--baro-translate-y", value: "var(--my-translate)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-x-(--my-x) → translate: var(--my-x) var(--baro-translate-y)", () => {
     expect(parseClassToAst("translate-x-(--my-x)", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--my-x) var(--baro-translate-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-x", value: "var(--my-x)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-y-(--my-y) → translate: var(--baro-translate-x) var(--my-y)", () => {
     expect(parseClassToAst("translate-y-(--my-y)", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--my-y)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-y", value: "var(--my-y)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
   it("translate-z-(--my-z) → translate: var(--baro-translate-x) var(--baro-translate-y) var(--my-z)", () => {
     expect(parseClassToAst("translate-z-(--my-z)", ctx)).toMatchObject([
-      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--my-z)" },
+      transformProperties(),
+      { type: "decl", prop: "--baro-translate-z", value: "var(--my-z)" },
+      { type: "decl", prop: "translate", value: "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)" },
     ]);
   });
 }); 

@@ -42,6 +42,7 @@
         <nav class="hidden md:flex items-center gap-6 text-sm text-slate-600">
           <a class="hover:text-slate-900 transition-colors" href="#features">Features</a>
           <a class="hover:text-slate-900 transition-colors" href="#demo">Demo</a>
+          <a class="hover:text-slate-900 transition-colors" href="ui-test.html">UI Runtime Test</a>
           <a class="hover:text-slate-900 transition-colors" href="#install">Install</a>
           <a class="hover:text-slate-900 transition-colors" href="#footer">GitHub</a>
         </nav>
@@ -57,7 +58,7 @@
     <!-- Hero -->
     <section class="relative">
       <div class="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--baro-gradient-stops))] from-blue-200/40 via-transparent to-transparent"></div>
-      <div class="pointer-events-none absolute -top-24 left-1/2 h-[520px] w-[900px] -translate-x-1/2 rounded-full bg-gradient-to-r from-blue-300/30 via-cyan-200/20 to-indigo-300/30 blur-3xl"></div>
+      <div class="pointer-events-none absolute -top-24 left-1/2 h-[520px] w-[900px] translate-x-1/2 rounded-full bg-gradient-to-r from-blue-300/30 via-cyan-200/20 to-indigo-300/30 blur-3xl"></div>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
         <div class="grid lg:grid-cols-2 gap-10 items-center">
           <div class="max-w-2xl">
@@ -73,6 +74,7 @@
             </p>
             <div class="mt-8 flex flex-col sm:flex-row gap-3">
               <a href="#demo" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">Live Demo</a>
+              <a href="ui-test.html" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700 transition font-medium focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 focus:ring-offset-white">UI Runtime Test</a>
               <a href="#install" class="inline-flex items-center justify-center px-4 py-2 rounded-md border border-slate-300 hover:bg-slate-50 transition font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">Install</a>
               <a href="https://github.com/barocss/barocss" target="_blank" rel="noreferrer" class="inline-flex items-center justify-center px-4 py-2 rounded-md border border-slate-300 hover:bg-slate-50 transition font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white">GitHub</a>
             </div>
@@ -274,7 +276,7 @@ pnpm add @barocss/server   # For server usage</pre>
     <!-- Features -->
     <section id="features" class="py-16 sm:py-20 border-t border-slate-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid md:grid-cols-3 gap-6">
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div class="rounded-xl border border-slate-200 p-6 bg-white shadow-sm">
             <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-500 text-white">⚡</div>
             <h3 class="mt-4 text-lg font-semibold">Runtime‑first</h3>
@@ -289,6 +291,11 @@ pnpm add @barocss/server   # For server usage</pre>
             <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 text-white">🧠</div>
             <h3 class="mt-4 text-lg font-semibold">Smart parsing</h3>
             <p class="mt-2 text-slate-600">Incremental parsing and caching keep output tiny and fast.</p>
+          </div>
+          <div class="rounded-xl border border-slate-200 p-6 bg-white shadow-sm">
+            <div class="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 text-white">🤖</div>
+            <h3 class="mt-4 text-lg font-semibold">AI‑driven UI</h3>
+            <p class="mt-2 text-slate-600">Generate complete UI components with AI‑powered BaroCSS UI Runtime.</p>
           </div>
         </div>
       </div>
@@ -353,6 +360,7 @@ pnpm add @barocss/server   # For server usage</pre>
             <div class="mt-6 flex flex-col sm:flex-row gap-3">
               <a href="#install" class="inline-flex items-center justify-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition font-medium">Get Started</a>
               <a href="#demo" class="inline-flex items-center justify-center px-4 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 transition font-medium">Try the Demo</a>
+              <a href="ui-test.html" class="inline-flex items-center justify-center px-4 py-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 transition font-medium">Test UI Runtime</a>
             </div>
           </div>
           <div class="pointer-events-none absolute -right-10 -top-10 h-56 w-56 rounded-full bg-blue-200/40 blur-3xl"></div>

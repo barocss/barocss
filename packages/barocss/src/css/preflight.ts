@@ -190,6 +190,11 @@ textarea {
   margin: 0;
 }
 
+/* Remove default button border */
+button {
+  border: 0;
+}
+
 button,
 select {
   text-transform: none;
@@ -432,6 +437,11 @@ textarea {
   font-size: 100%;
   line-height: 1.15;
   margin: 0;
+}
+
+/* Remove default button border */
+button {
+  border: 0;
 }
 
 button,

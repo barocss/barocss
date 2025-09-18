@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>barocss-ui-manager</title>
+    <style type="text/css">
+
+      @view-transition {
+        navigation: auto;
+      }
+
+      html, body { height: 100%; margin: 0; overflow: hidden; }
+
+      .baro-boot-doing {
+        opacity: 0;
+      }
+      .baro-boot-done {
+        opacity: 1;
+      }
+
+      /* Ensure Radix dropdown/popup layers render above app chrome */
+      [data-radix-popper-content-wrapper] {
+        z-index: 9999 !important;
+      }
+    </style>
+    <script type="module">
+      import { baroStart } from '@barocss/browser';
+
+
+      document.startViewTransition(() => {
+        baroStart({
+          config: {
+            preflight: true,
+          }
+        });
+      });
+    </script>
+  </head>
+  <body class="bg-gray-50 baro-boot-doing m-0 min-h-screen baro-boot-doing">
+    <div id="app" class="w-screen h-dvh flex flex-col"></div>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

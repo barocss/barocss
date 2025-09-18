@@ -1,4 +1,8 @@
-export function normalizeClassName(className: any): string {
+export function splitClassName(className: string): string[] {
+    return className.split(/\s+/).filter(Boolean);
+}
+
+export function normalizeClassName(className: unknown): string {
     if (!className) return '';
   
     if (className instanceof SVGAnimatedString) {
@@ -8,7 +12,7 @@ export function normalizeClassName(className: any): string {
     return className.toString();
   }
   
-export function normalizeClassNameList(className: any): string[] {
+export function normalizeClassNameList(className: unknown): string[] {
     if (!className) return [];
-    return normalizeClassName(className).split(/\s+/).filter(Boolean);
+    return splitClassName(normalizeClassName(className));
 }

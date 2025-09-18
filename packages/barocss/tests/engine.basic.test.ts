@@ -2,8 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { parseClassToAst, generateCss } from '../src/core/engine';
 import '../src/presets';
 import { createContext } from '../src/core/context';
+import { decl, staticUtility } from '../src';
 
-describe('parseClassToAst (end-to-end)', () => {
+describe('parseClassToAst ', () => {
   const ctx = createContext({
     theme: {
       breakpoints: {
@@ -67,7 +68,6 @@ describe('parseClassToAst (end-to-end)', () => {
   });
 
   it('negative value', () => {
-    const ast = parseClassToAst('-mt-4', ctx);
     expect(generateCss('-mt-4', ctx)).toBe(
       `.-mt-4 {
   margin-top: calc(var(--spacing) * -4);
@@ -77,7 +77,6 @@ describe('parseClassToAst (end-to-end)', () => {
   });
 
   it('responsive + arbitrary', () => {
-    const ast = parseClassToAst('md:bg-[rgba(0,0,0,0.5)]', ctx);
     expect(generateCss('md:bg-[rgba(0,0,0,0.5)]', ctx)).toBe(
       `@media (min-width: 768px) {
   .md\\:bg-\\[rgba\\(0\\,0\\,0\\,0\\.5\\)\\] {
@@ -100,7 +99,6 @@ describe('parseClassToAst (end-to-end)', () => {
   });
 
   it('font size from theme', () => {
-    const ast = parseClassToAst('text-lg', ctx);
     expect(generateCss('text-lg', ctx)).toBe(
       `.text-lg {
   font-size: var(--text-lg);
@@ -333,3 +331,29 @@ describe('variant chain engine', () => {
     ]);
   });
 }); 
+
+describe('parseClassToAst (nested)', () => {
+  const ctx = createContext({
+    theme: { colors: { red: { 500: '#f00' } } }
+  });
+
+  staticUtility('btn-primary', [ 
+    decl('background-color', 'red'),
+    'text-white',
+    'hover:bg-blue-500',
+  ], {
+    description: 'Primary button',
+    category: 'buttons',
+    priority: 100
+  });
+
+  it('btn-primary', () => {
+    expect(parseClassToAst('btn-primary', ctx)).toMatchObject([
+      { type: 'decl', prop: 'background-color', value: 'red' },
+      { type: 'decl', prop: 'color', value: '#fff' },
+      { type: 'rule', selector: '&:hover', nodes: [
+        { type: 'decl', prop: 'background-color', value: '#3b82f6' }
+      ]}
+    ]);
+  });
+});

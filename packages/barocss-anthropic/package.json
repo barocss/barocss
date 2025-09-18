@@ -1,0 +1,40 @@
+{
+  "name": "@barocss/anthropic",
+  "version": "1.0.0",
+  "description": "Anthropic Claude wrapper for AI Agent OS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "//test": "vitest run",
+    "//lint": "eslint src --ext .ts",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "ai",
+    "anthropic",
+    "claude",
+    "agent",
+    "barocss",
+    "wrapper"
+  ],
+  "author": "Barocss Team",
+  "license": "MIT",
+  "dependencies": {
+    "@barocss/ui": "workspace:*",
+    "@anthropic-ai/sdk": "^0.20.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0",
+    "eslint": "^8.0.0"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": "^0.20.0"
+  }
+}

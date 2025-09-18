@@ -22,7 +22,7 @@ export interface UtilityRegistration {
    * @param token Parsed token
    * @param options Registration options
    */
-  handler: (value: string, ctx: Context, token: ParsedUtility, options: UtilityRegistration) => AstNode[] | null | undefined;
+  handler: (value: string, ctx: Context, token: ParsedUtility, options: UtilityRegistration) => (AstNode | string)[] | null | undefined;
   /**
    * The description of the utility
    * @example
@@ -151,6 +151,7 @@ export function escapeClassName(className: string) {
 
 type StaticUtilityValue = 
   | AstNode // ast
+  | string // string, e.g. 'bg-red-500 text-white'
   | [string, string] // [prop, value]
   | [string, [string, string][]] // [selector, [prop, value][]]
   | ((value: string) => AstNode); // function
@@ -190,8 +191,12 @@ export function staticUtility(
     match: (className: string) => {
       return className === name;
     },
-    handler: (value: string): AstNode[] | null | undefined => {
+    handler: (value: string): (AstNode | string)[] | null | undefined => {
       return decls.flatMap((params) => {
+
+        if (typeof params === 'string') {
+          return [params] as (AstNode | string)[];
+        }
 
         if ((params as AstNode).type) {
           return [params as AstNode];
@@ -322,9 +327,9 @@ export type FunctionalUtilityOptions = {
    * @param token The parsed utility
    * @param extra The extra metadata
    * 
-   * @returns {AstNode[] | null | undefined} The AST nodes or null | undefined
+   * @returns {AstNode[] | string[] | null | undefined} The AST nodes or null | undefined
    */
-  handle?: (value: string, ctx: Context, token: ParsedUtility, extra?: FunctionalUtilityExtra) => AstNode[] | null | undefined;
+  handle?: (value: string, ctx: Context, token: ParsedUtility, extra?: FunctionalUtilityExtra) => (AstNode | string)[] | null | undefined;
   /**
    * The handler function that processes bare values
    * 
@@ -417,7 +422,7 @@ export type FunctionalUtilityOptions = {
  *     supportsNegative: true,
  *     themeKeys: ['--z-index'],
  *     handleBareValue: ({ value }) => isPositiveInteger(value) ? value : null,
- *     handle: (value) => [decl('z-index', value)],
+ *     handle: (value) => [decl('z-index', value), 'bg-red-500 text-white'],
  *     description: 'z-index utility',
  *     category: 'layout',
  *   });

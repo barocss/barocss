@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BaroCSS UI Runtime Test</title>
+    <meta name="description" content="Test BaroCSS UI Runtime with AI-driven UI generation" />
+    <style type="text/css">
+      @view-transition {
+        navigation: auto;
+      }
+
+      .baro-boot-doing {
+        opacity: 0;
+      }
+      .baro-boot-done {
+        opacity: 1;
+      }
+
+      /* Custom styles for the test page */
+      .test-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+      }
+
+      .test-panel {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .input-section {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .input-field {
+        flex: 1;
+        min-width: 300px;
+        padding: 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      .test-button {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .test-button:hover {
+        background: #2563eb;
+      }
+
+      .test-button:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+      }
+
+      .quick-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+      }
+
+      .quick-button {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #d1d5db;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .quick-button:hover {
+        background: #e5e7eb;
+        border-color: #9ca3af;
+      }
+
+      .status-panel {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .status-item:last-child {
+        border-bottom: none;
+      }
+
+      .status-label {
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .status-value {
+        color: #6b7280;
+        font-family: monospace;
+        font-size: 0.875rem;
+      }
+
+      .log-panel {
+        background: #1f2937;
+        color: #f9fafb;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        font-family: monospace;
+        font-size: 0.875rem;
+        max-height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+      }
+
+      .log-entry {
+        margin-bottom: 0.5rem;
+        padding: 0.25rem 0;
+      }
+
+      .log-info {
+        color: #60a5fa;
+      }
+
+      .log-success {
+        color: #34d399;
+      }
+
+      .log-error {
+        color: #f87171;
+      }
+
+      .log-warning {
+        color: #fbbf24;
+      }
+
+      .ui-container {
+        min-height: 200px;
+        border: 2px dashed #d1d5db;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background: #f9fafb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6b7280;
+        font-style: italic;
+      }
+
+      .ui-container.has-content {
+        border-style: solid;
+        border-color: #10b981;
+        background: white;
+        align-items: flex-start;
+        justify-content: flex-start;
+      }
+
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6b7280;
+        text-decoration: none;
+        margin-bottom: 2rem;
+        transition: color 0.2s;
+      }
+
+      .back-link:hover {
+        color: #374151;
+      }
+    </style>
+    <script type="module">
+      import { baroStart } from '@barocss/browser';
+      import './src/ui-test.ts';
+
+      document.startViewTransition(() => {
+        baroStart({
+          config: {
+            preflight: true,
+          }
+        });
+      });
+    </script>
+  </head>
+  <body class="baro-boot-doing">
+    <div class="test-container">
+      <a href="index.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="m15 18-6-6 6-6"/>
+        </svg>
+        Back to BaroCSS
+      </a>
+
+      <div class="test-panel">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">BaroCSS UI Runtime Test</h1>
+        <p class="text-gray-600 mb-6">Test AI-driven UI generation with the BaroCSS UI Runtime system.</p>
+
+        <!-- Input Section -->
+        <div class="input-section">
+          <input 
+            type="text" 
+            id="userInput" 
+            class="input-field" 
+            placeholder="Enter your UI request (e.g., 'Create a login form', 'Show me a dashboard')"
+            value="Create a login form"
+          />
+          <button id="generateBtn" class="test-button">Generate UI</button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button class="quick-button" data-prompt="Create a login form">Login Form</button>
+          <button class="quick-button" data-prompt="Show me a dashboard">Dashboard</button>
+          <button class="quick-button" data-prompt="Create a contact form">Contact Form</button>
+          <button class="quick-button" data-prompt="Show me a product card">Product Card</button>
+          <button class="quick-button" data-prompt="Create a notification">Notification</button>
+          <button class="quick-button" data-prompt="Show me a modal dialog">Modal Dialog</button>
+          <button class="quick-button" data-prompt="Create a data table">Data Table</button>
+          <button class="quick-button" data-prompt="Show me a settings panel">Settings Panel</button>
+        </div>
+
+        <!-- Status Panel -->
+        <div class="status-panel">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Runtime Status</h3>
+          <div class="status-item">
+            <span class="status-label">Runtime State:</span>
+            <span id="runtimeState" class="status-value">Initializing...</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Active Windows:</span>
+            <span id="activeWindows" class="status-value">0</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Focused Window:</span>
+            <span id="focusedWindow" class="status-value">None</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Conversation Count:</span>
+            <span id="conversationCount" class="status-value">0</span>
+          </div>
+        </div>
+
+        <!-- UI Container -->
+        <div class="ui-container" id="uiContainer">
+          Generated UI will appear here...
+        </div>
+
+        <!-- Log Panel -->
+        <div class="log-panel" id="logPanel">
+          <div class="log-entry log-info">[INFO] BaroCSS UI Runtime initialized</div>
+          <div class="log-entry log-info">[INFO] Ready to generate UI</div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -3,6 +3,25 @@ import { atRoot, decl, property } from "../core/ast";
 import { staticUtility, functionalUtility } from "../core/registry";
 import { parseFractionOrNumber, parseNumber } from "../core/utils";
 
+const transformProperties = () => {
+  return atRoot(
+    [
+      property("--baro-translate-x", "0"),
+      property("--baro-translate-y", "0"),
+      property("--baro-translate-z", "0"),
+      property("--baro-rotate-x", "0"),
+      property("--baro-rotate-y", "0"),
+      property("--baro-rotate-z", "0"),
+      property("--baro-skew-x", "0"),
+      property("--baro-skew-y", "0"),
+      property("--baro-scale-x", "1"),
+      property("--baro-scale-y", "1"),
+      property("--baro-scale-z", "1"),
+    ],
+    "transform"
+  );
+};
+
 // --- Transform  ---
 // transform-none: disables all transforms
 staticUtility("transform-none", [["transform", "none"]], {
@@ -18,6 +37,7 @@ staticUtility(
       "transform",
       "translateZ(0) var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)",
     ],
+    transformProperties(),
   ],
   { category: "transform" }
 );
@@ -29,6 +49,7 @@ staticUtility("transform-cpu", [
     "transform",
     "var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)",
   ],
+  transformProperties(),
 ]);
 
 // --- Transform Style  ---
@@ -188,18 +209,37 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative }) => {
-    // rotate-x-45 → transform: rotateX(45deg) var(--baro-rotate-y)
-    // -rotate-x-45 → transform: rotateX(-45deg) var(--baro-rotate-y)
+    // rotate-x-45 → --baro-rotate-x: rotateX(45deg); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
+    // -rotate-x-45 → --baro-rotate-x: rotateX(-45deg); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("transform", `rotateX(${sign}${deg}) var(--baro-rotate-y)`)];
+      return [
+        decl("--baro-rotate-x", `rotateX(${sign}${deg})`),
+        decl(
+          "transform",
+          "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"
+        ),
+        transformProperties(),
+      ];
     }
-    // rotate-x-[3.142rad] → transform: rotateX(3.142rad) var(--baro-rotate-y)
-    return [decl("transform", `rotateX(${value}) var(--baro-rotate-y)`)];
+    // rotate-x-[3.142rad] → --baro-rotate-x: rotateX(3.142rad); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
+    return [
+      decl("--baro-rotate-x", `rotateX(${value})`),
+      decl(
+        "transform",
+        "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"
+      ),
+      transformProperties(),
+    ];
   },
   handleCustomProperty: (value) => [
-    decl("transform", `rotateX(var(${value})) var(--baro-rotate-y)`),
+    decl("--baro-rotate-x", `rotateX(var(${value}))`),
+    decl(
+      "transform",
+      "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"
+    ),
+    transformProperties(),
   ],
   description: "rotate-x utility (named, arbitrary, custom property supported)",
   category: "transform",
@@ -213,18 +253,37 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative }) => {
-    // rotate-y-45 → transform: var(--baro-rotate-x) rotateY(45deg)
-    // -rotate-y-45 → transform: var(--baro-rotate-x) rotateY(-45deg)
+    // rotate-y-45 → --baro-rotate-y: rotateY(45deg); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
+    // -rotate-y-45 → --baro-rotate-y: rotateY(-45deg); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("transform", `var(--baro-rotate-x) rotateY(${sign}${deg})`)];
+      return [
+        decl("--baro-rotate-y", `rotateY(${sign}${deg})`),
+        decl(
+          "transform",
+          "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"
+        ),
+        transformProperties(),
+      ];
     }
-    // rotate-y-[3.142rad] → transform: var(--baro-rotate-x) rotateY(3.142rad)
-    return [decl("transform", `var(--baro-rotate-x) rotateY(${value})`)];
+    // rotate-y-[3.142rad] → --baro-rotate-y: rotateY(3.142rad); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
+    return [
+      decl("--baro-rotate-y", `rotateY(${value})`),
+      decl(
+        "transform",
+        "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"
+      ),
+      transformProperties(),
+    ];
   },
   handleCustomProperty: (value) => [
-    decl("transform", `var(--baro-rotate-x) rotateY(var(${value}))`),
+    decl("--baro-rotate-y", `rotateY(var(${value}))`),
+    decl(
+      "transform",
+      "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"
+    ),
+    transformProperties(),
   ],
   description: "rotate-y utility (named, arbitrary, custom property supported)",
   category: "transform",
@@ -238,31 +297,37 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative }) => {
-    // rotate-z-45 → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(45deg)
-    // -rotate-z-45 → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(-45deg)
+    // rotate-z-45 → --baro-rotate-z: rotateZ(45deg); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
+    // -rotate-z-45 → --baro-rotate-z: rotateZ(-45deg); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
       return [
+        decl("--baro-rotate-z", `rotateZ(${sign}${deg})`),
         decl(
           "transform",
-          `var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(${sign}${deg})`
+          "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"
         ),
+        transformProperties(),
       ];
     }
-    // rotate-z-[3.142rad] → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(3.142rad)
+    // rotate-z-[3.142rad] → --baro-rotate-z: rotateZ(3.142rad); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
     return [
+      decl("--baro-rotate-z", `rotateZ(${value})`),
       decl(
         "transform",
-        `var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(${value})`
+        "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"
       ),
+      transformProperties(),
     ];
   },
   handleCustomProperty: (value) => [
+    decl("--baro-rotate-z", `rotateZ(var(${value}))`),
     decl(
       "transform",
-      `var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(var(${value}))`
+      "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"
     ),
+    transformProperties(),
   ],
   description: "rotate-z utility (named, arbitrary, custom property supported)",
   category: "transform",
@@ -289,7 +354,9 @@ functionalUtility({
     // rotate-[3.142rad] → rotate: 3.142rad
     return [decl("rotate", value)];
   },
-  handleCustomProperty: (value) => [decl("rotate", `var(${value})`)],
+  handleCustomProperty: (value) => [
+    decl("rotate", `var(${value})`),
+  ],
   description: "rotate utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -302,7 +369,10 @@ staticUtility("scale-none", [["scale", "none"]], { category: "transform" });
 // scale-3d
 staticUtility(
   "scale-3d",
-  [["scale", "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)"]],
+  [
+    ["scale", "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)"],
+    transformProperties(),
+  ],
   { category: "transform" }
 );
 
@@ -315,7 +385,11 @@ functionalUtility({
   supportsNegative: true,
   handle: (value, ctx, { negative, arbitrary }) => {
     if (arbitrary) {
-      return [decl("scale", `${value}`)];
+      return [
+        decl("--baro-scale-x", value),
+        decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+        transformProperties(),
+      ];
     }
 
     // scale-x-75 → scale: 75% var(--baro-scale-y)
@@ -323,13 +397,23 @@ functionalUtility({
     if (parseNumber(value) || negative) {
       const pct = `${Math.abs(Number(value))}%`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("scale", `calc(${pct} * ${sign}1) var(--baro-scale-y)`)];
+      return [
+        decl("--baro-scale-x", `calc(${pct} * ${sign}1)`),
+        decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+        transformProperties(),
+      ];
     }
     // scale-x-[1.7] → scale: 1.7 var(--baro-scale-y)
-    return [decl("scale", `${value} var(--baro-scale-y)`)];
+    return [
+      decl("--baro-scale-x", value),
+      decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+      transformProperties(),
+    ];
   },
   handleCustomProperty: (value) => [
-    decl("scale", `var(${value}) var(--baro-scale-y)`),
+    decl("--baro-scale-x", `var(${value})`),
+    decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+    transformProperties(),
   ],
   description: "scale-x utility (named, arbitrary, custom property supported)",
   category: "transform",
@@ -344,7 +428,11 @@ functionalUtility({
   supportsNegative: true,
   handle: (value, ctx, { negative, arbitrary }) => {
     if (arbitrary) {
-      return [decl("scale", `var(--baro-scale-x) ${value}`)];
+      return [
+        decl("--baro-scale-y", value),
+        decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+        transformProperties(),
+      ];
     }
 
     // scale-y-75 → scale: var(--baro-scale-x) 75%
@@ -352,13 +440,23 @@ functionalUtility({
     if (parseNumber(value) || negative) {
       const pct = `${Math.abs(Number(value))}%`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("scale", `var(--baro-scale-x) calc(${pct} * ${sign}1)`)];
+      return [
+        decl("--baro-scale-y", `calc(${pct} * ${sign}1)`),
+        decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+        transformProperties(),
+      ];
     }
     // scale-y-[1.7] → scale: var(--baro-scale-x) 1.7
-    return [decl("scale", `var(--baro-scale-x) ${value}`)];
+    return [
+      decl("--baro-scale-y", value),
+      decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+      transformProperties(),
+    ];
   },
   handleCustomProperty: (value) => [
-    decl("scale", `var(--baro-scale-x) var(${value})`),
+    decl("--baro-scale-y", `var(${value})`),
+    decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+    transformProperties(),
   ],
   description: "scale-y utility (named, arbitrary, custom property supported)",
   category: "transform",
@@ -374,7 +472,12 @@ functionalUtility({
   handle: (value, ctx, { negative, arbitrary }) => {
     if (arbitrary) {
       return [
-        decl("scale", `var(--baro-scale-x) var(--baro-scale-y) ${value}`),
+        decl("--baro-scale-z", value),
+        decl(
+          "scale",
+          "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)"
+        ),
+        transformProperties(),
       ];
     }
 
@@ -384,17 +487,31 @@ functionalUtility({
       const pct = `${Math.abs(Number(value))}%`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
       return [
+        decl("--baro-scale-z", `calc(${pct} * ${sign}1)`),
         decl(
           "scale",
-          `var(--baro-scale-x) var(--baro-scale-y) calc(${pct} * ${sign}1)`
+          `var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)`
         ),
+        transformProperties(),
       ];
     }
     // scale-z-[1.7] → scale: var(--baro-scale-x) var(--baro-scale-y) 1.7
-    return [decl("scale", `var(--baro-scale-x) var(--baro-scale-y) ${value}`)];
+    return [
+      decl("--baro-scale-z", value),
+      decl(
+        "scale",
+        "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)"
+      ),
+      transformProperties(),
+    ];
   },
   handleCustomProperty: (value) => [
-    decl("scale", `var(--baro-scale-x) var(--baro-scale-y) var(${value})`),
+    decl("--baro-scale-z", `var(${value})`),
+    decl(
+      "scale",
+      "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)"
+    ),
+    transformProperties(),
   ],
   description: "scale-z utility (named, arbitrary, custom property supported)",
   category: "transform",
@@ -409,23 +526,50 @@ functionalUtility({
   supportsNegative: true,
   handle: (value, ctx, { negative, arbitrary }) => {
     if (arbitrary) {
-      return [decl("scale", `${value}`)];
+      return [
+        decl("--baro-scale-x", value),
+        decl("--baro-scale-y", value),
+        decl("--baro-scale-z", value),
+        decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+      ];
     }
 
-    // scale-75 → scale: 75% 75%
-    // -scale-75 → scale: calc(75% * -1) calc(75% * -1)
+    // scale-125 → --baro-scale-x: 125%; --baro-scale-y: 125%; --baro-scale-z: 125%; scale: var(--baro-scale-x) var(--baro-scale-y);
+    // -scale-125 → --baro-scale-x: calc(125% * -1); --baro-scale-y: calc(125% * -1); --baro-scale-z: calc(125% * -1); scale: var(--baro-scale-x) var(--baro-scale-y);
     if (parseNumber(value) || negative) {
       const pct = `${Math.abs(Number(value))}%`;
       if (negative || String(value).startsWith("-")) {
-        return [decl("scale", `calc(${pct} * -1) calc(${pct} * -1)`)];
+        return [
+          decl("--baro-scale-x", `calc(${pct} * -1)`),
+          decl("--baro-scale-y", `calc(${pct} * -1)`),
+          decl("--baro-scale-z", `calc(${pct} * -1)`),
+          decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+          transformProperties(),
+        ];
       }
-      return [decl("scale", `${pct} ${pct}`)];
+      return [
+        decl("--baro-scale-x", pct),
+        decl("--baro-scale-y", pct),
+        decl("--baro-scale-z", pct),
+        decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+        transformProperties(),
+      ];
     }
-    // scale-[1.7] → scale: 1.7
-    return [decl("scale", value)];
+    // scale-[1.7] → --baro-scale-x: 1.7; --baro-scale-y: 1.7; --baro-scale-z: 1.7; scale: var(--baro-scale-x) var(--baro-scale-y);
+    return [
+      decl("--baro-scale-x", value),
+      decl("--baro-scale-y", value),
+      decl("--baro-scale-z", value),
+      decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+      transformProperties(),
+    ];
   },
   handleCustomProperty: (value) => [
-    decl("scale", `var(${value}) var(${value})`),
+    decl("--baro-scale-x", `var(${value})`),
+    decl("--baro-scale-y", `var(${value})`),
+    decl("--baro-scale-z", `var(${value})`),
+    decl("scale", "var(--baro-scale-x) var(--baro-scale-y)"),
+    transformProperties(),
   ],
   description: "scale utility (named, arbitrary, custom property supported)",
   category: "transform",
@@ -447,12 +591,24 @@ functionalUtility({
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("transform", `skewX(${sign}${deg})`)];
+      return [
+        decl("--baro-skew-x", `skewX(${sign}${deg})`),
+        decl("transform", "var(--baro-skew-x, ) var(--baro-skew-y, )"),
+        transformProperties(),
+      ];
     }
-    // skew-x-[3.142rad] → transform: skewX(3.142rad)
-    return [decl("transform", `skewX(${value})`)];
+    // skew-x-[3.142rad] → --baro-skew-x: skewX(3.142rad); transform: var(--baro-skew-x, ) var(--baro-skew-y, );
+    return [
+      decl("--baro-skew-x", `skewX(${value})`),
+      decl("transform", "var(--baro-skew-x, ) var(--baro-skew-y, )"),
+      transformProperties(),
+    ];
   },
-  handleCustomProperty: (value) => [decl("transform", `skewX(var(${value}))`)],
+  handleCustomProperty: (value) => [
+    decl("--baro-skew-x", `skewX(var(${value}))`),
+    decl("transform", "var(--baro-skew-x, ) var(--baro-skew-y, )"),
+    transformProperties(),
+  ],
   description: "skew-x utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -465,17 +621,29 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative }) => {
-    // skew-y-4 → transform: skewY(4deg)
-    // -skew-y-4 → transform: skewY(-4deg)
+    // skew-y-4 → --baro-skew-y: skewY(4deg); transform: var(--baro-skew-x, ) var(--baro-skew-y, );
+    // -skew-y-4 → --baro-skew-y: skewY(-4deg); transform: var(--baro-skew-x, ) var(--baro-skew-y, );
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("transform", `skewY(${sign}${deg})`)];
+      return [
+        decl("--baro-skew-y", `skewY(${sign}${deg})`),
+        decl("transform", "var(--baro-skew-x, ) var(--baro-skew-y, )"),
+        transformProperties(),
+      ];
     }
-    // skew-y-[3.142rad] → transform: skewY(3.142rad)
-    return [decl("transform", `skewY(${value})`)];
+    // skew-y-[3.142rad] → --baro-skew-y: skewY(3.142rad); transform: var(--baro-skew-x, ) var(--baro-skew-y, );
+    return [
+      decl("--baro-skew-y", `skewY(${value})`),
+      decl("transform", "var(--baro-skew-x, ) var(--baro-skew-y, )"),
+      transformProperties(),
+    ];
   },
-  handleCustomProperty: (value) => [decl("transform", `skewY(var(${value}))`)],
+  handleCustomProperty: (value) => [
+    decl("--baro-skew-y", `skewY(var(${value}))`),
+    decl("transform", "var(--baro-skew-x, ) var(--baro-skew-y, )"),
+    transformProperties(),
+  ],
   description: "skew-y utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -488,18 +656,31 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative }) => {
-    // skew-4 → transform: skewX(4deg) skewY(4deg)
-    // -skew-4 → transform: skewX(-4deg) skewY(-4deg)
+    // skew-12 → --baro-skew-x: skewX(12deg); --baro-skew-y: skewY(12deg); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
+    // -skew-12 → --baro-skew-x: skewX(-12deg); --baro-skew-y: skewY(-12deg); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("transform", `skewX(${sign}${deg}) skewY(${sign}${deg})`)];
+      return [
+        decl("--baro-skew-x", `skewX(${sign}${deg})`),
+        decl("--baro-skew-y", `skewY(${sign}${deg})`),
+        decl("transform", "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"),
+        transformProperties(),
+      ];
     }
-    // skew-[3.142rad] → transform: skewX(3.142rad) skewY(3.142rad)
-    return [decl("transform", `skewX(${value}) skewY(${value})`)];
+    // skew-[3.142rad] → --baro-skew-x: skewX(3.142rad); --baro-skew-y: skewY(3.142rad); transform: var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, );
+    return [
+      decl("--baro-skew-x", `skewX(${value})`),
+      decl("--baro-skew-y", `skewY(${value})`),
+      decl("transform", "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"),
+      transformProperties(),
+    ];
   },
   handleCustomProperty: (value) => [
-    decl("transform", `skewX(var(${value})) skewY(var(${value}))`),
+    decl("--baro-skew-x", `skewX(var(${value}))`),
+    decl("--baro-skew-y", `skewY(var(${value}))`),
+    decl("transform", "var(--baro-rotate-x, ) var(--baro-rotate-y, ) var(--baro-rotate-z, ) var(--baro-skew-x, ) var(--baro-skew-y, )"),
+    transformProperties(),
   ],
   description: "skew utility (named, arbitrary, custom property supported)",
   category: "transform",
@@ -557,16 +738,6 @@ functionalUtility({
 });
 
 // --- Translate  ---
-//  translate documentation
-
-const translateProperties = () =>
-  atRoot([
-    property("--baro-translate-x", "0"),
-    property("--baro-translate-y", "0"),
-    property("--baro-translate-z", "0"),
-  ]);
-
-// --- Static translate utilities ---
 // translate-none: disables all translation
 staticUtility("translate-none", [["translate", "none"]], {
   category: "transform",
@@ -582,7 +753,7 @@ staticUtility("-translate-px", [["translate", "-1px -1px"]], {
 staticUtility(
   "translate-full",
   [
-    translateProperties,
+    transformProperties(),
     ["--baro-translate-x", "100%"],
     ["--baro-translate-y", "100%"],
     ["translate", "var(--baro-translate-x) var(--baro-translate-y)"],
@@ -592,7 +763,7 @@ staticUtility(
 staticUtility(
   "-translate-full",
   [
-    translateProperties,
+    transformProperties(),
     ["--baro-translate-x", "-100%"],
     ["--baro-translate-y", "-100%"],
     ["translate", "var(--baro-translate-x) var(--baro-translate-y)"],
@@ -668,16 +839,41 @@ functionalUtility({
   handle: (value, ctx, { negative }) => {
     if (parseFractionOrNumber(value)) {
       const v = `calc(${value} * 100%)`;
-      return [decl("translate", `${v} var(--baro-translate-y)`)];
+      return [
+        decl("--baro-translate-x", v),
+        decl(
+          "translate",
+          "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+        ),
+      ];
     }
     if (parseNumber(value) || negative) {
       const v = `calc(var(--spacing) * ${value})`;
-      return [decl("translate", `${v} var(--baro-translate-y)`)];
+      return [
+        decl("--baro-translate-x", v),
+        decl(
+          "translate",
+          "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+        ),
+        transformProperties(),
+      ];
     }
-    return [decl("translate", `${value} var(--baro-translate-y)`)];
+    return [
+      decl("--baro-translate-x", value),
+      decl(
+        "translate",
+        "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+      ),
+      transformProperties(),
+    ];
   },
   handleCustomProperty: (value) => [
-    decl("translate", `var(${value}) var(--baro-translate-y)`),
+    decl("--baro-translate-x", `var(${value})`),
+    decl(
+      "translate",
+      "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+    ),
+    transformProperties(),
   ],
   description:
     "translate-x utility (spacing, fraction, arbitrary, custom property, negative)",
@@ -694,16 +890,42 @@ functionalUtility({
   handle: (value, ctx, { negative }) => {
     if (parseFractionOrNumber(value)) {
       const v = `calc(${value} * 100%)`;
-      return [decl("translate", `var(--baro-translate-x) ${v}`)];
+      return [
+        decl("--baro-translate-y", v),
+        decl(
+          "translate",
+          "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+        ),
+        transformProperties(),
+      ];
     }
     if (parseNumber(value) || negative) {
       const v = `calc(var(--spacing) * ${value})`;
-      return [decl("translate", `var(--baro-translate-x) ${v}`)];
+      return [
+        decl("--baro-translate-y", v),
+        decl(
+          "translate",
+          "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+        ),
+        transformProperties(),
+      ];
     }
-    return [decl("translate", `var(--baro-translate-x) ${value}`)];
+    return [
+      decl("--baro-translate-y", value),
+      decl(
+        "translate",
+        "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+      ),
+      transformProperties(),
+    ];
   },
   handleCustomProperty: (value) => [
-    decl("translate", `var(--baro-translate-x) var(${value})`),
+    decl("--baro-translate-y", `var(${value})`),
+    decl(
+      "translate",
+      "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+    ),
+    transformProperties(),
   ],
   description:
     "translate-y utility (spacing, fraction, arbitrary, custom property, negative)",
@@ -721,35 +943,43 @@ functionalUtility({
     if (parseFractionOrNumber(value)) {
       const v = `calc(${value} * 100%)`;
       return [
+        decl("--baro-translate-z", v),
         decl(
           "translate",
-          `var(--baro-translate-x) var(--baro-translate-y) ${v}`
+          "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
         ),
+        transformProperties(),
       ];
     }
 
     if (parseNumber(value) || negative) {
       const v = `calc(var(--spacing) * ${value})`;
       return [
+        decl("--baro-translate-z", v),
         decl(
           "translate",
-          `var(--baro-translate-x) var(--baro-translate-y) ${v}`
+          "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
         ),
+        transformProperties(),
       ];
     }
 
     return [
+      decl("--baro-translate-z", value),
       decl(
         "translate",
-        `var(--baro-translate-x) var(--baro-translate-y) ${value}`
+        "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
       ),
+      transformProperties(),
     ];
   },
   handleCustomProperty: (value) => [
+    decl("--baro-translate-z", `var(${value})`),
     decl(
       "translate",
-      `var(--baro-translate-x) var(--baro-translate-y) var(${value})`
+      "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
     ),
+    transformProperties(),
   ],
   description:
     "translate-z utility (spacing, fraction, arbitrary, custom property, negative)",
@@ -767,18 +997,48 @@ functionalUtility({
     // Fraction
     if (parseFractionOrNumber(value)) {
       const v = `calc(${value} * 100%)`;
-      return [decl("translate", `${v} ${v}`)];
+      return [
+        decl("--baro-translate-x", v),
+        decl("--baro-translate-y", v),
+        decl(
+          "translate",
+          "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+        ),
+        transformProperties(),
+      ];
     }
     // Number (spacing scale)
     if (parseNumber(value) || negative) {
       const v = `calc(var(--spacing) * ${value})`;
-      return [decl("translate", `${v} ${v}`)];
+      return [
+        decl("--baro-translate-x", v),
+        decl("--baro-translate-y", v),
+        decl(
+          "translate",
+          "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+        ),
+        transformProperties(),
+      ];
     }
     // Arbitrary value
-    return [decl("translate", `${value} ${value}`)];
+    return [
+      decl("--baro-translate-x", value),
+      decl("--baro-translate-y", value),
+      decl(
+        "translate",
+        "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+      ),
+      transformProperties(),
+    ];
   },
   handleCustomProperty: (value) => [
-    decl("translate", `var(${value}) var(${value})`),
+    decl("--baro-translate-x", `var(${value})`),
+    decl("--baro-translate-y", `var(${value})`),
+    decl(
+      "translate",
+      "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+    ),
+    transformProperties(),
   ],
   description:
     "translate utility (spacing, fraction, arbitrary, custom property, negative)",
