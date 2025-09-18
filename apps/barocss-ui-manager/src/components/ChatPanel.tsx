@@ -112,6 +112,11 @@ export const ChatPanel: React.FC = () => {
       }
     } catch (error) {
       console.error('Error sending message:', error)
+      // Show an assistant error message so the user sees feedback
+      addMessage(activeSession.id, {
+        role: 'assistant',
+        content: 'Sorry, something went wrong while processing your request.',
+      })
     } finally {
       setLoading(false)
     }
