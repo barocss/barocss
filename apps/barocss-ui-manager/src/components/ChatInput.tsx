@@ -136,8 +136,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
       {/* Input area */}
       <div
-        className={`relative transition-all duration-200 rounded-2xl border border-gray-200 bg-white shadow-sm ${
-          isFocused ? 'ring-2 ring-blue-500 ring-opacity-20 shadow-md' : ''
+        className={`relative transition-all duration-200 rounded-2xl border border-gray-200 bg-white shadow-sm focus-within:border-gray-300 focus-within:bg-gray-50 ${
+          isFocused ? 'border-gray-300 bg-gray-50 ring-2 ring-blue-500/20 shadow-md' : ''
         } ${isDraggingOver ? 'bg-blue-50/50' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
