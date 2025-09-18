@@ -23,6 +23,7 @@ export const ChatPanel: React.FC = () => {
   const [inputValue, setInputValue] = useState('')
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -158,7 +159,7 @@ export const ChatPanel: React.FC = () => {
                 </TooltipTrigger>
                 <TooltipContent>New Chat</TooltipContent>
               </Tooltip>
-              <DropdownMenu>
+              <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <EllipsisVerticalIcon className="w-4 h-4" />
@@ -174,11 +175,11 @@ export const ChatPanel: React.FC = () => {
                     Import Chat
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
+                  <DropdownMenuItem onClick={() => { setIsSettingsOpen(true); setIsMenuOpen(false) }}>
                     <Cog6ToothIcon className="w-4 h-4 mr-2" />
                     Settings
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setIsShortcutsOpen(true)}>
+                  <DropdownMenuItem onClick={() => { setIsShortcutsOpen(true); setIsMenuOpen(false) }}>
                     <CommandLineIcon className="w-4 h-4 mr-2" />
                     Keyboard Shortcuts
                   </DropdownMenuItem>
@@ -308,7 +309,10 @@ export const ChatPanel: React.FC = () => {
       {/* Shortcuts Modal */}
       <ShortcutsModal 
         open={isShortcutsOpen} 
-        onOpenChange={setIsShortcutsOpen} 
+        onOpenChange={(open) => {
+          setIsShortcutsOpen(open);
+          setIsMenuOpen(false);
+        }} 
       />
     </TooltipProvider>
   )

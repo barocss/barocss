@@ -18,6 +18,11 @@
       .baro-boot-done {
         opacity: 1;
       }
+
+      /* Ensure Radix dropdown/popup layers render above app chrome */
+      [data-radix-popper-content-wrapper] {
+        z-index: 9999 !important;
+      }
     </style>
     <script type="module">
       import { baroStart } from '@barocss/browser';

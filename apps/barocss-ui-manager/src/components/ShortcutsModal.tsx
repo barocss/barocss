@@ -6,19 +6,20 @@ interface ShortcutsModalProps {
   onOpenChange: (open: boolean) => void
 }
 
+const shortcuts = [
+  { key: 'Ctrl/Cmd + Enter', description: '메시지 전송' },
+  { key: 'Ctrl/Cmd + N', description: '새 채팅' },
+  { key: 'Ctrl/Cmd + K', description: '입력창 포커스' },
+  { key: 'Ctrl/Cmd + \\', description: '채팅 토글 (숨기기/보이기)' },
+  { key: 'Ctrl/Cmd + /', description: '단축키 도움말' },
+  { key: 'Escape', description: '모달 닫기' },
+]
+
 export const ShortcutsModal: React.FC<ShortcutsModalProps> = ({ open, onOpenChange }) => {
-  const shortcuts = [
-    { key: 'Ctrl/Cmd + Enter', description: '메시지 전송' },
-    { key: 'Ctrl/Cmd + N', description: '새 채팅' },
-    { key: 'Ctrl/Cmd + K', description: '입력창 포커스' },
-    { key: 'Ctrl/Cmd + \\', description: '채팅 토글 (숨기기/보이기)' },
-    { key: 'Ctrl/Cmd + /', description: '단축키 도움말' },
-    { key: 'Escape', description: '모달 닫기' },
-  ]
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="fixed left-1/2 top-1/2 z-[90] grid w-full max-w-[500px] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-xl outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=closed]:opacity-0 data-[state=closed]:pointer-events-none data-[state=closed]:hidden">
         <DialogHeader>
           <DialogTitle>키보드 단축키</DialogTitle>
           <DialogDescription>
