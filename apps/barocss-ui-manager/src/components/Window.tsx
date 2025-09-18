@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { WindowState } from '../types/window'
 import { useWindowManager } from '../providers/WindowManagerProvider'
 import { Button } from './ui/Button'
+import { useBaroCSS } from '../providers/BaroCSSProvider'
 
 interface WindowProps {
   window: WindowState
@@ -9,6 +10,7 @@ interface WindowProps {
 
 export const Window: React.FC<WindowProps> = ({ window }) => {
   const { updateWindow, closeWindow, minimizeWindow, maximizeWindow, restoreWindow, focusWindow, bringToFront } = useWindowManager()
+  const { director } = useBaroCSS()
   const [isDragging, setIsDragging] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
@@ -185,6 +187,17 @@ export const Window: React.FC<WindowProps> = ({ window }) => {
         <div 
           className="p-4 h-full"
           dangerouslySetInnerHTML={{ __html: window.content }}
+          onClick={(e) => {
+            const target = e.target as HTMLElement
+            const actionEl = target.closest('[data-action-id]') as HTMLElement | null
+            if (actionEl) {
+              const actionId = actionEl.getAttribute('data-action-id') || ''
+              if (director) {
+                // Send the action id back to the agent as a follow-up request
+                director.request(`action:${actionId}`)
+              }
+            }
+          }}
         />
       </div>
 

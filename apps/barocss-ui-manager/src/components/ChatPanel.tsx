@@ -4,6 +4,7 @@ import { ScrollArea } from './ui/ScrollArea'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from './ui/DropdownMenu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/Tooltip'
 import { useWindowManager } from '../providers/WindowManagerProvider'
+import { useBaroCSS } from '../providers/BaroCSSProvider'
 import { useChat } from '../providers/ChatProvider'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { ChatInput } from './ChatInput'
@@ -29,6 +30,7 @@ export const ChatPanel: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { handleAIResponse } = useWindowManager()
+  const { director, isLoading: isDirectorLoading } = useBaroCSS()
   const { 
     sessions, 
     activeSessionId, 
@@ -85,28 +87,29 @@ export const ChatPanel: React.FC = () => {
     setLoading(true)
 
     try {
-      // Simulate AI response
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
-      
-      // Create AI response object
-      const aiResponse = {
-        type: 'content' as const,
-        id: `response-${Date.now()}`,
-        title: 'AI Response',
-        content: `I understand you want to: ${content}. Let me help you with that!`,
-        metadata: {}
+      if (director && !isDirectorLoading) {
+        const result = await director.request(content)
+        // Assistant acknowledgement in chat
+        addMessage(activeSession.id, {
+          role: 'assistant',
+          content: result.title || `요청을 처리했습니다: ${content}`,
+        })
+      } else {
+        // Fallback: local simulated response
+        await new Promise(resolve => setTimeout(resolve, 800))
+        const aiResponse = {
+          type: 'content' as const,
+          id: `response-${Date.now()}`,
+          title: 'AI Response',
+          content: `I understand you want to: ${content}. Let me help you with that!`,
+          metadata: {}
+        }
+        if (handleAIResponse) handleAIResponse(aiResponse)
+        addMessage(activeSession.id, {
+          role: 'assistant',
+          content: `I understand you want to: ${content}. Let me help you with that!`,
+        })
       }
-
-      // Handle the AI response
-      if (handleAIResponse) {
-        handleAIResponse(aiResponse)
-      }
-
-      // Add assistant message
-      addMessage(activeSession.id, {
-        role: 'assistant',
-        content: `I understand you want to: ${content}. Let me help you with that!`,
-      })
     } catch (error) {
       console.error('Error sending message:', error)
     } finally {
@@ -186,6 +189,25 @@ export const ChatPanel: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+          </div>
+
+          {/* Action Bar: quick generation presets */}
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" size="sm" onClick={() => handleSendMessage('창 열어줘')} disabled={isLoading || isDirectorLoading}>
+              Open Window
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => handleSendMessage('모달 띄워줘')} disabled={isLoading || isDirectorLoading}>
+              Show Modal
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => handleSendMessage('알림 보내줘')} disabled={isLoading || isDirectorLoading}>
+              Notify
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => handleSendMessage('에러 알림 보내줘')} disabled={isLoading || isDirectorLoading}>
+              Error
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => handleSendMessage('경고 모달 띄워줘')} disabled={isLoading || isDirectorLoading}>
+              Warning
+            </Button>
           </div>
           
           {/* Session List */}
