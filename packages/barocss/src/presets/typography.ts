@@ -10,6 +10,17 @@ staticUtility("font-sans", [["font-family", "var(--font-family-sans)"]], { categ
 staticUtility("font-serif", [["font-family", "var(--font-family-serif)"]], { category: 'typography' });
 staticUtility("font-mono", [["font-family", "var(--font-family-mono)"]], { category: 'typography' });
 
+// Register the longer prefix before `font`, which also matches `font-features-*`.
+functionalUtility({
+  name: "font-features",
+  prop: "font-feature-settings",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: () => null,
+  description: "font-feature-settings utility (arbitrary and custom property supported)",
+  category: "typography",
+});
+
 // --- Typography: Font Size ---
 staticUtility("text-xs", [["font-size", "var(--text-xs)"], ["line-height", "var(--text-xs--line-height)"]], { category: 'typography' });
 staticUtility("text-sm", [["font-size", "var(--text-sm)"], ["line-height", "var(--text-sm--line-height)"]], { category: 'typography' });
