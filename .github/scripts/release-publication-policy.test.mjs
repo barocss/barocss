@@ -28,6 +28,7 @@ function assertManualOidcPublication(source) {
   assert.match(source, /node-version: '22\.22\.0'/);
   assert.match(source, /PACK_OUTPUT_DIR: /);
   assert.match(source, /npm publish "\$RUNNER_TEMP\/barocss-packs\/barocss-\$name-\$RELEASE_VERSION\.tgz"/);
+  assert.doesNotMatch(source, /NPM_RELEASE_ENABLED/);
   assert.doesNotMatch(source, /secrets\.NPM_TOKEN|secrets\.NPM_PUBLISH_TOKEN|npm whoami|pnpm changeset publish|changesets\/action/);
 }
 

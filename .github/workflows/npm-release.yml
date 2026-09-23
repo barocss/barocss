@@ -110,10 +110,6 @@ jobs:
           test "$GITHUB_SHA" = "$EXPECTED_MAIN_SHA"
           test "$RELEASE_VERSION" = "$EXPECTED_VERSION"
           test -n "$READINESS_COMMENT_URL"
-      - name: Require enabled npm environment
-        env:
-          NPM_RELEASE_ENABLED: ${{ vars.NPM_RELEASE_ENABLED }}
-        run: test "$NPM_RELEASE_ENABLED" = true
       - name: Check version and pending changesets
         run: node .github/scripts/check-release-version.mjs
         env:
