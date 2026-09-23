@@ -63,7 +63,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('custom property', () => {
     expect(generateCss('bg-(--my-bg)', ctx)).toBe(
       `.bg-\\(--my-bg\\) {
-  background-size: var(--my-bg);
+  background-color: var(--my-bg);
 }
 `
     );

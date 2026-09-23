@@ -431,7 +431,16 @@ functionalUtility({
 
     return null;
   },
-  handleCustomProperty: (value) => [decl("background-size", `var(${value})`)],
-  description: "background-size utility (arbitrary, custom property supported)",
+  handleCustomProperty: (value) => {
+    if (value.startsWith("length:")) {
+      return [decl("background-size", `var(${value.slice("length:".length)})`)];
+    }
+    if (value.startsWith("image:")) {
+      return [decl("background-image", `var(${value.slice("image:".length)})`)];
+    }
+    const color = value.startsWith("color:") ? value.slice("color:".length) : value;
+    return [decl("background-color", `var(${color})`)];
+  },
+  description: "background color, size, and image utility (arbitrary, custom property supported)",
   category: "background",
 });
