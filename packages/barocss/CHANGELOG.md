@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - Isolate utility, modifier, cache, and CSS variable state between Context instances.
+- Preserve `!important` separately for each class returned by `generateCssRules`.
 - Add pinned Tailwind CSS 4.1.13 comparisons and improve selected effects and variants.
 - Correct the published `theme/default` export and verify package imports and types.
 
