@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import { verifyCandidateAncestry } from './release-provenance.mjs';
 
 const repository = 'barocss/barocss';
@@ -21,7 +20,7 @@ const body = `${marker}\n\n` +
   `Promote the pinned BaroCSS ${version} candidate from develop to main.\n\n` +
   `Candidate commit: ${sha}\n` +
   `Readiness record: ${readiness}\n\n` +
-  'GitHub must require an independent approval, current build and test checks, and resolved conversations before auto-merge. Do not use administrator bypass.\n';
+  'easylogic must approve this exact candidate commit. The submitted review starts a separate GitHub Actions check that arms ordinary auto-merge. Current build and test checks and resolved conversations remain required. Do not use administrator bypass.\n';
 
 async function api(path, options = {}) {
   const response = await fetch(`https://api.github.com/repos/${repository}/${path}`, {
@@ -83,10 +82,6 @@ if (pr) {
   });
 }
 
-if (!pr.auto_merge) {
-  execFileSync('gh', ['pr', 'merge', String(pr.number), '--auto', '--merge'], {
-    env: { ...process.env, GH_TOKEN: token },
-    stdio: 'inherit',
-  });
-}
-console.log(`Promotion PR #${pr.number} pins ${sha} at ${version}; ordinary auto-merge is queued.`);
+assert.equal(pr.user?.type, 'Bot', 'Promotion PR must be authored by the GitHub App');
+assert.ok(!pr.auto_merge, 'Promotion PR was armed before easylogic approval');
+console.log(`Promotion PR #${pr.number} pins ${sha} at ${version}; wait for easylogic approval before arming auto-merge.`);

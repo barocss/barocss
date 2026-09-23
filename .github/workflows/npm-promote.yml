@@ -99,7 +99,7 @@ jobs:
           PUBLICATION_MODE: pre
           REQUIRE_UNPUBLISHED: true
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-      - name: Create pinned promotion PR and enable ordinary auto-merge
+      - name: Create pinned promotion PR without arming auto-merge
         run: node .github/scripts/create-promotion-pr.mjs
         env:
           CANDIDATE_SHA: ${{ inputs.candidate_sha }}

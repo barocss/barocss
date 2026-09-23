@@ -18,3 +18,26 @@ export function verifyPromotion(pr, mainSha, version, parents) {
   assert.equal(parents[1], marker[1], 'main merge second parent is not the pinned candidate');
   return marker[1];
 }
+
+export function hasOwnerApproval(reviews, candidateSha, authorLogin) {
+  if (authorLogin === 'easylogic') return false;
+  const latest = reviews.filter((review) => review.user?.login === 'easylogic')
+    .sort((a, b) => b.id - a.id)[0];
+  return Boolean(latest?.state === 'APPROVED' && latest.commit_id === candidateSha);
+}
+
+export function verifyOwnerReviewEvent(event, pr, candidateSha, reviews) {
+  assert.equal(event.action, 'submitted');
+  assert.equal(event.review?.state, 'approved');
+  assert.equal(event.review?.user?.login, 'easylogic');
+  assert.equal(event.review?.commit_id, candidateSha);
+  assert.equal(event.pull_request?.number, pr.number);
+  const submitted = reviews.find((review) => review.id === event.review.id);
+  assert.equal(submitted?.state, 'APPROVED', 'Submitted approval was dismissed or changed');
+  assert.equal(submitted?.user?.login, 'easylogic');
+  assert.equal(submitted?.commit_id, candidateSha);
+  assert.ok(
+    hasOwnerApproval(reviews, candidateSha, pr.user?.login),
+    'Latest easylogic review must approve the exact candidate SHA',
+  );
+}

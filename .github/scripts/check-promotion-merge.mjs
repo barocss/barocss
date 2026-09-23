@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, readFileSync } from 'node:fs';
 import { verifyLinkedSourceVersions } from './release-manifests.mjs';
-import { verifyPromotion } from './release-provenance.mjs';
+import { hasOwnerApproval, verifyPromotion } from './release-provenance.mjs';
 
 const repository = 'barocss/barocss';
 const sha = process.env.GITHUB_SHA;
@@ -46,15 +46,17 @@ const promotion = pulls.filter((pr) =>
 );
 assert.equal(promotion.length, 1, 'main must come from exactly one approved promotion PR');
 const pr = promotion[0];
+assert.equal(pr.user?.type, 'Bot', 'Promotion PR must be authored by the GitHub App');
 const parents = execFileSync('git', ['show', '-s', '--format=%P', 'HEAD'], { encoding: 'utf8' })
   .trim().split(' ');
 const candidateSha = verifyPromotion(pr, sha, version, parents);
 
 const reviews = await api(`pulls/${pr.number}/reviews?per_page=100`);
-assert.ok(reviews.some((review) =>
-  review.state === 'APPROVED' && review.commit_id === candidateSha
-    && review.user?.login !== pr.user?.login,
-), 'Promotion PR needs an independent approval on the pinned candidate');
+assert.ok(reviews.length < 100, 'Too many reviews to verify owner approval safely');
+assert.ok(
+  hasOwnerApproval(reviews, candidateSha, pr.user?.login),
+  'Promotion PR needs easylogic approval on the pinned candidate',
+);
 
 const readinessUrl = pr.body.match(
   /Readiness record: (https:\/\/github\.com\/barocss\/barocss\/(?:issues|pull)\/\d+#issuecomment-\d+)/,
