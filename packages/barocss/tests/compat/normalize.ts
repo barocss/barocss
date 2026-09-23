@@ -19,10 +19,10 @@ export function normalizeCss(css: string): CssNode[] {
       return { type: node.type, prop: node.prop, value: node.value };
     }
     if (node.type === 'rule') {
-      return { type: node.type, selector: node.selector, nodes: node.nodes.map(normalizeNode) };
+      return { type: node.type, selector: node.selector, nodes: node.nodes.filter((child) => child.type !== 'comment').map(normalizeNode) };
     }
     if (node.type === 'atrule') {
-      return { type: node.type, name: node.name, params: node.params, nodes: node.nodes?.map(normalizeNode) };
+      return { type: node.type, name: node.name, params: node.params, nodes: node.nodes?.filter((child) => child.type !== 'comment').map(normalizeNode) };
     }
     return { type: node.type };
   };

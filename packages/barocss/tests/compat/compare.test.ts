@@ -70,6 +70,13 @@ describe('Tailwind CSS 4.1.13 output comparison', () => {
     expect(structureFingerprint(changedBaroCss)).not.toBe(approvedStructures['p-4'].barocss.fingerprint);
   });
 
+  it('ignores comments at every CSS nesting level', () => {
+    const plain = '.x { color: red; display: block } @media (hover: hover) { .x { display: block } }';
+    const commented = '.x { /* before */ color: red; /* between */ display: block } @media (hover: hover) { /* nested */ .x { display: block /* last */ } }';
+    expect(normalizeCss(commented)).toEqual(normalizeCss(plain));
+    expect(structureFingerprint(commented)).toBe(structureFingerprint(plain));
+  });
+
   it('emits a usable standalone mask rule while global property support differs', async () => {
     const { baroCss } = await compare('mask-linear-from-50%');
     expect(baroCss).toContain('--tw-mask-linear-from-position: 50%;');
