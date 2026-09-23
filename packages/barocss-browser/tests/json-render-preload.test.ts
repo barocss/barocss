@@ -1,6 +1,5 @@
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import { BrowserRuntime } from '../src/browser-runtime';
-import { collectJsonRenderClassNames, preloadJsonRenderClasses } from '../src/json-render-preload';
+import { BrowserRuntime, collectJsonRenderClassNames, preloadJsonRenderClasses } from '../src';
 
 let runtime: BrowserRuntime;
 
