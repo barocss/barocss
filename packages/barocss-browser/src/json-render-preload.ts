@@ -21,9 +21,8 @@ export function collectJsonRenderClassNames(spec: unknown): string[] {
   return Array.from(classes);
 }
 
-/** Generate CSS synchronously before committing a validated json-render Spec. */
-export function preloadJsonRenderClasses(spec: unknown, runtime: Pick<BrowserRuntime, 'addClass'>): string[] {
+/** Submit literal classes synchronously before UI mount; the caller validates class support. */
+export function preloadJsonRenderClasses(spec: unknown, runtime: Pick<BrowserRuntime, 'addClass'>): void {
   const classes = collectJsonRenderClassNames(spec);
   if (classes.length > 0) runtime.addClass(classes);
-  return classes;
 }

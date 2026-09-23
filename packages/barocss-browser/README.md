@@ -64,7 +64,7 @@ preloadJsonRenderClasses(spec, runtime);
 renderJsonUi(spec); // Mount your json-render Renderer here
 ```
 
-The helper reads literal `props.className` strings in the flat `spec.elements` map. It splits class lists, removes duplicates, and calls `runtime.addClass` synchronously. The application must validate the spec and class allowlist before this call. State-derived classes and classes added inside registered components need a separate source of classes.
+The helper reads literal `props.className` strings in the flat `spec.elements` map. It splits class lists, removes duplicates, and calls `runtime.addClass` synchronously. It does not return a CSS readiness result. The application must validate the spec, response size, class allowlist, class support, and runtime state before this call. The helper reads every entry, including nodes that the renderer may not mount. State-derived classes and classes added inside registered components need a separate source of classes.
 
 ### CDN Usage
 

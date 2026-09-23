@@ -45,8 +45,7 @@ describe('json-render class preload', () => {
       root: { type: 'Card', props: { className: 'p-4 text-center' } },
     } };
 
-    const classes = preloadJsonRenderClasses(spec, runtime);
-    expect(classes).toEqual(['p-4', 'text-center']);
+    preloadJsonRenderClasses(spec, runtime);
     expect(runtime.has('p-4')).toBe(true);
     expect(runtime.has('text-center')).toBe(true);
     const css = Array.from(document.querySelectorAll<HTMLStyleElement>('style[data-barocss="partition"]'))
@@ -59,5 +58,16 @@ describe('json-render class preload', () => {
     element.className = spec.elements.root.props.className;
     document.body.append(element);
     expect(element.isConnected).toBe(true);
+  });
+
+  it('does not claim CSS readiness for unsupported classes or a destroyed runtime', () => {
+    const spec = { elements: { root: { props: { className: 'pulse-unknown-utility' } } } };
+    expect(collectJsonRenderClassNames(spec)).toEqual(['pulse-unknown-utility']);
+    expect(preloadJsonRenderClasses(spec, runtime)).toBeUndefined();
+    expect(runtime.has('pulse-unknown-utility')).toBe(false);
+
+    runtime.destroy();
+    preloadJsonRenderClasses({ elements: { root: { props: { className: 'p-4' } } } }, runtime);
+    expect(runtime.has('p-4')).toBe(false);
   });
 });
