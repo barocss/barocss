@@ -421,56 +421,34 @@ setInterval(() => {
 
 ## Examples
 
-### Complete Build Script
+### Static HTML build script
 
-```typescript
-import { ServerRuntime } from '@barocss/server';
-import fs from 'fs';
-import path from 'path';
+Install the published `0.0.3` package with `pnpm add @barocss/server@0.0.3`. The `0.0.4` candidate is not yet published. Save this as `build-css.mjs` and run it from the project root with `node build-css.mjs`.
 
-async function buildCSS() {
-  // Initialize server runtime
-  const serverRuntime = new ServerRuntime({
-    theme: {
-      extend: {
-        colors: {
-          brand: '#3b82f6'
-        }
-      }
-    }
-  });
+```js
+import { readdirSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { ServerRuntime } from '@barocss/server'
 
-  // Read all component files
-  const componentFiles = fs.readdirSync('src/components');
-  const allClasses = new Set<string>();
+const sourceDir = 'src/components'
+const classes = new Set()
 
-  // Extract classes from components
-  for (const file of componentFiles) {
-    const content = fs.readFileSync(`src/components/${file}`, 'utf8');
-    const classes = extractClassesFromContent(content);
-    classes.forEach(cls => allClasses.add(cls));
+for (const file of readdirSync(sourceDir)) {
+  if (!file.endsWith('.html')) continue
+  const content = readFileSync(join(sourceDir, file), 'utf8')
+  for (const [, classList] of content.matchAll(/\bclass="([^"]+)"/g)) {
+    for (const cls of classList.split(/\s+/).filter(Boolean)) classes.add(cls)
   }
+}
 
-  // Generate CSS
-  const results = serverRuntime.generateCssForClasses(Array.from(allClasses));
-  const css = results.map(r => r.css).join('\n');
+const runtime = new ServerRuntime()
+const css = runtime.generateCssForClasses([...classes])
+  .map(({ css }) => css)
+  .filter(Boolean)
+  .join('\n')
 
-  // Write to output
-  fs.writeFileSync('dist/styles.css', css);
-  console.log(`Generated CSS for ${results.length} classes`);
-
-function extractClassesFromContent(content: string): string[] {
-  // Simple regex to extract class names (implement your own logic)
-  const classRegex = /class[=:]["']([^"']+)["']/g;
-  const classes: string[] = [];
-  let match;
-
-  while ((match = classRegex.exec(content)) !== null) {
-    const classList = match[1].split(/\s+/);
-    classes.push(...classList);
-  }
-
-  return classes;
-
-buildCSS().catch(console.error);
+mkdirSync('dist', { recursive: true })
+writeFileSync('dist/styles.css', css)
 ```
+
+This minimal scanner reads static, double-quoted `class` attributes in `.html` files directly under `src/components`. It does not find dynamic classes, nested files, or classes in JSX and templates. Check the generated CSS and provide your own extractor for those cases.
