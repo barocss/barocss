@@ -11,6 +11,7 @@ const packages = [
   ['barocss-browser', 'browser'],
   ['barocss-server', 'server'],
 ];
+const packedManifests = new Map();
 
 try {
   for (const [directory, name] of packages) {
@@ -25,6 +26,8 @@ try {
 
     const manifest = JSON.parse(readFileSync(join(destination, 'package.json'), 'utf8'));
     assert.equal(manifest.name, `@barocss/${name}`);
+    assert.equal(manifest.version, sourceManifest.version);
+    packedManifests.set(name, manifest);
     for (const [subpath, conditions] of Object.entries(manifest.exports)) {
       for (const [condition, target] of Object.entries(conditions)) {
         assert.ok(existsSync(join(destination, target)), `${manifest.name}${subpath}: missing ${condition} target ${target}`);
@@ -33,6 +36,13 @@ try {
     assert.ok(existsSync(join(destination, manifest.main)), `${manifest.name}: missing main`);
     assert.ok(existsSync(join(destination, manifest.types)), `${manifest.name}: missing types`);
     assert.ok(existsSync(join(destination, 'LICENSE')), `${manifest.name}: missing LICENSE`);
+  }
+
+  const kitVersion = packedManifests.get('kit').version;
+  for (const name of ['browser', 'server']) {
+    const manifest = packedManifests.get(name);
+    assert.equal(manifest.version, kitVersion, `${manifest.name}: version differs from kit`);
+    assert.equal(manifest.dependencies['@barocss/kit'], kitVersion, `${manifest.name}: kit dependency version differs`);
   }
 
   assert.ok(existsSync(join(temp, 'node_modules/@barocss/browser/dist/cdn/barocss.js')));
@@ -82,7 +92,7 @@ try {
     include: ['smoke.ts'],
   }));
   execFileSync(process.execPath, [join(root, 'node_modules/typescript/bin/tsc'), '-p', temp], { stdio: 'inherit' });
-  console.log('Packed exports, types, CDN files, and runtime imports passed.');
+  console.log(`Packed @barocss packages at ${kitVersion}: exports, types, CDN files, and runtime imports passed.`);
 } finally {
   rmSync(temp, { recursive: true, force: true });
 }

@@ -1,6 +1,6 @@
 {
   "name": "@barocss/kit",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
