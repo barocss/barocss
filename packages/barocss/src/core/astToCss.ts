@@ -243,33 +243,19 @@ function astToCss(
 }
 
 function rootToCss(nodes: AstNode[]): string {
-  // console.log("[rootToCss] input", { nodes });
-  const result = nodes
-    .map((node) => {
-      const list: string[] = [];
-
-      if (node.type === "decl") {
-        list.push(`${node.prop}: ${node.value};`);
-      } else if (node.type === "at-rule") {
-        // console.log("[rootToCss] at-rule", node);
-        list.push(`@${node.name} ${node.params} {
-${node.nodes.map((node) => {
-  // console.log("[rootToCss] node", node);
-  if (node.type === "decl") {
-    return `\t${node.prop}: ${node.value};`;
-  }
-})
-.join("\n")}
-}`
-        );
-      }
-
-      return list.join("\n");
-    })
-    .join("\n");
-
-  // console.log("[rootToCss] result", { nodes, result });
-  return result;
+  const render = (node: AstNode, depth: number): string => {
+    const indent = '\t'.repeat(depth);
+    if (node.type === 'decl') return `${indent}${node.prop}: ${node.value};`;
+    if (node.type === 'rule' && node.selector === '&') {
+      return node.nodes.map((child) => render(child, depth)).filter(Boolean).join('\n');
+    }
+    if (node.type === 'at-rule' || node.type === 'rule' || node.type === 'style-rule') {
+      const name = node.type === 'at-rule' ? `@${node.name} ${node.params}` : node.selector;
+      return `${indent}${name} {\n${node.nodes.map((child) => render(child, depth + 1)).filter(Boolean).join('\n')}\n${indent}}`;
+    }
+    return '';
+  };
+  return nodes.map((node) => render(node, 0)).filter(Boolean).join('\n');
 }
 
 export { astToCss, rootToCss };

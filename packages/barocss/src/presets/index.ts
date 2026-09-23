@@ -2,6 +2,7 @@ import "./interactivity";
 import "./zoom-tab";
 import "./scrollbar-gutter";
 import "./scrollbar-width";
+import "./scrollbar-color";
 import "./container-size";
 import "./transitions";
 import "./table";
