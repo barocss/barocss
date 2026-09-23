@@ -41,7 +41,8 @@ export default defineConfig(withMermaid({
           text: 'Getting Started',
           items: [
             { text: 'Introduction', link: '/guide/' },
-            { text: 'Quick Start', link: '/guide/quick-start' }
+            { text: 'Quick Start', link: '/guide/quick-start' },
+            { text: 'Compatibility Scope', link: '/guide/compatibility' }
           ]
         },
         {
