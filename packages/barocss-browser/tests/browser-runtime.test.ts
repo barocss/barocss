@@ -206,6 +206,30 @@ describe('BrowserRuntime', () => {
     expect(runtime.has('m-2')).toBe(true);
   });
 
+  it('skips elements removed before their insertion is observed', async () => {
+    runtime.observe(document.body);
+    const element = document.createElement('div');
+    element.className = 'p-4';
+    document.body.append(element);
+    element.remove();
+    await Promise.resolve();
+
+    expect(runtime.has('p-4')).toBe(false);
+  });
+
+  it('skips class changes on elements removed before observation runs', async () => {
+    runtime.observe(document.body);
+    const element = document.createElement('div');
+    document.body.append(element);
+    await Promise.resolve();
+
+    element.className = 'm-2';
+    element.remove();
+    await Promise.resolve();
+
+    expect(runtime.has('m-2')).toBe(false);
+  });
+
   it('processes an SVG element added to the observed tree', async () => {
     runtime.observe(document.body);
     document.body.insertAdjacentHTML('beforeend', '<svg class="p-4"></svg>');

@@ -74,7 +74,7 @@ export class ChangeDetector {
   
         mutations.forEach(mutation => {
           // Handle attribute changes (class modifications)
-          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class' && root.contains(mutation.target)) {
             const target = mutation.target as HTMLElement;
             if (target.className) {
               // SVG className is SVGAnimatedString; convert to string with toString()
@@ -91,7 +91,7 @@ export class ChangeDetector {
           // Handle new nodes
           if (mutation.type === 'childList') {
             mutation.addedNodes.forEach(node => {
-              if (node.nodeType === Node.ELEMENT_NODE) {
+              if (node.nodeType === Node.ELEMENT_NODE && root.contains(node)) {
                 const element = node as Element;
                 this.processElement(element, newClasses);
                 // Process child elements
