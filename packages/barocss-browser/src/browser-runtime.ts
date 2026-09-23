@@ -252,10 +252,14 @@ export class BrowserRuntime {
   }
 
   removeClass(classes: string | string[]): void {
-    const classList = this.normalizeClasses(classes);
-    for (const cls of classList) {
-      this.cache.delete(cls);
-    }
+    if (this.isDestroyed) return;
+    const classList = new Set(this.normalizeClasses(classes));
+    const retainedResults = Array.from(this.cache.values()).filter(result => !classList.has(result.cls));
+    if (retainedResults.length === this.cache.size) return;
+
+    this.reset();
+    retainedResults.forEach(result => this.incrementalParser.markProcessed(result.cls));
+    this.applyParseResults(retainedResults);
   }
 
   destroy(): void {
