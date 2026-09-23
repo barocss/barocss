@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-4cf6a2c-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-3f9c60f-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "4cf6a2c",
+    "barocssCommit": "3f9c60f",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -4246,13 +4246,196 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.stroke-\\[3px\\] {\n  stroke-width: 3px;\n}\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.stroke-\\[3px\\] {\n  stroke-width: 3px;\n}\n",
-      "barocss": ".stroke-\\[3px\\] {\n  stroke: 3px;\n}\n",
-      "statusV4_1_13": "different",
-      "statusV4_3_3": "different",
+      "barocss": ".stroke-\\[3px\\] {\n  stroke-width: 3px;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
       "fingerprints": {
         "tailwindV4_1_13": "343f86b083a9d0cb6b8897bd5b7530a5d858faf1a8bf49ff840e6c2ec1e4ac24",
         "tailwindV4_3_3": "343f86b083a9d0cb6b8897bd5b7530a5d858faf1a8bf49ff840e6c2ec1e4ac24",
-        "barocss": "ae6cfa1b4a225641888f3e8855dc63bbaa730ee14f30aef04a9995b39b67fa16"
+        "barocss": "343f86b083a9d0cb6b8897bd5b7530a5d858faf1a8bf49ff840e6c2ec1e4ac24"
+      }
+    },
+    {
+      "id": "stroke-arbitrary-width-and-color:stroke-[1.5px]",
+      "axis": "svg-and-accessibility",
+      "family": "stroke-arbitrary-width-and-color",
+      "role": "representative",
+      "classes": [
+        "stroke-[1.5px]"
+      ],
+      "source": "https://tailwindcss.com/docs/stroke-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.stroke-\\[1\\.5px\\] {\n  stroke-width: 1.5px;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.stroke-\\[1\\.5px\\] {\n  stroke-width: 1.5px;\n}\n",
+      "barocss": ".stroke-\\[1\\.5px\\] {\n  stroke-width: 1.5px;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "f83fd7f724bc991904cc129e2354083f37c4e201bb4a1b1808f3e945a19ac5f4",
+        "tailwindV4_3_3": "f83fd7f724bc991904cc129e2354083f37c4e201bb4a1b1808f3e945a19ac5f4",
+        "barocss": "f83fd7f724bc991904cc129e2354083f37c4e201bb4a1b1808f3e945a19ac5f4"
+      }
+    },
+    {
+      "id": "stroke-arbitrary-width-and-color:stroke-[2rem]",
+      "axis": "svg-and-accessibility",
+      "family": "stroke-arbitrary-width-and-color",
+      "role": "representative",
+      "classes": [
+        "stroke-[2rem]"
+      ],
+      "source": "https://tailwindcss.com/docs/stroke-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.stroke-\\[2rem\\] {\n  stroke-width: 2rem;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.stroke-\\[2rem\\] {\n  stroke-width: 2rem;\n}\n",
+      "barocss": ".stroke-\\[2rem\\] {\n  stroke-width: 2rem;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "43494de63ca6c11da98a45cc0ce98d3eefaa2f4d69652a289271b6e003f25953",
+        "tailwindV4_3_3": "43494de63ca6c11da98a45cc0ce98d3eefaa2f4d69652a289271b6e003f25953",
+        "barocss": "43494de63ca6c11da98a45cc0ce98d3eefaa2f4d69652a289271b6e003f25953"
+      }
+    },
+    {
+      "id": "stroke-arbitrary-width-and-color:stroke-[50%]",
+      "axis": "svg-and-accessibility",
+      "family": "stroke-arbitrary-width-and-color",
+      "role": "representative",
+      "classes": [
+        "stroke-[50%]"
+      ],
+      "source": "https://tailwindcss.com/docs/stroke-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.stroke-\\[50\\%\\] {\n  stroke-width: 50%;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.stroke-\\[50\\%\\] {\n  stroke-width: 50%;\n}\n",
+      "barocss": ".stroke-\\[50\\%\\] {\n  stroke-width: 50%;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "5b456bc87f386969b8d82f1781cb264c7a9d2e8c630e390faf3ed49575694531",
+        "tailwindV4_3_3": "5b456bc87f386969b8d82f1781cb264c7a9d2e8c630e390faf3ed49575694531",
+        "barocss": "5b456bc87f386969b8d82f1781cb264c7a9d2e8c630e390faf3ed49575694531"
+      }
+    },
+    {
+      "id": "stroke-arbitrary-width-and-color:stroke-[length:var(--stroke-width)]",
+      "axis": "svg-and-accessibility",
+      "family": "stroke-arbitrary-width-and-color",
+      "role": "representative",
+      "classes": [
+        "stroke-[length:var(--stroke-width)]"
+      ],
+      "source": "https://tailwindcss.com/docs/stroke-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.stroke-\\[length\\:var\\(--stroke-width\\)\\] {\n  stroke-width: var(--stroke-width);\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.stroke-\\[length\\:var\\(--stroke-width\\)\\] {\n  stroke-width: var(--stroke-width);\n}\n",
+      "barocss": ".stroke-\\[length\\:var\\(--stroke-width\\)\\] {\n  stroke-width: var(--stroke-width);\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "45900d7dd49567fc1486cd79ba6aaf2837561ec4a301f2bbda6cbd745b0ef6b6",
+        "tailwindV4_3_3": "45900d7dd49567fc1486cd79ba6aaf2837561ec4a301f2bbda6cbd745b0ef6b6",
+        "barocss": "45900d7dd49567fc1486cd79ba6aaf2837561ec4a301f2bbda6cbd745b0ef6b6"
+      }
+    },
+    {
+      "id": "stroke-arbitrary-width-and-color:stroke-[rebeccapurple]",
+      "axis": "svg-and-accessibility",
+      "family": "stroke-arbitrary-width-and-color",
+      "role": "boundary",
+      "classes": [
+        "stroke-[rebeccapurple]"
+      ],
+      "source": "https://tailwindcss.com/docs/stroke-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.stroke-\\[rebeccapurple\\] {\n  stroke: rebeccapurple;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.stroke-\\[rebeccapurple\\] {\n  stroke: rebeccapurple;\n}\n",
+      "barocss": ".stroke-\\[rebeccapurple\\] {\n  stroke: rebeccapurple;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "27d51f766a6bada58e5951ffdcd2a6160324edb10dc7deed0023a1757b791f65",
+        "tailwindV4_3_3": "27d51f766a6bada58e5951ffdcd2a6160324edb10dc7deed0023a1757b791f65",
+        "barocss": "27d51f766a6bada58e5951ffdcd2a6160324edb10dc7deed0023a1757b791f65"
+      }
+    },
+    {
+      "id": "stroke-arbitrary-width-and-color:stroke-[color:var(--stroke-color)]",
+      "axis": "svg-and-accessibility",
+      "family": "stroke-arbitrary-width-and-color",
+      "role": "boundary",
+      "classes": [
+        "stroke-[color:var(--stroke-color)]"
+      ],
+      "source": "https://tailwindcss.com/docs/stroke-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.stroke-\\[color\\:var\\(--stroke-color\\)\\] {\n  stroke: var(--stroke-color);\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.stroke-\\[color\\:var\\(--stroke-color\\)\\] {\n  stroke: var(--stroke-color);\n}\n",
+      "barocss": ".stroke-\\[color\\:var\\(--stroke-color\\)\\] {\n  stroke: var(--stroke-color);\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4a5331f3c3c0c22ec6cf2d1c4fbcc70c25e4c5933a08336d587ba1d12703597a",
+        "tailwindV4_3_3": "4a5331f3c3c0c22ec6cf2d1c4fbcc70c25e4c5933a08336d587ba1d12703597a",
+        "barocss": "4a5331f3c3c0c22ec6cf2d1c4fbcc70c25e4c5933a08336d587ba1d12703597a"
+      }
+    },
+    {
+      "id": "stroke-arbitrary-width-and-color:stroke-2+hover:stroke-[3px]",
+      "axis": "svg-and-accessibility",
+      "family": "stroke-arbitrary-width-and-color",
+      "role": "combination",
+      "classes": [
+        "stroke-2",
+        "hover:stroke-[3px]"
+      ],
+      "source": "https://tailwindcss.com/docs/stroke-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.stroke-2 {\n  stroke-width: 2;\n}\n.hover\\:stroke-\\[3px\\] {\n  &:hover {\n    @media (hover: hover) {\n      stroke-width: 3px;\n    }\n  }\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.stroke-2 {\n  stroke-width: 2;\n}\n@media (hover: hover) {\n  .hover\\:stroke-\\[3px\\]:hover {\n    stroke-width: 3px;\n  }\n}\n",
+      "barocss": ".stroke-2 {\n  stroke-width: 2;\n}\n\n@media (hover: hover) {\n  .hover\\:stroke-\\[3px\\]:hover {\n    stroke-width: 3px;\n  }\n}\n",
+      "statusV4_1_13": "different",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "db1fb9622e1328d72807522359701aba684c6bb9bad516ae91f3b2a4f6c5c915",
+        "tailwindV4_3_3": "cf93a571e63486beec7c482efa70ee69861592619b6160240f92ba63c713840e",
+        "barocss": "cf93a571e63486beec7c482efa70ee69861592619b6160240f92ba63c713840e"
       }
     },
     {

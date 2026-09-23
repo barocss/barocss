@@ -2,7 +2,7 @@
 
 Generated from the [raw CSS records](tailwind-4.1.13-4.3.3-broad-output.json) and the [exact input catalog](../../packages/barocss/tests/compat/coverage-catalog.ts) on 2026-09-23. This is a selected sample, **not a compatibility percentage** or a claim of full version support.
 
-Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `4cf6a2c`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
+Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `3f9c60f`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
 
 ## Method and limits
 
@@ -40,13 +40,13 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | transforms | 8 | 3 | 5 | 0 | 0 | 3 | 5 | 0 | 0 |
 | transitions | 8 | 2 | 6 | 0 | 0 | 2 | 6 | 0 | 0 |
 | interactivity | 8 | 6 | 2 | 0 | 0 | 6 | 2 | 0 | 0 |
-| svg-and-accessibility | 7 | 2 | 5 | 0 | 0 | 2 | 5 | 0 | 0 |
+| svg-and-accessibility | 14 | 9 | 5 | 0 | 0 | 10 | 4 | 0 | 0 |
 | variants | 21 | 0 | 21 | 0 | 0 | 9 | 12 | 0 | 0 |
 | container-queries | 4 | 3 | 0 | 1 | 0 | 3 | 0 | 0 | 1 |
 | syntax | 18 | 11 | 5 | 0 | 2 | 12 | 4 | 0 | 2 |
 | v4.2-and-v4.3 | 126 | 0 | 1 | 0 | 125 | 85 | 33 | 0 | 8 |
 | combinations | 8 | 0 | 8 | 0 | 0 | 1 | 7 | 0 | 0 |
-| Total selected inputs | 340 | 100 | 112 | 1 | 127 | 195 | 134 | 0 | 11 |
+| Total selected inputs | 347 | 107 | 112 | 1 | 127 | 203 | 133 | 0 | 11 |
 
 ## Exact inputs
 
@@ -214,7 +214,14 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | svg-and-accessibility / svg-and-screen-reader | representative | `sr-only` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/fill) |
 | svg-and-accessibility / svg-and-screen-reader | representative | `not-sr-only` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/fill) |
 | svg-and-accessibility / svg-and-screen-reader | boundary | `fill-none` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/fill) |
-| svg-and-accessibility / svg-and-screen-reader | boundary | `stroke-[3px]` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/fill) |
+| svg-and-accessibility / svg-and-screen-reader | boundary | `stroke-[3px]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/fill) |
+| svg-and-accessibility / stroke-arbitrary-width-and-color | representative | `stroke-[1.5px]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/stroke-width) |
+| svg-and-accessibility / stroke-arbitrary-width-and-color | representative | `stroke-[2rem]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/stroke-width) |
+| svg-and-accessibility / stroke-arbitrary-width-and-color | representative | `stroke-[50%]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/stroke-width) |
+| svg-and-accessibility / stroke-arbitrary-width-and-color | representative | `stroke-[length:var(--stroke-width)]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/stroke-width) |
+| svg-and-accessibility / stroke-arbitrary-width-and-color | boundary | `stroke-[rebeccapurple]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/stroke-width) |
+| svg-and-accessibility / stroke-arbitrary-width-and-color | boundary | `stroke-[color:var(--stroke-color)]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/stroke-width) |
+| svg-and-accessibility / stroke-arbitrary-width-and-color | combination | `stroke-2 hover:stroke-[3px]` | different | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/stroke-width) |
 | variants / state-and-structural | representative | `hover:block` | different | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/hover-focus-and-other-states) |
 | variants / state-and-structural | representative | `focus:block` | different | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/hover-focus-and-other-states) |
 | variants / state-and-structural | representative | `active:block` | different | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/hover-focus-and-other-states) |
