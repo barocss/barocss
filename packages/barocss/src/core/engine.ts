@@ -331,7 +331,8 @@ export function parseClassToAst(
     if (!plugin) {
       // eslint-disable-next-line no-console
       console.warn(`[BAROCSS] Unknown variant: "${variant.type}" in "${fullClassName}"`);
-      continue;
+      failures.add(fullClassName);
+      return [];
     }
 
     if (plugin.wrap) {

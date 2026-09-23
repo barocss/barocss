@@ -109,7 +109,7 @@ interface ObserveOptions {
 
 In the published `0.0.3` package, `removeClass()` deletes class entries from the runtime cache but leaves previously inserted CSS in the page.
 
-In the unpublished `0.0.4` candidate, it also removes the runtime-injected CSS for those classes. CSS needed by remaining classes, shared root rules, base styles, and DOM observation remain active. Neither version changes an element's `class` attribute; remove class names from the DOM separately when needed.
+In the published `0.4.0` package, it also removes the runtime-injected CSS for those classes. CSS needed by remaining classes, shared root rules, base styles, and DOM observation remain active. Neither version changes an element's `class` attribute; remove class names from the DOM separately when needed.
 
 ```typescript
 // Remove single class

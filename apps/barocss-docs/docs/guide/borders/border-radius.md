@@ -101,7 +101,7 @@ Here are all the available border radius logical property utilities and their ph
 | `rounded-es-*` | `rounded-bl-*` | `rounded-br-*` |
 | `rounded-ee-*` | `rounded-br-*` | `rounded-bl-*` |
 
-For more control, you can also use the [LTR and RTL modifiers](/guide/hover-focus-and-other-states#rtl-support) to conditionally apply specific styles depending on the current text direction.
+For more control, you can also use the [LTR and RTL modifiers](/guide/variants/attribute-selectors#rtl-support) to conditionally apply specific styles depending on the current text direction.
 
 ### Creating pill buttons
 

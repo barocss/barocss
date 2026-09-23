@@ -65,7 +65,7 @@ const runtime = new BrowserRuntime({
 
 ## Server Runtime
 
-The Server Runtime is designed for server-side rendering and static generation. In the published `0.0.3` package and the `0.0.4` candidate, `generateCssForClasses` returns one `{ className, css }` result per input class. Join the `css` fields when you need one stylesheet.
+The Server Runtime is designed for server-side rendering and static generation. In the published `0.4.0` package, `generateCssForClasses` returns one `{ className, css }` result per input class. Join the `css` fields when you need one stylesheet.
 
 ### Key Features
 

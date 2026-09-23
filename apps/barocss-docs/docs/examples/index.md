@@ -12,7 +12,7 @@ These examples use public package exports and a small set of classes from the [c
 Install the published browser package:
 
 ```bash
-pnpm add @barocss/browser@0.0.3
+pnpm add @barocss/browser@0.4.0
 ```
 
 Start observation after the body exists:
@@ -31,14 +31,14 @@ document.body.appendChild(message)
 // Call runtime.destroy() when this page or component is removed.
 ```
 
-`block`, `text-center`, and `bg-red-500` are in the candidate's selected Tailwind comparison fixtures. The example shows the browser runtime API; it does not demonstrate that other Tailwind classes work.
+`block`, `text-center`, and `bg-red-500` are in the selected Tailwind comparison fixtures. The example shows the browser runtime API; it does not demonstrate that other Tailwind classes work.
 
 ## Generate one rule on the server
 
 Install the published server package:
 
 ```bash
-pnpm add @barocss/server@0.0.3
+pnpm add @barocss/server@0.4.0
 ```
 
 ```ts

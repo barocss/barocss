@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -27,6 +27,8 @@ try {
     const manifest = JSON.parse(readFileSync(join(destination, 'package.json'), 'utf8'));
     assert.equal(manifest.name, `@barocss/${name}`);
     assert.equal(manifest.version, sourceManifest.version);
+    assert.equal(manifest.repository?.url, 'git+https://github.com/barocss/barocss.git');
+    assert.equal(manifest.repository?.directory, `packages/${directory}`);
     packedManifests.set(name, manifest);
     for (const [subpath, conditions] of Object.entries(manifest.exports)) {
       for (const [condition, target] of Object.entries(conditions)) {
@@ -92,6 +94,16 @@ try {
     include: ['smoke.ts'],
   }));
   execFileSync(process.execPath, [join(root, 'node_modules/typescript/bin/tsc'), '-p', temp], { stdio: 'inherit' });
+  if (process.env.PACK_OUTPUT_DIR) {
+    const output = resolve(process.env.PACK_OUTPUT_DIR);
+    mkdirSync(output, { recursive: true });
+    for (const [, name] of packages) {
+      copyFileSync(
+        join(temp, `barocss-${name}-${kitVersion}.tgz`),
+        join(output, `barocss-${name}-${kitVersion}.tgz`),
+      );
+    }
+  }
   console.log(`Packed @barocss packages at ${kitVersion}: exports, types, CDN files, and runtime imports passed.`);
 } finally {
   rmSync(temp, { recursive: true, force: true });
