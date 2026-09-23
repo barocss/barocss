@@ -6,6 +6,20 @@ import { createContext } from "../../src/core/context";
 import { ctx } from "./test-utils";
 
 describe("breakpoints", () => {
+  it('max-md:hidden wraps a raw 48rem breakpoint in a range query', () => {
+    const rawBreakpoint = createContext({ theme: { breakpoints: { md: '48rem' } } });
+    expect(parseClassToAst('max-md:hidden', rawBreakpoint)).toMatchObject([
+      { type: 'at-rule', name: 'media', params: '(width < 48rem)' },
+    ]);
+  });
+
+  it('max-md:hidden converts a width range query', () => {
+    const rangeBreakpoint = createContext({ theme: { breakpoints: { md: '(width >= 48rem)' } } });
+    expect(parseClassToAst('max-md:hidden', rangeBreakpoint)).toMatchObject([
+      { type: 'at-rule', name: 'media', params: '(width < 48rem)' },
+    ]);
+  });
+
   // Max-width breakpoints tests
   it('max-sm:bg-red-500 → @media (width < 640px) { & { ... } }', () => {
     expect(parseClassToAst('max-sm:bg-red-500', ctx)).toMatchObject([
@@ -248,4 +262,4 @@ describe("breakpoints", () => {
       },
     ]);
   });
-}); 
+});

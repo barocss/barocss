@@ -68,8 +68,10 @@ functionalModifier(
         let mediaQuery = context.theme(`breakpoints.${baseBreakpoint}`) as string || 
                         getDefaultBreakpoint(baseBreakpoint);
         
-        // Convert min-width to max-width
-        if (mediaQuery.includes('min-width:')) {
+        // Theme breakpoints can be a raw length or a complete media query.
+        if (/^\d+(?:\.\d+)?(?:px|em|rem)$/.test(mediaQuery)) {
+          mediaQuery = `(width < ${mediaQuery})`;
+        } else if (mediaQuery.includes('min-width:')) {
           const value = mediaQuery.match(/min-width:\s*([^)]+)/)?.[1];
           if (value) {
             mediaQuery = `(width < ${value})`;
@@ -110,4 +112,4 @@ functionalModifier(
     }
     return [];
   }
-); 
+);
