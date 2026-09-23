@@ -51,7 +51,6 @@ jobs:
       - name: Authenticate without publishing
         shell: bash
         env:
-          NPM_RELEASE_ENABLED: ${{ vars.NPM_RELEASE_ENABLED }}
           NPM_PUBLISH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
         run: |
           test "$NPM_RELEASE_ENABLED" = true || { echo 'npm environment is not enabled'; exit 1; }
