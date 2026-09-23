@@ -248,37 +248,13 @@ BaroCSS uses GitHub Actions to automate the release process:
 type(scope): brief description
 ```
 
+### Evidence for New Features
+
+Run each new feature locally before requesting review. In the PR, give the exact commands you ran, their results, and a short example that another person can repeat. For UI or CSS rendering changes, attach a screenshot or short recording and state the browser, viewport, and UI state. For features without a visual result, include the input and captured output. If you claim Tailwind compatibility, name the Tailwind version and show the comparison result. State any cases you did not test. Keep the PR as a draft until this evidence is ready.
+
 ### PR Description Template
 
-```markdown
-## Description
-Brief description of what this PR accomplishes.
-
-## Type of Change
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
-
-## Testing
-- [ ] I have tested this change locally
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] All tests pass
-
-## Changeset
-- [ ] I have created a changeset for this change
-- [ ] I have selected the appropriate change type (patch/minor/major)
-- [ ] I have provided a clear description of the changes
-
-## Checklist
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-```
+Use the repository [PR template](.github/pull_request_template.md). Fill in its verification and visual evidence sections for new features.
 
 ## 🐛 Bug Reports
 
