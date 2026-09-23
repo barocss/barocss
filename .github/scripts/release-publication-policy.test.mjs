@@ -5,31 +5,34 @@ import test from 'node:test';
 const release = readFileSync('.github/workflows/npm-release.yml', 'utf8');
 const ci = readFileSync('.github/workflows/ci.yml', 'utf8');
 
-function assertMainOnlyPublication(releaseSource, ciSource) {
-  assert.match(releaseSource, /workflow_dispatch:/);
-  assert.match(releaseSource, /github\.ref == 'refs\/heads\/main' && \(github\.event_name == 'push' \|\| github\.event_name == 'workflow_dispatch'\)/);
-  assert.match(releaseSource, /^  publish:\n    if: github\.event_name == 'push' && needs\.preflight\.outputs\.publication_state == 'unpublished'/m);
-  assert.match(releaseSource, /^  auth_dry_run:\n    if: github\.event_name == 'workflow_dispatch'/m);
-  assert.doesNotMatch(releaseSource, /refs\/heads\/develop/);
-  assert.doesNotMatch(releaseSource, /if: inputs\.publish/);
-  assert.match(ciSource, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
-  assert.match(ciSource, /needs: \[build, test\]/);
-  assert.match(ciSource, /uses: \.\/\.github\/workflows\/npm-release\.yml/);
+function assertMainOnlyOidcPublication(releaseSource, ciSource) {
+  assert.match(releaseSource, /push:\n    branches: \[main\]/);
+  assert.match(releaseSource, /pull_request:\n    branches: \[main\]/);
+  assert.doesNotMatch(releaseSource, /workflow_dispatch:|workflow_call:/);
+  assert.match(releaseSource, /^  build:\n    name: build/m);
+  assert.match(releaseSource, /^  test:\n    name: test/m);
+  assert.match(releaseSource, /if: github\.repository == 'barocss\/barocss' && github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
+  assert.match(releaseSource, /needs: \[build, test\]/);
+  assert.match(releaseSource, /environment: npm\n    permissions:\n      contents: write\n      id-token: write/);
+  assert.match(releaseSource, /npm install --global npm@11\.5\.1/);
+  assert.match(releaseSource, /node-version: '22\.22\.0'/);
+  assert.match(releaseSource, /node \.github\/scripts\/check-promotion-merge\.mjs/);
+  assert.match(releaseSource, /PACK_OUTPUT_DIR: /);
+  assert.match(releaseSource, /npm publish "\$RUNNER_TEMP\/barocss-packs\/barocss-\$name-\$RELEASE_VERSION\.tgz"/);
+  assert.doesNotMatch(releaseSource, /secrets\.NPM_TOKEN|secrets\.NPM_PUBLISH_TOKEN|npm whoami|pnpm changeset publish|changesets\/action/);
+  assert.doesNotMatch(ciSource, /      - main\n|^  publish:|^  build:|^  test:/m);
 }
 
-test('only a checked main push can reach publication', () => {
-  assertMainOnlyPublication(release, ci);
+test('only a checked main push can use direct npm OIDC publication', () => {
+  assertMainOnlyOidcPublication(release, ci);
 });
 
-test('develop dispatch cannot reach publication', () => {
-  const unsafe = release.replace("github.ref == 'refs/heads/main'", "github.ref == 'refs/heads/develop'");
-  assert.throws(() => assertMainOnlyPublication(unsafe, ci));
+test('a pull request cannot reach npm publication', () => {
+  const unsafe = release.replace("github.event_name == 'push'", "github.event_name == 'pull_request'");
+  assert.throws(() => assertMainOnlyOidcPublication(unsafe, ci));
 });
 
-test('manual dispatch cannot reach publication', () => {
-  const unsafe = release.replace(
-    "if: github.event_name == 'push' && needs.preflight.outputs.publication_state == 'unpublished'",
-    "if: github.event_name == 'workflow_dispatch' && needs.preflight.outputs.publication_state == 'unpublished'",
-  );
-  assert.throws(() => assertMainOnlyPublication(unsafe, ci));
+test('OIDC publication requires the npm environment and id-token permission', () => {
+  assert.throws(() => assertMainOnlyOidcPublication(release.replace('environment: npm', 'environment: other'), ci));
+  assert.throws(() => assertMainOnlyOidcPublication(release.replace('      id-token: write', '      id-token: read'), ci));
 });
