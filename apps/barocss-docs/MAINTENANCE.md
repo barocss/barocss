@@ -21,7 +21,7 @@ Status: 2026-09-23. This file records the 0.0.4 candidate audit. It does not app
 
 ## Current evidence and limits
 
-- The site build passed locally with Node `18.19.0` and pnpm `10.11.0` after an offline frozen-lockfile install. The Pages workflow uses Node 22 and pnpm 9; its build still needs to pass on the integrated branch.
+- The site build passed locally with Node `18.19.0` and pnpm `10.11.0` after an offline frozen-lockfile install. PM and Guard also passed `pnpm --filter barocss-docs docs:build` on PR #71 integration commit `4b48870` with Node `22.22.0` and pnpm `9.15.4`. The Pages deployment workflow has not run.
 - A local link audit found four missing sidebar targets. The navigation entries were corrected or removed. The Markdown page-link audit found no missing page target.
 - The large examples page had incomplete code and claims without tests. It was replaced with small examples that use public exports and selected fixture classes. Other integration and API pages still need the P1 audit.
 - No browser accessibility audit or external link check has been completed.
