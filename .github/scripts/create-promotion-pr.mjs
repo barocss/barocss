@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { verifyCandidateAncestry } from './release-provenance.mjs';
 
 const repository = 'barocss/barocss';
 const sha = process.env.CANDIDATE_SHA;
@@ -40,6 +41,9 @@ async function api(path, options = {}) {
 
 const develop = await api('branches/develop');
 assert.equal(develop.commit.sha, sha, 'develop moved before promotion branch creation');
+const main = await api('branches/main');
+const ancestry = await api(`compare/${main.commit.sha}...${sha}`);
+verifyCandidateAncestry(ancestry);
 const openMainPulls = await api('pulls?base=main&state=open&per_page=100');
 assert.ok(openMainPulls.length < 100, 'Too many main PRs to safely detect an existing promotion');
 assert.ok(

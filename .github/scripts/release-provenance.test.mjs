@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verifyPromotion } from './release-provenance.mjs';
+import { verifyCandidateAncestry, verifyPromotion } from './release-provenance.mjs';
 
 const candidate = 'a'.repeat(40);
 const main = 'b'.repeat(40);
@@ -25,4 +25,10 @@ test('changed promotion ref or main merge cannot publish', () => {
   );
   assert.throws(() => verifyPromotion(pr, main, version, [previous, previous]), /second parent/);
   assert.throws(() => verifyPromotion(pr, previous, version, [previous, candidate]));
+});
+
+test('strict main protection rejects a candidate behind main', () => {
+  assert.doesNotThrow(() => verifyCandidateAncestry({ ahead_by: 3, behind_by: 0 }));
+  assert.throws(() => verifyCandidateAncestry({ ahead_by: 8, behind_by: 1 }), /behind main/);
+  assert.throws(() => verifyCandidateAncestry({ ahead_by: 0, behind_by: 0 }), /new commit/);
 });

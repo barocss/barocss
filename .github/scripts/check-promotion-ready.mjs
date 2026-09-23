@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync } from 'node:fs';
 import { verifyLinkedSourceVersions } from './release-manifests.mjs';
+import { verifyCandidateAncestry } from './release-provenance.mjs';
 
 const repository = 'barocss/barocss';
 const sha = process.env.CANDIDATE_SHA;
@@ -38,6 +39,9 @@ const localSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }
 assert.equal(localSha, sha, 'Checkout must match the selected commit');
 const branch = await api('branches/develop');
 assert.equal(branch.commit.sha, sha, 'develop moved after the release signal');
+const main = await api('branches/main');
+const ancestry = await api(`compare/${main.commit.sha}...${sha}`);
+verifyCandidateAncestry(ancestry);
 
 const directories = ['barocss', 'barocss-browser', 'barocss-server'];
 const manifests = directories.map((directory) =>

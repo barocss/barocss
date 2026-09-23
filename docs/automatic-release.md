@@ -14,7 +14,7 @@ Guard: https://github.com/barocss/barocss/...
 Ship: https://github.com/barocss/barocss/...
 ```
 
-The **Npm promotion** workflow is then dispatched on `develop` by `easylogic` with `candidate_sha`, `expected_version`, and that comment URL. This explicit dispatch is the PM GO signal. Ordinary `develop` pushes do not start promotion. The preflight rejects a moved `develop` head, mismatched versions, pending changesets, missing evidence, failed CI on that exact SHA, failed frozen install/check/pack/docs build, or an already used npm version/tag.
+The **Npm promotion** workflow is then dispatched on `develop` by `easylogic` with `candidate_sha`, `expected_version`, and that comment URL. This explicit dispatch is the PM GO signal. Ordinary `develop` pushes do not start promotion. The preflight rejects a moved `develop` head, a candidate behind `main`, mismatched versions, pending changesets, missing evidence, failed CI on that exact SHA, failed frozen install/check/pack/docs build, or an already used npm version/tag. If `main` is not an ancestor of the candidate, PM first uses an ordinary PR to bring `main` into `develop`, then repeats CI and issues a new SHA-specific GO. The pinned promotion branch is never updated to fix this condition.
 
 The comment is a PM attestation that Guard and Ship accepted the exact tree. GitHub currently uses the same `easylogic` identity for those work records, so the workflow validates evidence links but cannot prove that two different people wrote them. The `main` PR still needs an independent GitHub approval under branch protection.
 
@@ -39,6 +39,8 @@ The App token is necessary for an unattended chain. GitHub says `GITHUB_TOKEN`-c
 | npm rights | Token owner can publish all three `@barocss/*` packages. The granular token must allow direct publish and meet npm 2FA rules. Confirm package selection and expiry in npm settings. | `npm whoami` in CI proves login only; it cannot prove package-specific publish permission without publishing. [npm token settings](https://docs.npmjs.com/creating-and-viewing-access-tokens/). |
 
 The environment variable makes an absent or unconfigured `npm` environment fail before any publish command. Set it only on that environment. A manual **Npm release** dispatch on `main` checks the version and npm token but never publishes. It is a credential dry-run after this workflow is present on `main`; running it still needs the user's separate authorization during the current 0.0.4 hold.
+
+`main` and `develop` currently diverge: `main` has its own merge commit. A release-ready `develop` commit does not yet contain `main`. Main's strict up-to-date rule would block a pinned PR, so this history must be synchronized through the normal review path before any PM GO. The workflow checks ancestry twice and stops without changing the candidate SHA.
 
 ## Versioning and repeat runs
 
