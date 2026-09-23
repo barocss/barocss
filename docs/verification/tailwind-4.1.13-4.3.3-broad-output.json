@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-7361a67-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-4cf6a2c-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "7361a67",
+    "barocssCommit": "4cf6a2c",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -7483,13 +7483,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.font-features-\\[\\\"tnum\\\"\\] {\n  font-feature-settings: \"tnum\";\n}\n",
-      "barocss": ".font-features-\\[\\\"tnum\\\"\\] {\n  font-family: \"tnum\";\n}\n",
+      "barocss": ".font-features-\\[\\\"tnum\\\"\\] {\n  font-feature-settings: \"tnum\";\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "different",
+      "statusV4_3_3": "match",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "214ad1d078d01e33ae30fec8043d9cda1e70eb5b9227df94b307abf503d6ac8f",
-        "barocss": "1567a9d5fc8fd4ebba9c0aee5cb3739285d7828a7d669a6912d3c553e2ed0a60"
+        "barocss": "214ad1d078d01e33ae30fec8043d9cda1e70eb5b9227df94b307abf503d6ac8f"
       }
     },
     {
@@ -7516,6 +7516,111 @@
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "3e046f76cc3a03350fc36381c3432a033c577e8a784728ba02da54becc551406",
         "barocss": "cacfbb2f2763f7f083aed085bae3c63dd2b59e205c14d2a75b78c1acedd13102"
+      }
+    },
+    {
+      "id": "font-feature-settings:font-features-['smcp','onum']",
+      "axis": "v4.2-and-v4.3",
+      "family": "font-feature-settings",
+      "role": "representative",
+      "classes": [
+        "font-features-['smcp','onum']"
+      ],
+      "source": "https://tailwindcss.com/docs/font-feature-settings",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.font-features-\\[\\'smcp\\'\\,\\'onum\\'\\] {\n  font-feature-settings: 'smcp','onum';\n}\n",
+      "barocss": ".font-features-\\[\\'smcp\\'\\,\\'onum\\'\\] {\n  font-feature-settings: 'smcp','onum';\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "63c01a8be3f859f2283f9db4610f46a2913907b8fa1a24774e1fde0d6886ad97",
+        "barocss": "63c01a8be3f859f2283f9db4610f46a2913907b8fa1a24774e1fde0d6886ad97"
+      }
+    },
+    {
+      "id": "font-feature-settings:font-features-(--my-features)",
+      "axis": "v4.2-and-v4.3",
+      "family": "font-feature-settings",
+      "role": "representative",
+      "classes": [
+        "font-features-(--my-features)"
+      ],
+      "source": "https://tailwindcss.com/docs/font-feature-settings",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.font-features-\\(--my-features\\) {\n  font-feature-settings: var(--my-features);\n}\n",
+      "barocss": ".font-features-\\(--my-features\\) {\n  font-feature-settings: var(--my-features);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "8c547374252cd3499370f0bd86e196d3578a695a5fe16c95d7b7b8d059a4be07",
+        "barocss": "8c547374252cd3499370f0bd86e196d3578a695a5fe16c95d7b7b8d059a4be07"
+      }
+    },
+    {
+      "id": "font-feature-settings:font-features-unknown",
+      "axis": "v4.2-and-v4.3",
+      "family": "font-feature-settings",
+      "role": "boundary",
+      "classes": [
+        "font-features-unknown"
+      ],
+      "source": "https://tailwindcss.com/docs/font-feature-settings",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "font-feature-settings:font-features-['tnum']+md:font-features-['smcp']",
+      "axis": "v4.2-and-v4.3",
+      "family": "font-feature-settings",
+      "role": "combination",
+      "classes": [
+        "font-features-['tnum']",
+        "md:font-features-['smcp']"
+      ],
+      "source": "https://tailwindcss.com/docs/font-feature-settings",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.font-features-\\[\\'tnum\\'\\] {\n  font-feature-settings: 'tnum';\n}\n@media (width >= 48rem) {\n  .md\\:font-features-\\[\\'smcp\\'\\] {\n    font-feature-settings: 'smcp';\n  }\n}\n",
+      "barocss": ".font-features-\\[\\'tnum\\'\\] {\n  font-feature-settings: 'tnum';\n}\n\n@media (min-width: 48rem) {\n  .md\\:font-features-\\[\\'smcp\\'\\] {\n    font-feature-settings: 'smcp';\n  }\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "bbfed40ce3f5ab8346997ec1a9455d91f551992a6c10fb9210db71c43df82998",
+        "barocss": "02eb374c68ca5e85d26e3b22c037e213b880e157b91bf821c3811dc9e34def72"
       }
     },
     {

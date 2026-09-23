@@ -2,7 +2,7 @@
 
 Generated from the [raw CSS records](tailwind-4.1.13-4.3.3-broad-output.json) and the [exact input catalog](../../packages/barocss/tests/compat/coverage-catalog.ts) on 2026-09-23. This is a selected sample, **not a compatibility percentage** or a claim of full version support.
 
-Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `7361a67`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
+Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `4cf6a2c`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
 
 ## Method and limits
 
@@ -44,9 +44,9 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | variants | 21 | 0 | 21 | 0 | 0 | 9 | 12 | 0 | 0 |
 | container-queries | 4 | 3 | 0 | 1 | 0 | 3 | 0 | 0 | 1 |
 | syntax | 18 | 11 | 5 | 0 | 2 | 12 | 4 | 0 | 2 |
-| v4.2-and-v4.3 | 122 | 0 | 1 | 0 | 121 | 82 | 33 | 0 | 7 |
+| v4.2-and-v4.3 | 126 | 0 | 1 | 0 | 125 | 85 | 33 | 0 | 8 |
 | combinations | 8 | 0 | 8 | 0 | 0 | 1 | 7 | 0 | 0 |
-| Total selected inputs | 336 | 100 | 112 | 1 | 123 | 192 | 134 | 0 | 10 |
+| Total selected inputs | 340 | 100 | 112 | 1 | 127 | 195 | 134 | 0 | 11 |
 
 ## Exact inputs
 
@@ -338,8 +338,12 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-gutter-stable` | reference-no-rule | match | unverified | [verified-match](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `@container-size` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `@container-size/sidebar` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / new-utilities | boundary | `font-features-["tnum"]` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / new-utilities | boundary | `font-features-["tnum"]` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `scrollbar-thumb-red-500` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / font-feature-settings | representative | `font-features-['smcp','onum']` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/font-feature-settings) |
+| v4.2-and-v4.3 / font-feature-settings | representative | `font-features-(--my-features)` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/font-feature-settings) |
+| v4.2-and-v4.3 / font-feature-settings | boundary | `font-features-unknown` | reference-no-rule | reference-no-rule | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/font-feature-settings) |
+| v4.2-and-v4.3 / font-feature-settings | combination | `font-features-['tnum'] md:font-features-['smcp']` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/font-feature-settings) |
 | v4.2-and-v4.3 / scrollbar-width-variants | representative | `md:scrollbar-auto` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-width) |
 | v4.2-and-v4.3 / scrollbar-width-variants | representative | `hover:scrollbar-thin` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-width) |
 | v4.2-and-v4.3 / scrollbar-width-variants | boundary | `scrollbar-[3px]` | reference-no-rule | reference-no-rule | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-width) |
