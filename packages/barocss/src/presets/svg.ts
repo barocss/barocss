@@ -47,6 +47,18 @@ functionalUtility({
       return [decl("stroke-width", value)];
     }
 
+    if (token.arbitrary) {
+      if (value.startsWith("length:")) {
+        return [decl("stroke-width", value.slice("length:".length))];
+      }
+      if (value.startsWith("color:")) {
+        return [decl("stroke", value.slice("color:".length))];
+      }
+      if (/^-?(?:\d+(?:\.\d+)?|\.\d+)(?:px|em|rem|vh|vw|vmin|vmax|%|in|cm|mm|pt|pc|ex|ch)$/.test(value)) {
+        return [decl("stroke-width", value)];
+      }
+    }
+
     if (extra?.realThemeValue) {
       return [decl("stroke", `var(--color-${extra.realThemeValue})`)];
     }
@@ -62,4 +74,3 @@ functionalUtility({
   description: "stroke utility (static, theme, arbitrary, custom property supported)",
   category: "svg",
 });
-
