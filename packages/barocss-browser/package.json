@@ -17,14 +17,13 @@
   ],
   "publishConfig": {
     "access": "public",
-    "main": "./dist/index.umd.js",
+    "main": "./dist/index.es.js",
     "module": "./dist/index.es.js",
     "types": "./dist/index.d.ts",
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
-        "import": "./dist/index.es.js",
-        "require": "./dist/index.umd.js"
+        "import": "./dist/index.es.js"
       }
     }
   },
@@ -33,7 +32,7 @@
     "build:cdn": "vite build --config vite.cdn.config.ts",
     "build:library": "pnpm run build && pnpm run build:cdn",
     "test:watch": "vitest",
-    "//test": "vitest run",
+    "test": "vitest run",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/**/*.ts"
   },

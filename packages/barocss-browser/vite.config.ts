@@ -23,6 +23,7 @@ export default defineConfig({
   plugins: [
     dts({
       insertTypesEntry: true,
+      rollupTypes: true,
       exclude: ['**/*.test.ts', '**/*.spec.ts']
     })
   ]

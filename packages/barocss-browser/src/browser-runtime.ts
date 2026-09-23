@@ -129,13 +129,14 @@ export class BrowserRuntime {
    * Public method to apply parser results, update internal caches, and inject CSS
    */
   public applyParseResults(results: Array<GenerateCssRulesResult>, _opts?: { isBrowser?: boolean }): void {
+    if (this.isDestroyed) return;
     const cssRules: GenerateCssRulesResult[] = [];
     const rootCssRules: string[] = [];
 
     for (const result of results) {
       if (result.css && Array.isArray(result.cssList)) {
         cssRules.push(result);
-        // this.cache.set(normalizeClassName(result.cls), result);
+        this.cache.set(result.cls, result);
       }
 
       if (result.rootCss && Array.isArray(result.rootCssList)) {
@@ -213,25 +214,36 @@ export class BrowserRuntime {
    * Clear all caches (useful for debugging or memory management)
    */
   clearCaches(): void {
+    if (this.isDestroyed) return;
     this.cache.clear();
     this.rootCache.clear();
     astCache.clear();
     this.incrementalParser.clearProcessed();
     this.stylePartitionManager.cleanup();
+    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`);
+    this.injectPreflightCSS();
+    this.ensureCssVars();
   }
 
 
   reset(): void {
+    if (this.isDestroyed) return;
     this.cache.clear();
     this.rootCache.clear();
+    this.incrementalParser.clearProcessed();
     this.stylePartitionManager.cleanup();
-    
+    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`);
+    this.injectPreflightCSS();
+    this.ensureCssVars();
   }
 
   updateConfig(newConfig: Config): void {
+    if (this.isDestroyed) return;
+    const existingClasses = Array.from(this.cache.keys());
     this.options.config = newConfig;
     this.context = createContext(newConfig);
-    const existingClasses = Array.from(this.cache.keys());
+    this.incrementalParser = new IncrementalParser(this.context);
+    this.changeDetector.setParser(this.incrementalParser);
     this.reset();
     if (existingClasses.length > 0) {
       this.addClass(existingClasses);
@@ -246,7 +258,8 @@ export class BrowserRuntime {
   }
 
   destroy(): void {
-
+    if (this.isDestroyed) return;
+    this.changeDetector.disconnect();
     this.stylePartitionManager.cleanup();
 
     this.cache.clear();

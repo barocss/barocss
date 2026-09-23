@@ -27,9 +27,6 @@ export class ChangeDetector {
     /** Reference to BrowserRuntime for CSS injection (optional) */
     private BrowserRuntime?: BrowserRuntime;
     
-    /** Set of elements that have already been processed to avoid duplicates */
-    private processedElements = new WeakSet<Element>();
-  
     /**
      * Create a new ChangeDetector instance
      * 
@@ -39,6 +36,10 @@ export class ChangeDetector {
     constructor(incrementalParser: IncrementalParser, BrowserRuntime?: BrowserRuntime) {
       this.incrementalParser = incrementalParser;
       this.BrowserRuntime = BrowserRuntime;
+    }
+
+    setParser(parser: IncrementalParser): void {
+      this.incrementalParser = parser;
     }
   
     /**
@@ -88,11 +89,11 @@ export class ChangeDetector {
           // Handle new nodes
           if (mutation.type === 'childList') {
             mutation.addedNodes.forEach(node => {
-              if (node instanceof HTMLElement) {
+              if (node instanceof Element) {
                 this.processElement(node, newClasses);
                 // Process child elements
                 node.querySelectorAll('[class]').forEach(el => {
-                  this.processElement(el as HTMLElement, newClasses);
+                  this.processElement(el, newClasses);
                 });
               }
             });
@@ -184,18 +185,14 @@ export class ChangeDetector {
      * 
      * This method is called for each element discovered during DOM mutations.
      * It:
-     * - Checks if the element has already been processed
      * - Extracts all class names from the element's className
      * - Filters out already processed classes
      * - Adds new classes to the collection for batch processing
-     * - Marks the element as processed to avoid duplicates
      * 
      * @param element - The HTML element to process
      * @param newClasses - Set to collect newly discovered class names
      */
-    private processElement(element: HTMLElement, newClasses: Set<string>): void {
-      if (this.processedElements.has(element)) return;
-  
+    private processElement(element: Element, newClasses: Set<string>): void {
       if (element.className) {
         // SVG className is SVGAnimatedString; convert to string with toString()
         // HTMLElement className is string; use as-is
@@ -207,7 +204,6 @@ export class ChangeDetector {
         });
       }
   
-      this.processedElements.add(element);
     }
   
     /**
@@ -223,4 +219,4 @@ export class ChangeDetector {
         this.observer = null;
       }
     }
-  } 
+  }

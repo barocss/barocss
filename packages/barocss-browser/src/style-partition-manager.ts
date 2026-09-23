@@ -298,6 +298,7 @@ export class StylePartitionManager {
 
     // 상태 초기화
     this.partitions = [];
+    this.categoryPartitions.clear();
     this.partitionCounter = 0;
     this.classToPartitionMap.clear();
     this.classToCategoryPartitionMap.clear();
