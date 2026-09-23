@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { parseClassToAst, generateCss, generateCssRules } from '../src/core/engine';
 import '../src/presets';
 import { createContext } from '../src/core/context';
+import { functionalModifier } from '../src/core/registry';
 
 describe('parseClassToAst (end-to-end)', () => {
   const ctx = createContext({
@@ -154,13 +155,8 @@ describe('parseClassToAst (end-to-end)', () => {
     );
   });
 
-  it('container query', () => {
-    expect(generateCss('container-[size>600px]:p-8', ctx)).toBe(
-      `.container-\\[size\\>600px\\]\\:p-8 {
-  padding: calc(var(--spacing) * 8);
-}
-`
-    );
+  it('does not emit CSS for an unsupported container variant', () => {
+    expect(generateCss('container-[size>600px]:p-8', ctx)).toBe('');
   });
 
   it('escape edge case', () => {
@@ -203,6 +199,23 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(regularRule.css).not.toContain('!important');
   });
 
+  it('rejects an unknown variant and retries after registration', () => {
+    const local = createContext({});
+    const className = 'missing-variant:block';
+    expect(parseClassToAst(className, local)).toEqual([]);
+    expect(generateCss(className, local)).toBe('');
+    expect(generateCssRules(className, local)[0].css).toBe('');
+
+    functionalModifier(
+      (name) => name === 'missing-variant',
+      () => '&:where(.ready)',
+      undefined,
+      {},
+      local,
+    );
+    expect(generateCss(className, local)).toContain(':where(.ready)');
+  });
+
   it('emits gradient root declarations once for multiple classes', () => {
     const css = generateCss('from-red-500 bg-blue-500', ctx);
     expect(css.match(/@property --baro-gradient-from \{/g)).toHaveLength(1);
@@ -211,13 +224,8 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(css).toContain('background-color: #3b82f6;');
   });
 
-  it('container query orientation', () => {
-    expect(generateCss('container-[orientation=landscape]:flex', ctx)).toBe(
-      `.container-\\[orientation\\=landscape\\]\\:flex {
-  display: flex;
-}
-`
-    );
+  it('does not emit CSS for an unsupported container orientation variant', () => {
+    expect(generateCss('container-[orientation=landscape]:flex', ctx)).toBe('');
   });
 
   it('multiple variants + arbitrary', () => {
