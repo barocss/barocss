@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-586a06d-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-9321cec-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "586a06d",
+    "barocssCommit": "9321cec",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -4746,6 +4746,110 @@
         "tailwindV4_1_13": "d34a3ec7f1909a4d44c0bb57a9318043357b6d4492e56e2968be5fb14e2fe7eb",
         "tailwindV4_3_3": "8768b1e59284da0a67f3e350ac13a878d46e55e8f73e44613717cc11286e2728",
         "barocss": "e4e6aed90ec6dbd71e7258bcdcd737a766e7b11aa6b9ea0b59dbc3714a35a836"
+      }
+    },
+    {
+      "id": "inline-size-container:@container",
+      "axis": "container-queries",
+      "family": "inline-size-container",
+      "role": "representative",
+      "classes": [
+        "@container"
+      ],
+      "source": "https://tailwindcss.com/docs/responsive-design",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.\\@container {\n  container-type: inline-size;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.\\@container {\n  container-type: inline-size;\n}\n",
+      "barocss": ".\\@container {\n  container-type: inline-size;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "c79913cd2568bd0a419e2bf5dbb4e26cb4e59f7dbb851dec92f93a37bd3218c2",
+        "tailwindV4_3_3": "c79913cd2568bd0a419e2bf5dbb4e26cb4e59f7dbb851dec92f93a37bd3218c2",
+        "barocss": "c79913cd2568bd0a419e2bf5dbb4e26cb4e59f7dbb851dec92f93a37bd3218c2"
+      }
+    },
+    {
+      "id": "inline-size-container:@container/sidebar",
+      "axis": "container-queries",
+      "family": "inline-size-container",
+      "role": "representative",
+      "classes": [
+        "@container/sidebar"
+      ],
+      "source": "https://tailwindcss.com/docs/responsive-design",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.\\@container\\/sidebar {\n  container-type: inline-size;\n  container-name: sidebar;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.\\@container\\/sidebar {\n  container-type: inline-size;\n  container-name: sidebar;\n}\n",
+      "barocss": ".\\@container\\/sidebar {\n  container-type: inline-size;\n  container-name: sidebar;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "6d29f3e69cbea37ee7fe51aa87ca8bec6b691c1570cdaacccff27464656d0967",
+        "tailwindV4_3_3": "6d29f3e69cbea37ee7fe51aa87ca8bec6b691c1570cdaacccff27464656d0967",
+        "barocss": "6d29f3e69cbea37ee7fe51aa87ca8bec6b691c1570cdaacccff27464656d0967"
+      }
+    },
+    {
+      "id": "inline-size-container:@container/card-grid",
+      "axis": "container-queries",
+      "family": "inline-size-container",
+      "role": "boundary",
+      "classes": [
+        "@container/card-grid"
+      ],
+      "source": "https://tailwindcss.com/docs/responsive-design",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.\\@container\\/card-grid {\n  container-type: inline-size;\n  container-name: card-grid;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.\\@container\\/card-grid {\n  container-type: inline-size;\n  container-name: card-grid;\n}\n",
+      "barocss": ".\\@container\\/card-grid {\n  container-type: inline-size;\n  container-name: card-grid;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "d82a7be48d1efb6ee16d7ee044e3110ef3a72b79770b6ecdacce8d75163c0484",
+        "tailwindV4_3_3": "d82a7be48d1efb6ee16d7ee044e3110ef3a72b79770b6ecdacce8d75163c0484",
+        "barocss": "d82a7be48d1efb6ee16d7ee044e3110ef3a72b79770b6ecdacce8d75163c0484"
+      }
+    },
+    {
+      "id": "inline-size-container:@container/",
+      "axis": "container-queries",
+      "family": "inline-size-container",
+      "role": "boundary",
+      "classes": [
+        "@container/"
+      ],
+      "source": "https://tailwindcss.com/docs/responsive-design",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.\\@container\\/ {\n  container-type: inline-size;\n  container-name: ;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "unsupported",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4adfe827b59a326982b1ac70379116639d78ab71cb3fdb12b136aee97dfafeb3",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       }
     },
     {

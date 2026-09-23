@@ -46,6 +46,7 @@ const lines = [
   '- For the new `tab-2 md:tab-4` combination, Tailwind 4.3.3 emits `@media (width >= 48rem)` and BaroCSS emits `@media (min-width: 48rem)`. This is a recorded structural difference; this combination has no browser result.',
   '- In the two `scrollbar-gutter-*` and `overflow-*` combinations, Tailwind emits the gutter rule first and BaroCSS emits the overflow rule first. The individual declarations agree, but rule order differs. No browser result was measured for these combinations.',
   '- For `md:scrollbar-auto`, Tailwind 4.3.3 emits `@media (width >= 48rem)` and BaroCSS emits `@media (min-width: 48rem)`. The declaration agrees; the media-query syntax differs. This exact input has no browser result.',
+  '- For `@container/`, Tailwind 4.1.13 emits a rule with an empty `container-name` declaration, while 4.3.3 and BaroCSS emit no rule. The 4.1.13 `unsupported` status records the reference rule only; it does not call for adding an empty container name.',
   `- Browser evidence is limited to ${verifiedBrowser.length} exact Tailwind 4.3.3 inputs listed below. All 4.1.13 browser results in this broad run and the other 4.3.3 inputs are \`unverified\`. CSS variables and theme output are not separately rendered as a complete page. A syntactic match alone does not establish computed style or visual parity.`,
   '- The older [15-input matrix](tailwind-compatibility-matrix.md) and [five-input follow-up](tailwind-4.1.13-followup-output.json) remain separate records with their own settings and browser evidence.',
   '',

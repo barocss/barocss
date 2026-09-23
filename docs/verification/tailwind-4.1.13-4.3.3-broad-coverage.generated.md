@@ -2,7 +2,7 @@
 
 Generated from the [raw CSS records](tailwind-4.1.13-4.3.3-broad-output.json) and the [exact input catalog](../../packages/barocss/tests/compat/coverage-catalog.ts) on 2026-09-23. This is a selected sample, **not a compatibility percentage** or a claim of full version support.
 
-Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `586a06d`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
+Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `9321cec`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
 
 ## Method and limits
 
@@ -13,6 +13,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 - For the new `tab-2 md:tab-4` combination, Tailwind 4.3.3 emits `@media (width >= 48rem)` and BaroCSS emits `@media (min-width: 48rem)`. This is a recorded structural difference; this combination has no browser result.
 - In the two `scrollbar-gutter-*` and `overflow-*` combinations, Tailwind emits the gutter rule first and BaroCSS emits the overflow rule first. The individual declarations agree, but rule order differs. No browser result was measured for these combinations.
 - For `md:scrollbar-auto`, Tailwind 4.3.3 emits `@media (width >= 48rem)` and BaroCSS emits `@media (min-width: 48rem)`. The declaration agrees; the media-query syntax differs. This exact input has no browser result.
+- For `@container/`, Tailwind 4.1.13 emits a rule with an empty `container-name` declaration, while 4.3.3 and BaroCSS emit no rule. The 4.1.13 `unsupported` status records the reference rule only; it does not call for adding an empty container name.
 - Browser evidence is limited to 7 exact Tailwind 4.3.3 inputs listed below. All 4.1.13 browser results in this broad run and the other 4.3.3 inputs are `unverified`. CSS variables and theme output are not separately rendered as a complete page. A syntactic match alone does not establish computed style or visual parity.
 - The older [15-input matrix](tailwind-compatibility-matrix.md) and [five-input follow-up](tailwind-4.1.13-followup-output.json) remain separate records with their own settings and browser evidence.
 
@@ -34,10 +35,11 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | interactivity | 8 | 6 | 2 | 0 | 0 | 6 | 2 | 0 | 0 |
 | svg-and-accessibility | 7 | 2 | 5 | 0 | 0 | 2 | 5 | 0 | 0 |
 | variants | 21 | 0 | 21 | 0 | 0 | 9 | 12 | 0 | 0 |
+| container-queries | 4 | 3 | 0 | 1 | 0 | 3 | 0 | 0 | 1 |
 | syntax | 12 | 7 | 4 | 1 | 0 | 7 | 4 | 1 | 0 |
 | v4.2-and-v4.3 | 45 | 0 | 1 | 0 | 44 | 27 | 3 | 9 | 6 |
 | combinations | 8 | 0 | 8 | 0 | 0 | 1 | 7 | 0 | 0 |
-| Total selected inputs | 247 | 93 | 108 | 2 | 44 | 129 | 101 | 11 | 6 |
+| Total selected inputs | 251 | 96 | 108 | 3 | 44 | 132 | 101 | 11 | 7 |
 
 ## Exact inputs
 
@@ -225,6 +227,10 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | variants / responsive-and-arbitrary | boundary | `hover:focus:block` | different | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/responsive-design) |
 | variants / responsive-and-arbitrary | boundary | `[&>p]:block` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/responsive-design) |
 | variants / responsive-and-arbitrary | boundary | `md:focus-visible:block` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/responsive-design) |
+| container-queries / inline-size-container | representative | `@container` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/responsive-design) |
+| container-queries / inline-size-container | representative | `@container/sidebar` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/responsive-design) |
+| container-queries / inline-size-container | boundary | `@container/card-grid` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/responsive-design) |
+| container-queries / inline-size-container | boundary | `@container/` | unsupported | reference-no-rule | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/responsive-design) |
 | syntax / arbitrary-and-negative | representative | `min-w-[13px]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/adding-custom-styles) |
 | syntax / arbitrary-and-negative | representative | `h-[27px]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/adding-custom-styles) |
 | syntax / arbitrary-and-negative | representative | `border-[#ff0000]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/adding-custom-styles) |
