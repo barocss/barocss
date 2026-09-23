@@ -99,7 +99,7 @@ Follow this path to understand BaroCSS APIs from basic to advanced concepts.
 
 ```typescript
 // CDN
-import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@0.0.3/dist/cdn/barocss.js';
+import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@0.4.0/dist/cdn/barocss.js';
 
 // NPM
 import { BrowserRuntime } from '@barocss/browser';
