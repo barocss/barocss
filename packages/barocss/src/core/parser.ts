@@ -23,6 +23,8 @@ export interface ParsedUtility {
 import { getUtility, getModifier, UtilityRegistration } from './registry';
 import { tokenize, Token } from './tokenizer';
 import { parseResultCache, utilityCache } from '../utils/cache';
+import type { Context } from './context';
+import { getContextState } from './contextState';
 
 // Cache systems
 
@@ -32,14 +34,15 @@ import { parseResultCache, utilityCache } from '../utils/cache';
  * @param str The string to check
  * @returns true if it's a utility prefix
  */
-function isUtilityPrefix(str: string): boolean {
+function isUtilityPrefix(str: string, ctx?: Context): boolean {
+  const cache = (ctx && getContextState(ctx)?.utilityCache) || utilityCache;
   // Check cache
-  if (utilityCache.has(str)) {
-    return utilityCache.get(str)!;
+  if (cache.has(str)) {
+    return cache.get(str)!;
   }
   
-  const utilities = getUtility();
-  const modifiers = getModifier();
+  const utilities = getUtility(ctx);
+  const modifiers = getModifier(ctx);
   
   // 1. Fast prefix filtering (O(1) prefix check)
   const candidateUtilities = utilities.filter(util => {
@@ -64,7 +67,7 @@ function isUtilityPrefix(str: string): boolean {
   const result = isUtility && !isModifier;
   
   // 5. Cache result
-  utilityCache.set(str, result);
+  cache.set(str, result);
   
   return result;
 }
@@ -83,10 +86,11 @@ function isUtilityPrefix(str: string): boolean {
  * @param className e.g. 'group-hover:sm:bg-[red]', 'text-[color:var(--foo)]'
  * @returns { modifiers, utility }
  */
-export function parseClassName(className: string): { modifiers: ParsedModifier[]; utility: ParsedUtility | null } {
+export function parseClassName(className: string, ctx?: Context): { modifiers: ParsedModifier[]; utility: ParsedUtility | null } {
+  const cache = (ctx && getContextState(ctx)?.parseResultCache) || parseResultCache;
   // Check parse result cache first
-  if (parseResultCache.has(className)) {
-    return parseResultCache.get(className)!;
+  if (cache.has(className)) {
+    return cache.get(className)!;
   }
 
   // Examples: !bg-[red]
@@ -100,13 +104,13 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
   // 1. Tokenize string into tokens
   const tokens = tokenize(realClassName);
   // 2. Convert tokens to parsed result
-  const result = parseTokens(tokens);
+  const result = parseTokens(tokens, ctx);
   if (result.utility) {
     result.utility.important = important;
   }
   
   // Cache the result
-  parseResultCache.set(className, result);
+  cache.set(className, result);
   
   return result;
 }
@@ -114,7 +118,7 @@ export function parseClassName(className: string): { modifiers: ParsedModifier[]
 /**
  * Parses tokens into modifiers and utility
  */
-function parseTokens(tokens: Token[]): { modifiers: ParsedModifier[]; utility: ParsedUtility | null } {
+function parseTokens(tokens: Token[], ctx?: Context): { modifiers: ParsedModifier[]; utility: ParsedUtility | null } {
   const modifiers: ParsedModifier[] = [];
   let utility: ParsedUtility | null = null;
   
@@ -126,31 +130,31 @@ function parseTokens(tokens: Token[]): { modifiers: ParsedModifier[]; utility: P
   // Determine token types and parse in both directions
   if (tokens.length === 1) {
     // utility only
-    utility = parseUtility(tokens[0].value);
+    utility = parseUtility(tokens[0].value, ctx);
   } else if (tokens.length === 2) {
     const firstToken = tokens[0];
     const secondToken = tokens[1];
-    const isFirstUtility = isUtilityPrefix(firstToken.value);
+    const isFirstUtility = isUtilityPrefix(firstToken.value, ctx);
     
     if (isFirstUtility) {
       // utility:modifier form
-      utility = parseUtility(firstToken.value);
+      utility = parseUtility(firstToken.value, ctx);
       const parsed = parseModifier(secondToken.value);
       if (parsed) modifiers.push(parsed);
     } else {
       // modifier:utility form
       const parsed = parseModifier(firstToken.value);
       if (parsed) modifiers.push(parsed);
-      utility = parseUtility(secondToken.value);
+      utility = parseUtility(secondToken.value, ctx);
     }
   } else {
     // Multiple tokens
     // Check if the first token is a utility
-    const isFirstUtility = isUtilityPrefix(tokens[0].value);
+    const isFirstUtility = isUtilityPrefix(tokens[0].value, ctx);
     
     if (isFirstUtility) {
       // utility:modifier:modifier form
-      utility = parseUtility(tokens[0].value);
+      utility = parseUtility(tokens[0].value, ctx);
       for (let i = 1; i < tokens.length; i++) {
         const parsed = parseModifier(tokens[i].value);
         if (parsed) modifiers.push(parsed);
@@ -161,7 +165,7 @@ function parseTokens(tokens: Token[]): { modifiers: ParsedModifier[]; utility: P
         const parsed = parseModifier(tokens[i].value);
         if (parsed) modifiers.push(parsed);
       }
-      utility = parseUtility(tokens[tokens.length - 1].value);
+      utility = parseUtility(tokens[tokens.length - 1].value, ctx);
     }
   }
   return { modifiers, utility };
@@ -194,7 +198,7 @@ function nameSort(a: UtilityRegistration, b: UtilityRegistration): number {
 /**
  * Parse utility token
  */
-function parseUtility(value: string): ParsedUtility {
+function parseUtility(value: string, ctx?: Context): ParsedUtility {
   // Examples: bg-[red], text-[color:var(--foo)], bg-(--my-bg), -m-4, -bg-[red]
   let prefix = '';
   let utilityValue = '';
@@ -232,8 +236,7 @@ function parseUtility(value: string): ParsedUtility {
   } 
   // Handle regular utilities
   else {
-    const utilities = getUtility();
-    const sortedUtilities = utilities.sort(nameSort);
+    const sortedUtilities = [...getUtility(ctx)].sort(nameSort);
     
     let matchedUtility = sortedUtilities.find(p => value === p.name);
     if (matchedUtility) {

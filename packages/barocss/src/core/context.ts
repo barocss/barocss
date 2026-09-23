@@ -1,6 +1,7 @@
 import { defaultTheme } from "../theme";
-import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock, setVarPrefix } from "./cssVars";
-import { clearAllCaches } from "../utils/cache";
+import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
+import { getModifier, getUtility } from './registry';
+import { clearContextCaches, initializeContextState } from './contextState';
 import { preflightMinimalCSS, preflightStandardCSS, preflightFullCSS } from "../css/preflight";
 
 type PreflightLevel = 'minimal' | 'standard' | 'full' | true | false;
@@ -54,9 +55,8 @@ export interface Config {
    */
   preflight?: PreflightLevel;
   /**
-   * Whether to clear all caches when context is created/changed
-   * - true (default): Clear all caches on context change
-   * - false: Keep existing caches
+   * @deprecated Contexts now own their caches. Creating a context does not
+   * clear caches that belong to another context.
    */
   clearCacheOnContextChange?: boolean;
   [key: string]: unknown;
@@ -108,7 +108,7 @@ export function deepMerge<T extends Record<string, unknown>>(base: T, override: 
 
 export type ThemeGetter = (...path: (string|number)[]) => unknown;
 
-let staticInProgress: Set<string> | undefined;
+const themeLookupsInProgress = new WeakMap<Theme, Set<string>>();
 
 /**
  * Modern theme getter for BAROCSS
@@ -169,45 +169,34 @@ export function themeGetter(themeObj: Theme, ...path: (string | number)[]): unkn
 
   // Infinite recursion protection: track currently resolving full paths
   // If the exact same path is being resolved recursively, return undefined
-  staticInProgress = staticInProgress || new Set();
+  let inProgress = themeLookupsInProgress.get(themeObj);
+  if (!inProgress) {
+    inProgress = new Set();
+    themeLookupsInProgress.set(themeObj, inProgress);
+  }
   const pathKey = keys.join('.');
-  if (staticInProgress?.has(pathKey)) return undefined;
-  staticInProgress?.add(pathKey);
+  if (inProgress.has(pathKey)) return undefined;
+  inProgress.add(pathKey);
 
-  // Get the category value (could be a function or object)
-  let value = themeObj[keys[0]];
-  // console.log(`[themeGetter] category '${keys[0]}' value:`, value, `type:`, typeof value);
-  
-  // If the category is a function, execute it with the theme getter
-  // This enables dynamic theme extension and plugin-style patterns
-  if (typeof value === 'function') {
-    // console.log(`[themeGetter] executing category function for '${keys[0]}'`);
-    value = value(theme);
-    // console.log(`[themeGetter] category function result:`, value);
-  }
-
-  // Traverse the rest of the path (leaf keys)
-  for (let i = 1; i < keys.length; i++) {
-    // console.log(`[themeGetter] traversing key '${keys[i]}', current value:`, value);
-    if (value == null) {
-      // console.log(`[themeGetter] value is null/undefined at key '${keys[i]}'`);
-      staticInProgress?.delete(pathKey);
-      return undefined;
+  try {
+    // Get the category value (could be a function or object)
+    let value = themeObj[keys[0]];
+    // If the category is a function, execute it with the theme getter.
+    if (typeof value === 'function') {
+      value = value(theme);
     }
-    value = (value as Record<string, unknown>)[keys[i]];
-    // console.log(`[themeGetter] after accessing '${keys[i]}', value:`, value);
-  }
 
-  staticInProgress?.delete(pathKey);
-  // If the final value is a function (leaf function), do NOT execute it
-  // Only category-level functions are supported; leaf functions are ignored
-  if (typeof value === 'function') {
-    return undefined;
-  }
+    for (let i = 1; i < keys.length; i++) {
+      if (value == null) return undefined;
+      value = (value as Record<string, unknown>)[keys[i]];
+    }
 
-  // Return the resolved value (static or dynamically generated)
-  // console.log(`[themeGetter] final result:`, value);
-  return value;
+    // Leaf functions are not supported.
+    if (typeof value === 'function') return undefined;
+    return value;
+  } finally {
+    inProgress.delete(pathKey);
+  }
 }
 
 // config getter
@@ -269,15 +258,7 @@ export function createContext(configObj: Config): Context {
     ],
     ...configObj
   };
-  // Initialize global CSS var prefix
-  setVarPrefix(configWithDefaults.cssVarPrefix || '--bcss-');
-  
   const themeObj = resolveTheme(configWithDefaults);
-  
-  // Auto-clear caches on context change (optional)
-  if (configObj.clearCacheOnContextChange !== false) {
-    clearAllCaches();
-  }
 
   // 1. Declare ctx first as an object
   const ctx: Context = {
@@ -327,6 +308,7 @@ export function createContext(configObj: Config): Context {
       } else {
         // console.warn(`[extendTheme] Invalid values for category ${category}:`, values);
       }
+      clearContextCaches(ctx);
     },
     getPreflightCSS: (level: PreflightLevel = true) => {
       return getPreflightCSS(level);
@@ -352,5 +334,6 @@ export function createContext(configObj: Config): Context {
   // ctx.plugins = configWithDefaults.plugins ?? [];
   // ctx.themeToCssVars = () => themeToCssVars(themeObj);
 
+  initializeContextState(ctx, getUtility(), getModifier());
   return ctx;
-} 
+}

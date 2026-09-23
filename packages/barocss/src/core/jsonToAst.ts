@@ -106,11 +106,11 @@ export type BaroVariant = {
 export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
     // 1. Find Utility Handler
     // Try to find exact match first (e.g. 'text-center' from { name: 'text', value: 'center' })
-    let utilReg = getUtility().find((u) => u.name === input.utility.name);
+    let utilReg = getUtility(ctx).find((u) => u.name === input.utility.name);
 
     if (input.utility.value && !input.utility.arbitrary && !input.utility.customProperty) {
         const fullName = `${input.utility.name}-${input.utility.value}`;
-        const exactMatch = getUtility().find((u) => u.name === fullName);
+        const exactMatch = getUtility(ctx).find((u) => u.name === fullName);
         if (exactMatch) {
             utilReg = exactMatch;
             // If exact match found, the value is consumed by the name, so we pass empty string or the value itself depending on handler
@@ -207,7 +207,7 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
                 parsedModifier.type = matchKey;
             }
 
-            const plugin = getModifier().find((p) => p.match(matchKey, ctx));
+            const plugin = getModifier(ctx).find((p) => p.match(matchKey, ctx));
 
             if (!plugin) {
                 // eslint-disable-next-line no-console

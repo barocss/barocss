@@ -2,7 +2,7 @@
 // Each function takes a category theme object and returns Record<string, string>
 // Namespace/naming rules aligned with v4
 
-import type { Theme } from './context';
+import type { Context, Theme } from './context';
 
 // Global CSS variable prefix helper
 let CSS_VAR_PREFIX = '--bcss-';
@@ -22,13 +22,17 @@ export function setVarPrefix(prefix: string | undefined): void {
   CSS_VAR_PREFIX = normalizePrefix(prefix);
 }
 
-export function getVarName(key: string): string {
-  return `${CSS_VAR_PREFIX}${key}`;
+export function getVarName(key: string, ctx?: Context): string {
+  const configured = ctx?.config('cssVarPrefix');
+  const prefix = typeof configured === 'string' && configured.trim()
+    ? normalizePrefix(configured)
+    : ctx ? '--bcss-' : CSS_VAR_PREFIX;
+  return `${prefix}${key}`;
 }
 
 // Aliases for brevity
 export const varName = getVarName;
-export function v(key: string): string { return getVarName(key); }
+export function v(key: string, ctx?: Context): string { return getVarName(key, ctx); }
 
 function escapeKey(key: string): string {
   return key.replace('.', '\\.');
@@ -331,4 +335,4 @@ export function themeToCssVarsAll(theme: Theme): Record<string, string> {
  */
 export function toCssVarsBlock(vars: Record<string, string>, extra: string = ''): string {
   return ':root,:host {\n' + Object.entries(vars).map(([k, v]) => `  ${k}: ${v};`).join('\n') + '\n}\n' + extra + '\n';
-} 
+}

@@ -1,6 +1,7 @@
 import type { AstNode } from './ast';
 import { decl, rule } from './ast';
-import { Context } from './context';
+import type { Context } from './context';
+import { clearContextCaches, getContextState } from './contextState';
 import { ParsedModifier, ParsedUtility } from './parser';
 
 // Utility registration
@@ -51,12 +52,15 @@ export interface UtilityRegistration {
 }
 
 const utilityRegistry: UtilityRegistration[] = [];
-export function registerUtility(util: UtilityRegistration) {
-  utilityRegistry.push(util);
+export function registerUtility(util: UtilityRegistration, ctx?: Context) {
+  const state = ctx && getContextState(ctx);
+  if (ctx && !state) throw new Error('Utility registration requires a context from createContext');
+  (state?.utilities || utilityRegistry).push(util);
+  if (ctx) clearContextCaches(ctx);
 }
 
-export function getUtility(): UtilityRegistration[] {
-  return utilityRegistry;
+export function getUtility(ctx?: Context): UtilityRegistration[] {
+  return (ctx && getContextState(ctx)?.utilities) || utilityRegistry;
 }
 
 // --- Modifier Registration ---
@@ -87,8 +91,8 @@ export const modifierRegistry: ModifierRegistration[] = [];
  * @returns {void}
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function staticModifier(name: string, selectors: string[], options: any = {}): void {
-  modifierRegistry.push({
+export function staticModifier(name: string, selectors: string[], options: any = {}, ctx?: Context): void {
+  registerModifier({
     match: (mod: string) => mod === name,
     modifySelector: ({ ..._rest }) => {
       return selectors.map(sel => ({
@@ -97,15 +101,22 @@ export function staticModifier(name: string, selectors: string[], options: any =
       }));
     },
     ...options
-  });
+  }, ctx);
 }
 
-export function functionalModifier(match: ModifierRegistration['match'], modifySelector: ModifierRegistration['modifySelector'], wrap?: ModifierRegistration['wrap'], options: Partial<ModifierRegistration> = {}) {
-  modifierRegistry.push({ match, modifySelector, wrap, ...options });
+export function functionalModifier(match: ModifierRegistration['match'], modifySelector: ModifierRegistration['modifySelector'], wrap?: ModifierRegistration['wrap'], options: Partial<ModifierRegistration> = {}, ctx?: Context) {
+  registerModifier({ match, modifySelector, wrap, ...options }, ctx);
 }
 
-export function getModifier(): ModifierRegistration[] {
-  return modifierRegistry;
+export function registerModifier(modifier: ModifierRegistration, ctx?: Context): void {
+  const state = ctx && getContextState(ctx);
+  if (ctx && !state) throw new Error('Modifier registration requires a context from createContext');
+  (state?.modifiers || modifierRegistry).push(modifier);
+  if (ctx) clearContextCaches(ctx);
+}
+
+export function getModifier(ctx?: Context): ModifierRegistration[] {
+  return (ctx && getContextState(ctx)?.modifiers) || modifierRegistry;
 }
 
 //  escapeClassName
@@ -183,7 +194,8 @@ type StaticUtilityValue =
 export function staticUtility(
   name: string,
   decls: StaticUtilityValue[],
-  opts?: { description?: string; category?: string; priority?: number }
+  opts?: { description?: string; category?: string; priority?: number },
+  ctx?: Context,
 ): void {
   registerUtility({
     name,
@@ -216,7 +228,7 @@ export function staticUtility(
     description: opts?.description,
     category: opts?.category,
     priority: opts?.priority,
-  });
+  }, ctx);
 }
 
 export type FunctionalUtilityExtra = {
@@ -422,7 +434,7 @@ export type FunctionalUtilityOptions = {
  *     category: 'layout',
  *   });
  */
-export function functionalUtility(opts: FunctionalUtilityOptions) {
+export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context) {
   registerUtility({
     name: opts.name,
     match: (className: string) => className.startsWith(opts.name + '-'),
@@ -544,5 +556,5 @@ export function functionalUtility(opts: FunctionalUtilityOptions) {
     description: opts.description,
     category: opts.category,
     priority: opts.priority,
-  });
+  }, ctx);
 }

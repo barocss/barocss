@@ -5,9 +5,10 @@ import { getUtility, getModifier } from "./registry";
 import { Context } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
 import { clearAllCaches } from "../utils/cache";
+import { clearContextCaches, getContextState } from './contextState';
 
 // Failure cache for invalid class names
-const failureCache = new Map<string, boolean>();
+const failureCache = new Set<string>();
 
 /**
  * decl-to-root path collection function (reused in normalizeAstOrder, etc.)
@@ -271,35 +272,31 @@ export function parseClassToAst(
   fullClassName: string,
   ctx: Context
 ): AstNode[] {
+  const state = getContextState(ctx);
+  const failures = state?.failures || failureCache;
+  const cache = state?.astCache || astCache;
   // Check failure cache first
-  if (failureCache.has(fullClassName)) {
+  if (failures.has(fullClassName)) {
     return [];
   }
 
   // Check AST cache first
-  // Simpler cache key: className + context hash
-  const contextHash = JSON.stringify({
-    darkMode: ctx.config("darkMode"),
-    darkModeSelector: ctx.config("darkModeSelector"),
-    theme: ctx.theme,
-  });
-  const cacheKey = `${fullClassName}:${contextHash}`;
-  if (astCache.has(cacheKey)) {
-    return astCache.get(cacheKey)!;
+  if (cache.has(fullClassName)) {
+    return cache.get(fullClassName)!;
   }
 
-  const { modifiers, utility } = parseClassName(fullClassName);
+  const { modifiers, utility } = parseClassName(fullClassName, ctx);
 
   // console.log('[parseClassToAst] modifiers', modifiers, utility);
 
   if (!utility) {
     // eslint-disable-next-line no-console
     console.warn(`[BAROCSS] Invalid class name format: "${fullClassName}"`);
-    failureCache.set(fullClassName, true);
+    failures.add(fullClassName);
     return [];
   }
 
-  const utilReg = getUtility().find((u) => {
+  const utilReg = getUtility(ctx).find((u) => {
     const fullClassName = utility.value
       ? `${utility.prefix}-${utility.value}`
       : utility.prefix;
@@ -312,7 +309,7 @@ export function parseClassToAst(
       : utility.prefix;
     // eslint-disable-next-line no-console
     console.warn(`[BAROCSS] Unknown utility class: "${utilityName}" in "${fullClassName}"`);
-    failureCache.set(fullClassName, true);
+    failures.add(fullClassName);
     return [];
   }
 
@@ -329,7 +326,7 @@ export function parseClassToAst(
   for (let i = 0; i < modifiers.length; i++) {
     const variant = modifiers[i];
 
-    const plugin = getModifier().find((p) => p.match(variant.type, ctx));
+    const plugin = getModifier(ctx).find((p) => p.match(variant.type, ctx));
 
     if (!plugin) {
       // eslint-disable-next-line no-console
@@ -431,7 +428,7 @@ export function parseClassToAst(
 
   // console.log("[parseClassToAst] ast", ast);
   // Cache the result
-  astCache.set(cacheKey, ast);
+  cache.set(fullClassName, ast);
 
   return ast;
 }
@@ -439,9 +436,13 @@ export function parseClassToAst(
 /**
  * Clear all AST caches (mainly for testing)
  */
-export function clearAstCache(): void {
-  clearAllCaches();
-  failureCache.clear();
+export function clearAstCache(ctx?: Context): void {
+  if (ctx) {
+    clearContextCaches(ctx);
+  } else {
+    clearAllCaches();
+    failureCache.clear();
+  }
 }
 
 /**
@@ -480,7 +481,7 @@ export function generateCss(
     })
     .map((cls) => {
       const ast = parseClassToAst(cls, ctx);
-      const parsedResult = parseResultCache.get(cls);
+      const parsedResult = (getContextState(ctx)?.parseResultCache || parseResultCache).get(cls);
       const cleanAst = optimizeAst(ast);
 
       cleanAst.forEach((node) => {
