@@ -277,38 +277,29 @@ console.log(css);
 
 #### React Integration
 
-```typescript
-import { useEffect, useRef } from 'react';
+This example uses the public runtime API in the published `0.0.3` package and the `0.0.4` candidate.
+
+```tsx
+import { useEffect } from 'react';
 import { BrowserRuntime } from '@barocss/browser';
 
 function App() {
-  const runtimeRef = useRef<BrowserRuntime>();
-
   useEffect(() => {
-    runtimeRef.current = new BrowserRuntime({
-      config: {
-        theme: {
-          extend: {
-            colors: {
-              brand: '#3b82f6'
-            }
-          }
-        }
-      }
-    });
-
-    runtimeRef.current.observe(document.body, { scan: true });
+    const runtime = new BrowserRuntime();
+    const observer = runtime.observe(document.body, { scan: true });
 
     return () => {
-      runtimeRef.current?.destroy();
+      observer.disconnect();
+      runtime.destroy();
     };
   }, []);
 
   return (
-    <div className="bg-brand text-white p-4">
+    <div className="block text-center">
       <h1>Hello BaroCSS!</h1>
     </div>
   );
+}
 ```
 
 #### Vue Integration
