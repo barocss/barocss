@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { verifyLinkedSourceVersions } from './release-manifests.mjs';
-import { verifyMainMerge } from './release-provenance.mjs';
+import { verifyMainAncestry, verifyMainMerge } from './release-provenance.mjs';
 
 const repository = 'barocss/barocss';
 const sha = process.env.GITHUB_SHA;
@@ -58,6 +58,7 @@ const pr = await api(`pulls/${candidates[0].number}`);
 const parents = execFileSync('git', ['show', '-s', '--format=%P', 'HEAD'], { encoding: 'utf8' })
   .trim().split(' ');
 const candidateSha = verifyMainMerge(pr, sha, parents);
+verifyMainAncestry(parents[0], candidateSha);
 
 const comment = await api(`issues/comments/${readiness[2]}`);
 assert.equal(comment.issue_url, `https://api.github.com/repos/${repository}/issues/${readiness[1]}`);

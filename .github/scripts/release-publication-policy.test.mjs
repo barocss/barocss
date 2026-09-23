@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
 const release = readFileSync('.github/workflows/npm-release.yml', 'utf8');
 const ci = readFileSync('.github/workflows/ci.yml', 'utf8');
-const preflight = readFileSync('.github/workflows/npm-promote.yml', 'utf8');
+const mainChecker = readFileSync('.github/scripts/check-release-main.mjs', 'utf8');
 
 function assertManualOidcPublication(source) {
   assert.match(source, /push:\n    branches: \[main\]/);
@@ -56,9 +56,17 @@ test('postflight allows bounded npm registry processing time', () => {
   assert.match(release, /if \[ "\$attempt" -eq "\$max_attempts" \]; then[\s\S]*?exit 1/);
 });
 
-test('preflight has no App or write token and cannot create or merge a PR', () => {
-  assert.match(preflight, /name: Npm release preflight/);
-  assert.match(preflight, /node \.github\/scripts\/check-promotion-ready\.mjs/);
-  assert.doesNotMatch(preflight, /create-github-app-token|BARO_PROMOTION_APP|promotion_pr:|gh pr merge|create-promotion-pr/);
-  assert.doesNotMatch(preflight, /contents: write|pull-requests: write|id-token: write/);
+test('there is no separate promotion dispatch or approval-triggered publishing path', () => {
+  assert.equal(existsSync('.github/workflows/npm-promote.yml'), false);
+  for (const name of readdirSync('.github/workflows').filter((file) => file.endsWith('.yml'))) {
+    const source = readFileSync(`.github/workflows/${name}`, 'utf8');
+    assert.doesNotMatch(source, /create-github-app-token|BARO_PROMOTION_APP|promotion_pr:|gh pr merge|create-promotion-pr|pull_request_review|issue_comment|secrets\.NPM_TOKEN|secrets\.NPM_PUBLISH_TOKEN/, name);
+    if (name !== 'npm-release.yml') {
+      assert.doesNotMatch(source, /^\s+(?:npm publish|pnpm changeset publish)\b/m, name);
+    }
+  }
+});
+
+test('manual publication checks previous main ancestry of the merged develop candidate', () => {
+  assert.match(mainChecker, /verifyMainAncestry\(parents\[0\], candidateSha\)/);
 });
