@@ -1,4 +1,5 @@
 import { compile } from 'tailwindcss-v4-3';
+import { compile as compileV4_1_13 } from 'tailwindcss';
 import { describe, expect, it } from 'vitest';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
@@ -9,6 +10,12 @@ const cases = [
   ['@container-size', undefined],
   ['@container-size/sidebar', 'sidebar'],
   ['@container-size/card-grid', 'card-grid'],
+] as const;
+
+const inlineCases = [
+  ['@container', undefined],
+  ['@container/sidebar', 'sidebar'],
+  ['@container/card-grid', 'card-grid'],
 ] as const;
 
 describe('Tailwind CSS 4.3.3 size-container utilities', () => {
@@ -33,5 +40,28 @@ describe('Tailwind CSS 4.3.3 size-container utilities', () => {
     const compiler = await compile('@tailwind utilities;');
     expect(normalizeCss(compiler.build([candidate]))).toEqual([]);
     expect(normalizeCss(generateCss(candidate, createContext({ preflight: false })))).toEqual([]);
+  });
+});
+
+describe('Tailwind CSS 4.1.13 and 4.3.3 inline-size containers', () => {
+  it.each(inlineCases)('%s emits the same rule as both Tailwind versions', async (candidate, name) => {
+    const [oldCompiler, latestCompiler] = await Promise.all([
+      compileV4_1_13('@tailwind utilities;'),
+      compile('@tailwind utilities;'),
+    ]);
+    const oldReference = oldCompiler.build([candidate]);
+    const latestReference = latestCompiler.build([candidate]);
+    const actual = generateCss(candidate, createContext({ preflight: false }));
+    const nodes = normalizeCss(actual);
+    expect(nodes).toEqual(normalizeCss(oldReference));
+    expect(nodes).toEqual(normalizeCss(latestReference));
+    expect(nodes).toEqual([{
+      type: 'rule',
+      selector: expect.any(String),
+      nodes: [
+        { type: 'decl', prop: 'container-type', value: 'inline-size' },
+        ...(name ? [{ type: 'decl', prop: 'container-name', value: name }] : []),
+      ],
+    }]);
   });
 });
