@@ -3,7 +3,7 @@ import { BrowserRuntime, BrowserRuntimeOptions } from "./browser-runtime";
 let runtime: BrowserRuntime | null = null;
 
 export function getRuntime(options: BrowserRuntimeOptions) {
-  if (!runtime) {
+  if (!runtime || runtime.getStats().isDestroyed) {
     runtime = new BrowserRuntime(options);
   }
   return runtime;
