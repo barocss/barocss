@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-5581167-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-7361a67-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "5581167",
+    "barocssCommit": "7361a67",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -7509,13 +7509,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-thumb-red-500 {\n  --tw-scrollbar-thumb: #ef4444;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
-      "barocss": "",
+      "barocss": "@property --tw-scrollbar-thumb {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@property --tw-scrollbar-track {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@layer properties {\n\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t*, ::before, ::after, ::backdrop {\n\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t--tw-scrollbar-track: #0000;\n\t\t}\n\t}\n}\n.scrollbar-thumb-red-500 {\n  --tw-scrollbar-thumb: #ef4444;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "different",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "3e046f76cc3a03350fc36381c3432a033c577e8a784728ba02da54becc551406",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "cacfbb2f2763f7f083aed085bae3c63dd2b59e205c14d2a75b78c1acedd13102"
       }
     },
     {
@@ -7734,13 +7734,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-thumb-transparent {\n  --tw-scrollbar-thumb: transparent;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
-      "barocss": "",
+      "barocss": "@property --tw-scrollbar-thumb {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@property --tw-scrollbar-track {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@layer properties {\n\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t*, ::before, ::after, ::backdrop {\n\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t--tw-scrollbar-track: #0000;\n\t\t}\n\t}\n}\n.scrollbar-thumb-transparent {\n  --tw-scrollbar-thumb: transparent;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "different",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "2619bcf7446d6c0f35b4387a4fbd2711306b1d5fe1cfaa4efa2cd0e30e46ab0b",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "6089f78fe6ca4e2fe7af3f674111b4062baa79ede9be968ae1e2ecd678a4df1f"
       }
     },
     {
@@ -7760,13 +7760,248 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-track-red-500 {\n  --tw-scrollbar-track: #ef4444;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
-      "barocss": "",
+      "barocss": "@property --tw-scrollbar-thumb {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@property --tw-scrollbar-track {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@layer properties {\n\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t*, ::before, ::after, ::backdrop {\n\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t--tw-scrollbar-track: #0000;\n\t\t}\n\t}\n}\n.scrollbar-track-red-500 {\n  --tw-scrollbar-track: #ef4444;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "different",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "3e16c401b695a9a345f293e404213dbe0231442e359d60e58c74a00b0ad2df65",
+        "barocss": "6d94ecdaaceecd1834aca102d2ef05cecb687b23861fd8b9df1aedb23a023726"
+      }
+    },
+    {
+      "id": "scrollbar-color:scrollbar-thumb-current",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color",
+      "role": "representative",
+      "classes": [
+        "scrollbar-thumb-current"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-thumb-current {\n  --tw-scrollbar-thumb: currentcolor;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
+      "barocss": "@property --tw-scrollbar-thumb {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@property --tw-scrollbar-track {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@layer properties {\n\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t*, ::before, ::after, ::backdrop {\n\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t--tw-scrollbar-track: #0000;\n\t\t}\n\t}\n}\n.scrollbar-thumb-current {\n  --tw-scrollbar-thumb: currentcolor;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "a8c013120290660ec46638bc44d8b76e52cb5341407536add8081bab5f0270bf",
+        "barocss": "a70f9c1c695f2170a5e27bd62a41b6d051ed7ca946b39742e6ef40b15cfc7c67"
+      }
+    },
+    {
+      "id": "scrollbar-color:scrollbar-track-transparent",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color",
+      "role": "representative",
+      "classes": [
+        "scrollbar-track-transparent"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-track-transparent {\n  --tw-scrollbar-track: transparent;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
+      "barocss": "@property --tw-scrollbar-thumb {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@property --tw-scrollbar-track {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@layer properties {\n\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t*, ::before, ::after, ::backdrop {\n\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t--tw-scrollbar-track: #0000;\n\t\t}\n\t}\n}\n.scrollbar-track-transparent {\n  --tw-scrollbar-track: transparent;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "0c1e7bc970238da19ccfe36d29bd677b870cc9fb1288828cc3a593727d63d0fd",
+        "barocss": "1021966a26c3e07e624ef33954ab68ce5193aeea4111aae02d91db9f4dcdff59"
+      }
+    },
+    {
+      "id": "scrollbar-color:scrollbar-thumb-red-500/50",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color",
+      "role": "representative",
+      "classes": [
+        "scrollbar-thumb-red-500/50"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-thumb-red-500\\/50 {\n  --tw-scrollbar-thumb: color-mix(in oklab, #ef4444 50%, transparent);\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
+      "barocss": "@property --tw-scrollbar-thumb {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@property --tw-scrollbar-track {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@layer properties {\n\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t*, ::before, ::after, ::backdrop {\n\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t--tw-scrollbar-track: #0000;\n\t\t}\n\t}\n}\n.scrollbar-thumb-red-500\\/50 {\n  --tw-scrollbar-thumb: color-mix(in oklab, #ef4444 50%, transparent);\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "df09a25e92a3d77b7f1e51540fb1d51df95c290b1575101597476cd04bb6ad23",
+        "barocss": "13eef4991f3e9577c49ce955782c934a159f78d752e54d41714244df4f208815"
+      }
+    },
+    {
+      "id": "scrollbar-color:scrollbar-thumb-[#123456]",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color",
+      "role": "boundary",
+      "classes": [
+        "scrollbar-thumb-[#123456]"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-thumb-\\[\\#123456\\] {\n  --tw-scrollbar-thumb: #123456;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
+      "barocss": "@property --tw-scrollbar-thumb {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@property --tw-scrollbar-track {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@layer properties {\n\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t*, ::before, ::after, ::backdrop {\n\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t--tw-scrollbar-track: #0000;\n\t\t}\n\t}\n}\n.scrollbar-thumb-\\[\\#123456\\] {\n  --tw-scrollbar-thumb: #123456;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "102a793088c2e57fa99d2287495232c75d95f3510a23a03fbed6eac9a9e72373",
+        "barocss": "57b5e30bf6ec4baf618f4bd5abf674a7430d61d9da2f24436f6ab6a80b1863a8"
+      }
+    },
+    {
+      "id": "scrollbar-color:scrollbar-track-(--track-color)",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color",
+      "role": "boundary",
+      "classes": [
+        "scrollbar-track-(--track-color)"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-track-\\(--track-color\\) {\n  --tw-scrollbar-track: var(--track-color);\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
+      "barocss": "@property --tw-scrollbar-thumb {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@property --tw-scrollbar-track {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@layer properties {\n\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t*, ::before, ::after, ::backdrop {\n\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t--tw-scrollbar-track: #0000;\n\t\t}\n\t}\n}\n.scrollbar-track-\\(--track-color\\) {\n  --tw-scrollbar-track: var(--track-color);\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "596a18e6c3166286beaffd1354b636ec6da6cd871137a5d40a29e623c0428356",
+        "barocss": "4b77d3714c3b7415a2a00fcd22bb8955ab3ab09a03f610cf79d074207ecc6f82"
+      }
+    },
+    {
+      "id": "scrollbar-color:scrollbar-track-red-500/25",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color",
+      "role": "boundary",
+      "classes": [
+        "scrollbar-track-red-500/25"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-track-red-500\\/25 {\n  --tw-scrollbar-track: color-mix(in oklab, #ef4444 25%, transparent);\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
+      "barocss": "@property --tw-scrollbar-thumb {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@property --tw-scrollbar-track {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@layer properties {\n\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t*, ::before, ::after, ::backdrop {\n\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t--tw-scrollbar-track: #0000;\n\t\t}\n\t}\n}\n.scrollbar-track-red-500\\/25 {\n  --tw-scrollbar-track: color-mix(in oklab, #ef4444 25%, transparent);\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "12b7ed4ebb63e6f5792dffccb602540afb1f71f3c46c77aa8f328d8fb0c39112",
+        "barocss": "4c330c48c2dfa985b502f67df19c38646d0d9b594207639fdb2dd9cd3daa8345"
+      }
+    },
+    {
+      "id": "scrollbar-color:scrollbar-thumb-never",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color",
+      "role": "boundary",
+      "classes": [
+        "scrollbar-thumb-never"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "scrollbar-color:scrollbar-thumb-red-500+scrollbar-track-red-500",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color",
+      "role": "combination",
+      "classes": [
+        "scrollbar-thumb-red-500",
+        "scrollbar-track-red-500"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-thumb-red-500 {\n  --tw-scrollbar-thumb: #ef4444;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n.scrollbar-track-red-500 {\n  --tw-scrollbar-track: #ef4444;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
+      "barocss": "@property --tw-scrollbar-thumb {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@property --tw-scrollbar-track {\n\tsyntax: \"<color>\";\n\tinherits: false;\n\tinitial-value: #0000;\n}\n@layer properties {\n\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t*, ::before, ::after, ::backdrop {\n\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t--tw-scrollbar-track: #0000;\n\t\t}\n\t}\n}\n.scrollbar-thumb-red-500 {\n  --tw-scrollbar-thumb: #ef4444;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n\n.scrollbar-track-red-500 {\n  --tw-scrollbar-track: #ef4444;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "3c4c5663d9f7dce87c497260daed26637a9e1d5667d24da0b6a0fef1e7d05db6",
+        "barocss": "c567f2cebddfc87c8d3db53105a17dcd1ffab107fc909d82ea8e37ddbff0c8bb"
+      }
+    },
+    {
+      "id": "scrollbar-color-variants:hover:scrollbar-thumb-red-500",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color-variants",
+      "role": "representative",
+      "classes": [
+        "hover:scrollbar-thumb-red-500"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n@media (hover: hover) {\n  .hover\\:scrollbar-thumb-red-500:hover {\n    --tw-scrollbar-thumb: #ef4444;\n    scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n  }\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
+      "barocss": "@media (hover: hover) {\n\t@property --tw-scrollbar-thumb {\n\t\t&:hover {\n\t\t\tsyntax: \"<color>\";\n\t\t\tinherits: false;\n\t\t\tinitial-value: #0000;\n\t\t}\n\t}\n\t@property --tw-scrollbar-track {\n\t\t&:hover {\n\t\t\tsyntax: \"<color>\";\n\t\t\tinherits: false;\n\t\t\tinitial-value: #0000;\n\t\t}\n\t}\n\t@layer properties {\n\t\t@supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n\t\t\t*, ::before, ::after, ::backdrop {\n\t\t\t\t&:hover {\n\t\t\t\t\t--tw-scrollbar-thumb: #0000;\n\t\t\t\t\t--tw-scrollbar-track: #0000;\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n@media (hover: hover) {\n  .hover\\:scrollbar-thumb-red-500:hover {\n    --tw-scrollbar-thumb: #ef4444;\n    scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n  }\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "fcb56f423f8e97b1a87546efda0408a2fdbc06118789ed7de90dd1420b3633eb",
+        "barocss": "0fe747f08337f744475a55c61704bd1dbf100ab9e941453a792a09448dd2ee62"
       }
     },
     {

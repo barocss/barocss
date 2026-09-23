@@ -2,7 +2,7 @@
 
 Generated from the [raw CSS records](tailwind-4.1.13-4.3.3-broad-output.json) and the [exact input catalog](../../packages/barocss/tests/compat/coverage-catalog.ts) on 2026-09-23. This is a selected sample, **not a compatibility percentage** or a claim of full version support.
 
-Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `5581167`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
+Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `7361a67`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
 
 ## Method and limits
 
@@ -16,6 +16,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 - For `@container/`, Tailwind 4.1.13 emits a rule with an empty `container-name` declaration, while 4.3.3 and BaroCSS emit no rule. The 4.1.13 `unsupported` status records the reference rule only; it does not call for adding an empty container name.
 - The bare `blur` inputs depend on the explicit `--blur: 8px` token in this fixture. Both pinned Tailwind compilers emit no bare `blur` rule when that token is absent. BaroCSS now emits a rule from its configured default blur theme value. The rule remains structurally different because the engines use different filter variables and Tailwind emits property registration. Browser behavior is unverified.
 - The trailing `!` on a utility now sets its declaration to `!important`. The earlier five-input 4.1.13 follow-up keeps its original source-commit record, where `bg-red-500!` was unsupported. This current run measures the corrected output. Browser behavior for the newly added important inputs is unverified.
+- The selected `scrollbar-thumb-*` and `scrollbar-track-*` inputs now emit color variables, `scrollbar-color`, registered defaults, and a conditional fallback. Their class declarations and fallback structure match the pinned 4.3.3 compiler in focused tests. BaroCSS hoists root rules before class rules, so the complete CSS structure still differs. No browser result was measured for these color inputs.
 - For numeric `inline-*` and `block-*` values, Tailwind uses the inlined `--spacing: 0.25rem` from this fixture. BaroCSS retains `var(--spacing)`. The generated declarations differ in structure. This run does not establish equal computed sizes because it does not render a shared theme.
 - For `inline-sm`, Tailwind uses the inlined `--container-sm: 24rem` from this fixture. BaroCSS retains `var(--container-sm)`. This is a structural theme difference, and the browser result is unverified.
 - The logical padding and margin `*-0` inputs emit `0px` on both sides under the pinned spacing theme. Nonzero numeric `pbs/pbe/mbs/mbe` inputs retain the same theme-inlining structural difference as other spacing utilities. Their browser results are unverified.
@@ -43,9 +44,9 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | variants | 21 | 0 | 21 | 0 | 0 | 9 | 12 | 0 | 0 |
 | container-queries | 4 | 3 | 0 | 1 | 0 | 3 | 0 | 0 | 1 |
 | syntax | 18 | 11 | 5 | 0 | 2 | 12 | 4 | 0 | 2 |
-| v4.2-and-v4.3 | 113 | 0 | 1 | 0 | 112 | 82 | 22 | 3 | 6 |
+| v4.2-and-v4.3 | 122 | 0 | 1 | 0 | 121 | 82 | 33 | 0 | 7 |
 | combinations | 8 | 0 | 8 | 0 | 0 | 1 | 7 | 0 | 0 |
-| Total selected inputs | 327 | 100 | 112 | 1 | 114 | 192 | 123 | 3 | 9 |
+| Total selected inputs | 336 | 100 | 112 | 1 | 123 | 192 | 134 | 0 | 10 |
 
 ## Exact inputs
 
@@ -338,7 +339,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | v4.2-and-v4.3 / new-utilities | representative | `@container-size` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `@container-size/sidebar` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `font-features-["tnum"]` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / new-utilities | boundary | `scrollbar-thumb-red-500` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / new-utilities | boundary | `scrollbar-thumb-red-500` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / scrollbar-width-variants | representative | `md:scrollbar-auto` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-width) |
 | v4.2-and-v4.3 / scrollbar-width-variants | representative | `hover:scrollbar-thin` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-width) |
 | v4.2-and-v4.3 / scrollbar-width-variants | boundary | `scrollbar-[3px]` | reference-no-rule | reference-no-rule | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-width) |
@@ -346,8 +347,17 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | v4.2-and-v4.3 / scrollbar-gutter | representative | `scrollbar-gutter-auto` | reference-no-rule | match | unverified | [verified-match](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
 | v4.2-and-v4.3 / scrollbar-gutter | representative | `scrollbar-gutter-both` | reference-no-rule | match | unverified | [verified-match](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
 | v4.2-and-v4.3 / scrollbar-gutter-variants | representative | `hover:scrollbar-gutter-stable` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/hover-focus-and-other-states) |
-| v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-thumb-transparent` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
-| v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-track-red-500` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-thumb-transparent` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-track-red-500` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-thumb-current` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-track-transparent` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-thumb-red-500/50` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | boundary | `scrollbar-thumb-[#123456]` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | boundary | `scrollbar-track-(--track-color)` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | boundary | `scrollbar-track-red-500/25` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | boundary | `scrollbar-thumb-never` | reference-no-rule | reference-no-rule | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | combination | `scrollbar-thumb-red-500 scrollbar-track-red-500` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color-variants | representative | `hover:scrollbar-thumb-red-500` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
 | v4.2-and-v4.3 / size-container | representative | `@container-size/card` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/responsive-design) |
 | v4.2-and-v4.3 / size-container | boundary | `@container-size/card-grid` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/responsive-design) |
 | v4.2-and-v4.3 / size-container | boundary | `@container-size/` | reference-no-rule | reference-no-rule | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/responsive-design) |

@@ -1,7 +1,7 @@
 import { compile } from 'tailwindcss-v4-3';
 import { describe, expect, it } from 'vitest';
 import { createContext } from '../../src/core/context';
-import { generateCss } from '../../src/core/engine';
+import { generateCss, generateCssRules } from '../../src/core/engine';
 import '../../src/presets';
 import { normalizeCss } from './normalize';
 
@@ -47,6 +47,14 @@ describe('Tailwind CSS 4.3.3 scrollbar colors', () => {
     expect(css.match(/@layer properties \{/g)).toHaveLength(1);
     expect(css).toContain('--tw-scrollbar-thumb: #ef4444;');
     expect(css).toContain('--tw-scrollbar-track: #ef4444;');
+  });
+
+  it('includes registered defaults in the per-class runtime output', () => {
+    const [result] = generateCssRules('scrollbar-thumb-red-500', context());
+    expect(result.css).toContain('scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);');
+    expect(result.rootCss).toContain('@property --tw-scrollbar-thumb');
+    expect(result.rootCss).toContain('@property --tw-scrollbar-track');
+    expect(result.rootCss).toContain('@layer properties');
   });
 
   it('does not invent an unknown named color', async () => {
