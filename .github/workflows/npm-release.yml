@@ -1,4 +1,4 @@
-name: Npm release
+name: Npm release preflight
 
 on:
   workflow_dispatch:
@@ -7,11 +7,6 @@ on:
         description: Exact version of all three packages, for example 0.0.4
         required: true
         type: string
-      publish:
-        description: Publish to npm and create GitHub tags and Releases
-        required: true
-        type: boolean
-        default: false
 
 concurrency:
   group: npm-release
@@ -25,10 +20,6 @@ jobs:
     if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    environment: npm
-    permissions:
-      contents: write
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,28 +53,5 @@ jobs:
       - name: Build documentation site
         run: pnpm --filter barocss-docs docs:build
 
-      - name: Check npm authentication
-        if: inputs.publish
-        shell: bash
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -z "$NPM_TOKEN" ]; then
-            echo 'NPM_TOKEN is not configured.'
-            exit 1
-          fi
-          auth_file="$RUNNER_TEMP/barocss-npmrc"
-          trap 'rm -f "$auth_file"' EXIT
-          umask 077
-          printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_TOKEN" > "$auth_file"
-          NPM_CONFIG_USERCONFIG="$auth_file" npm whoami --registry=https://registry.npmjs.org
-
-      - name: Publish packages, tags, and GitHub Releases
-        if: inputs.publish
-        uses: changesets/action@v1
-        with:
-          publish: pnpm changeset publish
-          createGithubReleases: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Confirm preflight only
+        run: echo 'Preflight complete. This workflow cannot publish; use the reviewed main promotion path after PR #77 is integrated.'
