@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BaroCSS 제한 UI PoC</title>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">BAROCSS / AI UI POC</p>
+        <h1>제한 UI JSON 미리보기</h1>
+        <p>고정 mock 출력을 검사한 뒤 등록된 컴포넌트와 클래스만 적용합니다.</p>
+      </header>
+      <section class="controls" aria-label="입력">
+        <label for="fixture">Fixture</label>
+        <select id="fixture"></select>
+        <label for="json-input">UI JSON</label>
+        <textarea id="json-input" spellcheck="false"></textarea>
+        <button id="run" type="button">검사하고 렌더링</button>
+        <button id="benchmark" type="button">Mock 60회 측정</button>
+        <button id="download" type="button" disabled>측정 JSON 저장</button>
+      </section>
+      <section class="results" aria-label="결과">
+        <div class="panel">
+          <h2>미리보기</h2>
+          <div id="preview" aria-live="polite"></div>
+        </div>
+        <div class="panel">
+          <h2>오류 목록</h2>
+          <ul id="errors" aria-live="polite"></ul>
+          <h2>측정·CSS 기록</h2>
+          <pre id="report"></pre>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

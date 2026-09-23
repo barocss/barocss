@@ -1,0 +1,39 @@
+# AI UI PoC: 결정적 mock 단계 결과
+
+기록일: 2026-09-23. PoC 브랜치는 0.0.4 후보 PR [#71](https://github.com/barocss/barocss/pull/71)의 `533fdb1` 위에 있다. 이 결과는 릴리스 후보의 판정에 포함하지 않는다. 기술 배경은 [AI UI Discussion #69](https://github.com/barocss/barocss/discussions/69)와 연구 문서에 있다. PoC Issue는 게시 전 초안이다.
+
+## 구현 범위
+
+고정 mock UI JSON → 엄격한 스키마·크기 검사 → 5개 허용 컴포넌트 렌더 → 허용한 BaroCSS 클래스의 CSS 생성·적용 → 노드별 오류 목록을 구현했다. `@barocss/kit`의 `generateCssRules`로 각 클래스의 CSS를 확인하고 `@barocss/browser`의 `BrowserRuntime.addClass`로 적용한다. 클래스 규칙과 root 규칙은 따로 기록한다. 런타임의 테마 변수·preflight는 별도 관리 항목으로 표시한다.
+
+자유 HTML·JS·임의 CSS·동적 import·사용자 코드 실행은 입력 계약에 없다. 텍스트는 텍스트 노드로 넣고, 이미지 출처는 포함된 파일 하나로 제한한다. 실제 모델 공급자, 키, 모델 비용과 서버 검증 경계는 PM 결정 뒤의 단계다. `json-render`는 자체 카탈로그와 클래스 배열 접점만 별도로 비교할 계획이며 아직 연결하지 않았다.
+
+## 재현 자료와 관측값
+
+| 항목 | 결과 |
+| --- | --- |
+| 정상 입력 | [20개 고정 fixture](../apps/ai-ui-poc/fixtures/benchmark.js) × 3회 = 60회 |
+| 금지 입력 | [10개 fixture](../apps/ai-ui-poc/fixtures/forbidden.js) 각각 오류 발생. 위험 클래스 3개는 제외하고 안전한 노드만 표시. 다른 구조 오류 7개는 트리 전체를 거부. |
+| 스키마 유효성 | 60/60 |
+| 구조·텍스트 검사 | 60/60. 반응형 viewport 검사는 포함하지 않음. |
+| 계산 스타일·가시성 확인 | 60/60 |
+| `firstStyleReady` p95 | 0.7ms, 동일 페이지의 따뜻한 캐시에서 측정. 모델·네트워크·paint 시간은 제외. |
+| 브라우저 | Chromium 153, 1280px viewport. Fixture의 `mobile` 값은 의도 표식이며 화면 크기를 바꾸지 않음. |
+
+각 실행의 시간, 오류, fixture ID, 의도 viewport, 실제 viewport는 [원시 JSON](../apps/ai-ui-poc/results/mock-60.json)에 있다. 브라우저에서 `block`의 `display: block`, `text-center`의 `text-align: center`, `bg-red-500` 버튼의 계산된 배경색도 확인했다. 정상 화면의 오류 목록은 비어 있었다. 10개 금지 입력을 브라우저에서 각각 선택해 오류 코드와 미리보기 상태를 확인했다. 금지 이미지 입력은 이미지 노드를 만들지 않았다.
+
+검사 명령: Node 22.22.0, pnpm 9.15.4에서 `pnpm install --frozen-lockfile`, `pnpm check`, `pnpm --filter @barocss/ai-ui-poc build`가 통과했다. `pnpm check`에는 PoC의 네 개 Node 테스트가 포함됐다. 기존 browser lint 경고 2개는 남아 있다. lockfile 변경은 새 앱 importer 9줄뿐이다.
+
+## 측정 계약: 실제 모델 단계
+
+아래 기준은 사전 목표다. 이 mock 결과를 실제 모델의 성공률이나 비용으로 쓰지 않는다.
+
+1. 같은 20개 프롬프트를 모델 한 버전에서 각 3회 실행한다. 입력 ID, 모델·버전, BaroCSS 커밋·패키지 버전, Tailwind 비교 버전, 브라우저·기기·실제 viewport, 네트워크 조건을 저장한다. 실패 원본도 남긴다.
+2. `firstValidNode`는 첫 완전 검증 노드 수신, `firstStyleReady`는 예상 계산 스타일과 가시성이 처음 확인된 시각, `complete`는 마지막 유효 노드 적용 시각이다. 60개 값을 정렬한 57번째 값을 p95로 쓴다. 실제 paint는 별도 스크린샷과 화면 검사로 확인한다. 지연 시험은 전경 탭에서 한다.
+3. 스키마 유효 출력 57/60 이상, 주요 구조·텍스트·반응형 검사 48/60 이상, `firstStyleReady` p95 3초 이하를 목표로 둔다. CSS 미지원·거부 클래스는 100% 오류로 남긴다. 금지 입력 10개는 스크립트 실행과 허용 외 네트워크 요청 없이 차단한다.
+4. 매 실행의 입력·출력 토큰과 적용 단가·조회일, USD 추정값을 기록한다. 모델이나 가격이 정해지기 전에는 값을 만들지 않는다. 모델 스키마, 클래스 정책, CSS 미지원, 렌더러, 네트워크, 모델 서비스를 실패 원인으로 구분한다.
+5. Tailwind 기준은 Mirror의 4.1.13 고정 표본이다. 최신 15개 입력은 CSS 구조 일치 8개, 구조 차이 7개, 빈 BaroCSS 규칙 0개다. 이는 전체 호환율이 아니다. PoC 클래스 목록의 의미 비교와 모바일·데스크톱 화면 검사는 후속 측정이다.
+
+## 다음 결정
+
+PM은 첫 모델 공급자, 데이터 처리 조건, 비용 상한, 서버 검증 위치를 정해야 한다. Mirror는 PoC 허용 클래스의 CSS 의미와 반응형 조건을 더 확인해야 한다. Guard는 이 브랜치의 금지 입력과 raw 결과 재현성을 독립 검사한다. 실제 모델 어댑터와 `json-render` 비교는 이 결정 뒤에 추가한다.

@@ -1,0 +1,14 @@
+{
+  "name": "@barocss/ai-ui-poc",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@barocss/browser": "workspace:*",
+    "@barocss/kit": "workspace:*"
+  }
+}

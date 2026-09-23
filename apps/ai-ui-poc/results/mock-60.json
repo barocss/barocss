@@ -1,0 +1,974 @@
+{
+  "kind": "deterministic-mock",
+  "baseCommit": "533fdb1f224c48c2c1828e7eaa58ab91596d13d6",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
+  "timingClock": "performance.now; same-page warm cache; foreground browser",
+  "runs": 60,
+  "schemaValid": 60,
+  "structureAndTextPass": 60,
+  "styleReady": 60,
+  "firstStyleReadyP95Ms": 0.6999999992549419,
+  "modelQualityAndCost": "not measured",
+  "records": [
+    {
+      "fixtureId": "ui-01",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.19999999925494194,
+        "firstStyleReady": 0.6999999992549419,
+        "complete": 0.8000000007450581
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-01",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-01",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-02",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.19999999925494194,
+        "firstStyleReady": 0.6999999992549419,
+        "complete": 0.6999999992549419
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-02",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-02",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-03",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.3999999985098839,
+        "firstStyleReady": 1.199999999254942,
+        "complete": 1.199999999254942
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-03",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.19999999925494194,
+        "firstStyleReady": 0.3999999985098839,
+        "complete": 0.5
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-03",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-04",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-04",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-04",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-05",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-05",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-05",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-06",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-06",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-06",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-07",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.19999999925494194,
+        "firstStyleReady": 0.6000000014901161,
+        "complete": 0.6000000014901161
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-07",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-07",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-08",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.3999999985098839,
+        "firstStyleReady": 0.8000000007450581,
+        "complete": 0.8000000007450581
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-08",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.29999999701976776,
+        "complete": 0.29999999701976776
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-08",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-09",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-09",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-09",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-10",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.5,
+        "complete": 0.5
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-10",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.3999999985098839,
+        "complete": 0.3999999985098839
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-10",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-11",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-11",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-11",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-12",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-12",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-12",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-13",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-13",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-13",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-14",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-14",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-14",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-15",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.29999999701976776,
+        "complete": 0.29999999701976776
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-15",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-15",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-16",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-16",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-16",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-17",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-17",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-17",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-18",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-18",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-18",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-19",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-19",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-19",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-20",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-20",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-20",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    }
+  ]
+}
