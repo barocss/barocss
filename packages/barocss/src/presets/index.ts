@@ -1,4 +1,5 @@
 import "./interactivity";
+import "./zoom-tab";
 import "./transitions";
 import "./table";
 import "./filter";
