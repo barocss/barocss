@@ -37,6 +37,7 @@ try {
       }
     }
     assert.ok(existsSync(join(destination, manifest.main)), `${manifest.name}: missing main`);
+    if (manifest.exports['.']?.require) assert.equal(manifest.main, manifest.exports['.'].require, `${manifest.name}: main must match require export`);
     assert.ok(existsSync(join(destination, manifest.types)), `${manifest.name}: missing types`);
     assert.ok(existsSync(join(destination, 'LICENSE')), `${manifest.name}: missing LICENSE`);
   }
