@@ -2,6 +2,8 @@
 
 This is a measured sample, not a compatibility percentage. The older README claim of “95%+” had no named Tailwind version or measurement method.
 
+The [versioned evidence matrix](../../../docs/verification/tailwind-compatibility-matrix.md) maps each measured area to its fixtures, raw CSS output, reproduction command, commit, version, date, and browser evidence.
+
 ## Version and scope
 
 | Item | Baseline |

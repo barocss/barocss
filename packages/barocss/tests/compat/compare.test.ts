@@ -1,19 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { compile } from 'tailwindcss';
 import postcss, { type ChildNode } from 'postcss';
-import { createContext } from '../../src/core/context';
-import { generateCss } from '../../src/core/engine';
-import '../../src/presets';
 import { fixtures } from './fixtures';
-
-const tailwindInput = `
-@theme inline {
-  --spacing: 0.25rem;
-  --color-red-500: #ef4444;
-  --breakpoint-md: 48rem;
-}
-@tailwind utilities;
-`;
+import { buildCssPair } from './harness';
 
 type CssNode = {
   type: string;
@@ -46,13 +34,7 @@ function normalizeCss(css: string): CssNode[] {
 }
 
 async function compare(candidate: string) {
-  const compiler = await compile(tailwindInput);
-  const tailwindCss = compiler.build([candidate]);
-  const context = createContext({
-    preflight: false,
-    theme: { colors: { red: { 500: '#ef4444' } }, breakpoints: { md: '48rem' } },
-  });
-  const baroCss = generateCss(candidate, context);
+  const { tailwindCss, baroCss } = await buildCssPair(candidate);
   const tailwindNodes = normalizeCss(tailwindCss);
   const baroNodes = normalizeCss(baroCss);
   const result = tailwindNodes.length === 0 ? 'no-tailwind-rule'
