@@ -164,15 +164,13 @@ button.classList.add('active:scale-95');
 BaroCSS uses style partitions for efficient CSS management:
 
 ```typescript
-// Get current partition info
-const stats = runtime.getCacheStats();
-console.log(`Partitions: ${stats.partitions}`);
-
-// Custom partition settings
+// Set the maximum number of rules per partition
 const runtime = new BrowserRuntime({
   maxRulesPerPartition: 100  // More rules per partition
 });
 ```
+
+`getCacheStats()` does not return a partition count.
 
 ### CSS Access
 
@@ -227,15 +225,16 @@ runtime.reset();
 
 ### getStats()
 
-Get comprehensive runtime statistics.
+Get runtime state and cache statistics. The fields below exist in the published `0.0.3` package and the `0.0.4` candidate.
 
 ```typescript
 const stats = runtime.getStats();
 console.log({
-  processedClasses: stats.processedClasses,
-  cacheHits: stats.cacheHits,
-  partitions: stats.partitions,
-  memoryUsage: stats.memoryUsage
+  cachedClasses: stats.cachedClasses,
+  styleElementId: stats.styleElementId,
+  isDestroyed: stats.isDestroyed,
+  rootCacheSize: stats.cacheStats.runtime.rootCacheSize,
+  processedClasses: stats.cacheStats.incremental.processedClasses
 });
 ```
 
@@ -430,4 +429,3 @@ runtime.observe(document.body, {
   }
 });
 ```
-
