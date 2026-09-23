@@ -33,6 +33,8 @@ Guard는 PoC `14c25dc`와 기준 PR #71 `6df9af9` 사이의 네 커밋도 [임�
 
 이후 P0 PR [#73](https://github.com/barocss/barocss/pull/73)과 [#77](https://github.com/barocss/barocss/pull/77)이 `develop`에 병합됐다. PoC 브랜치에 새 기준 `73293f1`을 병합할 때 충돌은 없었다. `14b1520` 이후 기준 변경은 릴리스 자동화 파일, 문서, 루트 `package.json`에 한정됐고 PoC 파일과 겹치지 않았다. Node 22.22.0·pnpm 10.11.0으로 고정 설치, 저장소 `pnpm check`(PoC 테스트 6/6 포함), PoC 빌드가 다시 통과했다. 이 단계에서 브라우저 측정은 재실행하지 않았다. 새 HEAD의 CI와 Guard 판정은 별도로 확인한다.
 
+0.4.0 게시와 게시 후 P0 문서 PR [#94](https://github.com/barocss/barocss/pull/94) 병합 뒤 `develop`의 `63baa2d`를 PoC 브랜치에 병합했다. 충돌은 없었고 PR 파일 차이는 PoC 앱, 이 결과 문서, lockfile의 앱 importer 9줄로 유지됐다. Node 22.22.0·pnpm 10.11.0에서 고정 설치, 저장소 `pnpm check`(PoC 테스트 6/6 포함), PoC 빌드가 통과했다. 이번 기준에는 Core의 미지원 variant 처리 변경이 들어 있다. 브라우저 측정, Guard 검토, PR CI는 새 HEAD에서 따로 확인한다.
+
 ## 실행 화면 증거
 
 2026-09-23에 코드 커밋 `b55e487`을 로컬 개발 서버에서 실행했다. Node 22.22.0, pnpm 10.11.0에서 `pnpm --filter @barocss/ai-ui-poc test`는 6/6 통과했고 `pnpm --filter @barocss/ai-ui-poc build`도 통과했다. `pnpm --filter @barocss/ai-ui-poc dev --host 127.0.0.1 --port 5174`로 연 Chromium 153의 실제 viewport 너비는 1280px이었다. 아래 이미지는 해당 화면의 왼쪽 700×550px을 잘라 저장했다. 이미지는 고정 mock 입력을 사용하며 모델 출력을 보여 주지 않는다.
