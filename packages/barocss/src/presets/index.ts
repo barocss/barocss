@@ -12,6 +12,7 @@ import "./layout";
 import "./flexbox-grid";
 import "./spacing";
 import "./sizing";
+import "./logical-size";
 import "./typography";
 import "./background";
 import "./border";
