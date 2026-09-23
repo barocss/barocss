@@ -255,14 +255,21 @@ const cacheStats = runtime.getCacheStats();
 ### Custom Style Injection
 
 ```typescript
+import { BrowserRuntime } from '@barocss/browser';
+
 // Custom insertion point
-const runtime = new BrowserRuntime({
-  insertionPoint: document.getElementById('custom-styles')
+const customStyles = document.getElementById('custom-styles');
+if (!customStyles) {
+  throw new Error('Missing #custom-styles element');
+}
+
+const runtimeInContainer = new BrowserRuntime({
+  insertionPoint: customStyles
 });
 
 // Custom style ID
-const runtime = new BrowserRuntime({
-  styleId: 'my-@barocss/kit-styles'
+const runtimeWithCustomId = new BrowserRuntime({
+  styleId: 'my-runtime'
 });
 ```
 
