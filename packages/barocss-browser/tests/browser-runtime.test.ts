@@ -16,6 +16,9 @@ afterEach(() => {
 });
 
 describe('BrowserRuntime', () => {
+  const hasInjectedRule = (fragment: string) => Array.from(document.querySelectorAll<HTMLStyleElement>('[data-barocss="partition"]'))
+    .some(style => Array.from(style.sheet?.cssRules ?? []).some(rule => rule.cssText.includes(fragment)));
+
   it('keeps generated CSS available through the cache API', () => {
     runtime.addClass('p-4 m-2');
 
@@ -23,6 +26,61 @@ describe('BrowserRuntime', () => {
     expect(runtime.getClasses()).toEqual(['p-4', 'm-2']);
     expect(runtime.getCss('p-4')).toContain('.p-4');
     expect(runtime.getAllCss()).toContain('.m-2');
+  });
+
+  it('removes only requested CSS while preserving base styles and observation', async () => {
+    runtime.updateConfig({ preflight: 'minimal' });
+    runtime.observe(document.body);
+    const element = document.createElement('div');
+    element.className = 'p-4';
+    document.body.append(element);
+    await Promise.resolve();
+    runtime.addClass('m-2');
+
+    runtime.removeClass('p-4');
+
+    expect(element.className).toBe('p-4');
+    expect(runtime.has('p-4')).toBe(false);
+    expect(runtime.has('m-2')).toBe(true);
+    expect(hasInjectedRule('.p-4')).toBe(false);
+    expect(hasInjectedRule('.m-2')).toBe(true);
+    expect(document.querySelector('[data-category="preflight"]')?.textContent).toBeTruthy();
+    expect(document.querySelector('[data-category="css-vars"]')?.textContent).toBeTruthy();
+
+    const later = document.createElement('div');
+    later.className = 'flex';
+    document.body.append(later);
+    await Promise.resolve();
+    expect(runtime.has('flex')).toBe(true);
+
+    runtime.addClass('p-4');
+    expect(hasInjectedRule('.p-4')).toBe(true);
+  });
+
+  it('keeps shared root rules until the last dependent class is removed', () => {
+    runtime.addClass('translate-full -translate-full');
+    expect(hasInjectedRule('@property --baro-translate-x')).toBe(true);
+
+    runtime.removeClass('translate-full');
+    expect(hasInjectedRule('@property --baro-translate-x')).toBe(true);
+    expect(hasInjectedRule('.-translate-full')).toBe(true);
+
+    runtime.removeClass('-translate-full');
+    expect(document.querySelector('[data-category="root"]')).toBeNull();
+    expect(runtime.getCacheStats().runtime.rootCacheSize).toBe(0);
+  });
+
+  it('restores a detached style partition when another class is added', () => {
+    runtime.updateConfig({ preflight: 'minimal' });
+    runtime.addClass('p-4');
+    document.querySelectorAll('[data-barocss="partition"]').forEach(style => style.remove());
+
+    runtime.addClass('m-2');
+
+    expect(hasInjectedRule('.p-4')).toBe(true);
+    expect(hasInjectedRule('.m-2')).toBe(true);
+    expect(document.querySelector('[data-category="preflight"]')?.textContent).toBeTruthy();
+    expect(document.querySelector('[data-category="css-vars"]')?.textContent).toBeTruthy();
   });
 
   it('processes class changes and nested nodes after observation starts', async () => {

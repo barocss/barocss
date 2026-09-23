@@ -11,7 +11,7 @@
     "lint": "pnpm run -r lint",
     "type-check": "pnpm run -r type-check",
     "check": "pnpm type-check && pnpm lint && pnpm test && pnpm build:library",
-    "changeset:version": "pnpm changeset version",
+    "changeset:version": "pnpm changeset version && pnpm install --lockfile-only",
     "changeset:publish": "pnpm changeset publish"
   },
   "devDependencies": {

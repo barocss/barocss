@@ -9,15 +9,30 @@ Brief description of what this PR does.
 - [ ] 🔧 Refactoring
 
 ## ✅ Checklist
-- [ ] Tests pass (`pnpm test`)
-- [ ] Build works (`pnpm build`)
-- [ ] Changeset added (if needed)
+- [ ] Relevant tests pass (list the exact commands and results below)
+- [ ] Build works, if the change affects a build (list the command and result below)
+- [ ] Changeset added with the right change type and a clear description (if needed)
+- [ ] I reviewed my changes and updated related documentation (if needed)
+- [ ] The change adds no new warnings
+- [ ] Changed syntax is recorded in the compatibility matrix (or marked N/A with a reason below)
+
+## 🧪 Verification evidence
+<!-- For a new feature, run it locally before requesting review. Record what you ran and what happened. Do not check a command that you did not run. -->
+- Environment (Node.js, browser, OS, if relevant):
+- Commands run and results (pass/fail, test count, or output):
+- How to reproduce the feature (input or short example):
+- Expected result and actual result:
+- Tailwind version and comparison result (if claiming Tailwind compatibility):
+- Matrix cases added or updated (or N/A and why):
+- Limits or cases not tested:
 
 ## 🔗 Related Issues
 Closes #[issue_number]
 
-## 📸 Screenshots (if applicable)
-<!-- Add screenshots for UI changes -->
+## 📸 Visual evidence
+<!-- For UI or CSS rendering changes, attach a screenshot or short recording of the result. Include the browser, viewport, and state shown. For nonvisual features, link to a runnable example or captured output above. -->
+- Image or recording:
+- Browser, viewport, and state:
 
 ---
 **Ready for review!** 🚀

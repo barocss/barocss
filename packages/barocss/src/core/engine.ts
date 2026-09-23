@@ -503,13 +503,12 @@ export function generateCss(
 
       // If style-rule already has a complete selector, do not pass baseSelector
       const hasStyleRule = cleanAst.some((node) => node.type === "style-rule");
-      const css = astToCss(cleanAst, hasStyleRule ? undefined : cls, {
+      const css = astToCss(cleanAst.filter((node) => node.type !== "at-root"), hasStyleRule ? undefined : cls, {
         minify: opts?.minify,
         important: parsedResult?.utility?.important ?? false,
       }); // Conditional baseSelector
 
-      const rootCss = rootToCss(allAtRootNodes);
-      const result = `${rootCss ? `:root,:host {${rootCss}}` : ""}${css}`;
+      const result = css;
 
       // Debug logging for empty CSS
       if (!result || result.trim() === "") {
@@ -519,7 +518,6 @@ export function generateCss(
           ast: cleanAst,
           hasStyleRule,
           css,
-          rootCss,
           result,
         });
       }
@@ -527,6 +525,17 @@ export function generateCss(
       return result;
     })
     .join(opts?.minify ? "" : "\n");
+
+  const rootRules = [...new Set(allAtRootNodes
+    .filter((node) => node.type === "at-rule")
+    .map((node) => rootToCss([node])))];
+  const rootDeclarations = [...new Set(allAtRootNodes
+    .filter((node) => node.type === "decl")
+    .map((node) => rootToCss([node])))];
+  const rootCss = [
+    ...rootRules,
+    ...(rootDeclarations.length ? [`:root,:host {${rootDeclarations.join("\n")}}`] : []),
+  ].join(opts?.minify ? "" : "\n");
 
   if (allAtRootNodes.length > 0) {
     // eslint-disable-next-line no-console
@@ -543,7 +552,7 @@ export function generateCss(
     });
   }
 
-  return results;
+  return `${rootCss}${rootCss && results ? (opts?.minify ? "" : "\n") : ""}${results}`;
 }
 
 export type GenerateCssRulesResult = {

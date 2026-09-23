@@ -32,7 +32,7 @@
 - 시작 전에 프롬프트 20개와 기대 화면 검사를 저장소 fixture로 고정한다. 레이아웃, 텍스트, 반응형, 상태를 포함한다. 같은 프롬프트를 3회 실행해 총 60회 기록한다. 실패 재실행도 원본 결과를 남긴다.
 - Mirror의 Tailwind CSS 4.1.13 고정 비교를 기본 기준으로 쓴다. 초기 표본 15개 중 구조 일치 8개, 구조 차이 6개, 미지원 1개는 전체 호환율이 아니다. PoC에 필요한 클래스는 시작 전에 각각 CSS 의미·지원 여부를 추가 측정해 허용 목록으로 고정한다. [Tailwind v4 변경 사항](https://tailwindcss.com/docs/upgrade-guide)을 기준에 기록한다.
 - 한 번의 실행마다 입력 ID, 모델·버전, BaroCSS 커밋/패키지 버전, viewport, 브라우저·기기, 네트워크 조건, 세 단계 시간, 검증 오류, 생성 클래스와 CSS, 화면 검사 결과, 입력·출력 토큰, USD 추정값을 저장한다. 비밀 키와 민감한 프롬프트 내용은 기록하지 않는다.
-- CSS 기록은 클래스별 규칙, root CSS, 테마 변수·preflight를 구분한다. 후보 브라우저의 `getAllCss()`는 클래스별 캐시만 합치므로 완전한 스타일시트로 쓰지 않는다. 실제 적용 여부는 계산된 스타일로 확인한다. `removeClass`는 주입 스타일을 지우지 않으므로 검증 중 클래스 제거 API로 사용하지 않는다.
+- CSS 기록은 클래스별 규칙, root CSS, 테마 변수·preflight를 구분한다. 후보 브라우저의 `getAllCss()`는 클래스별 캐시만 합치므로 완전한 스타일시트로 쓰지 않는다. 실제 적용 여부는 계산된 스타일로 확인한다. PR #71 `a5c48dc`의 `removeClass`는 요청 클래스의 주입 CSS를 제거하고 남은 CSS·공유 root 규칙·기본 스타일을 다시 구성한다. DOM 클래스 속성은 따로 관리한다. 분리된 style partition은 다음 클래스 적용 때 복구된다.
 - 시간 시작점은 요청을 보낸 시각이다. `firstValidNode`는 첫 검증 노드 수신, `firstStyleReady`는 렌더된 노드의 예상 `getComputedStyle()` 값과 가시성이 브라우저에서 처음 확인된 시각, `complete`는 마지막 노드 적용 시각이다. p95는 60회 값을 정렬한 뒤 57번째 값으로 계산한다. `firstStyleReady`는 실제 화면 표시 시각이 아니다. [`requestAnimationFrame`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame)은 다시 그리기 전에 실행되므로 paint 확인으로 기록하지 않는다. 시각적 결과는 별도 [Playwright 스크린샷](https://playwright.dev/docs/api/class-page)으로 검사한다. 지연 측정 중 탭은 전경에 둔다.
 - 화면 검사는 저장된 기대 구조·텍스트·반응형 규칙을 자동 검사한다. [Playwright 시각 비교](https://playwright.dev/docs/test-snapshots)는 보조 자료로 쓴다. 픽셀 차이만으로 성공을 판정하지 않는다.
 - 오류를 모델 스키마, 클래스 정책, CSS 미지원, 렌더러, 네트워크, 모델 서비스로 분류한다. 수정 루프는 실패 요약을 보내 **최대 1회** 수행하고 수정 전후 결과와 추가 비용을 별도로 기록한다.

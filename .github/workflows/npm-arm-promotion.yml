@@ -1,0 +1,54 @@
+name: Arm approved npm promotion
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+concurrency:
+  group: npm-promotion-arm-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  arm:
+    if: github.repository == 'barocss/barocss' && github.actor == 'easylogic' && github.event.review.state == 'approved' && github.event.pull_request.base.ref == 'main' && github.event.pull_request.head.repo.full_name == 'barocss/barocss' && startsWith(github.event.pull_request.head.ref, 'release/promote-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      issues: read
+      pull-requests: read
+    steps:
+      - name: Check out trusted default branch code
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require GitHub App credentials
+        env:
+          APP_CLIENT_ID: ${{ vars.BARO_PROMOTION_APP_CLIENT_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.BARO_PROMOTION_APP_PRIVATE_KEY }}
+        run: test -n "$APP_CLIENT_ID" && test -n "$APP_PRIVATE_KEY"
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.BARO_PROMOTION_APP_CLIENT_ID }}
+          private-key: ${{ secrets.BARO_PROMOTION_APP_PRIVATE_KEY }}
+          permission-administration: read
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Recheck main branch protection
+        run: node .github/scripts/check-main-protection.mjs
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      - name: Verify easylogic review and arm ordinary auto-merge
+        run: node .github/scripts/arm-promotion-pr.mjs
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
