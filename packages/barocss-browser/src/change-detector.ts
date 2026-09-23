@@ -1,4 +1,4 @@
-import { IncrementalParser, parseResultCache } from "@barocss/kit";
+import { IncrementalParser, parseClassName } from "@barocss/kit";
 import { BrowserRuntime } from "./browser-runtime";
 import { normalizeClassNameList } from "./utils";
 
@@ -26,6 +26,7 @@ export class ChangeDetector {
     
     /** Reference to BrowserRuntime for CSS injection (optional) */
     private BrowserRuntime?: BrowserRuntime;
+    private getCategory: (cls: string) => string | undefined;
     
     /**
      * Create a new ChangeDetector instance
@@ -33,9 +34,10 @@ export class ChangeDetector {
      * @param incrementalParser - IncrementalParser instance for class processing
      * @param BrowserRuntime - Optional BrowserRuntime instance for CSS injection
      */
-    constructor(incrementalParser: IncrementalParser, BrowserRuntime?: BrowserRuntime) {
+    constructor(incrementalParser: IncrementalParser, BrowserRuntime?: BrowserRuntime, getCategory: (cls: string) => string | undefined = cls => parseClassName(cls).utility?.category) {
       this.incrementalParser = incrementalParser;
       this.BrowserRuntime = BrowserRuntime;
+      this.getCategory = getCategory;
     }
 
     setParser(parser: IncrementalParser): void {
@@ -167,8 +169,8 @@ export class ChangeDetector {
         const classes = Array.from(existingClasses);
         const results = this.incrementalParser.processClasses(classes);
   
-        const layoutResults = results.filter(result => parseResultCache.get(result.cls)?.utility?.category === 'layout');
-        const nonLayoutResults = results.filter(result => parseResultCache.get(result.cls)?.utility?.category !== 'layout');
+        const layoutResults = results.filter(result => this.getCategory(result.cls) === 'layout');
+        const nonLayoutResults = results.filter(result => this.getCategory(result.cls) !== 'layout');
   
         
         // Apply layout results

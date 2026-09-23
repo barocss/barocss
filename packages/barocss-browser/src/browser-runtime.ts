@@ -1,5 +1,5 @@
 import { GenerateCssRulesResult } from '@barocss/kit';
-import { createContext, clearAstCache, IncrementalParser } from '@barocss/kit';
+import { createContext, clearAstCache, IncrementalParser, parseClassName } from '@barocss/kit';
 import type { Config, Context } from '@barocss/kit';
 import { StylePartitionManager } from './style-partition-manager';
 import { ChangeDetector } from './change-detector';
@@ -22,6 +22,8 @@ export class BrowserRuntime {
   private changeDetector: ChangeDetector;
   private stylePartitionManager: StylePartitionManager;
 
+  private getCategory = (cls: string) => parseClassName(cls, this.context).utility?.category;
+
   constructor(options: BrowserRuntimeOptions = {}) {
     // Default config - createContext handles defaultTheme automatically
     const defaultConfig: Config = {};
@@ -37,9 +39,9 @@ export class BrowserRuntime {
     this.context = createContext(this.options.config);
 
     this.incrementalParser = new IncrementalParser(this.context);
-    this.changeDetector = new ChangeDetector(this.incrementalParser, this);
+    this.changeDetector = new ChangeDetector(this.incrementalParser, this, this.getCategory);
 
-    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`);
+    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
 
     this.init();
   }
@@ -227,7 +229,7 @@ export class BrowserRuntime {
     clearAstCache(this.context);
     this.incrementalParser.clearProcessed();
     this.stylePartitionManager.cleanup();
-    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`);
+    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
     this.injectPreflightCSS();
     this.ensureCssVars();
   }
@@ -239,7 +241,7 @@ export class BrowserRuntime {
     this.rootCache.clear();
     this.incrementalParser.clearProcessed();
     this.stylePartitionManager.cleanup();
-    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`);
+    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
     this.injectPreflightCSS();
     this.ensureCssVars();
   }

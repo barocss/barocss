@@ -7,7 +7,7 @@
  */
 
 import { GenerateCssRulesResult } from "@barocss/kit";
-import { parseResultCache } from "@barocss/kit";
+import { parseClassName } from "@barocss/kit";
 
 export interface StylePartition {
   id: string;
@@ -24,15 +24,18 @@ export class StylePartitionManager {
   private classToPartitionMap = new Map<string, number>();
   private classToCategoryPartitionMap = new Map<string, string>();
   private styleIdPrefix = "barocss-style-partition-";
+  private getCategory: (cls: string) => string | undefined;
 
   constructor(
     insertionPoint: HTMLElement,
     maxRulesPerPartition: number = 50,
-    styleIdPrefix: string = "barocss-style-partition-"
+    styleIdPrefix: string = "barocss-style-partition-",
+    getCategory: (cls: string) => string | undefined = cls => parseClassName(cls).utility?.category
   ) {
     this.insertionPoint = insertionPoint;
     this.maxRulesPerPartition = maxRulesPerPartition;
     this.styleIdPrefix = styleIdPrefix;
+    this.getCategory = getCategory;
 
     this.initializeDefaultPartition();
   }
@@ -226,15 +229,8 @@ export class StylePartitionManager {
     let success = 0;
     let failed = 0;
 
-    // rules.sort((a, b) => {
-    //   const aPriority = parseResultCache.get(a.cls)?.utility?.priority;
-    //   const bPriority = parseResultCache.get(b.cls)?.utility?.priority;
-    //   return (aPriority ?? 0) - (bPriority ?? 0);
-    // });
-
     for (const rule of rules) {
-      const parsedResult = parseResultCache.get(rule.cls);
-      const category = parsedResult?.utility?.category;
+      const category = this.getCategory(rule.cls);
 
       if (category) {
         for (const css of rule.cssList) {

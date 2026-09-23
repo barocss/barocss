@@ -83,6 +83,12 @@ describe('BrowserRuntime', () => {
     expect(document.querySelector('[data-category="css-vars"]')?.textContent).toBeTruthy();
   });
 
+  it('places layout rules in the layout style partition', () => {
+    runtime.addClass('flex');
+
+    expect(document.querySelector('[data-category="layout"]')).not.toBeNull();
+  });
+
   it('processes class changes and nested nodes after observation starts', async () => {
     runtime.observe(document.body, { scan: true });
     const element = document.createElement('div');
@@ -103,6 +109,19 @@ describe('BrowserRuntime', () => {
     runtime.observe(document.body, { scan: true, onReady });
 
     expect(onReady).toHaveBeenCalledOnce();
+  });
+
+  it('inserts layout rules before signaling readiness', () => {
+    document.body.innerHTML = '<div class="flex p-4"></div>';
+    const onReady = vi.fn(() => {
+      expect(document.querySelector('[data-category="layout"]')).not.toBeNull();
+      expect(document.querySelector('[data-category="spacing"]')).toBeNull();
+    });
+
+    runtime.observe(document.body, { scan: true, onReady });
+
+    expect(onReady).toHaveBeenCalledOnce();
+    expect(document.querySelector('[data-category="spacing"]')).not.toBeNull();
   });
 
   it('processes classes changed while an element is detached', async () => {
