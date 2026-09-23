@@ -2,7 +2,7 @@
 
 Generated from the [raw CSS records](tailwind-4.1.13-4.3.3-broad-output.json) and the [exact input catalog](../../packages/barocss/tests/compat/coverage-catalog.ts) on 2026-09-23. This is a selected sample, **not a compatibility percentage** or a claim of full version support.
 
-Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `9321cec`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
+Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `4797f21`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
 
 ## Method and limits
 
@@ -14,6 +14,8 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 - In the two `scrollbar-gutter-*` and `overflow-*` combinations, Tailwind emits the gutter rule first and BaroCSS emits the overflow rule first. The individual declarations agree, but rule order differs. No browser result was measured for these combinations.
 - For `md:scrollbar-auto`, Tailwind 4.3.3 emits `@media (width >= 48rem)` and BaroCSS emits `@media (min-width: 48rem)`. The declaration agrees; the media-query syntax differs. This exact input has no browser result.
 - For `@container/`, Tailwind 4.1.13 emits a rule with an empty `container-name` declaration, while 4.3.3 and BaroCSS emit no rule. The 4.1.13 `unsupported` status records the reference rule only; it does not call for adding an empty container name.
+- For numeric `inline-*` and `block-*` values, Tailwind uses the inlined `--spacing: 0.25rem` from this fixture. BaroCSS retains `var(--spacing)`. The generated declarations differ in structure. This run does not establish equal computed sizes because it does not render a shared theme.
+- For `inline-sm`, Tailwind uses the inlined `--container-sm: 24rem` from this fixture. BaroCSS retains `var(--container-sm)`. This is a structural theme difference, and the browser result is unverified.
 - Browser evidence is limited to 7 exact Tailwind 4.3.3 inputs listed below. All 4.1.13 browser results in this broad run and the other 4.3.3 inputs are `unverified`. CSS variables and theme output are not separately rendered as a complete page. A syntactic match alone does not establish computed style or visual parity.
 - The older [15-input matrix](tailwind-compatibility-matrix.md) and [five-input follow-up](tailwind-4.1.13-followup-output.json) remain separate records with their own settings and browser evidence.
 
@@ -37,9 +39,9 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | variants | 21 | 0 | 21 | 0 | 0 | 9 | 12 | 0 | 0 |
 | container-queries | 4 | 3 | 0 | 1 | 0 | 3 | 0 | 0 | 1 |
 | syntax | 12 | 7 | 4 | 1 | 0 | 7 | 4 | 1 | 0 |
-| v4.2-and-v4.3 | 45 | 0 | 1 | 0 | 44 | 27 | 3 | 9 | 6 |
+| v4.2-and-v4.3 | 64 | 0 | 1 | 0 | 63 | 40 | 11 | 7 | 6 |
 | combinations | 8 | 0 | 8 | 0 | 0 | 1 | 7 | 0 | 0 |
-| Total selected inputs | 251 | 96 | 108 | 3 | 44 | 132 | 101 | 11 | 7 |
+| Total selected inputs | 270 | 96 | 108 | 3 | 63 | 145 | 109 | 9 | 7 |
 
 ## Exact inputs
 
@@ -245,10 +247,29 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | syntax / important-modifier | boundary | `!p-4` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | v4.2-and-v4.3 / logical-properties | representative | `pbs-4` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `mbs-6` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / logical-properties | representative | `inline-full` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / logical-properties | representative | `block-24` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / logical-properties | representative | `inline-full` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / logical-properties | representative | `block-24` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `inset-bs-2` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `inset-e-4` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / inline-size | representative | `inline-auto` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
+| v4.2-and-v4.3 / inline-size | representative | `inline-px` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
+| v4.2-and-v4.3 / inline-size | representative | `inline-screen` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
+| v4.2-and-v4.3 / inline-size | representative | `inline-sm` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
+| v4.2-and-v4.3 / inline-size | representative | `inline-1/2` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
+| v4.2-and-v4.3 / inline-size | boundary | `inline-0` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
+| v4.2-and-v4.3 / inline-size | boundary | `inline-1.5` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
+| v4.2-and-v4.3 / inline-size | boundary | `inline-[37px]` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
+| v4.2-and-v4.3 / inline-size | boundary | `inline-(--logical-size)` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
+| v4.2-and-v4.3 / inline-size | combination | `inline-full md:inline-1/2` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
+| v4.2-and-v4.3 / block-size | representative | `block-full` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/block-size) |
+| v4.2-and-v4.3 / block-size | representative | `block-screen` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/block-size) |
+| v4.2-and-v4.3 / block-size | representative | `block-lh` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/block-size) |
+| v4.2-and-v4.3 / block-size | representative | `block-3/4` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/block-size) |
+| v4.2-and-v4.3 / block-size | boundary | `block-0` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/block-size) |
+| v4.2-and-v4.3 / block-size | boundary | `block-1.5` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/block-size) |
+| v4.2-and-v4.3 / block-size | boundary | `block-[12px]` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/block-size) |
+| v4.2-and-v4.3 / block-size | boundary | `block-(--logical-size)` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/block-size) |
+| v4.2-and-v4.3 / block-size | combination | `block-24 hover:block-full` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/block-size) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-auto` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-thin` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-none` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
