@@ -121,19 +121,17 @@ runtime.removeClass(['bg-blue-500', 'text-white']);
 
 ### ChangeDetector
 
-The `ChangeDetector` class monitors DOM changes and automatically processes new classes.
+`ChangeDetector` is exported from `@barocss/browser`, not `@barocss/kit`. `BrowserRuntime` already uses it internally. The published `0.0.3` package and the `0.0.4` candidate both return a `MutationObserver` from `observe()`:
 
 ```typescript
-import { ChangeDetector, IncrementalParser } from '@barocss/kit';
+import { BrowserRuntime } from '@barocss/browser';
 
-const parser = new IncrementalParser(ctx);
-const detector = new ChangeDetector(parser, runtime);
+const runtime = new BrowserRuntime();
+const observer = runtime.observe(document.body, { scan: true });
 
-// Start monitoring
-const observer = detector.observe(document.body, { scan: true });
-
-// Stop monitoring
-detector.disconnect();
+// When observation is no longer needed:
+observer.disconnect();
+runtime.destroy();
 ```
 
 ### Automatic Class Detection
