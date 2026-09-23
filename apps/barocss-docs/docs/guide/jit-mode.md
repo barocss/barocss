@@ -146,67 +146,15 @@ class JITCache {
 
 ## JIT Mode Benefits
 
-### 1. Minimal Bundle Size
+The browser runtime generates CSS when supported classes appear in the observed DOM. It can avoid rebuilding application CSS for those changes. Bundle size, load time, and memory use depend on the application; this guide has no reproducible measurements for them.
 
-::: details Purpose
-JIT mode generates only the CSS you actually use, resulting in dramatically smaller bundle sizes.
-:::
-
-```typescript
-// Traditional CSS: ~3MB (all utilities)
-// BaroCSS JIT: ~50KB (only used utilities)
-
-const stats = runtime.getStats();
-console.log(stats);
-// {
-//   totalClasses: 25,
-//   generatedCSS: '2.1KB',
-//   bundleSize: '2.1KB',  // vs 3MB traditional
-//   unusedCSS: '0KB'      // vs 2.95MB traditional
-// }
-```
-
-### 2. Faster Loading
-
-::: details Purpose
-Smaller CSS files mean faster download times and better user experience.
-:::
-
-```typescript
-// Performance comparison
-const traditionalCSS = '3MB'; // Download time: ~2.5s
-const jitCSS = '50KB';        // Download time: ~0.1s
-
-// 25x faster loading!
-```
-
-### 3. Memory Efficiency
-
-::: details Purpose
-JIT mode uses significantly less memory by only storing CSS for classes that are actually used.
-:::
-
-```typescript
-// Memory usage comparison
-const traditionalMemory = '15MB'; // All utilities in memory
-const jitMemory = '500KB';        // Only used utilities
-
-// 30x less memory usage!
-```
-
-### 4. Development Speed
+### Development workflow
 
 ::: details Purpose
 JIT mode provides instant feedback during development with zero build time.
 :::
 
-```typescript
-// Traditional: Rebuild entire CSS
-npm run build; // 30+ seconds
-
-// JIT: Instant CSS generation
-element.className = 'new-class'; // 0ms
-```
+When an observed element gets a supported class, the browser runtime generates its CSS without an application CSS rebuild. The time depends on the page and device.
 
 ### 5. Zero Build Configuration
 
@@ -215,8 +163,10 @@ Start using BaroCSS immediately without complex setup or build processes.
 :::
 
 ```html
-<!-- Just include the script and start styling -->
-<script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
+<script type="module">
+  import { baroStart } from 'https://unpkg.com/@barocss/browser@0.0.3/dist/cdn/barocss.js'
+  baroStart()
+</script>
 ```
 
 No webpack, PostCSS, or build tools required!
@@ -450,18 +400,9 @@ function createUserStyle(backgroundColor: string, textColor: string) {
   return element;
 ```
 
-## Performance Comparison
+## Performance
 
-| Metric | Traditional CSS | BaroCSS JIT | Improvement |
-|--------|----------------|-------------|-------------|
-| **Bundle Size** | 3MB | 50KB | 60x smaller |
-| **Load Time** | 2.5s | 0.1s | 25x faster |
-| **Memory Usage** | 15MB | 500KB | 30x less |
-| **Unused CSS** | 2.95MB | 0KB | 100% elimination |
-| **Build Time** | 30s+ | 0ms | Instant |
-| **Development Speed** | Slow | Instant | Immediate feedback |
-| **Change Detection** | Manual file scanning | Automatic DOM monitoring | Real-time |
-| **Dynamic Content** | Limited | Full support | Complete |
+The browser runtime generates CSS for classes found in the DOM. Actual bundle size, load time, memory use, and update latency depend on the application and its class list. This site has no reproducible benchmark for those values.
 
 ## Conclusion
 
