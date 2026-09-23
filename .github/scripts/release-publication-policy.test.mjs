@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const release = readFileSync('.github/workflows/npm-release.yml', 'utf8');
 const ci = readFileSync('.github/workflows/ci.yml', 'utf8');
+const mainChecker = readFileSync('.github/scripts/check-release-main.mjs', 'utf8');
 
 function assertManualOidcPublication(source) {
   assert.match(source, /push:\n    branches: \[main\]/);
@@ -64,4 +65,8 @@ test('there is no separate promotion dispatch or approval-triggered publishing p
       assert.doesNotMatch(source, /^\s+(?:npm publish|pnpm changeset publish)\b/m, name);
     }
   }
+});
+
+test('manual publication checks previous main ancestry of the merged develop candidate', () => {
+  assert.match(mainChecker, /verifyMainAncestry\(parents\[0\], candidateSha\)/);
 });

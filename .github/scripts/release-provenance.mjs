@@ -1,4 +1,14 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+
+export function verifyMainAncestry(previousMain, candidateSha, cwd = process.cwd()) {
+  assert.notEqual(candidateSha, previousMain, 'Release candidate must contain a new commit beyond previous main');
+  const result = spawnSync(
+    'git', ['merge-base', '--is-ancestor', previousMain, candidateSha],
+    { cwd, stdio: 'ignore' },
+  );
+  assert.equal(result.status, 0, 'Release candidate must contain the previous main commit');
+}
 
 export function verifyMainMerge(pr, mainSha, parents) {
   assert.ok(pr.merged_at, 'Release PR is not merged');
