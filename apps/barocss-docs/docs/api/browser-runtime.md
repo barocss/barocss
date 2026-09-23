@@ -30,11 +30,14 @@ const runtime = new BrowserRuntime({
 ### Constructor Options
 
 ```typescript
+import type { Config } from '@barocss/kit';
+
 interface BrowserRuntimeOptions {
   config?: Config;                    // BaroCSS configuration
   styleId?: string;                   // Custom style element ID
   insertionPoint?: 'head' | 'body' | HTMLElement; // CSS insertion point
   maxRulesPerPartition?: number;      // Max rules per style partition
+}
 ```
 
 ### Basic Usage
@@ -84,7 +87,12 @@ Start watching DOM changes and automatically process new classes.
 runtime.observe(document.body, { scan: true });
 
 // Watch specific element
-runtime.observe(document.getElementById('app'), { 
+const app = document.getElementById('app');
+if (!app) {
+  throw new Error('Missing #app element');
+}
+
+runtime.observe(app, {
   scan: true,
   onReady: () => console.log('Ready!')
 });
@@ -103,6 +111,7 @@ runtime.observe(document.body, {
 interface ObserveOptions {
   scan?: boolean;        // Scan existing elements
   onReady?: () => void;  // Callback when ready
+}
 ```
 
 ### removeClass()
@@ -123,19 +132,17 @@ runtime.removeClass(['bg-blue-500', 'text-white']);
 
 ### ChangeDetector
 
-The `ChangeDetector` class monitors DOM changes and automatically processes new classes.
+`ChangeDetector` is exported from `@barocss/browser`, not `@barocss/kit`. `BrowserRuntime` already uses it internally. In the published `0.4.0` package, `observe()` returns a `MutationObserver`:
 
 ```typescript
-import { ChangeDetector, IncrementalParser } from '@barocss/kit';
+import { BrowserRuntime } from '@barocss/browser';
 
-const parser = new IncrementalParser(ctx);
-const detector = new ChangeDetector(parser, runtime);
+const runtime = new BrowserRuntime();
+const observer = runtime.observe(document.body, { scan: true });
 
-// Start monitoring
-const observer = detector.observe(document.body, { scan: true });
-
-// Stop monitoring
-detector.disconnect();
+// When observation is no longer needed:
+observer.disconnect();
+runtime.destroy();
 ```
 
 ### Automatic Class Detection
@@ -156,7 +163,9 @@ document.body.innerHTML = `
 
 // Dynamic class addition
 const button = document.querySelector('button');
-button.classList.add('active:scale-95');
+if (button) {
+  button.classList.add('active:scale-95');
+}
 ```
 
 ## Style Management
@@ -166,15 +175,13 @@ button.classList.add('active:scale-95');
 BaroCSS uses style partitions for efficient CSS management:
 
 ```typescript
-// Get current partition info
-const stats = runtime.getCacheStats();
-console.log(`Partitions: ${stats.partitions}`);
-
-// Custom partition settings
+// Set the maximum number of rules per partition
 const runtime = new BrowserRuntime({
   maxRulesPerPartition: 100  // More rules per partition
 });
 ```
+
+`getCacheStats()` does not return a partition count.
 
 ### CSS Access
 
@@ -229,15 +236,16 @@ runtime.reset();
 
 ### getStats()
 
-Get comprehensive runtime statistics.
+Get runtime state and cache statistics. The fields below exist in the published `0.4.0` package.
 
 ```typescript
 const stats = runtime.getStats();
 console.log({
-  processedClasses: stats.processedClasses,
-  cacheHits: stats.cacheHits,
-  partitions: stats.partitions,
-  memoryUsage: stats.memoryUsage
+  cachedClasses: stats.cachedClasses,
+  styleElementId: stats.styleElementId,
+  isDestroyed: stats.isDestroyed,
+  rootCacheSize: stats.cacheStats.runtime.rootCacheSize,
+  processedClasses: stats.cacheStats.incremental.processedClasses
 });
 ```
 
@@ -256,14 +264,21 @@ const cacheStats = runtime.getCacheStats();
 ### Custom Style Injection
 
 ```typescript
+import { BrowserRuntime } from '@barocss/browser';
+
 // Custom insertion point
-const runtime = new BrowserRuntime({
-  insertionPoint: document.getElementById('custom-styles')
+const customStyles = document.getElementById('custom-styles');
+if (!customStyles) {
+  throw new Error('Missing #custom-styles element');
+}
+
+const runtimeInContainer = new BrowserRuntime({
+  insertionPoint: customStyles
 });
 
 // Custom style ID
-const runtime = new BrowserRuntime({
-  styleId: 'my-@barocss/kit-styles'
+const runtimeWithCustomId = new BrowserRuntime({
+  styleId: 'my-runtime'
 });
 ```
 
@@ -282,66 +297,57 @@ console.log(css);
 
 #### React Integration
 
-```typescript
-import { useEffect, useRef } from 'react';
+This example uses the public runtime API in the published `0.4.0` package.
+
+```tsx
+import { useEffect } from 'react';
 import { BrowserRuntime } from '@barocss/browser';
 
 function App() {
-  const runtimeRef = useRef<BrowserRuntime>();
-
   useEffect(() => {
-    runtimeRef.current = new BrowserRuntime({
-      config: {
-        theme: {
-          extend: {
-            colors: {
-              brand: '#3b82f6'
-            }
-          }
-        }
-      }
-    });
-
-    runtimeRef.current.observe(document.body, { scan: true });
+    const runtime = new BrowserRuntime();
+    const observer = runtime.observe(document.body, { scan: true });
 
     return () => {
-      runtimeRef.current?.destroy();
+      observer.disconnect();
+      runtime.destroy();
     };
   }, []);
 
   return (
-    <div className="bg-brand text-white p-4">
+    <div className="block text-center">
       <h1>Hello BaroCSS!</h1>
     </div>
   );
+}
 ```
 
 #### Vue Integration
 
-```typescript
-import { createApp } from 'vue';
+This Vue 3 component uses the public runtime API in the published `0.4.0` package.
+
+```vue
+<script setup lang="ts">
+import { onMounted, onBeforeUnmount } from 'vue';
 import { BrowserRuntime } from '@barocss/browser';
 
-const app = createApp({
-  mounted() {
-    this.runtime = new BrowserRuntime({
-      config: {
-        theme: {
-          extend: {
-            colors: {
-              brand: '#3b82f6'
-            }
-          }
-        }
-      }
-    });
+let runtime: BrowserRuntime | undefined;
+let observer: MutationObserver | undefined;
 
-    this.runtime.observe(document.body, { scan: true });
-  },
-  beforeUnmount() {
-    this.runtime?.destroy();
-  }
+onMounted(() => {
+  runtime = new BrowserRuntime();
+  observer = runtime.observe(document.body, { scan: true });
 });
+
+onBeforeUnmount(() => {
+  observer?.disconnect();
+  runtime?.destroy();
+});
+</script>
+
+<template>
+  <div class="block text-center">Hello BaroCSS!</div>
+</template>
 ```
 
 ## Error Handling
@@ -363,6 +369,7 @@ try {
   runtime.observe(document.body, { scan: true });
 } catch (error) {
   console.error('Runtime initialization failed:', error);
+}
 ```
 
 ## Examples
@@ -432,4 +439,3 @@ runtime.observe(document.body, {
   }
 });
 ```
-
