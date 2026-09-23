@@ -304,30 +304,30 @@ function App() {
 
 #### Vue Integration
 
-```typescript
-import { createApp } from 'vue';
+This Vue 3 component uses the public runtime API in the published `0.0.3` package and the `0.0.4` candidate.
+
+```vue
+<script setup lang="ts">
+import { onMounted, onBeforeUnmount } from 'vue';
 import { BrowserRuntime } from '@barocss/browser';
 
-const app = createApp({
-  mounted() {
-    this.runtime = new BrowserRuntime({
-      config: {
-        theme: {
-          extend: {
-            colors: {
-              brand: '#3b82f6'
-            }
-          }
-        }
-      }
-    });
+let runtime: BrowserRuntime | undefined;
+let observer: MutationObserver | undefined;
 
-    this.runtime.observe(document.body, { scan: true });
-  },
-  beforeUnmount() {
-    this.runtime?.destroy();
-  }
+onMounted(() => {
+  runtime = new BrowserRuntime();
+  observer = runtime.observe(document.body, { scan: true });
 });
+
+onBeforeUnmount(() => {
+  observer?.disconnect();
+  runtime?.destroy();
+});
+</script>
+
+<template>
+  <div class="block text-center">Hello BaroCSS!</div>
+</template>
 ```
 
 ## Error Handling
