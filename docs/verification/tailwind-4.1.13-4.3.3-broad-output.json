@@ -5311,13 +5311,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-gutter-stable {\n  scrollbar-gutter: stable;\n}\n",
-      "barocss": "",
+      "barocss": ".scrollbar-gutter-stable {\n  scrollbar-gutter: stable;\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "match",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "6e3636a6cb9dc3507ba58f5d8a5ecf77f9e47ebab4a7898bdf8789e5472303e0",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "6e3636a6cb9dc3507ba58f5d8a5ecf77f9e47ebab4a7898bdf8789e5472303e0"
       }
     },
     {
@@ -5421,6 +5421,110 @@
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "3e046f76cc3a03350fc36381c3432a033c577e8a784728ba02da54becc551406",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "scrollbar-gutter:scrollbar-gutter-auto",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-gutter",
+      "role": "representative",
+      "classes": [
+        "scrollbar-gutter-auto"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-gutter",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-gutter-auto {\n  scrollbar-gutter: auto;\n}\n",
+      "barocss": ".scrollbar-gutter-auto {\n  scrollbar-gutter: auto;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "b096b47325a1379798fb3ebd0b44de80d54d4082c77b244c0400f49c38524432",
+        "barocss": "b096b47325a1379798fb3ebd0b44de80d54d4082c77b244c0400f49c38524432"
+      }
+    },
+    {
+      "id": "scrollbar-gutter:scrollbar-gutter-both",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-gutter",
+      "role": "representative",
+      "classes": [
+        "scrollbar-gutter-both"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-gutter",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-gutter-both {\n  scrollbar-gutter: stable both-edges;\n}\n",
+      "barocss": ".scrollbar-gutter-both {\n  scrollbar-gutter: stable both-edges;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "d247ecaed9ca2fea6a50329209a49c36b53bf2d3216c32f12708ef900a5ebdd6",
+        "barocss": "d247ecaed9ca2fea6a50329209a49c36b53bf2d3216c32f12708ef900a5ebdd6"
+      }
+    },
+    {
+      "id": "scrollbar-color:scrollbar-thumb-transparent",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color",
+      "role": "representative",
+      "classes": [
+        "scrollbar-thumb-transparent"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-thumb-transparent {\n  --tw-scrollbar-thumb: transparent;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "unsupported",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "2619bcf7446d6c0f35b4387a4fbd2711306b1d5fe1cfaa4efa2cd0e30e46ab0b",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "scrollbar-color:scrollbar-track-red-500",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-color",
+      "role": "representative",
+      "classes": [
+        "scrollbar-track-red-500"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-color",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.scrollbar-track-red-500 {\n  --tw-scrollbar-track: #ef4444;\n  scrollbar-color: var(--tw-scrollbar-thumb) var(--tw-scrollbar-track);\n}\n@property --tw-scrollbar-thumb {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@property --tw-scrollbar-track {\n  syntax: \"<color>\";\n  inherits: false;\n  initial-value: #0000;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-scrollbar-thumb: #0000;\n      --tw-scrollbar-track: #0000;\n    }\n  }\n}\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "unsupported",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "3e16c401b695a9a345f293e404213dbe0231442e359d60e58c74a00b0ad2df65",
         "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       }
     },

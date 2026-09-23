@@ -33,9 +33,9 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | svg-and-accessibility | 7 | 2 | 5 | 0 | 0 | 2 | 5 | 0 | 0 |
 | variants | 21 | 0 | 21 | 0 | 0 | 9 | 12 | 0 | 0 |
 | syntax | 12 | 7 | 4 | 1 | 0 | 7 | 4 | 1 | 0 |
-| v4.2-and-v4.3 | 33 | 0 | 0 | 0 | 33 | 14 | 2 | 13 | 4 |
+| v4.2-and-v4.3 | 37 | 0 | 0 | 0 | 37 | 17 | 2 | 14 | 4 |
 | combinations | 6 | 0 | 6 | 0 | 0 | 1 | 5 | 0 | 0 |
-| Total selected inputs | 233 | 93 | 105 | 2 | 33 | 116 | 98 | 15 | 4 |
+| Total selected inputs | 237 | 93 | 105 | 2 | 37 | 119 | 98 | 16 | 4 |
 
 ## Exact inputs
 
@@ -244,11 +244,15 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-auto` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-thin` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-none` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / new-utilities | representative | `scrollbar-gutter-stable` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / new-utilities | representative | `scrollbar-gutter-stable` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `@container-size` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `@container-size/sidebar` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `font-features-["tnum"]` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `scrollbar-thumb-red-500` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / scrollbar-gutter | representative | `scrollbar-gutter-auto` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
+| v4.2-and-v4.3 / scrollbar-gutter | representative | `scrollbar-gutter-both` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
+| v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-thumb-transparent` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
+| v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-track-red-500` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
 | v4.2-and-v4.3 / zoom | representative | `zoom-0` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
 | v4.2-and-v4.3 / zoom | representative | `zoom-75` | reference-no-rule | match | unverified | [verified-match](https://github.com/barocss/barocss/pull/84#issuecomment-5791345702) | [Tailwind](https://tailwindcss.com/docs/zoom) |
 | v4.2-and-v4.3 / zoom | representative | `zoom-100` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
