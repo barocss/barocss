@@ -8,6 +8,8 @@ import "./table";
 import "./filter";
 import "./backdrop-filter";
 import "./effects";
+// The engine checks registrations in order; keep specific inset names before inset-*.
+import "./logical-inset";
 import "./layout";
 import "./flexbox-grid";
 import "./spacing";
