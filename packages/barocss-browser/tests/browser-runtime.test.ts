@@ -70,6 +70,19 @@ describe('BrowserRuntime', () => {
     expect(runtime.getCacheStats().runtime.rootCacheSize).toBe(0);
   });
 
+  it('restores a detached style partition when another class is added', () => {
+    runtime.updateConfig({ preflight: 'minimal' });
+    runtime.addClass('p-4');
+    document.querySelectorAll('[data-barocss="partition"]').forEach(style => style.remove());
+
+    runtime.addClass('m-2');
+
+    expect(hasInjectedRule('.p-4')).toBe(true);
+    expect(hasInjectedRule('.m-2')).toBe(true);
+    expect(document.querySelector('[data-category="preflight"]')?.textContent).toBeTruthy();
+    expect(document.querySelector('[data-category="css-vars"]')?.textContent).toBeTruthy();
+  });
+
   it('processes class changes and nested nodes after observation starts', async () => {
     runtime.observe(document.body, { scan: true });
     const element = document.createElement('div');

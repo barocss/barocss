@@ -130,6 +130,12 @@ export class BrowserRuntime {
    */
   public applyParseResults(results: Array<GenerateCssRulesResult>, _opts?: { isBrowser?: boolean }): void {
     if (this.isDestroyed) return;
+    if (this.getInsertionPoint().isConnected && this.stylePartitionManager.hasDetachedPartitions()) {
+      const existingResults = Array.from(this.cache.values());
+      this.reset();
+      results = [...existingResults, ...results];
+      results.forEach(result => this.incrementalParser.markProcessed(result.cls));
+    }
     const cssRules: GenerateCssRulesResult[] = [];
     const rootCssRules: string[] = [];
 
