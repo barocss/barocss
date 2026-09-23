@@ -1,21 +1,25 @@
-name: Npm version PR
+name: Npm release preflight
 
 on:
   workflow_dispatch:
+    inputs:
+      expected_version:
+        description: Exact version of all three packages, for example 0.0.4
+        required: true
+        type: string
 
 concurrency:
-  group: npm-version-pr
+  group: npm-release
   cancel-in-progress: false
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
-  version:
+  release:
     if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,17 +39,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check requested release version
+        run: node .github/scripts/check-release-version.mjs
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+
       - name: Check and build packages
         run: pnpm check
 
       - name: Check packed package exports
         run: node .github/scripts/check-packages.mjs
 
-      - name: Create or update the version PR
-        uses: changesets/action@v1
-        with:
-          version: pnpm changeset:version
-          title: "chore: release packages"
-          commit: "chore: release packages"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build documentation site
+        run: pnpm --filter barocss-docs docs:build
+
+      - name: Confirm preflight only
+        run: echo 'Preflight complete. This workflow cannot publish; use the reviewed main promotion path after PR #77 is integrated.'
