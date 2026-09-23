@@ -88,7 +88,7 @@ assert.ok(jobs.jobs.some((job) => job.name === 'Test and Build' && job.conclusio
 assert.equal(await checkPublication(version, 'pre', sha, readToken), 'unpublished');
 
 if (!pr.auto_merge) {
-  execFileSync('gh', ['pr', 'merge', String(number), '--auto', '--merge'], {
+  execFileSync('gh', ['pr', 'merge', String(number), '--auto', '--merge', '--match-head-commit', sha], {
     env: { ...process.env, GH_TOKEN: appToken },
     stdio: 'inherit',
   });
