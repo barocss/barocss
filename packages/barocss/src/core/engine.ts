@@ -340,7 +340,6 @@ export function parseClassToAst(
         type: "wrap",
         items: items,
       });
-      continue;
     }
     if (plugin.modifySelector) {
       const result = plugin.modifySelector({
@@ -351,9 +350,15 @@ export function parseClassToAst(
         variantChain: modifiers,
         index: i,
       });
+      // A wrapped identity selector adds no rule. Media-only modifiers use it.
+      if (plugin.wrap && (
+        result === '&' ||
+        (typeof result === 'object' && !Array.isArray(result) && result.selector === '&') ||
+        (Array.isArray(result) && result.length === 1 && result[0].selector === '&')
+      )) continue;
       if (typeof result === "string" && result.includes("&")) {
         wrappers.push({ type: "rule", selector: result });
-      } else if (typeof result === "object" && result.selector) {
+      } else if (typeof result === "object" && !Array.isArray(result) && result.selector) {
         const wrappingType = result.wrappingType || "rule";
         wrappers.push({
           type: wrappingType,
@@ -380,10 +385,11 @@ export function parseClassToAst(
     const wrap = wrappers[i];
 
     if (wrap.type === "wrap") {
-      ast = ((wrap as HasItems).items as AstNode[]).map((item) => ({
-        ...item,
-        nodes: Array.isArray(ast) ? ast : [ast],
-      }));
+      ast = ((wrap as HasItems).items as AstNode[]).map((item) => (
+        item.type === 'rule' || item.type === 'style-rule' || item.type === 'at-rule' || item.type === 'at-root'
+          ? { ...item, nodes: [...(item.nodes || []), ...ast] }
+          : item
+      ));
     } else if (wrap.type === "style-rule") {
       ast = [
         {
@@ -443,6 +449,11 @@ export function clearAstCache(ctx?: Context): void {
     clearAllCaches();
     failureCache.clear();
   }
+}
+
+/** Read AST cache statistics for one context, or the legacy global cache. */
+export function getAstCacheStats(ctx?: Context) {
+  return (ctx && getContextState(ctx)?.astCache || astCache).getStats();
 }
 
 /**

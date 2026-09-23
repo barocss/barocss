@@ -1,3 +1,4 @@
+import { parseWithoutHoverMedia } from './hover-media-test-utils';
 import { describe, it, expect } from "vitest";
 import { optimizeAst, parseClassToAst } from "../src/core/engine";
 import "../src/presets"
@@ -30,7 +31,7 @@ describe("optimizeAst ", () => {
 
 
   it("Single variant chain: sm:hover:bg-red-500", () => {
-    let ast = parseClassToAst("sm:hover:bg-red-500", ctx);
+    let ast = parseWithoutHoverMedia("sm:hover:bg-red-500", ctx);
     if (ast === undefined) {
       ast = [];
     }
@@ -55,7 +56,7 @@ describe("optimizeAst ", () => {
   });
 
   it("Multiple variant chains: sm:hover:bg-red-500 sm:focus:bg-blue-500", () => {
-    let ast1 = parseClassToAst("sm:hover:bg-red-500", ctx);
+    let ast1 = parseWithoutHoverMedia("sm:hover:bg-red-500", ctx);
     let ast2 = parseClassToAst("sm:focus:bg-blue-500", ctx);
     if (ast1 === undefined) {
       ast1 = [];
@@ -92,7 +93,7 @@ describe("optimizeAst ", () => {
   });
 
   it("Completely different variant chains split into sibling trees", () => {
-    let ast1 = parseClassToAst("sm:hover:bg-red-500", ctx);
+    let ast1 = parseWithoutHoverMedia("sm:hover:bg-red-500", ctx);
     let ast2 = parseClassToAst("supports-[display:grid]:focus:bg-blue-500", ctx);
     if (ast1 === undefined) {
       ast1 = [];
@@ -136,7 +137,7 @@ describe("optimizeAst ", () => {
   });
 
   it("Complex variant chain: sm:dark:hover:bg-red-500", () => {
-    let ast = parseClassToAst("sm:dark:hover:bg-red-500", ctx);
+    let ast = parseWithoutHoverMedia("sm:dark:hover:bg-red-500", ctx);
     if (ast === undefined) {        
       ast = [];
     }
@@ -148,7 +149,7 @@ describe("optimizeAst ", () => {
   });
 
   it("Complex variant chain: dark:sm:hover:bg-blue-500", () => {
-    let ast = parseClassToAst("dark:sm:hover:bg-blue-500", ctx);
+    let ast = parseWithoutHoverMedia("dark:sm:hover:bg-blue-500", ctx);
     if (ast === undefined) {
       ast = [];
     }
@@ -249,7 +250,7 @@ describe("optimizeAst ", () => {
   });
 
   it("data-state + aria-pressed + &:hover", () => {
-    const ast = parseClassToAst('data-[state=open]:aria-pressed:hover:bg-green-500', ctx);
+    const ast = parseWithoutHoverMedia('data-[state=open]:aria-pressed:hover:bg-green-500', ctx);
     const cleanAst = optimizeAst(ast);
     const expected = [
       {

@@ -215,17 +215,6 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
                 continue;
             }
 
-            // Apply Modifier Logic (Wrap or Modify Selector)
-            // This logic mirrors parseClassToAst in engine.ts
-            if (plugin.wrap) {
-                const items = plugin.wrap(parsedModifier, ctx);
-                wrappers.push({
-                    type: "wrap",
-                    items: items,
-                });
-                continue;
-            }
-
             if (plugin.modifySelector) {
                 const result = plugin.modifySelector({
                     selector,
@@ -236,7 +225,14 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
                     index: i,
                 });
 
-                if (typeof result === "string" && result.includes("&")) {
+                const identityWithWrap = plugin.wrap && (
+                    result === '&' ||
+                    (typeof result === 'object' && !Array.isArray(result) && result.selector === '&') ||
+                    (Array.isArray(result) && result.length === 1 && result[0].selector === '&')
+                );
+                if (identityWithWrap) {
+                    // Media-only modifiers do not need an extra selector rule.
+                } else if (typeof result === "string" && result.includes("&")) {
                     wrappers.push({ type: "rule", selector: result });
                 } else if (typeof result === "object" && !Array.isArray(result) && (result as { selector?: string }).selector) {
                     const r = result as { selector: string; wrappingType?: string; flatten?: boolean; source?: string };
@@ -251,7 +247,7 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
                     // result is array of objects
                     wrappers.push({
                         type: "wrap",
-                        items: (result as any[]).map((r) => ({
+                        items: result.map((r) => ({
                             type: r.wrappingType || "rule",
                             selector: r.selector,
                             source: r.source,
@@ -260,6 +256,9 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
                     });
                 }
             }
+            if (plugin.wrap) {
+                wrappers.push({ type: 'wrap', items: plugin.wrap(parsedModifier, ctx) });
+            }
         }
 
         // Nest wrappers (Wrappers are collected in reverse order of application, so we iterate to apply)
@@ -267,10 +266,11 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
             const wrap = wrappers[i];
             // Application logic same as engine.ts
             if (wrap.type === "wrap") {
-                ast = (wrap.items as AstNode[]).map((item) => ({
-                    ...item,
-                    nodes: Array.isArray(ast) ? ast : [ast],
-                }));
+                ast = (wrap.items as AstNode[]).map((item) => (
+                    item.type === 'rule' || item.type === 'style-rule' || item.type === 'at-rule' || item.type === 'at-root'
+                        ? { ...item, nodes: [...(item.nodes || []), ...ast] }
+                        : item
+                ));
             } else if (wrap.type === "style-rule") {
                 ast = [
                     {

@@ -1,3 +1,4 @@
+import { parseWithoutHoverMedia } from './hover-media-test-utils';
 import { describe, it, expect } from 'vitest';
 import { parseClassToAst, generateCss } from '../src/core/engine';
 import '../src/presets';
@@ -31,8 +32,10 @@ describe('parseClassToAst (end-to-end)', () => {
   it('responsive + modifier', () => {
     expect(generateCss('sm:hover:bg-red-500', ctx)).toBe(
       `@media (min-width: 640px) {
-  .sm\\:hover\\:bg-red-500:hover {
-    background-color: #ef4444;
+  @media (hover: hover) {
+    .sm\\:hover\\:bg-red-500:hover {
+      background-color: #ef4444;
+    }
   }
 }
 `
@@ -122,8 +125,10 @@ describe('parseClassToAst (end-to-end)', () => {
   line-height: var(--text-lg--line-height);
 }
 
-.hover\\:bg-blue-500:hover {
-  background-color: #3b82f6;
+@media (hover: hover) {
+  .hover\\:bg-blue-500:hover {
+    background-color: #3b82f6;
+  }
 }
 `
     );
@@ -204,8 +209,10 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('sm:dark:hover:bg-[#123456]', ctx)).toBe(
       `@media (min-width: 640px) {
   @media (prefers-color-scheme: dark) {
-    .sm\\:dark\\:hover\\:bg-\\[\\#123456\\]:hover {
-      background-color: #123456;
+    @media (hover: hover) {
+      .sm\\:dark\\:hover\\:bg-\\[\\#123456\\]:hover {
+        background-color: #123456;
+      }
     }
   }
 }
@@ -294,7 +301,7 @@ describe('variant chain engine', () => {
   });
 
   it('hover:focus:bg-red-500 → &:focus:hover', () => {
-    expect(parseClassToAst('hover:focus:bg-red-500', ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia('hover:focus:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
         selector: '&:hover',
@@ -322,7 +329,7 @@ describe('variant chain engine', () => {
   });
 
   it('hover:bg-red-500 → @media (hover: hover) { ... }', () => {
-    expect(parseClassToAst('hover:bg-red-500', ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia('hover:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
         selector: '&:hover',
@@ -332,4 +339,4 @@ describe('variant chain engine', () => {
       }
     ]);
   });
-}); 
+});

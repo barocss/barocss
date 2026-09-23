@@ -64,9 +64,17 @@ export function getUtility(ctx?: Context): UtilityRegistration[] {
 }
 
 // --- Modifier Registration ---
+export type ModifierSelector = {
+  selector: string;
+  flatten?: boolean;
+  wrappingType?: 'rule' | 'style-rule' | 'at-rule';
+  override?: boolean;
+  source?: string;
+};
+
 export type ModifierRegistration = {
   match: (mod: string, context: Context) => boolean;
-  modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: Context; variantChain?: ParsedModifier[]; index?: number }) => string | { selector: string; flatten?: boolean; wrappingType?: 'rule' | 'style-rule' | 'at-rule'; override?: boolean; source?: string };
+  modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: Context; variantChain?: ParsedModifier[]; index?: number }) => string | ModifierSelector | ModifierSelector[];
   wrap?: (mod: ParsedModifier, context: Context) => AstNode[];
   astHandler?: (ast: AstNode[], mod: ParsedModifier, context: Context, variantChain?: ParsedModifier[], index?: number) => AstNode[];
   sort?: number;

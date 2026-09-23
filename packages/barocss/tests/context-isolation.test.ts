@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import '../src/presets';
 import { createContext, type Context } from '../src/core/context';
 import { getVarName } from '../src/core/cssVars';
-import { generateCss, parseClassToAst } from '../src/core/engine';
+import { clearAstCache, generateCss, getAstCacheStats, parseClassToAst } from '../src/core/engine';
 import { functionalModifier, registerUtility } from '../src/core/registry';
 import { decl } from '../src/core/ast';
 import { clearAllCaches } from '../src/utils/cache';
@@ -58,6 +58,19 @@ describe('context isolation', () => {
 
     clearAllCaches();
     expect(parseClassToAst('flex', ctx)).not.toBe(cached);
+  });
+
+  it('reports and clears the requested context cache', () => {
+    const first = createContext({});
+    const second = createContext({});
+    parseClassToAst('flex', first);
+    parseClassToAst('grid', second);
+    expect(getAstCacheStats(first).size).toBe(1);
+    expect(getAstCacheStats(second).size).toBe(1);
+
+    clearAstCache(first);
+    expect(getAstCacheStats(first).size).toBe(0);
+    expect(getAstCacheStats(second).size).toBe(1);
   });
 
   it('refreshes generated CSS after extending a theme', () => {
