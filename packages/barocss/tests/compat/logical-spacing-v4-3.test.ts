@@ -8,17 +8,21 @@ import { normalizeCss } from './normalize';
 const context = createContext({ preflight: false });
 
 const exactCases = [
+  'pbs-0',
   'pbs-px',
   'pbs-[13px]',
   'pbs-(--gap)',
+  'pbe-0',
   'pbe-px',
   'pbe-[3px]',
   'pbe-(--gap)',
+  'mbs-0',
   'mbs-auto',
   'mbs-px',
   '-mbs-px',
   'mbs-[17px]',
   'mbs-(--gap)',
+  'mbe-0',
   'mbe-auto',
   'mbe-px',
   '-mbe-px',
@@ -26,7 +30,7 @@ const exactCases = [
 
 describe('Tailwind CSS 4.3.3 logical padding and margin', () => {
   it.each(exactCases)('%s emits the same CSS structure as Tailwind', async (candidate) => {
-    const compiler = await compile('@tailwind utilities;');
+    const compiler = await compile('@theme inline { --spacing: 0.25rem; } @tailwind utilities;');
     const reference = normalizeCss(compiler.build([candidate]));
     const actual = normalizeCss(generateCss(candidate, context));
     expect(actual).toEqual(reference);

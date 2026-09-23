@@ -5,6 +5,7 @@ for (const [name, property] of [
   ['pbs', 'padding-block-start'],
   ['pbe', 'padding-block-end'],
 ] as const) {
+  staticUtility(`${name}-0`, [[property, '0px']], { category: 'spacing' });
   staticUtility(`${name}-px`, [[property, '1px']], { category: 'spacing' });
   functionalUtility({
     name,
@@ -21,6 +22,7 @@ for (const [name, property] of [
   ['mbs', 'margin-block-start'],
   ['mbe', 'margin-block-end'],
 ] as const) {
+  staticUtility(`${name}-0`, [[property, '0px']], { category: 'spacing' });
   staticUtility(`${name}-auto`, [[property, 'auto']], { category: 'spacing' });
   staticUtility(`${name}-px`, [[property, '1px']], { category: 'spacing' });
   staticUtility(`-${name}-px`, [[property, '-1px']], { category: 'spacing' });
