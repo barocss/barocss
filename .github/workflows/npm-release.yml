@@ -5,6 +5,25 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the reviewed main commit to npm
+        required: false
+        type: boolean
+        default: false
+      expected_main_sha:
+        description: Full current main commit SHA
+        required: false
+        type: string
+      expected_version:
+        description: Exact version of all three packages
+        required: false
+        type: string
+      readiness_comment_url:
+        description: PM release-ready comment with Guard and Ship evidence
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -47,7 +66,7 @@ jobs:
 
   publish:
     name: Publish npm packages
-    if: github.repository == 'barocss/barocss' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.repository == 'barocss/barocss' && github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/main'
     needs: [build, test]
     concurrency:
       group: npm-release-publish
@@ -57,6 +76,9 @@ jobs:
     environment: npm
     permissions:
       contents: write
+      actions: read
+      issues: read
+      pull-requests: read
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +99,17 @@ jobs:
       - name: Read release version
         id: version
         run: echo "release_version=$(node -p 'require("./packages/barocss/package.json").version')" >> "$GITHUB_OUTPUT"
+      - name: Require owner and exact manual release inputs
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          READINESS_COMMENT_URL: ${{ inputs.readiness_comment_url }}
+          RELEASE_VERSION: ${{ steps.version.outputs.release_version }}
+        run: |
+          test "$GITHUB_ACTOR" = easylogic
+          test "$GITHUB_SHA" = "$EXPECTED_MAIN_SHA"
+          test "$RELEASE_VERSION" = "$EXPECTED_VERSION"
+          test -n "$READINESS_COMMENT_URL"
       - name: Require enabled npm environment
         env:
           NPM_RELEASE_ENABLED: ${{ vars.NPM_RELEASE_ENABLED }}
@@ -85,6 +118,13 @@ jobs:
         run: node .github/scripts/check-release-version.mjs
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.release_version }}
+      - name: Verify reviewed main merge and PM readiness
+        run: node .github/scripts/check-release-main.mjs
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          READINESS_COMMENT_URL: ${{ inputs.readiness_comment_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Check npm, tags, and Releases before publish
         id: publication
         run: node .github/scripts/check-publication-state.mjs
@@ -93,11 +133,6 @@ jobs:
           EXPECTED_SHA: ${{ github.sha }}
           PUBLICATION_MODE: pre
           ALLOW_EXISTING_TAG_SHA: true
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Verify approved main promotion
-        if: steps.publication.outputs.publication_state == 'unpublished'
-        run: node .github/scripts/check-promotion-merge.mjs
-        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - if: steps.publication.outputs.publication_state == 'unpublished'
         run: pnpm check
