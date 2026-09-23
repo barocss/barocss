@@ -59,6 +59,9 @@ jobs:
       - name: Check packed package exports
         run: node .github/scripts/check-packages.mjs
 
+      - name: Build documentation site
+        run: pnpm --filter barocss-docs docs:build
+
       - name: Publish packages, tags, and GitHub Releases
         if: inputs.publish
         uses: changesets/action@v1
