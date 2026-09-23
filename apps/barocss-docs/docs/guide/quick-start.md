@@ -1,99 +1,55 @@
 ---
 title: Quick Start
-description: Fastest ways to start using BaroCSS in the browser
+description: Start the BaroCSS browser runtime with a package manager or a CDN
 ---
 
 # Quick Start
 
-Get up and running quickly using the zero‑config boot helper or the manual runtime.
+These examples use the public browser API. The npm and CDN examples pin the published `0.0.3` release. The `0.0.4` candidate is under review and is not yet a published installation target.
 
-## Installation
+## Install with a package manager
 
-### Package Manager
-
-#### pnpm (recommended)
 ```bash
-pnpm add @barocss/kit @barocss/browser
+pnpm add @barocss/browser@0.0.3
 ```
 
-#### npm
-```bash
-npm install @barocss/kit @barocss/browser
+`@barocss/browser` installs `@barocss/kit` as a dependency. Install `@barocss/kit` directly when you use its core API. Install `@barocss/server` separately for server-side CSS generation.
+
+```ts
+import { BrowserRuntime } from '@barocss/browser'
+
+const runtime = new BrowserRuntime()
+runtime.observe(document.body, { scan: true })
 ```
 
-#### yarn
-```bash
-yarn add @barocss/kit @barocss/browser
-```
+Call `observe` after `document.body` exists. It scans existing classes and watches later DOM changes. Call `runtime.destroy()` when the runtime is no longer needed.
 
-### CDN (Browser Runtime only)
+## Use the CDN without a build step
 
-#### UMD
-```html
-<script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
-```
+The `dist/cdn/barocss.js` and `dist/cdn/barocss.umd.cjs` files are part of the browser package. The paths below refer to the published `0.0.3` files. The `0.0.4` candidate's pack check also verifies these paths, but its CDN URL will work only after publication.
 
-#### ESM
-```html
-<script type="module" src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js"></script>
-```
+### ESM
 
-::: tip Server Runtime
-Server runtime (`@barocss/server`) is only available via package manager, not CDN.
-:::
-
-## Usage
-
-### Option 1 — bootStart (ESM)
+Place this script near the end of the page body:
 
 ```html
 <script type="module">
-  import { bootStart } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js'
-
-  // Starts the runtime, scans existing DOM once, and observes further changes
-  bootStart({
-    config: {
-      preflight: true
-    }
-  })
+  import { baroStart } from 'https://unpkg.com/@barocss/browser@0.0.3/dist/cdn/barocss.js'
+  baroStart()
 </script>
 ```
 
-### Option 2 — bootStart (UMD)
+### UMD
+
+Place these scripts near the end of the page body:
 
 ```html
-<script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@0.0.3/dist/cdn/barocss.umd.cjs"></script>
 <script>
-  // window.BaroCSS.bootStart
-  BaroCSS.bootStart({
-    config: {
-      preflight: true
-    }
-  })
+  BaroCSS.baroStart()
 </script>
 ```
 
-### Option 3 — Manual runtime
+`baroStart` is an alias of `baroBoot`. It creates a browser runtime, scans the body, and starts observing changes. The package does not export `bootStart`.
 
-```html
-<script type="module">
-  import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js'
-
-  const runtime = new BrowserRuntime({
-    config: {
-      preflight: true
-    }
-  })
-
-  // Scan current DOM and observe further changes
-  runtime.observe(document.body, { scan: true })
-</script>
-```
-
-## Notes
-
-- bootStart is the simplest way to initialize the browser runtime. It creates an internal `BrowserRuntime` instance and calls `observe(document.body, { scan: true })` for you.
-- To customize behavior further, use the manual runtime approach.
-- For deeper concepts and patterns, see Integration → Overview.
-
-
+For manual control, use `BrowserRuntime` as shown in the package manager example. See [Browser Runtime](/api/browser-runtime) for its methods and [Compatibility](/guide/compatibility) for the measured Tailwind scope.

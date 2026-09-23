@@ -6,7 +6,7 @@ export default defineConfig({
     lib: {
       entry: 'src/index.ts',
       name: 'BaroCSSServer',
-      fileName: (format) => `index.${format}.js`,
+      fileName: (format) => format === 'cjs' ? 'index.cjs' : 'index.es.js',
       formats: ['es', 'cjs']
     },
     rollupOptions: {

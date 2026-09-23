@@ -1,3 +1,4 @@
+import { parseWithoutHoverMedia } from '../hover-media-test-utils';
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
 import { parseClassToAst } from "../../src/core/engine";
@@ -5,7 +6,7 @@ import { ctx } from "./test-utils";
 
 describe("basic variants", () => {
   it("hover:bg-red-500 → &:hover { background-color: #f00 }", () => {
-    expect(parseClassToAst("hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
         selector: "&:hover",
@@ -15,7 +16,7 @@ describe("basic variants", () => {
   });
 
   it("sm:hover:bg-red-500 → @media (min-width: 640px) { &:hover { ... } }", () => {
-    expect(parseClassToAst("sm:hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("sm:hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "at-rule",
         name: "media",
@@ -121,7 +122,7 @@ describe("basic variants", () => {
   });
 
   it("xl:hover:bg-red-500 → @media (min-width: 1280px) { &:hover { ... } }", () => {
-    expect(parseClassToAst("xl:hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("xl:hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "at-rule",
         name: "media",
@@ -376,7 +377,7 @@ describe("basic variants", () => {
   });
 
   it("sm:hover:bg-red-500 → @media (min-width: 640px) { &:hover { ... } }", () => {
-    expect(parseClassToAst("sm:hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("sm:hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "at-rule",
         name: "media",
@@ -478,7 +479,7 @@ describe("basic variants", () => {
   });
 
   it("dark:sm:hover:bg-red-500 → @media (prefers-color-scheme: dark) { @media (min-width: 640px) { &:hover { ... } } }", () => {
-    expect(parseClassToAst("dark:sm:hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("dark:sm:hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "at-rule",
         name: "media",
@@ -780,7 +781,7 @@ describe("basic variants", () => {
   });
 
   it("motion-safe:hover:bg-red-500 → @media (prefers-reduced-motion: no-preference) { &:hover { ... } }", () => {
-    expect(parseClassToAst("motion-safe:hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("motion-safe:hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "at-rule",
         name: "media",
@@ -798,7 +799,7 @@ describe("basic variants", () => {
 
   it("motion-reduce:hover:bg-red-500 → @media (prefers-reduced-motion: reduce) { &:hover { ... } }", () => {
     expect(
-      parseClassToAst("motion-reduce:hover:bg-red-500", ctx)
+      parseWithoutHoverMedia("motion-reduce:hover:bg-red-500", ctx)
     ).toMatchObject([
       {
         type: "at-rule",
@@ -816,7 +817,7 @@ describe("basic variants", () => {
   });
 
   it("print:hover:bg-red-500 → @media print { &:hover { ... } }", () => {
-    expect(parseClassToAst("print:hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("print:hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "at-rule",
         name: "media",
@@ -833,7 +834,7 @@ describe("basic variants", () => {
   });
 
   it("portrait:hover:bg-red-500 → @media (orientation: portrait) { &:hover { ... } }", () => {
-    expect(parseClassToAst("portrait:hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("portrait:hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "at-rule",
         name: "media",
@@ -850,7 +851,7 @@ describe("basic variants", () => {
   });
 
   it("landscape:hover:bg-red-500 → @media (orientation: landscape) { &:hover { ... } }", () => {
-    expect(parseClassToAst("landscape:hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("landscape:hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "at-rule",
         name: "media",

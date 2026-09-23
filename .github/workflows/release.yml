@@ -36,14 +36,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages
-        run: pnpm build:library
+      - name: Check and build packages
+        run: pnpm check
+
+      - name: Check packed package exports
+        run: node .github/scripts/check-packages.mjs
 
       - name: Create Release Pull Request or Publish
         id: changesets
         uses: changesets/action@v1
         with:
-          # This expects you to have a script called release which does a build for your packages and calls changeset publish
           publish: ${{ github.event_name == 'workflow_dispatch' && 'pnpm changeset publish' || '' }}
           version: pnpm changeset version
           title: "chore: release packages"

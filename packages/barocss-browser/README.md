@@ -68,7 +68,7 @@ document.body.innerHTML = `
   </div>
   
   <script type="module">
-    import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser/dist/index.es.js';
+    import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js';
     
     const runtime = new BrowserRuntime();
     runtime.observe(document.body, { scan: true });

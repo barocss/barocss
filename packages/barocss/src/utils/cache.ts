@@ -127,6 +127,13 @@ export class UtilityCache {
 // Global utility cache instance
 export const utilityCache = new UtilityCache();
 
+let resetContextCaches: (() => void) | undefined;
+
+/** Internal hook for caches owned by contexts. */
+export function setContextCacheReset(reset: () => void): void {
+  resetContextCaches = reset;
+}
+
 /**
  * Clear all caches (for context changes or testing)
  */
@@ -134,6 +141,7 @@ export function clearAllCaches(): void {
   astCache.clear();
   parseResultCache.clear();
   utilityCache.clear();
+  resetContextCaches?.();
   // eslint-disable-next-line no-console
   console.log('[clearAllCaches] All caches cleared');
 }

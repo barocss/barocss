@@ -1,6 +1,6 @@
 {
   "name": "@barocss/server",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -17,14 +17,14 @@
   ],
   "publishConfig": {
     "access": "public",
-    "main": "./dist/index.cjs.js",
+    "main": "./dist/index.cjs",
     "module": "./dist/index.es.js",
     "types": "./dist/index.d.ts",
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
         "import": "./dist/index.es.js",
-        "require": "./dist/index.cjs.js"
+        "require": "./dist/index.cjs"
       }
     }
   },
@@ -32,7 +32,7 @@
     "build": "vite build",
     "build:library": "pnpm run build",
     "test:watch": "vitest",
-    "//test": "vitest run",
+    "test": "vitest run",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/**/*.ts"
   },

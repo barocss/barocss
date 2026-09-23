@@ -365,7 +365,7 @@ describe("effects.ts (box-shadow utilities)", () => {
       {
         type: "decl",
         prop: "--baro-inset-ring-color",
-        value: "rgb(59 130 246 / 0.5)",
+        value: "currentcolor",
       },
       {
         type: "decl",
@@ -378,7 +378,7 @@ describe("effects.ts (box-shadow utilities)", () => {
         type: "decl",
         prop: "box-shadow",
         value:
-          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
+          "var(--baro-inset-shadow, 0 0 #0000), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow, 0 0 #0000), var(--baro-ring-shadow, 0 0 #0000), var(--baro-shadow, 0 0 #0000)",
       },
     ]);
   });
@@ -390,7 +390,7 @@ describe("effects.ts (box-shadow utilities)", () => {
       {
         type: "decl",
         prop: "--baro-inset-ring-color",
-        value: "rgb(59 130 246 / 0.5)",
+        value: "currentcolor",
       },
       {
         type: "decl",
@@ -403,7 +403,7 @@ describe("effects.ts (box-shadow utilities)", () => {
         type: "decl",
         prop: "box-shadow",
         value:
-          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
+          "var(--baro-inset-shadow, 0 0 #0000), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow, 0 0 #0000), var(--baro-ring-shadow, 0 0 #0000), var(--baro-shadow, 0 0 #0000)",
       },
     ]);
   });

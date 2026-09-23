@@ -1,6 +1,6 @@
 # BaroCSS Guide
 
-Welcome to the BaroCSS documentation! This guide will help you understand and use BaroCSS effectively.
+Use the [Quick Start](/guide/quick-start) to run the browser package. Read the [compatibility scope](/guide/compatibility) before using existing Tailwind markup.
 
 ## What is BaroCSS?
 
@@ -15,8 +15,8 @@ BaroCSS is a **CSS parsing and generation engine** that brings Tailwind's utilit
 ### ⚡ Runtime-First
 Parse and generate CSS at runtime without build processes. Perfect for dynamic content and real-time styling.
 
-### 🎯 Tailwind Compatible
-Full support for Tailwind CSS syntax including utilities, variants, and arbitrary values.
+### Tailwind-style syntax
+BaroCSS supports selected utilities, variants, and arbitrary values. The measured sample does not establish full Tailwind compatibility.
 
 ### 🧠 Smart Parsing
 Advanced AST processing with incremental parsing and intelligent caching for optimal performance.
@@ -27,5 +27,5 @@ Browser runtime for real-time DOM detection and server runtime for static CSS ge
 ### 🔧 TypeScript API
 Comprehensive TypeScript API with full type safety and excellent developer experience.
 
-### 🌐 Universal
-Works in browsers, Node.js, and any JavaScript environment with consistent behavior.
+### Browser and server packages
+Use the browser runtime for DOM changes and the server runtime for CSS generation in Node.js.

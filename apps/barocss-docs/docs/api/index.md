@@ -1,11 +1,11 @@
 ---
 title: API Reference
-description: Complete API reference for BaroCSS
+description: BaroCSS core, browser, and server API reference
 ---
 
 # BaroCSS API Reference
 
-BaroCSS provides a comprehensive API for real-time CSS generation and utility-first styling. This section covers all the core APIs, runtime systems, and configuration options.
+BaroCSS provides APIs for CSS generation in the browser and on the server. Start with the [Quick Start](/guide/quick-start). Check the [compatibility scope](/guide/compatibility) before using Tailwind classes from an existing project.
 
 ## 🚀 Quick Start
 
@@ -99,7 +99,7 @@ Follow this path to understand BaroCSS APIs from basic to advanced concepts.
 
 ```typescript
 // CDN
-import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser/dist/cdn/barocss.js';
+import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@0.0.3/dist/cdn/barocss.js';
 
 // NPM
 import { BrowserRuntime } from '@barocss/browser';
@@ -135,7 +135,7 @@ The core CSS generation system that parses class names, builds ASTs, and convert
 Environment-specific implementations that handle CSS injection (browser) or generation (server).
 
 ### Custom Utilities
-Global registry system for adding custom utilities, variants, and theme extensions.
+Context registries for adding custom utilities and variants.
 
 ## 📖 API Categories
 
