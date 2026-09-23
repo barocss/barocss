@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-4f9cdc1-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-369841e-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "4f9cdc1",
+    "barocssCommit": "369841e",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -5285,13 +5285,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-bs-2 {\n  inset-block-start: calc(0.25rem * 2);\n}\n",
-      "barocss": "",
+      "barocss": ".inset-bs-2 {\n  inset-block-start: calc(var(--spacing) * 2);\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "different",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "02d0aa43b0551b0826878102ef66630d0b052baf1b2da0e39d7797d63a36caae",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "b90de75d8b88e1f7b1e5ace3ce46ec9ce05ce7a5ba45c7b9672b77757dffeb56"
       }
     },
     {
@@ -5311,13 +5311,690 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-e-4 {\n  inset-inline-end: calc(0.25rem * 4);\n}\n",
-      "barocss": "",
+      "barocss": ".inset-e-4 {\n  inset-inline-end: calc(var(--spacing) * 4);\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "different",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "77a12726d29f555cea29e8eaccfb1a6bf5675d4fa1e3504eca37a9bc15646a54",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "34d23d6f723d5c447b7c9508a8bf0860acbe2552569f96b4d8c4bc0f7a5a9824"
+      }
+    },
+    {
+      "id": "inset-inline-start:inset-s-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-start",
+      "role": "representative",
+      "classes": [
+        "inset-s-0"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-s-0 {\n  inset-inline-start: 0px;\n}\n",
+      "barocss": ".inset-s-0 {\n  inset-inline-start: 0px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "605b7b951464215b090342f57d8fe8055f9155a3a4692a12209376a14cb4690b",
+        "barocss": "605b7b951464215b090342f57d8fe8055f9155a3a4692a12209376a14cb4690b"
+      }
+    },
+    {
+      "id": "inset-inline-start:inset-s-auto",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-start",
+      "role": "representative",
+      "classes": [
+        "inset-s-auto"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-s-auto {\n  inset-inline-start: auto;\n}\n",
+      "barocss": ".inset-s-auto {\n  inset-inline-start: auto;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "314cdf0169838033b4754f155453bfb897e1b59605664273a112e0cade2c397f",
+        "barocss": "314cdf0169838033b4754f155453bfb897e1b59605664273a112e0cade2c397f"
+      }
+    },
+    {
+      "id": "inset-inline-start:inset-s-full",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-start",
+      "role": "representative",
+      "classes": [
+        "inset-s-full"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-s-full {\n  inset-inline-start: 100%;\n}\n",
+      "barocss": ".inset-s-full {\n  inset-inline-start: 100%;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "6405382e7ddb812e901756ddb668d9692cce82bb49b4a0c427bc5a813f0b1fb6",
+        "barocss": "6405382e7ddb812e901756ddb668d9692cce82bb49b4a0c427bc5a813f0b1fb6"
+      }
+    },
+    {
+      "id": "inset-inline-start:inset-s-1/2",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-start",
+      "role": "representative",
+      "classes": [
+        "inset-s-1/2"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-s-1\\/2 {\n  inset-inline-start: calc(1 / 2 * 100%);\n}\n",
+      "barocss": ".inset-s-1\\/2 {\n  inset-inline-start: calc(1 / 2 * 100%);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "fb8c20410535dc0be12a5a4992a318dbe197bbe64471166e0aa334e211297dd2",
+        "barocss": "fb8c20410535dc0be12a5a4992a318dbe197bbe64471166e0aa334e211297dd2"
+      }
+    },
+    {
+      "id": "inset-inline-start:-inset-s-px",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-start",
+      "role": "boundary",
+      "classes": [
+        "-inset-s-px"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.-inset-s-px {\n  inset-inline-start: -1px;\n}\n",
+      "barocss": ".-inset-s-px {\n  inset-inline-start: -1px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "243fa9979c55a23d595eb990a3d6eb7530dfdc94729aaaa8b61a4494897d75fb",
+        "barocss": "243fa9979c55a23d595eb990a3d6eb7530dfdc94729aaaa8b61a4494897d75fb"
+      }
+    },
+    {
+      "id": "inset-inline-start:inset-s-[7px]",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-start",
+      "role": "boundary",
+      "classes": [
+        "inset-s-[7px]"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-s-\\[7px\\] {\n  inset-inline-start: 7px;\n}\n",
+      "barocss": ".inset-s-\\[7px\\] {\n  inset-inline-start: 7px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "08281575532a32939471dc9ef13f813e26d9e9a91c57ed67c7168d143fcc46ab",
+        "barocss": "08281575532a32939471dc9ef13f813e26d9e9a91c57ed67c7168d143fcc46ab"
+      }
+    },
+    {
+      "id": "inset-inline-start:inset-s-(--offset)",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-start",
+      "role": "boundary",
+      "classes": [
+        "inset-s-(--offset)"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-s-\\(--offset\\) {\n  inset-inline-start: var(--offset);\n}\n",
+      "barocss": ".inset-s-\\(--offset\\) {\n  inset-inline-start: var(--offset);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "058af8db4eda478c33c49ddd0d8a9f6d0e3b1008902a6420d7ebe30af85d6d87",
+        "barocss": "058af8db4eda478c33c49ddd0d8a9f6d0e3b1008902a6420d7ebe30af85d6d87"
+      }
+    },
+    {
+      "id": "inset-inline-end:inset-e-px",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-end",
+      "role": "representative",
+      "classes": [
+        "inset-e-px"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-e-px {\n  inset-inline-end: 1px;\n}\n",
+      "barocss": ".inset-e-px {\n  inset-inline-end: 1px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "408503b6ca869d8023587736cb4e4e3be5265612048e482a30c822ce7b21ed26",
+        "barocss": "408503b6ca869d8023587736cb4e4e3be5265612048e482a30c822ce7b21ed26"
+      }
+    },
+    {
+      "id": "inset-inline-end:inset-e-full",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-end",
+      "role": "representative",
+      "classes": [
+        "inset-e-full"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-e-full {\n  inset-inline-end: 100%;\n}\n",
+      "barocss": ".inset-e-full {\n  inset-inline-end: 100%;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "e65f2ce84ecddb9665e4e03a37a7cdf12a43b38789f17a23710c329380c1ed16",
+        "barocss": "e65f2ce84ecddb9665e4e03a37a7cdf12a43b38789f17a23710c329380c1ed16"
+      }
+    },
+    {
+      "id": "inset-inline-end:inset-e-1/2",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-end",
+      "role": "representative",
+      "classes": [
+        "inset-e-1/2"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-e-1\\/2 {\n  inset-inline-end: calc(1 / 2 * 100%);\n}\n",
+      "barocss": ".inset-e-1\\/2 {\n  inset-inline-end: calc(1 / 2 * 100%);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4e8fc2f61b5a3b25bd21837ffb0bcb3110f41ddbdea0a3e703bd0cf31cf6189a",
+        "barocss": "4e8fc2f61b5a3b25bd21837ffb0bcb3110f41ddbdea0a3e703bd0cf31cf6189a"
+      }
+    },
+    {
+      "id": "inset-inline-end:inset-e-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-end",
+      "role": "boundary",
+      "classes": [
+        "inset-e-0"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-e-0 {\n  inset-inline-end: 0px;\n}\n",
+      "barocss": ".inset-e-0 {\n  inset-inline-end: 0px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "8c24cd72cd6a6e776c705d7fe180df8b038397aa17a207404d9788b28187d186",
+        "barocss": "8c24cd72cd6a6e776c705d7fe180df8b038397aa17a207404d9788b28187d186"
+      }
+    },
+    {
+      "id": "inset-inline-end:-inset-e-2",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-end",
+      "role": "boundary",
+      "classes": [
+        "-inset-e-2"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.-inset-e-2 {\n  inset-inline-end: calc(0.25rem * -2);\n}\n",
+      "barocss": ".-inset-e-2 {\n  inset-inline-end: calc(var(--spacing) * -2);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "d3f88309293cc51e9f2ccc681cae15e11c344269882b71f85064e64a6c238f64",
+        "barocss": "c1e27d728129a952301a9be67a1902cf53e06c46ca26aa957011e41af588458b"
+      }
+    },
+    {
+      "id": "inset-inline-end:inset-e-(--offset)",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-end",
+      "role": "boundary",
+      "classes": [
+        "inset-e-(--offset)"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-e-\\(--offset\\) {\n  inset-inline-end: var(--offset);\n}\n",
+      "barocss": ".inset-e-\\(--offset\\) {\n  inset-inline-end: var(--offset);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "54f3c31d67c274608ee5491132460f84ba48939b084025ddcb5365db337c8df8",
+        "barocss": "54f3c31d67c274608ee5491132460f84ba48939b084025ddcb5365db337c8df8"
+      }
+    },
+    {
+      "id": "inset-inline-end:inset-e-4+hover:inset-e-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-inline-end",
+      "role": "combination",
+      "classes": [
+        "inset-e-4",
+        "hover:inset-e-0"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-e-4 {\n  inset-inline-end: calc(0.25rem * 4);\n}\n@media (hover: hover) {\n  .hover\\:inset-e-0:hover {\n    inset-inline-end: 0px;\n  }\n}\n",
+      "barocss": ".inset-e-4 {\n  inset-inline-end: calc(var(--spacing) * 4);\n}\n\n@media (hover: hover) {\n  .hover\\:inset-e-0:hover {\n    inset-inline-end: 0px;\n  }\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "63aea1ad70c47b4d74f3620547922763e010bdcdcc7119e170ffb58e5bfb4f99",
+        "barocss": "64a9415eabcc76d7b18054edf6c8cc093dc395355d2bba46b40e6a4ee470bab8"
+      }
+    },
+    {
+      "id": "inset-block-start:inset-bs-auto",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-start",
+      "role": "representative",
+      "classes": [
+        "inset-bs-auto"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-bs-auto {\n  inset-block-start: auto;\n}\n",
+      "barocss": ".inset-bs-auto {\n  inset-block-start: auto;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "543e723484e5291fc3cb2bbdcde6235c911fc533e3b51e8020ca4aded4dcb617",
+        "barocss": "543e723484e5291fc3cb2bbdcde6235c911fc533e3b51e8020ca4aded4dcb617"
+      }
+    },
+    {
+      "id": "inset-block-start:inset-bs-px",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-start",
+      "role": "representative",
+      "classes": [
+        "inset-bs-px"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-bs-px {\n  inset-block-start: 1px;\n}\n",
+      "barocss": ".inset-bs-px {\n  inset-block-start: 1px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "61d2bb7e5bb6f1683af5d40a190941fb5f1525dd24b51dccfd41bd1756314232",
+        "barocss": "61d2bb7e5bb6f1683af5d40a190941fb5f1525dd24b51dccfd41bd1756314232"
+      }
+    },
+    {
+      "id": "inset-block-start:inset-bs-1/2",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-start",
+      "role": "representative",
+      "classes": [
+        "inset-bs-1/2"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-bs-1\\/2 {\n  inset-block-start: calc(1 / 2 * 100%);\n}\n",
+      "barocss": ".inset-bs-1\\/2 {\n  inset-block-start: calc(1 / 2 * 100%);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "6e08e3a29c7b66159da4bcb053bb9c52e527d5b9f397f4d5baae92fd897123d3",
+        "barocss": "6e08e3a29c7b66159da4bcb053bb9c52e527d5b9f397f4d5baae92fd897123d3"
+      }
+    },
+    {
+      "id": "inset-block-start:inset-bs-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-start",
+      "role": "boundary",
+      "classes": [
+        "inset-bs-0"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-bs-0 {\n  inset-block-start: 0px;\n}\n",
+      "barocss": ".inset-bs-0 {\n  inset-block-start: 0px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "002b59253572cdb5d5705a0f36d2ec3899b22ddb9ac594de2a7e69a856ba2352",
+        "barocss": "002b59253572cdb5d5705a0f36d2ec3899b22ddb9ac594de2a7e69a856ba2352"
+      }
+    },
+    {
+      "id": "inset-block-start:-inset-bs-1/2",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-start",
+      "role": "boundary",
+      "classes": [
+        "-inset-bs-1/2"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.-inset-bs-1\\/2 {\n  inset-block-start: calc(calc(1 / 2 * 100%) * -1);\n}\n",
+      "barocss": ".-inset-bs-1\\/2 {\n  inset-block-start: calc(calc(1 / 2 * 100%) * -1);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "9e272a59571bda335a46a63056624ba9d49c6f4fc3f455d15f74ecd4c457b2a4",
+        "barocss": "9e272a59571bda335a46a63056624ba9d49c6f4fc3f455d15f74ecd4c457b2a4"
+      }
+    },
+    {
+      "id": "inset-block-start:inset-bs-[13px]",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-start",
+      "role": "boundary",
+      "classes": [
+        "inset-bs-[13px]"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-bs-\\[13px\\] {\n  inset-block-start: 13px;\n}\n",
+      "barocss": ".inset-bs-\\[13px\\] {\n  inset-block-start: 13px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "adb54b2a1989735df411561d2424b7ddc1d0d563550845471c90870199b0d665",
+        "barocss": "adb54b2a1989735df411561d2424b7ddc1d0d563550845471c90870199b0d665"
+      }
+    },
+    {
+      "id": "inset-block-end:inset-be-8",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-end",
+      "role": "representative",
+      "classes": [
+        "inset-be-8"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-be-8 {\n  inset-block-end: calc(0.25rem * 8);\n}\n",
+      "barocss": ".inset-be-8 {\n  inset-block-end: calc(var(--spacing) * 8);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "a9e5e26bdaaf0812a068c66247954d54895aed4e7d736a96eba797d16f20cf03",
+        "barocss": "7c0a48f2de9f29d991a3eeb0cd966f2809249b5f4d247bd2163bcffa041eca15"
+      }
+    },
+    {
+      "id": "inset-block-end:inset-be-auto",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-end",
+      "role": "representative",
+      "classes": [
+        "inset-be-auto"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-be-auto {\n  inset-block-end: auto;\n}\n",
+      "barocss": ".inset-be-auto {\n  inset-block-end: auto;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "511e69b6704988314b4e277265ea8b3704de594f4fe521f39ad09d273524e2ef",
+        "barocss": "511e69b6704988314b4e277265ea8b3704de594f4fe521f39ad09d273524e2ef"
+      }
+    },
+    {
+      "id": "inset-block-end:inset-be-full",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-end",
+      "role": "representative",
+      "classes": [
+        "inset-be-full"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-be-full {\n  inset-block-end: 100%;\n}\n",
+      "barocss": ".inset-be-full {\n  inset-block-end: 100%;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "a9299b5102b9ae0c6fe2763cd8da2d4711f40f77021fdca082323a240d800cb3",
+        "barocss": "a9299b5102b9ae0c6fe2763cd8da2d4711f40f77021fdca082323a240d800cb3"
+      }
+    },
+    {
+      "id": "inset-block-end:inset-be-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-end",
+      "role": "boundary",
+      "classes": [
+        "inset-be-0"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-be-0 {\n  inset-block-end: 0px;\n}\n",
+      "barocss": ".inset-be-0 {\n  inset-block-end: 0px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "ce7fe102a511844fa726488e97f751bfb7dc7a4d924fa9e496bd3248ef2c9a7e",
+        "barocss": "ce7fe102a511844fa726488e97f751bfb7dc7a4d924fa9e496bd3248ef2c9a7e"
+      }
+    },
+    {
+      "id": "inset-block-end:-inset-be-full",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-end",
+      "role": "boundary",
+      "classes": [
+        "-inset-be-full"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.-inset-be-full {\n  inset-block-end: -100%;\n}\n",
+      "barocss": ".-inset-be-full {\n  inset-block-end: -100%;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "1cf95fae1a7f50042e7661a1cd05800b8eb7cd441097aaabb3af5d726957dfb0",
+        "barocss": "1cf95fae1a7f50042e7661a1cd05800b8eb7cd441097aaabb3af5d726957dfb0"
+      }
+    },
+    {
+      "id": "inset-block-end:inset-be-(--offset)",
+      "axis": "v4.2-and-v4.3",
+      "family": "inset-block-end",
+      "role": "boundary",
+      "classes": [
+        "inset-be-(--offset)"
+      ],
+      "source": "https://tailwindcss.com/docs/top-right-bottom-left",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.inset-be-\\(--offset\\) {\n  inset-block-end: var(--offset);\n}\n",
+      "barocss": ".inset-be-\\(--offset\\) {\n  inset-block-end: var(--offset);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "10d8c96aa6d339db5038ca26d551d97358de695321f5b042c3deecc7c50d6fd4",
+        "barocss": "10d8c96aa6d339db5038ca26d551d97358de695321f5b042c3deecc7c50d6fd4"
       }
     },
     {
