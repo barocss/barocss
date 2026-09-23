@@ -19,6 +19,25 @@ describe('BrowserRuntime', () => {
   const hasInjectedRule = (fragment: string) => Array.from(document.querySelectorAll<HTMLStyleElement>('[data-barocss="partition"]'))
     .some(style => Array.from(style.sheet?.cssRules ?? []).some(rule => rule.cssText.includes(fragment)));
 
+  it('inserts styles into an iframe element supplied as the insertion point', () => {
+    const frame = document.createElement('iframe');
+    document.body.append(frame);
+    const frameBody = frame.contentDocument!.body;
+    const frameRuntime = new BrowserRuntime({ insertionPoint: frameBody });
+
+    try {
+      frameRuntime.addClass('p-4');
+      const styles = frameBody.querySelectorAll<HTMLStyleElement>('style[data-barocss="partition"]');
+      const css = Array.from(styles, style => Array.from(style.sheet?.cssRules ?? [], rule => rule.cssText))
+        .flat()
+        .join('\n');
+      expect(css).toContain('.p-4');
+    } finally {
+      frameRuntime.destroy();
+      frame.remove();
+    }
+  });
+
   it('keeps generated CSS available through the cache API', () => {
     runtime.addClass('p-4 m-2');
 

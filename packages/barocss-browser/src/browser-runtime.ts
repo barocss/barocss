@@ -80,7 +80,7 @@ export class BrowserRuntime {
   }
 
   private getInsertionPoint(): HTMLElement {
-    if (this.options.insertionPoint instanceof HTMLElement) {
+    if (typeof this.options.insertionPoint !== 'string') {
       return this.options.insertionPoint;
     }
     switch (this.options.insertionPoint) {
