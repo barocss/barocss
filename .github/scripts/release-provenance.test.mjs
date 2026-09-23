@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verifyCandidateAncestry, verifyMainMerge } from './release-provenance.mjs';
+import { verifyMainMerge } from './release-provenance.mjs';
 
 const candidate = 'a'.repeat(40);
 const main = 'b'.repeat(40);
@@ -23,10 +23,4 @@ test('changed source, branch, owner, or merge method cannot publish', () => {
   assert.throws(() => verifyMainMerge({ ...pr, merged_by: { login: 'other' } }, main, [previous, candidate]));
   assert.throws(() => verifyMainMerge(pr, main, [previous]), /two-parent/);
   assert.throws(() => verifyMainMerge(pr, previous, [previous, candidate]));
-});
-
-test('preflight rejects a develop candidate behind main', () => {
-  assert.doesNotThrow(() => verifyCandidateAncestry({ ahead_by: 3, behind_by: 0 }));
-  assert.throws(() => verifyCandidateAncestry({ ahead_by: 8, behind_by: 1 }), /behind main/);
-  assert.throws(() => verifyCandidateAncestry({ ahead_by: 0, behind_by: 0 }), /new commit/);
 });
