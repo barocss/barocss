@@ -7,7 +7,7 @@ This is a measured sample, not a compatibility percentage. The older README clai
 | Item | Baseline |
 | --- | --- |
 | Tailwind reference | `tailwindcss@4.1.13`, pinned in `packages/barocss/package.json` and `pnpm-lock.yaml` |
-| BaroCSS target | Current `@barocss/kit@0.0.3` source; first measured at commit `4462645` |
+| BaroCSS target | `@barocss/kit@0.0.3`; first measured at commit `4462645`. Later combined commits are listed below. |
 | Tailwind API | `compile()` with `@tailwind utilities`; one candidate passed to `build()` per fixture |
 | Shared test values | Inline `--spacing: 0.25rem`, `--color-red-500: #ef4444`, `--breakpoint-md: 48rem`; BaroCSS uses matching color and breakpoint theme values |
 | Compared output | Generated CSS rules and required Tailwind property rules. PostCSS parsing removes comments and formatting only. Selectors, declarations, nesting, and at-rules remain in the comparison. |
@@ -45,7 +45,7 @@ Of the 15 selected fixtures, 8 have matching output structure, 6 have different 
 
 These 15 fixtures are selected examples. Their counts must not be used as a compatibility rate.
 
-## Output differences and priority
+## Output differences and priority at `4462645`
 
 Priority describes the risk shown by the emitted CSS. It is not a measured count of affected users. Low means syntax differs without a confirmed behavior change. Medium means conditions or declarations differ and need a browser check. High means BaroCSS emits no rule for a valid Tailwind candidate.
 
@@ -53,17 +53,18 @@ Priority describes the risk shown by the emitted CSS. It is not a measured count
 | --- | --- | --- | --- | --- |
 | `p-4` | `padding: calc(0.25rem * 4)` | `padding: calc(var(--spacing) * 4)` | BaroCSS resolves spacing through its runtime theme variable. With `--spacing: 0.25rem`, these values agree. The rule output alone does not set that variable. | Low |
 | `-mt-4` | `margin-top: calc(0.25rem * -4)` | `margin-top: calc(var(--spacing) * -4)` | Same variable dependency as `p-4`. | Low |
-| `focus:block` | `.focus\\:block { &:focus { display: block } }` | `.focus\\:block:focus { display: block }` | Nested and flat selectors express the same state for this input. Browser verification is still outside this sample. | Low |
+| `focus:block` | `.focus\:block { &:focus { display: block } }` | `.focus\:block:focus { display: block }` | Nested and flat selectors express the same state for this input. Browser verification is still outside this sample. | Low |
 | `hover:block` | Nested `:hover` plus `@media (hover: hover)` | Flat `:hover` with no media condition | BaroCSS can apply the rule where the Tailwind hover media query does not match. | Medium |
 | `md:block` | `@media (width >= 48rem)` inside the class rule | `@media (min-width: 48rem)` around the class rule | The equivalent range syntax and nesting differ. Both use the same 48rem theme value. Browser behavior has not been checked. | Low |
 | `inset-ring-2` | Uses `--tw-inset-ring-color` with `currentcolor` fallback and emits `@property` rules | Sets `--baro-inset-ring-color: rgb(59 130 246 / 0.5)` and uses BaroCSS shadow variables | The default ring color and property model differ. This can change the visible ring. | Medium |
 | `mask-linear-from-50%` | Emits a mask rule and supporting `@property` rules | Empty CSS at the initial commit | No BaroCSS utility handler was found for this candidate. | High |
 
-## Follow-up changes in this branch
+## Follow-up changes in the combined commits
 
-The mask utility now emits a rule for percentage positions, including `mask-linear-from-50%`. It uses variable fallbacks because BaroCSS does not emit Tailwind's global `@property` defaults. The utility rule is present, but its full CSS structure still differs from Tailwind. The inset ring now uses `currentcolor` and fallbacks for shadow variables that may be absent. Its full property model still differs from Tailwind.
+Commit `b60ff82` makes the mask utility emit a rule for percentage positions, including `mask-linear-from-50%`. It uses variable fallbacks because BaroCSS does not emit Tailwind's global `@property` defaults. The utility rule is present, but its full CSS structure still differs from Tailwind. The inset ring now uses `currentcolor` and fallbacks for shadow variables that may be absent. Its full property model still differs from Tailwind.
 
-After these two changes, the same 15 fixtures show 8 matching structures and 7 different structures. No fixture emits an empty BaroCSS rule. This is still not a compatibility rate. `hover:block`, `inset-ring-2`, and the mask utility need browser behavior checks. The spacing and selector format differences remain visible until computed-style comparison confirms their behavior.
+Core commit `a749cd4` adds `@media (hover: hover)` to `hover:block`. Tailwind keeps this condition inside a nested `:hover` rule. BaroCSS emits `@media (hover: hover) { .hover\:block:hover { display: block } }`. The condition now appears in both outputs. The CSS structures remain different, and computed styles have not been checked in a browser.
 
+With Core commits `d590939` and `a749cd4` plus `b60ff82` in a temporary combined tree, the same 15 fixtures show 8 matching structures and 7 different structures. No fixture emits an empty BaroCSS rule. All 18 comparison tests pass. This is not a compatibility rate or a final integrated-tree result. `hover:block`, `inset-ring-2`, and the mask utility still need browser behavior checks. The spacing and selector format differences remain visible until computed-style comparison confirms their behavior.
 
 Tailwind documents its [CSS compilation flow](https://tailwindcss.com/docs/installation/using-postcss), [theme directives](https://tailwindcss.com/docs/functions-and-directives), and [v4 changes](https://tailwindcss.com/docs/upgrade-guide). The [Tailwind source](https://github.com/tailwindlabs/tailwindcss/blob/main/packages/tailwindcss/src/index.ts) defines the `compile()` and `build()` API used by this test.
