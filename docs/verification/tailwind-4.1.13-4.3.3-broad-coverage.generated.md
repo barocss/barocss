@@ -11,6 +11,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 - PostCSS parsing removes comments and formatting only. It preserves selectors, declaration names and values, rule order, nesting, and at-rules. `match` means these structures are identical. `different` means they are not. A different structure is **not** proof of different browser behavior.
 - `unsupported` means Tailwind emitted a CSS rule and BaroCSS emitted no rule for the exact input. `reference-no-rule` means that pinned Tailwind version emitted no rule; it does not establish the feature introduction date.
 - For the new `tab-2 md:tab-4` combination, Tailwind 4.3.3 emits `@media (width >= 48rem)` and BaroCSS emits `@media (min-width: 48rem)`. This is a recorded structural difference; this combination has no browser result.
+- In the two `scrollbar-gutter-*` and `overflow-*` combinations, Tailwind emits the gutter rule first and BaroCSS emits the overflow rule first. The individual declarations agree, but rule order differs. No browser result was measured for these combinations.
 - Browser evidence is limited to 7 exact Tailwind 4.3.3 inputs listed below. All 4.1.13 browser results in this broad run and the other 4.3.3 inputs are `unverified`. CSS variables and theme output are not separately rendered as a complete page. A syntactic match alone does not establish computed style or visual parity.
 - The older [15-input matrix](tailwind-compatibility-matrix.md) and [five-input follow-up](tailwind-4.1.13-followup-output.json) remain separate records with their own settings and browser evidence.
 
@@ -33,9 +34,9 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | svg-and-accessibility | 7 | 2 | 5 | 0 | 0 | 2 | 5 | 0 | 0 |
 | variants | 21 | 0 | 21 | 0 | 0 | 9 | 12 | 0 | 0 |
 | syntax | 12 | 7 | 4 | 1 | 0 | 7 | 4 | 1 | 0 |
-| v4.2-and-v4.3 | 37 | 0 | 0 | 0 | 37 | 17 | 2 | 14 | 4 |
-| combinations | 6 | 0 | 6 | 0 | 0 | 1 | 5 | 0 | 0 |
-| Total selected inputs | 237 | 93 | 105 | 2 | 37 | 119 | 98 | 16 | 4 |
+| v4.2-and-v4.3 | 38 | 0 | 0 | 0 | 38 | 18 | 2 | 14 | 4 |
+| combinations | 8 | 0 | 8 | 0 | 0 | 1 | 7 | 0 | 0 |
+| Total selected inputs | 240 | 93 | 107 | 2 | 38 | 120 | 100 | 16 | 4 |
 
 ## Exact inputs
 
@@ -251,6 +252,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | v4.2-and-v4.3 / new-utilities | boundary | `scrollbar-thumb-red-500` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / scrollbar-gutter | representative | `scrollbar-gutter-auto` | reference-no-rule | match | unverified | [verified-match](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
 | v4.2-and-v4.3 / scrollbar-gutter | representative | `scrollbar-gutter-both` | reference-no-rule | match | unverified | [verified-match](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
+| v4.2-and-v4.3 / scrollbar-gutter-variants | representative | `hover:scrollbar-gutter-stable` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/hover-focus-and-other-states) |
 | v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-thumb-transparent` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
 | v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-track-red-500` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
 | v4.2-and-v4.3 / zoom | representative | `zoom-0` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
@@ -278,6 +280,8 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | combinations / same-element-classes | combination | `hidden md:block` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | combinations / same-element-classes | combination | `rounded-lg border shadow-md` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | combinations / same-element-classes | combination | `p-0 p-4` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
+| combinations / scrollbar-gutter-and-overflow | combination | `overflow-auto scrollbar-gutter-stable` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
+| combinations / scrollbar-gutter-and-overflow | combination | `overflow-scroll scrollbar-gutter-both` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
 
 ## Focused browser evidence
 

@@ -5501,6 +5501,32 @@
       }
     },
     {
+      "id": "scrollbar-gutter-variants:hover:scrollbar-gutter-stable",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-gutter-variants",
+      "role": "representative",
+      "classes": [
+        "hover:scrollbar-gutter-stable"
+      ],
+      "source": "https://tailwindcss.com/docs/hover-focus-and-other-states",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@media (hover: hover) {\n  .hover\\:scrollbar-gutter-stable:hover {\n    scrollbar-gutter: stable;\n  }\n}\n",
+      "barocss": "@media (hover: hover) {\n  .hover\\:scrollbar-gutter-stable:hover {\n    scrollbar-gutter: stable;\n  }\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "19b296e1f13d09652b9318c6a3d1368f2a4b268fb7dfae7a0838187426bc73a0",
+        "barocss": "19b296e1f13d09652b9318c6a3d1368f2a4b268fb7dfae7a0838187426bc73a0"
+      }
+    },
+    {
       "id": "scrollbar-color:scrollbar-thumb-transparent",
       "axis": "v4.2-and-v4.3",
       "family": "scrollbar-color",
@@ -6243,6 +6269,60 @@
         "tailwindV4_1_13": "2ba0ed706c81d051ea0ec4eb6686a20f8d377edf50652442f90e52677e06daae",
         "tailwindV4_3_3": "a67ac9348e1beed903704e04b8c70324c3b9ca21a483ab92718f403df1a0bffe",
         "barocss": "b99c9937338b1fed3501c49270b8ca46a5712afea01128e851796c6da2f29174"
+      }
+    },
+    {
+      "id": "scrollbar-gutter-and-overflow:overflow-auto+scrollbar-gutter-stable",
+      "axis": "combinations",
+      "family": "scrollbar-gutter-and-overflow",
+      "role": "combination",
+      "classes": [
+        "overflow-auto",
+        "scrollbar-gutter-stable"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-gutter",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.overflow-auto {\n  overflow: auto;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-gutter-stable {\n  scrollbar-gutter: stable;\n}\n.overflow-auto {\n  overflow: auto;\n}\n",
+      "barocss": ".overflow-auto {\n  overflow: auto;\n}\n\n.scrollbar-gutter-stable {\n  scrollbar-gutter: stable;\n}\n",
+      "statusV4_1_13": "different",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "30ec893d9a7d449a803e6b47e18bca1f04df883b82f3d911b8293be11e9632c9",
+        "tailwindV4_3_3": "8f31da13152d15074a9695941fd9da06d688f5f91c118982f8d3676395bb7c14",
+        "barocss": "47be7024328791db43ee080e5a289b2868bc4dd1976c96da9a0ea0d44f27c48a"
+      }
+    },
+    {
+      "id": "scrollbar-gutter-and-overflow:overflow-scroll+scrollbar-gutter-both",
+      "axis": "combinations",
+      "family": "scrollbar-gutter-and-overflow",
+      "role": "combination",
+      "classes": [
+        "overflow-scroll",
+        "scrollbar-gutter-both"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-gutter",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.overflow-scroll {\n  overflow: scroll;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-gutter-both {\n  scrollbar-gutter: stable both-edges;\n}\n.overflow-scroll {\n  overflow: scroll;\n}\n",
+      "barocss": ".overflow-scroll {\n  overflow: scroll;\n}\n\n.scrollbar-gutter-both {\n  scrollbar-gutter: stable both-edges;\n}\n",
+      "statusV4_1_13": "different",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "dd8e9989fa5c200c616554f1c07a5ec4f9801ce85cc33cea12b5354b91226bbc",
+        "tailwindV4_3_3": "b87b500456a0d7301880d181faee29e985be370229bcf5a8664fa73200ac0e7a",
+        "barocss": "cb7099872440f6c150668b74a32b3ad4dea25f2014926a612e1df658de0d3e07"
       }
     }
   ]
