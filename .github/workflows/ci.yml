@@ -4,19 +4,27 @@ on:
   push:
     branches:
       - develop
+      - main
       - release
   pull_request:
     branches:
       - develop
+      - main
       - release
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  verify:
     name: Test and Build
+    if: github.ref != 'refs/heads/main' && github.base_ref != 'main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -46,3 +54,38 @@ jobs:
           ls -la packages/barocss-server/dist/
           echo ""
           echo "All packages built successfully!"
+
+  build:
+    name: build
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm type-check && pnpm lint && pnpm build:library
+      - run: pnpm build
+
+  test:
+    name: test
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test

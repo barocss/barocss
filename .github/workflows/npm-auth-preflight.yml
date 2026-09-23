@@ -1,0 +1,63 @@
+name: One-time release auth preflight
+
+# This runs on the reviewed setup commit after it reaches main. It never creates
+# a promotion PR or calls the package publishing workflow.
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/npm-auth-preflight.yml
+
+permissions:
+  contents: read
+
+jobs:
+  app_permissions:
+    name: App permissions
+    if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Require configured App credentials
+        env:
+          APP_CLIENT_ID: ${{ vars.BARO_PROMOTION_APP_CLIENT_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.BARO_PROMOTION_APP_PRIVATE_KEY }}
+        run: test -n "$APP_CLIENT_ID" && test -n "$APP_PRIVATE_KEY"
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.BARO_PROMOTION_APP_CLIENT_ID }}
+          private-key: ${{ secrets.BARO_PROMOTION_APP_PRIVATE_KEY }}
+          permission-administration: read
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Read repository and main protection with the scoped token
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          test "$(gh api repos/barocss/barocss --jq .full_name)" = barocss/barocss
+          gh api repos/barocss/barocss/branches/main/protection --jq '.required_status_checks.contexts' > /dev/null
+
+  npm_auth:
+    name: npm authentication
+    if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: npm
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Authenticate without publishing
+        shell: bash
+        env:
+          NPM_RELEASE_ENABLED: ${{ vars.NPM_RELEASE_ENABLED }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          test "$NPM_RELEASE_ENABLED" = true || { echo 'npm environment is not enabled'; exit 1; }
+          test -n "$NPM_TOKEN" || { echo 'NPM_TOKEN is missing'; exit 1; }
+          auth_file="$RUNNER_TEMP/barocss-npmrc"
+          trap 'rm -f "$auth_file"' EXIT
+          umask 077
+          printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_TOKEN" > "$auth_file"
+          NPM_CONFIG_USERCONFIG="$auth_file" npm whoami --registry=https://registry.npmjs.org
