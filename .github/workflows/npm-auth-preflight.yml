@@ -52,12 +52,12 @@ jobs:
         shell: bash
         env:
           NPM_RELEASE_ENABLED: ${{ vars.NPM_RELEASE_ENABLED }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_PUBLISH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
         run: |
           test "$NPM_RELEASE_ENABLED" = true || { echo 'npm environment is not enabled'; exit 1; }
-          test -n "$NPM_TOKEN" || { echo 'NPM_TOKEN is missing'; exit 1; }
+          test -n "$NPM_PUBLISH_TOKEN" || { echo 'NPM_PUBLISH_TOKEN is missing'; exit 1; }
           auth_file="$RUNNER_TEMP/barocss-npmrc"
           trap 'rm -f "$auth_file"' EXIT
           umask 077
-          printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_TOKEN" > "$auth_file"
+          printf '//registry.npmjs.org/:_authToken=%s\n' "$NPM_PUBLISH_TOKEN" > "$auth_file"
           NPM_CONFIG_USERCONFIG="$auth_file" npm whoami --registry=https://registry.npmjs.org
