@@ -48,6 +48,14 @@ test('OIDC publication requires the protected npm environment', () => {
   assert.throws(() => assertManualOidcPublication(release.replace('      id-token: write', '      id-token: read')));
 });
 
+test('postflight allows bounded npm registry processing time', () => {
+  const attempts = Number(release.match(/max_attempts=(\d+)/)?.[1]);
+  const interval = Number(release.match(/sleep (\d+)/)?.[1]);
+  assert.ok((attempts - 1) * interval >= 300, 'wait at least five minutes for npm processing');
+  assert.ok((attempts - 1) * interval <= 600, 'stop within ten minutes if state stays incomplete');
+  assert.match(release, /if \[ "\$attempt" -eq "\$max_attempts" \]; then[\s\S]*?exit 1/);
+});
+
 test('preflight has no App or write token and cannot create or merge a PR', () => {
   assert.match(preflight, /name: Npm release preflight/);
   assert.match(preflight, /node \.github\/scripts\/check-promotion-ready\.mjs/);

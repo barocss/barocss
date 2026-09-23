@@ -186,12 +186,13 @@ jobs:
           PUBLICATION_MODE: post
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for attempt in 1 2 3 4 5 6; do
+          max_attempts=31
+          for ((attempt=1; attempt<=max_attempts; attempt++)); do
             if node .github/scripts/check-publication-state.mjs; then
               exit 0
             fi
-            if [ "$attempt" -eq 6 ]; then
-              echo 'Published state is incomplete. Stop; reconcile manually before any retry.'
+            if [ "$attempt" -eq "$max_attempts" ]; then
+              echo 'Published state is incomplete after five minutes. Stop; reconcile manually before any retry.'
               exit 1
             fi
             sleep 10

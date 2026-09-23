@@ -18,6 +18,7 @@ async function withRegistryState(publishedNames, options, check) {
         : new Response('', { status: 404 });
     }
     if (path.includes('/git/ref/tags/')) {
+      options.onTagRequest?.();
       return options.tags
         ? new Response(JSON.stringify({ object: { type: 'commit', sha: options.tagSha || sha } }))
         : new Response('', { status: 404 });
@@ -66,6 +67,29 @@ test('a partial npm publication stops before any tag checks', async () => {
   await withRegistryState(['@barocss/kit'], { tags: false, releases: false }, async () => {
     await assert.rejects(checkPublication(version, 'pre', sha, 'token'), /Partial npm publication/);
   });
+});
+
+test('postflight waits for all exact npm records before checking tags', async () => {
+  let tagRequests = 0;
+  const options = { tags: true, releases: true, onTagRequest: () => { tagRequests += 1; } };
+
+  await withRegistryState([], options, async () => {
+    await assert.rejects(checkPublication(version, 'post', sha, 'token'), /not visible in the npm registry/);
+  });
+  await withRegistryState(['@barocss/kit'], options, async () => {
+    await assert.rejects(checkPublication(version, 'post', sha, 'token'), /Partial npm publication/);
+  });
+  assert.equal(tagRequests, 0);
+});
+
+test('postflight accepts complete npm records with exact tags and Releases', async () => {
+  await withRegistryState(
+    ['@barocss/kit', '@barocss/browser', '@barocss/server'],
+    { tags: true, releases: true },
+    async () => {
+      assert.equal(await checkPublication(version, 'post', sha, 'token'), 'published');
+    },
+  );
 });
 
 test('a later main commit skips a complete earlier release', async () => {
