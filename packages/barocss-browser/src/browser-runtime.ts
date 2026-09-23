@@ -130,6 +130,12 @@ export class BrowserRuntime {
    */
   public applyParseResults(results: Array<GenerateCssRulesResult>, _opts?: { isBrowser?: boolean }): void {
     if (this.isDestroyed) return;
+    if (this.getInsertionPoint().isConnected && this.stylePartitionManager.hasDetachedPartitions()) {
+      const existingResults = Array.from(this.cache.values());
+      this.reset();
+      results = [...existingResults, ...results];
+      results.forEach(result => this.incrementalParser.markProcessed(result.cls));
+    }
     const cssRules: GenerateCssRulesResult[] = [];
     const rootCssRules: string[] = [];
 
@@ -252,10 +258,14 @@ export class BrowserRuntime {
   }
 
   removeClass(classes: string | string[]): void {
-    const classList = this.normalizeClasses(classes);
-    for (const cls of classList) {
-      this.cache.delete(cls);
-    }
+    if (this.isDestroyed) return;
+    const classList = new Set(this.normalizeClasses(classes));
+    const retainedResults = Array.from(this.cache.values()).filter(result => !classList.has(result.cls));
+    if (retainedResults.length === this.cache.size) return;
+
+    this.reset();
+    retainedResults.forEach(result => this.incrementalParser.markProcessed(result.cls));
+    this.applyParseResults(retainedResults);
   }
 
   destroy(): void {

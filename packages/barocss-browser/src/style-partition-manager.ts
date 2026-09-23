@@ -107,6 +107,11 @@ export class StylePartitionManager {
     return this.categoryPartitions.get(category);
   }
 
+  hasDetachedPartitions(): boolean {
+    return [...this.partitions, ...this.categoryPartitions.values()]
+      .some(partition => !partition.styleElement.isConnected);
+  }
+
   /**
    * Escape CSS rule text
    * - Properly escape special characters

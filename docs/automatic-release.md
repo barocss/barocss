@@ -2,7 +2,7 @@
 
 ## Current gate
 
-0.0.4 is **NO-GO**. [PM holds PR #71](https://github.com/barocss/barocss/pull/71#issuecomment-5789060900) until `BrowserRuntime.removeClass()` removes injected CSS and Guard verifies the fix. No release-ready record exists. Do not dispatch promotion, merge `main`, or publish packages while this gate is open.
+0.0.4 is **NO-GO**. The `BrowserRuntime.removeClass()` fix and the preflight-only release foundation have merged through [PR #71](https://github.com/barocss/barocss/pull/71) and [PR #73](https://github.com/barocss/barocss/pull/73). This automatic path is still under review in PR #77. No release-ready SHA/version record exists. Do not dispatch promotion, merge a release PR into `main`, or publish packages while these gates are open.
 
 ## What starts a release
 
@@ -33,12 +33,12 @@ The App token is necessary for an unattended chain. GitHub says `GITHUB_TOKEN`-c
 | Item | Required setting | Current evidence |
 | --- | --- | --- |
 | `main` protection | Keep one independent review, strict `build` and `test` checks, and conversation resolution. Never bypass. | The rule has these settings now, but current CI does not emit `build`/`test` on main until this change is merged. |
-| `develop` protection | Require `Test and Build` on the selected SHA. PM must not issue GO for a blocked or failed candidate. | `Test and Build` is required; the live rule also has `requiresApprovingReviews=true` with count 0, which can still block PRs. |
+| `develop` protection | Require a PR and current `Test and Build` on the selected SHA. PM must not issue GO for a blocked or failed candidate. | The rule requires a PR and strict `Test and Build`. Approving reviews and Pages deployment are not required. |
 | GitHub App | Install on this repository with Metadata read, Administration read, Contents write, Pull requests write. Set `BARO_PROMOTION_APP_CLIENT_ID` repository variable and `BARO_PROMOTION_APP_PRIVATE_KEY` secret. Do not grant branch-protection bypass. | Not configured or verified. The App token is minted for one job and revoked afterward. |
 | `npm` environment | Create `npm`, allow only `main`, set environment variable `NPM_RELEASE_ENABLED=true`, and store `NPM_TOKEN` as an **environment secret**. Do not require a per-run reviewer; PM dispatch plus main review are the human gates. Remove the repository-level token after migration. | Environment does not exist. A repository secret named `NPM_TOKEN` exists, but its value and rights are unknown. |
 | npm rights | Token owner can publish all three `@barocss/*` packages. The granular token must allow direct publish and meet npm 2FA rules. Confirm package selection and expiry in npm settings. | `npm whoami` in CI proves login only; it cannot prove package-specific publish permission without publishing. [npm token settings](https://docs.npmjs.com/creating-and-viewing-access-tokens/). |
 
-The environment variable makes an absent or unconfigured `npm` environment fail before any publish command. Set it only on that environment. A manual **Npm release** dispatch on `main` checks the version and npm token but never publishes. It is a credential dry-run after this workflow is present on `main`; running it still needs the user's separate authorization during the current 0.0.4 hold.
+The environment variable makes an absent or unconfigured `npm` environment fail before any publish command. Set it only on that environment. A manual **Npm release** dispatch on `main` checks the version and npm token but never publishes. Do not run it before the current release gates and setup are complete.
 
 `main` and `develop` currently diverge: `main` has its own merge commit. A release-ready `develop` commit does not yet contain `main`. Main's strict up-to-date rule would block a pinned PR, so this history must be synchronized through the normal review path before any PM GO. The workflow checks ancestry twice and stops without changing the candidate SHA.
 
@@ -46,6 +46,6 @@ The environment variable makes an absent or unconfigured `npm` environment fail 
 
 For 0.0.4, PR #71 already bumps the three linked packages and lockfile; do not run `changeset version` again. Later changes get changesets, then a reviewed version PR. PM dispatches promotion only after the version PR and acceptance evidence are on the selected `develop` SHA.
 
-An already published version with complete tags and Releases skips publication. A partial npm publication, existing tag for an unpublished version, missing Release, wrong tag target, stale `develop` or `main`, failed CI, absent App credentials, or failed npm authentication stops the workflow. Re-running does not automatically publish the remaining packages. Record registry state and repair each missing artifact with a separate reviewed recovery plan. npm cannot atomically publish three packages.
+An already published version with complete tags and Releases skips publication. For that skip path, the initial preflight accepts an existing tag that points to an earlier `main` commit; the post-publish check requires every tag to point to the promoted `main` commit. A partial npm publication, existing tag for an unpublished version, missing Release, wrong tag target at the post-publish check, stale `develop` or `main`, failed CI, absent App credentials, or failed npm authentication stops the workflow. Re-running does not automatically publish the remaining packages. Record registry state and repair each missing artifact with a separate reviewed recovery plan. npm cannot atomically publish three packages.
 
 The current path uses the existing token. Moving to [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) needs each package to trust the exact GitHub workflow and environment, Node 22.14+ and npm CLI 11.5.1+, and an end-to-end test of Changesets/pnpm OIDC behavior. Do not remove the token until that separate change passes.
