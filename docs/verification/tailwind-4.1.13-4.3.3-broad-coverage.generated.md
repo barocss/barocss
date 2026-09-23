@@ -2,11 +2,11 @@
 
 Generated from the [raw CSS records](tailwind-4.1.13-4.3.3-broad-output.json) and the [exact input catalog](../../packages/barocss/tests/compat/coverage-catalog.ts) on 2026-09-23. This is a selected sample, **not a compatibility percentage** or a claim of full version support.
 
-Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `369841e`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
+Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `a31ac95`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
 
 ## Method and limits
 
-- Each row is one exact class set. Tailwind `compile()` builds that set against the pinned inline theme in the raw JSON. BaroCSS uses `generateCss()` with Preflight off, red-500 `#ef4444`, and sm/md/lg breakpoints at 40/48/64rem. Both Tailwind versions use those values.
+- Each row is one exact class set. Tailwind `compile()` builds that set against the pinned inline theme in the raw JSON. BaroCSS uses `generateCss()` with Preflight off, red-500 `#ef4444`, sm/md/lg breakpoints at 40/48/64rem, and default blur `8px`. Both Tailwind versions use those values.
 - Other theme tokens and CSS variable definitions are not aligned or rendered as a complete page. A `different` result can reflect theme setup, variable naming, or generated CSS structure. Inspect the raw CSS before treating it as a product gap.
 - PostCSS parsing removes comments and formatting only. It preserves selectors, declaration names and values, rule order, nesting, and at-rules. `match` means these structures are identical. `different` means they are not. A different structure is **not** proof of different browser behavior.
 - `unsupported` means Tailwind emitted a CSS rule and BaroCSS emitted no rule for the exact input. `reference-no-rule` means that pinned Tailwind version emitted no rule; it does not establish the feature introduction date.
@@ -14,6 +14,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 - In the two `scrollbar-gutter-*` and `overflow-*` combinations, Tailwind emits the gutter rule first and BaroCSS emits the overflow rule first. The individual declarations agree, but rule order differs. No browser result was measured for these combinations.
 - For `md:scrollbar-auto`, Tailwind 4.3.3 emits `@media (width >= 48rem)` and BaroCSS emits `@media (min-width: 48rem)`. The declaration agrees; the media-query syntax differs. This exact input has no browser result.
 - For `@container/`, Tailwind 4.1.13 emits a rule with an empty `container-name` declaration, while 4.3.3 and BaroCSS emit no rule. The 4.1.13 `unsupported` status records the reference rule only; it does not call for adding an empty container name.
+- The bare `blur` inputs depend on the explicit `--blur: 8px` token in this fixture. Both pinned Tailwind compilers emit no bare `blur` rule when that token is absent. BaroCSS now emits a rule from its configured default blur theme value. The rule remains structurally different because the engines use different filter variables and Tailwind emits property registration. Browser behavior is unverified.
 - For numeric `inline-*` and `block-*` values, Tailwind uses the inlined `--spacing: 0.25rem` from this fixture. BaroCSS retains `var(--spacing)`. The generated declarations differ in structure. This run does not establish equal computed sizes because it does not render a shared theme.
 - For `inline-sm`, Tailwind uses the inlined `--container-sm: 24rem` from this fixture. BaroCSS retains `var(--container-sm)`. This is a structural theme difference, and the browser result is unverified.
 - The logical padding and margin `*-0` inputs emit `0px` on both sides under the pinned spacing theme. Nonzero numeric `pbs/pbe/mbs/mbe` inputs retain the same theme-inlining structural difference as other spacing utilities. Their browser results are unverified.
@@ -33,7 +34,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | backgrounds | 10 | 6 | 4 | 0 | 0 | 6 | 4 | 0 | 0 |
 | borders | 11 | 3 | 8 | 0 | 0 | 3 | 8 | 0 | 0 |
 | effects | 9 | 1 | 8 | 0 | 0 | 1 | 8 | 0 | 0 |
-| filters | 8 | 0 | 7 | 1 | 0 | 0 | 7 | 1 | 0 |
+| filters | 10 | 0 | 10 | 0 | 0 | 0 | 10 | 0 | 0 |
 | transforms | 8 | 3 | 5 | 0 | 0 | 3 | 5 | 0 | 0 |
 | transitions | 8 | 2 | 6 | 0 | 0 | 2 | 6 | 0 | 0 |
 | interactivity | 8 | 6 | 2 | 0 | 0 | 6 | 2 | 0 | 0 |
@@ -43,7 +44,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | syntax | 12 | 7 | 4 | 1 | 0 | 7 | 4 | 1 | 0 |
 | v4.2-and-v4.3 | 113 | 0 | 1 | 0 | 112 | 82 | 22 | 3 | 6 |
 | combinations | 8 | 0 | 8 | 0 | 0 | 1 | 7 | 0 | 0 |
-| Total selected inputs | 319 | 96 | 108 | 3 | 112 | 187 | 120 | 5 | 7 |
+| Total selected inputs | 321 | 96 | 111 | 2 | 112 | 187 | 123 | 4 | 7 |
 
 ## Exact inputs
 
@@ -171,7 +172,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | effects / shadow-and-opacity | boundary | `opacity-0` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/box-shadow) |
 | effects / shadow-and-opacity | boundary | `opacity-100` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/box-shadow) |
 | effects / shadow-and-opacity | boundary | `shadow-[0_4px_8px_#0002]` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/box-shadow) |
-| filters / filter-and-backdrop | representative | `blur` | unsupported | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/filter) |
+| filters / filter-and-backdrop | representative | `blur` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/filter) |
 | filters / filter-and-backdrop | representative | `blur-sm` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/filter) |
 | filters / filter-and-backdrop | representative | `brightness-50` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/filter) |
 | filters / filter-and-backdrop | representative | `grayscale` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/filter) |
@@ -179,6 +180,8 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | filters / filter-and-backdrop | boundary | `grayscale-0` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/filter) |
 | filters / filter-and-backdrop | boundary | `blur-[3px]` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/filter) |
 | filters / filter-and-backdrop | boundary | `backdrop-brightness-50` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/filter) |
+| filters / filter-and-backdrop | combination | `blur brightness-50` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/filter) |
+| filters / blur-default-variant | representative | `hover:blur` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/filter-blur) |
 | transforms / transform | representative | `rotate-45` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/transform) |
 | transforms / transform | representative | `scale-95` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/transform) |
 | transforms / transform | representative | `translate-x-2` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/transform) |

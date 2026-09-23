@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-369841e-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-a31ac95-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "369841e",
+    "barocssCommit": "a31ac95",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -3205,13 +3205,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n@layer properties;\n.blur {\n  --tw-blur: blur(8px);\n  filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n}\n@property --tw-blur {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-brightness {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-contrast {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-grayscale {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-hue-rotate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-invert {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-opacity {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-saturate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-sepia {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-drop-shadow-size {\n  syntax: \"*\";\n  inherits: false;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-blur: initial;\n      --tw-brightness: initial;\n      --tw-contrast: initial;\n      --tw-grayscale: initial;\n      --tw-hue-rotate: initial;\n      --tw-invert: initial;\n      --tw-opacity: initial;\n      --tw-saturate: initial;\n      --tw-sepia: initial;\n      --tw-drop-shadow: initial;\n      --tw-drop-shadow-color: initial;\n      --tw-drop-shadow-alpha: 100%;\n      --tw-drop-shadow-size: initial;\n    }\n  }\n}\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.blur {\n  --tw-blur: blur(8px);\n  filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n}\n@property --tw-blur {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-brightness {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-contrast {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-grayscale {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-hue-rotate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-invert {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-opacity {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-saturate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-sepia {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-drop-shadow-size {\n  syntax: \"*\";\n  inherits: false;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-blur: initial;\n      --tw-brightness: initial;\n      --tw-contrast: initial;\n      --tw-grayscale: initial;\n      --tw-hue-rotate: initial;\n      --tw-invert: initial;\n      --tw-opacity: initial;\n      --tw-saturate: initial;\n      --tw-sepia: initial;\n      --tw-drop-shadow: initial;\n      --tw-drop-shadow-color: initial;\n      --tw-drop-shadow-alpha: 100%;\n      --tw-drop-shadow-size: initial;\n    }\n  }\n}\n",
-      "barocss": "",
-      "statusV4_1_13": "unsupported",
-      "statusV4_3_3": "unsupported",
+      "barocss": ".blur {\n  --baro-blur: blur(8px);\n  filter: var(--baro-blur, ) var(--baro-brightness, ) var(--baro-contrast, ) var(--baro-grayscale, ) var(--baro-hue-rotate, ) var(--baro-invert, ) var(--baro-saturate, ) var(--baro-sepia, ) var(--baro-drop-shadow, );\n}\n",
+      "statusV4_1_13": "different",
+      "statusV4_3_3": "different",
       "fingerprints": {
         "tailwindV4_1_13": "3a30b8206fa4d597cb637c9e2b55ca2ad4812171925ceead905403ab59c294df",
         "tailwindV4_3_3": "3a30b8206fa4d597cb637c9e2b55ca2ad4812171925ceead905403ab59c294df",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "0d755f01b22c49d9752c3409d40c110fc572a628c692db29029e7e8e42177906"
       }
     },
     {
@@ -3394,6 +3394,59 @@
         "tailwindV4_1_13": "d5dae15cde812de6680cbd3eeb12f430b80b53673405d38ab4fe2534a9d02b76",
         "tailwindV4_3_3": "d5dae15cde812de6680cbd3eeb12f430b80b53673405d38ab4fe2534a9d02b76",
         "barocss": "982661d3d6651fe226de12a46dd2d63c050fc5ac4776ca637aa1c162f4d5804a"
+      }
+    },
+    {
+      "id": "filter-and-backdrop:blur+brightness-50",
+      "axis": "filters",
+      "family": "filter-and-backdrop",
+      "role": "combination",
+      "classes": [
+        "blur",
+        "brightness-50"
+      ],
+      "source": "https://tailwindcss.com/docs/filter",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n@layer properties;\n.blur {\n  --tw-blur: blur(8px);\n  filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n}\n.brightness-50 {\n  --tw-brightness: brightness(50%);\n  filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n}\n@property --tw-blur {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-brightness {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-contrast {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-grayscale {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-hue-rotate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-invert {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-opacity {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-saturate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-sepia {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-drop-shadow-size {\n  syntax: \"*\";\n  inherits: false;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-blur: initial;\n      --tw-brightness: initial;\n      --tw-contrast: initial;\n      --tw-grayscale: initial;\n      --tw-hue-rotate: initial;\n      --tw-invert: initial;\n      --tw-opacity: initial;\n      --tw-saturate: initial;\n      --tw-sepia: initial;\n      --tw-drop-shadow: initial;\n      --tw-drop-shadow-color: initial;\n      --tw-drop-shadow-alpha: 100%;\n      --tw-drop-shadow-size: initial;\n    }\n  }\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n.blur {\n  --tw-blur: blur(8px);\n  filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n}\n.brightness-50 {\n  --tw-brightness: brightness(50%);\n  filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n}\n@property --tw-blur {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-brightness {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-contrast {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-grayscale {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-hue-rotate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-invert {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-opacity {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-saturate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-sepia {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-drop-shadow-size {\n  syntax: \"*\";\n  inherits: false;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-blur: initial;\n      --tw-brightness: initial;\n      --tw-contrast: initial;\n      --tw-grayscale: initial;\n      --tw-hue-rotate: initial;\n      --tw-invert: initial;\n      --tw-opacity: initial;\n      --tw-saturate: initial;\n      --tw-sepia: initial;\n      --tw-drop-shadow: initial;\n      --tw-drop-shadow-color: initial;\n      --tw-drop-shadow-alpha: 100%;\n      --tw-drop-shadow-size: initial;\n    }\n  }\n}\n",
+      "barocss": ".blur {\n  --baro-blur: blur(8px);\n  filter: var(--baro-blur, ) var(--baro-brightness, ) var(--baro-contrast, ) var(--baro-grayscale, ) var(--baro-hue-rotate, ) var(--baro-invert, ) var(--baro-saturate, ) var(--baro-sepia, ) var(--baro-drop-shadow, );\n}\n\n.brightness-50 {\n  --baro-brightness: brightness(50%);\n  filter: var(--baro-blur, ) var(--baro-brightness, ) var(--baro-contrast, ) var(--baro-grayscale, ) var(--baro-hue-rotate, ) var(--baro-invert, ) var(--baro-saturate, ) var(--baro-sepia, ) var(--baro-drop-shadow, );\n}\n",
+      "statusV4_1_13": "different",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "d9c887fc8a5f50e3f6fada2b50ac0717ec41584a129542c6b8cc16a4b864b11e",
+        "tailwindV4_3_3": "d9c887fc8a5f50e3f6fada2b50ac0717ec41584a129542c6b8cc16a4b864b11e",
+        "barocss": "8d877d71a51faf738225444c116446adca127041e18d17a45ed6e34d2ab67d5d"
+      }
+    },
+    {
+      "id": "blur-default-variant:hover:blur",
+      "axis": "filters",
+      "family": "blur-default-variant",
+      "role": "representative",
+      "classes": [
+        "hover:blur"
+      ],
+      "source": "https://tailwindcss.com/docs/filter-blur",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n@layer properties;\n.hover\\:blur {\n  &:hover {\n    @media (hover: hover) {\n      --tw-blur: blur(8px);\n      filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n    }\n  }\n}\n@property --tw-blur {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-brightness {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-contrast {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-grayscale {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-hue-rotate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-invert {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-opacity {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-saturate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-sepia {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-drop-shadow-size {\n  syntax: \"*\";\n  inherits: false;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-blur: initial;\n      --tw-brightness: initial;\n      --tw-contrast: initial;\n      --tw-grayscale: initial;\n      --tw-hue-rotate: initial;\n      --tw-invert: initial;\n      --tw-opacity: initial;\n      --tw-saturate: initial;\n      --tw-sepia: initial;\n      --tw-drop-shadow: initial;\n      --tw-drop-shadow-color: initial;\n      --tw-drop-shadow-alpha: 100%;\n      --tw-drop-shadow-size: initial;\n    }\n  }\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@layer properties;\n@media (hover: hover) {\n  .hover\\:blur:hover {\n    --tw-blur: blur(8px);\n    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);\n  }\n}\n@property --tw-blur {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-brightness {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-contrast {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-grayscale {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-hue-rotate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-invert {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-opacity {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-saturate {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-sepia {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-color {\n  syntax: \"*\";\n  inherits: false;\n}\n@property --tw-drop-shadow-alpha {\n  syntax: \"<percentage>\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-drop-shadow-size {\n  syntax: \"*\";\n  inherits: false;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-blur: initial;\n      --tw-brightness: initial;\n      --tw-contrast: initial;\n      --tw-grayscale: initial;\n      --tw-hue-rotate: initial;\n      --tw-invert: initial;\n      --tw-opacity: initial;\n      --tw-saturate: initial;\n      --tw-sepia: initial;\n      --tw-drop-shadow: initial;\n      --tw-drop-shadow-color: initial;\n      --tw-drop-shadow-alpha: 100%;\n      --tw-drop-shadow-size: initial;\n    }\n  }\n}\n",
+      "barocss": "@media (hover: hover) {\n  .hover\\:blur:hover {\n    --baro-blur: blur(8px);\n    filter: var(--baro-blur, ) var(--baro-brightness, ) var(--baro-contrast, ) var(--baro-grayscale, ) var(--baro-hue-rotate, ) var(--baro-invert, ) var(--baro-saturate, ) var(--baro-sepia, ) var(--baro-drop-shadow, );\n  }\n}\n",
+      "statusV4_1_13": "different",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "86d5558b5bea69741c6eeb19bd35a91957511dc769596b85ee1b336a83aed8a8",
+        "tailwindV4_3_3": "9fe9e0118850739935d0698f8935ddaa353d20719a3effe20467d490230d4b92",
+        "barocss": "6539cd91b3462b523d3e0c54556aa58b793f5a357aa4de8693803ac53ef5e320"
       }
     },
     {
