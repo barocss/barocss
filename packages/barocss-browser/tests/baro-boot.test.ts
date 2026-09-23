@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { baroBoot, getRuntime } from '../src/baro-boot';
 
 describe('getRuntime', () => {
@@ -19,6 +19,22 @@ describe('getRuntime', () => {
 });
 
 describe('baroBoot', () => {
+  it('clears the loading marker when observation fails', () => {
+    const runtime = getRuntime({});
+    const observe = vi.spyOn(runtime, 'observe').mockImplementation(() => { throw new Error('observe failed'); });
+    const logError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      baroBoot();
+      expect(document.body.classList.contains('baro-boot-doing')).toBe(false);
+      expect(logError).toHaveBeenCalled();
+    } finally {
+      observe.mockRestore();
+      logError.mockRestore();
+      runtime.destroy();
+    }
+  });
+
   it('starts after the body becomes available', () => {
     const originalBody = document.body;
     originalBody.remove();

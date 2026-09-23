@@ -28,6 +28,7 @@ export function baroBoot({ loadingClassName = 'baro-boot', ...options }: BaroBoo
             document.body.classList.add(endClassName);
         }});
     } catch (error) {
+        document.body?.classList.remove(startClassName);
         // eslint-disable-next-line no-console
         console.error('BaroCSS boot failed:', error);
     }
