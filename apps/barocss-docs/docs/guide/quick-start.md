@@ -5,7 +5,7 @@ description: Start the BaroCSS browser runtime with a package manager or a CDN
 
 # Quick Start
 
-These examples use the public browser API. The npm and CDN examples pin the published `0.0.3` release. The `0.0.4` candidate is under review and is not yet a published installation target.
+These examples use the public browser API. The npm and CDN examples pin the published `0.0.3` release. The `0.4.0` candidate is under review and is not yet a published installation target.
 
 ## Install with a package manager
 
@@ -26,7 +26,7 @@ Call `observe` after `document.body` exists. It scans existing classes and watch
 
 ## Use the CDN without a build step
 
-The `dist/cdn/barocss.js` and `dist/cdn/barocss.umd.cjs` files are part of the browser package. The paths below refer to the published `0.0.3` files. The `0.0.4` candidate's pack check also verifies these paths, but its CDN URL will work only after publication.
+The `dist/cdn/barocss.js` and `dist/cdn/barocss.umd.cjs` files are part of the browser package. The paths below refer to the published `0.0.3` files. The `0.4.0` candidate is not published; use these URLs until its CDN files are verified after publication.
 
 ### ESM
 
