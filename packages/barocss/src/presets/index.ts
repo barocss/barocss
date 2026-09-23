@@ -1,6 +1,7 @@
 import "./interactivity";
 import "./zoom-tab";
 import "./scrollbar-gutter";
+import "./scrollbar-width";
 import "./transitions";
 import "./table";
 import "./filter";

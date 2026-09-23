@@ -5233,13 +5233,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-auto {\n  scrollbar-width: auto;\n}\n",
-      "barocss": "",
+      "barocss": ".scrollbar-auto {\n  scrollbar-width: auto;\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "match",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "2a2df42c200f4378bc8660a0ba755e1a62b58e384c18f0b1f56eed61293f3192",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "2a2df42c200f4378bc8660a0ba755e1a62b58e384c18f0b1f56eed61293f3192"
       }
     },
     {
@@ -5259,13 +5259,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-thin {\n  scrollbar-width: thin;\n}\n",
-      "barocss": "",
+      "barocss": ".scrollbar-thin {\n  scrollbar-width: thin;\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "match",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "aa3f9cf0710c9138332879461392eef48b31e08a5c5c553108140cfae1be4dbc",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "aa3f9cf0710c9138332879461392eef48b31e08a5c5c553108140cfae1be4dbc"
       }
     },
     {
@@ -5285,13 +5285,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-none {\n  scrollbar-width: none;\n}\n",
-      "barocss": "",
+      "barocss": ".scrollbar-none {\n  scrollbar-width: none;\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "match",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "fe296b86cf78290673800c4e962784e318781058f5256f585af5ac8b7b01d4f5",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "fe296b86cf78290673800c4e962784e318781058f5256f585af5ac8b7b01d4f5"
       }
     },
     {
@@ -5430,6 +5430,111 @@
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "3e046f76cc3a03350fc36381c3432a033c577e8a784728ba02da54becc551406",
         "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "scrollbar-width-variants:md:scrollbar-auto",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-width-variants",
+      "role": "representative",
+      "classes": [
+        "md:scrollbar-auto"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@media (width >= 48rem) {\n  .md\\:scrollbar-auto {\n    scrollbar-width: auto;\n  }\n}\n",
+      "barocss": "@media (min-width: 48rem) {\n  .md\\:scrollbar-auto {\n    scrollbar-width: auto;\n  }\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "b07c4447b02602a2b52baff57045224b0a748a96fc2fc0023b5aacb3eba5e21f",
+        "barocss": "8c89932461ffbf37f6fc6c49ea681ed7c6955e051896f87f6d78a2f3001deb5e"
+      }
+    },
+    {
+      "id": "scrollbar-width-variants:hover:scrollbar-thin",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-width-variants",
+      "role": "representative",
+      "classes": [
+        "hover:scrollbar-thin"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@media (hover: hover) {\n  .hover\\:scrollbar-thin:hover {\n    scrollbar-width: thin;\n  }\n}\n",
+      "barocss": "@media (hover: hover) {\n  .hover\\:scrollbar-thin:hover {\n    scrollbar-width: thin;\n  }\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "6b871ae24af98cb94a87eb68a4ab4d9bc4e80faf0ba3621723a7d5cfc897987b",
+        "barocss": "6b871ae24af98cb94a87eb68a4ab4d9bc4e80faf0ba3621723a7d5cfc897987b"
+      }
+    },
+    {
+      "id": "scrollbar-width-variants:scrollbar-[3px]",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-width-variants",
+      "role": "boundary",
+      "classes": [
+        "scrollbar-[3px]"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "scrollbar-width-variants:scrollbar-none+overflow-auto",
+      "axis": "v4.2-and-v4.3",
+      "family": "scrollbar-width-variants",
+      "role": "combination",
+      "classes": [
+        "scrollbar-none",
+        "overflow-auto"
+      ],
+      "source": "https://tailwindcss.com/docs/scrollbar-width",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.overflow-auto {\n  overflow: auto;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-none {\n  scrollbar-width: none;\n}\n.overflow-auto {\n  overflow: auto;\n}\n",
+      "barocss": ".scrollbar-none {\n  scrollbar-width: none;\n}\n\n.overflow-auto {\n  overflow: auto;\n}\n",
+      "statusV4_1_13": "different",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "30ec893d9a7d449a803e6b47e18bca1f04df883b82f3d911b8293be11e9632c9",
+        "tailwindV4_3_3": "ffe542282d097baa10f85b0421c38ca6c37c5f5fbb2f17178a688e73e5e29a78",
+        "barocss": "ffe542282d097baa10f85b0421c38ca6c37c5f5fbb2f17178a688e73e5e29a78"
       }
     },
     {
