@@ -11,7 +11,9 @@ Brief description of what this PR does.
 ## ✅ Checklist
 - [ ] Relevant tests pass (list the exact commands and results below)
 - [ ] Build works, if the change affects a build (list the command and result below)
-- [ ] Changeset added (if needed)
+- [ ] Changeset added with the right change type and a clear description (if needed)
+- [ ] I reviewed my changes and updated related documentation (if needed)
+- [ ] The change adds no new warnings
 
 ## 🧪 Verification evidence
 <!-- For a new feature, run it locally before requesting review. Record what you ran and what happened. Do not check a command that you did not run. -->
