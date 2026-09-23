@@ -12,6 +12,10 @@ export function getRuntime(options: BrowserRuntimeOptions) {
 type BaroBootOptions = BrowserRuntimeOptions & { loadingClassName?: string };
 
 export function baroBoot({ loadingClassName = 'baro-boot', ...options }: BaroBootOptions = {}) {
+    if (!document.body) {
+        document.addEventListener('DOMContentLoaded', () => baroBoot({ loadingClassName, ...options }), { once: true });
+        return;
+    }
     const startClassName = `${loadingClassName}-doing`;
     const endClassName = `${loadingClassName}-done`;
     try {    
