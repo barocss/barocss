@@ -1,39 +1,56 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
+const release = readFileSync('.github/workflows/npm-release.yml', 'utf8');
 const ci = readFileSync('.github/workflows/ci.yml', 'utf8');
-const version = readFileSync('.github/workflows/release.yml', 'utf8');
 const preflight = readFileSync('.github/workflows/npm-promote.yml', 'utf8');
 
-test('main sync leaves no npm publication workflow before the reviewed OIDC PR', () => {
-  assert.equal(existsSync('.github/workflows/npm-release.yml'), false);
-  assert.doesNotMatch(ci, /- main\s*(?:\n|$)|^  publish:|uses: \.\/\.github\/workflows\/npm-release\.yml/m);
-  assert.match(ci, /name: Test and Build/);
-  assert.match(ci, /node --test \.github\/scripts\/\*\.test\.mjs/);
-  assert.match(ci, /node \.github\/scripts\/check-packages\.mjs/);
+function assertManualOidcPublication(source) {
+  assert.match(source, /push:\n    branches: \[main\]/);
+  assert.match(source, /pull_request:\n    branches: \[main\]/);
+  assert.match(source, /workflow_dispatch:\n    inputs:\n      publish:/);
+  assert.match(source, /type: boolean\n        default: false/);
+  assert.match(source, /^  build:\n    name: build/m);
+  assert.match(source, /^  test:\n    name: test/m);
+  assert.match(source, /if: github\.repository == 'barocss\/barocss' && github\.event_name == 'workflow_dispatch' && inputs\.publish == true && github\.ref == 'refs\/heads\/main'/);
+  assert.match(source, /needs: \[build, test\]/);
+  assert.match(source, /test "\$GITHUB_ACTOR" = easylogic/);
+  assert.match(source, /test "\$GITHUB_SHA" = "\$EXPECTED_MAIN_SHA"/);
+  assert.match(source, /node \.github\/scripts\/check-release-main\.mjs/);
+  assert.ok(
+    source.indexOf('node .github/scripts/check-release-main.mjs')
+      < source.indexOf('node .github/scripts/check-publication-state.mjs'),
+    'PM and main provenance checks must run before any published-state shortcut',
+  );
+  assert.match(source, /environment: npm\n    permissions:\n      contents: write[\s\S]*?      id-token: write/);
+  assert.match(source, /npm install --global npm@11\.5\.1/);
+  assert.match(source, /node-version: '22\.22\.0'/);
+  assert.match(source, /PACK_OUTPUT_DIR: /);
+  assert.match(source, /npm publish "\$RUNNER_TEMP\/barocss-packs\/barocss-\$name-\$RELEASE_VERSION\.tgz"/);
+  assert.doesNotMatch(source, /NPM_RELEASE_ENABLED/);
+  assert.doesNotMatch(source, /secrets\.NPM_TOKEN|secrets\.NPM_PUBLISH_TOKEN|npm whoami|pnpm changeset publish|changesets\/action/);
+}
+
+test('main push and PR run checks but only explicit manual true can publish', () => {
+  assertManualOidcPublication(release);
+  assert.doesNotMatch(ci, /      - main\n|^  publish:|^  build:|^  test:/m);
 });
 
-test('retained release workflow only creates develop version PRs', () => {
-  assert.match(version, /workflow_dispatch:/);
-  assert.match(version, /github\.ref == 'refs\/heads\/develop'/);
-  assert.match(version, /version: pnpm changeset:version/);
-  assert.doesNotMatch(version, /npm publish|changeset publish|NPM_TOKEN|NODE_AUTH_TOKEN|id-token: write/);
+test('default, event, and branch gates fail closed', () => {
+  assert.throws(() => assertManualOidcPublication(release.replace('default: false', 'default: true')));
+  assert.throws(() => assertManualOidcPublication(release.replace("github.event_name == 'workflow_dispatch'", "github.event_name == 'push'")));
+  assert.throws(() => assertManualOidcPublication(release.replace("github.ref == 'refs/heads/main'", "github.ref == 'refs/heads/develop'")));
 });
 
-test('sync tree has no App promotion, approval arm, token, or npm publish job', () => {
-  assert.equal(existsSync('.github/workflows/npm-arm-promotion.yml'), false);
-  for (const script of [
-    'arm-promotion-pr.mjs', 'create-promotion-pr.mjs', 'check-main-protection.mjs',
-    'check-promotion-merge.mjs', 'promotion-review-policy.test.mjs',
-  ]) {
-    assert.equal(existsSync(`.github/scripts/${script}`), false);
-  }
+test('OIDC publication requires the protected npm environment', () => {
+  assert.throws(() => assertManualOidcPublication(release.replace('environment: npm', 'environment: other')));
+  assert.throws(() => assertManualOidcPublication(release.replace('      id-token: write', '      id-token: read')));
+});
+
+test('preflight has no App or write token and cannot create or merge a PR', () => {
   assert.match(preflight, /name: Npm release preflight/);
   assert.match(preflight, /node \.github\/scripts\/check-promotion-ready\.mjs/);
-  assert.doesNotMatch(preflight, /promotion_pr:|create-github-app-token|BARO_PROMOTION_APP|gh pr merge/);
-  for (const file of readdirSync('.github/workflows').filter((name) => name.endsWith('.yml'))) {
-    const source = readFileSync(`.github/workflows/${file}`, 'utf8');
-    assert.doesNotMatch(source, /NPM_TOKEN|NODE_AUTH_TOKEN|changeset publish|^  publish:|create-github-app-token|BARO_PROMOTION_APP|pull_request_review:|^\s*-\s*run:.*npm publish/m, file);
-  }
+  assert.doesNotMatch(preflight, /create-github-app-token|BARO_PROMOTION_APP|promotion_pr:|gh pr merge|create-promotion-pr/);
+  assert.doesNotMatch(preflight, /contents: write|pull-requests: write|id-token: write/);
 });

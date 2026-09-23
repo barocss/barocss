@@ -1,12 +1,12 @@
-# BaroCSS automated release path
+# BaroCSS manual npm release path
 
 ## Current gate
 
-0.0.4 is **NO-GO**. The `BrowserRuntime.removeClass()` fix and the preflight-only release foundation have merged through [PR #71](https://github.com/barocss/barocss/pull/71) and [PR #73](https://github.com/barocss/barocss/pull/73). This automatic path is still under review in PR #77. No release-ready SHA/version record exists. Do not dispatch promotion, merge a release PR into `main`, or publish packages while these gates are open.
+0.4.0 is **NO-GO**. PR #81 is a draft. The protected main setup, main-to-develop synchronization, and Docs #86 integration into `develop` are complete. A reviewed 0.4.0 version PR, verified npm Trusted Publisher settings, the live Docs smoke check, and final PM exact-SHA/version GO remain. Do not run the release workflow with `publish=true`, publish npm packages, create tags or GitHub Releases, or deploy Pages as part of this draft.
 
-## What starts a release
+## Release source and preflight
 
-PM posts one comment in `barocss/barocss` after Guard and Ship evidence is complete. The comment must contain these exact lines, with the full current `develop` SHA and the same version in all three package manifests:
+Development and version PRs stay on `develop`. After Guard and Ship accept one candidate, PM posts a comment in `barocss/barocss` with these exact lines:
 
 ```text
 BAROCSS_RELEASE_READY SHA=<40-character-develop-SHA> VERSION=<version>
@@ -14,38 +14,40 @@ Guard: https://github.com/barocss/barocss/...
 Ship: https://github.com/barocss/barocss/...
 ```
 
-The **Npm promotion** workflow is then dispatched on `develop` by `easylogic` with `candidate_sha`, `expected_version`, and that comment URL. This explicit dispatch is the PM GO signal. Ordinary `develop` pushes do not start promotion. The preflight rejects a moved `develop` head, a candidate behind `main`, mismatched versions, pending changesets, missing evidence, failed CI on that exact SHA, failed frozen install/check/pack/docs build, or an already used npm version/tag. If `main` is not an ancestor of the candidate, PM first uses an ordinary PR to bring `main` into `develop`, then repeats CI and issues a new SHA-specific GO. The pinned promotion branch is never updated to fix this condition.
+The release owner `easylogic` runs **Npm release preflight** (`npm-promote.yml`) on `develop` with that SHA, version, and comment URL. This is a read-only check. It rejects a moved candidate, a candidate behind `main`, mismatched versions, pending changesets, missing evidence, failed exact-SHA `Test and Build`, failed frozen install/check/pack/docs build, or a used npm version/tag. It does not create a branch or PR and cannot publish. If `main` is ahead, synchronize it into `develop` through a normal PR, repeat CI and reviews, and issue a new PM record for the new SHA.
 
-The comment is a PM attestation that Guard and Ship accepted the exact tree. GitHub currently uses the same `easylogic` identity for those work records, so the workflow validates evidence links but cannot prove that two different people wrote them. The `main` PR still needs an independent GitHub approval under branch protection.
+The PM comment links Guard and Ship evidence. Since these records currently share the `easylogic` GitHub identity, the workflow verifies the links and exact SHA but cannot prove separate human authorship.
 
-## GitHub Actions sequence
+## Protected main PR and manual publication
 
-1. **Promotion preflight:** checkout the selected SHA, confirm the current `develop` head and its successful `Test and Build` push run, then run frozen install, `pnpm check`, package tarball checks, docs build, and npm/tag/Release collision checks. No write token or npm token is available to this job.
-2. **Pinned PR:** mint a short-lived GitHub App token after preflight. Confirm that `main` requires an approving review, up-to-date `build` and `test` checks, and resolved conversations. Create `release/promote-<version>-<sha>` at the selected SHA and open its PR to `main` **without auto-merge armed**. A changed existing ref or PR fails. No `--admin` option is used.
-3. **Owner approval and protected main:** Mento gives `easylogic` the PR link and pinned SHA. `easylogic` submits one Approve review on that exact commit. The `pull_request_review` workflow runs trusted code from the default `develop` branch. It requires that the candidate is still the **current develop HEAD**, and rechecks the live review, PM record, exact candidate CI, main ancestry, npm/tag state, and main protection. It uses an App token and `--match-head-commit` to arm ordinary auto-merge for only that SHA. Another reviewer, a stale review, a dismissed approval, a changed PR head, or any intervening `develop` push cannot arm it. The PR runs the `build` and `test` jobs named by the `main` protection rule. GitHub merges only after the owner review, current checks, and resolved conversations. If `develop` moves, PM verifies a new candidate and issues a new exact-SHA GO.
-4. **Same main commit:** the App-created merge causes the `main` push CI to run. Its `publish` job calls **Npm release** only after both `build` and `test` succeed on that main SHA. The release job rechecks the PM comment and associated promotion PR, its approved candidate SHA, the two-parent merge commit, package versions, changesets, npm versions, tags, Releases, and the packaged output again.
-5. **npm:** only an unpublished three-package version enters the `npm` environment. `NPM_RELEASE_ENABLED=true`, a live `NPM_TOKEN`, an unchanged `main` SHA, and a second registry check are required before Changesets publishes. The action creates package tags and GitHub Releases. A final check requires all three npm versions, tags pointing to that main SHA, and non-draft Releases.
+1. Open a normal PR from the verified `develop` commit to `main`. Use an ordinary merge commit. `easylogic` merges the green PR after required `build` and `test` checks and resolved conversations. Do not use a GitHub App, approval-triggered workflow, auto-merge, squash, rebase, or branch-protection bypass. The selected no-App model has zero required approvals; strict checks and conversation resolution remain in place.
+2. The merged `main` push runs `build` and `test` only. It never publishes npm. Wait for both checks and any separate Docs deployment/smoke gate before a manual npm release.
+3. In **Npm release** (`npm-release.yml`), choose `main` and enter `publish=true`, the exact current main SHA, the same version in all three manifests, and the PM readiness comment URL. The default `publish=false` runs checks only. Only `easylogic` can complete a `publish=true` run. The job requires successful `build` and `test` and the protected main-only `npm` environment.
+4. Before publication, the job verifies the live main SHA, the ordinary two-parent merge from `develop`, that `easylogic` merged the PR, the exact candidate SHA/version in the PM record, Guard and Ship links, successful develop CI for that candidate, no pending changesets, all three package versions, npm/tag/Release collisions, and the retained tarballs' export/type/CDN/runtime checks. It rechecks main and the registry immediately before the first publish.
+5. The job uses GitHub OIDC with Node 22.22.0, npm CLI 11.5.1, `id-token: write`, and no npm token. It publishes the validated kit, browser, and server tarballs in that order. Only after all three succeed does it create package tags and GitHub Releases at the exact main SHA. A final check requires all three npm versions, tags, and non-draft Releases.
 
-The App token is necessary for an unattended chain. GitHub says `GITHUB_TOKEN`-created PR workflows can wait for extra approval and pushes made with `GITHUB_TOKEN` normally do not start another workflow. [GitHub trigger documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow). GitHub supports a [`pull_request_review` submitted trigger](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#running-a-workflow-when-a-pull-request-is-approved); the arm job checks the reviewer again before using secrets. GitHub's [auto-merge](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/automatically-merging-a-pull-request) still waits for required reviews and checks.
+| Event | `build`/`test` | npm publish |
+| --- | --- | --- |
+| PR to `main` | Run and satisfy branch protection | Never |
+| Push to `main` | Run on the exact merged commit | Never |
+| Manual `publish=false` on `main` | Run | Never |
+| Manual `publish=true` on `main` | Must pass first | Only after all gates |
+| `develop` push or preflight dispatch | `Test and Build` in `ci.yml` | Never |
 
 ## One-time repository setup
 
 | Item | Required setting | Current evidence |
 | --- | --- | --- |
-| `main` protection | Keep one independent review, strict `build` and `test` checks, and conversation resolution. Never bypass. | The rule has these settings now, but current CI does not emit `build`/`test` on main until this change is merged. |
-| `develop` protection | Require a PR and current `Test and Build` on the selected SHA. PM must not issue GO for a blocked or failed candidate. | The rule requires a PR and strict `Test and Build`. Approving reviews and Pages deployment are not required. |
-| GitHub App | Install on this repository with Metadata read, Administration read, Contents write, Pull requests write. Set `BARO_PROMOTION_APP_CLIENT_ID` repository variable and `BARO_PROMOTION_APP_PRIVATE_KEY` secret. Do not grant branch-protection bypass. | Not configured or verified. The App token is minted for one job and revoked afterward. |
-| `npm` environment | Create `npm`, allow only `main`, set environment variable `NPM_RELEASE_ENABLED=true`, and store `NPM_TOKEN` as an **environment secret**. Do not require a per-run reviewer; PM dispatch plus main review are the human gates. Remove the repository-level token after migration. | Environment does not exist. A repository secret named `NPM_TOKEN` exists, but its value and rights are unknown. |
-| npm rights | Token owner can publish all three `@barocss/*` packages. The granular token must allow direct publish and meet npm 2FA rules. Confirm package selection and expiry in npm settings. | `npm whoami` in CI proves login only; it cannot prove package-specific publish permission without publishing. [npm token settings](https://docs.npmjs.com/creating-and-viewing-access-tokens/). |
+| `main` protection | Strict `build` and `test`, resolved conversations, normal PR merge. Zero required approvals for the owner-operated no-App model. Never bypass checks. | PR #87 merged with the checks in place. Required approvals are zero, strict checks and conversation resolution remain enabled, and admin enforcement is enabled. |
+| `develop` protection | Require a PR and current `Test and Build` on the candidate SHA. | The rule requires a PR and strict `Test and Build`. |
+| `npm` environment | Allow only `main`. Require the owner's explicit manual `publish=true` input and exact release evidence. Do not add an npm token. | PM verified the environment has a main-only branch policy. |
+| npm Trusted Publishers | For each of `@barocss/kit`, `@barocss/browser`, and `@barocss/server`, select GitHub Actions owner `barocss`, repository `barocss`, workflow filename `npm-release.yml`, environment `npm`, and allow direct `npm publish`. | The user reports registration, but the exact per-package fields are not verified through the public registry. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/). |
+| Legacy credentials/workflows | Remove the old token-based manual publish workflow and any legacy repository publish credential before publishing. | PR #87 removed the old main publish path. PR #88 synchronized that state into `develop`. The repository Actions secret-name list is empty. Main push checks and the OIDC issuance preflight passed; npm acceptance remains untested. |
 
-The environment variable makes an absent or unconfigured `npm` environment fail before any publish command. Set it only on that environment. A manual **Npm release** dispatch on `main` checks the version and npm token but never publishes. Do not run it before the current release gates and setup are complete.
+The one-time setup removed the legacy publish path before Docs or product changes reach `main`. A preflight confirmed GitHub OIDC issuance, but npm acceptance is only tested by an authorized actual publish. `npm whoami` is not an OIDC dry run. The live Docs/Quick Start check remains a release gate. Automatic Pages deployment from Docs changes on `main` is a separate workflow and is reviewed separately.
 
-[PR #79](https://github.com/barocss/barocss/pull/79) synchronized the prior `main` merge commit into `develop` at `846b14b5b6a8a3ed31432dd6ed194f3e14900e81`. `main` is now an ancestor of that develop commit. The workflow still checks ancestry at preparation and again before arming auto-merge; a later main change requires another ordinary synchronization PR and a new exact-SHA PM GO. The pinned promotion branch is never updated silently.
+## Repeat runs and failure response
 
-## Versioning and repeat runs
+An already published version with complete npm packages, tags, and Releases is not republished. A partial npm publication, existing tag before npm publication, missing Release, wrong tag target, moved main, failed CI, disabled environment, or npm OIDC trust failure stops the workflow. Do not automatically retry a partial publication. Record npm versions, tags, Releases, and logs; use a separate reviewed recovery plan. npm cannot atomically publish three packages.
 
-For 0.0.4, PR #71 already bumps the three linked packages and lockfile; do not run `changeset version` again. Later changes get changesets, then a reviewed version PR. PM dispatches promotion only after the version PR and acceptance evidence are on the selected `develop` SHA.
-
-An already published version with complete tags and Releases skips publication. For that skip path, the initial preflight accepts an existing tag that points to an earlier `main` commit; the post-publish check requires every tag to point to the promoted `main` commit. A partial npm publication, existing tag for an unpublished version, missing Release, wrong tag target at the post-publish check, stale `develop` or `main`, failed CI, absent App credentials, or failed npm authentication stops the workflow. Re-running does not automatically publish the remaining packages. Record registry state and repair each missing artifact with a separate reviewed recovery plan. npm cannot atomically publish three packages.
-
-The current path uses the existing token. Moving to [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) needs each package to trust the exact GitHub workflow and environment, Node 22.14+ and npm CLI 11.5.1+, and an end-to-end test of Changesets/pnpm OIDC behavior. Do not remove the token until that separate change passes.
+PR #71 previously bumped the linked packages and lockfile to 0.0.4. The release target is now 0.4.0, so a separate reviewed version PR on `develop` must update all three packages and their packed internal dependencies. Do not run an unreviewed `changeset version` step. The first actual OIDC publication is a monitored GO gate.

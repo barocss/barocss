@@ -1,6 +1,11 @@
 {
   "name": "@barocss/browser",
   "version": "0.0.4",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/barocss/barocss.git",
+    "directory": "packages/barocss-browser"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
