@@ -2,7 +2,7 @@
 
 ## Current gate
 
-0.4.0 is **NO-GO**. PR #81 is a draft. The protected main setup, main-to-develop synchronization, and Docs #86 integration into `develop` are complete. A reviewed 0.4.0 version PR, verified npm Trusted Publisher settings, the live Docs smoke check, and final PM exact-SHA/version GO remain. Do not run the release workflow with `publish=true`, publish npm packages, create tags or GitHub Releases, or deploy Pages as part of this draft.
+0.4.0 is **NO-GO**. PR #81, the protected main setup, main-to-develop synchronization, Docs #86, and the 0.4.0 version PR #90 are integrated into `develop`. Final candidate verification, the live Docs smoke check, and PM exact-SHA/version GO remain. Do not run the release workflow with `publish=true`, publish npm packages, create tags or GitHub Releases, or deploy Pages without the release gates.
 
 ## Release source and preflight
 
@@ -41,7 +41,7 @@ The PM comment links Guard and Ship evidence. Since these records currently shar
 | `main` protection | Strict `build` and `test`, resolved conversations, normal PR merge. Zero required approvals for the owner-operated no-App model. Never bypass checks. | PR #87 merged with the checks in place. Required approvals are zero, strict checks and conversation resolution remain enabled, and admin enforcement is enabled. |
 | `develop` protection | Require a PR and current `Test and Build` on the candidate SHA. | The rule requires a PR and strict `Test and Build`. |
 | `npm` environment | Allow only `main`. Require the owner's explicit manual `publish=true` input and exact release evidence. Do not add an npm token. | PM verified the environment has a main-only branch policy. |
-| npm Trusted Publishers | For each of `@barocss/kit`, `@barocss/browser`, and `@barocss/server`, select GitHub Actions owner `barocss`, repository `barocss`, workflow filename `npm-release.yml`, environment `npm`, and allow direct `npm publish`. | The user reports registration, but the exact per-package fields are not verified through the public registry. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/). |
+| npm Trusted Publishers | For each of `@barocss/kit`, `@barocss/browser`, and `@barocss/server`, use GitHub Actions owner `barocss`, repository `barocss`, workflow filename `npm-release.yml`, and allow direct `npm publish`. The npm-side environment name is optional; the GitHub `npm` environment remains main-only. | Mento checked these fields in npm UI for all three packages. The npm-side environment name is blank. npm accepts the OIDC claim only during an authorized publish; this remains untested. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/). |
 | Legacy credentials/workflows | Remove the old token-based manual publish workflow and any legacy repository publish credential before publishing. | PR #87 removed the old main publish path. PR #88 synchronized that state into `develop`. The repository Actions secret-name list is empty. Main push checks and the OIDC issuance preflight passed; npm acceptance remains untested. |
 
 The one-time setup removed the legacy publish path before Docs or product changes reach `main`. A preflight confirmed GitHub OIDC issuance, but npm acceptance is only tested by an authorized actual publish. `npm whoami` is not an OIDC dry run. The live Docs/Quick Start check remains a release gate. Automatic Pages deployment from Docs changes on `main` is a separate workflow and is reviewed separately.
@@ -50,4 +50,4 @@ The one-time setup removed the legacy publish path before Docs or product change
 
 An already published version with complete npm packages, tags, and Releases is not republished. A partial npm publication, existing tag before npm publication, missing Release, wrong tag target, moved main, failed CI, disabled environment, or npm OIDC trust failure stops the workflow. Do not automatically retry a partial publication. Record npm versions, tags, Releases, and logs; use a separate reviewed recovery plan. npm cannot atomically publish three packages.
 
-PR #71 previously bumped the linked packages and lockfile to 0.0.4. The release target is now 0.4.0, so a separate reviewed version PR on `develop` must update all three packages and their packed internal dependencies. Do not run an unreviewed `changeset version` step. The first actual OIDC publication is a monitored GO gate.
+PR #71 previously bumped the linked packages and lockfile to 0.0.4. PR #90 updated all three package manifests to the 0.4.0 target and passed merged-develop CI. Recheck packed internal dependencies and npm version collisions at the final candidate SHA. Do not run an unreviewed `changeset version` step. The first actual OIDC publication is a monitored GO gate.
