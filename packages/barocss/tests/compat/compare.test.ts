@@ -1,37 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import postcss, { type ChildNode } from 'postcss';
+import postcss from 'postcss';
+import approved from './approved-structures.json';
+import { compatibilityBaseline } from './catalog';
 import { fixtures } from './fixtures';
 import { buildCssPair } from './harness';
+import { normalizeCss, structureFingerprint } from './normalize';
 
-type CssNode = {
-  type: string;
-  name?: string;
-  params?: string;
-  selector?: string;
-  prop?: string;
-  value?: string;
-  nodes?: CssNode[];
-};
-
-// Ignore whitespace and the Tailwind license header. Preserve selectors,
-// declarations, nesting, and at-rules so a different CSS result stays visible.
-function normalizeCss(css: string): CssNode[] {
-  const normalizeNode = (node: ChildNode): CssNode => {
-    if (node.type === 'decl') {
-      return { type: node.type, prop: node.prop, value: node.value };
-    }
-    if (node.type === 'rule') {
-      return { type: node.type, selector: node.selector, nodes: node.nodes.map(normalizeNode) };
-    }
-    if (node.type === 'atrule') {
-      return { type: node.type, name: node.name, params: node.params, nodes: node.nodes?.map(normalizeNode) };
-    }
-    return { type: node.type };
-  };
-  return postcss.parse(css).nodes
-    .filter((node) => node.type !== 'comment')
-    .map(normalizeNode);
-}
+type ApprovedStructure = { fingerprint: string; nodes: unknown[] };
+const approvedStructures = approved as Record<string, { tailwind: ApprovedStructure; barocss: ApprovedStructure }>;
 
 async function compare(candidate: string) {
   const { tailwindCss, baroCss } = await buildCssPair(candidate);
@@ -44,10 +20,54 @@ async function compare(candidate: string) {
 }
 
 describe('Tailwind CSS 4.1.13 output comparison', () => {
+  it('keeps the catalog and approved output keys aligned', () => {
+    const inputs = fixtures.map(({ candidate }) => candidate);
+    expect(new Set(inputs).size).toBe(inputs.length);
+    expect(Object.keys(approvedStructures).sort()).toEqual([...inputs].sort());
+    expect(compatibilityBaseline.cases).toHaveLength(15);
+    const evidence = compatibilityBaseline.evidence as Record<string, string>;
+    for (const entry of compatibilityBaseline.cases) {
+      expect(entry.pattern).toBeTruthy();
+      expect(entry.barocssIntroducedVersion).toBeTruthy();
+      for (const evidenceId of entry.evidenceIds) expect(evidence[evidenceId]).toBeTruthy();
+      if (entry.browser.status === 'verified') {
+        expect(entry.browser.version).toBeTruthy();
+        expect(entry.browser.scenario).toBeTruthy();
+        expect(entry.browser.evidence).toBeTruthy();
+      }
+      if (entry.origin === 'barocss') expect(entry.cssStructure).toBe('out-of-scope');
+    }
+  });
+
   it.each(fixtures)('$name: $candidate', async ({ candidate, expected }) => {
     const output = await compare(candidate);
     expect(output.tailwindCss).toContain('/*! tailwindcss v4.1.13');
     expect(output.result, `Tailwind:\n${output.tailwindCss}\nBaroCSS:\n${output.baroCss}`).toBe(expected);
+    expect(structureFingerprint(output.tailwindCss)).toBe(approvedStructures[candidate].tailwind.fingerprint);
+    expect(structureFingerprint(output.baroCss)).toBe(approvedStructures[candidate].barocss.fingerprint);
+    expect(JSON.stringify(normalizeCss(output.tailwindCss))).toBe(JSON.stringify(approvedStructures[candidate].tailwind.nodes));
+    expect(JSON.stringify(normalizeCss(output.baroCss))).toBe(JSON.stringify(approvedStructures[candidate].barocss.nodes));
+
+    const entry = compatibilityBaseline.cases.find(({ input }) => input === candidate);
+    expect(entry).toBeDefined();
+    if (entry?.cssStructure === 'different') {
+      expect(entry.requiredBaroDeclarations?.length).toBeGreaterThan(0);
+      const declarations: Array<{ prop: string; value: string }> = [];
+      postcss.parse(output.baroCss).walkDecls(({ prop, value }) => {
+        declarations.push({ prop, value });
+      });
+      for (const required of entry.requiredBaroDeclarations ?? []) {
+        expect(declarations).toContainEqual(required);
+      }
+    }
+  });
+
+  it('detects a changed rule even when it would still be classified different', async () => {
+    const { tailwindCss, baroCss } = await buildCssPair('p-4');
+    const changedBaroCss = baroCss.replace('var(--spacing) * 4', 'var(--spacing) * 5');
+    expect(changedBaroCss).not.toBe(baroCss);
+    expect(JSON.stringify(normalizeCss(tailwindCss))).not.toBe(JSON.stringify(normalizeCss(changedBaroCss)));
+    expect(structureFingerprint(changedBaroCss)).not.toBe(approvedStructures['p-4'].barocss.fingerprint);
   });
 
   it('emits a usable standalone mask rule while global property support differs', async () => {

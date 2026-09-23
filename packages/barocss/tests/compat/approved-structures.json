@@ -1,0 +1,1246 @@
+{
+  "block": {
+    "tailwind": {
+      "fingerprint": "a8c11299ee75aef9f1a9a0e5505d2a66af895c845381ccdc85ec08d535c44834",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".block",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "display",
+              "value": "block"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "a8c11299ee75aef9f1a9a0e5505d2a66af895c845381ccdc85ec08d535c44834",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".block",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "display",
+              "value": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "hidden": {
+    "tailwind": {
+      "fingerprint": "9a40835d1890ea82274531cbe1e3f1b19ca9461ec6173434deafb6a689e56f70",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".hidden",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "display",
+              "value": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "9a40835d1890ea82274531cbe1e3f1b19ca9461ec6173434deafb6a689e56f70",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".hidden",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "display",
+              "value": "none"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "overflow-hidden": {
+    "tailwind": {
+      "fingerprint": "78ceedbf559f5232182f51a0243e8638dd4b4cc34cf9eafd87c0adf1082efcf3",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".overflow-hidden",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "overflow",
+              "value": "hidden"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "78ceedbf559f5232182f51a0243e8638dd4b4cc34cf9eafd87c0adf1082efcf3",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".overflow-hidden",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "overflow",
+              "value": "hidden"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "text-center": {
+    "tailwind": {
+      "fingerprint": "70e4a3d459f785b043f5151163561c2064044b7e88e4aab1606baac2747472ed",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".text-center",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "text-align",
+              "value": "center"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "70e4a3d459f785b043f5151163561c2064044b7e88e4aab1606baac2747472ed",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".text-center",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "text-align",
+              "value": "center"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "p-4": {
+    "tailwind": {
+      "fingerprint": "18adee034ffa5c4654fea81b1d875bd6f15694bc9bb2949111ce8cfecb99bb85",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".p-4",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "padding",
+              "value": "calc(0.25rem * 4)"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "66324821a612c4eac455602acf8cadc531ed12101cf0c0f035c0f92068e58afe",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".p-4",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "padding",
+              "value": "calc(var(--spacing) * 4)"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "-mt-4": {
+    "tailwind": {
+      "fingerprint": "695b7ce5fdba4d1555caf99196dd51c180f8dd7613604e51228f7cd80364da81",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".-mt-4",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "margin-top",
+              "value": "calc(0.25rem * -4)"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "c47d4c4aaa7de27af6a02a7af796162268c59dbb94c00391e4bd2d5de3b6b2df",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".-mt-4",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "margin-top",
+              "value": "calc(var(--spacing) * -4)"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "bg-red-500": {
+    "tailwind": {
+      "fingerprint": "67add8878a01b4caeaedc156dbad0b89bbeca1e3cfc364ddcc746b9965f26e46",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".bg-red-500",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "background-color",
+              "value": "#ef4444"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "67add8878a01b4caeaedc156dbad0b89bbeca1e3cfc364ddcc746b9965f26e46",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".bg-red-500",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "background-color",
+              "value": "#ef4444"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "bg-[#ff0000]": {
+    "tailwind": {
+      "fingerprint": "96ba12e6375683294620324331a84cef9852f624d9b44c1dad4df7d416510e2d",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".bg-\\[\\#ff0000\\]",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "background-color",
+              "value": "#ff0000"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "96ba12e6375683294620324331a84cef9852f624d9b44c1dad4df7d416510e2d",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".bg-\\[\\#ff0000\\]",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "background-color",
+              "value": "#ff0000"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "focus:block": {
+    "tailwind": {
+      "fingerprint": "7b41999f295e46b2cafb3c8a786aed8b962c494f24dbcc29bf94f516afa9532c",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".focus\\:block",
+          "nodes": [
+            {
+              "type": "rule",
+              "selector": "&:focus",
+              "nodes": [
+                {
+                  "type": "decl",
+                  "prop": "display",
+                  "value": "block"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "1ee085810802b53c873b891275225fa79517723a26d0e9d479cf1d92c2836f33",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".focus\\:block:focus",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "display",
+              "value": "block"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "hover:block": {
+    "tailwind": {
+      "fingerprint": "f2ad767aaf06ca81ddecb5c2c5dfc3f46e66afb7c257985e2a470f4f6377d639",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".hover\\:block",
+          "nodes": [
+            {
+              "type": "rule",
+              "selector": "&:hover",
+              "nodes": [
+                {
+                  "type": "atrule",
+                  "name": "media",
+                  "params": "(hover: hover)",
+                  "nodes": [
+                    {
+                      "type": "decl",
+                      "prop": "display",
+                      "value": "block"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "54b9b60c78f896c7533c90d5bae5f3c72e10f5d14bcb044900ffd83e25c82282",
+      "nodes": [
+        {
+          "type": "atrule",
+          "name": "media",
+          "params": "(hover: hover)",
+          "nodes": [
+            {
+              "type": "rule",
+              "selector": ".hover\\:block:hover",
+              "nodes": [
+                {
+                  "type": "decl",
+                  "prop": "display",
+                  "value": "block"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "md:block": {
+    "tailwind": {
+      "fingerprint": "64ff6339add570d63b4312906602d99002d20d15e424c75b92e34cce6abd798e",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".md\\:block",
+          "nodes": [
+            {
+              "type": "atrule",
+              "name": "media",
+              "params": "(width >= 48rem)",
+              "nodes": [
+                {
+                  "type": "decl",
+                  "prop": "display",
+                  "value": "block"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "3f110b29685dc0f18de60dd4a91398271fc2c9f179a9c2bfe54c975bfce44565",
+      "nodes": [
+        {
+          "type": "atrule",
+          "name": "media",
+          "params": "(min-width: 48rem)",
+          "nodes": [
+            {
+              "type": "rule",
+              "selector": ".md\\:block",
+              "nodes": [
+                {
+                  "type": "decl",
+                  "prop": "display",
+                  "value": "block"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "grid-cols-2": {
+    "tailwind": {
+      "fingerprint": "96bd7f69b32f3e48224ac456f2c26fae38011f8b1391ef4487392776a9f14cd5",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".grid-cols-2",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "grid-template-columns",
+              "value": "repeat(2, minmax(0, 1fr))"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "96bd7f69b32f3e48224ac456f2c26fae38011f8b1391ef4487392776a9f14cd5",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".grid-cols-2",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "grid-template-columns",
+              "value": "repeat(2, minmax(0, 1fr))"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "inset-ring-2": {
+    "tailwind": {
+      "fingerprint": "659a8aad71829f65008f9f40932a21717c6dd832aa87d903ff59c9660fedf9b6",
+      "nodes": [
+        {
+          "type": "atrule",
+          "name": "layer",
+          "params": "properties"
+        },
+        {
+          "type": "rule",
+          "selector": ".inset-ring-2",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "--tw-inset-ring-shadow",
+              "value": "inset 0 0 0 2px var(--tw-inset-ring-color, currentcolor)"
+            },
+            {
+              "type": "decl",
+              "prop": "box-shadow",
+              "value": "var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-shadow",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "0 0 #0000"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-shadow-color",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-shadow-alpha",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"<percentage>\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "100%"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-inset-shadow",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "0 0 #0000"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-inset-shadow-color",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-inset-shadow-alpha",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"<percentage>\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "100%"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-ring-color",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-ring-shadow",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "0 0 #0000"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-inset-ring-color",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-inset-ring-shadow",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "0 0 #0000"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-ring-inset",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-ring-offset-width",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"<length>\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "0px"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-ring-offset-color",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "#fff"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-ring-offset-shadow",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "0 0 #0000"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "layer",
+          "params": "properties",
+          "nodes": [
+            {
+              "type": "atrule",
+              "name": "supports",
+              "params": "((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b))))",
+              "nodes": [
+                {
+                  "type": "rule",
+                  "selector": "*, ::before, ::after, ::backdrop",
+                  "nodes": [
+                    {
+                      "type": "decl",
+                      "prop": "--tw-shadow",
+                      "value": "0 0 #0000"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-shadow-color",
+                      "value": "initial"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-shadow-alpha",
+                      "value": "100%"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-inset-shadow",
+                      "value": "0 0 #0000"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-inset-shadow-color",
+                      "value": "initial"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-inset-shadow-alpha",
+                      "value": "100%"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-ring-color",
+                      "value": "initial"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-ring-shadow",
+                      "value": "0 0 #0000"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-inset-ring-color",
+                      "value": "initial"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-inset-ring-shadow",
+                      "value": "0 0 #0000"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-ring-inset",
+                      "value": "initial"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-ring-offset-width",
+                      "value": "0px"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-ring-offset-color",
+                      "value": "#fff"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-ring-offset-shadow",
+                      "value": "0 0 #0000"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "7d2afd64743240f1c0d9246daf19b21ebe1664b8d5f067e688444d7280622332",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".inset-ring-2",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "--baro-ring-inset",
+              "value": "inset"
+            },
+            {
+              "type": "decl",
+              "prop": "--baro-ring-offset-width",
+              "value": "0px"
+            },
+            {
+              "type": "decl",
+              "prop": "--baro-ring-offset-color",
+              "value": "#fff"
+            },
+            {
+              "type": "decl",
+              "prop": "--baro-inset-ring-color",
+              "value": "currentcolor"
+            },
+            {
+              "type": "decl",
+              "prop": "--baro-inset-ring-shadow",
+              "value": "var(--baro-ring-inset) 0 0 0 calc(2px + var(--baro-ring-offset-width)) var(--baro-inset-ring-color, currentcolor)"
+            },
+            {
+              "type": "decl",
+              "prop": "--baro-ring-offset-shadow",
+              "value": "0 0 #0000"
+            },
+            {
+              "type": "decl",
+              "prop": "box-shadow",
+              "value": "var(--baro-inset-shadow, 0 0 #0000), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow, 0 0 #0000), var(--baro-ring-shadow, 0 0 #0000), var(--baro-shadow, 0 0 #0000)"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "field-sizing-content": {
+    "tailwind": {
+      "fingerprint": "2af9adcfb984984f4946fc49f1aa1b461f94ca0cac14031df1b12169adc2e1aa",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".field-sizing-content",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "field-sizing",
+              "value": "content"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "2af9adcfb984984f4946fc49f1aa1b461f94ca0cac14031df1b12169adc2e1aa",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".field-sizing-content",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "field-sizing",
+              "value": "content"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "mask-linear-from-50%": {
+    "tailwind": {
+      "fingerprint": "c4e000ece8c3a2baa246c4c7ea4bdf60f4dc516180e45964ed31512009efd570",
+      "nodes": [
+        {
+          "type": "atrule",
+          "name": "layer",
+          "params": "properties"
+        },
+        {
+          "type": "rule",
+          "selector": ".mask-linear-from-50\\%",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "mask-image",
+              "value": "var(--tw-mask-linear), var(--tw-mask-radial), var(--tw-mask-conic)"
+            },
+            {
+              "type": "decl",
+              "prop": "mask-composite",
+              "value": "intersect"
+            },
+            {
+              "type": "decl",
+              "prop": "--tw-mask-linear-stops",
+              "value": "var(--tw-mask-linear-position), var(--tw-mask-linear-from-color) var(--tw-mask-linear-from-position), var(--tw-mask-linear-to-color) var(--tw-mask-linear-to-position)"
+            },
+            {
+              "type": "decl",
+              "prop": "--tw-mask-linear",
+              "value": "linear-gradient(var(--tw-mask-linear-stops))"
+            },
+            {
+              "type": "decl",
+              "prop": "--tw-mask-linear-from-position",
+              "value": "50%"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-mask-linear",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "linear-gradient(#fff, #fff)"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-mask-radial",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "linear-gradient(#fff, #fff)"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-mask-conic",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "linear-gradient(#fff, #fff)"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-mask-linear-position",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "0deg"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-mask-linear-from-position",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "0%"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-mask-linear-to-position",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "100%"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-mask-linear-from-color",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "black"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "property",
+          "params": "--tw-mask-linear-to-color",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "syntax",
+              "value": "\"*\""
+            },
+            {
+              "type": "decl",
+              "prop": "inherits",
+              "value": "false"
+            },
+            {
+              "type": "decl",
+              "prop": "initial-value",
+              "value": "transparent"
+            }
+          ]
+        },
+        {
+          "type": "atrule",
+          "name": "layer",
+          "params": "properties",
+          "nodes": [
+            {
+              "type": "atrule",
+              "name": "supports",
+              "params": "((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b))))",
+              "nodes": [
+                {
+                  "type": "rule",
+                  "selector": "*, ::before, ::after, ::backdrop",
+                  "nodes": [
+                    {
+                      "type": "decl",
+                      "prop": "--tw-mask-linear",
+                      "value": "linear-gradient(#fff, #fff)"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-mask-radial",
+                      "value": "linear-gradient(#fff, #fff)"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-mask-conic",
+                      "value": "linear-gradient(#fff, #fff)"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-mask-linear-position",
+                      "value": "0deg"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-mask-linear-from-position",
+                      "value": "0%"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-mask-linear-to-position",
+                      "value": "100%"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-mask-linear-from-color",
+                      "value": "black"
+                    },
+                    {
+                      "type": "decl",
+                      "prop": "--tw-mask-linear-to-color",
+                      "value": "transparent"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "b424d0ae974f1a6c498930d3345ea0ab87965057d0199d06631e110e016e2e2a",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".mask-linear-from-50\\%",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "mask-image",
+              "value": "var(--tw-mask-linear), var(--tw-mask-radial, linear-gradient(#fff, #fff)), var(--tw-mask-conic, linear-gradient(#fff, #fff))"
+            },
+            {
+              "type": "decl",
+              "prop": "mask-composite",
+              "value": "intersect"
+            },
+            {
+              "type": "decl",
+              "prop": "--tw-mask-linear-stops",
+              "value": "var(--tw-mask-linear-position, 0deg), var(--tw-mask-linear-from-color, black) var(--tw-mask-linear-from-position, 0%), var(--tw-mask-linear-to-color, transparent) var(--tw-mask-linear-to-position, 100%)"
+            },
+            {
+              "type": "decl",
+              "prop": "--tw-mask-linear",
+              "value": "linear-gradient(var(--tw-mask-linear-stops))"
+            },
+            {
+              "type": "decl",
+              "prop": "--tw-mask-linear-from-position",
+              "value": "50%"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
