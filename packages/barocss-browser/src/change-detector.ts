@@ -91,10 +91,11 @@ export class ChangeDetector {
           // Handle new nodes
           if (mutation.type === 'childList') {
             mutation.addedNodes.forEach(node => {
-              if (node instanceof Element) {
-                this.processElement(node, newClasses);
+              if (node.nodeType === Node.ELEMENT_NODE) {
+                const element = node as Element;
+                this.processElement(element, newClasses);
                 // Process child elements
-                node.querySelectorAll('[class]').forEach(el => {
+                element.querySelectorAll('[class]').forEach(el => {
                   this.processElement(el, newClasses);
                 });
               }

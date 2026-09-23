@@ -38,6 +38,26 @@ describe('BrowserRuntime', () => {
     }
   });
 
+  it('processes elements added to an observed iframe body', async () => {
+    const frame = document.createElement('iframe');
+    document.body.append(frame);
+    const frameBody = frame.contentDocument!.body;
+    const frameRuntime = new BrowserRuntime({ insertionPoint: frameBody });
+
+    try {
+      frameRuntime.observe(frameBody);
+      const element = frame.contentDocument!.createElement('div');
+      element.className = 'p-4';
+      frameBody.append(element);
+      await Promise.resolve();
+
+      expect(frameRuntime.has('p-4')).toBe(true);
+    } finally {
+      frameRuntime.destroy();
+      frame.remove();
+    }
+  });
+
   it('keeps generated CSS available through the cache API', () => {
     runtime.addClass('p-4 m-2');
 
