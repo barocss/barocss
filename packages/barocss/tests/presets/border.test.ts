@@ -388,6 +388,7 @@ describe("border utilities", () => {
       ]);
       expect(parseClassToAst("outline", ctx)).toMatchObject([
         { type: "decl", prop: "outline-style", value: "solid" },
+        { type: "decl", prop: "outline-width", value: "1px" },
       ]);
       expect(parseClassToAst("outline-dashed", ctx)).toMatchObject([
         { type: "decl", prop: "outline-style", value: "dashed" },

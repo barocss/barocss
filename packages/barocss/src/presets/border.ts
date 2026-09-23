@@ -227,7 +227,7 @@ staticUtility("outline-transparent", [["outline-color", "transparent"]], { categ
 
 // Static outline style utilities
 staticUtility("outline-none", [["outline", "2px solid transparent"], ["outline-offset", "2px"]], { category: 'borders' });
-staticUtility("outline", [["outline-style", "solid"]], { category: 'borders' });
+staticUtility("outline", [["outline-style", "solid"], ["outline-width", "1px"]], { category: 'borders' });
 staticUtility("outline-dashed", [["outline-style", "dashed"]], { category: 'borders' });
 staticUtility("outline-dotted", [["outline-style", "dotted"]], { category: 'borders' });
 staticUtility("outline-double", [["outline-style", "double"]], { category: 'borders' });
