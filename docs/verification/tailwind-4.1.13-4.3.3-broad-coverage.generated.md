@@ -2,7 +2,7 @@
 
 Generated from the [raw CSS records](tailwind-4.1.13-4.3.3-broad-output.json) and the [exact input catalog](../../packages/barocss/tests/compat/coverage-catalog.ts) on 2026-09-23. This is a selected sample, **not a compatibility percentage** or a claim of full version support.
 
-Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `21d6aad`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
+Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `18b87a1`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
 
 ## Method and limits
 
@@ -32,9 +32,9 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | svg-and-accessibility | 7 | 2 | 5 | 0 | 0 | 2 | 5 | 0 | 0 |
 | variants | 21 | 0 | 21 | 0 | 0 | 9 | 12 | 0 | 0 |
 | syntax | 12 | 7 | 4 | 1 | 0 | 7 | 4 | 1 | 0 |
-| v4.2-and-v4.3 | 19 | 0 | 0 | 0 | 19 | 0 | 1 | 18 | 0 |
+| v4.2-and-v4.3 | 30 | 0 | 0 | 0 | 30 | 12 | 1 | 13 | 4 |
 | combinations | 6 | 0 | 6 | 0 | 0 | 1 | 5 | 0 | 0 |
-| Total selected inputs | 219 | 93 | 105 | 2 | 19 | 102 | 97 | 20 | 0 |
+| Total selected inputs | 230 | 93 | 105 | 2 | 30 | 114 | 97 | 15 | 4 |
 
 ## Exact inputs
 
@@ -240,19 +240,30 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | v4.2-and-v4.3 / logical-properties | representative | `block-24` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `inset-bs-2` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `inset-e-4` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / new-utilities | representative | `zoom-75` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / new-utilities | representative | `zoom-125` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / new-utilities | representative | `tab-2` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-auto` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-thin` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-none` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-gutter-stable` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `@container-size` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / new-utilities | boundary | `zoom-[1.1]` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / new-utilities | boundary | `tab-[12px]` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `@container-size/sidebar` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `font-features-["tnum"]` | reference-no-rule | different | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `scrollbar-thumb-red-500` | reference-no-rule | unsupported | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / zoom | representative | `zoom-0` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
+| v4.2-and-v4.3 / zoom | representative | `zoom-75` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
+| v4.2-and-v4.3 / zoom | representative | `zoom-100` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
+| v4.2-and-v4.3 / zoom | representative | `zoom-125` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
+| v4.2-and-v4.3 / zoom | boundary | `zoom-[1.1]` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
+| v4.2-and-v4.3 / zoom | boundary | `zoom-[80%]` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
+| v4.2-and-v4.3 / zoom | boundary | `zoom-(--scale)` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
+| v4.2-and-v4.3 / zoom | boundary | `zoom-1.5` | reference-no-rule | reference-no-rule | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
+| v4.2-and-v4.3 / zoom | boundary | `zoom-auto` | reference-no-rule | reference-no-rule | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
+| v4.2-and-v4.3 / tab-size | representative | `tab-0` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/tab-size) |
+| v4.2-and-v4.3 / tab-size | representative | `tab-2` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/tab-size) |
+| v4.2-and-v4.3 / tab-size | representative | `tab-4` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/tab-size) |
+| v4.2-and-v4.3 / tab-size | boundary | `tab-[12px]` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/tab-size) |
+| v4.2-and-v4.3 / tab-size | boundary | `tab-(--size)` | reference-no-rule | match | unverified | [Tailwind](https://tailwindcss.com/docs/tab-size) |
+| v4.2-and-v4.3 / tab-size | boundary | `tab-1.5` | reference-no-rule | reference-no-rule | unverified | [Tailwind](https://tailwindcss.com/docs/tab-size) |
+| v4.2-and-v4.3 / tab-size | boundary | `tab-none` | reference-no-rule | reference-no-rule | unverified | [Tailwind](https://tailwindcss.com/docs/tab-size) |
 | combinations / same-element-classes | combination | `block p-4` | different | different | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | combinations / same-element-classes | combination | `flex items-center gap-4` | different | different | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | combinations / same-element-classes | combination | `bg-red-500 hover:bg-red-500` | different | match | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |

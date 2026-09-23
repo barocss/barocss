@@ -8,6 +8,7 @@ import { normalizeCss } from './normalize';
 const supported = [
   ['zoom-0', 'zoom', '0%'],
   ['zoom-75', 'zoom', '75%'],
+  ['zoom-100', 'zoom', '100%'],
   ['zoom-125', 'zoom', '125%'],
   ['zoom-[1.1]', 'zoom', '1.1'],
   ['zoom-[80%]', 'zoom', '80%'],

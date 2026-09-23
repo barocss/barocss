@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-21d6aad-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-18b87a1-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "21d6aad",
+    "barocssCommit": "18b87a1",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -4217,69 +4217,6 @@
       }
     },
     {
-      "id": "new-utilities:zoom-75",
-      "axis": "v4.2-and-v4.3",
-      "family": "new-utilities",
-      "role": "representative",
-      "classes": [
-        "zoom-75"
-      ],
-      "source": "https://tailwindcss.com/blog/tailwindcss-v4-3",
-      "browserStatus": "unverified",
-      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
-      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-75 {\n  zoom: 75%;\n}\n",
-      "barocss": "",
-      "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
-      "fingerprints": {
-        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-        "tailwindV4_3_3": "49cd2b29083ae7d6cabf89f1040adeb6077a8d84f0371adcfaf418c017a5e34a",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
-      }
-    },
-    {
-      "id": "new-utilities:zoom-125",
-      "axis": "v4.2-and-v4.3",
-      "family": "new-utilities",
-      "role": "representative",
-      "classes": [
-        "zoom-125"
-      ],
-      "source": "https://tailwindcss.com/blog/tailwindcss-v4-3",
-      "browserStatus": "unverified",
-      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
-      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-125 {\n  zoom: 125%;\n}\n",
-      "barocss": "",
-      "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
-      "fingerprints": {
-        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-        "tailwindV4_3_3": "18cbdf5ddb58a5189c123ffa4b8063078e360e57916cea5dcfdd817c852685c7",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
-      }
-    },
-    {
-      "id": "new-utilities:tab-2",
-      "axis": "v4.2-and-v4.3",
-      "family": "new-utilities",
-      "role": "representative",
-      "classes": [
-        "tab-2"
-      ],
-      "source": "https://tailwindcss.com/blog/tailwindcss-v4-3",
-      "browserStatus": "unverified",
-      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
-      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.tab-2 {\n  tab-size: 2;\n}\n",
-      "barocss": "",
-      "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
-      "fingerprints": {
-        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-        "tailwindV4_3_3": "2c8f20a529e7f074ab06de104a6a91d19fe6806abd195d67aebb34c90993d366",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
-      }
-    },
-    {
       "id": "new-utilities:scrollbar-auto",
       "axis": "v4.2-and-v4.3",
       "family": "new-utilities",
@@ -4385,48 +4322,6 @@
       }
     },
     {
-      "id": "new-utilities:zoom-[1.1]",
-      "axis": "v4.2-and-v4.3",
-      "family": "new-utilities",
-      "role": "boundary",
-      "classes": [
-        "zoom-[1.1]"
-      ],
-      "source": "https://tailwindcss.com/blog/tailwindcss-v4-3",
-      "browserStatus": "unverified",
-      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
-      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-\\[1\\.1\\] {\n  zoom: 1.1;\n}\n",
-      "barocss": "",
-      "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
-      "fingerprints": {
-        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-        "tailwindV4_3_3": "1776a7de223aa147b7d7fb989d1c3d4d46f574127f37be01fd4772aef1e8d9e8",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
-      }
-    },
-    {
-      "id": "new-utilities:tab-[12px]",
-      "axis": "v4.2-and-v4.3",
-      "family": "new-utilities",
-      "role": "boundary",
-      "classes": [
-        "tab-[12px]"
-      ],
-      "source": "https://tailwindcss.com/blog/tailwindcss-v4-3",
-      "browserStatus": "unverified",
-      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
-      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.tab-\\[12px\\] {\n  tab-size: 12px;\n}\n",
-      "barocss": "",
-      "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
-      "fingerprints": {
-        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-        "tailwindV4_3_3": "64d0182118abe1ec8698e0c25b05fe4f29db8c5b9809743025ed1653ed271c96",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
-      }
-    },
-    {
       "id": "new-utilities:@container-size/sidebar",
       "axis": "v4.2-and-v4.3",
       "family": "new-utilities",
@@ -4486,6 +4381,342 @@
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "3e046f76cc3a03350fc36381c3432a033c577e8a784728ba02da54becc551406",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "zoom:zoom-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "zoom",
+      "role": "representative",
+      "classes": [
+        "zoom-0"
+      ],
+      "source": "https://tailwindcss.com/docs/zoom",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-0 {\n  zoom: 0%;\n}\n",
+      "barocss": ".zoom-0 {\n  zoom: 0%;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "0f5f9376aeed67e076338b4ae61751a81d8f0b1daa9396717eb8cc6ab70e6e80",
+        "barocss": "0f5f9376aeed67e076338b4ae61751a81d8f0b1daa9396717eb8cc6ab70e6e80"
+      }
+    },
+    {
+      "id": "zoom:zoom-75",
+      "axis": "v4.2-and-v4.3",
+      "family": "zoom",
+      "role": "representative",
+      "classes": [
+        "zoom-75"
+      ],
+      "source": "https://tailwindcss.com/docs/zoom",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-75 {\n  zoom: 75%;\n}\n",
+      "barocss": ".zoom-75 {\n  zoom: 75%;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "49cd2b29083ae7d6cabf89f1040adeb6077a8d84f0371adcfaf418c017a5e34a",
+        "barocss": "49cd2b29083ae7d6cabf89f1040adeb6077a8d84f0371adcfaf418c017a5e34a"
+      }
+    },
+    {
+      "id": "zoom:zoom-100",
+      "axis": "v4.2-and-v4.3",
+      "family": "zoom",
+      "role": "representative",
+      "classes": [
+        "zoom-100"
+      ],
+      "source": "https://tailwindcss.com/docs/zoom",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-100 {\n  zoom: 100%;\n}\n",
+      "barocss": ".zoom-100 {\n  zoom: 100%;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "b0fd785f2c315bcbc1b1771010c3aa389127acd7a36871a5cd8498c2f5baa97d",
+        "barocss": "b0fd785f2c315bcbc1b1771010c3aa389127acd7a36871a5cd8498c2f5baa97d"
+      }
+    },
+    {
+      "id": "zoom:zoom-125",
+      "axis": "v4.2-and-v4.3",
+      "family": "zoom",
+      "role": "representative",
+      "classes": [
+        "zoom-125"
+      ],
+      "source": "https://tailwindcss.com/docs/zoom",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-125 {\n  zoom: 125%;\n}\n",
+      "barocss": ".zoom-125 {\n  zoom: 125%;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "18cbdf5ddb58a5189c123ffa4b8063078e360e57916cea5dcfdd817c852685c7",
+        "barocss": "18cbdf5ddb58a5189c123ffa4b8063078e360e57916cea5dcfdd817c852685c7"
+      }
+    },
+    {
+      "id": "zoom:zoom-[1.1]",
+      "axis": "v4.2-and-v4.3",
+      "family": "zoom",
+      "role": "boundary",
+      "classes": [
+        "zoom-[1.1]"
+      ],
+      "source": "https://tailwindcss.com/docs/zoom",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-\\[1\\.1\\] {\n  zoom: 1.1;\n}\n",
+      "barocss": ".zoom-\\[1\\.1\\] {\n  zoom: 1.1;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "1776a7de223aa147b7d7fb989d1c3d4d46f574127f37be01fd4772aef1e8d9e8",
+        "barocss": "1776a7de223aa147b7d7fb989d1c3d4d46f574127f37be01fd4772aef1e8d9e8"
+      }
+    },
+    {
+      "id": "zoom:zoom-[80%]",
+      "axis": "v4.2-and-v4.3",
+      "family": "zoom",
+      "role": "boundary",
+      "classes": [
+        "zoom-[80%]"
+      ],
+      "source": "https://tailwindcss.com/docs/zoom",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-\\[80\\%\\] {\n  zoom: 80%;\n}\n",
+      "barocss": ".zoom-\\[80\\%\\] {\n  zoom: 80%;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "7651a38729b4e184b47b4a8dace8c075ce855236fa54cfc40ff4cd5931211424",
+        "barocss": "7651a38729b4e184b47b4a8dace8c075ce855236fa54cfc40ff4cd5931211424"
+      }
+    },
+    {
+      "id": "zoom:zoom-(--scale)",
+      "axis": "v4.2-and-v4.3",
+      "family": "zoom",
+      "role": "boundary",
+      "classes": [
+        "zoom-(--scale)"
+      ],
+      "source": "https://tailwindcss.com/docs/zoom",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-\\(--scale\\) {\n  zoom: var(--scale);\n}\n",
+      "barocss": ".zoom-\\(--scale\\) {\n  zoom: var(--scale);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "9a6c09e0d3b288d8d27b68df8b681255113741ff9583ae74bd209d18e0fb070c",
+        "barocss": "9a6c09e0d3b288d8d27b68df8b681255113741ff9583ae74bd209d18e0fb070c"
+      }
+    },
+    {
+      "id": "zoom:zoom-1.5",
+      "axis": "v4.2-and-v4.3",
+      "family": "zoom",
+      "role": "boundary",
+      "classes": [
+        "zoom-1.5"
+      ],
+      "source": "https://tailwindcss.com/docs/zoom",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "zoom:zoom-auto",
+      "axis": "v4.2-and-v4.3",
+      "family": "zoom",
+      "role": "boundary",
+      "classes": [
+        "zoom-auto"
+      ],
+      "source": "https://tailwindcss.com/docs/zoom",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "tab-size:tab-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "tab-size",
+      "role": "representative",
+      "classes": [
+        "tab-0"
+      ],
+      "source": "https://tailwindcss.com/docs/tab-size",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.tab-0 {\n  tab-size: 0;\n}\n",
+      "barocss": ".tab-0 {\n  tab-size: 0;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "eb5feb5a55ce977d15b41dfbc74fb4ebe62f8a7e5f729eb4ad7911633d413c6d",
+        "barocss": "eb5feb5a55ce977d15b41dfbc74fb4ebe62f8a7e5f729eb4ad7911633d413c6d"
+      }
+    },
+    {
+      "id": "tab-size:tab-2",
+      "axis": "v4.2-and-v4.3",
+      "family": "tab-size",
+      "role": "representative",
+      "classes": [
+        "tab-2"
+      ],
+      "source": "https://tailwindcss.com/docs/tab-size",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.tab-2 {\n  tab-size: 2;\n}\n",
+      "barocss": ".tab-2 {\n  tab-size: 2;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "2c8f20a529e7f074ab06de104a6a91d19fe6806abd195d67aebb34c90993d366",
+        "barocss": "2c8f20a529e7f074ab06de104a6a91d19fe6806abd195d67aebb34c90993d366"
+      }
+    },
+    {
+      "id": "tab-size:tab-4",
+      "axis": "v4.2-and-v4.3",
+      "family": "tab-size",
+      "role": "representative",
+      "classes": [
+        "tab-4"
+      ],
+      "source": "https://tailwindcss.com/docs/tab-size",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.tab-4 {\n  tab-size: 4;\n}\n",
+      "barocss": ".tab-4 {\n  tab-size: 4;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "3869e9b0f8cd7b70004f641978c4a8537ab48521c763d0fbde33622337b8be31",
+        "barocss": "3869e9b0f8cd7b70004f641978c4a8537ab48521c763d0fbde33622337b8be31"
+      }
+    },
+    {
+      "id": "tab-size:tab-[12px]",
+      "axis": "v4.2-and-v4.3",
+      "family": "tab-size",
+      "role": "boundary",
+      "classes": [
+        "tab-[12px]"
+      ],
+      "source": "https://tailwindcss.com/docs/tab-size",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.tab-\\[12px\\] {\n  tab-size: 12px;\n}\n",
+      "barocss": ".tab-\\[12px\\] {\n  tab-size: 12px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "64d0182118abe1ec8698e0c25b05fe4f29db8c5b9809743025ed1653ed271c96",
+        "barocss": "64d0182118abe1ec8698e0c25b05fe4f29db8c5b9809743025ed1653ed271c96"
+      }
+    },
+    {
+      "id": "tab-size:tab-(--size)",
+      "axis": "v4.2-and-v4.3",
+      "family": "tab-size",
+      "role": "boundary",
+      "classes": [
+        "tab-(--size)"
+      ],
+      "source": "https://tailwindcss.com/docs/tab-size",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.tab-\\(--size\\) {\n  tab-size: var(--size);\n}\n",
+      "barocss": ".tab-\\(--size\\) {\n  tab-size: var(--size);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "95e7a16fe113294d9dd7e634641eab2dc7fb9f066d6ea906e0585b537e813584",
+        "barocss": "95e7a16fe113294d9dd7e634641eab2dc7fb9f066d6ea906e0585b537e813584"
+      }
+    },
+    {
+      "id": "tab-size:tab-1.5",
+      "axis": "v4.2-and-v4.3",
+      "family": "tab-size",
+      "role": "boundary",
+      "classes": [
+        "tab-1.5"
+      ],
+      "source": "https://tailwindcss.com/docs/tab-size",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "tab-size:tab-none",
+      "axis": "v4.2-and-v4.3",
+      "family": "tab-size",
+      "role": "boundary",
+      "classes": [
+        "tab-none"
+      ],
+      "source": "https://tailwindcss.com/docs/tab-size",
+      "browserStatus": "unverified",
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       }
     },
