@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-b927828-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-a5c0835-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "b927828",
+    "barocssCommit": "a5c0835",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -4871,13 +4871,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.max-md\\:hidden {\n  @media (width < 48rem) {\n    display: none;\n  }\n}\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@media (width < 48rem) {\n  .max-md\\:hidden {\n    display: none;\n  }\n}\n",
-      "barocss": "@media 48rem {\n  .max-md\\:hidden {\n    display: none;\n  }\n}\n",
+      "barocss": "@media (width < 48rem) {\n  .max-md\\:hidden {\n    display: none;\n  }\n}\n",
       "statusV4_1_13": "different",
-      "statusV4_3_3": "different",
+      "statusV4_3_3": "match",
       "fingerprints": {
         "tailwindV4_1_13": "5e119917971993926aae6ee9bb015918987be5cd1018a881f31c2e7d654ed2c8",
         "tailwindV4_3_3": "0d6597628595b670eb4031931ccbf9d46228035b96f05afae3dfc2692479fcdd",
-        "barocss": "83d7c6cf701bb8537ed484ef589d767932ca1b1b39afeb76aa0518eaa09dccc5"
+        "barocss": "0d6597628595b670eb4031931ccbf9d46228035b96f05afae3dfc2692479fcdd"
       }
     },
     {
