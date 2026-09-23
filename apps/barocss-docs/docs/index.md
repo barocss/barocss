@@ -3,7 +3,7 @@ layout: home
 hero:
   name: "BaroCSS"
   text: CSS Runtime Engine
-  tagline: A CSS parsing and generation engine that brings Tailwind's utility-first approach to runtime environments
+  tagline: Generate utility CSS in the browser or on the server
   actions:
     - theme: brand
       text: Get Started
@@ -21,8 +21,8 @@ features:
     title: Runtime-First
     details: Parse and generate CSS at runtime without build processes. Perfect for dynamic content and real-time styling.
   - icon: 🎯
-    title: Tailwind Compatible
-    details: Full support for Tailwind CSS syntax including utilities, variants, and arbitrary values.
+    title: Tailwind-style syntax
+    details: Use supported utilities, variants, and arbitrary values. Check the measured compatibility scope before migrating.
   - icon: 🧠
     title: Smart Parsing
     details: Advanced AST processing with incremental parsing and intelligent caching for optimal performance.
@@ -39,7 +39,7 @@ features:
 
 ## What is BaroCSS?
 
-BaroCSS is a **CSS parsing and generation engine** that brings Tailwind's utility-first approach to runtime environments. Built from the ground up to support Tailwind CSS syntax, it enables dynamic CSS generation without build processes. Inspired by Tailwind CSS and UnoCSS.
+BaroCSS is a **CSS parsing and generation engine** for utility classes. Its browser runtime can generate styles when classes appear in the DOM. It is inspired by Tailwind CSS and UnoCSS. It does not yet claim full Tailwind compatibility. See the [measured compatibility scope](/guide/compatibility) before using it with existing Tailwind markup.
 
 ### Core Architecture
 
@@ -49,69 +49,6 @@ BaroCSS consists of three main packages:
 - **`@barocss/browser`** - Browser runtime with DOM change detection  
 - **`@barocss/server`** - Server runtime for static CSS generation
 
-### Runtime-First Approach
+## Start using BaroCSS
 
-**Traditional Build Process:**
-```bash
-# Write classes → Build → Wait → Deploy
-<div class="bg-blue-500 hover:bg-blue-700">Button</div>
-# Requires build step and deployment
-```
-
-**BaroCSS Runtime:**
-```bash
-# Write classes → Generate CSS instantly
-<div class="bg-blue-500 hover:bg-blue-700">Button</div>
-# CSS generated at runtime, no build needed
-```
-
-### Key Capabilities
-
-**Core Engine (`@barocss/kit`):**
-```typescript
-import { parseClassToAst, generateCss, createContext } from '@barocss/kit';
-
-const context = createContext();
-const ast = parseClassToAst('bg-blue-500 text-white p-4', context);
-const css = generateCss('bg-blue-500 text-white p-4', context);
-```
-
-**Browser Runtime (`@barocss/browser`):**
-```typescript
-import { BrowserRuntime } from '@barocss/browser';
-
-const runtime = new BrowserRuntime();
-runtime.observe(document.body, { scan: true });
-// Automatically detects and styles new classes
-```
-
-**Server Runtime (`@barocss/server`):**
-```typescript
-import { ServerRuntime } from '@barocss/server';
-
-const runtime = new ServerRuntime();
-const css = runtime.generateCss('bg-blue-500 text-white p-4');
-// Generate CSS for server-side rendering
-```
-
-### Perfect for Dynamic Content
-
-BaroCSS excels when you need to generate CSS for dynamic content:
-
-```typescript
-// User-generated content with arbitrary values
-const userContent = `
-<div class="w-[${width}px] h-[${height}px] bg-[${color}] rounded-[${radius}px]">
-  Dynamic content styled instantly
-</div>
-`;
-
-// BaroCSS parses arbitrary values like w-[400px], bg-[#ff0000] at runtime
-```
-
- 
-
-
-<div class="bg-blue-500 text-white p-4 rounded-lg">
-  Hello BaroCSS!
-</div>
+The [Quick Start](/guide/quick-start) shows the browser runtime with its public API. The [API reference](/api/) covers the core and server packages.

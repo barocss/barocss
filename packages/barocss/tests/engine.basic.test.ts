@@ -1,7 +1,9 @@
+import { parseWithoutHoverMedia } from './hover-media-test-utils';
 import { describe, it, expect } from 'vitest';
-import { parseClassToAst, generateCss } from '../src/core/engine';
+import { parseClassToAst, generateCss, generateCssRules } from '../src/core/engine';
 import '../src/presets';
 import { createContext } from '../src/core/context';
+import { functionalModifier } from '../src/core/registry';
 
 describe('parseClassToAst (end-to-end)', () => {
   const ctx = createContext({
@@ -31,8 +33,10 @@ describe('parseClassToAst (end-to-end)', () => {
   it('responsive + modifier', () => {
     expect(generateCss('sm:hover:bg-red-500', ctx)).toBe(
       `@media (min-width: 640px) {
-  .sm\\:hover\\:bg-red-500:hover {
-    background-color: #ef4444;
+  @media (hover: hover) {
+    .sm\\:hover\\:bg-red-500:hover {
+      background-color: #ef4444;
+    }
   }
 }
 `
@@ -122,8 +126,10 @@ describe('parseClassToAst (end-to-end)', () => {
   line-height: var(--text-lg--line-height);
 }
 
-.hover\\:bg-blue-500:hover {
-  background-color: #3b82f6;
+@media (hover: hover) {
+  .hover\\:bg-blue-500:hover {
+    background-color: #3b82f6;
+  }
 }
 `
     );
@@ -149,13 +155,8 @@ describe('parseClassToAst (end-to-end)', () => {
     );
   });
 
-  it('container query', () => {
-    expect(generateCss('container-[size>600px]:p-8', ctx)).toBe(
-      `.container-\\[size\\>600px\\]\\:p-8 {
-  padding: calc(var(--spacing) * 8);
-}
-`
-    );
+  it('does not emit CSS for an unsupported container variant', () => {
+    expect(generateCss('container-[size>600px]:p-8', ctx)).toBe('');
   });
 
   it('escape edge case', () => {
@@ -191,21 +192,50 @@ describe('parseClassToAst (end-to-end)', () => {
     );
   });
 
-  it('container query orientation', () => {
-    expect(generateCss('container-[orientation=landscape]:flex', ctx)).toBe(
-      `.container-\\[orientation\\=landscape\\]\\:flex {
-  display: flex;
-}
-`
+  it('keeps important per class in generateCssRules', () => {
+    const [importantRule, regularRule] = generateCssRules('!bg-[red] bg-blue-500', ctx);
+    expect(importantRule.css).toContain('background-color: red !important;');
+    expect(regularRule.css).toContain('background-color: #3b82f6;');
+    expect(regularRule.css).not.toContain('!important');
+  });
+
+  it('rejects an unknown variant and retries after registration', () => {
+    const local = createContext({});
+    const className = 'missing-variant:block';
+    expect(parseClassToAst(className, local)).toEqual([]);
+    expect(generateCss(className, local)).toBe('');
+    expect(generateCssRules(className, local)[0].css).toBe('');
+
+    functionalModifier(
+      (name) => name === 'missing-variant',
+      () => '&:where(.ready)',
+      undefined,
+      {},
+      local,
     );
+    expect(generateCss(className, local)).toContain(':where(.ready)');
+  });
+
+  it('emits gradient root declarations once for multiple classes', () => {
+    const css = generateCss('from-red-500 bg-blue-500', ctx);
+    expect(css.match(/@property --baro-gradient-from \{/g)).toHaveLength(1);
+    expect(css).toMatch(/^@property --baro-gradient-position \{/);
+    expect(css).not.toContain(':root,:host {@property');
+    expect(css).toContain('background-color: #3b82f6;');
+  });
+
+  it('does not emit CSS for an unsupported container orientation variant', () => {
+    expect(generateCss('container-[orientation=landscape]:flex', ctx)).toBe('');
   });
 
   it('multiple variants + arbitrary', () => {
     expect(generateCss('sm:dark:hover:bg-[#123456]', ctx)).toBe(
       `@media (min-width: 640px) {
   @media (prefers-color-scheme: dark) {
-    .sm\\:dark\\:hover\\:bg-\\[\\#123456\\]:hover {
-      background-color: #123456;
+    @media (hover: hover) {
+      .sm\\:dark\\:hover\\:bg-\\[\\#123456\\]:hover {
+        background-color: #123456;
+      }
     }
   }
 }
@@ -294,7 +324,7 @@ describe('variant chain engine', () => {
   });
 
   it('hover:focus:bg-red-500 → &:focus:hover', () => {
-    expect(parseClassToAst('hover:focus:bg-red-500', ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia('hover:focus:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
         selector: '&:hover',
@@ -322,7 +352,7 @@ describe('variant chain engine', () => {
   });
 
   it('hover:bg-red-500 → @media (hover: hover) { ... }', () => {
-    expect(parseClassToAst('hover:bg-red-500', ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia('hover:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
         selector: '&:hover',
@@ -332,4 +362,4 @@ describe('variant chain engine', () => {
       }
     ]);
   });
-}); 
+});

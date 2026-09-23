@@ -1,0 +1,51 @@
+name: Npm version PR
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: npm-version-pr
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  version:
+    if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check and build packages
+        run: pnpm check
+
+      - name: Check packed package exports
+        run: node .github/scripts/check-packages.mjs
+
+      - name: Create or update the version PR
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset:version
+          title: "chore: release packages"
+          commit: "chore: release packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

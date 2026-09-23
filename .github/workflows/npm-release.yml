@@ -1,0 +1,198 @@
+name: Npm release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the reviewed main commit to npm
+        required: false
+        type: boolean
+        default: false
+      expected_main_sha:
+        description: Full current main commit SHA
+        required: false
+        type: string
+      expected_version:
+        description: Exact version of all three packages
+        required: false
+        type: string
+      readiness_comment_url:
+        description: PM release-ready comment with Guard and Ship evidence
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.0'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm type-check && pnpm lint && pnpm build:library
+      - run: node .github/scripts/check-packages.mjs
+      - run: pnpm --filter barocss-docs docs:build
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.0'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: node --test .github/scripts/*.test.mjs
+
+  publish:
+    name: Publish npm packages
+    if: github.repository == 'barocss/barocss' && github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/main'
+    needs: [build, test]
+    concurrency:
+      group: npm-release-publish
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: npm
+    permissions:
+      contents: write
+      actions: read
+      issues: read
+      pull-requests: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.0'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - name: Require npm CLI with trusted publishing support
+        run: |
+          npm install --global npm@11.5.1
+          test "$(npm --version)" = 11.5.1
+      - name: Read release version
+        id: version
+        run: echo "release_version=$(node -p 'require("./packages/barocss/package.json").version')" >> "$GITHUB_OUTPUT"
+      - name: Require owner and exact manual release inputs
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          READINESS_COMMENT_URL: ${{ inputs.readiness_comment_url }}
+          RELEASE_VERSION: ${{ steps.version.outputs.release_version }}
+        run: |
+          test "$GITHUB_ACTOR" = easylogic
+          test "$GITHUB_SHA" = "$EXPECTED_MAIN_SHA"
+          test "$RELEASE_VERSION" = "$EXPECTED_VERSION"
+          test -n "$READINESS_COMMENT_URL"
+      - name: Check version and pending changesets
+        run: node .github/scripts/check-release-version.mjs
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.release_version }}
+      - name: Verify reviewed main merge and PM readiness
+        run: node .github/scripts/check-release-main.mjs
+        env:
+          EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          READINESS_COMMENT_URL: ${{ inputs.readiness_comment_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check npm, tags, and Releases before publish
+        id: publication
+        run: node .github/scripts/check-publication-state.mjs
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.release_version }}
+          EXPECTED_SHA: ${{ github.sha }}
+          PUBLICATION_MODE: pre
+          ALLOW_EXISTING_TAG_SHA: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - if: steps.publication.outputs.publication_state == 'unpublished'
+        run: pnpm check
+      - name: Validate and retain the packages to publish
+        if: steps.publication.outputs.publication_state == 'unpublished'
+        run: node .github/scripts/check-packages.mjs
+        env:
+          PACK_OUTPUT_DIR: ${{ runner.temp }}/barocss-packs
+      - if: steps.publication.outputs.publication_state == 'unpublished'
+        run: pnpm --filter barocss-docs docs:build
+      - name: Recheck main SHA and registry before first publish
+        if: steps.publication.outputs.publication_state == 'unpublished'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXPECTED_VERSION: ${{ steps.version.outputs.release_version }}
+          EXPECTED_SHA: ${{ github.sha }}
+          PUBLICATION_MODE: pre
+          REQUIRE_UNPUBLISHED: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          test "$(gh api "repos/$GITHUB_REPOSITORY/branches/main" --jq .commit.sha)" = "$GITHUB_SHA"
+          node .github/scripts/check-publication-state.mjs
+      - name: Publish validated tarballs with npm OIDC
+        id: oidc_publish
+        if: steps.publication.outputs.publication_state == 'unpublished'
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          test -z "${NPM_TOKEN:-}" && test -z "${NODE_AUTH_TOKEN:-}"
+          umask 077
+          npmrc="$RUNNER_TEMP/barocss-oidc-npmrc"
+          : > "$npmrc"
+          export NPM_CONFIG_USERCONFIG="$npmrc"
+          for name in kit browser server; do
+            npm publish "$RUNNER_TEMP/barocss-packs/barocss-$name-$RELEASE_VERSION.tgz" --access public --registry=https://registry.npmjs.org
+          done
+      - name: Create package tags and GitHub Releases
+        if: steps.oidc_publish.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ steps.version.outputs.release_version }}
+        run: |
+          set -euo pipefail
+          for name in kit browser server; do
+            tag="@barocss/$name@$RELEASE_VERSION"
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA" > /dev/null
+            gh release create "$tag" --verify-tag --title "$tag" --generate-notes
+          done
+      - name: Verify npm packages, tags, and Releases
+        if: always() && steps.oidc_publish.outcome != 'skipped'
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.release_version }}
+          EXPECTED_SHA: ${{ github.sha }}
+          PUBLICATION_MODE: post
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            if node .github/scripts/check-publication-state.mjs; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 6 ]; then
+              echo 'Published state is incomplete. Stop; reconcile manually before any retry.'
+              exit 1
+            fi
+            sleep 10
+          done

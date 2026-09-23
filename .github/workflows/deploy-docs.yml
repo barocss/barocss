@@ -1,23 +1,31 @@
 name: Deploy BAROCSS Docs to Pages
 
 on:
-  # Allows you to run this workflow manually from the Actions tab
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/barocss-docs/docs/**'
+      - 'apps/barocss-docs/package.json'
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths:
+      - 'apps/barocss-docs/docs/**'
+      - 'apps/barocss-docs/package.json'
+      - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+# Keep deploys serial while PR builds use separate concurrency groups.
 concurrency:
-  group: "pages"
+  group: ${{ github.event_name == 'pull_request' && format('pages-pr-{0}', github.event.pull_request.number) || 'pages' }}
   cancel-in-progress: false
 
 jobs:
-  # Build job
   build:
     runs-on: ubuntu-latest
     steps:
@@ -43,21 +51,26 @@ jobs:
           pnpm build
           
       - name: Setup Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
         
       - name: Upload artifact
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload the built docs directory
           path: ./apps/barocss-docs/docs/.vitepress/dist
 
-  # Deploy job
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

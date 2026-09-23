@@ -1,3 +1,4 @@
+import { parseWithoutHoverMedia } from '../hover-media-test-utils';
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
 import { parseClassToAst } from "../../src/core/engine";
@@ -75,7 +76,7 @@ describe("breakpoints", () => {
   });
 
   it('max-sm:hover:bg-red-500 → @media (width < 640px) { &:hover { ... } }', () => {
-    expect(parseClassToAst('max-sm:hover:bg-red-500', ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia('max-sm:hover:bg-red-500', ctx)).toMatchObject([
       {
         type: 'at-rule',
         name: 'media',
@@ -94,7 +95,7 @@ describe("breakpoints", () => {
   });
 
   it('min-[600px]:hover:bg-red-500 → @media (width >= 600px) { &:hover { ... } }', () => {
-    expect(parseClassToAst('min-[600px]:hover:bg-red-500', ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia('min-[600px]:hover:bg-red-500', ctx)).toMatchObject([
       {
         type: 'at-rule',
         name: 'media',

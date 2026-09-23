@@ -41,7 +41,8 @@ export default defineConfig(withMermaid({
           text: 'Getting Started',
           items: [
             { text: 'Introduction', link: '/guide/' },
-            { text: 'Quick Start', link: '/guide/quick-start' }
+            { text: 'Quick Start', link: '/guide/quick-start' },
+            { text: 'Compatibility Scope', link: '/guide/compatibility' }
           ]
         },
         {
@@ -80,7 +81,7 @@ export default defineConfig(withMermaid({
             },
             { text: 'Responsive Design', link: '/guide/responsive-design' },
             { text: 'Dark Mode', link: '/guide/dark-mode' },
-            { text: 'Theme', link: '/guide/theme/' },
+            { text: 'Theme', link: '/guide/theme' },
             { text: 'Colors', link: '/guide/colors' },
           ]
         },
@@ -170,7 +171,7 @@ export default defineConfig(withMermaid({
             { text: 'Text Align', link: '/guide/typography/text-align' },
             { text: 'Text Indent', link: '/guide/typography/text-indent' },
             { text: 'Vertical Align', link: '/guide/typography/vertical-align' },
-            { text: 'Text Decoration', link: '/guide/typography/text-decoration' },
+            { text: 'Text Decoration Line', link: '/guide/typography/text-decoration-line' },
             { text: 'Text Decoration Color', link: '/guide/typography/text-decoration-color' },
             { text: 'Text Decoration Style', link: '/guide/typography/text-decoration-style' },
             { text: 'Text Decoration Thickness', link: '/guide/typography/text-decoration-thickness' },
@@ -329,13 +330,6 @@ export default defineConfig(withMermaid({
           items: [
             { text: 'Forced Color Adjust', link: '/guide/accessibility/forced-color-adjust' }
           ]
-        },
-        {
-          text: 'Compatibility & Setup',
-          items: [
-            { text: 'Compatibility', link: '/guide/compatibility' },
-            { text: 'Upgrade Guide', link: '/guide/upgrade-guide' },
-          ]
         }
       ],
       '/api/': [
@@ -367,8 +361,7 @@ export default defineConfig(withMermaid({
             { text: 'Static Utility API', link: '/api/static-utility' },
             { text: 'Functional Utility API', link: '/api/functional-utility' },
             { text: 'Static Modifier API', link: '/api/static-modifier' },
-            { text: 'Functional Modifier API', link: '/api/functional-modifier' },
-            { text: 'Custom Utilities', link: '/guide/adding-custom-styles' }
+            { text: 'Functional Modifier API', link: '/api/functional-modifier' }
           ]
         },
         {
@@ -406,9 +399,8 @@ export default defineConfig(withMermaid({
   
   // Custom CSS - minimal version
   head: [
-    ['link', { rel: 'icon', href: '/favicon.ico' }],
+    ['link', { rel: 'icon', href: '/logo-simple.svg', type: 'image/svg+xml' }],
     ['meta', { name: 'theme-color', content: '#3B82F6' }],
-    ['script', { src: '/custom-runtime-boot.js' }],
     ['style', {}, `
       /* Code block customization */
       .vp-code-block {

@@ -26,7 +26,7 @@ export class ServerRuntime {
    */
   generateCss(className: string) {
     const result = generateCssRules(className, this.context);
-    return result[0].css;
+    return result.map(({ css }) => css).filter(Boolean).join('\n');
   }
 
   /**

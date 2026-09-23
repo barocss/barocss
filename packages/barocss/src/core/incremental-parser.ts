@@ -2,6 +2,7 @@ import { parseClassName } from './parser';
 import { parseClassToAst, generateCssRules, GenerateCssRulesResult } from './engine';
 import type { Context } from './context';
 import { astCache } from '../utils/cache';
+import { getContextState } from './contextState';
 
 /**
  * Incremental parsing system for efficient class processing
@@ -101,7 +102,7 @@ export class IncrementalParser {
 
     try {      
       // Parse class
-      const parseResult = parseClassName(className);
+      const parseResult = parseClassName(className, this.ctx);
       
       if (!parseResult.utility) {
         return null;
@@ -267,7 +268,7 @@ export class IncrementalParser {
       processedClasses: this.processedClasses.size,
       pendingClasses: this.pendingClasses.size,
       cacheStats: {
-        ast: astCache.getStats(),
+        ast: (getContextState(this.ctx)?.astCache || astCache).getStats(),
         css: {} // No CSS cache, so return empty object
       }
     };

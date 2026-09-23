@@ -13,10 +13,10 @@
 - **🚀 JIT Parsing** - Parse Tailwind syntax and generate CSS instantly
 - **🔍 AST Processing** - Advanced Abstract Syntax Tree manipulation
 - **⚡ Incremental Parsing** - Efficient parsing with caching
-- **🎯 Tailwind Compatible** - Full Tailwind CSS syntax support
+- **🎯 Tailwind-style syntax** - See the [versioned compatibility baseline](docs/tailwind-compatibility.md)
 - **🌐 Universal** - Works in browsers, Node.js, and any JavaScript environment
-- **🎨 Complete Utility Support** - Layout, spacing, colors, typography, and more
-- **📱 Responsive & Interactive** - All variants work out of the box
+- **🎨 Utility presets** - Layout, spacing, colors, typography, and more
+- **📱 Responsive & interactive variants** - See the measured examples below
 - **🧠 Smart Caching** - Caching system for performance optimization
 
 ## 🚀 Quick Start
@@ -234,7 +234,7 @@ const stats = parser.getStats();
 
 ## 📱 Supported Utilities
 
-BaroCSS supports **most Tailwind CSS utilities**:
+BaroCSS supports the utilities listed below. See the [compatibility baseline](docs/tailwind-compatibility.md) for measured examples.
 
 ### Layout
 - `container`, `columns`, `break-after`, `break-before`

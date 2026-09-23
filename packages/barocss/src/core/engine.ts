@@ -5,9 +5,10 @@ import { getUtility, getModifier } from "./registry";
 import { Context } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
 import { clearAllCaches } from "../utils/cache";
+import { clearContextCaches, getContextState } from './contextState';
 
 // Failure cache for invalid class names
-const failureCache = new Map<string, boolean>();
+const failureCache = new Set<string>();
 
 /**
  * decl-to-root path collection function (reused in normalizeAstOrder, etc.)
@@ -271,35 +272,31 @@ export function parseClassToAst(
   fullClassName: string,
   ctx: Context
 ): AstNode[] {
+  const state = getContextState(ctx);
+  const failures = state?.failures || failureCache;
+  const cache = state?.astCache || astCache;
   // Check failure cache first
-  if (failureCache.has(fullClassName)) {
+  if (failures.has(fullClassName)) {
     return [];
   }
 
   // Check AST cache first
-  // Simpler cache key: className + context hash
-  const contextHash = JSON.stringify({
-    darkMode: ctx.config("darkMode"),
-    darkModeSelector: ctx.config("darkModeSelector"),
-    theme: ctx.theme,
-  });
-  const cacheKey = `${fullClassName}:${contextHash}`;
-  if (astCache.has(cacheKey)) {
-    return astCache.get(cacheKey)!;
+  if (cache.has(fullClassName)) {
+    return cache.get(fullClassName)!;
   }
 
-  const { modifiers, utility } = parseClassName(fullClassName);
+  const { modifiers, utility } = parseClassName(fullClassName, ctx);
 
   // console.log('[parseClassToAst] modifiers', modifiers, utility);
 
   if (!utility) {
     // eslint-disable-next-line no-console
     console.warn(`[BAROCSS] Invalid class name format: "${fullClassName}"`);
-    failureCache.set(fullClassName, true);
+    failures.add(fullClassName);
     return [];
   }
 
-  const utilReg = getUtility().find((u) => {
+  const utilReg = getUtility(ctx).find((u) => {
     const fullClassName = utility.value
       ? `${utility.prefix}-${utility.value}`
       : utility.prefix;
@@ -312,7 +309,7 @@ export function parseClassToAst(
       : utility.prefix;
     // eslint-disable-next-line no-console
     console.warn(`[BAROCSS] Unknown utility class: "${utilityName}" in "${fullClassName}"`);
-    failureCache.set(fullClassName, true);
+    failures.add(fullClassName);
     return [];
   }
 
@@ -329,12 +326,13 @@ export function parseClassToAst(
   for (let i = 0; i < modifiers.length; i++) {
     const variant = modifiers[i];
 
-    const plugin = getModifier().find((p) => p.match(variant.type, ctx));
+    const plugin = getModifier(ctx).find((p) => p.match(variant.type, ctx));
 
     if (!plugin) {
       // eslint-disable-next-line no-console
       console.warn(`[BAROCSS] Unknown variant: "${variant.type}" in "${fullClassName}"`);
-      continue;
+      failures.add(fullClassName);
+      return [];
     }
 
     if (plugin.wrap) {
@@ -343,7 +341,6 @@ export function parseClassToAst(
         type: "wrap",
         items: items,
       });
-      continue;
     }
     if (plugin.modifySelector) {
       const result = plugin.modifySelector({
@@ -354,9 +351,15 @@ export function parseClassToAst(
         variantChain: modifiers,
         index: i,
       });
+      // A wrapped identity selector adds no rule. Media-only modifiers use it.
+      if (plugin.wrap && (
+        result === '&' ||
+        (typeof result === 'object' && !Array.isArray(result) && result.selector === '&') ||
+        (Array.isArray(result) && result.length === 1 && result[0].selector === '&')
+      )) continue;
       if (typeof result === "string" && result.includes("&")) {
         wrappers.push({ type: "rule", selector: result });
-      } else if (typeof result === "object" && result.selector) {
+      } else if (typeof result === "object" && !Array.isArray(result) && result.selector) {
         const wrappingType = result.wrappingType || "rule";
         wrappers.push({
           type: wrappingType,
@@ -383,10 +386,11 @@ export function parseClassToAst(
     const wrap = wrappers[i];
 
     if (wrap.type === "wrap") {
-      ast = ((wrap as HasItems).items as AstNode[]).map((item) => ({
-        ...item,
-        nodes: Array.isArray(ast) ? ast : [ast],
-      }));
+      ast = ((wrap as HasItems).items as AstNode[]).map((item) => (
+        item.type === 'rule' || item.type === 'style-rule' || item.type === 'at-rule' || item.type === 'at-root'
+          ? { ...item, nodes: [...(item.nodes || []), ...ast] }
+          : item
+      ));
     } else if (wrap.type === "style-rule") {
       ast = [
         {
@@ -431,7 +435,7 @@ export function parseClassToAst(
 
   // console.log("[parseClassToAst] ast", ast);
   // Cache the result
-  astCache.set(cacheKey, ast);
+  cache.set(fullClassName, ast);
 
   return ast;
 }
@@ -439,9 +443,18 @@ export function parseClassToAst(
 /**
  * Clear all AST caches (mainly for testing)
  */
-export function clearAstCache(): void {
-  clearAllCaches();
-  failureCache.clear();
+export function clearAstCache(ctx?: Context): void {
+  if (ctx) {
+    clearContextCaches(ctx);
+  } else {
+    clearAllCaches();
+    failureCache.clear();
+  }
+}
+
+/** Read AST cache statistics for one context, or the legacy global cache. */
+export function getAstCacheStats(ctx?: Context) {
+  return (ctx && getContextState(ctx)?.astCache || astCache).getStats();
 }
 
 /**
@@ -480,7 +493,7 @@ export function generateCss(
     })
     .map((cls) => {
       const ast = parseClassToAst(cls, ctx);
-      const parsedResult = parseResultCache.get(cls);
+      const parsedResult = (getContextState(ctx)?.parseResultCache || parseResultCache).get(cls);
       const cleanAst = optimizeAst(ast);
 
       cleanAst.forEach((node) => {
@@ -491,13 +504,12 @@ export function generateCss(
 
       // If style-rule already has a complete selector, do not pass baseSelector
       const hasStyleRule = cleanAst.some((node) => node.type === "style-rule");
-      const css = astToCss(cleanAst, hasStyleRule ? undefined : cls, {
+      const css = astToCss(cleanAst.filter((node) => node.type !== "at-root"), hasStyleRule ? undefined : cls, {
         minify: opts?.minify,
         important: parsedResult?.utility?.important ?? false,
       }); // Conditional baseSelector
 
-      const rootCss = rootToCss(allAtRootNodes);
-      const result = `${rootCss ? `:root,:host {${rootCss}}` : ""}${css}`;
+      const result = css;
 
       // Debug logging for empty CSS
       if (!result || result.trim() === "") {
@@ -507,7 +519,6 @@ export function generateCss(
           ast: cleanAst,
           hasStyleRule,
           css,
-          rootCss,
           result,
         });
       }
@@ -515,6 +526,17 @@ export function generateCss(
       return result;
     })
     .join(opts?.minify ? "" : "\n");
+
+  const rootRules = [...new Set(allAtRootNodes
+    .filter((node) => node.type === "at-rule")
+    .map((node) => rootToCss([node])))];
+  const rootDeclarations = [...new Set(allAtRootNodes
+    .filter((node) => node.type === "decl")
+    .map((node) => rootToCss([node])))];
+  const rootCss = [
+    ...rootRules,
+    ...(rootDeclarations.length ? [`:root,:host {${rootDeclarations.join("\n")}}`] : []),
+  ].join(opts?.minify ? "" : "\n");
 
   if (allAtRootNodes.length > 0) {
     // eslint-disable-next-line no-console
@@ -531,7 +553,7 @@ export function generateCss(
     });
   }
 
-  return results;
+  return `${rootCss}${rootCss && results ? (opts?.minify ? "" : "\n") : ""}${results}`;
 }
 
 export type GenerateCssRulesResult = {
@@ -559,10 +581,6 @@ export function generateCssRules(
   opts?: { minify?: boolean; dedup?: boolean }
 ): Array<GenerateCssRulesResult> {
   const seen = new Set<string>();
-  const options = {
-    minify: opts?.minify,
-    dedup: opts?.dedup,
-  };
   return classList
     .split(/\s+/)
     .filter((cls) => {
@@ -576,6 +594,11 @@ export function generateCssRules(
     .map((cls) => {
       // console.log("[generateCssRules] cls", cls);
       const ast = parseClassToAst(cls, ctx);
+      const parsedResult = (getContextState(ctx)?.parseResultCache || parseResultCache).get(cls);
+      const options = {
+        minify: opts?.minify,
+        important: parsedResult?.utility?.important ?? false,
+      };
       const cleanAst = optimizeAst(ast);
 
       // console.log("[generateCssRules] cleanAst", cleanAst);

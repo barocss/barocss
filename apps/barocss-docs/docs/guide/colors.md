@@ -364,7 +364,7 @@ Make sure the referenced CSS variables are defined in your CSS:
 [data-theme="dark"] {
 ```
 
-Learn more in the theme documentation on [referencing other variables](/guide/theme#referencing-other-variables).
+Learn more about [CSS variables](/guide/theme#css-variables) in the theme documentation.
 
 ## Default Color Palette Reference
 

@@ -1,3 +1,4 @@
+import { parseWithoutHoverMedia } from '../hover-media-test-utils';
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
 import { parseClassToAst } from "../../src/core/engine";
@@ -102,7 +103,7 @@ describe("arbitrary variants", () => {
         darkMode: "class",
         theme: { colors: { blue: { 500: "#00f" } } },
       });
-      expect(parseClassToAst("dark:[.foo]:hover:bg-blue-500", ctx2)).toMatchObject([
+      expect(parseWithoutHoverMedia("dark:[.foo]:hover:bg-blue-500", ctx2)).toMatchObject([
         {
           type: "rule",
           selector: ".dark",

@@ -6,17 +6,17 @@
 
 **Instant CSS** - AI-powered CSS utilities with baroque elegance
 
-BaroCSS is a next-generation CSS runtime that brings the power of utility-first CSS to real-time development. Built from the ground up with a completely new parser, it supports the complete Tailwind syntax without requiring build processes, making it perfect for AI-generated UI components and developers who need instant feedback.
+BaroCSS generates utility CSS in the browser or on a server. It has a CSS engine, a browser runtime, and a server runtime. See the [Tailwind compatibility report](packages/barocss/docs/tailwind-compatibility.md) for measured coverage.
 
 ## ✨ Key Features
 
 - **🚀 Real-time JIT Mode** - Generate CSS instantly as you use it
 - **🔍 Automatic DOM Detection** - Automatically detects and processes class changes
 - **⚡ Zero Build Time** - No build step, immediate styling
-- **🎯 95%+ Tailwind Compatible** - Use familiar Tailwind syntax everywhere
+- **🎯 Tailwind-style classes** - Use the supported utilities and variants in the [compatibility report](packages/barocss/docs/tailwind-compatibility.md)
 - **🌐 Universal** - Works in browsers, Node.js, and any JavaScript environment
-- **🎨 Complete Utility Support** - Layout, spacing, colors, typography, and more
-- **📱 Responsive & Interactive** - All variants work out of the box
+- **🎨 Utility support** - Layout, spacing, colors, typography, and more
+- **📱 Variants** - Responsive and interactive variants are available
 - **🧠 Smart Caching** - Intelligent caching system for performance optimization
 
 ## 📚 Documentation
@@ -41,7 +41,10 @@ The documentation includes:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BaroCSS App</title>
-  <script type="module" src="https://unpkg.com/@barocss/browser/dist/cdn/barocss.js"></script>
+  <script type="module">
+    import { baroStart } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js';
+    baroStart();
+  </script>
 </head>
 <body>
   <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-xl shadow-2xl">
@@ -55,23 +58,35 @@ The documentation includes:
 </html>
 ```
 
-### NPM Installation
+### Package Installation
+
+Choose the package for your environment:
+
+| Package | Use |
+| --- | --- |
+| `@barocss/kit` | Parse classes and generate CSS |
+| `@barocss/browser` | Watch DOM changes and insert CSS |
+| `@barocss/server` | Generate CSS in Node.js |
+
+The browser and server packages depend on `@barocss/kit`. Install the runtime you use:
 
 ```bash
 # Using pnpm (recommended)
-pnpm add @barocss/kit@latest
+pnpm add @barocss/browser@latest
 
 # Using npm
-npm install @barocss/kit@latest
+npm install @barocss/browser@latest
 
 # Using yarn
-yarn add @barocss/kit@latest
+yarn add @barocss/browser@latest
 ```
+
+For server code, install `@barocss/server`. For direct engine use, install `@barocss/kit`.
 
 ### Basic Usage
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 // Initialize runtime
 const runtime = new BrowserRuntime();
@@ -85,7 +100,7 @@ runtime.observe(document.body, { scan: true });
 BaroCSS works like Tailwind CSS's JIT mode but processes everything in real-time:
 
 1. **DOM Change Detection** - Automatically detects new classes
-2. **Class Parsing** - Analyzes Tailwind syntax (95%+ compatible)
+2. **Class Parsing** - Parses supported Tailwind-style classes
 3. **CSS Generation** - Creates styles instantly using JIT approach
 4. **Style Injection** - Adds CSS to the page in real-time
 
@@ -110,7 +125,7 @@ document.body.innerHTML = `
 ### Basic Styling
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime();
 
@@ -213,7 +228,7 @@ const runtime = new BrowserRuntime({
 ### Browser Runtime
 
 ```typescript
-import { BrowserRuntime } from '@barocss/kit/runtime/browser';
+import { BrowserRuntime } from '@barocss/browser';
 
 const runtime = new BrowserRuntime();
 runtime.observe(document.body, { scan: true });
@@ -222,7 +237,7 @@ runtime.observe(document.body, { scan: true });
 ### Server Runtime
 
 ```typescript
-import { ServerRuntime } from '@barocss/kit/runtime/server';
+import { ServerRuntime } from '@barocss/server';
 
 const serverRuntime = new ServerRuntime();
 const css = serverRuntime.generateCss('bg-blue-500 text-white p-4');
@@ -245,7 +260,7 @@ const css = generateCss('bg-red-500 text-white p-4', ctx);
 
 ## 📱 Supported Utilities
 
-BaroCSS supports **95%+ of Tailwind CSS utilities**:
+BaroCSS supports the utility groups below. See the [compatibility report](packages/barocss/docs/tailwind-compatibility.md) for the tested Tailwind version, cases, and results.
 
 ### Layout
 - `container`, `columns`, `break-after`, `break-before`
@@ -326,7 +341,9 @@ barocss/
 ├── apps/
 │   └── barocss-docs/          # Documentation site
 ├── packages/
-│   └── barocss/               # Core BaroCSS framework
+│   ├── barocss/               # @barocss/kit CSS engine
+│   ├── barocss-browser/       # @barocss/browser DOM runtime
+│   └── barocss-server/        # @barocss/server Node runtime
 └── docs/                      # Project documentation
 ```
 
@@ -334,8 +351,8 @@ barocss/
 
 ### Prerequisites
 
-- Node.js 18+
-- pnpm
+- Node.js 22.12+
+- pnpm 9
 
 ### Setup
 
@@ -356,20 +373,17 @@ pnpm dev
 
 ### Documentation Site
 
-The documentation site is built with Next.js and deployed to GitHub Pages:
+The documentation site is built with VitePress and deployed to GitHub Pages:
 
 ```bash
 # Navigate to docs directory
 cd apps/barocss-docs
 
-# Install dependencies
-pnpm install
-
 # Start development server
-pnpm dev
+pnpm docs:dev
 
 # Build for production
-pnpm build
+pnpm docs:build
 ```
 
 ## 📖 Documentation

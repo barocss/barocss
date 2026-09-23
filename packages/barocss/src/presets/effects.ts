@@ -260,7 +260,7 @@ functionalUtility({
     ["--baro-ring-inset", "inset"],
     ["--baro-ring-offset-width", "0px"],
     ["--baro-ring-offset-color", "#fff"],
-    ["--baro-inset-ring-color", "rgb(59 130 246 / 0.5)"],
+    ["--baro-inset-ring-color", "currentcolor"],
     [
       "--baro-inset-ring-shadow",
       `var(--baro-ring-inset) 0 0 0 calc(${px} + var(--baro-ring-offset-width)) var(--baro-inset-ring-color, currentcolor)`,
@@ -268,7 +268,7 @@ functionalUtility({
     ["--baro-ring-offset-shadow", `0 0 #0000`],
     [
       "box-shadow",
-      "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
+      "var(--baro-inset-shadow, 0 0 #0000), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow, 0 0 #0000), var(--baro-ring-shadow, 0 0 #0000), var(--baro-shadow, 0 0 #0000)",
     ],
   ]);
 });
@@ -635,6 +635,21 @@ functionalUtility({
 });
 
 // --- Mask Image  ---
+// Tailwind's mask gradient variables normally have @property defaults.
+// Give them fallbacks here because BaroCSS emits each utility on its own.
+functionalUtility({
+  name: "mask-linear-from",
+  handleBareValue: ({ value }) => /^(?:100|[1-9]?\d)%$/.test(value) ? value : null,
+  handle: (value) => [
+    decl("mask-image", "var(--tw-mask-linear), var(--tw-mask-radial, linear-gradient(#fff, #fff)), var(--tw-mask-conic, linear-gradient(#fff, #fff))"),
+    decl("mask-composite", "intersect"),
+    decl("--tw-mask-linear-stops", "var(--tw-mask-linear-position, 0deg), var(--tw-mask-linear-from-color, black) var(--tw-mask-linear-from-position, 0%), var(--tw-mask-linear-to-color, transparent) var(--tw-mask-linear-to-position, 100%)"),
+    decl("--tw-mask-linear", "linear-gradient(var(--tw-mask-linear-stops))"),
+    decl("--tw-mask-linear-from-position", value),
+  ],
+  category: "effects",
+});
+
 functionalUtility({
   name: "mask",
   supportsArbitrary: true,

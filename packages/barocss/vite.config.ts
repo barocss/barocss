@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import { copyFileSync } from 'fs';
 import dts from 'vite-plugin-dts';
 
 export default defineConfig({
@@ -26,6 +27,11 @@ export default defineConfig({
         sourceMap: true,
         declaration: true,
         declarationMap: true
+      },
+      afterBuild: () => {
+        // vite-plugin-dts rolls the theme entry into dist/default.d.ts.
+        // Copy it to the public subpath used by package.json.
+        copyFileSync('dist/default.d.ts', 'dist/theme/default.d.ts');
       }
     })
   ],
@@ -60,4 +66,4 @@ export default defineConfig({
       '@': resolve(__dirname, 'src')
     }
   }
-}); 
+});
