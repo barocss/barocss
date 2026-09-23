@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-4797f21-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-4f9cdc1-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "4797f21",
+    "barocssCommit": "4f9cdc1",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -5181,13 +5181,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbs-4 {\n  padding-block-start: calc(0.25rem * 4);\n}\n",
-      "barocss": "",
+      "barocss": ".pbs-4 {\n  padding-block-start: calc(var(--spacing) * 4);\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "different",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "565f0054d2e558c32063276bbe2732c45f918fec0e81a89bc3a80687f596b974",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "1a2f54cd7a9b303ade50457c3651bdb11f8d70632e100ea19ba716923544829a"
       }
     },
     {
@@ -5207,13 +5207,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbs-6 {\n  margin-block-start: calc(0.25rem * 6);\n}\n",
-      "barocss": "",
+      "barocss": ".mbs-6 {\n  margin-block-start: calc(var(--spacing) * 6);\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "different",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "f4a66100e3a2159f8c08ed0395ef51dbc8c5160f3dc9ae0d0c44b4a18bce7146",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "38fd8e0e2ac5ff9c3b61bcdc2c8d4ba90db5d181c4d3feef863603cb33f9c94f"
       }
     },
     {
@@ -5318,6 +5318,605 @@
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "77a12726d29f555cea29e8eaccfb1a6bf5675d4fa1e3504eca37a9bc15646a54",
         "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "padding-block-start:pbs-px",
+      "axis": "v4.2-and-v4.3",
+      "family": "padding-block-start",
+      "role": "representative",
+      "classes": [
+        "pbs-px"
+      ],
+      "source": "https://tailwindcss.com/docs/padding",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbs-px {\n  padding-block-start: 1px;\n}\n",
+      "barocss": ".pbs-px {\n  padding-block-start: 1px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "51cda7cb0d0045b758449eb625532a26ff8b44ce57c92403afcc8c7153f6dec4",
+        "barocss": "51cda7cb0d0045b758449eb625532a26ff8b44ce57c92403afcc8c7153f6dec4"
+      }
+    },
+    {
+      "id": "padding-block-start:pbs-[13px]",
+      "axis": "v4.2-and-v4.3",
+      "family": "padding-block-start",
+      "role": "representative",
+      "classes": [
+        "pbs-[13px]"
+      ],
+      "source": "https://tailwindcss.com/docs/padding",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbs-\\[13px\\] {\n  padding-block-start: 13px;\n}\n",
+      "barocss": ".pbs-\\[13px\\] {\n  padding-block-start: 13px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "72f766cd6f34a3d53272fba565bd75172db3d1b474b3497269f4909574eba7ab",
+        "barocss": "72f766cd6f34a3d53272fba565bd75172db3d1b474b3497269f4909574eba7ab"
+      }
+    },
+    {
+      "id": "padding-block-start:pbs-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "padding-block-start",
+      "role": "boundary",
+      "classes": [
+        "pbs-0"
+      ],
+      "source": "https://tailwindcss.com/docs/padding",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbs-0 {\n  padding-block-start: 0px;\n}\n",
+      "barocss": ".pbs-0 {\n  padding-block-start: 0px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "e6b9d75069e00952a3f542c6b928d35cec6167b306f5fbbed344eccac760ae3d",
+        "barocss": "e6b9d75069e00952a3f542c6b928d35cec6167b306f5fbbed344eccac760ae3d"
+      }
+    },
+    {
+      "id": "padding-block-start:pbs-(--gap)",
+      "axis": "v4.2-and-v4.3",
+      "family": "padding-block-start",
+      "role": "boundary",
+      "classes": [
+        "pbs-(--gap)"
+      ],
+      "source": "https://tailwindcss.com/docs/padding",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbs-\\(--gap\\) {\n  padding-block-start: var(--gap);\n}\n",
+      "barocss": ".pbs-\\(--gap\\) {\n  padding-block-start: var(--gap);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "8e12d636bac3fc617dd129a4ae04922f5f8e0cca885a04e6d112a2d3b9b07619",
+        "barocss": "8e12d636bac3fc617dd129a4ae04922f5f8e0cca885a04e6d112a2d3b9b07619"
+      }
+    },
+    {
+      "id": "padding-block-start:pbs-4+hover:pbs-8",
+      "axis": "v4.2-and-v4.3",
+      "family": "padding-block-start",
+      "role": "combination",
+      "classes": [
+        "pbs-4",
+        "hover:pbs-8"
+      ],
+      "source": "https://tailwindcss.com/docs/padding",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbs-4 {\n  padding-block-start: calc(0.25rem * 4);\n}\n@media (hover: hover) {\n  .hover\\:pbs-8:hover {\n    padding-block-start: calc(0.25rem * 8);\n  }\n}\n",
+      "barocss": ".pbs-4 {\n  padding-block-start: calc(var(--spacing) * 4);\n}\n\n@media (hover: hover) {\n  .hover\\:pbs-8:hover {\n    padding-block-start: calc(var(--spacing) * 8);\n  }\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "32bbbbbc692d6c4a1df481d5eefb80a1a3e2ec000730f12ca8169822cf42019d",
+        "barocss": "9f2491104e14a7490f28946ff53aa6bf803d1d12e08f1b14bb37b584d1104f49"
+      }
+    },
+    {
+      "id": "padding-block-end:pbe-8",
+      "axis": "v4.2-and-v4.3",
+      "family": "padding-block-end",
+      "role": "representative",
+      "classes": [
+        "pbe-8"
+      ],
+      "source": "https://tailwindcss.com/docs/padding",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbe-8 {\n  padding-block-end: calc(0.25rem * 8);\n}\n",
+      "barocss": ".pbe-8 {\n  padding-block-end: calc(var(--spacing) * 8);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "62305034bfa6c2aabc5f4347dee4dedda0e4ce9344c2ec1f26c414168723bba7",
+        "barocss": "b610785f2939fa32cdd3f8b7a87d73ff0aaddf25e45c1f05f67418e9b67a7dba"
+      }
+    },
+    {
+      "id": "padding-block-end:pbe-px",
+      "axis": "v4.2-and-v4.3",
+      "family": "padding-block-end",
+      "role": "representative",
+      "classes": [
+        "pbe-px"
+      ],
+      "source": "https://tailwindcss.com/docs/padding",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbe-px {\n  padding-block-end: 1px;\n}\n",
+      "barocss": ".pbe-px {\n  padding-block-end: 1px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "48e3024d35faff673f48146d254d121ddc4da034a487067618f598ac36c68bd8",
+        "barocss": "48e3024d35faff673f48146d254d121ddc4da034a487067618f598ac36c68bd8"
+      }
+    },
+    {
+      "id": "padding-block-end:pbe-[3px]",
+      "axis": "v4.2-and-v4.3",
+      "family": "padding-block-end",
+      "role": "representative",
+      "classes": [
+        "pbe-[3px]"
+      ],
+      "source": "https://tailwindcss.com/docs/padding",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbe-\\[3px\\] {\n  padding-block-end: 3px;\n}\n",
+      "barocss": ".pbe-\\[3px\\] {\n  padding-block-end: 3px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "8a0e089a485777e1ceed4c56eb6be6c490e15fd86f5796e7cca8d4b108316817",
+        "barocss": "8a0e089a485777e1ceed4c56eb6be6c490e15fd86f5796e7cca8d4b108316817"
+      }
+    },
+    {
+      "id": "padding-block-end:pbe-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "padding-block-end",
+      "role": "boundary",
+      "classes": [
+        "pbe-0"
+      ],
+      "source": "https://tailwindcss.com/docs/padding",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbe-0 {\n  padding-block-end: 0px;\n}\n",
+      "barocss": ".pbe-0 {\n  padding-block-end: 0px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "04b8972e2626aeec3b6d2f27eb72865fcc904fe4f57301d7589bae9c4e59230f",
+        "barocss": "04b8972e2626aeec3b6d2f27eb72865fcc904fe4f57301d7589bae9c4e59230f"
+      }
+    },
+    {
+      "id": "padding-block-end:pbe-(--gap)",
+      "axis": "v4.2-and-v4.3",
+      "family": "padding-block-end",
+      "role": "boundary",
+      "classes": [
+        "pbe-(--gap)"
+      ],
+      "source": "https://tailwindcss.com/docs/padding",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.pbe-\\(--gap\\) {\n  padding-block-end: var(--gap);\n}\n",
+      "barocss": ".pbe-\\(--gap\\) {\n  padding-block-end: var(--gap);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "b2f8c52f3f5dd7fd3c2518ae541f5ec099ce525e57e8ef31e07a337ee552c36e",
+        "barocss": "b2f8c52f3f5dd7fd3c2518ae541f5ec099ce525e57e8ef31e07a337ee552c36e"
+      }
+    },
+    {
+      "id": "margin-block-start:mbs-auto",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-start",
+      "role": "representative",
+      "classes": [
+        "mbs-auto"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbs-auto {\n  margin-block-start: auto;\n}\n",
+      "barocss": ".mbs-auto {\n  margin-block-start: auto;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "1f41ad9c7289b4a8eb09322ef1699e14cad23ef2c958afbb772fa09d6a8f8df2",
+        "barocss": "1f41ad9c7289b4a8eb09322ef1699e14cad23ef2c958afbb772fa09d6a8f8df2"
+      }
+    },
+    {
+      "id": "margin-block-start:mbs-px",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-start",
+      "role": "representative",
+      "classes": [
+        "mbs-px"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbs-px {\n  margin-block-start: 1px;\n}\n",
+      "barocss": ".mbs-px {\n  margin-block-start: 1px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "3129bfe6f703fa598a9f0f1b0db47c5edf2f5464f8ab1a29f7f83215ddbbfa18",
+        "barocss": "3129bfe6f703fa598a9f0f1b0db47c5edf2f5464f8ab1a29f7f83215ddbbfa18"
+      }
+    },
+    {
+      "id": "margin-block-start:-mbs-px",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-start",
+      "role": "representative",
+      "classes": [
+        "-mbs-px"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.-mbs-px {\n  margin-block-start: -1px;\n}\n",
+      "barocss": ".-mbs-px {\n  margin-block-start: -1px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "c0cf47d2630b2af2a955998c652d77c517e06d378dd67edcdcc899dfdf6b0369",
+        "barocss": "c0cf47d2630b2af2a955998c652d77c517e06d378dd67edcdcc899dfdf6b0369"
+      }
+    },
+    {
+      "id": "margin-block-start:mbs-[17px]",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-start",
+      "role": "representative",
+      "classes": [
+        "mbs-[17px]"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbs-\\[17px\\] {\n  margin-block-start: 17px;\n}\n",
+      "barocss": ".mbs-\\[17px\\] {\n  margin-block-start: 17px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "989dc1f774f4f821b019e8c06546af4dd377a978012ccc746c05b6d7091a85db",
+        "barocss": "989dc1f774f4f821b019e8c06546af4dd377a978012ccc746c05b6d7091a85db"
+      }
+    },
+    {
+      "id": "margin-block-start:mbs-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-start",
+      "role": "boundary",
+      "classes": [
+        "mbs-0"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbs-0 {\n  margin-block-start: 0px;\n}\n",
+      "barocss": ".mbs-0 {\n  margin-block-start: 0px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "22acfe70cb56b3b4735f3a219a553c5cc8f1677f7bd9cf3fb7fc943ad00e642f",
+        "barocss": "22acfe70cb56b3b4735f3a219a553c5cc8f1677f7bd9cf3fb7fc943ad00e642f"
+      }
+    },
+    {
+      "id": "margin-block-start:-mbs-6",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-start",
+      "role": "boundary",
+      "classes": [
+        "-mbs-6"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.-mbs-6 {\n  margin-block-start: calc(0.25rem * -6);\n}\n",
+      "barocss": ".-mbs-6 {\n  margin-block-start: calc(var(--spacing) * -6);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "9a6d641c0941ad388c59d37e78ae4308214a6be1c3c12d3979ba023a4662839b",
+        "barocss": "bf31b87a37a8effb6c3072516bbc3f3ecd77f23f68f1656fb51fa3e087e96998"
+      }
+    },
+    {
+      "id": "margin-block-start:mbs-(--gap)",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-start",
+      "role": "boundary",
+      "classes": [
+        "mbs-(--gap)"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbs-\\(--gap\\) {\n  margin-block-start: var(--gap);\n}\n",
+      "barocss": ".mbs-\\(--gap\\) {\n  margin-block-start: var(--gap);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "8985a250e19a1df617b1a7bf083d488288330ab2a13f7b2672ec91d2d140d5fe",
+        "barocss": "8985a250e19a1df617b1a7bf083d488288330ab2a13f7b2672ec91d2d140d5fe"
+      }
+    },
+    {
+      "id": "margin-block-end:mbe-2",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-end",
+      "role": "representative",
+      "classes": [
+        "mbe-2"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbe-2 {\n  margin-block-end: calc(0.25rem * 2);\n}\n",
+      "barocss": ".mbe-2 {\n  margin-block-end: calc(var(--spacing) * 2);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "different",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "dbc74a45d7e795f2a2feb55110e7c95d3768a9b9867eab644e14d40a84fc8bef",
+        "barocss": "8340470a0faa3237442d076c93cd3f4f5a717a23d332cdaf39eff5fcb2d21fe3"
+      }
+    },
+    {
+      "id": "margin-block-end:mbe-auto",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-end",
+      "role": "representative",
+      "classes": [
+        "mbe-auto"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbe-auto {\n  margin-block-end: auto;\n}\n",
+      "barocss": ".mbe-auto {\n  margin-block-end: auto;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "b3fbbefc8228013d763c94cc2f6b8d0574a8920a3c1cfc086a9eeac6a4b82273",
+        "barocss": "b3fbbefc8228013d763c94cc2f6b8d0574a8920a3c1cfc086a9eeac6a4b82273"
+      }
+    },
+    {
+      "id": "margin-block-end:mbe-px",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-end",
+      "role": "representative",
+      "classes": [
+        "mbe-px"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbe-px {\n  margin-block-end: 1px;\n}\n",
+      "barocss": ".mbe-px {\n  margin-block-end: 1px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "b59b079cc4037dbbe796d77956d98a8618cf3f5a3f2db38fa7e39e84f07ac1c3",
+        "barocss": "b59b079cc4037dbbe796d77956d98a8618cf3f5a3f2db38fa7e39e84f07ac1c3"
+      }
+    },
+    {
+      "id": "margin-block-end:-mbe-px",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-end",
+      "role": "representative",
+      "classes": [
+        "-mbe-px"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.-mbe-px {\n  margin-block-end: -1px;\n}\n",
+      "barocss": ".-mbe-px {\n  margin-block-end: -1px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "1758520f0cbba8f2530ebff29f34fcad5dcd2827a5570be17fab3d3fc6a8657a",
+        "barocss": "1758520f0cbba8f2530ebff29f34fcad5dcd2827a5570be17fab3d3fc6a8657a"
+      }
+    },
+    {
+      "id": "margin-block-end:mbe-0",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-end",
+      "role": "boundary",
+      "classes": [
+        "mbe-0"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbe-0 {\n  margin-block-end: 0px;\n}\n",
+      "barocss": ".mbe-0 {\n  margin-block-end: 0px;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "9bda6166e288fa28fa3bdf682ead94d80eca4e8c46d314da8b3aeae6070f9b5e",
+        "barocss": "9bda6166e288fa28fa3bdf682ead94d80eca4e8c46d314da8b3aeae6070f9b5e"
+      }
+    },
+    {
+      "id": "margin-block-end:mbe-(--gap)",
+      "axis": "v4.2-and-v4.3",
+      "family": "margin-block-end",
+      "role": "boundary",
+      "classes": [
+        "mbe-(--gap)"
+      ],
+      "source": "https://tailwindcss.com/docs/margin",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.mbe-\\(--gap\\) {\n  margin-block-end: var(--gap);\n}\n",
+      "barocss": ".mbe-\\(--gap\\) {\n  margin-block-end: var(--gap);\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "6fbe329da724d94b9d03d4eb57748083ac8b6ec054d76f127759363a7ed478b0",
+        "barocss": "6fbe329da724d94b9d03d4eb57748083ac8b6ec054d76f127759363a7ed478b0"
       }
     },
     {

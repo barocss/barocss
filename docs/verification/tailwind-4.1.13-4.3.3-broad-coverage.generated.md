@@ -2,7 +2,7 @@
 
 Generated from the [raw CSS records](tailwind-4.1.13-4.3.3-broad-output.json) and the [exact input catalog](../../packages/barocss/tests/compat/coverage-catalog.ts) on 2026-09-23. This is a selected sample, **not a compatibility percentage** or a claim of full version support.
 
-Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `4797f21`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
+Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `4f9cdc1`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
 
 ## Method and limits
 
@@ -16,6 +16,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 - For `@container/`, Tailwind 4.1.13 emits a rule with an empty `container-name` declaration, while 4.3.3 and BaroCSS emit no rule. The 4.1.13 `unsupported` status records the reference rule only; it does not call for adding an empty container name.
 - For numeric `inline-*` and `block-*` values, Tailwind uses the inlined `--spacing: 0.25rem` from this fixture. BaroCSS retains `var(--spacing)`. The generated declarations differ in structure. This run does not establish equal computed sizes because it does not render a shared theme.
 - For `inline-sm`, Tailwind uses the inlined `--container-sm: 24rem` from this fixture. BaroCSS retains `var(--container-sm)`. This is a structural theme difference, and the browser result is unverified.
+- The logical padding and margin `*-0` inputs emit `0px` on both sides under the pinned spacing theme. Nonzero numeric `pbs/pbe/mbs/mbe` inputs retain the same theme-inlining structural difference as other spacing utilities. Their browser results are unverified.
 - Browser evidence is limited to 7 exact Tailwind 4.3.3 inputs listed below. All 4.1.13 browser results in this broad run and the other 4.3.3 inputs are `unverified`. CSS variables and theme output are not separately rendered as a complete page. A syntactic match alone does not establish computed style or visual parity.
 - The older [15-input matrix](tailwind-compatibility-matrix.md) and [five-input follow-up](tailwind-4.1.13-followup-output.json) remain separate records with their own settings and browser evidence.
 
@@ -39,9 +40,9 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | variants | 21 | 0 | 21 | 0 | 0 | 9 | 12 | 0 | 0 |
 | container-queries | 4 | 3 | 0 | 1 | 0 | 3 | 0 | 0 | 1 |
 | syntax | 12 | 7 | 4 | 1 | 0 | 7 | 4 | 1 | 0 |
-| v4.2-and-v4.3 | 64 | 0 | 1 | 0 | 63 | 40 | 11 | 7 | 6 |
+| v4.2-and-v4.3 | 87 | 0 | 1 | 0 | 86 | 59 | 17 | 5 | 6 |
 | combinations | 8 | 0 | 8 | 0 | 0 | 1 | 7 | 0 | 0 |
-| Total selected inputs | 270 | 96 | 108 | 3 | 63 | 145 | 109 | 9 | 7 |
+| Total selected inputs | 293 | 96 | 108 | 3 | 86 | 164 | 115 | 7 | 7 |
 
 ## Exact inputs
 
@@ -245,12 +246,35 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | syntax / important-modifier | representative | `p-4!` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | syntax / important-modifier | boundary | `!bg-red-500` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | syntax / important-modifier | boundary | `!p-4` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
-| v4.2-and-v4.3 / logical-properties | representative | `pbs-4` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / logical-properties | representative | `mbs-6` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / logical-properties | representative | `pbs-4` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / logical-properties | representative | `mbs-6` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `inline-full` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `block-24` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `inset-bs-2` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `inset-e-4` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / padding-block-start | representative | `pbs-px` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/padding) |
+| v4.2-and-v4.3 / padding-block-start | representative | `pbs-[13px]` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/padding) |
+| v4.2-and-v4.3 / padding-block-start | boundary | `pbs-0` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/padding) |
+| v4.2-and-v4.3 / padding-block-start | boundary | `pbs-(--gap)` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/padding) |
+| v4.2-and-v4.3 / padding-block-start | combination | `pbs-4 hover:pbs-8` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/padding) |
+| v4.2-and-v4.3 / padding-block-end | representative | `pbe-8` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/padding) |
+| v4.2-and-v4.3 / padding-block-end | representative | `pbe-px` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/padding) |
+| v4.2-and-v4.3 / padding-block-end | representative | `pbe-[3px]` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/padding) |
+| v4.2-and-v4.3 / padding-block-end | boundary | `pbe-0` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/padding) |
+| v4.2-and-v4.3 / padding-block-end | boundary | `pbe-(--gap)` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/padding) |
+| v4.2-and-v4.3 / margin-block-start | representative | `mbs-auto` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-start | representative | `mbs-px` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-start | representative | `-mbs-px` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-start | representative | `mbs-[17px]` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-start | boundary | `mbs-0` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-start | boundary | `-mbs-6` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-start | boundary | `mbs-(--gap)` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-end | representative | `mbe-2` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-end | representative | `mbe-auto` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-end | representative | `mbe-px` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-end | representative | `-mbe-px` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-end | boundary | `mbe-0` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
+| v4.2-and-v4.3 / margin-block-end | boundary | `mbe-(--gap)` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/margin) |
 | v4.2-and-v4.3 / inline-size | representative | `inline-auto` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
 | v4.2-and-v4.3 / inline-size | representative | `inline-px` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
 | v4.2-and-v4.3 / inline-size | representative | `inline-screen` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/inline-size) |
