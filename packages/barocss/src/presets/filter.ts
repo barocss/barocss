@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility } from "../core/registry";
+import { staticUtility, functionalUtility, registerUtility } from "../core/registry";
 import { decl } from "../core/ast";
 import { parseNumber } from "../core/utils";
 import { parseColor } from "../core/utils";
@@ -20,6 +20,18 @@ const filters = () => {
 }
 
 // --- Blur ---
+registerUtility({
+  name: "blur",
+  match: (className) => className === "blur",
+  handler: (_value, ctx) => {
+    const value = ctx.theme("blur.DEFAULT");
+    return typeof value === "string"
+      ? [decl("--baro-blur", `blur(${value})`), filters()]
+      : null;
+  },
+  category: "effects",
+});
+
 [
   ["blur-xs", "var(--blur-xs)"],
   ["blur-sm", "var(--blur-sm)"],

@@ -37,6 +37,18 @@ describe('filter', () => {
 });
 
 describe('blur', () => {
+  it('blur uses the default theme value', () => {
+    expect(parseClassToAst('blur', ctx)).toMatchObject([
+      { type: 'decl', prop: '--baro-blur', value: 'blur(0px)' },
+      filters(),
+    ]);
+    const custom = createContext({ theme: { blur: { DEFAULT: '8px' } } });
+    expect(parseClassToAst('blur', custom)).toMatchObject([
+      { type: 'decl', prop: '--baro-blur', value: 'blur(8px)' },
+      filters(),
+    ]);
+  });
+
   it('blur-xs → filter: blur(var(--blur-xs))', () => {
     expect(parseClassToAst('blur-xs', ctx)).toMatchObject([
       { type: 'decl', prop: '--baro-blur', value: 'blur(var(--blur-xs))' },
@@ -620,4 +632,4 @@ describe('sepia', () => {
       filters(),
     ]);
   });
-}); 
+});

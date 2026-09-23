@@ -63,6 +63,7 @@ export async function buildCoverageCase(classes: string[]) {
     theme: {
       colors: { red: { 500: '#ef4444' } },
       breakpoints: { sm: '40rem', md: '48rem', lg: '64rem' },
+      blur: { DEFAULT: '8px' },
     },
   });
   const barocss = generateCss(classes.join(' '), context);
