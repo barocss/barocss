@@ -34,6 +34,8 @@ constructor(config: Config = {})
 **Parameters:**
 - `config` (Config): BaroCSS configuration object
 
+Pass `theme`, `darkMode`, and other configuration fields directly to the constructor. There is no outer `config` field.
+
 **Example:**
 ```typescript
 const serverRuntime = new ServerRuntime({
@@ -227,12 +229,10 @@ import { ServerRuntime } from '@barocss/server';
 
 // Initialize once per request or globally
 const serverRuntime = new ServerRuntime({
-  config: {
-    theme: {
-      extend: {
-        colors: {
-          brand: '#3b82f6'
-        }
+  theme: {
+    extend: {
+      colors: {
+        brand: '#3b82f6'
       }
     }
   }
@@ -265,12 +265,10 @@ import { glob } from 'glob';
 
 // Initialize server runtime
 const serverRuntime = new ServerRuntime({
-  config: {
-    theme: {
-      extend: {
-        colors: {
-          brand: '#3b82f6'
-        }
+  theme: {
+    extend: {
+      colors: {
+        brand: '#3b82f6'
       }
     }
   }
@@ -304,12 +302,10 @@ import express from 'express';
 
 const app = express();
 const serverRuntime = new ServerRuntime({
-  config: {
-    theme: {
-      extend: {
-        colors: {
-          brand: '#3b82f6'
-        }
+  theme: {
+    extend: {
+      colors: {
+        brand: '#3b82f6'
       }
     }
   }
@@ -341,25 +337,22 @@ app.post('/api/generate-css', (req, res) => {
 
 ```typescript
 const serverRuntime = new ServerRuntime({
-  config: {
-    darkMode: 'class',
-    prefix: 'tw-',
-    theme: {
-      extend: {
-        colors: {
-          brand: {
-            50: '#eff6ff',
-            500: '#3b82f6',
-            900: '#1e3a8a'
-          }
-        },
-        spacing: {
-          '18': '4.5rem',
-          '88': '22rem'
+  darkMode: 'class',
+  prefix: 'tw-',
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          50: '#eff6ff',
+          500: '#3b82f6',
+          900: '#1e3a8a'
         }
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem'
       }
-    },
-    // Custom utilities are registered globally
+    }
   }
 });
 ```
@@ -438,12 +431,10 @@ import path from 'path';
 async function buildCSS() {
   // Initialize server runtime
   const serverRuntime = new ServerRuntime({
-    config: {
-      theme: {
-        extend: {
-          colors: {
-            brand: '#3b82f6'
-          }
+    theme: {
+      extend: {
+        colors: {
+          brand: '#3b82f6'
         }
       }
     }
@@ -483,4 +474,3 @@ function extractClassesFromContent(content: string): string[] {
 
 buildCSS().catch(console.error);
 ```
-
