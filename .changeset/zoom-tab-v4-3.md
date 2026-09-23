@@ -2,4 +2,4 @@
 "@barocss/kit": patch
 ---
 
-Add Tailwind CSS 4.3-style `zoom-*`, `tab-*`, `scrollbar-gutter-*`, and `scrollbar-width` utilities.
+Add Tailwind CSS 4.3-style `zoom-*`, `tab-*`, `scrollbar-gutter-*`, `scrollbar-width`, and size-container utilities.
