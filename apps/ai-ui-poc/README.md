@@ -29,4 +29,4 @@ BaroCSS 접점은 [barocss-adapter.js](src/barocss-adapter.js)에 있다. 자체
 - [금지 입력 10개](fixtures/forbidden.js): HTML 태그, 이벤트 속성, 위험 URL 두 종류, CSS `url()`, 임의 값, 미등록 variant·컴포넌트, 초과 깊이·크기.
 - [원시 mock 기록](results/mock-60.json)과 [측정 해석](../../docs/ai-ui-poc-mock-results.md).
 
-`firstStyleReady`는 루트 노드의 `text-align: center` 계산 스타일과 가시성이 처음 확인된 시각이다. 실제 화면에 픽셀이 표시된 시각이 아니다. 추가 계산 스타일 검사는 카드의 overflow와 버튼의 표시·배경색을 포함한다. 기본 `div`·`p`의 `block`, `grid-cols-2`, `md:block`의 스타일 의미는 확인하지 않는다. mock은 같은 페이지와 캐시에서 실행된다. 실제 모델의 생성 품질, 네트워크 지연, 토큰, USD 비용, 모바일 viewport의 렌더링은 이 기록으로 판단할 수 없다.
+`firstStyleReady`는 루트 노드의 `text-align: center` 계산 스타일과 양수 크기의 레이아웃 상자가 처음 확인된 시각이다. `visibility: hidden`도 레이아웃 상자를 유지할 수 있으므로 이 검사는 실제 표시나 paint 시각을 증명하지 않는다. 추가 계산 스타일 검사는 카드의 overflow와 버튼의 표시·배경색을 포함한다. 기본 `div`·`p`의 `block`, `grid-cols-2`, `md:block`의 스타일 의미는 확인하지 않는다. mock은 같은 페이지와 캐시에서 실행된다. 실제 모델의 생성 품질, 네트워크 지연, 토큰, USD 비용, 모바일 viewport의 렌더링은 이 기록으로 판단할 수 없다.

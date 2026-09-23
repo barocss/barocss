@@ -12,14 +12,14 @@ export function runMockPipeline(raw, { resolveClass, runtime, preview, now = () 
   preview.append(element);
   const classes = [...cssByClass.keys()];
   if (classes.length) runtime.addClass(classes);
-  // This confirms a checked computed style and visibility, not a painted frame.
+  // A positive layout box does not establish visibility or a painted frame.
   const style = preview.ownerDocument.defaultView.getComputedStyle(element);
-  const visible = element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().height > 0;
+  const hasPositiveLayoutBox = element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().height > 0;
   const expectedStyle = tree.classes.includes('text-center') ? style.textAlign === 'center' :
     tree.classes.includes('block') ? style.display === 'block' : null;
-  const firstStyleReady = expectedStyle === true && visible ? now() - start : null;
-  if (expectedStyle === false || (expectedStyle === true && !visible)) {
-    errors.push({ nodeId: tree.id, code: 'STYLE_NOT_READY', detail: '예상 계산 스타일 또는 가시성 검사 실패' });
+  const firstStyleReady = expectedStyle === true && hasPositiveLayoutBox ? now() - start : null;
+  if (expectedStyle === false || (expectedStyle === true && !hasPositiveLayoutBox)) {
+    errors.push({ nodeId: tree.id, code: 'STYLE_NOT_READY', detail: '예상 계산 스타일 또는 레이아웃 상자 크기 검사 실패' });
   }
   const classRules = {};
   const rootRules = {};
