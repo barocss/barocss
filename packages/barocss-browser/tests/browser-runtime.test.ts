@@ -112,4 +112,21 @@ describe('BrowserRuntime', () => {
     expect(runtime.has('m-2')).toBe(true);
     expect(document.querySelector('[data-category="css-vars"]')).not.toBeNull();
   });
+
+  it('clears only its own context cache', () => {
+    const other = new BrowserRuntime({ styleId: 'other-runtime' });
+    try {
+      runtime.addClass('p-4');
+      other.addClass('m-2');
+      expect(runtime.getCacheStats().ast.size).toBeGreaterThan(0);
+      expect(other.getCacheStats().ast.size).toBeGreaterThan(0);
+
+      runtime.clearCaches();
+
+      expect(runtime.getCacheStats().ast.size).toBe(0);
+      expect(other.getCacheStats().ast.size).toBeGreaterThan(0);
+    } finally {
+      other.destroy();
+    }
+  });
 });

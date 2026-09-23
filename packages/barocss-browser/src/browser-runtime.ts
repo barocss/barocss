@@ -1,5 +1,5 @@
 import { GenerateCssRulesResult } from '@barocss/kit';
-import { createContext, astCache, IncrementalParser } from '@barocss/kit';
+import { createContext, clearAstCache, IncrementalParser } from '@barocss/kit';
 import type { Config, Context } from '@barocss/kit';
 import { StylePartitionManager } from './style-partition-manager';
 import { ChangeDetector } from './change-detector';
@@ -200,13 +200,14 @@ export class BrowserRuntime {
    * Get comprehensive cache statistics
    */
   getCacheStats() {
+    const incremental = this.incrementalParser.getStats();
     return {
       runtime: {
         cachedClasses: this.cache.size,
         rootCacheSize: this.rootCache.size
       },
-      ast: astCache.getStats(),
-      incremental: this.incrementalParser.getStats(),
+      ast: incremental.cacheStats.ast,
+      incremental,
     };
   }
 
@@ -217,7 +218,7 @@ export class BrowserRuntime {
     if (this.isDestroyed) return;
     this.cache.clear();
     this.rootCache.clear();
-    astCache.clear();
+    clearAstCache(this.context);
     this.incrementalParser.clearProcessed();
     this.stylePartitionManager.cleanup();
     this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`);
