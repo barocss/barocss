@@ -1,7 +1,7 @@
 name: One-time release OIDC preflight
 
 # The reviewed setup commit adds this file to main. This workflow only checks
-# GitHub App access and OIDC issuance; it never calls npm publish.
+# GitHub OIDC issuance; it never calls npm publish.
 on:
   push:
     branches: [main]
@@ -12,32 +12,6 @@ permissions:
   contents: read
 
 jobs:
-  app_permissions:
-    name: App permissions
-    if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Require configured App credentials
-        env:
-          APP_CLIENT_ID: ${{ vars.BARO_PROMOTION_APP_CLIENT_ID }}
-          APP_PRIVATE_KEY: ${{ secrets.BARO_PROMOTION_APP_PRIVATE_KEY }}
-        run: test -n "$APP_CLIENT_ID" && test -n "$APP_PRIVATE_KEY"
-      - uses: actions/create-github-app-token@v3
-        id: app-token
-        with:
-          client-id: ${{ vars.BARO_PROMOTION_APP_CLIENT_ID }}
-          private-key: ${{ secrets.BARO_PROMOTION_APP_PRIVATE_KEY }}
-          permission-administration: read
-          permission-contents: write
-          permission-pull-requests: write
-      - name: Read repository and main protection with the scoped token
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          test "$(gh api repos/barocss/barocss --jq .full_name)" = barocss/barocss
-          gh api repos/barocss/barocss/branches/main/protection --jq '.required_status_checks.contexts' > /dev/null
-
   oidc:
     name: npm OIDC prerequisites
     if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/main'
