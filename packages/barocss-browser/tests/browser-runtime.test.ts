@@ -97,6 +97,14 @@ describe('BrowserRuntime', () => {
     expect(runtime.has('m-2')).toBe(true);
   });
 
+  it('signals readiness when the initial scan finds no classes', () => {
+    const onReady = vi.fn();
+
+    runtime.observe(document.body, { scan: true, onReady });
+
+    expect(onReady).toHaveBeenCalledOnce();
+  });
+
   it('processes classes changed while an element is detached', async () => {
     runtime.observe(document.body);
     const element = document.createElement('div');

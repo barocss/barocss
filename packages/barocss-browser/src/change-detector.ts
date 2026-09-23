@@ -177,6 +177,8 @@ export class ChangeDetector {
   
         // Apply non-layout results
         this.BrowserRuntime?.applyParseResults(nonLayoutResults);
+      } else {
+        options?.onReady?.();
       }
     }
   
