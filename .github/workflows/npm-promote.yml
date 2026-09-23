@@ -1,0 +1,108 @@
+name: Npm promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Full current develop commit SHA approved by PM
+        required: true
+        type: string
+      expected_version:
+        description: Exact version of all three packages
+        required: true
+        type: string
+      readiness_comment_url:
+        description: PM release-ready comment with Guard and Ship evidence links
+        required: true
+        type: string
+
+concurrency:
+  group: npm-promotion
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/develop' && github.actor == 'easylogic'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - name: Verify PM release-ready record and exact develop CI
+        run: node .github/scripts/check-promotion-ready.mjs
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          READINESS_COMMENT_URL: ${{ inputs.readiness_comment_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: pnpm check
+      - run: node .github/scripts/check-packages.mjs
+      - run: pnpm --filter barocss-docs docs:build
+      - name: Require unpublished npm version and unused tags
+        id: publication
+        run: node .github/scripts/check-publication-state.mjs
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          EXPECTED_SHA: ${{ inputs.candidate_sha }}
+          PUBLICATION_MODE: pre
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: test '${{ steps.publication.outputs.publication_state }}' = unpublished
+
+  promotion_pr:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Require GitHub App credentials
+        env:
+          APP_CLIENT_ID: ${{ vars.BARO_PROMOTION_APP_CLIENT_ID }}
+          APP_PRIVATE_KEY: ${{ secrets.BARO_PROMOTION_APP_PRIVATE_KEY }}
+        run: test -n "$APP_CLIENT_ID" && test -n "$APP_PRIVATE_KEY"
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ vars.BARO_PROMOTION_APP_CLIENT_ID }}
+          private-key: ${{ secrets.BARO_PROMOTION_APP_PRIVATE_KEY }}
+          permission-administration: read
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          persist-credentials: false
+      - name: Verify main branch protection
+        run: node .github/scripts/check-main-protection.mjs
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      - name: Recheck npm and tags before creating a branch
+        run: node .github/scripts/check-publication-state.mjs
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          EXPECTED_SHA: ${{ inputs.candidate_sha }}
+          PUBLICATION_MODE: pre
+          REQUIRE_UNPUBLISHED: true
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+      - name: Create pinned promotion PR and enable ordinary auto-merge
+        run: node .github/scripts/create-promotion-pr.mjs
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+          READINESS_COMMENT_URL: ${{ inputs.readiness_comment_url }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
