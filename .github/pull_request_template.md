@@ -14,6 +14,7 @@ Brief description of what this PR does.
 - [ ] Changeset added with the right change type and a clear description (if needed)
 - [ ] I reviewed my changes and updated related documentation (if needed)
 - [ ] The change adds no new warnings
+- [ ] Changed syntax is recorded in the compatibility matrix (or marked N/A with a reason below)
 
 ## 🧪 Verification evidence
 <!-- For a new feature, run it locally before requesting review. Record what you ran and what happened. Do not check a command that you did not run. -->
@@ -22,6 +23,7 @@ Brief description of what this PR does.
 - How to reproduce the feature (input or short example):
 - Expected result and actual result:
 - Tailwind version and comparison result (if claiming Tailwind compatibility):
+- Matrix cases added or updated (or N/A and why):
 - Limits or cases not tested:
 
 ## 🔗 Related Issues

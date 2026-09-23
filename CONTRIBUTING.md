@@ -252,6 +252,8 @@ type(scope): brief description
 
 Run each new feature locally before requesting review. In the PR, give the exact commands you ran, their results, and a short example that another person can repeat. For UI or CSS rendering changes, attach a screenshot or short recording and state the browser, viewport, and UI state. For features without a visual result, include the input and captured output. If you claim Tailwind compatibility, name the Tailwind version and show the comparison result. State any cases you did not test. Keep the PR as a draft until this evidence is ready.
 
+When a PR adds or changes syntax, add or update its matrix case. Mark whether the syntax follows Tailwind or belongs to BaroCSS. If a PR does not change syntax, state N/A in the PR template.
+
 ### PR Description Template
 
 Use the repository [PR template](.github/pull_request_template.md). Fill in its verification and visual evidence sections for new features.
