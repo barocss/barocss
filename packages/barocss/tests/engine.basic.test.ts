@@ -212,6 +212,13 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(regularRule.css).not.toContain('!important');
   });
 
+  it('keeps a suffixed important declaration local to its rule', () => {
+    const [importantRule, regularRule] = generateCssRules('bg-red-500! bg-blue-500', ctx);
+    expect(importantRule.css).toContain('background-color: #ef4444 !important;');
+    expect(regularRule.css).toContain('background-color: #3b82f6;');
+    expect(regularRule.css).not.toContain('!important');
+  });
+
   it('emits gradient root declarations once for multiple classes', () => {
     const css = generateCss('from-red-500 bg-blue-500', ctx);
     expect(css.match(/@property --baro-gradient-from \{/g)).toHaveLength(1);

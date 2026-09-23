@@ -6,9 +6,9 @@ import '../../src/presets';
 import { normalizeCss, structureFingerprint } from './normalize';
 
 export const coverageRun = {
-  id: 'tailwind-4.1.13-and-4.3.3-baro-a31ac95-broad',
+  id: 'tailwind-4.1.13-and-4.3.3-baro-5581167-broad',
   measuredOn: '2026-09-23',
-  barocssCommit: 'a31ac95',
+  barocssCommit: '5581167',
   tailwindVersions: ['4.1.13', '4.3.3'],
   environment: { node: '22.22.0', pnpm: '10.11.0', postcss: '8.5.6' },
   browserStatus: 'seven-selected-4.3.3-states-verified',

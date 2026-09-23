@@ -2,7 +2,7 @@
 
 Generated from the [raw CSS records](tailwind-4.1.13-4.3.3-broad-output.json) and the [exact input catalog](../../packages/barocss/tests/compat/coverage-catalog.ts) on 2026-09-23. This is a selected sample, **not a compatibility percentage** or a claim of full version support.
 
-Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `a31ac95`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
+Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The latter was the npm latest tag on 2026-09-23; see [Tailwind releases](https://github.com/tailwindlabs/tailwindcss/releases) and the [v4.3 release notes](https://tailwindcss.com/blog/tailwindcss-v4-3). BaroCSS source: `5581167`. Environment: Node 22.22.0, pnpm 10.11.0, PostCSS 8.5.6.
 
 ## Method and limits
 
@@ -15,6 +15,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 - For `md:scrollbar-auto`, Tailwind 4.3.3 emits `@media (width >= 48rem)` and BaroCSS emits `@media (min-width: 48rem)`. The declaration agrees; the media-query syntax differs. This exact input has no browser result.
 - For `@container/`, Tailwind 4.1.13 emits a rule with an empty `container-name` declaration, while 4.3.3 and BaroCSS emit no rule. The 4.1.13 `unsupported` status records the reference rule only; it does not call for adding an empty container name.
 - The bare `blur` inputs depend on the explicit `--blur: 8px` token in this fixture. Both pinned Tailwind compilers emit no bare `blur` rule when that token is absent. BaroCSS now emits a rule from its configured default blur theme value. The rule remains structurally different because the engines use different filter variables and Tailwind emits property registration. Browser behavior is unverified.
+- The trailing `!` on a utility now sets its declaration to `!important`. The earlier five-input 4.1.13 follow-up keeps its original source-commit record, where `bg-red-500!` was unsupported. This current run measures the corrected output. Browser behavior for the newly added important inputs is unverified.
 - For numeric `inline-*` and `block-*` values, Tailwind uses the inlined `--spacing: 0.25rem` from this fixture. BaroCSS retains `var(--spacing)`. The generated declarations differ in structure. This run does not establish equal computed sizes because it does not render a shared theme.
 - For `inline-sm`, Tailwind uses the inlined `--container-sm: 24rem` from this fixture. BaroCSS retains `var(--container-sm)`. This is a structural theme difference, and the browser result is unverified.
 - The logical padding and margin `*-0` inputs emit `0px` on both sides under the pinned spacing theme. Nonzero numeric `pbs/pbe/mbs/mbe` inputs retain the same theme-inlining structural difference as other spacing utilities. Their browser results are unverified.
@@ -41,10 +42,10 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | svg-and-accessibility | 7 | 2 | 5 | 0 | 0 | 2 | 5 | 0 | 0 |
 | variants | 21 | 0 | 21 | 0 | 0 | 9 | 12 | 0 | 0 |
 | container-queries | 4 | 3 | 0 | 1 | 0 | 3 | 0 | 0 | 1 |
-| syntax | 12 | 7 | 4 | 1 | 0 | 7 | 4 | 1 | 0 |
+| syntax | 18 | 11 | 5 | 0 | 2 | 12 | 4 | 0 | 2 |
 | v4.2-and-v4.3 | 113 | 0 | 1 | 0 | 112 | 82 | 22 | 3 | 6 |
 | combinations | 8 | 0 | 8 | 0 | 0 | 1 | 7 | 0 | 0 |
-| Total selected inputs | 321 | 96 | 111 | 2 | 112 | 187 | 123 | 4 | 7 |
+| Total selected inputs | 327 | 100 | 112 | 1 | 114 | 192 | 123 | 3 | 9 |
 
 ## Exact inputs
 
@@ -246,10 +247,16 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | syntax / arbitrary-and-negative | representative | `mt-[-2px]` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/adding-custom-styles) |
 | syntax / arbitrary-and-negative | boundary | `-translate-x-1/2` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/adding-custom-styles) |
 | syntax / arbitrary-and-negative | boundary | `bg-(--custom-color)` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/adding-custom-styles) |
-| syntax / important-modifier | representative | `bg-red-500!` | unsupported | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
+| syntax / important-modifier | representative | `bg-red-500!` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | syntax / important-modifier | representative | `p-4!` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
+| syntax / important-modifier | representative | `block!` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | syntax / important-modifier | boundary | `!bg-red-500` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | syntax / important-modifier | boundary | `!p-4` | different | different | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
+| syntax / important-modifier | boundary | `hover:bg-red-500!` | different | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
+| syntax / important-modifier | boundary | `bg-[#ff0000]!` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
+| syntax / important-modifier | boundary | `!bg-red-500!` | reference-no-rule | reference-no-rule | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
+| syntax / important-modifier | boundary | `bg-red-500!!` | reference-no-rule | reference-no-rule | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
+| syntax / important-modifier | combination | `bg-red-500 bg-red-500!` | match | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/styling-with-utility-classes) |
 | v4.2-and-v4.3 / logical-properties | representative | `pbs-4` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `mbs-6` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / logical-properties | representative | `inline-full` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |

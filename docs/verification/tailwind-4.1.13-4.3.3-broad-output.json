@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-a31ac95-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-5581167-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "a31ac95",
+    "barocssCommit": "5581167",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -5130,13 +5130,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.bg-red-500\\! {\n  background-color: #ef4444 !important;\n}\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.bg-red-500\\! {\n  background-color: #ef4444 !important;\n}\n",
-      "barocss": "",
-      "statusV4_1_13": "unsupported",
-      "statusV4_3_3": "unsupported",
+      "barocss": ".bg-red-500\\! {\n  background-color: #ef4444 !important;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
       "fingerprints": {
         "tailwindV4_1_13": "6d6759c2376197d3f6dab9a35228751bfc58dd8535387a39a24580381c7f7070",
         "tailwindV4_3_3": "6d6759c2376197d3f6dab9a35228751bfc58dd8535387a39a24580381c7f7070",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "6d6759c2376197d3f6dab9a35228751bfc58dd8535387a39a24580381c7f7070"
       }
     },
     {
@@ -5156,13 +5156,39 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.p-4\\! {\n  padding: calc(0.25rem * 4) !important;\n}\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.p-4\\! {\n  padding: calc(0.25rem * 4) !important;\n}\n",
-      "barocss": ".p-4\\! {\n  padding: calc(var(--spacing) * 4!);\n}\n",
+      "barocss": ".p-4\\! {\n  padding: calc(var(--spacing) * 4) !important;\n}\n",
       "statusV4_1_13": "different",
       "statusV4_3_3": "different",
       "fingerprints": {
         "tailwindV4_1_13": "fd8a7b01a49f5284ed62df6c6f039c9ac89df67fe472484ca225ba221253b76a",
         "tailwindV4_3_3": "fd8a7b01a49f5284ed62df6c6f039c9ac89df67fe472484ca225ba221253b76a",
-        "barocss": "cb5f5f1088441345e11ab351c2d7872dcc0e7c411ccd0056bff64fb7e046504d"
+        "barocss": "a9367b73f5130de3eea1d725ed5ce347a908c039c04fde75617dbab13ad04e09"
+      }
+    },
+    {
+      "id": "important-modifier:block!",
+      "axis": "syntax",
+      "family": "important-modifier",
+      "role": "representative",
+      "classes": [
+        "block!"
+      ],
+      "source": "https://tailwindcss.com/docs/styling-with-utility-classes",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.block\\! {\n  display: block !important;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.block\\! {\n  display: block !important;\n}\n",
+      "barocss": ".block\\! {\n  display: block !important;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "38bd7daf91f2eb6b8d0ae80d9705371d7a855ad4ee0a8b6169154b71918bbe69",
+        "tailwindV4_3_3": "38bd7daf91f2eb6b8d0ae80d9705371d7a855ad4ee0a8b6169154b71918bbe69",
+        "barocss": "38bd7daf91f2eb6b8d0ae80d9705371d7a855ad4ee0a8b6169154b71918bbe69"
       }
     },
     {
@@ -5215,6 +5241,137 @@
         "tailwindV4_1_13": "d14e75a05840dfe70999496cc2ea736ecc6d82a38b7a5aabe7da37ae00259e6d",
         "tailwindV4_3_3": "d14e75a05840dfe70999496cc2ea736ecc6d82a38b7a5aabe7da37ae00259e6d",
         "barocss": "cd914b67507f301b5ab067314b73981fb5357b13295277e5c1c5650cc5c22598"
+      }
+    },
+    {
+      "id": "important-modifier:hover:bg-red-500!",
+      "axis": "syntax",
+      "family": "important-modifier",
+      "role": "boundary",
+      "classes": [
+        "hover:bg-red-500!"
+      ],
+      "source": "https://tailwindcss.com/docs/styling-with-utility-classes",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.hover\\:bg-red-500\\! {\n  &:hover {\n    @media (hover: hover) {\n      background-color: #ef4444 !important;\n    }\n  }\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n@media (hover: hover) {\n  .hover\\:bg-red-500\\!:hover {\n    background-color: #ef4444 !important;\n  }\n}\n",
+      "barocss": "@media (hover: hover) {\n  .hover\\:bg-red-500\\!:hover {\n    background-color: #ef4444 !important;\n  }\n}\n",
+      "statusV4_1_13": "different",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "9e0e0c32aaf9ecc509668dd764739e8312b887b7eff12b1a1f4acc742f3f3eaf",
+        "tailwindV4_3_3": "7d7dcc8ba1c91883130390c6ea1b478976ffbcebefb1513bc6c9b6224227b086",
+        "barocss": "7d7dcc8ba1c91883130390c6ea1b478976ffbcebefb1513bc6c9b6224227b086"
+      }
+    },
+    {
+      "id": "important-modifier:bg-[#ff0000]!",
+      "axis": "syntax",
+      "family": "important-modifier",
+      "role": "boundary",
+      "classes": [
+        "bg-[#ff0000]!"
+      ],
+      "source": "https://tailwindcss.com/docs/styling-with-utility-classes",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.bg-\\[\\#ff0000\\]\\! {\n  background-color: #ff0000 !important;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.bg-\\[\\#ff0000\\]\\! {\n  background-color: #ff0000 !important;\n}\n",
+      "barocss": ".bg-\\[\\#ff0000\\]\\! {\n  background-color: #ff0000 !important;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "5f4475a888deb21b5152908214d8389e8f9043876f8c6a0baffae2b4a7e62040",
+        "tailwindV4_3_3": "5f4475a888deb21b5152908214d8389e8f9043876f8c6a0baffae2b4a7e62040",
+        "barocss": "5f4475a888deb21b5152908214d8389e8f9043876f8c6a0baffae2b4a7e62040"
+      }
+    },
+    {
+      "id": "important-modifier:!bg-red-500!",
+      "axis": "syntax",
+      "family": "important-modifier",
+      "role": "boundary",
+      "classes": [
+        "!bg-red-500!"
+      ],
+      "source": "https://tailwindcss.com/docs/styling-with-utility-classes",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "important-modifier:bg-red-500!!",
+      "axis": "syntax",
+      "family": "important-modifier",
+      "role": "boundary",
+      "classes": [
+        "bg-red-500!!"
+      ],
+      "source": "https://tailwindcss.com/docs/styling-with-utility-classes",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "important-modifier:bg-red-500+bg-red-500!",
+      "axis": "syntax",
+      "family": "important-modifier",
+      "role": "combination",
+      "classes": [
+        "bg-red-500",
+        "bg-red-500!"
+      ],
+      "source": "https://tailwindcss.com/docs/styling-with-utility-classes",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.bg-red-500 {\n  background-color: #ef4444;\n}\n.bg-red-500\\! {\n  background-color: #ef4444 !important;\n}\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.bg-red-500 {\n  background-color: #ef4444;\n}\n.bg-red-500\\! {\n  background-color: #ef4444 !important;\n}\n",
+      "barocss": ".bg-red-500 {\n  background-color: #ef4444;\n}\n\n.bg-red-500\\! {\n  background-color: #ef4444 !important;\n}\n",
+      "statusV4_1_13": "match",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "a1f53704e95c5d268de796b889461eda1308391fe87b1de6a829cde0c97446c0",
+        "tailwindV4_3_3": "a1f53704e95c5d268de796b889461eda1308391fe87b1de6a829cde0c97446c0",
+        "barocss": "a1f53704e95c5d268de796b889461eda1308391fe87b1de6a829cde0c97446c0"
       }
     },
     {
