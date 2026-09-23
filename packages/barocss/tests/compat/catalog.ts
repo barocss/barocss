@@ -70,3 +70,26 @@ export const compatibilityBaseline = {
     { id: 'mask-linear-from', origin: 'tailwind', barocssIntroducedVersion: 'unverified', family: 'effects', pattern: 'mask-linear-from-<percent>', sampleRole: 'representative', input: 'mask-linear-from-50%', cssStructure: 'different', browser: { status: 'verified', version: '153.0.8010.53', recheckVersion: '153', scenario: '100×100 probe, 50% mask position; viewport unrecorded', evidence: 'https://github.com/barocss/barocss/pull/71#issuecomment-5788063380' }, requiredBaroDeclarations: [{ prop: '--tw-mask-linear-from-position', value: '50%' }, { prop: 'mask-composite', value: 'intersect' }], evidenceIds: ['C1', 'B1'] },
   ] satisfies CompatibilityCase[],
 };
+
+export const compatibilityFollowup = {
+  id: 'tailwind-4.1.13-baro-7c0568f-followup-5',
+  tailwindVersion: '4.1.13',
+  barocssCommit: '7c0568f',
+  measuredOn: '2026-09-23',
+  environment: {
+    node: '22.22.0',
+    pnpm: '10.11.0',
+    vitest: '3.2.4',
+  },
+  settings: compatibilityBaseline.settings,
+  evidence: {
+    C2: 'docs/verification/tailwind-4.1.13-followup-output.json',
+  },
+  cases: [
+    { id: 'spacing-padding-zero', origin: 'tailwind', barocssIntroducedVersion: 'unverified', family: 'spacing', pattern: 'p-<scale>', sampleRole: 'boundary', input: 'p-0', cssStructure: 'different', browser: { status: 'unverified' }, requiredBaroDeclarations: [{ prop: 'padding', value: 'calc(var(--spacing) * 0)' }], evidenceIds: ['C2'] },
+    { id: 'spacing-padding-pixel', origin: 'tailwind', barocssIntroducedVersion: 'unverified', family: 'spacing', pattern: 'p-px', sampleRole: 'boundary', input: 'p-px', cssStructure: 'match', browser: { status: 'unverified' }, evidenceIds: ['C2'] },
+    { id: 'spacing-padding-arbitrary', origin: 'tailwind', barocssIntroducedVersion: 'unverified', family: 'spacing', pattern: 'p-[<length>]', sampleRole: 'boundary', input: 'p-[3px]', cssStructure: 'match', browser: { status: 'unverified' }, evidenceIds: ['C2'] },
+    { id: 'variant-md-hover', origin: 'tailwind', barocssIntroducedVersion: 'unverified', family: 'combined-variant', pattern: 'md:hover:<utility>', sampleRole: 'combination', input: 'md:hover:block', cssStructure: 'different', browser: { status: 'unverified' }, requiredBaroDeclarations: [{ prop: 'display', value: 'block' }], evidenceIds: ['C2'] },
+    { id: 'important-suffix', origin: 'tailwind', barocssIntroducedVersion: 'unverified', family: 'important-modifier', pattern: '<utility>!', sampleRole: 'boundary', input: 'bg-red-500!', cssStructure: 'unsupported', browser: { status: 'unverified' }, evidenceIds: ['C2'] },
+  ] satisfies CompatibilityCase[],
+};

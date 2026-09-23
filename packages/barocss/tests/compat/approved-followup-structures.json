@@ -1,0 +1,194 @@
+{
+  "p-0": {
+    "tailwind": {
+      "fingerprint": "73402a1048b767c74e88f23cd9f4985def8f0145ac2b2279b732daf7acdeb09a",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".p-0",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "padding",
+              "value": "calc(0.25rem * 0)"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "156d85582afbd52dbbd04a28f00ce98a33046eae7cb19bfda1d37509247a66ed",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".p-0",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "padding",
+              "value": "calc(var(--spacing) * 0)"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "p-px": {
+    "tailwind": {
+      "fingerprint": "263408495535a58606293eda1089aed6ed9e8dc504ffa037ee65652b65927352",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".p-px",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "padding",
+              "value": "1px"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "263408495535a58606293eda1089aed6ed9e8dc504ffa037ee65652b65927352",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".p-px",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "padding",
+              "value": "1px"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "p-[3px]": {
+    "tailwind": {
+      "fingerprint": "5091361a3b67fce7348eb0f91ef65ea2e51fff4a179b14a55b0a6e7e9c7e3437",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".p-\\[3px\\]",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "padding",
+              "value": "3px"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "5091361a3b67fce7348eb0f91ef65ea2e51fff4a179b14a55b0a6e7e9c7e3437",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".p-\\[3px\\]",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "padding",
+              "value": "3px"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "md:hover:block": {
+    "tailwind": {
+      "fingerprint": "b3cbb04d8e0916d7030f3ff8337df2e17485693aed5441b7d57260688c4c66bc",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".md\\:hover\\:block",
+          "nodes": [
+            {
+              "type": "atrule",
+              "name": "media",
+              "params": "(width >= 48rem)",
+              "nodes": [
+                {
+                  "type": "rule",
+                  "selector": "&:hover",
+                  "nodes": [
+                    {
+                      "type": "atrule",
+                      "name": "media",
+                      "params": "(hover: hover)",
+                      "nodes": [
+                        {
+                          "type": "decl",
+                          "prop": "display",
+                          "value": "block"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "78e900b807c297f296e579d833c01c9e6959632b11dd2eaebe629142a55e753f",
+      "nodes": [
+        {
+          "type": "atrule",
+          "name": "media",
+          "params": "(min-width: 48rem)",
+          "nodes": [
+            {
+              "type": "atrule",
+              "name": "media",
+              "params": "(hover: hover)",
+              "nodes": [
+                {
+                  "type": "rule",
+                  "selector": ".md\\:hover\\:block:hover",
+                  "nodes": [
+                    {
+                      "type": "decl",
+                      "prop": "display",
+                      "value": "block"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "bg-red-500!": {
+    "tailwind": {
+      "fingerprint": "6d6759c2376197d3f6dab9a35228751bfc58dd8535387a39a24580381c7f7070",
+      "nodes": [
+        {
+          "type": "rule",
+          "selector": ".bg-red-500\\!",
+          "nodes": [
+            {
+              "type": "decl",
+              "prop": "background-color",
+              "value": "#ef4444"
+            }
+          ]
+        }
+      ]
+    },
+    "barocss": {
+      "fingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "nodes": []
+    }
+  }
+}

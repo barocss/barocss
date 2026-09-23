@@ -11,6 +11,7 @@ The [catalog guide](compat-data-model.md) explains how to review changed output 
 | Key | Fixture and raw output | Reproduction | BaroCSS commit, reference version, date |
 | --- | --- | --- | --- |
 | C1 | The [catalog](../../packages/barocss/tests/compat/catalog.ts) supplies [`fixtures.ts`](../../packages/barocss/tests/compat/fixtures.ts), [both engines' raw CSS for all 15 inputs](tailwind-4.1.13-output.json), and the [PostCSS structure comparison](../../packages/barocss/tests/compat/compare.test.ts). | With Node 22.22.0 and pnpm 10.11.0, run `pnpm --filter @barocss/kit exec vitest run tests/compat/compare.test.ts`. Regenerate the raw output with `pnpm --filter @barocss/kit exec vite-node --script tests/compat/export-output.ts ../../docs/verification/tailwind-4.1.13-output.json`. | BaroCSS candidate `6df9af9` (runtime last changed at `94ba909`); `tailwindcss@4.1.13`; 2026-09-23. The harness sets `--spacing: 0.25rem`, red-500 `#ef4444`, and md `48rem` on both sides. BaroCSS Preflight is off. |
+| C2 | The [catalog follow-up](../../packages/barocss/tests/compat/catalog.ts) records [five new raw CSS pairs](tailwind-4.1.13-followup-output.json), [approved structures](../../packages/barocss/tests/compat/approved-followup-structures.json), and a [separate comparison test](../../packages/barocss/tests/compat/compare-followup.test.ts). | With Node 22.22.0 and pnpm 10.11.0, run `pnpm --filter @barocss/kit exec vitest run tests/compat/compare-followup.test.ts`. Regenerate the raw output with `pnpm --filter @barocss/kit exec vite-node --script tests/compat/export-followup-output.ts ../../docs/verification/tailwind-4.1.13-followup-output.json`. | BaroCSS source commit `7c0568f`; `tailwindcss@4.1.13`; 2026-09-23. The same C1 settings apply. No browser comparison was run for these five inputs. |
 | B1 | [`render-compat-fixtures.mjs`](render-compat-fixtures.mjs) generates separate CSS/HTML pages for four named inputs. [Guard's browser report](0.0.4-rc-review.md), [Issue #67 result](https://github.com/barocss/barocss/issues/67#issuecomment-5787601039), and [later mask/ring recheck](https://github.com/barocss/barocss/pull/71#issuecomment-5788063380). | Build the kit with `pnpm --filter @barocss/kit build:library`; run `node docs/verification/render-compat-fixtures.mjs <output-directory>`; serve the directory over local HTTP and compare the generated pages in Chromium. | On 2026-09-23, Guard ran the four pages built before the version change in Chromium 153.0.8010.53, then confirmed that BaroCSS `3240100` emitted byte-identical CSS for those inputs. Guard rechecked mask/ring at `94ba909` in Chromium 153; that recheck does not record a patch version. Reference: `tailwindcss@4.1.13`. Changes after `94ba909` through `6df9af9` were documentation only. |
 
 The JSON contains the exact, unminified CSS from both engines for each single-class fixture. The comparison removes comments and formatting only. It preserves selectors, declarations, nesting, and at-rules. `차이 있음` in the CSS rows means this structure differs; it does not alone prove a visual difference.
@@ -40,6 +41,17 @@ Guard independently ran the 18 comparison tests at matrix commit `1de03a6` and r
 | Result: other computed styles, pixels, and interactions | 미검증 | The browser report covers only the four states above. [B1](#evidence-keys). |
 | Environment: Chromium 153.0.8010.53, initial four named states | 확인됨 | The first browser run covered four cases. Md viewport widths are recorded; the other cases use 100×100 probes. The later mask/ring recheck records Chromium 153 without a patch version. [B1](#evidence-keys). |
 | Environment: Firefox, WebKit, other viewports, color modes, and themes | 미검증 | No corresponding result is recorded. [B1](#evidence-keys). |
+
+## Follow-up: five exact inputs
+
+This separate slice keeps the original 15-input baseline intact. See the [generated case table](tailwind-compatibility-cases.generated.md) and [C2](#evidence-keys) for exact inputs, raw CSS, and reproduction steps. Two structures match (`p-px`, `p-[3px]`), two differ (`p-0`, `md:hover:block`), and one Tailwind input is unsupported by BaroCSS (`bg-red-500!` emits no CSS). These are counts for five selected inputs, not a compatibility rate.
+
+| Input | CSS structure | Browser behavior | Finding |
+| --- | --- | --- | --- |
+| `p-0` | 차이 있음 | 미검증 | Tailwind uses `0.25rem`; BaroCSS uses `var(--spacing)` inside multiplication by zero. Computed padding was not checked. |
+| `p-px`, `p-[3px]` | 확인됨 | 미검증 | Parsed CSS structures match for these exact length inputs. |
+| `md:hover:block` | 차이 있음 | 미검증 | Both outputs contain md and hover conditions, but their media query syntax and nesting differ. The combined browser state was not checked. |
+| `bg-red-500!` | 미지원 | 미검증 | Tailwind emits an important background rule; BaroCSS emits no CSS for this suffix form under the named settings. This does not assess other important syntax forms. |
 
 ## Next reference: Tailwind CSS 4.3.3
 

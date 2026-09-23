@@ -1,0 +1,36 @@
+{
+  "tailwindVersion": "4.1.13",
+  "barocssCommit": "7c0568f",
+  "records": [
+    {
+      "candidate": "p-0",
+      "expected": "different",
+      "tailwindCss": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.p-0 {\n  padding: calc(0.25rem * 0);\n}\n",
+      "baroCss": ".p-0 {\n  padding: calc(var(--spacing) * 0);\n}\n"
+    },
+    {
+      "candidate": "p-px",
+      "expected": "match",
+      "tailwindCss": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.p-px {\n  padding: 1px;\n}\n",
+      "baroCss": ".p-px {\n  padding: 1px;\n}\n"
+    },
+    {
+      "candidate": "p-[3px]",
+      "expected": "match",
+      "tailwindCss": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.p-\\[3px\\] {\n  padding: 3px;\n}\n",
+      "baroCss": ".p-\\[3px\\] {\n  padding: 3px;\n}\n"
+    },
+    {
+      "candidate": "md:hover:block",
+      "expected": "different",
+      "tailwindCss": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.md\\:hover\\:block {\n  @media (width >= 48rem) {\n    &:hover {\n      @media (hover: hover) {\n        display: block;\n      }\n    }\n  }\n}\n",
+      "baroCss": "@media (min-width: 48rem) {\n  @media (hover: hover) {\n    .md\\:hover\\:block:hover {\n      display: block;\n    }\n  }\n}\n"
+    },
+    {
+      "candidate": "bg-red-500!",
+      "expected": "unsupported",
+      "tailwindCss": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n.bg-red-500\\! {\n  background-color: #ef4444 !important;\n}\n",
+      "baroCss": ""
+    }
+  ]
+}
