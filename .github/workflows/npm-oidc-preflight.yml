@@ -64,7 +64,9 @@ jobs:
             if (claims.iss !== 'https://token.actions.githubusercontent.com' ||
                 claims.aud !== 'npm:registry.npmjs.org' ||
                 claims.repository !== 'barocss/barocss' ||
-                claims.ref !== 'refs/heads/main') {
-              throw new Error('Unexpected OIDC issuer, audience, repository, or ref');
+                claims.ref !== 'refs/heads/main' ||
+                claims.environment !== 'npm' ||
+                claims.runner_environment !== 'github-hosted') {
+              throw new Error('Unexpected OIDC issuer, audience, repository, ref, environment, or runner');
             }
             core.info('GitHub OIDC claims verified. npm Trusted Publisher settings require separate validation.');
