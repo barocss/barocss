@@ -51,6 +51,21 @@ document.body.innerHTML = `
 `;
 ```
 
+### Preload classes from json-render
+
+Call the preloader after validating the response and before mounting the renderer:
+
+```typescript
+import { BrowserRuntime, preloadJsonRenderClasses } from '@barocss/browser';
+
+const runtime = new BrowserRuntime();
+const spec = validateResponse(response); // Your catalog and class allowlist checks
+preloadJsonRenderClasses(spec, runtime);
+renderJsonUi(spec); // Mount your json-render Renderer here
+```
+
+The helper reads literal `props.className` strings in the flat `spec.elements` map. It splits class lists, removes duplicates, and calls `runtime.addClass` synchronously. The application must validate the spec and class allowlist before this call. State-derived classes and classes added inside registered components need a separate source of classes.
+
 ### CDN Usage
 
 ```html
