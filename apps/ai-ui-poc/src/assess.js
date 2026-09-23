@@ -1,14 +1,19 @@
 const tags = Object.freeze({ Stack: 'div', Text: 'p', Button: 'button', Card: 'section', Image: 'img' });
 
 function sameStructure(expected, actual) {
-  if (!actual || actual.localName !== tags[expected.component] || actual.dataset.uiNode !== expected.id) return false;
+  if (!actual || actual.nodeType !== 1 || actual.localName !== tags[expected.component] ||
+    actual.dataset.uiNode !== expected.id) return false;
   if (actual.classList.length !== expected.classes.length ||
     expected.classes.some((cls) => !actual.classList.contains(cls))) return false;
-  if (expected.component === 'Text' && actual.textContent !== expected.props.text) return false;
-  if (expected.component === 'Button' && (actual.textContent !== expected.props.label || actual.type !== 'button')) return false;
+  if (expected.component === 'Text' || expected.component === 'Button') {
+    const text = expected.component === 'Text' ? expected.props.text : expected.props.label;
+    if (actual.childNodes.length !== 1 || actual.firstChild.nodeType !== 3 || actual.firstChild.nodeValue !== text) return false;
+    if (expected.component === 'Button' && actual.type !== 'button') return false;
+  }
   if (expected.component === 'Image' &&
-    (actual.getAttribute('src') !== expected.props.src || actual.alt !== expected.props.alt)) return false;
-  const children = [...actual.children];
+    (actual.getAttribute('src') !== expected.props.src || actual.alt !== expected.props.alt || actual.childNodes.length !== 0)) return false;
+  if (expected.component === 'Text' || expected.component === 'Button') return true;
+  const children = actual.childNodes;
   return children.length === expected.children.length &&
     expected.children.every((child, index) => sameStructure(child, children[index]));
 }
@@ -27,7 +32,7 @@ function styleCheck(cls, style, element) {
 
 export function assessFixture(fixture, preview) {
   const root = preview.firstElementChild;
-  const structureAndTextPass = preview.children.length === 1 &&
+  const structureAndTextPass = preview.childNodes.length === 1 &&
     sameStructure(fixture.mockTree, root) &&
     fixture.expect.texts.every((value) => preview.textContent.includes(value)) &&
     fixture.expect.components.every((component) => Boolean(preview.querySelector(tags[component])));

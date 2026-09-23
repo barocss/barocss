@@ -14,7 +14,7 @@
     "md:block"
   ],
   "styleReady": 60,
-  "firstStyleReadyP95Ms": 0.5999999977648258,
+  "firstStyleReadyP95Ms": 0.7000000029802322,
   "modelQualityAndCost": "not measured",
   "records": [
     {
@@ -38,8 +38,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0.19999999925494194,
-        "firstStyleReady": 0.5,
-        "complete": 0.5999999977648258
+        "firstStyleReady": 0.6999999992549419,
+        "complete": 0.6999999992549419
       },
       "errors": [],
       "usage": null
@@ -92,8 +92,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
+        "firstStyleReady": 0.29999999701976776,
+        "complete": 0.29999999701976776
       },
       "errors": [],
       "usage": null
@@ -123,9 +123,9 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.29999999701976776,
-        "firstStyleReady": 0.6999999992549419,
-        "complete": 0.6999999992549419
+        "firstValidNode": 0.20000000298023224,
+        "firstStyleReady": 0.7000000029802322,
+        "complete": 0.7000000029802322
       },
       "errors": [],
       "usage": null
@@ -155,7 +155,7 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.19999999925494194,
+        "firstValidNode": 0.10000000149011612,
         "firstStyleReady": 0.30000000074505806,
         "complete": 0.30000000074505806
       },
@@ -224,9 +224,9 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.30000000074505806,
-        "firstStyleReady": 0.8000000007450581,
-        "complete": 0.8000000007450581
+        "firstValidNode": 0.5,
+        "firstStyleReady": 1.0999999977648258,
+        "complete": 1.0999999977648258
       },
       "errors": [],
       "usage": null
@@ -261,7 +261,7 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
+        "firstValidNode": 0.10000000149011612,
         "firstStyleReady": 0.30000000074505806,
         "complete": 0.30000000074505806
       },
@@ -299,8 +299,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.09999999776482582,
-        "complete": 0.09999999776482582
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
       },
       "errors": [],
       "usage": null
@@ -330,7 +330,7 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
+        "firstValidNode": 0,
         "firstStyleReady": 0.19999999925494194,
         "complete": 0.19999999925494194
       },
@@ -362,9 +362,9 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
       },
       "errors": [],
       "usage": null
@@ -394,9 +394,9 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.09999999776482582,
-        "complete": 0.09999999776482582
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
       },
       "errors": [],
       "usage": null
@@ -449,8 +449,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
       },
       "errors": [],
       "usage": null
@@ -476,8 +476,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.09999999776482582,
-        "complete": 0.09999999776482582
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
       },
       "errors": [],
       "usage": null
@@ -502,7 +502,7 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
+        "firstValidNode": 0,
         "firstStyleReady": 0.19999999925494194,
         "complete": 0.19999999925494194
       },
@@ -529,9 +529,9 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
       },
       "errors": [],
       "usage": null
@@ -556,9 +556,9 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
       },
       "errors": [],
       "usage": null
@@ -613,8 +613,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
       },
       "errors": [],
       "usage": null
@@ -668,7 +668,944 @@
       ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.3999999985098839,
+        "firstValidNode": 0.5999999977648258,
+        "firstStyleReady": 1.0999999977648258,
+        "complete": 1.0999999977648258
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-08",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-08",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-08",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-08",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-09",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-09",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-09",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-09",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-09",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-09",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-10",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-10",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-10",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-10",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-10",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-10",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-11",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-11",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-11-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-11",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-11",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-11-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-11",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-11",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-11-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-12",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-12",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-12",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-12",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-12",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-12",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-13",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-13",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-13",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-13",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-13",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-13",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-14",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-14",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-14",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-14",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-14",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-14",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-15",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-15",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-15-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-15",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-15",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-15-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-15",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-15",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-15-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-16",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-16",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-16",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-16",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-16",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-16",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-17",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-17",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.29999999701976776,
+        "complete": 0.29999999701976776
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-17",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-17",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-17",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-17",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-18",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-18",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-18",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-18",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.5,
         "firstStyleReady": 0.8999999985098839,
         "complete": 0.8999999985098839
       },
@@ -676,943 +1613,6 @@
       "usage": null
     },
     {
-      "fixtureId": "ui-08",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-08",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block",
-        "md:block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-08",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-08",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block",
-        "md:block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.10000000149011612,
-        "complete": 0.10000000149011612
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-09",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-09",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block",
-        "md:block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.29999999701976776,
-        "complete": 0.29999999701976776
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-09",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-09",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block",
-        "md:block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-09",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-09",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block",
-        "md:block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-10",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-10",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-10-action",
-          "className": "block",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-10-action",
-          "className": "bg-red-500",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-10",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-10",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-10-action",
-          "className": "block",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-10-action",
-          "className": "bg-red-500",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-10",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-10",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-10-action",
-          "className": "block",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-10-action",
-          "className": "bg-red-500",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.10000000149011612,
-        "complete": 0.10000000149011612
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-11",
-      "repeat": 1,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-11",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-11-card",
-          "className": "overflow-hidden",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-11",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-11",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-11-card",
-          "className": "overflow-hidden",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-11",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-11",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-11-card",
-          "className": "overflow-hidden",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.09999999776482582,
-        "complete": 0.09999999776482582
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-12",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-12",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-12",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-12",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.09999999776482582,
-        "complete": 0.09999999776482582
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-12",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-12",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-13",
-      "repeat": 1,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-13",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block",
-        "grid-cols-2"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.10000000149011612,
-        "complete": 0.10000000149011612
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-13",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-13",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block",
-        "grid-cols-2"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-13",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-13",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block",
-        "grid-cols-2"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-14",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-14",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-14",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-14",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.09999999776482582,
-        "complete": 0.09999999776482582
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-14",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-14",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-15",
-      "repeat": 1,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-15",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-15-card",
-          "className": "overflow-hidden",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.29999999701976776,
-        "complete": 0.29999999701976776
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-15",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-15",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-15-card",
-          "className": "overflow-hidden",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-15",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-15",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-15-card",
-          "className": "overflow-hidden",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.09999999776482582,
-        "complete": 0.09999999776482582
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-16",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-16",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-16-action",
-          "className": "block",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-16-action",
-          "className": "bg-red-500",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-16",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-16",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-16-action",
-          "className": "block",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-16-action",
-          "className": "bg-red-500",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-16",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-16",
-          "className": "text-center",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-16-action",
-          "className": "block",
-          "pass": true
-        },
-        {
-          "nodeId": "ui-16-action",
-          "className": "bg-red-500",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-17",
-      "repeat": 1,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-17",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-17",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-17",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-17",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-17",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.10000000149011612,
-        "complete": 0.10000000149011612
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-18",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-18",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block",
-        "md:block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.10000000149011612,
-        "complete": 0.10000000149011612
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-18",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "checkedStylePass": true,
-      "checkedStyles": [
-        {
-          "nodeId": "ui-18",
-          "className": "text-center",
-          "pass": true
-        }
-      ],
-      "uncheckedClasses": [
-        "block",
-        "md:block"
-      ],
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
       "fixtureId": "ui-18",
       "repeat": 3,
       "viewport": "desktop",
@@ -1634,8 +1634,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.09999999776482582,
-        "complete": 0.09999999776482582
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
       },
       "errors": [],
       "usage": null
@@ -1662,8 +1662,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.09999999776482582,
-        "complete": 0.09999999776482582
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
       },
       "errors": [],
       "usage": null
@@ -1690,8 +1690,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
       },
       "errors": [],
       "usage": null
@@ -1772,8 +1772,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
       },
       "errors": [],
       "usage": null
@@ -1799,8 +1799,8 @@
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.09999999776482582,
-        "complete": 0.09999999776482582
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
       },
       "errors": [],
       "usage": null
