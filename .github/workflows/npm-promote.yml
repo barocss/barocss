@@ -1,4 +1,4 @@
-name: Npm promotion
+name: Npm release preflight
 
 on:
   workflow_dispatch:
@@ -64,45 +64,3 @@ jobs:
           PUBLICATION_MODE: pre
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: test '${{ steps.publication.outputs.publication_state }}' = unpublished
-
-  promotion_pr:
-    needs: preflight
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Require GitHub App credentials
-        env:
-          APP_CLIENT_ID: ${{ vars.BARO_PROMOTION_APP_CLIENT_ID }}
-          APP_PRIVATE_KEY: ${{ secrets.BARO_PROMOTION_APP_PRIVATE_KEY }}
-        run: test -n "$APP_CLIENT_ID" && test -n "$APP_PRIVATE_KEY"
-      - uses: actions/create-github-app-token@v3
-        id: app-token
-        with:
-          client-id: ${{ vars.BARO_PROMOTION_APP_CLIENT_ID }}
-          private-key: ${{ secrets.BARO_PROMOTION_APP_PRIVATE_KEY }}
-          permission-administration: read
-          permission-contents: write
-          permission-pull-requests: write
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.candidate_sha }}
-          persist-credentials: false
-      - name: Verify main branch protection
-        run: node .github/scripts/check-main-protection.mjs
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-      - name: Recheck npm and tags before creating a branch
-        run: node .github/scripts/check-publication-state.mjs
-        env:
-          EXPECTED_VERSION: ${{ inputs.expected_version }}
-          EXPECTED_SHA: ${{ inputs.candidate_sha }}
-          PUBLICATION_MODE: pre
-          REQUIRE_UNPUBLISHED: true
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
-      - name: Create pinned promotion PR without arming auto-merge
-        run: node .github/scripts/create-promotion-pr.mjs
-        env:
-          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
-          EXPECTED_VERSION: ${{ inputs.expected_version }}
-          READINESS_COMMENT_URL: ${{ inputs.readiness_comment_url }}
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
