@@ -27,6 +27,20 @@
 
 Guard는 이전 PoC 코드 커밋 `a487c46`을 [독립 검사](https://github.com/barocss/barocss/pull/74#issuecomment-5787986716)했다. 별도 보관본에서 고정 설치, `pnpm check`, PoC 빌드가 통과했다. Chromium 153의 개발 서버와 프로덕션 빌드에서 20개 fixture를 3회씩 재실행해 당시의 스키마·구조/텍스트·루트 계산 스타일 검사가 60/60이고 오류가 0건임을 확인했다. 금지 입력 10종은 모두 예상 오류가 났다. 구조 오류 7종의 미리보기는 비었고, 위험 클래스 3종은 해당 클래스만 제거됐다. 금지 입력 실행 중 스크립트 노드와 허용 외 네트워크 요청은 관측되지 않았다. Guard의 개발 서버 재실행 p95는 0.5ms, 프로덕션 빌드 재실행은 0.6ms였다. 지연값의 결정성을 주장하지 않는다. Guard는 후속 코드 `644706e`에서 [컨테이너에 추가한 텍스트가 통과하는 결함](https://github.com/barocss/barocss/pull/74#issuecomment-5788402422)을 재현했다. 자식 노드 전체를 대조하도록 고치고 회귀 테스트를 추가했다. Guard는 수정 커밋 `dd3e58e`를 [별도 보관본에서 재검증](https://github.com/barocss/barocss/pull/74#issuecomment-5788464045)했다. 고정 설치, PoC 테스트 6/6, 빌드가 통과했다. 추가 텍스트는 구조·스타일 검사 모두 실패했고, 정상 mock 60회는 구조·스타일 60/60, 지정 스타일 90건, 오류 0건이었다. 재실행 p95는 저장 기록과 같은 0.7ms였다.
 
+## 실행 화면 증거
+
+2026-09-23에 코드 커밋 `b55e487`을 로컬 개발 서버에서 실행했다. Node 22.22.0, pnpm 10.11.0에서 `pnpm --filter @barocss/ai-ui-poc test`는 6/6 통과했고 `pnpm --filter @barocss/ai-ui-poc build`도 통과했다. `pnpm --filter @barocss/ai-ui-poc dev --host 127.0.0.1 --port 5174`로 연 Chromium 153의 실제 viewport 너비는 1280px이었다. 아래 이미지는 해당 화면의 왼쪽 700×550px을 잘라 저장했다. 이미지는 고정 mock 입력을 사용하며 모델 출력을 보여 주지 않는다.
+
+정상 입력 [ui-03](../apps/ai-ui-poc/fixtures/benchmark.js)은 제목·안내·`Button`과 `block`, `text-center`, `bg-red-500` 클래스를 요구한다. 예상 결과는 세 요소 렌더와 빈 오류 목록이다. 실제로 세 요소가 보였고 오류는 없었다. 계산 스타일은 루트 `text-align: center`, 버튼 `display: block`, 배경색 `oklch(0.637 0.237 25.331)`이었다. 화면 오른쪽 CSS 기록에도 해당 클래스 규칙이 표시됐다.
+
+![ui-03 정상 렌더와 CSS 기록](../apps/ai-ui-poc/evidence/ui-03-button-chromium-1280.jpg)
+
+금지 입력 [javascript-url](../apps/ai-ui-poc/fixtures/forbidden.js)은 이미지 출처 `javascript:alert(1)`을 포함한다. 예상 결과는 트리 거부와 이미지 미생성이다. 실제 미리보기 자식 요소와 이미지 수는 모두 0이었고, 오류 목록에 `bad-image · SCHEMA · 허용되지 않은 이미지 URL`이 표시됐다.
+
+![금지 URL 거부와 오류 목록](../apps/ai-ui-poc/evidence/javascript-url-rejected-chromium-1280.jpg)
+
+이 두 화면은 UI 상태와 지정 계산 스타일의 예시다. 이미지 자체로 60회 측정, 브라우저의 paint 시각, 모바일 viewport, `grid-cols-2`·`md:block`의 스타일 의미, 실제 모델 품질·비용을 증명하지 않는다. 이 항목은 위 원시 기록과 측정 계약의 범위에 따라 따로 판단해야 한다.
+
 ## 측정 계약: 실제 모델 단계
 
 아래 기준은 사전 목표다. 이 mock 결과를 실제 모델의 성공률이나 비용으로 쓰지 않는다.
