@@ -58,6 +58,26 @@ describe('BrowserRuntime', () => {
     }
   });
 
+  it('processes SVG classes added inside an observed iframe', async () => {
+    const frame = document.createElement('iframe');
+    document.body.append(frame);
+    const frameDocument = frame.contentDocument!;
+    const frameRuntime = new BrowserRuntime({ insertionPoint: frameDocument.body });
+
+    try {
+      frameRuntime.observe(frameDocument.body);
+      const svg = frameDocument.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'p-4');
+      frameDocument.body.append(svg);
+      await Promise.resolve();
+
+      expect(frameRuntime.has('p-4')).toBe(true);
+    } finally {
+      frameRuntime.destroy();
+      frame.remove();
+    }
+  });
+
   it('keeps generated CSS available through the cache API', () => {
     runtime.addClass('p-4 m-2');
 
