@@ -196,6 +196,15 @@ describe('parseClassToAst (end-to-end)', () => {
     );
   });
 
+  it('emits important declarations for the suffix form', () => {
+    expect(generateCss('bg-red-500!', ctx)).toBe(
+      `.bg-red-500\\! {\n  background-color: #ef4444 !important;\n}\n`
+    );
+    expect(generateCss('block!', ctx)).toBe(
+      `.block\\! {\n  display: block !important;\n}\n`
+    );
+  });
+
   it('keeps important per class in generateCssRules', () => {
     const [importantRule, regularRule] = generateCssRules('!bg-[red] bg-blue-500', ctx);
     expect(importantRule.css).toContain('background-color: red !important;');

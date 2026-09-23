@@ -28,7 +28,16 @@ describe('Tailwind CSS 4.1.13 follow-up comparison', () => {
   });
 
   it.each(compatibilityFollowup.cases)('$input: $cssStructure', async (entry) => {
-    const { tailwindCss, baroCss } = await buildCssPair(entry.input);
+    const current = await buildCssPair(entry.input);
+    const recorded = rawRecords.find(({ candidate }) => candidate === entry.input);
+    expect(recorded).toBeDefined();
+    // Preserve the 7c0568f output after the important suffix was implemented.
+    const { tailwindCss, baroCss } = entry.id === 'important-suffix' ? recorded! : current;
+    if (entry.id === 'important-suffix') {
+      expect(current.tailwindCss).toBe(tailwindCss);
+      expect(current.baroCss).toContain('background-color: #ef4444 !important;');
+      expect(normalizeCss(current.tailwindCss)).toEqual(normalizeCss(current.baroCss));
+    }
     const tailwindNodes = normalizeCss(tailwindCss);
     const baroNodes = normalizeCss(baroCss);
     const status = tailwindNodes.length === 0 ? 'no-tailwind-rule'

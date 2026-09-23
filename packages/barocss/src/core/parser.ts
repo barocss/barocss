@@ -103,10 +103,15 @@ export function parseClassName(className: string, ctx?: Context): { modifiers: P
   
   // 1. Tokenize string into tokens
   const tokens = tokenize(realClassName);
+  if ((important && realClassName.endsWith('!')) || tokens.some(({ value }) => value.startsWith('!') && value.endsWith('!'))) {
+    const invalid = { modifiers: [], utility: null };
+    cache.set(className, invalid);
+    return invalid;
+  }
   // 2. Convert tokens to parsed result
   const result = parseTokens(tokens, ctx);
   if (result.utility) {
-    result.utility.important = important;
+    result.utility.important = important || result.utility.important;
   }
   
   // Cache the result
@@ -200,6 +205,9 @@ function nameSort(a: UtilityRegistration, b: UtilityRegistration): number {
  */
 function parseUtility(value: string, ctx?: Context): ParsedUtility {
   // Examples: bg-[red], text-[color:var(--foo)], bg-(--my-bg), -m-4, -bg-[red]
+  const important = value.endsWith('!') || value.startsWith('!');
+  if (value.endsWith('!')) value = value.slice(0, -1);
+  if (value.startsWith('!')) value = value.slice(1);
   let prefix = '';
   let utilityValue = '';
   let arbitrary = false;
@@ -274,5 +282,6 @@ function parseUtility(value: string, ctx?: Context): ParsedUtility {
     opacity,
     category,
     priority,
+    important,
   };
 }

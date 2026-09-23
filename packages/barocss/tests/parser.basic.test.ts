@@ -35,6 +35,19 @@ describe('parseClassName', () => {
     expect(result.utility).toMatchObject({ prefix: 'bg', value: 'blue-100', arbitrary: false, customProperty: false, negative: false, opacity: '' });
   });
 
+  it('parses the important suffix on plain, variant, and arbitrary utilities', () => {
+    for (const input of ['bg-red-500!', 'hover:bg-red-500!', 'bg-[#ff0000]!']) {
+      const result = parseClassName(input);
+      expect(result.utility?.important, input).toBe(true);
+      expect(result.utility?.value, input).not.toContain('!');
+    }
+    expect(parseClassName('hover:bg-red-500!').modifiers).toMatchObject([{ type: 'hover' }]);
+    expect(parseClassName('bg-[#ff0000]!').utility).toMatchObject({ value: '#ff0000', arbitrary: true });
+    expect(parseClassName('!bg-red-500').utility?.important).toBe(true);
+    expect(parseClassName('!bg-red-500!').utility).toBeNull();
+    expect(parseClassName('hover:!bg-red-500!').utility).toBeNull();
+  });
+
   it('returns empty result for invalid or malformed class names', () => {
     // Invalid input cases
     const invalidInputs = [
@@ -56,4 +69,4 @@ describe('parseClassName', () => {
       expect(isValidUtility).toBe(true);
     }
   });
-}); 
+});
