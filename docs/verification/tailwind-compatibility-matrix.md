@@ -6,7 +6,7 @@ The [generated case table](tailwind-compatibility-cases.generated.md) is built f
 
 The [catalog guide](compat-data-model.md) explains how to review changed output and regenerate its approved structure fingerprints.
 
-The [broader 244-input comparison](tailwind-4.1.13-4.3.3-broad-coverage.generated.md) covers pinned Tailwind CSS 4.1.13 and 4.3.3 with [raw CSS for each exact input](tailwind-4.1.13-4.3.3-broad-output.json). Its CSS structure and browser statuses are separate. Seven exact 4.3.3 inputs have focused Chromium computed-style evidence; the remaining browser cases in this run are unverified. Its sample counts are not compatibility rates.
+The [broader 247-input comparison](tailwind-4.1.13-4.3.3-broad-coverage.generated.md) covers pinned Tailwind CSS 4.1.13 and 4.3.3 with [raw CSS for each exact input](tailwind-4.1.13-4.3.3-broad-output.json). Its CSS structure and browser statuses are separate. Seven exact 4.3.3 inputs have focused Chromium computed-style evidence; the remaining browser cases in this run are unverified. Its sample counts are not compatibility rates.
 
 ## Evidence keys
 

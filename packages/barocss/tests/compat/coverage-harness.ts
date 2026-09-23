@@ -6,12 +6,12 @@ import '../../src/presets';
 import { normalizeCss, structureFingerprint } from './normalize';
 
 export const coverageRun = {
-  id: 'tailwind-4.1.13-and-4.3.3-baro-6a40833-broad',
+  id: 'tailwind-4.1.13-and-4.3.3-baro-586a06d-broad',
   measuredOn: '2026-09-23',
-  barocssCommit: '6a40833',
+  barocssCommit: '586a06d',
   tailwindVersions: ['4.1.13', '4.3.3'],
   environment: { node: '22.22.0', pnpm: '10.11.0', postcss: '8.5.6' },
-  browserStatus: 'four-selected-4.3.3-states-verified',
+  browserStatus: 'seven-selected-4.3.3-states-verified',
 } as const;
 
 export const tailwindInput = `

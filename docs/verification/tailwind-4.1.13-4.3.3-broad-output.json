@@ -1,8 +1,8 @@
 {
   "run": {
-    "id": "tailwind-4.1.13-and-4.3.3-baro-6a40833-broad",
+    "id": "tailwind-4.1.13-and-4.3.3-baro-586a06d-broad",
     "measuredOn": "2026-09-23",
-    "barocssCommit": "6a40833",
+    "barocssCommit": "586a06d",
     "tailwindVersions": [
       "4.1.13",
       "4.3.3"
@@ -12,7 +12,7 @@
       "pnpm": "10.11.0",
       "postcss": "8.5.6"
     },
-    "browserStatus": "four-selected-4.3.3-states-verified"
+    "browserStatus": "seven-selected-4.3.3-states-verified"
   },
   "tailwindInput": "\n@theme inline {\n  --spacing: 0.25rem;\n  --color-red-500: #ef4444;\n  --breakpoint-sm: 40rem;\n  --breakpoint-md: 48rem;\n  --breakpoint-lg: 64rem;\n  --text-xs: 0.75rem;\n  --text-base: 1rem;\n  --text-xl: 1.25rem;\n  --font-weight-normal: 400;\n  --font-weight-semibold: 600;\n  --container-sm: 24rem;\n  --radius: 0.25rem;\n  --radius-lg: 0.5rem;\n  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);\n  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);\n  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);\n  --blur: 8px;\n  --blur-sm: 8px;\n  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);\n  --animate-spin: spin 1s linear infinite;\n  @keyframes spin { to { transform: rotate(360deg); } }\n}\n@tailwind utilities;\n",
   "records": [
@@ -5345,13 +5345,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.\\@container-size {\n  container-type: size;\n}\n",
-      "barocss": "",
+      "barocss": ".\\@container-size {\n  container-type: size;\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "match",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "6e67d861789847e1244c84a343e3214093baf4a341f5f01a4a788eebff37c558",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "6e67d861789847e1244c84a343e3214093baf4a341f5f01a4a788eebff37c558"
       }
     },
     {
@@ -5371,13 +5371,13 @@
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.\\@container-size\\/sidebar {\n  container-type: size;\n  container-name: sidebar;\n}\n",
-      "barocss": "",
+      "barocss": ".\\@container-size\\/sidebar {\n  container-type: size;\n  container-name: sidebar;\n}\n",
       "statusV4_1_13": "reference-no-rule",
-      "statusV4_3_3": "unsupported",
+      "statusV4_3_3": "match",
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "302d0b685fb2698050f379740c31c1cc9a20e261718a293cc21de017aef699b5",
-        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        "barocss": "302d0b685fb2698050f379740c31c1cc9a20e261718a293cc21de017aef699b5"
       }
     },
     {
@@ -5680,6 +5680,84 @@
       "fingerprints": {
         "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "tailwindV4_3_3": "3e16c401b695a9a345f293e404213dbe0231442e359d60e58c74a00b0ad2df65",
+        "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "size-container:@container-size/card",
+      "axis": "v4.2-and-v4.3",
+      "family": "size-container",
+      "role": "representative",
+      "classes": [
+        "@container-size/card"
+      ],
+      "source": "https://tailwindcss.com/docs/responsive-design",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.\\@container-size\\/card {\n  container-type: size;\n  container-name: card;\n}\n",
+      "barocss": ".\\@container-size\\/card {\n  container-type: size;\n  container-name: card;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "3c79a4c62d6470769c595375ea1306b86502033da67e526a2c116f243c128345",
+        "barocss": "3c79a4c62d6470769c595375ea1306b86502033da67e526a2c116f243c128345"
+      }
+    },
+    {
+      "id": "size-container:@container-size/card-grid",
+      "axis": "v4.2-and-v4.3",
+      "family": "size-container",
+      "role": "boundary",
+      "classes": [
+        "@container-size/card-grid"
+      ],
+      "source": "https://tailwindcss.com/docs/responsive-design",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.\\@container-size\\/card-grid {\n  container-type: size;\n  container-name: card-grid;\n}\n",
+      "barocss": ".\\@container-size\\/card-grid {\n  container-type: size;\n  container-name: card-grid;\n}\n",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "match",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "fa0aacb5be6692a6bdf415ce9659f3e0879ab71baa8192d9215aaed87a72f021",
+        "barocss": "fa0aacb5be6692a6bdf415ce9659f3e0879ab71baa8192d9215aaed87a72f021"
+      }
+    },
+    {
+      "id": "size-container:@container-size/",
+      "axis": "v4.2-and-v4.3",
+      "family": "size-container",
+      "role": "boundary",
+      "classes": [
+        "@container-size/"
+      ],
+      "source": "https://tailwindcss.com/docs/responsive-design",
+      "browserV4_1_13": {
+        "status": "unverified"
+      },
+      "browserV4_3_3": {
+        "status": "unverified"
+      },
+      "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
+      "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n",
+      "barocss": "",
+      "statusV4_1_13": "reference-no-rule",
+      "statusV4_3_3": "reference-no-rule",
+      "fingerprints": {
+        "tailwindV4_1_13": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "tailwindV4_3_3": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
         "barocss": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
       }
     },
