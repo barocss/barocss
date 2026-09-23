@@ -26,7 +26,7 @@ sequenceDiagram
 ## Quick Start (Vanilla HTML)
 
 ```html
-<script src="https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@0.0.3/dist/cdn/barocss.umd.cjs"></script>
 <script>
   const runtime = new BaroCSS.BrowserRuntime()
   runtime.observe(document.body, { scan: true })
@@ -37,7 +37,7 @@ sequenceDiagram
 
 ```html
 <script type="module">
-  import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js'
+  import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@0.0.3/dist/cdn/barocss.js'
   const runtime = new BrowserRuntime()
   runtime.observe(document.body, { scan: true })
 </script>
@@ -49,7 +49,7 @@ sequenceDiagram
 No compilation or build process required. CSS is generated instantly as classes are discovered.
 
 ### 2. Dynamic Class Support
-Full support for arbitrary values and computed classes that would be impossible to detect at build time.
+BaroCSS can process supported arbitrary values when classes appear in the DOM. Test each class pattern that your app generates; the [compatibility scope](/guide/compatibility) covers only a small sample.
 
 ### 3. Incremental Processing
 Only new or changed classes are processed, ensuring optimal performance.
@@ -59,27 +59,13 @@ Smart caching system prevents redundant processing of previously seen classes.
 
 ## Real-time Class Processing
 
-When AI generates new components, BaroCSS automatically detects and processes them:
+The browser runtime can process new elements after they enter the observed DOM. This example uses classes from the selected compatibility fixtures:
 
 ```javascript
-// AI generates this component dynamically
-const aiComponent = `
-  <div class="w-[${dynamicWidth}px] h-[${calculatedHeight}rem] 
-              bg-gradient-to-r from-[#${colorValue}] to-[#${endColor}]
-              transform rotate-[${rotation}deg] scale-[${scaleFactor}]
-              shadow-[0_${shadowY}px_${shadowBlur}px_rgba(0,0,0,${opacity})]
-              hover:scale-[${hoverScale}] transition-all duration-[${duration}ms]">
-    <p class="text-[${fontSize}px] leading-[${lineHeight}] 
-              font-[${fontWeight}] tracking-[${letterSpacing}em]
-              text-[#${textColor}] p-[${padding}px]">
-      ${aiGeneratedText}
-    </p>
-  </div>
-`;
-
-// BaroCSS automatically processes these classes when added to DOM
-document.body.innerHTML += aiComponent;
-// CSS is generated instantly, no build step needed
+const message = document.createElement('p')
+message.className = 'block text-center bg-red-500'
+message.textContent = 'New content'
+document.body.appendChild(message)
 ```
 
 ## Performance Characteristics
@@ -95,16 +81,11 @@ BaroCSS employs multiple caching layers to ensure optimal performance:
 
 ### Memory Management
 
-The engine automatically manages memory by:
-- Limiting cache sizes
-- Using LRU (Least Recently Used) eviction
-- Garbage collecting unused entries
+Some core caches limit their entry count and remove the oldest inserted entry when full. This is insertion-order eviction, not a measured memory guarantee.
 
-### Processing Speed
+### Processing speed
 
-- **Initial Parse**: ~0.1ms per class
-- **Cached Lookup**: ~0.01ms per class
-- **DOM Mutation**: ~1ms for 100 new classes
+The site has no reproducible browser benchmark for parse time, cache lookup time, or DOM mutation latency. Measure these operations in your application before setting a performance budget.
 
 ## Framework Integration
 
