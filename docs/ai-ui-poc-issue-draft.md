@@ -14,7 +14,7 @@
 - 입력: `{ prompt, themeId, viewport }`. `viewport`는 `mobile | desktop`이다.
 - 모델 출력: `UiNode` 트리. 각 노드는 `id`, 등록된 `component`, 컴포넌트별 허용 `props`, `classes: string[]`, `children`을 갖는다.
 - 첫 카탈로그: `Stack`, `Text`, `Button`, `Card`, `Image`. 버튼은 등록된 행동 ID만 사용한다.
-- 출력: 검증한 트리, 미리보기 식별자, 생성 CSS, `nodeId`가 있는 오류 목록, 단계별 시간, 토큰 사용량과 추정 USD 비용.
+- 출력: 검증한 트리, 미리보기 식별자, 생성 CSS, `nodeId`가 있는 오류 목록, 단계별 시간, 토큰 사용량과 추정 USD 비용. 단계별 시간에는 `firstStyleReady`를 쓴다.
 - BaroCSS 연결: `@barocss/kit`으로 클래스별 CSS 생성 여부를 확인한다. `@barocss/browser`로 렌더된 화면에 CSS를 적용한다. Pulse의 최종 공개 API를 확인한 뒤 정확한 호출을 고정한다. 서버 측 CSS가 필요하면 `@barocss/server` 공개 API를 사용한다.
 - 첫 모델 공급자 1개를 고정하고 모델명·버전·가격 조회일을 기록한다. 모델 호출 코드는 BaroCSS 코어 밖에 둔다.
 - 자유 HTML, JS, 임의 import, 임의 CSS, 동적 패키지 설치, 사용자 코드 실행, Figma 필수 연동, 배포 기능은 범위에서 제외한다. `json-render` 자체 카탈로그는 같은 입력 5개에 한정한 비교 실험이다.
@@ -32,7 +32,7 @@
 - 시작 전에 프롬프트 20개와 기대 화면 검사를 저장소 fixture로 고정한다. 레이아웃, 텍스트, 반응형, 상태를 포함한다. 같은 프롬프트를 3회 실행해 총 60회 기록한다. 실패 재실행도 원본 결과를 남긴다.
 - Mirror의 Tailwind CSS 4.1.13 고정 비교를 기본 기준으로 쓴다. 초기 표본 15개 중 구조 일치 8개, 구조 차이 6개, 미지원 1개는 전체 호환율이 아니다. PoC에 필요한 클래스는 시작 전에 각각 CSS 의미·지원 여부를 추가 측정해 허용 목록으로 고정한다. [Tailwind v4 변경 사항](https://tailwindcss.com/docs/upgrade-guide)을 기준에 기록한다.
 - 한 번의 실행마다 입력 ID, 모델·버전, BaroCSS 커밋/패키지 버전, viewport, 브라우저·기기, 네트워크 조건, 세 단계 시간, 검증 오류, 생성 클래스와 CSS, 화면 검사 결과, 입력·출력 토큰, USD 추정값을 저장한다. 비밀 키와 민감한 프롬프트 내용은 기록하지 않는다.
-- 시간 시작점은 요청을 보낸 시각이다. `firstValidNode`는 첫 검증 노드 수신, `firstStyledFrame`은 해당 노드의 CSS 적용 뒤 브라우저 paint 확인, `complete`는 마지막 노드 적용 시각이다. p95는 60회 값을 정렬한 뒤 57번째 값으로 계산한다.
+- 시간 시작점은 요청을 보낸 시각이다. `firstValidNode`는 첫 검증 노드 수신, `firstStyleReady`는 렌더된 노드의 예상 `getComputedStyle()` 값과 가시성이 브라우저에서 처음 확인된 시각, `complete`는 마지막 노드 적용 시각이다. p95는 60회 값을 정렬한 뒤 57번째 값으로 계산한다. `firstStyleReady`는 실제 화면 표시 시각이 아니다. [`requestAnimationFrame`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame)은 다시 그리기 전에 실행되므로 paint 확인으로 기록하지 않는다. 시각적 결과는 별도 [Playwright 스크린샷](https://playwright.dev/docs/api/class-page)으로 검사한다. 지연 측정 중 탭은 전경에 둔다.
 - 화면 검사는 저장된 기대 구조·텍스트·반응형 규칙을 자동 검사한다. [Playwright 시각 비교](https://playwright.dev/docs/test-snapshots)는 보조 자료로 쓴다. 픽셀 차이만으로 성공을 판정하지 않는다.
 - 오류를 모델 스키마, 클래스 정책, CSS 미지원, 렌더러, 네트워크, 모델 서비스로 분류한다. 수정 루프는 실패 요약을 보내 **최대 1회** 수행하고 수정 전후 결과와 추가 비용을 별도로 기록한다.
 - `json-render`는 같은 fixture 5개만 시험한다. 자체 스키마 대비 구현 시간, 유효 출력, 부분 스트림·중단 처리, BaroCSS 연결 난도를 기록한다. [json-render 카탈로그와 라이선스](https://github.com/vercel-labs/json-render)를 참조한다.
@@ -42,7 +42,7 @@
 - [ ] 60회 중 스키마 유효 출력이 **57회 이상**이다. 실패 3회도 원인과 원시 오류를 보존한다.
 - [ ] 미지원·거부 클래스 검사용 fixture의 모든 입력이 오류 목록에 나타나며 스타일이 삽입되지 않는다. 누락은 0건이다.
 - [ ] 악성·비허용 입력 10개(HTML 태그, 이벤트 속성, `javascript:` URL, 외부 이미지 URL, 임의 CSS `url()`, 임의 클래스 값, 미등록 variant, 임의 컴포넌트, 초과 깊이, 초과 크기)를 모두 차단한다. 브라우저에서 스크립트 실행과 허용 외 네트워크 요청은 0건이다.
-- [ ] `firstStyledFrame` p95가 **3초 이하**다. 초과 시 환경과 단계별 원인을 기록한다. 이 목표가 모델·네트워크 조건에서 비현실적이면 기준을 조용히 바꾸지 않고 결과와 변경 제안을 남긴다.
+- [ ] `firstStyleReady` p95가 **3초 이하**다. 초과 시 환경과 단계별 원인을 기록한다. 이 목표가 모델·네트워크 조건에서 비현실적이면 기준을 조용히 바꾸지 않고 결과와 변경 제안을 남긴다.
 - [ ] 화면의 주요 구조·텍스트·반응형 검사가 60회 중 **48회 이상** 통과한다. 통과 판정식과 fixture를 실행 전에 고정한다.
 - [ ] 60회 모두 토큰과 호출당 USD 추정 비용을 기록한다. 적용한 단가와 조회일을 함께 남긴다([모델 가격표 예시](https://developers.openai.com/api/docs/pricing)).
 - [ ] CSS 비교 결과에는 Tailwind 버전, 클래스, 기대 CSS, BaroCSS CSS, 의미 차이 여부를 기록한다. 표본 결과를 전체 호환율로 표현하지 않는다.

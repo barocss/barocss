@@ -82,7 +82,7 @@ type Result = {
   renderedPreview: string; // 미리보기 식별자 또는 URL
   css: string;
   errors: Array<{ nodeId: string; code: string; detail: string }>;
-  timingsMs: { firstValidNode: number; firstStyledFrame: number; complete: number };
+  timingsMs: { firstValidNode: number; firstStyleReady: number; complete: number };
   usage: { inputTokens: number; outputTokens: number; estimatedUsd: number };
 };
 ```
@@ -108,7 +108,9 @@ type Result = {
 | 11~12일 | `json-render` 자체 카탈로그를 같은 입력 5개에 연결해 개발량·스트림 안정성 비교 | 구현 시간, 오류·중단 처리 비교 |
 | 13~14일 | 결과 검토. Figma 입력은 권한이 있으면 1개 화면만 추가 | A/B 선택 또는 보류 근거 |
 
-**사전 성공 기준(목표, 실측 아님):** 20개 fixture × 3회에서 스키마 검증 통과율 ≥95%; 미지원·거부 클래스 100%가 오류 목록에 표시; 금지된 HTML/JS/URL 입력 10개가 모두 차단; 첫 스타일 프레임의 p95 ≤3초(테스트 환경·모델·네트워크를 함께 기록); 기준 화면의 주요 구조·텍스트·반응형 검사는 ≥80% 통과; 모델 호출당 토큰과 USD 추정 비용 기록 누락 0건. 지연 목표를 넘거나 품질 목표를 못 채우면 실패 원인을 모델 생성, CSS 호환, 렌더러, 네트워크로 나눠 본다. 수치 목표는 제품 가설이며 현재 성능이 아니다.
+**사전 성공 기준(목표, 실측 아님):** 20개 fixture × 3회에서 스키마 검증 통과율 ≥95%; 미지원·거부 클래스 100%가 오류 목록에 표시; 금지된 HTML/JS/URL 입력 10개가 모두 차단; 첫 스타일 준비 시각(`firstStyleReady`)의 p95 ≤3초(테스트 환경·모델·네트워크를 함께 기록); 기준 화면의 주요 구조·텍스트·반응형 검사는 ≥80% 통과; 모델 호출당 토큰과 USD 추정 비용 기록 누락 0건. 지연 목표를 넘거나 품질 목표를 못 채우면 실패 원인을 모델 생성, CSS 호환, 렌더러, 네트워크로 나눠 본다. 수치 목표는 제품 가설이며 현재 성능이 아니다.
+
+**측정 정의 정정:** `firstStyleReady`는 렌더된 노드의 예상 `getComputedStyle()` 값과 가시성이 브라우저에서 처음 확인된 시각이다. 이는 스타일이 적용된 상태를 뜻하며 실제 화면에 픽셀이 표시된 시각을 뜻하지 않는다. [`requestAnimationFrame`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame)은 다시 그리기 전에 실행된다. [`PerformancePaintTiming`](https://developer.mozilla.org/en-US/docs/Web/API/PerformancePaintTiming)의 FP/FCP는 초기 페이지 paint 지표이므로 동적으로 추가한 노드의 첫 styled paint를 직접 측정하는 지표로 쓰지 않는다. 화면 확인은 별도 [Playwright CSS 검사](https://playwright.dev/docs/actionability)와 [스크린샷](https://playwright.dev/docs/api/class-page)으로 기록한다. 백그라운드 탭에서는 rAF가 중단될 수 있으므로 측정 탭을 전경으로 고정한다. 이는 앞선 문서와 Discussion #69 댓글에서 쓴 “첫 스타일 프레임”보다 좁고 재현 가능한 측정 정의다.
 
 ## 7. 기존 작업과 결정 대기
 
