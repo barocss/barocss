@@ -156,6 +156,21 @@ describe('BrowserRuntime', () => {
     expect(document.querySelector('[data-category="layout"]')).not.toBeNull();
   });
 
+  it('restores a removed style partition when an existing class appears in the DOM', async () => {
+    runtime.observe(document.body);
+    runtime.addClass('p-4');
+    document.querySelector('[data-category="spacing"]')?.remove();
+
+    const element = document.createElement('div');
+    element.className = 'p-4';
+    document.body.append(element);
+    await Promise.resolve();
+
+    const style = document.querySelector<HTMLStyleElement>('[data-category="spacing"]');
+    const css = Array.from(style?.sheet?.cssRules ?? [], rule => rule.cssText).join('\n');
+    expect(css).toContain('.p-4');
+  });
+
   it('processes class changes and nested nodes after observation starts', async () => {
     runtime.observe(document.body, { scan: true });
     const element = document.createElement('div');

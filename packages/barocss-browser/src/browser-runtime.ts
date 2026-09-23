@@ -138,6 +138,7 @@ export class BrowserRuntime {
       results = [...existingResults, ...results];
       results.forEach(result => this.incrementalParser.markProcessed(result.cls));
     }
+    if (results.length === 0) return;
     const cssRules: GenerateCssRulesResult[] = [];
     const rootCssRules: string[] = [];
 

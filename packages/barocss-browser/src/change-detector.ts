@@ -111,6 +111,8 @@ export class ChangeDetector {
           const results = this.incrementalParser.processClasses(classesArray);
           // If BrowserRuntime is available, apply results via public API
           this.BrowserRuntime?.applyParseResults(results);
+        } else {
+          this.BrowserRuntime?.applyParseResults([]);
         }
       });
   
