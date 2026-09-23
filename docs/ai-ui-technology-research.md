@@ -18,6 +18,8 @@
 
 Mirror 작업의 **초기 표본**은 Tailwind CSS 4.1.13을 정확히 고정하고 클래스 15개를 비교했다. CSS 구조 일치 8개, 구조 차이 6개, 미지원 1개(`mask-linear-from-50%`)다. 구조 차이에는 값이 같을 수 있는 변수·표기 차이와 의미 차이가 섞여 있다. 특히 `hover:block`에는 Tailwind의 `@media (hover: hover)` 조건이 빠진다. 이 15개는 호환율 모집단이 아니다. 재현 방법과 판정은 Mirror의 `packages/barocss/docs/tailwind-compatibility.md`에 있다. 해당 문서는 별도 worktree에서 작성 중이므로 통합 후 경로를 확인해야 한다.
 
+**0.0.4 후보 갱신 확인(통합 worktree `cacab7d`, [draft PR #71](https://github.com/barocss/barocss/pull/71)):** 코어는 `parseClassToAst(cls, ctx)`의 캐시·실패 결과를 컨텍스트별로 관리하고 `clearAstCache(ctx)`를 공개한다. 브라우저는 `applyParseResults`에서 클래스별 CSS를 캐시에 넣고, `updateConfig`에서 parser를 다시 만들며, `destroy`에서 observer를 끊는다. 서버의 `generateCss`는 빈 입력에도 빈 문자열을 반환하도록 바뀌었다. PM이 보고한 PR CI는 통과했다. 이 문단은 위 기준 커밋의 제약을 대체하는 **후보 코드 관찰**이며, 패키지 출시 상태를 뜻하지 않는다. `BrowserRuntime.getAllCss()`는 클래스별 CSS 캐시만 합치므로 root CSS·preflight·테마 변수까지 포함한 완전한 스타일시트로 취급하지 않는다. `removeClass`는 캐시에서만 지우므로 주입된 스타일 제거 API로 쓰지 않는다. PoC의 생성 CSS 기록에는 kit 결과와 필요한 root CSS를 구분하고, 실제 화면 결과는 브라우저의 계산된 스타일로 확인한다.
+
 ## 2. 평가 기준
 
 우선순위는 BaroCSS 목표에 맞췄다. 실시간 응답(25%), 생성 품질(20%), Tailwind 기준 클래스 호환(15%), 보안(15%), 통합 난도(10%), 이식성(10%), 비용(5%)이다. 이 가중치는 제품 판단이며 실측값이 아니다. 아래의 “높음/중간/낮음”도 문서로 확인한 기능에 대한 정성 평가다. 지연·품질·호환율은 PoC에서 측정한다.
@@ -87,7 +89,7 @@ type Result = {
 };
 ```
 
-모델 출력은 서버에서 스키마와 최대 크기·깊이·노드 수를 검사한다. 각 클래스는 정책 검사 뒤 kit 생성 결과가 비어 있지 않은지 확인한다. 미지원 클래스는 `UNSUPPORTED_CLASS` 오류로 돌려주고 해당 클래스만 제외한다. 렌더러는 등록된 컴포넌트만 쓴다. 브라우저 어댑터는 Pulse의 최종 공개 API가 정해진 뒤 연결한다. 생성 CSS는 kit의 결과와 브라우저에 적용된 규칙을 각각 기록해 차이를 찾는다. 모델 API 키는 서버에 둔다.
+모델 출력은 서버에서 스키마와 최대 크기·깊이·노드 수를 검사한다. 각 클래스는 정책 검사 뒤 kit 생성 결과가 비어 있지 않은지 확인한다. 미지원 클래스는 `UNSUPPORTED_CLASS` 오류로 돌려주고 해당 클래스만 제외한다. 렌더러는 등록된 컴포넌트만 쓴다. 후보 코드의 브라우저 접점은 `BrowserRuntime.addClass`와 `observe`이며, 패키지 사용 검사가 끝난 뒤 버전을 고정한다. 생성 CSS는 kit의 클래스별 결과, root CSS, 테마 변수·preflight를 구분해 기록한다. `getAllCss()` 단독 값을 완전한 CSS 출력으로 쓰지 않는다. 브라우저의 계산된 스타일도 검사한다. 모델 API 키는 서버에 둔다.
 
 ## 5. 피할 결합과 의존성
 

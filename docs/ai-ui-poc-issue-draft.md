@@ -15,7 +15,7 @@
 - 모델 출력: `UiNode` 트리. 각 노드는 `id`, 등록된 `component`, 컴포넌트별 허용 `props`, `classes: string[]`, `children`을 갖는다.
 - 첫 카탈로그: `Stack`, `Text`, `Button`, `Card`, `Image`. 버튼은 등록된 행동 ID만 사용한다.
 - 출력: 검증한 트리, 미리보기 식별자, 생성 CSS, `nodeId`가 있는 오류 목록, 단계별 시간, 토큰 사용량과 추정 USD 비용. 단계별 시간에는 `firstStyleReady`를 쓴다.
-- BaroCSS 연결: `@barocss/kit`으로 클래스별 CSS 생성 여부를 확인한다. `@barocss/browser`로 렌더된 화면에 CSS를 적용한다. Pulse의 최종 공개 API를 확인한 뒤 정확한 호출을 고정한다. 서버 측 CSS가 필요하면 `@barocss/server` 공개 API를 사용한다.
+- BaroCSS 연결: `@barocss/kit`의 `generateCssRules`로 클래스별 CSS 생성 여부를 확인한다. `@barocss/browser` 후보의 `BrowserRuntime.addClass`·`observe`로 렌더된 화면에 CSS를 적용한다. 서버 측 CSS가 필요하면 `@barocss/server` 공개 API를 사용한다. 0.0.4 후보의 패키지 사용 검사가 끝나면 버전을 고정한다.
 - 첫 모델 공급자 1개를 고정하고 모델명·버전·가격 조회일을 기록한다. 모델 호출 코드는 BaroCSS 코어 밖에 둔다.
 - 자유 HTML, JS, 임의 import, 임의 CSS, 동적 패키지 설치, 사용자 코드 실행, Figma 필수 연동, 배포 기능은 범위에서 제외한다. `json-render` 자체 카탈로그는 같은 입력 5개에 한정한 비교 실험이다.
 
@@ -32,6 +32,7 @@
 - 시작 전에 프롬프트 20개와 기대 화면 검사를 저장소 fixture로 고정한다. 레이아웃, 텍스트, 반응형, 상태를 포함한다. 같은 프롬프트를 3회 실행해 총 60회 기록한다. 실패 재실행도 원본 결과를 남긴다.
 - Mirror의 Tailwind CSS 4.1.13 고정 비교를 기본 기준으로 쓴다. 초기 표본 15개 중 구조 일치 8개, 구조 차이 6개, 미지원 1개는 전체 호환율이 아니다. PoC에 필요한 클래스는 시작 전에 각각 CSS 의미·지원 여부를 추가 측정해 허용 목록으로 고정한다. [Tailwind v4 변경 사항](https://tailwindcss.com/docs/upgrade-guide)을 기준에 기록한다.
 - 한 번의 실행마다 입력 ID, 모델·버전, BaroCSS 커밋/패키지 버전, viewport, 브라우저·기기, 네트워크 조건, 세 단계 시간, 검증 오류, 생성 클래스와 CSS, 화면 검사 결과, 입력·출력 토큰, USD 추정값을 저장한다. 비밀 키와 민감한 프롬프트 내용은 기록하지 않는다.
+- CSS 기록은 클래스별 규칙, root CSS, 테마 변수·preflight를 구분한다. 후보 브라우저의 `getAllCss()`는 클래스별 캐시만 합치므로 완전한 스타일시트로 쓰지 않는다. 실제 적용 여부는 계산된 스타일로 확인한다. `removeClass`는 주입 스타일을 지우지 않으므로 검증 중 클래스 제거 API로 사용하지 않는다.
 - 시간 시작점은 요청을 보낸 시각이다. `firstValidNode`는 첫 검증 노드 수신, `firstStyleReady`는 렌더된 노드의 예상 `getComputedStyle()` 값과 가시성이 브라우저에서 처음 확인된 시각, `complete`는 마지막 노드 적용 시각이다. p95는 60회 값을 정렬한 뒤 57번째 값으로 계산한다. `firstStyleReady`는 실제 화면 표시 시각이 아니다. [`requestAnimationFrame`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame)은 다시 그리기 전에 실행되므로 paint 확인으로 기록하지 않는다. 시각적 결과는 별도 [Playwright 스크린샷](https://playwright.dev/docs/api/class-page)으로 검사한다. 지연 측정 중 탭은 전경에 둔다.
 - 화면 검사는 저장된 기대 구조·텍스트·반응형 규칙을 자동 검사한다. [Playwright 시각 비교](https://playwright.dev/docs/test-snapshots)는 보조 자료로 쓴다. 픽셀 차이만으로 성공을 판정하지 않는다.
 - 오류를 모델 스키마, 클래스 정책, CSS 미지원, 렌더러, 네트워크, 모델 서비스로 분류한다. 수정 루프는 실패 요약을 보내 **최대 1회** 수행하고 수정 전후 결과와 추가 비용을 별도로 기록한다.
