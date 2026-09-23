@@ -15,16 +15,17 @@
 | 정상 입력 | [20개 고정 fixture](../apps/ai-ui-poc/fixtures/benchmark.js) × 3회 = 60회 |
 | 금지 입력 | [10개 fixture](../apps/ai-ui-poc/fixtures/forbidden.js) 각각 오류 발생. 위험 클래스 3개는 제외하고 안전한 노드만 표시. 다른 구조 오류 7개는 트리 전체를 거부. |
 | 스키마 유효성 | 60/60 |
-| 구조·텍스트 검사 | 60/60. 반응형 viewport 검사는 포함하지 않음. |
+| 구조·텍스트 검사 | 60/60. 노드 ID·태그·클래스·자식 순서·텍스트와 이미지 속성을 fixture 트리와 대조. 반응형 viewport 검사는 포함하지 않음. |
 | 루트 계산 스타일·가시성 확인 | 60/60. 모든 정상 fixture의 루트 `text-center`에 대해 `text-align: center`와 가시성만 자동 검사. |
-| `firstStyleReady` p95 | 0.7ms, 위 루트 검사까지의 시간. 동일 페이지의 따뜻한 캐시에서 측정. 모델·네트워크·paint 시간은 제외. |
+| 추가 계산 스타일 검사 | 60/60회에서 지정한 검사 90건 통과. 루트 `text-center`, 카드 `overflow-hidden`, 버튼의 `block`·`bg-red-500`만 확인. |
+| `firstStyleReady` p95 | 0.6ms, 위 루트 검사까지의 시간. 동일 페이지의 따뜻한 캐시에서 측정. 모델·네트워크·paint 시간은 제외. |
 | 브라우저 | Chromium 153, 1280px viewport. Fixture의 `mobile` 값은 의도 표식이며 화면 크기를 바꾸지 않음. |
 
-각 실행의 시간, 오류, fixture ID, 의도 viewport, 실제 viewport는 [원시 JSON](../apps/ai-ui-poc/results/mock-60.json)에 있다. 현재 mock의 `firstValidNode`는 전체 트리 검증이 끝난 시각이다. 부분 스트림의 첫 노드 시각은 측정하지 않았다. 브라우저에서 `block`의 `display: block`과 `bg-red-500` 버튼의 계산된 배경색은 별도로 확인했다. 그러나 60회 자동 검사는 `md:block`, grid, 자식 버튼의 스타일 의미를 확인하지 않았다. 정상 화면의 오류 목록은 비어 있었다. 10개 금지 입력을 브라우저에서 각각 선택해 오류 코드와 미리보기 상태를 확인했다. 금지 이미지 입력은 이미지 노드를 만들지 않았다.
+각 실행의 시간, 오류, fixture ID, 의도 viewport, 실제 viewport와 검사별 결과는 [원시 JSON](../apps/ai-ui-poc/results/mock-60.json)에 있다. 현재 mock의 `firstValidNode`는 전체 트리 검증이 끝난 시각이다. 부분 스트림의 첫 노드 시각은 측정하지 않았다. 기본 `div`·`p`의 `block`은 해당 요소의 기본 표시 방식만으로 통과할 수 있어 추가 스타일 검사에서 제외했다. `grid-cols-2`와 `md:block`의 의미도 이 실행에서 검사하지 않았다. 정상 화면의 오류 목록은 비어 있었다. 10개 금지 입력을 브라우저에서 각각 선택해 오류 코드와 미리보기 상태를 확인했다. 금지 이미지 입력은 이미지 노드를 만들지 않았다.
 
 검사 명령: Node 22.22.0, pnpm 9.15.4에서 `pnpm install --frozen-lockfile`, `pnpm check`, `pnpm --filter @barocss/ai-ui-poc build`가 통과했다. `pnpm check`에는 PoC의 네 개 Node 테스트가 포함됐다. 기존 browser lint 경고 2개는 남아 있다. lockfile 변경은 새 앱 importer 9줄뿐이다.
 
-Guard는 PoC 커밋 `a487c46`을 [독립 검사](https://github.com/barocss/barocss/pull/74#issuecomment-5787986716)했다. 별도 보관본에서 고정 설치, `pnpm check`, PoC 빌드가 통과했다. Chromium 153의 개발 서버와 프로덕션 빌드에서 20개 fixture를 3회씩 재실행해 스키마·구조/텍스트·위 루트 계산 스타일 검사가 60/60이고 오류가 0건임을 확인했다. 금지 입력 10종은 모두 예상 오류가 났다. 구조 오류 7종의 미리보기는 비었고, 위험 클래스 3종은 해당 클래스만 제거됐다. 금지 입력 실행 중 스크립트 노드와 허용 외 네트워크 요청은 관측되지 않았다. Guard의 개발 서버 재실행 p95는 0.5ms, 프로덕션 빌드 재실행은 0.6ms였다. 저장된 실행의 0.7ms와 다르므로 지연값의 결정성을 주장하지 않는다. 각 기록은 자체 원시값에서 p95를 다시 계산하면 일치한다.
+Guard는 이전 PoC 코드 커밋 `a487c46`을 [독립 검사](https://github.com/barocss/barocss/pull/74#issuecomment-5787986716)했다. 별도 보관본에서 고정 설치, `pnpm check`, PoC 빌드가 통과했다. Chromium 153의 개발 서버와 프로덕션 빌드에서 20개 fixture를 3회씩 재실행해 당시의 스키마·구조/텍스트·루트 계산 스타일 검사가 60/60이고 오류가 0건임을 확인했다. 금지 입력 10종은 모두 예상 오류가 났다. 구조 오류 7종의 미리보기는 비었고, 위험 클래스 3종은 해당 클래스만 제거됐다. 금지 입력 실행 중 스크립트 노드와 허용 외 네트워크 요청은 관측되지 않았다. Guard의 개발 서버 재실행 p95는 0.5ms, 프로덕션 빌드 재실행은 0.6ms였다. 이전 저장 실행의 0.7ms와 달라 지연값의 결정성을 주장하지 않는다. 이번 90건 추가 스타일 검사는 아직 Guard가 독립 검증하지 않았다.
 
 ## 측정 계약: 실제 모델 단계
 

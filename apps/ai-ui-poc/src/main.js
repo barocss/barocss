@@ -1,6 +1,7 @@
 import { BENCHMARK_FIXTURES } from '../fixtures/benchmark.js';
 import { FORBIDDEN_FIXTURES } from '../fixtures/forbidden.js';
 import { createBaroAdapter } from './barocss-adapter.js';
+import { assessFixture } from './assess.js';
 import { runMockPipeline } from './pipeline.js';
 import './style.css';
 
@@ -76,13 +77,15 @@ document.querySelector('#benchmark').addEventListener('click', () => {
   for (const fixture of BENCHMARK_FIXTURES) {
     for (let repeat = 1; repeat <= 3; repeat++) {
       const result = run(fixture.mockTree);
-      const text = preview.textContent;
+      const assessment = assessFixture(fixture, preview);
       records.push({
         fixtureId: fixture.id, repeat, viewport: fixture.viewport,
         actualViewportPx: window.innerWidth,
         schemaValid: result.tree !== null,
-        structureAndTextPass: fixture.expect.texts.every((expected) => text.includes(expected)) &&
-          fixture.expect.components.every((component) => Boolean(preview.querySelector(component === 'Button' ? 'button' : component === 'Image' ? 'img' : component === 'Card' ? 'section' : 'div'))),
+        structureAndTextPass: assessment.structureAndTextPass,
+        checkedStylePass: assessment.checkedStylePass,
+        checkedStyles: assessment.checkedStyles,
+        uncheckedClasses: assessment.uncheckedClasses,
         styleReady: result.timingsMs.firstStyleReady !== null,
         timingsMs: result.timingsMs, errors: result.errors,
         usage: null,
@@ -98,6 +101,9 @@ document.querySelector('#benchmark').addEventListener('click', () => {
     runs: records.length,
     schemaValid: records.filter((record) => record.schemaValid).length,
     structureAndTextPass: records.filter((record) => record.structureAndTextPass).length,
+    checkedStylePass: records.filter((record) => record.checkedStylePass).length,
+    checkedStyleCases: records.reduce((count, record) => count + record.checkedStyles.length, 0),
+    uncheckedClasses: [...new Set(records.flatMap((record) => record.uncheckedClasses))].sort(),
     styleReady: styleTimes.length,
     firstStyleReadyP95Ms: styleTimes.length === records.length ? p95(styleTimes) : null,
     modelQualityAndCost: 'not measured',

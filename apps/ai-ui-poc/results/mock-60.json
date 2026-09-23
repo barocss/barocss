@@ -6,8 +6,15 @@
   "runs": 60,
   "schemaValid": 60,
   "structureAndTextPass": 60,
+  "checkedStylePass": 60,
+  "checkedStyleCases": 90,
+  "uncheckedClasses": [
+    "block",
+    "grid-cols-2",
+    "md:block"
+  ],
   "styleReady": 60,
-  "firstStyleReadyP95Ms": 0.6999999992549419,
+  "firstStyleReadyP95Ms": 0.5999999977648258,
   "modelQualityAndCost": "not measured",
   "records": [
     {
@@ -17,11 +24,22 @@
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-01",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0.19999999925494194,
-        "firstStyleReady": 0.6999999992549419,
-        "complete": 0.8000000007450581
+        "firstStyleReady": 0.5,
+        "complete": 0.5999999977648258
       },
       "errors": [],
       "usage": null
@@ -33,11 +51,22 @@
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-01",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.4000000022351742,
+        "complete": 0.4000000022351742
       },
       "errors": [],
       "usage": null
@@ -49,11 +78,22 @@
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-01",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
       },
       "errors": [],
       "usage": null
@@ -65,9 +105,25 @@
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-02",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-02-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.19999999925494194,
+        "firstValidNode": 0.29999999701976776,
         "firstStyleReady": 0.6999999992549419,
         "complete": 0.6999999992549419
       },
@@ -81,11 +137,27 @@
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-02",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-02-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
+        "firstValidNode": 0.19999999925494194,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
       },
       "errors": [],
       "usage": null
@@ -97,6 +169,22 @@
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-02",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-02-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
@@ -113,249 +201,30 @@
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-03",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-03-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-03-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0.3999999985098839,
-        "firstStyleReady": 1.199999999254942,
-        "complete": 1.199999999254942
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-03",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.19999999925494194,
-        "firstStyleReady": 0.3999999985098839,
-        "complete": 0.5
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-03",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-04",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-04",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-04",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-05",
-      "repeat": 1,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-05",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-05",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-06",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-06",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-06",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-07",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.19999999925494194,
-        "firstStyleReady": 0.6000000014901161,
-        "complete": 0.6000000014901161
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-07",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-07",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-08",
-      "repeat": 1,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.3999999985098839,
+        "firstValidNode": 0.30000000074505806,
         "firstStyleReady": 0.8000000007450581,
         "complete": 0.8000000007450581
       },
@@ -363,127 +232,36 @@
       "usage": null
     },
     {
-      "fixtureId": "ui-08",
+      "fixtureId": "ui-03",
       "repeat": 2,
       "viewport": "mobile",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.29999999701976776,
-        "complete": 0.29999999701976776
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-08",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-09",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-03",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-03-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-03-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-09",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-09",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-10",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.5,
-        "complete": 0.5
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-10",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.3999999985098839,
-        "complete": 0.3999999985098839
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-10",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
         "firstStyleReady": 0.30000000074505806,
         "complete": 0.30000000074505806
       },
@@ -491,284 +269,33 @@
       "usage": null
     },
     {
-      "fixtureId": "ui-11",
-      "repeat": 1,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-11",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-11",
+      "fixtureId": "ui-03",
       "repeat": 3,
       "viewport": "mobile",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-12",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-12",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-12",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-13",
-      "repeat": 1,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-13",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-13",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-14",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-14",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-14",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-15",
-      "repeat": 1,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.09999999776482582,
-        "firstStyleReady": 0.29999999701976776,
-        "complete": 0.29999999701976776
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-15",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.10000000149011612,
-        "complete": 0.10000000149011612
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-15",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0.10000000149011612,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-16",
-      "repeat": 1,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-16",
-      "repeat": 2,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.30000000074505806,
-        "complete": 0.30000000074505806
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-16",
-      "repeat": 3,
-      "viewport": "desktop",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-03",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-03-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-03-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
@@ -779,63 +306,31 @@
       "usage": null
     },
     {
-      "fixtureId": "ui-17",
-      "repeat": 1,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-17",
-      "repeat": 2,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-17",
-      "repeat": 3,
-      "viewport": "mobile",
-      "actualViewportPx": 1280,
-      "schemaValid": true,
-      "structureAndTextPass": true,
-      "styleReady": true,
-      "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.20000000298023224,
-        "complete": 0.20000000298023224
-      },
-      "errors": [],
-      "usage": null
-    },
-    {
-      "fixtureId": "ui-18",
+      "fixtureId": "ui-04",
       "repeat": 1,
       "viewport": "desktop",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-04",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-04-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0,
+        "firstValidNode": 0.09999999776482582,
         "firstStyleReady": 0.19999999925494194,
         "complete": 0.19999999925494194
       },
@@ -843,28 +338,114 @@
       "usage": null
     },
     {
-      "fixtureId": "ui-18",
+      "fixtureId": "ui-04",
       "repeat": 2,
       "viewport": "desktop",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-04",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-04-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
       },
       "errors": [],
       "usage": null
     },
     {
-      "fixtureId": "ui-18",
+      "fixtureId": "ui-04",
       "repeat": 3,
       "viewport": "desktop",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-04",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-04-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-05",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-05",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-05",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-05",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
@@ -875,12 +456,50 @@
       "usage": null
     },
     {
-      "fixtureId": "ui-19",
+      "fixtureId": "ui-05",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-05",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-06",
       "repeat": 1,
       "viewport": "desktop",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-06",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0.10000000149011612,
@@ -891,12 +510,23 @@
       "usage": null
     },
     {
-      "fixtureId": "ui-19",
+      "fixtureId": "ui-06",
       "repeat": 2,
       "viewport": "desktop",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-06",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0.10000000149011612,
@@ -907,15 +537,26 @@
       "usage": null
     },
     {
-      "fixtureId": "ui-19",
+      "fixtureId": "ui-06",
       "repeat": 3,
       "viewport": "desktop",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-06",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0,
+        "firstValidNode": 0.09999999776482582,
         "firstStyleReady": 0.19999999925494194,
         "complete": 0.19999999925494194
       },
@@ -923,49 +564,1243 @@
       "usage": null
     },
     {
-      "fixtureId": "ui-20",
+      "fixtureId": "ui-07",
       "repeat": 1,
-      "viewport": "mobile",
+      "viewport": "desktop",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-07",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
       "styleReady": true,
       "timingsMs": {
-        "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
+        "firstValidNode": 0.19999999925494194,
+        "firstStyleReady": 0.5999999977648258,
+        "complete": 0.5999999977648258
       },
       "errors": [],
       "usage": null
     },
     {
-      "fixtureId": "ui-20",
+      "fixtureId": "ui-07",
       "repeat": 2,
-      "viewport": "mobile",
+      "viewport": "desktop",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-07",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
-        "firstStyleReady": 0.19999999925494194,
-        "complete": 0.19999999925494194
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
       },
       "errors": [],
       "usage": null
     },
     {
-      "fixtureId": "ui-20",
+      "fixtureId": "ui-07",
       "repeat": 3,
-      "viewport": "mobile",
+      "viewport": "desktop",
       "actualViewportPx": 1280,
       "schemaValid": true,
       "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-07",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
       "styleReady": true,
       "timingsMs": {
         "firstValidNode": 0,
         "firstStyleReady": 0.10000000149011612,
         "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-08",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-08",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.3999999985098839,
+        "firstStyleReady": 0.8999999985098839,
+        "complete": 0.8999999985098839
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-08",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-08",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-08",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-08",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-09",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-09",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.29999999701976776,
+        "complete": 0.29999999701976776
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-09",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-09",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-09",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-09",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-10",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-10",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-10",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-10",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-10",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-10",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-10-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-11",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-11",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-11-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-11",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-11",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-11-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-11",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-11",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-11-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-12",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-12",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-12",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-12",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-12",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-12",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-13",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-13",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-13",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-13",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-13",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-13",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-14",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-14",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-14",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-14",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-14",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-14",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-15",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-15",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-15-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.29999999701976776,
+        "complete": 0.29999999701976776
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-15",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-15",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-15-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-15",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-15",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-15-card",
+          "className": "overflow-hidden",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-16",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-16",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.09999999776482582,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-16",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-16",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-16",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-16",
+          "className": "text-center",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "block",
+          "pass": true
+        },
+        {
+          "nodeId": "ui-16-action",
+          "className": "bg-red-500",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-17",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-17",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-17",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-17",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0.10000000149011612,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-17",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-17",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-18",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-18",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.10000000149011612,
+        "complete": 0.10000000149011612
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-18",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-18",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-18",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-18",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "md:block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-19",
+      "repeat": 1,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-19",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-19",
+      "repeat": 2,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-19",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.30000000074505806,
+        "complete": 0.30000000074505806
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-19",
+      "repeat": 3,
+      "viewport": "desktop",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-19",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block",
+        "grid-cols-2"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-20",
+      "repeat": 1,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-20",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.20000000298023224,
+        "complete": 0.20000000298023224
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-20",
+      "repeat": 2,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-20",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.19999999925494194,
+        "complete": 0.19999999925494194
+      },
+      "errors": [],
+      "usage": null
+    },
+    {
+      "fixtureId": "ui-20",
+      "repeat": 3,
+      "viewport": "mobile",
+      "actualViewportPx": 1280,
+      "schemaValid": true,
+      "structureAndTextPass": true,
+      "checkedStylePass": true,
+      "checkedStyles": [
+        {
+          "nodeId": "ui-20",
+          "className": "text-center",
+          "pass": true
+        }
+      ],
+      "uncheckedClasses": [
+        "block"
+      ],
+      "styleReady": true,
+      "timingsMs": {
+        "firstValidNode": 0,
+        "firstStyleReady": 0.09999999776482582,
+        "complete": 0.09999999776482582
       },
       "errors": [],
       "usage": null

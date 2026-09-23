@@ -13,7 +13,7 @@ pnpm --filter @barocss/ai-ui-poc build
 pnpm --filter @barocss/ai-ui-poc dev
 ```
 
-브라우저에서 표시된 로컬 주소를 연다. Fixture를 고르면 UI JSON, 미리보기, 오류와 CSS 기록을 볼 수 있다. **Mock 60회 측정**은 정상 fixture 20개를 같은 탭에서 3회씩 처리한다. **측정 JSON 저장**은 각 실행의 원시 기록을 내려받는다.
+브라우저에서 표시된 로컬 주소를 연다. Fixture를 고르면 UI JSON, 미리보기, 오류와 CSS 기록을 볼 수 있다. **Mock 60회 측정**은 정상 fixture 20개를 같은 탭에서 3회씩 처리한다. 노드 구조·텍스트와 지정한 계산 스타일을 따로 검사한다. **측정 JSON 저장**은 각 실행의 원시 기록을 내려받는다.
 
 ## 입력 계약
 
@@ -29,4 +29,4 @@ BaroCSS 접점은 [barocss-adapter.js](src/barocss-adapter.js)에 있다. 자체
 - [금지 입력 10개](fixtures/forbidden.js): HTML 태그, 이벤트 속성, 위험 URL 두 종류, CSS `url()`, 임의 값, 미등록 variant·컴포넌트, 초과 깊이·크기.
 - [원시 mock 기록](results/mock-60.json)과 [측정 해석](../../docs/ai-ui-poc-mock-results.md).
 
-`firstStyleReady`는 루트 노드의 `text-align: center` 계산 스타일과 가시성이 처음 확인된 시각이다. 실제 화면에 픽셀이 표시된 시각이 아니다. mock은 같은 페이지와 캐시에서 실행된다. 실제 모델의 생성 품질, 네트워크 지연, 토큰, USD 비용, 모바일 viewport의 렌더링은 이 기록으로 판단할 수 없다.
+`firstStyleReady`는 루트 노드의 `text-align: center` 계산 스타일과 가시성이 처음 확인된 시각이다. 실제 화면에 픽셀이 표시된 시각이 아니다. 추가 계산 스타일 검사는 카드의 overflow와 버튼의 표시·배경색을 포함한다. 기본 `div`·`p`의 `block`, `grid-cols-2`, `md:block`의 스타일 의미는 확인하지 않는다. mock은 같은 페이지와 캐시에서 실행된다. 실제 모델의 생성 품질, 네트워크 지연, 토큰, USD 비용, 모바일 viewport의 렌더링은 이 기록으로 판단할 수 없다.
