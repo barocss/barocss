@@ -18,8 +18,8 @@ There are many ways to contribute to BaroCSS:
 
 ### Prerequisites
 
-- Node.js 18+ 
-- pnpm (recommended) or npm
+- Node.js 22.12+
+- pnpm 9
 - Git
 
 ### Development Setup
@@ -128,8 +128,8 @@ pnpm test
 cd packages/barocss
 pnpm test:watch
 
-# Check build
-pnpm build
+# Run the same checks as CI
+pnpm check
 ```
 
 ### 4. Submit a Pull Request
@@ -159,7 +159,7 @@ When you make changes that should be included in a release:
    pnpm changeset
    ```
 
-2. **Select the package** that has changes (currently only `barocss`)
+2. **Select each affected package** (`@barocss/kit`, `@barocss/browser`, or `@barocss/server`)
 3. **Choose the change type**:
    - `patch`: Bug fixes and minor changes (0.0.x)
    - `minor`: New features (0.x.0)
@@ -169,7 +169,7 @@ When you make changes that should be included in a release:
 **Example changeset file** (`.changeset/feature-name.md`):
 ```markdown
 ---
-"barocss": minor
+"@barocss/kit": minor
 ---
 
 feat: add new gradient utility classes
@@ -186,9 +186,9 @@ feat: add new gradient utility classes
    - Push to your feature branch
 
 2. **After PR Merge**:
-   - Changesets are automatically collected
-   - GitHub Actions create version PRs when needed
-   - Maintainers review and merge version PRs
+   - Changesets stay on the `develop` branch
+   - A maintainer runs the Release workflow to create a version PR
+   - Maintainers review and merge the version PR
 
 3. **Release Process**:
    - Version PRs automatically update package.json
@@ -201,7 +201,7 @@ feat: add new gradient utility classes
 - **Be descriptive**: Write clear, user-focused descriptions
 - **Group related changes**: Use one changeset for related features/fixes
 - **Choose appropriate types**: Be conservative with major version bumps
-- **Single package focus**: Currently all changes affect the main `barocss` package
+- **Package focus**: List every package changed by the release
 
 ### Changeset Commands
 
@@ -216,29 +216,29 @@ git add .changeset/
 pnpm changeset status
 
 # Build packages (required before versioning)
-pnpm build
+pnpm check
 
 # Version packages (maintainers only)
-pnpm version-packages
+pnpm changeset:version
 
 # Publish packages (maintainers only)
-pnpm release
+pnpm changeset:publish
 ```
 
 ### Release Automation
 
 BaroCSS uses GitHub Actions to automate the release process:
 
-1. **Changeset Bot**: Automatically detects changesets in PRs
-2. **Version PRs**: Creates automated version PRs when changesets are merged
-3. **Release Workflow**: Automatically publishes packages and creates GitHub releases
+1. **Changesets**: Record package changes in PRs
+2. **Version PRs**: The manually started Release workflow creates a version PR when changesets exist
+3. **Release Workflow**: A maintainer starts it manually to publish packages and create GitHub releases
 
 **Important Notes**:
 - **Never manually create version PRs** - let the automation handle it
 - **Changesets must be in the develop branch** before versioning
 - **All tests must pass** before versioning
 - **Maintainers review** all version PRs before merging
-- **Single package structure**: Currently all changes affect the main `barocss` package
+- **Package selection**: Include each affected package in the changeset
 
 ## 📝 Pull Request Guidelines
 
@@ -307,15 +307,9 @@ barocss/
 ├── apps/
 │   └── barocss-docs/          # Documentation site
 ├── packages/
-│   └── barocss/               # Core BaroCSS framework
-│       ├── src/
-│       │   ├── core/          # Core parsing and generation logic
-│       │   ├── presets/       # Utility presets and variants
-│       │   ├── runtime/       # Browser and server runtime
-│       │   ├── theme/         # Theme system and defaults
-│       │   └── utils/         # Utility functions and helpers
-│       ├── tests/             # Test files
-│       └── dist/              # Build output
+│   ├── barocss/               # @barocss/kit CSS engine
+│   ├── barocss-browser/       # @barocss/browser DOM runtime
+│   └── barocss-server/        # @barocss/server Node runtime
 ├── .changeset/                # Changeset files for versioning
 └── docs/                      # Project documentation
 ```

@@ -10,8 +10,8 @@
       "import": "./src/index.ts"
     },
     "./theme/default": {
-      "types": "./src/theme/default.ts",
-      "import": "./src/theme/default.ts"
+      "types": "./src/theme/index.ts",
+      "import": "./src/theme/index.ts"
     }
   },
   "files": [
@@ -27,7 +27,8 @@
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
-        "import": "./dist/index.js"
+        "import": "./dist/index.js",
+        "require": "./dist/index.js"
       },
       "./theme/default": {
         "types": "./dist/theme/default.d.ts",

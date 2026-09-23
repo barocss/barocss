@@ -34,15 +34,5 @@ jobs:
       - name: Run CI checks
         run: pnpm check
 
-      - name: Check build output
-        run: |
-          echo "=== @barocss/kit build output ==="
-          ls -la packages/barocss/dist/
-          echo ""
-          echo "=== @barocss/browser build output ==="
-          ls -la packages/barocss-browser/dist/
-          echo ""
-          echo "=== @barocss/server build output ==="
-          ls -la packages/barocss-server/dist/
-          echo ""
-          echo "All packages built successfully!"
+      - name: Check packed package exports
+        run: node .github/scripts/check-packages.mjs
