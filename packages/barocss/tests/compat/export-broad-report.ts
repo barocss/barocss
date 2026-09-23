@@ -17,7 +17,7 @@ type Record = {
   statusV4_1_13: CoverageStatus;
   statusV4_3_3: CoverageStatus;
   browserV4_1_13: { status: string };
-  browserV4_3_3: { status: string; property?: string; computedValue?: string; elementWidth?: string; source?: string };
+  browserV4_3_3: { status: string; property?: string; computedValue?: string; elementWidth?: string; clientWidth?: string; source?: string };
 };
 const raw = JSON.parse(readFileSync(inputPath, 'utf8')) as { run: typeof coverageRun; records: Record[] };
 if (JSON.stringify(raw.run) !== JSON.stringify(coverageRun)) throw new Error('Run metadata does not match harness');
@@ -62,11 +62,13 @@ const lines = [
   '',
   '## Focused browser evidence',
   '',
-  'Guard compared separately scoped Tailwind CSS 4.3.3 and BaroCSS stylesheets in Headless Chrome 153 on macOS 15.6.1 at BaroCSS commit `5a20ae7`. This was a local fixture with linked dependencies, not a fresh frozen install. See the [exact method and result](https://github.com/barocss/barocss/pull/84#issuecomment-5791345702).',
+  'Guard compared separately scoped Tailwind CSS 4.3.3 and BaroCSS stylesheets in Headless Chrome 153 on macOS 15.6.1. The [zoom and tab check](https://github.com/barocss/barocss/pull/84#issuecomment-5791345702) used BaroCSS commit `5a20ae7`; the [scrollbar-gutter check](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) used exact HEAD `82ababe`. Both used local fixtures with linked dependencies, not a fresh frozen install.',
   '',
-  '| Exact input | Computed property | Both computed values | Both element widths |',
-  '| --- | --- | --- | --- |',
-  ...verifiedBrowser.map(({ classes, browserV4_3_3: browser }) => `| \`${classes.join(' ')}\` | ${browser.property} | \`${browser.computedValue}\` | ${browser.elementWidth} |`),
+  'For the gutter inputs, both sides had `clientWidth: 160px`. The macOS overlay scrollbar did not show a measurable reserved gutter, so these results establish computed property values and pairwise metrics only. They do not establish visible spacing parity across platforms.',
+  '',
+  '| Exact input | Computed property | Both computed values | Both measured widths | Source |',
+  '| --- | --- | --- | --- | --- |',
+  ...verifiedBrowser.map(({ classes, browserV4_3_3: browser }) => `| \`${classes.join(' ')}\` | ${browser.property} | \`${browser.computedValue}\` | ${browser.elementWidth ? `element width: ${browser.elementWidth}` : `clientWidth: ${browser.clientWidth}`} | [Guard](${browser.source}) |`),
   '',
   '## Unmeasured axes',
   '',

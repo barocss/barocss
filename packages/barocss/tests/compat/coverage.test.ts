@@ -31,9 +31,9 @@ describe('broad Tailwind CSS version comparison', () => {
     }
   });
 
-  it('limits browser conclusions to four exact Tailwind 4.3.3 inputs', () => {
+  it('limits browser conclusions to seven exact Tailwind 4.3.3 inputs', () => {
     const verified = raw.records.filter(({ browserV4_3_3 }) => browserV4_3_3.status === 'verified-match');
-    expect(verified.map(({ classes }) => classes.join(' '))).toEqual(['zoom-75', 'zoom-125', 'tab-2', 'tab-[12px]']);
+    expect(verified.map(({ classes }) => classes.join(' '))).toEqual(['scrollbar-gutter-stable', 'scrollbar-gutter-auto', 'scrollbar-gutter-both', 'zoom-75', 'zoom-125', 'tab-2', 'tab-[12px]']);
     expect(raw.records.every(({ browserV4_1_13 }) => browserV4_1_13.status === 'unverified')).toBe(true);
   });
 });

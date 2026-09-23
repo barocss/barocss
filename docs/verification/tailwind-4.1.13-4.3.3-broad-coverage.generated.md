@@ -11,7 +11,7 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 - PostCSS parsing removes comments and formatting only. It preserves selectors, declaration names and values, rule order, nesting, and at-rules. `match` means these structures are identical. `different` means they are not. A different structure is **not** proof of different browser behavior.
 - `unsupported` means Tailwind emitted a CSS rule and BaroCSS emitted no rule for the exact input. `reference-no-rule` means that pinned Tailwind version emitted no rule; it does not establish the feature introduction date.
 - For the new `tab-2 md:tab-4` combination, Tailwind 4.3.3 emits `@media (width >= 48rem)` and BaroCSS emits `@media (min-width: 48rem)`. This is a recorded structural difference; this combination has no browser result.
-- Browser evidence is limited to 4 exact Tailwind 4.3.3 inputs listed below. All 4.1.13 browser results in this broad run and the other 4.3.3 inputs are `unverified`. CSS variables and theme output are not separately rendered as a complete page. A syntactic match alone does not establish computed style or visual parity.
+- Browser evidence is limited to 7 exact Tailwind 4.3.3 inputs listed below. All 4.1.13 browser results in this broad run and the other 4.3.3 inputs are `unverified`. CSS variables and theme output are not separately rendered as a complete page. A syntactic match alone does not establish computed style or visual parity.
 - The older [15-input matrix](tailwind-compatibility-matrix.md) and [five-input follow-up](tailwind-4.1.13-followup-output.json) remain separate records with their own settings and browser evidence.
 
 ## Selected-input counts
@@ -244,13 +244,13 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-auto` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-thin` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `scrollbar-none` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / new-utilities | representative | `scrollbar-gutter-stable` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
+| v4.2-and-v4.3 / new-utilities | representative | `scrollbar-gutter-stable` | reference-no-rule | match | unverified | [verified-match](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | representative | `@container-size` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `@container-size/sidebar` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `font-features-["tnum"]` | reference-no-rule | different | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
 | v4.2-and-v4.3 / new-utilities | boundary | `scrollbar-thumb-red-500` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/blog/tailwindcss-v4-3) |
-| v4.2-and-v4.3 / scrollbar-gutter | representative | `scrollbar-gutter-auto` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
-| v4.2-and-v4.3 / scrollbar-gutter | representative | `scrollbar-gutter-both` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
+| v4.2-and-v4.3 / scrollbar-gutter | representative | `scrollbar-gutter-auto` | reference-no-rule | match | unverified | [verified-match](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
+| v4.2-and-v4.3 / scrollbar-gutter | representative | `scrollbar-gutter-both` | reference-no-rule | match | unverified | [verified-match](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) | [Tailwind](https://tailwindcss.com/docs/scrollbar-gutter) |
 | v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-thumb-transparent` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
 | v4.2-and-v4.3 / scrollbar-color | representative | `scrollbar-track-red-500` | reference-no-rule | unsupported | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/scrollbar-color) |
 | v4.2-and-v4.3 / zoom | representative | `zoom-0` | reference-no-rule | match | unverified | unverified | [Tailwind](https://tailwindcss.com/docs/zoom) |
@@ -281,14 +281,19 @@ Reference versions: pinned `tailwindcss@4.1.13` and `tailwindcss@4.3.3`. The lat
 
 ## Focused browser evidence
 
-Guard compared separately scoped Tailwind CSS 4.3.3 and BaroCSS stylesheets in Headless Chrome 153 on macOS 15.6.1 at BaroCSS commit `5a20ae7`. This was a local fixture with linked dependencies, not a fresh frozen install. See the [exact method and result](https://github.com/barocss/barocss/pull/84#issuecomment-5791345702).
+Guard compared separately scoped Tailwind CSS 4.3.3 and BaroCSS stylesheets in Headless Chrome 153 on macOS 15.6.1. The [zoom and tab check](https://github.com/barocss/barocss/pull/84#issuecomment-5791345702) used BaroCSS commit `5a20ae7`; the [scrollbar-gutter check](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) used exact HEAD `82ababe`. Both used local fixtures with linked dependencies, not a fresh frozen install.
 
-| Exact input | Computed property | Both computed values | Both element widths |
-| --- | --- | --- | --- |
-| `zoom-75` | zoom | `0.75` | 75px |
-| `zoom-125` | zoom | `1.25` | 125px |
-| `tab-2` | tab-size | `2` | 100px |
-| `tab-[12px]` | tab-size | `12px` | 100px |
+For the gutter inputs, both sides had `clientWidth: 160px`. The macOS overlay scrollbar did not show a measurable reserved gutter, so these results establish computed property values and pairwise metrics only. They do not establish visible spacing parity across platforms.
+
+| Exact input | Computed property | Both computed values | Both measured widths | Source |
+| --- | --- | --- | --- | --- |
+| `scrollbar-gutter-stable` | scrollbar-gutter | `stable` | clientWidth: 160px | [Guard](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) |
+| `scrollbar-gutter-auto` | scrollbar-gutter | `auto` | clientWidth: 160px | [Guard](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) |
+| `scrollbar-gutter-both` | scrollbar-gutter | `stable both-edges` | clientWidth: 160px | [Guard](https://github.com/barocss/barocss/pull/84#issuecomment-5791909812) |
+| `zoom-75` | zoom | `0.75` | element width: 75px | [Guard](https://github.com/barocss/barocss/pull/84#issuecomment-5791345702) |
+| `zoom-125` | zoom | `1.25` | element width: 125px | [Guard](https://github.com/barocss/barocss/pull/84#issuecomment-5791345702) |
+| `tab-2` | tab-size | `2` | element width: 100px | [Guard](https://github.com/barocss/barocss/pull/84#issuecomment-5791345702) |
+| `tab-[12px]` | tab-size | `12px` | element width: 100px | [Guard](https://github.com/barocss/barocss/pull/84#issuecomment-5791345702) |
 
 ## Unmeasured axes
 

@@ -5307,7 +5307,15 @@
         "status": "unverified"
       },
       "browserV4_3_3": {
-        "status": "unverified"
+        "status": "verified-match",
+        "browser": "Headless Chrome 153",
+        "os": "macOS 15.6.1",
+        "tailwindVersion": "4.3.3",
+        "property": "scrollbar-gutter",
+        "computedValue": "stable",
+        "clientWidth": "160px",
+        "barocssCommit": "82ababe",
+        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791909812"
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-gutter-stable {\n  scrollbar-gutter: stable;\n}\n",
@@ -5437,7 +5445,15 @@
         "status": "unverified"
       },
       "browserV4_3_3": {
-        "status": "unverified"
+        "status": "verified-match",
+        "browser": "Headless Chrome 153",
+        "os": "macOS 15.6.1",
+        "tailwindVersion": "4.3.3",
+        "property": "scrollbar-gutter",
+        "computedValue": "auto",
+        "clientWidth": "160px",
+        "barocssCommit": "82ababe",
+        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791909812"
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-gutter-auto {\n  scrollbar-gutter: auto;\n}\n",
@@ -5463,7 +5479,15 @@
         "status": "unverified"
       },
       "browserV4_3_3": {
-        "status": "unverified"
+        "status": "verified-match",
+        "browser": "Headless Chrome 153",
+        "os": "macOS 15.6.1",
+        "tailwindVersion": "4.3.3",
+        "property": "scrollbar-gutter",
+        "computedValue": "stable both-edges",
+        "clientWidth": "160px",
+        "barocssCommit": "82ababe",
+        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791909812"
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.scrollbar-gutter-both {\n  scrollbar-gutter: stable both-edges;\n}\n",
@@ -5571,11 +5595,11 @@
         "browser": "Headless Chrome 153",
         "os": "macOS 15.6.1",
         "tailwindVersion": "4.3.3",
-        "barocssCommit": "5a20ae7",
-        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791345702",
         "property": "zoom",
         "computedValue": "0.75",
-        "elementWidth": "75px"
+        "elementWidth": "75px",
+        "barocssCommit": "5a20ae7",
+        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791345702"
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-75 {\n  zoom: 75%;\n}\n",
@@ -5631,11 +5655,11 @@
         "browser": "Headless Chrome 153",
         "os": "macOS 15.6.1",
         "tailwindVersion": "4.3.3",
-        "barocssCommit": "5a20ae7",
-        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791345702",
         "property": "zoom",
         "computedValue": "1.25",
-        "elementWidth": "125px"
+        "elementWidth": "125px",
+        "barocssCommit": "5a20ae7",
+        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791345702"
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.zoom-125 {\n  zoom: 125%;\n}\n",
@@ -5875,11 +5899,11 @@
         "browser": "Headless Chrome 153",
         "os": "macOS 15.6.1",
         "tailwindVersion": "4.3.3",
-        "barocssCommit": "5a20ae7",
-        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791345702",
         "property": "tab-size",
         "computedValue": "2",
-        "elementWidth": "100px"
+        "elementWidth": "100px",
+        "barocssCommit": "5a20ae7",
+        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791345702"
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.tab-2 {\n  tab-size: 2;\n}\n",
@@ -5935,11 +5959,11 @@
         "browser": "Headless Chrome 153",
         "os": "macOS 15.6.1",
         "tailwindVersion": "4.3.3",
-        "barocssCommit": "5a20ae7",
-        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791345702",
         "property": "tab-size",
         "computedValue": "12px",
-        "elementWidth": "100px"
+        "elementWidth": "100px",
+        "barocssCommit": "5a20ae7",
+        "source": "https://github.com/barocss/barocss/pull/84#issuecomment-5791345702"
       },
       "tailwindV4_1_13": "/*! tailwindcss v4.1.13 | MIT License | https://tailwindcss.com */\n",
       "tailwindV4_3_3": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.tab-\\[12px\\] {\n  tab-size: 12px;\n}\n",
