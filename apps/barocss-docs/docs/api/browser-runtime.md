@@ -30,11 +30,14 @@ const runtime = new BrowserRuntime({
 ### Constructor Options
 
 ```typescript
+import type { Config } from '@barocss/kit';
+
 interface BrowserRuntimeOptions {
   config?: Config;                    // BaroCSS configuration
   styleId?: string;                   // Custom style element ID
   insertionPoint?: 'head' | 'body' | HTMLElement; // CSS insertion point
   maxRulesPerPartition?: number;      // Max rules per style partition
+}
 ```
 
 ### Basic Usage
@@ -103,6 +106,7 @@ runtime.observe(document.body, {
 interface ObserveOptions {
   scan?: boolean;        // Scan existing elements
   onReady?: () => void;  // Callback when ready
+}
 ```
 
 ### removeClass()
