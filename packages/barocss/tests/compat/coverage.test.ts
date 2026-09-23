@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import raw from '../../../../docs/verification/tailwind-4.1.13-4.3.3-broad-output.json';
 import { coverageCases } from './coverage-catalog';
 import { buildCoverageCase, coverageRun } from './coverage-harness';
+import { browserEvidenceV4_3_3, unverifiedBrowser } from './browser-evidence';
 
 describe('broad Tailwind CSS version comparison', () => {
   it('keeps every measured input unique, sourced, and bound to the pinned run', () => {
@@ -21,7 +22,18 @@ describe('broad Tailwind CSS version comparison', () => {
       const recorded = raw.records[index];
       expect(actual.tailwindV4_1_13, entry.id).toContain('/*! tailwindcss v4.1.13');
       expect(actual.tailwindV4_3_3, entry.id).toContain('/*! tailwindcss v4.3.3');
-      expect(recorded, entry.id).toEqual({ ...entry, browserStatus: 'unverified', ...actual });
+      expect(recorded, entry.id).toEqual({
+        ...entry,
+        browserV4_1_13: unverifiedBrowser,
+        browserV4_3_3: browserEvidenceV4_3_3(entry.classes),
+        ...actual,
+      });
     }
+  });
+
+  it('limits browser conclusions to four exact Tailwind 4.3.3 inputs', () => {
+    const verified = raw.records.filter(({ browserV4_3_3 }) => browserV4_3_3.status === 'verified-match');
+    expect(verified.map(({ classes }) => classes.join(' '))).toEqual(['zoom-75', 'zoom-125', 'tab-2', 'tab-[12px]']);
+    expect(raw.records.every(({ browserV4_1_13 }) => browserV4_1_13.status === 'unverified')).toBe(true);
   });
 });

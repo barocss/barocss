@@ -11,7 +11,7 @@ export const coverageRun = {
   barocssCommit: '6a40833',
   tailwindVersions: ['4.1.13', '4.3.3'],
   environment: { node: '22.22.0', pnpm: '10.11.0', postcss: '8.5.6' },
-  browserStatus: 'unverified',
+  browserStatus: 'four-selected-4.3.3-states-verified',
 } as const;
 
 export const tailwindInput = `

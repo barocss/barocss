@@ -16,7 +16,8 @@ type Record = {
   source: string;
   statusV4_1_13: CoverageStatus;
   statusV4_3_3: CoverageStatus;
-  browserStatus: string;
+  browserV4_1_13: { status: string };
+  browserV4_3_3: { status: string; property?: string; computedValue?: string; elementWidth?: string; source?: string };
 };
 const raw = JSON.parse(readFileSync(inputPath, 'utf8')) as { run: typeof coverageRun; records: Record[] };
 if (JSON.stringify(raw.run) !== JSON.stringify(coverageRun)) throw new Error('Run metadata does not match harness');
@@ -28,6 +29,7 @@ const summaryRow = (label: string, records: Record[]) =>
   `| ${label} | ${records.length} | ${statuses.map((status) => count(records, 'statusV4_1_13', status)).join(' | ')} | ${statuses.map((status) => count(records, 'statusV4_3_3', status)).join(' | ')} |`;
 
 const axes = [...new Set(raw.records.map(({ axis }) => axis))];
+const verifiedBrowser = raw.records.filter(({ browserV4_3_3 }) => browserV4_3_3.status === 'verified-match');
 const lines = [
   '# Tailwind CSS 4.1.13 and 4.3.3: measured CSS structure',
   '',
@@ -41,7 +43,8 @@ const lines = [
   '- Other theme tokens and CSS variable definitions are not aligned or rendered as a complete page. A `different` result can reflect theme setup, variable naming, or generated CSS structure. Inspect the raw CSS before treating it as a product gap.',
   '- PostCSS parsing removes comments and formatting only. It preserves selectors, declaration names and values, rule order, nesting, and at-rules. `match` means these structures are identical. `different` means they are not. A different structure is **not** proof of different browser behavior.',
   '- `unsupported` means Tailwind emitted a CSS rule and BaroCSS emitted no rule for the exact input. `reference-no-rule` means that pinned Tailwind version emitted no rule; it does not establish the feature introduction date.',
-  '- Every browser result in this run is `unverified`. CSS variables and theme output are not separately rendered here. A syntactic match alone does not establish computed style or visual parity.',
+  '- For the new `tab-2 md:tab-4` combination, Tailwind 4.3.3 emits `@media (width >= 48rem)` and BaroCSS emits `@media (min-width: 48rem)`. This is a recorded structural difference; this combination has no browser result.',
+  `- Browser evidence is limited to ${verifiedBrowser.length} exact Tailwind 4.3.3 inputs listed below. All 4.1.13 browser results in this broad run and the other 4.3.3 inputs are \`unverified\`. CSS variables and theme output are not separately rendered as a complete page. A syntactic match alone does not establish computed style or visual parity.`,
   '- The older [15-input matrix](tailwind-compatibility-matrix.md) and [five-input follow-up](tailwind-4.1.13-followup-output.json) remain separate records with their own settings and browser evidence.',
   '',
   '## Selected-input counts',
@@ -53,9 +56,17 @@ const lines = [
   '',
   '## Exact inputs',
   '',
-  '| Axis / family | Role | Exact class set | 4.1.13 CSS | 4.3.3 CSS | Browser | Source |',
-  '| --- | --- | --- | --- | --- | --- | --- |',
-  ...raw.records.map((record) => `| ${record.axis} / ${record.family} | ${record.role} | \`${record.classes.join(' ')}\` | ${record.statusV4_1_13} | ${record.statusV4_3_3} | ${record.browserStatus} | [Tailwind](${record.source}) |`),
+  '| Axis / family | Role | Exact class set | 4.1.13 CSS | 4.3.3 CSS | 4.1 browser | 4.3 browser | Source |',
+  '| --- | --- | --- | --- | --- | --- | --- | --- |',
+  ...raw.records.map((record) => `| ${record.axis} / ${record.family} | ${record.role} | \`${record.classes.join(' ')}\` | ${record.statusV4_1_13} | ${record.statusV4_3_3} | ${record.browserV4_1_13.status} | ${record.browserV4_3_3.source ? `[${record.browserV4_3_3.status}](${record.browserV4_3_3.source})` : record.browserV4_3_3.status} | [Tailwind](${record.source}) |`),
+  '',
+  '## Focused browser evidence',
+  '',
+  'Guard compared separately scoped Tailwind CSS 4.3.3 and BaroCSS stylesheets in Headless Chrome 153 on macOS 15.6.1 at BaroCSS commit `5a20ae7`. This was a local fixture with linked dependencies, not a fresh frozen install. See the [exact method and result](https://github.com/barocss/barocss/pull/84#issuecomment-5791345702).',
+  '',
+  '| Exact input | Computed property | Both computed values | Both element widths |',
+  '| --- | --- | --- | --- |',
+  ...verifiedBrowser.map(({ classes, browserV4_3_3: browser }) => `| \`${classes.join(' ')}\` | ${browser.property} | \`${browser.computedValue}\` | ${browser.elementWidth} |`),
   '',
   '## Unmeasured axes',
   '',
