@@ -129,4 +129,18 @@ describe('BrowserRuntime', () => {
       other.destroy();
     }
   });
+
+  it('retries a failed class lookup after clearing its context cache', () => {
+    const warnings = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const unknownWarnings = () => warnings.mock.calls.filter(([message]) =>
+      String(message).includes('Unknown utility class')).length;
+
+    runtime.addClass('pulse-unknown-utility');
+    runtime.addClass('pulse-unknown-utility');
+    expect(unknownWarnings()).toBe(1);
+
+    runtime.clearCaches();
+    runtime.addClass('pulse-unknown-utility');
+    expect(unknownWarnings()).toBe(2);
+  });
 });
