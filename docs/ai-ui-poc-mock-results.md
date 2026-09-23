@@ -1,6 +1,6 @@
 # AI UI PoC: 결정적 mock 단계 결과
 
-기록일: 2026-09-23. PoC 브랜치는 0.0.4 후보 PR [#71](https://github.com/barocss/barocss/pull/71)의 `533fdb1` 위에 있다. 이 결과는 릴리스 후보의 판정에 포함하지 않는다. 기술 배경은 [AI UI Discussion #69](https://github.com/barocss/barocss/discussions/69)와 연구 문서에 있다. PoC Issue는 게시 전 초안이다.
+기록일: 2026-09-23. PoC 브랜치는 처음에 0.0.4 후보 PR [#71](https://github.com/barocss/barocss/pull/71)의 `533fdb1` 위에서 시작했다. #71은 `14b1520`으로 `develop`에 병합됐고, PoC PR [#74](https://github.com/barocss/barocss/pull/74)는 이제 `develop`을 기준으로 한다. 이 결과는 0.0.4 릴리스 판정에 포함하지 않는다. 기술 배경은 [AI UI Discussion #69](https://github.com/barocss/barocss/discussions/69)와 연구 문서에 있다. PoC Issue는 게시 전 초안이다.
 
 ## 구현 범위
 
@@ -27,7 +27,9 @@
 
 Guard는 이전 PoC 코드 커밋 `a487c46`을 [독립 검사](https://github.com/barocss/barocss/pull/74#issuecomment-5787986716)했다. 별도 보관본에서 고정 설치, `pnpm check`, PoC 빌드가 통과했다. Chromium 153의 개발 서버와 프로덕션 빌드에서 20개 fixture를 3회씩 재실행해 당시의 스키마·구조/텍스트·루트 계산 스타일 검사가 60/60이고 오류가 0건임을 확인했다. 금지 입력 10종은 모두 예상 오류가 났다. 구조 오류 7종의 미리보기는 비었고, 위험 클래스 3종은 해당 클래스만 제거됐다. 금지 입력 실행 중 스크립트 노드와 허용 외 네트워크 요청은 관측되지 않았다. Guard의 개발 서버 재실행 p95는 0.5ms, 프로덕션 빌드 재실행은 0.6ms였다. 지연값의 결정성을 주장하지 않는다. Guard는 후속 코드 `644706e`에서 [컨테이너에 추가한 텍스트가 통과하는 결함](https://github.com/barocss/barocss/pull/74#issuecomment-5788402422)을 재현했다. 자식 노드 전체를 대조하도록 고치고 회귀 테스트를 추가했다. Guard는 수정 커밋 `dd3e58e`를 [별도 보관본에서 재검증](https://github.com/barocss/barocss/pull/74#issuecomment-5788464045)했다. 고정 설치, PoC 테스트 6/6, 빌드가 통과했다. 추가 텍스트는 구조·스타일 검사 모두 실패했고, 정상 mock 60회는 구조·스타일 60/60, 지정 스타일 90건, 오류 0건이었다. 재실행 p95는 저장 기록과 같은 0.7ms였다.
 
-Guard는 PoC `14c25dc`와 기준 PR #71 `6df9af9` 사이의 네 커밋도 [임시 결합 트리에서 검사](https://github.com/barocss/barocss/pull/74#issuecomment-5788985435)했다. kit engine 테스트 32/32, PoC 테스트 6/6, PoC 빌드가 통과했다. 기본 context에서 허용 클래스 9개의 `generateCssRules()` CSS·rootCss는 후보 차이 적용 전후 바이트 단위로 같았다. 이 검사는 기존 `node_modules`를 사용했으며 새 고정 설치, 브라우저 재실행, 전체 suite, pack은 포함하지 않았다. #71 병합 뒤 `develop` 기준 변경 범위와 CI·Guard 판정은 별도로 필요하다.
+Guard는 PoC `14c25dc`와 기준 PR #71 `6df9af9` 사이의 네 커밋도 [임시 결합 트리에서 검사](https://github.com/barocss/barocss/pull/74#issuecomment-5788985435)했다. kit engine 테스트 32/32, PoC 테스트 6/6, PoC 빌드가 통과했다. 기본 context에서 허용 클래스 9개의 `generateCssRules()` CSS·rootCss는 후보 차이 적용 전후 바이트 단위로 같았다. 이 검사는 기존 `node_modules`를 사용했으며 새 고정 설치, 브라우저 재실행, 전체 suite, pack은 포함하지 않았다.
+
+#71 병합 결과인 `develop`의 `14b1520`과 PoC `317242f`를 별도 임시 작업 트리에 결합했다. 충돌은 없었다. Node 22.22.0·pnpm 10.11.0으로 고정 설치, 저장소 `pnpm check`(PoC 테스트 6/6 포함), PoC 프로덕션 빌드가 통과했다. GitHub 파일 차이는 PoC 앱, 이 결과 문서, lockfile의 앱 importer 9줄뿐이다. 이 검사는 브라우저 재실행·pack을 포함하지 않는다. PR에 연결된 CI, 최종 기준 Guard 검토, GitHub 승인 리뷰는 별도 게이트다.
 
 ## 실행 화면 증거
 
