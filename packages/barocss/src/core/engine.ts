@@ -571,10 +571,6 @@ export function generateCssRules(
   opts?: { minify?: boolean; dedup?: boolean }
 ): Array<GenerateCssRulesResult> {
   const seen = new Set<string>();
-  const options = {
-    minify: opts?.minify,
-    dedup: opts?.dedup,
-  };
   return classList
     .split(/\s+/)
     .filter((cls) => {
@@ -588,6 +584,11 @@ export function generateCssRules(
     .map((cls) => {
       // console.log("[generateCssRules] cls", cls);
       const ast = parseClassToAst(cls, ctx);
+      const parsedResult = (getContextState(ctx)?.parseResultCache || parseResultCache).get(cls);
+      const options = {
+        minify: opts?.minify,
+        important: parsedResult?.utility?.important ?? false,
+      };
       const cleanAst = optimizeAst(ast);
 
       // console.log("[generateCssRules] cleanAst", cleanAst);

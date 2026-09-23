@@ -1,6 +1,6 @@
 import { parseWithoutHoverMedia } from './hover-media-test-utils';
 import { describe, it, expect } from 'vitest';
-import { parseClassToAst, generateCss } from '../src/core/engine';
+import { parseClassToAst, generateCss, generateCssRules } from '../src/core/engine';
 import '../src/presets';
 import { createContext } from '../src/core/context';
 
@@ -194,6 +194,13 @@ describe('parseClassToAst (end-to-end)', () => {
 }
 `
     );
+  });
+
+  it('keeps important per class in generateCssRules', () => {
+    const [importantRule, regularRule] = generateCssRules('!bg-[red] bg-blue-500', ctx);
+    expect(importantRule.css).toContain('background-color: red !important;');
+    expect(regularRule.css).toContain('background-color: #3b82f6;');
+    expect(regularRule.css).not.toContain('!important');
   });
 
   it('container query orientation', () => {
