@@ -11,6 +11,7 @@ import "./effects";
 import "./layout";
 import "./flexbox-grid";
 import "./spacing";
+import "./logical-spacing";
 import "./sizing";
 import "./logical-size";
 import "./typography";
