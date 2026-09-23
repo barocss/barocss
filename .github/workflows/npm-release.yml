@@ -1,0 +1,70 @@
+name: Npm release
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_version:
+        description: Exact version of all three packages, for example 0.0.4
+        required: true
+        type: string
+      publish:
+        description: Publish to npm and create GitHub tags and Releases
+        required: true
+        type: boolean
+        default: false
+
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    if: github.repository == 'barocss/barocss' && github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: npm
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check requested release version
+        run: node .github/scripts/check-release-version.mjs
+        env:
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+
+      - name: Check and build packages
+        run: pnpm check
+
+      - name: Check packed package exports
+        run: node .github/scripts/check-packages.mjs
+
+      - name: Publish packages, tags, and GitHub Releases
+        if: inputs.publish
+        uses: changesets/action@v1
+        with:
+          publish: pnpm changeset publish
+          createGithubReleases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
