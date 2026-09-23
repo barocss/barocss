@@ -195,7 +195,7 @@ export class BrowserRuntime {
   }
 
   getAllCss(): string {
-    const all = Array.from(this.cache.values()).flatMap(result => result.cssList).join('\n');
+    const all = [...this.rootCache, ...Array.from(this.cache.values()).flatMap(result => result.cssList)].join('\n');
     return all;
   }
 

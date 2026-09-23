@@ -28,6 +28,15 @@ describe('BrowserRuntime', () => {
     expect(runtime.getAllCss()).toContain('.m-2');
   });
 
+  it('includes shared root rules in all generated CSS', () => {
+    runtime.addClass('translate-full -translate-full');
+
+    const css = runtime.getAllCss();
+    expect(css).toContain('.translate-full');
+    expect(css).toContain('.-translate-full');
+    expect(css.match(/@property --baro-translate-x/g)).toHaveLength(1);
+  });
+
   it('removes only requested CSS while preserving base styles and observation', async () => {
     runtime.updateConfig({ preflight: 'minimal' });
     runtime.observe(document.body);
@@ -36,7 +45,6 @@ describe('BrowserRuntime', () => {
     document.body.append(element);
     await Promise.resolve();
     runtime.addClass('m-2');
-
     runtime.removeClass('p-4');
 
     expect(element.className).toBe('p-4');
