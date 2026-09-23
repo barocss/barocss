@@ -65,7 +65,7 @@ const runtime = new BrowserRuntime({
 
 ## Server Runtime
 
-The Server Runtime is designed for server-side rendering and static generation.
+The Server Runtime is designed for server-side rendering and static generation. In the published `0.0.3` package and the `0.0.4` candidate, `generateCssForClasses` returns one `{ className, css }` result per input class. Join the `css` fields when you need one stylesheet.
 
 ### Key Features
 
@@ -82,12 +82,13 @@ import { ServerRuntime } from '@barocss/server';
 const runtime = new ServerRuntime();
 
 // Generate CSS for specific classes
-const css = runtime.generateCssForClasses([
+const results = runtime.generateCssForClasses([
   'bg-blue-500',
   'text-white', 
   'p-4',
   'rounded-lg'
 ]);
+const css = results.map(({ css }) => css).filter(Boolean).join('\n');
 ```
 
 ### SSR Integration
@@ -96,7 +97,8 @@ const css = runtime.generateCssForClasses([
 // Next.js API route example
 export default function handler(req, res) {
   const runtime = new ServerRuntime();
-  const css = runtime.generateCssForClasses(req.body.classes);
+  const results = runtime.generateCssForClasses(req.body.classes);
+  const css = results.map(({ css }) => css).filter(Boolean).join('\n');
   
   res.setHeader('Content-Type', 'text/css');
   res.send(css);
