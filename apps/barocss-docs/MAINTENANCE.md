@@ -26,6 +26,18 @@ Status: 2026-09-23. BaroCSS `0.4.0` is published on npm, and both browser CDN fi
 - The public `0.4.0` browser ESM and UMD files returned HTTP 200. Both exposed `baroStart` and generated CSS for `bg-red-500` in isolated Chromium frames. npm reports `0.4.0` for kit, browser, and server.
 - The large examples page uses small snippets with public exports and selected fixture classes. Other integration and API pages still need the P1 audit. No full browser accessibility audit or external link check has been completed.
 
+## Release path and next-release checklist
+
+Feature and Docs PRs target `develop`. For a release, prepare one reviewed, release-ready `develop`-to-`main` PR; the user merges it manually after the PM gate. A `main` push with Docs changes automatically deploys Pages. Publish npm packages through the separate manual OIDC action only after the PM gate. After each `main` release merge, sync `main` back into `develop` before stacking further work.
+
+For the next release:
+
+1. Verify package versions, public exports, installation examples, the Docs build, and internal links on `develop`.
+2. Review the single release PR and record the PM go decision before the user merges it to `main`.
+3. If Docs changed, check the automatic Pages run and live smoke at the merged `main` SHA.
+4. Run the separate manual OIDC npm action only after the release gate; verify the published versions and CDN files.
+5. Sync `main` back into `develop`, then update published-version guidance when the release is public.
+
 ## GitHub Pages procedure
 
 `.github/workflows/deploy-docs.yml` builds Docs pull requests without deployment. A reviewed `main` push that changes Docs content or the Docs package manifest builds and deploys `apps/barocss-docs/docs/.vitepress/dist` automatically. Docs changes enter `develop` first; the user manually merges a release-ready develop-to-main PR. Confirm the Pages run SHA, deployment record, live Quick Start, CDN URLs, and internal links after that merge. Manual workflow dispatch is limited to `main` and requires approval. npm publication is a separate release action.
