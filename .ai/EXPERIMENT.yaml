@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: running
+status: blocked
 
 id: E-003
 outcome: O1
@@ -126,16 +126,33 @@ stop_when:
   - The grader would have to change after an agent run → record it in side_notes, don't change the grader.
 
 result:
-  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
-  level: null            # L0-L3 actually achieved
-  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
-  learning: null         # 1-2 sentences
-  unknown: []            # what remains unanswered, or the blocker if status: blocked
-  next_question: null    # suggestion only; Strategy decides
-  pr: null               # PR URL opened by Execution (never merged by Execution)
-  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
-  side_notes: []         # adjacent discoveries, one line each, NOT pursued
-
+  verdict: INCONCLUSIVE
+  level: L2
+  evidence:
+    - "Blocked by stop_when #2. The arm B positive control found no window.baroRuntime config call that passes Y1 AND Y2. 0 of 4 agent runs made (none started). Rerun: pnpm --filter @barocss/browser build:cdn && PW_MCP_DIR=<dir with node_modules/@playwright/mcp> node .ai/evidence/E-003/grader-selftest.mjs (exit 1; writes .ai/evidence/E-003/selftest.json)"
+    - "Self-test: 22/23 expectations pass in both arms. Baseline and bg-brand / rounded-4xl alone fail. bg-[#5B21B6] and rounded-[2rem] fail on the class check. Inline-style and <style>-tag controls fail through the detector. The tool-call scan flags updateRuleContent and textContent CSS writes, not updateConfig. (selftest.json -> expectations)"
+    - "Y2 fails under all 7 config routes tried, 5 via baroRuntime.updateConfig (arm B) and 2 via an imported second BrowserRuntime (arm A), with the class added or replacing rounded-md. theme.extend.borderRadius['4xl'] emits :root --radius-4xl: 2rem, but the parser logs 'ast is empty rounded-4xl'. Radius stays 6px (added) or goes to 0px (replaced). (selftest.json -> arms.*.routes.*.Y2*)"
+    - "Cause, from source: packages/barocss/src/presets/border.ts hard-codes rounded-{none,sm,md,lg,xl,2xl,3xl,full} as staticUtility. The functional rounded has no theme key (bare number, arbitrary, custom property only). Config has no plugin hook (ctx.plugins is commented out in core/context.ts). Proposed owner: BAROCSS (config semantics)."
+    - "Y1 is reachable: theme.extend / theme / theme.colors.brand via baroRuntime.updateConfig (arm B) pass with no regression. So does arm A's import of /packages/barocss-browser/dist/cdn/barocss.js plus new BrowserRuntime({config}).observe(document.body,{scan:true}), with or without a distinct styleId. (selftest.json -> arms.A.secondRuntimePasses is empty only because Y2 fails)"
+    - "Summary table: .ai/evidence/E-003/SUMMARY.md"
+  learning: >
+    BaroCSS theme config reaches class generation for colors but not for border-radius. extend.borderRadius only emits
+    a :root var, because rounded-* names are hard-coded. Y2 is unachievable through any config route, whatever the
+    agent or app does. Y1 is reachable even without an app-exposed runtime (second runtime via CDN import).
+  unknown:
+    - "Blocker: the contract's Y2 cannot pass the grader under any BaroCSS config route, so agent runs could not answer the question. Unanswered: whether a real agent in arm A finds a config route for Y1 (e.g. a second runtime), and how it reports Y2's impossibility."
+    - "Whether other theme namespaces are hard-coded like rounded (spacing, shadow, font-size); only colors and borderRadius were tested."
+  next_question: >
+    Suggestion: re-contract E-003 as Y1-only (arm A vs B), keeping the grader and self-test, which pass for Y1, and
+    treat the radius finding as known. Separately, a BAROCSS-owned gap candidate is 'rounded-* does not read
+    theme.borderRadius'. Strategy should first check whether agents need custom radius tokens before contracting a fix.
+  pr: null
+  checks: "python3 .ai/check.py --role execution --base origin/develop: OK. No product code changed, so pnpm check is not required."
+  side_notes:
+    - "extend.colors.brand = {DEFAULT: '#5B21B6'} makes bg-brand throw 'TypeError: value.startsWith is not a function' in the bg handler, and emits --color-brand-DEFAULT."
+    - "Arm A second runtime: the page's original runtime still logs 'ast is empty bg-brand' while the second runtime serves the rule. That console warning is misleading for an agent."
+    - "theme (without extend) deep-merges over defaults instead of replacing them, so a partial theme did not regress defaults here."
+    - "No runner was written: the contract stopped before any agent run. E-002's run.mjs would need arm/page arguments."
 review:                  # STRATEGY only
   accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
   merged: null           # true | false

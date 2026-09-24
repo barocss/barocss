@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acme — Plan &amp; Billing</title>
+  <style>
+    /* Minimal reset only; all visual styling comes from BaroCSS utility classes. */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; border: 0 solid; }
+    ul { list-style: none; }
+    button { font: inherit; background: transparent; cursor: pointer; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+  <header class="bg-white border-b border-gray-200">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+      <span class="text-lg font-semibold">Acme</span>
+      <nav class="flex gap-4 text-sm text-gray-600">
+        <a href="#" class="hover:text-gray-900">Dashboard</a>
+        <a href="#" class="hover:text-gray-900">Team</a>
+        <a href="#" class="text-gray-900 font-medium">Billing</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-6 py-10">
+    <h1 data-testid="headline" class="text-3xl font-bold tracking-tight">Plan &amp; Billing</h1>
+    <p data-testid="intro" class="mt-2 max-w-xl text-gray-600">Choose the plan that fits your team. You can change it at any time.</p>
+
+    <section data-testid="pricing-card" class="mt-8 bg-white border border-gray-200 rounded-md p-4 shadow-sm">
+      <div class="flex items-baseline justify-between">
+        <h2 class="text-xl font-semibold">Pro</h2>
+        <p><span class="text-3xl font-bold">$24</span><span class="text-gray-500"> / user / month</span></p>
+      </div>
+      <p class="mt-1 text-sm text-gray-600">Everything a growing team needs.</p>
+      <div data-testid="media" class="mt-4 w-full min-h-24 rounded-md bg-gray-100"></div>
+
+      <ul data-testid="feature-list" class="mt-6 space-y-2 text-sm">
+        <li data-testid="feature-item" class="flex items-center gap-2"><span class="text-green-600">✓</span>Unlimited projects</li>
+        <li data-testid="feature-item" class="flex items-center gap-2"><span class="text-green-600">✓</span>Priority support</li>
+        <li data-testid="feature-item" class="flex items-center gap-2"><span class="text-green-600">✓</span>SSO &amp; audit logs</li>
+        <li data-testid="feature-item" class="flex items-center gap-2"><span class="text-green-600">✓</span>100 GB storage</li>
+      </ul>
+    </section>
+
+    <section class="mt-8 bg-white border border-gray-200 rounded-md p-4">
+      <h2 class="text-base font-semibold">Billing email</h2>
+      <label class="mt-3 block text-sm text-gray-600" for="email">Invoices are sent to this address.</label>
+      <input id="email" type="email" value="billing@acme.test"
+             class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm">
+      <div class="mt-6 flex justify-end gap-3">
+        <button data-testid="cancel-button" class="px-4 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700">Cancel</button>
+        <button data-testid="save-button" class="px-4 py-2 rounded-md bg-blue-600 text-sm font-medium text-white">Save</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { BrowserRuntime } from '/packages/barocss-browser/dist/cdn/barocss.js';
+    const runtime = new BrowserRuntime();
+    runtime.observe(document.body, { scan: true, onReady: () => { document.documentElement.dataset.baroReady = '1'; } });
+  </script>
+</body>
+</html>
