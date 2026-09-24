@@ -4,9 +4,9 @@ updated: 2026-09-24
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O1
-  experiment: E-001 (evaluated, PROVEN, merged PR #107)
+  experiment: E-002 (ready) — silent no-op classes (U2), same actor as E-001
   last_result: "E-001 PROVEN L3: real agent did T1-T4 modify+verify 4/4, claims matched grader; no BaroCSS-owned failure (K3)"
-  next: "STRATEGY: contract E-002 (U2 silent no-op classes)"
+  next: "EXECUTION: run E-002 on branch ai/E-002-silent-noop"
   blockers: []
 
 outcomes:
@@ -77,8 +77,8 @@ knowledge:
       q: >
         When an agent writes a class BaroCSS can't resolve (typo, unsupported
         utility, bad arbitrary value), can it find out using only browser tooling?
-        Only BaroCSS knows whether a class resolved, so this is a candidate unique
-        gap. Check existing BaroCSS capability first.
+        K4 shows three silent modes on natural Tailwind v4 classes; only mode (c)
+        warns. Being tested by E-002.
     - id: U3
       q: When is a runtime-generated rule actually applied? Can an agent tell "not yet applied" from "never will be"?
     - id: U4
@@ -121,6 +121,17 @@ decisions:
     why: >
       Guessed gaps risk invent-then-solve. U1 shows real failure points, can
       end with "no BaroCSS code needed", and upgrades K1 from L1 (scripted) to L3.
+
+  - id: D6
+    date: 2026-09-24
+    decision: >
+      Accepted E-001 PROVEN (K3). E-002 targets U2 with real K4 no-op classes, using
+      the same actor and prompt so that the only thing that changes is whether the
+      class resolves. K4 parity gaps are not work items until an agent scenario shows
+      they cause failures.
+    why: >
+      E-001 left U2 untested. K4 makes it testable on realistic classes, and the result
+      can end with "no BaroCSS signal needed".
 
 open_items:                # for STRATEGY, not EXECUTION
   - >
