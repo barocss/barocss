@@ -4,9 +4,9 @@ updated: 2026-09-24
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O1
-  experiment: none
+  experiment: E-001 (ready) — real-agent baseline for O1, answers U1 (and U2/U3 if hit)
   last_result: none
-  next: "STRATEGY §2B: write contract E-001 for O1 (see knowledge.unknown)"
+  next: "EXECUTION: run E-001 on branch ai/E-001-agent-baseline"
   blockers: []
 
 outcomes:
@@ -94,6 +94,13 @@ decisions:
       once .ai/check.py passes and CI is green. No human review is required.
     why: Keeps builder and judge separate without putting a human in the loop.
 
+  - id: D5
+    date: 2026-09-24
+    decision: E-001 targets U1, a real-agent baseline, before any guessed gap (U2-U4).
+    why: >
+      Guessed gaps risk invent-then-solve. U1 shows real failure points, can
+      end with "no BaroCSS code needed", and upgrades K1 from L1 (scripted) to L3.
+
 open_items:                # for STRATEGY, not EXECUTION
   - >
     Branch codex/pr-feature-evidence (astToJson and AST_JSON_FORMAT.md, which claims
@@ -103,5 +110,11 @@ open_items:                # for STRATEGY, not EXECUTION
     (human) The main checkout holds stale untracked copies of AGENTS.md, .ai/,
     test-scenario*.html, and opencode.json. Remove them once this system is merged.
     If K1 needs to be L2, rebuild the scenario as a committed probe under .ai/evidence/.
+
+  - >
+    .ai/check.py requires a non-empty allowed.paths, even though the template says
+    EXPERIMENT.yaml and .ai/evidence/<id>/ are always allowed. E-001 lists its
+    evidence dir explicitly as a workaround. Align the checker or the template later
+    (a protocol change, not experiment work).
 
 human_directives: []       # humans append short directional notes; STRATEGY must apply them

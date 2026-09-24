@@ -5,28 +5,88 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: none
+status: ready
 
-id: null                 # E-001, E-002, ...
-outcome: null            # e.g. O1
-branch: null             # ai/E-001-<slug>; Execution works and opens its PR here
-question: null           # ONE question, answerable by observation or measurement
-decision_it_informs: null  # what Strategy will do differently for yes vs. no
-hypothesis: null
-builds_on: []            # knowledge ids (K1, U2, ...)
-scenario: null           # concrete actor + page + task
-method: null             # cheapest valid way to get the answer
+id: E-001
+outcome: O1
+branch: ai/E-001-agent-baseline
+question: >
+  Using only today's BaroCSS runtime and generic browser tooling, can a real LLM
+  agent change the styling of a live BaroCSS page by editing classes, and correctly
+  verify whether the result matches the requested intent? Where it fails, who owns
+  the failure?
+decision_it_informs: >
+  If there are no BaroCSS-owned failures, O1 needs no new BaroCSS code and Strategy
+  moves to harder scenarios or to O2/O3. If any failure is BaroCSS-owned (for
+  example, the agent can't tell that a class produced no CSS, or can't tell when CSS
+  is applied), the next contract tests that specific gap, starting with an
+  existing-capability test.
+hypothesis: >
+  The agent completes most tasks. Any failure comes from agent/model knowledge or
+  verification habits, not from missing BaroCSS capabilities.
+builds_on: [K1, U1, U2, U3]
+scenario: >
+  A realistic single-page UI (settings/pricing style) styled only with BaroCSS
+  utility classes via @barocss/browser BrowserRuntime observing document.body.
+  Required elements, each with a stable data-testid: headline (h1), "Save" button,
+  "Cancel" button, pricing card, and a feature list of 4 items. An LLM agent gets
+  the page URL and ONE task at a time and edits the classes in the live page. It is
+  told only this: "The page is styled with BaroCSS, a runtime utility-class CSS
+  engine with Tailwind-compatible class names. Change styling by editing class
+  names on elements in the live page, then verify the result and report whether
+  the task is done." The tasks are fixed:
+    T1 Make the Save button's background red and its text white.
+    T2 Make the pricing card feel roomier (more inner padding) and give it more rounded corners.
+    T3 Show the feature list as 2 columns at viewport width >= 768px and 1 column below.
+    T4 Set the headline's font size to exactly 42px.
+method: >
+  1. Build @barocss/browser locally and serve the repo root statically.
+  2. Write the page and a deterministic grader BEFORE any agent run. The grader
+     is a JS function that returns pass/fail per task from computed styles
+     compared with the baseline. T3 is checked at 1024px and 375px widths.
+  3. Run each task with a fresh agent context. The agent sees only the task
+     prompt and generic browser tools (navigate, screenshot, DOM read, JS eval,
+     resize), never this contract, the grader, or BaroCSS internals. Use the first
+     actor that works: (a) headless `claude -p` with a browser tool, (b) a fresh
+     subagent with browser tools, (c) no independent actor available → blocked.
+  4. For each task, record: the classes the agent wrote, how it verified, its
+     done/not-done claim, the grader result, whether claim and grader agree, and,
+     for each failure, a proposed owner (BAROCSS | BROWSER | AGENT | APP) plus a
+     one-line cause.
 allowed:
-  actions: []            # e.g. "write probe in .ai/evidence/E-001/", "read packages/barocss/src/runtime/**"
-  paths: []              # extra write scope (globs); EXPERIMENT.yaml + .ai/evidence/<id>/ always allowed
-  product_code: false    # if true, paths must also cover .changeset/*.md
-non_goals: []            # adjacent work that is explicitly out of scope
+  actions:
+    - "build packages/barocss-browser locally (dist is gitignored; nothing committed)"
+    - "serve the repo root on localhost; drive a browser"
+    - "read packages/barocss-browser README/entry only as needed to load the runtime"
+    - "write page, grader, runner script and per-task records in .ai/evidence/E-001/"
+    - "spawn one fresh agent context per task as the actor"
+  paths: [".ai/evidence/E-001/"]
+  product_code: false
+non_goals:
+  - Fixing any failure found, in BaroCSS or anywhere else
+  - New BaroCSS APIs, AST/serialization work, or instrumentation added to the runtime
+  - Building a reusable agent-evaluation harness beyond this one runner
+  - Tailwind parity surveys, or tasks beyond T1-T4
+  - Editing tasks, page, or grader after seeing agent results
 evidence:
-  level_required: null   # L2 for engineering, L3 for product value
-  proves_yes: null       # observation that answers "yes"
-  proves_no: null        # observation that answers "no"
-budget: null             # e.g. "1 session, <=15 files read, <=150 changed lines"
-stop_when: []            # contract-specific stops, added to the AGENTS.md §3 list
+  level_required: L3
+  proves_yes: >
+    Every task where the agent claims success passes the grader, and every grader
+    failure is owned by something other than BaroCSS (with the cause recorded).
+    That means no BaroCSS-owned failure is observed across T1-T4.
+  proves_no: >
+    At least one task fails, or the agent's claim disagrees with the grader,
+    because of BaroCSS behavior or information only BaroCSS has (such as an
+    unresolved class, a class that generated no CSS, or CSS timing), with the
+    evidence recorded.
+budget: >
+  1 session. One agent run per task (retry once only for environment failures,
+  not for agent mistakes). Page <= 150 lines. Read <= 15 product files.
+stop_when:
+  - All four tasks have one run recorded with grader results.
+  - No independent agent actor can be run → status blocked, and say what is missing.
+  - The runtime can't be loaded in the page without changing product code → blocked.
+  - The grader would have to change after an agent run → record it in side_notes, don't change the grader.
 
 result:
   verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
