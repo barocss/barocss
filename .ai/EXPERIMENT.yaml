@@ -112,7 +112,7 @@ result:
     With the same actor, when a task needs a class BaroCSS does not generate (a typo, an
     unsupported utility, or a custom-theme token), does the agent notice that no CSS was
     produced and recover using only generic browser tools, or does it wrongly claim done?
-  pr: null               # PR URL opened by Execution (never merged by Execution)
+  pr: https://github.com/barocss/barocss/pull/107
   checks: "python3 .ai/check.py --role execution --base origin/develop: OK; no product code changed, so pnpm check not required"
   side_notes:
     - "Env: claude -p starts turn 1 before MCP servers connect unless MCP_CONNECTION_NONBLOCKING=false (T1 attempt 1 had zero tools and hallucinated a Bash call)"
