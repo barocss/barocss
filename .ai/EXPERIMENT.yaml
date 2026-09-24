@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: done
+status: evaluated
 
 id: E-002
 outcome: O1
@@ -148,6 +148,6 @@ result:
     - "Port 8799 (E-001 self-test default) was held by another local process; E-002 scripts default to 8812 (PORT env overrides)"
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: PROVEN
+  merged: true
+  reason: "proves_yes met at L3: raw task records show claim = grader on X1-X4 and every real no-op detected before the final report; grader/page/runner unchanged after 1890645; self-test rerun reproduces (exit 0, selftest.json identical); check.py OK; CI green; evidence-only. Caveats: n=1 per task on one strong model; X3 premise false (intro is 1 line at 1024px); X1 left a 6px->0px regression while honestly reporting not-done."
