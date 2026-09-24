@@ -137,7 +137,7 @@ result:
     Does a weaker/cheaper model (e.g. Haiku or Sonnet) under the same E-002 setup also catch
     every silent no-op, or does it claim done? Alternatively, move O1 to theme/config tasks,
     where the agent must know BaroCSS semantics rather than read computed style.
-  pr: null
+  pr: https://github.com/barocss/barocss/pull/109
   checks: "python3 .ai/check.py --role execution --base origin/develop: pass (no product code changed; pnpm check not required)"
   side_notes:
     - "font-sans emits 'font-family: var(--font-family-sans)' with the var undefined, so the page body renders in Times (also true in E-001)"
