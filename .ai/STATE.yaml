@@ -1,12 +1,12 @@
 # Durable project state. STRATEGY-owned; EXECUTION never edits this file.
 # Keep < ~150 lines. Git history holds everything older.
-updated: 2026-09-24
+updated: 2026-09-25
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O1
-  experiment: E-002 (ready) — silent no-op classes (U2), same actor as E-001
-  last_result: "E-001 PROVEN L3: real agent did T1-T4 modify+verify 4/4, claims matched grader; no BaroCSS-owned failure (K3)"
-  next: "EXECUTION: run E-002 on branch ai/E-002-silent-noop"
+  experiment: none (E-002 evaluated PROVEN, merged)
+  last_result: "E-002 PROVEN L3: agent caught every silent no-op (3 modes) via computed style; no false done (K5)"
+  next: "STRATEGY: contract E-003"
   blockers: []
 
 outcomes:
@@ -29,16 +29,10 @@ outcomes:
 
 knowledge:
   proven:
-    - id: K1
-      level: L1
-      fact: >
-        External code can change DOM classes with standard DOM APIs; BrowserRuntime
-        (observe(document.body, {scan:true})) picks up the mutation and generates CSS.
-      caveat: Scripted manual run, uncommitted. Superseded by K3 (L3).
     - id: K2
       level: L2
       fact: astToJson serializes BaroCSS AST to JSON (branch codex/pr-feature-evidence, 91f027c, unmerged).
-      caveat: Shows machine-readable serialization only. Not AI understanding, not shown to be needed by any scenario.
+      caveat: Serialization only. Not AI understanding, not shown to be needed by any scenario.
     - id: K3
       level: L3
       fact: >
@@ -47,23 +41,35 @@ knowledge:
         page by editing classes and verified it correctly on 4/4 Tailwind-vocabulary
         tasks (color, padding/radius, responsive grid, arbitrary text-[42px]).
         Claims matched the hidden grader 4/4. No BaroCSS-specific help was needed.
-      caveat: >
-        n=1 per task, one strong model. Every class it wrote resolved, so no-op
-        classes (U2) and timing (U3) were not exercised. T2 was verified by screenshot only.
-        Evidence: .ai/evidence/E-001/.
+        Supersedes K1 (external DOM class edits are picked up by BrowserRuntime).
+      caveat: "n=1 per task, one strong model, all classes resolved. Evidence: .ai/evidence/E-001/."
     - id: K4
       level: L1
       fact: >
-        BaroCSS fails silently in three distinct ways for Tailwind v4 classes:
-        (a) empty rule, no warning: text-balance, text-shadow-sm emit ".cls { }";
-        (b) rule with an undefined var: aspect-video emits aspect-ratio: var(--aspect-ratio-video), which computes to auto;
-        (c) no rule plus console.warn ("ast is empty" / "Unknown utility class"): rounded-4xl, [prop:value] arbitrary properties.
-        Also no computed effect: rounded-xs, shadow-xs, blur-xs, text-pretty, rotate-x-*, perspective-*,
+        BaroCSS fails silently in three ways for Tailwind v4 classes:
+        (a) empty rule, no warning: text-balance, text-pretty, text-wrap, text-nowrap, text-shadow-*;
+        (b) rule with an undefined var: aspect-video (var(--aspect-ratio-video)), font-sans (var(--font-family-sans));
+        (c) no rule plus console warning: rounded-4xl ("ast is empty"), [prop:value] arbitrary properties ("Unknown utility class").
+        Also no computed effect: rounded-xs, shadow-xs, blur-xs, rotate-x-*, perspective-*,
         bg-(--var), outline-hidden, wrap-anywhere, mask-*, bg-radial/conic.
-        Arbitrary values work: aspect-[16/9], rounded-[2rem], text-[42px].
+        Arbitrary values on known utilities work: aspect-[16/9], rounded-[2rem], text-[42px], bg-[#hex].
       caveat: >
-        Strategy hand probe (Playwright + E-001 page, computed style vs plain element,
-        stylesheet scan, console capture), 2026-09-24, not committed. Not yet shown to hurt an agent.
+        Hand probe 2026-09-24. The four E-002 classes and their recoveries are L2
+        (.ai/evidence/E-002/selftest.json, noop-probe.json); the rest is L1. Parity gaps
+        are not work items: K5 shows they did not cause false claims.
+    - id: K5
+      level: L3
+      fact: >
+        E-002: same actor/prompt as E-001, 4 tasks whose natural class is a K4 no-op
+        (rounded-4xl, aspect-video, text-balance, text-shadow-sm). Claim = grader 4/4,
+        no false "done"; every real no-op (17) was detected before the final report,
+        mainly by reading computed style after each edit. Recovered only where an
+        arbitrary value exists (X2 aspect-[16/9]); X1/X3/X4 honestly reported not-done.
+        Detecting unresolved classes is AGENT-owned for this actor; no BaroCSS signal needed.
+      caveat: >
+        n=1 per task, one strong model. Silent empty rules cost turns ($1.74 X3 vs $0.21 X1)
+        and one misdiagnosis (X4), not false claims. X3 premise false (intro 1 line at
+        1024px). U3 staleness not shown. Evidence: .ai/evidence/E-002/.
   disproven: []
   working_assumptions:     # L0; plausible but untested, don't treat as proven
     - Natural-language reasoning doesn't belong inside BaroCSS.
@@ -72,81 +78,69 @@ knowledge:
   unknown:                 # seeds for STRATEGY; unordered, not a backlog
     - id: U1
       q: >
-        Partly answered by K3 (simple tasks succeed). Open: harder tasks, weaker models.
-    - id: U2
-      q: >
-        When an agent writes a class BaroCSS can't resolve (typo, unsupported
-        utility, bad arbitrary value), can it find out using only browser tooling?
-        K4 shows three silent modes on natural Tailwind v4 classes; only mode (c)
-        warns. Being tested by E-002.
+        K3/K5 cover a strong model on class-level tasks. Open: weaker/cheaper models
+        (do they still verify via computed style and avoid false "done" on K4 no-ops?).
     - id: U3
       q: When is a runtime-generated rule actually applied? Can an agent tell "not yet applied" from "never will be"?
     - id: U4
       q: Where does BaroCSS behavior differ from the Tailwind knowledge models already have, and do those differences cause agent errors?
+    - id: U5
+      q: >
+        Theme/config-level changes (new token, extended scale) need BaroCSS semantics, not
+        just class edits. BrowserRuntime has updateConfig(), but a page usually holds the
+        runtime in a module-scoped variable. Can an agent make such a change in a live page?
 
 decisions:
   - id: D1
     date: 2026-09-24
     decision: >
-      Adopted Strategy/Execution context isolation with a single handoff file
-      (.ai/EXPERIMENT.yaml). This replaces the role-based worker organization and
-      the lint/test-driven task-selection loop.
-    why: >
-      Previous runs showed role overhead, easy-task bias, self-confirming loops,
-      and anchoring on adjacent technical work.
+      Strategy/Execution context isolation with one handoff file (.ai/EXPERIMENT.yaml),
+      replacing role-based workers and the lint/test-driven task loop.
+    why: Role overhead, easy-task bias, self-confirming loops, anchoring on adjacent technical work.
   - id: D2
     date: 2026-09-24
-    decision: >
-      Retired the "AI-Interaction Infrastructure" roadmap (AST enhancement, AI
-      APIs, component catalog, JSON formats).
-    why: It prescribed solutions before any evidence, and it produced the astToJson drift.
+    decision: Retired the "AI-Interaction Infrastructure" roadmap (AST enhancement, AI APIs, component catalog, JSON formats).
+    why: It prescribed solutions before evidence and produced the astToJson drift.
   - id: D3
     date: 2026-09-24
-    decision: >
-      Froze AST work. No jsonToAst, round-trip, or AST metadata unless an
-      experiment shows an agent scenario needs it.
+    decision: Froze AST work (no jsonToAst, round-trip, AST metadata) unless an agent scenario needs it.
     why: K2 caveat.
   - id: D4
     date: 2026-09-24
     decision: >
-      Only Strategy accepts experiments and merges experiment PRs, after its own
-      review of the frozen criteria, evidence, diff, CI, and proposed verdict.
-      Execution never merges. Strategy may auto-integrate its own .ai/-only PRs
-      once .ai/check.py passes and CI is green. No human review is required.
-    why: Keeps builder and judge separate without putting a human in the loop.
-
+      Only Strategy accepts experiments and merges experiment PRs; Execution never merges.
+      Strategy may auto-integrate its own .ai/-only PRs once check.py passes and CI is green.
+    why: Keeps builder and judge separate without a human in the loop.
   - id: D5
     date: 2026-09-24
     decision: E-001 targets U1, a real-agent baseline, before any guessed gap (U2-U4).
-    why: >
-      Guessed gaps risk invent-then-solve. U1 shows real failure points, can
-      end with "no BaroCSS code needed", and upgrades K1 from L1 (scripted) to L3.
-
+    why: Guessed gaps risk invent-then-solve; a baseline can end with "no BaroCSS code needed".
   - id: D6
     date: 2026-09-24
     decision: >
-      Accepted E-001 PROVEN (K3). E-002 targets U2 with real K4 no-op classes, using
-      the same actor and prompt so that the only thing that changes is whether the
-      class resolves. K4 parity gaps are not work items until an agent scenario shows
-      they cause failures.
+      Accepted E-001 PROVEN (K3). E-002 targets U2 with real K4 no-op classes, same actor
+      and prompt. K4 parity gaps are not work items until an agent scenario shows harm.
+    why: E-001 left U2 untested; K4 made it testable and it could end with "no signal needed".
+  - id: D7
+    date: 2026-09-25
+    decision: >
+      Accepted E-002 PROVEN (K5); U2 closed for a strong model (weaker models folded into U1).
+      No BaroCSS "class resolved" signal and no parity work. Class-level modify+verify
+      needs zero BaroCSS surface, so O1's remaining question is theme/config-level edits (U5).
     why: >
-      E-001 left U2 untested. K4 makes it testable on realistic classes, and the result
-      can end with "no BaroCSS signal needed".
+      Class-level tasks are now answered twice with no BaroCSS-owned failure. Theme/config
+      semantics are something only BaroCSS owns, so that is where a surface could be needed.
 
 open_items:                # for STRATEGY, not EXECUTION
   - >
     Branch codex/pr-feature-evidence (astToJson and AST_JSON_FORMAT.md, which claims
-    it "enables AI to reason"). Don't merge as-is. Decide: drop it, or keep it
-    unmerged as a reference.
+    it "enables AI to reason"). Don't merge as-is. Decide: drop it, or keep it unmerged as a reference.
   - >
     (human) The main checkout holds stale untracked copies of AGENTS.md, .ai/,
     test-scenario*.html, and opencode.json. Remove them once this system is merged.
-    If K1 needs to be L2, rebuild the scenario as a committed probe under .ai/evidence/.
-
   - >
     .ai/check.py requires a non-empty allowed.paths, even though the template says
-    EXPERIMENT.yaml and .ai/evidence/<id>/ are always allowed. E-001 lists its
-    evidence dir explicitly as a workaround. Align the checker or the template later
-    (a protocol change, not experiment work).
+    EXPERIMENT.yaml and .ai/evidence/<id>/ are always allowed. Contracts list the evidence
+    dir explicitly as a workaround. Align checker or template later (protocol change).
 
 human_directives: []       # humans append short directional notes; STRATEGY must apply them

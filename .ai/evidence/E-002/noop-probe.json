@@ -1,0 +1,341 @@
+{
+  "X1": [
+    {
+      "element": "pricing-card",
+      "token": "rounded-4xl",
+      "noop": true,
+      "changed": [],
+      "rules": [],
+      "consoleNamingToken": [
+        "[warning] [IncrementalParser] ast is empty rounded-4xl"
+      ]
+    },
+    {
+      "element": "pricing-card",
+      "token": "rounded-3xl",
+      "noop": false,
+      "changed": [
+        "border-bottom-left-radius: 6px → 24px",
+        "border-bottom-right-radius: 6px → 24px",
+        "border-end-end-radius: 6px → 24px",
+        "border-end-start-radius: 6px → 24px",
+        "border-start-end-radius: 6px → 24px",
+        "border-start-start-radius: 6px → 24px",
+        "border-top-left-radius: 6px → 24px",
+        "border-top-right-radius: 6px → 24px"
+      ],
+      "rules": [
+        ".rounded-3xl { border-radius: var(--radius-3xl); }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "pricing-card",
+      "token": "rounded-2xl",
+      "noop": false,
+      "changed": [
+        "border-bottom-left-radius: 6px → 16px",
+        "border-bottom-right-radius: 6px → 16px",
+        "border-end-end-radius: 6px → 16px",
+        "border-end-start-radius: 6px → 16px",
+        "border-start-end-radius: 6px → 16px",
+        "border-start-start-radius: 6px → 16px",
+        "border-top-left-radius: 6px → 16px",
+        "border-top-right-radius: 6px → 16px"
+      ],
+      "rules": [
+        ".rounded-2xl { border-radius: var(--radius-2xl); }"
+      ],
+      "consoleNamingToken": []
+    }
+  ],
+  "X2": [
+    {
+      "element": "media",
+      "token": "aspect-video",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".aspect-video { aspect-ratio: var(--aspect-ratio-video); }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "media",
+      "token": "aspect-[16/9]",
+      "noop": false,
+      "changed": [
+        "aspect-ratio: auto → 16 / 9",
+        "block-size: 96px → 457.875px",
+        "height: 96px → 457.875px",
+        "perspective-origin: 407px 48px → 407px 228.938px",
+        "transform-origin: 407px 48px → 407px 228.938px"
+      ],
+      "rules": [
+        ".aspect-\\[16\\/9\\] { aspect-ratio: 16 / 9; }"
+      ],
+      "consoleNamingToken": []
+    }
+  ],
+  "X3": [
+    {
+      "element": "intro",
+      "token": "text-balance",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-balance { }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "intro",
+      "token": "[text-wrap:balance]",
+      "noop": true,
+      "changed": [],
+      "rules": [],
+      "consoleNamingToken": [
+        "[warning] [BAROCSS] Unknown utility class: \"[text-wrap:balance]\" in \"[text-wrap:balance]\"",
+        "[warning] [IncrementalParser] ast is empty [text-wrap:balance]"
+      ]
+    },
+    {
+      "element": "intro",
+      "token": "[color:red]",
+      "noop": true,
+      "changed": [],
+      "rules": [],
+      "consoleNamingToken": [
+        "[warning] [BAROCSS] Unknown utility class: \"[color:red]\" in \"[color:red]\"",
+        "[warning] [IncrementalParser] ast is empty [color:red]"
+      ]
+    },
+    {
+      "element": "intro",
+      "token": "text-pretty",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-pretty { }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "intro",
+      "token": "whitespace-nowrap",
+      "noop": false,
+      "changed": [
+        "text-wrap-mode: wrap → nowrap"
+      ],
+      "rules": [
+        ".whitespace-nowrap { white-space: nowrap; }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "intro",
+      "token": "text-wrap",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-wrap { }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "intro",
+      "token": "text-nowrap",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-nowrap { }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "intro",
+      "token": "text-clip",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-clip { text-overflow: clip; }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "intro",
+      "token": "text-ellipsis",
+      "noop": false,
+      "changed": [
+        "text-overflow: clip → ellipsis"
+      ],
+      "rules": [
+        ".text-ellipsis { text-overflow: ellipsis; }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "intro",
+      "token": "truncate",
+      "noop": false,
+      "changed": [
+        "overflow-block: visible → hidden",
+        "overflow-inline: visible → hidden",
+        "overflow-x: visible → hidden",
+        "overflow-y: visible → hidden",
+        "text-overflow: clip → ellipsis",
+        "text-wrap-mode: wrap → nowrap"
+      ],
+      "rules": [
+        ".truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "intro",
+      "token": "break-words",
+      "noop": false,
+      "changed": [
+        "overflow-wrap: normal → break-word"
+      ],
+      "rules": [
+        ".break-words { overflow-wrap: break-word; }"
+      ],
+      "consoleNamingToken": []
+    }
+  ],
+  "X4": [
+    {
+      "element": "save-button",
+      "token": "text-shadow-sm",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-shadow-sm { }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "save-button",
+      "token": "text-shadow-xs",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-shadow-xs { }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "save-button",
+      "token": "text-shadow-2xs",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-shadow-2xs { }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "save-button",
+      "token": "text-shadow",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-shadow { }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "save-button",
+      "token": "text-shadow-md",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-shadow-md { }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "save-button",
+      "token": "text-shadow-[0_1px_2px_rgba(0,0,0,0.3)]",
+      "noop": true,
+      "changed": [],
+      "rules": [
+        ".text-shadow-\\[0_1px_2px_rgba\\(0\\,0\\,0\\,0\\.3\\)\\] { }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "save-button",
+      "token": "shadow-lg",
+      "noop": false,
+      "changed": [
+        "box-shadow: none → rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px"
+      ],
+      "rules": [
+        ".shadow-lg { box-shadow: var(--shadow-lg); }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "save-button",
+      "token": "[text-shadow:0_1px_2px_rgba(0,0,0,0.35)]",
+      "noop": true,
+      "changed": [],
+      "rules": [],
+      "consoleNamingToken": [
+        "[warning] [BAROCSS] Unknown utility class: \"[text-shadow:0_1px_2px_rgba(0,0,0,0.35)]\" in \"[text-shadow:0_1px_2px_rgba(0,0,0,0.35)]\"",
+        "[warning] [IncrementalParser] ast is empty [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]"
+      ]
+    },
+    {
+      "element": "save-button",
+      "token": "[text-shadow:0_1px_2px_rgb(0_0_0_/_0.35)]",
+      "noop": true,
+      "changed": [],
+      "rules": [],
+      "consoleNamingToken": [
+        "[warning] [BAROCSS] Unknown utility class: \"[text-shadow:0_1px_2px_rgb(0_0_0_/_0.35)]\" in \"[text-shadow:0_1px_2px_rgb(0_0_0_/_0.35)]\"",
+        "[warning] [IncrementalParser] ast is empty [text-shadow:0_1px_2px_rgb(0_0_0_/_0.35)]"
+      ]
+    },
+    {
+      "element": "save-button",
+      "token": "[color:red]",
+      "noop": true,
+      "changed": [],
+      "rules": [],
+      "consoleNamingToken": [
+        "[warning] [BAROCSS] Unknown utility class: \"[color:red]\" in \"[color:red]\"",
+        "[warning] [IncrementalParser] ast is empty [color:red]"
+      ]
+    },
+    {
+      "element": "save-button",
+      "token": "bg-[#ff0000]",
+      "noop": false,
+      "changed": [
+        "background-color: oklch(0.546 0.245 262.881) → rgb(255, 0, 0)"
+      ],
+      "rules": [
+        ".bg-\\[\\#ff0000\\] { background-color: rgb(255, 0, 0); }"
+      ],
+      "consoleNamingToken": []
+    },
+    {
+      "element": "save-button",
+      "token": "w-[300px]",
+      "noop": false,
+      "changed": [
+        "inline-size: 59.2188px → 300px",
+        "perspective-origin: 29.6094px 19px → 150px 19px",
+        "transform-origin: 29.6094px 19px → 150px 19px",
+        "width: 59.2188px → 300px"
+      ],
+      "rules": [
+        ".w-\\[300px\\] { width: 300px; }"
+      ],
+      "consoleNamingToken": []
+    }
+  ]
+}
