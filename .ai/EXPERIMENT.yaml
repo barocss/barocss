@@ -1,0 +1,45 @@
+# Handoff between one STRATEGY session and one EXECUTION session.
+# STRATEGY writes every field above `result` and sets status: ready.
+# EXECUTION may change only `status` and `result` (contract is frozen; .ai/check.py enforces).
+# STRATEGY alone writes `review` and sets status: evaluated.
+# status: none | ready | running | done | blocked | evaluated
+# While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
+# Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
+status: none
+
+id: null                 # E-001, E-002, ...
+outcome: null            # e.g. O1
+branch: null             # ai/E-001-<slug>; Execution works and opens its PR here
+question: null           # ONE question, answerable by observation or measurement
+decision_it_informs: null  # what Strategy will do differently for yes vs. no
+hypothesis: null
+builds_on: []            # knowledge ids (K1, U2, ...)
+scenario: null           # concrete actor + page + task
+method: null             # cheapest valid way to get the answer
+allowed:
+  actions: []            # e.g. "write probe in .ai/evidence/E-001/", "read packages/barocss/src/runtime/**"
+  paths: []              # extra write scope (globs); EXPERIMENT.yaml + .ai/evidence/<id>/ always allowed
+  product_code: false    # if true, paths must also cover .changeset/*.md
+non_goals: []            # adjacent work that is explicitly out of scope
+evidence:
+  level_required: null   # L2 for engineering, L3 for product value
+  proves_yes: null       # observation that answers "yes"
+  proves_no: null        # observation that answers "no"
+budget: null             # e.g. "1 session, <=15 files read, <=150 changed lines"
+stop_when: []            # contract-specific stops, added to the AGENTS.md §3 list
+
+result:
+  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
+  level: null            # L0-L3 actually achieved
+  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
+  learning: null         # 1-2 sentences
+  unknown: []            # what remains unanswered, or the blocker if status: blocked
+  next_question: null    # suggestion only; Strategy decides
+  pr: null               # PR URL opened by Execution (never merged by Execution)
+  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
+  side_notes: []         # adjacent discoveries, one line each, NOT pursued
+
+review:                  # STRATEGY only
+  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
+  merged: null           # true | false
+  reason: null           # one line: criteria met/unmet, level, CI, scope
