@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: done
+status: evaluated
 
 id: E-001
 outcome: O1
@@ -122,6 +122,6 @@ result:
     - "BrowserRuntime onReady was used only by the runner (data-baro-ready) to wait before the baseline snapshot"
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: PROVEN # may downgrade the proposed verdict, never upgrade past the evidence
+  merged: true           # true | false
+  reason: "proves_yes met as frozen (4/4 grader PASS, 4/4 claim==grader, no failures); L3 real claude -p actor, grader hidden; page/grader unchanged after freeze 1b1c9c2; grader self-test rerun by Strategy reproduced (baseline 0/4, positive control 4/4); evidence-only diff, check.py OK, CI green. Scope: n=1, one model, no task hit a no-op class, so U2/U3 untested."

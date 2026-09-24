@@ -4,9 +4,9 @@ updated: 2026-09-24
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O1
-  experiment: E-001 (ready) — real-agent baseline for O1, answers U1 (and U2/U3 if hit)
-  last_result: none
-  next: "EXECUTION: run E-001 on branch ai/E-001-agent-baseline"
+  experiment: E-001 (evaluated, PROVEN, merged PR #107)
+  last_result: "E-001 PROVEN L3: real agent did T1-T4 modify+verify 4/4, claims matched grader; no BaroCSS-owned failure (K3)"
+  next: "STRATEGY: contract E-002 (U2 silent no-op classes)"
   blockers: []
 
 outcomes:
@@ -32,16 +32,38 @@ knowledge:
     - id: K1
       level: L1
       fact: >
-        External code can change DOM classes with standard DOM APIs. BrowserRuntime
-        (observe(document.body, {scan:true})) detects the mutation, processes the
-        new classes, and updates the generated CSS without any new API.
-      caveat: >
-        Manual run of test-scenario*.html, which is untracked in the main checkout
-        and not committed. The actor was a script, not an agent. Not L2 or L3.
+        External code can change DOM classes with standard DOM APIs; BrowserRuntime
+        (observe(document.body, {scan:true})) picks up the mutation and generates CSS.
+      caveat: Scripted manual run, uncommitted. Superseded by K3 (L3).
     - id: K2
       level: L2
       fact: astToJson serializes BaroCSS AST to JSON (branch codex/pr-feature-evidence, 91f027c, unmerged).
       caveat: Shows machine-readable serialization only. Not AI understanding, not shown to be needed by any scenario.
+    - id: K3
+      level: L3
+      fact: >
+        E-001: a real LLM agent (claude -p, claude-opus-4-8, only Playwright MCP
+        browser tools, fresh context per task) changed styling of a live BaroCSS
+        page by editing classes and verified it correctly on 4/4 Tailwind-vocabulary
+        tasks (color, padding/radius, responsive grid, arbitrary text-[42px]).
+        Claims matched the hidden grader 4/4. No BaroCSS-specific help was needed.
+      caveat: >
+        n=1 per task, one strong model. Every class it wrote resolved, so no-op
+        classes (U2) and timing (U3) were not exercised. T2 was verified by screenshot only.
+        Evidence: .ai/evidence/E-001/.
+    - id: K4
+      level: L1
+      fact: >
+        BaroCSS fails silently in three distinct ways for Tailwind v4 classes:
+        (a) empty rule, no warning: text-balance, text-shadow-sm emit ".cls { }";
+        (b) rule with an undefined var: aspect-video emits aspect-ratio: var(--aspect-ratio-video), which computes to auto;
+        (c) no rule plus console.warn ("ast is empty" / "Unknown utility class"): rounded-4xl, [prop:value] arbitrary properties.
+        Also no computed effect: rounded-xs, shadow-xs, blur-xs, text-pretty, rotate-x-*, perspective-*,
+        bg-(--var), outline-hidden, wrap-anywhere, mask-*, bg-radial/conic.
+        Arbitrary values work: aspect-[16/9], rounded-[2rem], text-[42px].
+      caveat: >
+        Strategy hand probe (Playwright + E-001 page, computed style vs plain element,
+        stylesheet scan, console capture), 2026-09-24, not committed. Not yet shown to hurt an agent.
   disproven: []
   working_assumptions:     # L0; plausible but untested, don't treat as proven
     - Natural-language reasoning doesn't belong inside BaroCSS.
@@ -50,8 +72,7 @@ knowledge:
   unknown:                 # seeds for STRATEGY; unordered, not a backlog
     - id: U1
       q: >
-        Does a real LLM agent driving a browser succeed at modify+verify on a
-        realistic BaroCSS page today? Where exactly does it fail? (No L3 baseline exists. K1 was scripted.)
+        Partly answered by K3 (simple tasks succeed). Open: harder tasks, weaker models.
     - id: U2
       q: >
         When an agent writes a class BaroCSS can't resolve (typo, unsupported
