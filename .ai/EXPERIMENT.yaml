@@ -146,7 +146,7 @@ result:
     Suggestion: re-contract E-003 as Y1-only (arm A vs B), keeping the grader and self-test, which pass for Y1, and
     treat the radius finding as known. Separately, a BAROCSS-owned gap candidate is 'rounded-* does not read
     theme.borderRadius'. Strategy should first check whether agents need custom radius tokens before contracting a fix.
-  pr: null
+  pr: https://github.com/barocss/barocss/pull/111
   checks: "python3 .ai/check.py --role execution --base origin/develop: OK. No product code changed, so pnpm check is not required."
   side_notes:
     - "extend.colors.brand = {DEFAULT: '#5B21B6'} makes bg-brand throw 'TypeError: value.startsWith is not a function' in the bg handler, and emits --color-brand-DEFAULT."
