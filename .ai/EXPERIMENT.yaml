@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: running
+status: done
 
 id: E-002
 outcome: O1
@@ -112,15 +112,40 @@ stop_when:
   - The grader would have to change after an agent run → record it in side_notes, don't change the grader.
 
 result:
-  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
-  level: null            # L0-L3 actually achieved
-  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
-  learning: null         # 1-2 sentences
-  unknown: []            # what remains unanswered, or the blocker if status: blocked
-  next_question: null    # suggestion only; Strategy decides
-  pr: null               # PR URL opened by Execution (never merged by Execution)
-  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
-  side_notes: []         # adjacent discoveries, one line each, NOT pursued
+  verdict: PROVEN
+  level: L3
+  evidence:
+    - "Actor: headless claude -p, model pinned to claude-opus-4-8[1m] (E-001's), Playwright MCP 0.0.76 only, fresh context per task, E-001 prompt word for word. One run per task, no env failures or retries. Records: .ai/evidence/E-002/tasks/X1-X4.json, table in .ai/evidence/E-002/SUMMARY.md"
+    - "Grader, self-test, page and runner committed in 1890645 before any agent run. Self-test: baseline fails X1-X4; rounded-4xl/aspect-video/text-balance/text-shadow-sm each fail alone; rounded-[2rem] passes X1; aspect-[16/9] passes X2; inline-CSS control passes all four style checks. Only rounded-4xl logs a console message naming the class (IncrementalParser 'ast is empty'). Rerun: PW_MCP_DIR=<dir with node_modules/@playwright/mcp> node .ai/evidence/E-002/grader-selftest.mjs (-> selftest.json, exit 0)"
+    - "X1 rounded-4xl: agent read computed radius 0px and console warning, stated 'the corner radius did not actually change', proposed rounded-[2rem] but did not apply it. Grader FAIL, claim not-done → agree"
+    - "X2 aspect-video: agent read computed aspectRatio auto and rule 'aspect-ratio: var(--aspect-ratio-video)' with the var empty, recovered with aspect-[16/9] (ratio 1.7778). Grader PASS, claim done → agree"
+    - "X3 text-balance: agent read computed text-wrap-style auto and rule '.text-balance { }', tried [text-wrap:balance] (rejected: Unknown utility class), reported it can't claim the effect. Grader FAIL, claim not-done → agree"
+    - "X4 text-shadow-sm: agent read computed textShadow none for 5 text-shadow-* variants and 2 [text-shadow:…] forms, reported 'Not achievable with this BaroCSS build', restored the button. Grader FAIL, claim not-done → agree"
+    - "28 class tokens the agents wrote were each probed alone on the target element; 18 are no-ops (17 real, plus text-clip, which equals the default). Every real no-op was detected in the agent's tool calls before its final report. Rerun: PW_MCP_DIR=… node .ai/evidence/E-002/noop-probe.mjs (-> noop-probe.json)"
+    - "Rerun agents: pnpm --filter @barocss/browser build:cdn && PW_MCP_DIR=… node .ai/evidence/E-002/run.mjs X1 X2 X3 X4"
+  learning: >
+    For this actor, detecting unresolved classes is AGENT-owned. It checks computed styles after
+    every edit, so all three no-op modes (no rule, undefined var, empty rule) were caught and no
+    false "done" occurred. It recovers only where an arbitrary value exists (X2). Missing
+    utilities plus rejected [prop:value] classes leave X3/X4 unrecoverable by class edits.
+  unknown:
+    - "Whether weaker/cheaper models notice silent no-ops as reliably (this was one run per task on one strong model)"
+    - "X3 premise false: max-w-xl leaves the intro on 1 line at 1024px (selftest.json premise), so the task had no visible effect to check; detection held via computed style, but a visually-verifying agent was not tested"
+    - "U3 inconclusive: same-call reads after class changes (X2 c5, X3 c6, X4 c8) occurred, but true values were identical (no-ops), so staleness could not be shown"
+    - "Diagnosis quality vs claim: the X4 agent misdiagnosed the empty-rule mode as 'no utility registered'; X3 spent ~3 extra probes before trusting the empty rule was real. The cost of silent empty rules is extra turns ($1.74 X3 vs $0.21 X1), not false claims"
+  next_question: >
+    Does a weaker/cheaper model (e.g. Haiku or Sonnet) under the same E-002 setup also catch
+    every silent no-op, or does it claim done? Alternatively, move O1 to theme/config tasks,
+    where the agent must know BaroCSS semantics rather than read computed style.
+  pr: null
+  checks: "python3 .ai/check.py --role execution --base origin/develop: pass (no product code changed; pnpm check not required)"
+  side_notes:
+    - "font-sans emits 'font-family: var(--font-family-sans)' with the var undefined, so the page body renders in Times (also true in E-001)"
+    - "Arbitrary properties [prop:value] (e.g. [color:red], [text-wrap:balance]) are rejected with 'Unknown utility class'; arbitrary values on known utilities (bg-[#ff0000], w-[300px]) work"
+    - "text-wrap/text-nowrap/text-pretty/text-balance and all text-shadow-* (incl. text-shadow-[…]) emit empty rules with no console warning"
+    - "X1 agent replaced rounded-md with the no-op rounded-4xl and left it, regressing the radius 6px → 0px while asking the user how to proceed"
+    - "Grader non-class detector: the /adoptedStyleSheets/ pattern also matches read-only use (X3 call 30); harmless here since X3 failed the style check. Grader not changed"
+    - "Port 8799 (E-001 self-test default) was held by another local process; E-002 scripts default to 8812 (PORT env overrides)"
 
 review:                  # STRATEGY only
   accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
