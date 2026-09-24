@@ -80,7 +80,8 @@ function runAgent(t, rawPath) {
   const args = ['-p', prompt(t), '--output-format', 'stream-json', '--verbose', '--mcp-config', mcp, '--strict-mcp-config',
     '--tools', '', '--allowedTools', 'mcp__playwright', '--setting-sources', '', '--no-session-persistence'];
   return new Promise((ok) => {
-    const p = spawn('claude', args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+    // Print mode otherwise starts turn 1 before MCP connects (agent sees zero tools).
+    const p = spawn('claude', args, { cwd, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, MCP_CONNECTION_NONBLOCKING: 'false' } });
     let out = '', err = '';
     p.stdout.on('data', (d) => (out += d)); p.stderr.on('data', (d) => (err += d));
     const kill = setTimeout(() => p.kill('SIGTERM'), 15 * 60 * 1000);
