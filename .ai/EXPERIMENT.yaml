@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: ready
+status: evaluated
 
 id: E-001
 outcome: O1
@@ -89,17 +89,39 @@ stop_when:
   - The grader would have to change after an agent run → record it in side_notes, don't change the grader.
 
 result:
-  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
-  level: null            # L0-L3 actually achieved
-  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
-  learning: null         # 1-2 sentences
-  unknown: []            # what remains unanswered, or the blocker if status: blocked
-  next_question: null    # suggestion only; Strategy decides
-  pr: null               # PR URL opened by Execution (never merged by Execution)
-  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
-  side_notes: []         # adjacent discoveries, one line each, NOT pursued
+  verdict: PROVEN        # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
+  level: L3              # L0-L3 actually achieved
+  evidence:
+    - "T1-T4: 4/4 grader PASS, 4/4 agent claimed done, 4/4 claim==grader; no failures, so no owner assigned. Table: .ai/evidence/E-001/SUMMARY.md; full records (prompt, tool calls, final text, class diff, grader detail): .ai/evidence/E-001/tasks/T{1..4}.json"
+    - "Actor: headless claude -p (model claude-opus-4-8[1m], CLI 2.1.173), fresh context per task, --tools '' + only Playwright MCP 0.0.76 browser tools over CDP, empty temp cwd; server allowlists only the page and dist/cdn, so grader/contract were unreachable"
+    - "Classes written: T1 bg-red-600; T2 p-8 rounded-2xl; T3 grid grid-cols-1 md:grid-cols-2 gap-2; T4 text-[42px] (arbitrary value). BaroCSS generated CSS for all of them."
+    - "Verification habits: T1/T4 getComputedStyle, T3 browser_resize 800/600 + gridTemplateColumns, T2 screenshot only"
+    - "Page and grader committed before any agent run (1b1c9c2); grader self-test: baseline fails T1-T4, inline-CSS positive control passes T1-T4"
+    - "Rerun: pnpm install && pnpm --filter @barocss/browser build:cdn && PW_MCP_DIR=<npx dir with @playwright/mcp> node .ai/evidence/E-001/run.mjs T1 T2 T3 T4 (grader self-test: PW_MCP_DIR=... E=$PWD/.ai/evidence/E-001 ROOT=$PWD node .ai/evidence/E-001/grader-selftest.mjs)"
+  learning: >
+    For simple Tailwind-vocabulary tasks, a real agent with only generic browser tools edits
+    BaroCSS classes and verifies them correctly without any BaroCSS-specific help. These tasks
+    never hit a class that produced no CSS or a timing race, so the BaroCSS-only-information
+    gaps named in the decision were not exercised, not ruled out.
+  unknown:
+    - "n=1 per task and one model (claude-opus-4-8); weaker or cheaper models not tested"
+    - "No task used a class BaroCSS can't resolve, so whether an agent notices a no-op class (silent failure) is untested"
+    - "No agent read styles in the same tick as the class change (T1 read in the next tool call, T4 waited 300 ms), so a CSS-timing race was never exercised"
+    - "Theme/config-dependent tasks (custom tokens, non-default breakpoints) were not covered"
+  next_question: >
+    With the same actor, when a task needs a class BaroCSS does not generate (a typo, an
+    unsupported utility, or a custom-theme token), does the agent notice that no CSS was
+    produced and recover using only generic browser tools, or does it wrongly claim done?
+  pr: https://github.com/barocss/barocss/pull/107
+  checks: "python3 .ai/check.py --role execution --base origin/develop: OK; no product code changed, so pnpm check not required"
+  side_notes:
+    - "Env: claude -p starts turn 1 before MCP servers connect unless MCP_CONNECTION_NONBLOCKING=false (T1 attempt 1 had zero tools and hallucinated a Bash call)"
+    - "Playwright bundled chromium build 1226 not installed locally; runner uses system Google Chrome via CHROME_PATH"
+    - "T4 text-[42px] replaced text-3xl, which also dropped text-3xl's paired line-height; not graded"
+    - "T2 verification was screenshot-only; the claim was right but was not checked against computed styles"
+    - "BrowserRuntime onReady was used only by the runner (data-baro-ready) to wait before the baseline snapshot"
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: PROVEN # may downgrade the proposed verdict, never upgrade past the evidence
+  merged: true           # true | false
+  reason: "proves_yes met as frozen (4/4 grader PASS, 4/4 claim==grader, no failures); L3 real claude -p actor, grader hidden; page/grader unchanged after freeze 1b1c9c2; grader self-test rerun by Strategy reproduced (baseline 0/4, positive control 4/4); evidence-only diff, check.py OK, CI green. Scope: n=1, one model, no task hit a no-op class, so U2/U3 untested."
