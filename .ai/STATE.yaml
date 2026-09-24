@@ -4,9 +4,9 @@ updated: 2026-09-25
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O1
-  experiment: none (E-002 evaluated PROVEN, merged)
+  experiment: E-003 (ready) — live theme/config edits, runtime hidden (A) vs app-exposed (B) (U5)
   last_result: "E-002 PROVEN L3: agent caught every silent no-op (3 modes) via computed style; no false done (K5)"
-  next: "STRATEGY: contract E-003"
+  next: "EXECUTION: run E-003 on branch ai/E-003-live-theme"
   blockers: []
 
 outcomes:
@@ -130,6 +130,13 @@ decisions:
     why: >
       Class-level tasks are now answered twice with no BaroCSS-owned failure. Theme/config
       semantics are something only BaroCSS owns, so that is where a surface could be needed.
+  - id: D8
+    date: 2026-09-25
+    decision: >
+      E-003 targets U5 over U1 (weaker models). Two arms: runtime module-scoped vs exposed by the app.
+    why: >
+      A weaker-model failure would be AGENT-owned and would not change what BaroCSS builds.
+      U5 can end with "no surface needed" (O1 met), or it can split APP reachability from BaroCSS config semantics.
 
 open_items:                # for STRATEGY, not EXECUTION
   - >

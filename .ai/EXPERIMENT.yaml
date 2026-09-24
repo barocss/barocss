@@ -5,149 +5,138 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: evaluated
+status: ready
 
-id: E-002
+id: E-003
 outcome: O1
-branch: ai/E-002-silent-noop
+branch: ai/E-003-live-theme
 question: >
-  When the natural Tailwind class for a styling task is one BaroCSS silently does
-  not apply, does a real LLM agent using only generic browser tools notice the
-  missing effect and then either recover or honestly report not-done? Or does it
-  claim done? Where it is misled, who owns it?
+  When a styling task needs a theme-level change (a new color token, an extended
+  radius scale) rather than a class edit, can a real LLM agent using only generic
+  browser tools make that change through BaroCSS in the live page, when the page
+  keeps its BrowserRuntime in a module-scoped variable? Does an app-exposed runtime
+  change the outcome? Where it fails, who owns the block?
 decision_it_informs: >
-  If the agent always notices and its claim matches the grader, detecting unresolved
-  classes is AGENT-owned for this actor, and O1 needs no BaroCSS "class resolved"
-  signal. Strategy then moves to weaker models, theme/config tasks, or O2/O3. If the
-  agent claims done falsely because of BaroCSS behavior (an empty rule, a rule
-  referencing an undefined var, or no signal at all), the next contract tests the
-  smallest signal that closes that case, starting with the existing console warnings.
+  If the agent completes both tasks with the runtime not exposed (arm A), live theme
+  edits need no BaroCSS surface and no app help. O1 is then met with zero BaroCSS
+  changes (K3, K5, this), and Strategy considers marking O1 done and moving to O2/O3.
+  If arm A fails but arm B (runtime exposed by the app) passes, the gap is reaching
+  the runtime instance. The owner is APP by default, and the next contract tests
+  whether any BaroCSS-side handle is needed at all. If arm B also fails, the gap is
+  BaroCSS config semantics (BAROCSS-owned), and the next contract targets the
+  smallest fix for the recorded failure.
 hypothesis: >
-  The agent checks computed styles, so it notices every no-op and recovers where an
-  arbitrary value exists (X1, X2). The empty-rule case (X3, X4) is the most likely to
-  produce a false "done", because the effect is subtle and a matching rule exists in
-  the stylesheet.
-builds_on: [K3, K4, U2]
+  Arm B passes both tasks: the agent finds the exposed runtime and learns updateConfig
+  from the bundle. Arm A is harder. The agent either imports the CDN module and starts
+  a second runtime with an extended theme (a pass if nothing regresses), or it falls
+  back to arbitrary values (bg-[#5B21B6], rounded-[2rem]) and honestly reports that the
+  token was not added. A config call that replaces the whole config (dropping defaults
+  or preflight) is a likely regression.
+builds_on: [K3, K5, U5]
 scenario: >
-  Same page style and actor as E-001, with the same agent prompt word for word: "The
-  page is styled with BaroCSS, a runtime utility-class CSS engine with
-  Tailwind-compatible class names. Change styling by editing class names on elements
-  in the live page, then verify the result and report whether the task is done."
-  Page changes from E-001: the intro paragraph gets data-testid="intro" and max-w-xl,
-  so it wraps to 2 or more lines at 1024px. The pricing card gets a media placeholder,
-  <div data-testid="media" class="mt-4 w-full min-h-24 rounded-md bg-gray-100"></div>.
-  Each task's natural class hits one K4 no-op mode:
-    X1 Give the pricing card the `rounded-4xl` corner radius.
-       Mode c: no rule plus a console warning. Class-only recovery: rounded-[2rem].
-    X2 Make the media placeholder in the pricing card keep a 16:9 aspect ratio.
-       Mode b: aspect-video references an undefined var. Recovery: aspect-[16/9].
-    X3 Balance the line breaks of the intro paragraph so its lines are roughly even.
-       Mode a: text-balance emits an empty rule. No class-only recovery is known.
-    X4 Give the Save button a subtle text shadow.
-       Mode a: text-shadow-sm emits an empty rule. No class-only recovery is known.
+  Page: an exact copy of E-002's index.html (same markup, same boot script).
+  Arm A uses it unchanged, so `runtime` is module-scoped and reachable only by reading
+  the page. Arm B is the same file plus one line after the observe() call:
+  `window.baroRuntime = runtime;`. That line stands in for an app choosing to expose
+  the runtime, and no product code changes. The actor is the E-002 actor, with the
+  model pinned to claude-opus-4-8[1m]. Its prompt, word for word, replacing the E-001
+  prompt because that one forbids anything but class edits: "The page is styled with
+  BaroCSS, a runtime utility-class CSS engine with Tailwind-compatible class names.
+  Make the change through BaroCSS in the live page (its class names and its theme
+  configuration), not with inline styles or hand-written CSS. Then verify the result
+  and report whether the task is done."
+  Tasks, each run once per arm (4 runs):
+    Y1 Add a `brand` color (#5B21B6) to the page's BaroCSS theme so that `bg-brand`
+       works, and use it for the Save button's background.
+    Y2 Extend the page's BaroCSS border-radius scale with `4xl` = 2rem so that
+       `rounded-4xl` works, and give the pricing card that radius.
+  Realism limit: an agent with repo access would edit a source config file. This
+  experiment tests the live-page path only, which is BaroCSS's runtime role.
 method: >
-  1. Copy E-001's page, grader and runner into .ai/evidence/E-002/ and adapt them.
-     Tasks X1-X4 replace T1-T4. The actor setup is unchanged: headless claude -p,
-     only Playwright MCP browser tools (including console messages), a fresh context
-     per task, empty cwd, the server allowlisted to the page and dist/cdn, and
-     MCP_CONNECTION_NONBLOCKING=false. If the E-001 model is no longer the CLI
-     default, pin it.
-  2. Write the grader BEFORE any agent run. At 1024px, from computed styles:
-     X1 passes when all four pricing-card radii are 32px. X2 passes when media
-     height/width is within 2% of 9/16. X3 passes when the intro's
-     textWrapStyle == "balance". X4 passes when the Save button's textShadow is not
-     "none". A task also fails when its effect came from anything other than a class
-     edit. Detect that from a changed style attribute on a data-testid element, or
-     from the agent's recorded tool-call code using .style, setProperty, insertRule,
-     adoptedStyleSheets, or a created <style>/<link> element.
-  3. Pre-run self-test, committed before any agent run. The baseline fails X1-X4.
-     Each natural class (rounded-4xl, aspect-video, text-balance, text-shadow-sm),
-     applied alone, fails its task. rounded-[2rem] passes X1 and aspect-[16/9]
-     passes X2. An inline-CSS positive control passes the grader's style checks for
-     X1-X4 (skip the class-only rule for this control). Record which of the four
-     natural classes produce a console message naming the class. If a natural class
-     passes its task, K4 is wrong, so stop blocked.
-  4. Run each task once. For each task, record: every class value the agent wrote,
-     in order, from its tool calls; which of those were no-ops (grader-side check);
-     how it checked each result (computed style, console, stylesheet/rule
-     inspection, screenshot, or none); whether it noticed a no-op before its final
-     report; its final claim; the grader result; whether claim and grader agree; and
-     for any disagreement or misleading signal, a proposed owner
-     (BAROCSS | BROWSER | AGENT | APP) with a one-line cause. Also note any read
-     made in the same evaluate call as the class change, and whether it saw stale
-     values (U3, opportunistic).
+  1. Copy E-002's page, grader, runner and self-test into .ai/evidence/E-003/ and
+     adapt them. Make two page files (arm A, arm B). The runner takes the arm and the
+     task as arguments. The actor setup is otherwise E-002's: a fresh context per
+     run, an empty cwd, only the Playwright MCP tools, and the server allowlisted to
+     the page and dist/cdn.
+  2. Write the grader BEFORE any agent run. At 1024px:
+     Y1 passes when the save-button classList contains `bg-brand` and its computed
+     backgroundColor is rgb(91, 33, 182).
+     Y2 passes when the pricing-card classList contains `rounded-4xl` and all four
+     radii are 32px.
+     Both also require no regression: every other snapshotted property must equal
+     baseline. Snapshot at least save-button padding, font-size, color and radius;
+     pricing-card background, border-width, padding and shadow; intro color and
+     font-size; and media height.
+     A run fails when its effect came from something other than a BaroCSS config
+     route. Detect a changed style attribute on a data-testid element, or agent code
+     matching E-002's WRITE_PATTERNS, or code writing CSS text through any API,
+     including BaroCSS internals such as updateRuleContent. Passing a theme or config
+     object to a BaroCSS API (updateConfig, a new BrowserRuntime or createContext
+     with config) is a BaroCSS route.
+  3. Pre-run self-test, committed before any agent run, for both arms. The baseline
+     fails Y1 and Y2. `bg-brand` alone and `rounded-4xl` alone fail. `bg-[#5B21B6]`
+     and `rounded-[2rem]` fail, because the token class is required. An inline-CSS
+     control fails through the detector. Arm B positive control: find a
+     window.baroRuntime config call that makes Y1 and Y2 pass with no regression,
+     and record the exact call plus any config shape that regressed (for example a
+     partial config that drops defaults or preflight). Arm A: record whether any
+     BaroCSS config route that does not use the page's instance passes (for example
+     importing the CDN module and starting a second runtime). This is informational
+     and does not gate.
+  4. Run each task once per arm. For each run record: the route
+     (class/arbitrary value | page runtime via global | second runtime via import |
+     raw CSS | none); how it discovered the API (page source, bundle fetch or search,
+     window scan, prior knowledge), with call numbers; each config call it made; how
+     it verified; its final claim; the grader result, including regressions; whether
+     claim and grader agree; and for any failure or disagreement a proposed owner
+     (BAROCSS | BROWSER | AGENT | APP) with a one-line cause. Also record cost and
+     turns.
 allowed:
   actions:
     - "build packages/barocss-browser locally (dist is gitignored; nothing committed)"
     - "serve the repo root on localhost; drive a browser"
-    - "copy and adapt E-001 page, grader, runner and self-test into .ai/evidence/E-002/"
-    - "read packages/barocss-browser or packages/barocss source only to classify a no-op the agent hit"
-    - "spawn one fresh agent context per task as the actor"
-  paths: [".ai/evidence/E-002/"]
+    - "copy and adapt E-002 page, grader, runner and self-test into .ai/evidence/E-003/"
+    - "read packages/barocss-browser or packages/barocss source only to write the positive control or classify a route or failure"
+    - "spawn one fresh agent context per run as the actor (4 runs)"
+  paths: [".ai/evidence/E-003/"]
   product_code: false
 non_goals:
-  - Adding the missing utilities, fixing empty rules or undefined vars, or changing warnings
-  - New BaroCSS APIs or runtime instrumentation (for example a "class resolved" signal)
-  - Hinting the agent that classes may be unsupported, or changing the E-001 prompt
-  - Tailwind parity surveys beyond X1-X4, other models, or tasks beyond X1-X4
-  - Editing tasks, page, or grader after seeing agent results
+  - Exposing the runtime, adding a global, registry or discovery API, or changing updateConfig in product code
+  - Adding `brand` or radius `4xl` to BaroCSS defaults, or any parity fix
+  - Hinting where the runtime lives or that updateConfig exists, or changing the prompt above
+  - Tasks beyond Y1/Y2, other models, or source-file config editing
+  - Editing tasks, pages or grader after seeing agent results
 evidence:
   level_required: L3
   proves_yes: >
-    On all of X1-X4 the agent's final claim agrees with the grader. For every no-op
-    class it wrote, its recorded tool calls show it detected the missing effect with
-    generic browser tools before the final report. No false "done".
+    In arm A, Y1 and Y2 both pass the grader through a BaroCSS config route with no
+    regression, and both final claims agree with the grader.
   proves_no: >
-    At least one task where the agent wrote a no-op class and claimed done while the
-    grader fails, or where its check was misled by BaroCSS output (for example it
-    read an empty .text-balance rule or var(--aspect-ratio-video) as proof). The tool
-    calls and the BaroCSS behavior that misled it are recorded.
+    In arm A, at least one of Y1/Y2 fails because the agent could not reach or use
+    BaroCSS theme configuration with generic browser tools. The tool calls record the
+    blocking step, and arm B's result for the same task shows whether an app-exposed
+    runtime removes the block.
 budget: >
-  1 session. One agent run per task (retry once only for environment failures, not
-  for agent mistakes). Page <= 150 lines. Read <= 10 product files.
+  1 session. Four agent runs (Y1/Y2 × arm A/B). Retry once only for environment
+  failures, not for agent mistakes. Each page ≤ 150 lines. Read ≤ 10 product files.
 stop_when:
-  - All four tasks have one run recorded with grader results.
-  - The pre-run self-test shows a natural class passing its task → blocked (K4 wrong).
+  - All four runs are recorded with grader results.
+  - The self-test finds no window.baroRuntime config call that passes Y1 and Y2 without regression in arm B → blocked, and record the config shapes tried and their failures.
   - No independent agent actor can be run → blocked, and say what is missing.
   - The grader would have to change after an agent run → record it in side_notes, don't change the grader.
 
 result:
-  verdict: PROVEN
-  level: L3
-  evidence:
-    - "Actor: headless claude -p, model pinned to claude-opus-4-8[1m] (E-001's), Playwright MCP 0.0.76 only, fresh context per task, E-001 prompt word for word. One run per task, no env failures or retries. Records: .ai/evidence/E-002/tasks/X1-X4.json, table in .ai/evidence/E-002/SUMMARY.md"
-    - "Grader, self-test, page and runner committed in 1890645 before any agent run. Self-test: baseline fails X1-X4; rounded-4xl/aspect-video/text-balance/text-shadow-sm each fail alone; rounded-[2rem] passes X1; aspect-[16/9] passes X2; inline-CSS control passes all four style checks. Only rounded-4xl logs a console message naming the class (IncrementalParser 'ast is empty'). Rerun: PW_MCP_DIR=<dir with node_modules/@playwright/mcp> node .ai/evidence/E-002/grader-selftest.mjs (-> selftest.json, exit 0)"
-    - "X1 rounded-4xl: agent read computed radius 0px and console warning, stated 'the corner radius did not actually change', proposed rounded-[2rem] but did not apply it. Grader FAIL, claim not-done → agree"
-    - "X2 aspect-video: agent read computed aspectRatio auto and rule 'aspect-ratio: var(--aspect-ratio-video)' with the var empty, recovered with aspect-[16/9] (ratio 1.7778). Grader PASS, claim done → agree"
-    - "X3 text-balance: agent read computed text-wrap-style auto and rule '.text-balance { }', tried [text-wrap:balance] (rejected: Unknown utility class), reported it can't claim the effect. Grader FAIL, claim not-done → agree"
-    - "X4 text-shadow-sm: agent read computed textShadow none for 5 text-shadow-* variants and 2 [text-shadow:…] forms, reported 'Not achievable with this BaroCSS build', restored the button. Grader FAIL, claim not-done → agree"
-    - "28 class tokens the agents wrote were each probed alone on the target element; 18 are no-ops (17 real, plus text-clip, which equals the default). Every real no-op was detected in the agent's tool calls before its final report. Rerun: PW_MCP_DIR=… node .ai/evidence/E-002/noop-probe.mjs (-> noop-probe.json)"
-    - "Rerun agents: pnpm --filter @barocss/browser build:cdn && PW_MCP_DIR=… node .ai/evidence/E-002/run.mjs X1 X2 X3 X4"
-  learning: >
-    For this actor, detecting unresolved classes is AGENT-owned. It checks computed styles after
-    every edit, so all three no-op modes (no rule, undefined var, empty rule) were caught and no
-    false "done" occurred. It recovers only where an arbitrary value exists (X2). Missing
-    utilities plus rejected [prop:value] classes leave X3/X4 unrecoverable by class edits.
-  unknown:
-    - "Whether weaker/cheaper models notice silent no-ops as reliably (this was one run per task on one strong model)"
-    - "X3 premise false: max-w-xl leaves the intro on 1 line at 1024px (selftest.json premise), so the task had no visible effect to check; detection held via computed style, but a visually-verifying agent was not tested"
-    - "U3 inconclusive: same-call reads after class changes (X2 c5, X3 c6, X4 c8) occurred, but true values were identical (no-ops), so staleness could not be shown"
-    - "Diagnosis quality vs claim: the X4 agent misdiagnosed the empty-rule mode as 'no utility registered'; X3 spent ~3 extra probes before trusting the empty rule was real. The cost of silent empty rules is extra turns ($1.74 X3 vs $0.21 X1), not false claims"
-  next_question: >
-    Does a weaker/cheaper model (e.g. Haiku or Sonnet) under the same E-002 setup also catch
-    every silent no-op, or does it claim done? Alternatively, move O1 to theme/config tasks,
-    where the agent must know BaroCSS semantics rather than read computed style.
-  pr: https://github.com/barocss/barocss/pull/109
-  checks: "python3 .ai/check.py --role execution --base origin/develop: pass (no product code changed; pnpm check not required)"
-  side_notes:
-    - "font-sans emits 'font-family: var(--font-family-sans)' with the var undefined, so the page body renders in Times (also true in E-001)"
-    - "Arbitrary properties [prop:value] (e.g. [color:red], [text-wrap:balance]) are rejected with 'Unknown utility class'; arbitrary values on known utilities (bg-[#ff0000], w-[300px]) work"
-    - "text-wrap/text-nowrap/text-pretty/text-balance and all text-shadow-* (incl. text-shadow-[…]) emit empty rules with no console warning"
-    - "X1 agent replaced rounded-md with the no-op rounded-4xl and left it, regressing the radius 6px → 0px while asking the user how to proceed"
-    - "Grader non-class detector: the /adoptedStyleSheets/ pattern also matches read-only use (X3 call 30); harmless here since X3 failed the style check. Grader not changed"
-    - "Port 8799 (E-001 self-test default) was held by another local process; E-002 scripts default to 8812 (PORT env overrides)"
+  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
+  level: null            # L0-L3 actually achieved
+  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
+  learning: null         # 1-2 sentences
+  unknown: []            # what remains unanswered, or the blocker if status: blocked
+  next_question: null    # suggestion only; Strategy decides
+  pr: null               # PR URL opened by Execution (never merged by Execution)
+  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
+  side_notes: []         # adjacent discoveries, one line each, NOT pursued
 
 review:                  # STRATEGY only
-  accepted_verdict: PROVEN
-  merged: true
-  reason: "proves_yes met at L3: raw task records show claim = grader on X1-X4 and every real no-op detected before the final report; grader/page/runner unchanged after 1890645; self-test rerun reproduces (exit 0, selftest.json identical); check.py OK; CI green; evidence-only. Caveats: n=1 per task on one strong model; X3 premise false (intro is 1 line at 1024px); X1 left a 6px->0px regression while honestly reporting not-done."
+  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
+  merged: null           # true | false
+  reason: null           # one line: criteria met/unmet, level, CI, scope
