@@ -1,0 +1,107 @@
+# Durable project state. STRATEGY-owned; EXECUTION never edits this file.
+# Keep < ~150 lines. Git history holds everything older.
+updated: 2026-09-24
+
+now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
+  active_outcome: O1
+  experiment: none
+  last_result: none
+  next: "STRATEGY §2B: write contract E-001 for O1 (see knowledge.unknown)"
+  blockers: []
+
+outcomes:
+  O1:
+    status: active
+    statement: >
+      An AI agent can change the styling of a running BaroCSS page and confirm
+      the result matches its intent, using the smallest possible
+      BaroCSS-specific surface.
+    why: The smallest end-to-end slice of Human ↔ AI ↔ UI that exercises BaroCSS's runtime role.
+    done_when: >
+      L3 evidence that a real agent completes modify+verify on a realistic page,
+      and every BaroCSS change made for it was proven necessary (gap K-id cited).
+  O2:
+    status: candidate
+    statement: An AI generates new UI with BaroCSS classes that render as intended on the first try.
+  O3:
+    status: candidate
+    statement: An AI can explain why an existing element looks the way it does (styling provenance).
+
+knowledge:
+  proven:
+    - id: K1
+      level: L1
+      fact: >
+        External code can change DOM classes with standard DOM APIs. BrowserRuntime
+        (observe(document.body, {scan:true})) detects the mutation, processes the
+        new classes, and updates the generated CSS without any new API.
+      caveat: >
+        Manual run of test-scenario*.html, which is untracked in the main checkout
+        and not committed. The actor was a script, not an agent. Not L2 or L3.
+    - id: K2
+      level: L2
+      fact: astToJson serializes BaroCSS AST to JSON (branch codex/pr-feature-evidence, 91f027c, unmerged).
+      caveat: Shows machine-readable serialization only. Not AI understanding, not shown to be needed by any scenario.
+  disproven: []
+  working_assumptions:     # L0; plausible but untested, don't treat as proven
+    - Natural-language reasoning doesn't belong inside BaroCSS.
+    - Visual/semantic verification belongs to browser/agent tooling.
+    - AI-specific BaroCSS APIs are not yet shown to be needed.
+  unknown:                 # seeds for STRATEGY; unordered, not a backlog
+    - id: U1
+      q: >
+        Does a real LLM agent driving a browser succeed at modify+verify on a
+        realistic BaroCSS page today? Where exactly does it fail? (No L3 baseline exists. K1 was scripted.)
+    - id: U2
+      q: >
+        When an agent writes a class BaroCSS can't resolve (typo, unsupported
+        utility, bad arbitrary value), can it find out using only browser tooling?
+        Only BaroCSS knows whether a class resolved, so this is a candidate unique
+        gap. Check existing BaroCSS capability first.
+    - id: U3
+      q: When is a runtime-generated rule actually applied? Can an agent tell "not yet applied" from "never will be"?
+    - id: U4
+      q: Where does BaroCSS behavior differ from the Tailwind knowledge models already have, and do those differences cause agent errors?
+
+decisions:
+  - id: D1
+    date: 2026-09-24
+    decision: >
+      Adopted Strategy/Execution context isolation with a single handoff file
+      (.ai/EXPERIMENT.yaml). This replaces the role-based worker organization and
+      the lint/test-driven task-selection loop.
+    why: >
+      Previous runs showed role overhead, easy-task bias, self-confirming loops,
+      and anchoring on adjacent technical work.
+  - id: D2
+    date: 2026-09-24
+    decision: >
+      Retired the "AI-Interaction Infrastructure" roadmap (AST enhancement, AI
+      APIs, component catalog, JSON formats).
+    why: It prescribed solutions before any evidence, and it produced the astToJson drift.
+  - id: D3
+    date: 2026-09-24
+    decision: >
+      Froze AST work. No jsonToAst, round-trip, or AST metadata unless an
+      experiment shows an agent scenario needs it.
+    why: K2 caveat.
+  - id: D4
+    date: 2026-09-24
+    decision: >
+      Only Strategy accepts experiments and merges experiment PRs, after its own
+      review of the frozen criteria, evidence, diff, CI, and proposed verdict.
+      Execution never merges. Strategy may auto-integrate its own .ai/-only PRs
+      once .ai/check.py passes and CI is green. No human review is required.
+    why: Keeps builder and judge separate without putting a human in the loop.
+
+open_items:                # for STRATEGY, not EXECUTION
+  - >
+    Branch codex/pr-feature-evidence (astToJson and AST_JSON_FORMAT.md, which claims
+    it "enables AI to reason"). Don't merge as-is. Decide: drop it, or keep it
+    unmerged as a reference.
+  - >
+    (human) The main checkout holds stale untracked copies of AGENTS.md, .ai/,
+    test-scenario*.html, and opencode.json. Remove them once this system is merged.
+    If K1 needs to be L2, rebuild the scenario as a committed probe under .ai/evidence/.
+
+human_directives: []       # humans append short directional notes; STRATEGY must apply them
