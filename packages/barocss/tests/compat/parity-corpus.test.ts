@@ -18,7 +18,6 @@ import { corpus } from './corpus';
 // its fix lands (the test fails if a listed class starts passing, so the list can't go stale).
 
 const KNOWN_FAILURES: Record<string, string> = {
-  "border": "no border-style: solid (#185)",
   "transition": "transition-property list differs",
   "focus:outline-none": "outline v4 semantics (#187)",
   "space-y-3": "equivalent: margin on following siblings (v3 selector)",
@@ -30,11 +29,9 @@ const KNOWN_FAILURES: Record<string, string> = {
   "select-none": "no -webkit-user-select",
   "sr-only": "clip instead of clip-path",
   "blur-3xl": "blur scale on v3 values",
-  "border-2": "no border-style: solid (#185)",
   "-translate-x-1/2": "other translate axis undefined (#178)",
   "transition-colors": "transition-property list differs",
   "bg-gradient-to-r": "legacy gradient emits a bare & selector (#187)",
-  "border-t": "no border-style: solid (#185)",
   "hover:-translate-y-0.5": "other translate axis undefined (#178)",
   "hover:-translate-y-1": "other translate axis undefined (#178)",
   "@container/card-header": "no container-type utility (#187)",
@@ -45,7 +42,6 @@ const KNOWN_FAILURES: Record<string, string> = {
   "data-[side=left]:-translate-x-1": "other translate axis undefined (#178)",
   "data-[side=right]:translate-x-1": "other translate axis undefined (#178)",
   "data-[side=top]:-translate-y-1": "other translate axis undefined (#178)",
-  "file:border-0": "no border-style: solid (#185)",
   "focus-visible:outline-1": "outline v4 semantics (#187)",
   "focus:outline-hidden": "outline v4 semantics (#187)",
   "group-data-[orientation=horizontal]/tabs:after:bottom-[-5px]": "content missing",
