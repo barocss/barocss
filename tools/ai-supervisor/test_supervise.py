@@ -18,6 +18,12 @@ FAKE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "fak
 OLD = "2020-01-01T00:00:00+00:00"      # a push before any session in these tests ended
 FUTURE = "2099-01-01T00:00:00+00:00"   # a push after it (someone else is active)
 
+def _product(s):
+    """The experiment's contract allows product code (as E-008's does)."""
+    s["develop"]["exp"]["allowed"] = {"product_code": True}
+    return s
+
+
 WORLDS = {
     "execute": lambda: snap("ready"),
     "running": lambda: snap("ready", branch={"status": "running"}, branch_time=OLD),
@@ -27,6 +33,12 @@ WORLDS = {
     "blocked_result": lambda: snap("ready", branch={"status": "blocked", "result": {"verdict": "INCONCLUSIVE"}},
                                    prs=[{}]),
     "merge": lambda: snap("ready", branch={"status": "evaluated", "review": {"merged": True}}, prs=[{}]),
+    "merge_product": lambda: _product(snap("ready", branch={"status": "evaluated", "review": {"merged": True}},
+                                           prs=[{}])),
+    "merge_labeled": lambda: _product(snap("ready", branch={"status": "evaluated", "review": {"merged": True}},
+                                           prs=[{"labels": ["human-approved"]}])),
+    "merge_approved": lambda: _product(snap("ready", branch={"status": "evaluated", "review": {"merged": True}},
+                                            prs=[{"review": "APPROVED"}])),
     "plan": lambda: snap("evaluated"),
     "plan_branch": lambda: snap("evaluated", plan_branches=["ai/strategy-E-010"]),
     "human": lambda: snap("evaluated", blockers=["gh token expired"]),
@@ -144,6 +156,19 @@ class Decide(unittest.TestCase):
         self.assertEqual(sv.lifecycle("paused", True), "PAUSING")
         self.assertEqual(sv.lifecycle("paused", False), "PAUSED")
         self.assertEqual(sv.lifecycle("stopped", True), "STOPPED")
+
+    def test_product_code_merge_waits_for_a_human(self):
+        v = view("merge_product")
+        self.assertEqual((v["product_code"], v["approved"]), (True, False))
+        d = sv.decide(v, [], time.time(), C)
+        self.assertEqual((d["do"], d["kind"]), ("hold", "human_approval"))
+        self.assertIn("human-approved", d["reason"])
+        for name in ("merge_labeled", "merge_approved"):   # label, or an approving review (a bot-authored PR)
+            d = sv.decide(view(name), [], time.time(), C)
+            self.assertEqual((d["do"], d["action"]), ("launch", "MERGE #5"), name)
+        d = sv.decide(view("merge"), [], time.time(), C)       # evidence-only PR: V1 unchanged
+        self.assertEqual(d["do"], "launch")
+        self.assertNotIn("product_code", view("review"))       # the gate only concerns MERGE
 
     def test_transition(self):
         r = rec(view("execute")["key"], "COMPLETED", action="EXECUTE E-009")
@@ -274,6 +299,9 @@ class Process(unittest.TestCase):
     def test_normal_completion(self):
         w = World(self, "execute", plan=[{"world": "review", "sleep": 0.2}])
         rep = w.sup().run(max_sessions=1)
+        ev = [e["title"] for e in sv._tail_jsonl(os.path.join(w.home, "events.jsonl"), 50)]
+        self.assertIn("started EXECUTE E-009", ev)
+        self.assertIn("EXECUTE E-009 completed", ev)          # sent without anyone asking
         (r,) = rep["sessions"]
         self.assertEqual((r["state"], r["action"], r["attempt"], r["exit_code"]), ("COMPLETED", "EXECUTE E-009", 1, 0))
         self.assertEqual((r["after"]["next_action"], r["transition"]), ("REVIEW E-009", "advanced"))
@@ -459,6 +487,56 @@ def background(s, **kw):
 
 def runner(w):
     return sv.read_json(os.path.join(w.home, "runner.json")) or {}
+
+
+class Notifications(unittest.TestCase):
+    def events(self, w):
+        return sv._tail_jsonl(os.path.join(w.home, "events.jsonl"), 100)
+
+    def test_every_transition_is_announced_once(self):
+        # EXECUTE ends → CI (announced once, though polled many times) → REVIEW → a product-code MERGE that
+        # needs a human (urgent), then stop.
+        w = World(self, "execute", plan=[{"world": "ci", "sleep": 0.2}, {"world": "merge_product"}],
+                  script=[])
+        s = w.sup()
+        t, box = background(s)
+        self.assertTrue(wait_for(lambda: any(e["title"] == "EXECUTE E-009 completed" for e in self.events(w))))
+        self.assertTrue(wait_for(lambda: any(e["title"] == "waiting for CI" for e in self.events(w))))
+        time.sleep(0.3)
+        with open(w.f["world"], "w") as fh:
+            fh.write("review")                              # CI finished
+        self.assertTrue(wait_for(lambda: any(e["title"] == "needs you: human_approval" for e in self.events(w))))
+        time.sleep(0.3)
+        sv.request(w.home, "stopped", by="test")
+        t.join(10)
+        ev = self.events(w)
+        titles = [e["title"] for e in ev]
+        self.assertEqual(titles.count("waiting for CI"), 1)
+        self.assertEqual(titles.count("needs you: human_approval"), 1)
+        self.assertTrue(next(e for e in ev if e["title"] == "needs you: human_approval")["urgent"])
+        self.assertIn("runner STOPPED", titles)
+        self.assertEqual([x[x.index("-p") + 1].split("next step is ")[-1][:12] for x in w.launches()],
+                         [sv.instruction("EXECUTE E-009").split("next step is ")[-1][:12],
+                          sv.instruction("REVIEW E-009").split("next step is ")[-1][:12]])   # no MERGE launch
+        st = sv.status_report(w.home)
+        self.assertTrue(st["events"])
+        lines = []
+        sv.print_report(st, out=lines.append)
+        self.assertTrue(any(l.startswith("event       :") for l in lines))
+
+    def test_approval_releases_the_hold(self):
+        w = World(self, "merge_product", plan=[{"world": "plan"}])
+        s = w.sup()
+        t, box = background(s)
+        self.assertTrue(wait_for(lambda: any(e["title"] == "needs you: human_approval" for e in self.events(w))))
+        time.sleep(0.3)
+        self.assertEqual(w.launches(), [])
+        with open(w.f["world"], "w") as fh:
+            fh.write("merge_labeled")                       # the human added the label
+        self.assertTrue(wait_for(lambda: len(w.launches()) == 1))
+        sv.request(w.home, "stopped", by="test")
+        t.join(10)
+        self.assertEqual(w.records()[0]["action"], "MERGE #5")
 
 
 class Lifecycle(unittest.TestCase):
