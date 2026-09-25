@@ -19,6 +19,57 @@ describe('BrowserRuntime', () => {
   const hasInjectedRule = (fragment: string) => Array.from(document.querySelectorAll<HTMLStyleElement>('[data-barocss="partition"]'))
     .some(style => Array.from(style.sheet?.cssRules ?? []).some(rule => rule.cssText.includes(fragment)));
 
+  const preflightText = () => document.querySelector('[data-category="preflight"]')?.textContent ?? '';
+
+  it('applies kit default (full) preflight when no preflight option is given', () => {
+    const fullRuntime = new BrowserRuntime({ config: { preflight: 'full' } });
+    const full = preflightText();
+    fullRuntime.destroy();
+    document.head.innerHTML = '';
+    const defaultRuntime = new BrowserRuntime({ config: {} });
+    try {
+      expect(preflightText()).toBeTruthy();
+      expect(preflightText()).toBe(full);
+    } finally {
+      defaultRuntime.destroy();
+    }
+  });
+
+  it('puts preflight in the base layer declared first so author CSS and utilities override it (#208)', () => {
+    runtime.destroy();
+    document.head.innerHTML = '<style id="author">@layer base { * { border-color: red } } header { display: flex }</style>';
+    runtime = new BrowserRuntime({ config: {} });
+    runtime.addClass('block');
+    const preflight = document.querySelector<HTMLStyleElement>('[data-category="preflight"]')!;
+    // First stylesheet in <head>: its layer sorts before the app's `base` layer.
+    expect(document.head.firstElementChild).toBe(preflight);
+    const top = Array.from(preflight.sheet!.cssRules);
+    expect(top.length).toBeGreaterThan(0);
+    expect(preflight.textContent!.startsWith('@layer theme, base, components, utilities;')).toBe(true);
+    expect(top.every(rule => rule.cssText.startsWith('@layer base'))).toBe(true);
+    // Utilities stay unlayered, so they beat the layered preflight.
+    const utilityRules = Array.from(document.querySelectorAll<HTMLStyleElement>('[data-barocss="partition"]:not([data-category="preflight"])'))
+      .flatMap(style => Array.from(style.sheet?.cssRules ?? [], rule => rule.cssText));
+    expect(utilityRules.some(text => text.includes('.block'))).toBe(true);
+    expect(utilityRules.filter(text => text.includes('.block')).some(text => text.startsWith('@layer'))).toBe(false);
+  });
+
+  it('does not inject preflight when preflight is false', () => {
+    runtime.destroy();
+    document.head.innerHTML = '';
+    runtime = new BrowserRuntime({ config: { preflight: false } });
+    expect(preflightText()).toBe('');
+  });
+
+  it('honors an explicit preflight level', () => {
+    runtime.destroy();
+    document.head.innerHTML = '';
+    runtime = new BrowserRuntime({ config: { preflight: 'minimal' } });
+    const minimal = preflightText();
+    expect(minimal).toBeTruthy();
+    expect(minimal.length).toBeLessThan(runtime['context'].getPreflightCSS('full').length);
+  });
+
   it('inserts styles into an iframe element supplied as the insertion point', () => {
     const frame = document.createElement('iframe');
     document.body.append(frame);

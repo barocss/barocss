@@ -5,6 +5,30 @@ import { parseColor, parseNumber } from "../core/utils";
 // --- Box Shadow ---
 //  box-shadow documentation
 
+// Tailwind v4 composes every box-shadow layer into one declaration, so shadow-* and ring-* on the same element
+// both render: each utility sets only its own layer var and re-emits this composite.
+const SHADOW_COMPOSITE =
+  "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)";
+
+// Base values for the box-shadow composition layers, registered like Tailwind v4's @property layer so that a lone
+// shadow-*/ring-*/inset-ring-* composes a valid box-shadow when the other layers are unset.
+// Without these @property initial values the whole box-shadow declaration is invalid and nothing renders.
+const ringShadowProperties = () =>
+  atRoot([
+    property("--baro-shadow", "0 0 #0000"),
+    property("--baro-inset-shadow", "0 0 #0000"),
+    property("--baro-inset-ring-shadow", "0 0 #0000"),
+    property("--baro-ring-offset-shadow", "0 0 #0000"),
+    property("--baro-ring-shadow", "0 0 #0000"),
+  ]);
+
+// A plain shadow layer (shadow-sm, shadow-[...], shadow-(--x)): sets --baro-shadow and the composite box-shadow.
+const shadowLayer = (value: string) => [
+  ringShadowProperties(),
+  decl("--baro-shadow", value),
+  decl("box-shadow", SHADOW_COMPOSITE),
+];
+
 // Static shadow levels
 [
   ["shadow-2xs", "var(--shadow-2xs)"],
@@ -17,7 +41,11 @@ import { parseColor, parseNumber } from "../core/utils";
   ["shadow-2xl", "var(--shadow-2xl)"],
   ["shadow-none", "0 0 #0000"],
 ].forEach(([name, value]) => {
-  staticUtility(name as string, [["box-shadow", value as string]], { category: 'effects' });
+  staticUtility(name as string, [
+    ringShadowProperties,
+    ["--baro-shadow", value as string],
+    ["box-shadow", SHADOW_COMPOSITE],
+  ], { category: 'effects' });
 });
 
 // Static inset shadow levels
@@ -140,10 +168,10 @@ functionalUtility({
           ];
         }
 
-        return [decl("box-shadow", main)];
+        return [decl("--baro-shadow-color", main)];
       }
 
-      return [decl("box-shadow", main)];
+      return shadowLayer(main);
     }
 
     // Special cases
@@ -155,7 +183,7 @@ functionalUtility({
 
     return null;
   },
-  handleCustomProperty: (value) => [decl("box-shadow", `var(${value})`)],
+  handleCustomProperty: (value) => shadowLayer(`var(${value})`),
 });
 
 // inset-shadow-color utilities
@@ -220,16 +248,6 @@ functionalUtility({
 
 // --- Ring ( multi-variable) ---
 //  ring-width documentation
-
-// Base values for the box-shadow composition layers, registered like Tailwind v4's @property layer so that a lone
-// ring-*/inset-ring-* composes a valid box-shadow when the other layers (inset/inset-ring/plain shadow) are unset.
-// Without these @property initial values the whole box-shadow declaration is invalid and the ring never renders.
-const ringShadowProperties = () =>
-  atRoot([
-    property("--baro-shadow", "0 0 #0000"),
-    property("--baro-inset-shadow", "0 0 #0000"),
-    property("--baro-inset-ring-shadow", "0 0 #0000"),
-  ]);
 
 // Static ring width utilities
 [

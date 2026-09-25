@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart Summary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f8f9fa;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 24px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 16px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+        
+        .stat-change {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .stat-change.positive {
+            color: #10b981;
+        }
+        
+        .stat-change.negative {
+            color: #ef4444;
+        }
+        
+        .chart-section {
+            margin-bottom: 24px;
+        }
+        
+        .chart-section h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+        
+        .chart-container {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 16px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        canvas {
+            max-width: 100%;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        
+        .footer {
+            padding: 16px 24px;
+            background: #f8f9fa;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Chart Summary</h1>
+            <p>Data analysis and performance metrics</p>
+        </div>
+        
+        <div class="content">
+            <div class="grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Data Points</div>
+                    <div class="stat-value">2,547</div>
+                    <div class="stat-change positive">↑ 12.5% from last period</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Average Value</div>
+                    <div class="stat-value">$845.32</div>
+                    <div class="stat-change negative">↓ 3.2% from last period</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Peak Performance</div>
+                    <div class="stat-value">94.7%</div>
+                    <div class="stat-change positive">↑ 8.1% from last period</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-label">Data Variance</div>
+                    <div class="stat-value">18.2%</div>
+                    <div class="stat-change">Stable across periods</div>
+                </div>
+            </div>
+            
+            <div class="chart-section">
+                <h2>Performance Trend</h2>
+                <div class="chart-container">
+                    <canvas id="lineChart" width="400" height="250"></canvas>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #667eea;"></div>
+                        <span>Primary Metric</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #764ba2;"></div>
+                        <span>Target Baseline</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-section">
+                <h2>Distribution Analysis</h2>
+                <div class="chart-container">
+                    <canvas id="barChart" width="400" height="250"></canvas>
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #10b981;"></div>
+                        <span>Volume</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #f59e0b;"></div>
+                        <span>Average</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <span>Generated on 2026-09-26</span>
+            <span>MCP Tool Result</span>
+        </div>
+    </div>
+    
+    <script>
+        function drawLineChart() {
+            const canvas = document.getElementById('lineChart');
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            
+            canvas.width = canvas.offsetWidth * dpr;
+            canvas.height = canvas.offsetHeight * dpr;
+            ctx.scale(dpr, dpr);
+            
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            const padding = 40;
+            const graphWidth = width - padding * 2;
+            const graphHeight = height - padding * 2;
+            
+            const data1 = [45, 52, 48, 61, 55, 67, 72, 68, 75, 82, 88, 85];
+            const data2 = [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50];
+            
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (graphHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+            
+            const maxValue = 100;
+            
+            function drawLine(data, color, lineWidth = 2) {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = lineWidth;
+                ctx.beginPath();
+                
+                data.forEach((value, index) => {
+                    const x = padding + (graphWidth / (data.length - 1)) * index;
+                    const y = height - padding - (value / maxValue) * graphHeight;
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                
+                ctx.stroke();
+            }
+            
+            drawLine(data1, '#667eea', 3);
+            drawLine(data2, '#764ba2', 2);
+            
+            ctx.fillStyle = '#333';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            
+            for (let i = 0; i <= 5; i++) {
+                const value = (maxValue / 5) * i;
+                const y = height - padding - (graphHeight / 5) * i;
+                ctx.fillText(value, padding - 10, y);
+            }
+            
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            months.forEach((month, index) => {
+                const x = padding + (graphWidth / (months.length - 1)) * index;
+                ctx.fillText(month, x, height - padding + 15);
+            });
+        }
+        
+        function drawBarChart() {
+            const canvas = document.getElementById('barChart');
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            
+            canvas.width = canvas.offsetWidth * dpr;
+            canvas.height = canvas.offsetHeight * dpr;
+            ctx.scale(dpr, dpr);
+            
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight;
+            const padding = 40;
+            const graphWidth = width - padding * 2;
+            const graphHeight = height - padding * 2;
+            
+            const categories = ['Q1', 'Q2', 'Q3', 'Q4'];
+            const data1 = [65, 78, 82, 71];
+            const data2 = [55, 68, 72, 61];
+            
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, width, height);
+            
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (graphHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+            }
+            
+            const maxValue = 100;
+            const barGroupWidth = graphWidth / data1.length;
+            const barWidth = barGroupWidth / 3;
+            
+            data1.forEach((value, index) => {
+                const x = padding + barGroupWidth * index + barWidth / 2;
+                const barHeight = (value / maxValue) * graphHeight;
+                ctx.fillStyle = '#10b981';
+                ctx.fillRect(x, height - padding - barHeight, barWidth * 0.8, barHeight);
+            });
+            
+            data2.forEach((value, index) => {
+                const x = padding + barGroupWidth * index + barWidth * 1.5;
+                const barHeight = (value / maxValue) * graphHeight;
+                ctx.fillStyle = '#f59e0b';
+                ctx.fillRect(x, height - padding - barHeight, barWidth * 0.8, barHeight);
+            });
+            
+            ctx.fillStyle = '#333';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            
+            for (let i = 0; i <= 5; i++) {
+                const value = (maxValue / 5) * i;
+                const y = height - padding - (graphHeight / 5) * i;
+                ctx.fillText(value, padding - 10, y);
+            }
+            
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            categories.forEach((cat, index) => {
+                const x = padding + barGroupWidth * index + barGroupWidth / 2;
+                ctx.fillText(cat, x, height - padding + 15);
+            });
+        }
+        
+        drawLineChart();
+        drawBarChart();
+        
+        window.addEventListener('resize', () => {
+            drawLineChart();
+            drawBarChart();
+        });
+    </script>
+</body>
+</html>

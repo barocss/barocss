@@ -1,0 +1,62 @@
+{
+ "opus-1": {
+  "model": "opus",
+  "request": "weather card",
+  "prompt": "Write the UI for an MCP App tool result: weather card. Output a single self-contained HTML document only. It is rendered in a sandboxed iframe (allow-scripts) under a Content-Security-Policy that allows inline scripts and styles plus one allowlisted resource domain for external assets. Use Tailwind CSS utility classes for styling. Reply with only the HTML.",
+  "cmd": "env -u CLAUDECODE claude -p \"<prompt>\" --model opus --tools \"\" --output-format json"
+ },
+ "opus-2": {
+  "model": "opus",
+  "request": "filterable data table",
+  "prompt": "Write the UI for an MCP App tool result: filterable data table. Output a single self-contained HTML document only. It is rendered in a sandboxed iframe (allow-scripts) under a Content-Security-Policy that allows inline scripts and styles plus one allowlisted resource domain for external assets. Use Tailwind CSS utility classes for styling. Reply with only the HTML.",
+  "cmd": "env -u CLAUDECODE claude -p \"<prompt>\" --model opus --tools \"\" --output-format json"
+ },
+ "opus-3": {
+  "model": "opus",
+  "request": "booking form",
+  "prompt": "Write the UI for an MCP App tool result: booking form. Output a single self-contained HTML document only. It is rendered in a sandboxed iframe (allow-scripts) under a Content-Security-Policy that allows inline scripts and styles plus one allowlisted resource domain for external assets. Use Tailwind CSS utility classes for styling. Reply with only the HTML.",
+  "cmd": "env -u CLAUDECODE claude -p \"<prompt>\" --model opus --tools \"\" --output-format json"
+ },
+ "opus-4": {
+  "model": "opus",
+  "request": "chart summary",
+  "prompt": "Write the UI for an MCP App tool result: chart summary. Output a single self-contained HTML document only. It is rendered in a sandboxed iframe (allow-scripts) under a Content-Security-Policy that allows inline scripts and styles plus one allowlisted resource domain for external assets. Use Tailwind CSS utility classes for styling. Reply with only the HTML.",
+  "cmd": "env -u CLAUDECODE claude -p \"<prompt>\" --model opus --tools \"\" --output-format json"
+ },
+ "opus-5": {
+  "model": "opus",
+  "request": "settings panel",
+  "prompt": "Write the UI for an MCP App tool result: settings panel. Output a single self-contained HTML document only. It is rendered in a sandboxed iframe (allow-scripts) under a Content-Security-Policy that allows inline scripts and styles plus one allowlisted resource domain for external assets. Use Tailwind CSS utility classes for styling. Reply with only the HTML.",
+  "cmd": "env -u CLAUDECODE claude -p \"<prompt>\" --model opus --tools \"\" --output-format json"
+ },
+ "haiku-1": {
+  "model": "haiku",
+  "request": "weather card",
+  "prompt": "Write the UI for an MCP App tool result: weather card. Output a single self-contained HTML document only. It is rendered in a sandboxed iframe (allow-scripts) under a Content-Security-Policy that allows inline scripts and styles plus one allowlisted resource domain for external assets. Use Tailwind CSS utility classes for styling. Reply with only the HTML.",
+  "cmd": "env -u CLAUDECODE claude -p \"<prompt>\" --model haiku --tools \"\" --output-format json"
+ },
+ "haiku-2": {
+  "model": "haiku",
+  "request": "filterable data table",
+  "prompt": "Write the UI for an MCP App tool result: filterable data table. Output a single self-contained HTML document only. It is rendered in a sandboxed iframe (allow-scripts) under a Content-Security-Policy that allows inline scripts and styles plus one allowlisted resource domain for external assets. Use Tailwind CSS utility classes for styling. Reply with only the HTML.",
+  "cmd": "env -u CLAUDECODE claude -p \"<prompt>\" --model haiku --tools \"\" --output-format json"
+ },
+ "haiku-3": {
+  "model": "haiku",
+  "request": "booking form",
+  "prompt": "Write the UI for an MCP App tool result: booking form. Output a single self-contained HTML document only. It is rendered in a sandboxed iframe (allow-scripts) under a Content-Security-Policy that allows inline scripts and styles plus one allowlisted resource domain for external assets. Use Tailwind CSS utility classes for styling. Reply with only the HTML.",
+  "cmd": "env -u CLAUDECODE claude -p \"<prompt>\" --model haiku --tools \"\" --output-format json"
+ },
+ "haiku-4": {
+  "model": "haiku",
+  "request": "chart summary",
+  "prompt": "Write the UI for an MCP App tool result: chart summary. Output a single self-contained HTML document only. It is rendered in a sandboxed iframe (allow-scripts) under a Content-Security-Policy that allows inline scripts and styles plus one allowlisted resource domain for external assets. Use Tailwind CSS utility classes for styling. Reply with only the HTML.",
+  "cmd": "env -u CLAUDECODE claude -p \"<prompt>\" --model haiku --tools \"\" --output-format json"
+ },
+ "haiku-5": {
+  "model": "haiku",
+  "request": "settings panel",
+  "prompt": "Write the UI for an MCP App tool result: settings panel. Output a single self-contained HTML document only. It is rendered in a sandboxed iframe (allow-scripts) under a Content-Security-Policy that allows inline scripts and styles plus one allowlisted resource domain for external assets. Use Tailwind CSS utility classes for styling. Reply with only the HTML.",
+  "cmd": "env -u CLAUDECODE claude -p \"<prompt>\" --model haiku --tools \"\" --output-format json"
+ }
+}

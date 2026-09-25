@@ -44,7 +44,7 @@ export class StylePartitionManager {
     this.createNewPartition();
   }
 
-  private createNewCategoryPartition(category: string) {
+  private createNewCategoryPartition(category: string, atDocumentStart = false) {
     const newPartition: StylePartition = {
       id: this.styleIdPrefix + `-${category}`,
       styles: [],
@@ -57,7 +57,14 @@ export class StylePartitionManager {
     newPartition.styleElement.setAttribute("data-category", category);
 
     // set insertion point
-    this.insertionPoint.appendChild(newPartition.styleElement);
+    const head = this.insertionPoint.ownerDocument?.head;
+    if (atDocumentStart && head) {
+      // Layered base styles (preflight) must be the first stylesheet so their
+      // cascade layer is declared before any app layer (e.g. Tailwind `base`).
+      head.insertBefore(newPartition.styleElement, head.firstChild);
+    } else {
+      this.insertionPoint.appendChild(newPartition.styleElement);
+    }
 
     this.categoryPartitions.set(category, newPartition);
 
@@ -268,12 +275,12 @@ export class StylePartitionManager {
   }
 
 
-  updateRuleContent(category: string, ruleContent: string) {
+  updateRuleContent(category: string, ruleContent: string, atDocumentStart = false) {
     const partition = this.getCategoryPartition(category);
     if (partition) {
       partition.styleElement.textContent = ruleContent;
     } else {
-      const newPartition = this.createNewCategoryPartition(category);
+      const newPartition = this.createNewCategoryPartition(category, atDocumentStart);
       // eslint-disable-next-line no-console
       console.log(`[StylePartitionManager] Created new partition for category: ${category}`);
       newPartition.styleElement.textContent = ruleContent;

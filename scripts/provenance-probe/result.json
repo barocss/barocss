@@ -1,0 +1,1666 @@
+{
+ "baro@500": {
+  "browser": {
+   "e1": {
+    "classes": [
+     "block",
+     "md:flex",
+     "hover:bg-red-500"
+    ],
+    "perClass": {
+     "block": [
+      {
+       "ctx": [],
+       "sel": ".block",
+       "css": "display: block;",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ],
+     "md:flex": [
+      {
+       "ctx": [
+        "(min-width: 48rem)"
+       ],
+       "sel": ".md\\:flex",
+       "css": "display: flex;",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ],
+     "hover:bg-red-500": [
+      {
+       "ctx": [
+        "(hover: hover)"
+       ],
+       "sel": ".hover\\:bg-red-500:hover",
+       "css": "background-color: oklch(0.637 0.237 25.331);",
+       "matchesNow": false,
+       "ignoringState": true,
+       "vars": []
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "500px",
+     "textWrap": "wrap"
+    }
+   },
+   "e2": {
+    "classes": [
+     "p-4",
+     "px-2"
+    ],
+    "perClass": {
+     "p-4": [
+      {
+       "ctx": [],
+       "sel": ".p-4",
+       "css": "padding: calc(var(--spacing) * 4);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--spacing",
+         "0.25rem"
+        ]
+       ]
+      }
+     ],
+     "px-2": [
+      {
+       "ctx": [],
+       "sel": ".px-2",
+       "css": "padding-inline: calc(var(--spacing) * 2);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--spacing",
+         "0.25rem"
+        ]
+       ]
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "16px 8px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "500px",
+     "textWrap": "wrap"
+    }
+   },
+   "e3": {
+    "classes": [
+     "bg-brand",
+     "shadow-sm"
+    ],
+    "perClass": {
+     "bg-brand": [
+      {
+       "ctx": [],
+       "sel": ".bg-brand",
+       "css": "background-color: rgb(255, 51, 102);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ],
+     "shadow-sm": [
+      {
+       "ctx": [],
+       "sel": ".shadow-sm",
+       "css": "box-shadow: var(--shadow-sm);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--shadow-sm",
+         "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"
+        ]
+       ]
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgb(255, 51, 102)",
+     "boxShadow": "rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+     "width": "500px",
+     "textWrap": "wrap"
+    }
+   },
+   "e4": {
+    "classes": [
+     "w-[37px]"
+    ],
+    "perClass": {
+     "w-[37px]": [
+      {
+       "ctx": [],
+       "sel": ".w-\\[37px\\]",
+       "css": "width: 37px;",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "37px",
+     "textWrap": "wrap"
+    }
+   },
+   "e5": {
+    "classes": [
+     "text-balanc"
+    ],
+    "perClass": {
+     "text-balanc": [
+      {
+       "ctx": [],
+       "sel": ".text-balanc",
+       "css": "",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "500px",
+     "textWrap": "wrap"
+    }
+   }
+  },
+  "baro": {
+   "globals": [
+    "BrowserRuntime",
+    "ChangeDetector",
+    "StylePartitionManager",
+    "baroBoot",
+    "baroStart",
+    "getRuntime",
+    "normalizeClassName",
+    "normalizeClassNameList"
+   ],
+   "methods": [
+    "constructor",
+    "debugLog",
+    "init",
+    "injectPreflightCSS",
+    "ensureCssVars",
+    "getInsertionPoint",
+    "addClass",
+    "processClasses",
+    "processClassesIncremental",
+    "applyParseResults",
+    "observe",
+    "normalizeClasses",
+    "has",
+    "getCss",
+    "getAllCss",
+    "getClasses",
+    "getCacheStats",
+    "clearCaches",
+    "reset",
+    "updateConfig",
+    "removeClass",
+    "destroy",
+    "getStats"
+   ],
+   "e1": [
+    {
+     "c": "block",
+     "has": true,
+     "css": ".block {\n  display: block;\n}\n"
+    },
+    {
+     "c": "md:flex",
+     "has": true,
+     "css": "@media (min-width: 48rem) {\n  .md\\:flex {\n    display: flex;\n  }\n}\n"
+    },
+    {
+     "c": "hover:bg-red-500",
+     "has": true,
+     "css": "@media (hover: hover) {\n  .hover\\:bg-red-500:hover {\n    background-color: oklch(63.7% 0.237 25.331);\n  }\n}\n"
+    }
+   ],
+   "e2": [
+    {
+     "c": "p-4",
+     "has": true,
+     "css": ".p-4 {\n  padding: calc(var(--spacing) * 4);\n}\n"
+    },
+    {
+     "c": "px-2",
+     "has": true,
+     "css": ".px-2 {\n  padding-inline: calc(var(--spacing) * 2);\n}\n"
+    }
+   ],
+   "e3": [
+    {
+     "c": "bg-brand",
+     "has": true,
+     "css": ".bg-brand {\n  background-color: #ff3366;\n}\n"
+    },
+    {
+     "c": "shadow-sm",
+     "has": true,
+     "css": ".shadow-sm {\n  box-shadow: var(--shadow-sm);\n}\n"
+    }
+   ],
+   "e4": [
+    {
+     "c": "w-[37px]",
+     "has": true,
+     "css": ".w-\\[37px\\] {\n  width: 37px;\n}\n"
+    }
+   ],
+   "e5": [
+    {
+     "c": "text-balanc",
+     "has": true,
+     "css": ".text-balanc {\n  color: balanc;\n}\n"
+    }
+   ]
+  },
+  "cdp": {
+   "e1": [
+    {
+     "sel": "*, ::before, ::after",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-sizing:border-box"
+     ]
+    },
+    {
+     "sel": "*",
+     "media": [],
+     "layers": [],
+     "props": [
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".block",
+     "media": [],
+     "layers": [],
+     "props": [
+      "display:block"
+     ]
+    }
+   ],
+   "e2": [
+    {
+     "sel": "*, ::before, ::after",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-sizing:border-box"
+     ]
+    },
+    {
+     "sel": "*",
+     "media": [],
+     "layers": [],
+     "props": [
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".p-4",
+     "media": [],
+     "layers": [],
+     "props": [
+      "padding:calc(var(--spacing) * 4)"
+     ]
+    },
+    {
+     "sel": ".px-2",
+     "media": [],
+     "layers": [],
+     "props": [
+      "padding-inline:calc(var(--spacing) * 2)"
+     ]
+    }
+   ],
+   "e3": [
+    {
+     "sel": "*, ::before, ::after",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-sizing:border-box"
+     ]
+    },
+    {
+     "sel": "*",
+     "media": [],
+     "layers": [],
+     "props": [
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".bg-brand",
+     "media": [],
+     "layers": [],
+     "props": [
+      "background-color:rgb(255, 51, 102)"
+     ]
+    },
+    {
+     "sel": ".shadow-sm",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-shadow:var(--shadow-sm)"
+     ]
+    }
+   ],
+   "e4": [
+    {
+     "sel": "*, ::before, ::after",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-sizing:border-box"
+     ]
+    },
+    {
+     "sel": "*",
+     "media": [],
+     "layers": [],
+     "props": [
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".w-\\[37px\\]",
+     "media": [],
+     "layers": [],
+     "props": [
+      "width:37px"
+     ]
+    }
+   ],
+   "e5": [
+    {
+     "sel": "*, ::before, ::after",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-sizing:border-box"
+     ]
+    },
+    {
+     "sel": "*",
+     "media": [],
+     "layers": [],
+     "props": [
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".text-balanc",
+     "media": [],
+     "layers": [],
+     "props": []
+    }
+   ]
+  },
+  "e1ForcedHoverBg": "oklch(0.637 0.237 25.331)"
+ },
+ "baro@1000": {
+  "browser": {
+   "e1": {
+    "classes": [
+     "block",
+     "md:flex",
+     "hover:bg-red-500"
+    ],
+    "perClass": {
+     "block": [
+      {
+       "ctx": [],
+       "sel": ".block",
+       "css": "display: block;",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ],
+     "md:flex": [
+      {
+       "ctx": [
+        "(min-width: 48rem)"
+       ],
+       "sel": ".md\\:flex",
+       "css": "display: flex;",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ],
+     "hover:bg-red-500": [
+      {
+       "ctx": [
+        "(hover: hover)"
+       ],
+       "sel": ".hover\\:bg-red-500:hover",
+       "css": "background-color: oklch(0.637 0.237 25.331);",
+       "matchesNow": false,
+       "ignoringState": true,
+       "vars": []
+      }
+     ]
+    },
+    "computed": {
+     "display": "flex",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "1000px",
+     "textWrap": "wrap"
+    }
+   },
+   "e2": {
+    "classes": [
+     "p-4",
+     "px-2"
+    ],
+    "perClass": {
+     "p-4": [
+      {
+       "ctx": [],
+       "sel": ".p-4",
+       "css": "padding: calc(var(--spacing) * 4);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--spacing",
+         "0.25rem"
+        ]
+       ]
+      }
+     ],
+     "px-2": [
+      {
+       "ctx": [],
+       "sel": ".px-2",
+       "css": "padding-inline: calc(var(--spacing) * 2);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--spacing",
+         "0.25rem"
+        ]
+       ]
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "16px 8px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "1000px",
+     "textWrap": "wrap"
+    }
+   },
+   "e3": {
+    "classes": [
+     "bg-brand",
+     "shadow-sm"
+    ],
+    "perClass": {
+     "bg-brand": [
+      {
+       "ctx": [],
+       "sel": ".bg-brand",
+       "css": "background-color: rgb(255, 51, 102);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ],
+     "shadow-sm": [
+      {
+       "ctx": [],
+       "sel": ".shadow-sm",
+       "css": "box-shadow: var(--shadow-sm);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--shadow-sm",
+         "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"
+        ]
+       ]
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgb(255, 51, 102)",
+     "boxShadow": "rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+     "width": "1000px",
+     "textWrap": "wrap"
+    }
+   },
+   "e4": {
+    "classes": [
+     "w-[37px]"
+    ],
+    "perClass": {
+     "w-[37px]": [
+      {
+       "ctx": [],
+       "sel": ".w-\\[37px\\]",
+       "css": "width: 37px;",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "37px",
+     "textWrap": "wrap"
+    }
+   },
+   "e5": {
+    "classes": [
+     "text-balanc"
+    ],
+    "perClass": {
+     "text-balanc": [
+      {
+       "ctx": [],
+       "sel": ".text-balanc",
+       "css": "",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "1000px",
+     "textWrap": "wrap"
+    }
+   }
+  },
+  "baro": {
+   "globals": [
+    "BrowserRuntime",
+    "ChangeDetector",
+    "StylePartitionManager",
+    "baroBoot",
+    "baroStart",
+    "getRuntime",
+    "normalizeClassName",
+    "normalizeClassNameList"
+   ],
+   "methods": [
+    "constructor",
+    "debugLog",
+    "init",
+    "injectPreflightCSS",
+    "ensureCssVars",
+    "getInsertionPoint",
+    "addClass",
+    "processClasses",
+    "processClassesIncremental",
+    "applyParseResults",
+    "observe",
+    "normalizeClasses",
+    "has",
+    "getCss",
+    "getAllCss",
+    "getClasses",
+    "getCacheStats",
+    "clearCaches",
+    "reset",
+    "updateConfig",
+    "removeClass",
+    "destroy",
+    "getStats"
+   ],
+   "e1": [
+    {
+     "c": "block",
+     "has": true,
+     "css": ".block {\n  display: block;\n}\n"
+    },
+    {
+     "c": "md:flex",
+     "has": true,
+     "css": "@media (min-width: 48rem) {\n  .md\\:flex {\n    display: flex;\n  }\n}\n"
+    },
+    {
+     "c": "hover:bg-red-500",
+     "has": true,
+     "css": "@media (hover: hover) {\n  .hover\\:bg-red-500:hover {\n    background-color: oklch(63.7% 0.237 25.331);\n  }\n}\n"
+    }
+   ],
+   "e2": [
+    {
+     "c": "p-4",
+     "has": true,
+     "css": ".p-4 {\n  padding: calc(var(--spacing) * 4);\n}\n"
+    },
+    {
+     "c": "px-2",
+     "has": true,
+     "css": ".px-2 {\n  padding-inline: calc(var(--spacing) * 2);\n}\n"
+    }
+   ],
+   "e3": [
+    {
+     "c": "bg-brand",
+     "has": true,
+     "css": ".bg-brand {\n  background-color: #ff3366;\n}\n"
+    },
+    {
+     "c": "shadow-sm",
+     "has": true,
+     "css": ".shadow-sm {\n  box-shadow: var(--shadow-sm);\n}\n"
+    }
+   ],
+   "e4": [
+    {
+     "c": "w-[37px]",
+     "has": true,
+     "css": ".w-\\[37px\\] {\n  width: 37px;\n}\n"
+    }
+   ],
+   "e5": [
+    {
+     "c": "text-balanc",
+     "has": true,
+     "css": ".text-balanc {\n  color: balanc;\n}\n"
+    }
+   ]
+  },
+  "cdp": {
+   "e1": [
+    {
+     "sel": "*, ::before, ::after",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-sizing:border-box"
+     ]
+    },
+    {
+     "sel": "*",
+     "media": [],
+     "layers": [],
+     "props": [
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".block",
+     "media": [],
+     "layers": [],
+     "props": [
+      "display:block"
+     ]
+    },
+    {
+     "sel": ".md\\:flex",
+     "media": [
+      "(min-width: 48rem)"
+     ],
+     "layers": [],
+     "props": [
+      "display:flex"
+     ]
+    }
+   ],
+   "e2": [
+    {
+     "sel": "*, ::before, ::after",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-sizing:border-box"
+     ]
+    },
+    {
+     "sel": "*",
+     "media": [],
+     "layers": [],
+     "props": [
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".p-4",
+     "media": [],
+     "layers": [],
+     "props": [
+      "padding:calc(var(--spacing) * 4)"
+     ]
+    },
+    {
+     "sel": ".px-2",
+     "media": [],
+     "layers": [],
+     "props": [
+      "padding-inline:calc(var(--spacing) * 2)"
+     ]
+    }
+   ],
+   "e3": [
+    {
+     "sel": "*, ::before, ::after",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-sizing:border-box"
+     ]
+    },
+    {
+     "sel": "*",
+     "media": [],
+     "layers": [],
+     "props": [
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".bg-brand",
+     "media": [],
+     "layers": [],
+     "props": [
+      "background-color:rgb(255, 51, 102)"
+     ]
+    },
+    {
+     "sel": ".shadow-sm",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-shadow:var(--shadow-sm)"
+     ]
+    }
+   ],
+   "e4": [
+    {
+     "sel": "*, ::before, ::after",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-sizing:border-box"
+     ]
+    },
+    {
+     "sel": "*",
+     "media": [],
+     "layers": [],
+     "props": [
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".w-\\[37px\\]",
+     "media": [],
+     "layers": [],
+     "props": [
+      "width:37px"
+     ]
+    }
+   ],
+   "e5": [
+    {
+     "sel": "*, ::before, ::after",
+     "media": [],
+     "layers": [],
+     "props": [
+      "box-sizing:border-box"
+     ]
+    },
+    {
+     "sel": "*",
+     "media": [],
+     "layers": [],
+     "props": [
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".text-balanc",
+     "media": [],
+     "layers": [],
+     "props": []
+    }
+   ]
+  },
+  "e1ForcedHoverBg": "oklch(0.637 0.237 25.331)"
+ },
+ "tw@500": {
+  "browser": {
+   "e1": {
+    "classes": [
+     "block",
+     "md:flex",
+     "hover:bg-red-500"
+    ],
+    "perClass": {
+     "block": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".block",
+       "css": "display: block;",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ],
+     "md:flex": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".md\\:flex",
+       "css": "",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ],
+     "hover:bg-red-500": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".hover\\:bg-red-500",
+       "css": "",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "500px",
+     "textWrap": "wrap"
+    }
+   },
+   "e2": {
+    "classes": [
+     "p-4",
+     "px-2"
+    ],
+    "perClass": {
+     "p-4": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".p-4",
+       "css": "padding: calc(var(--spacing) * 4);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--spacing",
+         "0.25rem"
+        ]
+       ]
+      }
+     ],
+     "px-2": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".px-2",
+       "css": "padding-inline: calc(var(--spacing) * 2);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--spacing",
+         "0.25rem"
+        ]
+       ]
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "16px 8px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "500px",
+     "textWrap": "wrap"
+    }
+   },
+   "e3": {
+    "classes": [
+     "bg-brand",
+     "shadow-sm"
+    ],
+    "perClass": {
+     "bg-brand": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".bg-brand",
+       "css": "background-color: var(--color-brand);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--color-brand",
+         "#ff3366"
+        ]
+       ]
+      }
+     ],
+     "shadow-sm": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".shadow-sm",
+       "css": "--tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)); box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--tw-shadow-color",
+         ""
+        ],
+        [
+         "--tw-shadow-color",
+         ""
+        ],
+        [
+         "--tw-inset-shadow",
+         "0 0 #0000"
+        ],
+        [
+         "--tw-inset-ring-shadow",
+         "0 0 #0000"
+        ],
+        [
+         "--tw-ring-offset-shadow",
+         "0 0 #0000"
+        ],
+        [
+         "--tw-ring-shadow",
+         "0 0 #0000"
+        ],
+        [
+         "--tw-shadow",
+         "0 0 #0000"
+        ]
+       ]
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgb(255, 51, 102)",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+     "width": "500px",
+     "textWrap": "wrap"
+    }
+   },
+   "e4": {
+    "classes": [
+     "w-[37px]"
+    ],
+    "perClass": {
+     "w-[37px]": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".w-\\[37px\\]",
+       "css": "width: 37px;",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "37px",
+     "textWrap": "wrap"
+    }
+   },
+   "e5": {
+    "classes": [
+     "text-balanc"
+    ],
+    "perClass": {
+     "text-balanc": []
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "500px",
+     "textWrap": "wrap"
+    }
+   }
+  },
+  "baro": null,
+  "cdp": {
+   "e1": [
+    {
+     "sel": "*, ::after, ::before, ::backdrop, ::file-selector-button",
+     "media": [],
+     "layers": [
+      "base"
+     ],
+     "props": [
+      "box-sizing:border-box",
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".block",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "display:block"
+     ]
+    },
+    {
+     "sel": ".hover\\:bg-red-500",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": []
+    },
+    {
+     "sel": ".md\\:flex",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": []
+    }
+   ],
+   "e2": [
+    {
+     "sel": "*, ::after, ::before, ::backdrop, ::file-selector-button",
+     "media": [],
+     "layers": [
+      "base"
+     ],
+     "props": [
+      "box-sizing:border-box",
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".p-4",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "padding:calc(var(--spacing) * 4)"
+     ]
+    },
+    {
+     "sel": ".px-2",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "padding-inline:calc(var(--spacing) * 2)"
+     ]
+    }
+   ],
+   "e3": [
+    {
+     "sel": "*, ::after, ::before, ::backdrop, ::file-selector-button",
+     "media": [],
+     "layers": [
+      "base"
+     ],
+     "props": [
+      "box-sizing:border-box",
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".bg-brand",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "background-color:var(--color-brand)"
+     ]
+    },
+    {
+     "sel": ".shadow-sm",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "--tw-shadow:0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1))",
+      "box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)"
+     ]
+    }
+   ],
+   "e4": [
+    {
+     "sel": "*, ::after, ::before, ::backdrop, ::file-selector-button",
+     "media": [],
+     "layers": [
+      "base"
+     ],
+     "props": [
+      "box-sizing:border-box",
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".w-\\[37px\\]",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "width:37px"
+     ]
+    }
+   ],
+   "e5": [
+    {
+     "sel": "*, ::after, ::before, ::backdrop, ::file-selector-button",
+     "media": [],
+     "layers": [
+      "base"
+     ],
+     "props": [
+      "box-sizing:border-box",
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    }
+   ]
+  },
+  "e1ForcedHoverBg": "oklch(0.637 0.237 25.331)"
+ },
+ "tw@1000": {
+  "browser": {
+   "e1": {
+    "classes": [
+     "block",
+     "md:flex",
+     "hover:bg-red-500"
+    ],
+    "perClass": {
+     "block": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".block",
+       "css": "display: block;",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ],
+     "md:flex": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".md\\:flex",
+       "css": "",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ],
+     "hover:bg-red-500": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".hover\\:bg-red-500",
+       "css": "",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ]
+    },
+    "computed": {
+     "display": "flex",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "1000px",
+     "textWrap": "wrap"
+    }
+   },
+   "e2": {
+    "classes": [
+     "p-4",
+     "px-2"
+    ],
+    "perClass": {
+     "p-4": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".p-4",
+       "css": "padding: calc(var(--spacing) * 4);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--spacing",
+         "0.25rem"
+        ]
+       ]
+      }
+     ],
+     "px-2": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".px-2",
+       "css": "padding-inline: calc(var(--spacing) * 2);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--spacing",
+         "0.25rem"
+        ]
+       ]
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "16px 8px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "1000px",
+     "textWrap": "wrap"
+    }
+   },
+   "e3": {
+    "classes": [
+     "bg-brand",
+     "shadow-sm"
+    ],
+    "perClass": {
+     "bg-brand": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".bg-brand",
+       "css": "background-color: var(--color-brand);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--color-brand",
+         "#ff3366"
+        ]
+       ]
+      }
+     ],
+     "shadow-sm": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".shadow-sm",
+       "css": "--tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)); box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": [
+        [
+         "--tw-shadow-color",
+         ""
+        ],
+        [
+         "--tw-shadow-color",
+         ""
+        ],
+        [
+         "--tw-inset-shadow",
+         "0 0 #0000"
+        ],
+        [
+         "--tw-inset-ring-shadow",
+         "0 0 #0000"
+        ],
+        [
+         "--tw-ring-offset-shadow",
+         "0 0 #0000"
+        ],
+        [
+         "--tw-ring-shadow",
+         "0 0 #0000"
+        ],
+        [
+         "--tw-shadow",
+         "0 0 #0000"
+        ]
+       ]
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgb(255, 51, 102)",
+     "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px",
+     "width": "1000px",
+     "textWrap": "wrap"
+    }
+   },
+   "e4": {
+    "classes": [
+     "w-[37px]"
+    ],
+    "perClass": {
+     "w-[37px]": [
+      {
+       "ctx": [
+        "utilities"
+       ],
+       "sel": ".w-\\[37px\\]",
+       "css": "width: 37px;",
+       "matchesNow": true,
+       "ignoringState": true,
+       "vars": []
+      }
+     ]
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "37px",
+     "textWrap": "wrap"
+    }
+   },
+   "e5": {
+    "classes": [
+     "text-balanc"
+    ],
+    "perClass": {
+     "text-balanc": []
+    },
+    "computed": {
+     "display": "block",
+     "padding": "0px",
+     "bg": "rgba(0, 0, 0, 0)",
+     "boxShadow": "none",
+     "width": "1000px",
+     "textWrap": "wrap"
+    }
+   }
+  },
+  "baro": null,
+  "cdp": {
+   "e1": [
+    {
+     "sel": "*, ::after, ::before, ::backdrop, ::file-selector-button",
+     "media": [],
+     "layers": [
+      "base"
+     ],
+     "props": [
+      "box-sizing:border-box",
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".block",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "display:block"
+     ]
+    },
+    {
+     "sel": ".hover\\:bg-red-500",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": []
+    },
+    {
+     "sel": ".md\\:flex",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": []
+    },
+    {
+     "sel": ".md\\:flex",
+     "media": [
+      "(width >= 48rem)"
+     ],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "display:flex"
+     ]
+    }
+   ],
+   "e2": [
+    {
+     "sel": "*, ::after, ::before, ::backdrop, ::file-selector-button",
+     "media": [],
+     "layers": [
+      "base"
+     ],
+     "props": [
+      "box-sizing:border-box",
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".p-4",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "padding:calc(var(--spacing) * 4)"
+     ]
+    },
+    {
+     "sel": ".px-2",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "padding-inline:calc(var(--spacing) * 2)"
+     ]
+    }
+   ],
+   "e3": [
+    {
+     "sel": "*, ::after, ::before, ::backdrop, ::file-selector-button",
+     "media": [],
+     "layers": [
+      "base"
+     ],
+     "props": [
+      "box-sizing:border-box",
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".bg-brand",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "background-color:var(--color-brand)"
+     ]
+    },
+    {
+     "sel": ".shadow-sm",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "--tw-shadow:0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1))",
+      "box-shadow:var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow)"
+     ]
+    }
+   ],
+   "e4": [
+    {
+     "sel": "*, ::after, ::before, ::backdrop, ::file-selector-button",
+     "media": [],
+     "layers": [
+      "base"
+     ],
+     "props": [
+      "box-sizing:border-box",
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    },
+    {
+     "sel": ".w-\\[37px\\]",
+     "media": [],
+     "layers": [
+      "utilities"
+     ],
+     "props": [
+      "width:37px"
+     ]
+    }
+   ],
+   "e5": [
+    {
+     "sel": "*, ::after, ::before, ::backdrop, ::file-selector-button",
+     "media": [],
+     "layers": [
+      "base"
+     ],
+     "props": [
+      "box-sizing:border-box",
+      "margin:0",
+      "padding:0",
+      "border:0 solid"
+     ]
+    }
+   ]
+  },
+  "e1ForcedHoverBg": "oklch(0.637 0.237 25.331)"
+ }
+}

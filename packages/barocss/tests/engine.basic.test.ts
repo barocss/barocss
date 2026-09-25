@@ -5,6 +5,9 @@ import '../src/presets';
 import { createContext } from '../src/core/context';
 import { functionalModifier } from '../src/core/registry';
 
+// before:/after: register --baro-content so the pseudo-element exists (#191).
+const BARO_CONTENT_PROPERTY = '@property --baro-content {\n\tsyntax: "*";\n\tinherits: false;\n\tinitial-value: "";\n}\n';
+
 describe('parseClassToAst (end-to-end)', () => {
   const ctx = createContext({
     theme: {
@@ -245,8 +248,9 @@ describe('parseClassToAst (end-to-end)', () => {
 
   it('before:content', () => {
     expect(generateCss("before:content-['foo']", ctx)).toBe(
-      `.before\\:content-\\[\\'foo\\'\\]::before {
-  content: "'foo'";
+      `${BARO_CONTENT_PROPERTY}.before\\:content-\\[\\'foo\\'\\]::before {
+  --baro-content: "'foo'";
+  content: var(--baro-content);
 }
 `
     );
@@ -284,9 +288,10 @@ describe('parseClassToAst (end-to-end)', () => {
 
   it('sm:before:content-[attr(data-label)]', () => {
     expect(generateCss('sm:before:content-[attr(data-label)]', ctx)).toBe(
-      `@media (min-width: 640px) {
+      `${BARO_CONTENT_PROPERTY}@media (min-width: 640px) {
   .sm\\:before\\:content-\\[attr\\(data-label\\)\\]::before {
-    content: "attr(data-label)";
+    --baro-content: "attr(data-label)";
+    content: var(--baro-content);
   }
 }
 `
@@ -310,8 +315,9 @@ describe('parseClassToAst (end-to-end)', () => {
 
   it('arbitrary + pseudo', () => {
     expect(generateCss("before:bg-[color:var(--brand)]", ctx)).toBe(
-      `.before\\:bg-\\[color\\:var\\(--brand\\)\\]::before {
+      `${BARO_CONTENT_PROPERTY}.before\\:bg-\\[color\\:var\\(--brand\\)\\]::before {
   background-color: var(--brand);
+  content: var(--baro-content);
 }
 `
     );

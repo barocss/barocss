@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chart Summary</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --panel: #f7f8fa;
+    --border: #e4e7ec;
+    --text: #1a1d23;
+    --muted: #667085;
+    --accent: #4f46e5;
+    --accent-soft: #eef2ff;
+    --up: #16a34a;
+    --down: #dc2626;
+    --grid: #eceef1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181d;
+      --panel: #1e2128;
+      --border: #2a2e37;
+      --text: #f0f2f5;
+      --muted: #9aa2b1;
+      --accent: #818cf8;
+      --accent-soft: #23263a;
+      --grid: #262a33;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .card {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  h1 {
+    font-size: 16px;
+    font-weight: 650;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 12.5px;
+    margin: 2px 0 0;
+  }
+  .badge {
+    flex: none;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 18px 0;
+  }
+  .metric {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 13px;
+  }
+  .metric .label {
+    font-size: 11.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .metric .value {
+    font-size: 21px;
+    font-weight: 680;
+    margin-top: 4px;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .delta {
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .delta.up { color: var(--up); }
+  .delta.down { color: var(--down); }
+  .chart-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 14px 10px;
+  }
+  .chart-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 0 2px;
+  }
+  .chart-head .t { font-size: 13px; font-weight: 600; }
+  .legend { display: flex; gap: 14px; }
+  .legend span {
+    font-size: 11.5px;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  svg { display: block; width: 100%; height: auto; }
+  .bar { transition: opacity .15s; cursor: default; }
+  .bar:hover { opacity: 0.82; }
+  .footer {
+    margin-top: 14px;
+    font-size: 11.5px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .footer code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 5px;
+    font-size: 11px;
+  }
+</style>
+</head>
+<body>
+<div class="card" role="region" aria-label="Chart summary">
+  <header>
+    <div>
+      <h1 id="title">Weekly Active Users</h1>
+      <p class="subtitle" id="range">Sep 20 – Sep 26, 2026 · daily</p>
+    </div>
+    <div class="badge" id="trendBadge">Trending up</div>
+  </header>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="label">Total</div>
+      <div class="value" id="mTotal">—</div>
+      <div class="delta up" id="mTotalDelta"></div>
+    </div>
+    <div class="metric">
+      <div class="label">Daily avg</div>
+      <div class="value" id="mAvg">—</div>
+      <div class="delta" id="mAvgSub"></div>
+    </div>
+    <div class="metric">
+      <div class="label">Peak</div>
+      <div class="value" id="mPeak">—</div>
+      <div class="delta" id="mPeakSub"></div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-head">
+      <div class="t">Users per day</div>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--accent)"></i>This week</span>
+      </div>
+    </div>
+    <svg id="chart" viewBox="0 0 600 240" preserveAspectRatio="none" role="img" aria-label="Bar chart of users per day"></svg>
+  </div>
+
+  <div class="footer">
+    <span id="source">Source: analytics.events</span>
+    <span>Generated by <code>chart_summary</code></span>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Data can be injected by the host; falls back to a sample series.
+  var data = (window.__CHART_DATA__) || {
+    title: "Weekly Active Users",
+    range: "Sep 20 – Sep 26, 2026 · daily",
+    unit: "",
+    changePct: 12.4,
+    series: [
+      { label: "Sun", value: 4120 },
+      { label: "Mon", value: 5380 },
+      { label: "Tue", value: 5010 },
+      { label: "Wed", value: 6240 },
+      { label: "Thu", value: 5890 },
+      { label: "Fri", value: 6710 },
+      { label: "Sat", value: 5460 }
+    ]
+  };
+
+  function fmt(n) {
+    if (Math.abs(n) >= 1000) return (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + "k";
+    return String(n);
+  }
+
+  var s = data.series;
+  var vals = s.map(function (d) { return d.value; });
+  var total = vals.reduce(function (a, b) { return a + b; }, 0);
+  var avg = Math.round(total / vals.length);
+  var peak = Math.max.apply(null, vals);
+  var peakLabel = s[vals.indexOf(peak)].label;
+
+  document.getElementById("title").textContent = data.title;
+  document.getElementById("range").textContent = data.range;
+  document.getElementById("mTotal").textContent = fmt(total);
+  document.getElementById("mAvg").textContent = fmt(avg);
+  document.getElementById("mPeak").textContent = fmt(peak);
+  document.getElementById("mPeakSub").textContent = "on " + peakLabel;
+  document.getElementById("mPeakSub").className = "delta";
+  document.getElementById("mAvgSub").textContent = "per day";
+  document.getElementById("mAvgSub").className = "delta";
+
+  var change = Number(data.changePct) || 0;
+  var up = change >= 0;
+  var dEl = document.getElementById("mTotalDelta");
+  dEl.className = "delta " + (up ? "up" : "down");
+  dEl.textContent = (up ? "▲ " : "▼ ") + Math.abs(change).toFixed(1) + "% vs prev";
+  var badge = document.getElementById("trendBadge");
+  badge.textContent = up ? "Trending up" : "Trending down";
+  badge.style.color = up ? "var(--up)" : "var(--down)";
+  badge.style.background = up ? "rgba(22,163,74,.12)" : "rgba(220,38,38,.12)";
+
+  // Render bar chart
+  var W = 600, H = 240, padL = 40, padR = 10, padT = 12, padB = 26;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+  var maxV = Math.max.apply(null, vals);
+  var scaleMax = Math.ceil(maxV / 1000) * 1000 || maxV || 1;
+  var n = s.length;
+  var slot = plotW / n;
+  var bw = Math.min(slot * 0.6, 48);
+  var svg = document.getElementById("chart");
+  var NS = "http://www.w3.org/2000/svg";
+  var out = "";
+
+  // gridlines + y labels
+  var ticks = 4;
+  for (var i = 0; i <= ticks; i++) {
+    var gv = scaleMax * i / ticks;
+    var gy = padT + plotH - (gv / scaleMax) * plotH;
+    out += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy +
+           '" stroke="var(--grid)" stroke-width="1"/>';
+    out += '<text x="' + (padL - 6) + '" y="' + (gy + 3.5) +
+           '" text-anchor="end" font-size="10" fill="var(--muted)">' + fmt(Math.round(gv)) + '</text>';
+  }
+
+  // bars + x labels
+  for (var j = 0; j < n; j++) {
+    var v = s[j].value;
+    var h = (v / scaleMax) * plotH;
+    var x = padL + slot * j + (slot - bw) / 2;
+    var y = padT + plotH - h;
+    out += '<rect class="bar" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) +
+           '" width="' + bw.toFixed(1) + '" height="' + Math.max(h, 1).toFixed(1) +
+           '" rx="4" fill="var(--accent)"><title>' + s[j].label + ': ' + fmt(v) + '</title></rect>';
+    out += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (H - 8) +
+           '" text-anchor="middle" font-size="10.5" fill="var(--muted)">' + s[j].label + '</text>';
+  }
+
+  svg.innerHTML = out;
+})();
+</script>
+</body>
+</html>

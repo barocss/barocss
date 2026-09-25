@@ -418,15 +418,15 @@ staticUtility("hyphens-manual", [["hyphens", "manual"]], { category: 'typography
 staticUtility("hyphens-auto", [["hyphens", "auto"]], { category: 'typography' });
 
 // --- Typography: Content ---
-staticUtility("content-none", [["content", "none"]], { category: 'typography' });
+staticUtility("content-none", [["--baro-content", "none"], ["content", "none"]], { category: 'typography' });
 
 functionalUtility({
   name: "content",
   prop: "content",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value) => [decl("content", `"${value}"`)],
-  handleCustomProperty: (value) => [decl("content", `var(${value})`)],
+  handle: (value) => [decl("--baro-content", `"${value}"`), decl("content", "var(--baro-content)")],
+  handleCustomProperty: (value) => [decl("--baro-content", `var(${value})`), decl("content", "var(--baro-content)")],
   description: "content utility (arbitrary, custom property supported)",
   category: "typography",
 });

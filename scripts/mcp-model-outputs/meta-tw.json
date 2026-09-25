@@ -1,0 +1,102 @@
+{
+ "opus-1": {
+  "model": "opus",
+  "request": "weather card",
+  "total_cost_usd": 0.06360400000000001,
+  "duration_ms": 28013,
+  "models": [
+   "claude-opus-4-8"
+  ],
+  "fenced": true
+ },
+ "opus-2": {
+  "model": "opus",
+  "request": "filterable data table",
+  "total_cost_usd": 0.110349,
+  "duration_ms": 44876,
+  "models": [
+   "claude-opus-4-8"
+  ],
+  "fenced": true
+ },
+ "opus-3": {
+  "model": "opus",
+  "request": "booking form",
+  "total_cost_usd": 0.08470399999999999,
+  "duration_ms": 33063,
+  "models": [
+   "claude-opus-4-8"
+  ],
+  "fenced": false
+ },
+ "opus-4": {
+  "model": "opus",
+  "request": "chart summary",
+  "total_cost_usd": 0.092639,
+  "duration_ms": 37877,
+  "models": [
+   "claude-opus-4-8"
+  ],
+  "fenced": true
+ },
+ "opus-5": {
+  "model": "opus",
+  "request": "settings panel",
+  "total_cost_usd": 0.096664,
+  "duration_ms": 37693,
+  "models": [
+   "claude-opus-4-8"
+  ],
+  "fenced": true
+ },
+ "haiku-1": {
+  "model": "haiku",
+  "request": "weather card",
+  "total_cost_usd": 0.0096502,
+  "duration_ms": 16424,
+  "models": [
+   "claude-haiku-4-5-20251001"
+  ],
+  "fenced": true
+ },
+ "haiku-2": {
+  "model": "haiku",
+  "request": "filterable data table",
+  "total_cost_usd": 0.0101792,
+  "duration_ms": 12869,
+  "models": [
+   "claude-haiku-4-5-20251001"
+  ],
+  "fenced": true
+ },
+ "haiku-3": {
+  "model": "haiku",
+  "request": "booking form",
+  "total_cost_usd": 0.009745199999999999,
+  "duration_ms": 15545,
+  "models": [
+   "claude-haiku-4-5-20251001"
+  ],
+  "fenced": true
+ },
+ "haiku-4": {
+  "model": "haiku",
+  "request": "chart summary",
+  "total_cost_usd": 0.0129952,
+  "duration_ms": 21415,
+  "models": [
+   "claude-haiku-4-5-20251001"
+  ],
+  "fenced": true
+ },
+ "haiku-5": {
+  "model": "haiku",
+  "request": "settings panel",
+  "total_cost_usd": 0.0157002,
+  "duration_ms": 19580,
+  "models": [
+   "claude-haiku-4-5-20251001"
+  ],
+  "fenced": true
+ }
+}

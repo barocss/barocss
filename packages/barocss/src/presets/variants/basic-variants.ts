@@ -1,5 +1,5 @@
 import { staticModifier } from "../../core/registry";
-import { AstNode, atRule } from "../../core/ast";
+import { AstNode, atRule, atRoot, decl, property } from "../../core/ast";
 
 // Import separated variant modules
 import "./pseudo-classes";
@@ -9,8 +9,15 @@ import "./media-features";
 import "./attribute-selectors";
 
 // --- Pseudo-elements (cross-browser) ---
-staticModifier('before', ['&::before'], { source: 'pseudo' });
-staticModifier('after', ['&::after'], { source: 'pseudo' });
+// Like Tailwind, before:/after: create the pseudo-element: `content` defaults to
+// var(--baro-content) (initial ""), which content-* utilities set.
+const withPseudoContent = (ast: AstNode[]): AstNode[] => [
+  atRoot([property("--baro-content", '""')]),
+  ...ast,
+  decl("content", "var(--baro-content)"),
+];
+staticModifier('before', ['&::before'], { source: 'pseudo', astHandler: withPseudoContent });
+staticModifier('after', ['&::after'], { source: 'pseudo', astHandler: withPseudoContent });
 staticModifier('placeholder', [
   '&::placeholder',
   '&::-webkit-input-placeholder',

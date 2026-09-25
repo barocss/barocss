@@ -337,6 +337,9 @@ export function parseClassToAst(
       return [];
     }
 
+    if (plugin.astHandler) {
+      ast = plugin.astHandler(ast, variant, ctx, modifiers, i);
+    }
     if (plugin.wrap) {
       const items = plugin.wrap(variant, ctx);
       wrappers.push({

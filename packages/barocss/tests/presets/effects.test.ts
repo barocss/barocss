@@ -40,6 +40,8 @@ const ringNodes = (px: string) => [
       ringShadowProperty("--baro-shadow"),
       ringShadowProperty("--baro-inset-shadow"),
       ringShadowProperty("--baro-inset-ring-shadow"),
+      ringShadowProperty("--baro-ring-offset-shadow"),
+      ringShadowProperty("--baro-ring-shadow"),
     ],
   },
   { type: "decl", prop: "--baro-ring-inset", value: "" },
@@ -58,23 +60,23 @@ const ringNodes = (px: string) => [
       "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
   },
 ];
+// #205: a plain shadow sets only its layer (--baro-shadow) and the composite box-shadow, so it stacks with ring-*.
+const shadowNodes = (value: string) => [
+  ringNodes("1px")[0],
+  { type: "decl", prop: "--baro-shadow", value },
+  ringNodes("1px")[ringNodes("1px").length - 1],
+];
 
 describe("effects.ts (box-shadow utilities)", () => {
   // Static shadow levels
   it("shadow-md → box-shadow: var(--shadow-md)", () => {
-    expect(parseClassToAst("shadow-md", ctx)).toEqual([
-      { type: "decl", prop: "box-shadow", value: "var(--shadow-md)" },
-    ]);
+    expect(parseClassToAst("shadow-md", ctx)).toEqual(shadowNodes("var(--shadow-md)"));
   });
   it("shadow → box-shadow: Tailwind 4 default", () => {
-    expect(parseClassToAst("shadow", ctx)).toEqual([
-      { type: "decl", prop: "box-shadow", value: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)" },
-    ]);
+    expect(parseClassToAst("shadow", ctx)).toEqual(shadowNodes("0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"));
   });
   it("shadow-none → box-shadow: 0 0 #0000", () => {
-    expect(parseClassToAst("shadow-none", ctx)).toEqual([
-      { type: "decl", prop: "box-shadow", value: "0 0 #0000" },
-    ]);
+    expect(parseClassToAst("shadow-none", ctx)).toEqual(shadowNodes("0 0 #0000"));
   });
   // Static inset shadow levels
   it("inset-shadow-xs → box-shadow: var(--inset-shadow-xs)", () => {
@@ -91,21 +93,13 @@ describe("effects.ts (box-shadow utilities)", () => {
   });
   // Custom property
   it("shadow-(--my-shadow) → box-shadow: var(--my-shadow)", () => {
-    expect(parseClassToAst("shadow-(--my-shadow)", ctx)).toEqual([
-      { type: "decl", prop: "box-shadow", value: "var(--my-shadow)" },
-    ]);
+    expect(parseClassToAst("shadow-(--my-shadow)", ctx)).toEqual(shadowNodes("var(--my-shadow)"));
   });
   // Arbitrary value
   it("shadow-[0_35px_35px_rgba(0,0,0,0.25)] → box-shadow: 0 35px 35px rgba(0,0,0,0.25)", () => {
     expect(
       parseClassToAst("shadow-[0_35px_35px_rgba(0,0,0,0.25)]", ctx)
-    ).toEqual([
-      {
-        type: "decl",
-        prop: "box-shadow",
-        value: "0 35px 35px rgba(0,0,0,0.25)",
-      },
-    ]);
+    ).toEqual(shadowNodes("0 35px 35px rgba(0,0,0,0.25)"));
   });
   // Shadow color
   it("shadow-red-500 → --baro-shadow-color: var(--color-red-500)", () => {

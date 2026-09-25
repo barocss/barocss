@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Table</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1d21;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --accent: #2563eb;
+    --accent-soft: #eff6ff;
+    --row-hover: #f9fafb;
+    --chip-bg: #f3f4f6;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.05);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181d;
+      --fg: #e6e8eb;
+      --muted: #9aa2ad;
+      --border: #2a2e37;
+      --accent: #60a5fa;
+      --accent-soft: #1e293b;
+      --row-hover: #1c1f26;
+      --chip-bg: #242832;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 18px;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .search {
+    position: relative;
+    flex: 1 1 240px;
+    min-width: 180px;
+  }
+  .search svg {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    stroke: var(--muted);
+    pointer-events: none;
+  }
+  .search input {
+    width: 100%;
+    padding: 9px 12px 9px 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .search input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  select {
+    padding: 9px 30px 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  select:focus { border-color: var(--accent); }
+  .table-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .scroll { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+  }
+  thead th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 11px 14px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    position: sticky;
+    top: 0;
+  }
+  thead th .arrow {
+    display: inline-block;
+    width: 10px;
+    margin-left: 4px;
+    color: var(--accent);
+    opacity: 0;
+  }
+  thead th.sorted .arrow { opacity: 1; }
+  tbody td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--row-hover); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--chip-bg);
+  }
+  .status::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .status.active { color: #16a34a; }
+  .status.pending { color: #d97706; }
+  .status.inactive { color: #6b7280; }
+  .empty {
+    padding: 42px 16px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .count b { color: var(--fg); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="toolbar">
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="q" type="text" placeholder="Search name, email, role…" autocomplete="off" spellcheck="false">
+    </label>
+    <select id="statusFilter" aria-label="Filter by status">
+      <option value="">All statuses</option>
+      <option value="active">Active</option>
+      <option value="pending">Pending</option>
+      <option value="inactive">Inactive</option>
+    </select>
+    <select id="roleFilter" aria-label="Filter by role">
+      <option value="">All roles</option>
+    </select>
+  </div>
+
+  <div class="table-card">
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th data-key="name">Name<span class="arrow">▲</span></th>
+            <th data-key="email">Email<span class="arrow">▲</span></th>
+            <th data-key="role">Role<span class="arrow">▲</span></th>
+            <th data-key="status">Status<span class="arrow">▲</span></th>
+            <th data-key="signups" class="num-h">Signups<span class="arrow">▲</span></th>
+            <th data-key="joined">Joined<span class="arrow">▲</span></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="count">Showing <b id="shown">0</b> of <b id="total">0</b> rows</div>
+    <div id="sortLabel"></div>
+  </div>
+</div>
+
+<script>
+  // Tool result payload. Replace ROWS with data injected by the MCP host if desired.
+  const ROWS = [
+    { name: "Ava Chen",        email: "ava.chen@acme.io",       role: "Engineer",  status: "active",   signups: 142, joined: "2025-01-14" },
+    { name: "Liam Park",       email: "liam.park@acme.io",      role: "Designer",  status: "pending",  signups: 38,  joined: "2025-03-02" },
+    { name: "Noah Weiss",      email: "noah.w@acme.io",         role: "Manager",   status: "active",   signups: 271, joined: "2024-11-20" },
+    { name: "Mia Torres",      email: "mia.torres@acme.io",     role: "Engineer",  status: "inactive", signups: 5,   joined: "2025-06-11" },
+    { name: "Elena Rossi",     email: "elena.rossi@acme.io",    role: "Analyst",   status: "active",   signups: 94,  joined: "2025-02-28" },
+    { name: "Kai Nakamura",    email: "kai.n@acme.io",          role: "Engineer",  status: "pending",  signups: 60,  joined: "2025-05-04" },
+    { name: "Sofia Alvarez",   email: "sofia.a@acme.io",        role: "Designer",  status: "active",   signups: 118, joined: "2024-12-09" },
+    { name: "Omar Haddad",     email: "omar.h@acme.io",         role: "Analyst",   status: "inactive", signups: 12,  joined: "2025-07-22" },
+    { name: "Priya Nair",      email: "priya.n@acme.io",        role: "Manager",   status: "active",   signups: 203, joined: "2025-01-30" },
+    { name: "Tom Becker",      email: "tom.becker@acme.io",     role: "Engineer",  status: "pending",  signups: 47,  joined: "2025-04-18" }
+  ];
+
+  const tbody = document.getElementById("tbody");
+  const q = document.getElementById("q");
+  const statusFilter = document.getElementById("statusFilter");
+  const roleFilter = document.getElementById("roleFilter");
+  const shownEl = document.getElementById("shown");
+  const totalEl = document.getElementById("total");
+  const sortLabel = document.getElementById("sortLabel");
+  const headers = [...document.querySelectorAll("thead th")];
+
+  let sortKey = "name";
+  let sortDir = 1; // 1 asc, -1 desc
+
+  // Populate role filter dynamically
+  [...new Set(ROWS.map(r => r.role))].sort().forEach(role => {
+    const o = document.createElement("option");
+    o.value = role; o.textContent = role;
+    roleFilter.appendChild(o);
+  });
+
+  totalEl.textContent = ROWS.length;
+
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const fmtDate = d => new Date(d + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+
+  function apply() {
+    const term = q.value.trim().toLowerCase();
+    const st = statusFilter.value;
+    const role = roleFilter.value;
+
+    let rows = ROWS.filter(r => {
+      if (st && r.status !== st) return false;
+      if (role && r.role !== role) return false;
+      if (term && !(`${r.name} ${r.email} ${r.role}`.toLowerCase().includes(term))) return false;
+      return true;
+    });
+
+    rows.sort((a, b) => {
+      let x = a[sortKey], y = b[sortKey];
+      if (typeof x === "number" && typeof y === "number") return (x - y) * sortDir;
+      return String(x).localeCompare(String(y)) * sortDir;
+    });
+
+    render(rows);
+    shownEl.textContent = rows.length;
+    sortLabel.textContent = `Sorted by ${sortKey} ${sortDir === 1 ? "↑" : "↓"}`;
+  }
+
+  function render(rows) {
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td class="empty" colspan="6">No matching rows.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td>${esc(r.name)}</td>
+        <td>${esc(r.email)}</td>
+        <td>${esc(r.role)}</td>
+        <td><span class="status ${esc(r.status)}">${esc(r.status)}</span></td>
+        <td class="num">${r.signups.toLocaleString()}</td>
+        <td>${fmtDate(r.joined)}</td>
+      </tr>`).join("");
+  }
+
+  headers.forEach(th => {
+    th.addEventListener("click", () => {
+      const key = th.dataset.key;
+      if (sortKey === key) sortDir *= -1;
+      else { sortKey = key; sortDir = 1; }
+      headers.forEach(h => {
+        h.classList.toggle("sorted", h.dataset.key === sortKey);
+        const arrow = h.querySelector(".arrow");
+        if (arrow) arrow.textContent = sortDir === 1 ? "▲" : "▼";
+      });
+      apply();
+    });
+  });
+
+  q.addEventListener("input", apply);
+  statusFilter.addEventListener("change", apply);
+  roleFilter.addEventListener("change", apply);
+
+  headers.find(h => h.dataset.key === sortKey).classList.add("sorted");
+  apply();
+</script>
+</body>
+</html>

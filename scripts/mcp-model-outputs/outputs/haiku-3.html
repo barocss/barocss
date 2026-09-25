@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .header {
+            margin-bottom: 32px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .error {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .error.show {
+            display: block;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .success-message {
+            display: none;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Reserve Your Spot</h1>
+            <p>Complete the form below to confirm your booking</p>
+        </div>
+        
+        <div class="success-message" id="successMessage">
+            ✓ Booking confirmed! We've sent a confirmation email to your address.
+        </div>
+        
+        <form id="bookingForm">
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" required>
+                <div class="error" id="nameError">Please enter your full name</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" required>
+                <div class="error" id="emailError">Please enter a valid email address</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">Phone Number *</label>
+                <input type="tel" id="phone" name="phone" required>
+                <div class="error" id="phoneError">Please enter a valid phone number</div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="date">Date *</label>
+                    <input type="date" id="date" name="date" required>
+                    <div class="error" id="dateError">Please select a date</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="time">Time *</label>
+                    <input type="time" id="time" name="time" required>
+                    <div class="error" id="timeError">Please select a time</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="guests">Number of Guests *</label>
+                <select id="guests" name="guests" required>
+                    <option value="">Select number of guests</option>
+                    <option value="1">1 Guest</option>
+                    <option value="2">2 Guests</option>
+                    <option value="3">3 Guests</option>
+                    <option value="4">4 Guests</option>
+                    <option value="5">5 Guests</option>
+                    <option value="6+">6+ Guests</option>
+                </select>
+                <div class="error" id="guestsError">Please select number of guests</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Special Requests</label>
+                <textarea id="notes" name="notes" placeholder="Any dietary requirements or special requests?"></textarea>
+            </div>
+            
+            <button type="submit">Confirm Booking</button>
+        </form>
+    </div>
+    
+    <script>
+        const form = document.getElementById('bookingForm');
+        const successMessage = document.getElementById('successMessage');
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Clear all error messages
+            document.querySelectorAll('.error').forEach(err => err.classList.remove('show'));
+            
+            // Validate fields
+            let isValid = true;
+            
+            const name = document.getElementById('name').value.trim();
+            if (!name) {
+                document.getElementById('nameError').classList.add('show');
+                isValid = false;
+            }
+            
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                document.getElementById('emailError').classList.add('show');
+                isValid = false;
+            }
+            
+            const phone = document.getElementById('phone').value.trim();
+            if (!phone) {
+                document.getElementById('phoneError').classList.add('show');
+                isValid = false;
+            }
+            
+            const date = document.getElementById('date').value;
+            if (!date) {
+                document.getElementById('dateError').classList.add('show');
+                isValid = false;
+            }
+            
+            const time = document.getElementById('time').value;
+            if (!time) {
+                document.getElementById('timeError').classList.add('show');
+                isValid = false;
+            }
+            
+            const guests = document.getElementById('guests').value;
+            if (!guests) {
+                document.getElementById('guestsError').classList.add('show');
+                isValid = false;
+            }
+            
+            if (isValid) {
+                successMessage.classList.add('show');
+                form.style.display = 'none';
+                
+                setTimeout(() => {
+                    console.log('Booking submitted:', {
+                        name,
+                        email,
+                        phone,
+                        date,
+                        time,
+                        guests,
+                        notes: document.getElementById('notes').value
+                    });
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
