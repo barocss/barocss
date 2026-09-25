@@ -3,12 +3,22 @@ import { createContext, clearAstCache, IncrementalParser, parseClassName } from 
 import type { Config, Context } from '@barocss/kit';
 import { StylePartitionManager } from './style-partition-manager';
 import { ChangeDetector } from './change-detector';
+import { collectLeadingClasses } from './existing-classes';
 
 export interface BrowserRuntimeOptions {
   config?: Config;  // full config object
   styleId?: string;
   insertionPoint?: 'head' | 'body' | HTMLElement;
   maxRulesPerPartition?: number;
+  /**
+   * #210: skip classes the page's existing (non-BaroCSS, same-origin) stylesheets already define,
+   * so a built app plus the runtime injects only what the build is missing. Opt-in. A class counts
+   * as covered only when a rule's selector starts with it (e.g. `.p-4`, `.md\:p-4` inside @media,
+   * `.hover\:x:hover`), so a class seen only as a descendant (`.group:hover .x`) is not skipped.
+   * The index is rebuilt when `document.styleSheets.length` changes. A page class that leads a selector
+   * with the same name is treated as covered, and rules added later to an already-indexed sheet aren't seen.
+   */
+  skipExisting?: boolean;
 }
 
 /** Tailwind 4 layer order, declared by BaroCSS's first <style> in <head>. */
@@ -20,6 +30,8 @@ export class BrowserRuntime {
   private context: Context;
   private options: Required<BrowserRuntimeOptions>;
   private isDestroyed = false;
+  private existing: Set<string> | null = null;
+  private existingSheetCount = -1;
 
   private incrementalParser: IncrementalParser;
   private changeDetector: ChangeDetector;
@@ -36,6 +48,7 @@ export class BrowserRuntime {
       styleId: options.styleId || 'barocss-runtime',
       insertionPoint: options.insertionPoint || 'head',
       maxRulesPerPartition: options.maxRulesPerPartition || 50,
+      skipExisting: options.skipExisting ?? false,
     };
 
     // Pass full config to createContext (defaultTheme auto-included)
@@ -152,6 +165,10 @@ export class BrowserRuntime {
       results = [...existingResults, ...results];
       results.forEach(result => this.incrementalParser.markProcessed(result.cls));
     }
+    if (this.options.skipExisting && results.length > 0 && typeof document !== 'undefined') {
+      const existing = this.getExistingClasses();
+      results = results.filter(result => !existing.has(result.cls));
+    }
     if (results.length === 0) return;
     const cssRules: GenerateCssRulesResult[] = [];
     const rootCssRules: string[] = [];
@@ -184,6 +201,25 @@ export class BrowserRuntime {
       cssRuleCount: cssRules.length,
       rootCssCount: rootCssRules.length,
     });
+  }
+
+  /** Class names defined by the page's own stylesheets (BaroCSS's sheets and cross-origin sheets excluded). */
+  getExistingClasses(): Set<string> {
+    const sheets = Array.from(document.styleSheets).filter(sheet => {
+      const owner = sheet.ownerNode as Element | null;
+      return !(owner && typeof owner.hasAttribute === 'function'
+        && (owner.hasAttribute('data-barocss') || (owner.id || '').startsWith(this.options.styleId)));
+    });
+    if (this.existing && sheets.length === this.existingSheetCount) return this.existing;
+    const out = new Set<string>();
+    for (const sheet of sheets) {
+      let rules: CSSRuleList;
+      try { rules = sheet.cssRules; } catch { continue; } // cross-origin
+      collectLeadingClasses(rules, out);
+    }
+    this.existing = out;
+    this.existingSheetCount = sheets.length;
+    return out;
   }
 
   /**
