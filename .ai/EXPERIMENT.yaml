@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: done
+status: evaluated
 
 id: E-006
 outcome: O1
@@ -120,6 +120,10 @@ result:
     - "Chromium's own Google background requests are refused by the guard (logged in runs/*.json refused_requests); none came from the agent."
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: PROVEN
+  merged: true
+  reason: >
+    proves_yes met at L3: 3/3 Y1 pass, 0 regressions, preflight kept (41 rules), claims agree; grader/env identical to
+    E-005, runner and 11/11 self-test committed before runs; check.py OK, CI green; evidence-only. Caveats: n=3, one
+    model, bare-call-then-recover path unexercised, actor had a host-code tool (browser_run_code_unsafe). Self-test not
+    rerun (needs install+build+Playwright; not cheap).
