@@ -41,16 +41,14 @@ export default defineConfig({
         index: resolve(__dirname, 'src/index.ts'),
         'theme/default': resolve(__dirname, 'src/theme/index.ts'),
       },
-      formats: ['es'],
-      fileName: (format, entryName) => `${entryName}.js`
+      formats: ['es', 'cjs'],
+      fileName: (format, entryName) => `${entryName}.${format === 'cjs' ? 'cjs' : 'js'}`
     },
     rollupOptions: {
       external: [],
       output: {
         globals: {},
         exports: 'named',
-        entryFileNames: '[name].js',
-        chunkFileNames: 'core.js',
         assetFileNames: '[name].[ext]',
         // 각 엔트리포인트를 독립적으로 만들기
         manualChunks: undefined

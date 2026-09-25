@@ -1,0 +1,1344 @@
+{
+  "arms": {
+    "D": {
+      "url": "http://127.0.0.1:5190/",
+      "classes": {
+        "bg-brand": {
+          "pass": false,
+          "classCheck": true,
+          "styleCheck": false,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "oklch(0.546 0.245 262.881)"
+            ],
+            "classes": [
+              "inline-flex",
+              "items-center",
+              "justify-center",
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-white",
+              "hover:bg-blue-700",
+              "transition",
+              "font-medium",
+              "focus:outline-none",
+              "focus:ring-2",
+              "focus:ring-blue-600",
+              "focus:ring-offset-2",
+              "focus:ring-offset-white",
+              "bg-brand"
+            ]
+          },
+          "writes": [],
+          "configCalls": 0,
+          "console": [
+            "[warning] [IncrementalParser] ast is empty bg-brand"
+          ]
+        },
+        "bg-[#5B21B6]": {
+          "pass": false,
+          "classCheck": false,
+          "styleCheck": true,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "rgb(91, 33, 182)"
+            ],
+            "classes": [
+              "inline-flex",
+              "items-center",
+              "justify-center",
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-white",
+              "hover:bg-blue-700",
+              "transition",
+              "font-medium",
+              "focus:outline-none",
+              "focus:ring-2",
+              "focus:ring-blue-600",
+              "focus:ring-offset-2",
+              "focus:ring-offset-white",
+              "bg-[#5B21B6]"
+            ]
+          },
+          "writes": [],
+          "configCalls": 0,
+          "console": []
+        }
+      },
+      "controls": {
+        "style attribute": {
+          "pass": false,
+          "classCheck": true,
+          "styleCheck": true,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "rgb(91, 33, 182)"
+            ],
+            "classes": [
+              "inline-flex",
+              "items-center",
+              "justify-center",
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-white",
+              "hover:bg-blue-700",
+              "transition",
+              "font-medium",
+              "focus:outline-none",
+              "focus:ring-2",
+              "focus:ring-blue-600",
+              "focus:ring-offset-2",
+              "focus:ring-offset-white",
+              "bg-brand"
+            ]
+          },
+          "writes": [],
+          "configCalls": 0
+        },
+        "style tag": {
+          "pass": false,
+          "classCheck": true,
+          "styleCheck": true,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "rgb(91, 33, 182)"
+            ],
+            "classes": [
+              "inline-flex",
+              "items-center",
+              "justify-center",
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-white",
+              "hover:bg-blue-700",
+              "transition",
+              "font-medium",
+              "focus:outline-none",
+              "focus:ring-2",
+              "focus:ring-blue-600",
+              "focus:ring-offset-2",
+              "focus:ring-offset-white",
+              "bg-brand"
+            ]
+          },
+          "writes": [
+            {
+              "call": 0,
+              "tool": "browser_evaluate",
+              "pattern": "/createElement\\s*\\(\\s*['\"`](style|link)['\"`]/i"
+            },
+            {
+              "call": 0,
+              "tool": "browser_evaluate",
+              "pattern": "/\\.(textContent|innerText|innerHTML|nodeValue)\\s*\\+?=(?!=)[^;\\n]*\\{[^}]*:[^}]*\\}/"
+            }
+          ],
+          "configCalls": 0
+        }
+      },
+      "routes": {
+        "positive control: page module URL getRuntime().updateConfig({...getRuntime().options.config, theme.extend})": {
+          "code": "async () => { const m = await import('http://127.0.0.1:5190/@fs/Users/user/github/barocss/barocss/.claude/worktrees/agents-experiment-mode-4d59da/packages/barocss-browser/src/index.ts'); m.getRuntime().updateConfig({ ...m.getRuntime().options.config, theme: { extend: { colors: { brand: '#5B21B6' } } } }); }",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-white",
+                "hover:bg-blue-700",
+                "transition",
+                "font-medium",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-blue-600",
+                "focus:ring-offset-2",
+                "focus:ring-offset-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "styleElementsHoldingBgBrand": [
+              "barocss-runtime-partition-4"
+            ],
+            "duplicateStyleIds": [],
+            "consoleNamingClass": []
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-white",
+                "hover:bg-blue-700",
+                "transition",
+                "font-medium",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-blue-600",
+                "focus:ring-offset-2",
+                "focus:ring-offset-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "styleElementsHoldingBgBrand": [
+              "barocss-runtime-partition-4"
+            ],
+            "duplicateStyleIds": [],
+            "consoleNamingClass": []
+          }
+        },
+        "negative control: page module URL getRuntime().updateConfig({theme.extend}) (bare)": {
+          "code": "async () => { const m = await import('http://127.0.0.1:5190/@fs/Users/user/github/barocss/barocss/.claude/worktrees/agents-experiment-mode-4d59da/packages/barocss-browser/src/index.ts'); m.getRuntime().updateConfig({ theme: { extend: { colors: { brand: '#5B21B6' } } } }); }",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": false,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [
+              {
+                "prop": "heroInstall.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              },
+              {
+                "prop": "heroGithub.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              }
+            ],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-white",
+                "hover:bg-blue-700",
+                "transition",
+                "font-medium",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-blue-600",
+                "focus:ring-offset-2",
+                "focus:ring-offset-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "styleElementsHoldingBgBrand": [
+              "barocss-runtime-partition-4"
+            ],
+            "duplicateStyleIds": [],
+            "consoleNamingClass": []
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": false,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [
+              {
+                "prop": "heroInstall.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              },
+              {
+                "prop": "heroGithub.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              }
+            ],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-white",
+                "hover:bg-blue-700",
+                "transition",
+                "font-medium",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-blue-600",
+                "focus:ring-offset-2",
+                "focus:ring-offset-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "styleElementsHoldingBgBrand": [
+              "barocss-runtime-partition-4"
+            ],
+            "duplicateStyleIds": [],
+            "consoleNamingClass": []
+          }
+        },
+        "page module URL: getRuntime().updateConfig theme (no extend)": {
+          "code": "async () => { const m = await import('http://127.0.0.1:5190/@fs/Users/user/github/barocss/barocss/.claude/worktrees/agents-experiment-mode-4d59da/packages/barocss-browser/src/index.ts'); m.getRuntime().updateConfig({ theme: { colors: { brand: '#5B21B6' } } }); }",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": false,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [
+              {
+                "prop": "heroInstall.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              },
+              {
+                "prop": "heroGithub.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              }
+            ],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-white",
+                "hover:bg-blue-700",
+                "transition",
+                "font-medium",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-blue-600",
+                "focus:ring-offset-2",
+                "focus:ring-offset-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "styleElementsHoldingBgBrand": [
+              "barocss-runtime-partition-4"
+            ],
+            "duplicateStyleIds": [],
+            "consoleNamingClass": []
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": false,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [
+              {
+                "prop": "heroInstall.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              },
+              {
+                "prop": "heroGithub.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              }
+            ],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-white",
+                "hover:bg-blue-700",
+                "transition",
+                "font-medium",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-blue-600",
+                "focus:ring-offset-2",
+                "focus:ring-offset-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "styleElementsHoldingBgBrand": [
+              "barocss-runtime-partition-4"
+            ],
+            "duplicateStyleIds": [],
+            "consoleNamingClass": []
+          }
+        },
+        "page module URL: getRuntime().updateConfig({preflight:true, theme.extend})": {
+          "code": "async () => { const m = await import('http://127.0.0.1:5190/@fs/Users/user/github/barocss/barocss/.claude/worktrees/agents-experiment-mode-4d59da/packages/barocss-browser/src/index.ts'); m.getRuntime().updateConfig({ preflight: true, theme: { extend: { colors: { brand: '#5B21B6' } } } }); }",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-white",
+                "hover:bg-blue-700",
+                "transition",
+                "font-medium",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-blue-600",
+                "focus:ring-offset-2",
+                "focus:ring-offset-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "styleElementsHoldingBgBrand": [
+              "barocss-runtime-partition-4"
+            ],
+            "duplicateStyleIds": [],
+            "consoleNamingClass": []
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-white",
+                "hover:bg-blue-700",
+                "transition",
+                "font-medium",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-blue-600",
+                "focus:ring-offset-2",
+                "focus:ring-offset-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "styleElementsHoldingBgBrand": [
+              "barocss-runtime-partition-4"
+            ],
+            "duplicateStyleIds": [],
+            "consoleNamingClass": []
+          }
+        },
+        "same file, other URL (?e006=1): second module instance, getRuntime().updateConfig + addClass": {
+          "code": "async () => { const m = await import('http://127.0.0.1:5190/@fs/Users/user/github/barocss/barocss/.claude/worktrees/agents-experiment-mode-4d59da/packages/barocss-browser/src/index.ts?e006=1'); const r = m.getRuntime(); r.updateConfig({ theme: { extend: { colors: { brand: '#5B21B6' } } } }); r.addClass('bg-brand'); }",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": false,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [
+              {
+                "prop": "heroInstall.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              },
+              {
+                "prop": "heroGithub.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              }
+            ],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-white",
+                "hover:bg-blue-700",
+                "transition",
+                "font-medium",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-blue-600",
+                "focus:ring-offset-2",
+                "focus:ring-offset-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "styleElementsHoldingBgBrand": [
+              "barocss-runtime-partition-4"
+            ],
+            "duplicateStyleIds": [],
+            "consoleNamingClass": []
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": false,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [
+              {
+                "prop": "heroInstall.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              },
+              {
+                "prop": "heroGithub.color",
+                "before": "oklch(0.208 0.042 265.755)",
+                "after": "rgb(0, 0, 238)"
+              }
+            ],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "inline-flex",
+                "items-center",
+                "justify-center",
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-white",
+                "hover:bg-blue-700",
+                "transition",
+                "font-medium",
+                "focus:outline-none",
+                "focus:ring-2",
+                "focus:ring-blue-600",
+                "focus:ring-offset-2",
+                "focus:ring-offset-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "styleElementsHoldingBgBrand": [
+              "barocss-runtime-partition-4"
+            ],
+            "duplicateStyleIds": [],
+            "consoleNamingClass": []
+          }
+        }
+      },
+      "baseline": {
+        "width": 1024,
+        "styleAttrs": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "classes": {
+          "target": [
+            "inline-flex",
+            "items-center",
+            "justify-center",
+            "px-4",
+            "py-2",
+            "rounded-md",
+            "bg-blue-600",
+            "text-white",
+            "hover:bg-blue-700",
+            "transition",
+            "font-medium",
+            "focus:outline-none",
+            "focus:ring-2",
+            "focus:ring-blue-600",
+            "focus:ring-offset-2",
+            "focus:ring-offset-white"
+          ]
+        },
+        "props": {
+          "target": {
+            "backgroundColor": "oklch(0.546 0.245 262.881)",
+            "paddingTop": "8px",
+            "paddingRight": "16px",
+            "paddingBottom": "8px",
+            "paddingLeft": "16px",
+            "fontSize": "16px",
+            "fontWeight": "500",
+            "color": "rgb(255, 255, 255)",
+            "borderTopLeftRadius": "6px",
+            "borderTopRightRadius": "6px",
+            "borderBottomRightRadius": "6px",
+            "borderBottomLeftRadius": "6px"
+          },
+          "heroInstall": {
+            "color": "oklch(0.208 0.042 265.755)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderTopColor": "oklch(0.869 0.022 252.894)",
+            "borderTopLeftRadius": "6px",
+            "borderTopRightRadius": "6px",
+            "borderBottomRightRadius": "6px",
+            "borderBottomLeftRadius": "6px",
+            "paddingTop": "8px",
+            "paddingRight": "16px",
+            "paddingBottom": "8px",
+            "paddingLeft": "16px"
+          },
+          "heroGithub": {
+            "color": "oklch(0.208 0.042 265.755)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderTopColor": "oklch(0.869 0.022 252.894)",
+            "borderTopLeftRadius": "6px",
+            "borderTopRightRadius": "6px",
+            "borderBottomRightRadius": "6px",
+            "borderBottomLeftRadius": "6px",
+            "paddingTop": "8px",
+            "paddingRight": "16px",
+            "paddingBottom": "8px",
+            "paddingLeft": "16px"
+          },
+          "logo": {
+            "backgroundColor": "oklch(0.546 0.245 262.881)",
+            "width": 28,
+            "height": 28,
+            "borderTopLeftRadius": "6px",
+            "borderTopRightRadius": "6px",
+            "borderBottomRightRadius": "6px",
+            "borderBottomLeftRadius": "6px",
+            "boxShadow": "rgba(37, 99, 235, 0.25) 0px 0px 24px 0px"
+          },
+          "headline": {
+            "fontSize": "60px",
+            "fontWeight": "800",
+            "color": "oklch(0.208 0.042 265.755)"
+          },
+          "body": {
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "oklch(0.208 0.042 265.755)",
+            "fontFamily": "Times"
+          }
+        }
+      },
+      "network": {
+        "cdnImport": "refused: Failed to fetch dynamically imported module: https://unpkg.com/@barocss/browser@",
+        "externalFetch": "refused: Failed to fetch",
+        "otherLocalhostPort": "refused: Failed to fetch",
+        "ownOrigin": "reachable"
+      },
+      "discovery": {
+        "scripts": [
+          "http://127.0.0.1:5190/@vite/client",
+          "http://127.0.0.1:5190/index.html?html-proxy&index=0.js"
+        ],
+        "imports": [
+          {
+            "script": "http://127.0.0.1:5190/@vite/client",
+            "specifier": "/@fs/Users/user/github/barocss/barocss/.claude/worktrees/agents-experiment-mode-4d59da/node_modules/vite/dist/client/env.mjs"
+          },
+          {
+            "script": "http://127.0.0.1:5190/index.html?html-proxy&index=0.js",
+            "specifier": "/@fs/Users/user/github/barocss/barocss/.claude/worktrees/agents-experiment-mode-4d59da/packages/barocss-browser/src/index.ts"
+          }
+        ],
+        "barocss": [
+          "/@fs/Users/user/github/barocss/barocss/.claude/worktrees/agents-experiment-mode-4d59da/packages/barocss-browser/src/index.ts"
+        ]
+      },
+      "bareCallEffect": {
+        "before": {
+          "config": "{\"preflight\":true}",
+          "preflightRules": 41
+        },
+        "after": {
+          "config": "{\"theme\":{\"extend\":{\"colors\":{\"brand\":\"#5B21B6\"}}}}",
+          "preflightRules": null
+        }
+      },
+      "identity": {
+        "sameModuleSameRuntime": true,
+        "otherUrlIsOtherModule": true,
+        "pageRuleForBlue600": true,
+        "styleIdsBefore": [
+          "",
+          "barocss-runtime-partition-0",
+          "barocss-runtime-partition-preflight",
+          "barocss-runtime-partition-css-vars",
+          "barocss-runtime-partition-1",
+          "barocss-runtime-partition-2",
+          "barocss-runtime-partition-3",
+          "barocss-runtime-partition-4"
+        ],
+        "styleIdsAfterGetRuntime": [
+          "",
+          "barocss-runtime-partition-0",
+          "barocss-runtime-partition-preflight",
+          "barocss-runtime-partition-css-vars",
+          "barocss-runtime-partition-1",
+          "barocss-runtime-partition-2",
+          "barocss-runtime-partition-3",
+          "barocss-runtime-partition-4"
+        ]
+      },
+      "refusedRequests": [
+        {
+          "method": "GET",
+          "url": "http://clients2.google.com/time/1/current?cup2key=10:fxRRfjd7obrSDpX3FR2RDMvSiEyc2d1pAwEmL6o-uU8&cup2hreq=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.gstatic.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "accounts.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "update.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "accounts.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "unpkg.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "registry.npmjs.org:443"
+        },
+        {
+          "method": "GET",
+          "url": "http://127.0.0.1:9333/json/version"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "android.clients.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "accounts.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "accounts.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "content-autofill.googleapis.com:443"
+        },
+        {
+          "method": "CONNECT",
+          "url": "www.google.com:443"
+        }
+      ]
+    }
+  },
+  "expectations": [
+    {
+      "arm": "D",
+      "name": "site renders styled (boot done, target has an opaque background from bg-blue-600)",
+      "ok": true,
+      "target": {
+        "backgroundColor": "oklch(0.546 0.245 262.881)",
+        "paddingTop": "8px",
+        "paddingRight": "16px",
+        "paddingBottom": "8px",
+        "paddingLeft": "16px",
+        "fontSize": "16px",
+        "fontWeight": "500",
+        "color": "rgb(255, 255, 255)",
+        "borderTopLeftRadius": "6px",
+        "borderTopRightRadius": "6px",
+        "borderBottomRightRadius": "6px",
+        "borderBottomLeftRadius": "6px"
+      }
+    },
+    {
+      "arm": "D",
+      "name": "network guard: CDN import, external fetch and other localhost port refused; own origin reachable",
+      "ok": true,
+      "cdnImport": "refused: Failed to fetch dynamically imported module: https://unpkg.com/@barocss/browser@",
+      "externalFetch": "refused: Failed to fetch",
+      "otherLocalhostPort": "refused: Failed to fetch",
+      "ownOrigin": "reachable"
+    },
+    {
+      "arm": "D",
+      "name": "baseline fails Y1",
+      "ok": true,
+      "pass": false,
+      "classCheck": false,
+      "styleCheck": false,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "oklch(0.546 0.245 262.881)"
+        ],
+        "classes": [
+          "inline-flex",
+          "items-center",
+          "justify-center",
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-white",
+          "hover:bg-blue-700",
+          "transition",
+          "font-medium",
+          "focus:outline-none",
+          "focus:ring-2",
+          "focus:ring-blue-600",
+          "focus:ring-offset-2",
+          "focus:ring-offset-white"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0
+    },
+    {
+      "arm": "D",
+      "name": "bg-brand alone fails Y1",
+      "ok": true,
+      "pass": false,
+      "classCheck": true,
+      "styleCheck": false,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "oklch(0.546 0.245 262.881)"
+        ],
+        "classes": [
+          "inline-flex",
+          "items-center",
+          "justify-center",
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-white",
+          "hover:bg-blue-700",
+          "transition",
+          "font-medium",
+          "focus:outline-none",
+          "focus:ring-2",
+          "focus:ring-blue-600",
+          "focus:ring-offset-2",
+          "focus:ring-offset-white",
+          "bg-brand"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0,
+      "console": [
+        "[warning] [IncrementalParser] ast is empty bg-brand"
+      ]
+    },
+    {
+      "arm": "D",
+      "name": "bg-[#5B21B6] alone fails Y1",
+      "ok": true,
+      "pass": false,
+      "classCheck": false,
+      "styleCheck": true,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "rgb(91, 33, 182)"
+        ],
+        "classes": [
+          "inline-flex",
+          "items-center",
+          "justify-center",
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-white",
+          "hover:bg-blue-700",
+          "transition",
+          "font-medium",
+          "focus:outline-none",
+          "focus:ring-2",
+          "focus:ring-blue-600",
+          "focus:ring-offset-2",
+          "focus:ring-offset-white",
+          "bg-[#5B21B6]"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0,
+      "console": []
+    },
+    {
+      "arm": "D",
+      "name": "inline style-attribute control: style ok, fails via detector",
+      "ok": true,
+      "pass": false,
+      "classCheck": true,
+      "styleCheck": true,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "rgb(91, 33, 182)"
+        ],
+        "classes": [
+          "inline-flex",
+          "items-center",
+          "justify-center",
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-white",
+          "hover:bg-blue-700",
+          "transition",
+          "font-medium",
+          "focus:outline-none",
+          "focus:ring-2",
+          "focus:ring-blue-600",
+          "focus:ring-offset-2",
+          "focus:ring-offset-white",
+          "bg-brand"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0
+    },
+    {
+      "arm": "D",
+      "name": "style-tag control: style ok, fails via detector",
+      "ok": true,
+      "pass": false,
+      "classCheck": true,
+      "styleCheck": true,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "rgb(91, 33, 182)"
+        ],
+        "classes": [
+          "inline-flex",
+          "items-center",
+          "justify-center",
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-white",
+          "hover:bg-blue-700",
+          "transition",
+          "font-medium",
+          "focus:outline-none",
+          "focus:ring-2",
+          "focus:ring-blue-600",
+          "focus:ring-offset-2",
+          "focus:ring-offset-white",
+          "bg-brand"
+        ]
+      },
+      "writes": [
+        {
+          "call": 0,
+          "tool": "browser_evaluate",
+          "pattern": "/createElement\\s*\\(\\s*['\"`](style|link)['\"`]/i"
+        },
+        {
+          "call": 0,
+          "tool": "browser_evaluate",
+          "pattern": "/\\.(textContent|innerText|innerHTML|nodeValue)\\s*\\+?=(?!=)[^;\\n]*\\{[^}]*:[^}]*\\}/"
+        }
+      ],
+      "configCalls": 0
+    },
+    {
+      "arm": "D",
+      "name": "scan flags updateRuleContent and textContent CSS, not config calls or reads",
+      "ok": true,
+      "scan": {
+        "writes": [
+          {
+            "call": 0,
+            "tool": "browser_evaluate",
+            "pattern": "/updateRuleContent\\s*\\(/"
+          },
+          {
+            "call": 1,
+            "tool": "browser_evaluate",
+            "pattern": "/\\.(textContent|innerText|innerHTML|nodeValue)\\s*\\+?=(?!=)[^;\\n]*\\{[^}]*:[^}]*\\}/"
+          }
+        ],
+        "configCalls": [
+          {
+            "call": 2,
+            "tool": "browser_evaluate"
+          }
+        ]
+      }
+    },
+    {
+      "arm": "D",
+      "name": "arm D: page source names a BaroCSS module URL",
+      "ok": true,
+      "modUrl": "http://127.0.0.1:5190/@fs/Users/user/github/barocss/barocss/.claude/worktrees/agents-experiment-mode-4d59da/packages/barocss-browser/src/index.ts"
+    },
+    {
+      "arm": "D",
+      "name": "positive control: config-preserving updateConfig + bg-brand passes Y1 with no regression",
+      "ok": true,
+      "pass": true,
+      "regressions": [],
+      "writes": []
+    },
+    {
+      "arm": "D",
+      "name": "negative control: bare updateConfig + bg-brand fails Y1 on regression only (class and colour pass, no raw-CSS route)",
+      "ok": true,
+      "pass": false,
+      "classCheck": true,
+      "styleCheck": true,
+      "regressions": [
+        {
+          "prop": "heroInstall.color",
+          "before": "oklch(0.208 0.042 265.755)",
+          "after": "rgb(0, 0, 238)"
+        },
+        {
+          "prop": "heroGithub.color",
+          "before": "oklch(0.208 0.042 265.755)",
+          "after": "rgb(0, 0, 238)"
+        }
+      ],
+      "writes": []
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "getRuntimeIsPageRuntime": false,
+  "pageRuntimeHasBrand": false,
+  "getRuntimeHasBrand": true,
+  "pageRuntimeCssForBgBrand": null,
+  "styleElementsBefore": [
+    "(no id)",
+    "barocss-runtime-partition-0",
+    "barocss-runtime-partition-css-vars",
+    "barocss-runtime-partition-1"
+  ],
+  "styleElementsAfter": [
+    "(no id)",
+    "barocss-runtime-partition-0",
+    "barocss-runtime-partition-css-vars",
+    "barocss-runtime-partition-1",
+    "barocss-runtime-partition-0",
+    "barocss-runtime-partition-css-vars"
+  ],
+  "styleElementsHoldingBgBrand": [
+    "barocss-runtime-partition-0"
+  ],
+  "saveBg": "rgb(91, 33, 182)",
+  "cdnExports": [
+    "BrowserRuntime",
+    "ChangeDetector",
+    "StylePartitionManager",
+    "baroBoot",
+    "baroStart",
+    "getRuntime",
+    "normalizeClassName",
+    "normalizeClassNameList"
+  ]
+}

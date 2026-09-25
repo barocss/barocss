@@ -3,6 +3,7 @@ import { decl, rule } from './ast';
 import type { Context } from './context';
 import { clearContextCaches, getContextState } from './contextState';
 import { ParsedModifier, ParsedUtility } from './parser';
+import { parseResultCache, utilityCache } from '../utils/cache';
 
 // Utility registration
 export interface UtilityRegistration {
@@ -56,7 +57,12 @@ export function registerUtility(util: UtilityRegistration, ctx?: Context) {
   const state = ctx && getContextState(ctx);
   if (ctx && !state) throw new Error('Utility registration requires a context from createContext');
   (state?.utilities || utilityRegistry).push(util);
-  if (ctx) clearContextCaches(ctx);
+  if (ctx) {
+    clearContextCaches(ctx);
+  } else {
+    parseResultCache.clear();
+    utilityCache.clear();
+  }
 }
 
 export function getUtility(ctx?: Context): UtilityRegistration[] {

@@ -1,0 +1,215 @@
+{
+  "note": "post-hoc; see header",
+  "effects": {
+    "focus:ring-2": {
+      "fromRuns": true,
+      "barocss": [],
+      "tailwind": [
+        "box-shadow: none → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      ],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": true
+    },
+    "focus:ring-offset-2": {
+      "fromRuns": true,
+      "barocss": [],
+      "tailwind": [],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": false
+    },
+    "ring-1": {
+      "fromRuns": true,
+      "barocss": [],
+      "tailwind": [
+        "box-shadow: none → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      ],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": true
+    },
+    "-translate-x-1/2": {
+      "fromRuns": true,
+      "barocss": [],
+      "tailwind": [
+        "translate: none → -50%"
+      ],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": true
+    },
+    "shadow": {
+      "fromRuns": true,
+      "barocss": [],
+      "tailwind": [
+        "box-shadow: none → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px"
+      ],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": true
+    },
+    "hover:-translate-y-0.5": {
+      "fromRuns": true,
+      "barocss": [],
+      "tailwind": [],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": false
+    },
+    "leading-relaxed": {
+      "fromRuns": true,
+      "barocss": [],
+      "tailwind": [
+        "block-size: 24px → 26px",
+        "height: 24px → 26px",
+        "line-height: 24px → 26px",
+        "perspective-origin: 600px 12px → 600px 13px",
+        "transform-origin: 600px 12px → 600px 13px"
+      ],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": true
+    },
+    "border": {
+      "fromRuns": false,
+      "barocss": [],
+      "tailwind": [
+        "block-size: 24px → 26px",
+        "border-block-end-width: 0px → 1px",
+        "border-block-start-width: 0px → 1px",
+        "border-bottom-width: 0px → 1px",
+        "border-inline-end-width: 0px → 1px",
+        "border-inline-start-width: 0px → 1px",
+        "border-left-width: 0px → 1px",
+        "border-right-width: 0px → 1px",
+        "border-top-width: 0px → 1px",
+        "height: 24px → 26px"
+      ],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": true
+    },
+    "border-2": {
+      "fromRuns": false,
+      "barocss": [],
+      "tailwind": [
+        "block-size: 24px → 28px",
+        "border-block-end-width: 0px → 2px",
+        "border-block-start-width: 0px → 2px",
+        "border-bottom-width: 0px → 2px",
+        "border-inline-end-width: 0px → 2px",
+        "border-inline-start-width: 0px → 2px",
+        "border-left-width: 0px → 2px",
+        "border-right-width: 0px → 2px",
+        "border-top-width: 0px → 2px",
+        "height: 24px → 28px"
+      ],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": true
+    },
+    "border-t": {
+      "fromRuns": false,
+      "barocss": [],
+      "tailwind": [
+        "block-size: 24px → 25px",
+        "border-block-start-width: 0px → 1px",
+        "border-top-width: 0px → 1px",
+        "height: 24px → 25px",
+        "perspective-origin: 600px 12px → 600px 12.5px",
+        "transform-origin: 600px 12px → 600px 12.5px"
+      ],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": true
+    },
+    "md:scale-[1.03]": {
+      "fromRuns": false,
+      "barocss": [
+        "scale: none → 1.03"
+      ],
+      "tailwind": [
+        "scale: none → 1.03"
+      ],
+      "barocssNoEffect": false,
+      "tailwindHasEffect": true
+    },
+    "shadow-sm": {
+      "fromRuns": false,
+      "barocss": [
+        "box-shadow: none → rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+      ],
+      "tailwind": [
+        "box-shadow: none → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px"
+      ],
+      "barocssNoEffect": false,
+      "tailwindHasEffect": true
+    },
+    "ring-2": {
+      "fromRuns": false,
+      "barocss": [],
+      "tailwind": [
+        "box-shadow: none → rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+      ],
+      "barocssNoEffect": true,
+      "tailwindHasEffect": true
+    },
+    "focus:outline-none": {
+      "fromRuns": false,
+      "barocss": [
+        "outline-color: rgb(59, 130, 246) → rgba(0, 0, 0, 0)"
+      ],
+      "tailwind": [
+        "outline-style: auto → none"
+      ],
+      "barocssNoEffect": false,
+      "tailwindHasEffect": true
+    }
+  },
+  "preflight": {
+    "headerBorderBottomStyle": "none",
+    "headerBorderBottomWidth": "0px",
+    "anyDivBorderTopStyle": "none",
+    "tailwindReference": {
+      "borderTopStyle": "solid",
+      "borderTopWidth": "1px"
+    }
+  },
+  "emptyStyle": {
+    "afterLoad": [
+      null
+    ],
+    "afterAriaSnapshot": [
+      null
+    ],
+    "afterScreenshot": [
+      ""
+    ],
+    "after375": [
+      ""
+    ]
+  },
+  "firstTryClassContexts": {
+    "G1": {
+      "counts": {
+        "RESOLVED": 84,
+        "PARITY-MISS": 5,
+        "AGENT": 0,
+        "unclassified": 0
+      },
+      "agent": [],
+      "notInCommittedFirstTry": []
+    },
+    "G2": {
+      "counts": {
+        "RESOLVED": 63,
+        "PARITY-MISS": 1,
+        "AGENT": 0,
+        "unclassified": 0
+      },
+      "agent": [],
+      "notInCommittedFirstTry": []
+    },
+    "G3": {
+      "counts": {
+        "RESOLVED": 54,
+        "PARITY-MISS": 2,
+        "AGENT": 0,
+        "unclassified": 0
+      },
+      "agent": [],
+      "notInCommittedFirstTry": []
+    }
+  }
+}
