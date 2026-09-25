@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+        }
+      }
+    }
+  }
+</script>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+  <div class="min-h-screen flex items-start justify-center p-4 sm:p-6">
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+
+      <!-- Header -->
+      <header class="px-6 py-5 border-b border-slate-200 flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-brand-600/10 flex items-center justify-center">
+          <svg class="h-5 w-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm0 0H3.75m0 6h9.75m-9.75 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0Zm9.75 0h6.75m-6.75 6h9.75m-9.75 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm-9.75 0H3.75"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-semibold text-slate-900 leading-tight">Settings</h1>
+          <p class="text-sm text-slate-500">Manage your workspace preferences</p>
+        </div>
+      </header>
+
+      <!-- Body -->
+      <div class="divide-y divide-slate-100">
+
+        <!-- General -->
+        <section class="px-6 py-5">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">General</h2>
+
+          <div class="space-y-5">
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">Display name</span>
+              <input id="displayName" type="text" value="Jinho Park"
+                     class="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none"/>
+            </label>
+
+            <label class="block">
+              <span class="text-sm font-medium text-slate-700">Language</span>
+              <select id="language"
+                      class="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+                <option>English (US)</option>
+                <option>한국어</option>
+                <option>日本語</option>
+                <option>Español</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <!-- Notifications -->
+        <section class="px-6 py-5">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">Notifications</h2>
+          <div class="space-y-1">
+            <div class="flex items-center justify-between py-2.5">
+              <div>
+                <p class="text-sm font-medium text-slate-700">Email notifications</p>
+                <p class="text-xs text-slate-500">Receive updates about your activity</p>
+              </div>
+              <button type="button" role="switch" aria-checked="true" data-toggle
+                      class="relative inline-flex h-6 w-11 items-center rounded-full bg-brand-600 transition-colors">
+                <span class="inline-block h-4 w-4 translate-x-6 rounded-full bg-white shadow transition-transform"></span>
+              </button>
+            </div>
+            <div class="flex items-center justify-between py-2.5">
+              <div>
+                <p class="text-sm font-medium text-slate-700">Push notifications</p>
+                <p class="text-xs text-slate-500">Get alerts on your devices</p>
+              </div>
+              <button type="button" role="switch" aria-checked="false" data-toggle
+                      class="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-300 transition-colors">
+                <span class="inline-block h-4 w-4 translate-x-1 rounded-full bg-white shadow transition-transform"></span>
+              </button>
+            </div>
+            <div class="flex items-center justify-between py-2.5">
+              <div>
+                <p class="text-sm font-medium text-slate-700">Weekly digest</p>
+                <p class="text-xs text-slate-500">A summary every Monday morning</p>
+              </div>
+              <button type="button" role="switch" aria-checked="true" data-toggle
+                      class="relative inline-flex h-6 w-11 items-center rounded-full bg-brand-600 transition-colors">
+                <span class="inline-block h-4 w-4 translate-x-6 rounded-full bg-white shadow transition-transform"></span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Appearance -->
+        <section class="px-6 py-5">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">Appearance</h2>
+          <div class="grid grid-cols-3 gap-3" id="themeGroup">
+            <button data-theme="light" class="theme-opt rounded-lg border-2 border-brand-600 bg-white px-3 py-3 text-sm font-medium text-slate-700 flex flex-col items-center gap-2">
+              <span class="h-8 w-full rounded bg-slate-100 ring-1 ring-slate-200"></span>Light
+            </button>
+            <button data-theme="dark" class="theme-opt rounded-lg border-2 border-transparent bg-white px-3 py-3 text-sm font-medium text-slate-700 flex flex-col items-center gap-2 hover:border-slate-300">
+              <span class="h-8 w-full rounded bg-slate-800"></span>Dark
+            </button>
+            <button data-theme="system" class="theme-opt rounded-lg border-2 border-transparent bg-white px-3 py-3 text-sm font-medium text-slate-700 flex flex-col items-center gap-2 hover:border-slate-300">
+              <span class="h-8 w-full rounded bg-gradient-to-r from-slate-100 to-slate-800"></span>System
+            </button>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Footer -->
+      <footer class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <span id="status" class="text-sm text-slate-500"></span>
+        <div class="flex gap-2">
+          <button id="resetBtn" class="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-200 transition-colors">Reset</button>
+          <button id="saveBtn" class="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 transition-colors">Save changes</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // Toggle switches
+    document.querySelectorAll('[data-toggle]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var on = btn.getAttribute('aria-checked') === 'true';
+        var next = !on;
+        btn.setAttribute('aria-checked', String(next));
+        btn.classList.toggle('bg-brand-600', next);
+        btn.classList.toggle('bg-slate-300', !next);
+        var knob = btn.querySelector('span');
+        knob.classList.toggle('translate-x-6', next);
+        knob.classList.toggle('translate-x-1', !next);
+      });
+    });
+
+    // Theme selection
+    var selectedTheme = 'light';
+    document.querySelectorAll('.theme-opt').forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        selectedTheme = opt.getAttribute('data-theme');
+        document.querySelectorAll('.theme-opt').forEach(function (o) {
+          o.classList.remove('border-brand-600');
+          o.classList.add('border-transparent');
+        });
+        opt.classList.remove('border-transparent');
+        opt.classList.add('border-brand-600');
+      });
+    });
+
+    // Save / status
+    var status = document.getElementById('status');
+    function collect() {
+      var toggles = {};
+      document.querySelectorAll('[data-toggle]').forEach(function (b, i) {
+        toggles['toggle_' + i] = b.getAttribute('aria-checked') === 'true';
+      });
+      return {
+        displayName: document.getElementById('displayName').value,
+        language: document.getElementById('language').value,
+        theme: selectedTheme,
+        notifications: toggles
+      };
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', function () {
+      var payload = collect();
+      status.textContent = 'Saved ✓';
+      status.className = 'text-sm text-emerald-600 font-medium';
+      // Notify host if embedded
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'settings:save', data: payload }, '*');
+      }
+      setTimeout(function () { status.textContent = ''; }, 2500);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', function () {
+      status.textContent = 'Reset to defaults';
+      status.className = 'text-sm text-slate-500';
+      setTimeout(function () { status.textContent = ''; }, 2000);
+    });
+  </script>
+</body>
+</html>

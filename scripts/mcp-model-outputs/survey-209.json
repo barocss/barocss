@@ -1,0 +1,13 @@
+{"_note":"#209 desk survey, 2026-09-26. asksModel = does a prompt/template ask the LLM to write Tailwind classes. verified=true: source file read (gh api); 'partial': docs/search listing only; false: claim only.",
+"rows":[
+{"source":"https://github.com/PrefectHQ/prefab (dev-docs/build-pipeline.md) + https://gofastmcp.com/apps/generative","asksModel":"yes: the LLM writes Prefab Python with css_class=\"<tailwind classes>\"","ships":"@tailwindcss/browser at runtime in the ui:// renderer (arbitrary classes, no safelist)","verified":true},
+{"source":"https://github.com/openshiporg/marketplace app/api/mcp-transport/tools/product-tools.ts","asksModel":"no (server-authored rawHtml with Tailwind classes)","ships":"<script src=https://cdn.tailwindcss.com> inside rawHtml","verified":true},
+{"source":"https://github.com/modelcontextprotocol/ext-apps examples/*","asksModel":"no","ships":"own CSS + host style variables; no Tailwind in examples/ (code search 0); src/styles.ts only honours a Tailwind-style 'dark' class","verified":true},
+{"source":"https://github.com/MCP-UI-Org/mcp-ui examples/server","asksModel":"no","ships":"Tailwind build (vite + app.css)","verified":"partial"},
+{"source":"https://github.com/openai/openai-apps-sdk-examples","asksModel":"no","ships":"Tailwind build (tailwind.config.ts, vite, per-widget index.css)","verified":"partial"},
+{"source":"https://github.com/pomerium/mcp-app-typescript-template","asksModel":"no","ships":"Tailwind build + shadcn (widgets/tailwind.config.ts)","verified":"partial"},
+{"source":"https://github.com/Alignbase/sunpeak","asksModel":"no","ships":"Tailwind build (vite, bin/lib/css.mjs)","verified":"partial"},
+{"source":"https://github.com/CopilotKit/OpenGenerativeUI","asksModel":"no: the LLM writes HTML fragments against its own design-system CSS","ships":"own design-system CSS injected by assemble_document","verified":"partial"},
+{"source":"https://glama.ai/mcp/servers/iamadi11/mcp-ui-poc","asksModel":"no (theme packs / CSS variables)","ships":"own CSS + Google Fonts","verified":"partial"},
+{"source":"https://www.aidesigner.ai/ai-ui-design-mcp","asksModel":"unverified (claims generated HTML with inline Tailwind)","ships":"unverified","verified":false}
+]}
