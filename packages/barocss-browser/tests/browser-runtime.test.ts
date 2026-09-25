@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BrowserRuntime } from '../src/browser-runtime';
+import { setDebug } from '@barocss/kit';
 
 let runtime: BrowserRuntime;
 
@@ -373,6 +374,10 @@ describe('BrowserRuntime', () => {
   });
 
   it('retries a failed class lookup after clearing its context cache', () => {
+    // Kit diagnostics are off by default (#230); opt in so the core's
+    // unknown-class warning counts parse attempts.
+    runtime.destroy();
+    runtime = new BrowserRuntime({ config: { debug: true } });
     const warnings = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const unknownWarnings = () => warnings.mock.calls.filter(([message]) =>
       String(message).includes('Unknown utility class')).length;
@@ -384,5 +389,6 @@ describe('BrowserRuntime', () => {
     runtime.clearCaches();
     runtime.addClass('pulse-unknown-utility');
     expect(unknownWarnings()).toBe(2);
+    setDebug(false);
   });
 });

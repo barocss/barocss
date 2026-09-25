@@ -1,3 +1,4 @@
+import { debugWarn } from "../utils/debug";
 import { AstNode } from "./ast";
 import { Context } from "./context";
 import { getModifier, getUtility } from "./registry";
@@ -129,8 +130,7 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
     }
 
     if (!utilReg) {
-        // eslint-disable-next-line no-console
-        console.warn(`[jsonToAst] Unknown utility: "${input.utility.name}"`);
+        debugWarn(`[jsonToAst] Unknown utility: "${input.utility.name}"`);
         return [];
     }
 
@@ -220,8 +220,7 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
             const plugin = getModifier(ctx).find((p) => p.match(matchKey, ctx));
 
             if (!plugin) {
-                // eslint-disable-next-line no-console
-                console.warn(`[jsonToAst] Unknown variant: "${matchKey}"`);
+                debugWarn(`[jsonToAst] Unknown variant: "${matchKey}"`);
                 continue;
             }
 
