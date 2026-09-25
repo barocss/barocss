@@ -120,7 +120,7 @@ result:
     - "Whether a fix of one family (ring or translate) changes the claims' agreement, or just moves the unnamed miss to the next family."
     - "The preflight border-style gap is not a PARITY-MISS under this contract's BC definition; its frequency is recorded but not graded."
   next_question: "Contract the minimum BAROCSS fix for the most frequent observed family: ring box-shadow composition (3 tokens, 2/3 runs), or preflight border-style (3/3 runs, visible, outside the K4 definition). Then rerun G1-G3 unchanged to see whether claims agree."
-  pr: null
+  pr: https://github.com/barocss/barocss/pull/119
   checks: "python3 .ai/check.py --role execution --base origin/develop: OK; no product code changed, so pnpm check was not needed"
   side_notes:
     - "Extractor's 'class string' rule swept prose words from HTML template literals into first-try/written AGENT counts (33/19/8). Class-context-only count gives 0 AGENT and the same R/MISS counts (audit.json → firstTryClassContexts). Not changed."
