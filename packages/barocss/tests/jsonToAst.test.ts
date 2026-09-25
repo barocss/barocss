@@ -125,7 +125,7 @@ describe('jsonToAst', () => {
             utility: { name: 'w', value: 'calc(100%-20px)', arbitrary: true }
         };
         const css = generateCssFromJson([input], ctx);
-        expect(css).toContain('width: calc(100%-20px)');
+        expect(css).toContain('width: calc(100% - 20px)');
     });
     it('group hover', () => {
         // group-hover:text-white

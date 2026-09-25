@@ -69,7 +69,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('custom property', () => {
     expect(generateCss('bg-(--my-bg)', ctx)).toBe(
       `.bg-\\(--my-bg\\) {
-  background-size: var(--my-bg);
+  background-color: var(--my-bg);
 }
 `
     );
@@ -156,7 +156,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('complex arbitrary value', () => {
     expect(generateCss('w-[calc(100%-2rem)]', ctx)).toBe(
       `.w-\\[calc\\(100\\%-2rem\\)\\] {
-  width: calc(100%-2rem);
+  width: calc(100% - 2rem);
 }
 `
     );

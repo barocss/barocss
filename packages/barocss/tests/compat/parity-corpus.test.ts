@@ -27,9 +27,7 @@ const KNOWN_FAILURES: Record<string, string> = {
   "blur-3xl": "blur scale on v3 values",
   "bg-gradient-to-r": "legacy gradient emits a bare & selector (#187)",
   "@container/card-header": "no container-type utility (#187)",
-  "h-[calc(100%-1px)]": "arbitrary calc() without operator spaces (#187)",
   "justify-self-end": "justify-self-end emits end, TW flex-end",
-  "max-w-[calc(100%-2rem)]": "arbitrary calc() without operator spaces (#187)",
   "rounded-xs": "radius scale on v3 values",
 };
 
