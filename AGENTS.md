@@ -84,7 +84,7 @@ branch `ai/strategy-E-00N`:
    for independent questions that each pass the rules below, and declare what
    a scheduler can't infer: `depends_on` (ids that must be judged first),
    `locks` (shared runtime resources, e.g. `port:5173`), `observes` (paths
-   whose behavior the item measures), optional integer `priority`. Writing no
+   whose behavior the item measures), optional integer `priority` (higher runs first; ties by id). Writing no
    contract is valid when no open question is worth one: say why in
    `STATE.now`; idle is a state, not a failure. Update `STATE.now`.
 3. Integrate it yourself. Run `python3 .ai/check.py --role strategy --base
