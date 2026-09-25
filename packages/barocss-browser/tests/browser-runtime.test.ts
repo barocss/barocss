@@ -19,6 +19,38 @@ describe('BrowserRuntime', () => {
   const hasInjectedRule = (fragment: string) => Array.from(document.querySelectorAll<HTMLStyleElement>('[data-barocss="partition"]'))
     .some(style => Array.from(style.sheet?.cssRules ?? []).some(rule => rule.cssText.includes(fragment)));
 
+  const preflightText = () => document.querySelector('[data-category="preflight"]')?.textContent ?? '';
+
+  it('applies kit default (full) preflight when no preflight option is given', () => {
+    const fullRuntime = new BrowserRuntime({ config: { preflight: 'full' } });
+    const full = preflightText();
+    fullRuntime.destroy();
+    document.head.innerHTML = '';
+    const defaultRuntime = new BrowserRuntime({ config: {} });
+    try {
+      expect(preflightText()).toBeTruthy();
+      expect(preflightText()).toBe(full);
+    } finally {
+      defaultRuntime.destroy();
+    }
+  });
+
+  it('does not inject preflight when preflight is false', () => {
+    runtime.destroy();
+    document.head.innerHTML = '';
+    runtime = new BrowserRuntime({ config: { preflight: false } });
+    expect(preflightText()).toBe('');
+  });
+
+  it('honors an explicit preflight level', () => {
+    runtime.destroy();
+    document.head.innerHTML = '';
+    runtime = new BrowserRuntime({ config: { preflight: 'minimal' } });
+    const minimal = preflightText();
+    expect(minimal).toBeTruthy();
+    expect(minimal.length).toBeLessThan(runtime['context'].getPreflightCSS('full').length);
+  });
+
   it('inserts styles into an iframe element supplied as the insertion point', () => {
     const frame = document.createElement('iframe');
     document.body.append(frame);
