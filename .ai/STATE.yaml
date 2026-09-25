@@ -348,3 +348,18 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     `observes`: it reads its pinned commit, not develop. Two lanes run side by side. The question lane
     keeps its order (B, then A), and a parity batch may run alongside it, so the order in the 2026-09-25
     rounds 2-3 directive applies within the question lane only.
+  - >-
+    2026-09-25 (delegated by the human to two Claude sessions, agreed after E-011). E-011 is PROVEN, but
+    all 5 classes its report flagged were BaroCSS's own parity gaps: what it shows is "BaroCSS knows its own
+    gaps", which the parity lane erodes. Next in the question lane, beside option A: a durability
+    measurement, cheapest first. Step 1 (L2, no agent runs), over every class token in E-007's and E-011's
+    generated sections: bucket the classifier's AGENT tokens (not resolved by Tailwind 4.1.13) into
+    invented utility, invalid value, v3-only name, out-of-theme token, typo, or intentional non-utility
+    name. Intentional means it matches no Tailwind utility root or variant, or is a known marker (group,
+    peer, group/<name>, peer/<name>, dark); a utility-shaped token with a bad value stays invalid. List every
+    token and its bucket. The same contract measures the report's accuracy: precision and recall of the
+    has()/getCss() flags against the classifier's PARITY-MISSes. Step 2, only if step 1's invalid count is
+    ambiguous or about 0: one fresh natural-generation run on a post-parity build plus one weaker actor
+    (U1). The flow-1 test (B's report inside a code-gen pipeline) waits for this answer. No product code
+    that productizes the report (an API in packages/barocss, or #103) before n>=3 per arm, a weaker actor,
+    and the L2 report-accuracy check.
