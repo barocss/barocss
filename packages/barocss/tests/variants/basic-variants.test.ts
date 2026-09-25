@@ -33,7 +33,7 @@ describe("basic variants", () => {
   });
 
   it("group-hover:bg-red-500 → .group:hover & { ... }", () => {
-    expect(parseClassToAst("group-hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("group-hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
         selector: "&:is(:where(.group):hover *)",
@@ -43,10 +43,10 @@ describe("basic variants", () => {
   });
 
   it("peer-hover:bg-red-500 → .peer:hover ~ & { ... }", () => {
-    expect(parseClassToAst("peer-hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("peer-hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
-        selector: "&:is(:where(.peer):hover~*)",
+        selector: "&:is(:where(.peer):hover ~ *)",
         nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
       },
     ]);
@@ -95,7 +95,7 @@ describe("basic variants", () => {
   });
 
   it("group-hover:focus:bg-red-500 → .group:hover &:focus { ... }", () => {
-    expect(parseClassToAst("group-hover:focus:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("group-hover:focus:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
         selector: "&:is(:where(.group):hover *)",
@@ -361,7 +361,7 @@ describe("basic variants", () => {
   });
 
   it("group-hover:focus:bg-red-500 → .group:hover &:focus { ... }", () => {
-    expect(parseClassToAst("group-hover:focus:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("group-hover:focus:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
         selector: "&:is(:where(.group):hover *)",
@@ -514,7 +514,7 @@ describe("basic variants", () => {
 
   it("group-hover:not-disabled:bg-red-500 → .group:hover &:not(:disabled) { ... }", () => {
     expect(
-      parseClassToAst("group-hover:not-disabled:bg-red-500", ctx)
+      parseWithoutHoverMedia("group-hover:not-disabled:bg-red-500", ctx)
     ).toMatchObject([
       {
         type: "rule",

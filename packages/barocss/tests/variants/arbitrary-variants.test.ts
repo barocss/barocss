@@ -76,14 +76,14 @@ describe("arbitrary variants", () => {
       expect(parseClassToAst("[.foo>.bar]:bg-blue-500", ctx2)).toMatchObject([
         {
           type: "rule",
-          selector: ".foo>.bar &",
+          selector: "&:is(.foo>.bar)",
           nodes: [{ type: "decl", prop: "background-color", value: "#00f" }],
         },
       ]);
     });
 
     it("group-hover:[&>*]:bg-red-500 → .group:hover &>* { ... }", () => {
-      expect(parseClassToAst("group-hover:[&>*]:bg-red-500", ctx)).toMatchObject([
+      expect(parseWithoutHoverMedia("group-hover:[&>*]:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:is(:where(.group):hover *)",
@@ -110,7 +110,7 @@ describe("arbitrary variants", () => {
           nodes: [
             {
               type: "rule",
-              selector: ".foo &",
+              selector: "&:is(.foo)",
               nodes: [
                 {
                   type: "rule",

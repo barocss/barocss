@@ -1,3 +1,4 @@
+import { parseWithoutHoverMedia } from '../hover-media-test-utils';
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
 import { parseClassToAst } from "../../src/core/engine";
@@ -38,7 +39,7 @@ describe("negation variants", () => {
     });
 
     it("group-hover:not-hover:bg-red-500 → .group:hover &:not(:hover) { ... }", () => {
-      expect(parseClassToAst("group-hover:not-hover:bg-red-500", ctx)).toMatchObject([
+      expect(parseWithoutHoverMedia("group-hover:not-hover:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:is(:where(.group):hover *)",

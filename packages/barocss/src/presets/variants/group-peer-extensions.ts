@@ -1,10 +1,30 @@
 import { functionalModifier } from "../../core/registry";
-import { attributeVariantSelector, functionalArgument } from "./utils";
+import { atRule } from "../../core/ast";
+import { attributeVariantSelector, decodeArbitrarySelector, functionalArgument } from "./utils";
 
 // `group-x/name` → ['x', '.group\/name']; the name is a plain identifier, as Tailwind requires.
 function splitGroupName(kind: 'group' | 'peer', variant: string): [string, string] {
   const named = /^(.+)\/([a-zA-Z0-9_-]+)$/.exec(variant);
   return named ? [named[1], `.${kind}\\/${named[2]}`] : [variant, `.${kind}`];
+}
+
+// group-hover / peer-hover (optionally named): like `hover:`, only where hover is real (`@media (hover: hover)`).
+// Registered before the generic group-/peer- handlers so it matches first.
+functionalModifier(
+  (mod: string) => /^(group|peer)-hover(\/[a-zA-Z0-9_-]+)?$/.test(mod),
+  ({ mod }) => {
+    const kind = mod.type.startsWith('group') ? 'group' : 'peer';
+    const [, base] = splitGroupName(kind, mod.type.slice(kind.length + 1));
+    const tail = kind === 'group' ? ' *' : ' ~ *';
+    return { selector: `&:is(:where(${base}):hover${tail})`, wrappingType: 'rule', source: kind };
+  },
+  () => [atRule('media', '(hover: hover)', [])],
+);
+
+// `group-not-[x]` / `peer-not-[x]` → `:not(*:is(x))`; `group-not-focus` → `:not(:focus)`.
+function negated(value: string): string {
+  const v = value.slice(4);
+  return v.startsWith('[') && v.endsWith(']') ? `:not(*:is(${decodeArbitrarySelector(v.slice(1, -1))}))` : `:not(:${v})`;
 }
 
 // --- group/peer/parent/child extensions (examples: group-focus, peer-active, etc.) ---
@@ -27,6 +47,10 @@ functionalModifier(
         wrappingType: 'rule',
         source: 'group'
       };
+    }
+
+    if (m?.[1]?.startsWith('not-')) {
+      return { selector: `&:is(${g}${negated(m[1])} *)`, wrappingType: 'rule', source: 'group' };
     }
 
     if (m?.[1]?.startsWith('has-')) {
@@ -112,7 +136,7 @@ functionalModifier(
 
     if (value?.startsWith('not-')) {
       return {
-        selector: `&:is(${g}:not(:${value.slice(4)})~*)`,
+        selector: `&:is(${g}${negated(value)} ~ *)`,
         source: 'peer'
       };
     }

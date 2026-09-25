@@ -226,7 +226,7 @@ describe("optimizeAst ", () => {
   });
 
   it("group-hover + peer-focus + sibling", () => {
-    const ast1 = parseClassToAst("group-hover:bg-red-500", ctx);
+    const ast1 = parseWithoutHoverMedia("group-hover:bg-red-500", ctx);
     const ast2 = parseClassToAst("peer-focus:bg-blue-500", ctx);
     const ast = [...ast1, ...ast2];
     const cleanAst = optimizeAst(ast);

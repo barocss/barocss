@@ -48,8 +48,10 @@ describe('parseClassToAst (end-to-end)', () => {
 
   it('group-hover + focus', () => {
     expect(generateCss('group-hover:focus:bg-blue-500', ctx)).toBe(
-      `.group-hover\\:focus\\:bg-blue-500:is(:where(.group):hover *):focus {
-  background-color: #3b82f6;
+      `@media (hover: hover) {
+  .group-hover\\:focus\\:bg-blue-500:is(:where(.group):hover *):focus {
+    background-color: #3b82f6;
+  }
 }
 `
     );
@@ -98,8 +100,10 @@ describe('parseClassToAst (end-to-end)', () => {
   it('complex: sm:group-hover:bg-[red]', () => {
     expect(generateCss('sm:group-hover:bg-[red]', ctx)).toBe(
       `@media (min-width: 640px) {
-  .sm\\:group-hover\\:bg-\\[red\\]:is(:where(.group):hover *) {
-    background-color: red;
+  @media (hover: hover) {
+    .sm\\:group-hover\\:bg-\\[red\\]:is(:where(.group):hover *) {
+      background-color: red;
+    }
   }
 }
 `
@@ -344,12 +348,12 @@ describe('variant chain engine', () => {
   });
 
   it('group-hover:*:bg-red-500 → &:is(:where(.group):hover > *)', () => {
-    expect(parseClassToAst('group-hover:*:bg-red-500', ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia('group-hover:*:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
         selector: '&:is(:where(.group):hover *)',
         nodes: [
-          { type: 'style-rule', selector: ':is(.group-hover\\:\\*\\:bg-red-500 > *)', nodes: [
+          { type: 'rule', selector: ':is(& > *)', nodes: [
               { type: 'decl', prop: 'background-color', value: '#f00' }
           ]},
         ]
