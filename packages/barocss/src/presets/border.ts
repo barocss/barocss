@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRule, decl } from "../core/ast";
+import { atRoot, atRule, decl, property } from "../core/ast";
 import { parseNumber, parseLength, parseColor } from "../core/utils";
 
 // --- Border Radius ---
@@ -77,12 +77,20 @@ functionalUtility({
 // --- Border Width ---
 //  border-width documentation
 
+// Like Tailwind v4, every border-width utility also sets border-style through a registered var whose initial value is
+// solid, so a bare border/border-t renders without relying on a preflight reset, and border-dashed/dotted/none (which
+// set the var) still win whatever the rule order.
+const borderStyleProperty = () => atRoot([property("--baro-border-style", "solid")]);
+const withBorderStyle = (props: string[], width: string) => [
+  borderStyleProperty(),
+  ...props.map((prop) => decl(prop.replace("width", "style"), "var(--baro-border-style)")),
+  ...props.map((prop) => decl(prop, width)),
+];
+
 // Static border width utilities
-staticUtility("border-0", [["border-width", "0px"]], { category: 'borders' });
-staticUtility("border-2", [["border-width", "2px"]], { category: 'borders' });
-staticUtility("border-4", [["border-width", "4px"]], { category: 'borders' });
-staticUtility("border-8", [["border-width", "8px"]], { category: 'borders' });
-staticUtility("border", [["border-width", "1px"]], { category: 'borders' });
+[["border-0", "0px"], ["border-2", "2px"], ["border-4", "4px"], ["border-8", "8px"], ["border", "1px"]].forEach(([name, width]) => {
+  staticUtility(name, [borderStyleProperty, ["border-style", "var(--baro-border-style)"], ["border-width", width]], { category: 'borders' });
+});
 
 
 
@@ -97,11 +105,16 @@ staticUtility("border", [["border-width", "1px"]], { category: 'borders' });
 ].forEach(([name, props]) => {
   const propList = props as string[];
   // Static utilities
-  staticUtility(`${name}-0`, propList.map(prop => [prop, "0px"]));
-  staticUtility(`${name}-2`, propList.map(prop => [prop, "2px"]));
-  staticUtility(`${name}-4`, propList.map(prop => [prop, "4px"]));
-  staticUtility(`${name}-8`, propList.map(prop => [prop, "8px"]));
-  staticUtility(`${name}`, propList.map(prop => [prop, "1px"]));
+  const styled = (width: string) => [
+    borderStyleProperty,
+    ...propList.map((prop) => [prop.replace("width", "style"), "var(--baro-border-style)"] as [string, string]),
+    ...propList.map((prop) => [prop, width] as [string, string]),
+  ];
+  staticUtility(`${name}-0`, styled("0px"));
+  staticUtility(`${name}-2`, styled("2px"));
+  staticUtility(`${name}-4`, styled("4px"));
+  staticUtility(`${name}-8`, styled("8px"));
+  staticUtility(`${name}`, styled("1px"));
 
   // Functional utility
   functionalUtility({
@@ -120,14 +133,14 @@ staticUtility("border", [["border-width", "1px"]], { category: 'borders' });
         return propList.map(prop => decl(prop.replace("width", "color"), value));
       }
       if (token.arbitrary) {
-        return propList.map(prop => decl(prop, value));
+        return withBorderStyle(propList, value);
       }
       return null;
     },
     handleCustomProperty: (value) => {
 
       if (value.startsWith("length:")) {
-        return propList.map(prop => decl(prop, `var(${value.replace("length:", "")})`));
+        return withBorderStyle(propList, `var(${value.replace("length:", "")})`);
       }
 
       return propList.map(prop => decl(prop.replace("width", "color"), `var(${value})`));
@@ -149,12 +162,12 @@ staticUtility("border-transparent", [["border-color", "transparent"]], { categor
 //  border-style documentation
 
 // Static border style utilities
-staticUtility("border-solid", [["border-style", "solid"]], { category: 'borders' });
-staticUtility("border-dashed", [["border-style", "dashed"]], { category: 'borders' });
-staticUtility("border-dotted", [["border-style", "dotted"]], { category: 'borders' });
-staticUtility("border-double", [["border-style", "double"]], { category: 'borders' });
-staticUtility("border-hidden", [["border-style", "hidden"]], { category: 'borders' });
-staticUtility("border-none", [["border-style", "none"]], { category: 'borders' });
+staticUtility("border-solid", [["--baro-border-style", "solid"], ["border-style", "solid"]], { category: 'borders' });
+staticUtility("border-dashed", [["--baro-border-style", "dashed"], ["border-style", "dashed"]], { category: 'borders' });
+staticUtility("border-dotted", [["--baro-border-style", "dotted"], ["border-style", "dotted"]], { category: 'borders' });
+staticUtility("border-double", [["--baro-border-style", "double"], ["border-style", "double"]], { category: 'borders' });
+staticUtility("border-hidden", [["--baro-border-style", "hidden"], ["border-style", "hidden"]], { category: 'borders' });
+staticUtility("border-none", [["--baro-border-style", "none"], ["border-style", "none"]], { category: 'borders' });
 
 
 // Functional border width utility
@@ -180,13 +193,13 @@ functionalUtility({
 
     if (token.arbitrary) {
       if (parseLength(value)) {
-        return [decl("border-width", value)];
+        return withBorderStyle(["border-width"], value);
       }
       return [decl("border-color", value)];
     }
 
     if (parseNumber(value)) {
-      return [decl("border-width", `${value}px`)];
+      return withBorderStyle(["border-width"], `${value}px`);
     }
     if (parseColor(value)) {
       return [decl("border-color", value)];
@@ -195,7 +208,7 @@ functionalUtility({
   },
   handleCustomProperty: (value) => {
     if (value.startsWith("length:")) {
-      return [decl("border-width", `var(${value.replace("length:", "")})`)];
+      return withBorderStyle(["border-width"], `var(${value.replace("length:", "")})`);
     }
     return [decl("border-color", `var(${value})`)];
   },

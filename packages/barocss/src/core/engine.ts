@@ -241,8 +241,10 @@ function extractAtRootNodes(
     if (node.type === "at-root") {
       atRootNodes.push(node);
       delete nodes[i];
-    } else if (node.type === "rule" || node.type === "style-rule") {
-      extractAtRootNodes(node.nodes, node, atRootNodes);
+    } else if (node.type === "rule" || node.type === "style-rule" || node.type === "at-rule") {
+      // at-rule too: a media/container variant (hover:, md:, dark: …) wraps the utility's nodes in an at-rule, and an
+      // at-root @property left inside it would render as an empty @media block instead of being hoisted.
+      extractAtRootNodes((node as HasNodes).nodes ?? [], node, atRootNodes);
     }
   }
 

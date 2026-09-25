@@ -66,9 +66,9 @@ describe("effects.ts (box-shadow utilities)", () => {
       { type: "decl", prop: "box-shadow", value: "var(--shadow-md)" },
     ]);
   });
-  it("shadow → box-shadow: var(--shadow-default)", () => {
+  it("shadow → box-shadow: Tailwind 4 default", () => {
     expect(parseClassToAst("shadow", ctx)).toEqual([
-      { type: "decl", prop: "box-shadow", value: "var(--shadow-default)" },
+      { type: "decl", prop: "box-shadow", value: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)" },
     ]);
   });
   it("shadow-none → box-shadow: 0 0 #0000", () => {
@@ -1026,5 +1026,20 @@ describe('mask-type', () => {
     expect(parseClassToAst('mask-type-luminance', ctx)).toEqual([
       { type: 'decl', prop: 'mask-type', value: 'luminance' },
     ]);
+  });
+});
+
+describe("default shadow scale (Tailwind 4.1.13 values)", () => {
+  const vars = createContext({}).themeToCssVars();
+  it.each([
+    ["2xs", "0 1px rgb(0 0 0 / 0.05)"],
+    ["xs", "0 1px 2px 0 rgb(0 0 0 / 0.05)"],
+    ["sm", "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"],
+    ["md", "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"],
+    ["lg", "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"],
+    ["xl", "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"],
+    ["2xl", "0 25px 50px -12px rgb(0 0 0 / 0.25)"],
+  ])("--shadow-%s is defined with the v4 value", (key, value) => {
+    expect(vars).toContain(`--shadow-${key}: ${value};`);
   });
 });
