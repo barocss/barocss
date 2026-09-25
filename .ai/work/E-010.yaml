@@ -174,7 +174,7 @@ result:
     composition is valid), then verify translate-x-4/translate-y-4/-translate-x-1/2 reach Tailwind
     4.1.13 parity with the same classifier — and run the single G1/G2/G3 rerun once on a build where
     ring + border + translate are all fixed, rather than now while translate is knowingly still broken.
-  pr: PENDING
+  pr: https://github.com/barocss/barocss/pull/141
   checks: >
     pnpm check GREEN (exit 0): type-check + lint + test (1451 passed: barocss 1422, browser 26, server 3)
     + build:library all pass. The only product changes are effects.ts + preflight.ts + one changeset;
