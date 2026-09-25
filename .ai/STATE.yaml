@@ -222,3 +222,8 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     translate was a wrong value formula, not a missing default. Keep O3 (styling provenance) a separate
     candidate, not folded into option B's question; revisit it after B reports. Reason: parity is table
     stakes for what the platforms emit, and B's question stays clean.
+  - >-
+    2026-09-25 (the human's own answer to direction-proposal Q1): target both flows. (1) Code generation,
+    where AI writes React plus Tailwind classes (v0, Lovable). (2) A catalog/JSON spec that arrives at
+    runtime and a renderer draws it (json-render, A2UI). Evidence for options A–C should say which flow it
+    covers, and a claim holds for both only when both were measured.
