@@ -18,23 +18,23 @@ describe("preset typography utilities", () => {
 
   describe("typography utilities", () => {
     // Font Family
-    it("font-sans → font-family: var(--font-family-sans)", () => {
+    it("font-sans → font-family: var(--font-sans)", () => {
       expect(parseClassToAst("font-sans", ctx)).toEqual([
-        { type: "decl", prop: "font-family", value: "var(--font-family-sans)" },
+        { type: "decl", prop: "font-family", value: "var(--font-sans)" },
       ]);
     });
-    it("font-serif → font-family: var(--font-family-serif)", () => {
+    it("font-serif → font-family: var(--font-serif)", () => {
       expect(parseClassToAst("font-serif", ctx)).toEqual([
         {
           type: "decl",
           prop: "font-family",
-          value: "var(--font-family-serif)",
+          value: "var(--font-serif)",
         },
       ]);
     });
-    it("font-mono → font-family: var(--font-family-mono)", () => {
+    it("font-mono → font-family: var(--font-mono)", () => {
       expect(parseClassToAst("font-mono", ctx)).toEqual([
-        { type: "decl", prop: "font-family", value: "var(--font-family-mono)" },
+        { type: "decl", prop: "font-family", value: "var(--font-mono)" },
       ]);
     });
     it("font-[system-ui] → font-family: system-ui", () => {

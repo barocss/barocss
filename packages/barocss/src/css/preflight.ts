@@ -132,6 +132,10 @@ select {
 html {
   line-height: 1.15;
   -webkit-text-size-adjust: 100%;
+  /* Tailwind 4.1.13 root font (app --default-font-family / --font-sans win) */
+  font-family: var(--default-font-family, var(--font-sans, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'));
+  font-feature-settings: var(--default-font-feature-settings, normal);
+  font-variation-settings: var(--default-font-variation-settings, normal);
 }
 
 /* Remove the gray background on active links in IE 10 */
@@ -297,6 +301,17 @@ textarea {
 [type="search"]::-webkit-search-decoration {
   -webkit-appearance: none;
 }
+
+/* Tailwind 4.1.13 monospace stack for code-like elements */
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--default-mono-font-family, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace));
+  font-feature-settings: var(--default-mono-font-feature-settings, normal);
+  font-variation-settings: var(--default-mono-font-variation-settings, normal);
+  font-size: 1em;
+}
 `;
 
 export const preflightFullCSS = `
@@ -378,6 +393,10 @@ html {
   line-height: 1.15;
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
+  /* Tailwind 4.1.13 root font (app --default-font-family / --font-sans win) */
+  font-family: var(--default-font-family, var(--font-sans, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'));
+  font-feature-settings: var(--default-font-feature-settings, normal);
+  font-variation-settings: var(--default-font-variation-settings, normal);
 }
 
 /* Remove the gray background on active links in IE 10 */
@@ -563,7 +582,9 @@ code,
 kbd,
 pre,
 samp {
-  font-family: monospace, monospace;
+  font-family: var(--default-mono-font-family, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace));
+  font-feature-settings: var(--default-mono-font-feature-settings, normal);
+  font-variation-settings: var(--default-mono-font-variation-settings, normal);
   font-size: 1em;
 }
 

@@ -6,9 +6,9 @@ import {
 } from "../core/utils";
 
 // --- Typography: Font Family ---
-staticUtility("font-sans", [["font-family", "var(--font-family-sans)"]], { category: 'typography' });
-staticUtility("font-serif", [["font-family", "var(--font-family-serif)"]], { category: 'typography' });
-staticUtility("font-mono", [["font-family", "var(--font-family-mono)"]], { category: 'typography' });
+staticUtility("font-sans", [["font-family", "var(--font-sans)"]], { category: 'typography' });
+staticUtility("font-serif", [["font-family", "var(--font-serif)"]], { category: 'typography' });
+staticUtility("font-mono", [["font-family", "var(--font-mono)"]], { category: 'typography' });
 
 // --- Typography: Font Size ---
 staticUtility("text-xs", [["font-size", "var(--text-xs)"], ["line-height", "var(--text-xs--line-height)"]], { category: 'typography' });
