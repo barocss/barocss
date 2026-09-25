@@ -22,6 +22,7 @@ from types import SimpleNamespace
 import yaml
 
 EXP, STATE, CHECK = ".ai/EXPERIMENT.yaml", ".ai/STATE.yaml", ".ai/check.py"
+WORK = ".ai/work/"   # migration slice 3: work store, one contract per <id>.yaml (the V1 RULES ignore it)
 STATUSES = {"none", "ready", "running", "done", "blocked", "evaluated"}   # V1, .ai/check.py
 PLAN_STATUSES = {"none", "evaluated", "missing"}                          # AGENTS.md §1: → STRATEGY choose
 REQUIRED_CHECKS = ("Test and Build",)                                     # AGENTS.md §6
@@ -88,8 +89,12 @@ def facts(snap):
     f.abandoned_plan = sorted(n for n, b in snap["branches"].items()
                               if n.startswith(PLAN_PREFIX) and b.get("ahead") and n in closed_heads
                               and n not in open_heads)
+    # Work-store items (slice 3) are scheduled by work.py, not by these V1 rules; their branches aren't strays.
+    store = dev.get("work") or {}
+    f.store = bool(store)
+    store_branches = {(c or {}).get("branch") for c in store.values()}
     f.stray_exp_prs = [p for p in snap["prs"] if p["head"].startswith(EXP_PREFIX) and p["state"] == "OPEN"
-                       and p["head"] != f.branch]
+                       and p["head"] != f.branch and p["head"] not in store_branches]
     f.contradictions = contradictions(f, dev)
     return f
 
@@ -129,7 +134,8 @@ def contradictions(f, dev):
     plans = [p["head"] for p in f.plan_prs] + f.plan_branches
     if len(plans) > 1:
         out.append("more than one Strategy pass in flight: " + ", ".join(plans))
-    if plans and f.status in ("ready", "running", "done", "blocked"):
+    if plans and f.status in ("ready", "running", "done", "blocked") and not f.store:
+        # V1 plans only between experiments. With a work store the Planner may land work while items run.
         out.append(f"Strategy branch {plans[0]} is ahead of develop while {f.id} is {f.status}")
     return out
 
@@ -244,10 +250,12 @@ def derive(snap):
     # Migration slice 1 (MIGRATION.md): the Work DAG scheduler runs in shadow at concurrency 1 and must
     # pick what the V1 rules picked. It decides nothing yet; a disagreement is surfaced, not acted on.
     import work   # lazy: work imports sup
-    w = work.schedule(work.from_snapshot(snap), concurrency=1)
+    wv = work.from_snapshot(snap)
+    w = work.schedule(wv, concurrency=1)
     v1_next = action if target is None else f"{action} {target}"
-    w["agrees_with_v1"] = w["next_action"] == v1_next
-    if not w["agrees_with_v1"]:
+    # Slice 3: with work-store items the V1 RULES no longer see all the work, so they stop gating (None).
+    w["agrees_with_v1"] = None if wv["store"] else w["next_action"] == v1_next
+    if w["agrees_with_v1"] is False:
         attention.append({"kind": "work_model_disagrees", "detail": f"work {w['next_action']} vs V1 {v1_next}"})
     return {
         "schema": 1, "mode": "shadow", "at": snap.get("at"),
@@ -298,8 +306,8 @@ def load_at(sha, path):
     return _yaml_cache[key]
 
 
-def structure_errors(sha, exp, state):
-    """Run V1's own check_structure from the check.py committed at `sha` (no reimplementation)."""
+def structure_errors(sha, exp, state, work=None):
+    """Run the check_structure (and check_work, if present) of the check.py committed at `sha`."""
     src = git("show", f"{sha}:{CHECK}", check=False)
     if src is None or exp is None or state is None:
         return []
@@ -307,7 +315,15 @@ def structure_errors(sha, exp, state):
     exec(compile(src, f"{sha}:{CHECK}", "exec"), ns)
     ns["errors"].clear()
     ns["check_structure"](exp, state)
+    if work and "check_work" in ns:
+        ns["check_work"](work, exp, state)
     return list(ns["errors"])
+
+
+def load_work_at(sha):
+    """{path: contract} for every .ai/work/*.yaml committed at sha."""
+    names = (git("ls-tree", "--name-only", sha, WORK, check=False) or "").split()
+    return {n: load_at(sha, n) for n in names if n.endswith(".yaml")}
 
 
 def is_ancestor(a, b):
@@ -315,17 +331,23 @@ def is_ancestor(a, b):
 
 
 def develop_view(sha, ci):
-    exp, state = load_at(sha, EXP), load_at(sha, STATE)
+    exp, state, work = load_at(sha, EXP), load_at(sha, STATE), load_work_at(sha)
     return {
-        "sha": sha, "exp": exp, "state": state, "ci": ci,
-        "check_errors": structure_errors(sha, exp, state),
+        "sha": sha, "exp": exp, "state": state, "ci": ci, "work": work,
+        "check_errors": structure_errors(sha, exp, state, work),
         "last_ai_subject": (git("log", "-1", "--no-merges", "--format=%s", sha, "--", ".ai/") or "").strip(),
     }
 
 
-def branch_view(sha, time, dev_sha, want_exp):
+def branch_view(sha, time, dev_sha, want_exp, want_files=()):
     return {"sha": sha, "time": time, "ahead": not is_ancestor(sha, dev_sha),
-            "exp": load_at(sha, EXP) if want_exp else None}
+            "exp": load_at(sha, EXP) if want_exp else None,
+            "files": {p: load_at(sha, p) for p in want_files}}
+
+
+def store_files(develop):
+    """branch → work-store contract path, from the contracts committed on develop."""
+    return {(c or {}).get("branch"): p for p, c in (develop.get("work") or {}).items()}
 
 
 def summarize_checks(runs):
@@ -354,12 +376,14 @@ def collect_live(fetch=True):
     dev_ci = summarize_checks([{"name": r["name"], "status": r["status"], "conclusion": r["conclusion"]} for r in runs])
     develop = develop_view(dev, dev_ci)
     exp_branch = (develop["exp"] or {}).get("branch")
+    files = store_files(develop)
     branches = {}
     refs = git("for-each-ref", "--format=%(refname:strip=3) %(objectname) %(committerdate:iso-strict)",
                "refs/remotes/origin/ai/")
     for line in refs.splitlines():
         name, sha, time = line.split(" ", 2)
-        branches[name] = branch_view(sha, time, dev, want_exp=(name == exp_branch))
+        branches[name] = branch_view(sha, time, dev, want_exp=(name == exp_branch),
+                                     want_files=[files[name]] if name in files else ())
     prs = []
     for p in gh_json("pr", "list", "--state", "all", "--search", "head:ai/", "--limit", "200", "--json",
                      "number,headRefName,state,headRefOid,mergeable,url,statusCheckRollup"):
@@ -423,11 +447,12 @@ def main(argv=None):
         if a.snapshot_out:
             write_json(a.snapshot_out, snap)
         st = derive(snap)
-        write_json(a.out, st)
+        if a.out != "-":   # "-": print only (a session reading the schedule must not touch the runtime status)
+            write_json(a.out, st)
         print(json.dumps(st, indent=2, default=str) if a.json else "", end="")
         if not a.json:
             print_status(st)
-            print(f"status file : {a.out}")
+            print(f"status file : {a.out}" if a.out != "-" else "work next   : " + st["work"]["next_action"])
     else:
         with open(a.snapshot) as fh:
             print(json.dumps(derive(json.load(fh)), indent=2, default=str))

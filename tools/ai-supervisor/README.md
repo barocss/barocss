@@ -19,7 +19,7 @@ python3 -m unittest discover -s tools/ai-supervisor -v         # rule tests + re
 | `test_sup.py` | One test per rule, contradiction and precedence edge, plus the replay. |
 | `supervise.py` | Phase 2 serial supervisor (below). |
 | `test_supervise.py`, `fixtures/fake_claude.py` | Phase 2 tests: pure `decide()` plus real processes against a fake `claude`. |
-| `work.py`, `test_work.py` | Migration slice 1: Work DAG scheduler (PLAN / COMPUTE / JUDGE), run in shadow as `status.work`; must equal V1 at concurrency 1. See `MIGRATION.md`. |
+| `work.py`, `test_work.py` | Work DAG scheduler (PLAN / COMPUTE / JUDGE) over the legacy `EXPERIMENT.yaml` item and the `.ai/work/<id>.yaml` store; published as `status.work`, equal to V1 while the store is empty. See `MIGRATION.md`. |
 
 ## Actions
 
@@ -136,7 +136,8 @@ Loop: observe (Phase 1 `collect_live` + `derive`) → `decide()` (pure) → wait
 plus, since migration slice 2, the observed step (`The supervisor observed that the next step is EXECUTE E-008:
 EXECUTION (§3) of E-008 only … Confirm it with §1 first. If §1 gives a different mode or work item, stop
 without changing anything.`). The step comes from the Work DAG scheduler (`status.work`); the V1 `RULES` gate
-it, and a disagreement holds as `work_model_disagrees`. See `MIGRATION.md`.
+it while the work store is empty, and a disagreement holds as `work_model_disagrees`. With store items
+(`.ai/work/<id>.yaml`, slice 3) the scheduler alone decides. See `MIGRATION.md`.
 
 | next action (Phase 1) | supervisor |
 |---|---|

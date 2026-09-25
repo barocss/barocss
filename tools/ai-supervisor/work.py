@@ -60,7 +60,9 @@ def item(contract, branch=None, prs=(), file=sup.EXP):
     pr = open_prs[0] if open_prs else (prs[0] if prs else None)
     review = c.get("review") or {}
 
-    if status == "ready" and branch is None:
+    if d_status in ("done", "blocked") or (d_status == "running" and branch is None):
+        state = INVALID   # results reach develop only through a reviewed merge; running needs its branch
+    elif status == "ready" and branch is None:
         state = READY
     elif status in ("ready", "running"):
         state = RUNNING
@@ -91,14 +93,21 @@ def item(contract, branch=None, prs=(), file=sup.EXP):
 
 
 def from_snapshot(snap):
-    """V1 adapter: a Phase 1 snapshot → a work view holding the single V1 item (or none)."""
+    """A Phase 1 snapshot → a work view: the legacy V1 item (EXPERIMENT.yaml, adapter) plus every
+    work-store item (.ai/work/<id>.yaml, slice 3). An empty store is exactly V1."""
     f = sup.facts(snap)
-    it = None
+    items = []
     if snap["develop"].get("exp") is not None:
-        it = item(snap["develop"]["exp"], snap["branches"].get(f.branch) if f.branch else None,
-                  [p for p in snap["prs"] if p["head"] == f.branch])
-    return {"items": [it] if it else [], "plan_pr": f.plan_pr, "plan_branches": list(f.plan_branches),
-            "blockers": list(f.blockers), "contradictions": list(f.contradictions)}
+        items.append(item(snap["develop"]["exp"], snap["branches"].get(f.branch) if f.branch else None,
+                          [p for p in snap["prs"] if p["head"] == f.branch]))
+    store = snap["develop"].get("work") or {}
+    for path, c in sorted(store.items()):
+        b = snap["branches"].get((c or {}).get("branch"))
+        items.append(item(c, {"exp": (b.get("files") or {}).get(path), "time": b.get("time")} if b else None,
+                          [p for p in snap["prs"] if p["head"] == (c or {}).get("branch")], file=path))
+    return {"items": [i for i in items if i], "store": len(store), "plan_pr": f.plan_pr,
+            "plan_branches": list(f.plan_branches), "blockers": list(f.blockers),
+            "contradictions": list(f.contradictions)}
 
 
 # ---------------------------------------------------------------- conflicts (deterministic)

@@ -21,14 +21,14 @@ no dependencies, locks or conflict model; runtime resources (ports, dev server) 
 
 | target | V1 today | slice that changes it |
 |---|---|---|
-| Work item | `EXPERIMENT.yaml` contract | 1: model + adapter (done). 3: `.ai/work/<id>.yaml` store |
+| Work item | `EXPERIMENT.yaml` contract | 1: model + adapter (done). 3: `.ai/work/<id>.yaml` store (done) |
 | Work DAG readiness | implicit (one slot) | 1: `work.schedule()` (done, shadow). 2: the supervisor decides from it (done) |
 | COMPUTE | EXECUTION session, self-selects mode | 2: launch names mode + work id, session confirms via §1 (done) |
 | JUDGE | Strategy §2A | 4: separate session and instruction; code disposition split from verdict |
-| PLANNER | Strategy §2B | 4: wakes only on `work.schedule()` planner events; IDLE marker |
+| PLANNER | Strategy §2B | 3: writes store contracts with deps/locks, may write none (done). 4: wakes only on planner events; IDLE marker |
 | MERGE | Strategy session | 4: mechanical, from the Judge's recorded decision |
 | concurrency | 1 | 5: worktree + port allocation, then 1 → 2 → 3 |
-| lifecycle / runtime status | `run`, `status`, `release` | alongside 3–5: PAUSE/RESUME/STOP control file, status view |
+| lifecycle / runtime status | `run`, `status`, `release` | alongside 4–5: PAUSE/RESUME/STOP control file, status view |
 
 ## Slice 1: Work DAG scheduler in shadow, serial
 
@@ -65,6 +65,25 @@ None of it has a consumer until slice 2 changes who reads the contract.
   replaced by the instruction's own confirm-or-stop guard.
 - The ledger records `mode` (PLAN / COMPUTE / JUDGE / MERGE); `supervisor.json` shows buckets and planner state.
 
+## Slice 3: work store, still serial (first protocol change)
+
+- New contracts go to `.ai/work/<id>.yaml`, same format as `EXPERIMENT.yaml`. The legacy slot finishes its
+  contract (E-008) and is never reused, so E-008's flow is unchanged. An empty store is exactly V1.
+- `AGENTS.md` §1: a session takes the step its instruction names, or else `sup.py observe --out -`'s `work next`,
+  reads that contract (branch copy while ready/running), and confirms the step against its status or stops.
+  §2B: the Planner writes store contracts, more than one only for independent questions, declaring
+  `depends_on`, `locks`, `observes`, `priority`; writing none is valid (idle). §2A/§3: `check.py --work <id>`.
+- `check.py`: every store file is a full contract (id = file name, ids and branches unique across all
+  contracts, outcome known); `--role execution --work <id>` freezes that file and scopes writes to it.
+- `sup.py` loads the store from develop and each item's branch; the committed `check_work` runs as structure.
+  Store branches aren't stray PRs, and a Planner branch may land while store work runs (V1 contradiction relaxed
+  only when the store is non-empty).
+- `work.from_snapshot()` returns legacy + store items. Store items can't have `done`/`blocked` on develop or
+  `running` without a branch (INVALID → HUMAN_REQUIRED).
+- The V1 gate (`agrees_with_v1`) applies only while the store is empty; with store items it is `None` and the
+  scheduler alone decides. Items interleave in one serial lane: while one waits for CI or review, the next
+  independent contract can run. The model already schedules concurrency 2; the supervisor stays at 1.
+
 ## Success criteria
 
 Slice 1 (met):
@@ -78,15 +97,20 @@ Slice 2 (met): all tests and the replay pass; `decide()` takes every Phase 2 tes
 `agrees_with_v1` true; a disagreement holds; live `run --dry-run` on `origin/develop` gives `EXECUTE E-008`,
 mode COMPUTE, launch, with the addressed instruction.
 
+Slice 3 (met): replay and the 7,200-state grid still equal V1 (empty store); store items run the whole
+READY → RUNNING → CI → JUDGE → MERGING → DONE lifecycle in the scheduler; dependencies across store files,
+invariants, the relaxed gate and addressed launches are tested; `check.py` is tested against a throwaway git repo
+(structure errors, `--work` freeze and scope); live dry-run on develop still gives `EXECUTE E-008`.
+
 Migration overall: every step replay-equal to V1 at concurrency 1 before it takes a decision; a step is
 reverted by deleting its code path, and durable state stays readable by the V1 protocol.
 
-## Next slice (3): work store, still serial
+## Next slice (4): Judge / Planner split, IDLE, mechanical merge, still serial
 
-1. `.ai/work/<id>.yaml` holds work items in the existing contract format; `EXPERIMENT.yaml` stays as the V1
-   item and is read as one more item (adapter), so an empty `work/` is exactly V1.
-2. `collect_live()` loads them from develop and each item's branch; `check.py --role execution --work <id>`
-   freezes that file instead of `EXPERIMENT.yaml`.
-3. The `agrees_with_v1` gate applies only to the `EXPERIMENT.yaml` item; work-store items are scheduled by
-   `work.schedule()` alone. This needs protocol text (AGENTS.md §2B: when the Planner writes a work file,
-   §3: Compute reads the named file), so it is the first slice that changes the protocol.
+1. A REVIEW session is a Judge: §2A ends at the recorded review (verdict and code disposition as separate
+   fields) and does not continue into §2B. The supervisor wakes the Planner only on `work.schedule()` planner
+   events.
+2. A durable IDLE marker (the Planner's "no question worth a contract" with the develop sha it judged) so a
+   PLAN pass that writes nothing is not relaunched on the same state; a new judged result or directive clears it.
+3. MERGE of a judged `merged: true` PR is done by the supervisor itself once required checks pass, instead of
+   a Strategy session (AGENTS.md §6 authority text changes accordingly).

@@ -17,6 +17,11 @@ from test_sup import snap  # noqa: E402
 RUNNING, JUDGE, MERGING, DONE = work.RUNNING, work.JUDGE, work.MERGING, work.DONE
 
 
+def read(path):
+    with open(path, encoding="utf-8") as fh:
+        return fh.read()
+
+
 class V1Equivalence(unittest.TestCase):
     BRANCH = [None, {"status": "ready"}, {"status": "running"}, {"status": "done"}, {"status": "blocked"},
               {"status": "evaluated", "review": {"merged": True}},
@@ -227,9 +232,9 @@ class CheckPy(unittest.TestCase):
     def structure_errors(self, **extra):
         ns = {"__name__": "v1_check"}
         path = os.path.join(sup.TOP, sup.CHECK)
-        exec(compile(open(path).read(), path, "exec"), ns)
-        exp = sup.yaml.safe_load(open(os.path.join(sup.TOP, sup.EXP)))
-        state = sup.yaml.safe_load(open(os.path.join(sup.TOP, sup.STATE)))
+        exec(compile(read(path), path, "exec"), ns)
+        exp = sup.yaml.safe_load(read(os.path.join(sup.TOP, sup.EXP)))
+        state = sup.yaml.safe_load(read(os.path.join(sup.TOP, sup.STATE)))
         exp = dict(exp, status="ready", **extra)
         ns["check_structure"](exp, state)
         return ns["errors"]
@@ -239,6 +244,175 @@ class CheckPy(unittest.TestCase):
         self.assertEqual(self.structure_errors(depends_on=["E-7"], locks=["port:5173"], observes=["a/"],
                                                priority=2), [])
         self.assertEqual(len(self.structure_errors(depends_on="E-7", locks=[1], priority=True)), 3)
+
+
+# ---------------------------------------------------------------- slice 3: work store
+
+import subprocess, tempfile, textwrap  # noqa: E402
+import supervise as sv  # noqa: E402
+
+W = ".ai/work/E-010.yaml"
+WB = "ai/E-010-x"
+
+
+def store_snap(dev_status="evaluated", item_status="ready", branch=None, prs=(), plan_branches=(), extra=None,
+               paths=("packages/barocss/src/",)):
+    """Legacy EXPERIMENT.yaml (E-009, test_sup.snap) plus work-store item E-010 in .ai/work/E-010.yaml."""
+    s = snap(dev_status, plan_branches=plan_branches, prs=list(prs))
+    c = {"id": "E-010", "outcome": "O2", "branch": WB, "status": item_status, "allowed": {"paths": list(paths)}}
+    s["develop"]["work"] = {W: c}
+    for path, cc in (extra or {}).items():
+        s["develop"]["work"][path] = cc
+    if branch is not None:
+        s["branches"][WB] = {"sha": "e" * 40, "time": "2026-09-25T11:00:00+00:00", "ahead": True, "exp": None,
+                             "files": {W: dict(c, **branch)}}
+    return s
+
+
+def spr(**kw):
+    return dict({"head": WB, "number": 9, "state": "OPEN", "ci": "success", "mergeable": "MERGEABLE",
+                 "url": "https://github.com/o/r/pull/9"}, **kw)
+
+
+class Store(unittest.TestCase):
+    def test_empty_store_is_v1(self):
+        s = snap("ready")
+        s["develop"]["work"] = {}
+        st = sup.derive(s)
+        self.assertEqual((st["work"]["next_action"], st["work"]["agrees_with_v1"]), ("EXECUTE E-009", True))
+
+    def test_store_item_lifecycle(self):
+        cases = [
+            (store_snap(), "EXECUTE E-010", "COMPUTE"),
+            (store_snap(branch={"status": "running"}), "WAIT_EXECUTION E-010", None),
+            (store_snap(branch={"status": "done"}), "WAIT_EXECUTION E-010", None),          # PR not opened yet
+            (store_snap(branch={"status": "done"}, prs=[spr(ci="pending")]), "WAIT_FOR_CI #9", None),
+            (store_snap(branch={"status": "done"}, prs=[spr()]), "REVIEW E-010", "JUDGE"),
+            (store_snap(branch={"status": "evaluated", "review": {"merged": True}}, prs=[spr()]), "MERGE #9", "MERGE"),
+            (store_snap(branch={"status": "evaluated", "review": {"merged": False}}, prs=[spr(state="CLOSED")]),
+             "PLAN", "PLAN"),
+            (store_snap(item_status="evaluated"), "PLAN", "PLAN"),                           # judged and landed
+        ]
+        for s, want, mode in cases:
+            st = sup.derive(s)
+            self.assertEqual((st["work"]["next_action"], st["work"]["mode"]), (want, mode), want)
+            self.assertIsNone(st["work"]["agrees_with_v1"])      # the V1 RULES don't see the store: no gate
+            self.assertNotIn("work_model_disagrees", [a["kind"] for a in st["attention"]])
+
+    def test_v1_rules_would_plan_but_the_scheduler_runs_the_store_item(self):
+        st = sup.derive(store_snap())
+        self.assertEqual((st["next_action"], st["work"]["next_action"]), ("PLAN", "EXECUTE E-010"))
+        s = store_snap()
+        d = sv.decide(sv.view_of(s, sup.derive(s)), [], 0, sv.Config())
+        self.assertEqual((d["do"], d["action"]), ("launch", "EXECUTE E-010"))
+
+    def test_legacy_and_store_items_share_one_serial_lane(self):
+        # E-009 (legacy, ready) and E-010 (store) write disjoint paths: at concurrency 1 the lower id goes first,
+        # and while it runs nothing else launches.
+        s = store_snap("ready", paths=("apps/x/",))
+        self.assertEqual(sup.derive(s)["work"]["next_action"], "EXECUTE E-009")
+        s["branches"]["ai/E-009-x"] = {"sha": "b" * 40, "time": "2026-09-25T11:00:00+00:00", "ahead": True,
+                                       "exp": dict(s["develop"]["exp"], status="running"), "files": {}}
+        self.assertEqual(sup.derive(s)["work"]["next_action"], "WAIT_EXECUTION E-009")
+        w = work.schedule(work.from_snapshot(s), concurrency=2)   # the model is ready for 2; the supervisor isn't
+        self.assertEqual([x["action"] for x in w["launch"]], ["EXECUTE E-010"])
+
+    def test_dependencies_across_store_files(self):
+        dep = {"id": "E-011", "outcome": "O2", "branch": "ai/E-011-y", "status": "ready", "depends_on": ["E-010"],
+               "allowed": {"paths": ["apps/y/"]}}
+        w = sup.derive(store_snap(extra={".ai/work/E-011.yaml": dep}))["work"]
+        self.assertEqual(w["next_action"], "EXECUTE E-010")
+        self.assertEqual(row(w, "E-011")["reason"], "depends on E-010 (READY)")
+        w = sup.derive(store_snap(item_status="evaluated", extra={".ai/work/E-011.yaml": dep}))["work"]
+        self.assertEqual(w["next_action"], "EXECUTE E-011")
+
+    def test_store_item_invariants(self):
+        for status in ("done", "blocked", "running"):   # results land only by reviewed merge; running needs a branch
+            w = sup.derive(store_snap(item_status=status))["work"]
+            self.assertEqual((row(w, "E-010")["state"], w["next_action"]), ("INVALID", "HUMAN_REQUIRED"), status)
+
+    def test_store_branch_is_not_a_stray_and_planner_may_land_while_it_runs(self):
+        st = sup.derive(store_snap(branch={"status": "done"}, prs=[spr()]))
+        self.assertNotIn("stray_experiment_pr", [a["kind"] for a in st["attention"]])
+        st = sup.derive(store_snap("ready", branch={"status": "running"}, plan_branches=["ai/strategy-E-012"]))
+        self.assertEqual(st["contradictions"], [])
+        self.assertEqual(st["work"]["next_action"], "WAIT_PLAN ai/strategy-E-012")
+
+    def test_supervisor_view_and_instruction_for_a_store_item(self):
+        s = store_snap(branch={"status": "running"})
+        v = sv.view_of(s, sup.derive(s))
+        self.assertEqual((v["experiment"], v["exp_status"], v["head_time"]),
+                         ("E-010", "running", "2026-09-25T11:00:00+00:00"))
+        self.assertIn("EXECUTION (§3) of E-010 only", sv.instruction("EXECUTE E-010"))
+        s = store_snap(branch={"status": "done", "question": "Q10?", "result": {"verdict": "PROVEN"}},
+                       prs=[spr(ci="pending")])
+        proj = sv.view_of(s, sup.derive(s))["project"]   # status display follows the store item, not the legacy slot
+        self.assertEqual((proj["question"], proj["verdict"], proj["pr"]["number"], proj["pr"]["ci"]),
+                         ("Q10?", "PROVEN", 9, "pending"))
+        r = {"key": "EXECUTE E-010@dddd", "action": "EXECUTE E-010", "ended_at": "2026-09-25T11:30:00+00:00"}
+        s = store_snap(branch={"status": "done"}, prs=[spr(ci="pending")])
+        self.assertEqual(sv.transition(r, sv.view_of(s, sup.derive(s))), "advanced")
+
+
+def git(cwd, *a):
+    return subprocess.run(["git", "-C", cwd, *a], check=True, capture_output=True, text=True).stdout
+
+
+class CheckPyWork(unittest.TestCase):
+    """check.py against a throwaway repo: work-file structure and `--role execution --work`."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp(prefix="check-work-")
+        os.makedirs(os.path.join(self.d, ".ai", "work"))
+        for f in (sup.CHECK, sup.STATE, sup.EXP):
+            self.write(f, read(os.path.join(sup.TOP, f)))
+        self.write(".ai/work/E-010.yaml", self.contract())
+        git(self.d, "init", "-q", "-b", "develop")
+        git(self.d, "-c", "user.email=t@t", "-c", "user.name=t", "add", "-A")
+        git(self.d, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "base")
+        git(self.d, "checkout", "-qb", "ai/E-010-x")
+
+    def contract(self, **kw):
+        c = sup.yaml.safe_load(read(os.path.join(sup.TOP, sup.EXP)))
+        c.update(id="E-010", branch="ai/E-010-x", status="ready", allowed={"paths": ["apps/x/"], "actions": ["a"]})
+        c.update(kw)
+        return c
+
+    def write(self, path, data):
+        full = os.path.join(self.d, path)
+        os.makedirs(os.path.dirname(full), exist_ok=True)
+        with open(full, "w") as fh:
+            fh.write(data if isinstance(data, str) else sup.yaml.safe_dump(data, sort_keys=False))
+
+    def check(self, *args):
+        r = subprocess.run([sys.executable, ".ai/check.py", *args], cwd=self.d, capture_output=True, text=True)
+        return r.returncode, r.stdout
+
+    def test_structure_accepts_the_store(self):
+        self.assertEqual(self.check(), (0, "OK\n"))
+
+    def test_structure_rejects_bad_work_files(self):
+        self.write(".ai/work/E-011.yaml", self.contract(id="E-012"))
+        self.write(".ai/work/E-013.yaml", self.contract(id="E-013"))          # same branch as E-010
+        self.write(".ai/work/E-014.yaml", self.contract(id="E-014", branch="b14", question=None))
+        code, out = self.check()
+        self.assertEqual(code, 1)
+        self.assertIn("E-011.yaml: id 'E-012' does not match the file name", out)
+        self.assertIn("branch 'ai/E-010-x' also used by .ai/work/E-010.yaml", out)
+        self.assertIn(".ai/work/E-014.yaml.question required", out)
+
+    def test_execution_on_a_store_contract(self):
+        self.write(".ai/work/E-010.yaml", self.contract(status="running"))
+        self.write(".ai/evidence/E-010/run.json", "{}")
+        self.write("apps/x/a.ts", "x")
+        self.assertEqual(self.check("--role", "execution", "--base", "develop", "--work", "E-010")[0], 0)
+        self.write(".ai/work/E-010.yaml", self.contract(status="running", question="changed"))
+        code, out = self.check("--role", "execution", "--base", "develop", "--work", "E-010")
+        self.assertIn("frozen contract field changed: question", out)
+        self.write(".ai/work/E-010.yaml", self.contract(status="running"))
+        self.write(".ai/EXPERIMENT.yaml", read(os.path.join(self.d, sup.EXP)) + "\n# edit\n")
+        code, out = self.check("--role", "execution", "--base", "develop", "--work", "E-010")
+        self.assertIn("outside contract scope: .ai/EXPERIMENT.yaml", out)
 
 
 if __name__ == "__main__":
