@@ -1,12 +1,12 @@
 # Durable project state. STRATEGY-owned; EXECUTION never edits this file.
 # Keep < ~150 lines. Git history holds everything older.
-updated: 2026-09-25   # D18: contracted E-010 parity-lane batch (O2)
+updated: 2026-09-25   # D19: reviewed E-010 PARTIAL (F1 ring + F3 border land; F2 translate dropped)
 
 now:                       # dashboard view; mode comes from contract status
   active_outcome: O2
-  experiment: "E-010 (ready): parity-lane batch of three measured K10 families — F1 ring box-shadow (start from the proven E-008 fix), F2 single-axis translate, F3 preflight border-style — each a missing Tailwind-v4 composition default. One product PR; L2 per-token comparison vs Tailwind 4.1.13 + pnpm check green, then one G1/G2/G3 rerun (L3) to see the tokens render."
-  last_result: "E-009 withdrawn by the human (evaluated/INCONCLUSIVE, not merged) before any result; superseded by the parity-lane directive. The E-008 branch ring fix (ai/E-008-ring-parity, K11) is the batch's starting point."
-  next: "EXECUTION: run E-010 on branch ai/E-010-parity-batch"
+  experiment: "E-010 (evaluated, PARTIAL): parity-lane batch. F1 ring box-shadow + F3 preflight border reach exact Tailwind-4.1.13 per-token L2 parity (K12); F2 single-axis translate dropped (value-formula gap, not a composition default) and re-scoped as a parity candidate. PR #141 accepted to merge (merged: true) — held on the human-approval gate: awaiting the `human-approved` label before `gh pr merge` runs."
+  last_result: "E-010 reviewed PARTIAL. First product code accepted for O2 (ring + border), pending the human-approved label. §2B (next contract) held until that merge lands, per the human-approval directive."
+  next: "MERGE #141 once a human adds the `human-approved` label (mechanical). Then §2B: the question-lane option-B report experiment is ordered next (human directive), then re-scope F2 as a value-formula fix."
   blockers: []
 
 outcomes:
@@ -68,6 +68,21 @@ knowledge:
         INCONCLUSIVE, not merged: the contract's allowed.paths omitted packages/barocss/tests/, so 4 exact-AST ring
         tests that froze the parity-wrong v3 blue default fail pnpm check; L3 (G1/G2 rerun) not run. Re-issued as
         E-009 with scope fixed. Branch ai/E-008-ring-parity kept as reference. Evidence: .ai/evidence/E-008/.
+    - id: K12
+      level: L2
+      fact: >
+        E-010 (PARTIAL): batching measured parity families into one product PR works for families that are true
+        composition-default gaps. F1 ring (register --baro-shadow/--baro-inset-shadow/--baro-inset-ring-shadow via
+        @property 0 0 #0000, drop the v3 blue --baro-ring-color, add ring-offset-{0,1,2,4,8}) and F3 preflight border
+        (universal `border: 0 solid`) both reach exact Tailwind-4.1.13 per-token parity at L2 (browser parity.mjs;
+        ring also corroborated by the untouched, passing compat/compare.test.ts), pnpm check GREEN (1451), no control
+        regressed. Product diff = effects.ts + preflight.ts + changeset + the frozen ring assertions only. PR #141.
+      caveat: >
+        F2 single-axis translate is NOT a composition-default gap and was dropped: integer translate-x/-y emit
+        calc(N * 100%) where Tailwind emits calc(var(--spacing) * N), a value-formula defect the contract's allowed
+        F2 change (registering the @property axis default) cannot fix — re-scoped as a parity candidate (value-formula
+        fix + register --baro-translate-* defaults). The one L3 G1/G2/G3 rerun was deferred to that fully-fixed build.
+        Merge of the landed part is held on the human-approved label. Evidence: .ai/evidence/E-010/.
   disproven: []
   working_assumptions:     # L0; plausible but untested, don't treat as proven
     - Natural-language reasoning doesn't belong inside BaroCSS.
@@ -155,6 +170,25 @@ decisions:                 # older entries compressed; full text in git log -p -
       (missing composition default) and one-line-per-file local fixes, maximizing a mergeable first product PR;
       murkier or unmeasured families are held back so scope errors don't sink the batch. Human-approval,
       tests-in-scope and draft-when-red directives all carried into the contract.
+
+  - id: D19
+    date: 2026-09-25
+    decision: >
+      Reviewed E-010 (§2A of PR #141): accepted PARTIAL, decided to merge the landed part (merged: true), merge held
+      on the human-approved label. F1 ring + F3 preflight border reach exact Tailwind-4.1.13 per-token L2 parity with
+      pnpm check GREEN and no control regression (K12); the diff is the minimum allowed (effects.ts + preflight.ts +
+      changeset + the frozen ring assertions, no assertion weakened, transform.ts untouched). F2 single-axis translate
+      dropped: reran translate-gap.mjs and confirmed a value-formula gap (calc(N*100%) vs calc(var(--spacing)*N)) the
+      contract's allowed F2 change cannot fix — it changed no product code, so the parity-lane PARTIAL-merge directive
+      is satisfied. Did NOT run gh pr merge (no human-approved label); recorded merged: true and stop. Per that
+      directive §2B is held until the merge lands. F2 goes back as a parity candidate (value-formula fix + register
+      --baro-translate-* @property defaults); the single L3 G1/G2/G3 rerun is deferred to that fully-fixed build.
+    why: >
+      A PARTIAL parity batch may merge its landed families (human directive) when each reaches exact per-token L2
+      parity with green check and no regression and each dropped family touched no product code — all true here — so
+      the "merge only if PROVEN" rule applies to the landed part, not the whole batch. Product-code merges still wait
+      for the human-approved label. F2's miss has a second, independent cause (wrong value formula), so it is a
+      separate parity fix, not a scope failure of this batch.
 
 open_items:                # for STRATEGY, not EXECUTION
   - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."
