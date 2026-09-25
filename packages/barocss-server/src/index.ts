@@ -26,7 +26,9 @@ export class ServerRuntime {
    */
   generateCss(className: string) {
     const result = generateCssRules(className, this.context);
-    return result.map(({ css }) => css).filter(Boolean).join('\n');
+    const rootRules = new Set(result.flatMap(({ rootCssList }) => rootCssList).filter(Boolean));
+    const classRules = result.map(({ css }) => css).filter(Boolean);
+    return [...rootRules, ...classRules].join('\n');
   }
 
   /**

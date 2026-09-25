@@ -16,4 +16,13 @@ describe('ServerRuntime', () => {
     expect(css).toContain('.p-4');
     expect(css).toContain('.m-2');
   });
+
+  it('includes shared root rules once when generating multiple classes', () => {
+    const css = runtime.generateCss('translate-full -translate-full');
+
+    expect(css).toContain('.translate-full');
+    expect(css).toContain('.-translate-full');
+    expect(css.match(/@property --baro-translate-x/g)).toHaveLength(1);
+    expect(css.match(/@property --baro-translate-y/g)).toHaveLength(1);
+  });
 });
