@@ -3,7 +3,7 @@ import { BrowserRuntime, BrowserRuntimeOptions } from "./browser-runtime";
 let runtime: BrowserRuntime | null = null;
 
 export function getRuntime(options: BrowserRuntimeOptions) {
-  if (!runtime) {
+  if (!runtime || runtime.getStats().isDestroyed) {
     runtime = new BrowserRuntime(options);
   }
   return runtime;
@@ -12,6 +12,10 @@ export function getRuntime(options: BrowserRuntimeOptions) {
 type BaroBootOptions = BrowserRuntimeOptions & { loadingClassName?: string };
 
 export function baroBoot({ loadingClassName = 'baro-boot', ...options }: BaroBootOptions = {}) {
+    if (!document.body) {
+        document.addEventListener('DOMContentLoaded', () => baroBoot({ loadingClassName, ...options }), { once: true });
+        return;
+    }
     const startClassName = `${loadingClassName}-doing`;
     const endClassName = `${loadingClassName}-done`;
     try {    
@@ -24,6 +28,7 @@ export function baroBoot({ loadingClassName = 'baro-boot', ...options }: BaroBoo
             document.body.classList.add(endClassName);
         }});
     } catch (error) {
+        document.body?.classList.remove(startClassName);
         // eslint-disable-next-line no-console
         console.error('BaroCSS boot failed:', error);
     }

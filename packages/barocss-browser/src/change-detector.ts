@@ -1,4 +1,4 @@
-import { IncrementalParser, parseResultCache } from "@barocss/kit";
+import { IncrementalParser, parseClassName } from "@barocss/kit";
 import { BrowserRuntime } from "./browser-runtime";
 import { normalizeClassNameList } from "./utils";
 
@@ -26,6 +26,7 @@ export class ChangeDetector {
     
     /** Reference to BrowserRuntime for CSS injection (optional) */
     private BrowserRuntime?: BrowserRuntime;
+    private getCategory: (cls: string) => string | undefined;
     
     /**
      * Create a new ChangeDetector instance
@@ -33,9 +34,10 @@ export class ChangeDetector {
      * @param incrementalParser - IncrementalParser instance for class processing
      * @param BrowserRuntime - Optional BrowserRuntime instance for CSS injection
      */
-    constructor(incrementalParser: IncrementalParser, BrowserRuntime?: BrowserRuntime) {
+    constructor(incrementalParser: IncrementalParser, BrowserRuntime?: BrowserRuntime, getCategory: (cls: string) => string | undefined = cls => parseClassName(cls).utility?.category) {
       this.incrementalParser = incrementalParser;
       this.BrowserRuntime = BrowserRuntime;
+      this.getCategory = getCategory;
     }
 
     setParser(parser: IncrementalParser): void {
@@ -72,7 +74,7 @@ export class ChangeDetector {
   
         mutations.forEach(mutation => {
           // Handle attribute changes (class modifications)
-          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class' && root.contains(mutation.target)) {
             const target = mutation.target as HTMLElement;
             if (target.className) {
               // SVG className is SVGAnimatedString; convert to string with toString()
@@ -89,10 +91,11 @@ export class ChangeDetector {
           // Handle new nodes
           if (mutation.type === 'childList') {
             mutation.addedNodes.forEach(node => {
-              if (node instanceof Element) {
-                this.processElement(node, newClasses);
+              if (node.nodeType === Node.ELEMENT_NODE && root.contains(node)) {
+                const element = node as Element;
+                this.processElement(element, newClasses);
                 // Process child elements
-                node.querySelectorAll('[class]').forEach(el => {
+                element.querySelectorAll('[class]').forEach(el => {
                   this.processElement(el, newClasses);
                 });
               }
@@ -108,6 +111,8 @@ export class ChangeDetector {
           const results = this.incrementalParser.processClasses(classesArray);
           // If BrowserRuntime is available, apply results via public API
           this.BrowserRuntime?.applyParseResults(results);
+        } else {
+          this.BrowserRuntime?.applyParseResults([]);
         }
       });
   
@@ -167,8 +172,8 @@ export class ChangeDetector {
         const classes = Array.from(existingClasses);
         const results = this.incrementalParser.processClasses(classes);
   
-        const layoutResults = results.filter(result => parseResultCache.get(result.cls)?.utility?.category === 'layout');
-        const nonLayoutResults = results.filter(result => parseResultCache.get(result.cls)?.utility?.category !== 'layout');
+        const layoutResults = results.filter(result => this.getCategory(result.cls) === 'layout');
+        const nonLayoutResults = results.filter(result => this.getCategory(result.cls) !== 'layout');
   
         
         // Apply layout results
@@ -177,6 +182,8 @@ export class ChangeDetector {
   
         // Apply non-layout results
         this.BrowserRuntime?.applyParseResults(nonLayoutResults);
+      } else {
+        options?.onReady?.();
       }
     }
   
