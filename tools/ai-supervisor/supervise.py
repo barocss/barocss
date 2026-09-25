@@ -27,6 +27,7 @@ from datetime import datetime, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sup  # noqa: E402
 import work  # noqa: E402
+import directives  # noqa: E402
 
 STANDARD_INSTRUCTION = (
     "Read AGENTS.md and follow it.\n\n"
@@ -107,6 +108,7 @@ class Config:
         self.concurrency = 1                    # sessions at once; 1 keeps the serial loop below unchanged
         self.gh = ["gh"]                        # mechanical merges
         self.bind_review = True                 # merge only the head a Strategy review commit produced (+ develop merges)
+        self.directives = True                  # read directive issues each observation (#160); tests turn it off
         self.port_base = 5200                   # --concurrency > 1: slot n gets port_base + n*port_span …
         self.port_span = 100
         self.notify = False                     # desktop notifications (the CLI turns them on)
@@ -264,6 +266,9 @@ def decide(v, records, now, cfg):
         # Until the V1 RULES retire, a scheduler that disagrees with them is a bug to look at, not a plan.
         return _hold("work_model_disagrees", f"work {v['next_action']} vs V1 {v['v1_next_action']}")
     word = v["action"]
+    if word in DIRECTIVE_READERS and not (v.get("directives") or {"ok": True})["ok"]:
+        return _hold("directives_unavailable", f"{v['next_action']}: can't read the directive issues "
+                                               f"({v['directives'].get('error')}); a Strategy pass needs them")
     if word == "MERGE" and v.get("product_code") and not v.get("approved"):
         return _hold("human_approval", f"{v['merge_pr']} changes product code: review it, then add the "
                                        f"`{APPROVAL_LABEL}` label (or approve the PR) to let it merge")
@@ -323,6 +328,7 @@ def _attempt(key, action, recs, now, cfg, resume=None):
 
 
 STRATEGY_WORDS = {"PLAN", "REVIEW", "MERGE"}   # every one of these writes STATE.yaml: one at a time
+DIRECTIVE_READERS = {"PLAN", "REVIEW"}          # sessions that must read the directives (AGENTS.md §2)
 
 
 def pkey(action, develop):
@@ -378,6 +384,10 @@ def decide_many(v, sched, records, now, cfg, gate=None, head_of=None, pr_of=None
     for action, wid, key in cands:
         word = action.split()[0]
         if action in busy_actions or (wid and wid in busy_work):
+            continue
+        if word in DIRECTIVE_READERS and not (v.get("directives") or {"ok": True})["ok"]:
+            out["holds"].append(_hold("directives_unavailable", f"{action}: can't read the directive issues "
+                                                                f"({v['directives'].get('error')})"))
             continue
         if word in STRATEGY_WORDS and strategy:
             out["waits"].append(f"{action}: a Strategy-mode session is running")
@@ -804,7 +814,23 @@ class Supervisor:
         snap, st = self.observe_fn()
         sup.write_json(os.path.join(self.cfg.home, "status.json"), st)
         self.snap = snap
-        return view_of(snap, st)
+        v = view_of(snap, st)
+        v["directives"] = self._directives()
+        if v["directives"].get("ignored"):
+            v["attention"] = list(v["attention"]) + [
+                {"kind": "directive_ignored", "detail": f"#{d['number']} by {d['author']} (not an allowed author)"}
+                for d in v["directives"]["ignored"]]
+        return v
+
+    def _directives(self):
+        """{ok, ids, ignored, error}: the directive issues in force (#160). Fails closed: ok False on error."""
+        if not self.cfg.directives:
+            return {"ok": True, "ids": [], "ignored": [], "error": None, "skipped": True}
+        try:
+            ok, ignored = directives.current(top=self.cfg.repo_dir)
+            return {"ok": True, "ids": directives.ids(ok), "ignored": ignored, "error": None}
+        except (directives.Unavailable, OSError, subprocess.TimeoutExpired, ValueError) as e:
+            return {"ok": False, "ids": [], "ignored": [], "error": str(e)[:200]}
 
     def observe_parallel(self, n_live):
         """(view, schedule at this runner's concurrency) or None when observation failed."""
@@ -1002,6 +1028,7 @@ class Supervisor:
                "exit_code": None, "reason": None, "before": {"next_action": v["next_action"], "develop": v["develop"],
                                                              "item_state": item_state},
                "cwd": cwd, "dir": sdir, "work": d.get("work") or v.get("experiment"), "slot": slot,
+               "directives": (v.get("directives") or {}).get("ids"),
                "ports": list(ports) if ports else None}
         recs = self.ledger.load()
         recs.append(rec)

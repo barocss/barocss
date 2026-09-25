@@ -1,0 +1,7 @@
+# Human directives live in GitHub issues (#160), not in STATE.yaml.
+# In force = an OPEN issue with this label whose AUTHOR is listed below. The label alone is not trusted:
+# the repo is public and an issue's author can edit its body. Read them with
+#   python3 tools/ai-supervisor/directives.py
+label: directive
+authors:
+  - easylogic        # repo admin; also the account the Claude sessions act as

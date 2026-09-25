@@ -62,7 +62,7 @@ def view(name, **kw):
 
 def cfg(home, **kw):
     base = dict(home=home, claude=[sys.executable, FAKE], prepare=False, poll_s=0.01, monitor_s=0.05,
-                settle_s=0, backoff_s=0, kill_grace_s=1, fetch=False, tick_s=0.05, bind_review=False)
+                settle_s=0, backoff_s=0, kill_grace_s=1, fetch=False, tick_s=0.05, bind_review=False, directives=False)
     base.update(kw)
     return sv.Config(**base)
 
