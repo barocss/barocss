@@ -9,6 +9,8 @@
 //   twb      build + @tailwindcss/browser
 //   baro     build + BaroCSS.baroStart()
 //   baropre  build + baroStart() + the exported preloadJsonRenderClasses before mount
+//   families / wide / corpusonly  #218 build-time pre-generation via @source inline (see pregen.mjs), no runtime
+// #218 rerun: same command with PROBE_PORT=5718 (result.json gains buildMs, coverage of #209 outputs, uncoverable).
 // Writes scripts/json-render-probe/result.json (gitignored) and prints a summary.
 import http from 'node:http';
 import fs from 'node:fs';
@@ -16,6 +18,7 @@ import zlib from 'node:zlib';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { inlineCss, cssClasses, outputTokens, category } from './pregen.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
@@ -24,7 +27,8 @@ const { compile } = req('tailwindcss');
 const twDir = path.dirname(req.resolve('tailwindcss/package.json'));
 const PORT = Number(process.env.PROBE_PORT || 5320);
 const RUNS = Number(process.argv[2] || 5);
-const ARMS = ['ref', 'build', 'twb', 'baro', 'baropre'];
+const PRE = ['families', 'wide', 'corpusonly'];
+const ARMS = ['ref', 'build', 'twb', 'baro', 'baropre', ...PRE];
 const FILES = {
   baro: path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'),
   twb: path.join(process.env.TWB_DIR || '', 'dist/index.global.js'),
@@ -37,8 +41,8 @@ const APP_CSS = fs.readFileSync(path.join(HERE, 'app.css'), 'utf8');
 const split = (s) => s.split(/\s+/).filter(Boolean);
 const shellTokens = [...SHELL.matchAll(/class="([^"]*)"/g)].flatMap((m) => split(m[1]));
 const specTokens = Object.values(SPECS).flatMap((s) => Object.values(s.elements).flatMap((e) => split(e.props?.className || '')));
-async function build(tokens) {
-  const c = await compile(`@import "tailwindcss";\n${APP_CSS}`, {
+async function build(tokens, extra = '') {
+  const c = await compile(`@import "tailwindcss";\n${APP_CSS}\n${extra}`, {
     base: twDir,
     loadStylesheet: async (id, base) => {
       const p = id === 'tailwindcss' ? path.join(twDir, 'index.css') : path.resolve(base, id.replace(/^tailwindcss\//, ''));
@@ -48,7 +52,22 @@ async function build(tokens) {
   });
   return c.build([...new Set(tokens)]);
 }
-const CSS = { build: await build(shellTokens), ref: await build([...shellTokens, ...specTokens]) };
+const CSS = {}, buildMs = {};
+for (const [k, toks, extra] of [['build', shellTokens], ['ref', [...shellTokens, ...specTokens]], ...PRE.map((a) => [a, shellTokens, inlineCss(a)])]) {
+  const t0 = performance.now(); CSS[k] = await build(toks, extra); buildMs[k] = Math.round(performance.now() - t0);
+}
+// Coverage of #209 outputs (by use) and of the spec classes; "known" = full Tailwind emits a rule for the token alone.
+const outUses = outputTokens(), allToks = [...new Set([...outUses.keys(), ...specTokens])];
+const sets = Object.fromEntries(Object.entries(CSS).map(([k, v]) => [k, cssClasses(v)]));
+const emptyCss = await build([]), known = new Set();
+for (const t of allToks) if (cssClasses(await build([t])).has(t) && !cssClasses(emptyCss).has(t)) known.add(t);
+const specUses = specTokens.reduce((m, t) => m.set(t, (m.get(t) || 0) + 1), new Map());
+const cov = (set, uses) => { let hit = 0, all = 0, kh = 0, ka = 0; for (const [t, n] of uses) { all += n; if (set.has(t)) hit += n; if (known.has(t)) { ka += n; if (set.has(t)) kh += n; } } return { byUse: +(hit / all).toFixed(4), ofValidByUse: +(kh / ka).toFixed(4) }; };
+const coverage = Object.fromEntries(Object.keys(CSS).map((k) => [k, { outputs209: cov(sets[k], outUses), specs182: cov(sets[k], specUses) }]));
+const uncov = {};
+for (const t of allToks) if (!sets.wide.has(t)) { const c = category(t, known.has(t)); (uncov[c] ||= []).push(t); }
+const uncoverable = Object.fromEntries(Object.entries(uncov).map(([c, ts]) => [c, { count: ts.length, uses: ts.reduce((n, t) => n + (outUses.get(t) || 0) + (specUses.get(t) || 0), 0), examples: ts.slice(0, 12) }]));
+const cssSize = Object.fromEntries(Object.entries(CSS).map(([k, v]) => [k, [v.length, zlib.gzipSync(v).length]]));
 const newTokens = [...new Set(specTokens)].filter((t) => !shellTokens.includes(t));
 
 const head = {
@@ -57,6 +76,7 @@ const head = {
   twb: '<link rel="stylesheet" href="/build.css"><script src="/twb.js"></script>',
   baro: '<link rel="stylesheet" href="/build.css"><script src="/baro.js"></script><script>BaroCSS.baroStart();</script>',
   baropre: '<link rel="stylesheet" href="/build.css"><script src="/baro.js"></script><script>BaroCSS.baroStart();</script>',
+  ...Object.fromEntries(PRE.map((a) => [a, `<link rel="stylesheet" href="/${a}.css">`])),
 };
 const page = (arm) => `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=1280">${head[arm]}
 <script>window.__PROBE=${JSON.stringify({ arm, specs: SPECS, specNames: Object.keys(SPECS) })};</script><script src="/page.js"></script></head>
@@ -66,7 +86,7 @@ const srv = http.createServer((q, r) => {
   const send = (type, body) => { r.writeHead(200, { 'content-type': type }); r.end(body); };
   if (u.pathname === '/app') return send('text/html', page(u.searchParams.get('arm')));
   if (u.pathname === '/build.css') return send('text/css', CSS.build);
-  if (u.pathname === '/ref.css') return send('text/css', CSS.ref);
+  const cm = u.pathname.match(/^\/(\w+)\.css$/); if (cm && CSS[cm[1]]) return send('text/css', CSS[cm[1]]);
   if (u.pathname === '/page.js') return send('text/javascript', PAGE_JS);
   if (u.pathname === '/baro.js') return send('text/javascript', fs.readFileSync(FILES.baro));
   if (u.pathname === '/twb.js') return send('text/javascript', fs.readFileSync(FILES.twb));
@@ -120,7 +140,8 @@ const summary = ARMS.map((arm) => {
     pageErrors: [...new Set(rs.flatMap((r) => r.errs))].slice(0, 3),
   };
 });
-const out = { question: '#182', builtCssBytes: { build: CSS.build.length, ref: CSS.ref.length }, specTokens: new Set(specTokens).size, specTokensNotInShell: newTokens.length, summary, raw: raw.map(({ specSig, shellSig, shellSigBefore, ...r }) => r) };
+const out = { question: '#182/#218', cssSize, buildMs, coverage, uncoverable, knownTokens: known.size, tokens: allToks.length, specTokens: new Set(specTokens).size, specTokensNotInShell: newTokens.length, summary, raw: raw.map(({ specSig, shellSig, shellSigBefore, ...r }) => r) };
 fs.writeFileSync(path.join(HERE, 'result.json'), JSON.stringify(out, null, 2));
-console.log(JSON.stringify({ builtCssBytes: out.builtCssBytes, specTokens: out.specTokens, specTokensNotInShell: out.specTokensNotInShell }));
+console.log(JSON.stringify({ cssSize, buildMs, coverage, uncoverable }, null, 1));
+console.log(JSON.stringify({ specTokens: out.specTokens, specTokensNotInShell: out.specTokensNotInShell }));
 for (const s of summary) console.log(JSON.stringify(s));
