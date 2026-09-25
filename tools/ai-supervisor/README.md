@@ -121,6 +121,17 @@ python3 tools/ai-supervisor/supervise.py release 'KEY'    # re-arm a key held af
   the lock, whichever worktree or `AI_HOME` they are typed in. Session wrappers carry the repo id, so
   `start` refuses while a session of this repository from another home is still alive, and `stop` ends
   it (found by its token).
+- **Notifications.** The runner tells the user without being asked. Each event goes to
+  `$AI_HOME/events.jsonl` (last 5 shown by `status`) and, on macOS, to a desktop notification. Events: a
+  session started or ended (with the next step), the first CI wait on a PR, every new hold (urgent, with
+  a sound: `needs you: …`), and pause/stop. Waits and holds are announced once per change, not once per
+  poll. `--no-notify` keeps only the file.
+- **Human approval for product code** (`STATE.human_directives`, 2026-09-25). A `MERGE #n` whose PR comes
+  from a contract with `allowed.product_code: true` holds as `human_approval` until the PR carries the
+  `human-approved` label or an approving review. Only then is a fresh session launched to land it.
+  Evidence-only PRs merge as in V1. Sessions push with the user's GitHub account, and GitHub doesn't let
+  an author approve their own PR, so the label is the approval for now. With a separate bot account, an
+  approving review would do.
 - Control goes through `$AI_HOME/control.json` (what the user wants), and the runner reports in
   `runner.json` (what it is doing). Both live outside git.
 

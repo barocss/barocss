@@ -67,6 +67,9 @@ EXPECTED_AFTER = {
     "MERGE": LAUNCH | WAIT | {"HUMAN_REQUIRED"},
 }
 SCRUB_KEEP = {"CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CONFIG_DIR"}
+# STATE.human_directives (2026-09-25): a product_code PR merges only after a human approves it. The
+# supervisor enforces its half: no MERGE session for such a PR until one of these is on it.
+APPROVAL_LABEL = "human-approved"
 
 
 class Config:
@@ -92,6 +95,7 @@ class Config:
         self.lock_dir = default_lock_dir()      # per-user, independent of AI_HOME (see RepoLock)
         self.identity = None                    # {id, name}; derived from repo_dir when None
         self.tick_s = 1.0                       # how quickly pause / resume / stop take effect
+        self.notify = False                     # desktop notifications (the CLI turns them on)
         self.__dict__.update(kw)
         self.workspace = kw.get("workspace") or os.path.join(self.home, "workspace")
 
@@ -143,7 +147,19 @@ def view_of(snap, st):
             "store": bool((snap["develop"].get("work") or {})),
             "mode": w["mode"], "v1_next_action": st["next_action"], "agrees_with_v1": w["agrees_with_v1"],
             "work": {"buckets": w["buckets"], "planner": w["planner"], "concurrency": w["concurrency"]},
-            "project": _project(snap, st, exp, it)}
+            "project": _project(snap, st, exp, it), **_merge_gate(snap, word, target)}
+
+
+def _merge_gate(snap, word, target):
+    """For MERGE #n: does that PR change product code, and has a human approved it? Mechanical facts only."""
+    if word != "MERGE" or not target.startswith("#"):
+        return {}
+    pr = next((p for p in snap["prs"] if f"#{p['number']}" == target), None) or {}
+    contracts = [snap["develop"].get("exp") or {}] + list((snap["develop"].get("work") or {}).values())
+    c = next((c for c in contracts if (c or {}).get("branch") and c.get("branch") == pr.get("head")), None) or {}
+    return {"product_code": bool((c.get("allowed") or {}).get("product_code")),
+            "approved": APPROVAL_LABEL in (pr.get("labels") or []) or pr.get("review") == "APPROVED",
+            "merge_pr": target}
 
 
 def _contract_of(snap, eid):
@@ -186,6 +202,9 @@ def decide(v, records, now, cfg):
         # Until the V1 RULES retire, a scheduler that disagrees with them is a bug to look at, not a plan.
         return _hold("work_model_disagrees", f"work {v['next_action']} vs V1 {v['v1_next_action']}")
     word = v["action"]
+    if word == "MERGE" and v.get("product_code") and not v.get("approved"):
+        return _hold("human_approval", f"{v['merge_pr']} changes product code: review it, then add the "
+                                       f"`{APPROVAL_LABEL}` label (or approve the PR) to let it merge")
     if word in LAUNCH:
         return _attempt(v["key"], v["next_action"], recs, now, cfg)
     if word in INFLIGHT:
@@ -618,6 +637,20 @@ class Supervisor:
         sup.write_json(os.path.join(self.cfg.home, "status.json"), st)
         return view_of(snap, st)
 
+    def notify(self, title, message, urgent=False):
+        """Tell the user without being asked: $AI_HOME/events.jsonl always, a desktop notification when on."""
+        ev = {"at": iso(time.time()), "title": title, "message": message, "urgent": urgent}
+        with open(os.path.join(self.cfg.home, "events.jsonl"), "a") as fh:
+            fh.write(json.dumps(ev) + "\n")
+        if self.cfg.notify and sys.platform == "darwin":
+            q = lambda x: json.dumps(str(x))[:400]   # AppleScript string literal
+            script = f"display notification {q(message)} with title {q('BaroCSS AI: ' + title)}" + \
+                (' sound name "Glass"' if urgent else "")
+            try:
+                subprocess.Popen(["osascript", "-e", script], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except OSError:
+                pass
+
     def log(self, event, **kw):
         line = {"at": iso(time.time()), "event": event, **kw}
         with open(os.path.join(self.cfg.home, "supervisor.log"), "a") as fh:
@@ -646,6 +679,8 @@ class Supervisor:
         sup.write_json(os.path.join(self.cfg.home, "runner.json"), info)
         if prev.get("state") != state or prev.get("pid") != os.getpid():
             self.log("runner", state=state, **{k: v for k, v in kw.items() if k in ("activity", "reason")})
+            if state in ("PAUSED", "STOPPED") or prev.get("pid") != os.getpid():
+                self.notify(f"runner {state}", kw.get("reason") or kw.get("detail") or kw.get("activity") or "")
 
     def sleep(self, secs):
         """Interruptible: returns early on stop, on a lost owner, or when pause/resume changes."""
@@ -781,6 +816,7 @@ class Supervisor:
         self.procs[sid] = p
         rec = self.ledger.update(sid, pid=p.pid, pgid=p.pid)
         self.log("session_launched", session=sid, action=d["action"], attempt=d["attempt"], pid=p.pid)
+        self.notify(f"started {d['action']}", f"fresh Opus session {sid[:8]}, attempt {d['attempt']}")
         return rec
 
     def monitor(self, sid, managed=True):
@@ -916,18 +952,29 @@ class Supervisor:
             if (d["do"], d["reason"]) != self._logged:   # one line per change, not per poll
                 self._logged = (d["do"], d["reason"])
                 self.log(d["do"], next_action=v["next_action"], reason=d["reason"])
+                if d["do"] == "hold":
+                    self.notify(f"needs you: {d['kind']}", d["reason"], urgent=True)
+                elif v["action"] == "WAIT_FOR_CI":
+                    self.notify("waiting for CI", v["next_action"])
             self.sleep(d.get("delay", self.cfg.poll_s))
 
     def _await(self, sid):
         rec = self.monitor(sid)
+        took = _dur(epoch(rec["ended_at"]) - epoch(rec["started_at"]))
         if rec["state"] == "INTERRUPTED":
+            self.notify(f"{rec['action']} interrupted", f"{rec['reason']} after {took}; resumes on next start")
             return rec, None
         self.sleep(self.cfg.settle_s)
         v = self._observe_or_none()
+        nxt = ""
         if v is not None:
             rec = self.ledger.update(sid, after={"next_action": v["next_action"], "rule": v["rule"],
                                                  "develop": v["develop"]}, transition=transition(rec, v))
             self.log("state_after", session=sid, next_action=v["next_action"], transition=rec["transition"])
+            nxt = f"; {rec['transition']} → next {v['next_action']}"
+        verdict = ((rec.get("result") or {}).get("text") or "").strip().split("\n")[0][:120]
+        self.notify(f"{rec['action']} {rec['state'].lower()}", f"after {took}{nxt}" + (f". {verdict}" if verdict else ""),
+                    urgent=rec["state"] != "COMPLETED")
         return rec, v
 
     def _observe_or_none(self):
@@ -1023,7 +1070,23 @@ def status_report(home, view=None, now=None, owner=None):
                  "observed_at": v.get("at") if view else last.get("at")},
         "waiting": waiting,
         "blockers": blockers,
+        "events": _tail_jsonl(os.path.join(home, "events.jsonl"), 5),
     }
+
+
+def _tail_jsonl(path, n):
+    try:
+        with open(path) as fh:
+            lines = fh.readlines()[-n:]
+    except FileNotFoundError:
+        return []
+    out = []
+    for line in lines:
+        try:
+            out.append(json.loads(line))
+        except ValueError:
+            pass
+    return out
 
 
 def _dur(s):
@@ -1078,6 +1141,8 @@ def print_report(r, out=print):
         out(f"waiting     : {r['waiting']['on']}: {r['waiting']['detail']}")
     for b in r["blockers"]:
         out(f"blocker     : {b}")
+    for e in r.get("events") or []:
+        out(f"event       : {e['at'][11:19]} {'!' if e.get('urgent') else ' '} {e['title']} — {e['message'][:150]}")
 
 
 # ---------------------------------------------------------------- CLI
@@ -1107,6 +1172,7 @@ def main(argv=None, overrides=None):
     r.add_argument("--permission-mode", default="auto")
     r.add_argument("--claude", default="claude", help="claude executable")
     r.add_argument("--poll", type=float, default=60)
+    r.add_argument("--no-notify", action="store_true", help="no desktop notifications (events.jsonl is still written)")
     sub.add_parser("pause", help="launch no new session; let a running one finish")
     sub.add_parser("resume", help="undo pause")
     s = sub.add_parser("stop", help="stop the autonomous work now; a running session is interrupted (resumable)")
@@ -1122,7 +1188,7 @@ def main(argv=None, overrides=None):
     if a.cmd == "start":
         owner = None if a.no_owner or a.dry_run or a.once else (a.owner or os.getppid())
         cfg = Config(model=a.model, permission_mode=a.permission_mode, claude=[a.claude], poll_s=a.poll,
-                     fetch=not a.no_fetch, owner=owner, **kw)
+                     fetch=not a.no_fetch, owner=owner, notify=not (a.no_notify or a.dry_run or a.once), **kw)
         try:
             rep = Supervisor(cfg).run(max_sessions=a.max_sessions, dry_run=a.dry_run, once=a.once)
         except Busy as e:
