@@ -214,3 +214,11 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     each dropped family must have changed no product code. The §2A "merge only if PROVEN" rule then applies
     to the landed part, not the whole batch. Dropped families go back as parity candidates with their
     diagnosis. The human-approval directive still applies before gh pr merge.
+  - >-
+    2026-09-25 (delegated by the human to two Claude sessions, agreed in round 1): rank parity-lane
+    families by what AI UI platforms actually emit (v0/shadcn-style output), not by all of Tailwind.
+    E-007's generated sections plus a small shadcn-style sample is enough to rank; don't make ranking its
+    own research project. "Known answer" still needs a per-family measurement before batching: E-010's
+    translate was a wrong value formula, not a missing default. Keep O3 (styling provenance) a separate
+    candidate, not folded into option B's question; revisit it after B reports. Reason: parity is table
+    stakes for what the platforms emit, and B's question stays clean.
