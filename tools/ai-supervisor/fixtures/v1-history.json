@@ -1,0 +1,581 @@
+{
+  "repo_develop_tip": "5360b233b4aed0f7b215a9fd54658b4adf98fa78",
+  "recorded_at": "2026-09-25T03:44:59+00:00",
+  "prs": [
+    {
+      "number": 106,
+      "head": "ai/strategy-E-001",
+      "state": "MERGED",
+      "created": "2026-09-24T14:26:04Z",
+      "merged": "2026-09-24T14:27:32Z",
+      "closed": "2026-09-24T14:27:32Z",
+      "commits": [
+        {
+          "sha": "3b75ce706795bf9821e48b9e4eddfd3728a3ba45",
+          "time": "2026-09-24T14:25:57Z",
+          "subject": "ai(strategy): contract E-001 real-agent baseline for O1",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T14:26:10Z",
+              "completed": "2026-09-24T14:27:10Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 107,
+      "head": "ai/E-001-agent-baseline",
+      "state": "MERGED",
+      "created": "2026-09-24T14:38:38Z",
+      "merged": "2026-09-24T14:47:31Z",
+      "closed": "2026-09-24T14:47:31Z",
+      "commits": [
+        {
+          "sha": "b76b036ffe38cae5336b16dd2fef03b4bf94740e",
+          "time": "2026-09-24T14:29:05Z",
+          "subject": "ai(exec): E-001 running",
+          "checks": []
+        },
+        {
+          "sha": "1b1c9c2a51f6cb9b4160b66c48434e80676be32d",
+          "time": "2026-09-24T14:33:25Z",
+          "subject": "ai(exec): E-001 page, grader, runner (frozen before agent runs)",
+          "checks": []
+        },
+        {
+          "sha": "306ef18dcaec411b4de2472de9a1cdc9e6b013f8",
+          "time": "2026-09-24T14:34:57Z",
+          "subject": "ai(exec): E-001 runner waits for MCP connect (env fix; T1 attempt 1 h\u2026",
+          "checks": []
+        },
+        {
+          "sha": "e28783bd8c869b8528ad5f08c11f2eeda1cf4783",
+          "time": "2026-09-24T14:38:19Z",
+          "subject": "ai(exec): E-001 PROVEN real-agent baseline T1-T4 4/4 pass, claims agree",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T14:38:46Z",
+              "completed": "2026-09-24T14:39:47Z"
+            }
+          ]
+        },
+        {
+          "sha": "515ca492ed8d39a6ecf436e78208080e72d44e3b",
+          "time": "2026-09-24T14:38:43Z",
+          "subject": "ai(exec): E-001 record PR URL",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T14:38:54Z",
+              "completed": "2026-09-24T14:39:43Z"
+            }
+          ]
+        },
+        {
+          "sha": "1dcfd1b522ee58432de47a423724399f0e8a84d2",
+          "time": "2026-09-24T14:46:03Z",
+          "subject": "ai(strategy): review E-001 PROVEN",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T14:46:16Z",
+              "completed": "2026-09-24T14:47:19Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 108,
+      "head": "ai/strategy-E-002",
+      "state": "MERGED",
+      "created": "2026-09-24T14:49:15Z",
+      "merged": "2026-09-24T14:50:35Z",
+      "closed": "2026-09-24T14:50:35Z",
+      "commits": [
+        {
+          "sha": "00079155e158fc2d59e555435f32303f0f773657",
+          "time": "2026-09-24T14:49:09Z",
+          "subject": "ai(strategy): contract E-002 silent no-op classes for O1",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T14:49:22Z",
+              "completed": "2026-09-24T14:50:22Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 109,
+      "head": "ai/E-002-silent-noop",
+      "state": "MERGED",
+      "created": "2026-09-24T15:36:00Z",
+      "merged": "2026-09-24T15:43:24Z",
+      "closed": "2026-09-24T15:43:24Z",
+      "commits": [
+        {
+          "sha": "81ae8b2f8ba0187cb40cd1b8da1c21610a097174",
+          "time": "2026-09-24T15:14:02Z",
+          "subject": "ai(exec): E-002 running",
+          "checks": []
+        },
+        {
+          "sha": "18906456293925869ec2cf3c747ddec6cef4eebb",
+          "time": "2026-09-24T15:18:57Z",
+          "subject": "ai(exec): E-002 page, grader, self-test (pass) and runner before agen\u2026",
+          "checks": []
+        },
+        {
+          "sha": "6563e16793bfacd9d47c8a34698444035314e9c5",
+          "time": "2026-09-24T15:35:40Z",
+          "subject": "ai(exec): E-002 PROVEN agent caught every silent no-op, no false done",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T15:36:07Z",
+              "completed": "2026-09-24T15:37:06Z"
+            }
+          ]
+        },
+        {
+          "sha": "2da23899978bbe084bb3b91a52d62ab63531b07a",
+          "time": "2026-09-24T15:36:05Z",
+          "subject": "ai(exec): E-002 record PR URL",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T15:36:22Z",
+              "completed": "2026-09-24T15:37:26Z"
+            }
+          ]
+        },
+        {
+          "sha": "b8a35e7a6ee41fa04cf74ab39952fe202ba9249c",
+          "time": "2026-09-24T15:41:44Z",
+          "subject": "ai(strategy): review E-002 PROVEN",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T15:41:57Z",
+              "completed": "2026-09-24T15:43:06Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 110,
+      "head": "ai/strategy-E-003",
+      "state": "MERGED",
+      "created": "2026-09-24T15:44:49Z",
+      "merged": "2026-09-24T15:46:06Z",
+      "closed": "2026-09-24T15:46:06Z",
+      "commits": [
+        {
+          "sha": "b6a7ff797d220fadd52b3536c802ed87ed8de7ae",
+          "time": "2026-09-24T15:44:43Z",
+          "subject": "ai(strategy): contract E-003 live theme edits for O1",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T15:44:56Z",
+              "completed": "2026-09-24T15:45:58Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 111,
+      "head": "ai/E-003-live-theme",
+      "state": "MERGED",
+      "created": "2026-09-24T15:57:00Z",
+      "merged": "2026-09-25T00:50:06Z",
+      "closed": "2026-09-25T00:50:06Z",
+      "commits": [
+        {
+          "sha": "689c990c2f038548dd13ad8a3f7b95b18f65469f",
+          "time": "2026-09-24T15:48:12Z",
+          "subject": "ai(exec): E-003 running",
+          "checks": []
+        },
+        {
+          "sha": "bb0ea26be02b788850d430aa373f751a23ffcd42",
+          "time": "2026-09-24T15:56:54Z",
+          "subject": "ai(exec): E-003 INCONCLUSIVE blocked: no config route makes rounded-4\u2026",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T15:57:06Z",
+              "completed": "2026-09-24T15:58:12Z"
+            }
+          ]
+        },
+        {
+          "sha": "286c95e7d0eebaf86fc952ae5236c47d8b9dce92",
+          "time": "2026-09-24T15:57:05Z",
+          "subject": "ai(exec): E-003 record PR URL",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-24T15:57:15Z",
+              "completed": "2026-09-24T15:58:00Z"
+            }
+          ]
+        },
+        {
+          "sha": "1800b03e87e660fea375eac6a2fce5102363a585",
+          "time": "2026-09-25T00:48:42Z",
+          "subject": "ai(strategy): review E-003 INCONCLUSIVE",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T00:48:55Z",
+              "completed": "2026-09-25T00:49:54Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 112,
+      "head": "ai/strategy-E-004",
+      "state": "MERGED",
+      "created": "2026-09-25T00:51:18Z",
+      "merged": "2026-09-25T00:52:40Z",
+      "closed": "2026-09-25T00:52:40Z",
+      "commits": [
+        {
+          "sha": "00fcdcc107a0fa9d447b00510829441a987ed942",
+          "time": "2026-09-25T00:51:10Z",
+          "subject": "ai(strategy): contract E-004 live colour token for O1",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T00:51:24Z",
+              "completed": "2026-09-25T00:52:31Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 113,
+      "head": "ai/E-004-live-colour-token",
+      "state": "MERGED",
+      "created": "2026-09-25T02:12:33Z",
+      "merged": "2026-09-25T02:35:33Z",
+      "closed": "2026-09-25T02:35:33Z",
+      "commits": [
+        {
+          "sha": "165e4e754a434fb6bb9321f747cf1ce2dc2aacdf",
+          "time": "2026-09-25T02:02:41Z",
+          "subject": "ai(exec): E-004 running",
+          "checks": []
+        },
+        {
+          "sha": "8d7849c819315b48142e6cd8b2b01de8eca310a6",
+          "time": "2026-09-25T02:07:30Z",
+          "subject": "ai(exec): E-004 copy E-003 pages/grader, Y1-only self-test (pass)",
+          "checks": []
+        },
+        {
+          "sha": "f4454807a55da892732810b812d84526b31f87a7",
+          "time": "2026-09-25T02:07:54Z",
+          "subject": "ai(exec): E-004 runner (E-002's, arm + label args)",
+          "checks": []
+        },
+        {
+          "sha": "ba93c854939b3d331bafefdef647ef1c0370356c",
+          "time": "2026-09-25T02:12:20Z",
+          "subject": "ai(exec): E-004 PROVEN live colour token via config, 3/3 runs pass",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T02:12:39Z",
+              "completed": "2026-09-25T02:13:37Z"
+            }
+          ]
+        },
+        {
+          "sha": "14c7ba5576753027e6ce803aa2a93362daca82d2",
+          "time": "2026-09-25T02:12:37Z",
+          "subject": "ai(exec): E-004 record PR URL",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T02:12:47Z",
+              "completed": "2026-09-25T02:13:50Z"
+            }
+          ]
+        },
+        {
+          "sha": "b8bc051b8af59d50c1601e0a5dfb2ae3ac4a6b10",
+          "time": "2026-09-25T02:34:11Z",
+          "subject": "ai(strategy): review E-004 PROVEN",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T02:34:20Z",
+              "completed": "2026-09-25T02:35:18Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 114,
+      "head": "ai/strategy-E-005",
+      "state": "MERGED",
+      "created": "2026-09-25T02:36:55Z",
+      "merged": "2026-09-25T02:38:14Z",
+      "closed": "2026-09-25T02:38:14Z",
+      "commits": [
+        {
+          "sha": "262dc2d5fc956d1fb8d5305893d43689d8e99363",
+          "time": "2026-09-25T02:36:51Z",
+          "subject": "ai(strategy): contract E-005 colour token on the real site for O1",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T02:37:00Z",
+              "completed": "2026-09-25T02:38:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 115,
+      "head": "ai/E-005-real-app-token",
+      "state": "MERGED",
+      "created": "2026-09-25T02:48:26Z",
+      "merged": "2026-09-25T02:53:23Z",
+      "closed": "2026-09-25T02:53:23Z",
+      "commits": [
+        {
+          "sha": "1816ca85504dbca8a6fe73d86eb68f3ec3e1a990",
+          "time": "2026-09-25T02:40:38Z",
+          "subject": "ai(exec): E-005 running",
+          "checks": []
+        },
+        {
+          "sha": "de1ef92691629ce4d59c71c878f839368c64c59f",
+          "time": "2026-09-25T02:48:15Z",
+          "subject": "ai(exec): E-005 INCONCLUSIVE blocked: gating D control regresses (upd\u2026",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T02:48:32Z",
+              "completed": "2026-09-25T02:49:10Z"
+            }
+          ]
+        },
+        {
+          "sha": "b99287423a11dc40a02f388869e37871afa6952b",
+          "time": "2026-09-25T02:48:32Z",
+          "subject": "ai(exec): E-005 record PR URL",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T02:48:39Z",
+              "completed": "2026-09-25T02:49:44Z"
+            }
+          ]
+        },
+        {
+          "sha": "c8f7f3b18be38b9ad417741caca8ea89dcf609e6",
+          "time": "2026-09-25T02:52:22Z",
+          "subject": "ai(strategy): review E-005 INCONCLUSIVE",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T02:52:30Z",
+              "completed": "2026-09-25T02:53:14Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 116,
+      "head": "ai/strategy-E-006",
+      "state": "MERGED",
+      "created": "2026-09-25T02:54:27Z",
+      "merged": "2026-09-25T02:55:32Z",
+      "closed": "2026-09-25T02:55:32Z",
+      "commits": [
+        {
+          "sha": "fb726c68280b3d3ceafd8ec4322887f35c3c4bcc",
+          "time": "2026-09-25T02:54:24Z",
+          "subject": "ai(strategy): contract E-006 agent keeps page config when adding colo\u2026",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T02:54:34Z",
+              "completed": "2026-09-25T02:55:18Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 117,
+      "head": "ai/E-006-config-preserve",
+      "state": "MERGED",
+      "created": "2026-09-25T03:08:26Z",
+      "merged": "2026-09-25T03:14:52Z",
+      "closed": "2026-09-25T03:14:52Z",
+      "commits": [
+        {
+          "sha": "5c313efbb960cfcde5993e5dcb5633554731e032",
+          "time": "2026-09-25T02:57:30Z",
+          "subject": "ai(exec): E-006 running",
+          "checks": []
+        },
+        {
+          "sha": "d180f8af51ede5441bf113b99d7676b87578d8d2",
+          "time": "2026-09-25T03:01:11Z",
+          "subject": "ai(exec): E-006 self-test (11/11) and runner before agent runs",
+          "checks": []
+        },
+        {
+          "sha": "c2130daec6745f20521f356aa3751fea892d3179",
+          "time": "2026-09-25T03:08:22Z",
+          "subject": "ai(exec): E-006 PROVEN 3/3 agents add brand via config-preserving upd\u2026",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T03:08:31Z",
+              "completed": "2026-09-25T03:09:22Z"
+            }
+          ]
+        },
+        {
+          "sha": "c33b8f7d54b0ceddce67fd705b2e31ea06dd5fa6",
+          "time": "2026-09-25T03:08:37Z",
+          "subject": "ai(exec): E-006 record PR URL",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T03:08:45Z",
+              "completed": "2026-09-25T03:09:34Z"
+            }
+          ]
+        },
+        {
+          "sha": "f3b54b7d260c4b77287a314892c86ff76fca42fe",
+          "time": "2026-09-25T03:13:33Z",
+          "subject": "ai(strategy): review E-006 PROVEN",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T03:13:41Z",
+              "completed": "2026-09-25T03:14:43Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 118,
+      "head": "ai/strategy-E-007",
+      "state": "MERGED",
+      "created": "2026-09-25T03:16:30Z",
+      "merged": "2026-09-25T03:17:45Z",
+      "closed": "2026-09-25T03:17:45Z",
+      "commits": [
+        {
+          "sha": "c99d74a370919087899b2ddb08d75a69630850a9",
+          "time": "2026-09-25T03:16:27Z",
+          "subject": "ai(strategy): contract E-007 how often natural UI generation hits Bar\u2026",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T03:16:36Z",
+              "completed": "2026-09-25T03:17:38Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 119,
+      "head": "ai/E-007-gen-parity",
+      "state": "OPEN",
+      "created": "2026-09-25T03:42:05Z",
+      "merged": null,
+      "closed": null,
+      "commits": [
+        {
+          "sha": "e6ed6f463914d1c833bd6cbb65e6d3fdcea0ec11",
+          "time": "2026-09-25T03:20:09Z",
+          "subject": "ai(exec): E-007 status running",
+          "checks": []
+        },
+        {
+          "sha": "f8f28d674194ee837be52b3d9c94201014b06520",
+          "time": "2026-09-25T03:30:52Z",
+          "subject": "ai(exec): E-007 classifier, grader, runner and self-test (13/13 gatin\u2026",
+          "checks": []
+        },
+        {
+          "sha": "98b7ebe55821a87f49811942bb92d7cb15922526",
+          "time": "2026-09-25T03:41:51Z",
+          "subject": "ai(exec): E-007 DISPROVEN 3/3 agents ship unnamed parity misses in na\u2026",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T03:42:11Z",
+              "completed": "2026-09-25T03:43:10Z"
+            }
+          ]
+        },
+        {
+          "sha": "db52d4099205111a471a66f018e15cb2afc84e5a",
+          "time": "2026-09-25T03:42:12Z",
+          "subject": "ai(exec): E-007 record PR URL",
+          "checks": [
+            {
+              "name": "Test and Build",
+              "conclusion": "success",
+              "started": "2026-09-25T03:42:19Z",
+              "completed": "2026-09-25T03:43:24Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
