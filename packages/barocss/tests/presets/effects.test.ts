@@ -18,6 +18,47 @@ const ctx = createContext({
     },
   },
 });
+
+// E-010 F1: the parity-correct ring node list. A lone ring now (a) registers the
+// box-shadow composition layers via @property initial values so the composed
+// box-shadow is valid, and (b) omits the hardcoded v3 blue --baro-ring-color so a
+// bare ring defaults to currentColor (via the var() fallback), matching Tailwind 4.
+const ringShadowProperty = (name: string) => ({
+  type: "at-rule",
+  name: "property",
+  params: name,
+  nodes: [
+    { type: "decl", prop: "syntax", value: '"*"' },
+    { type: "decl", prop: "inherits", value: "false" },
+    { type: "decl", prop: "initial-value", value: "0 0 #0000" },
+  ],
+});
+const ringNodes = (px: string) => [
+  {
+    type: "at-root",
+    nodes: [
+      ringShadowProperty("--baro-shadow"),
+      ringShadowProperty("--baro-inset-shadow"),
+      ringShadowProperty("--baro-inset-ring-shadow"),
+    ],
+  },
+  { type: "decl", prop: "--baro-ring-inset", value: "" },
+  { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
+  { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
+  {
+    type: "decl",
+    prop: "--baro-ring-shadow",
+    value: `var(--baro-ring-inset) 0 0 0 calc(${px} + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)`,
+  },
+  { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
+  {
+    type: "decl",
+    prop: "box-shadow",
+    value:
+      "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
+  },
+];
+
 describe("effects.ts (box-shadow utilities)", () => {
   // Static shadow levels
   it("shadow-md → box-shadow: var(--shadow-md)", () => {
@@ -232,46 +273,10 @@ describe("effects.ts (box-shadow utilities)", () => {
 
   // --- Ring ---
   it("ring → multi-var box-shadow", () => {
-    expect(parseClassToAst("ring", ctx)).toEqual([
-      { type: "decl", prop: "--baro-ring-inset", value: "" },
-      { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
-      { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
-      { type: "decl", prop: "--baro-ring-color", value: "rgb(59 130 246 / 0.5)" },
-      {
-        type: "decl",
-        prop: "--baro-ring-shadow",
-        value:
-          "var(--baro-ring-inset) 0 0 0 calc(1px + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)",
-      },
-      { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
-      {
-        type: "decl",
-        prop: "box-shadow",
-        value:
-          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
-      },
-    ]);
+    expect(parseClassToAst("ring", ctx)).toEqual(ringNodes("1px"));
   });
   it("ring-2 → multi-var box-shadow", () => {
-    expect(parseClassToAst("ring-2", ctx)).toEqual([
-      { type: "decl", prop: "--baro-ring-inset", value: "" },
-      { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
-      { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
-      { type: "decl", prop: "--baro-ring-color", value: "rgb(59 130 246 / 0.5)" },
-      {
-        type: "decl",
-        prop: "--baro-ring-shadow",
-        value:
-          "var(--baro-ring-inset) 0 0 0 calc(2px + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)",
-      },
-      { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
-      {
-        type: "decl",
-        prop: "box-shadow",
-        value:
-          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
-      },
-    ]);
+    expect(parseClassToAst("ring-2", ctx)).toEqual(ringNodes("2px"));
   });
   it("ring-blue-500 → --baro-ring-color: var(--color-blue-500)", () => {
     expect(parseClassToAst("ring-blue-500", ctx)).toEqual([
@@ -531,46 +536,10 @@ describe("effects.ts (box-shadow utilities)", () => {
     ]);
   });
   it("ring → box-shadow variable combination", () => {
-    expect(parseClassToAst("ring", ctx)).toEqual([
-      { type: "decl", prop: "--baro-ring-inset", value: "" },
-      { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
-      { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
-      { type: "decl", prop: "--baro-ring-color", value: "rgb(59 130 246 / 0.5)" },
-      {
-        type: "decl",
-        prop: "--baro-ring-shadow",
-        value:
-          "var(--baro-ring-inset) 0 0 0 calc(1px + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)",
-      },
-      { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
-      {
-        type: "decl",
-        prop: "box-shadow",
-        value:
-          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
-      },
-    ]);
+    expect(parseClassToAst("ring", ctx)).toEqual(ringNodes("1px"));
   });
   it("ring-4 → box-shadow variable combination", () => {
-    expect(parseClassToAst("ring-4", ctx)).toEqual([
-      { type: "decl", prop: "--baro-ring-inset", value: "" },
-      { type: "decl", prop: "--baro-ring-offset-width", value: "0px" },
-      { type: "decl", prop: "--baro-ring-offset-color", value: "#fff" },
-      { type: "decl", prop: "--baro-ring-color", value: "rgb(59 130 246 / 0.5)" },
-      {
-        type: "decl",
-        prop: "--baro-ring-shadow",
-        value:
-          "var(--baro-ring-inset) 0 0 0 calc(4px + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)",
-      },
-      { type: "decl", prop: "--baro-ring-offset-shadow", value: "0 0 #0000" },
-      {
-        type: "decl",
-        prop: "box-shadow",
-        value:
-          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
-      },
-    ]);
+    expect(parseClassToAst("ring-4", ctx)).toEqual(ringNodes("4px"));
   });
   it("ring-inset → --baro-ring-inset: inset", () => {
     expect(parseClassToAst("ring-inset", ctx)).toEqual([
