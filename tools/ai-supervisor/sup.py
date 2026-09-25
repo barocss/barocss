@@ -411,7 +411,7 @@ def collect_live(fetch=True):
                                      want_files=[files[name]] if name in files else ())
     prs = []
     for p in gh_json("pr", "list", "--state", "all", "--search", "head:ai/", "--limit", "200", "--json",
-                     "number,headRefName,state,headRefOid,mergeable,url,statusCheckRollup"):
+                     "number,headRefName,state,headRefOid,mergeable,url,statusCheckRollup,labels,reviewDecision"):
         if not p["headRefName"].startswith("ai/"):
             continue
         rollup = [{"name": c.get("name") or c.get("context"),
@@ -419,7 +419,8 @@ def collect_live(fetch=True):
                    "conclusion": c.get("conclusion") or c.get("state")} for c in p["statusCheckRollup"] or []]
         prs.append({"number": p["number"], "head": p["headRefName"], "state": p["state"],
                     "sha": p["headRefOid"], "mergeable": p["mergeable"], "url": p["url"],
-                    "ci": summarize_checks(rollup)})
+                    "ci": summarize_checks(rollup), "labels": [x["name"] for x in p.get("labels") or []],
+                    "review": p.get("reviewDecision") or None})
     return {"at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
             "develop": develop, "branches": branches, "prs": prs}
 

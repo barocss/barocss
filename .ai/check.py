@@ -96,6 +96,13 @@ def check_state(exp, state):
     active = [k for k, v in outcomes.items() if (v or {}).get("status") == "active"]
     if len(active) != 1:
         err(f"exactly one active outcome expected, found {active}")
+    # Planner IDLE marker (AGENTS.md §2B): the develop sha it planned from, and why nothing was contracted.
+    since, why = now.get("idle_since"), now.get("idle_reason")
+    if since is not None and not (isinstance(since, str) and 7 <= len(since) <= 40
+                                  and all(ch in "0123456789abcdef" for ch in since)):
+        err("STATE.now.idle_since must be a git sha (7-40 lowercase hex characters)")
+    if (since is None) != (not why):
+        err("STATE.now.idle_since and STATE.now.idle_reason go together")
 
 
 def check_work(work, exp, state):

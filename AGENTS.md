@@ -10,11 +10,12 @@ A contract lives in `.ai/work/<id>.yaml` (the work store, one file per work item
 there). "The contract" below is the one file your step names.
 
 1. `git fetch origin`. If your instruction names a step (`EXECUTE <id>`, `REVIEW <id>`,
-   `MERGE #<n>`, `PLAN`), that is your pass. Otherwise run
+   `PLAN`), that is your pass. Otherwise run
    `python3 tools/ai-supervisor/sup.py observe --out -` and take its `work next` step; if that is
    a WAIT, BLOCKED, HUMAN_REQUIRED or IDLE step, STOP. EXECUTE is EXECUTION of that contract,
-   REVIEW is a STRATEGY review of it (§2A), MERGE is §2A.5 for the contract whose PR it names,
-   and PLAN is STRATEGY (§2); PLAN names no contract, so go straight to §2.
+   REVIEW is the STRATEGY review of it (§2A, the Judge), and PLAN is STRATEGY choose (§2B, the
+   Planner); PLAN names no contract, so go straight to §2. A `MERGE #<n>` step is a merge already
+   decided: merge that PR if §6 allows it, then STOP.
 2. Read the contract from `origin/develop`. If its status is `ready` or `running` and its
    `branch` exists on origin, read it from `origin/<branch>` instead. That copy is
    authoritative, because the result lives there until Strategy merges it.
@@ -23,7 +24,7 @@ there). "The contract" below is the one file your step names.
 | status                        | mode      | job                                              |
 |-------------------------------|-----------|--------------------------------------------------|
 | `ready`, `running`            | EXECUTION | run the frozen contract, propose a verdict, open PR |
-| `done`, `blocked`             | STRATEGY  | review the experiment PR, accept/merge or reject, then choose next |
+| `done`, `blocked`             | STRATEGY  | review the experiment PR: verdict and merge decision (Judge) |
 | `none`, `evaluated`, missing  | STRATEGY  | choose the next question, write the contract     |
 
 One session = one mode = one pass, then STOP. Never switch modes inside one
@@ -33,8 +34,9 @@ context (a new session, or a subagent that sees only its mode's inputs).
 Why: the builder must not judge its own work, and the judge must not pick up
 implementation detail, because that anchors it on nearby technical work.
 
-**Authority:** only Strategy accepts an experiment and merges an experiment
-PR. Execution never merges anything.
+**Authority:** only Strategy accepts an experiment and decides whether its PR
+merges. Carrying out a decided merge is mechanical (§6). Execution never merges
+anything.
 
 ## 2. STRATEGY
 
@@ -44,7 +46,7 @@ not yet `evaluated`, and `.ai/EXPERIMENT.yaml` until it is), `git log --oneline
 source only to answer a specific factual question, with a few targeted
 searches. No product code edits.
 
-**A. Review** (status `done` or `blocked`). Check out `branch`, then:
+**A. Review, the Judge** (status `done` or `blocked`). Check out `branch`, then:
 1. Run `python3 .ai/check.py --role execution --base origin/develop` (add
    `--work <id>` for a work-store contract). If it fails (contract edited, or
    changes outside scope), reject the experiment.
@@ -55,23 +57,29 @@ searches. No product code edits.
    criteria, not the executor's narrative.
 3. Set `review.accepted_verdict`. It is at most what the evidence supports;
    downgrade freely, never upgrade.
-4. Merge decision:
+4. Merge decision (`review.merged`). This is a separate question from the
+   verdict:
    - Evidence-only PR (no product code): merge it, whatever the verdict.
      Negative evidence is knowledge too.
-   - Product-code PR: merge only if CI is green, the verdict is PROVEN, the
-     result shows the capability is needed (it closes the cited gap), and the
-     diff is the minimum the contract allowed. Otherwise close the PR with a
-     one-line reason and keep the branch as a reference.
+   - Product-code PR: merge only if CI is green, the diff is the minimum the
+     contract allowed, and the evidence shows the merged capability is needed
+     (it closes the cited gap). That is normally a PROVEN verdict; a PARTIAL
+     one qualifies only when the part being merged is itself demonstrated. A
+     PROVEN experiment may still discard its implementation. Say which in
+     `review.reason`. Otherwise don't merge, and keep the branch as a reference.
 5. Record the outcome: set `review` and `status: evaluated`, update
    `STATE.knowledge`, `STATE.now` and, if direction changed,
-   `STATE.decisions`. If merging, commit this on the experiment branch as
+   `STATE.decisions`. Commit this on the experiment branch as
    `ai(strategy): review E-00N <VERDICT>`, rerun `check.py` (structure only),
-   and run `gh pr merge <pr> --merge` once required checks pass. If not
-   merging, copy the contract, result and review onto a strategy branch
-   (step B) so `develop` keeps the evidence.
+   and push. If merging, the merge happens once required checks pass (§6). If
+   not merging, close the PR with its one-line reason; the next Planner pass
+   copies the record onto `develop` (B.0). The review pass ends here. Choosing
+   next work is a separate Planner pass.
 
-**B. Choose and contract.** Starting from the updated `origin/develop`, on
-branch `ai/strategy-E-00N`:
+**B. Choose and contract, the Planner.** Starting from the updated
+`origin/develop`, on branch `ai/strategy-E-00N`:
+0. If a judged result isn't on `develop` (its review says `merged: false`),
+   first copy its contract, result, review and `STATE` updates from its branch.
 1. Pick one question for the active outcome: the unresolved assumption whose
    answer most changes what BaroCSS should build or stop building. Run the
    gates in §5 first.
@@ -81,11 +89,15 @@ branch `ai/strategy-E-00N`:
    a scheduler can't infer: `depends_on` (ids that must be judged first),
    `locks` (shared runtime resources, e.g. `port:5173`), `observes` (paths
    whose behavior the item measures), optional integer `priority`. Writing no
-   contract is valid when no open question is worth one: say why in
-   `STATE.now`; idle is a state, not a failure. Update `STATE.now`.
+   contract is valid when no open question is worth one: set
+   `STATE.now.idle_since` to the `origin/develop` sha you planned from and
+   `STATE.now.idle_reason` to why, in one line. Idle is a state, not a
+   failure: the supervisor stays idle until a strategic input changes (VISION,
+   `STATE` outside `now`, any contract). Remove both fields when you write a
+   contract. Update `STATE.now`.
 3. Integrate it yourself. Run `python3 .ai/check.py --role strategy --base
-   origin/develop`, commit `ai(strategy): …`, push, open a PR, and merge it
-   once required checks pass. If the check fails or CI is red, fix it or
+   origin/develop`, commit `ai(strategy): …`, push and open a PR; it merges
+   once required checks pass (§6). If the check fails or CI is red, fix it or
    record a blocker in `STATE.now.blockers`. STOP.
 
 Strategy may also switch the active outcome, mark an outcome done (L3
@@ -180,9 +192,13 @@ reality check → **existing-capability test** → **ownership check** →
   `ai(exec): E-00N <VERDICT> …`.
 - `develop` requires a PR and a green "Test and Build" check, with no human
   approval needed. CI runs `python3 .ai/check.py` for structural validity.
-- Who merges: Strategy may merge its own `.ai/`-only PRs once `check.py
-  --role strategy` passes and CI is green. Experiment PRs are merged only by a
-  later Strategy session after the §2A review. Execution never merges.
+- Who merges: only what Strategy decided. That is a Planner's own
+  `.ai/`-only PR once `check.py --role strategy` passes, or an experiment PR
+  whose §2A review recorded `merged: true`, plus any human approval that
+  `STATE.human_directives` requires. Merging is mechanical once required
+  checks pass. The supervisor does it (it refuses a Planner PR with a file
+  outside `.ai/`); a Strategy session the supervisor didn't launch does it
+  itself. Execution never merges.
 - Experiment probes and evidence artifacts live in `.ai/evidence/<exp-id>/`.
   Packages never import them. Every L2 artifact has its rerun command in
   `result.evidence`.

@@ -121,6 +121,17 @@ python3 tools/ai-supervisor/supervise.py release 'KEY'    # re-arm a key held af
   the lock, whichever worktree or `AI_HOME` they are typed in. Session wrappers carry the repo id, so
   `start` refuses while a session of this repository from another home is still alive, and `stop` ends
   it (found by its token).
+- **Notifications.** The runner tells the user without being asked. Each event goes to
+  `$AI_HOME/events.jsonl` (last 5 shown by `status`) and, on macOS, to a desktop notification. Events: a
+  session started or ended (with the next step), the first CI wait on a PR, every new hold (urgent, with
+  a sound: `needs you: …`), and pause/stop. Waits and holds are announced once per change, not once per
+  poll. `--no-notify` keeps only the file.
+- **Human approval for product code** (`STATE.human_directives`, 2026-09-25). A `MERGE #n` whose PR comes
+  from a contract with `allowed.product_code: true` holds as `human_approval` until the PR carries the
+  `human-approved` label or an approving review. Only then does the supervisor merge it (slice 4: mechanically, no session).
+  Evidence-only PRs merge as in V1. Sessions push with the user's GitHub account, and GitHub doesn't let
+  an author approve their own PR, so the label is the approval for now. With a separate bot account, an
+  approving review would do.
 - Control goes through `$AI_HOME/control.json` (what the user wants), and the runner reports in
   `runner.json` (what it is doing). Both live outside git.
 
@@ -141,10 +152,11 @@ it while the work store is empty, and a disagreement holds as `work_model_disagr
 
 | next action (Phase 1) | supervisor |
 |---|---|
-| `PLAN`, `EXECUTE`, `REVIEW`, `MERGE` | launch one fresh session. MERGE too: only Strategy merges (AGENTS.md §6). One Strategy session still reviews → merges → plans → stops; the supervisor doesn't split it. |
+| `PLAN`, `EXECUTE`, `REVIEW` | launch one fresh session. Since slice 4 a REVIEW pass (the Judge) stops at the recorded review, and planning is its own PLAN pass. |
+| `MERGE` | slice 4: no session. The supervisor runs `gh pr merge <n> --merge --match-head-commit <sha>` for a merge a Judge or Planner decided (product code: after the `human-approved` gate; a Planner PR only if every file is under `.ai/`). |
 | `WAIT_FOR_CI` | wait `--poll` s and re-observe. No session is kept alive for CI. |
 | `WAIT_EXECUTION`, `WAIT_PLAN` | if our last session failed and nothing was pushed since: resume (retry). If it exited cleanly: hold (`incomplete`). Otherwise someone else's session: wait; hold (`inflight_quiet`) after 180 min without a push. |
-| `BLOCKED`, `HUMAN_REQUIRED`, `IDLE` | hold (attention), don't guess. |
+| `BLOCKED`, `HUMAN_REQUIRED`, `IDLE` | hold (attention), don't guess. `IDLE` comes from the Planner's durable marker (slice 4). |
 
 **Ledger** (`$AI_HOME/ledger.json`, outside git): session id, key (`<next action>@<develop sha>`), action,
 experiment, pid/pgid, started_at, last_activity, timeout, attempt, state `RUNNING | COMPLETED | CRASHED |
@@ -161,6 +173,5 @@ INCONCLUSIVE result is a result, and a clean exit that left the key unchanged ho
 no idle marker, so a relaunch would guess). The supervisor never reads a verdict, priority or evidence.
 
 Phase 2 ambiguities: a crashed session's half-done pass (for example `done` without a PR) is resumed with
-the same standard instruction, and what the fresh session makes of it is V1's call. A MERGE left behind by
-a session that exited before CI turned green gets a fresh Strategy session, which has to recognise the
-decided merge from the durable state.
+the same standard instruction, and what the fresh session makes of it is V1's call. (Since slice 4 a MERGE
+left behind is done by the supervisor itself, so no session has to recognise a decided merge.)

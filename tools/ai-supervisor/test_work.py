@@ -415,5 +415,93 @@ class CheckPyWork(unittest.TestCase):
         self.assertIn("outside contract scope: .ai/EXPERIMENT.yaml", out)
 
 
+# ---------------------------------------------------------------- slice 4: IDLE marker
+
+class Idle(unittest.TestCase):
+    def test_idle_marker_stops_planning_only_when_nothing_is_open(self):
+        r = sched([own("W-1", DONE)], 3, idle="no question worth a contract")
+        self.assertEqual((r["planner"]["state"], launched(r), r["next_action"]), ("idle", [], "IDLE"))
+        self.assertIn("no question", r["planner"]["reason"])
+        r = sched([own("W-1")], 1, idle="stale")                        # open work runs regardless
+        self.assertEqual(r["next_action"], "EXECUTE W-1")
+        r = sched([own("W-1", work.UNRECORDED)], 1, idle="stale")       # a result to record still wakes it
+        self.assertEqual(r["next_action"], "PLAN")
+        r = sched([], 1, idle="x", blockers=["token"])                  # a human blocker outranks idle
+        self.assertEqual(r["next_action"], "HUMAN_REQUIRED")
+
+    def test_derive_with_a_valid_or_stale_marker(self):
+        s = snap("evaluated")
+        s["develop"]["idle"] = {"since": "abc1234", "reason": "nothing worth it", "valid": True}
+        st = sup.derive(s)
+        self.assertEqual((st["next_action"], st["work"]["next_action"], st["work"]["agrees_with_v1"]),
+                         ("PLAN", "IDLE", None))                        # V1 has no idle state: no gate
+        s["develop"]["idle"]["valid"] = False
+        st = sup.derive(s)
+        self.assertEqual((st["work"]["next_action"], st["work"]["agrees_with_v1"]), ("PLAN", True))
+
+    def test_supervisor_holds_on_idle(self):
+        s = snap("evaluated")
+        s["develop"]["idle"] = {"since": "abc1234", "reason": "nothing worth it", "valid": True}
+        d = sv.decide(sv.view_of(s, sup.derive(s)), [], 0, sv.Config())
+        self.assertEqual((d["do"], d["kind"]), ("hold", "idle"))
+
+
+class IdleView(unittest.TestCase):
+    """sup.idle_view against a throwaway repo: the marker holds only while strategic inputs are unchanged."""
+
+    def setUp(self):
+        self.d = tempfile.mkdtemp(prefix="idle-")
+        self.top = sup.TOP   # the real repo; sup.TOP points at the throwaway one during the test
+        git(self.d, "init", "-q", "-b", "develop")
+        self.state = sup.yaml.safe_load(read(os.path.join(sup.TOP, sup.STATE)))
+        self.commit(self.state, "base")
+        self.base = git(self.d, "rev-parse", "HEAD").strip()
+        top, sup.TOP = sup.TOP, self.d
+        self.addCleanup(setattr, sup, "TOP", top)
+
+    def commit(self, state, msg):
+        for f, text in ((sup.STATE, sup.yaml.safe_dump(state, sort_keys=False)),
+                        (sup.EXP, read(os.path.join(self.top, sup.EXP))),
+                        (sup.VISION, read(os.path.join(self.top, sup.VISION)))):
+            full = os.path.join(self.d, f)
+            os.makedirs(os.path.dirname(full), exist_ok=True)
+            with open(full, "w") as fh:
+                fh.write(text)
+        git(self.d, "-c", "user.email=t@t", "-c", "user.name=t", "add", "-A")
+        git(self.d, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", msg)
+        return git(self.d, "rev-parse", "HEAD").strip()
+
+    def marked(self, since, **extra):
+        st = copy.deepcopy(self.state)
+        st["now"] = dict(st.get("now") or {}, idle_since=since, idle_reason="nothing worth a contract")
+        st.update(extra)
+        return st
+
+    def test_marker_holds_until_a_strategic_input_changes(self):
+        head = self.commit(self.marked(self.base), "idle")               # only STATE.now changed
+        self.assertTrue(sup.idle_view(head, sup.load_at(head, sup.STATE))["valid"])
+        st = self.marked(self.base, human_directives=["2026-09-26: new direction"])
+        head = self.commit(st, "directive")                              # a human directive arrives
+        self.assertFalse(sup.idle_view(head, sup.load_at(head, sup.STATE))["valid"])
+
+    def test_unknown_sha_is_not_idle(self):
+        head = self.commit(self.marked("0" * 40), "bad sha")
+        self.assertFalse(sup.idle_view(head, sup.load_at(head, sup.STATE))["valid"])
+        self.assertIsNone(sup.idle_view(self.base, sup.load_at(self.base, sup.STATE)))
+
+    def test_check_py_validates_the_marker(self):
+        ns = {"__name__": "v1_check"}
+        path = os.path.join(self.top, sup.CHECK)
+        exec(compile(read(path), path, "exec"), ns)
+        exp = sup.yaml.safe_load(read(os.path.join(self.top, sup.EXP)))
+        for now, n in (({"idle_since": "abc1234", "idle_reason": "x"}, 0), ({"idle_since": "abc1234"}, 1),
+                       ({"idle_since": "not-a-sha!", "idle_reason": "x"}, 1), ({"idle_reason": "x"}, 1)):
+            ns["errors"].clear()
+            st = copy.deepcopy(self.state)
+            st["now"] = dict(st.get("now") or {}, **now)
+            ns["check_state"](exp, st)
+            self.assertEqual(len(ns["errors"]), n, now)
+
+
 if __name__ == "__main__":
     unittest.main()

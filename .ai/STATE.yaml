@@ -2,24 +2,17 @@
 # Keep < ~150 lines. Git history holds everything older.
 updated: 2026-09-25
 
-now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
+now:                       # dashboard view; mode comes from contract status
   active_outcome: O2
-  experiment: "E-008 (ready): first product fix — close the ring box-shadow composition parity gap (K10), rerun G1/G2 to see the ring misses render."
-  last_result: "E-007 DISPROVEN (K10, L3): natural generation of 3 sections shipped 7/8 silent parity misses under a 'done' claim; the agent caught 1. Class->rule parity is a correctness gap for O2, not a cost item."
-  next: "EXECUTION: run E-008 on branch ai/E-008-ring-parity"
+  experiment: "E-009 (ready): re-issue the ring box-shadow parity fix with packages/barocss/tests/ in scope — update the 4 frozen exact-AST ring tests to Tailwind v4 so pnpm check goes green — and rerun G1/G2 (L3) to confirm the ring misses now render."
+  last_result: "E-008 INCONCLUSIVE (K11, L2): the minimum effects.ts edit reaches exact Tailwind-4.1.13 ring box-shadow parity with no regression, but 4 frozen v3 tests outside allowed.paths block green CI. Fix is correct; contract scope was too narrow. Not merged (PR #128 closed); re-issued as E-009."
+  next: "EXECUTION: run E-009 on branch ai/E-009-ring-parity"
   blockers: []
 
 outcomes:
   O1:
     status: done           # D14: K3, K5, K7, K8, K9; zero BaroCSS changes
-    statement: >
-      An AI agent can change the styling of a running BaroCSS page and confirm
-      the result matches its intent, using the smallest possible
-      BaroCSS-specific surface.
-    why: The smallest end-to-end slice of Human ↔ AI ↔ UI that exercises BaroCSS's runtime role.
-    done_when: >
-      L3 evidence that a real agent completes modify+verify on a realistic page,
-      and every BaroCSS change made for it was proven necessary (gap K-id cited).
+    statement: An AI agent can modify+verify styling on a running BaroCSS page with the smallest BaroCSS-specific surface.
   O2:
     status: active
     statement: An AI generates new UI with BaroCSS classes that render as intended on the first try.
@@ -30,13 +23,8 @@ outcomes:
 knowledge:
   proven:
     - {id: K2, level: L2, fact: "astToJson (branch codex/pr-feature-evidence, unmerged) serializes AST; no scenario needs it."}
-    - id: K3
-      level: L3
-      fact: >
-        E-001: a real LLM agent (claude -p, claude-opus-4-8, only Playwright MCP tools, fresh context per
-        task) edited classes on a live BaroCSS page and verified correctly 4/4 (color, padding/radius,
-        responsive grid, text-[42px]); claims matched the hidden grader. No BaroCSS-specific help needed.
-      caveat: "n=1 per task, one strong model, all classes resolved. Evidence: .ai/evidence/E-001/."
+    # K3-K9 are O1-era evidence (outcome done, D14); compacted, full text in git log -p -- .ai/STATE.yaml.
+    - {id: K3, level: L3, fact: "E-001: a real agent (claude-opus-4-8, Playwright MCP only, fresh context) modified+verified classes on a live page 4/4, claims matched the hidden grader; no BaroCSS help needed. n=1/task, all classes resolved. .ai/evidence/E-001/."}
     - id: K4
       level: L1
       fact: >
@@ -48,48 +36,11 @@ knowledge:
       caveat: >
         Hand probe 2026-09-24; E-002's four classes are L2 (.ai/evidence/E-002/). Parity gaps are not work
         items: K5 shows they did not cause false claims.
-    - id: K5
-      level: L3
-      fact: >
-        E-002: same actor/prompt as E-001, 4 tasks whose natural class is a K4 no-op. Claim = grader 4/4,
-        no false "done"; all 17 real no-ops were detected before the final report, mainly via computed style.
-        Recovered only where an arbitrary value exists (aspect-[16/9]); others honestly reported not-done.
-        Detecting unresolved classes is AGENT-owned for this actor; no BaroCSS signal needed.
-      caveat: >
-        n=1 per task, one strong model. Silent empty rules cost turns ($1.74 vs $0.21) and one misdiagnosis,
-        not false claims. Evidence: .ai/evidence/E-002/.
-    - id: K6
-      level: L2
-      fact: >
-        E-003: theme.extend.colors.brand via runtime.updateConfig makes bg-brand work with no regression (theme
-        deep-merges over defaults). theme.extend.borderRadius only emits :root --radius-* (rounded-* names are
-        hard-coded), so no config route adds rounded-4xl. Config has no plugin hook.
-      caveat: "Only colors/borderRadius probed; {DEFAULT} colour objects throw. Evidence: .ai/evidence/E-003/."
-    - id: K7
-      level: L3
-      fact: >
-        E-004: same actor/prompt on fixture pages: agent added theme.extend.colors.brand live and used bg-brand,
-        3/3 PASS, claims agree. Discovery: page source/exports/global, then updateConfig.toString().
-      caveat: >
-        Arm A passed via a second, non-observing runtime from the CDN URL (duplicate <style> ids) while claiming
-        it was the page's. Fixtures had no existing config. Evidence: .ai/evidence/E-004/SUMMARY.md.
-    - id: K8
-      level: L2
-      fact: >
-        E-005 on apps/barocss-site (baroStart({config:{preflight:true}})). Vite dev: import() of the served BaroCSS
-        module URL returns baroStart's runtime. updateConfig replaces the whole config, so a bare theme call drops
-        preflight and regresses the page; config-preserving calls pass. Production build: no route (no global, no exports).
-      caveat: "No agent runs. Evidence: .ai/evidence/E-005/SUMMARY.md, selftest.json."
-    - id: K9
-      level: L3
-      fact: >
-        E-006: same actor/prompt on apps/barocss-site's vite dev server, app-origin-only network. 3/3 read
-        updateConfig's source (toString or /@fs TypeScript), passed a config-preserving object to the page's own
-        runtime, used bg-brand: Y1 pass, 0 regressions, preflight kept, no duplicate runtime, claims agree.
-        updateConfig's replace semantics did not block agents; no merge change indicated.
-      caveat: >
-        n=3, one strong model. 0/3 made the bare call, so drop-then-notice is unobserved. Dev server exposes repo
-        source over /@fs; production has no route (K8). Evidence: .ai/evidence/E-006/SUMMARY.md, runs/.
+    - {id: K5, level: L3, fact: "E-002: same actor, 4 tasks whose natural class is a K4 no-op. Grader 4/4, no false 'done'; all 17 no-ops detected pre-report (mainly computed style), recovered only where an arbitrary value exists. Detecting unresolved classes is AGENT-owned for this actor. Silent empty rules cost turns, not false claims. .ai/evidence/E-002/."}
+    - {id: K6, level: L2, fact: "E-003: theme.extend.colors.brand via updateConfig makes bg-brand work (deep-merge); theme.extend.borderRadius only emits :root --radius-* (rounded-* names hard-coded), no config route adds rounded-4xl; no plugin hook. {DEFAULT} colour objects throw. .ai/evidence/E-003/."}
+    - {id: K7, level: L3, fact: "E-004: same actor on fixtures added theme.extend.colors.brand live, used bg-brand 3/3, claims agree; discovery via page source/exports/global then updateConfig.toString(). Arm A passed via a duplicate non-observing CDN runtime. .ai/evidence/E-004/."}
+    - {id: K8, level: L2, fact: "E-005 on apps/barocss-site: vite dev import() of the served module URL returns baroStart's runtime; updateConfig replaces the whole config so a bare theme call drops preflight (config-preserving calls pass); production build exposes no route. No agent runs. .ai/evidence/E-005/."}
+    - {id: K9, level: L3, fact: "E-006: same actor on the site's vite dev (app-origin-only) read updateConfig's source and passed a config-preserving object to the page's own runtime, used bg-brand 3/3, 0 regressions, preflight kept, claims agree. 0/3 made the bare call (drop-then-notice unobserved); dev /@fs exposes repo source, production has none. .ai/evidence/E-006/."}
     - id: K10
       level: L3
       fact: >
@@ -104,6 +55,19 @@ knowledge:
       caveat: >
         n=1 per task, one strong model; remaining misses are state-only (focus:/hover:) or cosmetic. Contrasts K5,
         where the same actor caught every no-op on modify tasks. Evidence: .ai/evidence/E-007/SUMMARY.md, runs/, audit.json.
+    - id: K11
+      level: L2
+      fact: >
+        E-008: the minimum edit in packages/barocss/src/presets/effects.ts closes the ring box-shadow parity family
+        (K10) — register --baro-shadow/--baro-inset-shadow/--baro-inset-ring-shadow via @property 0 0 #0000
+        (Tailwind v4's mechanism), drop the hardcoded v3 blue --baro-ring-color so a lone ring defaults to
+        currentColor, add ring-offset-{0,1,2,4,8}. ring-1/ring-2/focus:ring-2 then compute box-shadow byte-identical
+        to Tailwind 4.1.13; focus:ring-offset-2 alone emits box-shadow:none in both engines (parity). No control
+        regressed; the real-Tailwind compat/compare.test.ts passes with the fix. Per-family patching reaches exact parity.
+      caveat: >
+        INCONCLUSIVE, not merged: the contract's allowed.paths omitted packages/barocss/tests/, so 4 exact-AST ring
+        tests that froze the parity-wrong v3 blue default fail pnpm check; L3 (G1/G2 rerun) not run. Re-issued as
+        E-009 with scope fixed. Branch ai/E-008-ring-parity kept as reference. Evidence: .ai/evidence/E-008/.
   disproven: []
   working_assumptions:     # L0; plausible but untested, don't treat as proven
     - Natural-language reasoning doesn't belong inside BaroCSS.
@@ -136,32 +100,69 @@ decisions:                 # older entries compressed; full text in git log -p -
       on the real site (K8: replace semantics; its bare-call control was the contract's error), E-006 reran agents there.
     why: >
       Guessed gaps risk invent-then-solve; theme/config semantics is what only BaroCSS owns; done_when needs a realistic page.
-  - id: D14
+  - id: D14-D15
     date: 2026-09-25
     decision: >
-      Accepted E-006 PROVEN (K9), merged. O1 done: L3 modify+verify on a realistic page (class edits K3/K5, theme
-      token K7/K9) with zero BaroCSS changes, so none needed proving. No updateConfig merge change. Active outcome → O2
-      (generate): the next loop stage, and class → rule resolution vs models' Tailwind v4 knowledge (K4, U4) is
-      BaroCSS-owned. O3 stays candidate.
+      Accepted E-006 PROVEN (K9) and E-007 DISPROVEN (K10), both merged. O1 done (modify+verify on a realistic page,
+      zero BaroCSS changes); active outcome -> O2 (generate). E-007 showed agents ship silent Tailwind-v4 parity
+      misses under "done", so class -> rule parity is an evidence-backed BAROCSS gap; E-008 was contracted as the first
+      product_code experiment to fix the minimum family (ring box-shadow), other families left one-per-contract.
     why: >
-      done_when met without new surface. Generation is where K4's parity gaps would bite first-try rendering;
-      measuring how often they bite decides whether parity work matters or stays a non-item.
-  - id: D15
+      done_when met without new surface; generation is where parity gaps bite first-try rendering. Ring is the
+      canonical idiom agents reach for unprompted (2/3 runs), a measured PARITY-MISS with unambiguous BAROCSS ownership.
+  - id: D16
     date: 2026-09-25
     decision: >
-      Accepted E-007 DISPROVEN (K10), merged (evidence-only). For O2 generation, agents ship silent Tailwind-v4
-      parity misses under "done" (unlike K5's modify tasks), so class -> rule parity is now an evidence-backed
-      BAROCSS gap. E-008 is the project's first product_code experiment: fix the minimum family — ring box-shadow
-      composition — and rerun G1/G2 to confirm the ring misses now render (L2 vs Tailwind 4.1.13). Other observed
-      families (single-axis translate, theme var name, preflight border-style) are left for later, one per contract.
+      Reviewed E-008: accepted INCONCLUSIVE, did not merge PR #128 (closed, branch kept as reference). The minimum
+      effects.ts edit reaches exact Tailwind-4.1.13 ring box-shadow parity at L2 with no regression (K11), but the
+      contract's allowed.paths omitted packages/barocss/tests/, so the parity fix's necessary update to 4 frozen
+      exact-AST ring tests fails pnpm check — a contract scope error, not a fix defect. Re-issued as work-store
+      contract E-009 with packages/barocss/tests/ in scope and the factually-wrong standalone focus:ring-offset-2
+      "offset ring" expectation dropped (Tailwind emits box-shadow:none for ring-offset alone); E-009 keeps the unrun
+      L3 G1/G2 rerun arm and moves the first product fix into the work store.
     why: >
-      E-007's decision_it_informs: an unnamed shipped miss is evidence for a class -> rule gap; contract the minimum
-      fix for the observed family. Ring is the canonical Tailwind idiom agents reach for unprompted (2/3 runs), a
-      measured PARITY-MISS the frozen grader can score, with unambiguous BAROCSS ownership.
+      Product PRs merge only on green CI + PROVEN; a scope error froze parity-wrong tests outside scope. The fix is
+      real (compat/compare.test.ts agrees), so the correction is to widen scope to the tests that encode the old
+      bug, not to abandon per-family patching.
+  - id: D17
+    date: 2026-09-25
+    decision: >
+      No outcome change this pass. The 2026-09-25 human directive to re-derive outcomes from VISION's "Who it is for"
+      (v0-like AI UI platforms; parity table stakes + three wins O4/O5/O6 vs @tailwindcss/browser; park O3) was
+      withdrawn by the human mid-session (develop d0476ac removed the directive; a pending branch withdraws the VISION
+      section too — "withdraw the #130 Tailwind-replacement framing"). Reverted my in-flight application of it;
+      outcomes stay O1 done / O2 active / O3 candidate. E-008 review and the E-009 parity contract stand on their own
+      (O2 parity predates the directive), and the still-active directives — product_code contracts include the
+      package's test dirs, and open the experiment PR as a draft until local checks pass — remain applied to E-009.
+    why: >
+      A withdrawn directive is not a directive; building on it would contradict the human's explicit signal. The
+      review and parity work are independent of the framing, so only the outcome re-derivation is dropped.
 
 open_items:                # for STRATEGY, not EXECUTION
   - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."
   - "(human) Main checkout holds stale untracked AGENTS.md, .ai/, test-scenario*.html, opencode.json; remove after merge."
   - "check.py requires non-empty allowed.paths though EXPERIMENT.yaml and .ai/evidence/<id>/ are implicit; align later."
 
-human_directives: []       # humans append short directional notes; STRATEGY must apply them
+human_directives:          # humans append short directional notes; STRATEGY must apply them
+  - >-
+    2026-09-25: a product_code experiment PR is merged only after a human approves it. Review it fully
+    (§2A). If you would merge, record the review with merged: true on the experiment branch and push,
+    but run `gh pr merge` only when the PR carries the label `human-approved`, which only a human adds;
+    never add it yourself. Without the label, stop there and do not start §2B until that merge lands.
+  - >-
+    2026-09-25: a product_code contract's allowed.paths always includes the test directories of every
+    package it lets Execution change (for example packages/barocss/tests/ next to packages/barocss/src/).
+    A code change that makes existing tests obsolete must be able to update them in the same pass.
+  - >-
+    2026-09-25: every product_code contract tells Execution, in its method, to open the experiment PR as
+    a draft when a local check (pnpm check or the package-scoped type-check/lint/test/build:library) fails,
+    and to mark it ready for review only when all of them pass. Execution reads only the contract, so the
+    rule has to be written there.
+  - >-
+    2026-09-25: treat PR #84 (codex/compat-implement-v4-3-zoom-tab) as a source of candidate O2 parity
+    gaps, not as code to merge. A review flagged, unverified: @container and @container/<name> missing
+    (shadcn uses them); bg-(--x) resolving to background-size instead of a color; max-md: with the
+    default raw breakpoint possibly emitting an invalid @media; outline width. Measure each against
+    Tailwind 4.1.13 with the E-007/E-008 classifier before contracting a fix, and rank by how often
+    v0/shadcn-style output uses it. Don't copy #84's defects (bare blur emitting blur(0px), bg-(position:--x)
+    falling through to background-color), and don't move the reference to 4.3.3 without a decision.

@@ -1,0 +1,128 @@
+# Work-store contract (AGENTS.md §1). One file per work item; the file name is the id.
+# STRATEGY writes every field above `result` and sets status: ready.
+# EXECUTION may change only `status` and `result` (contract is frozen; .ai/check.py --work E-009 enforces).
+# STRATEGY alone writes `review` and sets status: evaluated.
+# status: none | ready | running | done | blocked | evaluated
+# While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
+status: ready
+
+id: E-009
+outcome: O2
+branch: ai/E-009-ring-parity
+priority: 1
+observes: ["packages/barocss/src/presets/effects.ts"]
+locks: ["port:5173"]
+question: >
+  E-008 proved at L2 that the MINIMUM edit in packages/barocss/src/presets/effects.ts closes the ring box-shadow
+  parity family (K10, K11): registering --baro-shadow/--baro-inset-shadow/--baro-inset-ring-shadow via @property
+  (Tailwind v4's mechanism), dropping the hardcoded v3 blue --baro-ring-color so a lone ring defaults to currentColor,
+  and adding ring-offset-{0,1,2,4,8}, makes ring-1/ring-2/focus:ring-2 compute a box-shadow byte-identical to
+  Tailwind 4.1.13 (focus:ring-offset-2 alone emits box-shadow:none in both engines) with no control regression. E-008
+  was INCONCLUSIVE only because its allowed.paths omitted packages/barocss/tests/, so the 4 frozen exact-AST ring
+  tests that pin the parity-wrong v3 blue default fail pnpm check. Does that same fix, WITH those 4 tests updated to
+  the Tailwind-v4 output, make pnpm check GREEN with no other test change and no product change beyond effects.ts +
+  one changeset — and, when E-007's G1 and G2 are rerun unchanged on the fixed build, do the ring tokens the agent
+  writes now render (E-007's frozen classifier reclassifies them RESOLVED)?
+decision_it_informs: >
+  Green pnpm check + no regression + the G1/G2 rerun showing the ring tokens now render → per-family class->rule
+  parity patching is the right shape AND it lands cleanly (first merged product code for O2); Strategy accepts/merges
+  and contracts the next observed family (single-axis translate, theme var name, or the preflight border-style gap)
+  the same way, then later reruns G1-G3 to see whether claims finally agree once every family a run uses is fixed.
+  If green check still needs a change outside effects.ts + those 4 tests, or a control regresses, or the rerun still
+  shows a ring token not applied → the ring fix is not as localized as E-008's L2 evidence implied, and Strategy
+  rethinks scope before spending more product code.
+hypothesis: >
+  The E-008 branch's src diff is already correct and minimal; the only outstanding work is to update the 4 exact-AST
+  ring assertions in packages/barocss/tests/presets/effects.test.ts to the new (parity-correct) node list — the
+  @property base values plus the dropped blue default — after which the whole suite is green and the G1/G2 rerun
+  shows the ring tokens the agent writes rendering with the Tailwind box-shadow.
+builds_on: [K4, K10, K11, U4]
+scenario: >
+  Product: packages/barocss (the class -> rule engine), built locally. App: apps/barocss-site unchanged, booted by
+  baroStart({config:{preflight:true}}), served by `vite` dev, exactly E-006/E-007/E-008's environment (env.mjs proxy,
+  app origin only). Actor for the rerun arm: E-007's, unchanged (claude-opus-4-8[1m], fresh context per run, empty
+  cwd, Playwright MCP tools only). Prompt and tasks for the rerun: E-007's G1 and G2, word for word (do not change).
+method: >
+  1. Branch ai/E-009-ring-parity from origin/develop. Bring the E-008 branch's proven product diff forward: apply the
+     effects.ts change from branch ai/E-008-ring-parity (register the three @property base values, drop the hardcoded
+     v3 blue --baro-ring-color default, add ring-offset-{0,1,2,4,8}) plus its one changeset, unchanged. If the diff
+     no longer applies cleanly on develop, reconstruct the same minimum edit; do not enlarge it.
+  2. Update ONLY the 4 frozen exact-AST ring assertions in packages/barocss/tests/presets/effects.test.ts
+     ("ring -> multi-var box-shadow", "ring-2 -> multi-var box-shadow", "ring -> box-shadow variable combination",
+     "ring-4 -> box-shadow variable combination") to the new parity-correct node list: the added @property base
+     values and the removed --baro-ring-color: rgb(59 130 246 / 0.5). Change no other test, and change no test
+     assertion in a way that would let a non-parity output pass. Do not touch compat/compare.test.ts (it already
+     encodes the real-Tailwind reference and passes with the fix).
+  3. L2 gate: run pnpm check (or package-scoped type-check/lint/test/build:library) and record the outcome in
+     result.checks. Pass = green (0 failing tests). Re-confirm with E-008's frozen classifier that ring-1, ring-2,
+     focus:ring-2, focus:ring-offset-2 classify RESOLVED with box-shadow equal to Tailwind 4.1.13 and every E-008
+     control (shadow-sm/shadow-xl/shadow-none/p-4/bg-blue-600/md:grid-cols-3/rounded-2xl) is still RESOLVED. Reuse
+     .ai/evidence/E-008/ring.mjs unchanged (copy it to .ai/evidence/E-009/ and re-point paths only). Commit the L2
+     artifact.
+  4. L3 corroboration arm: with the fixed build served, rerun E-007's G1 and G2 (fresh context each), copying
+     E-007's classifier/grader/runner/env into .ai/evidence/E-009/ unchanged except output/task path wiring. Record
+     per run: the ring tokens the agent wrote, whether each classifies RESOLVED in the final section, the grader
+     result, and the final claim. Non-ring families (G1 translate/shadow, G2 border) may still miss; that is expected
+     and out of scope.
+  5. Record result and set status: done (or blocked). Aggregate: check green?, which ring tokens closed, any
+     regression, and whether the G1/G2 ring tokens now render. Commit ai(exec): E-009 <VERDICT>, run
+     `python3 .ai/check.py --role execution --base origin/develop --work E-009`, then open the PR to develop and put
+     its URL in result.pr. Open the PR as a DRAFT if any local check (pnpm check, or the package-scoped
+     type-check/lint/test/build:library) fails, and mark it ready for review only when all of them pass. Push.
+     Do not merge. STOP.
+allowed:
+  actions:
+    - "apply the E-008 branch's minimum effects.ts diff (the three @property base values, drop the v3 blue --baro-ring-color default, add ring-offset-{0,1,2,4,8}); no enlargement"
+    - "update only the 4 frozen exact-AST ring assertions in packages/barocss/tests/presets/effects.test.ts to the parity-correct node list"
+    - "add one changeset under .changeset/ for the product change"
+    - "build packages locally (dist output is gitignored or left uncommitted)"
+    - "run apps/barocss-site's vite dev server on localhost with the fixed build; drive a browser"
+    - "run tailwindcss 4.1.13 from the repo's node_modules locally as the classification reference"
+    - "copy E-007's classifier/grader/grade/runner/selftest/env and E-008's ring.mjs into .ai/evidence/E-009/ and re-point their paths only"
+    - "read packages/barocss source only to reconstruct the minimum ring fix if the diff does not apply (<=10 files)"
+    - "spawn one fresh agent context per rerun as the actor (G1, G2)"
+  paths: ["packages/barocss/src/", "packages/barocss/tests/", ".changeset/", ".ai/evidence/E-009/"]
+  product_code: true
+non_goals:
+  - Fixing any family other than ring box-shadow composition (single-axis translate, theme var name shadow/leading, preflight border-style stay out of scope)
+  - Any change to effects.ts beyond the E-008 minimum (no new engine, manager, serializer or abstraction layer)
+  - Editing any test other than the 4 frozen ring assertions; weakening any assertion so a non-parity output would pass; editing compat/compare.test.ts or apps/barocss-site
+  - Changing E-007's classifier, grader, write-detector, runner, prompt, tasks, model or tools; changing G1/G2 text
+evidence:
+  level_required: L2
+  proves_yes: >
+    pnpm check is GREEN (0 failing tests) with the only product change being effects.ts + one changeset and the only
+    test change being the 4 ring assertions updated to the parity-correct node list; the frozen classifier still
+    reclassifies ring-1, ring-2, focus:ring-2, focus:ring-offset-2 as RESOLVED with box-shadow equal to Tailwind
+    4.1.13 and every E-008 control unchanged (no regression); AND the G1/G2 rerun shows the ring tokens the agent
+    wrote now render.
+  proves_no: >
+    A green pnpm check needs a change beyond effects.ts + the 4 ring tests (name the file and why), OR updating those
+    tests makes another test fail, OR the classifier no longer reclassifies all four ring tokens RESOLVED, OR a
+    control regresses, OR the G1/G2 rerun still shows a ring token the agent wrote not applied. Record which.
+budget: >
+  1 session. Read at most 10 product files. Two agent reruns (G1, G2). Retry once only for environment failures, not
+  for agent mistakes. If green check needs anything beyond effects.ts + the 4 ring assertions, stop and return
+  INCONCLUSIVE (or DISPROVEN) with the open point rather than enlarging scope.
+stop_when:
+  - pnpm check is green with only effects.ts + changeset + the 4 ring assertions changed, all four ring tokens RESOLVED at Tailwind parity, controls unchanged, and the G1/G2 rerun shows the ring tokens render → PROVEN.
+  - A green check would require a change outside effects.ts + the 4 ring assertions → INCONCLUSIVE, name the file and the reason.
+  - Updating the 4 ring assertions breaks any other test, or a control regresses → stop, record it, DISPROVEN or PARTIAL.
+  - The classifier, grader, runner or write-detector would have to change to score the fix → record in side_notes, don't change it.
+  - The budget is used up.
+
+result:
+  verdict: null        # EXECUTION proposes; STRATEGY accepts/downgrades in review
+  level: null
+  evidence: []
+  learning: null
+  unknown: []
+  next_question: null
+  pr: null
+  checks: null
+  side_notes: []
+
+review:                  # STRATEGY only
+  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
+  merged: null           # true | false
+  reason: null           # one line: criteria met/unmet, level, CI, scope
