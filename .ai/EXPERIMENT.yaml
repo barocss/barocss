@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: blocked
+status: evaluated
 
 id: E-005
 outcome: O1
@@ -121,6 +121,9 @@ result:
     - "vite build output bundles BaroCSS with no exports and no global, as the contract expected"
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: INCONCLUSIVE
+  merged: true
+  reason: >
+    Evidence-only PR, check.py OK, CI green. Blocked correctly by stop_when at a gating control the contract got wrong:
+    updateConfig replaces the whole config (browser-runtime.ts:250 confirmed), so the bare theme.extend call drops
+    baroStart's preflight and regresses the page. Findings accepted at L2 (K8); no L3, agent phase not run.
