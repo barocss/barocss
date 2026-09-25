@@ -286,3 +286,17 @@ This project is licensed under the MIT License - see the [LICENSE](../../LICENSE
 ---
 
 **@barocss/browser** - Real-time CSS generation for browsers.
+
+## BaroCSS next to a shadcn build
+
+A shadcn app built with Tailwind 4 can make the runtime use its theme without a duplicate JS config:
+
+```js
+import { baroStart, shadcnTheme } from '@barocss/browser';
+
+baroStart({ config: { theme: { extend: shadcnTheme } } });
+```
+
+`shadcnTheme` maps the shadcn colours (`background`, `primary`, `muted-foreground`, `border`, `ring`, `chart-1..5`, `sidebar-*`, ...) and `rounded-sm/md/lg/xl` to the raw `:root` variables (`var(--primary)`, `calc(var(--radius) - 2px)`). It does not use `--color-*`, because `@theme inline` doesn't emit those to the page. Opacity modifiers such as `bg-primary/90` work.
+
+Custom tokens (for example `--brand`) are not included. Add them yourself: `theme: { extend: { ...shadcnTheme, colors: { ...shadcnTheme.colors, brand: 'var(--brand)' } } }`.

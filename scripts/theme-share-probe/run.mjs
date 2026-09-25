@@ -82,6 +82,8 @@ const HEAD = {
   baroRawVarCfg: baro(JSON.stringify(rawCfg)),
   baroLitCfg: baro(JSON.stringify(litCfg)),
   baroReadPage: baro(readPage),
+  // #223: the exported preset, no hand-written config.
+  baroShadcnPreset: baro('{theme:{extend:BaroCSS.shadcnTheme}}'),
   twb: '<link rel="stylesheet" href="/build.css"><script src="/twb.js"></script>',
   twbTheme: `<link rel="stylesheet" href="/build.css"><style type="text/tailwindcss">${THEME_BLOCK}</style><script src="/twb.js"></script>`,
 };
