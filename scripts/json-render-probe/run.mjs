@@ -8,6 +8,7 @@
 //   build    built CSS only
 //   twb      build + @tailwindcss/browser
 //   baro     build + BaroCSS.baroStart()
+//   baroskip build + BaroCSS.baroStart({ skipExisting: true }) (#210: skip classes build.css already defines)
 //   baropre  build + baroStart() + the exported preloadJsonRenderClasses before mount
 //   families / wide / corpusonly  #218 build-time pre-generation via @source inline (see pregen.mjs), no runtime
 // #218 rerun: same command with PROBE_PORT=5718 (result.json gains buildMs, coverage of #209 outputs, uncoverable).
@@ -28,7 +29,7 @@ const twDir = path.dirname(req.resolve('tailwindcss/package.json'));
 const PORT = Number(process.env.PROBE_PORT || 5320);
 const RUNS = Number(process.argv[2] || 5);
 const PRE = ['families', 'wide', 'corpusonly'];
-const ARMS = ['ref', 'build', 'twb', 'baro', 'baropre', ...PRE];
+const ARMS = ['ref', 'build', 'twb', 'baro', 'baroskip', 'baropre', ...PRE];
 const FILES = {
   baro: path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'),
   twb: path.join(process.env.TWB_DIR || '', 'dist/index.global.js'),
@@ -75,6 +76,7 @@ const head = {
   build: '<link rel="stylesheet" href="/build.css">',
   twb: '<link rel="stylesheet" href="/build.css"><script src="/twb.js"></script>',
   baro: '<link rel="stylesheet" href="/build.css"><script src="/baro.js"></script><script>BaroCSS.baroStart();</script>',
+  baroskip: '<link rel="stylesheet" href="/build.css"><script src="/baro.js"></script><script>BaroCSS.baroStart({ skipExisting: true });</script>',
   baropre: '<link rel="stylesheet" href="/build.css"><script src="/baro.js"></script><script>BaroCSS.baroStart();</script>',
   ...Object.fromEntries(PRE.map((a) => [a, `<link rel="stylesheet" href="/${a}.css">`])),
 };
@@ -120,7 +122,7 @@ function cmp(a, b, ids, props) {
 }
 const gz = (f) => zlib.gzipSync(fs.readFileSync(f)).length;
 const scriptBytes = { twb: [fs.statSync(FILES.twb).size, gz(FILES.twb)], baro: [fs.statSync(FILES.baro).size, gz(FILES.baro)] };
-scriptBytes.baropre = scriptBytes.baro;
+scriptBytes.baropre = scriptBytes.baroskip = scriptBytes.baro;
 const summary = ARMS.map((arm) => {
   const rs = raw.filter((r) => r.arm === arm && !r.error);
   const specs = rs.map((r) => cmp(r.specSig, refRun.specSig, r.specIds, r.props));
