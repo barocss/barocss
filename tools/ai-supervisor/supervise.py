@@ -106,6 +106,7 @@ class Config:
         self.tick_s = 1.0                       # how quickly pause / resume / stop take effect
         self.concurrency = 1                    # sessions at once; 1 keeps the serial loop below unchanged
         self.gh = ["gh"]                        # mechanical merges
+        self.bind_review = True                 # merge only the head a Strategy review commit produced (+ develop merges)
         self.port_base = 5200                   # --concurrency > 1: slot n gets port_base + n*port_span …
         self.port_span = 100
         self.notify = False                     # desktop notifications (the CLI turns them on)
@@ -127,6 +128,39 @@ class Config:
 
 def mode_of(action):
     return work.MODE.get(action.split()[0])
+
+
+REVIEW_SUBJECT = re.compile(r"^ai\(strategy\): review E-\d+")
+
+
+def reviewed_head(repo, head, develop="origin/develop", limit=200):
+    """(ok, reason): is `head` the commit a Strategy review produced, plus only clean merges of develop?
+
+    A decided merge is a decision about a diff, not a PR number. Walk the first-parent chain from head to
+    the latest `ai(strategy): review E-N` commit; every commit on the way must be a two-parent merge whose
+    second parent is on develop and whose tree equals git's automatic merge of its parents (what
+    `gh pr update-branch` makes). Anything else was pushed after the review and nobody reviewed it."""
+    g = lambda *a: subprocess.run(["git", "-C", repo, *a], capture_output=True, text=True)
+    c, merges = head, 0
+    for _ in range(limit):
+        r = g("log", "-1", "--format=%P%x00%s", c)
+        if r.returncode:
+            return False, f"commit {c[:7]} is not available locally"
+        parents, _, subject = r.stdout.rstrip("\n").partition("\x00")
+        ps = parents.split()
+        if REVIEW_SUBJECT.match(subject):
+            return True, f"reviewed at {c[:7]}" + (f", then {merges} develop merge(s)" if merges else "")
+        what = f"{c[:7]} ({subject[:60]})"
+        if len(ps) != 2:
+            return False, f"head_changed_after_review: {what} was pushed after the review and is not a develop merge"
+        if g("merge-base", "--is-ancestor", ps[1], develop).returncode:
+            return False, f"head_changed_after_review: {what} merges {ps[1][:7]}, which is not on develop"
+        mt = g("merge-tree", "--write-tree", ps[0], ps[1])
+        tree = g("rev-parse", c + "^{tree}").stdout.strip()
+        if mt.returncode or mt.stdout.split()[:1] != [tree]:
+            return False, f"head_changed_after_review: {what} is a develop merge with changes of its own"
+        c, merges = ps[0], merges + 1
+    return False, f"head_changed_after_review: no review commit within {limit} commits of {head[:7]}"
 
 
 def merge_command(cfg, pr):
@@ -1259,7 +1293,15 @@ class Supervisor:
                 # develop requires an up-to-date branch: bring it up to date; CI reruns, then MERGE is due again
                 self._gh("pr", "update-branch", n)
                 state, reason = "UPDATED", "branch was behind develop; updated it, waiting for CI"
-            elif d["pr"].get("plan"):
+            elif not d["pr"].get("plan") and self.cfg.bind_review:
+                sha = d["pr"].get("sha") or info.get("headRefOid")
+                # pull/N/head exists as long as the PR does, whatever happened to its branch; develop too
+                subprocess.run(["git", "-C", self.cfg.repo_dir, "fetch", "--quiet", "origin", f"pull/{n}/head",
+                                "develop"], capture_output=True, text=True, timeout=120)
+                ok, why = reviewed_head(self.cfg.repo_dir, sha) if sha else (False, "PR head unknown")
+                if not ok:
+                    state, reason = "REFUSED", why   # the human and Strategy decide what to do with new commits
+            if state == "COMPLETED" and d["pr"].get("plan"):
                 files = json.loads(self._gh("pr", "view", str(d["pr"]["number"]), "--json", "files"))["files"]
                 outside = [f["path"] for f in files if not f["path"].startswith(".ai/")]
                 if outside:

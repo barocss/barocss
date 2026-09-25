@@ -62,7 +62,7 @@ def view(name, **kw):
 
 def cfg(home, **kw):
     base = dict(home=home, claude=[sys.executable, FAKE], prepare=False, poll_s=0.01, monitor_s=0.05,
-                settle_s=0, backoff_s=0, kill_grace_s=1, fetch=False, tick_s=0.05)
+                settle_s=0, backoff_s=0, kill_grace_s=1, fetch=False, tick_s=0.05, bind_review=False)
     base.update(kw)
     return sv.Config(**base)
 
@@ -958,6 +958,98 @@ class MechanicalMerge(unittest.TestCase):
         rep = w.sup(gh=[sys.executable, FAKE_GH]).run(max_sessions=1)
         self.assertEqual(rep["sessions"][0]["state"], "COMPLETED")
         self.assertEqual(self.gh_calls()[-1][:3], ["pr", "merge", "7"])
+
+
+class ReviewedHead(unittest.TestCase):
+    """A decided merge binds to the reviewed diff: only clean develop merges may follow the review commit."""
+
+    def setUp(self):
+        self.r = tempfile.mkdtemp(prefix="sup-rev-")
+        self.g("init", "-q", "-b", "develop")
+        self.commit("base", "a.txt", "1")
+        self.g("checkout", "-q", "-b", "ai/E-9")
+        self.commit("ai(exec): E-9 result", "b.txt", "exec")
+        self.commit("ai(strategy): review E-9 PROVEN", ".ai/x.yaml", "review")
+        self.reviewed = self.head()
+
+    def g(self, *a):
+        return subprocess.run(["git", "-C", self.r, "-c", "user.email=t@t", "-c", "user.name=t", *a],
+                              check=True, capture_output=True, text=True).stdout.strip()
+
+    def commit(self, msg, path, text):
+        with open(os.path.join(self.r, path.replace("/", "_")), "w") as fh:
+            fh.write(text)
+        self.g("add", "-A")
+        self.g("commit", "-q", "-m", msg)
+
+    def head(self):
+        return self.g("rev-parse", "HEAD")
+
+    def develop_moves(self):
+        self.g("checkout", "-q", "develop")
+        self.commit("other PR landed", "c.txt", "dev")
+        self.g("checkout", "-q", "ai/E-9")
+
+    def check(self):
+        return sv.reviewed_head(self.r, self.head(), develop="develop")
+
+    def test_the_reviewed_head_itself(self):
+        self.assertEqual(self.check()[0], True)
+
+    def test_a_clean_develop_merge_after_review(self):
+        self.develop_moves()
+        self.g("merge", "-q", "--no-edit", "develop")      # what gh pr update-branch makes
+        ok, why = self.check()
+        self.assertTrue(ok, why)
+        self.assertIn("1 develop merge", why)
+
+    def test_a_commit_pushed_after_the_review(self):
+        self.commit("sneaky change", "b.txt", "changed after review")
+        ok, why = self.check()
+        self.assertFalse(ok)
+        self.assertIn("head_changed_after_review", why)
+
+    def test_a_develop_merge_with_extra_changes(self):
+        self.develop_moves()
+        self.g("merge", "-q", "--no-commit", "develop")
+        with open(os.path.join(self.r, "b.txt"), "w") as fh:
+            fh.write("smuggled into the merge")
+        self.g("add", "-A")
+        self.g("commit", "-q", "-m", "Merge branch 'develop'")
+        ok, why = self.check()
+        self.assertFalse(ok)
+        self.assertIn("changes of its own", why)
+
+    def test_a_merge_of_something_not_on_develop(self):
+        self.g("checkout", "-q", "-b", "elsewhere", "develop")
+        self.commit("unreviewed work", "d.txt", "x")
+        self.g("checkout", "-q", "ai/E-9")
+        self.g("merge", "-q", "--no-edit", "elsewhere")
+        ok, why = self.check()
+        self.assertFalse(ok)
+        self.assertIn("not on develop", why)
+
+    def test_no_review_commit(self):
+        self.g("checkout", "-q", "develop")
+        ok, why = self.check()
+        self.assertFalse(ok)
+
+    def test_merge_refuses_an_unreviewed_head(self):
+        w = World(self, "merge", plan=[])
+        gh_argv = os.path.join(w.dir, "gh_argv")
+        os.environ["SUP_FAKE_GH_ARGV"] = gh_argv
+        self.addCleanup(lambda: os.environ.pop("SUP_FAKE_GH_ARGV", None))
+        self.commit("sneaky change", "b.txt", "changed after review")
+        s = w.sup(gh=[sys.executable, FAKE_GH], bind_review=True, repo_dir=self.r)
+        d = {"do": "merge", "key": "MERGE #5@x", "action": "MERGE #5", "attempt": 1,
+             "pr": {"number": 5, "sha": self.head(), "head": "ai/E-9", "plan": False}}
+        r = s.merge(d, s.observe())
+        self.assertEqual(r["state"], "REFUSED")
+        self.assertIn("head_changed_after_review", r["reason"])
+        self.assertFalse(os.path.exists(gh_argv))           # gh pr merge never ran
+        v = view("merge")
+        dd = sv.decide(v, [dict(r, key=v["key"])], time.time(), C)
+        self.assertEqual((dd["do"], dd["kind"]), ("hold", "merge_refused"))
 
 
 def _pid_alive(pid):

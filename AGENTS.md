@@ -37,7 +37,8 @@ implementation detail, because that anchors it on nearby technical work.
 experiment PR. Execution never merges anything. A merge Strategy has already
 decided (`review.merged: true`, or Strategy's own `.ai/`-only PR) may be
 executed by the supervisor once required checks pass and the human-approval
-directive allows it; the supervisor never decides a merge.
+directive allows it, and only for the head Strategy reviewed (plus develop
+merges from updating the branch); the supervisor never decides a merge.
 
 ## 2. STRATEGY
 
@@ -181,8 +182,10 @@ reality check → **existing-capability test** → **ownership check** →
 - Branches are cut from `develop`: `ai/E-00N-<slug>` for execution,
   `ai/strategy-E-00N` for strategy. Commit prefixes are `ai(strategy): …` and
   `ai(exec): E-00N <VERDICT> …`.
-- `develop` requires a PR and a green "Test and Build" check, with no human
-  approval needed. CI runs `python3 .ai/check.py` for structural validity.
+- `develop` requires a PR and a green "Test and Build" check, with no GitHub
+  review required; product-code PRs still need the human approval that
+  `STATE.human_directives` requires. CI runs `python3 .ai/check.py` for
+  structural validity.
 - Who merges: Strategy may merge its own `.ai/`-only PRs once `check.py
   --role strategy` passes and CI is green. Experiment PRs are merged only after
   a Strategy session's §2A review decides it. The supervisor may execute a

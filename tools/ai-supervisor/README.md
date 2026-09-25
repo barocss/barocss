@@ -150,7 +150,11 @@ python3 tools/ai-supervisor/supervise.py release 'KEY'    # re-arm a key held af
   No Opus session: today's MERGE #141 session took 13 min and $3.06. Order: the human-approval gate
   first; then if the head moved since it was observed, re-observe; if the branch is `BEHIND` develop,
   `gh pr update-branch` and wait for CI; a Planner PR with any file outside `.ai/` is `REFUSED` (hold
-  `merge_refused`); otherwise merge. Failures retry within the usual budget. In parallel mode a merge
+  `merge_refused`). An experiment PR merges only if its head is the reviewed diff: every commit after the
+  latest `ai(strategy): review E-N` commit on the first-parent chain must be a clean merge of develop
+  (second parent on develop, tree equal to git's automatic merge). Anything else pushed after the review is
+  `REFUSED` as `head_changed_after_review`, since neither Strategy nor, for product code, the human
+  approved it (a label survives later pushes). Otherwise merge. Failures retry within the usual budget. In parallel mode a merge
   takes no slot but waits while a Strategy session is live, and develop is re-observed before anything
   else launches. The ledger records it with `kind: merge`. AGENTS.md §1/§6 say the same: Strategy
   decides a merge, the supervisor may only execute a decided one.
