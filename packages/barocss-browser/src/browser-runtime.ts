@@ -66,8 +66,11 @@ export class BrowserRuntime {
   }
 
   private injectPreflightCSS() {
-    if (this.options.config.preflight) {
-      const preflightCSS = this.context.getPreflightCSS(this.options.config.preflight);
+    // Kit documents `preflight: true` (full) as the default; only an explicit
+    // `false` disables it.
+    const level = this.options.config.preflight ?? true;
+    if (level) {
+      const preflightCSS = this.context.getPreflightCSS(level);
       this.stylePartitionManager.updateRuleContent("preflight", preflightCSS);
     }
   }
