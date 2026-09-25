@@ -53,7 +53,7 @@ functionalModifier(
       let mediaQuery: string = context.theme(`breakpoints.${breakpoint}`) as string || 
                       getDefaultBreakpoint(breakpoint);
       // If only a number (px/em/rem etc.) is provided, wrap with (min-width: ...)
-      if (/^\d+(px|em|rem)?$/.test(mediaQuery)) {
+      if (/^\d*\.?\d+(px|em|rem)?$/.test(mediaQuery)) {
         mediaQuery = `(min-width: ${mediaQuery})`;
       }
       return [atRule('media', mediaQuery, [], 'responsive')];
@@ -79,6 +79,9 @@ functionalModifier(
           if (value) {
             mediaQuery = `(width < ${value})`;
           }
+        } else if (/^\d*\.?\d+(px|em|rem)?$/.test(mediaQuery)) {
+          // A bare theme value (`48rem`), as `md` wraps it with (min-width: …)
+          mediaQuery = `(width < ${mediaQuery})`;
         }
         
         return [atRule('media', mediaQuery, [], 'responsive')];

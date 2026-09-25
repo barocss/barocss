@@ -1,3 +1,4 @@
+import { parseWithoutHoverMedia } from '../hover-media-test-utils';
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
 import { parseClassToAst } from "../../src/core/engine";
@@ -9,7 +10,7 @@ describe("universal selectors", () => {
     expect(ast).toMatchObject([
       {
         type: "rule",
-        selector: ":is(.\\*\\:rounded-full > *)",
+        selector: ":is(& > *)",
         nodes: [{ type: "decl", prop: "border-radius", value: "9999px" }],
       },
     ]);
@@ -19,8 +20,8 @@ describe("universal selectors", () => {
     const ast = parseClassToAst("**:rounded-full", ctx);
     expect(ast).toMatchObject([
       {
-        type: "style-rule",
-        selector: ":is(.\\*\\*\\:rounded-full *)",
+        type: "rule",
+        selector: ":is(& *)",
         nodes: [
           { type: "decl", prop: "border-radius", value: "9999px" },
         ],
@@ -32,8 +33,8 @@ describe("universal selectors", () => {
     const ast = parseClassToAst("*:data-avatar:rounded-full", ctx);
     expect(ast).toMatchObject([
       {
-        type: "style-rule",
-        selector: ":is(.\\*\\:data-avatar\\:rounded-full > *)",
+        type: "rule",
+        selector: ":is(& > *)",
         nodes: [
           {
             type: "rule",
@@ -49,8 +50,8 @@ describe("universal selectors", () => {
     const ast = parseClassToAst("**:data-avatar:rounded-full", ctx);
     expect(ast).toMatchObject([
       {
-        type: "style-rule",
-        selector: ":is(.\\*\\*\\:data-avatar\\:rounded-full *)",
+        type: "rule",
+        selector: ":is(& *)",
         nodes: [
           {
             type: "rule",
@@ -63,15 +64,15 @@ describe("universal selectors", () => {
   });
 
   it("group-hover:*:rounded-full → :is(.group-hover\\:\\*:rounded-full > *)", () => {
-    const ast = parseClassToAst("group-hover:*:rounded-full", ctx);
+    const ast = parseWithoutHoverMedia("group-hover:*:rounded-full", ctx);
     expect(ast).toMatchObject([
       {
         type: "rule",
         selector: "&:is(:where(.group):hover *)",
         nodes: [
           {
-            type: "style-rule",
-            selector: ":is(.group-hover\\:\\*\\:rounded-full > *)",
+            type: "rule",
+            selector: ":is(& > *)",
             nodes: [{ type: "decl", prop: "border-radius", value: "9999px" }],
           },
         ],
@@ -80,15 +81,15 @@ describe("universal selectors", () => {
   });
 
   it("group-hover:**:rounded-full → :is(.group-hover:**:rounded-full *)", () => {
-    const ast = parseClassToAst("group-hover:**:rounded-full", ctx);
+    const ast = parseWithoutHoverMedia("group-hover:**:rounded-full", ctx);
     expect(ast).toMatchObject([
       {
         type: "rule",
         selector: "&:is(:where(.group):hover *)",
         nodes: [
           {
-            type: "style-rule",
-            selector: ":is(.group-hover\\:\\*\\*\\:rounded-full *)",
+            type: "rule",
+            selector: ":is(& *)",
             nodes: [{ type: "decl", prop: "border-radius", value: "9999px" }],
           },
         ],

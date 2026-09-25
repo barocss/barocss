@@ -18,7 +18,8 @@ functionalModifier(
       return { selector: `${inner}`, wrappingType: 'rule', source: 'pseudo' };
     }
 
-    return { selector: `${inner} &`.trim(), wrappingType: 'rule', source: 'base' };
+    // No `&`: Tailwind matches the element itself (`[:root]` → `&:is(:root)`).
+    return { selector: `&:is(${inner})`, wrappingType: 'rule', source: 'base' };
   },
   undefined
 ); 
