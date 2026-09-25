@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: done
+status: evaluated
 
 id: E-007
 outcome: O2
@@ -131,6 +131,12 @@ result:
     - "focus:ring-offset-2 has no BaroCSS rule at all (not only undefined vars)."
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: DISPROVEN
+  merged: true
+  reason: >
+    proves_no met in all 3 runs (not just one): each final section keeps a PARITY-MISS the "done" claim
+    does not name (G1 -translate-x-1/2, shadow, focus:ring-2/offset; G2 focus:ring-2; G3
+    hover:-translate-y-0.5, leading-relaxed), grader FAILs each on a real "PARITY-MISS in section" reason
+    independent of the disclosed style-attribute artefacts, and tool calls show the property went unread.
+    L3 (real claude-opus-4-8 actor, live site, Playwright-only, committed classifier/grader self-tested
+    pre-run). check.py --role execution OK, no product code, CI green. Evidence-only PR -> merged.
