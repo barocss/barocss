@@ -177,3 +177,12 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     (production-grade, streaming, runtime theme/config), each measured against @tailwindcss/browser and
     a built Tailwind v4 stylesheet; park O3. Before building anything for a win, first measure where
     BaroCSS stands against @tailwindcss/browser on it.
+  - >-
+    2026-09-25: a product_code contract's allowed.paths always includes the test directories of every
+    package it lets Execution change (for example packages/barocss/tests/ next to packages/barocss/src/).
+    A code change that makes existing tests obsolete must be able to update them in the same pass.
+  - >-
+    2026-09-25: every product_code contract tells Execution, in its method, to open the experiment PR as
+    a draft when a local check (pnpm check or the package-scoped type-check/lint/test/build:library) fails,
+    and to mark it ready for review only when all of them pass. Execution reads only the contract, so the
+    rule has to be written there.
