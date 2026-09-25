@@ -351,7 +351,7 @@ functionalUtility({
   prop: "text-decoration-thickness",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => `${value}px`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `${value}px` : null),
   description: "text-decoration-thickness utility (arbitrary, custom property supported)",
   category: "typography",
 });
@@ -369,7 +369,7 @@ functionalUtility({
   prop: "text-underline-offset",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => `${value}px`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `${value}px` : null),
   description: "text-underline-offset utility (arbitrary, custom property supported)",
   category: "typography",
 });
@@ -387,8 +387,8 @@ functionalUtility({
   supportsNegative: true,
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
-  handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
+  handleNegativeBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * -${value})` : null),
   description: "text-indent utility (spacing, negative, arbitrary, custom property supported)",
   category: "typography",
 });

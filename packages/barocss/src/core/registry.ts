@@ -552,6 +552,12 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
         if (bare == null) return [];
         finalValue = bare;
       }
+      // A non-numeric bare value that no theme key or bare-value validator accepted is unknown (#213):
+      // Tailwind emits nothing for it (`text-balanc`, `bg-notacolor`, `border-foo`), so don't pass it
+      // through to handle()/prop as a raw CSS value. Numeric values stay with handle() to validate.
+      else if (!/^-?(\d|\.\d)/.test(String(finalValue))) {
+        return [];
+      }
       // 7. handle (custom AST generation)
       if (opts.handle) {
         // console.log('[functionalUtility] handle', { finalValue });

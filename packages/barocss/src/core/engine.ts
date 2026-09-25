@@ -298,14 +298,14 @@ export function parseClassToAst(
     return [];
   }
 
-  const utilReg = getUtility(ctx).find((u) => {
+  const utilRegs = getUtility(ctx).filter((u) => {
     const fullClassName = utility.value
       ? `${utility.prefix}-${utility.value}`
       : utility.prefix;
     return u.match(fullClassName);
   });
   // console.log('[parseClassToAst] utilReg', utilReg);
-  if (!utilReg) {
+  if (utilRegs.length === 0) {
     const utilityName = utility.value
       ? `${utility.prefix}-${utility.value}`
       : utility.prefix;
@@ -318,7 +318,14 @@ export function parseClassToAst(
   let value = utility.value;
   if (utility.negative && value) value = "-" + value;
   // console.log('[parseClassToAst] value', value, utility);
-  let ast = utilReg.handler(value!, ctx, utility, utilReg) || [];
+  // Several registrations can match one class (e.g. functional `text-*` and static `text-balance`, or
+  // `transform` for custom properties and for arbitrary values). The first one that produces a rule wins;
+  // a registration that rejects the value (empty result) falls through to the next (#213).
+  let ast: AstNode[] = [];
+  for (const utilReg of utilRegs) {
+    ast = utilReg.handler(value!, ctx, utility, utilReg) || [];
+    if (ast.length > 0) break;
+  }
 
   // console.log('[parseClassToAst] ast', ast);
 

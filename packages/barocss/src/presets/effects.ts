@@ -698,6 +698,7 @@ functionalUtility({
   category: "effects",
 });
 
+staticUtility("mask-none", [["mask-image", "none"]], { category: "effects" });
 functionalUtility({
   name: "mask",
   supportsArbitrary: true,
