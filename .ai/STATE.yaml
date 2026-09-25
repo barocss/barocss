@@ -164,4 +164,9 @@ open_items:                # for STRATEGY, not EXECUTION
   - "(human) Main checkout holds stale untracked AGENTS.md, .ai/, test-scenario*.html, opencode.json; remove after merge."
   - "check.py requires non-empty allowed.paths though EXPERIMENT.yaml and .ai/evidence/<id>/ are implicit; align later."
 
-human_directives: []       # humans append short directional notes; STRATEGY must apply them
+human_directives:          # humans append short directional notes; STRATEGY must apply them
+  - >-
+    2026-09-25: a product_code experiment PR is merged only after a human approves it. Review it fully
+    (§2A). If you would merge, record the review with merged: true on the experiment branch and push,
+    but run `gh pr merge` only when the PR carries the label `human-approved`, which only a human adds;
+    never add it yourself. Without the label, stop there and do not start §2B until that merge lands.
