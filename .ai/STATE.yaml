@@ -193,3 +193,18 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     tests-in-scope directives still apply. Question lane: whether to build something, and what users need,
     keep the full experiment protocol. While STATE holds measured or candidate parity misses, prefer
     the parity lane.
+  - >-
+    2026-09-25 (question lane): run direction-proposal option B's first experiment.
+    Question: in natural UI generation, does a per-class BaroCSS resolution report shown to the agent right
+    after it generates reduce first-try silent style misses, and is that information something only BaroCSS
+    has? Setup: E-007's G1-G3 tasks, actor, prompt, site and frozen classifier/grader, pinned to one develop
+    commit (parity fixes landing meanwhile would remove the misses being measured). Three arms, fresh
+    context per run: (0) no report, E-007's baseline; (1) BaroCSS report built only from the existing
+    runtime has()/getCss(), listing unresolved classes, empty rules, and rules that reference an undefined
+    custom property; (2) control report of the browser's computed style for the same elements, with no
+    BaroCSS data. Measure silent misses shipped under a "done" claim, per arm. No product code: the reports
+    are scripts in the evidence dir. It informs: arm 1 clearly beats arm 2 → BaroCSS-only resolution
+    information matters (criterion 5 holds for option B); arm 1 ≈ arm 2 → verification stays
+    browser/agent-owned (the working assumption holds), and the criterion-5 case for options A and C weakens too.
+    Order: contract it as soon as the parity-lane batch E-010 is evaluated, before any further parity batch.
+    Source: docs/research/direction-proposal.md.
