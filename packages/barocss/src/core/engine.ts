@@ -6,6 +6,7 @@ import { Context } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
 import { clearAllCaches } from "../utils/cache";
 import { clearContextCaches, getContextState } from './contextState';
+import { applyVarPrefix } from "./cssVars";
 
 // Failure cache for invalid class names
 const failureCache = new Set<string>();
@@ -443,7 +444,7 @@ export function parseClassToAst(
 
   extractAtRootNodes(ast, undefined, atRootNodes);
 
-  ast = [...atRootNodes, ...ast].filter(Boolean);
+  ast = applyVarPrefix([...atRootNodes, ...ast].filter(Boolean), ctx);
 
   // console.log("[parseClassToAst] ast", ast);
   // Cache the result

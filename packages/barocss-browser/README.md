@@ -304,3 +304,13 @@ baroStart({ config: { theme: { extend: shadcnTheme } } });
 `shadcnTheme` maps the shadcn colours (`background`, `primary`, `muted-foreground`, `border`, `ring`, `chart-1..5`, `sidebar-*`, ...) and `rounded-sm/md/lg/xl` to the raw `:root` variables (`var(--primary)`, `calc(var(--radius) - 2px)`). It does not use `--color-*`, because `@theme inline` doesn't emit those to the page. Opacity modifiers such as `bg-primary/90` work. It expects full colour values in `:root`, as shadcn v4 ships them (e.g. `--primary: oklch(0.205 0 0)`). Older shadcn v3 themes that store bare HSL channels (`--primary: 222 47% 11%`) won't resolve through `var(--primary)`; map those tokens to `hsl(var(--primary))` in your own `theme.extend` instead.
 
 Custom tokens (for example `--brand`) are not included. Add them yourself: `theme: { extend: { ...shadcnTheme, colors: { ...shadcnTheme.colors, brand: 'var(--brand)' } } }`.
+
+## BaroCSS next to a Tailwind build (companion mode)
+
+When the page already links a Tailwind 4 build and the runtime only fills in classes the build did not see, set `cssVarPrefix: 'tw'` so the runtime writes its composite variables with the build's names (`--tw-shadow`, `--tw-ring-shadow`, `--tw-translate-x`, `--tw-skew-x`, `--tw-blur`, `--tw-border-style`, ...):
+
+```js
+baroStart({ skipExisting: true, config: { cssVarPrefix: 'tw' } });
+```
+
+A build class and a runtime class on one element then compose: build `ring-2` + runtime `shadow-md` gives both layers, build `translate-x-2` + runtime `translate-y-4` gives `8px 16px`, build `border-dashed` + runtime `border-2` stays dashed. Without it the runtime uses `--baro-*` names, and the two halves overwrite each other. Leave it unset when there is no Tailwind build. Gradient stops (`from-*`/`via-*`/`to-*` with `bg-linear-*`) do not yet follow Tailwind's variable protocol, so mixing them between build and runtime is not supported.
