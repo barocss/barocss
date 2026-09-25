@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
+import { jsonToAst, type BaroJsonInput } from '../../src/core/jsonToAst';
 import '../../src/presets';
 
 // #220: a crafted variant value must never make a generated rule apply outside the element carrying the class.
@@ -99,5 +100,31 @@ describe('#220 variant values stay element-scoped', () => {
 
   it.each(VALID)('%s still emits a rule', (cls) => {
     expect(generateCss(cls, ctx).trim(), cls).not.toBe('');
+  });
+});
+
+describe('#220 jsonToAst variant input is checked the same way', () => {
+  const ctx = createContext({});
+  const utility = { name: 'hidden' };
+  const bad: BaroJsonInput['variants'][] = [
+    ...BAD_VALUES.map((v) => [{ name: '', value: v, arbitrary: true }]),
+    ...BAD_VALUES.map((v) => [{ name: 'has', value: v, arbitrary: true }]),
+    ...BAD_VALUES.map((v) => [{ name: 'data', value: v }]),
+    ...BAD_VALUES.map((v) => ['hover', { name: 'supports', value: v }]),
+    ...BAD_VALUES.map((v) => [`[${v}]`]),
+    ...BAD_VALUES.map((v) => [{ name: v }]),
+  ];
+
+  it.each(bad.map((variants) => [JSON.stringify(variants), variants] as const))('%s produces no rule', (_, variants) => {
+    expect(jsonToAst({ utility, variants }, ctx)).toEqual([]);
+  });
+
+  it.each([
+    [[{ name: '', value: '&_svg', arbitrary: true }]],
+    [[{ name: 'has', value: ':is(.a,.b)', arbitrary: true }]],
+    [[{ name: 'data', value: 'state=open' }]],
+    [['hover', 'focus']],
+  ] as BaroJsonInput['variants'][][])('%j still produces a rule', (variants) => {
+    expect(jsonToAst({ utility, variants }, ctx)).not.toEqual([]);
   });
 });

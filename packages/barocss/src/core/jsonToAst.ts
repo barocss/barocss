@@ -1,7 +1,7 @@
 import { AstNode } from "./ast";
 import { Context } from "./context";
 import { getModifier, getUtility } from "./registry";
-import { ParsedUtility, ParsedModifier } from "./parser";
+import { ParsedUtility, ParsedModifier, isSafeVariantValue } from "./parser";
 import { astToCss, rootToCss } from "./astToCss";
 import { optimizeAst } from "./engine";
 
@@ -104,6 +104,15 @@ export type BaroVariant = {
  * @returns AstNode[]
  */
 export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
+    // #220: variant names and values are pasted into selectors; one that could end or widen the selector
+    // rejects the whole input, as the class-name path does.
+    const unsafeVariant = (input.variants || []).some((v) =>
+        typeof v === "string"
+            ? !isSafeVariantValue(v)
+            : !isSafeVariantValue(v.name || "") || !isSafeVariantValue(v.value || "")
+    );
+    if (unsafeVariant) return [];
+
     // 1. Find Utility Handler
     // Try to find exact match first (e.g. 'text-center' from { name: 'text', value: 'center' })
     let utilReg = getUtility(ctx).find((u) => u.name === input.utility.name);
