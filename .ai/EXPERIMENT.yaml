@@ -5,124 +5,103 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: evaluated
+status: ready
 
-id: E-004
+id: E-005
 outcome: O1
-branch: ai/E-004-live-colour-token
+branch: ai/E-005-real-app-token
 question: >
-  Re-runs E-003's agent phase on the one theme task that config can satisfy (K6). When a styling
-  task needs a new colour token rather than a class edit, can a real LLM agent using only generic
-  browser tools add that token through BaroCSS in the live page, when the page keeps its
-  BrowserRuntime in a module-scoped variable? Does an app-exposed runtime change the outcome or its cost?
-  Reason to re-verify: E-003 was blocked in self-test by Y2 (K6), so it made no agent runs.
+  On a real Vite app (apps/barocss-site, booted with baroStart), can a real LLM agent using only generic
+  browser tools add a colour token through BaroCSS in the live page, (D) on the dev server and (P) on the
+  production build, where BaroCSS sits inside a minified bundle with no importable module URL and no global?
+  Reason to re-verify K7: every earlier page was a fixture that loads BaroCSS from an importable module URL,
+  and arm A's pass depended on it. O1's done_when asks for a realistic page.
 decision_it_informs: >
-  If both arm A runs pass, live theme edits need no BaroCSS surface and no app help, at least for colour
-  tokens. O1 is then met with zero BaroCSS changes (K3, K5, K6, this), and Strategy considers marking O1
-  done and moving to O2/O3. If arm A fails and arm B passes, the gap is reaching the runtime instance.
-  The owner is APP by default, and the next contract tests whether any BaroCSS-side handle is needed.
-  If arm B also fails, the recorded blocking step names the owner: discoverability of updateConfig or
-  config semantics (BAROCSS), or agent error (AGENT).
+  If both D runs pass with claims agreeing, O1's done_when is met for class and colour-token edits with zero
+  BaroCSS changes (K3, K5, K7, this), and Strategy marks O1 done and moves to O2/O3. P's result says whether
+  production builds need a reachable runtime; Strategy records it as an unknown and does not build for it
+  unless a scenario needs live edits in production. If a D run fails, the recorded blocking step names the
+  owner: module identity or getRuntime/baroStart semantics (BAROCSS), how the app loads BaroCSS (APP), the
+  bundler (LIBRARY), or agent error (AGENT).
 hypothesis: >
-  Arm B passes: the agent finds window.baroRuntime and learns updateConfig from the bundle. Arm A is
-  harder. The agent either imports the CDN module and starts a second runtime with an extended theme
-  (a pass, per K6), or falls back to bg-[#5B21B6] and honestly reports that the token was not added.
-builds_on: [K3, K5, K6, U5]
+  D passes: the agent finds the page's BaroCSS module URL in the served source, imports it, and getRuntime()
+  returns baroStart's runtime (same singleton) if the URL matches exactly, or a second runtime otherwise (still
+  a pass, per K7). P has no BaroCSS route, so the agent falls back to bg-[#5B21B6] or a raw-CSS route, or
+  honestly reports that the token was not added.
+builds_on: [K3, K5, K7, U5]
 scenario: >
-  Pages: E-003's index-A.html (runtime module-scoped) and index-B.html (plus `window.baroRuntime = runtime;`),
-  copied unchanged. The actor is the E-002 actor with the model pinned to claude-opus-4-8[1m]. Its prompt is
-  word for word E-003's: "The page is styled with BaroCSS, a runtime utility-class CSS engine with
-  Tailwind-compatible class names. Make the change through BaroCSS in the live page (its class names and its
-  theme configuration), not with inline styles or hand-written CSS. Then verify the result and report whether
-  the task is done."
-  Task Y1, word for word E-003's: Add a `brand` color (#5B21B6) to the page's BaroCSS theme so that `bg-brand`
-  works, and use it for the Save button's background.
-  Runs: arm A twice (A1, A2, each a fresh context), arm B once. Realism limit as in E-003: live-page path only.
+  App: apps/barocss-site unchanged. index.html boots baroStart({config:{preflight:true}}). Arm D is the `vite`
+  dev server. Arm P is `vite build` followed by `vite preview`. The actor is E-004's: claude-opus-4-8[1m], a
+  fresh context per run, an empty cwd, only the Playwright MCP tools. Network is limited to the app's localhost
+  origin, and every external request is blocked. The prompt is word for word E-004's: "The page is styled with
+  BaroCSS, a runtime utility-class CSS engine with Tailwind-compatible class names. Make the change through
+  BaroCSS in the live page (its class names and its theme configuration), not with inline styles or
+  hand-written CSS. Then verify the result and report whether the task is done."
+  Task Y1 (E-004's, with the site's element): Add a `brand` color (#5B21B6) to the page's BaroCSS theme so
+  that `bg-brand` works, and use it for the hero's Live Demo button's background.
+  Runs: arm D twice (D1, D2, each a fresh context), arm P once (P1). Realism limit: live-page path only.
 method: >
-  1. Copy E-003's pages, grader.js and grader-selftest.mjs into .ai/evidence/E-004/ unchanged, except that the
-     self-test gates only on Y1. Y2 expectations are dropped, not edited. Rerun the self-test before any agent
-     run and commit its output. It must show: baseline, bg-brand alone and bg-[#5B21B6] fail Y1; the inline-CSS
-     and <style> controls fail through the detector; arm B's updateConfig theme.extend call passes Y1 with no
-     regression.
-  2. Adapt E-002's run.mjs to take the arm (page) and the run label as arguments. The actor setup is otherwise
-     E-002's: a fresh context per run, an empty cwd, only the Playwright MCP tools, and the server allowlisted to
-     the page and dist/cdn. Commit the runner before any agent run.
-  3. Grade with E-003's Y1 rule at 1024px. Y1 passes when the save-button classList contains `bg-brand`, its
-     computed backgroundColor is rgb(91, 33, 182), there is no regression on any snapshotted property, and the
-     detector finds no raw-CSS route. Passing a theme or config object to a BaroCSS API (updateConfig, a new
-     BrowserRuntime or createContext with config) is a BaroCSS route.
-  4. For each run record: the route (class/arbitrary value | page runtime via global | second runtime via import |
-     raw CSS | none); how it discovered the API (page source, bundle fetch or search, window scan, prior
-     knowledge), with call numbers; each config call it made; how it verified; its final claim; the grader
-     result, including regressions; whether claim and grader agree; and for any failure or disagreement a
-     proposed owner (BAROCSS | BROWSER | AGENT | APP) with a one-line cause. Also record cost and turns.
+  1. Build packages locally. Serve arm D and arm P from apps/barocss-site, unchanged; neither build output is
+     committed. Adapt E-004's grader.js to the target (the hero `a[href="#demo"]` with text "Live Demo") and
+     snapshot it plus the other hero link and the navbar logo mark; otherwise keep it unchanged. Adapt the
+     self-test the same way. Run the self-test before any agent run and commit its output. For each arm it must
+     show that baseline, bg-brand alone and bg-[#5B21B6] alone fail Y1, and that the inline-style and <style>
+     controls fail through the detector. In D, getRuntime().updateConfig({theme:{extend:{colors:{brand}}}})
+     from the page's own BaroCSS module URL must pass Y1 with no regression. In P, record any BaroCSS route the
+     self-test finds (expected: none). This is recorded, not gated.
+  2. Adapt E-004's run.mjs so that the arm maps to the app URL and the allowlist is the app's origin. Keep the
+     rest of the actor setup. Commit the runner before any agent run.
+  3. Grade with E-004's Y1 rule at 1024px: the target's classList contains `bg-brand`, its computed
+     backgroundColor is rgb(91, 33, 182), there is no regression on any snapshotted property, and the detector
+     finds no raw-CSS route. Passing a theme or config object to a BaroCSS API is a BaroCSS route.
+  4. For each run, record everything E-004's method step 4 asks for. Also record which module URL the agent
+     imported, if any; whether the page's own runtime now resolves bg-brand (identity check after the run, as
+     in E-004's route probe); and any duplicate barocss <style> ids.
 allowed:
   actions:
-    - "build packages/barocss-browser locally (dist is gitignored; nothing committed)"
-    - "serve the repo root on localhost; drive a browser"
-    - "copy E-003 pages, grader and self-test, and adapt E-002's runner, into .ai/evidence/E-004/"
+    - "build packages locally (dist and the site build output are gitignored or left uncommitted)"
+    - "run apps/barocss-site's vite dev server and vite build + preview on localhost; drive a browser"
+    - "copy and adapt E-004's grader, self-test, route probe and runner into .ai/evidence/E-005/"
     - "read packages/barocss-browser or packages/barocss source only to classify a route or failure"
     - "spawn one fresh agent context per run as the actor (3 runs)"
-  paths: [".ai/evidence/E-004/"]
+  paths: [".ai/evidence/E-005/"]
   product_code: false
 non_goals:
-  - Exposing the runtime, adding a global, registry or discovery API, or changing updateConfig in product code
-  - Making rounded-* read theme.borderRadius, fixing {DEFAULT} colour objects, or any parity fix
-  - Hinting where the runtime lives or that updateConfig exists, or changing the prompt or task text
-  - Other tasks (including radius), other models, or source-file config editing
-  - Editing pages, grader or runner after seeing agent results
+  - Editing apps/barocss-site or any product code, including its vite config or how it boots BaroCSS
+  - Exposing the runtime, adding a global, registry or discovery API, or changing getRuntime/baroStart
+  - Hinting where the runtime lives or that updateConfig exists, or changing the prompt or task beyond the element name
+  - Allowing external network access (for example a public CDN import), other tasks, other models, or source-file config editing
+  - Editing the grader or runner after seeing agent results
 evidence:
   level_required: L3
   proves_yes: >
-    Both arm A runs pass Y1 through a BaroCSS config route with no regression, and both final claims agree
-    with the grader.
+    Both arm D runs pass Y1 through a BaroCSS config route with no regression, and both final claims agree
+    with the grader. P1 is recorded either way and does not decide the verdict.
   proves_no: >
-    At least one arm A run fails Y1 because the agent could not reach or use BaroCSS theme configuration with
-    generic browser tools. The tool calls record the blocking step, and arm B's result shows whether an
-    app-exposed runtime removes the block.
+    At least one arm D run fails Y1 because the agent could not reach or use BaroCSS theme configuration on the
+    real app with generic browser tools, and the tool calls record the blocking step.
 budget: >
-  1 session. Three agent runs (A1, A2, B). Retry once only for environment failures, not for agent mistakes.
+  1 session. Three agent runs (D1, D2, P1). Retry once only for environment failures, not for agent mistakes.
   Read ≤ 10 product files.
 stop_when:
   - All three runs are recorded with grader results.
-  - The Y1-only self-test fails any expectation in step 1 → blocked, and record which one.
+  - A gating self-test expectation in step 1 fails → blocked, and record which one.
+  - The site does not render styled in an arm before any agent run → blocked for that arm, and say why.
   - No independent agent actor can be run → blocked, and say what is missing.
   - The grader would have to change after an agent run → record it in side_notes, don't change the grader.
 
 result:
-  verdict: PROVEN
-  level: L3
-  evidence:
-    - "Self-test (Y1-only, before any run): 13/13 gating expectations pass; arm A second-runtime and arm B updateConfig theme.extend both pass Y1. `PW_MCP_DIR=… node .ai/evidence/E-004/grader-selftest.mjs` → selftest.json"
-    - "A1 (arm A): PASS Y1, no regression, 0 raw-CSS writes. Route: import CDN → getRuntime() → updateConfig(theme.extend.colors.brand) + addClass('bg-brand'), class bg-blue-600→bg-brand. Claim 'done' agrees. 14 turns, $0.29. `node .ai/evidence/E-004/run.mjs A A1` → runs/A1.json"
-    - "A2 (arm A): PASS Y1, no regression, 0 raw-CSS writes. Same route as A1. Claim 'done' agrees. 13 turns, $0.41. runs/A2.json"
-    - "B1 (arm B): PASS Y1, no regression, 0 raw-CSS writes. Route: window.baroRuntime.updateConfig(theme.extend.colors.brand) + addClass, class swap. Claim 'done' agrees. 11 turns, $0.34. runs/B1.json"
-    - "Discovery in all runs: page source → module exports (A) or global (B) → Function.toString of updateConfig. No bundle fetch or search. Call numbers are in SUMMARY.md."
-    - "Route probe: getRuntime() !== the page's runtime (the page does `new BrowserRuntime()`; getRuntime is a lazy singleton in baro-boot.ts). Replaying A1's calls creates a second runtime with duplicate <style id=barocss-runtime-partition-0/css-vars>; .bg-brand lives there; the page runtime's getCss('bg-brand') stays null. `node .ai/evidence/E-004/route-probe.mjs` → route-probe.json"
-  learning: >
-    With only generic browser tools, a real agent adds a colour token live in 3/3 runs, whether or not the app exposes the
-    runtime. In arm A it succeeds through a second runtime obtained from getRuntime(), which both agents wrongly believed was
-    the page's instance. The outcome is right, the mechanism claim is wrong, and there are duplicate style partitions.
-  unknown:
-    - "Whether the second-runtime route stays correct beyond this task (later-added elements using brand utilities, duplicate style ids, the page runtime reprocessing bg-brand). Not graded."
-    - "Only colour tokens were tested (radius is BAROCSS-blocked per K6). n=2 for arm A, n=1 for arm B, one model."
-  next_question: >
-    Is the arm A route (an unobserving second runtime via getRuntime()) acceptable for O1, or does the misattributed
-    instance cause a user-visible failure in a follow-up edit (e.g. adding text-brand to a new element)? If the answer is
-    acceptable, O1 colour-token edits need no BaroCSS change.
-  pr: https://github.com/barocss/barocss/pull/113
-  checks: "grader-selftest.mjs: 13/13 pass; check.py --role execution --base origin/develop: OK; no product code changed"
-  side_notes:
-    - "getRuntime() name suggests 'the page runtime' but silently creates a new BrowserRuntime when the page used `new BrowserRuntime()`: it misled both arm A agents (BAROCSS naming/semantics)."
-    - "Two runtimes in one document emit duplicate <style> ids (barocss-runtime-partition-0, -css-vars), because the default styleId is shared."
-    - "All three agents needed addClass after updateConfig, because getCss('bg-brand') was empty until the class was processed. updateConfig alone does not pre-generate."
-    - "All three agents noted unprompted that the change is live-only and resets on reload."
+  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
+  level: null            # L0-L3 actually achieved
+  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
+  learning: null         # 1-2 sentences
+  unknown: []            # what remains unanswered, or the blocker if status: blocked
+  next_question: null    # suggestion only; Strategy decides
+  pr: null               # PR URL opened by Execution (never merged by Execution)
+  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
+  side_notes: []         # adjacent discoveries, one line each, NOT pursued
 
 review:                  # STRATEGY only
-  accepted_verdict: PROVEN
-  merged: true
-  reason: >
-    proves_yes met at L3: A1, A2 and B1 pass Y1 through a config route with no regression, claims agree with the grader;
-    pages and grader byte-identical to E-003, runner committed before runs, self-test 13/13, check.py OK, CI green,
-    evidence-only. Caveat kept in K7: arm A passed via a second runtime from an importable CDN module URL, and the
-    agents misstated it as the page's runtime.
+  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
+  merged: null           # true | false
+  reason: null           # one line: criteria met/unmet, level, CI, scope

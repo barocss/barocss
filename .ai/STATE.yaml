@@ -4,9 +4,9 @@ updated: 2026-09-25
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O1
-  experiment: E-004 (evaluated, PROVEN, merged)
+  experiment: E-005 (ready) — colour token live on the real site, vite dev (D ×2) vs production build (P) (U5)
   last_result: "E-004 PROVEN L3: agent adds a colour token live 3/3, runtime hidden or exposed (K7)"
-  next: "STRATEGY: contract E-005"
+  next: "EXECUTION: run E-005 on branch ai/E-005-real-app-token"
   blockers: []
 
 outcomes:
@@ -91,31 +91,24 @@ knowledge:
     - AI-specific BaroCSS APIs are not yet shown to be needed.
   unknown:                 # seeds for STRATEGY; unordered, not a backlog
     - id: U1
-      q: >
-        K3/K5 cover a strong model on class-level tasks. Open: weaker/cheaper models
-        (do they still verify via computed style and avoid false "done" on K4 no-ops?).
+      q: Do weaker/cheaper models still verify via computed style and avoid false "done" on K4 no-ops (K3/K5)?
     - id: U3
       q: When is a runtime-generated rule actually applied? Can an agent tell "not yet applied" from "never will be"?
     - id: U4
       q: Where does BaroCSS behavior differ from the Tailwind knowledge models already have, and do those differences cause agent errors?
     - id: U5
       q: >
-        Theme/config-level changes (new token, extended scale) need BaroCSS semantics, not
-        just class edits. BrowserRuntime has updateConfig(), but a page usually holds the
-        runtime in a module-scoped variable. Can an agent make such a change in a live page?
-        K6/K7: yes for a colour token on fixture pages (radius is unreachable). Open: realistic bundled apps.
+        Can an agent make a theme/config change (new token) in a live page whose runtime is module-scoped?
+        K6/K7: yes for a colour token on fixture pages (radius unreachable). Open: real bundled apps (E-005).
     - id: U6
-      q: >
-        Which theme namespaces actually drive class generation (K6: colors yes, borderRadius no)?
-        Open until an agent scenario needs a non-colour token.
+      q: "Which theme namespaces drive class generation (K6: colors yes, borderRadius no)? Open until a scenario needs one."
 
 decisions:                 # older entries compressed; full text in git log -p -- .ai/STATE.yaml
   - id: D1-D4
     date: 2026-09-24
     decision: >
-      Strategy/Execution isolation via one handoff file; retired the AI-Interaction roadmap; froze AST work
-      (K2) unless a scenario needs it; only Strategy accepts/merges experiments, and auto-merges its own
-      .ai/-only PRs once check.py passes and CI is green.
+      Strategy/Execution isolation via one handoff file; retired the AI-Interaction roadmap; froze AST work (K2)
+      unless a scenario needs it; only Strategy accepts/merges experiments and its own .ai/-only PRs.
     why: Role overhead, easy-task bias, self-confirming loops, solutions before evidence (astToJson drift).
   - id: D5-D7
     date: 2026-09-25
@@ -140,6 +133,15 @@ decisions:                 # older entries compressed; full text in git log -p -
     why: >
       done_when asks for a realistic page. Whether a real bundled app keeps the runtime reachable is the
       one assumption left that could turn "zero BaroCSS surface" into a gap.
+  - id: D12
+    date: 2026-09-25
+    decision: >
+      E-005 repeats E-004's task on apps/barocss-site: the dev server decides the verdict (×2), and the
+      production build (×1) is recorded. External network is blocked. Chosen over E-004's next_question (does
+      the second runtime break a follow-up edit?).
+    why: >
+      A pass on a real app closes O1's done_when with zero BaroCSS changes. Generated CSS is global, so
+      follow-up edits on the second runtime are likely recoverable (K5), and that question moves direction less.
 
 open_items:                # for STRATEGY, not EXECUTION
   - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."
