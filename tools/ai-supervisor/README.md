@@ -81,12 +81,17 @@ python3 tools/ai-supervisor/supervise.py status                 # last decision 
 python3 tools/ai-supervisor/supervise.py release 'KEY'          # re-arm a key held after retry exhaustion
 ```
 
-Loop: observe (Phase 1 `collect_live` + `derive`, untouched) → `decide()` (pure) → wait, hold, or launch one
+Loop: observe (Phase 1 `collect_live` + `derive`) → `decide()` (pure) → wait, hold, or launch one
 `claude -p "<standard instruction>" --model opus --permission-mode auto` (the mode V1 sessions ran in) in
 `$AI_HOME/workspace`, a clone reset to `origin/develop` → monitor → re-observe → repeat. The session gets only:
 
 > Read AGENTS.md and follow it. / Determine your mode from the durable project state on origin/develop exactly
 > as §1 says. / Run one pass of that mode, then stop.
+
+plus, since migration slice 2, the observed step (`The supervisor observed that the next step is EXECUTE E-008:
+EXECUTION (§3) of E-008 only … Confirm it with §1 first. If §1 gives a different mode or work item, stop
+without changing anything.`). The step comes from the Work DAG scheduler (`status.work`); the V1 `RULES` gate
+it, and a disagreement holds as `work_model_disagrees`. See `MIGRATION.md`.
 
 | next action (Phase 1) | supervisor |
 |---|---|
