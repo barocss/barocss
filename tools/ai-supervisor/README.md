@@ -161,6 +161,13 @@ python3 tools/ai-supervisor/supervise.py release 'KEY'    # re-arm a key held af
 - **Ports** (`--concurrency > 1`). Slot n gets `$BARO_PORT_BASE` = 5200 + 100·n (and `$BARO_PORT_LAST`)
   in its environment, plus one instruction line: servers listen in that range unless the contract's
   `locks` name a port.
+- **Directives are issues** (#160). A human directive in force is an open issue labelled `directive` whose
+  author is allowlisted in `.ai/directives.yaml`. The label alone isn't trusted, because the repo is
+  public and authors can edit their bodies. Sessions and the supervisor read them through
+  `directives.py`, which fails closed: exit 2 on a GitHub error, and then PLAN/REVIEW hold as
+  `directives_unavailable` (Execution reads only its contract, so it isn't affected). Each launch records
+  the directives in force (`#n@updated_at`) in the ledger. Labelled issues by anyone else are attention
+  (`directive_ignored`). Changing or withdrawing a directive means editing or closing its issue; no PR.
 - Control goes through `$AI_HOME/control.json` (what the user wants), and the runner reports in
   `runner.json` (what it is doing). Both live outside git.
 

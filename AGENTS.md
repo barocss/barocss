@@ -84,7 +84,7 @@ branch `ai/strategy-E-00N`:
    for independent questions that each pass the rules below, and declare what
    a scheduler can't infer: `depends_on` (ids that must be judged first),
    `locks` (shared runtime resources, e.g. `port:5173`), `observes` (paths
-   whose behavior the item measures), optional integer `priority`. Writing no
+   whose behavior the item measures), optional integer `priority` (higher runs first; ties by id). Writing no
    contract is valid when no open question is worth one: say why in
    `STATE.now`; idle is a state, not a failure. Update `STATE.now`.
 3. Integrate it yourself. Run `python3 .ai/check.py --role strategy --base
@@ -108,7 +108,10 @@ evidence only), or record a human blocker. Every such change goes in
   blocks the active question, or CI on `develop` is red.
 - Don't repeat an experiment that is already in `knowledge` unless the
   reason to re-verify is written in the contract.
-- Read `STATE.human_directives` and follow them.
+- Read the human directives and follow them: `python3 tools/ai-supervisor/directives.py`
+  prints the ones in force (open issues labelled `directive` by an allowed author,
+  `.ai/directives.yaml`). If it exits non-zero, stop without changes. List the ones
+  you relied on in your commit message (`directives.py --ids`).
 
 ## 3. EXECUTION
 
@@ -184,7 +187,7 @@ reality check → **existing-capability test** → **ownership check** →
   `ai(exec): E-00N <VERDICT> …`.
 - `develop` requires a PR and a green "Test and Build" check, with no GitHub
   review required; product-code PRs still need the human approval that
-  `STATE.human_directives` requires. CI runs `python3 .ai/check.py` for
+  directives require. CI runs `python3 .ai/check.py` for
   structural validity.
 - Who merges: Strategy may merge its own `.ai/`-only PRs once `check.py
   --role strategy` passes and CI is green. Experiment PRs are merged only after
@@ -217,4 +220,4 @@ Humans watch `STATE.yaml` → `now`, `git log --oneline -- .ai`, and `ai/*`
 PRs. No human review is needed; Strategy is the reviewer. Humans step in only
 to change the Vision, supply missing credentials or permissions, approve
 irreversible external actions such as releases, or give explicit directives in
-`STATE.human_directives`.
+directive issues (label `directive`, `.ai/directives.yaml`).
