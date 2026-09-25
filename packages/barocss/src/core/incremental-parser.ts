@@ -1,3 +1,4 @@
+import { debugWarn } from "../utils/debug";
 import { parseClassName } from './parser';
 import { parseClassToAst, generateCssRules, GenerateCssRulesResult } from './engine';
 import type { Context } from './context';
@@ -114,8 +115,7 @@ export class IncrementalParser {
       // console.log('[IncrementalParser] ast', className, ast);
       
       if (ast.length === 0) {
-        // eslint-disable-next-line no-console
-        console.warn('[IncrementalParser] ast is empty', className);
+        debugWarn('[IncrementalParser] ast is empty', className);
         return null;
       }
 
@@ -143,8 +143,7 @@ export class IncrementalParser {
         rootCssList: rule.rootCssList
       };
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('[IncrementalParser] Failed to process class:', className, error);
+      debugWarn('[IncrementalParser] Failed to process class:', className, error);
       return null;
     }
   }
