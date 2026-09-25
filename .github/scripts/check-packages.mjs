@@ -33,9 +33,11 @@ try {
     for (const [subpath, conditions] of Object.entries(manifest.exports)) {
       for (const [condition, target] of Object.entries(conditions)) {
         assert.ok(existsSync(join(destination, target)), `${manifest.name}${subpath}: missing ${condition} target ${target}`);
+        if (condition === 'require' && manifest.type === 'module') assert.match(target, /\.cjs$/, `${manifest.name}${subpath}: require must target CommonJS`);
       }
     }
     assert.ok(existsSync(join(destination, manifest.main)), `${manifest.name}: missing main`);
+    if (manifest.exports['.']?.require) assert.equal(manifest.main, manifest.exports['.'].require, `${manifest.name}: main must match require export`);
     assert.ok(existsSync(join(destination, manifest.types)), `${manifest.name}: missing types`);
     assert.ok(existsSync(join(destination, 'LICENSE')), `${manifest.name}: missing LICENSE`);
   }
@@ -66,6 +68,7 @@ try {
     assert.equal(typeof CdnRuntime, 'function');
     assert.equal(typeof new ServerRuntime().generateCss, 'function');
     const require = createRequire(import.meta.url);
+    assert.equal(typeof require('@barocss/kit').generateCss, 'function');
     assert.equal(typeof require('@barocss/server').ServerRuntime, 'function');
   `);
   execFileSync(process.execPath, [smoke], { cwd: temp, stdio: 'inherit' });

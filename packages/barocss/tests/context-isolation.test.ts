@@ -6,6 +6,7 @@ import { clearAstCache, generateCss, getAstCacheStats, parseClassToAst } from '.
 import { functionalModifier, registerUtility } from '../src/core/registry';
 import { decl } from '../src/core/ast';
 import { clearAllCaches } from '../src/utils/cache';
+import { parseClassName } from '../src/core/parser';
 
 describe('context isolation', () => {
   it('keeps theme output when another context uses the same class', () => {
@@ -28,6 +29,25 @@ describe('context isolation', () => {
     });
     const second = createContext({});
     expect(generateCss('isolation-later-utility', second)).toContain('display: grid');
+  });
+
+  it('refreshes global parsing after registering a utility', () => {
+    const className = 'core-late-global-registration-check';
+    const reversedClassName = `${className}:hover`;
+    expect(parseClassName(className).utility?.prefix).toBe('core');
+    expect(parseClassName(reversedClassName).utility?.prefix).toBe('hover');
+    const existingContext = createContext({});
+    const cached = parseClassToAst('flex', existingContext);
+
+    registerUtility({
+      name: className,
+      match: (name) => name === className,
+      handler: () => [decl('display', 'grid')],
+    });
+
+    expect(parseClassName(className).utility?.prefix).toBe(className);
+    expect(parseClassName(reversedClassName).utility?.prefix).toBe(className);
+    expect(parseClassToAst('flex', existingContext)).toBe(cached);
   });
 
   it('keeps registrations local to a context', () => {
