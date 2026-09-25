@@ -431,7 +431,10 @@ functionalUtility({
 
     return null;
   },
-  handleCustomProperty: (value) => [decl("background-size", `var(${value})`)],
+  handleCustomProperty: (value) =>
+    value.startsWith("length:")
+      ? [decl("background-size", `var(${value.slice(7)})`)]
+      : [decl("background-color", `var(${value})`)],
   description: "background-size utility (arbitrary, custom property supported)",
   category: "background",
 });

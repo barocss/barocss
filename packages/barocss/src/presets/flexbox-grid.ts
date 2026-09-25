@@ -325,7 +325,7 @@ functionalUtility({
   prop: "column-gap",
   supportsArbitrary: true, // gap-x-[10vw]
   supportsCustomProperty: true, // gap-x-(--my-gap-x)
-  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
+  handleBareValue: ({ value }) => (value === "px" ? "1px" : parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
   handle: (value) => {
     if (typeof value === "string") return [decl("column-gap", value)];
     return null;
@@ -339,7 +339,7 @@ functionalUtility({
   prop: "row-gap",
   supportsArbitrary: true, // gap-y-[10vw]
   supportsCustomProperty: true, // gap-y-(--my-gap-y)
-  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
+  handleBareValue: ({ value }) => (value === "px" ? "1px" : parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
   handle: (value) => {
     if (typeof value === "string") return [decl("row-gap", value)];
     return null;
@@ -353,7 +353,7 @@ functionalUtility({
   prop: "gap",
   supportsArbitrary: true, // gap-[10vw]
   supportsCustomProperty: true, // gap-(--my-gap)
-  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
+  handleBareValue: ({ value }) => (value === "px" ? "1px" : parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
   handle: (value) => {
     if (typeof value === "string") return [decl("gap", value)];
     return null;
