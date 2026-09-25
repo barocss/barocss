@@ -55,6 +55,12 @@ def check_structure(exp, state):
             err(f"EXPERIMENT.evidence.level_required must be one of {sorted(LEVELS)}")
         if not (exp.get("allowed") or {}).get("paths"):
             err("EXPERIMENT.allowed.paths required when status != none")
+        # Optional Work DAG fields (tools/ai-supervisor/MIGRATION.md); the scheduler reads them.
+        for k in ("depends_on", "locks", "observes"):
+            if k in exp and not (isinstance(exp[k], list) and all(isinstance(x, str) for x in exp[k])):
+                err(f"EXPERIMENT.{k} must be a list of strings")
+        if "priority" in exp and (not isinstance(exp["priority"], int) or isinstance(exp["priority"], bool)):
+            err("EXPERIMENT.priority must be an integer")
     if status in {"done", "blocked", "evaluated"}:
         res = exp.get("result") or {}
         if res.get("verdict") not in VERDICTS:

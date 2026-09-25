@@ -1,0 +1,791 @@
+{
+  "tailwind": "4.1.13",
+  "url": "http://127.0.0.1:5190/",
+  "styled": {
+    "headerPosition": "sticky",
+    "h1FontSize": "60px",
+    "bodyBg": "rgb(255, 255, 255)",
+    "barocssStyles": 7,
+    "ok": true
+  },
+  "gating": {
+    "text-balance": {
+      "expected": "PARITY-MISS",
+      "got": "PARITY-MISS",
+      "ok": true,
+      "class": "PARITY-MISS",
+      "tw": true,
+      "bc": false,
+      "bcOnly": false,
+      "bcRules": [
+        ".text-balance { }"
+      ],
+      "bcDecls": 0,
+      "undefinedVars": []
+    },
+    "text-pretty": {
+      "expected": "PARITY-MISS",
+      "got": "PARITY-MISS",
+      "ok": true,
+      "class": "PARITY-MISS",
+      "tw": true,
+      "bc": false,
+      "bcOnly": false,
+      "bcRules": [
+        ".text-pretty { }"
+      ],
+      "bcDecls": 0,
+      "undefinedVars": []
+    },
+    "aspect-video": {
+      "expected": "PARITY-MISS",
+      "got": "PARITY-MISS",
+      "ok": true,
+      "class": "PARITY-MISS",
+      "tw": true,
+      "bc": false,
+      "bcOnly": false,
+      "bcRules": [
+        ".aspect-video { aspect-ratio: var(--aspect-ratio-video); }"
+      ],
+      "bcDecls": 1,
+      "undefinedVars": [
+        "--aspect-ratio-video"
+      ]
+    },
+    "rounded-4xl": {
+      "expected": "PARITY-MISS",
+      "got": "PARITY-MISS",
+      "ok": true,
+      "class": "PARITY-MISS",
+      "tw": true,
+      "bc": false,
+      "bcOnly": false,
+      "bcRules": [],
+      "bcDecls": 0,
+      "undefinedVars": []
+    },
+    "text-shadow-sm": {
+      "expected": "PARITY-MISS",
+      "got": "PARITY-MISS",
+      "ok": true,
+      "class": "PARITY-MISS",
+      "tw": true,
+      "bc": false,
+      "bcOnly": false,
+      "bcRules": [
+        ".text-shadow-sm { }"
+      ],
+      "bcDecls": 0,
+      "undefinedVars": []
+    },
+    "bg-blue-600": {
+      "expected": "RESOLVED",
+      "got": "RESOLVED",
+      "ok": true,
+      "class": "RESOLVED",
+      "tw": true,
+      "bc": true,
+      "bcOnly": false,
+      "bcRules": [
+        ".bg-blue-600 { background-color: oklch(0.546 0.245 262.881); }"
+      ],
+      "bcDecls": 1,
+      "undefinedVars": []
+    },
+    "p-4": {
+      "expected": "RESOLVED",
+      "got": "RESOLVED",
+      "ok": true,
+      "class": "RESOLVED",
+      "tw": true,
+      "bc": true,
+      "bcOnly": false,
+      "bcRules": [
+        ".p-4 { padding: calc(var(--spacing) * 4); }"
+      ],
+      "bcDecls": 4,
+      "undefinedVars": []
+    },
+    "hover:bg-blue-700": {
+      "expected": "RESOLVED",
+      "got": "RESOLVED",
+      "ok": true,
+      "class": "RESOLVED",
+      "tw": true,
+      "bc": true,
+      "bcOnly": false,
+      "bcRules": [
+        ".hover\\:bg-blue-700:hover { background-color: oklch(0.488 0.243 264.376); }"
+      ],
+      "bcDecls": 1,
+      "undefinedVars": [],
+      "base": "bg-blue-700",
+      "baseClass": "RESOLVED"
+    },
+    "md:grid-cols-3": {
+      "expected": "RESOLVED",
+      "got": "RESOLVED",
+      "ok": true,
+      "class": "RESOLVED",
+      "tw": true,
+      "bc": true,
+      "bcOnly": false,
+      "bcRules": [
+        ".md\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0px, 1fr)); }"
+      ],
+      "bcDecls": 1,
+      "undefinedVars": [],
+      "base": "grid-cols-3",
+      "baseClass": "RESOLVED"
+    },
+    "aspect-[16/9]": {
+      "expected": "RESOLVED",
+      "got": "RESOLVED",
+      "ok": true,
+      "class": "RESOLVED",
+      "tw": true,
+      "bc": true,
+      "bcOnly": false,
+      "bcRules": [
+        ".aspect-\\[16\\/9\\] { aspect-ratio: 16 / 9; }"
+      ],
+      "bcDecls": 1,
+      "undefinedVars": []
+    },
+    "rounded-[2rem]": {
+      "expected": "RESOLVED",
+      "got": "RESOLVED",
+      "ok": true,
+      "class": "RESOLVED",
+      "tw": true,
+      "bc": true,
+      "bcOnly": false,
+      "bcRules": [
+        ".rounded-\\[2rem\\] { border-radius: 2rem; }"
+      ],
+      "bcDecls": 4,
+      "undefinedVars": []
+    },
+    "text-[42px]": {
+      "expected": "RESOLVED",
+      "got": "RESOLVED",
+      "ok": true,
+      "class": "RESOLVED",
+      "tw": true,
+      "bc": true,
+      "bcOnly": false,
+      "bcRules": [
+        ".text-\\[42px\\] { font-size: 42px; }"
+      ],
+      "bcDecls": 1,
+      "undefinedVars": []
+    },
+    "zorbly-frob-7": {
+      "expected": "AGENT",
+      "got": "AGENT",
+      "ok": true,
+      "class": "AGENT",
+      "tw": false,
+      "bc": false,
+      "bcOnly": false,
+      "bcRules": [],
+      "bcDecls": 0,
+      "undefinedVars": []
+    }
+  },
+  "gatingPass": true,
+  "controls": [
+    {
+      "name": "G1 positive",
+      "ok": true,
+      "expect": {
+        "pass": true
+      },
+      "pass": true,
+      "reasons": [],
+      "parts": {
+        "pass": true,
+        "cardsFound": [
+          "free",
+          "pro",
+          "team"
+        ],
+        "distinct": true,
+        "proDiffers": [
+          "borderTopColor",
+          "boxShadow"
+        ],
+        "visual": {
+          "free": {
+            "backgroundColor": "rgb(255, 255, 255)",
+            "backgroundImage": "none",
+            "borderTopColor": "oklch(0.929 0.013 255.508)",
+            "borderTopWidth": "0px",
+            "boxShadow": "none",
+            "outlineStyle": "none",
+            "outlineWidth": "3px",
+            "outlineColor": "oklch(0.208 0.042 265.755)",
+            "transform": "none",
+            "scale": "none",
+            "translate": "none"
+          },
+          "pro": {
+            "backgroundColor": "rgb(255, 255, 255)",
+            "backgroundImage": "none",
+            "borderTopColor": "oklch(0.546 0.245 262.881)",
+            "borderTopWidth": "0px",
+            "boxShadow": "rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px",
+            "outlineStyle": "none",
+            "outlineWidth": "3px",
+            "outlineColor": "oklch(0.208 0.042 265.755)",
+            "transform": "none",
+            "scale": "none",
+            "translate": "none"
+          },
+          "team": {
+            "backgroundColor": "rgb(255, 255, 255)",
+            "backgroundImage": "none",
+            "borderTopColor": "oklch(0.929 0.013 255.508)",
+            "borderTopWidth": "0px",
+            "boxShadow": "none",
+            "outlineStyle": "none",
+            "outlineWidth": "3px",
+            "outlineColor": "oklch(0.208 0.042 265.755)",
+            "transform": "none",
+            "scale": "none",
+            "translate": "none"
+          }
+        },
+        "cardPaths": {
+          "free": "section>div>div",
+          "pro": "section>div>div",
+          "team": "section>div>div"
+        }
+      },
+      "newRoots": [
+        {
+          "path": "section",
+          "tag": "section",
+          "top": 744,
+          "elements": 24,
+          "textStart": "PricingFree$9OneTwoChoosePro$9OneTwoChooseTeam$9OneTwoChoose"
+        }
+      ],
+      "addedToExisting": [],
+      "sectionCounts": {
+        "RESOLVED": 27,
+        "PARITY-MISS": 0,
+        "AGENT": 0,
+        "bcOnly": 0
+      },
+      "remainingMisses": []
+    },
+    {
+      "name": "G1 no highlight",
+      "ok": true,
+      "expect": {
+        "pass": false,
+        "reason": "required parts missing"
+      },
+      "pass": false,
+      "reasons": [
+        "required parts missing"
+      ],
+      "parts": {
+        "pass": false,
+        "cardsFound": [
+          "free",
+          "pro",
+          "team"
+        ],
+        "distinct": true,
+        "proDiffers": [],
+        "visual": {
+          "free": {
+            "backgroundColor": "rgb(255, 255, 255)",
+            "backgroundImage": "none",
+            "borderTopColor": "oklch(0.929 0.013 255.508)",
+            "borderTopWidth": "0px",
+            "boxShadow": "none",
+            "outlineStyle": "none",
+            "outlineWidth": "3px",
+            "outlineColor": "oklch(0.208 0.042 265.755)",
+            "transform": "none",
+            "scale": "none",
+            "translate": "none"
+          },
+          "pro": {
+            "backgroundColor": "rgb(255, 255, 255)",
+            "backgroundImage": "none",
+            "borderTopColor": "oklch(0.929 0.013 255.508)",
+            "borderTopWidth": "0px",
+            "boxShadow": "none",
+            "outlineStyle": "none",
+            "outlineWidth": "3px",
+            "outlineColor": "oklch(0.208 0.042 265.755)",
+            "transform": "none",
+            "scale": "none",
+            "translate": "none"
+          },
+          "team": {
+            "backgroundColor": "rgb(255, 255, 255)",
+            "backgroundImage": "none",
+            "borderTopColor": "oklch(0.929 0.013 255.508)",
+            "borderTopWidth": "0px",
+            "boxShadow": "none",
+            "outlineStyle": "none",
+            "outlineWidth": "3px",
+            "outlineColor": "oklch(0.208 0.042 265.755)",
+            "transform": "none",
+            "scale": "none",
+            "translate": "none"
+          }
+        },
+        "cardPaths": {
+          "free": "section>div>div",
+          "pro": "section>div>div",
+          "team": "section>div>div"
+        }
+      },
+      "newRoots": [
+        {
+          "path": "section",
+          "tag": "section",
+          "top": 744,
+          "elements": 24,
+          "textStart": "PricingFree$9OneTwoChoosePro$9OneTwoChooseTeam$9OneTwoChoose"
+        }
+      ],
+      "addedToExisting": [],
+      "sectionCounts": {
+        "RESOLVED": 24,
+        "PARITY-MISS": 0,
+        "AGENT": 0,
+        "bcOnly": 0
+      },
+      "remainingMisses": []
+    },
+    {
+      "name": "G1 + text-balance heading",
+      "ok": true,
+      "expect": {
+        "pass": false,
+        "misses": [
+          "text-balance"
+        ]
+      },
+      "pass": false,
+      "reasons": [
+        "PARITY-MISS in section: text-balance"
+      ],
+      "parts": {
+        "pass": true,
+        "cardsFound": [
+          "free",
+          "pro",
+          "team"
+        ],
+        "distinct": true,
+        "proDiffers": [
+          "borderTopColor",
+          "boxShadow"
+        ],
+        "visual": {
+          "free": {
+            "backgroundColor": "rgb(255, 255, 255)",
+            "backgroundImage": "none",
+            "borderTopColor": "oklch(0.929 0.013 255.508)",
+            "borderTopWidth": "0px",
+            "boxShadow": "none",
+            "outlineStyle": "none",
+            "outlineWidth": "3px",
+            "outlineColor": "oklch(0.208 0.042 265.755)",
+            "transform": "none",
+            "scale": "none",
+            "translate": "none"
+          },
+          "pro": {
+            "backgroundColor": "rgb(255, 255, 255)",
+            "backgroundImage": "none",
+            "borderTopColor": "oklch(0.546 0.245 262.881)",
+            "borderTopWidth": "0px",
+            "boxShadow": "rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px",
+            "outlineStyle": "none",
+            "outlineWidth": "3px",
+            "outlineColor": "oklch(0.208 0.042 265.755)",
+            "transform": "none",
+            "scale": "none",
+            "translate": "none"
+          },
+          "team": {
+            "backgroundColor": "rgb(255, 255, 255)",
+            "backgroundImage": "none",
+            "borderTopColor": "oklch(0.929 0.013 255.508)",
+            "borderTopWidth": "0px",
+            "boxShadow": "none",
+            "outlineStyle": "none",
+            "outlineWidth": "3px",
+            "outlineColor": "oklch(0.208 0.042 265.755)",
+            "transform": "none",
+            "scale": "none",
+            "translate": "none"
+          }
+        },
+        "cardPaths": {
+          "free": "section>div>div",
+          "pro": "section>div>div",
+          "team": "section>div>div"
+        }
+      },
+      "newRoots": [
+        {
+          "path": "section",
+          "tag": "section",
+          "top": 744,
+          "elements": 24,
+          "textStart": "PricingFree$9OneTwoChoosePro$9OneTwoChooseTeam$9OneTwoChoose"
+        }
+      ],
+      "addedToExisting": [],
+      "sectionCounts": {
+        "RESOLVED": 27,
+        "PARITY-MISS": 1,
+        "AGENT": 0,
+        "bcOnly": 0
+      },
+      "remainingMisses": [
+        "text-balance"
+      ]
+    },
+    {
+      "name": "G2 positive",
+      "ok": true,
+      "expect": {
+        "pass": true
+      },
+      "pass": true,
+      "reasons": [],
+      "parts": {
+        "pass": true,
+        "emailInputs": [
+          "section>div>form>input"
+        ],
+        "buttons": [
+          "section>div>form>button \"Subscribe\""
+        ]
+      },
+      "newRoots": [
+        {
+          "path": "section",
+          "tag": "section",
+          "top": 744,
+          "elements": 8,
+          "textStart": "Stay in the loopNews, monthly.SubscribeNo spam."
+        }
+      ],
+      "addedToExisting": [],
+      "sectionCounts": {
+        "RESOLVED": 23,
+        "PARITY-MISS": 0,
+        "AGENT": 0,
+        "bcOnly": 0
+      },
+      "remainingMisses": []
+    },
+    {
+      "name": "G2 inline style",
+      "ok": true,
+      "expect": {
+        "pass": false,
+        "reason": "style attribute on new element"
+      },
+      "pass": false,
+      "reasons": [
+        "style attribute on new element"
+      ],
+      "parts": {
+        "pass": true,
+        "emailInputs": [
+          "section>div>form>input"
+        ],
+        "buttons": [
+          "section>div>form>button \"Subscribe\""
+        ]
+      },
+      "newRoots": [
+        {
+          "path": "section",
+          "tag": "section",
+          "top": 744,
+          "elements": 8,
+          "textStart": "Stay in the loopNews, monthly.SubscribeNo spam."
+        }
+      ],
+      "addedToExisting": [],
+      "sectionCounts": {
+        "RESOLVED": 23,
+        "PARITY-MISS": 0,
+        "AGENT": 0,
+        "bcOnly": 0
+      },
+      "remainingMisses": []
+    },
+    {
+      "name": "G2 style write in code",
+      "ok": true,
+      "expect": {
+        "pass": false,
+        "reason": "raw CSS/style write in tool-call code"
+      },
+      "pass": false,
+      "reasons": [
+        "raw CSS/style write in tool-call code"
+      ],
+      "parts": {
+        "pass": true,
+        "emailInputs": [
+          "section>div>form>input"
+        ],
+        "buttons": [
+          "section>div>form>button \"Subscribe\""
+        ]
+      },
+      "newRoots": [
+        {
+          "path": "section",
+          "tag": "section",
+          "top": 744,
+          "elements": 8,
+          "textStart": "Stay in the loopNews, monthly.SubscribeNo spam."
+        }
+      ],
+      "addedToExisting": [],
+      "sectionCounts": {
+        "RESOLVED": 23,
+        "PARITY-MISS": 0,
+        "AGENT": 0,
+        "bcOnly": 0
+      },
+      "remainingMisses": []
+    },
+    {
+      "name": "G3 positive",
+      "ok": true,
+      "expect": {
+        "pass": true
+      },
+      "pass": true,
+      "reasons": [],
+      "parts": {
+        "pass": true,
+        "grids": [
+          "section>div"
+        ],
+        "candidates": [
+          {
+            "path": "section>div",
+            "display": [
+              "grid",
+              "grid"
+            ],
+            "n": 3,
+            "oneColAt375": true,
+            "threeColAt1280": true
+          }
+        ]
+      },
+      "newRoots": [
+        {
+          "path": "section",
+          "tag": "section",
+          "top": 744,
+          "elements": 23,
+          "textStart": "Quote 1Name 1RoleQuote 2Name 2RoleQuote 3Name 3Role"
+        }
+      ],
+      "addedToExisting": [],
+      "sectionCounts": {
+        "RESOLVED": 19,
+        "PARITY-MISS": 0,
+        "AGENT": 0,
+        "bcOnly": 0
+      },
+      "remainingMisses": []
+    },
+    {
+      "name": "G3 not responsive",
+      "ok": true,
+      "expect": {
+        "pass": false,
+        "reason": "required parts missing"
+      },
+      "pass": false,
+      "reasons": [
+        "required parts missing"
+      ],
+      "parts": {
+        "pass": false,
+        "grids": [],
+        "candidates": [
+          {
+            "path": "section>div",
+            "display": [
+              "grid",
+              "grid"
+            ],
+            "n": 3,
+            "oneColAt375": false,
+            "threeColAt1280": true
+          }
+        ]
+      },
+      "newRoots": [
+        {
+          "path": "section",
+          "tag": "section",
+          "top": 744,
+          "elements": 23,
+          "textStart": "Quote 1Name 1RoleQuote 2Name 2RoleQuote 3Name 3Role"
+        }
+      ],
+      "addedToExisting": [],
+      "sectionCounts": {
+        "RESOLVED": 18,
+        "PARITY-MISS": 0,
+        "AGENT": 0,
+        "bcOnly": 0
+      },
+      "remainingMisses": []
+    },
+    {
+      "name": "G3 + text-pretty on existing h1",
+      "ok": true,
+      "expect": {
+        "pass": false,
+        "misses": [
+          "text-pretty"
+        ]
+      },
+      "pass": false,
+      "reasons": [
+        "PARITY-MISS in section: text-pretty"
+      ],
+      "parts": {
+        "pass": true,
+        "grids": [
+          "section>div"
+        ],
+        "candidates": [
+          {
+            "path": "section>div",
+            "display": [
+              "grid",
+              "grid"
+            ],
+            "n": 3,
+            "oneColAt375": true,
+            "threeColAt1280": true
+          }
+        ]
+      },
+      "newRoots": [
+        {
+          "path": "section",
+          "tag": "section",
+          "top": 744,
+          "elements": 23,
+          "textStart": "Quote 1Name 1RoleQuote 2Name 2RoleQuote 3Name 3Role"
+        }
+      ],
+      "addedToExisting": [
+        {
+          "path": "section>div>div>div>h1",
+          "tokens": [
+            "text-pretty"
+          ],
+          "removed": []
+        }
+      ],
+      "sectionCounts": {
+        "RESOLVED": 19,
+        "PARITY-MISS": 1,
+        "AGENT": 0,
+        "bcOnly": 0
+      },
+      "remainingMisses": [
+        "text-pretty"
+      ]
+    }
+  ],
+  "controlsPass": true,
+  "extractor": {
+    "ok": true,
+    "firstInsertCall": 1,
+    "firstTry": [
+      "bg-blue-600",
+      "gap-4",
+      "grid",
+      "grid-cols-1",
+      "md:grid-cols-3",
+      "px-4",
+      "py-16",
+      "py-2",
+      "ring-2",
+      "ring-blue-500",
+      "rounded-lg",
+      "text-balance",
+      "text-white",
+      "w-full",
+      "zorbly-frob-7"
+    ],
+    "expected": [
+      "bg-blue-600",
+      "gap-4",
+      "grid",
+      "grid-cols-1",
+      "md:grid-cols-3",
+      "px-4",
+      "py-16",
+      "py-2",
+      "ring-2",
+      "ring-blue-500",
+      "rounded-lg",
+      "text-balance",
+      "text-white",
+      "w-full",
+      "zorbly-frob-7"
+    ],
+    "perCall": [
+      {
+        "call": 1,
+        "domInsert": true,
+        "tokens": [
+          "py-16",
+          "text-balance",
+          "grid",
+          "gap-4",
+          "md:grid-cols-3",
+          "grid-cols-1",
+          "w-full",
+          "zorbly-frob-7",
+          "ring-2",
+          "ring-blue-500",
+          "px-4",
+          "py-2",
+          "bg-blue-600",
+          "text-white",
+          "rounded-lg"
+        ]
+      },
+      {
+        "call": 2,
+        "domInsert": false,
+        "tokens": [
+          "text-4xl",
+          "font-bold"
+        ]
+      }
+    ]
+  }
+}

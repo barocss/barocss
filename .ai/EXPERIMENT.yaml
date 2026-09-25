@@ -7,97 +7,101 @@
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
 status: ready
 
-id: E-007
+id: E-008
 outcome: O2
-branch: ai/E-007-gen-parity
+branch: ai/E-008-ring-parity
 question: >
-  When a real LLM agent builds a new UI section in a live BaroCSS page (apps/barocss-site on the vite dev server)
-  using only generic browser tools, how many of the class tokens it naturally writes are Tailwind v4 classes that
-  BaroCSS silently fails to apply (K4 parity misses), and does the finished section end with every miss either
-  replaced or named in a final claim that agrees with the grader?
-  New: K5 measured detection on modify tasks designed to hit known no-ops; nothing yet measures how often natural
-  generation hits them.
+  E-007 (K10) proved that on the live site a real agent's natural markup ships silent Tailwind-v4 parity misses
+  under a "done" claim, and the most recurrent measured family (2/3 runs, canonical idiom) is ring box-shadow
+  composition: BaroCSS emits box-shadow rules for ring-*/focus:ring-* that reference undefined --baro-shadow /
+  --baro-inset-shadow / --baro-inset-ring-shadow (no fallback), and focus:ring-offset-2 has no rule at all, so the
+  ring never renders. Does the MINIMUM change in packages/barocss/src close this one family — do ring-1, ring-2,
+  focus:ring-2 and focus:ring-offset-2 then compute a box-shadow matching Tailwind 4.1.13 for the same token on the
+  same element (E-007's frozen classifier reclassifies them RESOLVED), with no regression to any currently-working
+  utility — and when G1/G2 are rerun unchanged, do the ring tokens the agent writes now render?
 decision_it_informs: >
-  All three runs end with no unnamed parity miss and claims agree → O2's first-try/verify loop needs no BaroCSS
-  parity work now; first-try miss counts are recorded as its cost, and Strategy moves to O3 or a weaker actor (U1).
-  A run whose final section keeps a parity miss its "done" claim does not name is the evidence for a BAROCSS gap in
-  class → rule resolution, and Strategy contracts the minimum fix for the observed class family (one capability).
-  Frequent first-try misses that are all caught rank parity as a cost item by frequency, not a need. Tokens Tailwind
-  v4 itself does not resolve are AGENT-owned and counted separately.
+  Minimum fix closes the ring family (L2) with pnpm check green and no regression, and the G1/G2 rerun shows the
+  ring tokens now render → class -> rule parity is fixable one family at a time; Strategy accepts/merges (first
+  product code), then contracts the next observed family (single-axis translate, or theme var name, or the preflight
+  border-style gap) the same way, and later reruns G1-G3 to see whether claims finally agree once every family a run
+  uses is fixed. Fix cannot close ring without a larger-than-allowed change, or it regresses another utility, or the
+  rerun still shows ring not applied → per-family patching is the wrong shape; parity needs a systematic base-layer /
+  @property pass, and Strategy rethinks scope before spending more product code.
 hypothesis: >
-  Most tokens are core utilities BaroCSS resolves. Each run writes 0-3 parity misses on first try (text-balance/pretty,
-  size-*, *-xs, newer v4 names), and the agent's own verification catches misses on visible properties but misses
-  cosmetic ones (text wrapping, shadows), so a "done" claim with an unnamed miss is plausible in at least one run.
-builds_on: [K3, K4, K5, K9, U4]
+  The base custom properties ring composition references are simply never given initial values (Tailwind v4 registers
+  them via @property / its base layer). A small, local definition of those base values plus a rule for
+  ring-offset makes all four tokens render like Tailwind 4.1.13 without touching the shadow-* levels that already
+  work. The other families (translate, theme-var, border-style) are untouched and still miss.
+builds_on: [K4, K10, U4]
 scenario: >
-  App: apps/barocss-site unchanged, booted by baroStart({config:{preflight:true}}), served by `vite` dev, exactly
-  E-006's environment (env.mjs proxy, app origin only, every external request blocked). Actor: E-006's, unchanged
-  (claude-opus-4-8[1m], fresh context per run, empty cwd, only the Playwright MCP tools). Prompt, word for word:
-  "The page is styled with BaroCSS, a runtime utility-class CSS engine with Tailwind-compatible class names. Build the
-  requested UI in the live page using BaroCSS class names only, not inline styles or hand-written CSS. Then verify
-  that it renders as you intended and report whether the task is done." followed by the task.
-  G1: Add a pricing section below the hero with three plan cards (Free, Pro, Team); each has a name, a price, a short
-  feature list and a call-to-action button, and the Pro card is visually highlighted as recommended.
-  G2: Add a newsletter sign-up card below the hero: a heading, one line of supporting text, an email field with a
-  subscribe button beside it, and a small helper line under the field; it should look polished and fit the page.
-  G3: Add a testimonials section below the hero: three quote cards in a responsive grid (one column on small screens,
-  three on wide ones), each with the quote, the person's name, their role and a round avatar placeholder.
-  Runs: G1, G2, G3, one fresh context each.
+  Product: packages/barocss (the class -> rule engine), built locally. App: apps/barocss-site unchanged, booted by
+  baroStart({config:{preflight:true}}), served by `vite` dev, exactly E-006/E-007's environment (env.mjs proxy, app
+  origin only). Actor for the rerun arm: E-007's, unchanged (claude-opus-4-8[1m], fresh context per run, empty cwd,
+  Playwright MCP tools only). Prompt and tasks for the rerun: E-007's G1 and G2, word for word (do not change them).
 method: >
-  1. Build packages locally, serve apps/barocss-site with `vite`, unchanged; no build output is committed. Copy
-     E-006's env.mjs and run.mjs into .ai/evidence/E-007/; change the runner only to take G1-G3 and the prompt above.
-  2. Write a deterministic token classifier (L2): for each class token, TW = Tailwind v4 (tailwindcss 4.1.13, the
-     repo's devDependency, default theme) emits a rule for it; BC = the page's BaroCSS runtime applies it: a rule
-     exists, has at least one declaration, and every var() it uses without a fallback is defined on the page.
-     Variants: classify the full token; if it fails only because of the variant, record that. Classes: RESOLVED (TW and
-     BC), PARITY-MISS (TW, not BC), AGENT (not TW; includes BaroCSS-only and invented names), BC-ONLY noted within AGENT.
-     E-002's noop-probe may be reused. Self-test before any agent run (gating, output committed): flags as PARITY-MISS
-     text-balance, text-pretty, aspect-video, rounded-4xl and E-002's four classes; flags as RESOLVED bg-blue-600, p-4,
-     hover:bg-blue-700, md:grid-cols-3, aspect-[16/9], rounded-[2rem], text-[42px]; flags as AGENT a made-up token.
-  3. Grader per run: new section = elements absent from the baseline DOM, plus class tokens added to existing
-     elements. Pass = the section exists and covers the task's named parts (checked by the grader against a per-task
-     list of required parts, fixed before any run: G1 three cards with a highlighted one; G2 an email input and a
-     button; G3 three cards with a grid that is one column at 375px and three at 1280px), no inline style attribute or
-     raw CSS write (E-005/E-006 detector), and zero PARITY-MISS tokens remain in it. A remaining miss that the final
-     claim names (says it has no effect, or reports not done) makes the claim agree though the run fails.
-     Commit the classifier, grader and runner before any agent run.
-  4. Record per run: first-try tokens (the class tokens in the agent's first DOM-inserting tool call, parsed from its
-     code) with their class counts; final section tokens with class counts; each PARITY-MISS: token, first-try or
-     later, whether the agent detected it (changed or removed it, or named it) and how (computed style, screenshot,
-     CSS text); grader result; final claim and whether it agrees; turns and cost. Aggregate PARITY-MISS tokens by family.
+  1. Branch from origin/develop. Copy E-007's classify.mjs, grader.js, grade.mjs, run.mjs, selftest.mjs, env.mjs into
+     .ai/evidence/E-008/ UNCHANGED except the output/task wiring (point at E-008's dir; runner takes G1, G2 with
+     E-007's exact task text). Do not change any classification, grading or write-detection logic; it is the frozen
+     reference from E-007. If any of that logic would have to change, stop and record it in side_notes, don't change it.
+  2. Baseline (before the fix, gating, committed): build packages as they are on develop, run selftest.mjs, and
+     confirm the four ring tokens ring-1, ring-2, focus:ring-2, focus:ring-offset-2 classify PARITY-MISS (reproducing
+     K10), while the no-regression control set (shadow-sm, shadow-xl, shadow-none, p-4, bg-blue-600, md:grid-cols-3,
+     rounded-2xl and the site rendering styled) classifies RESOLVED / renders. Commit baseline.json.
+  3. Apply the minimum change in packages/barocss/src so the four ring tokens render: define the base values of the
+     custom properties the ring/box-shadow composition references (and a rule for ring-offset), by the smallest edit
+     that matches Tailwind 4.1.13's mechanism. One changeset in .changeset/. No new engine, manager, abstraction or
+     framework; no change to any utility that already works. Read at most 10 product files to locate the edit.
+  4. Post-fix L2 (gating): rebuild, rerun selftest.mjs / classify.mjs. Pass = the four ring tokens now classify
+     RESOLVED under the frozen classifier AND each computes a non-empty box-shadow (focus:ring-offset-2: an offset
+     ring) equal to Tailwind 4.1.13's output for the same token on the same element; AND every control in step 2 is
+     still RESOLVED / unchanged (no regression). Run pnpm check (or the package-scoped type-check/lint/test/
+     build:library) and record the outcome in result.checks. Commit postfix.json.
+  5. L3 corroboration arm: with the fixed build served, rerun G1 and G2 (fresh context each), and record per run: the
+     ring tokens the agent wrote, whether each now classifies RESOLVED in the final section, the grader result and the
+     final claim. This shows the fix reaches the live agent flow. Note that non-ring families (G1 translate/shadow,
+     G2 border) may still miss; that is expected and not fixed here.
+  6. Record result and set status: done (or blocked). Aggregate: which ring tokens closed, any remaining, any
+     regression. Commit ai(exec): E-008 <VERDICT> …, run check.py --role execution, open the PR, put its URL in
+     result.pr, push. Do not merge. STOP.
 allowed:
   actions:
+    - "edit packages/barocss/src to make the four ring tokens render (the minimum diff only)"
+    - "add one changeset under .changeset/ for the product change"
     - "build packages locally (dist output is gitignored or left uncommitted)"
-    - "run apps/barocss-site's vite dev server on localhost; drive a browser"
+    - "run apps/barocss-site's vite dev server on localhost with the fixed build; drive a browser"
     - "run tailwindcss 4.1.13 from the repo's node_modules locally as the classification reference"
-    - "copy and adapt E-006's env and runner, and E-002's noop-probe, into .ai/evidence/E-007/"
-    - "read packages/barocss or packages/barocss-browser source only to classify a token or a failure"
-    - "spawn one fresh agent context per run as the actor (3 runs)"
-  paths: [".ai/evidence/E-007/"]
-  product_code: false
+    - "copy E-007's classifier, grader, grade, runner, selftest and env into .ai/evidence/E-008/ and re-point their paths only"
+    - "read packages/barocss or packages/barocss-browser source only to locate the minimum ring fix (<=10 files)"
+    - "spawn one fresh agent context per rerun as the actor (G1, G2)"
+  paths: ["packages/barocss/src/", ".changeset/", ".ai/evidence/E-008/"]
+  product_code: true
 non_goals:
-  - Fixing any parity miss or editing apps/barocss-site or product code
-  - Hinting at K4 gaps, Tailwind v4 differences, verification methods or any class name in the prompt or environment
-  - Changing the prompt, tasks, model or tools after the first run; weaker models (U1); a production-build arm
-  - Grading visual design quality beyond the per-task required parts
-  - Editing the classifier, grader or runner after seeing agent results
+  - Fixing any family other than ring box-shadow composition (single-axis translate, theme var name shadow/leading, preflight border-style are out of scope)
+  - Any change beyond the minimum needed to render the four ring tokens; no new engine, manager, serializer or abstraction layer
+  - Changing any utility that already works (shadow-* levels, etc.), or editing apps/barocss-site
+  - Changing E-007's classifier, grader, write-detector, runner, prompt, tasks, model or tools; changing G1/G2 text
+  - Grading visual design quality beyond whether the ring tokens render
 evidence:
-  level_required: L3
+  level_required: L2
   proves_yes: >
-    All three runs end with zero PARITY-MISS tokens in the new section that the final claim does not name, and all
-    three claims agree with the grader. First-try PARITY-MISS counts recorded.
+    On the fixed build, the frozen classifier reclassifies ring-1, ring-2, focus:ring-2 and focus:ring-offset-2 from
+    PARITY-MISS to RESOLVED, each computing a box-shadow equal to Tailwind 4.1.13's for the same token/element; every
+    step-2 control is still RESOLVED / unchanged (no regression); pnpm check passes; the diff is confined to
+    packages/barocss/src plus one changeset. The G1/G2 rerun shows the ring tokens the agent wrote now render.
   proves_no: >
-    At least one run ends with a PARITY-MISS token in the new section, a final claim of done that does not name it,
-    and the tool calls show whether the agent checked the property that token should have set.
+    The minimum allowed change cannot make all four ring tokens RESOLVED (needs a path outside scope, or a larger
+    change), OR making them render regresses at least one control utility, OR the G1/G2 rerun still shows a ring
+    token the agent wrote not applied. Record which token, which control, and the smallest edit that was tried.
 budget: >
-  1 session. Three agent runs (G1, G2, G3). Retry once only for environment failures, not for agent mistakes.
-  Read at most 10 product files.
+  1 session. Read at most 10 product files. Two agent reruns (G1, G2). Retry once only for environment failures, not
+  for agent mistakes. If the fix is not clearly minimal and local, stop and return INCONCLUSIVE with the open point.
 stop_when:
-  - All three runs are recorded with grader results and token classifications.
-  - A gating self-test expectation in step 2 fails → blocked, and record which one.
-  - The site does not render styled on the dev server before any agent run → blocked, and say why.
-  - No independent agent actor can be run → blocked, and say what is missing.
-  - The classifier or grader would have to change after an agent run → record it in side_notes, don't change it.
+  - The four ring tokens classify RESOLVED with computed box-shadow equal to Tailwind 4.1.13 and all controls unchanged and pnpm check green → PROVEN.
+  - The minimum fix would have to touch a path outside allowed.paths → INCONCLUSIVE, name the path and the reason.
+  - Making the ring tokens render regresses any step-2 control utility → stop, record the regression, DISPROVEN or PARTIAL.
+  - A gating expectation in step 2 (baseline) or step 4 (post-fix) fails → blocked, record which.
+  - The classifier, grader, runner or write-detector would have to change to score the ring fix → record in side_notes, don't change it.
+  - The budget is used up.
 
 result:
   verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE

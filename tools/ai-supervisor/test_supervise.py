@@ -154,11 +154,46 @@ class Decide(unittest.TestCase):
         self.assertEqual(sv.transition(r, view("contradiction")), "contradiction")
         self.assertEqual(sv.transition(r, view("plan")), "unexpected")
 
-    def test_standard_instruction_only(self):
+    def test_standard_instruction_plus_observed_step(self):
         cmd = sv.Config().command("sid-1")
         self.assertEqual(cmd[cmd.index("-p") + 1], sv.STANDARD_INSTRUCTION)
         self.assertEqual(cmd[cmd.index("--model") + 1], "opus")
         self.assertTrue(sv.STANDARD_INSTRUCTION.startswith("Read AGENTS.md and follow it."))
+        for action, needle in (("EXECUTE E-009", "EXECUTION (§3) of E-009 only"), ("REVIEW E-009", "review (§2A) of E-009"),
+                               ("PLAN", "choose and contract"), ("MERGE #5", "PR #5")):
+            cmd = sv.Config().command("sid-1", action)
+            text = cmd[cmd.index("-p") + 1]
+            self.assertTrue(text.startswith(sv.STANDARD_INSTRUCTION), action)
+            self.assertIn(f"next step is {action}: ", text)
+            self.assertIn(needle, text)
+            self.assertIn("stop without changing anything", text)
+
+
+class WorkAuthority(unittest.TestCase):
+    """Slice 2: decide() reads the Work DAG scheduler; the V1 RULES gate it."""
+
+    def test_view_comes_from_the_work_scheduler(self):
+        for name in WORLDS:
+            s = WORLDS[name]()
+            st = sup.derive(s)
+            v = sv.view_of(s, st)
+            self.assertEqual((v["next_action"], v["v1_next_action"]), (st["work"]["next_action"], st["next_action"]))
+            self.assertTrue(v["agrees_with_v1"], name)
+        self.assertEqual(view("execute")["mode"], "COMPUTE")
+        self.assertEqual(view("review")["mode"], "JUDGE")
+        self.assertEqual(view("plan")["mode"], "PLAN")
+        self.assertEqual(view("execute")["work"]["planner"]["state"], "idle")
+
+    def test_keys_unchanged_so_existing_ledgers_still_count(self):
+        self.assertEqual(view("execute")["key"].split("@")[0], "EXECUTE E-009")
+
+    def test_disagreement_holds_instead_of_launching(self):
+        s = WORLDS["execute"]()
+        st = sup.derive(s)
+        st["work"] = dict(st["work"], next_action="PLAN", mode="PLAN", agrees_with_v1=False)
+        d = sv.decide(sv.view_of(s, st), [], time.time(), C)
+        self.assertEqual((d["do"], d["kind"]), ("hold", "work_model_disagrees"))
+        self.assertIn("V1 EXECUTE E-009", d["reason"])
 
 
 class World:
@@ -245,7 +280,8 @@ class Process(unittest.TestCase):
         self.assertEqual(rep["decision"]["do"], "launch")          # next action derived …
         self.assertEqual(rep["decision"]["action"], "REVIEW E-009")
         (argv,) = w.launches()                                     # … but not launched
-        self.assertEqual(argv[argv.index("-p") + 1], sv.STANDARD_INSTRUCTION)
+        self.assertEqual(argv[argv.index("-p") + 1], sv.instruction("EXECUTE E-009"))
+        self.assertEqual(r["mode"], "COMPUTE")
         self.assertEqual(argv[argv.index("--session-id") + 1], r["session_id"])
         self.assertTrue(os.path.getsize(os.path.join(r["dir"], "log.jsonl")) > 0)
 
@@ -295,6 +331,7 @@ class Process(unittest.TestCase):
 
     def test_timeout_kills_the_process_group(self):
         w = World(self, "execute", plan=[{"sleep": 30, "child": True}])
+        # 3 s, not 1: under load a shorter timeout can fire before the fake has spawned the grandchild.
         rep = w.sup(timeout_s={"EXECUTE": 3.0}).run(max_sessions=1)
         r = rep["sessions"][0]
         self.assertEqual(r["state"], "TIMED_OUT")
@@ -409,7 +446,7 @@ class Process(unittest.TestCase):
         rep = w.sup().run(dry_run=True)
         d = rep["decision"]
         self.assertEqual((d["do"], d["action"]), ("launch", "EXECUTE E-009"))
-        self.assertIn(sv.STANDARD_INSTRUCTION, d["command"])
+        self.assertIn(sv.instruction("EXECUTE E-009"), d["command"])
         self.assertEqual((w.launches(), w.records()), ([], []))
 
 
