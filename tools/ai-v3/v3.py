@@ -115,20 +115,18 @@ def launch(prompt, cwd, cfg, log):
 
 
 def compute_prompt(issue):
-    return f"""You are a V3 COMPUTE unit for BaroCSS (docs/autonomy-v3.md). Ignore the V1 `.ai/` protocol in AGENTS.md:
-no contracts, no .ai/ edits, no PRs, no pushes, no planning.
+    return open(os.path.join(HERE, "COMPUTE.md")).read() + f"""
+==================================================
+THIS RUN
+==================================================
 
-You are in an isolated worktree on branch v3/issue-{issue['number']}. Do exactly this one Issue:
+Ignore the V1 `.ai/` protocol in AGENTS.md: no contracts, no .ai/ edits, no pushes.
+Your worktree is on branch v3/issue-{issue['number']}. If product code in packages/ changed, add a patch
+changeset in .changeset/. Make ONE local commit: `v3(#{issue['number']}): <summary>`. The Supervisor
+integrates it; the Issue's ```verify block is what it will run.
 
 # #{issue['number']} {issue['title']}
-{issue['body']}
-
-1. Inspect only the relevant code. 2. Implement the smallest change that meets ACCEPTANCE (add/adjust tests).
-3. Run targeted verification only (the Issue's verify block and directly related tests); fix failures.
-4. If product code in packages/ changed, add a patch changeset in .changeset/.
-5. `git add` your changes and make ONE local commit: `v3(#{issue['number']}): <summary>`. Do not push.
-Then reply with a compact result: what changed (files), tests run with pass counts, and at most 3 one-line
-observations of adjacent issues you did NOT pursue. No cleanup outside scope."""
+{issue['body']}"""
 
 
 def ensure_integration():
