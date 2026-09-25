@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: done
+status: evaluated
 
 id: E-004
 outcome: O1
@@ -119,6 +119,10 @@ result:
     - "All three agents noted unprompted that the change is live-only and resets on reload."
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: PROVEN
+  merged: true
+  reason: >
+    proves_yes met at L3: A1, A2 and B1 pass Y1 through a config route with no regression, claims agree with the grader;
+    pages and grader byte-identical to E-003, runner committed before runs, self-test 13/13, check.py OK, CI green,
+    evidence-only. Caveat kept in K7: arm A passed via a second runtime from an importable CDN module URL, and the
+    agents misstated it as the page's runtime.
