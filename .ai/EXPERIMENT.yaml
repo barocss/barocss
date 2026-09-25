@@ -110,7 +110,7 @@ result:
     Is the arm A route (an unobserving second runtime via getRuntime()) acceptable for O1, or does the misattributed
     instance cause a user-visible failure in a follow-up edit (e.g. adding text-brand to a new element)? If the answer is
     acceptable, O1 colour-token edits need no BaroCSS change.
-  pr: null
+  pr: https://github.com/barocss/barocss/pull/113
   checks: "grader-selftest.mjs: 13/13 pass; check.py --role execution --base origin/develop: OK; no product code changed"
   side_notes:
     - "getRuntime() name suggests 'the page runtime' but silently creates a new BrowserRuntime when the page used `new BrowserRuntime()`: it misled both arm A agents (BAROCSS naming/semantics)."
