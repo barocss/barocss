@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: running
+status: blocked
 
 id: E-005
 outcome: O1
@@ -91,15 +91,34 @@ stop_when:
   - The grader would have to change after an agent run → record it in side_notes, don't change the grader.
 
 result:
-  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
-  level: null            # L0-L3 actually achieved
-  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
-  learning: null         # 1-2 sentences
-  unknown: []            # what remains unanswered, or the blocker if status: blocked
-  next_question: null    # suggestion only; Strategy decides
-  pr: null               # PR URL opened by Execution (never merged by Execution)
-  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
-  side_notes: []         # adjacent discoveries, one line each, NOT pursued
+  verdict: INCONCLUSIVE
+  level: L2
+  evidence:
+    - "BLOCKED at method step 1: gating expectation 'arm D positive control: page module URL getRuntime().updateConfig theme.extend passes Y1 with no regression' FAILS; 17/18 expectations pass (D 9/10, P 8/8). Rerun: node .ai/evidence/E-005/grader-selftest.mjs → .ai/evidence/E-005/selftest.json (exit 1); see SUMMARY.md"
+    - "Failure: bare getRuntime().updateConfig({theme:{extend:{colors:{brand}}}}) yields .bg-brand rgb(91, 33, 182) on the target (class + colour checks pass) but regresses both other hero links' color oklch(0.208 0.042 265.755) → rgb(0, 0, 238) (UA link colour)"
+    - "Cause: updateConfig replaces, not merges: options.config {\"preflight\":true} → {\"theme\":{...}}, preflight partition 41 rules → removed (selftest.json arms.D.bareCallEffect; browser-runtime.ts updateConfig assigns options.config = newConfig)"
+    - "Config-preserving shapes pass Y1 with no regression (add and replace): updateConfig({...r.options.config, theme:{extend}}) and updateConfig({preflight:true, theme:{extend}}) (selftest.json arms.D.routes)"
+    - "Arm D discovery + identity: served inline module imports /@fs/.../packages/barocss-browser/src/index.ts; import() of that exact URL gives baroStart's module, getRuntime() is the page runtime, no new style elements (arms.D.identity); a ?query URL is a second module instance"
+    - "Arm P (recorded, not gated): no BaroCSS route — no global with updateConfig, bundle assets/index-*.js exports [] (arms.P.routesFound)"
+    - "Network guard (env.mjs proxy, --proxy-bypass-list=<-loopback>): unpkg import, external fetch, 127.0.0.1:9333 refused; app origin reachable, both arms"
+    - "No agent runs (D1, D2, P1 not started); runner not adapted, because stop_when fired first"
+  learning: >
+    On a real app that passes config to baroStart (preflight:true), the smallest theme-extend call through the page's own
+    runtime regresses the page, because updateConfig replaces the whole config. Only a config-preserving call passes Y1, so
+    the contract's gating control, and likely a naive agent, fail on regression, not on reachability. Reachability in D is fine.
+  unknown:
+    - "Blocker: the frozen gating control fails on this app. Strategy must decide whether the positive control may be the config-preserving shape (grader unchanged), or whether updateConfig's replace semantics is the gap to test (ownership BAROCSS)"
+    - "Whether a real agent spreads the existing config (E-004 A1 did, A2 did not) — i.e. whether D would pass or fail on regression"
+  next_question: >
+    Rerun E-005 with the positive control = updateConfig({...current config, theme:{extend}}) on the page's module URL, and
+    record per run whether the agent preserved the existing config (preflight). If agents don't, that is the evidence for
+    or against a merge/extend semantics gap in updateConfig.
+  pr: null
+  checks: "python3 .ai/check.py --role execution --base origin/develop: OK; no product code changed (pnpm check not required)"
+  side_notes:
+    - "A second module instance (same file, ?query URL) uses the same styleId 'barocss-runtime'; its updateConfig also drops the page's preflight (same two regressions, no duplicate style ids observed)"
+    - "apps/barocss-site/src/indext.ts (new BrowserRuntime + observe) looks unused by index.html"
+    - "vite build output bundles BaroCSS with no exports and no global, as the contract expected"
 
 review:                  # STRATEGY only
   accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
