@@ -227,3 +227,15 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     where AI writes React plus Tailwind classes (v0, Lovable). (2) A catalog/JSON spec that arrives at
     runtime and a renderer draws it (json-render, A2UI). Evidence for options A–C should say which flow it
     covers, and a claim holds for both only when both were measured.
+  - >-
+    2026-09-25 (delegated by the human to two Claude sessions, agreed in rounds 2 and 3). Coverage:
+    E-007's setup is free-form classes with runtime delivery, the shared core of both target flows;
+    option B's review records that and claims neither flow end to end. Option A's first experiment comes
+    after B, whatever B finds, and asks (a) do className-carrying json-render specs render as intended
+    under BaroCSS, attributing each miss to a known parity family (ring, border, translate, the #84
+    candidates) or to "other", and (b) does anything in that flow need BaroCSS beyond the existing
+    zero-build runtime (the §5 existing-capability check: "is there a gap", not "beat it"). If (b) is
+    "only for production", decide Q4 then. Order: B, then A, then the next parity batch, which overrides
+    "prefer the parity lane" for these two. That batch starts by ranking families on v0/shadcn-style
+    output (Q6). A flow-(1) direction experiment waits for B: if B holds, test B's report inside a
+    code-gen pipeline; if not, flow (1) has no BaroCSS-unique hypothesis yet.
