@@ -274,44 +274,53 @@ describe("preset typography utilities", () => {
     });
 
     // Line Height
-    it("leading-none → line-height: var(--line-height-none)", () => {
+    it("leading-none → line-height: var(--leading-none, 1)", () => {
       expect(parseClassToAst("leading-none", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "var(--line-height-none)" },
+        { type: "decl", prop: "line-height", value: "var(--leading-none, 1)" },
       ]);
     });
-    it("leading-tight → line-height: var(--line-height-tight)", () => {
+    it("leading-tight → line-height: var(--leading-tight, 1.25)", () => {
       expect(parseClassToAst("leading-tight", ctx)).toEqual([
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--line-height-tight)",
+          value: "var(--leading-tight, 1.25)",
         },
       ]);
     });
-    it("leading-normal → line-height: var(--line-height-normal)", () => {
+    it("leading-snug → line-height: var(--leading-snug, 1.375)", () => {
+      expect(parseClassToAst("leading-snug", ctx)).toEqual([
+        {
+          type: "decl",
+          prop: "line-height",
+          value: "var(--leading-snug, 1.375)",
+        },
+      ]);
+    });
+    it("leading-normal → line-height: var(--leading-normal, 1.5)", () => {
       expect(parseClassToAst("leading-normal", ctx)).toEqual([
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--line-height-normal)",
+          value: "var(--leading-normal, 1.5)",
         },
       ]);
     });
-    it("leading-relaxed → line-height: var(--line-height-relaxed)", () => {
+    it("leading-relaxed → line-height: var(--leading-relaxed, 1.625)", () => {
       expect(parseClassToAst("leading-relaxed", ctx)).toEqual([
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--line-height-relaxed)",
+          value: "var(--leading-relaxed, 1.625)",
         },
       ]);
     });
-    it("leading-loose → line-height: var(--line-height-loose)", () => {
+    it("leading-loose → line-height: var(--leading-loose, 2)", () => {
       expect(parseClassToAst("leading-loose", ctx)).toEqual([
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--line-height-loose)",
+          value: "var(--leading-loose, 2)",
         },
       ]);
     });
