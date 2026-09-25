@@ -182,6 +182,10 @@ runtime.clearCaches();
 
 ## 🔧 Configuration
 
+`getRuntime()` / `baroStart()` share one runtime. Passing a `config` when that runtime
+already exists applies it with `updateConfig` (replacing the whole config), so calling
+`getRuntime()` before `baroStart({ config })` does not lose the config.
+
 ### Runtime Options
 
 ```typescript
