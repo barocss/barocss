@@ -1,0 +1,157 @@
+# Work-store contract (AGENTS.md §1). One file per work item; the file name is the id.
+# STRATEGY writes every field above `result` and sets status: ready.
+# EXECUTION may change only `status` and `result` (contract is frozen; .ai/check.py --work E-010 enforces).
+# STRATEGY alone writes `review` and sets status: evaluated.
+# status: none | ready | running | done | blocked | evaluated
+# While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
+status: ready
+
+id: E-010
+outcome: O2
+branch: ai/E-010-parity-batch
+priority: 1
+observes:
+  - "packages/barocss/src/presets/effects.ts"
+  - "packages/barocss/src/presets/transform.ts"
+  - "packages/barocss/src/css/preflight.ts"
+locks: ["port:5173"]
+question: >
+  PARITY LANE (STATE.human_directives 2026-09-25): three class families that E-007 measured (K10) resolve
+  differently in BaroCSS than in Tailwind 4.1.13 (the reference), each because BaroCSS omits a composition default
+  Tailwind v4 provides, so the composed property is invalid and the class silently drops:
+  (F1) ring box-shadow composition — ring-*/focus:ring-* emit a box-shadow that references undefined
+  --baro-shadow/--baro-inset-shadow/--baro-inset-ring-shadow with no @property initial value, and there is no
+  ring-offset-* utility; already fixed at exact L2 parity on branch ai/E-008-ring-parity (K11);
+  (F2) single-axis translate — translate-x-*/translate-y-* set only their own axis var and reference the other
+  axis's --baro-translate-* which is never registered, so the whole `translate`/transform value is invalid and no
+  translation renders;
+  (F3) preflight border-style — BaroCSS preflight resets border-width but not border-style, so a bare
+  border/border-t/border-b (width set, style still `none`) is invisible page-wide, whereas Tailwind v4 preflight
+  sets `border: 0 solid` on the universal reset.
+  Does one batched minimum change close all three families — for every affected token (ring-1, ring-2,
+  focus:ring-2, focus:ring-offset-2; translate-x-4, translate-y-4, -translate-x-1/2; border, border-t) the computed
+  declaration BaroCSS emits equals Tailwind 4.1.13's for the same token on the same element (E-007/E-008 classifier
+  reclassifies each RESOLVED at parity), with pnpm check GREEN and no regression to any currently-working utility —
+  and, when E-007's G1/G2/G3 are rerun unchanged on the fixed build, do the tokens in these three families that the
+  agent writes now render?
+decision_it_informs: >
+  All three families reach exact Tailwind-4.1.13 parity per token (L2) with pnpm check green, no regression, and the
+  G1/G2/G3 rerun shows the ring/translate/border tokens now rendering → the parity lane works: several measured
+  known-answer families batch cleanly into one product PR (first merged product code for O2), and Strategy contracts
+  the next batch (the theme-var family --shadow-*/--leading-* from K10, plus the PR #84 candidates once measured with
+  this classifier) the same way, converging on whether agent claims finally agree once every family a run uses is
+  fixed. If a family cannot reach parity with a minimum composition-default change, or a control regresses, or the
+  rerun still shows one of these tokens not applied → that family is not a simple composition-default gap; drop it
+  from the batch, record why, and Strategy re-scopes it separately (the other families still land).
+hypothesis: >
+  All three are the same class of gap — a missing Tailwind-v4 composition default — with the same class of minimum
+  fix: F1 and F2 register the missing layer vars via @property initial values (atRoot(property(...)), exactly the
+  mechanism already used in transform.ts and proven in effects.ts on the E-008 branch), and F3 adds `border-style:
+  solid` to preflight's universal reset. No new engine, manager, serializer, or abstraction; each fix is local to the
+  one file that owns the family, plus the tests that froze the old (parity-wrong) output.
+builds_on: [K4, K10, K11, U4]
+scenario: >
+  Product: packages/barocss (the class -> rule engine), built locally. App for the L3 arm: apps/barocss-site
+  unchanged, booted by baroStart({config:{preflight:true}}) and served by `vite` dev — exactly E-006/E-007/E-008's
+  environment (env.mjs proxy, app origin only). Reference: tailwindcss 4.1.13 from the repo's node_modules, run
+  locally to produce the per-token expected declarations. Actor for the rerun arm: E-007's, unchanged
+  (claude-opus-4-8[1m], fresh context per run, empty cwd, Playwright MCP tools only); the prompt and tasks are
+  E-007's G1, G2 and G3, word for word (do not change).
+method: >
+  1. Branch ai/E-010-parity-batch from origin/develop.
+  2. F1 (ring): bring the proven product diff forward from branch ai/E-008-ring-parity — the effects.ts change
+     (register --baro-shadow/--baro-inset-shadow/--baro-inset-ring-shadow via @property with initial 0 0 #0000, drop
+     the hardcoded v3 blue --baro-ring-color so a lone ring defaults to currentColor, add ring-offset-{0,1,2,4,8})
+     unchanged. If it no longer applies cleanly, reconstruct the same minimum edit; do not enlarge it.
+  3. F2 (translate): in packages/barocss/src/presets/transform.ts, register the missing translate axis vars via
+     @property initial values (the same atRoot(property('--baro-translate-x'|'-y'|'-z', '0')) mechanism the file
+     already imports and uses for other transform layers) so a single-axis translate composes a valid value. Minimum
+     edit only; add no new utilities beyond the @property defaults needed for parity.
+  4. F3 (preflight): in packages/barocss/src/css/preflight.ts, set border-style on the universal reset so a bare
+     border/border-t renders (match Tailwind v4's `border: 0 solid` intent). Minimum edit; change no other preflight
+     rule.
+  5. Update ONLY the frozen tests that encode the old parity-wrong output for these three families, in
+     packages/barocss/tests/presets/effects.test.ts, .../transform.test.ts, and the preflight test if one pins the
+     old border reset, to the new parity-correct node list. Change no other test; weaken no assertion so a
+     non-parity output could pass; do not touch compat/compare.test.ts (it encodes the real-Tailwind reference).
+  6. L2 gate (primary evidence): run pnpm check (or the package-scoped type-check/lint/test/build:library) and
+     record the outcome in result.checks. Pass = green (0 failing tests). Then, per-token against Tailwind 4.1.13,
+     confirm with the E-007/E-008 classifier that every family token (ring-1, ring-2, focus:ring-2,
+     focus:ring-offset-2, translate-x-4, translate-y-4, -translate-x-1/2, border, border-t) classifies RESOLVED with
+     its declaration equal to Tailwind 4.1.13's, and that every E-008 control (shadow-sm/shadow-xl/shadow-none/p-4/
+     bg-blue-600/md:grid-cols-3/rounded-2xl) is still RESOLVED. Reuse E-008's ring.mjs/classify.mjs and E-007's
+     classifier unchanged except path wiring; copy them into .ai/evidence/E-010/. Commit the L2 artifacts and the
+     per-token comparison table.
+  7. L3 corroboration arm (at most one rerun for the whole batch, per the parity-lane directive): with the fixed
+     build served, rerun E-007's G1, G2 and G3 (fresh context each), copying E-007's classifier/grader/runner/env
+     into .ai/evidence/E-010/ unchanged except output/task path wiring. Record per run: which ring/translate/border
+     tokens the agent wrote, whether each classifies RESOLVED in the final section, the grader result, and the final
+     claim. Misses in families NOT in this batch (e.g. the theme-var --shadow-*/--leading-* family) may remain; that
+     is expected and out of scope.
+  8. Record result and set status: done (or blocked). Aggregate: check green?, per-token parity for each family, any
+     regression, and whether the G1/G2/G3 tokens in these families now render. Commit ai(exec): E-010 <VERDICT>, run
+     `python3 .ai/check.py --role execution --base origin/develop --work E-010`, then open the PR to develop and put
+     its URL in result.pr. Open the PR as a DRAFT if any local check (pnpm check, or the package-scoped
+     type-check/lint/test/build:library) fails, and mark it ready for review only when all of them pass. Push.
+     Do not merge. STOP.
+allowed:
+  actions:
+    - "apply branch ai/E-008-ring-parity's minimum effects.ts diff for F1 (three @property base values, drop the v3 blue --baro-ring-color default, add ring-offset-{0,1,2,4,8}); no enlargement"
+    - "register the missing --baro-translate-* axis vars via @property initial values in transform.ts for F2; no new utilities beyond the parity defaults"
+    - "set border-style on preflight's universal reset in preflight.ts for F3; change no other preflight rule"
+    - "update only the frozen tests that pin the old parity-wrong output for F1/F2/F3 to the parity-correct node list"
+    - "add one changeset under .changeset/ for the batched product change"
+    - "build packages locally (dist output is gitignored or left uncommitted)"
+    - "run apps/barocss-site's vite dev server on localhost with the fixed build; drive a browser"
+    - "run tailwindcss 4.1.13 from the repo's node_modules locally as the per-token classification reference"
+    - "copy E-007's classifier/grader/grade/runner/selftest/env and E-008's ring.mjs/classify.mjs into .ai/evidence/E-010/ and re-point their paths only"
+    - "read packages/barocss source only to reconstruct or locate the minimum fix for each family (<=10 files)"
+    - "spawn one fresh agent context per rerun as the actor (G1, G2, G3)"
+  paths:
+    - "packages/barocss/src/"
+    - "packages/barocss/tests/"
+    - ".changeset/"
+    - ".ai/evidence/E-010/"
+  product_code: true
+non_goals:
+  - Fixing any family beyond F1 ring, F2 single-axis translate, F3 preflight border-style (the theme-var --shadow-*/--leading-* family from K10 and the unmeasured PR #84 candidates stay out — they need measurement or a later batch)
+  - Any change beyond the minimum composition-default fix per family — no new engine, manager, serializer, abstraction layer, or new utilities except the @property defaults parity requires
+  - Editing any test other than the frozen assertions that pin the old F1/F2/F3 output; weakening any assertion so a non-parity output would pass; editing compat/compare.test.ts or apps/barocss-site
+  - Changing E-007's classifier, grader, write-detector, runner, prompt, tasks, model or tools; changing G1/G2/G3 text
+evidence:
+  level_required: L2
+  proves_yes: >
+    pnpm check is GREEN (0 failing tests); the only product changes are effects.ts + transform.ts + preflight.ts +
+    one changeset, and the only test changes are the frozen F1/F2/F3 assertions updated to the parity-correct node
+    list; the classifier reclassifies every family token (ring-1, ring-2, focus:ring-2, focus:ring-offset-2,
+    translate-x-4, translate-y-4, -translate-x-1/2, border, border-t) as RESOLVED with its declaration equal to
+    Tailwind 4.1.13's, and every E-008 control is unchanged (no regression); AND the G1/G2/G3 rerun shows the
+    ring/translate/border tokens the agent wrote now render.
+  proves_no: >
+    A green pnpm check needs a change beyond those three source files + those frozen tests (name the file and why),
+    OR a family token does not reach declaration parity with Tailwind 4.1.13, OR updating the frozen tests makes
+    another test fail, OR an E-008 control regresses, OR the G1/G2/G3 rerun still shows one of these tokens not
+    applied. Record which family and which token.
+budget: >
+  1 session. Read at most 10 product files. One rerun pass of G1/G2/G3 (three agent runs). Retry once only for
+  environment failures, not for agent mistakes. If a family cannot reach parity with the minimum composition-default
+  change, drop that family, record it, and return PARTIAL/INCONCLUSIVE for it while landing the families that did —
+  do not enlarge scope or invent an abstraction to force it.
+stop_when:
+  - pnpm check is green with only effects.ts+transform.ts+preflight.ts+changeset+the frozen F1/F2/F3 tests changed, every family token RESOLVED at Tailwind parity, controls unchanged, and the G1/G2/G3 rerun shows the tokens render → PROVEN.
+  - A green check would require a change outside those three source files + the frozen tests → name the file and the reason; PARTIAL if some families still land, else INCONCLUSIVE.
+  - A family token cannot reach declaration parity with Tailwind 4.1.13 with a minimum fix → drop that family, record it, PARTIAL.
+  - Updating a frozen assertion breaks any other test, or a control regresses → stop, record it, DISPROVEN or PARTIAL.
+  - The classifier, grader, runner or write-detector would have to change to score the fix → record in side_notes, don't change it.
+  - The budget is used up.
+
+result:
+  verdict:
+  level:
+  evidence: []
+  learning:
+  unknown: []
+  next_question:
+  pr:
+  checks:
+  side_notes: []

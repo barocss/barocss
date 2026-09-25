@@ -1,12 +1,12 @@
 # Durable project state. STRATEGY-owned; EXECUTION never edits this file.
 # Keep < ~150 lines. Git history holds everything older.
-updated: 2026-09-25
+updated: 2026-09-25   # D18: contracted E-010 parity-lane batch (O2)
 
 now:                       # dashboard view; mode comes from contract status
   active_outcome: O2
-  experiment: "E-009 (ready): re-issue the ring box-shadow parity fix with packages/barocss/tests/ in scope — update the 4 frozen exact-AST ring tests to Tailwind v4 so pnpm check goes green — and rerun G1/G2 (L3) to confirm the ring misses now render."
-  last_result: "E-008 INCONCLUSIVE (K11, L2): the minimum effects.ts edit reaches exact Tailwind-4.1.13 ring box-shadow parity with no regression, but 4 frozen v3 tests outside allowed.paths block green CI. Fix is correct; contract scope was too narrow. Not merged (PR #128 closed); re-issued as E-009."
-  next: "EXECUTION: run E-009 on branch ai/E-009-ring-parity"
+  experiment: "E-010 (ready): parity-lane batch of three measured K10 families — F1 ring box-shadow (start from the proven E-008 fix), F2 single-axis translate, F3 preflight border-style — each a missing Tailwind-v4 composition default. One product PR; L2 per-token comparison vs Tailwind 4.1.13 + pnpm check green, then one G1/G2/G3 rerun (L3) to see the tokens render."
+  last_result: "E-009 withdrawn by the human (evaluated/INCONCLUSIVE, not merged) before any result; superseded by the parity-lane directive. The E-008 branch ring fix (ai/E-008-ring-parity, K11) is the batch's starting point."
+  next: "EXECUTION: run E-010 on branch ai/E-010-parity-batch"
   blockers: []
 
 outcomes:
@@ -137,6 +137,24 @@ decisions:                 # older entries compressed; full text in git log -p -
     why: >
       A withdrawn directive is not a directive; building on it would contradict the human's explicit signal. The
       review and parity work are independent of the framing, so only the outcome re-derivation is dropped.
+
+  - id: D18
+    date: 2026-09-25
+    decision: >
+      Human withdrew E-009 (evaluated/INCONCLUSIVE, not merged — interrupted before any result) and added the
+      parity-lane directive. Contracted E-010 (work store, O2, product_code) as the first parity-lane batch: three
+      measured K10 families that each drop silently because BaroCSS omits a Tailwind-v4 composition default —
+      F1 ring box-shadow (starts from the proven E-008 fix, K11), F2 single-axis translate (unregistered other-axis
+      --baro-translate-* var), F3 preflight border-style (universal reset lacks border-style:solid). One PR = one
+      capability (Tailwind v4 parity) per the directive; evidence L2 per-token vs Tailwind 4.1.13 + pnpm check green,
+      plus one G1/G2/G3 rerun. Deferred to a later batch: the theme-var --shadow-*/--leading- family (K10) and the
+      PR #84 candidates (must be measured with the E-007/E-008 classifier first, per that directive).
+    why: >
+      The parity lane treats a family BaroCSS resolves differently from the 4.1.13 reference as a known-answer bug,
+      not an open question, and prefers batching measured families while any remain. These three share one mechanism
+      (missing composition default) and one-line-per-file local fixes, maximizing a mergeable first product PR;
+      murkier or unmeasured families are held back so scope errors don't sink the batch. Human-approval,
+      tests-in-scope and draft-when-red directives all carried into the contract.
 
 open_items:                # for STRATEGY, not EXECUTION
   - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."
