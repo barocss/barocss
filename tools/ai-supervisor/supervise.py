@@ -44,16 +44,25 @@ ADDRESS = {
 }
 
 
-def instruction(action):
-    """STANDARD_INSTRUCTION plus the observed step. Without an action, the V1 instruction unchanged."""
+def instruction(action, ports=None):
+    """STANDARD_INSTRUCTION plus the observed step. Without an action, the V1 instruction unchanged.
+
+    ports: (first, last) of the slot's port range when sessions run side by side (--concurrency > 1)."""
     if not action:
         return STANDARD_INSTRUCTION
     word, _, target = action.partition(" ")
-    return (f"{STANDARD_INSTRUCTION}\n\nThe supervisor observed that the next step is {action}: "
+    text = (f"{STANDARD_INSTRUCTION}\n\nThe supervisor observed that the next step is {action}: "
             f"{ADDRESS[word].format(target=target)}. Confirm it with §1 first. If §1 gives a different mode "
             "or work item, stop without changing anything.")
+    if ports:
+        text += (f"\n\nAnother session may be running in parallel on its own work item. Any server you start "
+                 f"(dev server, proxy, browser debug port) must listen on a port in {ports[0]}-{ports[1]} "
+                 "($BARO_PORT_BASE is the first), not on a fixed port, unless your contract's `locks` names "
+                 "that port.")
+    return text
 
-LAUNCH = {"PLAN", "EXECUTE", "REVIEW", "MERGE"}   # a fresh session does it (MERGE authority stays with Strategy)
+LAUNCH = {"PLAN", "EXECUTE", "REVIEW"}            # a fresh session does it
+MECHANICAL = {"MERGE"}                            # the supervisor does it (gh); Strategy already decided it
 INFLIGHT = {"WAIT_EXECUTION", "WAIT_PLAN"}        # a pass is mid-way; whose session is it?
 WAIT = {"WAIT_FOR_CI"}                            # external; the supervisor waits, no session is kept alive
 HOLD = {"BLOCKED", "HUMAN_REQUIRED", "IDLE"}      # don't guess
@@ -68,7 +77,7 @@ EXPECTED_AFTER = {
 }
 SCRUB_KEEP = {"CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CONFIG_DIR"}
 # STATE.human_directives (2026-09-25): a product_code PR merges only after a human approves it. The
-# supervisor enforces its half: no MERGE session for such a PR until one of these is on it.
+# supervisor enforces its half: no merge of such a PR until one of these is on it.
 APPROVAL_LABEL = "human-approved"
 
 
@@ -96,6 +105,10 @@ class Config:
         self.identity = None                    # {id, name}; derived from repo_dir when None
         self.tick_s = 1.0                       # how quickly pause / resume / stop take effect
         self.concurrency = 1                    # sessions at once; 1 keeps the serial loop below unchanged
+        self.gh = ["gh"]                        # mechanical merges
+        self.bind_review = True                 # merge only the head a Strategy review commit produced (+ develop merges)
+        self.port_base = 5200                   # --concurrency > 1: slot n gets port_base + n*port_span …
+        self.port_span = 100
         self.notify = False                     # desktop notifications (the CLI turns them on)
         self.__dict__.update(kw)
         self.workspace = kw.get("workspace") or os.path.join(self.home, "workspace")
@@ -103,14 +116,57 @@ class Config:
     def timeout_for(self, action):
         return self.timeout_s.get(action.split()[0], self.default_timeout_s)
 
-    def command(self, sid, action=None):
-        return [*self.claude, "-p", instruction(action), "--model", self.model,
+    def slot_ports(self, slot):
+        first = self.port_base + (slot or 0) * self.port_span
+        return first, first + self.port_span - 1
+
+    def command(self, sid, action=None, ports=None):
+        return [*self.claude, "-p", instruction(action, ports), "--model", self.model,
                 "--permission-mode", self.permission_mode, "--session-id", sid,
                 "--output-format", "stream-json", "--verbose"]
 
 
 def mode_of(action):
     return work.MODE.get(action.split()[0])
+
+
+REVIEW_SUBJECT = re.compile(r"^ai\(strategy\): review E-\d+")
+
+
+def reviewed_head(repo, head, develop="origin/develop", limit=200):
+    """(ok, reason): is `head` the commit a Strategy review produced, plus only clean merges of develop?
+
+    A decided merge is a decision about a diff, not a PR number. Walk the first-parent chain from head to
+    the latest `ai(strategy): review E-N` commit; every commit on the way must be a two-parent merge whose
+    second parent is on develop and whose tree equals git's automatic merge of its parents (what
+    `gh pr update-branch` makes). Anything else was pushed after the review and nobody reviewed it."""
+    g = lambda *a: subprocess.run(["git", "-C", repo, *a], capture_output=True, text=True)
+    c, merges = head, 0
+    for _ in range(limit):
+        r = g("log", "-1", "--format=%P%x00%s", c)
+        if r.returncode:
+            return False, f"commit {c[:7]} is not available locally"
+        parents, _, subject = r.stdout.rstrip("\n").partition("\x00")
+        ps = parents.split()
+        if REVIEW_SUBJECT.match(subject):
+            return True, f"reviewed at {c[:7]}" + (f", then {merges} develop merge(s)" if merges else "")
+        what = f"{c[:7]} ({subject[:60]})"
+        if len(ps) != 2:
+            return False, f"head_changed_after_review: {what} was pushed after the review and is not a develop merge"
+        if g("merge-base", "--is-ancestor", ps[1], develop).returncode:
+            return False, f"head_changed_after_review: {what} merges {ps[1][:7]}, which is not on develop"
+        mt = g("merge-tree", "--write-tree", ps[0], ps[1])
+        tree = g("rev-parse", c + "^{tree}").stdout.strip()
+        if mt.returncode or mt.stdout.split()[:1] != [tree]:
+            return False, f"head_changed_after_review: {what} is a develop merge with changes of its own"
+        c, merges = ps[0], merges + 1
+    return False, f"head_changed_after_review: no review commit within {limit} commits of {head[:7]}"
+
+
+def merge_command(cfg, pr):
+    """The one GitHub write the supervisor makes: merge exactly the head the decision saw."""
+    cmd = [*cfg.gh, "pr", "merge", str(pr["number"]), "--merge"]
+    return cmd + ["--match-head-commit", pr["sha"]] if pr.get("sha") else cmd
 
 
 def iso(t):
@@ -142,8 +198,13 @@ def view_of(snap, st):
         head = (snap["branches"].get(it.get("branch")) or {}).get("time")
     elif word == "WAIT_PLAN":
         head = (snap["branches"].get(target) or {}).get("time")
+    merge = None
+    if word == "MERGE":
+        p = next((p for p in snap["prs"] if f"#{p['number']}" == target), {})
+        merge = {"number": p.get("number"), "sha": p.get("sha"), "head": p.get("head"),
+                 "plan": str(p.get("head", "")).startswith(sup.PLAN_PREFIX)}
     return {"at": snap.get("at"), "next_action": a, "action": word, "rule": st["rule"], "state": st["state"],
-            "phase": st["phase"], "key": f"{a}@{dev[:12]}", "develop": dev, "head_time": head,
+            "merge": merge, "phase": st["phase"], "key": f"{a}@{dev[:12]}", "develop": dev, "head_time": head,
             "experiment": it.get("id"), "exp_status": it.get("status"), "attention": st["attention"],
             "store": bool((snap["develop"].get("work") or {})),
             "mode": w["mode"], "v1_next_action": st["next_action"], "agrees_with_v1": w["agrees_with_v1"],
@@ -208,8 +269,15 @@ def decide(v, records, now, cfg):
                                        f"`{APPROVAL_LABEL}` label (or approve the PR) to let it merge")
     if word in LAUNCH:
         return _attempt(v["key"], v["next_action"], recs, now, cfg)
+    if word in MECHANICAL:
+        d = _attempt(v["key"], v["next_action"], recs, now, cfg)
+        if d["do"] == "launch":
+            d.update(do="merge", pr=v["merge"], reason=f"{v['next_action']}: decided merge, checks green; "
+                                                          "the supervisor merges (no session)")
+        return d
     if word in INFLIGHT:
-        last = recs[-1] if recs else None
+        sessions = [r for r in recs if r.get("kind") != "merge"]
+        last = sessions[-1] if sessions else None
         head = epoch(v["head_time"]) if v.get("head_time") else None
         if last and head is not None and epoch(last["ended_at"]) >= head:
             # Nothing was pushed since our last session ended, so the half-done pass is ours. (Serial: a RUNNING
@@ -230,6 +298,9 @@ def decide(v, records, now, cfg):
 
 def _attempt(key, action, recs, now, cfg, resume=None):
     mine = [r for r in recs if r["key"] == key]
+    refused = [r for r in mine if r["state"] == "REFUSED"]
+    if refused:   # a precondition of a mechanical step failed; that is a finding, not a flake
+        return _hold("merge_refused", f"{action}: {refused[-1]['reason']}")
     done = [r for r in mine if r["state"] == "COMPLETED"]
     if done:
         # A clean exit that left the same durable state is a session outcome, not a process failure.
@@ -260,19 +331,23 @@ def pkey(action, develop):
     return f"{action}@{develop[:12]}" if action.split()[0] == "PLAN" else action
 
 
-def decide_many(v, sched, records, now, cfg, gate=None, head_of=None):
+def decide_many(v, sched, records, now, cfg, gate=None, head_of=None, pr_of=None):
     """Pure, concurrency > 1: the Work DAG scheduler's launch list, filtered mechanically.
 
     sched: work.schedule(view, concurrency, sessions=live). gate(target) → _merge_gate() facts for a
     MERGE; head_of(work_id) → the item branch's last push time (ISO) or None.
-    Returns {"launch": [decision…], "holds": [hold…], "waits": [str…]}. Never more launches than free
-    slots, never two sessions for one work item or action, never two Strategy-mode sessions.
+    pr_of(target) → {number, sha, head, plan} for a MERGE's PR.
+    Returns {"launch": [decision…], "merge": [decision…], "holds": [hold…], "waits": [str…]}. Never more
+    launches than free slots, never two sessions for one work item or action, never two Strategy-mode
+    sessions. A MERGE is mechanical (no session, no slot) but still waits while a Strategy session is live,
+    since that session may be writing STATE.yaml on the branch being merged.
     """
+    pr_of = pr_of or (lambda target: {"number": int(target.lstrip("#")), "sha": None, "head": None, "plan": False})
     gate = gate or (lambda target: {})
     head_of = head_of or (lambda wid: None)
     recs = [r for r in records if not r.get("released")]
     live = [r for r in records if r["state"] == "RUNNING"]
-    out = {"launch": [], "holds": [], "waits": list(sched.get("waits") or [])}
+    out = {"launch": [], "merge": [], "holds": [], "waits": list(sched.get("waits") or [])}
     if v.get("agrees_with_v1") is False:
         out["holds"].append(_hold("work_model_disagrees", f"work {v['next_action']} vs V1 {v['v1_next_action']}"))
         return out
@@ -314,6 +389,12 @@ def decide_many(v, sched, records, now, cfg, gate=None, head_of=None):
                                                             f"then add the `{APPROVAL_LABEL}` label (or approve the PR)"))
                 continue
         d = _attempt(key, action, recs, now, cfg)
+        if d["do"] == "launch" and word == "MERGE":
+            d.update(do="merge", pr=pr_of(action.split()[1]), work=wid, mode=word,
+                     reason=f"{action}: decided merge; the supervisor merges (no session)")
+            out["merge"].append(d)
+            busy_actions.add(action)
+            continue
         if d["do"] == "launch":
             if free <= 0:
                 out["waits"].append(f"{action}: no free slot (concurrency {cfg.concurrency})")
@@ -493,6 +574,11 @@ def wrap(sdir, cwd, cmd, owner=None, grace=20):
     the session is ended too, and exit.json says it was interrupted."""
     env = {k: v for k, v in os.environ.items()
            if k in SCRUB_KEEP or not (k.startswith("CLAUDE") or k in ("AI_AGENT", "BAGGAGE"))}
+    try:   # per-session additions written by launch(), e.g. the slot's port range
+        with open(os.path.join(sdir, "env.json")) as fh:
+            env.update({str(k): str(v) for k, v in json.load(fh).items()})
+    except (FileNotFoundError, ValueError):
+        pass
     ex = {}
     with open(os.path.join(sdir, "log.jsonl"), "ab") as out, open(os.path.join(sdir, "stderr.log"), "ab") as err:
         try:
@@ -731,6 +817,11 @@ class Supervisor:
         branch = {i["id"]: i.get("branch") for i in sched.get("items") or []}
         return lambda wid: (self.snap["branches"].get(branch.get(wid)) or {}).get("time")
 
+    def _pr_of(self, target):
+        p = next((p for p in (self.snap or {}).get("prs", []) if f"#{p['number']}" == target), {})
+        return {"number": p.get("number") or int(target.lstrip("#")), "sha": p.get("sha"), "head": p.get("head"),
+                "plan": str(p.get("head", "")).startswith(sup.PLAN_PREFIX)}
+
     def _gate(self, target):
         return _merge_gate(self.snap, "MERGE", target)
 
@@ -897,7 +988,11 @@ class Supervisor:
             return None
         cwd = ws
         os.makedirs(cwd, exist_ok=True)
-        cmd = self.cfg.command(sid, d["action"])
+        ports = self.cfg.slot_ports(slot) if self.cfg.concurrency > 1 else None
+        cmd = self.cfg.command(sid, d["action"], ports)
+        if ports:
+            sup.write_json(os.path.join(sdir, "env.json"),
+                           {"BARO_PORT_BASE": str(ports[0]), "BARO_PORT_LAST": str(ports[1])})
         now = time.time()
         rec = {"session_id": sid, "key": d["key"], "action": d["action"], "experiment": v["experiment"],
                "mode": mode_of(d["action"]),
@@ -906,7 +1001,8 @@ class Supervisor:
                "timeout_s": self.cfg.timeout_for(d["action"]), "idle_timeout_s": self.cfg.idle_timeout_s,
                "exit_code": None, "reason": None, "before": {"next_action": v["next_action"], "develop": v["develop"],
                                                              "item_state": item_state},
-               "cwd": cwd, "dir": sdir, "work": d.get("work") or v.get("experiment"), "slot": slot}
+               "cwd": cwd, "dir": sdir, "work": d.get("work") or v.get("experiment"), "slot": slot,
+               "ports": list(ports) if ports else None}
         recs = self.ledger.load()
         recs.append(rec)
         self.ledger.save(recs)   # recorded before spawn: a crash here leaves a RUNNING record reconcile settles
@@ -1035,18 +1131,20 @@ class Supervisor:
                 self.sleep(self.cfg.poll_s)
                 continue
             d = decide(v, recs, time.time(), self.cfg)
-            if managed and d["do"] == "launch":
+            if managed and d["do"] in ("launch", "merge"):
                 # Re-read the controls after the (slow) observation: a stop or pause that arrived meanwhile
-                # must win. Launch only while running and nothing asks the run to end.
+                # must win. Launch or merge only while running and nothing asks the run to end.
                 if self.halt_reason():
                     continue   # the top of the loop ends the run without starting a session
                 if self.desired() != "running":
-                    d = {"do": "paused", "would": d["action"], "reason": f"paused; would launch {d['action']}"}
+                    d = {"do": "paused", "would": d["action"], "reason": f"paused; would {d['do']} {d['action']}"}
             self._write_decision(v, d)
             if not managed:
                 if d["do"] == "launch":
                     d["command"] = self.cfg.command("<new-session-uuid>", d["action"])
                     d["cwd"] = self.cfg.workspace
+                elif d["do"] == "merge":
+                    d["command"] = merge_command(self.cfg, d["pr"])
                 report.update(view=v, decision=d)
                 if self.cfg.concurrency > 1:
                     live_n = len([r for r in recs if r["state"] == "RUNNING"])
@@ -1062,6 +1160,12 @@ class Supervisor:
                     return self._final(report, v, d)
                 if self.launch(d, v) is not None:   # None: workspace setup failed, recorded as a crash
                     launched += 1
+                continue
+            if d["do"] == "merge":   # a step like a session: counts toward --max-sessions
+                report["sessions"].append(self.merge(d, v))
+                ended += 1
+                if max_sessions is not None and ended >= max_sessions:
+                    return self._final(report, self._observe_or_none())
                 continue
             self.set_runner(lifecycle(self.desired(), False), activity=d["do"], detail=d["reason"],
                             next_action=v["next_action"])
@@ -1111,7 +1215,14 @@ class Supervisor:
                                 detail=self.observe_error)
                 self.sleep(self.cfg.poll_s)
                 continue
-            d = decide_many(v, sched, recs, time.time(), self.cfg, gate=self._gate, head_of=self._head_of(sched))
+            d = decide_many(v, sched, recs, time.time(), self.cfg, gate=self._gate, head_of=self._head_of(sched),
+                            pr_of=self._pr_of)
+            if d["merge"] and self.desired() == "running" and not self.halt_reason():
+                for x in d["merge"]:
+                    report["sessions"].append(self.merge(x, v))
+                    ended += 1
+                v = None      # develop moved: observe again before launching anything
+                continue
             started = []
             if self.desired() == "running" and not self.halt_reason():
                 for x in d["launch"]:
@@ -1166,6 +1277,57 @@ class Supervisor:
                     urgent=rec["state"] not in ("COMPLETED", "INTERRUPTED"))
         return rec
 
+    def merge(self, d, v):
+        """Mechanical merge: no Opus session. A Planner PR must touch only .ai/ (AGENTS.md §6)."""
+        mid = "merge-" + str(uuid.uuid4())
+        rec = {"session_id": mid, "kind": "merge", "key": d["key"], "action": d["action"], "mode": "MERGE",
+               "experiment": v["experiment"], "attempt": d["attempt"], "started_at": iso(time.time()),
+               "before": {"next_action": v["next_action"], "develop": v["develop"]}, "pr": d["pr"]}
+        state, reason = "COMPLETED", "merged"
+        try:
+            n = str(d["pr"]["number"])
+            info = json.loads(self._gh("pr", "view", n, "--json", "mergeStateStatus,headRefOid"))
+            if d["pr"].get("sha") and info.get("headRefOid") and info["headRefOid"] != d["pr"]["sha"]:
+                state, reason = "UPDATED", "PR head moved since it was observed; re-observing"
+            elif info.get("mergeStateStatus") == "BEHIND":
+                # develop requires an up-to-date branch: bring it up to date; CI reruns, then MERGE is due again
+                self._gh("pr", "update-branch", n)
+                state, reason = "UPDATED", "branch was behind develop; updated it, waiting for CI"
+            elif not d["pr"].get("plan") and self.cfg.bind_review:
+                sha = d["pr"].get("sha") or info.get("headRefOid")
+                # pull/N/head exists as long as the PR does, whatever happened to its branch; develop too
+                subprocess.run(["git", "-C", self.cfg.repo_dir, "fetch", "--quiet", "origin", f"pull/{n}/head",
+                                "develop"], capture_output=True, text=True, timeout=120)
+                ok, why = reviewed_head(self.cfg.repo_dir, sha) if sha else (False, "PR head unknown")
+                if not ok:
+                    state, reason = "REFUSED", why   # the human and Strategy decide what to do with new commits
+            if state == "COMPLETED" and d["pr"].get("plan"):
+                files = json.loads(self._gh("pr", "view", str(d["pr"]["number"]), "--json", "files"))["files"]
+                outside = [f["path"] for f in files if not f["path"].startswith(".ai/")]
+                if outside:
+                    state, reason = "REFUSED", f"Planner PR changes files outside .ai/: {', '.join(outside[:5])}"
+            if state == "COMPLETED":
+                self._gh(*merge_command(self.cfg, d["pr"])[len(self.cfg.gh):])
+        except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as e:
+            state, reason = "CRASHED", ((getattr(e, "stderr", None) or str(e)).strip() or repr(e))[:300]
+        rec.update(state=state, reason=reason, ended_at=iso(time.time()))
+        recs = self.ledger.load()
+        recs.append(rec)
+        self.ledger.save(recs)
+        self.log(f"merge_{state.lower()}", pr=d["pr"]["number"], action=d["action"], reason=reason)
+        self.notify(f"{d['action']} {state.lower()}", reason, urgent=state not in ("COMPLETED", "UPDATED"))
+        if state == "COMPLETED":
+            self.sleep(self.cfg.settle_s)
+            after = self._observe_or_none()
+            if after is not None:
+                rec = self.ledger.update(mid, after={"next_action": after["next_action"], "rule": after["rule"],
+                                                     "develop": after["develop"]}, transition=transition(rec, after))
+        return rec
+
+    def _gh(self, *args):
+        return subprocess.run([*self.cfg.gh, *args], cwd=self.cfg.repo_dir, capture_output=True, text=True,
+                              check=True, timeout=120).stdout
+
     def _await(self, sid):
         rec = self.monitor(sid)
         took = _dur(epoch(rec["ended_at"]) - epoch(rec["started_at"]))
@@ -1217,7 +1379,7 @@ class Supervisor:
 
 # ---------------------------------------------------------------- status (read-only)
 
-MODE = {"EXECUTE": "EXECUTION", "PLAN": "STRATEGY", "REVIEW": "STRATEGY", "MERGE": "STRATEGY"}
+MODE = {"EXECUTE": "EXECUTION", "PLAN": "STRATEGY", "REVIEW": "STRATEGY", "MERGE": "SUPERVISOR (mechanical)"}
 
 
 def status_report(home, view=None, now=None, owner=None):

@@ -24,6 +24,9 @@ def locked(path):
 
 with open(os.environ["SUP_FAKE_ARGV"], "a") as fh:
     fh.write(json.dumps(sys.argv[1:]) + "\n")
+if os.environ.get("SUP_FAKE_ENV"):
+    with open(os.environ["SUP_FAKE_ENV"], "a") as fh:
+        fh.write(json.dumps({k: os.environ.get(k) for k in ("BARO_PORT_BASE", "BARO_PORT_LAST")}) + "\n")
 plan_path = os.environ["SUP_FAKE_PLAN"]
 with locked(plan_path):
     with open(plan_path) as fh:

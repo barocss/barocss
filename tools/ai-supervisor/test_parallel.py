@@ -134,7 +134,18 @@ class DecideMany(unittest.TestCase):
         d = sv.decide_many(v, sch, [], time.time(), self.C, gate=lambda t: {"product_code": True, "approved": False})
         self.assertEqual((d["launch"], [h["kind"] for h in d["holds"]]), ([], ["human_approval"]))
         d = sv.decide_many(v, sch, [], time.time(), self.C, gate=lambda t: {"product_code": True, "approved": True})
-        self.assertEqual([x["action"] for x in d["launch"]], ["MERGE #20"])
+        self.assertEqual(([x["action"] for x in d["merge"]], d["launch"]), (["MERGE #20"], []))
+
+    def test_a_merge_takes_no_slot_but_waits_for_strategy(self):
+        s, v, sch = self.plan({"E-010": "ready", "E-011": "ready"})
+        sch = dict(sch, launch=[{"mode": "MERGE", "action": "MERGE #30", "work": "E-012"}] + sch["launch"])
+        d = sv.decide_many(v, sch, [], time.time(), self.C)
+        self.assertEqual([x["action"] for x in d["merge"]], ["MERGE #30"])
+        self.assertEqual(len(d["launch"]), 2)                     # both slots still go to compute
+        live = [{"session_id": "p", "key": "PLAN@x", "action": "PLAN", "work": None, "state": "RUNNING", "attempt": 1}]
+        d = sv.decide_many(v, sch, live, time.time(), self.C)
+        self.assertEqual(d["merge"], [])                          # a Strategy session may be writing STATE.yaml
+        self.assertTrue(any("MERGE #30" in w_ for w_ in d["waits"]))
 
 
 class ParallelLoop(unittest.TestCase):
@@ -201,6 +212,19 @@ class ParallelLoop(unittest.TestCase):
         sv.request(w.home, "stopped", by="test")
         t.join(15)
         self.assertFalse(t.is_alive())
+
+    def test_each_slot_gets_its_own_port_range(self):
+        w = PWorld(self, {"E-010": "ready", "E-011": "ready"}, plan=[{"sleep": 1.0}, {"sleep": 1.0}])
+        envf = os.path.join(w.dir, "env")
+        os.environ["SUP_FAKE_ENV"] = envf
+        self.addCleanup(lambda: os.environ.pop("SUP_FAKE_ENV", None))
+        t, box = background(w.psup(2))
+        self.assertTrue(wait_for(lambda: os.path.exists(envf) and len(open(envf).read().splitlines()) == 2, timeout=15))
+        sv.request(w.home, "stopped", by="test")
+        t.join(15)
+        got = sorted(json.loads(x)["BARO_PORT_BASE"] for x in open(envf).read().splitlines())
+        self.assertEqual(got, ["5200", "5300"])
+        self.assertTrue(all("port in 5" in a[a.index("-p") + 1] for a in w.launches()))   # instruction line too
 
     def test_concurrency_one_keeps_the_serial_loop(self):
         s = sv.Supervisor(sv.Config(home=os.path.join(PWorld(self, {"E-010": "ready"}).dir, "h")), out=lambda *a: None)
