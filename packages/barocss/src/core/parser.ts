@@ -135,6 +135,13 @@ function parseTokens(tokens: Token[], ctx?: Context): { modifiers: ParsedModifie
     }
   }
 
+  // #224: the utility token carries the arbitrary / custom-property value that is pasted into a declaration;
+  // one that could end or open a declaration, block or rule rejects the class (no rule).
+  const utilityToken = tokens.length > 1 && !isUtilityPrefix(tokens[0].value, ctx) ? tokens[tokens.length - 1] : tokens[0];
+  if (!isStructureSafeValue(utilityToken.value)) {
+    return { modifiers, utility: null };
+  }
+
   // Determine token types and parse in both directions
   if (tokens.length === 1) {
     // utility only
@@ -197,6 +204,15 @@ export function isSafeVariantToken(value: string): boolean {
   const m = FUNCTIONAL_VALUE_VARIANT.exec(value);
   if (m) return isSafeVariantValue(m[1], true);
   return isSafeVariantValue(value);
+}
+
+/**
+ * #224: true when a utility value (or a whole utility token) cannot change the structure of the declaration block it
+ * is pasted into. Rejects, outside quotes: `{`, `}`, `;`, unbalanced or mismatched ()/[], and a quote left open.
+ * Commas are allowed (values are not selector lists), so this is isSafeVariantValue with top-level commas allowed.
+ */
+export function isStructureSafeValue(value: string): boolean {
+  return isSafeVariantValue(value, true);
 }
 
 export function isSafeVariantValue(value: string, allowTopLevelComma = false): boolean {
