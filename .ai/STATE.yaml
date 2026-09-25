@@ -9,29 +9,16 @@ now:                       # dashboard view; mode comes from contract status
   next: "EXECUTION: run E-009 on branch ai/E-009-ring-parity"
   blockers: []
 
-# Re-derived from VISION "Who it is for" (human directive 2026-09-25, D17): audience is developers on
-# v0-like AI UI platforms; BaroCSS renders their Tailwind v4 markup with no build, preview -> production.
-# O2 parity is table stakes; O4-O6 are the three wins over @tailwindcss/browser; O3 parked. Measure every
-# win claim against @tailwindcss/browser AND a built Tailwind v4 stylesheet on realistic generated UI first.
 outcomes:
   O1:
     status: done           # D14: K3, K5, K7, K8, K9; zero BaroCSS changes
     statement: An AI agent can modify+verify styling on a running BaroCSS page with the smallest BaroCSS-specific surface.
   O2:
-    status: active         # table stakes (VISION): generated markup is Tailwind v4, any divergence is a broken UI (K10)
-    statement: An AI generates new UI with BaroCSS classes that render exactly like Tailwind v4 on the first try (parity).
+    status: active
+    statement: An AI generates new UI with BaroCSS classes that render as intended on the first try.
   O3:
-    status: parked         # D17: not a goal now unless a win needs it
+    status: candidate
     statement: An AI can explain why an existing element looks the way it does (styling provenance).
-  O4:
-    status: candidate      # win 1
-    statement: BaroCSS is production-grade with no build — size, runtime cost, caching and no FOUC comparable to a built Tailwind v4 stylesheet, beating @tailwindcss/browser.
-  O5:
-    status: candidate      # win 2
-    statement: While an AI streams markup, BaroCSS styles each class as soon as it appears (vs @tailwindcss/browser).
-  O6:
-    status: candidate      # win 3
-    statement: Brand and theme change live at runtime with no rebuild (vs @tailwindcss/browser).
 
 knowledge:
   proven:
@@ -97,12 +84,6 @@ knowledge:
       q: "Theme change on a production bundle with no exposed runtime (K8: no route). Open; no scenario needs it yet."
     - id: U6
       q: "Which theme namespaces drive class generation (K6: colors yes, borderRadius no)? Open until a scenario needs one."
-    - id: U7
-      q: "O4 baseline: on realistic generated UI, how does BaroCSS compare to @tailwindcss/browser and a built Tailwind v4 stylesheet on bundle/runtime cost, caching and FOUC? Measure before building anything for O4."
-    - id: U8
-      q: "O5 baseline: while markup streams in, does BaroCSS style each class as it appears, and does @tailwindcss/browser? Measure the gap before building for O5."
-    - id: U9
-      q: "O6 baseline: live brand/theme change with no rebuild — what can @tailwindcss/browser already do here vs BaroCSS (builds on K6/K8/K9)? Measure before building for O6."
 
 decisions:                 # older entries compressed; full text in git log -p -- .ai/STATE.yaml
   - id: D1-D4
@@ -146,16 +127,16 @@ decisions:                 # older entries compressed; full text in git log -p -
   - id: D17
     date: 2026-09-25
     decision: >
-      Applied human directive (2026-09-25): re-derived outcomes from VISION "Who it is for" (developers on v0-like AI
-      UI platforms; BaroCSS renders their Tailwind v4 markup with no build, preview -> production). O2 (Tailwind v4
-      parity) stays active as table stakes; added O4 production-grade, O5 streaming, O6 runtime theme/config as the
-      three wins over @tailwindcss/browser (each measured against @tailwindcss/browser AND a built Tailwind v4
-      stylesheet on realistic generated UI); parked O3 (provenance). Seeded win-baselines U7/U8/U9. Kept O2 active now
-      because K10 shows current parity is broken and a broken UI can't credibly demonstrate any win; finish parity
-      (E-009) first, then contract the win-baseline measurements before building anything for O4/O5/O6.
+      No outcome change this pass. The 2026-09-25 human directive to re-derive outcomes from VISION's "Who it is for"
+      (v0-like AI UI platforms; parity table stakes + three wins O4/O5/O6 vs @tailwindcss/browser; park O3) was
+      withdrawn by the human mid-session (develop d0476ac removed the directive; a pending branch withdraws the VISION
+      section too — "withdraw the #130 Tailwind-replacement framing"). Reverted my in-flight application of it;
+      outcomes stay O1 done / O2 active / O3 candidate. E-008 review and the E-009 parity contract stand on their own
+      (O2 parity predates the directive), and the still-active directives — product_code contracts include the
+      package's test dirs, and open the experiment PR as a draft until local checks pass — remain applied to E-009.
     why: >
-      The human named the audience and the win conditions; BaroCSS earns its place only where it beats the existing
-      zero-build runtime, and each win must be measured before it is built. Parity is the prerequisite the wins stand on.
+      A withdrawn directive is not a directive; building on it would contradict the human's explicit signal. The
+      review and parity work are independent of the framing, so only the outcome re-derivation is dropped.
 
 open_items:                # for STRATEGY, not EXECUTION
   - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."
