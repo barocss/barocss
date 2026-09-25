@@ -1,0 +1,1315 @@
+{
+  "arms": {
+    "A": {
+      "classes": {
+        "bg-brand": {
+          "pass": false,
+          "classCheck": true,
+          "styleCheck": false,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "oklch(0.546 0.245 262.881)"
+            ],
+            "classes": [
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-sm",
+              "font-medium",
+              "text-white",
+              "bg-brand"
+            ]
+          },
+          "writes": [],
+          "configCalls": 0,
+          "console": [
+            "[warning] [IncrementalParser] ast is empty bg-brand"
+          ]
+        },
+        "bg-[#5B21B6]": {
+          "pass": false,
+          "classCheck": false,
+          "styleCheck": true,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "rgb(91, 33, 182)"
+            ],
+            "classes": [
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-sm",
+              "font-medium",
+              "text-white",
+              "bg-[#5B21B6]"
+            ]
+          },
+          "writes": [],
+          "configCalls": 0,
+          "console": []
+        }
+      },
+      "controls": {
+        "Y1 style attribute": {
+          "pass": false,
+          "classCheck": true,
+          "styleCheck": true,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "rgb(91, 33, 182)"
+            ],
+            "classes": [
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-sm",
+              "font-medium",
+              "text-white",
+              "bg-brand"
+            ]
+          },
+          "writes": [],
+          "configCalls": 0
+        },
+        "Y1 style tag": {
+          "pass": false,
+          "classCheck": true,
+          "styleCheck": true,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "rgb(91, 33, 182)"
+            ],
+            "classes": [
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-sm",
+              "font-medium",
+              "text-white",
+              "bg-brand"
+            ]
+          },
+          "writes": [
+            {
+              "call": 0,
+              "tool": "browser_evaluate",
+              "pattern": "/createElement\\s*\\(\\s*['\"`](style|link)['\"`]/i"
+            },
+            {
+              "call": 0,
+              "tool": "browser_evaluate",
+              "pattern": "/\\.(textContent|innerText|innerHTML|nodeValue)\\s*\\+?=(?!=)[^;\\n]*\\{[^}]*:[^}]*\\}/"
+            }
+          ],
+          "configCalls": 0
+        }
+      },
+      "routes": {
+        "import + second BrowserRuntime(theme.extend) + observe": {
+          "code": "async () => { const m = await import('/packages/barocss-browser/dist/cdn/barocss.js'); const r = new m.BrowserRuntime({ config: { theme: { extend: { colors: { brand: '#5B21B6' }, borderRadius: { '4xl': '2rem' } } } } }); r.observe(document.body, { scan: true }); window.__r2 = r; }",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-sm",
+                "font-medium",
+                "text-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 0,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;",
+              "--radius-4xl: 2rem;"
+            ],
+            "consoleNamingClass": [
+              "[warning] [IncrementalParser] ast is empty bg-brand"
+            ]
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-sm",
+                "font-medium",
+                "text-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 0,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;",
+              "--radius-4xl: 2rem;"
+            ],
+            "consoleNamingClass": [
+              "[warning] [IncrementalParser] ast is empty bg-brand"
+            ]
+          }
+        },
+        "same, distinct styleId": {
+          "code": "async () => { const m = await import('/packages/barocss-browser/dist/cdn/barocss.js'); const r = new m.BrowserRuntime({ config: { theme: { extend: { colors: { brand: '#5B21B6' }, borderRadius: { '4xl': '2rem' } } } }, styleId: 'baro-2' }); r.observe(document.body, { scan: true }); window.__r2 = r; }",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-sm",
+                "font-medium",
+                "text-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 0,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;",
+              "--radius-4xl: 2rem;"
+            ],
+            "consoleNamingClass": [
+              "[warning] [IncrementalParser] ast is empty bg-brand"
+            ]
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-sm",
+                "font-medium",
+                "text-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 0,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;",
+              "--radius-4xl: 2rem;"
+            ],
+            "consoleNamingClass": [
+              "[warning] [IncrementalParser] ast is empty bg-brand"
+            ]
+          }
+        }
+      },
+      "baseline": {
+        "width": 1024,
+        "styleAttrs": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "classes": {
+          "save": [
+            "px-4",
+            "py-2",
+            "rounded-md",
+            "bg-blue-600",
+            "text-sm",
+            "font-medium",
+            "text-white"
+          ],
+          "card": [
+            "mt-8",
+            "bg-white",
+            "border",
+            "border-gray-200",
+            "rounded-md",
+            "p-4",
+            "shadow-sm"
+          ]
+        },
+        "props": {
+          "save": {
+            "backgroundColor": "oklch(0.546 0.245 262.881)",
+            "paddingTop": "8px",
+            "paddingRight": "16px",
+            "paddingBottom": "8px",
+            "paddingLeft": "16px",
+            "fontSize": "14px",
+            "fontWeight": "500",
+            "color": "rgb(255, 255, 255)",
+            "borderTopLeftRadius": "6px",
+            "borderTopRightRadius": "6px",
+            "borderBottomRightRadius": "6px",
+            "borderBottomLeftRadius": "6px"
+          },
+          "card": {
+            "borderTopLeftRadius": "6px",
+            "borderTopRightRadius": "6px",
+            "borderBottomRightRadius": "6px",
+            "borderBottomLeftRadius": "6px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopColor": "oklch(0.928 0.006 264.531)",
+            "paddingTop": "16px",
+            "paddingRight": "16px",
+            "paddingBottom": "16px",
+            "paddingLeft": "16px",
+            "boxShadow": "rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+          },
+          "intro": {
+            "color": "oklch(0.446 0.03 256.802)",
+            "fontSize": "16px",
+            "maxWidth": "576px"
+          },
+          "media": {
+            "height": 96,
+            "width": 814,
+            "backgroundColor": "oklch(0.967 0.003 264.542)"
+          },
+          "cancel": {
+            "color": "oklch(0.373 0.034 259.733)",
+            "borderTopColor": "oklch(0.872 0.01 258.338)",
+            "borderTopLeftRadius": "6px",
+            "borderTopRightRadius": "6px",
+            "borderBottomRightRadius": "6px",
+            "borderBottomLeftRadius": "6px"
+          },
+          "headline": {
+            "fontSize": "30px",
+            "fontWeight": "700"
+          },
+          "body": {
+            "backgroundColor": "oklch(0.985 0.002 247.839)",
+            "color": "oklch(0.21 0.034 264.665)",
+            "fontFamily": "Times"
+          }
+        }
+      },
+      "hasGlobal": "undefined",
+      "secondRuntimePasses": [
+        "import + second BrowserRuntime(theme.extend) + observe",
+        "same, distinct styleId"
+      ]
+    },
+    "B": {
+      "classes": {
+        "bg-brand": {
+          "pass": false,
+          "classCheck": true,
+          "styleCheck": false,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "oklch(0.546 0.245 262.881)"
+            ],
+            "classes": [
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-sm",
+              "font-medium",
+              "text-white",
+              "bg-brand"
+            ]
+          },
+          "writes": [],
+          "configCalls": 0,
+          "console": [
+            "[warning] [IncrementalParser] ast is empty bg-brand"
+          ]
+        },
+        "bg-[#5B21B6]": {
+          "pass": false,
+          "classCheck": false,
+          "styleCheck": true,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "rgb(91, 33, 182)"
+            ],
+            "classes": [
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-sm",
+              "font-medium",
+              "text-white",
+              "bg-[#5B21B6]"
+            ]
+          },
+          "writes": [],
+          "configCalls": 0,
+          "console": []
+        }
+      },
+      "controls": {
+        "Y1 style attribute": {
+          "pass": false,
+          "classCheck": true,
+          "styleCheck": true,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "rgb(91, 33, 182)"
+            ],
+            "classes": [
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-sm",
+              "font-medium",
+              "text-white",
+              "bg-brand"
+            ]
+          },
+          "writes": [],
+          "configCalls": 0
+        },
+        "Y1 style tag": {
+          "pass": false,
+          "classCheck": true,
+          "styleCheck": true,
+          "regressions": [],
+          "detail": {
+            "bg": [
+              "oklch(0.546 0.245 262.881)",
+              "rgb(91, 33, 182)"
+            ],
+            "classes": [
+              "px-4",
+              "py-2",
+              "rounded-md",
+              "bg-blue-600",
+              "text-sm",
+              "font-medium",
+              "text-white",
+              "bg-brand"
+            ]
+          },
+          "writes": [
+            {
+              "call": 0,
+              "tool": "browser_evaluate",
+              "pattern": "/createElement\\s*\\(\\s*['\"`](style|link)['\"`]/i"
+            },
+            {
+              "call": 0,
+              "tool": "browser_evaluate",
+              "pattern": "/\\.(textContent|innerText|innerHTML|nodeValue)\\s*\\+?=(?!=)[^;\\n]*\\{[^}]*:[^}]*\\}/"
+            }
+          ],
+          "configCalls": 0
+        }
+      },
+      "routes": {
+        "theme.extend": {
+          "code": "() => window.baroRuntime.updateConfig({ theme: { extend: { colors: { brand: '#5B21B6' }, borderRadius: { '4xl': '2rem' } } } })",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-sm",
+                "font-medium",
+                "text-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;",
+              "--radius-4xl: 2rem;"
+            ],
+            "consoleNamingClass": []
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-sm",
+                "font-medium",
+                "text-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;",
+              "--radius-4xl: 2rem;"
+            ],
+            "consoleNamingClass": []
+          }
+        },
+        "theme (no extend)": {
+          "code": "() => window.baroRuntime.updateConfig({ theme: { colors: { brand: '#5B21B6' }, borderRadius: { '4xl': '2rem' } } })",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-sm",
+                "font-medium",
+                "text-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;",
+              "--radius-4xl: 2rem;"
+            ],
+            "consoleNamingClass": []
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-sm",
+                "font-medium",
+                "text-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;",
+              "--radius-4xl: 2rem;"
+            ],
+            "consoleNamingClass": []
+          }
+        },
+        "theme.extend brand {DEFAULT}": {
+          "code": "() => window.baroRuntime.updateConfig({ theme: { extend: { colors: { brand: { DEFAULT: '#5B21B6' } }, borderRadius: { '4xl': '2rem' } } } })",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": false,
+            "classCheck": true,
+            "styleCheck": false,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "oklch(0.546 0.245 262.881)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-sm",
+                "font-medium",
+                "text-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [],
+            "rootVars": [
+              "--color-brand-DEFAULT: #5B21B6;",
+              "--radius-4xl: 2rem;"
+            ],
+            "consoleNamingClass": [
+              "[warning] [IncrementalParser] Failed to process class: bg-brand TypeError: value.startsWith is not a function\n    at Object.handle (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:6490:15)\n    at Object.handler (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:331:31)\n    at parseClassToAst (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:920:21)\n    at IncrementalParser.processClass (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:1147:19)\n    at IncrementalParser.processClasses (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:1194:29)\n    at MutationObserver.<anonymous> (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:8546:48)"
+            ]
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": false,
+            "classCheck": true,
+            "styleCheck": false,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgba(0, 0, 0, 0)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-sm",
+                "font-medium",
+                "text-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [],
+            "rootVars": [
+              "--color-brand-DEFAULT: #5B21B6;",
+              "--radius-4xl: 2rem;"
+            ],
+            "consoleNamingClass": [
+              "[warning] [IncrementalParser] Failed to process class: bg-brand TypeError: value.startsWith is not a function\n    at Object.handle (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:6490:15)\n    at Object.handler (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:331:31)\n    at parseClassToAst (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:920:21)\n    at IncrementalParser.processClass (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:1147:19)\n    at IncrementalParser.processClasses (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:1194:29)\n    at MutationObserver.<anonymous> (http://127.0.0.1:8813/packages/barocss-browser/dist/cdn/barocss.js:8546:48)"
+            ]
+          }
+        },
+        "theme.extend radius (v4 name)": {
+          "code": "() => window.baroRuntime.updateConfig({ theme: { extend: { colors: { brand: '#5B21B6' }, radius: { '4xl': '2rem' } } } })",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-sm",
+                "font-medium",
+                "text-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "consoleNamingClass": []
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-sm",
+                "font-medium",
+                "text-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "consoleNamingClass": []
+          }
+        },
+        "theme.colors.brand only (replace colors?)": {
+          "code": "() => window.baroRuntime.updateConfig({ theme: { colors: { brand: '#5B21B6' } } })",
+          "Y1": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-blue-600",
+                "text-sm",
+                "font-medium",
+                "text-white",
+                "bg-brand"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "consoleNamingClass": []
+          },
+          "Y1replace": {
+            "ran": {
+              "ok": true
+            },
+            "pass": true,
+            "classCheck": true,
+            "styleCheck": true,
+            "regressions": [],
+            "detail": {
+              "bg": [
+                "oklch(0.546 0.245 262.881)",
+                "rgb(91, 33, 182)"
+              ],
+              "classes": [
+                "px-4",
+                "py-2",
+                "rounded-md",
+                "bg-brand",
+                "text-sm",
+                "font-medium",
+                "text-white"
+              ]
+            },
+            "writes": [],
+            "configCalls": 1,
+            "rules": [
+              ".bg-brand { background-color: rgb(91, 33, 182); }"
+            ],
+            "rootVars": [
+              "--color-brand: #5B21B6;"
+            ],
+            "consoleNamingClass": []
+          }
+        }
+      },
+      "baseline": {
+        "width": 1024,
+        "styleAttrs": [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "classes": {
+          "save": [
+            "px-4",
+            "py-2",
+            "rounded-md",
+            "bg-blue-600",
+            "text-sm",
+            "font-medium",
+            "text-white"
+          ],
+          "card": [
+            "mt-8",
+            "bg-white",
+            "border",
+            "border-gray-200",
+            "rounded-md",
+            "p-4",
+            "shadow-sm"
+          ]
+        },
+        "props": {
+          "save": {
+            "backgroundColor": "oklch(0.546 0.245 262.881)",
+            "paddingTop": "8px",
+            "paddingRight": "16px",
+            "paddingBottom": "8px",
+            "paddingLeft": "16px",
+            "fontSize": "14px",
+            "fontWeight": "500",
+            "color": "rgb(255, 255, 255)",
+            "borderTopLeftRadius": "6px",
+            "borderTopRightRadius": "6px",
+            "borderBottomRightRadius": "6px",
+            "borderBottomLeftRadius": "6px"
+          },
+          "card": {
+            "borderTopLeftRadius": "6px",
+            "borderTopRightRadius": "6px",
+            "borderBottomRightRadius": "6px",
+            "borderBottomLeftRadius": "6px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "borderTopWidth": "1px",
+            "borderRightWidth": "1px",
+            "borderBottomWidth": "1px",
+            "borderLeftWidth": "1px",
+            "borderTopColor": "oklch(0.928 0.006 264.531)",
+            "paddingTop": "16px",
+            "paddingRight": "16px",
+            "paddingBottom": "16px",
+            "paddingLeft": "16px",
+            "boxShadow": "rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+          },
+          "intro": {
+            "color": "oklch(0.446 0.03 256.802)",
+            "fontSize": "16px",
+            "maxWidth": "576px"
+          },
+          "media": {
+            "height": 96,
+            "width": 814,
+            "backgroundColor": "oklch(0.967 0.003 264.542)"
+          },
+          "cancel": {
+            "color": "oklch(0.373 0.034 259.733)",
+            "borderTopColor": "oklch(0.872 0.01 258.338)",
+            "borderTopLeftRadius": "6px",
+            "borderTopRightRadius": "6px",
+            "borderBottomRightRadius": "6px",
+            "borderBottomLeftRadius": "6px"
+          },
+          "headline": {
+            "fontSize": "30px",
+            "fontWeight": "700"
+          },
+          "body": {
+            "backgroundColor": "oklch(0.985 0.002 247.839)",
+            "color": "oklch(0.21 0.034 264.665)",
+            "fontFamily": "Times"
+          }
+        }
+      },
+      "hasGlobal": "object",
+      "positiveControl": [
+        "theme.extend",
+        "theme (no extend)",
+        "theme.extend radius (v4 name)",
+        "theme.colors.brand only (replace colors?)"
+      ]
+    }
+  },
+  "expectations": [
+    {
+      "arm": "A",
+      "name": "baseline fails Y1",
+      "ok": true,
+      "pass": false,
+      "classCheck": false,
+      "styleCheck": false,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "oklch(0.546 0.245 262.881)"
+        ],
+        "classes": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0
+    },
+    {
+      "arm": "A",
+      "name": "bg-brand alone fails Y1",
+      "ok": true,
+      "pass": false,
+      "classCheck": true,
+      "styleCheck": false,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "oklch(0.546 0.245 262.881)"
+        ],
+        "classes": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white",
+          "bg-brand"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0,
+      "console": [
+        "[warning] [IncrementalParser] ast is empty bg-brand"
+      ]
+    },
+    {
+      "arm": "A",
+      "name": "bg-[#5B21B6] alone fails Y1",
+      "ok": true,
+      "pass": false,
+      "classCheck": false,
+      "styleCheck": true,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "rgb(91, 33, 182)"
+        ],
+        "classes": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white",
+          "bg-[#5B21B6]"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0,
+      "console": []
+    },
+    {
+      "arm": "A",
+      "name": "Y1 inline style-attribute control: style ok, fails via detector",
+      "ok": true,
+      "pass": false,
+      "classCheck": true,
+      "styleCheck": true,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "rgb(91, 33, 182)"
+        ],
+        "classes": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white",
+          "bg-brand"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0
+    },
+    {
+      "arm": "A",
+      "name": "Y1 style-tag control: style ok, fails via detector",
+      "ok": true,
+      "pass": false,
+      "classCheck": true,
+      "styleCheck": true,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "rgb(91, 33, 182)"
+        ],
+        "classes": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white",
+          "bg-brand"
+        ]
+      },
+      "writes": [
+        {
+          "call": 0,
+          "tool": "browser_evaluate",
+          "pattern": "/createElement\\s*\\(\\s*['\"`](style|link)['\"`]/i"
+        },
+        {
+          "call": 0,
+          "tool": "browser_evaluate",
+          "pattern": "/\\.(textContent|innerText|innerHTML|nodeValue)\\s*\\+?=(?!=)[^;\\n]*\\{[^}]*:[^}]*\\}/"
+        }
+      ],
+      "configCalls": 0
+    },
+    {
+      "arm": "A",
+      "name": "scan flags updateRuleContent and textContent CSS, not config calls or reads",
+      "ok": true,
+      "scan": {
+        "writes": [
+          {
+            "call": 0,
+            "tool": "browser_evaluate",
+            "pattern": "/updateRuleContent\\s*\\(/"
+          },
+          {
+            "call": 1,
+            "tool": "browser_evaluate",
+            "pattern": "/\\.(textContent|innerText|innerHTML|nodeValue)\\s*\\+?=(?!=)[^;\\n]*\\{[^}]*:[^}]*\\}/"
+          }
+        ],
+        "configCalls": [
+          {
+            "call": 2,
+            "tool": "browser_evaluate"
+          }
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "name": "baseline fails Y1",
+      "ok": true,
+      "pass": false,
+      "classCheck": false,
+      "styleCheck": false,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "oklch(0.546 0.245 262.881)"
+        ],
+        "classes": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0
+    },
+    {
+      "arm": "B",
+      "name": "bg-brand alone fails Y1",
+      "ok": true,
+      "pass": false,
+      "classCheck": true,
+      "styleCheck": false,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "oklch(0.546 0.245 262.881)"
+        ],
+        "classes": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white",
+          "bg-brand"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0,
+      "console": [
+        "[warning] [IncrementalParser] ast is empty bg-brand"
+      ]
+    },
+    {
+      "arm": "B",
+      "name": "bg-[#5B21B6] alone fails Y1",
+      "ok": true,
+      "pass": false,
+      "classCheck": false,
+      "styleCheck": true,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "rgb(91, 33, 182)"
+        ],
+        "classes": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white",
+          "bg-[#5B21B6]"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0,
+      "console": []
+    },
+    {
+      "arm": "B",
+      "name": "Y1 inline style-attribute control: style ok, fails via detector",
+      "ok": true,
+      "pass": false,
+      "classCheck": true,
+      "styleCheck": true,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "rgb(91, 33, 182)"
+        ],
+        "classes": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white",
+          "bg-brand"
+        ]
+      },
+      "writes": [],
+      "configCalls": 0
+    },
+    {
+      "arm": "B",
+      "name": "Y1 style-tag control: style ok, fails via detector",
+      "ok": true,
+      "pass": false,
+      "classCheck": true,
+      "styleCheck": true,
+      "regressions": [],
+      "detail": {
+        "bg": [
+          "oklch(0.546 0.245 262.881)",
+          "rgb(91, 33, 182)"
+        ],
+        "classes": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white",
+          "bg-brand"
+        ]
+      },
+      "writes": [
+        {
+          "call": 0,
+          "tool": "browser_evaluate",
+          "pattern": "/createElement\\s*\\(\\s*['\"`](style|link)['\"`]/i"
+        },
+        {
+          "call": 0,
+          "tool": "browser_evaluate",
+          "pattern": "/\\.(textContent|innerText|innerHTML|nodeValue)\\s*\\+?=(?!=)[^;\\n]*\\{[^}]*:[^}]*\\}/"
+        }
+      ],
+      "configCalls": 0
+    },
+    {
+      "arm": "B",
+      "name": "scan flags updateRuleContent and textContent CSS, not config calls or reads",
+      "ok": true,
+      "scan": {
+        "writes": [
+          {
+            "call": 0,
+            "tool": "browser_evaluate",
+            "pattern": "/updateRuleContent\\s*\\(/"
+          },
+          {
+            "call": 1,
+            "tool": "browser_evaluate",
+            "pattern": "/\\.(textContent|innerText|innerHTML|nodeValue)\\s*\\+?=(?!=)[^;\\n]*\\{[^}]*:[^}]*\\}/"
+          }
+        ],
+        "configCalls": [
+          {
+            "call": 2,
+            "tool": "browser_evaluate"
+          }
+        ]
+      }
+    },
+    {
+      "arm": "B",
+      "name": "arm B positive control: window.baroRuntime.updateConfig theme.extend passes Y1 with no regression",
+      "ok": true,
+      "passing": [
+        "theme.extend",
+        "theme (no extend)",
+        "theme.extend radius (v4 name)",
+        "theme.colors.brand only (replace colors?)"
+      ]
+    }
+  ]
+}

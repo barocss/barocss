@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: ready
+status: evaluated
 
 id: E-004
 outcome: O1
@@ -90,17 +90,39 @@ stop_when:
   - The grader would have to change after an agent run → record it in side_notes, don't change the grader.
 
 result:
-  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
-  level: null            # L0-L3 actually achieved
-  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
-  learning: null         # 1-2 sentences
-  unknown: []            # what remains unanswered, or the blocker if status: blocked
-  next_question: null    # suggestion only; Strategy decides
-  pr: null               # PR URL opened by Execution (never merged by Execution)
-  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
-  side_notes: []         # adjacent discoveries, one line each, NOT pursued
+  verdict: PROVEN
+  level: L3
+  evidence:
+    - "Self-test (Y1-only, before any run): 13/13 gating expectations pass; arm A second-runtime and arm B updateConfig theme.extend both pass Y1. `PW_MCP_DIR=… node .ai/evidence/E-004/grader-selftest.mjs` → selftest.json"
+    - "A1 (arm A): PASS Y1, no regression, 0 raw-CSS writes. Route: import CDN → getRuntime() → updateConfig(theme.extend.colors.brand) + addClass('bg-brand'), class bg-blue-600→bg-brand. Claim 'done' agrees. 14 turns, $0.29. `node .ai/evidence/E-004/run.mjs A A1` → runs/A1.json"
+    - "A2 (arm A): PASS Y1, no regression, 0 raw-CSS writes. Same route as A1. Claim 'done' agrees. 13 turns, $0.41. runs/A2.json"
+    - "B1 (arm B): PASS Y1, no regression, 0 raw-CSS writes. Route: window.baroRuntime.updateConfig(theme.extend.colors.brand) + addClass, class swap. Claim 'done' agrees. 11 turns, $0.34. runs/B1.json"
+    - "Discovery in all runs: page source → module exports (A) or global (B) → Function.toString of updateConfig. No bundle fetch or search. Call numbers are in SUMMARY.md."
+    - "Route probe: getRuntime() !== the page's runtime (the page does `new BrowserRuntime()`; getRuntime is a lazy singleton in baro-boot.ts). Replaying A1's calls creates a second runtime with duplicate <style id=barocss-runtime-partition-0/css-vars>; .bg-brand lives there; the page runtime's getCss('bg-brand') stays null. `node .ai/evidence/E-004/route-probe.mjs` → route-probe.json"
+  learning: >
+    With only generic browser tools, a real agent adds a colour token live in 3/3 runs, whether or not the app exposes the
+    runtime. In arm A it succeeds through a second runtime obtained from getRuntime(), which both agents wrongly believed was
+    the page's instance. The outcome is right, the mechanism claim is wrong, and there are duplicate style partitions.
+  unknown:
+    - "Whether the second-runtime route stays correct beyond this task (later-added elements using brand utilities, duplicate style ids, the page runtime reprocessing bg-brand). Not graded."
+    - "Only colour tokens were tested (radius is BAROCSS-blocked per K6). n=2 for arm A, n=1 for arm B, one model."
+  next_question: >
+    Is the arm A route (an unobserving second runtime via getRuntime()) acceptable for O1, or does the misattributed
+    instance cause a user-visible failure in a follow-up edit (e.g. adding text-brand to a new element)? If the answer is
+    acceptable, O1 colour-token edits need no BaroCSS change.
+  pr: https://github.com/barocss/barocss/pull/113
+  checks: "grader-selftest.mjs: 13/13 pass; check.py --role execution --base origin/develop: OK; no product code changed"
+  side_notes:
+    - "getRuntime() name suggests 'the page runtime' but silently creates a new BrowserRuntime when the page used `new BrowserRuntime()`: it misled both arm A agents (BAROCSS naming/semantics)."
+    - "Two runtimes in one document emit duplicate <style> ids (barocss-runtime-partition-0, -css-vars), because the default styleId is shared."
+    - "All three agents needed addClass after updateConfig, because getCss('bg-brand') was empty until the class was processed. updateConfig alone does not pre-generate."
+    - "All three agents noted unprompted that the change is live-only and resets on reload."
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: PROVEN
+  merged: true
+  reason: >
+    proves_yes met at L3: A1, A2 and B1 pass Y1 through a config route with no regression, claims agree with the grader;
+    pages and grader byte-identical to E-003, runner committed before runs, self-test 13/13, check.py OK, CI green,
+    evidence-only. Caveat kept in K7: arm A passed via a second runtime from an importable CDN module URL, and the
+    agents misstated it as the page's runtime.
