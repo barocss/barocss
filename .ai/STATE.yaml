@@ -166,3 +166,12 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     Tailwind 4.1.13 with the E-007/E-008 classifier before contracting a fix, and rank by how often
     v0/shadcn-style output uses it. Don't copy #84's defects (bare blur emitting blur(0px), bg-(position:--x)
     falling through to background-color), and don't move the reference to 4.3.3 without a decision.
+  - >-
+    2026-09-25: two lanes. Parity lane: a class family that BaroCSS resolves differently from Tailwind
+    4.1.13 (the reference) is a known-answer bug, not an open question. Batch several measured families
+    into one product_code contract; the batch counts as one capability (Tailwind v4 parity) for §2's
+    one-capability rule. Its evidence is L2: a per-token comparison against Tailwind 4.1.13 plus pnpm check
+    green. Rerun the L3 agent check (G1/G2-style) at most once per batch, not per family. The approval and
+    tests-in-scope directives still apply. Question lane: whether to build something, and what users need,
+    keep the full experiment protocol. While STATE holds measured or candidate parity misses, prefer
+    the parity lane.
