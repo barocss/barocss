@@ -10,7 +10,7 @@ describe("arbitrary variants", () => {
     it("[&>*]:bg-red-500 → &>* { ... }", () => {
       expect(parseClassToAst("[&>*]:bg-red-500", ctx)).toMatchObject([
         {
-          type: "style-rule",
+          type: "rule",
           selector: "&>*",
           nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
         },
@@ -89,7 +89,7 @@ describe("arbitrary variants", () => {
           selector: "&:is(:where(.group):hover *)",
           nodes: [
             {
-              type: "style-rule",
+              type: "rule",
               selector: "&>*",
               nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
             },

@@ -1,7 +1,7 @@
 import { AstNode } from "./ast";
 import { Context } from "./context";
 import { getModifier, getUtility } from "./registry";
-import { ParsedUtility, ParsedModifier, isSafeVariantValue } from "./parser";
+import { ParsedUtility, ParsedModifier, isSafeVariantValue, isSafeVariantToken } from "./parser";
 import { astToCss, rootToCss } from "./astToCss";
 import { optimizeAst } from "./engine";
 
@@ -108,7 +108,7 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
     // rejects the whole input, as the class-name path does.
     const unsafeVariant = (input.variants || []).some((v) =>
         typeof v === "string"
-            ? !isSafeVariantValue(v)
+            ? !isSafeVariantToken(v)
             : !isSafeVariantValue(v.name || "") || !isSafeVariantValue(v.value || "")
     );
     if (unsafeVariant) return [];

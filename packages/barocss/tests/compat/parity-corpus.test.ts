@@ -28,7 +28,6 @@ const KNOWN_FAILURES: Record<string, string> = {
   "bg-gradient-to-r": "legacy gradient emits a bare & selector (#187)",
   "@container/card-header": "no container-type utility (#187)",
   "h-[calc(100%-1px)]": "arbitrary calc() without operator spaces (#187)",
-  "has-data-[slot=card-action]:grid-cols-[1fr_auto]": "has-* variant missing",
   "justify-self-end": "justify-self-end emits end, TW flex-end",
   "max-w-[calc(100%-2rem)]": "arbitrary calc() without operator spaces (#187)",
   "rounded-xs": "radius scale on v3 values",
