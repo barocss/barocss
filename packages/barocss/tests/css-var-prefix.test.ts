@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import '../src/presets';
 import { createContext } from '../src/core/context';
 import { generateCss } from '../src/core/engine';
+import { jsonToAst } from '../src/core/jsonToAst';
 
 // #222 companion mode: next to a Tailwind build, cssVarPrefix: 'tw' makes the runtime's composite
 // variables the build's own --tw-* names, so a build class and a runtime class compose on one element.
@@ -48,5 +49,15 @@ describe('cssVarPrefix (#222)', () => {
     expect(generateCss('shadow-md', tw)).toContain('--tw-shadow');
     expect(generateCss('shadow-md', baro)).toContain('--baro-shadow');
     expect(generateCss('shadow-md', tw)).not.toContain('--baro-');
+  });
+});
+
+describe('cssVarPrefix through jsonToAst (#222)', () => {
+  it('JSON input gets the same --tw-* composites as class input', () => {
+    const tw = JSON.stringify(jsonToAst({ utility: { name: 'ring', value: '2' } }, createContext({ cssVarPrefix: 'tw' })));
+    expect(tw).toContain('--tw-ring-shadow');
+    expect(tw).not.toContain('--baro-');
+    const def = JSON.stringify(jsonToAst({ utility: { name: 'ring', value: '2' } }, createContext({})));
+    expect(def).toContain('--baro-ring-shadow');
   });
 });

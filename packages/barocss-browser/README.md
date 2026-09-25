@@ -313,4 +313,6 @@ When the page already links a Tailwind 4 build and the runtime only fills in cla
 baroStart({ skipExisting: true, config: { cssVarPrefix: 'tw' } });
 ```
 
+The rename applies to every `--baro-` name in the generated CSS, including `--baro-*` names you write in your own arbitrary or custom-property values.
+
 A build class and a runtime class on one element then compose: build `ring-2` + runtime `shadow-md` gives both layers, build `translate-x-2` + runtime `translate-y-4` gives `8px 16px`, build `border-dashed` + runtime `border-2` stays dashed. Without it the runtime uses `--baro-*` names, and the two halves overwrite each other. Leave it unset when there is no Tailwind build. Gradient stops (`from-*`/`via-*`/`to-*` with `bg-linear-*`) do not yet follow Tailwind's variable protocol, so mixing them between build and runtime is not supported.
