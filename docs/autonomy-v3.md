@@ -81,3 +81,12 @@ Durable outcomes land in their home (Issue, Discussion, Wiki, local git, Supervi
 themselves are not stored. Escalate to the human only for Vision changes, human-only product choices,
 credentials/permissions, irreversible external actions, or real deadlock.
 Claiming: a session that starts an Issue moves `v3:ready` → `v3:running` first, so it never runs twice.
+
+## Parallel Compute (enabled 2026-09-26)
+
+One Compute session runs up to 3 Issues at once as subagents (Agent tool, `isolation: "worktree"`), each
+branched off local `develop` and claimed first (`v3:ready` → `v3:running`). Only the Compute session
+integrates, one merge at a time, rerunning that Issue's verify block after each. Issues that touch the
+same files or share a runtime resource never run together; browser/dev-server tasks get separate port
+ranges (5200 + 100·n). Subagents never ask the human; questions go through the Compute session. Each
+Issue says `Parallel: safe | after #N | serial`.
