@@ -215,6 +215,10 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
                 continue;
             }
 
+            if (plugin.astHandler) {
+                ast = plugin.astHandler(ast, parsedModifier, ctx, [], i);
+            }
+
             if (plugin.modifySelector) {
                 const result = plugin.modifySelector({
                     selector,

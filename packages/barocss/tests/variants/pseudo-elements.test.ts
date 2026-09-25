@@ -67,20 +67,28 @@ describe("pseudo-elements", () => {
   describe("basic pseudo-elements", () => {
     it("before:bg-red-500 → &::before { ... }", () => {
       expect(parseClassToAst("before:bg-red-500", ctx)).toMatchObject([
+        { type: "at-root", nodes: [{ type: "at-rule", name: "property", params: "--baro-content" }] },
         {
           type: "rule",
           selector: "&::before",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [
+            { type: "decl", prop: "background-color", value: "#f00" },
+            { type: "decl", prop: "content", value: "var(--baro-content)" },
+          ],
         },
       ]);
     });
 
     it("after:bg-red-500 → &::after { ... }", () => {
       expect(parseClassToAst("after:bg-red-500", ctx)).toMatchObject([
+        { type: "at-root", nodes: [{ type: "at-rule", name: "property", params: "--baro-content" }] },
         {
           type: "rule",
           selector: "&::after",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [
+            { type: "decl", prop: "background-color", value: "#f00" },
+            { type: "decl", prop: "content", value: "var(--baro-content)" },
+          ],
         },
       ]);
     });
