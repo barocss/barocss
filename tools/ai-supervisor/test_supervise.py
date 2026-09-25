@@ -7,7 +7,7 @@ Pure tests drive decide() with Phase 1 statuses from synthetic snapshots. Proces
 loop, wrapper and ledger against fixtures/fake_claude.py and a file-backed "world" the fake session
 changes, so crash, timeout, restart and stale-ledger paths use real processes. No network, no model.
 """
-import json, os, signal, subprocess, sys, tempfile, time, unittest
+import json, os, signal, subprocess, sys, tempfile, threading, time, unittest
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sup  # noqa: E402
@@ -47,7 +47,7 @@ def view(name, **kw):
 
 def cfg(home, **kw):
     base = dict(home=home, claude=[sys.executable, FAKE], prepare=False, poll_s=0.01, monitor_s=0.05,
-                settle_s=0, backoff_s=0, kill_grace_s=1, fetch=False)
+                settle_s=0, backoff_s=0, kill_grace_s=1, fetch=False, tick_s=0.05)
     base.update(kw)
     return sv.Config(**base)
 
@@ -131,6 +131,19 @@ class Decide(unittest.TestCase):
         v = view("execute")
         recs = [rec(v["key"], "CRASHED", sid=str(i), released=True) for i in range(3)]
         self.assertEqual(sv.decide(v, recs, time.time(), C)["do"], "launch")
+
+    def test_interrupted_costs_no_attempt_and_resumes(self):
+        v = view("execute")
+        d = sv.decide(v, [rec(v["key"], "INTERRUPTED", sid=str(i)) for i in range(5)], time.time(), C)
+        self.assertEqual((d["do"], d["attempt"]), ("launch", 1))
+        d = sv.decide(view("running"), [rec(v["key"], "INTERRUPTED", action="EXECUTE E-009")], time.time(), C)
+        self.assertEqual((d["do"], d["action"]), ("launch", "EXECUTE E-009"))
+
+    def test_lifecycle(self):
+        self.assertEqual(sv.lifecycle("running", True), "RUNNING")
+        self.assertEqual(sv.lifecycle("paused", True), "PAUSING")
+        self.assertEqual(sv.lifecycle("paused", False), "PAUSED")
+        self.assertEqual(sv.lifecycle("stopped", True), "STOPPED")
 
     def test_transition(self):
         r = rec(view("execute")["key"], "COMPLETED", action="EXECUTE E-009")
@@ -275,7 +288,7 @@ class Process(unittest.TestCase):
 
     def test_timeout_kills_the_process_group(self):
         w = World(self, "execute", plan=[{"sleep": 30, "child": True}])
-        rep = w.sup(timeout_s={"EXECUTE": 1.0}).run(max_sessions=1)
+        rep = w.sup(timeout_s={"EXECUTE": 3.0}).run(max_sessions=1)
         r = rep["sessions"][0]
         self.assertEqual(r["state"], "TIMED_OUT")
         self.assertIn("timeout", r["reason"])
@@ -295,6 +308,23 @@ class Process(unittest.TestCase):
         w.sup().run(max_sessions=1)
         child = w.child()
         self.assertTrue(wait_for(lambda: not _pid_alive(child)))
+
+    def test_workspace_failure_is_a_retryable_environment_failure(self):
+        w = World(self, "execute", plan=[{"world": "review"}])
+        s = w.sup(prepare=True, workspace=os.path.join(w.dir, "ws"))
+        calls = []
+
+        def flaky():
+            calls.append(1)
+            if len(calls) == 1:
+                raise subprocess.CalledProcessError(128, ["git", "clone"], stderr="fatal: network down")
+            os.makedirs(s.cfg.workspace, exist_ok=True)
+        s.prepare_workspace = flaky
+        rep = s.run(max_sessions=1)                       # the runner survives and retries
+        recs = w.records()
+        self.assertEqual([(r["state"], r["attempt"]) for r in recs], [("CRASHED", 1), ("COMPLETED", 2)])
+        self.assertIn("network down", recs[0]["reason"])
+        self.assertEqual(rep["decision"]["action"], "REVIEW E-009")
 
     def test_semantic_failure_is_not_retried(self):
         # The experiment ends blocked / INCONCLUSIVE: that is a result, so the next step is REVIEW.
@@ -365,7 +395,7 @@ class Process(unittest.TestCase):
         self.assertEqual(len(w.launches()), 1)
         with open(os.path.join(w.home, "supervisor.log")) as fh:
             events = [json.loads(line)["event"] for line in fh]
-        self.assertEqual(events.count("wait"), 3)
+        self.assertEqual(events.count("wait"), 1)   # one log line per change, not per poll
 
     def test_dry_run_launches_nothing_and_keeps_the_ledger(self):
         w = World(self, "execute")
@@ -374,6 +404,167 @@ class Process(unittest.TestCase):
         self.assertEqual((d["do"], d["action"]), ("launch", "EXECUTE E-009"))
         self.assertIn(sv.STANDARD_INSTRUCTION, d["command"])
         self.assertEqual((w.launches(), w.records()), ([], []))
+
+
+def background(s, **kw):
+    box = {}
+    t = threading.Thread(target=lambda: box.update(rep=s.run(**kw)), daemon=True)
+    t.start()
+    return t, box
+
+
+def runner(w):
+    return sv.read_json(os.path.join(w.home, "runner.json")) or {}
+
+
+class Lifecycle(unittest.TestCase):
+    def live(self, w):
+        return [r for r in w.records() if r["state"] == "RUNNING"]
+
+    def test_pause_lets_the_session_finish_then_resume_continues(self):
+        w = World(self, "execute", plan=[{"world": "review", "sleep": 1.0}, {"world": "plan", "sleep": 0.2}])
+        t, box = background(w.sup())
+        self.assertTrue(wait_for(lambda: self.live(w)))
+        sv.request(w.home, "paused", by="test")
+        self.assertTrue(wait_for(lambda: runner(w).get("state") == "PAUSING"))
+        self.assertTrue(wait_for(lambda: runner(w).get("state") == "PAUSED"))
+        (r,) = w.records()
+        self.assertEqual((r["state"], r["transition"]), ("COMPLETED", "advanced"))   # finished, not killed
+        time.sleep(0.5)
+        self.assertEqual(len(w.launches()), 1)             # REVIEW is due, but nothing launches while paused
+        self.assertIn("would launch REVIEW E-009", runner(w).get("detail", ""))
+        sv.request(w.home, "running", by="test")
+        # Resumed, it keeps going on its own: REVIEW, then PLAN, whose session changes nothing (plan
+        # exhausted), so it holds as no_progress instead of relaunching.
+        self.assertTrue(wait_for(lambda: runner(w).get("detail", "").find("no_progress") >= 0 or
+                                 "did not advance" in runner(w).get("detail", "")))
+        self.assertEqual([(r["action"], r["state"]) for r in w.records()],
+                         [("EXECUTE E-009", "COMPLETED"), ("REVIEW E-009", "COMPLETED"), ("PLAN", "COMPLETED")])
+        time.sleep(0.3)
+        self.assertEqual(len(w.launches()), 3)
+        sv.request(w.home, "stopped", by="test")
+        t.join(10)
+        self.assertFalse(t.is_alive())
+        self.assertEqual((runner(w)["state"], box["rep"]["stopped"]), ("STOPPED", "stop requested"))
+
+    def test_stop_interrupts_and_a_restart_resumes(self):
+        w = World(self, "execute", plan=[{"sleep": 30, "child": True}, {"world": "review"}])
+        t, box = background(w.sup())
+        self.assertTrue(wait_for(lambda: self.live(w) and os.path.exists(w.f["child"])))
+        sid = self.live(w)[0]["session_id"]
+        sv.request(w.home, "stopped", by="test")
+        t.join(10)
+        self.assertFalse(t.is_alive())
+        (r,) = w.records()
+        self.assertEqual((r["state"], r["reason"]), ("INTERRUPTED", "stop requested"))
+        self.assertIsNone(sv.ps_pid(sid))
+        self.assertTrue(wait_for(lambda: not _pid_alive(w.child())))
+        self.assertEqual(runner(w)["state"], "STOPPED")
+        # Later: start again. start means running, whatever the last request was; no attempt was spent.
+        rep = w.sup().run(max_sessions=1)
+        (r2,) = rep["sessions"]
+        self.assertEqual((r2["action"], r2["attempt"], r2["state"]), ("EXECUTE E-009", 1, "COMPLETED"))
+        self.assertEqual(sv.read_control(w.home)["desired"], "running")
+
+    def test_owner_exit_stops_the_run(self):
+        owner = subprocess.Popen(["sleep", "60"])
+        self.addCleanup(owner.kill)
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        t, box = background(w.sup(owner=owner.pid))
+        self.assertTrue(wait_for(lambda: self.live(w)))
+        owner.kill()
+        owner.wait()
+        t.join(10)
+        self.assertFalse(t.is_alive())
+        (r,) = w.records()
+        self.assertEqual(r["state"], "INTERRUPTED")
+        self.assertIn(f"owner {owner.pid} gone", r["reason"])
+
+    def test_session_does_not_outlive_owner_and_runner(self):
+        # Both the app (owner) and the runner vanish at once: the wrapper ends the session itself.
+        owner = subprocess.Popen(["sleep", "60"])
+        self.addCleanup(owner.kill)
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        a = w.sup(owner=owner.pid)
+        r = a.launch(sv.decide(a.observe(), [], time.time(), a.cfg), a.observe())
+        w.orphan(a)
+        owner.kill()
+        owner.wait()
+        self.assertTrue(wait_for(lambda: sv.ps_pid(r["session_id"]) is None, timeout=15))
+        rep = w.sup().run(once=True)
+        (r,) = w.records()
+        self.assertEqual(r["state"], "INTERRUPTED")
+        self.assertEqual((rep["decision"]["do"], rep["decision"]["attempt"]), ("launch", 1))
+
+    def test_stop_without_runner_ends_orphan_sessions(self):
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        a = w.sup()
+        r = a.launch(sv.decide(a.observe(), [], time.time(), a.cfg), a.observe())
+        w.orphan(a)
+        (x,) = w.sup().run_locked(lambda s: s.stop_orphans("stop requested"))
+        self.assertEqual(x["state"], "INTERRUPTED")
+        self.assertIsNone(sv.ps_pid(r["session_id"]))
+
+    def test_status_while_running_and_after(self):
+        w = World(self, "execute", plan=[{"world": "review", "sleep": 1.5}])
+        t, box = background(w.sup(max_attempts=3))
+        self.assertTrue(wait_for(lambda: self.live(w) and runner(w).get("activity") == "session"))
+        st = sv.status_report(w.home)
+        self.assertEqual((st["runner"]["state"], st["mode"]), ("RUNNING", "EXECUTION"))
+        self.assertEqual((st["session"]["action"], st["session"]["attempt"]), ("EXECUTE E-009", 1))
+        self.assertEqual((st["outcome"]["id"], st["experiment"]["id"]), ("O2", "E-009"))
+        self.assertEqual(st["next"]["action"], "EXECUTE E-009")
+        self.assertIsNotNone(st["runner"]["uptime_s"])
+        sv.request(w.home, "paused", by="test")
+        self.assertTrue(wait_for(lambda: sv.status_report(w.home)["runner"]["state"] == "PAUSED"))
+        st = sv.status_report(w.home)
+        self.assertIsNone(st["session"])
+        self.assertEqual((st["last_result"]["action"], st["last_result"]["state"], st["last_result"]["after"]),
+                         ("EXECUTE E-009", "COMPLETED", "REVIEW E-009"))
+        self.assertEqual((st["next"]["action"], st["next"]["do"]), ("REVIEW E-009", "paused"))
+        lines = []
+        sv.print_report(st, out=lines.append)
+        text = "\n".join(lines)
+        for needle in ("runner      : PAUSED", "outcome     : O2", "experiment  : E-009", "last result : EXECUTE",
+                       "next action : REVIEW E-009 → paused"):
+            self.assertIn(needle, text)
+        sv.request(w.home, "stopped", by="test")
+        t.join(10)
+        self.assertEqual(sv.status_report(w.home)["runner"]["state"], "STOPPED")
+
+    def test_signal_stops_the_run(self):
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        s = w.sup()
+        t, box = background(s)
+        self.assertTrue(wait_for(lambda: self.live(w)))
+        s._on_signal(signal.SIGTERM, None)       # what the SIGTERM/SIGINT/SIGHUP handler does
+        t.join(10)
+        self.assertEqual((box["rep"]["stopped"], w.records()[0]["state"]), ("signal SIGTERM", "INTERRUPTED"))
+
+    def test_cli_controls_without_a_runner(self):
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        import contextlib, io
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(sv.main(["--home", w.home, "pause"]), 1)
+            self.assertEqual(sv.main(["--home", w.home, "resume"]), 1)
+            a = w.sup()
+            r = a.launch(sv.decide(a.observe(), [], time.time(), a.cfg), a.observe())
+            w.orphan(a)
+            self.assertEqual(sv.main(["--home", w.home, "stop", "--wait", "1"]), 0)
+        self.assertEqual(w.records()[0]["state"], "INTERRUPTED")
+        self.assertIsNone(sv.ps_pid(r["session_id"]))
+        self.assertEqual(sv.read_control(w.home)["desired"], "stopped")
+
+    def test_status_shows_ci_wait_and_blockers(self):
+        w = World(self, "ci")
+        w.sup().run(once=True)
+        st = sv.status_report(w.home)
+        self.assertEqual((st["waiting"]["on"], st["next"]["do"]), ("CI", "wait"))
+        w = World(self, "human")
+        w.sup().run(once=True)
+        st = sv.status_report(w.home)
+        self.assertTrue(any("gh token expired" in b for b in st["blockers"]))
+        self.assertTrue(any(b.startswith("hold human_required") for b in st["blockers"]))
 
 
 def _pid_alive(pid):
