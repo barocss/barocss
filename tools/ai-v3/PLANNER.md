@@ -23,6 +23,8 @@ capabilities solve it, is it BaroCSS's responsibility, is there a smaller change
 Compute observations → IGNORE | DISCUSSION | ISSUE | BLOCKER. Review feedback is evidence, not an order
 to add architecture. Risk: low → no separate review; medium → independent review usually; high → review
 required (do not mark high-risk Issues `v3:ready` until review is wired into the Supervisor).
+Parity fix Issues: rank by the corpus coverage test (tests/compat/parity-corpus.test.ts, #188), include it
+in the verify block, and require removing the fixed KNOWN_FAILURES entries plus quoting the new number.
 If NOW/NEXT are healthy and nothing meaningful changed, do not invent work.
 
 Finish with a concise state: NOW · NEXT · LATER · BLOCKED · NEW/UPDATED ISSUES · DISCUSSIONS TO WATCH ·
