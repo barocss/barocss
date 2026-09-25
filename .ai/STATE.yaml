@@ -1,12 +1,12 @@
 # Durable project state. STRATEGY-owned; EXECUTION never edits this file.
 # Keep < ~150 lines. Git history holds everything older.
-updated: 2026-09-25   # D19: reviewed E-010 PARTIAL (F1 ring + F3 border land; F2 translate dropped)
+updated: 2026-09-25   # D20: merged E-010 PR #141 (human-approved); contracted E-011 (option B report experiment)
 
 now:                       # dashboard view; mode comes from contract status
   active_outcome: O2
-  experiment: "E-010 (evaluated, PARTIAL): parity-lane batch. F1 ring box-shadow + F3 preflight border reach exact Tailwind-4.1.13 per-token L2 parity (K12); F2 single-axis translate dropped (value-formula gap, not a composition default) and re-scoped as a parity candidate. PR #141 accepted to merge (merged: true) — held on the human-approval gate: awaiting the `human-approved` label before `gh pr merge` runs."
-  last_result: "E-010 reviewed PARTIAL. First product code accepted for O2 (ring + border), pending the human-approved label. §2B (next contract) held until that merge lands, per the human-approval directive."
-  next: "MERGE #141 once a human adds the `human-approved` label (mechanical). Then §2B: the question-lane option-B report experiment is ordered next (human directive), then re-scope F2 as a value-formula fix."
+  experiment: "E-011 (ready): QUESTION LANE, option B first experiment. Does a per-class BaroCSS resolution report (built from existing has()/getCss()) shown to the agent right after it generates cut first-try silent misses below E-007's baseline (7 of 8 shipped unnamed under a done claim), and does it beat a browser computed-style control (criterion 5: is the info BaroCSS-unique)? 3 arms, E-007's tasks/actor/prompt/site/frozen classifier+grader, all pinned to develop bf979c6 (pre-E-008/E-010, so the K10 misses still exist). No product code. L3."
+  last_result: "E-010 merged (PR #141, human-approved) -> develop 5bf258b: first product code for O2 (F1 ring + F3 preflight border at exact Tailwind-4.1.13 L2 parity, K12). F2 single-axis translate dropped as a value-formula parity candidate (queued)."
+  next: "EXECUTE E-011 (option B report experiment). Ordered next by the human before any further parity batch. Then per the delegated order: option A (json-render className specs), then the next parity batch (starting with F2 translate + ranking families by v0/shadcn output, Q6)."
   blockers: []
 
 outcomes:
@@ -189,6 +189,30 @@ decisions:                 # older entries compressed; full text in git log -p -
       the "merge only if PROVEN" rule applies to the landed part, not the whole batch. Product-code merges still wait
       for the human-approved label. F2's miss has a second, independent cause (wrong value formula), so it is a
       separate parity fix, not a scope failure of this batch.
+
+  - id: D20
+    date: 2026-09-25
+    decision: >
+      Landed the E-010 merge already decided in D19: PR #141 carried the human-approved label, CI green, so ran
+      gh pr merge --merge (after gh pr update-branch, since develop's branch protection is strict) → develop 5bf258b.
+      First product code for O2 is in (F1 ring + F3 preflight border, K12). Then contracted the next question (§2B):
+      E-011, the QUESTION-LANE option B "design guardrail" first experiment, which the human ordered to run as soon as
+      E-010 is evaluated and before any further parity batch. E-011 shows the agent, right after it generates and
+      before it claims done, a per-class BaroCSS resolution report built ONLY from the existing runtime has()/getCss()
+      (unresolved / empty-rule / undefined-var), and measures whether first-try silent misses shipped under a "done"
+      claim fall below E-007's baseline (arm 0) and below a browser computed-style control (arm 2). 3 arms, E-007's
+      tasks/actor/prompt/site/frozen classifier+grader, all pinned to develop bf979c6 (E-007's world, pre-E-008/E-010,
+      so the K10 misses still exist). No product code (product_code: false); L3; the reports are evidence scripts.
+    why: >
+      Direct application of the human directive "run direction-proposal option B's first experiment ... Order: contract
+      it as soon as the parity-lane batch E-010 is evaluated, before any further parity batch," and the delegated order
+      B -> A -> next parity batch. The experiment targets criterion 5 (is class->rule resolution BaroCSS-unique, or
+      does browser computed style suffice — the arm-1-vs-arm-2 control), the core open question for whether BaroCSS
+      owns anything in the generation loop; K5 (strong actor self-verifies MODIFY tasks from computed style) is the
+      reason it may come back negative, which is itself progress. Pinned pre-fix so the fixes shipped in E-010 do not
+      erase the misses under study. Per the coverage directive, E-011's setup covers only the shared core of both
+      target flows (free-form classes delivered at runtime) and its result claims neither flow end to end; O3 stays a
+      separate candidate. F2 translate remains a queued value-formula parity candidate for the batch after A.
 
 open_items:                # for STRATEGY, not EXECUTION
   - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."
