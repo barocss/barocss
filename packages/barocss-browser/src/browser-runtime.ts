@@ -76,7 +76,7 @@ export class BrowserRuntime {
       const preflightCSS = this.context.getPreflightCSS(level);
       // #208: preflight joins the `base` layer from the first <style> in
       // <head>, which also fixes the layer order. Unlayered author CSS and
-      // BaroCSS utilities (`utilities` layer) beat it, and an app's own
+      // BaroCSS utilities (unlayered) beat it, and an app's own
       // `@layer base` rules come later within `base`, so they win too.
       this.stylePartitionManager.updateRuleContent(
         "preflight",
