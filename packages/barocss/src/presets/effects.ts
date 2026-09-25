@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRule, decl } from "../core/ast";
+import { atRule, atRoot, decl, property } from "../core/ast";
 import { parseColor, parseNumber } from "../core/utils";
 
 // --- Box Shadow ---
@@ -221,6 +221,16 @@ functionalUtility({
 // --- Ring ( multi-variable) ---
 //  ring-width documentation
 
+// Base values for the box-shadow composition layers, registered like Tailwind v4's @property layer so that a lone
+// ring-*/inset-ring-* composes a valid box-shadow when the other layers (inset/inset-ring/plain shadow) are unset.
+// Without these @property initial values the whole box-shadow declaration is invalid and the ring never renders.
+const ringShadowProperties = () =>
+  atRoot([
+    property("--baro-shadow", "0 0 #0000"),
+    property("--baro-inset-shadow", "0 0 #0000"),
+    property("--baro-inset-ring-shadow", "0 0 #0000"),
+  ]);
+
 // Static ring width utilities
 [
   ["ring", "1px"],
@@ -231,10 +241,11 @@ functionalUtility({
   ["ring-8", "8px"],
 ].forEach(([name, px]) => {
   staticUtility(name as string, [
+    ringShadowProperties,
     ["--baro-ring-inset", ""],
     ["--baro-ring-offset-width", "0px"],
     ["--baro-ring-offset-color", "#fff"],
-    ["--baro-ring-color", "rgb(59 130 246 / 0.5)"], // default blue-500/50
+    // No hardcoded ring color: Tailwind v4's default ring color is currentColor (via the var() fallback below).
     [
       "--baro-ring-shadow",
       `var(--baro-ring-inset) 0 0 0 calc(${px} + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)`,
@@ -245,6 +256,25 @@ functionalUtility({
       "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
     ],
   ]);
+});
+
+// Ring offset width utilities (ring-offset-<n>). Matches Tailwind's .ring-offset-N: sets the offset width and the
+// offset shadow; it renders a visible offset ring only when combined with a ring-* utility, exactly like Tailwind.
+[
+  ["ring-offset-0", "0px"],
+  ["ring-offset-1", "1px"],
+  ["ring-offset-2", "2px"],
+  ["ring-offset-4", "4px"],
+  ["ring-offset-8", "8px"],
+].forEach(([name, px]) => {
+  staticUtility(name as string, [
+    ["--baro-ring-offset-width", px as string],
+    ["--baro-ring-offset-color", "#fff"],
+    [
+      "--baro-ring-offset-shadow",
+      `var(--baro-ring-inset,) 0 0 0 var(--baro-ring-offset-width) var(--baro-ring-offset-color)`,
+    ],
+  ], { category: 'effects' });
 });
 
 // Inset ring width utilities
