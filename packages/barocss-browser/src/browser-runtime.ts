@@ -11,6 +11,9 @@ export interface BrowserRuntimeOptions {
   maxRulesPerPartition?: number;
 }
 
+/** Tailwind 4 layer order, declared by BaroCSS's first <style> in <head>. */
+export const LAYER_ORDER = "@layer theme, base, components, utilities;";
+
 export class BrowserRuntime {
   private cache: Map<string, GenerateCssRulesResult> = new Map(); // class name -> generated CSS mapping
   private rootCache: Set<string> = new Set(); // class name -> generated CSS mapping
@@ -71,7 +74,15 @@ export class BrowserRuntime {
     const level = this.options.config.preflight ?? true;
     if (level) {
       const preflightCSS = this.context.getPreflightCSS(level);
-      this.stylePartitionManager.updateRuleContent("preflight", preflightCSS);
+      // #208: preflight joins the `base` layer from the first <style> in
+      // <head>, which also fixes the layer order. Unlayered author CSS and
+      // BaroCSS utilities (`utilities` layer) beat it, and an app's own
+      // `@layer base` rules come later within `base`, so they win too.
+      this.stylePartitionManager.updateRuleContent(
+        "preflight",
+        `${LAYER_ORDER}\n@layer base {\n${preflightCSS}\n}`,
+        true,
+      );
     }
   }
 

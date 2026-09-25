@@ -44,7 +44,7 @@ export class StylePartitionManager {
     this.createNewPartition();
   }
 
-  private createNewCategoryPartition(category: string) {
+  private createNewCategoryPartition(category: string, atDocumentStart = false) {
     const newPartition: StylePartition = {
       id: this.styleIdPrefix + `-${category}`,
       styles: [],
@@ -57,7 +57,14 @@ export class StylePartitionManager {
     newPartition.styleElement.setAttribute("data-category", category);
 
     // set insertion point
-    this.insertionPoint.appendChild(newPartition.styleElement);
+    const head = this.insertionPoint.ownerDocument?.head;
+    if (atDocumentStart && head) {
+      // Layered base styles (preflight) must be the first stylesheet so their
+      // cascade layer is declared before any app layer (e.g. Tailwind `base`).
+      head.insertBefore(newPartition.styleElement, head.firstChild);
+    } else {
+      this.insertionPoint.appendChild(newPartition.styleElement);
+    }
 
     this.categoryPartitions.set(category, newPartition);
 
@@ -127,6 +134,15 @@ export class StylePartitionManager {
     return escaped;
   }
 
+  /**
+   * #208: utilities live in the `utilities` cascade layer (Tailwind 4 order),
+   * so unlayered author CSS wins over them and they still beat preflight,
+   * which lives in the earlier `base` layer.
+   */
+  private layerRule(rule: string): string {
+    return `@layer utilities { ${this.escapeCssRule(rule)} }`;
+  }
+
   addRule(rule: string) {
     if (this.hasRule(rule)) {
       return false;
@@ -143,10 +159,10 @@ export class StylePartitionManager {
       // CSS 규칙 삽입
       const sheet = currentPartition.styleElement.sheet;
       if (sheet) {
-        sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
+        sheet.insertRule(this.layerRule(rule), sheet.cssRules.length);
       } else {
         // sheet가 없는 경우 textContent로 폴백
-        currentPartition.styleElement.textContent += rule + "\n";
+        currentPartition.styleElement.textContent += this.layerRule(rule) + "\n";
       }
 
       // 성공적으로 삽입된 경우에만 캐시 업데이트
@@ -177,9 +193,9 @@ export class StylePartitionManager {
     try {
       const sheet = categoryPartition.styleElement.sheet;
       if (sheet) {
-        sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
+        sheet.insertRule(this.layerRule(rule), sheet.cssRules.length);
       } else {
-        categoryPartition.styleElement.textContent += rule + "\n";
+        categoryPartition.styleElement.textContent += this.layerRule(rule) + "\n";
       }
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -268,12 +284,12 @@ export class StylePartitionManager {
   }
 
 
-  updateRuleContent(category: string, ruleContent: string) {
+  updateRuleContent(category: string, ruleContent: string, atDocumentStart = false) {
     const partition = this.getCategoryPartition(category);
     if (partition) {
       partition.styleElement.textContent = ruleContent;
     } else {
-      const newPartition = this.createNewCategoryPartition(category);
+      const newPartition = this.createNewCategoryPartition(category, atDocumentStart);
       // eslint-disable-next-line no-console
       console.log(`[StylePartitionManager] Created new partition for category: ${category}`);
       newPartition.styleElement.textContent = ruleContent;
