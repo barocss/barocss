@@ -18,12 +18,9 @@ import { corpus } from './corpus';
 // its fix lands (the test fails if a listed class starts passing, so the list can't go stale).
 
 const KNOWN_FAILURES: Record<string, string> = {
-  "focus:outline-none": "outline v4 semantics (#187)",
   "space-y-3": "equivalent: margin on following siblings (v3 selector)",
   "bg-gradient-to-br": "legacy gradient emits a bare & selector (#187)",
   "focus-visible:ring-[3px]": "arbitrary ring width emits box-shadow: 3px (#187)",
-  "outline-none": "outline v4 semantics (#187)",
-  "outline-hidden": "outline v4 semantics (#187)",
   "rounded-sm": "radius scale on v3 values",
   "select-none": "no -webkit-user-select",
   "sr-only": "clip instead of clip-path",
@@ -33,8 +30,6 @@ const KNOWN_FAILURES: Record<string, string> = {
   "after:absolute": "content missing",
   "after:opacity-0": "content missing",
   "after:transition-opacity": "::after/::before get no content (#187)",
-  "focus-visible:outline-1": "outline v4 semantics (#187)",
-  "focus:outline-hidden": "outline v4 semantics (#187)",
   "group-data-[orientation=horizontal]/tabs:after:bottom-[-5px]": "content missing",
   "group-data-[orientation=horizontal]/tabs:after:h-0.5": "content missing",
   "group-data-[orientation=horizontal]/tabs:after:inset-x-0": "content missing",

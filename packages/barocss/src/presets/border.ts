@@ -219,12 +219,19 @@ functionalUtility({
 // --- Outline Width ---
 //  outline-width documentation
 
+// Like border (and Tailwind v4), outline width utilities set outline-style through a registered var whose initial value
+// is solid, so outline-2/focus-visible:outline-1 render; outline-dashed/none/hidden set the var and win in either order.
+const outlineStyleProperty = () => atRoot([property("--baro-outline-style", "solid")]);
+const withOutlineStyle = (width: string) => [
+  outlineStyleProperty(),
+  decl("outline-style", "var(--baro-outline-style)"),
+  decl("outline-width", width),
+];
+
 // Static outline width utilities
-staticUtility("outline-0", [["outline-width", "0px"]], { category: 'borders' });
-staticUtility("outline-1", [["outline-width", "1px"]], { category: 'borders' });
-staticUtility("outline-2", [["outline-width", "2px"]], { category: 'borders' });
-staticUtility("outline-4", [["outline-width", "4px"]], { category: 'borders' });
-staticUtility("outline-8", [["outline-width", "8px"]], { category: 'borders' });
+[["outline-0", "0px"], ["outline-1", "1px"], ["outline-2", "2px"], ["outline-4", "4px"], ["outline-8", "8px"]].forEach(([name, width]) => {
+  staticUtility(name, [outlineStyleProperty, ["outline-style", "var(--baro-outline-style)"], ["outline-width", width]], { category: 'borders' });
+});
 
 // --- Outline Color ---
 //  outline-color documentation
@@ -239,11 +246,18 @@ staticUtility("outline-transparent", [["outline-color", "transparent"]], { categ
 //  outline-style documentation
 
 // Static outline style utilities
-staticUtility("outline-none", [["outline", "2px solid transparent"], ["outline-offset", "2px"]], { category: 'borders' });
-staticUtility("outline", [["outline-style", "solid"]], { category: 'borders' });
-staticUtility("outline-dashed", [["outline-style", "dashed"]], { category: 'borders' });
-staticUtility("outline-dotted", [["outline-style", "dotted"]], { category: 'borders' });
-staticUtility("outline-double", [["outline-style", "double"]], { category: 'borders' });
+// Tailwind v4: outline-none removes the outline; outline-hidden (v3's outline-none) hides it but keeps a transparent
+// outline in forced-colors mode for accessibility.
+staticUtility("outline-none", [["--baro-outline-style", "none"], ["outline-style", "none"]], { category: 'borders' });
+staticUtility("outline-hidden", [
+  ["--baro-outline-style", "none"],
+  ["outline-style", "none"],
+  atRule("media", "(forced-colors: active)", [decl("outline", "2px solid transparent"), decl("outline-offset", "2px")]),
+], { category: 'borders' });
+staticUtility("outline", [outlineStyleProperty, ["outline-style", "var(--baro-outline-style)"], ["outline-width", "1px"]], { category: 'borders' });
+["solid", "dashed", "dotted", "double"].forEach((style) => {
+  staticUtility(`outline-${style}`, [["--baro-outline-style", style], ["outline-style", style]], { category: 'borders' });
+});
 
 // --- Outline Offset ---
 //  outline-offset documentation
@@ -278,21 +292,31 @@ functionalUtility({
   themeKeys: ["colors", "borderWidth"],
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  supportsOpacity: true,
+  handle: (value, ctx, token, extra) => {
+
+    if (extra?.realThemeValue && extra.opacity) {
+      return [
+        atRule("supports", `(color:color-mix(in lab, red, red))`, [
+          decl("outline-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
+        ]),
+        decl("outline-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
+      ];
+    }
 
     if (parseColor(value)) {
       return [decl("outline-color", value)];
     }
 
     if (parseNumber(value)) {
-      return [decl("outline-width", `${value}px`)];
+      return withOutlineStyle(`${value}px`);
     }
 
     // Handle arbitrary values
     if (token.arbitrary) {
 
       if (parseLength(value)) {
-        return [decl("outline-width", value)];
+        return withOutlineStyle(value);
       }
 
       return [decl("outline-color", value)];
@@ -309,7 +333,7 @@ functionalUtility({
     }
 
     if (value.startsWith("length:")) {
-      return [decl("outline-width", `var(${value.replace("length:", "")})`)];
+      return withOutlineStyle(`var(${value.replace("length:", "")})`);
     }
 
     return [decl("outline-color", `var(${value})`)];
