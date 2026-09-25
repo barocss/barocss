@@ -8,7 +8,7 @@
 //   build    built CSS only
 //   twb      build + @tailwindcss/browser
 //   baro     build + BaroCSS.baroStart()
-//   baropre  build + baroStart() + PR #101's preloadJsonRenderClasses before mount
+//   baropre  build + baroStart() + the exported preloadJsonRenderClasses before mount
 // Writes scripts/json-render-probe/result.json (gitignored) and prints a summary.
 import http from 'node:http';
 import fs from 'node:fs';
