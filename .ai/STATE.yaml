@@ -4,9 +4,9 @@ updated: 2026-09-25
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O2
-  experiment: "E-007 (ready): real agent builds 3 new UI sections on the live site; how many Tailwind v4 classes BaroCSS silently drops (K4), caught or claimed done?"
-  last_result: "E-006 L3: 3/3 real agents added a theme colour on the real site's dev server, kept its config, no regression, claims agree (K9). O1 done."
-  next: "EXECUTION: run E-007 on branch ai/E-007-gen-parity"
+  experiment: "E-008 (ready): first product fix — close the ring box-shadow composition parity gap (K10), rerun G1/G2 to see the ring misses render."
+  last_result: "E-007 DISPROVEN (K10, L3): natural generation of 3 sections shipped 7/8 silent parity misses under a 'done' claim; the agent caught 1. Class->rule parity is a correctness gap for O2, not a cost item."
+  next: "EXECUTION: run E-008 on branch ai/E-008-ring-parity"
   blockers: []
 
 outcomes:
@@ -90,6 +90,20 @@ knowledge:
       caveat: >
         n=3, one strong model. 0/3 made the bare call, so drop-then-notice is unobserved. Dev server exposes repo
         source over /@fs; production has no route (K8). Evidence: .ai/evidence/E-006/SUMMARY.md, runs/.
+    - id: K10
+      level: L3
+      fact: >
+        E-007: same actor/prompt on apps/barocss-site's vite dev, natural generation of 3 new sections (G1 pricing,
+        G2 newsletter, G3 testimonials). First-try silent parity misses per section 5/1/2; the agent's own
+        verification caught 1 of 8 (only a property it happened to read); 7 shipped under a "done" claim naming
+        none, so all 3 claims disagree with the grader (FAIL). Families: ring box-shadow composition (undefined
+        --baro-shadow / --baro-inset-shadow / --baro-inset-ring-shadow; focus:ring-offset-2 has no rule),
+        single-axis translate (other-axis --baro-translate-* undefined), theme var name (--shadow-default,
+        --line-height-relaxed undefined). Also preflight sets no border-style:solid, so bare border/border-t are
+        invisible page-wide (3/3, outside K4's definition). For generation, class -> rule parity is a correctness gap.
+      caveat: >
+        n=1 per task, one strong model; remaining misses are state-only (focus:/hover:) or cosmetic. Contrasts K5,
+        where the same actor caught every no-op on modify tasks. Evidence: .ai/evidence/E-007/SUMMARY.md, runs/, audit.json.
   disproven: []
   working_assumptions:     # L0; plausible but untested, don't treat as proven
     - Natural-language reasoning doesn't belong inside BaroCSS.
@@ -132,6 +146,18 @@ decisions:                 # older entries compressed; full text in git log -p -
     why: >
       done_when met without new surface. Generation is where K4's parity gaps would bite first-try rendering;
       measuring how often they bite decides whether parity work matters or stays a non-item.
+  - id: D15
+    date: 2026-09-25
+    decision: >
+      Accepted E-007 DISPROVEN (K10), merged (evidence-only). For O2 generation, agents ship silent Tailwind-v4
+      parity misses under "done" (unlike K5's modify tasks), so class -> rule parity is now an evidence-backed
+      BAROCSS gap. E-008 is the project's first product_code experiment: fix the minimum family — ring box-shadow
+      composition — and rerun G1/G2 to confirm the ring misses now render (L2 vs Tailwind 4.1.13). Other observed
+      families (single-axis translate, theme var name, preflight border-style) are left for later, one per contract.
+    why: >
+      E-007's decision_it_informs: an unnamed shipped miss is evidence for a class -> rule gap; contract the minimum
+      fix for the observed family. Ring is the canonical Tailwind idiom agents reach for unprompted (2/3 runs), a
+      measured PARITY-MISS the frozen grader can score, with unambiguous BAROCSS ownership.
 
 open_items:                # for STRATEGY, not EXECUTION
   - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."

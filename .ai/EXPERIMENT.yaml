@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: ready
+status: evaluated
 
 id: E-007
 outcome: O2
@@ -100,17 +100,43 @@ stop_when:
   - The classifier or grader would have to change after an agent run → record it in side_notes, don't change it.
 
 result:
-  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
-  level: null            # L0-L3 actually achieved
-  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
-  learning: null         # 1-2 sentences
-  unknown: []            # what remains unanswered, or the blocker if status: blocked
-  next_question: null    # suggestion only; Strategy decides
-  pr: null               # PR URL opened by Execution (never merged by Execution)
-  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
-  side_notes: []         # adjacent discoveries, one line each, NOT pursued
+  verdict: DISPROVEN
+  level: L3
+  evidence:
+    - "Actor (claude-opus-4-8[1m], Playwright MCP only, fresh context) built G1-G3 on apps/barocss-site vite dev; env, prompt, classifier, grader and runner committed in f8f28d6 before any run. Rerun: PW_MCP_DIR=<@playwright/mcp 0.0.76 dir> node .ai/evidence/E-007/run.mjs G1|G2|G3 → .ai/evidence/E-007/runs/<task>.json"
+    - "Gating self-test passed before runs: site styled, 13/13 classifications (PARITY-MISS text-balance text-pretty aspect-video rounded-4xl text-shadow-sm; RESOLVED bg-blue-600 p-4 hover:bg-blue-700 md:grid-cols-3 aspect-[16/9] rounded-[2rem] text-[42px]; AGENT made-up), 9 grader controls + extractor. Rerun: node .ai/evidence/E-007/selftest.mjs → selftest.json"
+    - "First-try PARITY-MISS: G1 5 (focus:ring-2 focus:ring-offset-2 ring-1 -translate-x-1/2 shadow), G2 1 (focus:ring-2), G3 2 (hover:-translate-y-0.5 leading-relaxed). First-try RESOLVED 84/63/54; 0 AGENT tokens in class contexts. No miss was introduced after the first insert."
+    - "Detected 1 of 8: G1 ring-1, via computed boxShadow on the Pro card, removed at call 13. The other 7 remain in the final sections (G1 4, G2 1, G3 2). All 3 claims are 'done' and name none of them, so all 3 disagree with the grader (FAIL). Required parts pass in all 3 runs."
+    - "Properties never checked: G1 badge translate (screenshot taken, not remarked), badge/CTA box-shadow, focus never triggered; G2 no focus/boxShadow read; G3 lineHeight never read, nothing hovered. Misses left are state-only (focus:/hover:) or cosmetic (badge centring, small shadow, line-height)."
+    - "Families (audit effect check, no computed change on BaroCSS vs change on Tailwind 4.1.13): ring box-shadow composition (undefined --baro-shadow/--baro-inset-shadow/--baro-inset-ring-shadow; focus:ring-offset-2 has no rule), single-axis translate (other-axis --baro-translate-* undefined), theme var names (--shadow-default, --line-height-relaxed undefined). Rerun: node .ai/evidence/E-007/audit.mjs → audit.json (post-hoc; grading unchanged)"
+    - "Outside the contract's BC definition: bare border/border-2/border-t have no effect (preflight never sets border-style: solid; the site's own header border-b computes none). G1 detected it (computed borderTopStyle) and added border-solid to its cards; the G2 and G3 sections keep invisible borders, unmentioned (audit.json → preflight, effects.border)."
+    - "Per-run table and families: .ai/evidence/E-007/SUMMARY.md. Turns/cost G1 20/$0.65, G2 10/$0.34, G3 10/$0.44."
+  learning: >
+    A capable agent's natural first-try markup hits 1-5 silent parity misses per section. Its own verification catches
+    only the ones that break a property it happens to read (1 of 8). State-variant and cosmetic misses ship under a
+    "done" claim in every run, so for natural generation, class → rule parity is a correctness gap rather than a cost item.
+  unknown:
+    - "Whether a weaker model (U1) hits more or different families, and whether any agent would test focus:/hover: states unprompted."
+    - "Whether a fix of one family (ring or translate) changes the claims' agreement, or just moves the unnamed miss to the next family."
+    - "The preflight border-style gap is not a PARITY-MISS under this contract's BC definition; its frequency is recorded but not graded."
+  next_question: "Contract the minimum BAROCSS fix for the most frequent observed family: ring box-shadow composition (3 tokens, 2/3 runs), or preflight border-style (3/3 runs, visible, outside the K4 definition). Then rerun G1-G3 unchanged to see whether claims agree."
+  pr: https://github.com/barocss/barocss/pull/119
+  checks: "python3 .ai/check.py --role execution --base origin/develop: OK; no product code changed, so pnpm check was not needed"
+  side_notes:
+    - "Extractor's 'class string' rule swept prose words from HTML template literals into first-try/written AGENT counts (33/19/8). Class-context-only count gives 0 AGENT and the same R/MISS counts (audit.json → firstTryClassContexts). Not changed."
+    - "Grader reasons 'baseline style attribute changed'/'style attribute on new element' are artefacts: Playwright's screenshot sets style=\"\" on <input> (audit.json → emptyStyle). No run has a style/CSS write (grader.writes: []). Pass/fail unchanged."
+    - "G1 removed a working md:scale-[1.03]: it read transform, while BaroCSS and Tailwind v4 set the scale property."
+    - "G1 parity_misses shadow.namedInFinalText=true is a substring match on shadow-xl/shadow-sm; the bare token is not named."
+    - "G3's first attempt crashed (unhandled ECONNRESET in the runner) before the actor produced output; retried once unchanged, as an environment failure."
+    - "focus:ring-offset-2 has no BaroCSS rule at all (not only undefined vars)."
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: DISPROVEN
+  merged: true
+  reason: >
+    proves_no met in all 3 runs (not just one): each final section keeps a PARITY-MISS the "done" claim
+    does not name (G1 -translate-x-1/2, shadow, focus:ring-2/offset; G2 focus:ring-2; G3
+    hover:-translate-y-0.5, leading-relaxed), grader FAILs each on a real "PARITY-MISS in section" reason
+    independent of the disclosed style-attribute artefacts, and tool calls show the property went unread.
+    L3 (real claude-opus-4-8 actor, live site, Playwright-only, committed classifier/grader self-tested
+    pre-run). check.py --role execution OK, no product code, CI green. Evidence-only PR -> merged.
