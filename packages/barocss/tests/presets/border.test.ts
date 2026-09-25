@@ -27,7 +27,7 @@ describe("border utilities", () => {
         },
       ]);
       expect(parseClassToAst("rounded", ctx)).toMatchObject([
-        { type: "decl", prop: "border-radius", value: "var(--radius)" },
+        { type: "decl", prop: "border-radius", value: "0.25rem" },
       ]);
       expect(parseClassToAst("rounded-md", ctx)).toMatchObject([
         {

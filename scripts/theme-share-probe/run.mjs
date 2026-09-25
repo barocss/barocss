@@ -32,7 +32,7 @@ const CASES = [
   ['border-border', 'border-top-color'], ['border-input', 'border-top-color'], ['border-destructive', 'border-top-color'],
   ['ring-2 ring-ring', 'ring'], ['ring-2 ring-ring/50', 'ring'], ['outline-ring/50', 'outline-color'],
   ['rounded-sm', 'border-top-left-radius'], ['rounded-md', 'border-top-left-radius'], ['rounded-lg', 'border-top-left-radius'],
-  ['rounded-xl', 'border-top-left-radius'],
+  ['rounded-xl', 'border-top-left-radius'], ['rounded', 'border-top-left-radius'],
 ];
 const CLASSES = CASES.flatMap((c) => c[0].split(' '));
 
