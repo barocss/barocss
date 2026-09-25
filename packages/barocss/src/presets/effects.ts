@@ -10,7 +10,7 @@ import { parseColor, parseNumber } from "../core/utils";
   ["shadow-2xs", "var(--shadow-2xs)"],
   ["shadow-xs", "var(--shadow-xs)"],
   ["shadow-sm", "var(--shadow-sm)"],
-  ["shadow", "var(--shadow-default)"],
+  ["shadow", "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"],
   ["shadow-md", "var(--shadow-md)"],
   ["shadow-lg", "var(--shadow-lg)"],
   ["shadow-xl", "var(--shadow-xl)"],

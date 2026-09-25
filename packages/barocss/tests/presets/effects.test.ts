@@ -66,9 +66,9 @@ describe("effects.ts (box-shadow utilities)", () => {
       { type: "decl", prop: "box-shadow", value: "var(--shadow-md)" },
     ]);
   });
-  it("shadow → box-shadow: var(--shadow-default)", () => {
+  it("shadow → box-shadow: Tailwind 4 default", () => {
     expect(parseClassToAst("shadow", ctx)).toEqual([
-      { type: "decl", prop: "box-shadow", value: "var(--shadow-default)" },
+      { type: "decl", prop: "box-shadow", value: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)" },
     ]);
   });
   it("shadow-none → box-shadow: 0 0 #0000", () => {
