@@ -80,9 +80,14 @@ branch `ai/strategy-E-00N`:
    for independent questions that each pass the rules below, and declare what
    a scheduler can't infer: `depends_on` (ids that must be judged first),
    `locks` (shared runtime resources, e.g. `port:5173`), `observes` (paths
-   whose behavior the item measures), optional integer `priority`. Writing no
-   contract is valid when no open question is worth one: say why in
-   `STATE.now`; idle is a state, not a failure. Update `STATE.now`.
+   whose behavior the item measures), optional integer `priority`, and
+   `lane: parity` for a parity-lane batch (anything else is the question
+   lane). Writing no contract is valid when no open question is worth one:
+   say why in `STATE.now`; idle is a state, not a failure. Update `STATE.now`,
+   including `STATE.now.lanes` (`parity` / `question` → `backlog` or `idle`):
+   `backlog` while that lane has known work not yet contracted. When the
+   supervisor runs lanes in parallel, it wakes a Planner for an empty lane
+   only if it is marked `backlog`.
 3. Integrate it yourself. Run `python3 .ai/check.py --role strategy --base
    origin/develop`, commit `ai(strategy): …`, push, open a PR, and merge it
    once required checks pass. If the check fails or CI is red, fix it or
@@ -181,8 +186,12 @@ reality check → **existing-capability test** → **ownership check** →
 - `develop` requires a PR and a green "Test and Build" check, with no human
   approval needed. CI runs `python3 .ai/check.py` for structural validity.
 - Who merges: Strategy may merge its own `.ai/`-only PRs once `check.py
-  --role strategy` passes and CI is green. Experiment PRs are merged only by a
-  later Strategy session after the §2A review. Execution never merges.
+  --role strategy` passes and CI is green. Experiment PRs are merged only after
+  a §2A review recorded `merged: true` (plus any human approval
+  `STATE.human_directives` requires). A merge already decided this way may be
+  carried out mechanically by the supervisor once required checks pass, with
+  no session; it refuses a Planner PR with a file outside `.ai/`. Execution
+  never merges.
 - Experiment probes and evidence artifacts live in `.ai/evidence/<exp-id>/`.
   Packages never import them. Every L2 artifact has its rerun command in
   `result.evidence`.

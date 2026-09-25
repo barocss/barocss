@@ -8,11 +8,16 @@ Each launch appends its argv to $SUP_FAKE_ARGV and pops one step from the JSON l
   child    leave a grandchild `sleep 60` behind, pid written to $SUP_FAKE_CHILD
   result   "success" (default) | "error" | null (no result event)
   exit     exit code (default 0)
+With $SUP_FAKE_ENV set, each launch also appends its cwd, $BARO_PORT_BASE and $BARO_SLOT there.
 """
 import json, os, subprocess, sys, time
 
 with open(os.environ["SUP_FAKE_ARGV"], "a") as fh:
     fh.write(json.dumps(sys.argv[1:]) + "\n")
+if os.environ.get("SUP_FAKE_ENV"):   # lanes: where and with which port range each session ran
+    with open(os.environ["SUP_FAKE_ENV"], "a") as fh:
+        fh.write(json.dumps({"cwd": os.getcwd(), "port": os.environ.get("BARO_PORT_BASE"),
+                             "slot": os.environ.get("BARO_SLOT")}) + "\n")
 plan_path = os.environ["SUP_FAKE_PLAN"]
 with open(plan_path) as fh:
     plan = json.load(fh)

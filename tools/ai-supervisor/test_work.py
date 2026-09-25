@@ -78,10 +78,10 @@ def own(eid, state=work.READY, **kw):   # future-style item with its own contrac
     return c(eid, state, file=f".ai/work/{eid}.yaml", **kw)
 
 
-def sched(items, concurrency=1, **view):
+def sched(items, concurrency=1, strategy_busy=False, **view):
     v = {"items": items, "plan_pr": None, "plan_branches": [], "blockers": [], "contradictions": []}
     v.update(view)
-    return work.schedule(v, concurrency=concurrency)
+    return work.schedule(v, concurrency=concurrency, strategy_busy=strategy_busy)
 
 
 def launched(r):
@@ -244,6 +244,8 @@ class CheckPy(unittest.TestCase):
         self.assertEqual(self.structure_errors(depends_on=["E-7"], locks=["port:5173"], observes=["a/"],
                                                priority=2), [])
         self.assertEqual(len(self.structure_errors(depends_on="E-7", locks=[1], priority=True)), 3)
+        self.assertEqual(self.structure_errors(lane="parity"), [])
+        self.assertEqual(len(self.structure_errors(lane="fast")), 1)
 
 
 # ---------------------------------------------------------------- slice 3: work store
@@ -413,6 +415,39 @@ class CheckPyWork(unittest.TestCase):
         self.write(".ai/EXPERIMENT.yaml", read(os.path.join(self.d, sup.EXP)) + "\n# edit\n")
         code, out = self.check("--role", "execution", "--base", "develop", "--work", "E-010")
         self.assertIn("outside contract scope: .ai/EXPERIMENT.yaml", out)
+
+
+# ---------------------------------------------------------------- lanes (concurrency > 1)
+
+class LanesSchedule(unittest.TestCase):
+    def test_lane_field(self):
+        self.assertEqual(own("W-1")["lane"], "question")
+        it = work.item({"id": "W-2", "status": "ready", "lane": "parity", "allowed": {"paths": ["a/"]}})
+        self.assertEqual(it["lane"], "parity")
+        self.assertEqual(work.item({"id": "W-3", "status": "ready", "lane": "weird"})["lane"], "question")
+
+    def test_empty_lane_wakes_the_planner_only_with_a_recorded_backlog(self):
+        items = [own("W-1", RUNNING)]                            # a question item runs, the parity lane is empty
+        r = sched(items, 2)
+        self.assertEqual((r["planner"]["state"], launched(r)), ("idle", []))   # a free slot alone never wakes it
+        r = sched(items, 2, lane_backlog=["parity"])
+        self.assertEqual((r["planner"]["state"], launched(r)), ("needed", ["PLAN"]))
+        self.assertIn("lane parity", r["planner"]["reason"])
+        self.assertEqual(sched(items, 1, lane_backlog=["parity"])["planner"]["state"], "idle")   # serial: V1
+
+    def test_one_strategy_session_at_a_time(self):
+        pr = {"state": "OPEN", "ci": "success", "mergeable": "MERGEABLE"}
+        items = [own("W-1", JUDGE, pr=dict(pr, number=1)), own("W-2", JUDGE, pr=dict(pr, number=2), paths=["b/"])]
+        self.assertEqual(launched(sched(items, 3)), ["REVIEW W-1"])
+        self.assertEqual(launched(sched(items, 3, strategy_busy=True)), [])
+        r = sched([own("W-1", RUNNING)], 2, lane_backlog=["parity"], strategy_busy=True)
+        self.assertEqual((r["planner"]["state"], launched(r)), ("waiting", []))
+
+    def test_merge_takes_no_slot(self):
+        pr = {"state": "OPEN", "ci": "success", "mergeable": "MERGEABLE", "number": 1}
+        r = sched([own("W-1", MERGING, pr=pr), own("W-2", paths=["b/"])], 1)
+        self.assertEqual(launched(r), ["MERGE #1", "EXECUTE W-2"])
+        self.assertEqual(r["next_action"], "MERGE #1")
 
 
 if __name__ == "__main__":

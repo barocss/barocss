@@ -36,6 +36,9 @@ INVALID = "INVALID"        # a state the protocol can't reach (closed PR before 
 OPEN = {READY, RUNNING, CI, JUDGE, MERGING, INVALID}   # not landed; V1 plans only when none is open
 ACTIVE = {RUNNING, CI, JUDGE, MERGING}                 # its branch holds write scope and locks
 MODE = {"EXECUTE": "COMPUTE", "REVIEW": "JUDGE", "PLAN": "PLAN", "MERGE": "MERGE"}
+# Lanes (STATE.human_directives 2026-09-25): known-answer parity fixes vs open questions. A contract says
+# `lane: parity`; anything else is the question lane. At concurrency > 1 each lane can have work in flight.
+LANES = ("parity", "question")
 
 
 # ---------------------------------------------------------------- items
@@ -80,10 +83,11 @@ def item(contract, branch=None, prs=(), file=sup.EXP):
     eid = str(contract.get("id") or "")
     paths = [p.replace("<id>", eid) for p in _list((contract.get("allowed") or {}).get("paths"))]
     prio = contract.get("priority")
+    lane = contract.get("lane") if contract.get("lane") in LANES else "question"
     return {
         "id": eid, "outcome": contract.get("outcome"), "branch": contract.get("branch"),
         "state": state, "status": status, "pr": pr,
-        "priority": prio if isinstance(prio, int) and not isinstance(prio, bool) else 0,
+        "priority": prio if isinstance(prio, int) and not isinstance(prio, bool) else 0, "lane": lane,
         "depends_on": _list(contract.get("depends_on")),
         "locks": sorted(set(_list(contract.get("locks")))),
         "observes": sorted(set(_list(contract.get("observes")))),
@@ -105,7 +109,9 @@ def from_snapshot(snap):
         b = snap["branches"].get((c or {}).get("branch"))
         items.append(item(c, {"exp": (b.get("files") or {}).get(path), "time": b.get("time")} if b else None,
                           [p for p in snap["prs"] if p["head"] == (c or {}).get("branch")], file=path))
+    lanes = ((snap["develop"].get("state") or {}).get("now") or {}).get("lanes") or {}
     return {"items": [i for i in items if i], "store": len(store), "plan_pr": f.plan_pr,
+            "lane_backlog": [ln for ln in LANES if isinstance(lanes, dict) and lanes.get(ln) == "backlog"],
             "plan_branches": list(f.plan_branches), "blockers": list(f.blockers),
             "contradictions": list(f.contradictions)}
 
@@ -163,10 +169,12 @@ def _cycles(items):
 
 # ---------------------------------------------------------------- schedule (pure)
 
-def schedule(view, concurrency=1, sessions=None):
+def schedule(view, concurrency=1, sessions=None, strategy_busy=False):
     """Pure: work view → which items run, wait or block, and the semantic computations due now.
 
     concurrency: max sessions at once. sessions: sessions believed alive (default: RUNNING items).
+    strategy_busy: a REVIEW or PLAN session is alive. Strategy sessions write STATE.yaml, so at most one runs
+    at a time; only COMPUTE parallelizes. A MERGE is mechanical (the supervisor, no session) and takes no slot.
     next_action is the serial choice in Phase 1's vocabulary, so Phase 2 can consume it unchanged.
     """
     items = sorted(view["items"], key=lambda i: (-i["priority"], i["id"]))
@@ -233,25 +241,34 @@ def schedule(view, concurrency=1, sessions=None):
     # Merges free write scopes, judges unblock dependents, then new compute. Each launch is one session.
     candidates.sort(key=lambda c: ("MERGE", "REVIEW", "EXECUTE").index(c[0].split()[0]))
     picked = []
+    strategy = strategy_busy
     for action, it in candidates:
-        if action.startswith("EXECUTE"):
+        word = action.split()[0]
+        if word == "EXECUTE":
             clash = [f"{o['id']}: {r}" for o in active + picked for r in conflicts(it, o)]
             if clash:
                 put(it, "waiting", "conflict with " + clash[0])
                 continue
         if integrating:
             reason = "planner output landing"
+        elif word == "MERGE":
+            reason = None
         elif free <= 0:
             reason = f"no free slot (concurrency {concurrency})"
+        elif word == "REVIEW" and strategy:
+            reason = "one Strategy session at a time"
         else:
             reason = None
-        if action.startswith("EXECUTE"):
+        if word == "EXECUTE":
             put(it, "waiting" if reason else "ready", reason)
         if reason:
             continue
         due(action, it)
-        free -= 1
-        if action.startswith("EXECUTE"):
+        if word != "MERGE":
+            free -= 1
+        if word == "REVIEW":
+            strategy = True
+        if word == "EXECUTE":
             picked.append(it)
 
     # Planner wakes on strategic state only: a judged result to record, a DAG only it can fix (unknown
@@ -271,8 +288,16 @@ def schedule(view, concurrency=1, sessions=None):
         holds.append("HUMAN_REQUIRED")
     elif not open_work:
         planner = {"state": "needed", "reason": "no open work"}
+    elif concurrency > 1 and [ln for ln in view.get("lane_backlog") or ()
+                              if not any(i["lane"] == ln for i in open_work)]:
+        # Parallel lanes: wake the Planner for a lane that has nothing open AND that the Planner recorded as
+        # having uncontracted work (STATE.now.lanes: backlog). A free slot alone never wakes it.
+        empty = [ln for ln in view["lane_backlog"] if not any(i["lane"] == ln for i in open_work)]
+        planner = {"state": "needed", "reason": f"lane {empty[0]} has backlog and no open work"}
     else:
         planner = {"state": "idle", "reason": None}
+    if planner["state"] == "needed" and strategy:
+        planner = dict(planner, state="waiting", reason=planner["reason"] + "; one Strategy session at a time")
     if planner["state"] == "needed" and free > 0:
         due("PLAN")
         free -= 1
@@ -289,7 +314,7 @@ def schedule(view, concurrency=1, sessions=None):
         "schema": 1, "concurrency": concurrency, "free_slots": free,
         "items": [{"id": i["id"], "outcome": i["outcome"], "state": i["state"], "status": i["status"],
                    "branch": i["branch"], "pr": i["pr"]["number"] if i["pr"] else None,
-                   "priority": i["priority"], "depends_on": i["depends_on"], "locks": i["locks"],
+                   "priority": i["priority"], "lane": i["lane"], "depends_on": i["depends_on"], "locks": i["locks"],
                    "observes": i["observes"], "writes": i["writes"], **rows[i["id"]]} for i in items],
         "buckets": buckets, "planner": planner,
         "launch": [] if view.get("contradictions") or integrating else launch,

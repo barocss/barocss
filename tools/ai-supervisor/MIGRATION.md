@@ -84,6 +84,27 @@ None of it has a consumer until slice 2 changes who reads the contract.
   scheduler alone decides. Items interleave in one serial lane: while one waits for CI or review, the next
   independent contract can run. The model already schedules concurrency 2; the supervisor stays at 1.
 
+## Slice 5: lanes in parallel, mechanical merge
+
+The E-010 cycle took about 70 minutes for two fixes, and 20 of those were implementation. A 13-minute, $3.06 Opus
+session was spent on a merge. Everything was serial, so a known-answer parity batch waited for a question-lane
+experiment and vice versa.
+
+- **Mechanical merge.** `MERGE #n` is no longer a session. The supervisor runs `gh pr merge <n> --merge
+  --match-head-commit <sha>`. #127's `human-approved` gate still comes first. A Planner PR is merged only if every
+  file is under `.ai/`, else `REFUSED` → hold `merge_refused`. A failed merge retries under the same budget, and
+  pause or stop wins over it. Taken from the closed slice 4 branch without its Judge/Planner split or IDLE marker.
+- **Lanes.** `start --concurrency N` (default 1 = the serial loop, unchanged, replay-equal).
+  - At N > 1, `_loop_lanes` takes the serial decision plus what `work.schedule(concurrency=N)` allows:
+    - COMPUTE only parallelizes, with at most one Strategy session (REVIEW/PLAN write STATE.yaml);
+    - merges take no slot;
+    - overlapping writes or a shared `locks` entry never run together.
+  - Each slot has its own clone and port range (`$BARO_PORT_BASE`, named in the instruction).
+  - Contracts may say `lane: parity`. The Planner records `STATE.now.lanes` (`backlog` / `idle`), and the
+    supervisor wakes a Planner for an empty lane only when it is marked `backlog`, never for a free slot alone.
+
+Not yet: the Judge/Planner split, the IDLE marker, and more than one Strategy session at a time.
+
 ## Success criteria
 
 Slice 1 (met):
@@ -101,6 +122,15 @@ Slice 3 (met): replay and the 7,200-state grid still equal V1 (empty store); sto
 READY → RUNNING → CI → JUDGE → MERGING → DONE lifecycle in the scheduler; dependencies across store files,
 invariants, the relaxed gate and addressed launches are tested; `check.py` is tested against a throwaway git repo
 (structure errors, `--work` freeze and scope); live dry-run on develop still gives `EXECUTE E-008`.
+
+Slice 5 (met): 155 tests pass, including:
+- two independent items run as two real processes, in different clones with ports 5200/5300;
+- a shared lock runs one; stop interrupts both;
+- the schedule wakes a Planner for an empty lane only with a recorded backlog;
+- one Strategy session at a time; a merge takes no slot;
+- a decided merge runs `gh` and launches no session, held by the approval gate and blocked by pause.
+
+At concurrency 1 the decision is the serial one, and the replay is unchanged (68/0).
 
 Migration overall: every step replay-equal to V1 at concurrency 1 before it takes a decision; a step is
 reverted by deleting its code path, and durable state stays readable by the V1 protocol.

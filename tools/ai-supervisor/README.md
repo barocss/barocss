@@ -132,6 +132,11 @@ python3 tools/ai-supervisor/supervise.py release 'KEY'    # re-arm a key held af
   Evidence-only PRs merge as in V1. Sessions push with the user's GitHub account, and GitHub doesn't let
   an author approve their own PR, so the label is the approval for now. With a separate bot account, an
   approving review would do.
+- **Lanes** (`start --concurrency 2`). Several sessions at once, one per slot: slot n works in its own clone
+  (`$AI_HOME/workspace`, `workspace-1`, …) and gets ports `5200 + 100n … +99` (`$BARO_PORT_BASE`, also named in
+  its instruction). Only COMPUTE parallelizes; at most one Strategy session (REVIEW/PLAN) runs at a time, and
+  items with overlapping writes or a shared `locks` entry never run together. A Planner is woken for an empty
+  lane only when `STATE.now.lanes` marks it `backlog`. `--concurrency 1` (default) is the serial loop, unchanged.
 - Control goes through `$AI_HOME/control.json` (what the user wants), and the runner reports in
   `runner.json` (what it is doing). Both live outside git.
 
@@ -152,7 +157,8 @@ it while the work store is empty, and a disagreement holds as `work_model_disagr
 
 | next action (Phase 1) | supervisor |
 |---|---|
-| `PLAN`, `EXECUTE`, `REVIEW`, `MERGE` | launch one fresh session. MERGE too: only Strategy merges (AGENTS.md §6). One Strategy session still reviews → merges → plans → stops; the supervisor doesn't split it. |
+| `PLAN`, `EXECUTE`, `REVIEW` | launch one fresh session. One Strategy session still reviews → merges → plans → stops; the supervisor doesn't split it. |
+| `MERGE` | no session: the supervisor runs `gh pr merge <n> --merge --match-head-commit <sha>` for a merge Strategy already decided (product code only after the `human-approved` gate; a Planner PR only if every file is under `.ai/`, else hold `merge_refused`). |
 | `WAIT_FOR_CI` | wait `--poll` s and re-observe. No session is kept alive for CI. |
 | `WAIT_EXECUTION`, `WAIT_PLAN` | if our last session failed and nothing was pushed since: resume (retry). If it exited cleanly: hold (`incomplete`). Otherwise someone else's session: wait; hold (`inflight_quiet`) after 180 min without a push. |
 | `BLOCKED`, `HUMAN_REQUIRED`, `IDLE` | hold (attention), don't guess. |

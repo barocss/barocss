@@ -68,6 +68,8 @@ def check_contract(exp, label="EXPERIMENT"):
                 err(f"{label}.{k} must be a list of strings")
         if "priority" in exp and (not isinstance(exp["priority"], int) or isinstance(exp["priority"], bool)):
             err(f"{label}.priority must be an integer")
+        if "lane" in exp and exp["lane"] not in ("parity", "question"):
+            err(f"{label}.lane must be parity or question")
     if status in {"done", "blocked", "evaluated"}:
         res = exp.get("result") or {}
         if res.get("verdict") not in VERDICTS:
@@ -96,6 +98,10 @@ def check_state(exp, state):
     active = [k for k, v in outcomes.items() if (v or {}).get("status") == "active"]
     if len(active) != 1:
         err(f"exactly one active outcome expected, found {active}")
+    lanes = now.get("lanes")
+    if lanes is not None and not (isinstance(lanes, dict) and set(lanes) <= {"parity", "question"}
+                                  and set(lanes.values()) <= {"backlog", "idle"}):
+        err("STATE.now.lanes must map parity/question to backlog or idle")
 
 
 def check_work(work, exp, state):

@@ -12,9 +12,10 @@ import contextlib, io, json, os, signal, subprocess, sys, tempfile, threading, t
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sup  # noqa: E402
 import supervise as sv  # noqa: E402
-from test_sup import snap  # noqa: E402
+from test_sup import B, snap  # noqa: E402
 
 FAKE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "fake_claude.py")
+FAKE_GH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "fake_gh.py")
 OLD = "2020-01-01T00:00:00+00:00"      # a push before any session in these tests ended
 FUTURE = "2099-01-01T00:00:00+00:00"   # a push after it (someone else is active)
 
@@ -24,15 +25,36 @@ def _product(s):
     return s
 
 
+def _lanes(*items, running=(), live_branch_time=OLD):
+    """Legacy slot evaluated, plus work-store items: (id, lane, paths, locks). `running` ids have a branch."""
+    s = snap("evaluated")
+    s["develop"]["work"] = {}
+    for eid, lane, paths, locks in items:
+        c = {"id": eid, "outcome": "O2", "branch": f"ai/{eid}-x", "status": "ready", "lane": lane,
+             "allowed": {"paths": list(paths)}, "locks": list(locks)}
+        path = f".ai/work/{eid}.yaml"
+        s["develop"]["work"][path] = c
+        if eid in running:
+            s["branches"][c["branch"]] = {"sha": "e" * 40, "time": live_branch_time, "ahead": True, "exp": None,
+                                          "files": {path: dict(c, status="running")}}
+    return s
+
+
 WORLDS = {
     "execute": lambda: snap("ready"),
+    "two_ready": lambda: _lanes(("E-020", "question", [".ai/evidence/E-020/"], []),
+                                ("E-021", "parity", ["packages/barocss/src/"], [])),
+    "two_ready_same_lock": lambda: _lanes(("E-020", "question", [".ai/evidence/E-020/"], ["port:5190"]),
+                                          ("E-021", "parity", ["packages/barocss/src/"], ["port:5190"])),
     "running": lambda: snap("ready", branch={"status": "running"}, branch_time=OLD),
     "running_ext": lambda: snap("ready", branch={"status": "running"}, branch_time=FUTURE),
     "ci": lambda: snap("ready", branch={"status": "done"}, prs=[{"ci": "pending"}]),
     "review": lambda: snap("ready", branch={"status": "done"}, prs=[{}]),
     "blocked_result": lambda: snap("ready", branch={"status": "blocked", "result": {"verdict": "INCONCLUSIVE"}},
                                    prs=[{}]),
-    "merge": lambda: snap("ready", branch={"status": "evaluated", "review": {"merged": True}}, prs=[{}]),
+    "merge": lambda: snap("ready", branch={"status": "evaluated", "review": {"merged": True}}, prs=[{"sha": "f" * 40}]),
+    "plan_merge": lambda: snap("evaluated", plan_branches=["ai/strategy-E-010"],
+                               prs=[{"head": "ai/strategy-E-010", "number": 7, "sha": "a" * 40}]),
     "merge_product": lambda: _product(snap("ready", branch={"status": "evaluated", "review": {"merged": True}},
                                            prs=[{}])),
     "merge_labeled": lambda: _product(snap("ready", branch={"status": "evaluated", "review": {"merged": True}},
@@ -76,10 +98,23 @@ C = sv.Config(backoff_s=100, max_attempts=3, poll_s=7, stale_min=180)
 
 class Decide(unittest.TestCase):
     def test_semantic_actions_launch_one_fresh_session(self):
-        for name, action in (("execute", "EXECUTE E-009"), ("review", "REVIEW E-009"), ("plan", "PLAN"),
-                             ("merge", "MERGE #5")):
+        for name, action in (("execute", "EXECUTE E-009"), ("review", "REVIEW E-009"), ("plan", "PLAN")):
             d = sv.decide(view(name), [], time.time(), C)
             self.assertEqual((d["do"], d["action"], d["attempt"]), ("launch", action, 1), name)
+
+    def test_decided_merges_are_mechanical(self):
+        # A decided merge (a review's merged: true, or a Planner's own .ai/ PR) is merged by the supervisor, not a session.
+        d = sv.decide(view("merge"), [], time.time(), C)
+        self.assertEqual((d["do"], d["action"], d["pr"]), ("merge", "MERGE #5",
+                                                          {"number": 5, "sha": "f" * 40, "head": B, "plan": False}))
+        self.assertEqual(sv.merge_command(C, d["pr"]), ["gh", "pr", "merge", "5", "--merge", "--match-head-commit", "f" * 40])
+        d = sv.decide(view("plan_merge"), [], time.time(), C)
+        self.assertEqual((d["do"], d["pr"]["number"], d["pr"]["plan"]), ("merge", 7, True))
+
+    def test_refused_merge_holds(self):
+        v = view("plan_merge")
+        d = sv.decide(v, [rec(v["key"], "REFUSED", reason="Planner PR changes files outside .ai/: x")], time.time(), C)
+        self.assertEqual((d["do"], d["kind"]), ("hold", "merge_refused"))
 
     def test_live_session_blocks_every_launch(self):
         live = [rec("EXECUTE E-009@dddd", "RUNNING", ended=None)]
@@ -165,9 +200,9 @@ class Decide(unittest.TestCase):
         self.assertIn("human-approved", d["reason"])
         for name in ("merge_labeled", "merge_approved"):   # label, or an approving review (a bot-authored PR)
             d = sv.decide(view(name), [], time.time(), C)
-            self.assertEqual((d["do"], d["action"]), ("launch", "MERGE #5"), name)
-        d = sv.decide(view("merge"), [], time.time(), C)       # evidence-only PR: V1 unchanged
-        self.assertEqual(d["do"], "launch")
+            self.assertEqual((d["do"], d["action"]), ("merge", "MERGE #5"), name)   # slice 4: mechanical
+        d = sv.decide(view("merge"), [], time.time(), C)       # evidence-only PR: no approval needed
+        self.assertEqual(d["do"], "merge")
         self.assertNotIn("product_code", view("review"))       # the gate only concerns MERGE
 
     def test_transition(self):
@@ -203,7 +238,8 @@ class WorkAuthority(unittest.TestCase):
             st = sup.derive(s)
             v = sv.view_of(s, st)
             self.assertEqual((v["next_action"], v["v1_next_action"]), (st["work"]["next_action"], st["next_action"]))
-            self.assertTrue(v["agrees_with_v1"], name)
+            # Worlds with work-store items have no V1 gate (None, slice 3); the rest must agree with V1.
+            self.assertTrue(v["agrees_with_v1"] is True or (v["store"] and v["agrees_with_v1"] is None), name)
         self.assertEqual(view("execute")["mode"], "COMPUTE")
         self.assertEqual(view("review")["mode"], "JUDGE")
         self.assertEqual(view("plan")["mode"], "PLAN")
@@ -525,18 +561,22 @@ class Notifications(unittest.TestCase):
         self.assertTrue(any(l.startswith("event       :") for l in lines))
 
     def test_approval_releases_the_hold(self):
-        w = World(self, "merge_product", plan=[{"world": "plan"}])
-        s = w.sup()
+        w = World(self, "merge_product")
+        gh_argv = os.path.join(w.dir, "gh_argv")
+        os.environ.update(SUP_FAKE_GH_ARGV=gh_argv, SUP_FAKE_GH_WORLD="plan")
+        self.addCleanup(lambda: [os.environ.pop(k, None) for k in ("SUP_FAKE_GH_ARGV", "SUP_FAKE_GH_WORLD")])
+        s = w.sup(gh=[sys.executable, FAKE_GH])
         t, box = background(s)
         self.assertTrue(wait_for(lambda: any(e["title"] == "needs you: human_approval" for e in self.events(w))))
         time.sleep(0.3)
-        self.assertEqual(w.launches(), [])
+        self.assertFalse(os.path.exists(gh_argv))           # held: nothing merged
         with open(w.f["world"], "w") as fh:
             fh.write("merge_labeled")                       # the human added the label
-        self.assertTrue(wait_for(lambda: len(w.launches()) == 1))
+        self.assertTrue(wait_for(lambda: os.path.exists(gh_argv)))   # the supervisor merges it, no session
         sv.request(w.home, "stopped", by="test")
         t.join(10)
-        self.assertEqual(w.records()[0]["action"], "MERGE #5")
+        self.assertEqual((w.records()[0]["action"], w.records()[0]["kind"]), ("MERGE #5", "merge"))
+        self.assertEqual(w.launches(), [])
 
 
 class Lifecycle(unittest.TestCase):
@@ -874,6 +914,159 @@ class RepoOwnership(unittest.TestCase):
 def _pid_alive(pid):
     r = subprocess.run(["ps", "-o", "stat=", "-p", str(pid)], capture_output=True, text=True)
     return r.returncode == 0 and not r.stdout.strip().startswith("Z")
+
+
+class MechanicalMerge(unittest.TestCase):
+    """Slice 4: real loop, ledger and a fake `gh`; no Opus session is launched for a decided merge."""
+
+    def world(self, start, **env):
+        w = World(self, start)
+        self.gh_argv = os.path.join(w.dir, "gh_argv")
+        env = dict({"SUP_FAKE_GH_ARGV": self.gh_argv}, **env)
+        for k in ("SUP_FAKE_GH_WORLD", "SUP_FAKE_GH_EXIT", "SUP_FAKE_GH_FILES"):
+            os.environ.pop(k, None)
+        os.environ.update(env)
+        self.addCleanup(lambda: [os.environ.pop(k, None) for k in env])
+        return w
+
+    def gh_calls(self):
+        if not os.path.exists(self.gh_argv):
+            return []
+        with open(self.gh_argv) as fh:
+            return [json.loads(line) for line in fh]
+
+    def test_experiment_merge_runs_gh_not_a_session(self):
+        w = self.world("merge", SUP_FAKE_GH_WORLD="plan")
+        rep = w.sup(gh=[sys.executable, FAKE_GH]).run(max_sessions=1)
+        m = rep["sessions"][0]
+        self.assertEqual((m["kind"], m["mode"], m["state"], m["transition"]), ("merge", "MERGE", "COMPLETED", "advanced"))
+        self.assertEqual(self.gh_calls(), [["pr", "merge", "5", "--merge", "--match-head-commit", "f" * 40]])
+        self.assertEqual(w.launches(), [])                       # no Opus session for the merge
+        self.assertEqual(rep["decision"]["action"], "PLAN")      # the Planner is next, as its own session
+
+    def test_failed_merge_is_retryable(self):
+        w = self.world("merge", SUP_FAKE_GH_EXIT="1")
+        s = w.sup(gh=[sys.executable, FAKE_GH], max_attempts=2)
+        rep = s.run(max_sessions=2)
+        self.assertEqual([r["state"] for r in rep["sessions"]], ["CRASHED", "CRASHED"])
+        self.assertIn("Head branch was modified", rep["sessions"][0]["reason"])
+        self.assertEqual(rep["decision"]["kind"], "retry_exhausted")
+
+    def test_planner_pr_outside_ai_is_refused(self):
+        w = self.world("plan_merge", SUP_FAKE_GH_FILES='[".ai/STATE.yaml", "packages/barocss/src/x.ts"]')
+        rep = w.sup(gh=[sys.executable, FAKE_GH]).run(max_sessions=1)
+        self.assertEqual(rep["sessions"][0]["state"], "REFUSED")
+        self.assertEqual(self.gh_calls(), [])                    # never merged
+        self.assertEqual(rep["decision"]["kind"], "merge_refused")
+
+    def test_pause_blocks_merges_too(self):
+        w = self.world("execute", SUP_FAKE_GH_WORLD="plan")
+        with open(w.f["plan"], "w") as fh:
+            json.dump([{"world": "merge", "sleep": 1.0}], fh)
+        t, box = background(w.sup(gh=[sys.executable, FAKE_GH]))
+        self.assertTrue(wait_for(lambda: any(r["state"] == "RUNNING" for r in w.records())))
+        sv.request(w.home, "paused", by="test")
+        self.assertTrue(wait_for(lambda: runner(w).get("state") == "PAUSED"))
+        time.sleep(0.5)
+        self.assertEqual(self.gh_calls(), [])                    # MERGE is due, but nothing merges while paused
+        self.assertIn("would merge MERGE #5", runner(w).get("detail", ""))
+        sv.request(w.home, "stopped", by="test")
+        t.join(10)
+
+    def test_dry_run_shows_the_merge_command(self):
+        w = self.world("merge")
+        d = w.sup(gh=["gh"]).run(dry_run=True)["decision"]
+        self.assertEqual((d["do"], d["command"]), ("merge", ["gh", "pr", "merge", "5", "--merge",
+                                                             "--match-head-commit", "f" * 40]))
+
+
+class Lanes(unittest.TestCase):
+    """concurrency > 1: parity and question lanes in parallel; COMPUTE only, one Strategy session at a time."""
+
+    C2 = sv.Config(concurrency=2, backoff_s=100, max_attempts=3, poll_s=7, stale_min=180)
+
+    def plan(self, s, records=()):
+        v = sv.view_of(s, sup.derive(s))
+        return sv.decide_lanes(v, s, list(records), time.time(), self.C2)
+
+    def test_two_independent_items_launch_together(self):
+        acts, d0 = self.plan(WORLDS["two_ready"]())
+        self.assertEqual(sorted(a["action"] for a in acts), ["EXECUTE E-020", "EXECUTE E-021"])
+        self.assertEqual(d0["action"], "EXECUTE E-020")          # the serial choice is still the first one
+
+    def test_shared_lock_serializes(self):
+        acts, _ = self.plan(WORLDS["two_ready_same_lock"]())
+        self.assertEqual([a["action"] for a in acts], ["EXECUTE E-020"])
+
+    def test_live_item_is_not_relaunched_and_the_other_lane_runs(self):
+        s = _lanes(("E-020", "question", [".ai/evidence/E-020/"], []),
+                   ("E-021", "parity", ["packages/barocss/src/"], []), running=("E-020",), live_branch_time=FUTURE)
+        live = rec("EXECUTE E-020@dddd", "RUNNING", ended=None, experiment="E-020")
+        acts, _ = self.plan(s, [live])
+        self.assertEqual([a["action"] for a in acts], ["EXECUTE E-021"])
+
+    def test_slots_cap_launches(self):
+        live = [rec("EXECUTE E-009@x", "RUNNING", ended=None, sid="a"), rec("EXECUTE E-008@x", "RUNNING", ended=None, sid="b")]
+        acts, _ = self.plan(WORLDS["two_ready"](), live)
+        self.assertEqual(acts, [])
+
+    def test_one_strategy_session_at_a_time(self):
+        live = rec("PLAN@dddd", "RUNNING", ended=None, action="PLAN")
+        acts, d0 = self.plan(snap("evaluated"), [live])         # serially PLAN is due, but a PLAN is live
+        self.assertEqual((acts, d0["do"]), ([], "wait"))
+
+    def test_concurrency_one_is_the_serial_decision(self):
+        v = sv.view_of(WORLDS["two_ready"](), sup.derive(WORLDS["two_ready"]()))
+        c1 = sv.Config(concurrency=1, backoff_s=100, max_attempts=3, poll_s=7, stale_min=180)
+        acts, d0 = sv.decide_lanes(v, WORLDS["two_ready"](), [], time.time(), c1)
+        self.assertEqual([a["action"] for a in acts], [d0["action"]])
+        self.assertEqual(d0, sv.decide(v, [], time.time(), c1))
+
+    def test_instruction_names_the_slot_ports(self):
+        text = sv.instruction("EXECUTE E-021", (5300, 5399))
+        self.assertIn("5300-5399", text)
+        self.assertIn("$BARO_PORT_BASE", text)
+        self.assertNotIn("BARO_PORT_BASE", sv.instruction("EXECUTE E-021"))   # serial: unchanged
+        self.assertEqual(sv.Config(port_base=5200, port_span=100).slot_ports(1), (5300, 5399))
+
+    def lanes_world(self, start, n=2):
+        w = World(self, start, plan=[{"sleep": 30}] * n)
+        env_file = os.path.join(w.dir, "env")
+        os.environ["SUP_FAKE_ENV"] = env_file
+        self.addCleanup(os.environ.pop, "SUP_FAKE_ENV", None)
+        return w, env_file
+
+    def envs(self, path):
+        if not os.path.exists(path):
+            return []
+        with open(path) as fh:
+            return [json.loads(line) for line in fh]
+
+    def test_process_two_sessions_run_in_parallel_in_their_own_slots(self):
+        w, env_file = self.lanes_world("two_ready")
+        s = w.sup(concurrency=2, workspace=os.path.join(w.dir, "ws"))
+        t, box = background(s)
+        self.assertTrue(wait_for(lambda: len([r for r in w.records() if r["state"] == "RUNNING"]) == 2))
+        self.assertTrue(wait_for(lambda: len(self.envs(env_file)) == 2))
+        envs = self.envs(env_file)
+        self.assertEqual(sorted(e["slot"] for e in envs), ["0", "1"])
+        self.assertEqual(sorted(e["port"] for e in envs), ["5200", "5300"])
+        self.assertEqual(len({os.path.realpath(e["cwd"]) for e in envs}), 2)   # a clone per slot
+        self.assertEqual(sorted(r["action"] for r in w.records()), ["EXECUTE E-020", "EXECUTE E-021"])
+        self.assertEqual(len(w.launches()), 2)
+        sv.request(w.home, "stopped", by="test")
+        t.join(15)
+        self.assertEqual({r["state"] for r in w.records()}, {"INTERRUPTED"})   # stop ends both, resumable
+
+    def test_process_shared_lock_runs_one(self):
+        w, env_file = self.lanes_world("two_ready_same_lock")
+        s = w.sup(concurrency=2, workspace=os.path.join(w.dir, "ws"))
+        t, box = background(s)
+        self.assertTrue(wait_for(lambda: len(w.launches()) == 1))
+        time.sleep(0.6)
+        self.assertEqual([r["action"] for r in w.records()], ["EXECUTE E-020"])
+        sv.request(w.home, "stopped", by="test")
+        t.join(15)
 
 
 if __name__ == "__main__":

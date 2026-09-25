@@ -44,16 +44,25 @@ ADDRESS = {
 }
 
 
-def instruction(action):
-    """STANDARD_INSTRUCTION plus the observed step. Without an action, the V1 instruction unchanged."""
+def instruction(action, ports=None):
+    """STANDARD_INSTRUCTION plus the observed step. Without an action, the V1 instruction unchanged.
+
+    ports: (first, last) of the slot's port range when sessions run in parallel (lanes)."""
     if not action:
         return STANDARD_INSTRUCTION
     word, _, target = action.partition(" ")
-    return (f"{STANDARD_INSTRUCTION}\n\nThe supervisor observed that the next step is {action}: "
+    text = (f"{STANDARD_INSTRUCTION}\n\nThe supervisor observed that the next step is {action}: "
             f"{ADDRESS[word].format(target=target)}. Confirm it with §1 first. If §1 gives a different mode "
             "or work item, stop without changing anything.")
+    if ports:
+        text += (f"\n\nAnother session may be running in parallel on its own work item. Any server you start "
+                 f"(dev server, proxy, browser debug port) must listen on a port in {ports[0]}-{ports[1]} "
+                 "($BARO_PORT_BASE is the first), not on a fixed port, unless your contract's `locks` names "
+                 "that port.")
+    return text
 
-LAUNCH = {"PLAN", "EXECUTE", "REVIEW", "MERGE"}   # a fresh session does it (MERGE authority stays with Strategy)
+LAUNCH = {"PLAN", "EXECUTE", "REVIEW"}            # a fresh session does it
+MECHANICAL = {"MERGE"}                            # the supervisor does it (gh); Strategy already decided it
 INFLIGHT = {"WAIT_EXECUTION", "WAIT_PLAN"}        # a pass is mid-way; whose session is it?
 WAIT = {"WAIT_FOR_CI"}                            # external; the supervisor waits, no session is kept alive
 HOLD = {"BLOCKED", "HUMAN_REQUIRED", "IDLE"}      # don't guess
@@ -68,7 +77,7 @@ EXPECTED_AFTER = {
 }
 SCRUB_KEEP = {"CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CONFIG_DIR"}
 # STATE.human_directives (2026-09-25): a product_code PR merges only after a human approves it. The
-# supervisor enforces its half: no MERGE session for such a PR until one of these is on it.
+# supervisor enforces its half: no merge of such a PR until one of these is on it.
 APPROVAL_LABEL = "human-approved"
 
 
@@ -95,6 +104,10 @@ class Config:
         self.lock_dir = default_lock_dir()      # per-user, independent of AI_HOME (see RepoLock)
         self.identity = None                    # {id, name}; derived from repo_dir when None
         self.tick_s = 1.0                       # how quickly pause / resume / stop take effect
+        self.gh = ["gh"]                        # mechanical merges
+        self.concurrency = 1                    # sessions at once; > 1 runs lanes in parallel (see _loop_lanes)
+        self.port_base = 5200                   # slot n gets ports port_base + n*port_span … + port_span - 1
+        self.port_span = 100
         self.notify = False                     # desktop notifications (the CLI turns them on)
         self.__dict__.update(kw)
         self.workspace = kw.get("workspace") or os.path.join(self.home, "workspace")
@@ -102,14 +115,27 @@ class Config:
     def timeout_for(self, action):
         return self.timeout_s.get(action.split()[0], self.default_timeout_s)
 
-    def command(self, sid, action=None):
-        return [*self.claude, "-p", instruction(action), "--model", self.model,
+    def slot_workspace(self, slot):
+        return self.workspace if not slot else f"{self.workspace}-{slot}"
+
+    def slot_ports(self, slot):
+        first = self.port_base + slot * self.port_span
+        return first, first + self.port_span - 1
+
+    def command(self, sid, action=None, ports=None):
+        return [*self.claude, "-p", instruction(action, ports), "--model", self.model,
                 "--permission-mode", self.permission_mode, "--session-id", sid,
                 "--output-format", "stream-json", "--verbose"]
 
 
 def mode_of(action):
     return work.MODE.get(action.split()[0])
+
+
+def merge_command(cfg, pr):
+    """The one GitHub write the supervisor makes: merge exactly the head the decision saw."""
+    cmd = [*cfg.gh, "pr", "merge", str(pr["number"]), "--merge"]
+    return cmd + ["--match-head-commit", pr["sha"]] if pr.get("sha") else cmd
 
 
 def iso(t):
@@ -141,8 +167,13 @@ def view_of(snap, st):
         head = (snap["branches"].get(it.get("branch")) or {}).get("time")
     elif word == "WAIT_PLAN":
         head = (snap["branches"].get(target) or {}).get("time")
+    merge = None
+    if word == "MERGE":
+        p = next((p for p in snap["prs"] if f"#{p['number']}" == target), {})
+        merge = {"number": p.get("number"), "sha": p.get("sha"), "head": p.get("head"),
+                 "plan": str(p.get("head", "")).startswith(sup.PLAN_PREFIX)}
     return {"at": snap.get("at"), "next_action": a, "action": word, "rule": st["rule"], "state": st["state"],
-            "phase": st["phase"], "key": f"{a}@{dev[:12]}", "develop": dev, "head_time": head,
+            "merge": merge, "phase": st["phase"], "key": f"{a}@{dev[:12]}", "develop": dev, "head_time": head,
             "experiment": it.get("id"), "exp_status": it.get("status"), "attention": st["attention"],
             "store": bool((snap["develop"].get("work") or {})),
             "mode": w["mode"], "v1_next_action": st["next_action"], "agrees_with_v1": w["agrees_with_v1"],
@@ -207,8 +238,17 @@ def decide(v, records, now, cfg):
                                        f"`{APPROVAL_LABEL}` label (or approve the PR) to let it merge")
     if word in LAUNCH:
         return _attempt(v["key"], v["next_action"], recs, now, cfg)
+    if word in MECHANICAL:
+        d = _attempt(v["key"], v["next_action"], recs, now, cfg)
+        if d["do"] == "launch":
+            d.update(do="merge", pr=v["merge"], reason=f"{v['next_action']}: decided merge, checks green; "
+                                                          "the supervisor merges (no session)")
+        return d
     if word in INFLIGHT:
-        last = recs[-1] if recs else None
+        sessions = [r for r in recs if r.get("kind") != "merge"]
+        if word == "WAIT_EXECUTION" and v.get("experiment"):   # parallel lanes: the item's own sessions
+            sessions = [r for r in sessions if r.get("experiment") in (None, v["experiment"])] or sessions
+        last = sessions[-1] if sessions else None
         head = epoch(v["head_time"]) if v.get("head_time") else None
         if last and head is not None and epoch(last["ended_at"]) >= head:
             # Nothing was pushed since our last session ended, so the half-done pass is ours. (Serial: a RUNNING
@@ -227,8 +267,67 @@ def decide(v, records, now, cfg):
     return _hold(word.lower(), f"{v['next_action']} (rule {v['rule']})")
 
 
+STRATEGY_WORDS = {"REVIEW", "PLAN", "MERGE"}   # a MERGE session (older ledgers) is a Strategy session too
+
+
+def decide_lanes(v, snap, records, now, cfg):
+    """Pure, concurrency > 1: the serial decision plus whatever else the Work DAG allows at cfg.concurrency.
+
+    Only COMPUTE parallelizes: at most one Strategy session (REVIEW/PLAN) at a time, since those write
+    STATE.yaml. Merges are mechanical and take no slot. Returns (decisions to act on, the serial decision)."""
+    live = [r for r in records if r["state"] == "RUNNING"]
+    live_actions = {r["action"] for r in live}
+    strategy_busy = any(r["action"].split()[0] in STRATEGY_WORDS for r in live)
+    free = max(0, cfg.concurrency - len(live))
+    settled = [r for r in records if r["state"] != "RUNNING"]
+    d0 = decide(v, settled, now, cfg)
+    if d0["do"] == "launch" and (d0["action"] in live_actions or
+                                 (d0["action"].split()[0] in STRATEGY_WORDS and strategy_busy)):
+        d0 = {"do": "wait", "delay": cfg.poll_s, "reason": f"{d0['action']}: in flight or a Strategy session is busy"}
+    out, strategy = [], strategy_busy
+    for d in [d0] + _lane_extras(v, snap, settled, now, cfg, live, strategy_busy, d0):
+        word = d.get("action", "").split()[0] if d.get("action") else ""
+        if d["do"] == "merge":
+            out.append(d)
+        elif d["do"] == "launch" and free > 0 and not (word in STRATEGY_WORDS and strategy):
+            out.append(d)
+            free -= 1
+            strategy = strategy or word in STRATEGY_WORDS
+    return out, d0
+
+
+def _lane_extras(v, snap, settled, now, cfg, live, strategy_busy, d0):
+    view = work.from_snapshot(snap)
+    w = work.schedule(view, concurrency=cfg.concurrency, sessions=len(live), strategy_busy=strategy_busy)
+    live_actions = {r["action"] for r in live}
+    dev = (snap["develop"].get("sha") or "")[:12]
+    extras = []
+    for step in w["launch"]:
+        action = step["action"]
+        if action in live_actions or action == d0.get("action"):
+            continue
+        word, _, target = action.partition(" ")
+        d = _attempt(f"{action}@{dev}", action, settled, now, cfg)
+        if word == "MERGE":
+            gate = _merge_gate(snap, word, target)
+            if gate.get("product_code") and not gate.get("approved"):
+                continue   # the serial decision already reports the human_approval hold for the first one
+            if d["do"] == "launch":
+                p = next((p for p in snap["prs"] if f"#{p['number']}" == target), {})
+                d.update(do="merge", pr={"number": p.get("number"), "sha": p.get("sha"), "head": p.get("head"),
+                                         "plan": str(p.get("head", "")).startswith(sup.PLAN_PREFIX)},
+                         reason=f"{action}: decided merge (lanes)")
+        if d["do"] in ("launch", "merge"):
+            d.update(work=step.get("work"), lane_reason=f"lanes: {step['mode']} alongside live work")
+            extras.append(d)
+    return extras
+
+
 def _attempt(key, action, recs, now, cfg, resume=None):
     mine = [r for r in recs if r["key"] == key]
+    refused = [r for r in mine if r["state"] == "REFUSED"]
+    if refused:   # a precondition of a mechanical step failed; that is a finding, not a flake
+        return _hold("merge_refused", f"{action}: {refused[-1]['reason']}")
     done = [r for r in mine if r["state"] == "COMPLETED"]
     if done:
         # A clean exit that left the same durable state is a session outcome, not a process failure.
@@ -635,6 +734,7 @@ class Supervisor:
     def observe(self):
         snap, st = self.observe_fn()
         sup.write_json(os.path.join(self.cfg.home, "status.json"), st)
+        self.snap = snap   # decide_lanes schedules from the snapshot itself
         return view_of(snap, st)
 
     def notify(self, title, message, urgent=False):
@@ -755,8 +855,8 @@ class Supervisor:
         self.log(f"session_{state.lower()}", session=sid, action=rec["action"], reason=reason)
         return rec
 
-    def prepare_workspace(self):
-        ws = self.cfg.workspace
+    def prepare_workspace(self, ws=None):
+        ws = ws or self.cfg.workspace
         g = lambda *a: subprocess.run(["git", "-C", ws, *a], check=True, capture_output=True, text=True).stdout
         if not os.path.isdir(os.path.join(ws, ".git")):
             url = sup.git("remote", "get-url", "origin").strip()
@@ -771,13 +871,16 @@ class Supervisor:
         for b in g("for-each-ref", "--format=%(refname:short)", "refs/heads/").split():
             g("branch", "-D", b)   # unpushed local work is not memory (AGENTS.md §6)
 
-    def launch(self, d, v):
+    def launch(self, d, v, slot=None):
+        """slot: None = the single serial workspace. With lanes, each slot has its own clone and port range."""
         sid = str(uuid.uuid4())
         sdir = session_dir(self.cfg, sid)
         os.makedirs(sdir)
+        ws = self.cfg.slot_workspace(slot) if slot is not None else self.cfg.workspace
+        ports = self.cfg.slot_ports(slot) if slot is not None else None
         try:
             if self.cfg.prepare:
-                self.prepare_workspace()
+                self.prepare_workspace() if slot is None else self.prepare_workspace(ws)
         except (OSError, subprocess.CalledProcessError) as e:
             # Environment failure before any session existed: recorded like a crash, so it retries
             # within the same budget instead of taking the runner down.
@@ -793,11 +896,12 @@ class Supervisor:
             self.log("session_crashed", session=sid, action=d["action"], attempt=d["attempt"],
                      reason=f"workspace setup failed: {err}")
             return None
-        cwd = self.cfg.workspace
+        cwd = ws
         os.makedirs(cwd, exist_ok=True)
-        cmd = self.cfg.command(sid, d["action"])
+        cmd = self.cfg.command(sid, d["action"], ports)
         now = time.time()
-        rec = {"session_id": sid, "key": d["key"], "action": d["action"], "experiment": v["experiment"],
+        rec = {"session_id": sid, "key": d["key"], "action": d["action"],
+               "experiment": d.get("work") or v["experiment"], "slot": slot, "ports": list(ports) if ports else None,
                "mode": mode_of(d["action"]),
                "attempt": d["attempt"], "state": "RUNNING", "pid": None, "pgid": None,
                "started_at": iso(now), "last_activity": iso(now), "ended_at": None,
@@ -812,7 +916,9 @@ class Supervisor:
                                   "--sup-repo", self.identity()["id"], "--owner", str(self.cfg.owner or 0),
                                   sdir, cwd, "--", *cmd],
                                  start_new_session=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                                 stderr=wlog)
+                                 stderr=wlog, env=dict(os.environ, **({"BARO_SLOT": str(slot),
+                                                                       "BARO_PORT_BASE": str(ports[0])}
+                                                                      if ports else {})))
         self.procs[sid] = p
         rec = self.ledger.update(sid, pid=p.pid, pgid=p.pid)
         self.log("session_launched", session=sid, action=d["action"], attempt=d["attempt"], pid=p.pid)
@@ -852,7 +958,8 @@ class Supervisor:
                     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
                         old[sig] = signal.signal(sig, self._on_signal)
                 self.set_runner("RUNNING", activity="starting")
-            return self._loop(max_sessions, dry_run, once, managed)
+            loop = self._loop_lanes if self.cfg.concurrency > 1 else self._loop
+            return loop(max_sessions, dry_run, once, managed)
         except BaseException as e:
             self.stop_reason = self.stop_reason or f"runner error: {type(e).__name__}: {str(e)[:200]}"
             raise
@@ -930,18 +1037,20 @@ class Supervisor:
                 self.sleep(self.cfg.poll_s)
                 continue
             d = decide(v, recs, time.time(), self.cfg)
-            if managed and d["do"] == "launch":
+            if managed and d["do"] in ("launch", "merge"):
                 # Re-read the controls after the (slow) observation: a stop or pause that arrived meanwhile
-                # must win. Launch only while running and nothing asks the run to end.
+                # must win. Launch or merge only while running and nothing asks the run to end.
                 if self.halt_reason():
                     continue   # the top of the loop ends the run without starting a session
                 if self.desired() != "running":
-                    d = {"do": "paused", "would": d["action"], "reason": f"paused; would launch {d['action']}"}
+                    d = {"do": "paused", "would": d["action"], "reason": f"paused; would {d['do']} {d['action']}"}
             self._write_decision(v, d)
             if not managed:
                 if d["do"] == "launch":
                     d["command"] = self.cfg.command("<new-session-uuid>", d["action"])
                     d["cwd"] = self.cfg.workspace
+                elif d["do"] == "merge":
+                    d["command"] = merge_command(self.cfg, d["pr"])
                 report.update(view=v, decision=d)
                 self.log("dry_run" if dry_run else "decision", next_action=v["next_action"], do=d["do"],
                          reason=d["reason"])
@@ -951,6 +1060,12 @@ class Supervisor:
                     return self._final(report, v, d)
                 if self.launch(d, v) is not None:   # None: workspace setup failed, recorded as a crash
                     launched += 1
+                continue
+            if d["do"] == "merge":   # a step like a session: counts toward --max-sessions
+                report["sessions"].append(self.merge(d, v))
+                ended += 1
+                if max_sessions is not None and ended >= max_sessions:
+                    return self._final(report, self._observe_or_none())
                 continue
             self.set_runner(lifecycle(self.desired(), False), activity=d["do"], detail=d["reason"],
                             next_action=v["next_action"])
@@ -962,6 +1077,109 @@ class Supervisor:
                 elif v["action"] == "WAIT_FOR_CI":
                     self.notify("waiting for CI", v["next_action"])
             self.sleep(d.get("delay", self.cfg.poll_s))
+
+    def _loop_lanes(self, max_sessions, dry_run, once, managed):
+        """concurrency > 1: several sessions at once, one per slot (own clone, own port range). Each pass
+        settles ended sessions, observes, and acts on decide_lanes(). At concurrency 1 the serial _loop runs."""
+        launched = ended = 0
+        report = {"sessions": []}
+        watching = {r["session_id"] for r in self.ledger.load() if r["state"] == "RUNNING"}   # adopted too
+        while True:
+            if managed:
+                why = self.halt_reason()
+                if why:
+                    return self._stop(report, why)   # interrupts every live session (resumable)
+            recs = self.reconcile(persist=not dry_run)
+            for r in recs:
+                if r["session_id"] in watching and r["state"] != "RUNNING":
+                    watching.discard(r["session_id"])
+                    ended += 1
+                    report["sessions"].append(r)
+                    took = _dur(epoch(r["ended_at"]) - epoch(r["started_at"])) if r.get("ended_at") else "-"
+                    self.notify(f"{r['action']} {r['state'].lower()}", f"after {took} (slot {r.get('slot')})",
+                                urgent=r["state"] not in ("COMPLETED", "INTERRUPTED"))
+            live = [r for r in recs if r["state"] == "RUNNING"]
+            if managed and max_sessions is not None and ended >= max_sessions and not live:
+                return self._final(report, self._observe_or_none())
+            v = self._observe_or_none()
+            if v is None:
+                if not managed:
+                    return self._final(report, None)
+                self.sleep(self.cfg.poll_s)
+                continue
+            acts, d0 = decide_lanes(v, self.snap, recs, time.time(), self.cfg)
+            if managed and acts:
+                if self.halt_reason():
+                    continue
+                if self.desired() != "running":
+                    d0 = {"do": "paused", "reason": "paused; would " + ", ".join(f"{a['do']} {a['action']}" for a in acts)}
+                    acts = []
+            self._write_decision(v, {"do": "lanes", "serial": d0, "lanes": acts,
+                                     "live": [r["action"] for r in live], "reason": d0.get("reason")})
+            if not managed:
+                for a in acts:
+                    a["command"] = merge_command(self.cfg, a["pr"]) if a["do"] == "merge" else \
+                        self.cfg.command("<new-session-uuid>", a["action"], self.cfg.slot_ports(0))
+                report.update(view=v, decision=d0, lanes=acts)
+                return report
+            for a in acts:
+                if a["do"] == "merge":
+                    report["sessions"].append(self.merge(a, v))
+                    ended += 1
+                    continue
+                if max_sessions is not None and launched >= max_sessions:
+                    continue
+                used = {r.get("slot") or 0 for r in live}
+                slot = next(n for n in range(self.cfg.concurrency) if n not in used)
+                rec = self.launch(a, v, slot)
+                if rec is not None:
+                    launched += 1
+                    watching.add(rec["session_id"])
+                    live.append(rec)
+            detail = ", ".join(f"{r['action']} (slot {r.get('slot') or 0})" for r in live) or d0.get("reason")
+            self.set_runner(lifecycle(self.desired(), bool(live)), activity="lanes" if live else d0["do"],
+                            detail=detail, next_action=v["next_action"])
+            if (d0["do"], d0.get("reason")) != self._logged:
+                self._logged = (d0["do"], d0.get("reason"))
+                self.log(d0["do"], next_action=v["next_action"], reason=d0.get("reason"), live=len(live))
+                if d0["do"] == "hold":
+                    self.notify(f"needs you: {d0['kind']}", d0["reason"], urgent=True)
+            self.sleep(self.cfg.monitor_s if live else d0.get("delay", self.cfg.poll_s))
+
+    def merge(self, d, v):
+        """Mechanical merge: no Opus session. A Planner PR must touch only .ai/ (AGENTS.md §6)."""
+        mid = "merge-" + str(uuid.uuid4())
+        rec = {"session_id": mid, "kind": "merge", "key": d["key"], "action": d["action"], "mode": "MERGE",
+               "experiment": v["experiment"], "attempt": d["attempt"], "started_at": iso(time.time()),
+               "before": {"next_action": v["next_action"], "develop": v["develop"]}, "pr": d["pr"]}
+        state, reason = "COMPLETED", "merged"
+        try:
+            if d["pr"].get("plan"):
+                files = json.loads(self._gh("pr", "view", str(d["pr"]["number"]), "--json", "files"))["files"]
+                outside = [f["path"] for f in files if not f["path"].startswith(".ai/")]
+                if outside:
+                    state, reason = "REFUSED", f"Planner PR changes files outside .ai/: {', '.join(outside[:5])}"
+            if state == "COMPLETED":
+                self._gh(*merge_command(self.cfg, d["pr"])[len(self.cfg.gh):])
+        except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as e:
+            state, reason = "CRASHED", ((getattr(e, "stderr", None) or str(e)).strip() or repr(e))[:300]
+        rec.update(state=state, reason=reason, ended_at=iso(time.time()))
+        recs = self.ledger.load()
+        recs.append(rec)
+        self.ledger.save(recs)
+        self.log(f"merge_{state.lower()}", pr=d["pr"]["number"], action=d["action"], reason=reason)
+        self.notify(f"{d['action']} {state.lower()}", reason, urgent=state != "COMPLETED")
+        if state == "COMPLETED":
+            self.sleep(self.cfg.settle_s)
+            after = self._observe_or_none()
+            if after is not None:
+                rec = self.ledger.update(mid, after={"next_action": after["next_action"], "rule": after["rule"],
+                                                     "develop": after["develop"]}, transition=transition(rec, after))
+        return rec
+
+    def _gh(self, *args):
+        return subprocess.run([*self.cfg.gh, *args], cwd=self.cfg.repo_dir, capture_output=True, text=True,
+                              check=True, timeout=120).stdout
 
     def _await(self, sid):
         rec = self.monitor(sid)
@@ -1014,7 +1232,7 @@ class Supervisor:
 
 # ---------------------------------------------------------------- status (read-only)
 
-MODE = {"EXECUTE": "EXECUTION", "PLAN": "STRATEGY", "REVIEW": "STRATEGY", "MERGE": "STRATEGY"}
+MODE = {"EXECUTE": "EXECUTION", "PLAN": "STRATEGY", "REVIEW": "STRATEGY", "MERGE": "SUPERVISOR (mechanical)"}
 
 
 def status_report(home, view=None, now=None, owner=None):
@@ -1027,7 +1245,8 @@ def status_report(home, view=None, now=None, owner=None):
     v = view or last.get("view") or {}
     d = decide(v, recs, now, Config(home=home)) if view else (last.get("decision") or {})
     proj = v.get("project") or {}
-    live = next((r for r in reversed(recs) if r["state"] == "RUNNING"), None)
+    lives = [r for r in recs if r["state"] == "RUNNING"]
+    live = lives[-1] if lives else None
     done = next((r for r in reversed(recs) if r["state"] != "RUNNING"), None)
     session = None
     if live:
@@ -1076,6 +1295,8 @@ def status_report(home, view=None, now=None, owner=None):
         "waiting": waiting,
         "blockers": blockers,
         "events": _tail_jsonl(os.path.join(home, "events.jsonl"), 5),
+        "lanes": [{"id": r["session_id"], "action": r["action"], "slot": r.get("slot"), "ports": r.get("ports"),
+                   "elapsed_s": int(now - epoch(r["started_at"]))} for r in lives] if len(lives) > 1 else [],
     }
 
 
@@ -1129,6 +1350,9 @@ def print_report(r, out=print):
             f" of {_dur(se['timeout_s'])}, quiet {_dur(se['quiet_s'])}" + ("" if se["alive"] else " [process gone]"))
         if se.get("last_step"):
             out(f"last step   : {se['last_step']}")
+        for ln in r.get("lanes") or []:
+            out(f"lane        : slot {ln['slot']} {ln['id'][:8]} {ln['action']}, elapsed {_dur(ln['elapsed_s'])}"
+                + (f", ports {ln['ports'][0]}-{ln['ports'][1]}" if ln.get("ports") else ""))
     else:
         out("mode        : none (no Opus session running)")
     if lr:
@@ -1177,6 +1401,8 @@ def main(argv=None, overrides=None):
     r.add_argument("--permission-mode", default="auto")
     r.add_argument("--claude", default="claude", help="claude executable")
     r.add_argument("--poll", type=float, default=60)
+    r.add_argument("--concurrency", type=int, default=1,
+                   help="sessions at once (default 1 = serial). 2 runs the parity and question lanes in parallel")
     r.add_argument("--no-notify", action="store_true", help="no desktop notifications (events.jsonl is still written)")
     sub.add_parser("pause", help="launch no new session; let a running one finish")
     sub.add_parser("resume", help="undo pause")
@@ -1193,7 +1419,8 @@ def main(argv=None, overrides=None):
     if a.cmd == "start":
         owner = None if a.no_owner or a.dry_run or a.once else (a.owner or os.getppid())
         cfg = Config(model=a.model, permission_mode=a.permission_mode, claude=[a.claude], poll_s=a.poll,
-                     fetch=not a.no_fetch, owner=owner, notify=not (a.no_notify or a.dry_run or a.once), **kw)
+                     fetch=not a.no_fetch, owner=owner, notify=not (a.no_notify or a.dry_run or a.once),
+                     concurrency=max(1, a.concurrency), **kw)
         try:
             rep = Supervisor(cfg).run(max_sessions=a.max_sessions, dry_run=a.dry_run, once=a.once)
         except Busy as e:
