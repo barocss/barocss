@@ -22,12 +22,32 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sup  # noqa: E402
+import work  # noqa: E402
 
 STANDARD_INSTRUCTION = (
     "Read AGENTS.md and follow it.\n\n"
     "Determine your mode from the durable project state on origin/develop exactly as §1 says.\n\n"
     "Run one pass of that mode, then stop."
 )
+# Migration slice 2 (MIGRATION.md): each launch names the step the supervisor observed, so a COMPUTE
+# context gets one contract instead of choosing work. §1 stays authoritative; a mismatch means the
+# supervisor saw stale state, and the session must stop without changes rather than guess.
+ADDRESS = {
+    "EXECUTE": "EXECUTION (§3) of {target} only: run that one frozen contract",
+    "REVIEW": "STRATEGY review (§2A) of {target}",
+    "PLAN": "STRATEGY (§2): record any pending result, then choose and contract (§2B)",
+    "MERGE": "STRATEGY: land the merge already decided in the review, PR {target} (§2A.5), then continue as §2 says",
+}
+
+
+def instruction(action):
+    """STANDARD_INSTRUCTION plus the observed step. Without an action, the V1 instruction unchanged."""
+    if not action:
+        return STANDARD_INSTRUCTION
+    word, _, target = action.partition(" ")
+    return (f"{STANDARD_INSTRUCTION}\n\nThe supervisor observed that the next step is {action}: "
+            f"{ADDRESS[word].format(target=target)}. Confirm it with §1 first. If §1 gives a different mode "
+            "or work item, stop without changing anything.")
 
 LAUNCH = {"PLAN", "EXECUTE", "REVIEW", "MERGE"}   # a fresh session does it (MERGE authority stays with Strategy)
 INFLIGHT = {"WAIT_EXECUTION", "WAIT_PLAN"}        # a pass is mid-way; whose session is it?
@@ -68,10 +88,14 @@ class Config:
     def timeout_for(self, action):
         return self.timeout_s.get(action.split()[0], self.default_timeout_s)
 
-    def command(self, sid):
-        return [*self.claude, "-p", STANDARD_INSTRUCTION, "--model", self.model,
+    def command(self, sid, action=None):
+        return [*self.claude, "-p", instruction(action), "--model", self.model,
                 "--permission-mode", self.permission_mode, "--session-id", sid,
                 "--output-format", "stream-json", "--verbose"]
+
+
+def mode_of(action):
+    return work.MODE.get(action.split()[0])
 
 
 def iso(t):
@@ -85,8 +109,12 @@ def epoch(s):
 # ---------------------------------------------------------------- view + decide (pure)
 
 def view_of(snap, st):
-    """The few observed facts decide() reads, from a Phase 1 snapshot and its derived status."""
-    a = st["next_action"]
+    """The few observed facts decide() reads, from a Phase 1 snapshot and its derived status.
+
+    Slice 2: the step comes from the Work DAG scheduler (st["work"]); Phase 1's V1 RULES only gate it.
+    """
+    w = st["work"]
+    a = w["next_action"]
     word = a.split()[0]
     dev = snap["develop"].get("sha") or ""
     head = None
@@ -97,7 +125,9 @@ def view_of(snap, st):
     exp = st["experiments"][0] if st["experiments"] else {}
     return {"at": snap.get("at"), "next_action": a, "action": word, "rule": st["rule"], "state": st["state"],
             "key": f"{a}@{dev[:12]}", "develop": dev, "head_time": head, "experiment": exp.get("id"),
-            "exp_status": exp.get("status"), "attention": st["attention"]}
+            "exp_status": exp.get("status"), "attention": st["attention"],
+            "mode": w["mode"], "v1_next_action": st["next_action"], "agrees_with_v1": w["agrees_with_v1"],
+            "work": {"buckets": w["buckets"], "planner": w["planner"], "concurrency": w["concurrency"]}}
 
 
 def decide(v, records, now, cfg):
@@ -106,6 +136,9 @@ def decide(v, records, now, cfg):
     if live:
         return {"do": "monitor", "session": live[-1]["session_id"], "reason": "a session is alive; never launch a second"}
     recs = [r for r in records if not r.get("released")]
+    if not v.get("agrees_with_v1", True):
+        # Until the V1 RULES retire, a scheduler that disagrees with them is a bug to look at, not a plan.
+        return _hold("work_model_disagrees", f"work {v['next_action']} vs V1 {v['v1_next_action']}")
     word = v["action"]
     if word in LAUNCH:
         return _attempt(v["key"], v["next_action"], recs, now, cfg)
@@ -364,9 +397,10 @@ class Supervisor:
             self.prepare_workspace()
         cwd = self.cfg.workspace
         os.makedirs(cwd, exist_ok=True)
-        cmd = self.cfg.command(sid)
+        cmd = self.cfg.command(sid, d["action"])
         now = time.time()
         rec = {"session_id": sid, "key": d["key"], "action": d["action"], "experiment": v["experiment"],
+               "mode": mode_of(d["action"]),
                "attempt": d["attempt"], "state": "RUNNING", "pid": None, "pgid": None,
                "started_at": iso(now), "last_activity": iso(now), "ended_at": None,
                "timeout_s": self.cfg.timeout_for(d["action"]), "idle_timeout_s": self.cfg.idle_timeout_s,
@@ -432,7 +466,7 @@ class Supervisor:
             self._write_decision(v, d)
             if dry_run or once:
                 if d["do"] == "launch":
-                    d["command"] = self.cfg.command("<new-session-uuid>")
+                    d["command"] = self.cfg.command("<new-session-uuid>", d["action"])
                     d["cwd"] = self.cfg.workspace
                 report.update(view=v, decision=d)
                 self.log("dry_run" if dry_run else "decision", next_action=v["next_action"], do=d["do"],
