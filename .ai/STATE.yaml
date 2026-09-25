@@ -171,6 +171,13 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     but run `gh pr merge` only when the PR carries the label `human-approved`, which only a human adds;
     never add it yourself. Without the label, stop there and do not start §2B until that merge lands.
   - >-
+    2026-09-25: target and direction are in VISION.md "Who it is for": developers using AI UI
+    platforms (v0-like); BaroCSS renders their Tailwind v4 output with no build, preview → production.
+    Re-derive the outcomes from it: keep O2 (parity) as table stakes; add outcomes for the three wins
+    (production-grade, streaming, runtime theme/config), each measured against @tailwindcss/browser and
+    a built Tailwind v4 stylesheet; park O3. Before building anything for a win, first measure where
+    BaroCSS stands against @tailwindcss/browser on it.
+  - >-
     2026-09-25: a product_code contract's allowed.paths always includes the test directories of every
     package it lets Execution change (for example packages/barocss/tests/ next to packages/barocss/src/).
     A code change that makes existing tests obsolete must be able to update them in the same pass.
