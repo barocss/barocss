@@ -109,6 +109,17 @@ python3 tools/ai-supervisor/supervise.py release 'KEY'    # re-arm a key held af
 - **Feedback** never pauses the loop. It reaches sessions the V1 way, through `STATE.human_directives`,
   which Strategy reads. The loop only waits on a human when the protocol says so (`HUMAN_REQUIRED`,
   `BLOCKED`, or a hold).
+- **One supervisor per repository.** Ownership is a `flock` on `~/.cache/ai-supervisor/locks/<repo id>.lock`
+  (from the passwd home, so neither `AI_HOME` nor `$HOME` moves it). The repo id is the hash of the
+  canonical `origin` remote (`git@github.com:O/R.git`, `https://…/O/R` → `github.com/o/r`), or of the git
+  common dir when there is no remote. Every worktree and clone of one repository therefore shares one
+  lock, and different repositories run independently. The kernel drops the lock when its holder dies, so
+  a crash never leaves it stuck. `<repo id>.owner.json` (pid, home, worktree, random token) only labels
+  the owner: liveness is always "is the lock held right now", never a pid, so pid reuse can't fake an
+  owner and nothing is ever signalled by pid. `pause`, `resume`, `stop` and `status` find the owner through
+  the lock, whichever worktree or `AI_HOME` they are typed in. Session wrappers carry the repo id, so
+  `start` refuses while a session of this repository from another home is still alive, and `stop` ends
+  it (found by its token).
 - Control goes through `$AI_HOME/control.json` (what the user wants), and the runner reports in
   `runner.json` (what it is doing). Both live outside git.
 

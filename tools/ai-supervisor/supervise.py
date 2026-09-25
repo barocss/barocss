@@ -21,7 +21,7 @@ The supervisor decides only mechanics: whether a session is alive, whether a pro
 to wait. It never reads a verdict, a priority or evidence; the launched session does all of that
 under AGENTS.md. Runtime state lives outside git in $AI_HOME (default ~/.barocss-ai).
 """
-import argparse, fcntl, json, os, signal, subprocess, sys, threading, time, uuid
+import argparse, fcntl, hashlib, json, os, pwd, re, signal, socket, subprocess, sys, threading, time, urllib.parse, uuid
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -68,6 +68,9 @@ class Config:
         self.fetch = True
         self.prepare = True                     # reset the session workspace to origin/develop
         self.owner = None                       # pid whose exit ends the autonomous work (None: not watched)
+        self.repo_dir = sup.TOP                 # the repository this supervisor drives
+        self.lock_dir = default_lock_dir()      # per-user, independent of AI_HOME (see RepoLock)
+        self.identity = None                    # {id, name}; derived from repo_dir when None
         self.tick_s = 1.0                       # how quickly pause / resume / stop take effect
         self.__dict__.update(kw)
         self.workspace = kw.get("workspace") or os.path.join(self.home, "workspace")
@@ -360,6 +363,119 @@ def wrap(sdir, cwd, cmd, owner=None, grace=20):
         os.killpg(0, signal.SIGKILL)   # whatever is left of the session, and this wrapper
 
 
+# ---------------------------------------------------------------- repository ownership
+# One supervisor per repository, whatever the worktree, shell, Claude App work or AI_HOME. The lock is
+# keyed by the repository's identity (its canonical origin remote) and lives in a per-user directory
+# that AI_HOME does not move. It is a flock: the kernel drops it when the holder dies, so a crash never
+# leaves it stuck, and liveness is never judged from a pid.
+
+def canonical_remote(url):
+    """git@github.com:O/R.git, ssh://git@github.com/O/R, https://u@github.com/O/R/ → github.com/o/r"""
+    u = url.strip()
+    m = re.match(r"^[\w.-]+@([^:/]+):(.+)$", u)   # scp-like
+    if m:
+        host, path = m.group(1), m.group(2)
+    else:
+        p = urllib.parse.urlsplit(u)
+        if p.scheme in ("", "file"):
+            return "path:" + os.path.realpath(p.path or u)
+        host, path = p.hostname or "", p.path
+    path = path.strip("/")
+    path = path[:-4] if path.endswith(".git") else path
+    return f"{host.lower()}/{path.lower()}"
+
+
+def repo_identity(repo_dir):
+    """Same id for every clone and worktree of one repository; the git common dir if there is no remote."""
+    r = subprocess.run(["git", "-C", repo_dir, "remote", "get-url", "origin"], capture_output=True, text=True)
+    if r.returncode == 0 and r.stdout.strip():
+        name = canonical_remote(r.stdout)
+    else:
+        common = subprocess.run(["git", "-C", repo_dir, "rev-parse", "--git-common-dir"], capture_output=True,
+                                text=True, check=True).stdout.strip()
+        name = "path:" + os.path.realpath(os.path.join(repo_dir, common))
+    return {"id": hashlib.sha256(name.encode()).hexdigest()[:16], "name": name}
+
+
+def default_lock_dir():
+    # The passwd home, not $HOME: neither AI_HOME nor a changed HOME moves the ownership boundary.
+    return os.path.join(pwd.getpwuid(os.getuid()).pw_dir, ".cache", "ai-supervisor", "locks")
+
+
+class RepoLock:
+    """<lock_dir>/<repo id>.lock (flock) plus <repo id>.owner.json (who holds it, with a random token)."""
+
+    def __init__(self, path):
+        self.path = path
+        self.owner_path = path[:-len(".lock")] + ".owner.json"
+        self.fh = self.token = None
+
+    @classmethod
+    def for_repo(cls, lock_dir, ident):
+        return cls(os.path.join(lock_dir, ident["id"] + ".lock"))
+
+    def acquire(self, record, wait=2.0, label=True):
+        """label=False: a short maintenance hold (stop's sweep) that keeps the last runner's owner record."""
+        # A short retry: `probe` holds a shared lock for microseconds and must not make `start` fail.
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
+        fh = open(self.path, "a")
+        end = time.time() + wait
+        while True:
+            try:
+                fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError:
+                if time.time() >= end:
+                    fh.close()
+                    rec = read_json(self.owner_path) or {}
+                    raise Busy(f"repository {record.get('repo')} is owned by supervisor pid {rec.get('pid')} "
+                               f"(home {rec.get('home')}, worktree {rec.get('worktree')}, since "
+                               f"{rec.get('acquired_at')})", owner=rec)
+                time.sleep(0.05)
+        self.fh, self.token = fh, uuid.uuid4().hex
+        if label:
+            sup.write_json(self.owner_path, dict(record, pid=os.getpid(), token=self.token,
+                                                 acquired_at=iso(time.time())))
+        return self
+
+    def release(self):
+        if self.fh is None:
+            return
+        rec = read_json(self.owner_path) or {}
+        if rec.get("token") == self.token:   # keep it as "last owner" for status
+            sup.write_json(self.owner_path, dict(rec, released_at=iso(time.time())))
+        fcntl.flock(self.fh, fcntl.LOCK_UN)
+        self.fh.close()
+        self.fh = None
+
+    close = release
+
+    def probe(self):
+        """{alive, record}: alive only if some process holds the lock right now. The record is just a label."""
+        rec = read_json(self.owner_path)
+        if not os.path.exists(self.path):
+            return {"alive": False, "record": rec}
+        with open(self.path, "a") as fh:
+            try:
+                fcntl.flock(fh, fcntl.LOCK_SH | fcntl.LOCK_NB)
+            except OSError:
+                return {"alive": True, "record": rec}
+            fcntl.flock(fh, fcntl.LOCK_UN)
+        return {"alive": False, "record": rec}
+
+
+def live_wrappers(repo_id):
+    """Session wrappers of this repository still running anywhere on this machine, found by argv token."""
+    out = subprocess.run(["ps", "-Ao", "pid=,stat=,command="], capture_output=True, text=True).stdout
+    found = []
+    for line in out.splitlines():
+        if f"--sup-repo {repo_id}" in line and line.split()[1][:1] != "Z":
+            m = re.search(r"--sup-session (\S+)", line)
+            if m:
+                found.append({"pid": int(line.split()[0]), "sid": m.group(1)})
+    return found
+
+
 # ---------------------------------------------------------------- lifecycle (app-scoped, not a daemon)
 # control.json: what the user wants (running | paused | stopped), written by start / pause / resume / stop.
 # runner.json:  what the runner is doing (RUNNING | PAUSING | PAUSED | STOPPED), written by the runner.
@@ -391,10 +507,13 @@ def lifecycle(desired, session_live):
 
 
 def runner_info(home):
+    """The runner of this home is alive iff it holds its repository lock under the same token. A live pid
+    alone proves nothing (pid reuse)."""
     info = read_json(os.path.join(home, "runner.json")) or {}
-    pid = info.get("pid")
-    alive = bool(pid) and (pid == os.getpid() or (pid_alive(pid) and "supervise.py" in subprocess.run(
-        ["ps", "-o", "command=", "-p", str(pid)], capture_output=True, text=True).stdout))
+    alive = False
+    if info.get("lock") and info.get("token"):
+        p = RepoLock(info["lock"]).probe()
+        alive = p["alive"] and (p["record"] or {}).get("token") == info["token"]
     if not alive and info.get("state") not in (None, "STOPPED"):
         info = dict(info, state="STOPPED", stop_reason="runner process gone (crashed or killed)")
     info.setdefault("state", "STOPPED")
@@ -405,7 +524,9 @@ def runner_info(home):
 # ---------------------------------------------------------------- supervisor (I/O)
 
 class Busy(RuntimeError):
-    pass
+    def __init__(self, msg, owner=None):
+        super().__init__(msg)
+        self.owner = owner
 
 
 class Supervisor:
@@ -420,6 +541,16 @@ class Supervisor:
         self.stop_reason = None
         self._logged = None
         self.observe_error = None
+        self.lock = None
+        self._ident = cfg.identity
+
+    def identity(self):
+        if self._ident is None:
+            self._ident = repo_identity(self.cfg.repo_dir)
+        return self._ident
+
+    def repo_lock(self):
+        return RepoLock.for_repo(self.cfg.lock_dir, self.identity())
 
     def _observe_live(self):
         snap = sup.collect_live(fetch=self.cfg.fetch)
@@ -452,7 +583,8 @@ class Supervisor:
 
     def set_runner(self, state, **kw):
         info = {"state": state, "desired": self.desired(), "pid": os.getpid(), "owner": self.cfg.owner,
-                "started_at": self.started_at, "updated_at": iso(time.time()), **kw}
+                "started_at": self.started_at, "updated_at": iso(time.time()), "repo": self.identity()["name"],
+                "lock": self.lock.path if self.lock else None, "token": self.lock.token if self.lock else None, **kw}
         prev = read_json(os.path.join(self.cfg.home, "runner.json")) or {}
         sup.write_json(os.path.join(self.cfg.home, "runner.json"), info)
         if prev.get("state") != state or prev.get("pid") != os.getpid():
@@ -584,7 +716,8 @@ class Supervisor:
         self.ledger.save(recs)   # recorded before spawn: a crash here leaves a RUNNING record reconcile settles
         with open(os.path.join(sdir, "wrapper.log"), "ab") as wlog:
             p = subprocess.Popen([sys.executable, os.path.abspath(__file__), "_wrap", "--sup-session", sid,
-                                  "--owner", str(self.cfg.owner or 0), sdir, cwd, "--", *cmd],
+                                  "--sup-repo", self.identity()["id"], "--owner", str(self.cfg.owner or 0),
+                                  sdir, cwd, "--", *cmd],
                                  start_new_session=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                                  stderr=wlog)
         self.procs[sid] = p
@@ -636,22 +769,45 @@ class Supervisor:
                     signal.signal(sig, h)
             if lock:
                 lock.close()
+                self.lock = None
 
-    def run_locked(self, fn):
-        lock = self._lock()
+    def run_locked(self, fn, check_foreign=True):
+        if check_foreign:
+            lock = self._lock()
+        else:
+            ident = self.identity()
+            lock = self.repo_lock().acquire({"repo": ident["name"]}, label=False)
         try:
             return fn(self)
         finally:
             lock.close()
 
     def _lock(self):
-        fh = open(os.path.join(self.cfg.home, "supervisor.lock"), "w")
-        try:
-            fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError:
-            fh.close()
-            raise Busy(f"another supervisor holds {fh.name}")
-        return fh
+        ident = self.identity()
+        lock = self.repo_lock().acquire({"repo": ident["name"], "repo_id": ident["id"],
+                                         "home": os.path.abspath(self.cfg.home),
+                                         "worktree": os.path.abspath(self.cfg.repo_dir), "host": socket.gethostname()})
+        # A session of this repository still running under another home (its runner crashed, and it was
+        # started with a different AI_HOME) would be invisible to this ledger. Don't guess: refuse.
+        own = {r["session_id"] for r in self.ledger.load()}
+        foreign = [w for w in live_wrappers(ident["id"]) if w["sid"] not in own]
+        if foreign:
+            lock.release()
+            raise Busy(f"a session of {ident['name']} started under another supervisor home is still running "
+                       f"({', '.join(w['sid'][:8] + ' pid ' + str(w['pid']) for w in foreign)}); "
+                       "end it with `supervise.py stop` first")
+        self.lock = lock
+        return lock
+
+    def stop_foreign(self, why):
+        """Under the repository lock: end session wrappers of this repository that no ledger here knows."""
+        own = {r["session_id"] for r in self.ledger.load()}
+        ended = []
+        for w in live_wrappers(self.identity()["id"]):
+            if w["sid"] not in own and ps_pid(w["sid"]) == w["pid"]:   # still that wrapper, by token
+                killpg(w["pid"], self.cfg.kill_grace_s, lambda: ps_pid(w["sid"]) is not None)
+                ended.append({"session_id": w["sid"], "action": "?", "state": "INTERRUPTED", "reason": why})
+        return ended
 
     def _loop(self, max_sessions, dry_run, once, managed):
         launched = ended = 0
@@ -751,8 +907,9 @@ class Supervisor:
 MODE = {"EXECUTE": "EXECUTION", "PLAN": "STRATEGY", "REVIEW": "STRATEGY", "MERGE": "STRATEGY"}
 
 
-def status_report(home, view=None, now=None):
-    """Everything a watcher needs, from the runtime files (or a fresh `view`). Reads, never writes."""
+def status_report(home, view=None, now=None, owner=None):
+    """Everything a watcher needs, from the runtime files (or a fresh `view`). Reads, never writes.
+    owner: RepoLock.probe() of the repository, when known."""
     now = now or time.time()
     runner = runner_info(home)
     last = read_json(os.path.join(home, "supervisor.json")) or {}
@@ -795,6 +952,8 @@ def status_report(home, view=None, now=None):
                   | {"uptime_s": int(now - epoch(runner["started_at"])) if runner.get("alive") and
                      runner.get("started_at") else None},
         "control": read_control(home),
+        "owner": None if owner is None else dict({k: (owner["record"] or {}).get(k) for k in (
+            "repo", "pid", "home", "worktree", "acquired_at", "released_at")}, alive=owner["alive"]),
         "outcome": {"id": proj.get("outcome"), "statement": proj.get("outcome_statement")},
         "experiment": {"id": v.get("experiment"), "status": v.get("exp_status"), "phase": v.get("phase"),
                        "question": proj.get("question"), "verdict": proj.get("verdict"), "pr": proj.get("pr")},
@@ -821,6 +980,11 @@ def print_report(r, out=print):
     extra = f"up {_dur(ru['uptime_s'])}, pid {ru['pid']}, owner {ru['owner']}" if ru["uptime_s"] is not None \
         else (ru.get("stop_reason") or ru.get("reason") or "not started")
     out(f"runner      : {ru['state']}  ({extra}; requested: {r['control'].get('desired')})")
+    ow = r.get("owner")
+    if ow and ow.get("repo"):
+        who = f"pid {ow['pid']}, home {ow['home']}, worktree {ow['worktree']}"
+        out(f"repo owner  : {ow['repo']} — " + (f"held by {who} since {ow['acquired_at']}" if ow["alive"]
+                                               else f"free (last: {who})"))
     if ru.get("activity") and ru["state"] != "STOPPED":
         out(f"activity    : {ru['activity']}" + (f" — {ru['detail']}" if ru.get("detail") else ""))
     if r["next"]["action"] is None:
@@ -860,11 +1024,16 @@ def print_report(r, out=print):
 
 # ---------------------------------------------------------------- CLI
 
-def main(argv=None):
+def repo_owner(cfg):
+    return RepoLock.for_repo(cfg.lock_dir, cfg.identity or repo_identity(cfg.repo_dir)).probe()
+
+
+def main(argv=None, overrides=None):
+    """overrides: Config fields for tests (lock_dir, identity); deliberately not reachable from the CLI."""
     argv = sys.argv[1:] if argv is None else argv
-    if argv[:1] == ["_wrap"]:   # _wrap --sup-session SID --owner PID SDIR CWD -- CMD...
+    if argv[:1] == ["_wrap"]:   # _wrap --sup-session SID --sup-repo RID --owner PID SDIR CWD -- CMD...
         i = argv.index("--")
-        wrap(argv[5], argv[6], argv[i + 1:], owner=int(argv[4]) or None)
+        wrap(argv[7], argv[8], argv[i + 1:], owner=int(argv[6]) or None)
         return 0
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--home", help="runtime state dir (default $AI_HOME or ~/.barocss-ai)")
@@ -891,56 +1060,71 @@ def main(argv=None):
     rl.add_argument("key")
     a = ap.parse_args(argv)
     kw = {"home": a.home} if a.home else {}
+    kw.update(overrides or {})
     if a.cmd == "start":
         owner = None if a.no_owner or a.dry_run or a.once else (a.owner or os.getppid())
         cfg = Config(model=a.model, permission_mode=a.permission_mode, claude=[a.claude], poll_s=a.poll,
                      fetch=not a.no_fetch, owner=owner, **kw)
         try:
             rep = Supervisor(cfg).run(max_sessions=a.max_sessions, dry_run=a.dry_run, once=a.once)
-        except Busy:
-            print("already running:", file=sys.stderr)
-            print_report(status_report(cfg.home), out=lambda x: print(x, file=sys.stderr))
+        except Busy as e:
+            print(f"not started: {e}", file=sys.stderr)
+            if (e.owner or {}).get("home"):
+                print_report(status_report(e.owner["home"], owner=repo_owner(cfg)),
+                             out=lambda x: print(x, file=sys.stderr))
             return 2
         print(json.dumps(rep, indent=2, default=str))
         return 0
     cfg = Config(**kw)
-    home = cfg.home
+    o = repo_owner(cfg)
+    rec = o["record"] or {}
+    # Controls go to whoever owns the repository, whichever worktree or AI_HOME they were typed in.
+    target = rec.get("home") if o["alive"] and rec.get("home") else cfg.home
     if a.cmd in ("pause", "resume"):
-        if not runner_info(home)["alive"]:
+        if not o["alive"] or not runner_info(target)["alive"]:
             print("not running (use `start`)" if a.cmd == "resume" else "not running; nothing to pause")
             return 1
-        request(home, "paused" if a.cmd == "pause" else "running", by=a.cmd)
-        print(f"{a.cmd} requested")
+        request(target, "paused" if a.cmd == "pause" else "running", by=a.cmd)
+        print(f"{a.cmd} requested ({target})")
         t = time.time()
-        while time.time() - t < 5 and runner_info(home).get("desired") != read_control(home)["desired"]:
+        while time.time() - t < 5 and runner_info(target).get("desired") != read_control(target)["desired"]:
             time.sleep(0.2)
-        print_report(status_report(home))
+        print_report(status_report(target, owner=repo_owner(cfg)))
         return 0
     if a.cmd == "stop":
-        request(home, "stopped", by="stop")
+        request(target, "stopped", by="stop")
         t = time.time()
-        while runner_info(home)["alive"] and time.time() - t < a.wait:
+        while repo_owner(cfg)["alive"] and time.time() - t < a.wait:
             time.sleep(0.5)
-        if runner_info(home)["alive"]:
-            print(f"runner still alive after {a.wait:.0f}s", file=sys.stderr)
+        if repo_owner(cfg)["alive"]:
+            print(f"repository owner still running after {a.wait:.0f}s", file=sys.stderr)
             return 1
+        homes = {os.path.abspath(h) for h in (cfg.home, rec.get("home")) if h} - {os.path.abspath(cfg.home)}
+
+        def sweep(sv_):
+            left = sv_.stop_orphans("stop requested")
+            for h in homes:
+                left += Supervisor(Config(**dict(kw, home=h)), out=lambda *x: None).stop_orphans("stop requested")
+            return left + sv_.stop_foreign("stop requested")
         try:
-            left = Supervisor(cfg, out=lambda *x: None).run_locked(lambda s: s.stop_orphans("stop requested"))
-        except Busy:
+            left = Supervisor(cfg, out=lambda *x: None).run_locked(sweep, check_foreign=False)
+        except Busy:   # someone started a new run in the meantime: it owns what is left
             left = []
         for x in left:
             print(f"interrupted orphan session {x['session_id'][:8]} ({x['action']})")
-        print_report(status_report(home))
+        print_report(status_report(target, owner=repo_owner(cfg)))
         return 0
     if a.cmd == "status":
         view = None
         if a.refresh:
             snap = sup.collect_live(fetch=True)
             view = view_of(snap, sup.derive(snap))
-        rep = status_report(home, view=view)
+        if not o["alive"] and not os.path.exists(os.path.join(cfg.home, "runner.json")) and rec.get("home"):
+            target = rec["home"]   # nothing here: show the last run of this repository
+        rep = status_report(target, view=view, owner=o)
         print(json.dumps(rep, indent=2, default=str)) if a.json else print_report(rep)
         return 0
-    led = Ledger(home)
+    led = Ledger(cfg.home)
     recs = led.load()
     n = 0
     for x in recs:
