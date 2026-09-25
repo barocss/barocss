@@ -381,14 +381,17 @@ describe('BrowserRuntime', () => {
     const warnings = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const unknownWarnings = () => warnings.mock.calls.filter(([message]) =>
       String(message).includes('Unknown utility class')).length;
+    try {
+      runtime.addClass('pulse-unknown-utility');
+      runtime.addClass('pulse-unknown-utility');
+      expect(unknownWarnings()).toBe(1);
 
-    runtime.addClass('pulse-unknown-utility');
-    runtime.addClass('pulse-unknown-utility');
-    expect(unknownWarnings()).toBe(1);
-
-    runtime.clearCaches();
-    runtime.addClass('pulse-unknown-utility');
-    expect(unknownWarnings()).toBe(2);
-    setDebug(false);
+      runtime.clearCaches();
+      runtime.addClass('pulse-unknown-utility');
+      expect(unknownWarnings()).toBe(2);
+    } finally {
+      // The debug flag is process-wide; don't leak it into later tests.
+      setDebug(false);
+    }
   });
 });

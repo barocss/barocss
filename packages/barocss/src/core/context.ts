@@ -55,7 +55,11 @@ export interface Config {
    * default: true (full preflight)
    */
   preflight?: PreflightLevel;
-  /** Enable kit console diagnostics (off by default). */
+  /**
+   * Enable kit console diagnostics (off by default).
+   * This sets a process-wide flag (see setDebug): it affects every context, and a
+   * config without this key leaves the current flag unchanged.
+   */
   debug?: boolean;
   /**
    * @deprecated Contexts now own their caches. Creating a context does not

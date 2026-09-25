@@ -8,7 +8,7 @@ export * from './core/registry';
 export * from './core/astToCss';
 export * from './core/jsonToAst';
 export * from './utils/cache';
-export * from './utils/debug';
+export { setDebug, isDebug } from './utils/debug';
 
 import './presets';
 
