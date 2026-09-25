@@ -4,9 +4,9 @@ updated: 2026-09-25
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O1
-  experiment: E-003 (evaluated) — blocked in self-test, merged as evidence
+  experiment: E-004 (ready) — live colour token, runtime hidden (A ×2) vs app-exposed (B) (U5)
   last_result: "E-003 INCONCLUSIVE L2: no agent runs; rounded-* ignores theme.borderRadius; colour token reachable (K6)"
-  next: "STRATEGY: contract the next U5 experiment"
+  next: "EXECUTION: run E-004 on branch ai/E-004-live-colour-token"
   blockers: []
 
 outcomes:
@@ -106,54 +106,25 @@ knowledge:
         Which theme namespaces actually drive class generation (K6: colors yes, borderRadius no)?
         Open until an agent scenario needs a non-colour token.
 
-decisions:
-  - id: D1
+decisions:                 # D1-D8 compressed; full text in git log -p -- .ai/STATE.yaml
+  - id: D1-D4
     date: 2026-09-24
     decision: >
-      Strategy/Execution context isolation with one handoff file (.ai/EXPERIMENT.yaml),
-      replacing role-based workers and the lint/test-driven task loop.
-    why: Role overhead, easy-task bias, self-confirming loops, anchoring on adjacent technical work.
-  - id: D2
-    date: 2026-09-24
-    decision: Retired the "AI-Interaction Infrastructure" roadmap (AST enhancement, AI APIs, component catalog, JSON formats).
-    why: It prescribed solutions before evidence and produced the astToJson drift.
-  - id: D3
-    date: 2026-09-24
-    decision: Froze AST work (no jsonToAst, round-trip, AST metadata) unless an agent scenario needs it.
-    why: K2 caveat.
-  - id: D4
-    date: 2026-09-24
-    decision: >
-      Only Strategy accepts experiments and merges experiment PRs; Execution never merges.
-      Strategy may auto-integrate its own .ai/-only PRs once check.py passes and CI is green.
-    why: Keeps builder and judge separate without a human in the loop.
-  - id: D5
-    date: 2026-09-24
-    decision: E-001 targets U1, a real-agent baseline, before any guessed gap (U2-U4).
-    why: Guessed gaps risk invent-then-solve; a baseline can end with "no BaroCSS code needed".
-  - id: D6
-    date: 2026-09-24
-    decision: >
-      Accepted E-001 PROVEN (K3). E-002 targets U2 with real K4 no-op classes, same actor
-      and prompt. K4 parity gaps are not work items until an agent scenario shows harm.
-    why: E-001 left U2 untested; K4 made it testable and it could end with "no signal needed".
-  - id: D7
+      Strategy/Execution isolation via one handoff file; retired the AI-Interaction roadmap; froze AST work
+      (K2) unless a scenario needs it; only Strategy accepts/merges experiments, and auto-merges its own
+      .ai/-only PRs once check.py passes and CI is green.
+    why: Role overhead, easy-task bias, self-confirming loops, solutions before evidence (astToJson drift).
+  - id: D5-D7
     date: 2026-09-25
     decision: >
-      Accepted E-002 PROVEN (K5); U2 closed for a strong model (weaker models folded into U1).
-      No BaroCSS "class resolved" signal and no parity work. Class-level modify+verify
-      needs zero BaroCSS surface, so O1's remaining question is theme/config-level edits (U5).
-    why: >
-      Class-level tasks are now answered twice with no BaroCSS-owned failure. Theme/config
-      semantics are something only BaroCSS owns, so that is where a surface could be needed.
+      Real-agent baseline first (E-001, K3), then silent no-ops (E-002, K5). Both PROVEN: class-level
+      modify+verify needs zero BaroCSS surface; no "class resolved" signal, no parity work. O1's remaining
+      question is theme/config-level edits (U5).
+    why: Guessed gaps risk invent-then-solve; theme/config semantics are what only BaroCSS owns.
   - id: D8
     date: 2026-09-25
-    decision: >
-      E-003 targets U5 over U1 (weaker models). Two arms: runtime module-scoped vs exposed by the app.
-    why: >
-      A weaker-model failure would be AGENT-owned and would not change what BaroCSS builds.
-      U5 can end with "no surface needed" (O1 met), or it can split APP reachability from BaroCSS config semantics.
-
+    decision: E-003 targets U5 over U1 (weaker models), with two arms, runtime module-scoped vs app-exposed.
+    why: A weaker-model failure is AGENT-owned; U5 can end with "no surface needed" or split APP from BAROCSS.
   - id: D9
     date: 2026-09-25
     decision: >
@@ -163,6 +134,16 @@ decisions:
     why: >
       E-003's Y2 was a known K4(c) class, which blocked the whole run. U5's reachability question is still
       open and still decides whether O1 needs any surface.
+
+  - id: D10
+    date: 2026-09-25
+    decision: >
+      E-004 re-runs E-003's agent phase with Y1 (colour token) only: arm A twice, arm B once, same pages,
+      prompt and grader. Radius is dropped, not fixed.
+    why: >
+      U5 reachability still decides whether O1 needs any surface, and it can end with "no BaroCSS code
+      needed". K6 shows Y1 is satisfiable, so the run cannot be blocked by config semantics again. A second
+      arm A run guards the decisive arm against n=1 noise.
 
 open_items:                # for STRATEGY, not EXECUTION
   - >
