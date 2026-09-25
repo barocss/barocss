@@ -12,9 +12,10 @@ import contextlib, io, json, os, signal, subprocess, sys, tempfile, threading, t
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sup  # noqa: E402
 import supervise as sv  # noqa: E402
-from test_sup import snap  # noqa: E402
+from test_sup import B, snap  # noqa: E402
 
 FAKE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "fake_claude.py")
+FAKE_GH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "fake_gh.py")
 OLD = "2020-01-01T00:00:00+00:00"      # a push before any session in these tests ended
 FUTURE = "2099-01-01T00:00:00+00:00"   # a push after it (someone else is active)
 
@@ -26,7 +27,9 @@ WORLDS = {
     "review": lambda: snap("ready", branch={"status": "done"}, prs=[{}]),
     "blocked_result": lambda: snap("ready", branch={"status": "blocked", "result": {"verdict": "INCONCLUSIVE"}},
                                    prs=[{}]),
-    "merge": lambda: snap("ready", branch={"status": "evaluated", "review": {"merged": True}}, prs=[{}]),
+    "merge": lambda: snap("ready", branch={"status": "evaluated", "review": {"merged": True}}, prs=[{"sha": "f" * 40}]),
+    "plan_merge": lambda: snap("evaluated", plan_branches=["ai/strategy-E-010"],
+                               prs=[{"head": "ai/strategy-E-010", "number": 7, "sha": "a" * 40}]),
     "plan": lambda: snap("evaluated"),
     "plan_branch": lambda: snap("evaluated", plan_branches=["ai/strategy-E-010"]),
     "human": lambda: snap("evaluated", blockers=["gh token expired"]),
@@ -64,10 +67,23 @@ C = sv.Config(backoff_s=100, max_attempts=3, poll_s=7, stale_min=180)
 
 class Decide(unittest.TestCase):
     def test_semantic_actions_launch_one_fresh_session(self):
-        for name, action in (("execute", "EXECUTE E-009"), ("review", "REVIEW E-009"), ("plan", "PLAN"),
-                             ("merge", "MERGE #5")):
+        for name, action in (("execute", "EXECUTE E-009"), ("review", "REVIEW E-009"), ("plan", "PLAN")):
             d = sv.decide(view(name), [], time.time(), C)
             self.assertEqual((d["do"], d["action"], d["attempt"]), ("launch", action, 1), name)
+
+    def test_decided_merges_are_mechanical(self):
+        # Slice 4: a Judge's merged: true, or a Planner's own .ai/ PR, is merged by the supervisor, not a session.
+        d = sv.decide(view("merge"), [], time.time(), C)
+        self.assertEqual((d["do"], d["action"], d["pr"]), ("merge", "MERGE #5",
+                                                          {"number": 5, "sha": "f" * 40, "head": B, "plan": False}))
+        self.assertEqual(sv.merge_command(C, d["pr"]), ["gh", "pr", "merge", "5", "--merge", "--match-head-commit", "f" * 40])
+        d = sv.decide(view("plan_merge"), [], time.time(), C)
+        self.assertEqual((d["do"], d["pr"]["number"], d["pr"]["plan"]), ("merge", 7, True))
+
+    def test_refused_merge_holds(self):
+        v = view("plan_merge")
+        d = sv.decide(v, [rec(v["key"], "REFUSED", reason="Planner PR changes files outside .ai/: x")], time.time(), C)
+        self.assertEqual((d["do"], d["kind"]), ("hold", "merge_refused"))
 
     def test_live_session_blocks_every_launch(self):
         live = [rec("EXECUTE E-009@dddd", "RUNNING", ended=None)]
@@ -159,8 +175,10 @@ class Decide(unittest.TestCase):
         self.assertEqual(cmd[cmd.index("-p") + 1], sv.STANDARD_INSTRUCTION)
         self.assertEqual(cmd[cmd.index("--model") + 1], "opus")
         self.assertTrue(sv.STANDARD_INSTRUCTION.startswith("Read AGENTS.md and follow it."))
-        for action, needle in (("EXECUTE E-009", "EXECUTION (§3) of E-009 only"), ("REVIEW E-009", "review (§2A) of E-009"),
-                               ("PLAN", "choose and contract"), ("MERGE #5", "PR #5")):
+        for action, needle in (("EXECUTE E-009", "EXECUTION (§3) of E-009 only"),
+                               ("REVIEW E-009", "as its Judge: record the review and stop after §2A.5"),
+                               ("REVIEW E-009", "don't merge: the supervisor merges"),
+                               ("PLAN", "choose and contract"), ("PLAN", "after opening your PR, stop")):
             cmd = sv.Config().command("sid-1", action)
             text = cmd[cmd.index("-p") + 1]
             self.assertTrue(text.startswith(sv.STANDARD_INSTRUCTION), action)
@@ -778,6 +796,70 @@ class RepoOwnership(unittest.TestCase):
 def _pid_alive(pid):
     r = subprocess.run(["ps", "-o", "stat=", "-p", str(pid)], capture_output=True, text=True)
     return r.returncode == 0 and not r.stdout.strip().startswith("Z")
+
+
+class MechanicalMerge(unittest.TestCase):
+    """Slice 4: real loop, ledger and a fake `gh`; no Opus session is launched for a decided merge."""
+
+    def world(self, start, **env):
+        w = World(self, start)
+        self.gh_argv = os.path.join(w.dir, "gh_argv")
+        env = dict({"SUP_FAKE_GH_ARGV": self.gh_argv}, **env)
+        for k in ("SUP_FAKE_GH_WORLD", "SUP_FAKE_GH_EXIT", "SUP_FAKE_GH_FILES"):
+            os.environ.pop(k, None)
+        os.environ.update(env)
+        self.addCleanup(lambda: [os.environ.pop(k, None) for k in env])
+        return w
+
+    def gh_calls(self):
+        if not os.path.exists(self.gh_argv):
+            return []
+        with open(self.gh_argv) as fh:
+            return [json.loads(line) for line in fh]
+
+    def test_experiment_merge_runs_gh_not_a_session(self):
+        w = self.world("merge", SUP_FAKE_GH_WORLD="plan")
+        rep = w.sup(gh=[sys.executable, FAKE_GH]).run(max_sessions=1)
+        m = rep["sessions"][0]
+        self.assertEqual((m["kind"], m["mode"], m["state"], m["transition"]), ("merge", "MERGE", "COMPLETED", "advanced"))
+        self.assertEqual(self.gh_calls(), [["pr", "merge", "5", "--merge", "--match-head-commit", "f" * 40]])
+        self.assertEqual(w.launches(), [])                       # no Opus session for the merge
+        self.assertEqual(rep["decision"]["action"], "PLAN")      # the Planner is next, as its own session
+
+    def test_failed_merge_is_retryable(self):
+        w = self.world("merge", SUP_FAKE_GH_EXIT="1")
+        s = w.sup(gh=[sys.executable, FAKE_GH], max_attempts=2)
+        rep = s.run(max_sessions=2)
+        self.assertEqual([r["state"] for r in rep["sessions"]], ["CRASHED", "CRASHED"])
+        self.assertIn("Head branch was modified", rep["sessions"][0]["reason"])
+        self.assertEqual(rep["decision"]["kind"], "retry_exhausted")
+
+    def test_planner_pr_outside_ai_is_refused(self):
+        w = self.world("plan_merge", SUP_FAKE_GH_FILES='[".ai/STATE.yaml", "packages/barocss/src/x.ts"]')
+        rep = w.sup(gh=[sys.executable, FAKE_GH]).run(max_sessions=1)
+        self.assertEqual(rep["sessions"][0]["state"], "REFUSED")
+        self.assertEqual(self.gh_calls(), [])                    # never merged
+        self.assertEqual(rep["decision"]["kind"], "merge_refused")
+
+    def test_pause_blocks_merges_too(self):
+        w = self.world("execute", SUP_FAKE_GH_WORLD="plan")
+        with open(w.f["plan"], "w") as fh:
+            json.dump([{"world": "merge", "sleep": 1.0}], fh)
+        t, box = background(w.sup(gh=[sys.executable, FAKE_GH]))
+        self.assertTrue(wait_for(lambda: any(r["state"] == "RUNNING" for r in w.records())))
+        sv.request(w.home, "paused", by="test")
+        self.assertTrue(wait_for(lambda: runner(w).get("state") == "PAUSED"))
+        time.sleep(0.5)
+        self.assertEqual(self.gh_calls(), [])                    # MERGE is due, but nothing merges while paused
+        self.assertIn("would merge MERGE #5", runner(w).get("detail", ""))
+        sv.request(w.home, "stopped", by="test")
+        t.join(10)
+
+    def test_dry_run_shows_the_merge_command(self):
+        w = self.world("merge")
+        d = w.sup(gh=["gh"]).run(dry_run=True)["decision"]
+        self.assertEqual((d["do"], d["command"]), ("merge", ["gh", "pr", "merge", "5", "--merge",
+                                                             "--match-head-commit", "f" * 40]))
 
 
 if __name__ == "__main__":

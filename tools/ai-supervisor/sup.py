@@ -23,6 +23,7 @@ import yaml
 
 EXP, STATE, CHECK = ".ai/EXPERIMENT.yaml", ".ai/STATE.yaml", ".ai/check.py"
 WORK = ".ai/work/"   # migration slice 3: work store, one contract per <id>.yaml (the V1 RULES ignore it)
+VISION = ".ai/VISION.md"
 STATUSES = {"none", "ready", "running", "done", "blocked", "evaluated"}   # V1, .ai/check.py
 PLAN_STATUSES = {"none", "evaluated", "missing"}                          # AGENTS.md §1: → STRATEGY choose
 REQUIRED_CHECKS = ("Test and Build",)                                     # AGENTS.md §6
@@ -254,7 +255,8 @@ def derive(snap):
     w = work.schedule(wv, concurrency=1)
     v1_next = action if target is None else f"{action} {target}"
     # Slice 3: with work-store items the V1 RULES no longer see all the work, so they stop gating (None).
-    w["agrees_with_v1"] = None if wv["store"] else w["next_action"] == v1_next
+    # Slice 4: nor with a valid IDLE marker; V1 has no idle state (README ambiguity 2).
+    w["agrees_with_v1"] = None if wv["store"] or wv["idle"] else w["next_action"] == v1_next
     if w["agrees_with_v1"] is False:
         attention.append({"kind": "work_model_disagrees", "detail": f"work {w['next_action']} vs V1 {v1_next}"})
     return {
@@ -330,10 +332,33 @@ def is_ancestor(a, b):
     return subprocess.run(["git", "-C", TOP, "merge-base", "--is-ancestor", a, b]).returncode == 0
 
 
+def strategic_inputs(sha):
+    """What a Planner judges: the Vision, STATE except the `now` dashboard, and every contract. None if unknown."""
+    if git("cat-file", "-e", f"{sha}^{{commit}}", check=False) is None:
+        return None
+    state = dict(load_at(sha, STATE) or {})
+    state.pop("now", None)
+    return {"vision": git("show", f"{sha}:{VISION}", check=False), "state": state,
+            "exp": load_at(sha, EXP), "work": load_work_at(sha)}
+
+
+def idle_view(sha, state):
+    """Migration slice 4: the Planner's durable IDLE marker (STATE.now.idle_since/idle_reason). It holds while
+    the strategic inputs at the sha it planned from equal today's; any judged result, contract, directive,
+    knowledge or Vision change clears it, so the Planner wakes on state, not on a timer."""
+    now = (state or {}).get("now") or {}
+    since = now.get("idle_since")
+    if not since:
+        return None
+    then = strategic_inputs(str(since))
+    return {"since": str(since), "reason": now.get("idle_reason"),
+            "valid": then is not None and then == strategic_inputs(sha)}
+
+
 def develop_view(sha, ci):
     exp, state, work = load_at(sha, EXP), load_at(sha, STATE), load_work_at(sha)
     return {
-        "sha": sha, "exp": exp, "state": state, "ci": ci, "work": work,
+        "sha": sha, "exp": exp, "state": state, "ci": ci, "work": work, "idle": idle_view(sha, state),
         "check_errors": structure_errors(sha, exp, state, work),
         "last_ai_subject": (git("log", "-1", "--no-merges", "--format=%s", sha, "--", ".ai/") or "").strip(),
     }

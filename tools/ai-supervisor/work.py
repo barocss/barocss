@@ -105,7 +105,9 @@ def from_snapshot(snap):
         b = snap["branches"].get((c or {}).get("branch"))
         items.append(item(c, {"exp": (b.get("files") or {}).get(path), "time": b.get("time")} if b else None,
                           [p for p in snap["prs"] if p["head"] == (c or {}).get("branch")], file=path))
+    idle = snap["develop"].get("idle") or {}
     return {"items": [i for i in items if i], "store": len(store), "plan_pr": f.plan_pr,
+            "idle": (idle.get("reason") or "no question worth a contract") if idle.get("valid") else None,
             "plan_branches": list(f.plan_branches), "blockers": list(f.blockers),
             "contradictions": list(f.contradictions)}
 
@@ -269,6 +271,9 @@ def schedule(view, concurrency=1, sessions=None):
     elif not open_work and view.get("blockers"):
         planner = {"state": "blocked", "reason": "STATE.now.blockers"}
         holds.append("HUMAN_REQUIRED")
+    elif not open_work and view.get("idle"):
+        # The Planner recorded that nothing is worth a contract, and no strategic input changed since: IDLE.
+        planner = {"state": "idle", "reason": "Planner idle: " + view["idle"]}
     elif not open_work:
         planner = {"state": "needed", "reason": "no open work"}
     else:
