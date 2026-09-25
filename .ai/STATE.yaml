@@ -1,12 +1,12 @@
 # Durable project state. STRATEGY-owned; EXECUTION never edits this file.
 # Keep < ~150 lines. Git history holds everything older.
-updated: 2026-09-25   # D21: reviewed E-011 PROVEN (K13, option B criterion 5 holds), merged PR #157 (evidence-only)
+updated: 2026-09-25   # D22: PLAN — contracted 3 open items (E-012 durability step1, E-013 option A json-render, E-014 parity measure+rank); all product_code:false
 
 now:                       # dashboard view; mode comes from contract status
   active_outcome: O2
-  experiment: "None open. E-011 evaluated PROVEN (K13) and merged (PR #157, evidence-only). Next question to contract: option A's first experiment (json-render / catalog className specs — do className-carrying specs render as intended under BaroCSS; is there a BaroCSS gap beyond the zero-build runtime), per the delegated order B -> A -> next parity batch."
+  experiment: "3 open (the backlog cap), all ready, all product_code:false, distinct ports 5200/5201/5202. E-012 (question lane, prio1, port5200): durability step 1 — bucket E-007/E-011 AGENT tokens (invalid vs intentional) and measure the report's precision/recall vs PARITY-MISS; gates the flow-1 code-gen test. E-013 (question lane, prio2, port5201): option A first experiment — do className-carrying json-render specs render as intended under BaroCSS on current develop, attribute misses to parity families, and is there any gap beyond the zero-build runtime (§5 existence check). E-014 (parity lane, prio3, port5202): measure F2 translate + PR#84 candidates vs Tailwind 4.1.13 and rank by v0/shadcn frequency — the measured backlog the next fix batch draws from. No fix/product code in any."
   last_result: "E-011 PROVEN (K13): a per-class BaroCSS resolution report (has()/getCss() only) shown to the agent right after it generates cut first-try silent parity misses from 7-of-8 (arm0) to 0 (arm1), clearly below a browser computed-style control (arm2, 5); the actor fixed exactly the flagged classes citing UNDEFINED-VAR. Criterion 5 holds for option B: class->rule resolution state is BaroCSS-unique. n=1/task, one strong actor; shared-core coverage only (neither target flow end to end)."
-  next: "PLAN: contract option A's first experiment (json-render className specs), per the delegated order (B done -> A -> next parity batch). A flow-(1) code-gen direction experiment testing E-011's report inside a code-gen pipeline is now worth contracting (K13). Parity lane may run alongside (F2 translate value-formula candidate + rank families by v0/shadcn output, Q6). Keep <=3 open items across lanes."
+  next: "EXECUTE E-012/E-013/E-014 in priority order (they are independent, depends_on: []). After E-012 durability reports: if flagged tokens include genuinely-invalid ones the parity lane can't erase (durable), contract the flow-1 code-gen experiment (B's report in a code-gen pipeline); else contract durability step 2 (post-parity build + weaker actor, U1) first. After E-013: contract a minimum-gap flow-2 experiment only if a real runtime gap was found (else flow-2 value is parity-only). After E-014: contract the parity FIX batch (product_code) from the ranked backlog, top-first, under the approval/tests-in-scope/draft directives. No report-productizing code until n>=3, a weaker actor, and E-012's accuracy check are all in hand."
   blockers: []
 
 outcomes:
@@ -254,6 +254,33 @@ decisions:                 # older entries compressed; full text in git log -p -
       reproduced causal chain, so no downgrade. Criterion 5 holding for option B is the first BaroCSS-unique signal in
       the generation loop and directly sets the next directions the human delegated (option A, then the flow-1
       code-gen experiment), so it belongs in decisions, not just knowledge.
+
+  - id: D22
+    date: 2026-09-25
+    decision: >
+      PLAN pass (planners-plan directive: write every ready contract, up to 3 open across lanes). Contracted three
+      independent, product_code:false, ready work items, distinct ports so they run in parallel:
+      E-012 (question lane, prio1, port5200) — durability Step 1, the human's "agreed after E-011" note: over every
+      class token in E-007's + E-011's recorded sections, (A) bucket the classifier's AGENT tokens into
+      invalid vs intentional and (B) measure the arm1 has()/getCss() report's precision/recall vs the classifier's
+      PARITY-MISS. Offline, no agent runs; it gates the flow-1 code-gen test (which the human ordered to wait on this).
+      E-013 (question lane, prio2, port5201) — option A's first experiment (the delegated B->A order; B is done):
+      do className-carrying json-render specs render as intended under BaroCSS on current develop (classify + attribute
+      misses to parity families), and the §5 existence check "is there any gap beyond the existing zero-build runtime"
+      (K8 production-runtime = Q4 trigger, not a general gap). Deterministic render+classify (L2) + analysis; flow-2 only.
+      E-014 (parity lane, prio3, port5202) — the measurement the next parity batch must start with: measure F2 translate
+      + the four PR#84 candidates against Tailwind 4.1.13 with the frozen classifier, tag each MATCHES or
+      MISS+mechanism+min-fix-shape, and rank by v0/shadcn frequency. No fix, no product code — it produces the ranked
+      backlog the later fix contract draws from.
+    why: >
+      Planners-plan directive: fill the backlog with justifiable ready contracts instead of one per pass. Question
+      lane keeps its order (B done -> A = E-013) and durability (E-012) runs beside A per the after-E-011 note; a parity
+      measurement (E-014) may run alongside (planners-plan relaxes B->A->parity to the question lane's internal order).
+      All three are product_code:false, so no human-approval/draft gates apply and no self-judging risk; each is a
+      cheap L2/analysis measurement that can end in "no new BaroCSS code needed", which the vision counts as progress.
+      F1 ring/F3 border (K12) are excluded from E-014's backlog (already at parity); report-productizing stays blocked
+      until n>=3, a weaker actor, and E-012's accuracy check exist. Ports 5200/5201/5202 avoid the parallel-session
+      collision; no shared product path is written, so port locks are the only locks needed.
 
 open_items:                # for STRATEGY, not EXECUTION
   - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."

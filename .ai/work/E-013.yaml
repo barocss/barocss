@@ -1,0 +1,150 @@
+# Work-store contract (AGENTS.md §1). One file per work item; the file name is the id.
+# STRATEGY writes every field above `result` and sets status: ready.
+# EXECUTION may change only `status` and `result` (contract is frozen; .ai/check.py --work E-013 enforces).
+# STRATEGY alone writes `review` and sets status: evaluated.
+# status: none | ready | running | done | blocked | evaluated
+# While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
+status: ready
+
+id: E-013
+outcome: O2
+branch: ai/E-013-jsonrender-parity
+priority: 2
+product_code: false
+locks: ["port:5201"]
+observes:
+  - "packages/barocss/src/"        # the existing zero-build runtime this flow depends on; measured on current develop
+depends_on: []                     # runs beside E-012; does not wait on it (flow-2, not the flow-1 test)
+question: >
+  QUESTION LANE — option A's first experiment, the next question-lane item after B (STATE.human_directives, the
+  delegated "rounds 2-3" note: "Option A's first experiment comes after B, whatever B finds"). Target flow (2) from
+  the human's own Q1 answer: a catalog/JSON spec that arrives at runtime and a renderer draws it (json-render / A2UI
+  style), where the spec carries Tailwind/BaroCSS className strings. Two sub-questions:
+  (a) Do className-carrying json-render specs render AS INTENDED under BaroCSS's existing zero-build runtime? For a
+      representative sample of specs, render each under BaroCSS on a live page and classify every className token with
+      E-007's frozen classifier (RESOLVED / PARITY-MISS / AGENT). Attribute each PARITY-MISS to a KNOWN parity family
+      (ring box-shadow, preflight border, single-axis translate, or a PR #84 candidate: @container/@container/<name>,
+      bg-(--x) color, max-md: raw-breakpoint @media, outline width) or to "other", and each AGENT token as spec-author
+      error vs runtime gap.
+  (b) The §5 existing-capability check for this flow: does ANYTHING in "spec arrives at runtime -> renderer draws it
+      with BaroCSS classes" need BaroCSS BEYOND the existing zero-build runtime? This is "is there a gap", NOT "beat
+      an alternative". Try to disprove a gap: the browser/DOM, a trivial renderer, and BaroCSS's existing runtime
+      (baroStart, has()/getCss(), updateConfig) may already cover the whole flow. If the only gap found is
+      "production build with no exposed runtime" (K8), record that as the Q4 trigger, not a general gap.
+decision_it_informs: >
+  (a) tells the parity lane which families actually bite the json-render flow and how often, feeding the v0/shadcn
+  ranking (Q6) for the next parity batch. (b) is the gate for whether flow (2) has any BaroCSS-unique hypothesis:
+  if a real runtime gap exists (something only BaroCSS can do that the flow needs and the browser/DOM/renderer/
+  existing runtime cannot), Strategy contracts a minimum-gap flow-2 experiment; if the only gap is "production has no
+  exposed runtime" (K8), Strategy decides Q4 (whether BaroCSS owns a production runtime story) then, separately; if
+  NO gap beyond the existing runtime is found, that is progress under the vision (no new BaroCSS code needed for
+  flow 2 beyond parity), flow-2 value reduces to parity, and the report/flow-1 line (option B, E-012) carries the
+  BaroCSS-unique hypothesis. Coverage: this claims flow (2) only; it says nothing about the code-gen pipeline (flow 1).
+hypothesis: >
+  Plausible but untested: className-carrying specs are just class strings on elements, so under BaroCSS's runtime
+  they render exactly as free-form classes do (E-007/E-011 world) — the SAME parity families miss (ring/border/
+  translate/#84 candidates) and NOTHING in the render path needs BaroCSS beyond the existing zero-build runtime,
+  because a renderer walking a JSON tree and setting className is plain DOM. The interesting negative would be a
+  spec-level need the free-form world never surfaced (e.g. a spec references a theme token the runtime cannot resolve
+  without a config route, K6/K8) — that would be a genuine flow-2-specific gap.
+builds_on: [K3, K4, K6, K8, K10, K12]
+scenario: >
+  Measured on CURRENT develop (the existing zero-build runtime, WITH E-010's ring/border fixes landed — the point is
+  to test BaroCSS as it is today, not a pinned pre-fix world). App/runtime: reuse E-006/E-007's environment —
+  apps/barocss-site booted by baroStart({config:{preflight:true}}) served by `vite` dev on 127.0.0.1:5201 (env.mjs
+  proxy, app origin only), OR a minimal standalone page that loads the same built packages/barocss runtime; either is
+  fine as long as it is the real runtime, not a duplicate CDN build (avoid E-004's arm-A pitfall). Renderer: a SMALL
+  evidence script in .ai/evidence/E-013/ that takes a json-render/A2UI-style spec (a tree of {tag/type, props incl.
+  className, children}) and creates the corresponding DOM under that runtime. Keep it minimal — a spec-to-DOM walk,
+  no framework, no engine. Spec sample: 6-10 className-carrying specs representative of what AI UI platforms emit —
+  reuse E-007's three generated sections re-expressed as json-render specs PLUS a small shadcn-style sample (card,
+  dialog, button variants, form field), so the className vocabulary matches Q6's "v0/shadcn-style output". Classifier
+  and grader: E-007's frozen classify.mjs (copied, re-pointed on path only; logic unchanged) for per-token
+  RESOLVED/PARITY-MISS/AGENT and family attribution. NO agent is required — this is deterministic rendering +
+  classification (L2) plus the (b) existing-capability analysis (documented reasoning, L0/L2). Do NOT write a
+  json-render engine, adapter layer, or spec schema into packages/barocss; the renderer lives in the evidence dir.
+method: >
+  1. Branch ai/E-013-jsonrender-parity from origin/develop. Set status: running, commit, push.
+  2. Copy E-007's classify.mjs (+ helpers) into .ai/evidence/E-013/, re-point paths only. Build packages/barocss at
+     current develop and serve the page on 127.0.0.1:5201; confirm it boots styled before measuring.
+  3. Author the spec sample (.ai/evidence/E-013/specs/): E-007's G1/G2/G3 sections as json-render specs + a small
+     shadcn-style set. Record each spec's source and its className vocabulary.
+  4. Author the minimal renderer (.ai/evidence/E-013/render.mjs): walk each spec, create DOM with className under the
+     live BaroCSS runtime, wait for rules to settle (reuse the classifier's stability wait), then for every className
+     token run the frozen classifier -> RESOLVED / PARITY-MISS / AGENT. For each PARITY-MISS, attribute to a known
+     family (ring / preflight-border / translate / #84: container|bg-var|max-breakpoint|outline) or "other". For each
+     AGENT token, mark spec-author-error vs runtime-gap. Emit a per-spec + aggregate table and audit.json.
+  5. (b) existing-capability check: with the render results in hand, walk the flow step by step (spec arrives ->
+     renderer builds DOM -> BaroCSS resolves classes -> page styled) and record, for each step, whether the
+     browser/DOM + a trivial renderer + BaroCSS's EXISTING runtime already cover it, or whether a step needs something
+     only BaroCSS could provide and the existing runtime does not. Explicitly try to disprove each candidate gap. If
+     the only gap is "production build exposes no runtime" (K8), label it the Q4 trigger, not a general gap. Cite
+     K-ids. This is documented reasoning backed by the render evidence (L0/L2), not a new build.
+  6. Fill result: verdict (PROVEN when (a) is measured over the full sample with the frozen classifier and (b) is
+     recorded with each candidate gap tried and either confirmed or disproven; INCONCLUSIVE if the runtime won't boot
+     or the classifier won't run after one environment retry), level L2 for (a) / note L0-L2 for (b), the family
+     attribution table, the existing-capability finding, and the coverage note (flow 2 only; says nothing about flow
+     1). Set status: done (or blocked). Commit ai(exec): E-013 <VERDICT> ..., run
+     `python3 .ai/check.py --role execution --base origin/develop --work E-013`, open the PR to develop, put its URL
+     in result.pr, push. No product code, so no pnpm check gate and no draft step. Do NOT merge. STOP.
+allowed:
+  actions:
+    - "create branch ai/E-013-jsonrender-parity from origin/develop; set status: running and push before running"
+    - "build packages/barocss at current develop and serve apps/barocss-site (or a minimal page loading the same built runtime) on 127.0.0.1:5201 (dist gitignored/uncommitted); use the real runtime, not a duplicate CDN build"
+    - "copy E-007's classify.mjs (+ helpers) into .ai/evidence/E-013/ and re-point file paths only (no classification-logic change)"
+    - "author json-render/A2UI-style className-carrying specs (E-007 sections re-expressed + a small shadcn-style sample) and a MINIMAL spec-to-DOM renderer, both in .ai/evidence/E-013/"
+    - "render each spec under the live BaroCSS runtime, classify every className token, attribute each PARITY-MISS to a known family or 'other' and each AGENT token as spec-author-error vs runtime-gap; emit tables + audit.json"
+    - "run tailwindcss 4.1.13 from node_modules locally only as the classifier's existing reference"
+    - "read packages/barocss + apps/barocss-site source read-only to wire the renderer to the existing runtime and to run the (b) existing-capability check (<=15 files); make no product change"
+  paths:
+    - ".ai/evidence/E-013/"
+non_goals:
+  - Any product code change (packages/**, apps/**). Do NOT add a json-render engine, adapter, spec schema, serializer, or any abstraction to packages/barocss; the renderer and specs are evidence scripts. If (b) finds a real gap, the minimum-gap experiment is a SEPARATE later contract.
+  - 'Optimizing or "beating" an alternative renderer. (b) is an existence check ("is there a gap"), per §5; the renderer only has to render, not be good.'
+  - Deciding Q4 (production runtime story) here. If the only gap is K8's no-exposed-production-runtime, RECORD it as the Q4 trigger and stop; do not design a production runtime.
+  - Claiming flow (1) (the code-gen pipeline) or claiming both flows. This experiment covers flow (2) only; a claim holds for both only when both are measured (human Q1 directive).
+  - Changing E-007's frozen classifier logic; only its file paths may be re-pointed.
+  - Folding in O3 (styling provenance). O2 only.
+  - Adding an agent/`claude -p` run. The first experiment is deterministic render + classify + analysis; an agent-driven flow-2 experiment, if warranted, is a later contract.
+evidence:
+  level_required: L2
+  proves_yes: >
+    (a) L2: over the full 6-10 spec sample, every className token classified by the frozen classifier, each
+    PARITY-MISS attributed to a named family or "other" and each AGENT token to spec-author-error vs runtime-gap, in
+    a reproducible table (rerun command regenerates it). (b) Recorded: each step of the flow marked covered-by-
+    existing (browser/DOM/renderer/existing BaroCSS runtime) or a named gap, with every candidate gap actively tried
+    and either confirmed with evidence or disproven, K-ids cited; if the only gap is K8 production-runtime, it is
+    labelled the Q4 trigger. Coverage note present (flow 2 only).
+  proves_no: >
+    Not a yes/no; the informative outcomes are (i) json-render specs hit the SAME parity families as free-form
+    classes and NO gap beyond the existing runtime is found -> flow-2 value is parity-only, no new BaroCSS code
+    needed for flow 2 (progress: "no new code"); or (ii) a real flow-2-specific runtime gap IS found (something only
+    BaroCSS can do that the render path needs) -> record it precisely as the seed for a minimum-gap experiment.
+    Record which. INCONCLUSIVE if the runtime will not boot/serve, the classifier will not run after one environment
+    retry, or the sample cannot be rendered — say exactly what blocked it.
+budget: >
+  1 session. No agent runs. 6-10 specs, one page boot on 5201, one environment retry only. Read at most ~15 product
+  files (renderer wiring + the (b) check). Once (a) is tabulated over the full sample and (b) is recorded with each
+  candidate gap tried, STOP; do not expand the sample into a research project or optimize the renderer.
+stop_when:
+  - (a) the full-sample classification+attribution table and (b) the per-step existing-capability finding (each candidate gap tried) are both recorded -> PROVEN.
+  - The runtime will not boot/serve on 5201, or the frozen classifier will not run, after one environment retry -> INCONCLUSIVE; record the failure.
+  - The only gap found is K8 (no exposed production runtime) -> record it as the Q4 trigger and stop; do not design a production runtime.
+  - The next step would touch a non_goal, a path outside .ai/evidence/E-013/, need product code, or need an agent run -> stop.
+  - The budget is used up.
+
+result:
+  verdict:
+  level:
+  evidence:
+  learning:
+  unknown:
+  next_question:
+  pr:
+  checks:
+  side_notes:
+
+review:                    # STRATEGY §2A. Written by the review pass; EXECUTION never edits this.
+  accepted_verdict:
+  merged:
+  reviewer_notes:
