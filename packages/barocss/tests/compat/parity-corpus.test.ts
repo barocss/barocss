@@ -18,7 +18,6 @@ import { corpus } from './corpus';
 // its fix lands (the test fails if a listed class starts passing, so the list can't go stale).
 
 const KNOWN_FAILURES: Record<string, string> = {
-  "transition": "transition-property list differs",
   "focus:outline-none": "outline v4 semantics (#187)",
   "space-y-3": "equivalent: margin on following siblings (v3 selector)",
   "bg-gradient-to-br": "legacy gradient emits a bare & selector (#187)",
@@ -30,14 +29,13 @@ const KNOWN_FAILURES: Record<string, string> = {
   "sr-only": "clip instead of clip-path",
   "blur-3xl": "blur scale on v3 values",
   "-translate-x-1/2": "other translate axis undefined (#178)",
-  "transition-colors": "transition-property list differs",
   "bg-gradient-to-r": "legacy gradient emits a bare & selector (#187)",
   "hover:-translate-y-0.5": "other translate axis undefined (#178)",
   "hover:-translate-y-1": "other translate axis undefined (#178)",
   "@container/card-header": "no container-type utility (#187)",
   "after:absolute": "content missing",
   "after:opacity-0": "content missing",
-  "after:transition-opacity": "transition-property list differs",
+  "after:transition-opacity": "::after/::before get no content (#187)",
   "data-[side=bottom]:translate-y-1": "other translate axis undefined (#178)",
   "data-[side=left]:-translate-x-1": "other translate axis undefined (#178)",
   "data-[side=right]:translate-x-1": "other translate axis undefined (#178)",
@@ -92,7 +90,8 @@ function resolve(value: string, scope: Scope, depth = 0): string {
 // Spelling-only differences that render the same.
 function normalize(prop: string, value: string): string {
   let v = value.replace(/\s+/g, ' ').replace(/\(\s+/g, '(').replace(/\s+\)/g, ')').replace(/\s*,\s*/g, ',').replace(/\s*\/\s*/g, '/');
-  v = v.replace(/calc\(infinity \* 1px\)/g, '9999px').replace(/\bcurrentColor\b/g, 'currentcolor').replace(/in lab\b/g, 'in oklab');
+  // BaroCSS namespaces its internal vars --baro-*, Tailwind --tw-*; as values (e.g. in transition-property) they're the same.
+  v = v.replace(/--baro-/g, '--tw-').replace(/calc\(infinity \* 1px\)/g, '9999px').replace(/\bcurrentColor\b/g, 'currentcolor').replace(/in lab\b/g, 'in oklab');
   for (let prev = ''; prev !== v;) {
     prev = v;
     v = v.replace(/calc\((-?[\d.]+)\/([\d.]+) \* 100%\)/g, (_, a, b) => `${+((a / b) * 100).toFixed(4)}%`)
