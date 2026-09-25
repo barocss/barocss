@@ -4,9 +4,9 @@ updated: 2026-09-25
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O2
-  experiment: "none (E-006 evaluated PROVEN, merged)"
+  experiment: "E-007 (ready): real agent builds 3 new UI sections on the live site; how many Tailwind v4 classes BaroCSS silently drops (K4), caught or claimed done?"
   last_result: "E-006 L3: 3/3 real agents added a theme colour on the real site's dev server, kept its config, no regression, claims agree (K9). O1 done."
-  next: "STRATEGY: contract E-007 for O2"
+  next: "EXECUTION: run E-007 on branch ai/E-007-gen-parity"
   blockers: []
 
 outcomes:

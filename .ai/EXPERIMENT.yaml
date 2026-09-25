@@ -5,125 +5,112 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: evaluated
+status: ready
 
-id: E-006
-outcome: O1
-branch: ai/E-006-config-preserve
+id: E-007
+outcome: O2
+branch: ai/E-007-gen-parity
 question: >
-  On apps/barocss-site's vite dev server, where baroStart passes {preflight:true} and updateConfig replaces the
-  whole config (K8), does a real LLM agent using only generic browser tools add a colour token through BaroCSS
-  without regressing the page, and does its final claim agree with the grader?
-  Re-verifies K7 because E-004's fixtures had no existing config, so a config-dropping call could not regress
-  them; E-005 never ran agents (blocked at its bare-call positive control).
+  When a real LLM agent builds a new UI section in a live BaroCSS page (apps/barocss-site on the vite dev server)
+  using only generic browser tools, how many of the class tokens it naturally writes are Tailwind v4 classes that
+  BaroCSS silently fails to apply (K4 parity misses), and does the finished section end with every miss either
+  replaced or named in a final claim that agrees with the grader?
+  New: K5 measured detection on modify tasks designed to hit known no-ops; nothing yet measures how often natural
+  generation hits them.
 decision_it_informs: >
-  All three runs pass with claims agreeing → O1's done_when is met with zero BaroCSS changes (K3, K5, K7, K8,
-  this); Strategy marks O1 done and moves to O2/O3. A run that drops the page's config and claims "done"
-  (claim disagrees with the grader) is the evidence for a BAROCSS gap in updateConfig's replace semantics, and
-  Strategy contracts the minimum merge/keep-base change as product code. A run that drops config, notices the
-  regression and recovers still passes; its extra turns and cost are recorded. Any other failure names its owner:
-  module identity or getRuntime/baroStart (BAROCSS), app loading (APP), bundler (LIBRARY), or agent error (AGENT).
+  All three runs end with no unnamed parity miss and claims agree → O2's first-try/verify loop needs no BaroCSS
+  parity work now; first-try miss counts are recorded as its cost, and Strategy moves to O3 or a weaker actor (U1).
+  A run whose final section keeps a parity miss its "done" claim does not name is the evidence for a BAROCSS gap in
+  class → rule resolution, and Strategy contracts the minimum fix for the observed class family (one capability).
+  Frequent first-try misses that are all caught rank parity as a cost item by frequency, not a need. Tokens Tailwind
+  v4 itself does not resolve are AGENT-owned and counted separately.
 hypothesis: >
-  The agent reads updateConfig's source (K7 discovery path), sees the assignment and spreads the existing config
-  in most runs, as E-004 A1 did. At least one run passes only a theme object, as E-004 A2 did; whether it then
-  notices the hero links' colour change is the open point.
-builds_on: [K5, K7, K8, U5]
+  Most tokens are core utilities BaroCSS resolves. Each run writes 0-3 parity misses on first try (text-balance/pretty,
+  size-*, *-xs, newer v4 names), and the agent's own verification catches misses on visible properties but misses
+  cosmetic ones (text wrapping, shadows), so a "done" claim with an unnamed miss is plausible in at least one run.
+builds_on: [K3, K4, K5, K9, U4]
 scenario: >
-  App: apps/barocss-site unchanged, booted by index.html's baroStart({config:{preflight:true}}), served by the
-  `vite` dev server (E-005's arm D). The actor is E-004's and E-005's: claude-opus-4-8[1m], a fresh context per run,
-  an empty cwd, only the Playwright MCP tools. Network is limited to the app's localhost origin through E-005's
-  env.mjs proxy, and every external request is blocked. The prompt is word for word E-004's: "The page is styled
-  with BaroCSS, a runtime utility-class CSS engine with Tailwind-compatible class names. Make the change through
-  BaroCSS in the live page (its class names and its theme configuration), not with inline styles or hand-written
-  CSS. Then verify the result and report whether the task is done."
-  Task Y1 (E-005's): Add a `brand` color (#5B21B6) to the page's BaroCSS theme so that `bg-brand` works, and use
-  it for the hero's Live Demo button's background.
-  Runs: D1, D2, D3, each a fresh context. No production-build arm (K8 already shows no route there).
+  App: apps/barocss-site unchanged, booted by baroStart({config:{preflight:true}}), served by `vite` dev, exactly
+  E-006's environment (env.mjs proxy, app origin only, every external request blocked). Actor: E-006's, unchanged
+  (claude-opus-4-8[1m], fresh context per run, empty cwd, only the Playwright MCP tools). Prompt, word for word:
+  "The page is styled with BaroCSS, a runtime utility-class CSS engine with Tailwind-compatible class names. Build the
+  requested UI in the live page using BaroCSS class names only, not inline styles or hand-written CSS. Then verify
+  that it renders as you intended and report whether the task is done." followed by the task.
+  G1: Add a pricing section below the hero with three plan cards (Free, Pro, Team); each has a name, a price, a short
+  feature list and a call-to-action button, and the Pro card is visually highlighted as recommended.
+  G2: Add a newsletter sign-up card below the hero: a heading, one line of supporting text, an email field with a
+  subscribe button beside it, and a small helper line under the field; it should look polished and fit the page.
+  G3: Add a testimonials section below the hero: three quote cards in a responsive grid (one column on small screens,
+  three on wide ones), each with the quote, the person's name, their role and a round avatar placeholder.
+  Runs: G1, G2, G3, one fresh context each.
 method: >
-  1. Build packages locally and serve apps/barocss-site with `vite`, unchanged; no build output is committed.
-     Copy E-005's grader.js, env.mjs and grader-selftest.mjs into .ai/evidence/E-006/. Keep the grader unchanged.
-     Change the self-test only as follows: drop arm P; the positive control is the config-preserving call
-     getRuntime().updateConfig({...getRuntime().options.config, theme:{extend:{colors:{brand:'#5B21B6'}}}}) from
-     the page's own BaroCSS module URL plus adding bg-brand, and it must pass Y1 with no regression; add a negative
-     control, the bare getRuntime().updateConfig({theme:{extend:{colors:{brand:'#5B21B6'}}}}) plus bg-brand, which
-     must fail Y1 on regression only (class and colour checks pass). Keep every other E-005 arm D expectation. Run
-     the self-test before any agent run and commit its output.
-  2. Adapt E-004's run.mjs so the page URL is the dev server and the network goes through env.mjs's proxy
-     (app origin only). Keep the rest of the actor setup. Commit the runner before any agent run.
-  3. Grade each run with E-005's grader and Y1 rule at 1024px: the target's classList contains `bg-brand`, its
-     computed backgroundColor is rgb(91, 33, 182), there is no regression on any snapshotted property, and the
-     detector finds no raw-CSS route. Passing a theme or config object to a BaroCSS API is a BaroCSS route.
-  4. For each run record: grader result and each failing property; the final claim and whether it agrees; the
-     exact object(s) passed to updateConfig (or other BaroCSS API), in order; whether the page's options.config
-     still has preflight:true and the preflight rules are present after the run; whether the agent read
-     updateConfig's source; what its verification checked beyond the target (elements, screenshots); the module
-     URL imported and whether getRuntime() was the page's runtime; duplicate barocss <style> ids; turns and cost.
+  1. Build packages locally, serve apps/barocss-site with `vite`, unchanged; no build output is committed. Copy
+     E-006's env.mjs and run.mjs into .ai/evidence/E-007/; change the runner only to take G1-G3 and the prompt above.
+  2. Write a deterministic token classifier (L2): for each class token, TW = Tailwind v4 (tailwindcss 4.1.13, the
+     repo's devDependency, default theme) emits a rule for it; BC = the page's BaroCSS runtime applies it: a rule
+     exists, has at least one declaration, and every var() it uses without a fallback is defined on the page.
+     Variants: classify the full token; if it fails only because of the variant, record that. Classes: RESOLVED (TW and
+     BC), PARITY-MISS (TW, not BC), AGENT (not TW; includes BaroCSS-only and invented names), BC-ONLY noted within AGENT.
+     E-002's noop-probe may be reused. Self-test before any agent run (gating, output committed): flags as PARITY-MISS
+     text-balance, text-pretty, aspect-video, rounded-4xl and E-002's four classes; flags as RESOLVED bg-blue-600, p-4,
+     hover:bg-blue-700, md:grid-cols-3, aspect-[16/9], rounded-[2rem], text-[42px]; flags as AGENT a made-up token.
+  3. Grader per run: new section = elements absent from the baseline DOM, plus class tokens added to existing
+     elements. Pass = the section exists and covers the task's named parts (checked by the grader against a per-task
+     list of required parts, fixed before any run: G1 three cards with a highlighted one; G2 an email input and a
+     button; G3 three cards with a grid that is one column at 375px and three at 1280px), no inline style attribute or
+     raw CSS write (E-005/E-006 detector), and zero PARITY-MISS tokens remain in it. A remaining miss that the final
+     claim names (says it has no effect, or reports not done) makes the claim agree though the run fails.
+     Commit the classifier, grader and runner before any agent run.
+  4. Record per run: first-try tokens (the class tokens in the agent's first DOM-inserting tool call, parsed from its
+     code) with their class counts; final section tokens with class counts; each PARITY-MISS: token, first-try or
+     later, whether the agent detected it (changed or removed it, or named it) and how (computed style, screenshot,
+     CSS text); grader result; final claim and whether it agrees; turns and cost. Aggregate PARITY-MISS tokens by family.
 allowed:
   actions:
     - "build packages locally (dist output is gitignored or left uncommitted)"
     - "run apps/barocss-site's vite dev server on localhost; drive a browser"
-    - "copy and adapt E-005's grader, env and self-test and E-004's runner into .ai/evidence/E-006/"
-    - "read packages/barocss-browser or packages/barocss source only to classify a route or failure"
+    - "run tailwindcss 4.1.13 from the repo's node_modules locally as the classification reference"
+    - "copy and adapt E-006's env and runner, and E-002's noop-probe, into .ai/evidence/E-007/"
+    - "read packages/barocss or packages/barocss-browser source only to classify a token or a failure"
     - "spawn one fresh agent context per run as the actor (3 runs)"
-  paths: [".ai/evidence/E-006/"]
+  paths: [".ai/evidence/E-007/"]
   product_code: false
 non_goals:
-  - Editing apps/barocss-site or any product code, including updateConfig's semantics, baroStart or getRuntime
-  - Hinting that updateConfig replaces config, that preflight exists, where the runtime lives, or that updateConfig exists
-  - Changing the prompt, the task, the model or the actor's tools; a production-build arm; other tasks
-  - Allowing external network access (for example a public CDN import) or source-file config editing
-  - Editing the grader or runner after seeing agent results
+  - Fixing any parity miss or editing apps/barocss-site or product code
+  - Hinting at K4 gaps, Tailwind v4 differences, verification methods or any class name in the prompt or environment
+  - Changing the prompt, tasks, model or tools after the first run; weaker models (U1); a production-build arm
+  - Grading visual design quality beyond the per-task required parts
+  - Editing the classifier, grader or runner after seeing agent results
 evidence:
   level_required: L3
   proves_yes: >
-    All three runs pass Y1 through a BaroCSS config route with no regression, and all three final claims agree
-    with the grader.
+    All three runs end with zero PARITY-MISS tokens in the new section that the final claim does not name, and all
+    three claims agree with the grader. First-try PARITY-MISS counts recorded.
   proves_no: >
-    At least one run fails Y1, and the tool calls record the blocking step: either the config route regressed
-    the page (the object passed dropped the existing config) or BaroCSS theme configuration could not be reached
-    or used. Whether that run's claim agreed with the grader is recorded.
+    At least one run ends with a PARITY-MISS token in the new section, a final claim of done that does not name it,
+    and the tool calls show whether the agent checked the property that token should have set.
 budget: >
-  1 session. Three agent runs (D1, D2, D3). Retry once only for environment failures, not for agent mistakes.
-  Read ≤ 10 product files.
+  1 session. Three agent runs (G1, G2, G3). Retry once only for environment failures, not for agent mistakes.
+  Read at most 10 product files.
 stop_when:
-  - All three runs are recorded with grader results.
-  - A gating self-test expectation in step 1 fails → blocked, and record which one.
+  - All three runs are recorded with grader results and token classifications.
+  - A gating self-test expectation in step 2 fails → blocked, and record which one.
   - The site does not render styled on the dev server before any agent run → blocked, and say why.
   - No independent agent actor can be run → blocked, and say what is missing.
-  - The grader would have to change after an agent run → record it in side_notes, don't change the grader.
+  - The classifier or grader would have to change after an agent run → record it in side_notes, don't change it.
 
 result:
-  verdict: PROVEN
-  level: L3
-  evidence:
-    - "Self-test 11/11 gating expectations pass before any agent run (commit d180f8a): positive control {...options.config, theme.extend} + bg-brand passes Y1 with no regression; negative control bare {theme.extend} + bg-brand fails on regression only (heroInstall.color, heroGithub.color). Rerun: node .ai/evidence/E-006/grader-selftest.mjs -> selftest.json"
-    - "D1, D2, D3 (claude-opus-4-8[1m], Playwright MCP only, fresh context, empty cwd, network = app origin only): all pass Y1 at 1024px, 0 regressions, 0 raw-CSS writes, 0 style-attribute changes; target bg-blue-600 -> bg-brand, rgb(91, 33, 182). Rerun: node .ai/evidence/E-006/run.mjs D1|D2|D3 -> runs/<label>.json"
-    - "Config objects (one updateConfig call per run): D1 deep Object.assign of rt.options.config; D2 deep spread of runtime.options.config; D3 literal {preflight:true, theme:{extend:{colors:{brand}}}}. After every run options.config = {preflight:true, theme:{extend:{colors:{brand:'#5B21B6'}}}} and the preflight partition holds 41 rules (baseline 41)"
-    - "All three read updateConfig's source before calling it: D1 toString (#6), D2 fetched browser-runtime.ts via /@fs (#10), D3 toString + options.config (#9)"
-    - "Route: page module /@fs/.../barocss-browser/src/index.ts (D2: baro-boot.ts) -> getRuntime() = the page runtime; no duplicate barocss <style> ids; page-module probe sees the new config and getCss('bg-brand') after each run"
-    - "Final claims: all three say done, bg = #5B21B6, preflight preserved (D1, D3 explicit); all agree with the grader. Turns/cost D1 14/$0.49, D2 16/$0.72, D3 17/$0.52. No environment failures, no retries. Table: .ai/evidence/E-006/SUMMARY.md"
-  learning: >
-    On the real site, where updateConfig's replace semantics can regress the page, 3/3 agents read updateConfig's source,
-    preserved the existing config and passed with claims agreeing; the replace semantics did not block agents. The
-    drop-then-recover path was never exercised (0/3 passed a bare theme object).
-  unknown:
-    - "Whether an agent that passes a bare theme object on this page notices the hero links' colour regression (0/3 did it; E-004 A2's bare call was on a page with no config)"
-    - "Rate beyond n=3, and with other models or weaker actors"
-  next_question: >
-    With O1's scenario passing through existing capabilities (K3/K5/K7/K8 + this), which O2/O3 scenario is the next
-    unresolved assumption? A config-replace merge change is not indicated by this evidence.
-  pr: https://github.com/barocss/barocss/pull/117
-  checks: "python3 .ai/check.py --role execution --base origin/develop: pass. No product code changed (pnpm check not required)."
-  side_notes:
-    - "D2 call #5 used browser_run_code_unsafe with Node require('fs') to read the CLI's saved tool-result file on the host; it failed (require is not defined). The actor's Playwright tool set includes a host-code tool the network guard does not cover."
-    - "The vite dev server serves all repo source over /@fs (D2 read baro-boot.ts, context.ts, browser-runtime.ts), so on dev the discovery path includes TypeScript source, not only Function.toString()."
-    - "Chromium's own Google background requests are refused by the guard (logged in runs/*.json refused_requests); none came from the agent."
+  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
+  level: null            # L0-L3 actually achieved
+  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
+  learning: null         # 1-2 sentences
+  unknown: []            # what remains unanswered, or the blocker if status: blocked
+  next_question: null    # suggestion only; Strategy decides
+  pr: null               # PR URL opened by Execution (never merged by Execution)
+  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
+  side_notes: []         # adjacent discoveries, one line each, NOT pursued
 
 review:                  # STRATEGY only
-  accepted_verdict: PROVEN
-  merged: true
-  reason: >
-    proves_yes met at L3: 3/3 Y1 pass, 0 regressions, preflight kept (41 rules), claims agree; grader/env identical to
-    E-005, runner and 11/11 self-test committed before runs; check.py OK, CI green; evidence-only. Caveats: n=3, one
-    model, bare-call-then-recover path unexercised, actor had a host-code tool (browser_run_code_unsafe). Self-test not
-    rerun (needs install+build+Playwright; not cheap).
+  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
+  merged: null           # true | false
+  reason: null           # one line: criteria met/unmet, level, CI, scope
