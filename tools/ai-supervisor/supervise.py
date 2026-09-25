@@ -540,6 +540,11 @@ def wrap(sdir, cwd, cmd, owner=None, grace=20):
     the session is ended too, and exit.json says it was interrupted."""
     env = {k: v for k, v in os.environ.items()
            if k in SCRUB_KEEP or not (k.startswith("CLAUDE") or k in ("AI_AGENT", "BAGGAGE"))}
+    try:   # per-session additions written by launch(), e.g. the slot's port range
+        with open(os.path.join(sdir, "env.json")) as fh:
+            env.update({str(k): str(v) for k, v in json.load(fh).items()})
+    except (FileNotFoundError, ValueError):
+        pass
     ex = {}
     with open(os.path.join(sdir, "log.jsonl"), "ab") as out, open(os.path.join(sdir, "stderr.log"), "ab") as err:
         try:
@@ -949,7 +954,11 @@ class Supervisor:
             return None
         cwd = ws
         os.makedirs(cwd, exist_ok=True)
-        cmd = self.cfg.command(sid, d["action"])
+        ports = self.cfg.slot_ports(slot) if self.cfg.concurrency > 1 else None
+        cmd = self.cfg.command(sid, d["action"], ports)
+        if ports:
+            sup.write_json(os.path.join(sdir, "env.json"),
+                           {"BARO_PORT_BASE": str(ports[0]), "BARO_PORT_LAST": str(ports[1])})
         now = time.time()
         rec = {"session_id": sid, "key": d["key"], "action": d["action"], "experiment": v["experiment"],
                "mode": mode_of(d["action"]),
@@ -958,7 +967,8 @@ class Supervisor:
                "timeout_s": self.cfg.timeout_for(d["action"]), "idle_timeout_s": self.cfg.idle_timeout_s,
                "exit_code": None, "reason": None, "before": {"next_action": v["next_action"], "develop": v["develop"],
                                                              "item_state": item_state},
-               "cwd": cwd, "dir": sdir, "work": d.get("work") or v.get("experiment"), "slot": slot}
+               "cwd": cwd, "dir": sdir, "work": d.get("work") or v.get("experiment"), "slot": slot,
+               "ports": list(ports) if ports else None}
         recs = self.ledger.load()
         recs.append(rec)
         self.ledger.save(recs)   # recorded before spawn: a crash here leaves a RUNNING record reconcile settles
@@ -1241,7 +1251,15 @@ class Supervisor:
                "before": {"next_action": v["next_action"], "develop": v["develop"]}, "pr": d["pr"]}
         state, reason = "COMPLETED", "merged"
         try:
-            if d["pr"].get("plan"):
+            n = str(d["pr"]["number"])
+            info = json.loads(self._gh("pr", "view", n, "--json", "mergeStateStatus,headRefOid"))
+            if d["pr"].get("sha") and info.get("headRefOid") and info["headRefOid"] != d["pr"]["sha"]:
+                state, reason = "UPDATED", "PR head moved since it was observed; re-observing"
+            elif info.get("mergeStateStatus") == "BEHIND":
+                # develop requires an up-to-date branch: bring it up to date; CI reruns, then MERGE is due again
+                self._gh("pr", "update-branch", n)
+                state, reason = "UPDATED", "branch was behind develop; updated it, waiting for CI"
+            elif d["pr"].get("plan"):
                 files = json.loads(self._gh("pr", "view", str(d["pr"]["number"]), "--json", "files"))["files"]
                 outside = [f["path"] for f in files if not f["path"].startswith(".ai/")]
                 if outside:
@@ -1255,7 +1273,7 @@ class Supervisor:
         recs.append(rec)
         self.ledger.save(recs)
         self.log(f"merge_{state.lower()}", pr=d["pr"]["number"], action=d["action"], reason=reason)
-        self.notify(f"{d['action']} {state.lower()}", reason, urgent=state != "COMPLETED")
+        self.notify(f"{d['action']} {state.lower()}", reason, urgent=state not in ("COMPLETED", "UPDATED"))
         if state == "COMPLETED":
             self.sleep(self.cfg.settle_s)
             after = self._observe_or_none()

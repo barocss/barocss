@@ -33,8 +33,11 @@ context (a new session, or a subagent that sees only its mode's inputs).
 Why: the builder must not judge its own work, and the judge must not pick up
 implementation detail, because that anchors it on nearby technical work.
 
-**Authority:** only Strategy accepts an experiment and merges an experiment
-PR. Execution never merges anything.
+**Authority:** only Strategy accepts an experiment and decides to merge an
+experiment PR. Execution never merges anything. A merge Strategy has already
+decided (`review.merged: true`, or Strategy's own `.ai/`-only PR) may be
+executed by the supervisor once required checks pass and the human-approval
+directive allows it; the supervisor never decides a merge.
 
 ## 2. STRATEGY
 
@@ -181,8 +184,9 @@ reality check → **existing-capability test** → **ownership check** →
 - `develop` requires a PR and a green "Test and Build" check, with no human
   approval needed. CI runs `python3 .ai/check.py` for structural validity.
 - Who merges: Strategy may merge its own `.ai/`-only PRs once `check.py
-  --role strategy` passes and CI is green. Experiment PRs are merged only by a
-  later Strategy session after the §2A review. Execution never merges.
+  --role strategy` passes and CI is green. Experiment PRs are merged only after
+  a Strategy session's §2A review decides it. The supervisor may execute a
+  merge that Strategy already decided (see §1 Authority). Execution never merges.
 - Experiment probes and evidence artifacts live in `.ai/evidence/<exp-id>/`.
   Packages never import them. Every L2 artifact has its rerun command in
   `result.evidence`.

@@ -145,6 +145,18 @@ python3 tools/ai-supervisor/supervise.py release 'KEY'    # re-arm a key held af
   Each slot gets its own workspace clone (`workspace`, `workspace-1`, …), and the ledger records
   `work` and `slot`. Pause drains every session; stop interrupts all of them. `status` lists every
   running session.
+- **Mechanical merge.** A merge Strategy already decided (`review.merged: true`, or its own `.ai/`-only
+  Planner PR) runs as `gh pr merge --merge --match-head-commit <observed head>` from the supervisor.
+  No Opus session: today's MERGE #141 session took 13 min and $3.06. Order: the human-approval gate
+  first; then if the head moved since it was observed, re-observe; if the branch is `BEHIND` develop,
+  `gh pr update-branch` and wait for CI; a Planner PR with any file outside `.ai/` is `REFUSED` (hold
+  `merge_refused`); otherwise merge. Failures retry within the usual budget. In parallel mode a merge
+  takes no slot but waits while a Strategy session is live, and develop is re-observed before anything
+  else launches. The ledger records it with `kind: merge`. AGENTS.md §1/§6 say the same: Strategy
+  decides a merge, the supervisor may only execute a decided one.
+- **Ports** (`--concurrency > 1`). Slot n gets `$BARO_PORT_BASE` = 5200 + 100·n (and `$BARO_PORT_LAST`)
+  in its environment, plus one instruction line: servers listen in that range unless the contract's
+  `locks` name a port.
 - Control goes through `$AI_HOME/control.json` (what the user wants), and the runner reports in
   `runner.json` (what it is doing). Both live outside git.
 
