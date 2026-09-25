@@ -158,3 +158,11 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     a draft when a local check (pnpm check or the package-scoped type-check/lint/test/build:library) fails,
     and to mark it ready for review only when all of them pass. Execution reads only the contract, so the
     rule has to be written there.
+  - >-
+    2026-09-25: treat PR #84 (codex/compat-implement-v4-3-zoom-tab) as a source of candidate O2 parity
+    gaps, not as code to merge. A review flagged, unverified: @container and @container/<name> missing
+    (shadcn uses them); bg-(--x) resolving to background-size instead of a color; max-md: with the
+    default raw breakpoint possibly emitting an invalid @media; outline width. Measure each against
+    Tailwind 4.1.13 with the E-007/E-008 classifier before contracting a fix, and rank by how often
+    v0/shadcn-style output uses it. Don't copy #84's defects (bare blur emitting blur(0px), bg-(position:--x)
+    falling through to background-color), and don't move the reference to 4.3.3 without a decision.
