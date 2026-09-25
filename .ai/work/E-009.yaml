@@ -4,7 +4,7 @@
 # STRATEGY alone writes `review` and sets status: evaluated.
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
-status: ready
+status: evaluated   # withdrawn by a human, 2026-09-25 (see review.reason)
 
 id: E-009
 outcome: O2
@@ -112,10 +112,14 @@ stop_when:
   - The budget is used up.
 
 result:
-  verdict: null        # EXECUTION proposes; STRATEGY accepts/downgrades in review
-  level: null
-  evidence: []
-  learning: null
+  verdict: INCONCLUSIVE   # no result: withdrawn by a human before Execution produced one
+  level: L0
+  evidence:
+    - "Withdrawn 2026-09-25 while Execution was in progress. The runner interrupted it after 21m46s; the branch has only the status commit 9180553, and no product code was pushed."
+  learning: >
+    Superseded by the parity-lane directive (STATE.human_directives, 2026-09-25): the ring family goes
+    into a batched parity contract with the other measured or candidate misses. The E-008 branch fix
+    (ai/E-008-ring-parity, d6147a1; exact Tailwind 4.1.13 parity at L2, K11) is its starting point.
   unknown: []
   next_question: null
   pr: null
@@ -123,6 +127,6 @@ result:
   side_notes: []
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: INCONCLUSIVE
+  merged: false
+  reason: "Withdrawn by the human owner before any result; superseded by the parity lane. No product code was produced, so there is nothing to merge."
