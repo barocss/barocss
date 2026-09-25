@@ -8,17 +8,29 @@ Each launch appends its argv to $SUP_FAKE_ARGV and pops one step from the JSON l
   child    leave a grandchild `sleep 60` behind, pid written to $SUP_FAKE_CHILD
   result   "success" (default) | "error" | null (no result event)
   exit     exit code (default 0)
+  advance  move the addressed work item one step in $SUP_FAKE_ITEMS (parallel tests): EXECUTE X → "pr",
+           REVIEW X → "evaluated". The item comes from the addressed instruction ("next step is …").
+Plan and item files are updated under a lock: parallel sessions share them.
 """
-import json, os, subprocess, sys, time
+import fcntl, json, os, re, subprocess, sys, time
+from contextlib import contextmanager
+
+
+@contextmanager
+def locked(path):
+    with open(path + ".lock", "a") as lk:
+        fcntl.flock(lk, fcntl.LOCK_EX)
+        yield
 
 with open(os.environ["SUP_FAKE_ARGV"], "a") as fh:
     fh.write(json.dumps(sys.argv[1:]) + "\n")
 plan_path = os.environ["SUP_FAKE_PLAN"]
-with open(plan_path) as fh:
-    plan = json.load(fh)
-step = plan.pop(0) if plan else {}
-with open(plan_path, "w") as fh:
-    json.dump(plan, fh)
+with locked(plan_path):
+    with open(plan_path) as fh:
+        plan = json.load(fh)
+    step = plan.pop(0) if plan else {}
+    with open(plan_path, "w") as fh:
+        json.dump(plan, fh)
 
 print(json.dumps({"type": "system", "subtype": "init"}), flush=True)
 if step.get("child"):
@@ -30,6 +42,19 @@ while time.time() - t < step.get("sleep", 0):
     print(json.dumps({"type": "assistant"}), flush=True)
     time.sleep(0.1)
 time.sleep(step.get("silent", 0))
+if step.get("advance"):
+    prompt = sys.argv[sys.argv.index("-p") + 1] if "-p" in sys.argv else ""
+    m = re.search(r"next step is (\w+) (\S+?):", prompt)
+    if m:
+        items_path = os.environ["SUP_FAKE_ITEMS"]
+        with locked(items_path):
+            with open(items_path) as fh:
+                items = json.load(fh)
+            nxt = {"EXECUTE": "pr", "REVIEW": "evaluated"}.get(m.group(1))
+            if nxt and m.group(2) in items:
+                items[m.group(2)] = nxt
+            with open(items_path, "w") as fh:
+                json.dump(items, fh)
 if "world" in step:
     with open(os.environ["SUP_FAKE_WORLD"], "w") as fh:
         fh.write(step["world"])

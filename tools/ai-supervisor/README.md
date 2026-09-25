@@ -132,6 +132,19 @@ python3 tools/ai-supervisor/supervise.py release 'KEY'    # re-arm a key held af
   Evidence-only PRs merge as in V1. Sessions push with the user's GitHub account, and GitHub doesn't let
   an author approve their own PR, so the label is the approval for now. With a separate bot account, an
   approving review would do.
+- **Concurrency** (`start --concurrency N`, default 1). At 1 the serial loop above is unchanged. Above 1,
+  the runner never blocks on one session. Each tick it settles every session, re-observes when one ends
+  (or every `--poll`), and fills free slots from the Work DAG scheduler's launch list (`work.schedule`
+  at concurrency N). The scheduler decides readiness: dependencies, write-scope, lock and observe
+  conflicts, and priority. The runner adds only mechanical filters:
+  - at most one Strategy-mode session (PLAN / REVIEW / MERGE), since they all write `STATE.yaml`;
+  - never two sessions for one work item or action;
+  - EXECUTE / REVIEW / MERGE keys are per item (a completed one isn't relaunched because develop moved);
+  - the same retry budget and product-code approval gate.
+
+  Each slot gets its own workspace clone (`workspace`, `workspace-1`, …), and the ledger records
+  `work` and `slot`. Pause drains every session; stop interrupts all of them. `status` lists every
+  running session.
 - Control goes through `$AI_HOME/control.json` (what the user wants), and the runner reports in
   `runner.json` (what it is doing). Both live outside git.
 
