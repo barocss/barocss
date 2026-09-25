@@ -818,7 +818,7 @@ class Supervisor:
         v["directives"] = self._directives()
         if v["directives"].get("ignored"):
             v["attention"] = list(v["attention"]) + [
-                {"kind": "directive_ignored", "detail": f"#{d['number']} by {d['author']} (not an allowed author)"}
+                {"kind": "directive_ignored", "detail": f"#{d['number']}: {d.get('reason') or d.get('author')}"}
                 for d in v["directives"]["ignored"]]
         return v
 

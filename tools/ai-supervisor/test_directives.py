@@ -10,9 +10,9 @@ from test_supervise import C, World, rec, view  # noqa: E402
 CFG = {"label": "directive", "authors": ["easylogic"]}
 
 
-def issue(n, author, body="do X", updated="2026-09-25T10:00:00Z"):
+def issue(n, author, body="do X", updated="2026-09-25T10:00:00Z", editor=None):
     return {"number": n, "title": f"t{n}", "body": body, "author": {"login": author}, "updatedAt": updated,
-            "url": f"https://github.com/o/r/issues/{n}"}
+            "url": f"https://github.com/o/r/issues/{n}", "editor": {"login": editor} if editor else None}
 
 
 class Reader(unittest.TestCase):
@@ -21,6 +21,13 @@ class Reader(unittest.TestCase):
         self.assertEqual([d["number"] for d in ok], [1, 5])            # oldest first
         self.assertEqual([(d["number"], d["author"]) for d in ignored], [(3, "stranger")])
         self.assertEqual(directives.ids(ok), ["#1@2026-09-25T10:00:00Z", "#5@2026-09-25T10:00:00Z"])
+
+    def test_a_body_edited_by_someone_else_is_not_in_force(self):
+        ok, ignored = directives.split([issue(4, "easylogic", editor="some-bot"), issue(6, "easylogic",
+                                                                                      editor="easylogic")], CFG)
+        self.assertEqual([d["number"] for d in ok], [6])
+        self.assertEqual(ignored[0]["number"], 4)
+        self.assertIn("last edited by some-bot", ignored[0]["reason"])
 
     def test_repo_config(self):
         cfg = directives.config()
@@ -40,6 +47,8 @@ class Reader(unittest.TestCase):
             directives.fetch(CFG, gh=self.fake_gh("echo 'HTTP 502' >&2; exit 1"))
         with self.assertRaises(directives.Unavailable):
             directives.fetch(CFG, gh=self.fake_gh("echo not-json"))
+        with self.assertRaises(directives.Unavailable):
+            directives.fetch(CFG, gh=self.fake_gh("echo '{\"data\": null}'"))
 
     def test_cli_exit_code_when_unavailable(self):
         orig = directives.current
@@ -59,7 +68,7 @@ class Reader(unittest.TestCase):
         with contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
             self.assertEqual(directives.main(["--ids"]), 0)
         self.assertEqual(out.getvalue().strip(), "#7@2026-09-25T10:00:00Z")
-        self.assertIn("ignored: #8 by x", err.getvalue())
+        self.assertIn("ignored: #8: author x is not allowed", err.getvalue())
 
 
 class Supervisor(unittest.TestCase):
