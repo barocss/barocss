@@ -176,7 +176,7 @@ result:
     A's first experiment next (json-render className specs, per the delegated order B -> A -> parity batch), and a
     flow-(1) code-generation direction experiment testing this report inside a code-gen pipeline becomes worth
     contracting. Productizing a resolution-report API into packages/barocss is a separate later contract (non-goal here).
-  pr:
+  pr: https://github.com/barocss/barocss/pull/157
   checks: "no product code changed; .ai/evidence/E-011/ only. python3 .ai/check.py --role execution --base origin/develop --work E-011 (run before PR)."
   side_notes:
     - "arm1 grader.pass is false on every run only for E-007's documented 'baseline style attribute changed' artifact (Playwright screenshot sets style=\"\" on <input>); no arm1 run has a real remaining PARITY-MISS."
