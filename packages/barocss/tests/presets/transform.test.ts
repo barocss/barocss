@@ -361,66 +361,81 @@ describe("scale utilities", () => {
 });
 
 describe("skew utilities", () => {
-  it("skew-4 → transform: skewX(4deg) skewY(4deg)", () => {
+  // #222: skew sets its own --baro-skew-* var and the shared transform composite, like Tailwind v4.
+  it("skew-4 → --baro-skew-x: skewX(4deg) ; --baro-skew-y: skewY(4deg) ; transform: composite", () => {
     expect(parseClassToAst("skew-4", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(4deg) skewY(4deg)" },
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(4deg)" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(4deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-  it("-skew-12 → transform: skewX(-12deg) skewY(-12deg)", () => {
+  it("-skew-12 → --baro-skew-x: skewX(-12deg) ; --baro-skew-y: skewY(-12deg) ; transform: composite", () => {
     expect(parseClassToAst("-skew-12", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(-12deg) skewY(-12deg)" },
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(-12deg)" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(-12deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-  it("skew-(--my-skew) → transform: skewX(var(--my-skew)) skewY(var(--my-skew))", () => {
+  it("skew-(--my-skew) → --baro-skew-x: skewX(var(--my-skew)) ; --baro-skew-y: skewY(var(--my-skew)) ; transform: composite", () => {
     expect(parseClassToAst("skew-(--my-skew)", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(var(--my-skew)) skewY(var(--my-skew))" },
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(var(--my-skew))" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(var(--my-skew))" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-  it("skew-[0.5turn] → transform: skewX(0.5turn) skewY(0.5turn)", () => {
+  it("skew-[0.5turn] → --baro-skew-x: skewX(0.5turn) ; --baro-skew-y: skewY(0.5turn) ; transform: composite", () => {
     expect(parseClassToAst("skew-[0.5turn]", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(0.5turn) skewY(0.5turn)" },
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(0.5turn)" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(0.5turn)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-
-  it("skew-x-8 → transform: skewX(8deg)", () => {
+  it("skew-x-8 → --baro-skew-x: skewX(8deg) ; transform: composite", () => {
     expect(parseClassToAst("skew-x-8", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(8deg)" },
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(8deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-  it("-skew-x-3 → transform: skewX(-3deg)", () => {
+  it("-skew-x-3 → --baro-skew-x: skewX(-3deg) ; transform: composite", () => {
     expect(parseClassToAst("-skew-x-3", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(-3deg)" },
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(-3deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-  it("skew-x-(--my-skew) → transform: skewX(var(--my-skew))", () => {
+  it("skew-x-(--my-skew) → --baro-skew-x: skewX(var(--my-skew)) ; transform: composite", () => {
     expect(parseClassToAst("skew-x-(--my-skew)", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(var(--my-skew))" },
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(var(--my-skew))" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-  it("skew-x-[1.2rad] → transform: skewX(1.2rad)", () => {
+  it("skew-x-[1.2rad] → --baro-skew-x: skewX(1.2rad) ; transform: composite", () => {
     expect(parseClassToAst("skew-x-[1.2rad]", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewX(1.2rad)" },
+      { type: "decl", prop: "--baro-skew-x", value: "skewX(1.2rad)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-
-  it("skew-y-6 → transform: skewY(6deg)", () => {
+  it("skew-y-6 → --baro-skew-y: skewY(6deg) ; transform: composite", () => {
     expect(parseClassToAst("skew-y-6", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewY(6deg)" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(6deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-  it("-skew-y-2 → transform: skewY(-2deg)", () => {
+  it("-skew-y-2 → --baro-skew-y: skewY(-2deg) ; transform: composite", () => {
     expect(parseClassToAst("-skew-y-2", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewY(-2deg)" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(-2deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-  it("skew-y-(--my-skew) → transform: skewY(var(--my-skew))", () => {
+  it("skew-y-(--my-skew) → --baro-skew-y: skewY(var(--my-skew)) ; transform: composite", () => {
     expect(parseClassToAst("skew-y-(--my-skew)", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewY(var(--my-skew))" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(var(--my-skew))" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
-  it("skew-y-[45deg] → transform: skewY(45deg)", () => {
+  it("skew-y-[45deg] → --baro-skew-y: skewY(45deg) ; transform: composite", () => {
     expect(parseClassToAst("skew-y-[45deg]", ctx)).toMatchObject([
-      { type: "decl", prop: "transform", value: "skewY(45deg)" },
+      { type: "decl", prop: "--baro-skew-y", value: "skewY(45deg)" },
+      { type: "decl", prop: "transform", value: "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)" },
     ]);
   });
 });

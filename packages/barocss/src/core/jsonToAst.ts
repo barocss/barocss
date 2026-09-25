@@ -3,6 +3,7 @@ import { Context } from "./context";
 import { getModifier, getUtility } from "./registry";
 import { ParsedUtility, ParsedModifier, isSafeVariantValue, isSafeVariantToken } from "./parser";
 import { astToCss, rootToCss } from "./astToCss";
+import { applyVarPrefix } from "./cssVars";
 import { optimizeAst } from "./engine";
 
 /**
@@ -316,7 +317,8 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
         }
     }
 
-    return ast;
+    // Same cssVarPrefix semantics as the class path (#222): the configured prefix renames --baro-* composites.
+    return applyVarPrefix(ast, ctx);
 }
 
 /**
