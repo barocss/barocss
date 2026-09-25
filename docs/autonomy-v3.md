@@ -59,3 +59,25 @@ default. Deprecated (not deleted): `.ai/` as runtime database, `EXPERIMENT.yaml`
 evidence / Strategy / Review PRs, CI per semantic step, `tools/ai-supervisor/` V2 scheduler. They still
 work unchanged: rollback = stop using `v3.py` and run `tools/ai-supervisor/supervise.py` as before; the V1
 protocol text is kept in AGENTS.md below the V3 header.
+
+## Three sessions (Planner, Compute, Review)
+
+Ownership: Planner = direction, priority, scope, Issues/Discussions/Wiki, human directives. Compute =
+implementation, targeted verification, local commits. Review = independent evaluation of medium/high-risk
+changes and whether verification fits the risk. Act first within your ownership; message another
+session only when it has information or authority that materially changes the decision; async by
+default; never ask for routine approval.
+
+| from → to | when | shape |
+|---|---|---|
+| Compute → Planner | ambiguous behavior, wrong task assumption, scope/product/API decision, priority-changing blocker | TASK/ISSUE · DISCOVERY · QUESTION · OPTIONS · RECOMMENDATION |
+| Compute → Review | medium/high risk before integration | ISSUE · COMMIT · RISK · AREA · ACCEPTANCE · VERIFICATION · KNOWN CONCERNS |
+| Review → Compute | verdict | ACCEPT · NEEDS_CHANGE (smallest blocking problem) · REJECT · ESCALATE_TO_PLANNER |
+| Review → Planner | product ambiguity, reconsider/split/abandon, API/architecture direction | TASK · REVIEW DECISION · STRATEGIC CONCERN · DECISION NEEDED |
+
+Transport: direct session messages when available, otherwise the Supervisor routes (Issue comments).
+No loops: after two unresolved exchanges, escalate once to the owner with decision, evidence, options.
+Durable outcomes land in their home (Issue, Discussion, Wiki, local git, Supervisor state); messages
+themselves are not stored. Escalate to the human only for Vision changes, human-only product choices,
+credentials/permissions, irreversible external actions, or real deadlock.
+Claiming: a session that starts an Issue moves `v3:ready` → `v3:running` first, so it never runs twice.
