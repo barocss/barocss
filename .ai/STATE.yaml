@@ -4,9 +4,9 @@ updated: 2026-09-25
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O1
-  experiment: E-003 (ready) — live theme/config edits, runtime hidden (A) vs app-exposed (B) (U5)
-  last_result: "E-002 PROVEN L3: agent caught every silent no-op (3 modes) via computed style; no false done (K5)"
-  next: "EXECUTION: run E-003 on branch ai/E-003-live-theme"
+  experiment: E-003 (evaluated) — blocked in self-test, merged as evidence
+  last_result: "E-003 INCONCLUSIVE L2: no agent runs; rounded-* ignores theme.borderRadius; colour token reachable (K6)"
+  next: "STRATEGY: contract the next U5 experiment"
   blockers: []
 
 outcomes:
@@ -70,6 +70,17 @@ knowledge:
         n=1 per task, one strong model. Silent empty rules cost turns ($1.74 X3 vs $0.21 X1)
         and one misdiagnosis (X4), not false claims. X3 premise false (intro 1 line at
         1024px). U3 staleness not shown. Evidence: .ai/evidence/E-002/.
+    - id: K6
+      level: L2
+      fact: >
+        E-003 self-test (no agent runs). Live theme edits: theme.extend.colors.brand makes bg-brand work,
+        via page-exposed runtime.updateConfig and via a second BrowserRuntime({config}) imported from the CDN
+        bundle, with no regression (theme deep-merges over defaults). theme.extend.borderRadius only emits
+        :root --radius-*: rounded-* names are hard-coded staticUtility entries and the functional rounded
+        has no theme key, so no config route can add rounded-4xl. Config has no plugin hook.
+      caveat: >
+        Only colors and borderRadius were probed. {DEFAULT: ...} colour objects throw in the bg handler.
+        No agent evidence. Evidence: .ai/evidence/E-003/selftest.json, SUMMARY.md.
   disproven: []
   working_assumptions:     # L0; plausible but untested, don't treat as proven
     - Natural-language reasoning doesn't belong inside BaroCSS.
@@ -89,6 +100,11 @@ knowledge:
         Theme/config-level changes (new token, extended scale) need BaroCSS semantics, not
         just class edits. BrowserRuntime has updateConfig(), but a page usually holds the
         runtime in a module-scoped variable. Can an agent make such a change in a live page?
+        K6: a colour token is reachable by config, even without the page instance; a radius token is not.
+    - id: U6
+      q: >
+        Which theme namespaces actually drive class generation (K6: colors yes, borderRadius no)?
+        Open until an agent scenario needs a non-colour token.
 
 decisions:
   - id: D1
@@ -137,6 +153,16 @@ decisions:
     why: >
       A weaker-model failure would be AGENT-owned and would not change what BaroCSS builds.
       U5 can end with "no surface needed" (O1 met), or it can split APP reachability from BaroCSS config semantics.
+
+  - id: D9
+    date: 2026-09-25
+    decision: >
+      Accepted E-003 INCONCLUSIVE (K6), merged as evidence. The rounded-*/theme gap is not a work item yet:
+      an arbitrary value (rounded-[2rem]) covers the visual need (K4), and no scenario shows a token is needed.
+      Contracts must not pick a task whose natural class is a known K4 no-op unless that is the point.
+    why: >
+      E-003's Y2 was a known K4(c) class, which blocked the whole run. U5's reachability question is still
+      open and still decides whether O1 needs any surface.
 
 open_items:                # for STRATEGY, not EXECUTION
   - >

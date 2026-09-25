@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: blocked
+status: evaluated
 
 id: E-003
 outcome: O1
@@ -154,6 +154,10 @@ result:
     - "theme (without extend) deep-merges over defaults instead of replacing them, so a partial theme did not regress defaults here."
     - "No runner was written: the contract stopped before any agent run. E-002's run.mjs would need arm/page arguments."
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: INCONCLUSIVE
+  merged: true
+  reason: >
+    Blocked before any agent run, correctly per stop_when #2. U5 is unanswered (no L3). Accepted as L2 knowledge:
+    theme.borderRadius does not feed rounded-* (source-confirmed: border.ts hard-codes names, the functional rounded
+    has no theme key). A colour token is reachable via updateConfig (B) and via a second runtime from the CDN import (A).
+    check.py OK, evidence-only diff, CI green. Strategy error: Y2 used rounded-4xl, already a K4(c) no-op.
