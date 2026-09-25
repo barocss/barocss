@@ -208,3 +208,9 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     browser/agent-owned (the working assumption holds), and the criterion-5 case for options A and C weakens too.
     Order: contract it as soon as the parity-lane batch E-010 is evaluated, before any further parity batch.
     Source: docs/research/direction-proposal.md.
+  - >-
+    2026-09-25 (parity lane): a parity batch may merge with verdict PARTIAL. Each family that lands must
+    reach exact per-token Tailwind 4.1.13 parity at L2, with no control regressed and pnpm check green, and
+    each dropped family must have changed no product code. The §2A "merge only if PROVEN" rule then applies
+    to the landed part, not the whole batch. Dropped families go back as parity candidates with their
+    diagnosis. The human-approval directive still applies before gh pr merge.
