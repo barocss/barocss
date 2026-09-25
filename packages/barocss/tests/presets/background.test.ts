@@ -78,19 +78,13 @@ describe("background utilities", () => {
   });
   it("bg-red-500/75 → background-color: color-mix(in lab, red-500 75%, transparent)", () => {
     expect(parseClassToAst("bg-red-500/75", ctx)).toMatchObject([
+      { type: "decl", prop: "background-color", value: "color-mix(in srgb, red 75%, transparent)" },
       {
         type: "at-rule",
         name: "supports",
         params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "background-color",
-            value: "color-mix(in lab, red 75%, transparent)",
-          },
-        ],
+        nodes: [{ type: "decl", prop: "background-color", value: "color-mix(in oklab, var(--color-red-500) 75%, transparent)" }],
       },
-      { type: "decl", prop: "background-color", value: "color-mix(in lab, red 75%, transparent)" },
     ]);
   });
   it("bg-[#bada55] → background-color: #bada55", () => {

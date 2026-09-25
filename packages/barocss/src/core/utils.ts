@@ -1,3 +1,4 @@
+import { atRule, decl, type AstNode } from "./ast";
 // Value parsing helpers inspired by  value-parser.ts
 
 /**
@@ -324,4 +325,19 @@ export function parseColor(input: string): string | null {
 
 
   return null;
+}
+const COLOR_KEYWORDS = new Set(['inherit', 'currentcolor', 'transparent']);
+/**
+ * Declarations for a theme colour (#228), as Tailwind v4 emits them: `var(--color-<key>)` so runtime theme
+ * overrides apply; with an opacity modifier, a literal srgb color-mix fallback plus an oklab color-mix of the var.
+ */
+export function themeColorDecls(prop: string, value: string, extra: { realThemeValue?: string; opacity?: string | number }): AstNode[] {
+  const key = String(extra.realThemeValue);
+  // A value that is already a var (shadcn-style `@theme inline` tokens) is kept as-is, as Tailwind inlines it.
+  const ref = COLOR_KEYWORDS.has(value.toLowerCase()) || value.startsWith("var(") || !/^[\w-]+$/.test(key) ? value : `var(--color-${key})`;
+  if (!extra.opacity) return [decl(prop, ref)];
+  return [
+    decl(prop, `color-mix(in srgb, ${value} ${extra.opacity}%, transparent)`),
+    atRule("supports", "(color:color-mix(in lab, red, red))", [decl(prop, `color-mix(in oklab, ${ref} ${extra.opacity}%, transparent)`)]),
+  ];
 }
