@@ -1,0 +1,212 @@
+{
+  "tailwind": "4.1.13",
+  "url": "http://127.0.0.1:5190/",
+  "styled": {
+    "headerPosition": "sticky",
+    "h1FontSize": "60px",
+    "barocssStyles": 16,
+    "ok": true
+  },
+  "families": {
+    "ring": {
+      "ring-1": {
+        "class": "RESOLVED",
+        "resolved": true,
+        "computedEqual": true,
+        "atParity": true,
+        "bc": {
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "tw": {
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "undefinedVars": []
+      },
+      "ring-2": {
+        "class": "RESOLVED",
+        "resolved": true,
+        "computedEqual": true,
+        "atParity": true,
+        "bc": {
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "tw": {
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "undefinedVars": []
+      },
+      "focus:ring-2": {
+        "class": "RESOLVED",
+        "resolved": true,
+        "computedEqual": true,
+        "atParity": true,
+        "bc": {
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "tw": {
+          "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+        },
+        "undefinedVars": []
+      },
+      "focus:ring-offset-2": {
+        "class": "RESOLVED",
+        "resolved": true,
+        "computedEqual": true,
+        "atParity": true,
+        "bc": {
+          "boxShadow": "none"
+        },
+        "tw": {
+          "boxShadow": "none"
+        },
+        "undefinedVars": []
+      }
+    },
+    "translate": {
+      "translate-x-4": {
+        "class": "PARITY-MISS",
+        "resolved": false,
+        "computedEqual": false,
+        "atParity": false,
+        "bc": {
+          "translate": "none"
+        },
+        "tw": {
+          "translate": "16px"
+        },
+        "undefinedVars": [
+          "--baro-translate-y"
+        ]
+      },
+      "translate-y-4": {
+        "class": "PARITY-MISS",
+        "resolved": false,
+        "computedEqual": false,
+        "atParity": false,
+        "bc": {
+          "translate": "none"
+        },
+        "tw": {
+          "translate": "0px 16px"
+        },
+        "undefinedVars": [
+          "--baro-translate-x"
+        ]
+      },
+      "-translate-x-1/2": {
+        "class": "PARITY-MISS",
+        "resolved": false,
+        "computedEqual": false,
+        "atParity": false,
+        "bc": {
+          "translate": "none"
+        },
+        "tw": {
+          "translate": "-50%"
+        },
+        "undefinedVars": [
+          "--baro-translate-y"
+        ]
+      }
+    },
+    "border": {
+      "border": {
+        "class": "RESOLVED",
+        "resolved": true,
+        "computedEqual": true,
+        "atParity": true,
+        "bc": {
+          "borderTopWidth": "1px",
+          "borderTopStyle": "solid",
+          "borderRightWidth": "1px",
+          "borderRightStyle": "solid",
+          "borderBottomWidth": "1px",
+          "borderBottomStyle": "solid",
+          "borderLeftWidth": "1px",
+          "borderLeftStyle": "solid"
+        },
+        "tw": {
+          "borderTopWidth": "1px",
+          "borderTopStyle": "solid",
+          "borderRightWidth": "1px",
+          "borderRightStyle": "solid",
+          "borderBottomWidth": "1px",
+          "borderBottomStyle": "solid",
+          "borderLeftWidth": "1px",
+          "borderLeftStyle": "solid"
+        },
+        "undefinedVars": []
+      },
+      "border-t": {
+        "class": "RESOLVED",
+        "resolved": true,
+        "computedEqual": true,
+        "atParity": true,
+        "bc": {
+          "borderTopWidth": "1px",
+          "borderTopStyle": "solid",
+          "borderRightWidth": "0px",
+          "borderRightStyle": "solid",
+          "borderBottomWidth": "0px",
+          "borderBottomStyle": "solid",
+          "borderLeftWidth": "0px",
+          "borderLeftStyle": "solid"
+        },
+        "tw": {
+          "borderTopWidth": "1px",
+          "borderTopStyle": "solid",
+          "borderRightWidth": "0px",
+          "borderRightStyle": "solid",
+          "borderBottomWidth": "0px",
+          "borderBottomStyle": "solid",
+          "borderLeftWidth": "0px",
+          "borderLeftStyle": "solid"
+        },
+        "undefinedVars": []
+      }
+    }
+  },
+  "controls": {
+    "shadow-sm": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "shadow-xl": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "shadow-none": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "p-4": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "bg-blue-600": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "md:grid-cols-3": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "rounded-2xl": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    }
+  },
+  "familyPass": {
+    "ring": true,
+    "translate": false,
+    "border": true
+  },
+  "controlsPass": true
+}

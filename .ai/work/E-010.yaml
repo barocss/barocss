@@ -4,7 +4,7 @@
 # STRATEGY alone writes `review` and sets status: evaluated.
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
-status: ready
+status: evaluated
 
 id: E-010
 outcome: O2
@@ -146,12 +146,71 @@ stop_when:
   - The budget is used up.
 
 result:
-  verdict:
-  level:
-  evidence: []
-  learning:
-  unknown: []
-  next_question:
-  pr:
-  checks:
-  side_notes: []
+  verdict: PARTIAL
+  level: L2
+  evidence:
+    - "L2 browser parity (.ai/evidence/E-010/parity.mjs → parity.json). Boots apps/barocss-site (arm D, baroStart preflight:true) on the fixed build and compares each family token's COMPUTED declaration to tailwindcss 4.1.13 on a same-element reference page, reusing the frozen E-007/E-008 classify()+env.mjs. Rerun: PW_MCP_DIR=<dir resolving playwright-core> node .ai/evidence/E-010/parity.mjs (exit 0)."
+    - "F1 ring — RESOLVED + computed-equal for all four tokens: ring-1, ring-2, focus:ring-2 (box-shadow equal to Tailwind), focus:ring-offset-2 (both `none`, i.e. a ring-offset alone renders nothing, same as Tailwind). Parity reached (matches K11 from ai/E-008-ring-parity)."
+    - "F3 border — RESOLVED + computed-equal: `border` → all four sides 1px solid; `border-t` → top 1px solid, other sides 0px solid; both equal to Tailwind 4.1.13. Parity reached."
+    - "F2 translate — PARITY-MISS for all three tokens. Live BaroCSS computes `translate: none` (undefined --baro-translate-y invalidates the whole declaration) vs Tailwind translate-x-4 `16px`, translate-y-4 `0px 16px`, -translate-x-1/2 `-50%`."
+    - "F2 root cause (browser-free L2: .ai/evidence/E-010/translate-gap.mjs, rerun: node .ai/evidence/E-010/translate-gap.mjs): translate-x-4/translate-y-4 emit calc(4 * 100%) (400% of the element) where Tailwind emits calc(var(--spacing) * 4) (=16px). Integers route through the fraction/percentage branch instead of the spacing branch — a value-formula defect. Registering the missing @property default (the only F2 change the contract allows) would make the declaration valid but leave the value at 400%, still not parity. Not a composition-default gap → F2 dropped."
+    - "No regression: all seven E-008 controls (shadow-sm, shadow-xl, shadow-none, p-4, bg-blue-600, md:grid-cols-3, rounded-2xl) classify RESOLVED; app booted styled (styled.ok true)."
+  learning: >
+    Two of the three parity-lane families ARE simple composition-default gaps and batch cleanly into
+    one product PR: F1 ring (register the box-shadow layer vars via @property, drop the v3 blue ring
+    color) and F3 preflight border (universal `border: 0 solid`) both reach exact Tailwind-4.1.13
+    per-token parity at L2 with pnpm check green and no control regression. The third, F2 single-axis
+    translate, is NOT a composition-default gap: the integer tokens use calc(N * 100%) (a percentage of
+    the element) where Tailwind uses spacing (calc(var(--spacing) * N)), so even after registering the
+    missing @property axis default the value stays wrong (400% vs 16px). The parity-lane premise "each
+    family fails only because a composition default is missing" held for ring and border but not for
+    translate — the K10 classifier detected translate as a miss but the miss has two independent causes
+    (undefined sibling var AND wrong value formula), and only the first is a composition default.
+  unknown:
+    - "Whether translate's fraction tokens alone (e.g. -translate-x-1/2, which computes -50% correctly) would reach parity once the sibling-var @property default is registered — likely yes, but the integer tokens still need the spacing-branch fix, so the family needs a value-formula change, not a composition-default change."
+  next_question: >
+    Re-scope F2 as a value-formula fix (route integer translate-x/-y/-z through the spacing branch,
+    calc(var(--spacing) * N), and register the --baro-translate-* @property defaults so single-axis
+    composition is valid), then verify translate-x-4/translate-y-4/-translate-x-1/2 reach Tailwind
+    4.1.13 parity with the same classifier — and run the single G1/G2/G3 rerun once on a build where
+    ring + border + translate are all fixed, rather than now while translate is knowingly still broken.
+  pr: https://github.com/barocss/barocss/pull/141
+  checks: >
+    pnpm check GREEN (exit 0): type-check + lint + test (1451 passed: barocss 1422, browser 26, server 3)
+    + build:library all pass. The only product changes are effects.ts + preflight.ts + one changeset;
+    the only test change is the four frozen ring assertions in effects.test.ts. transform.ts and
+    transform.test.ts are untouched (F2 dropped).
+  side_notes:
+    - "F2 fix belongs in transform.ts's functional translate-x/-y/-z handlers: send plain integers through the calc(var(--spacing) * N) branch (they currently hit parseFractionOrNumber first) AND emit translateProperties() so the sibling axis var resolves. Both are outside E-010's allowed F2 action."
+    - "effects.ts also adds ring-offset-{0,1,2,4,8} (brought forward from ai/E-008-ring-parity); focus:ring-offset-2 renders no shadow on its own in both BaroCSS and Tailwind, so it is at parity as `none`."
+    - "L3 G1/G2/G3 corroboration rerun deferred to Strategy's F2 re-scope so one rerun covers a fully-fixed build; the PARTIAL verdict is already decided at L2."
+    - "The parity.mjs rerun depends on an external playwright-core via PW_MCP_DIR (no playwright-core is installed in this repo); translate-gap.mjs and pnpm check are fully self-contained."
+
+review:                    # STRATEGY §2A. Written by the review pass; EXECUTION never edits this.
+  accepted_verdict: PARTIAL
+  merged: true             # decision to merge the landed part (F1 ring + F3 border). See merge_gate below.
+  reviewer_notes: >
+    §2A of PR #141. check.py --role execution --work E-010 passes (contract frozen, changes in scope).
+    Diff is the minimum the contract allowed: effects.ts (F1) + preflight.ts (F3) + one changeset + the
+    frozen ring assertions in effects.test.ts, refactored into a ringNodes(px) helper that still asserts
+    the full parity-correct exact-AST node list via toEqual (no assertion weakened). transform.ts and
+    transform.test.ts are untouched, so the dropped family F2 changed no product code — the precondition
+    the 2026-09-25 parity-lane PARTIAL-merge directive requires. compat/compare.test.ts (the real-Tailwind
+    4.1.13 reference) is untouched and passes in CI, independently corroborating F1 ring parity (K11).
+    CI "Test and Build" is green; pnpm check GREEN (1451 tests). I reran the self-contained
+    .ai/evidence/E-010/translate-gap.mjs and reproduced F2's diagnosis: integer translate tokens emit
+    calc(N * 100%) where Tailwind emits calc(var(--spacing) * N), a value-formula gap the contract's
+    allowed F2 change (registering the @property default) cannot close — so dropping F2 is correct, not a
+    hidden failure. Accepted PARTIAL: not upgraded to PROVEN (F2 unfixed and the L3 G1/G2/G3 rerun is
+    deferred to the F2 re-scope), not downgraded (F1 and F3 reach exact per-token L2 parity with green
+    check and no control regression).
+  landed_families: [F1-ring, F3-preflight-border]
+  dropped_families:
+    - "F2 single-axis translate → re-scoped as a parity candidate: a value-formula fix (route integer translate-x/-y/-z through calc(var(--spacing) * N) AND register the --baro-translate-* @property defaults), not a composition-default fix. Verify translate-x-4/translate-y-4/-translate-x-1/2 at Tailwind 4.1.13 parity, then run the single G1/G2/G3 (L3) rerun once on a ring+border+translate build."
+  merge_gate: >
+    Product-code PR. The 2026-09-25 parity-lane directive lets a PARTIAL batch merge because each landed
+    family (F1, F3) reaches exact per-token Tailwind 4.1.13 parity at L2 with no control regressed and
+    pnpm check green, and the dropped family (F2) changed no product code. Per the 2026-09-25
+    human-approval directive I record merged: true and push, but DO NOT run `gh pr merge`: PR #141 carries
+    no `human-approved` label (only a human adds it). The merge (and §2B, the next contract) is held until
+    that label lands and the mechanical MERGE step runs.

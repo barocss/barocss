@@ -310,10 +310,14 @@ export const preflightFullCSS = `
   box-sizing: border-box;
 }
 
-/* Remove default margin and padding */
+/* Remove default margin and padding; reset border to Tailwind v4's universal
+   \`border: 0 solid\` so a bare border/border-t (width set by the utility, style
+   otherwise \`none\`) renders. Width 0 keeps borders invisible until a utility
+   sets one. */
 * {
   margin: 0;
   padding: 0;
+  border: 0 solid;
 }
 
 /* Set core body defaults */
