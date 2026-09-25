@@ -154,6 +154,10 @@ def replay(fx=None, trace=False):
         st = sup.derive(h.snapshot(h.t(tm)))
         got = st["next_action"]
         ok = True
+        if not st["work"]["agrees_with_v1"]:   # migration slice 1: the Work DAG scheduler must match V1 everywhere
+            ok = False
+            bad.append({"at": tm, "event": what, "expected": got, "predicted": st["work"]["next_action"],
+                        "phase": "work_model", "contradictions": st["contradictions"]})
         if expect is not None:
             checked += 1
             ok = (got.split()[0] in expect) if isinstance(expect, set) else (got == expect)

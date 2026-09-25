@@ -1,4 +1,4 @@
-# ai-supervisor (V2 Phase 1: shadow)
+# ai-supervisor (V2 Phase 1: shadow, Phase 2: serial)
 
 A deterministic observer of the V1 autonomous protocol (`AGENTS.md`, `.ai/`). It reads `origin/develop`,
 the `ai/*` branches, PRs and required CI, then predicts the next V1 action. **It performs none of them.**
@@ -17,6 +17,9 @@ python3 -m unittest discover -s tools/ai-supervisor -v         # rule tests + re
 | `replay.py` | Rebuilds a snapshot before every historical event and asserts the predicted action matches what V1 actually did next. `--record` re-records the fixture. |
 | `fixtures/v1-history.json` | Only what git can't give: PR open/merge times and required-check times (PRs #106 to #119). |
 | `test_sup.py` | One test per rule, contradiction and precedence edge, plus the replay. |
+| `supervise.py` | Phase 2 serial supervisor (below). |
+| `test_supervise.py`, `fixtures/fake_claude.py` | Phase 2 tests: pure `decide()` plus real processes against a fake `claude`. |
+| `work.py`, `test_work.py` | Migration slice 1: Work DAG scheduler (PLAN / COMPUTE / JUDGE), run in shadow as `status.work`; must equal V1 at concurrency 1. See `MIGRATION.md`. |
 
 ## Actions
 
@@ -64,3 +67,49 @@ python3 -m unittest discover -s tools/ai-supervisor -v         # rule tests + re
 6. **Rejected product-code PR.** V1 has Strategy close the PR and copy the record onto a strategy branch. No
    history covers it. The shadow predicts PLAN (rule M2) and treats a closed PR on an unreviewed branch as a
    contradiction.
+
+## Phase 2: serial autonomous supervisor (`supervise.py`)
+
+Removes the one human action left in V1: opening a fresh Opus session and pasting the standard instruction.
+The protocol itself is unchanged; the repository is the prompt.
+
+```bash
+python3 tools/ai-supervisor/supervise.py run --dry-run          # observe + decide; no launch, ledger untouched
+python3 tools/ai-supervisor/supervise.py run                    # loop, at most one session at a time
+python3 tools/ai-supervisor/supervise.py run --max-sessions 1   # canary: one handoff, derive the next action, stop
+python3 tools/ai-supervisor/supervise.py status                 # last decision + recent ledger records
+python3 tools/ai-supervisor/supervise.py release 'KEY'          # re-arm a key held after retry exhaustion
+```
+
+Loop: observe (Phase 1 `collect_live` + `derive`, untouched) → `decide()` (pure) → wait, hold, or launch one
+`claude -p "<standard instruction>" --model opus --permission-mode auto` (the mode V1 sessions ran in) in
+`$AI_HOME/workspace`, a clone reset to `origin/develop` → monitor → re-observe → repeat. The session gets only:
+
+> Read AGENTS.md and follow it. / Determine your mode from the durable project state on origin/develop exactly
+> as §1 says. / Run one pass of that mode, then stop.
+
+| next action (Phase 1) | supervisor |
+|---|---|
+| `PLAN`, `EXECUTE`, `REVIEW`, `MERGE` | launch one fresh session. MERGE too: only Strategy merges (AGENTS.md §6). One Strategy session still reviews → merges → plans → stops; the supervisor doesn't split it. |
+| `WAIT_FOR_CI` | wait `--poll` s and re-observe. No session is kept alive for CI. |
+| `WAIT_EXECUTION`, `WAIT_PLAN` | if our last session failed and nothing was pushed since: resume (retry). If it exited cleanly: hold (`incomplete`). Otherwise someone else's session: wait; hold (`inflight_quiet`) after 180 min without a push. |
+| `BLOCKED`, `HUMAN_REQUIRED`, `IDLE` | hold (attention), don't guess. |
+
+**Ledger** (`$AI_HOME/ledger.json`, outside git): session id, key (`<next action>@<develop sha>`), action,
+experiment, pid/pgid, started_at, last_activity, timeout, attempt, state `RUNNING | COMPLETED | CRASHED |
+TIMED_OUT`, exit code, the state before and after, and the mechanical `transition` (advanced / no_progress /
+incomplete / contradiction / unexpected). Each session runs under a detached wrapper that writes `exit.json`,
+so a restarted supervisor adopts a live session (found by its `--sup-session` token, which also defeats pid
+reuse) or settles one that ended while it was stopped. A `flock` keeps one supervisor per `$AI_HOME`.
+
+**Failure policy.** Only process failures retry: non-zero exit, a session error result (API/overload), no
+result event, a vanished process, the hard timeout (EXECUTE 6 h, others 2 h) or 60 min without output (the
+process group is killed). Budget: 3 attempts per key, backoff 120 s × n, then hold `retry_exhausted` until
+the state changes or `release`. A clean exit is never retried, whatever it produced: a DISPROVEN, blocked or
+INCONCLUSIVE result is a result, and a clean exit that left the key unchanged holds as `no_progress` (V1 has
+no idle marker, so a relaunch would guess). The supervisor never reads a verdict, priority or evidence.
+
+Phase 2 ambiguities: a crashed session's half-done pass (for example `done` without a PR) is resumed with
+the same standard instruction, and what the fresh session makes of it is V1's call. A MERGE left behind by
+a session that exited before CI turned green gets a fresh Strategy session, which has to recognise the
+decided merge from the durable state.
