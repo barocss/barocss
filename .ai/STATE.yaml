@@ -227,3 +227,49 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     tests-in-scope directives still apply. Question lane: whether to build something, and what users need,
     keep the full experiment protocol. While STATE holds measured or candidate parity misses, prefer
     the parity lane.
+  - >-
+    2026-09-25 (question lane): run direction-proposal option B's first experiment.
+    Question: in natural UI generation, does a per-class BaroCSS resolution report shown to the agent right
+    after it generates reduce first-try silent style misses, and is that information something only BaroCSS
+    has? Setup: E-007's G1-G3 tasks, actor, prompt, site and frozen classifier/grader, pinned to one develop
+    commit (parity fixes landing meanwhile would remove the misses being measured). Three arms, fresh
+    context per run: (0) no report, E-007's baseline; (1) BaroCSS report built only from the existing
+    runtime has()/getCss(), listing unresolved classes, empty rules, and rules that reference an undefined
+    custom property; (2) control report of the browser's computed style for the same elements, with no
+    BaroCSS data. Measure silent misses shipped under a "done" claim, per arm. No product code: the reports
+    are scripts in the evidence dir. It informs: arm 1 clearly beats arm 2 → BaroCSS-only resolution
+    information matters (criterion 5 holds for option B); arm 1 ≈ arm 2 → verification stays
+    browser/agent-owned (the working assumption holds), and the criterion-5 case for options A and C weakens too.
+    Order: contract it as soon as the parity-lane batch E-010 is evaluated, before any further parity batch.
+    Source: docs/research/direction-proposal.md.
+  - >-
+    2026-09-25 (parity lane): a parity batch may merge with verdict PARTIAL. Each family that lands must
+    reach exact per-token Tailwind 4.1.13 parity at L2, with no control regressed and pnpm check green, and
+    each dropped family must have changed no product code. The §2A "merge only if PROVEN" rule then applies
+    to the landed part, not the whole batch. Dropped families go back as parity candidates with their
+    diagnosis. The human-approval directive still applies before gh pr merge.
+  - >-
+    2026-09-25 (delegated by the human to two Claude sessions, agreed in round 1): rank parity-lane
+    families by what AI UI platforms actually emit (v0/shadcn-style output), not by all of Tailwind.
+    E-007's generated sections plus a small shadcn-style sample is enough to rank; don't make ranking its
+    own research project. "Known answer" still needs a per-family measurement before batching: E-010's
+    translate was a wrong value formula, not a missing default. Keep O3 (styling provenance) a separate
+    candidate, not folded into option B's question; revisit it after B reports. Reason: parity is table
+    stakes for what the platforms emit, and B's question stays clean.
+  - >-
+    2026-09-25 (the human's own answer to direction-proposal Q1): target both flows. (1) Code generation,
+    where AI writes React plus Tailwind classes (v0, Lovable). (2) A catalog/JSON spec that arrives at
+    runtime and a renderer draws it (json-render, A2UI). Evidence for options A–C should say which flow it
+    covers, and a claim holds for both only when both were measured.
+  - >-
+    2026-09-25 (delegated by the human to two Claude sessions, agreed in rounds 2 and 3). Coverage:
+    E-007's setup is free-form classes with runtime delivery, the shared core of both target flows;
+    option B's review records that and claims neither flow end to end. Option A's first experiment comes
+    after B, whatever B finds, and asks (a) do className-carrying json-render specs render as intended
+    under BaroCSS, attributing each miss to a known parity family (ring, border, translate, the #84
+    candidates) or to "other", and (b) does anything in that flow need BaroCSS beyond the existing
+    zero-build runtime (the §5 existing-capability check: "is there a gap", not "beat it"). If (b) is
+    "only for production", decide Q4 then. Order: B, then A, then the next parity batch, which overrides
+    "prefer the parity lane" for these two. That batch starts by ranking families on v0/shadcn-style
+    output (Q6). A flow-(1) direction experiment waits for B: if B holds, test B's report inside a
+    code-gen pipeline; if not, flow (1) has no BaroCSS-unique hypothesis yet.
