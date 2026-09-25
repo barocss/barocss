@@ -4,7 +4,7 @@
 # STRATEGY alone writes `review` and sets status: evaluated.
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
-status: ready
+status: running
 
 id: E-010
 outcome: O2
