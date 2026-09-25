@@ -1,10 +1,21 @@
 import { BrowserRuntime, BrowserRuntimeOptions } from "./browser-runtime";
 
 let runtime: BrowserRuntime | null = null;
+let runtimeConfig: BrowserRuntimeOptions['config'];
 
-export function getRuntime(options: BrowserRuntimeOptions) {
+/**
+ * Returns the shared runtime, creating it on first use. If a live runtime
+ * already exists and `options.config` is a different config object, it is
+ * applied via `updateConfig` (which replaces the whole config), so an early
+ * `getRuntime()` never makes a later `baroStart({ config })` lose its config.
+ */
+export function getRuntime(options: BrowserRuntimeOptions = {}) {
   if (!runtime || runtime.getStats().isDestroyed) {
     runtime = new BrowserRuntime(options);
+    runtimeConfig = options.config;
+  } else if (options.config && options.config !== runtimeConfig) {
+    runtime.updateConfig(options.config);
+    runtimeConfig = options.config;
   }
   return runtime;
 }
