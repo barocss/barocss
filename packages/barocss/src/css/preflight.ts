@@ -312,6 +312,49 @@ pre {
   font-variation-settings: var(--default-mono-font-variation-settings, normal);
   font-size: 1em;
 }
+
+/* Tailwind 4.1.13 form-control reset: inherit typography and colour, drop native radius/background (#228) */
+button,
+input,
+select,
+optgroup,
+textarea,
+::file-selector-button {
+  font: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  border-radius: 0;
+  background-color: transparent;
+  opacity: 1;
+}
+
+:where(select:is([multiple], [size])) optgroup {
+  font-weight: bolder;
+}
+
+:where(select:is([multiple], [size])) optgroup option {
+  padding-inline-start: 20px;
+}
+
+::file-selector-button {
+  margin-inline-end: 4px;
+}
+
+::placeholder {
+  opacity: 1;
+}
+
+@supports (not (-webkit-appearance: -apple-pay-button)) or (contain-intrinsic-size: 1px) {
+  ::placeholder {
+    color: color-mix(in oklab, currentcolor 50%, transparent);
+  }
+}
+
+textarea {
+  resize: vertical;
+}
 `;
 
 export const preflightFullCSS = `
@@ -685,5 +728,48 @@ template {
   h3 {
     page-break-after: avoid;
   }
+}
+
+/* Tailwind 4.1.13 form-control reset: inherit typography and colour, drop native radius/background (#228) */
+button,
+input,
+select,
+optgroup,
+textarea,
+::file-selector-button {
+  font: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  border-radius: 0;
+  background-color: transparent;
+  opacity: 1;
+}
+
+:where(select:is([multiple], [size])) optgroup {
+  font-weight: bolder;
+}
+
+:where(select:is([multiple], [size])) optgroup option {
+  padding-inline-start: 20px;
+}
+
+::file-selector-button {
+  margin-inline-end: 4px;
+}
+
+::placeholder {
+  opacity: 1;
+}
+
+@supports (not (-webkit-appearance: -apple-pay-button)) or (contain-intrinsic-size: 1px) {
+  ::placeholder {
+    color: color-mix(in oklab, currentcolor 50%, transparent);
+  }
+}
+
+textarea {
+  resize: vertical;
 }
 `;

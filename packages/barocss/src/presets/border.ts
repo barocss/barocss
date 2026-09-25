@@ -1,6 +1,6 @@
 import { staticUtility, functionalUtility } from "../core/registry";
 import { atRoot, atRule, decl, property } from "../core/ast";
-import { parseNumber, parseLength, parseColor } from "../core/utils";
+import { parseNumber, parseLength, parseColor, themeColorDecls } from "../core/utils";
 
 // --- Border Radius ---
 //  border-radius documentation
@@ -128,7 +128,8 @@ const withBorderStyle = (props: string[], width: string) => [
       }
       return null;
     },
-    handle: (value, ctx, token) => {
+    handle: (value, ctx, token, extra) => {
+      if (extra?.realThemeValue) return propList.flatMap(prop => themeColorDecls(prop.replace("width", "color"), value, extra));
       if (parseColor(value)) {
         return propList.map(prop => decl(prop.replace("width", "color"), value));
       }
@@ -179,17 +180,7 @@ functionalUtility({
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
 
-    if (extra?.realThemeValue) {
-      if (extra.opacity) {
-        return [
-          atRule("supports", `(color:color-mix(in lab, red, red))`, [
-            decl("border-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-          ]),
-          decl("border-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-        ];
-      }
-      return [decl("border-color", value)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("border-color", value, extra);
 
     if (token.arbitrary) {
       if (parseLength(value)) {
@@ -295,14 +286,7 @@ functionalUtility({
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
 
-    if (extra?.realThemeValue && extra.opacity) {
-      return [
-        atRule("supports", `(color:color-mix(in lab, red, red))`, [
-          decl("outline-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-        ]),
-        decl("outline-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-      ];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("outline-color", value, extra);
 
     if (parseColor(value)) {
       return [decl("outline-color", value)];

@@ -9,8 +9,10 @@ import { fixtures } from './fixtures';
 const tailwindInput = `
 @theme inline {
   --spacing: 0.25rem;
-  --color-red-500: #ef4444;
   --breakpoint-md: 48rem;
+}
+@theme {
+  --color-red-500: #ef4444;
 }
 @tailwind utilities;
 `;
@@ -42,6 +44,8 @@ function normalizeCss(css: string): CssNode[] {
   };
   return postcss.parse(css).nodes
     .filter((node) => node.type !== 'comment')
+    // The theme-variable block (Tailwind's :root, :host) is emitted separately by BaroCSS's theme converter.
+    .filter((node) => !(node.type === 'rule' && node.selector === ':root, :host'))
     .map(normalizeNode);
 }
 

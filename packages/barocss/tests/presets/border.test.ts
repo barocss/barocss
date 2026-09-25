@@ -244,25 +244,19 @@ describe("border utilities", () => {
 
     it("border-* theme color utilities", () => {
       expect(parseClassToAst("border-red-500", ctx)).toMatchObject([
-        { type: "decl", prop: "border-color", value: "#ef4444" },
+        { type: "decl", prop: "border-color", value: "var(--color-red-500)" },
       ]);
       expect(parseClassToAst("border-blue-500", ctx)).toMatchObject([
-        { type: "decl", prop: "border-color", value: "#3b82f6" },
+        { type: "decl", prop: "border-color", value: "var(--color-blue-500)" },
       ]);
       expect(parseClassToAst("border-red-500/50", ctx)).toMatchObject([
+        { type: "decl", prop: "border-color", value: "color-mix(in srgb, #ef4444 50%, transparent)" },
         {
           type: "at-rule",
           name: "supports",
           params: "(color:color-mix(in lab, red, red))",
-          nodes: [
-            {
-              type: "decl",
-              prop: "border-color",
-              value: "color-mix(in lab, #ef4444 50%, transparent)",
-            },
-          ],
+          nodes: [{ type: "decl", prop: "border-color", value: "color-mix(in oklab, var(--color-red-500) 50%, transparent)" }],
         },
-        { type: "decl", prop: "border-color", value: "color-mix(in lab, #ef4444 50%, transparent)" },
       ]);
     });
 
@@ -283,12 +277,12 @@ describe("border utilities", () => {
 
     it("individual side border color utilities", () => {
       expect(parseClassToAst("border-x-red-500", ctx)).toMatchObject([
-        { type: "decl", prop: "border-left-color", value: "#ef4444" },
-        { type: "decl", prop: "border-right-color", value: "#ef4444" },
+        { type: "decl", prop: "border-left-color", value: "var(--color-red-500)" },
+        { type: "decl", prop: "border-right-color", value: "var(--color-red-500)" },
       ]);
       expect(parseClassToAst("border-y-blue-500", ctx)).toMatchObject([
-        { type: "decl", prop: "border-top-color", value: "#3b82f6" },
-        { type: "decl", prop: "border-bottom-color", value: "#3b82f6" },
+        { type: "decl", prop: "border-top-color", value: "var(--color-blue-500)" },
+        { type: "decl", prop: "border-bottom-color", value: "var(--color-blue-500)" },
       ]);
       expect(parseClassToAst("border-t-[#00ff00]", ctx)).toMatchObject([
         { type: "decl", prop: "border-top-color", value: "#00ff00" },
@@ -393,10 +387,10 @@ describe("border utilities", () => {
 
     it("outline-* theme color utilities", () => {
       expect(parseClassToAst("outline-red-500", ctx)).toMatchObject([
-        { type: "decl", prop: "outline-color", value: "#ef4444" },
+        { type: "decl", prop: "outline-color", value: "var(--color-red-500)" },
       ]);
       expect(parseClassToAst("outline-blue-500", ctx)).toMatchObject([
-        { type: "decl", prop: "outline-color", value: "#3b82f6" },
+        { type: "decl", prop: "outline-color", value: "var(--color-blue-500)" },
       ]);
     });
 

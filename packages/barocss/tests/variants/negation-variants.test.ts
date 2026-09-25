@@ -11,7 +11,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not(:hover)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -21,7 +21,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not([open])",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -32,7 +32,7 @@ describe("negation variants", () => {
           {
             type: "rule",
             selector: "&:not([aria-pressed=true])",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ]
       );
@@ -47,7 +47,7 @@ describe("negation variants", () => {
             {
               type: "rule",
               selector: "&:not(:hover)",
-              nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+              nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
             },
           ],
         },
@@ -61,7 +61,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not(:focus)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -71,7 +71,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not([dir=rtl])",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -81,7 +81,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not(.foo)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -91,7 +91,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not(.foo>.bar)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -105,7 +105,7 @@ describe("negation variants", () => {
             {
               type: "rule",
               selector: "&:focus",
-              nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+              nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
             },
           ],
         },
@@ -122,7 +122,7 @@ describe("negation variants", () => {
               type: "rule",
               selector: "&:not(:focus)",
               nodes: [
-                { type: "decl", prop: "background-color", value: "#f00" },
+                { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
               ],
             },
           ],

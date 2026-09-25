@@ -17,7 +17,7 @@ describe("breakpoints", () => {
           {
             type: 'decl',
             prop: 'background-color',
-            value: '#f00',
+            value: 'var(--color-red-500)',
           },
         ],
       },
@@ -34,7 +34,7 @@ describe("breakpoints", () => {
           {
             type: 'decl',
             prop: 'background-color',
-            value: '#f00',
+            value: 'var(--color-red-500)',
           },
         ],
       },
@@ -51,7 +51,7 @@ describe("breakpoints", () => {
           {
             type: 'decl',
             prop: 'background-color',
-            value: '#f00',
+            value: 'var(--color-red-500)',
           },
         ],
       },
@@ -68,7 +68,7 @@ describe("breakpoints", () => {
           {
             type: 'decl',
             prop: 'background-color',
-            value: '#f00',
+            value: 'var(--color-red-500)',
           },
         ],
       },
@@ -86,7 +86,7 @@ describe("breakpoints", () => {
             type: 'rule',
             selector: '&:hover',
             nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
+              { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
             ],
           },
         ],
@@ -105,7 +105,7 @@ describe("breakpoints", () => {
             type: 'rule',
             selector: '&:hover',
             nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
+              { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
             ],
           },
         ],
@@ -124,7 +124,7 @@ describe("breakpoints", () => {
           {
             type: 'decl',
             prop: 'background-color',
-            value: '#f00',
+            value: 'var(--color-red-500)',
           },
         ],
       },
@@ -141,7 +141,7 @@ describe("breakpoints", () => {
           {
             type: 'decl',
             prop: 'background-color',
-            value: '#f00',
+            value: 'var(--color-red-500)',
           },
         ],
       },
@@ -158,7 +158,7 @@ describe("breakpoints", () => {
           {
             type: 'decl',
             prop: 'background-color',
-            value: '#f00',
+            value: 'var(--color-red-500)',
           },
         ],
       },
@@ -172,7 +172,7 @@ describe("breakpoints", () => {
         name: 'media',
         params: '(width < 768px)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -188,7 +188,7 @@ describe("breakpoints", () => {
           {
             type: 'decl',
             prop: 'background-color',
-            value: '#f00',
+            value: 'var(--color-red-500)',
           },
         ],
       },
@@ -215,7 +215,7 @@ describe("breakpoints", () => {
           {
             type: 'decl',
             prop: 'background-color',
-            value: '#f00',
+            value: 'var(--color-red-500)',
           },
         ],
       },
@@ -242,7 +242,7 @@ describe("breakpoints", () => {
           {
             type: 'decl',
             prop: 'background-color',
-            value: '#f00',
+            value: 'var(--color-red-500)',
           },
         ],
       },
