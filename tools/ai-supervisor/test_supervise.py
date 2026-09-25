@@ -386,7 +386,7 @@ class Process(unittest.TestCase):
         s = w.sup(prepare=True, workspace=os.path.join(w.dir, "ws"))
         calls = []
 
-        def flaky():
+        def flaky(ws=None):
             calls.append(1)
             if len(calls) == 1:
                 raise subprocess.CalledProcessError(128, ["git", "clone"], stderr="fatal: network down")

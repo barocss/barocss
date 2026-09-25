@@ -95,6 +95,7 @@ class Config:
         self.lock_dir = default_lock_dir()      # per-user, independent of AI_HOME (see RepoLock)
         self.identity = None                    # {id, name}; derived from repo_dir when None
         self.tick_s = 1.0                       # how quickly pause / resume / stop take effect
+        self.concurrency = 1                    # sessions at once; 1 keeps the serial loop below unchanged
         self.notify = False                     # desktop notifications (the CLI turns them on)
         self.__dict__.update(kw)
         self.workspace = kw.get("workspace") or os.path.join(self.home, "workspace")
@@ -248,6 +249,87 @@ def _attempt(key, action, recs, now, cfg, resume=None):
     if resume:
         d["reason"] = f"resume {action} after an interrupted or failed session (repository shows {resume})"
     return d
+
+
+STRATEGY_WORDS = {"PLAN", "REVIEW", "MERGE"}   # every one of these writes STATE.yaml: one at a time
+
+
+def pkey(action, develop):
+    """Parallel action key. A work item's EXECUTE/REVIEW and a PR's MERGE are stable identities, so a
+    completed one is never relaunched just because develop moved; PLAN is per develop commit."""
+    return f"{action}@{develop[:12]}" if action.split()[0] == "PLAN" else action
+
+
+def decide_many(v, sched, records, now, cfg, gate=None, head_of=None):
+    """Pure, concurrency > 1: the Work DAG scheduler's launch list, filtered mechanically.
+
+    sched: work.schedule(view, concurrency, sessions=live). gate(target) → _merge_gate() facts for a
+    MERGE; head_of(work_id) → the item branch's last push time (ISO) or None.
+    Returns {"launch": [decision…], "holds": [hold…], "waits": [str…]}. Never more launches than free
+    slots, never two sessions for one work item or action, never two Strategy-mode sessions.
+    """
+    gate = gate or (lambda target: {})
+    head_of = head_of or (lambda wid: None)
+    recs = [r for r in records if not r.get("released")]
+    live = [r for r in records if r["state"] == "RUNNING"]
+    out = {"launch": [], "holds": [], "waits": list(sched.get("waits") or [])}
+    if v.get("agrees_with_v1") is False:
+        out["holds"].append(_hold("work_model_disagrees", f"work {v['next_action']} vs V1 {v['v1_next_action']}"))
+        return out
+    for h in sched.get("holds") or []:
+        out["holds"].append(_hold(h.split()[0].lower(), f"{h} (scheduler)"))
+    free = max(0, cfg.concurrency - len(live))
+    busy_actions = {r["action"] for r in live}
+    wid_of = lambda r: r.get("work") or r.get("experiment")   # records from before concurrency carry only experiment
+    busy_work = {wid_of(r) for r in live if wid_of(r)}
+    strategy = any(r["action"].split()[0] in STRATEGY_WORDS for r in live)
+    cands = []
+    # An item whose branch says running but no session of ours is alive: resume it if our session died.
+    for w in out["waits"]:
+        word, _, wid = w.partition(" ")
+        if word != "WAIT_EXECUTION" or wid in busy_work:
+            continue
+        mine = [r for r in recs if wid_of(r) == wid and r["state"] != "RUNNING"]
+        head = head_of(wid)
+        if mine and head and epoch(mine[-1]["ended_at"]) >= epoch(head):
+            last = mine[-1]
+            if last["state"] in RESUMABLE:
+                cands.append((last["action"], wid, last["key"]))
+            else:
+                out["holds"].append(_hold("incomplete", f"session {last['session_id'][:8]} ({last['action']}) "
+                                                        f"exited cleanly but left {w}"))
+    for x in sched.get("launch") or []:
+        cands.append((x["action"], x.get("work"), pkey(x["action"], v.get("develop") or "")))
+    for action, wid, key in cands:
+        word = action.split()[0]
+        if action in busy_actions or (wid and wid in busy_work):
+            continue
+        if word in STRATEGY_WORDS and strategy:
+            out["waits"].append(f"{action}: a Strategy-mode session is running")
+            continue
+        if word == "MERGE":
+            g = gate(action.split()[1])
+            if g.get("product_code") and not g.get("approved"):
+                out["holds"].append(_hold("human_approval", f"{action.split()[1]} changes product code: review it, "
+                                                            f"then add the `{APPROVAL_LABEL}` label (or approve the PR)"))
+                continue
+        d = _attempt(key, action, recs, now, cfg)
+        if d["do"] == "launch":
+            if free <= 0:
+                out["waits"].append(f"{action}: no free slot (concurrency {cfg.concurrency})")
+                continue
+            d.update(work=wid, mode=word)
+            out["launch"].append(d)
+            free -= 1
+            busy_actions.add(action)
+            if wid:
+                busy_work.add(wid)
+            strategy = strategy or word in STRATEGY_WORDS
+        elif d["do"] == "hold":
+            out["holds"].append(d)
+        else:
+            out["waits"].append(d["reason"])
+    return out
 
 
 def _hold(kind, detail):
@@ -635,7 +717,22 @@ class Supervisor:
     def observe(self):
         snap, st = self.observe_fn()
         sup.write_json(os.path.join(self.cfg.home, "status.json"), st)
+        self.snap = snap
         return view_of(snap, st)
+
+    def observe_parallel(self, n_live):
+        """(view, schedule at this runner's concurrency) or None when observation failed."""
+        v = self._observe_or_none()
+        if v is None:
+            return None
+        return v, work.schedule(work.from_snapshot(self.snap), concurrency=self.cfg.concurrency, sessions=n_live)
+
+    def _head_of(self, sched):
+        branch = {i["id"]: i.get("branch") for i in sched.get("items") or []}
+        return lambda wid: (self.snap["branches"].get(branch.get(wid)) or {}).get("time")
+
+    def _gate(self, target):
+        return _merge_gate(self.snap, "MERGE", target)
 
     def notify(self, title, message, urgent=False):
         """Tell the user without being asked: $AI_HOME/events.jsonl always, a desktop notification when on."""
@@ -755,8 +852,11 @@ class Supervisor:
         self.log(f"session_{state.lower()}", session=sid, action=rec["action"], reason=reason)
         return rec
 
-    def prepare_workspace(self):
-        ws = self.cfg.workspace
+    def workspace_for(self, slot):
+        return self.cfg.workspace if not slot else f"{self.cfg.workspace}-{slot}"
+
+    def prepare_workspace(self, ws=None):
+        ws = ws or self.cfg.workspace
         g = lambda *a: subprocess.run(["git", "-C", ws, *a], check=True, capture_output=True, text=True).stdout
         if not os.path.isdir(os.path.join(ws, ".git")):
             url = sup.git("remote", "get-url", "origin").strip()
@@ -771,13 +871,14 @@ class Supervisor:
         for b in g("for-each-ref", "--format=%(refname:short)", "refs/heads/").split():
             g("branch", "-D", b)   # unpushed local work is not memory (AGENTS.md §6)
 
-    def launch(self, d, v):
+    def launch(self, d, v, slot=0, item_state=None):
         sid = str(uuid.uuid4())
         sdir = session_dir(self.cfg, sid)
         os.makedirs(sdir)
+        ws = self.workspace_for(slot)
         try:
             if self.cfg.prepare:
-                self.prepare_workspace()
+                self.prepare_workspace(ws)
         except (OSError, subprocess.CalledProcessError) as e:
             # Environment failure before any session existed: recorded like a crash, so it retries
             # within the same budget instead of taking the runner down.
@@ -788,12 +889,13 @@ class Supervisor:
                          "attempt": d["attempt"], "state": "CRASHED", "pid": None, "pgid": None,
                          "started_at": now, "last_activity": now, "ended_at": now, "exit_code": None,
                          "timeout_s": 0, "idle_timeout_s": 0, "reason": f"workspace setup failed: {err}",
+                         "work": d.get("work"), "slot": slot,
                          "before": {"next_action": v["next_action"], "develop": v["develop"]}, "dir": sdir})
             self.ledger.save(recs)
             self.log("session_crashed", session=sid, action=d["action"], attempt=d["attempt"],
                      reason=f"workspace setup failed: {err}")
             return None
-        cwd = self.cfg.workspace
+        cwd = ws
         os.makedirs(cwd, exist_ok=True)
         cmd = self.cfg.command(sid, d["action"])
         now = time.time()
@@ -802,8 +904,9 @@ class Supervisor:
                "attempt": d["attempt"], "state": "RUNNING", "pid": None, "pgid": None,
                "started_at": iso(now), "last_activity": iso(now), "ended_at": None,
                "timeout_s": self.cfg.timeout_for(d["action"]), "idle_timeout_s": self.cfg.idle_timeout_s,
-               "exit_code": None, "reason": None, "before": {"next_action": v["next_action"], "develop": v["develop"]},
-               "cwd": cwd, "dir": sdir}
+               "exit_code": None, "reason": None, "before": {"next_action": v["next_action"], "develop": v["develop"],
+                                                             "item_state": item_state},
+               "cwd": cwd, "dir": sdir, "work": d.get("work") or v.get("experiment"), "slot": slot}
         recs = self.ledger.load()
         recs.append(rec)
         self.ledger.save(recs)   # recorded before spawn: a crash here leaves a RUNNING record reconcile settles
@@ -852,6 +955,8 @@ class Supervisor:
                     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
                         old[sig] = signal.signal(sig, self._on_signal)
                 self.set_runner("RUNNING", activity="starting")
+            if managed and self.cfg.concurrency > 1:
+                return self._loop_parallel(max_sessions)
             return self._loop(max_sessions, dry_run, once, managed)
         except BaseException as e:
             self.stop_reason = self.stop_reason or f"runner error: {type(e).__name__}: {str(e)[:200]}"
@@ -943,6 +1048,12 @@ class Supervisor:
                     d["command"] = self.cfg.command("<new-session-uuid>", d["action"])
                     d["cwd"] = self.cfg.workspace
                 report.update(view=v, decision=d)
+                if self.cfg.concurrency > 1:
+                    live_n = len([r for r in recs if r["state"] == "RUNNING"])
+                    sched = work.schedule(work.from_snapshot(self.snap), concurrency=self.cfg.concurrency,
+                                          sessions=live_n)
+                    report["parallel"] = decide_many(v, sched, recs, time.time(), self.cfg, gate=self._gate,
+                                                     head_of=self._head_of(sched))
                 self.log("dry_run" if dry_run else "decision", next_action=v["next_action"], do=d["do"],
                          reason=d["reason"])
                 return report
@@ -962,6 +1073,98 @@ class Supervisor:
                 elif v["action"] == "WAIT_FOR_CI":
                     self.notify("waiting for CI", v["next_action"])
             self.sleep(d.get("delay", self.cfg.poll_s))
+
+    def _loop_parallel(self, max_sessions):
+        """concurrency > 1: never block on one session. Each tick settles every session, observes when
+        something ended (or every poll_s), and fills free slots from the scheduler's launch list."""
+        launched = ended = 0
+        report = {"sessions": []}
+        seen = {r["session_id"] for r in self.ledger.load() if r["state"] == "RUNNING"}
+        v = sched = None
+        last_obs = 0.0
+        self._pmsg = set()
+        while True:
+            why = self.halt_reason()
+            if why:
+                return self._stop(report, why)
+            recs = self.reconcile()
+            live = [r for r in recs if r["state"] == "RUNNING"]
+            finished = [r for r in recs if r["session_id"] in seen and r["state"] != "RUNNING"]
+            seen = {r["session_id"] for r in live}
+            if finished or v is None or time.time() - last_obs >= self.cfg.poll_s:
+                if finished:
+                    self.sleep(self.cfg.settle_s)
+                got = self.observe_parallel(len(live))
+                if got:
+                    v, sched = got
+                    last_obs = time.time()
+            for r in finished:
+                ended += 1
+                report["sessions"].append(self._settled(r, v, sched))
+            if max_sessions is not None and ended >= max_sessions and not live:
+                report.update(view=v, parallel=None)
+                self.stop_reason = "max sessions reached"
+                self.log("stopped", reason=self.stop_reason)
+                return report
+            if v is None:
+                self.set_runner(lifecycle(self.desired(), bool(live)), activity="observe_failed",
+                                detail=self.observe_error)
+                self.sleep(self.cfg.poll_s)
+                continue
+            d = decide_many(v, sched, recs, time.time(), self.cfg, gate=self._gate, head_of=self._head_of(sched))
+            started = []
+            if self.desired() == "running" and not self.halt_reason():
+                for x in d["launch"]:
+                    if max_sessions is not None and launched >= max_sessions:
+                        break
+                    used = {r.get("slot") or 0 for r in live + started}
+                    slot = min(set(range(self.cfg.concurrency)) - used)
+                    state = next((i["state"] for i in sched["items"] if i["id"] == x.get("work")), None)
+                    rec = self.launch(x, v, slot=slot, item_state=state)
+                    if rec is not None:
+                        launched += 1
+                        seen.add(rec["session_id"])
+                        started.append(rec)
+            running = live + started
+            self._write_decision(v, {"do": "parallel", "reason": f"{len(running)} running", **d})
+            self.set_runner(lifecycle(self.desired(), bool(running)),
+                            activity=f"{len(running)} session(s)" if running else
+                            ("hold" if d["holds"] else "wait"),
+                            detail="; ".join(r["action"] for r in running) or
+                            "; ".join(h["reason"] for h in d["holds"]) or "; ".join(d["waits"])[:300],
+                            sessions=[r["action"] for r in running])
+            for h in d["holds"]:            # announce each new hold once
+                if ("hold", h["reason"]) not in self._pmsg:
+                    self._pmsg.add(("hold", h["reason"]))
+                    self.log("hold", reason=h["reason"])
+                    self.notify(f"needs you: {h['kind']}", h["reason"], urgent=True)
+            for w_ in d["waits"]:
+                if w_.startswith("WAIT_FOR_CI") and ("ci", w_) not in self._pmsg:
+                    self._pmsg.add(("ci", w_))
+                    self.notify("waiting for CI", w_)
+            self.sleep(self.cfg.monitor_s)
+
+    def _settled(self, rec, v, sched):
+        """Record how a finished parallel session moved its work item, and tell the user."""
+        took = _dur(epoch(rec["ended_at"]) - epoch(rec["started_at"]))
+        if v is not None and sched is not None and rec["state"] != "INTERRUPTED":
+            after = next((i["state"] for i in sched["items"] if i["id"] == rec.get("work")), None)
+            before = (rec.get("before") or {}).get("item_state")
+            if rec["action"].split()[0] == "PLAN":
+                moved = v["develop"] != (rec.get("before") or {}).get("develop")
+            else:
+                moved = after != before
+            trans = "contradiction" if v["rule"] == "C0" else ("advanced" if moved else "no_progress")
+            rec = self.ledger.update(rec["session_id"], transition=trans,
+                                     after={"next_action": v["next_action"], "item_state": after, "develop": v["develop"]})
+            self.log("state_after", session=rec["session_id"], work=rec.get("work"), item_state=after, transition=trans)
+            nxt = f"; {trans}, {rec.get('work') or 'plan'} now {after or v['next_action']}"
+        else:
+            nxt = ""
+        verdict = ((rec.get("result") or {}).get("text") or "").strip().split("\n")[0][:120]
+        self.notify(f"{rec['action']} {rec['state'].lower()}", f"after {took}{nxt}" + (f". {verdict}" if verdict else ""),
+                    urgent=rec["state"] not in ("COMPLETED", "INTERRUPTED"))
+        return rec
 
     def _await(self, sid):
         rec = self.monitor(sid)
@@ -1027,18 +1230,21 @@ def status_report(home, view=None, now=None, owner=None):
     v = view or last.get("view") or {}
     d = decide(v, recs, now, Config(home=home)) if view else (last.get("decision") or {})
     proj = v.get("project") or {}
-    live = next((r for r in reversed(recs) if r["state"] == "RUNNING"), None)
+    lives = [r for r in recs if r["state"] == "RUNNING"]
+    live = lives[-1] if lives else None
     done = next((r for r in reversed(recs) if r["state"] != "RUNNING"), None)
-    session = None
-    if live:
-        sdir = session_dir(Config(home=home), live["session_id"])
-        act = max([epoch(live["started_at"])] + [os.path.getmtime(os.path.join(sdir, f))
+
+    def view_session(x):
+        sdir = session_dir(Config(home=home), x["session_id"])
+        act = max([epoch(x["started_at"])] + [os.path.getmtime(os.path.join(sdir, f))
                   for f in ("log.jsonl", "stderr.log") if os.path.exists(os.path.join(sdir, f))])
-        session = {"id": live["session_id"], "action": live["action"], "attempt": live["attempt"],
-                   "pid": live.get("pid"), "alive": ps_pid(live["session_id"]) is not None,
-                   "started_at": live["started_at"], "elapsed_s": int(now - epoch(live["started_at"])),
-                   "quiet_s": int(now - act), "timeout_s": live["timeout_s"],
-                   "last_step": last_step(os.path.join(sdir, "log.jsonl"))}
+        return {"id": x["session_id"], "action": x["action"], "attempt": x["attempt"], "slot": x.get("slot"),
+                "pid": x.get("pid"), "alive": ps_pid(x["session_id"]) is not None,
+                "started_at": x["started_at"], "elapsed_s": int(now - epoch(x["started_at"])),
+                "quiet_s": int(now - act), "timeout_s": x["timeout_s"],
+                "last_step": last_step(os.path.join(sdir, "log.jsonl"))}
+    sessions = [view_session(x) for x in lives]
+    session = sessions[-1] if sessions else None
     last_result = None
     if done:
         last_result = {k: done.get(k) for k in ("action", "state", "reason", "attempt", "transition", "ended_at")}
@@ -1056,6 +1262,8 @@ def status_report(home, view=None, now=None, owner=None):
     blockers += [f"{a['kind']}: {a['detail']}" for a in v.get("attention") or [] if a["kind"] != "state_blockers"]
     if d.get("do") == "hold":
         blockers.append(f"hold {d.get('kind')}: {d.get('reason')}")
+    for h in d.get("holds") or []:   # parallel runner: every hold it is sitting on
+        blockers.append(f"hold {h.get('kind')}: {h.get('reason')}")
     return {
         "runner": {k: runner.get(k) for k in ("state", "desired", "pid", "owner", "started_at", "updated_at",
                                               "activity", "detail", "stop_reason", "reason")}
@@ -1069,6 +1277,7 @@ def status_report(home, view=None, now=None, owner=None):
                        "question": proj.get("question"), "verdict": proj.get("verdict"), "pr": proj.get("pr")},
         "mode": MODE.get(live["action"].split()[0]) if live else None,
         "session": session,
+        "sessions": sessions,
         "last_result": last_result,
         "state_last_result": proj.get("last_result"),
         "next": {"action": v.get("next_action"), "do": d.get("do"), "reason": d.get("reason"),
@@ -1124,11 +1333,15 @@ def print_report(r, out=print):
     if ex.get("question"):
         out(f"              {ex['question'][:160]}")
     if se:
-        out(f"mode        : {r['mode']} (Opus session running)")
-        out(f"session     : {se['id'][:8]} {se['action']} attempt {se['attempt']}, elapsed {_dur(se['elapsed_s'])}"
-            f" of {_dur(se['timeout_s'])}, quiet {_dur(se['quiet_s'])}" + ("" if se["alive"] else " [process gone]"))
-        if se.get("last_step"):
-            out(f"last step   : {se['last_step']}")
+        many = r.get("sessions") or [se]
+        out(f"mode        : {', '.join(sorted({MODE.get(x['action'].split()[0], '?') for x in many}))} "
+            f"({len(many)} Opus session{'s' if len(many) > 1 else ''} running)")
+        for x in many:
+            slot = f" [slot {x['slot']}]" if len(many) > 1 and x.get("slot") is not None else ""
+            out(f"session     : {x['id'][:8]} {x['action']} attempt {x['attempt']}{slot}, elapsed {_dur(x['elapsed_s'])}"
+                f" of {_dur(x['timeout_s'])}, quiet {_dur(x['quiet_s'])}" + ("" if x["alive"] else " [process gone]"))
+            if x.get("last_step"):
+                out(f"last step   : {x['last_step']}")
     else:
         out("mode        : none (no Opus session running)")
     if lr:
@@ -1177,6 +1390,9 @@ def main(argv=None, overrides=None):
     r.add_argument("--permission-mode", default="auto")
     r.add_argument("--claude", default="claude", help="claude executable")
     r.add_argument("--poll", type=float, default=60)
+    r.add_argument("--concurrency", type=int, default=1,
+                   help="Opus sessions at once (default 1: the serial loop). >1: independent work items run side by "
+                        "side as the Work DAG scheduler allows; at most one Strategy-mode session at a time")
     r.add_argument("--no-notify", action="store_true", help="no desktop notifications (events.jsonl is still written)")
     sub.add_parser("pause", help="launch no new session; let a running one finish")
     sub.add_parser("resume", help="undo pause")
@@ -1193,7 +1409,8 @@ def main(argv=None, overrides=None):
     if a.cmd == "start":
         owner = None if a.no_owner or a.dry_run or a.once else (a.owner or os.getppid())
         cfg = Config(model=a.model, permission_mode=a.permission_mode, claude=[a.claude], poll_s=a.poll,
-                     fetch=not a.no_fetch, owner=owner, notify=not (a.no_notify or a.dry_run or a.once), **kw)
+                     fetch=not a.no_fetch, owner=owner, notify=not (a.no_notify or a.dry_run or a.once),
+                     concurrency=max(1, a.concurrency), **kw)
         try:
             rep = Supervisor(cfg).run(max_sessions=a.max_sessions, dry_run=a.dry_run, once=a.once)
         except Busy as e:
