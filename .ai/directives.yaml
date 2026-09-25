@@ -3,5 +3,8 @@
 # the repo is public and an issue's author can edit its body. Read them with
 #   python3 tools/ai-supervisor/directives.py
 label: directive
+# Caveat: the Claude sessions also act as easylogic, so the allowlist can't tell the human from a session.
+# Provenance is the body's first line ("(human)" vs "(delegated by the human …)"), which is self-declared.
+# If directives are ever authored by a bot account, add that account deliberately; never widen the list.
 authors:
   - easylogic        # repo admin; also the account the Claude sessions act as
