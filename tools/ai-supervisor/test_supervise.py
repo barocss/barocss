@@ -654,6 +654,24 @@ class Lifecycle(unittest.TestCase):
         t.join(10)
         self.assertEqual(sv.status_report(w.home)["runner"]["state"], "STOPPED")
 
+    def test_stop_during_observation_launches_nothing(self):
+        # The stop arrives while the runner is reading GitHub, and the state says EXECUTE: no session.
+        for pause_first in (False, True):
+            w = World(self, "execute", plan=[{"sleep": 30}])
+            calls = []
+
+            def observe(w=w, calls=calls, pause_first=pause_first):
+                calls.append(1)
+                if pause_first and len(calls) == 1:
+                    sv.request(w.home, "paused", by="test")
+                else:
+                    sv.request(w.home, "stopped", by="test")
+                return w.observe()
+            s = sv.Supervisor(cfg(w.home, **w.overrides()), observe=observe, out=lambda *a: None)
+            rep = s.run()
+            self.assertEqual(rep["stopped"], "stop requested")
+            self.assertEqual((w.launches(), w.records()), ([], []), pause_first)
+
     def test_signal_stops_the_run(self):
         w = World(self, "execute", plan=[{"sleep": 30}])
         s = w.sup()
