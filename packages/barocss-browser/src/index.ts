@@ -4,3 +4,4 @@ export * from './style-partition-manager';
 export * from './utils';
 export * from './baro-boot';
 export * from './json-render-preload';
+export * from './presets/shadcn';
