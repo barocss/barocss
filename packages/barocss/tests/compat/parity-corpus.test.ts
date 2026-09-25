@@ -20,7 +20,6 @@ import { corpus } from './corpus';
 const KNOWN_FAILURES: Record<string, string> = {
   "space-y-3": "equivalent: margin on following siblings (v3 selector)",
   "bg-gradient-to-br": "legacy gradient emits a bare & selector (#187)",
-  "focus-visible:ring-[3px]": "arbitrary ring width emits box-shadow: 3px (#187)",
   "rounded-sm": "radius scale on v3 values",
   "select-none": "no -webkit-user-select",
   "sr-only": "clip instead of clip-path",

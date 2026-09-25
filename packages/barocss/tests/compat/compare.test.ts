@@ -77,8 +77,9 @@ describe('Tailwind CSS 4.1.13 output comparison', () => {
 
   it('uses current color and defined shadow fallbacks for inset rings', async () => {
     const { baroCss } = await compare('inset-ring-2');
-    expect(baroCss).toContain('--baro-inset-ring-color: currentcolor;');
-    expect(baroCss).toContain('var(--baro-inset-shadow, 0 0 #0000)');
+    expect(baroCss).toContain('var(--baro-inset-ring-color, currentcolor)');
+    expect(baroCss).toContain('--baro-inset-shadow');
+    expect(baroCss).toContain('initial-value: 0 0 #0000');
     expect(baroCss).not.toContain('rgb(59 130 246 / 0.5)');
   });
 
