@@ -130,7 +130,7 @@ function parseTokens(tokens: Token[], ctx?: Context): { modifiers: ParsedModifie
   // #220: every token but the utility is a variant; one that could end or widen the selector rejects the class.
   if (tokens.length > 1) {
     const utilityIndex = isUtilityPrefix(tokens[0].value, ctx) ? 0 : tokens.length - 1;
-    if (tokens.some((t, i) => i !== utilityIndex && !isSafeVariantValue(t.value))) {
+    if (tokens.some((t, i) => i !== utilityIndex && !isSafeVariantToken(t.value))) {
       return { modifiers, utility: null };
     }
   }
@@ -184,7 +184,22 @@ function parseTokens(tokens: Token[], ctx?: Context): { modifiers: ParsedModifie
  * member to the selector list. Rejects, outside quotes: unbalanced or mismatched ()/[], a quote left open,
  * `{`, `}`, `;`, and a `,` that is not inside parentheses (`:is(a,b)` stays valid, `[&,x]` does not).
  */
-export function isSafeVariantValue(value: string): boolean {
+// Variants that paste their whole `[...]` value inside a functional pseudo-class (`:has(…)`, `:not(…)`), so a comma
+// in the value can only ever separate that pseudo-class's arguments, never members of the generated selector list.
+const FUNCTIONAL_VALUE_VARIANT = /^-?(?:(?:group|peer)-)?(?:has|not)-\[(.*)\](?:\/[\w-]+)?$/;
+
+/**
+ * #221: isSafeVariantValue for a whole variant token, except that has-[…]/not-[…] (optionally group-/peer-) may
+ * carry a comma at the top level of their bracket value: those variants wrap the value in `:has()`/`:not()`.
+ * The value itself must still be balanced and free of `{`, `}` and `;`, so it cannot close the pseudo-class.
+ */
+export function isSafeVariantToken(value: string): boolean {
+  const m = FUNCTIONAL_VALUE_VARIANT.exec(value);
+  if (m) return isSafeVariantValue(m[1], true);
+  return isSafeVariantValue(value);
+}
+
+export function isSafeVariantValue(value: string, allowTopLevelComma = false): boolean {
   const stack: string[] = [];
   let quote = '';
   let parenDepth = 0;
@@ -201,7 +216,7 @@ export function isSafeVariantValue(value: string): boolean {
         if (c === ')') parenDepth--;
         break;
       case '{': case '}': case ';': return false;
-      case ',': if (parenDepth === 0) return false; break;
+      case ',': if (parenDepth === 0 && !allowTopLevelComma) return false; break;
     }
   }
   return stack.length === 0 && !quote;
