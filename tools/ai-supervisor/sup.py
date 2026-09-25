@@ -241,6 +241,14 @@ def derive(snap):
     outcomes = [{"id": k, "status": (v or {}).get("status"),
                  "current": bool(exp and exp["outcome"] == k)}
                 for k, v in (f.state.get("outcomes") or {}).items()]
+    # Migration slice 1 (MIGRATION.md): the Work DAG scheduler runs in shadow at concurrency 1 and must
+    # pick what the V1 rules picked. It decides nothing yet; a disagreement is surfaced, not acted on.
+    import work   # lazy: work imports sup
+    w = work.schedule(work.from_snapshot(snap), concurrency=1)
+    v1_next = action if target is None else f"{action} {target}"
+    w["agrees_with_v1"] = w["next_action"] == v1_next
+    if not w["agrees_with_v1"]:
+        attention.append({"kind": "work_model_disagrees", "detail": f"work {w['next_action']} vs V1 {v1_next}"})
     return {
         "schema": 1, "mode": "shadow", "at": snap.get("at"),
         "develop": {"sha": snap["develop"].get("sha"), "ci": snap["develop"].get("ci")},
@@ -248,9 +256,10 @@ def derive(snap):
         "experiments": [exp] if exp else [],
         "plan": plan,
         "phase": phase, "rule": rid, "rule_source": src,
-        "next_action": action if target is None else f"{action} {target}",
+        "next_action": v1_next,
         "state": ACTION_STATE[action],
         "attention": attention, "contradictions": f.contradictions, "ambiguities": ambiguities,
+        "work": w,
     }
 
 

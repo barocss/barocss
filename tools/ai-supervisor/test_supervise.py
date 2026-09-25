@@ -275,7 +275,8 @@ class Process(unittest.TestCase):
 
     def test_timeout_kills_the_process_group(self):
         w = World(self, "execute", plan=[{"sleep": 30, "child": True}])
-        rep = w.sup(timeout_s={"EXECUTE": 1.0}).run(max_sessions=1)
+        # 3 s, not 1: under load a shorter timeout can fire before the fake has spawned the grandchild.
+        rep = w.sup(timeout_s={"EXECUTE": 3.0}).run(max_sessions=1)
         r = rep["sessions"][0]
         self.assertEqual(r["state"], "TIMED_OUT")
         self.assertIn("timeout", r["reason"])

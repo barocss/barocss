@@ -19,6 +19,7 @@ python3 -m unittest discover -s tools/ai-supervisor -v         # rule tests + re
 | `test_sup.py` | One test per rule, contradiction and precedence edge, plus the replay. |
 | `supervise.py` | Phase 2 serial supervisor (below). |
 | `test_supervise.py`, `fixtures/fake_claude.py` | Phase 2 tests: pure `decide()` plus real processes against a fake `claude`. |
+| `work.py`, `test_work.py` | Migration slice 1: Work DAG scheduler (PLAN / COMPUTE / JUDGE), run in shadow as `status.work`; must equal V1 at concurrency 1. See `MIGRATION.md`. |
 
 ## Actions
 
