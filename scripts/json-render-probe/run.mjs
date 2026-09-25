@@ -31,7 +31,7 @@ const RUNS = Number(process.argv[2] || 5);
 const PRE = ['families', 'wide', 'corpusonly'];
 const ARMS = ['ref', 'build', 'twb', 'baro', 'baroskip', 'baropre', ...PRE];
 const FILES = {
-  baro: path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'),
+  baro: process.env.BARO_UMD || path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'),
   twb: path.join(process.env.TWB_DIR || '', 'dist/index.global.js'),
 };
 const SHELL = fs.readFileSync(path.join(HERE, 'shell.html'), 'utf8');
@@ -143,7 +143,8 @@ const summary = ARMS.map((arm) => {
   };
 });
 const out = { question: '#182/#218', cssSize, buildMs, coverage, uncoverable, knownTokens: known.size, tokens: allToks.length, specTokens: new Set(specTokens).size, specTokensNotInShell: newTokens.length, summary, raw: raw.map(({ specSig, shellSig, shellSigBefore, ...r }) => r) };
-fs.writeFileSync(path.join(HERE, 'result.json'), JSON.stringify(out, null, 2));
+if (process.env.SIG_OUT) fs.writeFileSync(process.env.SIG_OUT, JSON.stringify(raw)); // #215: full signatures for A/B diffs
+if (!process.env.SIG_OUT) fs.writeFileSync(path.join(HERE, 'result.json'), JSON.stringify(out, null, 2));
 console.log(JSON.stringify({ cssSize, buildMs, coverage, uncoverable }, null, 1));
 console.log(JSON.stringify({ specTokens: out.specTokens, specTokensNotInShell: out.specTokensNotInShell }));
 for (const s of summary) console.log(JSON.stringify(s));

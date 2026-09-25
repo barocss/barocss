@@ -19,7 +19,7 @@ const CDN = `http://127.0.0.1:${PORT + 1}`;
 export const SECTIONS = fs.readdirSync(path.join(HERE, 'sections')).filter((f) => f.endsWith('.html')).map((f) => f.replace('.html', ''));
 const section = (s) => fs.readFileSync(path.join(HERE, 'sections', `${s}.html`), 'utf8');
 export const FILES = {
-  baro: path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'),
+  baro: process.env.BARO_UMD || path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'),
   twb: path.join(process.env.TWB_DIR || '', 'dist/index.global.js'),
 };
 
