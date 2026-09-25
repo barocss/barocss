@@ -1,0 +1,167 @@
+# Work-store contract (AGENTS.md §1). One file per work item; the file name is the id.
+# STRATEGY writes every field above `result` and sets status: ready.
+# EXECUTION may change only `status` and `result` (contract is frozen; .ai/check.py --work E-012 enforces).
+# STRATEGY alone writes `review` and sets status: evaluated.
+# status: none | ready | running | done | blocked | evaluated
+# While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
+status: ready
+
+id: E-012
+outcome: O2
+branch: ai/E-012-report-durability
+priority: 1
+product_code: false
+locks: ["port:5200"]           # only if step 3 must recompute has()/getCss() by booting the pinned site
+observes: []                    # reads committed E-007/E-011 artifacts (pinned bf979c6 world), not develop behavior
+depends_on: []
+question: >
+  QUESTION LANE — durability of option B before building flow-1 on it (STATE.human_directives, the delegated note
+  "agreed after E-011"). E-011 (K13, PROVEN) showed a per-class BaroCSS resolution report cut first-try silent
+  generation misses to 0, but ALL 5 classes the report flagged were BaroCSS's OWN parity gaps (ring/border/translate/
+  theme-var — the very families the parity lane is closing). So the durability worry is: does the report's value come
+  from BaroCSS-unique class->rule knowledge that survives the parity fixes, or is it just "BaroCSS knows its own
+  current gaps" — value the parity lane erodes as it lands fixes? This is Step 1 of the ordered durability
+  measurement, L2 and NO agent runs, over every class token in E-007's and E-011's already-recorded generated
+  sections:
+  (A) Bucket the classifier's AGENT tokens (the tokens Tailwind 4.1.13 does NOT resolve; classify.mjs category
+      "AGENT") into exactly one of: invented-utility, invalid-value, v3-only-name, out-of-theme-token, typo, or
+      intentional-non-utility-name. Intentional = matches no Tailwind utility root or variant, OR is a known marker
+      (group, peer, group/<name>, peer/<name>, dark); a utility-SHAPED token carrying a bad value stays invalid-value,
+      not intentional. List EVERY AGENT token with its bucket and a one-line reason.
+  (B) Measure the report's ACCURACY: precision and recall of the E-011 arm-1 has()/getCss() flags
+      (UNRESOLVED / EMPTY-RULE / UNDEFINED-VAR, i.e. every report row with status != RESOLVED) against the
+      classifier's PARITY-MISS label (Tailwind emits, BaroCSS does not — classify.mjs category "PARITY-MISS"), over
+      the same recorded section tokens. Report false positives (flagged but RESOLVED or AGENT) and false negatives
+      (PARITY-MISS not flagged) token by token.
+decision_it_informs: >
+  Reads durability, and gates the flow-1 code-gen experiment (B's report inside a code-gen pipeline) which the human
+  ordered to WAIT for this answer. If (A) shows the AGENT tokens are dominated by genuinely invalid ones
+  (invented-utility / invalid-value / typo — mistakes the parity lane will NEVER "fix" because they are not BaroCSS
+  gaps) AND (B) shows the report flags them with high precision/recall, the report catches real generation mistakes,
+  not just BaroCSS's transient gaps, so its value is durable and Strategy proceeds to contract the flow-1 code-gen
+  experiment. If instead (A) shows the invalid count is about 0 or ambiguous (nearly all flagged classes are
+  parity-family gaps the lane is closing) OR (B) shows the report's flags track PARITY-MISS but miss/ misclassify
+  invalid tokens, the report's measured value is mostly "BaroCSS knows its own gaps"; then Step 2 (one fresh
+  natural-generation run on a POST-PARITY build plus one weaker actor, U1) is contracted before any flow-1 test, and
+  no product code that productizes the report (a packages/barocss API, or PR #103) is contracted until n>=3 per arm,
+  a weaker actor, and this L2 report-accuracy check are all in hand.
+hypothesis: >
+  Plausible but untested: a meaningful share of the AGENT tokens agents emit will be genuinely invalid (invented or
+  bad-value utilities, typos, v3-only names) that no parity fix can ever resolve, and the has()/getCss() report will
+  flag those too (they are UNRESOLVED / EMPTY-RULE just like the parity gaps), so the report's value is broader than
+  the current parity gaps and survives the parity lane. The opposite is also plausible and would be the negative
+  result: in E-007/E-011 nearly every flagged class was a real Tailwind utility BaroCSS happened to miss (a parity
+  gap), so once the lane lands, the report would flag almost nothing and its measured benefit would shrink.
+builds_on: [K4, K5, K10, K12, K13]
+scenario: >
+  PURELY OFFLINE over committed artifacts — no new agent runs, no generation. Inputs, all already in the repo at the
+  pinned E-007/E-011 world (develop bf979c6, before the E-010 parity fixes, so the recorded misses are intact):
+    - E-007 recorded runs .ai/evidence/E-007/runs/G{1,2,3}.json and audit .ai/evidence/E-007/audit.json.
+    - E-011 recorded runs .ai/evidence/E-011/runs/G{1,2,3}.arm{1,2}.json (each carries first_try, final_section,
+      and injected_report[].rows with {cls, status}) and audit .ai/evidence/E-011/audit.json.
+    - The FROZEN classifier .ai/evidence/E-007/classify.mjs (RESOLVED | PARITY-MISS | AGENT; AGENT = Tailwind 4.1.13
+      does not emit) — copied byte-identical into .ai/evidence/E-012/ and re-pointed on PATH ONLY; classification
+      logic unchanged. Its Tailwind 4.1.13 reference (node_modules) and, if a token's classification is not already
+      recorded in an audit.json, its in-page BaroCSS has()/getCss() probe (bcProbeInPage) are the only reasons this
+      contract MIGHT boot the pinned site.
+  "The generated sections" = the union of every class token that appears on the page in the recorded E-007 runs and
+  the recorded E-011 arm1+arm2 runs (first-try plus final section). Prefer the classifications and report flags
+  already recorded in the committed audit.json / runs; only recompute a missing one by re-running the frozen
+  classifier / re-reading a recorded injected_report — never by re-generating.
+method: >
+  1. Branch ai/E-012-report-durability from origin/develop. Set status: running, commit, push.
+  2. Copy .ai/evidence/E-007/classify.mjs (and any helper it imports, e.g. env.mjs) into .ai/evidence/E-012/ and
+     re-point file paths ONLY. Change no classification logic, no thresholds, no AGENT/PARITY-MISS/RESOLVED rule.
+  3. Extract the token universe: from E-007 runs/audit and E-011 arm1+arm2 runs/audit, collect every distinct class
+     token that appears on the generated section (first-try and final). Attach to each token its classifier label
+     (RESOLVED / PARITY-MISS / AGENT). Reuse the recorded label from audit.json where present; recompute with the
+     copied frozen classifier only for tokens with no recorded label — booting the pinned site (127.0.0.1:5200,
+     E-006/E-007 env) ONLY if the BaroCSS probe is actually needed for an unlabeled token. Record which labels were
+     reused vs recomputed.
+  4. Bucketing (A): for every AGENT token, assign exactly one bucket by these deterministic rules, in order —
+     (i) known marker (group|peer|group/*|peer/*|dark) -> intentional-non-utility-name;
+     (ii) does not match any Tailwind utility root or variant at all -> intentional-non-utility-name;
+     (iii) matches a v3 utility name removed/renamed in v4 -> v3-only-name;
+     (iv) utility-shaped, right root, but the value/scale is not a valid v4 value -> invalid-value;
+     (v) utility-shaped, plausibly intended a real utility but with a small edit distance to one (<=2) -> typo;
+     (vi) references a theme token/namespace that is not in the default v4 theme -> out-of-theme-token;
+     (vii) a utility root that simply does not exist in v4 -> invented-utility.
+     Where two rules could apply, apply the earliest that matches and record the alternative in the reason. Emit a
+     table: token, bucket, one-line reason. Report per-bucket counts and the total "genuinely invalid" count
+     (invented-utility + invalid-value + typo + v3-only-name; intentional and out-of-theme called out separately).
+  5. Report accuracy (B): let FLAGGED = the set of tokens the E-011 arm1 report marked status != RESOLVED
+     (UNRESOLVED / EMPTY-RULE / UNDEFINED-VAR), read from injected_report[].rows in the arm1 runs. Let MISS = the set
+     of tokens the frozen classifier labels PARITY-MISS. Compute precision = |FLAGGED ∩ MISS| / |FLAGGED| and
+     recall = |FLAGGED ∩ MISS| / |MISS| over the recorded section tokens. List every false positive (FLAGGED but not
+     PARITY-MISS — say whether it was RESOLVED or AGENT, since flagging an AGENT/invalid token is a DIFFERENT, useful
+     signal, not a pure error) and every false negative (PARITY-MISS not FLAGGED). Also report, as a distinct number,
+     how many AGENT (genuinely-invalid) tokens the report flagged — the durability signal.
+  6. Fill result: verdict is a description of the measured buckets + precision/recall (this is a measurement, so the
+     verdict is PROVEN when both (A) and (B) are computed over the full token universe with the frozen classifier,
+     INCONCLUSIVE if a needed artifact is missing/unreadable or the pinned probe cannot run). Record level L2, the two
+     tables, the durability read (which of decision_it_informs's branches holds), and the coverage note (this is the
+     E-007/E-011 free-form-classes-with-runtime-delivery world, not a code-gen or json-render flow end to end). Set
+     status: done (or blocked). Commit ai(exec): E-012 <VERDICT> ..., run
+     `python3 .ai/check.py --role execution --base origin/develop --work E-012`, open the PR to develop, put its URL
+     in result.pr, push. No product code, so no pnpm check gate and no draft step; if a needed artifact won't load,
+     that is INCONCLUSIVE, not a draft PR. Do NOT merge. STOP.
+allowed:
+  actions:
+    - "create branch ai/E-012-report-durability from origin/develop; set status: running and push before running"
+    - "copy .ai/evidence/E-007/classify.mjs (+ helpers it imports) into .ai/evidence/E-012/ and re-point file paths only (no classification/threshold/rule change)"
+    - "read .ai/evidence/E-007/* and .ai/evidence/E-011/* (runs, audit.json) to build the token universe, labels and report flags"
+    - "write analysis scripts in .ai/evidence/E-012/ that (A) bucket AGENT tokens by the fixed rules and (B) compute precision/recall of arm1 flags vs PARITY-MISS, and emit the two tables + audit.json"
+    - "run tailwindcss 4.1.13 from node_modules locally only as the classifier's existing reference (do not change the classifier)"
+    - "OPTIONAL, only for a token with no recorded label: build packages/barocss and serve apps/barocss-site from the pinned develop commit bf979c6 on 127.0.0.1:5200 (dist gitignored/uncommitted) to run the frozen classifier's has()/getCss() probe; do not use current develop"
+    - "read packages/barocss source read-only only to understand has()/getCss() semantics if a flag is ambiguous (<=5 files); make no product change"
+  paths:
+    - ".ai/evidence/E-012/"
+non_goals:
+  - Any product code change (packages/**, apps/**). This is a measurement over recorded artifacts; do not add a report/classifier API, an engine, a serializer, or any abstraction to packages/barocss. Productizing the report is explicitly forbidden here and until n>=3, a weaker actor, and this accuracy check are all in hand (human directive).
+  - Any new agent/generation run. Step 2 (a fresh run on a post-parity build + a weaker actor) is a SEPARATE later contract, decided only if this step's invalid count is about 0 or ambiguous. This contract runs no `claude -p`, spawns no actor.
+  - Changing the frozen classifier (classify.mjs) logic, the AGENT/PARITY-MISS/RESOLVED definitions, or E-011's recorded runs/reports. Only file paths in the copied classifier and the new analysis scripts may be authored.
+  - Re-scoring the E-011 verdict or re-running its arms. This measures the durability of what E-011 already proved; it does not re-open K13.
+  - Moving the pin off bf979c6 (which would erase the recorded misses), or measuring against Tailwind != 4.1.13.
+  - Folding in O3 (styling provenance). O2 only.
+evidence:
+  level_required: L2
+  proves_yes: >
+    L2, deterministic, over the full token universe of E-007's + E-011's recorded generated sections using the
+    byte-identical frozen classifier: (A) every AGENT token listed with exactly one bucket and a reason, per-bucket
+    counts and the genuinely-invalid total reported; and (B) precision and recall of the arm1 has()/getCss() flags
+    vs the classifier's PARITY-MISS labels computed, with every false positive and false negative listed token by
+    token, plus the count of genuinely-invalid (AGENT) tokens the report flagged. The rerun command reproduces both
+    tables from committed inputs. (This is a measurement: "PROVEN" means the numbers exist and are reproducible, not
+    that any hypothesis held — the durability read then states which decision_it_informs branch the numbers support.)
+  proves_no: >
+    Not applicable as a yes/no; the informative negative is a measured one — e.g. the genuinely-invalid AGENT count
+    is about 0 (nearly all flagged classes are parity-family gaps the lane is closing) and/or the report's flags map
+    almost entirely onto PARITY-MISS with few invalid tokens flagged. Record that read explicitly; it triggers Step 2
+    before any flow-1 test. INCONCLUSIVE if a required recorded artifact is missing/unreadable, the frozen classifier
+    cannot be run over an unlabeled token even after one boot of the pinned build, or the token universe cannot be
+    reconstructed from the runs — say exactly what is missing.
+budget: >
+  1 session, offline. No agent runs. At most one boot of the pinned build, and only if a token lacks a recorded
+  label. Read at most ~5 product files (has()/getCss() semantics only). This is a bounded deterministic measurement,
+  not a search: once both tables are computed over the full token universe, STOP.
+stop_when:
+  - Both (A) the full AGENT-token bucket table and (B) the precision/recall table (with FP/FN token lists) are computed over the entire recorded token universe -> PROVEN (numbers reproducible).
+  - A required recorded artifact (E-007/E-011 runs or audit) is missing or unreadable, or the frozen classifier cannot label an unlabeled token even after one pinned-build boot -> INCONCLUSIVE; name what is missing.
+  - The next step would touch a non_goal, a path outside .ai/evidence/E-012/, need product code, or need a new agent run -> stop.
+  - The budget is used up.
+
+result:
+  verdict:
+  level:
+  evidence:
+  learning:
+  unknown:
+  next_question:
+  pr:
+  checks:
+  side_notes:
+
+review:                    # STRATEGY §2A. Written by the review pass; EXECUTION never edits this.
+  accepted_verdict:
+  merged:
+  reviewer_notes:

@@ -1,0 +1,139 @@
+# Work-store contract (AGENTS.md §1). One file per work item; the file name is the id.
+# STRATEGY writes every field above `result` and sets status: ready.
+# EXECUTION may change only `status` and `result` (contract is frozen; .ai/check.py --work E-014 enforces).
+# STRATEGY alone writes `review` and sets status: evaluated.
+# status: none | ready | running | done | blocked | evaluated
+# While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
+status: ready
+
+id: E-014
+outcome: O2
+branch: ai/E-014-parity-measure-rank
+priority: 3
+product_code: false
+locks: ["port:5202"]
+observes:
+  - "packages/barocss/src/"        # the families measured here are resolved by this runtime; measured on current develop
+depends_on: []                     # measurement only; runs alongside the question lane
+question: >
+  PARITY LANE — the measurement + ranking that the next parity batch must START with, per two directives:
+  (1) "That batch starts by ranking families on v0/shadcn-style output (Q6)"; (2) treat PR #84 candidates as
+  candidate parity gaps that must be "measured against Tailwind 4.1.13 with the E-007/E-008 classifier BEFORE
+  contracting a fix, and ranked by how often v0/shadcn-style output uses it". This contract writes NO fix and NO
+  product code — it produces the measured, ranked parity backlog the FIX batch (a later product_code contract) will
+  draw from. Measure each candidate family against Tailwind 4.1.13 on current develop with E-007's frozen classifier,
+  and rank by frequency in v0/shadcn-style output:
+    - F2 single-axis translate: confirm the diagnosed value-formula gap (BaroCSS emits calc(N*100%) where Tailwind
+      4.1.13 emits calc(var(--spacing)*N)) and the unregistered other-axis --baro-translate-* default (K12 caveat,
+      D19). State the minimum fix shape (value formula + register defaults) WITHOUT implementing it.
+    - PR #84 candidates, each measured, none assumed (human directive flags them "unverified"): @container and
+      @container/<name> (shadcn uses them); bg-(--x) resolving to background-size instead of a color; max-md: with the
+      default raw breakpoint possibly emitting an invalid @media; outline width. For each: does BaroCSS on current
+      develop match Tailwind 4.1.13 token-by-token? If not, is it a missing composition-default, a wrong value
+      formula, a missing variant, or "other"? Do NOT copy #84's own defects (bare blur -> blur(0px),
+      bg-(position:--x) -> background-color); if a candidate is actually FINE on develop, record that (it drops off
+      the backlog).
+  Then RANK all confirmed misses by how often v0/shadcn-style output uses the family, using E-007's three generated
+  sections + a small shadcn-style sample as the frequency corpus (do not make ranking its own research project).
+decision_it_informs: >
+  Produces the ranked, measured parity backlog that the next parity FIX batch (a later product_code contract, gated
+  by the human-approval + tests-in-scope + draft-when-red directives) will batch from, top-ranked first. A candidate
+  that turns out to already match Tailwind 4.1.13 on develop drops off (no fix). A candidate whose fix is a
+  value-formula or variant change, not a missing composition-default, is flagged so the fix contract scopes it
+  correctly (the mistake E-010 made with F2). Ranking by v0/shadcn frequency tells the fix batch which families are
+  table stakes for what the platforms actually emit vs rarely used. This does not itself change any code or merge
+  anything.
+hypothesis: >
+  Plausible: F2 translate is confirmed as a value-formula + missing-default gap; among the #84 candidates, @container
+  (shadcn-heavy) and bg-(--x) are real misses used often enough to rank high, while some others (outline width,
+  max-md: breakpoint) may already match develop or be rarely emitted. The point is to MEASURE, not assume: any of
+  these may be fine on current develop.
+builds_on: [K4, K10, K11, K12]
+scenario: >
+  Measured on CURRENT develop (F1 ring + F3 preflight border already landed via E-010, K12), so the backlog reflects
+  BaroCSS as it is today. Reference: tailwindcss 4.1.13 from node_modules (the frozen reference; do NOT move to 4.3.3
+  without a decision, per the #84 directive). Harness: E-007's frozen classify.mjs (copied into .ai/evidence/E-014/,
+  re-pointed on path only; the classifier already does per-token TW-emits vs BaroCSS-resolves comparison) plus a
+  small per-family probe page served on 127.0.0.1:5202 loading the real built runtime (not a CDN duplicate). For
+  families the token classifier cannot fully judge (e.g. @container emits an at-rule wrapper, max-md: emits a media
+  query), add a MINIMAL per-token CSS comparison in the evidence dir that builds the token with Tailwind 4.1.13 and
+  reads BaroCSS's emitted rule for the same token, and diffs the declarations/at-rule — the same shape E-010's
+  parity.mjs used. Frequency corpus: E-007's G1/G2/G3 generated sections (already recorded) + a small shadcn-style
+  sample (card, dialog, button, form field, container queries) authored in the evidence dir. NO product code, NO fix.
+method: >
+  1. Branch ai/E-014-parity-measure-rank from origin/develop. Set status: running, commit, push.
+  2. Copy E-007's classify.mjs (+ helpers) into .ai/evidence/E-014/, re-point paths only. Build packages/barocss at
+     current develop and serve the probe page on 127.0.0.1:5202; confirm styled boot.
+  3. For F2 translate and each #84 candidate, build a small token list (representative tokens per family, e.g.
+     translate-x-4 / -translate-y-1/2; @container / @container/sidebar; bg-(--brand); max-md:hidden; outline-2 /
+     outline-4). For each token, emit Tailwind 4.1.13's rule and BaroCSS's emitted rule on develop; diff declarations
+     and any at-rule wrapper. Classify the family: MATCHES (drop from backlog), or MISS with a mechanism tag
+     {missing-composition-default | wrong-value-formula | missing-variant | invalid-at-rule | other} and the minimum
+     fix shape in one line (do NOT implement it).
+  4. Rank: for every family confirmed a MISS, count its occurrences across E-007's three sections + the shadcn-style
+     sample; produce a ranked table (family, mechanism, min-fix-shape, freq, example tokens). Note the corpus size
+     and that this is a directional ranking, not a statistic.
+  5. Fill result: verdict PROVEN when every candidate is measured token-by-token against Tailwind 4.1.13 and either
+     confirmed MATCHES or tagged a MISS with a mechanism + min-fix-shape, and the ranked backlog is produced;
+     INCONCLUSIVE if a token cannot be compared (build/serve fails after one retry). level L2. Record the per-family
+     comparison, the ranked backlog, and which candidates dropped off (already match develop). Set status: done (or
+     blocked). Commit ai(exec): E-014 <VERDICT> ..., run
+     `python3 .ai/check.py --role execution --base origin/develop --work E-014`, open the PR to develop, put its URL
+     in result.pr, push. No product code, so no pnpm check gate and no draft step. Do NOT merge. STOP.
+allowed:
+  actions:
+    - "create branch ai/E-014-parity-measure-rank from origin/develop; set status: running and push before running"
+    - "build packages/barocss at current develop and serve a probe page (or apps/barocss-site) on 127.0.0.1:5202 (dist gitignored/uncommitted); use the real built runtime"
+    - "copy E-007's classify.mjs (+ helpers) into .ai/evidence/E-014/ and re-point file paths only (no classification-logic change)"
+    - "author a per-token Tailwind-4.1.13-vs-BaroCSS comparison script (declarations + at-rule wrappers) in .ai/evidence/E-014/, same shape as E-010's parity.mjs, and a small shadcn-style className corpus"
+    - "measure F2 translate and each PR #84 candidate (@container/@container/<name>, bg-(--x) color, max-md: raw-breakpoint @media, outline width) token-by-token; tag each MATCHES or MISS+mechanism+min-fix-shape"
+    - "rank confirmed misses by frequency across E-007's three sections + the shadcn-style sample"
+    - "run tailwindcss 4.1.13 from node_modules locally only as the reference (do not move to 4.3.3, do not change the classifier)"
+    - "read packages/barocss source read-only to read BaroCSS's emitted rule per token and to state the min-fix shape (<=15 files); make no product change"
+  paths:
+    - ".ai/evidence/E-014/"
+non_goals:
+  - Any product code change (packages/**, apps/**) and any FIX. This contract only MEASURES and RANKS; the fix batch is a separate later product_code contract. Do not edit presets/effects.ts, preflight.ts, transform.ts, or any runtime file. Do not add a parity engine/manager to packages/barocss.
+  - Copying PR #84's implementation or its defects (bare blur -> blur(0px), bg-(position:--x) -> background-color). Treat #84 only as a source of candidate gaps to measure.
+  - Moving the Tailwind reference off 4.1.13 (to 4.3.3 or otherwise) — that needs a separate decision (human #84 directive).
+  - Changing E-007's frozen classifier logic; only its file paths may be re-pointed.
+  - Re-measuring F1 ring or F3 preflight border (already landed and proven parity, K12) unless a candidate token incidentally covers them; they are not on this backlog.
+  - Ranking as a research project. E-007's sections + a small shadcn-style sample is the whole corpus; do not crawl or expand it.
+  - Folding in O3 (styling provenance). O2 only.
+evidence:
+  level_required: L2
+  proves_yes: >
+    L2, deterministic, on current develop against Tailwind 4.1.13: every candidate family (F2 translate + the four
+    #84 candidates) measured token-by-token, each tagged MATCHES (dropped) or MISS with a mechanism
+    {missing-composition-default | wrong-value-formula | missing-variant | invalid-at-rule | other} and a one-line
+    minimum fix shape, plus a ranked backlog by v0/shadcn-style frequency (E-007 sections + shadcn sample), all
+    reproducible by a rerun command. No fix is implemented.
+  proves_no: >
+    Not a yes/no; the informative outcomes per family are MATCHES (already correct on develop, drops off the backlog)
+    or MISS (with mechanism + min-fix-shape + rank). Record each. INCONCLUSIVE if a token cannot be built/compared
+    against 4.1.13 after one environment retry, or the runtime will not serve on 5202 — name what blocked it.
+budget: >
+  1 session. No agent runs. ~5 families, a handful of tokens each, one page boot on 5202, one environment retry only.
+  Read at most ~15 product files (emitted rule + min-fix shape). Once every candidate is measured and the backlog is
+  ranked, STOP; do not implement any fix or expand the family list.
+stop_when:
+  - Every candidate family is measured token-by-token and tagged MATCHES or MISS+mechanism+min-fix-shape, and the ranked backlog is produced -> PROVEN.
+  - A token cannot be compiled/compared against Tailwind 4.1.13, or the runtime will not serve on 5202, after one environment retry -> INCONCLUSIVE; record the failure.
+  - The next step would touch a non_goal, a path outside .ai/evidence/E-014/, need product code, or implement a fix -> stop.
+  - The budget is used up.
+
+result:
+  verdict:
+  level:
+  evidence:
+  learning:
+  unknown:
+  next_question:
+  pr:
+  checks:
+  side_notes:
+
+review:                    # STRATEGY §2A. Written by the review pass; EXECUTION never edits this.
+  accepted_verdict:
+  merged:
+  reviewer_notes:
