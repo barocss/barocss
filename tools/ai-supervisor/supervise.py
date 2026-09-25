@@ -930,8 +930,13 @@ class Supervisor:
                 self.sleep(self.cfg.poll_s)
                 continue
             d = decide(v, recs, time.time(), self.cfg)
-            if managed and self.desired() == "paused" and d["do"] == "launch":
-                d = {"do": "paused", "would": d["action"], "reason": f"paused; would launch {d['action']}"}
+            if managed and d["do"] == "launch":
+                # Re-read the controls after the (slow) observation: a stop or pause that arrived meanwhile
+                # must win. Launch only while running and nothing asks the run to end.
+                if self.halt_reason():
+                    continue   # the top of the loop ends the run without starting a session
+                if self.desired() != "running":
+                    d = {"do": "paused", "would": d["action"], "reason": f"paused; would launch {d['action']}"}
             self._write_decision(v, d)
             if not managed:
                 if d["do"] == "launch":
