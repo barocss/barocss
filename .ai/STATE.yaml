@@ -4,9 +4,9 @@ updated: 2026-09-25
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
   active_outcome: O1
-  experiment: E-005 evaluated INCONCLUSIVE (blocked at self-test); next contract pending
+  experiment: E-006 (ready) — colour token on the real site's dev server, 3 runs; does the agent keep the page's config? (K8)
   last_result: "E-005 L2: real site's runtime is reachable in dev, but updateConfig replaces config, so a bare theme call regresses the page (K8)"
-  next: "STRATEGY: contract E-006 (does a real agent keep the page's existing config when adding the token?)"
+  next: "EXECUTION: run E-006 on branch ai/E-006-config-preserve"
   blockers: []
 
 outcomes:
