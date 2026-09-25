@@ -47,11 +47,11 @@ describe('BrowserRuntime', () => {
     expect(top.length).toBeGreaterThan(0);
     expect(preflight.textContent!.startsWith('@layer theme, base, components, utilities;')).toBe(true);
     expect(top.every(rule => rule.cssText.startsWith('@layer base'))).toBe(true);
-    // Utilities sit in the later `utilities` layer, so they beat preflight.
+    // Utilities stay unlayered, so they beat the layered preflight.
     const utilityRules = Array.from(document.querySelectorAll<HTMLStyleElement>('[data-barocss="partition"]:not([data-category="preflight"])'))
       .flatMap(style => Array.from(style.sheet?.cssRules ?? [], rule => rule.cssText));
     expect(utilityRules.some(text => text.includes('.block'))).toBe(true);
-    expect(utilityRules.filter(text => text.includes('.block')).every(text => text.startsWith('@layer utilities'))).toBe(true);
+    expect(utilityRules.filter(text => text.includes('.block')).some(text => text.startsWith('@layer'))).toBe(false);
   });
 
   it('does not inject preflight when preflight is false', () => {

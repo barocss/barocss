@@ -134,15 +134,6 @@ export class StylePartitionManager {
     return escaped;
   }
 
-  /**
-   * #208: utilities live in the `utilities` cascade layer (Tailwind 4 order),
-   * so unlayered author CSS wins over them and they still beat preflight,
-   * which lives in the earlier `base` layer.
-   */
-  private layerRule(rule: string): string {
-    return `@layer utilities { ${this.escapeCssRule(rule)} }`;
-  }
-
   addRule(rule: string) {
     if (this.hasRule(rule)) {
       return false;
@@ -159,10 +150,10 @@ export class StylePartitionManager {
       // CSS 규칙 삽입
       const sheet = currentPartition.styleElement.sheet;
       if (sheet) {
-        sheet.insertRule(this.layerRule(rule), sheet.cssRules.length);
+        sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
       } else {
         // sheet가 없는 경우 textContent로 폴백
-        currentPartition.styleElement.textContent += this.layerRule(rule) + "\n";
+        currentPartition.styleElement.textContent += rule + "\n";
       }
 
       // 성공적으로 삽입된 경우에만 캐시 업데이트
@@ -193,9 +184,9 @@ export class StylePartitionManager {
     try {
       const sheet = categoryPartition.styleElement.sheet;
       if (sheet) {
-        sheet.insertRule(this.layerRule(rule), sheet.cssRules.length);
+        sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
       } else {
-        categoryPartition.styleElement.textContent += this.layerRule(rule) + "\n";
+        categoryPartition.styleElement.textContent += rule + "\n";
       }
     } catch (error) {
       // eslint-disable-next-line no-console
