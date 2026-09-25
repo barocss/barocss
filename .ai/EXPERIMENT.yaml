@@ -112,7 +112,7 @@ result:
   next_question: >
     With O1's scenario passing through existing capabilities (K3/K5/K7/K8 + this), which O2/O3 scenario is the next
     unresolved assumption? A config-replace merge change is not indicated by this evidence.
-  pr: null
+  pr: https://github.com/barocss/barocss/pull/117
   checks: "python3 .ai/check.py --role execution --base origin/develop: pass. No product code changed (pnpm check not required)."
   side_notes:
     - "D2 call #5 used browser_run_code_unsafe with Node require('fs') to read the CLI's saved tool-result file on the host; it failed (require is not defined). The actor's Playwright tool set includes a host-code tool the network guard does not cover."
