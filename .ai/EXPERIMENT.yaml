@@ -5,7 +5,7 @@
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
 # Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
-status: ready
+status: evaluated
 
 id: E-006
 outcome: O1
@@ -93,17 +93,37 @@ stop_when:
   - The grader would have to change after an agent run → record it in side_notes, don't change the grader.
 
 result:
-  verdict: null          # PROVEN | DISPROVEN | PARTIAL | INCONCLUSIVE
-  level: null            # L0-L3 actually achieved
-  evidence: []           # facts + how to reproduce (command / file / commit). No narration.
-  learning: null         # 1-2 sentences
-  unknown: []            # what remains unanswered, or the blocker if status: blocked
-  next_question: null    # suggestion only; Strategy decides
-  pr: null               # PR URL opened by Execution (never merged by Execution)
-  checks: null           # deterministic verification run + outcome, e.g. "pnpm check: pass"
-  side_notes: []         # adjacent discoveries, one line each, NOT pursued
+  verdict: PROVEN
+  level: L3
+  evidence:
+    - "Self-test 11/11 gating expectations pass before any agent run (commit d180f8a): positive control {...options.config, theme.extend} + bg-brand passes Y1 with no regression; negative control bare {theme.extend} + bg-brand fails on regression only (heroInstall.color, heroGithub.color). Rerun: node .ai/evidence/E-006/grader-selftest.mjs -> selftest.json"
+    - "D1, D2, D3 (claude-opus-4-8[1m], Playwright MCP only, fresh context, empty cwd, network = app origin only): all pass Y1 at 1024px, 0 regressions, 0 raw-CSS writes, 0 style-attribute changes; target bg-blue-600 -> bg-brand, rgb(91, 33, 182). Rerun: node .ai/evidence/E-006/run.mjs D1|D2|D3 -> runs/<label>.json"
+    - "Config objects (one updateConfig call per run): D1 deep Object.assign of rt.options.config; D2 deep spread of runtime.options.config; D3 literal {preflight:true, theme:{extend:{colors:{brand}}}}. After every run options.config = {preflight:true, theme:{extend:{colors:{brand:'#5B21B6'}}}} and the preflight partition holds 41 rules (baseline 41)"
+    - "All three read updateConfig's source before calling it: D1 toString (#6), D2 fetched browser-runtime.ts via /@fs (#10), D3 toString + options.config (#9)"
+    - "Route: page module /@fs/.../barocss-browser/src/index.ts (D2: baro-boot.ts) -> getRuntime() = the page runtime; no duplicate barocss <style> ids; page-module probe sees the new config and getCss('bg-brand') after each run"
+    - "Final claims: all three say done, bg = #5B21B6, preflight preserved (D1, D3 explicit); all agree with the grader. Turns/cost D1 14/$0.49, D2 16/$0.72, D3 17/$0.52. No environment failures, no retries. Table: .ai/evidence/E-006/SUMMARY.md"
+  learning: >
+    On the real site, where updateConfig's replace semantics can regress the page, 3/3 agents read updateConfig's source,
+    preserved the existing config and passed with claims agreeing; the replace semantics did not block agents. The
+    drop-then-recover path was never exercised (0/3 passed a bare theme object).
+  unknown:
+    - "Whether an agent that passes a bare theme object on this page notices the hero links' colour regression (0/3 did it; E-004 A2's bare call was on a page with no config)"
+    - "Rate beyond n=3, and with other models or weaker actors"
+  next_question: >
+    With O1's scenario passing through existing capabilities (K3/K5/K7/K8 + this), which O2/O3 scenario is the next
+    unresolved assumption? A config-replace merge change is not indicated by this evidence.
+  pr: https://github.com/barocss/barocss/pull/117
+  checks: "python3 .ai/check.py --role execution --base origin/develop: pass. No product code changed (pnpm check not required)."
+  side_notes:
+    - "D2 call #5 used browser_run_code_unsafe with Node require('fs') to read the CLI's saved tool-result file on the host; it failed (require is not defined). The actor's Playwright tool set includes a host-code tool the network guard does not cover."
+    - "The vite dev server serves all repo source over /@fs (D2 read baro-boot.ts, context.ts, browser-runtime.ts), so on dev the discovery path includes TypeScript source, not only Function.toString()."
+    - "Chromium's own Google background requests are refused by the guard (logged in runs/*.json refused_requests); none came from the agent."
 
 review:                  # STRATEGY only
-  accepted_verdict: null # may downgrade the proposed verdict, never upgrade past the evidence
-  merged: null           # true | false
-  reason: null           # one line: criteria met/unmet, level, CI, scope
+  accepted_verdict: PROVEN
+  merged: true
+  reason: >
+    proves_yes met at L3: 3/3 Y1 pass, 0 regressions, preflight kept (41 rules), claims agree; grader/env identical to
+    E-005, runner and 11/11 self-test committed before runs; check.py OK, CI green; evidence-only. Caveats: n=3, one
+    model, bare-call-then-recover path unexercised, actor had a host-code tool (browser_run_code_unsafe). Self-test not
+    rerun (needs install+build+Playwright; not cheap).

@@ -3,15 +3,15 @@
 updated: 2026-09-25
 
 now:                       # dashboard view; mode comes from EXPERIMENT.yaml status
-  active_outcome: O1
-  experiment: E-006 (ready) — colour token on the real site's dev server, 3 runs; does the agent keep the page's config? (K8)
-  last_result: "E-005 L2: real site's runtime is reachable in dev, but updateConfig replaces config, so a bare theme call regresses the page (K8)"
-  next: "EXECUTION: run E-006 on branch ai/E-006-config-preserve"
+  active_outcome: O2
+  experiment: "none (E-006 evaluated PROVEN, merged)"
+  last_result: "E-006 L3: 3/3 real agents added a theme colour on the real site's dev server, kept its config, no regression, claims agree (K9). O1 done."
+  next: "STRATEGY: contract E-007 for O2"
   blockers: []
 
 outcomes:
   O1:
-    status: active
+    status: done           # D14: K3, K5, K7, K8, K9; zero BaroCSS changes
     statement: >
       An AI agent can change the styling of a running BaroCSS page and confirm
       the result matches its intent, using the smallest possible
@@ -21,7 +21,7 @@ outcomes:
       L3 evidence that a real agent completes modify+verify on a realistic page,
       and every BaroCSS change made for it was proven necessary (gap K-id cited).
   O2:
-    status: candidate
+    status: active
     statement: An AI generates new UI with BaroCSS classes that render as intended on the first try.
   O3:
     status: candidate
@@ -61,38 +61,35 @@ knowledge:
     - id: K6
       level: L2
       fact: >
-        E-003 self-test (no agent runs). Live theme edits: theme.extend.colors.brand makes bg-brand work,
-        via page-exposed runtime.updateConfig and via a second BrowserRuntime({config}) imported from the CDN
-        bundle, with no regression (theme deep-merges over defaults). theme.extend.borderRadius only emits
-        :root --radius-*: rounded-* names are hard-coded staticUtility entries and the functional rounded
-        has no theme key, so no config route can add rounded-4xl. Config has no plugin hook.
-      caveat: >
-        Only colors and borderRadius were probed. {DEFAULT: ...} colour objects throw in the bg handler.
-        No agent evidence. Evidence: .ai/evidence/E-003/selftest.json, SUMMARY.md.
+        E-003: theme.extend.colors.brand via runtime.updateConfig makes bg-brand work with no regression (theme
+        deep-merges over defaults). theme.extend.borderRadius only emits :root --radius-* (rounded-* names are
+        hard-coded), so no config route adds rounded-4xl. Config has no plugin hook.
+      caveat: "Only colors/borderRadius probed; {DEFAULT} colour objects throw. Evidence: .ai/evidence/E-003/."
     - id: K7
       level: L3
       fact: >
-        E-004: same actor and prompt, fixture pages from E-003. The agent added theme.extend.colors.brand
-        live and used bg-brand, 3/3 PASS with no regression and claims agreeing: arm A (runtime module-scoped)
-        twice, arm B (window.baroRuntime) once. Discovery: page source, module exports or the global, then
-        updateConfig.toString(). App exposure only changed the route (11 vs 13-14 turns, similar cost).
+        E-004: same actor/prompt on fixture pages: agent added theme.extend.colors.brand live and used bg-brand,
+        3/3 PASS, claims agree. Discovery: page source/exports/global, then updateConfig.toString().
       caveat: >
-        Arm A passed via `import(<CDN module URL>).getRuntime()`, which created a second, non-observing
-        runtime (the page did `new BrowserRuntime()`), with duplicate <style> ids. Both agents claimed it was
-        the page's runtime. The fixture exposes an importable module URL; realistic bundled apps may not.
-        n=2/1, one model. Evidence: .ai/evidence/E-004/SUMMARY.md, route-probe.json.
+        Arm A passed via a second, non-observing runtime from the CDN URL (duplicate <style> ids) while claiming
+        it was the page's. Fixtures had no existing config. Evidence: .ai/evidence/E-004/SUMMARY.md.
     - id: K8
       level: L2
       fact: >
-        E-005 self-test on apps/barocss-site (baroStart({config:{preflight:true}})). Vite dev: the served inline
-        module names the BaroCSS module URL; import() of that exact URL returns baroStart's runtime (a ?query URL
-        is a second instance). updateConfig replaces the whole config (browser-runtime.ts), so the minimal
-        updateConfig({theme:{extend:{colors:{brand}}}}) makes bg-brand work but drops preflight and regresses
-        the page (hero links fall back to UA link colour). Config-preserving calls ({...options.config, theme} or
-        {preflight:true, theme}) pass with no regression. Production build: no route (no global, bundle exports []).
+        E-005 on apps/barocss-site (baroStart({config:{preflight:true}})). Vite dev: import() of the served BaroCSS
+        module URL returns baroStart's runtime. updateConfig replaces the whole config, so a bare theme call drops
+        preflight and regresses the page; config-preserving calls pass. Production build: no route (no global, no exports).
+      caveat: "No agent runs. Evidence: .ai/evidence/E-005/SUMMARY.md, selftest.json."
+    - id: K9
+      level: L3
+      fact: >
+        E-006: same actor/prompt on apps/barocss-site's vite dev server, app-origin-only network. 3/3 read
+        updateConfig's source (toString or /@fs TypeScript), passed a config-preserving object to the page's own
+        runtime, used bg-brand: Y1 pass, 0 regressions, preflight kept, no duplicate runtime, claims agree.
+        updateConfig's replace semantics did not block agents; no merge change indicated.
       caveat: >
-        No agent runs. E-004's fixtures had no preflight, so K7 could not see the regression; E-004 A1 spread the
-        existing config, A2 did not. Evidence: .ai/evidence/E-005/SUMMARY.md, selftest.json.
+        n=3, one strong model. 0/3 made the bare call, so drop-then-notice is unobserved. Dev server exposes repo
+        source over /@fs; production has no route (K8). Evidence: .ai/evidence/E-006/SUMMARY.md, runs/.
   disproven: []
   working_assumptions:     # L0; plausible but untested, don't treat as proven
     - Natural-language reasoning doesn't belong inside BaroCSS.
@@ -106,10 +103,7 @@ knowledge:
     - id: U4
       q: Where does BaroCSS behavior differ from the Tailwind knowledge models already have, and do those differences cause agent errors?
     - id: U5
-      q: >
-        Can an agent make a theme/config change (new token) in a live page whose runtime is module-scoped?
-        K6/K7: yes on fixtures. K8: real site reachable in dev, not in the production bundle; but the natural call
-        regresses the page. Open: does a real agent preserve the existing config (E-006)? Production: open, not needed yet.
+      q: "Theme change on a production bundle with no exposed runtime (K8: no route). Open; no scenario needs it yet."
     - id: U6
       q: "Which theme namespaces drive class generation (K6: colors yes, borderRadius no)? Open until a scenario needs one."
 
@@ -120,27 +114,24 @@ decisions:                 # older entries compressed; full text in git log -p -
       Strategy/Execution isolation via one handoff file; retired the AI-Interaction roadmap; froze AST work (K2)
       unless a scenario needs it; only Strategy accepts/merges experiments and its own .ai/-only PRs.
     why: Role overhead, easy-task bias, self-confirming loops, solutions before evidence (astToJson drift).
-  - id: D5-D12
+  - id: D5-D13
     date: 2026-09-25
     decision: >
-      Real-agent evidence first: E-001 (K3) and E-002 (K5) PROVEN, so class-level modify+verify needs zero BaroCSS
-      surface (no "class resolved" signal, no parity work). Then theme/config edits (U5): E-003 INCONCLUSIVE (K6;
-      rounded-*/theme not a work item), E-004 PROVEN on fixtures (K7). O1 not done: fixtures load BaroCSS from an
-      importable URL, so E-005 moved the same task to apps/barocss-site. getRuntime()'s misleading singleton is
-      recorded, not a work item.
+      Real-agent evidence first: E-001 (K3), E-002 (K5) PROVEN, so class-level modify+verify needs zero BaroCSS
+      surface. Theme/config edits (U5): E-003 INCONCLUSIVE (K6), E-004 PROVEN on fixtures (K7), E-005 INCONCLUSIVE
+      on the real site (K8: replace semantics; its bare-call control was the contract's error), E-006 reran agents there.
     why: >
-      Guessed gaps risk invent-then-solve; theme/config semantics is what only BaroCSS owns, and done_when needs a
-      realistic page.
-  - id: D13
+      Guessed gaps risk invent-then-solve; theme/config semantics is what only BaroCSS owns; done_when needs a realistic page.
+  - id: D14
     date: 2026-09-25
     decision: >
-      Accepted E-005 INCONCLUSIVE (K8), merged as evidence; its bare-call positive control was the contract's error.
-      E-006 reruns the dev-server agent phase with a config-preserving positive control and the bare call as a
-      negative control, and records whether each agent keeps the page's config. Production arm dropped (K8 already
-      shows no route; the agent-behaviour question there is K5-like and moves direction little).
+      Accepted E-006 PROVEN (K9), merged. O1 done: L3 modify+verify on a realistic page (class edits K3/K5, theme
+      token K7/K9) with zero BaroCSS changes, so none needed proving. No updateConfig merge change. Active outcome → O2
+      (generate): the next loop stage, and class → rule resolution vs models' Tailwind v4 knowledge (K4, U4) is
+      BaroCSS-owned. O3 stays candidate.
     why: >
-      updateConfig's replace semantics is BaroCSS-owned theme/config behaviour. Whether it makes real agents
-      break a real page (and whether they notice) decides between "O1 done, zero changes" and a minimal merge gap.
+      done_when met without new surface. Generation is where K4's parity gaps would bite first-try rendering;
+      measuring how often they bite decides whether parity work matters or stays a non-item.
 
 open_items:                # for STRATEGY, not EXECUTION
   - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."
