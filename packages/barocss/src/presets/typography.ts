@@ -81,12 +81,12 @@ functionalUtility({
 });
 
 // --- Typography: Line Height ---
-staticUtility("leading-none", [["line-height", "var(--line-height-none)"]], { category: 'typography' });
-staticUtility("leading-tight", [["line-height", "var(--line-height-tight)"]], { category: 'typography' });
-staticUtility("leading-snug", [["line-height", "var(--line-height-snug)"]], { category: 'typography' });
-staticUtility("leading-normal", [["line-height", "var(--line-height-normal)"]], { category: 'typography' });
-staticUtility("leading-relaxed", [["line-height", "var(--line-height-relaxed)"]], { category: 'typography' });
-staticUtility("leading-loose", [["line-height", "var(--line-height-loose)"]], { category: 'typography' });
+staticUtility("leading-none", [["line-height", "var(--leading-none, 1)"]], { category: 'typography' });
+staticUtility("leading-tight", [["line-height", "var(--leading-tight, 1.25)"]], { category: 'typography' });
+staticUtility("leading-snug", [["line-height", "var(--leading-snug, 1.375)"]], { category: 'typography' });
+staticUtility("leading-normal", [["line-height", "var(--leading-normal, 1.5)"]], { category: 'typography' });
+staticUtility("leading-relaxed", [["line-height", "var(--leading-relaxed, 1.625)"]], { category: 'typography' });
+staticUtility("leading-loose", [["line-height", "var(--leading-loose, 2)"]], { category: 'typography' });
 
 functionalUtility({
   name: "leading",
