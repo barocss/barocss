@@ -344,6 +344,11 @@ class Store(unittest.TestCase):
         self.assertEqual((v["experiment"], v["exp_status"], v["head_time"]),
                          ("E-010", "running", "2026-09-25T11:00:00+00:00"))
         self.assertIn("EXECUTION (§3) of E-010 only", sv.instruction("EXECUTE E-010"))
+        s = store_snap(branch={"status": "done", "question": "Q10?", "result": {"verdict": "PROVEN"}},
+                       prs=[spr(ci="pending")])
+        proj = sv.view_of(s, sup.derive(s))["project"]   # status display follows the store item, not the legacy slot
+        self.assertEqual((proj["question"], proj["verdict"], proj["pr"]["number"], proj["pr"]["ci"]),
+                         ("Q10?", "PROVEN", 9, "pending"))
         r = {"key": "EXECUTE E-010@dddd", "action": "EXECUTE E-010", "ended_at": "2026-09-25T11:30:00+00:00"}
         s = store_snap(branch={"status": "done"}, prs=[spr(ci="pending")])
         self.assertEqual(sv.transition(r, sv.view_of(s, sup.derive(s))), "advanced")

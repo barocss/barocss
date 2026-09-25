@@ -362,7 +362,7 @@ def summarize_checks(runs):
 
 
 def gh_json(*args):
-    r = subprocess.run(["gh", *args], capture_output=True, text=True)
+    r = subprocess.run(["gh", *args], capture_output=True, text=True, cwd=TOP)   # {owner}/{repo} resolve from the repo, not the cwd
     if r.returncode:
         raise RuntimeError(f"gh {' '.join(args)}: {r.stderr.strip()}")
     return json.loads(r.stdout)

@@ -73,17 +73,62 @@ python3 -m unittest discover -s tools/ai-supervisor -v         # rule tests + re
 Removes the one human action left in V1: opening a fresh Opus session and pasting the standard instruction.
 The protocol itself is unchanged; the repository is the prompt.
 
+### Lifecycle: app-scoped, not a daemon
+
+The autonomous work runs while something the user started is running: typically a Claude App session that
+runs `start` as a background task, or a terminal. It is never installed as a service.
+
 ```bash
-python3 tools/ai-supervisor/supervise.py run --dry-run          # observe + decide; no launch, ledger untouched
-python3 tools/ai-supervisor/supervise.py run                    # loop, at most one session at a time
-python3 tools/ai-supervisor/supervise.py run --max-sessions 1   # canary: one handoff, derive the next action, stop
-python3 tools/ai-supervisor/supervise.py status                 # last decision + recent ledger records
-python3 tools/ai-supervisor/supervise.py release 'KEY'          # re-arm a key held after retry exhaustion
+python3 tools/ai-supervisor/supervise.py start            # autonomous work on (foreground; Ctrl-C = stop)
+python3 tools/ai-supervisor/supervise.py status           # observe at any time (--refresh: read GitHub now, --json)
+python3 tools/ai-supervisor/supervise.py pause            # launch nothing new; a running session finishes
+python3 tools/ai-supervisor/supervise.py resume
+python3 tools/ai-supervisor/supervise.py stop             # stop now; a running session is interrupted
+python3 tools/ai-supervisor/supervise.py start --dry-run  # observe + decide once, launch nothing
+python3 tools/ai-supervisor/supervise.py start --max-sessions 1   # canary: one handoff, then stop
+python3 tools/ai-supervisor/supervise.py release 'KEY'    # re-arm a key held after retry exhaustion
 ```
+
+| runner state | meaning |
+|---|---|
+| `RUNNING` | loop active: launches, waits for CI, or holds for attention (`activity` says which) |
+| `PAUSING` | pause requested while a session runs; the session is bounded (timeouts), so it may finish |
+| `PAUSED` | no session; still observing, launching nothing (`next action … → paused`) |
+| `STOPPED` | no runner. Set by `stop`, by the owner exiting, by SIGTERM/SIGINT/SIGHUP, or by a runner crash |
+
+- **Owner.** `start` is tied to its parent process (`--owner PID` to name another, `--no-owner` to opt out).
+  When the owner exits, the run stops. Each session's wrapper watches the owner too, so an Opus session
+  never outlives the app even if the runner dies with it.
+- **Stop is safe to resume.** A stopped session is recorded `INTERRUPTED`. That costs no retry attempt, and
+  the next `start` resumes from durable git/GitHub state: the same action again, or whatever the repository
+  now says. `start` always means running, whatever the last request was. A second `start` is refused while
+  one runs (`flock`).
+- **Status** shows the runner state, the active outcome, the current experiment and its question, the mode
+  of the running session (STRATEGY / EXECUTION), the Opus session (action, attempt, elapsed vs timeout,
+  quiet time, latest tool call), the last result (state, transition, duration, cost, first line of the
+  session's report), the next action and what the runner will do with it, CI/PR waiting and blockers.
+- **Feedback** never pauses the loop. It reaches sessions the V1 way, through `STATE.human_directives`,
+  which Strategy reads. The loop only waits on a human when the protocol says so (`HUMAN_REQUIRED`,
+  `BLOCKED`, or a hold).
+- **One supervisor per repository.** Ownership is a `flock` on `~/.cache/ai-supervisor/locks/<repo id>.lock`
+  (from the passwd home, so neither `AI_HOME` nor `$HOME` moves it). The repo id is the hash of the
+  canonical `origin` remote (`git@github.com:O/R.git`, `https://…/O/R` → `github.com/o/r`), or of the git
+  common dir when there is no remote. Every worktree and clone of one repository therefore shares one
+  lock, and different repositories run independently. The kernel drops the lock when its holder dies, so
+  a crash never leaves it stuck. `<repo id>.owner.json` (pid, home, worktree, random token) only labels
+  the owner: liveness is always "is the lock held right now", never a pid, so pid reuse can't fake an
+  owner and nothing is ever signalled by pid. `pause`, `resume`, `stop` and `status` find the owner through
+  the lock, whichever worktree or `AI_HOME` they are typed in. Session wrappers carry the repo id, so
+  `start` refuses while a session of this repository from another home is still alive, and `stop` ends
+  it (found by its token).
+- Control goes through `$AI_HOME/control.json` (what the user wants), and the runner reports in
+  `runner.json` (what it is doing). Both live outside git.
+
+### Loop
 
 Loop: observe (Phase 1 `collect_live` + `derive`) → `decide()` (pure) → wait, hold, or launch one
 `claude -p "<standard instruction>" --model opus --permission-mode auto` (the mode V1 sessions ran in) in
-`$AI_HOME/workspace`, a clone reset to `origin/develop` → monitor → re-observe → repeat. The session gets only:
+`$AI_HOME/workspace`, a plain clone reset to `origin/develop` before every launch → monitor → re-observe → repeat. The session gets only:
 
 > Read AGENTS.md and follow it. / Determine your mode from the durable project state on origin/develop exactly
 > as §1 says. / Run one pass of that mode, then stop.
@@ -103,13 +148,13 @@ it while the work store is empty, and a disagreement holds as `work_model_disagr
 
 **Ledger** (`$AI_HOME/ledger.json`, outside git): session id, key (`<next action>@<develop sha>`), action,
 experiment, pid/pgid, started_at, last_activity, timeout, attempt, state `RUNNING | COMPLETED | CRASHED |
-TIMED_OUT`, exit code, the state before and after, and the mechanical `transition` (advanced / no_progress /
+TIMED_OUT | INTERRUPTED`, exit code, the result summary, the state before and after, and the mechanical `transition` (advanced / no_progress /
 incomplete / contradiction / unexpected). Each session runs under a detached wrapper that writes `exit.json`,
 so a restarted supervisor adopts a live session (found by its `--sup-session` token, which also defeats pid
 reuse) or settles one that ended while it was stopped. A `flock` keeps one supervisor per `$AI_HOME`.
 
 **Failure policy.** Only process failures retry: non-zero exit, a session error result (API/overload), no
-result event, a vanished process, the hard timeout (EXECUTE 6 h, others 2 h) or 60 min without output (the
+result event, a vanished process, a failed workspace setup, the hard timeout (EXECUTE 6 h, others 2 h) or 60 min without output (the
 process group is killed). Budget: 3 attempts per key, backoff 120 s × n, then hold `retry_exhausted` until
 the state changes or `release`. A clean exit is never retried, whatever it produced: a DISPROVEN, blocked or
 INCONCLUSIVE result is a result, and a clean exit that left the key unchanged holds as `no_progress` (V1 has

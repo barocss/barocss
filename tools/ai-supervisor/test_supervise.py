@@ -7,7 +7,7 @@ Pure tests drive decide() with Phase 1 statuses from synthetic snapshots. Proces
 loop, wrapper and ledger against fixtures/fake_claude.py and a file-backed "world" the fake session
 changes, so crash, timeout, restart and stale-ledger paths use real processes. No network, no model.
 """
-import json, os, signal, subprocess, sys, tempfile, time, unittest
+import contextlib, io, json, os, signal, subprocess, sys, tempfile, threading, time, unittest, uuid
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sup  # noqa: E402
@@ -47,7 +47,7 @@ def view(name, **kw):
 
 def cfg(home, **kw):
     base = dict(home=home, claude=[sys.executable, FAKE], prepare=False, poll_s=0.01, monitor_s=0.05,
-                settle_s=0, backoff_s=0, kill_grace_s=1, fetch=False)
+                settle_s=0, backoff_s=0, kill_grace_s=1, fetch=False, tick_s=0.05)
     base.update(kw)
     return sv.Config(**base)
 
@@ -132,6 +132,19 @@ class Decide(unittest.TestCase):
         recs = [rec(v["key"], "CRASHED", sid=str(i), released=True) for i in range(3)]
         self.assertEqual(sv.decide(v, recs, time.time(), C)["do"], "launch")
 
+    def test_interrupted_costs_no_attempt_and_resumes(self):
+        v = view("execute")
+        d = sv.decide(v, [rec(v["key"], "INTERRUPTED", sid=str(i)) for i in range(5)], time.time(), C)
+        self.assertEqual((d["do"], d["attempt"]), ("launch", 1))
+        d = sv.decide(view("running"), [rec(v["key"], "INTERRUPTED", action="EXECUTE E-009")], time.time(), C)
+        self.assertEqual((d["do"], d["action"]), ("launch", "EXECUTE E-009"))
+
+    def test_lifecycle(self):
+        self.assertEqual(sv.lifecycle("running", True), "RUNNING")
+        self.assertEqual(sv.lifecycle("paused", True), "PAUSING")
+        self.assertEqual(sv.lifecycle("paused", False), "PAUSED")
+        self.assertEqual(sv.lifecycle("stopped", True), "STOPPED")
+
     def test_transition(self):
         r = rec(view("execute")["key"], "COMPLETED", action="EXECUTE E-009")
         self.assertEqual(sv.transition(r, view("review")), "advanced")
@@ -198,6 +211,9 @@ class World:
         self.script = list(script)   # names observed before falling back to the world file
         self.observed = []
         self.handles = []
+        # Each world is its own repository with its own lock dir: tests never touch a real runner's lock.
+        self.identity = {"id": "t" + uuid.uuid4().hex[:15], "name": "test/" + os.path.basename(self.dir)}
+        self.lock_dir = os.path.join(self.dir, "locks")
         os.environ.update(SUP_FAKE_WORLD=self.f["world"], SUP_FAKE_PLAN=self.f["plan"],
                           SUP_FAKE_ARGV=self.f["argv"], SUP_FAKE_CHILD=self.f["child"])
 
@@ -211,7 +227,11 @@ class World:
         s = WORLDS[name]()
         return s, sup.derive(s)
 
+    def overrides(self):
+        return {"lock_dir": self.lock_dir, "identity": self.identity}
+
     def sup(self, **kw):
+        kw = dict(self.overrides(), **kw)
         return sv.Supervisor(cfg(self.home, **kw), observe=self.observe, out=lambda *a: None)
 
     def launches(self):
@@ -333,6 +353,23 @@ class Process(unittest.TestCase):
         child = w.child()
         self.assertTrue(wait_for(lambda: not _pid_alive(child)))
 
+    def test_workspace_failure_is_a_retryable_environment_failure(self):
+        w = World(self, "execute", plan=[{"world": "review"}])
+        s = w.sup(prepare=True, workspace=os.path.join(w.dir, "ws"))
+        calls = []
+
+        def flaky():
+            calls.append(1)
+            if len(calls) == 1:
+                raise subprocess.CalledProcessError(128, ["git", "clone"], stderr="fatal: network down")
+            os.makedirs(s.cfg.workspace, exist_ok=True)
+        s.prepare_workspace = flaky
+        rep = s.run(max_sessions=1)                       # the runner survives and retries
+        recs = w.records()
+        self.assertEqual([(r["state"], r["attempt"]) for r in recs], [("CRASHED", 1), ("COMPLETED", 2)])
+        self.assertIn("network down", recs[0]["reason"])
+        self.assertEqual(rep["decision"]["action"], "REVIEW E-009")
+
     def test_semantic_failure_is_not_retried(self):
         # The experiment ends blocked / INCONCLUSIVE: that is a result, so the next step is REVIEW.
         w = World(self, "execute", plan=[{"world": "blocked_result"}])
@@ -402,7 +439,7 @@ class Process(unittest.TestCase):
         self.assertEqual(len(w.launches()), 1)
         with open(os.path.join(w.home, "supervisor.log")) as fh:
             events = [json.loads(line)["event"] for line in fh]
-        self.assertEqual(events.count("wait"), 3)
+        self.assertEqual(events.count("wait"), 1)   # one log line per change, not per poll
 
     def test_dry_run_launches_nothing_and_keeps_the_ledger(self):
         w = World(self, "execute")
@@ -411,6 +448,331 @@ class Process(unittest.TestCase):
         self.assertEqual((d["do"], d["action"]), ("launch", "EXECUTE E-009"))
         self.assertIn(sv.instruction("EXECUTE E-009"), d["command"])
         self.assertEqual((w.launches(), w.records()), ([], []))
+
+
+def background(s, **kw):
+    box = {}
+    t = threading.Thread(target=lambda: box.update(rep=s.run(**kw)), daemon=True)
+    t.start()
+    return t, box
+
+
+def runner(w):
+    return sv.read_json(os.path.join(w.home, "runner.json")) or {}
+
+
+class Lifecycle(unittest.TestCase):
+    def live(self, w):
+        return [r for r in w.records() if r["state"] == "RUNNING"]
+
+    def test_pause_lets_the_session_finish_then_resume_continues(self):
+        w = World(self, "execute", plan=[{"world": "review", "sleep": 1.0}, {"world": "plan", "sleep": 0.2}])
+        t, box = background(w.sup())
+        self.assertTrue(wait_for(lambda: self.live(w)))
+        sv.request(w.home, "paused", by="test")
+        self.assertTrue(wait_for(lambda: runner(w).get("state") == "PAUSING"))
+        self.assertTrue(wait_for(lambda: runner(w).get("state") == "PAUSED"))
+        (r,) = w.records()
+        self.assertEqual((r["state"], r["transition"]), ("COMPLETED", "advanced"))   # finished, not killed
+        time.sleep(0.5)
+        self.assertEqual(len(w.launches()), 1)             # REVIEW is due, but nothing launches while paused
+        self.assertIn("would launch REVIEW E-009", runner(w).get("detail", ""))
+        sv.request(w.home, "running", by="test")
+        # Resumed, it keeps going on its own: REVIEW, then PLAN, whose session changes nothing (plan
+        # exhausted), so it holds as no_progress instead of relaunching.
+        self.assertTrue(wait_for(lambda: runner(w).get("detail", "").find("no_progress") >= 0 or
+                                 "did not advance" in runner(w).get("detail", "")))
+        self.assertEqual([(r["action"], r["state"]) for r in w.records()],
+                         [("EXECUTE E-009", "COMPLETED"), ("REVIEW E-009", "COMPLETED"), ("PLAN", "COMPLETED")])
+        time.sleep(0.3)
+        self.assertEqual(len(w.launches()), 3)
+        sv.request(w.home, "stopped", by="test")
+        t.join(10)
+        self.assertFalse(t.is_alive())
+        self.assertEqual((runner(w)["state"], box["rep"]["stopped"]), ("STOPPED", "stop requested"))
+
+    def test_stop_interrupts_and_a_restart_resumes(self):
+        w = World(self, "execute", plan=[{"sleep": 30, "child": True}, {"world": "review"}])
+        t, box = background(w.sup())
+        self.assertTrue(wait_for(lambda: self.live(w) and os.path.exists(w.f["child"])))
+        sid = self.live(w)[0]["session_id"]
+        sv.request(w.home, "stopped", by="test")
+        t.join(10)
+        self.assertFalse(t.is_alive())
+        (r,) = w.records()
+        self.assertEqual((r["state"], r["reason"]), ("INTERRUPTED", "stop requested"))
+        self.assertIsNone(sv.ps_pid(sid))
+        self.assertTrue(wait_for(lambda: not _pid_alive(w.child())))
+        self.assertEqual(runner(w)["state"], "STOPPED")
+        # Later: start again. start means running, whatever the last request was; no attempt was spent.
+        rep = w.sup().run(max_sessions=1)
+        (r2,) = rep["sessions"]
+        self.assertEqual((r2["action"], r2["attempt"], r2["state"]), ("EXECUTE E-009", 1, "COMPLETED"))
+        self.assertEqual(sv.read_control(w.home)["desired"], "running")
+
+    def test_owner_exit_stops_the_run(self):
+        owner = subprocess.Popen(["sleep", "60"])
+        self.addCleanup(owner.kill)
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        t, box = background(w.sup(owner=owner.pid))
+        self.assertTrue(wait_for(lambda: self.live(w)))
+        owner.kill()
+        owner.wait()
+        t.join(10)
+        self.assertFalse(t.is_alive())
+        (r,) = w.records()
+        self.assertEqual(r["state"], "INTERRUPTED")
+        self.assertIn(f"owner {owner.pid} gone", r["reason"])
+
+    def test_session_does_not_outlive_owner_and_runner(self):
+        # Both the app (owner) and the runner vanish at once: the wrapper ends the session itself.
+        owner = subprocess.Popen(["sleep", "60"])
+        self.addCleanup(owner.kill)
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        a = w.sup(owner=owner.pid)
+        r = a.launch(sv.decide(a.observe(), [], time.time(), a.cfg), a.observe())
+        w.orphan(a)
+        owner.kill()
+        owner.wait()
+        self.assertTrue(wait_for(lambda: sv.ps_pid(r["session_id"]) is None, timeout=15))
+        rep = w.sup().run(once=True)
+        (r,) = w.records()
+        self.assertEqual(r["state"], "INTERRUPTED")
+        self.assertEqual((rep["decision"]["do"], rep["decision"]["attempt"]), ("launch", 1))
+
+    def test_stop_without_runner_ends_orphan_sessions(self):
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        a = w.sup()
+        r = a.launch(sv.decide(a.observe(), [], time.time(), a.cfg), a.observe())
+        w.orphan(a)
+        (x,) = w.sup().run_locked(lambda s: s.stop_orphans("stop requested"))
+        self.assertEqual(x["state"], "INTERRUPTED")
+        self.assertIsNone(sv.ps_pid(r["session_id"]))
+
+    def test_status_while_running_and_after(self):
+        w = World(self, "execute", plan=[{"world": "review", "sleep": 1.5}])
+        t, box = background(w.sup(max_attempts=3))
+        self.assertTrue(wait_for(lambda: self.live(w) and runner(w).get("activity") == "session"))
+        st = sv.status_report(w.home)
+        self.assertEqual((st["runner"]["state"], st["mode"]), ("RUNNING", "EXECUTION"))
+        self.assertEqual((st["session"]["action"], st["session"]["attempt"]), ("EXECUTE E-009", 1))
+        self.assertEqual((st["outcome"]["id"], st["experiment"]["id"]), ("O2", "E-009"))
+        self.assertEqual(st["next"]["action"], "EXECUTE E-009")
+        self.assertIsNotNone(st["runner"]["uptime_s"])
+        sv.request(w.home, "paused", by="test")
+        self.assertTrue(wait_for(lambda: sv.status_report(w.home)["runner"]["state"] == "PAUSED"))
+        st = sv.status_report(w.home)
+        self.assertIsNone(st["session"])
+        self.assertEqual((st["last_result"]["action"], st["last_result"]["state"], st["last_result"]["after"]),
+                         ("EXECUTE E-009", "COMPLETED", "REVIEW E-009"))
+        self.assertEqual((st["next"]["action"], st["next"]["do"]), ("REVIEW E-009", "paused"))
+        lines = []
+        sv.print_report(st, out=lines.append)
+        text = "\n".join(lines)
+        for needle in ("runner      : PAUSED", "outcome     : O2", "experiment  : E-009", "last result : EXECUTE",
+                       "next action : REVIEW E-009 → paused"):
+            self.assertIn(needle, text)
+        sv.request(w.home, "stopped", by="test")
+        t.join(10)
+        self.assertEqual(sv.status_report(w.home)["runner"]["state"], "STOPPED")
+
+    def test_signal_stops_the_run(self):
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        s = w.sup()
+        t, box = background(s)
+        self.assertTrue(wait_for(lambda: self.live(w)))
+        s._on_signal(signal.SIGTERM, None)       # what the SIGTERM/SIGINT/SIGHUP handler does
+        t.join(10)
+        self.assertEqual((box["rep"]["stopped"], w.records()[0]["state"]), ("signal SIGTERM", "INTERRUPTED"))
+
+    def test_cli_controls_without_a_runner(self):
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(sv.main(["--home", w.home, "pause"], overrides=w.overrides()), 1)
+            self.assertEqual(sv.main(["--home", w.home, "resume"], overrides=w.overrides()), 1)
+            a = w.sup()
+            r = a.launch(sv.decide(a.observe(), [], time.time(), a.cfg), a.observe())
+            w.orphan(a)
+            self.assertEqual(sv.main(["--home", w.home, "stop", "--wait", "1"], overrides=w.overrides()), 0)
+        self.assertEqual(w.records()[0]["state"], "INTERRUPTED")
+        self.assertIsNone(sv.ps_pid(r["session_id"]))
+        self.assertEqual(sv.read_control(w.home)["desired"], "stopped")
+
+    def test_status_shows_ci_wait_and_blockers(self):
+        w = World(self, "ci")
+        w.sup().run(once=True)
+        st = sv.status_report(w.home)
+        self.assertEqual((st["waiting"]["on"], st["next"]["do"]), ("CI", "wait"))
+        w = World(self, "human")
+        w.sup().run(once=True)
+        st = sv.status_report(w.home)
+        self.assertTrue(any("gh token expired" in b for b in st["blockers"]))
+        self.assertTrue(any(b.startswith("hold human_required") for b in st["blockers"]))
+
+
+def git(*a, cwd):
+    return subprocess.run(["git", *a], cwd=cwd, check=True, capture_output=True, text=True).stdout
+
+
+def make_repo(root, name, url):
+    d = os.path.join(root, name)
+    os.makedirs(d)
+    git("init", "-q", cwd=d)
+    git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "--allow-empty", "-m", "init", cwd=d)
+    if url:
+        git("remote", "add", "origin", url, cwd=d)
+    return d
+
+
+class RepoOwnership(unittest.TestCase):
+    """One supervisor per repository: the lock is keyed by repository identity, not AI_HOME."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp(prefix="sup-own-")
+        self.locks = os.path.join(self.root, "locks")   # stands in for the per-user lock dir
+        self.one = make_repo(self.root, "one", "https://github.com/Example/One.git")
+        self.held = []
+        self.addCleanup(lambda: [x.release() for x in self.held])
+
+    def sup(self, repo, home="home"):
+        return sv.Supervisor(sv.Config(home=os.path.join(self.root, home), repo_dir=repo, lock_dir=self.locks),
+                             observe=lambda: None, out=lambda *a: None)
+
+    def take(self, s):
+        lock = s._lock()
+        self.held.append(lock)
+        return lock
+
+    def test_canonical_remote(self):
+        forms = ["https://github.com/Example/One.git", "https://user@github.com/example/one/",
+                 "git@github.com:Example/One.git", "ssh://git@github.com/example/one", "git@GitHub.com:example/one"]
+        self.assertEqual({sv.canonical_remote(u) for u in forms}, {"github.com/example/one"})
+        self.assertNotEqual(sv.canonical_remote("git@github.com:example/two"), "github.com/example/one")
+
+    def test_1_same_repo_same_home(self):
+        self.take(self.sup(self.one))
+        with self.assertRaises(sv.Busy):
+            self.sup(self.one)._lock()
+
+    def test_2_same_repo_different_ai_home(self):
+        self.take(self.sup(self.one, "home-a"))
+        with self.assertRaises(sv.Busy) as e:
+            self.sup(self.one, "home-b")._lock()
+        self.assertEqual(e.exception.owner["home"], os.path.join(self.root, "home-a"))
+        self.assertEqual(e.exception.owner["pid"], os.getpid())
+
+    def test_3_same_repo_different_worktree_or_clone(self):
+        wt = os.path.join(self.root, "one-wt")
+        git("worktree", "add", "-q", "--detach", wt, cwd=self.one)
+        clone = make_repo(self.root, "one-clone", "git@github.com:example/one")   # same repo, ssh form
+        ids = {sv.repo_identity(d)["id"] for d in (self.one, wt, clone)}
+        self.assertEqual(ids, {sv.repo_identity(self.one)["id"]})
+        self.take(self.sup(self.one, "home-a"))
+        for d in (wt, clone):
+            with self.assertRaises(sv.Busy):
+                self.sup(d, "home-b")._lock()
+
+    def test_3b_without_a_remote_worktrees_share_the_common_dir(self):
+        local = make_repo(self.root, "local", None)
+        wt = os.path.join(self.root, "local-wt")
+        git("worktree", "add", "-q", "--detach", wt, cwd=local)
+        self.assertEqual(sv.repo_identity(local), sv.repo_identity(wt))
+        self.assertTrue(sv.repo_identity(local)["name"].startswith("path:"))
+
+    def test_4_different_repos_run_concurrently(self):
+        two = make_repo(self.root, "two", "https://github.com/example/two")
+        self.take(self.sup(self.one, "home-a"))
+        self.take(self.sup(two, "home-a"))   # even with the same AI_HOME: the boundary is the repository
+
+    def test_5_stale_owner_record_is_recoverable(self):
+        s = self.sup(self.one)
+        lock = s.repo_lock()
+        dead = subprocess.Popen(["true"])
+        dead.wait()
+        os.makedirs(self.locks, exist_ok=True)
+        open(lock.path, "a").close()
+        old = {"repo": "github.com/example/one", "pid": dead.pid, "token": "old", "home": "/gone"}
+        sv.sup.write_json(lock.owner_path, old)
+        self.assertEqual(lock.probe(), {"alive": False, "record": old})
+        self.take(s)                                          # taken over; nobody had to be asked or killed
+        self.assertEqual(sv.read_json(lock.owner_path)["pid"], os.getpid())
+
+    def test_6_pid_reuse_is_not_ownership(self):
+        # The recorded pid now belongs to a live, unrelated process. The lock is free, so there is no
+        # owner, and nothing signals that process.
+        bystander = subprocess.Popen(["sleep", "60"])
+        self.addCleanup(bystander.kill)
+        s = self.sup(self.one)
+        lock = s.repo_lock()
+        os.makedirs(self.locks, exist_ok=True)
+        open(lock.path, "a").close()
+        sv.sup.write_json(lock.owner_path, {"pid": bystander.pid, "token": "tok", "home": s.cfg.home})
+        os.makedirs(s.cfg.home, exist_ok=True)
+        sv.sup.write_json(os.path.join(s.cfg.home, "runner.json"),
+                          {"state": "RUNNING", "pid": bystander.pid, "lock": lock.path, "token": "tok"})
+        info = sv.runner_info(s.cfg.home)
+        self.assertEqual((info["alive"], info["state"]), (False, "STOPPED"))
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(sv.main(["--home", s.cfg.home, "stop", "--wait", "1"],
+                                     overrides={"lock_dir": self.locks, "repo_dir": self.one}), 0)
+        self.take(s)
+        self.assertIsNone(bystander.poll())                   # still alive, never signalled
+        # A live owner under another token (a newer run) is not this home's runner either.
+        sv.sup.write_json(os.path.join(s.cfg.home, "runner.json"),
+                          {"state": "RUNNING", "pid": os.getpid(), "lock": lock.path, "token": "not-it"})
+        self.assertFalse(sv.runner_info(s.cfg.home)["alive"])
+
+    def test_7_restart_after_a_crashed_owner(self):
+        code = ("import sys, time; sys.path.insert(0, %r); import supervise as sv; "
+                "s = sv.Supervisor(sv.Config(home=%r, repo_dir=%r, lock_dir=%r), observe=lambda: None, out=print); "
+                "s._lock(); print('locked', flush=True); time.sleep(60)"
+                % (os.path.dirname(os.path.abspath(sv.__file__)), os.path.join(self.root, "home-x"), self.one,
+                   self.locks))
+        p = subprocess.Popen([sys.executable, "-c", code], stdout=subprocess.PIPE, text=True)
+        self.addCleanup(p.kill)
+        self.addCleanup(p.stdout.close)
+        self.assertEqual(p.stdout.readline().strip(), "locked")
+        s = self.sup(self.one, "home-y")
+        with self.assertRaises(sv.Busy):
+            s._lock()
+        self.assertTrue(s.repo_lock().probe()["alive"])
+        p.kill()                                              # crash: no cleanup, no release
+        p.wait()
+        self.assertFalse(s.repo_lock().probe()["alive"])      # the kernel dropped the flock
+        self.take(s)
+
+    def test_session_of_another_home_blocks_start(self):
+        # Runner A (home a) died but its session lives on; runner B (home b) can't see it in its ledger.
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        a = w.sup()
+        r = a.launch(sv.decide(a.observe(), [], time.time(), a.cfg), a.observe())
+        w.orphan(a)
+        b = sv.Supervisor(cfg(os.path.join(w.dir, "home-b"), **w.overrides()), observe=w.observe,
+                          out=lambda *x: None)
+        with self.assertRaises(sv.Busy) as e:
+            b.run(max_sessions=1)
+        self.assertIn(r["session_id"][:8], str(e.exception))
+        self.assertTrue(wait_for(lambda: len(w.launches()) == 1))
+        time.sleep(0.3)
+        self.assertEqual(len(w.launches()), 1)                # b launched nothing
+        # `stop` typed in home b finds it and ends it, by its token.
+        with contextlib.redirect_stdout(io.StringIO()):
+            sv.main(["--home", b.cfg.home, "stop", "--wait", "1"], overrides=w.overrides())
+        self.assertIsNone(sv.ps_pid(r["session_id"]))
+
+    def test_controls_reach_the_owner_from_another_home(self):
+        w = World(self, "execute", plan=[{"sleep": 30}])
+        t, box = background(w.sup())
+        self.assertTrue(wait_for(lambda: [r for r in w.records() if r["state"] == "RUNNING"]))
+        other = os.path.join(w.dir, "elsewhere")
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(sv.main(["--home", other, "status"], overrides=w.overrides()), 0)
+            self.assertIn("runner      : RUNNING", out.getvalue())
+            self.assertIn("held by pid", out.getvalue())
+            self.assertEqual(sv.main(["--home", other, "stop", "--wait", "10"], overrides=w.overrides()), 0)
+        t.join(10)
+        self.assertFalse(t.is_alive())
+        self.assertEqual(w.records()[0]["state"], "INTERRUPTED")
 
 
 def _pid_alive(pid):
