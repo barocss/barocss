@@ -110,7 +110,9 @@ class History:
             if not pushed:
                 continue
             head = pushed[-1]
-            branches[p["head"]] = sup.branch_view(head["sha"], head["time"], dev, want_exp=(p["head"] == exp_branch))
+            files = sup.store_files(develop)
+            branches[p["head"]] = sup.branch_view(head["sha"], head["time"], dev, want_exp=(p["head"] == exp_branch),
+                                                  want_files=[files[p["head"]]] if p["head"] in files else ())
             if self.t(p["created"]) >= t:
                 continue
             if p["merged"] and self.t(p["merged"]) < t:
@@ -154,7 +156,7 @@ def replay(fx=None, trace=False):
         st = sup.derive(h.snapshot(h.t(tm)))
         got = st["next_action"]
         ok = True
-        if not st["work"]["agrees_with_v1"]:   # migration slice 1: the Work DAG scheduler must match V1 everywhere
+        if st["work"]["agrees_with_v1"] is not True:   # migration slice 1: the Work DAG scheduler must match V1 everywhere
             ok = False
             bad.append({"at": tm, "event": what, "expected": got, "predicted": st["work"]["next_action"],
                         "phase": "work_model", "contradictions": st["contradictions"]})

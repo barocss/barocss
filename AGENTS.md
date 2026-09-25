@@ -1,15 +1,24 @@
 # BaroCSS — Autonomous Operating Protocol
 
-Read, in order: this file → `.ai/EXPERIMENT.yaml` → your mode's inputs (below).
+Read, in order: this file → the contract your step names (§1) → your mode's inputs (below).
 Read nothing else until your mode requires it.
 
 ## 1. Pick your mode (deterministic)
 
-1. `git fetch origin`, then read `.ai/EXPERIMENT.yaml` from `origin/develop`.
-2. If its status is `ready` or `running` and its `branch` exists on origin,
-   read `EXPERIMENT.yaml` from `origin/<branch>` instead. That copy is
+A contract lives in `.ai/work/<id>.yaml` (the work store, one file per work item) or in
+`.ai/EXPERIMENT.yaml` (the legacy single slot: finish the contract in it, never start a new one
+there). "The contract" below is the one file your step names.
+
+1. `git fetch origin`. If your instruction names a step (`EXECUTE <id>`, `REVIEW <id>`,
+   `MERGE #<n>`, `PLAN`), that is your pass. Otherwise run
+   `python3 tools/ai-supervisor/sup.py observe --out -` and take its `work next` step; if that is
+   a WAIT, BLOCKED, HUMAN_REQUIRED or IDLE step, STOP. EXECUTE is EXECUTION of that contract,
+   REVIEW is a STRATEGY review of it (§2A), MERGE is §2A.5 for the contract whose PR it names,
+   and PLAN is STRATEGY (§2); PLAN names no contract, so go straight to §2.
+2. Read the contract from `origin/develop`. If its status is `ready` or `running` and its
+   `branch` exists on origin, read it from `origin/<branch>` instead. That copy is
    authoritative, because the result lives there until Strategy merges it.
-3. Pick the mode from its `status`:
+3. Confirm the step against its `status`. If they disagree, STOP without changes:
 
 | status                        | mode      | job                                              |
 |-------------------------------|-----------|--------------------------------------------------|
@@ -29,14 +38,16 @@ PR. Execution never merges anything.
 
 ## 2. STRATEGY
 
-Inputs: `.ai/VISION.md`, `.ai/STATE.yaml`, `.ai/EXPERIMENT.yaml`,
-`git log --oneline -15 -- .ai`. When reviewing, also the experiment PR's diff
-and CI. Product source only to answer a specific factual question, with a few
-targeted searches. No product code edits.
+Inputs: `.ai/VISION.md`, `.ai/STATE.yaml`, the open contracts (`.ai/work/*.yaml`
+not yet `evaluated`, and `.ai/EXPERIMENT.yaml` until it is), `git log --oneline
+-15 -- .ai`. When reviewing, also the experiment PR's diff and CI. Product
+source only to answer a specific factual question, with a few targeted
+searches. No product code edits.
 
 **A. Review** (status `done` or `blocked`). Check out `branch`, then:
-1. Run `python3 .ai/check.py --role execution --base origin/develop`. If it
-   fails (contract edited, or changes outside scope), reject the experiment.
+1. Run `python3 .ai/check.py --role execution --base origin/develop` (add
+   `--work <id>` for a work-store contract). If it fails (contract edited, or
+   changes outside scope), reject the experiment.
 2. Review each of these on its own terms: the frozen `evidence.proves_yes`,
    `proves_no` and `level_required`; `result.evidence`, rerunning an L2
    command when it's cheap; `git diff origin/develop...HEAD`; CI
@@ -64,8 +75,14 @@ branch `ai/strategy-E-00N`:
 1. Pick one question for the active outcome: the unresolved assumption whose
    answer most changes what BaroCSS should build or stop building. Run the
    gates in §5 first.
-2. Write one contract in `EXPERIMENT.yaml` with the next id and its `branch`,
-   and set `status: ready`. Update `STATE.now`.
+2. Write the contract as `.ai/work/<id>.yaml` (the next E-id; the file name is
+   the id) with its `branch`, and set `status: ready`. Write more than one only
+   for independent questions that each pass the rules below, and declare what
+   a scheduler can't infer: `depends_on` (ids that must be judged first),
+   `locks` (shared runtime resources, e.g. `port:5173`), `observes` (paths
+   whose behavior the item measures), optional integer `priority`. Writing no
+   contract is valid when no open question is worth one: say why in
+   `STATE.now`; idle is a state, not a failure. Update `STATE.now`.
 3. Integrate it yourself. Run `python3 .ai/check.py --role strategy --base
    origin/develop`, commit `ai(strategy): …`, push, open a PR, and merge it
    once required checks pass. If the check fails or CI is red, fix it or
@@ -91,19 +108,20 @@ evidence only), or record a human blocker. Every such change goes in
 
 ## 3. EXECUTION
 
-Inputs: `EXPERIMENT.yaml` plus only the repo context the contract needs.
+Inputs: the contract plus only the repo context it needs.
 Don't read VISION or STATE. Search first, read selectively, stop reading
 once you have enough.
 
 1. Check out `branch`, creating it from `origin/develop` if it doesn't exist.
    Set `status: running`, commit, and push, so a crash is visible.
-2. Do only `allowed.actions`. Write only to `EXPERIMENT.yaml`,
+2. Do only `allowed.actions`. Write only to the contract file,
    `.ai/evidence/<id>/` and `allowed.paths`.
 3. Collect evidence in the form the contract asks for.
 4. Run deterministic verification. If product code changed, run `pnpm check`
    (or the package-scoped `type-check`/`lint`/`test`/`build:library`) and
    record the outcome in `result.checks`. Always run
-   `python3 .ai/check.py --role execution --base origin/develop`.
+   `python3 .ai/check.py --role execution --base origin/develop` (add
+   `--work <id>` for a work-store contract).
 5. Fill in `result` (your proposed verdict) and set `status: done` (or
    `blocked`). Commit as `ai(exec): E-00N <VERDICT> …` and push.
 6. Open or update the PR to `develop`, put its URL in `result.pr`, then commit

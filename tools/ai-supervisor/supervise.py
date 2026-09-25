@@ -115,17 +115,21 @@ def view_of(snap, st):
     """
     w = st["work"]
     a = w["next_action"]
-    word = a.split()[0]
+    word, _, target = a.partition(" ")
     dev = snap["develop"].get("sha") or ""
-    head = None
-    if word == "WAIT_EXECUTION" and st["experiments"]:
-        head = (snap["branches"].get(st["experiments"][0]["branch"]) or {}).get("time")
-    elif word == "WAIT_PLAN":
-        head = (snap["branches"].get(a.split()[1]) or {}).get("time")
+    # The work item the step names (legacy EXPERIMENT.yaml or a work-store file), else the legacy item.
+    items = {i["id"]: i for i in w["items"]}
     exp = st["experiments"][0] if st["experiments"] else {}
+    it = items.get(target) or items.get(exp.get("id")) or {}
+    head = None
+    if word == "WAIT_EXECUTION":
+        head = (snap["branches"].get(it.get("branch")) or {}).get("time")
+    elif word == "WAIT_PLAN":
+        head = (snap["branches"].get(target) or {}).get("time")
     return {"at": snap.get("at"), "next_action": a, "action": word, "rule": st["rule"], "state": st["state"],
-            "key": f"{a}@{dev[:12]}", "develop": dev, "head_time": head, "experiment": exp.get("id"),
-            "exp_status": exp.get("status"), "attention": st["attention"],
+            "key": f"{a}@{dev[:12]}", "develop": dev, "head_time": head, "experiment": it.get("id"),
+            "exp_status": it.get("status"), "attention": st["attention"],
+            "store": bool((snap["develop"].get("work") or {})),
             "mode": w["mode"], "v1_next_action": st["next_action"], "agrees_with_v1": w["agrees_with_v1"],
             "work": {"buckets": w["buckets"], "planner": w["planner"], "concurrency": w["concurrency"]}}
 
@@ -136,7 +140,7 @@ def decide(v, records, now, cfg):
     if live:
         return {"do": "monitor", "session": live[-1]["session_id"], "reason": "a session is alive; never launch a second"}
     recs = [r for r in records if not r.get("released")]
-    if not v.get("agrees_with_v1", True):
+    if v.get("agrees_with_v1") is False:   # None: work-store items exist and the V1 RULES no longer gate
         # Until the V1 RULES retire, a scheduler that disagrees with them is a bug to look at, not a plan.
         return _hold("work_model_disagrees", f"work {v['next_action']} vs V1 {v['v1_next_action']}")
     word = v["action"]
@@ -146,7 +150,8 @@ def decide(v, records, now, cfg):
         last = recs[-1] if recs else None
         head = epoch(v["head_time"]) if v.get("head_time") else None
         if last and head is not None and epoch(last["ended_at"]) >= head:
-            # Nothing was pushed since our last session ended, so the half-done pass is ours.
+            # Nothing was pushed since our last session ended, so the half-done pass is ours. (Serial: a RUNNING
+            # item blocks every launch, so with several work items the last session is still the one that left it.)
             if last["state"] in FAILED:
                 return _attempt(last["key"], last["action"], recs, now, cfg, resume=v["next_action"])
             return _hold("incomplete", f"session {last['session_id'][:8]} ({last['action']}) exited cleanly but "
@@ -196,6 +201,8 @@ def transition(rec, v):
         return "incomplete"
     if v["rule"] == "C0":
         return "contradiction"
+    if v.get("store"):   # several work items interleave; V1's per-action successors no longer apply
+        return "advanced"
     return "advanced" if v["action"] in EXPECTED_AFTER[rec["action"].split()[0]] else "unexpected"
 
 
