@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BrowserRuntime, unescapeCssIdent } from '../src/browser-runtime';
+import { BrowserRuntime } from '../src/browser-runtime';
+import { unescapeCssIdent } from '../src/existing-classes';
 
 const injected = () => Array.from(document.querySelectorAll<HTMLStyleElement>('[data-barocss="partition"]'))
   .flatMap(style => Array.from(style.sheet?.cssRules ?? []).map(rule => rule.cssText)).join('\n');
