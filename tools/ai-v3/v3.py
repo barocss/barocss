@@ -125,6 +125,12 @@ Your worktree is on branch v3/issue-{issue['number']}. If product code in packag
 changeset in .changeset/. Make ONE local commit: `v3(#{issue['number']}): <summary>`. The Supervisor
 integrates it; the Issue's ```verify block is what it will run.
 
+Output hygiene (a unit that reads huge tool output stalls): never read a full test run. Pipe every
+test/build command through a filter, e.g. `... 2>&1 | sed 's/\\x1b\\[[0-9;]*m//g' | grep -E "Test Files|Tests |FAIL|×" | head -40`,
+and inspect one failure at a time with `-t "<name>" ... | tail -40`. Keep each command's output under ~60 lines.
+When many tests fail after your change, classify each: a stale expectation of old buggy output (update it to the
+correct output) or a real regression (fix the code). Never blanket-update expectations.
+
 # #{issue['number']} {issue['title']}
 {issue['body']}"""
 
