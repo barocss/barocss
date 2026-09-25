@@ -297,3 +297,13 @@ human_directives:          # humans append short directional notes; STRATEGY mus
     "prefer the parity lane" for these two. That batch starts by ranking families on v0/shadcn-style
     output (Q6). A flow-(1) direction experiment waits for B: if B holds, test B's report inside a
     code-gen pipeline; if not, flow (1) has no BaroCSS-unique hypothesis yet.
+  - >-
+    2026-09-25 (human): planners plan, implementers implement; don't wait on one item at a time. On each
+    pass the Planner writes every READY work-store contract it can justify under the current directives,
+    so that at most 3 items are open in total across both lanes (not 3 more per pass), instead of one
+    per pass. Each gets its own branch, `locks` for each shared resource (a
+    dev-server port, any path another open item also writes), `depends_on` only for real data
+    dependencies, and `priority` for order. A pinned-commit experiment doesn't list develop paths in
+    `observes`: it reads its pinned commit, not develop. Two lanes run side by side. The question lane
+    keeps its order (B, then A), and a parity batch may run alongside it, so the order in the 2026-09-25
+    rounds 2-3 directive applies within the question lane only.
