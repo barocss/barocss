@@ -1,0 +1,92 @@
+{
+  "label": "postfix",
+  "tailwind": "4.1.13",
+  "url": "http://127.0.0.1:5190/",
+  "styled": {
+    "headerPosition": "sticky",
+    "h1FontSize": "60px",
+    "barocssStyles": 8,
+    "ok": true
+  },
+  "ring": {
+    "ring-1": {
+      "class": "RESOLVED",
+      "resolved": true,
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "twBoxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "shadowEqual": true,
+      "nonEmpty": true,
+      "undefinedVars": [],
+      "bcDecls": 6
+    },
+    "ring-2": {
+      "class": "RESOLVED",
+      "resolved": true,
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "twBoxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "shadowEqual": true,
+      "nonEmpty": true,
+      "undefinedVars": [],
+      "bcDecls": 6
+    },
+    "focus:ring-2": {
+      "class": "RESOLVED",
+      "resolved": true,
+      "boxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "twBoxShadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(17, 24, 39) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "shadowEqual": true,
+      "nonEmpty": true,
+      "undefinedVars": [],
+      "bcDecls": 6
+    },
+    "focus:ring-offset-2": {
+      "class": "RESOLVED",
+      "resolved": true,
+      "boxShadow": "none",
+      "twBoxShadow": "none",
+      "shadowEqual": true,
+      "nonEmpty": false,
+      "undefinedVars": [],
+      "bcDecls": 3
+    }
+  },
+  "controls": {
+    "shadow-sm": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "shadow-xl": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "shadow-none": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "p-4": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "bg-blue-600": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "md:grid-cols-3": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    },
+    "rounded-2xl": {
+      "class": "RESOLVED",
+      "ok": true,
+      "undefinedVars": []
+    }
+  },
+  "ringPass": true,
+  "controlsPass": true
+}
