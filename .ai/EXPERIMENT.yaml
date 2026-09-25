@@ -117,7 +117,7 @@ result:
     - "BLOCKER (why INCONCLUSIVE, per stop_when 'minimum fix touches a path outside allowed.paths'): pnpm check fails on 4 frozen exact-AST ring assertions in packages/barocss/tests/presets/effects.test.ts ('ring → multi-var box-shadow', 'ring-2 → multi-var box-shadow', 'ring → box-shadow variable combination', 'ring-4 → box-shadow variable combination'). They pin the v3 blue default (--baro-ring-color: rgb(59 130 246 / 0.5)) and the exact node list; any parity fix must update them, but packages/barocss/tests/ is not in allowed.paths (only packages/barocss/src/). proves_yes requires pnpm check green, so the contract cannot be completed as scoped without editing those tests."
     - "L3 (G1/G2 rerun) not run: the L2/scope gate already blocks contract completion, so per §3 stop_when I stopped rather than spend the two agent runs; they can be run after re-scoping."
   next_question: "Re-issue this contract with packages/barocss/tests/ added to allowed.paths (update the 4 frozen ring assertions to the Tailwind-v4 output) and drop the factually-wrong 'focus:ring-offset-2 renders a non-empty offset ring' expectation (Tailwind itself emits box-shadow: none for ring-offset alone); then it is a clean PROVEN + merge."
-  pr: PENDING
+  pr: https://github.com/barocss/barocss/pull/128
   checks: "type-check: pass; lint: pass; build:library: pass; test: FAIL (4/1422 — only the frozen ring exact-AST tests in packages/barocss/tests/presets/effects.test.ts, outside allowed.paths); check.py --role execution: OK"
   side_notes:
     - "Tailwind v4 default ring color is currentColor, not blue-500/50; BaroCSS's ring width utilities hardcoded the v3 blue — a latent parity bug the fix corrects (compat/compare.test.ts already forbade the blue for inset-ring-2)."
