@@ -2,22 +2,26 @@
 """Serial autonomous supervisor for the V1 protocol (V2 Phase 2).
 
 It removes one human action: opening a fresh Opus session and pasting the standard instruction.
-Everything else stays V1 (AGENTS.md). The loop:
+Everything else stays V1 (AGENTS.md). While the autonomous work is active, the loop is:
 
   observe (Phase 1: sup.collect_live + sup.derive) → decide (pure, below) → wait | hold | launch ONE
   fresh session with STANDARD_INSTRUCTION → monitor it (exit / crash / timeout) → re-observe → repeat
 
-  python3 tools/ai-supervisor/supervise.py run --dry-run          # observe + decide, launch nothing
-  python3 tools/ai-supervisor/supervise.py run                    # loop forever, one session at a time
-  python3 tools/ai-supervisor/supervise.py run --max-sessions 1   # canary: one handoff, then stop
-  python3 tools/ai-supervisor/supervise.py status                 # ledger + last decision
+It is not a daemon. `start` runs in the foreground of whatever started it (a Claude App session, a
+terminal) and stops when that owner goes away, on SIGTERM/SIGINT/SIGHUP, or on `stop`:
+
+  python3 tools/ai-supervisor/supervise.py start                  # autonomous work on, until stopped
+  python3 tools/ai-supervisor/supervise.py pause | resume | stop  # from any other shell
+  python3 tools/ai-supervisor/supervise.py status                 # what it is doing, and why
+  python3 tools/ai-supervisor/supervise.py start --dry-run        # observe + decide, launch nothing
+  python3 tools/ai-supervisor/supervise.py start --max-sessions 1 # canary: one handoff, then stop
   python3 tools/ai-supervisor/supervise.py release KEY            # re-arm an action held after retries
 
 The supervisor decides only mechanics: whether a session is alive, whether a process failed, whether
 to wait. It never reads a verdict, a priority or evidence; the launched session does all of that
 under AGENTS.md. Runtime state lives outside git in $AI_HOME (default ~/.barocss-ai).
 """
-import argparse, fcntl, json, os, signal, subprocess, sys, time, uuid
+import argparse, fcntl, hashlib, json, os, pwd, re, signal, socket, subprocess, sys, threading, time, urllib.parse, uuid
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -54,6 +58,7 @@ INFLIGHT = {"WAIT_EXECUTION", "WAIT_PLAN"}        # a pass is mid-way; whose ses
 WAIT = {"WAIT_FOR_CI"}                            # external; the supervisor waits, no session is kept alive
 HOLD = {"BLOCKED", "HUMAN_REQUIRED", "IDLE"}      # don't guess
 FAILED = {"CRASHED", "TIMED_OUT"}                 # process/environment failures: the only retryable ones
+RESUMABLE = FAILED | {"INTERRUPTED"}              # INTERRUPTED: stopped by the user/owner; resumes, costs no attempt
 # What V1 does after each launched action (AGENTS.md §2, §3). A mechanical check, not a judgment.
 EXPECTED_AFTER = {
     "EXECUTE": {"WAIT_FOR_CI", "REVIEW"},
@@ -82,6 +87,11 @@ class Config:
         self.stale_min = sup.STALE_EXEC_MIN
         self.fetch = True
         self.prepare = True                     # reset the session workspace to origin/develop
+        self.owner = None                       # pid whose exit ends the autonomous work (None: not watched)
+        self.repo_dir = sup.TOP                 # the repository this supervisor drives
+        self.lock_dir = default_lock_dir()      # per-user, independent of AI_HOME (see RepoLock)
+        self.identity = None                    # {id, name}; derived from repo_dir when None
+        self.tick_s = 1.0                       # how quickly pause / resume / stop take effect
         self.__dict__.update(kw)
         self.workspace = kw.get("workspace") or os.path.join(self.home, "workspace")
 
@@ -124,10 +134,25 @@ def view_of(snap, st):
         head = (snap["branches"].get(a.split()[1]) or {}).get("time")
     exp = st["experiments"][0] if st["experiments"] else {}
     return {"at": snap.get("at"), "next_action": a, "action": word, "rule": st["rule"], "state": st["state"],
-            "key": f"{a}@{dev[:12]}", "develop": dev, "head_time": head, "experiment": exp.get("id"),
-            "exp_status": exp.get("status"), "attention": st["attention"],
+            "phase": st["phase"], "key": f"{a}@{dev[:12]}", "develop": dev, "head_time": head,
+            "experiment": exp.get("id"), "exp_status": exp.get("status"), "attention": st["attention"],
             "mode": w["mode"], "v1_next_action": st["next_action"], "agrees_with_v1": w["agrees_with_v1"],
-            "work": {"buckets": w["buckets"], "planner": w["planner"], "concurrency": w["concurrency"]}}
+            "work": {"buckets": w["buckets"], "planner": w["planner"], "concurrency": w["concurrency"]},
+            "project": _project(snap, st, exp)}
+
+
+def _project(snap, st, exp):
+    """Display only (status): what the durable state says the project is doing. decide() never reads it."""
+    state = snap["develop"].get("state") or {}
+    now = state.get("now") or {}
+    oid = now.get("active_outcome") or next((o["id"] for o in st["outcomes"] if o["status"] == "active"), None)
+    src = (snap["branches"].get(exp.get("branch")) or {}).get("exp") if exp.get("source") == "branch" \
+        else snap["develop"].get("exp")
+    flat = lambda x: " ".join(str(x).split()) if x else None
+    return {"outcome": oid, "outcome_statement": flat(((state.get("outcomes") or {}).get(oid) or {}).get("statement")),
+            "question": flat((src or {}).get("question")), "last_result": flat(now.get("last_result")),
+            "blockers": list(now.get("blockers") or []), "pr": exp.get("pr"),
+            "verdict": exp.get("proposed_verdict")}
 
 
 def decide(v, records, now, cfg):
@@ -147,7 +172,7 @@ def decide(v, records, now, cfg):
         head = epoch(v["head_time"]) if v.get("head_time") else None
         if last and head is not None and epoch(last["ended_at"]) >= head:
             # Nothing was pushed since our last session ended, so the half-done pass is ours.
-            if last["state"] in FAILED:
+            if last["state"] in RESUMABLE:
                 return _attempt(last["key"], last["action"], recs, now, cfg, resume=v["next_action"])
             return _hold("incomplete", f"session {last['session_id'][:8]} ({last['action']}) exited cleanly but "
                                        f"left {v['next_action']}; a relaunch would guess")
@@ -180,7 +205,7 @@ def _attempt(key, action, recs, now, cfg, resume=None):
     d = {"do": "launch", "key": key, "action": action, "attempt": len(failed) + 1,
          "reason": f"{action}: semantic work, launch one fresh session"}
     if resume:
-        d["reason"] = f"resume {action} after a process failure (repository shows {resume})"
+        d["reason"] = f"resume {action} after an interrupted or failed session (repository shows {resume})"
     return d
 
 
@@ -260,20 +285,57 @@ def result_event(log):
 
 
 def outcome(sdir):
-    """(state, reason, exit code) of a session whose process is gone."""
+    """(state, reason, exit code, result event) of a session whose process is gone."""
     try:
         with open(os.path.join(sdir, "exit.json")) as fh:
-            code = json.load(fh)["code"]
+            ex = json.load(fh)
+        code = ex["code"]
     except (FileNotFoundError, ValueError, KeyError):
-        return "CRASHED", "process ended without an exit record (killed, or stale ledger)", None
+        return "CRASHED", "process ended without an exit record (killed, or stale ledger)", None, None
     res = result_event(os.path.join(sdir, "log.jsonl"))
+    if ex.get("interrupted"):
+        return "INTERRUPTED", ex["interrupted"], code, res
     if code != 0:
-        return "CRASHED", f"exit code {code}", code
+        return "CRASHED", f"exit code {code}", code, res
     if res is None:
-        return "CRASHED", "exit 0 without a result event", code
+        return "CRASHED", "exit 0 without a result event", code, res
     if res.get("is_error"):
-        return "CRASHED", f"session error: {res.get('subtype')} api_status={res.get('api_error_status')}", code
-    return "COMPLETED", res.get("subtype", "success"), code
+        return "CRASHED", f"session error: {res.get('subtype')} api_status={res.get('api_error_status')}", code, res
+    return "COMPLETED", res.get("subtype", "success"), code, res
+
+
+def summary(res):
+    if not res:
+        return None
+    return {"turns": res.get("num_turns"), "cost_usd": res.get("total_cost_usd"),
+            "duration_s": round((res.get("duration_ms") or 0) / 1000), "denials": len(res.get("permission_denials") or []),
+            "text": (res.get("result") or "")[:800]}
+
+
+def last_step(log):
+    """The session's latest tool call or message, for status. Display only."""
+    try:
+        with open(log, "rb") as fh:
+            fh.seek(0, 2)
+            fh.seek(max(0, fh.tell() - 131072))
+            lines = fh.read().decode("utf-8", "replace").splitlines()
+    except FileNotFoundError:
+        return None
+    for line in reversed(lines):
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue
+        if e.get("type") != "assistant":
+            continue
+        for c in reversed((e.get("message") or {}).get("content") or []):
+            if c.get("type") == "tool_use":
+                inp = c.get("input") or {}
+                what = inp.get("description") or inp.get("command") or inp.get("file_path") or inp.get("prompt") or ""
+                return f"{c.get('name')}: {' '.join(str(what).split())[:120]}"
+            if c.get("type") == "text" and c.get("text", "").strip():
+                return "says: " + " ".join(c["text"].split())[:120]
+    return None
 
 
 def killpg(pgid, grace, alive):
@@ -289,23 +351,215 @@ def killpg(pgid, grace, alive):
             time.sleep(0.05)
 
 
-def wrap(sdir, cwd, cmd):
-    """Detached parent of one session: runs it, then writes exit.json. Outlives the supervisor."""
+def pid_alive(pid):
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    st = subprocess.run(["ps", "-o", "stat=", "-p", str(pid)], capture_output=True, text=True).stdout.strip()
+    return bool(st) and not st.startswith("Z")
+
+
+def wrap(sdir, cwd, cmd, owner=None, grace=20):
+    """Detached parent of one session: runs it, then writes exit.json. It outlives a crashed supervisor
+    (so a restart can adopt the session) but not the owner: when the autonomous work's owner is gone,
+    the session is ended too, and exit.json says it was interrupted."""
     env = {k: v for k, v in os.environ.items()
            if k in SCRUB_KEEP or not (k.startswith("CLAUDE") or k in ("AI_AGENT", "BAGGAGE"))}
+    ex = {}
     with open(os.path.join(sdir, "log.jsonl"), "ab") as out, open(os.path.join(sdir, "stderr.log"), "ab") as err:
         try:
-            code = subprocess.Popen(cmd, cwd=cwd, stdin=subprocess.DEVNULL, stdout=out, stderr=err, env=env).wait()
+            p = subprocess.Popen(cmd, cwd=cwd, stdin=subprocess.DEVNULL, stdout=out, stderr=err, env=env)
         except OSError as e:
             err.write(f"spawn failed: {e}\n".encode())
-            code = 127
-    sup.write_json(os.path.join(sdir, "exit.json"), {"code": code, "ended_at": iso(time.time())})
+            p = None
+            ex["code"] = 127
+        while p is not None:
+            try:
+                ex["code"] = p.wait(timeout=1)
+                break
+            except subprocess.TimeoutExpired:
+                if owner and not pid_alive(owner):
+                    signal.signal(signal.SIGTERM, signal.SIG_IGN)
+                    os.killpg(0, signal.SIGTERM)
+                    try:
+                        ex["code"] = p.wait(timeout=grace)
+                    except subprocess.TimeoutExpired:
+                        ex["code"] = None
+                    ex["interrupted"] = f"owner {owner} gone"
+                    break
+    ex["ended_at"] = iso(time.time())
+    sup.write_json(os.path.join(sdir, "exit.json"), ex)
+    if ex.get("interrupted"):
+        os.killpg(0, signal.SIGKILL)   # whatever is left of the session, and this wrapper
+
+
+# ---------------------------------------------------------------- repository ownership
+# One supervisor per repository, whatever the worktree, shell, Claude App work or AI_HOME. The lock is
+# keyed by the repository's identity (its canonical origin remote) and lives in a per-user directory
+# that AI_HOME does not move. It is a flock: the kernel drops it when the holder dies, so a crash never
+# leaves it stuck, and liveness is never judged from a pid.
+
+def canonical_remote(url):
+    """git@github.com:O/R.git, ssh://git@github.com/O/R, https://u@github.com/O/R/ → github.com/o/r"""
+    u = url.strip()
+    m = re.match(r"^[\w.-]+@([^:/]+):(.+)$", u)   # scp-like
+    if m:
+        host, path = m.group(1), m.group(2)
+    else:
+        p = urllib.parse.urlsplit(u)
+        if p.scheme in ("", "file"):
+            return "path:" + os.path.realpath(p.path or u)
+        host, path = p.hostname or "", p.path
+    path = path.strip("/")
+    path = path[:-4] if path.endswith(".git") else path
+    return f"{host.lower()}/{path.lower()}"
+
+
+def repo_identity(repo_dir):
+    """Same id for every clone and worktree of one repository; the git common dir if there is no remote."""
+    r = subprocess.run(["git", "-C", repo_dir, "remote", "get-url", "origin"], capture_output=True, text=True)
+    if r.returncode == 0 and r.stdout.strip():
+        name = canonical_remote(r.stdout)
+    else:
+        common = subprocess.run(["git", "-C", repo_dir, "rev-parse", "--git-common-dir"], capture_output=True,
+                                text=True, check=True).stdout.strip()
+        name = "path:" + os.path.realpath(os.path.join(repo_dir, common))
+    return {"id": hashlib.sha256(name.encode()).hexdigest()[:16], "name": name}
+
+
+def default_lock_dir():
+    # The passwd home, not $HOME: neither AI_HOME nor a changed HOME moves the ownership boundary.
+    return os.path.join(pwd.getpwuid(os.getuid()).pw_dir, ".cache", "ai-supervisor", "locks")
+
+
+class RepoLock:
+    """<lock_dir>/<repo id>.lock (flock) plus <repo id>.owner.json (who holds it, with a random token)."""
+
+    def __init__(self, path):
+        self.path = path
+        self.owner_path = path[:-len(".lock")] + ".owner.json"
+        self.fh = self.token = None
+
+    @classmethod
+    def for_repo(cls, lock_dir, ident):
+        return cls(os.path.join(lock_dir, ident["id"] + ".lock"))
+
+    def acquire(self, record, wait=2.0, label=True):
+        """label=False: a short maintenance hold (stop's sweep) that keeps the last runner's owner record."""
+        # A short retry: `probe` holds a shared lock for microseconds and must not make `start` fail.
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
+        fh = open(self.path, "a")
+        end = time.time() + wait
+        while True:
+            try:
+                fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError:
+                if time.time() >= end:
+                    fh.close()
+                    rec = read_json(self.owner_path) or {}
+                    raise Busy(f"repository {record.get('repo')} is owned by supervisor pid {rec.get('pid')} "
+                               f"(home {rec.get('home')}, worktree {rec.get('worktree')}, since "
+                               f"{rec.get('acquired_at')})", owner=rec)
+                time.sleep(0.05)
+        self.fh, self.token = fh, uuid.uuid4().hex
+        if label:
+            sup.write_json(self.owner_path, dict(record, pid=os.getpid(), token=self.token,
+                                                 acquired_at=iso(time.time())))
+        return self
+
+    def release(self):
+        if self.fh is None:
+            return
+        rec = read_json(self.owner_path) or {}
+        if rec.get("token") == self.token:   # keep it as "last owner" for status
+            sup.write_json(self.owner_path, dict(rec, released_at=iso(time.time())))
+        fcntl.flock(self.fh, fcntl.LOCK_UN)
+        self.fh.close()
+        self.fh = None
+
+    close = release
+
+    def probe(self):
+        """{alive, record}: alive only if some process holds the lock right now. The record is just a label."""
+        rec = read_json(self.owner_path)
+        if not os.path.exists(self.path):
+            return {"alive": False, "record": rec}
+        with open(self.path, "a") as fh:
+            try:
+                fcntl.flock(fh, fcntl.LOCK_SH | fcntl.LOCK_NB)
+            except OSError:
+                return {"alive": True, "record": rec}
+            fcntl.flock(fh, fcntl.LOCK_UN)
+        return {"alive": False, "record": rec}
+
+
+def live_wrappers(repo_id):
+    """Session wrappers of this repository still running anywhere on this machine, found by argv token."""
+    out = subprocess.run(["ps", "-Ao", "pid=,stat=,command="], capture_output=True, text=True).stdout
+    found = []
+    for line in out.splitlines():
+        if f"--sup-repo {repo_id}" in line and line.split()[1][:1] != "Z":
+            m = re.search(r"--sup-session (\S+)", line)
+            if m:
+                found.append({"pid": int(line.split()[0]), "sid": m.group(1)})
+    return found
+
+
+# ---------------------------------------------------------------- lifecycle (app-scoped, not a daemon)
+# control.json: what the user wants (running | paused | stopped), written by start / pause / resume / stop.
+# runner.json:  what the runner is doing (RUNNING | PAUSING | PAUSED | STOPPED), written by the runner.
+
+def read_json(path):
+    try:
+        with open(path) as fh:
+            return json.load(fh)
+    except (FileNotFoundError, ValueError):
+        return None
+
+
+def read_control(home):
+    return read_json(os.path.join(home, "control.json")) or {"desired": "running"}
+
+
+def request(home, desired, by):
+    os.makedirs(home, exist_ok=True)
+    sup.write_json(os.path.join(home, "control.json"), {"desired": desired, "at": iso(time.time()), "by": by})
+
+
+def lifecycle(desired, session_live):
+    """Runner state for a desired state (pure)."""
+    if desired == "stopped":
+        return "STOPPED"
+    if desired == "paused":
+        return "PAUSING" if session_live else "PAUSED"
+    return "RUNNING"
+
+
+def runner_info(home):
+    """The runner of this home is alive iff it holds its repository lock under the same token. A live pid
+    alone proves nothing (pid reuse)."""
+    info = read_json(os.path.join(home, "runner.json")) or {}
+    alive = False
+    if info.get("lock") and info.get("token"):
+        p = RepoLock(info["lock"]).probe()
+        alive = p["alive"] and (p["record"] or {}).get("token") == info["token"]
+    if not alive and info.get("state") not in (None, "STOPPED"):
+        info = dict(info, state="STOPPED", stop_reason="runner process gone (crashed or killed)")
+    info.setdefault("state", "STOPPED")
+    info["alive"] = alive
+    return info
 
 
 # ---------------------------------------------------------------- supervisor (I/O)
 
 class Busy(RuntimeError):
-    pass
+    def __init__(self, msg, owner=None):
+        super().__init__(msg)
+        self.owner = owner
 
 
 class Supervisor:
@@ -315,6 +569,21 @@ class Supervisor:
         self.ledger = Ledger(cfg.home)
         self.observe_fn = observe or self._observe_live
         self.procs = {}   # session id → Popen of the wrapper, when this process launched it
+        self.signal = None
+        self.started_at = None
+        self.stop_reason = None
+        self._logged = None
+        self.observe_error = None
+        self.lock = None
+        self._ident = cfg.identity
+
+    def identity(self):
+        if self._ident is None:
+            self._ident = repo_identity(self.cfg.repo_dir)
+        return self._ident
+
+    def repo_lock(self):
+        return RepoLock.for_repo(self.cfg.lock_dir, self.identity())
 
     def _observe_live(self):
         snap = sup.collect_live(fetch=self.cfg.fetch)
@@ -330,6 +599,42 @@ class Supervisor:
         with open(os.path.join(self.cfg.home, "supervisor.log"), "a") as fh:
             fh.write(json.dumps(line, default=str) + "\n")
         self.out(f"[{line['at']}] {event}: " + ", ".join(f"{k}={v}" for k, v in kw.items()))
+
+    # -- lifecycle
+
+    def desired(self):
+        return read_control(self.cfg.home).get("desired", "running")
+
+    def halt_reason(self):
+        if self.signal:
+            return f"signal {self.signal}"
+        if self.cfg.owner and not pid_alive(self.cfg.owner):
+            return f"owner {self.cfg.owner} gone"
+        if self.desired() == "stopped":
+            return "stop requested"
+        return None
+
+    def set_runner(self, state, **kw):
+        info = {"state": state, "desired": self.desired(), "pid": os.getpid(), "owner": self.cfg.owner,
+                "started_at": self.started_at, "updated_at": iso(time.time()), "repo": self.identity()["name"],
+                "lock": self.lock.path if self.lock else None, "token": self.lock.token if self.lock else None, **kw}
+        prev = read_json(os.path.join(self.cfg.home, "runner.json")) or {}
+        sup.write_json(os.path.join(self.cfg.home, "runner.json"), info)
+        if prev.get("state") != state or prev.get("pid") != os.getpid():
+            self.log("runner", state=state, **{k: v for k, v in kw.items() if k in ("activity", "reason")})
+
+    def sleep(self, secs):
+        """Interruptible: returns early on stop, on a lost owner, or when pause/resume changes."""
+        end, want = time.time() + secs, self.desired()
+        while time.time() < end:
+            if self.halt_reason() or self.desired() != want:
+                return
+            time.sleep(max(0, min(self.cfg.tick_s, end - time.time())))
+
+    def _on_signal(self, signum, frame):
+        self.signal = signal.Signals(signum).name
+
+    # -- sessions
 
     def alive(self, rec):
         p = self.procs.get(rec["session_id"])
@@ -362,8 +667,8 @@ class Supervisor:
                     r.update(state="TIMED_OUT", reason=why, ended_at=iso(time.time()))
                     self.log("session_timed_out", session=r["session_id"], action=r["action"], reason=why)
                 continue
-            state, reason, code = outcome(sdir)
-            r.update(state=state, reason=reason, exit_code=code, ended_at=iso(time.time()))
+            state, reason, code, res = outcome(sdir)
+            r.update(state=state, reason=reason, exit_code=code, ended_at=iso(time.time()), result=summary(res))
             if persist:
                 if self.procs.pop(r["session_id"], None) is not None:
                     # Stray children (dev servers …) left in the group. Only for our own child: after a
@@ -375,13 +680,31 @@ class Supervisor:
             self.ledger.save(recs)
         return recs
 
+    def interrupt(self, rec, why):
+        """End a live session because the autonomous work stopped. Resumable, costs no attempt."""
+        sid = rec["session_id"]
+        p = self.procs.get(sid)
+        pgid = p.pid if p is not None else ps_pid(sid)
+        if pgid:
+            killpg(pgid, self.cfg.kill_grace_s, lambda: self.alive(rec))
+        self.procs.pop(sid, None)
+        state, reason, code, res = outcome(session_dir(self.cfg, sid))
+        if state != "COMPLETED":   # it may have finished on its own just before the stop
+            state, reason = "INTERRUPTED", why
+        rec = self.ledger.update(sid, state=state, reason=reason, exit_code=code, ended_at=iso(time.time()),
+                                 result=summary(res))
+        self.log(f"session_{state.lower()}", session=sid, action=rec["action"], reason=reason)
+        return rec
+
     def prepare_workspace(self):
         ws = self.cfg.workspace
+        g = lambda *a: subprocess.run(["git", "-C", ws, *a], check=True, capture_output=True, text=True).stdout
         if not os.path.isdir(os.path.join(ws, ".git")):
             url = sup.git("remote", "get-url", "origin").strip()
-            subprocess.run(["git", "clone", "--quiet", "--reference-if-able", sup.TOP, "--dissociate", url, ws],
-                           check=True)
-        g = lambda *a: subprocess.run(["git", "-C", ws, *a], check=True, capture_output=True, text=True).stdout
+            tmp = ws + ".cloning"
+            subprocess.run(["rm", "-rf", tmp], check=True)
+            subprocess.run(["git", "clone", "--quiet", "--no-checkout", url, tmp], check=True, capture_output=True, text=True)
+            os.replace(tmp, ws)   # never leave a half-cloned workspace behind
         g("fetch", "origin", "--prune", "--quiet")
         g("checkout", "--quiet", "-f", "--detach", "origin/develop")
         g("reset", "--quiet", "--hard", "origin/develop")
@@ -393,8 +716,24 @@ class Supervisor:
         sid = str(uuid.uuid4())
         sdir = session_dir(self.cfg, sid)
         os.makedirs(sdir)
-        if self.cfg.prepare:
-            self.prepare_workspace()
+        try:
+            if self.cfg.prepare:
+                self.prepare_workspace()
+        except (OSError, subprocess.CalledProcessError) as e:
+            # Environment failure before any session existed: recorded like a crash, so it retries
+            # within the same budget instead of taking the runner down.
+            err = (getattr(e, "stderr", None) or str(e)).strip()[:300]
+            now = iso(time.time())
+            recs = self.ledger.load()
+            recs.append({"session_id": sid, "key": d["key"], "action": d["action"], "experiment": v["experiment"],
+                         "attempt": d["attempt"], "state": "CRASHED", "pid": None, "pgid": None,
+                         "started_at": now, "last_activity": now, "ended_at": now, "exit_code": None,
+                         "timeout_s": 0, "idle_timeout_s": 0, "reason": f"workspace setup failed: {err}",
+                         "before": {"next_action": v["next_action"], "develop": v["develop"]}, "dir": sdir})
+            self.ledger.save(recs)
+            self.log("session_crashed", session=sid, action=d["action"], attempt=d["attempt"],
+                     reason=f"workspace setup failed: {err}")
+            return None
         cwd = self.cfg.workspace
         os.makedirs(cwd, exist_ok=True)
         cmd = self.cfg.command(sid, d["action"])
@@ -410,61 +749,131 @@ class Supervisor:
         recs.append(rec)
         self.ledger.save(recs)   # recorded before spawn: a crash here leaves a RUNNING record reconcile settles
         with open(os.path.join(sdir, "wrapper.log"), "ab") as wlog:
-            p = subprocess.Popen([sys.executable, os.path.abspath(__file__), "_wrap", "--sup-session", sid, sdir, cwd,
-                                  "--", *cmd], start_new_session=True, stdin=subprocess.DEVNULL,
-                                 stdout=subprocess.DEVNULL, stderr=wlog)
+            p = subprocess.Popen([sys.executable, os.path.abspath(__file__), "_wrap", "--sup-session", sid,
+                                  "--sup-repo", self.identity()["id"], "--owner", str(self.cfg.owner or 0),
+                                  sdir, cwd, "--", *cmd],
+                                 start_new_session=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                 stderr=wlog)
         self.procs[sid] = p
         rec = self.ledger.update(sid, pid=p.pid, pgid=p.pid)
         self.log("session_launched", session=sid, action=d["action"], attempt=d["attempt"], pid=p.pid)
         return rec
 
-    def monitor(self, sid):
+    def monitor(self, sid, managed=True):
         while True:
             rec = next(r for r in self.reconcile() if r["session_id"] == sid)
             if rec["state"] != "RUNNING":
                 return rec
-            time.sleep(self.cfg.monitor_s)
+            if managed:
+                why = self.halt_reason()
+                if why:
+                    return self.interrupt(rec, why)
+                self.set_runner(lifecycle(self.desired(), True), activity="session", session=sid,
+                                action=rec["action"], detail=f"attempt {rec['attempt']}")
+            self.sleep(self.cfg.monitor_s)
+
+    def stop_orphans(self, why):
+        """After the runner is gone: end any session still alive, so nothing of ours keeps running."""
+        return [self.interrupt(r, why) for r in self.reconcile() if r["state"] == "RUNNING"]
+
+    # -- loop
 
     def run(self, max_sessions=None, dry_run=False, once=False):
+        """dry_run / once: one observe-decide step, no lifecycle. Otherwise: the autonomous work, until
+        stop / owner gone / signal (or max_sessions ended)."""
         lock = None if dry_run else self._lock()
+        managed = not (dry_run or once)
+        old = {}
         try:
-            return self._loop(max_sessions, dry_run, once)
+            if managed:
+                request(self.cfg.home, "running", by="start")
+                self.started_at = iso(time.time())
+                if threading.current_thread() is threading.main_thread():
+                    for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+                        old[sig] = signal.signal(sig, self._on_signal)
+                self.set_runner("RUNNING", activity="starting")
+            return self._loop(max_sessions, dry_run, once, managed)
+        except BaseException as e:
+            self.stop_reason = self.stop_reason or f"runner error: {type(e).__name__}: {str(e)[:200]}"
+            raise
         finally:
+            if managed:
+                self.set_runner("STOPPED", activity="stopped", reason=self.stop_reason or "finished")
+                for sig, h in old.items():
+                    signal.signal(sig, h)
             if lock:
                 lock.close()
+                self.lock = None
+
+    def run_locked(self, fn, check_foreign=True):
+        if check_foreign:
+            lock = self._lock()
+        else:
+            ident = self.identity()
+            lock = self.repo_lock().acquire({"repo": ident["name"]}, label=False)
+        try:
+            return fn(self)
+        finally:
+            lock.close()
 
     def _lock(self):
-        fh = open(os.path.join(self.cfg.home, "supervisor.lock"), "w")
-        try:
-            fcntl.flock(fh, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError:
-            fh.close()
-            raise Busy(f"another supervisor holds {fh.name}")
-        return fh
+        ident = self.identity()
+        lock = self.repo_lock().acquire({"repo": ident["name"], "repo_id": ident["id"],
+                                         "home": os.path.abspath(self.cfg.home),
+                                         "worktree": os.path.abspath(self.cfg.repo_dir), "host": socket.gethostname()})
+        # A session of this repository still running under another home (its runner crashed, and it was
+        # started with a different AI_HOME) would be invisible to this ledger. Don't guess: refuse.
+        own = {r["session_id"] for r in self.ledger.load()}
+        foreign = [w for w in live_wrappers(ident["id"]) if w["sid"] not in own]
+        if foreign:
+            lock.release()
+            raise Busy(f"a session of {ident['name']} started under another supervisor home is still running "
+                       f"({', '.join(w['sid'][:8] + ' pid ' + str(w['pid']) for w in foreign)}); "
+                       "end it with `supervise.py stop` first")
+        self.lock = lock
+        return lock
 
-    def _loop(self, max_sessions, dry_run, once):
+    def stop_foreign(self, why):
+        """Under the repository lock: end session wrappers of this repository that no ledger here knows."""
+        own = {r["session_id"] for r in self.ledger.load()}
+        ended = []
+        for w in live_wrappers(self.identity()["id"]):
+            if w["sid"] not in own and ps_pid(w["sid"]) == w["pid"]:   # still that wrapper, by token
+                killpg(w["pid"], self.cfg.kill_grace_s, lambda: ps_pid(w["sid"]) is not None)
+                ended.append({"session_id": w["sid"], "action": "?", "state": "INTERRUPTED", "reason": why})
+        return ended
+
+    def _loop(self, max_sessions, dry_run, once, managed):
         launched = ended = 0
         report = {"sessions": []}
         while True:
+            if managed:
+                why = self.halt_reason()
+                if why:
+                    return self._stop(report, why)
             running = [r for r in self.ledger.load() if r["state"] == "RUNNING"]
-            if running and not (dry_run or once):
+            if running and managed:
                 # Ours or adopted after a restart: follow it to the end, never start a second one.
                 rec, v = self._await(running[-1]["session_id"])
                 ended += 1
                 report["sessions"].append(rec)
-                if max_sessions is not None and ended >= max_sessions:
+                if rec["state"] != "INTERRUPTED" and max_sessions is not None and ended >= max_sessions:
                     return self._final(report, v)
                 continue
             recs = self.reconcile(persist=not dry_run)
             v = self._observe_or_none()
             if v is None:
-                if once or dry_run:
+                if not managed:
                     return self._final(report, None)
-                time.sleep(self.cfg.poll_s)
+                self.set_runner(lifecycle(self.desired(), False), activity="observe_failed",
+                                detail=f"retrying in {self.cfg.poll_s:.0f}s: {self.observe_error}")
+                self.sleep(self.cfg.poll_s)
                 continue
             d = decide(v, recs, time.time(), self.cfg)
+            if managed and self.desired() == "paused" and d["do"] == "launch":
+                d = {"do": "paused", "would": d["action"], "reason": f"paused; would launch {d['action']}"}
             self._write_decision(v, d)
-            if dry_run or once:
+            if not managed:
                 if d["do"] == "launch":
                     d["command"] = self.cfg.command("<new-session-uuid>", d["action"])
                     d["cwd"] = self.cfg.workspace
@@ -475,15 +884,21 @@ class Supervisor:
             if d["do"] == "launch":
                 if max_sessions is not None and launched >= max_sessions:
                     return self._final(report, v, d)
-                self.launch(d, v)
-                launched += 1
+                if self.launch(d, v) is not None:   # None: workspace setup failed, recorded as a crash
+                    launched += 1
                 continue
-            self.log(d["do"], next_action=v["next_action"], reason=d["reason"])
-            time.sleep(d.get("delay", self.cfg.poll_s))
+            self.set_runner(lifecycle(self.desired(), False), activity=d["do"], detail=d["reason"],
+                            next_action=v["next_action"])
+            if (d["do"], d["reason"]) != self._logged:   # one line per change, not per poll
+                self._logged = (d["do"], d["reason"])
+                self.log(d["do"], next_action=v["next_action"], reason=d["reason"])
+            self.sleep(d.get("delay", self.cfg.poll_s))
 
     def _await(self, sid):
         rec = self.monitor(sid)
-        time.sleep(self.cfg.settle_s)
+        if rec["state"] == "INTERRUPTED":
+            return rec, None
+        self.sleep(self.cfg.settle_s)
         v = self._observe_or_none()
         if v is not None:
             rec = self.ledger.update(sid, after={"next_action": v["next_action"], "rule": v["rule"],
@@ -495,13 +910,23 @@ class Supervisor:
         try:
             return self.observe()
         except Exception as e:   # network / gh / git: observation has no side effects, so just try again later
-            self.log("observe_failed", error=str(e)[:300])
+            self.observe_error = str(e)[:300]
+            self.log("observe_failed", error=self.observe_error)
             return None
+
+    def _stop(self, report, why):
+        self.stop_reason = why
+        for r in self.stop_orphans(why):   # normally none: monitor() already interrupted it
+            report["sessions"].append(r)
+        report["stopped"] = why
+        self.log("stopped", reason=why)
+        return report
 
     def _final(self, report, v, d=None):
         if v is not None and d is None:
             d = decide(v, self.ledger.load(), time.time(), self.cfg)
         report.update(view=v, decision=d)
+        self.stop_reason = "max sessions reached"
         if v is not None:
             self._write_decision(v, d)
             self.log("stopped", next_action=v["next_action"], next_do=d["do"], reason=d["reason"])
@@ -511,58 +936,236 @@ class Supervisor:
         sup.write_json(os.path.join(self.cfg.home, "supervisor.json"), {"at": iso(time.time()), "view": v, "decision": d})
 
 
+# ---------------------------------------------------------------- status (read-only)
+
+MODE = {"EXECUTE": "EXECUTION", "PLAN": "STRATEGY", "REVIEW": "STRATEGY", "MERGE": "STRATEGY"}
+
+
+def status_report(home, view=None, now=None, owner=None):
+    """Everything a watcher needs, from the runtime files (or a fresh `view`). Reads, never writes.
+    owner: RepoLock.probe() of the repository, when known."""
+    now = now or time.time()
+    runner = runner_info(home)
+    last = read_json(os.path.join(home, "supervisor.json")) or {}
+    recs = Ledger(home).load()
+    v = view or last.get("view") or {}
+    d = decide(v, recs, now, Config(home=home)) if view else (last.get("decision") or {})
+    proj = v.get("project") or {}
+    live = next((r for r in reversed(recs) if r["state"] == "RUNNING"), None)
+    done = next((r for r in reversed(recs) if r["state"] != "RUNNING"), None)
+    session = None
+    if live:
+        sdir = session_dir(Config(home=home), live["session_id"])
+        act = max([epoch(live["started_at"])] + [os.path.getmtime(os.path.join(sdir, f))
+                  for f in ("log.jsonl", "stderr.log") if os.path.exists(os.path.join(sdir, f))])
+        session = {"id": live["session_id"], "action": live["action"], "attempt": live["attempt"],
+                   "pid": live.get("pid"), "alive": ps_pid(live["session_id"]) is not None,
+                   "started_at": live["started_at"], "elapsed_s": int(now - epoch(live["started_at"])),
+                   "quiet_s": int(now - act), "timeout_s": live["timeout_s"],
+                   "last_step": last_step(os.path.join(sdir, "log.jsonl"))}
+    last_result = None
+    if done:
+        last_result = {k: done.get(k) for k in ("action", "state", "reason", "attempt", "transition", "ended_at")}
+        last_result["after"] = (done.get("after") or {}).get("next_action")
+        last_result["elapsed_s"] = int(epoch(done["ended_at"]) - epoch(done["started_at"])) \
+            if done.get("started_at") and done.get("ended_at") else None
+        last_result.update({k: v_ for k, v_ in (done.get("result") or {}).items() if k != "text"})
+        last_result["summary"] = ((done.get("result") or {}).get("text") or "").strip().split("\n")[0][:300] or None
+    waiting = None
+    if v.get("action") == "WAIT_FOR_CI":
+        waiting = {"on": "CI", "detail": v["next_action"], "pr": proj.get("pr")}
+    elif v.get("action") in INFLIGHT and not live:
+        waiting = {"on": "session outside this supervisor", "detail": v["next_action"]}
+    blockers = [f"STATE.now.blockers: {b}" for b in proj.get("blockers") or []]
+    blockers += [f"{a['kind']}: {a['detail']}" for a in v.get("attention") or [] if a["kind"] != "state_blockers"]
+    if d.get("do") == "hold":
+        blockers.append(f"hold {d.get('kind')}: {d.get('reason')}")
+    return {
+        "runner": {k: runner.get(k) for k in ("state", "desired", "pid", "owner", "started_at", "updated_at",
+                                              "activity", "detail", "stop_reason", "reason")}
+                  | {"uptime_s": int(now - epoch(runner["started_at"])) if runner.get("alive") and
+                     runner.get("started_at") else None},
+        "control": read_control(home),
+        "owner": None if owner is None else dict({k: (owner["record"] or {}).get(k) for k in (
+            "repo", "pid", "home", "worktree", "acquired_at", "released_at")}, alive=owner["alive"]),
+        "outcome": {"id": proj.get("outcome"), "statement": proj.get("outcome_statement")},
+        "experiment": {"id": v.get("experiment"), "status": v.get("exp_status"), "phase": v.get("phase"),
+                       "question": proj.get("question"), "verdict": proj.get("verdict"), "pr": proj.get("pr")},
+        "mode": MODE.get(live["action"].split()[0]) if live else None,
+        "session": session,
+        "last_result": last_result,
+        "state_last_result": proj.get("last_result"),
+        "next": {"action": v.get("next_action"), "do": d.get("do"), "reason": d.get("reason"),
+                 "observed_at": v.get("at") if view else last.get("at")},
+        "waiting": waiting,
+        "blockers": blockers,
+    }
+
+
+def _dur(s):
+    if s is None:
+        return "-"
+    s = int(s)
+    return f"{s // 3600}h{s % 3600 // 60:02d}m" if s >= 3600 else f"{s // 60}m{s % 60:02d}s"
+
+
+def print_report(r, out=print):
+    ru, ex, se, lr, nx = r["runner"], r["experiment"], r["session"], r["last_result"], r["next"]
+    extra = f"up {_dur(ru['uptime_s'])}, pid {ru['pid']}, owner {ru['owner']}" if ru["uptime_s"] is not None \
+        else (ru.get("stop_reason") or ru.get("reason") or "not started")
+    out(f"runner      : {ru['state']}  ({extra}; requested: {r['control'].get('desired')})")
+    ow = r.get("owner")
+    if ow and ow.get("repo"):
+        who = f"pid {ow['pid']}, home {ow['home']}, worktree {ow['worktree']}"
+        out(f"repo owner  : {ow['repo']} — " + (f"held by {who} since {ow['acquired_at']}" if ow["alive"]
+                                               else f"free (last: {who})"))
+    if ru.get("activity") and ru["state"] != "STOPPED":
+        out(f"activity    : {ru['activity']}" + (f" — {ru['detail']}" if ru.get("detail") else ""))
+    if r["next"]["action"] is None:
+        out("project     : not observed yet")
+        for b in r["blockers"]:
+            out(f"blocker     : {b}")
+        return
+    out(f"outcome     : {r['outcome']['id']} — {r['outcome']['statement'] or '?'}")
+    out(f"experiment  : {ex['id']} {ex['status']} ({ex['phase']})" + (f", verdict {ex['verdict']}" if ex["verdict"] else "")
+        + (f", PR #{ex['pr']['number']} {ex['pr']['state']} ci={ex['pr']['ci']}" if ex.get("pr") else ""))
+    if ex.get("question"):
+        out(f"              {ex['question'][:160]}")
+    if se:
+        out(f"mode        : {r['mode']} (Opus session running)")
+        out(f"session     : {se['id'][:8]} {se['action']} attempt {se['attempt']}, elapsed {_dur(se['elapsed_s'])}"
+            f" of {_dur(se['timeout_s'])}, quiet {_dur(se['quiet_s'])}" + ("" if se["alive"] else " [process gone]"))
+        if se.get("last_step"):
+            out(f"last step   : {se['last_step']}")
+    else:
+        out("mode        : none (no Opus session running)")
+    if lr:
+        cost = f", ${lr['cost_usd']:.2f}" if lr.get("cost_usd") else ""
+        moved = f"; {lr['transition']} → {lr['after']}" if lr.get("transition") else ""
+        out(f"last result : {lr['action']} → {lr['state']} ({lr['reason']}) after {_dur(lr['elapsed_s'])}{cost}{moved}")
+        if lr.get("summary"):
+            out(f"              {lr['summary']}")
+    elif r.get("state_last_result"):
+        out(f"last result : (STATE) {r['state_last_result'][:160]}")
+    when = " when started" if ru["state"] == "STOPPED" and nx.get("do") == "launch" else ""
+    out(f"next action : {nx['action']} → {nx['do']}{when}" + (f" — {nx['reason']}" if nx.get("reason") else "")
+        + (f"  (observed {nx['observed_at']})" if nx.get("observed_at") else ""))
+    if r["waiting"]:
+        out(f"waiting     : {r['waiting']['on']}: {r['waiting']['detail']}")
+    for b in r["blockers"]:
+        out(f"blocker     : {b}")
+
+
 # ---------------------------------------------------------------- CLI
 
-def main(argv=None):
+def repo_owner(cfg):
+    return RepoLock.for_repo(cfg.lock_dir, cfg.identity or repo_identity(cfg.repo_dir)).probe()
+
+
+def main(argv=None, overrides=None):
+    """overrides: Config fields for tests (lock_dir, identity); deliberately not reachable from the CLI."""
     argv = sys.argv[1:] if argv is None else argv
-    if argv[:1] == ["_wrap"]:   # _wrap --sup-session SID SDIR CWD -- CMD...
+    if argv[:1] == ["_wrap"]:   # _wrap --sup-session SID --sup-repo RID --owner PID SDIR CWD -- CMD...
         i = argv.index("--")
-        wrap(argv[3], argv[4], argv[i + 1:])
+        wrap(argv[7], argv[8], argv[i + 1:], owner=int(argv[6]) or None)
         return 0
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--home", help="runtime state dir (default $AI_HOME or ~/.barocss-ai)")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    r = sub.add_parser("run")
-    r.add_argument("--dry-run", action="store_true", help="observe and decide; launch and write nothing")
+    r = sub.add_parser("start", help="start the autonomous work in the foreground (until stop / owner exit)")
+    r.add_argument("--dry-run", action="store_true", help="observe and decide once; launch nothing, keep the ledger")
     r.add_argument("--once", action="store_true", help="one observe/decide step without launching")
     r.add_argument("--max-sessions", type=int, help="stop after this many sessions have ended")
+    r.add_argument("--owner", type=int, help="stop when this pid exits (default: the parent process)")
+    r.add_argument("--no-owner", action="store_true", help="don't tie the run to a parent process")
     r.add_argument("--no-fetch", action="store_true")
     r.add_argument("--model", default="opus")
     r.add_argument("--permission-mode", default="auto")
     r.add_argument("--claude", default="claude", help="claude executable")
     r.add_argument("--poll", type=float, default=60)
-    sub.add_parser("status")
+    sub.add_parser("pause", help="launch no new session; let a running one finish")
+    sub.add_parser("resume", help="undo pause")
+    s = sub.add_parser("stop", help="stop the autonomous work now; a running session is interrupted (resumable)")
+    s.add_argument("--wait", type=float, default=90, help="seconds to wait for the runner to exit")
+    st = sub.add_parser("status")
+    st.add_argument("--json", action="store_true")
+    st.add_argument("--refresh", action="store_true", help="observe GitHub now (read-only) instead of the last observation")
     rl = sub.add_parser("release", help="ignore past attempts of KEY so it may launch again")
     rl.add_argument("key")
     a = ap.parse_args(argv)
     kw = {"home": a.home} if a.home else {}
-    if a.cmd == "run":
+    kw.update(overrides or {})
+    if a.cmd == "start":
+        owner = None if a.no_owner or a.dry_run or a.once else (a.owner or os.getppid())
         cfg = Config(model=a.model, permission_mode=a.permission_mode, claude=[a.claude], poll_s=a.poll,
-                     fetch=not a.no_fetch, **kw)
+                     fetch=not a.no_fetch, owner=owner, **kw)
         try:
             rep = Supervisor(cfg).run(max_sessions=a.max_sessions, dry_run=a.dry_run, once=a.once)
         except Busy as e:
-            print(e, file=sys.stderr)
+            print(f"not started: {e}", file=sys.stderr)
+            if (e.owner or {}).get("home"):
+                print_report(status_report(e.owner["home"], owner=repo_owner(cfg)),
+                             out=lambda x: print(x, file=sys.stderr))
             return 2
         print(json.dumps(rep, indent=2, default=str))
         return 0
     cfg = Config(**kw)
-    led = Ledger(cfg.home)
-    if a.cmd == "release":
-        recs = led.load()
-        n = 0
-        for x in recs:
-            if x["key"] == a.key and not x.get("released"):
-                x["released"], n = True, n + 1
-        led.save(recs)
-        print(f"released {n} record(s) of {a.key}")
+    o = repo_owner(cfg)
+    rec = o["record"] or {}
+    # Controls go to whoever owns the repository, whichever worktree or AI_HOME they were typed in.
+    target = rec.get("home") if o["alive"] and rec.get("home") else cfg.home
+    if a.cmd in ("pause", "resume"):
+        if not o["alive"] or not runner_info(target)["alive"]:
+            print("not running (use `start`)" if a.cmd == "resume" else "not running; nothing to pause")
+            return 1
+        request(target, "paused" if a.cmd == "pause" else "running", by=a.cmd)
+        print(f"{a.cmd} requested ({target})")
+        t = time.time()
+        while time.time() - t < 5 and runner_info(target).get("desired") != read_control(target)["desired"]:
+            time.sleep(0.2)
+        print_report(status_report(target, owner=repo_owner(cfg)))
         return 0
-    try:
-        with open(os.path.join(cfg.home, "supervisor.json")) as fh:
-            last = json.load(fh)
-    except FileNotFoundError:
-        last = None
-    print(json.dumps({"last": last, "records": led.load()[-10:]}, indent=2))
+    if a.cmd == "stop":
+        request(target, "stopped", by="stop")
+        t = time.time()
+        while repo_owner(cfg)["alive"] and time.time() - t < a.wait:
+            time.sleep(0.5)
+        if repo_owner(cfg)["alive"]:
+            print(f"repository owner still running after {a.wait:.0f}s", file=sys.stderr)
+            return 1
+        homes = {os.path.abspath(h) for h in (cfg.home, rec.get("home")) if h} - {os.path.abspath(cfg.home)}
+
+        def sweep(sv_):
+            left = sv_.stop_orphans("stop requested")
+            for h in homes:
+                left += Supervisor(Config(**dict(kw, home=h)), out=lambda *x: None).stop_orphans("stop requested")
+            return left + sv_.stop_foreign("stop requested")
+        try:
+            left = Supervisor(cfg, out=lambda *x: None).run_locked(sweep, check_foreign=False)
+        except Busy:   # someone started a new run in the meantime: it owns what is left
+            left = []
+        for x in left:
+            print(f"interrupted orphan session {x['session_id'][:8]} ({x['action']})")
+        print_report(status_report(target, owner=repo_owner(cfg)))
+        return 0
+    if a.cmd == "status":
+        view = None
+        if a.refresh:
+            snap = sup.collect_live(fetch=True)
+            view = view_of(snap, sup.derive(snap))
+        if not o["alive"] and not os.path.exists(os.path.join(cfg.home, "runner.json")) and rec.get("home"):
+            target = rec["home"]   # nothing here: show the last run of this repository
+        rep = status_report(target, view=view, owner=o)
+        print(json.dumps(rep, indent=2, default=str)) if a.json else print_report(rep)
+        return 0
+    led = Ledger(cfg.home)
+    recs = led.load()
+    n = 0
+    for x in recs:
+        if x["key"] == a.key and not x.get("released"):
+            x["released"], n = True, n + 1
+    led.save(recs)
+    print(f"released {n} record(s) of {a.key}")
     return 0
 
 
