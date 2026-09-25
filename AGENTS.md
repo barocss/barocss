@@ -1,3 +1,12 @@
+# BaroCSS — V3 workflow (current)
+
+Default workflow is V3: planning on GitHub (Wiki / Discussions / Issues), code in local git, no PRs per
+task. See `docs/autonomy-v3.md`. A Compute or Planner session is told its role in its prompt; follow that
+prompt and ignore the V1 protocol below. The V1 protocol applies only to sessions launched with a V1 step
+(`EXECUTE E-…`, `REVIEW E-…`, `MERGE #…`, `PLAN`) by `tools/ai-supervisor/` (rollback path).
+
+---
+
 # BaroCSS — Autonomous Operating Protocol
 
 Read, in order: this file → the contract your step names (§1) → your mode's inputs (below).
