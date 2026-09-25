@@ -28,18 +28,11 @@ const KNOWN_FAILURES: Record<string, string> = {
   "select-none": "no -webkit-user-select",
   "sr-only": "clip instead of clip-path",
   "blur-3xl": "blur scale on v3 values",
-  "-translate-x-1/2": "other translate axis undefined (#178)",
   "bg-gradient-to-r": "legacy gradient emits a bare & selector (#187)",
-  "hover:-translate-y-0.5": "other translate axis undefined (#178)",
-  "hover:-translate-y-1": "other translate axis undefined (#178)",
   "@container/card-header": "no container-type utility (#187)",
   "after:absolute": "content missing",
   "after:opacity-0": "content missing",
   "after:transition-opacity": "::after/::before get no content (#187)",
-  "data-[side=bottom]:translate-y-1": "other translate axis undefined (#178)",
-  "data-[side=left]:-translate-x-1": "other translate axis undefined (#178)",
-  "data-[side=right]:translate-x-1": "other translate axis undefined (#178)",
-  "data-[side=top]:-translate-y-1": "other translate axis undefined (#178)",
   "focus-visible:outline-1": "outline v4 semantics (#187)",
   "focus:outline-hidden": "outline v4 semantics (#187)",
   "group-data-[orientation=horizontal]/tabs:after:bottom-[-5px]": "content missing",
@@ -54,8 +47,6 @@ const KNOWN_FAILURES: Record<string, string> = {
   "justify-self-end": "justify-self-end emits end, TW flex-end",
   "max-w-[calc(100%-2rem)]": "arbitrary calc() without operator spaces (#187)",
   "rounded-xs": "radius scale on v3 values",
-  "translate-x-[-50%]": "other translate axis undefined (#178)",
-  "translate-y-[-50%]": "other translate axis undefined (#178)",
 };
 
 const INVALID = '⟂';

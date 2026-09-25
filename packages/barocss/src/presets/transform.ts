@@ -3,6 +3,25 @@ import { atRoot, decl, property } from "../core/ast";
 import { staticUtility, functionalUtility } from "../core/registry";
 import { parseFractionOrNumber, parseNumber } from "../core/utils";
 
+// Like Tailwind v4, the per-axis rotate/scale/translate utilities set only their own --baro-* var and a shared composite
+// declaration reads all axes: rotate/skew with empty fallbacks, scale/translate through @property-registered defaults.
+// A lone rotate-x-*/scale-y-*/translate-x-* therefore never references an undefined var, and axes combine.
+const ROTATE_SKEW =
+  "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)";
+const rotateAxis = (axis: string, fn: string) => [decl(`--baro-rotate-${axis}`, fn), decl("transform", ROTATE_SKEW)];
+
+const scaleProperties = () =>
+  atRoot([
+    property("--baro-scale-x", "1"),
+    property("--baro-scale-y", "1"),
+    property("--baro-scale-z", "1"),
+  ]);
+const scaleAxis = (axis: string, v: string) => [
+  scaleProperties(),
+  decl(`--baro-scale-${axis}`, v),
+  decl("scale", axis === "z" ? "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)" : "var(--baro-scale-x) var(--baro-scale-y)"),
+];
+
 // --- Transform  ---
 // transform-none: disables all transforms
 staticUtility("transform-none", [["transform", "none"]], {
@@ -10,24 +29,24 @@ staticUtility("transform-none", [["transform", "none"]], {
 });
 
 // transform-gpu: enables GPU acceleration for transforms
-// Output: transform: translateZ(0) var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y);
+// Output: transform: translateZ(0) <ROTATE_SKEW>
 staticUtility(
   "transform-gpu",
   [
     [
       "transform",
-      "translateZ(0) var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)",
+      `translateZ(0) ${ROTATE_SKEW}`,
     ],
   ],
   { category: "transform" }
 );
 
 // transform-cpu: disables GPU acceleration, uses only CPU transforms
-// Output: transform: var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y);
+// Output: transform: <ROTATE_SKEW>
 staticUtility("transform-cpu", [
   [
     "transform",
-    "var(--baro-rotate-x) var(--baro-rotate-y) var(--baro-rotate-z) var(--baro-skew-x) var(--baro-skew-y)",
+    ROTATE_SKEW,
   ],
 ]);
 
@@ -188,19 +207,17 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative }) => {
-    // rotate-x-45 → transform: rotateX(45deg) var(--baro-rotate-y)
-    // -rotate-x-45 → transform: rotateX(-45deg) var(--baro-rotate-y)
+    // rotate-x-45 → --baro-rotate-x: rotateX(45deg); transform: ROTATE_SKEW
+    // -rotate-x-45 → --baro-rotate-x: rotateX(-45deg); transform: ROTATE_SKEW
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("transform", `rotateX(${sign}${deg}) var(--baro-rotate-y)`)];
+      return rotateAxis("x", `rotateX(${sign}${deg})`);
     }
-    // rotate-x-[3.142rad] → transform: rotateX(3.142rad) var(--baro-rotate-y)
-    return [decl("transform", `rotateX(${value}) var(--baro-rotate-y)`)];
+    // rotate-x-[3.142rad] → --baro-rotate-x: rotateX(3.142rad); transform: ROTATE_SKEW
+    return rotateAxis("x", `rotateX(${value})`);
   },
-  handleCustomProperty: (value) => [
-    decl("transform", `rotateX(var(${value})) var(--baro-rotate-y)`),
-  ],
+  handleCustomProperty: (value) => rotateAxis("x", `rotateX(var(${value}))`),
   description: "rotate-x utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -213,19 +230,17 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative }) => {
-    // rotate-y-45 → transform: var(--baro-rotate-x) rotateY(45deg)
-    // -rotate-y-45 → transform: var(--baro-rotate-x) rotateY(-45deg)
+    // rotate-y-45 → --baro-rotate-y: rotateY(45deg); transform: ROTATE_SKEW
+    // -rotate-y-45 → --baro-rotate-y: rotateY(-45deg); transform: ROTATE_SKEW
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("transform", `var(--baro-rotate-x) rotateY(${sign}${deg})`)];
+      return rotateAxis("y", `rotateY(${sign}${deg})`);
     }
-    // rotate-y-[3.142rad] → transform: var(--baro-rotate-x) rotateY(3.142rad)
-    return [decl("transform", `var(--baro-rotate-x) rotateY(${value})`)];
+    // rotate-y-[3.142rad] → --baro-rotate-y: rotateY(3.142rad); transform: ROTATE_SKEW
+    return rotateAxis("y", `rotateY(${value})`);
   },
-  handleCustomProperty: (value) => [
-    decl("transform", `var(--baro-rotate-x) rotateY(var(${value}))`),
-  ],
+  handleCustomProperty: (value) => rotateAxis("y", `rotateY(var(${value}))`),
   description: "rotate-y utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -238,32 +253,17 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsNegative: true,
   handle: (value, ctx, { negative }) => {
-    // rotate-z-45 → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(45deg)
-    // -rotate-z-45 → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(-45deg)
+    // rotate-z-45 → --baro-rotate-z: rotateZ(45deg); transform: ROTATE_SKEW
+    // -rotate-z-45 → --baro-rotate-z: rotateZ(-45deg); transform: ROTATE_SKEW
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [
-        decl(
-          "transform",
-          `var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(${sign}${deg})`
-        ),
-      ];
+      return rotateAxis("z", `rotateZ(${sign}${deg})`);
     }
-    // rotate-z-[3.142rad] → transform: var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(3.142rad)
-    return [
-      decl(
-        "transform",
-        `var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(${value})`
-      ),
-    ];
+    // rotate-z-[3.142rad] → --baro-rotate-z: rotateZ(3.142rad); transform: ROTATE_SKEW
+    return rotateAxis("z", `rotateZ(${value})`);
   },
-  handleCustomProperty: (value) => [
-    decl(
-      "transform",
-      `var(--baro-rotate-x) var(--baro-rotate-y) rotateZ(var(${value}))`
-    ),
-  ],
+  handleCustomProperty: (value) => rotateAxis("z", `rotateZ(var(${value}))`),
   description: "rotate-z utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -302,7 +302,7 @@ staticUtility("scale-none", [["scale", "none"]], { category: "transform" });
 // scale-3d
 staticUtility(
   "scale-3d",
-  [["scale", "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)"]],
+  [scaleProperties, ["scale", "var(--baro-scale-x) var(--baro-scale-y) var(--baro-scale-z)"]],
   { category: "transform" }
 );
 
@@ -315,22 +315,20 @@ functionalUtility({
   supportsNegative: true,
   handle: (value, ctx, { negative, arbitrary }) => {
     if (arbitrary) {
-      return [decl("scale", `${value}`)];
+      return scaleAxis("x", value);
     }
 
-    // scale-x-75 → scale: 75% var(--baro-scale-y)
-    // -scale-x-75 → scale: calc(75% * -1) var(--baro-scale-y)
+    // scale-x-75 → --baro-scale-x: 75%; scale reads all axes
+    // -scale-x-75 → --baro-scale-x: calc(75% * -1); scale reads all axes
     if (parseNumber(value) || negative) {
       const pct = `${Math.abs(Number(value))}%`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("scale", `calc(${pct} * ${sign}1) var(--baro-scale-y)`)];
+      return scaleAxis("x", `calc(${pct} * ${sign}1)`);
     }
-    // scale-x-[1.7] → scale: 1.7 var(--baro-scale-y)
-    return [decl("scale", `${value} var(--baro-scale-y)`)];
+    // scale-x-[1.7] → --baro-scale-x: 1.7; scale reads all axes
+    return scaleAxis("x", value);
   },
-  handleCustomProperty: (value) => [
-    decl("scale", `var(${value}) var(--baro-scale-y)`),
-  ],
+  handleCustomProperty: (value) => scaleAxis("x", `var(${value})`),
   description: "scale-x utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -344,22 +342,20 @@ functionalUtility({
   supportsNegative: true,
   handle: (value, ctx, { negative, arbitrary }) => {
     if (arbitrary) {
-      return [decl("scale", `var(--baro-scale-x) ${value}`)];
+      return scaleAxis("y", value);
     }
 
-    // scale-y-75 → scale: var(--baro-scale-x) 75%
-    // -scale-y-75 → scale: var(--baro-scale-x) calc(75% * -1)
+    // scale-y-75 → --baro-scale-y: 75%; scale reads all axes
+    // -scale-y-75 → --baro-scale-y: calc(75% * -1); scale reads all axes
     if (parseNumber(value) || negative) {
       const pct = `${Math.abs(Number(value))}%`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("scale", `var(--baro-scale-x) calc(${pct} * ${sign}1)`)];
+      return scaleAxis("y", `calc(${pct} * ${sign}1)`);
     }
-    // scale-y-[1.7] → scale: var(--baro-scale-x) 1.7
-    return [decl("scale", `var(--baro-scale-x) ${value}`)];
+    // scale-y-[1.7] → --baro-scale-y: 1.7; scale reads all axes
+    return scaleAxis("y", value);
   },
-  handleCustomProperty: (value) => [
-    decl("scale", `var(--baro-scale-x) var(${value})`),
-  ],
+  handleCustomProperty: (value) => scaleAxis("y", `var(${value})`),
   description: "scale-y utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -373,29 +369,20 @@ functionalUtility({
   supportsNegative: true,
   handle: (value, ctx, { negative, arbitrary }) => {
     if (arbitrary) {
-      return [
-        decl("scale", `var(--baro-scale-x) var(--baro-scale-y) ${value}`),
-      ];
+      return scaleAxis("z", value);
     }
 
-    // scale-z-75 → scale: var(--baro-scale-x) var(--baro-scale-y) 75%
-    // -scale-z-75 → scale: var(--baro-scale-x) var(--baro-scale-y) calc(75% * -1)
+    // scale-z-75 → --baro-scale-z: 75%; scale reads all axes
+    // -scale-z-75 → --baro-scale-z: calc(75% * -1); scale reads all axes
     if (parseNumber(value) || negative) {
       const pct = `${Math.abs(Number(value))}%`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [
-        decl(
-          "scale",
-          `var(--baro-scale-x) var(--baro-scale-y) calc(${pct} * ${sign}1)`
-        ),
-      ];
+      return scaleAxis("z", `calc(${pct} * ${sign}1)`);
     }
-    // scale-z-[1.7] → scale: var(--baro-scale-x) var(--baro-scale-y) 1.7
-    return [decl("scale", `var(--baro-scale-x) var(--baro-scale-y) ${value}`)];
+    // scale-z-[1.7] → --baro-scale-z: 1.7; scale reads all axes
+    return scaleAxis("z", value);
   },
-  handleCustomProperty: (value) => [
-    decl("scale", `var(--baro-scale-x) var(--baro-scale-y) var(${value})`),
-  ],
+  handleCustomProperty: (value) => scaleAxis("z", `var(${value})`),
   description: "scale-z utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -566,6 +553,27 @@ const translateProperties = () =>
     property("--baro-translate-z", "0"),
   ]);
 
+const translateAxis = (axis: string, v: string) => [
+  translateProperties(),
+  decl(`--baro-translate-${axis}`, v),
+  decl(
+    "translate",
+    axis === "z"
+      ? "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+      : "var(--baro-translate-x) var(--baro-translate-y)"
+  ),
+];
+const staticTranslateAxis = (axis: string, v: string) => [
+  translateProperties,
+  [`--baro-translate-${axis}`, v] as [string, string],
+  [
+    "translate",
+    axis === "z"
+      ? "var(--baro-translate-x) var(--baro-translate-y) var(--baro-translate-z)"
+      : "var(--baro-translate-x) var(--baro-translate-y)",
+  ] as [string, string],
+];
+
 // --- Static translate utilities ---
 // translate-none: disables all translation
 staticUtility("translate-none", [["translate", "none"]], {
@@ -603,56 +611,56 @@ staticUtility(
 // translate-x-px, -translate-x-px, translate-x-full, -translate-x-full
 staticUtility(
   "translate-x-px",
-  [["translate", "1px var(--baro-translate-y)"]],
+  staticTranslateAxis("x", "1px"),
   { category: "transform" }
 );
 staticUtility(
   "-translate-x-px",
-  [["translate", "-1px var(--baro-translate-y)"]],
+  staticTranslateAxis("x", "-1px"),
   { category: "transform" }
 );
 staticUtility(
   "translate-x-full",
-  [["translate", "100% var(--baro-translate-y)"]],
+  staticTranslateAxis("x", "100%"),
   { category: "transform" }
 );
 staticUtility(
   "-translate-x-full",
-  [["translate", "-100% var(--baro-translate-y)"]],
+  staticTranslateAxis("x", "-100%"),
   { category: "transform" }
 );
 
 // translate-y-px, -translate-y-px, translate-y-full, -translate-y-full
 staticUtility(
   "translate-y-px",
-  [["translate", "var(--baro-translate-x) 1px"]],
+  staticTranslateAxis("y", "1px"),
   { category: "transform" }
 );
 staticUtility(
   "-translate-y-px",
-  [["translate", "var(--baro-translate-x) -1px"]],
+  staticTranslateAxis("y", "-1px"),
   { category: "transform" }
 );
 staticUtility(
   "translate-y-full",
-  [["translate", "var(--baro-translate-x) 100%"]],
+  staticTranslateAxis("y", "100%"),
   { category: "transform" }
 );
 staticUtility(
   "-translate-y-full",
-  [["translate", "var(--baro-translate-x) -100%"]],
+  staticTranslateAxis("y", "-100%"),
   { category: "transform" }
 );
 
 // translate-z-px, -translate-z-px
 staticUtility(
   "translate-z-px",
-  [["translate", "var(--baro-translate-x) var(--baro-translate-y) 1px"]],
+  staticTranslateAxis("z", "1px"),
   { category: "transform" }
 );
 staticUtility(
   "-translate-z-px",
-  [["translate", "var(--baro-translate-x) var(--baro-translate-y) -1px"]],
+  staticTranslateAxis("z", "-1px"),
   { category: "transform" }
 );
 
@@ -666,19 +674,17 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, ctx, { negative }) => {
-    if (parseFractionOrNumber(value)) {
+    if (value.includes("/") && parseFractionOrNumber(value)) {
       const v = `calc(${value} * 100%)`;
-      return [decl("translate", `${v} var(--baro-translate-y)`)];
+      return translateAxis("x", v);
     }
     if (parseNumber(value) || negative) {
       const v = `calc(var(--spacing) * ${value})`;
-      return [decl("translate", `${v} var(--baro-translate-y)`)];
+      return translateAxis("x", v);
     }
-    return [decl("translate", `${value} var(--baro-translate-y)`)];
+    return translateAxis("x", value);
   },
-  handleCustomProperty: (value) => [
-    decl("translate", `var(${value}) var(--baro-translate-y)`),
-  ],
+  handleCustomProperty: (value) => translateAxis("x", `var(${value})`),
   description:
     "translate-x utility (spacing, fraction, arbitrary, custom property, negative)",
   category: "transform",
@@ -692,19 +698,17 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, ctx, { negative }) => {
-    if (parseFractionOrNumber(value)) {
+    if (value.includes("/") && parseFractionOrNumber(value)) {
       const v = `calc(${value} * 100%)`;
-      return [decl("translate", `var(--baro-translate-x) ${v}`)];
+      return translateAxis("y", v);
     }
     if (parseNumber(value) || negative) {
       const v = `calc(var(--spacing) * ${value})`;
-      return [decl("translate", `var(--baro-translate-x) ${v}`)];
+      return translateAxis("y", v);
     }
-    return [decl("translate", `var(--baro-translate-x) ${value}`)];
+    return translateAxis("y", value);
   },
-  handleCustomProperty: (value) => [
-    decl("translate", `var(--baro-translate-x) var(${value})`),
-  ],
+  handleCustomProperty: (value) => translateAxis("y", `var(${value})`),
   description:
     "translate-y utility (spacing, fraction, arbitrary, custom property, negative)",
   category: "transform",
@@ -718,39 +722,19 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, ctx, { negative }) => {
-    if (parseFractionOrNumber(value)) {
+    if (value.includes("/") && parseFractionOrNumber(value)) {
       const v = `calc(${value} * 100%)`;
-      return [
-        decl(
-          "translate",
-          `var(--baro-translate-x) var(--baro-translate-y) ${v}`
-        ),
-      ];
+      return translateAxis("z", v);
     }
 
     if (parseNumber(value) || negative) {
       const v = `calc(var(--spacing) * ${value})`;
-      return [
-        decl(
-          "translate",
-          `var(--baro-translate-x) var(--baro-translate-y) ${v}`
-        ),
-      ];
+      return translateAxis("z", v);
     }
 
-    return [
-      decl(
-        "translate",
-        `var(--baro-translate-x) var(--baro-translate-y) ${value}`
-      ),
-    ];
+    return translateAxis("z", value);
   },
-  handleCustomProperty: (value) => [
-    decl(
-      "translate",
-      `var(--baro-translate-x) var(--baro-translate-y) var(${value})`
-    ),
-  ],
+  handleCustomProperty: (value) => translateAxis("z", `var(${value})`),
   description:
     "translate-z utility (spacing, fraction, arbitrary, custom property, negative)",
   category: "transform",
@@ -765,7 +749,7 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, ctx, { negative }) => {
     // Fraction
-    if (parseFractionOrNumber(value)) {
+    if (value.includes("/") && parseFractionOrNumber(value)) {
       const v = `calc(${value} * 100%)`;
       return [decl("translate", `${v} ${v}`)];
     }
