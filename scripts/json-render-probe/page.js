@@ -26,17 +26,6 @@
     (el.children || []).forEach(function (c) { n.appendChild(render(spec, c)); });
     return n;
   }
-  // PR #101's preloadJsonRenderClasses(spec, runtime), reproduced verbatim in behaviour.
-  function collect(spec) {
-    var set = {};
-    Object.keys(spec.elements || {}).forEach(function (k) {
-      var p = spec.elements[k] && spec.elements[k].props;
-      if (p && typeof p.className === 'string') p.className.split(/\s+/).forEach(function (c) { if (c) set[c] = 1; });
-    });
-    return Object.keys(set);
-  }
-  function preload(spec, runtime) { var c = collect(spec); if (c.length) runtime.addClass(c); }
-
   function cls(sel) {
     var out = [], re = /\.((?:\\.|[^\s.:>,\[\]()#~+*])+)/g, m;
     while ((m = re.exec(sel))) out.push(m[1].replace(/\\(.)/g, '$1'));
@@ -76,7 +65,7 @@
     var shellBefore = JSON.stringify(sig('[data-shell]'));
     if (P.arm === 'baropre') {
       var rt = BaroCSS.getRuntime({});
-      P.specNames.forEach(function (k) { preload(P.specs[k], rt); });
+      P.specNames.forEach(function (k) { BaroCSS.preloadJsonRenderClasses(P.specs[k], rt); });
     }
     var out = document.getElementById('out'), t0 = performance.now();
     P.specNames.forEach(function (k) { var w = document.createElement('section'); w.setAttribute('data-specroot', k); w.appendChild(render(P.specs[k], P.specs[k].root)); out.appendChild(w); });
