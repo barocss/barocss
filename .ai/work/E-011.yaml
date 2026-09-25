@@ -4,7 +4,7 @@
 # STRATEGY alone writes `review` and sets status: evaluated.
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
-status: ready
+status: evaluated
 
 id: E-011
 outcome: O2
@@ -150,17 +150,60 @@ stop_when:
   - The budget (9 runs) is used up.
 
 result:
-  verdict:
-  level:
-  evidence: []
-  learning:
-  unknown: []
-  next_question:
-  pr:
-  checks:
-  side_notes: []
+  verdict: PROVEN
+  level: L3
+  evidence:
+    - "Primary metric (first-try parity misses shipped SILENTLY under a 'done' claim), all arms on pinned bf979c6, n=1/task: arm0 (E-007 baseline, no report) = 7 of 8 (K10 authoritative; uniform recompute 6, differs only on the documented `shadow` prose false-match); arm1 (BaroCSS resolution report) = 0; arm2 (computed-style control) = 5. arm1 clearly below arm0 AND clearly below arm2. .ai/evidence/E-011/audit.json (rerun: node .ai/evidence/E-011/agg.mjs)."
+    - "Causal link (arm1): the report flagged 5 misses across G1/G2/G3 and the actor fixed all 5 before claiming done (flagged->fixed 5/5), naming the exact classes: G1 'the hook flagged three classes that don't resolve: -translate-x-1/2, ring-1, shadow'; G2 'focus:ring-2 as UNDEFINED-VAR ... I'll swap to a focus outline'; G3 'leading-relaxed references an undefined CSS variable ... let me replace it'. .ai/evidence/E-011/runs/G{1,2,3}.arm1.json (assistant_text, injected_report)."
+    - "BaroCSS-unique (arm2 control): the computed-style report was delivered (66-74 rows) and used — the G3 arm2 agent fixed the invisible-border gap from computed style (K5) — but computed style cannot tell 'broken' from 'state-inactive/plausible-value', so focus:ring-2 (box-shadow:none), hover:-translate-y-1 (translate:none), leading-relaxed (plausible line-height) shipped silently. arm2 self-fixed 1/6, same as arm0. .ai/evidence/E-011/runs/G{1,2,3}.arm2.json."
+    - "L2 harness (frozen E-007 assets re-pointed on path only; two new evidence scripts add no product code): self-test gate passes (site styled; 13/13 gating classifications incl. all K10 families as PARITY-MISS; 9 grader controls + extractor) — node .ai/evidence/E-011/selftest.mjs. Runs: node .ai/evidence/E-011/run.mjs <G1|G2|G3> <arm1|arm2> (pin: git worktree add /tmp/e011-pin bf979c6 && cd /tmp/e011-pin && pnpm install; PW_MCP_DIR=<@playwright/mcp 0.0.76>). Full write-up: .ai/evidence/E-011/SUMMARY.md."
+  learning: >
+    Showing the agent, right after it generates and before it claims done, a per-class BaroCSS resolution report built
+    only from the runtime's existing has()/getCss() (marking each class RESOLVED / UNRESOLVED / EMPTY-RULE /
+    UNDEFINED-VAR) cut first-try silent parity misses from 7-of-8 (arm0) to 0 (arm1) for this strong actor, and a
+    browser computed-style control (arm2) did not (5 shipped silently). The agent fixed exactly the classes the report
+    flagged, citing UNDEFINED-VAR. Criterion 5 (BaroCSS-unique information) HOLDS for option B: class->rule resolution
+    state ("this class became nothing / references an undefined var") is knowledge only the engine has; final pixels
+    (computed style) cannot phrase it, because they can't separate a broken rule from an inactive state or a plausible
+    value. This is free-form classes with runtime delivery (the shared core of both target flows); it does NOT claim
+    either target flow end to end (not the code-gen pipeline flow 1, not the json-render/catalog spec flow 2).
+  unknown:
+    - "n=1 per task per arm; a directional L3 signal, not a statistic. One strong actor (claude-opus-4-8[1m])."
+    - "The report was injected once, after the FIRST DOM generation; all six actors used one main insert so coverage was complete, but an incremental multi-insert actor would get a report over only the first chunk."
+    - "Whether the benefit survives inside a code-gen pipeline (flow 1) or a json-render spec (flow 2) is untested — the next directions this informs."
+  next_question: >
+    Per decision_it_informs (arm1 clearly below arm0 AND arm2): criterion 5 holds for option B. Strategy runs option
+    A's first experiment next (json-render className specs, per the delegated order B -> A -> parity batch), and a
+    flow-(1) code-generation direction experiment testing this report inside a code-gen pipeline becomes worth
+    contracting. Productizing a resolution-report API into packages/barocss is a separate later contract (non-goal here).
+  pr: https://github.com/barocss/barocss/pull/157
+  checks: "no product code changed; .ai/evidence/E-011/ only. python3 .ai/check.py --role execution --base origin/develop --work E-011 (run before PR)."
+  side_notes:
+    - "arm1 grader.pass is false on every run only for E-007's documented 'baseline style attribute changed' artifact (Playwright screenshot sets style=\"\" on <input>); no arm1 run has a real remaining PARITY-MISS."
+    - "E-007's env.mjs guard proxy crashes on aborted proxied requests (unhandled ECONNRESET; E-007 hit it too). Worked around at the runner level (ignore transient ECONNRESET/EPIPE), env.mjs logic untouched."
+    - "Actor stochasticity: each session builds a slightly different section, so first-try misses vary a little per arm; the report->fix outcome is consistent across all three tasks regardless."
+    - "arm2's agents genuinely used computed style (K5 border-style workaround reappeared), confirming the control was a fair, received treatment — it just carries no resolution verdict."
 
 review:                    # STRATEGY §2A. Written by the review pass; EXECUTION never edits this.
-  accepted_verdict:
-  merged:
-  reviewer_notes:
+  accepted_verdict: PROVEN
+  merged: true
+  reviewer_notes: >
+    §2A review of PR #157 (evidence-only, product_code: false → merge whatever the verdict; no human-approved label
+    needed). check.py --role execution --work E-011 = OK: contract frozen, all changes in .ai/evidence/E-011/ +
+    this file; CI "Test and Build" green. Frozen assets verified: classify.mjs, grader.js, grade.mjs are BYTE-IDENTICAL
+    to E-007's (diff empty), so classification/grading logic is unchanged. Arm definitions independently verified to be
+    honestly isolated: arm_report.mjs arm1 uses ONLY the runtime has()/getCss() plus stylesheet rule TEXT for declared
+    vars (explicitly off getComputedStyle), arm2 uses ONLY getComputedStyle over a fixed panel — both over the SAME
+    frozen-grader section tokens, so information source is the only difference. Re-ran the L2 aggregation (node agg.mjs)
+    and reproduced the table: arm0 shippedSilent 6 (uniform recompute; E-007 authoritative 7 on the documented `shadow`
+    prose false-match), arm1 0 (reportFlagged→fixed 5→5), arm2 5 (0→0). Spot-checked G2.arm1.json: focus:ring-2 was
+    injected as UNDEFINED-VAR (references undefined --baro-* vars), was the sole first-try miss, final-section misses
+    empty → fixed before the claim. The causal chain (report flags → actor names → fixes) is real and reproduced, not
+    narrative. proves_yes met exactly: L3, actor unchanged, all arms pinned to bf979c6; arm1 (0) clearly below arm0
+    (6–7) AND arm2 (5), the reduction traced to the actor fixing the flagged classes citing UNDEFINED-VAR; criterion 5
+    holds for option B (class→rule resolution state is BaroCSS-unique; computed style can't separate broken from
+    inactive-state/plausible-value). Verdict PROVEN accepted at full strength — no downgrade warranted. Limits recorded
+    and honest: n=1/task, one strong actor, one main insert per run, and the coverage note (free-form classes with
+    runtime delivery = the shared core; claims NEITHER target flow end to end). Per decision_it_informs, next is option
+    A's first experiment (json-render className specs, order B → A → next parity batch); a flow-(1) code-gen direction
+    experiment testing this report inside a code-gen pipeline becomes worth contracting.
