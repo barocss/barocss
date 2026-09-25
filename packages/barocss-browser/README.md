@@ -301,6 +301,6 @@ import { baroStart, shadcnTheme } from '@barocss/browser';
 baroStart({ config: { theme: { extend: shadcnTheme } } });
 ```
 
-`shadcnTheme` maps the shadcn colours (`background`, `primary`, `muted-foreground`, `border`, `ring`, `chart-1..5`, `sidebar-*`, ...) and `rounded-sm/md/lg/xl` to the raw `:root` variables (`var(--primary)`, `calc(var(--radius) - 2px)`). It does not use `--color-*`, because `@theme inline` doesn't emit those to the page. Opacity modifiers such as `bg-primary/90` work.
+`shadcnTheme` maps the shadcn colours (`background`, `primary`, `muted-foreground`, `border`, `ring`, `chart-1..5`, `sidebar-*`, ...) and `rounded-sm/md/lg/xl` to the raw `:root` variables (`var(--primary)`, `calc(var(--radius) - 2px)`). It does not use `--color-*`, because `@theme inline` doesn't emit those to the page. Opacity modifiers such as `bg-primary/90` work. It expects full colour values in `:root`, as shadcn v4 ships them (e.g. `--primary: oklch(0.205 0 0)`). Older shadcn v3 themes that store bare HSL channels (`--primary: 222 47% 11%`) won't resolve through `var(--primary)`; map those tokens to `hsl(var(--primary))` in your own `theme.extend` instead.
 
 Custom tokens (for example `--brand`) are not included. Add them yourself: `theme: { extend: { ...shadcnTheme, colors: { ...shadcnTheme.colors, brand: 'var(--brand)' } } }`.
