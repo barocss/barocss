@@ -334,39 +334,47 @@ describe("border utilities", () => {
 
   describe("outline width utilities", () => {
     it("outline-* static width utilities", () => {
-      expect(parseClassToAst("outline-0", ctx)).toMatchObject([
+      expect(decls("outline-0")).toEqual([
+        { type: "decl", prop: "outline-style", value: "var(--baro-outline-style)" },
         { type: "decl", prop: "outline-width", value: "0px" },
       ]);
-      expect(parseClassToAst("outline-1", ctx)).toMatchObject([
+      expect(decls("outline-1")).toEqual([
+        { type: "decl", prop: "outline-style", value: "var(--baro-outline-style)" },
         { type: "decl", prop: "outline-width", value: "1px" },
       ]);
-      expect(parseClassToAst("outline-2", ctx)).toMatchObject([
+      expect(decls("outline-2")).toEqual([
+        { type: "decl", prop: "outline-style", value: "var(--baro-outline-style)" },
         { type: "decl", prop: "outline-width", value: "2px" },
       ]);
-      expect(parseClassToAst("outline-4", ctx)).toMatchObject([
+      expect(decls("outline-4")).toEqual([
+        { type: "decl", prop: "outline-style", value: "var(--baro-outline-style)" },
         { type: "decl", prop: "outline-width", value: "4px" },
       ]);
-      expect(parseClassToAst("outline-8", ctx)).toMatchObject([
+      expect(decls("outline-8")).toEqual([
+        { type: "decl", prop: "outline-style", value: "var(--baro-outline-style)" },
         { type: "decl", prop: "outline-width", value: "8px" },
       ]);
     });
 
     it("outline-* functional width utilities", () => {
-      expect(parseClassToAst("outline-3", ctx)).toMatchObject([
+      expect(decls("outline-3")).toEqual([
+        { type: "decl", prop: "outline-style", value: "var(--baro-outline-style)" },
         { type: "decl", prop: "outline-width", value: "3px" },
       ]);
-      expect(parseClassToAst("outline-[5px]", ctx)).toMatchObject([
+      expect(decls("outline-[5px]")).toEqual([
+        { type: "decl", prop: "outline-style", value: "var(--baro-outline-style)" },
         { type: "decl", prop: "outline-width", value: "5px" },
       ]);
-      expect(
-        parseClassToAst("outline-(length:--my-outline-width)", ctx)
-      ).toMatchObject([
-        {
-          type: "decl",
-          prop: "outline-width",
-          value: "var(--my-outline-width)",
-        },
+      expect(decls("outline-(length:--my-outline-width)")).toEqual([
+        { type: "decl", prop: "outline-style", value: "var(--baro-outline-style)" },
+        { type: "decl", prop: "outline-width", value: "var(--my-outline-width)" },
       ]);
+    });
+
+    it("outline width utilities register --baro-outline-style with a solid initial value", () => {
+      const css = generateCss("outline-2", ctx);
+      expect(css).toContain("@property --baro-outline-style");
+      expect(css).toContain("initial-value: solid");
     });
   });
 
@@ -414,22 +422,36 @@ describe("border utilities", () => {
 
   describe("outline style utilities", () => {
     it("outline-* style utilities", () => {
-      expect(parseClassToAst("outline-none", ctx)).toMatchObject([
-        { type: "decl", prop: "outline", value: "2px solid transparent" },
-        { type: "decl", prop: "outline-offset", value: "2px" },
+      expect(decls("outline")).toEqual([
+        { type: "decl", prop: "outline-style", value: "var(--baro-outline-style)" },
+        { type: "decl", prop: "outline-width", value: "1px" },
       ]);
-      expect(parseClassToAst("outline", ctx)).toMatchObject([
+      expect(decls("outline-none")).toEqual([
+        { type: "decl", prop: "--baro-outline-style", value: "none" },
+        { type: "decl", prop: "outline-style", value: "none" },
+      ]);
+      expect(decls("outline-solid")).toEqual([
+        { type: "decl", prop: "--baro-outline-style", value: "solid" },
         { type: "decl", prop: "outline-style", value: "solid" },
       ]);
-      expect(parseClassToAst("outline-dashed", ctx)).toMatchObject([
+      expect(decls("outline-dashed")).toEqual([
+        { type: "decl", prop: "--baro-outline-style", value: "dashed" },
         { type: "decl", prop: "outline-style", value: "dashed" },
       ]);
-      expect(parseClassToAst("outline-dotted", ctx)).toMatchObject([
+      expect(decls("outline-dotted")).toEqual([
+        { type: "decl", prop: "--baro-outline-style", value: "dotted" },
         { type: "decl", prop: "outline-style", value: "dotted" },
       ]);
-      expect(parseClassToAst("outline-double", ctx)).toMatchObject([
+      expect(decls("outline-double")).toEqual([
+        { type: "decl", prop: "--baro-outline-style", value: "double" },
         { type: "decl", prop: "outline-style", value: "double" },
       ]);
+    });
+
+    it("outline-hidden keeps a transparent outline in forced-colors mode", () => {
+      const css = generateCss("outline-hidden", ctx);
+      expect(css).toContain("outline-style: none");
+      expect(css).toMatch(/@media \(forced-colors: active\)[^}]*outline: 2px solid transparent/);
     });
   });
 
