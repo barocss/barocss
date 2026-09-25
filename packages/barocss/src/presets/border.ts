@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRoot, atRule, decl, property } from "../core/ast";
+import { atRoot, atRule, decl, property, rule } from "../core/ast";
 import { parseNumber, parseLength, parseColor, themeColorDecls } from "../core/utils";
 
 // --- Border Radius ---
@@ -14,6 +14,8 @@ staticUtility("rounded-lg", [["border-radius", "var(--radius-lg)"]], { category:
 staticUtility("rounded-xl", [["border-radius", "var(--radius-xl)"]], { category: 'borders' });
 staticUtility("rounded-2xl", [["border-radius", "var(--radius-2xl)"]], { category: 'borders' });
 staticUtility("rounded-3xl", [["border-radius", "var(--radius-3xl)"]], { category: 'borders' });
+staticUtility("rounded-4xl", [["border-radius", "var(--radius-4xl)"]], { category: 'borders' });
+staticUtility("rounded-xs", [["border-radius", "var(--radius-xs)"]], { category: 'borders' });
 staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'borders' });
 
 
@@ -38,6 +40,8 @@ staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'border
   staticUtility(`${name}-xl`, propList.map(prop => [prop, "var(--radius-xl)"]), { category: 'borders' });
   staticUtility(`${name}-2xl`, propList.map(prop => [prop, "var(--radius-2xl)"]), { category: 'borders' });
   staticUtility(`${name}-3xl`, propList.map(prop => [prop, "var(--radius-3xl)"]), { category: 'borders' });
+  staticUtility(`${name}-4xl`, propList.map(prop => [prop, "var(--radius-4xl)"]), { category: 'borders' });
+  staticUtility(`${name}-xs`, propList.map(prop => [prop, "var(--radius-xs)"]), { category: 'borders' });
   staticUtility(`${name}-full`, propList.map(prop => [prop, "9999px"]), { category: 'borders' });
 
   // Functional utility
@@ -169,6 +173,31 @@ staticUtility("border-dotted", [["--baro-border-style", "dotted"], ["border-styl
 staticUtility("border-double", [["--baro-border-style", "double"], ["border-style", "double"]], { category: 'borders' });
 staticUtility("border-hidden", [["--baro-border-style", "hidden"], ["border-style", "hidden"]], { category: 'borders' });
 staticUtility("border-none", [["--baro-border-style", "none"], ["border-style", "none"]], { category: 'borders' });
+
+// --- Divide Width --- (Tailwind 4: `:where(& > :not(:last-child))`, style from the registered border-style var)
+const divideSides = { x: ["border-inline-start", "border-inline-end", "border-inline-style"], y: ["border-top", "border-bottom", "border-bottom-style", "border-top-style"] };
+Object.entries(divideSides).forEach(([axis, [start, end, ...styles]]) => {
+  const rev = `--baro-divide-${axis}-reverse`;
+  const divide = (width: string) => [
+    borderStyleProperty(),
+    rule(":where(& > :not(:last-child))", [
+      decl(rev, "0"),
+      ...styles.map((s) => decl(s, "var(--baro-border-style)")),
+      decl(`${start}-width`, `calc(${width} * var(${rev}))`),
+      decl(`${end}-width`, `calc(${width} * calc(1 - var(${rev})))`),
+    ]),
+  ];
+  staticUtility(`divide-${axis}`, divide("1px"), { category: 'borders' });
+  staticUtility(`divide-${axis}-reverse`, [rule(":where(& > :not(:last-child))", [decl(rev, "1")])], { category: 'borders' });
+  functionalUtility({
+    name: `divide-${axis}`,
+    supportsArbitrary: true,
+    handleBareValue: ({ value }) => (/^\d+$/.test(value) ? `${value}px` : null),
+    handle: (value) => divide(value),
+    description: `divide-${axis} width utility`,
+    category: "borders",
+  });
+});
 
 
 // Functional border width utility

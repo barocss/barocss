@@ -20,15 +20,11 @@ import { corpus } from './corpus';
 const KNOWN_FAILURES: Record<string, string> = {
   "space-y-3": "equivalent: margin on following siblings (v3 selector)",
   "bg-gradient-to-br": "legacy gradient emits a bare & selector (#187)",
-  "focus-visible:ring-[3px]": "arbitrary ring width emits box-shadow: 3px (#187)",
-  "rounded-sm": "radius scale on v3 values",
   "select-none": "no -webkit-user-select",
   "sr-only": "clip instead of clip-path",
-  "blur-3xl": "blur scale on v3 values",
   "bg-gradient-to-r": "legacy gradient emits a bare & selector (#187)",
   "@container/card-header": "no container-type utility (#187)",
   "justify-self-end": "justify-self-end emits end, TW flex-end",
-  "rounded-xs": "radius scale on v3 values",
 };
 
 const INVALID = '⟂';

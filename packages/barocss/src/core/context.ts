@@ -1,3 +1,4 @@
+import { setDebug } from "../utils/debug";
 import { defaultTheme } from "../theme";
 import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
 import { getModifier, getUtility } from './registry';
@@ -54,6 +55,12 @@ export interface Config {
    * default: true (full preflight)
    */
   preflight?: PreflightLevel;
+  /**
+   * Enable kit console diagnostics (off by default).
+   * This sets a process-wide flag (see setDebug): it affects every context, and a
+   * config without this key leaves the current flag unchanged.
+   */
+  debug?: boolean;
   /**
    * @deprecated Contexts now own their caches. Creating a context does not
    * clear caches that belong to another context.
@@ -250,6 +257,7 @@ ${keyframesToCss((theme.keyframes || {}) as Record<string, unknown>)}
 
 // createContext
 export function createContext(configObj: Config): Context {
+  if (configObj.debug !== undefined) setDebug(!!configObj.debug);
   // Automatically include defaultTheme as the base preset
   const configWithDefaults = {
     presets: [

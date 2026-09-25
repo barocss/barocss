@@ -1,3 +1,4 @@
+import { debugLog } from "./debug";
 import type { AstNode } from '../core/ast';
 import { ParsedModifier, ParsedUtility } from '../core/parser';
 
@@ -142,8 +143,7 @@ export function clearAllCaches(): void {
   parseResultCache.clear();
   utilityCache.clear();
   resetContextCaches?.();
-  // eslint-disable-next-line no-console
-  console.log('[clearAllCaches] All caches cleared');
+  debugLog('[clearAllCaches] All caches cleared');
 }
 
 /**
