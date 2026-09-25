@@ -1,12 +1,12 @@
 # Durable project state. STRATEGY-owned; EXECUTION never edits this file.
 # Keep < ~150 lines. Git history holds everything older.
-updated: 2026-09-25   # D20: merged E-010 PR #141 (human-approved); contracted E-011 (option B report experiment)
+updated: 2026-09-25   # D21: reviewed E-011 PROVEN (K13, option B criterion 5 holds), merged PR #157 (evidence-only)
 
 now:                       # dashboard view; mode comes from contract status
   active_outcome: O2
-  experiment: "E-011 (ready): QUESTION LANE, option B first experiment. Does a per-class BaroCSS resolution report (built from existing has()/getCss()) shown to the agent right after it generates cut first-try silent misses below E-007's baseline (7 of 8 shipped unnamed under a done claim), and does it beat a browser computed-style control (criterion 5: is the info BaroCSS-unique)? 3 arms, E-007's tasks/actor/prompt/site/frozen classifier+grader, all pinned to develop bf979c6 (pre-E-008/E-010, so the K10 misses still exist). No product code. L3."
-  last_result: "E-010 merged (PR #141, human-approved) -> develop 5bf258b: first product code for O2 (F1 ring + F3 preflight border at exact Tailwind-4.1.13 L2 parity, K12). F2 single-axis translate dropped as a value-formula parity candidate (queued)."
-  next: "EXECUTE E-011 (option B report experiment). Ordered next by the human before any further parity batch. Then per the delegated order: option A (json-render className specs), then the next parity batch (starting with F2 translate + ranking families by v0/shadcn output, Q6)."
+  experiment: "None open. E-011 evaluated PROVEN (K13) and merged (PR #157, evidence-only). Next question to contract: option A's first experiment (json-render / catalog className specs — do className-carrying specs render as intended under BaroCSS; is there a BaroCSS gap beyond the zero-build runtime), per the delegated order B -> A -> next parity batch."
+  last_result: "E-011 PROVEN (K13): a per-class BaroCSS resolution report (has()/getCss() only) shown to the agent right after it generates cut first-try silent parity misses from 7-of-8 (arm0) to 0 (arm1), clearly below a browser computed-style control (arm2, 5); the actor fixed exactly the flagged classes citing UNDEFINED-VAR. Criterion 5 holds for option B: class->rule resolution state is BaroCSS-unique. n=1/task, one strong actor; shared-core coverage only (neither target flow end to end)."
+  next: "PLAN: contract option A's first experiment (json-render className specs), per the delegated order (B done -> A -> next parity batch). A flow-(1) code-gen direction experiment testing E-011's report inside a code-gen pipeline is now worth contracting (K13). Parity lane may run alongside (F2 translate value-formula candidate + rank families by v0/shadcn output, Q6). Keep <=3 open items across lanes."
   blockers: []
 
 outcomes:
@@ -83,6 +83,26 @@ knowledge:
         F2 change (registering the @property axis default) cannot fix — re-scoped as a parity candidate (value-formula
         fix + register --baro-translate-* defaults). The one L3 G1/G2/G3 rerun was deferred to that fully-fixed build.
         Merge of the landed part is held on the human-approved label. Evidence: .ai/evidence/E-010/.
+    - id: K13
+      level: L3
+      fact: >
+        E-011 (PROVEN, option B first experiment): showing the actor, right after it generates and before it claims
+        done, a per-class BaroCSS resolution report built ONLY from the runtime's existing has()/getCss() (each class
+        marked RESOLVED / UNRESOLVED / EMPTY-RULE / UNDEFINED-VAR) cut first-try silent parity misses shipped under a
+        "done" claim from 7-of-8 (arm0, E-007 baseline) to 0 (arm1), clearly below a browser computed-style control
+        (arm2, 5 shipped silently). The actor fixed exactly the classes the report flagged (flagged->fixed 5/5),
+        naming them and citing UNDEFINED-VAR. Criterion 5 HOLDS for option B: class->rule resolution state is
+        BaroCSS-unique — computed style can't separate "broken rule" from "inactive state / plausible value"
+        (focus:ring-2, hover:-translate, leading-relaxed shipped silently in arm2). All arms pinned to develop bf979c6
+        (E-007's world), E-007's actor/tasks/prompt/site and frozen classifier+grader unchanged; no product code (the
+        two reports are evidence scripts). Evidence: .ai/evidence/E-011/SUMMARY.md, audit.json, runs/. PR #157 merged.
+      caveat: >
+        n=1 per task per arm, one strong actor (claude-opus-4-8[1m]) — a directional L3 signal, not a statistic. The
+        report was injected once, after the FIRST DOM generation; all six runs built the section in one main insert so
+        coverage was complete, but an incremental multi-insert actor would get a report over only the first chunk. This
+        is FREE-FORM CLASSES WITH RUNTIME DELIVERY (the shared core of both target flows); it claims NEITHER target
+        flow end to end — not the code-gen pipeline (flow 1), not the json-render/catalog className spec (flow 2).
+        Productizing a resolution-report API into packages/barocss is a separate LATER contract (non-goal here).
   disproven: []
   working_assumptions:     # L0; plausible but untested, don't treat as proven
     - Natural-language reasoning doesn't belong inside BaroCSS.
@@ -213,6 +233,27 @@ decisions:                 # older entries compressed; full text in git log -p -
       erase the misses under study. Per the coverage directive, E-011's setup covers only the shared core of both
       target flows (free-form classes delivered at runtime) and its result claims neither flow end to end; O3 stays a
       separate candidate. F2 translate remains a queued value-formula parity candidate for the batch after A.
+
+  - id: D21
+    date: 2026-09-25
+    decision: >
+      Reviewed E-011 (§2A of PR #157): accepted PROVEN and merged (evidence-only, product_code: false → merge whatever
+      the verdict; no human-approved label needed). check.py OK (contract frozen; changes only in .ai/evidence/E-011/ +
+      the contract), CI green, frozen assets byte-identical to E-007 (classify.mjs/grader.js/grade.mjs), and the arms
+      independently verified honestly isolated (arm1 has()/getCss() + rule text only; arm2 getComputedStyle only; same
+      frozen-grader tokens). Re-ran agg.mjs and reproduced arm1=0 vs arm2=5 vs arm0=6-7 silent misses, and spot-checked
+      G2.arm1 (focus:ring-2 flagged UNDEFINED-VAR → fixed before claim). K13 recorded: a per-class BaroCSS resolution
+      report cuts first-try silent generation misses to 0, and the information is BaroCSS-unique (criterion 5 holds for
+      option B). Next: PLAN option A's first experiment (json-render/catalog className specs) per the delegated order
+      B -> A -> next parity batch; a flow-(1) code-gen direction experiment testing this report inside a code-gen
+      pipeline is now worth contracting; F2 translate stays a queued value-formula parity candidate. This pass does not
+      contract A (§1: REVIEW is one pass; a fresh STRATEGY/PLAN pass writes the next contract).
+    why: >
+      §2A: evidence-only PRs are merged regardless of verdict (negative evidence is knowledge too), and the
+      human-approval label gates only product-code merges. The verdict meets proves_yes at full strength with a
+      reproduced causal chain, so no downgrade. Criterion 5 holding for option B is the first BaroCSS-unique signal in
+      the generation loop and directly sets the next directions the human delegated (option A, then the flow-1
+      code-gen experiment), so it belongs in decisions, not just knowledge.
 
 open_items:                # for STRATEGY, not EXECUTION
   - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."

@@ -4,7 +4,7 @@
 # STRATEGY alone writes `review` and sets status: evaluated.
 # status: none | ready | running | done | blocked | evaluated
 # While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
-status: done
+status: evaluated
 
 id: E-011
 outcome: O2
@@ -185,6 +185,25 @@ result:
     - "arm2's agents genuinely used computed style (K5 border-style workaround reappeared), confirming the control was a fair, received treatment — it just carries no resolution verdict."
 
 review:                    # STRATEGY §2A. Written by the review pass; EXECUTION never edits this.
-  accepted_verdict:
-  merged:
-  reviewer_notes:
+  accepted_verdict: PROVEN
+  merged: true
+  reviewer_notes: >
+    §2A review of PR #157 (evidence-only, product_code: false → merge whatever the verdict; no human-approved label
+    needed). check.py --role execution --work E-011 = OK: contract frozen, all changes in .ai/evidence/E-011/ +
+    this file; CI "Test and Build" green. Frozen assets verified: classify.mjs, grader.js, grade.mjs are BYTE-IDENTICAL
+    to E-007's (diff empty), so classification/grading logic is unchanged. Arm definitions independently verified to be
+    honestly isolated: arm_report.mjs arm1 uses ONLY the runtime has()/getCss() plus stylesheet rule TEXT for declared
+    vars (explicitly off getComputedStyle), arm2 uses ONLY getComputedStyle over a fixed panel — both over the SAME
+    frozen-grader section tokens, so information source is the only difference. Re-ran the L2 aggregation (node agg.mjs)
+    and reproduced the table: arm0 shippedSilent 6 (uniform recompute; E-007 authoritative 7 on the documented `shadow`
+    prose false-match), arm1 0 (reportFlagged→fixed 5→5), arm2 5 (0→0). Spot-checked G2.arm1.json: focus:ring-2 was
+    injected as UNDEFINED-VAR (references undefined --baro-* vars), was the sole first-try miss, final-section misses
+    empty → fixed before the claim. The causal chain (report flags → actor names → fixes) is real and reproduced, not
+    narrative. proves_yes met exactly: L3, actor unchanged, all arms pinned to bf979c6; arm1 (0) clearly below arm0
+    (6–7) AND arm2 (5), the reduction traced to the actor fixing the flagged classes citing UNDEFINED-VAR; criterion 5
+    holds for option B (class→rule resolution state is BaroCSS-unique; computed style can't separate broken from
+    inactive-state/plausible-value). Verdict PROVEN accepted at full strength — no downgrade warranted. Limits recorded
+    and honest: n=1/task, one strong actor, one main insert per run, and the coverage note (free-form classes with
+    runtime delivery = the shared core; claims NEITHER target flow end to end). Per decision_it_informs, next is option
+    A's first experiment (json-render className specs, order B → A → next parity batch); a flow-(1) code-gen direction
+    experiment testing this report inside a code-gen pipeline becomes worth contracting.
