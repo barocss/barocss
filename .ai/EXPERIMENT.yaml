@@ -113,7 +113,7 @@ result:
     Rerun E-005 with the positive control = updateConfig({...current config, theme:{extend}}) on the page's module URL, and
     record per run whether the agent preserved the existing config (preflight). If agents don't, that is the evidence for
     or against a merge/extend semantics gap in updateConfig.
-  pr: null
+  pr: https://github.com/barocss/barocss/pull/115
   checks: "python3 .ai/check.py --role execution --base origin/develop: OK; no product code changed (pnpm check not required)"
   side_notes:
     - "A second module instance (same file, ?query URL) uses the same styleId 'barocss-runtime'; its updateConfig also drops the page's preflight (same two regressions, no duplicate style ids observed)"
