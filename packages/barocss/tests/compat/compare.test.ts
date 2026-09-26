@@ -74,9 +74,13 @@ describe('Tailwind CSS 4.1.13 output comparison', () => {
 
   it('emits a usable standalone mask rule while global property support differs', async () => {
     const { baroCss } = await compare('mask-linear-from-50%');
-    expect(baroCss).toContain('--tw-mask-linear-from-position: 50%;');
-    expect(baroCss).toContain('--tw-mask-linear: linear-gradient(var(--tw-mask-linear-stops));');
-    expect(baroCss).toContain('var(--tw-mask-radial, linear-gradient(#fff, #fff))');
+    expect(baroCss).toContain('--baro-mask-linear-from-position: 50%;');
+    expect(baroCss).toContain('--baro-mask-linear: linear-gradient(var(--baro-mask-linear-stops));');
+    expect(baroCss).toContain('mask-image: var(--baro-mask-linear), var(--baro-mask-radial), var(--baro-mask-conic);');
+    for (const name of ['linear', 'radial', 'conic', 'linear-position', 'linear-from-position', 'linear-to-position', 'linear-from-color', 'linear-to-color']) {
+      expect(baroCss).toContain(`@property --baro-mask-${name}`);
+    }
+    expect(baroCss).toContain('initial-value: linear-gradient(#fff, #fff)');
   });
 
   it('uses current color and defined shadow fallbacks for inset rings', async () => {

@@ -664,17 +664,30 @@ functionalUtility({
 });
 
 // --- Mask Image  ---
-// Tailwind's mask gradient variables normally have @property defaults.
-// Give them fallbacks here because BaroCSS emits each utility on its own.
+// Tailwind v4.1.13 registers these mask gradient vars with @property initial values, so a lone
+// mask-linear-from-* composes a valid mask-image without inline var() fallbacks.
+const maskProperties = () =>
+  atRoot([
+    property("--baro-mask-linear", "linear-gradient(#fff, #fff)"),
+    property("--baro-mask-radial", "linear-gradient(#fff, #fff)"),
+    property("--baro-mask-conic", "linear-gradient(#fff, #fff)"),
+    property("--baro-mask-linear-position", "0deg"),
+    property("--baro-mask-linear-from-position", "0%"),
+    property("--baro-mask-linear-to-position", "100%"),
+    property("--baro-mask-linear-from-color", "black"),
+    property("--baro-mask-linear-to-color", "transparent"),
+  ]);
+
 functionalUtility({
   name: "mask-linear-from",
   handleBareValue: ({ value }) => /^(?:100|[1-9]?\d)%$/.test(value) ? value : null,
   handle: (value) => [
-    decl("mask-image", "var(--tw-mask-linear), var(--tw-mask-radial, linear-gradient(#fff, #fff)), var(--tw-mask-conic, linear-gradient(#fff, #fff))"),
+    decl("mask-image", "var(--baro-mask-linear), var(--baro-mask-radial), var(--baro-mask-conic)"),
     decl("mask-composite", "intersect"),
-    decl("--tw-mask-linear-stops", "var(--tw-mask-linear-position, 0deg), var(--tw-mask-linear-from-color, black) var(--tw-mask-linear-from-position, 0%), var(--tw-mask-linear-to-color, transparent) var(--tw-mask-linear-to-position, 100%)"),
-    decl("--tw-mask-linear", "linear-gradient(var(--tw-mask-linear-stops))"),
-    decl("--tw-mask-linear-from-position", value),
+    decl("--baro-mask-linear-stops", "var(--baro-mask-linear-position), var(--baro-mask-linear-from-color) var(--baro-mask-linear-from-position), var(--baro-mask-linear-to-color) var(--baro-mask-linear-to-position)"),
+    decl("--baro-mask-linear", "linear-gradient(var(--baro-mask-linear-stops))"),
+    decl("--baro-mask-linear-from-position", value),
+    maskProperties(),
   ],
   category: "effects",
 });
