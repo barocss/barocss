@@ -1,5 +1,14 @@
 # @barocss/browser
 
+## 0.10.2
+
+### Patch Changes
+
+- 0.10.2: Shadow DOM fix. In `root` mode, gradients (`bg-gradient-to-*` with `from-` / `to-`), `shadow-*`, `ring-*`, `translate-*` and other utilities that rely on registered custom properties now work inside shadow roots. Browsers only honour `@property` at document level, so BaroCSS now registers those properties once on the document (respecting `nonce` / `constructable`), while utilities and preflight stay inside the shadow root. Upgrading is recommended for anyone using the Shadow DOM `root` option (0.9.0–0.10.1).
+- 3bdeac3: Shadow DOM `root` mode: gradients, `shadow-*`, `ring-*`, `translate-*` and the other `@property`-backed utilities now render inside shadow roots (#384). Browsers ignore `@property` in shadow-root sheets, so the runtime also registers its `@property` rules once in the document: one shared `<style data-barocss="document-properties">` (with `nonce`), or with `constructable: true` one adopted sheet. Only `@property` rules go there (no utilities, theme variables or preflight), and they stay registered after `destroy()`. If the document cannot take them, the root gets their initial values in a first `@layer properties` block instead.
+- Updated dependencies
+  - @barocss/kit@0.10.2
+
 ## 0.10.1
 
 ### Patch Changes
