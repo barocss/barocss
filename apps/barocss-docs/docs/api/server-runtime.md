@@ -24,6 +24,8 @@ const tag = ssrStyleTag(css, { nonce });                          // '<style dat
 - `ssrStyleTag(css, { nonce? })`: wraps the CSS in `<style data-barocss-ssr>` so `@barocss/browser` adopts it. Under a strict CSP pass the response's nonce (escaped into a `nonce` attribute); give the browser runtime the same `nonce` (or `constructable: true`), see [Security](/guide/security).
 - For `prefix(tw)` builds set both `prefix: 'tw'` and `cssVarPrefix: 'tw'`; mirror static `@utility` rules in `utilities`.
 
+If you post-process the returned CSS text, keep escapes intact; see [CSS text post-processing](/guide/security#css-text-post-processing).
+
 Framework recipe: [Astro (SSR and static)](/guide/integration/astro).
 
 
