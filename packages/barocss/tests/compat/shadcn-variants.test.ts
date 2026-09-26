@@ -1,3 +1,5 @@
+// TODO(#304): known 4.3 difference, so this file stays pinned to Tailwind 4.1.13 (`tailwindcss-4-1`). 4.3 flattens nested `&` rules (`.\[\&_svg\]\:size-4 svg`); the regex here expects the 4.1 shape.
+// Effective-value parity against 4.3 is covered by parity-corpus/parity-heldout; port this text/shape check to 4.3 output.
 /**
  * #221: arbitrary/data variants that shadcn/ui uses produce Tailwind 4.1.13's selectors.
  * Tailwind nests (`.cls { &X { … } }`); BaroCSS emits the flattened rule (`.clsX { … }`). Both are
@@ -6,13 +8,13 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
-import { compile } from 'tailwindcss';
+import { compile } from 'tailwindcss-4-1';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
 import '../../src/presets';
 
 const req = createRequire(import.meta.url);
-const theme = fs.readFileSync(req.resolve('tailwindcss/theme.css'), 'utf8');
+const theme = fs.readFileSync(req.resolve('tailwindcss-4-1/theme.css'), 'utf8');
 
 const CANDIDATES = [
   '[&_svg]:size-4',

@@ -1,14 +1,16 @@
+// TODO(#304): known 4.3 difference, so this file stays pinned to Tailwind 4.1.13 (`tailwindcss-4-1`). 4.3 flattens nested `&` rules and drops the redundant `*` in `:has(*:...)`; the regex here expects the 4.1 shape.
+// Effective-value parity against 4.3 is covered by parity-corpus/parity-heldout; port this text/shape check to 4.3 output.
 /** #248: `in-*` and `has-<pseudo>` variants vs Tailwind 4.1.13 (fresh compile() per candidate). */
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
-import { compile } from 'tailwindcss';
+import { compile } from 'tailwindcss-4-1';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
 import '../../src/presets';
 
 const require = createRequire(import.meta.url);
-const themeCss = fs.readFileSync(require.resolve('tailwindcss/theme.css'), 'utf8');
+const themeCss = fs.readFileSync(require.resolve('tailwindcss-4-1/theme.css'), 'utf8');
 const ws = (s: string) => s.replace(/\s+/g, ' ').trim();
 async function tw(cls: string): Promise<string> {
   const c = await compile(themeCss + '\n@tailwind utilities;');
