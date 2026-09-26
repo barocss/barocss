@@ -16,6 +16,8 @@ const runtime = getRuntime({
   config: {
     cssVarPrefix: 'tw',             // share --tw-* composite variables with the Tailwind build
     theme: { extend: shadcnTheme }, // use the shadcn :root tokens (primary, muted-foreground, ...)
+    darkMode: 'class',              // dark: follows the page's dark class, not the OS setting
+    darkModeSelector: '.dark &',    // mirrors shadcn v4's `@custom-variant dark (&:is(.dark *))`
     // preflight: leave unset. The layered preflight (@layer base) is the default and should stay on.
   },
 });
@@ -26,7 +28,17 @@ preloadJsonRenderClasses(spec, runtime);  // BEFORE mounting, so there is no uns
 renderJsonUi(spec);                       // mount your json-render Renderer
 ```
 
-The five settings: `skipExisting: true`, `cssVarPrefix: 'tw'`, `theme: { extend: shadcnTheme }`, `preloadJsonRenderClasses(spec, runtime)` before mount, and the default layered preflight (don't set `preflight: false`).
+The six settings: `skipExisting: true`, `cssVarPrefix: 'tw'`, `theme: { extend: shadcnTheme }`, `darkMode: 'class'` with `darkModeSelector` copied from the build, `preloadJsonRenderClasses(spec, runtime)` before mount, and the default layered preflight (don't set `preflight: false`).
+
+**Dark mode:** set `darkModeSelector` to the selector inside your CSS's `@custom-variant dark (...)`, so runtime `dark:` classes switch at the same moment as the build's:
+
+| build CSS | companion config |
+|---|---|
+| `@custom-variant dark (&:is(.dark *));` (shadcn v4) | `darkMode: 'class', darkModeSelector: '.dark &'` |
+| `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));` (e.g. AstroPaper) | `darkMode: 'class', darkModeSelector: '[data-theme=dark] &'` |
+| no `@custom-variant dark` (OS setting) | leave `darkMode` unset (`'media'`) |
+
+Don't use `darkMode: 'class'` without a selector here: it matches `.dark` on the same element only, so `<html class="dark">` does not switch runtime classes.
 
 ## Verify it rendered
 
