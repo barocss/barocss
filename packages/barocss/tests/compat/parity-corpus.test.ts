@@ -19,10 +19,8 @@ import { corpus } from './corpus';
 
 const KNOWN_FAILURES: Record<string, string> = {
   "space-y-3": "equivalent: margin on following siblings (v3 selector)",
-  "bg-gradient-to-br": "legacy gradient emits a bare & selector (#187)",
   "select-none": "no -webkit-user-select",
   "sr-only": "clip instead of clip-path",
-  "bg-gradient-to-r": "legacy gradient emits a bare & selector (#187)",
   "@container/card-header": "no container-type utility (#187)",
   "justify-self-end": "justify-self-end emits end, TW flex-end",
 };
