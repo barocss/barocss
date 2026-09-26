@@ -16,27 +16,36 @@ describe('extractClasses (#268)', () => {
 <!-- <div class="commented"></div> --><div data-class="nope" subclass="nope" title='class="nope"' class="yes"></div>`;
     expect(extractClasses(html)).toEqual(['yes']);
   });
-  it('stays linear on ~200 KB of unclosed openers (review: no per-opener rescans)', () => {
-    // Compare 10x input sizes instead of a wall-clock budget (CI runners vary): linear stays near 10x, the old
-    // per-opener rescans were ~100x. Median of 3 after a warm-up; a small floor keeps sub-ms noise out of the ratio.
-    const time = (html: string) => {
-      const runs = [0, 1, 2].map(() => {
-        const t0 = performance.now();
-        extractClasses(html);
-        return performance.now() - t0;
-      });
-      return Math.max(runs.sort((a, b) => a - b)[1], 0.5);
+  const UNCLOSED = ['<!--', '<script>', '<style>', '<a class="x" ', '<a class="', '<a class=x', '<a b'];
+  const unclosed = (unit: string, size: number) => '<b class="ok"></b>' + unit.repeat(Math.ceil(size / unit.length));
+  it('does work proportional to the input on unclosed openers (deterministic: regex calls per byte)', () => {
+    // Counts regex exec/test calls instead of timing, so CI speed can't flake it: 10x input must mean ~10x calls.
+    const count = (html: string) => {
+      const proto = RegExp.prototype;
+      const { exec, test } = proto;
+      let calls = 0;
+      proto.exec = function (this: RegExp, s: string) { calls++; return exec.call(this, s); };
+      proto.test = function (this: RegExp, s: string) { calls++; return test.call(this, s); };
+      try { expect(extractClasses(html)[0]).toBe('ok'); } finally { proto.exec = exec; proto.test = test; }
+      return calls;
     };
-    for (const unit of ['<!--', '<script>', '<style>', '<a class="x" ']) {
-      const build = (size: number) => '<b class="ok"></b>' + unit.repeat(Math.ceil(size / unit.length));
-      const small = build(20_000);
-      const large = build(200_000);
-      expect(extractClasses(large)[0]).toBe('ok');
-      time(small);
-      const ratio = time(large) / time(small);
-      expect(ratio, unit).toBeLessThan(30);
+    for (const unit of UNCLOSED) {
+      const ratio = count(unclosed(unit, 200_000)) / Math.max(count(unclosed(unit, 20_000)), 1);
+      expect(ratio, unit).toBeLessThan(12);
     }
     expect(extractClasses('<i class="a"></i><script>x</script><i class="b"></i><!-- c --><i class="c"></i><style>')).toEqual(['a', 'b', 'c']);
+  });
+  it('time grows ~linearly on unclosed openers (catches per-call rescans; large sizes keep it out of timer noise)', { retry: 2 }, () => {
+    // Per-call rescans (the #268 review bug) keep call counts linear but go ~100x for 10x input; linear is ~10x.
+    const time = (html: string) => {
+      extractClasses(html);
+      const runs = [0, 1, 2, 3, 4].map(() => { const t0 = performance.now(); extractClasses(html); return performance.now() - t0; });
+      return runs.sort((a, b) => a - b)[2];
+    };
+    for (const unit of UNCLOSED) {
+      const ratio = time(unclosed(unit, 1_000_000)) / time(unclosed(unit, 100_000));
+      expect(ratio, unit).toBeLessThan(40);
+    }
   });
   it('dedupes in first-seen order', () => {
     expect(extractClasses('<a class="a b"></a><a class="b c a"></a>')).toEqual(['a', 'b', 'c']);
