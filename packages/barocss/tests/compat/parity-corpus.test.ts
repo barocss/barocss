@@ -18,7 +18,6 @@ import { corpus } from './corpus';
 // its fix lands (the test fails if a listed class starts passing, so the list can't go stale).
 
 const KNOWN_FAILURES: Record<string, string> = {
-  "space-y-3": "equivalent: margin on following siblings (v3 selector)",
   "select-none": "no -webkit-user-select",
   "sr-only": "clip instead of clip-path",
   "@container/card-header": "no container-type utility (#187)",

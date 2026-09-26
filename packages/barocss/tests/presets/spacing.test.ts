@@ -625,290 +625,42 @@ describe("preset spacing utilities", () => {
     });
   });
 
-  describe("space utilities", () => {
-    it("space-x-4 → correct AST", () => {
-      expect(parseClassToAst("space-x-4", ctx)).toMatchObject([
+  describe("space utilities (Tailwind 4: margin on non-last children)", () => {
+    const sel = ":where(& > :not(:last-child))";
+    const cases: [string, "x" | "y", string][] = [
+      ["space-x-4", "x", "calc(var(--spacing) * 4)"],
+      ["-space-x-2", "x", "calc(var(--spacing) * -2)"],
+      ["space-x-px", "x", "1px"],
+      ["-space-x-px", "x", "-1px"],
+      ["space-x-[5vw]", "x", "5vw"],
+      ["space-x-(--gap-x)", "x", "var(--gap-x)"],
+      ["space-y-3", "y", "calc(var(--spacing) * 3)"],
+      ["-space-y-1", "y", "calc(var(--spacing) * -1)"],
+      ["space-y-px", "y", "1px"],
+      ["-space-y-px", "y", "-1px"],
+      ["space-y-[2em]", "y", "2em"],
+      ["space-y-(--gap-y)", "y", "var(--gap-y)"],
+    ];
+    it.each(cases)("%s → correct AST", (cls, axis, v) => {
+      const rev = `--baro-space-${axis}-reverse`;
+      const [start, end] = axis === "x" ? ["margin-inline-start", "margin-inline-end"] : ["margin-block-start", "margin-block-end"];
+      expect(parseClassToAst(cls, ctx)).toMatchObject([
+        { type: "at-root", nodes: [{ type: "at-rule", name: "property", params: rev }] },
         {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
           type: "rule",
+          selector: sel,
           nodes: [
-            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-inline-start",
-              value:
-                "calc(calc(var(--spacing) * 4) * calc(1 - var(--baro-space-x-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-inline-end",
-              value:
-                "calc(calc(var(--spacing) * 4) * var(--baro-space-x-reverse))",
-            },
+            { type: "decl", prop: rev, value: "0" },
+            { type: "decl", prop: start, value: `calc(${v} * var(${rev}))` },
+            { type: "decl", prop: end, value: `calc(${v} * calc(1 - var(${rev})))` },
           ],
         },
       ]);
     });
-    it("-space-x-2 → correct AST", () => {
-      expect(parseClassToAst("-space-x-2", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-inline-start",
-              value:
-                "calc(calc(var(--spacing) * -2) * calc(1 - var(--baro-space-x-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-inline-end",
-              value:
-                "calc(calc(var(--spacing) * -2) * var(--baro-space-x-reverse))",
-            },
-          ],
-        },
-      ]);
-    });
-    it("space-x-px → correct AST", () => {
-      expect(parseClassToAst("space-x-px", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-inline-start",
-              value: "calc(1px * calc(1 - var(--baro-space-x-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-inline-end",
-              value: "calc(1px * var(--baro-space-x-reverse))",
-            },
-          ],
-        },
-      ]);
-    });
-    it("-space-x-px → correct AST", () => {
-      expect(parseClassToAst("-space-x-px", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-inline-start",
-              value: "calc(-1px * calc(1 - var(--baro-space-x-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-inline-end",
-              value: "calc(-1px * var(--baro-space-x-reverse))",
-            },
-          ],
-        },
-      ]);
-    });
-    it("space-x-reverse → correct AST", () => {
-      expect(parseClassToAst("space-x-reverse", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [{ type: "decl", prop: "--baro-space-x-reverse", value: "1" }],
-        },
-      ]);
-    });
-    it("space-x-[5vw] → correct AST", () => {
-      expect(parseClassToAst("space-x-[5vw]", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-inline-start",
-              value: "calc(5vw * calc(1 - var(--baro-space-x-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-inline-end",
-              value: "calc(5vw * var(--baro-space-x-reverse))",
-            },
-          ],
-        },
-      ]);
-    });
-    it("space-x-(--gap-x) → correct AST", () => {
-      expect(parseClassToAst("space-x-(--gap-x)", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-x-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-inline-start",
-              value: "calc(var(--gap-x) * calc(1 - var(--baro-space-x-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-inline-end",
-              value: "calc(var(--gap-x) * var(--baro-space-x-reverse))",
-            },
-          ],
-        },
-      ]);
-    });
-    // Repeat for space-y utilities
-    it("space-y-3 → correct AST", () => {
-      expect(parseClassToAst("space-y-3", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-block-start",
-              value:
-                "calc(calc(var(--spacing) * 3) * calc(1 - var(--baro-space-y-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-block-end",
-              value:
-                "calc(calc(var(--spacing) * 3) * var(--baro-space-y-reverse))",
-            },
-          ],
-        },
-      ]);
-    });
-    it("-space-y-1 → correct AST", () => {
-      expect(parseClassToAst("-space-y-1", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-block-start",
-              value:
-                "calc(calc(var(--spacing) * -1) * calc(1 - var(--baro-space-y-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-block-end",
-              value:
-                "calc(calc(var(--spacing) * -1) * var(--baro-space-y-reverse))",
-            },
-          ],
-        },
-      ]);
-    });
-    it("space-y-px → correct AST", () => {
-      expect(parseClassToAst("space-y-px", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-block-start",
-              value: "calc(1px * calc(1 - var(--baro-space-y-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-block-end",
-              value: "calc(1px * var(--baro-space-y-reverse))",
-            },
-          ],
-        },
-      ]);
-    });
-    it("-space-y-px → correct AST", () => {
-      expect(parseClassToAst("-space-y-px", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-block-start",
-              value: "calc(-1px * calc(1 - var(--baro-space-y-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-block-end",
-              value: "calc(-1px * var(--baro-space-y-reverse))",
-            },
-          ],
-        },
-      ]);
-    });
-    it("space-y-reverse → correct AST", () => {
-      expect(parseClassToAst("space-y-reverse", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            {
-              type: "decl",
-              prop: "--baro-space-y-reverse",
-              value: "1",
-            },
-          ],
-        },
-      ]);
-    });
-    it("space-y-[2em] → correct AST", () => {
-      expect(parseClassToAst("space-y-[2em]", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-block-start",
-              value: "calc(2em * calc(1 - var(--baro-space-y-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-block-end",
-              value: "calc(2em * var(--baro-space-y-reverse))",
-            },
-          ],
-        },
-      ]);
-    });
-    it("space-y-(--gap-y) → correct AST", () => {
-      expect(parseClassToAst("space-y-(--gap-y)", ctx)).toMatchObject([
-        {
-          selector: "& > :not([hidden]) ~ :not([hidden])",
-          type: "rule",
-          nodes: [
-            { type: "decl", prop: "--baro-space-y-reverse", value: "0" },
-            {
-              type: "decl",
-              prop: "margin-block-start",
-              value: "calc(var(--gap-y) * calc(1 - var(--baro-space-y-reverse)))",
-            },
-            {
-              type: "decl",
-              prop: "margin-block-end",
-              value: "calc(var(--gap-y) * var(--baro-space-y-reverse))",
-            },
-          ],
-        },
+    it.each(["x", "y"])("space-%s-reverse → correct AST", (axis) => {
+      expect(parseClassToAst(`space-${axis}-reverse`, ctx)).toMatchObject([
+        { type: "at-root" },
+        { type: "rule", selector: sel, nodes: [{ type: "decl", prop: `--baro-space-${axis}-reverse`, value: "1" }] },
       ]);
     });
   });
