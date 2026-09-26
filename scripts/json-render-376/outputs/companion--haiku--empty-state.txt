@@ -1,0 +1,22 @@
+<div class="flex items-center justify-center min-h-screen bg-background">
+  <div class="flex flex-col items-center justify-center gap-6 max-w-md px-4">
+    <!-- Icon -->
+    <div class="rounded-md bg-muted p-6">
+      <svg class="w-12 h-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+      </svg>
+    </div>
+    
+    <!-- Heading -->
+    <h2 class="text-2xl font-semibold text-foreground">No projects yet</h2>
+    
+    <!-- Description -->
+    <p class="text-center text-muted-foreground">Start by creating a new project or importing an existing one.</p>
+    
+    <!-- Buttons -->
+    <div class="flex gap-3 w-full pt-2">
+      <button class="flex-1 bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium hover:bg-primary/90 transition-colors">Create project</button>
+      <button class="flex-1 bg-secondary text-secondary-foreground px-4 py-2 rounded-md font-medium hover:bg-secondary/90 transition-colors">Import</button>
+    </div>
+  </div>
+</div>

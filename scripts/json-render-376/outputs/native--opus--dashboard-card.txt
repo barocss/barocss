@@ -1,0 +1,112 @@
+{
+  "el": "section",
+  "class": "max-w-sm rounded-xl border border-border bg-card text-card-foreground p-6 shadow-sm",
+  "children": [
+    {
+      "el": "header",
+      "class": "flex items-center justify-between mb-4",
+      "children": [
+        {
+          "el": "h3",
+          "class": "text-sm font-medium text-muted-foreground",
+          "text": "Monthly revenue"
+        },
+        {
+          "el": "div",
+          "class": "flex items-center justify-center rounded-md bg-primary/10 text-primary p-2",
+          "children": [
+            {
+              "el": "icon",
+              "attrs": { "name": "dollar-sign" },
+              "class": "h-4 w-4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "flex items-baseline gap-2 mb-1",
+      "children": [
+        {
+          "el": "span",
+          "class": "text-3xl font-bold tracking-tight",
+          "text": "$48,210"
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "flex items-center gap-1 mb-5",
+      "children": [
+        {
+          "el": "icon",
+          "attrs": { "name": "trending-up" },
+          "class": "h-4 w-4 text-primary"
+        },
+        {
+          "el": "span",
+          "class": "text-sm font-medium text-primary",
+          "text": "+12.5%"
+        },
+        {
+          "el": "span",
+          "class": "text-sm text-muted-foreground",
+          "text": "vs last month"
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "mb-2",
+      "children": [
+        {
+          "el": "div",
+          "class": "flex items-center justify-between mb-2",
+          "children": [
+            {
+              "el": "span",
+              "class": "text-xs text-muted-foreground",
+              "text": "Goal: $60,000"
+            },
+            {
+              "el": "span",
+              "class": "text-xs font-medium text-foreground",
+              "text": "80%"
+            }
+          ]
+        },
+        {
+          "el": "div",
+          "class": "h-2 w-full overflow-hidden rounded-full bg-muted",
+          "attrs": {
+            "role": "progressbar",
+            "aria-label": "Progress toward $60,000 goal"
+          },
+          "children": [
+            {
+              "el": "div",
+              "class": "h-full w-4/5 rounded-full bg-primary"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "el": "button",
+      "class": "mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90",
+      "attrs": { "type": "button" },
+      "children": [
+        {
+          "el": "span",
+          "text": "View report"
+        },
+        {
+          "el": "icon",
+          "attrs": { "name": "arrow-right" },
+          "class": "h-4 w-4"
+        }
+      ]
+    }
+  ]
+}

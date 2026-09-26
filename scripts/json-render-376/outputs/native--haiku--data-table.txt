@@ -1,0 +1,198 @@
+{
+  "el": "section",
+  "class": "w-full",
+  "children": [
+    {
+      "el": "div",
+      "class": "flex justify-between items-center mb-6 px-6 pt-6",
+      "children": [
+        {
+          "el": "h2",
+          "class": "text-2xl font-bold text-foreground",
+          "text": "Recent orders"
+        },
+        {
+          "el": "button",
+          "class": "bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90",
+          "text": "Export"
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "px-6 pb-6",
+      "children": [
+        {
+          "el": "table",
+          "class": "w-full",
+          "children": [
+            {
+              "el": "thead",
+              "children": [
+                {
+                  "el": "tr",
+                  "class": "border-b border-border",
+                  "children": [
+                    {
+                      "el": "th",
+                      "class": "text-left px-4 py-3 font-semibold text-muted-foreground text-sm",
+                      "text": "Order"
+                    },
+                    {
+                      "el": "th",
+                      "class": "text-left px-4 py-3 font-semibold text-muted-foreground text-sm",
+                      "text": "Customer"
+                    },
+                    {
+                      "el": "th",
+                      "class": "text-left px-4 py-3 font-semibold text-muted-foreground text-sm",
+                      "text": "Status"
+                    },
+                    {
+                      "el": "th",
+                      "class": "text-left px-4 py-3 font-semibold text-muted-foreground text-sm",
+                      "text": "Amount"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "el": "tbody",
+              "children": [
+                {
+                  "el": "tr",
+                  "class": "border-b border-border hover:bg-muted/50",
+                  "children": [
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground font-medium text-sm",
+                      "text": "ORD-001"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground text-sm",
+                      "text": "John Smith"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4",
+                      "children": [
+                        {
+                          "el": "span",
+                          "class": "inline-block bg-accent text-accent-foreground px-3 py-1 rounded-full text-xs font-semibold",
+                          "text": "Paid"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground font-medium text-sm",
+                      "text": "$250.00"
+                    }
+                  ]
+                },
+                {
+                  "el": "tr",
+                  "class": "border-b border-border hover:bg-muted/50",
+                  "children": [
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground font-medium text-sm",
+                      "text": "ORD-002"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground text-sm",
+                      "text": "Sarah Johnson"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4",
+                      "children": [
+                        {
+                          "el": "span",
+                          "class": "inline-block bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-xs font-semibold",
+                          "text": "Pending"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground font-medium text-sm",
+                      "text": "$185.50"
+                    }
+                  ]
+                },
+                {
+                  "el": "tr",
+                  "class": "border-b border-border hover:bg-muted/50",
+                  "children": [
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground font-medium text-sm",
+                      "text": "ORD-003"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground text-sm",
+                      "text": "Mike Chen"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4",
+                      "children": [
+                        {
+                          "el": "span",
+                          "class": "inline-block bg-destructive text-destructive-foreground px-3 py-1 rounded-full text-xs font-semibold",
+                          "text": "Refunded"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground font-medium text-sm",
+                      "text": "$420.00"
+                    }
+                  ]
+                },
+                {
+                  "el": "tr",
+                  "class": "hover:bg-muted/50",
+                  "children": [
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground font-medium text-sm",
+                      "text": "ORD-004"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground text-sm",
+                      "text": "Emily Davis"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4",
+                      "children": [
+                        {
+                          "el": "span",
+                          "class": "inline-block bg-accent text-accent-foreground px-3 py-1 rounded-full text-xs font-semibold",
+                          "text": "Paid"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-4 text-foreground font-medium text-sm",
+                      "text": "$95.75"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

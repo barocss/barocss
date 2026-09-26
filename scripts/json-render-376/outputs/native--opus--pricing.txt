@@ -1,0 +1,297 @@
+{
+  "el": "section",
+  "class": "bg-background py-16 px-4",
+  "children": [
+    {
+      "el": "div",
+      "class": "max-w-5xl mx-auto text-center mb-12",
+      "children": [
+        {
+          "el": "h2",
+          "class": "text-3xl font-bold text-foreground mb-3",
+          "text": "Simple, transparent pricing"
+        },
+        {
+          "el": "p",
+          "class": "text-muted-foreground text-lg",
+          "text": "Choose the plan that's right for you. No hidden fees."
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 items-start",
+      "children": [
+        {
+          "el": "div",
+          "class": "bg-card text-card-foreground border border-border rounded-xl p-6 flex flex-col",
+          "children": [
+            {
+              "el": "h3",
+              "class": "text-lg font-semibold text-foreground mb-2",
+              "text": "Starter"
+            },
+            {
+              "el": "div",
+              "class": "flex items-baseline gap-1 mb-1",
+              "children": [
+                {
+                  "el": "span",
+                  "class": "text-4xl font-bold text-foreground",
+                  "text": "$0"
+                },
+                {
+                  "el": "span",
+                  "class": "text-muted-foreground text-sm",
+                  "text": "/month"
+                }
+              ]
+            },
+            {
+              "el": "p",
+              "class": "text-muted-foreground text-sm mb-6",
+              "text": "For individuals getting started."
+            },
+            {
+              "el": "ul",
+              "class": "space-y-3 mb-6 flex-1",
+              "children": [
+                {
+                  "el": "li",
+                  "class": "flex items-center gap-2 text-sm text-foreground",
+                  "children": [
+                    {
+                      "el": "icon",
+                      "class": "text-primary w-4 h-4",
+                      "attrs": { "name": "check" }
+                    },
+                    {
+                      "el": "span",
+                      "text": "1 project"
+                    }
+                  ]
+                },
+                {
+                  "el": "li",
+                  "class": "flex items-center gap-2 text-sm text-foreground",
+                  "children": [
+                    {
+                      "el": "icon",
+                      "class": "text-primary w-4 h-4",
+                      "attrs": { "name": "check" }
+                    },
+                    {
+                      "el": "span",
+                      "text": "Community support"
+                    }
+                  ]
+                },
+                {
+                  "el": "li",
+                  "class": "flex items-center gap-2 text-sm text-foreground",
+                  "children": [
+                    {
+                      "el": "icon",
+                      "class": "text-primary w-4 h-4",
+                      "attrs": { "name": "check" }
+                    },
+                    {
+                      "el": "span",
+                      "text": "1 GB storage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "el": "button",
+              "class": "w-full rounded-md border border-border bg-secondary text-secondary-foreground py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+              "text": "Get started"
+            }
+          ]
+        },
+        {
+          "el": "div",
+          "class": "bg-card text-card-foreground border-2 border-primary rounded-xl p-6 flex flex-col relative shadow-lg md:-translate-y-2",
+          "children": [
+            {
+              "el": "span",
+              "class": "absolute top-4 right-4 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full",
+              "text": "Most popular"
+            },
+            {
+              "el": "h3",
+              "class": "text-lg font-semibold text-foreground mb-2",
+              "text": "Pro"
+            },
+            {
+              "el": "div",
+              "class": "flex items-baseline gap-1 mb-1",
+              "children": [
+                {
+                  "el": "span",
+                  "class": "text-4xl font-bold text-foreground",
+                  "text": "$19"
+                },
+                {
+                  "el": "span",
+                  "class": "text-muted-foreground text-sm",
+                  "text": "/month"
+                }
+              ]
+            },
+            {
+              "el": "p",
+              "class": "text-muted-foreground text-sm mb-6",
+              "text": "For growing professionals."
+            },
+            {
+              "el": "ul",
+              "class": "space-y-3 mb-6 flex-1",
+              "children": [
+                {
+                  "el": "li",
+                  "class": "flex items-center gap-2 text-sm text-foreground",
+                  "children": [
+                    {
+                      "el": "icon",
+                      "class": "text-primary w-4 h-4",
+                      "attrs": { "name": "check" }
+                    },
+                    {
+                      "el": "span",
+                      "text": "Unlimited projects"
+                    }
+                  ]
+                },
+                {
+                  "el": "li",
+                  "class": "flex items-center gap-2 text-sm text-foreground",
+                  "children": [
+                    {
+                      "el": "icon",
+                      "class": "text-primary w-4 h-4",
+                      "attrs": { "name": "check" }
+                    },
+                    {
+                      "el": "span",
+                      "text": "Priority support"
+                    }
+                  ]
+                },
+                {
+                  "el": "li",
+                  "class": "flex items-center gap-2 text-sm text-foreground",
+                  "children": [
+                    {
+                      "el": "icon",
+                      "class": "text-primary w-4 h-4",
+                      "attrs": { "name": "check" }
+                    },
+                    {
+                      "el": "span",
+                      "text": "50 GB storage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "el": "button",
+              "class": "w-full rounded-md bg-primary text-primary-foreground py-2 text-sm font-medium hover:opacity-90",
+              "text": "Start free trial"
+            }
+          ]
+        },
+        {
+          "el": "div",
+          "class": "bg-card text-card-foreground border border-border rounded-xl p-6 flex flex-col",
+          "children": [
+            {
+              "el": "h3",
+              "class": "text-lg font-semibold text-foreground mb-2",
+              "text": "Team"
+            },
+            {
+              "el": "div",
+              "class": "flex items-baseline gap-1 mb-1",
+              "children": [
+                {
+                  "el": "span",
+                  "class": "text-4xl font-bold text-foreground",
+                  "text": "$49"
+                },
+                {
+                  "el": "span",
+                  "class": "text-muted-foreground text-sm",
+                  "text": "/month"
+                }
+              ]
+            },
+            {
+              "el": "p",
+              "class": "text-muted-foreground text-sm mb-6",
+              "text": "For teams that scale together."
+            },
+            {
+              "el": "ul",
+              "class": "space-y-3 mb-6 flex-1",
+              "children": [
+                {
+                  "el": "li",
+                  "class": "flex items-center gap-2 text-sm text-foreground",
+                  "children": [
+                    {
+                      "el": "icon",
+                      "class": "text-primary w-4 h-4",
+                      "attrs": { "name": "check" }
+                    },
+                    {
+                      "el": "span",
+                      "text": "Everything in Pro"
+                    }
+                  ]
+                },
+                {
+                  "el": "li",
+                  "class": "flex items-center gap-2 text-sm text-foreground",
+                  "children": [
+                    {
+                      "el": "icon",
+                      "class": "text-primary w-4 h-4",
+                      "attrs": { "name": "check" }
+                    },
+                    {
+                      "el": "span",
+                      "text": "Team collaboration"
+                    }
+                  ]
+                },
+                {
+                  "el": "li",
+                  "class": "flex items-center gap-2 text-sm text-foreground",
+                  "children": [
+                    {
+                      "el": "icon",
+                      "class": "text-primary w-4 h-4",
+                      "attrs": { "name": "check" }
+                    },
+                    {
+                      "el": "span",
+                      "text": "Unlimited storage"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "el": "button",
+              "class": "w-full rounded-md border border-border bg-secondary text-secondary-foreground py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+              "text": "Contact sales"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

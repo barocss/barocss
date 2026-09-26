@@ -1,0 +1,209 @@
+{
+  "el": "section",
+  "class": "bg-card text-card-foreground border border-border rounded-xl p-6 max-w-4xl mx-auto",
+  "children": [
+    {
+      "el": "header",
+      "class": "flex items-center justify-between mb-6",
+      "children": [
+        {
+          "el": "h2",
+          "class": "text-lg font-semibold",
+          "text": "Recent orders"
+        },
+        {
+          "el": "button",
+          "class": "inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium hover:bg-primary/90",
+          "children": [
+            {
+              "el": "icon",
+              "attrs": { "name": "download" },
+              "class": "w-4 h-4"
+            },
+            {
+              "el": "span",
+              "text": "Export"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "border border-border rounded-lg overflow-hidden",
+      "children": [
+        {
+          "el": "table",
+          "class": "w-full text-sm",
+          "children": [
+            {
+              "el": "thead",
+              "class": "bg-muted",
+              "children": [
+                {
+                  "el": "tr",
+                  "class": "border-b border-border",
+                  "children": [
+                    {
+                      "el": "th",
+                      "class": "text-left font-medium text-muted-foreground px-4 py-3",
+                      "text": "Order"
+                    },
+                    {
+                      "el": "th",
+                      "class": "text-left font-medium text-muted-foreground px-4 py-3",
+                      "text": "Customer"
+                    },
+                    {
+                      "el": "th",
+                      "class": "text-left font-medium text-muted-foreground px-4 py-3",
+                      "text": "Status"
+                    },
+                    {
+                      "el": "th",
+                      "class": "text-right font-medium text-muted-foreground px-4 py-3",
+                      "text": "Amount"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "el": "tbody",
+              "children": [
+                {
+                  "el": "tr",
+                  "class": "border-b border-border hover:bg-muted/50",
+                  "children": [
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 font-medium",
+                      "text": "#1024"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 text-muted-foreground",
+                      "text": "Alice Morgan"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3",
+                      "children": [
+                        {
+                          "el": "span",
+                          "class": "inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium",
+                          "text": "Paid"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 text-right font-medium",
+                      "text": "$120.00"
+                    }
+                  ]
+                },
+                {
+                  "el": "tr",
+                  "class": "border-b border-border hover:bg-muted/50",
+                  "children": [
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 font-medium",
+                      "text": "#1025"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 text-muted-foreground",
+                      "text": "James Carter"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3",
+                      "children": [
+                        {
+                          "el": "span",
+                          "class": "inline-flex items-center rounded-full bg-secondary text-secondary-foreground px-2.5 py-0.5 text-xs font-medium",
+                          "text": "Pending"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 text-right font-medium",
+                      "text": "$89.50"
+                    }
+                  ]
+                },
+                {
+                  "el": "tr",
+                  "class": "border-b border-border hover:bg-muted/50",
+                  "children": [
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 font-medium",
+                      "text": "#1026"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 text-muted-foreground",
+                      "text": "Priya Sharma"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3",
+                      "children": [
+                        {
+                          "el": "span",
+                          "class": "inline-flex items-center rounded-full bg-destructive/10 text-destructive px-2.5 py-0.5 text-xs font-medium",
+                          "text": "Refunded"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 text-right font-medium",
+                      "text": "$45.00"
+                    }
+                  ]
+                },
+                {
+                  "el": "tr",
+                  "class": "hover:bg-muted/50",
+                  "children": [
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 font-medium",
+                      "text": "#1027"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 text-muted-foreground",
+                      "text": "Marco Rossi"
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3",
+                      "children": [
+                        {
+                          "el": "span",
+                          "class": "inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium",
+                          "text": "Paid"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "td",
+                      "class": "px-4 py-3 text-right font-medium",
+                      "text": "$230.75"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

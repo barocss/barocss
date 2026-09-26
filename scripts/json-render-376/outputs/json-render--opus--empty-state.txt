@@ -1,0 +1,10 @@
+{"op":"add","path":"/root","value":"main"}
+{"op":"add","path":"/elements/main","value":{"type":"Card","props":{"className":"flex items-center justify-center py-20 px-6 border-dashed"},"children":["content"]}}
+{"op":"add","path":"/elements/content","value":{"type":"Stack","props":{"direction":"vertical","className":"flex flex-col items-center text-center gap-4 max-w-md"},"children":["icon-wrap","heading","description","actions"]}}
+{"op":"add","path":"/elements/icon-wrap","value":{"type":"Stack","props":{"className":"flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-2"},"children":["icon"]}}
+{"op":"add","path":"/elements/icon","value":{"type":"Icon","props":{"name":"FolderPlus"},"children":[]}}
+{"op":"add","path":"/elements/heading","value":{"type":"Text","props":{"text":"No projects yet","variant":"h2"},"children":[]}}
+{"op":"add","path":"/elements/description","value":{"type":"Text","props":{"text":"Get started by creating your first project, or import an existing one to pick up where you left off.","variant":"muted"},"children":[]}}
+{"op":"add","path":"/elements/actions","value":{"type":"Stack","props":{"direction":"horizontal","className":"flex flex-row items-center justify-center gap-3 mt-2"},"children":["create-btn","import-btn"]}}
+{"op":"add","path":"/elements/create-btn","value":{"type":"Button","props":{"label":"Create project","variant":"default"},"children":[]}}
+{"op":"add","path":"/elements/import-btn","value":{"type":"Button","props":{"label":"Import","variant":"outline"},"children":[]}}

@@ -1,0 +1,54 @@
+{
+  "el": "section",
+  "class": "bg-background py-20 sm:py-32 px-4",
+  "children": [
+    {
+      "el": "div",
+      "class": "max-w-3xl mx-auto text-center",
+      "children": [
+        {
+          "el": "div",
+          "class": "inline-block mb-6",
+          "children": [
+            {
+              "el": "span",
+              "class": "bg-accent text-accent-foreground px-3 py-1 rounded-full text-sm font-semibold",
+              "text": "New: v2.0"
+            }
+          ]
+        },
+        {
+          "el": "h1",
+          "class": "text-5xl sm:text-6xl font-bold text-foreground mb-6 leading-tight",
+          "text": "Unlock Your Potential with Innovation"
+        },
+        {
+          "el": "p",
+          "class": "text-lg sm:text-xl text-muted-foreground mb-8",
+          "text": "Transform the way you work with our revolutionary platform designed for modern teams."
+        },
+        {
+          "el": "div",
+          "class": "flex flex-col sm:flex-row gap-4 justify-center mb-12",
+          "children": [
+            {
+              "el": "button",
+              "class": "bg-primary text-primary-foreground px-8 py-3 rounded-md font-semibold hover:opacity-90",
+              "text": "Get started"
+            },
+            {
+              "el": "button",
+              "class": "border border-border text-foreground px-8 py-3 rounded-md font-semibold hover:bg-muted",
+              "text": "Learn more"
+            }
+          ]
+        },
+        {
+          "el": "p",
+          "class": "text-muted-foreground text-sm",
+          "text": "Trusted by 2,000+ teams"
+        }
+      ]
+    }
+  ]
+}

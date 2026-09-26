@@ -1,0 +1,54 @@
+<div class="w-full max-w-lg mx-auto bg-card text-card-foreground border border-border rounded-xl shadow-sm">
+  <div class="p-6 border-b border-border">
+    <h2 class="text-lg font-semibold">Notification Settings</h2>
+    <p class="text-sm text-muted-foreground mt-1">Manage how you receive updates and communications.</p>
+  </div>
+
+  <form class="p-6 space-y-6">
+    <div class="space-y-2">
+      <label for="fullname" class="text-sm font-medium">Full name</label>
+      <input id="fullname" type="text" placeholder="Jane Doe" value="Jinho Park" class="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring" />
+    </div>
+
+    <div class="space-y-2">
+      <label for="email" class="text-sm font-medium">Email</label>
+      <input id="email" type="email" placeholder="you@example.com" value="jinho.park.s3@navercorp.com" class="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring" />
+    </div>
+
+    <div class="space-y-4 pt-2">
+      <div class="flex items-center justify-between gap-4">
+        <div class="space-y-0.5">
+          <p class="text-sm font-medium">Email notifications</p>
+          <p class="text-xs text-muted-foreground">Receive email alerts for account activity.</p>
+        </div>
+        <button type="button" role="switch" aria-checked="true" class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-primary transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background">
+          <span class="inline-block h-5 w-5 translate-x-5 rounded-full bg-primary-foreground shadow transition-transform"></span>
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between gap-4">
+        <div class="space-y-0.5">
+          <p class="text-sm font-medium">Weekly digest</p>
+          <p class="text-xs text-muted-foreground">Get a summary of activity every week.</p>
+        </div>
+        <button type="button" role="switch" aria-checked="false" class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-input transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background">
+          <span class="inline-block h-5 w-5 translate-x-0.5 rounded-full bg-background shadow transition-transform"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="space-y-2">
+      <label for="plan" class="text-sm font-medium">Plan</label>
+      <select id="plan" class="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring">
+        <option value="free">Free</option>
+        <option value="pro" selected>Pro</option>
+        <option value="team">Team</option>
+      </select>
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-2 border-t border-border">
+      <button type="button" class="h-10 px-4 rounded-md border border-input bg-background text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring">Cancel</button>
+      <button type="submit" class="h-10 px-4 rounded-md bg-primary text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring">Save changes</button>
+    </div>
+  </form>
+</div>

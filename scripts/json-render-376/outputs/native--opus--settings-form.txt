@@ -1,0 +1,219 @@
+{
+  "el": "section",
+  "class": "max-w-2xl mx-auto p-6",
+  "children": [
+    {
+      "el": "div",
+      "class": "bg-card text-card-foreground rounded-xl border border-border shadow-sm",
+      "children": [
+        {
+          "el": "header",
+          "class": "p-6 border-b border-border",
+          "children": [
+            {
+              "el": "h2",
+              "class": "text-xl font-semibold",
+              "text": "Notification settings"
+            },
+            {
+              "el": "p",
+              "class": "text-sm text-muted-foreground mt-1",
+              "text": "Manage how you receive updates and manage your account details."
+            }
+          ]
+        },
+        {
+          "el": "div",
+          "class": "p-6 space-y-6",
+          "children": [
+            {
+              "el": "div",
+              "class": "space-y-2",
+              "children": [
+                {
+                  "el": "label",
+                  "class": "text-sm font-medium",
+                  "attrs": { "for": "fullName" },
+                  "text": "Full name"
+                },
+                {
+                  "el": "input",
+                  "class": "w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring",
+                  "attrs": {
+                    "type": "text",
+                    "id": "fullName",
+                    "name": "fullName",
+                    "placeholder": "Jane Doe"
+                  }
+                }
+              ]
+            },
+            {
+              "el": "div",
+              "class": "space-y-2",
+              "children": [
+                {
+                  "el": "label",
+                  "class": "text-sm font-medium",
+                  "attrs": { "for": "email" },
+                  "text": "Email"
+                },
+                {
+                  "el": "input",
+                  "class": "w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring",
+                  "attrs": {
+                    "type": "email",
+                    "id": "email",
+                    "name": "email",
+                    "placeholder": "you@example.com",
+                    "value": "jinho.park.s3@navercorp.com"
+                  }
+                }
+              ]
+            },
+            {
+              "el": "hr",
+              "class": "border-border"
+            },
+            {
+              "el": "div",
+              "class": "flex items-center justify-between gap-4",
+              "children": [
+                {
+                  "el": "div",
+                  "class": "space-y-0.5",
+                  "children": [
+                    {
+                      "el": "label",
+                      "class": "text-sm font-medium",
+                      "attrs": { "for": "emailNotifications" },
+                      "text": "Email notifications"
+                    },
+                    {
+                      "el": "p",
+                      "class": "text-sm text-muted-foreground",
+                      "text": "Receive important account emails."
+                    }
+                  ]
+                },
+                {
+                  "el": "button",
+                  "class": "relative inline-flex h-6 w-11 items-center rounded-full bg-primary transition-colors",
+                  "attrs": {
+                    "type": "button",
+                    "role": "switch",
+                    "aria-checked": "true",
+                    "aria-label": "Email notifications",
+                    "id": "emailNotifications"
+                  },
+                  "children": [
+                    {
+                      "el": "span",
+                      "class": "inline-block h-5 w-5 translate-x-5 rounded-full bg-primary-foreground transition-transform"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "el": "div",
+              "class": "flex items-center justify-between gap-4",
+              "children": [
+                {
+                  "el": "div",
+                  "class": "space-y-0.5",
+                  "children": [
+                    {
+                      "el": "label",
+                      "class": "text-sm font-medium",
+                      "attrs": { "for": "weeklyDigest" },
+                      "text": "Weekly digest"
+                    },
+                    {
+                      "el": "p",
+                      "class": "text-sm text-muted-foreground",
+                      "text": "Get a summary of activity every week."
+                    }
+                  ]
+                },
+                {
+                  "el": "button",
+                  "class": "relative inline-flex h-6 w-11 items-center rounded-full bg-input transition-colors",
+                  "attrs": {
+                    "type": "button",
+                    "role": "switch",
+                    "aria-checked": "false",
+                    "aria-label": "Weekly digest",
+                    "id": "weeklyDigest"
+                  },
+                  "children": [
+                    {
+                      "el": "span",
+                      "class": "inline-block h-5 w-5 translate-x-1 rounded-full bg-background transition-transform"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "el": "hr",
+              "class": "border-border"
+            },
+            {
+              "el": "div",
+              "class": "space-y-2",
+              "children": [
+                {
+                  "el": "label",
+                  "class": "text-sm font-medium",
+                  "attrs": { "for": "plan" },
+                  "text": "Plan"
+                },
+                {
+                  "el": "select",
+                  "class": "w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring",
+                  "attrs": { "id": "plan", "name": "plan" },
+                  "children": [
+                    {
+                      "el": "option",
+                      "attrs": { "value": "free", "selected": "true" },
+                      "text": "Free"
+                    },
+                    {
+                      "el": "option",
+                      "attrs": { "value": "pro" },
+                      "text": "Pro"
+                    },
+                    {
+                      "el": "option",
+                      "attrs": { "value": "team" },
+                      "text": "Team"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "el": "footer",
+          "class": "flex items-center justify-end gap-3 p-6 border-t border-border",
+          "children": [
+            {
+              "el": "button",
+              "class": "inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+              "attrs": { "type": "button" },
+              "text": "Cancel"
+            },
+            {
+              "el": "button",
+              "class": "inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90",
+              "attrs": { "type": "submit" },
+              "text": "Save changes"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
