@@ -261,6 +261,15 @@ export function hasCommentDelimiter(text: string): boolean {
   return false;
 }
 
+/**
+ * #323: true when emitted text contains a markup end-tag opener (less-than then slash). Generated CSS can be
+ * placed inside an HTML style element, where that sequence could end the element early. CSS escapes in the
+ * output never form it, and a lone less-than (range media queries) stays allowed.
+ */
+export function hasHtmlEndTagOpener(text: string): boolean {
+  return text.includes('</');
+}
+
 export function isStructureSafeValue(value: string): boolean {
   // #247 review: a comment opener/closer in any arbitrary value could swallow the rest of the stylesheet.
   if (hasCommentToken(value)) return false;

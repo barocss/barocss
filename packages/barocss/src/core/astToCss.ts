@@ -1,14 +1,19 @@
 import { debugWarn } from "../utils/debug";
 import { type AstNode } from "./ast";
 import { escapeClassName } from "./registry";
-import { isStructureSafeValue, hasCommentDelimiter } from "./parser";
+import { isStructureSafeValue, hasCommentDelimiter, hasHtmlEndTagOpener } from "./parser";
 
 // #273: a selector or at-rule prelude that contains a comment delimiter is never emitted (with its whole subtree).
-const isSafePrelude = (text: unknown): boolean => !hasCommentDelimiter(String(text ?? ""));
+// #323: nor one carrying a markup end-tag opener (hasHtmlEndTagOpener).
+const isSafePrelude = (text: unknown): boolean => {
+  const t = String(text ?? "");
+  return !hasCommentDelimiter(t) && !hasHtmlEndTagOpener(t);
+};
 
 // #224 defensive layer: a declaration whose property or value could end or open a block is dropped.
 const isSafeDecl = (prop: unknown, value: unknown): boolean =>
-  isStructureSafeValue(String(prop)) && isStructureSafeValue(String(value ?? ""));
+  isStructureSafeValue(String(prop)) && isStructureSafeValue(String(value ?? "")) &&
+  !hasHtmlEndTagOpener(String(prop)) && !hasHtmlEndTagOpener(String(value ?? ""));
 
 const importantPrefix = "!important";
 
