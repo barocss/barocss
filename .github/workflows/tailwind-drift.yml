@@ -1,0 +1,68 @@
+# #365: weekly report-only check of the LATEST tailwindcss@4 against the parity corpora and preflight.
+# Never runs on push/PR, is not a required check, and never gates releases. Drift opens/updates one Issue.
+name: Tailwind drift (report-only)
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'tailwindcss version spec to test as "latest" (e.g. 4.1.13 for a simulated drift)'
+        required: false
+        default: '4'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: tailwind-drift
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install latest Tailwind in a scratch dir (no lockfile change)
+        env:
+          TW_SPEC: ${{ inputs.version || '4' }}
+        run: |
+          case "$TW_SPEC" in (*[!0-9A-Za-z.^~-]*|'') echo "invalid version spec"; exit 1;; esac
+          mkdir -p "$RUNNER_TEMP/tw-latest"
+          cd "$RUNNER_TEMP/tw-latest"
+          echo '{"private":true}' > package.json
+          npm install --no-save --no-package-lock --ignore-scripts "tailwindcss@$TW_SPEC"
+
+      - name: Run parity corpora and preflight against it
+        env:
+          BAROCSS_TW_DRIFT_DIR: ${{ runner.temp }}/tw-latest
+          BAROCSS_TW_DRIFT_OUT: ${{ runner.temp }}/tw-drift.json
+        working-directory: packages/barocss
+        run: pnpm exec vitest run tests/compat/tailwind-drift-365.test.ts
+
+      - name: Report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node .github/scripts/tailwind-drift-issue.mjs "$RUNNER_TEMP/tw-drift.json"
