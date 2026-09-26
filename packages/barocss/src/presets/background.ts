@@ -283,6 +283,22 @@ const stopsDecls = (stop: string, color: string | AstNode[]): AstNode[] => {
   });
 });
 
+// #303: Tailwind's type hints on bg-[hint:…] / bg-(hint:--x)
+const BG_HINTS: Record<string, string> = {
+  position: "background-position",
+  percentage: "background-position",
+  size: "background-size",
+  length: "background-size",
+  "bg-size": "background-size",
+  image: "background-image",
+  url: "background-image",
+};
+function bgHint(value: string): [string, string] | null {
+  const m = /^([a-z-]+):(.+)$/.exec(value);
+  const prop = m ? BG_HINTS[m[1]] : undefined;
+  return m && prop ? [prop, m[2]] : null;
+}
+
 /**
  * background-size utility (arbitrary, custom property supported)
  * bg-[length] → background-size: [length]
@@ -307,9 +323,8 @@ functionalUtility({
     //   return [decl("background-image", value)];
     // }
 
-    if (value.startsWith("length:")) {
-      return [decl("background-size", value.replace("length:", ""))];
-    }
+    const hinted = bgHint(value);
+    if (hinted) return [decl(hinted[0], hinted[1])];
 
     if (extra?.realThemeValue) return themeColorDecls("background-color", value, extra);
 
@@ -329,10 +344,12 @@ functionalUtility({
 
     return null;
   },
-  handleCustomProperty: (value) =>
-    value.startsWith("length:")
-      ? [decl("background-size", `var(${value.slice(7)})`)]
-      : [decl("background-color", `var(${value})`)],
+  handleCustomProperty: (value) => {
+    const hinted = bgHint(value);
+    return hinted
+      ? [decl(hinted[0], `var(${hinted[1]})`)]
+      : [decl("background-color", `var(${value})`)];
+  },
   description: "background-size utility (arbitrary, custom property supported)",
   category: "background",
 });
