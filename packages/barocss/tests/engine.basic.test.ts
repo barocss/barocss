@@ -372,4 +372,10 @@ describe('variant chain engine', () => {
       }
     ]);
   });
+
+  it('minifies root at-rules and :root declarations', () => {
+    const css = generateCss('from-red-500 bg-blue-500 ring-2', ctx, { minify: true });
+    expect(css).not.toMatch(/[\n\t]/);
+    expect(css).toContain('@property --baro-gradient-from{');
+  });
 });
