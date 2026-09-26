@@ -18,13 +18,15 @@ staticUtility("rounded-4xl", [["border-radius", "var(--radius-4xl)"]], { categor
 staticUtility("rounded-xs", [["border-radius", "var(--radius-xs)"]], { category: 'borders' });
 // #300: a theme.borderRadius.full other than the default wins over the literal, like Tailwind 4.3.3 where
 // `@theme { --radius-full: ... }` makes rounded-full (and rounded-t-full ...) read var(--radius-full).
-function roundedFull(name: string, props: string[], fallback = "9999px") {
+// #336: Tailwind 4.3.3 emits `calc(infinity * 1px)` for rounded-full (was 9999px).
+const FULL = "calc(infinity * 1px)";
+function roundedFull(name: string, props: string[]) {
   registerUtility({
     name,
     match: (className: string) => className === name,
     handler: (_value, ctx) => {
       const own = themeKeyValue(ctx, "borderRadius", "full");
-      const value = own != null && own !== "9999px" ? "var(--radius-full)" : fallback;
+      const value = own != null && own !== "9999px" && own !== FULL ? "var(--radius-full)" : FULL;
       return props.map((prop) => decl(prop, value));
     },
     category: "borders",
@@ -64,8 +66,8 @@ roundedFull("rounded-full", ["border-radius"]);
   staticUtility(`${name}-3xl`, propList.map(prop => [prop, "var(--radius-3xl)"]), { category: 'borders' });
   staticUtility(`${name}-4xl`, propList.map(prop => [prop, "var(--radius-4xl)"]), { category: 'borders' });
   staticUtility(`${name}-xs`, propList.map(prop => [prop, "var(--radius-xs)"]), { category: 'borders' });
-  // #321 logical full → calc(infinity * 1px) like Tailwind; #300 a custom `full` key wins either way.
-  roundedFull(`${name}-full`, propList, logical ? "calc(infinity * 1px)" : "9999px");
+  // #336 every *-full → calc(infinity * 1px) like Tailwind 4.3.3; #300 a custom `full` key wins either way.
+  roundedFull(`${name}-full`, propList);
 
   // Functional utility
   functionalUtility({

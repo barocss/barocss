@@ -11,7 +11,7 @@ describe("universal selectors", () => {
       {
         type: "rule",
         selector: ":is(& > *)",
-        nodes: [{ type: "decl", prop: "border-radius", value: "9999px" }],
+        nodes: [{ type: "decl", prop: "border-radius", value: "calc(infinity * 1px)" }],
       },
     ]);
   });
@@ -23,7 +23,7 @@ describe("universal selectors", () => {
         type: "rule",
         selector: ":is(& *)",
         nodes: [
-          { type: "decl", prop: "border-radius", value: "9999px" },
+          { type: "decl", prop: "border-radius", value: "calc(infinity * 1px)" },
         ],
       },
     ]);
@@ -39,7 +39,7 @@ describe("universal selectors", () => {
           {
             type: "rule",
             selector: "&[data-avatar]",
-            nodes: [{ type: "decl", prop: "border-radius", value: "9999px" }],
+            nodes: [{ type: "decl", prop: "border-radius", value: "calc(infinity * 1px)" }],
           },
         ],
       },
@@ -56,7 +56,7 @@ describe("universal selectors", () => {
           {
             type: "rule",
             selector: "&[data-avatar]",
-            nodes: [{ type: "decl", prop: "border-radius", value: "9999px" }],
+            nodes: [{ type: "decl", prop: "border-radius", value: "calc(infinity * 1px)" }],
           },
         ],
       },
@@ -73,7 +73,7 @@ describe("universal selectors", () => {
           {
             type: "rule",
             selector: ":is(& > *)",
-            nodes: [{ type: "decl", prop: "border-radius", value: "9999px" }],
+            nodes: [{ type: "decl", prop: "border-radius", value: "calc(infinity * 1px)" }],
           },
         ],
       },
@@ -90,7 +90,7 @@ describe("universal selectors", () => {
           {
             type: "rule",
             selector: ":is(& *)",
-            nodes: [{ type: "decl", prop: "border-radius", value: "9999px" }],
+            nodes: [{ type: "decl", prop: "border-radius", value: "calc(infinity * 1px)" }],
           },
         ],
       },
