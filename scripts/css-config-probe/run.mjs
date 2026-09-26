@@ -49,7 +49,8 @@ const CASES = {
     arms: { recipe: REC(",darkMode:'class',darkModeSelector:'.dark &'"), darkModeClass: REC(",darkMode:'class'"), darkSelDesc: REC(",darkMode:'class',darkModeSelector:'.dark &'"), darkSelIs: REC(",darkMode:'class',darkModeSelector:'&:is(.dark *)'") } },
   utility: { css: '@import "tailwindcss";\n@utility content-auto { content-visibility: auto; }\n@utility tab-* { tab-size: --value(integer); }', html: '', scheme: 'light',
     rows: [['content-auto', 'content-visibility'], ['tab-8', 'tab-size'], ['hover:content-auto', 'content-visibility', 'hover']],
-    arms: { recipe: REC() } },
+    // #287: the recipe arm mirrors the static @utility via config.utilities (tab-* is functional: out of scope).
+    arms: { recipe: REC(",utilities:{'content-auto':{'content-visibility':'auto'}}"), noOption: REC() } },
   custom_variant: { css: '@import "tailwindcss";\n@custom-variant theme-midnight (&:where([data-theme=midnight] *));', html: 'data-theme="midnight"', scheme: 'light',
     rows: [['theme-midnight:bg-black', 'background-color']], arms: { recipe: REC() } },
   prefix_tw: { css: '@import "tailwindcss" prefix(tw);', html: '', scheme: 'light', shell: ['tw:flex', 'tw:p-4'],

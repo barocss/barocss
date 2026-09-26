@@ -47,6 +47,8 @@ Don't use `darkMode: 'class'` without a selector here: it matches `.dark` on the
 
 **Non-shadcn site theme:** put the site's own tokens in `theme.extend` (e.g. `colors: { brand: { 600: '#2563eb' } }`). Literal values are safe. Pointing a token at the build's own var name (`brand: { 600: 'var(--color-brand-600)' }`) is also fine: BaroCSS skips that self-referencing `:root` var, so the build's value wins and `bg-brand-600` still uses it.
 
+**Custom utilities:** mirror each static `@utility name { ... }` from your CSS in `utilities`, so runtime content that reuses it (with variants and `!`) matches the build: `utilities: { 'max-w-app': { 'max-width': '72rem', 'margin-inline': 'auto' } }`. A name that equals a built-in extends it as `@utility` does in Tailwind 4: the built-in declarations come first, then yours, so a repeated property takes your value. Names must be plain class idents; invalid names or unsafe declarations are skipped. Functional `@utility name-*` is not supported.
+
 **Verify it rendered** (DevTools console, after mount):
 
 ```js
