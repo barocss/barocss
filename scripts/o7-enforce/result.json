@@ -1,0 +1,752 @@
+{
+ "l2": {
+  "byset": {
+   "#231 json-render | haiku": {
+    "blocks": 5,
+    "classes": 90,
+    "on-token": 90,
+    "off-token": 0,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#231 json-render | opus": {
+    "blocks": 5,
+    "classes": 149,
+    "on-token": 148,
+    "off-token": 1,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#376 companion | haiku": {
+    "blocks": 6,
+    "classes": 604,
+    "on-token": 593,
+    "off-token": 11,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#376 companion | opus": {
+    "blocks": 6,
+    "classes": 783,
+    "on-token": 783,
+    "off-token": 0,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#376 json-render | haiku": {
+    "blocks": 6,
+    "classes": 140,
+    "on-token": 140,
+    "off-token": 0,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#376 json-render | opus": {
+    "blocks": 6,
+    "classes": 157,
+    "on-token": 156,
+    "off-token": 1,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#376 native | haiku": {
+    "blocks": 6,
+    "classes": 579,
+    "on-token": 577,
+    "off-token": 0,
+    "unresolved": 2,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#376 native | opus": {
+    "blocks": 6,
+    "classes": 716,
+    "on-token": 716,
+    "off-token": 0,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#253 cms (no tokens) | haiku": {
+    "blocks": 6,
+    "classes": 319,
+    "on-token": 265,
+    "off-token": 54,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#253 cms (no tokens) | opus": {
+    "blocks": 6,
+    "classes": 474,
+    "on-token": 396,
+    "off-token": 78,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#255 cms (tokens) | haiku": {
+    "blocks": 6,
+    "classes": 288,
+    "on-token": 288,
+    "off-token": 0,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   },
+   "#255 cms (tokens) | opus": {
+    "blocks": 6,
+    "classes": 383,
+    "on-token": 383,
+    "off-token": 0,
+    "unresolved": 0,
+    "policy": 0,
+    "overlayElements": 0
+   }
+  },
+  "kinds": {
+   "#231 json-render | off-token:arbitrary:other": 1,
+   "#376 companion | off-token:default-palette:colour": 9,
+   "#376 companion | off-token:arbitrary:other": 2,
+   "#376 json-render | off-token:default-palette:colour": 1,
+   "#376 native | unresolved:unresolved:unresolved": 2,
+   "#253 cms (no tokens) | off-token:default-palette:colour": 132
+  },
+  "vs376checkToken": {
+   "on-token vs 376:ok": 3151,
+   "off-token vs 376:arbitrary": 1,
+   "off-token vs 376:off-theme": 10,
+   "on-token vs 376:off-theme": 21,
+   "on-token vs 376:variant": 29,
+   "on-token vs 376:unresolved": 2,
+   "off-token vs 376:variant": 2,
+   "unresolved vs 376:unresolved": 2
+  },
+  "examples": {
+   "#231 json-render | off-token:arbitrary:other": [
+    "scale-[1.03]"
+   ],
+   "#376 companion | off-token:default-palette:colour": [
+    "text-green-600",
+    "bg-green-100",
+    "text-green-800",
+    "bg-yellow-100"
+   ],
+   "#376 companion | off-token:arbitrary:other": [
+    "after:content-['']"
+   ],
+   "#376 json-render | off-token:default-palette:colour": [
+    "text-emerald-600"
+   ],
+   "#376 native | unresolved:unresolved:unresolved": [
+    "text-destructive-foreground",
+    "transform"
+   ],
+   "#253 cms (no tokens) | off-token:default-palette:colour": [
+    "border-gray-200",
+    "text-gray-900",
+    "border-gray-100",
+    "hover:bg-gray-50"
+   ]
+  }
+ },
+ "baseline": {
+  "matrix": {
+   "on-token -> passes": 4533,
+   "off-token:arbitrary -> flagged": 3,
+   "off-token:default-palette -> flagged": 142,
+   "on-token -> silent-drop": 2,
+   "unresolved -> silent-drop": 1,
+   "unresolved -> passes": 1
+  },
+  "edge": [
+   "shadcn bg-[var(--primary)]: classifier=unresolved baseline=lint",
+   "shadcn rounded-2xl: classifier=off-token:default-scale baseline=reset-drop",
+   "shadcn shadow-[0_1px_2px_#0001]: classifier=off-token:arbitrary baseline=lint",
+   "shadcn text-primry: classifier=unresolved baseline=silent-drop",
+   "shadcn hover:bg-primary/90: classifier=on-token baseline=pass",
+   "shadcn md:max-w-3xl: classifier=on-token baseline=pass",
+   "shadcn bg-slate-900/50: classifier=off-token:default-palette baseline=reset-drop",
+   "shadcn fixed: classifier=policy:fixed baseline=pass",
+   "shadcn inset-0: classifier=on-token baseline=pass",
+   "shadcn z-50: classifier=policy:z-index baseline=pass",
+   "shadcn z-[999]: classifier=policy:z-index baseline=lint",
+   "shadcn md:fixed: classifier=policy:fixed baseline=pass",
+   "theme255 p-gutter: classifier=on-token baseline=pass",
+   "theme255 p-[1.75rem]: classifier=off-token:arbitrary baseline=lint",
+   "theme255 text-[#1f58f5]: classifier=off-token:arbitrary baseline=lint",
+   "theme255 rounded-card: classifier=on-token baseline=pass",
+   "theme255 rounded-3xl: classifier=on-token baseline=pass",
+   "theme255 font-display: classifier=on-token baseline=pass",
+   "theme255 bg-brand-950: classifier=unresolved baseline=silent-drop"
+  ],
+  "misses": [
+   "text-destructive-foreground",
+   "transform"
+  ],
+  "falsePositives": []
+ },
+ "l3": {
+  "site": "#253 cms",
+  "models": [
+   "opus",
+   "haiku"
+  ],
+  "kinds": [
+   "hero",
+   "feature-grid",
+   "cta+overlay"
+  ],
+  "summary": {
+   "A|opus": {
+    "n": 3,
+    "before": 0.87,
+    "after": 1,
+    "allOn": 3,
+    "turns": 1,
+    "text": 1,
+    "height": 1
+   },
+   "B|opus": {
+    "n": 3,
+    "before": 0.87,
+    "after": 0.989,
+    "allOn": 2,
+    "turns": 1,
+    "text": 1,
+    "height": 1
+   },
+   "C|opus": {
+    "n": 3,
+    "before": 0.87,
+    "after": 0.88,
+    "allOn": 0,
+    "turns": 1,
+    "text": 1,
+    "height": 1
+   },
+   "A|haiku": {
+    "n": 3,
+    "before": 0.83,
+    "after": 1,
+    "allOn": 3,
+    "turns": 1,
+    "text": 0.683,
+    "height": 1
+   },
+   "B|haiku": {
+    "n": 3,
+    "before": 0.83,
+    "after": 0.905,
+    "allOn": 2,
+    "turns": 0.667,
+    "text": 1,
+    "height": 1
+   },
+   "C|haiku": {
+    "n": 3,
+    "before": 0.83,
+    "after": 0.852,
+    "allOn": 0,
+    "turns": 1,
+    "text": 0.679,
+    "height": 1.07
+   }
+  },
+  "runs": [
+   {
+    "model": "opus",
+    "kind": "hero",
+    "arm": "A",
+    "turns": 1,
+    "before": {
+     "uses": 61,
+     "on": 0.902,
+     "off": 6,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 61,
+     "on": 1,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "opus",
+    "kind": "hero",
+    "arm": "B",
+    "turns": 1,
+    "before": {
+     "uses": 61,
+     "on": 0.902,
+     "off": 6,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 61,
+     "on": 1,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "opus",
+    "kind": "hero",
+    "arm": "C",
+    "turns": 1,
+    "before": {
+     "uses": 61,
+     "on": 0.902,
+     "off": 6,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 70,
+     "on": 0.914,
+     "off": 6,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "opus",
+    "kind": "feature-grid",
+    "arm": "A",
+    "turns": 1,
+    "before": {
+     "uses": 105,
+     "on": 0.857,
+     "off": 15,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 105,
+     "on": 1,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "opus",
+    "kind": "feature-grid",
+    "arm": "B",
+    "turns": 1,
+    "before": {
+     "uses": 105,
+     "on": 0.857,
+     "off": 15,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 105,
+     "on": 1,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "opus",
+    "kind": "feature-grid",
+    "arm": "C",
+    "turns": 1,
+    "before": {
+     "uses": 105,
+     "on": 0.857,
+     "off": 15,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 105,
+     "on": 0.857,
+     "off": 15,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "opus",
+    "kind": "cta+overlay",
+    "arm": "A",
+    "turns": 1,
+    "before": {
+     "uses": 61,
+     "on": 0.852,
+     "off": 7,
+     "unresolved": 0,
+     "policy": 2,
+     "overlayEls": 1
+    },
+    "after": {
+     "uses": 54,
+     "on": 1,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 0.88,
+     "heightRatio": null
+    }
+   },
+   {
+    "model": "opus",
+    "kind": "cta+overlay",
+    "arm": "B",
+    "turns": 1,
+    "before": {
+     "uses": 61,
+     "on": 0.852,
+     "off": 7,
+     "unresolved": 0,
+     "policy": 2,
+     "overlayEls": 1
+    },
+    "after": {
+     "uses": 61,
+     "on": 0.967,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 2,
+     "overlayEls": 1
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": null
+    }
+   },
+   {
+    "model": "opus",
+    "kind": "cta+overlay",
+    "arm": "C",
+    "turns": 1,
+    "before": {
+     "uses": 61,
+     "on": 0.852,
+     "off": 7,
+     "unresolved": 0,
+     "policy": 2,
+     "overlayEls": 1
+    },
+    "after": {
+     "uses": 54,
+     "on": 0.87,
+     "off": 7,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 0.88,
+     "heightRatio": null
+    }
+   },
+   {
+    "model": "haiku",
+    "kind": "hero",
+    "arm": "A",
+    "turns": 1,
+    "before": {
+     "uses": 83,
+     "on": 0.952,
+     "off": 4,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 83,
+     "on": 1,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "haiku",
+    "kind": "hero",
+    "arm": "B",
+    "turns": 1,
+    "before": {
+     "uses": 83,
+     "on": 0.952,
+     "off": 4,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 83,
+     "on": 1,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "haiku",
+    "kind": "hero",
+    "arm": "C",
+    "turns": 1,
+    "before": {
+     "uses": 83,
+     "on": 0.952,
+     "off": 4,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 83,
+     "on": 0.952,
+     "off": 4,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "haiku",
+    "kind": "feature-grid",
+    "arm": "A",
+    "turns": 1,
+    "before": {
+     "uses": 96,
+     "on": 0.823,
+     "off": 17,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 96,
+     "on": 1,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "haiku",
+    "kind": "feature-grid",
+    "arm": "B",
+    "turns": 1,
+    "before": {
+     "uses": 96,
+     "on": 0.823,
+     "off": 17,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 96,
+     "on": 1,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1
+    }
+   },
+   {
+    "model": "haiku",
+    "kind": "feature-grid",
+    "arm": "C",
+    "turns": 1,
+    "before": {
+     "uses": 96,
+     "on": 0.823,
+     "off": 17,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "after": {
+     "uses": 131,
+     "on": 0.794,
+     "off": 27,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": 1.14
+    }
+   },
+   {
+    "model": "haiku",
+    "kind": "cta+overlay",
+    "arm": "A",
+    "turns": 1,
+    "before": {
+     "uses": 7,
+     "on": 0.714,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 2,
+     "overlayEls": 1
+    },
+    "after": {
+     "uses": 23,
+     "on": 1,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 0.048,
+     "elRatio": 4,
+     "heightRatio": null
+    }
+   },
+   {
+    "model": "haiku",
+    "kind": "cta+overlay",
+    "arm": "B",
+    "turns": 0,
+    "before": {
+     "uses": 7,
+     "on": 0.714,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 2,
+     "overlayEls": 1
+    },
+    "after": {
+     "uses": 7,
+     "on": 0.714,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 2,
+     "overlayEls": 1
+    },
+    "fidelity": {
+     "textJaccard": 1,
+     "elRatio": 1,
+     "heightRatio": null
+    }
+   },
+   {
+    "model": "haiku",
+    "kind": "cta+overlay",
+    "arm": "C",
+    "turns": 1,
+    "before": {
+     "uses": 7,
+     "on": 0.714,
+     "off": 0,
+     "unresolved": 0,
+     "policy": 2,
+     "overlayEls": 1
+    },
+    "after": {
+     "uses": 21,
+     "on": 0.81,
+     "off": 4,
+     "unresolved": 0,
+     "policy": 0,
+     "overlayEls": 0
+    },
+    "fidelity": {
+     "textJaccard": 0.036,
+     "elRatio": 5,
+     "heightRatio": null
+    }
+   }
+  ],
+  "costUsd": 0.4683
+ }
+}
