@@ -2,7 +2,6 @@ import { staticUtility, functionalUtility } from "../core/registry";
 import { decl } from "../core/ast";
 import { themeColorDecls,
   parseNumber,
-  parseLength,
 } from "../core/utils";
 
 // --- Typography: Font Family ---
@@ -107,6 +106,19 @@ staticUtility("text-justify", [["text-align", "justify"]], { category: 'typograp
 staticUtility("text-start", [["text-align", "start"]], { category: 'typography' });
 staticUtility("text-end", [["text-align", "end"]], { category: 'typography' });
 
+const FONT_SIZE_HINTS = new Set(["length", "size", "percentage", "absolute-size", "relative-size"]);
+const FONT_SIZE_KEYWORDS = /^(xx-small|x-small|small|medium|large|x-large|xx-large|xxx-large|larger|smaller)$/;
+const LENGTH_RE = /^-?(\d+\.?\d*|\.\d+)(px|r?em|r?lh|r?cap|r?ch|r?ex|r?ic|%|vh|vw|vmin|vmax|[sdl]v[hwib]|v[ib]|cq[whib]|cqmin|cqmax|pt|pc|in|cm|mm|q)$/i;
+/** Tailwind's `text-[…]` inference: an explicit type hint wins; else lengths / size keywords / math → font-size, else colour. */
+function textArbitraryKind(raw: string): { fontSize: boolean; value: string } {
+  const hint = /^([a-z-]+):(.+)$/.exec(raw);
+  if (hint && (hint[1] === "color" || FONT_SIZE_HINTS.has(hint[1]))) {
+    return { fontSize: hint[1] !== "color", value: hint[2] };
+  }
+  const fontSize = raw === "0" || LENGTH_RE.test(raw) || FONT_SIZE_KEYWORDS.test(raw) || /^(calc|min|max|clamp)\(/.test(raw);
+  return { fontSize, value: raw };
+}
+
 // --- Typography: Text Color ---
 staticUtility("text-inherit", [["color", "inherit"]], { category: 'typography' });
 staticUtility("text-current", [["color", "currentColor"]], { category: 'typography' });
@@ -126,16 +138,13 @@ functionalUtility({
   handle: (value, ctx, token, extra) => {
     if (extra?.realThemeValue) return themeColorDecls("color", value, extra);
 
-    if (parseLength(value)) {
-      return [decl("font-size", value)];
-    }
-    return [decl("color", value)];
+    const kind = textArbitraryKind(value);
+    return [decl(kind.fontSize ? "font-size" : "color", kind.value)];
   },
+  // Tailwind 4: text-(--x) is a colour; text-(length:--x) is a font-size.
   handleCustomProperty: (value) => {
-    if (value.startsWith("color:")) {
-      return [decl("color", `var(${value.replace("color:", "")})`)];
-    }
-    return [decl("font-size", `var(${value})`)];
+    const kind = textArbitraryKind(value);
+    return [decl(kind.fontSize ? "font-size" : "color", `var(${kind.value})`)];
   },
   description: "text color utility (theme, arbitrary, custom property supported)",
   category: "typography",

@@ -17,6 +17,8 @@ export interface ParsedUtility {
   opacity?: string;
   priority?: number;
   important?: boolean;
+  /** Set for an arbitrary property class (`[prop:value]`); `value` holds the raw value. */
+  property?: string;
   [key: string]: unknown;
 }
 
@@ -287,10 +289,16 @@ function parseUtility(value: string, ctx?: Context): ParsedUtility {
   let category = '';
   let priority = 0;
   
+  // Tailwind arbitrary property: [--cell-size:8px], [mask-type:luminance]
+  const prop = /^\[(--[a-zA-Z0-9_-]+|-?[a-z][a-z-]*):(.+)\]$/.exec(value);
+  if (prop) {
+    return { prefix: '', value: prop[2], arbitrary: true, property: prop[1] };
+  }
+
   if (value.startsWith('-')) {
     negative = true;
   }
-  
+
   // Handle arbitrary values
   if (value.includes('-[')) {
     [prefix, utilityValue] = value.split('-[');

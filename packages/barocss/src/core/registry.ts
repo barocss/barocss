@@ -470,7 +470,7 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
 
       // 1. Arbitrary value - already parsed in parser.ts
       if (opts.supportsArbitrary && parsedUtility.arbitrary) {
-        const processedValue = normalizeMathSpacing(finalValue.replace(/_/g, ' '));
+        const processedValue = normalizeMathSpacing(expandThemeFunctions(finalValue.replace(/_/g, ' ')));
         // console.log('[functionalUtility] arbitrary', { processedValue });
         // 7. handle (custom AST generation)
         if (opts.handle) {
@@ -586,6 +586,22 @@ const MATH_FNS = new Set(['calc', 'min', 'max', 'clamp']);
  * `calc(100%-2rem)` -> `calc(100% - 2rem)`. Leaves nested non-math functions
  * (var(--x-y)), unary signs and exponents (1e-3) alone.
  */
+export function expandThemeFunctions(value: string): string {
+  // Tailwind 4: `--spacing(8)` → `calc(var(--spacing) * 8)`.
+  return value.replace(/--spacing\(\s*([^()]+?)\s*\)/g, 'calc(var(--spacing) * $1)');
+}
+
+/** Arbitrary property class `[prop:value]` (parser sets token.property). */
+export const arbitraryPropertyRegistration: UtilityRegistration = {
+  name: '[arbitrary-property]',
+  match: () => false,
+  handler: (value, _ctx, token) => {
+    const prop = (token as { property?: string }).property;
+    if (!prop || !value) return [];
+    return [decl(prop, normalizeMathSpacing(expandThemeFunctions(value.replace(/_/g, ' '))))];
+  },
+};
+
 export function normalizeMathSpacing(value: string): string {
   if (!/(calc|min|max|clamp)\(/.test(value)) return value;
   const stack: boolean[] = [];

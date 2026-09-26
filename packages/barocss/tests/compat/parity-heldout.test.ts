@@ -13,10 +13,6 @@ import { coverageReport, runParity } from './parity-compare';
 // its fix lands (the test fails if a listed class starts passing, so the list can't go stale).
 
 const KNOWN_FAILURES: Record<string, string> = {
-  "text-[0.8rem]": "wrong formula: arbitrary length routed to color instead of font-size",
-  "ease-in-out": "undefined var: var(--ease-in-out) not in BaroCSS theme vars",
-  "max-w-max": "other: max-w-max/min/fit keyword missing",
-  "[--cell-size:--spacing(8)]": "other: arbitrary property with --spacing() function unsupported",
 };
 
 describe('Tailwind 4.1.13 parity over the #243 held-out corpus', async () => {

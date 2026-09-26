@@ -114,8 +114,8 @@ describe("preset typography utilities", () => {
         { type: "decl", prop: "font-size", value: "14px" },
       ]);
     });
-    it("text-(--my-size) → font-size: var(--my-size)", () => {
-      expect(parseClassToAst("text-(--my-size)", ctx)).toEqual([
+    it("text-(length:--my-size) → font-size: var(--my-size) (Tailwind: bare text-(--x) is a colour)", () => {
+      expect(parseClassToAst("text-(length:--my-size)", ctx)).toEqual([
         { type: "decl", prop: "font-size", value: "var(--my-size)" },
       ]);
     });
@@ -382,8 +382,8 @@ describe("preset typography utilities", () => {
         { type: "decl", prop: "color", value: "#ff0000" },
       ]);
     });
-    it("text-(--my-font-size) → font-size: var(--my-font-size)", () => {
-      expect(parseClassToAst("text-(--my-font-size)", ctx)).toEqual([
+    it("text-(length:--my-font-size) → font-size: var(--my-font-size)", () => {
+      expect(parseClassToAst("text-(length:--my-font-size)", ctx)).toEqual([
         { type: "decl", prop: "font-size", value: "var(--my-font-size)" },
       ]);
     });
