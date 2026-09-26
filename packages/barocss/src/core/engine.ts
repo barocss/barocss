@@ -539,13 +539,16 @@ export function generateCss(
 
   const rootRules = [...new Set(allAtRootNodes
     .filter((node) => node.type === "at-rule")
-    .map((node) => rootToCss([node])))];
+    .map((node) => rootToCss([node], { minify: opts?.minify })))];
   const rootDeclarations = [...new Set(allAtRootNodes
     .filter((node) => node.type === "decl")
-    .map((node) => rootToCss([node])))];
+    .map((node) => rootToCss([node], { minify: opts?.minify }))
+    .filter((decl) => decl !== ""))];
   const rootCss = [
     ...rootRules,
-    ...(rootDeclarations.length ? [`:root,:host {${rootDeclarations.join("\n")}}`] : []),
+    ...(rootDeclarations.length
+      ? [`:root,:host${opts?.minify ? "" : " "}{${rootDeclarations.join(opts?.minify ? "" : "\n")}}`]
+      : []),
   ].join(opts?.minify ? "" : "\n");
 
   if (allAtRootNodes.length > 0) {
