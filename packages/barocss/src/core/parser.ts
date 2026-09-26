@@ -159,7 +159,7 @@ function parseTokens(tokens: Token[], ctx?: Context): { modifiers: ParsedModifie
   // #220: every token but the utility is a variant; one that could end or widen the selector rejects the class.
   if (tokens.length > 1) {
     const utilityIndex = isUtilityPrefix(tokens[0].value, ctx) ? 0 : tokens.length - 1;
-    if (tokens.some((t, i) => i !== utilityIndex && !isSafeVariantToken(t.value))) {
+    if (tokens.some((t, i) => i !== utilityIndex && (!isSafeVariantToken(t.value) || !isWellFormedVariantBrackets(t.value)))) {
       return { modifiers, utility: null };
     }
   }
@@ -241,6 +241,31 @@ export function isSafeVariantToken(value: string): boolean {
  * is pasted into. Rejects, outside quotes: `{`, `}`, `;`, unbalanced or mismatched ()/[], and a quote left open.
  * Commas are allowed (values are not selector lists), so this is isSafeVariantValue with top-level commas allowed.
  */
+/**
+ * #332: a variant token's bracket groups must be well formed. An empty group (`[]`, as in an empty
+ * `has-[]`/`group-has-[]`/`[]` variant) has nothing to select and emits nothing. A token that opens with `[`
+ * is one arbitrary variant: its first group must close at the token's last character, so two adjacent groups
+ * are never read as a single variant whose inner text is unbalanced. CSS escapes and quoted strings are skipped.
+ */
+export function isWellFormedVariantBrackets(value: string): boolean {
+  let quote = '';
+  let depth = 0;
+  for (let i = 0; i < value.length; i++) {
+    const c = value[i];
+    if (c === '\\') { i++; continue; }
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === "'") { quote = c; continue; }
+    if (c === '[') {
+      if (value[i + 1] === ']') return false;
+      depth++;
+    } else if (c === ']') {
+      depth--;
+      if (depth === 0 && value.startsWith('[') && i !== value.length - 1) return false;
+    }
+  }
+  return true;
+}
+
 /** #248: a comment opener or closer anywhere in a variant (quoted or not) could leave a comment unclosed in the output. */
 export function hasCommentToken(value: string): boolean {
   return value.includes('/*') || value.includes('*/');
@@ -259,6 +284,32 @@ export function hasCommentDelimiter(text: string): boolean {
     if ((c === '/' && n === '*') || (c === '*' && n === '/')) return true;
   }
   return false;
+}
+
+/**
+ * #332: true when an emitted selector or at-rule prelude has balanced, correctly nested `()`, `[]` and `{}` and
+ * no open quote. CSS escapes (backslash pairs) and quoted strings are skipped, so escaped brackets from a class
+ * name never count. Top-level commas are allowed (selector lists, `:is(a, b)`). Checked on the final composed
+ * string: an unbalanced prelude in concatenated CSS text would swallow the rules that follow it.
+ */
+export function isBalancedPrelude(text: string): boolean {
+  const stack: string[] = [];
+  let quote = '';
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '\\') { i++; continue; }
+    if (quote) { if (c === quote) quote = ''; continue; }
+    switch (c) {
+      case '"': case "'": quote = c; break;
+      case '(': stack.push(')'); break;
+      case '[': stack.push(']'); break;
+      case '{': stack.push('}'); break;
+      case ')': case ']': case '}':
+        if (stack.pop() !== c) return false;
+        break;
+    }
+  }
+  return stack.length === 0 && !quote;
 }
 
 /**
