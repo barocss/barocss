@@ -1,10 +1,11 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRoot, decl, property } from "../core/ast";
+import { atRoot, decl, property, rule } from "../core/ast";
 
 // Tailwind v4: leading-* sets --tw-leading (registered, non-inheriting) and text-<size> reads
 // var(--tw-leading, <size line-height>), so leading-* beats any text-* regardless of rule order (#254).
 const leadingProperty = () => atRoot([property("--baro-leading")]);
 import { themeColorDecls,
+  parseColor,
   parseNumber,
 } from "../core/utils";
 
@@ -422,5 +423,26 @@ functionalUtility({
   handle: (value) => [decl("--baro-content", `"${value}"`), decl("content", "var(--baro-content)")],
   handleCustomProperty: (value) => [decl("--baro-content", `var(${value})`), decl("content", "var(--baro-content)")],
   description: "content utility (arbitrary, custom property supported)",
+  category: "typography",
+});
+
+// --- Placeholder Color --- (Tailwind 4: `.placeholder-red-500::placeholder { color: … }`)
+const placeholderColor = (value: string) => [rule("&::placeholder", [decl("color", value)])];
+staticUtility("placeholder-inherit", placeholderColor("inherit"), { category: 'typography' });
+staticUtility("placeholder-current", placeholderColor("currentcolor"), { category: 'typography' });
+staticUtility("placeholder-transparent", placeholderColor("transparent"), { category: 'typography' });
+functionalUtility({
+  name: "placeholder",
+  themeKeys: ["colors"],
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsOpacity: true,
+  handle: (value, _ctx, _token, extra) => {
+    if (extra?.realThemeValue) return [rule("&::placeholder", themeColorDecls("color", value, extra))];
+    if (parseColor(value)) return placeholderColor(value);
+    return null;
+  },
+  handleCustomProperty: (value) => placeholderColor(`var(${value})`),
+  description: "placeholder color utility (theme, alpha, arbitrary, custom property)",
   category: "typography",
 });

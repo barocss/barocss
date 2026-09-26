@@ -86,6 +86,8 @@ export type ModifierRegistration = {
   sort?: number;
   description?: string;
   source?: string;
+  /** Static variant name; lets the parser tell `placeholder-shown:` (variant) from a `placeholder-*` utility (#307). */
+  name?: string;
 };
 
 export const modifierRegistry: ModifierRegistration[] = [];
@@ -107,6 +109,7 @@ export const modifierRegistry: ModifierRegistration[] = [];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function staticModifier(name: string, selectors: string[], options: any = {}, ctx?: Context): void {
   registerModifier({
+    name,
     match: (mod: string) => mod === name,
     modifySelector: ({ ..._rest }) => {
       return selectors.map(sel => ({
