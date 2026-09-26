@@ -1,5 +1,34 @@
 # @barocss/browser
 
+## 0.8.2
+
+### Patch Changes
+
+- 66b7b18: CommonJS consumers can now `require()` every documented entry point: `@barocss/kit/theme/default` and `@barocss/browser` gain `require` export conditions (browser ships a new `dist/index.cjs`), and every entry has matching `.d.cts` declarations. The `@barocss/server` ESM declarations now resolve under `moduleResolution: node16`.
+- a5b2c21: Generation never throws on unusual class input: a theme lookup that resolves to a non-scalar value (such as a colour palette with no shade) counts as no value, and a class whose generation fails contributes nothing while the other classes still generate.
+- bf7611c: The browser runtime no longer writes to the console in production. Per-batch and init logs, and partition insert warnings, now only appear when the debug flag is on (`debug: true` in config or `setDebug(true)`).
+- 0.8.2: security and availability fixes. Upgrading is recommended for all 0.x users.
+
+  - Security: no class input can produce a generated selector or at-rule prelude with unbalanced structure. Previously, some inputs could disable the rules that followed them in concatenated CSS output (kit, server sheets, the browser text fallback). The browser runtime's `insertRule` path was not affected.
+  - Availability: CSS generation never throws. An invalid class produces no rule, and the rest of the request is still generated; previously one such class could fail a whole server-side sheet.
+  - Class names starting with a digit (including every `2xl:` class) are now CSS-escaped, so their rules apply.
+  - The browser runtime no longer logs to the console unless debug is on.
+
+- 7b7d7a3: Build with Vite 8 (Rolldown). Package exports and runtime behaviour are unchanged. The ESM CDN bundle
+  (`dist/cdn/barocss.js`) is now minified like the UMD one (356 KB → 229 KB raw, 64 KB → 48 KB gzip). In
+  `@barocss/kit` the default theme now lives in a shared chunk that both `dist/index.*` and
+  `dist/theme/default.*` import. The unminified kit ESM/CJS output a consumer loads (index plus the theme
+  chunk) grows from about 52 KB to 62 KB gzip because of extra formatting and region comments; bundlers
+  minify it away, and the theme data itself is unchanged.
+- Updated dependencies [f9cc4bf]
+- Updated dependencies [66b7b18]
+- Updated dependencies [6baa6f4]
+- Updated dependencies [a5b2c21]
+- Updated dependencies
+- Updated dependencies [8631a64]
+- Updated dependencies [7b7d7a3]
+  - @barocss/kit@0.8.2
+
 ## 0.8.1
 
 ### Patch Changes
