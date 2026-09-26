@@ -1,0 +1,1018 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Demo: SSR first paint (with generateCssForHtml)</title><meta name="robots" content="noindex"><link rel="icon" href="data:,"><link rel="stylesheet" href="../demo.css"><link rel="stylesheet" href="../cms/site.css"><style data-barocss-ssr>:root,:host {
+  --text-6xl--line-height: 1;
+  --text-6xl: 3.75rem;
+  --color-indigo-500: oklch(58.5% 0.233 277.117);
+  --color-indigo-50: oklch(96.2% 0.018 272.314);
+  --color-indigo-700: oklch(45.7% 0.24 277.023);
+  --color-gray-50: oklch(98.5% 0.002 247.839);
+  --color-indigo-400: oklch(67.3% 0.182 276.935);
+  --color-indigo-300: oklch(78.5% 0.115 274.713);
+  --color-indigo-600: oklch(51.1% 0.262 276.966);
+  --color-indigo-100: oklch(93% 0.034 272.788);
+  --container-4xl: 56rem;
+  --color-gray-500: oklch(55.1% 0.027 264.364);
+  --color-gray-800: oklch(27.8% 0.033 256.848);
+  --color-amber-400: oklch(82.8% 0.189 84.429);
+  --color-gray-900: oklch(21% 0.034 264.665);
+  --color-gray-300: oklch(87.2% 0.01 258.338);
+  --color-green-600: oklch(62.7% 0.194 149.214);
+  --color-gray-700: oklch(37.3% 0.034 259.733);
+  --color-gray-200: oklch(92.8% 0.006 264.531);
+  --text-xs--line-height: calc(1 / 0.75);
+  --text-xs: 0.75rem;
+  --color-blue-800: oklch(42.4% 0.199 265.638);
+  --color-blue-500: oklch(62.3% 0.214 259.815);
+  --color-blue-900: oklch(37.9% 0.146 265.522);
+  --color-blue-50: oklch(97% 0.014 254.604);
+  --color-blue-200: oklch(88.2% 0.059 254.128);
+  --radius-lg: 0.5rem;
+  --color-gray-600: oklch(44.6% 0.03 256.802);
+  --text-3xl--line-height: calc(2.25 / 1.875);
+  --text-3xl: 1.875rem;
+  --text-base--line-height: calc(1.5 / 1);
+  --text-base: 1rem;
+  --container-7xl: 80rem;
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-md: 0.375rem;
+  --color-slate-300: oklch(86.9% 0.022 252.894);
+  --container-2xl: 42rem;
+  --letter-spacing-tight: -0.025em;
+  --container-5xl: 64rem;
+  --color-slate-800: oklch(27.9% 0.041 260.031);
+}
+@property --tw-leading {
+	syntax: "*";
+	inherits: false;
+}
+@property --tw-outline-style {
+	syntax: "*";
+	inherits: false;
+	initial-value: solid;
+}
+.relative {
+  position: relative;
+}
+
+.isolate {
+  isolation: isolate;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.bg-gradient-to-b {
+  --tw-gradient-position: to bottom in oklab;
+  background-image: linear-gradient(var(--tw-gradient-stops));
+}
+
+@property --tw-gradient-position {
+  syntax: "*";
+  inherits: false;
+}
+
+@property --tw-gradient-from {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+
+@property --tw-gradient-via {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+
+@property --tw-gradient-to {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+
+@property --tw-gradient-stops {
+  syntax: "*";
+  inherits: false;
+}
+
+@property --tw-gradient-via-stops {
+  syntax: "*";
+  inherits: false;
+}
+
+@property --tw-gradient-from-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@property --tw-gradient-via-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --tw-gradient-to-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+.from-slate-900 {
+  --tw-gradient-from: var(--color-slate-900);
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+}
+
+@property --tw-gradient-position {
+  syntax: "*";
+  inherits: false;
+}
+
+@property --tw-gradient-from {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+
+@property --tw-gradient-via {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+
+@property --tw-gradient-to {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: #0000;
+}
+
+@property --tw-gradient-stops {
+  syntax: "*";
+  inherits: false;
+}
+
+@property --tw-gradient-via-stops {
+  syntax: "*";
+  inherits: false;
+}
+
+@property --tw-gradient-from-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@property --tw-gradient-via-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 50%;
+}
+
+@property --tw-gradient-to-position {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+
+.to-slate-800 {
+  --tw-gradient-to: var(--color-slate-800);
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-position), var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position));
+}
+
+.max-w-5xl {
+  max-width: var(--container-5xl);
+}
+
+.py-24 {
+  padding-block: calc(var(--spacing) * 24);
+}
+
+.inline-flex {
+  display: inline-flex;
+}
+
+.bg-indigo-500\/10 {
+  background-color: color-mix(in srgb, oklch(58.5% 0.233 277.117) 10%, transparent);
+}
+
+@supports (color:color-mix(in lab, red, red)) {
+  .bg-indigo-500\/10 {
+    background-color: color-mix(in oklab, var(--color-indigo-500) 10%, transparent);
+  }
+}
+
+.px-3 {
+  padding-inline: calc(var(--spacing) * 3);
+}
+
+.py-1 {
+  padding-block: calc(var(--spacing) * 1);
+}
+
+.text-indigo-300 {
+  color: var(--color-indigo-300);
+}
+
+.ring-1 {
+  --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+
+.ring-inset {
+  --tw-ring-inset: inset;
+}
+
+@supports (color:color-mix(in lab, red, red)) {
+  .ring-indigo-500\/20 {
+    --tw-ring-color: color-mix(in oklab, var(--color-indigo-500) 20%, transparent);
+  }
+}
+
+.ring-indigo-500\/20 {
+  --tw-ring-color: color-mix(in oklab, var(--color-indigo-500) 20%, transparent);
+}
+
+.mt-6 {
+  margin-top: calc(var(--spacing) * 6);
+}
+
+.tracking-tight {
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+.max-w-2xl {
+  max-width: var(--container-2xl);
+}
+
+.leading-8 {
+  --tw-leading: 2rem;
+  line-height: 2rem;
+}
+
+.text-slate-300 {
+  color: var(--color-slate-300);
+}
+
+.mt-10 {
+  margin-top: calc(var(--spacing) * 10);
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.gap-4 {
+  gap: calc(var(--spacing) * 4);
+}
+
+.rounded-md {
+  border-radius: var(--radius-md);
+}
+
+.bg-indigo-500 {
+  background-color: var(--color-indigo-500);
+}
+
+.px-5 {
+  padding-inline: calc(var(--spacing) * 5);
+}
+
+.py-3 {
+  padding-block: calc(var(--spacing) * 3);
+}
+
+.transition {
+  transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
+  transition-timing-function: var(--default-transition-timing-function);
+  transition-duration: var(--default-transition-duration);
+}
+
+.focus-visible\:outline:focus-visible {
+  outline-style: var(--tw-outline-style);
+  outline-width: 1px;
+}
+
+.focus-visible\:outline-2:focus-visible {
+  outline-style: var(--tw-outline-style);
+  outline-width: 2px;
+}
+
+.focus-visible\:outline-offset-2:focus-visible {
+  outline-offset: 2px;
+}
+
+.focus-visible\:outline-indigo-500:focus-visible {
+  outline-color: var(--color-indigo-500);
+}
+
+.leading-6 {
+  --tw-leading: 1.5rem;
+  line-height: 1.5rem;
+}
+
+.py-16 {
+  padding-block: calc(var(--spacing) * 16);
+}
+
+.max-w-7xl {
+  max-width: var(--container-7xl);
+}
+
+.text-base {
+  font-size: var(--text-base);
+  line-height: var(--tw-leading, var(--text-base--line-height));
+}
+
+.leading-7 {
+  --tw-leading: 1.75rem;
+  line-height: 1.75rem;
+}
+
+.text-indigo-600 {
+  color: var(--color-indigo-600);
+}
+
+.text-3xl {
+  font-size: var(--text-3xl);
+  line-height: var(--tw-leading, var(--text-3xl--line-height));
+}
+
+.text-gray-900 {
+  color: var(--color-gray-900);
+}
+
+.mt-4 {
+  margin-top: calc(var(--spacing) * 4);
+}
+
+.text-gray-600 {
+  color: var(--color-gray-600);
+}
+
+.mt-16 {
+  margin-top: calc(var(--spacing) * 16);
+}
+
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.gap-8 {
+  gap: calc(var(--spacing) * 8);
+}
+
+.border-gray-200 {
+  border-color: var(--color-gray-200);
+}
+
+.p-8 {
+  padding: calc(var(--spacing) * 8);
+}
+
+.h-12 {
+  height: calc(var(--spacing) * 12);
+}
+
+.w-12 {
+  width: calc(var(--spacing) * 12);
+}
+
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+
+.bg-indigo-600 {
+  background-color: var(--color-indigo-600);
+}
+
+.h-6 {
+  height: calc(var(--spacing) * 6);
+}
+
+.w-6 {
+  width: calc(var(--spacing) * 6);
+}
+
+.items-start {
+  align-items: flex-start;
+}
+
+.gap-3 {
+  gap: calc(var(--spacing) * 3);
+}
+
+.border-blue-200 {
+  border-color: var(--color-blue-200);
+}
+
+.bg-blue-50 {
+  background-color: var(--color-blue-50);
+}
+
+.p-4 {
+  padding: calc(var(--spacing) * 4);
+}
+
+.text-blue-900 {
+  color: var(--color-blue-900);
+}
+
+.mt-0\.5 {
+  margin-top: calc(var(--spacing) * 0.5);
+}
+
+.h-5 {
+  height: calc(var(--spacing) * 5);
+}
+
+.w-5 {
+  width: calc(var(--spacing) * 5);
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+.text-blue-500 {
+  color: var(--color-blue-500);
+}
+
+.mt-1 {
+  margin-top: calc(var(--spacing) * 1);
+}
+
+.text-blue-800 {
+  color: var(--color-blue-800);
+}
+
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.border-collapse {
+  border-collapse: collapse;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.bg-gray-50 {
+  background-color: var(--color-gray-50);
+}
+
+.gap-2 {
+  gap: calc(var(--spacing) * 2);
+}
+
+.bg-indigo-100 {
+  background-color: var(--color-indigo-100);
+}
+
+.px-2 {
+  padding-inline: calc(var(--spacing) * 2);
+}
+
+.py-0\.5 {
+  padding-block: calc(var(--spacing) * 0.5);
+}
+
+.text-xs {
+  font-size: var(--text-xs);
+  line-height: var(--tw-leading, var(--text-xs--line-height));
+}
+
+.text-indigo-700 {
+  color: var(--color-indigo-700);
+}
+
+:where(.divide-y > :not(:last-child)) {
+  --tw-divide-y-reverse: 0;
+  border-bottom-style: var(--tw-border-style);
+  border-top-style: var(--tw-border-style);
+  border-top-width: calc(1px * var(--tw-divide-y-reverse));
+  border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
+}
+
+:where(.divide-gray-200 > :not(:last-child)) {
+  border-color: var(--color-gray-200);
+}
+
+.text-gray-700 {
+  color: var(--color-gray-700);
+}
+
+.bg-gray-50\/50 {
+  background-color: color-mix(in srgb, oklch(98.5% 0.002 247.839) 50%, transparent);
+}
+
+@supports (color:color-mix(in lab, red, red)) {
+  .bg-gray-50\/50 {
+    background-color: color-mix(in oklab, var(--color-gray-50) 50%, transparent);
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.text-gray-300 {
+  color: var(--color-gray-300);
+}
+
+.text-green-600 {
+  color: var(--color-green-600);
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.border-gray-300 {
+  border-color: var(--color-gray-300);
+}
+
+.shadow-md {
+  --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+
+@supports (color:color-mix(in lab, red, red)) {
+  .ring-gray-900\/5 {
+    --tw-ring-color: color-mix(in oklab, var(--color-gray-900) 5%, transparent);
+  }
+}
+
+.ring-gray-900\/5 {
+  --tw-ring-color: color-mix(in oklab, var(--color-gray-900) 5%, transparent);
+}
+
+.gap-1 {
+  gap: calc(var(--spacing) * 1);
+}
+
+.text-amber-400 {
+  color: var(--color-amber-400);
+}
+
+.fill-current {
+  fill: currentColor;
+}
+
+.leading-relaxed {
+  --tw-leading: var(--leading-relaxed, 1.625);
+  line-height: var(--leading-relaxed, 1.625);
+}
+
+.text-gray-800 {
+  color: var(--color-gray-800);
+}
+
+.object-cover {
+  object-fit: cover;
+}
+
+.text-gray-500 {
+  color: var(--color-gray-500);
+}
+
+.max-w-4xl {
+  max-width: var(--container-4xl);
+}
+
+.text-indigo-100 {
+  color: var(--color-indigo-100);
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.focus\:outline-none:focus {
+  --tw-outline-style: none;
+  outline-style: none;
+}
+
+.focus\:ring-2:focus {
+  --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+}
+
+@supports (color:color-mix(in lab, red, red)) {
+  .focus\:ring-white:focus {
+    --tw-ring-color: var(--color-white);
+  }
+}
+
+.focus\:ring-white:focus {
+  --tw-ring-color: var(--color-white);
+}
+
+.focus\:ring-offset-2:focus {
+  --tw-ring-offset-width: 2px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-offset-shadow: var(--tw-ring-inset,) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+}
+
+.focus\:ring-offset-indigo-600:focus {
+  --tw-ring-offset-color: var(--color-indigo-600);
+}
+
+@supports (color:color-mix(in lab, red, red)) {
+  .ring-indigo-300 {
+    --tw-ring-color: var(--color-indigo-300);
+  }
+}
+
+.ring-indigo-300 {
+  --tw-ring-color: var(--color-indigo-300);
+}
+
+@media (hover: hover) {
+  .hover\:bg-indigo-400:hover {
+    background-color: var(--color-indigo-400);
+  }
+}
+
+@media (hover: hover) {
+  .hover\:text-slate-200:hover {
+    color: var(--color-slate-200);
+  }
+}
+
+@media (hover: hover) {
+  .hover\:shadow-md:hover {
+    --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+}
+
+@media (hover: hover) {
+  .hover\:bg-gray-50:hover {
+    background-color: var(--color-gray-50);
+  }
+}
+
+@media (hover: hover) {
+  .hover\:bg-indigo-700:hover {
+    background-color: var(--color-indigo-700);
+  }
+}
+
+@media (hover: hover) {
+  .hover\:bg-indigo-50:hover {
+    background-color: var(--color-indigo-50);
+  }
+}
+
+@media (hover: hover) {
+  .hover\:bg-indigo-500:hover {
+    background-color: var(--color-indigo-500);
+  }
+}
+
+@media (min-width: 40rem) {
+  .sm\:py-32 {
+    padding-block: calc(var(--spacing) * 32);
+  }
+}
+
+@media (min-width: 40rem) {
+  .sm\:text-6xl {
+    font-size: var(--text-6xl);
+    line-height: var(--tw-leading, var(--text-6xl--line-height));
+  }
+}
+
+@media (min-width: 40rem) {
+  .sm\:px-6 {
+    padding-inline: calc(var(--spacing) * 6);
+  }
+}
+
+@media (min-width: 40rem) {
+  .sm\:text-4xl {
+    font-size: var(--text-4xl);
+    line-height: var(--tw-leading, var(--text-4xl--line-height));
+  }
+}
+
+@media (min-width: 40rem) {
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 40rem) {
+  .sm\:py-24 {
+    padding-block: calc(var(--spacing) * 24);
+  }
+}
+
+@media (min-width: 40rem) {
+  .sm\:flex-row {
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 40rem) {
+  .sm\:w-auto {
+    width: auto;
+  }
+}
+
+@media (min-width: 64rem) {
+  .lg\:px-8 {
+    padding-inline: calc(var(--spacing) * 8);
+  }
+}
+
+@media (min-width: 64rem) {
+  .lg\:max-w-none {
+    max-width: none;
+  }
+}
+
+@media (min-width: 64rem) {
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+</style></head><body>
+<div class="demo-bar"><h1>SSR first paint: with @barocss/server</h1><p>The server renders recorded CMS blocks (#253) into the page; the Tailwind build covers only the templates. Here <code>generateCssForHtml(html, { skip: buildCss })</code> ran on the server (14.5K) and <code>ssrStyleTag()</code> inlined it, so the first paint is styled; the client runtime adopts it later. Measured (#266/#268, Fast 3G + 4x CPU): share of block elements matching at first contentful paint .19 without, 1.00 with; server cost 0.18 ms warm. This page was pre-rendered by scripts/launch-demos/build.mjs with the same call a request handler makes. <a href="https://github.com/barocss/barocss/blob/develop/scripts/ssr-probe/run.mjs">evidence</a></p><nav><a href="with.html" aria-current="true">with generateCssForHtml</a><a href="without.html">without</a><a href="with.html?delay=4000">replay slower</a><output id="status">client runtime not started yet</output></nav></div>
+<header data-shell class="sticky top-0 z-10 border-b border-brand-100 bg-white/90 backdrop-blur">
+  <div data-shell class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a data-shell href="#" class="font-display text-2xl font-bold text-brand-800 no-underline">Northwind Journal</a>
+    <nav data-shell class="flex items-center gap-6 text-sm font-medium text-slate-600">
+      <a data-shell href="#" class="hover:text-brand-700">Stories</a><a data-shell href="#" class="hover:text-brand-700">Guides</a>
+      <a data-shell href="#" class="rounded-full bg-brand-600 px-4 py-2 text-white hover:bg-brand-700">Subscribe</a>
+    </nav>
+  </div>
+</header>
+<main data-shell class="mx-auto grid max-w-6xl grid-cols-[1fr_16rem] gap-12 px-6 py-12">
+  <article data-shell class="min-w-0">
+    <p data-shell class="text-sm font-semibold uppercase tracking-wider text-accent-600">Product update</p>
+    <h1 data-shell class="mt-2 font-display text-4xl font-bold text-slate-900">What's new in our spring release</h1>
+    <div data-shell class="prose mt-8">
+      <p data-prose>Our spring release focuses on the small things that make publishing faster. Below, the editorial team explains the changes, and the blocks were drafted with the CMS assistant.</p>
+      <h2 data-prose>Why we rebuilt the editor</h2>
+      <p data-prose>Writers told us the old editor got in the way. <a data-prose href="#">Read the research notes</a> or skim the <strong data-prose>highlights</strong>:</p>
+      <ul data-prose><li data-prose>Faster autosave</li><li data-prose>Inline comments</li></ul>
+      <blockquote data-prose>"It finally feels like writing, not filling in forms."</blockquote>
+      <div id="blocks"><div data-block="hero"><section class="relative isolate overflow-hidden bg-gradient-to-b from-slate-900 to-slate-800">
+  <div class="mx-auto max-w-5xl px-6 py-24 text-center sm:py-32 lg:px-8">
+    <span class="inline-flex items-center rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-medium text-indigo-300 ring-1 ring-inset ring-indigo-500/20">
+      New for 2026
+    </span>
+
+    <h1 class="mt-6 text-4xl font-bold tracking-tight text-white sm:text-6xl">
+      Build something people love
+    </h1>
+
+    <p class="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+      A short, benefit-driven subheadline that tells visitors exactly what you
+      offer and why it matters to them.
+    </p>
+
+    <div class="mt-10 flex items-center justify-center gap-4">
+      <a href="#"
+         class="rounded-md bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+        Get started
+      </a>
+      <a href="#" class="text-sm font-semibold leading-6 text-white hover:text-slate-200">
+        Learn more <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section></div>
+<div data-block="feature-grid"><section class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+  <div class="mx-auto max-w-7xl">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="text-base font-semibold leading-7 text-indigo-600">Everything you need</h2>
+      <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        Built for teams that ship
+      </p>
+      <p class="mt-4 text-lg leading-8 text-gray-600">
+        A short supporting sentence that explains the value of these features.
+      </p>
+    </div>
+
+    <div class="mx-auto mt-16 max-w-2xl lg:max-w-none">
+      <dl class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Feature -->
+        <div class="rounded-2xl border border-gray-200 p-8 transition hover:shadow-md">
+          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600">
+            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <dt class="mt-6 text-lg font-semibold text-gray-900">Fast performance</dt>
+          <dd class="mt-2 text-base leading-7 text-gray-600">
+            Describe the feature in one or two concise sentences.
+          </dd>
+        </div>
+
+        <!-- Feature -->
+        <div class="rounded-2xl border border-gray-200 p-8 transition hover:shadow-md">
+          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600">
+            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <dt class="mt-6 text-lg font-semibold text-gray-900">Secure by default</dt>
+          <dd class="mt-2 text-base leading-7 text-gray-600">
+            Describe the feature in one or two concise sentences.
+          </dd>
+        </div>
+
+        <!-- Feature -->
+        <div class="rounded-2xl border border-gray-200 p-8 transition hover:shadow-md">
+          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600">
+            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <dt class="mt-6 text-lg font-semibold text-gray-900">Always on</dt>
+          <dd class="mt-2 text-base leading-7 text-gray-600">
+            Describe the feature in one or two concise sentences.
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section></div>
+<div data-block="callout"><div class="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-900">
+  <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <path fill-rule="evenodd" d="M18 10A8 8 0 11.001 10 8 8 0 0118 10zM11 6a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h.008a1 1 0 001-1V10a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+  </svg>
+  <div>
+    <p class="font-semibold">Note</p>
+    <p class="mt-1 text-sm text-blue-800">Your message goes here. Replace this text with the callout content you want to display.</p>
+  </div>
+</div></div>
+<div data-block="comparison-table"><section class="mx-auto max-w-5xl px-4 py-12">
+  <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+    <table class="w-full border-collapse text-left text-sm">
+      <thead>
+        <tr class="bg-gray-50">
+          <th scope="col" class="px-6 py-4 font-semibold text-gray-900">Feature</th>
+          <th scope="col" class="px-6 py-4 text-center font-semibold text-gray-900">Starter</th>
+          <th scope="col" class="px-6 py-4 text-center font-semibold text-gray-900">
+            <span class="inline-flex items-center gap-2">
+              Pro
+              <span class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">Popular</span>
+            </span>
+          </th>
+          <th scope="col" class="px-6 py-4 text-center font-semibold text-gray-900">Enterprise</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <tr>
+          <th scope="row" class="px-6 py-4 font-medium text-gray-900">Price</th>
+          <td class="px-6 py-4 text-center text-gray-700">$9/mo</td>
+          <td class="px-6 py-4 text-center text-gray-700">$29/mo</td>
+          <td class="px-6 py-4 text-center text-gray-700">Custom</td>
+        </tr>
+        <tr class="bg-gray-50/50">
+          <th scope="row" class="px-6 py-4 font-medium text-gray-900">Team members</th>
+          <td class="px-6 py-4 text-center text-gray-700">Up to 3</td>
+          <td class="px-6 py-4 text-center text-gray-700">Up to 25</td>
+          <td class="px-6 py-4 text-center text-gray-700">Unlimited</td>
+        </tr>
+        <tr>
+          <th scope="row" class="px-6 py-4 font-medium text-gray-900">Storage</th>
+          <td class="px-6 py-4 text-center text-gray-700">10 GB</td>
+          <td class="px-6 py-4 text-center text-gray-700">100 GB</td>
+          <td class="px-6 py-4 text-center text-gray-700">1 TB</td>
+        </tr>
+        <tr class="bg-gray-50/50">
+          <th scope="row" class="px-6 py-4 font-medium text-gray-900">Priority support</th>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Not included</span>
+            <svg class="mx-auto h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Included</span>
+            <svg class="mx-auto h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Included</span>
+            <svg class="mx-auto h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="px-6 py-4 font-medium text-gray-900">SSO &amp; SAML</th>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Not included</span>
+            <svg class="mx-auto h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Not included</span>
+            <svg class="mx-auto h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Included</span>
+            <svg class="mx-auto h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="border-t border-gray-200">
+          <td class="px-6 py-4"></td>
+          <td class="px-6 py-4 text-center">
+            <a href="#" class="inline-block rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Choose</a>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <a href="#" class="inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">Choose</a>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <a href="#" class="inline-block rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Contact us</a>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</section></div>
+<div data-block="testimonial"><figure class="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-md ring-1 ring-gray-900/5">
+  <div class="flex items-center gap-1 text-amber-400" aria-label="Rated 5 out of 5 stars">
+    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+  </div>
+
+  <blockquote class="mt-6 text-lg leading-relaxed text-gray-800">
+    <p>"This product completely transformed how our team works. Setup took minutes, and the support has been outstanding every step of the way."</p>
+  </blockquote>
+
+  <figcaption class="mt-6 flex items-center gap-4">
+    <img class="h-12 w-12 rounded-full object-cover" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20fill%3D%22%236366f1%22%2F%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2216%22%20r%3D%227%22%20fill%3D%22%23e0e7ff%22%2F%3E%3Cpath%20d%3D%22M6%2038c2-9%2026-9%2028%200%22%20fill%3D%22%23e0e7ff%22%2F%3E%3C%2Fsvg%3E" alt="Photo of Jane Doe">
+    <div>
+      <div class="font-semibold text-gray-900">Jane Doe</div>
+      <div class="text-sm text-gray-500">Head of Product, Acme Inc.</div>
+    </div>
+  </figcaption>
+</figure></div>
+<div data-block="cta"><section class="bg-indigo-600">
+  <div class="mx-auto max-w-4xl px-6 py-16 text-center sm:py-24">
+    <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+      Ready to get started?
+    </h2>
+    <p class="mx-auto mt-4 max-w-2xl text-lg text-indigo-100">
+      Join thousands of teams already building with us. No credit card required.
+    </p>
+    <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <a
+        href="#"
+        class="w-full rounded-md bg-white px-6 py-3 text-base font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 sm:w-auto"
+      >
+        Get started
+      </a>
+      <a
+        href="#"
+        class="w-full rounded-md px-6 py-3 text-base font-semibold text-white ring-1 ring-inset ring-indigo-300 transition hover:bg-indigo-500 sm:w-auto"
+      >
+        Learn more
+      </a>
+    </div>
+  </div>
+</section></div></div>
+      <h3 data-prose>What comes next</h3>
+      <p data-prose>We ship again in June. Tell us what to build.</p>
+      <table data-prose><thead><tr><th data-prose>Plan</th><th data-prose>Seats</th></tr></thead><tbody><tr><td data-prose>Team</td><td data-prose>10</td></tr></tbody></table>
+    </div>
+  </article>
+  <aside data-shell class="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 data-shell class="font-display text-lg font-semibold text-slate-900">In this issue</h2>
+    <a data-shell href="#" class="block text-sm text-brand-700 hover:underline">Editor rebuild</a>
+    <a data-shell href="#" class="block text-sm text-brand-700 hover:underline">Pricing changes</a>
+  </aside>
+</main>
+<footer data-shell class="border-t border-slate-200 py-8 text-center text-sm text-slate-500">&copy; 2026 Northwind</footer>
+<script src="boot.js"></script></body></html>

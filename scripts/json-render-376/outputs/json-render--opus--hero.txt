@@ -1,0 +1,9 @@
+{"op":"add","path":"/root","value":"hero"}
+{"op":"add","path":"/elements/hero","value":{"type":"Stack","props":{"direction":"vertical","className":"items-center text-center gap-6 py-24 px-6 max-w-3xl mx-auto"},"children":["badge","headline","subheading","actions","trusted"]}}
+{"op":"add","path":"/elements/badge","value":{"type":"Badge","props":{"text":"New: v2.0","variant":"secondary"},"children":[]}}
+{"op":"add","path":"/elements/headline","value":{"type":"Text","props":{"text":"Ship products faster than ever before","variant":"h1","className":"text-5xl font-bold tracking-tight"},"children":[]}}
+{"op":"add","path":"/elements/subheading","value":{"type":"Text","props":{"text":"The all-in-one platform that helps your team build, launch, and scale with confidence.","variant":"body","className":"text-lg text-muted-foreground max-w-xl"},"children":[]}}
+{"op":"add","path":"/elements/actions","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-4 justify-center"},"children":["btn-start","btn-learn"]}}
+{"op":"add","path":"/elements/btn-start","value":{"type":"Button","props":{"label":"Get started","variant":"default","size":"lg"},"children":[]}}
+{"op":"add","path":"/elements/btn-learn","value":{"type":"Button","props":{"label":"Learn more","variant":"outline","size":"lg"},"children":[]}}
+{"op":"add","path":"/elements/trusted","value":{"type":"Text","props":{"text":"Trusted by 2,000+ teams","variant":"small","className":"text-muted-foreground mt-2"},"children":[]}}

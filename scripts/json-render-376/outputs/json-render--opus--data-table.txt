@@ -1,0 +1,21 @@
+{"op":"add","path":"/root","value":"main"}
+{"op":"add","path":"/elements/main","value":{"type":"Card","props":{"className":"max-w-3xl mx-auto"},"children":["header","table-head","rows"]}}
+{"op":"add","path":"/elements/header","value":{"type":"Stack","props":{"direction":"horizontal","className":"items-center justify-between mb-4"},"children":["header-title","export-btn"]}}
+{"op":"add","path":"/elements/header-title","value":{"type":"Text","props":{"text":"Recent orders","variant":"h2"},"children":[]}}
+{"op":"add","path":"/elements/export-btn","value":{"type":"Button","props":{"label":"Export","variant":"outline","size":"sm"},"children":[]}}
+{"op":"add","path":"/elements/table-head","value":{"type":"Grid","props":{"columns":4,"className":"px-3 py-2 border-b border-border text-muted-foreground"},"children":["h-order","h-customer","h-status","h-amount"]}}
+{"op":"add","path":"/elements/h-order","value":{"type":"Text","props":{"text":"Order","variant":"small","className":"font-medium"},"children":[]}}
+{"op":"add","path":"/elements/h-customer","value":{"type":"Text","props":{"text":"Customer","variant":"small","className":"font-medium"},"children":[]}}
+{"op":"add","path":"/elements/h-status","value":{"type":"Text","props":{"text":"Status","variant":"small","className":"font-medium"},"children":[]}}
+{"op":"add","path":"/elements/h-amount","value":{"type":"Text","props":{"text":"Amount","variant":"small","className":"font-medium text-right"},"children":[]}}
+{"op":"add","path":"/elements/rows","value":{"type":"Grid","props":{"columns":4,"className":"px-3 py-3 border-b border-border items-center"},"repeat":{"statePath":"/orders","key":"id"},"children":["r-order","r-customer","r-status","r-amount"]}}
+{"op":"add","path":"/elements/r-order","value":{"type":"Text","props":{"text":{"$item":"order"},"variant":"body","className":"font-medium"},"children":[]}}
+{"op":"add","path":"/elements/r-customer","value":{"type":"Text","props":{"text":{"$item":"customer"},"variant":"body"},"children":[]}}
+{"op":"add","path":"/elements/r-status","value":{"type":"Stack","props":{"direction":"horizontal"},"children":["r-status-badge"]}}
+{"op":"add","path":"/elements/r-status-badge","value":{"type":"Badge","props":{"text":{"$item":"status"},"variant":{"$cond":{"$item":"status","eq":"Paid"},"$then":"default","$else":{"$cond":{"$item":"status","eq":"Pending"},"$then":"outline","$else":"destructive"}}},"children":[]}}
+{"op":"add","path":"/elements/r-amount","value":{"type":"Text","props":{"text":{"$item":"amount"},"variant":"body","className":"text-right font-medium"},"children":[]}}
+{"op":"add","path":"/state/orders","value":[]}
+{"op":"add","path":"/state/orders/0","value":{"id":"1","order":"#1024","customer":"Alice Johnson","status":"Paid","amount":"$249.00"}}
+{"op":"add","path":"/state/orders/1","value":{"id":"2","order":"#1025","customer":"Marcus Lee","status":"Pending","amount":"$89.50"}}
+{"op":"add","path":"/state/orders/2","value":{"id":"3","order":"#1026","customer":"Priya Patel","status":"Refunded","amount":"$120.00"}}
+{"op":"add","path":"/state/orders/3","value":{"id":"4","order":"#1027","customer":"David Kim","status":"Paid","amount":"$540.75"}}

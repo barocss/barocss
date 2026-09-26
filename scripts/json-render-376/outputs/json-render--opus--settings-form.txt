@@ -1,0 +1,22 @@
+{"op":"add","path":"/root","value":"main"}
+{"op":"add","path":"/elements/main","value":{"type":"Card","props":{"title":"Notification Settings","description":"Manage your account and notification preferences","className":"max-w-xl mx-auto"},"children":["form-stack"]}}
+{"op":"add","path":"/elements/form-stack","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-6"},"children":["section-profile","sep-1","section-notifications","sep-2","section-plan","sep-3","actions"]}}
+{"op":"add","path":"/elements/section-profile","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-4"},"children":["profile-heading","field-name","field-email"]}}
+{"op":"add","path":"/elements/profile-heading","value":{"type":"Text","props":{"text":"Profile","variant":"h3"},"children":[]}}
+{"op":"add","path":"/elements/field-name","value":{"type":"Input","props":{"label":"Full name","placeholder":"Jane Doe","type":"text","value":{"$bindState":"/form/fullName"}},"children":[]}}
+{"op":"add","path":"/state/form","value":{"fullName":"Jinho Park","email":"jinho.park.s3@navercorp.com","emailNotifications":true,"weeklyDigest":false,"plan":"Pro"}}
+{"op":"add","path":"/elements/field-email","value":{"type":"Input","props":{"label":"Email","placeholder":"you@example.com","type":"email","value":{"$bindState":"/form/email"}},"children":[]}}
+{"op":"add","path":"/elements/sep-1","value":{"type":"Separator","props":{},"children":[]}}
+{"op":"add","path":"/elements/section-notifications","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-4"},"children":["notif-heading","toggle-email","toggle-digest"]}}
+{"op":"add","path":"/elements/notif-heading","value":{"type":"Text","props":{"text":"Notifications","variant":"h3"},"children":[]}}
+{"op":"add","path":"/elements/toggle-email","value":{"type":"Switch","props":{"label":"Email notifications","checked":{"$bindState":"/form/emailNotifications"}},"children":[]}}
+{"op":"add","path":"/elements/toggle-digest","value":{"type":"Switch","props":{"label":"Weekly digest","checked":{"$bindState":"/form/weeklyDigest"}},"children":[]}}
+{"op":"add","path":"/elements/sep-2","value":{"type":"Separator","props":{},"children":[]}}
+{"op":"add","path":"/elements/section-plan","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-4"},"children":["plan-heading","field-plan"]}}
+{"op":"add","path":"/elements/plan-heading","value":{"type":"Text","props":{"text":"Subscription","variant":"h3"},"children":[]}}
+{"op":"add","path":"/elements/field-plan","value":{"type":"Select","props":{"label":"Plan","options":["Free","Pro","Team"],"value":{"$bindState":"/form/plan"}},"children":[]}}
+{"op":"add","path":"/elements/sep-3","value":{"type":"Separator","props":{},"children":[]}}
+{"op":"add","path":"/elements/actions","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-3 justify-end"},"children":["btn-cancel","btn-save"]}}
+{"op":"add","path":"/elements/btn-cancel","value":{"type":"Button","props":{"label":"Cancel","variant":"outline"},"on":{"press":{"action":"setState","params":{"statePath":"/saved","value":false}}},"children":[]}}
+{"op":"add","path":"/elements/btn-save","value":{"type":"Button","props":{"label":"Save changes","variant":"default"},"on":{"press":{"action":"setState","params":{"statePath":"/saved","value":true}}},"children":[]}}
+{"op":"add","path":"/state/saved","value":false}

@@ -1,0 +1,64 @@
+{"op":"add","path":"/root","value":"main"}
+{"op":"add","path":"/elements/main","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-8 p-8 max-w-6xl mx-auto"},"children":["header","tiers"]}}
+{"op":"add","path":"/elements/header","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-2 items-center text-center"},"children":["title","subtitle"]}}
+{"op":"add","path":"/elements/title","value":{"type":"Text","props":{"text":"Simple, transparent pricing","variant":"h1"},"children":[]}}
+{"op":"add","path":"/elements/subtitle","value":{"type":"Text","props":{"text":"Choose the plan that fits your team. No hidden fees.","variant":"muted"},"children":[]}}
+{"op":"add","path":"/elements/tiers","value":{"type":"Grid","props":{"columns":3,"className":"gap-6 items-stretch"},"children":["starter","pro","team"]}}
+{"op":"add","path":"/elements/starter","value":{"type":"Card","props":{"className":"flex flex-col gap-6 p-6"},"children":["starter-head","starter-price","starter-sep","starter-features","starter-cta"]}}
+{"op":"add","path":"/elements/starter-head","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-1"},"children":["starter-name","starter-desc"]}}
+{"op":"add","path":"/elements/starter-name","value":{"type":"Text","props":{"text":"Starter","variant":"h3"},"children":[]}}
+{"op":"add","path":"/elements/starter-desc","value":{"type":"Text","props":{"text":"For individuals getting started","variant":"muted"},"children":[]}}
+{"op":"add","path":"/elements/starter-price","value":{"type":"Stack","props":{"direction":"horizontal","className":"items-end gap-1"},"children":["starter-amount","starter-period"]}}
+{"op":"add","path":"/elements/starter-amount","value":{"type":"Text","props":{"text":"$0","variant":"h1"},"children":[]}}
+{"op":"add","path":"/elements/starter-period","value":{"type":"Text","props":{"text":"/month","variant":"muted","className":"pb-1"},"children":[]}}
+{"op":"add","path":"/elements/starter-sep","value":{"type":"Separator","props":{},"children":[]}}
+{"op":"add","path":"/elements/starter-features","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-3 flex-1"},"children":["sf1","sf2","sf3"]}}
+{"op":"add","path":"/elements/sf1","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 items-center"},"children":["sf1-icon","sf1-text"]}}
+{"op":"add","path":"/elements/sf1-icon","value":{"type":"Icon","props":{"name":"check"},"children":[]}}
+{"op":"add","path":"/elements/sf1-text","value":{"type":"Text","props":{"text":"1 project","variant":"body"},"children":[]}}
+{"op":"add","path":"/elements/sf2","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 items-center"},"children":["sf2-icon","sf2-text"]}}
+{"op":"add","path":"/elements/sf2-icon","value":{"type":"Icon","props":{"name":"check"},"children":[]}}
+{"op":"add","path":"/elements/sf2-text","value":{"type":"Text","props":{"text":"Community support","variant":"body"},"children":[]}}
+{"op":"add","path":"/elements/sf3","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 items-center"},"children":["sf3-icon","sf3-text"]}}
+{"op":"add","path":"/elements/sf3-icon","value":{"type":"Icon","props":{"name":"check"},"children":[]}}
+{"op":"add","path":"/elements/sf3-text","value":{"type":"Text","props":{"text":"500 MB storage","variant":"body"},"children":[]}}
+{"op":"add","path":"/elements/starter-cta","value":{"type":"Button","props":{"label":"Get started","variant":"outline","size":"lg","className":"w-full"},"children":[]}}
+{"op":"add","path":"/elements/pro","value":{"type":"Card","props":{"className":"flex flex-col gap-6 p-6 border-2 border-primary shadow-lg relative"},"children":["pro-badge","pro-head","pro-price","pro-sep","pro-features","pro-cta"]}}
+{"op":"add","path":"/elements/pro-badge","value":{"type":"Badge","props":{"text":"Most popular","variant":"default"},"children":[]}}
+{"op":"add","path":"/elements/pro-head","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-1"},"children":["pro-name","pro-desc"]}}
+{"op":"add","path":"/elements/pro-name","value":{"type":"Text","props":{"text":"Pro","variant":"h3"},"children":[]}}
+{"op":"add","path":"/elements/pro-desc","value":{"type":"Text","props":{"text":"For growing professionals","variant":"muted"},"children":[]}}
+{"op":"add","path":"/elements/pro-price","value":{"type":"Stack","props":{"direction":"horizontal","className":"items-end gap-1"},"children":["pro-amount","pro-period"]}}
+{"op":"add","path":"/elements/pro-amount","value":{"type":"Text","props":{"text":"$19","variant":"h1"},"children":[]}}
+{"op":"add","path":"/elements/pro-period","value":{"type":"Text","props":{"text":"/month","variant":"muted","className":"pb-1"},"children":[]}}
+{"op":"add","path":"/elements/pro-sep","value":{"type":"Separator","props":{},"children":[]}}
+{"op":"add","path":"/elements/pro-features","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-3 flex-1"},"children":["pf1","pf2","pf3"]}}
+{"op":"add","path":"/elements/pf1","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 items-center"},"children":["pf1-icon","pf1-text"]}}
+{"op":"add","path":"/elements/pf1-icon","value":{"type":"Icon","props":{"name":"check"},"children":[]}}
+{"op":"add","path":"/elements/pf1-text","value":{"type":"Text","props":{"text":"Unlimited projects","variant":"body"},"children":[]}}
+{"op":"add","path":"/elements/pf2","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 items-center"},"children":["pf2-icon","pf2-text"]}}
+{"op":"add","path":"/elements/pf2-icon","value":{"type":"Icon","props":{"name":"check"},"children":[]}}
+{"op":"add","path":"/elements/pf2-text","value":{"type":"Text","props":{"text":"Priority email support","variant":"body"},"children":[]}}
+{"op":"add","path":"/elements/pf3","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 items-center"},"children":["pf3-icon","pf3-text"]}}
+{"op":"add","path":"/elements/pf3-icon","value":{"type":"Icon","props":{"name":"check"},"children":[]}}
+{"op":"add","path":"/elements/pf3-text","value":{"type":"Text","props":{"text":"50 GB storage","variant":"body"},"children":[]}}
+{"op":"add","path":"/elements/pro-cta","value":{"type":"Button","props":{"label":"Start free trial","variant":"default","size":"lg","className":"w-full"},"children":[]}}
+{"op":"add","path":"/elements/team","value":{"type":"Card","props":{"className":"flex flex-col gap-6 p-6"},"children":["team-head","team-price","team-sep","team-features","team-cta"]}}
+{"op":"add","path":"/elements/team-head","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-1"},"children":["team-name","team-desc"]}}
+{"op":"add","path":"/elements/team-name","value":{"type":"Text","props":{"text":"Team","variant":"h3"},"children":[]}}
+{"op":"add","path":"/elements/team-desc","value":{"type":"Text","props":{"text":"For collaborative teams","variant":"muted"},"children":[]}}
+{"op":"add","path":"/elements/team-price","value":{"type":"Stack","props":{"direction":"horizontal","className":"items-end gap-1"},"children":["team-amount","team-period"]}}
+{"op":"add","path":"/elements/team-amount","value":{"type":"Text","props":{"text":"$49","variant":"h1"},"children":[]}}
+{"op":"add","path":"/elements/team-period","value":{"type":"Text","props":{"text":"/month","variant":"muted","className":"pb-1"},"children":[]}}
+{"op":"add","path":"/elements/team-sep","value":{"type":"Separator","props":{},"children":[]}}
+{"op":"add","path":"/elements/team-features","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-3 flex-1"},"children":["tf1","tf2","tf3"]}}
+{"op":"add","path":"/elements/tf1","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 items-center"},"children":["tf1-icon","tf1-text"]}}
+{"op":"add","path":"/elements/tf1-icon","value":{"type":"Icon","props":{"name":"check"},"children":[]}}
+{"op":"add","path":"/elements/tf1-text","value":{"type":"Text","props":{"text":"Everything in Pro","variant":"body"},"children":[]}}
+{"op":"add","path":"/elements/tf2","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 items-center"},"children":["tf2-icon","tf2-text"]}}
+{"op":"add","path":"/elements/tf2-icon","value":{"type":"Icon","props":{"name":"check"},"children":[]}}
+{"op":"add","path":"/elements/tf2-text","value":{"type":"Text","props":{"text":"Team collaboration","variant":"body"},"children":[]}}
+{"op":"add","path":"/elements/tf3","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 items-center"},"children":["tf3-icon","tf3-text"]}}
+{"op":"add","path":"/elements/tf3-icon","value":{"type":"Icon","props":{"name":"check"},"children":[]}}
+{"op":"add","path":"/elements/tf3-text","value":{"type":"Text","props":{"text":"500 GB storage","variant":"body"},"children":[]}}
+{"op":"add","path":"/elements/team-cta","value":{"type":"Button","props":{"label":"Contact sales","variant":"outline","size":"lg","className":"w-full"},"children":[]}}

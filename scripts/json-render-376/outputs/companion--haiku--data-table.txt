@@ -1,0 +1,57 @@
+<div class="space-y-4">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-foreground">Recent orders</h2>
+    <button class="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm font-medium hover:opacity-90 transition-opacity">
+      Export
+    </button>
+  </div>
+  
+  <!-- Table -->
+  <div class="border border-border rounded-md overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-muted border-b border-border">
+        <tr>
+          <th class="px-6 py-3 text-left font-medium text-foreground">Order</th>
+          <th class="px-6 py-3 text-left font-medium text-foreground">Customer</th>
+          <th class="px-6 py-3 text-left font-medium text-foreground">Status</th>
+          <th class="px-6 py-3 text-left font-medium text-foreground">Amount</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border">
+        <tr class="hover:bg-muted/50">
+          <td class="px-6 py-3 text-foreground">#ORD-001</td>
+          <td class="px-6 py-3 text-foreground">John Smith</td>
+          <td class="px-6 py-3">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Paid</span>
+          </td>
+          <td class="px-6 py-3 font-medium text-foreground">$240.00</td>
+        </tr>
+        <tr class="hover:bg-muted/50">
+          <td class="px-6 py-3 text-foreground">#ORD-002</td>
+          <td class="px-6 py-3 text-foreground">Sarah Johnson</td>
+          <td class="px-6 py-3">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Pending</span>
+          </td>
+          <td class="px-6 py-3 font-medium text-foreground">$150.50</td>
+        </tr>
+        <tr class="hover:bg-muted/50">
+          <td class="px-6 py-3 text-foreground">#ORD-003</td>
+          <td class="px-6 py-3 text-foreground">Michael Brown</td>
+          <td class="px-6 py-3">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Refunded</span>
+          </td>
+          <td class="px-6 py-3 font-medium text-foreground">$89.99</td>
+        </tr>
+        <tr class="hover:bg-muted/50">
+          <td class="px-6 py-3 text-foreground">#ORD-004</td>
+          <td class="px-6 py-3 text-foreground">Emma Wilson</td>
+          <td class="px-6 py-3">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Paid</span>
+          </td>
+          <td class="px-6 py-3 font-medium text-foreground">$320.00</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

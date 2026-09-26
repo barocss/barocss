@@ -60,6 +60,7 @@ export interface BrowserRuntimeOptions {
    * so no nonce is needed. The adopted sheets come after every document sheet in cascade order (preflight stays
    * in `@layer base`). Where `document.adoptedStyleSheets` is unsupported it falls back to `<style>` elements
    * (with `nonce` when set). `insertionPoint`, `styleId` and `maxRulesPerPartition` are ignored when adopted.
+   * #384: with a shadow `root` it only makes the document-level `@property` sheet an adopted sheet.
    * Default: false.
    */
   constructable?: boolean;
@@ -157,7 +158,7 @@ export class BrowserRuntime {
         this.incrementalParser = new SharedIncrementalParser(shared);
         this.changeDetector?.setParser(this.incrementalParser);
       }
-      return new ShadowRootStyles(shared, this.shadowRoot, this.getCategory, { nonce: this.options.nonce });
+      return new ShadowRootStyles(shared, this.shadowRoot, this.getCategory, { nonce: this.options.nonce, constructable: this.options.constructable });
     }
     if (this.options.constructable && typeof document !== 'undefined' && canConstruct('document')) {
       // #347: a private (not shared) #327 sheet pair, adopted by the document; reuses this runtime's context.

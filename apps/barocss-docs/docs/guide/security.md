@@ -70,7 +70,9 @@ two ways to run it without `'unsafe-inline'`:
   `document.adoptedStyleSheets`, so no nonce is needed (even `style-src 'self'` works). Adopted
   sheets come after every document stylesheet in the cascade. Where the browser lacks
   `document.adoptedStyleSheets`, the runtime falls back to `<style>` elements (with `nonce` if given),
-  so pass both for full coverage. A Shadow DOM `root` already uses adopted sheets.
+  so pass both for full coverage. A Shadow DOM `root` already uses adopted sheets for its own CSS;
+  there `constructable` only makes the document-level `@property` sheet (#384) an adopted sheet
+  instead of a `<style>`.
 - Pass `nonce` / `constructable` on the **first** `getRuntime()` / `baroStart()` call: a later call
   reuses the existing runtime and does not change how it injects styles.
   If a later call asks for a different `nonce` / `constructable`, BaroCSS logs a one-time `console.warn`.
@@ -136,8 +138,9 @@ second layer of end-tag protection on top of the generator's own guarantee.
 ### Shadow DOM `root` for embedded widgets
 
 Pass a `ShadowRoot` as the browser runtime's `root` option (#327) to confine generated rules to the
-widget: nothing is written to the document's stylesheets, so widget classes cannot restyle the
-host page. See [Embedding AI widgets (Shadow DOM)](/guide/integration/shadow-dom).
+widget: the only thing written to the document is one sheet of `@property` registrations
+(#384; browsers ignore `@property` inside shadow roots), which carries the `nonce` or is an adopted
+sheet with `constructable: true`. It holds no selectors, so widget classes cannot restyle the host page. See [Embedding AI widgets (Shadow DOM)](/guide/integration/shadow-dom).
 
 ### Optional class allowlist
 
