@@ -36,6 +36,16 @@ describe('ServerRuntime', () => {
     expect(css).not.toContain('--color-green-500');
   });
 
+  it('skips self-referencing theme root vars but keeps the utility reference (#260)', () => {
+    const css = new ServerRuntime({
+      theme: { extend: { colors: { brand: { 600: 'var(--color-brand-600)', 700: 'var(--color-brand-700, #111)', 800: '#222' } } } },
+    }).generateCss('bg-brand-600 text-brand-700 border-brand-800');
+    expect(css).toContain('var(--color-brand-600)');
+    expect(css).not.toMatch(/--color-brand-600:/);
+    expect(css).not.toMatch(/--color-brand-700:/);
+    expect(css).toContain('--color-brand-800: #222;');
+  });
+
   it('bracketed and decimal alpha on theme colours emit valid percentages (#236)', () => {
     const css = runtime.generateCss('bg-red-500/[37%] bg-red-500/[0.5] text-blue-500/[.8]');
     expect(css).toContain('var(--color-red-500) 37%');
