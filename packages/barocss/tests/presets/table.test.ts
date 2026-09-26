@@ -18,62 +18,30 @@ describe("table utilities", () => {
   });
 });
 
+// #314: each axis is a --baro-border-spacing-x/y var; border-spacing composes both (Tailwind 4.3.3).
+const decls = (cls: string) =>
+  (parseClassToAst(cls, ctx) as { type: string; prop?: string; value?: string }[])
+    .filter((n) => n.type === "decl")
+    .map((n) => [n.prop, n.value]);
+const BS = ["border-spacing", "var(--baro-border-spacing-x) var(--baro-border-spacing-y)"];
+
 describe("border-spacing", () => {
-  it("border-spacing-0 → border-spacing: calc(var(--spacing) * 0)", () => {
-    expect(parseClassToAst("border-spacing-0", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "calc(var(--spacing) * 0)" },
-    ]);
-  });
-  it("border-spacing-2 → border-spacing: calc(var(--spacing) * 2)", () => {
-    expect(parseClassToAst("border-spacing-2", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "calc(var(--spacing) * 2)" },
-    ]);
-  });
-  it("border-spacing-[5px] → border-spacing: 5px", () => {
-    expect(parseClassToAst("border-spacing-[5px]", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "5px" },
-    ]);
-  });
-  it("border-spacing-(--my-spacing) → border-spacing: var(--my-spacing)", () => {
-    expect(parseClassToAst("border-spacing-(--my-spacing)", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "var(--my-spacing)" },
-    ]);
-  });
-});
-
-describe("border-spacing-x", () => {
-  it("border-spacing-x-4 → border-spacing: calc(var(--spacing) * 4) var(--baro-border-spacing-y)", () => {
-    expect(parseClassToAst("border-spacing-x-4", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "calc(var(--spacing) * 4) var(--baro-border-spacing-y)" },
-    ]);
-  });
-  it("border-spacing-x-[8px] → border-spacing: 8px var(--baro-border-spacing-y)", () => {
-    expect(parseClassToAst("border-spacing-x-[8px]", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "8px var(--baro-border-spacing-y)" },
-    ]);
-  });
-  it("border-spacing-x-(--my-x) → border-spacing: var(--my-x) var(--baro-border-spacing-y)", () => {
-    expect(parseClassToAst("border-spacing-x-(--my-x)", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "var(--my-x) var(--baro-border-spacing-y)" },
-    ]);
-  });
-});
-
-describe("border-spacing-y", () => {
-  it("border-spacing-y-3 → border-spacing: var(--baro-border-spacing-x) calc(var(--spacing) * 3)", () => {
-    expect(parseClassToAst("border-spacing-y-3", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "var(--baro-border-spacing-x) calc(var(--spacing) * 3)" },
-    ]);
-  });
-  it("border-spacing-y-[12px] → border-spacing: var(--baro-border-spacing-x) 12px", () => {
-    expect(parseClassToAst("border-spacing-y-[12px]", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "var(--baro-border-spacing-x) 12px" },
-    ]);
-  });
-  it("border-spacing-y-(--my-y) → border-spacing: var(--baro-border-spacing-x) var(--my-y)", () => {
-    expect(parseClassToAst("border-spacing-y-(--my-y)", ctx)).toEqual([
-      { type: "decl", prop: "border-spacing", value: "var(--baro-border-spacing-x) var(--my-y)" },
-    ]);
+  ([
+    ["border-spacing-0", ["x", "y"], "calc(var(--spacing) * 0)"],
+    ["border-spacing-2", ["x", "y"], "calc(var(--spacing) * 2)"],
+    ["border-spacing-px", ["x", "y"], "1px"],
+    ["border-spacing-[5px]", ["x", "y"], "5px"],
+    ["border-spacing-(--my-spacing)", ["x", "y"], "var(--my-spacing)"],
+    ["border-spacing-x-4", ["x"], "calc(var(--spacing) * 4)"],
+    ["border-spacing-x-[8px]", ["x"], "8px"],
+    ["border-spacing-x-(--my-x)", ["x"], "var(--my-x)"],
+    ["border-spacing-y-3", ["y"], "calc(var(--spacing) * 3)"],
+    ["border-spacing-y-[12px]", ["y"], "12px"],
+    ["border-spacing-y-(--my-y)", ["y"], "var(--my-y)"],
+  ] as [string, string[], string][]).forEach(([cls, axes, v]) => {
+    it(`${cls} → ${axes.map((a) => `--baro-border-spacing-${a}`).join(", ")}: ${v}`, () => {
+      expect(decls(cls)).toEqual([...axes.map((a) => [`--baro-border-spacing-${a}`, v]), BS]);
+    });
   });
 });
 
