@@ -14,8 +14,8 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
   is known in advance, pre-generate instead of using BaroCSS.
 - **Official and mature: Tailwind / `@tailwindcss/browser`.** `@tailwindcss/browser` is the upstream
   project's own runtime, with Tailwind's ecosystem and support behind it. BaroCSS is a reimplementation: it
-  is 100% on its own parity corpora (#241, #304) but only **94.5% on a held-out corpus** (#243, dev after
-  0.4.0; the misses are listed in KNOWN_FAILURES). Plugins such as typography are untested (#253).
+  is 100% on its own parity corpora (#241, #304) and 100% on a held-out corpus of 567 unseen classes (vs Tailwind 4.3.3, dev after 0.10.1;
+  it was 94.5% when #243 first measured it on dev after 0.4.0). Plugins such as typography are untested (#253).
 - **No-build pages (MCP Apps, default CSP): BaroCSS is not unique.** twb already covers the scenario (#198).
   BaroCSS's default runtime injects no preflight, so on that page it scored below twb (92.3% default,
   98.1% with `preflight: true`, vs twb 100%; dev after 0.4.0). #305 (dev after 0.8.0) reports the #198
@@ -29,7 +29,7 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
 | axis | BaroCSS | `@tailwindcss/browser` | build-time pre-gen | no runtime | source (release) |
 |---|---|---|---|---|---|
 | Class parity corpora vs Tailwind 4.3.3 and 4.1.13 | 100% | reference implementation | – | – | #241 (dev after 0.4.0), #304 (dev after 0.7.0) |
-| Held-out classes (567 unseen) | 94.5% | – | – | – | #243 (dev after 0.4.0) |
+| Held-out classes (567 unseen) | 100% (94.5% in #243) | – | – | – | held-out parity test (dev after 0.10.1); #243 (dev after 0.4.0) |
 | CMS blocks (#253 set) on a strict-CSP page | **1.0 / 1.0** (nonce or constructable), 0 violations | broken (styles blocked) | – | – | #347 (dev after 0.9.0) |
 | CMS blocks in shadow-root mode | **1.000 / 1.000** (site-only control) | cannot style shadow roots | – | – | #355 (dev after 0.9.0) |
 | Real model specs in a built app (10 specs) | 0.859 of elements, shell 1.000 | 0.000, shell 0.969 | – | 0.163 | #231 (dev after 0.4.0); unchanged in #305 (dev after 0.8.0) |
