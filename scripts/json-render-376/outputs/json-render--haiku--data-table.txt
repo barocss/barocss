@@ -1,0 +1,22 @@
+{"op":"add","path":"/root","value":"main"}
+{"op":"add","path":"/elements/main","value":{"type":"Stack","props":{"direction":"vertical","className":"space-y-6"},"children":["header","table-container"]}}
+{"op":"add","path":"/elements/header","value":{"type":"Stack","props":{"direction":"horizontal","className":"justify-between items-center"},"children":["title","export-btn"]}}
+{"op":"add","path":"/elements/title","value":{"type":"Text","props":{"text":"Recent orders","variant":"h2"},"children":[]}}
+{"op":"add","path":"/elements/export-btn","value":{"type":"Button","props":{"label":"Export","variant":"outline"},"children":[]}}
+{"op":"add","path":"/elements/table-container","value":{"type":"Card","props":{},"children":["table-header","rows-container"]}}
+{"op":"add","path":"/elements/table-header","value":{"type":"Grid","props":{"columns":4,"className":"gap-4 font-semibold border-b border-border pb-4 mb-4"},"children":["header-order","header-customer","header-status","header-amount"]}}
+{"op":"add","path":"/elements/header-order","value":{"type":"Text","props":{"text":"Order","variant":"body","className":"text-sm"},"children":[]}}
+{"op":"add","path":"/elements/header-customer","value":{"type":"Text","props":{"text":"Customer","variant":"body","className":"text-sm"},"children":[]}}
+{"op":"add","path":"/elements/header-status","value":{"type":"Text","props":{"text":"Status","variant":"body","className":"text-sm"},"children":[]}}
+{"op":"add","path":"/elements/header-amount","value":{"type":"Text","props":{"text":"Amount","variant":"body","className":"text-sm"},"children":[]}}
+{"op":"add","path":"/elements/rows-container","value":{"type":"Stack","props":{"direction":"vertical"},"children":["order-row"]}}
+{"op":"add","path":"/elements/order-row","value":{"type":"Grid","props":{"columns":4,"className":"gap-4 border-b border-border py-4"},"repeat":{"statePath":"/orders","key":"id"},"children":["data-order","data-customer","data-status","data-amount"]}}
+{"op":"add","path":"/state/orders","value":[]}
+{"op":"add","path":"/state/orders/0","value":{"id":"1","order":"#ORD-2401","customer":"Acme Corp","status":"Paid","amount":"$2,500.00"}}
+{"op":"add","path":"/state/orders/1","value":{"id":"2","order":"#ORD-2402","customer":"TechStart Inc","status":"Pending","amount":"$1,200.50"}}
+{"op":"add","path":"/state/orders/2","value":{"id":"3","order":"#ORD-2403","customer":"Global Solutions","status":"Refunded","amount":"$890.00"}}
+{"op":"add","path":"/state/orders/3","value":{"id":"4","order":"#ORD-2404","customer":"CloudFirst Ltd","status":"Paid","amount":"$3,450.75"}}
+{"op":"add","path":"/elements/data-order","value":{"type":"Text","props":{"text":{"$item":"order"},"variant":"body","className":"text-sm font-medium"},"children":[]}}
+{"op":"add","path":"/elements/data-customer","value":{"type":"Text","props":{"text":{"$item":"customer"},"variant":"body","className":"text-sm"},"children":[]}}
+{"op":"add","path":"/elements/data-status","value":{"type":"Badge","props":{"text":{"$item":"status"},"variant":{"$cond":{"$item":"status","eq":"Refunded"},"$then":"destructive","$else":{"$cond":{"$item":"status","eq":"Pending"},"$then":"secondary","$else":"default"}}},"children":[]}}
+{"op":"add","path":"/elements/data-amount","value":{"type":"Text","props":{"text":{"$item":"amount"},"variant":"body","className":"text-sm font-medium"},"children":[]}}

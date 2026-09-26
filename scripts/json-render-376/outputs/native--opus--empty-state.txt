@@ -1,0 +1,63 @@
+{
+  "el": "section",
+  "class": "flex flex-col items-center justify-center text-center py-16 px-6 max-w-md mx-auto",
+  "children": [
+    {
+      "el": "div",
+      "class": "flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-6",
+      "children": [
+        {
+          "el": "icon",
+          "class": "w-8 h-8 text-muted-foreground",
+          "attrs": { "name": "folder-plus" }
+        }
+      ]
+    },
+    {
+      "el": "h2",
+      "class": "text-xl font-semibold text-foreground mb-2",
+      "text": "No projects yet"
+    },
+    {
+      "el": "p",
+      "class": "text-sm text-muted-foreground mb-6",
+      "text": "Get started by creating your first project or import an existing one to begin organizing your work."
+    },
+    {
+      "el": "div",
+      "class": "flex flex-col sm:flex-row items-center justify-center gap-3",
+      "children": [
+        {
+          "el": "button",
+          "class": "inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90",
+          "children": [
+            {
+              "el": "icon",
+              "class": "w-4 h-4",
+              "attrs": { "name": "plus" }
+            },
+            {
+              "el": "span",
+              "text": "Create project"
+            }
+          ]
+        },
+        {
+          "el": "button",
+          "class": "inline-flex items-center justify-center gap-2 rounded-md border border-border bg-secondary text-secondary-foreground px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground",
+          "children": [
+            {
+              "el": "icon",
+              "class": "w-4 h-4",
+              "attrs": { "name": "upload" }
+            },
+            {
+              "el": "span",
+              "text": "Import"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

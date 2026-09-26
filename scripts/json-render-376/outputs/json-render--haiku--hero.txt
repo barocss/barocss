@@ -1,0 +1,9 @@
+{"op":"add","path":"/root","value":"main-stack"}
+{"op":"add","path":"/elements/main-stack","value":{"type":"Stack","props":{"direction":"vertical","className":"flex flex-col items-center justify-center gap-8 py-24 px-4 min-h-screen"},"children":["badge","headline","subheading","buttons-container","trust-line"]}}
+{"op":"add","path":"/elements/badge","value":{"type":"Badge","props":{"text":"New: v2.0","variant":"secondary"},"children":[]}}
+{"op":"add","path":"/elements/headline","value":{"type":"Text","props":{"text":"Introducing Our Most Powerful Product Yet","variant":"h1","className":"text-center max-w-3xl"},"children":[]}}
+{"op":"add","path":"/elements/subheading","value":{"type":"Text","props":{"text":"Transform your workflow with cutting-edge features designed for modern teams.","variant":"body","className":"text-center max-w-2xl text-muted-foreground"},"children":[]}}
+{"op":"add","path":"/elements/buttons-container","value":{"type":"Stack","props":{"direction":"horizontal","className":"flex flex-row items-center gap-4"},"children":["get-started-btn","learn-more-btn"]}}
+{"op":"add","path":"/elements/get-started-btn","value":{"type":"Button","props":{"label":"Get started","variant":"default","size":"lg"},"children":[]}}
+{"op":"add","path":"/elements/learn-more-btn","value":{"type":"Button","props":{"label":"Learn more","variant":"outline","size":"lg"},"children":[]}}
+{"op":"add","path":"/elements/trust-line","value":{"type":"Text","props":{"text":"Trusted by 2,000+ teams","variant":"small","className":"text-center text-muted-foreground"},"children":[]}}

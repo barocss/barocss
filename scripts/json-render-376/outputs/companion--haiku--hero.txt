@@ -1,0 +1,33 @@
+<div class="min-h-screen bg-background flex items-center justify-center px-4">
+  <div class="w-full max-w-4xl py-16 text-center">
+    <!-- Badge -->
+    <div class="inline-block mb-6 px-4 py-1 rounded-full bg-secondary text-secondary-foreground text-sm font-medium">
+      New: v2.0
+    </div>
+    
+    <!-- Headline -->
+    <h1 class="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
+      Transform Your Workflow
+    </h1>
+    
+    <!-- Subheading -->
+    <p class="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+      Build, deploy, and scale your applications with unprecedented speed and reliability.
+    </p>
+    
+    <!-- Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+      <button class="px-8 py-3 bg-primary text-primary-foreground rounded-md font-semibold hover:opacity-90 transition-opacity">
+        Get started
+      </button>
+      <button class="px-8 py-3 border border-input text-foreground rounded-md font-semibold hover:bg-muted transition-colors">
+        Learn more
+      </button>
+    </div>
+    
+    <!-- Trust line -->
+    <p class="text-sm text-muted-foreground">
+      Trusted by 2,000+ teams
+    </p>
+  </div>
+</div>

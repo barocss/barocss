@@ -1,0 +1,283 @@
+{
+  "el": "section",
+  "class": "py-12 px-4 md:px-8 lg:px-16 bg-background",
+  "children": [
+    {
+      "el": "div",
+      "class": "max-w-6xl mx-auto",
+      "children": [
+        {
+          "el": "div",
+          "class": "text-center mb-12",
+          "children": [
+            {
+              "el": "h2",
+              "class": "text-4xl font-bold text-foreground mb-4",
+              "text": "Simple, Transparent Pricing"
+            },
+            {
+              "el": "p",
+              "class": "text-lg text-muted-foreground",
+              "text": "Choose the perfect plan for your needs"
+            }
+          ]
+        },
+        {
+          "el": "div",
+          "class": "grid grid-cols-1 md:grid-cols-3 gap-8",
+          "children": [
+            {
+              "el": "div",
+              "class": "rounded-lg border border-border bg-card p-8 flex flex-col",
+              "children": [
+                {
+                  "el": "h3",
+                  "class": "text-2xl font-bold text-foreground mb-2",
+                  "text": "Starter"
+                },
+                {
+                  "el": "div",
+                  "class": "mb-6",
+                  "children": [
+                    {
+                      "el": "span",
+                      "class": "text-5xl font-bold text-foreground",
+                      "text": "$0"
+                    }
+                  ]
+                },
+                {
+                  "el": "ul",
+                  "class": "mb-8 space-y-3 grow",
+                  "children": [
+                    {
+                      "el": "li",
+                      "class": "flex items-center text-foreground",
+                      "children": [
+                        {
+                          "el": "icon",
+                          "name": "check",
+                          "class": "w-5 h-5 text-primary mr-3 flex-shrink-0"
+                        },
+                        {
+                          "el": "span",
+                          "text": "5 projects"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "li",
+                      "class": "flex items-center text-foreground",
+                      "children": [
+                        {
+                          "el": "icon",
+                          "name": "check",
+                          "class": "w-5 h-5 text-primary mr-3 flex-shrink-0"
+                        },
+                        {
+                          "el": "span",
+                          "text": "Basic analytics"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "li",
+                      "class": "flex items-center text-foreground",
+                      "children": [
+                        {
+                          "el": "icon",
+                          "name": "check",
+                          "class": "w-5 h-5 text-primary mr-3 flex-shrink-0"
+                        },
+                        {
+                          "el": "span",
+                          "text": "Community support"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "el": "button",
+                  "class": "w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 py-2 px-4 rounded-md font-medium",
+                  "text": "Get Started"
+                }
+              ]
+            },
+            {
+              "el": "div",
+              "class": "rounded-lg border-2 border-primary bg-card p-8 flex flex-col relative",
+              "children": [
+                {
+                  "el": "div",
+                  "class": "absolute -top-4 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground px-4 py-1 rounded-lg text-sm font-semibold",
+                  "text": "Most popular"
+                },
+                {
+                  "el": "h3",
+                  "class": "text-2xl font-bold text-foreground mb-2",
+                  "text": "Pro"
+                },
+                {
+                  "el": "div",
+                  "class": "mb-6",
+                  "children": [
+                    {
+                      "el": "span",
+                      "class": "text-5xl font-bold text-foreground",
+                      "text": "$19"
+                    },
+                    {
+                      "el": "span",
+                      "class": "text-muted-foreground ml-2",
+                      "text": "/month"
+                    }
+                  ]
+                },
+                {
+                  "el": "ul",
+                  "class": "mb-8 space-y-3 grow",
+                  "children": [
+                    {
+                      "el": "li",
+                      "class": "flex items-center text-foreground",
+                      "children": [
+                        {
+                          "el": "icon",
+                          "name": "check",
+                          "class": "w-5 h-5 text-primary mr-3 flex-shrink-0"
+                        },
+                        {
+                          "el": "span",
+                          "text": "Unlimited projects"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "li",
+                      "class": "flex items-center text-foreground",
+                      "children": [
+                        {
+                          "el": "icon",
+                          "name": "check",
+                          "class": "w-5 h-5 text-primary mr-3 flex-shrink-0"
+                        },
+                        {
+                          "el": "span",
+                          "text": "Advanced analytics"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "li",
+                      "class": "flex items-center text-foreground",
+                      "children": [
+                        {
+                          "el": "icon",
+                          "name": "check",
+                          "class": "w-5 h-5 text-primary mr-3 flex-shrink-0"
+                        },
+                        {
+                          "el": "span",
+                          "text": "Priority email support"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "el": "button",
+                  "class": "w-full bg-primary text-primary-foreground hover:bg-primary/90 py-2 px-4 rounded-md font-medium",
+                  "text": "Start Free Trial"
+                }
+              ]
+            },
+            {
+              "el": "div",
+              "class": "rounded-lg border border-border bg-card p-8 flex flex-col",
+              "children": [
+                {
+                  "el": "h3",
+                  "class": "text-2xl font-bold text-foreground mb-2",
+                  "text": "Team"
+                },
+                {
+                  "el": "div",
+                  "class": "mb-6",
+                  "children": [
+                    {
+                      "el": "span",
+                      "class": "text-5xl font-bold text-foreground",
+                      "text": "$49"
+                    },
+                    {
+                      "el": "span",
+                      "class": "text-muted-foreground ml-2",
+                      "text": "/month"
+                    }
+                  ]
+                },
+                {
+                  "el": "ul",
+                  "class": "mb-8 space-y-3 grow",
+                  "children": [
+                    {
+                      "el": "li",
+                      "class": "flex items-center text-foreground",
+                      "children": [
+                        {
+                          "el": "icon",
+                          "name": "check",
+                          "class": "w-5 h-5 text-primary mr-3 flex-shrink-0"
+                        },
+                        {
+                          "el": "span",
+                          "text": "Everything in Pro"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "li",
+                      "class": "flex items-center text-foreground",
+                      "children": [
+                        {
+                          "el": "icon",
+                          "name": "check",
+                          "class": "w-5 h-5 text-primary mr-3 flex-shrink-0"
+                        },
+                        {
+                          "el": "span",
+                          "text": "Team collaboration"
+                        }
+                      ]
+                    },
+                    {
+                      "el": "li",
+                      "class": "flex items-center text-foreground",
+                      "children": [
+                        {
+                          "el": "icon",
+                          "name": "check",
+                          "class": "w-5 h-5 text-primary mr-3 flex-shrink-0"
+                        },
+                        {
+                          "el": "span",
+                          "text": "24/7 phone support"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "el": "button",
+                  "class": "w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 py-2 px-4 rounded-md font-medium",
+                  "text": "Contact Sales"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

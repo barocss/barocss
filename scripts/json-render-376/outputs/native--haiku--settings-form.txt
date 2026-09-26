@@ -1,0 +1,142 @@
+{
+  "el": "div",
+  "class": "w-full max-w-md mx-auto p-6 bg-background rounded-lg border border-border",
+  "children": [
+    {
+      "el": "h2",
+      "class": "text-2xl font-bold mb-6 text-foreground",
+      "text": "Notification Settings"
+    },
+    {
+      "el": "div",
+      "class": "mb-5",
+      "children": [
+        {
+          "el": "label",
+          "class": "block text-sm font-medium text-foreground mb-2",
+          "for": "fullname",
+          "text": "Full name"
+        },
+        {
+          "el": "input",
+          "type": "text",
+          "id": "fullname",
+          "name": "fullname",
+          "placeholder": "Enter your full name",
+          "class": "w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "mb-5",
+      "children": [
+        {
+          "el": "label",
+          "class": "block text-sm font-medium text-foreground mb-2",
+          "for": "email",
+          "text": "Email"
+        },
+        {
+          "el": "input",
+          "type": "email",
+          "id": "email",
+          "name": "email",
+          "placeholder": "Enter your email",
+          "class": "w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "mb-5 flex items-center justify-between",
+      "children": [
+        {
+          "el": "label",
+          "class": "text-sm font-medium text-foreground",
+          "for": "email-notif",
+          "text": "Email notifications"
+        },
+        {
+          "el": "input",
+          "type": "checkbox",
+          "id": "email-notif",
+          "name": "email-notif",
+          "checked": true,
+          "class": "w-4 h-4 rounded-sm border border-input cursor-pointer accent-primary"
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "mb-6 flex items-center justify-between",
+      "children": [
+        {
+          "el": "label",
+          "class": "text-sm font-medium text-foreground",
+          "for": "weekly-digest",
+          "text": "Weekly digest"
+        },
+        {
+          "el": "input",
+          "type": "checkbox",
+          "id": "weekly-digest",
+          "name": "weekly-digest",
+          "checked": false,
+          "class": "w-4 h-4 rounded-sm border border-input cursor-pointer accent-primary"
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "mb-6",
+      "children": [
+        {
+          "el": "label",
+          "class": "block text-sm font-medium text-foreground mb-2",
+          "for": "plan",
+          "text": "Plan"
+        },
+        {
+          "el": "select",
+          "id": "plan",
+          "name": "plan",
+          "class": "w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary",
+          "children": [
+            {
+              "el": "option",
+              "value": "free",
+              "text": "Free"
+            },
+            {
+              "el": "option",
+              "value": "pro",
+              "text": "Pro"
+            },
+            {
+              "el": "option",
+              "value": "team",
+              "text": "Team"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "el": "div",
+      "class": "flex gap-3",
+      "children": [
+        {
+          "el": "button",
+          "class": "flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90",
+          "text": "Save changes"
+        },
+        {
+          "el": "button",
+          "class": "flex-1 px-4 py-2 bg-muted text-muted-foreground rounded-md font-medium hover:opacity-90 border border-border",
+          "text": "Cancel"
+        }
+      ]
+    }
+  ]
+}

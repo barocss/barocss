@@ -1,0 +1,8 @@
+{"op":"add","path":"/root","value":"main-stack"}
+{"op":"add","path":"/elements/main-stack","value":{"type":"Stack","props":{"direction":"vertical","className":"h-screen flex flex-col items-center justify-center gap-6"},"children":["empty-icon","empty-heading","empty-description","buttons-stack"]}}
+{"op":"add","path":"/elements/empty-icon","value":{"type":"Icon","props":{"name":"FolderOpen","className":"w-16 h-16 text-muted-foreground"},"children":[]}}
+{"op":"add","path":"/elements/empty-heading","value":{"type":"Text","props":{"text":"No projects yet","variant":"h2"},"children":[]}}
+{"op":"add","path":"/elements/empty-description","value":{"type":"Text","props":{"text":"Get started by creating your first project or importing an existing one.","variant":"body","className":"text-muted-foreground max-w-sm text-center"},"children":[]}}
+{"op":"add","path":"/elements/buttons-stack","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-3"},"children":["create-btn","import-btn"]}}
+{"op":"add","path":"/elements/create-btn","value":{"type":"Button","props":{"label":"Create project","variant":"default"},"children":[]}}
+{"op":"add","path":"/elements/import-btn","value":{"type":"Button","props":{"label":"Import","variant":"outline"},"children":[]}}

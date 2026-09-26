@@ -1,0 +1,13 @@
+{"version":"v0.9","createSurface":{"surfaceId":"main","catalogId":"https://a2ui.org/specification/v0_9/basic_catalog.json"}}
+{"version":"v0.9","updateComponents":{"surfaceId":"main","components":[
+  {"id":"root","component":"Card","child":"kpiContent"},
+  {"id":"kpiContent","component":"Column","children":["titleText","valueText","trendRow","progressSlider","viewReportBtn"],"align":"start","justify":"start"},
+  {"id":"titleText","component":"Text","text":"Monthly revenue","variant":"caption"},
+  {"id":"valueText","component":"Text","text":"$48,210","variant":"h1"},
+  {"id":"trendRow","component":"Row","children":["trendIcon","trendText"],"align":"center","justify":"start"},
+  {"id":"trendIcon","component":"Icon","name":"trendingUp"},
+  {"id":"trendText","component":"Text","text":"+12.5% vs last month","variant":"body"},
+  {"id":"progressSlider","component":"Slider","label":"Goal progress: $48,210 / $60,000 (80%)","min":0,"max":100,"value":80},
+  {"id":"viewReportBtnText","component":"Text","text":"View report"},
+  {"id":"viewReportBtn","component":"Button","child":"viewReportBtnText","variant":"primary","action":{"event":{"name":"viewReport"}}}
+]}}

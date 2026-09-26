@@ -1,0 +1,96 @@
+<section class="bg-background py-16 px-4">
+  <div class="mx-auto max-w-6xl">
+    <div class="mx-auto max-w-2xl text-center mb-12">
+      <h2 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Simple, transparent pricing</h2>
+      <p class="mt-4 text-lg text-muted-foreground">Choose the plan that fits your team. Upgrade or downgrade anytime.</p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-3 items-start">
+
+      <!-- Starter -->
+      <div class="flex flex-col rounded-xl border border-border bg-card p-8 shadow-sm">
+        <h3 class="text-lg font-semibold text-card-foreground">Starter</h3>
+        <p class="mt-2 text-sm text-muted-foreground">For individuals getting started.</p>
+        <div class="mt-6 flex items-baseline gap-1">
+          <span class="text-4xl font-bold tracking-tight text-card-foreground">$0</span>
+          <span class="text-sm text-muted-foreground">/month</span>
+        </div>
+        <ul class="mt-8 space-y-4 text-sm text-card-foreground flex-1">
+          <li class="flex items-center gap-3">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-secondary-foreground">✓</span>
+            Up to 3 projects
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-secondary-foreground">✓</span>
+            Community support
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-secondary-foreground">✓</span>
+            1 GB storage
+          </li>
+        </ul>
+        <button class="mt-8 w-full rounded-md border border-border bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+          Get started
+        </button>
+      </div>
+
+      <!-- Pro (highlighted) -->
+      <div class="relative flex flex-col rounded-xl border-2 border-primary bg-card p-8 shadow-lg md:-translate-y-2">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+          Most popular
+        </span>
+        <h3 class="text-lg font-semibold text-card-foreground">Pro</h3>
+        <p class="mt-2 text-sm text-muted-foreground">For growing professionals.</p>
+        <div class="mt-6 flex items-baseline gap-1">
+          <span class="text-4xl font-bold tracking-tight text-card-foreground">$19</span>
+          <span class="text-sm text-muted-foreground">/month</span>
+        </div>
+        <ul class="mt-8 space-y-4 text-sm text-card-foreground flex-1">
+          <li class="flex items-center gap-3">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">✓</span>
+            Unlimited projects
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">✓</span>
+            Priority support
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">✓</span>
+            50 GB storage
+          </li>
+        </ul>
+        <button class="mt-8 w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity">
+          Start free trial
+        </button>
+      </div>
+
+      <!-- Team -->
+      <div class="flex flex-col rounded-xl border border-border bg-card p-8 shadow-sm">
+        <h3 class="text-lg font-semibold text-card-foreground">Team</h3>
+        <p class="mt-2 text-sm text-muted-foreground">For collaborating teams.</p>
+        <div class="mt-6 flex items-baseline gap-1">
+          <span class="text-4xl font-bold tracking-tight text-card-foreground">$49</span>
+          <span class="text-sm text-muted-foreground">/month</span>
+        </div>
+        <ul class="mt-8 space-y-4 text-sm text-card-foreground flex-1">
+          <li class="flex items-center gap-3">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-secondary-foreground">✓</span>
+            Everything in Pro
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-secondary-foreground">✓</span>
+            Team collaboration
+          </li>
+          <li class="flex items-center gap-3">
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-secondary-foreground">✓</span>
+            500 GB storage
+          </li>
+        </ul>
+        <button class="mt-8 w-full rounded-md border border-border bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+          Contact sales
+        </button>
+      </div>
+
+    </div>
+  </div>
+</section>

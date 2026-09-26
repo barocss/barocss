@@ -1,0 +1,17 @@
+{"op":"add","path":"/root","value":"kpi-card"}
+{"op":"add","path":"/elements/kpi-card","value":{"type":"Card","props":{"className":"max-w-sm p-6"},"children":["header","value-row","trend","progress-section","actions"]}}
+{"op":"add","path":"/elements/header","value":{"type":"Stack","props":{"direction":"horizontal","className":"items-center justify-between mb-2"},"children":["title","badge"]}}
+{"op":"add","path":"/elements/title","value":{"type":"Text","props":{"text":{"$state":"/kpi/title"},"variant":"muted"},"children":[]}}
+{"op":"add","path":"/elements/badge","value":{"type":"Badge","props":{"text":"This month","variant":"secondary"},"children":[]}}
+{"op":"add","path":"/elements/value-row","value":{"type":"Text","props":{"text":{"$state":"/kpi/value"},"variant":"h1","className":"font-bold"},"children":[]}}
+{"op":"add","path":"/elements/trend","value":{"type":"Stack","props":{"direction":"horizontal","className":"items-center gap-1 mt-1"},"children":["trend-icon","trend-text"]}}
+{"op":"add","path":"/elements/trend-icon","value":{"type":"Icon","props":{"name":"trending-up"},"children":[]}}
+{"op":"add","path":"/elements/trend-text","value":{"type":"Text","props":{"text":{"$state":"/kpi/trend"},"variant":"small","className":"text-emerald-600 font-medium"},"children":[]}}
+{"op":"add","path":"/elements/progress-section","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-2 mt-4"},"children":["progress-labels","progress-bar"]}}
+{"op":"add","path":"/elements/progress-labels","value":{"type":"Stack","props":{"direction":"horizontal","className":"items-center justify-between"},"children":["goal-label","goal-percent"]}}
+{"op":"add","path":"/elements/goal-label","value":{"type":"Text","props":{"text":{"$template":"Goal: ${/kpi/goal}"},"variant":"small","className":"text-muted-foreground"},"children":[]}}
+{"op":"add","path":"/elements/goal-percent","value":{"type":"Text","props":{"text":{"$template":"${/kpi/progress}%"},"variant":"small","className":"font-medium"},"children":[]}}
+{"op":"add","path":"/elements/progress-bar","value":{"type":"Progress","props":{"value":{"$state":"/kpi/progress"}},"children":[]}}
+{"op":"add","path":"/elements/actions","value":{"type":"Button","props":{"label":"View report","variant":"default","className":"w-full mt-4"},"on":{"press":{"action":"setState","params":{"statePath":"/viewedReport","value":true}}},"children":[]}}
+{"op":"add","path":"/state/kpi","value":{"title":"Monthly revenue","value":"$48,210","trend":"+12.5% vs last month","goal":"$60,000","progress":80}}
+{"op":"add","path":"/state/viewedReport","value":false}

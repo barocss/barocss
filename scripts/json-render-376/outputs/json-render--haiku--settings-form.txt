@@ -1,0 +1,19 @@
+{"op":"add","path":"/root","value":"form-card"}
+{"op":"add","path":"/elements/form-card","value":{"type":"Card","props":{"title":"Notification Settings","description":"Manage your notification preferences and account settings"},"children":["form-stack"]}}
+{"op":"add","path":"/elements/form-stack","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-6"},"children":["full-name","email","email-notif","weekly-digest","plan","separator","button-stack"]}}
+{"op":"add","path":"/elements/full-name","value":{"type":"Input","props":{"label":"Full name","placeholder":"Enter your full name","value":{"$bindState":"/fullName"}},"children":[]}}
+{"op":"add","path":"/state/fullName","value":""}
+{"op":"add","path":"/elements/email","value":{"type":"Input","props":{"label":"Email","placeholder":"your@email.com","type":"email","value":{"$bindState":"/email"}},"children":[]}}
+{"op":"add","path":"/state/email","value":"jinho.park.s3@navercorp.com"}
+{"op":"add","path":"/elements/email-notif","value":{"type":"Switch","props":{"label":"Email notifications","checked":{"$bindState":"/emailNotifications"}},"children":[]}}
+{"op":"add","path":"/state/emailNotifications","value":true}
+{"op":"add","path":"/elements/weekly-digest","value":{"type":"Switch","props":{"label":"Weekly digest","checked":{"$bindState":"/weeklyDigest"}},"children":[]}}
+{"op":"add","path":"/state/weeklyDigest","value":false}
+{"op":"add","path":"/elements/plan","value":{"type":"Select","props":{"label":"Plan","options":["Free","Pro","Team"],"value":{"$bindState":"/plan"}},"children":[]}}
+{"op":"add","path":"/state/plan","value":"Free"}
+{"op":"add","path":"/elements/separator","value":{"type":"Separator","props":{},"children":[]}}
+{"op":"add","path":"/elements/button-stack","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 justify-end"},"children":["save-button","cancel-button"]}}
+{"op":"add","path":"/elements/save-button","value":{"type":"Button","props":{"label":"Save changes","variant":"default"},"on":{"press":{"action":"setState","params":{"statePath":"/lastSaved","value":true}}},"children":[]}}
+{"op":"add","path":"/state/lastSaved","value":false}
+{"op":"add","path":"/elements/cancel-button","value":{"type":"Button","props":{"label":"Cancel","variant":"outline"},"on":{"press":{"action":"setState","params":{"statePath":"/cancelled","value":true}}},"children":[]}}
+{"op":"add","path":"/state/cancelled","value":false}
