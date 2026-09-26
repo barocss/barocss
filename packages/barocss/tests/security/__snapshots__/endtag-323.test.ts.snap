@@ -1,0 +1,31 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`#323 markup end-tag opener in generated CSS > range queries keep a plain less-than and are byte-identical 1`] = `
+"@media (width < 40rem) {
+  .max-sm\\:p-4 {
+    padding: calc(var(--spacing) * 4);
+  }
+}
+
+---
+@container (width < 28rem) {
+  .\\@max-md\\:p-4 {
+    padding: calc(var(--spacing) * 4);
+  }
+}
+
+---
+@media (width < 600px) {
+  .max-\\[600px\\]\\:p-4 {
+    padding: calc(var(--spacing) * 4);
+  }
+}
+
+---
+@container not (width >= 24rem) {
+  .not-\\@sm\\:p-4 {
+    padding: calc(var(--spacing) * 4);
+  }
+}
+"
+`;

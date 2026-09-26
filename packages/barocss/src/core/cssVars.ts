@@ -3,7 +3,7 @@
 // Namespace/naming rules aligned with v4
 
 import type { Context, Theme } from './context';
-import { isStructureSafeValue, hasCommentDelimiter } from './parser';
+import { isStructureSafeValue, hasCommentDelimiter, hasHtmlEndTagOpener } from './parser';
 
 // Global CSS variable prefix helper
 let CSS_VAR_PREFIX = '--bcss-';
@@ -226,7 +226,7 @@ export function keyframesToCss(keyframes?: Record<string, unknown>): string {
   return css;
 }
 
-const COMMENT_OR_BLOCK = /\/\*|\*\/|[{};]/;
+const COMMENT_OR_BLOCK = /\/\*|\*\/|[{};]|<\//; // #323: also a markup end-tag opener
 
 /** #274: one `@keyframes` block in Tailwind's layout, or '' when a name/step/declaration could break out of it (#273). */
 export function keyframesBlock(name: string, frames: unknown): string {
@@ -400,10 +400,10 @@ const SAFE_VAR_NAME = /^--(?:[\w-]|\\\.)+$/;
  * custom-property ident and a value must be structure-safe and comment-free.
  */
 export function isSafeThemeVar(name: unknown, value: unknown): boolean {
-  if (typeof name !== 'string' || !SAFE_VAR_NAME.test(name)) return false;
+  if (typeof name !== 'string' || !SAFE_VAR_NAME.test(name) || hasHtmlEndTagOpener(name)) return false;
   if (typeof value !== 'string' && typeof value !== 'number') return false;
   const v = String(value);
-  return v.trim() !== '' && isStructureSafeValue(v) && !hasCommentDelimiter(v);
+  return v.trim() !== '' && isStructureSafeValue(v) && !hasCommentDelimiter(v) && !hasHtmlEndTagOpener(v);
 }
 
 export function toCssVarsBlock(vars: Record<string, string>, extra: string = ''): string {
