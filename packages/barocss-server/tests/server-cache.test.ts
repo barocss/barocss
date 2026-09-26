@@ -56,6 +56,7 @@ const variantHeavy =
   'hover:bg-blue-500 md:hover:text-red-500 lg:p-4 sm:p-2 dark:bg-gray-900 focus:ring-2 group-hover:opacity-50 ' +
   'md:flex lg:grid-cols-3 sm:rounded-lg xl:shadow-lg before:content-[""] peer-checked:bg-green-500 ' +
   'md:dark:hover:bg-red-700 rounded shadow-md translate-x-2 rotate-45 blur-sm mask-linear-from-10 p-4 m-2 p-4';
+const cached = (rt: ServerRuntime) => (rt as unknown as { classCache: Map<string, unknown> }).classCache.size;
 const config: Config = { theme: { extend: { colors: { brand: '#123456' } } } };
 
 describe('ServerRuntime per-class cache (#272)', () => {
@@ -93,13 +94,13 @@ describe('ServerRuntime per-class cache (#272)', () => {
   it('bounds the cache with LRU eviction', () => {
     const rt = new ServerRuntime({}, { cacheSize: 3 });
     rt.generateCss('p-1 p-2 p-3');
-    expect(rt.cachedClassCount).toBe(3);
+    expect(cached(rt)).toBe(3);
     rt.generateCss('p-1'); // refresh p-1
     rt.generateCss('p-4'); // evicts p-2 (least recent)
-    expect(rt.cachedClassCount).toBe(3);
+    expect(cached(rt)).toBe(3);
     expect(rt.generateCss('p-1 p-2 p-3 p-4')).toBe(referenceGenerateCss('p-1 p-2 p-3 p-4', {}));
-    expect(rt.cachedClassCount).toBe(3);
-    expect(new ServerRuntime({}, { cacheSize: 0 }).cachedClassCount).toBe(0);
+    expect(cached(rt)).toBe(3);
+    expect(cached(new ServerRuntime({}, { cacheSize: 0 }))).toBe(0);
   });
 
   it('runtimes with different configs do not share cached results', () => {

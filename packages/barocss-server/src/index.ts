@@ -44,11 +44,6 @@ export class ServerRuntime {
     this.themeDefs = null;
   }
 
-  /** Number of classes currently in the generation cache. */
-  get cachedClassCount() {
-    return this.classCache.size;
-  }
-
   /**
    * Parse a class name and return its AST
    */
