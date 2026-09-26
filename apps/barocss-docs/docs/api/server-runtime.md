@@ -28,11 +28,14 @@ const serverRuntime = new ServerRuntime({
 ### Constructor
 
 ```typescript
-constructor(config: Config = {})
+constructor(config: Config = {}, options: { cacheSize?: number } = {})
 ```
 
 **Parameters:**
 - `config` (Config): BaroCSS configuration object
+- `options.cacheSize` (number, default `10000`): how many classes the runtime keeps in its per-class generation cache (least recently used classes are evicted first). `0` turns the cache off. It is fixed at construction.
+
+Each runtime caches the rules it generated for each class, and the parsed theme variables, so repeated `generateCss` calls (for example one per SSR request) only assemble the sheet. The output is identical to uncached generation. The cache belongs to the runtime, so runtimes with different configs never share results.
 
 Pass `theme`, `darkMode`, and other configuration fields directly to the constructor. There is no outer `config` field.
 
@@ -141,6 +144,20 @@ const results = serverRuntime.generateCssForClasses([
 //   { className: 'p-4', css: '.p-4 { padding: 1rem; }' },
 //   { className: 'hover:bg-blue-600', css: '.hover\\:bg-blue-600:hover { background-color: #2563eb; }' }
 // ]
+```
+
+### setConfig()
+
+Replaces the runtime's configuration (theme included). It rebuilds the context and clears the generation caches, so later calls use only the new config.
+
+```typescript
+setConfig(config: Config): void
+```
+
+**Example:**
+```typescript
+serverRuntime.setConfig({ theme: { extend: { colors: { brand: '#e11d48' } } } });
+serverRuntime.generateCss('bg-brand'); // uses the new brand colour
 ```
 
 ## Direct Function Usage
