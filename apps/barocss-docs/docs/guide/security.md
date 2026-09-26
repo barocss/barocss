@@ -27,6 +27,7 @@ named below). Upgrade to at least the listed release.
 | Every emitted selector and at-rule prelude is structurally balanced; unbalanced rules are dropped (`balance-332.test.ts`) | #332 | 0.8.2 |
 | Generation never throws: an invalid class produces no rule and the rest of the request is still generated (`never-throws-333.test.ts` in each package) | #333 | 0.8.2 |
 | Class names are CSS-escaped, including names that start with a digit (`compat/digit-escape-334.test.ts`) | #334 | 0.8.2 |
+| Every emitted selector is checked at the text level to stay scoped to the element carrying the class; out-of-scope rules are dropped (see [CSS text post-processing](#css-text-post-processing)) | #392, #396 | 0.10.3 (#392), next release (#396) |
 
 A fuzz harness (`packages/barocss/tests/fuzz/fuzz.test.ts`, #319/#339) runs generated class inputs
 against these invariants as an ongoing check.
@@ -128,6 +129,19 @@ tracking path), narrow `img-src` further or use the pre-filter above; with the f
 MCP Apps and other embedded UIs usually run under a CSP set by the host, not by you. Check the
 host's `img-src` / `default-src` policy: it decides whether `url()` values in generated CSS can
 load anything. If you host such widgets yourself, apply the policy above to the widget frame.
+
+### CSS text post-processing
+
+BaroCSS guarantees scoping on the CSS **text** it emits. Its text-level scope check (#392, #396) is the
+authoritative guard: every selector in the output string has been verified before it is returned.
+
+That guarantee holds for the text as emitted. If your server or SSR pipeline post-processes the CSS
+(trimming, minifying, concatenating, re-serializing), either pass it through unchanged or use a
+standards-compliant CSS tool that preserves escapes. Never trim or regex-edit selectors ad hoc:
+removing or rewriting an escape can change what a selector matches.
+
+The browser CSSOM path (sheets inserted by `@barocss/browser`) is covered separately by the browser
+fuzz ratchet (#406, #412).
 
 ### Inline server CSS with `ssrStyleTag`
 
