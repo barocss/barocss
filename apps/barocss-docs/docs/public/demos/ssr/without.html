@@ -1,0 +1,266 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Demo: SSR first paint (without generateCssForHtml)</title><meta name="robots" content="noindex"><link rel="icon" href="data:,"><link rel="stylesheet" href="../demo.css"><link rel="stylesheet" href="../cms/site.css"></head><body>
+<div class="demo-bar"><h1>SSR first paint: without @barocss/server</h1><p>The server renders recorded CMS blocks (#253) into the page; the Tailwind build covers only the templates. Here nothing is inlined, so the blocks paint unstyled until the client runtime starts (delayed so the flash is visible). Measured (#266/#268, Fast 3G + 4x CPU): share of block elements matching at first contentful paint .19 without, 1.00 with; server cost 0.18 ms warm. This page was pre-rendered by scripts/launch-demos/build.mjs with the same call a request handler makes. <a href="https://github.com/barocss/barocss/blob/develop/scripts/ssr-probe/run.mjs">evidence</a></p><nav><a href="with.html">with generateCssForHtml</a><a href="without.html" aria-current="true">without</a><a href="without.html?delay=4000">replay slower</a><output id="status">client runtime not started yet</output></nav></div>
+<header data-shell class="sticky top-0 z-10 border-b border-brand-100 bg-white/90 backdrop-blur">
+  <div data-shell class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a data-shell href="#" class="font-display text-2xl font-bold text-brand-800 no-underline">Northwind Journal</a>
+    <nav data-shell class="flex items-center gap-6 text-sm font-medium text-slate-600">
+      <a data-shell href="#" class="hover:text-brand-700">Stories</a><a data-shell href="#" class="hover:text-brand-700">Guides</a>
+      <a data-shell href="#" class="rounded-full bg-brand-600 px-4 py-2 text-white hover:bg-brand-700">Subscribe</a>
+    </nav>
+  </div>
+</header>
+<main data-shell class="mx-auto grid max-w-6xl grid-cols-[1fr_16rem] gap-12 px-6 py-12">
+  <article data-shell class="min-w-0">
+    <p data-shell class="text-sm font-semibold uppercase tracking-wider text-accent-600">Product update</p>
+    <h1 data-shell class="mt-2 font-display text-4xl font-bold text-slate-900">What's new in our spring release</h1>
+    <div data-shell class="prose mt-8">
+      <p data-prose>Our spring release focuses on the small things that make publishing faster. Below, the editorial team explains the changes, and the blocks were drafted with the CMS assistant.</p>
+      <h2 data-prose>Why we rebuilt the editor</h2>
+      <p data-prose>Writers told us the old editor got in the way. <a data-prose href="#">Read the research notes</a> or skim the <strong data-prose>highlights</strong>:</p>
+      <ul data-prose><li data-prose>Faster autosave</li><li data-prose>Inline comments</li></ul>
+      <blockquote data-prose>"It finally feels like writing, not filling in forms."</blockquote>
+      <div id="blocks"><div data-block="hero"><section class="relative isolate overflow-hidden bg-gradient-to-b from-slate-900 to-slate-800">
+  <div class="mx-auto max-w-5xl px-6 py-24 text-center sm:py-32 lg:px-8">
+    <span class="inline-flex items-center rounded-full bg-indigo-500/10 px-3 py-1 text-sm font-medium text-indigo-300 ring-1 ring-inset ring-indigo-500/20">
+      New for 2026
+    </span>
+
+    <h1 class="mt-6 text-4xl font-bold tracking-tight text-white sm:text-6xl">
+      Build something people love
+    </h1>
+
+    <p class="mx-auto mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+      A short, benefit-driven subheadline that tells visitors exactly what you
+      offer and why it matters to them.
+    </p>
+
+    <div class="mt-10 flex items-center justify-center gap-4">
+      <a href="#"
+         class="rounded-md bg-indigo-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+        Get started
+      </a>
+      <a href="#" class="text-sm font-semibold leading-6 text-white hover:text-slate-200">
+        Learn more <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section></div>
+<div data-block="feature-grid"><section class="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+  <div class="mx-auto max-w-7xl">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="text-base font-semibold leading-7 text-indigo-600">Everything you need</h2>
+      <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        Built for teams that ship
+      </p>
+      <p class="mt-4 text-lg leading-8 text-gray-600">
+        A short supporting sentence that explains the value of these features.
+      </p>
+    </div>
+
+    <div class="mx-auto mt-16 max-w-2xl lg:max-w-none">
+      <dl class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Feature -->
+        <div class="rounded-2xl border border-gray-200 p-8 transition hover:shadow-md">
+          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600">
+            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <dt class="mt-6 text-lg font-semibold text-gray-900">Fast performance</dt>
+          <dd class="mt-2 text-base leading-7 text-gray-600">
+            Describe the feature in one or two concise sentences.
+          </dd>
+        </div>
+
+        <!-- Feature -->
+        <div class="rounded-2xl border border-gray-200 p-8 transition hover:shadow-md">
+          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600">
+            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <dt class="mt-6 text-lg font-semibold text-gray-900">Secure by default</dt>
+          <dd class="mt-2 text-base leading-7 text-gray-600">
+            Describe the feature in one or two concise sentences.
+          </dd>
+        </div>
+
+        <!-- Feature -->
+        <div class="rounded-2xl border border-gray-200 p-8 transition hover:shadow-md">
+          <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600">
+            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <dt class="mt-6 text-lg font-semibold text-gray-900">Always on</dt>
+          <dd class="mt-2 text-base leading-7 text-gray-600">
+            Describe the feature in one or two concise sentences.
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section></div>
+<div data-block="callout"><div class="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-900">
+  <svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-500" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <path fill-rule="evenodd" d="M18 10A8 8 0 11.001 10 8 8 0 0118 10zM11 6a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2h.008a1 1 0 001-1V10a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+  </svg>
+  <div>
+    <p class="font-semibold">Note</p>
+    <p class="mt-1 text-sm text-blue-800">Your message goes here. Replace this text with the callout content you want to display.</p>
+  </div>
+</div></div>
+<div data-block="comparison-table"><section class="mx-auto max-w-5xl px-4 py-12">
+  <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+    <table class="w-full border-collapse text-left text-sm">
+      <thead>
+        <tr class="bg-gray-50">
+          <th scope="col" class="px-6 py-4 font-semibold text-gray-900">Feature</th>
+          <th scope="col" class="px-6 py-4 text-center font-semibold text-gray-900">Starter</th>
+          <th scope="col" class="px-6 py-4 text-center font-semibold text-gray-900">
+            <span class="inline-flex items-center gap-2">
+              Pro
+              <span class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">Popular</span>
+            </span>
+          </th>
+          <th scope="col" class="px-6 py-4 text-center font-semibold text-gray-900">Enterprise</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-200">
+        <tr>
+          <th scope="row" class="px-6 py-4 font-medium text-gray-900">Price</th>
+          <td class="px-6 py-4 text-center text-gray-700">$9/mo</td>
+          <td class="px-6 py-4 text-center text-gray-700">$29/mo</td>
+          <td class="px-6 py-4 text-center text-gray-700">Custom</td>
+        </tr>
+        <tr class="bg-gray-50/50">
+          <th scope="row" class="px-6 py-4 font-medium text-gray-900">Team members</th>
+          <td class="px-6 py-4 text-center text-gray-700">Up to 3</td>
+          <td class="px-6 py-4 text-center text-gray-700">Up to 25</td>
+          <td class="px-6 py-4 text-center text-gray-700">Unlimited</td>
+        </tr>
+        <tr>
+          <th scope="row" class="px-6 py-4 font-medium text-gray-900">Storage</th>
+          <td class="px-6 py-4 text-center text-gray-700">10 GB</td>
+          <td class="px-6 py-4 text-center text-gray-700">100 GB</td>
+          <td class="px-6 py-4 text-center text-gray-700">1 TB</td>
+        </tr>
+        <tr class="bg-gray-50/50">
+          <th scope="row" class="px-6 py-4 font-medium text-gray-900">Priority support</th>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Not included</span>
+            <svg class="mx-auto h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Included</span>
+            <svg class="mx-auto h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Included</span>
+            <svg class="mx-auto h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="px-6 py-4 font-medium text-gray-900">SSO &amp; SAML</th>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Not included</span>
+            <svg class="mx-auto h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Not included</span>
+            <svg class="mx-auto h-5 w-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span class="sr-only">Included</span>
+            <svg class="mx-auto h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="border-t border-gray-200">
+          <td class="px-6 py-4"></td>
+          <td class="px-6 py-4 text-center">
+            <a href="#" class="inline-block rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Choose</a>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <a href="#" class="inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">Choose</a>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <a href="#" class="inline-block rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Contact us</a>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</section></div>
+<div data-block="testimonial"><figure class="mx-auto max-w-2xl rounded-2xl bg-white p-8 shadow-md ring-1 ring-gray-900/5">
+  <div class="flex items-center gap-1 text-amber-400" aria-label="Rated 5 out of 5 stars">
+    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+    <svg class="h-5 w-5 fill-current" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+  </div>
+
+  <blockquote class="mt-6 text-lg leading-relaxed text-gray-800">
+    <p>"This product completely transformed how our team works. Setup took minutes, and the support has been outstanding every step of the way."</p>
+  </blockquote>
+
+  <figcaption class="mt-6 flex items-center gap-4">
+    <img class="h-12 w-12 rounded-full object-cover" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20fill%3D%22%236366f1%22%2F%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2216%22%20r%3D%227%22%20fill%3D%22%23e0e7ff%22%2F%3E%3Cpath%20d%3D%22M6%2038c2-9%2026-9%2028%200%22%20fill%3D%22%23e0e7ff%22%2F%3E%3C%2Fsvg%3E" alt="Photo of Jane Doe">
+    <div>
+      <div class="font-semibold text-gray-900">Jane Doe</div>
+      <div class="text-sm text-gray-500">Head of Product, Acme Inc.</div>
+    </div>
+  </figcaption>
+</figure></div>
+<div data-block="cta"><section class="bg-indigo-600">
+  <div class="mx-auto max-w-4xl px-6 py-16 text-center sm:py-24">
+    <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+      Ready to get started?
+    </h2>
+    <p class="mx-auto mt-4 max-w-2xl text-lg text-indigo-100">
+      Join thousands of teams already building with us. No credit card required.
+    </p>
+    <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <a
+        href="#"
+        class="w-full rounded-md bg-white px-6 py-3 text-base font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 sm:w-auto"
+      >
+        Get started
+      </a>
+      <a
+        href="#"
+        class="w-full rounded-md px-6 py-3 text-base font-semibold text-white ring-1 ring-inset ring-indigo-300 transition hover:bg-indigo-500 sm:w-auto"
+      >
+        Learn more
+      </a>
+    </div>
+  </div>
+</section></div></div>
+      <h3 data-prose>What comes next</h3>
+      <p data-prose>We ship again in June. Tell us what to build.</p>
+      <table data-prose><thead><tr><th data-prose>Plan</th><th data-prose>Seats</th></tr></thead><tbody><tr><td data-prose>Team</td><td data-prose>10</td></tr></tbody></table>
+    </div>
+  </article>
+  <aside data-shell class="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 data-shell class="font-display text-lg font-semibold text-slate-900">In this issue</h2>
+    <a data-shell href="#" class="block text-sm text-brand-700 hover:underline">Editor rebuild</a>
+    <a data-shell href="#" class="block text-sm text-brand-700 hover:underline">Pricing changes</a>
+  </aside>
+</main>
+<footer data-shell class="border-t border-slate-200 py-8 text-center text-sm text-slate-500">&copy; 2026 Northwind</footer>
+<script src="boot.js"></script></body></html>

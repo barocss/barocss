@@ -1,0 +1,6 @@
+.demo-bar{font:14px/1.5 system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:12px 20px}
+.demo-bar h1{all:unset;display:block;font-weight:700;font-size:16px;color:#fff}
+.demo-bar p{all:unset;display:block;margin-top:4px;max-width:960px}
+.demo-bar a{color:#93c5fd}.demo-bar nav{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.demo-bar nav a{all:unset;cursor:pointer;padding:3px 10px;border-radius:999px;border:1px solid #475569;color:#e2e8f0}
+.demo-bar nav a[aria-current]{background:#e2e8f0;color:#0f172a}.demo-bar output{margin-left:8px;color:#fde68a}

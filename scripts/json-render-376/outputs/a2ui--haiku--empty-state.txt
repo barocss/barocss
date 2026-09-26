@@ -1,0 +1,12 @@
+{"version":"v0.9","createSurface":{"surfaceId":"main","catalogId":"https://a2ui.org/specification/v0_9/basic_catalog.json"}}
+{"version":"v0.9","updateComponents":{"surfaceId":"main","components":[
+  {"id":"root","component":"Column","children":["icon","heading","description","buttonsRow"],"justify":"center","align":"center"},
+  {"id":"icon","component":"Icon","name":"folder"},
+  {"id":"heading","component":"Text","text":"No projects yet","variant":"h2"},
+  {"id":"description","component":"Text","text":"Create a new project or import an existing one to get started","variant":"body"},
+  {"id":"buttonsRow","component":"Row","children":["createBtn","importBtn"],"justify":"center","align":"center"},
+  {"id":"createBtn","component":"Button","child":"createBtnText","variant":"primary","action":{"event":{"name":"createProject"}}},
+  {"id":"createBtnText","component":"Text","text":"Create project"},
+  {"id":"importBtn","component":"Button","child":"importBtnText","variant":"borderless","action":{"event":{"name":"importProject"}}},
+  {"id":"importBtnText","component":"Text","text":"Import"}
+]}}

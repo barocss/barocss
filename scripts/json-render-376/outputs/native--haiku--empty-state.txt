@@ -1,0 +1,39 @@
+{
+  "el": "div",
+  "class": "flex flex-col items-center justify-center min-h-screen bg-background px-4",
+  "children": [
+    {
+      "el": "icon",
+      "attrs": {
+        "name": "FolderPlus"
+      },
+      "class": "w-16 h-16 text-muted-foreground mb-6"
+    },
+    {
+      "el": "h1",
+      "class": "text-3xl font-bold text-foreground mb-3",
+      "text": "No projects yet"
+    },
+    {
+      "el": "p",
+      "class": "text-muted-foreground text-center max-w-md mb-8",
+      "text": "Get started by creating your first project or importing an existing one."
+    },
+    {
+      "el": "div",
+      "class": "flex gap-4",
+      "children": [
+        {
+          "el": "button",
+          "class": "bg-primary text-primary-foreground px-6 py-2 rounded-md hover:opacity-90 font-medium",
+          "text": "Create project"
+        },
+        {
+          "el": "button",
+          "class": "border border-border text-foreground px-6 py-2 rounded-md hover:bg-muted font-medium",
+          "text": "Import"
+        }
+      ]
+    }
+  ]
+}

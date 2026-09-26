@@ -1,0 +1,21 @@
+<div class="bg-card border border-border rounded-lg p-6 w-full max-w-sm">
+  <h3 class="text-sm font-medium text-muted-foreground mb-2">Monthly revenue</h3>
+  
+  <p class="text-4xl font-bold text-foreground mb-4">$48,210</p>
+  
+  <p class="text-sm font-medium text-green-600 mb-4">+12.5% vs last month</p>
+  
+  <div class="mb-4">
+    <div class="flex justify-between items-center mb-2">
+      <span class="text-xs text-muted-foreground">Goal: $60,000</span>
+      <span class="text-xs font-medium text-foreground">80%</span>
+    </div>
+    <div class="w-full h-2 bg-muted rounded-full overflow-hidden">
+      <div class="h-full bg-primary" style="width: 80%;"></div>
+    </div>
+  </div>
+  
+  <button class="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring transition-all">
+    View report
+  </button>
+</div>

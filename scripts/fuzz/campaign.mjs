@@ -41,8 +41,9 @@ if (args['seed-corpus'] && existsSync(args['seed-corpus'])) {
 
 // ---- Chromium ----
 const require = createRequire(join(process.env.PW_DIR, 'node_modules/'));
-const { chromium } = require('playwright-core');
-const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true });
+const ENGINE = process.env.ENGINE || 'chromium'; // #374: ENGINE=firefox|webkit uses PW_DIR's bundled engine
+const pwEngines = require('playwright-core'), chromium = pwEngines[ENGINE];
+const browser = await chromium.launch({ executablePath: ENGINE === 'chromium' ? process.env.CHROME : undefined, headless: true });
 const page = await browser.newPage();
 await page.setContent('<html><body></body></html>');
 

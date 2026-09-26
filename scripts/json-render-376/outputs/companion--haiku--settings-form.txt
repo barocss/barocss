@@ -1,0 +1,95 @@
+<div class="w-full max-w-2xl mx-auto bg-card border border-border rounded-lg p-6">
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold text-card-foreground mb-2">Notification Settings</h1>
+    <p class="text-sm text-muted-foreground">Manage your notification preferences and account settings</p>
+  </div>
+
+  <form class="space-y-6">
+    <!-- Full Name Field -->
+    <div class="space-y-2">
+      <label for="fullname" class="text-sm font-medium text-foreground">Full name</label>
+      <input
+        type="text"
+        id="fullname"
+        placeholder="Enter your full name"
+        class="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+      />
+    </div>
+
+    <!-- Email Field -->
+    <div class="space-y-2">
+      <label for="email" class="text-sm font-medium text-foreground">Email</label>
+      <input
+        type="email"
+        id="email"
+        placeholder="Enter your email"
+        class="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+      />
+    </div>
+
+    <!-- Toggles Section -->
+    <div class="space-y-4 border-t border-border pt-6">
+      <!-- Email Notifications Toggle -->
+      <div class="flex items-center justify-between">
+        <div class="space-y-0.5">
+          <label for="email-notif" class="text-sm font-medium text-foreground">Email notifications</label>
+          <p class="text-xs text-muted-foreground">Receive email notifications for important updates</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            id="email-notif"
+            checked
+            class="sr-only peer"
+          />
+          <div class="w-11 h-6 bg-muted peer-checked:bg-primary rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-transform"></div>
+        </label>
+      </div>
+
+      <!-- Weekly Digest Toggle -->
+      <div class="flex items-center justify-between">
+        <div class="space-y-0.5">
+          <label for="weekly-digest" class="text-sm font-medium text-foreground">Weekly digest</label>
+          <p class="text-xs text-muted-foreground">Get a weekly summary of your activity</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            id="weekly-digest"
+            class="sr-only peer"
+          />
+          <div class="w-11 h-6 bg-muted peer-checked:bg-primary rounded-full peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-transform"></div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Plan Select -->
+    <div class="space-y-2">
+      <label for="plan" class="text-sm font-medium text-foreground">Plan</label>
+      <select
+        id="plan"
+        class="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        <option value="free">Free</option>
+        <option value="pro">Pro</option>
+        <option value="team">Team</option>
+      </select>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex gap-3 pt-4 border-t border-border">
+      <button
+        type="submit"
+        class="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        Save changes
+      </button>
+      <button
+        type="button"
+        class="flex-1 px-4 py-2 bg-secondary text-secondary-foreground rounded-md font-medium hover:bg-secondary/80 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
+</div>

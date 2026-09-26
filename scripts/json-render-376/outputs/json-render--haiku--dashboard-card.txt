@@ -1,0 +1,10 @@
+{"op":"add","path":"/root","value":"kpi-card"}
+{"op":"add","path":"/elements/kpi-card","value":{"type":"Card","props":{"className":"w-full max-w-sm p-6 bg-card border border-border rounded-lg"},"children":["kpi-header","kpi-value","kpi-progress-container","kpi-button"]}}
+{"op":"add","path":"/elements/kpi-header","value":{"type":"Stack","props":{"direction":"horizontal","className":"gap-2 mb-4 justify-between items-start"},"children":["kpi-title","kpi-trend"]}}
+{"op":"add","path":"/elements/kpi-title","value":{"type":"Text","props":{"text":"Monthly revenue","variant":"h3","className":"text-muted-foreground"},"children":[]}}
+{"op":"add","path":"/elements/kpi-trend","value":{"type":"Badge","props":{"text":"+12.5% vs last month","variant":"default"},"children":[]}}
+{"op":"add","path":"/elements/kpi-value","value":{"type":"Text","props":{"text":"$48,210","variant":"h1","className":"mb-4"},"children":[]}}
+{"op":"add","path":"/elements/kpi-progress-container","value":{"type":"Stack","props":{"direction":"vertical","className":"gap-2 mb-4"},"children":["kpi-progress","kpi-progress-label"]}}
+{"op":"add","path":"/elements/kpi-progress","value":{"type":"Progress","props":{"value":80},"children":[]}}
+{"op":"add","path":"/elements/kpi-progress-label","value":{"type":"Text","props":{"text":"$48,210 / $60,000 goal","variant":"small","className":"text-muted-foreground"},"children":[]}}
+{"op":"add","path":"/elements/kpi-button","value":{"type":"Button","props":{"label":"View report","variant":"outline","className":"w-full mt-6"},"children":[]}}

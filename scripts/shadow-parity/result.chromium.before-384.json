@@ -1,0 +1,878 @@
+{
+  "engine": "chromium",
+  "build": "pre-#384 build (same source without this change)",
+  "corpora": {
+    "corpus": {
+      "classes": 338,
+      "shadow": {
+        "differing": 20,
+        "documentRules": 0,
+        "documentNonPropertyRules": 0,
+        "diffs": [
+          {
+            "token": "border",
+            "props": [
+              "block-size: 24px ≠ 26px",
+              "border-block-end-style: none ≠ solid",
+              "border-block-end-width: 0px ≠ 1px",
+              "border-block-start-style: none ≠ solid",
+              "border-block-start-width: 0px ≠ 1px",
+              "border-bottom-style: none ≠ solid"
+            ]
+          },
+          {
+            "token": "shadow-sm",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px"
+            ]
+          },
+          {
+            "token": "absolute",
+            "props": [
+              "bottom: -822px ≠ -824px",
+              "inset-block-end: -822px ≠ -824px",
+              "inset-block-start: 1566px ≠ 1568px",
+              "top: 1566px ≠ 1568px"
+            ]
+          },
+          {
+            "token": "shadow-2xl",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.25) 0px 25px 50px -12px"
+            ]
+          },
+          {
+            "token": "shadow",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px"
+            ]
+          },
+          {
+            "token": "shadow-xs",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+            ]
+          },
+          {
+            "token": "sr-only",
+            "props": [
+              "bottom: -2315px ≠ -2317px",
+              "inset-block-end: -2315px ≠ -2317px",
+              "inset-block-start: 3084px ≠ 3086px",
+              "top: 3084px ≠ 3086px"
+            ]
+          },
+          {
+            "token": "border-2",
+            "props": [
+              "block-size: 24px ≠ 28px",
+              "border-block-end-style: none ≠ solid",
+              "border-block-end-width: 0px ≠ 2px",
+              "border-block-start-style: none ≠ solid",
+              "border-block-start-width: 0px ≠ 2px",
+              "border-bottom-style: none ≠ solid"
+            ]
+          },
+          {
+            "token": "ring-1",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "shadow-md",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px"
+            ]
+          },
+          {
+            "token": "-translate-x-1/2",
+            "props": [
+              "translate: none ≠ -50%"
+            ]
+          },
+          {
+            "token": "border-t",
+            "props": [
+              "block-size: 24px ≠ 25px",
+              "border-block-start-style: none ≠ solid",
+              "border-block-start-width: 0px ≠ 1px",
+              "border-top-style: none ≠ solid",
+              "border-top-width: 0px ≠ 1px",
+              "height: 24px ≠ 25px"
+            ]
+          },
+          {
+            "token": "fixed",
+            "props": [
+              "bottom: -3878px ≠ -3885px",
+              "inset-block-end: -3878px ≠ -3885px",
+              "inset-block-start: 4622px ≠ 4629px",
+              "top: 4622px ≠ 4629px"
+            ]
+          },
+          {
+            "token": "shadow-lg",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px"
+            ]
+          },
+          {
+            "token": "shadow-xl",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px"
+            ]
+          },
+          {
+            "token": "after:absolute",
+            "props": [
+              "::afterblock-size: auto ≠ 0px",
+              "::afterbottom: auto ≠ -6206px",
+              "::aftercontent: none ≠ \"\"",
+              "::afterheight: auto ≠ 0px",
+              "::afterinline-size: auto ≠ 0px",
+              "::afterinset-block-end: auto ≠ -6206px"
+            ]
+          },
+          {
+            "token": "after:opacity-0",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "after:transition-opacity",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "translate-x-[-50%]",
+            "props": [
+              "translate: none ≠ -50%"
+            ]
+          },
+          {
+            "token": "translate-y-[-50%]",
+            "props": [
+              "translate: none ≠ 0px -50%"
+            ]
+          }
+        ]
+      },
+      "fallback": {
+        "differing": 20,
+        "documentRules": 0,
+        "documentNonPropertyRules": 0,
+        "diffs": [
+          {
+            "token": "border",
+            "props": [
+              "block-size: 24px ≠ 26px",
+              "border-block-end-style: none ≠ solid",
+              "border-block-end-width: 0px ≠ 1px",
+              "border-block-start-style: none ≠ solid",
+              "border-block-start-width: 0px ≠ 1px",
+              "border-bottom-style: none ≠ solid"
+            ]
+          },
+          {
+            "token": "shadow-sm",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px"
+            ]
+          },
+          {
+            "token": "absolute",
+            "props": [
+              "bottom: -822px ≠ -824px",
+              "inset-block-end: -822px ≠ -824px",
+              "inset-block-start: 1566px ≠ 1568px",
+              "top: 1566px ≠ 1568px"
+            ]
+          },
+          {
+            "token": "shadow-2xl",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.25) 0px 25px 50px -12px"
+            ]
+          },
+          {
+            "token": "shadow",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px"
+            ]
+          },
+          {
+            "token": "shadow-xs",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+            ]
+          },
+          {
+            "token": "sr-only",
+            "props": [
+              "bottom: -2315px ≠ -2317px",
+              "inset-block-end: -2315px ≠ -2317px",
+              "inset-block-start: 3084px ≠ 3086px",
+              "top: 3084px ≠ 3086px"
+            ]
+          },
+          {
+            "token": "border-2",
+            "props": [
+              "block-size: 24px ≠ 28px",
+              "border-block-end-style: none ≠ solid",
+              "border-block-end-width: 0px ≠ 2px",
+              "border-block-start-style: none ≠ solid",
+              "border-block-start-width: 0px ≠ 2px",
+              "border-bottom-style: none ≠ solid"
+            ]
+          },
+          {
+            "token": "ring-1",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "shadow-md",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px"
+            ]
+          },
+          {
+            "token": "-translate-x-1/2",
+            "props": [
+              "translate: none ≠ -50%"
+            ]
+          },
+          {
+            "token": "border-t",
+            "props": [
+              "block-size: 24px ≠ 25px",
+              "border-block-start-style: none ≠ solid",
+              "border-block-start-width: 0px ≠ 1px",
+              "border-top-style: none ≠ solid",
+              "border-top-width: 0px ≠ 1px",
+              "height: 24px ≠ 25px"
+            ]
+          },
+          {
+            "token": "fixed",
+            "props": [
+              "bottom: -3878px ≠ -3885px",
+              "inset-block-end: -3878px ≠ -3885px",
+              "inset-block-start: 4622px ≠ 4629px",
+              "top: 4622px ≠ 4629px"
+            ]
+          },
+          {
+            "token": "shadow-lg",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.1) 0px 4px 6px -4px"
+            ]
+          },
+          {
+            "token": "shadow-xl",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 20px 25px -5px, rgba(0, 0, 0, 0.1) 0px 8px 10px -6px"
+            ]
+          },
+          {
+            "token": "after:absolute",
+            "props": [
+              "::afterblock-size: auto ≠ 0px",
+              "::afterbottom: auto ≠ -6206px",
+              "::aftercontent: none ≠ \"\"",
+              "::afterheight: auto ≠ 0px",
+              "::afterinline-size: auto ≠ 0px",
+              "::afterinset-block-end: auto ≠ -6206px"
+            ]
+          },
+          {
+            "token": "after:opacity-0",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "after:transition-opacity",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "translate-x-[-50%]",
+            "props": [
+              "translate: none ≠ -50%"
+            ]
+          },
+          {
+            "token": "translate-y-[-50%]",
+            "props": [
+              "translate: none ≠ 0px -50%"
+            ]
+          }
+        ]
+      }
+    },
+    "heldout": {
+      "classes": 567,
+      "shadow": {
+        "differing": 41,
+        "documentRules": 0,
+        "documentNonPropertyRules": 0,
+        "diffs": [
+          {
+            "token": "outline",
+            "props": [
+              "outline-style: none ≠ solid"
+            ]
+          },
+          {
+            "token": "border-b",
+            "props": [
+              "block-size: 24px ≠ 25px",
+              "border-block-end-style: none ≠ solid",
+              "border-block-end-width: 0px ≠ 1px",
+              "border-bottom-style: none ≠ solid",
+              "border-bottom-width: 0px ≠ 1px",
+              "height: 24px ≠ 25px"
+            ]
+          },
+          {
+            "token": "-translate-y-1/2",
+            "props": [
+              "translate: none ≠ 0px -50%"
+            ]
+          },
+          {
+            "token": "border-l",
+            "props": [
+              "border-inline-start-style: none ≠ solid",
+              "border-inline-start-width: 0px ≠ 1px",
+              "border-left-style: none ≠ solid",
+              "border-left-width: 0px ≠ 1px"
+            ]
+          },
+          {
+            "token": "ring-slate-200",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.929 0.013 255.508) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "shadow-none",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px"
+            ]
+          },
+          {
+            "token": "after:-inset-2",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "md:after:hidden",
+            "props": [
+              "::aftercontent: none ≠ \"\""
+            ]
+          },
+          {
+            "token": "ring-2",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "ring-inset",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 2px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "translate-x-6",
+            "props": [
+              "translate: none ≠ 24px"
+            ]
+          },
+          {
+            "token": "-translate-x-px",
+            "props": [
+              "translate: none ≠ -1px"
+            ]
+          },
+          {
+            "token": "after:inset-y-0",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "after:left-1/2",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "after:w-[2px]",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "border-l-4",
+            "props": [
+              "border-inline-start-style: none ≠ solid",
+              "border-inline-start-width: 0px ≠ 4px",
+              "border-left-style: none ≠ solid",
+              "border-left-width: 0px ≠ 4px"
+            ]
+          },
+          {
+            "token": "border-r",
+            "props": [
+              "border-inline-end-style: none ≠ solid",
+              "border-inline-end-width: 0px ≠ 1px",
+              "border-right-style: none ≠ solid",
+              "border-right-width: 0px ≠ 1px"
+            ]
+          },
+          {
+            "token": "from-blue-400",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.707 0.165 254.624) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-blue-50",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.97 0.014 254.604) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-blue-500",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.623 0.214 259.815) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-emerald-50",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.979 0.021 166.113) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-purple-50",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.977 0.014 308.299) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-sky-500",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.685 0.169 237.323) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-slate-100",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.968 0.007 247.896) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "last:border-b-0",
+            "props": [
+              "border-block-end-style: none ≠ solid",
+              "border-bottom-style: none ≠ solid"
+            ]
+          },
+          {
+            "token": "md:absolute",
+            "props": [
+              "bottom: -14276.7px ≠ -14277.7px",
+              "inset-block-end: -14276.7px ≠ -14277.7px",
+              "inset-block-start: 15020.7px ≠ 15021.7px",
+              "top: 15020.7px ≠ 15021.7px"
+            ]
+          },
+          {
+            "token": "ring-0",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "ring-emerald-600/20",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.596 -0.13883 0.041849 / 0.2) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "shadow-[0_0_0_1px_var(--sidebar-border)]",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px"
+            ]
+          },
+          {
+            "token": "to-blue-100",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.932 0.032 255.585) 100%)"
+            ]
+          },
+          {
+            "token": "to-blue-600",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.546 0.245 262.881) 100%)"
+            ]
+          },
+          {
+            "token": "to-cyan-500",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.715 0.143 215.221) 100%)"
+            ]
+          },
+          {
+            "token": "to-emerald-100",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.95 0.052 163.051) 100%)"
+            ]
+          },
+          {
+            "token": "to-indigo-700",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.457 0.24 277.023) 100%)"
+            ]
+          },
+          {
+            "token": "to-purple-100",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.946 0.033 307.174) 100%)"
+            ]
+          },
+          {
+            "token": "to-slate-800",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.279 0.041 260.031) 100%)"
+            ]
+          },
+          {
+            "token": "translate-x-1",
+            "props": [
+              "translate: none ≠ 4px"
+            ]
+          },
+          {
+            "token": "translate-x-px",
+            "props": [
+              "translate: none ≠ 1px"
+            ]
+          },
+          {
+            "token": "translate-y-[calc(-50%_-_2px)]",
+            "props": [
+              "translate: none ≠ 0px calc(-50% - 2px)"
+            ]
+          },
+          {
+            "token": "translate-y-0.5",
+            "props": [
+              "translate: none ≠ 0px 2px"
+            ]
+          }
+        ]
+      },
+      "fallback": {
+        "differing": 41,
+        "documentRules": 0,
+        "documentNonPropertyRules": 0,
+        "diffs": [
+          {
+            "token": "outline",
+            "props": [
+              "outline-style: none ≠ solid"
+            ]
+          },
+          {
+            "token": "border-b",
+            "props": [
+              "block-size: 24px ≠ 25px",
+              "border-block-end-style: none ≠ solid",
+              "border-block-end-width: 0px ≠ 1px",
+              "border-bottom-style: none ≠ solid",
+              "border-bottom-width: 0px ≠ 1px",
+              "height: 24px ≠ 25px"
+            ]
+          },
+          {
+            "token": "-translate-y-1/2",
+            "props": [
+              "translate: none ≠ 0px -50%"
+            ]
+          },
+          {
+            "token": "border-l",
+            "props": [
+              "border-inline-start-style: none ≠ solid",
+              "border-inline-start-width: 0px ≠ 1px",
+              "border-left-style: none ≠ solid",
+              "border-left-width: 0px ≠ 1px"
+            ]
+          },
+          {
+            "token": "ring-slate-200",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklch(0.929 0.013 255.508) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "shadow-none",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px"
+            ]
+          },
+          {
+            "token": "after:-inset-2",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "md:after:hidden",
+            "props": [
+              "::aftercontent: none ≠ \"\""
+            ]
+          },
+          {
+            "token": "ring-2",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "ring-inset",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 2px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "translate-x-6",
+            "props": [
+              "translate: none ≠ 24px"
+            ]
+          },
+          {
+            "token": "-translate-x-px",
+            "props": [
+              "translate: none ≠ -1px"
+            ]
+          },
+          {
+            "token": "after:inset-y-0",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "after:left-1/2",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "after:w-[2px]",
+            "props": [
+              "::aftercontent: none ≠ \"\"",
+              "::afterperspective-origin: 50% 50% ≠ 0px 0px",
+              "::aftertransform-origin: 50% 50% ≠ 0px 0px"
+            ]
+          },
+          {
+            "token": "border-l-4",
+            "props": [
+              "border-inline-start-style: none ≠ solid",
+              "border-inline-start-width: 0px ≠ 4px",
+              "border-left-style: none ≠ solid",
+              "border-left-width: 0px ≠ 4px"
+            ]
+          },
+          {
+            "token": "border-r",
+            "props": [
+              "border-inline-end-style: none ≠ solid",
+              "border-inline-end-width: 0px ≠ 1px",
+              "border-right-style: none ≠ solid",
+              "border-right-width: 0px ≠ 1px"
+            ]
+          },
+          {
+            "token": "from-blue-400",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.707 0.165 254.624) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-blue-50",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.97 0.014 254.604) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-blue-500",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.623 0.214 259.815) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-emerald-50",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.979 0.021 166.113) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-purple-50",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.977 0.014 308.299) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-sky-500",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.685 0.169 237.323) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "from-slate-100",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, oklch(0.968 0.007 247.896) 0%, rgba(0, 0, 0, 0) 100%)"
+            ]
+          },
+          {
+            "token": "last:border-b-0",
+            "props": [
+              "border-block-end-style: none ≠ solid",
+              "border-bottom-style: none ≠ solid"
+            ]
+          },
+          {
+            "token": "md:absolute",
+            "props": [
+              "bottom: -14276.7px ≠ -14277.7px",
+              "inset-block-end: -14276.7px ≠ -14277.7px",
+              "inset-block-start: 15020.7px ≠ 15021.7px",
+              "top: 15020.7px ≠ 15021.7px"
+            ]
+          },
+          {
+            "token": "ring-0",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "ring-emerald-600/20",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, oklab(0.596 -0.13883 0.041849 / 0.2) 0px 0px 0px 2px, rgba(0, 0, 0, 0) 0px 0px 0px 0px"
+            ]
+          },
+          {
+            "token": "shadow-[0_0_0_1px_var(--sidebar-border)]",
+            "props": [
+              "box-shadow: none ≠ rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.1) 0px 2px 4px -2px"
+            ]
+          },
+          {
+            "token": "to-blue-100",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.932 0.032 255.585) 100%)"
+            ]
+          },
+          {
+            "token": "to-blue-600",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.546 0.245 262.881) 100%)"
+            ]
+          },
+          {
+            "token": "to-cyan-500",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.715 0.143 215.221) 100%)"
+            ]
+          },
+          {
+            "token": "to-emerald-100",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.95 0.052 163.051) 100%)"
+            ]
+          },
+          {
+            "token": "to-indigo-700",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.457 0.24 277.023) 100%)"
+            ]
+          },
+          {
+            "token": "to-purple-100",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.946 0.033 307.174) 100%)"
+            ]
+          },
+          {
+            "token": "to-slate-800",
+            "props": [
+              "background-image: none ≠ linear-gradient(to right, rgba(0, 0, 0, 0) 0%, oklch(0.279 0.041 260.031) 100%)"
+            ]
+          },
+          {
+            "token": "translate-x-1",
+            "props": [
+              "translate: none ≠ 4px"
+            ]
+          },
+          {
+            "token": "translate-x-px",
+            "props": [
+              "translate: none ≠ 1px"
+            ]
+          },
+          {
+            "token": "translate-y-[calc(-50%_-_2px)]",
+            "props": [
+              "translate: none ≠ 0px calc(-50% - 2px)"
+            ]
+          },
+          {
+            "token": "translate-y-0.5",
+            "props": [
+              "translate: none ≠ 0px 2px"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}
