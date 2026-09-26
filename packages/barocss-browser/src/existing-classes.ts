@@ -4,7 +4,8 @@ export function unescapeCssIdent(s: string): string {
   return s.replace(/\\([0-9a-fA-F]{1,6})\s?|\\(.)/g, (_m, hex, ch) => (hex ? String.fromCodePoint(parseInt(hex, 16)) : ch));
 }
 
-const LEADING_CLASS = /^\s*\.((?:\\[0-9a-fA-F]{1,6}\s?|\\.|[\w-]|[^\x00-\x7F])+)/;
+// `:where(.divide-y > ...)` / `:is(.x ...)` count too: Tailwind 4 and BaroCSS emit divide/space rules that way (#268).
+const LEADING_CLASS = /^\s*(?::(?:where|is)\(\s*)?\.((?:\\[0-9a-fA-F]{1,6}\s?|\\.|[\w-]|[^\x00-\x7F])+)/;
 
 export function splitTopLevel(sel: string): string[] {
   const parts: string[] = []; let depth = 0, start = 0;
