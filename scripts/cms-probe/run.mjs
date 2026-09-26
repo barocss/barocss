@@ -91,8 +91,9 @@ const srv = http.createServer((q, r) => {
 });
 await new Promise((ok) => srv.listen(PORT, '127.0.0.1', ok));
 if (process.env.HOLD) await new Promise(() => {}); // debug: keep the server up
-const { chromium } = createRequire(path.join(process.env.PW_DIR, 'node_modules/'))('playwright-core');
-const browser = await chromium.launch({ executablePath: process.env.CHROME });
+const ENGINE = process.env.ENGINE || 'chromium'; // #374: ENGINE=firefox|webkit uses PW_DIR's bundled engine
+const pwEngines = createRequire(path.join(process.env.PW_DIR, 'node_modules/'))('playwright-core'), chromium = pwEngines[ENGINE];
+const browser = await chromium.launch({ executablePath: ENGINE === 'chromium' ? process.env.CHROME : undefined });
 const raw = [];
 for (const m of MODELS) for (const arm of ARMS) for (let i = 0; i < RUNS; i++) {
   const p = await browser.newPage({ viewport: { width: 1280, height: 1400 } });

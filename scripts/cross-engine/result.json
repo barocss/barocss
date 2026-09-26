@@ -1,0 +1,40 @@
+{
+ "question": "#374",
+ "date": "2026-09-26",
+ "engines": { "chromium": "148.0.7778.96 (cached chromium-1223, executablePath)", "firefox": "148.0.2 (playwright firefox-1511)", "webkit": "26.4 (playwright webkit-2272)" },
+ "playwright": "playwright-core 1.59.1 (local, no downloads)",
+ "build": "local develop build (packages/barocss-browser dist), same for all engines",
+ "probes": {
+  "o5 (#364) baro root / +nonce / +nonce+prefilter, opus+haiku": {
+   "chromium": { "parity": 1.0, "widgetToHost": 0, "advDrop": 0, "viol": "9/6, 9/6, 6/0", "xo": "7/6, 7/6, 2/0", "hits": "1,1,0" },
+   "firefox": { "parity_raw": 0.0, "parity_normQuotes": 1.0, "widgetToHost": 0, "advDrop": 0, "viol": "9/6, 9/6, 6/0", "xo": "0 all", "hits": "1,1,0" },
+   "webkit": { "parity": 1.0, "widgetToHost": 0, "advDrop": 0, "viol": "9/6, 9/6, 6/0", "xo": "0 all", "hits": "1,1,0" }
+  },
+  "csp (#347) document+shadow arms": {
+   "chromium": { "baroNonce": 1.0, "baroConstructable": 1.0, "constructableSelf": 1.0, "shadowArms": 1.0, "violationsInSafeArms": 0, "negControlViol": { "baroDefault": 572, "twb": 12 } },
+   "firefox": { "baroNonce": 1.0, "baroConstructable": 1.0, "constructableSelf": 1.0, "shadowArms": 1.0, "violationsInSafeArms": 0, "negControlViol": { "baroDefault": 317, "twb": 8 } },
+   "webkit": { "baroNonce": 1.0, "baroConstructable": 1.0, "constructableSelf": 1.0, "shadowArms": 1.0, "violationsInSafeArms": 0, "negControlViol": { "baroDefault": 572, "twb": 12 } }
+  },
+  "embed (#327/#320) baroRoot open/closed shadow, div": {
+   "chromium": { "open": 1, "closed": 1, "div": 0.71, "hostDmg": "0/9" },
+   "firefox": { "open_raw": 0, "closed_raw": 0, "div": 0.71, "hostDmg": "0/9", "onlyDiff": "font-family:138 (serialization only, see shadow-font.mjs)" },
+   "webkit": { "open": 1, "closed": 1, "div": 0.71, "hostDmg": "0/9" }
+  },
+  "cms (#231/#253) baro arm opus+haiku": {
+   "chromium": { "blockParity": 1.0, "shellVsRef": 1.0 },
+   "firefox": { "blockParity": 1.0, "shellVsRef": 1.0 },
+   "webkit": { "blockParity": 1.0, "shellVsRef": 1.0, "note": "safelist arm (not BaroCSS) haiku 0.686 vs 0.616" }
+  },
+  "preflight (#336) full vs Tailwind 4.3.3, 37 els x 24 props": {
+   "chromium": { "diffs": 0, "rules": "35/38" }, "firefox": { "diffs": 0, "rules": "37/40" }, "webkit": { "diffs": 0, "rules": "35/38" }
+  },
+  "fuzz (#319) seed 319, 2 min, P1 = CSSOM": {
+   "chromium": { "inputs": 471500, "cssomUnique": 45161, "browserP1Dropped": 2753, "insertRuleThrows": 1914 },
+   "firefox": { "inputs": 461500, "cssomUnique": 38308, "browserP1Dropped": 2670, "insertRuleThrows": 1858 },
+   "webkit": { "inputs": 466500, "cssomUnique": 41739, "browserP1Dropped": 2543, "insertRuleThrows": 1739 },
+   "P2": "identical counts in all engines (node-side properties)"
+  }
+ },
+ "gaps": [],
+ "verdict": "the O4 and O5 claims hold across engines: yes (Firefox parity needs quote-normalized comparison; no BaroCSS gap found)"
+}

@@ -129,8 +129,9 @@ const srv = http.createServer((q, r) => {
 const csrv = http.createServer((q, r) => { hits.push('xo:' + q.url); r.writeHead(204); r.end(); });
 await new Promise((ok) => srv.listen(PORT, '127.0.0.1', ok));
 await new Promise((ok) => csrv.listen(CPORT, 'localhost', ok));
-const { chromium } = createRequire(path.join(process.env.PW_DIR, 'node_modules/'))('playwright-core');
-const browser = await chromium.launch({ executablePath: process.env.CHROME });
+const ENGINE = process.env.ENGINE || 'chromium'; // #374: ENGINE=firefox|webkit uses PW_DIR's bundled engine
+const pwEngines = createRequire(path.join(process.env.PW_DIR, 'node_modules/'))('playwright-core'), chromium = pwEngines[ENGINE];
+const browser = await chromium.launch({ executablePath: ENGINE === 'chromium' ? process.env.CHROME : undefined });
 async function run(arm, m, h, a) {
   const p = await browser.newPage({ viewport: { width: 1280, height: 1400 } });
   const xo = [], errs = [];
@@ -142,6 +143,8 @@ async function run(arm, m, h, a) {
   await p.waitForTimeout(300);
   const viol = await p.evaluate(() => window.__viol || []);
   await p.close();
+  // #374: NORM_QUOTES=1 drops '"' from computed values (Firefox serializes var()-substituted font-family unquoted)
+  if (process.env.NORM_QUOTES) for (const k of ['blockSig', 'hostBefore', 'hostAfter']) if (r[k]) r[k] = JSON.parse(JSON.stringify(r[k]).replace(/\\"/g, ''));
   return { ...r, viol, xo, hits: [...hits], errs };
 }
 const eq = (x, y) => JSON.stringify(x) === JSON.stringify(y);
