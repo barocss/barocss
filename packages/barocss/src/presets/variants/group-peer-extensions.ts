@@ -29,6 +29,7 @@ functionalModifier(
 // `group-not-[x]` / `peer-not-[x]` → `:not(*:is(x))`; `group-not-focus` → `:not(:focus)`.
 function negated(value: string, ctx: Context): string | null {
   const v = value.slice(4);
+  if (v.startsWith('[@')) return null; // #354: at-rule-led group-/peer-not-[@…] emits nothing, like Tailwind 4.3.3
   if (v.startsWith('[') && v.endsWith(']')) return `:not(*:is(${decodeArbitrarySelector(v.slice(1, -1))}))`;
   const inner = negatableSelectorOf(v, ctx);
   return inner ? `:not(${inner})` : null;
