@@ -1,0 +1,330 @@
+{
+ "issue": 394,
+ "runs_per_version": 3,
+ "note": "round-robin, 1 run per invocation, stopped after 3 of 5 planned rounds at coordinator request; Chromium chromium-1223, 4x CPU throttle per ssr-probe; same machine, same session",
+ "umd_bytes": {
+  "0.8.0": 229150,
+  "0.8.1": 229465,
+  "0.8.2": 230864,
+  "0.9.0": 235928,
+  "0.10.0": 239416,
+  "0.10.1": 241482
+ },
+ "ssr_266": {
+  "0.8.0": {
+   "hydrateMs.client-end.opus": {
+    "n": 3,
+    "median": 390.2,
+    "min": 376,
+    "max": 415.2
+   },
+   "hydrateMs.client-head.opus": {
+    "n": 3,
+    "median": 374,
+    "min": 369,
+    "max": 381.4
+   },
+   "hydrateMs.client-end.haiku": {
+    "n": 3,
+    "median": 327.2,
+    "min": 321.4,
+    "max": 329.4
+   },
+   "hydrateMs.client-head.haiku": {
+    "n": 3,
+    "median": 326.4,
+    "min": 320.7,
+    "max": 331.6
+   },
+   "serverCold.opus": {
+    "n": 3,
+    "median": 23.5,
+    "min": 22.95,
+    "max": 23.67
+   },
+   "serverWarm.opus": {
+    "n": 3,
+    "median": 0.2,
+    "min": 0.19,
+    "max": 0.2
+   },
+   "serverCold.haiku": {
+    "n": 3,
+    "median": 19.48,
+    "min": 19.4,
+    "max": 19.91
+   },
+   "serverWarm.haiku": {
+    "n": 3,
+    "median": 0.11,
+    "min": 0.11,
+    "max": 0.11
+   }
+  },
+  "0.8.1": {
+   "hydrateMs.client-end.opus": {
+    "n": 3,
+    "median": 384.8,
+    "min": 378.5,
+    "max": 405.3
+   },
+   "hydrateMs.client-head.opus": {
+    "n": 3,
+    "median": 377.6,
+    "min": 369.1,
+    "max": 380.4
+   },
+   "hydrateMs.client-end.haiku": {
+    "n": 3,
+    "median": 338.4,
+    "min": 327.7,
+    "max": 339
+   },
+   "hydrateMs.client-head.haiku": {
+    "n": 3,
+    "median": 321,
+    "min": 316.1,
+    "max": 323.3
+   },
+   "serverCold.opus": {
+    "n": 3,
+    "median": 25.19,
+    "min": 23.91,
+    "max": 26.03
+   },
+   "serverWarm.opus": {
+    "n": 3,
+    "median": 0.2,
+    "min": 0.2,
+    "max": 0.2
+   },
+   "serverCold.haiku": {
+    "n": 3,
+    "median": 19.93,
+    "min": 19.71,
+    "max": 20.08
+   },
+   "serverWarm.haiku": {
+    "n": 3,
+    "median": 0.11,
+    "min": 0.11,
+    "max": 0.12
+   }
+  },
+  "0.8.2": {
+   "hydrateMs.client-end.opus": {
+    "n": 3,
+    "median": 390.5,
+    "min": 383.3,
+    "max": 397.6
+   },
+   "hydrateMs.client-head.opus": {
+    "n": 3,
+    "median": 384.7,
+    "min": 383.8,
+    "max": 385.2
+   },
+   "hydrateMs.client-end.haiku": {
+    "n": 3,
+    "median": 340.3,
+    "min": 336.8,
+    "max": 342.2
+   },
+   "hydrateMs.client-head.haiku": {
+    "n": 3,
+    "median": 330.3,
+    "min": 328.5,
+    "max": 339
+   },
+   "serverCold.opus": {
+    "n": 3,
+    "median": 25.29,
+    "min": 25.09,
+    "max": 26.26
+   },
+   "serverWarm.opus": {
+    "n": 3,
+    "median": 0.2,
+    "min": 0.2,
+    "max": 0.2
+   },
+   "serverCold.haiku": {
+    "n": 3,
+    "median": 20.57,
+    "min": 20.55,
+    "max": 20.98
+   },
+   "serverWarm.haiku": {
+    "n": 3,
+    "median": 0.11,
+    "min": 0.11,
+    "max": 0.12
+   }
+  },
+  "0.9.0": {
+   "hydrateMs.client-end.opus": {
+    "n": 3,
+    "median": 407.9,
+    "min": 405.3,
+    "max": 418.6
+   },
+   "hydrateMs.client-head.opus": {
+    "n": 3,
+    "median": 411.3,
+    "min": 404.1,
+    "max": 412.8
+   },
+   "hydrateMs.client-end.haiku": {
+    "n": 3,
+    "median": 357.5,
+    "min": 355,
+    "max": 359.6
+   },
+   "hydrateMs.client-head.haiku": {
+    "n": 3,
+    "median": 344.3,
+    "min": 342.9,
+    "max": 345.6
+   },
+   "serverCold.opus": {
+    "n": 3,
+    "median": 25.11,
+    "min": 24.9,
+    "max": 25.22
+   },
+   "serverWarm.opus": {
+    "n": 3,
+    "median": 0.2,
+    "min": 0.2,
+    "max": 0.2
+   },
+   "serverCold.haiku": {
+    "n": 3,
+    "median": 21.09,
+    "min": 20.8,
+    "max": 21.26
+   },
+   "serverWarm.haiku": {
+    "n": 3,
+    "median": 0.11,
+    "min": 0.11,
+    "max": 0.12
+   }
+  },
+  "0.10.0": {
+   "hydrateMs.client-end.opus": {
+    "n": 3,
+    "median": 414.6,
+    "min": 402.3,
+    "max": 416.8
+   },
+   "hydrateMs.client-head.opus": {
+    "n": 3,
+    "median": 397,
+    "min": 394.1,
+    "max": 409
+   },
+   "hydrateMs.client-end.haiku": {
+    "n": 3,
+    "median": 362.5,
+    "min": 358.7,
+    "max": 373.1
+   },
+   "hydrateMs.client-head.haiku": {
+    "n": 3,
+    "median": 349.5,
+    "min": 341.6,
+    "max": 359.2
+   },
+   "serverCold.opus": {
+    "n": 3,
+    "median": 25.46,
+    "min": 25.22,
+    "max": 27.39
+   },
+   "serverWarm.opus": {
+    "n": 3,
+    "median": 0.2,
+    "min": 0.2,
+    "max": 0.2
+   },
+   "serverCold.haiku": {
+    "n": 3,
+    "median": 21.22,
+    "min": 20.73,
+    "max": 21.85
+   },
+   "serverWarm.haiku": {
+    "n": 3,
+    "median": 0.11,
+    "min": 0.11,
+    "max": 0.11
+   }
+  },
+  "0.10.1": {
+   "hydrateMs.client-end.opus": {
+    "n": 3,
+    "median": 408.2,
+    "min": 406.2,
+    "max": 414.2
+   },
+   "hydrateMs.client-head.opus": {
+    "n": 3,
+    "median": 410.7,
+    "min": 406.7,
+    "max": 422.8
+   },
+   "hydrateMs.client-end.haiku": {
+    "n": 3,
+    "median": 360,
+    "min": 359.2,
+    "max": 367.6
+   },
+   "hydrateMs.client-head.haiku": {
+    "n": 3,
+    "median": 358,
+    "min": 348.5,
+    "max": 361.7
+   },
+   "serverCold.opus": {
+    "n": 3,
+    "median": 25.9,
+    "min": 25.15,
+    "max": 29.3
+   },
+   "serverWarm.opus": {
+    "n": 3,
+    "median": 0.2,
+    "min": 0.19,
+    "max": 0.21
+   },
+   "serverCold.haiku": {
+    "n": 3,
+    "median": 20.9,
+    "min": 20.33,
+    "max": 22.51
+   },
+   "serverWarm.haiku": {
+    "n": 3,
+    "median": 0.11,
+    "min": 0.11,
+    "max": 0.11
+   }
+  }
+ },
+ "shell_231": {
+  "metric": "shellParity baro final, all specs, N=1 (deterministic: identical per run)",
+  "values": {
+   "c231 (8e073ff, the #231 commit)": 0.9972,
+   "0.8.0": 0.9972,
+   "0.10.1": 0.9972
+  },
+  "reference_tailwind_tested": [
+   "4.3.3",
+   "4.1.18",
+   "4.1.13"
+  ],
+  "all_same": true,
+  "diffs": "height only, on shell elements main (idx7), card div (idx8), #out (idx14): ancestors of the generated spec content; e.g. 1143 vs 1127 px"
+ }
+}

@@ -128,63 +128,13 @@ describe("effects.ts (box-shadow utilities)", () => {
     expect(parseClassToAst("ring-2", ctx)).toEqual(ringNodes("2px"));
   });
   it("ring-blue-500 → --baro-ring-color: var(--color-blue-500)", () => {
-    expect(parseClassToAst("ring-blue-500", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-ring-color",
-            value: "var(--color-blue-500)",
-          },
-        ],
-      },
-      { type: "decl", prop: "--baro-ring-color", value: "var(--color-blue-500)" },
-    ]);
+    expect(parseClassToAst("ring-blue-500", ctx)).toEqual([{type:  "decl", prop:  "--baro-ring-color", value:  "var(--color-blue-500)"}]);
   });
   it("ring-blue-500/50 → --baro-ring-color: color-mix(in oklab, var(--color-blue-500) 50%, transparent)", () => {
-    expect(parseClassToAst("ring-blue-500/50", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-ring-color",
-            value: "color-mix(in oklab, var(--color-blue-500) 50%, transparent)",
-          },
-        ],
-      },
-      {
-        type: "decl",
-        prop: "--baro-ring-color",
-        value: "#3080ff80",
-      },
-    ]);
+    expect(parseClassToAst("ring-blue-500/50", ctx)).toEqual([{type:  "decl", prop:  "--baro-ring-color", value:  "color-mix(in srgb, #3080ff 50%, transparent)"}, {type:  "at-rule", name:  "supports", params:  "(color:color-mix(in lab, red, red))", nodes:  [{type:  "decl", prop:  "--baro-ring-color", value:  "color-mix(in oklab, var(--color-blue-500) 50%, transparent)"}]}]);
   });
   it("ring-[#bada55]/80 → --baro-ring-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
-    expect(parseClassToAst("ring-[#bada55]/80", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-ring-color",
-            value: "color-mix(in oklab, #bada55 80%, transparent)",
-          },
-        ],
-      },
-      {
-        type: "decl",
-        prop: "--baro-ring-color",
-        value: "#bada55cc",
-      },
-    ]);
+    expect(parseClassToAst("ring-[#bada55]/80", ctx)).toEqual([{type:  "decl", prop:  "--baro-ring-color", value:  "color-mix(in oklab, #bada55 80%, transparent)"}]);
   });
   it("ring-(color:--my-ring) → --baro-ring-color: var(--my-ring)", () => {
     expect(parseClassToAst("ring-(color:--my-ring)", ctx)).toEqual([
@@ -192,17 +142,7 @@ describe("effects.ts (box-shadow utilities)", () => {
     ]);
   });
   it("ring-inherit → --baro-ring-color: inherit", () => {
-    expect(parseClassToAst("ring-inherit", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          { type: "decl", prop: "--baro-ring-color", value: "var(--color-inherit)" },
-        ],
-      },
-      { type: "decl", prop: "--baro-ring-color", value: "var(--color-inherit)" },
-    ]);
+    expect(parseClassToAst("ring-inherit", ctx)).toEqual([{type:  "decl", prop:  "--baro-ring-color", value:  "inherit"}]);
   });
   it("ring-[0_0_0_3px_rgba(0,0,0,0.5)] → box-shadow: 0 0 0 3px rgba(0,0,0,0.5)", () => {
     expect(parseClassToAst("ring-[0_0_0_3px_rgba(0,0,0,0.5)]", ctx)).toEqual([
@@ -234,46 +174,10 @@ describe("effects.ts (box-shadow utilities)", () => {
     ]);
   });
   it("inset-ring-blue-500/60 → --baro-inset-ring-color: color-mix(in oklab, var(--color-blue-500) 60%, transparent)", () => {
-    expect(parseClassToAst("inset-ring-blue-500/60", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-inset-ring-color",
-            value: "color-mix(in oklab, var(--color-blue-500) 60%, transparent)",
-          },
-        ],
-      },
-      {
-        type: "decl",
-        prop: "--baro-inset-ring-color",
-        value: "#3080ff99",
-      },
-    ]);
+    expect(parseClassToAst("inset-ring-blue-500/60", ctx)).toEqual([{type:  "decl", prop:  "--baro-inset-ring-color", value:  "color-mix(in srgb, #3080ff 60%, transparent)"}, {type:  "at-rule", name:  "supports", params:  "(color:color-mix(in lab, red, red))", nodes:  [{type:  "decl", prop:  "--baro-inset-ring-color", value:  "color-mix(in oklab, var(--color-blue-500) 60%, transparent)"}]}]);
   });
   it("inset-ring-[#bada55]/80 → --baro-inset-ring-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
-    expect(parseClassToAst("inset-ring-[#bada55]/80", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-inset-ring-color",
-            value: "color-mix(in oklab, #bada55 80%, transparent)",
-          },
-        ],
-      },
-      {
-        type: "decl",
-        prop: "--baro-inset-ring-color",
-        value: "#bada55cc",
-      },
-    ]);
+    expect(parseClassToAst("inset-ring-[#bada55]/80", ctx)).toEqual([{type:  "decl", prop:  "--baro-inset-ring-color", value:  "color-mix(in oklab, #bada55 80%, transparent)"}]);
   });
   it("inset-ring-(color:--my-inset) → --baro-inset-ring-color: var(--my-inset)", () => {
     expect(parseClassToAst("inset-ring-(color:--my-inset)", ctx)).toEqual([
@@ -281,17 +185,7 @@ describe("effects.ts (box-shadow utilities)", () => {
     ]);
   });
   it("inset-ring-inherit → --baro-inset-ring-color: inherit", () => {
-    expect(parseClassToAst("inset-ring-inherit", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          { type: "decl", prop: "--baro-inset-ring-color", value: "var(--color-inherit)" },
-        ],
-      },
-      { type: "decl", prop: "--baro-inset-ring-color", value: "var(--color-inherit)" },
-    ]);
+    expect(parseClassToAst("inset-ring-inherit", ctx)).toEqual([{type:  "decl", prop:  "--baro-inset-ring-color", value:  "inherit"}]);
   });
   it("inset-ring-[0_0_0_3px_rgba(0,0,0,0.5)] → box-shadow: inset 0 0 0 3px rgba(0,0,0,0.5)", () => {
     expect(
@@ -304,39 +198,11 @@ describe("effects.ts (box-shadow utilities)", () => {
       },
     ]);
   });
-  it("ring-blue-500/50 → color-mix + hex fallback", () => {
-    expect(parseClassToAst("ring-blue-500/50", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-ring-color",
-            value: "color-mix(in oklab, var(--color-blue-500) 50%, transparent)",
-          },
-        ],
-      },
-      { type: "decl", prop: "--baro-ring-color", value: "#3080ff80" },
-    ]);
+  it("ring-blue-500/50 → color-mix, as Tailwind 4.3.3 (#393)", () => {
+    expect(parseClassToAst("ring-blue-500/50", ctx)).toEqual([{type:  "decl", prop:  "--baro-ring-color", value:  "color-mix(in srgb, #3080ff 50%, transparent)"}, {type:  "at-rule", name:  "supports", params:  "(color:color-mix(in lab, red, red))", nodes:  [{type:  "decl", prop:  "--baro-ring-color", value:  "color-mix(in oklab, var(--color-blue-500) 50%, transparent)"}]}]);
   });
-  it("ring-[#3080ff]/75 → color-mix + hex fallback", () => {
-    expect(parseClassToAst("ring-[#3080ff]/75", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-ring-color",
-            value: "color-mix(in oklab, #3080ff 75%, transparent)",
-          },
-        ],
-      },
-      { type: "decl", prop: "--baro-ring-color", value: "#3080ffbf" },
-    ]);
+  it("ring-[#3080ff]/75 → color-mix, as Tailwind 4.3.3 (#393)", () => {
+    expect(parseClassToAst("ring-[#3080ff]/75", ctx)).toEqual([{type:  "decl", prop:  "--baro-ring-color", value:  "color-mix(in oklab, #3080ff 75%, transparent)"}]);
   });
   it("ring → box-shadow variable combination", () => {
     expect(parseClassToAst("ring", ctx)).toEqual(ringNodes("1px"));

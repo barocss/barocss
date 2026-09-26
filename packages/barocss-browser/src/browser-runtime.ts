@@ -225,8 +225,8 @@ export class BrowserRuntime {
   private insertSsrRules(rules: Array<{ css: string; cls: string }>): void {
     for (const { css, cls } of rules) {
       const category = this.getCategory(cls);
-      if (category) this.stylePartitionManager.addCategoryRule(css, category);
-      else this.stylePartitionManager.addRule(css);
+      if (category) this.stylePartitionManager.addCategoryRule(css, category, cls);
+      else this.stylePartitionManager.addRule(css, cls);
     }
   }
 

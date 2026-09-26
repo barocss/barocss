@@ -102,3 +102,9 @@ vitest 5 (#302) hides console output by default. To see the coverage lines, run 
 
 ## Tailwind drift check (#365)
 `.github/workflows/tailwind-drift.yml` runs weekly (and on manual dispatch, with an optional version spec such as `4.1.13` to simulate drift). It installs the latest `tailwindcss@4` in a scratch dir (no lockfile change), runs `tests/compat/tailwind-drift-365.test.ts` (skipped unless `BAROCSS_TW_DRIFT_DIR` is set) against both parity corpora and the preflight, and reports. Drift (a class at parity with the pinned version that fails with the latest, or a changed preflight) opens or updates one Issue titled "Tailwind 4.x drift: parity corpora or preflight changed". A clean run comments "clean at X" and closes that Issue if it is open, otherwise it stays silent. It is report-only: never on push/PR, not a required check, no release gate. The Planner triages its Issues (re-pin or not).
+
+## Timing claims (2026-09-27)
+
+A timing claim compares against a baseline measured in the same session and environment, and states N and
+the median with its spread (min–max). Never compare timings across sessions or machines; rerun the baseline
+next to the new measurement instead (#394, #403).

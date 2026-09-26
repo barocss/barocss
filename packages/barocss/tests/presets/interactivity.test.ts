@@ -50,21 +50,7 @@ describe("accent-color ", () => {
     ]);
   });
   it("accent-blue-500/50 → accent-color: #0000ff/50%", () => {
-    expect(parseClassToAst("accent-blue-500/50", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "accent-color",
-            value: "color-mix(in lab, #0000ff 50%, transparent)",
-          },
-        ],
-      },
-      { type: "decl", prop: "accent-color", value: "#0000ff" },
-    ]);
+    expect(parseClassToAst("accent-blue-500/50", ctx)).toEqual([{type:  "decl", prop:  "accent-color", value:  "color-mix(in srgb, #0000ff 50%, transparent)"}, {type:  "at-rule", name:  "supports", params:  "(color:color-mix(in lab, red, red))", nodes:  [{type:  "decl", prop:  "accent-color", value:  "color-mix(in oklab, var(--color-blue-500) 50%, transparent)"}]}]);
   });
   it("accent-[rebeccapurple] → accent-color: rebeccapurple", () => {
     expect(parseClassToAst("accent-[rebeccapurple]", ctx)).toEqual([
@@ -123,21 +109,7 @@ describe("caret-color ", () => {
     ]);
   });
   it("caret-blue-500/50 → caret-color: #0000ff/50%", () => {
-    expect(parseClassToAst("caret-blue-500/50", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "caret-color",
-            value: "color-mix(in lab, #0000ff 50%, transparent)",
-          },
-        ],
-      },
-      { type: "decl", prop: "caret-color", value: "#0000ff" },
-    ]);
+    expect(parseClassToAst("caret-blue-500/50", ctx)).toEqual([{type:  "decl", prop:  "caret-color", value:  "color-mix(in srgb, #0000ff 50%, transparent)"}, {type:  "at-rule", name:  "supports", params:  "(color:color-mix(in lab, red, red))", nodes:  [{type:  "decl", prop:  "caret-color", value:  "color-mix(in oklab, var(--color-blue-500) 50%, transparent)"}]}]);
   });
   it("caret-(--my-caret) → caret-color: var(--my-caret)", () => {
     expect(parseClassToAst("caret-(--my-caret)", ctx)).toEqual([
