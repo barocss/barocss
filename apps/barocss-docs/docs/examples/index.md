@@ -12,7 +12,7 @@ These examples use public package exports and a small set of classes from the [c
 Install the published browser package:
 
 ```bash
-pnpm add @barocss/browser@0.10.1
+pnpm add @barocss/browser@__BAROCSS_VERSION__
 ```
 
 Start observation after the body exists:
@@ -38,7 +38,7 @@ document.body.appendChild(message)
 Install the published server package:
 
 ```bash
-pnpm add @barocss/server@0.10.1
+pnpm add @barocss/server@__BAROCSS_VERSION__
 ```
 
 ```ts

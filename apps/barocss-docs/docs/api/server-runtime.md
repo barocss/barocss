@@ -470,7 +470,7 @@ setInterval(() => {
 
 ### Static HTML build script
 
-Install the published `0.10.1` package with `pnpm add @barocss/server@0.10.1`. Save this as `build-css.mjs` and run it from the project root with `node build-css.mjs`.
+Install the published `__BAROCSS_VERSION__` package with `pnpm add @barocss/server@__BAROCSS_VERSION__`. Save this as `build-css.mjs` and run it from the project root with `node build-css.mjs`.
 
 ```js
 import { readdirSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
