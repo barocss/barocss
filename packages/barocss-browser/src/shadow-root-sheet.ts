@@ -56,6 +56,85 @@ export function canConstruct(target: 'shadow' | 'document' = 'shadow'): boolean 
 
 const escapeCssRule = (rule: string) => rule.replace(/\\\//g, '\\/');
 
+/**
+ * #384: `@property` only registers at document level; browsers ignore it inside a shadow root's sheets, so every
+ * utility built on registered custom properties (gradients, shadow-*, ring-*, translate-*, ...) computed to `none`
+ * in root mode. Root-mode runtimes therefore also register their `@property` rules in the document, in one small
+ * sheet shared by every root and runtime: a `<style data-barocss="document-properties">` in `<head>` (carrying
+ * `nonce`), or with `constructable` one sheet in `document.adoptedStyleSheets`. Only `@property` rules go there:
+ * utilities, theme variables and preflight stay in the shadow root (#327).
+ *
+ * Destroy: the registrations are never removed. They are global and harmless without a utility that reads them,
+ * another root or runtime may still rely on the same name, and removing a registration while an element uses it
+ * would change its computed styles. Each rule is added at most once (by text).
+ */
+const PROPERTY_RULE = /^\s*@property\s/;
+interface DocumentProperties { doc: Document; rules: Set<string>; sheet?: CSSStyleSheet; style?: HTMLStyleElement }
+let documentProperties: DocumentProperties | null = null;
+
+/** @internal tests: forget the document registration (does not remove it from the page). */
+export function resetDocumentProperties(): void { documentProperties = null; }
+
+/** @internal the `@property` rules registered at document level (#384). */
+export function getDocumentPropertyRules(): string[] { return documentProperties ? Array.from(documentProperties.rules) : []; }
+
+/**
+ * #384: register the `@property` rules among `rules` in `doc`, idempotently. Returns false when the document cannot
+ * take them (no document or head, or insertion failed), so the caller falls back to `:host` initial values.
+ */
+export function registerDocumentProperties(doc: Document | null | undefined, rules: string[], opts: { nonce?: string; constructable?: boolean } = {}): boolean {
+  const props = rules.filter(r => PROPERTY_RULE.test(r));
+  if (props.length === 0) return true;
+  try {
+    if (!doc) return false;
+    if (!documentProperties || documentProperties.doc !== doc || (documentProperties.style && !documentProperties.style.isConnected)) {
+      const entry: DocumentProperties = { doc, rules: new Set() };
+      if (opts.constructable && canConstruct('document')) {
+        entry.sheet = new CSSStyleSheet();
+        doc.adoptedStyleSheets = [...doc.adoptedStyleSheets, entry.sheet];
+      } else {
+        const parent = doc.head ?? doc.documentElement;
+        if (!parent) return false;
+        const style = doc.createElement('style');
+        style.setAttribute('data-barocss', 'document-properties');
+        if (opts.nonce) style.setAttribute('nonce', opts.nonce);
+        parent.appendChild(style);
+        entry.style = style;
+      }
+      documentProperties = entry;
+    }
+    const entry = documentProperties;
+    for (const rule of props) {
+      if (entry.rules.has(rule)) continue;
+      const sheet = entry.sheet ?? entry.style?.sheet ?? null;
+      if (sheet) sheet.insertRule(escapeCssRule(rule), sheet.cssRules.length);
+      else if (entry.style) entry.style.textContent += `${rule}\n`;
+      entry.rules.add(rule);
+    }
+    return true;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    if (isDebug()) console.warn('[BrowserRuntime] could not register @property rules in the document; using :host initial values', error);
+    return false;
+  }
+}
+
+/**
+ * #384 fallback: the initial values of `@property` rules as plain declarations, in the first (lowest) cascade layer
+ * of the shadow root. Unregistered custom properties inherit, so they are set on every element too, which resets
+ * what a parent's utility set (as the registration's `inherits: false` would).
+ */
+export function propertyFallbackCss(rules: string[]): string {
+  const decls: string[] = [];
+  for (const rule of rules) {
+    const name = /^\s*@property\s+(--[\w-]+)/.exec(rule)?.[1];
+    const initial = /initial-value\s*:\s*([^;}]*)/.exec(rule)?.[1]?.trim();
+    if (name && initial) decls.push(`${name}: ${initial}`);
+  }
+  if (decls.length === 0) return '';
+  return `@layer properties {\n:host, *, ::before, ::after, ::backdrop {\n  ${decls.join(';\n  ')};\n}\n}`;
+}
+
 interface Segment { rules: string[]; keys: RuleKey[] }
 type SheetRoot = ShadowRoot | Document;
 interface Attached { root: SheetRoot; styles?: [HTMLStyleElement, HTMLStyleElement] }
@@ -72,7 +151,9 @@ export class SharedRootSheet {
   readonly constructable: boolean;
   private prologueSheet: CSSStyleSheet | null = null;
   private rulesSheet: CSSStyleSheet | null = null;
-  private prologue = { preflight: '', vars: '' };
+  private prologue = { props: '', preflight: '', vars: '' };
+  /** #384: `@property` rules that could not be registered in the document (served by the `:host` fallback). */
+  private fallbackProps = new Set<string>();
   /** Ordered: root (@property/@keyframes), uncategorised, then categories by first use (like the document partitions). */
   private segments = new Map<string, Segment>([['root', { rules: [], keys: [] }], ['', { rules: [], keys: [] }]]);
   /** rule text -> number of roots that use it. */
@@ -123,7 +204,14 @@ export class SharedRootSheet {
     else if (root.adoptedStyleSheets) root.adoptedStyleSheets = root.adoptedStyleSheets.filter(s => s !== this.prologueSheet && s !== this.rulesSheet);
   }
 
-  setPrologue(part: 'preflight' | 'vars', css: string): void {
+  /** #384: add `:host` initial values for the `@property` rules among `rules` (document registration failed). */
+  addPropertyFallback(rules: string[]): void {
+    const before = this.fallbackProps.size;
+    for (const r of rules) if (PROPERTY_RULE.test(r)) this.fallbackProps.add(r);
+    if (this.fallbackProps.size !== before) this.setPrologue('props', propertyFallbackCss(Array.from(this.fallbackProps)));
+  }
+
+  setPrologue(part: 'props' | 'preflight' | 'vars', css: string): void {
     if (this.prologue[part] === css) return;
     this.prologue[part] = css;
     const text = this.prologueText();
@@ -132,7 +220,7 @@ export class SharedRootSheet {
   }
 
   private prologueText(): string {
-    return [this.prologue.preflight, this.prologue.vars].filter(Boolean).join('\n');
+    return [this.prologue.props, this.prologue.preflight, this.prologue.vars].filter(Boolean).join('\n');
   }
 
   private allRules(): string[] {
@@ -256,7 +344,7 @@ export class ShadowRootStyles {
     readonly shared: SharedRootSheet,
     private root: SheetRoot,
     private getCategory: (cls: string) => string | undefined = cls => parseClassName(cls).utility?.category,
-    opts: { nonce?: string } = {},
+    private opts: { nonce?: string; constructable?: boolean } = {},
   ) {
     // #347: in the document mode (constructable) the preflight stays as written (html/:root/body).
     this.scopePreflight = root.nodeType === 11;
@@ -272,6 +360,12 @@ export class ShadowRootStyles {
 
   private take(rule: string, segment: string): boolean {
     if (this.owned.has(rule)) return false;
+    // #384: @property does nothing inside a shadow root (it arrives both as a root rule and among a utility's
+    // rules); register it in the document, or fall back to :host initial values. It also stays in the root sheet.
+    if (this.root.nodeType === 11 && PROPERTY_RULE.test(rule)) {
+      const doc = (this.root as ShadowRoot).ownerDocument ?? (typeof document !== 'undefined' ? document : null);
+      if (!registerDocumentProperties(doc, [rule], this.opts)) this.shared.addPropertyFallback([rule]);
+    }
     if (!this.shared.retain(rule, segment)) return false;
     this.owned.add(rule);
     return true;
