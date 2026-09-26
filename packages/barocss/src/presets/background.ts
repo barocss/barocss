@@ -342,6 +342,11 @@ functionalUtility({
       return [decl("background-size", value)];
     }
 
+    // #386: bg-[var(--x)] is a colour in Tailwind 4 (an untyped var() infers as a colour).
+    if (/^var\(--[^)]+\)$/.test(value)) {
+      return [decl("background-color", value)];
+    }
+
     return null;
   },
   handleCustomProperty: (value) => {
