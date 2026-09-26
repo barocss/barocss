@@ -1,7 +1,7 @@
 import { staticUtility, functionalUtility, registerUtility, themeKeyValue } from "../core/registry";
 import type { Context } from "../core/context";
-import { shadowColorDecls, shadowValueDecls, type ShadowLayer } from "./shadow-color";
-import { atRule, atRoot, decl, property } from "../core/ast";
+import { parseAlpha, shadowColorDecls, shadowValueDecls, type ShadowLayer } from "./shadow-color";
+import { atRoot, decl, property, type AstNode } from "../core/ast";
 import { parseColor, parseLength, parseNumber, themeColorDecls } from "../core/utils";
 
 // --- Box Shadow ---
@@ -109,6 +109,13 @@ function layerColor(layer: ShadowLayer, main: string, opacity: string | undefine
 }
 
 // shadow-<size>[/alpha], shadow-<color>[/alpha], shadow-[<shadow>][/alpha], shadow-(--x)
+// #393: `shadow-(--x)/50` sets only the layer alpha (the var is an opaque shadow value), as Tailwind 4.3.3 does.
+function customShadowAlpha(layer: ShadowLayer, opacity: string | undefined): AstNode[] | null {
+  if (!opacity) return [];
+  const a = parseAlpha(opacity);
+  return a ? [decl(`--baro-${layer}-alpha`, a.alpha)] : null;
+}
+
 for (const layer of ["shadow", "inset-shadow"] as const) {
   functionalUtility({
     name: layer,
@@ -128,8 +135,12 @@ for (const layer of ["shadow", "inset-shadow"] as const) {
       if (token.arbitrary) return boxShadowLayer(layer, layer === "inset-shadow" ? insetEach(value) : value, opacity);
       return null;
     },
-    handleCustomProperty: (value) =>
-      value.startsWith("color:") ? shadowColorDecls(layer, `var(${value.slice(6)})`, undefined) ?? [] : [ringShadowProperties(), decl(`--baro-${layer}`, layer === "inset-shadow" ? `inset var(${value})` : `var(${value})`), decl("box-shadow", SHADOW_COMPOSITE)],
+    ownsOpacity: true,
+    handleCustomProperty: (value, _ctx, _token, extra) => {
+      if (value.startsWith("color:")) return shadowColorDecls(layer, `var(${value.slice(6)})`, extra?.opacity) ?? [];
+      const alpha = customShadowAlpha(layer, extra?.opacity);
+      return alpha ? [ringShadowProperties(), ...alpha, decl(`--baro-${layer}`, layer === "inset-shadow" ? `inset var(${value})` : `var(${value})`), decl("box-shadow", SHADOW_COMPOSITE)] : [];
+    },
   });
 }
 
@@ -166,10 +177,15 @@ functionalUtility({
     if (token.arbitrary) return textShadowValue(value, opacity);
     return null;
   },
-  handleCustomProperty: (value) =>
-    value.startsWith("color:")
-      ? [textShadowProperties(), ...(shadowColorDecls("text-shadow", `var(${value.slice(6)})`, undefined) ?? [])]
-      : [textShadowProperties(), decl("text-shadow", `var(${value})`)],
+  ownsOpacity: true,
+  handleCustomProperty: (value, _ctx, _token, extra) => {
+    if (value.startsWith("color:")) {
+      const color = shadowColorDecls("text-shadow", `var(${value.slice(6)})`, extra?.opacity);
+      return color ? [textShadowProperties(), ...color] : [];
+    }
+    const alpha = customShadowAlpha("text-shadow", extra?.opacity);
+    return alpha ? [textShadowProperties(), ...alpha, decl("text-shadow", `var(${value})`)] : [];
+  },
   category: "effects",
 });
 
@@ -267,32 +283,6 @@ functionalUtility({
 staticUtility("ring-inset", [["--baro-ring-inset", "inset"]], { category: 'effects' });
 
 // --- Ring color/opacity/arbitrary/custom property ( supports+fallback) ---
-function createRingColorDecls(
-  key: string,
-  main: string,
-  opacity: string | undefined,
-  realThemeValue: string
-) {
-  const colorVar = `var(--color-${realThemeValue})`;
-  let colorMix = colorVar;
-  let fallback = colorVar;
-  if (opacity) {
-    colorMix = `color-mix(in oklab, ${colorVar} ${opacity}%, transparent)`;
-    if (parseColor(main) && main.startsWith("#")) {
-      const opacityValue = Math.round((Number(opacity) / 100) * 255);
-      fallback = `${main}${opacityValue.toString(16).padStart(2, "0")}`;
-    } else {
-      fallback = colorMix;
-    }
-  }
-  return [
-    atRule("supports", "(color:color-mix(in lab, red, red))", [
-      decl(key, colorMix),
-    ]),
-    decl(key, fallback),
-  ];
-}
-
 // Ring color/opacity/arbitrary/custom property
 functionalUtility({
   name: "ring",
@@ -305,51 +295,12 @@ functionalUtility({
     if (extra?.themeNamespace === "ringWidth") {
       return [ringShadowProperties(), decl("--baro-ring-shadow", ringShadowValue(value)), decl("box-shadow", SHADOW_COMPOSITE)];
     }
-    const opacity = extra?.opacity;
-    const realThemeValue = extra?.realThemeValue;
-    if (realThemeValue) {
-      return createRingColorDecls(
-        "--baro-ring-color",
-        main,
-        opacity,
-        realThemeValue
-      );
+    if (extra?.realThemeValue) {
+      return themeColorDecls("--baro-ring-color", main, extra);
     }
-    if (main.startsWith("color:")) {
-      const cp = main.replace("color:", "");
-      let colorMix = `var(${cp})`;
-      let fallback = colorMix;
-      if (opacity) {
-        colorMix = `color-mix(in oklab, var(${cp}) ${opacity}%, transparent)`;
-        fallback = colorMix;
-      }
-      return [
-        atRule("supports", "(color:color-mix(in lab, red, red))", [
-          decl("--baro-ring-color", colorMix),
-        ]),
-        decl("--baro-ring-color", fallback),
-      ];
-    }
+    // #393: a colour var or arbitrary colour is emitted bare; functionalUtility applies any opacity modifier.
+    if (main.startsWith("color:")) return [decl("--baro-ring-color", `var(${main.slice(6)})`)];
     if (token.arbitrary) {
-      let colorMix = main;
-      let fallback = main;
-      if (opacity) {
-        colorMix = `color-mix(in oklab, ${main} ${opacity}%, transparent)`;
-        if (parseColor(main) && main.startsWith("#")) {
-          const opacityValue = Math.round((Number(opacity) / 100) * 255);
-          fallback = `${main}${opacityValue.toString(16).padStart(2, "0")}`;
-        } else {
-          fallback = colorMix;
-        }
-
-        return [
-          atRule("supports", "(color:color-mix(in lab, red, red))", [
-            decl("--baro-ring-color", colorMix),
-          ]),
-          decl("--baro-ring-color", fallback),
-        ];
-      }
-
       // ring-[3px]: an arbitrary length is a ring width (Tailwind's ring-[<length>]); anything else is a colour.
       if (!parseColor(main) && /^(-?(\d+\.?\d*|\.\d+)(px|rem|em|%|vw|vh|vmin|vmax|ch|ex|pt|cm|mm|in|pc)|0|(length:.+)|calc\(.+\))$/i.test(main)) {
         const width = main.startsWith("length:") ? main.slice(7) : main;
@@ -386,52 +337,13 @@ functionalUtility({
   themeKeys: ["colors", "shadows"],
   handle: (value, ctx, token, extra) => {
     const main = value;
-    const opacity = extra?.opacity;
-    const realThemeValue = extra?.realThemeValue;
-    if (realThemeValue) {
-      return createRingColorDecls(
-        "--baro-inset-ring-color",
-        main,
-        opacity,
-        realThemeValue
-      );
+    if (extra?.realThemeValue) {
+      return themeColorDecls("--baro-inset-ring-color", main, extra);
     }
-    if (main.startsWith("color:")) {
-      const cp = main.replace("color:", "");
-      let colorMix = `var(${cp})`;
-      let fallback = colorMix;
-      if (opacity) {
-        colorMix = `color-mix(in oklab, var(${cp}) ${opacity}%, transparent)`;
-        fallback = colorMix;
-      }
-      return [
-        atRule("supports", "(color:color-mix(in lab, red, red))", [
-          decl("--baro-inset-ring-color", colorMix),
-        ]),
-        decl("--baro-inset-ring-color", fallback),
-      ];
-    }
+    // #393: a colour var or arbitrary colour is emitted bare; functionalUtility applies any opacity modifier.
+    if (main.startsWith("color:")) return [decl("--baro-inset-ring-color", `var(${main.slice(6)})`)];
     if (token.arbitrary) {
-      let colorMix = main;
-      let fallback = main;
-      if (opacity) {
-        colorMix = `color-mix(in oklab, ${main} ${opacity}%, transparent)`;
-        if (parseColor(main) && main.startsWith("#")) {
-          const opacityValue = Math.round((Number(opacity) / 100) * 255);
-          fallback = `${main}${opacityValue.toString(16).padStart(2, "0")}`;
-        } else {
-          fallback = colorMix;
-        }
-
-        return [
-          atRule("supports", "(color:color-mix(in lab, red, red))", [
-            decl("--baro-inset-ring-color", colorMix),
-          ]),
-          decl("--baro-inset-ring-color", fallback),
-        ];
-      }
-
-      return [decl("box-shadow", `inset ${main}`)];
+      return [parseColor(main) || /^var\(--[^)]+\)$/.test(main) ? decl("--baro-inset-ring-color", main) : decl("box-shadow", `inset ${main}`)];
     }
 
     if (main === "inherit" || main === "current" || main === "transparent") {

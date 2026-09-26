@@ -263,9 +263,8 @@ const stopsDecls = (stop: string, color: string | AstNode[]): AstNode[] => {
       }
       return null;
     },
-    handleCustomProperty: (value) => [
-      decl(`--baro-gradient-${stop}`, `var(${value})`),
-    ],
+    handleCustomProperty: (value) =>
+      value.startsWith("color:") ? stopsDecls(stop, `var(${value.slice(6)})`) : [decl(`--baro-gradient-${stop}`, `var(${value})`)],
     description: `${stop} gradient stop utility (color, percent, custom property, arbitrary supported)`,
     category: "background",
   });

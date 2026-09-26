@@ -476,7 +476,7 @@ functionalUtility({
   supportsOpacity: true,
   handle: (value, _ctx, _token, extra) => {
     if (extra?.realThemeValue) return [rule("&::placeholder", themeColorDecls("color", value, extra))];
-    if (parseColor(value)) return placeholderColor(value);
+    if (parseColor(value) || /^var\(--[\w-]+\)$/.test(value)) return placeholderColor(value);
     return null;
   },
   handleCustomProperty: (value) => placeholderColor(`var(${value})`),

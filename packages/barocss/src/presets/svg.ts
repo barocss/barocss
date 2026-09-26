@@ -1,6 +1,6 @@
 import { decl } from "../core/ast";
 import { staticUtility, functionalUtility } from "../core/registry";
-import { parseNumber, parseColor } from "../core/utils";
+import { parseNumber, parseColor, themeColorDecls } from "../core/utils";
 
 // #303: stroke-[…] / stroke-(…) type hints that mean stroke-width in Tailwind
 const STROKE_WIDTH_HINT = /^(length|number|percentage):(.+)$/;
@@ -22,10 +22,9 @@ functionalUtility({
   themeKeys: ["colors"],
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
-    if (extra?.realThemeValue) {
-      return [decl("fill", `var(--color-${extra.realThemeValue})`)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("fill", value, extra);
     return [decl("fill", value)];
   },
   description: "fill utility (static, theme, arbitrary, custom property supported)",
@@ -45,6 +44,7 @@ functionalUtility({
   themeKeys: ["colors", "strokeWidth"], // #338: a key in both is a colour, as in Tailwind
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
 
     if (parseNumber(value) || extra?.themeNamespace === "strokeWidth") {
@@ -60,9 +60,7 @@ functionalUtility({
       }
     }
 
-    if (extra?.realThemeValue) {
-      return [decl("stroke", `var(--color-${extra.realThemeValue})`)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("stroke", value, extra);
     return [decl("stroke", value)];
   },
   handleCustomProperty: (value) => {

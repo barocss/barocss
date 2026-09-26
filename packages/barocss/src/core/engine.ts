@@ -2,7 +2,7 @@ import { debugLog, debugWarn } from "../utils/debug";
 import { HasItems, HasName, HasParams, HasSelector, type AstNode, type HasNodes } from "./ast";
 import { parseClassName } from "./parser";
 import { astCache, parseResultCache } from "../utils/cache";
-import { getUtility, getModifier, arbitraryPropertyRegistration } from "./registry";
+import { getUtility, getModifier, arbitraryPropertyRegistration, REJECT_CLASS } from "./registry";
 import { Context } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
 import { clearAllCaches } from "../utils/cache";
@@ -324,6 +324,7 @@ export function parseClassToAst(
   let ast: AstNode[] = [];
   for (const utilReg of utilRegs) {
     ast = utilReg.handler(value!, ctx, utility, utilReg) || [];
+    if (ast === REJECT_CLASS) { ast = []; break; }
     if (ast.length > 0) break;
   }
 

@@ -1,4 +1,5 @@
 import { atRule, decl, type AstNode } from "../core/ast";
+import { normalizeAlpha } from "../core/utils";
 
 // #313: shared shadow colour/alpha handling for shadow-*, inset-shadow-*, text-shadow-* and drop-shadow-*,
 // matching Tailwind 4.3.3. Each shadow layer's colour is wrapped as var(--baro-<layer>-color, <colour>) so a
@@ -8,13 +9,9 @@ export type ShadowLayer = "shadow" | "inset-shadow" | "text-shadow" | "drop-shad
 
 /** Opacity modifier to an alpha: `50` → 50%, `[20%]` → 20%, `(--o)` → var(--o); anything else is invalid. */
 export function parseAlpha(op: string | undefined): { alpha: string; isVar: boolean } | null {
-  if (!op) return null;
-  if (/^\d+(\.\d+)?$/.test(op)) return { alpha: `${op}%`, isVar: false };
-  const pct = /^\[(\d+(?:\.\d+)?)%\]$/.exec(op);
-  if (pct) return { alpha: `${pct[1]}%`, isVar: false };
-  const cp = /^\((--[\w-]+)\)$/.exec(op);
-  if (cp) return { alpha: `var(${cp[1]})`, isVar: true };
-  return null;
+  // #393: the same alpha grammar as every colour utility (normalizeAlpha).
+  const a = op ? normalizeAlpha(op) : null;
+  return a && { alpha: a.amount, isVar: a.isVar };
 }
 
 function splitTop(value: string, sep: string): string[] {

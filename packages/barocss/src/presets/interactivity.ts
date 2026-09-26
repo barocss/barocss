@@ -1,6 +1,6 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRule, atRoot, decl, property, type AstNode } from "../core/ast";
-import { parseNumber } from "../core/utils";
+import { atRoot, decl, property, type AstNode } from "../core/ast";
+import { parseNumber, themeColorDecls } from "../core/utils";
 
 // --- Accent Color Utilities  ---
 //  accent-color documentation
@@ -20,21 +20,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, _ctx, _token, extra) => {
-    if (extra?.realThemeValue) {
-      if (extra.opacity) {
-        return [
-          atRule("supports", `(color:color-mix(in lab, red, red))`, [
-            decl(
-              "accent-color",
-              `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`
-            ),
-          ]),
-          decl("accent-color", value),
-        ];
-      }
-
-      return [decl("accent-color", `var(--color-${extra.realThemeValue})`)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("accent-color", value, extra);
 
     return [decl("accent-color", value)];
   },
@@ -70,21 +56,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, ctx, token, extra) => {
-    if (extra?.realThemeValue) {
-      if (extra.opacity) {
-        return [
-          atRule("supports", `(color:color-mix(in lab, red, red))`, [
-            decl(
-              "caret-color",
-              `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`
-            ),
-          ]),
-          decl("caret-color", value),
-        ];
-      }
-
-      return [decl("caret-color", `var(--color-${extra.realThemeValue})`)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("caret-color", value, extra);
     return [decl("caret-color", value)];
   },
   handleCustomProperty: (value) => [decl("caret-color", `var(${value})`)],
