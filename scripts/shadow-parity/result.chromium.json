@@ -3,7 +3,7 @@
   "build": "packages/barocss-browser/dist/cdn/barocss.umd.cjs",
   "corpora": {
     "corpus": {
-      "classes": 338,
+      "classes": 346,
       "shadow": {
         "differing": 0,
         "documentRules": 17,
@@ -18,7 +18,7 @@
       }
     },
     "heldout": {
-      "classes": 575,
+      "classes": 567,
       "shadow": {
         "differing": 0,
         "documentRules": 27,

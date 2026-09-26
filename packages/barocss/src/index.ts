@@ -14,4 +14,4 @@ import './presets';
 
 
 
-export * from './core/rule-order';
+export { ruleSortKey, compareKeys, upperBound, type RuleKey } from './core/rule-order';

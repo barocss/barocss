@@ -576,4 +576,13 @@ export const corpusHeldout: ReadonlyArray<readonly [token: string, uses: number]
   ["z-[1]", 1],
   ["z-0", 1],
   ["z-20", 1],
+  // #393: opacity modifiers on arbitrary and var colours
+  ["bg-[#0f0]/75", 1],
+  ["text-(--fg)/60", 1],
+  ["border-[var(--line)]/[0.2]", 1],
+  ["ring-(color:--r)/40", 1],
+  ["fill-(--x)/[25%]", 1],
+  ["via-[rgb(0_0_255)]/(--o)", 1],
+  ["caret-red-500/[0.3]", 1],
+  ["divide-(--x)/50", 1],
 ];

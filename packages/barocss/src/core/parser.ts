@@ -421,6 +421,16 @@ function nameSort(a: UtilityRegistration, b: UtilityRegistration): number {
   return b.name.length - a.name.length;
 }
 
+/** #393: index of the `close` that balances the value opened just before `s` (depth starts at 1), or -1. */
+function matchingClose(s: string, open: string, close: string): number {
+  let depth = 1;
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === open) depth++;
+    else if (s[i] === close && --depth === 0) return i;
+  }
+  return -1;
+}
+
 /**
  * Parse utility token
  */
@@ -451,10 +461,12 @@ function parseUtility(value: string, ctx?: Context): ParsedUtility {
   if (value.includes('-[')) {
     [prefix, utilityValue] = value.split('-[');
     // Closing bracket position
-    const closeIdx = utilityValue.lastIndexOf(']');
+    // #393: the bracket that closes the value (not the last one: `bg-[#f00]/[0.3]` has a bracketed modifier).
+    const closeIdx = matchingClose(utilityValue, '[', ']');
     if (closeIdx !== -1 && closeIdx < utilityValue.length - 1 && utilityValue[closeIdx + 1] === '/') {
       // If '/' follows the closing bracket, split opacity
       opacity = utilityValue.slice(closeIdx + 2); // after '/'
+      if (!opacity) return { prefix: '', value: '' }; // #393: `bg-[#f00]/` has no modifier to apply
       utilityValue = utilityValue.slice(0, closeIdx); // keep inside brackets only
     } else {
       // If ends with ']', no opacity
@@ -465,7 +477,15 @@ function parseUtility(value: string, ctx?: Context): ParsedUtility {
   // Handle custom properties
   else if (value.includes('-(')) {
     [prefix, utilityValue] = value.split('-(');
-    utilityValue = utilityValue.replace(/\)$/, '');
+    // #393: `bg-(--x)/50` carries an opacity modifier after the closing paren.
+    const closeIdx = matchingClose(utilityValue, '(', ')');
+    if (closeIdx !== -1 && closeIdx < utilityValue.length - 1 && utilityValue[closeIdx + 1] === '/') {
+      opacity = utilityValue.slice(closeIdx + 2);
+      if (!opacity) return { prefix: '', value: '' };
+      utilityValue = utilityValue.slice(0, closeIdx);
+    } else {
+      utilityValue = utilityValue.replace(/\)$/, '');
+    }
     customProperty = true;
   } 
   // Handle regular utilities

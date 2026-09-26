@@ -20,6 +20,9 @@ const uniqueDescriptors = (node: AstNode): AstNode[] => {
   return node.nodes.filter((c) => c.type !== "decl" || (!seen.has(c.prop) && !!seen.add(c.prop)));
 };
 
+// #406: at-rules whose blocks hold descriptors or keyframe steps, where !important is invalid.
+const NO_IMPORTANT_AT = new Set(["property", "font-face", "keyframes", "-webkit-keyframes", "counter-style"]);
+
 // #224 defensive layer: a declaration whose property or value could end or open a block is dropped.
 const isSafeDecl = (prop: unknown, value: unknown): boolean =>
   isStructureSafeValue(String(prop)) && isStructureSafeValue(String(value ?? "")) &&
@@ -220,11 +223,13 @@ function astToCss(
           // - Ensure nested rules get correct selectors
           // - Example: @media (min-width: 768px) { .parent .child { ... } }
           if (!isSafePrelude(node.name) || !isSafePrelude(node.params)) return "";
+          // #406: descriptor blocks take no !important (the browser drops the descriptor, and @property then fails)
+          const atOpts = opts?.important && NO_IMPORTANT_AT.has(node.name) ? { ...opts, important: false } : opts;
           if (minify) {
             const css = `${indent}@${node.name} ${node.params}{${astToCss(
               node.nodes, // Recursively process inner nodes of the at-rule
               baseSelector, // Always propagate baseSelector so '&' resolves inside at-rules
-              opts,
+              atOpts,
               nextIndent
             )}}`;
             // console.log("[astToCss] at-rule minify", css);
@@ -233,7 +238,7 @@ function astToCss(
             const css = `${indent}@${node.name} ${node.params} {\n${astToCss(
               node.nodes, // Recursively process inner nodes of the at-rule
               baseSelector, // Always propagate baseSelector so '&' resolves inside at-rules
-              opts,
+              atOpts,
               nextIndent
             )}${indent}}`;
             // console.log("[astToCss] at-rule pretty", css);
