@@ -11,10 +11,12 @@ import "./attribute-selectors";
 // --- Pseudo-elements (cross-browser) ---
 // Like Tailwind, before:/after: create the pseudo-element: `content` defaults to
 // var(--baro-content) (initial ""), which content-* utilities set.
+// A content-* utility already sets `content`, so the default is skipped then
+// (Tailwind prepends it and lets the utility override it: same result).
 const withPseudoContent = (ast: AstNode[]): AstNode[] => [
   atRoot([property("--baro-content", '""')]),
   ...ast,
-  decl("content", "var(--baro-content)"),
+  ...(ast.some((n) => n.type === "decl" && n.prop === "content") ? [] : [decl("content", "var(--baro-content)")]),
 ];
 staticModifier('before', ['&::before'], { source: 'pseudo', astHandler: withPseudoContent });
 staticModifier('after', ['&::after'], { source: 'pseudo', astHandler: withPseudoContent });
