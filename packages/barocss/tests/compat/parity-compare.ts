@@ -187,6 +187,12 @@ export function tailwindBuilder(ref: TwRef = 'tailwindcss') {
   return async (tokens: string[]) => (await compilers[ref](`${themeCss}\n@tailwind utilities;`)).build(tokens);
 }
 
+/** #365: a builder for any installed Tailwind (the scheduled drift check points this at the latest 4.x). */
+export type TwBuilder = (tokens: string[]) => Promise<string>;
+export function tailwindBuilderFrom(compileFn: typeof compile, themeCss: string): TwBuilder {
+  return async (tokens: string[]) => (await compileFn(`${themeCss}\n@tailwind utilities;`)).build(tokens);
+}
+
 /** #304: tokens whose *effective* Tailwind output differs between 4.1.13 and 4.3.x. */
 export async function tailwindVersionDiffs(tokens: readonly string[]): Promise<string[]> {
   const a = tailwindBuilder('tailwindcss-4-1');
@@ -239,11 +245,11 @@ export function invalidSelectors(css: string): string[] {
   return out;
 }
 
-export async function runParity(corpus: readonly (readonly [string, number])[], ref: TwRef = 'tailwindcss'): Promise<ParityResult[]> {
+export async function runParity(corpus: readonly (readonly [string, number])[], ref: TwRef | TwBuilder = 'tailwindcss'): Promise<ParityResult[]> {
   const ctx = createContext({ preflight: false });
   const baroRoot: Scope = new Map();
   postcss.parse(ctx.themeToCssVars()).walkDecls((d) => { if (d.prop.startsWith('--')) baroRoot.set(d.prop, d.value); });
-  const twCss = tailwindBuilder(ref);
+  const twCss = typeof ref === 'function' ? ref : tailwindBuilder(ref);
   const baroCss = (tokens: string[]) => tokens.map((t) => { try { return generateCss(t, ctx); } catch { return ''; } }).join('\n');
 
   return Promise.all(corpus.map(async ([token, uses]) => {
