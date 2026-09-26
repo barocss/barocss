@@ -3,6 +3,7 @@
 // Namespace/naming rules aligned with v4
 
 import type { Context, Theme } from './context';
+import { isStructureSafeValue, hasCommentDelimiter } from './parser';
 
 // Global CSS variable prefix helper
 let CSS_VAR_PREFIX = '--bcss-';
@@ -389,8 +390,24 @@ export function isSelfReferencingVar(name: string, value: unknown): boolean {
 /**
  * toCssVarsBlock: convert Record<string, string> → :root { ... } CSS block string
  */
+// #323: a custom-property name is `--` plus word characters and hyphens; `\.` is the only escape the
+// theme converters produce (fractional spacing keys).
+const SAFE_VAR_NAME = /^--(?:[\w-]|\\\.)+$/;
+
+/**
+ * #323: true when one theme variable can be printed as `name: value;` inside the :root block without
+ * changing the block's structure. Theme config may come from an untrusted source, so a name must be a plain
+ * custom-property ident and a value must be structure-safe and comment-free.
+ */
+export function isSafeThemeVar(name: unknown, value: unknown): boolean {
+  if (typeof name !== 'string' || !SAFE_VAR_NAME.test(name)) return false;
+  if (typeof value !== 'string' && typeof value !== 'number') return false;
+  const v = String(value);
+  return v.trim() !== '' && isStructureSafeValue(v) && !hasCommentDelimiter(v);
+}
+
 export function toCssVarsBlock(vars: Record<string, string>, extra: string = ''): string {
-  return ':root,:host {\n' + Object.entries(vars).filter(([k, v]) => !isSelfReferencingVar(k, v)).map(([k, v]) => `  ${k}: ${v};`).join('\n') + '\n}\n' + extra + '\n';
+  return ':root,:host {\n' + Object.entries(vars).filter(([k, v]) => isSafeThemeVar(k, v) && !isSelfReferencingVar(k, v)).map(([k, v]) => `  ${k}: ${v};`).join('\n') + '\n}\n' + extra + '\n';
 }
 
 // Presets write their internal composite variables as `--baro-*` (--baro-shadow, --baro-ring-shadow,
