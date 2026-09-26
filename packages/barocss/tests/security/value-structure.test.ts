@@ -25,6 +25,8 @@ const FORMS: Array<[(v: string) => string, string]> = [
   [(v) => `bg-(--x${v})`, 'background-color'],
   [(v) => `p-(--x${v})`, 'padding'],
   [(v) => `text-(length:--x${v})`, 'font-size'],
+  [(v) => `font-features-[${v}]`, 'font-feature-settings'],
+  [(v) => `font-features-(--x${v})`, 'font-feature-settings'],
 ];
 
 const REPROS = FORMS.flatMap(([form, prop]) => BAD_VALUES.map((v) => [form(v), prop] as const));

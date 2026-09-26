@@ -45,14 +45,16 @@ functionalUtility({
   name: "font",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value) => {
+  handle: (value, _ctx, token) => {
+    // font-features-*/font-stretch-* belong to their own registrations (#309).
+    if (token.prefix !== "font") return null;
     if (parseNumber(value)) {
       return [decl("font-weight", value)];
     }
     return [decl("font-family", value)];
   },
-  handleCustomProperty: (value) => {
-
+  handleCustomProperty: (value, _ctx, token) => {
+    if (token.prefix !== "font") return null;
     if (value.startsWith("font-name:")) {
       return [decl("font-family", `var(${value.replace("font-name:", "")})`)];
     }
@@ -444,5 +446,16 @@ functionalUtility({
   },
   handleCustomProperty: (value) => placeholderColor(`var(${value})`),
   description: "placeholder color utility (theme, alpha, arbitrary, custom property)",
+});
+
+// --- Typography: Font Feature Settings (#309, Tailwind 4.3) ---
+// Tailwind 4.3 has no named values: font-features-[...] and font-features-(--x) only.
+functionalUtility({
+  name: "font-features",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handle: (value, _ctx, token) => (token.arbitrary ? [decl("font-feature-settings", value)] : null),
+  handleCustomProperty: (value) => [decl("font-feature-settings", `var(${value.replace(/^[a-z-]+:(?=--)/, "")})`)],
+  description: "font-feature-settings utility (arbitrary, custom property)",
   category: "typography",
 });
