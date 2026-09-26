@@ -1,0 +1,18 @@
+{
+  "issue": 306,
+  "date": "2026-09-26",
+  "reruns": 289,
+  "barocssVersion": "0.7.0 (npm)",
+  "docs": "UPDATED #306 docs given locally in ./docs (browser+server READMEs, integration/astro.md, tailwind-companion.md); task text 'docs in ./docs (and the package READMEs)' instead of barocss.com; otherwise identical to #289",
+  "rerun": [
+    "T=/private/tmp/claude-501/cms306; cp -R /private/tmp/claude-501/cms289/{starter,ref} $T/; copy the 4 doc files into $T/docs",
+    "agent-run.sh with: after 'rm -rf $T/$N/dist' add '&& cp -R $T/docs $T/$N/docs'; replace 'docs at https://barocss.com and in the package READMEs' with 'docs in ./docs (and the package READMEs)'",
+    "T=$T V=0.7.0 bash $T/agent-run.sh <name> haiku 0.45; then build/serve/score as in results-289.json"
+  ],
+  "runs": [
+    {"name": "haiku1", "costUsd": 0.404, "turns": 47, "wallS": 166, "setup": "@barocss/server generateCssForHtml in Astro middleware (skip build CSS)", "fcpParity": 0.983, "hydratedParity": 1, "shellDamage": 0, "inventedCdnGenerateCss": false},
+    {"name": "haiku2", "costUsd": 0.431, "turns": 45, "wallS": 165, "setup": "@barocss/server generateCssForHtml in middleware + astro.config hook, shared barocss.config.ts", "fcpParity": 0.958, "hydratedParity": 0.975, "shellDamage": 0, "inventedCdnGenerateCss": false}
+  ],
+  "totalCostUsd": 0.835,
+  "verdict": "docs fix stops the invented-CDN-API failure: yes (2/2 haiku, n=2)"
+}
