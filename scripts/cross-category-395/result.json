@@ -1,0 +1,3357 @@
+{
+ "summary": {
+  "pairs": 56,
+  "cases": 112,
+  "comparable": 100,
+  "mismatch": {
+   "runtime/firstUse=broad-first": "8/50",
+   "runtime/firstUse=narrow-first": "44/50",
+   "server/firstUse=broad-first": "4/50",
+   "server/firstUse=narrow-first": "44/50",
+   "kit/firstUse=broad-first": "4/50",
+   "kit/firstUse=narrow-first": "44/50"
+  },
+  "byFamily": {
+   "padding": {
+    "cases": 12,
+    "crossCategory": false,
+    "runtime": 6,
+    "server": 6,
+    "kit": 6
+   },
+   "margin": {
+    "cases": 8,
+    "crossCategory": false,
+    "runtime": 4,
+    "server": 4,
+    "kit": 4
+   },
+   "inset": {
+    "cases": 8,
+    "crossCategory": false,
+    "runtime": 4,
+    "server": 4,
+    "kit": 4
+   },
+   "sizing": {
+    "cases": 2,
+    "crossCategory": false,
+    "runtime": 1,
+    "server": 1,
+    "kit": 1
+   },
+   "radius": {
+    "cases": 8,
+    "crossCategory": false,
+    "runtime": 4,
+    "server": 4,
+    "kit": 4
+   },
+   "border-width": {
+    "cases": 8,
+    "crossCategory": true,
+    "runtime": 7,
+    "server": 4,
+    "kit": 4
+   },
+   "border-color": {
+    "cases": 2,
+    "crossCategory": true,
+    "runtime": 2,
+    "server": 1,
+    "kit": 1
+   },
+   "flex": {
+    "cases": 8,
+    "crossCategory": true,
+    "runtime": 4,
+    "server": 4,
+    "kit": 4
+   },
+   "gap": {
+    "cases": 2,
+    "crossCategory": false,
+    "runtime": 1,
+    "server": 1,
+    "kit": 1
+   },
+   "overflow": {
+    "cases": 4,
+    "crossCategory": false,
+    "runtime": 2,
+    "server": 2,
+    "kit": 2
+   },
+   "place": {
+    "cases": 6,
+    "crossCategory": false,
+    "runtime": 3,
+    "server": 3,
+    "kit": 3
+   },
+   "grid": {
+    "cases": 4,
+    "crossCategory": false,
+    "runtime": 2,
+    "server": 2,
+    "kit": 2
+   },
+   "typography": {
+    "cases": 2,
+    "crossCategory": false,
+    "runtime": 0,
+    "server": 0,
+    "kit": 0
+   },
+   "scroll": {
+    "cases": 4,
+    "crossCategory": false,
+    "runtime": 2,
+    "server": 2,
+    "kit": 2
+   },
+   "outline": {
+    "cases": 2,
+    "crossCategory": false,
+    "runtime": 0,
+    "server": 0,
+    "kit": 0
+   },
+   "display": {
+    "cases": 8,
+    "crossCategory": false,
+    "runtime": 4,
+    "server": 4,
+    "kit": 4
+   },
+   "same-prop": {
+    "cases": 12,
+    "crossCategory": false,
+    "runtime": 6,
+    "server": 6,
+    "kit": 6
+   }
+  },
+  "twWinner": {
+   "p-4 + px-2": "px-2",
+   "p-4 + pt-2": "pt-2",
+   "px-4 + ps-2": "ps-2",
+   "p-4 + ps-2": "ps-2",
+   "py-2 + pb-0": "pb-0",
+   "px-4 + pl-0": "pl-0",
+   "m-4 + mx-2": "mx-2",
+   "m-4 + mt-2": "mt-2",
+   "mx-4 + ms-2": "ms-2",
+   "my-2 + mb-0": "mb-0",
+   "mx-auto + ml-0": "n/a",
+   "inset-0 + top-2": "top-2",
+   "inset-0 + inset-x-2": "inset-x-2",
+   "inset-x-0 + left-2": "left-2",
+   "inset-0 + start-2": "start-2",
+   "size-4 + w-8": "w-8",
+   "size-4 + h-8": "n/a",
+   "size-full + w-auto": "n/a",
+   "rounded + rounded-t-lg": "rounded-t-lg",
+   "rounded-lg + rounded-tl-none": "rounded-tl-none",
+   "rounded-t-lg + rounded-tl-none": "rounded-tl-none",
+   "rounded-full + rounded-s-none": "rounded-s-none",
+   "border + border-x-0": "border-x-0",
+   "border + border-t-4": "border-t-4",
+   "border-2 + border-t-0": "border-t-0",
+   "border-x-2 + border-l-0": "border-l-0",
+   "border-red-500 + border-t-blue-500": "border-t-blue-500",
+   "flex-1 + grow-0": "grow-0",
+   "flex-1 + shrink-0": "shrink-0",
+   "flex-1 + basis-4": "basis-4",
+   "flex-none + grow": "grow",
+   "gap-4 + gap-x-2": "gap-x-2",
+   "overflow-hidden + overflow-x-auto": "overflow-x-auto",
+   "truncate + overflow-visible": "overflow-visible",
+   "truncate + whitespace-normal": "n/a",
+   "place-items-center + items-start": "items-start",
+   "place-content-center + justify-start": "justify-start",
+   "place-self-center + self-start": "self-start",
+   "col-span-2 + col-start-1": "col-start-1",
+   "row-span-2 + row-start-1": "row-start-1",
+   "text-sm + leading-6": "leading-6",
+   "text-lg + leading-none": "mixed",
+   "text-sm + tracking-wide": "n/a",
+   "scroll-m-4 + scroll-mt-2": "scroll-mt-2",
+   "scroll-p-4 + scroll-px-2": "scroll-px-2",
+   "outline-none + outline-2": "outline-none",
+   "flex + hidden": "hidden",
+   "block + hidden": "hidden",
+   "flex + grid": "grid",
+   "hidden + inline-flex": "inline-flex",
+   "bg-red-500 + bg-blue-500": "bg-red-500",
+   "text-left + text-center": "text-left",
+   "font-bold + font-normal": "font-normal",
+   "text-sm + text-lg": "text-sm",
+   "shadow-sm + shadow-none": "shadow-sm",
+   "w-4 + w-8": "w-8"
+  },
+  "excluded": [
+   "mx-auto+ml-0/ab: tw n/a/n/a props=0",
+   "mx-auto+ml-0/ba: tw n/a/n/a props=0",
+   "size-4+h-8/ab: tw n/a/n/a props=0",
+   "size-4+h-8/ba: tw n/a/n/a props=0",
+   "size-full+w-auto/ab: tw n/a/n/a props=0",
+   "size-full+w-auto/ba: tw n/a/n/a props=0",
+   "truncate+whitespace-normal/ab: tw n/a/n/a props=0",
+   "truncate+whitespace-normal/ba: tw n/a/n/a props=0",
+   "text-lg+leading-none/ab: tw mixed/mixed props=1",
+   "text-lg+leading-none/ba: tw mixed/mixed props=1",
+   "text-sm+tracking-wide/ab: tw n/a/n/a props=0",
+   "text-sm+tracking-wide/ba: tw n/a/n/a props=0"
+  ]
+ },
+ "rows": [
+  {
+   "family": "padding",
+   "a": "p-4",
+   "b": "px-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "padding-inline-end",
+     "padding-inline-start",
+     "padding-left",
+     "padding-right"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "p-4",
+   "b": "px-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "padding-inline-end",
+     "padding-inline-start",
+     "padding-left",
+     "padding-right"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "p-4",
+   "b": "pt-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "padding-block-start",
+     "padding-top"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "p-4",
+   "b": "pt-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "padding-block-start",
+     "padding-top"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "px-4",
+   "b": "ps-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "padding-inline-start",
+     "padding-left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "px-4",
+   "b": "ps-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "padding-inline-start",
+     "padding-left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "p-4",
+   "b": "ps-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "padding-inline-start",
+     "padding-left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "p-4",
+   "b": "ps-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "padding-inline-start",
+     "padding-left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "py-2",
+   "b": "pb-0",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "padding-block-end",
+     "padding-bottom"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "py-2",
+   "b": "pb-0",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "padding-block-end",
+     "padding-bottom"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "px-4",
+   "b": "pl-0",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "padding-inline-start",
+     "padding-left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "padding",
+   "a": "px-4",
+   "b": "pl-0",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "padding-inline-start",
+     "padding-left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "margin",
+   "a": "m-4",
+   "b": "mx-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "margin-inline-end",
+     "margin-inline-start",
+     "margin-left",
+     "margin-right"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "margin",
+   "a": "m-4",
+   "b": "mx-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "margin-inline-end",
+     "margin-inline-start",
+     "margin-left",
+     "margin-right"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "margin",
+   "a": "m-4",
+   "b": "mt-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "margin-block-start",
+     "margin-top"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "margin",
+   "a": "m-4",
+   "b": "mt-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "margin-block-start",
+     "margin-top"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "margin",
+   "a": "mx-4",
+   "b": "ms-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "margin-inline-start",
+     "margin-left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "margin",
+   "a": "mx-4",
+   "b": "ms-2",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "margin-inline-start",
+     "margin-left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "margin",
+   "a": "my-2",
+   "b": "mb-0",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "margin-block-end",
+     "margin-bottom"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "margin",
+   "a": "my-2",
+   "b": "mb-0",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "margin-block-end",
+     "margin-bottom"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "margin",
+   "a": "mx-auto",
+   "b": "ml-0",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [],
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "server": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "kit": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "runtime": {
+    "ab": "n/a",
+    "ba": "n/a"
+   }
+  },
+  {
+   "family": "margin",
+   "a": "mx-auto",
+   "b": "ml-0",
+   "catA": "spacing",
+   "catB": "spacing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [],
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "server": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "kit": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "runtime": {
+    "ab": "n/a",
+    "ba": "n/a"
+   }
+  },
+  {
+   "family": "inset",
+   "a": "inset-0",
+   "b": "top-2",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "inset-block-start",
+     "top"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "inset",
+   "a": "inset-0",
+   "b": "top-2",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "inset-block-start",
+     "top"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "inset",
+   "a": "inset-0",
+   "b": "inset-x-2",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "inset-inline-end",
+     "inset-inline-start",
+     "left",
+     "right"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "inset",
+   "a": "inset-0",
+   "b": "inset-x-2",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "inset-inline-end",
+     "inset-inline-start",
+     "left",
+     "right"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "inset",
+   "a": "inset-x-0",
+   "b": "left-2",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "inset-inline-start",
+     "left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "inset",
+   "a": "inset-x-0",
+   "b": "left-2",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "inset-inline-start",
+     "left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "inset",
+   "a": "inset-0",
+   "b": "start-2",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "inset-inline-start",
+     "left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "inset",
+   "a": "inset-0",
+   "b": "start-2",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "inset-inline-start",
+     "left"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "sizing",
+   "a": "size-4",
+   "b": "w-8",
+   "catA": "sizing",
+   "catB": "sizing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "inline-size",
+     "width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "sizing",
+   "a": "size-4",
+   "b": "w-8",
+   "catA": "sizing",
+   "catB": "sizing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "inline-size",
+     "width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "sizing",
+   "a": "size-4",
+   "b": "h-8",
+   "catA": "sizing",
+   "catB": "sizing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [],
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "server": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "kit": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "runtime": {
+    "ab": "n/a",
+    "ba": "n/a"
+   }
+  },
+  {
+   "family": "sizing",
+   "a": "size-4",
+   "b": "h-8",
+   "catA": "sizing",
+   "catB": "sizing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [],
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "server": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "kit": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "runtime": {
+    "ab": "n/a",
+    "ba": "n/a"
+   }
+  },
+  {
+   "family": "sizing",
+   "a": "size-full",
+   "b": "w-auto",
+   "catA": null,
+   "catB": null,
+   "firstUse": "ab",
+   "tw": {
+    "props": [],
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "server": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "kit": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "runtime": {
+    "ab": "n/a",
+    "ba": "n/a"
+   }
+  },
+  {
+   "family": "sizing",
+   "a": "size-full",
+   "b": "w-auto",
+   "catA": null,
+   "catB": null,
+   "firstUse": "ba",
+   "tw": {
+    "props": [],
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "server": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "kit": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "runtime": {
+    "ab": "n/a",
+    "ba": "n/a"
+   }
+  },
+  {
+   "family": "radius",
+   "a": "rounded",
+   "b": "rounded-t-lg",
+   "catA": "borders",
+   "catB": "borders",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "border-start-end-radius",
+     "border-start-start-radius",
+     "border-top-left-radius",
+     "border-top-right-radius"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "radius",
+   "a": "rounded",
+   "b": "rounded-t-lg",
+   "catA": "borders",
+   "catB": "borders",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "border-start-end-radius",
+     "border-start-start-radius",
+     "border-top-left-radius",
+     "border-top-right-radius"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "radius",
+   "a": "rounded-lg",
+   "b": "rounded-tl-none",
+   "catA": "borders",
+   "catB": "borders",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "border-start-start-radius",
+     "border-top-left-radius"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "radius",
+   "a": "rounded-lg",
+   "b": "rounded-tl-none",
+   "catA": "borders",
+   "catB": "borders",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "border-start-start-radius",
+     "border-top-left-radius"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "radius",
+   "a": "rounded-t-lg",
+   "b": "rounded-tl-none",
+   "catA": "borders",
+   "catB": "borders",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "border-start-start-radius",
+     "border-top-left-radius"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "radius",
+   "a": "rounded-t-lg",
+   "b": "rounded-tl-none",
+   "catA": "borders",
+   "catB": "borders",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "border-start-start-radius",
+     "border-top-left-radius"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "radius",
+   "a": "rounded-full",
+   "b": "rounded-s-none",
+   "catA": "borders",
+   "catB": "borders",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "border-bottom-left-radius",
+     "border-end-start-radius",
+     "border-start-start-radius",
+     "border-top-left-radius"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "radius",
+   "a": "rounded-full",
+   "b": "rounded-s-none",
+   "catA": "borders",
+   "catB": "borders",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "border-bottom-left-radius",
+     "border-end-start-radius",
+     "border-start-start-radius",
+     "border-top-left-radius"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "border-width",
+   "a": "border",
+   "b": "border-x-0",
+   "catA": "borders",
+   "catB": null,
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "border-inline-end-width",
+     "border-inline-start-width",
+     "border-left-width",
+     "border-right-width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "border-width",
+   "a": "border",
+   "b": "border-x-0",
+   "catA": "borders",
+   "catB": null,
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "border-inline-end-width",
+     "border-inline-start-width",
+     "border-left-width",
+     "border-right-width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "border-width",
+   "a": "border",
+   "b": "border-t-4",
+   "catA": "borders",
+   "catB": null,
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "border-block-start-width",
+     "border-top-width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "border-width",
+   "a": "border",
+   "b": "border-t-4",
+   "catA": "borders",
+   "catB": null,
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "border-block-start-width",
+     "border-top-width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "border-width",
+   "a": "border-2",
+   "b": "border-t-0",
+   "catA": "borders",
+   "catB": null,
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "border-block-start-width",
+     "border-top-width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "border-width",
+   "a": "border-2",
+   "b": "border-t-0",
+   "catA": "borders",
+   "catB": null,
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "border-block-start-width",
+     "border-top-width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "border-width",
+   "a": "border-x-2",
+   "b": "border-l-0",
+   "catA": null,
+   "catB": null,
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "border-inline-start-width",
+     "border-left-width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "border-width",
+   "a": "border-x-2",
+   "b": "border-l-0",
+   "catA": null,
+   "catB": null,
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "border-inline-start-width",
+     "border-left-width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "border-color",
+   "a": "border-red-500",
+   "b": "border-t-blue-500",
+   "catA": "borders",
+   "catB": null,
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "border-block-start-color",
+     "border-top-color"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "border-color",
+   "a": "border-red-500",
+   "b": "border-t-blue-500",
+   "catA": "borders",
+   "catB": null,
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "border-block-start-color",
+     "border-top-color"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "flex",
+   "a": "flex-1",
+   "b": "grow-0",
+   "catA": "layout",
+   "catB": "flex-grid",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "flex-grow"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "flex",
+   "a": "flex-1",
+   "b": "grow-0",
+   "catA": "layout",
+   "catB": "flex-grid",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "flex-grow"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "flex",
+   "a": "flex-1",
+   "b": "shrink-0",
+   "catA": "layout",
+   "catB": "flex-grid",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "flex-shrink"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "flex",
+   "a": "flex-1",
+   "b": "shrink-0",
+   "catA": "layout",
+   "catB": "flex-grid",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "flex-shrink"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "flex",
+   "a": "flex-1",
+   "b": "basis-4",
+   "catA": "layout",
+   "catB": "flex-grid",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "flex-basis"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "flex",
+   "a": "flex-1",
+   "b": "basis-4",
+   "catA": "layout",
+   "catB": "flex-grid",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "flex-basis"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "flex",
+   "a": "flex-none",
+   "b": "grow",
+   "catA": "flex-grid",
+   "catB": "flex-grid",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "flex-grow"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "flex",
+   "a": "flex-none",
+   "b": "grow",
+   "catA": "flex-grid",
+   "catB": "flex-grid",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "flex-grow"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "gap",
+   "a": "gap-4",
+   "b": "gap-x-2",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "column-gap"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "gap",
+   "a": "gap-4",
+   "b": "gap-x-2",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "column-gap"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "overflow",
+   "a": "overflow-hidden",
+   "b": "overflow-x-auto",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "overflow-inline",
+     "overflow-x"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "overflow",
+   "a": "overflow-hidden",
+   "b": "overflow-x-auto",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "overflow-inline",
+     "overflow-x"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "overflow",
+   "a": "truncate",
+   "b": "overflow-visible",
+   "catA": "typography",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "overflow-block",
+     "overflow-inline",
+     "overflow-x",
+     "overflow-y"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "overflow",
+   "a": "truncate",
+   "b": "overflow-visible",
+   "catA": "typography",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "overflow-block",
+     "overflow-inline",
+     "overflow-x",
+     "overflow-y"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "overflow",
+   "a": "truncate",
+   "b": "whitespace-normal",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ab",
+   "tw": {
+    "props": [],
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "server": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "kit": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "runtime": {
+    "ab": "n/a",
+    "ba": "n/a"
+   }
+  },
+  {
+   "family": "overflow",
+   "a": "truncate",
+   "b": "whitespace-normal",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ba",
+   "tw": {
+    "props": [],
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "server": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "kit": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "runtime": {
+    "ab": "n/a",
+    "ba": "n/a"
+   }
+  },
+  {
+   "family": "place",
+   "a": "place-items-center",
+   "b": "items-start",
+   "catA": "flex-grid",
+   "catB": "flex-grid",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "align-items"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "place",
+   "a": "place-items-center",
+   "b": "items-start",
+   "catA": "flex-grid",
+   "catB": "flex-grid",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "align-items"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "place",
+   "a": "place-content-center",
+   "b": "justify-start",
+   "catA": "flex-grid",
+   "catB": "flex-grid",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "justify-content"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "place",
+   "a": "place-content-center",
+   "b": "justify-start",
+   "catA": "flex-grid",
+   "catB": "flex-grid",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "justify-content"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "place",
+   "a": "place-self-center",
+   "b": "self-start",
+   "catA": "flex-grid",
+   "catB": "flex-grid",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "align-self"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "place",
+   "a": "place-self-center",
+   "b": "self-start",
+   "catA": "flex-grid",
+   "catB": "flex-grid",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "align-self"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "grid",
+   "a": "col-span-2",
+   "b": "col-start-1",
+   "catA": "grid",
+   "catB": "grid",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "grid-column-start"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "grid",
+   "a": "col-span-2",
+   "b": "col-start-1",
+   "catA": "grid",
+   "catB": "grid",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "grid-column-start"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "grid",
+   "a": "row-span-2",
+   "b": "row-start-1",
+   "catA": "flex-grid",
+   "catB": "flex-grid",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "grid-row-start"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "grid",
+   "a": "row-span-2",
+   "b": "row-start-1",
+   "catA": "flex-grid",
+   "catB": "flex-grid",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "grid-row-start"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "typography",
+   "a": "text-sm",
+   "b": "leading-6",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "line-height"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "typography",
+   "a": "text-sm",
+   "b": "leading-6",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "line-height"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "typography",
+   "a": "text-lg",
+   "b": "leading-none",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "line-height"
+    ],
+    "ab": "mixed",
+    "ba": "mixed"
+   },
+   "server": {
+    "ab": "mixed",
+    "ba": "mixed"
+   },
+   "kit": {
+    "ab": "mixed",
+    "ba": "mixed"
+   },
+   "runtime": {
+    "ab": "mixed",
+    "ba": "mixed"
+   }
+  },
+  {
+   "family": "typography",
+   "a": "text-lg",
+   "b": "leading-none",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "line-height"
+    ],
+    "ab": "mixed",
+    "ba": "mixed"
+   },
+   "server": {
+    "ab": "mixed",
+    "ba": "mixed"
+   },
+   "kit": {
+    "ab": "mixed",
+    "ba": "mixed"
+   },
+   "runtime": {
+    "ab": "mixed",
+    "ba": "mixed"
+   }
+  },
+  {
+   "family": "typography",
+   "a": "text-sm",
+   "b": "tracking-wide",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ab",
+   "tw": {
+    "props": [],
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "server": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "kit": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "runtime": {
+    "ab": "n/a",
+    "ba": "n/a"
+   }
+  },
+  {
+   "family": "typography",
+   "a": "text-sm",
+   "b": "tracking-wide",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ba",
+   "tw": {
+    "props": [],
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "server": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "kit": {
+    "ab": "n/a",
+    "ba": "n/a"
+   },
+   "runtime": {
+    "ab": "n/a",
+    "ba": "n/a"
+   }
+  },
+  {
+   "family": "scroll",
+   "a": "scroll-m-4",
+   "b": "scroll-mt-2",
+   "catA": "interactivity",
+   "catB": "interactivity",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "scroll-margin-block-start",
+     "scroll-margin-top"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "scroll",
+   "a": "scroll-m-4",
+   "b": "scroll-mt-2",
+   "catA": "interactivity",
+   "catB": "interactivity",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "scroll-margin-block-start",
+     "scroll-margin-top"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "scroll",
+   "a": "scroll-p-4",
+   "b": "scroll-px-2",
+   "catA": "interactivity",
+   "catB": "interactivity",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "scroll-padding-inline-end",
+     "scroll-padding-inline-start",
+     "scroll-padding-left",
+     "scroll-padding-right"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "scroll",
+   "a": "scroll-p-4",
+   "b": "scroll-px-2",
+   "catA": "interactivity",
+   "catB": "interactivity",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "scroll-padding-inline-end",
+     "scroll-padding-inline-start",
+     "scroll-padding-left",
+     "scroll-padding-right"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "outline",
+   "a": "outline-none",
+   "b": "outline-2",
+   "catA": "borders",
+   "catB": "borders",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "outline-style"
+    ],
+    "ab": "a",
+    "ba": "a"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "outline",
+   "a": "outline-none",
+   "b": "outline-2",
+   "catA": "borders",
+   "catB": "borders",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "outline-style"
+    ],
+    "ab": "a",
+    "ba": "a"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "display",
+   "a": "flex",
+   "b": "hidden",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "display"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "display",
+   "a": "flex",
+   "b": "hidden",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "display"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "display",
+   "a": "block",
+   "b": "hidden",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "display"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "display",
+   "a": "block",
+   "b": "hidden",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "display"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "display",
+   "a": "flex",
+   "b": "grid",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "display"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "display",
+   "a": "flex",
+   "b": "grid",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "display"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "display",
+   "a": "hidden",
+   "b": "inline-flex",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "display"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "display",
+   "a": "hidden",
+   "b": "inline-flex",
+   "catA": "layout",
+   "catB": "layout",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "display"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "bg-red-500",
+   "b": "bg-blue-500",
+   "catA": "background",
+   "catB": "background",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "background-color"
+    ],
+    "ab": "a",
+    "ba": "a"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "bg-red-500",
+   "b": "bg-blue-500",
+   "catA": "background",
+   "catB": "background",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "background-color"
+    ],
+    "ab": "a",
+    "ba": "a"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "text-left",
+   "b": "text-center",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "text-align"
+    ],
+    "ab": "a",
+    "ba": "a"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "text-left",
+   "b": "text-center",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "text-align"
+    ],
+    "ab": "a",
+    "ba": "a"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "font-bold",
+   "b": "font-normal",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "font-weight"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "font-bold",
+   "b": "font-normal",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "font-weight"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "text-sm",
+   "b": "text-lg",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "font-size",
+     "line-height"
+    ],
+    "ab": "a",
+    "ba": "a"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "text-sm",
+   "b": "text-lg",
+   "catA": "typography",
+   "catB": "typography",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "font-size",
+     "line-height"
+    ],
+    "ab": "a",
+    "ba": "a"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "shadow-sm",
+   "b": "shadow-none",
+   "catA": "effects",
+   "catB": "effects",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "box-shadow"
+    ],
+    "ab": "a",
+    "ba": "a"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "shadow-sm",
+   "b": "shadow-none",
+   "catA": "effects",
+   "catB": "effects",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "box-shadow"
+    ],
+    "ab": "a",
+    "ba": "a"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "w-4",
+   "b": "w-8",
+   "catA": "sizing",
+   "catB": "sizing",
+   "firstUse": "ab",
+   "tw": {
+    "props": [
+     "inline-size",
+     "width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "kit": {
+    "ab": "b",
+    "ba": "b"
+   },
+   "runtime": {
+    "ab": "b",
+    "ba": "b"
+   }
+  },
+  {
+   "family": "same-prop",
+   "a": "w-4",
+   "b": "w-8",
+   "catA": "sizing",
+   "catB": "sizing",
+   "firstUse": "ba",
+   "tw": {
+    "props": [
+     "inline-size",
+     "width"
+    ],
+    "ab": "b",
+    "ba": "b"
+   },
+   "server": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "kit": {
+    "ab": "a",
+    "ba": "a"
+   },
+   "runtime": {
+    "ab": "a",
+    "ba": "a"
+   }
+  }
+ ],
+ "frequency": {
+  "files": 130,
+  "elements": 4957,
+  "elementsWithOverlap": 11,
+  "elementsAtRisk": 1,
+  "overlappingPairs": 11,
+  "crossCategoryPairs": 1,
+  "pairsAtRisk": 1,
+  "topOverlapping": [
+   [
+    "m-0 + mt-1",
+    2
+   ],
+   [
+    "pb-4 + py-2",
+    2
+   ],
+   [
+    "m-0 + mb-2",
+    2
+   ],
+   [
+    "m-0 + mb-4",
+    2
+   ],
+   [
+    "outline + outline-2",
+    1
+   ],
+   [
+    "border + border-l-4",
+    1
+   ],
+   [
+    "border + border-2",
+    1
+   ]
+  ],
+  "topAtRisk": [
+   {
+    "pair": "border + border-l-4",
+    "n": 1,
+    "tw": "border-l-4",
+    "cross": true,
+    "props": [
+     "border-left-width"
+    ],
+    "file": "scripts/cms-probe/theme-blocks/haiku-callout.html"
+   }
+  ]
+ }
+}
