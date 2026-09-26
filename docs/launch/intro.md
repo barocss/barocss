@@ -16,9 +16,11 @@ Tailwind-compatible CSS for those classes at runtime, alongside your existing bu
   utilities didn't render inside shadow roots) is fixed in 0.10.2 (0/905 in 3 engines, #384).
 - AI-written CMS blocks on a strict-CSP page: 1.0 (#347, dev after 0.9.0).
 - Real model-written json-render specs in a Tailwind-built app: 0.904 of elements match, against 0.163
-  build-only; the shell is untouched before mount and 0.997 after (#231 rerun in #383, published 0.10.1).
-- SSR: `@barocss/server` gets a full match at first paint; the client runtime alone leaves ~350–410 ms
-  unstyled (#266 rerun in #383, published 0.10.1).
+  build-only; the shell is untouched before mount and 0.997 after (#231 rerun in #383, published 0.10.1). The 0.997 is not
+  a regression: #394 measured the same 0.9972 on the #231 commit, 0.8.0 and 0.10.1 (deterministic, N=1).
+- SSR: `@barocss/server` gets a full match at first paint; the client runtime alone leaves a median 408 ms
+  (opus spec) / 360 ms (haiku spec) unstyled on 0.10.1, against 390 / 327 ms for 0.8.0 in the same #394
+  session (N=3 per release, 4x CPU throttle, `scripts/regress-394/result.json`).
 - An agent reading only the docs adopted it in an Astro CMS starter. The strong model reached 0.983 at first
   paint (#289, published 0.7.0). The weak model (haiku) was unreliable in #289; after the #306 doc fixes a
   recheck adopted it 2/2: first paint 0.983 / 0.958, hydrated 1.0 / 0.975, 0 shell damage
@@ -28,8 +30,8 @@ Tailwind-compatible CSS for those classes at runtime, alongside your existing bu
 
 - **You know the class set in advance:** pre-generate at build time. Parity 1.0 with no runtime (#218).
 - **A no-build page under a default CSP:** `@tailwindcss/browser`, the official runtime, already covers it.
-  BaroCSS now matches it there (100% vs 100%), but twb paints the final state sooner (#198 rerun in #383,
-  published 0.10.1).
+  BaroCSS now matches it there (100% vs 100%), but twb reached the final state sooner in the same run (24 vs 43 ms,
+  #198 rerun in #383, published 0.10.1, single session, both runtimes side by side).
 - BaroCSS is a reimplementation: 100% on its parity corpora (#241, #304), 100% on 567 held-out classes (dev after 0.10.1; 94.5% when #243 first measured it).
 
 ## Security posture

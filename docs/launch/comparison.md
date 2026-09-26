@@ -18,7 +18,8 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
   it was 94.5% when #243 first measured it on dev after 0.4.0). Plugins such as typography are untested (#253).
 - **No-build pages (MCP Apps, default CSP): BaroCSS is not unique.** twb already covers the scenario. On
   published 0.10.1 BaroCSS ties it on parity (100% vs 100%, dynamic classes 20/20 both), but twb reaches the
-  final styled state sooner (24 vs 43 ms) and is the official runtime (#198 rerun in #383, published 0.10.1).
+  final styled state sooner (24 vs 43 ms, both measured side by side in the same #383 session) and is the
+  official runtime (#198 rerun in #383, published 0.10.1).
   Under a strict CSP without a nonce, both runtimes are blocked alike (73%, same as no runtime).
 - **Bytes vs a pre-built sheet.** The BaroCSS UMD CDN bundle is 52.8 KB gz (published 0.10.1, #383; the ESM
   CDN bundle was 48 KB gz in #305, dev after 0.8.0). That is smaller than twb's 68.7 KB gz but far larger than
@@ -37,7 +38,7 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
 | Real model specs in a built app (10 specs) | 0.904 of elements; shell 1.000 before mount, 0.997 after | 0.000, shell 0.969 | – | 0.163 | #231 rerun in #383 (published 0.10.1) |
 | Shadow DOM widget, strict CSP, hostile host | host damage 0; @property-backed utilities fixed in 0.10.2 (0/905 in 3 engines, #384) | 0.000 | – | 0.000 | #364 (published 0.10.0), #384 |
 | Untrusted classes (22 adversarial shapes) | 0 host changes, 0 cross-origin `url()` hits (1 same-origin hit unless pre-filtered) | n/a | – | – | #364 (0.10.0) |
-| SSR first paint | 1.0 match at FCP with `@barocss/server`; client-only leaves ~350–410 ms unstyled | client-only | 1.0 if the build knew the classes | – | #266 rerun in #383 (published 0.10.1) |
+| SSR first paint | 1.0 match at FCP with `@barocss/server`; client-only leaves a median 408 / 360 ms unstyled (0.8.0 in the same session: 390 / 327 ms; N=3) | client-only | 1.0 if the build knew the classes | – | #394 same-session rerun of #266 (published 0.10.1) |
 | No-build HTML, default CSP | parity 100% (default and preflight), final 43 ms | 100%, final 24 ms | – | 73% | #198 rerun in #383 (published 0.10.1) |
 | Agent adoption from the docs (AstroPaper) | strong model 0.983 at first paint, 0 damage; weak model (haiku) 2/2 after the #306 doc fixes (first paint 0.983 / 0.958, hydrated 1.0 / 0.975, 0 damage; it was 1 of 2 in #289) | – | – | – | #289, #306 recheck (published 0.7.0, `scripts/cms-starter-probe/results-306-recheck.json`) |
 | Script bytes (gz) | 52.8 KB (UMD CDN) | 68.7 KB | 0 | 0 | #383 (published 0.10.1) |
@@ -49,9 +50,13 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
 - #198 (dev after 0.4.0): no-build parity 92.3% default, 98.1% with `preflight: true`, vs twb 100%; #305 (dev
   after 0.8.0) reported it unchanged. Superseded by the #383 rerun (100%).
 - #231 (dev after 0.4.0; unchanged in #305): 0.859 of elements, shell 1.000. Superseded by #383 (0.904, shell 0.997
-  after mount: slightly worse, not yet investigated).
-- #266 (dev after 0.4.0; unchanged in #305): client-only unstyled 275–324 ms, server cold 16–20 ms. #383 on 0.10.1:
-  346–412 ms and 22–28 ms (worse; likely the larger bundle under 4x CPU throttling, not isolated).
+  after mount). The 0.997 is not a regression: #394 got 0.9972 on the #231 commit, 0.8.0 and 0.10.1 alike.
+- #266 (dev after 0.4.0; unchanged in #305): client-only unstyled 275–324 ms, server cold 16–20 ms. These numbers come from a
+  different session and are not comparable with later runs. Same-session rerun in #394 (N=3 per release, 4x CPU
+  throttle): client-only window median 390 / 327 ms on 0.8.0 and 408 / 360 ms on 0.10.1 (opus / haiku spec);
+  the step is at 0.8.2 → 0.9.0 (+17 / +17 ms, up to +37 ms by 0.10.x), in line with the ~+5 KB UMD growth
+  (#336, #327). Server cold median 23.5 / 19.5 ms on 0.8.0 and 25.9 / 20.9 ms on 0.10.1; the +1.5–2.4 ms comes
+  from the 0.8.1 security guards (#323).
 - #364 (0.10.0) Shadow DOM parity 1.000 and #355 (dev after 0.9.0) shadow-root CMS blocks 1.000: withdrawn; the
   probes missed @property-backed utilities inside shadow roots (#384).
 - #305 (dev after 0.8.0): ESM CDN bundle 48 KB gz.
