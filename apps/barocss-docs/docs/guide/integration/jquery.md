@@ -19,7 +19,7 @@ BaroCSS works in existing jQuery apps without any build step. This guide shows m
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>jQuery + BaroCSS</title>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@barocss/browser@0.10.1/dist/cdn/barocss.umd.cjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@barocss/browser@__BAROCSS_VERSION__/dist/cdn/barocss.umd.cjs"></script>
 </head>
 <body>
   <div id="app"></div>
@@ -35,7 +35,7 @@ BaroCSS works in existing jQuery apps without any build step. This guide shows m
 
 ```html
 <script type="module">
-  import { BrowserRuntime } from 'https://cdn.jsdelivr.net/npm/@barocss/browser@0.10.1/dist/cdn/barocss.js'
+  import { BrowserRuntime } from 'https://cdn.jsdelivr.net/npm/@barocss/browser@__BAROCSS_VERSION__/dist/cdn/barocss.js'
   const runtime = new BrowserRuntime()
   runtime.observe(document.body, { scan: true })
 </script>

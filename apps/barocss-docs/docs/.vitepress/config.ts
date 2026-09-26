@@ -1,5 +1,11 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from "vitepress-plugin-mermaid";
+import { readFileSync } from 'node:fs'
+
+// Install/CDN snippets write __BAROCSS_VERSION__; the build fills in the current @barocss/browser version (#419).
+const BAROCSS_VERSION: string = JSON.parse(
+  readFileSync(new URL('../../../../packages/barocss-browser/package.json', import.meta.url), 'utf8')
+).version
 
 export default defineConfig(withMermaid({
   title: 'BaroCSS',
@@ -429,5 +435,17 @@ export default defineConfig(withMermaid({
   // Markdown configuration
   markdown: {
     lineNumbers: true
+  },
+
+  vite: {
+    plugins: [{
+      name: 'barocss-version',
+      enforce: 'pre',
+      transform(code: string, id: string) {
+        if (id.endsWith('.md') && code.includes('__BAROCSS_VERSION__')) {
+          return code.replaceAll('__BAROCSS_VERSION__', BAROCSS_VERSION)
+        }
+      }
+    }]
   }
 }))

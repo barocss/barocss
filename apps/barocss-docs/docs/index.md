@@ -51,4 +51,13 @@ BaroCSS consists of three main packages:
 
 ## Start using BaroCSS
 
+Paste this at the end of the page body. No build step:
+
+```html
+<script type="module">
+  import { baroStart } from 'https://cdn.jsdelivr.net/npm/@barocss/browser@__BAROCSS_VERSION__/dist/cdn/barocss.js'
+  baroStart()
+</script>
+```
+
 The [Quick Start](/guide/quick-start) shows the browser runtime with its public API. The [API reference](/api/) covers the core and server packages.
