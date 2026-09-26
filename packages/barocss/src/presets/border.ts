@@ -29,10 +29,18 @@ staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'border
   ["rounded-tr", ["border-top-right-radius"]],
   ["rounded-br", ["border-bottom-right-radius"]],
   ["rounded-bl", ["border-bottom-left-radius"]],
+  // #321 logical corners (Tailwind 4.3): none -> 0, full -> calc(infinity * 1px) like Tailwind.
+  ["rounded-s", ["border-start-start-radius", "border-end-start-radius"]],
+  ["rounded-e", ["border-start-end-radius", "border-end-end-radius"]],
+  ["rounded-ss", ["border-start-start-radius"]],
+  ["rounded-se", ["border-start-end-radius"]],
+  ["rounded-es", ["border-end-start-radius"]],
+  ["rounded-ee", ["border-end-end-radius"]],
 ].forEach(([name, props]) => {
   const propList = props as string[];
+  const logical = propList[0].startsWith("border-start") || propList[0].startsWith("border-end");
   // Static utilities
-  staticUtility(`${name}-none`, propList.map(prop => [prop, "0px"]), { category: 'borders' });
+  staticUtility(`${name}-none`, propList.map(prop => [prop, logical ? "0" : "0px"]), { category: 'borders' });
   staticUtility(`${name}-sm`, propList.map(prop => [prop, "var(--radius-sm)"]), { category: 'borders' });
   staticUtility(`${name}`, propList.map(prop => [prop, "0.25rem"]), { category: 'borders' });
   staticUtility(`${name}-md`, propList.map(prop => [prop, "var(--radius-md)"]), { category: 'borders' });
@@ -42,7 +50,7 @@ staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'border
   staticUtility(`${name}-3xl`, propList.map(prop => [prop, "var(--radius-3xl)"]), { category: 'borders' });
   staticUtility(`${name}-4xl`, propList.map(prop => [prop, "var(--radius-4xl)"]), { category: 'borders' });
   staticUtility(`${name}-xs`, propList.map(prop => [prop, "var(--radius-xs)"]), { category: 'borders' });
-  staticUtility(`${name}-full`, propList.map(prop => [prop, "9999px"]), { category: 'borders' });
+  staticUtility(`${name}-full`, propList.map(prop => [prop, logical ? "calc(infinity * 1px)" : "9999px"]), { category: 'borders' });
 
   // Functional utility
   functionalUtility({
@@ -50,7 +58,8 @@ staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'border
     supportsArbitrary: true,
     supportsCustomProperty: true,
     handleBareValue: ({ value }) => {
-      if (parseNumber(value)) {
+      // Tailwind 4.3 has no bare-number logical radius (rounded-s-2 emits nothing).
+      if (!logical && parseNumber(value)) {
         return `calc(var(--spacing) * ${value})`;
       }
       return null;
@@ -65,7 +74,9 @@ staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'border
 // Functional border radius utility
 functionalUtility({
   name: "rounded",
-  prop: "border-radius",
+  // Only the `rounded` prefix itself: a class the logical rounded-s/e/... utility rejects (rounded-s-2) must not fall
+  // through to border-radius (#321).
+  handle: (value, _ctx, token) => (token.prefix === "rounded" ? [decl("border-radius", value)] : null),
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handleBareValue: ({ value }) => {
