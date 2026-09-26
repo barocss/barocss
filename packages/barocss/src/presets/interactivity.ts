@@ -223,6 +223,8 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
 
 
 [
+  ["mbs", "scroll-margin-block-start"], // #311 (Tailwind 4.3), before `mb`
+  ["mbe", "scroll-margin-block-end"],
   ["mt", "scroll-margin-top"],
   ["mr", "scroll-margin-right"],
   ["mb", "scroll-margin-bottom"],
@@ -256,6 +258,8 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
 
 
 [
+  ["pbs", "scroll-padding-block-start"], // #311 (Tailwind 4.3), before `pb`
+  ["pbe", "scroll-padding-block-end"],
   ["pt", "scroll-padding-top"],
   ["pr", "scroll-padding-right"],
   ["pb", "scroll-padding-bottom"],

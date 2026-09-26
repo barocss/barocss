@@ -104,6 +104,8 @@ const withBorderStyle = (props: string[], width: string) => [
   ["border-y", ["border-top-width", "border-bottom-width"]],
   ["border-bs", ["border-block-start-width"]],
   ["border-be", ["border-block-end-width"]],
+  ["border-s", ["border-inline-start-width"]], // #311 (Tailwind 4.3)
+  ["border-e", ["border-inline-end-width"]],
   ["border-t", ["border-top-width"]],
   ["border-r", ["border-right-width"]],
   ["border-b", ["border-bottom-width"]],

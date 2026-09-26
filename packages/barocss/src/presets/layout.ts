@@ -151,12 +151,16 @@ staticUtility("not-sr-only", [
 // --- Layout: Container queries (@container, @container/<name>, @container-normal) ---
 staticUtility("@container", [["container-type", "inline-size"]], { category: 'layout' });
 staticUtility("@container-normal", [["container-type", "normal"]], { category: 'layout' });
+staticUtility("@container-size", [["container-type", "size"]], { category: 'layout' }); // #311 (Tailwind 4.3)
+// Named forms: @container/<name>, @container-normal/<name>, @container-size/<name> (#311).
+const NAMED_CONTAINER = /^@container(-normal|-size)?\/([a-zA-Z0-9_-]+)$/;
+const CONTAINER_TYPE: Record<string, string> = { '': 'inline-size', '-normal': 'normal', '-size': 'size' };
 registerUtility({
   name: "@container",
-  match: (className: string) => /^@container\/[a-zA-Z0-9_-]+$/.test(className),
+  match: (className: string) => NAMED_CONTAINER.test(className),
   handler: (_value, _ctx, token) => {
-    const name = /^@container\/([a-zA-Z0-9_-]+)$/.exec(`${token.prefix}${token.value ? `-${token.value}` : ""}`)?.[1];
-    return name ? [decl("container-type", "inline-size"), decl("container-name", name)] : null;
+    const m = NAMED_CONTAINER.exec(`${token.prefix}${token.value ? `-${token.value}` : ""}`);
+    return m ? [decl("container-type", CONTAINER_TYPE[m[1] ?? '']), decl("container-name", m[2])] : null;
   },
   category: 'layout',
 });
