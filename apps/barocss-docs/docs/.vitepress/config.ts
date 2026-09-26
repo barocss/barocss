@@ -60,6 +60,7 @@ export default defineConfig(withMermaid({
             { text: 'Overview', link: '/guide/integration/overview' },
             { text: 'Next to a Tailwind build', link: '/guide/integration/tailwind-companion' },
             { text: 'Astro (SSR and static)', link: '/guide/integration/astro' },
+            { text: 'Embedding AI widgets (Shadow DOM)', link: '/guide/integration/shadow-dom' },
             { text: 'Frameworks (React, Vue, Svelte, Solid)', link: '/guide/integration/frameworks' },
             { text: 'jQuery', link: '/guide/integration/jquery' }
           ]

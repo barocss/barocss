@@ -1,0 +1,25 @@
+---
+title: Embedding AI widgets (Shadow DOM)
+description: Style a widget inside a shadow root with scoped preflight and shared sheets
+---
+
+# Embedding AI widgets (Shadow DOM)
+
+A widget in a shadow root is isolated from the host page's CSS, but a `<head>` stylesheet cannot reach it either. Pass the root:
+
+```ts
+import { BrowserRuntime } from '@barocss/browser';
+
+const host = document.querySelector('ai-widget')!;
+const root = host.attachShadow({ mode: 'open' }); // 'closed' works too: the embedder holds the reference
+root.innerHTML = modelHtml;
+const runtime = new BrowserRuntime({ root, config }); // or baroStart({ root, config })
+// later: runtime.destroy() when the widget is removed
+```
+
+- The runtime observes `root` (with an initial scan) and puts all of its CSS inside it: utilities, theme variables (`:root,:host`), `@property`, `@keyframes` and preflight. Nothing goes to `document.head`, and the host page is not changed.
+- **Preflight is scoped to the root.** `html`/`:root` selectors become `:host`. `body` rules are dropped and their declarations are re-emitted last on `:host`, without `min-height: 100vh` and `scroll-behavior`. So the widget gets the preflight font (it no longer inherits the host's `font-family`) and border reset, as in a Tailwind 4 build. Like Tailwind, preflight does not set `color`, so the host's text colour still inherits into the widget unless you set one (for example `text-gray-900` on the widget's wrapper).
+- **Shared sheets.** Runtimes with the same config (and prefix) share one constructable stylesheet that every root adopts through `root.adoptedStyleSheets`. Each class is generated once, whichever root uses it first. Rules keep Tailwind's variant order . GC counts per root and across roots: a rule is deleted only when no root still uses its class. `getSharedRootSheetStats()` reports roots, rules and generations per shared sheet.
+- **Fallback.** Without constructable stylesheets, each root gets two `<style data-barocss>` elements (prologue and rules) at its start, which mirror the same shared rule list.
+- `insertionPoint`, `styleId` and `maxRulesPerPartition` do not apply in this mode, and a server-rendered `<style data-barocss-ssr>` sheet is adopted only in document mode.
+- `root` must be a `ShadowRoot` (or `document`, which is the normal document mode). For a widget in a plain `<div>`, use the document mode (`getRuntime().observe(container)`): the host's CSS and the widget's CSS then cascade together, so use a shadow root when you need isolation.

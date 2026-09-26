@@ -22,7 +22,14 @@ export function getRuntime(options: BrowserRuntimeOptions = {}) {
 
 type BaroBootOptions = BrowserRuntimeOptions & { loadingClassName?: string };
 
-export function baroBoot({ loadingClassName = 'baro-boot', ...options }: BaroBootOptions = {}) {
+/**
+ * Starts BaroCSS on the document (the shared runtime). #327: with `root: shadowRoot` it instead returns a new
+ * runtime that observes and styles only that shadow root (runtimes with the same config share one sheet).
+ */
+export function baroBoot(options: BaroBootOptions & { root: ShadowRoot }): BrowserRuntime;
+export function baroBoot(options?: BaroBootOptions): void;
+export function baroBoot({ loadingClassName = 'baro-boot', ...options }: BaroBootOptions = {}): BrowserRuntime | void {
+    if (options.root && options.root.nodeType === 11) return new BrowserRuntime(options);
     if (!document.body) {
         document.addEventListener('DOMContentLoaded', () => baroBoot({ loadingClassName, ...options }), { once: true });
         return;
