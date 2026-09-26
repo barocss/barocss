@@ -90,6 +90,30 @@ Measured on the #253 CMS blocks under that policy (`scripts/csp-probe/run.mjs`):
 (`constructable` also under `style-src 'self'`). With `@barocss/server`, `ssrStyleTag(css, { nonce })`
 adds the nonce to the emitted `<style>` tag.
 
+### Limiting external `url()` loads
+
+No theme value emits `url()`: every form that can load an external resource comes from an
+arbitrary class value (#346 audit, `scripts/url-audit/NOTES.md`). That includes background and mask
+images, cursors, `content`, arbitrary properties, `image-set()`, and a custom property set to a URL and
+read through `var()`. Two host-side controls cover all of them, so BaroCSS has no extra "safe mode":
+
+1. **CSP fetch directives.** `img-src 'self'` (or just `default-src 'self'`) blocked every loading form
+   in the #346 measurement: 0 cross-origin requests and one violation per form. Allow only the
+   origins you trust, e.g. `img-src 'self' https://images.example.com`.
+2. **A pre-filter**, when you can't set CSP for the page (e.g. a widget inside someone else's app):
+   drop class strings that request a resource before handing them to BaroCSS.
+
+   ```ts
+   const LOADS_RESOURCE = /(url|image-set|image|cross-fade|element|src)\s*\(/i;
+   const safe = classes.filter((c) => !LOADS_RESOURCE.test(c));
+   ```
+
+   This is reliable because BaroCSS doesn't decode CSS escapes in arbitrary values (an escaped form
+   emits nothing), and custom-property indirection still needs a literal `url(` in some class, which
+   the filter catches.
+
+Use both where you can: CSP for the page, and the filter for content you forward.
+
 ### MCP Apps and embedded widgets
 
 MCP Apps and other embedded UIs usually run under a CSP set by the host, not by you. Check the
