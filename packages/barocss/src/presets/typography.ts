@@ -459,3 +459,14 @@ functionalUtility({
   description: "font-feature-settings utility (arbitrary, custom property)",
   category: "typography",
 });
+
+// #310: tab-* (Tailwind 4.3 tab-size): tab-4, tab-[8], tab-(--t).
+functionalUtility({
+  name: "tab",
+  prop: "tab-size",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => (/^\d+$/.test(value) ? value : null),
+  description: "tab-size utility (integer, arbitrary, custom property)",
+  category: "typography",
+});
