@@ -1,5 +1,5 @@
 import { GenerateCssRulesResult } from '@barocss/kit';
-import { createContext, clearAstCache, IncrementalParser, parseClassName } from '@barocss/kit';
+import { createContext, clearAstCache, IncrementalParser, parseClassName, isDebug } from '@barocss/kit';
 import type { Config, Context } from '@barocss/kit';
 import { StylePartitionManager } from './style-partition-manager';
 import { ChangeDetector } from './change-detector';
@@ -109,15 +109,16 @@ export class BrowserRuntime {
    * Add debug logs (by level)
    */
   private debugLog(level: 'info' | 'warn' | 'error' | 'debug', message: string, data?: unknown): void {
-    // Console output
+    // Silent unless the kit debug flag is on (`debug: true` in config, or setDebug(true)).
+    if (!isDebug()) return;
+    // console-ok: gated by the isDebug() early return above
     // eslint-disable-next-line no-console
     const consoleMethod = console[level] || console.log;
     consoleMethod(`[BrowserRuntime:${level.toUpperCase()}] ${message}`, data || '');
   }
 
   private init() {
-    // eslint-disable-next-line no-console
-    console.log('[BrowserRuntime] init');
+    this.debugLog('debug', 'init');
     this.injectPreflightCSS();
     this.ensureCssVars();
     this.adoptSsrSheets();
@@ -232,8 +233,7 @@ export class BrowserRuntime {
     // Process classes immediately for testing environment
     const results = this.incrementalParser.processClasses(classList);
     
-    // eslint-disable-next-line no-console
-    console.log('[BrowserRuntime] results', results, ...classList);
+    this.debugLog('debug', 'results', { results, classList });
     // Apply results and inject CSS
     this.applyParseResults(results, { isBrowser });
   }

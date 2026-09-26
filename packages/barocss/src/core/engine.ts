@@ -503,6 +503,17 @@ export function generateCss(
       return true;
     })
     .map((cls) => {
+      // #333: a class whose generation throws contributes nothing; the other classes still generate.
+      try {
+        return generateOne(cls);
+      } catch (err) {
+        debugWarn("[generateCss] class generation failed:", cls, err);
+        return "";
+      }
+    })
+    .join(opts?.minify ? "" : "\n");
+
+  function generateOne(cls: string): string {
       const ast = parseClassToAst(cls, ctx);
       const parsedResult = (getContextState(ctx)?.parseResultCache || parseResultCache).get(cls);
       const cleanAst = optimizeAst(ast);
@@ -534,8 +545,7 @@ export function generateCss(
       }
 
       return result;
-    })
-    .join(opts?.minify ? "" : "\n");
+  }
 
   const rootRules = [...new Set([
     ...allAtRootNodes

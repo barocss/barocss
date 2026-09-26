@@ -139,6 +139,16 @@ export function getModifier(ctx?: Context): ModifierRegistration[] {
 //  escapeClassName
 const ESCAPE_REGEX = /[^A-Za-z0-9_-]/g;
 export function escapeClassName(className: string) {
+  // #334: CSS.escape first-char rules — an identifier can't start with a digit, or `-` + digit, or be a lone `-`.
+  if (className === '-') return '\\-';
+  const lead = /^-?[0-9]/.exec(className);
+  if (lead) {
+    const i = lead[0].length - 1;
+    return className.slice(0, i) + '\\' + className.charCodeAt(i).toString(16) + ' ' + escapeRest(className.slice(i + 1));
+  }
+  return escapeRest(className);
+}
+function escapeRest(className: string) {
   return className.replace(ESCAPE_REGEX, (c) => {
     if (c === ' ') return '\\x20 ';
     if (c === '.') return '\\.';
@@ -521,15 +531,15 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
         }
         return [];
       }
-      // 3. Theme lookup (themeKey or themeKeys)
+      // 3. Theme lookup (themeKey or themeKeys); only scalar results count as a value (#333)
       let themeValue: string | undefined;
       if (opts.themeKey && ctx.theme) {
-        themeValue = ctx.theme(opts.themeKey, finalValue) as string;
+        themeValue = themeScalar(ctx.theme(opts.themeKey, finalValue));
         // console.log('[functionalUtility] themeKey lookup', { themeKey: opts.themeKey, finalValue, themeValue });
       }
       if (!themeValue && opts.themeKeys && ctx.theme) {
         for (const key of opts.themeKeys) {
-          themeValue = ctx.theme(key, finalValue) as string;
+          themeValue = themeScalar(ctx.theme(key, finalValue));
           // console.log('[functionalUtility] themeKeys lookup', { key, finalValue, themeValue });
           if (themeValue !== undefined) break;
         }
@@ -653,4 +663,14 @@ export function normalizeMathSpacing(value: string): string {
     out += ch;
   }
   return out;
+}
+
+/**
+ * A theme lookup result usable as a CSS value (#333): strings as-is, finite numbers stringified; anything else
+ * (a nested palette object when no shade is given, arrays, functions) counts as "no value".
+ */
+function themeScalar(v: unknown): string | undefined {
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+  return undefined;
 }

@@ -40,6 +40,7 @@ export function baroBoot({ loadingClassName = 'baro-boot', ...options }: BaroBoo
         }});
     } catch (error) {
         document.body?.classList.remove(startClassName);
+        // console-ok: one-shot boot failure; otherwise the page stays unstyled with no signal
         // eslint-disable-next-line no-console
         console.error('BaroCSS boot failed:', error);
     }

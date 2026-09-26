@@ -1,0 +1,130 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`#332 legit nested forms are unchanged > byte-identical output 1`] = `
+[
+  [
+    "[&:is(.a,.b)]:p-4",
+    ".\\[\\&\\:is\\(\\.a\\,\\.b\\)\\]\\:p-4:is(.a,.b) {
+  padding: calc(var(--spacing) * 4);
+}
+",
+  ],
+  [
+    "has-[>svg]:p-4",
+    ".has-\\[\\>svg\\]\\:p-4:has(>svg) {
+  padding: calc(var(--spacing) * 4);
+}
+",
+  ],
+  [
+    "[&_*]:p-4",
+    ".\\[\\&_\\*\\]\\:p-4 * {
+  padding: calc(var(--spacing) * 4);
+}
+",
+  ],
+  [
+    "group-has-[.x]:p-4",
+    ".group-has-\\[\\.x\\]\\:p-4:is(:where(.group):has(*:is(.x)) *) {
+  padding: calc(var(--spacing) * 4);
+}
+",
+  ],
+  [
+    "peer-has-[.x]:p-4",
+    ".peer-has-\\[\\.x\\]\\:p-4:is(:where(.peer):has(*:is(.x)) ~ *) {
+  padding: calc(var(--spacing) * 4);
+}
+",
+  ],
+  [
+    "not-[.x]:p-4",
+    ".not-\\[\\.x\\]\\:p-4:not(.x) {
+  padding: calc(var(--spacing) * 4);
+}
+",
+  ],
+  [
+    "@md:p-4",
+    "@container (width >= 28rem) {
+  .\\@md\\:p-4 {
+    padding: calc(var(--spacing) * 4);
+  }
+}
+",
+  ],
+  [
+    "@min-[400px]:p-4",
+    "@container (width >= 400px) {
+  .\\@min-\\[400px\\]\\:p-4 {
+    padding: calc(var(--spacing) * 4);
+  }
+}
+",
+  ],
+  [
+    "supports-[display:grid]:grid",
+    "@supports (display:grid) {
+  .supports-\\[display\\:grid\\]\\:grid {
+    display: grid;
+  }
+}
+",
+  ],
+  [
+    "[@supports(display:grid)]:grid",
+    ".\\[\\@supports\\(display\\:grid\\)\\]\\:grid:is(@supports(display:grid)) {
+  display: grid;
+}
+",
+  ],
+  [
+    "w-[10px]",
+    ".w-\\[10px\\] {
+  width: 10px;
+}
+",
+  ],
+  [
+    "bg-[url("a)b")]",
+    ".bg-\\[url\\(\\"a\\)b\\"\\)\\] {
+  background-image: url("a)b");
+}
+",
+  ],
+  [
+    "min-[320px]:p-4",
+    "@media (width >= 320px) {
+  .min-\\[320px\\]\\:p-4 {
+    padding: calc(var(--spacing) * 4);
+  }
+}
+",
+  ],
+  [
+    "data-[state=open]:p-4",
+    ".data-\\[state\\=open\\]\\:p-4[data-state="open"] {
+  padding: calc(var(--spacing) * 4);
+}
+",
+  ],
+  [
+    "group-hover:p-4",
+    "@media (hover: hover) {
+  .group-hover\\:p-4:is(:where(.group):hover *) {
+    padding: calc(var(--spacing) * 4);
+  }
+}
+",
+  ],
+  [
+    "hover:focus:p-4",
+    "@media (hover: hover) {
+  .hover\\:focus\\:p-4:hover:focus {
+    padding: calc(var(--spacing) * 4);
+  }
+}
+",
+  ],
+]
+`;

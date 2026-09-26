@@ -65,3 +65,24 @@ describe('skipExisting (#210)', () => {
     expect(unescapeCssIdent('w-\\[1\\.5rem\\]')).toBe('w-[1.5rem]');
   });
 });
+
+describe('digit-leading class names (#334)', () => {
+  it('styles a 2xl: class through insertRule with the CSS-escaped selector', () => {
+    runtime = new BrowserRuntime();
+    runtime.addClass('2xl:p-4');
+    const css = injected();
+    expect(css).toContain('.\\32 xl\\:p-4');
+    expect(css).not.toContain('.2xl');
+  });
+
+  it('skipExisting recognises a hex-escaped build selector', () => {
+    expect(unescapeCssIdent('\\32 xl\\:p-4')).toBe('2xl:p-4');
+    addSheet('@media (min-width:96rem){.\\32 xl\\:p-4{padding:1rem}}');
+    runtime = new BrowserRuntime({ skipExisting: true });
+    expect(runtime.getExistingClasses().has('2xl:p-4')).toBe(true);
+    runtime.addClass('2xl:p-4 2xl:m-2');
+    const css = injected();
+    expect(css).not.toContain('xl\\:p-4');
+    expect(css).toContain('.\\32 xl\\:m-2');
+  });
+});
