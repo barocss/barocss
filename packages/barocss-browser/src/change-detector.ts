@@ -67,7 +67,7 @@ export class ChangeDetector {
      * @param options - Configuration options including initial scan and onReady callback
      * @returns The MutationObserver instance for external control
      */
-    observe(root: HTMLElement = document.body, options?: { scan?: boolean; onReady?: () => void }): MutationObserver {
+    observe(root: HTMLElement | ShadowRoot = document.body, options?: { scan?: boolean; onReady?: () => void }): MutationObserver {
       if (typeof window === 'undefined') {
         // Return dummy observer for Node.js environment
         return new MutationObserver(() => {});
@@ -154,12 +154,13 @@ export class ChangeDetector {
     /**
      * Scan existing classes in the DOM and process them
      */
-    private scanExistingClasses(root: HTMLElement, options?: { onReady?: () => void }): void {
+    private scanExistingClasses(root: HTMLElement | ShadowRoot, options?: { onReady?: () => void }): void {
       const existingClasses = new Set<string>();
           
       // Include root itself
-      if (root.className) {
-        const classes = normalizeClassNameList(root.className);
+      const rootClass = (root as HTMLElement).className;
+      if (rootClass) {
+        const classes = normalizeClassNameList(rootClass);
         classes.forEach(cls => {
           if (!this.incrementalParser.isProcessed(cls)) {
             existingClasses.add(cls);

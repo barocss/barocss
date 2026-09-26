@@ -5,6 +5,7 @@ import { StylePartitionManager } from './style-partition-manager';
 import { ChangeDetector } from './change-detector';
 import { collectKeyframeNames, collectLeadingClasses } from './existing-classes';
 import { ClassGc } from './class-gc';
+import { acquireSharedRootSheet, ShadowRootStyles, SharedIncrementalParser } from './shadow-root-sheet';
 
 export interface BrowserRuntimeOptions {
   config?: Config;  // full config object
@@ -35,6 +36,16 @@ export interface BrowserRuntimeOptions {
    * oldest-first without waiting for the grace period; classes in use are never evicted. Default: no cap.
    */
   maxRules?: number;
+  /**
+   * #327: a ShadowRoot to style instead of the document. The runtime observes that root (with an initial scan)
+   * and places all of its CSS in it: utilities, theme variables, @property, @keyframes and a preflight rewritten
+   * for the root (`html`/`:root` -> `:host`, `body` declarations re-emitted on `:host`). Nothing goes to
+   * `document.head`. Runtimes with the same config share one constructable sheet adopted by every root
+   * (`adoptedStyleSheets`); without constructable sheets each root gets `<style>` elements instead.
+   * `insertionPoint`, `styleId` and `maxRulesPerPartition` are ignored in this mode, and server sheets (#268)
+   * are not adopted. `document` (or omitting it) keeps the document mode.
+   */
+  root?: ShadowRoot | Document;
 }
 
 /** #268: marks a server-rendered sheet (`@barocss/server` `ssrStyleTag()`); the runtime adopts its class rules. */
@@ -47,7 +58,9 @@ export class BrowserRuntime {
   private cache: Map<string, GenerateCssRulesResult> = new Map(); // class name -> generated CSS mapping
   private rootCache: Set<string> = new Set(); // class name -> generated CSS mapping
   private context: Context;
-  private options: Required<BrowserRuntimeOptions>;
+  private options: Required<Omit<BrowserRuntimeOptions, 'root'>>;
+  /** #327: the shadow root this runtime styles, or null in document mode. */
+  private shadowRoot: ShadowRoot | null = null;
   private isDestroyed = false;
   private existing: Set<string> | null = null;
   /** #274: @keyframes names the page's own sheets define (filled with `existing`). */
@@ -64,7 +77,7 @@ export class BrowserRuntime {
 
   private incrementalParser: IncrementalParser;
   private changeDetector: ChangeDetector;
-  private stylePartitionManager: StylePartitionManager;
+  private stylePartitionManager: StylePartitionManager | ShadowRootStyles;
 
   private getCategory = (cls: string) => parseClassName(cls, this.context).utility?.category;
 
@@ -83,13 +96,21 @@ export class BrowserRuntime {
       maxRules: options.maxRules ?? Infinity,
     };
 
-    // Pass full config to createContext (defaultTheme auto-included)
-    this.context = createContext(this.options.config);
+    const root = options.root;
+    if (root && root.nodeType === 11) this.shadowRoot = root as ShadowRoot;
 
-    this.incrementalParser = new IncrementalParser(this.context);
+    // Pass full config to createContext (defaultTheme auto-included)
+    if (this.shadowRoot) {
+      const shared = acquireSharedRootSheet(this.options.config);
+      this.context = shared.context;
+      this.incrementalParser = new SharedIncrementalParser(shared);
+    } else {
+      this.context = createContext(this.options.config);
+      this.incrementalParser = new IncrementalParser(this.context);
+    }
     this.changeDetector = new ChangeDetector(this.incrementalParser, this, this.getCategory);
 
-    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
+    this.stylePartitionManager = this.createStyles();
 
     if (this.options.gc) {
       this.gc = new ClassGc({
@@ -101,6 +122,25 @@ export class BrowserRuntime {
     }
 
     this.init();
+    if (this.shadowRoot) this.observe(this.shadowRoot, { scan: true });
+  }
+
+  /** Document partitions, or (#327) this root's view of the shared shadow-root sheet. */
+  private createStyles(): StylePartitionManager | ShadowRootStyles {
+    if (this.shadowRoot) {
+      const parser = this.incrementalParser as SharedIncrementalParser;
+      let shared = parser.shared;
+      // A reset after the last root released the entry: re-acquire (same key -> same or a fresh entry).
+      const current = acquireSharedRootSheet(this.options.config);
+      if (current !== shared) {
+        shared = current;
+        this.context = shared.context;
+        this.incrementalParser = new SharedIncrementalParser(shared);
+        this.changeDetector?.setParser(this.incrementalParser);
+      }
+      return new ShadowRootStyles(shared, this.shadowRoot, this.getCategory);
+    }
+    return new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
   }
 
   // Debugging and logging helpers
@@ -132,7 +172,7 @@ export class BrowserRuntime {
    * are never regenerated and never reclaimed. `:root`, `@property` and `@keyframes` stay in the sheet.
    */
   private adoptSsrSheets(): void {
-    if (typeof document === 'undefined') return;
+    if (typeof document === 'undefined' || this.shadowRoot) return;
     const adopted: Array<{ css: string; cls: string }> = [];
     // Only sheets in <head> at startup (constructor / observe()): a marked <style> injected later or into
     // <body> (model or user HTML) must not suppress generation or GC for its classes (#268 review).
@@ -243,7 +283,7 @@ export class BrowserRuntime {
    */
   public applyParseResults(results: Array<GenerateCssRulesResult>, _opts?: { isBrowser?: boolean }): void {
     if (this.isDestroyed) return;
-    if (this.getInsertionPoint().isConnected && this.stylePartitionManager.hasDetachedPartitions()) {
+    if (!this.shadowRoot && this.getInsertionPoint().isConnected && this.stylePartitionManager.hasDetachedPartitions()) {
       const existingResults = Array.from(this.cache.values());
       this.reset();
       results = [...existingResults, ...results];
@@ -298,6 +338,8 @@ export class BrowserRuntime {
   /** #269: a class that must never be reclaimed. */
   private isPermanent(cls: string): boolean {
     if (this.pinned.has(cls) || this.ssrClasses.has(cls)) return true;
+    // #327: document sheets cannot style a shadow root, so they never make its classes permanent.
+    if (this.shadowRoot) return false;
     if (typeof document === 'undefined') return true;
     return this.getExistingClasses().has(cls);
   }
@@ -354,7 +396,7 @@ export class BrowserRuntime {
   /**
    * MutationObserver instance method to automatically call addClass when class attributes change in DOM
    */
-  observe(root: HTMLElement = document.body, options?: { scan?: boolean; onReady?: () => void }): MutationObserver {
+  observe(root: HTMLElement | ShadowRoot = this.shadowRoot ?? document.body, options?: { scan?: boolean; onReady?: () => void }): MutationObserver {
     if (!this.observedOnce) { this.observedOnce = true; this.adoptSsrSheets(); }
     return this.changeDetector.observe(root, options);
   }
@@ -413,7 +455,7 @@ export class BrowserRuntime {
     clearAstCache(this.context);
     this.incrementalParser.clearProcessed();
     this.stylePartitionManager.cleanup();
-    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
+    this.stylePartitionManager = this.createStyles();
     this.injectPreflightCSS();
     this.ensureCssVars();
     this.insertSsrRules(this.ssrRules);
@@ -426,7 +468,7 @@ export class BrowserRuntime {
     this.rootCache.clear();
     this.incrementalParser.clearProcessed();
     this.stylePartitionManager.cleanup();
-    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
+    this.stylePartitionManager = this.createStyles();
     this.injectPreflightCSS();
     this.ensureCssVars();
     this.insertSsrRules(this.ssrRules);
@@ -436,8 +478,16 @@ export class BrowserRuntime {
     if (this.isDestroyed) return;
     const existingClasses = Array.from(this.cache.keys());
     this.options.config = newConfig;
-    this.context = createContext(newConfig);
-    this.incrementalParser = new IncrementalParser(this.context);
+    if (this.shadowRoot) {
+      // #327: move this root to the shared sheet of the new config.
+      this.stylePartitionManager.cleanup();
+      const shared = acquireSharedRootSheet(newConfig);
+      this.context = shared.context;
+      this.incrementalParser = new SharedIncrementalParser(shared);
+    } else {
+      this.context = createContext(newConfig);
+      this.incrementalParser = new IncrementalParser(this.context);
+    }
     this.changeDetector.setParser(this.incrementalParser);
     this.reset();
     if (existingClasses.length > 0) {
@@ -475,6 +525,10 @@ export class BrowserRuntime {
       isDestroyed: this.isDestroyed,
       config: this.options.config,
       cacheStats: this.getCacheStats(),
+      /** #327: the shared shadow-root sheet this runtime uses (null in document mode). */
+      sharedSheet: this.shadowRoot && this.stylePartitionManager instanceof ShadowRootStyles
+        ? { roots: this.stylePartitionManager.shared.rootCount, rules: this.stylePartitionManager.shared.ruleCount, generations: this.stylePartitionManager.shared.generations, constructable: this.stylePartitionManager.shared.constructable }
+        : null,
     };
     return stats;
   }

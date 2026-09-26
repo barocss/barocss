@@ -7,12 +7,12 @@
 // closed shadow root | plain <div>. Arms: ref (full Tailwind 4.1 build of the widget classes: <style> inside each shadow
 // root, <link> in head for div) | baroDefault (baroStart(), documented default) | baroRoute (best TODAY: shadow ->
 // new BrowserRuntime({ insertionPoint: <div> inside the shadow root, config.preflight:false }).observe(wrapper);
-// div -> getRuntime({ config.preflight:false }).observe(container)) | twb (@tailwindcss/browser; document-only, no
+// div -> getRuntime({ config.preflight:false }).observe(container)) | baroRoot (#327: shadow -> new BrowserRuntime({ root: sr }); div -> document mode observing the container) | twb (@tailwindcss/browser; document-only, no
 // shadow/root option in its source) | none (baseline for host damage).
 // parity = widget elements equal to ref in the same mode; widgetDmg = elements differing from the widget rendered by the
 // full build on a page with NO host CSS; hostDmg = host elements whose computed style differs from `none`;
 // dyn = class `mt-[37px] bg-[#123456] text-[13px]` set later inside widget 0 gets styled; cost = injected CSS bytes
-// (document + every shadow root) and insert->stable ms at N=1/5/20.
+// (document + every shadow root; a sheet adopted by several roots counted once, #327) and insert->stable ms at N=1/5/20.
 // SUMMARY (2026-09-26, 1 run, Chromium 1223, 138 widget els). parity = share of widget els identical to ref (strict, 37 props).
 //   mode    arm         parity hostDmg dyn  bytes N=1/5/20     ms N=1/5/20   diff vs ref (els)
 //   open    ref         1      0/9     ok   22K/109K/435K      1/1/3
@@ -20,6 +20,7 @@
 //   open    baroRoute   0      0/9     ok   33K/166K/664K      47/209/743    utilities OK; font-family 138, border-style 126 (+sizes): no preflight
 //   open    baroRouteP  0      8/9     ok   38K/190K/760K      36/141/742    preflight goes to document <head>: no effect in root, damages host
 //   open    twb         0      8/9     no   4K flat            12/14/20      document-only, no shadow/root option
+//   open    baroRoot    .819   0/9     ok   38K flat (1 shared) 49/41/65     #327 root option; rest = kit preflight vs TW (svg block, table border-color, rounded-full)
 //   closed  (identical to open: the embedder holds the closed root, BrowserRuntime works the same)
 //   div     ref         1      8/9     no*  22K                0/1/3         *host unlayered p{} beats layered utilities (mt/text 0px/17px)
 //   div     baroDefault .536   8/9     ok   38K                56/58/81      unlayered rules win over host p{} -> differs from ref (height/color/margin)
@@ -93,7 +94,7 @@ async function visit(q) {
   const r = await p.waitForFunction(() => window.__r, null, { timeout: 30000 }).then((x) => x.jsonValue()).catch(() => ({ error: 'no report' }));
   await p.close(); return { errs, ...r };
 }
-const MODES = ['open', 'closed', 'div'], ARMS = ['ref', 'baroDefault', 'baroRoute', 'baroRouteP', 'twb', 'none'], NS = [1, 5, 20];
+const MODES = ['open', 'closed', 'div'], ARMS = ['ref', 'baroDefault', 'baroRoute', 'baroRouteP', 'baroRoot', 'twb', 'none'], NS = [1, 5, 20];
 const clean = await visit('arm=ref&mode=div&n=1&host=0');
 const raw = {};
 for (const mode of MODES) for (const arm of ARMS) for (const n of NS) raw[`${mode}/${arm}/${n}`] = await visit(`arm=${arm}&mode=${mode}&n=${n}`);
