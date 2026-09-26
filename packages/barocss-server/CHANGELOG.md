@@ -1,5 +1,46 @@
 # @barocss/server
 
+## 0.6.0
+
+### Minor Changes
+
+- 0.6.0: a security fix for 0.5.0, production SSR support in `@barocss/server`, and rule garbage collection in the browser runtime.
+
+  **Security:** combined variant tokens could put a CSS comment delimiter into a generated selector. In concatenated CSS output (kit, server sheets, the browser text fallback) that could disable the rules that followed it, so one untrusted class could remove other classes' styles. A serializer-level guard now drops any such rule on every output path. Upgrading from 0.5.0 is recommended.
+
+  **Behaviour changes (please check when upgrading):**
+
+  - `@barocss/browser` reclaims rules for classes no element uses any more (after a grace period, with a cap). This is on by default; `gc: false` restores the old behaviour. Classes from the page's existing stylesheets (`skipExisting`) are never reclaimed.
+  - `@barocss/server` output now defines every theme variable its rules reference (not only colours), emits `:root` and `@property` blocks once, and keeps Tailwind's variant order. Server-rendered pages style correctly at first paint.
+  - A theme value of the form `var(--same-name)` no longer emits a self-referencing root variable, so it doesn't override the build's value.
+
+  **New options:** `ServerRuntime(config, { cacheSize })` and `setConfig(config)` (per-class caching: warm generation about 0.1 ms per request); browser `gc`, `gcGraceMs`, `maxRules`; kit `unmarkProcessed`.
+
+  **Also:** named `theme.spacing` keys work in spacing utilities (`p-gutter`, `gap-gutter`, …).
+
+### Patch Changes
+
+- a24247b: Cache per-class generation in `ServerRuntime` (#272): warm `generateCss` reuses each class's rules, sort key and referenced vars plus the parsed theme var map, with byte-identical output. The cache is per runtime (so per config), LRU-bounded by the new constructor option `new ServerRuntime(config, { cacheSize })` (default 10000, `0` turns caching off, fixed at construction). The new `setConfig(config)` method rebuilds the context and clears the caches. Both are documented in the Server Runtime API page.
+- 858f8ed: `@barocss/server` (#267): `generateCss` now returns one complete, ordered sheet:
+
+  - its `:root,:host` block defines every theme variable the rules reference (radius, text, spacing, shadow, font, container, ease, aspect and so on, not only `--color-*`)
+  - each root block and `@property` block appears once
+  - rules follow Tailwind variant order (base < sm < md < lg)
+
+  To get one sheet for a list of classes, use `generateCss(classes.join(' '))`.
+
+  `generateCssForClasses` still returns entries in input order, and each entry is self-contained. Entries now also define non-colour theme variables and sort their own rules by variant.
+
+  `@barocss/kit` exports the shared `ruleSortKey` / `compareKeys` / `upperBound`, and `@barocss/browser` now imports them from kit. Browser behaviour is unchanged.
+
+- Updated dependencies [faa3ad8]
+- Updated dependencies [79d32b6]
+- Updated dependencies [1888cf2]
+- Updated dependencies
+- Updated dependencies [858f8ed]
+- Updated dependencies [f542794]
+  - @barocss/kit@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes

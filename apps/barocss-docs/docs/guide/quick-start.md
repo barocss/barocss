@@ -30,7 +30,7 @@ If the page already links a Tailwind or shadcn build, use the [Next to a Tailwin
 
 ## Use the CDN without a build step
 
-The `dist/cdn/barocss.js` and `dist/cdn/barocss.umd.cjs` files are part of the published `0.5.0` browser package.
+The `dist/cdn/barocss.js` and `dist/cdn/barocss.umd.cjs` files are part of the published `0.5.0` browser package. Both URLs below were checked on the public CDN (unpkg, HTTP 200) on 2026-09-26.
 
 ### ESM
 

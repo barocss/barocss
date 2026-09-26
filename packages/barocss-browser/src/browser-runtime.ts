@@ -4,6 +4,7 @@ import type { Config, Context } from '@barocss/kit';
 import { StylePartitionManager } from './style-partition-manager';
 import { ChangeDetector } from './change-detector';
 import { collectLeadingClasses } from './existing-classes';
+import { ClassGc } from './class-gc';
 
 export interface BrowserRuntimeOptions {
   config?: Config;  // full config object
@@ -19,6 +20,21 @@ export interface BrowserRuntimeOptions {
    * with the same name is treated as covered, and rules added later to an already-indexed sheet aren't seen.
    */
   skipExisting?: boolean;
+  /**
+   * #269: reclaim the rules of classes that no element inside the observed root carries any more.
+   * On by default; it only acts on classes seen through `observe()`. A class is deleted only after
+   * its refcount has stayed 0 for `gcGraceMs` and a live-DOM re-check finds no element with it.
+   * Never reclaimed: classes passed to `addClass()`, classes any pre-existing (non-BaroCSS) sheet
+   * defines (build output, server sheet), root/@property/preflight rules. `false` disables it.
+   */
+  gc?: boolean;
+  /** #269: how long a class must stay unused before its rules are deleted (default 3000 ms). */
+  gcGraceMs?: number;
+  /**
+   * #269: soft cap on cached classes. When exceeded, unused (refcount 0) classes are evicted
+   * oldest-first without waiting for the grace period; classes in use are never evicted. Default: no cap.
+   */
+  maxRules?: number;
 }
 
 /** Tailwind 4 layer order, declared by BaroCSS's first <style> in <head>. */
@@ -32,6 +48,10 @@ export class BrowserRuntime {
   private isDestroyed = false;
   private existing: Set<string> | null = null;
   private existingSheetCount = -1;
+  /** #269: classes requested explicitly through addClass(); never reclaimed. */
+  private pinned = new Set<string>();
+  private gc: ClassGc | null = null;
+  private reclaimedCount = 0;
 
   private incrementalParser: IncrementalParser;
   private changeDetector: ChangeDetector;
@@ -49,6 +69,9 @@ export class BrowserRuntime {
       insertionPoint: options.insertionPoint || 'head',
       maxRulesPerPartition: options.maxRulesPerPartition || 50,
       skipExisting: options.skipExisting ?? false,
+      gc: options.gc ?? true,
+      gcGraceMs: options.gcGraceMs ?? 3000,
+      maxRules: options.maxRules ?? Infinity,
     };
 
     // Pass full config to createContext (defaultTheme auto-included)
@@ -58,6 +81,15 @@ export class BrowserRuntime {
     this.changeDetector = new ChangeDetector(this.incrementalParser, this, this.getCategory);
 
     this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
+
+    if (this.options.gc) {
+      this.gc = new ClassGc({
+        reclaim: classes => this.reclaim(classes),
+        isPermanent: cls => this.isPermanent(cls),
+        cachedCount: () => this.cache.size,
+      }, this.options.gcGraceMs, this.options.maxRules);
+      this.changeDetector.setGc(this.gc);
+    }
 
     this.init();
   }
@@ -125,7 +157,8 @@ export class BrowserRuntime {
   addClass(classes: string | string[]): void {
     if (this.isDestroyed) return;
     
-    const classList = this.normalizeClasses(classes);
+    const classList = this.normalizeClasses(classes).filter(Boolean);
+    classList.forEach(cls => this.pinned.add(cls));
     
     this.processClasses(classList);
   }
@@ -203,9 +236,43 @@ export class BrowserRuntime {
     });
   }
 
+  /** #269: a class that must never be reclaimed. */
+  private isPermanent(cls: string): boolean {
+    if (this.pinned.has(cls)) return true;
+    if (typeof document === 'undefined') return true;
+    return this.getExistingClasses().has(cls);
+  }
+
+  /**
+   * #269: delete the generated rules of classes no live element uses. Root/@property rules stay
+   * (they are shared and harmless); a rule text another cached class still emits is kept.
+   */
+  private reclaim(classes: string[]): void {
+    if (this.isDestroyed) return;
+    const victims = classes.filter(cls => this.cache.has(cls));
+    if (victims.length === 0) return;
+    const results = victims.map(cls => this.cache.get(cls)!);
+    victims.forEach(cls => {
+      this.cache.delete(cls);
+      this.incrementalParser.unmarkProcessed(cls);
+    });
+    const stillUsed = new Set<string>();
+    for (const result of this.cache.values()) result.cssList.forEach(css => stillUsed.add(css));
+    for (const result of results) {
+      const category = this.getCategory(result.cls);
+      for (const css of result.cssList) {
+        if (!stillUsed.has(css)) this.stylePartitionManager.removeRule(css, category);
+      }
+    }
+    this.reclaimedCount += victims.length;
+  }
+
   /** Class names defined by the page's own stylesheets (BaroCSS's sheets and cross-origin sheets excluded). */
   getExistingClasses(): Set<string> {
+    // Our own <style> elements, matched by sheet identity too (jsdom leaves ownerNode unset).
+    const own = new Set(Array.from(document.querySelectorAll<HTMLStyleElement>('style[data-barocss]'), s => s.sheet));
     const sheets = Array.from(document.styleSheets).filter(sheet => {
+      if (own.has(sheet)) return false;
       const owner = sheet.ownerNode as Element | null;
       return !(owner && typeof owner.hasAttribute === 'function'
         && (owner.hasAttribute('data-barocss') || (owner.id || '').startsWith(this.options.styleId)));
@@ -263,7 +330,10 @@ export class BrowserRuntime {
     return {
       runtime: {
         cachedClasses: this.cache.size,
-        rootCacheSize: this.rootCache.size
+        rootCacheSize: this.rootCache.size,
+        ruleCount: this.stylePartitionManager.ruleCount,
+        reclaimedClasses: this.reclaimedCount,
+        gc: this.gc?.stats() ?? null,
       },
       ast: incremental.cacheStats.ast,
       incremental,
@@ -324,6 +394,7 @@ export class BrowserRuntime {
   destroy(): void {
     if (this.isDestroyed) return;
     this.changeDetector.disconnect();
+    this.gc?.cancel();
     this.stylePartitionManager.cleanup();
 
     this.cache.clear();

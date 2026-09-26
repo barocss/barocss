@@ -33,6 +33,8 @@ renderJsonUi(spec);                       // mount your json-render Renderer
 
 The five settings: `skipExisting: true`, `cssVarPrefix: 'tw'`, `theme: { extend: shadcnTheme }`, `preloadJsonRenderClasses(spec, runtime)` before mount, and the default layered preflight (don't set `preflight: false`).
 
+**Non-shadcn site theme:** put the site's own tokens in `theme.extend` (e.g. `colors: { brand: { 600: '#2563eb' } }`). Literal values are safe. Pointing a token at the build's own var name (`brand: { 600: 'var(--color-brand-600)' }`) is also fine: BaroCSS skips that self-referencing `:root` var, so the build's value wins and `bg-brand-600` still uses it.
+
 **Verify it rendered** (DevTools console, after mount):
 
 ```js

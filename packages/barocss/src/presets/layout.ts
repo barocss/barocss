@@ -277,6 +277,7 @@ staticUtility("sticky", [["position", "sticky"]], { category: 'layout' });
   staticUtility(`-${name}-px`, [[prop, "-1px"]], { category: 'layout' });
   functionalUtility({
     name: name,
+    spacingKeys: true,
     prop: prop,
     supportsNegative: true,
     supportsFraction: true,
@@ -311,6 +312,7 @@ staticUtility("collapse", [["visibility", "collapse"]], { category: 'layout' });
 // --- Layout: Gap ---
 functionalUtility({
   name: "gap-x",
+  spacingKeys: true,
   prop: "column-gap",
   supportsArbitrary: true, // gap-x-[10vw]
   supportsCustomProperty: true, // gap-x-(--my-gap-x)
@@ -325,6 +327,7 @@ functionalUtility({
 });
 functionalUtility({
   name: "gap-y",
+  spacingKeys: true,
   prop: "row-gap",
   supportsArbitrary: true, // gap-y-[10vw]
   supportsCustomProperty: true, // gap-y-(--my-gap-y)
@@ -339,6 +342,7 @@ functionalUtility({
 });
 functionalUtility({
   name: "gap",
+  spacingKeys: true,
   prop: "gap",
   supportsArbitrary: true, // gap-[10vw]
   supportsCustomProperty: true, // gap-(--my-gap)

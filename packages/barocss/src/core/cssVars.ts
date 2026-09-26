@@ -334,10 +334,21 @@ export function themeToCssVarsAll(theme: Theme): Record<string, string> {
 }
 
 /**
+ * #260: a theme value that points at its own variable (`--color-brand-600: var(--color-brand-600)`,
+ * optionally with a fallback) is cyclic. Emitting it on :root would override the site's own definition
+ * with an invalid value, so the root var is skipped; utilities still reference the var.
+ */
+export function isSelfReferencingVar(name: string, value: unknown): boolean {
+  if (typeof value !== 'string') return false;
+  const m = /^var\(\s*(--[\w-]+)\s*(?:,[\s\S]*)?\)$/.exec(value.trim());
+  return !!m && m[1] === name.trim();
+}
+
+/**
  * toCssVarsBlock: convert Record<string, string> → :root { ... } CSS block string
  */
 export function toCssVarsBlock(vars: Record<string, string>, extra: string = ''): string {
-  return ':root,:host {\n' + Object.entries(vars).map(([k, v]) => `  ${k}: ${v};`).join('\n') + '\n}\n' + extra + '\n';
+  return ':root,:host {\n' + Object.entries(vars).filter(([k, v]) => !isSelfReferencingVar(k, v)).map(([k, v]) => `  ${k}: ${v};`).join('\n') + '\n}\n' + extra + '\n';
 }
 
 // Presets write their internal composite variables as `--baro-*` (--baro-shadow, --baro-ring-shadow,
