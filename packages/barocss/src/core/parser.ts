@@ -224,6 +224,21 @@ export function hasCommentToken(value: string): boolean {
   return value.includes('/*') || value.includes('*/');
 }
 
+/**
+ * #273: true when an emitted selector or at-rule prelude contains a comment opener or closer outside a CSS escape.
+ * Backslash-escape pairs are skipped, so an escaped `\/` or `\*` from a class name never counts. Used by the
+ * serializer on the final, composed string, where adjacent pieces that were each safe alone can join into one.
+ */
+export function hasCommentDelimiter(text: string): boolean {
+  for (let i = 0; i < text.length - 1; i++) {
+    const c = text[i];
+    if (c === '\\') { i++; continue; }
+    const n = text[i + 1];
+    if ((c === '/' && n === '*') || (c === '*' && n === '/')) return true;
+  }
+  return false;
+}
+
 export function isStructureSafeValue(value: string): boolean {
   // #247 review: a comment opener/closer in any arbitrary value could swallow the rest of the stylesheet.
   if (hasCommentToken(value)) return false;
