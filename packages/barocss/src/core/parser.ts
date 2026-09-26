@@ -313,6 +313,33 @@ export function isBalancedPrelude(text: string): boolean {
 }
 
 /**
+ * #396: returns `selector` with every quoted string and every `[...]` group (brackets included, nested groups and
+ * escapes inside them too) replaced by a NUL placeholder per character. Backslash escapes outside those regions
+ * are kept verbatim; parentheses are kept. The placeholder is not an identifier character, so it ends a token.
+ */
+function maskStringsAndBrackets(selector: string): string {
+  let out = '';
+  let quote = '';
+  let bracket = 0;
+  for (let i = 0; i < selector.length; i++) {
+    const c = selector[i];
+    const masked = quote !== '' || bracket > 0;
+    if (c === '\\') {
+      const pair = selector.slice(i, i + 2);
+      out += masked ? '\0'.repeat(pair.length) : pair;
+      i++;
+      continue;
+    }
+    if (quote) { if (c === quote) quote = ''; out += '\0'; continue; }
+    if (c === '"' || c === "'") { quote = c; out += '\0'; continue; }
+    if (c === '[') { bracket++; out += '\0'; continue; }
+    if (c === ']' && bracket > 0) { bracket--; out += '\0'; continue; }
+    out += masked ? '\0' : c;
+  }
+  return out;
+}
+
+/**
  * #392: true when every top-level comma part of an emitted selector names `escapedClass` (a class selector
  * already escaped with escapeClassName, including its leading dot) as a whole class token, or, when
  * `allowNesting` is set, uses the nesting selector `&`. Escapes, quoted strings and bracket groups are skipped
@@ -333,7 +360,11 @@ export function isScopedSelector(selector: string, escapedClass: string, allowNe
     else if (c === ',' && depth === 0) { parts.push(selector.slice(start, i)); start = i + 1; }
   }
   parts.push(selector.slice(start));
-  return parts.every((part) => {
+  return parts.every((raw) => {
+    // #396: only real selector parts count. Quoted strings and attribute-bracket groups are masked out, so a
+    // class-looking substring inside `[attr="..."]` names nothing; parenthesised functions (:is, :where, :not,
+    // :has, ...) stay visible because legitimate composites scope the class through them.
+    const part = maskStringsAndBrackets(raw);
     if (allowNesting && part.includes('&')) return true;
     for (let at = part.indexOf(escapedClass); at !== -1; at = part.indexOf(escapedClass, at + 1)) {
       if (at > 0 && part[at - 1] === '\\') continue;
