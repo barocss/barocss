@@ -1,0 +1,975 @@
+{
+ "haiku-1": {
+  "approach": "own <style> block, semantic classes",
+  "classTokens": 21,
+  "utilityTokens": 0,
+  "utilities": [],
+  "styleBlocks": 1,
+  "inlineStyleAttrs": 0,
+  "external": [],
+  "arms": {
+   "a": {
+    "violations": []
+   },
+   "b": {
+    "parityVsA": 0.9411764705882353,
+    "elements": 55,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "H2",
+      "line-height",
+      "normal",
+      "36px"
+     ],
+     [
+      "P",
+      "line-height",
+      "normal",
+      "21px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "96px"
+     ]
+    ],
+    "violations": []
+   },
+   "c": {
+    "parityVsA": 0.9411764705882353,
+    "elements": 55,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "H2",
+      "line-height",
+      "normal",
+      "36px"
+     ],
+     [
+      "P",
+      "line-height",
+      "normal",
+      "21px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "96px"
+     ]
+    ],
+    "violations": []
+   }
+  },
+  "armsDiffer": true
+ },
+ "haiku-2": {
+  "approach": "own <style> block, semantic classes",
+  "classTokens": 10,
+  "utilityTokens": 1,
+  "utilities": [
+   "container"
+  ],
+  "styleBlocks": 1,
+  "inlineStyleAttrs": 1,
+  "external": [],
+  "arms": {
+   "a": {
+    "violations": []
+   },
+   "b": {
+    "parityVsA": 0.9308426073131956,
+    "elements": 74,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "H1",
+      "line-height",
+      "normal",
+      "30px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "INPUT",
+      "line-height",
+      "normal",
+      "16.1px"
+     ],
+     [
+      "INPUT",
+      "font-family",
+      "Arial",
+      "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif"
+     ]
+    ],
+    "violations": []
+   },
+   "c": {
+    "parityVsA": 0.9284578696343402,
+    "elements": 74,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "H1",
+      "font-weight",
+      "700",
+      "400"
+     ],
+     [
+      "H1",
+      "line-height",
+      "normal",
+      "30px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "INPUT",
+      "line-height",
+      "normal",
+      "21px"
+     ]
+    ],
+    "violations": []
+   }
+  },
+  "armsDiffer": true
+ },
+ "haiku-3": {
+  "approach": "own <style> block, semantic classes",
+  "classTokens": 7,
+  "utilityTokens": 0,
+  "utilities": [],
+  "styleBlocks": 1,
+  "inlineStyleAttrs": 0,
+  "external": [],
+  "arms": {
+   "a": {
+    "violations": []
+   },
+   "b": {
+    "parityVsA": 0.9201680672268907,
+    "elements": 42,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "H1",
+      "line-height",
+      "normal",
+      "42px"
+     ],
+     [
+      "P",
+      "line-height",
+      "normal",
+      "21px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "21px"
+     ],
+     [
+      "FORM",
+      "line-height",
+      "normal",
+      "24px"
+     ]
+    ],
+    "violations": []
+   },
+   "c": {
+    "parityVsA": 0.9397759103641457,
+    "elements": 42,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "H1",
+      "font-weight",
+      "700",
+      "400"
+     ],
+     [
+      "H1",
+      "line-height",
+      "normal",
+      "42px"
+     ],
+     [
+      "P",
+      "line-height",
+      "normal",
+      "21px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "21px"
+     ]
+    ],
+    "violations": []
+   }
+  },
+  "armsDiffer": true
+ },
+ "haiku-4": {
+  "approach": "own <style> block, semantic classes",
+  "classTokens": 16,
+  "utilityTokens": 1,
+  "utilities": [
+   "grid"
+  ],
+  "styleBlocks": 1,
+  "inlineStyleAttrs": 4,
+  "external": [],
+  "arms": {
+   "a": {
+    "violations": []
+   },
+   "b": {
+    "parityVsA": 0.9386733416770964,
+    "elements": 47,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "H1",
+      "line-height",
+      "normal",
+      "36px"
+     ],
+     [
+      "P",
+      "line-height",
+      "normal",
+      "21px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ]
+    ],
+    "violations": []
+   },
+   "c": {
+    "parityVsA": 0.9386733416770964,
+    "elements": 47,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "H1",
+      "line-height",
+      "normal",
+      "36px"
+     ],
+     [
+      "P",
+      "line-height",
+      "normal",
+      "21px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ]
+    ],
+    "violations": []
+   }
+  },
+  "armsDiffer": true
+ },
+ "haiku-5": {
+  "approach": "own <style> block, semantic classes",
+  "classTokens": 17,
+  "utilityTokens": 0,
+  "utilities": [],
+  "styleBlocks": 1,
+  "inlineStyleAttrs": 0,
+  "external": [],
+  "arms": {
+   "a": {
+    "violations": []
+   },
+   "b": {
+    "parityVsA": 0.9277605779153767,
+    "elements": 57,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "H1",
+      "line-height",
+      "normal",
+      "42px"
+     ],
+     [
+      "P",
+      "line-height",
+      "normal",
+      "21px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ]
+    ],
+    "violations": []
+   },
+   "c": {
+    "parityVsA": 0.9081527347781218,
+    "elements": 57,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "H1",
+      "line-height",
+      "normal",
+      "42px"
+     ],
+     [
+      "P",
+      "line-height",
+      "normal",
+      "21px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ]
+    ],
+    "violations": []
+   }
+  },
+  "armsDiffer": true
+ },
+ "opus-1": {
+  "approach": "own <style> block, semantic classes",
+  "classTokens": 13,
+  "utilityTokens": 0,
+  "utilities": [],
+  "styleBlocks": 1,
+  "inlineStyleAttrs": 0,
+  "external": [],
+  "arms": {
+   "a": {
+    "violations": []
+   },
+   "b": {
+    "parityVsA": 0.9473684210526315,
+    "elements": 19,
+    "diffs": [
+     [
+      "MAIN",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "28.5px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "16.5px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "SUP",
+      "line-height",
+      "22px",
+      "0px"
+     ]
+    ],
+    "violations": []
+   },
+   "c": {
+    "parityVsA": 0.9473684210526315,
+    "elements": 19,
+    "diffs": [
+     [
+      "MAIN",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "28.5px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "16.5px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "normal",
+      "24px"
+     ],
+     [
+      "SUP",
+      "line-height",
+      "22px",
+      "0px"
+     ]
+    ],
+    "violations": []
+   }
+  },
+  "armsDiffer": true
+ },
+ "opus-2": {
+  "approach": "own <style> block, semantic classes",
+  "classTokens": 12,
+  "utilityTokens": 0,
+  "utilities": [],
+  "styleBlocks": 1,
+  "inlineStyleAttrs": 0,
+  "external": [],
+  "arms": {
+   "a": {
+    "violations": []
+   },
+   "b": {
+    "parityVsA": 0.9222168206125425,
+    "elements": 121,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "20.3px",
+      "21px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "20.3px",
+      "21px"
+     ],
+     [
+      "LABEL",
+      "width",
+      "527px",
+      "523px"
+     ],
+     [
+      "LABEL",
+      "line-height",
+      "20.3px",
+      "21px"
+     ],
+     [
+      "svg",
+      "line-height",
+      "20.3px",
+      "21px"
+     ],
+     [
+      "circle",
+      "line-height",
+      "20.3px",
+      "21px"
+     ]
+    ],
+    "violations": []
+   },
+   "c": {
+    "parityVsA": 0.9752066115702479,
+    "elements": 121,
+    "diffs": [
+     [
+      "LABEL",
+      "width",
+      "527px",
+      "523px"
+     ],
+     [
+      "INPUT",
+      "width",
+      "527px",
+      "523px"
+     ],
+     [
+      "INPUT",
+      "line-height",
+      "normal",
+      "20.3px"
+     ],
+     [
+      "INPUT",
+      "font-family",
+      "Arial",
+      "-apple-system, \"system-ui\", \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+     ],
+     [
+      "SELECT",
+      "width",
+      "116px",
+      "119px"
+     ],
+     [
+      "SELECT",
+      "line-height",
+      "normal",
+      "20.3px"
+     ]
+    ],
+    "violations": []
+   }
+  },
+  "armsDiffer": true
+ },
+ "opus-3": {
+  "approach": "own <style> block, semantic classes",
+  "classTokens": 21,
+  "utilityTokens": 1,
+  "utilities": [
+   "hidden"
+  ],
+  "styleBlocks": 1,
+  "inlineStyleAttrs": 0,
+  "external": [],
+  "arms": {
+   "a": {
+    "violations": []
+   },
+   "b": {
+    "parityVsA": 0.9122171945701357,
+    "elements": 65,
+    "diffs": [
+     [
+      "DIV",
+      "line-height",
+      "23.2px",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "23.2px",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "23.2px",
+      "24px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "29px",
+      "30px"
+     ],
+     [
+      "DIV",
+      "line-height",
+      "23.2px",
+      "24px"
+     ],
+     [
+      "H1",
+      "line-height",
+      "24.65px",
+      "25.5px"
+     ]
+    ],
+    "violations": []
+   },
+   "c": {
+    "parityVsA": 0.9800904977375565,
+    "elements": 65,
+    "diffs": [
+     [
+      "H1",
+      "font-weight",
+      "700",
+      "400"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ]
+    ],
+    "violations": []
+   }
+  },
+  "armsDiffer": true
+ },
+ "opus-4": {
+  "approach": "own <style> block, semantic classes",
+  "classTokens": 16,
+  "utilityTokens": 0,
+  "utilities": [],
+  "styleBlocks": 1,
+  "inlineStyleAttrs": 1,
+  "external": [],
+  "arms": {
+   "a": {
+    "violations": []
+   },
+   "b": {
+    "parityVsA": 0.9951783992285439,
+    "elements": 61,
+    "diffs": [
+     [
+      "HEADER",
+      "display",
+      "flex",
+      "block"
+     ],
+     [
+      "DIV",
+      "width",
+      "172.766px",
+      "600px"
+     ],
+     [
+      "H1",
+      "width",
+      "172.766px",
+      "600px"
+     ],
+     [
+      "P",
+      "width",
+      "172.766px",
+      "600px"
+     ],
+     [
+      "DIV",
+      "width",
+      "83.2812px",
+      "600px"
+     ]
+    ],
+    "violations": []
+   },
+   "c": {
+    "parityVsA": 1,
+    "elements": 61,
+    "diffs": [],
+    "violations": []
+   }
+  },
+  "armsDiffer": true
+ },
+ "opus-5": {
+  "approach": "own <style> block, semantic classes",
+  "classTokens": 22,
+  "utilityTokens": 0,
+  "utilities": [],
+  "styleBlocks": 1,
+  "inlineStyleAttrs": 1,
+  "external": [],
+  "arms": {
+   "a": {
+    "violations": []
+   },
+   "b": {
+    "parityVsA": 0.9717887154861945,
+    "elements": 98,
+    "diffs": [
+     [
+      "HEADER",
+      "display",
+      "flex",
+      "block"
+     ],
+     [
+      "DIV",
+      "width",
+      "184.844px",
+      "598px"
+     ],
+     [
+      "H1",
+      "width",
+      "184.844px",
+      "598px"
+     ],
+     [
+      "P",
+      "width",
+      "184.844px",
+      "598px"
+     ],
+     [
+      "SELECT",
+      "line-height",
+      "21px",
+      "16.1px"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ]
+    ],
+    "violations": []
+   },
+   "c": {
+    "parityVsA": 0.9759903961584634,
+    "elements": 98,
+    "diffs": [
+     [
+      "H1",
+      "font-weight",
+      "700",
+      "400"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ],
+     [
+      "OPTION",
+      "padding-left",
+      "2px",
+      "0px"
+     ]
+    ],
+    "violations": []
+   }
+  },
+  "armsDiffer": true
+ }
+}
