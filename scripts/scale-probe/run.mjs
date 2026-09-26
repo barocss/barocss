@@ -1,7 +1,9 @@
 // #265 runtime cost at scale: BaroCSS #242 companion recipe vs @tailwindcss/browser.
 // Rerun (repo root, after pnpm --filter @barocss/kit build:library && pnpm --filter @barocss/browser build:library):
 //   TWB_DIR=<dir of @tailwindcss/browser> PW_DIR=<dir containing node_modules/playwright-core> CHROME=<chromium> \
-//     [PROBE_PORT=6465] [CHURN_MIN=5] node scripts/scale-probe/run.mjs
+//     [PROBE_PORT=6465] [CHURN_MIN=5] [SCALES=1000,5000,20000] [ARMS=baro,twb] [BARO_GC=0] node scripts/scale-probe/run.mjs
+// #269: BARO_GC=0 boots the baro arm with gc:false (pre-#269 behaviour). Churn also checks every animation frame
+// that each live element's sentinel p-[Kpx] is applied (unstyledFrames = frames with >=1 unstyled element).
 // Writes result.json (ignored by git).
 // SUMMARY (2026-09-26, 1 run, churn shortened to 5 min). baro = getRuntime({skipExisting,cssVarPrefix:'tw'})+observe; twb = @tailwindcss/browser.
 //   arm  N    styled p50/p95  TBT  worstLT  recalc  layout  heapMB  CSS KB  rules
@@ -27,7 +29,9 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
 const PORT = Number(process.env.PROBE_PORT || 6465);
 const CHURN_MIN = Number(process.env.CHURN_MIN || 5);
-const SCALES = (process.env.SCALES || '1000,5000,20000').split(',').map(Number);
+const SCALES = (process.env.SCALES || '1000,5000,20000').split(',').filter(Boolean).map(Number);
+const ARMS = (process.env.ARMS || 'baro,twb').split(',');
+const BARO_GC = process.env.BARO_GC !== '0';
 const FILES = { baro: path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'), twb: path.join(process.env.TWB_DIR || '', 'dist/index.global.js') };
 const corpusSrc = fs.readFileSync(path.join(ROOT, 'packages/barocss/tests/compat/corpus.ts'), 'utf8');
 const CORPUS = [...corpusSrc.matchAll(/\["([^"]+)",\s*\d+\]/g)].map((m) => m[1]);
@@ -44,7 +48,7 @@ function gen(k){
     (k%3?v+'mt-['+(k+1)+'px]':CORPUS[k%CORPUS.length])].join(' ');
 }`;
 const BOOT = {
-  baro: `<script src="/baro.js"></script><script>var rt=BaroCSS.getRuntime({skipExisting:true,config:{cssVarPrefix:'tw'}});rt.observe(document.body,{scan:true});</script>`,
+  baro: `<script src="/baro.js"></script><script>var rt=BaroCSS.getRuntime({skipExisting:true,gc:${BARO_GC},config:{cssVarPrefix:'tw'}});rt.observe(document.body,{scan:true});</script>`,
   twb: `<script src="/twb.js"></script>`,
 };
 const page = (arm) => `<!doctype html><html><head><meta charset="utf-8"><script>${GEN}
@@ -77,7 +81,7 @@ async function open(arm) {
 const q = (a, f) => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(f * s.length))] : 0; };
 const fix = (o) => JSON.stringify(o, (k, v) => (typeof v === 'number' ? +v.toFixed(1) : v));
 const res = { scale: {}, churn: {} };
-for (const arm of ['baro', 'twb']) for (const N of SCALES) {
+for (const arm of ARMS) for (const N of SCALES) {
   const { p, metrics } = await open(arm);
   const m0 = await metrics();
   const times = await p.evaluate(async (N) => {
@@ -87,6 +91,7 @@ for (const arm of ['baro', 'twb']) for (const N of SCALES) {
       const frag = document.createDocumentFragment(); let last;
       for (let i = 0; i < 100; i++) { last = document.createElement('div'); last.className = gen(k++); last.textContent = 'x'; frag.appendChild(last); }
       const want = k + 'px', t0 = performance.now(); root.appendChild(frag);
+      await Promise.resolve(); // #270: let the MutationObserver callback run before the first check
       while (getComputedStyle(last).paddingTop !== want) { if (performance.now() - t0 > 5000) break; await frame(); }
       out.push(performance.now() - t0);
     }
@@ -100,24 +105,28 @@ for (const arm of ['baro', 'twb']) for (const N of SCALES) {
   console.log(arm, N, fix(res.scale[`${arm}-${N}`]));
   await p.close();
 }
-for (const arm of CHURN_MIN > 0 ? ['baro', 'twb'] : []) {
+for (const arm of CHURN_MIN > 0 ? ARMS : []) {
   const { p, metrics } = await open(arm);
-  await p.evaluate(() => { const root = document.getElementById('root'); window.__k = 0; for (let i = 0; i < 1000; i++) { const d = document.createElement('div'); d.className = gen(__k++); d.textContent = 'x'; root.appendChild(d); } });
+  await p.evaluate(() => { const root = document.getElementById('root'); window.__k = 0; for (let i = 0; i < 1000; i++) { const d = document.createElement('div'); d.dataset.k = __k; d.className = gen(__k++); d.textContent = 'x'; root.appendChild(d); } });
   await p.waitForTimeout(1500);
+  // #269: per-frame correctness: every live element's sentinel p-[(k+1)px] must be applied.
+  await p.evaluate(() => { window.__chk = { frames: 0, bad: 0, badEls: 0, sample: null }; const tick = () => {
+    let bad = 0; for (const d of document.getElementById('root').children) { if (d.dataset.k % 3 === 0) continue; /* k%3==0 carries a corpus token that may set padding */ if (getComputedStyle(d).paddingTop !== (+d.dataset.k + 1) + 'px') { bad++; if (!__chk.sample) __chk.sample = d.className; } }
+    __chk.frames++; if (bad) { __chk.bad++; __chk.badEls += bad; } window.__raf = requestAnimationFrame(tick); }; window.__raf = requestAnimationFrame(tick); });
   const samples = [];
   const sample = async (t) => {
     const m = await metrics(), c = await p.evaluate(cssStat);
     // element 0's classes (p-[1px], w-[1px]) are removed after the first tick: are their rules ever dropped?
     const kept = await p.evaluate(() => { let n = 0; for (const s of document.styleSheets) { try { for (const r of s.cssRules) if (/\.p-\\\[1px\\\]|\.w-\\\[1px\\\]/.test(r.cssText)) n++; } catch {} } return n; });
-    samples.push({ t, heap: m.heap, kb: c.kb, rules: c.rules, removedRulesStillPresent: kept, live: await p.evaluate(() => document.getElementById('root').children.length), made: await p.evaluate(() => __k) });
+    samples.push({ t, heap: m.heap, kb: c.kb, rules: c.rules, removedRulesStillPresent: kept, check: await p.evaluate(() => __chk), live: await p.evaluate(() => document.getElementById('root').children.length), made: await p.evaluate(() => __k) });
     console.log(arm, 'churn', fix(samples.at(-1)));
   };
   await sample(0);
-  await p.evaluate(() => { window.__iv = setInterval(() => { const root = document.getElementById('root'); for (let i = 0; i < 50; i++) { root.firstChild.remove(); const d = document.createElement('div'); d.className = gen(__k++); d.textContent = 'x'; root.appendChild(d); } }, 200); });
+  await p.evaluate(() => { window.__iv = setInterval(() => { const root = document.getElementById('root'); for (let i = 0; i < 50; i++) { root.firstChild.remove(); const d = document.createElement('div'); d.dataset.k = __k; d.className = gen(__k++); d.textContent = 'x'; root.appendChild(d); } }, 200); });
   for (let t = 30; t <= CHURN_MIN * 60; t += 30) { await p.waitForTimeout(30000); await sample(t); }
   await p.evaluate(() => clearInterval(__iv));
   res.churn[arm] = samples;
   await p.close();
 }
-fs.writeFileSync(path.join(HERE, 'result.json'), JSON.stringify(res, null, 1));
+fs.writeFileSync(path.resolve(HERE, process.env.RESULT || 'result.json'), JSON.stringify(res, null, 1));
 await browser.close(); srv.close();
