@@ -372,6 +372,8 @@ export function themeToCssVarsAll(theme: Theme): Record<string, string> {
     ...spacingToCssVars(theme.spacing! as Record<string, unknown>),
     ...containerToCssVars(theme.container! as Record<string, string>),
     ...borderRadiusToCssVars(theme.borderRadius! as Record<string, unknown>),
+    // #344: borderWidth keys as --border-width-* (Tailwind 4.3.3), read by border-*/divide-* utilities.
+    ...Object.fromEntries(Object.entries((theme.borderWidth ?? {}) as Record<string, string>).filter(([k]) => k !== 'DEFAULT').map(([k, v]) => [`--border-width-${escapeKey(k)}`, String(v)])),
     ...zIndexToCssVars(theme.zIndex! as Record<string, unknown>),
     ...opacityToCssVars(theme.opacity! as Record<string, unknown>),
     ...animationToCssVars({ ...(theme.animations as Record<string, unknown>), ...(theme.animation as Record<string, unknown>) }),
