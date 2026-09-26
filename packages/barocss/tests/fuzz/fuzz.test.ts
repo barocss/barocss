@@ -17,21 +17,31 @@ const RESOURCE_FN = /(?:^|[^\w-])(?:url|image-set|-webkit-image-set|image|src|cr
 // @ts-expect-error plain ESM helper without types
 import * as H from './harness.mjs';
 
-const SEED = 319;
+// #392 multi-seed ratchet: a fixed seed list plus one rotating seed (FUZZ_SEED, else the CI run id, else the
+// UTC date as YYYYMMDD). Every seed is logged, so a failure reproduces with FUZZ_SEED=<seed>.
+const FIXED_SEEDS = [319, 1, 7777];
+function rotatingSeed(): number {
+  const env = typeof process !== 'undefined' ? process.env : {};
+  const raw = env.FUZZ_SEED || env.GITHUB_RUN_ID || new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const n = Number(raw);
+  return Number.isFinite(n) ? n >>> 0 : [...raw].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+}
+const SEEDS = [...new Set([...FIXED_SEEDS, rotatingSeed()])];
 const PER_GENERATOR = 5000;
 
-// Open counts per property for SEED/PER_GENERATOR (tracked in #319). Lower them when fixes land.
+// Open counts per property, for every seed in SEEDS at PER_GENERATOR (tracked in #319). Lower them when fixes land.
 const BASELINE: Record<string, number> = { P1: 0, P2: 0, P3: 0, P4: 0, throws: 0 };
 
-function runCampaign() {
+function runCampaign(SEED: number) {
   const ctx = createContext({});
   const r = H.rng(SEED);
   const seeds = corpus.map(([t]) => t);
+  const sweepOffset = SEED === FIXED_SEEDS[0] ? 0 : SEED % seeds.length; // each seed sweeps a different slice of the corpus
   const inputs: string[] = [];
   for (let i = 0; i < PER_GENERATOR; i++) inputs.push(H.genGrammar(r));
   for (let i = 0; i < PER_GENERATOR; i++) inputs.push(H.mutate(r, r.pick(seeds)));
   const sw: string[] = [];
-  for (let k = 0; sw.length < PER_GENERATOR; k++) for (const s of H.sweep(seeds[k % seeds.length])) sw.push(s);
+  for (let k = 0; sw.length < PER_GENERATOR; k++) for (const s of H.sweep(seeds[(k + sweepOffset) % seeds.length])) sw.push(s);
   inputs.push(...sw.slice(0, PER_GENERATOR));
   for (let i = 0; i < PER_GENERATOR; i++) inputs.push(H.genRandom(r));
   // #339: bracket groups, lone/unbalanced brackets, chained arbitrary and relational variants.
@@ -49,11 +59,12 @@ function runCampaign() {
 }
 
 describe('#319 fuzz: class-input output properties (seeded)', () => {
-  it('stays within the known-open baseline per property', () => {
-    const { counts, n } = runCampaign();
+  it.each(SEEDS)('stays within the known-open baseline per property (seed %i)', (seed) => {
+    const { counts, n } = runCampaign(seed);
     expect(n).toBe(PER_GENERATOR * 5);
-    console.log(`[#319 fuzz] P5 (url/image-set in output, report-only): ${counts.P5}/${n}`);
-    for (const k of Object.keys(BASELINE)) expect.soft(counts[k], k).toBeLessThanOrEqual(BASELINE[k]);
+    console.log(`[#319 fuzz] seed ${seed} (rerun: FUZZ_SEED=${seed}): ${JSON.stringify(counts)} of ${n}; P5 is report-only`);
+    for (const k of Object.keys(BASELINE)) expect.soft(counts[k], `${k} (seed ${seed})`).toBeLessThanOrEqual(BASELINE[k]);
+    expect(counts.P2, `scope (seed ${seed})`).toBe(0);
     expect(counts.P4, 'size cap').toBe(0);
-  }, 30_000);
+  }, 60_000);
 });

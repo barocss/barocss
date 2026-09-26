@@ -313,6 +313,40 @@ export function isBalancedPrelude(text: string): boolean {
 }
 
 /**
+ * #392: true when every top-level comma part of an emitted selector names `escapedClass` (a class selector
+ * already escaped with escapeClassName, including its leading dot) as a whole class token, or, when
+ * `allowNesting` is set, uses the nesting selector `&`. Escapes, quoted strings and bracket groups are skipped
+ * when splitting. Used as a defence-in-depth serializer check: a rule scoped to no generating class is dropped.
+ */
+export function isScopedSelector(selector: string, escapedClass: string, allowNesting = false): boolean {
+  const parts: string[] = [];
+  let depth = 0;
+  let quote = '';
+  let start = 0;
+  for (let i = 0; i < selector.length; i++) {
+    const c = selector[i];
+    if (c === '\\') { i++; continue; }
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === "'") quote = c;
+    else if (c === '(' || c === '[') depth++;
+    else if (c === ')' || c === ']') depth--;
+    else if (c === ',' && depth === 0) { parts.push(selector.slice(start, i)); start = i + 1; }
+  }
+  parts.push(selector.slice(start));
+  return parts.every((part) => {
+    if (allowNesting && part.includes('&')) return true;
+    for (let at = part.indexOf(escapedClass); at !== -1; at = part.indexOf(escapedClass, at + 1)) {
+      if (at > 0 && part[at - 1] === '\\') continue;
+      const next = part[at + escapedClass.length];
+      // the class token must end here: the escaped form either ends in a space-terminated hex escape, or the
+      // next character cannot continue an identifier
+      if (escapedClass.endsWith(' ') || next === undefined || !/[\w\-\\\u0080-\uffff]/.test(next)) return true;
+    }
+    return false;
+  });
+}
+
+/**
  * #323: true when emitted text contains a markup end-tag opener (less-than then slash). Generated CSS can be
  * placed inside an HTML style element, where that sequence could end the element early. CSS escapes in the
  * output never form it, and a lone less-than (range media queries) stays allowed.
