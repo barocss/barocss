@@ -20,6 +20,19 @@ export function splitTopLevel(sel: string): string[] {
   return parts;
 }
 
+/** #274: `@keyframes` names defined in the given rules (walks grouping rules). */
+export function collectKeyframeNames(rules: CSSRuleList | CSSRule[], out: Set<string> = new Set()): Set<string> {
+  for (const rule of Array.from(rules)) {
+    if ((rule as CSSKeyframesRule).type === 7 && typeof (rule as CSSKeyframesRule).name === 'string') {
+      out.add((rule as CSSKeyframesRule).name);
+      continue;
+    }
+    const inner = (rule as CSSGroupingRule).cssRules;
+    if (inner && inner.length) collectKeyframeNames(inner, out);
+  }
+  return out;
+}
+
 /** Classes that lead a selector in the given rules (walks grouping rules such as @layer/@media/@supports). */
 export function collectLeadingClasses(rules: CSSRuleList | CSSRule[], out: Set<string> = new Set()): Set<string> {
   for (const rule of Array.from(rules)) {
