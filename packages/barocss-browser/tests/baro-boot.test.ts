@@ -83,3 +83,35 @@ describe('config with a shared runtime (#214)', () => {
     }
   });
 });
+
+describe('#407 boot transition race', () => {
+  it('finishes only the CSS transitions started by the first insert; later ones run', () => {
+    class FakeTransition { finished = false; finish() { this.finished = true; } }
+    const g = globalThis as unknown as { CSSTransition?: unknown };
+    const prev = g.CSSTransition;
+    g.CSSTransition = FakeTransition;
+    const bootTransition = new FakeTransition();
+    const other = { finish: vi.fn() }; // e.g. a CSS animation: left alone
+    const doc = document as unknown as { getAnimations?: () => unknown[] };
+    doc.getAnimations = vi.fn(() => [bootTransition, other]);
+    try {
+      baroBoot();
+      expect(bootTransition.finished).toBe(true);
+      expect(other.finish).not.toHaveBeenCalled();
+      // After boot: a class change starts a transition, and nothing finishes it.
+      const later = new FakeTransition();
+      doc.getAnimations = vi.fn(() => [later]);
+      const el = document.createElement('div');
+      el.className = 'transition-colors';
+      document.body.appendChild(el);
+      getRuntime().addClass('bg-red-500');
+      el.classList.add('bg-red-500');
+      expect(later.finished).toBe(false);
+      el.remove();
+    } finally {
+      delete doc.getAnimations;
+      g.CSSTransition = prev;
+      getRuntime().destroy();
+    }
+  });
+});

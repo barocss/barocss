@@ -36,6 +36,18 @@ export function getRuntime(options: BrowserRuntimeOptions = {}) {
   return runtime;
 }
 
+/**
+ * #407: if the browser resolved styles before the boot insert (a frame or a forced style read before
+ * DOMContentLoaded), `transition` utilities would animate from the unstyled values for their duration (the #405
+ * first-paint tail). Right after the synchronous first insert, finish the CSS transitions that insert started, so
+ * elements jump to their final styles. It uses no stylesheet (so nothing for CSP, nonce or constructable mode to
+ * allow) and runs once per boot: transitions triggered later by class changes run normally.
+ */
+function finishBootTransitions(root: Document | ShadowRoot) {
+    if (typeof root.getAnimations !== 'function' || typeof CSSTransition === 'undefined') return;
+    for (const a of root.getAnimations()) if (a instanceof CSSTransition) a.finish();
+}
+
 type BaroBootOptions = BrowserRuntimeOptions & { loadingClassName?: string };
 
 /**
@@ -45,7 +57,11 @@ type BaroBootOptions = BrowserRuntimeOptions & { loadingClassName?: string };
 export function baroBoot(options: BaroBootOptions & { root: ShadowRoot }): BrowserRuntime;
 export function baroBoot(options?: BaroBootOptions): void;
 export function baroBoot({ loadingClassName = 'baro-boot', ...options }: BaroBootOptions = {}): BrowserRuntime | void {
-    if (options.root && options.root.nodeType === 11) return new BrowserRuntime(options);
+    if (options.root && options.root.nodeType === 11) {
+        const shadowRuntime = new BrowserRuntime(options);
+        finishBootTransitions(options.root);
+        return shadowRuntime;
+    }
     if (!document.body) {
         document.addEventListener('DOMContentLoaded', () => baroBoot({ loadingClassName, ...options }), { once: true });
         return;
@@ -61,6 +77,7 @@ export function baroBoot({ loadingClassName = 'baro-boot', ...options }: BaroBoo
             document.body.classList.remove(startClassName);
             document.body.classList.add(endClassName);
         }});
+        finishBootTransitions(document);
     } catch (error) {
         document.body?.classList.remove(startClassName);
         // console-ok: one-shot boot failure; otherwise the page stays unstyled with no signal
