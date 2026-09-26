@@ -85,7 +85,7 @@ describe('config with a shared runtime (#214)', () => {
 });
 
 describe('#407 boot transition race', () => {
-  it('finishes only the CSS transitions started by the first insert; later ones run', () => {
+  it('finishes only the CSS transitions the first insert started; earlier and later ones run', () => {
     class FakeTransition { finished = false; finish() { this.finished = true; } }
     const g = globalThis as unknown as { CSSTransition?: unknown };
     const prev = g.CSSTransition;
@@ -93,10 +93,13 @@ describe('#407 boot transition race', () => {
     const bootTransition = new FakeTransition();
     const other = { finish: vi.fn() }; // e.g. a CSS animation: left alone
     const doc = document as unknown as { getAnimations?: () => unknown[] };
-    doc.getAnimations = vi.fn(() => [bootTransition, other]);
+    const pageTransition = new FakeTransition(); // started by the page before boot: keeps running
+    let calls = 0;
+    doc.getAnimations = vi.fn(() => (calls++ === 0 ? [pageTransition] : [pageTransition, bootTransition, other]));
     try {
       baroBoot();
       expect(bootTransition.finished).toBe(true);
+      expect(pageTransition.finished).toBe(false);
       expect(other.finish).not.toHaveBeenCalled();
       // After boot: a class change starts a transition, and nothing finishes it.
       const later = new FakeTransition();

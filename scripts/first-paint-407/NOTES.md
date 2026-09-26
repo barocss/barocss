@@ -19,3 +19,10 @@ B removes the race wherever it comes from. Shipped: B, as `finishBootTransitions
 no stylesheet, so no CSP/nonce/constructable surface; also run after a shadow-root boot). The spec's example guard
 rule (`.baro-boot-doing * { transition: none !important }`) would need its own nonce/constructable/shadow insertion
 paths, so the equivalent without a stylesheet was built instead.
+
+## After Review (snapshot fix)
+
+Boot now snapshots `getAnimations()` right before the first insert and finishes only the CSS transitions not in
+that snapshot, so transitions the page started before or during boot keep running. Rerun on the shipped build
+(`OUT=result-review.json`, no switch, so every arm has the fix): N=40 per arm, animated 0/40 in all six arms
+(B/natural median 33.7 ms, B/forced 133.7 ms), transition after boot 40/40.

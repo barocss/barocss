@@ -75,4 +75,4 @@ for (const a of ARMS) {
     transitionAfterBoot: xs.filter((x) => x.afterBoot > 0).length, bootDone: xs.filter((x) => x.cls.includes('baro-boot-done')).length };
   console.log(a.key.padEnd(12), JSON.stringify(summary[a.key]));
 }
-fs.writeFileSync(path.join(HERE, 'result.json'), JSON.stringify({ issue: 407, engine: `Chromium ${version}`, rounds: ROUNDS, summary, raw }) + '\n');
+fs.writeFileSync(path.join(HERE, process.env.OUT || 'result.json'), JSON.stringify({ issue: 407, engine: `Chromium ${version}`, rounds: ROUNDS, summary, raw }) + '\n');
