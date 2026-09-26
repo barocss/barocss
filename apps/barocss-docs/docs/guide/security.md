@@ -71,6 +71,8 @@ two ways to run it without `'unsafe-inline'`:
   sheets come after every document stylesheet in the cascade. Where the browser lacks
   `document.adoptedStyleSheets`, the runtime falls back to `<style>` elements (with `nonce` if given),
   so pass both for full coverage. A Shadow DOM `root` already uses adopted sheets.
+- Pass `nonce` / `constructable` on the **first** `getRuntime()` / `baroStart()` call: a later call
+  reuses the existing runtime and does not change how it injects styles.
 
 ```http
 Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{RANDOM}'; style-src 'self' 'nonce-{RANDOM}'
