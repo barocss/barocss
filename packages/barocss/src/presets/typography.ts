@@ -1,8 +1,11 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { decl } from "../core/ast";
+import { atRoot, decl, property } from "../core/ast";
+
+// Tailwind v4: leading-* sets --tw-leading (registered, non-inheriting) and text-<size> reads
+// var(--tw-leading, <size line-height>), so leading-* beats any text-* regardless of rule order (#254).
+const leadingProperty = () => atRoot([property("--baro-leading")]);
 import { themeColorDecls,
   parseNumber,
-  parseLength,
 } from "../core/utils";
 
 // --- Typography: Font Family ---
@@ -11,19 +14,19 @@ staticUtility("font-serif", [["font-family", "var(--font-serif)"]], { category: 
 staticUtility("font-mono", [["font-family", "var(--font-mono)"]], { category: 'typography' });
 
 // --- Typography: Font Size ---
-staticUtility("text-xs", [["font-size", "var(--text-xs)"], ["line-height", "var(--text-xs--line-height)"]], { category: 'typography' });
-staticUtility("text-sm", [["font-size", "var(--text-sm)"], ["line-height", "var(--text-sm--line-height)"]], { category: 'typography' });
-staticUtility("text-base", [["font-size", "var(--text-base)"], ["line-height", "var(--text-base--line-height)"]], { category: 'typography' });
-staticUtility("text-lg", [["font-size", "var(--text-lg)"], ["line-height", "var(--text-lg--line-height)"]], { category: 'typography' });
-staticUtility("text-xl", [["font-size", "var(--text-xl)"], ["line-height", "var(--text-xl--line-height)"]], { category: 'typography' });
-staticUtility("text-2xl", [["font-size", "var(--text-2xl)"], ["line-height", "var(--text-2xl--line-height)"]], { category: 'typography' });
-staticUtility("text-3xl", [["font-size", "var(--text-3xl)"], ["line-height", "var(--text-3xl--line-height)"]], { category: 'typography' });
-staticUtility("text-4xl", [["font-size", "var(--text-4xl)"], ["line-height", "var(--text-4xl--line-height)"]], { category: 'typography' });
-staticUtility("text-5xl", [["font-size", "var(--text-5xl)"], ["line-height", "var(--text-5xl--line-height)"]], { category: 'typography' });
-staticUtility("text-6xl", [["font-size", "var(--text-6xl)"], ["line-height", "var(--text-6xl--line-height)"]], { category: 'typography' });
-staticUtility("text-7xl", [["font-size", "var(--text-7xl)"], ["line-height", "var(--text-7xl--line-height)"]], { category: 'typography' });
-staticUtility("text-8xl", [["font-size", "var(--text-8xl)"], ["line-height", "var(--text-8xl--line-height)"]], { category: 'typography' });
-staticUtility("text-9xl", [["font-size", "var(--text-9xl)"], ["line-height", "var(--text-9xl--line-height)"]], { category: 'typography' });
+staticUtility("text-xs", [["font-size", "var(--text-xs)"], ["line-height", "var(--baro-leading, var(--text-xs--line-height))"]], { category: 'typography' });
+staticUtility("text-sm", [["font-size", "var(--text-sm)"], ["line-height", "var(--baro-leading, var(--text-sm--line-height))"]], { category: 'typography' });
+staticUtility("text-base", [["font-size", "var(--text-base)"], ["line-height", "var(--baro-leading, var(--text-base--line-height))"]], { category: 'typography' });
+staticUtility("text-lg", [["font-size", "var(--text-lg)"], ["line-height", "var(--baro-leading, var(--text-lg--line-height))"]], { category: 'typography' });
+staticUtility("text-xl", [["font-size", "var(--text-xl)"], ["line-height", "var(--baro-leading, var(--text-xl--line-height))"]], { category: 'typography' });
+staticUtility("text-2xl", [["font-size", "var(--text-2xl)"], ["line-height", "var(--baro-leading, var(--text-2xl--line-height))"]], { category: 'typography' });
+staticUtility("text-3xl", [["font-size", "var(--text-3xl)"], ["line-height", "var(--baro-leading, var(--text-3xl--line-height))"]], { category: 'typography' });
+staticUtility("text-4xl", [["font-size", "var(--text-4xl)"], ["line-height", "var(--baro-leading, var(--text-4xl--line-height))"]], { category: 'typography' });
+staticUtility("text-5xl", [["font-size", "var(--text-5xl)"], ["line-height", "var(--baro-leading, var(--text-5xl--line-height))"]], { category: 'typography' });
+staticUtility("text-6xl", [["font-size", "var(--text-6xl)"], ["line-height", "var(--baro-leading, var(--text-6xl--line-height))"]], { category: 'typography' });
+staticUtility("text-7xl", [["font-size", "var(--text-7xl)"], ["line-height", "var(--baro-leading, var(--text-7xl--line-height))"]], { category: 'typography' });
+staticUtility("text-8xl", [["font-size", "var(--text-8xl)"], ["line-height", "var(--baro-leading, var(--text-8xl--line-height))"]], { category: 'typography' });
+staticUtility("text-9xl", [["font-size", "var(--text-9xl)"], ["line-height", "var(--baro-leading, var(--text-9xl--line-height))"]], { category: 'typography' });
 
 
 // --- Typography: Font Weight ---
@@ -81,12 +84,12 @@ functionalUtility({
 });
 
 // --- Typography: Line Height ---
-staticUtility("leading-none", [["line-height", "var(--leading-none, 1)"]], { category: 'typography' });
-staticUtility("leading-tight", [["line-height", "var(--leading-tight, 1.25)"]], { category: 'typography' });
-staticUtility("leading-snug", [["line-height", "var(--leading-snug, 1.375)"]], { category: 'typography' });
-staticUtility("leading-normal", [["line-height", "var(--leading-normal, 1.5)"]], { category: 'typography' });
-staticUtility("leading-relaxed", [["line-height", "var(--leading-relaxed, 1.625)"]], { category: 'typography' });
-staticUtility("leading-loose", [["line-height", "var(--leading-loose, 2)"]], { category: 'typography' });
+staticUtility("leading-none", [["--baro-leading", "var(--leading-none, 1)"], ["line-height", "var(--leading-none, 1)"], leadingProperty()], { category: 'typography' });
+staticUtility("leading-tight", [["--baro-leading", "var(--leading-tight, 1.25)"], ["line-height", "var(--leading-tight, 1.25)"], leadingProperty()], { category: 'typography' });
+staticUtility("leading-snug", [["--baro-leading", "var(--leading-snug, 1.375)"], ["line-height", "var(--leading-snug, 1.375)"], leadingProperty()], { category: 'typography' });
+staticUtility("leading-normal", [["--baro-leading", "var(--leading-normal, 1.5)"], ["line-height", "var(--leading-normal, 1.5)"], leadingProperty()], { category: 'typography' });
+staticUtility("leading-relaxed", [["--baro-leading", "var(--leading-relaxed, 1.625)"], ["line-height", "var(--leading-relaxed, 1.625)"], leadingProperty()], { category: 'typography' });
+staticUtility("leading-loose", [["--baro-leading", "var(--leading-loose, 2)"], ["line-height", "var(--leading-loose, 2)"], leadingProperty()], { category: 'typography' });
 
 functionalUtility({
   name: "leading",
@@ -95,6 +98,8 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handleBareValue: ({ value }) => parseNumber(value),
+  handle: (value) => [decl("--baro-leading", value), decl("line-height", value), leadingProperty()],
+  handleCustomProperty: (value) => [decl("--baro-leading", `var(${value})`), decl("line-height", `var(${value})`), leadingProperty()],
   description: "line-height utility (theme, number, arbitrary, custom property supported)",
   category: "typography",
 });
@@ -106,6 +111,19 @@ staticUtility("text-right", [["text-align", "right"]], { category: 'typography' 
 staticUtility("text-justify", [["text-align", "justify"]], { category: 'typography' });
 staticUtility("text-start", [["text-align", "start"]], { category: 'typography' });
 staticUtility("text-end", [["text-align", "end"]], { category: 'typography' });
+
+const FONT_SIZE_HINTS = new Set(["length", "size", "percentage", "absolute-size", "relative-size"]);
+const FONT_SIZE_KEYWORDS = /^(xx-small|x-small|small|medium|large|x-large|xx-large|xxx-large|larger|smaller)$/;
+const LENGTH_RE = /^-?(\d+\.?\d*|\.\d+)(px|r?em|r?lh|r?cap|r?ch|r?ex|r?ic|%|vh|vw|vmin|vmax|[sdl]v[hwib]|v[ib]|cq[whib]|cqmin|cqmax|pt|pc|in|cm|mm|q)$/i;
+/** Tailwind's `text-[…]` inference: an explicit type hint wins; else lengths / size keywords / math → font-size, else colour. */
+function textArbitraryKind(raw: string): { fontSize: boolean; value: string } {
+  const hint = /^([a-z-]+):(.+)$/.exec(raw);
+  if (hint && (hint[1] === "color" || FONT_SIZE_HINTS.has(hint[1]))) {
+    return { fontSize: hint[1] !== "color", value: hint[2] };
+  }
+  const fontSize = raw === "0" || LENGTH_RE.test(raw) || FONT_SIZE_KEYWORDS.test(raw) || /^(calc|min|max|clamp)\(/.test(raw);
+  return { fontSize, value: raw };
+}
 
 // --- Typography: Text Color ---
 staticUtility("text-inherit", [["color", "inherit"]], { category: 'typography' });
@@ -126,16 +144,13 @@ functionalUtility({
   handle: (value, ctx, token, extra) => {
     if (extra?.realThemeValue) return themeColorDecls("color", value, extra);
 
-    if (parseLength(value)) {
-      return [decl("font-size", value)];
-    }
-    return [decl("color", value)];
+    const kind = textArbitraryKind(value);
+    return [decl(kind.fontSize ? "font-size" : "color", kind.value)];
   },
+  // Tailwind 4: text-(--x) is a colour; text-(length:--x) is a font-size.
   handleCustomProperty: (value) => {
-    if (value.startsWith("color:")) {
-      return [decl("color", `var(${value.replace("color:", "")})`)];
-    }
-    return [decl("font-size", `var(${value})`)];
+    const kind = textArbitraryKind(value);
+    return [decl(kind.fontSize ? "font-size" : "color", `var(${kind.value})`)];
   },
   description: "text color utility (theme, arbitrary, custom property supported)",
   category: "typography",
@@ -155,7 +170,7 @@ functionalUtility({
         // [fontSize, lineHeight] format
         return [
           decl("font-size", themeValue[0]),
-          decl("line-height", themeValue[1])
+          decl("line-height", `var(--baro-leading, ${themeValue[1]})`)
         ];
       } else {
         return [decl("font-size", themeValue as string)];

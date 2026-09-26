@@ -2,7 +2,7 @@ import { debugLog, debugWarn } from "../utils/debug";
 import { HasItems, HasName, HasParams, HasSelector, type AstNode, type HasNodes } from "./ast";
 import { parseClassName } from "./parser";
 import { astCache, parseResultCache } from "../utils/cache";
-import { getUtility, getModifier } from "./registry";
+import { getUtility, getModifier, arbitraryPropertyRegistration } from "./registry";
 import { Context } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
 import { clearAllCaches } from "../utils/cache";
@@ -299,7 +299,7 @@ export function parseClassToAst(
     return [];
   }
 
-  const utilRegs = getUtility(ctx).filter((u) => {
+  const utilRegs = utility.property ? [arbitraryPropertyRegistration] : getUtility(ctx).filter((u) => {
     const fullClassName = utility.value
       ? `${utility.prefix}-${utility.value}`
       : utility.prefix;

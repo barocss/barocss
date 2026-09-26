@@ -13,7 +13,7 @@ An earlier candidate revision was compared with `tailwindcss@4.1.13` using 15 se
 
 That revision also has a Chromium browser comparison for `hover:block`, `md:block`, `mask-linear-from-50%`, and `inset-ring-2` in specific states and with specific theme values. Those four inputs matched the checked computed styles or rendered pixels. Firefox, WebKit, other themes, other class combinations, and the full Tailwind feature set were not checked.
 
-The [fixture list and comparison method](https://github.com/barocss/barocss/blob/codex/baro-0.0.4-rc-integration/packages/barocss/docs/tailwind-compatibility.md) and [independent candidate review](https://github.com/barocss/barocss/blob/codex/baro-0.0.4-rc-integration/docs/verification/0.0.4-rc-review.md) give the test inputs and limits. These earlier candidate records do not establish full compatibility for the published `0.4.0` package. They are not a release support policy.
+The [fixture list and comparison method](https://github.com/barocss/barocss/blob/codex/baro-0.0.4-rc-integration/packages/barocss/docs/tailwind-compatibility.md) and [independent candidate review](https://github.com/barocss/barocss/blob/codex/baro-0.0.4-rc-integration/docs/verification/0.0.4-rc-review.md) give the test inputs and limits. These earlier candidate records do not establish full compatibility for the published `0.5.0` package. They are not a release support policy.
 
 ## Before migrating
 

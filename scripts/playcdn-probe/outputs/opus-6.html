@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PulseFit — Join the Waitlist</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --card: #121826;
+    --accent: #00e0a4;
+    --accent-2: #2f7bff;
+    --text: #eef2f8;
+    --muted: #8b97ab;
+    --border: #232c3d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(1200px 600px at 70% -10%, rgba(47,123,255,.18), transparent 60%),
+                radial-gradient(900px 500px at 10% 110%, rgba(0,224,164,.16), transparent 55%),
+                var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .wrap {
+    width: 100%;
+    max-width: 960px;
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: 40px;
+    align-items: center;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    font-size: 20px;
+    margin-bottom: 28px;
+  }
+  .logo {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid; place-items: center;
+    color: #04121a; font-weight: 900;
+  }
+  .pill {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(0,224,164,.1);
+    border: 1px solid rgba(0,224,164,.25);
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -1.5px;
+    margin-bottom: 16px;
+  }
+  h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .lead {
+    color: var(--muted);
+    font-size: 17px;
+    max-width: 440px;
+    margin-bottom: 28px;
+  }
+  .feats {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 22px;
+  }
+  .feats li {
+    color: var(--muted);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .feats li::before {
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 30px 80px -30px rgba(0,0,0,.6);
+  }
+  .card h2 { font-size: 22px; letter-spacing: -.5px; margin-bottom: 6px; }
+  .card p.sub { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+  input, select {
+    width: 100%;
+    background: #0c1220;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 13px 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    margin-bottom: 16px;
+    transition: border-color .15s, box-shadow .15s;
+    font-family: inherit;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent-2);
+    box-shadow: 0 0 0 3px rgba(47,123,255,.2);
+  }
+  button {
+    width: 100%;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #04121a;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    cursor: pointer;
+    transition: transform .1s, filter .15s;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:active { transform: translateY(1px); }
+  .fine { text-align: center; color: var(--muted); font-size: 12px; margin-top: 14px; }
+  .success {
+    display: none;
+    text-align: center;
+    padding: 20px 0;
+  }
+  .success.show { display: block; }
+  .success .check {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(0,224,164,.15);
+    color: var(--accent);
+    display: grid; place-items: center;
+    font-size: 28px;
+    margin: 0 auto 16px;
+  }
+  .success h2 { margin-bottom: 8px; }
+  .form.hide { display: none; }
+  @media (max-width: 760px) {
+    .wrap { grid-template-columns: 1fr; gap: 32px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="brand"><div class="logo">P</div> PulseFit</div>
+      <span class="pill">Launching Spring 2026</span>
+      <h1>Train smarter.<br><span>Move with purpose.</span></h1>
+      <p class="lead">Adaptive workouts, real-time coaching, and progress tracking that actually keeps up with you. Be first in line when we go live.</p>
+      <ul class="feats">
+        <li>AI-personalized plans</li>
+        <li>Live form feedback</li>
+        <li>Recovery insights</li>
+        <li>No equipment needed</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <form class="form" id="waitlistForm" novalidate>
+        <h2>Join the waitlist</h2>
+        <p class="sub">Get early access + 3 months free at launch.</p>
+
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" placeholder="Alex Morgan" required>
+
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" required>
+
+        <label for="goal">Primary goal</label>
+        <select id="goal" name="goal">
+          <option value="strength">Build strength</option>
+          <option value="weight">Lose weight</option>
+          <option value="endurance">Improve endurance</option>
+          <option value="mobility">Mobility & flexibility</option>
+          <option value="general">General fitness</option>
+        </select>
+
+        <button type="submit">Reserve my spot →</button>
+        <p class="fine">No spam. Unsubscribe anytime.</p>
+      </form>
+
+      <div class="success" id="success">
+        <div class="check">✓</div>
+        <h2>You're on the list!</h2>
+        <p class="sub" id="successMsg">We'll email you the moment PulseFit opens up.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('waitlistForm');
+    const success = document.getElementById('success');
+    const successMsg = document.getElementById('successMsg');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+      if (!name || !emailOk) {
+        alert('Please enter your name and a valid email.');
+        return;
+      }
+
+      // In production, POST to your backend/waitlist service here.
+      form.classList.add('hide');
+      success.classList.add('show');
+      successMsg.textContent = `Thanks, ${name.split(' ')[0]}! We'll email ${email} the moment PulseFit opens up.`;
+    });
+  </script>
+</body>
+</html>

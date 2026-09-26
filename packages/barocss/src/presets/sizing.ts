@@ -283,6 +283,9 @@ functionalUtility({
 // max-w-* static values
 [
   ['max-w-none', 'none'],
+  ['max-w-min', 'min-content'],
+  ['max-w-max', 'max-content'],
+  ['max-w-fit', 'fit-content'],
   ['max-w-xs', 'var(--container-xs)'],
   ['max-w-sm', 'var(--container-sm)'],
   ['max-w-md', 'var(--container-md)'],

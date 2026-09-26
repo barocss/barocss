@@ -17,6 +17,8 @@ export interface ParsedUtility {
   opacity?: string;
   priority?: number;
   important?: boolean;
+  /** Set for an arbitrary property class (`[prop:value]`); `value` holds the raw value. */
+  property?: string;
   [key: string]: unknown;
 }
 
@@ -99,6 +101,11 @@ export function parseClassName(className: string, ctx?: Context): { modifiers: P
   if (className.startsWith('!')) {
     important = true;
     realClassName = className.slice(1);
+  } else if (className.length > 1 && className.endsWith('!')) {
+    // Tailwind 4 trailing form: p-4!, hover:size-5!. A `!` inside an arbitrary
+    // value (`[...!...]`) never ends the class, so it is unaffected.
+    important = true;
+    realClassName = className.slice(0, -1);
   }
   
   // 1. Tokenize string into tokens
@@ -201,6 +208,7 @@ const FUNCTIONAL_VALUE_VARIANT = /^-?(?:(?:group|peer)-)?(?:has|not)-\[(.*)\](?:
  * The value itself must still be balanced and free of `{`, `}` and `;`, so it cannot close the pseudo-class.
  */
 export function isSafeVariantToken(value: string): boolean {
+  if (hasCommentToken(value)) return false;
   const m = FUNCTIONAL_VALUE_VARIANT.exec(value);
   if (m) return isSafeVariantValue(m[1], true);
   return isSafeVariantValue(value);
@@ -211,8 +219,28 @@ export function isSafeVariantToken(value: string): boolean {
  * is pasted into. Rejects, outside quotes: `{`, `}`, `;`, unbalanced or mismatched ()/[], and a quote left open.
  * Commas are allowed (values are not selector lists), so this is isSafeVariantValue with top-level commas allowed.
  */
+/** #248: a comment opener or closer anywhere in a variant (quoted or not) could leave a comment unclosed in the output. */
+export function hasCommentToken(value: string): boolean {
+  return value.includes('/*') || value.includes('*/');
+}
+
 export function isStructureSafeValue(value: string): boolean {
+  // #247 review: a comment opener/closer in any arbitrary value could swallow the rest of the stylesheet.
+  if (hasCommentToken(value)) return false;
   return isSafeVariantValue(value, true);
+}
+
+/** An unquoted `@` would start an at-rule token; no declaration value of an arbitrary property needs one. */
+function hasUnquotedAt(value: string): boolean {
+  let quote = '';
+  for (let i = 0; i < value.length; i++) {
+    const c = value[i];
+    if (c === '\\') { i++; continue; }
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === "'") quote = c;
+    else if (c === '@') return true;
+  }
+  return false;
 }
 
 export function isSafeVariantValue(value: string, allowTopLevelComma = false): boolean {
@@ -276,10 +304,18 @@ function parseUtility(value: string, ctx?: Context): ParsedUtility {
   let category = '';
   let priority = 0;
   
+  // Tailwind arbitrary property: [--cell-size:8px], [mask-type:luminance]
+  const prop = /^\[(--[a-zA-Z_][a-zA-Z0-9_-]*|-?[a-z][a-z-]*):(.+)\]$/.exec(value);
+  if (prop) {
+    // Same #224 guard as every other arbitrary value, plus no at-rule token.
+    if (!isStructureSafeValue(prop[2]) || hasUnquotedAt(prop[2])) return { prefix: '', value: '' };
+    return { prefix: '', value: prop[2], arbitrary: true, property: prop[1] };
+  }
+
   if (value.startsWith('-')) {
     negative = true;
   }
-  
+
   // Handle arbitrary values
   if (value.includes('-[')) {
     [prefix, utilityValue] = value.split('-[');

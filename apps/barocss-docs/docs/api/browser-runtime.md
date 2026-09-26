@@ -118,7 +118,7 @@ interface ObserveOptions {
 
 In the published `0.0.3` package, `removeClass()` deletes class entries from the runtime cache but leaves previously inserted CSS in the page.
 
-In the published `0.4.0` package, it also removes the runtime-injected CSS for those classes. CSS needed by remaining classes, shared root rules, base styles, and DOM observation remain active. Neither version changes an element's `class` attribute; remove class names from the DOM separately when needed.
+In the published `0.5.0` package, it also removes the runtime-injected CSS for those classes. CSS needed by remaining classes, shared root rules, base styles, and DOM observation remain active. Neither version changes an element's `class` attribute; remove class names from the DOM separately when needed.
 
 ```typescript
 // Remove single class
@@ -132,7 +132,7 @@ runtime.removeClass(['bg-blue-500', 'text-white']);
 
 ### ChangeDetector
 
-`ChangeDetector` is exported from `@barocss/browser`, not `@barocss/kit`. `BrowserRuntime` already uses it internally. In the published `0.4.0` package, `observe()` returns a `MutationObserver`:
+`ChangeDetector` is exported from `@barocss/browser`, not `@barocss/kit`. `BrowserRuntime` already uses it internally. In the published `0.5.0` package, `observe()` returns a `MutationObserver`:
 
 ```typescript
 import { BrowserRuntime } from '@barocss/browser';
@@ -236,7 +236,7 @@ runtime.reset();
 
 ### getStats()
 
-Get runtime state and cache statistics. The fields below exist in the published `0.4.0` package.
+Get runtime state and cache statistics. The fields below exist in the published `0.5.0` package.
 
 ```typescript
 const stats = runtime.getStats();
@@ -297,7 +297,7 @@ console.log(css);
 
 #### React Integration
 
-This example uses the public runtime API in the published `0.4.0` package.
+This example uses the public runtime API in the published `0.5.0` package.
 
 ```tsx
 import { useEffect } from 'react';
@@ -324,7 +324,7 @@ function App() {
 
 #### Vue Integration
 
-This Vue 3 component uses the public runtime API in the published `0.4.0` package.
+This Vue 3 component uses the public runtime API in the published `0.5.0` package.
 
 ```vue
 <script setup lang="ts">

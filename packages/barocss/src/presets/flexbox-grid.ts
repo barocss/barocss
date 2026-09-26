@@ -66,6 +66,32 @@ staticUtility("flex-auto", [["flex", "1 1 auto"]], { category: 'flex-grid' });
 staticUtility("flex-initial", [["flex", "0 1 auto"]], { category: 'flex-grid' });
 staticUtility("flex-none", [["flex", "none"]], { category: 'flex-grid' });
 
+// Registered before `flex` so the legacy aliases win over flex-<n> (first matching registration wins).
+// Legacy alias accepted by Tailwind 4: flex-grow, flex-grow-0, flex-grow-[2]
+staticUtility("flex-grow", [["flex-grow", "1"]], { category: 'flex-grid' });
+functionalUtility({
+  name: "flex-grow",
+  prop: "flex-grow",
+  supportsArbitrary: true, // grow-[25vw], grow-[2], grow-[var(--factor)], etc.
+  supportsCustomProperty: true, // grow-(--my-grow)
+  handleBareValue: ({ value }) => parseNumber(value),
+  handle: (value) => [decl("flex-grow", value)],
+  description: "flex-grow utility (number, arbitrary, custom property supported)",
+  category: "flex-grid",
+});
+
+// Legacy alias accepted by Tailwind 4: flex-shrink, flex-shrink-0, flex-shrink-[2]
+staticUtility("flex-shrink", [["flex-shrink", "1"]], { category: 'flex-grid' });
+functionalUtility({
+  name: "flex-shrink",
+  prop: "flex-shrink",
+  supportsArbitrary: true, // shrink-[2], shrink-[calc(100vw-var(--sidebar))], etc.
+  supportsCustomProperty: true, // shrink-(--my-shrink)
+  handleBareValue: ({ value }) => parseNumber(value),
+  description: "flex-shrink utility (number, arbitrary, custom property supported)",
+  category: "flex-grid",
+});
+
 functionalUtility({
   name: "flex",
   supportsArbitrary: true, // flex-[3_1_auto], flex-[2], flex-[0_0_100%], etc.

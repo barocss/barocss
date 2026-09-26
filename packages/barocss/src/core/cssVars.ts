@@ -237,6 +237,8 @@ export function transitionTimingFunctionToCssVars(transition: Record<string, str
       result[`--default-transition-timing-function`] = transition[key];
     } else {
       result[`--transition-timing-function-${escapeKey(key)}`] = transition[key];
+      // Tailwind v4 names: --ease-in / --ease-out / --ease-in-out (ease-linear uses a literal `linear`).
+      if (key !== 'linear') result[`--ease-${escapeKey(key)}`] = transition[key];
     }
   }
   return result;
@@ -326,6 +328,7 @@ export function themeToCssVarsAll(theme: Theme): Record<string, string> {
     ...transitionDurationToCssVars(theme.transitionDuration! as Record<string, string>),
     ...transitionDelayToCssVars(theme.transitionDelay! as Record<string, string>),
     ...blurToCssVars(theme.blur! as Record<string, string>),
+    ...Object.fromEntries(Object.entries((theme.aspect ?? {}) as Record<string, string>).map(([k, v]) => [`--aspect-${escapeKey(k)}`, v])),
     // keyframes handled separately
   };
 }

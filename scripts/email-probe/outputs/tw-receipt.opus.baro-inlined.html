@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Order Receipt — Chapter One Books</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+<style>:root,:host {
+  --color-gray-100: oklch(96.7% 0.003 264.542);
+}
+
+:root,:host {
+  --color-gray-800: oklch(27.8% 0.033 256.848);
+}
+
+:root,:host {
+  --color-white: #fff;
+}
+
+@property --baro-shadow {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0 0 #0000;
+}
+@property --baro-inset-shadow {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0 0 #0000;
+}
+@property --baro-inset-ring-shadow {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0 0 #0000;
+}
+@property --baro-ring-offset-shadow {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0 0 #0000;
+}
+@property --baro-ring-shadow {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0 0 #0000;
+}
+@property --baro-ring-offset-width {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+@property --baro-ring-offset-color {
+	syntax: "*";
+	inherits: false;
+	initial-value: #fff;
+}
+
+:root,:host {
+  --color-indigo-700: oklch(45.7% 0.24 277.023);
+}
+
+:root,:host {
+  --color-white: #fff;
+}
+
+:root,:host {
+  --color-indigo-200: oklch(87% 0.065 274.039);
+}
+
+@property --baro-border-style {
+	syntax: "*";
+	inherits: false;
+	initial-value: solid;
+}
+
+:root,:host {
+  --color-gray-200: oklch(92.8% 0.006 264.531);
+}
+
+:root,:host {
+  --color-gray-900: oklch(21% 0.034 264.665);
+}
+
+:root,:host {
+  --color-gray-600: oklch(44.6% 0.03 256.802);
+}
+
+:root,:host {
+  --color-gray-400: oklch(70.7% 0.022 261.325);
+}
+
+@property --baro-border-style {
+	syntax: "*";
+	inherits: false;
+	initial-value: solid;
+}
+:where(.divide-y > :not(:last-child)) {
+  --baro-divide-y-reverse: 0;
+  border-bottom-style: var(--baro-border-style);
+  border-top-style: var(--baro-border-style);
+  border-top-width: calc(1px * var(--baro-divide-y-reverse));
+  border-bottom-width: calc(1px * calc(1 - var(--baro-divide-y-reverse)));
+}
+
+:root,:host {
+  --color-gray-100: oklch(96.7% 0.003 264.542);
+}
+:where(.divide-gray-100 > :not(:last-child)) {
+  border-color: var(--color-gray-100);
+}
+
+:root,:host {
+  --color-gray-500: oklch(55.1% 0.027 264.364);
+}
+
+:root,:host {
+  --color-gray-700: oklch(37.3% 0.034 259.733);
+}
+
+@property --baro-border-style {
+	syntax: "*";
+	inherits: false;
+	initial-value: solid;
+}
+
+@property --baro-space-y-reverse {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0;
+}
+:where(.space-y-2 > :not(:last-child)) {
+  --baro-space-y-reverse: 0;
+  margin-block-start: calc(calc(var(--spacing) * 2) * var(--baro-space-y-reverse));
+  margin-block-end: calc(calc(var(--spacing) * 2) * calc(1 - var(--baro-space-y-reverse)));
+}
+
+:root,:host {
+  --color-gray-50: oklch(98.5% 0.002 247.839);
+}
+
+:root,:host {
+  --color-indigo-800: oklch(39.8% 0.195 277.366);
+}
+@media (hover: hover) {
+  .hover\:bg-indigo-800:hover {
+    background-color: var(--color-indigo-800);
+  }
+}
+
+:root,:host {
+  --color-indigo-600: oklch(51.1% 0.262 276.966);
+}
+
+:root,:host {
+  --color-gray-300: oklch(87.2% 0.01 258.338);
+}</style></head>
+<body style="background-color: var(--color-gray-100); font-family: var(--font-sans); color: var(--color-gray-800);">
+  <div style="max-width: var(--container-2xl); margin-inline: auto; margin-block: calc(var(--spacing) * 8); background-color: var(--color-white); border-radius: var(--radius-2xl); --baro-shadow: var(--shadow-md); box-shadow: var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow); overflow: hidden;">
+
+    <!-- Header -->
+    <div style="background-color: var(--color-indigo-700); padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6); text-align: center;">
+      <h1 style="font-size: var(--text-2xl); line-height: var(--text-2xl--line-height); font-weight: var(--font-weight-bold); color: var(--color-white); letter-spacing: var(--letter-spacing-tight);">Chapter One Books</h1>
+      <p style="color: var(--color-indigo-200); font-size: var(--text-sm); line-height: var(--text-sm--line-height); margin-top: calc(var(--spacing) * 1);">Thanks for reading with us</p>
+    </div>
+
+    <!-- Confirmation -->
+    <div style="padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6); border-bottom-style: var(--baro-border-style); border-bottom-width: 1px; border-color: var(--color-gray-200);">
+      <h2 style="font-size: var(--text-lg); line-height: var(--text-lg--line-height); font-weight: var(--font-weight-semibold); color: var(--color-gray-900);">Order Confirmed 🎉</h2>
+      <p style="font-size: var(--text-sm); line-height: var(--text-sm--line-height); color: var(--color-gray-600); margin-top: calc(var(--spacing) * 1);">
+        Hi Jordan, your order has been received and is being prepared for shipment.
+      </p>
+      <div style="margin-top: calc(var(--spacing) * 4); display: flex; flex-wrap: wrap; column-gap: calc(var(--spacing) * 8); row-gap: calc(var(--spacing) * 2); font-size: var(--text-sm); line-height: var(--text-sm--line-height);">
+        <div>
+          <span style="display: block; color: var(--color-gray-400);">Order Number</span>
+          <span style="font-weight: var(--font-weight-medium); color: var(--color-gray-900);">#BK-2026-04871</span>
+        </div>
+        <div>
+          <span style="display: block; color: var(--color-gray-400);">Order Date</span>
+          <span style="font-weight: var(--font-weight-medium); color: var(--color-gray-900);">September 26, 2026</span>
+        </div>
+        <div>
+          <span style="display: block; color: var(--color-gray-400);">Payment</span>
+          <span style="font-weight: var(--font-weight-medium); color: var(--color-gray-900);">Visa •••• 4242</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line Items -->
+    <div style="padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6);">
+      <table style="width: 100%; font-size: var(--text-sm); line-height: var(--text-sm--line-height);">
+        <thead>
+          <tr style="text-align: left; color: var(--color-gray-400); border-bottom-style: var(--baro-border-style); border-bottom-width: 1px; border-color: var(--color-gray-200);">
+            <th style="padding-bottom: calc(var(--spacing) * 3); font-weight: var(--font-weight-medium);">Item</th>
+            <th style="padding-bottom: calc(var(--spacing) * 3); font-weight: var(--font-weight-medium); text-align: center;">Qty</th>
+            <th style="padding-bottom: calc(var(--spacing) * 3); font-weight: var(--font-weight-medium); text-align: right;">Price</th>
+          </tr>
+        </thead>
+        <tbody >
+          <tr>
+            <td style="padding-block: calc(var(--spacing) * 4);">
+              <p style="font-weight: var(--font-weight-medium); color: var(--color-gray-900);">The Midnight Library</p>
+              <p style="color: var(--color-gray-500);">Matt Haig · Paperback</p>
+            </td>
+            <td style="padding-block: calc(var(--spacing) * 4); text-align: center; color: var(--color-gray-700);">1</td>
+            <td style="padding-block: calc(var(--spacing) * 4); text-align: right; font-weight: var(--font-weight-medium); color: var(--color-gray-900);">$16.99</td>
+          </tr>
+          <tr>
+            <td style="padding-block: calc(var(--spacing) * 4);">
+              <p style="font-weight: var(--font-weight-medium); color: var(--color-gray-900);">Project Hail Mary</p>
+              <p style="color: var(--color-gray-500);">Andy Weir · Hardcover</p>
+            </td>
+            <td style="padding-block: calc(var(--spacing) * 4); text-align: center; color: var(--color-gray-700);">2</td>
+            <td style="padding-block: calc(var(--spacing) * 4); text-align: right; font-weight: var(--font-weight-medium); color: var(--color-gray-900);">$53.98</td>
+          </tr>
+          <tr>
+            <td style="padding-block: calc(var(--spacing) * 4);">
+              <p style="font-weight: var(--font-weight-medium); color: var(--color-gray-900);">Atomic Habits</p>
+              <p style="color: var(--color-gray-500);">James Clear · Paperback</p>
+            </td>
+            <td style="padding-block: calc(var(--spacing) * 4); text-align: center; color: var(--color-gray-700);">1</td>
+            <td style="padding-block: calc(var(--spacing) * 4); text-align: right; font-weight: var(--font-weight-medium); color: var(--color-gray-900);">$18.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Totals -->
+      <div style="margin-top: calc(var(--spacing) * 6); border-top-style: var(--baro-border-style); border-top-width: 1px; border-color: var(--color-gray-200); padding-top: calc(var(--spacing) * 4); font-size: var(--text-sm); line-height: var(--text-sm--line-height);">
+        <div style="display: flex; justify-content: space-between; color: var(--color-gray-600);">
+          <span>Subtotal</span>
+          <span>$88.97</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; color: var(--color-gray-600);">
+          <span>Shipping</span>
+          <span>$4.99</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; color: var(--color-gray-600);">
+          <span>Tax (8.25%)</span>
+          <span>$7.34</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: var(--text-base); line-height: var(--text-base--line-height); font-weight: var(--font-weight-bold); color: var(--color-gray-900); border-top-style: var(--baro-border-style); border-top-width: 1px; border-color: var(--color-gray-200); padding-top: calc(var(--spacing) * 3); margin-top: calc(var(--spacing) * 2);">
+          <span>Total</span>
+          <span>$101.30</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shipping Address -->
+    <div style="padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6); background-color: var(--color-gray-50); border-top-style: var(--baro-border-style); border-top-width: 1px; border-color: var(--color-gray-200);">
+      <h3 style="font-size: var(--text-sm); line-height: var(--text-sm--line-height); font-weight: var(--font-weight-semibold); color: var(--color-gray-900);">Shipping To</h3>
+      <p style="font-size: var(--text-sm); line-height: var(--text-sm--line-height); color: var(--color-gray-600); margin-top: calc(var(--spacing) * 2); line-height: var(--leading-relaxed, 1.625);">
+        Jordan Rivera<br />
+        482 Maple Avenue, Apt 3B<br />
+        Portland, OR 97205<br />
+        United States
+      </p>
+      <a href="#" style="display: inline-block; margin-top: calc(var(--spacing) * 4); background-color: var(--color-indigo-700); color: var(--color-white); font-size: var(--text-sm); line-height: var(--text-sm--line-height); font-weight: var(--font-weight-medium); padding-inline: calc(var(--spacing) * 5); padding-block: calc(var(--spacing) * 2.5); border-radius: var(--radius-lg);">
+        Track Your Order
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6); text-align: center; border-top-style: var(--baro-border-style); border-top-width: 1px; border-color: var(--color-gray-200);">
+      <p style="font-size: var(--text-xs); line-height: var(--text-xs--line-height); color: var(--color-gray-400);">
+        Questions about your order? Reply to this email or visit our
+        <a href="#" style="color: var(--color-indigo-600); text-decoration-line: underline;">Help Center</a>.
+      </p>
+      <p style="font-size: var(--text-xs); line-height: var(--text-xs--line-height); color: var(--color-gray-400); margin-top: calc(var(--spacing) * 2);">
+        Chapter One Books · 100 Bookbinder Lane, Portland, OR 97205
+      </p>
+      <p style="font-size: var(--text-xs); line-height: var(--text-xs--line-height); color: var(--color-gray-300); margin-top: calc(var(--spacing) * 1);">© 2026 Chapter One Books. All rights reserved.</p>
+    </div>
+
+  </div>
+</body>
+</html>

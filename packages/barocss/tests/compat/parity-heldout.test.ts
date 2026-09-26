@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import fs from 'node:fs';
-import { createRequire } from 'node:module';
-import { compile } from 'tailwindcss';
-import postcss, { type AtRule, type Container, type Declaration } from 'postcss';
-import { createContext } from '../../src/core/context';
-import { generateCss } from '../../src/core/engine';
-import '../../src/presets';
 import { corpusHeldout as corpus } from './corpus-heldout';
+import { coverageReport, runParity } from './parity-compare';
 
 // #243: same comparator as parity-corpus.test.ts over the held-out corpus (corpus-heldout.ts).
 // Parity of every held-out class with Tailwind 4.1.13 (full default theme), compared by *effective* value:
@@ -19,184 +13,15 @@ import { corpusHeldout as corpus } from './corpus-heldout';
 // its fix lands (the test fails if a listed class starts passing, so the list can't go stale).
 
 const KNOWN_FAILURES: Record<string, string> = {
-  "focus:ring-blue-500": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "focus:ring-indigo-500/30": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "ring-slate-200": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "ring-inset": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "ring-emerald-600/20": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "focus:ring-offset-2": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "from-blue-400": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "from-blue-50": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "from-blue-500": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "from-emerald-50": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "from-purple-50": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "from-sky-500": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "from-slate-100": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "to-blue-100": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "to-blue-600": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "to-cyan-500": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "to-emerald-100": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "to-indigo-700": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "to-purple-100": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "to-slate-800": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "via-sky-600": "comparator: custom-property-only utility (effect only via composed vars), not a BaroCSS gap",
-  "aspect-video": "undefined var: emits var(--aspect-ratio-video), theme defines --aspect-video",
-  "container": "other: container utility not implemented",
-  "flex-shrink-0": "other: legacy flex-shrink-* alias not implemented",
-  "text-[0.8rem]": "wrong formula: arbitrary length routed to color instead of font-size",
-  "ease-in-out": "undefined var: var(--ease-in-out) not in BaroCSS theme vars",
-  "max-w-max": "other: max-w-max/min/fit keyword missing",
-  "size-5!": "other: trailing ! important modifier unsupported",
-  "*:data-[slot=toggle-group-item]:px-4!": "other: trailing ! important modifier unsupported",
-  "data-[slot=sidebar-menu-button]:p-1.5!": "other: trailing ! important modifier unsupported",
-  "group-data-[collapsible=icon]:p-0!": "other: trailing ! important modifier unsupported",
-  "group-data-[collapsible=icon]:p-2!": "other: trailing ! important modifier unsupported",
-  "group-data-[collapsible=icon]:size-8!": "other: trailing ! important modifier unsupported",
-  "has-focus:ring-[3px]": "missing variant: has-<pseudo> (has-focus)",
-  "in-data-[side=left]:cursor-w-resize": "missing variant: in-* (in-data-[...])",
-  "in-data-[side=right]:cursor-e-resize": "missing variant: in-* (in-data-[...])",
-  "[--cell-size:--spacing(8)]": "other: arbitrary property with --spacing() function unsupported",
 };
 
-const INVALID = '⟂';
-type Scope = Map<string, string>;
-
-function resolve(value: string, scope: Scope, depth = 0): string {
-  if (depth > 20) return INVALID;
-  let out = '';
-  let i = 0;
-  while (i < value.length) {
-    const start = value.indexOf('var(', i);
-    if (start < 0) { out += value.slice(i); break; }
-    out += value.slice(i, start);
-    let end = start + 4;
-    for (let open = 1; end < value.length && open; end++) {
-      if (value[end] === '(') open++;
-      else if (value[end] === ')') open--;
-    }
-    const inner = value.slice(start + 4, end - 1);
-    const comma = inner.indexOf(',');
-    const name = (comma < 0 ? inner : inner.slice(0, comma)).trim();
-    const own = scope.get(name);
-    const next = own !== undefined && own !== INVALID ? own : comma < 0 ? INVALID : inner.slice(comma + 1);
-    const resolved = next === INVALID ? INVALID : resolve(next, scope, depth + 1);
-    if (resolved.includes(INVALID)) return INVALID;
-    out += resolved;
-    i = end;
-  }
-  return out;
-}
-
-// Spelling-only differences that render the same.
-function normalize(prop: string, value: string): string {
-  let v = value.replace(/\s+/g, ' ').replace(/\(\s+/g, '(').replace(/\s+\)/g, ')').replace(/\s*,\s*/g, ',').replace(/\s*\/\s*/g, '/');
-  // BaroCSS namespaces its internal vars --baro-*, Tailwind --tw-*; as values (e.g. in transition-property) they're the same.
-  v = v.replace(/--baro-/g, '--tw-').replace(/calc\(infinity \* 1px\)/g, '9999px').replace(/\bcurrentColor\b/g, 'currentcolor').replace(/in lab\b/g, 'in oklab');
-  for (let prev = ''; prev !== v;) {
-    prev = v;
-    v = v.replace(/calc\((-?[\d.]+)\/([\d.]+) \* 100%\)/g, (_, a, b) => `${+((a / b) * 100).toFixed(4)}%`)
-      .replace(/calc\((-?[\d.]+)(rem|px|em|%)? ?\* ?(-?[\d.]+)\)/g, (_, a, u = '', b) => `${+(a * b).toFixed(4)}${u}`)
-      .replace(/calc\((-?[\d.]+(?:rem|px|em|%))\)/g, '$1');
-  }
-  v = v.replace(/(^|[^\d.])0\./g, '$1.').replace(/(^|[\s(,])-?0(px|rem|em)\b/g, '$10').trim();
-  if (prop === 'opacity' && v.endsWith('%')) v = String(parseFloat(v) / 100).replace(/^0\./, '.');
-  if (prop === 'box-shadow') v = v.replace(/(0 0 #0000,)+/g, '').replace(/,0 0 #0000$/, '');
-  return v;
-}
-
-function mediaKey(at: AtRule): string {
-  const params = at.params.replace(/\(width >= ([^)]+)\)/g, '(min-width: $1)').replace(/\s+/g, ' ').trim();
-  return `@${at.name} ${params}`;
-}
-
-// { prop → value } for the utility's rules, plus the @media/@container conditions they sit under.
-function effective(css: string, base: Scope) {
-  const root = postcss.parse(css);
-  const scope: Scope = new Map(base);
-  root.walkAtRules('property', (at) => {
-    let initial = INVALID;
-    at.walkDecls('initial-value', (d) => { initial = d.value; });
-    if (!scope.has(at.params)) scope.set(at.params, initial);
-  });
-  root.walkRules((r) => {
-    if (/:root|:host/.test(r.selector)) r.walkDecls((d) => { if (d.prop.startsWith('--')) scope.set(d.prop, d.value); });
-  });
-  const decls: Record<string, string> = {};
-  const wrappers = new Set<string>();
-  root.walkRules((rule) => {
-    // Only rules that target a class; BaroCSS's legacy gradients emit a bare `&` selector that matches nothing.
-    if (/:root|:host/.test(rule.selector) || rule.parent?.type === 'rule' || !rule.selector.includes('.')) return;
-    const local: Scope = new Map(scope);
-    rule.walkDecls((d) => { if (d.prop.startsWith('--')) local.set(d.prop, d.value); });
-    rule.walkDecls((d: Declaration) => {
-      if (d.prop.startsWith('--')) return;
-      decls[d.prop] = normalize(d.prop, resolve(d.value, local));
-      for (let p: Container | undefined = d.parent as Container; p && p.type !== 'root'; p = p.parent as Container) {
-        if (p.type === 'atrule' && ['media', 'container'].includes((p as AtRule).name)) wrappers.add(mediaKey(p as AtRule));
-      }
-    });
-  });
-  return { decls, wrappers: [...wrappers].sort().join(' | ') };
-}
-
-const families: [string, RegExp][] = [
-  ['pseudo content', /(^|:)(after|before):/],
-  ['arbitrary calc', /\[calc\(/],
-  ['ring', /^(focus(-visible)?:)?(inset-)?ring/],
-  ['leading', /^leading-/],
-  ['shadow', /(^|:)(inset-)?shadow/],
-  ['translate', /(^|:)-?translate-/],
-  ['border', /(^|:)border(-[trblxy])?(-\d+)?$/],
-  ['gradient', /(^|:)(bg-gradient-|from-|via-|to-)/],
-  ['outline', /(^|:)outline/],
-  ['radius', /(^|:)rounded/],
-  ['blur', /(^|:)blur/],
-  ['transition', /(^|:)transition/],
-];
-const familyOf = (token: string) => families.find(([, re]) => re.test(token))?.[0] ?? 'other';
-
 describe('Tailwind 4.1.13 parity over the #243 held-out corpus', async () => {
-  const require = createRequire(import.meta.url);
-  const themeCss = fs.readFileSync(require.resolve('tailwindcss/theme.css'), 'utf8');
-  const ctx = createContext({ preflight: false });
-  const baroRoot: Scope = new Map();
-  postcss.parse(ctx.themeToCssVars()).walkDecls((d) => { if (d.prop.startsWith('--')) baroRoot.set(d.prop, d.value); });
-
-  const results = await Promise.all(corpus.map(async ([token, uses]) => {
-    const tw = effective((await compile(`${themeCss}\n@tailwind utilities;`)).build([token]), new Map());
-    let baroCss = '';
-    try { baroCss = generateCss(token, ctx); } catch { /* counts as no rule */ }
-    const baro = effective(baroCss, baroRoot);
-    const diffs: string[] = [];
-    if (!Object.keys(baro.decls).length) diffs.push('no rule');
-    else {
-      for (const [prop, value] of Object.entries(tw.decls)) {
-        const b = baro.decls[prop];
-        if (b === undefined) diffs.push(`${prop} missing`);
-        else if (b.includes(INVALID) && !value.includes(INVALID)) diffs.push(`${prop} undefined var`);
-        else if (b !== value) diffs.push(`${prop}: ${b} ≠ ${value}`);
-      }
-      if (baro.wrappers !== tw.wrappers) diffs.push(`wrapper: ${baro.wrappers || '∅'} ≠ ${tw.wrappers || '∅'}`);
-    }
-    return { token, uses, family: familyOf(token), pass: diffs.length === 0, diffs };
-  }));
-
-  const total = results.reduce((n, r) => n + r.uses, 0);
-  const passing = results.filter((r) => r.pass).reduce((n, r) => n + r.uses, 0);
-  const byFamily = new Map<string, { pass: number; fail: number }>();
-  for (const r of results) {
-    const f = byFamily.get(r.family) ?? { pass: 0, fail: 0 };
-    f[r.pass ? 'pass' : 'fail'] += r.uses;
-    byFamily.set(r.family, f);
-  }
-  console.log([
-    `held-out parity coverage: ${((passing / total) * 100).toFixed(1)}% of ${total} corpus uses (${results.filter((r) => r.pass).length}/${results.length} classes)`,
-    ...[...byFamily].sort((a, b) => b[1].fail - a[1].fail).map(([f, { pass, fail }]) => `  ${f.padEnd(15)} ${pass}/${pass + fail} uses at parity`),
-  ].join('\n'));
+  const results = await runParity(corpus);
+  console.log(coverageReport('held-out parity coverage', results));
 
   it('every class outside KNOWN_FAILURES matches Tailwind', () => {
     const unexpected = results.filter((r) => !r.pass && !(r.token in KNOWN_FAILURES));
-    expect(unexpected.map((r) => `${r.token}: ${r.diffs.join('; ')}`)).toEqual([]);
+    expect(unexpected.map((r) => `${r.token} (${r.uses}, ${r.family}): ${r.diffs.join('; ')}`)).toEqual([]);
   });
 
   it('every KNOWN_FAILURES entry still fails (remove it once fixed)', () => {

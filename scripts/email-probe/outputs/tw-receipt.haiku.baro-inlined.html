@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Receipt</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+<style>:root,:host {
+  --color-gray-100: oklch(96.7% 0.003 264.542);
+}
+
+:root,:host {
+  --color-white: #fff;
+}
+
+@property --baro-shadow {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0 0 #0000;
+}
+@property --baro-inset-shadow {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0 0 #0000;
+}
+@property --baro-inset-ring-shadow {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0 0 #0000;
+}
+@property --baro-ring-offset-shadow {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0 0 #0000;
+}
+@property --baro-ring-shadow {
+	syntax: "*";
+	inherits: false;
+	initial-value: 0 0 #0000;
+}
+@property --baro-ring-offset-width {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+@property --baro-ring-offset-color {
+	syntax: "*";
+	inherits: false;
+	initial-value: #fff;
+}
+
+:root,:host {
+  --color-blue-600: oklch(54.6% 0.245 262.881);
+}
+
+:root,:host {
+  --color-white: #fff;
+}
+
+:root,:host {
+  --color-blue-100: oklch(93.2% 0.032 255.585);
+}
+
+@property --baro-border-style {
+	syntax: "*";
+	inherits: false;
+	initial-value: solid;
+}
+
+:root,:host {
+  --color-gray-200: oklch(92.8% 0.006 264.531);
+}
+
+:root,:host {
+  --color-gray-600: oklch(44.6% 0.03 256.802);
+}
+
+:root,:host {
+  --color-gray-900: oklch(21% 0.034 264.665);
+}
+
+:root,:host {
+  --color-gray-700: oklch(37.3% 0.034 259.733);
+}
+
+@property --baro-border-style {
+	syntax: "*";
+	inherits: false;
+	initial-value: solid;
+}
+
+:root,:host {
+  --color-gray-300: oklch(87.2% 0.01 258.338);
+}
+
+:root,:host {
+  --color-gray-50: oklch(98.5% 0.002 247.839);
+}
+
+:root,:host {
+  --color-gray-50: oklch(98.5% 0.002 247.839);
+}
+@media (hover: hover) {
+  .hover\:bg-gray-50:hover {
+    background-color: var(--color-gray-50);
+  }
+}
+
+@property --baro-border-style {
+	syntax: "*";
+	inherits: false;
+	initial-value: solid;
+}
+
+:root,:host {
+  --color-gray-800: oklch(27.8% 0.033 256.848);
+}
+
+:root,:host {
+  --color-gray-300: oklch(87.2% 0.01 258.338);
+}
+
+:root,:host {
+  --color-gray-500: oklch(55.1% 0.027 264.364);
+}</style></head>
+<body style="background-color: var(--color-gray-100); margin: calc(var(--spacing) * 0); padding: calc(var(--spacing) * 0);">
+    <div style="width: 100%; max-width: var(--container-2xl); margin-inline: auto; background-color: var(--color-white); --baro-shadow: var(--shadow-lg); box-shadow: var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow);">
+        <!-- Header -->
+        <div style="background-color: var(--color-blue-600); color: var(--color-white); padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6);">
+            <h1 style="font-size: var(--text-3xl); line-height: var(--text-3xl--line-height); font-weight: var(--font-weight-bold); margin: calc(var(--spacing) * 0);">BookStore</h1>
+            <p style="color: var(--color-blue-100); font-size: var(--text-sm); line-height: var(--text-sm--line-height); margin: calc(var(--spacing) * 0); margin-top: calc(var(--spacing) * 1);">Your Order Receipt</p>
+        </div>
+
+        <!-- Order Number & Date -->
+        <div style="padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6); border-bottom-style: var(--baro-border-style); border-bottom-width: 1px; border-color: var(--color-gray-200);">
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--spacing) * 4);">
+                <div>
+                    <p style="color: var(--color-gray-600); font-size: var(--text-sm); line-height: var(--text-sm--line-height); font-weight: var(--font-weight-semibold);">Order Number</p>
+                    <p style="color: var(--color-gray-900); font-size: var(--text-lg); line-height: var(--text-lg--line-height); font-weight: var(--font-weight-bold);">ORD-2026-089456</p>
+                </div>
+                <div>
+                    <p style="color: var(--color-gray-600); font-size: var(--text-sm); line-height: var(--text-sm--line-height); font-weight: var(--font-weight-semibold);">Order Date</p>
+                    <p style="color: var(--color-gray-900); font-size: var(--text-lg); line-height: var(--text-lg--line-height); font-weight: var(--font-weight-bold);">September 26, 2026</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div style="padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6); border-bottom-style: var(--baro-border-style); border-bottom-width: 1px; border-color: var(--color-gray-200);">
+            <p style="color: var(--color-gray-600); font-size: var(--text-sm); line-height: var(--text-sm--line-height); font-weight: var(--font-weight-semibold); margin-bottom: calc(var(--spacing) * 2);">Ship To</p>
+            <p style="color: var(--color-gray-900); font-weight: var(--font-weight-semibold);">Sarah Johnson</p>
+            <p style="color: var(--color-gray-700);">123 Maple Street</p>
+            <p style="color: var(--color-gray-700);">Portland, OR 97214</p>
+            <p style="color: var(--color-gray-700);">United States</p>
+        </div>
+
+        <!-- Items Table -->
+        <div style="padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6);">
+            <table style="width: 100%;">
+                <thead>
+                    <tr style="border-bottom-style: var(--baro-border-style); border-bottom-width: 2px; border-color: var(--color-gray-300);">
+                        <th style="text-align: left; padding-block: calc(var(--spacing) * 3); padding-inline: calc(var(--spacing) * 4); background-color: var(--color-gray-50); font-weight: var(--font-weight-semibold); color: var(--color-gray-700);">Item</th>
+                        <th style="text-align: center; padding-block: calc(var(--spacing) * 3); padding-inline: calc(var(--spacing) * 4); background-color: var(--color-gray-50); font-weight: var(--font-weight-semibold); color: var(--color-gray-700); width: calc(var(--spacing) * 20);">Qty</th>
+                        <th style="text-align: right; padding-block: calc(var(--spacing) * 3); padding-inline: calc(var(--spacing) * 4); background-color: var(--color-gray-50); font-weight: var(--font-weight-semibold); color: var(--color-gray-700); width: calc(var(--spacing) * 24);">Price</th>
+                        <th style="text-align: right; padding-block: calc(var(--spacing) * 3); padding-inline: calc(var(--spacing) * 4); background-color: var(--color-gray-50); font-weight: var(--font-weight-semibold); color: var(--color-gray-700); width: calc(var(--spacing) * 28);">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-bottom-style: var(--baro-border-style); border-bottom-width: 1px; border-color: var(--color-gray-200);">
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4);">
+                            <p style="font-weight: var(--font-weight-semibold); color: var(--color-gray-900);">The Midnight Library</p>
+                            <p style="color: var(--color-gray-600); font-size: var(--text-sm); line-height: var(--text-sm--line-height);">by Matt Haig</p>
+                        </td>
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4); text-align: center; color: var(--color-gray-900);">2</td>
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4); text-align: right; color: var(--color-gray-900);">$16.99</td>
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4); text-align: right; color: var(--color-gray-900); font-weight: var(--font-weight-semibold);">$33.98</td>
+                    </tr>
+                    <tr style="border-bottom-style: var(--baro-border-style); border-bottom-width: 1px; border-color: var(--color-gray-200);">
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4);">
+                            <p style="font-weight: var(--font-weight-semibold); color: var(--color-gray-900);">Atomic Habits</p>
+                            <p style="color: var(--color-gray-600); font-size: var(--text-sm); line-height: var(--text-sm--line-height);">by James Clear</p>
+                        </td>
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4); text-align: center; color: var(--color-gray-900);">1</td>
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4); text-align: right; color: var(--color-gray-900);">$28.99</td>
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4); text-align: right; color: var(--color-gray-900); font-weight: var(--font-weight-semibold);">$28.99</td>
+                    </tr>
+                    <tr style="border-bottom-style: var(--baro-border-style); border-bottom-width: 1px; border-color: var(--color-gray-200);">
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4);">
+                            <p style="font-weight: var(--font-weight-semibold); color: var(--color-gray-900);">Project Hail Mary</p>
+                            <p style="color: var(--color-gray-600); font-size: var(--text-sm); line-height: var(--text-sm--line-height);">by Andy Weir</p>
+                        </td>
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4); text-align: center; color: var(--color-gray-900);">1</td>
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4); text-align: right; color: var(--color-gray-900);">$18.50</td>
+                        <td style="padding-block: calc(var(--spacing) * 4); padding-inline: calc(var(--spacing) * 4); text-align: right; color: var(--color-gray-900); font-weight: var(--font-weight-semibold);">$18.50</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Totals Section -->
+        <div style="padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6); background-color: var(--color-gray-50); border-top-style: var(--baro-border-style); border-top-width: 1px; border-color: var(--color-gray-200);">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: calc(var(--spacing) * 4);">
+                <div style="width: calc(var(--spacing) * 80);">
+                    <div style="display: flex; justify-content: space-between; padding-block: calc(var(--spacing) * 2); color: var(--color-gray-700);">
+                        <span>Subtotal</span>
+                        <span style="font-weight: var(--font-weight-semibold);">$81.47</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-block: calc(var(--spacing) * 2); color: var(--color-gray-700); border-bottom-style: var(--baro-border-style); border-bottom-width: 1px; border-color: var(--color-gray-300); padding-bottom: calc(var(--spacing) * 4);">
+                        <span>Shipping</span>
+                        <span style="font-weight: var(--font-weight-semibold);">$5.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-block: calc(var(--spacing) * 2); color: var(--color-gray-700); margin-bottom: calc(var(--spacing) * 4);">
+                        <span>Tax</span>
+                        <span style="font-weight: var(--font-weight-semibold);">$7.13</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding-block: calc(var(--spacing) * 3); padding-inline: calc(var(--spacing) * 4); background-color: var(--color-blue-600); color: var(--color-white); border-radius: var(--radius-lg); font-size: var(--text-lg); line-height: var(--text-lg--line-height); font-weight: var(--font-weight-bold);">
+                        <span>Total</span>
+                        <span>$93.60</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding-inline: calc(var(--spacing) * 8); padding-block: calc(var(--spacing) * 6); background-color: var(--color-gray-800); color: var(--color-gray-300); text-align: center; font-size: var(--text-sm); line-height: var(--text-sm--line-height);">
+            <p style="margin: calc(var(--spacing) * 0); margin-bottom: calc(var(--spacing) * 2);">Thank you for your order!</p>
+            <p style="margin: calc(var(--spacing) * 0); margin-bottom: calc(var(--spacing) * 4);">You will receive a shipping confirmation email once your items ship.</p>
+            <p style="margin: calc(var(--spacing) * 0); color: var(--color-gray-500);">BookStore Customer Service | support@bookstore.com | 1-800-BOOKS-01</p>
+        </div>
+    </div>
+</body>
+</html>

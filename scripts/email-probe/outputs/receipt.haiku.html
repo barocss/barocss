@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .order-info {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+        .order-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            font-size: 14px;
+        }
+        .info-item {
+            margin: 0;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .info-value {
+            color: #666;
+            margin-top: 3px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        table th {
+            background-color: #ecf0f1;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 2px solid #bdc3c7;
+        }
+        table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .item-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .item-author {
+            font-size: 13px;
+            color: #7f8c8d;
+            margin-top: 2px;
+        }
+        .quantity {
+            text-align: center;
+        }
+        .price {
+            text-align: right;
+        }
+        .summary {
+            margin-top: 20px;
+            border-top: 2px solid #ecf0f1;
+            padding-top: 20px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        .summary-row.subtotal {
+            color: #666;
+        }
+        .summary-row.tax {
+            color: #666;
+        }
+        .summary-row.total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            padding: 12px 0;
+            border-top: 1px solid #ecf0f1;
+            margin-top: 8px;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+            border-top: 1px solid #ecf0f1;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 BookStore</h1>
+            <p>Your Order Receipt</p>
+        </div>
+
+        <div class="content">
+            <div class="order-info">
+                <div class="order-info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Order Number</div>
+                        <div class="info-value">#BS-2026-089456</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Order Date</div>
+                        <div class="info-value">September 26, 2026</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Customer Name</div>
+                        <div class="info-value">John Smith</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Estimated Delivery</div>
+                        <div class="info-value">October 2, 2026</div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 style="color: #2c3e50; margin-top: 0; margin-bottom: 20px;">Order Items</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Book Title</th>
+                        <th style="width: 80px;">Qty</th>
+                        <th style="width: 100px; text-align: right;">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="item-name">The Midnight Library</div>
+                            <div class="item-author">by Matt Haig</div>
+                        </td>
+                        <td class="quantity">1</td>
+                        <td class="price">$18.99</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="item-name">Project Hail Mary</div>
+                            <div class="item-author">by Andy Weir</div>
+                        </td>
+                        <td class="quantity">2</td>
+                        <td class="price">$31.98</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="item-name">The Kaiju Preservation Society</div>
+                            <div class="item-author">by John Scalzi</div>
+                        </td>
+                        <td class="quantity">1</td>
+                        <td class="price">$16.99</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="summary">
+                <div class="summary-row subtotal">
+                    <span>Subtotal</span>
+                    <span>$67.96</span>
+                </div>
+                <div class="summary-row tax">
+                    <span>Tax (8.5%)</span>
+                    <span>$5.78</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total</span>
+                    <span>$73.74</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for your purchase! Your order has been confirmed.</p>
+            <p>Questions? Contact us at support@bookstore.com | 1-800-BOOKS-01</p>
+            <p>&copy; 2026 BookStore. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

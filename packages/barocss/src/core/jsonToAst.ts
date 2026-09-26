@@ -2,7 +2,7 @@ import { debugWarn } from "../utils/debug";
 import { AstNode } from "./ast";
 import { Context } from "./context";
 import { getModifier, getUtility } from "./registry";
-import { ParsedUtility, ParsedModifier, isSafeVariantValue, isSafeVariantToken } from "./parser";
+import { ParsedUtility, ParsedModifier, isSafeVariantValue, isSafeVariantToken, hasCommentToken } from "./parser";
 import { astToCss, rootToCss } from "./astToCss";
 import { applyVarPrefix } from "./cssVars";
 import { optimizeAst } from "./engine";
@@ -111,7 +111,8 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
     const unsafeVariant = (input.variants || []).some((v) =>
         typeof v === "string"
             ? !isSafeVariantToken(v)
-            : !isSafeVariantValue(v.name || "") || !isSafeVariantValue(v.value || "")
+            : !isSafeVariantValue(v.name || "") || !isSafeVariantValue(v.value || "") ||
+              hasCommentToken(v.name || "") || hasCommentToken(v.value || "")
     );
     if (unsafeVariant) return [];
 

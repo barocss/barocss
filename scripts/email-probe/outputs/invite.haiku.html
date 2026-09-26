@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Meetup Invitation</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .intro {
+            font-size: 16px;
+            color: #333333;
+            line-height: 1.6;
+            margin: 0 0 30px 0;
+        }
+        .event-details {
+            background-color: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 4px;
+        }
+        .detail-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .detail-item:last-child {
+            margin-bottom: 0;
+        }
+        .detail-icon {
+            font-size: 20px;
+            margin-right: 15px;
+            color: #667eea;
+            min-width: 24px;
+        }
+        .detail-content {
+            flex: 1;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #333333;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .detail-value {
+            color: #666666;
+            font-size: 16px;
+            margin-top: 4px;
+        }
+        .description {
+            color: #555555;
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 30px 0;
+        }
+        .cta-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .rsvp-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 40px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .rsvp-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.6);
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+        .footer-text {
+            color: #999999;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .footer-links {
+            margin-top: 15px;
+        }
+        .footer-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+            margin: 0 12px;
+        }
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🚀 Developer Meetup</h1>
+        </div>
+
+        <div class="content">
+            <p class="intro">
+                You're invited to our upcoming Developer Meetup! Join us for an evening of knowledge sharing, networking, and great conversations with fellow developers.
+            </p>
+
+            <div class="event-details">
+                <div class="detail-item">
+                    <div class="detail-icon">📅</div>
+                    <div class="detail-content">
+                        <div class="detail-label">Date</div>
+                        <div class="detail-value">Saturday, October 18, 2024</div>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon">🕐</div>
+                    <div class="detail-content">
+                        <div class="detail-label">Time</div>
+                        <div class="detail-value">6:00 PM – 9:00 PM</div>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon">📍</div>
+                    <div class="detail-content">
+                        <div class="detail-label">Venue</div>
+                        <div class="detail-value">Tech Hub Downtown<br>42 Innovation Street<br>San Francisco, CA 94105</div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="description">
+                We have an exciting lineup of talks covering web development, cloud infrastructure, and emerging technologies. This is a fantastic opportunity to meet industry experts, discuss best practices, and connect with the local dev community.
+            </p>
+
+            <p class="description">
+                <strong>What to expect:</strong><br>
+                • Keynote presentations from industry leaders<br>
+                • Lightning talks from community members<br>
+                • Networking session with refreshments<br>
+                • Giveaways and raffle prizes
+            </p>
+
+            <div class="cta-container">
+                <a href="https://meetup.example.com/rsvp" class="rsvp-button">RSVP Now</a>
+            </div>
+
+            <p class="intro" style="margin-top: 30px; border-top: 1px solid #e0e0e0; padding-top: 20px;">
+                Spots are limited, so please RSVP as soon as possible. If you have any questions, feel free to reach out to us.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">
+                © 2024 Developer Meetup Community. All rights reserved.
+            </p>
+            <div class="footer-links">
+                <a href="https://meetup.example.com" class="footer-link">Visit Website</a>
+                <a href="https://twitter.com/devmeetup" class="footer-link">Follow Us</a>
+                <a href="https://meetup.example.com/unsubscribe" class="footer-link">Unsubscribe</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

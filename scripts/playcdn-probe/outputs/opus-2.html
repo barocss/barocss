@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pricing — Notely</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #1a1d24;
+    --card-hover: #20242d;
+    --text: #e8eaed;
+    --muted: #9aa0ac;
+    --accent: #6c8cff;
+    --accent-hover: #5a7bff;
+    --border: #2a2e38;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 64px 24px 96px; }
+  header { text-align: center; margin-bottom: 56px; }
+  header h1 { font-size: 2.6rem; letter-spacing: -0.02em; margin-bottom: 12px; }
+  header p { color: var(--muted); font-size: 1.1rem; }
+
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 28px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px;
+  }
+  .toggle button {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .toggle button.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  .save-badge {
+    font-size: 0.75rem;
+    color: #7ee0a8;
+    font-weight: 600;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .card:hover { transform: translateY(-4px); border-color: #3a3f4c; }
+  .card.featured {
+    border-color: var(--accent);
+    position: relative;
+    box-shadow: 0 12px 40px rgba(108,140,255,0.18);
+  }
+  .tag {
+    position: absolute;
+    top: -13px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 999px;
+  }
+  .plan-name { font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+  .plan-desc { color: var(--muted); font-size: 0.9rem; min-height: 40px; }
+  .price { margin: 22px 0 6px; display: flex; align-items: baseline; gap: 4px; }
+  .price .amount { font-size: 2.6rem; font-weight: 800; letter-spacing: -0.03em; }
+  .price .period { color: var(--muted); font-size: 0.95rem; }
+  .price-note { color: var(--muted); font-size: 0.8rem; min-height: 18px; }
+
+  .cta {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin: 26px 0;
+    padding: 13px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    transition: all 0.2s;
+  }
+  .cta:hover { background: var(--card-hover); }
+  .cta.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .cta.primary:hover { background: var(--accent-hover); }
+
+  ul.features { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  ul.features li { display: flex; gap: 10px; font-size: 0.9rem; color: #cfd3db; }
+  ul.features li svg { flex-shrink: 0; margin-top: 3px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 64px; }
+
+  @media (max-width: 820px) {
+    .grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+    header h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Pricing that scales with your ideas</h1>
+      <p>Capture, organize, and share your notes. Start free, upgrade anytime.</p>
+      <div class="toggle" role="group" aria-label="Billing period">
+        <button id="monthlyBtn" class="active" onclick="setBilling('monthly')">Monthly</button>
+        <button id="yearlyBtn" onclick="setBilling('yearly')">Yearly <span class="save-badge">–20%</span></button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Free -->
+      <div class="card">
+        <div class="plan-name">Free</div>
+        <div class="plan-desc">For personal notes and getting started.</div>
+        <div class="price">
+          <span class="amount">$0</span>
+          <span class="period">/mo</span>
+        </div>
+        <div class="price-note">Free forever</div>
+        <a class="cta" href="#">Get started</a>
+        <ul class="features">
+          <li>Up to 100 notes</li>
+          <li>2 notebooks</li>
+          <li>Markdown editor</li>
+          <li>Sync on 1 device</li>
+          <li>Community support</li>
+        </ul>
+      </div>
+
+      <!-- Pro -->
+      <div class="card featured">
+        <span class="tag">Most popular</span>
+        <div class="plan-name">Pro</div>
+        <div class="plan-desc">For power users who live in their notes.</div>
+        <div class="price">
+          <span class="amount" data-monthly="$8" data-yearly="$6">$8</span>
+          <span class="period">/mo</span>
+        </div>
+        <div class="price-note" data-monthly="Billed monthly" data-yearly="Billed annually ($72/yr)">Billed monthly</div>
+        <a class="cta primary" href="#">Start free trial</a>
+        <ul class="features">
+          <li>Unlimited notes &amp; notebooks</li>
+          <li>Sync across all devices</li>
+          <li>Version history (30 days)</li>
+          <li>Offline access</li>
+          <li>AI note summaries</li>
+          <li>Priority email support</li>
+        </ul>
+      </div>
+
+      <!-- Team -->
+      <div class="card">
+        <div class="plan-name">Team</div>
+        <div class="plan-desc">For teams that build a shared knowledge base.</div>
+        <div class="price">
+          <span class="amount" data-monthly="$15" data-yearly="$12">$15</span>
+          <span class="period">/user/mo</span>
+        </div>
+        <div class="price-note" data-monthly="Billed monthly" data-yearly="Billed annually ($144/user/yr)">Billed monthly</div>
+        <a class="cta" href="#">Contact sales</a>
+        <ul class="features">
+          <li>Everything in Pro</li>
+          <li>Shared team workspaces</li>
+          <li>Real-time collaboration</li>
+          <li>Admin &amp; roles control</li>
+          <li>Version history (unlimited)</li>
+          <li>SSO &amp; SCIM provisioning</li>
+        </ul>
+      </div>
+    </div>
+
+    <footer>
+      All plans include a 14-day money-back guarantee. Prices in USD.
+    </footer>
+  </div>
+
+  <script>
+    function setBilling(period) {
+      document.getElementById('monthlyBtn').classList.toggle('active', period === 'monthly');
+      document.getElementById('yearlyBtn').classList.toggle('active', period === 'yearly');
+      document.querySelectorAll('[data-monthly]').forEach(function (el) {
+        el.textContent = el.getAttribute('data-' + period);
+      });
+    }
+  </script>
+</body>
+</html>
