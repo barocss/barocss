@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility } from "../core/registry";
+import { staticUtility, functionalUtility, themeKeyVar } from "../core/registry";
 import { decl } from "../core/ast";
 import {
   parseFractionOrNumber,
@@ -315,12 +315,12 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsFraction: true,
-  handleBareValue: ({ value }) => {
+  handleBareValue: ({ value, ctx }) => {
     if (parseNumber(value)) {
       return `calc(var(--spacing) * ${value})`;
     }
     if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
-    return null;
+    return themeKeyVar(ctx, 'container', value, 'container'); // #300: max-w-<any theme.container key>
   },
   description: 'max-width utility (spacing, fraction, arbitrary, custom property, static supported)',
   category: 'sizing',
@@ -354,11 +354,12 @@ functionalUtility({
       supportsArbitrary: true,
       supportsCustomProperty: true,
       supportsFraction: true,
-      handleBareValue: ({ value, token }) => {
+      handleBareValue: ({ value, token, ctx }) => {
         if (token.negative) return null; // Tailwind 4.3.3 has no negative inline/block sizes
         if (parseNumber(value)) return `calc(var(--spacing) * ${value})`;
         if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
-        return null;
+        // #300: the inline families also take any theme.container key, like their built-in container names.
+        return name.includes('inline') ? themeKeyVar(ctx, 'container', value, 'container') : null;
       },
       description: `${prop} utility (spacing, fraction, arbitrary, custom property, keywords)`,
       category: 'sizing',

@@ -160,15 +160,13 @@ theme: {
   extend: {
     colors: { brand: '#2563eb', 'brand-foreground': '#ffffff', surface: 'oklch(0.98 0 0)' },
     spacing: { gutter: '1.5rem', section: '6rem' },         // p-gutter, py-section, gap-gutter
-    borderRadius: { lg: '0.75rem' },                         // overrides the existing rounded-lg
-    fontFamily: { sans: ['"Inter Variable"', 'sans-serif'] }, // overrides the existing font-sans
+    borderRadius: { lg: '0.75rem', card: '1.25rem' },        // overrides rounded-lg; adds rounded-card, rounded-t-card
+    fontFamily: { sans: ['"Inter Variable"', 'sans-serif'], display: ['"Fraunces"', 'serif'] }, // font-sans, font-display
+    boxShadow: { card: '0 2px 8px rgb(0 0 0 / 0.12)' },       // shadow-card (with shadow-<color> and /<alpha>)
+    fontSize: { hero: ['4rem', { lineHeight: '1.1' }] },      // text-hero
   },
-},
-utilities: {
-  'rounded-card': { 'border-radius': '0.75rem' },            // new radius / font names: use utilities
-  'font-display': { 'font-family': '"Fraunces", serif' },
 },
 ```
 
-- New names work for `colors` and `spacing`. For `borderRadius` and `fontFamily`, override the existing keys (`sm` … `4xl`, `sans`/`serif`/`mono`); new names such as `rounded-card` or `font-display` don't resolve from the theme, so declare them in `utilities`.
+- New names work in every theme namespace, as in Tailwind 4 (`--radius-card` gives `rounded-card`): `colors`, `spacing`, `borderRadius`, `fontFamily`, `fontWeight`, `fontSize`, `boxShadow`, `insetShadow`, `dropShadow`, `textShadow`, `blur`, `transitionTimingFunction`, `animations`, `aspect`, `container` (`max-w-*`, `@<name>:`), `lineHeight`, `letterSpacing` and `breakpoints`. A name that isn't in the theme emits nothing.
 - Don't point theme values at the build's own variable names (`var(--color-brand)`, `var(--tw-…)`). `skip` recognises and leaves those alone, but whether a given var reaches the page depends on the build (`@theme inline` doesn't emit them). Literal values always render.

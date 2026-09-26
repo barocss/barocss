@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility } from "../core/registry";
+import { staticUtility, functionalUtility, themeKeyVar } from "../core/registry";
 import { atRoot, atRule, decl, property, rule } from "../core/ast";
 import { parseNumber, parseLength, parseColor, themeColorDecls } from "../core/utils";
 
@@ -49,11 +49,11 @@ staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'border
     name: name as string,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handleBareValue: ({ value }) => {
+    handleBareValue: ({ value, ctx }) => {
       if (parseNumber(value)) {
         return `calc(var(--spacing) * ${value})`;
       }
-      return null;
+      return themeKeyVar(ctx, "borderRadius", value, "radius"); // #300: rounded-t-card
     },
     handle: (value) => propList.map(prop => decl(prop, value)),
     description: `${name} utility (spacing, arbitrary, custom property support)`,
@@ -68,11 +68,11 @@ functionalUtility({
   prop: "border-radius",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => {
+  handleBareValue: ({ value, ctx }) => {
     if (parseNumber(value)) {
       return `calc(var(--spacing) * ${value})`;
     }
-    return null;
+    return themeKeyVar(ctx, "borderRadius", value, "radius"); // #300: rounded-card → var(--radius-card)
   },
   description: "border-radius utility (spacing, arbitrary, custom property support)",
   category: "borders",

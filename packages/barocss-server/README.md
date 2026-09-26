@@ -94,8 +94,8 @@ const config = {
   theme: { extend: {                        // your own theme: literal values, not var(--build-vars)
     colors: { brand: '#2563eb' },
     spacing: { gutter: '1.5rem' },          // named spacing: p-gutter
-    borderRadius: { lg: '0.75rem' },        // override existing keys; new radius/font names go in utilities
-    fontFamily: { sans: ['Inter', 'sans-serif'] },
+    borderRadius: { lg: '0.75rem', card: '1.25rem' }, // override rounded-lg; new keys work too: rounded-card
+    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Fraunces', 'serif'] }, // font-display
   } },
   utilities: { 'max-w-app': { 'max-width': '48rem', 'margin-inline': 'auto' } }, // static @utility rules; `@utility name-*` unsupported
 };
