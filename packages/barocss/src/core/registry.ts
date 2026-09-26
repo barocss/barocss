@@ -470,7 +470,7 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
 
       // 1. Arbitrary value - already parsed in parser.ts
       if (opts.supportsArbitrary && parsedUtility.arbitrary) {
-        const processedValue = finalValue.replace(/_/g, ' ');
+        const processedValue = normalizeMathSpacing(finalValue.replace(/_/g, ' '));
         // console.log('[functionalUtility] arbitrary', { processedValue });
         // 7. handle (custom AST generation)
         if (opts.handle) {
@@ -552,6 +552,12 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
         if (bare == null) return [];
         finalValue = bare;
       }
+      // A non-numeric bare value that no theme key or bare-value validator accepted is unknown (#213):
+      // Tailwind emits nothing for it (`text-balanc`, `bg-notacolor`, `border-foo`), so don't pass it
+      // through to handle()/prop as a raw CSS value. Numeric values stay with handle() to validate.
+      else if (!/^-?(\d|\.\d)/.test(String(finalValue))) {
+        return [];
+      }
       // 7. handle (custom AST generation)
       if (opts.handle) {
         // console.log('[functionalUtility] handle', { finalValue });
@@ -571,4 +577,44 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
     category: opts.category,
     priority: opts.priority,
   }, ctx);
+}
+
+const MATH_FNS = new Set(['calc', 'min', 'max', 'clamp']);
+
+/**
+ * Add Tailwind-style spacing inside calc()/min()/max()/clamp():
+ * `calc(100%-2rem)` -> `calc(100% - 2rem)`. Leaves nested non-math functions
+ * (var(--x-y)), unary signs and exponents (1e-3) alone.
+ */
+export function normalizeMathSpacing(value: string): string {
+  if (!/(calc|min|max|clamp)\(/.test(value)) return value;
+  const stack: boolean[] = [];
+  let out = '';
+  for (let i = 0; i < value.length; i++) {
+    const ch = value[i];
+    if (ch === '(') {
+      const name = (/([a-z-]*)$/i.exec(out)?.[1] ?? '').toLowerCase();
+      const inMath = stack.length > 0 && stack[stack.length - 1];
+      stack.push(MATH_FNS.has(name) || (name === '' && inMath));
+      out += ch;
+      continue;
+    }
+    if (ch === ')') { stack.pop(); out += ch; continue; }
+    const inMath = stack.length > 0 && stack[stack.length - 1];
+    if (!inMath) { out += ch; continue; }
+    if (ch === ',') { out = out.trimEnd() + ', '; while (value[i + 1] === ' ') i++; continue; }
+    if ('+-*/'.includes(ch)) {
+      const prev = out.trimEnd();
+      const p = prev[prev.length - 1] ?? '';
+      const binary = /[\w%)]/.test(p);
+      const exponent = (ch === '+' || ch === '-') && /\de$/i.test(prev) && prev.length === out.length && /\d/.test(value[i + 1] ?? '');
+      if (binary && !exponent) {
+        out = prev + ' ' + ch + ' ';
+        while (value[i + 1] === ' ') i++;
+        continue;
+      }
+    }
+    out += ch;
+  }
+  return out;
 }

@@ -25,4 +25,14 @@ describe('ServerRuntime', () => {
     expect(css.match(/@property --baro-translate-x/g)).toHaveLength(1);
     expect(css.match(/@property --baro-translate-y/g)).toHaveLength(1);
   });
+
+  it('defines every theme colour var its standalone output references (#228)', () => {
+    const css = new ServerRuntime({ theme: { extend: { colors: { brand: '#ff3366' } } } })
+      .generateCss('bg-red-500 text-blue-500/50 border-red-500 bg-brand');
+    const refs = [...css.matchAll(/var\((--color-[\w-]+)/g)].map((m) => m[1]);
+    expect(refs.length).toBeGreaterThan(0);
+    for (const name of refs) expect(css).toMatch(new RegExp(`${name}:\\s*[^;]+;`));
+    expect(css).toContain('--color-brand: #ff3366;');
+    expect(css).not.toContain('--color-green-500');
+  });
 });

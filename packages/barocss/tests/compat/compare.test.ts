@@ -9,8 +9,10 @@ import { fixtures } from './fixtures';
 const tailwindInput = `
 @theme inline {
   --spacing: 0.25rem;
-  --color-red-500: #ef4444;
   --breakpoint-md: 48rem;
+}
+@theme {
+  --color-red-500: #ef4444;
 }
 @tailwind utilities;
 `;
@@ -42,6 +44,8 @@ function normalizeCss(css: string): CssNode[] {
   };
   return postcss.parse(css).nodes
     .filter((node) => node.type !== 'comment')
+    // The theme-variable block (Tailwind's :root, :host) is emitted separately by BaroCSS's theme converter.
+    .filter((node) => !(node.type === 'rule' && node.selector === ':root, :host'))
     .map(normalizeNode);
 }
 
@@ -77,8 +81,9 @@ describe('Tailwind CSS 4.1.13 output comparison', () => {
 
   it('uses current color and defined shadow fallbacks for inset rings', async () => {
     const { baroCss } = await compare('inset-ring-2');
-    expect(baroCss).toContain('--baro-inset-ring-color: currentcolor;');
-    expect(baroCss).toContain('var(--baro-inset-shadow, 0 0 #0000)');
+    expect(baroCss).toContain('var(--baro-inset-ring-color, currentcolor)');
+    expect(baroCss).toContain('--baro-inset-shadow');
+    expect(baroCss).toContain('initial-value: 0 0 #0000');
     expect(baroCss).not.toContain('rgb(59 130 246 / 0.5)');
   });
 

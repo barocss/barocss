@@ -10,7 +10,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:hover",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -25,7 +25,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:hover",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -33,21 +33,21 @@ describe("basic variants", () => {
   });
 
   it("group-hover:bg-red-500 → .group:hover & { ... }", () => {
-    expect(parseClassToAst("group-hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("group-hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
         selector: "&:is(:where(.group):hover *)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
 
   it("peer-hover:bg-red-500 → .peer:hover ~ & { ... }", () => {
-    expect(parseClassToAst("peer-hover:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("peer-hover:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
-        selector: "&:is(:where(.peer):hover~*)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        selector: "&:is(:where(.peer):hover ~ *)",
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -57,7 +57,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: '&[aria-pressed="true"]',
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -69,7 +69,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: '&[aria-pressed="false"]',
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -77,9 +77,9 @@ describe("basic variants", () => {
   it("[&>*]:bg-red-500 → &>* { ... }", () => {
     expect(parseClassToAst("[&>*]:bg-red-500", ctx)).toMatchObject([
       {
-        type: "style-rule",
+        type: "rule",
         selector: "&>*",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -89,13 +89,13 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:not(:hover)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
 
   it("group-hover:focus:bg-red-500 → .group:hover &:focus { ... }", () => {
-    expect(parseClassToAst("group-hover:focus:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("group-hover:focus:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
         selector: "&:is(:where(.group):hover *)",
@@ -103,7 +103,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:focus",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -116,7 +116,7 @@ describe("basic variants", () => {
         type: "at-rule",
         name: "media",
         params: "(min-width: 768px)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -131,7 +131,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:hover",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -143,7 +143,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:disabled",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -153,7 +153,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:checked",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -163,7 +163,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:required",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -173,7 +173,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:invalid",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -183,7 +183,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:first-child",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -193,7 +193,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:last-child",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -203,7 +203,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:only-child",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -213,7 +213,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:nth-child(even)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -223,7 +223,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:nth-child(odd)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -233,7 +233,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:first-of-type",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -243,7 +243,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:last-of-type",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -253,7 +253,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:only-of-type",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -263,7 +263,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:empty",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -273,7 +273,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:not(:hover)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -283,7 +283,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:not(:checked)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -293,7 +293,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:not(:disabled)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -303,7 +303,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:not([open])",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -315,7 +315,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: '&[aria-expanded="true"]',
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -325,7 +325,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: '&[data-state="open"]',
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -335,7 +335,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&[open]",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -345,7 +345,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&[dir=rtl]",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -353,15 +353,15 @@ describe("basic variants", () => {
   it("[&>*]:bg-red-500 → &>* { ... }", () => {
     expect(parseClassToAst("[&>*]:bg-red-500", ctx)).toMatchObject([
       {
-        type: "style-rule",
+        type: "rule",
         selector: "&>*",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
 
   it("group-hover:focus:bg-red-500 → .group:hover &:focus { ... }", () => {
-    expect(parseClassToAst("group-hover:focus:bg-red-500", ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia("group-hover:focus:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
         selector: "&:is(:where(.group):hover *)",
@@ -369,7 +369,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:focus",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -386,7 +386,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:hover",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -400,7 +400,7 @@ describe("basic variants", () => {
         type: "rule",
         selector: "&::before",
         nodes: [
-          { type: "decl", prop: "background-color", value: "#f00" },
+          { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
           { type: "decl", prop: "content", value: "var(--baro-content)" },
         ],
       },
@@ -414,7 +414,7 @@ describe("basic variants", () => {
         type: "rule",
         selector: "&::after",
         nodes: [
-          { type: "decl", prop: "background-color", value: "#f00" },
+          { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
           { type: "decl", prop: "content", value: "var(--baro-content)" },
         ],
       },
@@ -426,22 +426,22 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&::placeholder",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
       {
         type: "rule",
         selector: "&::-webkit-input-placeholder",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
       {
         type: "rule",
         selector: "&::-moz-placeholder",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
       {
         type: "rule",
         selector: "&:-ms-input-placeholder",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -451,12 +451,12 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&::selection",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
       {
         type: "rule",
         selector: "&::-moz-selection",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -466,22 +466,22 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&::marker",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
       {
         type: "rule",
         selector: "&::-webkit-details-marker",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
       {
         type: "rule",
         selector: "&::-moz-list-bullet",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
       {
         type: "rule",
         selector: "&::-moz-list-number",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -502,7 +502,7 @@ describe("basic variants", () => {
                 type: "rule",
                 selector: "&:hover",
                 nodes: [
-                  { type: "decl", prop: "background-color", value: "#f00" },
+                  { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
                 ],
               },
             ],
@@ -514,7 +514,7 @@ describe("basic variants", () => {
 
   it("group-hover:not-disabled:bg-red-500 → .group:hover &:not(:disabled) { ... }", () => {
     expect(
-      parseClassToAst("group-hover:not-disabled:bg-red-500", ctx)
+      parseWithoutHoverMedia("group-hover:not-disabled:bg-red-500", ctx)
     ).toMatchObject([
       {
         type: "rule",
@@ -523,7 +523,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:not(:disabled)",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -541,7 +541,7 @@ describe("basic variants", () => {
               type: "rule",
               selector: "&:focus",
               nodes: [
-                { type: "decl", prop: "background-color", value: "#f00" },
+                { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
               ],
             },
           ],
@@ -567,7 +567,7 @@ describe("basic variants", () => {
                 type: "rule",
                 selector: "&:focus",
                 nodes: [
-                  { type: "decl", prop: "background-color", value: "#f00" },
+                  { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
                 ],
               },
             ],
@@ -589,7 +589,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: '&[aria-expanded="true"]',
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -604,9 +604,9 @@ describe("basic variants", () => {
         params: "(min-width: 640px)",
         nodes: [
           {
-            type: "style-rule",
+            type: "rule",
             selector: "&>*",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -618,7 +618,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:enabled",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -628,7 +628,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:indeterminate",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -638,7 +638,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:default",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -648,7 +648,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:optional",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -658,7 +658,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:valid",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -668,7 +668,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:user-valid",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -678,7 +678,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:user-invalid",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -688,7 +688,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:in-range",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -698,7 +698,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:out-of-range",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -708,7 +708,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:placeholder-shown",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -718,7 +718,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:autofill",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -728,7 +728,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:read-only",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -738,7 +738,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&::details-content",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -748,7 +748,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&::first-line",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -758,7 +758,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&::first-letter",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -768,7 +768,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&::backdrop",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -778,12 +778,12 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&::file-selector-button",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
       {
         type: "rule",
         selector: "&::-webkit-file-upload-button",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -798,7 +798,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:hover",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -817,7 +817,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:hover",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -834,7 +834,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:hover",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -851,7 +851,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:hover",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -868,7 +868,7 @@ describe("basic variants", () => {
           {
             type: "rule",
             selector: "&:hover",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ],
       },
@@ -881,7 +881,7 @@ describe("basic variants", () => {
         type: "at-rule",
         name: "media",
         params: "(min-width: 1536px)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -891,7 +891,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&[dir=rtl]",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -901,7 +901,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&[dir=ltr]",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -911,7 +911,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&[inert]",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -921,7 +921,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:is([open], :popover-open, :open)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -931,7 +931,7 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&:not([open])",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -944,7 +944,7 @@ describe("basic variants", () => {
         type: "at-rule",
         name: "media",
         params: "(prefers-contrast: more)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -957,7 +957,7 @@ describe("basic variants", () => {
         type: "at-rule",
         name: "media",
         params: "(prefers-contrast: less)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -968,7 +968,7 @@ describe("basic variants", () => {
         type: "at-rule",
         name: "media",
         params: "(forced-colors: active)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -979,7 +979,7 @@ describe("basic variants", () => {
         type: "at-rule",
         name: "media",
         params: "(pointer: coarse)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -990,7 +990,7 @@ describe("basic variants", () => {
         type: "at-rule",
         name: "media",
         params: "(pointer: fine)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -1002,7 +1002,7 @@ describe("basic variants", () => {
           type: "at-rule",
           name: "media",
           params: "(any-pointer: coarse)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]
     );
@@ -1014,7 +1014,7 @@ describe("basic variants", () => {
         type: "at-rule",
         name: "media",
         params: "(any-pointer: fine)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });
@@ -1027,7 +1027,7 @@ describe("basic variants", () => {
         type: "at-rule",
         name: "supports",
         params: "(display:grid)",
-        nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
   });

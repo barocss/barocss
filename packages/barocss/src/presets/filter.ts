@@ -34,6 +34,7 @@ const filters = () => {
     filters()
   ], { category: 'effects' });
 });
+staticUtility("blur", [decl("--baro-blur", "blur(8px)"), filters()], { category: 'effects' });
 staticUtility("blur-none", [decl("--baro-blur", ""), filters()], { category: 'effects' });
 
 functionalUtility({

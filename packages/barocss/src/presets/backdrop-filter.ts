@@ -50,6 +50,7 @@ functionalUtility({
     { category: "effects" }
   );
 });
+staticUtility("backdrop-blur", [decl("--baro-backdrop-blur", "blur(8px)"), ...filters()], { category: "effects" });
 staticUtility(
   "backdrop-blur-none",
   [decl("--baro-backdrop-blur", ""), ...filters()],

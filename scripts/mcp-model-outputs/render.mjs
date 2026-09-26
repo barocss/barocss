@@ -12,8 +12,8 @@ const require = createRequire(path.join(ROOT, 'packages/barocss/package.json'));
 const { compile } = require('tailwindcss');
 const twDir = path.dirname(require.resolve('tailwindcss/package.json'));
 const { chromium } = createRequire(path.join(process.env.PW_DIR, 'node_modules/'))('playwright-core');
-const PORT = 5520, CDN = `http://127.0.0.1:${PORT + 1}`;
-const BARO = path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs');
+const PORT = Number(process.env.PROBE_PORT || 5520), CDN = `http://127.0.0.1:${PORT + 1}`;
+const BARO = process.env.BARO_UMD || path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs');
 const TWB = path.join(process.env.TWB_DIR, 'dist/index.global.js');
 const CSP = `default-src 'none'; script-src 'unsafe-inline' ${CDN}; style-src 'unsafe-inline' ${CDN}; img-src data: ${CDN}; font-src ${CDN}; connect-src ${CDN}`;
 const HEAD = { a: '', b: `<script src="${CDN}/baro.js"></script><script src="${CDN}/baro-boot.js"></script>`, c: `<script src="${CDN}/twb.js"></script>` };
@@ -62,7 +62,7 @@ parent.postMessage({probe:1,sig:s,props:P,v:__v,h:document.documentElement.scrol
 await new Promise((r) => srv.listen(PORT, '127.0.0.1', r)); await new Promise((r) => cdn.listen(PORT + 1, '127.0.0.1', r));
 const browser = await chromium.launch({ executablePath: process.env.CHROME });
 fs.mkdirSync(path.join(H, 'shots'), { recursive: true });
-const out = {};
+const out = {}; const sigs = {}; // #215: SIG_OUT=<file> dumps per-arm signatures and skips result.json/shots
 for (const id of ids) {
   const c = classify(src(id)); const arms = {}; const shots = {};
   for (const arm of ['a', 'b', 'c']) {
@@ -72,6 +72,7 @@ for (const id of ids) {
     shots[arm] = await page.locator('#f').screenshot({ type: 'png', scale: 'css', clip: undefined }).catch(() => null);
     arms[arm] = r; await page.close();
   }
+  sigs[id] = { props: arms.a?.props, a: arms.a?.sig, b: arms.b?.sig, c: arms.c?.sig };
   const res = { a: { violations: arms.a?.v } };
   for (const arm of ['b', 'c']) {
     const A = arms.a?.sig, B = arms[arm]?.sig; let same = 0, all = 0; const diffs = [];
@@ -79,9 +80,10 @@ for (const id of ids) {
     res[arm] = { parityVsA: all ? same / all : null, elements: B?.length, diffs, violations: arms[arm]?.v };
   }
   const differ = ['b', 'c'].some((a) => res[a].parityVsA !== 1);
-  if (differ) for (const arm of ['a', 'b', 'c']) if (shots[arm]) fs.writeFileSync(path.join(H, 'shots', `${id}-${arm}.png`), shots[arm]);
+  if (differ && !process.env.SIG_OUT) for (const arm of ['a', 'b', 'c']) if (shots[arm]) fs.writeFileSync(path.join(H, 'shots', `${id}-${arm}.png`), shots[arm]);
   out[id] = { ...c, arms: res, armsDiffer: differ };
   console.log(id, c.approach, c.classTokens + '(' + c.utilityTokens + ')', c.external.length ? 'CDN' : '-', 'b=' + res.b.parityVsA?.toFixed(3), 'c=' + res.c.parityVsA?.toFixed(3), JSON.stringify(res.b.diffs.slice(0, 2)), JSON.stringify(res.c.diffs.slice(0, 2)), (arms.a?.v || []).join('|'));
 }
 await browser.close(); srv.close(); cdn.close();
-fs.writeFileSync(path.join(H, 'result.json'), JSON.stringify(out, null, 1));
+if (process.env.SIG_OUT) fs.writeFileSync(process.env.SIG_OUT, JSON.stringify(sigs));
+else fs.writeFileSync(path.join(H, 'result.json'), JSON.stringify(out, null, 1));

@@ -1,3 +1,4 @@
+import { functionalArgument } from "./utils";
 import { functionalModifier } from "../../core/registry";
 
 // --- Standard aria and not- variants ---
@@ -46,7 +47,7 @@ functionalModifier(
       } else {
         // Otherwise, treat as a selector
         return {
-          selector: `&:not(${inner})`,
+          selector: `&:not(${functionalArgument(inner)})`,
           source: 'attribute'
         };
       }

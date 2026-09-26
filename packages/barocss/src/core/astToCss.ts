@@ -1,5 +1,11 @@
+import { debugWarn } from "../utils/debug";
 import { type AstNode } from "./ast";
 import { escapeClassName } from "./registry";
+import { isStructureSafeValue } from "./parser";
+
+// #224 defensive layer: a declaration whose property or value could end or open a block is dropped.
+const isSafeDecl = (prop: unknown, value: unknown): boolean =>
+  isStructureSafeValue(String(prop)) && isStructureSafeValue(String(value ?? ""));
 
 const importantPrefix = "!important";
 
@@ -25,8 +31,7 @@ function astToCss(
 
   // Debug logging for empty AST
   if (!ast || ast.length === 0) {
-    // eslint-disable-next-line no-console
-    console.warn('[astToCss] Empty AST received:', { ast, baseSelector, minify });
+    debugWarn('[astToCss] Empty AST received:', { ast, baseSelector, minify });
     return '';
   }
 
@@ -76,6 +81,7 @@ function astToCss(
         case "decl": {
           // Handle CSS property declaration (e.g., color: red;)
           const value = node.value;
+          if (!isSafeDecl(node.prop, value)) return "";
           // node.important is absent; ignore
           if (node.prop.startsWith("--")) {
             // Handle CSS custom property (e.g., --primary-color: #007bff;)
@@ -215,8 +221,7 @@ function astToCss(
           // Handle raw CSS code (output as-is)
           return `${indent}${node.value}`;
         default:
-          // eslint-disable-next-line no-console
-          console.warn('[astToCss] Unknown node type:', node);
+          debugWarn('[astToCss] Unknown node type:', node);
           return "";
       }
     })
@@ -228,8 +233,7 @@ function astToCss(
   
   // Debug logging for empty result
   if (!finalResult || finalResult.trim() === '') {
-    // eslint-disable-next-line no-console
-    console.warn('[astToCss] Empty result generated:', { 
+    debugWarn('[astToCss] Empty result generated:', { 
       ast, 
       baseSelector, 
       minify, 
@@ -249,13 +253,13 @@ function rootToCss(nodes: AstNode[]): string {
       const list: string[] = [];
 
       if (node.type === "decl") {
-        list.push(`${node.prop}: ${node.value};`);
+        if (isSafeDecl(node.prop, node.value)) list.push(`${node.prop}: ${node.value};`);
       } else if (node.type === "at-rule") {
         // console.log("[rootToCss] at-rule", node);
         list.push(`@${node.name} ${node.params} {
 ${node.nodes.map((node) => {
   // console.log("[rootToCss] node", node);
-  if (node.type === "decl") {
+  if (node.type === "decl" && isSafeDecl(node.prop, node.value)) {
     return `\t${node.prop}: ${node.value};`;
   }
 })

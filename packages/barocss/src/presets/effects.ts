@@ -20,6 +20,8 @@ const ringShadowProperties = () =>
     property("--baro-inset-ring-shadow", "0 0 #0000"),
     property("--baro-ring-offset-shadow", "0 0 #0000"),
     property("--baro-ring-shadow", "0 0 #0000"),
+    property("--baro-ring-offset-width", "0px", "<length>"),
+    property("--baro-ring-offset-color", "#fff"),
   ]);
 
 // A plain shadow layer (shadow-sm, shadow-[...], shadow-(--x)): sets --baro-shadow and the composite box-shadow.
@@ -48,44 +50,21 @@ const shadowLayer = (value: string) => [
   ], { category: 'effects' });
 });
 
-// Static inset shadow levels
+// Static inset shadow levels: Tailwind 4.1.13 literals for 2xs/xs/sm (md..2xl are BaroCSS extensions).
 [
-  [
-    "inset-shadow-2xs",
-    "inset 0 1px 2px var(--baro-inset-shadow-color, #0000000d)",
-  ],
-  [
-    "inset-shadow-xs",
-    "inset 0 2px 4px var(--baro-inset-shadow-color, #0000000d)",
-  ],
-  [
-    "inset-shadow-sm",
-    "inset 0 2px 4px var(--baro-inset-shadow-color, #0000000d)",
-  ],
-  [
-    "inset-shadow-md",
-    "inset 0 4px 6px -1px var(--baro-inset-shadow-color, #0000000d)",
-  ],
-  [
-    "inset-shadow-lg",
-    "inset 0 10px 15px -3px var(--baro-inset-shadow-color, #0000000d)",
-  ],
-  [
-    "inset-shadow-xl",
-    "inset 0 20px 25px -5px var(--baro-inset-shadow-color, #0000000d)",
-  ],
-  [
-    "inset-shadow-2xl",
-    "inset 0 25px 50px -12px var(--baro-inset-shadow-color, #0000000d)",
-  ],
+  ["inset-shadow-2xs", "inset 0 1px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
+  ["inset-shadow-xs", "inset 0 1px 1px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
+  ["inset-shadow-sm", "inset 0 2px 4px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
+  ["inset-shadow-md", "inset 0 4px 6px -1px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
+  ["inset-shadow-lg", "inset 0 10px 15px -3px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
+  ["inset-shadow-xl", "inset 0 20px 25px -5px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
+  ["inset-shadow-2xl", "inset 0 25px 50px -12px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
   ["inset-shadow-none", "0 0 #0000"],
 ].forEach(([name, value]) => {
   staticUtility(name as string, [
+    ringShadowProperties,
     ["--baro-inset-shadow", value as string],
-    [
-      "box-shadow",
-      "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
-    ],
+    ["box-shadow", SHADOW_COMPOSITE],
   ], { category: 'effects' });
 });
 
@@ -260,21 +239,23 @@ functionalUtility({
 ].forEach(([name, px]) => {
   staticUtility(name as string, [
     ringShadowProperties,
-    ["--baro-ring-inset", ""],
-    ["--baro-ring-offset-width", "0px"],
-    ["--baro-ring-offset-color", "#fff"],
+    // Like Tailwind, ring-N does not set the offset vars (they come from @property defaults and ring-offset-*),
+    // so `ring-N ring-offset-M` composes the same in either rule order.
     // No hardcoded ring color: Tailwind v4's default ring color is currentColor (via the var() fallback below).
     [
       "--baro-ring-shadow",
-      `var(--baro-ring-inset) 0 0 0 calc(${px} + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)`,
+      ringShadowValue(px as string),
     ],
-    ["--baro-ring-offset-shadow", `0 0 #0000`],
     [
       "box-shadow",
       "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
     ],
   ]);
 });
+
+function ringShadowValue(width: string) {
+  return `var(--baro-ring-inset,) 0 0 0 calc(${width} + var(--baro-ring-offset-width)) var(--baro-ring-color, currentcolor)`;
+}
 
 // Ring offset width utilities (ring-offset-<n>). Matches Tailwind's .ring-offset-N: sets the offset width and the
 // offset shadow; it renders a visible offset ring only when combined with a ring-* utility, exactly like Tailwind.
@@ -305,20 +286,11 @@ functionalUtility({
   ["inset-ring-8", "8px"],
 ].forEach(([name, px]) => {
   staticUtility(name as string, [
-    ["--baro-ring-inset", "inset"],
-    ["--baro-ring-offset-width", "0px"],
-    ["--baro-ring-offset-color", "#fff"],
-    ["--baro-inset-ring-color", "currentcolor"],
-    [
-      "--baro-inset-ring-shadow",
-      `var(--baro-ring-inset) 0 0 0 calc(${px} + var(--baro-ring-offset-width)) var(--baro-inset-ring-color, currentcolor)`,
-    ],
-    ["--baro-ring-offset-shadow", `0 0 #0000`],
-    [
-      "box-shadow",
-      "var(--baro-inset-shadow, 0 0 #0000), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow, 0 0 #0000), var(--baro-ring-shadow, 0 0 #0000), var(--baro-shadow, 0 0 #0000)",
-    ],
-  ]);
+    // Tailwind 4.1.13: only the inset-ring layer; the colour defaults to currentcolor via the var() fallback.
+    ringShadowProperties,
+    ["--baro-inset-ring-shadow", `inset 0 0 0 ${px} var(--baro-inset-ring-color, currentcolor)`],
+    ["box-shadow", SHADOW_COMPOSITE],
+  ], { category: 'effects' });
 });
 
 // Ring inset
@@ -405,7 +377,16 @@ functionalUtility({
         ];
       }
 
-      return [decl("box-shadow", main)];
+      // ring-[3px]: an arbitrary length is a ring width (Tailwind's ring-[<length>]); anything else is a colour.
+      if (!parseColor(main) && /^(-?(\d+\.?\d*|\.\d+)(px|rem|em|%|vw|vh|vmin|vmax|ch|ex|pt|cm|mm|in|pc)|0|(length:.+)|calc\(.+\))$/i.test(main)) {
+        const width = main.startsWith("length:") ? main.slice(7) : main;
+        return [
+          ringShadowProperties(),
+          decl("--baro-ring-shadow", ringShadowValue(width)),
+          decl("box-shadow", SHADOW_COMPOSITE),
+        ];
+      }
+      return [parseColor(main) ? decl("--baro-ring-color", main) : decl("box-shadow", main)];
     }
     if (main === "inherit" || main === "current" || main === "transparent") {
       return [
@@ -698,6 +679,7 @@ functionalUtility({
   category: "effects",
 });
 
+staticUtility("mask-none", [["mask-image", "none"]], { category: "effects" });
 functionalUtility({
   name: "mask",
   supportsArbitrary: true,

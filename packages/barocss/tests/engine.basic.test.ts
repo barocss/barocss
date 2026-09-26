@@ -27,7 +27,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('basic utility', () => {
     expect(generateCss('bg-red-500', ctx)).toBe(
       `.bg-red-500 {
-  background-color: #ef4444;
+  background-color: var(--color-red-500);
 }
 `
     );
@@ -38,7 +38,7 @@ describe('parseClassToAst (end-to-end)', () => {
       `@media (min-width: 640px) {
   @media (hover: hover) {
     .sm\\:hover\\:bg-red-500:hover {
-      background-color: #ef4444;
+      background-color: var(--color-red-500);
     }
   }
 }
@@ -48,8 +48,10 @@ describe('parseClassToAst (end-to-end)', () => {
 
   it('group-hover + focus', () => {
     expect(generateCss('group-hover:focus:bg-blue-500', ctx)).toBe(
-      `.group-hover\\:focus\\:bg-blue-500:is(:where(.group):hover *):focus {
-  background-color: #3b82f6;
+      `@media (hover: hover) {
+  .group-hover\\:focus\\:bg-blue-500:is(:where(.group):hover *):focus {
+    background-color: var(--color-blue-500);
+  }
 }
 `
     );
@@ -67,7 +69,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('custom property', () => {
     expect(generateCss('bg-(--my-bg)', ctx)).toBe(
       `.bg-\\(--my-bg\\) {
-  background-size: var(--my-bg);
+  background-color: var(--my-bg);
 }
 `
     );
@@ -98,8 +100,10 @@ describe('parseClassToAst (end-to-end)', () => {
   it('complex: sm:group-hover:bg-[red]', () => {
     expect(generateCss('sm:group-hover:bg-[red]', ctx)).toBe(
       `@media (min-width: 640px) {
-  .sm\\:group-hover\\:bg-\\[red\\]:is(:where(.group):hover *) {
-    background-color: red;
+  @media (hover: hover) {
+    .sm\\:group-hover\\:bg-\\[red\\]:is(:where(.group):hover *) {
+      background-color: red;
+    }
   }
 }
 `
@@ -121,7 +125,7 @@ describe('parseClassToAst (end-to-end)', () => {
     const classList = 'bg-red-500 text-lg hover:bg-blue-500';
     expect(generateCss(classList, ctx)).toBe(
       `.bg-red-500 {
-  background-color: #ef4444;
+  background-color: var(--color-red-500);
 }
 
 .text-lg {
@@ -131,7 +135,7 @@ describe('parseClassToAst (end-to-end)', () => {
 
 @media (hover: hover) {
   .hover\\:bg-blue-500:hover {
-    background-color: #3b82f6;
+    background-color: var(--color-blue-500);
   }
 }
 `
@@ -142,7 +146,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('md:focus:bg-yellow-500', ctx)).toBe(
       `@media (min-width: 768px) {
   .md\\:focus\\:bg-yellow-500:focus {
-    background-color: #eab308;
+    background-color: var(--color-yellow-500);
   }
 }
 `
@@ -152,7 +156,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('complex arbitrary value', () => {
     expect(generateCss('w-[calc(100%-2rem)]', ctx)).toBe(
       `.w-\\[calc\\(100\\%-2rem\\)\\] {
-  width: calc(100%-2rem);
+  width: calc(100% - 2rem);
 }
 `
     );
@@ -170,7 +174,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('dark:focus:bg-yellow-500', ctx)).toBe(
       `@media (prefers-color-scheme: dark) {
   .dark\\:focus\\:bg-yellow-500:focus {
-    background-color: #eab308;
+    background-color: var(--color-yellow-500);
   }
 }
 `
@@ -180,7 +184,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('peer-checked + text', () => {
     expect(generateCss('peer-checked:text-green-500', ctx)).toBe(
       `.peer-checked\\:text-green-500:is(:where(.peer):checked~*) {
-  color: #22c55e;
+  color: var(--color-green-500);
 }
 `
     );
@@ -198,7 +202,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('keeps important per class in generateCssRules', () => {
     const [importantRule, regularRule] = generateCssRules('!bg-[red] bg-blue-500', ctx);
     expect(importantRule.css).toContain('background-color: red !important;');
-    expect(regularRule.css).toContain('background-color: #3b82f6;');
+    expect(regularRule.css).toContain('background-color: var(--color-blue-500);');
     expect(regularRule.css).not.toContain('!important');
   });
 
@@ -224,7 +228,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(css.match(/@property --baro-gradient-from \{/g)).toHaveLength(1);
     expect(css).toMatch(/^@property --baro-gradient-position \{/);
     expect(css).not.toContain(':root,:host {@property');
-    expect(css).toContain('background-color: #3b82f6;');
+    expect(css).toContain('background-color: var(--color-blue-500);');
   });
 
   it('does not emit CSS for an unsupported container orientation variant', () => {
@@ -269,7 +273,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('group-[.foo]:bg-red-500', () => {
     expect(generateCss('group-[.foo]:bg-red-500', ctx)).toBe(
       `.group-\\[\\.foo\\]\\:bg-red-500:is(:where(.group):is(.foo) *) {
-  background-color: #ef4444;
+  background-color: var(--color-red-500);
 }
 `
     );
@@ -336,7 +340,7 @@ describe('variant chain engine', () => {
         selector: '&:hover',
         nodes: [
           { type: 'rule', selector: '&:focus', nodes: [
-            { type: 'decl', prop: 'background-color', value: '#f00' }
+            { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' }
           ]}
         ]
       }
@@ -344,13 +348,13 @@ describe('variant chain engine', () => {
   });
 
   it('group-hover:*:bg-red-500 → &:is(:where(.group):hover > *)', () => {
-    expect(parseClassToAst('group-hover:*:bg-red-500', ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia('group-hover:*:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
         selector: '&:is(:where(.group):hover *)',
         nodes: [
-          { type: 'style-rule', selector: ':is(.group-hover\\:\\*\\:bg-red-500 > *)', nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' }
+          { type: 'rule', selector: ':is(& > *)', nodes: [
+              { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' }
           ]},
         ]
       }
@@ -363,7 +367,7 @@ describe('variant chain engine', () => {
         type: 'rule',
         selector: '&:hover',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' }
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' }
         ]
       }
     ]);

@@ -66,6 +66,7 @@ for (const csp of CSPS) for (const arm of ARMS) {
     dynamicSig: rs[0]?.dynamicSig,
   });
 }
-fs.writeFileSync(path.join(HERE, 'result.json'), JSON.stringify({ runs: RUNS, sections: SECTIONS, summary, raw: raw.map(({ finalSig, ...r }) => r) }, null, 1));
+if (process.env.SIG_OUT) fs.writeFileSync(process.env.SIG_OUT, JSON.stringify(raw)); // #215: full signatures for A/B diffs
+if (!process.env.SIG_OUT) fs.writeFileSync(path.join(HERE, 'result.json'), JSON.stringify({ runs: RUNS, sections: SECTIONS, summary, raw: raw.map(({ finalSig, ...r }) => r) }, null, 1));
 for (const s of summary) console.log([s.csp, s.arm, s.parity == null ? '-' : (s.parity * 100).toFixed(1) + '%', s.timeToFinalStyledMs == null ? '-' : Math.round(s.timeToFinalStyledMs) + 'ms',
   'dyn ' + s.dynamicStyled, s.dynamicMs == null ? '' : Math.round(s.dynamicMs) + 'ms', 'dyn=twb ' + s.dynamicMatchesTwb, s.bytes ? s.bytes.join('/') + 'B' : '', 'err ' + s.errors, s.violations.join(' | ')].join('  '));

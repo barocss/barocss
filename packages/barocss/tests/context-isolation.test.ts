@@ -13,9 +13,9 @@ describe('context isolation', () => {
     const first = createContext({ theme: { colors: { brand: '#123456' } }, clearCacheOnContextChange: false });
     const second = createContext({ theme: { colors: { brand: '#abcdef' } }, clearCacheOnContextChange: false });
 
-    expect(generateCss('bg-brand', first)).toContain('#123456');
-    expect(generateCss('bg-brand', second)).toContain('#abcdef');
-    expect(generateCss('bg-brand', first)).toContain('#123456');
+    expect(generateCss('bg-brand/50', first)).toContain('#123456');
+    expect(generateCss('bg-brand/50', second)).toContain('#abcdef');
+    expect(generateCss('bg-brand/50', first)).toContain('#123456');
   });
 
   it('does not carry a failed lookup into another context', () => {
@@ -95,10 +95,10 @@ describe('context isolation', () => {
 
   it('refreshes generated CSS after extending a theme', () => {
     const ctx = createContext({ theme: { colors: { brand: '#123456' } } });
-    expect(generateCss('bg-brand', ctx)).toContain('#123456');
+    expect(generateCss('bg-brand/50', ctx)).toContain('#123456');
 
     ctx.extendTheme('colors', { brand: '#abcdef' });
-    expect(generateCss('bg-brand', ctx)).toContain('#abcdef');
+    expect(generateCss('bg-brand/50', ctx)).toContain('#abcdef');
   });
 
   it('keeps modifiers local to a context', () => {

@@ -1,29 +1,17 @@
-import { functionalModifier, escapeClassName } from "../../core/registry";
+import { functionalModifier } from "../../core/registry";
 
 // --- Universal selector variants ( 4.x style, supports chaining/:is wrapping) ---
 functionalModifier(
   (mod) => mod === '*',
-  ({ selector, fullClassName, variantChain }) => {
-    const isSingle = !variantChain || variantChain.length === 1;
-    return {
-      selector: `:is(.${escapeClassName(fullClassName)} > *)`,
-      flatten: true,
-      wrappingType: isSingle ? 'rule' : 'style-rule',
-      source: 'universal'
-    };
+  () => {
+    // Tailwind: `:is(.cls > *)` — the direct children, not the element itself.
+    return { selector: ':is(& > *)', wrappingType: 'rule', source: 'universal' };
   },
   undefined,
 );
 
 functionalModifier(
   (mod) => mod === '**',
-  ({ selector, fullClassName }) => {
-    return {
-      selector: `:is(.${escapeClassName(fullClassName)} *)`,
-      flatten: false,
-      wrappingType: 'style-rule',
-      source: 'universal'
-    };
-  },
+  () => ({ selector: ':is(& *)', wrappingType: 'rule', source: 'universal' }),
   undefined,
 ); 

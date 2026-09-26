@@ -211,7 +211,7 @@ describe("preset flexbox-grid utilities", () => {
     ]);
     // arbitrary
     expect(parseClassToAst("order-[min(var(--total-items),10)]", ctx)).toEqual([
-      { type: "decl", prop: "order", value: "min(var(--total-items),10)" },
+      { type: "decl", prop: "order", value: "min(var(--total-items), 10)" },
     ]);
     // custom property
     expect(parseClassToAst("order-(--my-order)", ctx)).toEqual([

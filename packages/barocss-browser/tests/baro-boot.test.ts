@@ -55,3 +55,31 @@ describe('baroBoot', () => {
     }
   });
 });
+
+describe('config with a shared runtime (#214)', () => {
+  const config = { theme: { extend: { colors: { brand: '#123456' } } } };
+
+  it('applies config when getRuntime() ran before baroStart({ config })', () => {
+    const early = getRuntime();
+    try {
+      baroBoot({ config });
+      const runtime = getRuntime();
+      expect(runtime).toBe(early);
+      runtime.addClass('bg-brand/50');
+      expect(runtime.getCss('bg-brand/50')).toContain('#123456');
+    } finally {
+      getRuntime().destroy();
+    }
+  });
+
+  it('keeps config when baroStart({ config }) runs before getRuntime()', () => {
+    try {
+      baroBoot({ config });
+      const runtime = getRuntime();
+      runtime.addClass('bg-brand/50');
+      expect(runtime.getCss('bg-brand/50')).toContain('#123456');
+    } finally {
+      getRuntime().destroy();
+    }
+  });
+});

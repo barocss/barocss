@@ -18,23 +18,23 @@ describe("preset typography utilities", () => {
 
   describe("typography utilities", () => {
     // Font Family
-    it("font-sans → font-family: var(--font-family-sans)", () => {
+    it("font-sans → font-family: var(--font-sans)", () => {
       expect(parseClassToAst("font-sans", ctx)).toEqual([
-        { type: "decl", prop: "font-family", value: "var(--font-family-sans)" },
+        { type: "decl", prop: "font-family", value: "var(--font-sans)" },
       ]);
     });
-    it("font-serif → font-family: var(--font-family-serif)", () => {
+    it("font-serif → font-family: var(--font-serif)", () => {
       expect(parseClassToAst("font-serif", ctx)).toEqual([
         {
           type: "decl",
           prop: "font-family",
-          value: "var(--font-family-serif)",
+          value: "var(--font-serif)",
         },
       ]);
     });
-    it("font-mono → font-family: var(--font-family-mono)", () => {
+    it("font-mono → font-family: var(--font-mono)", () => {
       expect(parseClassToAst("font-mono", ctx)).toEqual([
-        { type: "decl", prop: "font-family", value: "var(--font-family-mono)" },
+        { type: "decl", prop: "font-family", value: "var(--font-mono)" },
       ]);
     });
     it("font-[system-ui] → font-family: system-ui", () => {
@@ -121,19 +121,13 @@ describe("preset typography utilities", () => {
     });
     it("text-red-500/75 → color: color-mix(in lab, red-500 75%, transparent)", () => {
       expect(parseClassToAst("text-red-500/75", ctx)).toMatchObject([
+        { type: "decl", prop: "color", value: "color-mix(in srgb, #f00 75%, transparent)" },
         {
           type: "at-rule",
           name: "supports",
           params: "(color:color-mix(in lab, red, red))",
-          nodes: [
-            {
-              type: "decl",
-              prop: "color",
-              value: "color-mix(in lab, #f00 75%, transparent)",
-            },
-          ],
+          nodes: [{ type: "decl", prop: "color", value: "color-mix(in oklab, var(--color-red-500) 75%, transparent)" }],
         },
-        { type: "decl", prop: "color", value: "color-mix(in lab, #f00 75%, transparent)" },
       ]);
     });
 
@@ -440,13 +434,13 @@ describe("preset typography utilities", () => {
 
     it("decoration-red-500/75 → text-decoration-color: color-mix(in lab, red-500 75%, transparent)", () => {
       expect(parseClassToAst("decoration-red-500/75", ctx)).toEqual([
+        { type: "decl", prop: "text-decoration-color", value: "color-mix(in srgb, #f00 75%, transparent)" },
         {
           type: "at-rule",
           name: "supports",
           params: "(color:color-mix(in lab, red, red))",
-          nodes: [{ type: "decl", prop: "text-decoration-color", value: "color-mix(in lab, #f00 75%, transparent)" }],
+          nodes: [{ type: "decl", prop: "text-decoration-color", value: "color-mix(in oklab, var(--color-red-500) 75%, transparent)" }],
         },
-        { type: "decl", prop: "text-decoration-color", value: "#f00" },
       ]);
     });
 

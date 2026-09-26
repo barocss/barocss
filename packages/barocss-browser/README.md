@@ -51,6 +51,21 @@ document.body.innerHTML = `
 `;
 ```
 
+### Preload classes from json-render
+
+Call the preloader after validating the response and before mounting the renderer:
+
+```typescript
+import { BrowserRuntime, preloadJsonRenderClasses } from '@barocss/browser';
+
+const runtime = new BrowserRuntime();
+const spec = validateResponse(response); // Your catalog and class allowlist checks
+preloadJsonRenderClasses(spec, runtime);
+renderJsonUi(spec); // Mount your json-render Renderer here
+```
+
+The helper reads literal `props.className` strings in the flat `spec.elements` map. It splits class lists, removes duplicates, and calls `runtime.addClass` synchronously. It does not return a CSS readiness result. The application must validate the spec, response size, class allowlist, class support, and runtime state before this call. The helper reads every entry, including nodes that the renderer may not mount. State-derived classes and classes added inside registered components need a separate source of classes.
+
 ### CDN Usage
 
 ```html
@@ -167,6 +182,10 @@ runtime.clearCaches();
 
 ## 🔧 Configuration
 
+`getRuntime()` / `baroStart()` share one runtime. Passing a `config` when that runtime
+already exists applies it with `updateConfig` (replacing the whole config), so calling
+`getRuntime()` before `baroStart({ config })` does not lose the config.
+
 ### Runtime Options
 
 ```typescript
@@ -271,3 +290,29 @@ This project is licensed under the MIT License - see the [LICENSE](../../LICENSE
 ---
 
 **@barocss/browser** - Real-time CSS generation for browsers.
+
+## BaroCSS next to a shadcn build
+
+A shadcn app built with Tailwind 4 can make the runtime use its theme without a duplicate JS config:
+
+```js
+import { baroStart, shadcnTheme } from '@barocss/browser';
+
+baroStart({ config: { theme: { extend: shadcnTheme } } });
+```
+
+`shadcnTheme` maps the shadcn colours (`background`, `primary`, `muted-foreground`, `border`, `ring`, `chart-1..5`, `sidebar-*`, ...) and `rounded-sm/md/lg/xl` to the raw `:root` variables (`var(--primary)`, `calc(var(--radius) - 2px)`). It does not use `--color-*`, because `@theme inline` doesn't emit those to the page. Opacity modifiers such as `bg-primary/90` work. It expects full colour values in `:root`, as shadcn v4 ships them (e.g. `--primary: oklch(0.205 0 0)`). Older shadcn v3 themes that store bare HSL channels (`--primary: 222 47% 11%`) won't resolve through `var(--primary)`; map those tokens to `hsl(var(--primary))` in your own `theme.extend` instead.
+
+Custom tokens (for example `--brand`) are not included. Add them yourself: `theme: { extend: { ...shadcnTheme, colors: { ...shadcnTheme.colors, brand: 'var(--brand)' } } }`.
+
+## BaroCSS next to a Tailwind build (companion mode)
+
+When the page already links a Tailwind 4 build and the runtime only fills in classes the build did not see, set `cssVarPrefix: 'tw'` so the runtime writes its composite variables with the build's names (`--tw-shadow`, `--tw-ring-shadow`, `--tw-translate-x`, `--tw-skew-x`, `--tw-blur`, `--tw-border-style`, ...):
+
+```js
+baroStart({ skipExisting: true, config: { cssVarPrefix: 'tw' } });
+```
+
+The rename applies to every `--baro-` name in the generated CSS, including `--baro-*` names you write in your own arbitrary or custom-property values.
+
+A build class and a runtime class on one element then compose: build `ring-2` + runtime `shadow-md` gives both layers, build `translate-x-2` + runtime `translate-y-4` gives `8px 16px`, build `border-dashed` + runtime `border-2` stays dashed. Without it the runtime uses `--baro-*` names, and the two halves overwrite each other. Leave it unset when there is no Tailwind build. Gradient stops (`from-*`/`via-*`/`to-*` with `bg-linear-*`) do not yet follow Tailwind's variable protocol, so mixing them between build and runtime is not supported.

@@ -69,7 +69,10 @@ function effectiveBoxShadow(css: string, base: Scope): string | undefined {
   return boxShadow === undefined ? undefined : normalize(resolve(boxShadow, scope));
 }
 
-const combos = ['shadow-sm ring-1', 'shadow-md ring-2 ring-offset-2', 'shadow ring', 'ring-1 shadow-sm', 'shadow-none ring-2'];
+const combos = ['shadow-sm ring-1', 'shadow-md ring-2 ring-offset-2', 'shadow ring', 'ring-1 shadow-sm', 'shadow-none ring-2',
+  // #225: arbitrary ring width, ring offset in either class order, inset shadow scale, inset ring defaults.
+  'ring-[3px]', 'focus-visible:ring-[3px]', 'ring-[#ff0000] ring-2', 'ring-2 ring-offset-2', 'ring-offset-2 ring-2',
+  'inset-shadow-2xs', 'inset-shadow-xs', 'inset-shadow-sm', 'inset-ring-2', 'inset-ring-2 ring-2'];
 
 describe('shadow-* + ring-* compose like Tailwind 4.1.13 (#205)', async () => {
   const require = createRequire(import.meta.url);

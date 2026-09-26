@@ -1,3 +1,4 @@
+import { debugLog, debugWarn } from "../utils/debug";
 import { HasItems, HasName, HasParams, HasSelector, type AstNode, type HasNodes } from "./ast";
 import { parseClassName } from "./parser";
 import { astCache, parseResultCache } from "../utils/cache";
@@ -6,6 +7,7 @@ import { Context } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
 import { clearAllCaches } from "../utils/cache";
 import { clearContextCaches, getContextState } from './contextState';
+import { applyVarPrefix } from "./cssVars";
 
 // Failure cache for invalid class names
 const failureCache = new Set<string>();
@@ -292,25 +294,23 @@ export function parseClassToAst(
   // console.log('[parseClassToAst] modifiers', modifiers, utility);
 
   if (!utility) {
-    // eslint-disable-next-line no-console
-    console.warn(`[BAROCSS] Invalid class name format: "${fullClassName}"`);
+    debugWarn(`[BAROCSS] Invalid class name format: "${fullClassName}"`);
     failures.add(fullClassName);
     return [];
   }
 
-  const utilReg = getUtility(ctx).find((u) => {
+  const utilRegs = getUtility(ctx).filter((u) => {
     const fullClassName = utility.value
       ? `${utility.prefix}-${utility.value}`
       : utility.prefix;
     return u.match(fullClassName);
   });
   // console.log('[parseClassToAst] utilReg', utilReg);
-  if (!utilReg) {
+  if (utilRegs.length === 0) {
     const utilityName = utility.value
       ? `${utility.prefix}-${utility.value}`
       : utility.prefix;
-    // eslint-disable-next-line no-console
-    console.warn(`[BAROCSS] Unknown utility class: "${utilityName}" in "${fullClassName}"`);
+    debugWarn(`[BAROCSS] Unknown utility class: "${utilityName}" in "${fullClassName}"`);
     failures.add(fullClassName);
     return [];
   }
@@ -318,7 +318,14 @@ export function parseClassToAst(
   let value = utility.value;
   if (utility.negative && value) value = "-" + value;
   // console.log('[parseClassToAst] value', value, utility);
-  let ast = utilReg.handler(value!, ctx, utility, utilReg) || [];
+  // Several registrations can match one class (e.g. functional `text-*` and static `text-balance`, or
+  // `transform` for custom properties and for arbitrary values). The first one that produces a rule wins;
+  // a registration that rejects the value (empty result) falls through to the next (#213).
+  let ast: AstNode[] = [];
+  for (const utilReg of utilRegs) {
+    ast = utilReg.handler(value!, ctx, utility, utilReg) || [];
+    if (ast.length > 0) break;
+  }
 
   // console.log('[parseClassToAst] ast', ast);
 
@@ -331,8 +338,7 @@ export function parseClassToAst(
     const plugin = getModifier(ctx).find((p) => p.match(variant.type, ctx));
 
     if (!plugin) {
-      // eslint-disable-next-line no-console
-      console.warn(`[BAROCSS] Unknown variant: "${variant.type}" in "${fullClassName}"`);
+      debugWarn(`[BAROCSS] Unknown variant: "${variant.type}" in "${fullClassName}"`);
       failures.add(fullClassName);
       return [];
     }
@@ -436,7 +442,7 @@ export function parseClassToAst(
 
   extractAtRootNodes(ast, undefined, atRootNodes);
 
-  ast = [...atRootNodes, ...ast].filter(Boolean);
+  ast = applyVarPrefix([...atRootNodes, ...ast].filter(Boolean), ctx);
 
   // console.log("[parseClassToAst] ast", ast);
   // Cache the result
@@ -518,8 +524,7 @@ export function generateCss(
 
       // Debug logging for empty CSS
       if (!result || result.trim() === "") {
-        // eslint-disable-next-line no-console
-        console.warn("[generateCss] Empty CSS generated for class:", {
+        debugWarn("[generateCss] Empty CSS generated for class:", {
           class: cls,
           ast: cleanAst,
           hasStyleRule,
@@ -544,14 +549,12 @@ export function generateCss(
   ].join(opts?.minify ? "" : "\n");
 
   if (allAtRootNodes.length > 0) {
-    // eslint-disable-next-line no-console
-    console.log("[generateCss] All collected atRoot nodes:", allAtRootNodes);
+    debugLog("[generateCss] All collected atRoot nodes:", allAtRootNodes);
   }
 
   // Debug logging for final result
   if (!results || results.trim() === "") {
-    // eslint-disable-next-line no-console
-    console.warn("[generateCss] Empty final result:", {
+    debugWarn("[generateCss] Empty final result:", {
       classList,
       results,
       allAtRootNodes,

@@ -1,3 +1,4 @@
+import { parseNumber } from "../core/utils";
 import { staticUtility, functionalUtility } from "../core/registry";
 import { decl, rule } from "../core/ast";
 
@@ -19,7 +20,7 @@ import { decl, rule } from "../core/ast";
     prop,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
+    handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
     description: `${name} utility (number, arbitrary, custom property supported)`,
     category: "spacing",
   });
@@ -46,8 +47,8 @@ import { decl, rule } from "../core/ast";
     supportsNegative: true,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
-    handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
+    handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
+    handleNegativeBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * -${value})` : null),
     description: `${name} margin utility (number, negative, arbitrary, custom property, auto, px supported)`,
     category: "spacing",
   });
@@ -93,8 +94,8 @@ functionalUtility({
   supportsNegative: true,
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
-  handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
+  handleNegativeBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * -${value})` : null),
   handle: (value, ctx, token) => {
     let v = value;
     if (typeof v === "number" || /^-?\d+(\.\d+)?$/.test(v)) {
@@ -163,8 +164,8 @@ functionalUtility({
   supportsNegative: true,
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
-  handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
+  handleNegativeBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * -${value})` : null),
   handle: (value, ctx, token) => {
     let v = value;
     if (typeof v === "number" || /^-?\d+(\.\d+)?$/.test(v)) {

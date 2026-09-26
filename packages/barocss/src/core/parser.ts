@@ -127,6 +127,21 @@ function parseTokens(tokens: Token[], ctx?: Context): { modifiers: ParsedModifie
     return { modifiers, utility: null };
   }
   
+  // #220: every token but the utility is a variant; one that could end or widen the selector rejects the class.
+  if (tokens.length > 1) {
+    const utilityIndex = isUtilityPrefix(tokens[0].value, ctx) ? 0 : tokens.length - 1;
+    if (tokens.some((t, i) => i !== utilityIndex && !isSafeVariantToken(t.value))) {
+      return { modifiers, utility: null };
+    }
+  }
+
+  // #224: the utility token carries the arbitrary / custom-property value that is pasted into a declaration;
+  // one that could end or open a declaration, block or rule rejects the class (no rule).
+  const utilityToken = tokens.length > 1 && !isUtilityPrefix(tokens[0].value, ctx) ? tokens[tokens.length - 1] : tokens[0];
+  if (!isStructureSafeValue(utilityToken.value)) {
+    return { modifiers, utility: null };
+  }
+
   // Determine token types and parse in both directions
   if (tokens.length === 1) {
     // utility only
@@ -169,6 +184,58 @@ function parseTokens(tokens: Token[], ctx?: Context): { modifiers: ParsedModifie
     }
   }
   return { modifiers, utility };
+}
+
+/**
+ * A variant token is pasted into a selector (or at-rule prelude), so it must not be able to end it or add a
+ * member to the selector list. Rejects, outside quotes: unbalanced or mismatched ()/[], a quote left open,
+ * `{`, `}`, `;`, and a `,` that is not inside parentheses (`:is(a,b)` stays valid, `[&,x]` does not).
+ */
+// Variants that paste their whole `[...]` value inside a functional pseudo-class (`:has(…)`, `:not(…)`), so a comma
+// in the value can only ever separate that pseudo-class's arguments, never members of the generated selector list.
+const FUNCTIONAL_VALUE_VARIANT = /^-?(?:(?:group|peer)-)?(?:has|not)-\[(.*)\](?:\/[\w-]+)?$/;
+
+/**
+ * #221: isSafeVariantValue for a whole variant token, except that has-[…]/not-[…] (optionally group-/peer-) may
+ * carry a comma at the top level of their bracket value: those variants wrap the value in `:has()`/`:not()`.
+ * The value itself must still be balanced and free of `{`, `}` and `;`, so it cannot close the pseudo-class.
+ */
+export function isSafeVariantToken(value: string): boolean {
+  const m = FUNCTIONAL_VALUE_VARIANT.exec(value);
+  if (m) return isSafeVariantValue(m[1], true);
+  return isSafeVariantValue(value);
+}
+
+/**
+ * #224: true when a utility value (or a whole utility token) cannot change the structure of the declaration block it
+ * is pasted into. Rejects, outside quotes: `{`, `}`, `;`, unbalanced or mismatched ()/[], and a quote left open.
+ * Commas are allowed (values are not selector lists), so this is isSafeVariantValue with top-level commas allowed.
+ */
+export function isStructureSafeValue(value: string): boolean {
+  return isSafeVariantValue(value, true);
+}
+
+export function isSafeVariantValue(value: string, allowTopLevelComma = false): boolean {
+  const stack: string[] = [];
+  let quote = '';
+  let parenDepth = 0;
+  for (let i = 0; i < value.length; i++) {
+    const c = value[i];
+    if (c === '\\') { i++; continue; }
+    if (quote) { if (c === quote) quote = ''; continue; }
+    switch (c) {
+      case '"': case "'": quote = c; break;
+      case '(': stack.push(')'); parenDepth++; break;
+      case '[': stack.push(']'); break;
+      case ')': case ']':
+        if (stack.pop() !== c) return false;
+        if (c === ')') parenDepth--;
+        break;
+      case '{': case '}': case ';': return false;
+      case ',': if (parenDepth === 0 && !allowTopLevelComma) return false; break;
+    }
+  }
+  return stack.length === 0 && !quote;
 }
 
 /**

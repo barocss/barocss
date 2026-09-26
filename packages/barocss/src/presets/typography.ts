@@ -1,14 +1,14 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRule, decl } from "../core/ast";
-import {
+import { decl } from "../core/ast";
+import { themeColorDecls,
   parseNumber,
   parseLength,
 } from "../core/utils";
 
 // --- Typography: Font Family ---
-staticUtility("font-sans", [["font-family", "var(--font-family-sans)"]], { category: 'typography' });
-staticUtility("font-serif", [["font-family", "var(--font-family-serif)"]], { category: 'typography' });
-staticUtility("font-mono", [["font-family", "var(--font-family-mono)"]], { category: 'typography' });
+staticUtility("font-sans", [["font-family", "var(--font-sans)"]], { category: 'typography' });
+staticUtility("font-serif", [["font-family", "var(--font-serif)"]], { category: 'typography' });
+staticUtility("font-mono", [["font-family", "var(--font-mono)"]], { category: 'typography' });
 
 // --- Typography: Font Size ---
 staticUtility("text-xs", [["font-size", "var(--text-xs)"], ["line-height", "var(--text-xs--line-height)"]], { category: 'typography' });
@@ -124,18 +124,7 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
-    if (extra?.realThemeValue) {
-      if (extra.opacity) {
-        return [
-          atRule("supports", `(color:color-mix(in lab, red, red))`, [
-            decl("color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-          ]),
-          decl("color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-        ];
-      }
-
-      return [decl("color", value)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("color", value, extra);
 
     if (parseLength(value)) {
       return [decl("font-size", value)];
@@ -312,17 +301,7 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
-    if (extra?.realThemeValue) {
-      if (extra.opacity) {
-        return [
-          atRule("supports", `(color:color-mix(in lab, red, red))`, [
-            decl("text-decoration-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-          ]),
-          decl("text-decoration-color", value),
-        ];
-      }
-      return [decl("text-decoration-color", value)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("text-decoration-color", value, extra);
     return [decl("text-decoration-color", value)];
   },
   handleCustomProperty: (value) => [decl("text-decoration-color", `var(${value})`)],
@@ -351,7 +330,7 @@ functionalUtility({
   prop: "text-decoration-thickness",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => `${value}px`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `${value}px` : null),
   description: "text-decoration-thickness utility (arbitrary, custom property supported)",
   category: "typography",
 });
@@ -369,7 +348,7 @@ functionalUtility({
   prop: "text-underline-offset",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => `${value}px`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `${value}px` : null),
   description: "text-underline-offset utility (arbitrary, custom property supported)",
   category: "typography",
 });
@@ -387,8 +366,8 @@ functionalUtility({
   supportsNegative: true,
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
-  handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
+  handleNegativeBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * -${value})` : null),
   description: "text-indent utility (spacing, negative, arbitrary, custom property supported)",
   category: "typography",
 });

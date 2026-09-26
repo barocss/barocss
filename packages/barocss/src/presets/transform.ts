@@ -9,6 +9,7 @@ import { parseFractionOrNumber, parseNumber } from "../core/utils";
 const ROTATE_SKEW =
   "var(--baro-rotate-x,) var(--baro-rotate-y,) var(--baro-rotate-z,) var(--baro-skew-x,) var(--baro-skew-y,)";
 const rotateAxis = (axis: string, fn: string) => [decl(`--baro-rotate-${axis}`, fn), decl("transform", ROTATE_SKEW)];
+const skewAxis = (axis: string, fn: string) => [decl(`--baro-skew-${axis}`, fn), decl("transform", ROTATE_SKEW)];
 
 const scaleProperties = () =>
   atRoot([
@@ -434,12 +435,12 @@ functionalUtility({
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("transform", `skewX(${sign}${deg})`)];
+      return skewAxis("x", `skewX(${sign}${deg})`);
     }
     // skew-x-[3.142rad] → transform: skewX(3.142rad)
-    return [decl("transform", `skewX(${value})`)];
+    return skewAxis("x", `skewX(${value})`);
   },
-  handleCustomProperty: (value) => [decl("transform", `skewX(var(${value}))`)],
+  handleCustomProperty: (value) => skewAxis("x", `skewX(var(${value}))`),
   description: "skew-x utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -457,12 +458,12 @@ functionalUtility({
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("transform", `skewY(${sign}${deg})`)];
+      return skewAxis("y", `skewY(${sign}${deg})`);
     }
     // skew-y-[3.142rad] → transform: skewY(3.142rad)
-    return [decl("transform", `skewY(${value})`)];
+    return skewAxis("y", `skewY(${value})`);
   },
-  handleCustomProperty: (value) => [decl("transform", `skewY(var(${value}))`)],
+  handleCustomProperty: (value) => skewAxis("y", `skewY(var(${value}))`),
   description: "skew-y utility (named, arbitrary, custom property supported)",
   category: "transform",
 });
@@ -480,13 +481,15 @@ functionalUtility({
     if (parseNumber(value) || negative) {
       const deg = `${Math.abs(Number(value))}deg`;
       const sign = negative || String(value).startsWith("-") ? "-" : "";
-      return [decl("transform", `skewX(${sign}${deg}) skewY(${sign}${deg})`)];
+      return [decl("--baro-skew-x", `skewX(${sign}${deg})`), decl("--baro-skew-y", `skewY(${sign}${deg})`), decl("transform", ROTATE_SKEW)];
     }
     // skew-[3.142rad] → transform: skewX(3.142rad) skewY(3.142rad)
-    return [decl("transform", `skewX(${value}) skewY(${value})`)];
+    return [decl("--baro-skew-x", `skewX(${value})`), decl("--baro-skew-y", `skewY(${value})`), decl("transform", ROTATE_SKEW)];
   },
   handleCustomProperty: (value) => [
-    decl("transform", `skewX(var(${value})) skewY(var(${value}))`),
+    decl("--baro-skew-x", `skewX(var(${value}))`),
+    decl("--baro-skew-y", `skewY(var(${value}))`),
+    decl("transform", ROTATE_SKEW),
   ],
   description: "skew utility (named, arbitrary, custom property supported)",
   category: "transform",

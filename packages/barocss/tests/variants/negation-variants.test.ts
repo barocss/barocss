@@ -1,3 +1,4 @@
+import { parseWithoutHoverMedia } from '../hover-media-test-utils';
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
 import { parseClassToAst } from "../../src/core/engine";
@@ -10,7 +11,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not(:hover)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -20,7 +21,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not([open])",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -31,14 +32,14 @@ describe("negation variants", () => {
           {
             type: "rule",
             selector: "&:not([aria-pressed=true])",
-            nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+            nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           },
         ]
       );
     });
 
     it("group-hover:not-hover:bg-red-500 → .group:hover &:not(:hover) { ... }", () => {
-      expect(parseClassToAst("group-hover:not-hover:bg-red-500", ctx)).toMatchObject([
+      expect(parseWithoutHoverMedia("group-hover:not-hover:bg-red-500", ctx)).toMatchObject([
         {
           type: "rule",
           selector: "&:is(:where(.group):hover *)",
@@ -46,7 +47,7 @@ describe("negation variants", () => {
             {
               type: "rule",
               selector: "&:not(:hover)",
-              nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+              nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
             },
           ],
         },
@@ -60,7 +61,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not(:focus)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -70,7 +71,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not([dir=rtl])",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -80,7 +81,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not(.foo)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -90,7 +91,7 @@ describe("negation variants", () => {
         {
           type: "rule",
           selector: "&:not(.foo>.bar)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -104,7 +105,7 @@ describe("negation variants", () => {
             {
               type: "rule",
               selector: "&:focus",
-              nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+              nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
             },
           ],
         },
@@ -121,7 +122,7 @@ describe("negation variants", () => {
               type: "rule",
               selector: "&:not(:focus)",
               nodes: [
-                { type: "decl", prop: "background-color", value: "#f00" },
+                { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
               ],
             },
           ],

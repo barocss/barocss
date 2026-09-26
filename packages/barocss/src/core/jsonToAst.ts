@@ -1,8 +1,10 @@
+import { debugWarn } from "../utils/debug";
 import { AstNode } from "./ast";
 import { Context } from "./context";
 import { getModifier, getUtility } from "./registry";
-import { ParsedUtility, ParsedModifier } from "./parser";
+import { ParsedUtility, ParsedModifier, isSafeVariantValue, isSafeVariantToken } from "./parser";
 import { astToCss, rootToCss } from "./astToCss";
+import { applyVarPrefix } from "./cssVars";
 import { optimizeAst } from "./engine";
 
 /**
@@ -104,6 +106,15 @@ export type BaroVariant = {
  * @returns AstNode[]
  */
 export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
+    // #220: variant names and values are pasted into selectors; one that could end or widen the selector
+    // rejects the whole input, as the class-name path does.
+    const unsafeVariant = (input.variants || []).some((v) =>
+        typeof v === "string"
+            ? !isSafeVariantToken(v)
+            : !isSafeVariantValue(v.name || "") || !isSafeVariantValue(v.value || "")
+    );
+    if (unsafeVariant) return [];
+
     // 1. Find Utility Handler
     // Try to find exact match first (e.g. 'text-center' from { name: 'text', value: 'center' })
     let utilReg = getUtility(ctx).find((u) => u.name === input.utility.name);
@@ -119,8 +130,7 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
     }
 
     if (!utilReg) {
-        // eslint-disable-next-line no-console
-        console.warn(`[jsonToAst] Unknown utility: "${input.utility.name}"`);
+        debugWarn(`[jsonToAst] Unknown utility: "${input.utility.name}"`);
         return [];
     }
 
@@ -210,8 +220,7 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
             const plugin = getModifier(ctx).find((p) => p.match(matchKey, ctx));
 
             if (!plugin) {
-                // eslint-disable-next-line no-console
-                console.warn(`[jsonToAst] Unknown variant: "${matchKey}"`);
+                debugWarn(`[jsonToAst] Unknown variant: "${matchKey}"`);
                 continue;
             }
 
@@ -307,7 +316,8 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
         }
     }
 
-    return ast;
+    // Same cssVarPrefix semantics as the class path (#222): the configured prefix renames --baro-* composites.
+    return applyVarPrefix(ast, ctx);
 }
 
 /**
