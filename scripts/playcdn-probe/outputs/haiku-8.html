@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechConf 2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        header {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-bottom: 4px solid #667eea;
+        }
+        
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        section {
+            background: white;
+            margin-bottom: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        section h2 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            font-size: 2em;
+            margin-bottom: 0;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .speakers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .speaker {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+        
+        .speaker:hover {
+            transform: translateY(-5px);
+        }
+        
+        .speaker-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .speaker h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .speaker p {
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        
+        .speaker-topic {
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            display: inline-block;
+        }
+        
+        .schedule-day {
+            margin-bottom: 35px;
+        }
+        
+        .day-title {
+            background: #f0f0f0;
+            padding: 15px 20px;
+            border-left: 4px solid #667eea;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .schedule-item {
+            display: flex;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.3s ease;
+        }
+        
+        .schedule-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+        
+        .time {
+            background: #667eea;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            min-width: 100px;
+            text-align: center;
+            margin-right: 25px;
+        }
+        
+        .event-details h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .event-details p {
+            color: #666;
+            font-size: 0.95em;
+        }
+        
+        .location {
+            color: #764ba2;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+        
+        footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+            
+            .schedule-item {
+                flex-direction: column;
+            }
+            
+            .time {
+                margin-right: 0;
+                margin-bottom: 10px;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>TechConf 2026</h1>
+        <p>September 26-27, 2026 | Innovation Center, San Francisco</p>
+    </header>
+    
+    <div class="container">
+        <!-- Speakers Section -->
+        <section>
+            <h2>Featured Speakers</h2>
+            <div class="content">
+                <div class="speakers-grid">
+                    <div class="speaker">
+                        <div class="speaker-avatar">AJ</div>
+                        <h3>Alexandra Johnson</h3>
+                        <p>Chief Technology Officer</p>
+                        <p style="font-size: 0.9em; color: #999;">CloudCore Systems</p>
+                        <span class="speaker-topic">AI & Machine Learning</span>
+                    </div>
+                    
+                    <div class="speaker">
+                        <div class="speaker-avatar">MK</div>
+                        <h3>Michael Kim</h3>
+                        <p>Senior Software Engineer</p>
+                        <p style="font-size: 0.9em; color: #999;">NexGen Labs</p>
+                        <span class="speaker-topic">Web Architecture</span>
+                    </div>
+                    
+                    <div class="speaker">
+                        <div class="speaker-avatar">SP</div>
+                        <h3>Sarah Patel</h3>
+                        <p>Product Lead</p>
+                        <p style="font-size: 0.9em; color: #999;">DataFlow Inc</p>
+                        <span class="speaker-topic">DevOps & Cloud</span>
+                    </div>
+                    
+                    <div class="speaker">
+                        <div class="speaker-avatar">JC</div>
+                        <h3>James Chen</h3>
+                        <p>Security Researcher</p>
+                        <p style="font-size: 0.9em; color: #999;">SecureVault Labs</p>
+                        <span class="speaker-topic">Cybersecurity</span>
+                    </div>
+                    
+                    <div class="speaker">
+                        <div class="speaker-avatar">ER</div>
+                        <h3>Emma Rodriguez</h3>
+                        <p>Blockchain Engineer</p>
+                        <p style="font-size: 0.9em; color: #999;">ChainLink Tech</p>
+                        <span class="speaker-topic">Web3 & Blockchain</span>
+                    </div>
+                    
+                    <div class="speaker">
+                        <div class="speaker-avatar">DF</div>
+                        <h3>David Foster</h3>
+                        <p>Research Director</p>
+                        <p style="font-size: 0.9em; color: #999;">Quantum Dynamics</p>
+                        <span class="speaker-topic">Quantum Computing</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Schedule Section -->
+        <section>
+            <h2>Conference Schedule</h2>
+            <div class="content">
+                <!-- Day 1 -->
+                <div class="schedule-day">
+                    <div class="day-title">Day 1 - Saturday, September 26</div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">08:00 - 09:00</div>
+                        <div class="event-details">
+                            <h4>Registration & Breakfast</h4>
+                            <p>Welcome to TechConf 2026. Grab breakfast and network with fellow attendees.</p>
+                            <span class="location">🏢 Main Lobby</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">09:00 - 10:00</div>
+                        <div class="event-details">
+                            <h4>Opening Keynote: The Future of AI</h4>
+                            <p>Alexandra Johnson explores emerging trends in artificial intelligence and their impact on modern development.</p>
+                            <span class="location">🎤 Main Auditorium</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">10:15 - 11:15</div>
+                        <div class="event-details">
+                            <h4>Building Scalable Web Applications</h4>
+                            <p>Michael Kim shares best practices for architecting high-performance web systems.</p>
+                            <span class="location">🎤 Ballroom A</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">11:30 - 12:30</div>
+                        <div class="event-details">
+                            <h4>DevOps in the Cloud Era</h4>
+                            <p>Sarah Patel discusses modern DevOps practices and cloud-native solutions.</p>
+                            <span class="location">🎤 Ballroom B</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">12:30 - 13:30</div>
+                        <div class="event-details">
+                            <h4>Lunch Break</h4>
+                            <p>Enjoy a catered lunch and continue networking.</p>
+                            <span class="location">🍽️ Conference Hall</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">13:30 - 14:30</div>
+                        <div class="event-details">
+                            <h4>Cybersecurity Threats & Solutions</h4>
+                            <p>James Chen presents current security challenges and defensive strategies.</p>
+                            <span class="location">🎤 Ballroom C</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">14:45 - 15:45</div>
+                        <div class="event-details">
+                            <h4>Web3 & Blockchain Integration</h4>
+                            <p>Emma Rodriguez demonstrates practical applications of blockchain technology in modern apps.</p>
+                            <span class="location">🎤 Ballroom A</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">16:00 - 17:00</div>
+                        <div class="event-details">
+                            <h4>Panel Discussion: Tech Trends 2026</h4>
+                            <p>Join our speakers for an interactive panel on the biggest technology trends.</p>
+                            <span class="location">🎤 Main Auditorium</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">18:00 - 20:00</div>
+                        <div class="event-details">
+                            <h4>Networking Reception</h4>
+                            <p>Evening reception with drinks, appetizers, and entertainment.</p>
+                            <span class="location">🍾 Rooftop Terrace</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Day 2 -->
+                <div class="schedule-day">
+                    <div class="day-title">Day 2 - Sunday, September 27</div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">08:30 - 09:30</div>
+                        <div class="event-details">
+                            <h4>Morning Sessions Open</h4>
+                            <p>Coffee and pastries available. Select from multiple concurrent sessions.</p>
+                            <span class="location">🏢 All Venues</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">09:30 - 10:30</div>
+                        <div class="event-details">
+                            <h4>Session A: Advanced Machine Learning Techniques</h4>
+                            <p>Deep dive into cutting-edge ML methodologies and practical implementations.</p>
+                            <span class="location">🎤 Ballroom A</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">09:30 - 10:30</div>
+                        <div class="event-details">
+                            <h4>Session B: Quantum Computing Fundamentals</h4>
+                            <p>David Foster introduces quantum computing concepts and future applications.</p>
+                            <span class="location">🎤 Ballroom B</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">10:45 - 11:45</div>
+                        <div class="event-details">
+                            <h4>Workshop: Building Secure APIs</h4>
+                            <p>Hands-on workshop on API security best practices and implementation.</p>
+                            <span class="location">💻 Workshop Room 1</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">10:45 - 11:45</div>
+                        <div class="event-details">
+                            <h4>Workshop: Container Orchestration Mastery</h4>
+                            <p>Learn advanced Kubernetes and container management techniques.</p>
+                            <span class="location">💻 Workshop Room 2</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">12:00 - 13:00</div>
+                        <div class="event-details">
+                            <h4>Lunch & Networking</h4>
+                            <p>Final opportunity to network and enjoy catered lunch.</p>
+                            <span class="location">🍽️ Conference Hall</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">13:00 - 14:00</div>
+                        <div class="event-details">
+                            <h4>Closing Keynote: The Road Ahead</h4>
+                            <p>Inspiring closing remarks on the future of technology and innovation.</p>
+                            <span class="location">🎤 Main Auditorium</span>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-item">
+                        <div class="time">14:00 - 14:30</div>
+                        <div class="event-details">
+                            <h4>Closing Ceremony & Giveaways</h4>
+                            <p>Final remarks, raffle drawings, and thank you reception.</p>
+                            <span class="location">🎤 Main Auditorium</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <footer>
+        <p>&copy; 2026 TechConf. All rights reserved. | October 1, 2024</p>
+        <p>For more information, visit techconf2026.com</p>
+    </footer>
+</body>
+</html>
