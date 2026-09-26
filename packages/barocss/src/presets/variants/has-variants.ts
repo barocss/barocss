@@ -4,7 +4,7 @@ import type { ParsedModifier } from "../../core/parser";
 import { attributeVariantSelector, decodeArbitrarySelector, functionalArgument } from "./utils";
 
 /** A bracketed selector that opens with an at-rule is not a selector: the variant does not match. */
-const startsAtRule = (bracket: string) => /^[\s_]*@/.test(bracket);
+export const startsAtRule = (bracket: string) => /^[\s_]*@/.test(bracket);
 
 // has-[]: functionalModifier
 functionalModifier(
@@ -94,4 +94,47 @@ functionalModifier(
 functionalModifier(
   (mod: string, ctx: Context) => { const r = resolveHasIn(mod, ctx); return !!r && !r.inner?.wrap; },
   hasInSelector,
+);
+
+/**
+ * `group-has-<v>` / `peer-has-<v>` (optionally `/name`): `&:is(:where(.group):has(*<compound>) *)` /
+ * `&:is(:where(.peer):has(*<compound>) ~ *)`, as Tailwind 4.1.13 emits them; `[sel]` → `*:is(sel)` (a relative
+ * selector is kept), and `<v>`'s wrap (hover's `@media (hover: hover)`) is kept. Registered before the generic
+ * group-/peer- handlers so it matches first; tokens reach here only after the #220 variant-scope guard.
+ */
+type GroupHas = { kind: 'group' | 'peer'; base: string; arg: string; inner?: ModifierRegistration; v: string };
+
+function resolveGroupHas(mod: string, ctx: Context): GroupHas | undefined {
+  const m = /^(group|peer)-has-(.+?)(?:\/([a-zA-Z0-9_-]+))?$/.exec(mod);
+  if (!m) return undefined;
+  const kind = m[1] as 'group' | 'peer';
+  const v = m[2];
+  const base = m[3] ? `.${kind}\\/${m[3]}` : `.${kind}`;
+  if (/^\[.+\]$/.test(v)) {
+    if (startsAtRule(v.slice(1))) return undefined;
+    const sel = decodeArbitrarySelector(v.slice(1, -1));
+    return { kind, base, v, arg: /^[>+~]/.test(sel.trim()) ? sel : `*:is(${sel})` };
+  }
+  const r = innerCompound(v, ctx);
+  return r && { kind, base, v, arg: `*${r.compound}`, inner: r.inner };
+}
+
+const groupHasSelector: ModifierRegistration['modifySelector'] = ({ selector, mod, context }) => {
+  const r = resolveGroupHas(mod.type, context);
+  if (!r) return { selector };
+  const tail = r.kind === 'group' ? ' *' : ' ~ *';
+  return { selector: `&:is(:where(${r.base}):has(${r.arg})${tail})`, wrappingType: 'rule', source: r.kind };
+};
+
+functionalModifier(
+  (mod: string, ctx: Context) => !!resolveGroupHas(mod, ctx)?.inner?.wrap,
+  groupHasSelector,
+  (mod, context) => {
+    const r = resolveGroupHas(mod.type, context)!;
+    return r.inner!.wrap!({ ...mod, type: r.v }, context);
+  },
+);
+functionalModifier(
+  (mod: string, ctx: Context) => { const r = resolveGroupHas(mod, ctx); return !!r && !r.inner?.wrap; },
+  groupHasSelector,
 );
