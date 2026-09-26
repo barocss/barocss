@@ -1,0 +1,23 @@
+{
+  "issue": 282,
+  "date": "2026-09-26",
+  "rerun": [
+    "T=/private/tmp/claude-501/cms282; git clone --depth 1 https://github.com/satnaing/astro-paper.git $T/starter  (commit 35cfa7fb)",
+    "cd $T/starter && npm install --cache <writable cache>; bash scripts/cms-starter-probe/mkcontent.sh $T/starter",
+    "add after @import \"tailwindcss\" in src/styles/global.css: @source not \"../content/posts/cms\";  then git commit (baseline) and astro build",
+    "ref = cp -R starter ref, delete the @source not line, astro build",
+    "node scripts/cms-starter-probe/serve.mjs $T/ref/dist 6701 & node scripts/cms-starter-probe/serve.mjs $T/starter/dist 6702 &",
+    "bash scripts/cms-starter-probe/agent-run.sh <name> <opus|haiku> <budgetUsd>; build the copy; serve its dist on 67xx; bash scripts/cms-starter-probe/score.sh http://127.0.0.1:67xx <name>"
+  ],
+  "starter": { "name": "AstroPaper", "url": "https://github.com/satnaing/astro-paper", "commit": "35cfa7fbe0b897306d27670d3819e55d5205f3dd", "astro": "7.3.5", "tailwindcss": "^4.3.2 (@tailwindcss/vite)", "output": "static (SSG)" },
+  "content": "6 md posts from #253 frozen blocks (opus hero/feature-grid/comparison-table, haiku callout/testimonial/cta). haiku callout+cta blocks are model clarification text with no HTML, so 120 block elements come from 4 blocks. Baseline build has 0 of the block classes (e.g. ring-indigo-500/20, sm:text-6xl absent).",
+  "calibration": { "baseline": { "fcpParity": 0.183, "hydratedParity": 0.183, "shellDamage": 0 } },
+  "budgetPerRun": { "opus": 0.7, "haiku": 0.2 },
+  "runs": [
+    { "run": "opus1", "stop": "error_max_budget_usd", "costUsd": 0.741, "turns": 15, "wallS": 50, "changes": "npm i @barocss/kit,browser,server only", "setup": "none", "fcpParity": 0.183, "hydratedParity": 0.183, "shellDamage": 0 },
+    { "run": "opus2", "stop": "error_max_budget_usd", "costUsd": 0.706, "turns": 13, "wallS": 52, "changes": "npm i only", "setup": "none", "fcpParity": 0.183, "hydratedParity": 0.183, "shellDamage": 0 },
+    { "run": "haiku1", "stop": "error_max_budget_usd", "costUsd": 0.204, "turns": 30, "wallS": 75, "changes": "src/middleware.ts: regex-extract all class attrs of the rendered HTML, new ServerRuntime() (defaults) .generateCss(all), <style> before </head>; runs at prerender", "setup": "server generateCss at render (no client companion; no cssVarPrefix, no skip of build classes)", "build": "ok", "fcpParity": 0.942, "hydratedParity": 0.958, "shellDamage": "14 els (2 per page on 7 pages): shell classes re-emitted unlayered after the build CSS" },
+    { "run": "haiku2", "stop": "error_max_budget_usd", "costUsd": 0.207, "turns": 26, "wallS": 81, "changes": "middleware (ServerRuntime cssVarPrefix 'tw', per-class generateCss) + client getRuntime({skipExisting, cssVarPrefix 'tw', theme.extend: shadcnTheme}) + @import \"@barocss/kit\" in global.css", "setup": "both (companion theme = shadcnTheme, not the site theme)", "build": "FAILS: \".\" is not exported under the condition \"style\" from @barocss/kit", "fcpParity": null, "hydratedParity": null, "shellDamage": "site does not build" }
+  ],
+  "totalCostUsd": 1.858
+}
