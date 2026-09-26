@@ -1,6 +1,6 @@
 # Documentation site maintenance
 
-Status: 2026-09-26. BaroCSS `0.5.0` is the verified release: it is published on npm, and both browser CDN files return HTTP 200. Earlier (2026-09-23) `0.4.0` notes below are kept as history. The first main Pages deployment passed live smoke at `main@9d0ab731`. Future Docs updates still require the normal develop-to-main release path.
+Status: 2026-09-26. BaroCSS `0.6.0` is the verified release: it is published on npm, and both browser CDN files return HTTP 200 on jsDelivr (unpkg still 404 on 2026-09-26, index lag; the files are in the tarball). Docs CDN snippets use jsDelivr. The `0.5.0` notes and earlier (2026-09-23) `0.4.0` notes below are kept as history. The first main Pages deployment passed live smoke at `main@9d0ab731`. Future Docs updates still require the normal develop-to-main release path.
 
 ## Sources of truth
 
@@ -13,7 +13,7 @@ Status: 2026-09-26. BaroCSS `0.5.0` is the verified release: it is published on 
 
 | Priority | Work | Acceptance criterion |
 | --- | --- | --- |
-| P0 | Keep the home, introduction, Quick Start, and main examples aligned with the published release. | No full Tailwind compatibility claim. `baroStart` and `BrowserRuntime` match public exports. npm and CDN examples use the verified published `0.5.0` files. |
+| P0 | Keep the home, introduction, Quick Start, and main examples aligned with the published release. | No full Tailwind compatibility claim. `baroStart` and `BrowserRuntime` match public exports. npm and CDN examples use the verified published `0.6.0` files (jsDelivr). |
 | P1 | Audit every API and integration example against package exports and generated output. | Each runnable example has a stated package version and a working import. Remove incomplete or speculative snippets. |
 | P1 | Check navigation and Markdown links. | Every internal sidebar link and Markdown page link resolves; the VitePress build passes. |
 | P2 | Review accessibility and information structure. | Check keyboard navigation, heading order, link text, color contrast, and narrow-screen layout in a browser. Record each defect and fix it. |
@@ -21,6 +21,11 @@ Status: 2026-09-26. BaroCSS `0.5.0` is the verified release: it is published on 
 
 ## Current evidence and limits
 
+- `0.6.0` CDN check, 2026-09-26 (`curl -L`):
+  - `https://cdn.jsdelivr.net/npm/@barocss/browser@0.6.0/dist/cdn/barocss.js` — 200
+  - `https://cdn.jsdelivr.net/npm/@barocss/browser@0.6.0/dist/cdn/barocss.umd.cjs` — 200
+  - `https://unpkg.com/@barocss/browser@0.6.0/dist/cdn/barocss.js` — 404 (index lag)
+  - `https://unpkg.com/@barocss/browser@0.6.0/dist/cdn/barocss.umd.cjs` — 404 (index lag)
 - `0.5.0` CDN check, 2026-09-26 (`curl -L`, every CDN URL in `docs/`):
   - `https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.js` — 200
   - `https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.umd.cjs` — 200

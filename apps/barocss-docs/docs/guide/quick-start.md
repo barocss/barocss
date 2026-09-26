@@ -5,12 +5,12 @@ description: Start the BaroCSS browser runtime with a package manager or a CDN
 
 # Quick Start
 
-These examples use the public browser API. The npm and CDN examples pin the published `0.5.0` release.
+These examples use the public browser API. The npm and CDN examples pin the published `0.6.0` release.
 
 ## Install with a package manager
 
 ```bash
-pnpm add @barocss/browser@0.5.0
+pnpm add @barocss/browser@0.6.0
 ```
 
 `@barocss/browser` installs `@barocss/kit` as a dependency. Install `@barocss/kit` directly when you use its core API. Install `@barocss/server` separately for server-side CSS generation.
@@ -30,7 +30,7 @@ If the page already links a Tailwind or shadcn build, use the [Next to a Tailwin
 
 ## Use the CDN without a build step
 
-The `dist/cdn/barocss.js` and `dist/cdn/barocss.umd.cjs` files are part of the published `0.5.0` browser package. Both URLs below were checked on the public CDN (unpkg, HTTP 200) on 2026-09-26.
+The `dist/cdn/barocss.js` and `dist/cdn/barocss.umd.cjs` files are part of the published `0.6.0` browser package. Both URLs below were checked on the public CDN (jsDelivr, HTTP 200) on 2026-09-26. unpkg serves the same paths (`https://unpkg.com/@barocss/browser@0.6.0/...`) once its index catches up.
 
 ### ESM
 
@@ -38,7 +38,7 @@ Place this script near the end of the page body:
 
 ```html
 <script type="module">
-  import { baroStart } from 'https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.js'
+  import { baroStart } from 'https://cdn.jsdelivr.net/npm/@barocss/browser@0.6.0/dist/cdn/barocss.js'
   baroStart()
 </script>
 ```
@@ -48,7 +48,7 @@ Place this script near the end of the page body:
 Place these scripts near the end of the page body:
 
 ```html
-<script src="https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@barocss/browser@0.6.0/dist/cdn/barocss.umd.cjs"></script>
 <script>
   BaroCSS.baroStart()
 </script>

@@ -7,6 +7,10 @@ description: Server-side CSS generation and processing in BaroCSS
 
 The Server Runtime API provides server-side functionality for generating CSS without browser-specific features like DOM manipulation or MutationObserver. It's ideal for static site generation, server-side rendering, and build-time CSS processing.
 
+::: info Coming in the next minor
+HTML class extraction and an SSR-to-browser handoff that lets the browser runtime skip rebuilding server-rendered CSS are not part of `0.6.0`. This page documents only the `0.6.0` API.
+:::
+
 ## ServerRuntime Class
 
 The main class for server-side BaroCSS functionality.
