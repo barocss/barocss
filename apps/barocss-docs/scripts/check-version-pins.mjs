@@ -7,8 +7,6 @@ import { fileURLToPath } from 'node:url'
 
 const root = fileURLToPath(new URL('../../../', import.meta.url))
 const docs = join(root, 'apps/barocss-docs/docs')
-// Owned by the parallel #420 change; drop once it lands.
-const pending = new Set(['apps/barocss-docs/docs/api/index.md'])
 const PIN = /@barocss\/[a-z-]+@\d+\.\d+\.\d+/
 
 const files = [join(root, 'README.md')]
@@ -25,7 +23,6 @@ walk(docs)
 const hits = []
 for (const f of files) {
   const rel = relative(root, f)
-  if (pending.has(rel)) continue
   readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
     if (PIN.test(line) && !line.includes('pin-ok')) hits.push(`${rel}:${i + 1}: ${line.trim()}`)
   })
