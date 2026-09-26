@@ -12,8 +12,8 @@
 //    utilities (registry staticUtility/functionalUtility not exported) -> BaroCSS gap (or read @utility from build CSS: not
 //    possible, the build only emits used utilities).
 //  3 `@custom-variant theme-midnight`: runtime miss; no public variant registration -> same gap as 2.
-//  4 `prefix(tw)`: tw:bg-red-500 unstyled; bare bg-red-500 IS generated (build would not). config.prefix exists in context
-//    types but is not used for parsing -> gap: prefix support.
+//  4 `prefix(tw)`: before #286 tw:bg-red-500 unstyled and bare bg-red-500 generated. #286: config.prefix honoured; the
+//    recipe now carries prefix:'tw' (with cssVarPrefix:'tw' the var names already match TW4's --tw-color-*).
 //  5 `important`: runtime-only classes style fine, but a runtime class that conflicts with an important build class on the
 //    same element loses (p-2 p-8 -> 8px, ref 32px). Route: config/important flag for runtime output (parser has
 //    `important?`) or document that important builds need `!` classes.
@@ -52,8 +52,8 @@ const CASES = {
   custom_variant: { css: '@import "tailwindcss";\n@custom-variant theme-midnight (&:where([data-theme=midnight] *));', html: 'data-theme="midnight"', scheme: 'light',
     rows: [['theme-midnight:bg-black', 'background-color']], arms: { recipe: REC() } },
   prefix_tw: { css: '@import "tailwindcss" prefix(tw);', html: '', scheme: 'light', shell: ['tw:flex', 'tw:p-4'],
-    rows: [['tw:bg-red-500', 'background-color'], ['bg-red-500', 'background-color']],
-    arms: { recipe: REC(), prefixCfg: REC(",prefix:'tw'") } },
+    rows: [['tw:bg-red-500', 'background-color'], ['bg-red-500', 'background-color'], ['tw:-mt-2', 'margin-top'], ['tw:p-[3px]!', 'padding-top']],
+    arms: { recipe: REC(",prefix:'tw'"), noPrefixCfg: REC() } },
   // build classes bg-white / p-2 exist (important); runtime adds a conflicting class on the same element.
   important: { css: '@import "tailwindcss" important;', html: '', scheme: 'light', shell: ['flex', 'p-4', 'bg-white', 'p-2'],
     rows: [['bg-white bg-red-500', 'background-color'], ['p-2 p-8', 'padding-top'], ['bg-blue-500', 'background-color']],

@@ -95,17 +95,30 @@ export function parseClassName(className: string, ctx?: Context): { modifiers: P
     return cache.get(className)!;
   }
 
+  // #286: config.prefix (Tailwind 4 `prefix(tw)`): the prefix is the first `:` segment (`tw:hover:flex`) and is
+  // stripped before the `!` forms and the variant split, so every #220/#248/#273 guard still runs on the rest.
+  // A class without the prefix (including `!tw:flex` and `hover:tw:flex`, as in Tailwind 4) generates nothing.
+  let realClassName = className;
+  const classPrefix = ctx ? configuredClassPrefix(ctx) : '';
+  if (classPrefix) {
+    if (!className.startsWith(classPrefix + ':')) {
+      const none = { modifiers: [], utility: null };
+      cache.set(className, none);
+      return none;
+    }
+    realClassName = className.slice(classPrefix.length + 1);
+  }
+
   // Examples: !bg-[red]
   let important = false;
-  let realClassName = className;
-  if (className.startsWith('!')) {
+  if (realClassName.startsWith('!')) {
     important = true;
-    realClassName = className.slice(1);
-  } else if (className.length > 1 && className.endsWith('!')) {
+    realClassName = realClassName.slice(1);
+  } else if (realClassName.length > 1 && realClassName.endsWith('!')) {
     // Tailwind 4 trailing form: p-4!, hover:size-5!. A `!` inside an arbitrary
     // value (`[...!...]`) never ends the class, so it is unaffected.
     important = true;
-    realClassName = className.slice(0, -1);
+    realClassName = realClassName.slice(0, -1);
   }
   
   // 1. Tokenize string into tokens
@@ -120,6 +133,15 @@ export function parseClassName(className: string, ctx?: Context): { modifiers: P
   cache.set(className, result);
   
   return result;
+}
+
+/**
+ * The class prefix from config.prefix. Tailwind 4 only accepts lowercase letters (`prefix(tw)`); any other
+ * value is ignored (no prefix) rather than guessed at.
+ */
+function configuredClassPrefix(ctx: Context): string {
+  const configured = ctx.config('prefix');
+  return typeof configured === 'string' && /^[a-z]+$/.test(configured) ? configured : '';
 }
 
 /**
