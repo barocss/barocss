@@ -337,6 +337,7 @@ export function themeColorDecls(prop: string, value: string, extra: { realThemeV
   const ref = COLOR_KEYWORDS.has(value.toLowerCase()) || value.startsWith("var(") || !/^[\w-]+$/.test(key) ? value : `var(--color-${key})`;
   if (!extra.opacity) return [decl(prop, ref)];
   const alpha = normalizeAlpha(String(extra.opacity));
+  if (!alpha) return []; // #393: an invalid modifier emits nothing (functionalUtility rejects it first)
   const supports = (amount: string) =>
     atRule("supports", "(color:color-mix(in lab, red, red))", [decl(prop, `color-mix(in oklab, ${ref} ${amount}, transparent)`)]);
   // A variable alpha has no static fallback amount: Tailwind keeps the plain colour and mixes only under @supports.
@@ -348,24 +349,20 @@ export function themeColorDecls(prop: string, value: string, extra: { realThemeV
  * Opacity modifier → color-mix amount, as Tailwind v4 does: `50` → `50%`, `[37%]` → `37%`, `[0.5]` / `[.8]` → `50%` /
  * `80%` (a bracketed number ≤ 1 is a fraction), `[var(--a)]` / `(--a)` → `var(--a)`.
  */
-export function normalizeAlpha(raw: string): { amount: string; isVar: boolean } {
-  let v = raw.trim();
-  const bracketed = v.startsWith("[") && v.endsWith("]");
-  if (bracketed) v = v.slice(1, -1).trim();
-  if (v.startsWith("(") && v.endsWith(")")) v = `var(${v.slice(1, -1).trim()})`;
-  if (v.startsWith("var(")) return { amount: v, isVar: true };
-  if (v.endsWith("%")) return { amount: v, isVar: false };
-  const n = Number(v);
-  if (v !== "" && Number.isFinite(n)) {
-    const pct = bracketed && n <= 1 ? n * 100 : n;
-    return { amount: `${+pct.toFixed(4)}%`, isVar: false };
-  }
-  return { amount: v, isVar: false };
+export function normalizeAlpha(raw: string): { amount: string; isVar: boolean } | null {
+  // #393: only a number, `[number]`, `[percentage]`, `(--x)` or `[var(--x)]`; anything else is invalid.
+  const v = raw.trim();
+  const cp = /^\((--[\w-]+)\)$/.exec(v) ?? /^\[var\((--[\w-]+)\)\]$/.exec(v);
+  if (cp) return { amount: `var(${cp[1]})`, isVar: true };
+  const m = /^(\[)?(\d+(?:\.\d+)?|\.\d+)(%)?(\])?$/.exec(v);
+  if (!m || !!m[1] !== !!m[4] || (m[3] && !m[1])) return null; // a bare `50%` is invalid in Tailwind 4.3.3 too
+  const n = Number(m[2]);
+  const pct = m[3] ? n : m[1] && n <= 1 ? n * 100 : n;
+  return { amount: `${+pct.toFixed(4)}%`, isVar: false };
 }
 
 const MIX_SUPPORTS = "(color:color-mix(in lab, red, red))";
 const COLOR_PROP = /(^|-)color$|^(fill|stroke)$|^--baro-gradient-(from|via|to)$/;
-const ALPHA_AMOUNT = /^(\d+(\.\d+)?|\.\d+)%$|^var\(--[\w-]+\)$/;
 
 /**
  * #393: an arbitrary or custom-property colour with an opacity modifier, as Tailwind 4.3.3 emits it: a literal
@@ -374,7 +371,7 @@ const ALPHA_AMOUNT = /^(\d+(\.\d+)?|\.\d+)%$|^var\(--[\w-]+\)$/;
  */
 export function colorAlphaDecls(prop: string, color: string, opacity: string): AstNode[] | null {
   const alpha = normalizeAlpha(opacity);
-  if (!ALPHA_AMOUNT.test(alpha.amount)) return null;
+  if (!alpha) return null;
   const mix = `color-mix(in oklab, ${color} ${alpha.amount}, transparent)`;
   if (alpha.isVar || color.startsWith("var(")) return [decl(prop, color), atRule("supports", MIX_SUPPORTS, [decl(prop, mix)])];
   return [decl(prop, mix)];

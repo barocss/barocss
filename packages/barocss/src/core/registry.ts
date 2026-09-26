@@ -4,7 +4,10 @@ import type { Context } from './context';
 import { clearContextCaches, getContextState } from './contextState';
 import { ParsedModifier, ParsedUtility } from './parser';
 import { parseResultCache, utilityCache } from '../utils/cache';
-import { applyColorAlpha } from './utils';
+import { applyColorAlpha, normalizeAlpha, parseColor } from './utils';
+
+/** #393: a handler result meaning "this class is invalid": the engine stops trying other registrations. */
+export const REJECT_CLASS: AstNode[] = Object.freeze([]) as unknown as AstNode[];
 
 // Utility registration
 export interface UtilityRegistration {
@@ -534,6 +537,16 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
           extra.opacity = list.pop();
           finalValue = list.join('/');
         }
+      }
+      // #393: a modifier must be a valid alpha (`/50`, `/[0.3]`, `/(--o)`, …); an empty or malformed one emits nothing.
+      const splitModifier = !token.arbitrary && !token.customProperty && value.includes('/');
+      if (opts.supportsOpacity && (extra.opacity || splitModifier) && !normalizeAlpha(String(extra.opacity ?? ''))) {
+        // A colour value with a bad modifier is no class at all: stop other registrations of the same prefix
+        // (font-size, inset, decoration thickness, …) from emitting it with the modifier dropped.
+        const v = parsedUtility.arbitrary ? finalValue.replace(/_/g, ' ') : finalValue;
+        const colourish = parsedUtility.customProperty ? !/^[\w-]+:/.test(v) || v.startsWith('color:')
+          : parsedUtility.arbitrary ? !!parseColor(v) || /^var\(--/.test(v) || v.startsWith('color:') : false;
+        return colourish ? REJECT_CLASS : [];
       }
 
       // 1./2. Arbitrary value and custom property - already parsed in parser.ts

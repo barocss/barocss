@@ -9,15 +9,9 @@ export type ShadowLayer = "shadow" | "inset-shadow" | "text-shadow" | "drop-shad
 
 /** Opacity modifier to an alpha: `50` → 50%, `[20%]` → 20%, `(--o)` → var(--o); anything else is invalid. */
 export function parseAlpha(op: string | undefined): { alpha: string; isVar: boolean } | null {
-  if (!op) return null;
-  if (/^\d+(\.\d+)?$/.test(op)) return { alpha: `${op}%`, isVar: false };
-  const pct = /^\[(\d+(?:\.\d+)?)%\]$/.exec(op);
-  if (pct) return { alpha: `${pct[1]}%`, isVar: false };
-  // #393: a bracketed number is a fraction when ≤ 1 (`[0.3]` → 30%), as in Tailwind.
-  if (/^\[(\d+(\.\d+)?|\.\d+)\]$/.test(op)) return { alpha: normalizeAlpha(op).amount, isVar: false };
-  const cp = /^\((--[\w-]+)\)$/.exec(op);
-  if (cp) return { alpha: `var(${cp[1]})`, isVar: true };
-  return null;
+  // #393: the same alpha grammar as every colour utility (normalizeAlpha).
+  const a = op ? normalizeAlpha(op) : null;
+  return a && { alpha: a.amount, isVar: a.isVar };
 }
 
 function splitTop(value: string, sep: string): string[] {
