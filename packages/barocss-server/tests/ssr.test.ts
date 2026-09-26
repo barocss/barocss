@@ -17,13 +17,24 @@ describe('extractClasses (#268)', () => {
     expect(extractClasses(html)).toEqual(['yes']);
   });
   it('stays linear on ~200 KB of unclosed openers (review: no per-opener rescans)', () => {
+    // Compare 10x input sizes instead of a wall-clock budget (CI runners vary): linear stays near 10x, the old
+    // per-opener rescans were ~100x. Median of 3 after a warm-up; a small floor keeps sub-ms noise out of the ratio.
+    const time = (html: string) => {
+      const runs = [0, 1, 2].map(() => {
+        const t0 = performance.now();
+        extractClasses(html);
+        return performance.now() - t0;
+      });
+      return Math.max(runs.sort((a, b) => a - b)[1], 0.5);
+    };
     for (const unit of ['<!--', '<script>', '<style>', '<a class="x" ']) {
-      const html = '<b class="ok"></b>' + unit.repeat(Math.ceil(200_000 / unit.length));
-      const t0 = performance.now();
-      const got = extractClasses(html);
-      const ms = performance.now() - t0;
-      expect(got[0]).toBe('ok');
-      expect(ms, unit).toBeLessThan(50);
+      const build = (size: number) => '<b class="ok"></b>' + unit.repeat(Math.ceil(size / unit.length));
+      const small = build(20_000);
+      const large = build(200_000);
+      expect(extractClasses(large)[0]).toBe('ok');
+      time(small);
+      const ratio = time(large) / time(small);
+      expect(ratio, unit).toBeLessThan(30);
     }
     expect(extractClasses('<i class="a"></i><script>x</script><i class="b"></i><!-- c --><i class="c"></i><style>')).toEqual(['a', 'b', 'c']);
   });
