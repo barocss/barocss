@@ -2,6 +2,14 @@ import { describe, it, expect } from "vitest";
 import "../../src/index"; // Ensure all utilities are registered
 import { parseClassToAst } from "../../src/core/engine";
 import { createContext } from "../../src/core/context";
+import { atRoot, decl, property } from "../../src/core/ast";
+
+// #254: leading-* also sets the registered --baro-leading that text-<size> reads.
+const leadingAst = (value: string) => [
+  atRoot([property("--baro-leading")]),
+  decl("--baro-leading", value),
+  decl("line-height", value),
+];
 
 // --- New preset utility structure its ---
 describe("preset typography utilities", () => {
@@ -55,7 +63,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-xs--line-height)",
+          value: "var(--baro-leading, var(--text-xs--line-height))",
         },
       ]);
     });
@@ -65,7 +73,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-sm--line-height)",
+          value: "var(--baro-leading, var(--text-sm--line-height))",
         },
       ]);
     });
@@ -75,7 +83,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-base--line-height)",
+          value: "var(--baro-leading, var(--text-base--line-height))",
         },
       ]);
     });
@@ -85,7 +93,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-lg--line-height)",
+          value: "var(--baro-leading, var(--text-lg--line-height))",
         },
       ]);
     });
@@ -95,7 +103,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-xl--line-height)",
+          value: "var(--baro-leading, var(--text-xl--line-height))",
         },
       ]);
     });
@@ -105,7 +113,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-2xl--line-height)",
+          value: "var(--baro-leading, var(--text-2xl--line-height))",
         },
       ]);
     });
@@ -269,64 +277,28 @@ describe("preset typography utilities", () => {
 
     // Line Height
     it("leading-none → line-height: var(--leading-none, 1)", () => {
-      expect(parseClassToAst("leading-none", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "var(--leading-none, 1)" },
-      ]);
+      expect(parseClassToAst("leading-none", ctx)).toEqual(leadingAst("var(--leading-none, 1)"));
     });
     it("leading-tight → line-height: var(--leading-tight, 1.25)", () => {
-      expect(parseClassToAst("leading-tight", ctx)).toEqual([
-        {
-          type: "decl",
-          prop: "line-height",
-          value: "var(--leading-tight, 1.25)",
-        },
-      ]);
+      expect(parseClassToAst("leading-tight", ctx)).toEqual(leadingAst("var(--leading-tight, 1.25)"));
     });
     it("leading-snug → line-height: var(--leading-snug, 1.375)", () => {
-      expect(parseClassToAst("leading-snug", ctx)).toEqual([
-        {
-          type: "decl",
-          prop: "line-height",
-          value: "var(--leading-snug, 1.375)",
-        },
-      ]);
+      expect(parseClassToAst("leading-snug", ctx)).toEqual(leadingAst("var(--leading-snug, 1.375)"));
     });
     it("leading-normal → line-height: var(--leading-normal, 1.5)", () => {
-      expect(parseClassToAst("leading-normal", ctx)).toEqual([
-        {
-          type: "decl",
-          prop: "line-height",
-          value: "var(--leading-normal, 1.5)",
-        },
-      ]);
+      expect(parseClassToAst("leading-normal", ctx)).toEqual(leadingAst("var(--leading-normal, 1.5)"));
     });
     it("leading-relaxed → line-height: var(--leading-relaxed, 1.625)", () => {
-      expect(parseClassToAst("leading-relaxed", ctx)).toEqual([
-        {
-          type: "decl",
-          prop: "line-height",
-          value: "var(--leading-relaxed, 1.625)",
-        },
-      ]);
+      expect(parseClassToAst("leading-relaxed", ctx)).toEqual(leadingAst("var(--leading-relaxed, 1.625)"));
     });
     it("leading-loose → line-height: var(--leading-loose, 2)", () => {
-      expect(parseClassToAst("leading-loose", ctx)).toEqual([
-        {
-          type: "decl",
-          prop: "line-height",
-          value: "var(--leading-loose, 2)",
-        },
-      ]);
+      expect(parseClassToAst("leading-loose", ctx)).toEqual(leadingAst("var(--leading-loose, 2)"));
     });
     it("leading-[1.7] → line-height: 1.7", () => {
-      expect(parseClassToAst("leading-[1.7]", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "1.7" },
-      ]);
+      expect(parseClassToAst("leading-[1.7]", ctx)).toEqual(leadingAst("1.7"));
     });
     it("leading-(--my-leading) → line-height: var(--my-leading)", () => {
-      expect(parseClassToAst("leading-(--my-leading)", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "var(--my-leading)" },
-      ]);
+      expect(parseClassToAst("leading-(--my-leading)", ctx)).toEqual(leadingAst("var(--my-leading)"));
     });
 
     // Text Align

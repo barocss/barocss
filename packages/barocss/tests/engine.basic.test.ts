@@ -116,7 +116,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('text-lg', ctx)).toBe(
       `.text-lg {
   font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
+  line-height: var(--baro-leading, var(--text-lg--line-height));
 }
 `
     );
@@ -131,7 +131,7 @@ describe('parseClassToAst (end-to-end)', () => {
 
 .text-lg {
   font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
+  line-height: var(--baro-leading, var(--text-lg--line-height));
 }
 
 @media (hover: hover) {
@@ -265,7 +265,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('peer-[.bar]:text-lg', ctx)).toBe(
       `.peer-\\[\\.bar\\]\\:text-lg:is(:where(.peer):is(.bar)~*) {
   font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
+  line-height: var(--baro-leading, var(--text-lg--line-height));
 }
 `
     );
