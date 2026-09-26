@@ -35,16 +35,29 @@ describe('extractClasses (#268)', () => {
     }
     expect(extractClasses('<i class="a"></i><script>x</script><i class="b"></i><!-- c --><i class="c"></i><style>')).toEqual(['a', 'b', 'c']);
   });
-  it('time grows ~linearly on unclosed openers (catches per-call rescans; large sizes keep it out of timer noise)', { retry: 2 }, () => {
-    // Per-call rescans (the #268 review bug) keep call counts linear but go ~100x for 10x input; linear is ~10x.
-    const time = (html: string) => {
-      extractClasses(html);
-      const runs = [0, 1, 2, 3, 4].map(() => { const t0 = performance.now(); extractClasses(html); return performance.now() - t0; });
-      return runs.sort((a, b) => a - b)[2];
+  it('scans a linear number of bytes on unclosed openers (deterministic: catches per-opener rescans)', () => {
+    // Call counts stay linear even when each call rescans to the end (O(n^2)); this sums the bytes each
+    // regex exec/test and indexOf actually walks, so 10x input must mean ~10x bytes. No timers, no CI flake.
+    const scanned = (html: string) => {
+      const rp = RegExp.prototype, sp = String.prototype;
+      const { exec, test } = rp, { indexOf } = sp;
+      let bytes = 0;
+      const span = (re: RegExp, s: string, run: () => boolean) => {
+        const from = re.global || re.sticky ? re.lastIndex : 0;
+        const hit = run();
+        // A hit walked to lastIndex; a failed global/plain search walked to the end; a failed sticky match is anchored.
+        bytes += hit && (re.global || re.sticky) ? re.lastIndex - from : re.sticky ? 0 : s.length - from;
+        return hit;
+      };
+      rp.exec = function (this: RegExp, s: string) { let r: RegExpExecArray | null = null; span(this, s, () => (r = exec.call(this, s)) !== null); return r; };
+      rp.test = function (this: RegExp, s: string) { return span(this, s, () => test.call(this, s)); };
+      sp.indexOf = function (this: string, q: string, from = 0) { const i = indexOf.call(this, q, from); bytes += (i < 0 ? this.length : i) - from; return i; };
+      try { expect(extractClasses(html)[0]).toBe('ok'); } finally { rp.exec = exec; rp.test = test; sp.indexOf = indexOf; }
+      return bytes;
     };
     for (const unit of UNCLOSED) {
-      const ratio = time(unclosed(unit, 1_000_000)) / time(unclosed(unit, 100_000));
-      expect(ratio, unit).toBeLessThan(40);
+      const ratio = scanned(unclosed(unit, 200_000)) / Math.max(scanned(unclosed(unit, 20_000)), 1);
+      expect(ratio, unit).toBeLessThan(12);
     }
   });
   it('dedupes in first-seen order', () => {
