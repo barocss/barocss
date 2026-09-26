@@ -1,0 +1,56 @@
+{
+  "issue": 289,
+  "date": "2026-09-26",
+  "reruns": 282,
+  "barocssVersion": "0.7.0 (npm view @barocss/server@0.7.0 version -> 0.7.0)",
+  "rerun": [
+    "T=/private/tmp/claude-501/cms289; mkdir -p $T; cp -R /private/tmp/claude-501/cms282/{starter,ref} $T/  (or rebuild both per results.json 'rerun' steps 1-4)",
+    "node scripts/cms-starter-probe/serve.mjs $T/ref/dist 6701 & node scripts/cms-starter-probe/serve.mjs $T/starter/dist 6702 &",
+    "T=$T V=0.7.0 bash scripts/cms-starter-probe/agent-run.sh <name> <opus|haiku> <budgetUsd>   (fresh copy of starter; same neutral task text as #282 with version $V)",
+    "cd $T/<name> && npm run build --cache /private/tmp/claude-501/npm-cache; node scripts/cms-starter-probe/serve.mjs $T/<name>/dist 67xx &",
+    "T=$T bash scripts/cms-starter-probe/score.sh http://127.0.0.1:67xx <name>"
+  ],
+  "budgetPerRun": { "opus": 1.8, "haiku": 0.9 },
+  "calibration": { "baseline": { "fcpParity": 0.183, "hydratedParity": 0.183, "shellDamage": 0 } },
+  "docsVisibility": "--output-format json keeps no tool log, so doc pages fetched are inferred from code/summary: opus2's summary names the 'Astro, static output' recipe (barocss.com integration/astro page); opus1's code mirrors the same recipe plus the client companion; haiku runs cite only package READMEs/CDN.",
+  "runs": [
+    {
+      "run": "opus1", "stop": "error_max_budget_usd", "costUsd": 1.833, "turns": 39, "wallS": 258,
+      "changes": "src/integrations/barocss.ts (astro:build:done), src/lib/barocss.config.ts, src/scripts/barocss.ts, Layout.astro imports it, astro.config.ts",
+      "setup": "generateCssForHtml(html,{skip: build CSS}) + ssrStyleTag at build:done; client getRuntime({skipExisting:true}) companion; shared config cssVarPrefix 'tw', darkMode class, darkModeSelector '[data-theme=dark] &'; no own theme",
+      "build": "ok (finished within budget; stop hit during final verification)",
+      "fcpParity": 0.983, "hydratedParity": 1, "shellDamage": 0
+    },
+    {
+      "run": "opus2", "stop": "success", "costUsd": 1.785, "turns": 32, "wallS": 235,
+      "changes": "src/integrations/barocss.ts (astro:build:done), astro.config.ts",
+      "setup": "Astro docs 'static output' recipe verbatim: generateCssForHtml with skip=build CSS + ssrStyleTag; no client companion, no cssVarPrefix/darkModeSelector",
+      "build": "ok, inlined into 4 pages",
+      "fcpParity": 0.933, "hydratedParity": 0.95, "shellDamage": 0,
+      "docMisled": "recipe does not say to set darkModeSelector / cssVarPrefix to match a Tailwind v4 site; dark: and ring/shadow composites lose parity"
+    },
+    {
+      "run": "haiku1", "stop": "success", "costUsd": 0.437, "turns": 51, "wallS": 203,
+      "changes": "src/components/BaroCSS.astro (baroBoot client), Layout.astro, no-op integration, global.css",
+      "setup": "client-only baroBoot({loadingClassName}); no server generation, no skip, defaults",
+      "build": "ok",
+      "fcpParity": 0.983, "hydratedParity": 0.958, "shellDamage": 0,
+      "docMisled": "took the browser quick start although the task asked for server first paint; FCP parity is high only because the module runs before first paint under this throttle, not SSR"
+    },
+    {
+      "run": "haiku2", "stop": "success", "costUsd": 0.728, "turns": 73, "wallS": 369,
+      "changes": "PostLayout.astro inline script loading cdn.jsdelivr.net/npm/@barocss/browser@0.7.0/dist/index.umd.js and calling an invented window.BaroCSS.generateCss",
+      "setup": "invented UMD/global API; no server, no skip",
+      "build": "ok",
+      "fcpParity": 0, "hydratedParity": 0.183, "shellDamage": 1007,
+      "docMisled": "no documented CDN/UMD global; agent guessed window.BaroCSS and broke page rendering"
+    }
+  ],
+  "vs282": "282: opus 0/2 got past npm install (0.183), haiku1 server-only 0.942/0.958 with 14 shell damage, haiku2 did not build. 289: opus 2/2 found the server recipe (0.933-0.983 FCP, 0.95-1.0 hydrated, 0 damage); opus1 reached full parity with companion + cssVarPrefix + darkModeSelector. haiku 1/2 usable (client-only), 1/2 broke the site.",
+  "docGaps": [
+    "Astro static recipe should state cssVarPrefix:'tw' and darkModeSelector matching the site's @custom-variant (opus2 missed them, 0.95 vs 1.0)",
+    "say explicitly there is no CDN/UMD global (haiku2 invented window.BaroCSS)",
+    "put 'server first paint -> @barocss/server recipe, not baroBoot' at the top of the browser README (haiku1)"
+  ],
+  "totalCostUsd": 4.783
+}
