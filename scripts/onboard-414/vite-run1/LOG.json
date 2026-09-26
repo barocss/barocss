@@ -1,0 +1,58 @@
+{
+  "task": "vite",
+  "run": 1,
+  "success": true,
+  "minutes_to_first_working_page": 15,
+  "doc_urls_used": [
+    "https://barocss.com",
+    "https://barocss.com/guide/quick-start.html",
+    "https://barocss.com/guide/integration/tailwind-companion.html"
+  ],
+  "steps": [
+    {
+      "doc_url": "https://barocss.com",
+      "instruction_followed": "Landing page pointed to Quick Start and API docs; package names @barocss/kit, @barocss/browser, @barocss/server",
+      "result": "ok",
+      "problem": "none",
+      "note": "No direct link/snippet for Vite+Tailwind companion setup on the home page itself; had to search for the integration page separately."
+    },
+    {
+      "doc_url": "https://www.npmjs.com/package/@barocss/browser",
+      "instruction_followed": "Tried to read README for install/usage",
+      "result": "blocked",
+      "problem": "missing",
+      "note": "npmjs.com package page returned HTTP 403 to the fetch tool, so README had to be reconstructed from barocss.com guide pages instead."
+    },
+    {
+      "doc_url": "https://barocss.com/guide/quick-start.html",
+      "instruction_followed": "pnpm add @barocss/browser@0.10.1; new BrowserRuntime(); runtime.observe(document.body, { scan: true })",
+      "result": "ok",
+      "problem": "none",
+      "note": "Used npm instead of pnpm (equivalent). Version pin 0.10.1 matched what npm installed."
+    },
+    {
+      "doc_url": "https://barocss.com/guide/integration/tailwind-companion.html",
+      "instruction_followed": "Used getRuntime({ skipExisting: true, config: { cssVarPrefix: 'tw', darkMode: 'class', darkModeSelector: '.dark &' } }) instead of `new BrowserRuntime()` from Quick Start, since this app also has a Tailwind v4 build",
+      "result": "ok",
+      "problem": "confusing",
+      "note": "Two different, non-overlapping runtime init APIs are shown across pages (`new BrowserRuntime()` in Quick Start vs `getRuntime(...)` in the Tailwind-companion guide) with no cross-reference explaining when to use which; had to infer that the companion guide's API is the one to use once Tailwind is also present. Also this guide gave no explicit `npm install` line at all (only inferred from context) and no runnable Vite project skeleton -- had to hand-write vite.config.js, index.html, main.js from scratch since no Vite example project/starter is linked from either page."
+    }
+  ],
+  "version_mismatches": [],
+  "installed": [
+    "@barocss/browser@0.10.1",
+    "vite@6.4.3",
+    "tailwindcss@4.3.3",
+    "@tailwindcss/vite@4.3.3"
+  ],
+  "final_files": [
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/vite-run1/package.json",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/vite-run1/vite.config.js",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/vite-run1/index.html",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/vite-run1/style.css",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/vite-run1/main.js",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/vite-run1/dist/index.html",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/vite-run1/dist/assets/index-DfrxUdMg.css",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/vite-run1/verify.cjs"
+  ]
+}

@@ -42,7 +42,7 @@ The documentation includes:
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BaroCSS App</title>
   <script type="module">
-    import { baroStart } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js';
+    import { baroStart } from 'https://cdn.jsdelivr.net/npm/@barocss/browser/dist/cdn/barocss.js';
     baroStart();
   </script>
 </head>
@@ -72,13 +72,13 @@ The browser and server packages depend on `@barocss/kit`. Install the runtime yo
 
 ```bash
 # Using pnpm (recommended)
-pnpm add @barocss/browser@latest
+pnpm add @barocss/browser
 
 # Using npm
-npm install @barocss/browser@latest
+npm install @barocss/browser
 
 # Using yarn
-yarn add @barocss/browser@latest
+yarn add @barocss/browser
 ```
 
 For server code, install `@barocss/server`. For direct engine use, install `@barocss/kit`.
@@ -241,6 +241,14 @@ import { ServerRuntime } from '@barocss/server';
 
 const serverRuntime = new ServerRuntime();
 const css = serverRuntime.generateCss('bg-blue-500 text-white p-4');
+```
+
+To inline server CSS in HTML so the browser runtime adopts it, wrap it with `ssrStyleTag` (pass `{ nonce }` under a strict CSP):
+
+```typescript
+import { ssrStyleTag } from '@barocss/server';
+
+const head = ssrStyleTag(css); // <style data-barocss-ssr>…</style>
 ```
 
 ### Core Engine
