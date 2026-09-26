@@ -1,5 +1,47 @@
 # @barocss/kit
 
+## 0.6.0
+
+### Minor Changes
+
+- 0.6.0: a security fix for 0.5.0, production SSR support in `@barocss/server`, and rule garbage collection in the browser runtime.
+
+  **Security:** combined variant tokens could put a CSS comment delimiter into a generated selector. In concatenated CSS output (kit, server sheets, the browser text fallback) that could disable the rules that followed it, so one untrusted class could remove other classes' styles. A serializer-level guard now drops any such rule on every output path. Upgrading from 0.5.0 is recommended.
+
+  **Behaviour changes (please check when upgrading):**
+
+  - `@barocss/browser` reclaims rules for classes no element uses any more (after a grace period, with a cap). This is on by default; `gc: false` restores the old behaviour. Classes from the page's existing stylesheets (`skipExisting`) are never reclaimed.
+  - `@barocss/server` output now defines every theme variable its rules reference (not only colours), emits `:root` and `@property` blocks once, and keeps Tailwind's variant order. Server-rendered pages style correctly at first paint.
+  - A theme value of the form `var(--same-name)` no longer emits a self-referencing root variable, so it doesn't override the build's value.
+
+  **New options:** `ServerRuntime(config, { cacheSize })` and `setConfig(config)` (per-class caching: warm generation about 0.1 ms per request); browser `gc`, `gcGraceMs`, `maxRules`; kit `unmarkProcessed`.
+
+  **Also:** named `theme.spacing` keys work in spacing utilities (`p-gutter`, `gap-gutter`, …).
+
+### Patch Changes
+
+- faa3ad8: Harden selector serialization against comment delimiters: a rule whose final selector or at-rule prelude contains a comment opener or closer (outside CSS escapes) is no longer emitted.
+- 79d32b6: Named `theme.spacing` keys (e.g. `theme.extend.spacing.gutter`) now work in spacing-scale utilities, as in Tailwind 4: `p-gutter` → `padding: var(--spacing-gutter)`, `-mt-gutter` → `calc(var(--spacing-gutter) * -1)`. Covers padding, margin, gap, inset/top/start/…, space-x/y, size/w/h/min-_/max-_, and scroll-m/scroll-p. Built-in keywords (`w-full`, `m-auto`, `*-px`) keep precedence; numeric spacing is unchanged.
+- 1888cf2: Browser runtime reclaims rules for classes no element uses any more (#269). `observe()` keeps a per-class
+  refcount of the elements inside the root; a class whose count stays 0 for `gcGraceMs` (default 3000 ms) and that a
+  live-DOM re-check no longer finds has its rules deleted (the #254 order keys stay in sync). Classes passed to
+  `addClass()`, classes a pre-existing stylesheet defines, and root/@property/preflight rules are never reclaimed.
+  Optional `maxRules` evicts unused classes early; `gc: false` restores the old keep-everything behaviour. Kit adds
+  `IncrementalParser.unmarkProcessed()`.
+- 858f8ed: `@barocss/server` (#267): `generateCss` now returns one complete, ordered sheet:
+
+  - its `:root,:host` block defines every theme variable the rules reference (radius, text, spacing, shadow, font, container, ease, aspect and so on, not only `--color-*`)
+  - each root block and `@property` block appears once
+  - rules follow Tailwind variant order (base < sm < md < lg)
+
+  To get one sheet for a list of classes, use `generateCss(classes.join(' '))`.
+
+  `generateCssForClasses` still returns entries in input order, and each entry is self-contained. Entries now also define non-colour theme variables and sort their own rules by variant.
+
+  `@barocss/kit` exports the shared `ruleSortKey` / `compareKeys` / `upperBound`, and `@barocss/browser` now imports them from kit. Browser behaviour is unchanged.
+
+- f542794: Skip self-referencing theme root vars: a theme value of `var(<same name>)` (with or without a fallback) no longer emits a cyclic `:root` declaration that overrides the site's own variable. Utilities still reference the var.
+
 ## 0.5.0
 
 ### Minor Changes
