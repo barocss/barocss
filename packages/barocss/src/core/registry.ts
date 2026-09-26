@@ -659,7 +659,7 @@ export function normalizeMathSpacing(value: string): string {
  * A theme lookup result usable as a CSS value (#333): strings as-is, finite numbers stringified; anything else
  * (a nested palette object when no shade is given, arrays, functions) counts as "no value".
  */
-export function themeScalar(v: unknown): string | undefined {
+function themeScalar(v: unknown): string | undefined {
   if (typeof v === 'string') return v;
   if (typeof v === 'number' && Number.isFinite(v)) return String(v);
   return undefined;
