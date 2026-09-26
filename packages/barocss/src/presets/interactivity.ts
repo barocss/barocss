@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRule, decl } from "../core/ast";
+import { atRule, atRoot, decl, property, type AstNode } from "../core/ast";
 import { parseNumber } from "../core/utils";
 
 // --- Accent Color Utilities  ---
@@ -223,6 +223,8 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
 
 
 [
+  ["mbs", "scroll-margin-block-start"], // #311 (Tailwind 4.3), before `mb`
+  ["mbe", "scroll-margin-block-end"],
   ["mt", "scroll-margin-top"],
   ["mr", "scroll-margin-right"],
   ["mb", "scroll-margin-bottom"],
@@ -233,6 +235,9 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
   ["me", "scroll-margin-inline-end"],
   ["m", "scroll-margin"],
 ].forEach(([name, prop]) => {
+  // #314: 1px keyword, as Tailwind 4.3.3 (negative too, for margin only).
+  staticUtility(`scroll-${name}-px`, [[prop, "1px"]], { category: 'interactivity' });
+  staticUtility(`-scroll-${name}-px`, [[prop, "-1px"]], { category: 'interactivity' });
   functionalUtility({
     name: `scroll-${name}`,
     spacingKeys: true,
@@ -256,6 +261,8 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
 
 
 [
+  ["pbs", "scroll-padding-block-start"], // #311 (Tailwind 4.3), before `pb`
+  ["pbe", "scroll-padding-block-end"],
   ["pt", "scroll-padding-top"],
   ["pr", "scroll-padding-right"],
   ["pb", "scroll-padding-bottom"],
@@ -272,13 +279,16 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
     prop,
     supportsArbitrary: true,
     supportsCustomProperty: true,
+    handleBareValue: ({ value }) => (value === "px" ? "1px" : /^(\d|\.\d)/.test(value) ? value : null),
     handle: (value, _ctx, token, _extra) => {
-      if (parseNumber(value) || token.negative) {
+      // #314: Tailwind 4.3.3 has no negative scroll-padding; `px` is 1px.
+      if (token.negative) return [];
+      if (parseNumber(value)) {
         return [decl(prop, `calc(var(--spacing) * ${value})`)];
       }
       return [decl(prop, value)];
     },
-    handleCustomProperty: (value) => [decl(prop, `var(${value})`)],
+    handleCustomProperty: (value, _ctx, token) => (token.negative ? [] : [decl(prop, `var(${value})`)]),
     description: `scroll-${name} utility (static, arbitrary, custom property supported)`,
     category: "interactivity",
   });
@@ -320,3 +330,48 @@ functionalUtility({
   description: "will-change utility (static, arbitrary, custom property supported)",
   category: "interactivity",
 });
+
+// --- Scrollbar Utilities (#309, Tailwind 4.3) ---
+staticUtility("scrollbar-auto", [["scrollbar-width", "auto"]], { category: 'interactivity' });
+staticUtility("scrollbar-thin", [["scrollbar-width", "thin"]], { category: 'interactivity' });
+staticUtility("scrollbar-none", [["scrollbar-width", "none"]], { category: 'interactivity' });
+staticUtility("scrollbar-gutter-auto", [["scrollbar-gutter", "auto"]], { category: 'interactivity' });
+staticUtility("scrollbar-gutter-stable", [["scrollbar-gutter", "stable"]], { category: 'interactivity' });
+staticUtility("scrollbar-gutter-both", [["scrollbar-gutter", "stable both-edges"]], { category: 'interactivity' });
+
+// scrollbar-thumb-*/scrollbar-track-* set one half and re-emit the composite, with @property defaults (#0000)
+// so a lone thumb or track still yields a valid scrollbar-color.
+const SCROLLBAR_COLOR = "var(--baro-scrollbar-thumb) var(--baro-scrollbar-track)";
+const scrollbarProperties = () =>
+  atRoot([
+    property("--baro-scrollbar-thumb", "#0000", "<color>"),
+    property("--baro-scrollbar-track", "#0000", "<color>"),
+  ]);
+const stripColorHint = (v: string) => v.replace(/^color:/, "");
+
+for (const part of ["thumb", "track"] as const) {
+  const key = `--baro-scrollbar-${part}`;
+  const compose = (inner: AstNode[]) => [scrollbarProperties(), ...inner, decl("scrollbar-color", SCROLLBAR_COLOR)];
+  const withOpacity = (color: string, opacity?: string) =>
+    opacity
+      ? [decl(key, `color-mix(in oklab, ${color} ${opacity.replace(/^\[(.*)\]$/, "$1").replace(/%$/, "")}%, transparent)`)]
+      : [decl(key, color)];
+  functionalUtility({
+    name: `scrollbar-${part}`,
+    themeKeys: ["colors"],
+    supportsOpacity: true,
+    supportsArbitrary: true,
+    supportsCustomProperty: true,
+    handle: (value, _ctx, token, extra) => {
+      if (extra?.realThemeValue) return compose(withOpacity(`var(--color-${extra.realThemeValue})`, extra.opacity));
+      if (token.arbitrary) return compose(withOpacity(stripColorHint(value), extra?.opacity));
+      if (value === "inherit" || value === "transparent") return compose([decl(key, value)]);
+      if (value === "current") return compose(withOpacity("currentcolor", extra?.opacity));
+      return null;
+    },
+    handleCustomProperty: (value, _ctx, _token, extra) =>
+      compose(withOpacity(`var(${stripColorHint(value)})`, extra?.opacity)),
+    description: `scrollbar-color ${part} utility (theme, arbitrary, custom property, opacity)`,
+    category: "interactivity",
+  });
+}

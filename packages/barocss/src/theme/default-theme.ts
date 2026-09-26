@@ -22,6 +22,7 @@ import { breakpoints } from './breakpoints';
 import { container } from './container';
 import { letterSpacing } from './letter-spacing';
 import { blur } from './blur';
+import { textShadow, dropShadow } from './text-shadow';
 
 export interface UserTheme {
   [key: string]: unknown;
@@ -49,6 +50,8 @@ export const defaultTheme = {
   keyframes,
   animationVars,
   blur,
+  textShadow,
+  dropShadow,
   // Tailwind 4.1.13 --aspect-* (aspect-video → var(--aspect-video))
   aspect: { video: '16 / 9' },
 } as UserTheme; 

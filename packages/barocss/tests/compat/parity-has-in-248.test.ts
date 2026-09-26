@@ -1,4 +1,4 @@
-/** #248: `in-*` and `has-<pseudo>` variants vs Tailwind 4.1.13 (fresh compile() per candidate). */
+/** #248: `in-*` and `has-<pseudo>` variants vs Tailwind 4.3 (fresh compile() per candidate). */
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
@@ -6,26 +6,13 @@ import { compile } from 'tailwindcss';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
 import '../../src/presets';
+import { flatRules } from './parity-compare';
 
 const require = createRequire(import.meta.url);
 const themeCss = fs.readFileSync(require.resolve('tailwindcss/theme.css'), 'utf8');
-const ws = (s: string) => s.replace(/\s+/g, ' ').trim();
 async function tw(cls: string): Promise<string> {
   const c = await compile(themeCss + '\n@tailwind utilities;');
   return c.build([cls]);
-}
-
-/**
- * Tailwind nests `.cls { <sel with &> { [@media q {] decls } }`; flatten it to BaroCSS's shape:
- * `[@media q {] <sel with & → .cls> { decls } [}]`.
- */
-function flattenTw(css: string): string {
-  const body = ws(css.replace(/\/\*[^]*?\*\//g, '').replace(/:root, :host \{[^}]*\}/, ''));
-  const m = /^(\S+) \{ ([^{]*&[^{]*?) \{ (?:(@media [^{]+?) \{ )?([^{}]+?) \}/.exec(body);
-  if (!m) throw new Error(`unexpected Tailwind shape: ${body}`);
-  const [, cls, sel, media, decls] = m;
-  const rule = `${sel.replace('&', cls)} { ${decls} }`;
-  return media ? `${media} { ${rule} }` : rule;
 }
 
 describe('#248 in-* / has-<pseudo> selectors match Tailwind', () => {
@@ -35,9 +22,10 @@ describe('#248 in-* / has-<pseudo> selectors match Tailwind', () => {
     'has-hover:flex', 'has-focus:flex', 'has-checked:flex', 'has-first:flex', 'has-open:flex',
     'has-focus-visible:flex', 'has-disabled:flex',
   ])('%s', async (cls) => {
-    const baro = ws(generateCss(cls, createContext({})));
-    const expected = flattenTw(await tw(cls));
-    expect(baro).toBe(expected);
+    // #312: same rules after flattening nesting and dropping the redundant `*` in `:has(*:x)` (see flatRules).
+    const expected = flatRules(await tw(cls));
+    expect(expected.length).toBeGreaterThan(0);
+    expect(flatRules(generateCss(cls, createContext({})))).toEqual(expected);
   });
 
   it('non-selector variants inside in-/has- emit nothing, like Tailwind', async () => {

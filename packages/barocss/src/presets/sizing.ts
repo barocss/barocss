@@ -325,3 +325,43 @@ functionalUtility({
   description: 'max-width utility (spacing, fraction, arbitrary, custom property, static supported)',
   category: 'sizing',
 });
+
+// --- Sizing: logical inline-size / block-size (Tailwind 4.3) ---
+// inline-* / block-* and their min-/max- forms mirror the width / height scales. Bare `inline` / `block` (and
+// inline-block/flex/grid/table) stay display utilities: static names win over the functional sizing lookup,
+// matching Tailwind 4.3.3.
+{
+  const containers = ['3xs', '2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl'].map(
+    (k) => [k, `var(--container-${k})`],
+  );
+  const common = [['0', '0px'], ['px', '1px'], ['full', '100%'], ['min', 'min-content'], ['max', 'max-content'], ['fit', 'fit-content']];
+  const inlineVp = [['screen', '100vw'], ['dvw', '100dvw'], ['lvw', '100lvw'], ['svw', '100svw']];
+  const blockVp = [['screen', '100vh'], ['dvh', '100dvh'], ['lvh', '100lvh'], ['svh', '100svh'], ['lh', '1lh']];
+  const families: [string, string, string[][]][] = [
+    ['inline', 'inline-size', [...common, ['auto', 'auto'], ...inlineVp, ...containers]],
+    ['min-inline', 'min-inline-size', [...common, ['auto', 'auto'], ...inlineVp, ...containers]],
+    ['max-inline', 'max-inline-size', [...common, ['none', 'none'], ...inlineVp, ...containers]],
+    ['block', 'block-size', [...common, ['auto', 'auto'], ...blockVp]],
+    ['min-block', 'min-block-size', [...common, ['auto', 'auto'], ...blockVp]],
+    ['max-block', 'max-block-size', [...common, ['none', 'none'], ...blockVp]],
+  ];
+  for (const [name, prop, statics] of families) {
+    for (const [key, value] of statics) staticUtility(`${name}-${key}`, [[prop, value]], { category: 'sizing' });
+    functionalUtility({
+      spacingKeys: true,
+      name,
+      prop,
+      supportsArbitrary: true,
+      supportsCustomProperty: true,
+      supportsFraction: true,
+      handleBareValue: ({ value, token }) => {
+        if (token.negative) return null; // Tailwind 4.3.3 has no negative inline/block sizes
+        if (parseNumber(value)) return `calc(var(--spacing) * ${value})`;
+        if (parseFractionOrNumber(value)) return `calc(${value} * 100%)`;
+        return null;
+      },
+      description: `${prop} utility (spacing, fraction, arbitrary, custom property, keywords)`,
+      category: 'sizing',
+    });
+  }
+}

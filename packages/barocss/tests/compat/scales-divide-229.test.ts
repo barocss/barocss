@@ -1,4 +1,4 @@
-/** #229: blur / radius scales and divide border style vs Tailwind 4.1.13 (fresh compile() per candidate). */
+/** #229: blur / radius scales and divide border style vs Tailwind 4.3 (fresh compile() per candidate). */
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
@@ -8,6 +8,7 @@ import { generateCss } from '../../src/core/engine';
 import { blur } from '../../src/theme/blur';
 import { borderRadius } from '../../src/theme/border-radius';
 import '../../src/presets';
+import { flatRules } from './parity-compare';
 
 const require = createRequire(import.meta.url);
 const themeCss = fs.readFileSync(require.resolve('tailwindcss/theme.css'), 'utf8');
@@ -25,7 +26,7 @@ const body = (css: string, sel: string) => {
   return i < 0 ? '' : flat.slice(flat.indexOf('{', i) + 1, flat.indexOf('}', i)).trim();
 };
 
-describe('#229 scales and divide vs Tailwind 4.1.13', () => {
+describe('#229 scales and divide vs Tailwind 4.3', () => {
   it.each(['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'])('--blur-%s', (k) => {
     expect(blur[k as keyof typeof blur]).toBe(twVar(`--blur-${k}`));
   });
@@ -43,6 +44,8 @@ describe('#229 scales and divide vs Tailwind 4.1.13', () => {
     const baro = generateCss(cls, createContext({}));
     const sel = `:where(.${cls.replace(/[[\]]/g, '\\$&')} > :not(:last-child))`;
     expect(baro).toContain('@property --baro-border-style');
-    expect(body(baro, sel)).toBe(body(await tw(cls), ':where(& > :not(:last-child))'));
+    expect(body(baro, sel)).not.toBe('');
+    // #312: 4.3 emits the flat `:where(.x > :not(:last-child))` rule; compare whole rules structurally.
+    expect(flatRules(baro)).toEqual(flatRules(await tw(cls)));
   });
 });

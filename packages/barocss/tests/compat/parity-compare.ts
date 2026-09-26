@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { compile } from 'tailwindcss';
+import { compile as compile41 } from 'tailwindcss-4-1';
 import postcss, { type AtRule, type Container, type Declaration, type Rule } from 'postcss';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
@@ -175,13 +176,40 @@ export function diffKeyframes(twCss: string, baroCss: string, out: string[]) {
 
 export type ParityResult = { token: string; uses: number; family: string; varOnly: boolean; pass: boolean; diffs: string[] };
 
-export async function runParity(corpus: readonly (readonly [string, number])[]): Promise<ParityResult[]> {
+// #304: the primary reference is Tailwind 4.3.x (`tailwindcss`); 4.1.13 (`tailwindcss-4-1`) is kept for a
+// report-only comparison line.
+export type TwRef = 'tailwindcss' | 'tailwindcss-4-1';
+const compilers = { tailwindcss: compile, 'tailwindcss-4-1': compile41 } as const;
+
+export function tailwindBuilder(ref: TwRef = 'tailwindcss') {
   const require = createRequire(import.meta.url);
-  const themeCss = fs.readFileSync(require.resolve('tailwindcss/theme.css'), 'utf8');
+  const themeCss = fs.readFileSync(require.resolve(`${ref}/theme.css`), 'utf8');
+  return async (tokens: string[]) => (await compilers[ref](`${themeCss}\n@tailwind utilities;`)).build(tokens);
+}
+
+/** #304: tokens whose *effective* Tailwind output differs between 4.1.13 and 4.3.x. */
+export async function tailwindVersionDiffs(tokens: readonly string[]): Promise<string[]> {
+  const a = tailwindBuilder('tailwindcss-4-1');
+  const b = tailwindBuilder('tailwindcss');
+  const key = (e: Effective) => JSON.stringify([e.decls, e.vars, e.wrappers]);
+  const out: string[] = [];
+  for (const t of tokens) {
+    const [ea, eb] = [effective(await a([t]), new Map()), effective(await b([t]), new Map())];
+    if (key(ea) === key(eb)) continue;
+    const d: string[] = [];
+    for (const p of new Set([...Object.keys(ea.decls), ...Object.keys(eb.decls)])) if (ea.decls[p] !== eb.decls[p]) d.push(`${p}: ${ea.decls[p] ?? '∅'} → ${eb.decls[p] ?? '∅'}`);
+    for (const p of new Set([...Object.keys(ea.vars), ...Object.keys(eb.vars)])) if (ea.vars[p] !== eb.vars[p]) d.push(`${p}: ${ea.vars[p] ?? '∅'} → ${eb.vars[p] ?? '∅'}`);
+    if (ea.wrappers !== eb.wrappers) d.push(`wrapper: ${ea.wrappers || '∅'} → ${eb.wrappers || '∅'}`);
+    out.push(`${t}: ${d.join('; ')}`);
+  }
+  return out;
+}
+
+export async function runParity(corpus: readonly (readonly [string, number])[], ref: TwRef = 'tailwindcss'): Promise<ParityResult[]> {
   const ctx = createContext({ preflight: false });
   const baroRoot: Scope = new Map();
   postcss.parse(ctx.themeToCssVars()).walkDecls((d) => { if (d.prop.startsWith('--')) baroRoot.set(d.prop, d.value); });
-  const twCss = async (tokens: string[]) => (await compile(`${themeCss}\n@tailwind utilities;`)).build(tokens);
+  const twCss = tailwindBuilder(ref);
   const baroCss = (tokens: string[]) => tokens.map((t) => { try { return generateCss(t, ctx); } catch { return ''; } }).join('\n');
 
   return Promise.all(corpus.map(async ([token, uses]) => {
@@ -231,4 +259,42 @@ export function coverageReport(label: string, results: ParityResult[]): string {
     `${label}: ${((passing / total) * 100).toFixed(1)}% of ${total} corpus uses (${results.filter((r) => r.pass).length}/${results.length} classes; var-only ${vo.filter((r) => r.pass).length}/${vo.length})`,
     ...[...byFamily].sort((a, b) => b[1].fail - a[1].fail).map(([f, { pass, fail }]) => `  ${f.padEnd(15)} ${pass}/${pass + fail} uses at parity`),
   ].join('\n');
+}
+
+// #312: structural comparison for the shape tests (compare, space, divide, has/in/group/peer …). Tailwind 4.3
+// flattens nested `&` rules and writes `:has(:x)` where BaroCSS writes `:has(*:x)`; both are the same selector.
+// `flatRules` resolves nesting, drops non-rule noise (comments, @property, `@layer properties`, the theme
+// `:root, :host` block), and normalises only shape: whitespace, a redundant universal `*` in a compound,
+// `--tw-` → `--baro-`, `(width >= X)` → `(min-width: X)`, and `calc(var(--spacing) * 0)` → `0px` (same value).
+export function normSelector(sel: string): string {
+  return sel
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([>+~,])\s*/g, '$1')
+    .replace(/(^|[\s(,>+~])\*(?=[:.[#])/g, '$1')
+    .trim();
+}
+const normValue = (v: string) =>
+  v.replace(/--tw-/g, '--baro-').replace(/\s+/g, ' ').replace(/calc\(var\(--spacing\) \* -?0\)/g, '0px').trim();
+const normParams = (p: string) => p.replace(/\s+/g, ' ').replace(/\(width >= ([^)]+)\)/g, '(min-width: $1)').trim();
+const joinSel = (parent: string, child: string) =>
+  !parent ? child : child.includes('&') ? child.replace(/&/g, parent) : `${parent} ${child}`;
+
+export function flatRules(css: string): string[] {
+  const out: string[] = [];
+  const walk = (node: Container, sel: string, ats: string[]) => {
+    const decls: string[] = [];
+    for (const n of node.nodes ?? []) {
+      if (n.type === 'decl') decls.push(`${n.prop.replace(/^--tw-/, '--baro-')}: ${normValue(n.value)}${n.important ? ' !important' : ''}`);
+      else if (n.type === 'rule') {
+        if (!sel && n.selector.replace(/\s+/g, ' ') === ':root, :host') continue;
+        walk(n, joinSel(sel, n.selector), ats);
+      } else if (n.type === 'atrule') {
+        if (n.name === 'property' || (n.name === 'layer' && n.params === 'properties')) continue;
+        walk(n, sel, [...ats, `@${n.name} ${normParams(n.params)}`]);
+      }
+    }
+    if (decls.length) out.push(`${ats.join(' ')}${ats.length ? ' ' : ''}${normSelector(sel)} { ${decls.join('; ')} }`);
+  };
+  walk(postcss.parse(css), '', []);
+  return out;
 }
