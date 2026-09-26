@@ -1,5 +1,45 @@
 # @barocss/kit
 
+## 0.8.0
+
+### Minor Changes
+
+- 0.8.0: Tailwind 4.3 support. The parity reference is now Tailwind 4.3.3, since BaroCSS runs next to your build and real projects use Tailwind 4.3.
+
+  **New utilities (Tailwind 4.3):** logical properties (`inset-s/e/bs/be`, `inline-*` / `block-*` sizing, `pbs/pbe/mbs/mbe`, `border-bs/be`, `border-s/e`), `scrollbar-thin` / `scrollbar-none` / scrollbar colours / `scrollbar-gutter`, `font-features-*`, `zoom-*`, `tab-*`, `@container-size`, `not-@container`, `scroll-pbs/mbe`, `text-shadow-*`, and the mauve / olive / mist / taupe palettes.
+
+  **Behaviour changes (please check when upgrading):**
+
+  - Theme data follows Tailwind 4.3: the default `font-sans` stack, and the `neutral` / `zinc` palettes.
+  - `drop-shadow-*` sizes and shadow size + colour composition (`shadow-md shadow-red-500/20`) match Tailwind 4.3; `shadow-inner` now emits a rule.
+  - Negative scroll padding (`-scroll-p*`) emits nothing, as in Tailwind; `scroll-*-px` is `1px`; `border-spacing-x/y` compose.
+  - Side-specific border opacity and `border-s-(--c)` no longer affect all sides.
+
+  **Docs:** the Astro recipe sets `cssVarPrefix` and the dark-mode mapping; the CDN global is documented as the browser runtime only (use `@barocss/server` for server CSS); first-paint styling points to the server recipe.
+
+- 5619b55: Default theme data now matches Tailwind CSS 4.3 (`tailwindcss/theme.css` 4.3.3) (#307).
+
+  Default values that change for existing users:
+
+  - `font-sans` (and the preflight `html` font fallback) is now `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'` (was `ui-sans-serif, system-ui, sans-serif, …`). `font-serif` and `font-mono` are unchanged.
+  - `neutral-50…950` and `zinc-50` use hue `none` (`oklch(55.6% 0 none)` instead of `oklch(55.6% 0 0)`). Rendered colours are the same.
+
+  Added:
+
+  - The `mauve`, `olive`, `mist` and `taupe` palettes (50–950) for every colour utility.
+  - `placeholder-<color>` utilities (`.placeholder-red-500::placeholder { color: var(--color-red-500) }`, with `/alpha`, arbitrary colours, custom properties, `inherit`/`current`/`transparent`), as in Tailwind 4.3.
+
+  No other theme keys (spacing, radius, shadows, etc.) differ between Tailwind 4.1.13 and 4.3.3.
+
+### Patch Changes
+
+- 6648b39: Tailwind 4.3 parity: `@container-size` (and `@container-size/<name>`, `@container-normal/<name>`), negated container variants `not-@<size>` / `not-@max-<size>` / `not-@[…]` (with `/<name>`), `scroll-pbs/pbe/mbs/mbe-*`, and `border-s-*` / `border-e-*` (inline-start/end width and colour).
+- e96524a: Add Tailwind 4.3 logical-property utilities: `inset-s/e/bs/be-*`, `inline-*`/`block-*` sizing with `min-`/`max-` forms, `pbs/pbe-*`, `mbs/mbe-*`, and `border-bs`/`border-be` width and colour. Side border colours (`border-t-red-500/50` etc.) now honour the opacity modifier.
+- 18ebf77: Match Tailwind 4.3.3: `scroll-m*-px` / `scroll-p*-px` emit 1px, negative scroll-padding emits nothing, and `border-spacing-*` sets `--baro-border-spacing-x/y` (with `@property`) and composes `border-spacing` from both.
+- 85ea0b3: Add Tailwind 4.3 `scrollbar-auto|thin|none`, `scrollbar-gutter-auto|stable|both`, `scrollbar-thumb-*` / `scrollbar-track-*` (composed `scrollbar-color` with `@property` defaults) and `font-features-[…]` / `font-features-(--x)` utilities (#309).
+- c64d140: Match Tailwind 4.3.3 shadows: add `text-shadow-*` (2xs–lg sizes, colours, `/N`, `/[x%]`, `/(--o)`, `none`, arbitrary and custom-property values) with the `--text-shadow-*` theme scale; `drop-shadow-*` sizes now use Tailwind's theme values with colour and opacity modifiers; named `shadow-*`/`inset-shadow-*` wrap their colour in `--baro-shadow-color` so `shadow-md shadow-red-500/20` composes; `shadow-inner` and bare `shadow/N` work; `/[x%]` and `/(--o)` opacity on named shadows.
+- 723974d: Tailwind 4.3 parity (#310): `zoom-*` (integer percent, arbitrary, custom property), `tab-*` (tab-size), bare `auto-rows-<n>` / `auto-cols-<n>` on the spacing scale, and named `shadow-*/<n>` / `inset-shadow-*/<n>` opacity including decimals (`shadow-lg/12.5`).
+
 ## 0.7.0
 
 ### Minor Changes

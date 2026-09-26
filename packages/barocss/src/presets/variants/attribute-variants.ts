@@ -33,7 +33,7 @@ functionalModifier(
 );
 
 functionalModifier(
-  (mod: string) => mod.startsWith('not-'),
+  (mod: string) => mod.startsWith('not-') && !mod.startsWith('not-@'), // not-@… is container negation (#311)
   ({ selector, mod }) => {
     const pseudo = mod.type.replace('not-', '');
     if (pseudo.startsWith('[')) {

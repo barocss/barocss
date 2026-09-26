@@ -4,9 +4,10 @@ import { Context } from "../../core/context";
 /**
  * Create container query parameters
  */
-export function createContainerParams(type: 'min' | 'max', value: string, name?: string): string {
+export function createContainerParams(type: 'min' | 'max', value: string, name?: string, negate = false): string {
   const condition = type === 'min' ? 'width >=' : 'width <';
-  return name ? `${name} (${condition} ${value})` : `(${condition} ${value})`;
+  const query = `${negate ? 'not ' : ''}(${condition} ${value})`;
+  return name ? `${name} ${query}` : query;
 }
 
 /**

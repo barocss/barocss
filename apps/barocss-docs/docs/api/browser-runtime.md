@@ -7,6 +7,14 @@ description: Browser-specific DOM integration and CSS injection in BaroCSS
 
 The Browser Runtime API provides browser-specific functionality for DOM integration, CSS injection, and automatic class detection. It's the primary way to use BaroCSS in web applications.
 
+::: tip Need styled first paint on server-rendered pages?
+Use the `@barocss/server` recipe: [Server Runtime](/api/server-runtime), or for Astro [Astro (SSR and static)](/guide/integration/astro). The API below is client-only.
+:::
+
+::: warning CDN global is browser-only
+The UMD script's `window.BaroCSS` (and the ESM CDN module) exposes only `@barocss/browser`: `BrowserRuntime`, `getRuntime`, `baroBoot`/`baroStart`, `ChangeDetector`, `StylePartitionManager`, `shadcnTheme`, `preloadJsonRenderClasses`, `collectJsonRenderClassNames`, `normalizeClassName(List)`, `SSR_STYLE_SELECTOR`, `LAYER_ORDER`. There is no `generateCss`/`generateCssForHtml`/`ServerRuntime`: server-side generation needs `@barocss/server` in Node ([Server Runtime](/api/server-runtime)).
+:::
+
 ## BrowserRuntime Class
 
 The main class for browser-based BaroCSS functionality.

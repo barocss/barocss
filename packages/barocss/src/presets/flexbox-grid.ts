@@ -314,6 +314,7 @@ functionalUtility({
   prop: "grid-auto-columns",
   supportsArbitrary: true, // auto-cols-[minmax(0,2fr)]
   supportsCustomProperty: true, // auto-cols-(--my-auto-cols)
+  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null), // #310: auto-cols-4
   handle: (value) => {
     if (typeof value === "string") return [decl("grid-auto-columns", value)];
     return null;
@@ -335,6 +336,7 @@ functionalUtility({
   prop: "grid-auto-rows",
   supportsArbitrary: true, // auto-rows-[minmax(0,2fr)]
   supportsCustomProperty: true, // auto-rows-(--my-auto-rows)
+  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null), // #310: auto-rows-12
   handle: (value) => {
     if (typeof value === "string") return [decl("grid-auto-rows", value)];
     return null;

@@ -151,12 +151,16 @@ staticUtility("not-sr-only", [
 // --- Layout: Container queries (@container, @container/<name>, @container-normal) ---
 staticUtility("@container", [["container-type", "inline-size"]], { category: 'layout' });
 staticUtility("@container-normal", [["container-type", "normal"]], { category: 'layout' });
+staticUtility("@container-size", [["container-type", "size"]], { category: 'layout' }); // #311 (Tailwind 4.3)
+// Named forms: @container/<name>, @container-normal/<name>, @container-size/<name> (#311).
+const NAMED_CONTAINER = /^@container(-normal|-size)?\/([a-zA-Z0-9_-]+)$/;
+const CONTAINER_TYPE: Record<string, string> = { '': 'inline-size', '-normal': 'normal', '-size': 'size' };
 registerUtility({
   name: "@container",
-  match: (className: string) => /^@container\/[a-zA-Z0-9_-]+$/.test(className),
+  match: (className: string) => NAMED_CONTAINER.test(className),
   handler: (_value, _ctx, token) => {
-    const name = /^@container\/([a-zA-Z0-9_-]+)$/.exec(`${token.prefix}${token.value ? `-${token.value}` : ""}`)?.[1];
-    return name ? [decl("container-type", "inline-size"), decl("container-name", name)] : null;
+    const m = NAMED_CONTAINER.exec(`${token.prefix}${token.value ? `-${token.value}` : ""}`);
+    return m ? [decl("container-type", CONTAINER_TYPE[m[1] ?? '']), decl("container-name", m[2])] : null;
   },
   category: 'layout',
 });
@@ -261,6 +265,11 @@ staticUtility("sticky", [["position", "sticky"]], { category: 'layout' });
 [
   ["inset-x", "inset-inline"],
   ["inset-y", "inset-block"],
+  // Tailwind 4.3 logical sides; registered before `inset` so their handler runs first for `inset-s-*` etc.
+  ["inset-s", "inset-inline-start"],
+  ["inset-e", "inset-inline-end"],
+  ["inset-bs", "inset-block-start"],
+  ["inset-be", "inset-block-end"],
   ["inset", "inset"],
   ["start", "inset-inline-start"],
   ["end", "inset-inline-end"],
@@ -353,5 +362,16 @@ functionalUtility({
   },
   handleCustomProperty: (value) => [decl("gap", `var(${value})`)],
   description: "gap utility (number, arbitrary, custom property supported)",
+  category: "layout",
+});
+
+// #310: zoom-* (Tailwind 4.3): integer → percent (zoom-50 → 50%), zoom-[1.5], zoom-(--z).
+functionalUtility({
+  name: "zoom",
+  prop: "zoom",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => (/^\d+$/.test(value) ? `${value}%` : null),
+  description: "zoom utility (integer percent, arbitrary, custom property)",
   category: "layout",
 });

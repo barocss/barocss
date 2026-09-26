@@ -68,204 +68,56 @@ const shadowNodes = (value: string) => [
   ringNodes("1px")[ringNodes("1px").length - 1],
 ];
 
+// #313: the value of `prop` among the top-level decls, or inside an @supports block when `supported`.
+type Node = { type: string; prop?: string; value?: string; name?: string; nodes?: Node[] };
+const declOf = (ast: unknown, prop: string, supported = false): string | undefined => {
+  const nodes = ast as Node[];
+  const pool = supported ? nodes.filter((n) => n.type === "at-rule" && n.name === "supports").flatMap((n) => n.nodes ?? []) : nodes;
+  return pool.find((n) => n.type === "decl" && n.prop === prop)?.value;
+};
+
 describe("effects.ts (box-shadow utilities)", () => {
-  // Static shadow levels
-  it("shadow-md → box-shadow: var(--shadow-md)", () => {
-    expect(parseClassToAst("shadow-md", ctx)).toEqual(shadowNodes("var(--shadow-md)"));
+  // #313: shadow layers wrap each colour in var(--baro-<layer>-color, …) like Tailwind 4.3.3; colour utilities
+  // set that var, mixed with --baro-<layer>-alpha where color-mix is supported.
+  it.each([
+    ["shadow-md", "0 4px 6px -1px var(--baro-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--baro-shadow-color, rgb(0 0 0 / 0.1))"],
+    ["shadow", "0 1px 3px 0 var(--baro-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--baro-shadow-color, rgb(0 0 0 / 0.1))"],
+    ["shadow-inner", "inset 0 2px 4px 0 var(--baro-shadow-color, rgb(0 0 0 / 0.05))"],
+    ["shadow-none", "0 0 #0000"],
+    ["shadow-(--my-shadow)", "var(--my-shadow)"],
+    ["shadow-[0_35px_35px_rgba(0,0,0,0.25)]", "0 35px 35px var(--baro-shadow-color, rgba(0,0,0,0.25))"],
+  ])("%s → --baro-shadow", (cls, value) => {
+    const ast = parseClassToAst(cls, ctx);
+    expect(declOf(ast, "--baro-shadow")).toBe(value);
+    expect(declOf(ast, "box-shadow")).toBe(COMPOSITE);
   });
-  it("shadow → box-shadow: Tailwind 4 default", () => {
-    expect(parseClassToAst("shadow", ctx)).toEqual(shadowNodes("0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"));
+  it.each([
+    ["inset-shadow-xs", "inset 0 1px 1px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
+    ["inset-shadow-sm", "inset 0 2px 4px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
+    ["inset-shadow-none", "inset 0 0 #0000"],
+    ["inset-shadow-(--my-inset-shadow)", "inset var(--my-inset-shadow)"],
+    ["inset-shadow-[0_2px_3px_rgba(0,0,0,0.25)]", "inset 0 2px 3px var(--baro-inset-shadow-color, rgba(0,0,0,0.25))"],
+  ])("%s → --baro-inset-shadow", (cls, value) => {
+    const ast = parseClassToAst(cls, ctx);
+    expect(declOf(ast, "--baro-inset-shadow")).toBe(value);
+    expect(declOf(ast, "box-shadow")).toBe(COMPOSITE);
   });
-  it("shadow-none → box-shadow: 0 0 #0000", () => {
-    expect(parseClassToAst("shadow-none", ctx)).toEqual(shadowNodes("0 0 #0000"));
+  it.each([
+    ["shadow-red-500", "--baro-shadow-color", "#ef4444", "color-mix(in oklab, var(--color-red-500) var(--baro-shadow-alpha), transparent)"],
+    ["shadow-black", "--baro-shadow-color", "#000", "color-mix(in oklab, var(--color-black) var(--baro-shadow-alpha), transparent)"],
+    ["shadow-red-500/50", "--baro-shadow-color", "color-mix(in srgb, #ef4444 50%, transparent)", "color-mix(in oklab, color-mix(in oklab, var(--color-red-500) 50%, transparent) var(--baro-shadow-alpha), transparent)"],
+    ["shadow-[#bada55]/80", "--baro-shadow-color", "color-mix(in srgb, #bada55 80%, transparent)", "color-mix(in oklab, color-mix(in oklab, #bada55 80%, transparent) var(--baro-shadow-alpha), transparent)"],
+    ["shadow-current", "--baro-shadow-color", "currentcolor", "color-mix(in oklab, currentcolor var(--baro-shadow-alpha), transparent)"],
+    ["shadow-transparent", "--baro-shadow-color", "transparent", "color-mix(in oklab, transparent var(--baro-shadow-alpha), transparent)"],
+    ["inset-shadow-red-500/60", "--baro-inset-shadow-color", "color-mix(in srgb, #ef4444 60%, transparent)", "color-mix(in oklab, color-mix(in oklab, var(--color-red-500) 60%, transparent) var(--baro-inset-shadow-alpha), transparent)"],
+    ["inset-shadow-indigo-500/50", "--baro-inset-shadow-color", "color-mix(in srgb, #625fff 50%, transparent)", "color-mix(in oklab, color-mix(in oklab, var(--color-indigo-500) 50%, transparent) var(--baro-inset-shadow-alpha), transparent)"],
+  ])("%s → %s", (cls, prop, fallback, supported) => {
+    const ast = parseClassToAst(cls, ctx);
+    expect(declOf(ast, prop)).toBe(fallback);
+    expect(declOf(ast, prop, true)).toBe(supported);
   });
-  // Static inset shadow levels
-  it("inset-shadow-xs → box-shadow: var(--inset-shadow-xs)", () => {
-    expect(parseClassToAst("inset-shadow-xs", ctx)).toEqual([
-      ringNodes("1px")[0],
-      { type: "decl", prop: "--baro-inset-shadow", value: "inset 0 1px 1px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))" },
-      { type: "decl", prop: "box-shadow", value: "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)" },
-    ]);
-  });
-  it("inset-shadow-none → box-shadow: 0 0 #0000", () => {
-    expect(parseClassToAst("inset-shadow-none", ctx)).toEqual([
-      ringNodes("1px")[0],
-      { type: "decl", prop: "--baro-inset-shadow", value: "0 0 #0000" },
-      { type: "decl", prop: "box-shadow", value: "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)" },
-    ]);
-  });
-  // Custom property
-  it("shadow-(--my-shadow) → box-shadow: var(--my-shadow)", () => {
-    expect(parseClassToAst("shadow-(--my-shadow)", ctx)).toEqual(shadowNodes("var(--my-shadow)"));
-  });
-  // Arbitrary value
-  it("shadow-[0_35px_35px_rgba(0,0,0,0.25)] → box-shadow: 0 35px 35px rgba(0,0,0,0.25)", () => {
-    expect(
-      parseClassToAst("shadow-[0_35px_35px_rgba(0,0,0,0.25)]", ctx)
-    ).toEqual(shadowNodes("0 35px 35px rgba(0,0,0,0.25)"));
-  });
-  // Shadow color
-  it("shadow-red-500 → --baro-shadow-color: var(--color-red-500)", () => {
-    expect(parseClassToAst("shadow-red-500", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-shadow-color",
-            value: "var(--color-red-500)",
-          },
-        ],
-      },
-      { type: "decl", prop: "--baro-shadow-color", value: "#ef4444" },
-    ]);
-  });
-  it("shadow-black → --baro-shadow-color: #000", () => {
-    expect(parseClassToAst("shadow-black", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-shadow-color",
-            value: "var(--color-black)",
-          },
-        ],
-      },
-      { type: "decl", prop: "--baro-shadow-color", value: "#000" },
-    ]);
-  });
-  it("shadow-white → --baro-shadow-color: var(--color-white)", () => {
-    expect(parseClassToAst("shadow-white", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-shadow-color",
-            value: "var(--color-white)",
-          },
-        ],
-      },
-      { type: "decl", prop: "--baro-shadow-color", value: "#fff" },
-    ]);
-  });
-  // Shadow color with opacity
-  it("shadow-red-500/50 → --baro-shadow-color: color-mix(in oklab, var(--color-red-500) 50%, transparent)", () => {
-    expect(parseClassToAst("shadow-red-500/50", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-shadow-color",
-            value: "color-mix(in oklab, color-mix(in oklab, var(--color-red-500) 50%, transparent) var(--baro-shadow-alpha),transparent)",
-          },
-        ],
-      },
-      {
-        type: "decl",
-        prop: "--baro-shadow-color",
-        value: "#ef444480",
-      },
-    ]);
-  });
-  it("shadow-[#bada55]/80 → --baro-shadow-color: color-mix(in oklab, #bada55 80%, transparent)", () => {
-    expect(parseClassToAst("shadow-[#bada55]/80", ctx)).toEqual([
-      {
-        type: "decl",
-        prop: "--baro-shadow-color",
-        value: "color-mix(in oklab, #bada55 80%, transparent)",
-      },
-    ]);
-  });
-  // Special cases
   it("shadow-inherit → --baro-shadow-color: inherit", () => {
-    expect(parseClassToAst("shadow-inherit", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          { type: "decl", prop: "--baro-shadow-color", value: "var(--color-inherit)" },
-        ],
-      },
-      { type: "decl", prop: "--baro-shadow-color", value: "inherit" },
-    ]);
-  });
-  it("shadow-current → --baro-shadow-color: currentColor", () => {
-    expect(parseClassToAst("shadow-current", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          { type: "decl", prop: "--baro-shadow-color", value: "var(--color-current)" },
-        ],
-      },
-      { type: "decl", prop: "--baro-shadow-color", value: "currentcolor" },
-    ]);
-  });
-  it("shadow-transparent → --baro-shadow-color: transparent", () => {
-    expect(parseClassToAst("shadow-transparent", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          { type: "decl", prop: "--baro-shadow-color", value: "var(--color-transparent)" },
-        ],
-      },
-      { type: "decl", prop: "--baro-shadow-color", value: "transparent" },
-    ]);
-  });
-  // Inset shadow color and opacity
-  it("inset-shadow-red-500/60 → --baro-inset-shadow-color: color-mix(in oklab, var(--color-red-500) 60%, transparent)", () => {
-    expect(parseClassToAst("inset-shadow-red-500/60", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-inset-shadow-color",
-            value: "color-mix(in oklab, color-mix(in oklab, var(--color-red-500) 60%, transparent) var(--baro-shadow-alpha),transparent)",
-          },
-        ],
-      },
-      {
-        type: "decl",
-        prop: "--baro-inset-shadow-color",
-        value: "#ef444499",
-      },
-    ]);
-  });
-  // Inset shadow custom property
-  it("inset-shadow-(--my-inset-shadow) → box-shadow: var(--my-inset-shadow)", () => {
-    expect(parseClassToAst("inset-shadow-(--my-inset-shadow)", ctx)).toEqual([
-      { type: "decl", prop: "box-shadow", value: "var(--my-inset-shadow)" },
-    ]);
-  });
-  // Inset shadow arbitrary value
-  it("inset-shadow-[0_2px_3px_rgba(0,0,0,0.25)] → box-shadow: inset 0 2px 3px rgba(0,0,0,0.25)", () => {
-    expect(
-      parseClassToAst("inset-shadow-[0_2px_3px_rgba(0,0,0,0.25)]", ctx)
-    ).toEqual([
-      {
-        type: "decl",
-        prop: "box-shadow",
-        value: "inset 0 2px 3px rgba(0,0,0,0.25)",
-      },
-    ]);
+    expect(parseClassToAst("shadow-inherit", ctx)).toEqual([{ type: "decl", prop: "--baro-shadow-color", value: "inherit" }]);
   });
 
   // --- Ring ---
@@ -486,24 +338,6 @@ describe("effects.ts (box-shadow utilities)", () => {
       { type: "decl", prop: "--baro-ring-color", value: "#3080ffbf" },
     ]);
   });
-  it("inset-shadow-indigo-500/50 → color-mix + hex fallback", () => {
-    expect(parseClassToAst("inset-shadow-indigo-500/50", ctx)).toEqual([
-      {
-        type: "at-rule",
-        name: "supports",
-        params: "(color:color-mix(in lab, red, red))",
-        nodes: [
-          {
-            type: "decl",
-            prop: "--baro-inset-shadow-color",
-            value:
-              "color-mix(in oklab, color-mix(in oklab, var(--color-indigo-500) 50%, transparent) var(--baro-shadow-alpha),transparent)",
-          },
-        ],
-      },
-      { type: "decl", prop: "--baro-inset-shadow-color", value: "#625fff80" },
-    ]);
-  });
   it("ring → box-shadow variable combination", () => {
     expect(parseClassToAst("ring", ctx)).toEqual(ringNodes("1px"));
   });
@@ -513,22 +347,6 @@ describe("effects.ts (box-shadow utilities)", () => {
   it("ring-inset → --baro-ring-inset: inset", () => {
     expect(parseClassToAst("ring-inset", ctx)).toEqual([
       { type: "decl", prop: "--baro-ring-inset", value: "inset" },
-    ]);
-  });
-  it("inset-shadow-sm → box-shadow variable combination", () => {
-    expect(parseClassToAst("inset-shadow-sm", ctx)).toEqual([
-      ringNodes("1px")[0],
-      {
-        type: "decl",
-        prop: "--baro-inset-shadow",
-        value: "inset 0 2px 4px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))",
-      },
-      {
-        type: "decl",
-        prop: "box-shadow",
-        value:
-          "var(--baro-inset-shadow), var(--baro-inset-ring-shadow), var(--baro-ring-offset-shadow), var(--baro-ring-shadow), var(--baro-shadow)",
-      },
     ]);
   });
 });

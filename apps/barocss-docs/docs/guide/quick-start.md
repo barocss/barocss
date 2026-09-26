@@ -32,6 +32,10 @@ If the page already links a Tailwind or shadcn build, use the [Next to a Tailwin
 
 The `dist/cdn/barocss.js` and `dist/cdn/barocss.umd.cjs` files are part of the published `0.6.0` browser package. Both URLs below were checked on the public CDN (jsDelivr, HTTP 200) on 2026-09-26. unpkg serves the same paths (`https://unpkg.com/@barocss/browser@0.6.0/...`) once its index catches up.
 
+::: warning CDN global is browser-only
+The UMD script's `window.BaroCSS` (and the ESM CDN module) exposes only `@barocss/browser`: `BrowserRuntime`, `getRuntime`, `baroBoot`/`baroStart`, `ChangeDetector`, `StylePartitionManager`, `shadcnTheme`, `preloadJsonRenderClasses`, `collectJsonRenderClassNames`, `normalizeClassName(List)`, `SSR_STYLE_SELECTOR`, `LAYER_ORDER`. There is no `generateCss`/`generateCssForHtml`/`ServerRuntime`: server-side generation needs `@barocss/server` in Node ([Server Runtime](/api/server-runtime)).
+:::
+
 ### ESM
 
 Place this script near the end of the page body:

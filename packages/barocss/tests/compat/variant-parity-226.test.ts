@@ -1,7 +1,7 @@
 /**
- * #226: variant/selector parity with Tailwind 4.1.13. Tailwind nests (`.cls { &X { @media … { … } } }`);
- * BaroCSS emits the flattened rule inside its at-rules. Both are reduced to
- * `[at-rules] selector { declarations }` and compared, with a fresh Tailwind compiler per candidate.
+ * #226: variant/selector parity with Tailwind 4.3. Both outputs are reduced by `flatRules` (#312) to
+ * `[at-rules] selector { declarations }` (nesting resolved, `(width >= X)` ≡ `(min-width: X)`,
+ * `:not(*:is(.a))` ≡ `:not(:is(.a))`) and compared, with a fresh Tailwind compiler per candidate.
  */
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
@@ -10,45 +10,10 @@ import { compile } from 'tailwindcss';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
 import '../../src/presets';
+import { flatRules } from './parity-compare';
 
 const req = createRequire(import.meta.url);
 const theme = fs.readFileSync(req.resolve('tailwindcss/theme.css'), 'utf8');
-const ws = (s: string) => s.replace(/\s+/g, ' ').trim();
-
-type Flat = { media: string[]; selector: string; decls: string };
-
-/** Walks Tailwind's nested output: `&` resolves to the parent selector; `@media` blocks are collected. */
-function flattenTailwind(css: string): Flat {
-  const body = ws(css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/@property[\s\S]*$/, '')
-    .replace(/:root, :host \{[^}]*\}/, '').replace(/@layer theme \{\s*\}/, ''));
-  const media: string[] = [];
-  let selector = '';
-  let rest = body;
-  for (;;) {
-    const m = /^([^{}]+?) \{ ([\s\S]*) \}$/.exec(rest);
-    if (!m) return { media, selector, decls: rest };
-    const head = m[1];
-    if (head.startsWith('@media ')) media.push(head.slice(7));
-    else selector = selector ? (head.includes('&') ? head.replace(/&/g, selector) : `${selector} ${head}`) : head;
-    rest = m[2];
-  }
-}
-
-function flattenBaro(css: string): Flat {
-  const media: string[] = [];
-  let rest = ws(css.replace(/:root, :host \{[^}]*\}/, ''));
-  for (;;) {
-    const m = /^([^{}]+?) \{ ([\s\S]*) \}$/.exec(rest);
-    if (!m) throw new Error(`unexpected BaroCSS output: ${rest}`);
-    if (!m[1].startsWith('@media ')) return { media, selector: m[1], decls: m[2] };
-    media.push(m[1].slice(7));
-    rest = m[2];
-  }
-}
-
-// Tailwind's `(width >= X)` and BaroCSS's `(min-width: X)` for `md:` are the same query.
-const normMedia = (q: string) => q.replace(/\(min-width: ([^)]+)\)/, '(width >= $1)');
-
 const CANDIDATES = [
   'max-sm:flex', 'max-md:flex', 'max-lg:flex', 'max-xl:flex', 'max-2xl:flex',
   'hover:block', 'group-hover:block', 'peer-hover:block', 'group-hover/x:block', 'peer-hover/x:block',
@@ -58,15 +23,13 @@ const CANDIDATES = [
   '[:root]:hidden', '[.a]:hidden',
 ];
 
-describe('#226 variant parity with Tailwind 4.1.13', () => {
+describe('#226 variant parity with Tailwind 4.3', () => {
   const ctx = createContext({ preflight: false });
   for (const cls of CANDIDATES) {
     it(cls, async () => {
-      const tw = flattenTailwind((await compile(`${theme}\n@tailwind utilities;`)).build([cls]));
-      const bc = flattenBaro(generateCss(cls, ctx));
-      expect(bc.selector).toBe(tw.selector);
-      expect(bc.media.map(normMedia).sort()).toEqual(tw.media.sort());
-      expect(bc.decls).toBe(tw.decls);
+      const tw = flatRules((await compile(`${theme}\n@tailwind utilities;`)).build([cls]));
+      expect(tw).toHaveLength(1);
+      expect(flatRules(generateCss(cls, ctx))).toEqual(tw);
     });
   }
 });

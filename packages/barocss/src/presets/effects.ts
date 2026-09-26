@@ -1,4 +1,5 @@
-import { staticUtility, functionalUtility } from "../core/registry";
+import { staticUtility, functionalUtility, registerUtility } from "../core/registry";
+import { shadowColorDecls, shadowValueDecls, type ShadowLayer } from "./shadow-color";
 import { atRule, atRoot, decl, property } from "../core/ast";
 import { parseColor, parseNumber } from "../core/utils";
 
@@ -24,205 +25,145 @@ const ringShadowProperties = () =>
     property("--baro-ring-offset-color", "#fff"),
   ]);
 
-// A plain shadow layer (shadow-sm, shadow-[...], shadow-(--x)): sets --baro-shadow and the composite box-shadow.
-const shadowLayer = (value: string) => [
-  ringShadowProperties(),
-  decl("--baro-shadow", value),
-  decl("box-shadow", SHADOW_COMPOSITE),
-];
 
-// Static shadow levels
-[
-  ["shadow-2xs", "var(--shadow-2xs)"],
-  ["shadow-xs", "var(--shadow-xs)"],
-  ["shadow-sm", "var(--shadow-sm)"],
-  ["shadow", "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"],
-  ["shadow-md", "var(--shadow-md)"],
-  ["shadow-lg", "var(--shadow-lg)"],
-  ["shadow-xl", "var(--shadow-xl)"],
-  ["shadow-2xl", "var(--shadow-2xl)"],
-  ["shadow-none", "0 0 #0000"],
-].forEach(([name, value]) => {
-  staticUtility(name as string, [
-    ringShadowProperties,
-    ["--baro-shadow", value as string],
-    ["box-shadow", SHADOW_COMPOSITE],
-  ], { category: 'effects' });
-});
+// #313: the colour/alpha registrations Tailwind 4.3.3 emits @property rules for, so a colour utility or an
+// opacity modifier composes with a size utility on the same element.
+const shadowColorProperties = (layer: "shadow" | "inset-shadow") =>
+  atRoot([
+    property(`--baro-${layer}-color`),
+    property(`--baro-${layer}-alpha`, "100%", "<percentage>"),
+  ]);
 
-// Static inset shadow levels: Tailwind 4.1.13 literals for 2xs/xs/sm (md..2xl are BaroCSS extensions).
-[
-  ["inset-shadow-2xs", "inset 0 1px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
-  ["inset-shadow-xs", "inset 0 1px 1px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
-  ["inset-shadow-sm", "inset 0 2px 4px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
-  ["inset-shadow-md", "inset 0 4px 6px -1px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
-  ["inset-shadow-lg", "inset 0 10px 15px -3px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
-  ["inset-shadow-xl", "inset 0 20px 25px -5px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
-  ["inset-shadow-2xl", "inset 0 25px 50px -12px var(--baro-inset-shadow-color, rgb(0 0 0 / 0.05))"],
-  ["inset-shadow-none", "0 0 #0000"],
-].forEach(([name, value]) => {
-  staticUtility(name as string, [
-    ringShadowProperties,
-    ["--baro-inset-shadow", value as string],
-    ["box-shadow", SHADOW_COMPOSITE],
-  ], { category: 'effects' });
-});
+// Tailwind 4.3.3 named box shadows ("" is bare `shadow`, `inner` is the deprecated theme reference).
+const NAMED_SHADOWS: Record<string, string> = {
+  "": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+  "2xs": "0 1px rgb(0 0 0 / 0.05)",
+  xs: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+  sm: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+  md: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+  lg: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+  xl: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+  "2xl": "0 25px 50px -12px rgb(0 0 0 / 0.25)",
+  inner: "inset 0 2px 4px 0 rgb(0 0 0 / 0.05)",
+};
+// Tailwind 4.3.3 named inset shadows; md..2xl are BaroCSS extensions (no opacity modifier).
+const NAMED_INSET_SHADOWS: Record<string, string> = {
+  "2xs": "inset 0 1px rgb(0 0 0 / 0.05)",
+  xs: "inset 0 1px 1px rgb(0 0 0 / 0.05)",
+  sm: "inset 0 2px 4px rgb(0 0 0 / 0.05)",
+};
+const INSET_EXTENSIONS: Record<string, string> = {
+  md: "inset 0 4px 6px -1px rgb(0 0 0 / 0.05)",
+  lg: "inset 0 10px 15px -3px rgb(0 0 0 / 0.05)",
+  xl: "inset 0 20px 25px -5px rgb(0 0 0 / 0.05)",
+  "2xl": "inset 0 25px 50px -12px rgb(0 0 0 / 0.05)",
+};
+const insetEach = (value: string) => value.split(/,(?![^(]*\))/).map((l) => `inset ${l.trim()}`).join(", ");
+const own = (table: Record<string, string>, key: string) => Object.prototype.hasOwnProperty.call(table, key);
 
-// --- Box Shadow Color (with opacity, custom property, arbitrary) ---
-// shadow-red-500, shadow-red-500/50, shadow-[#bada55]/80, shadow-(color:--my-shadow), shadow-inherit, etc.
-
-function createShadowThemeColor(
-  key: string,
-  main: string,
-  opacity: string | undefined,
-  realThemeValue: string
-) {
-  let fallbackColor = main;
-  const colorVar = `var(--color-${realThemeValue})`;
-  let colorValue = colorVar;
-  if (opacity) {
-    colorValue = `color-mix(in oklab, color-mix(in oklab, ${colorVar} ${opacity}%, transparent) var(--baro-shadow-alpha),transparent)`;
-    if (parseColor(main)) {
-      if (main.startsWith("#")) {
-        const opacityValue = Math.round((Number(opacity) / 100) * 255);
-        fallbackColor = `${main}${opacityValue.toString(16).padStart(2, "0")}`;
-      } else {
-        fallbackColor = `color-mix(in oklab, ${main} ${opacity}%, transparent)`;
-      }
-    }
-  }
-  return [
-    atRule("supports", "(color:color-mix(in lab, red, red))", [
-      decl(key, colorValue),
-    ]),
-    decl(key, fallbackColor),
-  ];
+// A box-shadow layer value (named or arbitrary) with its colour var and opacity modifier.
+function boxShadowLayer(layer: "shadow" | "inset-shadow", value: string, opacity: string | undefined) {
+  const decls = shadowValueDecls(layer, `--baro-${layer}`, value, opacity);
+  if (!decls) return null;
+  return [ringShadowProperties(), shadowColorProperties(layer), ...decls, decl("box-shadow", SHADOW_COMPOSITE)];
 }
 
-// shadow-color utilities
-functionalUtility({
+function namedBoxShadow(layer: "shadow" | "inset-shadow", name: string, opacity: string | undefined) {
+  if (layer === "shadow") return own(NAMED_SHADOWS, name) ? boxShadowLayer(layer, NAMED_SHADOWS[name], opacity) : null;
+  if (own(NAMED_INSET_SHADOWS, name)) return boxShadowLayer(layer, NAMED_INSET_SHADOWS[name], opacity);
+  if (!opacity && own(INSET_EXTENSIONS, name)) return boxShadowLayer(layer, INSET_EXTENSIONS[name], undefined);
+  return null;
+}
+
+staticUtility("shadow-none", [ringShadowProperties, ["--baro-shadow", "0 0 #0000"], ["box-shadow", SHADOW_COMPOSITE]], { category: 'effects' });
+staticUtility("inset-shadow-none", [ringShadowProperties, ["--baro-inset-shadow", "inset 0 0 #0000"], ["box-shadow", SHADOW_COMPOSITE]], { category: 'effects' });
+
+// Bare `shadow` and `shadow/<alpha>` (no dash, so the functional utility below never sees them).
+registerUtility({
   name: "shadow",
-  supportsArbitrary: true,
-  supportsCustomProperty: true,
-  supportsOpacity: true,
-  themeKeys: ["colors", "shadows"],
-  handle: (value, ctx, token, extra) => {
-    const main = value;
-    const opacity = extra?.opacity;
-    const realThemeValue = extra?.realThemeValue;
-
-    // 1. Theme color (e.g. shadow-red-500/60)
-    if (realThemeValue) {
-      return createShadowThemeColor(
-        "--baro-shadow-color",
-        main,
-        opacity,
-        realThemeValue
-      );
-    }
-
-    // Custom property color: shadow-(color:--my-shadow)
-    if (main.startsWith("color:")) {
-      const cp = main.replace("color:", "");
-      if (opacity) {
-        return [
-          decl(
-            "--baro-shadow-color",
-            `color-mix(in oklab, var(${cp}) ${opacity}%, transparent)`
-          ),
-        ];
-      }
-      return [decl("--baro-shadow-color", `var(${cp})`)];
-    }
-
-    // Arbitrary color: shadow-[#bada55] or shadow-[oklch(...)]
-    if (token.arbitrary) {
-      if (parseColor(main)) {
-        if (opacity) {
-          return [
-            decl(
-              "--baro-shadow-color",
-              `color-mix(in oklab, ${main} ${opacity}%, transparent)`
-            ),
-          ];
-        }
-
-        return [decl("--baro-shadow-color", main)];
-      }
-
-      return shadowLayer(main);
-    }
-
-    // Special cases
-    if (main === "inherit" || main === "current" || main === "transparent") {
-      return [
-        decl("--baro-shadow-color", main === "current" ? "currentColor" : main),
-      ];
-    }
-
-    return null;
+  match: (className: string) => /^shadow(\/.+)?$/.test(className),
+  handler: (value, _ctx, token) => {
+    const full = value ? `${token.prefix}-${value}` : token.prefix;
+    const cut = full.indexOf("/");
+    return namedBoxShadow("shadow", "", cut < 0 ? undefined : full.slice(cut + 1)) ?? [];
   },
-  handleCustomProperty: (value) => shadowLayer(`var(${value})`),
+  category: 'effects',
 });
 
-// inset-shadow-color utilities
+const KEYWORD_COLORS: Record<string, string> = { inherit: "inherit", current: "currentcolor", transparent: "transparent" };
+
+// Colour for a shadow layer: theme colour, (color:--x), arbitrary colour, or a keyword.
+function layerColor(layer: ShadowLayer, main: string, opacity: string | undefined, token: { arbitrary?: boolean }, realThemeValue?: string) {
+  const keyword = token.arbitrary ? undefined : KEYWORD_COLORS[realThemeValue ?? main];
+  if (keyword) return shadowColorDecls(layer, keyword, opacity);
+  if (realThemeValue) return shadowColorDecls(layer, main, opacity, `var(--color-${realThemeValue})`);
+  if (main.startsWith("color:")) return shadowColorDecls(layer, `var(${main.slice(6)})`, opacity);
+  if (token.arbitrary && parseColor(main)) return shadowColorDecls(layer, main, opacity);
+  return undefined;
+}
+
+// shadow-<size>[/alpha], shadow-<color>[/alpha], shadow-[<shadow>][/alpha], shadow-(--x)
+for (const layer of ["shadow", "inset-shadow"] as const) {
+  functionalUtility({
+    name: layer,
+    supportsArbitrary: true,
+    supportsCustomProperty: true,
+    supportsOpacity: true,
+    themeKeys: ["colors"],
+    handleBareValue: ({ value, extra }) => (namedBoxShadow(layer, value, extra?.opacity) ? value : null),
+    handle: (value, _ctx, token, extra) => {
+      const opacity = extra?.opacity;
+      const named = !extra?.realThemeValue && !token.arbitrary ? namedBoxShadow(layer, value, opacity) : null;
+      if (named) return named;
+      const color = layerColor(layer, value, opacity, token, extra?.realThemeValue);
+      if (color !== undefined) return color;
+      // Tailwind prefixes every layer of an arbitrary inset shadow with `inset`.
+      if (token.arbitrary) return boxShadowLayer(layer, layer === "inset-shadow" ? insetEach(value) : value, opacity);
+      return null;
+    },
+    handleCustomProperty: (value) =>
+      value.startsWith("color:") ? shadowColorDecls(layer, `var(${value.slice(6)})`, undefined) ?? [] : [ringShadowProperties(), decl(`--baro-${layer}`, layer === "inset-shadow" ? `inset var(${value})` : `var(${value})`), decl("box-shadow", SHADOW_COMPOSITE)],
+  });
+}
+
+// --- Text Shadow (#313, Tailwind 4.3.3) ---
+const textShadowProperties = () =>
+  atRoot([
+    property("--baro-text-shadow-color"),
+    property("--baro-text-shadow-alpha", "100%", "<percentage>"),
+  ]);
+const namedTextShadow = (ctx: { theme: (...k: string[]) => unknown }, name: string) => {
+  const v = ctx.theme("textShadow", name);
+  return typeof v === "string" && /^[\w.-]+$/.test(name) ? v : null;
+};
+const textShadowValue = (value: string, opacity: string | undefined) => {
+  const decls = shadowValueDecls("text-shadow", "text-shadow", value, opacity);
+  return decls ? [textShadowProperties(), ...decls] : null;
+};
+staticUtility("text-shadow-none", [textShadowProperties, ["text-shadow", "none"]], { category: 'effects' });
 functionalUtility({
-  name: "inset-shadow",
+  name: "text-shadow",
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsOpacity: true,
-  themeKeys: ["colors", "shadows"],
+  themeKeys: ["colors"],
+  handleBareValue: ({ value, ctx }) => (namedTextShadow(ctx, value) ? value : null),
   handle: (value, ctx, token, extra) => {
-    const main = value;
     const opacity = extra?.opacity;
-    const realThemeValue = extra?.realThemeValue;
-
-    // 1. Theme color (e.g. inset-shadow-red-500/60)
-    if (realThemeValue) {
-      return createShadowThemeColor(
-        "--baro-inset-shadow-color",
-        main,
-        opacity,
-        realThemeValue
-      );
+    if (!extra?.realThemeValue && !token.arbitrary) {
+      const named = namedTextShadow(ctx, value);
+      if (named) return textShadowValue(named, opacity);
     }
-
-    // 2. Custom property color: inset-shadow-(color:--my-shadow)
-    if (main.startsWith("color:")) {
-      const cp = main.replace("color:", "");
-      let colorValue = `var(${cp})`;
-      if (opacity) {
-        colorValue = `color-mix(in oklab, var(${cp}) ${opacity}%, transparent)`;
-      }
-      return [decl("--baro-inset-shadow-color", colorValue)];
-    }
-
-    // 3. Arbitrary color: inset-shadow-[#bada55] or inset-shadow-[oklch(...)]
-    if (token.arbitrary) {
-      if (parseColor(main)) {
-        let colorValue = main;
-        if (opacity) {
-          colorValue = `color-mix(in oklab, ${main} ${opacity}%, transparent)`;
-        }
-        return [decl("--baro-inset-shadow-color", colorValue)];
-      }
-
-      return [decl("box-shadow", `inset ${main}`)];
-    }
-
-    // 4. Special cases
-    if (main === "inherit" || main === "current" || main === "transparent") {
-      return [
-        decl(
-          "--baro-inset-shadow-color",
-          main === "current" ? "currentColor" : main
-        ),
-      ];
-    }
-
+    const color = layerColor("text-shadow", value, opacity, token, extra?.realThemeValue);
+    if (color !== undefined) return color && [textShadowProperties(), ...color];
+    if (token.arbitrary) return textShadowValue(value, opacity);
     return null;
   },
-  handleCustomProperty: (value) => [decl("box-shadow", `var(${value})`)],
+  handleCustomProperty: (value) =>
+    value.startsWith("color:")
+      ? [textShadowProperties(), ...(shadowColorDecls("text-shadow", `var(${value.slice(6)})`, undefined) ?? [])]
+      : [textShadowProperties(), decl("text-shadow", `var(${value})`)],
+  category: "effects",
 });
 
 // --- Ring ( multi-variable) ---

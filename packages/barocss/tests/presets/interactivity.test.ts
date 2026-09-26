@@ -352,10 +352,8 @@ describe("scroll-padding ", () => {
         { type: "decl", prop, value: `calc(var(--spacing) * 1)` },
       ]);
     });
-    it(`-scroll-${name}-1 → ${prop}: calc(var(--spacing) * -1)`, () => {
-      expect(parseClassToAst(`-scroll-${name}-1`, ctx)).toEqual([
-        { type: "decl", prop, value: `calc(var(--spacing) * -1)` },
-      ]);
+    it(`-scroll-${name}-1 → nothing (no negative scroll-padding in Tailwind 4.3.3, #314)`, () => {
+      expect(parseClassToAst(`-scroll-${name}-1`, ctx)).toEqual([]);
     });
 
     it(`scroll-${name}-[var(--spacing)] → ${prop}: var(--spacing)`, () => {

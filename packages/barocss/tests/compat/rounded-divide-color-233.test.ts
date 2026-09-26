@@ -1,4 +1,4 @@
-/** #233: bare `rounded` and divide-<color> vs Tailwind 4.1.13 (fresh compile() per candidate). */
+/** #233: bare `rounded` and divide-<color> vs Tailwind 4.3 (fresh compile() per candidate). */
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
@@ -6,6 +6,7 @@ import { compile } from 'tailwindcss';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
 import '../../src/presets';
+import { flatRules } from './parity-compare';
 
 const require = createRequire(import.meta.url);
 const themeCss = fs.readFileSync(require.resolve('tailwindcss/theme.css'), 'utf8');
@@ -16,7 +17,7 @@ async function tw(cls: string): Promise<string> {
 }
 const decls = (css: string, prop: string) => ws(css).match(new RegExp(`${prop}:\\s*[^;]+;`, 'g')) ?? [];
 
-describe('#233 bare rounded vs Tailwind 4.1.13', () => {
+describe('#233 bare rounded vs Tailwind 4.3', () => {
   it.each(['rounded', 'rounded-t', 'rounded-tl', 'rounded-b'])('%s', async (cls) => {
     const baro = generateCss(cls, createContext({}));
     expect(baro).not.toContain('var(--radius)');
@@ -24,12 +25,14 @@ describe('#233 bare rounded vs Tailwind 4.1.13', () => {
   });
 });
 
-describe('#233 divide-<color> vs Tailwind 4.1.13', () => {
+describe('#233 divide-<color> vs Tailwind 4.3', () => {
   it.each(['divide-red-500', 'divide-[#123456]', 'divide-current', 'divide-transparent', 'divide-(--c)'])('%s', async (cls) => {
     const baro = generateCss(cls, createContext({}));
     const t = await tw(cls);
     expect(ws(baro)).toContain(`:where(.${cls.replace(/[[\]#()]/g, '\\$&')} > :not(:last-child))`);
-    expect(t).toContain(':where(& > :not(:last-child))');
+    // #312: 4.3 emits the same flat selector BaroCSS does.
+    expect(ws(t)).toContain(`:where(.${cls.replace(/[[\]#()]/g, '\\$&')} > :not(:last-child))`);
+    expect(flatRules(baro).map((r) => r.split(' {')[0])).toEqual(flatRules(t).map((r) => r.split(' {')[0]));
     // Tailwind references theme colours by var; BaroCSS inlines the theme value (existing border-<color> convention).
     const norm = (s: string) => decls(s.replace(/var\(--color-red-500\)/g, 'oklch(63.7% 0.237 25.331)').replace(/currentcolor/gi, 'currentColor'), 'border-color');
     expect(norm(baro)).toEqual(norm(t.replace(/:root, :host \{[^}]*\}/, '')));
