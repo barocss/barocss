@@ -368,6 +368,8 @@ export function themeToCssVarsAll(theme: Theme): Record<string, string> {
     ...transitionDurationToCssVars(theme.transitionDuration! as Record<string, string>),
     ...transitionDelayToCssVars(theme.transitionDelay! as Record<string, string>),
     ...blurToCssVars(theme.blur! as Record<string, string>),
+    ...Object.fromEntries(Object.entries((theme.textShadow ?? {}) as Record<string, string>).map(([k, v]) => [`--text-shadow-${escapeKey(k)}`, v])),
+    ...Object.fromEntries(Object.entries((theme.dropShadow ?? {}) as Record<string, string>).map(([k, v]) => [`--drop-shadow-${escapeKey(k)}`, v])),
     ...Object.fromEntries(Object.entries((theme.aspect ?? {}) as Record<string, string>).map(([k, v]) => [`--aspect-${escapeKey(k)}`, v])),
     // keyframes handled separately
   };

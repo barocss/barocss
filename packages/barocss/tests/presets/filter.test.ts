@@ -243,109 +243,59 @@ describe('contrast', () => {
   });
 });
 
+// #313: Tailwind 4.3.3 drop-shadow sizes, colours and opacity modifiers.
+type Node = { type: string; prop?: string; value?: string; name?: string; nodes?: Node[] };
+const declOf = (ast: unknown, prop: string, supported = false): string | undefined => {
+  const nodes = ast as Node[];
+  const pool = supported ? nodes.filter((n) => n.type === 'at-rule' && n.name === 'supports').flatMap((n) => n.nodes ?? []) : nodes;
+  return pool.find((n) => n.type === 'decl' && n.prop === prop)?.value;
+};
+
 describe('drop-shadow', () => {
-  it('drop-shadow-xs → filter: drop-shadow(var(--drop-shadow-xs))', () => {
-    expect(parseClassToAst('drop-shadow-xs', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 1px 1px var(--baro-drop-shadow-color, #0000001a))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-xs)' },
-      filters(),
-    ]);
+  it.each([
+    ['xs', '0 1px 1px', '0.05'], ['sm', '0 1px 2px', '0.15'], ['md', '0 3px 3px', '0.12'],
+    ['lg', '0 4px 4px', '0.15'], ['xl', '0 9px 7px', '0.1'], ['2xl', '0 25px 25px', '0.15'],
+  ])('drop-shadow-%s → drop-shadow(var(--drop-shadow-%s))', (size, geometry, alpha) => {
+    const ast = parseClassToAst(`drop-shadow-${size}`, ctx);
+    expect(declOf(ast, '--baro-drop-shadow-size')).toBe(`drop-shadow(${geometry} var(--baro-drop-shadow-color, rgb(0 0 0 / ${alpha})))`);
+    expect(declOf(ast, '--baro-drop-shadow')).toBe(`drop-shadow(var(--drop-shadow-${size}))`);
+    expect(declOf(ast, 'filter')).toBe((filters() as { value: string }).value);
   });
-  it('drop-shadow-sm → filter: drop-shadow(var(--drop-shadow-sm))', () => {
-    expect(parseClassToAst('drop-shadow-sm', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 1px 2px var(--baro-drop-shadow-color, #0000001a))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-sm)' },
-      filters(),
-    ]);
+  it('drop-shadow-lg/50 fades the default colour', () => {
+    const ast = parseClassToAst('drop-shadow-lg/50', ctx);
+    expect(declOf(ast, '--baro-drop-shadow-alpha')).toBe('50%');
+    expect(declOf(ast, '--baro-drop-shadow-size')).toBe('drop-shadow(0 4px 4px var(--baro-drop-shadow-color, oklab(from rgb(0 0 0 / 0.15) l a b / 50%)))');
+    expect(declOf(ast, '--baro-drop-shadow')).toBe('var(--baro-drop-shadow-size)');
   });
-  it('drop-shadow-md → filter: drop-shadow(var(--drop-shadow-md))', () => {
-    expect(parseClassToAst('drop-shadow-md', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 3px 3px var(--baro-drop-shadow-color, #0000001a))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-md)' },
-      filters(),
-    ]);
+  it('drop-shadow-none → empty --baro-drop-shadow', () => {
+    expect(declOf(parseClassToAst('drop-shadow-none', ctx), '--baro-drop-shadow')).toBe(' ');
   });
-  it('drop-shadow-lg → filter: drop-shadow(var(--drop-shadow-lg))', () => {
-    expect(parseClassToAst('drop-shadow-lg', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 4px 4px var(--baro-drop-shadow-color, #0000001a))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-lg)' },
-      filters(),
-    ]);
-  });
-  it('drop-shadow-xl → filter: drop-shadow(var(--drop-shadow-xl))', () => {
-    expect(parseClassToAst('drop-shadow-xl', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 9px 7px var(--baro-drop-shadow-color, #0000001a))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-xl)' },
-      filters(),
-    ]);
-  });
-  it('drop-shadow-2xl → filter: drop-shadow(var(--drop-shadow-2xl))', () => {
-    expect(parseClassToAst('drop-shadow-2xl', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 25px 25px var(--baro-drop-shadow-color, #0000001a))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--drop-shadow-2xl)' },
-      filters(),
-    ]);
-  });
-  it('drop-shadow-none → filter: drop-shadow(0 0 #0000)', () => {
-    expect(parseClassToAst('drop-shadow-none', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'drop-shadow(0 0 #0000)' },
-      filters(),
-    ]);
-  });
-  it('drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)] → filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1))', () => {
-    expect(parseClassToAst('drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--baro-drop-shadow-size)' },
-    ]);
-  });
-  it('drop-shadow-(--my-shadow) → filter: drop-shadow(var(--my-shadow))', () => {
-    expect(parseClassToAst('drop-shadow-(--my-shadow)', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-size', value: 'drop-shadow(var(--my-shadow))' },
-      { type: 'decl', prop: '--baro-drop-shadow', value: 'var(--baro-drop-shadow-size)' },
-    ]);
+  it.each([
+    ['drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]', 'drop-shadow(0 2px 4px var(--baro-drop-shadow-color, rgba(0,0,0,0.1)))'],
+    ['drop-shadow-(--my-shadow)', 'drop-shadow(var(--my-shadow))'],
+  ])('%s → --baro-drop-shadow-size', (cls, value) => {
+    const ast = parseClassToAst(cls, ctx);
+    expect(declOf(ast, '--baro-drop-shadow-size')).toBe(value);
+    expect(declOf(ast, '--baro-drop-shadow')).toBe('var(--baro-drop-shadow-size)');
   });
 });
 
 describe('drop-shadow color', () => {
   it('drop-shadow-inherit → --baro-drop-shadow-color: inherit', () => {
-    expect(parseClassToAst('drop-shadow-inherit', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-color', value: 'inherit' },
-    ]);
+    expect(declOf(parseClassToAst('drop-shadow-inherit', ctx), '--baro-drop-shadow-color')).toBe('inherit');
   });
-  it('drop-shadow-current → --baro-drop-shadow-color: currentColor', () => {
-    expect(parseClassToAst('drop-shadow-current', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-color', value: 'currentColor' },
-    ]);
-  });
-  it('drop-shadow-transparent → --baro-drop-shadow-color: transparent', () => {
-    expect(parseClassToAst('drop-shadow-transparent', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-color', value: 'transparent' },
-    ]);
-  });
-  it('drop-shadow-black → --baro-drop-shadow-color: var(--color-black)', () => {
-    expect(parseClassToAst('drop-shadow-black', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-color', value: 'var(--color-black)' },
-    ]);
-  });
-  it('drop-shadow-white → --baro-drop-shadow-color: var(--color-white)', () => {
-    expect(parseClassToAst('drop-shadow-white', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-color', value: 'var(--color-white)' },
-    ]);
-  });
-  it('drop-shadow-red-500 → --baro-drop-shadow-color: var(--color-red-500)', () => {
-    expect(parseClassToAst('drop-shadow-red-500', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-color', value: 'var(--color-red-500)' },
-    ]);
-  });
-  it('drop-shadow-(color:--my-color) → --baro-drop-shadow-color: var(--my-color)', () => {
-    expect(parseClassToAst('drop-shadow-(color:--my-color)', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-color', value: 'var(--my-color)' },
-    ]);
-  });
-  it('drop-shadow-[#bada55] → --baro-drop-shadow-color: #bada55', () => {
-    expect(parseClassToAst('drop-shadow-[#bada55]', ctx)).toMatchObject([
-      { type: 'decl', prop: '--baro-drop-shadow-color', value: '#bada55' },
-    ]);
+  it.each([
+    ['drop-shadow-current', 'currentcolor', 'currentcolor'],
+    ['drop-shadow-transparent', 'transparent', 'transparent'],
+    ['drop-shadow-black', '#000', 'var(--color-black)'],
+    ['drop-shadow-red-500', '#bada55', 'var(--color-red-500)'],
+    ['drop-shadow-(color:--my-color)', 'var(--my-color)', 'var(--my-color)'],
+    ['drop-shadow-[#bada55]', '#bada55', '#bada55'],
+  ])('%s → --baro-drop-shadow-color', (cls, fallback, ref) => {
+    const ast = parseClassToAst(cls, ctx);
+    expect(declOf(ast, '--baro-drop-shadow-color')).toBe(fallback);
+    expect(declOf(ast, '--baro-drop-shadow-color', true)).toBe(`color-mix(in oklab, ${ref} var(--baro-drop-shadow-alpha), transparent)`);
+    expect(declOf(ast, '--baro-drop-shadow')).toBe('var(--baro-drop-shadow-size)');
   });
 });
 

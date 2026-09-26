@@ -1,5 +1,6 @@
-import { staticUtility, functionalUtility } from "../core/registry";
-import { decl } from "../core/ast";
+import { staticUtility, functionalUtility, registerUtility } from "../core/registry";
+import { shadowColorDecls, shadowValueDecls } from "./shadow-color";
+import { atRoot, decl, property } from "../core/ast";
 import { parseNumber } from "../core/utils";
 import { parseColor } from "../core/utils";
 
@@ -101,68 +102,76 @@ functionalUtility({
   category: "effects",
 });
 
-// --- Drop Shadow ---
-[
-  ["drop-shadow-xs", "xs", '0 1px 1px var(--baro-drop-shadow-color, #0000001a)'],
-  ["drop-shadow-sm", "sm", '0 1px 2px var(--baro-drop-shadow-color, #0000001a)'],
-  ["drop-shadow-md", "md", '0 3px 3px var(--baro-drop-shadow-color, #0000001a)'],
-  ["drop-shadow-lg", "lg", '0 4px 4px var(--baro-drop-shadow-color, #0000001a)'],
-  ["drop-shadow-xl", "xl", '0 9px 7px var(--baro-drop-shadow-color, #0000001a)'],
-  ["drop-shadow-2xl", "2xl", '0 25px 25px var(--baro-drop-shadow-color, #0000001a)'],
-].forEach(([name, size, sizeValue]) => {
-  staticUtility(name as string, [
-    decl("--baro-drop-shadow-size", `drop-shadow(${sizeValue})`),
-    decl("--baro-drop-shadow", `var(--drop-shadow-${size})`),
-    filters()
+// --- Drop Shadow (#313: Tailwind 4.3.3 sizes, colours and opacity modifiers) ---
+const dropShadowProperties = () =>
+  atRoot([
+    property("--baro-drop-shadow"),
+    property("--baro-drop-shadow-color"),
+    property("--baro-drop-shadow-alpha", "100%", "<percentage>"),
+    property("--baro-drop-shadow-size"),
   ]);
-});
-staticUtility("drop-shadow-none", [decl("--baro-drop-shadow", "drop-shadow(0 0 #0000)"), filters()]);
+const wrapDropShadow = (layers: string[]) => layers.map((l) => `drop-shadow(${l})`).join(" ");
+// Bare `drop-shadow` is the deprecated two-layer theme reference.
+const DROP_SHADOW_DEFAULT = "0 1px 2px rgb(0 0 0 / 0.1), 0 1px 1px rgb(0 0 0 / 0.06)";
+const namedDropShadow = (ctx: { theme: (...k: string[]) => unknown }, name: string) => {
+  const v = ctx.theme("dropShadow", name);
+  return typeof v === "string" && /^[\w.-]+$/.test(name) ? v : null;
+};
 
-// --- Drop Shadow Color ---
-// drop-shadow-inherit, drop-shadow-current, drop-shadow-transparent
-["inherit", "current", "transparent"].forEach((name) => {
-  staticUtility(`drop-shadow-${name}`, [
-    decl("--baro-drop-shadow-color", name === "current" ? "currentColor" : name),
-  ]);
+// A drop-shadow value: `named` keeps Tailwind's drop-shadow(var(--drop-shadow-<name>)) when unfaded.
+function dropShadowValue(value: string, opacity: string | undefined, named?: string, keepNamed = false) {
+  const decls = shadowValueDecls("drop-shadow", "--baro-drop-shadow-size", value, opacity, wrapDropShadow);
+  if (!decls) return null;
+  const composed = named !== undefined && (!opacity || keepNamed) ? named : "var(--baro-drop-shadow-size)";
+  return [dropShadowProperties(), ...decls, decl("--baro-drop-shadow", composed), filters()];
+}
+
+staticUtility("drop-shadow-none", [decl("--baro-drop-shadow", " "), filters()]);
+registerUtility({
+  name: "drop-shadow",
+  match: (className: string) => /^drop-shadow(\/.+)?$/.test(className),
+  handler: (value, _ctx, token) => {
+    const full = value ? `${token.prefix}-${value}` : token.prefix;
+    const cut = full.indexOf("/");
+    const opacity = cut < 0 ? undefined : full.slice(cut + 1);
+    const literal = "drop-shadow(0 1px 2px rgb(0 0 0 / 0.1)) drop-shadow( 0 1px 1px rgb(0 0 0 / 0.06))";
+    return dropShadowValue(DROP_SHADOW_DEFAULT, opacity, literal, true) ?? [];
+  },
+  category: "effects",
 });
 
-// drop-shadow-black, drop-shadow-white, drop-shadow-{color}-{shade}
-["black", "white"].forEach((name) => {
-  staticUtility(`drop-shadow-${name}`, [
-    decl("--baro-drop-shadow-color", `var(--color-${name})`),
-  ]);
-});
+const dropShadowColor = (color: string, opacity: string | undefined, ref?: string) => {
+  const decls = shadowColorDecls("drop-shadow", color, opacity, ref);
+  return decls && [dropShadowProperties(), ...decls, decl("--baro-drop-shadow", "var(--baro-drop-shadow-size)")];
+};
 
-// drop-shadow-(color:--my-color)
 functionalUtility({
   name: "drop-shadow",
   themeKeys: ['colors'],
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, _ctx, _token, extra) => {
-    if (extra?.realThemeValue) {
-      return [decl("--baro-drop-shadow-color", `var(--color-${extra.realThemeValue})`)];
+  supportsOpacity: true,
+  handleBareValue: ({ value, ctx }) => (namedDropShadow(ctx, value) ? value : null),
+  handle: (value, ctx, token, extra) => {
+    const opacity = extra?.opacity;
+    const keyword = token.arbitrary ? undefined : ({ inherit: "inherit", current: "currentcolor", transparent: "transparent" } as Record<string, string>)[extra?.realThemeValue ?? value];
+    if (keyword) return dropShadowColor(keyword, opacity);
+    if (extra?.realThemeValue) return dropShadowColor(value, opacity, `var(--color-${extra.realThemeValue})`);
+    if (token.arbitrary) {
+      if (parseColor(value)) return dropShadowColor(value, opacity);
+      return dropShadowValue(value, opacity);
     }
-
-    if (parseColor(value)) {
-      return [decl("--baro-drop-shadow-color", value)];
-    }
-
-    return [
-      decl("--baro-drop-shadow-size", `drop-shadow(${value})`),
-      decl("--baro-drop-shadow", `var(--baro-drop-shadow-size)`),
-    ];
+    const named = namedDropShadow(ctx, value);
+    if (named) return dropShadowValue(named, opacity, `drop-shadow(var(--drop-shadow-${value}))`);
+    return null;
   },
   handleCustomProperty: (value) => {
-    if (value.startsWith("color:")) {
-      return [
-        decl("--baro-drop-shadow-color", `var(${value.replace("color:", "")})`),
-      ];
-    }
-
+    if (value.startsWith("color:")) return dropShadowColor(`var(${value.slice(6)})`, undefined) ?? [];
     return [
+      dropShadowProperties(),
       decl("--baro-drop-shadow-size", `drop-shadow(var(${value}))`),
       decl("--baro-drop-shadow", `var(--baro-drop-shadow-size)`),
+      filters(),
     ];
   },
   description:
