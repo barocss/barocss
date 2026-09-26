@@ -4,7 +4,7 @@ import type { ParsedModifier } from "../../core/parser";
 import { attributeVariantSelector, decodeArbitrarySelector, functionalArgument } from "./utils";
 
 /** A bracketed selector that opens with an at-rule is not a selector: the variant does not match. */
-const startsAtRule = (bracket: string) => /^[\s_]*@/.test(bracket);
+export const startsAtRule = (bracket: string) => /^[\s_]*@/.test(bracket);
 
 // has-[]: functionalModifier
 functionalModifier(

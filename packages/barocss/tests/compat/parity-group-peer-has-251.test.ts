@@ -51,4 +51,11 @@ describe('#251 guard: structural characters in group-has-[…] / peer-has-[…] 
       }
     }
   });
+  it('a bracket starting with an at-rule token emits nothing', () => {
+    for (const v of ['group-has', 'peer-has']) {
+      for (const cls of [`${v}-[@x]:flex`, `${v}-[_@x]:flex`, `${v}-[@x]/name:flex`]) {
+        expect(generateCss(cls, createContext({}))).toBe('');
+      }
+    }
+  });
 });

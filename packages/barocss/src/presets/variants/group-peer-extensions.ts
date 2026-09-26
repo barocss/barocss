@@ -1,6 +1,10 @@
 import { functionalModifier } from "../../core/registry";
 import { atRule } from "../../core/ast";
 import { attributeVariantSelector, decodeArbitrarySelector, functionalArgument } from "./utils";
+import { startsAtRule } from "./has-variants";
+
+// `group-has-[@…]` / `peer-has-[@…]`: an at-rule is not a selector, the variant does not match (as has-[…]).
+const atRuleHas = (mod: string) => /^(group|peer)-has-\[/.test(mod) && startsAtRule(mod.slice(mod.indexOf("[") + 1));
 
 // `group-x/name` → ['x', '.group\/name']; the name is a plain identifier, as Tailwind requires.
 function splitGroupName(kind: 'group' | 'peer', variant: string): [string, string] {
@@ -29,7 +33,7 @@ function negated(value: string): string {
 
 // --- group/peer/parent/child extensions (examples: group-focus, peer-active, etc.) ---
 functionalModifier(
-  (mod: string) => /^group-(.+)$/.test(mod),
+  (mod: string) => /^group-(.+)$/.test(mod) && !atRuleHas(mod),
   ({ selector, mod }) => {
     const raw = /^group-(.+)$/.exec(mod.type);
     const [variant, base] = splitGroupName('group', raw?.[1] ?? '');
@@ -99,7 +103,7 @@ functionalModifier(
 );
 
 functionalModifier(
-  (mod: string) => /^peer-(.+)$/.test(mod),
+  (mod: string) => /^peer-(.+)$/.test(mod) && !atRuleHas(mod),
   ({ selector, mod }) => {
     const raw = /^peer-(.+)$/.exec(mod.type);
     const [variant, base] = splitGroupName('peer', raw?.[1] ?? '');
