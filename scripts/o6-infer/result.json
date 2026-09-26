@@ -1,0 +1,668 @@
+{
+ "tailwind": "4.3.3",
+ "apps": {
+  "a182": {
+   "n": 70,
+   "none": 70,
+   "noneMiss": [],
+   "recipe": 70,
+   "recipeMiss": [],
+   "inferred": 70,
+   "inferredMiss": [],
+   "inferredConfig": {
+    "cssVarPrefix": "tw",
+    "theme": {
+     "extend": {
+      "colors": {
+       "input": "var(--input)",
+       "card": "var(--card)",
+       "primary": "var(--primary)",
+       "card-foreground": "var(--card-foreground)",
+       "foreground": "var(--foreground)",
+       "muted-foreground": "var(--muted-foreground)",
+       "primary-foreground": "var(--primary-foreground)",
+       "background": "var(--background)",
+       "border": "var(--border)"
+      }
+     }
+    }
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 98,
+    "atProperty": 27,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {
+     "sm": "40rem",
+     "md": "48rem",
+     "lg": "64rem"
+    },
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {
+     "color-input": "utility-readback",
+     "color-card": "utility-readback",
+     "color-primary": "utility-readback",
+     "color-card-foreground": "utility-readback",
+     "color-foreground": "utility-readback",
+     "color-muted-foreground": "utility-readback",
+     "color-primary-foreground": "utility-readback",
+     "color-background": "raw-root-var-guess",
+     "color-border": "raw-root-var-guess"
+    },
+    "ms": 18.1
+   }
+  },
+  "a219": {
+   "n": 29,
+   "none": 4,
+   "noneMiss": [
+    "bg-background",
+    "bg-primary",
+    "bg-primary/90",
+    "text-primary-foreground",
+    "bg-secondary",
+    "text-secondary-foreground",
+    "bg-muted",
+    "bg-muted/50"
+   ],
+   "recipe": 29,
+   "recipeMiss": [],
+   "inferred": 25,
+   "inferredMiss": [
+    "rounded-sm",
+    "rounded-md",
+    "rounded-lg",
+    "rounded-xl"
+   ],
+   "inferredConfig": {
+    "cssVarPrefix": "tw",
+    "theme": {
+     "extend": {
+      "colors": {
+       "background": "var(--background)",
+       "foreground": "var(--foreground)",
+       "card": "var(--card)",
+       "card-foreground": "var(--card-foreground)",
+       "popover": "var(--popover)",
+       "popover-foreground": "var(--popover-foreground)",
+       "primary": "var(--primary)",
+       "primary-foreground": "var(--primary-foreground)",
+       "secondary": "var(--secondary)",
+       "secondary-foreground": "var(--secondary-foreground)",
+       "muted": "var(--muted)",
+       "muted-foreground": "var(--muted-foreground)",
+       "accent": "var(--accent)",
+       "accent-foreground": "var(--accent-foreground)",
+       "destructive": "var(--destructive)",
+       "border": "var(--border)",
+       "input": "var(--input)",
+       "ring": "var(--ring)"
+      }
+     }
+    }
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 40,
+    "atProperty": 0,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {
+     "color-background": "raw-root-var-guess",
+     "color-foreground": "raw-root-var-guess",
+     "color-card": "raw-root-var-guess",
+     "color-card-foreground": "raw-root-var-guess",
+     "color-popover": "raw-root-var-guess",
+     "color-popover-foreground": "raw-root-var-guess",
+     "color-primary": "raw-root-var-guess",
+     "color-primary-foreground": "raw-root-var-guess",
+     "color-secondary": "raw-root-var-guess",
+     "color-secondary-foreground": "raw-root-var-guess",
+     "color-muted": "raw-root-var-guess",
+     "color-muted-foreground": "raw-root-var-guess",
+     "color-accent": "raw-root-var-guess",
+     "color-accent-foreground": "raw-root-var-guess",
+     "color-destructive": "raw-root-var-guess",
+     "color-border": "raw-root-var-guess",
+     "color-input": "raw-root-var-guess",
+     "color-ring": "raw-root-var-guess"
+    },
+    "ms": 6.7
+   }
+  },
+  "a255t": {
+   "n": 22,
+   "none": 4,
+   "noneMiss": [
+    "bg-brand-50",
+    "border-accent",
+    "border-brand-200",
+    "text-brand-900",
+    "bg-brand-100",
+    "px-gutter",
+    "py-gutter",
+    "text-brand-600"
+   ],
+   "recipe": 22,
+   "recipeMiss": [],
+   "inferred": 14,
+   "inferredMiss": [
+    "bg-brand-50",
+    "border-brand-200",
+    "text-brand-900",
+    "text-brand-300",
+    "bg-brand-200",
+    "text-brand-400",
+    "border-brand-300",
+    "text-brand-50"
+   ],
+   "inferredConfig": {
+    "cssVarPrefix": "tw",
+    "theme": {
+     "extend": {
+      "colors": {
+       "brand": {
+        "100": "#d9eaff",
+        "600": "#1f58f5",
+        "700": "#1843e1",
+        "800": "#1a37b6"
+       },
+       "accent": "#e8590c"
+      },
+      "fontFamily": {
+       "display": [
+        "\"Georgia\"",
+        "\"Times New Roman\"",
+        "serif"
+       ]
+      },
+      "borderRadius": {
+       "card": "1.25rem"
+      },
+      "spacing": {
+       "gutter": "1.75rem"
+      }
+     }
+    }
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 109,
+    "atProperty": 27,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {
+     "color-brand-100": "theme-var",
+     "color-brand-600": "theme-var",
+     "color-brand-700": "theme-var",
+     "color-brand-800": "theme-var",
+     "color-accent": "theme-var",
+     "font-display": "theme-var",
+     "radius-card": "theme-var",
+     "spacing-gutter": "utility-readback"
+    },
+    "ms": 18.2
+   }
+  },
+  "a255i": {
+   "n": 22,
+   "none": 4,
+   "noneMiss": [
+    "bg-brand-50",
+    "border-accent",
+    "border-brand-200",
+    "text-brand-900",
+    "bg-brand-100",
+    "px-gutter",
+    "py-gutter",
+    "text-brand-600"
+   ],
+   "recipe": 22,
+   "recipeMiss": [],
+   "inferred": 14,
+   "inferredMiss": [
+    "bg-brand-50",
+    "border-brand-200",
+    "text-brand-900",
+    "text-brand-300",
+    "bg-brand-200",
+    "text-brand-400",
+    "border-brand-300",
+    "text-brand-50"
+   ],
+   "inferredConfig": {
+    "cssVarPrefix": "tw",
+    "theme": {
+     "extend": {
+      "borderRadius": {
+       "card": "1.25rem"
+      },
+      "colors": {
+       "brand": {
+        "100": "rgb(217, 234, 255)",
+        "600": "rgb(31, 88, 245)",
+        "700": "rgb(24, 67, 225)",
+        "800": "rgb(26, 55, 182)"
+       },
+       "accent": "rgb(232, 89, 12)"
+      },
+      "spacing": {
+       "gutter": "1.75rem"
+      },
+      "fontFamily": {
+       "display": [
+        "Georgia",
+        "\"Times New Roman\"",
+        "serif"
+       ]
+      }
+     }
+    }
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 109,
+    "atProperty": 27,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {
+     "radius-card": "utility-readback",
+     "color-brand-100": "utility-readback",
+     "color-brand-600": "utility-readback",
+     "spacing-gutter": "utility-readback",
+     "font-display": "utility-readback",
+     "color-accent": "utility-readback",
+     "color-brand-700": "utility-readback",
+     "color-brand-800": "utility-readback"
+    },
+    "ms": 17.3
+   }
+  },
+  "a283_dark_class_os_light": {
+   "n": 2,
+   "none": 0,
+   "noneMiss": [
+    "dark:bg-red-500",
+    "dark:text-blue-500"
+   ],
+   "recipe": 2,
+   "recipeMiss": [],
+   "inferred": 0,
+   "inferredMiss": [
+    "dark:bg-red-500",
+    "dark:text-blue-500"
+   ],
+   "inferredConfig": {
+    "cssVarPrefix": "tw"
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 37,
+    "atProperty": 0,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {},
+    "ms": 7.1
+   }
+  },
+  "a283_dark_noclass_os_dark": {
+   "n": 2,
+   "none": 0,
+   "noneMiss": [
+    "dark:bg-red-500",
+    "dark:text-blue-500"
+   ],
+   "recipe": 2,
+   "recipeMiss": [],
+   "inferred": 0,
+   "inferredMiss": [
+    "dark:bg-red-500",
+    "dark:text-blue-500"
+   ],
+   "inferredConfig": {
+    "cssVarPrefix": "tw"
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 37,
+    "atProperty": 0,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {},
+    "ms": 6.3
+   }
+  },
+  "a283_dark_shellused_os_light": {
+   "n": 2,
+   "none": 0,
+   "noneMiss": [
+    "dark:bg-red-500",
+    "dark:text-blue-500"
+   ],
+   "recipe": 2,
+   "recipeMiss": [],
+   "inferred": 2,
+   "inferredMiss": [],
+   "inferredConfig": {
+    "cssVarPrefix": "tw",
+    "darkMode": "class",
+    "darkModeSelector": "&:is(.dark *)"
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 38,
+    "atProperty": 0,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": {
+     "mode": "selector",
+     "selector": "&:is(.dark *)"
+    },
+    "preflight": true,
+    "tokenSources": {},
+    "ms": 6.2
+   }
+  },
+  "a283_utility": {
+   "n": 2,
+   "none": 1,
+   "noneMiss": [
+    "content-auto"
+   ],
+   "recipe": 2,
+   "recipeMiss": [],
+   "inferred": 1,
+   "inferredMiss": [
+    "content-auto"
+   ],
+   "inferredConfig": {
+    "cssVarPrefix": "tw"
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 37,
+    "atProperty": 0,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {},
+    "ms": 6.6
+   }
+  },
+  "a283_utility_shellused": {
+   "n": 3,
+   "none": 2,
+   "noneMiss": [
+    "md:content-auto"
+   ],
+   "recipe": 3,
+   "recipeMiss": [],
+   "inferred": 3,
+   "inferredMiss": [],
+   "inferredConfig": {
+    "cssVarPrefix": "tw",
+    "utilities": {
+     "content-auto": {
+      "content-visibility": "auto"
+     }
+    }
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 38,
+    "atProperty": 0,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {},
+    "ms": 7
+   }
+  },
+  "a283_custom_variant": {
+   "n": 1,
+   "none": 0,
+   "noneMiss": [
+    "theme-midnight:bg-black"
+   ],
+   "recipe": 0,
+   "recipeMiss": [
+    "theme-midnight:bg-black"
+   ],
+   "inferred": 0,
+   "inferredMiss": [
+    "theme-midnight:bg-black"
+   ],
+   "inferredConfig": {
+    "cssVarPrefix": "tw"
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 37,
+    "atProperty": 0,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {},
+    "ms": 6.8
+   }
+  },
+  "a283_prefix_tw": {
+   "n": 3,
+   "none": 0,
+   "noneMiss": [
+    "tw:bg-red-500",
+    "tw:-mt-2",
+    "tw:p-[3px]!"
+   ],
+   "recipe": 3,
+   "recipeMiss": [],
+   "inferred": 3,
+   "inferredMiss": [],
+   "inferredConfig": {
+    "cssVarPrefix": "tw",
+    "prefix": "tw"
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 37,
+    "atProperty": 0,
+    "tailwind4": true,
+    "prefix": "tw",
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {},
+    "ms": 7.3
+   }
+  },
+  "a283_important": {
+   "n": 2,
+   "none": 2,
+   "noneMiss": [],
+   "recipe": 2,
+   "recipeMiss": [],
+   "inferred": 2,
+   "inferredMiss": [],
+   "inferredConfig": {
+    "cssVarPrefix": "tw"
+   },
+   "report": {
+    "sheets": 1,
+    "crossOrigin": 0,
+    "rules": 39,
+    "atProperty": 0,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {},
+    "containersSeen": {},
+    "dark": null,
+    "preflight": true,
+    "tokenSources": {},
+    "ms": 7.3
+   }
+  },
+  "a289_astropaper": {
+   "n": 120,
+   "none": 114,
+   "recipe": 120,
+   "inferred": 120,
+   "inferredConfig": {
+    "cssVarPrefix": "tw",
+    "darkMode": "class",
+    "darkModeSelector": "&:where([data-theme=\"dark\"], [data-theme=\"dark\"] *)",
+    "utilities": {
+     "prose": {
+      "--tw-prose-body": "oklch(37.3% .034 259.733)",
+      "--tw-prose-headings": "oklch(21% .034 264.665)",
+      "--tw-prose-lead": "oklch(44.6% .03 256.802)",
+      "--tw-prose-links": "oklch(21% .034 264.665)",
+      "--tw-prose-bold": "oklch(21% .034 264.665)",
+      "--tw-prose-counters": "oklch(55.1% .027 264.364)",
+      "--tw-prose-bullets": "oklch(87.2% .01 258.338)",
+      "--tw-prose-hr": "oklch(92.8% .006 264.531)",
+      "--tw-prose-quotes": "oklch(21% .034 264.665)",
+      "--tw-prose-quote-borders": "oklch(92.8% .006 264.531)",
+      "--tw-prose-captions": "oklch(55.1% .027 264.364)",
+      "--tw-prose-kbd": "oklch(21% .034 264.665)",
+      "--tw-prose-kbd-shadows": "oklab(21% -.00316127 -.0338527/.1)",
+      "--tw-prose-code": "oklch(21% .034 264.665)",
+      "--tw-prose-pre-code": "oklch(92.8% .006 264.531)",
+      "--tw-prose-pre-bg": "oklch(27.8% .033 256.848)",
+      "--tw-prose-th-borders": "oklch(87.2% .01 258.338)",
+      "--tw-prose-td-borders": "oklch(92.8% .006 264.531)",
+      "--tw-prose-invert-body": "oklch(87.2% .01 258.338)",
+      "--tw-prose-invert-headings": "#fff",
+      "--tw-prose-invert-lead": "oklch(70.7% .022 261.325)",
+      "--tw-prose-invert-links": "#fff",
+      "--tw-prose-invert-bold": "#fff",
+      "--tw-prose-invert-counters": "oklch(70.7% .022 261.325)",
+      "--tw-prose-invert-bullets": "oklch(44.6% .03 256.802)",
+      "--tw-prose-invert-hr": "oklch(37.3% .034 259.733)",
+      "--tw-prose-invert-quotes": "oklch(96.7% .003 264.542)",
+      "--tw-prose-invert-quote-borders": "oklch(37.3% .034 259.733)",
+      "--tw-prose-invert-captions": "oklch(70.7% .022 261.325)",
+      "--tw-prose-invert-kbd": "#fff",
+      "--tw-prose-invert-kbd-shadows": "#ffffff1a",
+      "--tw-prose-invert-code": "#fff",
+      "--tw-prose-invert-pre-code": "oklch(87.2% .01 258.338)",
+      "--tw-prose-invert-pre-bg": "#00000080",
+      "--tw-prose-invert-th-borders": "oklch(44.6% .03 256.802)",
+      "--tw-prose-invert-td-borders": "oklch(37.3% .034 259.733)",
+      "font-size": "1rem",
+      "line-height": "1.75"
+     },
+     "max-w-app": {
+      "max-width": "var(--container-3xl)"
+     },
+     "transform": {
+      "transform": "var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,)"
+     },
+     "active-nav": {
+      "text-underline-offset": "8px",
+      "text-decoration-line": "underline",
+      "text-decoration-style": "wavy",
+      "text-decoration-thickness": "2px"
+     },
+     "filter": {
+      "filter": "var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,)"
+     }
+    },
+    "theme": {
+     "extend": {
+      "colors": {
+       "background": "var(--background)",
+       "foreground": "var(--foreground)",
+       "accent": "var(--accent)",
+       "accent-foreground": "var(--accent-foreground)",
+       "muted": "var(--muted)",
+       "muted-foreground": "var(--muted-foreground)",
+       "border": "var(--border)",
+       "transparent": "rgba(0, 0, 0, 0)"
+      },
+      "fontFamily": {
+       "app": [
+        "var(--font-google-sans-code)"
+       ]
+      }
+     }
+    }
+   },
+   "report": {
+    "sheets": 4,
+    "crossOrigin": 0,
+    "rules": 657,
+    "atProperty": 56,
+    "tailwind4": true,
+    "prefix": null,
+    "breakpointsSeen": {
+     "sm": "40rem",
+     "md": "48rem"
+    },
+    "containersSeen": {},
+    "dark": {
+     "mode": "selector",
+     "selector": "&:where([data-theme=\"dark\"], [data-theme=\"dark\"] *)"
+    },
+    "preflight": true,
+    "tokenSources": {
+     "color-background": "theme-var",
+     "color-foreground": "theme-var",
+     "color-accent": "theme-var",
+     "color-accent-foreground": "theme-var",
+     "color-muted": "theme-var",
+     "color-muted-foreground": "theme-var",
+     "color-border": "theme-var",
+     "font-app": "theme-var",
+     "color-transparent": "utility-readback"
+    },
+    "ms": 45.8
+   }
+  }
+ }
+}
