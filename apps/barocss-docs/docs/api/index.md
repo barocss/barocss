@@ -1,68 +1,44 @@
 ---
 title: API Reference
-description: BaroCSS core, browser, and server API reference
+description: Index of the BaroCSS browser, server and core APIs
 ---
 
-# BaroCSS API Reference
+# API Reference
 
-BaroCSS provides APIs for CSS generation in the browser and on the server. Start with the [Quick Start](/guide/quick-start). Check the [compatibility scope](/guide/compatibility) before using Tailwind classes from an existing project.
+One line per page. New here? Start with the [Quick Start](/guide/quick-start); check the [compatibility scope](/guide/compatibility) before reusing Tailwind classes from an existing project.
 
-## 🚀 Quick Start
+## Browser (`@barocss/browser`)
 
-```typescript
-import { BrowserRuntime } from '@barocss/browser';
-import { createContext } from '@barocss/kit';
+| page | what it covers |
+|---|---|
+| [Browser Runtime](/api/browser-runtime) | `BrowserRuntime`, `getRuntime`, `baroBoot`/`baroStart`: generate CSS for classes in the DOM and watch changes (`observe`, `addClass`, `getCss`, `updateConfig`, `destroy`). Which one to use: [BrowserRuntime or getRuntime](/guide/integration/vite-tailwind#runtime-choice) |
 
-// Initialize runtime
-const runtime = new BrowserRuntime({
-  config: {
-    theme: {
-      extend: {
-        colors: {
-          brand: '#3b82f6'
-        }
-      }
-    }
-  }
-});
+## Server (`@barocss/server`, Node)
 
-// Start watching DOM changes
-runtime.observe(document.body, { scan: true });
-```
+| page | what it covers |
+|---|---|
+| [Server Runtime](/api/server-runtime) | `ServerRuntime`: `generateCssForHtml(html, { skip })` returns the CSS for one HTML response's classes; `generateCss('a b c')` returns one complete sheet for class names; `ssrStyleTag(css, { nonce })` wraps it in `<style data-barocss-ssr>` for `<head>` so the browser runtime adopts it |
 
-## 📚 API Learning Path
+## Configuration and core (`@barocss/kit`)
 
-::: tip Recommended Reading Order
-Follow this path to understand BaroCSS APIs from basic to advanced concepts.
-:::
+| page | what it covers |
+|---|---|
+| [Configuration](/api/configuration) | the `config` object: theme, `darkMode`, `prefix`, `cssVarPrefix`, `utilities`, preflight |
+| [Context API](/api/context) | `createContext(config)`: resolved theme and config lookups shared by parser and engine |
+| [Parser API](/api/parser) | `parseClassToAst`: split a class name into variants and utility |
+| [Engine API](/api/engine) | `generateCss` / `generateCssRules`: turn classes into CSS text |
+| [AST Processing API](/api/ast-processing) | low-level AST transforms behind the engine |
 
-### 🎯 Step 1: Getting Started
-**Essential APIs for basic usage**
+## Extending
 
-- **[Context API](/api/context)** - Theme and configuration management
-- **[Configuration](/api/configuration)** - Theme and behavior customization
-- **[Browser Runtime](/api/browser-runtime)** - Browser-specific DOM integration
-- **[Server Runtime](/api/server-runtime)** - Server-side CSS generation
+| page | what it covers |
+|---|---|
+| [Static Utility API](/api/static-utility) | `staticUtility`: a fixed class to declarations (`flex`, `hidden`) |
+| [Functional Utility API](/api/functional-utility) | `functionalUtility`: value-taking utilities (`p-4`, `bg-red-500`, arbitrary values) |
+| [Static Modifier API](/api/static-modifier) | `staticModifier`: fixed variants (`hover:`, `focus:`) |
+| [Functional Modifier API](/api/functional-modifier) | `functionalModifier`: parameterized variants (`group-*`, `data-*`, breakpoints) |
 
-### 🔧 Step 2: Core Engine
-**Understanding how CSS is generated**
-
-- **[Parser API](/api/parser)** - Class name parsing and tokenization
-- **[Engine API](/api/engine)** - CSS generation and AST processing
-
-### 🛠️ Step 3: Customization
-**Creating custom utilities and modifiers**
-
-- **[Static Utility API](/api/static-utility)** - Creating fixed utilities
-- **[Functional Utility API](/api/functional-utility)** - Creating dynamic utilities
-- **[Static Modifier API](/api/static-modifier)** - Creating fixed modifiers
-- **[Functional Modifier API](/api/functional-modifier)** - Creating dynamic modifiers
-- **[Custom Utilities](/guide/styling-with-utility-classes)** - Custom utilities and variants
-
-### 🔬 Step 4: Advanced Concepts
-**Deep dive into internal mechanisms**
-
-- **[AST Processing API](/api/ast-processing)** - Advanced AST manipulation functions
+Guides: [Vite + Tailwind 4](/guide/integration/vite-tailwind), [Next to a Tailwind build](/guide/integration/tailwind-companion), [Astro (SSR and static)](/guide/integration/astro), [Security](/guide/security).
 
 ## 📖 Quick Reference
 

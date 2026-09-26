@@ -60,4 +60,4 @@ Place these scripts near the end of the page body:
 
 `baroStart` is an alias of `baroBoot`. It creates a browser runtime, scans the body, and starts observing changes. The package does not export `bootStart`.
 
-For manual control, use `BrowserRuntime` as shown in the package manager example. See [Browser Runtime](/api/browser-runtime) for its methods and [Compatibility](/guide/compatibility) for the measured Tailwind scope.
+For manual control, use `BrowserRuntime` as shown in the package manager example. Not sure which to use? See [BrowserRuntime or getRuntime](/guide/integration/vite-tailwind#runtime-choice). See [Browser Runtime](/api/browser-runtime) for its methods and [Compatibility](/guide/compatibility) for the measured Tailwind scope.
