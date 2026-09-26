@@ -1,5 +1,19 @@
 # @barocss/server
 
+## 0.8.1
+
+### Patch Changes
+
+- 0.8.1: security fixes. Upgrading is recommended for all 0.x users.
+
+  - Generated CSS can no longer end an enclosing HTML `<style>` element, whatever the input (class strings or theme configuration). Apps that inline BaroCSS's CSS into HTML themselves were affected; the browser runtime's `insertRule` path and `ssrStyleTag` users were not.
+  - Theme configuration keys and values can no longer change the structure of the emitted `:root` variable block. This matters when theme data comes from an untrusted source, such as a CMS.
+  - Docs: server examples inline CSS through `ssrStyleTag`.
+
+- Updated dependencies
+- Updated dependencies [c3ddc18]
+  - @barocss/kit@0.8.1
+
 ## 0.8.0
 
 ### Minor Changes
