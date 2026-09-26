@@ -1,49 +1,56 @@
-> **DRAFT — not for publication until approved.** Issue #378. Every number below is copied from a committed
-> artifact or from the Issue's result comment, and each row names its source. Probe versions differ (noted
-> per row). Nothing here was re-measured for this page.
+> **DRAFT — not for publication until approved.** Issue #378. Every number cites its Issue and the release
+> it was measured on. "dev after X" means unreleased source measured after release X (from `git describe`
+> of the measuring commit). Nothing was re-measured for this page. Where a newer run exists, the older
+> number is kept only under "History".
 
 # BaroCSS vs `@tailwindcss/browser` vs build-time pre-generation vs no runtime
 
-Current published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.1**. Most rows were
-measured on older releases (0.7.0–0.10.0) and are labelled as such.
+Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.1**.
 
-## Where the others are better (read this first)
+## Where the others are better (current evidence only)
 
-- **No-build HTML pages: `@tailwindcss/browser` has better parity.** 100% vs BaroCSS 92.3% by default, or
-  98.1% with `preflight: true` (#198, Chromium 148, 5 runs). In the MCP Apps default-CSP scenario, BaroCSS
-  was judged *not unique*: its only advantage there was size (#198).
-- **A fixed, known catalog: build-time pre-generation beats any runtime.** Parity 1.000 with zero runtime
-  work, at 144 KB gz for the "families" arm (#218, `scripts/json-render-probe/pregen.mjs`). Use it instead
-  of BaroCSS when the class set is known in advance.
-- **Parity on raw CMS blocks: `@tailwindcss/browser` 1.000 vs the BaroCSS companion 0.938** (#253). The gap
-  was `space-y-*` (BaroCSS uses the older sibling-margin shape, a BaroCSS-owned gap).
-- **Maturity and scope:** Tailwind is the upstream project and has a plugin ecosystem. BaroCSS reimplements
-  Tailwind-compatible class → rule resolution and is not verified against every Tailwind feature or plugin
-  (for example, the typography plugin was not tested, #253).
-- **The script is not free:** the BaroCSS runtime is ~37–41 KB gz (#198, #253). That is smaller than twb
-  (68.7 KB gz) but far larger than a 3.2 KB gz pre-built shell (#218).
+- **Fixed, known catalog → build-time pre-generation.** Parity 1.000 with zero runtime work; 144 KB gz for
+  the "families" arm (#218, dev after 0.4.0, `scripts/json-render-probe/pregen.mjs`). When the class set
+  is known in advance, pre-generate instead of using BaroCSS.
+- **Official and mature: Tailwind / `@tailwindcss/browser`.** `@tailwindcss/browser` is the upstream
+  project's own runtime, with Tailwind's ecosystem and support behind it. BaroCSS is a reimplementation: it
+  is 100% on its own parity corpora (#241, #304) but only **94.5% on a held-out corpus** (#243, dev after
+  0.4.0; the misses are listed in KNOWN_FAILURES). Plugins such as typography are untested (#253).
+- **No-build pages (MCP Apps, default CSP): BaroCSS is not unique.** twb already covers the scenario (#198).
+  BaroCSS's default runtime injects no preflight, so on that page it scored below twb (92.3% default,
+  98.1% with `preflight: true`, vs twb 100%; dev after 0.4.0). #305 (dev after 0.8.0) reports the #198
+  probe unchanged; no newer release has been re-measured on it.
+- **Bytes vs a pre-built sheet.** The BaroCSS ESM CDN bundle is 48 KB gz (#305, dev after 0.8.0; 0.10.x not
+  re-measured). That is smaller than twb's 68.7 KB gz (#198) but far larger than a 3.2 KB gz built shell
+  (#218).
 
 ## Measured axes
 
-| axis | BaroCSS | `@tailwindcss/browser` | build-time pre-gen | no runtime | source |
+| axis | BaroCSS | `@tailwindcss/browser` | build-time pre-gen | no runtime | source (release) |
 |---|---|---|---|---|---|
-| Parity, no-build page | 92.3% (98.1% with preflight) | **100%** | n/a | 73.0% | #198 |
-| Spec parity in a built app (json-render) | 0.989 | 0.978; 14 shell cells visibly changed | **1.000** (bounded set) | 0.820 | #182, #218 |
-| Real model specs in a built app (10 specs) | **0.859** of elements, shell 1.000 | 0.000 of elements, shell 0.969 | – | 0.163 | #231 |
-| CMS blocks (12 AI-written blocks) | 0.938, shell damage 0 | **1.000**, 2 shell elements changed | safelist 0.695 | 0.026 | #253, `scripts/cms-probe/` |
-| Host damage from a Shadow DOM widget | 0 | cannot style shadow roots | – | 0 | #364, `scripts/o5-probe/NOTES.md` |
-| Shadow DOM widget parity (strict CSP) | **1.000** | 0.000 | – | 0.000 | #364 (0.10.0), #327 |
-| Strict CSP (no `'unsafe-inline'`) | works with `nonce` or constructable sheets: parity 1, 0 style violations | its `<style>` is blocked | works (static file) | – | #347, #364, `scripts/csp-probe/` |
-| SSR first paint | 1.0 match at FCP with `@barocss/server` plus app fixes; client-only leaves ~270–340 ms unstyled | client-only (same kind of flash, not measured separately) | 1.0 if the build knew the classes | – | #266 |
-| Agent adoption from the docs (AstroPaper) | strong model 0.983 first paint, 0 damage; weak model unreliable (1 of 2 runs: 0, 1007 elements damaged) | – | – | – | #289 (0.7.0), `scripts/cms-starter-probe/results-289.json` |
-| Script bytes (gz) | ~37–41 KB | 68.7 KB | 0 | 0 | #198, #253 |
-| CSS bytes | injected per page (23–33 KB) | injected (13–25 KB) | 144 KB gz (families) to 342 KB gz (wide) | 0 | #218, #231, #253 |
-| Untrusted classes (22 adversarial shapes) | 0 host changes, 0 cross-origin `url()` hits; 1 same-origin hit unless pre-filtered | n/a (no shadow support) | – | – | #364 |
-| Cross-engine | Firefox and WebKit match Chromium (the Firefox diffs are quote-serialization artifacts) | – | – | – | #374, `scripts/cross-engine/NOTES.md` |
+| Class parity corpora vs Tailwind 4.3.3 and 4.1.13 | 100% | reference implementation | – | – | #241 (dev after 0.4.0), #304 (dev after 0.7.0) |
+| Held-out classes (567 unseen) | 94.5% | – | – | – | #243 (dev after 0.4.0) |
+| CMS blocks (#253 set) on a strict-CSP page | **1.0 / 1.0** (nonce or constructable), 0 violations | broken (styles blocked) | – | – | #347 (dev after 0.9.0) |
+| CMS blocks in shadow-root mode | **1.000 / 1.000** (site-only control) | cannot style shadow roots | – | – | #355 (dev after 0.9.0) |
+| Real model specs in a built app (10 specs) | 0.859 of elements, shell 1.000 | 0.000, shell 0.969 | – | 0.163 | #231 (dev after 0.4.0); unchanged in #305 (dev after 0.8.0) |
+| Shadow DOM widget, strict CSP, hostile host | parity **1.000**, host damage 0 | 0.000 | – | 0.000 | #364 (published 0.10.0), `scripts/o5-probe/NOTES.md` |
+| Untrusted classes (22 adversarial shapes) | 0 host changes, 0 cross-origin `url()` hits (1 same-origin hit unless pre-filtered) | n/a | – | – | #364 (0.10.0) |
+| SSR first paint | 1.0 match at FCP with `@barocss/server` plus app fixes; client-only leaves ~270–340 ms unstyled | client-only | 1.0 if the build knew the classes | – | #266 (dev after 0.4.0); unchanged in #305 |
+| Agent adoption from the docs (AstroPaper) | strong model 0.983 at first paint, 0 damage; weak model unreliable (1 of 2 runs 0, 1007 elements damaged) | – | – | – | #289 (published 0.7.0) |
+| Script bytes (gz) | 48 KB (ESM CDN) | 68.7 KB | 0 | 0 | #305 (dev after 0.8.0), #198 |
+| Pre-generated CSS (gz) | – | – | 144 KB (families) to 342 KB (wide) | 0 | #218 |
+| Cross-engine | Firefox and WebKit match Chromium (the Firefox diffs are quote-serialization artifacts) | – | – | – | #374 (0.10.x source) |
+
+## History (superseded, kept for transparency)
+
+- #253 (dev after 0.4.0): CMS companion 0.938 vs twb 1.000. The gap was `space-y-*`. Superseded by #347 /
+  #355 (1.0 on 0.9.x).
+- #182 / #198 (dev after 0.4.0): runtime script 37–41 KB gz, before #305's bundle change (64 → 48 KB gz for
+  the ESM CDN bundle).
 
 ## Caveats
 
-- Headless runs with small n (3–5 runs per arm; model outputs recorded once and frozen). Firefox and WebKit
-  are Playwright builds, not Safari/iOS (#374).
-- Several rows predate 0.10.1. The twb versions were 4.1.13 (#182, #198) and 4.3.3 (#364).
-- All evidence is self-generated by this project. There are no external users yet.
+- Headless runs with small n (3–5 runs per arm; model outputs frozen). Firefox and WebKit are Playwright
+  builds, not Safari/iOS (#374).
+- Few rows were measured on the published 0.10.1 itself. #364 (0.10.0) is the closest.
+- All evidence is self-generated. There are no external users yet.
