@@ -260,3 +260,41 @@ export function coverageReport(label: string, results: ParityResult[]): string {
     ...[...byFamily].sort((a, b) => b[1].fail - a[1].fail).map(([f, { pass, fail }]) => `  ${f.padEnd(15)} ${pass}/${pass + fail} uses at parity`),
   ].join('\n');
 }
+
+// #312: structural comparison for the shape tests (compare, space, divide, has/in/group/peer …). Tailwind 4.3
+// flattens nested `&` rules and writes `:has(:x)` where BaroCSS writes `:has(*:x)`; both are the same selector.
+// `flatRules` resolves nesting, drops non-rule noise (comments, @property, `@layer properties`, the theme
+// `:root, :host` block), and normalises only shape: whitespace, a redundant universal `*` in a compound,
+// `--tw-` → `--baro-`, `(width >= X)` → `(min-width: X)`, and `calc(var(--spacing) * 0)` → `0px` (same value).
+export function normSelector(sel: string): string {
+  return sel
+    .replace(/\s+/g, ' ')
+    .replace(/\s*([>+~,])\s*/g, '$1')
+    .replace(/(^|[\s(,>+~])\*(?=[:.[#])/g, '$1')
+    .trim();
+}
+const normValue = (v: string) =>
+  v.replace(/--tw-/g, '--baro-').replace(/\s+/g, ' ').replace(/calc\(var\(--spacing\) \* -?0\)/g, '0px').trim();
+const normParams = (p: string) => p.replace(/\s+/g, ' ').replace(/\(width >= ([^)]+)\)/g, '(min-width: $1)').trim();
+const joinSel = (parent: string, child: string) =>
+  !parent ? child : child.includes('&') ? child.replace(/&/g, parent) : `${parent} ${child}`;
+
+export function flatRules(css: string): string[] {
+  const out: string[] = [];
+  const walk = (node: Container, sel: string, ats: string[]) => {
+    const decls: string[] = [];
+    for (const n of node.nodes ?? []) {
+      if (n.type === 'decl') decls.push(`${n.prop.replace(/^--tw-/, '--baro-')}: ${normValue(n.value)}${n.important ? ' !important' : ''}`);
+      else if (n.type === 'rule') {
+        if (!sel && n.selector.replace(/\s+/g, ' ') === ':root, :host') continue;
+        walk(n, joinSel(sel, n.selector), ats);
+      } else if (n.type === 'atrule') {
+        if (n.name === 'property' || (n.name === 'layer' && n.params === 'properties')) continue;
+        walk(n, sel, [...ats, `@${n.name} ${normParams(n.params)}`]);
+      }
+    }
+    if (decls.length) out.push(`${ats.join(' ')}${ats.length ? ' ' : ''}${normSelector(sel)} { ${decls.join('; ')} }`);
+  };
+  walk(postcss.parse(css), '', []);
+  return out;
+}

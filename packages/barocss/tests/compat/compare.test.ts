@@ -1,12 +1,10 @@
-// TODO(#304): known 4.3 difference, so this file stays pinned to Tailwind 4.1.13 (`tailwindcss-4-1`). 4.3 flattens nested `&` rules (`.hover\:block:hover` instead of `.hover\:block { &:hover {...} }`), so this exact-structure snapshot differs in shape, not in effect.
-// Effective-value parity against 4.3 is covered by parity-corpus/parity-heldout; port this text/shape check to 4.3 output.
 import { describe, expect, it } from 'vitest';
-import { compile } from 'tailwindcss-4-1';
-import postcss, { type ChildNode } from 'postcss';
+import { compile } from 'tailwindcss';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
 import '../../src/presets';
 import { fixtures } from './fixtures';
+import { flatRules } from './parity-compare';
 
 const tailwindInput = `
 @theme inline {
@@ -19,38 +17,9 @@ const tailwindInput = `
 @tailwind utilities;
 `;
 
-type CssNode = {
-  type: string;
-  name?: string;
-  params?: string;
-  selector?: string;
-  prop?: string;
-  value?: string;
-  nodes?: CssNode[];
-};
-
-// Ignore whitespace and the Tailwind license header. Preserve selectors,
-// declarations, nesting, and at-rules so a different CSS result stays visible.
-function normalizeCss(css: string): CssNode[] {
-  const normalizeNode = (node: ChildNode): CssNode => {
-    if (node.type === 'decl') {
-      return { type: node.type, prop: node.prop, value: node.value };
-    }
-    if (node.type === 'rule') {
-      return { type: node.type, selector: node.selector, nodes: node.nodes.map(normalizeNode) };
-    }
-    if (node.type === 'atrule') {
-      return { type: node.type, name: node.name, params: node.params, nodes: node.nodes?.map(normalizeNode) };
-    }
-    return { type: node.type };
-  };
-  return postcss.parse(css).nodes
-    .filter((node) => node.type !== 'comment')
-    // The theme-variable block (Tailwind's :root, :host) is emitted separately by BaroCSS's theme converter.
-    .filter((node) => !(node.type === 'rule' && node.selector === ':root, :host'))
-    .map(normalizeNode);
-}
-
+// #312: Tailwind 4.3 flattens nested `&` rules; compare rules after flatRules resolves nesting and normalises only
+// shape (whitespace, `:has(*:x)` ≡ `:has(:x)`, `--tw-`/`--baro-`, `(width >= X)` ≡ `(min-width: X)`). Selectors,
+// declarations and at-rules still have to match, so a different CSS result stays visible.
 async function compare(candidate: string) {
   const compiler = await compile(tailwindInput);
   const tailwindCss = compiler.build([candidate]);
@@ -59,18 +28,18 @@ async function compare(candidate: string) {
     theme: { colors: { red: { 500: '#ef4444' } }, breakpoints: { md: '48rem' } },
   });
   const baroCss = generateCss(candidate, context);
-  const tailwindNodes = normalizeCss(tailwindCss);
-  const baroNodes = normalizeCss(baroCss);
+  const tailwindNodes = flatRules(tailwindCss);
+  const baroNodes = flatRules(baroCss);
   const result = tailwindNodes.length === 0 ? 'no-tailwind-rule'
     : baroNodes.length === 0 ? 'unsupported'
     : JSON.stringify(tailwindNodes) === JSON.stringify(baroNodes) ? 'match' : 'different';
   return { result, tailwindCss, baroCss };
 }
 
-describe('Tailwind CSS 4.1.13 output comparison', () => {
+describe('Tailwind CSS 4.3 output comparison', () => {
   it.each(fixtures)('$name: $candidate', async ({ candidate, expected }) => {
     const output = await compare(candidate);
-    expect(output.tailwindCss).toContain('/*! tailwindcss v4.1.13');
+    expect(output.tailwindCss).toMatch(/^\/\*! tailwindcss v4\.3\./);
     expect(output.result, `Tailwind:\n${output.tailwindCss}\nBaroCSS:\n${output.baroCss}`).toBe(expected);
   });
 
