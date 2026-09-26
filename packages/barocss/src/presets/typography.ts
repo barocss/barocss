@@ -348,11 +348,12 @@ functionalUtility({
 // --- Typography: Text Decoration Color ---
 functionalUtility({
   name: "decoration",
-  themeKey: "colors",
+  themeKeys: ["textDecorationThickness", "colors"], // #338: a key in both is the thickness, as in Tailwind
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
+    if (extra?.themeNamespace === "textDecorationThickness") return [decl("text-decoration-thickness", value)];
     if (extra?.realThemeValue) return themeColorDecls("text-decoration-color", value, extra);
     return [decl("text-decoration-color", value)];
   },

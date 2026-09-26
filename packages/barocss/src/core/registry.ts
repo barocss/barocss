@@ -260,7 +260,15 @@ export function staticUtility(
 
 export type FunctionalUtilityExtra = {
   opacity?: string;
+  /** The theme key that matched, set when it is a colour key (or the utility lists no `colors` namespace). */
   realThemeValue?: string;
+  /**
+   * #338: the theme namespace that resolved the key and the key itself. On a root shared by colours and another
+   * namespace (`border-*`: colors + borderWidth), a key from the other namespace leaves `realThemeValue` unset so the
+   * colour branch does not claim it; the handler dispatches on `themeNamespace` instead.
+   */
+  themeNamespace?: string;
+  themeKey?: string;
 }
 
 export type FunctionalUtilityOptions = {
@@ -561,15 +569,19 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
         themeValue = themeScalar(ctx.theme(opts.themeKey, finalValue));
         // console.log('[functionalUtility] themeKey lookup', { themeKey: opts.themeKey, finalValue, themeValue });
       }
+      let namespace = themeValue !== undefined ? opts.themeKey : undefined;
       if (!themeValue && opts.themeKeys && ctx.theme) {
+        // themeKeys are tried in order, so their order is the precedence for a key present in several (#338).
         for (const key of opts.themeKeys) {
           themeValue = themeScalar(ctx.theme(key, finalValue));
-          // console.log('[functionalUtility] themeKeys lookup', { key, finalValue, themeValue });
-          if (themeValue !== undefined) break;
+          if (themeValue !== undefined) { namespace = key; break; }
         }
       }
       if (themeValue !== undefined) {
-        extra.realThemeValue = finalValue;
+        extra.themeNamespace = namespace;
+        extra.themeKey = finalValue;
+        // #338: only a colour key (or any key of a utility with no colour namespace) is flagged as realThemeValue.
+        if (namespace === 'colors' || !(opts.themeKeys ?? [opts.themeKey]).includes('colors')) extra.realThemeValue = finalValue;
         finalValue = themeValue;
         if (opts.prop) {
           // console.log('[functionalUtility] themeValue default decl', { prop: opts.prop, finalValue });

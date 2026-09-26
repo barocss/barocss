@@ -38,12 +38,12 @@ staticUtility("stroke-white", [["stroke", "#fff"]], { category: 'svg' });
 
 functionalUtility({
   name: "stroke",
-  themeKeys: ["colors"],
+  themeKeys: ["colors", "strokeWidth"], // #338: a key in both is a colour, as in Tailwind
   supportsArbitrary: true,
   supportsCustomProperty: true,
   handle: (value, ctx, token, extra) => {
 
-    if (parseNumber(value)) {
+    if (parseNumber(value) || extra?.themeNamespace === "strokeWidth") {
       return [decl("stroke-width", value)];
     }
 

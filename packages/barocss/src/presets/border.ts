@@ -153,7 +153,7 @@ const withBorderStyle = (props: string[], width: string) => [
   // Functional utility
   functionalUtility({
     name: name as string,
-    themeKeys: ["borderWidth", "colors"],
+    themeKeys: ["colors", "borderWidth"], // #338: a key in both is a colour, as in Tailwind
     supportsOpacity: true,
     supportsArbitrary: true,
     supportsCustomProperty: true,
@@ -164,6 +164,7 @@ const withBorderStyle = (props: string[], width: string) => [
       return null;
     },
     handle: (value, ctx, token, extra) => {
+      if (extra?.themeNamespace === "borderWidth") return withBorderStyle(propList, value);
       if (extra?.realThemeValue) return propList.flatMap(prop => themeColorDecls(prop.replace("width", "color"), value, extra));
       if (parseColor(value)) {
         return propList.map(prop => decl(prop.replace("width", "color"), value));
@@ -222,6 +223,7 @@ Object.entries(divideSides).forEach(([axis, [start, end, ...styles]]) => {
   staticUtility(`divide-${axis}-reverse`, [rule(":where(& > :not(:last-child))", [decl(rev, "1")])], { category: 'borders' });
   functionalUtility({
     name: `divide-${axis}`,
+    themeKeys: ["divideWidth", "borderWidth"], // #338, as Tailwind's --divide-width then --border-width
     supportsArbitrary: true,
     handleBareValue: ({ value }) => (/^\d+$/.test(value) ? `${value}px` : null),
     handle: (value) => divide(value),
@@ -240,6 +242,7 @@ functionalUtility({
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
 
+    if (extra?.themeNamespace === "borderWidth") return withBorderStyle(["border-width"], value);
     if (extra?.realThemeValue) return themeColorDecls("border-color", value, extra);
 
     if (token.arbitrary) {
@@ -340,12 +343,13 @@ functionalUtility({
 // Functional outline color utility
 functionalUtility({
   name: "outline",
-  themeKeys: ["colors", "borderWidth"],
+  themeKeys: ["colors", "outlineWidth"],
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
 
+    if (extra?.themeNamespace === "outlineWidth") return withOutlineStyle(value);
     if (extra?.realThemeValue) return themeColorDecls("outline-color", value, extra);
 
     if (parseColor(value)) {
