@@ -6,7 +6,7 @@ Tailwind compiles the classes it can see at build time. Some classes aren't ther
 them at runtime, a CMS editor types them into content, or an embedded widget renders them inside a shadow
 root on someone else's page. Those classes render unstyled.
 
-**BaroCSS** (published **0.10.1**: `@barocss/kit`, `@barocss/browser`, `@barocss/server`) generates
+**BaroCSS** (published **0.10.3**: `@barocss/kit`, `@barocss/browser`, `@barocss/server`) generates
 Tailwind-compatible CSS for those classes at runtime, alongside your existing build.
 
 ## What we measured
@@ -20,7 +20,9 @@ Tailwind-compatible CSS for those classes at runtime, alongside your existing bu
 - SSR: `@barocss/server` gets a full match at first paint; the client runtime alone leaves ~350–410 ms
   unstyled (#266 rerun in #383, published 0.10.1).
 - An agent reading only the docs adopted it in an Astro CMS starter. The strong model reached 0.983 at first
-  paint; the weak model was unreliable (#289, published 0.7.0).
+  paint (#289, published 0.7.0). The weak model (haiku) was unreliable in #289; after the #306 doc fixes a
+  recheck adopted it 2/2: first paint 0.983 / 0.958, hydrated 1.0 / 0.975, 0 shell damage
+  (`scripts/cms-starter-probe/results-306-recheck.json`, published 0.7.0).
 
 ## When not to use it
 
@@ -29,6 +31,21 @@ Tailwind-compatible CSS for those classes at runtime, alongside your existing bu
   BaroCSS now matches it there (100% vs 100%), but twb paints the final state sooner (#198 rerun in #383,
   published 0.10.1).
 - BaroCSS is a reimplementation: 100% on its parity corpora (#241, #304), 100% on 567 held-out classes (dev after 0.10.1; 94.5% when #243 first measured it).
+
+## Security posture
+
+- A fuzz campaign over untrusted class input (#319, `scripts/fuzz/campaign.mjs`, widened in #339) found
+  issues that were fixed in 0.8.1 / 0.8.2 (security and availability) and in 0.10.3 (class input could
+  produce a rule applying outside its element). See `packages/barocss/CHANGELOG.md`.
+- CI runs a multi-seed fuzz ratchet: a fixed seed list plus a logged rotating seed (#392,
+  `packages/barocss/tests/fuzz/fuzz.test.ts`).
+- The [security guide](../../apps/barocss-docs/docs/guide/security.md) (#345) covers untrusted classes,
+  strict CSP and limiting external `url()` loads.
+
+## Known issues
+
+- When two utilities on one element set the same property, BaroCSS can pick a different winner than a
+  Tailwind build; fix in progress (#401).
 
 ## Caveats
 

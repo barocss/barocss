@@ -5,7 +5,7 @@
 
 # BaroCSS vs `@tailwindcss/browser` vs build-time pre-generation vs no runtime
 
-Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.1**.
+Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.3** (0.10.2 fixed the Shadow DOM @property gap, #384; 0.10.3 is a security patch, #392).
 
 ## Where the others are better (current evidence only)
 
@@ -39,7 +39,7 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
 | Untrusted classes (22 adversarial shapes) | 0 host changes, 0 cross-origin `url()` hits (1 same-origin hit unless pre-filtered) | n/a | – | – | #364 (0.10.0) |
 | SSR first paint | 1.0 match at FCP with `@barocss/server`; client-only leaves ~350–410 ms unstyled | client-only | 1.0 if the build knew the classes | – | #266 rerun in #383 (published 0.10.1) |
 | No-build HTML, default CSP | parity 100% (default and preflight), final 43 ms | 100%, final 24 ms | – | 73% | #198 rerun in #383 (published 0.10.1) |
-| Agent adoption from the docs (AstroPaper) | strong model 0.983 at first paint, 0 damage; weak model unreliable (1 of 2 runs 0, 1007 elements damaged) | – | – | – | #289 (published 0.7.0) |
+| Agent adoption from the docs (AstroPaper) | strong model 0.983 at first paint, 0 damage; weak model (haiku) 2/2 after the #306 doc fixes (first paint 0.983 / 0.958, hydrated 1.0 / 0.975, 0 damage; it was 1 of 2 in #289) | – | – | – | #289, #306 recheck (published 0.7.0, `scripts/cms-starter-probe/results-306-recheck.json`) |
 | Script bytes (gz) | 52.8 KB (UMD CDN) | 68.7 KB | 0 | 0 | #383 (published 0.10.1) |
 | Pre-generated CSS (gz) | – | – | 144 KB (families) to 342 KB (wide) | 0 | #218 |
 | Cross-engine | Firefox and WebKit match Chromium (the Firefox diffs are quote-serialization artifacts) | – | – | – | #374 (0.10.x source) |
@@ -68,3 +68,10 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
 - #198, #231 and #266 were measured on published 0.10.1 (#383). The #198/#231 reference build moved from Tailwind
   4.1.13 to 4.3.3 between runs. Other rows are older releases.
 - All evidence is self-generated. There are no external users yet.
+
+## Security and known issues
+
+- Fuzz campaign on class input (#319, #339); fixes shipped in 0.8.1 / 0.8.2 and 0.10.3 (changelog); multi-seed
+  fuzz ratchet in CI (#392); security guide (#345, `apps/barocss-docs/docs/guide/security.md`).
+- Known: when two utilities on one element set the same property, BaroCSS can pick a different winner than a
+  Tailwind build; fix in progress (#401).
