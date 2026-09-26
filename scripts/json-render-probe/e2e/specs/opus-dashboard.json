@@ -1,0 +1,225 @@
+{
+ "root": "kpi-card",
+ "elements": {
+  "kpi-card": {
+   "type": "Card",
+   "props": {
+    "className": "p-6 bg-card border-border rounded-lg w-full max-w-sm"
+   },
+   "children": [
+    "header",
+    "value-row",
+    "sep",
+    "breakdown"
+   ]
+  },
+  "header": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-row items-center justify-between mb-4"
+   },
+   "children": [
+    "title",
+    "period-badge"
+   ]
+  },
+  "title": {
+   "type": "Text",
+   "props": {
+    "text": "Monthly Revenue",
+    "variant": "muted"
+   }
+  },
+  "period-badge": {
+   "type": "Badge",
+   "props": {
+    "text": "September",
+    "variant": "secondary"
+   }
+  },
+  "value-row": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col gap-1 mb-4"
+   },
+   "children": [
+    "value",
+    "change"
+   ]
+  },
+  "value": {
+   "type": "Text",
+   "props": {
+    "text": "$84,230",
+    "variant": "h1"
+   }
+  },
+  "change": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-row items-center gap-2"
+   },
+   "children": [
+    "change-badge",
+    "change-note"
+   ]
+  },
+  "change-badge": {
+   "type": "Badge",
+   "props": {
+    "text": "+12.4%",
+    "variant": "default"
+   }
+  },
+  "change-note": {
+   "type": "Text",
+   "props": {
+    "text": "vs last month",
+    "variant": "muted"
+   }
+  },
+  "sep": {
+   "type": "Separator",
+   "props": {}
+  },
+  "breakdown": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col gap-4 mt-4"
+   },
+   "children": [
+    "breakdown-title",
+    "row-subs",
+    "row-onetime",
+    "row-services"
+   ]
+  },
+  "breakdown-title": {
+   "type": "Text",
+   "props": {
+    "text": "Breakdown",
+    "variant": "muted"
+   }
+  },
+  "row-subs": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col gap-1.5"
+   },
+   "children": [
+    "subs-label-row",
+    "subs-progress"
+   ]
+  },
+  "subs-label-row": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-row items-center justify-between"
+   },
+   "children": [
+    "subs-label",
+    "subs-value"
+   ]
+  },
+  "subs-label": {
+   "type": "Text",
+   "props": {
+    "text": "Subscriptions",
+    "variant": "body"
+   }
+  },
+  "subs-value": {
+   "type": "Text",
+   "props": {
+    "text": "$52,400",
+    "variant": "muted"
+   }
+  },
+  "subs-progress": {
+   "type": "Progress",
+   "props": {
+    "value": 62
+   }
+  },
+  "row-onetime": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col gap-1.5"
+   },
+   "children": [
+    "onetime-label-row",
+    "onetime-progress"
+   ]
+  },
+  "onetime-label-row": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-row items-center justify-between"
+   },
+   "children": [
+    "onetime-label",
+    "onetime-value"
+   ]
+  },
+  "onetime-label": {
+   "type": "Text",
+   "props": {
+    "text": "One-time sales",
+    "variant": "body"
+   }
+  },
+  "onetime-value": {
+   "type": "Text",
+   "props": {
+    "text": "$21,830",
+    "variant": "muted"
+   }
+  },
+  "onetime-progress": {
+   "type": "Progress",
+   "props": {
+    "value": 26
+   }
+  },
+  "row-services": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col gap-1.5"
+   },
+   "children": [
+    "services-label-row",
+    "services-progress"
+   ]
+  },
+  "services-label-row": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-row items-center justify-between"
+   },
+   "children": [
+    "services-label",
+    "services-value"
+   ]
+  },
+  "services-label": {
+   "type": "Text",
+   "props": {
+    "text": "Services",
+    "variant": "body"
+   }
+  },
+  "services-value": {
+   "type": "Text",
+   "props": {
+    "text": "$10,000",
+    "variant": "muted"
+   }
+  },
+  "services-progress": {
+   "type": "Progress",
+   "props": {
+    "value": 12
+   }
+  }
+ }
+}

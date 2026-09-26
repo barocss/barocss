@@ -1,0 +1,57 @@
+{
+ "generated": "2026-09-26",
+ "harness": "claude -p --tools \"\" --output-format json (generate.sh)",
+ "runs": {
+  "haiku-dashboard": {
+   "model": "claude-haiku-4-5-20251001",
+   "costUsd": 0.014510200000000001,
+   "parsed": true
+  },
+  "haiku-empty": {
+   "model": "claude-haiku-4-5-20251001",
+   "costUsd": 0.0147782,
+   "parsed": true
+  },
+  "haiku-pricing": {
+   "model": "claude-haiku-4-5-20251001",
+   "costUsd": 0.0438812,
+   "parsed": true
+  },
+  "haiku-settings": {
+   "model": "claude-haiku-4-5-20251001",
+   "costUsd": 0.011029200000000001,
+   "parsed": true
+  },
+  "haiku-table": {
+   "model": "claude-haiku-4-5-20251001",
+   "costUsd": 0.037784,
+   "parsed": true
+  },
+  "opus-dashboard": {
+   "model": "claude-opus-4-8",
+   "costUsd": 0.061395000000000005,
+   "parsed": true
+  },
+  "opus-empty": {
+   "model": "claude-opus-4-8",
+   "costUsd": 0.038075000000000005,
+   "parsed": true
+  },
+  "opus-pricing": {
+   "model": "claude-opus-4-8",
+   "costUsd": 0.061599,
+   "parsed": true
+  },
+  "opus-settings": {
+   "model": "claude-opus-4-8",
+   "costUsd": 0.029179,
+   "parsed": true
+  },
+  "opus-table": {
+   "model": "claude-opus-4-8",
+   "costUsd": 0.05477,
+   "parsed": true
+  }
+ },
+ "totalCostUsd": 0.367
+}

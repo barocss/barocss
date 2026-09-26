@@ -1,0 +1,311 @@
+{
+ "root": "pricing-section",
+ "elements": {
+  "pricing-section": {
+   "type": "Stack",
+   "props": {
+    "className": "gap-8 py-16 px-4 max-w-6xl mx-auto"
+   },
+   "children": [
+    "header",
+    "plans-grid"
+   ]
+  },
+  "header": {
+   "type": "Stack",
+   "props": {
+    "className": "gap-3 text-center items-center"
+   },
+   "children": [
+    "header-title",
+    "header-subtitle"
+   ]
+  },
+  "header-title": {
+   "type": "Text",
+   "props": {
+    "text": "Simple, transparent pricing",
+    "variant": "h1"
+   }
+  },
+  "header-subtitle": {
+   "type": "Text",
+   "props": {
+    "text": "Choose the plan that fits your team. No hidden fees, cancel anytime.",
+    "variant": "muted"
+   }
+  },
+  "plans-grid": {
+   "type": "Grid",
+   "props": {
+    "className": "grid-cols-1 md:grid-cols-3 gap-6 items-start"
+   },
+   "children": [
+    "plan-starter",
+    "plan-pro",
+    "plan-enterprise"
+   ]
+  },
+  "plan-starter": {
+   "type": "Card",
+   "props": {
+    "className": "flex flex-col gap-6 p-8 border-border"
+   },
+   "children": [
+    "starter-name",
+    "starter-price",
+    "starter-desc",
+    "starter-sep",
+    "starter-features",
+    "starter-cta"
+   ]
+  },
+  "starter-name": {
+   "type": "Text",
+   "props": {
+    "text": "Starter",
+    "variant": "h3"
+   }
+  },
+  "starter-price": {
+   "type": "Text",
+   "props": {
+    "text": "$0 /mo",
+    "variant": "h2"
+   }
+  },
+  "starter-desc": {
+   "type": "Text",
+   "props": {
+    "text": "For individuals getting started.",
+    "variant": "muted"
+   }
+  },
+  "starter-sep": {
+   "type": "Separator",
+   "props": {}
+  },
+  "starter-features": {
+   "type": "Stack",
+   "props": {
+    "className": "gap-3"
+   },
+   "children": [
+    "starter-f1",
+    "starter-f2",
+    "starter-f3"
+   ]
+  },
+  "starter-f1": {
+   "type": "Text",
+   "props": {
+    "text": "✓ 1 project",
+    "variant": "body"
+   }
+  },
+  "starter-f2": {
+   "type": "Text",
+   "props": {
+    "text": "✓ Community support",
+    "variant": "body"
+   }
+  },
+  "starter-f3": {
+   "type": "Text",
+   "props": {
+    "text": "✓ 1 GB storage",
+    "variant": "body"
+   }
+  },
+  "starter-cta": {
+   "type": "Button",
+   "props": {
+    "label": "Get started",
+    "variant": "outline",
+    "size": "lg"
+   }
+  },
+  "plan-pro": {
+   "type": "Card",
+   "props": {
+    "className": "flex flex-col gap-6 p-8 border-2 border-primary shadow-lg relative bg-card scale-[1.03]"
+   },
+   "children": [
+    "pro-badge",
+    "pro-name",
+    "pro-price",
+    "pro-desc",
+    "pro-sep",
+    "pro-features",
+    "pro-cta"
+   ]
+  },
+  "pro-badge": {
+   "type": "Badge",
+   "props": {
+    "text": "Most Popular",
+    "variant": "default"
+   }
+  },
+  "pro-name": {
+   "type": "Text",
+   "props": {
+    "text": "Pro",
+    "variant": "h3"
+   }
+  },
+  "pro-price": {
+   "type": "Text",
+   "props": {
+    "text": "$29 /mo",
+    "variant": "h2"
+   }
+  },
+  "pro-desc": {
+   "type": "Text",
+   "props": {
+    "text": "For growing teams that need more.",
+    "variant": "muted"
+   }
+  },
+  "pro-sep": {
+   "type": "Separator",
+   "props": {}
+  },
+  "pro-features": {
+   "type": "Stack",
+   "props": {
+    "className": "gap-3"
+   },
+   "children": [
+    "pro-f1",
+    "pro-f2",
+    "pro-f3",
+    "pro-f4"
+   ]
+  },
+  "pro-f1": {
+   "type": "Text",
+   "props": {
+    "text": "✓ Unlimited projects",
+    "variant": "body"
+   }
+  },
+  "pro-f2": {
+   "type": "Text",
+   "props": {
+    "text": "✓ Priority support",
+    "variant": "body"
+   }
+  },
+  "pro-f3": {
+   "type": "Text",
+   "props": {
+    "text": "✓ 100 GB storage",
+    "variant": "body"
+   }
+  },
+  "pro-f4": {
+   "type": "Text",
+   "props": {
+    "text": "✓ Advanced analytics",
+    "variant": "body"
+   }
+  },
+  "pro-cta": {
+   "type": "Button",
+   "props": {
+    "label": "Start free trial",
+    "variant": "default",
+    "size": "lg"
+   }
+  },
+  "plan-enterprise": {
+   "type": "Card",
+   "props": {
+    "className": "flex flex-col gap-6 p-8 border-border"
+   },
+   "children": [
+    "ent-name",
+    "ent-price",
+    "ent-desc",
+    "ent-sep",
+    "ent-features",
+    "ent-cta"
+   ]
+  },
+  "ent-name": {
+   "type": "Text",
+   "props": {
+    "text": "Enterprise",
+    "variant": "h3"
+   }
+  },
+  "ent-price": {
+   "type": "Text",
+   "props": {
+    "text": "$99 /mo",
+    "variant": "h2"
+   }
+  },
+  "ent-desc": {
+   "type": "Text",
+   "props": {
+    "text": "For large organizations at scale.",
+    "variant": "muted"
+   }
+  },
+  "ent-sep": {
+   "type": "Separator",
+   "props": {}
+  },
+  "ent-features": {
+   "type": "Stack",
+   "props": {
+    "className": "gap-3"
+   },
+   "children": [
+    "ent-f1",
+    "ent-f2",
+    "ent-f3",
+    "ent-f4"
+   ]
+  },
+  "ent-f1": {
+   "type": "Text",
+   "props": {
+    "text": "✓ Everything in Pro",
+    "variant": "body"
+   }
+  },
+  "ent-f2": {
+   "type": "Text",
+   "props": {
+    "text": "✓ Dedicated support",
+    "variant": "body"
+   }
+  },
+  "ent-f3": {
+   "type": "Text",
+   "props": {
+    "text": "✓ Unlimited storage",
+    "variant": "body"
+   }
+  },
+  "ent-f4": {
+   "type": "Text",
+   "props": {
+    "text": "✓ SSO & audit logs",
+    "variant": "body"
+   }
+  },
+  "ent-cta": {
+   "type": "Button",
+   "props": {
+    "label": "Contact sales",
+    "variant": "outline",
+    "size": "lg"
+   }
+  }
+ }
+}

@@ -1,0 +1,10 @@
+{
+  "template": "You are generating UI for a json-render renderer that uses a shadcn component catalog. Output a JSON spec: {\"root\": \"<id>\", \"elements\": {\"<id>\": {\"type\": \"<Component>\", \"props\": {...}, \"children\": [\"<id>\", ...]}}}. Catalog: Card, Stack, Grid are layout containers and accept `className: string` for styling (children render inside). Text {text, variant?: \"h1\"|\"h2\"|\"h3\"|\"muted\"|\"body\"}. Button {label, variant?: \"default\"|\"outline\"|\"secondary\"|\"ghost\"|\"destructive\", size?: \"sm\"|\"default\"|\"lg\"}. Badge {text, variant?: \"default\"|\"secondary\"|\"outline\"|\"destructive\"}. Input {label?, placeholder?, type?}. Switch {label, checked?}. Separator {}. Table {columns: string[], rows: string[][]}. Progress {value}. The app uses Tailwind CSS 4 with shadcn design tokens (bg-primary, text-primary-foreground, bg-muted, text-muted-foreground, bg-card, border-border, bg-accent, rounded-lg, ...). Use Tailwind utility classes in className for layout, spacing and styling. Request: {REQ}. Reply with only the JSON.",
+  "requests": {
+    "dashboard": "a dashboard KPI card showing monthly revenue, change versus last month, and a small breakdown",
+    "settings": "a settings form for notification preferences with a few toggles, an email field and save/cancel actions",
+    "pricing": "a pricing section with three plan tiers, the middle one highlighted as most popular",
+    "table": "a data table of recent orders with a header, status badges and a footer summary",
+    "empty": "an empty state for a projects list with an illustration placeholder, message and call to action"
+  }
+}
