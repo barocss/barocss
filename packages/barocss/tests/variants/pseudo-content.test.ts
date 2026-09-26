@@ -32,7 +32,7 @@ describe('before:/after: content default', () => {
     for (const cls of ['before:content-none', 'after:content-none']) {
       const decls = (parseClassToAst(cls, ctx)[1] as any).nodes;
       expect(decls.find((d: any) => d.prop === '--baro-content').value).toBe('none');
-      expect(decls.at(-1)).toMatchObject({ prop: 'content', value: 'var(--baro-content)' });
+      expect(decls.at(-1)).toMatchObject({ prop: 'content', value: 'none' }); // #325: utility wins, like Tailwind
     }
     const arb = (parseClassToAst("after:content-['x']", ctx)[1] as any).nodes;
     expect(arb[0].prop).toBe('--baro-content');

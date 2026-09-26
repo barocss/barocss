@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility } from "../core/registry";
+import { staticUtility, functionalUtility, themeKeyVar } from "../core/registry";
 import { decl } from "../core/ast";
 import { parseNumber } from "../core/utils";
 
@@ -119,6 +119,8 @@ functionalUtility({
   prop: "transition-timing-function",
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  // #300: ease-<any theme.transitionTimingFunction key> → var(--ease-<key>).
+  handleBareValue: ({ value, ctx }) => themeKeyVar(ctx, "transitionTimingFunction", value, "ease") ?? (/^(\d|\.\d)/.test(value) ? value : null),
   handle: (value, _ctx, _token) => {
     return [decl("transition-timing-function", value)];
   },

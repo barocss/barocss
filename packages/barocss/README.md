@@ -1,5 +1,7 @@
 # @barocss/kit
 
+> **Rendering untrusted class strings (AI output, CMS, users)?** See the [security guide](../../apps/barocss-docs/docs/guide/security.md).
+
 [![npm version](https://img.shields.io/npm/v/@barocss/kit.svg)](https://www.npmjs.com/package/@barocss/kit)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)

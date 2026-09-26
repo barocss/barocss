@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility } from "../core/registry";
+import { staticUtility, functionalUtility, registerUtility, themeKeyVar, themeKeyValue } from "../core/registry";
 import { atRoot, atRule, decl, property, rule } from "../core/ast";
 import { parseNumber, parseLength, parseColor, themeColorDecls } from "../core/utils";
 
@@ -16,7 +16,23 @@ staticUtility("rounded-2xl", [["border-radius", "var(--radius-2xl)"]], { categor
 staticUtility("rounded-3xl", [["border-radius", "var(--radius-3xl)"]], { category: 'borders' });
 staticUtility("rounded-4xl", [["border-radius", "var(--radius-4xl)"]], { category: 'borders' });
 staticUtility("rounded-xs", [["border-radius", "var(--radius-xs)"]], { category: 'borders' });
-staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'borders' });
+// #300: a theme.borderRadius.full other than the default wins over the literal, like Tailwind 4.3.3 where
+// `@theme { --radius-full: ... }` makes rounded-full (and rounded-t-full ...) read var(--radius-full).
+// #336: Tailwind 4.3.3 emits `calc(infinity * 1px)` for rounded-full (was 9999px).
+const FULL = "calc(infinity * 1px)";
+function roundedFull(name: string, props: string[]) {
+  registerUtility({
+    name,
+    match: (className: string) => className === name,
+    handler: (_value, ctx) => {
+      const own = themeKeyValue(ctx, "borderRadius", "full");
+      const value = own != null && own !== "9999px" && own !== FULL ? "var(--radius-full)" : FULL;
+      return props.map((prop) => decl(prop, value));
+    },
+    category: "borders",
+  });
+}
+roundedFull("rounded-full", ["border-radius"]);
 
 
 // Individual corner radius utilities
@@ -50,19 +66,20 @@ staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'border
   staticUtility(`${name}-3xl`, propList.map(prop => [prop, "var(--radius-3xl)"]), { category: 'borders' });
   staticUtility(`${name}-4xl`, propList.map(prop => [prop, "var(--radius-4xl)"]), { category: 'borders' });
   staticUtility(`${name}-xs`, propList.map(prop => [prop, "var(--radius-xs)"]), { category: 'borders' });
-  staticUtility(`${name}-full`, propList.map(prop => [prop, logical ? "calc(infinity * 1px)" : "9999px"]), { category: 'borders' });
+  // #336 every *-full → calc(infinity * 1px) like Tailwind 4.3.3; #300 a custom `full` key wins either way.
+  roundedFull(`${name}-full`, propList);
 
   // Functional utility
   functionalUtility({
     name: name as string,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handleBareValue: ({ value }) => {
+    handleBareValue: ({ value, ctx }) => {
       // Tailwind 4.3 has no bare-number logical radius (rounded-s-2 emits nothing).
       if (!logical && parseNumber(value)) {
         return `calc(var(--spacing) * ${value})`;
       }
-      return null;
+      return themeKeyVar(ctx, "borderRadius", value, "radius"); // #300: rounded-t-card
     },
     handle: (value) => propList.map(prop => decl(prop, value)),
     description: `${name} utility (spacing, arbitrary, custom property support)`,
@@ -79,11 +96,11 @@ functionalUtility({
   handle: (value, _ctx, token) => (token.prefix === "rounded" ? [decl("border-radius", value)] : null),
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => {
+  handleBareValue: ({ value, ctx }) => {
     if (parseNumber(value)) {
       return `calc(var(--spacing) * ${value})`;
     }
-    return null;
+    return themeKeyVar(ctx, "borderRadius", value, "radius"); // #300: rounded-card → var(--radius-card)
   },
   description: "border-radius utility (spacing, arbitrary, custom property support)",
   category: "borders",
@@ -138,7 +155,7 @@ const withBorderStyle = (props: string[], width: string) => [
   // Functional utility
   functionalUtility({
     name: name as string,
-    themeKeys: ["borderWidth", "colors"],
+    themeKeys: ["colors", "borderWidth"], // #338: a key in both is a colour, as in Tailwind
     supportsOpacity: true,
     supportsArbitrary: true,
     supportsCustomProperty: true,
@@ -149,6 +166,7 @@ const withBorderStyle = (props: string[], width: string) => [
       return null;
     },
     handle: (value, ctx, token, extra) => {
+      if (extra?.themeNamespace === "borderWidth") return withBorderStyle(propList, value);
       if (extra?.realThemeValue) return propList.flatMap(prop => themeColorDecls(prop.replace("width", "color"), value, extra));
       if (parseColor(value)) {
         return propList.map(prop => decl(prop.replace("width", "color"), value));
@@ -207,6 +225,7 @@ Object.entries(divideSides).forEach(([axis, [start, end, ...styles]]) => {
   staticUtility(`divide-${axis}-reverse`, [rule(":where(& > :not(:last-child))", [decl(rev, "1")])], { category: 'borders' });
   functionalUtility({
     name: `divide-${axis}`,
+    themeKeys: ["divideWidth", "borderWidth"], // #338, as Tailwind's --divide-width then --border-width
     supportsArbitrary: true,
     handleBareValue: ({ value }) => (/^\d+$/.test(value) ? `${value}px` : null),
     handle: (value) => divide(value),
@@ -225,6 +244,7 @@ functionalUtility({
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
 
+    if (extra?.themeNamespace === "borderWidth") return withBorderStyle(["border-width"], value);
     if (extra?.realThemeValue) return themeColorDecls("border-color", value, extra);
 
     if (token.arbitrary) {
@@ -325,12 +345,13 @@ functionalUtility({
 // Functional outline color utility
 functionalUtility({
   name: "outline",
-  themeKeys: ["colors", "borderWidth"],
+  themeKeys: ["colors", "outlineWidth"],
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
 
+    if (extra?.themeNamespace === "outlineWidth") return withOutlineStyle(value);
     if (extra?.realThemeValue) return themeColorDecls("outline-color", value, extra);
 
     if (parseColor(value)) {

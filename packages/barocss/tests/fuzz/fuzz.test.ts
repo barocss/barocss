@@ -30,6 +30,8 @@ function runCampaign() {
   for (let k = 0; sw.length < PER_GENERATOR; k++) for (const s of H.sweep(seeds[k % seeds.length])) sw.push(s);
   inputs.push(...sw.slice(0, PER_GENERATOR));
   for (let i = 0; i < PER_GENERATOR; i++) inputs.push(H.genRandom(r));
+  // #339: bracket groups, lone/unbalanced brackets, chained arbitrary and relational variants.
+  for (let i = 0; i < PER_GENERATOR; i++) inputs.push(H.genBrackets(r));
 
   const counts: Record<string, number> = { P1: 0, P2: 0, P3: 0, P4: 0, throws: 0 };
   for (const input of inputs) {
@@ -44,7 +46,7 @@ function runCampaign() {
 describe('#319 fuzz: class-input output properties (seeded)', () => {
   it('stays within the known-open baseline per property', () => {
     const { counts, n } = runCampaign();
-    expect(n).toBe(PER_GENERATOR * 4);
+    expect(n).toBe(PER_GENERATOR * 5);
     for (const k of Object.keys(BASELINE)) expect.soft(counts[k], k).toBeLessThanOrEqual(BASELINE[k]);
     expect(counts.P4, 'size cap').toBe(0);
   }, 30_000);

@@ -260,7 +260,15 @@ export function staticUtility(
 
 export type FunctionalUtilityExtra = {
   opacity?: string;
+  /** The theme key that matched, set when it is a colour key (or the utility lists no `colors` namespace). */
   realThemeValue?: string;
+  /**
+   * #338: the theme namespace that resolved the key and the key itself. On a root shared by colours and another
+   * namespace (`border-*`: colors + borderWidth), a key from the other namespace leaves `realThemeValue` unset so the
+   * colour branch does not claim it; the handler dispatches on `themeNamespace` instead.
+   */
+  themeNamespace?: string;
+  themeKey?: string;
 }
 
 export type FunctionalUtilityOptions = {
@@ -467,6 +475,30 @@ export type FunctionalUtilityOptions = {
  *     category: 'layout',
  *   });
  */
+/**
+ * #300: a theme key that no built-in utility names (`theme.extend.borderRadius.card`) still resolves, as in
+ * Tailwind 4 where `--radius-card` gives `rounded-card`. Only word keys that start with a letter (numbers stay
+ * bare values), never `DEFAULT`; unknown keys return null so the utility emits nothing (#213).
+ */
+function themeKeyEntry(ctx: Context, namespace: string, key: string): unknown {
+  if (key === 'DEFAULT' || !/^[a-zA-Z][\w-]*$/.test(key) || typeof ctx?.theme !== 'function') return undefined;
+  // An own key of the namespace only: ctx.theme() also resolves dashed paths (`shadow-lg` → shadow.lg).
+  const table = ctx.theme(namespace) as Record<string, unknown> | undefined;
+  if (!table || typeof table !== 'object' || !Object.prototype.hasOwnProperty.call(table, key)) return undefined;
+  return table[key] ?? undefined;
+}
+
+/** #300: the literal value of `theme.<namespace>.<key>` when it is a string, else null. */
+export function themeKeyValue(ctx: Context, namespace: string, key: string): string | null {
+  const v = themeKeyEntry(ctx, namespace, key);
+  return typeof v === 'string' ? v : null;
+}
+
+/** #300: `var(--<varPrefix>-<key>)` when `theme.<namespace>.<key>` exists (the :root var BaroCSS emits for it), else null. */
+export function themeKeyVar(ctx: Context, namespace: string, key: string, varPrefix: string): string | null {
+  return themeKeyEntry(ctx, namespace, key) === undefined ? null : `var(--${varPrefix}-${key})`;
+}
+
 /** #261: `var(--spacing-<key>)` for a named (non-numeric) `theme.spacing` key, else null. */
 function spacingKeyValue(ctx: Context, key: string, negative: boolean): string | null {
   if (key === 'px' || !/^[a-zA-Z][\w-]*$/.test(key) || ctx.theme('spacing', key) == null) return null;
@@ -537,15 +569,19 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
         themeValue = themeScalar(ctx.theme(opts.themeKey, finalValue));
         // console.log('[functionalUtility] themeKey lookup', { themeKey: opts.themeKey, finalValue, themeValue });
       }
+      let namespace = themeValue !== undefined ? opts.themeKey : undefined;
       if (!themeValue && opts.themeKeys && ctx.theme) {
+        // themeKeys are tried in order, so their order is the precedence for a key present in several (#338).
         for (const key of opts.themeKeys) {
           themeValue = themeScalar(ctx.theme(key, finalValue));
-          // console.log('[functionalUtility] themeKeys lookup', { key, finalValue, themeValue });
-          if (themeValue !== undefined) break;
+          if (themeValue !== undefined) { namespace = key; break; }
         }
       }
       if (themeValue !== undefined) {
-        extra.realThemeValue = finalValue;
+        extra.themeNamespace = namespace;
+        extra.themeKey = finalValue;
+        // #338: only a colour key (or any key of a utility with no colour namespace) is flagged as realThemeValue.
+        if (namespace === 'colors' || !(opts.themeKeys ?? [opts.themeKey]).includes('colors')) extra.realThemeValue = finalValue;
         finalValue = themeValue;
         if (opts.prop) {
           // console.log('[functionalUtility] themeValue default decl', { prop: opts.prop, finalValue });

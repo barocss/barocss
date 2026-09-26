@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility, registerUtility } from "../core/registry";
+import { staticUtility, functionalUtility, registerUtility, themeKeyVar } from "../core/registry";
 import { shadowColorDecls, shadowValueDecls } from "./shadow-color";
 import { atRoot, decl, property } from "../core/ast";
 import { parseNumber } from "../core/utils";
@@ -43,6 +43,8 @@ functionalUtility({
   prop: "filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  // #300: blur-<any theme.blur key> → blur(var(--blur-<key>)); numbers keep the previous pass-through.
+  handleBareValue: ({ value, ctx }) => themeKeyVar(ctx, "blur", value, "blur") ?? (/^(\d|\.\d)/.test(value) ? value : null),
   handle: (value, _ctx, token) => {
     if (token.customProperty) return [decl("--baro-blur", `blur(var(${value}))`), filters()];
     return [decl("--baro-blur", `blur(${value})`), filters()];
@@ -156,13 +158,15 @@ functionalUtility({
     const opacity = extra?.opacity;
     const keyword = token.arbitrary ? undefined : ({ inherit: "inherit", current: "currentcolor", transparent: "transparent" } as Record<string, string>)[extra?.realThemeValue ?? value];
     if (keyword) return dropShadowColor(keyword, opacity);
+    // #338: a key that is both a drop shadow and a colour is the drop shadow, as in Tailwind 4.3.3.
+    const key = extra?.realThemeValue ?? value;
+    const named = token.arbitrary ? null : namedDropShadow(ctx, key);
+    if (named) return dropShadowValue(named, opacity, `drop-shadow(var(--drop-shadow-${key}))`);
     if (extra?.realThemeValue) return dropShadowColor(value, opacity, `var(--color-${extra.realThemeValue})`);
     if (token.arbitrary) {
       if (parseColor(value)) return dropShadowColor(value, opacity);
       return dropShadowValue(value, opacity);
     }
-    const named = namedDropShadow(ctx, value);
-    if (named) return dropShadowValue(named, opacity, `drop-shadow(var(--drop-shadow-${value}))`);
     return null;
   },
   handleCustomProperty: (value) => {

@@ -10,9 +10,11 @@
   function sigEls(els) { return els.map(function (el) { var cs = getComputedStyle(el); return PROPS.map(function (p) { return cs.getPropertyValue(p); }); }); }
   function hostSig() { return sigEls([].slice.call(document.querySelectorAll('[data-host]'))); }
   function widgetEls(i) { var w = roots[i].wrap; return [w].concat([].slice.call(w.querySelectorAll('*'))); }
+  var seen = null; // #327: a sheet adopted by N roots is one sheet in memory: count it once
   function sheetBytes(list) {
     var b = 0;
     [].forEach.call(list, function (sh) {
+      if (seen.has(sh)) return; seen.add(sh);
       if (sh.ownerNode && sh.ownerNode.hasAttribute && sh.ownerNode.hasAttribute('data-hostcss')) return;
       var rs; try { rs = sh.cssRules; } catch (e) { return; }
       for (var i = 0; i < rs.length; i++) b += rs[i].cssText.length;
@@ -20,6 +22,7 @@
     return b;
   }
   function styleBytes() {
+    seen = new Set();
     var b = sheetBytes(document.styleSheets) + sheetBytes(document.adoptedStyleSheets || []);
     roots.forEach(function (r) { if (r.sr) b += sheetBytes(r.sr.styleSheets) + sheetBytes(r.sr.adoptedStyleSheets || []); });
     return b;
@@ -39,6 +42,10 @@
     if (P.arm.indexOf('baroRoute') === 0 && sr) { styleHost = document.createElement('div'); styleHost.setAttribute('data-stylehost', ''); styleHost.style.display = 'none'; sr.appendChild(styleHost); }
     tree.appendChild(wrap);
     wrap.innerHTML = P.html + '<p data-dyn>dynamic</p>';
+    if (P.arm === 'baroRoot') { // #327: root option (shadow) / document mode observing the container (div)
+      if (sr) new BaroCSS.BrowserRuntime({ root: sr, config: {} });
+      else { containerRt = containerRt || new BaroCSS.BrowserRuntime({ root: document, config: {} }); containerRt.observe(document.getElementById('widgets'), { scan: true }); }
+    }
     if (P.arm.indexOf('baroRoute') === 0) {
       var cfg = P.arm === 'baroRouteP' ? {} : { preflight: false };
       if (sr) new BaroCSS.BrowserRuntime({ insertionPoint: styleHost, config: cfg }).observe(wrap, { scan: true });
