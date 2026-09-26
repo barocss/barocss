@@ -15,3 +15,5 @@ BEHAVIOUR CHANGE (every page using the default preflight):
 - `rounded-full` and every `rounded-*-full` corner utility now emit `calc(infinity * 1px)` (before: `9999px`). A theme that sets `borderRadius.full` to a non-default value still gets `var(--radius-full)` (#300).
 
 The `standard` and `minimal` levels are unchanged; their deliberate differences from Tailwind are listed in `tests/compat/preflight-336.test.ts`.
+
+Focus now uses the browser's default focus ring; if you relied on the removed `prefers-reduced-motion` override, use `motion-reduce:` / `motion-safe:` variants or your own `@media (prefers-reduced-motion: reduce)` rule.
