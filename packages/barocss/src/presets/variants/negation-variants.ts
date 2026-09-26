@@ -1,5 +1,16 @@
 import { functionalModifier } from "../../core/registry";
-import { functionalArgument } from "./utils";
+import { functionalArgument, negatableSelectorOf, negatedAtRuleOf } from "./utils";
+
+// #352: not-<at-rule variant> (not-md, not-max-md, not-min-[…], not-print, not-motion-safe, not-supports-[…]):
+// the at-rule with its condition negated. Registered before the selector negation below.
+functionalModifier(
+  (mod: string, context) => /^not-(?!@)/.test(mod) && !!negatedAtRuleOf(mod.slice(4), context),
+  () => '&',
+  (mod, context) => {
+    const node = negatedAtRuleOf(mod.type.slice(4), context);
+    return node ? [node] : [];
+  }
+);
 
 // not-[]: functionalModifier for arbitrary negation
 functionalModifier(
@@ -36,10 +47,12 @@ functionalModifier(
 // anything it does not accept (e.g. not-@container) emits nothing, like Tailwind 4.3.3 (#311).
 functionalModifier(
   (mod: string) => /^not-/.test(mod) && !mod.startsWith('not-@'),
-  ({ selector, mod }) => {
+  ({ selector, mod, context }) => {
     const m = /^not-(.+)$/.exec(mod.type);
+    const inner = m ? negatableSelectorOf(m[1], context) : null;
+    if (m && !inner) return null; // #335: unknown inner variant emits nothing
     return {
-      selector: m ? `&:not(:${m[1]})` : selector,
+      selector: inner ? `&:not(${inner})` : selector,
       flatten: false,
       wrappingType: 'rule',
       source: 'attribute'

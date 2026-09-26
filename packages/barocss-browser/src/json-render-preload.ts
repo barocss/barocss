@@ -1,4 +1,5 @@
 import type { BrowserRuntime } from './browser-runtime';
+import { normalizeClassNameList } from './utils';
 
 /** Collect literal className tokens from a json-render Spec's flat elements map. */
 export function collectJsonRenderClassNames(spec: unknown): string[] {
@@ -14,7 +15,7 @@ export function collectJsonRenderClassNames(spec: unknown): string[] {
     if (!props || typeof props !== 'object' || Array.isArray(props)) continue;
     const className = (props as { className?: unknown }).className;
     if (typeof className !== 'string') continue;
-    for (const cls of className.split(/\s+/)) {
+    for (const cls of normalizeClassNameList(className)) {
       if (cls) classes.add(cls);
     }
   }

@@ -1,6 +1,6 @@
 import { parseClassToAst, generateCssRules, createContext, ruleSortKey, compareKeys, isDebug } from '@barocss/kit';
 import type { Config, Context } from '@barocss/kit';
-import { extractClasses, parseCssDefinitions, type CssDefinitions } from './ssr';
+import { CLASS_SEPARATOR, extractClasses, parseCssDefinitions, type CssDefinitions } from './ssr';
 
 export { ssrStyleTag, SSR_STYLE_ATTRIBUTE } from './ssr';
 
@@ -72,7 +72,7 @@ export class ServerRuntime {
    * once, then the class rules in Tailwind variant order (base < sm < md < lg ...).
    */
   generateCss(className: string) {
-    return this.sheet(className.split(/\s+/).filter(Boolean));
+    return this.sheet(className.split(CLASS_SEPARATOR).filter(Boolean));
   }
 
   /**
@@ -80,10 +80,11 @@ export class ServerRuntime {
    * page's build CSS already provides. `htmlOrClasses` is HTML (classes are read from `class`
    * attributes; `<script>`/`<style>` contents and comments ignored) or a class list. Stateless per
    * call: it returns this request's delta, never classes emitted for earlier requests. Wrap the result
-   * with `ssrStyleTag()` so `@barocss/browser` adopts it.
+   * with `ssrStyleTag()` so `@barocss/browser` adopts it; under a strict CSP pass the response nonce,
+   * `ssrStyleTag(css, { nonce })` (#347), and give the browser runtime the same `nonce`.
    */
   generateCssForHtml(htmlOrClasses: string | string[], opts: GenerateCssForHtmlOptions = {}) {
-    const classes = typeof htmlOrClasses === 'string' ? extractClasses(htmlOrClasses) : [...new Set(htmlOrClasses.flatMap((c) => c.split(/\s+/)).filter(Boolean))];
+    const classes = typeof htmlOrClasses === 'string' ? extractClasses(htmlOrClasses) : [...new Set(htmlOrClasses.flatMap((c) => c.split(CLASS_SEPARATOR)).filter(Boolean))];
     const skip = opts.skip;
     if (skip === undefined) return this.sheet(classes);
     if (typeof skip === 'string') {

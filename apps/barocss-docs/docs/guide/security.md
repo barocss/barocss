@@ -53,19 +53,67 @@ against these invariants as an ongoing check.
 Limit where `url()` values can load from with fetch directives. A minimal header:
 
 ```http
-Content-Security-Policy: default-src 'self'; img-src 'self' https://images.example.com; font-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline'
+Content-Security-Policy: default-src 'self'; img-src 'self' https://images.example.com; font-src 'self'; media-src 'self'; style-src 'self' 'nonce-{RANDOM}'
 ```
 
 `img-src` covers background, mask, list-style and `content` images; `font-src` and `media-src`
 cover fonts and media; `default-src` is the fallback for anything not listed.
 
 **`style-src` and the browser runtime.** `@barocss/browser` inserts rules through the CSSOM
-(`insertRule`, and constructable stylesheets via `adoptedStyleSheets` for Shadow DOM roots). CSP
-does not restrict those APIs, but the runtime also creates `<style>` elements and, where
-constructable sheets are unavailable, writes rule text into them. The runtime has no nonce option
-for those elements, so `style-src` (or `style-src-elem`) must allow `'unsafe-inline'` for the
-browser runtime to work. With `@barocss/server` only, you can instead keep `style-src` strict and
-pass a nonce: `ssrStyleTag(css, { nonce })` adds it to the emitted `<style>` tag.
+(`insertRule`, and constructable stylesheets via `adoptedStyleSheets`), which CSP does not restrict.
+By default it also creates `<style>` elements, which a strict `style-src` blocks. Since #347 there are
+two ways to run it without `'unsafe-inline'`:
+
+- `nonce`: pass the page's per-response nonce; the runtime sets it on every `<style>` it creates
+  (preflight, theme variables, rule partitions, and the Shadow DOM fallback elements).
+- `constructable: true`: in the document mode, all CSS goes into constructable sheets adopted by
+  `document.adoptedStyleSheets`, so no nonce is needed (even `style-src 'self'` works). Adopted
+  sheets come after every document stylesheet in the cascade. Where the browser lacks
+  `document.adoptedStyleSheets`, the runtime falls back to `<style>` elements (with `nonce` if given),
+  so pass both for full coverage. A Shadow DOM `root` already uses adopted sheets.
+- Pass `nonce` / `constructable` on the **first** `getRuntime()` / `baroStart()` call: a later call
+  reuses the existing runtime and does not change how it injects styles.
+  If a later call asks for a different `nonce` / `constructable`, BaroCSS logs a one-time `console.warn`.
+
+```http
+Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{RANDOM}'; style-src 'self' 'nonce-{RANDOM}'
+```
+
+```html
+<script nonce="{RANDOM}" src="/barocss.umd.js"></script>
+<script nonce="{RANDOM}">
+  BaroCSS.getRuntime({ nonce: '{RANDOM}', constructable: true }).observe(document.body, { scan: true });
+</script>
+```
+
+Measured on the #253 CMS blocks under that policy (`scripts/csp-probe/run.mjs`): default runtime
+0.03 block parity with 572 violations; `nonce` and `constructable` 1.00 with 0 violations
+(`constructable` also under `style-src 'self'`). With `@barocss/server`, `ssrStyleTag(css, { nonce })`
+adds the nonce to the emitted `<style>` tag.
+
+### Limiting external `url()` loads
+
+No theme value emits `url()`: every form that can load an external resource comes from an
+arbitrary class value (#346 audit, `scripts/url-audit/NOTES.md`). That includes background and mask
+images, cursors, `content`, arbitrary properties, `image-set()`, and a custom property set to a URL and
+read through `var()`. Two host-side controls cover all of them, so BaroCSS has no extra "safe mode":
+
+1. **CSP fetch directives.** `img-src 'self'` (or just `default-src 'self'`) blocked every loading form
+   in the #346 measurement: 0 cross-origin requests and one violation per form. Allow only the
+   origins you trust, e.g. `img-src 'self' https://images.example.com`.
+2. **A pre-filter**, when you can't set CSP for the page (e.g. a widget inside someone else's app):
+   drop class strings that request a resource before handing them to BaroCSS.
+
+   ```ts
+   const LOADS_RESOURCE = /(url|image-set|image|cross-fade|element|src)\s*\(/i;
+   const safe = classes.filter((c) => !LOADS_RESOURCE.test(c));
+   ```
+
+   This is reliable because BaroCSS doesn't decode CSS escapes in arbitrary values (an escaped form
+   emits nothing), and custom-property indirection still needs a literal `url(` in some class, which
+   the filter catches.
+
+Use both where you can: CSP for the page, and the filter for content you forward.
 
 ### MCP Apps and embedded widgets
 

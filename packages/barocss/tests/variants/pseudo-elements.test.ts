@@ -5,7 +5,7 @@ import { ctx } from "./test-utils";
 
 describe("pseudo-elements", () => {
   describe("cross-browser pseudo-element variants", () => {
-    it("placeholder:bg-red-500 → 4 selectors", () => {
+    it("placeholder:bg-red-500 → ::placeholder only (#335, as Tailwind 4.3.3)", () => {
       const result = parseClassToAst("placeholder:bg-red-500", ctx);
       expect(result).toMatchObject([
         {
@@ -13,51 +13,31 @@ describe("pseudo-elements", () => {
           selector: "&::placeholder",
           nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
-        {
-          type: "rule",
-          selector: "&::-webkit-input-placeholder",
-          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-        },
-        {
-          type: "rule",
-          selector: "&::-moz-placeholder",
-          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-        },
-        {
-          type: "rule",
-          selector: "&:-ms-input-placeholder",
-          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-        },
       ]);
     });
 
-    it("selection:bg-red-500 → 2 selectors", () => {
+    it("selection:bg-red-500 → 2 selectors (#335: descendant + self, as Tailwind 4.3.3)", () => {
       const result = parseClassToAst("selection:bg-red-500", ctx);
       expect(result).toMatchObject([
+        {
+          type: "rule",
+          selector: "& *::selection",
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
+        },
         {
           type: "rule",
           selector: "&::selection",
           nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
-        {
-          type: "rule",
-          selector: "&::-moz-selection",
-          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-        },
       ]);
     });
 
-    it("file:bg-red-500 → 2 selectors", () => {
+    it("file:bg-red-500 → ::file-selector-button only (#335)", () => {
       const result = parseClassToAst("file:bg-red-500", ctx);
       expect(result).toMatchObject([
         {
           type: "rule",
           selector: "&::file-selector-button",
-          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-        },
-        {
-          type: "rule",
-          selector: "&::-webkit-file-upload-button",
           nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);

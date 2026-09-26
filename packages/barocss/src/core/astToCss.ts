@@ -6,9 +6,18 @@ import { isStructureSafeValue, hasCommentDelimiter, hasHtmlEndTagOpener, isBalan
 // #273: a selector or at-rule prelude that contains a comment delimiter is never emitted (with its whole subtree).
 // #323: nor one carrying a markup end-tag opener (hasHtmlEndTagOpener).
 // #332: nor one whose brackets, parens or braces do not balance and close (isBalancedPrelude).
+// #335: nor one carrying an unescaped `url(` (a selector or at-rule prelude never loads a resource).
 const isSafePrelude = (text: unknown): boolean => {
   const t = String(text ?? "");
-  return !hasCommentDelimiter(t) && !hasHtmlEndTagOpener(t) && isBalancedPrelude(t);
+  return !hasCommentDelimiter(t) && !hasHtmlEndTagOpener(t) && isBalancedPrelude(t) && !/url\s*\(/i.test(t);
+};
+
+// #335: @property blocks merged from several classes carry each descriptor once (first wins).
+const uniqueDescriptors = (node: AstNode): AstNode[] => {
+  if (node.type !== "at-rule") return [];
+  if (node.name !== "property") return node.nodes;
+  const seen = new Set<string>();
+  return node.nodes.filter((c) => c.type !== "decl" || (!seen.has(c.prop) && !!seen.add(c.prop)));
 };
 
 // #224 defensive layer: a declaration whose property or value could end or open a block is dropped.
@@ -270,14 +279,14 @@ function rootToCss(nodes: AstNode[], opts?: { minify?: boolean }): string {
         }
       } else if (node.type === "at-rule" && isSafePrelude(node.name) && isSafePrelude(node.params)) {
         if (minify) {
-          const body = node.nodes
+          const body = uniqueDescriptors(node)
             .filter((child) => child.type === "decl" && isSafeDecl(child.prop, child.value))
             .map((child) => child.type === "decl" ? `${child.prop}:${child.value};` : "")
             .join("");
           list.push(`@${node.name} ${node.params}{${body}}`);
         } else {
           list.push(`@${node.name} ${node.params} {
-${node.nodes.map((node) => {
+${uniqueDescriptors(node).map((node) => {
   if (node.type === "decl" && isSafeDecl(node.prop, node.value)) {
     return `\t${node.prop}: ${node.value};`;
   }

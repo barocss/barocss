@@ -24,6 +24,10 @@ export function decodeHtmlEntities(s: string): string {
   });
 }
 
+// #335: class lists split on ASCII whitespace only, as HTML classList and Tailwind's candidate scanner do;
+// a non-ASCII space (U+00A0, U+3000, ...) is part of a token, which then matches no utility.
+export const CLASS_SEPARATOR = /[ \t\n\f\r]+/;
+
 const TAG_OPEN = /<[a-zA-Z][^\s/>]*/g;
 // One attribute (or a stray `/`) at a time, sticky: the tag is walked forward, never re-matched as a whole.
 const ATTR = /\s+([^\s"'>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?|\s*\//y;
@@ -73,7 +77,7 @@ export function extractClasses(html: string): string[] {
     TAG_END.lastIndex = pos;
     if (!TAG_END.test(text)) { TAG_OPEN.lastIndex = pos; continue; } // not a complete start tag
     TAG_OPEN.lastIndex = TAG_END.lastIndex;
-    for (const v of values) for (const c of decodeHtmlEntities(v).split(/\s+/)) if (c) out.add(c);
+    for (const v of values) for (const c of decodeHtmlEntities(v).split(CLASS_SEPARATOR)) if (c) out.add(c);
   }
   return [...out];
 }

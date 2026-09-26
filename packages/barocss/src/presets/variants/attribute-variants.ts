@@ -1,4 +1,4 @@
-import { functionalArgument } from "./utils";
+import { functionalArgument, negatableSelectorOf } from "./utils";
 import { functionalModifier } from "../../core/registry";
 
 // --- Standard aria and not- variants ---
@@ -34,7 +34,7 @@ functionalModifier(
 
 functionalModifier(
   (mod: string) => mod.startsWith('not-') && !mod.startsWith('not-@'), // not-@… is container negation (#311)
-  ({ selector, mod }) => {
+  ({ selector, mod, context }) => {
     const pseudo = mod.type.replace('not-', '');
     if (pseudo.startsWith('[')) {
       const inner = pseudo.slice(1, -1);
@@ -52,9 +52,11 @@ functionalModifier(
         };
       }
     } else {
-      // not-hover → :not(:hover)
+      // not-hover → :not(:hover); not-first → :not(:first-child); unknown → nothing (#335)
+      const inner = negatableSelectorOf(pseudo, context);
+      if (!inner) return null;
       return {
-        selector: `&:not(:${pseudo})`,
+        selector: `&:not(${inner})`,
         source: 'attribute'
       };
     }

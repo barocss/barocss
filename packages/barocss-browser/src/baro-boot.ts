@@ -2,6 +2,9 @@ import { BrowserRuntime, BrowserRuntimeOptions } from "./browser-runtime";
 
 let runtime: BrowserRuntime | null = null;
 let runtimeConfig: BrowserRuntimeOptions['config'];
+let runtimeNonce = '';
+let runtimeConstructable = false;
+let mismatchWarned = false;
 
 /**
  * Returns the shared runtime, creating it on first use. If a live runtime
@@ -13,9 +16,22 @@ export function getRuntime(options: BrowserRuntimeOptions = {}) {
   if (!runtime || runtime.getStats().isDestroyed) {
     runtime = new BrowserRuntime(options);
     runtimeConfig = options.config;
+    runtimeNonce = options.nonce ?? '';
+    runtimeConstructable = options.constructable ?? false;
+    mismatchWarned = false;
   } else if (options.config && options.config !== runtimeConfig) {
     runtime.updateConfig(options.config);
     runtimeConfig = options.config;
+  }
+  if (!mismatchWarned) {
+    const badNonce = options.nonce !== undefined && options.nonce !== runtimeNonce;
+    const badConstructable = options.constructable !== undefined && options.constructable !== runtimeConstructable;
+    if (badNonce || badConstructable) {
+      mismatchWarned = true;
+      const what = [badNonce && `nonce (runtime has ${runtimeNonce ? 'a different nonce' : 'none'})`, badConstructable && `constructable (runtime has ${runtimeConstructable})`].filter(Boolean).join(' and ');
+      // console-ok: one-time real-misuse warning; the requested option is ignored, so strict-CSP styles may be blocked
+      console.warn(`[BaroCSS] runtime already created with a different ${what}; the new value is ignored. Pass nonce/constructable on the first getRuntime/baroStart call.`);
+    }
   }
   return runtime;
 }
