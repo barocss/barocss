@@ -500,21 +500,25 @@ describe("touch-action", () => {
 describe("user-select", () => {
   it("select-none → user-select: none", () => {
     expect(parseClassToAst("select-none", ctx)).toEqual([
+      { type: "decl", prop: "-webkit-user-select", value: "none" },
       { type: "decl", prop: "user-select", value: "none" },
     ]);
   });
   it("select-text → user-select: text", () => {
     expect(parseClassToAst("select-text", ctx)).toEqual([
+      { type: "decl", prop: "-webkit-user-select", value: "text" },
       { type: "decl", prop: "user-select", value: "text" },
     ]);
   });
   it("select-all → user-select: all", () => {
     expect(parseClassToAst("select-all", ctx)).toEqual([
+      { type: "decl", prop: "-webkit-user-select", value: "all" },
       { type: "decl", prop: "user-select", value: "all" },
     ]);
   });
   it("select-auto → user-select: auto", () => {
     expect(parseClassToAst("select-auto", ctx)).toEqual([
+      { type: "decl", prop: "-webkit-user-select", value: "auto" },
       { type: "decl", prop: "user-select", value: "auto" },
     ]);
   });

@@ -547,7 +547,7 @@ describe("preset flexbox-grid utilities", () => {
       { type: "decl", prop: "justify-self", value: "auto" },
     ]);
     expect(parseClassToAst("justify-self-start", ctx)).toEqual([
-      { type: "decl", prop: "justify-self", value: "start" },
+      { type: "decl", prop: "justify-self", value: "flex-start" },
     ]);
     expect(parseClassToAst("justify-self-center", ctx)).toEqual([
       { type: "decl", prop: "justify-self", value: "center" },
@@ -556,10 +556,10 @@ describe("preset flexbox-grid utilities", () => {
       { type: "decl", prop: "justify-self", value: "safe center" },
     ]);
     expect(parseClassToAst("justify-self-end", ctx)).toEqual([
-      { type: "decl", prop: "justify-self", value: "end" },
+      { type: "decl", prop: "justify-self", value: "flex-end" },
     ]);
     expect(parseClassToAst("justify-self-end-safe", ctx)).toEqual([
-      { type: "decl", prop: "justify-self", value: "safe end" },
+      { type: "decl", prop: "justify-self", value: "safe flex-end" },
     ]);
     expect(parseClassToAst("justify-self-stretch", ctx)).toEqual([
       { type: "decl", prop: "justify-self", value: "stretch" },
