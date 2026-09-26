@@ -8,6 +8,7 @@
 //    -> no dark styles; OS dark w/o .dark -> dark styles applied). darkMode:'class' alone emits `.dark` ON THE SAME element
 //    (still misses under html.dark). Existing route that matches both: config darkMode:'class', darkModeSelector:'.dark &'
 //    (or '&:is(.dark *)'). Route = docs/recipe (+ arguably fix darkMode:'class' default to the ancestor form).
+//    #285: the recipe arm now carries darkMode:'class', darkModeSelector:'.dark &' -> OK both ways (default unchanged).
 //  2 `@utility content-auto` / `@utility tab-*`: runtime miss (incl. hover:). No public API in the UMD to register
 //    utilities (registry staticUtility/functionalUtility not exported) -> BaroCSS gap (or read @utility from build CSS: not
 //    possible, the build only emits used utilities).
@@ -42,10 +43,10 @@ const DARK = '@import "tailwindcss";\n@custom-variant dark (&:is(.dark *));';
 const CASES = {
   dark_class_os_light: { css: DARK, html: 'class="dark"', scheme: 'light',
     rows: [['dark:bg-red-500', 'background-color'], ['dark:text-blue-500', 'color']],
-    arms: { recipe: REC(), darkModeClass: REC(",darkMode:'class'"), darkSelDesc: REC(",darkMode:'class',darkModeSelector:'.dark &'"), darkSelIs: REC(",darkMode:'class',darkModeSelector:'&:is(.dark *)'") } },
+    arms: { recipe: REC(",darkMode:'class',darkModeSelector:'.dark &'"), darkModeClass: REC(",darkMode:'class'"), darkSelDesc: REC(",darkMode:'class',darkModeSelector:'.dark &'"), darkSelIs: REC(",darkMode:'class',darkModeSelector:'&:is(.dark *)'") } },
   dark_noclass_os_dark: { css: DARK, html: '', scheme: 'dark',
     rows: [['dark:bg-red-500', 'background-color'], ['dark:text-blue-500', 'color']],
-    arms: { recipe: REC(), darkModeClass: REC(",darkMode:'class'"), darkSelDesc: REC(",darkMode:'class',darkModeSelector:'.dark &'"), darkSelIs: REC(",darkMode:'class',darkModeSelector:'&:is(.dark *)'") } },
+    arms: { recipe: REC(",darkMode:'class',darkModeSelector:'.dark &'"), darkModeClass: REC(",darkMode:'class'"), darkSelDesc: REC(",darkMode:'class',darkModeSelector:'.dark &'"), darkSelIs: REC(",darkMode:'class',darkModeSelector:'&:is(.dark *)'") } },
   utility: { css: '@import "tailwindcss";\n@utility content-auto { content-visibility: auto; }\n@utility tab-* { tab-size: --value(integer); }', html: '', scheme: 'light',
     rows: [['content-auto', 'content-visibility'], ['tab-8', 'tab-size'], ['hover:content-auto', 'content-visibility', 'hover']],
     arms: { recipe: REC() } },
