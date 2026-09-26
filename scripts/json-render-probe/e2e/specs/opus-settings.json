@@ -1,0 +1,137 @@
+{
+ "root": "settings-card",
+ "elements": {
+  "settings-card": {
+   "type": "Card",
+   "props": {
+    "className": "max-w-lg mx-auto p-6"
+   },
+   "children": [
+    "main-stack"
+   ]
+  },
+  "main-stack": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col gap-6"
+   },
+   "children": [
+    "header-stack",
+    "sep-1",
+    "email-input",
+    "sep-2",
+    "toggles-stack",
+    "sep-3",
+    "actions-grid"
+   ]
+  },
+  "header-stack": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col gap-1"
+   },
+   "children": [
+    "title",
+    "subtitle"
+   ]
+  },
+  "title": {
+   "type": "Text",
+   "props": {
+    "text": "Notification Preferences",
+    "variant": "h2"
+   }
+  },
+  "subtitle": {
+   "type": "Text",
+   "props": {
+    "text": "Choose how and when you want to be notified.",
+    "variant": "muted"
+   }
+  },
+  "sep-1": {
+   "type": "Separator",
+   "props": {}
+  },
+  "email-input": {
+   "type": "Input",
+   "props": {
+    "label": "Notification email",
+    "placeholder": "you@example.com",
+    "type": "email"
+   }
+  },
+  "sep-2": {
+   "type": "Separator",
+   "props": {}
+  },
+  "toggles-stack": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col gap-4"
+   },
+   "children": [
+    "toggle-email",
+    "toggle-push",
+    "toggle-sms",
+    "toggle-marketing"
+   ]
+  },
+  "toggle-email": {
+   "type": "Switch",
+   "props": {
+    "label": "Email notifications",
+    "checked": true
+   }
+  },
+  "toggle-push": {
+   "type": "Switch",
+   "props": {
+    "label": "Push notifications",
+    "checked": true
+   }
+  },
+  "toggle-sms": {
+   "type": "Switch",
+   "props": {
+    "label": "SMS alerts",
+    "checked": false
+   }
+  },
+  "toggle-marketing": {
+   "type": "Switch",
+   "props": {
+    "label": "Marketing & product updates",
+    "checked": false
+   }
+  },
+  "sep-3": {
+   "type": "Separator",
+   "props": {}
+  },
+  "actions-grid": {
+   "type": "Grid",
+   "props": {
+    "className": "flex justify-end gap-3"
+   },
+   "children": [
+    "cancel-btn",
+    "save-btn"
+   ]
+  },
+  "cancel-btn": {
+   "type": "Button",
+   "props": {
+    "label": "Cancel",
+    "variant": "outline"
+   }
+  },
+  "save-btn": {
+   "type": "Button",
+   "props": {
+    "label": "Save changes",
+    "variant": "default"
+   }
+  }
+ }
+}

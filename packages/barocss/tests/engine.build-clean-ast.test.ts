@@ -276,18 +276,15 @@ describe("optimizeAst ", () => {
         selector: "&",
         nodes: [
           { type: "decl", prop: "--baro-gradient-position", value: "to right" },
-          { type: "decl", prop: "background-image", value: "linear-gradient(to right, var(--baro-gradient-stops))" }
-        ]
+          { type: "decl", prop: "background-image", value: "linear-gradient(var(--baro-gradient-stops))" },
+        ],
       },
       {
-        type: "style-rule",
-        selector: "@supports (background-image: linear-gradient(in lab, red, red))",
-        nodes: [
-          { type: "rule", selector: "&", nodes: [
-            { type: "decl", prop: "--baro-gradient-position", value: "to right in oklab" },
-          ]},          
-        ]
-      }
+        type: "at-rule",
+        name: "supports",
+        params: "(background-image: linear-gradient(in lab, red, red))",
+        nodes: [{ type: "rule", selector: "&", nodes: [{ type: "decl", prop: "--baro-gradient-position", value: "to right in oklab" }] }],
+      },
     ]);
   });
 }); 

@@ -16,7 +16,7 @@ Sources: Wiki (durable Vision/architecture/product knowledge), Discussions (unre
 Issue format (concise): GOAL · WHY · SCOPE · ACCEPTANCE · RELEVANT AREA · RISK (low|medium|high) ·
 VERIFICATION HINT as a ```verify block of targeted shell commands run from the repo root (the Supervisor
 runs it before and after local integration) · DEPENDENCY only if real · PARALLEL: safe | after #N | serial (same files or shared runtime
-resource → serial). Don't prescribe implementation. Keep one Issue to at most ~4 items: Compute stalled on 7-item batches.
+resource → serial). Don't prescribe implementation. Put every task, scope change and decision in the Issue *body* (edit it); Compute and Review judge the body, not comments. Keep one Issue to at most ~4 items: Compute stalled on 7-item batches.
 
 Principles: product progress > code output; IDLE is valid; no work because Compute is idle; prefer real
 blockers over speculative architecture. Before new infrastructure: does it exist, can existing

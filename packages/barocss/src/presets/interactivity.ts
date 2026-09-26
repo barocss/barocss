@@ -297,10 +297,10 @@ staticUtility("touch-manipulation", [["touch-action", "manipulation"]], { catego
 
 // --- User Select Utilities ---
 //  user-select documentation
-staticUtility("select-none", [["user-select", "none"]], { category: 'interactivity' });
-staticUtility("select-text", [["user-select", "text"]], { category: 'interactivity' });
-staticUtility("select-all", [["user-select", "all"]], { category: 'interactivity' });
-staticUtility("select-auto", [["user-select", "auto"]], { category: 'interactivity' });
+staticUtility("select-none", [["-webkit-user-select", "none"], ["user-select", "none"]], { category: 'interactivity' });
+staticUtility("select-text", [["-webkit-user-select", "text"], ["user-select", "text"]], { category: 'interactivity' });
+staticUtility("select-all", [["-webkit-user-select", "all"], ["user-select", "all"]], { category: 'interactivity' });
+staticUtility("select-auto", [["-webkit-user-select", "auto"], ["user-select", "auto"]], { category: 'interactivity' });
 
 // --- Will Change Utilities ---
 //  will-change documentation

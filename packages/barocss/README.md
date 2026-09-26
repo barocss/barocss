@@ -8,6 +8,8 @@
 
 @barocss/kit is the core CSS engine that parses Tailwind CSS syntax and generates CSS. It provides the fundamental parsing, AST processing, and CSS generation capabilities used by BaroCSS runtimes.
 
+**Browser support:** Chrome/Edge 85+, Safari/iOS 16.4+, Firefox 128+. The runtime needs CSS `@property`; composite utilities (shadows, rings, transforms, filters) may not render on older engines.
+
 ## ✨ Key Features
 
 - **🚀 JIT Parsing** - Parse Tailwind syntax and generate CSS instantly

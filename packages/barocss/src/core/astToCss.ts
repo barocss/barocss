@@ -246,33 +246,40 @@ function astToCss(
   return finalResult;
 }
 
-function rootToCss(nodes: AstNode[]): string {
-  // console.log("[rootToCss] input", { nodes });
+function rootToCss(nodes: AstNode[], opts?: { minify?: boolean }): string {
+  const minify = opts?.minify === true;
   const result = nodes
     .map((node) => {
       const list: string[] = [];
 
       if (node.type === "decl") {
-        if (isSafeDecl(node.prop, node.value)) list.push(`${node.prop}: ${node.value};`);
+        if (isSafeDecl(node.prop, node.value)) {
+          list.push(minify ? `${node.prop}:${node.value};` : `${node.prop}: ${node.value};`);
+        }
       } else if (node.type === "at-rule") {
-        // console.log("[rootToCss] at-rule", node);
-        list.push(`@${node.name} ${node.params} {
+        if (minify) {
+          const body = node.nodes
+            .filter((child) => child.type === "decl" && isSafeDecl(child.prop, child.value))
+            .map((child) => child.type === "decl" ? `${child.prop}:${child.value};` : "")
+            .join("");
+          list.push(`@${node.name} ${node.params}{${body}}`);
+        } else {
+          list.push(`@${node.name} ${node.params} {
 ${node.nodes.map((node) => {
-  // console.log("[rootToCss] node", node);
   if (node.type === "decl" && isSafeDecl(node.prop, node.value)) {
     return `\t${node.prop}: ${node.value};`;
   }
 })
 .join("\n")}
 }`
-        );
+          );
+        }
       }
 
-      return list.join("\n");
+      return list.join(minify ? "" : "\n");
     })
-    .join("\n");
+    .join(minify ? "" : "\n");
 
-  // console.log("[rootToCss] result", { nodes, result });
   return result;
 }
 

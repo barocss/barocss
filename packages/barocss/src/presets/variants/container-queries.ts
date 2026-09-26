@@ -2,114 +2,27 @@ import { functionalModifier } from "../../core/registry";
 import { AstNode, atRule } from "../../core/ast";
 import { Context } from "../../core/context";
 import { ParsedModifier } from "../../core/parser";
-import { createContainerRule, createContainerParams, getThemeSize } from "./utils";
+import { createContainerRule, createContainerParams } from "./utils";
 
 // --- @container query variants ---
 
-// 1. @container/main - named container
+// @container/<name> is a utility (container-type + container-name, presets/layout.ts), not a variant: a bare
+// `@container <name> { }` has no condition and is invalid CSS.
+
+// 3. @<size>, @min-<size>, @max-<size>, each with an optional /<name>. <size> is a --container-* theme key
+// (3xs…7xl) or an arbitrary [value]; unknown theme keys emit nothing (Tailwind 4 behaviour).
+const SIZE_VARIANT = /^@(?:(min|max)-)?(\[[^\]]+\]|[a-zA-Z0-9.]+)(?:\/([a-zA-Z0-9_-]+))?$/;
 functionalModifier(
-  (mod: string) => /^@container\/([a-zA-Z0-9_-]+)$/.test(mod),
+  (mod: string) => SIZE_VARIANT.test(mod) && !/^@container(?:\/|$)/.test(mod),
   undefined,
   (mod: ParsedModifier, context: Context) => {
-    const containerMatch = /^@container\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
-    if (containerMatch) {
-      const name = containerMatch[1];
-      const params = name; // Just the name, no condition
-      return [createContainerRule(params, [])];
-    }
-    return [];
+    const m = SIZE_VARIANT.exec(mod.type);
+    if (!m) return [];
+    const [, type, size, name] = m;
+    const value = size.startsWith('[')
+      ? size.slice(1, -1).replace(/_/g, ' ')
+      : (context.theme('container.' + size) as string | undefined);
+    if (!value) return [];
+    return [createContainerRule(createContainerParams(type === 'max' ? 'max' : 'min', value, name), [])];
   }
 );
-
-// 2. @container/size - named container with arbitrary size
-functionalModifier(
-  (mod: string) => /^@container\/([a-zA-Z0-9_-]+)\s+\(([^)]+)\)$/.test(mod),
-  undefined,
-  (mod: ParsedModifier, context: Context) => {
-    const containerSizeMatch = /^@container\/([a-zA-Z0-9_-]+)\s+\(([^)]+)\)$/.exec(mod.type);
-    if (containerSizeMatch) {
-      const [, name, size] = containerSizeMatch;
-      const params = createContainerParams('min', size, name);
-      return [createContainerRule(params, [])];
-    }
-    return [];
-  }
-);
-
-// 3. @container/size - theme size with named container
-functionalModifier(
-  (mod: string) => /^@(sm|md|lg|xl|2xl)\/([a-zA-Z0-9_-]+)$/.test(mod),
-  undefined,
-  (mod: ParsedModifier, context: Context) => {
-    const namedSizeMatch = /^@(sm|md|lg|xl|2xl)\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
-    if (namedSizeMatch) {
-      const [, size, name] = namedSizeMatch;
-      const sizeValue = getThemeSize(context, size) || size;
-      const params = createContainerParams('min', sizeValue, name);
-      return [createContainerRule(params, [])];
-    }
-    return [];
-  }
-);
-
-// 4. @container/size - theme size without named container
-functionalModifier(
-  (mod: string) => /^@(sm|md|lg|xl|2xl)$/.test(mod),
-  undefined,
-  (mod: ParsedModifier, context: Context) => {
-    const themeSizeMatch = /^@(sm|md|lg|xl|2xl)$/.exec(mod.type);
-    if (themeSizeMatch) {
-      const size = themeSizeMatch[1];
-      const sizeValue = getThemeSize(context, size) || size;
-      const params = createContainerParams('min', sizeValue);
-      return [createContainerRule(params, [])];
-    }
-    return [];
-  }
-);
-
-// 4.5. @max-container/size - max theme size without named container
-functionalModifier(
-  (mod: string) => /^@max-(sm|md|lg|xl|2xl)$/.test(mod),
-  undefined,
-  (mod: ParsedModifier, context: Context) => {
-    const themeSizeMatch = /^@max-(sm|md|lg|xl|2xl)$/.exec(mod.type);
-    if (themeSizeMatch) {
-      const size = themeSizeMatch[1];
-      const sizeValue = getThemeSize(context, size) || size;
-      const params = createContainerParams('max', sizeValue);
-      return [createContainerRule(params, [])];
-    }
-    return [];
-  }
-);
-
-// 5. @container/size - arbitrary size
-functionalModifier(
-  (mod: string) => /^@(min|max)-\[.*\]$/.test(mod),
-  undefined,
-  (mod: ParsedModifier, context: Context) => {
-    const arbitraryMatch = /^@(min|max)-\[(.+)\]$/.exec(mod.type);
-    if (arbitraryMatch) {
-      const [, type, value] = arbitraryMatch;
-      const params = createContainerParams(type as 'min' | 'max', value);
-      return [createContainerRule(params, [])];
-    }
-    return [];
-  }
-);
-
-// 6. @container/size - arbitrary size with named container
-functionalModifier(
-  (mod: string) => /^@(min|max)-\[.*\]\/([a-zA-Z0-9_-]+)$/.test(mod),
-  undefined,
-  (mod: ParsedModifier, context: Context) => {
-    const arbitraryNamedMatch = /^@(min|max)-\[(.+)\]\/([a-zA-Z0-9_-]+)$/.exec(mod.type);
-    if (arbitraryNamedMatch) {
-      const [, type, value, name] = arbitraryNamedMatch;
-      const params = createContainerParams(type as 'min' | 'max', value, name);
-      return [createContainerRule(params, [])];
-    }
-    return [];
-  }
-); 

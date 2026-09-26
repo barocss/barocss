@@ -35,4 +35,13 @@ describe('ServerRuntime', () => {
     expect(css).toContain('--color-brand: #ff3366;');
     expect(css).not.toContain('--color-green-500');
   });
+
+  it('bracketed and decimal alpha on theme colours emit valid percentages (#236)', () => {
+    const css = runtime.generateCss('bg-red-500/[37%] bg-red-500/[0.5] text-blue-500/[.8]');
+    expect(css).toContain('var(--color-red-500) 37%');
+    expect(css).toContain('var(--color-red-500) 50%');
+    expect(css).toContain('var(--color-blue-500) 80%');
+    expect(css).not.toMatch(/\]%/);
+    expect(css).toMatch(/--color-red-500:\s*[^;]+;/);
+  });
 });

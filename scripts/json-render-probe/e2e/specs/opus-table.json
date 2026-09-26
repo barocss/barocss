@@ -1,0 +1,183 @@
+{
+ "root": "orders_card",
+ "elements": {
+  "orders_card": {
+   "type": "Card",
+   "props": {
+    "className": "p-6 bg-card border-border rounded-lg"
+   },
+   "children": [
+    "header_stack",
+    "header_separator",
+    "table_area",
+    "footer_separator",
+    "footer_stack"
+   ]
+  },
+  "header_stack": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-row items-center justify-between mb-4"
+   },
+   "children": [
+    "header_text_group",
+    "new_order_btn"
+   ]
+  },
+  "header_text_group": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col gap-1"
+   },
+   "children": [
+    "header_title",
+    "header_subtitle"
+   ]
+  },
+  "header_title": {
+   "type": "Text",
+   "props": {
+    "text": "Recent Orders",
+    "variant": "h2"
+   }
+  },
+  "header_subtitle": {
+   "type": "Text",
+   "props": {
+    "text": "Overview of your latest transactions",
+    "variant": "muted"
+   }
+  },
+  "new_order_btn": {
+   "type": "Button",
+   "props": {
+    "label": "New Order",
+    "variant": "default",
+    "size": "sm"
+   }
+  },
+  "header_separator": {
+   "type": "Separator",
+   "props": {}
+  },
+  "table_area": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col gap-3 py-4"
+   },
+   "children": [
+    "orders_table",
+    "badge_row"
+   ]
+  },
+  "orders_table": {
+   "type": "Table",
+   "props": {
+    "columns": [
+     "Order",
+     "Customer",
+     "Date",
+     "Amount",
+     "Status"
+    ],
+    "rows": [
+     [
+      "#1042",
+      "Ava Thompson",
+      "2026-09-24",
+      "$248.00",
+      "Paid"
+     ],
+     [
+      "#1041",
+      "Liam Nguyen",
+      "2026-09-23",
+      "$1,120.50",
+      "Pending"
+     ],
+     [
+      "#1040",
+      "Sofia Rossi",
+      "2026-09-23",
+      "$76.20",
+      "Paid"
+     ],
+     [
+      "#1039",
+      "Noah Patel",
+      "2026-09-22",
+      "$540.00",
+      "Refunded"
+     ],
+     [
+      "#1038",
+      "Mia Chen",
+      "2026-09-21",
+      "$312.75",
+      "Pending"
+     ]
+    ]
+   }
+  },
+  "badge_row": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-row flex-wrap items-center gap-2"
+   },
+   "children": [
+    "badge_paid",
+    "badge_pending",
+    "badge_refunded"
+   ]
+  },
+  "badge_paid": {
+   "type": "Badge",
+   "props": {
+    "text": "Paid · 2",
+    "variant": "default"
+   }
+  },
+  "badge_pending": {
+   "type": "Badge",
+   "props": {
+    "text": "Pending · 2",
+    "variant": "secondary"
+   }
+  },
+  "badge_refunded": {
+   "type": "Badge",
+   "props": {
+    "text": "Refunded · 1",
+    "variant": "destructive"
+   }
+  },
+  "footer_separator": {
+   "type": "Separator",
+   "props": {}
+  },
+  "footer_stack": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-row items-center justify-between pt-4 text-muted-foreground"
+   },
+   "children": [
+    "footer_count",
+    "footer_total"
+   ]
+  },
+  "footer_count": {
+   "type": "Text",
+   "props": {
+    "text": "Showing 5 of 128 orders",
+    "variant": "muted"
+   }
+  },
+  "footer_total": {
+   "type": "Text",
+   "props": {
+    "text": "Total: $2,297.45",
+    "variant": "body"
+   }
+  }
+ }
+}

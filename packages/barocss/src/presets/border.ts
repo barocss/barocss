@@ -8,7 +8,7 @@ import { parseNumber, parseLength, parseColor, themeColorDecls } from "../core/u
 // Static border radius utilities
 staticUtility("rounded-none", [["border-radius", "0px"]], { category: 'borders' });
 staticUtility("rounded-sm", [["border-radius", "var(--radius-sm)"]], { category: 'borders' });
-staticUtility("rounded", [["border-radius", "var(--radius)"]], { category: 'borders' });
+staticUtility("rounded", [["border-radius", "0.25rem"]], { category: 'borders' });
 staticUtility("rounded-md", [["border-radius", "var(--radius-md)"]], { category: 'borders' });
 staticUtility("rounded-lg", [["border-radius", "var(--radius-lg)"]], { category: 'borders' });
 staticUtility("rounded-xl", [["border-radius", "var(--radius-xl)"]], { category: 'borders' });
@@ -34,7 +34,7 @@ staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'border
   // Static utilities
   staticUtility(`${name}-none`, propList.map(prop => [prop, "0px"]), { category: 'borders' });
   staticUtility(`${name}-sm`, propList.map(prop => [prop, "var(--radius-sm)"]), { category: 'borders' });
-  staticUtility(`${name}`, propList.map(prop => [prop, "var(--radius)"]), { category: 'borders' });
+  staticUtility(`${name}`, propList.map(prop => [prop, "0.25rem"]), { category: 'borders' });
   staticUtility(`${name}-md`, propList.map(prop => [prop, "var(--radius-md)"]), { category: 'borders' });
   staticUtility(`${name}-lg`, propList.map(prop => [prop, "var(--radius-lg)"]), { category: 'borders' });
   staticUtility(`${name}-xl`, propList.map(prop => [prop, "var(--radius-xl)"]), { category: 'borders' });
@@ -369,5 +369,30 @@ functionalUtility({
     return null;
   },
   description: "outline-width utility (number, arbitrary, custom property support)",
+  category: "borders",
+});
+
+// --- Divide Color --- (Tailwind 4: `:where(& > :not(:last-child)) { border-color: … }`, same selector as divide-x/y)
+const divideColor = (value: string) => [rule(":where(& > :not(:last-child))", [decl("border-color", value)])];
+staticUtility("divide-inherit", divideColor("inherit"), { category: 'borders' });
+staticUtility("divide-current", divideColor("currentColor"), { category: 'borders' });
+staticUtility("divide-transparent", divideColor("transparent"), { category: 'borders' });
+functionalUtility({
+  name: "divide",
+  themeKeys: ["colors"],
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsOpacity: true,
+  handle: (value, _ctx, _token, extra) => {
+    // Theme colours go through the shared helper (var(--color-*) and Tailwind's /alpha form, #228).
+    if (extra?.realThemeValue) {
+      return [rule(":where(& > :not(:last-child))", themeColorDecls("border-color", value, extra))];
+    }
+    // Arbitrary values only when they are colours: divide-[3px] is not a divide colour (Tailwind emits nothing).
+    if (parseColor(value)) return divideColor(value);
+    return null;
+  },
+  handleCustomProperty: (value) => divideColor(`var(${value})`),
+  description: "divide-color utility (theme, alpha, arbitrary, custom property)",
   category: "borders",
 });

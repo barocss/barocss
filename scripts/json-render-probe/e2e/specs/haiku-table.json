@@ -1,0 +1,171 @@
+{
+ "root": "container",
+ "elements": {
+  "container": {
+   "type": "Card",
+   "props": {
+    "className": "w-full p-6"
+   },
+   "children": [
+    "header",
+    "table",
+    "footer"
+   ]
+  },
+  "header": {
+   "type": "Text",
+   "props": {
+    "text": "Recent Orders",
+    "variant": "h2"
+   },
+   "children": []
+  },
+  "table": {
+   "type": "Table",
+   "props": {
+    "columns": [
+     "Order ID",
+     "Customer",
+     "Amount",
+     "Status",
+     "Date"
+    ],
+    "rows": [
+     [
+      "#ORD-2024-001",
+      "John Smith",
+      "$1,250.00",
+      "Shipped",
+      "2026-09-24"
+     ],
+     [
+      "#ORD-2024-002",
+      "Sarah Johnson",
+      "$890.50",
+      "Pending",
+      "2026-09-25"
+     ],
+     [
+      "#ORD-2024-003",
+      "Mike Chen",
+      "$2,145.00",
+      "Delivered",
+      "2026-09-20"
+     ],
+     [
+      "#ORD-2024-004",
+      "Emma Davis",
+      "$540.25",
+      "Processing",
+      "2026-09-26"
+     ]
+    ]
+   },
+   "children": []
+  },
+  "footer": {
+   "type": "Stack",
+   "props": {
+    "className": "mt-6 pt-6 border-t border-border space-y-4"
+   },
+   "children": [
+    "footer-title",
+    "stats-grid"
+   ]
+  },
+  "footer-title": {
+   "type": "Text",
+   "props": {
+    "text": "Summary",
+    "variant": "h3"
+   },
+   "children": []
+  },
+  "stats-grid": {
+   "type": "Grid",
+   "props": {
+    "className": "grid grid-cols-3 gap-4"
+   },
+   "children": [
+    "stat-total",
+    "stat-revenue",
+    "stat-pending"
+   ]
+  },
+  "stat-total": {
+   "type": "Stack",
+   "props": {
+    "className": "p-4 bg-muted rounded-lg"
+   },
+   "children": [
+    "stat-total-label",
+    "stat-total-value"
+   ]
+  },
+  "stat-total-label": {
+   "type": "Text",
+   "props": {
+    "text": "Total Orders",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "stat-total-value": {
+   "type": "Text",
+   "props": {
+    "text": "4"
+   },
+   "children": []
+  },
+  "stat-revenue": {
+   "type": "Stack",
+   "props": {
+    "className": "p-4 bg-muted rounded-lg"
+   },
+   "children": [
+    "stat-revenue-label",
+    "stat-revenue-value"
+   ]
+  },
+  "stat-revenue-label": {
+   "type": "Text",
+   "props": {
+    "text": "Total Revenue",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "stat-revenue-value": {
+   "type": "Text",
+   "props": {
+    "text": "$4,825.75"
+   },
+   "children": []
+  },
+  "stat-pending": {
+   "type": "Stack",
+   "props": {
+    "className": "p-4 bg-muted rounded-lg"
+   },
+   "children": [
+    "stat-pending-label",
+    "stat-pending-value"
+   ]
+  },
+  "stat-pending-label": {
+   "type": "Text",
+   "props": {
+    "text": "Pending Orders",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "stat-pending-value": {
+   "type": "Text",
+   "props": {
+    "text": "1"
+   },
+   "children": []
+  }
+ }
+}

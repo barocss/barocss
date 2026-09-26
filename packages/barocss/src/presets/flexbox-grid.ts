@@ -387,11 +387,11 @@ staticUtility("justify-items-normal", [["justify-items", "normal"]], { category:
 
 // --- Flexbox & Grid: Justify Self ---
 staticUtility("justify-self-auto", [["justify-self", "auto"]], { category: 'flex-grid' });
-staticUtility("justify-self-start", [["justify-self", "start"]], { category: 'flex-grid' });
+staticUtility("justify-self-start", [["justify-self", "flex-start"]], { category: 'flex-grid' });
 staticUtility("justify-self-center", [["justify-self", "center"]], { category: 'flex-grid' });
 staticUtility("justify-self-center-safe", [["justify-self", "safe center"]], { category: 'flex-grid' });
-staticUtility("justify-self-end", [["justify-self", "end"]], { category: 'flex-grid' });
-staticUtility("justify-self-end-safe", [["justify-self", "safe end"]], { category: 'flex-grid' });
+staticUtility("justify-self-end", [["justify-self", "flex-end"]], { category: 'flex-grid' });
+staticUtility("justify-self-end-safe", [["justify-self", "safe flex-end"]], { category: 'flex-grid' });
 staticUtility("justify-self-stretch", [["justify-self", "stretch"]], { category: 'flex-grid' });
 
 // --- Flexbox & Grid: Align Content ---

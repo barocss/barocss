@@ -338,4 +338,9 @@ export const corpus: ReadonlyArray<readonly [token: string, uses: number]> = [
   ["transition-shadow", 1],
   ["translate-x-[-50%]", 1],
   ["translate-y-[-50%]", 1],
+  // #236: bracketed / decimal opacity on theme colours (regression guard for #228)
+  ["bg-red-500/[37%]", 1],
+  ["bg-red-500/[0.5]", 1],
+  ["text-blue-500/[.8]", 1],
+  ["border-slate-900/[0.25]", 1],
 ];

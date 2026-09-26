@@ -1,0 +1,163 @@
+{
+ "root": "card-main",
+ "elements": {
+  "card-main": {
+   "type": "Card",
+   "props": {
+    "className": "w-full max-w-md p-6 bg-card border border-border"
+   },
+   "children": [
+    "stack-outer"
+   ]
+  },
+  "stack-outer": {
+   "type": "Stack",
+   "props": {
+    "className": "gap-6"
+   },
+   "children": [
+    "stack-header",
+    "text-amount",
+    "text-comparison",
+    "separator-1",
+    "grid-breakdown"
+   ]
+  },
+  "stack-header": {
+   "type": "Stack",
+   "props": {
+    "className": "flex-row items-center justify-between"
+   },
+   "children": [
+    "text-title",
+    "badge-change"
+   ]
+  },
+  "text-title": {
+   "type": "Text",
+   "props": {
+    "text": "Monthly Revenue",
+    "variant": "h3"
+   },
+   "children": []
+  },
+  "badge-change": {
+   "type": "Badge",
+   "props": {
+    "text": "+12.5%",
+    "variant": "secondary"
+   },
+   "children": []
+  },
+  "text-amount": {
+   "type": "Text",
+   "props": {
+    "text": "$125,400",
+    "variant": "h1"
+   },
+   "children": []
+  },
+  "text-comparison": {
+   "type": "Text",
+   "props": {
+    "text": "vs last month",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "separator-1": {
+   "type": "Separator",
+   "props": {},
+   "children": []
+  },
+  "grid-breakdown": {
+   "type": "Grid",
+   "props": {
+    "className": "grid-cols-3 gap-4"
+   },
+   "children": [
+    "breakdown-1",
+    "breakdown-2",
+    "breakdown-3"
+   ]
+  },
+  "breakdown-1": {
+   "type": "Stack",
+   "props": {
+    "className": "gap-1.5"
+   },
+   "children": [
+    "breakdown-label-1",
+    "breakdown-value-1"
+   ]
+  },
+  "breakdown-label-1": {
+   "type": "Text",
+   "props": {
+    "text": "Product A",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "breakdown-value-1": {
+   "type": "Text",
+   "props": {
+    "text": "$52.1K",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "breakdown-2": {
+   "type": "Stack",
+   "props": {
+    "className": "gap-1.5"
+   },
+   "children": [
+    "breakdown-label-2",
+    "breakdown-value-2"
+   ]
+  },
+  "breakdown-label-2": {
+   "type": "Text",
+   "props": {
+    "text": "Product B",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "breakdown-value-2": {
+   "type": "Text",
+   "props": {
+    "text": "$48.2K",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "breakdown-3": {
+   "type": "Stack",
+   "props": {
+    "className": "gap-1.5"
+   },
+   "children": [
+    "breakdown-label-3",
+    "breakdown-value-3"
+   ]
+  },
+  "breakdown-label-3": {
+   "type": "Text",
+   "props": {
+    "text": "Services",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "breakdown-value-3": {
+   "type": "Text",
+   "props": {
+    "text": "$25.1K",
+    "variant": "body"
+   },
+   "children": []
+  }
+ }
+}
