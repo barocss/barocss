@@ -105,6 +105,7 @@ export class StylePartitionManager {
   }
 
   private createNewPartition() {
+    const previous = this.partitions[this.partitions.length - 1];
     const newPartition: StylePartition = {
       id: this.styleIdPrefix + `-${this.partitionCounter++}`,
       styles: [],
@@ -120,8 +121,15 @@ export class StylePartitionManager {
       this.partitionCounter.toString()
     );
 
-    // set insertion point
-    this.insertionPoint.appendChild(newPartition.styleElement);
+    // #387: an overflow chunk goes right after the previous chunk, not at the
+    // end: category partitions appended since then must still follow every
+    // chunk, as they follow the single chunk of a one-partition sheet.
+    const parent = previous?.styleElement.parentNode;
+    if (parent) {
+      parent.insertBefore(newPartition.styleElement, previous.styleElement.nextSibling);
+    } else {
+      this.insertionPoint.appendChild(newPartition.styleElement);
+    }
 
     return newPartition;
   }
