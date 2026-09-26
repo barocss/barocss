@@ -61,6 +61,10 @@ document.querySelectorAll('style[id^="barocss-runtime"]').length; // > 0
 
 ## Server-rendered pages (SSR)
 
+> BaroCSS is JS-only: there is no CSS entry, so never `@import "@barocss/kit"` in CSS. `generateCssForHtml`/`ssrStyleTag` are available from `@barocss/server` 0.7.0.
+>
+> Use the same config as the server: `darkModeSelector` from the build's `@custom-variant dark`, `utilities` mirroring static `@utility` rules (functional `@utility name-*` unsupported), both `prefix: 'tw'` and `cssVarPrefix: 'tw'` for a `prefix(tw)` build, and literal values in `theme.extend` for your own theme (next to `shadcnTheme`).
+
 The runtime adopts a `<style data-barocss-ssr>` sheet from `@barocss/server` (`ssrStyleTag(runtime.generateCssForHtml(html, { skip: buildCss }))`), but only one that is in `<head>` when the runtime starts (at construction or the first `observe()`). A marked sheet added later or placed in `<body>` is treated as an ordinary sheet. It never regenerates those classes and GC never reclaims them. Their rules move into the runtime's ordered partitions, so later client rules keep Tailwind's variant order. For the Next.js App Router and Astro recipe, see the [`@barocss/server` README](../barocss-server/README.md#recipe-ssr-with-a-tailwind-build-nextjs-app-router-astro).
 
 ## ✨ Key Features

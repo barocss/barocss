@@ -7,9 +7,25 @@ description: Server-side CSS generation and processing in BaroCSS
 
 The Server Runtime API provides server-side functionality for generating CSS without browser-specific features like DOM manipulation or MutationObserver. It's ideal for static site generation, server-side rendering, and build-time CSS processing.
 
-::: info Coming in the next minor
-HTML class extraction and an SSR-to-browser handoff that lets the browser runtime skip rebuilding server-rendered CSS are not part of `0.6.0`. This page documents only the `0.6.0` API.
+## generateCssForHtml() and ssrStyleTag()
+
+::: warning Available from 0.7.0
 :::
+
+```typescript
+import { ServerRuntime, ssrStyleTag } from '@barocss/server';
+
+const runtime = new ServerRuntime({ cssVarPrefix: 'tw', darkMode: 'class', darkModeSelector: '.dark &', theme: { extend: siteTheme } });
+const css = runtime.generateCssForHtml(html, { skip: buildCss }); // this response's delta
+const tag = ssrStyleTag(css, { nonce });                          // '<style data-barocss-ssr>…</style>' for <head>
+```
+
+- `generateCssForHtml(htmlOrClasses: string | string[], opts?: { skip?: string | Iterable<string> })`: reads `class` attributes from HTML (or takes a class list) and returns one ordered sheet. `skip` is the build CSS text (its classes, `:root`/`:host` vars, `@property` and `@keyframes` are left out) or a set of class names. Stateless per call.
+- `ssrStyleTag(css, { nonce? })`: wraps the CSS in `<style data-barocss-ssr>` so `@barocss/browser` adopts it.
+- For `prefix(tw)` builds set both `prefix: 'tw'` and `cssVarPrefix: 'tw'`; mirror static `@utility` rules in `utilities`.
+
+Framework recipe: [Astro (SSR and static)](/guide/integration/astro).
+
 
 ## ServerRuntime Class
 

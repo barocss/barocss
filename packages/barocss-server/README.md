@@ -10,6 +10,10 @@
 
 ## Recipe: SSR with a Tailwind build (Next.js App Router, Astro)
 
+> `generateCssForHtml` and `ssrStyleTag` are **available from 0.7.0**.
+>
+> BaroCSS is JS-only: there is no CSS entry, so never `@import "@barocss/kit"` in CSS.
+
 Use this when pages link a build stylesheet (a Tailwind or BaroCSS build) but render classes the build never saw, such as CMS blocks or model output. At request time, generate only the missing CSS and inline it, so the first paint is already styled:
 
 ```ts
@@ -33,7 +37,7 @@ const tag = ssrStyleTag(css); // '<style data-barocss-ssr>…</style>': put it i
 
   The output never contains `@layer` statements.
 - The result is one ordered sheet (#267): each referenced theme var once, each `@property` block once, rules in Tailwind variant order.
-- Also exported: `extractClasses(html)`, `parseCssDefinitions(css)`, `ssrStyleTag(css, { nonce })`, `SSR_STYLE_ATTRIBUTE`.
+- Also exported: `ssrStyleTag(css, { nonce })`, `SSR_STYLE_ATTRIBUTE`.
 
 **Next.js App Router** (a server component; `html` is the CMS or model markup you render):
 
@@ -52,17 +56,41 @@ export default async function Page() {
 
 Don't give this `<style>` a `precedence` or `href`, so React leaves it where it is. It only has to come before the content it styles. When you render components rather than an HTML string, pass the class list instead: `runtime.generateCssForHtml(['p-4 sm:p-6', …], { skip: BUILD_CSS })`.
 
-**Astro** (`.astro` page, SSR):
+**Astro, SSR** (`src/middleware.ts`; read the emitted build CSS once at startup):
 
-```astro
----
-const html = await getBlocksHtml();
-const css = runtime.generateCssForHtml(html, { skip: BUILD_CSS });
----
-<html><head>
-  <link rel="stylesheet" href="/app.css" />
-  <Fragment set:html={ssrStyleTag(css)} />
-</head><body><Fragment set:html={html} /></body></html>
+```ts
+import { defineMiddleware } from 'astro:middleware';
+const dir = path.resolve('dist/client/_astro');
+const BUILD_CSS = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.css')).map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n') : '';
+
+export const onRequest = defineMiddleware(async (_ctx, next) => {
+  const res = await next();
+  if (!res.headers.get('content-type')?.includes('text/html')) return res;
+  const html = await res.text();
+  const css = runtime.generateCssForHtml(html, { skip: BUILD_CSS });
+  const headers = new Headers(res.headers);
+  headers.delete('content-length');
+  return new Response(css ? html.replace('</head>', `${ssrStyleTag(css)}</head>`) : html, { status: res.status, headers });
+});
+```
+
+**Astro, static output:** do the same once in an integration's `astro:build:done` hook: read every `.css` under `dir` as the skip CSS, then rewrite every `.html`. The full recipe (shared config, static hook, client companion) is in the docs: `guide/integration/astro`.
+
+**Config to copy from the build CSS** (use the same object on server and client):
+
+```ts
+const config = {
+  cssVarPrefix: 'tw',                       // prefix(tw) build: also set prefix: 'tw' (BOTH are needed)
+  darkMode: 'class',
+  darkModeSelector: '[data-theme=dark] &',  // the selector inside `@custom-variant dark (...)`; shadcn v4: '.dark &'
+  theme: { extend: {                        // your own theme: literal values, not var(--build-vars)
+    colors: { brand: '#2563eb' },
+    spacing: { gutter: '1.5rem' },          // named spacing: p-gutter
+    borderRadius: { lg: '0.75rem' },        // override existing keys; new radius/font names go in utilities
+    fontFamily: { sans: ['Inter', 'sans-serif'] },
+  } },
+  utilities: { 'max-w-app': { 'max-width': '48rem', 'margin-inline': 'auto' } }, // static @utility rules; `@utility name-*` unsupported
+};
 ```
 
 **Client companion** (only needed when the page adds classes after load). Load `@barocss/browser` as usual; it adopts the `<style data-barocss-ssr>` sheet:
