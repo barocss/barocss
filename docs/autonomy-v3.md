@@ -99,3 +99,6 @@ vitest 5 (#302) hides console output by default. To see the coverage lines, run 
 
 ## CI-only steps in integration checks (2026-09-26)
 `pnpm check` doesn't run every CI step. Integration checks and checkpoints also run `node .github/scripts/check-packages.mjs` (after `build:library`), which validates the packed packages' exports, types and CDN files. The 0.8.2 checkpoint failed there first (#340). Lesson from #235 (lint) and #340 (check-packages): when a CI step fails that local checks passed, add that step to the local integration check.
+
+## Tailwind drift check (#365)
+`.github/workflows/tailwind-drift.yml` runs weekly (and on manual dispatch, with an optional version spec such as `4.1.13` to simulate drift). It installs the latest `tailwindcss@4` in a scratch dir (no lockfile change), runs `tests/compat/tailwind-drift-365.test.ts` (skipped unless `BAROCSS_TW_DRIFT_DIR` is set) against both parity corpora and the preflight, and reports. Drift (a class at parity with the pinned version that fails with the latest, or a changed preflight) opens or updates one Issue titled "Tailwind 4.x drift: parity corpora or preflight changed". A clean run comments "clean at X" and closes that Issue if it is open, otherwise it stays silent. It is report-only: never on push/PR, not a required check, no release gate. The Planner triages its Issues (re-pin or not).

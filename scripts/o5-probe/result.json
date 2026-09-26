@@ -1,0 +1,407 @@
+{
+ "csp": "default-src 'self'; script-src 'self' 'nonce-o5N0nce364'; style-src 'self' 'nonce-o5N0nce364'; img-src 'self'; font-src 'self'; connect-src 'self'",
+ "adversarial": [
+  "bg-[url(http://localhost:7165/c/bg)]",
+  "[background-image:url(http://localhost:7165/c/prop)]",
+  "cursor-[url(http://localhost:7165/c/cur),auto]",
+  "bg-[url(/count/same)]",
+  "[--o5:url(http://localhost:7165/c/var)] bg-(image:--o5)",
+  "bg-[image-set(url(http://localhost:7165/c/iset)_1x)]",
+  "before:content-[url(http://localhost:7165/c/content)]",
+  "mask-[url(http://localhost:7165/c/mask)]",
+  "bg-[red",
+  "w-[calc(100%-1px]",
+  "text-[red]]",
+  "p-[1px]]]",
+  "[color:red;}*{color:blue]",
+  "bg-[red]}body{display:none",
+  "[color:red]/*",
+  "[html_&]:hidden",
+  "[body_&]:bg-red-500",
+  "[:root_&]:opacity-0",
+  "[:host_&]:outline-8",
+  "p-[99999px]",
+  "bg-[red]\\",
+  "[&_*]:hidden"
+ ],
+ "arms": {
+  "ref": {
+   "opus": {
+    "parity": 1,
+    "parityHostile": 0.022556390977443608,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 130,
+    "hostToWidget": 130,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 3,
+    "violSamples": [
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd"
+    ],
+    "advXO": [
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": 3.199999988079071,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 1,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 65,
+    "hostToWidget": 65,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 0,
+    "violSamples": [],
+    "advXO": [],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": 8.700000017881393,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "none": {
+   "opus": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 123,
+    "hostToWidget": 123,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 3,
+    "violSamples": [
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd"
+    ],
+    "advXO": [
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": null,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 60,
+    "hostToWidget": 60,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 0,
+    "violSamples": [],
+    "advXO": [],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": null,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "baro root": {
+   "opus": {
+    "parity": 1,
+    "parityHostile": 0.022556390977443608,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 130,
+    "hostToWidget": 130,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 8,
+    "violSamples": [
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd",
+     "img-src http://localhost:7165/c/bg",
+     "img-src http://localhost:7165/c/prop",
+     "img-src http://localhost:7165/c/cur",
+     "img-src http://localhost:7165/c/content",
+     "img-src http://localhost:7165/c/mask"
+    ],
+    "advXO": [
+     "http://localhost:7165/c/bg",
+     "http://localhost:7165/c/prop",
+     "http://localhost:7165/c/cur",
+     "http://localhost:7165/c/content",
+     "http://localhost:7165/c/mask",
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [
+     "same:/count/same"
+    ],
+    "advStyled": [
+     "bg-[url(http://localhost:7165/c/bg)]",
+     "[background-image:url(http://localhost:7165/c/prop)]",
+     "cursor-[url(http://localhost:7165/c/cur),auto]",
+     "bg-[url(/count/same)]",
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 163525,
+    "sheets": 2,
+    "ms": 48,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 1,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 65,
+    "hostToWidget": 65,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 5,
+    "violSamples": [
+     "img-src http://localhost:7165/c/bg",
+     "img-src http://localhost:7165/c/prop",
+     "img-src http://localhost:7165/c/cur",
+     "img-src http://localhost:7165/c/content",
+     "img-src http://localhost:7165/c/mask"
+    ],
+    "advXO": [
+     "http://localhost:7165/c/bg",
+     "http://localhost:7165/c/prop",
+     "http://localhost:7165/c/cur",
+     "http://localhost:7165/c/content",
+     "http://localhost:7165/c/mask"
+    ],
+    "advHits": [
+     "same:/count/same"
+    ],
+    "advStyled": [
+     "bg-[url(http://localhost:7165/c/bg)]",
+     "[background-image:url(http://localhost:7165/c/prop)]",
+     "cursor-[url(http://localhost:7165/c/cur),auto]",
+     "bg-[url(/count/same)]",
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 158125,
+    "sheets": 2,
+    "ms": 29.599999994039536,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "baro root + nonce": {
+   "opus": {
+    "parity": 1,
+    "parityHostile": 0.022556390977443608,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 130,
+    "hostToWidget": 130,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 8,
+    "violSamples": [
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd",
+     "img-src http://localhost:7165/c/bg",
+     "img-src http://localhost:7165/c/prop",
+     "img-src http://localhost:7165/c/cur",
+     "img-src http://localhost:7165/c/content",
+     "img-src http://localhost:7165/c/mask"
+    ],
+    "advXO": [
+     "http://localhost:7165/c/bg",
+     "http://localhost:7165/c/prop",
+     "http://localhost:7165/c/cur",
+     "http://localhost:7165/c/content",
+     "http://localhost:7165/c/mask",
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [
+     "same:/count/same"
+    ],
+    "advStyled": [
+     "bg-[url(http://localhost:7165/c/bg)]",
+     "[background-image:url(http://localhost:7165/c/prop)]",
+     "cursor-[url(http://localhost:7165/c/cur),auto]",
+     "bg-[url(/count/same)]",
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 163525,
+    "sheets": 2,
+    "ms": 41.80000001192093,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 1,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 65,
+    "hostToWidget": 65,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 5,
+    "violSamples": [
+     "img-src http://localhost:7165/c/bg",
+     "img-src http://localhost:7165/c/prop",
+     "img-src http://localhost:7165/c/cur",
+     "img-src http://localhost:7165/c/content",
+     "img-src http://localhost:7165/c/mask"
+    ],
+    "advXO": [
+     "http://localhost:7165/c/bg",
+     "http://localhost:7165/c/prop",
+     "http://localhost:7165/c/cur",
+     "http://localhost:7165/c/content",
+     "http://localhost:7165/c/mask"
+    ],
+    "advHits": [
+     "same:/count/same"
+    ],
+    "advStyled": [
+     "bg-[url(http://localhost:7165/c/bg)]",
+     "[background-image:url(http://localhost:7165/c/prop)]",
+     "cursor-[url(http://localhost:7165/c/cur),auto]",
+     "bg-[url(/count/same)]",
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 158125,
+    "sheets": 2,
+    "ms": 30.100000023841858,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "baro root + nonce + prefilter": {
+   "opus": {
+    "parity": 1,
+    "parityHostile": 0.022556390977443608,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 130,
+    "hostToWidget": 130,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 6,
+    "violSamples": [
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd"
+    ],
+    "advXO": [
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80",
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [],
+    "advStyled": [
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 163525,
+    "sheets": 2,
+    "ms": 39.099999994039536,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 1,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 65,
+    "hostToWidget": 65,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 0,
+    "violSamples": [],
+    "advXO": [],
+    "advHits": [],
+    "advStyled": [
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 158125,
+    "sheets": 2,
+    "ms": 41,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "twb": {
+   "opus": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 123,
+    "hostToWidget": 123,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 21,
+    "violSamples": [
+     "style-src-elem inline",
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd"
+    ],
+    "advXO": [
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": null,
+    "headStyles": 1,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 60,
+    "hostToWidget": 60,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 18,
+    "violSamples": [
+     "style-src-elem inline"
+    ],
+    "advXO": [],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": null,
+    "headStyles": 1,
+    "errs": [],
+    "blockEls": 65
+   }
+  }
+ }
+}

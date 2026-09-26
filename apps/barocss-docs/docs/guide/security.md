@@ -115,6 +115,12 @@ read through `var()`. Two host-side controls cover all of them, so BaroCSS has n
 
 Use both where you can: CSP for the page, and the filter for content you forward.
 
+`img-src 'self'` still allows **same-origin** `url()` loads: in the #364 end-to-end probe (strict CSP,
+published 0.10.0) a class with `url(/count/same)` reached the same-origin endpoint once, while every
+cross-origin form was blocked. If a same-origin request can have side effects (a GET endpoint, a
+tracking path), narrow `img-src` further or use the pre-filter above; with the filter the probe saw
+0 violations and 0 requests.
+
 ### MCP Apps and embedded widgets
 
 MCP Apps and other embedded UIs usually run under a CSP set by the host, not by you. Check the
