@@ -376,6 +376,12 @@ export type FunctionalUtilityOptions = {
    * handleNegativeBareValue: ({ value }) => isPositiveInteger(value) ? value : null,
    * ```
    */
+  /**
+   * #261: the utility uses the spacing scale, so a named `theme.spacing` key (`p-gutter`) resolves to
+   * `var(--spacing-<key>)` (negative: `calc(var(--spacing-<key>) * -1)`), as in Tailwind 4. Only tried
+   * after the bare-value handler rejects the value, so built-in keywords keep precedence.
+   */
+  spacingKeys?: boolean;
   handleNegativeBareValue?: (args: { value: string; ctx: Context; token: ParsedUtility, extra?: FunctionalUtilityExtra }) => string | null | undefined;
 
   /**
@@ -448,6 +454,13 @@ export type FunctionalUtilityOptions = {
  *     category: 'layout',
  *   });
  */
+/** #261: `var(--spacing-<key>)` for a named (non-numeric) `theme.spacing` key, else null. */
+function spacingKeyValue(ctx: Context, key: string, negative: boolean): string | null {
+  if (key === 'px' || !/^[a-zA-Z][\w-]*$/.test(key) || ctx.theme('spacing', key) == null) return null;
+  const ref = `var(--spacing-${key})`;
+  return negative ? `calc(${ref} * -1)` : ref;
+}
+
 export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context) {
   registerUtility({
     name: opts.name,
@@ -538,19 +551,23 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
         finalValue = value;
         // console.log('[functionalUtility] fraction', { finalValue });
       }
+      const spacingKey = opts.spacingKeys ? spacingKeyValue(ctx, String(finalValue).replace(/^-/, ''), !!parsedUtility.negative) : null;
       // 5. handleNegativeBareValue (only check negative bare value)
       if (parsedUtility.negative && opts.supportsNegative && opts.handleNegativeBareValue) {
-        const bare = opts.handleNegativeBareValue({ value: String(finalValue).replace(/^-/, ''), ctx, token, extra });
+        const bare = opts.handleNegativeBareValue({ value: String(finalValue).replace(/^-/, ''), ctx, token, extra }) ?? spacingKey;
         // console.log('[functionalUtility] negative bare', { bare });
         if (bare == null) return [];
         finalValue = bare;
       }
       // 6. handleBareValue (only check bare value) - only when negative is not true
       else if (opts.handleBareValue) {
-        const bare = opts.handleBareValue({ value: finalValue, ctx, token, extra });
+        const bare = opts.handleBareValue({ value: finalValue, ctx, token, extra }) ?? spacingKey;
         // console.log('[functionalUtility] bare', { bare });
         if (bare == null) return [];
         finalValue = bare;
+      }
+      else if (spacingKey) {
+        finalValue = spacingKey;
       }
       // A non-numeric bare value that no theme key or bare-value validator accepted is unknown (#213):
       // Tailwind emits nothing for it (`text-balanc`, `bg-notacolor`, `border-foo`), so don't pass it

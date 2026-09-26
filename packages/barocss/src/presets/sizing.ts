@@ -48,6 +48,7 @@ import "./spacing";
 
 // w-* functional: spacing scale, fraction, arbitrary, custom property
 functionalUtility({
+  spacingKeys: true,
   name: 'w',
   prop: 'width',
   supportsArbitrary: true,
@@ -86,6 +87,7 @@ functionalUtility({
 
 // size-* functional: spacing scale, fraction, arbitrary, custom property
 functionalUtility({
+  spacingKeys: true,
   name: 'size',
   supportsArbitrary: true,
   supportsCustomProperty: true,
@@ -133,6 +135,7 @@ functionalUtility({
 
 // h-* functional: spacing scale, fraction, arbitrary, custom property
 functionalUtility({
+  spacingKeys: true,
   name: 'h',
   prop: 'height',
   supportsArbitrary: true,
@@ -170,6 +173,7 @@ functionalUtility({
 
 // min-h-* functional: spacing scale, fraction, arbitrary, custom property
 functionalUtility({
+  spacingKeys: true,
   name: 'min-h',
   prop: 'min-height',
   supportsArbitrary: true,
@@ -207,6 +211,7 @@ functionalUtility({
 
 // max-h-* functional: spacing scale, fraction, arbitrary, custom property
 functionalUtility({
+  spacingKeys: true,
   name: 'max-h',
   prop: 'max-height',
   supportsArbitrary: true,
@@ -260,6 +265,7 @@ functionalUtility({
 
 // min-w-* functional: spacing scale, fraction, arbitrary, custom property
 functionalUtility({
+  spacingKeys: true,
   name: 'min-w',
   prop: 'min-width',
   supportsArbitrary: true,
@@ -303,6 +309,7 @@ functionalUtility({
 
 // max-w-* functional: spacing scale, fraction, arbitrary, custom property
 functionalUtility({
+  spacingKeys: true,
   name: 'max-w',
   prop: 'max-width',
   supportsArbitrary: true,

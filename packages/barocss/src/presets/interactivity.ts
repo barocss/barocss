@@ -235,6 +235,7 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
 ].forEach(([name, prop]) => {
   functionalUtility({
     name: `scroll-${name}`,
+    spacingKeys: true,
     prop,
     supportsArbitrary: true,
     supportsCustomProperty: true,
@@ -267,6 +268,7 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
 ].forEach(([name, prop]) => {
   functionalUtility({
     name: `scroll-${name}`,
+    spacingKeys: true,
     prop,
     supportsArbitrary: true,
     supportsCustomProperty: true,
