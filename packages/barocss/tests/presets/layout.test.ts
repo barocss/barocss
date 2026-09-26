@@ -25,7 +25,7 @@ describe("preset layout utilities", () => {
       {
         type: "decl",
         prop: "aspect-ratio",
-        value: "var(--aspect-ratio-video)",
+        value: "var(--aspect-video)",
       },
     ]);
     expect(parseClassToAst("aspect-auto", ctx)).toEqual([

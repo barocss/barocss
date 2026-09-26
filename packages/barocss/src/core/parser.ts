@@ -99,6 +99,11 @@ export function parseClassName(className: string, ctx?: Context): { modifiers: P
   if (className.startsWith('!')) {
     important = true;
     realClassName = className.slice(1);
+  } else if (className.length > 1 && className.endsWith('!')) {
+    // Tailwind 4 trailing form: p-4!, hover:size-5!. A `!` inside an arbitrary
+    // value (`[...!...]`) never ends the class, so it is unaffected.
+    important = true;
+    realClassName = className.slice(0, -1);
   }
   
   // 1. Tokenize string into tokens

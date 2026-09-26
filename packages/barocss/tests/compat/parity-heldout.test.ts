@@ -13,18 +13,9 @@ import { coverageReport, runParity } from './parity-compare';
 // its fix lands (the test fails if a listed class starts passing, so the list can't go stale).
 
 const KNOWN_FAILURES: Record<string, string> = {
-  "aspect-video": "undefined var: emits var(--aspect-ratio-video), theme defines --aspect-video",
-  "container": "other: container utility not implemented",
-  "flex-shrink-0": "other: legacy flex-shrink-* alias not implemented",
   "text-[0.8rem]": "wrong formula: arbitrary length routed to color instead of font-size",
   "ease-in-out": "undefined var: var(--ease-in-out) not in BaroCSS theme vars",
   "max-w-max": "other: max-w-max/min/fit keyword missing",
-  "size-5!": "other: trailing ! important modifier unsupported",
-  "*:data-[slot=toggle-group-item]:px-4!": "other: trailing ! important modifier unsupported",
-  "data-[slot=sidebar-menu-button]:p-1.5!": "other: trailing ! important modifier unsupported",
-  "group-data-[collapsible=icon]:p-0!": "other: trailing ! important modifier unsupported",
-  "group-data-[collapsible=icon]:p-2!": "other: trailing ! important modifier unsupported",
-  "group-data-[collapsible=icon]:size-8!": "other: trailing ! important modifier unsupported",
   "has-focus:ring-[3px]": "missing variant: has-<pseudo> (has-focus)",
   "in-data-[side=left]:cursor-w-resize": "missing variant: in-* (in-data-[...])",
   "in-data-[side=right]:cursor-e-resize": "missing variant: in-* (in-data-[...])",

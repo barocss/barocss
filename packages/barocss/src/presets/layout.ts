@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility, registerUtility } from "../core/registry";
-import { decl } from "../core/ast";
+import { decl, atRule } from "../core/ast";
 import {
   parseNumber,
   parseFraction,
@@ -29,7 +29,7 @@ functionalUtility({
 
 // --- Layout: Aspect Ratio ---
 staticUtility("aspect-square", [["aspect-ratio", "1 / 1"]], { category: 'layout' });
-staticUtility("aspect-video", [["aspect-ratio", "var(--aspect-ratio-video)"]], { category: 'layout' });
+staticUtility("aspect-video", [["aspect-ratio", "var(--aspect-video)"]], { category: 'layout' });
 staticUtility("aspect-auto", [["aspect-ratio", "auto"]], { category: 'layout' });
 functionalUtility({
   name: "aspect",
@@ -157,6 +157,24 @@ registerUtility({
   handler: (_value, _ctx, token) => {
     const name = /^@container\/([a-zA-Z0-9_-]+)$/.exec(`${token.prefix}${token.value ? `-${token.value}` : ""}`)?.[1];
     return name ? [decl("container-type", "inline-size"), decl("container-name", name)] : null;
+  },
+  category: 'layout',
+});
+
+// --- Layout: Container (Tailwind 4: width 100% + max-width at each breakpoint, ascending) ---
+const toRem = (v: string): number => {
+  const m = /^(-?\d*\.?\d+)(rem|px|em)$/.exec(v.trim());
+  if (!m) return Number.NaN;
+  return m[2] === 'px' ? Number(m[1]) / 16 : Number(m[1]);
+};
+registerUtility({
+  name: "container",
+  match: (className: string) => className === "container",
+  handler: (_value, ctx) => {
+    const bps = (ctx.theme('breakpoints') || ctx.config('theme.breakpoints') || {}) as Record<string, unknown>;
+    const values = Object.values(bps).filter((v): v is string => typeof v === 'string' && !Number.isNaN(toRem(v)));
+    values.sort((a, b) => toRem(a) - toRem(b));
+    return [decl("width", "100%"), ...values.map((v) => atRule("media", `(width >= ${v})`, [decl("max-width", v)]))];
   },
   category: 'layout',
 });
