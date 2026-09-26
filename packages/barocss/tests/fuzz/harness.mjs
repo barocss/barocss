@@ -90,6 +90,57 @@ export function genGrammar(r) {
   return prefix + [...vs, u].join(':');
 }
 
+// ---------- (a2) bracket-group grammar generator (#339) ----------
+// Builds arbitrary-variant contents GENERICALLY from grammar rules: empty/adjacent bracket groups, nested and
+// deliberately unbalanced bracket/paren forms next to `&`, `_` and descendant spaces, chained arbitrary variants
+// (2-3 deep) and relational (has-/group-/peer-/in-/not-) nesting around arbitrary contents.
+const BR_ATOMS = ['&', '_', ' ', '.a', '#b', 'p', '*', '>', '+', '~', ':hover', '::after', '[x]', '[data-x=y]', ':is(.a)',
+  ':not(.b)', ':nth-child(2)', '@media(min-width:1px)', '@supports(display:grid)', ''];
+const BR_LONE = ['[', ']', '(', ')', '[]', '()', '][', ')(', '[[', ']]', '((', '))', '{', '}'];
+const BR_REL = ['has', 'group', 'peer', 'in', 'not'];
+
+function brContent(r, depth) {
+  const n = r.int(4);
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const k = r.int(10);
+    if (k < 4) s += r.pick(BR_ATOMS);
+    else if (k < 6) s += r.pick(BR_LONE);
+    else if (k === 6) s += r.pick(['&', '_', ' ']) + r.pick(BR_LONE) + r.pick(['&', '_', ' ', '']);
+    else if (depth < 3) {
+      const inner = brContent(r, depth + 1);
+      s += k === 7 ? '[' + inner + ']' : k === 8 ? '(' + inner + ')' : ':is(' + inner + ')';
+    } else s += r.pick(BR_ATOMS);
+  }
+  return s;
+}
+
+function brVariant(r) {
+  const k = r.int(6);
+  const c = brContent(r, 0);
+  if (k === 0) return '[]';
+  if (k === 1) return '[' + c + '][' + brContent(r, 0) + ']';
+  if (k === 2) {
+    let v = r.pick(BR_REL) + '-[' + c + ']';
+    if (r.next() < 0.3) v += '/' + r.pick(['a', 'x-y']);
+    if (r.next() < 0.3) v = r.pick(BR_REL) + '-' + v;
+    return v;
+  }
+  if (k === 3) return r.pick(BR_REL) + '-[]';
+  return '[' + c + ']';
+}
+
+export function genBrackets(r) {
+  const chain = 1 + r.int(3);
+  const vs = [];
+  for (let i = 0; i < chain; i++) vs.push(brVariant(r));
+  if (r.next() < 0.2) vs.splice(r.int(vs.length + 1), 0, r.pick(STATIC_VARIANTS));
+  const k = r.int(3);
+  const u = k === 0 ? r.pick(STATIC_UTILS) : k === 1 ? r.pick(FUNC_UTILS) + '-' + r.pick(FUNC_VALUES)
+    : r.pick(FUNC_UTILS) + '-[' + brContent(r, 1) + ']';
+  return [...vs, u].join(':');
+}
+
 // ---------- (b) mutation generator ----------
 export const SPECIAL = ['{', '}', '(', ')', ';', ':', ',', '@', '/', '*', '\\', '"', "'", '<', '>', ' ', '\t', '\n',
   '\r', '\f', '\0', '\u0001', '\u001f', '\u007f', '[', ']', '&', '_', '!', '#', '%', '=', '.', ' ', ' ', '﻿'];
