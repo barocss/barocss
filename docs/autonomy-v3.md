@@ -90,3 +90,6 @@ integrates, one merge at a time, rerunning that Issue's verify block after each.
 same files or share a runtime resource never run together; browser/dev-server tasks get separate port
 ranges (5200 + 100·n). Subagents never ask the human; questions go through the Compute session. Each
 Issue says `Parallel: safe | after #N | serial`.
+
+## Review rounds (2026-09-26)
+For medium and high risk, NEEDS_CHANGE (CHANGES) means: fix, then get Review's ACCEPT on the fix commit, *then* integrate. "Addressed" isn't acceptance. Every integration also runs lint for the changed packages, and checkpoints (full `pnpm check` + PR) belong to the Planner.
