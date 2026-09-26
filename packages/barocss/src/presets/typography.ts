@@ -456,7 +456,7 @@ functionalUtility({
   prop: "content",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value) => [decl("--baro-content", `"${value}"`), decl("content", "var(--baro-content)")],
+  handle: (value) => [decl("--baro-content", value), decl("content", "var(--baro-content)")],
   handleCustomProperty: (value) => [decl("--baro-content", `var(${value})`), decl("content", "var(--baro-content)")],
   description: "content utility (arbitrary, custom property supported)",
   category: "typography",
