@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flour & Hearth — Neighbourhood Bakery</title>
+<style>
+  :root {
+    --crust: #8a5a2b;
+    --crust-dark: #5e3d1c;
+    --cream: #fdf6ec;
+    --dough: #f3e3cd;
+    --ink: #3a2b1c;
+    --accent: #c8873f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    color: var(--ink);
+    background: var(--cream);
+    line-height: 1.6;
+  }
+  h1, h2, h3 { font-weight: normal; letter-spacing: 0.5px; }
+
+  /* Header */
+  header {
+    position: sticky;
+    top: 0;
+    background: var(--cream);
+    border-bottom: 1px solid var(--dough);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    z-index: 10;
+  }
+  .logo { font-size: 1.5rem; color: var(--crust-dark); font-weight: bold; }
+  .logo span { color: var(--accent); }
+  nav a {
+    margin-left: 1.5rem;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 0.95rem;
+  }
+  nav a:hover { color: var(--accent); }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 6rem 2rem;
+    background: linear-gradient(rgba(253,246,236,0.85), rgba(243,227,205,0.9)),
+                radial-gradient(circle at 30% 30%, #e9cfa8, transparent 60%);
+  }
+  .hero h1 { font-size: 3rem; color: var(--crust-dark); margin-bottom: 1rem; }
+  .hero p { font-size: 1.2rem; max-width: 600px; margin: 0 auto 2rem; color: #6b543d; }
+  .btn {
+    display: inline-block;
+    background: var(--crust);
+    color: var(--cream);
+    padding: 0.8rem 2rem;
+    text-decoration: none;
+    border-radius: 30px;
+    transition: background 0.2s;
+    font-size: 1rem;
+  }
+  .btn:hover { background: var(--crust-dark); }
+
+  /* Sections */
+  section { padding: 4rem 2rem; max-width: 1000px; margin: 0 auto; }
+  .section-title { text-align: center; font-size: 2rem; color: var(--crust-dark); margin-bottom: 2.5rem; }
+
+  /* Menu grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+  .card {
+    background: #fff;
+    border: 1px solid var(--dough);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(138,90,43,0.15); }
+  .card .emoji { font-size: 2.5rem; }
+  .card h3 { margin: 0.6rem 0 0.3rem; color: var(--crust-dark); }
+  .card .price { color: var(--accent); font-weight: bold; }
+
+  /* About */
+  .about { background: var(--dough); }
+  .about-inner { max-width: 700px; margin: 0 auto; text-align: center; }
+  .about p { margin-bottom: 1rem; }
+
+  /* Visit */
+  .visit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .visit-grid h3 { color: var(--crust-dark); margin-bottom: 0.5rem; }
+  .hours-row { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--dough); padding: 0.4rem 0; }
+
+  /* Footer */
+  footer {
+    background: var(--crust-dark);
+    color: var(--dough);
+    text-align: center;
+    padding: 2rem;
+    font-size: 0.9rem;
+  }
+  footer a { color: var(--cream); }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 2.2rem; }
+    .visit-grid { grid-template-columns: 1fr; }
+    nav a { margin-left: 1rem; font-size: 0.85rem; }
+    header { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Flour &amp; <span>Hearth</span></div>
+  <nav>
+    <a href="#menu">Menu</a>
+    <a href="#about">About</a>
+    <a href="#visit">Visit</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Baked fresh, every morning</h1>
+  <p>Your neighbourhood bakery on Maple Street — sourdough, pastries, and slow-fermented loaves made by hand since 2011.</p>
+  <a href="#visit" class="btn">Find Us</a>
+</section>
+
+<section id="menu">
+  <h2 class="section-title">Today's Bakes</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="emoji">🥖</div>
+      <h3>Country Sourdough</h3>
+      <p>48-hour ferment, crackling crust</p>
+      <span class="price">$6.50</span>
+    </div>
+    <div class="card">
+      <div class="emoji">🥐</div>
+      <h3>Butter Croissant</h3>
+      <p>Flaky, golden, all-butter layers</p>
+      <span class="price">$3.75</span>
+    </div>
+    <div class="card">
+      <div class="emoji">🥨</div>
+      <h3>Soft Pretzel</h3>
+      <p>Twisted daily, sea-salt topped</p>
+      <span class="price">$3.00</span>
+    </div>
+    <div class="card">
+      <div class="emoji">🍰</div>
+      <h3>Seasonal Tart</h3>
+      <p>Whatever's ripe at the market</p>
+      <span class="price">$4.50</span>
+    </div>
+    <div class="card">
+      <div class="emoji">🍞</div>
+      <h3>Seeded Wholegrain</h3>
+      <p>Sunflower, flax &amp; oats</p>
+      <span class="price">$7.00</span>
+    </div>
+    <div class="card">
+      <div class="emoji">🧁</div>
+      <h3>Cinnamon Bun</h3>
+      <p>Warm, gooey, cream-cheese glaze</p>
+      <span class="price">$4.25</span>
+    </div>
+  </div>
+</section>
+
+<section id="about" class="about">
+  <div class="about-inner">
+    <h2 class="section-title">Our Little Bakery</h2>
+    <p>Flour &amp; Hearth started with one wood-fired oven and a simple idea: good bread takes time, and time is worth taking. Every loaf is mixed, shaped, and baked right here by our small team.</p>
+    <p>We use local flour, natural leaven, and no shortcuts — just flour, water, salt, and patience. Stop by early; the best things sell out fast.</p>
+  </div>
+</section>
+
+<section id="visit">
+  <h2 class="section-title">Come Visit</h2>
+  <div class="visit-grid">
+    <div>
+      <h3>Opening Hours</h3>
+      <div class="hours-row"><span>Mon – Fri</span><span>7:00 – 18:00</span></div>
+      <div class="hours-row"><span>Saturday</span><span>7:00 – 16:00</span></div>
+      <div class="hours-row"><span>Sunday</span><span>8:00 – 14:00</span></div>
+    </div>
+    <div>
+      <h3>Where to Find Us</h3>
+      <p>128 Maple Street<br>Old Town Quarter</p>
+      <p>📞 (555) 204-8817<br>✉️ hello@flourandhearth.co</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Flour &amp; Hearth — made with warm hands and warm ovens.</p>
+  <p>© 2026 Flour &amp; Hearth Bakery · <a href="#menu">Back to top</a></p>
+</footer>
+
+</body>
+</html>

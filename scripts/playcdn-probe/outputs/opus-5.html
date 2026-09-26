@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bella Cucina — Menu</title>
+<style>
+  :root {
+    --bg: #1a1410;
+    --card: #241c16;
+    --accent: #c9a227;
+    --text: #f3ece2;
+    --muted: #a89b88;
+    --line: #3a2f26;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 2rem 1rem 4rem;
+  }
+  header {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto 3rem;
+  }
+  header h1 {
+    font-size: 2.8rem;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  header p {
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 0.5rem;
+    letter-spacing: 1px;
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  .category { margin-bottom: 2.75rem; }
+  .category h2 {
+    font-size: 1.5rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--line);
+    margin-bottom: 1.25rem;
+  }
+  .item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+  }
+  .item .name { font-weight: bold; white-space: nowrap; }
+  .item .dots {
+    flex: 1;
+    border-bottom: 1px dotted var(--line);
+    transform: translateY(-4px);
+  }
+  .item .price { color: var(--accent); white-space: nowrap; }
+  .item .desc {
+    display: block;
+    color: var(--muted);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 0.15rem;
+  }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    margin-top: 3.5rem;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Bella Cucina</h1>
+    <p>Authentic Italian Kitchen · Est. 1998</p>
+  </header>
+
+  <main>
+    <section class="category">
+      <h2>Antipasti</h2>
+      <div class="item">
+        <span class="name">Bruschetta al Pomodoro</span>
+        <span class="dots"></span>
+        <span class="price">$9</span>
+        <span class="desc">Grilled bread, vine tomatoes, basil, garlic oil</span>
+      </div>
+      <div class="item">
+        <span class="name">Burrata &amp; Prosciutto</span>
+        <span class="dots"></span>
+        <span class="price">$15</span>
+        <span class="desc">Creamy burrata, 18-month prosciutto, rocket</span>
+      </div>
+      <div class="item">
+        <span class="name">Calamari Fritti</span>
+        <span class="dots"></span>
+        <span class="price">$13</span>
+        <span class="desc">Lightly fried squid, lemon aioli</span>
+      </div>
+    </section>
+
+    <section class="category">
+      <h2>Pasta</h2>
+      <div class="item">
+        <span class="name">Spaghetti Carbonara</span>
+        <span class="dots"></span>
+        <span class="price">$17</span>
+        <span class="desc">Guanciale, pecorino, egg yolk, black pepper</span>
+      </div>
+      <div class="item">
+        <span class="name">Tagliatelle al Ragù</span>
+        <span class="dots"></span>
+        <span class="price">$19</span>
+        <span class="desc">Slow-braised beef &amp; pork, red wine</span>
+      </div>
+      <div class="item">
+        <span class="name">Gnocchi al Pesto</span>
+        <span class="dots"></span>
+        <span class="price">$16</span>
+        <span class="desc">Potato gnocchi, Genovese basil pesto, pine nuts</span>
+      </div>
+    </section>
+
+    <section class="category">
+      <h2>Pizza</h2>
+      <div class="item">
+        <span class="name">Margherita</span>
+        <span class="dots"></span>
+        <span class="price">$14</span>
+        <span class="desc">San Marzano tomato, fior di latte, basil</span>
+      </div>
+      <div class="item">
+        <span class="name">Diavola</span>
+        <span class="dots"></span>
+        <span class="price">$17</span>
+        <span class="desc">Spicy salami, chili, mozzarella</span>
+      </div>
+      <div class="item">
+        <span class="name">Quattro Formaggi</span>
+        <span class="dots"></span>
+        <span class="price">$18</span>
+        <span class="desc">Mozzarella, gorgonzola, fontina, parmigiano</span>
+      </div>
+    </section>
+
+    <section class="category">
+      <h2>Dolci</h2>
+      <div class="item">
+        <span class="name">Tiramisù</span>
+        <span class="dots"></span>
+        <span class="price">$9</span>
+        <span class="desc">Espresso-soaked savoiardi, mascarpone</span>
+      </div>
+      <div class="item">
+        <span class="name">Panna Cotta</span>
+        <span class="dots"></span>
+        <span class="price">$8</span>
+        <span class="desc">Vanilla bean cream, wild berry coulis</span>
+      </div>
+    </section>
+
+    <section class="category">
+      <h2>Beverages</h2>
+      <div class="item">
+        <span class="name">Espresso</span>
+        <span class="dots"></span>
+        <span class="price">$4</span>
+      </div>
+      <div class="item">
+        <span class="name">House Red / White (glass)</span>
+        <span class="dots"></span>
+        <span class="price">$9</span>
+      </div>
+      <div class="item">
+        <span class="name">San Pellegrino (500ml)</span>
+        <span class="dots"></span>
+        <span class="price">$5</span>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Prices in USD · A 5% service charge applies to parties of 6 or more
+  </footer>
+</body>
+</html>

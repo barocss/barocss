@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morgan Chen - Freelance Photographer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+        }
+
+        header {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        nav h1 {
+            font-size: 1.5rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 0.95rem;
+        }
+
+        nav a:hover {
+            color: #b8860b;
+        }
+
+        .hero {
+            height: 100vh;
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect fill="%23222" width="1200" height="800"/><circle cx="300" cy="200" r="150" fill="%23444"/><circle cx="900" cy="600" r="200" fill="%23333"/></svg>');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #fff;
+        }
+
+        .hero-content h2 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 2.5rem;
+            background: #b8860b;
+            color: #fff;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: #9d7209;
+        }
+
+        section {
+            padding: 5rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            text-align: center;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .portfolio {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .portfolio-item {
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 1;
+            background: #f0f0f0;
+        }
+
+        .portfolio-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .portfolio-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .portfolio-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .portfolio-item:hover .portfolio-overlay {
+            opacity: 1;
+        }
+
+        #portfolio {
+            background: #f9f9f9;
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-image {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: #ddd;
+            border-radius: 4px;
+        }
+
+        .about-text h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+        }
+
+        .about-text p {
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .services {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .service-card {
+            background: #f9f9f9;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .service-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 400;
+        }
+
+        .service-card p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        #contact {
+            background: #1a1a1a;
+            color: #fff;
+            text-align: center;
+        }
+
+        #contact h2 {
+            color: #fff;
+        }
+
+        .contact-info {
+            font-size: 1.2rem;
+            margin: 2rem 0;
+        }
+
+        .contact-info a {
+            color: #b8860b;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .contact-info a:hover {
+            color: #d4af37;
+        }
+
+        .social {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .social a {
+            color: #b8860b;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+
+        .social a:hover {
+            color: #d4af37;
+        }
+
+        footer {
+            background: #0a0a0a;
+            color: #888;
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                gap: 1rem;
+                font-size: 0.85rem;
+            }
+
+            .hero-content h2 {
+                font-size: 2rem;
+            }
+
+            .hero-content p {
+                font-size: 1rem;
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            section {
+                padding: 3rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>MORGAN CHEN</h1>
+            <ul>
+                <li><a href="#portfolio">Portfolio</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h2>CAPTURING MOMENTS</h2>
+            <p>Professional Photography for Every Story</p>
+            <a href="#portfolio" class="btn">VIEW MY WORK</a>
+        </div>
+    </section>
+
+    <section id="portfolio">
+        <h2>Portfolio</h2>
+        <div class="portfolio">
+            <div class="portfolio-item">
+                <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect fill="#d4af37" width="300" height="300"/><text x="150" y="150" font-size="20" fill="#1a1a1a" text-anchor="middle" dominant-baseline="middle">PORTRAIT</text></svg>
+                <div class="portfolio-overlay">Portrait Photography</div>
+            </div>
+            <div class="portfolio-item">
+                <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect fill="#8b7355" width="300" height="300"/><text x="150" y="150" font-size="20" fill="#fff" text-anchor="middle" dominant-baseline="middle">LANDSCAPE</text></svg>
+                <div class="portfolio-overlay">Landscape Photography</div>
+            </div>
+            <div class="portfolio-item">
+                <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect fill="#4a5568" width="300" height="300"/><text x="150" y="150" font-size="20" fill="#fff" text-anchor="middle" dominant-baseline="middle">EVENTS</text></svg>
+                <div class="portfolio-overlay">Event Photography</div>
+            </div>
+            <div class="portfolio-item">
+                <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect fill="#c9ada7" width="300" height="300"/><text x="150" y="150" font-size="20" fill="#1a1a1a" text-anchor="middle" dominant-baseline="middle">WEDDING</text></svg>
+                <div class="portfolio-overlay">Wedding Photography</div>
+            </div>
+            <div class="portfolio-item">
+                <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect fill="#2d5a2d" width="300" height="300"/><text x="150" y="150" font-size="20" fill="#fff" text-anchor="middle" dominant-baseline="middle">NATURE</text></svg>
+                <div class="portfolio-overlay">Nature Photography</div>
+            </div>
+            <div class="portfolio-item">
+                <svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect fill="#9a7c7c" width="300" height="300"/><text x="150" y="150" font-size="20" fill="#fff" text-anchor="middle" dominant-baseline="middle">PRODUCT</text></svg>
+                <div class="portfolio-overlay">Product Photography</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <h2>About Me</h2>
+        <div class="about-content">
+            <div class="about-image"></div>
+            <div class="about-text">
+                <h3>Professional Photographer</h3>
+                <p>With over 10 years of experience in professional photography, I specialize in capturing authentic moments that tell meaningful stories. My work spans across portraits, events, weddings, and commercial photography.</p>
+                <p>I believe every photograph is an opportunity to preserve a memory and create an emotional connection. My approach combines technical expertise with a creative eye to deliver images that exceed expectations.</p>
+                <h3>Services</h3>
+                <div class="services">
+                    <div class="service-card">
+                        <h4>Portraits</h4>
+                        <p>Professional headshots and portrait sessions</p>
+                    </div>
+                    <div class="service-card">
+                        <h4>Events</h4>
+                        <p>Coverage for weddings, parties, and corporate events</p>
+                    </div>
+                    <div class="service-card">
+                        <h4>Commercial</h4>
+                        <p>Product and branding photography for businesses</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <h2>Get In Touch</h2>
+        <p style="font-size: 1.1rem; margin: 2rem 0; color: #ccc;">Ready to book your session or discuss your photography needs?</p>
+        <div class="contact-info">
+            <p>📧 <a href="mailto:hello@morganchenphotography.com">hello@morganchenphotography.com</a></p>
+            <p>📱 <a href="tel:+1234567890">+1 (234) 567-890</a></p>
+            <p>📍 Based in New York, Available Worldwide</p>
+        </div>
+        <div class="social">
+            <a href="#">Instagram</a>
+            <a href="#">Facebook</a>
+            <a href="#">Pinterest</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Morgan Chen Photography. All rights reserved.</p>
+    </footer>
+</body>
+</html>

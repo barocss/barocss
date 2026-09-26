@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - NoteFlow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 60px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .pricing-card {
+            background: white;
+            border-radius: 12px;
+            padding: 40px 30px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .pricing-card.featured {
+            border: 3px solid #667eea;
+            transform: scale(1.05);
+        }
+        
+        .pricing-card.featured:hover {
+            transform: scale(1.05) translateY(-10px);
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .tier-name {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .price {
+            font-size: 3em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .price-period {
+            color: #666;
+            font-size: 1em;
+            margin-bottom: 25px;
+            font-weight: 400;
+        }
+        
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .cta-button {
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .cta-button.primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .cta-button.primary:hover {
+            background: #5568d3;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .cta-button.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .cta-button.secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .features {
+            list-style: none;
+        }
+        
+        .features li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            color: #555;
+            display: flex;
+            align-items: center;
+        }
+        
+        .features li:last-child {
+            border-bottom: none;
+        }
+        
+        .features li::before {
+            content: "✓";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 12px;
+            font-size: 1.2em;
+        }
+        
+        .features li.unavailable::before {
+            content: "✗";
+            color: #ccc;
+        }
+        
+        .features li.unavailable {
+            color: #ccc;
+        }
+        
+        .faq {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            margin-top: 60px;
+        }
+        
+        .faq h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        
+        .faq-item {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+        
+        .faq-question {
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .faq-answer {
+            color: #666;
+            line-height: 1.6;
+            display: none;
+        }
+        
+        .faq-answer.active {
+            display: block;
+        }
+        
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+        
+        .toggle-icon.active {
+            transform: rotate(180deg);
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+            
+            .pricing-card.featured:hover {
+                transform: translateY(-10px);
+            }
+            
+            .price {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Simple, Transparent Pricing</h1>
+            <p>Choose the perfect plan for your note-taking needs</p>
+        </div>
+        
+        <div class="pricing-grid">
+            <!-- Starter Tier -->
+            <div class="pricing-card">
+                <span class="badge">Starter</span>
+                <div class="tier-name">Basic</div>
+                <div class="price">$9</div>
+                <div class="price-period">per month</div>
+                <p class="description">Perfect for personal use and light note-taking</p>
+                <button class="cta-button secondary">Get Started</button>
+                <ul class="features">
+                    <li>Up to 500 notes</li>
+                    <li>Basic text formatting</li>
+                    <li>1 shared notebook</li>
+                    <li>Mobile app access</li>
+                    <li class="unavailable">Advanced search</li>
+                    <li class="unavailable">API access</li>
+                </ul>
+            </div>
+            
+            <!-- Professional Tier -->
+            <div class="pricing-card featured">
+                <span class="badge" style="background: #764ba2;">Most Popular</span>
+                <div class="tier-name">Professional</div>
+                <div class="price">$29</div>
+                <div class="price-period">per month</div>
+                <p class="description">For professionals and small teams who need more</p>
+                <button class="cta-button primary">Start Free Trial</button>
+                <ul class="features">
+                    <li>Unlimited notes</li>
+                    <li>Rich text & markdown</li>
+                    <li>Up to 5 shared notebooks</li>
+                    <li>Mobile app access</li>
+                    <li>Advanced search</li>
+                    <li class="unavailable">API access</li>
+                </ul>
+            </div>
+            
+            <!-- Enterprise Tier -->
+            <div class="pricing-card">
+                <span class="badge">Enterprise</span>
+                <div class="tier-name">Business</div>
+                <div class="price">$99</div>
+                <div class="price-period">per month</div>
+                <p class="description">For large teams with advanced requirements</p>
+                <button class="cta-button secondary">Contact Sales</button>
+                <ul class="features">
+                    <li>Unlimited notes</li>
+                    <li>Rich text & markdown</li>
+                    <li>Unlimited shared notebooks</li>
+                    <li>Mobile app access</li>
+                    <li>Advanced search</li>
+                    <li>Full API access</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="faq">
+            <h2>Frequently Asked Questions</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Can I change plans anytime?</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Yes! You can upgrade or downgrade your plan at any time. Changes take effect at the start of your next billing cycle. No long-term commitments required.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Is there a free trial?</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Yes, the Professional plan includes a 14-day free trial. No credit card required to start. After the trial, you'll be charged according to your plan unless you cancel.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Do you offer discounts for annual billing?</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Yes! Pay annually and get 2 months free. That's a 16% discount on your yearly subscription. You can enable annual billing in your account settings anytime.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>What payment methods do you accept?</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    We accept all major credit cards (Visa, Mastercard, American Express), PayPal, and wire transfers for Enterprise customers. All payments are processed securely.
+                </div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Can I export my notes?</span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="faq-answer">
+                    Absolutely! All plans allow you to export your notes in multiple formats including PDF, Markdown, and plain text. Your data is always yours.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('.toggle-icon');
+            
+            answer.classList.toggle('active');
+            icon.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
