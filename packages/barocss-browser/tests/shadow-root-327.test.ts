@@ -33,7 +33,7 @@ const rootCss = (sr: ShadowRoot) => Array.from(sr.querySelectorAll<HTMLStyleElem
   .map(s => (s.sheet ? Array.from(s.sheet.cssRules, r => r.cssText).join('\n') : s.textContent)).join('\n');
 
 describe('#327 shadow root option (fallback <style> path)', () => {
-  it('scopes utilities, theme vars and preflight into the root, nothing into document.head', async () => {
+  it('scopes utilities, theme vars and preflight into the root, only @property into document.head (#384)', async () => {
     const sr = widget('<div class="p-4 text-red-500">x</div>');
     start(sr);
     await flush();
@@ -42,8 +42,17 @@ describe('#327 shadow root option (fallback <style> path)', () => {
     expect(css).toMatch(/\.text-red-500/);
     expect(css).toMatch(/:root,:host/);
     expect(css).toMatch(/:host \{[^}]*font-family/);
-    expect(document.head.querySelectorAll('style').length).toBe(0);
+    // p-4 / text-red-500 need no @property: the document stays empty.
     expect(document.head.innerHTML).toBe('');
+    // shadow-md does: the document gains only its @property registrations.
+    sr.querySelector('div')!.className = 'p-4 shadow-md';
+    await flush();
+    const docStyles = Array.from(document.head.querySelectorAll('style'));
+    expect(docStyles.map(s => s.getAttribute('data-barocss'))).toEqual(['document-properties']);
+    const docRules = Array.from(docStyles[0].sheet?.cssRules ?? [], r => r.cssText);
+    const docText = docRules.length ? docRules : [docStyles[0].textContent ?? ''];
+    expect(docText.join('\n')).toMatch(/@property --baro-shadow/);
+    expect(docText.join('\n')).not.toMatch(/\.p-4|\.shadow-md|:root|:host/);
   });
 
   it('styles classes added later inside the root', async () => {

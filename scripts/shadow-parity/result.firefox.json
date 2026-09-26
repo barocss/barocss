@@ -1,0 +1,36 @@
+{
+  "engine": "firefox",
+  "build": "packages/barocss-browser/dist/cdn/barocss.umd.cjs",
+  "corpora": {
+    "corpus": {
+      "classes": 338,
+      "shadow": {
+        "differing": 0,
+        "documentRules": 17,
+        "documentNonPropertyRules": 0,
+        "diffs": []
+      },
+      "fallback": {
+        "differing": 0,
+        "documentRules": 0,
+        "documentNonPropertyRules": 0,
+        "diffs": []
+      }
+    },
+    "heldout": {
+      "classes": 567,
+      "shadow": {
+        "differing": 0,
+        "documentRules": 27,
+        "documentNonPropertyRules": 0,
+        "diffs": []
+      },
+      "fallback": {
+        "differing": 0,
+        "documentRules": 0,
+        "documentNonPropertyRules": 0,
+        "diffs": []
+      }
+    }
+  }
+}
