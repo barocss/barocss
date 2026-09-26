@@ -164,9 +164,11 @@ const tw = Date.now(); await trial(CONDS[CONDS.length - 1], DOCS[0]); process.st
 const jobs = [];
 for (let r = 0; r < ROUNDS; r++) for (const d of DOCS) for (const c of (r % 2 ? [...CONDS].reverse() : CONDS)) jobs.push([c, d, r]);
 const RES = path.join(HERE, 'result.json');
-let raw = []; try { raw = JSON.parse(fs.readFileSync(RES, 'utf8')).raw || []; } catch {}
+var raw = []; try { raw = JSON.parse(fs.readFileSync(RES, 'utf8')).raw || []; } catch {}
 const version = browser.version();
 let next = 0;
+// Resume: skip (cond, doc) pairs already in result.json, so a repeated invocation fills the gaps.
+for (let i = jobs.length - 1; i >= 0; i--) if (raw.some((x) => x.cond === jobs[i][0].id && x.doc === jobs[i][1].id)) jobs.splice(i, 1);
 const q = (a, f) => { const s = a.filter((x) => x != null).sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(s.length * f))] : null; };
 const med = (a) => q(a, 0.5);
 function save() {
@@ -193,7 +195,7 @@ return out;
 
 await Promise.all(Array.from({ length: CONC }, async () => { while (next < jobs.length) { const [c, d, r] = jobs[next++];
   const t = await Promise.race([trial(c, d), new Promise((res) => setTimeout(() => res(null), 60000))]);
-  if (!t) { process.stderr.write(`timeout ${c.id} ${d.id}\n`); continue; }
+  if (!t) { process.stderr.write(`timeout ${c.id} ${d.id}; exiting (rerun resumes)\n`); await Promise.race([browser.close(), new Promise((r) => setTimeout(r, 5000))]); process.exit(0); }
   raw.push({ round: r, ...t }); save(); process.stderr.write(` ${c.id} ${d.id} ${Math.round(t.streamMs)}ms settle=${t.settleMs}\n`); } }));
 
 await browser.close(); srv.close();
