@@ -7,7 +7,7 @@
  */
 
 import { GenerateCssRulesResult } from "@barocss/kit";
-import { parseClassName } from "@barocss/kit";
+import { parseClassName, isDebug } from "@barocss/kit";
 import { compareKeys, ruleSortKey, upperBound, type RuleKey } from "./rule-order";
 
 export interface StylePartition {
@@ -182,7 +182,7 @@ export class StylePartitionManager {
       return true;
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.warn(
+      if (isDebug()) console.warn(
         `[StylePartitionManager] Failed to insert rule: ${rule}`,
         error
       );
@@ -204,7 +204,7 @@ export class StylePartitionManager {
       this.insertSorted(categoryPartition, rule, ruleSortKey(rule));
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.warn(
+      if (isDebug()) console.warn(
         `[StylePartitionManager] Failed to insert rule in category: ${category} ${rule}`,
         error
       );
@@ -235,7 +235,7 @@ export class StylePartitionManager {
       }
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.warn(
+      if (isDebug()) console.warn(
         `[StylePartitionManager] Failed to insert rule in category: root ${rules.join("\n")}`,
         error
       );
@@ -332,7 +332,7 @@ export class StylePartitionManager {
     } else {
       const newPartition = this.createNewCategoryPartition(category, atDocumentStart);
       // eslint-disable-next-line no-console
-      console.log(`[StylePartitionManager] Created new partition for category: ${category}`);
+      if (isDebug()) console.log(`[StylePartitionManager] Created new partition for category: ${category}`);
       newPartition.styleElement.textContent = ruleContent;
     }
   }
