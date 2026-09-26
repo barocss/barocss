@@ -2,6 +2,7 @@
  * #319 seeded fuzz smoke test (kit only, no browser). Generates a fixed set of class inputs from the
  * grammar / mutation / sweep / random generators in harness.mjs and checks the GENERIC output properties
  * P1 (structural parse), P2 (scope), P3 (injection shape) and P4 (size) on generateCss output.
+ * P5 (#346, REPORT-ONLY): outputs carrying a resource-loading function (url( / image-set( ...) in a value.
  * Known-open counts are a ratchet: a count may go down (update BASELINE), never up.
  * Long campaign with Chromium CSSOM: scripts/fuzz/campaign.mjs.
  */
@@ -10,6 +11,9 @@ import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
 import '../../src/presets';
 import { corpus } from '../compat/corpus';
+
+// #346: resource-loading functions in output values (report-only, no baseline).
+const RESOURCE_FN = /(?:^|[^\w-])(?:url|image-set|-webkit-image-set|image|src|cross-fade|element)\s*\(/i;
 // @ts-expect-error plain ESM helper without types
 import * as H from './harness.mjs';
 
@@ -33,12 +37,13 @@ function runCampaign() {
   // #339: bracket groups, lone/unbalanced brackets, chained arbitrary and relational variants.
   for (let i = 0; i < PER_GENERATOR; i++) inputs.push(H.genBrackets(r));
 
-  const counts: Record<string, number> = { P1: 0, P2: 0, P3: 0, P4: 0, throws: 0 };
+  const counts: Record<string, number> = { P1: 0, P2: 0, P3: 0, P4: 0, P5: 0, throws: 0 };
   for (const input of inputs) {
     let css: string;
     try { css = generateCss(input, ctx); } catch { counts.throws++; continue; }
     const props = new Set<string>(H.checkCss(css, input, H.classPredicate(input)).map((v: { prop: string }) => v.prop));
     for (const p of props) counts[p]++;
+    if (RESOURCE_FN.test(css)) counts.P5++;
   }
   return { counts, n: inputs.length };
 }
@@ -47,6 +52,7 @@ describe('#319 fuzz: class-input output properties (seeded)', () => {
   it('stays within the known-open baseline per property', () => {
     const { counts, n } = runCampaign();
     expect(n).toBe(PER_GENERATOR * 5);
+    console.log(`[#319 fuzz] P5 (url/image-set in output, report-only): ${counts.P5}/${n}`);
     for (const k of Object.keys(BASELINE)) expect.soft(counts[k], k).toBeLessThanOrEqual(BASELINE[k]);
     expect(counts.P4, 'size cap').toBe(0);
   }, 30_000);
