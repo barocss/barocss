@@ -45,6 +45,10 @@ document.querySelectorAll('style[id^="barocss-runtime"]').length; // > 0
 
 **Browser support:** Chrome/Edge 85+, Safari/iOS 16.4+, Firefox 128+. The runtime needs CSS `@property`; composite utilities (shadows, rings, transforms, filters) may not render on older engines.
 
+## Server-rendered pages (SSR)
+
+The runtime adopts a `<style data-barocss-ssr>` sheet from `@barocss/server` (`ssrStyleTag(runtime.generateCssForHtml(html, { skip: buildCss }))`). It never regenerates those classes and GC never reclaims them. Their rules move into the runtime's ordered partitions, so later client rules keep Tailwind's variant order. For the Next.js App Router and Astro recipe, see the [`@barocss/server` README](../barocss-server/README.md#recipe-ssr-with-a-tailwind-build-nextjs-app-router-astro).
+
 ## ✨ Key Features
 
 - **🚀 Real-time DOM Detection** - Automatically detects and processes class changes

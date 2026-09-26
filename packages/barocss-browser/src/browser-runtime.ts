@@ -37,6 +37,9 @@ export interface BrowserRuntimeOptions {
   maxRules?: number;
 }
 
+/** #268: marks a server-rendered sheet (`@barocss/server` `ssrStyleTag()`); the runtime adopts its class rules. */
+export const SSR_STYLE_SELECTOR = 'style[data-barocss-ssr]';
+
 /** Tailwind 4 layer order, declared by BaroCSS's first <style> in <head>. */
 export const LAYER_ORDER = "@layer theme, base, components, utilities;";
 
@@ -52,6 +55,9 @@ export class BrowserRuntime {
   private pinned = new Set<string>();
   private gc: ClassGc | null = null;
   private reclaimedCount = 0;
+  /** #268: class rules adopted from `<style data-barocss-ssr>`, in sheet order, and the classes they lead. */
+  private ssrRules: Array<{ css: string; cls: string }> = [];
+  private ssrClasses = new Set<string>();
 
   private incrementalParser: IncrementalParser;
   private changeDetector: ChangeDetector;
@@ -111,6 +117,44 @@ export class BrowserRuntime {
     console.log('[BrowserRuntime] init');
     this.injectPreflightCSS();
     this.ensureCssVars();
+    this.adoptSsrSheets();
+  }
+
+  /**
+   * #268: adopt the class rules of server-rendered `<style data-barocss-ssr>` sheets. Each rule moves
+   * (same task, so no paint in between) into the partition its class would get if generated here, at
+   * its #254 sorted position, so a later client `sm:` rule lands before a server `lg:` rule. Its classes
+   * are never regenerated and never reclaimed. `:root`, `@property` and `@keyframes` stay in the sheet.
+   */
+  private adoptSsrSheets(): void {
+    if (typeof document === 'undefined') return;
+    const adopted: Array<{ css: string; cls: string }> = [];
+    for (const el of Array.from(document.querySelectorAll<HTMLStyleElement>(`${SSR_STYLE_SELECTOR}:not([data-barocss-adopted])`))) {
+      const sheet = el.sheet;
+      if (!sheet) continue;
+      el.setAttribute('data-barocss-adopted', '');
+      const moved: Array<{ css: string; cls: string }> = [];
+      for (let i = sheet.cssRules.length - 1; i >= 0; i--) {
+        const rule = sheet.cssRules[i];
+        const classes = collectLeadingClasses([rule]);
+        if (classes.size === 0) continue;
+        classes.forEach(cls => this.ssrClasses.add(cls));
+        moved.unshift({ css: rule.cssText, cls: classes.values().next().value! });
+        sheet.deleteRule(i);
+      }
+      adopted.push(...moved);
+    }
+    if (adopted.length === 0) return;
+    this.ssrRules.push(...adopted);
+    this.insertSsrRules(adopted);
+  }
+
+  private insertSsrRules(rules: Array<{ css: string; cls: string }>): void {
+    for (const { css, cls } of rules) {
+      const category = this.getCategory(cls);
+      if (category) this.stylePartitionManager.addCategoryRule(css, category);
+      else this.stylePartitionManager.addRule(css);
+    }
   }
 
   private injectPreflightCSS() {
@@ -192,12 +236,14 @@ export class BrowserRuntime {
    */
   public applyParseResults(results: Array<GenerateCssRulesResult>, _opts?: { isBrowser?: boolean }): void {
     if (this.isDestroyed) return;
+    this.adoptSsrSheets();
     if (this.getInsertionPoint().isConnected && this.stylePartitionManager.hasDetachedPartitions()) {
       const existingResults = Array.from(this.cache.values());
       this.reset();
       results = [...existingResults, ...results];
       results.forEach(result => this.incrementalParser.markProcessed(result.cls));
     }
+    if (this.ssrClasses.size > 0) results = results.filter(result => !this.ssrClasses.has(result.cls));
     if (this.options.skipExisting && results.length > 0 && typeof document !== 'undefined') {
       const existing = this.getExistingClasses();
       results = results.filter(result => !existing.has(result.cls));
@@ -238,7 +284,7 @@ export class BrowserRuntime {
 
   /** #269: a class that must never be reclaimed. */
   private isPermanent(cls: string): boolean {
-    if (this.pinned.has(cls)) return true;
+    if (this.pinned.has(cls) || this.ssrClasses.has(cls)) return true;
     if (typeof document === 'undefined') return true;
     return this.getExistingClasses().has(cls);
   }
@@ -353,6 +399,7 @@ export class BrowserRuntime {
     this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
     this.injectPreflightCSS();
     this.ensureCssVars();
+    this.insertSsrRules(this.ssrRules);
   }
 
 
@@ -365,6 +412,7 @@ export class BrowserRuntime {
     this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
     this.injectPreflightCSS();
     this.ensureCssVars();
+    this.insertSsrRules(this.ssrRules);
   }
 
   updateConfig(newConfig: Config): void {

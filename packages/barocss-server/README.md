@@ -8,6 +8,79 @@
 
 @barocss/server provides server-side utilities for parsing Tailwind classes and generating CSS without browser-specific features. Perfect for SSR, static site generation, and server-side CSS processing.
 
+## Recipe: SSR with a Tailwind build (Next.js App Router, Astro)
+
+Use this when pages link a build stylesheet (a Tailwind or BaroCSS build) but render classes the build never saw, such as CMS blocks or model output. At request time, generate only the missing CSS and inline it, so the first paint is already styled:
+
+```ts
+import fs from 'node:fs';
+import { ServerRuntime, ssrStyleTag } from '@barocss/server';
+
+// Once per server process: the runtime caches per-class results; read the shipped build CSS once.
+const runtime = new ServerRuntime({ cssVarPrefix: 'tw', theme: { extend: siteTheme } });
+const BUILD_CSS = fs.readFileSync('dist/app.css', 'utf8');
+
+// Per request: this response's delta only (never cumulative across requests).
+const css = runtime.generateCssForHtml(html, { skip: BUILD_CSS });
+const tag = ssrStyleTag(css); // '<style data-barocss-ssr>…</style>': put it in <head>, after the build <link>
+```
+
+- `generateCssForHtml(htmlOrClasses, { skip })` takes HTML or a class list. From HTML it reads the `class` attributes (any quoting, entities decoded) and ignores comments and `<script>`/`<style>` contents.
+- `skip` is either the build CSS text or a set of class names. With CSS text it:
+  - skips the classes that lead its selectors (`.p-4`, `.md\:p-4` inside `@media`, `:where(.divide-y > …)`)
+  - doesn't re-emit the theme vars its `:root`/`:host` blocks declare
+  - doesn't re-emit its `@property` or `@keyframes` names
+
+  The output never contains `@layer` statements.
+- The result is one ordered sheet (#267): each referenced theme var once, each `@property` block once, rules in Tailwind variant order.
+- Also exported: `extractClasses(html)`, `parseCssDefinitions(css)`, `ssrStyleTag(css, { nonce })`, `SSR_STYLE_ATTRIBUTE`.
+
+**Next.js App Router** (a server component; `html` is the CMS or model markup you render):
+
+```tsx
+export default async function Page() {
+  const html = await getBlocksHtml();
+  const css = runtime.generateCssForHtml(html, { skip: BUILD_CSS });
+  return (
+    <>
+      <style data-barocss-ssr="" dangerouslySetInnerHTML={{ __html: css.replace(/<\/style/gi, '<\\/style') }} />
+      <div dangerouslySetInnerHTML={{ __html: html }} />
+    </>
+  );
+}
+```
+
+Don't give this `<style>` a `precedence` or `href`, so React leaves it where it is. It only has to come before the content it styles. When you render components rather than an HTML string, pass the class list instead: `runtime.generateCssForHtml(['p-4 sm:p-6', …], { skip: BUILD_CSS })`.
+
+**Astro** (`.astro` page, SSR):
+
+```astro
+---
+const html = await getBlocksHtml();
+const css = runtime.generateCssForHtml(html, { skip: BUILD_CSS });
+---
+<html><head>
+  <link rel="stylesheet" href="/app.css" />
+  <Fragment set:html={ssrStyleTag(css)} />
+</head><body><Fragment set:html={html} /></body></html>
+```
+
+**Client companion** (only needed when the page adds classes after load). Load `@barocss/browser` as usual; it adopts the `<style data-barocss-ssr>` sheet:
+
+```js
+import { getRuntime } from '@barocss/browser';
+const rt = getRuntime({ skipExisting: true, config: { cssVarPrefix: 'tw', theme: { extend: siteTheme } } });
+rt.observe(document.body, { scan: true });
+```
+
+The client never regenerates the server's classes, and GC never reclaims them. Later client rules keep Tailwind's combined order with the server's rules: a client `sm:` rule never lands after a server `lg:` rule.
+
+Measured with `scripts/ssr-probe` (#266/#268):
+- first paint matched a full Tailwind build (1.0)
+- still 1.0 after a later client addition
+- 0 duplicate rules and 0 re-emitted build definitions
+- about 0.2 ms per request on a warm runtime
+
 ## ✨ Key Features
 
 - **🚀 Server-Side CSS Generation** - Generate CSS on the server without browser APIs
