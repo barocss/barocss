@@ -112,8 +112,18 @@ async function flush() {
     const count = (list) => { let c = 0; for (const r of list) { c++; if (r.cssRules && !(r instanceof CSSKeyframesRule)) c += count(r.cssRules); else if (r instanceof CSSKeyframesRule) c += r.cssRules.length; } return c; };
     const STRIP = /::?(?:before|after|placeholder|marker|backdrop|selection|file-selector-button|first-line|first-letter|hover|focus-visible|focus-within|focus|active|visited|checked|disabled|enabled|open)\b/g;
     const decoys = [document.documentElement, document.body, ...document.body.querySelectorAll('*')];
-    return items.map(({ css, rules, expect }) => {
+    const host = document.getElementById('d');
+    return items.map(({ css, rules, expect, input, variants }) => {
       const bad = [];
+      // #412 retarget decoys: elements whose class is a derived variant of the input and carries none of the
+      // input's allowed tokens (classPredicate: ASCII-whitespace tokens, U+0000 read as U+FFFD)
+      const allowed = new Set(input.replace(/\0/g, '\uFFFD').split(/[ \t\n\r\f]+/).filter(Boolean));
+      const vdecoys = [];
+      for (const v of variants ?? []) {
+        const el = document.createElement('b');
+        el.setAttribute('class', v);
+        if (![...el.classList].some((c) => allowed.has(c) || c === input)) { host.appendChild(el); vdecoys.push(el); }
+      }
       try {
         const s = new CSSStyleSheet();
         s.replaceSync(css);
@@ -131,12 +141,14 @@ async function flush() {
               if (!customOnly) {
                 const q = r.selectorText.replace(STRIP, '').replace(/\s*([>+~])\s*/g, '$1').replace(/(^|[\s,>+~])(?=[\s,>+~)]|$)/g, '$1*');
                 try { if (decoys.some((el) => el.matches(q))) bad.push('dom-escape'); } catch { /* unmatchable */ }
+                try { if (vdecoys.some((el) => el.matches(q))) bad.push('dom-retarget'); } catch { /* unmatchable */ }
               }
             } else if (r.cssRules && !(r instanceof CSSKeyframesRule)) scan(r.cssRules);
           }
         };
         scan(s.cssRules);
       } catch { bad.push('cssom-throws'); }
+      for (const el of vdecoys) el.remove();
       if (rules) {
         for (const rule of rules) {
           try { const s = new CSSStyleSheet(); s.insertRule(rule, 0); if (s.cssRules.length !== 1) bad.push('insertrule-count'); }
@@ -145,21 +157,35 @@ async function flush() {
       }
       return [...new Set(bad)];
     });
-  }, batch.map(({ css, rules, expect }) => ({ css, rules, expect })));
+  }, batch.map(({ css, rules, expect, input, variants }) => ({ css, rules, expect, input, variants })));
   results.forEach((bad, i) => {
     const job = batch[i];
-    cssomSeen.set(job.path + '\0' + job.css, bad);
-    for (const why of bad) note(job.path, why === 'dom-escape' ? 'P2' : 'P1', why, job.input, job.gen);
+    cssomSeen.set(job.path + '\0' + job.css + '\0' + job.input, bad);
+    for (const why of bad) note(job.path, P2_WHY.has(why) ? 'P2' : 'P1', why, job.input, job.gen);
   });
+}
+const P2_WHY = new Set(['dom-escape', 'dom-retarget']);
+/** #412: class names derived from the input that a correctly escaped rule must NOT match (#392 retarget mode). */
+function variantsOf(input) {
+  const out = new Set([input.trim(), input.trimStart(), input.trimEnd(), input.replace(/\s+/g, ''),
+    input.replace(/[\p{Cc}\p{Cf}]/gu, ''), input.replace(/[\s\p{Cc}\p{Cf}]/gu, ''),
+    input.replaceAll('\0', '\uFFFD'), input.replaceAll('\0', '\uFFFD').replace(/[\s\p{Cc}\p{Cf}]/gu, ''),
+    input.replaceAll('\0', ''), input.replace(/\uFFFD/g, '\0')]);
+  const re = /[^\x21-\x7e]/gu; let m, n = 0;
+  while ((m = re.exec(input)) && n++ < 12) out.add(input.slice(0, m.index));
+  out.delete(input); out.delete('');
+  return [...out];
 }
 async function enqueue(input, jobs) {
   for (const j of jobs) {
     const key = j.path + '\0' + j.css;
-    const cached = cssomSeen.get(key);
-    if (cached) { for (const why of cached) note(j.path, why === 'dom-escape' ? 'P2' : 'P1', why, input); continue; }
-    cssomSeen.set(key, []);
+    const cached = cssomSeen.get(key + '\0' + input);
+    if (cached) { for (const why of cached) note(j.path, P2_WHY.has(why) ? 'P2' : 'P1', why, input); continue; }
+    cssomSeen.set(key + '\0' + input, []);
     if (cssomSeen.size > 200000) cssomSeen.clear();
-    pending.push({ ...j, expect: H.countRules(j.css), input, gen: curGen });
+    // html splits the attribute on whitespace, so its token rules legitimately match whitespace-truncated variants
+    const variants = j.path === 'html' && /\s/.test(input) ? [] : variantsOf(input);
+    pending.push({ ...j, expect: H.countRules(j.css), input, variants, gen: curGen });
   }
   if (pending.length >= 1500) await flush();
 }
@@ -183,11 +209,21 @@ async function one(input, gen) {
 // ---- #406 self-test: the matching check must flag an unscoped rule and must not flag a scoped one ----
 {
   const probes = [['st-unscoped', 'div{color:red}\n', true], ['st-action', ':hover>p{color:red}\n', true], ['st-scoped', '.st-only:hover{color:red}\n', false], ['st-host', ':root{--st:1}\n', false]];
-  for (const [path, css] of probes) pending.push({ path, css, rules: null, expect: 1, input: '', gen: 'selftest' });
+  for (const [path, css] of probes) pending.push({ path, css, rules: null, expect: 1, input: '', variants: [], gen: 'selftest' });
+  // #412: retargeting rules (a rule for a derived variant, not the exact input) must be flagged; exact ones must not
+  const rt = [['st-rt-trim', 'st-a\u3000', '.st-a{color:red}\n', true], ['st-rt-ctl', 'st-b\u200b', '.st-b{color:red}\n', true],
+    ['st-rt-nul', 'st-c\0x', '.st-cx{color:red}\n', true], ['st-rt-nulok', 'st-f\0', '.st-f\\fffd{color:red}\n', false], ['st-rt-cut', 'st-d\u00a0x', '.st-d{color:red}\n', true],
+    ['st-rt-exact', 'st-e\u200b', '.st-e\\200b{color:red}\n', false]];
+  for (const [path, input, css] of rt) pending.push({ path, css, rules: null, expect: 1, input, variants: variantsOf(input), gen: 'selftest' });
   await flush();
   for (const [path, css, want] of probes) {
-    if ((cssomSeen.get(path + '\0' + css) ?? []).includes('dom-escape') !== want) throw new Error(`P2 matching self-test failed: ${path}`);
-    cssomSeen.delete(path + '\0' + css);
+    if ((cssomSeen.get(path + '\0' + css + '\0') ?? []).includes('dom-escape') !== want) throw new Error(`P2 matching self-test failed: ${path}`);
+    cssomSeen.delete(path + '\0' + css + '\0');
+  }
+  for (const [path, input, css, want] of rt) {
+    const got = cssomSeen.get(path + '\0' + css + '\0' + input) ?? [];
+    if (got.includes('dom-retarget') !== want || got.includes('dom-escape')) throw new Error(`P2 retarget self-test failed: ${path}`);
+    cssomSeen.delete(path + '\0' + css + '\0' + input);
   }
   for (const k of [...viol.keys()]) if (k.startsWith('st-')) viol.delete(k);
   for (const k of Object.keys(byGen)) if (k.startsWith('selftest|')) delete byGen[k];
