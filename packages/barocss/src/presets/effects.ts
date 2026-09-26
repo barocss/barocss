@@ -99,6 +99,40 @@ function createShadowThemeColor(
   ];
 }
 
+// #310: named shadow with an opacity modifier (shadow-lg/12.5, inset-shadow-sm/50), as Tailwind 4.3.3 emits it:
+// each layer colour becomes var(--<layer>-color, oklab(from <rgb> l a b / N%)). Only Tailwind's named levels.
+const NAMED_SHADOWS: Record<string, string> = {
+  "2xs": "0 1px rgb(0 0 0 / 0.05)",
+  xs: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+  sm: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+  md: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+  lg: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+  xl: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+  "2xl": "0 25px 50px -12px rgb(0 0 0 / 0.25)",
+};
+const NAMED_INSET_SHADOWS: Record<string, string> = {
+  "2xs": "inset 0 1px rgb(0 0 0 / 0.05)",
+  xs: "inset 0 1px 1px rgb(0 0 0 / 0.05)",
+  sm: "inset 0 2px 4px rgb(0 0 0 / 0.05)",
+};
+function namedShadowAlpha(layer: "shadow" | "inset-shadow", token: { value?: unknown }, opacity: string | undefined) {
+  if (!opacity || !/^\d+(\.\d+)?$/.test(opacity)) return null;
+  const name = String(token.value ?? "").split("/")[0];
+  const table = layer === "shadow" ? NAMED_SHADOWS : NAMED_INSET_SHADOWS;
+  if (!Object.prototype.hasOwnProperty.call(table, name)) return null;
+  const alpha = `${opacity}%`;
+  const value = table[name]
+    .split(", ")
+    .map((l) => l.replace(/ (rgb\([^)]*\))$/, ` var(--baro-${layer}-color, oklab(from $1 l a b / ${alpha}))`))
+    .join(", ");
+  return [
+    ringShadowProperties(),
+    decl(`--baro-${layer}-alpha`, alpha),
+    decl(`--baro-${layer}`, value),
+    decl("box-shadow", SHADOW_COMPOSITE),
+  ];
+}
+
 // shadow-color utilities
 functionalUtility({
   name: "shadow",
@@ -106,10 +140,14 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsOpacity: true,
   themeKeys: ["colors", "shadows"],
+  handleBareValue: ({ value, extra }) => (namedShadowAlpha("shadow", { value }, extra?.opacity) ? value : null),
   handle: (value, ctx, token, extra) => {
     const main = value;
     const opacity = extra?.opacity;
     const realThemeValue = extra?.realThemeValue;
+
+    const named = namedShadowAlpha("shadow", token, opacity);
+    if (named) return named;
 
     // 1. Theme color (e.g. shadow-red-500/60)
     if (realThemeValue) {
@@ -172,10 +210,14 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsOpacity: true,
   themeKeys: ["colors", "shadows"],
+  handleBareValue: ({ value, extra }) => (namedShadowAlpha("inset-shadow", { value }, extra?.opacity) ? value : null),
   handle: (value, ctx, token, extra) => {
     const main = value;
     const opacity = extra?.opacity;
     const realThemeValue = extra?.realThemeValue;
+
+    const named = namedShadowAlpha("inset-shadow", token, opacity);
+    if (named) return named;
 
     // 1. Theme color (e.g. inset-shadow-red-500/60)
     if (realThemeValue) {

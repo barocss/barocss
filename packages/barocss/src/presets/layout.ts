@@ -355,3 +355,14 @@ functionalUtility({
   description: "gap utility (number, arbitrary, custom property supported)",
   category: "layout",
 });
+
+// #310: zoom-* (Tailwind 4.3): integer → percent (zoom-50 → 50%), zoom-[1.5], zoom-(--z).
+functionalUtility({
+  name: "zoom",
+  prop: "zoom",
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  handleBareValue: ({ value }) => (/^\d+$/.test(value) ? `${value}%` : null),
+  description: "zoom utility (integer percent, arbitrary, custom property)",
+  category: "layout",
+});
