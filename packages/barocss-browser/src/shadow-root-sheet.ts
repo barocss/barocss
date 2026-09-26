@@ -56,7 +56,10 @@ interface Segment { rules: string[]; keys: RuleKey[] }
 interface Attached { root: ShadowRoot; styles?: [HTMLStyleElement, HTMLStyleElement] }
 
 export class SharedRootSheet {
+  /** Readable label (hash of the config); not used for identity. */
   readonly key: string;
+  /** The full config key the registry uses. */
+  readonly fullKey: string;
   readonly context: Context;
   readonly results = new Map<string, GenerateCssRulesResult>();
   /** Number of classes actually generated (not served from `results`). */
@@ -71,8 +74,9 @@ export class SharedRootSheet {
   private refs = new Map<string, number>();
   private attached: Attached[] = [];
 
-  constructor(key: string, config: Config) {
+  constructor(key: string, config: Config, fullKey: string = key) {
     this.key = key;
+    this.fullKey = fullKey;
     this.context = createContext(config);
     this.constructable = canConstruct();
     if (this.constructable) {
@@ -203,15 +207,16 @@ export class SharedRootSheet {
 const registry = new Map<string, SharedRootSheet>();
 
 /** #327: the shared sheet for `config` (keyed by a config hash, so equal configs and prefixes share). */
-export function acquireSharedRootSheet(config: Config): SharedRootSheet {
-  const key = hash(stableKey(config));
-  let entry = registry.get(key);
-  if (!entry) { entry = new SharedRootSheet(key, config); registry.set(key, entry); }
+export function acquireSharedRootSheet(config: Config, label: (text: string) => string = hash): SharedRootSheet {
+  // Keyed by the full config text (a hash alone could collide and let one tenant's config style another's widget).
+  const full = stableKey(config);
+  let entry = registry.get(full);
+  if (!entry) { entry = new SharedRootSheet(label(full), config, full); registry.set(full, entry); }
   return entry;
 }
 
-function releaseIfUnused(entry: SharedRootSheet): void {
-  if (entry.rootCount === 0 && registry.get(entry.key) === entry) registry.delete(entry.key);
+export function releaseIfUnused(entry: SharedRootSheet): void {
+  if (entry.rootCount === 0 && registry.get(entry.fullKey) === entry) registry.delete(entry.fullKey);
 }
 
 /** #327: diagnostics for the shared shadow-root sheets (one per distinct config). */

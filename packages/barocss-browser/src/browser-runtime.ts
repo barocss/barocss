@@ -525,6 +525,10 @@ export class BrowserRuntime {
       isDestroyed: this.isDestroyed,
       config: this.options.config,
       cacheStats: this.getCacheStats(),
+      /** #327: the shared shadow-root sheet this runtime uses (null in document mode). */
+      sharedSheet: this.shadowRoot && this.stylePartitionManager instanceof ShadowRootStyles
+        ? { roots: this.stylePartitionManager.shared.rootCount, rules: this.stylePartitionManager.shared.ruleCount, generations: this.stylePartitionManager.shared.generations, constructable: this.stylePartitionManager.shared.constructable }
+        : null,
     };
     return stats;
   }

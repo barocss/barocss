@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BrowserRuntime } from '../src/browser-runtime';
 import { baroStart } from '../src/baro-boot';
-import { getSharedRootSheetStats, scopePreflightForShadowRoot } from '../src/shadow-root-sheet';
+import { acquireSharedRootSheet, releaseIfUnused, getSharedRootSheetStats, scopePreflightForShadowRoot } from '../src/shadow-root-sheet';
 
 const flush = () => new Promise(r => setTimeout(r, 0));
 const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
@@ -101,6 +101,7 @@ describe('#327 shadow root option (fallback <style> path)', () => {
     const rt = baroStart({ root: sr });
     runtimes.push(rt);
     await flush();
+    expect(rt.getStats().sharedSheet?.roots).toBe(1);
     expect(rootCss(sr)).toMatch(/\.flex/);
     expect(document.head.innerHTML).toBe('');
   });
@@ -145,6 +146,19 @@ describe('#327 adopted constructable sheet path (mocked)', () => {
       delete (ShadowRoot.prototype as unknown as Record<string, unknown>).adoptedStyleSheets;
       vi.unstubAllGlobals();
     }
+  });
+});
+
+describe('#327 registry identity', () => {
+  it('two different configs never share an entry, even with a forced hash collision', () => {
+    const collide = () => 'same';
+    const a = acquireSharedRootSheet({ prefix: 'aa' }, collide);
+    const b = acquireSharedRootSheet({ prefix: 'bb' }, collide);
+    expect(a.key).toBe(b.key);
+    expect(a).not.toBe(b);
+    expect(acquireSharedRootSheet({ prefix: 'aa' }, collide)).toBe(a);
+    releaseIfUnused(a); releaseIfUnused(b);
+    expect(getSharedRootSheetStats()).toHaveLength(0);
   });
 });
 
