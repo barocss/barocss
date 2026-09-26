@@ -16,9 +16,6 @@ const KNOWN_FAILURES: Record<string, string> = {
   "text-[0.8rem]": "wrong formula: arbitrary length routed to color instead of font-size",
   "ease-in-out": "undefined var: var(--ease-in-out) not in BaroCSS theme vars",
   "max-w-max": "other: max-w-max/min/fit keyword missing",
-  "has-focus:ring-[3px]": "missing variant: has-<pseudo> (has-focus)",
-  "in-data-[side=left]:cursor-w-resize": "missing variant: in-* (in-data-[...])",
-  "in-data-[side=right]:cursor-e-resize": "missing variant: in-* (in-data-[...])",
   "[--cell-size:--spacing(8)]": "other: arbitrary property with --spacing() function unsupported",
 };
 

@@ -206,6 +206,7 @@ const FUNCTIONAL_VALUE_VARIANT = /^-?(?:(?:group|peer)-)?(?:has|not)-\[(.*)\](?:
  * The value itself must still be balanced and free of `{`, `}` and `;`, so it cannot close the pseudo-class.
  */
 export function isSafeVariantToken(value: string): boolean {
+  if (hasCommentToken(value)) return false;
   const m = FUNCTIONAL_VALUE_VARIANT.exec(value);
   if (m) return isSafeVariantValue(m[1], true);
   return isSafeVariantValue(value);
@@ -216,6 +217,11 @@ export function isSafeVariantToken(value: string): boolean {
  * is pasted into. Rejects, outside quotes: `{`, `}`, `;`, unbalanced or mismatched ()/[], and a quote left open.
  * Commas are allowed (values are not selector lists), so this is isSafeVariantValue with top-level commas allowed.
  */
+/** #248: a comment opener or closer anywhere in a variant (quoted or not) could leave a comment unclosed in the output. */
+export function hasCommentToken(value: string): boolean {
+  return value.includes('/*') || value.includes('*/');
+}
+
 export function isStructureSafeValue(value: string): boolean {
   return isSafeVariantValue(value, true);
 }
