@@ -1,0 +1,34 @@
+{
+ "issue": 383,
+ "measured": "published @barocss/*@0.10.1: build of tag @barocss/browser@0.10.1 (package.json versions 0.10.1); dist/cdn/barocss.umd.cjs sha256 8cc2d8e6d5561781... identical to jsDelivr @barocss/browser@0.10.1",
+ "twb": "@tailwindcss/browser@4.1.13 from jsDelivr, in memory (twb-shim.mjs)",
+ "reference_tailwind": {"old": "4.1.13", "new": "4.3.3 (the release commit's devDependency)"},
+ "chromium": "Playwright chromium-1223",
+ "model_calls": 0,
+ "i198_nobuild_html": {
+  "runs": 5,
+  "parity_typical_csp": {"baro_default": {"old": 0.923, "new": 1.0}, "baro_preflight": {"old": 0.981, "new": 1.0}, "twb": {"old": 1.0, "new": 1.0}, "none": {"new": 0.73}},
+  "parity_strict_csp_no_inline": {"baro": {"new": 0.73}, "twb": {"new": 0.73}, "note": "every runtime arm blocked (style-src-elem inline); the probe does not pass a nonce"},
+  "dynamic_classes_styled_typical": {"baro": "20/20, 7 ms, equal to twb 20/20", "twb": "20/20, 8 ms"},
+  "time_to_final_styled_ms": {"baro": 43, "twb": 24, "ref": 15},
+  "script_gz_bytes": {"baro_umd": {"old": "37-41 KB (#182/#198)", "new": 52838}, "twb": {"old": 68700, "new": 68682}}
+ },
+ "i231_companion_real_specs": {
+  "runs": 3, "specs": 10, "spec_tokens": 63,
+  "elem_parity": {"baro": {"old": 0.859, "new": 0.904}, "build": {"old": 0.163, "new": 0.163}, "twb": {"old": 0.0, "new": 0.0}},
+  "prop_parity": {"baro": 0.994, "build": 0.955, "twb": 0.966},
+  "shell_parity_final": {"baro": {"old": 1.0, "new": 0.997}, "twb": {"old": 0.969, "new": 0.969}},
+  "shell_parity_before_mount": {"baro": 1.0, "twb": 0.969},
+  "baro_misses": {"base-class conflict (cascade order)": 18, "layout knock-on": 4},
+  "script_gz_bytes": {"baro_umd": 52838, "twb": 68682}
+ },
+ "i266_ssr_fouc": {
+  "runs": 3, "models": ["opus", "haiku"],
+  "match_at_fcp": {"server": {"old": [1, 1], "new": [1, 1]}, "client_end": {"old": [0.19, 0.23], "new": [0.19, 0.233]}},
+  "unstyled_ms_fcp_to_hydrated_client_only": {"client_end": {"old": [324, 275], "new": [412, 346]}, "client_head": {"old": [315, 266], "new": [414, 362]}},
+  "after_later_addition": {"both": {"old": [1, 1], "new": [1, 1]}, "server_only": {"new": [0.986, 0.978]}},
+  "server_ms": {"warm": {"old": [0.18, 0.11], "new": [0.19, 0.11]}, "cold": {"old": [19.8, 16.2], "new": "22-28"}},
+  "dup_rules": {"new": 0},
+  "note": "hydrateMs (added to scripts/ssr-probe/run.mjs) is the original #266 unstyledMs definition; the current unstyledMs column includes the +1 s later addition (#268) and is not comparable."
+ }
+}
