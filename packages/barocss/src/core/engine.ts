@@ -8,6 +8,7 @@ import { astToCss, rootToCss } from "./astToCss";
 import { clearAllCaches } from "../utils/cache";
 import { clearContextCaches, getContextState } from './contextState';
 import { applyVarPrefix, referencedKeyframes } from "./cssVars";
+import { compareKeys, ruleSortKey } from "./rule-order";
 
 // Failure cache for invalid class names
 const failureCache = new Set<string>();
@@ -502,7 +503,7 @@ export function generateCss(
   const seen = new Set<string>();
   const allAtRootNodes: AstNode[] = [];
 
-  const results = classList
+  const generated = classList
     .split(CLASS_SEPARATOR)
     .filter((cls) => {
       if (!cls) return false;
@@ -515,13 +516,20 @@ export function generateCss(
     .map((cls) => {
       // #333: a class whose generation throws contributes nothing; the other classes still generate.
       try {
-        return generateOne(cls);
+        return { cls, css: generateOne(cls) };
       } catch (err) {
         debugWarn("[generateCss] class generation failed:", cls, err);
-        return "";
+        return { cls, css: "" };
       }
-    })
-    .join(opts?.minify ? "" : "\n");
+    });
+  // #401: variant order (#254), then Tailwind's property order, then class name; stable otherwise.
+  // Non-empty entries are sorted into the non-empty slots, so the separator layout is unchanged.
+  const slots = generated.flatMap((g, i) => (g.css ? [i] : []));
+  const sorted = slots
+    .map((i) => ({ i, css: generated[i].css, key: ruleSortKey(generated[i].css, generated[i].cls) }))
+    .sort((a, b) => compareKeys(a.key, b.key) || a.i - b.i);
+  slots.forEach((slot, j) => { generated[slot] = { cls: generated[slot].cls, css: sorted[j].css }; });
+  const results = generated.map((g) => g.css).join(opts?.minify ? "" : "\n");
 
   function generateOne(cls: string): string {
       const ast = parseClassToAst(cls, ctx);

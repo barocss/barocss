@@ -1,14 +1,20 @@
 /**
  * StylePartitionManager
  *
- * StylePartitionManager is a singleton class that manages the partition of styles into different parts.
- * It is used to manage the partition of styles into different parts.
+ * Splits the runtime's generated rules over `<style>` elements ("partitions"): a category partition
+ * per utility category, uncategorised chunks of at most `maxRulesPerPartition` rules, and the special
+ * `preflight` / `css-vars` / `root` partitions.
  *
+ * #401: the utility partitions form one ordered sequence of segments. Every rule goes to its global
+ * position in the single-sheet order (#254 variant order, then Tailwind's property order, then class
+ * name), so the cascade is the same as one sorted sheet whatever the partitioning. A category's first
+ * rule opens a `<style data-category=…>` segment; later rules join whichever segment their position
+ * falls in, so `data-category` names the category a segment was opened for, not every rule it holds.
  */
 
 import { GenerateCssRulesResult } from "@barocss/kit";
 import { parseClassName, isDebug } from "@barocss/kit";
-import { compareKeys, ruleSortKey, upperBound, type RuleKey } from "./rule-order";
+import { ruleSortKey, upperBound, compareKeys, type RuleKey } from "./rule-order";
 
 export interface StylePartition {
   id: string;
@@ -16,35 +22,19 @@ export interface StylePartition {
   styleElement: HTMLStyleElement;
   /** Sort keys parallel to `styles` / the sheet's cssRules (#254). */
   keys?: RuleKey[];
+  /** Utility category of a segment; undefined for an uncategorised chunk (#401). */
+  category?: string;
 }
 
 export class StylePartitionManager {
-  /**
-   * Insert `rule` at its Tailwind variant position within `partition` (#254):
-   * one insertRule at a binary-searched index, no sheet rewrite.
-   */
-  private insertSorted(partition: StylePartition, rule: string, key: RuleKey) {
-    const keys = (partition.keys ??= []);
-    const index = upperBound(keys, key);
-    const sheet = partition.styleElement.sheet;
-    if (sheet && sheet.cssRules.length === keys.length) {
-      sheet.insertRule(this.escapeCssRule(rule), index);
-      partition.styles.splice(index, 0, rule);
-    } else {
-      // No CSSOM (detached) or sheet not solely ours: rebuild text in order.
-      partition.styles.splice(index, 0, rule);
-      partition.styleElement.textContent = partition.styles.join("\n") + "\n";
-    }
-    keys.splice(index, 0, key);
-  }
-
-  private partitions: StylePartition[] = [];
-  private categoryPartitions: Map<string, StylePartition> = new Map();
+  /** Utility segments in document order (#401). */
+  private segments: StylePartition[] = [];
+  /** preflight / css-vars / root. */
+  private specialPartitions: Map<string, StylePartition> = new Map();
+  private ruleSegment = new Map<string, StylePartition>();
   private partitionCounter = 0;
   private maxRulesPerPartition = 50;
   private insertionPoint: HTMLElement;
-  private classToPartitionMap = new Map<string, number>();
-  private classToCategoryPartitionMap = new Map<string, string>();
   private styleIdPrefix = "barocss-style-partition-";
   private getCategory: (cls: string) => string | undefined;
   /** #347: CSP nonce set on every `<style>` this manager creates (empty = none). */
@@ -63,7 +53,7 @@ export class StylePartitionManager {
     this.styleIdPrefix = styleIdPrefix;
     this.getCategory = getCategory;
 
-    this.initializeDefaultPartition();
+    this.segments.push(this.createSegment(undefined, null));
   }
 
   /** A new `<style>`, carrying the #347 CSP nonce when one is configured. */
@@ -73,93 +63,68 @@ export class StylePartitionManager {
     return el;
   }
 
-  private initializeDefaultPartition() {
-    this.createNewPartition();
+  /**
+   * A new utility segment whose element goes right after `after`'s (or first, before every current
+   * segment, when `after` is null and segments exist; appended to the insertion point otherwise).
+   * The caller splices it into `segments`.
+   */
+  private createSegment(category: string | undefined, after: StylePartition | null): StylePartition {
+    const styleElement = this.createStyleElement();
+    const segment: StylePartition = {
+      id: category === undefined
+        ? this.styleIdPrefix + `-${this.partitionCounter++}`
+        : this.styleIdPrefix + `-${category}`,
+      styles: [],
+      keys: [],
+      styleElement,
+      category,
+    };
+    styleElement.id = segment.id;
+    styleElement.setAttribute("data-barocss", "partition");
+    if (category === undefined) styleElement.setAttribute("data-partition-index", this.partitionCounter.toString());
+    else styleElement.setAttribute("data-category", category);
+
+    const anchor = after ? after.styleElement : null;
+    const first = this.segments[0]?.styleElement;
+    if (anchor?.parentNode) anchor.parentNode.insertBefore(styleElement, anchor.nextSibling);
+    else if (!after && first?.parentNode) first.parentNode.insertBefore(styleElement, first);
+    else this.insertionPoint.appendChild(styleElement);
+    return segment;
   }
 
-  private createNewCategoryPartition(category: string, atDocumentStart = false) {
-    const newPartition: StylePartition = {
+  private createSpecialPartition(category: string, atDocumentStart = false) {
+    const partition: StylePartition = {
       id: this.styleIdPrefix + `-${category}`,
       styles: [],
       styleElement: this.createStyleElement(),
     };
+    partition.styleElement.id = partition.id;
+    partition.styleElement.setAttribute("data-barocss", "partition");
+    partition.styleElement.setAttribute("data-category", category);
 
-    // set id
-    newPartition.styleElement.id = newPartition.id;
-    newPartition.styleElement.setAttribute("data-barocss", "partition");
-    newPartition.styleElement.setAttribute("data-category", category);
-
-    // set insertion point
     const head = this.insertionPoint.ownerDocument?.head;
     if (atDocumentStart && head) {
       // Layered base styles (preflight) must be the first stylesheet so their
       // cascade layer is declared before any app layer (e.g. Tailwind `base`).
-      head.insertBefore(newPartition.styleElement, head.firstChild);
+      head.insertBefore(partition.styleElement, head.firstChild);
     } else {
-      this.insertionPoint.appendChild(newPartition.styleElement);
+      this.insertionPoint.appendChild(partition.styleElement);
     }
-
-    this.categoryPartitions.set(category, newPartition);
-
-    return newPartition;
-  }
-
-  private createNewPartition() {
-    const previous = this.partitions[this.partitions.length - 1];
-    const newPartition: StylePartition = {
-      id: this.styleIdPrefix + `-${this.partitionCounter++}`,
-      styles: [],
-      styleElement: this.createStyleElement(),
-    };
-    this.partitions.push(newPartition);
-
-    // set id
-    newPartition.styleElement.id = newPartition.id;
-    newPartition.styleElement.setAttribute("data-barocss", "partition");
-    newPartition.styleElement.setAttribute(
-      "data-partition-index",
-      this.partitionCounter.toString()
-    );
-
-    // #387: an overflow chunk goes right after the previous chunk, not at the
-    // end: category partitions appended since then must still follow every
-    // chunk, as they follow the single chunk of a one-partition sheet.
-    const parent = previous?.styleElement.parentNode;
-    if (parent) {
-      parent.insertBefore(newPartition.styleElement, previous.styleElement.nextSibling);
-    } else {
-      this.insertionPoint.appendChild(newPartition.styleElement);
-    }
-
-    return newPartition;
-  }
-
-  hasRule(rule: string) {
-    return this.classToPartitionMap.has(rule);
-  }
-
-  hasCategoryRule(rule: string, category: string) {
-    return this.classToCategoryPartitionMap.get(rule) === category;
-  }
-
-  setRuleCache(rule: string, partitionIndex: number) {
-    this.classToPartitionMap.set(rule, partitionIndex);
-  }
-
-  setCategoryRuleCache(rule: string, category: string) {
-    this.classToCategoryPartitionMap.set(rule, category);
+    this.specialPartitions.set(category, partition);
+    return partition;
   }
 
   get currentPartition() {
-    return this.partitions[this.partitions.length - 1];
+    return this.segments[this.segments.length - 1];
   }
 
+  /** The first segment of `category` (or a special partition). */
   getCategoryPartition(category: string) {
-    return this.categoryPartitions.get(category);
+    return this.specialPartitions.get(category) ?? this.segments.find(s => s.category === category);
   }
 
   hasDetachedPartitions(): boolean {
-    return [...this.partitions, ...this.categoryPartitions.values()]
+    return [...this.segments, ...this.specialPartitions.values()]
       .some(partition => !partition.styleElement.isConnected);
   }
 
@@ -169,87 +134,142 @@ export class StylePartitionManager {
    * - Prevent CSS syntax errors
    */
   private escapeCssRule(rule: string): string {
-    // Basic CSS string normalization
-    const escaped = rule.replace(/\\\//g, '\\/');
-
-    return escaped;
+    return rule.replace(/\\\//g, '\\/');
   }
 
-  addRule(rule: string) {
-    if (this.hasRule(rule)) {
-      return false;
+  /** Insert `rule` at `index` of `segment`: one insertRule, or a text rebuild when the sheet isn't in sync. */
+  private insertAt(segment: StylePartition, index: number, rule: string, key: RuleKey) {
+    const keys = (segment.keys ??= []);
+    const sheet = segment.styleElement.sheet;
+    if (sheet && sheet.cssRules.length === keys.length) {
+      sheet.insertRule(this.escapeCssRule(rule), index);
+      segment.styles.splice(index, 0, rule);
+    } else {
+      segment.styles.splice(index, 0, rule);
+      segment.styleElement.textContent = segment.styles.join("\n") + "\n";
     }
+    keys.splice(index, 0, key);
+    this.ruleSegment.set(rule, segment);
+  }
 
-    const key = ruleSortKey(rule);
-    // Earliest partition holding a rule that must come after this one; the
-    // chunks are consecutive <style> elements, so this keeps global order.
-    let partitionIndex = this.partitions.findIndex(p => {
-      const keys = p.keys;
-      return !!keys && keys.length > 0 && compareKeys(keys[keys.length - 1], key) > 0;
+  /** Move `segment`'s rules from `from` on into a new segment of the same category right after it. */
+  private split(position: number, from: number): StylePartition {
+    const segment = this.segments[position];
+    const tail = this.createSegment(segment.category, segment);
+    this.segments.splice(position + 1, 0, tail);
+    const rules = segment.styles.splice(from);
+    const keys = segment.keys!.splice(from);
+    const sheet = segment.styleElement.sheet;
+    if (sheet && sheet.cssRules.length === segment.styles.length + rules.length) {
+      for (let i = sheet.cssRules.length - 1; i >= from; i--) sheet.deleteRule(i);
+    } else {
+      segment.styleElement.textContent = segment.styles.length ? segment.styles.join("\n") + "\n" : "";
+    }
+    tail.styles = rules;
+    tail.keys = keys;
+    tail.styleElement.textContent = rules.length ? rules.join("\n") + "\n" : "";
+    for (const r of rules) this.ruleSegment.set(r, tail);
+    return tail;
+  }
+
+  private hasRoom(segment: StylePartition) {
+    return segment.styles.length < this.maxRulesPerPartition;
+  }
+
+  /**
+   * Put `rule` at its global position (#401). The position decides the cascade; the segment only
+   * decides which `<style>` holds it. A category's first rule opens a segment of that category (split
+   * at the position when it falls inside another segment); later rules join the segment at their
+   * position, preferring one of their own category at a boundary. Every segment holds at most
+   * `maxRulesPerPartition` rules (a full one is split at the position), which bounds the number of
+   * `<style>` elements by categories + rules / max instead of by category changes in the sorted order.
+   */
+  private place(rule: string, category: string | undefined, cls?: string): boolean {
+    if (this.ruleSegment.has(rule)) return false;
+    const key = ruleSortKey(rule, cls);
+    // First non-empty segment holding a rule that sorts after this one.
+    let at = this.segments.findIndex(s => {
+      const keys = s.keys!;
+      return keys.length > 0 && compareKeys(keys[keys.length - 1], key) > 0;
     });
-    if (partitionIndex === -1) {
-      if (this.currentPartition.styles.length >= this.maxRulesPerPartition) {
-        this.createNewPartition();
+    if (at === -1) at = this.segments.length;
+    const local = at < this.segments.length ? upperBound(this.segments[at].keys!, key) : 0;
+    const known = this.segments.some(s => s.category === category);
+
+    if (local > 0) {
+      // Strictly inside segment `at`.
+      const segment = this.segments[at];
+      if (known && this.hasRoom(segment)) {
+        this.insertAt(segment, local, rule, key);
+        return true;
       }
-      partitionIndex = this.partitions.length - 1;
-    }
-    const partition = this.partitions[partitionIndex];
-
-    try {
-      this.insertSorted(partition, rule, key);
-      this.setRuleCache(rule, partitionIndex);
+      this.split(at, local);
+      if (known) {
+        this.insertAt(segment, local, rule, key); // the split left room at its end
+        return true;
+      }
+      const created = this.createSegment(category, segment);
+      this.segments.splice(at + 1, 0, created);
+      this.insertAt(created, 0, rule, key);
       return true;
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      if (isDebug()) console.warn(
-        `[StylePartitionManager] Failed to insert rule: ${rule}`,
-        error
-      );
-      return false;
-    }
-  }
-
-  addCategoryRule(rule: string, category: string) {
-    if (this.hasCategoryRule(rule, category)) {
-      return false;
     }
 
-    let categoryPartition = this.getCategoryPartition(category);
-    if (!categoryPartition) {
-      categoryPartition = this.createNewCategoryPartition(category);
+    // At the boundary before segment `at`: any segment from the last non-empty one before it up to
+    // `at` itself can take the rule (at its end, or at the start of `at`).
+    let lo = at - 1;
+    while (lo > 0 && this.segments[lo].styles.length === 0) lo--;
+    const candidates: number[] = [];
+    if (known) for (let i = Math.max(lo, 0); i <= at && i < this.segments.length; i++) if (this.hasRoom(this.segments[i])) candidates.push(i);
+    const pick = candidates.find(i => this.segments[i].category === category) ?? candidates[0];
+    if (pick !== undefined) {
+      const segment = this.segments[pick];
+      this.insertAt(segment, pick === at ? 0 : segment.styles.length, rule, key);
+      return true;
     }
-
-    try {
-      this.insertSorted(categoryPartition, rule, ruleSortKey(rule));
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      if (isDebug()) console.warn(
-        `[StylePartitionManager] Failed to insert rule in category: ${category} ${rule}`,
-        error
-      );
-      return false;
-    }
-
-    this.setCategoryRuleCache(rule, category);
-
+    const before = at > 0 ? this.segments[at - 1] : null;
+    const created = this.createSegment(category, before);
+    this.segments.splice(at, 0, created);
+    this.insertAt(created, 0, rule, key);
     return true;
   }
-  
-  addRootRules(rules: string[]) {
-    let categoryPartition = this.getCategoryPartition("root");
-    if (!categoryPartition) {
-      categoryPartition = this.createNewCategoryPartition("root");
-    }   
 
+  hasRule(rule: string) {
+    return this.ruleSegment.has(rule);
+  }
+
+  /** #401: a segment's category is a label, not a guarantee, so any held rule counts. */
+  hasCategoryRule(rule: string, _category: string) {
+    return this.ruleSegment.has(rule);
+  }
+
+  /** `cls` (the rule's class) is the sort's name tiebreak; it defaults to the selector's first class. */
+  addRule(rule: string, cls?: string) {
+    return this.tryPlace(rule, undefined, cls);
+  }
+
+  addCategoryRule(rule: string, category: string, cls?: string) {
+    return this.tryPlace(rule, category, cls);
+  }
+
+  private tryPlace(rule: string, category: string | undefined, cls?: string): boolean {
     try {
+      return this.place(rule, category, cls);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      if (isDebug()) console.warn(`[StylePartitionManager] Failed to insert rule${category ? ` in category: ${category}` : ""}: ${rule}`, error);
+      return false;
+    }
+  }
 
-      const sheet = categoryPartition.styleElement.sheet;
-
+  addRootRules(rules: string[]) {
+    const partition = this.specialPartitions.get("root") ?? this.createSpecialPartition("root");
+    try {
+      const sheet = partition.styleElement.sheet;
       for (const rule of rules) {
         if (sheet) {
           sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
         } else {
-          categoryPartition.styleElement.textContent += rule + "\n";
+          partition.styleElement.textContent += rule + "\n";
         }
       }
     } catch (error) {
@@ -260,32 +280,24 @@ export class StylePartitionManager {
       );
       return { success: 0, failed: rules.length };
     }
-
     return { success: rules.length, failed: 0 };
   }
 
   addRules(rules: GenerateCssRulesResult[]) {
     let success = 0;
     let failed = 0;
-
     for (const rule of rules) {
       const category = this.getCategory(rule.cls);
-
-      if (category) {
-        for (const css of rule.cssList) {
-          this.addCategoryRule(css, category);
-        }
-      } else {
-        for (const css of rule.cssList) {
-          if (this.addRule(css)) {
-            success++;
-          } else {
-            failed++;
-          }
+      for (const css of rule.cssList) {
+        if (category) {
+          this.addCategoryRule(css, category, rule.cls);
+        } else if (this.addRule(css, rule.cls)) {
+          success++;
+        } else {
+          failed++;
         }
       }
     }
-
     return { success, failed };
   }
 
@@ -295,89 +307,54 @@ export class StylePartitionManager {
    * rebuild when the sheet isn't solely ours / has no CSSOM. Returns whether
    * the rule was found.
    */
-  removeRule(rule: string, category?: string): boolean {
-    let partition: StylePartition | undefined;
-    if (category) {
-      if (this.classToCategoryPartitionMap.get(rule) !== category) return false;
-      partition = this.categoryPartitions.get(category);
-    } else {
-      const partitionIndex = this.classToPartitionMap.get(rule);
-      partition = partitionIndex === undefined ? undefined : this.partitions[partitionIndex];
-    }
-    if (!partition) return false;
-    const index = partition.styles.indexOf(rule);
+  removeRule(rule: string, _category?: string): boolean {
+    const segment = this.ruleSegment.get(rule);
+    if (!segment) return false;
+    const index = segment.styles.indexOf(rule);
     if (index === -1) return false;
-    const sheet = partition.styleElement.sheet;
-    const inSync = !!sheet && sheet.cssRules.length === partition.styles.length;
-    partition.styles.splice(index, 1);
-    partition.keys?.splice(index, 1);
+    const sheet = segment.styleElement.sheet;
+    const inSync = !!sheet && sheet.cssRules.length === segment.styles.length;
+    segment.styles.splice(index, 1);
+    segment.keys?.splice(index, 1);
     if (inSync && sheet) {
       sheet.deleteRule(index);
     } else {
-      partition.styleElement.textContent = partition.styles.length ? partition.styles.join("\n") + "\n" : "";
+      segment.styleElement.textContent = segment.styles.length ? segment.styles.join("\n") + "\n" : "";
     }
-    if (category) this.classToCategoryPartitionMap.delete(rule);
-    else this.classToPartitionMap.delete(rule);
+    this.ruleSegment.delete(rule);
     return true;
   }
 
   /** Number of generated (non-root, non-preflight) rules currently held. */
   get ruleCount(): number {
-    return this.classToPartitionMap.size + this.classToCategoryPartitionMap.size;
+    return this.ruleSegment.size;
   }
 
-  /**
-   * 특정 규칙이 어느 파티션에 있는지 찾기
-   */
+  /** The partition holding `rule`, if any. */
   findRulePartition(rule: string): StylePartition | null {
-    const partitionIndex = this.classToPartitionMap.get(rule);
-    if (partitionIndex !== undefined && this.partitions[partitionIndex]) {
-      return this.partitions[partitionIndex];
-    }
-
-    const categoryPartition = this.classToCategoryPartitionMap.get(rule);
-    if (categoryPartition !== undefined) {
-      return this.categoryPartitions.get(categoryPartition) || null;
-    }
-
-    return null;
+    return this.ruleSegment.get(rule) ?? null;
   }
-
 
   updateRuleContent(category: string, ruleContent: string, atDocumentStart = false) {
-    const partition = this.getCategoryPartition(category);
+    const partition = this.specialPartitions.get(category);
     if (partition) {
       partition.styleElement.textContent = ruleContent;
     } else {
-      const newPartition = this.createNewCategoryPartition(category, atDocumentStart);
+      const created = this.createSpecialPartition(category, atDocumentStart);
       // eslint-disable-next-line no-console
       if (isDebug()) console.log(`[StylePartitionManager] Created new partition for category: ${category}`);
-      newPartition.styleElement.textContent = ruleContent;
+      created.styleElement.textContent = ruleContent;
     }
   }
 
-  /**
-   * 모든 파티션 정리
-   */
+  /** Remove every partition element and reset state. */
   cleanup(): void {
-    // DOM에서 모든 스타일 엘리먼트 제거
-    this.partitions.forEach((partition) => {
-      if (partition.styleElement.parentNode) {
-        partition.styleElement.parentNode.removeChild(partition.styleElement);
-      }
-    });
-
-    this.categoryPartitions.forEach((partition) => {
-      if (partition.styleElement.parentNode) {
-        partition.styleElement.parentNode.removeChild(partition.styleElement);
-      }
-    });
-
-    // 상태 초기화
-    this.partitions = [];
-    this.categoryPartitions.clear();
+    for (const partition of [...this.segments, ...this.specialPartitions.values()]) {
+      partition.styleElement.parentNode?.removeChild(partition.styleElement);
+    }
+    this.segments = [];
+    this.specialPartitions.clear();
     this.partitionCounter = 0;
-    this.classToPartitionMap.clear();
-    this.classToCategoryPartitionMap.clear();
+    this.ruleSegment.clear();
   }
 }

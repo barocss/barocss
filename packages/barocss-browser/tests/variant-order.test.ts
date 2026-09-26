@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BrowserRuntime } from '../src/browser-runtime';
 import { StylePartitionManager } from '../src/style-partition-manager';
-import { ruleSortKey, compareKeys } from '../src/rule-order';
+import { ruleSortKey, ruleVariantKey, compareKeys } from '../src/rule-order';
 
 const ruleTexts = () => Array.from(document.querySelectorAll<HTMLStyleElement>('[data-barocss="partition"]'))
   .flatMap(style => Array.from(style.sheet?.cssRules ?? []).map(rule => rule.cssText));
@@ -77,7 +77,7 @@ describe('runtime keeps Tailwind variant order (#254)', () => {
     ];
     for (const r of rules) mgr.addRule(r);
     const texts = ruleTexts();
-    const keys = texts.map(ruleSortKey);
+    const keys = texts.map(t => ruleSortKey(t));
     for (let i = 1; i < keys.length; i++) expect(compareKeys(keys[i - 1], keys[i])).toBeLessThanOrEqual(0);
     expect(texts.findIndex(t => t.includes('.e'))).toBe(0);
     expect(texts).toHaveLength(5);
@@ -85,16 +85,16 @@ describe('runtime keeps Tailwind variant order (#254)', () => {
   });
 
   it('parses both media syntaxes and units', () => {
-    expect(ruleSortKey('.x{}')).toEqual([]);
-    expect(ruleSortKey('@media (min-width: 40rem){.x{}}')).toEqual([2, 640]);
-    expect(ruleSortKey('@media (width >= 900px){.x{}}')).toEqual([2, 900]);
-    expect(ruleSortKey('@media (width < 64rem){.x{}}')).toEqual([1, -1024]);
-    expect(ruleSortKey('@container (width >= 28rem){.x{}}')).toEqual([4, 448]);
-    expect(ruleSortKey('@media print{.x{}}')).toEqual([5, 0]);
-    expect(ruleSortKey('@media (hover: hover){.x{}}')).toEqual([0, 0]);
+    expect(ruleVariantKey('.x{}')).toEqual([]);
+    expect(ruleVariantKey('@media (min-width: 40rem){.x{}}')).toEqual([2, 640]);
+    expect(ruleVariantKey('@media (width >= 900px){.x{}}')).toEqual([2, 900]);
+    expect(ruleVariantKey('@media (width < 64rem){.x{}}')).toEqual([1, -1024]);
+    expect(ruleVariantKey('@container (width >= 28rem){.x{}}')).toEqual([4, 448]);
+    expect(ruleVariantKey('@media print{.x{}}')).toEqual([5, 0]);
+    expect(ruleVariantKey('@media (hover: hover){.x{}}')).toEqual([0, 0]);
     // #352: negated media sorts with base, before every breakpoint, as Tailwind 4.3.3 orders not-* variants
-    expect(ruleSortKey('@media not (min-width: 48rem){.x{}}')).toEqual([0, 0]);
-    expect(ruleSortKey('@media not (width < 48rem){.x{}}')).toEqual([0, 0]);
-    expect(ruleSortKey('@media not print{.x{}}')).toEqual([0, 0]);
+    expect(ruleVariantKey('@media not (min-width: 48rem){.x{}}')).toEqual([0, 0]);
+    expect(ruleVariantKey('@media not (width < 48rem){.x{}}')).toEqual([0, 0]);
+    expect(ruleVariantKey('@media not print{.x{}}')).toEqual([0, 0]);
   });
 });
