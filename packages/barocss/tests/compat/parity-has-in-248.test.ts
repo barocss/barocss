@@ -63,3 +63,13 @@ describe('#248 #220 guard: structural characters in in-[…] / has-[…] emit no
     }
   });
 });
+
+describe('#248 guard: a bracket containing a comment token emits nothing', () => {
+  const open = '/' + '*';
+  const close = '*' + '/';
+  it.each([['opener', open], ['closer', close]])('comment %s', (_n, tok) => {
+    for (const cls of [`in-[.a${tok}]:flex`, `has-[.a${tok}]:flex`, `[&.a${tok}]:flex`, `group-[.a${tok}]:flex`]) {
+      expect(generateCss(cls, createContext({}))).toBe('');
+    }
+  });
+});
