@@ -1,6 +1,6 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { AstNode, atRoot, atRule, decl, property, styleRule } from "../core/ast";
-import { parseColor, parseLength, parseNumber } from "../core/utils";
+import { AstNode, atRoot, decl, property, styleRule } from "../core/ast";
+import { parseColor, parseLength, parseNumber, themeColorDecls } from "../core/utils";
 
 const gradientStopProperties = () => {
   return atRoot([
@@ -400,20 +400,7 @@ functionalUtility({
       return [decl("background-size", value.replace("length:", ""))];
     }
 
-    if (extra?.realThemeValue) {
-      if (extra.opacity) {
-        return [
-          atRule("supports", `(color:color-mix(in lab, red, red))`, [
-            decl(
-              "background-color",
-              `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`
-            ),
-          ]),
-          decl("background-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-        ];
-      }
-      return [decl("background-color", value)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("background-color", value, extra);
 
     if (parseColor(value)) {
       const parsedColor = parseColor(value);

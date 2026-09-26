@@ -16,7 +16,7 @@ describe('jsonToAst', () => {
             utility: { name: 'bg', value: 'red-500' }
         };
         const css = generateCssFromJson([input], ctx);
-        expect(css).toContain('background-color: #ef4444');
+        expect(css).toContain('background-color: var(--color-red-500)');
         expect(css).toContain('.bg-red-500');
     });
 
@@ -28,7 +28,7 @@ describe('jsonToAst', () => {
         const css = generateCssFromJson([input], ctx);
         // hover:focus:bg-blue-500
         // Should be wrapped in hover and focus
-        expect(css).toContain('background-color: #3b82f6');
+        expect(css).toContain('background-color: var(--color-blue-500)');
         expect(css).toContain(':hover');
         expect(css).toContain(':focus');
     });
@@ -66,7 +66,7 @@ describe('jsonToAst', () => {
         const css = generateCssFromJson([input], ctx);
         expect(css).toContain('@media (min-width: 40rem)');
         expect(css).toContain(':hover');
-        expect(css).toContain('background-color: #ef4444');
+        expect(css).toContain('background-color: var(--color-red-500)');
     });
 
     it('multiple inputs', () => {
@@ -75,8 +75,8 @@ describe('jsonToAst', () => {
             { utility: { name: 'text', value: 'white' } }
         ];
         const css = generateCssFromJson(inputs, ctx);
-        expect(css).toContain('background-color: #ef4444');
-        expect(css).toContain('color: #fff');
+        expect(css).toContain('background-color: var(--color-red-500)');
+        expect(css).toContain('color: var(--color-white)');
     });
     it('opacity modifier', () => {
         const input: BaroJsonInput = {
@@ -85,7 +85,7 @@ describe('jsonToAst', () => {
         const css = generateCssFromJson([input], ctx);
         // Expect color-mix or rgba with opacity
         // The exact output depends on how the color utility handles opacity, usually color-mix for modern CSS or rgba
-        expect(css).toContain('color-mix(in lab, #ef4444 50%, transparent)');
+        expect(css).toContain('color-mix(in oklab, var(--color-red-500) 50%, transparent)');
     });
 
     it('arbitrary variant', () => {
@@ -136,6 +136,6 @@ describe('jsonToAst', () => {
         const css = generateCssFromJson([input], ctx);
         // Should generate .group:hover .group-hover\:text-white
         expect(css).toContain(':where(.group):hover');
-        expect(css).toContain('color: #fff');
+        expect(css).toContain('color: var(--color-white)');
     });
 });

@@ -12,7 +12,7 @@ describe("arbitrary variants", () => {
         {
           type: "rule",
           selector: "&>*",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -22,7 +22,7 @@ describe("arbitrary variants", () => {
         {
           type: "rule",
           selector: '&[aria-pressed="true"]',
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -32,7 +32,7 @@ describe("arbitrary variants", () => {
         {
           type: "rule",
           selector: '&[data-state="open"]',
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -42,7 +42,7 @@ describe("arbitrary variants", () => {
         {
           type: "rule",
           selector: "&:is(.foo)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -52,7 +52,7 @@ describe("arbitrary variants", () => {
         {
           type: "rule",
           selector: "&:where(.bar)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -64,7 +64,7 @@ describe("arbitrary variants", () => {
         {
           type: "rule",
           selector: "&:hover",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -77,7 +77,7 @@ describe("arbitrary variants", () => {
         {
           type: "rule",
           selector: "&:is(.foo>.bar)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#00f" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-blue-500)" }],
         },
       ]);
     });
@@ -91,7 +91,7 @@ describe("arbitrary variants", () => {
             {
               type: "rule",
               selector: "&>*",
-              nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+              nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
             },
           ],
         },
@@ -116,7 +116,7 @@ describe("arbitrary variants", () => {
                   type: "rule",
                   selector: "&:hover",
                   nodes: [
-                    { type: "decl", prop: "background-color", value: "#00f" },
+                    { type: "decl", prop: "background-color", value: "var(--color-blue-500)" },
                   ],
                 },
               ],

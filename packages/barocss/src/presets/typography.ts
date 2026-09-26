@@ -1,6 +1,6 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRule, decl } from "../core/ast";
-import {
+import { decl } from "../core/ast";
+import { themeColorDecls,
   parseNumber,
   parseLength,
 } from "../core/utils";
@@ -124,18 +124,7 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
-    if (extra?.realThemeValue) {
-      if (extra.opacity) {
-        return [
-          atRule("supports", `(color:color-mix(in lab, red, red))`, [
-            decl("color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-          ]),
-          decl("color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-        ];
-      }
-
-      return [decl("color", value)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("color", value, extra);
 
     if (parseLength(value)) {
       return [decl("font-size", value)];
@@ -312,17 +301,7 @@ functionalUtility({
   supportsCustomProperty: true,
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
-    if (extra?.realThemeValue) {
-      if (extra.opacity) {
-        return [
-          atRule("supports", `(color:color-mix(in lab, red, red))`, [
-            decl("text-decoration-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-          ]),
-          decl("text-decoration-color", value),
-        ];
-      }
-      return [decl("text-decoration-color", value)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("text-decoration-color", value, extra);
     return [decl("text-decoration-color", value)];
   },
   handleCustomProperty: (value) => [decl("text-decoration-color", `var(${value})`)],

@@ -12,7 +12,7 @@ describe("has variants", () => {
         type: 'rule',
         selector: '&:has(.child)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -27,7 +27,7 @@ describe("has variants", () => {
           {
             type: 'rule',
             selector: '&:has(.child)',
-            nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }],
+            nodes: [{ type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' }],
           },
         ],
       },
@@ -41,7 +41,7 @@ describe("has variants", () => {
         type: 'rule',
         selector: '&:has(.foo>.bar)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#00f' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-blue-500)' },
         ],
       },
     ]);

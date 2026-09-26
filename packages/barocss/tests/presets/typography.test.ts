@@ -121,19 +121,13 @@ describe("preset typography utilities", () => {
     });
     it("text-red-500/75 → color: color-mix(in lab, red-500 75%, transparent)", () => {
       expect(parseClassToAst("text-red-500/75", ctx)).toMatchObject([
+        { type: "decl", prop: "color", value: "color-mix(in srgb, #f00 75%, transparent)" },
         {
           type: "at-rule",
           name: "supports",
           params: "(color:color-mix(in lab, red, red))",
-          nodes: [
-            {
-              type: "decl",
-              prop: "color",
-              value: "color-mix(in lab, #f00 75%, transparent)",
-            },
-          ],
+          nodes: [{ type: "decl", prop: "color", value: "color-mix(in oklab, var(--color-red-500) 75%, transparent)" }],
         },
-        { type: "decl", prop: "color", value: "color-mix(in lab, #f00 75%, transparent)" },
       ]);
     });
 
@@ -440,13 +434,13 @@ describe("preset typography utilities", () => {
 
     it("decoration-red-500/75 → text-decoration-color: color-mix(in lab, red-500 75%, transparent)", () => {
       expect(parseClassToAst("decoration-red-500/75", ctx)).toEqual([
+        { type: "decl", prop: "text-decoration-color", value: "color-mix(in srgb, #f00 75%, transparent)" },
         {
           type: "at-rule",
           name: "supports",
           params: "(color:color-mix(in lab, red, red))",
-          nodes: [{ type: "decl", prop: "text-decoration-color", value: "color-mix(in lab, #f00 75%, transparent)" }],
+          nodes: [{ type: "decl", prop: "text-decoration-color", value: "color-mix(in oklab, var(--color-red-500) 75%, transparent)" }],
         },
-        { type: "decl", prop: "text-decoration-color", value: "#f00" },
       ]);
     });
 

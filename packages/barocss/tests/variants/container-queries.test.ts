@@ -19,7 +19,7 @@ describe("container queries", () => {
         name: 'container',
         params: '(width >= 24rem)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -39,7 +39,7 @@ describe("container queries", () => {
         name: 'container',
         params: '(width < 28rem)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -52,7 +52,7 @@ describe("container queries", () => {
         name: 'container',
         params: '(width >= 475px)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -65,7 +65,7 @@ describe("container queries", () => {
         name: 'container',
         params: 'main',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -85,7 +85,7 @@ describe("container queries", () => {
         name: 'container',
         params: 'main (width >= 24rem)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -98,7 +98,7 @@ describe("container queries", () => {
         name: 'container',
         params: 'main (width >= 475px)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -123,7 +123,7 @@ describe("container queries", () => {
             name: 'container',
             params: '(width < 28rem)',
             nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
+              { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
             ],
           },
         ],
@@ -138,7 +138,7 @@ describe("container queries", () => {
         name: 'starting-style',
         params: '',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);

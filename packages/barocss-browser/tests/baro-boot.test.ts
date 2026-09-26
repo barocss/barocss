@@ -65,8 +65,8 @@ describe('config with a shared runtime (#214)', () => {
       baroBoot({ config });
       const runtime = getRuntime();
       expect(runtime).toBe(early);
-      runtime.addClass('bg-brand');
-      expect(runtime.getCss('bg-brand')).toContain('#123456');
+      runtime.addClass('bg-brand/50');
+      expect(runtime.getCss('bg-brand/50')).toContain('#123456');
     } finally {
       getRuntime().destroy();
     }
@@ -76,8 +76,8 @@ describe('config with a shared runtime (#214)', () => {
     try {
       baroBoot({ config });
       const runtime = getRuntime();
-      runtime.addClass('bg-brand');
-      expect(runtime.getCss('bg-brand')).toContain('#123456');
+      runtime.addClass('bg-brand/50');
+      expect(runtime.getCss('bg-brand/50')).toContain('#123456');
     } finally {
       getRuntime().destroy();
     }
