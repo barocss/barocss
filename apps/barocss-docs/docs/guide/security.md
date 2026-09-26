@@ -73,6 +73,7 @@ two ways to run it without `'unsafe-inline'`:
   so pass both for full coverage. A Shadow DOM `root` already uses adopted sheets.
 - Pass `nonce` / `constructable` on the **first** `getRuntime()` / `baroStart()` call: a later call
   reuses the existing runtime and does not change how it injects styles.
+  If a later call asks for a different `nonce` / `constructable`, BaroCSS logs a one-time `console.warn`.
 
 ```http
 Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{RANDOM}'; style-src 'self' 'nonce-{RANDOM}'
