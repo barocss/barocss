@@ -3,16 +3,22 @@ import { atRule } from "../../core/ast";
 
 // --- At-rule variants ---
 
-// supports-[]: functionalModifier
+// #354: supports-[…] and named supports-<feature>, as Tailwind 4.3.3 builds the condition: a function-like
+// value (`selector(…)`) is used as is, a value without `:` becomes `<value>: var(--tw)`, and the result is
+// wrapped in parentheses unless it already is (`supports-grid` → `@supports (grid: var(--tw))`).
+function supportsCondition(value: string): string {
+  if (/^[\w-]*\s*\(/.test(value)) return value;
+  let v = value.includes(':') ? value : `${value}: var(--tw)`;
+  if (v[0] !== '(' || v[v.length - 1] !== ')') v = `(${v})`;
+  return v;
+}
 functionalModifier(
-  (mod: string) => /^supports-\[.*\]$/.test(mod),
+  (mod: string) => /^supports-(?:\[.+\]|[a-zA-Z-][a-zA-Z0-9-]*)$/.test(mod),
   undefined,
   (mod) => {
-    const m = /^supports-\[(.+)\]$/.exec(mod.type);
-    if (m) {
-      return [atRule('supports', `(${m[1]})`, [], 'supports')];
-    }
-    return [];
+    const m = /^supports-(?:\[(.+)\]|([a-zA-Z-][a-zA-Z0-9-]*))$/.exec(mod.type);
+    if (!m) return [];
+    return [atRule('supports', supportsCondition(m[1] ?? m[2]), [], 'supports')];
   }
 );
 
