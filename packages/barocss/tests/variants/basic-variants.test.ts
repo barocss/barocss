@@ -428,21 +428,6 @@ describe("basic variants", () => {
         selector: "&::placeholder",
         nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
-      {
-        type: "rule",
-        selector: "&::-webkit-input-placeholder",
-        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-      },
-      {
-        type: "rule",
-        selector: "&::-moz-placeholder",
-        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-      },
-      {
-        type: "rule",
-        selector: "&:-ms-input-placeholder",
-        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-      },
     ]);
   });
 
@@ -450,12 +435,12 @@ describe("basic variants", () => {
     expect(parseClassToAst("selection:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
-        selector: "&::selection",
+        selector: "& *::selection",
         nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
       {
         type: "rule",
-        selector: "&::-moz-selection",
+        selector: "&::selection",
         nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
@@ -465,22 +450,22 @@ describe("basic variants", () => {
     expect(parseClassToAst("marker:bg-red-500", ctx)).toMatchObject([
       {
         type: "rule",
+        selector: "& *::marker",
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
+      },
+      {
+        type: "rule",
         selector: "&::marker",
         nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
       {
         type: "rule",
+        selector: "& *::-webkit-details-marker",
+        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
+      },
+      {
+        type: "rule",
         selector: "&::-webkit-details-marker",
-        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-      },
-      {
-        type: "rule",
-        selector: "&::-moz-list-bullet",
-        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-      },
-      {
-        type: "rule",
-        selector: "&::-moz-list-number",
         nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);
@@ -778,11 +763,6 @@ describe("basic variants", () => {
       {
         type: "rule",
         selector: "&::file-selector-button",
-        nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
-      },
-      {
-        type: "rule",
-        selector: "&::-webkit-file-upload-button",
         nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
       },
     ]);

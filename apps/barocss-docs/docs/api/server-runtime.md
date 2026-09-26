@@ -21,7 +21,7 @@ const tag = ssrStyleTag(css, { nonce });                          // '<style dat
 ```
 
 - `generateCssForHtml(htmlOrClasses: string | string[], opts?: { skip?: string | Iterable<string> })`: reads `class` attributes from HTML (or takes a class list) and returns one ordered sheet. `skip` is the build CSS text (its classes, `:root`/`:host` vars, `@property` and `@keyframes` are left out) or a set of class names. Stateless per call.
-- `ssrStyleTag(css, { nonce? })`: wraps the CSS in `<style data-barocss-ssr>` so `@barocss/browser` adopts it.
+- `ssrStyleTag(css, { nonce? })`: wraps the CSS in `<style data-barocss-ssr>` so `@barocss/browser` adopts it. Under a strict CSP pass the response's nonce (escaped into a `nonce` attribute); give the browser runtime the same `nonce` (or `constructable: true`), see [Security](/guide/security).
 - For `prefix(tw)` builds set both `prefix: 'tw'` and `cssVarPrefix: 'tw'`; mirror static `@utility` rules in `utilities`.
 
 Framework recipe: [Astro (SSR and static)](/guide/integration/astro).

@@ -28,6 +28,16 @@ const VARIANT_FORMS: Array<(v: string) => string> = [
   (v) => `peer-data-[${v}]`,
   (v) => `nth-[${v}]`,
   (v) => `@[${v}]`,
+  // #352: negated and group-aria forms
+  (v) => `not-data-[${v}]`,
+  (v) => `not-aria-[${v}]`,
+  (v) => `not-has-[${v}]`,
+  (v) => `not-supports-[${v}]`,
+  (v) => `not-min-[${v}]`,
+  (v) => `not-max-[${v}]`,
+  (v) => `group-aria-[${v}]`,
+  (v) => `peer-aria-[${v}]/x`,
+  (v) => `group-not-data-[${v}]`,
 ];
 const REPROS = [
   ...VARIANT_FORMS.flatMap((form) => BAD_VALUES.flatMap((v) => [`${form(v)}:hidden`, `hidden:${form(v)}`])),

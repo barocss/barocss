@@ -43,9 +43,13 @@ function hash(text: string): string {
   return (h >>> 0).toString(36);
 }
 
-function canConstruct(): boolean {
+/** Whether constructable sheets can be adopted by a shadow root (#327) or, with `'document'`, by the document (#347). */
+export function canConstruct(target: 'shadow' | 'document' = 'shadow'): boolean {
   try {
-    return typeof ShadowRoot !== 'undefined' && 'adoptedStyleSheets' in ShadowRoot.prototype
+    const proto = target === 'document'
+      ? (typeof Document !== 'undefined' ? Document.prototype : undefined)
+      : (typeof ShadowRoot !== 'undefined' ? ShadowRoot.prototype : undefined);
+    return !!proto && 'adoptedStyleSheets' in proto
       && typeof CSSStyleSheet === 'function' && typeof new CSSStyleSheet().replaceSync === 'function';
   } catch { return false; }
 }
@@ -53,7 +57,8 @@ function canConstruct(): boolean {
 const escapeCssRule = (rule: string) => rule.replace(/\\\//g, '\\/');
 
 interface Segment { rules: string[]; keys: RuleKey[] }
-interface Attached { root: ShadowRoot; styles?: [HTMLStyleElement, HTMLStyleElement] }
+type SheetRoot = ShadowRoot | Document;
+interface Attached { root: SheetRoot; styles?: [HTMLStyleElement, HTMLStyleElement] }
 
 export class SharedRootSheet {
   /** Readable label (hash of the config); not used for identity. */
@@ -74,11 +79,11 @@ export class SharedRootSheet {
   private refs = new Map<string, number>();
   private attached: Attached[] = [];
 
-  constructor(key: string, config: Config, fullKey: string = key) {
+  constructor(key: string, config: Config, fullKey: string = key, opts: { context?: Context; target?: 'shadow' | 'document' } = {}) {
     this.key = key;
     this.fullKey = fullKey;
-    this.context = createContext(config);
-    this.constructable = canConstruct();
+    this.context = opts.context ?? createContext(config);
+    this.constructable = canConstruct(opts.target ?? 'shadow');
     if (this.constructable) {
       this.prologueSheet = new CSSStyleSheet();
       this.rulesSheet = new CSSStyleSheet();
@@ -88,7 +93,8 @@ export class SharedRootSheet {
   get rootCount(): number { return this.attached.length; }
   get ruleCount(): number { return this.refs.size; }
 
-  attach(root: ShadowRoot): void {
+  /** Adopt the sheets into `root`; without constructable sheets a shadow root gets two `<style>`s (carrying `nonce`, #347). */
+  attach(root: SheetRoot, nonce = ''): void {
     if (this.attached.some(a => a.root === root)) return;
     if (this.prologueSheet && this.rulesSheet) {
       const own = [this.prologueSheet, this.rulesSheet];
@@ -96,8 +102,10 @@ export class SharedRootSheet {
       this.attached.push({ root });
       return;
     }
-    const doc = root.ownerDocument ?? document;
+    if (root.nodeType !== 11) throw new Error('[BrowserRuntime] constructable sheets are not supported for the document');
+    const doc = (root as ShadowRoot).ownerDocument ?? document;
     const pro = doc.createElement('style'), rules = doc.createElement('style');
+    if (nonce) { pro.setAttribute('nonce', nonce); rules.setAttribute('nonce', nonce); }
     pro.setAttribute('data-barocss', 'root-prologue');
     rules.setAttribute('data-barocss', 'root');
     pro.textContent = this.prologueText();
@@ -107,7 +115,7 @@ export class SharedRootSheet {
     this.attached.push({ root, styles: [pro, rules] });
   }
 
-  detach(root: ShadowRoot): void {
+  detach(root: SheetRoot): void {
     const i = this.attached.findIndex(a => a.root === root);
     if (i === -1) return;
     const [a] = this.attached.splice(i, 1);
@@ -243,18 +251,22 @@ export class SharedIncrementalParser extends IncrementalParser {
  */
 export class ShadowRootStyles {
   private owned = new Set<string>();
+  private scopePreflight: boolean;
   constructor(
     readonly shared: SharedRootSheet,
-    private root: ShadowRoot,
+    private root: SheetRoot,
     private getCategory: (cls: string) => string | undefined = cls => parseClassName(cls).utility?.category,
+    opts: { nonce?: string } = {},
   ) {
-    shared.attach(root);
+    // #347: in the document mode (constructable) the preflight stays as written (html/:root/body).
+    this.scopePreflight = root.nodeType === 11;
+    shared.attach(root, opts.nonce);
   }
 
   hasDetachedPartitions(): boolean { return false; }
 
   updateRuleContent(category: string, ruleContent: string): void {
-    if (category === 'preflight') this.shared.setPrologue('preflight', scopePreflightForShadowRoot(ruleContent));
+    if (category === 'preflight') this.shared.setPrologue('preflight', this.scopePreflight ? scopePreflightForShadowRoot(ruleContent) : ruleContent);
     else if (category === 'css-vars') this.shared.setPrologue('vars', ruleContent);
   }
 
