@@ -73,7 +73,7 @@ const rt = getRuntime({ skipExisting: true, config: { cssVarPrefix: 'tw', theme:
 rt.observe(document.body, { scan: true });
 ```
 
-The client never regenerates the server's classes, and GC never reclaims them. Later client rules keep Tailwind's combined order with the server's rules: a client `sm:` rule never lands after a server `lg:` rule.
+Only a marked sheet that is in `<head>` when the runtime starts (at construction or the first `observe()`) is adopted. Put the tag in `<head>`, which streaming SSR sends first. A `<style data-barocss-ssr>` injected later, or placed in `<body>` (for example inside model or user HTML), is treated as an ordinary sheet. The client never regenerates the server's classes, and GC never reclaims them. Later client rules keep Tailwind's combined order with the server's rules: a client `sm:` rule never lands after a server `lg:` rule.
 
 Measured with `scripts/ssr-probe` (#266/#268):
 - first paint matched a full Tailwind build (1.0)

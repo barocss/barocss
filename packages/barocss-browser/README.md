@@ -47,7 +47,7 @@ document.querySelectorAll('style[id^="barocss-runtime"]').length; // > 0
 
 ## Server-rendered pages (SSR)
 
-The runtime adopts a `<style data-barocss-ssr>` sheet from `@barocss/server` (`ssrStyleTag(runtime.generateCssForHtml(html, { skip: buildCss }))`). It never regenerates those classes and GC never reclaims them. Their rules move into the runtime's ordered partitions, so later client rules keep Tailwind's variant order. For the Next.js App Router and Astro recipe, see the [`@barocss/server` README](../barocss-server/README.md#recipe-ssr-with-a-tailwind-build-nextjs-app-router-astro).
+The runtime adopts a `<style data-barocss-ssr>` sheet from `@barocss/server` (`ssrStyleTag(runtime.generateCssForHtml(html, { skip: buildCss }))`), but only one that is in `<head>` when the runtime starts (at construction or the first `observe()`). A marked sheet added later or placed in `<body>` is treated as an ordinary sheet. It never regenerates those classes and GC never reclaims them. Their rules move into the runtime's ordered partitions, so later client rules keep Tailwind's variant order. For the Next.js App Router and Astro recipe, see the [`@barocss/server` README](../barocss-server/README.md#recipe-ssr-with-a-tailwind-build-nextjs-app-router-astro).
 
 ## ✨ Key Features
 

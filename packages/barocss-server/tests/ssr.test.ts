@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ServerRuntime, extractClasses, parseCssDefinitions, ssrStyleTag, SSR_STYLE_ATTRIBUTE } from '../src/index';
+import { ServerRuntime, ssrStyleTag, SSR_STYLE_ATTRIBUTE } from '../src/index';
+import { extractClasses, parseCssDefinitions } from '../src/ssr';
 
 describe('extractClasses (#268)', () => {
   it('reads double, single and unquoted values with any whitespace', () => {
@@ -14,6 +15,17 @@ describe('extractClasses (#268)', () => {
     const html = `<script>el.innerHTML = '<div class="from-script"></div>'</script><style>.x{}</style>
 <!-- <div class="commented"></div> --><div data-class="nope" subclass="nope" title='class="nope"' class="yes"></div>`;
     expect(extractClasses(html)).toEqual(['yes']);
+  });
+  it('stays linear on ~200 KB of unclosed openers (review: no per-opener rescans)', () => {
+    for (const unit of ['<!--', '<script>', '<style>', '<a class="x" ']) {
+      const html = '<b class="ok"></b>' + unit.repeat(Math.ceil(200_000 / unit.length));
+      const t0 = performance.now();
+      const got = extractClasses(html);
+      const ms = performance.now() - t0;
+      expect(got[0]).toBe('ok');
+      expect(ms, unit).toBeLessThan(50);
+    }
+    expect(extractClasses('<i class="a"></i><script>x</script><i class="b"></i><!-- c --><i class="c"></i><style>')).toEqual(['a', 'b', 'c']);
   });
   it('dedupes in first-seen order', () => {
     expect(extractClasses('<a class="a b"></a><a class="b c a"></a>')).toEqual(['a', 'b', 'c']);

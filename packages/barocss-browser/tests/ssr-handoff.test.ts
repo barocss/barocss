@@ -71,6 +71,23 @@ describe('SSR sheet handoff (#268)', () => {
     expect(pos('.lg\\:p-8')).toBeLessThan(pos('.xl\\:p-10'));
   });
 
+  it('does not adopt a marked sheet added to body (or head) after start', async () => {
+    runtime = new BrowserRuntime({ gcGraceMs: 20 });
+    runtime.observe(document.body, { scan: true });
+    const late = document.createElement('div');
+    late.innerHTML = '<style data-barocss-ssr>.m-7 { margin: 1.75rem; }</style><p class="m-7 m-5"></p>';
+    document.body.appendChild(late);
+    const lateHead = document.createElement('style');
+    lateHead.setAttribute('data-barocss-ssr', '');
+    lateHead.textContent = '.m-5 { margin: 1.25rem; }';
+    document.head.appendChild(lateHead);
+    await flush();
+    expect(late.querySelector('style')!.hasAttribute('data-barocss-adopted')).toBe(false);
+    expect(lateHead.hasAttribute('data-barocss-adopted')).toBe(false);
+    expect(runtime.has('m-7')).toBe(true); // generated as usual
+    expect(runtime.has('m-5')).toBe(true);
+  });
+
   it('keeps adopted rules across reset()', () => {
     runtime = new BrowserRuntime();
     runtime.addClass('sm:p-6');

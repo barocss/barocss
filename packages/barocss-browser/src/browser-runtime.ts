@@ -58,6 +58,7 @@ export class BrowserRuntime {
   /** #268: class rules adopted from `<style data-barocss-ssr>`, in sheet order, and the classes they lead. */
   private ssrRules: Array<{ css: string; cls: string }> = [];
   private ssrClasses = new Set<string>();
+  private observedOnce = false;
 
   private incrementalParser: IncrementalParser;
   private changeDetector: ChangeDetector;
@@ -121,7 +122,8 @@ export class BrowserRuntime {
   }
 
   /**
-   * #268: adopt the class rules of server-rendered `<style data-barocss-ssr>` sheets. Each rule moves
+   * #268: adopt the class rules of server-rendered `<style data-barocss-ssr>` sheets in <head>, at startup
+   * (constructor and the first observe()). Each rule moves
    * (same task, so no paint in between) into the partition its class would get if generated here, at
    * its #254 sorted position, so a later client `sm:` rule lands before a server `lg:` rule. Its classes
    * are never regenerated and never reclaimed. `:root`, `@property` and `@keyframes` stay in the sheet.
@@ -129,7 +131,10 @@ export class BrowserRuntime {
   private adoptSsrSheets(): void {
     if (typeof document === 'undefined') return;
     const adopted: Array<{ css: string; cls: string }> = [];
-    for (const el of Array.from(document.querySelectorAll<HTMLStyleElement>(`${SSR_STYLE_SELECTOR}:not([data-barocss-adopted])`))) {
+    // Only sheets in <head> at startup (constructor / observe()): a marked <style> injected later or into
+    // <body> (model or user HTML) must not suppress generation or GC for its classes (#268 review).
+    if (!document.head) return;
+    for (const el of Array.from(document.head.querySelectorAll<HTMLStyleElement>(`${SSR_STYLE_SELECTOR}:not([data-barocss-adopted])`))) {
       const sheet = el.sheet;
       if (!sheet) continue;
       el.setAttribute('data-barocss-adopted', '');
@@ -236,7 +241,6 @@ export class BrowserRuntime {
    */
   public applyParseResults(results: Array<GenerateCssRulesResult>, _opts?: { isBrowser?: boolean }): void {
     if (this.isDestroyed) return;
-    this.adoptSsrSheets();
     if (this.getInsertionPoint().isConnected && this.stylePartitionManager.hasDetachedPartitions()) {
       const existingResults = Array.from(this.cache.values());
       this.reset();
@@ -339,6 +343,7 @@ export class BrowserRuntime {
    * MutationObserver instance method to automatically call addClass when class attributes change in DOM
    */
   observe(root: HTMLElement = document.body, options?: { scan?: boolean; onReady?: () => void }): MutationObserver {
+    if (!this.observedOnce) { this.observedOnce = true; this.adoptSsrSheets(); }
     return this.changeDetector.observe(root, options);
   }
 

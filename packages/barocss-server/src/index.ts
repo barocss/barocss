@@ -2,7 +2,7 @@ import { parseClassToAst, generateCssRules, createContext, ruleSortKey, compareK
 import type { Config, Context } from '@barocss/kit';
 import { extractClasses, parseCssDefinitions, type CssDefinitions } from './ssr';
 
-export * from './ssr';
+export { ssrStyleTag, SSR_STYLE_ATTRIBUTE } from './ssr';
 
 /**
  * Server-side runtime for Barocss

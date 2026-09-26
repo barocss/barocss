@@ -24,8 +24,35 @@ export function decodeHtmlEntities(s: string): string {
   });
 }
 
-const START_TAG = /<[a-zA-Z][^\s/>]*((?:\s+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?|\s*\/)*)\s*>/g;
-const CLASS_ATTR = /(?:^|\s)class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/gi;
+const TAG_OPEN = /<[a-zA-Z][^\s/>]*/g;
+// One attribute (or a stray `/`) at a time, sticky: the tag is walked forward, never re-matched as a whole.
+const ATTR = /\s+([^\s"'>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+)))?|\s*\//y;
+const TAG_END = /\s*>/y;
+
+/**
+ * Drop comments and `<script>`/`<style>` contents in one linear pass: each opener searches forward once for
+ * its close; an unclosed one drops the rest of the input (#268 review: no per-opener rescans).
+ */
+function stripRawText(html: string): string {
+  const lower = html.toLowerCase();
+  const opener = /<!--|<(script|style)\b/g;
+  let out = '', pos = 0, m: RegExpExecArray | null;
+  while ((m = opener.exec(lower))) {
+    out += html.slice(pos, m.index) + ' ';
+    let end: number;
+    if (m[1]) {
+      const close = lower.indexOf('</' + m[1], m.index + m[0].length);
+      end = close < 0 ? -1 : lower.indexOf('>', close);
+      if (end >= 0) end += 1;
+    } else {
+      const close = lower.indexOf('-->', m.index + 4);
+      end = close < 0 ? -1 : close + 3;
+    }
+    if (end < 0) return out;
+    pos = opener.lastIndex = end;
+  }
+  return out + html.slice(pos);
+}
 
 /**
  * Class names from every `class` attribute in `html`, first-seen order, deduplicated. Handles double,
@@ -33,14 +60,20 @@ const CLASS_ATTR = /(?:^|\s)class\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/g
  * contents of `<script>` and `<style>`.
  */
 export function extractClasses(html: string): string[] {
-  const text = html
-    .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, ' ');
+  const text = stripRawText(html);
   const out = new Set<string>();
-  for (const tag of text.matchAll(START_TAG)) {
-    for (const a of tag[1].matchAll(CLASS_ATTR)) {
-      for (const c of decodeHtmlEntities(a[1] ?? a[2] ?? a[3] ?? '').split(/\s+/)) if (c) out.add(c);
+  TAG_OPEN.lastIndex = 0;
+  while (TAG_OPEN.exec(text)) {
+    let pos = TAG_OPEN.lastIndex, a: RegExpExecArray | null;
+    const values: string[] = [];
+    for (ATTR.lastIndex = pos; (a = ATTR.exec(text)) && a[0]; ATTR.lastIndex = pos) {
+      pos = ATTR.lastIndex;
+      if (a[1]?.toLowerCase() === 'class') values.push(a[2] ?? a[3] ?? a[4] ?? '');
     }
+    TAG_END.lastIndex = pos;
+    if (!TAG_END.test(text)) { TAG_OPEN.lastIndex = pos; continue; } // not a complete start tag
+    TAG_OPEN.lastIndex = TAG_END.lastIndex;
+    for (const v of values) for (const c of decodeHtmlEntities(v).split(/\s+/)) if (c) out.add(c);
   }
   return [...out];
 }

@@ -33,7 +33,9 @@ import { SHELL, SITE_CSS, BRAND, ACCENT, FONTS } from '../cms-probe/site.mjs';
 // workspace @barocss/kit exports src/*.ts; point the server dist at the kit dist (what a published install resolves).
 import { register } from 'node:module';
 register('data:text/javascript,' + encodeURIComponent(`export async function resolve(s, c, n) { return s === '@barocss/kit' ? n(${JSON.stringify(new URL('../../packages/barocss/dist/index.js', import.meta.url).href)}, c) : n(s, c); }`));
-const { ServerRuntime, ssrStyleTag, parseCssDefinitions } = await import('../../packages/barocss-server/dist/index.es.js');
+const { ServerRuntime, ssrStyleTag } = await import('../../packages/barocss-server/dist/index.es.js');
+// internal (not exported) build-CSS parser, for the re-emit counts; Node 22.18+ strips the TS types.
+const { parseCssDefinitions } = await import('../../packages/barocss-server/src/ssr.ts');
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
 const req = createRequire(path.join(ROOT, 'packages/barocss/package.json'));
