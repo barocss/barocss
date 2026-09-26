@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { parseClassToAst, generateCss, generateCssRules } from '../src/core/engine';
 import '../src/presets';
 import { createContext } from '../src/core/context';
+import { rootToCss } from '../src/core/astToCss';
 import { functionalModifier } from '../src/core/registry';
 
 // before:/after: register --baro-content so the pseudo-element exists (#191).
@@ -377,5 +378,30 @@ describe('variant chain engine', () => {
     const css = generateCss('from-red-500 bg-blue-500 ring-2', ctx, { minify: true });
     expect(css).not.toMatch(/[\n\t]/);
     expect(css).toContain('@property --baro-gradient-from{');
+  });
+
+  it('minified root output equals non-minified after stripping whitespace', () => {
+    const classes = 'from-red-500 bg-blue-500 ring-2';
+    const strip = (css: string) => css.replace(/\s+/g, '');
+    expect(strip(generateCss(classes, ctx, { minify: true }))).toBe(strip(generateCss(classes, ctx)));
+  });
+
+  it('rootToCss drops unsafe declarations identically in minified and non-minified mode', () => {
+    const unsafe = { type: 'decl', prop: '--x', value: 'a}b' } as any;
+    const safe = { type: 'decl', prop: '--y', value: '1' } as any;
+    expect(rootToCss([unsafe])).toBe('');
+    expect(rootToCss([unsafe], { minify: true })).toBe('');
+    const rule = { type: 'at-rule', name: 'property', params: '--z', nodes: [unsafe, safe] } as any;
+    const min = rootToCss([rule], { minify: true });
+    expect(min).toBe('@property --z{--y:1;}');
+    expect(min).not.toMatch(/[\n\t]/);
+    expect(rootToCss([rule]).replace(/\s+/g, '')).toBe(min.replace(/\s+/g, ''));
+  });
+
+  it('emits no :root block when no root declaration survives', () => {
+    const unsafe = { type: 'decl', prop: '--x', value: 'a}b' } as any;
+    const kept = [unsafe].map((n) => rootToCss([n], { minify: true })).filter((d) => d !== '');
+    expect(kept).toHaveLength(0);
+    expect(generateCss('bg-blue-500', ctx, { minify: true })).not.toContain(':root');
   });
 });

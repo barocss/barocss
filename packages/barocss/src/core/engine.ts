@@ -539,14 +539,11 @@ export function generateCss(
 
   const rootRules = [...new Set(allAtRootNodes
     .filter((node) => node.type === "at-rule")
-    .map((node) => opts?.minify
-      ? astToCss([node], undefined, { minify: true })
-      : rootToCss([node])))];
+    .map((node) => rootToCss([node], { minify: opts?.minify })))];
   const rootDeclarations = [...new Set(allAtRootNodes
     .filter((node) => node.type === "decl")
-    .map((node) => opts?.minify && node.type === "decl"
-      ? `${node.prop}:${node.value};`
-      : rootToCss([node])))];
+    .map((node) => rootToCss([node], { minify: opts?.minify }))
+    .filter((decl) => decl !== ""))];
   const rootCss = [
     ...rootRules,
     ...(rootDeclarations.length
