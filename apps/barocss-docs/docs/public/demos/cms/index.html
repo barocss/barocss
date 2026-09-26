@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Demo: CMS content styled at runtime</title><meta name="robots" content="noindex"><link rel="icon" href="data:,"><link rel="stylesheet" href="../demo.css"><link rel="stylesheet" href="site.css"></head><body>
+<div class="demo-bar"><h1>CMS content next to a Tailwind build</h1><p>The site CSS is a Tailwind 4 build of its own templates. The six blocks in the article are recorded model output (Claude Opus, #253), inserted after load, so their classes are not in the build. Measured (#253, 223 block elements, share equal to a full build): build only 0.026, @tailwindcss/browser 1.000 (68.7K gz script), BaroCSS 0.938 (41.4K gz, 0 shell damage; the misses are one sm/lg order conflict). <a href="https://github.com/barocss/barocss/blob/develop/scripts/cms-probe/run.mjs">evidence</a></p><nav><a data-rt="baro" href="./?rt=baro">BaroCSS 0.10.1</a><a data-rt="twb" href="./?rt=twb">@tailwindcss/browser</a><a data-rt="none" href="./?rt=none">nothing</a><output id="status">loading…</output></nav></div>
+<header data-shell class="sticky top-0 z-10 border-b border-brand-100 bg-white/90 backdrop-blur">
+  <div data-shell class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a data-shell href="#" class="font-display text-2xl font-bold text-brand-800 no-underline">Northwind Journal</a>
+    <nav data-shell class="flex items-center gap-6 text-sm font-medium text-slate-600">
+      <a data-shell href="#" class="hover:text-brand-700">Stories</a><a data-shell href="#" class="hover:text-brand-700">Guides</a>
+      <a data-shell href="#" class="rounded-full bg-brand-600 px-4 py-2 text-white hover:bg-brand-700">Subscribe</a>
+    </nav>
+  </div>
+</header>
+<main data-shell class="mx-auto grid max-w-6xl grid-cols-[1fr_16rem] gap-12 px-6 py-12">
+  <article data-shell class="min-w-0">
+    <p data-shell class="text-sm font-semibold uppercase tracking-wider text-accent-600">Product update</p>
+    <h1 data-shell class="mt-2 font-display text-4xl font-bold text-slate-900">What's new in our spring release</h1>
+    <div data-shell class="prose mt-8">
+      <p data-prose>Our spring release focuses on the small things that make publishing faster. Below, the editorial team explains the changes, and the blocks were drafted with the CMS assistant.</p>
+      <h2 data-prose>Why we rebuilt the editor</h2>
+      <p data-prose>Writers told us the old editor got in the way. <a data-prose href="#">Read the research notes</a> or skim the <strong data-prose>highlights</strong>:</p>
+      <ul data-prose><li data-prose>Faster autosave</li><li data-prose>Inline comments</li></ul>
+      <blockquote data-prose>"It finally feels like writing, not filling in forms."</blockquote>
+      <div id="blocks"></div>
+      <h3 data-prose>What comes next</h3>
+      <p data-prose>We ship again in June. Tell us what to build.</p>
+      <table data-prose><thead><tr><th data-prose>Plan</th><th data-prose>Seats</th></tr></thead><tbody><tr><td data-prose>Team</td><td data-prose>10</td></tr></tbody></table>
+    </div>
+  </article>
+  <aside data-shell class="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 data-shell class="font-display text-lg font-semibold text-slate-900">In this issue</h2>
+    <a data-shell href="#" class="block text-sm text-brand-700 hover:underline">Editor rebuild</a>
+    <a data-shell href="#" class="block text-sm text-brand-700 hover:underline">Pricing changes</a>
+  </aside>
+</main>
+<footer data-shell class="border-t border-slate-200 py-8 text-center text-sm text-slate-500">&copy; 2026 Northwind</footer>
+<script src="blocks.js"></script><script src="cms.js"></script></body></html>

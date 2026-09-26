@@ -1,0 +1,9 @@
+/* deliberately hostile host CSS: element selectors and utility-like names that collide with Tailwind */
+html{background:#fdf6e3}body{font-family:Georgia,serif;color:#5b3a1a;margin:0}
+.host{max-width:900px;margin:0 auto;padding:24px}
+h1{font-size:40px;color:#8b0000;text-transform:uppercase;letter-spacing:4px}
+p{margin:40px 0;font-size:19px;line-height:2}
+button{background:#8b4513;color:#fff;border:4px dashed #000;padding:14px}
+a{color:#b8860b}
+.flex{display:block!important}.hidden{display:block!important;outline:3px solid red}.container{border:5px double #8b4513;padding:10px}
+chat-widget{display:block;margin-top:24px}
