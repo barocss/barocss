@@ -1,5 +1,16 @@
 # @barocss/browser
 
+## 0.10.3
+
+### Patch Changes
+
+- 1ef504d: Rule order across the default 50-rule partitions now matches the single-sheet order: an overflow partition is inserted right after the previous one instead of after the category partitions, so e.g. `shadow-[…var(--x)]` and `shadow-md` resolve as they do in one sheet.
+- 0.10.3: security fix. Class input containing unusual separator characters can no longer produce a rule that applies outside the element carrying the class. Also: `bg-[var(--x)]` and `ring-[var(--x)]` resolve as colours, as in Tailwind; the browser runtime keeps rule order across its internal partitions. Upgrading is recommended for all 0.x users.
+- Updated dependencies
+- Updated dependencies [a91c7b2]
+- Updated dependencies [d5a561d]
+  - @barocss/kit@0.10.3
+
 ## 0.10.2
 
 ### Patch Changes
