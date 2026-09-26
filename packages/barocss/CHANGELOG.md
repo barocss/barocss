@@ -1,5 +1,20 @@
 # @barocss/kit
 
+## 0.10.1
+
+### Patch Changes
+
+- dc0217f: Background type hints and arbitrary stroke widths match Tailwind (#303). `bg-(position:--x)`, `bg-(size:--x)`, `bg-(image:--x)` (and `percentage` / `length` / `url` hints, plus the bracket forms such as `bg-[position:var(--x)]`) now emit `background-position` / `background-size` / `background-image` instead of a broken `background-color`. `stroke-[1.5px]`, `stroke-[50%]`, `stroke-[calc(…)]`, `stroke-[length:var(--x)]` and `stroke-(number:--x)` now emit `stroke-width`. Untyped `bg-(--x)` and `stroke-[<colour>]` stay colours.
+- 64d7685: Border family matches Tailwind 4.3.3 (#344). **Behaviour change visible in RTL:** `border-x-*` / `border-y-*` now emit the logical `border-inline-*` / `border-block-*` properties (width and colour) instead of physical left/right and top/bottom, so in `dir="rtl"` or vertical writing modes they follow the writing direction as Tailwind does. `divide-x-<colour>` / `divide-y-<colour>` no longer emit a colour rule (Tailwind emits nothing; use `divide-<colour>`), and `divide-x-(--w)` is a width. Custom `borderWidth` theme keys now reference `var(--border-width-<key>)`, declared on `:root`, so runtime theme overrides reach them. `border-x-3` (a bare number on a side root) now sets only that side's width.
+- c2004d6: Media and feature variants match Tailwind 4.3.3: `not-[@media …]`, `not-[@supports …]` and `not-[@container …]` negate the at-rule condition, and every other at-rule-led `not-[@…]` form emits nothing; built-in `contrast-more:`, `contrast-less:` and `noscript:`; named `supports-<feature>:` and Tailwind's `supports-[…]` condition rules (`supports-[display]` → `(display: var(--tw))`). Deliberate deviation: an empty at-rule condition (e.g. `not-[@media]`) emits nothing, where Tailwind emits an invalid bare `@media not`.
+- 0.10.1: variant and border parity with Tailwind 4.3.
+
+  - Variants: `not-[@media …]` / `not-[@supports …]` negation (other at-rule forms emit nothing); `contrast-more:` / `contrast-less:`, `noscript:`, `supports-<feature>:`; underscores in `supports-[…]` become spaces.
+  - Borders: `border-x-*` / `border-y-*` use the logical `border-inline` / `border-block` properties, as in Tailwind 4 (visible in right-to-left layouts); `divide-x-<colour>` emits nothing, as in Tailwind; custom border width keys reference `var(--border-width-*)`.
+  - `bg-(position:…)` / `bg-(size:…)` / `bg-(image:…)` type hints, and `stroke-[<length>]` sets `stroke-width`.
+
+- 5dee769: `supports-[…]` decodes `_` to a space and `\_` to a literal underscore, as Tailwind 4.3.3 does, so compound and / or / not conditions produce a valid `@supports` prelude.
+
 ## 0.10.0
 
 ### Minor Changes

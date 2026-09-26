@@ -1,5 +1,5 @@
 import { functionalModifier } from "../../core/registry";
-import { functionalArgument, negatableSelectorOf, negatedAtRuleOf } from "./utils";
+import { functionalArgument, negatableSelectorOf, negatedAtRuleOf, negatedArbitraryAtRuleOf } from "./utils";
 
 // #352: not-<at-rule variant> (not-md, not-max-md, not-min-[…], not-print, not-motion-safe, not-supports-[…]):
 // the at-rule with its condition negated. Registered before the selector negation below.
@@ -12,9 +12,21 @@ functionalModifier(
   }
 );
 
+// #354: at-rule-led not-[@…]: Tailwind 4.3.3 negates `@media`, `@supports` and `@container` conditions
+// (`not-[@media_print]` → `@media not print`). Every other at-rule-led form matches no variant, so the class
+// emits nothing (the not-[] and not- matchers below skip `not-[@`).
+functionalModifier(
+  (mod: string) => /^not-\[@.*\]$/.test(mod) && !!negatedArbitraryAtRuleOf(mod.slice(5, -1)),
+  () => '&',
+  (mod) => {
+    const node = negatedArbitraryAtRuleOf(mod.type.slice(5, -1));
+    return node ? [node] : [];
+  }
+);
+
 // not-[]: functionalModifier for arbitrary negation
 functionalModifier(
-  (mod: string) => /^not-\[.*\]$/.test(mod),
+  (mod: string) => /^not-\[(?!@).*\]$/.test(mod),
   ({ selector, mod }) => {
     const m = /^not-\[(.+)\]$/.exec(mod.type);
     if (m) {
@@ -46,7 +58,7 @@ functionalModifier(
 // not-: functionalModifier for pseudo-class negation. not-@… is container-query negation (container-queries.ts);
 // anything it does not accept (e.g. not-@container) emits nothing, like Tailwind 4.3.3 (#311).
 functionalModifier(
-  (mod: string) => /^not-/.test(mod) && !mod.startsWith('not-@'),
+  (mod: string) => /^not-/.test(mod) && !mod.startsWith('not-@') && !mod.startsWith('not-[@'),
   ({ selector, mod, context }) => {
     const m = /^not-(.+)$/.exec(mod.type);
     const inner = m ? negatableSelectorOf(m[1], context) : null;

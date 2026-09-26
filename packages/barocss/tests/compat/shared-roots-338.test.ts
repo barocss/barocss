@@ -60,21 +60,20 @@ const roots = [
 
 describe('#338 custom theme keys on shared colour roots (Tailwind 4.3.3)', () => {
   for (const key of ['own', 'hue', 'both']) {
-    // divide-x/y-<colour> is an older BaroCSS divide colour alias (Tailwind emits nothing); out of scope here.
-    it.each(key === 'hue' ? roots.filter((r) => !r.startsWith('divide-')) : roots)(`%s-${key} declares the same properties as Tailwind`, async (root) => {
+    it.each(roots)(`%s-${key} declares the same properties as Tailwind`, async (root) => {
       const candidate = `${root}-${key}`;
       const tailwind = (await compile(tailwindInput)).build([candidate]);
       expect(props(generateCss(candidate, ctx()))).toEqual(props(tailwind));
     });
   }
 
-  // BaroCSS writes border-x/y as left/right and top/bottom rather than border-inline/block; the namespace choice is what is checked here.
+  // #344: border-x/y are border-inline/block and a borderWidth key reads its var, as Tailwind 4.3.3.
   it.each([
-    ['border-x-own', 'border-left-width: 5px'],
-    ['border-x-hue', 'border-left-color: var(--color-hue)'],
-    ['border-x-both', 'border-left-color: var(--color-both)'],
-    ['border-y-own', 'border-top-width: 5px'],
-    ['border-y-both', 'border-top-color: var(--color-both)'],
+    ['border-x-own', 'border-inline-width: var(--border-width-own)'],
+    ['border-x-hue', 'border-inline-color: var(--color-hue)'],
+    ['border-x-both', 'border-inline-color: var(--color-both)'],
+    ['border-y-own', 'border-block-width: var(--border-width-own)'],
+    ['border-y-both', 'border-block-color: var(--color-both)'],
     ['divide-own', null],
     ['divide-hue', 'border-color: var(--color-hue)'],
   ])('%s resolves in the right namespace', (candidate, expected) => {
@@ -85,8 +84,8 @@ describe('#338 custom theme keys on shared colour roots (Tailwind 4.3.3)', () =>
 
   it('a key only in the other namespace uses its value', () => {
     const c = ctx();
-    expect(generateCss('border-own', c)).toMatch(/border-width:\s*5px/);
-    expect(generateCss('border-t-own', c)).toMatch(/border-top-width:\s*5px/);
+    expect(generateCss('border-own', c)).toMatch(/border-width:\s*var\(--border-width-own\)/);
+    expect(generateCss('border-t-own', c)).toMatch(/border-top-width:\s*var\(--border-width-own\)/);
     expect(generateCss('outline-own', c)).toMatch(/outline-width:\s*5px/);
     expect(generateCss('ring-own', c)).toMatch(/calc\(5px \+ var\(--baro-ring-offset-width\)\)/);
     expect(generateCss('ring-offset-own', c)).toMatch(/--baro-ring-offset-width:\s*5px/);
