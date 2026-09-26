@@ -42,7 +42,8 @@ export default defineConfig(withMermaid({
           items: [
             { text: 'Introduction', link: '/guide/' },
             { text: 'Quick Start', link: '/guide/quick-start' },
-            { text: 'Compatibility Scope', link: '/guide/compatibility' }
+            { text: 'Compatibility Scope', link: '/guide/compatibility' },
+            { text: 'Untrusted Class Input', link: '/guide/security' }
           ]
         },
         {
