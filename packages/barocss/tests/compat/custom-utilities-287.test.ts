@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { compile } from 'tailwindcss';
-import { createContext, validateCustomUtility } from '../../src/core/context';
+import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
 import { parseClassName } from '../../src/core/parser';
 import '../../src/presets';
@@ -39,11 +39,15 @@ describe('#287 static custom utilities', () => {
     expect(ws(generateCss('dark:active-nav', createContext({ utilities, darkMode: 'class' })))).toContain('.dark');
     expect(ws(generateCss('!content-auto', c))).toContain('content-visibility: auto !important;');
   });
-  it('overrides a same-named built-in', () => {
-    const css = ws(generateCss('block', ctx()));
-    expect(css).toContain('display: flow-root;');
-    expect(css).not.toContain('display: block;');
-    expect(ws(generateCss('block', createContext({})))).toContain('display: block;');
+  it('extends a same-named built-in like compile() (built-in first, then custom)', async () => {
+    const c = await compile(themeCss + '\n@tailwind utilities;\n@utility block { color: red; }');
+    const tw = ws(c.build(['block']));
+    expect(tw).toMatch(/display: block;.*color: red;/);
+    const css = ws(generateCss('block', createContext({ utilities: { block: { color: 'red' } } })));
+    expect(css).toMatch(/\.block \{ display: block; color: red; \}/);
+    const over = ws(generateCss('block', ctx()));
+    expect(over).toContain("display: flow-root;"); // duplicate property: the later (custom) value wins, as in the cascade
+    expect(ws(generateCss('block', createContext({})))).not.toContain('flow-root');
   });
   it('stays on its own context', () => {
     ctx();

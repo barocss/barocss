@@ -1,6 +1,7 @@
 /** #287: config.utilities names and declarations are validated; unsafe entries are skipped whole. */
 import { describe, expect, it } from 'vitest';
-import { createContext, validateCustomUtility } from '../../src/core/context';
+import { createContext } from '../../src/core/context';
+import { validateCustomUtility } from '../../src/core/customUtilities';
 import { generateCss } from '../../src/core/engine';
 import '../../src/presets';
 

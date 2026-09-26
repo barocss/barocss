@@ -1,9 +1,9 @@
-import { setDebug, debugWarn } from "../utils/debug";
+import { setDebug } from "../utils/debug";
 import { defaultTheme } from "../theme";
 import { themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
-import { getModifier, getUtility, staticUtility } from './registry';
+import { getModifier, getUtility } from './registry';
 import { clearContextCaches, initializeContextState } from './contextState';
-import { isStructureSafeValue, hasCommentDelimiter } from './parser';
+import { registerCustomUtilities } from './customUtilities';
 import { preflightMinimalCSS, preflightStandardCSS, preflightFullCSS } from "../css/preflight";
 
 type PreflightLevel = 'minimal' | 'standard' | 'full' | true | false;
@@ -70,8 +70,9 @@ export interface Config {
   /**
    * #287: static custom utilities, the runtime mirror of a stylesheet's static `@utility name { ... }`.
    * Name → declarations (property → value; CSS custom properties allowed). Each one is registered on
-   * this context only, before the built-ins, so a same-named built-in is overridden (as `@utility` does
-   * in Tailwind 4) and variants / `!` apply as usual. Invalid names, properties or values are skipped.
+   * this context only; variants and `!` apply as usual. A name equal to a built-in extends it like
+   * `@utility` in Tailwind 4: the built-in declarations are emitted first, then the custom ones (a later
+   * duplicate property wins). An entry with an invalid name, property or value is skipped whole.
    * @example utilities: { 'max-w-app': { 'max-width': '72rem', 'margin-inline': 'auto' } }
    */
   utilities?: CustomUtilities;
@@ -83,22 +84,6 @@ export type CustomUtilityDeclarations = Record<string, string | number>;
 /** #287: static custom utilities by class name. */
 export type CustomUtilities = Record<string, CustomUtilityDeclarations>;
 
-const customUtilityName = /^[A-Za-z_][A-Za-z0-9_-]*$/;
-const customUtilityProp = /^(--[A-Za-z0-9_-]+|-?[A-Za-z][A-Za-z0-9-]*)$/;
-
-/** #287: the safe declarations of a custom utility, or null when its name or any declaration is invalid. */
-export function validateCustomUtility(name: unknown, decls: unknown): [string, string][] | null {
-  if (typeof name !== 'string' || !customUtilityName.test(name)) return null;
-  if (!decls || typeof decls !== 'object' || Array.isArray(decls)) return null;
-  const out: [string, string][] = [];
-  for (const [prop, raw] of Object.entries(decls as Record<string, unknown>)) {
-    if (typeof raw !== 'string' && typeof raw !== 'number') return null;
-    const value = String(raw).trim();
-    if (!customUtilityProp.test(prop) || !value || !isStructureSafeValue(value) || hasCommentDelimiter(value)) return null;
-    out.push([prop, value]);
-  }
-  return out.length ? out : null;
-}
 
 export const defaultConfig: Config = {
   prefix: 'barocss-',
@@ -376,21 +361,4 @@ export function createContext(configObj: Config): Context {
   initializeContextState(ctx, getUtility(), getModifier());
   registerCustomUtilities(ctx, configObj.utilities);
   return ctx;
-}
-
-// #287: register config.utilities on this context, ahead of the built-ins (the first match wins).
-function registerCustomUtilities(ctx: Context, utilities: unknown): void {
-  if (!utilities || typeof utilities !== 'object' || Array.isArray(utilities)) return;
-  const list = getUtility(ctx);
-  const before = list.length;
-  for (const [name, decls] of Object.entries(utilities as Record<string, unknown>)) {
-    const safe = validateCustomUtility(name, decls);
-    if (!safe) {
-      debugWarn(`[BAROCSS] Ignoring invalid custom utility "${name}"`);
-      continue;
-    }
-    staticUtility(name, safe, { category: 'custom' }, ctx);
-  }
-  // staticUtility appends; move the custom ones to the front so they override same-named built-ins.
-  if (list.length > before) list.unshift(...list.splice(before));
 }
