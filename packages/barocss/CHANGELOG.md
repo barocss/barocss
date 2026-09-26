@@ -1,5 +1,25 @@
 # @barocss/kit
 
+## 0.10.0
+
+### Minor Changes
+
+- 0.10.0: strict Content-Security-Policy support, and negated variants.
+
+  **New:**
+
+  - `@barocss/browser` runs on strict-CSP pages that don't allow `style-src 'unsafe-inline'`: pass a `nonce` (applied to every style element the runtime creates, preflight included), or use `constructable: true` (constructable stylesheets). Pass these on the **first** `getRuntime` / `baroStart` call; a later mismatched call logs one warning. `ssrStyleTag` accepts a nonce too.
+  - Negated variants as in Tailwind 4: `not-data-[…]`, `not-aria-*`, `not-has-[…]`, `not-supports-[…]`, `not-<breakpoint>`; plus `group-aria-*`.
+
+  **Fixes:** `peer-aria-*` selectors; invalid variant forms now emit nothing instead of invalid CSS.
+
+  **Docs:** the security guide covers limiting external `url()` loads (CSP and a host pre-filter), and the Shadow DOM limits (document CSS doesn't cross shadow roots).
+
+### Patch Changes
+
+- 1d9dc53: Tidy low-severity fuzz findings (#335), matching Tailwind 4.3.3: `not-`/`group-`/`peer-`/`peer-has-` with an unknown inner variant emit nothing (known ones compound through the variant's own selector, e.g. `not-first` → `:not(:first-child)`); `placeholder:`, `selection:`, `file:` and `marker:` emit Tailwind's selectors without legacy vendor splits, and merged `@property` blocks carry each descriptor once; a selector or at-rule prelude containing `url(` is dropped; class lists split on ASCII whitespace only (a non-ASCII space is part of the class token).
+- 2b437e6: Negated and group-aria variants match Tailwind 4.3.3 (#352): `not-data-*`/`not-aria-*` (`:not([aria-checked="true"])`), `not-has-*` (`:not(:has(…))`), `not-supports-[…]` (`@supports not (…)`), `not-<breakpoint>`/`not-max-*`/`not-min-[…]` and `not-dark`/`not-print`/`not-motion-*`/`not-portrait` and similar (`@media not (…)`), and bare `group-aria-<state>`/`peer-aria-<state>` (including `/name`) as `[aria-<state>="true"]`. Negated media sorts with base rules in the runtime rule order, as Tailwind orders `not-*`.
+
 ## 0.9.0
 
 ### Minor Changes
