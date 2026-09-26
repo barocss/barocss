@@ -82,7 +82,12 @@ const ast = serverRuntime.parseClass('sm:dark:hover:bg-red-500');
 
 ### generateCss()
 
-Generate CSS for a single class name.
+Generate CSS for a class name, or several whitespace-separated class names, as one complete sheet:
+- one `:root,:host` block that defines every theme variable the rules reference (colours, radius, text, spacing, shadow, font and so on)
+- each root block and `@property` block exactly once
+- rules in Tailwind variant order (base < `sm:` < `md:` < `lg:`), whatever the input order
+
+To get one complete sheet for a list of classes, use `generateCss(classes.join(' '))`.
 
 ```typescript
 const css = serverRuntime.generateCss('bg-blue-500');
@@ -102,7 +107,9 @@ const css = serverRuntime.generateCss('bg-blue-500 text-white p-4');
 
 ### generateCssForClasses()
 
-Generate CSS for multiple class names.
+Generate CSS for multiple class names. Entries come back in input order.
+
+Each entry's `css` is self-contained: it has its own `:root,:host` variables, its own `@property` blocks and its own variant-sorted rules. As a result, joining the entries repeats the shared blocks and does not order the rules across entries. Use `generateCss(classes.join(' '))` when you need a single sheet.
 
 ```typescript
 const results = serverRuntime.generateCssForClasses([

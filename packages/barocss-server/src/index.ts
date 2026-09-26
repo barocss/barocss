@@ -35,27 +35,12 @@ export class ServerRuntime {
   }
 
   /**
-   * CSS per class. Joining the entries' `css` in array order yields one complete sheet (#267): the first
-   * non-empty entry carries the shared theme-var, root and @property blocks (each once), and entries are
-   * stably sorted into Tailwind variant order, so `lg:` follows `sm:` whatever the input order.
+   * CSS per class, in input order. Each entry is self-contained (its own `:root,:host` vars block,
+   * @property blocks and variant-sorted rules), so entries repeat shared blocks and are not ordered
+   * against each other. For one complete sheet use `generateCss(classes.join(' '))`.
    */
   generateCssForClasses(classes: string[]) {
-    const entries = classes.map((className, i) => {
-      const results = className.trim() ? generateCssRules(className, this.context) : [];
-      const rules = this.sortRules(results.map(({ css }) => css).filter(Boolean));
-      return { className, i, results, rules, key: rules.length ? ruleSortKey(rules[0]) : [] };
-    });
-    entries.sort((a, b) => compareKeys(a.key, b.key) || a.i - b.i);
-    const roots = this.uniqueRoots(entries.flatMap(({ results }) => results.flatMap(({ rootCssList }) => rootCssList)));
-    const vars = this.themeVarsBlock([...roots, ...entries.flatMap(({ rules }) => rules)].join('\n'));
-    const shared = [...(vars ? [vars] : []), ...roots];
-    let sharedDone = shared.length === 0;
-    return entries.map(({ className, rules }) => {
-      if (!rules.length) return { className, css: '' };
-      const parts = sharedDone ? rules : [...shared, ...rules];
-      sharedDone = true;
-      return { className, css: parts.join('\n') };
-    });
+    return classes.map((className) => ({ className, css: this.generateCss(className) }));
   }
 
   /** Dedupe root-level blocks by content, and @property blocks by property name. */

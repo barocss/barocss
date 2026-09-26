@@ -63,10 +63,21 @@ describe('ServerRuntime', () => {
     expect(css.match(/:root,:host \{/g)).toHaveLength(1);
   });
 
-  it('emits each :root and @property block once across generateCssForClasses (#267)', () => {
-    const sheet = runtime
-      .generateCssForClasses(['bg-red-500', 'text-red-500', 'translate-x-2', 'translate-y-2', 'shadow-md', 'shadow-lg', 'ring-2'])
-      .map((x) => x.css).filter(Boolean).join('\n');
+  it('generateCssForClasses keeps input order with self-contained entries (#267)', () => {
+    const classes = ['lg:px-8', 'shadow-md', 'rounded-lg', 'px-4'];
+    const out = runtime.generateCssForClasses(classes);
+    expect(out.map((x) => x.className)).toEqual(classes);
+    for (const { className, css } of out) {
+      expect(css).toBe(runtime.generateCss(className));
+      for (const [, name] of css.matchAll(/var\((--(?:radius|shadow|spacing|color)[\w-]*)/g))
+        expect(css, name).toMatch(new RegExp(`${name}:\\s*[^;]+;`));
+    }
+    expect(out[1].css).toMatch(/@property --baro-shadow/);
+  });
+
+  it('emits each :root and @property block once in a joined generateCss sheet (#267)', () => {
+    const sheet = runtime.generateCss(
+      ['bg-red-500', 'text-red-500', 'translate-x-2', 'translate-y-2', 'shadow-md', 'shadow-lg', 'ring-2'].join(' '));
     expect(sheet.match(/:root,:host \{/g)).toHaveLength(1);
     const props = [...sheet.matchAll(/@property (--[\w-]+)/g)].map((m) => m[1]);
     expect(props.length).toBeGreaterThan(0);
@@ -80,10 +91,6 @@ describe('ServerRuntime', () => {
     expect(base).toBeGreaterThan(-1);
     expect(base).toBeLessThan(sm);
     expect(sm).toBeLessThan(lg);
-    const joined = runtime.generateCssForClasses(['lg:px-8', 'sm:px-6', 'px-4']).map((x) => x.css).join('\n');
-    expect(joined.indexOf('.px-4')).toBeGreaterThan(-1);
-    expect(joined.indexOf('.px-4')).toBeLessThan(joined.indexOf('.sm\\:px-6'));
-    expect(joined.indexOf('.sm\\:px-6')).toBeLessThan(joined.indexOf('.lg\\:px-8'));
   });
 
   it('leaves simple class output otherwise unchanged (#267)', () => {
