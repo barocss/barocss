@@ -130,3 +130,16 @@ describe('ssrStyleTag (#268)', () => {
     expect(ssrStyleTag('.a{content:"</style>"}', { nonce: 'n"1' })).toBe('<style data-barocss-ssr nonce="n&#34;1">.a{content:"<\\/style>"}</style>');
   });
 });
+
+describe('digit-leading class names (#334)', () => {
+  it('parseCssDefinitions unescapes a hex-escaped leading digit', () => {
+    const d = parseCssDefinitions('@media (width >= 96rem){.\\32 xl\\:p-4{padding:1rem}}');
+    expect(d.classes.has('2xl:p-4')).toBe(true);
+  });
+  it('the server emits the CSS-escaped selector', () => {
+    const rt = new ServerRuntime();
+    const css = rt.generateCss('2xl:p-4');
+    expect(css).toContain('.\\32 xl\\:p-4');
+    expect(css).not.toContain('.2xl');
+  });
+});

@@ -139,6 +139,16 @@ export function getModifier(ctx?: Context): ModifierRegistration[] {
 //  escapeClassName
 const ESCAPE_REGEX = /[^A-Za-z0-9_-]/g;
 export function escapeClassName(className: string) {
+  // #334: CSS.escape first-char rules — an identifier can't start with a digit, or `-` + digit, or be a lone `-`.
+  if (className === '-') return '\\-';
+  const lead = /^-?[0-9]/.exec(className);
+  if (lead) {
+    const i = lead[0].length - 1;
+    return className.slice(0, i) + '\\' + className.charCodeAt(i).toString(16) + ' ' + escapeRest(className.slice(i + 1));
+  }
+  return escapeRest(className);
+}
+function escapeRest(className: string) {
   return className.replace(ESCAPE_REGEX, (c) => {
     if (c === ' ') return '\\x20 ';
     if (c === '.') return '\\.';
