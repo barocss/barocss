@@ -2,7 +2,7 @@ import { staticUtility, functionalUtility, registerUtility, themeKeyValue } from
 import type { Context } from "../core/context";
 import { shadowColorDecls, shadowValueDecls, type ShadowLayer } from "./shadow-color";
 import { atRule, atRoot, decl, property } from "../core/ast";
-import { parseColor, parseNumber } from "../core/utils";
+import { parseColor, parseLength, parseNumber, themeColorDecls } from "../core/utils";
 
 // --- Box Shadow ---
 //  box-shadow documentation
@@ -119,7 +119,8 @@ for (const layer of ["shadow", "inset-shadow"] as const) {
     handleBareValue: ({ value, ctx, extra }) => (namedBoxShadow(layer, value, extra?.opacity, ctx) ? value : null),
     handle: (value, ctx, token, extra) => {
       const opacity = extra?.opacity;
-      const named = !extra?.realThemeValue && !token.arbitrary ? namedBoxShadow(layer, value, opacity, ctx) : null;
+      // #338: a key that is both a shadow and a colour is the shadow, as in Tailwind 4.3.3.
+      const named = !token.arbitrary ? namedBoxShadow(layer, extra?.realThemeValue ?? value, opacity, ctx) : null;
       if (named) return named;
       const color = layerColor(layer, value, opacity, token, extra?.realThemeValue);
       if (color !== undefined) return color;
@@ -156,8 +157,8 @@ functionalUtility({
   handleBareValue: ({ value, ctx }) => (namedTextShadow(ctx, value) ? value : null),
   handle: (value, ctx, token, extra) => {
     const opacity = extra?.opacity;
-    if (!extra?.realThemeValue && !token.arbitrary) {
-      const named = namedTextShadow(ctx, value);
+    if (!token.arbitrary) {
+      const named = namedTextShadow(ctx, extra?.realThemeValue ?? value); // #338: shadow before colour, as Tailwind
       if (named) return textShadowValue(named, opacity);
     }
     const color = layerColor("text-shadow", value, opacity, token, extra?.realThemeValue);
@@ -224,6 +225,28 @@ function ringShadowValue(width: string) {
 });
 
 // Inset ring width utilities
+// #338: ring-offset-<colour> / ring-offset-<width> (theme.ringOffsetWidth, bare number, arbitrary), as Tailwind 4.3.3.
+// A key in both colours and ringOffsetWidth is the width.
+const ringOffsetWidth = (width: string) => [
+  decl("--baro-ring-offset-width", width),
+  decl("--baro-ring-offset-shadow", "var(--baro-ring-inset,) 0 0 0 var(--baro-ring-offset-width) var(--baro-ring-offset-color)"),
+];
+functionalUtility({
+  name: "ring-offset",
+  themeKeys: ["ringOffsetWidth", "colors"],
+  supportsArbitrary: true,
+  supportsOpacity: true,
+  handleBareValue: ({ value }) => (/^\d+$/.test(value) ? `${value}px` : null),
+  handle: (value, _ctx, token, extra) => {
+    if (extra?.themeNamespace === "ringOffsetWidth") return ringOffsetWidth(value);
+    if (extra?.realThemeValue) return themeColorDecls("--baro-ring-offset-color", value, extra);
+    if (token.arbitrary) return parseColor(value) ? [decl("--baro-ring-offset-color", value)] : parseLength(value) ? ringOffsetWidth(value) : null;
+    if (/^\d+px$/.test(value)) return ringOffsetWidth(value);
+    return null;
+  },
+  category: "effects",
+});
+
 [
   ["inset-ring", "1px"],
   ["inset-ring-0", "0px"],
@@ -276,9 +299,12 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsOpacity: true,
-  themeKeys: ["colors"],
+  themeKeys: ["colors", "ringWidth"], // #338: a key in both is a colour, as in Tailwind
   handle: (value, ctx, token, extra) => {
     const main = value;
+    if (extra?.themeNamespace === "ringWidth") {
+      return [ringShadowProperties(), decl("--baro-ring-shadow", ringShadowValue(value)), decl("box-shadow", SHADOW_COMPOSITE)];
+    }
     const opacity = extra?.opacity;
     const realThemeValue = extra?.realThemeValue;
     if (realThemeValue) {

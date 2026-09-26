@@ -158,13 +158,15 @@ functionalUtility({
     const opacity = extra?.opacity;
     const keyword = token.arbitrary ? undefined : ({ inherit: "inherit", current: "currentcolor", transparent: "transparent" } as Record<string, string>)[extra?.realThemeValue ?? value];
     if (keyword) return dropShadowColor(keyword, opacity);
+    // #338: a key that is both a drop shadow and a colour is the drop shadow, as in Tailwind 4.3.3.
+    const key = extra?.realThemeValue ?? value;
+    const named = token.arbitrary ? null : namedDropShadow(ctx, key);
+    if (named) return dropShadowValue(named, opacity, `drop-shadow(var(--drop-shadow-${key}))`);
     if (extra?.realThemeValue) return dropShadowColor(value, opacity, `var(--color-${extra.realThemeValue})`);
     if (token.arbitrary) {
       if (parseColor(value)) return dropShadowColor(value, opacity);
       return dropShadowValue(value, opacity);
     }
-    const named = namedDropShadow(ctx, value);
-    if (named) return dropShadowValue(named, opacity, `drop-shadow(var(--drop-shadow-${value}))`);
     return null;
   },
   handleCustomProperty: (value) => {
