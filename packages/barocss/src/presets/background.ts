@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { AstNode, atRoot, decl, property, styleRule } from "../core/ast";
+import { AstNode, atRoot, atRule, decl, property } from "../core/ast";
 import { parseColor, parseLength, parseNumber, themeColorDecls } from "../core/utils";
 
 const gradientStopProperties = () => {
@@ -8,7 +8,8 @@ const gradientStopProperties = () => {
     property('--baro-gradient-from', '#0000', '<color>'),
     property('--baro-gradient-via', '#0000', '<color>'),
     property('--baro-gradient-to', '#0000', '<color>'),
-    property('--baro-gradient-stops', "transparent"),
+    property('--baro-gradient-stops'),
+    property('--baro-gradient-via-stops'),
     property('--baro-gradient-from-position', '0%', '<length-percentage>'),
     property('--baro-gradient-via-position', '50%', '<length-percentage>'),
     property('--baro-gradient-to-position', '100%', '<length-percentage>'),
@@ -93,18 +94,18 @@ functionalUtility({
 });
 
 // --- Background Gradients: Linear ---
-const positionValue = (position: string) => {
-  return [
-    decl("--baro-gradient-position", position),    
-    styleRule("@supports (background-image: linear-gradient(in lab, red, red))", [
-      decl("--baro-gradient-position", `${position} in oklab`),
-    ]),
-    decl(
-      "background-image",
-      `linear-gradient(${position}, var(--baro-gradient-stops))`
-    ),
-  ];
-};
+const positionValue = (position: string) => [
+  decl("--baro-gradient-position", position),
+  atRule("supports", "(background-image: linear-gradient(in lab, red, red))", [
+    decl("--baro-gradient-position", `${position} in oklab`),
+  ]),
+  decl("background-image", "linear-gradient(var(--baro-gradient-stops))"),
+];
+// Tailwind 4 emits the legacy bg-gradient-to-* with the interpolation space baked in, no @supports.
+const legacyPositionValue = (position: string) => [
+  decl("--baro-gradient-position", `${position} in oklab`),
+  decl("background-image", "linear-gradient(var(--baro-gradient-stops))"),
+];
 
 [
   ["bg-linear-to-t", positionValue("to top")],
@@ -117,14 +118,14 @@ const positionValue = (position: string) => {
   ["bg-linear-to-tl", positionValue("to top left")],
 
   // fallback , legacy CSS compatibility
-  ["bg-gradient-to-t", positionValue("to top")],
-  ["bg-gradient-to-tr", positionValue("to top right")],
-  ["bg-gradient-to-r", positionValue("to right")],
-  ["bg-gradient-to-br", positionValue("to bottom right")],
-  ["bg-gradient-to-b", positionValue("to bottom")],
-  ["bg-gradient-to-bl", positionValue("to bottom left")],
-  ["bg-gradient-to-l", positionValue("to left")],
-  ["bg-gradient-to-tl", positionValue("to top left")],
+  ["bg-gradient-to-t", legacyPositionValue("to top")],
+  ["bg-gradient-to-tr", legacyPositionValue("to top right")],
+  ["bg-gradient-to-r", legacyPositionValue("to right")],
+  ["bg-gradient-to-br", legacyPositionValue("to bottom right")],
+  ["bg-gradient-to-b", legacyPositionValue("to bottom")],
+  ["bg-gradient-to-bl", legacyPositionValue("to bottom left")],
+  ["bg-gradient-to-l", legacyPositionValue("to left")],
+  ["bg-gradient-to-tl", legacyPositionValue("to top left")],
 ].forEach(([name, value]) => {
   staticUtility(name as string, value as AstNode[], { category: 'background', priority: 1000 });
 });
@@ -136,13 +137,8 @@ functionalUtility({
   supportsCustomProperty: true,
   handle: (value, context, token) => {
     if (parseNumber(value)) {
-      // bg-linear-45 → linear-gradient(45deg in oklab, var(--baro-gradient-stops))
-      return [
-        decl(
-          "background-image",
-          `linear-gradient(${value}deg in oklab, var(--baro-gradient-stops))`
-        ),
-      ];
+      // bg-linear-45 → --baro-gradient-position: 45deg (in oklab when supported)
+      return positionValue(`${value}deg`);
     }
     if (token.arbitrary) {
       // bg-linear-[25deg,red_5%,yellow_60%,lime_90%,teal]
@@ -263,7 +259,24 @@ functionalUtility({
 
 
 
-// from-*, via-*, to-* (color, percentage, custom property, arbitrary)
+// from-*, via-*, to-* (color, percentage, custom property, arbitrary), Tailwind 4 stop composition
+const G = "--baro-gradient";
+const stopsDecls = (stop: string, color: string | AstNode[]): AstNode[] => {
+  const colorDecls = typeof color === "string" ? [decl(`${G}-${stop}`, color)] : color;
+  if (stop === "via") {
+    return [
+      gradientStopProperties(),
+      ...colorDecls,
+      decl(`${G}-via-stops`, `var(${G}-position), var(${G}-from) var(${G}-from-position), var(${G}-via) var(${G}-via-position), var(${G}-to) var(${G}-to-position)`),
+      decl(`${G}-stops`, `var(${G}-via-stops)`),
+    ];
+  }
+  return [
+    gradientStopProperties(),
+    ...colorDecls,
+    decl(`${G}-stops`, `var(${G}-via-stops, var(${G}-position), var(${G}-from) var(${G}-from-position), var(${G}-to) var(${G}-to-position))`),
+  ];
+};
 ["from", "via", "to"].forEach((stop) => {
   functionalUtility({
     name: stop,
@@ -271,84 +284,19 @@ functionalUtility({
     supportsArbitrary: true,
     supportsCustomProperty: true,
     supportsOpacity: true,
-    handle: (value, context, token, extra) => {
-      // console.log('[gradient stop] value', value, context, token, extra);
+    handle: (value, _context, _token, extra) => {
       if (extra?.realThemeValue) {
-        if (stop === "from") {
-
-          let color = value; 
-          if (extra?.opacity) {
-            color = `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`;
-          }
-
-          return [
-            gradientStopProperties(),
-            decl(`--baro-gradient-from`, color),
-            // decl(`--baro-gradient-to`, "var(--baro-gradient-to, transparent)"),
-            decl(`--baro-gradient-stops`, "var(--baro-gradient-from),var(--baro-gradient-to)")
-          ];
-        }
-
-        if (stop === "via") {
-          let color = value; 
-          if (extra?.opacity) {
-            color = `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`;
-          }
-          return [
-            gradientStopProperties(),
-            decl(`--baro-gradient-to`, color),
-            decl(`--baro-gradient-stops`, `var(--baro-gradient-from), ${value} var(--baro-gradient-via-position), var(--baro-gradient-to)`)  // via 포함 stops
-          ];
-        }
-
-        if (stop === "to") {
-          let color = value; 
-          if (extra?.opacity) {
-            color = `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`;
-          }
-          return [
-            gradientStopProperties(),
-            decl(`--baro-gradient-to`, color),
-          ];
-        }
+        return stopsDecls(stop, themeColorDecls(`${G}-${stop}`, value, extra));
       }
-
-      // to-50% → --baro-gradient-to-position: 50%
+      // from-10% → --baro-gradient-from-position: 10%
       if (parseLength(value)) {
-        return [decl(`--baro-gradient-${stop}-position`, value)];
+        return [gradientStopProperties(), decl(`${G}-${stop}-position`, value)];
       }
-
-      // to-50% → --baro-gradient-to-position: 50%
       if (parseNumber(value)) {
-        return [decl(`--baro-gradient-${stop}-position`, `${value}%`)];
+        return [gradientStopProperties(), decl(`${G}-${stop}-position`, `${value}%`)];
       }
-
-      // to-red-500 → --baro-gradient-to: red-500
       if (parseColor(value)) {
-
-        if (stop === "from") {
-          return [
-            gradientStopProperties(),
-            decl(`--baro-gradient-from`, value),
-            decl(`--baro-gradient-to`, "transparent"),
-            decl(`--baro-gradient-stops`, "var(--baro-gradient-from),var(--baro-gradient-to)")
-          ];
-        }
-
-        if (stop === "via") {
-          return [
-            gradientStopProperties(),
-            decl(`--baro-gradient-to`, value),
-            decl(`--baro-gradient-stops`, `var(--baro-gradient-from), ${value} var(--baro-gradient-via-position), var(--baro-gradient-to)`)  // via 포함 stops
-          ];
-        }
-
-        if (stop === "to") {
-          return [
-            gradientStopProperties(),
-            decl(`--baro-gradient-to`, value),
-          ];
-        }
+        return stopsDecls(stop, value);
       }
       return null;
     },
