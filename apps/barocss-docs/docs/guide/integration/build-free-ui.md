@@ -26,7 +26,7 @@ sequenceDiagram
 ## Quick Start (Vanilla HTML)
 
 ```html
-<script src="https://unpkg.com/@barocss/browser@0.4.0/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.umd.cjs"></script>
 <script>
   const runtime = new BaroCSS.BrowserRuntime()
   runtime.observe(document.body, { scan: true })
@@ -37,7 +37,7 @@ sequenceDiagram
 
 ```html
 <script type="module">
-  import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@0.4.0/dist/cdn/barocss.js'
+  import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.js'
   const runtime = new BrowserRuntime()
   runtime.observe(document.body, { scan: true })
 </script>

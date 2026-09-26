@@ -9,19 +9,19 @@ This page shows how to use BaroCSS in popular frameworks. The goal is minimal se
 
 ## Common Setup
 
-For a plain HTML page without a bundler, load the published `0.4.0` browser module from the CDN. Place the script after the page body exists:
+For a plain HTML page without a bundler, load the published `0.5.0` browser module from the CDN. Place the script after the page body exists:
 
 ```html
 <script type="module">
-  import { baroStart } from 'https://unpkg.com/@barocss/browser@0.4.0/dist/cdn/barocss.js';
+  import { baroStart } from 'https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.js';
   baroStart();
 </script>
 ```
 
-For the framework examples below, install `@barocss/browser@0.4.0` in the application so its package import resolves:
+For the framework examples below, install `@barocss/browser@0.5.0` in the application so its package import resolves:
 
 ```bash
-pnpm add @barocss/browser@0.4.0
+pnpm add @barocss/browser@0.5.0
 ```
 
 ## React
