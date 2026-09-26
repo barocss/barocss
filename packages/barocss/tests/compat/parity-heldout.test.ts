@@ -25,9 +25,6 @@ const KNOWN_FAILURES: Record<string, string> = {
   "group-data-[collapsible=icon]:p-0!": "other: trailing ! important modifier unsupported",
   "group-data-[collapsible=icon]:p-2!": "other: trailing ! important modifier unsupported",
   "group-data-[collapsible=icon]:size-8!": "other: trailing ! important modifier unsupported",
-  "has-focus:ring-[3px]": "missing variant: has-<pseudo> (has-focus)",
-  "in-data-[side=left]:cursor-w-resize": "missing variant: in-* (in-data-[...])",
-  "in-data-[side=right]:cursor-e-resize": "missing variant: in-* (in-data-[...])",
   "[--cell-size:--spacing(8)]": "other: arbitrary property with --spacing() function unsupported",
 };
 
