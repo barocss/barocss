@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility } from "../core/registry";
+import { staticUtility, functionalUtility, registerUtility } from "../core/registry";
 import { decl } from "../core/ast";
 import {
   parseNumber,
@@ -129,10 +129,10 @@ staticUtility("sr-only", [
   ["position", "absolute"],
   ["width", "1px"],
   ["height", "1px"],
-  ["margin", "-1px"],
   ["padding", "0"],
+  ["margin", "-1px"],
   ["overflow", "hidden"],
-  ["clip", "rect(0, 0, 0, 0)"],
+  ["clip-path", "inset(50%)"],
   ["white-space", "nowrap"],
   ["border-width", "0"],
 ], { category: 'layout' });
@@ -141,12 +141,25 @@ staticUtility("not-sr-only", [
   ["position", "static"],
   ["width", "auto"],
   ["height", "auto"],
-  ["margin", "0"],
   ["padding", "0"],
+  ["margin", "0"],
   ["overflow", "visible"],
-  ["clip", "auto"],
+  ["clip-path", "none"],
   ["white-space", "normal"],
 ], { category: 'layout' });
+
+// --- Layout: Container queries (@container, @container/<name>, @container-normal) ---
+staticUtility("@container", [["container-type", "inline-size"]], { category: 'layout' });
+staticUtility("@container-normal", [["container-type", "normal"]], { category: 'layout' });
+registerUtility({
+  name: "@container",
+  match: (className: string) => /^@container\/[a-zA-Z0-9_-]+$/.test(className),
+  handler: (_value, _ctx, token) => {
+    const name = /^@container\/([a-zA-Z0-9_-]+)$/.exec(`${token.prefix}${token.value ? `-${token.value}` : ""}`)?.[1];
+    return name ? [decl("container-type", "inline-size"), decl("container-name", name)] : null;
+  },
+  category: 'layout',
+});
 
 // --- Layout: Float ---
 staticUtility("float-right", [["float", "right"]], { category: 'layout' });

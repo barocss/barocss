@@ -17,12 +17,7 @@ import { corpus } from './corpus';
 // prints the frequency-weighted coverage. KNOWN_FAILURES lists classes that don't match yet; remove an entry when
 // its fix lands (the test fails if a listed class starts passing, so the list can't go stale).
 
-const KNOWN_FAILURES: Record<string, string> = {
-  "select-none": "no -webkit-user-select",
-  "sr-only": "clip instead of clip-path",
-  "@container/card-header": "no container-type utility (#187)",
-  "justify-self-end": "justify-self-end emits end, TW flex-end",
-};
+const KNOWN_FAILURES: Record<string, string> = {};
 
 const INVALID = '⟂';
 type Scope = Map<string, string>;

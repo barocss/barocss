@@ -58,17 +58,8 @@ describe("container queries", () => {
     ]);
   });
 
-  it('@container/main:bg-red-500 → @container main { ... }', () => {
-    expect(parseClassToAst('@container/main:bg-red-500', ctx)).toMatchObject([
-      {
-        type: 'at-rule',
-        name: 'container',
-        params: 'main',
-        nodes: [
-          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
-        ],
-      },
-    ]);
+  it('@container/main:bg-red-500 emits nothing (@container/<name> is a utility, as in Tailwind)', () => {
+    expect(parseClassToAst('@container/main:bg-red-500', ctx)).toEqual([]);
   });
 
   it('@sm/main:bg-red-500 → @container main (width >= 24rem) { ... }', () => {
