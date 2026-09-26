@@ -1,5 +1,34 @@
 # @barocss/server
 
+## 0.8.0
+
+### Minor Changes
+
+- 0.8.0: Tailwind 4.3 support. The parity reference is now Tailwind 4.3.3, since BaroCSS runs next to your build and real projects use Tailwind 4.3.
+
+  **New utilities (Tailwind 4.3):** logical properties (`inset-s/e/bs/be`, `inline-*` / `block-*` sizing, `pbs/pbe/mbs/mbe`, `border-bs/be`, `border-s/e`), `scrollbar-thin` / `scrollbar-none` / scrollbar colours / `scrollbar-gutter`, `font-features-*`, `zoom-*`, `tab-*`, `@container-size`, `not-@container`, `scroll-pbs/mbe`, `text-shadow-*`, and the mauve / olive / mist / taupe palettes.
+
+  **Behaviour changes (please check when upgrading):**
+
+  - Theme data follows Tailwind 4.3: the default `font-sans` stack, and the `neutral` / `zinc` palettes.
+  - `drop-shadow-*` sizes and shadow size + colour composition (`shadow-md shadow-red-500/20`) match Tailwind 4.3; `shadow-inner` now emits a rule.
+  - Negative scroll padding (`-scroll-p*`) emits nothing, as in Tailwind; `scroll-*-px` is `1px`; `border-spacing-x/y` compose.
+  - Side-specific border opacity and `border-s-(--c)` no longer affect all sides.
+
+  **Docs:** the Astro recipe sets `cssVarPrefix` and the dark-mode mapping; the CDN global is documented as the browser runtime only (use `@barocss/server` for server CSS); first-paint styling points to the server recipe.
+
+### Patch Changes
+
+- Updated dependencies [6648b39]
+- Updated dependencies [e96524a]
+- Updated dependencies
+- Updated dependencies [18ebf77]
+- Updated dependencies [85ea0b3]
+- Updated dependencies [c64d140]
+- Updated dependencies [5619b55]
+- Updated dependencies [723974d]
+  - @barocss/kit@0.8.0
+
 ## 0.7.0
 
 ### Minor Changes
