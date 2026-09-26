@@ -66,6 +66,7 @@ export default defineConfig(withMermaid({
           items: [
             { text: 'Overview', link: '/guide/integration/overview' },
             { text: 'Next to a Tailwind build', link: '/guide/integration/tailwind-companion' },
+            { text: 'Vite + Tailwind 4', link: '/guide/integration/vite-tailwind' },
             { text: 'Astro (SSR and static)', link: '/guide/integration/astro' },
             { text: 'Embedding AI widgets (Shadow DOM)', link: '/guide/integration/shadow-dom' },
             { text: 'Frameworks (React, Vue, Svelte, Solid)', link: '/guide/integration/frameworks' },

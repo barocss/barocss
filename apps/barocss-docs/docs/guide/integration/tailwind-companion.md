@@ -9,7 +9,7 @@ description: Run BaroCSS alongside an existing Tailwind 4 / shadcn build
 There is no CSS entry: never write `@import "@barocss/kit";` in CSS. Keep the Tailwind CSS as it is and configure BaroCSS from JS.
 :::
 
-Use this when the page already links a Tailwind 4 / shadcn build and a model sends json-render specs whose `className` values the build never saw. Copy it as is:
+Use this when the page already links a Tailwind 4 / shadcn build and a model sends json-render specs whose `className` values the build never saw. Copy it as is: For a Vite project, see [Vite + Tailwind 4](./vite-tailwind) (install line, config, and [`BrowserRuntime` vs `getRuntime`](./vite-tailwind#runtime-choice)).
 
 ```js
 import { getRuntime, shadcnTheme, preloadJsonRenderClasses } from '@barocss/browser';
