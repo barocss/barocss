@@ -164,14 +164,16 @@ for (const m of MODELS) for (const arm of ARMS) {
     const fp = r.frames.find((f) => f.t >= r.fcp) || r.frames[r.frames.length - 1]; // first frame painted at/after FCP
     const styled = r.frames.find((f) => f.t >= r.fcp && match(f.sig, refSig[m]) >= fm - 1e-9);
     const pre = [...r.frames].reverse().find((f) => f.t < r.addT); // last frame before the later client addition
-    return { fcp: r.fcp, matchAtFcp: match(fp.sig, refPre[m]), hydrated: pre ? match(pre.sig, refPre[m]) : null, finalMatch: fm, dupRules: r.dupRules, unstyledMs: styled ? Math.max(0, styled.t - r.fcp) : null, cls: r.cls, lcp: r.lcp,
+    return { fcp: r.fcp, matchAtFcp: match(fp.sig, refPre[m]), hydrated: pre ? match(pre.sig, refPre[m]) : null, finalMatch: fm, dupRules: r.dupRules, unstyledMs: styled ? Math.max(0, styled.t - r.fcp) : null, hydrateMs: (() => { if (!pre) return null; const h = match(pre.sig, refPre[m]); const f = r.frames.find((x) => x.t >= r.fcp && match(x.sig, refPre[m]) >= h - 1e-9); return f ? Math.max(0, f.t - r.fcp) : null; })(), cls: r.cls, lcp: r.lcp,
       htmlB: r.byType.document || 0, cssB: r.byType.stylesheet || 0, jsB: r.byType.script || 0, runtimeBytes: r.runtimeBytes };
   });
   const k = (f) => med(runs.map(f));
   const r0 = raw.find((r) => r.m === m && r.arm === arm); if (process.env.DUPKEYS) console.log(m, arm, 'dup rule keys', JSON.stringify(r0.dupKeys)); if (arm.startsWith('server') || arm === 'both' || arm === 'tw-compile') console.log(m, arm, 'final diffs by prop', JSON.stringify(diffProps(r0.final, refSig[m])));
-  rows.push({ m, arm, fcp: k((x) => x.fcp), matchAtFcp: k((x) => x.matchAtFcp), hydrated: k((x) => x.hydrated), finalMatch: k((x) => x.finalMatch), dupRules: k((x) => x.dupRules), unstyledMs: k((x) => x.unstyledMs),
+  rows.push({ m, arm, fcp: k((x) => x.fcp), matchAtFcp: k((x) => x.matchAtFcp), hydrated: k((x) => x.hydrated), finalMatch: k((x) => x.finalMatch), dupRules: k((x) => x.dupRules), unstyledMs: k((x) => x.unstyledMs), hydrateMs: k((x) => x.hydrateMs),
     cls: k((x) => x.cls), lcp: k((x) => x.lcp), htmlB: k((x) => x.htmlB), cssB: k((x) => x.cssB), jsB: k((x) => x.jsB), runtimeBytes: k((x) => x.runtimeBytes) });
 }
+// #383: hydrateMs = FCP -> first frame at the pre-addition (hydrated) match; the original #266 "unstyledMs" definition.
+console.log('hydrateMs', JSON.stringify(rows.map((r) => [r.m, r.arm, r.hydrateMs])));
 fs.writeFileSync(path.join(HERE, 'result.json'), JSON.stringify({ rows, serverMs, dups, raw: raw.map(({ frames, final, ...x }) => x) }, null, 1));
 const f = (v, d = 0) => (v == null ? '-' : Number(v).toFixed(d));
 console.log('model arm          FCP    match@FCP hydrated afterAdd dupRules unstyledMs  CLS     LCP    htmlB cssB  jsB   runtimeCssB');

@@ -7,7 +7,7 @@
 //
 //   pnpm build:library   # needs packages/barocss-browser/dist/cdn/barocss.umd.cjs
 //   PW_DIR=<dir whose node_modules has playwright-core> [CHROME=<chromium binary>] [ENGINE=chromium|firefox|webkit] \
-//     [BARO_UMD=<other build>] node scripts/shadow-parity/run.mjs
+//     [BARO_UMD=<other build>] [MAX_RULES=<partition size>] node scripts/shadow-parity/run.mjs
 //
 // Writes scripts/shadow-parity/result.<engine>.json. CI has no browser for this, so it is a documented command.
 import fs from 'node:fs';
@@ -42,16 +42,14 @@ async function measure(mode, tokens) {
   const page = await browser.newPage({ viewport: { width: 1024, height: 768 } });
   await page.setContent('<!doctype html><html><head></head><body style="margin:0"><div id="host"></div></body></html>');
   await page.addScriptTag({ path: UMD });
-  const out = await page.evaluate(async ({ mode, items }) => {
+  const out = await page.evaluate(async ({ mode, items, maxRules }) => {
     const html = items.map(([t, cls], i) => `<div class="w"><div data-i="${i}" class="${cls.replace(/"/g, '&quot;')}">${t.includes('content') ? '' : 'x'}<span>y</span></div></div>`).join('');
     const host = document.getElementById('host');
     let scope;
     if (mode === 'document') {
       host.innerHTML = html; scope = host;
-      // One partition: with the default 50-rule partitions, a rule that overflows into a later <style> beats an
-      // equal-specificity rule of an earlier one (shadow-[…] shadow-md on one element), a document-mode ordering
-      // quirk unrelated to root mode; the shadow sheet is one sorted list, like a single partition.
-      BaroCSS.getRuntime({ maxRulesPerPartition: 100000 }).observe(host, { scan: true });
+      // Default 50-rule partitions (#387: cross-partition order matches the single-sheet order); MAX_RULES overrides.
+      BaroCSS.getRuntime(maxRules ? { maxRulesPerPartition: maxRules } : {}).observe(host, { scan: true });
     } else {
       // 'fallback': the document refuses the <style> (as in an environment without document access), so the
       // runtime has to use the :host initial values inside the root.
@@ -74,7 +72,7 @@ async function measure(mode, tokens) {
     }
     const docText = [...document.styleSheets, ...document.adoptedStyleSheets].flatMap((s) => [...s.cssRules].map((r) => r.cssText));
     return { res, documentRules: docText.length, documentNonProperty: mode !== 'document' ? docText.filter((t) => !/^@property\s/.test(t)).length : null };
-  }, { mode, items: tokens.map((t) => [t, [t, partnerOf(t)].filter(Boolean).join(' ')]) });
+  }, { mode, maxRules: Number(process.env.MAX_RULES) || 0, items: tokens.map((t) => [t, [t, partnerOf(t)].filter(Boolean).join(' ')]) });
   await page.close();
   return out;
 }
