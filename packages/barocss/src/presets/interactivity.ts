@@ -233,6 +233,9 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
   ["me", "scroll-margin-inline-end"],
   ["m", "scroll-margin"],
 ].forEach(([name, prop]) => {
+  // #314: 1px keyword, as Tailwind 4.3.3 (negative too, for margin only).
+  staticUtility(`scroll-${name}-px`, [[prop, "1px"]], { category: 'interactivity' });
+  staticUtility(`-scroll-${name}-px`, [[prop, "-1px"]], { category: 'interactivity' });
   functionalUtility({
     name: `scroll-${name}`,
     spacingKeys: true,
@@ -272,13 +275,16 @@ staticUtility("snap-proximity", [["--baro-scroll-snap-strictness", "proximity"]]
     prop,
     supportsArbitrary: true,
     supportsCustomProperty: true,
+    handleBareValue: ({ value }) => (value === "px" ? "1px" : /^(\d|\.\d)/.test(value) ? value : null),
     handle: (value, _ctx, token, _extra) => {
-      if (parseNumber(value) || token.negative) {
+      // #314: Tailwind 4.3.3 has no negative scroll-padding; `px` is 1px.
+      if (token.negative) return [];
+      if (parseNumber(value)) {
         return [decl(prop, `calc(var(--spacing) * ${value})`)];
       }
       return [decl(prop, value)];
     },
-    handleCustomProperty: (value) => [decl(prop, `var(${value})`)],
+    handleCustomProperty: (value, _ctx, token) => (token.negative ? [] : [decl(prop, `var(${value})`)]),
     description: `scroll-${name} utility (static, arbitrary, custom property supported)`,
     category: "interactivity",
   });
