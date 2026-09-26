@@ -192,3 +192,7 @@ lerna-debug.log*
 
 # vitepress
 .vitepress/cache
+# generated probe results (#288)
+scripts/**/result.json
+scripts/**/results.json
+scripts/**/result-*.json
