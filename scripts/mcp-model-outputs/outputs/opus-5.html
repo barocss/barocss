@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --panel-2: #1e222b;
+    --border: #2a2f3a;
+    --text: #e6e9ef;
+    --muted: #9aa3b2;
+    --accent: #4f8cff;
+    --accent-2: #3a6fd8;
+    --danger: #ff5c6c;
+    --ok: #3ddc84;
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f4f6fa;
+      --panel: #ffffff;
+      --panel-2: #f0f2f7;
+      --border: #dfe3ec;
+      --text: #1a1d24;
+      --muted: #5c6472;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 16px;
+  }
+  .app {
+    max-width: 640px;
+    margin: 0 auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  header {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header .icon {
+    width: 34px; height: 34px;
+    display: grid; place-items: center;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--accent);
+    flex: 0 0 auto;
+  }
+  header h1 { font-size: 16px; margin: 0; }
+  header p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+
+  .tabs {
+    display: flex;
+    gap: 2px;
+    padding: 8px 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    appearance: none;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font: inherit;
+    padding: 9px 14px;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid transparent;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  .panel-body { padding: 8px 20px 4px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .row:last-child { border-bottom: none; }
+  .row .label { min-width: 0; }
+  .row .label .name { font-weight: 500; }
+  .row .label .desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .row .control { flex: 0 0 auto; }
+
+  /* Toggle */
+  .switch { position: relative; display: inline-block; width: 42px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0; cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 999px; transition: .18s;
+  }
+  .slider:before {
+    content: ""; position: absolute; height: 18px; width: 18px;
+    left: 2px; top: 2px; background: var(--muted);
+    border-radius: 50%; transition: .18s;
+  }
+  .switch input:checked + .slider { background: var(--accent); border-color: var(--accent); }
+  .switch input:checked + .slider:before { transform: translateX(18px); background: #fff; }
+  .switch input:focus-visible + .slider { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Select */
+  select, input[type="text"], input[type="number"] {
+    appearance: none;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 30px 8px 10px;
+    font: inherit;
+    min-width: 150px;
+  }
+  input[type="text"], input[type="number"] { padding-right: 10px; }
+  select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%239aa3b2' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  select:focus, input:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+
+  /* Range */
+  .range-wrap { display: flex; align-items: center; gap: 10px; }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 140px; height: 4px; border-radius: 4px;
+    background: var(--border); outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent); cursor: pointer; border: 2px solid var(--panel);
+  }
+  .range-val { width: 42px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); }
+
+  /* Segmented */
+  .seg { display: inline-flex; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+  .seg button {
+    appearance: none; border: none; background: none; color: var(--muted);
+    font: inherit; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  }
+  .seg button.active { background: var(--accent); color: #fff; }
+
+  footer {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--panel-2);
+  }
+  .status { font-size: 12px; color: var(--muted); min-height: 16px; }
+  .status.saved { color: var(--ok); }
+  .actions { display: flex; gap: 8px; }
+  button.btn {
+    appearance: none; font: inherit; font-weight: 500;
+    padding: 9px 16px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel);
+    color: var(--text);
+  }
+  button.btn:hover { border-color: var(--muted); }
+  button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.btn.primary:hover { background: var(--accent-2); }
+  button.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+  <div class="app" role="region" aria-label="Settings">
+    <header>
+      <div class="icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </div>
+      <div>
+        <h1>Settings</h1>
+        <p>Configure how this app behaves.</p>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab active" role="tab" aria-selected="true" data-page="general">General</button>
+      <button class="tab" role="tab" aria-selected="false" data-page="notifications">Notifications</button>
+      <button class="tab" role="tab" aria-selected="false" data-page="advanced">Advanced</button>
+    </nav>
+
+    <div class="panel-body">
+      <!-- General -->
+      <section class="page active" id="page-general" role="tabpanel">
+        <div class="row">
+          <div class="label">
+            <div class="name">Theme</div>
+            <div class="desc">Choose the app's appearance.</div>
+          </div>
+          <div class="control">
+            <div class="seg" data-key="theme">
+              <button data-val="system" class="active">System</button>
+              <button data-val="light">Light</button>
+              <button data-val="dark">Dark</button>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">
+            <div class="name">Language</div>
+            <div class="desc">Display language for the interface.</div>
+          </div>
+          <div class="control">
+            <select data-key="language">
+              <option value="en">English</option>
+              <option value="ko">한국어</option>
+              <option value="ja">日本語</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">
+            <div class="name">Compact mode</div>
+            <div class="desc">Reduce spacing to fit more on screen.</div>
+          </div>
+          <div class="control">
+            <label class="switch">
+              <input type="checkbox" data-key="compact">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Notifications -->
+      <section class="page" id="page-notifications" role="tabpanel">
+        <div class="row">
+          <div class="label">
+            <div class="name">Enable notifications</div>
+            <div class="desc">Receive alerts about activity.</div>
+          </div>
+          <div class="control">
+            <label class="switch">
+              <input type="checkbox" data-key="notify" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">
+            <div class="name">Sound</div>
+            <div class="desc">Play a sound with each notification.</div>
+          </div>
+          <div class="control">
+            <label class="switch">
+              <input type="checkbox" data-key="sound">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">
+            <div class="name">Digest frequency</div>
+            <div class="desc">How often to bundle summaries.</div>
+          </div>
+          <div class="control">
+            <select data-key="digest">
+              <option value="realtime">Real-time</option>
+              <option value="hourly">Hourly</option>
+              <option value="daily" selected>Daily</option>
+              <option value="weekly">Weekly</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Advanced -->
+      <section class="page" id="page-advanced" role="tabpanel">
+        <div class="row">
+          <div class="label">
+            <div class="name">Cache size</div>
+            <div class="desc">Local storage limit for cached data.</div>
+          </div>
+          <div class="control">
+            <div class="range-wrap">
+              <input type="range" min="0" max="1024" step="64" value="256" data-key="cache">
+              <span class="range-val" id="cacheVal">256 MB</span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">
+            <div class="name">Request timeout</div>
+            <div class="desc">Seconds before a request is aborted.</div>
+          </div>
+          <div class="control">
+            <input type="number" min="1" max="120" value="30" data-key="timeout" style="min-width:90px">
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">
+            <div class="name">Telemetry</div>
+            <div class="desc">Send anonymized usage data.</div>
+          </div>
+          <div class="control">
+            <label class="switch">
+              <input type="checkbox" data-key="telemetry">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <div class="status" id="status" aria-live="polite"></div>
+      <div class="actions">
+        <button class="btn" id="reset">Reset</button>
+        <button class="btn primary" id="save">Save changes</button>
+      </div>
+    </footer>
+  </div>
+
+<script>
+(function () {
+  var root = document.querySelector('.app');
+  var statusEl = document.getElementById('status');
+
+  var defaults = {
+    theme: 'system', language: 'en', compact: false,
+    notify: true, sound: false, digest: 'daily',
+    cache: 256, timeout: 30, telemetry: false
+  };
+  var state = Object.assign({}, defaults);
+
+  // Tabs
+  var tabs = root.querySelectorAll('.tab');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      root.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
+      document.getElementById('page-' + tab.dataset.page).classList.add('active');
+    });
+  });
+
+  // Segmented controls
+  root.querySelectorAll('.seg').forEach(function (seg) {
+    var key = seg.dataset.key;
+    seg.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        seg.querySelectorAll('button').forEach(function (x) { x.classList.remove('active'); });
+        b.classList.add('active');
+        state[key] = b.dataset.val;
+        dirty();
+      });
+    });
+  });
+
+  // Inputs
+  root.querySelectorAll('input[data-key], select[data-key]').forEach(function (el) {
+    var key = el.dataset.key;
+    var evt = (el.type === 'range' || el.type === 'number' || el.type === 'text') ? 'input' : 'change';
+    el.addEventListener(evt, function () {
+      if (el.type === 'checkbox') state[key] = el.checked;
+      else if (el.type === 'range' || el.type === 'number') state[key] = Number(el.value);
+      else state[key] = el.value;
+      if (key === 'cache') document.getElementById('cacheVal').textContent = el.value + ' MB';
+      dirty();
+    });
+  });
+
+  function dirty() {
+    statusEl.textContent = 'Unsaved changes';
+    statusEl.classList.remove('saved');
+  }
+
+  document.getElementById('save').addEventListener('click', function () {
+    statusEl.textContent = '\u2713 Settings saved';
+    statusEl.classList.add('saved');
+    // Bridge back to the MCP host if available.
+    try {
+      if (window.parent) {
+        window.parent.postMessage({ type: 'settings.save', payload: state }, '*');
+      }
+    } catch (e) {}
+  });
+
+  document.getElementById('reset').addEventListener('click', function () {
+    state = Object.assign({}, defaults);
+    // reflect defaults in UI
+    root.querySelectorAll('input[data-key], select[data-key]').forEach(function (el) {
+      var k = el.dataset.key;
+      if (el.type === 'checkbox') el.checked = defaults[k];
+      else el.value = defaults[k];
+    });
+    root.querySelectorAll('.seg').forEach(function (seg) {
+      var k = seg.dataset.key;
+      seg.querySelectorAll('button').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.val === defaults[k]);
+      });
+    });
+    document.getElementById('cacheVal').textContent = defaults.cache + ' MB';
+    statusEl.textContent = 'Reset to defaults';
+    statusEl.classList.remove('saved');
+  });
+})();
+</script>
+</body>
+</html>

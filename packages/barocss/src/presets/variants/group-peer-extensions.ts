@@ -1,18 +1,60 @@
 import { functionalModifier } from "../../core/registry";
+import { atRule } from "../../core/ast";
+import { attributeVariantSelector, decodeArbitrarySelector, functionalArgument } from "./utils";
+import { startsAtRule } from "./has-variants";
+
+// `group-has-[@…]` / `peer-has-[@…]`: an at-rule is not a selector, the variant does not match (as has-[…]).
+const atRuleHas = (mod: string) => /^(group|peer)-has-\[/.test(mod) && startsAtRule(mod.slice(mod.indexOf("[") + 1));
+
+// `group-x/name` → ['x', '.group\/name']; the name is a plain identifier, as Tailwind requires.
+function splitGroupName(kind: 'group' | 'peer', variant: string): [string, string] {
+  const named = /^(.+)\/([a-zA-Z0-9_-]+)$/.exec(variant);
+  return named ? [named[1], `.${kind}\\/${named[2]}`] : [variant, `.${kind}`];
+}
+
+// group-hover / peer-hover (optionally named): like `hover:`, only where hover is real (`@media (hover: hover)`).
+// Registered before the generic group-/peer- handlers so it matches first.
+functionalModifier(
+  (mod: string) => /^(group|peer)-hover(\/[a-zA-Z0-9_-]+)?$/.test(mod),
+  ({ mod }) => {
+    const kind = mod.type.startsWith('group') ? 'group' : 'peer';
+    const [, base] = splitGroupName(kind, mod.type.slice(kind.length + 1));
+    const tail = kind === 'group' ? ' *' : ' ~ *';
+    return { selector: `&:is(:where(${base}):hover${tail})`, wrappingType: 'rule', source: kind };
+  },
+  () => [atRule('media', '(hover: hover)', [])],
+);
+
+// `group-not-[x]` / `peer-not-[x]` → `:not(*:is(x))`; `group-not-focus` → `:not(:focus)`.
+function negated(value: string): string {
+  const v = value.slice(4);
+  return v.startsWith('[') && v.endsWith(']') ? `:not(*:is(${decodeArbitrarySelector(v.slice(1, -1))}))` : `:not(:${v})`;
+}
 
 // --- group/peer/parent/child extensions (examples: group-focus, peer-active, etc.) ---
 functionalModifier(
-  (mod: string) => /^group-(.+)$/.test(mod),
+  (mod: string) => /^group-(.+)$/.test(mod) && !atRuleHas(mod),
   ({ selector, mod }) => {
-    const m = /^group-(.+)$/.exec(mod.type);
+    const raw = /^group-(.+)$/.exec(mod.type);
+    const [variant, base] = splitGroupName('group', raw?.[1] ?? '');
+    const m = raw ? [raw[0], variant] as const : null;
+    const g = `:where(${base})`;
+
+    // group-data-[state=open] / group-aria-[…] → `:where(.group)[data-state="open"] *`
+    const attr = m ? attributeVariantSelector(m[1]) : undefined;
+    if (attr) return { selector: `&:is(${g}${attr} *)`, wrappingType: 'rule', source: 'group' };
 
     if (m?.[1].startsWith('[') && m?.[1].endsWith(']')) {
       const value = m?.[1].slice(1, -1).replace(/_/g, '');
       return {
-        selector: `&:is(:where(.group):is(${value}) *)`,
+        selector: `&:is(${g}:is(${value}) *)`,
         wrappingType: 'rule',
         source: 'group'
       };
+    }
+
+    if (m?.[1]?.startsWith('not-')) {
+      return { selector: `&:is(${g}${negated(m[1])} *)`, wrappingType: 'rule', source: 'group' };
     }
 
     if (m?.[1]?.startsWith('has-')) {
@@ -20,12 +62,12 @@ functionalModifier(
       if (pattern) {
         const value = pattern[1];
         return {
-          selector: `&:is(:where(.group):has(:is(${value})) *)`,
+          selector: `&:is(${g}:has(:is(${value})) *)`,
           source: 'group'
         };
       }
       return {
-        selector: `&:is(:where(.group):has(:is(${m?.[1].slice(4, -1)})) *)`,
+        selector: `&:is(${g}:has(${functionalArgument(m[1].slice(5, -1))}) *)`,
         source: 'group'
       };
     }
@@ -36,12 +78,12 @@ functionalModifier(
         const value = pattern[1];
         if (pattern[2]) {
           return {
-            selector: `&:is(:where(.group)[aria-${value}="${pattern[2]}"] *)`,
+            selector: `&:is(${g}[aria-${value}="${pattern[2]}"] *)`,
             source: 'group'
           };
         } else {
           return {
-            selector: `&:is(:where(.group)[aria-${value}] *)`,
+            selector: `&:is(${g}[aria-${value}] *)`,
             source: 'group'
           };
         }
@@ -49,7 +91,7 @@ functionalModifier(
     }
 
     return m ? {
-      selector: `&:is(:where(.group):${m[1]} *)`,
+      selector: `&:is(${g}:${m[1]} *)`,
       wrappingType: 'rule',
       source: 'group'
     } : {
@@ -61,14 +103,21 @@ functionalModifier(
 );
 
 functionalModifier(
-  (mod: string) => /^peer-(.+)$/.test(mod),
+  (mod: string) => /^peer-(.+)$/.test(mod) && !atRuleHas(mod),
   ({ selector, mod }) => {
-    const m = /^peer-(.+)$/.exec(mod.type);
+    const raw = /^peer-(.+)$/.exec(mod.type);
+    const [variant, base] = splitGroupName('peer', raw?.[1] ?? '');
+    const m = raw ? [raw[0], variant] as const : null;
+    const g = `:where(${base})`;
+
+    // peer-data-[state=open] / peer-aria-[…] → `:where(.peer)[data-state="open"] ~ *`
+    const attr = m ? attributeVariantSelector(m[1]) : undefined;
+    if (attr) return { selector: `&:is(${g}${attr} ~ *)`, wrappingType: 'rule', source: 'peer' };
 
     if (m?.[1].startsWith('[') && m?.[1].endsWith(']')) {
       const value = m?.[1].slice(1, -1).replace(/_/g, '');
       return {
-        selector: `&:is(:where(.peer):is(${value})~*)`,
+        selector: `&:is(${g}:is(${value})~*)`,
         wrappingType: 'rule',
         source: 'peer'
       };
@@ -78,16 +127,20 @@ functionalModifier(
 
     // has-xxxx, not-xxxx, aria-xxxx
 
+    if (value?.startsWith('has-[') && value.endsWith(']')) {
+      return { selector: `&:is(${g}:has(${functionalArgument(value.slice(5, -1))}) ~ *)`, source: 'peer' };
+    }
+
     if (value?.startsWith('has-')) {
       return {
-        selector: `&:is(:where(.peer):has(:${value.slice(4)})~*)`,
+        selector: `&:is(${g}:has(:${value.slice(4)})~*)`,
         source: 'peer'
       };
     }
 
     if (value?.startsWith('not-')) {
       return {
-        selector: `&:is(:where(.peer):not(:${value.slice(4)})~*)`,
+        selector: `&:is(${g}${negated(value)} ~ *)`,
         source: 'peer'
       };
     }
@@ -98,7 +151,7 @@ functionalModifier(
       if (pattern) {
         const key = pattern[1];
         return {
-          selector: `&:is(:where(.peer)[aria-${key}]~*)`,
+          selector: `&:is(${g}[aria-${key}]~*)`,
           source: 'peer'
         };
       }
@@ -110,12 +163,12 @@ functionalModifier(
 
         if (pattern[2]) {
           return {
-            selector: `&:is(:where(.peer)[aria-${key}="${value}"]~*)`,
+            selector: `&:is(${g}[aria-${key}="${value}"]~*)`,
             source: 'peer'
           };
         } else {
           return {
-            selector: `&:is(:where(.peer)[aria-${key}]~*)`,
+            selector: `&:is(${g}[aria-${key}]~*)`,
             source: 'peer'
           };
         }
@@ -123,7 +176,7 @@ functionalModifier(
     }
 
     return m ? {
-      selector: `&:is(:where(.peer):${value}~*)`,
+      selector: `&:is(${g}:${value}~*)`,
       source: 'peer'
     } : {
       selector,

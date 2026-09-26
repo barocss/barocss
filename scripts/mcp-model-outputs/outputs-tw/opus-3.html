@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: { brand: { 500: '#4f46e5', 600: '#4338ca', 700: '#3730a3' } }
+      }
+    }
+  }
+</script>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased">
+  <div class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl ring-1 ring-slate-200 overflow-hidden">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-brand-600 to-brand-500 px-6 py-5">
+        <h1 class="text-xl font-semibold text-white">Reserve your table</h1>
+        <p class="text-sm text-indigo-100 mt-0.5">The Copper Fork · Downtown</p>
+      </div>
+
+      <!-- Form -->
+      <form id="bookingForm" class="px-6 py-6 space-y-5" novalidate>
+        <div>
+          <label for="name" class="block text-sm font-medium text-slate-700 mb-1">Full name</label>
+          <input id="name" name="name" type="text" autocomplete="name" required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none"
+            placeholder="Jane Doe">
+          <p class="hidden mt-1 text-xs text-rose-600" data-error-for="name">Please enter your name.</p>
+        </div>
+
+        <div>
+          <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none"
+            placeholder="jane@example.com">
+          <p class="hidden mt-1 text-xs text-rose-600" data-error-for="email">Enter a valid email address.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="date" class="block text-sm font-medium text-slate-700 mb-1">Date</label>
+            <input id="date" name="date" type="date" required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+            <p class="hidden mt-1 text-xs text-rose-600" data-error-for="date">Choose a date.</p>
+          </div>
+          <div>
+            <label for="time" class="block text-sm font-medium text-slate-700 mb-1">Time</label>
+            <input id="time" name="time" type="time" required
+              class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+            <p class="hidden mt-1 text-xs text-rose-600" data-error-for="time">Choose a time.</p>
+          </div>
+        </div>
+
+        <div>
+          <label for="party" class="block text-sm font-medium text-slate-700 mb-1">Party size</label>
+          <select id="party" name="party" required
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm bg-white focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none">
+            <option value="">Select…</option>
+            <option value="1">1 guest</option>
+            <option value="2">2 guests</option>
+            <option value="3">3 guests</option>
+            <option value="4">4 guests</option>
+            <option value="5">5 guests</option>
+            <option value="6">6 guests</option>
+            <option value="7+">7+ guests</option>
+          </select>
+          <p class="hidden mt-1 text-xs text-rose-600" data-error-for="party">Select a party size.</p>
+        </div>
+
+        <div>
+          <label for="notes" class="block text-sm font-medium text-slate-700 mb-1">Special requests <span class="text-slate-400 font-normal">(optional)</span></label>
+          <textarea id="notes" name="notes" rows="3"
+            class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm resize-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 focus:outline-none"
+            placeholder="Allergies, seating preferences, celebrations…"></textarea>
+        </div>
+
+        <div class="pt-1 flex items-center gap-3">
+          <button type="submit"
+            class="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition">
+            Confirm booking
+          </button>
+          <span id="status" class="text-sm text-slate-500" aria-live="polite"></span>
+        </div>
+      </form>
+
+      <!-- Success -->
+      <div id="success" class="hidden px-6 py-10 text-center">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
+          <svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+        </div>
+        <h2 class="mt-4 text-lg font-semibold text-slate-900">Booking confirmed</h2>
+        <p id="successDetail" class="mt-1 text-sm text-slate-500"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const form = document.getElementById('bookingForm');
+      const statusEl = document.getElementById('status');
+
+      // Set date min to today
+      const dateInput = document.getElementById('date');
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.min = today;
+
+      function showError(name, show) {
+        const msg = form.querySelector(`[data-error-for="${name}"]`);
+        const field = form.elements[name];
+        if (msg) msg.classList.toggle('hidden', !show);
+        if (field) {
+          field.classList.toggle('border-rose-400', show);
+          field.classList.toggle('border-slate-300', !show);
+        }
+      }
+
+      function validate() {
+        let ok = true;
+        const checks = {
+          name: v => v.trim().length > 0,
+          email: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+          date: v => !!v,
+          time: v => !!v,
+          party: v => !!v
+        };
+        for (const field in checks) {
+          const valid = checks[field](form.elements[field].value);
+          showError(field, !valid);
+          if (!valid) ok = false;
+        }
+        return ok;
+      }
+
+      form.addEventListener('input', e => {
+        if (e.target.name) showError(e.target.name, false);
+        statusEl.textContent = '';
+      });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!validate()) {
+          statusEl.textContent = 'Please fix the highlighted fields.';
+          statusEl.className = 'text-sm text-rose-600';
+          return;
+        }
+
+        const data = Object.fromEntries(new FormData(form).entries());
+
+        // Notify the host MCP app, if listening.
+        try {
+          window.parent.postMessage({ type: 'mcp:tool-result', tool: 'booking', payload: data }, '*');
+        } catch (_) {}
+
+        const dt = new Date(data.date + 'T' + data.time);
+        const pretty = isNaN(dt) ? (data.date + ' ' + data.time)
+          : dt.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+
+        document.getElementById('successDetail').textContent =
+          `Table for ${data.party} on ${pretty}. A confirmation was sent to ${data.email}.`;
+
+        form.classList.add('hidden');
+        document.getElementById('success').classList.remove('hidden');
+      });
+    })();
+  </script>
+</body>
+</html>

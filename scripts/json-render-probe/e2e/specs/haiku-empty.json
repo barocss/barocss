@@ -1,0 +1,68 @@
+{
+ "root": "empty-state-wrapper",
+ "elements": {
+  "empty-state-wrapper": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col items-center justify-center min-h-screen p-8"
+   },
+   "children": [
+    "empty-state-card"
+   ]
+  },
+  "empty-state-card": {
+   "type": "Card",
+   "props": {
+    "className": "w-full max-w-md"
+   },
+   "children": [
+    "content-stack"
+   ]
+  },
+  "content-stack": {
+   "type": "Stack",
+   "props": {
+    "className": "gap-6 text-center"
+   },
+   "children": [
+    "illustration",
+    "title",
+    "description",
+    "cta-button"
+   ]
+  },
+  "illustration": {
+   "type": "Text",
+   "props": {
+    "text": "📁",
+    "variant": "h1"
+   },
+   "children": []
+  },
+  "title": {
+   "type": "Text",
+   "props": {
+    "text": "No projects yet",
+    "variant": "h2"
+   },
+   "children": []
+  },
+  "description": {
+   "type": "Text",
+   "props": {
+    "text": "Create your first project to get started organizing your work",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "cta-button": {
+   "type": "Button",
+   "props": {
+    "label": "Create Project",
+    "variant": "default",
+    "size": "default"
+   },
+   "children": []
+  }
+ }
+}

@@ -1,15 +1,28 @@
 import { GenerateCssRulesResult } from '@barocss/kit';
-import { createContext, clearAstCache, IncrementalParser } from '@barocss/kit';
+import { createContext, clearAstCache, IncrementalParser, parseClassName } from '@barocss/kit';
 import type { Config, Context } from '@barocss/kit';
 import { StylePartitionManager } from './style-partition-manager';
 import { ChangeDetector } from './change-detector';
+import { collectLeadingClasses } from './existing-classes';
 
 export interface BrowserRuntimeOptions {
   config?: Config;  // full config object
   styleId?: string;
   insertionPoint?: 'head' | 'body' | HTMLElement;
   maxRulesPerPartition?: number;
+  /**
+   * #210: skip classes the page's existing (non-BaroCSS, same-origin) stylesheets already define,
+   * so a built app plus the runtime injects only what the build is missing. Opt-in. A class counts
+   * as covered only when a rule's selector starts with it (e.g. `.p-4`, `.md\:p-4` inside @media,
+   * `.hover\:x:hover`), so a class seen only as a descendant (`.group:hover .x`) is not skipped.
+   * The index is rebuilt when `document.styleSheets.length` changes. A page class that leads a selector
+   * with the same name is treated as covered, and rules added later to an already-indexed sheet aren't seen.
+   */
+  skipExisting?: boolean;
 }
+
+/** Tailwind 4 layer order, declared by BaroCSS's first <style> in <head>. */
+export const LAYER_ORDER = "@layer theme, base, components, utilities;";
 
 export class BrowserRuntime {
   private cache: Map<string, GenerateCssRulesResult> = new Map(); // class name -> generated CSS mapping
@@ -17,10 +30,14 @@ export class BrowserRuntime {
   private context: Context;
   private options: Required<BrowserRuntimeOptions>;
   private isDestroyed = false;
+  private existing: Set<string> | null = null;
+  private existingSheetCount = -1;
 
   private incrementalParser: IncrementalParser;
   private changeDetector: ChangeDetector;
   private stylePartitionManager: StylePartitionManager;
+
+  private getCategory = (cls: string) => parseClassName(cls, this.context).utility?.category;
 
   constructor(options: BrowserRuntimeOptions = {}) {
     // Default config - createContext handles defaultTheme automatically
@@ -31,15 +48,16 @@ export class BrowserRuntime {
       styleId: options.styleId || 'barocss-runtime',
       insertionPoint: options.insertionPoint || 'head',
       maxRulesPerPartition: options.maxRulesPerPartition || 50,
+      skipExisting: options.skipExisting ?? false,
     };
 
     // Pass full config to createContext (defaultTheme auto-included)
     this.context = createContext(this.options.config);
 
     this.incrementalParser = new IncrementalParser(this.context);
-    this.changeDetector = new ChangeDetector(this.incrementalParser, this);
+    this.changeDetector = new ChangeDetector(this.incrementalParser, this, this.getCategory);
 
-    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`);
+    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
 
     this.init();
   }
@@ -64,9 +82,20 @@ export class BrowserRuntime {
   }
 
   private injectPreflightCSS() {
-    if (this.options.config.preflight) {
-      const preflightCSS = this.context.getPreflightCSS(this.options.config.preflight);
-      this.stylePartitionManager.updateRuleContent("preflight", preflightCSS);
+    // Kit documents `preflight: true` (full) as the default; only an explicit
+    // `false` disables it.
+    const level = this.options.config.preflight ?? true;
+    if (level) {
+      const preflightCSS = this.context.getPreflightCSS(level);
+      // #208: preflight joins the `base` layer from the first <style> in
+      // <head>, which also fixes the layer order. Unlayered author CSS and
+      // BaroCSS utilities (unlayered) beat it, and an app's own
+      // `@layer base` rules come later within `base`, so they win too.
+      this.stylePartitionManager.updateRuleContent(
+        "preflight",
+        `${LAYER_ORDER}\n@layer base {\n${preflightCSS}\n}`,
+        true,
+      );
     }
   }
 
@@ -78,7 +107,7 @@ export class BrowserRuntime {
   }
 
   private getInsertionPoint(): HTMLElement {
-    if (this.options.insertionPoint instanceof HTMLElement) {
+    if (typeof this.options.insertionPoint !== 'string') {
       return this.options.insertionPoint;
     }
     switch (this.options.insertionPoint) {
@@ -136,6 +165,11 @@ export class BrowserRuntime {
       results = [...existingResults, ...results];
       results.forEach(result => this.incrementalParser.markProcessed(result.cls));
     }
+    if (this.options.skipExisting && results.length > 0 && typeof document !== 'undefined') {
+      const existing = this.getExistingClasses();
+      results = results.filter(result => !existing.has(result.cls));
+    }
+    if (results.length === 0) return;
     const cssRules: GenerateCssRulesResult[] = [];
     const rootCssRules: string[] = [];
 
@@ -169,6 +203,25 @@ export class BrowserRuntime {
     });
   }
 
+  /** Class names defined by the page's own stylesheets (BaroCSS's sheets and cross-origin sheets excluded). */
+  getExistingClasses(): Set<string> {
+    const sheets = Array.from(document.styleSheets).filter(sheet => {
+      const owner = sheet.ownerNode as Element | null;
+      return !(owner && typeof owner.hasAttribute === 'function'
+        && (owner.hasAttribute('data-barocss') || (owner.id || '').startsWith(this.options.styleId)));
+    });
+    if (this.existing && sheets.length === this.existingSheetCount) return this.existing;
+    const out = new Set<string>();
+    for (const sheet of sheets) {
+      let rules: CSSRuleList;
+      try { rules = sheet.cssRules; } catch { continue; } // cross-origin
+      collectLeadingClasses(rules, out);
+    }
+    this.existing = out;
+    this.existingSheetCount = sheets.length;
+    return out;
+  }
+
   /**
    * MutationObserver instance method to automatically call addClass when class attributes change in DOM
    */
@@ -193,7 +246,7 @@ export class BrowserRuntime {
   }
 
   getAllCss(): string {
-    const all = Array.from(this.cache.values()).flatMap(result => result.cssList).join('\n');
+    const all = [...this.rootCache, ...Array.from(this.cache.values()).flatMap(result => result.cssList)].join('\n');
     return all;
   }
 
@@ -227,7 +280,7 @@ export class BrowserRuntime {
     clearAstCache(this.context);
     this.incrementalParser.clearProcessed();
     this.stylePartitionManager.cleanup();
-    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`);
+    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
     this.injectPreflightCSS();
     this.ensureCssVars();
   }
@@ -239,7 +292,7 @@ export class BrowserRuntime {
     this.rootCache.clear();
     this.incrementalParser.clearProcessed();
     this.stylePartitionManager.cleanup();
-    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`);
+    this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
     this.injectPreflightCSS();
     this.ensureCssVars();
   }

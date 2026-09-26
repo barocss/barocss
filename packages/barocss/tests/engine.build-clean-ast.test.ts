@@ -22,7 +22,7 @@ describe("optimizeAst ", () => {
         type: "rule",
         selector: "&",
         nodes: [
-          { type: "decl", prop: "background-color", value: "oklch(63.7% 0.237 25.331)" }
+          { type: "decl", prop: "background-color", value: "var(--color-red-500)" }
         ]
       }
     ];
@@ -46,7 +46,7 @@ describe("optimizeAst ", () => {
             type: "rule",
             selector: "&:hover",
             nodes: [
-              { type: "decl", prop: "background-color", value: "oklch(63.7% 0.237 25.331)" }
+              { type: "decl", prop: "background-color", value: "var(--color-red-500)" }
             ]
           }
         ]
@@ -76,14 +76,14 @@ describe("optimizeAst ", () => {
             type: "rule",
             selector: "&:hover",
             nodes: [
-              { type: "decl", prop: "background-color", value: "oklch(63.7% 0.237 25.331)" }
+              { type: "decl", prop: "background-color", value: "var(--color-red-500)" }
             ]
           },
           {
             type: "rule",
             selector: "&:focus",
             nodes: [
-              { type: "decl", prop: "background-color", value: "oklch(62.3% 0.214 259.815)" }
+              { type: "decl", prop: "background-color", value: "var(--color-blue-500)" }
             ]
           }
         ]
@@ -113,7 +113,7 @@ describe("optimizeAst ", () => {
             type: "rule",
             selector: "&:hover",
             nodes: [
-              { type: "decl", prop: "background-color", value: "oklch(63.7% 0.237 25.331)" }
+              { type: "decl", prop: "background-color", value: "var(--color-red-500)" }
             ]
           }
         ]
@@ -127,7 +127,7 @@ describe("optimizeAst ", () => {
             type: "rule",
             selector: "&:focus",
             nodes: [
-              { type: "decl", prop: "background-color", value: "oklch(62.3% 0.214 259.815)" }
+              { type: "decl", prop: "background-color", value: "var(--color-blue-500)" }
             ]
           }
         ]
@@ -195,7 +195,7 @@ describe("optimizeAst ", () => {
             type: "rule",
             selector: "&",
             nodes: [
-              { type: "decl", prop: "background-color", value: "green" }
+              { type: "decl", prop: "background-color", value: "var(--color-green-500)" }
             ]
           }
         ]
@@ -214,7 +214,7 @@ describe("optimizeAst ", () => {
                     type: "rule",
                     selector: "&",
                     nodes: [
-                      { type: "decl", prop: "background-color", value: "yellow" }
+                      { type: "decl", prop: "background-color", value: "var(--color-yellow-500)" }
                     ]
                   }
                 ]
@@ -226,7 +226,7 @@ describe("optimizeAst ", () => {
   });
 
   it("group-hover + peer-focus + sibling", () => {
-    const ast1 = parseClassToAst("group-hover:bg-red-500", ctx);
+    const ast1 = parseWithoutHoverMedia("group-hover:bg-red-500", ctx);
     const ast2 = parseClassToAst("peer-focus:bg-blue-500", ctx);
     const ast = [...ast1, ...ast2];
     const cleanAst = optimizeAst(ast);
@@ -235,14 +235,14 @@ describe("optimizeAst ", () => {
         type: "rule",
         selector: "&:is(:where(.group):hover *)",
         nodes: [
-          { type: "decl", prop: "background-color", value: "oklch(63.7% 0.237 25.331)" }
+          { type: "decl", prop: "background-color", value: "var(--color-red-500)" }
         ]
       },
       {
         type: "rule",
         selector: "&:is(:where(.peer):focus~*)",
         nodes: [
-          { type: "decl", prop: "background-color", value: "oklch(62.3% 0.214 259.815)" }
+          { type: "decl", prop: "background-color", value: "var(--color-blue-500)" }
         ]
       }
     ];
@@ -257,7 +257,7 @@ describe("optimizeAst ", () => {
         type: "rule",
         selector: "&[data-state=\"open\"][aria-pressed=\"true\"]:hover",
         nodes: [
-          { type: "decl", prop: "background-color", value: "oklch(72.3% 0.219 149.579)" }
+          { type: "decl", prop: "background-color", value: "var(--color-green-500)" }
         ]
       }
     ];
@@ -276,18 +276,15 @@ describe("optimizeAst ", () => {
         selector: "&",
         nodes: [
           { type: "decl", prop: "--baro-gradient-position", value: "to right" },
-          { type: "decl", prop: "background-image", value: "linear-gradient(to right, var(--baro-gradient-stops))" }
-        ]
+          { type: "decl", prop: "background-image", value: "linear-gradient(var(--baro-gradient-stops))" },
+        ],
       },
       {
-        type: "style-rule",
-        selector: "@supports (background-image: linear-gradient(in lab, red, red))",
-        nodes: [
-          { type: "rule", selector: "&", nodes: [
-            { type: "decl", prop: "--baro-gradient-position", value: "to right in oklab" },
-          ]},          
-        ]
-      }
+        type: "at-rule",
+        name: "supports",
+        params: "(background-image: linear-gradient(in lab, red, red))",
+        nodes: [{ type: "rule", selector: "&", nodes: [{ type: "decl", prop: "--baro-gradient-position", value: "to right in oklab" }] }],
+      },
     ]);
   });
 }); 

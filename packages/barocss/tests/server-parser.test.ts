@@ -34,7 +34,7 @@ describe('IncrementalParser Universal Usage', () => {
       
       expect(result).not.toBeNull();
       expect(result?.css).toContain('background-color');
-      expect(result?.css).toContain('oklch');
+      expect(result?.css).toContain('var(--color-red-500)');
     });
 
     it('should track processed classes', () => {

@@ -1,3 +1,4 @@
+import { atRule, decl, type AstNode } from "./ast";
 // Value parsing helpers inspired by  value-parser.ts
 
 /**
@@ -324,4 +325,40 @@ export function parseColor(input: string): string | null {
 
 
   return null;
+}
+const COLOR_KEYWORDS = new Set(['inherit', 'currentcolor', 'transparent']);
+/**
+ * Declarations for a theme colour (#228), as Tailwind v4 emits them: `var(--color-<key>)` so runtime theme
+ * overrides apply; with an opacity modifier, a literal srgb color-mix fallback plus an oklab color-mix of the var.
+ */
+export function themeColorDecls(prop: string, value: string, extra: { realThemeValue?: string; opacity?: string | number }): AstNode[] {
+  const key = String(extra.realThemeValue);
+  // A value that is already a var (shadcn-style `@theme inline` tokens) is kept as-is, as Tailwind inlines it.
+  const ref = COLOR_KEYWORDS.has(value.toLowerCase()) || value.startsWith("var(") || !/^[\w-]+$/.test(key) ? value : `var(--color-${key})`;
+  if (!extra.opacity) return [decl(prop, ref)];
+  const alpha = normalizeAlpha(String(extra.opacity));
+  const supports = (amount: string) =>
+    atRule("supports", "(color:color-mix(in lab, red, red))", [decl(prop, `color-mix(in oklab, ${ref} ${amount}, transparent)`)]);
+  // A variable alpha has no static fallback amount: Tailwind keeps the plain colour and mixes only under @supports.
+  if (alpha.isVar) return [decl(prop, value), supports(alpha.amount)];
+  return [decl(prop, `color-mix(in srgb, ${value} ${alpha.amount}, transparent)`), supports(alpha.amount)];
+}
+
+/**
+ * Opacity modifier → color-mix amount, as Tailwind v4 does: `50` → `50%`, `[37%]` → `37%`, `[0.5]` / `[.8]` → `50%` /
+ * `80%` (a bracketed number ≤ 1 is a fraction), `[var(--a)]` / `(--a)` → `var(--a)`.
+ */
+export function normalizeAlpha(raw: string): { amount: string; isVar: boolean } {
+  let v = raw.trim();
+  const bracketed = v.startsWith("[") && v.endsWith("]");
+  if (bracketed) v = v.slice(1, -1).trim();
+  if (v.startsWith("(") && v.endsWith(")")) v = `var(${v.slice(1, -1).trim()})`;
+  if (v.startsWith("var(")) return { amount: v, isVar: true };
+  if (v.endsWith("%")) return { amount: v, isVar: false };
+  const n = Number(v);
+  if (v !== "" && Number.isFinite(n)) {
+    const pct = bracketed && n <= 1 ? n * 100 : n;
+    return { amount: `${+pct.toFixed(4)}%`, isVar: false };
+  }
+  return { amount: v, isVar: false };
 }

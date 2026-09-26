@@ -1,5 +1,6 @@
+import { parseNumber } from "../core/utils";
 import { staticUtility, functionalUtility } from "../core/registry";
-import { decl, rule } from "../core/ast";
+import { atRoot, decl, property, rule } from "../core/ast";
 
 // Padding utilities (p-*, px-*, py-*, ps-*, pe-*, pt-*, pr-*, pb-*, pl-*)
 [
@@ -19,7 +20,7 @@ import { decl, rule } from "../core/ast";
     prop,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
+    handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
     description: `${name} utility (number, arbitrary, custom property supported)`,
     category: "spacing",
   });
@@ -46,155 +47,57 @@ import { decl, rule } from "../core/ast";
     supportsNegative: true,
     supportsArbitrary: true,
     supportsCustomProperty: true,
-    handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
-    handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
+    handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
+    handleNegativeBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * -${value})` : null),
     description: `${name} margin utility (number, negative, arbitrary, custom property, auto, px supported)`,
     category: "spacing",
   });
 });
 
 // --- Spacing: space-x, space-y, space-x-reverse, space-y-reverse ---
-//  spacing utilities reference
+// Tailwind 4 form: margin on the end of every non-last child
+// (`:where(& > :not(:last-child))`), not the v3 `> :not([hidden]) ~ :not([hidden])`.
+const SPACE_SELECTOR = ":where(& > :not(:last-child))";
 
-// space-x-*, -space-x-*, space-x-px, -space-x-px, space-x-[...], space-x-(...)
+(["x", "y"] as const).forEach((axis) => {
+  const name = `space-${axis}`;
+  const rev = `--baro-space-${axis}-reverse`;
+  const [start, end] =
+    axis === "x"
+      ? ["margin-inline-start", "margin-inline-end"]
+      : ["margin-block-start", "margin-block-end"];
+  const reverseProperty = () => atRoot([property(rev, "0")]);
+  const spaceRule = (v: string) =>
+    rule(SPACE_SELECTOR, [
+      decl(rev, "0"),
+      decl(start, `calc(${v} * var(${rev}))`),
+      decl(end, `calc(${v} * calc(1 - var(${rev})))`),
+    ]);
+  const body = (v: string) => [reverseProperty(), spaceRule(v)];
 
-staticUtility("space-x-px", [
-  [
-    "& > :not([hidden]) ~ :not([hidden])",
-    [
-      ["--baro-space-x-reverse", "0"],
-      [
-        "margin-inline-start",
-        "calc(1px * calc(1 - var(--baro-space-x-reverse)))",
-      ],
-      ["margin-inline-end", "calc(1px * var(--baro-space-x-reverse))"],
-    ],
-  ],
-], { category: 'spacing' });
-staticUtility("-space-x-px", [
-  [
-    "& > :not([hidden]) ~ :not([hidden])",
-    [
-      ["--baro-space-x-reverse", "0"],
-      [
-        "margin-inline-start",
-        "calc(-1px * calc(1 - var(--baro-space-x-reverse)))",
-      ],
-      ["margin-inline-end", "calc(-1px * var(--baro-space-x-reverse))"],
-    ],
-  ],
-], { category: 'spacing' });
-staticUtility("space-x-reverse", [
-  ["& > :not([hidden]) ~ :not([hidden])", [["--baro-space-x-reverse", "1"]]],
-], { category: 'spacing' });
+  staticUtility(`${name}-px`, [reverseProperty, () => spaceRule("1px")], { category: "spacing" });
+  staticUtility(`-${name}-px`, [reverseProperty, () => spaceRule("-1px")], { category: "spacing" });
+  staticUtility(`${name}-reverse`, [
+    reverseProperty,
+    () => rule(SPACE_SELECTOR, [decl(rev, "1")]),
+  ], { category: "spacing" });
 
-functionalUtility({
-  name: "space-x",
-  supportsNegative: true,
-  supportsArbitrary: true,
-  supportsCustomProperty: true,
-  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
-  handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
-  handle: (value, ctx, token) => {
-    let v = value;
-    if (typeof v === "number" || /^-?\d+(\.\d+)?$/.test(v)) {
-      v = `calc(var(--spacing) * ${token.negative ? "-" : ""}${v})`;
-    }
-    return [
-      rule("& > :not([hidden]) ~ :not([hidden])", [
-        decl("--baro-space-x-reverse", "0"),
-        decl(
-          "margin-inline-start",
-          `calc(${v} * calc(1 - var(--baro-space-x-reverse)))`
-        ),
-        decl("margin-inline-end", `calc(${v} * var(--baro-space-x-reverse))`),
-      ]),
-    ];
-  },
-  handleCustomProperty: (value) => [
-    rule("& > :not([hidden]) ~ :not([hidden])", [
-      decl("--baro-space-x-reverse", "0"),
-      decl(
-        "margin-inline-start",
-        `calc(var(${value}) * calc(1 - var(--baro-space-x-reverse)))`
-      ),
-      decl(
-        "margin-inline-end",
-        `calc(var(${value}) * var(--baro-space-x-reverse))`
-      ),
-    ]),
-  ],
-  description:
-    "space-x utility (number, negative, px, arbitrary, custom property, reverse supported)",
-  category: "spacing",
-});
-
-// space-y-*, -space-y-*, space-y-px, -space-y-px, space-y-[...], space-y-(...)
-
-staticUtility("space-y-px", [
-  [
-    "& > :not([hidden]) ~ :not([hidden])",
-    [
-      ["--baro-space-y-reverse", "0"],
-      ["margin-block-start", "calc(1px * calc(1 - var(--baro-space-y-reverse)))"],
-      ["margin-block-end", "calc(1px * var(--baro-space-y-reverse))"],
-    ],
-  ],
-], { category: 'spacing' });
-staticUtility("-space-y-px", [
-  [
-    "& > :not([hidden]) ~ :not([hidden])",
-    [
-      ["--baro-space-y-reverse", "0"],
-      [
-        "margin-block-start",
-        "calc(-1px * calc(1 - var(--baro-space-y-reverse)))",
-      ],
-      ["margin-block-end", "calc(-1px * var(--baro-space-y-reverse))"],
-    ],
-  ],
-], { category: 'spacing' });
-staticUtility("space-y-reverse", [
-  ["& > :not([hidden]) ~ :not([hidden])", [["--baro-space-y-reverse", "1"]]],
-], { category: 'spacing' });
-
-functionalUtility({
-  name: "space-y",
-  supportsNegative: true,
-  supportsArbitrary: true,
-  supportsCustomProperty: true,
-  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
-  handleNegativeBareValue: ({ value }) => `calc(var(--spacing) * -${value})`,
-  handle: (value, ctx, token) => {
-    let v = value;
-    if (typeof v === "number" || /^-?\d+(\.\d+)?$/.test(v)) {
-      v = `calc(var(--spacing) * ${token.negative ? "-" : ""}${v})`;
-    }
-    return [
-      rule("& > :not([hidden]) ~ :not([hidden])", [
-        decl("--baro-space-y-reverse", "0"),
-        decl(
-          "margin-block-start",
-          `calc(${v} * calc(1 - var(--baro-space-y-reverse)))`
-        ),
-        decl("margin-block-end", `calc(${v} * var(--baro-space-y-reverse))`),
-      ]),
-    ];
-  },
-  handleCustomProperty: (value) => [
-    rule("& > :not([hidden]) ~ :not([hidden])", [
-      decl("--baro-space-y-reverse", "0"),
-      decl(
-        "margin-block-start",
-        `calc(var(${value}) * calc(1 - var(--baro-space-y-reverse)))`
-      ),
-      decl(
-        "margin-block-end",
-        `calc(var(${value}) * var(--baro-space-y-reverse))`
-      ),
-    ]),
-  ],
-  description:
-    "space-y utility (number, negative, px, arbitrary, custom property, reverse supported)",
-  category: "spacing",
+  functionalUtility({
+    name,
+    supportsNegative: true,
+    supportsArbitrary: true,
+    supportsCustomProperty: true,
+    handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
+    handleNegativeBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * -${value})` : null),
+    handle: (value, _ctx, token) => {
+      let v = String(value);
+      if (/^-?\d+(\.\d+)?$/.test(v)) {
+        v = `calc(var(--spacing) * ${token.negative ? "-" : ""}${v})`;
+      }
+      return body(v);
+    },
+    handleCustomProperty: (value) => body(`var(${value})`),
+    description: `${name} utility (number, negative, px, arbitrary, custom property, reverse supported)`,
+    category: "spacing",
+  });
 });

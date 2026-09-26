@@ -58,4 +58,48 @@ export function getDefaultBreakpoint(breakpoint: string): string {
     '2xl': '(min-width: 1536px)'
   };
   return defaults[breakpoint] || `(min-width: ${breakpoint})`;
-} 
+}
+
+/**
+ * Arbitrary selector value as Tailwind reads it: `_` is a space, `\_` a literal underscore.
+ */
+export function decodeArbitrarySelector(value: string): string {
+  return value.replace(/\\_|_/g, (m) => (m === '_' ? ' ' : '_'));
+}
+
+/**
+ * `data-[state=open]` / `aria-[expanded=true]` / `data-avatar` → `[data-state="open"]`, as Tailwind emits it.
+ * Returns undefined for anything else.
+ */
+export function attributeVariantSelector(variant: string): string | undefined {
+  const bracket = /^(data|aria)-\[([a-zA-Z0-9_-]+)(?:=([^\]]+))?\]$/.exec(variant);
+  if (bracket) {
+    const [, kind, key, raw] = bracket;
+    if (raw === undefined) return `[${kind}-${key}]`;
+    const value = /^(["']).*\1$/.test(raw) ? raw : `"${decodeArbitrarySelector(raw)}"`;
+    return `[${kind}-${key}=${value}]`;
+  }
+  const bare = /^data-([a-zA-Z0-9_-]+)$/.exec(variant);
+  return bare ? `[data-${bare[1]}]` : undefined;
+}
+
+/**
+ * The argument of a `:has()`/`:not()` built from an arbitrary value: a selector list is wrapped as `*:is(…)`
+ * (Tailwind's form); a relative selector (`>svg`) or a single selector is kept.
+ */
+export function functionalArgument(value: string): string {
+  const v = decodeArbitrarySelector(value);
+  return /^[>+~]/.test(v.trim()) || !hasTopLevelComma(v) ? v : `*:is(${v})`;
+}
+
+function hasTopLevelComma(value: string): boolean {
+  let depth = 0;
+  for (let i = 0; i < value.length; i++) {
+    const c = value[i];
+    if (c === '\\') i++;
+    else if (c === '(' || c === '[') depth++;
+    else if (c === ')' || c === ']') depth--;
+    else if (c === ',' && depth === 0) return true;
+  }
+  return false;
+}

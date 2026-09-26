@@ -2,6 +2,14 @@ import { describe, it, expect } from "vitest";
 import "../../src/index"; // Ensure all utilities are registered
 import { parseClassToAst } from "../../src/core/engine";
 import { createContext } from "../../src/core/context";
+import { atRoot, decl, property } from "../../src/core/ast";
+
+// #254: leading-* also sets the registered --baro-leading that text-<size> reads.
+const leadingAst = (value: string) => [
+  atRoot([property("--baro-leading")]),
+  decl("--baro-leading", value),
+  decl("line-height", value),
+];
 
 // --- New preset utility structure its ---
 describe("preset typography utilities", () => {
@@ -18,23 +26,23 @@ describe("preset typography utilities", () => {
 
   describe("typography utilities", () => {
     // Font Family
-    it("font-sans → font-family: var(--font-family-sans)", () => {
+    it("font-sans → font-family: var(--font-sans)", () => {
       expect(parseClassToAst("font-sans", ctx)).toEqual([
-        { type: "decl", prop: "font-family", value: "var(--font-family-sans)" },
+        { type: "decl", prop: "font-family", value: "var(--font-sans)" },
       ]);
     });
-    it("font-serif → font-family: var(--font-family-serif)", () => {
+    it("font-serif → font-family: var(--font-serif)", () => {
       expect(parseClassToAst("font-serif", ctx)).toEqual([
         {
           type: "decl",
           prop: "font-family",
-          value: "var(--font-family-serif)",
+          value: "var(--font-serif)",
         },
       ]);
     });
-    it("font-mono → font-family: var(--font-family-mono)", () => {
+    it("font-mono → font-family: var(--font-mono)", () => {
       expect(parseClassToAst("font-mono", ctx)).toEqual([
-        { type: "decl", prop: "font-family", value: "var(--font-family-mono)" },
+        { type: "decl", prop: "font-family", value: "var(--font-mono)" },
       ]);
     });
     it("font-[system-ui] → font-family: system-ui", () => {
@@ -55,7 +63,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-xs--line-height)",
+          value: "var(--baro-leading, var(--text-xs--line-height))",
         },
       ]);
     });
@@ -65,7 +73,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-sm--line-height)",
+          value: "var(--baro-leading, var(--text-sm--line-height))",
         },
       ]);
     });
@@ -75,7 +83,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-base--line-height)",
+          value: "var(--baro-leading, var(--text-base--line-height))",
         },
       ]);
     });
@@ -85,7 +93,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-lg--line-height)",
+          value: "var(--baro-leading, var(--text-lg--line-height))",
         },
       ]);
     });
@@ -95,7 +103,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-xl--line-height)",
+          value: "var(--baro-leading, var(--text-xl--line-height))",
         },
       ]);
     });
@@ -105,7 +113,7 @@ describe("preset typography utilities", () => {
         {
           type: "decl",
           prop: "line-height",
-          value: "var(--text-2xl--line-height)",
+          value: "var(--baro-leading, var(--text-2xl--line-height))",
         },
       ]);
     });
@@ -114,26 +122,20 @@ describe("preset typography utilities", () => {
         { type: "decl", prop: "font-size", value: "14px" },
       ]);
     });
-    it("text-(--my-size) → font-size: var(--my-size)", () => {
-      expect(parseClassToAst("text-(--my-size)", ctx)).toEqual([
+    it("text-(length:--my-size) → font-size: var(--my-size) (Tailwind: bare text-(--x) is a colour)", () => {
+      expect(parseClassToAst("text-(length:--my-size)", ctx)).toEqual([
         { type: "decl", prop: "font-size", value: "var(--my-size)" },
       ]);
     });
     it("text-red-500/75 → color: color-mix(in lab, red-500 75%, transparent)", () => {
       expect(parseClassToAst("text-red-500/75", ctx)).toMatchObject([
+        { type: "decl", prop: "color", value: "color-mix(in srgb, #f00 75%, transparent)" },
         {
           type: "at-rule",
           name: "supports",
           params: "(color:color-mix(in lab, red, red))",
-          nodes: [
-            {
-              type: "decl",
-              prop: "color",
-              value: "color-mix(in lab, #f00 75%, transparent)",
-            },
-          ],
+          nodes: [{ type: "decl", prop: "color", value: "color-mix(in oklab, var(--color-red-500) 75%, transparent)" }],
         },
-        { type: "decl", prop: "color", value: "color-mix(in lab, #f00 75%, transparent)" },
       ]);
     });
 
@@ -274,56 +276,29 @@ describe("preset typography utilities", () => {
     });
 
     // Line Height
-    it("leading-none → line-height: var(--line-height-none)", () => {
-      expect(parseClassToAst("leading-none", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "var(--line-height-none)" },
-      ]);
+    it("leading-none → line-height: var(--leading-none, 1)", () => {
+      expect(parseClassToAst("leading-none", ctx)).toEqual(leadingAst("var(--leading-none, 1)"));
     });
-    it("leading-tight → line-height: var(--line-height-tight)", () => {
-      expect(parseClassToAst("leading-tight", ctx)).toEqual([
-        {
-          type: "decl",
-          prop: "line-height",
-          value: "var(--line-height-tight)",
-        },
-      ]);
+    it("leading-tight → line-height: var(--leading-tight, 1.25)", () => {
+      expect(parseClassToAst("leading-tight", ctx)).toEqual(leadingAst("var(--leading-tight, 1.25)"));
     });
-    it("leading-normal → line-height: var(--line-height-normal)", () => {
-      expect(parseClassToAst("leading-normal", ctx)).toEqual([
-        {
-          type: "decl",
-          prop: "line-height",
-          value: "var(--line-height-normal)",
-        },
-      ]);
+    it("leading-snug → line-height: var(--leading-snug, 1.375)", () => {
+      expect(parseClassToAst("leading-snug", ctx)).toEqual(leadingAst("var(--leading-snug, 1.375)"));
     });
-    it("leading-relaxed → line-height: var(--line-height-relaxed)", () => {
-      expect(parseClassToAst("leading-relaxed", ctx)).toEqual([
-        {
-          type: "decl",
-          prop: "line-height",
-          value: "var(--line-height-relaxed)",
-        },
-      ]);
+    it("leading-normal → line-height: var(--leading-normal, 1.5)", () => {
+      expect(parseClassToAst("leading-normal", ctx)).toEqual(leadingAst("var(--leading-normal, 1.5)"));
     });
-    it("leading-loose → line-height: var(--line-height-loose)", () => {
-      expect(parseClassToAst("leading-loose", ctx)).toEqual([
-        {
-          type: "decl",
-          prop: "line-height",
-          value: "var(--line-height-loose)",
-        },
-      ]);
+    it("leading-relaxed → line-height: var(--leading-relaxed, 1.625)", () => {
+      expect(parseClassToAst("leading-relaxed", ctx)).toEqual(leadingAst("var(--leading-relaxed, 1.625)"));
+    });
+    it("leading-loose → line-height: var(--leading-loose, 2)", () => {
+      expect(parseClassToAst("leading-loose", ctx)).toEqual(leadingAst("var(--leading-loose, 2)"));
     });
     it("leading-[1.7] → line-height: 1.7", () => {
-      expect(parseClassToAst("leading-[1.7]", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "1.7" },
-      ]);
+      expect(parseClassToAst("leading-[1.7]", ctx)).toEqual(leadingAst("1.7"));
     });
     it("leading-(--my-leading) → line-height: var(--my-leading)", () => {
-      expect(parseClassToAst("leading-(--my-leading)", ctx)).toEqual([
-        { type: "decl", prop: "line-height", value: "var(--my-leading)" },
-      ]);
+      expect(parseClassToAst("leading-(--my-leading)", ctx)).toEqual(leadingAst("var(--my-leading)"));
     });
 
     // Text Align
@@ -379,8 +354,8 @@ describe("preset typography utilities", () => {
         { type: "decl", prop: "color", value: "#ff0000" },
       ]);
     });
-    it("text-(--my-font-size) → font-size: var(--my-font-size)", () => {
-      expect(parseClassToAst("text-(--my-font-size)", ctx)).toEqual([
+    it("text-(length:--my-font-size) → font-size: var(--my-font-size)", () => {
+      expect(parseClassToAst("text-(length:--my-font-size)", ctx)).toEqual([
         { type: "decl", prop: "font-size", value: "var(--my-font-size)" },
       ]);
     });
@@ -431,13 +406,13 @@ describe("preset typography utilities", () => {
 
     it("decoration-red-500/75 → text-decoration-color: color-mix(in lab, red-500 75%, transparent)", () => {
       expect(parseClassToAst("decoration-red-500/75", ctx)).toEqual([
+        { type: "decl", prop: "text-decoration-color", value: "color-mix(in srgb, #f00 75%, transparent)" },
         {
           type: "at-rule",
           name: "supports",
           params: "(color:color-mix(in lab, red, red))",
-          nodes: [{ type: "decl", prop: "text-decoration-color", value: "color-mix(in lab, #f00 75%, transparent)" }],
+          nodes: [{ type: "decl", prop: "text-decoration-color", value: "color-mix(in oklab, var(--color-red-500) 75%, transparent)" }],
         },
-        { type: "decl", prop: "text-decoration-color", value: "#f00" },
       ]);
     });
 

@@ -237,6 +237,8 @@ export function transitionTimingFunctionToCssVars(transition: Record<string, str
       result[`--default-transition-timing-function`] = transition[key];
     } else {
       result[`--transition-timing-function-${escapeKey(key)}`] = transition[key];
+      // Tailwind v4 names: --ease-in / --ease-out / --ease-in-out (ease-linear uses a literal `linear`).
+      if (key !== 'linear') result[`--ease-${escapeKey(key)}`] = transition[key];
     }
   }
   return result;
@@ -326,6 +328,7 @@ export function themeToCssVarsAll(theme: Theme): Record<string, string> {
     ...transitionDurationToCssVars(theme.transitionDuration! as Record<string, string>),
     ...transitionDelayToCssVars(theme.transitionDelay! as Record<string, string>),
     ...blurToCssVars(theme.blur! as Record<string, string>),
+    ...Object.fromEntries(Object.entries((theme.aspect ?? {}) as Record<string, string>).map(([k, v]) => [`--aspect-${escapeKey(k)}`, v])),
     // keyframes handled separately
   };
 }
@@ -335,4 +338,27 @@ export function themeToCssVarsAll(theme: Theme): Record<string, string> {
  */
 export function toCssVarsBlock(vars: Record<string, string>, extra: string = ''): string {
   return ':root,:host {\n' + Object.entries(vars).map(([k, v]) => `  ${k}: ${v};`).join('\n') + '\n}\n' + extra + '\n';
+}
+
+// Presets write their internal composite variables as `--baro-*` (--baro-shadow, --baro-ring-shadow,
+// --baro-translate-x, --baro-border-style, ...). A configured `cssVarPrefix` renames them in the generated
+// AST, so a runtime next to a Tailwind build can set `cssVarPrefix: 'tw'` and compose with the build's
+// `--tw-*` composites (#222). Unset, empty or 'baro' leaves the output untouched.
+const BARO_VAR = /--baro-/g;
+const PREFIXED_KEYS = new Set(['prop', 'value', 'params', 'selector', 'nodes', 'items']);
+
+export function applyVarPrefix<T>(ast: T, ctx?: Context): T {
+  const configured = ctx?.config('cssVarPrefix');
+  if (typeof configured !== 'string' || !configured.trim()) return ast;
+  const prefix = normalizePrefix(configured);
+  if (prefix === '--baro-') return ast;
+  const walk = (node: unknown): unknown => {
+    if (typeof node === 'string') return node.includes('--baro-') ? node.replace(BARO_VAR, prefix) : node;
+    if (Array.isArray(node)) return node.map(walk);
+    if (!node || typeof node !== 'object') return node;
+    const out: Record<string, unknown> = {};
+    for (const [k, val] of Object.entries(node)) out[k] = PREFIXED_KEYS.has(k) ? walk(val) : val;
+    return out;
+  };
+  return walk(ast) as T;
 }

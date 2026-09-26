@@ -19,7 +19,7 @@ describe("container queries", () => {
         name: 'container',
         params: '(width >= 24rem)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -39,7 +39,7 @@ describe("container queries", () => {
         name: 'container',
         params: '(width < 28rem)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -52,23 +52,14 @@ describe("container queries", () => {
         name: 'container',
         params: '(width >= 475px)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
   });
 
-  it('@container/main:bg-red-500 → @container main { ... }', () => {
-    expect(parseClassToAst('@container/main:bg-red-500', ctx)).toMatchObject([
-      {
-        type: 'at-rule',
-        name: 'container',
-        params: 'main',
-        nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
-        ],
-      },
-    ]);
+  it('@container/main:bg-red-500 emits nothing (@container/<name> is a utility, as in Tailwind)', () => {
+    expect(parseClassToAst('@container/main:bg-red-500', ctx)).toEqual([]);
   });
 
   it('@sm/main:bg-red-500 → @container main (width >= 24rem) { ... }', () => {
@@ -85,7 +76,7 @@ describe("container queries", () => {
         name: 'container',
         params: 'main (width >= 24rem)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -98,7 +89,7 @@ describe("container queries", () => {
         name: 'container',
         params: 'main (width >= 475px)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
@@ -123,7 +114,7 @@ describe("container queries", () => {
             name: 'container',
             params: '(width < 28rem)',
             nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' },
+              { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
             ],
           },
         ],
@@ -138,7 +129,7 @@ describe("container queries", () => {
         name: 'starting-style',
         params: '',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);

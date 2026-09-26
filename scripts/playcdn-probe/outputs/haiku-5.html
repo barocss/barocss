@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Golden Table - Restaurant Menu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            color: #f4e4c1;
+            margin-bottom: 50px;
+            border-bottom: 3px solid #d4af37;
+            padding-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tagline {
+            font-size: 1.1em;
+            color: #d4af37;
+            font-style: italic;
+        }
+        
+        .menu-section {
+            background: white;
+            margin-bottom: 40px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .section-title {
+            background: linear-gradient(135deg, #d4af37 0%, #b8941f 100%);
+            color: #2c3e50;
+            padding: 20px;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        
+        .items {
+            padding: 30px;
+        }
+        
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dotted #ddd;
+        }
+        
+        .menu-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .item-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .item-description {
+            font-size: 0.95em;
+            color: #666;
+            font-style: italic;
+            max-width: 70%;
+        }
+        
+        .item-price {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #d4af37;
+            white-space: nowrap;
+            margin-left: 20px;
+        }
+        
+        footer {
+            text-align: center;
+            color: #f4e4c1;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #d4af37;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍽️ The Golden Table</h1>
+            <p class="tagline">Fine Dining Experience Since 1995</p>
+        </header>
+        
+        <div class="menu-section">
+            <div class="section-title">Appetizers</div>
+            <div class="items">
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Bruschetta Trio</div>
+                        <div class="item-description">Crispy bread with tomato, basil, and garlic</div>
+                    </div>
+                    <div class="item-price">$9.99</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Shrimp Tempura</div>
+                        <div class="item-description">Light and crispy battered shrimp with dipping sauce</div>
+                    </div>
+                    <div class="item-price">$12.99</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Caprese Salad</div>
+                        <div class="item-description">Fresh mozzarella, tomato, and basil with olive oil</div>
+                    </div>
+                    <div class="item-price">$10.99</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">Main Courses</div>
+            <div class="items">
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Pan-Seared Salmon</div>
+                        <div class="item-description">Atlantic salmon with lemon butter sauce, seasonal vegetables</div>
+                    </div>
+                    <div class="item-price">$26.99</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Ribeye Steak</div>
+                        <div class="item-description">12oz prime cut, grilled to perfection, served with mashed potatoes</div>
+                    </div>
+                    <div class="item-price">$34.99</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Chicken Marsala</div>
+                        <div class="item-description">Tender chicken breast with mushrooms and Marsala wine reduction</div>
+                    </div>
+                    <div class="item-price">$22.99</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Vegetarian Risotto</div>
+                        <div class="item-description">Creamy Arborio rice with wild mushrooms, asparagus, and truffle oil</div>
+                    </div>
+                    <div class="item-price">$19.99</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">Desserts</div>
+            <div class="items">
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Chocolate Lava Cake</div>
+                        <div class="item-description">Warm chocolate cake with molten center, vanilla ice cream</div>
+                    </div>
+                    <div class="item-price">$8.99</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Tiramisu</div>
+                        <div class="item-description">Classic Italian dessert with layers of mascarpone and espresso</div>
+                    </div>
+                    <div class="item-price">$7.99</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Crème Brûlée</div>
+                        <div class="item-description">Silky custard with caramelized sugar top</div>
+                    </div>
+                    <div class="item-price">$8.99</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="menu-section">
+            <div class="section-title">Beverages</div>
+            <div class="items">
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Soft Drinks</div>
+                        <div class="item-description">Coca-Cola, Sprite, Orange Juice, Lemonade</div>
+                    </div>
+                    <div class="item-price">$3.99</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Coffee & Tea</div>
+                        <div class="item-description">Espresso, Cappuccino, Latte, or Assorted Teas</div>
+                    </div>
+                    <div class="item-price">$4.99</div>
+                </div>
+                <div class="menu-item">
+                    <div>
+                        <div class="item-name">Wine Selection</div>
+                        <div class="item-description">Red, White, or Rosé wines by the glass</div>
+                    </div>
+                    <div class="item-price">$8.99</div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>The Golden Table • Open Daily 5PM - 11PM • (555) 123-4567</p>
+        </footer>
+    </div>
+</body>
+</html>

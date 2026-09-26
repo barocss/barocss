@@ -1,0 +1,19 @@
+<header data-shell class="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
+  <div data-shell class="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <span data-shell class="text-lg font-semibold tracking-tight">Acme</span>
+    <nav data-shell class="flex items-center gap-6 text-sm font-medium text-muted-foreground">
+      <a data-shell class="transition-colors hover:text-foreground">Dashboard</a><a data-shell class="text-foreground">Chat</a>
+    </nav>
+    <button data-shell class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium h-9 px-4 py-2 bg-primary text-primary-foreground shadow-xs hover:bg-primary/90">New</button>
+  </div>
+</header>
+<main data-shell class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <div data-shell class="flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm">
+    <div data-shell class="grid auto-rows-min items-start gap-1.5 px-6">
+      <h2 data-shell class="leading-none font-semibold">Assistant</h2>
+      <p data-shell class="text-sm text-muted-foreground">Model output renders below.</p>
+    </div>
+    <div data-shell class="px-6"><input data-shell class="h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs outline-none md:text-sm" placeholder="Ask"></div>
+    <div id="out" data-shell class="px-6"></div>
+  </div>
+</main>

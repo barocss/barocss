@@ -19,7 +19,7 @@ describe("dark mode", () => {
           type: "at-rule",
           name: "media",
           params: "(prefers-color-scheme: dark)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -34,7 +34,7 @@ describe("dark mode", () => {
           type: "rule",
           selector: ".dark",
           source: "dark",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -53,7 +53,7 @@ describe("dark mode", () => {
           type: "rule",
           selector: ":where([data-theme=dark], [data-theme=dark] *), :where(.dark, .dark *)",
           source: "dark",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -72,7 +72,7 @@ describe("dark mode", () => {
           type: "rule",
           selector: ":where([data-theme=dark], [data-theme=dark] *), :where(.dark, .dark *)",
           source: "dark",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -89,13 +89,13 @@ describe("dark mode", () => {
           name: "media",
           params: "(prefers-color-scheme: dark)",
           source: "dark",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
         {
           type: "rule",
           selector: ".dark",
           source: "dark",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -120,7 +120,7 @@ describe("dark mode", () => {
               name: "media",
               params: "(min-width: 640px)",
               nodes: [
-                { type: "decl", prop: "background-color", value: "#f00" },
+                { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
               ],
             },
           ],
@@ -147,7 +147,7 @@ describe("dark mode", () => {
               name: "media",
               params: "(prefers-color-scheme: dark)",
               nodes: [
-                { type: "decl", prop: "background-color", value: "#f00" },
+                { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
               ],
             },
           ],
@@ -178,7 +178,7 @@ describe("dark mode", () => {
           type: "rule",
           selector:
             ":where([data-theme=dark], [data-theme=dark] *), :where(.dark, .dark *)",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
           source: "dark"
         },
       ]);

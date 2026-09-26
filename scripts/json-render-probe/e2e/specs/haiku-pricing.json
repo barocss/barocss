@@ -1,0 +1,406 @@
+{
+ "root": "pricing-container",
+ "elements": {
+  "pricing-container": {
+   "type": "Stack",
+   "props": {
+    "className": "w-full py-12 px-4 space-y-12"
+   },
+   "children": [
+    "pricing-header",
+    "pricing-grid"
+   ]
+  },
+  "pricing-header": {
+   "type": "Stack",
+   "props": {
+    "className": "text-center"
+   },
+   "children": [
+    "pricing-title",
+    "pricing-subtitle"
+   ]
+  },
+  "pricing-title": {
+   "type": "Text",
+   "props": {
+    "text": "Simple, Transparent Pricing",
+    "variant": "h2"
+   },
+   "children": []
+  },
+  "pricing-subtitle": {
+   "type": "Text",
+   "props": {
+    "text": "Choose the perfect plan for your needs",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "pricing-grid": {
+   "type": "Grid",
+   "props": {
+    "className": "grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto"
+   },
+   "children": [
+    "plan-starter",
+    "plan-pro",
+    "plan-enterprise"
+   ]
+  },
+  "plan-starter": {
+   "type": "Card",
+   "props": {
+    "className": "p-8 border border-border rounded-lg"
+   },
+   "children": [
+    "starter-name",
+    "starter-sep",
+    "starter-price",
+    "starter-desc",
+    "starter-features",
+    "starter-btn"
+   ]
+  },
+  "starter-name": {
+   "type": "Text",
+   "props": {
+    "text": "Starter",
+    "variant": "h3"
+   },
+   "children": []
+  },
+  "starter-sep": {
+   "type": "Separator",
+   "props": {
+    "className": "my-4"
+   },
+   "children": []
+  },
+  "starter-price": {
+   "type": "Stack",
+   "props": {
+    "className": "mb-4"
+   },
+   "children": [
+    "starter-amt",
+    "starter-period"
+   ]
+  },
+  "starter-amt": {
+   "type": "Text",
+   "props": {
+    "text": "$29",
+    "variant": "h2"
+   },
+   "children": []
+  },
+  "starter-period": {
+   "type": "Text",
+   "props": {
+    "text": "per month",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "starter-desc": {
+   "type": "Text",
+   "props": {
+    "text": "Perfect for getting started",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "starter-features": {
+   "type": "Stack",
+   "props": {
+    "className": "my-6 space-y-2"
+   },
+   "children": [
+    "starter-f1",
+    "starter-f2",
+    "starter-f3"
+   ]
+  },
+  "starter-f1": {
+   "type": "Text",
+   "props": {
+    "text": "Up to 10 projects",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "starter-f2": {
+   "type": "Text",
+   "props": {
+    "text": "Basic analytics",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "starter-f3": {
+   "type": "Text",
+   "props": {
+    "text": "Email support",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "starter-btn": {
+   "type": "Button",
+   "props": {
+    "label": "Get Started",
+    "variant": "outline"
+   },
+   "children": []
+  },
+  "plan-pro": {
+   "type": "Card",
+   "props": {
+    "className": "p-8 border-2 border-primary bg-primary/5 rounded-lg shadow-lg"
+   },
+   "children": [
+    "pro-badge",
+    "pro-name",
+    "pro-sep",
+    "pro-price",
+    "pro-desc",
+    "pro-features",
+    "pro-btn"
+   ]
+  },
+  "pro-badge": {
+   "type": "Badge",
+   "props": {
+    "text": "Most Popular",
+    "variant": "default"
+   },
+   "children": []
+  },
+  "pro-name": {
+   "type": "Text",
+   "props": {
+    "text": "Pro",
+    "variant": "h3"
+   },
+   "children": []
+  },
+  "pro-sep": {
+   "type": "Separator",
+   "props": {
+    "className": "my-4"
+   },
+   "children": []
+  },
+  "pro-price": {
+   "type": "Stack",
+   "props": {
+    "className": "mb-4"
+   },
+   "children": [
+    "pro-amt",
+    "pro-period"
+   ]
+  },
+  "pro-amt": {
+   "type": "Text",
+   "props": {
+    "text": "$79",
+    "variant": "h2"
+   },
+   "children": []
+  },
+  "pro-period": {
+   "type": "Text",
+   "props": {
+    "text": "per month",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "pro-desc": {
+   "type": "Text",
+   "props": {
+    "text": "For growing teams",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "pro-features": {
+   "type": "Stack",
+   "props": {
+    "className": "my-6 space-y-2"
+   },
+   "children": [
+    "pro-f1",
+    "pro-f2",
+    "pro-f3",
+    "pro-f4"
+   ]
+  },
+  "pro-f1": {
+   "type": "Text",
+   "props": {
+    "text": "Unlimited projects",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "pro-f2": {
+   "type": "Text",
+   "props": {
+    "text": "Advanced analytics",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "pro-f3": {
+   "type": "Text",
+   "props": {
+    "text": "Priority support",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "pro-f4": {
+   "type": "Text",
+   "props": {
+    "text": "Team collaboration",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "pro-btn": {
+   "type": "Button",
+   "props": {
+    "label": "Get Started",
+    "variant": "default"
+   },
+   "children": []
+  },
+  "plan-enterprise": {
+   "type": "Card",
+   "props": {
+    "className": "p-8 border border-border rounded-lg"
+   },
+   "children": [
+    "ent-name",
+    "ent-sep",
+    "ent-price",
+    "ent-desc",
+    "ent-features",
+    "ent-btn"
+   ]
+  },
+  "ent-name": {
+   "type": "Text",
+   "props": {
+    "text": "Enterprise",
+    "variant": "h3"
+   },
+   "children": []
+  },
+  "ent-sep": {
+   "type": "Separator",
+   "props": {
+    "className": "my-4"
+   },
+   "children": []
+  },
+  "ent-price": {
+   "type": "Stack",
+   "props": {
+    "className": "mb-4"
+   },
+   "children": [
+    "ent-amt",
+    "ent-period"
+   ]
+  },
+  "ent-amt": {
+   "type": "Text",
+   "props": {
+    "text": "Custom",
+    "variant": "h2"
+   },
+   "children": []
+  },
+  "ent-period": {
+   "type": "Text",
+   "props": {
+    "text": "contact us",
+    "variant": "muted"
+   },
+   "children": []
+  },
+  "ent-desc": {
+   "type": "Text",
+   "props": {
+    "text": "For large organizations",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "ent-features": {
+   "type": "Stack",
+   "props": {
+    "className": "my-6 space-y-2"
+   },
+   "children": [
+    "ent-f1",
+    "ent-f2",
+    "ent-f3",
+    "ent-f4",
+    "ent-f5"
+   ]
+  },
+  "ent-f1": {
+   "type": "Text",
+   "props": {
+    "text": "Everything in Pro",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "ent-f2": {
+   "type": "Text",
+   "props": {
+    "text": "Custom integrations",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "ent-f3": {
+   "type": "Text",
+   "props": {
+    "text": "Dedicated account manager",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "ent-f4": {
+   "type": "Text",
+   "props": {
+    "text": "SLA guarantee",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "ent-f5": {
+   "type": "Text",
+   "props": {
+    "text": "24/7 phone support",
+    "variant": "body"
+   },
+   "children": []
+  },
+  "ent-btn": {
+   "type": "Button",
+   "props": {
+    "label": "Contact Sales",
+    "variant": "outline"
+   },
+   "children": []
+  }
+ }
+}

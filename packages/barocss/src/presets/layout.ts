@@ -1,5 +1,5 @@
-import { staticUtility, functionalUtility } from "../core/registry";
-import { decl } from "../core/ast";
+import { staticUtility, functionalUtility, registerUtility } from "../core/registry";
+import { decl, atRule } from "../core/ast";
 import {
   parseNumber,
   parseFraction,
@@ -29,7 +29,7 @@ functionalUtility({
 
 // --- Layout: Aspect Ratio ---
 staticUtility("aspect-square", [["aspect-ratio", "1 / 1"]], { category: 'layout' });
-staticUtility("aspect-video", [["aspect-ratio", "var(--aspect-ratio-video)"]], { category: 'layout' });
+staticUtility("aspect-video", [["aspect-ratio", "var(--aspect-video)"]], { category: 'layout' });
 staticUtility("aspect-auto", [["aspect-ratio", "auto"]], { category: 'layout' });
 functionalUtility({
   name: "aspect",
@@ -129,10 +129,10 @@ staticUtility("sr-only", [
   ["position", "absolute"],
   ["width", "1px"],
   ["height", "1px"],
-  ["margin", "-1px"],
   ["padding", "0"],
+  ["margin", "-1px"],
   ["overflow", "hidden"],
-  ["clip", "rect(0, 0, 0, 0)"],
+  ["clip-path", "inset(50%)"],
   ["white-space", "nowrap"],
   ["border-width", "0"],
 ], { category: 'layout' });
@@ -141,12 +141,43 @@ staticUtility("not-sr-only", [
   ["position", "static"],
   ["width", "auto"],
   ["height", "auto"],
-  ["margin", "0"],
   ["padding", "0"],
+  ["margin", "0"],
   ["overflow", "visible"],
-  ["clip", "auto"],
+  ["clip-path", "none"],
   ["white-space", "normal"],
 ], { category: 'layout' });
+
+// --- Layout: Container queries (@container, @container/<name>, @container-normal) ---
+staticUtility("@container", [["container-type", "inline-size"]], { category: 'layout' });
+staticUtility("@container-normal", [["container-type", "normal"]], { category: 'layout' });
+registerUtility({
+  name: "@container",
+  match: (className: string) => /^@container\/[a-zA-Z0-9_-]+$/.test(className),
+  handler: (_value, _ctx, token) => {
+    const name = /^@container\/([a-zA-Z0-9_-]+)$/.exec(`${token.prefix}${token.value ? `-${token.value}` : ""}`)?.[1];
+    return name ? [decl("container-type", "inline-size"), decl("container-name", name)] : null;
+  },
+  category: 'layout',
+});
+
+// --- Layout: Container (Tailwind 4: width 100% + max-width at each breakpoint, ascending) ---
+const toRem = (v: string): number => {
+  const m = /^(-?\d*\.?\d+)(rem|px|em)$/.exec(v.trim());
+  if (!m) return Number.NaN;
+  return m[2] === 'px' ? Number(m[1]) / 16 : Number(m[1]);
+};
+registerUtility({
+  name: "container",
+  match: (className: string) => className === "container",
+  handler: (_value, ctx) => {
+    const bps = (ctx.theme('breakpoints') || ctx.config('theme.breakpoints') || {}) as Record<string, unknown>;
+    const values = Object.values(bps).filter((v): v is string => typeof v === 'string' && !Number.isNaN(toRem(v)));
+    values.sort((a, b) => toRem(a) - toRem(b));
+    return [decl("width", "100%"), ...values.map((v) => atRule("media", `(width >= ${v})`, [decl("max-width", v)]))];
+  },
+  category: 'layout',
+});
 
 // --- Layout: Float ---
 staticUtility("float-right", [["float", "right"]], { category: 'layout' });
@@ -283,7 +314,7 @@ functionalUtility({
   prop: "column-gap",
   supportsArbitrary: true, // gap-x-[10vw]
   supportsCustomProperty: true, // gap-x-(--my-gap-x)
-  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
   handle: (value) => {
     if (typeof value === "string") return [decl("column-gap", value)];
     return null;
@@ -297,7 +328,7 @@ functionalUtility({
   prop: "row-gap",
   supportsArbitrary: true, // gap-y-[10vw]
   supportsCustomProperty: true, // gap-y-(--my-gap-y)
-  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
   handle: (value) => {
     if (typeof value === "string") return [decl("row-gap", value)];
     return null;
@@ -311,7 +342,7 @@ functionalUtility({
   prop: "gap",
   supportsArbitrary: true, // gap-[10vw]
   supportsCustomProperty: true, // gap-(--my-gap)
-  handleBareValue: ({ value }) => `calc(var(--spacing) * ${value})`,
+  handleBareValue: ({ value }) => (parseNumber(value) ? `calc(var(--spacing) * ${value})` : null),
   handle: (value) => {
     if (typeof value === "string") return [decl("gap", value)];
     return null;

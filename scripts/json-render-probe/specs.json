@@ -1,0 +1,41 @@
+{
+  "stats": {"root": "g", "elements": {
+    "g": {"type": "Grid", "props": {"className": "grid grid-cols-1 gap-6 md:grid-cols-3 mt-8"}, "children": ["c1", "c2", "c3"]},
+    "c1": {"type": "Card", "props": {"className": "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"}, "children": ["t1", "v1"]},
+    "t1": {"type": "Text", "props": {"text": "Revenue", "className": "text-sm font-medium text-slate-500 uppercase tracking-wide"}},
+    "v1": {"type": "Text", "props": {"text": "$48,210", "className": "mt-2 text-3xl font-bold tracking-tight text-slate-900"}},
+    "c2": {"type": "Card", "props": {"className": "rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"}, "children": ["t2", "v2"]},
+    "t2": {"type": "Text", "props": {"text": "Growth", "className": "text-sm font-medium text-slate-500 uppercase tracking-wide"}},
+    "v2": {"type": "Text", "props": {"text": "+12.4%", "className": "mt-2 text-3xl font-bold text-emerald-500"}},
+    "c3": {"type": "Card", "props": {"className": "rounded-2xl bg-blue-600 p-6 text-white shadow-lg"}, "children": ["t3", "v3"]},
+    "t3": {"type": "Text", "props": {"text": "Active users", "className": "text-sm font-medium text-blue-100"}},
+    "v3": {"type": "Text", "props": {"text": "1,204", "className": "mt-2 text-3xl font-bold"}}
+  }},
+  "profile": {"root": "c", "elements": {
+    "c": {"type": "Card", "props": {"className": "mx-auto max-w-xl rounded-xl border border-gray-200 bg-white p-8 shadow-md"}, "children": ["s"]},
+    "s": {"type": "Stack", "props": {"className": "flex flex-col gap-4 sm:flex-row sm:items-center"}, "children": ["a", "b"]},
+    "a": {"type": "Text", "props": {"text": "JP", "className": "inline-flex size-10 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold"}},
+    "b": {"type": "Stack", "props": {"className": "flex flex-1 flex-col gap-1"}, "children": ["n", "d"]},
+    "n": {"type": "Text", "props": {"text": "Jinho Park", "className": "text-lg font-semibold text-gray-900"}},
+    "d": {"type": "Text", "props": {"text": "Frontend engineer", "className": "text-sm text-gray-500 leading-relaxed"}}
+  }},
+  "pricing": {"root": "g", "elements": {
+    "g": {"type": "Grid", "props": {"className": "grid gap-4 lg:grid-cols-3 lg:gap-8 py-6"}, "children": ["p1", "p2"]},
+    "p1": {"type": "Card", "props": {"className": "relative rounded-2xl border-2 border-blue-600 bg-blue-50 p-8 shadow-xl"}, "children": ["b1", "h1", "x1"]},
+    "b1": {"type": "Text", "props": {"text": "Popular", "className": "absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white"}},
+    "h1": {"type": "Text", "props": {"text": "Pro", "className": "text-2xl font-bold text-gray-900"}},
+    "x1": {"type": "Text", "props": {"text": "Get started", "className": "mt-6 inline-flex w-full justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"}},
+    "p2": {"type": "Card", "props": {"className": "rounded-2xl border border-gray-100 bg-white p-8 shadow"}, "children": ["h2", "x2"]},
+    "h2": {"type": "Text", "props": {"text": "Team", "className": "text-2xl font-bold text-gray-900"}},
+    "x2": {"type": "Text", "props": {"text": "Contact", "className": "mt-6 inline-flex w-full justify-center rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-slate-50"}}
+  }},
+  "list": {"root": "s", "elements": {
+    "s": {"type": "Stack", "props": {"className": "space-y-3 max-w-2xl mt-4"}, "children": ["i1", "i2"]},
+    "i1": {"type": "Card", "props": {"className": "flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4"}, "children": ["k1", "l1"]},
+    "k1": {"type": "Text", "props": {"text": "ok", "className": "mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-emerald-500 text-white text-xs"}},
+    "l1": {"type": "Text", "props": {"text": "Deploy preview ready", "className": "text-sm text-slate-700"}},
+    "i2": {"type": "Card", "props": {"className": "flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 opacity-70"}, "children": ["k2", "l2"]},
+    "k2": {"type": "Text", "props": {"text": "..", "className": "mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-slate-100 text-slate-600 text-xs"}},
+    "l2": {"type": "Text", "props": {"text": "Tests running", "className": "text-sm text-slate-500"}}
+  }}
+}

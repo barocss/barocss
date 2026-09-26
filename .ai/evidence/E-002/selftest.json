@@ -1,0 +1,409 @@
+{
+  "expectations": [
+    {
+      "name": "baseline fails X1",
+      "ok": true,
+      "detail": {
+        "radius": [
+          [
+            "6px",
+            "6px",
+            "6px",
+            "6px"
+          ],
+          [
+            "6px",
+            "6px",
+            "6px",
+            "6px"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "baseline fails X2",
+      "ok": true,
+      "detail": {
+        "before": {
+          "width": 814,
+          "height": 96,
+          "aspectRatio": "auto"
+        },
+        "after": {
+          "width": 814,
+          "height": 96,
+          "aspectRatio": "auto"
+        },
+        "ratio": 0.11793611793611794
+      }
+    },
+    {
+      "name": "baseline fails X3",
+      "ok": true,
+      "detail": {
+        "before": {
+          "textWrapStyle": "auto",
+          "textWrap": "wrap",
+          "lines": 1
+        },
+        "after": {
+          "textWrapStyle": "auto",
+          "textWrap": "wrap",
+          "lines": 1
+        }
+      }
+    },
+    {
+      "name": "baseline fails X4",
+      "ok": true,
+      "detail": {
+        "before": "none",
+        "after": "none"
+      }
+    },
+    {
+      "name": "rounded-4xl fails X1",
+      "ok": true,
+      "rules": [],
+      "consoleNamingClass": [
+        "[warning] [IncrementalParser] ast is empty rounded-4xl"
+      ]
+    },
+    {
+      "name": "aspect-video fails X2",
+      "ok": true,
+      "rules": [
+        ".aspect-video { aspect-ratio: var(--aspect-ratio-video); }"
+      ],
+      "consoleNamingClass": []
+    },
+    {
+      "name": "text-balance fails X3",
+      "ok": true,
+      "rules": [
+        ".text-balance { }"
+      ],
+      "consoleNamingClass": []
+    },
+    {
+      "name": "text-shadow-sm fails X4",
+      "ok": true,
+      "rules": [
+        ".text-shadow-sm { }"
+      ],
+      "consoleNamingClass": []
+    },
+    {
+      "name": "rounded-[2rem] passes X1",
+      "ok": true,
+      "rules": [
+        ".rounded-\\[2rem\\] { border-radius: 2rem; }"
+      ],
+      "consoleNamingClass": []
+    },
+    {
+      "name": "aspect-[16/9] passes X2",
+      "ok": true,
+      "rules": [
+        ".aspect-\\[16\\/9\\] { aspect-ratio: 16 / 9; }"
+      ],
+      "consoleNamingClass": []
+    },
+    {
+      "name": "inline-CSS control passes X1 style check",
+      "ok": true,
+      "detail": {
+        "radius": [
+          [
+            "6px",
+            "6px",
+            "6px",
+            "6px"
+          ],
+          [
+            "32px",
+            "32px",
+            "32px",
+            "32px"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "inline-CSS control passes X2 style check",
+      "ok": true,
+      "detail": {
+        "before": {
+          "width": 814,
+          "height": 96,
+          "aspectRatio": "auto"
+        },
+        "after": {
+          "width": 814,
+          "height": 457.875,
+          "aspectRatio": "16 / 9"
+        },
+        "ratio": 0.5625
+      }
+    },
+    {
+      "name": "inline-CSS control passes X3 style check",
+      "ok": true,
+      "detail": {
+        "before": {
+          "textWrapStyle": "auto",
+          "textWrap": "wrap",
+          "lines": 1
+        },
+        "after": {
+          "textWrapStyle": "balance",
+          "textWrap": "balance",
+          "lines": 1
+        }
+      }
+    },
+    {
+      "name": "inline-CSS control passes X4 style check",
+      "ok": true,
+      "detail": {
+        "before": "none",
+        "after": "rgba(0, 0, 0, 0.25) 0px 1px 2px"
+      }
+    },
+    {
+      "name": "style-attribute edit fails X4 despite style check",
+      "ok": true,
+      "nonClass": {
+        "styleAttrChanged": [
+          "save-button"
+        ],
+        "directStyleWrites": [],
+        "styleUseFlags": []
+      }
+    },
+    {
+      "name": "tool-call scan flags a direct write and not a computed-style read",
+      "ok": true,
+      "scan": {
+        "writes": [
+          {
+            "call": 0,
+            "tool": "browser_evaluate",
+            "pattern": "/\\.style\\s*(\\.\\s*[\\w-]+|\\[[^\\]]+\\])?\\s*=(?!=)/"
+          }
+        ],
+        "styleUses": [
+          {
+            "call": 0,
+            "tool": "browser_evaluate"
+          }
+        ]
+      }
+    }
+  ],
+  "baseline": {
+    "width": 1024,
+    "styleAttrs": {
+      "pricing-card": null,
+      "media": null,
+      "intro": null,
+      "save-button": null
+    },
+    "card": {
+      "radius": [
+        "6px",
+        "6px",
+        "6px",
+        "6px"
+      ]
+    },
+    "media": {
+      "width": 814,
+      "height": 96,
+      "aspectRatio": "auto"
+    },
+    "intro": {
+      "textWrapStyle": "auto",
+      "textWrap": "wrap",
+      "lines": 1
+    },
+    "save": {
+      "textShadow": "none"
+    }
+  },
+  "premise": {
+    "introWrapsTo2PlusLines": false,
+    "introLines": 1,
+    "bodyFontFamily": "Times",
+    "fontSansRules": [
+      ".font-sans { font-family: var(--font-family-sans); }"
+    ]
+  },
+  "classes": {
+    "rounded-4xl": {
+      "task": "X1",
+      "pass": false,
+      "detail": {
+        "radius": [
+          [
+            "6px",
+            "6px",
+            "6px",
+            "6px"
+          ],
+          [
+            "6px",
+            "6px",
+            "6px",
+            "6px"
+          ]
+        ]
+      },
+      "rules": [],
+      "consoleNamingClass": [
+        "[warning] [IncrementalParser] ast is empty rounded-4xl"
+      ],
+      "consoleAll": [
+        "[log] [BrowserRuntime] init",
+        "[log] [StylePartitionManager] Created new partition for category: css-vars",
+        "[info] [BrowserRuntime:INFO] Applied 0 parser results {cssRuleCount: 0, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 55 parser results {cssRuleCount: 55, rootCssCount: 0}",
+        "[warning] [IncrementalParser] ast is empty rounded-4xl",
+        "[info] [BrowserRuntime:INFO] Applied 0 parser results {cssRuleCount: 0, rootCssCount: 0}"
+      ]
+    },
+    "aspect-video": {
+      "task": "X2",
+      "pass": false,
+      "detail": {
+        "before": {
+          "width": 814,
+          "height": 96,
+          "aspectRatio": "auto"
+        },
+        "after": {
+          "width": 814,
+          "height": 96,
+          "aspectRatio": "auto"
+        },
+        "ratio": 0.11793611793611794
+      },
+      "rules": [
+        ".aspect-video { aspect-ratio: var(--aspect-ratio-video); }"
+      ],
+      "consoleNamingClass": [],
+      "consoleAll": [
+        "[log] [BrowserRuntime] init",
+        "[log] [StylePartitionManager] Created new partition for category: css-vars",
+        "[info] [BrowserRuntime:INFO] Applied 0 parser results {cssRuleCount: 0, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 55 parser results {cssRuleCount: 55, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 1 parser results {cssRuleCount: 1, rootCssCount: 0}"
+      ]
+    },
+    "text-balance": {
+      "task": "X3",
+      "pass": false,
+      "detail": {
+        "before": {
+          "textWrapStyle": "auto",
+          "textWrap": "wrap",
+          "lines": 1
+        },
+        "after": {
+          "textWrapStyle": "auto",
+          "textWrap": "wrap",
+          "lines": 1
+        }
+      },
+      "rules": [
+        ".text-balance { }"
+      ],
+      "consoleNamingClass": [],
+      "consoleAll": [
+        "[log] [BrowserRuntime] init",
+        "[log] [StylePartitionManager] Created new partition for category: css-vars",
+        "[info] [BrowserRuntime:INFO] Applied 0 parser results {cssRuleCount: 0, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 55 parser results {cssRuleCount: 55, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 1 parser results {cssRuleCount: 1, rootCssCount: 0}"
+      ]
+    },
+    "text-shadow-sm": {
+      "task": "X4",
+      "pass": false,
+      "detail": {
+        "before": "none",
+        "after": "none"
+      },
+      "rules": [
+        ".text-shadow-sm { }"
+      ],
+      "consoleNamingClass": [],
+      "consoleAll": [
+        "[log] [BrowserRuntime] init",
+        "[log] [StylePartitionManager] Created new partition for category: css-vars",
+        "[info] [BrowserRuntime:INFO] Applied 0 parser results {cssRuleCount: 0, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 55 parser results {cssRuleCount: 55, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 1 parser results {cssRuleCount: 1, rootCssCount: 0}"
+      ]
+    },
+    "rounded-[2rem]": {
+      "task": "X1",
+      "pass": true,
+      "detail": {
+        "radius": [
+          [
+            "6px",
+            "6px",
+            "6px",
+            "6px"
+          ],
+          [
+            "32px",
+            "32px",
+            "32px",
+            "32px"
+          ]
+        ]
+      },
+      "rules": [
+        ".rounded-\\[2rem\\] { border-radius: 2rem; }"
+      ],
+      "consoleNamingClass": [],
+      "consoleAll": [
+        "[log] [BrowserRuntime] init",
+        "[log] [StylePartitionManager] Created new partition for category: css-vars",
+        "[info] [BrowserRuntime:INFO] Applied 0 parser results {cssRuleCount: 0, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 55 parser results {cssRuleCount: 55, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 1 parser results {cssRuleCount: 1, rootCssCount: 0}"
+      ]
+    },
+    "aspect-[16/9]": {
+      "task": "X2",
+      "pass": true,
+      "detail": {
+        "before": {
+          "width": 814,
+          "height": 96,
+          "aspectRatio": "auto"
+        },
+        "after": {
+          "width": 814,
+          "height": 457.875,
+          "aspectRatio": "16 / 9"
+        },
+        "ratio": 0.5625
+      },
+      "rules": [
+        ".aspect-\\[16\\/9\\] { aspect-ratio: 16 / 9; }"
+      ],
+      "consoleNamingClass": [],
+      "consoleAll": [
+        "[log] [BrowserRuntime] init",
+        "[log] [StylePartitionManager] Created new partition for category: css-vars",
+        "[info] [BrowserRuntime:INFO] Applied 0 parser results {cssRuleCount: 0, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 55 parser results {cssRuleCount: 55, rootCssCount: 0}",
+        "[info] [BrowserRuntime:INFO] Applied 1 parser results {cssRuleCount: 1, rootCssCount: 0}"
+      ]
+    }
+  }
+}

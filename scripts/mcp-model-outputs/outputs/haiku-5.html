@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-label {
+            flex: 1;
+        }
+        
+        .setting-label h3 {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        
+        .setting-label p {
+            font-size: 13px;
+            color: #888;
+        }
+        
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 28px;
+        }
+        
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 28px;
+        }
+        
+        .toggle-slider::before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .toggle-slider {
+            background-color: #667eea;
+        }
+        
+        input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+        
+        .text-input {
+            width: 200px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+        
+        .text-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .select-input {
+            width: 200px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        .select-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            padding: 20px 30px;
+            background: #f9f9f9;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .status {
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Settings</h1>
+            <p>Manage your application preferences and configuration</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <div class="section-title">Appearance</div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <h3>Dark Mode</h3>
+                        <p>Enable dark theme for the interface</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="darkMode">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <h3>Theme Color</h3>
+                        <p>Choose your preferred color scheme</p>
+                    </div>
+                    <select class="select-input" id="themeColor">
+                        <option value="purple">Purple</option>
+                        <option value="blue">Blue</option>
+                        <option value="green">Green</option>
+                        <option value="red">Red</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Notifications</div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <h3>Email Notifications</h3>
+                        <p>Receive updates via email</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="emailNotif" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <h3>Desktop Notifications</h3>
+                        <p>Show desktop alerts for important events</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="desktopNotif" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Privacy & Security</div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <h3>API Key</h3>
+                        <p>Your unique API authentication key</p>
+                    </div>
+                    <input type="password" class="text-input" id="apiKey" placeholder="••••••••••••" value="sk_test_1234567890">
+                </div>
+                
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <h3>Data Collection</h3>
+                        <p>Allow anonymous usage analytics</p>
+                    </div>
+                    <label class="toggle">
+                        <input type="checkbox" id="dataCollection">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div id="status" class="status"></div>
+        </div>
+        
+        <div class="footer">
+            <button class="btn btn-secondary" onclick="resetSettings()">Reset</button>
+            <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+        </div>
+    </div>
+    
+    <script>
+        function saveSettings() {
+            const settings = {
+                darkMode: document.getElementById('darkMode').checked,
+                themeColor: document.getElementById('themeColor').value,
+                emailNotif: document.getElementById('emailNotif').checked,
+                desktopNotif: document.getElementById('desktopNotif').checked,
+                apiKey: document.getElementById('apiKey').value,
+                dataCollection: document.getElementById('dataCollection').checked
+            };
+            
+            console.log('Settings saved:', settings);
+            
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = '✓ Settings saved successfully';
+            statusEl.classList.add('success');
+            
+            setTimeout(() => {
+                statusEl.classList.remove('success');
+            }, 3000);
+        }
+        
+        function resetSettings() {
+            document.getElementById('darkMode').checked = false;
+            document.getElementById('themeColor').value = 'purple';
+            document.getElementById('emailNotif').checked = true;
+            document.getElementById('desktopNotif').checked = true;
+            document.getElementById('apiKey').value = 'sk_test_1234567890';
+            document.getElementById('dataCollection').checked = false;
+        }
+    </script>
+</body>
+</html>

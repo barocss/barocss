@@ -1,0 +1,138 @@
+# Handoff between one STRATEGY session and one EXECUTION session.
+# STRATEGY writes every field above `result` and sets status: ready.
+# EXECUTION may change only `status` and `result` (contract is frozen; .ai/check.py enforces).
+# STRATEGY alone writes `review` and sets status: evaluated.
+# status: none | ready | running | done | blocked | evaluated
+# While ready/running/done/blocked, the authoritative copy is on `branch` (see AGENTS.md §1).
+# Previous contracts and results: git log -p -- .ai/EXPERIMENT.yaml
+status: evaluated
+
+id: E-008
+outcome: O2
+branch: ai/E-008-ring-parity
+question: >
+  E-007 (K10) proved that on the live site a real agent's natural markup ships silent Tailwind-v4 parity misses
+  under a "done" claim, and the most recurrent measured family (2/3 runs, canonical idiom) is ring box-shadow
+  composition: BaroCSS emits box-shadow rules for ring-*/focus:ring-* that reference undefined --baro-shadow /
+  --baro-inset-shadow / --baro-inset-ring-shadow (no fallback), and focus:ring-offset-2 has no rule at all, so the
+  ring never renders. Does the MINIMUM change in packages/barocss/src close this one family — do ring-1, ring-2,
+  focus:ring-2 and focus:ring-offset-2 then compute a box-shadow matching Tailwind 4.1.13 for the same token on the
+  same element (E-007's frozen classifier reclassifies them RESOLVED), with no regression to any currently-working
+  utility — and when G1/G2 are rerun unchanged, do the ring tokens the agent writes now render?
+decision_it_informs: >
+  Minimum fix closes the ring family (L2) with pnpm check green and no regression, and the G1/G2 rerun shows the
+  ring tokens now render → class -> rule parity is fixable one family at a time; Strategy accepts/merges (first
+  product code), then contracts the next observed family (single-axis translate, or theme var name, or the preflight
+  border-style gap) the same way, and later reruns G1-G3 to see whether claims finally agree once every family a run
+  uses is fixed. Fix cannot close ring without a larger-than-allowed change, or it regresses another utility, or the
+  rerun still shows ring not applied → per-family patching is the wrong shape; parity needs a systematic base-layer /
+  @property pass, and Strategy rethinks scope before spending more product code.
+hypothesis: >
+  The base custom properties ring composition references are simply never given initial values (Tailwind v4 registers
+  them via @property / its base layer). A small, local definition of those base values plus a rule for
+  ring-offset makes all four tokens render like Tailwind 4.1.13 without touching the shadow-* levels that already
+  work. The other families (translate, theme-var, border-style) are untouched and still miss.
+builds_on: [K4, K10, U4]
+scenario: >
+  Product: packages/barocss (the class -> rule engine), built locally. App: apps/barocss-site unchanged, booted by
+  baroStart({config:{preflight:true}}), served by `vite` dev, exactly E-006/E-007's environment (env.mjs proxy, app
+  origin only). Actor for the rerun arm: E-007's, unchanged (claude-opus-4-8[1m], fresh context per run, empty cwd,
+  Playwright MCP tools only). Prompt and tasks for the rerun: E-007's G1 and G2, word for word (do not change them).
+method: >
+  1. Branch from origin/develop. Copy E-007's classify.mjs, grader.js, grade.mjs, run.mjs, selftest.mjs, env.mjs into
+     .ai/evidence/E-008/ UNCHANGED except the output/task wiring (point at E-008's dir; runner takes G1, G2 with
+     E-007's exact task text). Do not change any classification, grading or write-detection logic; it is the frozen
+     reference from E-007. If any of that logic would have to change, stop and record it in side_notes, don't change it.
+  2. Baseline (before the fix, gating, committed): build packages as they are on develop, run selftest.mjs, and
+     confirm the four ring tokens ring-1, ring-2, focus:ring-2, focus:ring-offset-2 classify PARITY-MISS (reproducing
+     K10), while the no-regression control set (shadow-sm, shadow-xl, shadow-none, p-4, bg-blue-600, md:grid-cols-3,
+     rounded-2xl and the site rendering styled) classifies RESOLVED / renders. Commit baseline.json.
+  3. Apply the minimum change in packages/barocss/src so the four ring tokens render: define the base values of the
+     custom properties the ring/box-shadow composition references (and a rule for ring-offset), by the smallest edit
+     that matches Tailwind 4.1.13's mechanism. One changeset in .changeset/. No new engine, manager, abstraction or
+     framework; no change to any utility that already works. Read at most 10 product files to locate the edit.
+  4. Post-fix L2 (gating): rebuild, rerun selftest.mjs / classify.mjs. Pass = the four ring tokens now classify
+     RESOLVED under the frozen classifier AND each computes a non-empty box-shadow (focus:ring-offset-2: an offset
+     ring) equal to Tailwind 4.1.13's output for the same token on the same element; AND every control in step 2 is
+     still RESOLVED / unchanged (no regression). Run pnpm check (or the package-scoped type-check/lint/test/
+     build:library) and record the outcome in result.checks. Commit postfix.json.
+  5. L3 corroboration arm: with the fixed build served, rerun G1 and G2 (fresh context each), and record per run: the
+     ring tokens the agent wrote, whether each now classifies RESOLVED in the final section, the grader result and the
+     final claim. This shows the fix reaches the live agent flow. Note that non-ring families (G1 translate/shadow,
+     G2 border) may still miss; that is expected and not fixed here.
+  6. Record result and set status: done (or blocked). Aggregate: which ring tokens closed, any remaining, any
+     regression. Commit ai(exec): E-008 <VERDICT> …, run check.py --role execution, open the PR, put its URL in
+     result.pr, push. Do not merge. STOP.
+allowed:
+  actions:
+    - "edit packages/barocss/src to make the four ring tokens render (the minimum diff only)"
+    - "add one changeset under .changeset/ for the product change"
+    - "build packages locally (dist output is gitignored or left uncommitted)"
+    - "run apps/barocss-site's vite dev server on localhost with the fixed build; drive a browser"
+    - "run tailwindcss 4.1.13 from the repo's node_modules locally as the classification reference"
+    - "copy E-007's classifier, grader, grade, runner, selftest and env into .ai/evidence/E-008/ and re-point their paths only"
+    - "read packages/barocss or packages/barocss-browser source only to locate the minimum ring fix (<=10 files)"
+    - "spawn one fresh agent context per rerun as the actor (G1, G2)"
+  paths: ["packages/barocss/src/", ".changeset/", ".ai/evidence/E-008/"]
+  product_code: true
+non_goals:
+  - Fixing any family other than ring box-shadow composition (single-axis translate, theme var name shadow/leading, preflight border-style are out of scope)
+  - Any change beyond the minimum needed to render the four ring tokens; no new engine, manager, serializer or abstraction layer
+  - Changing any utility that already works (shadow-* levels, etc.), or editing apps/barocss-site
+  - Changing E-007's classifier, grader, write-detector, runner, prompt, tasks, model or tools; changing G1/G2 text
+  - Grading visual design quality beyond whether the ring tokens render
+evidence:
+  level_required: L2
+  proves_yes: >
+    On the fixed build, the frozen classifier reclassifies ring-1, ring-2, focus:ring-2 and focus:ring-offset-2 from
+    PARITY-MISS to RESOLVED, each computing a box-shadow equal to Tailwind 4.1.13's for the same token/element; every
+    step-2 control is still RESOLVED / unchanged (no regression); pnpm check passes; the diff is confined to
+    packages/barocss/src plus one changeset. The G1/G2 rerun shows the ring tokens the agent wrote now render.
+  proves_no: >
+    The minimum allowed change cannot make all four ring tokens RESOLVED (needs a path outside scope, or a larger
+    change), OR making them render regresses at least one control utility, OR the G1/G2 rerun still shows a ring
+    token the agent wrote not applied. Record which token, which control, and the smallest edit that was tried.
+budget: >
+  1 session. Read at most 10 product files. Two agent reruns (G1, G2). Retry once only for environment failures, not
+  for agent mistakes. If the fix is not clearly minimal and local, stop and return INCONCLUSIVE with the open point.
+stop_when:
+  - The four ring tokens classify RESOLVED with computed box-shadow equal to Tailwind 4.1.13 and all controls unchanged and pnpm check green → PROVEN.
+  - The minimum fix would have to touch a path outside allowed.paths → INCONCLUSIVE, name the path and the reason.
+  - Making the ring tokens render regresses any step-2 control utility → stop, record the regression, DISPROVEN or PARTIAL.
+  - A gating expectation in step 2 (baseline) or step 4 (post-fix) fails → blocked, record which.
+  - The classifier, grader, runner or write-detector would have to change to score the ring fix → record in side_notes, don't change it.
+  - The budget is used up.
+
+result:
+  verdict: INCONCLUSIVE   # mechanism PROVEN at L2, but contract unsatisfiable within allowed.paths (see unknown)
+  level: L2
+  evidence:
+    - "Baseline (build at origin/develop): all four ring tokens PARITY-MISS; ring-1/ring-2/focus:ring-2 have the rule but box-shadow references undefined --baro-inset-shadow, --baro-inset-ring-shadow, --baro-shadow (bcDecls=7); focus:ring-offset-2 has no rule (bcDecls=0). Controls shadow-sm/shadow-xl/shadow-none/p-4/bg-blue-600/md:grid-cols-3/rounded-2xl RESOLVED; site styled. File: .ai/evidence/E-008/baseline.json"
+    - "Post-fix (rebuilt): all four ring tokens RESOLVED under the frozen classifier, each computed box-shadow byte-identical to Tailwind 4.1.13 on the same element (fixed color rgb(17,24,39)): ring-1 '…0 0 0 1px', ring-2/focus:ring-2 '…0 0 0 2px', focus:ring-offset-2 'none'=='none' (Tailwind's ring-offset alone also emits no box-shadow). No control regressed; site styled. File: .ai/evidence/E-008/postfix.json"
+    - "Reproduce (L2): pnpm install; pnpm --filter barocss build:library; PW_MCP_DIR=<dir with node_modules/playwright-core> node .ai/evidence/E-008/ring.mjs baseline (on origin/develop build) and .../ring.mjs postfix (on this branch's build). Uses the frozen E-007 classify.mjs unchanged; adds only box-shadow measurement vs a same-browser Tailwind-4.1.13 reference page."
+    - "Fix diff (commit on branch): packages/barocss/src/presets/effects.ts — register --baro-shadow/--baro-inset-shadow/--baro-inset-ring-shadow via @property initial-value 0 0 #0000 (Tailwind's mechanism), drop the hardcoded --baro-ring-color: rgb(59 130 246 / 0.5) so a lone ring defaults to currentColor (Tailwind v4 default), add ring-offset-{0,1,2,4,8}. Plus one changeset. check.py --role execution: OK (diff confined to allowed.paths)."
+    - "type-check: pass; lint: pass; build:library: pass; tests: 1418 passed, 4 failed; tests/compat/compare.test.ts (real-Tailwind comparison, 18 tests) PASSES with the fix."
+  learning: "The ring family is fully fixable with a small, local edit that reaches exact Tailwind 4.1.13 box-shadow parity (per-family patching is the right shape). The only blocker is scope: co-located exact-AST unit tests freeze the pre-fix output and live outside allowed.paths."
+  unknown:
+    - "BLOCKER (why INCONCLUSIVE, per stop_when 'minimum fix touches a path outside allowed.paths'): pnpm check fails on 4 frozen exact-AST ring assertions in packages/barocss/tests/presets/effects.test.ts ('ring → multi-var box-shadow', 'ring-2 → multi-var box-shadow', 'ring → box-shadow variable combination', 'ring-4 → box-shadow variable combination'). They pin the v3 blue default (--baro-ring-color: rgb(59 130 246 / 0.5)) and the exact node list; any parity fix must update them, but packages/barocss/tests/ is not in allowed.paths (only packages/barocss/src/). proves_yes requires pnpm check green, so the contract cannot be completed as scoped without editing those tests."
+    - "L3 (G1/G2 rerun) not run: the L2/scope gate already blocks contract completion, so per §3 stop_when I stopped rather than spend the two agent runs; they can be run after re-scoping."
+  next_question: "Re-issue this contract with packages/barocss/tests/ added to allowed.paths (update the 4 frozen ring assertions to the Tailwind-v4 output) and drop the factually-wrong 'focus:ring-offset-2 renders a non-empty offset ring' expectation (Tailwind itself emits box-shadow: none for ring-offset alone); then it is a clean PROVEN + merge."
+  pr: https://github.com/barocss/barocss/pull/128
+  checks: "type-check: pass; lint: pass; build:library: pass; test: FAIL (4/1422 — only the frozen ring exact-AST tests in packages/barocss/tests/presets/effects.test.ts, outside allowed.paths); check.py --role execution: OK"
+  side_notes:
+    - "Tailwind v4 default ring color is currentColor, not blue-500/50; BaroCSS's ring width utilities hardcoded the v3 blue — a latent parity bug the fix corrects (compat/compare.test.ts already forbade the blue for inset-ring-2)."
+    - "Tailwind's ring-offset-* alone emits no box-shadow (only sets --tw-ring-offset-width/-shadow); a visible offset ring appears only when combined with a ring-* utility. The contract's 'offset ring' wording for focus:ring-offset-2 standalone does not match Tailwind."
+    - "focus:ring-offset-2 classifies RESOLVED because a valid rule now exists (parity = both engines emit none for the token alone), even though its standalone computed box-shadow is none."
+
+review:                  # STRATEGY only
+  accepted_verdict: INCONCLUSIVE   # accept the executor's verdict; cannot upgrade (CI red, L3 arm unrun)
+  merged: false
+  reason: >
+    Accepted INCONCLUSIVE at L2. The fix reaches exact Tailwind-4.1.13 ring box-shadow parity (postfix.json,
+    ring.mjs) with no control regression and the real-Tailwind compat/compare.test.ts agrees, so the mechanism
+    is correct (K11). Not merged: product-code PR #128 with red CI — the contract's allowed.paths omitted
+    packages/barocss/tests/, so the parity fix's necessary update to 4 frozen exact-AST ring tests (which pin the
+    parity-wrong v3 blue --baro-ring-color default) fails pnpm check, and proves_yes requires a green check. A
+    contract scope error, not a fix defect. PR #128 closed, branch ai/E-008-ring-parity kept as reference;
+    re-issued as .ai/work/E-009.yaml with packages/barocss/tests/ in scope and the standalone
+    focus:ring-offset-2 "offset ring" expectation corrected (Tailwind emits box-shadow:none for ring-offset alone).

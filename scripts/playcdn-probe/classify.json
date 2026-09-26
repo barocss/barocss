@@ -1,0 +1,103 @@
+{
+ "cost": 1.0414265999999999,
+ "rows": [
+  {
+   "id": "haiku-1",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.0148512
+  },
+  {
+   "id": "haiku-2",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.018055199999999997
+  },
+  {
+   "id": "haiku-3",
+   "approach": "plain-style",
+   "externalCss": [
+    "https://cdn.jsdelivr.net/npm/chart.js"
+   ],
+   "cost": 0.0218982
+  },
+  {
+   "id": "haiku-4",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.020306200000000003
+  },
+  {
+   "id": "haiku-5",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.0136592
+  },
+  {
+   "id": "haiku-6",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.0110552
+  },
+  {
+   "id": "haiku-7",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.0167782
+  },
+  {
+   "id": "haiku-8",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.0238262
+  },
+  {
+   "id": "opus-1",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.076724
+  },
+  {
+   "id": "opus-2",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.07984899999999999
+  },
+  {
+   "id": "opus-3",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.165494
+  },
+  {
+   "id": "opus-4",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.173774
+  },
+  {
+   "id": "opus-5",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.059929
+  },
+  {
+   "id": "opus-6",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.077849
+  },
+  {
+   "id": "opus-7",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.120964
+  },
+  {
+   "id": "opus-8",
+   "approach": "plain-style",
+   "externalCss": [],
+   "cost": 0.146414
+  }
+ ]
+}

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart Summary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body class="bg-slate-50 p-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-slate-900 mb-2">Chart Summary</h1>
+                <p class="text-slate-600">Performance metrics overview</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                    <p class="text-sm font-medium text-blue-900 mb-1">Total Views</p>
+                    <p class="text-3xl font-bold text-blue-700">12,485</p>
+                    <p class="text-xs text-blue-600 mt-2">↑ 8.2% from last period</p>
+                </div>
+                <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg p-4 border border-emerald-200">
+                    <p class="text-sm font-medium text-emerald-900 mb-1">Engagement Rate</p>
+                    <p class="text-3xl font-bold text-emerald-700">68.5%</p>
+                    <p class="text-xs text-emerald-600 mt-2">↑ 3.1% from last period</p>
+                </div>
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                    <p class="text-sm font-medium text-purple-900 mb-1">Avg. Duration</p>
+                    <p class="text-3xl font-bold text-purple-700">4m 32s</p>
+                    <p class="text-xs text-purple-600 mt-2">↑ 12.4% from last period</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-lg p-4 border border-slate-200 mb-6">
+                <h2 class="text-lg font-semibold text-slate-900 mb-4">Trend Analysis</h2>
+                <canvas id="trendChart" class="w-full" height="300"></canvas>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-md font-semibold text-slate-900 mb-4">Distribution</h3>
+                    <canvas id="distributionChart" class="w-full" height="200"></canvas>
+                </div>
+                <div>
+                    <h3 class="text-md font-semibold text-slate-900 mb-4">Key Insights</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3">
+                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold flex-shrink-0">1</span>
+                            <span class="text-sm text-slate-700">Peak engagement occurs between 2-4 PM</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold flex-shrink-0">2</span>
+                            <span class="text-sm text-slate-700">Mobile traffic represents 62% of total views</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold flex-shrink-0">3</span>
+                            <span class="text-sm text-slate-700">Conversion rate improved by 5.3% week-over-week</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Trend Chart
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Views',
+                        data: [1200, 1900, 1500, 2200, 2800, 1800, 1400],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#3b82f6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Conversions',
+                        data: [800, 1200, 950, 1400, 1800, 1100, 900],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#10b981',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { font: { size: 12 }, color: '#64748b' }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: '#e2e8f0' }
+                    }
+                }
+            }
+        });
+
+        // Distribution Chart
+        const distCtx = document.getElementById('distributionChart').getContext('2d');
+        new Chart(distCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Desktop', 'Mobile', 'Tablet'],
+                datasets: [{
+                    data: [35, 62, 3],
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'],
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { font: { size: 12 }, color: '#64748b', padding: 15 }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

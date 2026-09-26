@@ -1,0 +1,140 @@
+// E-006 runner (E-004's run.mjs, adapted: the page is apps/barocss-site on the `vite` dev server (E-005's arm D, via env.mjs)
+// and Chromium's only network path is env.mjs's proxy (app origin only). Actor setup unchanged. Usage (from repo root, after
+// `pnpm install` and `pnpm build:library`):
+//   PW_MCP_DIR=<dir containing node_modules/@playwright/mcp> [CHROME_PATH=…] [MODEL=…] node .ai/evidence/E-006/run.mjs <label>
+// One run: start the dev server + guard → fresh headless Chromium (CDP :9333, proxied) → baseline snapshot in a throwaway tab →
+// `claude -p` actor with ONLY Playwright-MCP browser tools (cwd = empty temp dir), model pinned to E-001's →
+// grade the agent's tab at 1024px on Y1 (grader also scans the agent's tool-call code) + post-run page facts → runs/<label>.json.
+import { spawn } from 'node:child_process';
+import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import { startApp, startGuard, chromeArgs } from './env.mjs';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const PW_MCP_DIR = process.env.PW_MCP_DIR;
+if (!PW_MCP_DIR) throw new Error('set PW_MCP_DIR');
+const req = createRequire(join(PW_MCP_DIR, 'node_modules/@playwright/mcp/package.json'));
+const { chromium } = req('playwright-core');
+const CHROME = process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const MCP_CLI = join(PW_MCP_DIR, 'node_modules/@playwright/mcp/cli.js');
+
+const PROXY = 8899, CDP = 9333;
+const app = await startApp('D');
+const URL_ = app.url;
+const MODEL = process.env.MODEL || 'claude-opus-4-8[1m]'; // E-001's actor model
+const TASKS = {
+  Y1: 'Add a `brand` color (#5B21B6) to the page\'s BaroCSS theme so that `bg-brand` works, and use it for the hero\'s Live Demo button\'s background.',
+};
+const prompt = (t) => `Page URL: ${URL_}
+
+The page is styled with BaroCSS, a runtime utility-class CSS engine with Tailwind-compatible class names. Make the change through BaroCSS in the live page (its class names and its theme configuration), not with inline styles or hand-written CSS. Then verify the result and report whether the task is done.
+
+Task: ${TASKS[t]}`;
+const ARM = 'D', [LABEL] = process.argv.slice(2);
+if (!LABEL) throw new Error('usage: run.mjs <label>');
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function launchBrowser() {
+  const proc = spawn(CHROME, [
+    '--headless=new', `--remote-debugging-port=${CDP}`, `--user-data-dir=${mkdtempSync(join(tmpdir(), 'e006-chr-'))}`,
+    '--no-first-run', '--no-default-browser-check', '--window-size=1280,900', ...chromeArgs(PROXY), 'about:blank',
+  ], { stdio: 'ignore' });
+  for (let i = 0; i < 50; i++) {
+    try { if ((await fetch(`http://127.0.0.1:${CDP}/json/version`)).ok) return proc; } catch {}
+    await sleep(200);
+  }
+  throw new Error('chromium did not start');
+}
+
+const graderSrc = readFileSync(join(HERE, 'grader.js'), 'utf8').replace(/^export /gm, '');
+const evalSnap = (page) => page.evaluate(`(() => { ${graderSrc}; return snapshot(); })()`);
+const evalGrade = (page, b, c, calls) => page.evaluate(`(() => { ${graderSrc}; return grade(${JSON.stringify(b)}, ${JSON.stringify(c)}, ${JSON.stringify(calls)}); })()`);
+const classesOf = (page) => page.evaluate(`(() => { ${graderSrc}; return Object.fromEntries(Object.entries(elements()).map(([k, e]) => [k, e.className])); })()`);
+// Post-run facts (method step 4): the page's config and preflight partition, style ids, and whether the page module's
+// getRuntime() is the runtime that owns the page's style elements. Uses the BaroCSS module URL named in the served source.
+const pageFacts = (page) => page.evaluate(async () => {
+  const scripts = [...document.querySelectorAll('script[type=module][src]')].map((s) => s.src);
+  let modUrl = null;
+  for (const s of scripts) { const t = await (await fetch(s)).text(); const m = [...t.matchAll(/(?:from|import)\s*\(?\s*["']([^"']+)["']/g)].map((x) => x[1]).find((x) => /barocss-browser\/|@barocss\/browser/.test(x)); if (m) { modUrl = new URL(m, location.href).href; break; } }
+  const ids = [...document.querySelectorAll('style')].map((s) => s.id || '(no id)');
+  const pre = document.getElementById('barocss-runtime-partition-preflight');
+  const out = { modUrl, styleIds: ids, duplicateStyleIds: ids.filter((x, i) => x !== '(no id)' && ids.indexOf(x) !== i),
+    preflightPartitionRules: pre ? (pre.sheet?.cssRules.length ?? -1) : null };
+  if (modUrl) { const r = (await import(modUrl)).getRuntime(); out.pageModuleConfig = JSON.stringify(r.options?.config); out.pageModuleHasBgBrand = !!r.getCss?.('bg-brand'); }
+  return out;
+});
+async function snapAt(page) {
+  const out = {};
+  for (const w of [1024]) { await page.setViewportSize({ width: w, height: 900 }); await sleep(300); out[w] = await evalSnap(page); }
+  return out;
+}
+
+function runAgent(t, rawPath) {
+  const cwd = mkdtempSync(join(tmpdir(), 'e006-agent-'));
+  const mcp = join(cwd, 'mcp.json');
+  writeFileSync(mcp, JSON.stringify({ mcpServers: { playwright: { command: 'node', args: [MCP_CLI, '--cdp-endpoint', `http://127.0.0.1:${CDP}`] } } }));
+  const args = ['-p', prompt(t), '--output-format', 'stream-json', '--verbose', '--mcp-config', mcp, '--strict-mcp-config',
+    '--model', MODEL, '--tools', '', '--allowedTools', 'mcp__playwright', '--setting-sources', '', '--no-session-persistence'];
+  return new Promise((ok) => {
+    // Print mode otherwise starts turn 1 before MCP connects (agent sees zero tools).
+    const p = spawn('claude', args, { cwd, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, MCP_CONNECTION_NONBLOCKING: 'false' } });
+    let out = '', err = '';
+    p.stdout.on('data', (d) => (out += d)); p.stderr.on('data', (d) => (err += d));
+    const kill = setTimeout(() => p.kill('SIGTERM'), 15 * 60 * 1000);
+    p.on('close', (code) => { clearTimeout(kill); writeFileSync(rawPath, out); ok({ code, err, lines: out.split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean) }); });
+  });
+}
+
+function condense(lines) {
+  const init = lines.find((l) => l.type === 'system' && l.subtype === 'init') || {};
+  const final = lines.find((l) => l.type === 'result') || {};
+  const calls = [], byId = {}, texts = [];
+  for (const l of lines) {
+    for (const c of l.message?.content || []) {
+      if (l.type === 'assistant' && c.type === 'tool_use') { byId[c.id] = calls.length; calls.push({ tool: c.name.replace('mcp__playwright__', ''), input: c.input }); }
+      if (l.type === 'assistant' && c.type === 'text' && c.text) texts.push({ after_call: calls.length - 1, text: c.text });
+      if (l.type === 'user' && c.type === 'tool_result' && byId[c.tool_use_id] !== undefined) {
+        const body = Array.isArray(c.content) ? c.content.map((x) => x.text ?? `[${x.type}]`).join('\n') : String(c.content ?? '');
+        calls[byId[c.tool_use_id]].result = body.length > 2500 ? body.slice(0, 2500) + '…[truncated]' : body;
+      }
+    }
+  }
+  return { model: init.model, tools_available: init.tools, tool_calls: calls, assistant_text: texts, final_text: final.result, is_error: final.is_error, num_turns: final.num_turns, duration_ms: final.duration_ms, cost_usd: final.total_cost_usd };
+}
+
+const guard = await startGuard(app.port, PROXY);
+const tasks = ['Y1'];
+mkdirSync(join(HERE, 'runs'), { recursive: true });
+const rawDir = mkdtempSync(join(tmpdir(), 'e006-raw-'));
+for (const t of tasks) {
+  const proc = await launchBrowser();
+  try {
+    let b = await chromium.connectOverCDP(`http://127.0.0.1:${CDP}`);
+    const bp = await b.contexts()[0].newPage();
+    await bp.goto(URL_); await bp.waitForSelector('body.baro-boot-done', { timeout: 15000 }); await sleep(300);
+    const baseline = await snapAt(bp); const classesBefore = await classesOf(bp); const factsBefore = await pageFacts(bp);
+    await bp.close(); await b.close();
+
+    const agent = await runAgent(t, join(rawDir, `${LABEL}.jsonl`));
+
+    b = await chromium.connectOverCDP(`http://127.0.0.1:${CDP}`);
+    const pages = b.contexts().flatMap((c) => c.pages()).filter((p) => p.url().startsWith(URL_));
+    let grader = { error: 'agent left no tab on the page URL' }, current = null, classesAfter = null, factsAfter = null;
+    if (pages.length) {
+      const page = pages[pages.length - 1];
+      classesAfter = await classesOf(page);
+      current = await snapAt(page);
+      grader = (await evalGrade(page, baseline, current, condense(agent.lines).tool_calls))[t];
+      factsAfter = await pageFacts(page);
+    }
+    await b.close();
+    const changed = Object.fromEntries(Object.entries(classesAfter || {}).filter(([k, v]) => classesBefore[k] !== v).map(([k, v]) => [k, { before: classesBefore[k], after: v }]));
+    const rec = { run: LABEL, arm: ARM, task: t, prompt: prompt(t), agent_exit: agent.code, agent_stderr: agent.err.slice(0, 2000), ...condense(agent.lines), classes_changed: changed, grader, page_facts: { before: factsBefore, after: factsAfter }, refused_requests: guard.refused.slice(0, 50), baseline, current };
+    writeFileSync(join(HERE, 'runs', `${LABEL}.json`), JSON.stringify(rec, null, 2) + '\n');
+    console.log(LABEL, t, 'grader:', grader.pass, '| turns:', rec.num_turns, '| cost:', rec.cost_usd, '| raw:', join(rawDir, `${LABEL}.jsonl`));
+  } finally { proc.kill('SIGTERM'); await sleep(500); }
+}
+guard.close(); app.stop();

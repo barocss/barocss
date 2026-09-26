@@ -1,4 +1,5 @@
 import { functionalModifier } from "../../core/registry";
+import { functionalArgument } from "./utils";
 
 // not-[]: functionalModifier for arbitrary negation
 functionalModifier(
@@ -7,9 +8,9 @@ functionalModifier(
     const m = /^not-\[(.+)\]$/.exec(mod.type);
     if (m) {
 
-      if (m[1].startsWith('.')) {
+      if (!/^[a-zA-Z0-9_-]+(=.+)?$/.test(m[1])) {
         return {
-          selector: `&:not(${m[1]})`,
+          selector: `&:not(${functionalArgument(m[1])})`,
           flatten: false,
           wrappingType: 'rule',
           source: 'attribute'

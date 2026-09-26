@@ -1,0 +1,371 @@
+{
+  "run": "A1",
+  "arm": "A",
+  "task": "Y1",
+  "prompt": "Page URL: http://127.0.0.1:8765/\n\nThe page is styled with BaroCSS, a runtime utility-class CSS engine with Tailwind-compatible class names. Make the change through BaroCSS in the live page (its class names and its theme configuration), not with inline styles or hand-written CSS. Then verify the result and report whether the task is done.\n\nTask: Add a `brand` color (#5B21B6) to the page's BaroCSS theme so that `bg-brand` works, and use it for the Save button's background.",
+  "agent_exit": 0,
+  "agent_stderr": "",
+  "model": "claude-opus-4-8[1m]",
+  "tools_available": [
+    "mcp__playwright__browser_click",
+    "mcp__playwright__browser_close",
+    "mcp__playwright__browser_console_messages",
+    "mcp__playwright__browser_drag",
+    "mcp__playwright__browser_drop",
+    "mcp__playwright__browser_evaluate",
+    "mcp__playwright__browser_file_upload",
+    "mcp__playwright__browser_fill_form",
+    "mcp__playwright__browser_handle_dialog",
+    "mcp__playwright__browser_hover",
+    "mcp__playwright__browser_navigate",
+    "mcp__playwright__browser_navigate_back",
+    "mcp__playwright__browser_network_request",
+    "mcp__playwright__browser_network_requests",
+    "mcp__playwright__browser_press_key",
+    "mcp__playwright__browser_resize",
+    "mcp__playwright__browser_run_code_unsafe",
+    "mcp__playwright__browser_select_option",
+    "mcp__playwright__browser_snapshot",
+    "mcp__playwright__browser_tabs",
+    "mcp__playwright__browser_take_screenshot",
+    "mcp__playwright__browser_type",
+    "mcp__playwright__browser_wait_for"
+  ],
+  "tool_calls": [
+    {
+      "tool": "browser_snapshot",
+      "input": {},
+      "result": "### Page\n- Page URL: about:blank\n### Snapshot\n```yaml\n\n```"
+    },
+    {
+      "tool": "browser_navigate",
+      "input": {
+        "url": "http://127.0.0.1:8765/"
+      },
+      "result": "### Ran Playwright code\n```js\nawait page.goto('http://127.0.0.1:8765/');\n```\n### Page\n- Page URL: http://127.0.0.1:8765/\n- Page Title: Acme — Plan & Billing\n### Snapshot\n- [Snapshot](.playwright-mcp/page-2026-09-25T02-08-08-632Z.yml)\n### Events\n- New console entries: .playwright-mcp/console-2026-09-25T02-08-08-567Z.log#L1-L4"
+    },
+    {
+      "tool": "browser_snapshot",
+      "input": {},
+      "result": "### Page\n- Page URL: http://127.0.0.1:8765/\n- Page Title: Acme — Plan & Billing\n### Snapshot\n```yaml\n- generic [active] [ref=e1]:\n  - banner [ref=e2]:\n    - generic [ref=e3]:\n      - generic [ref=e4]: Acme\n      - navigation [ref=e5]:\n        - link \"Dashboard\" [ref=e6] [cursor=pointer]:\n          - /url: \"#\"\n        - link \"Team\" [ref=e7] [cursor=pointer]:\n          - /url: \"#\"\n        - link \"Billing\" [ref=e8] [cursor=pointer]:\n          - /url: \"#\"\n  - main [ref=e9]:\n    - heading \"Plan & Billing\" [level=1] [ref=e10]\n    - paragraph [ref=e11]: Choose the plan that fits your team. You can change it at any time.\n    - generic [ref=e12]:\n      - generic [ref=e13]:\n        - heading \"Pro\" [level=2] [ref=e14]\n        - paragraph [ref=e15]: $24 / user / month\n      - paragraph [ref=e16]: Everything a growing team needs.\n      - list [ref=e18]:\n        - listitem [ref=e19]:\n          - generic [ref=e20]: ✓\n          - text: Unlimited projects\n        - listitem [ref=e21]:\n          - generic [ref=e22]: ✓\n          - text: Priority support\n        - listitem [ref=e23]:\n          - generic [ref=e24]: ✓\n          - text: SSO & audit logs\n        - listitem [ref=e25]:\n          - generic [ref=e26]: ✓\n          - text: 100 GB storage\n    - generic [ref=e27]:\n      - heading \"Billing email\" [level=2] [ref=e28]\n      - generic [ref=e29]: Invoices are sent to this address.\n      - textbox \"Invoices are sent to this address.\" [ref=e30]: billing@acme.test\n      - generic [ref=e31]:\n        - button \"Cancel\" [ref=e32] [cursor=pointer]\n        - button \"Save\" [ref=e33] [cursor=pointer]\n```"
+    },
+    {
+      "tool": "browser_evaluate",
+      "input": {
+        "function": "() => {\n  // find scripts and config\n  const scripts = [...document.querySelectorAll('script')].map(s => ({src: s.src, type: s.type, text: s.textContent.slice(0,2000)}));\n  return JSON.stringify(scripts, null, 2);\n}"
+      },
+      "result": "### Result\n\"[\\n  {\\n    \\\"src\\\": \\\"\\\",\\n    \\\"type\\\": \\\"module\\\",\\n    \\\"text\\\": \\\"\\\\n    import { BrowserRuntime } from '/packages/barocss-browser/dist/cdn/barocss.js';\\\\n    const runtime = new BrowserRuntime();\\\\n    runtime.observe(document.body, { scan: true, onReady: () => { document.documentElement.dataset.baroReady = '1'; } });\\\\n  \\\"\\n  }\\n]\"\n### Ran Playwright code\n```js\nawait page.evaluate('() => {\\n  // find scripts and config\\n  const scripts = [...document.querySelectorAll(\\'script\\')].map(s => ({src: s.src, type: s.type, text: s.textContent.slice(0,2000)}));\\n  return JSON.stringify(scripts, null, 2);\\n}');\n```"
+    },
+    {
+      "tool": "browser_evaluate",
+      "input": {
+        "function": "() => {\n  const btns = [...document.querySelectorAll('button')].map(b => ({text: b.textContent.trim(), cls: b.className}));\n  return JSON.stringify(btns, null, 2);\n}"
+      },
+      "result": "### Result\n\"[\\n  {\\n    \\\"text\\\": \\\"Cancel\\\",\\n    \\\"cls\\\": \\\"px-4 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700\\\"\\n  },\\n  {\\n    \\\"text\\\": \\\"Save\\\",\\n    \\\"cls\\\": \\\"px-4 py-2 rounded-md bg-blue-600 text-sm font-medium text-white\\\"\\n  }\\n]\"\n### Ran Playwright code\n```js\nawait page.evaluate('() => {\\n  const btns = [...document.querySelectorAll(\\'button\\')].map(b => ({text: b.textContent.trim(), cls: b.className}));\\n  return JSON.stringify(btns, null, 2);\\n}');\n```"
+    },
+    {
+      "tool": "browser_evaluate",
+      "input": {
+        "function": "async () => {\n  const mod = await import('/packages/barocss-browser/dist/cdn/barocss.js');\n  return JSON.stringify(Object.keys(mod));\n}"
+      },
+      "result": "### Result\n\"[\\\"BrowserRuntime\\\",\\\"ChangeDetector\\\",\\\"StylePartitionManager\\\",\\\"baroBoot\\\",\\\"baroStart\\\",\\\"getRuntime\\\",\\\"normalizeClassName\\\",\\\"normalizeClassNameList\\\"]\"\n### Ran Playwright code\n```js\nawait page.evaluate('async () => {\\n  const mod = await import(\\'/packages/barocss-browser/dist/cdn/barocss.js\\');\\n  return JSON.stringify(Object.keys(mod));\\n}');\n```"
+    },
+    {
+      "tool": "browser_evaluate",
+      "input": {
+        "function": "async () => {\n  const mod = await import('/packages/barocss-browser/dist/cdn/barocss.js');\n  const rt = mod.getRuntime ? mod.getRuntime() : null;\n  const proto = rt ? Object.getOwnPropertyNames(Object.getPrototypeOf(rt)) : null;\n  return JSON.stringify({hasRuntime: !!rt, proto});\n}"
+      },
+      "result": "### Result\n\"{\\\"hasRuntime\\\":true,\\\"proto\\\":[\\\"constructor\\\",\\\"debugLog\\\",\\\"init\\\",\\\"injectPreflightCSS\\\",\\\"ensureCssVars\\\",\\\"getInsertionPoint\\\",\\\"addClass\\\",\\\"processClasses\\\",\\\"processClassesIncremental\\\",\\\"applyParseResults\\\",\\\"observe\\\",\\\"normalizeClasses\\\",\\\"has\\\",\\\"getCss\\\",\\\"getAllCss\\\",\\\"getClasses\\\",\\\"getCacheStats\\\",\\\"clearCaches\\\",\\\"reset\\\",\\\"updateConfig\\\",\\\"removeClass\\\",\\\"destroy\\\",\\\"getStats\\\"]}\"\n### Ran Playwright code\n```js\nawait page.evaluate('async () => {\\n  const mod = await import(\\'/packages/barocss-browser/dist/cdn/barocss.js\\');\\n  const rt = mod.getRuntime ? mod.getRuntime() : null;\\n  const proto = rt ? Object.getOwnPropertyNames(Object.getPrototypeOf(rt)) : null;\\n  return JSON.stringify({hasRuntime: !!rt, proto});\\n}');\n```\n### Page\n- Page URL: http://127.0.0.1:8765/\n- Page Title: Acme — Plan & Billing\n### Events\n- New console entries: .playwright-mcp/console-2026-09-25T02-08-08-567Z.log#L5-L6"
+    },
+    {
+      "tool": "browser_evaluate",
+      "input": {
+        "function": "async () => {\n  const mod = await import('/packages/barocss-browser/dist/cdn/barocss.js');\n  const rt = mod.getRuntime();\n  // inspect config\n  const cfg = rt.config || (rt.context && rt.context.config) || null;\n  const keys = rt ? Object.keys(rt) : [];\n  return JSON.stringify({keys, cfgType: typeof cfg, updateConfigStr: rt.updateConfig.toString().slice(0,500)});\n}"
+      },
+      "result": "### Result\n\"{\\\"keys\\\":[\\\"cache\\\",\\\"rootCache\\\",\\\"isDestroyed\\\",\\\"options\\\",\\\"context\\\",\\\"incrementalParser\\\",\\\"changeDetector\\\",\\\"stylePartitionManager\\\"],\\\"cfgType\\\":\\\"function\\\",\\\"updateConfigStr\\\":\\\"updateConfig(newConfig) {\\\\n    if (this.isDestroyed) return;\\\\n    const existingClasses = Array.from(this.cache.keys());\\\\n    this.options.config = newConfig;\\\\n    this.context = createContext(newConfig);\\\\n    this.incrementalParser = new IncrementalParser(this.context);\\\\n    this.changeDetector.setParser(this.incrementalParser);\\\\n    this.reset();\\\\n    if (existingClasses.length > 0) {\\\\n      this.addClass(existingClasses);\\\\n    }\\\\n  }\\\"}\"\n### Ran Playwright code\n```js\nawait page.evaluate('async () => {\\n  const mod = await import(\\'/packages/barocss-browser/dist/cdn/barocss.js\\');\\n  const rt = mod.getRuntime();\\n  // inspect config\\n  const cfg = rt.config || (rt.context && rt.context.config) || null;\\n  const keys = rt ? Object.keys(rt) : [];\\n  return JSON.stringify({keys, cfgType: typeof cfg, updateConfigStr: rt.updateConfig.toString().slice(0,500)});\\n}');\n```"
+    },
+    {
+      "tool": "browser_evaluate",
+      "input": {
+        "function": "async () => {\n  const mod = await import('/packages/barocss-browser/dist/cdn/barocss.js');\n  const rt = mod.getRuntime();\n  return JSON.stringify(rt.options.config || {}, null, 2).slice(0, 2000);\n}"
+      },
+      "result": "### Result\n\"{}\"\n### Ran Playwright code\n```js\nawait page.evaluate('async () => {\\n  const mod = await import(\\'/packages/barocss-browser/dist/cdn/barocss.js\\');\\n  const rt = mod.getRuntime();\\n  return JSON.stringify(rt.options.config || {}, null, 2).slice(0, 2000);\\n}');\n```"
+    },
+    {
+      "tool": "browser_evaluate",
+      "input": {
+        "function": "async () => {\n  const mod = await import('/packages/barocss-browser/dist/cdn/barocss.js');\n  const rt = mod.getRuntime();\n  const current = rt.options.config || {};\n  const newConfig = {\n    ...current,\n    theme: {\n      ...(current.theme || {}),\n      extend: {\n        ...((current.theme && current.theme.extend) || {}),\n        colors: {\n          ...((current.theme && current.theme.extend && current.theme.extend.colors) || {}),\n          brand: '#5B21B6'\n        }\n      }\n    }\n  };\n  rt.updateConfig(newConfig);\n  // now register bg-brand usage\n  const css = rt.getCss('bg-brand');\n  return JSON.stringify({css});\n}"
+      },
+      "result": "### Result\n\"{}\"\n### Ran Playwright code\n```js\nawait page.evaluate('async () => {\\n  const mod = await import(\\'/packages/barocss-browser/dist/cdn/barocss.js\\');\\n  const rt = mod.getRuntime();\\n  const current = rt.options.config || {};\\n  const newConfig = {\\n    ...current,\\n    theme: {\\n      ...(current.theme || {}),\\n      extend: {\\n        ...((current.theme && current.theme.extend) || {}),\\n        colors: {\\n          ...((current.theme && current.theme.extend && current.theme.extend.colors) || {}),\\n          brand: \\'#5B21B6\\'\\n        }\\n      }\\n    }\\n  };\\n  rt.updateConfig(newConfig);\\n  // now register bg-brand usage\\n  const css = rt.getCss(\\'bg-brand\\');\\n  return JSON.stringify({css});\\n}');\n```\n### Page\n- Page URL: http://127.0.0.1:8765/\n- Page Title: Acme — Plan & Billing\n### Events\n- New console entries: .playwright-mcp/console-2026-09-25T02-08-08-567Z.log#L7"
+    },
+    {
+      "tool": "browser_evaluate",
+      "input": {
+        "function": "async () => {\n  const mod = await import('/packages/barocss-browser/dist/cdn/barocss.js');\n  const rt = mod.getRuntime();\n  rt.addClass('bg-brand');\n  const css = rt.getCss('bg-brand');\n  const all = rt.getAllCss ? rt.getAllCss() : '';\n  return JSON.stringify({css, hasBrandInAll: all.includes('5B21B6') || all.includes('5b21b6') || all.includes('brand')});\n}"
+      },
+      "result": "### Result\n\"{\\\"css\\\":\\\".bg-brand {\\\\n  background-color: #5B21B6;\\\\n}\\\\n\\\",\\\"hasBrandInAll\\\":true}\"\n### Ran Playwright code\n```js\nawait page.evaluate('async () => {\\n  const mod = await import(\\'/packages/barocss-browser/dist/cdn/barocss.js\\');\\n  const rt = mod.getRuntime();\\n  rt.addClass(\\'bg-brand\\');\\n  const css = rt.getCss(\\'bg-brand\\');\\n  const all = rt.getAllCss ? rt.getAllCss() : \\'\\';\\n  return JSON.stringify({css, hasBrandInAll: all.includes(\\'5B21B6\\') || all.includes(\\'5b21b6\\') || all.includes(\\'brand\\')});\\n}');\n```\n### Page\n- Page URL: http://127.0.0.1:8765/\n- Page Title: Acme — Plan & Billing\n### Events\n- New console entries: .playwright-mcp/console-2026-09-25T02-08-08-567Z.log#L8-L9"
+    },
+    {
+      "tool": "browser_evaluate",
+      "input": {
+        "function": "() => {\n  const save = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Save');\n  save.className = save.className.replace('bg-blue-600', 'bg-brand');\n  return save.className;\n}"
+      },
+      "result": "### Result\n\"px-4 py-2 rounded-md bg-brand text-sm font-medium text-white\"\n### Ran Playwright code\n```js\nawait page.evaluate('() => {\\n  const save = [...document.querySelectorAll(\\'button\\')].find(b => b.textContent.trim() === \\'Save\\');\\n  save.className = save.className.replace(\\'bg-blue-600\\', \\'bg-brand\\');\\n  return save.className;\\n}');\n```\n### Page\n- Page URL: http://127.0.0.1:8765/\n- Page Title: Acme — Plan & Billing\n- Console: 0 errors, 1 warnings\n### Events\n- New console entries: .playwright-mcp/console-2026-09-25T02-08-08-567Z.log#L10-L11"
+    },
+    {
+      "tool": "browser_evaluate",
+      "input": {
+        "function": "() => {\n  const save = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Save');\n  const bg = getComputedStyle(save).backgroundColor;\n  return JSON.stringify({className: save.className, backgroundColor: bg});\n}"
+      },
+      "result": "### Result\n\"{\\\"className\\\":\\\"px-4 py-2 rounded-md bg-brand text-sm font-medium text-white\\\",\\\"backgroundColor\\\":\\\"rgb(91, 33, 182)\\\"}\"\n### Ran Playwright code\n```js\nawait page.evaluate('() => {\\n  const save = [...document.querySelectorAll(\\'button\\')].find(b => b.textContent.trim() === \\'Save\\');\\n  const bg = getComputedStyle(save).backgroundColor;\\n  return JSON.stringify({className: save.className, backgroundColor: bg});\\n}');\n```"
+    }
+  ],
+  "assistant_text": [
+    {
+      "after_call": 10,
+      "text": "`bg-brand` now generates the correct CSS. Now update the Save button to use `bg-brand` instead of `bg-blue-600`."
+    },
+    {
+      "after_call": 12,
+      "text": "Done. The Save button's computed background is now `rgb(91, 33, 182)` — exactly `#5B21B6`.\n\nWhat I changed, all through BaroCSS (no inline styles or hand-written CSS):\n\n1. **Theme config** — extended the live `BrowserRuntime` config via its `updateConfig` API, adding `theme.extend.colors.brand = '#5B21B6'`. This makes `bg-brand` a valid utility that BaroCSS generates as `.bg-brand { background-color: #5B21B6; }`.\n2. **Save button** — swapped its class from `bg-blue-600` to `bg-brand`.\n\nVerification: `bg-brand` resolves in the engine, and the Save button's computed `background-color` is `rgb(91, 33, 182)`. The Cancel button is unchanged. Task complete.\n\nNote: these changes were applied to the running page (runtime config + DOM class). Since the page's HTML has no persisted theme config file, a reload would reset it — if you want this permanent, the `brand` color needs to be baked into the page's BaroCSS setup (e.g. passing the config to `new BrowserRuntime({ config: { theme: { extend: { colors: { brand: '#5B21B6' } } } } })`) and the button markup updated in source."
+    }
+  ],
+  "final_text": "Done. The Save button's computed background is now `rgb(91, 33, 182)` — exactly `#5B21B6`.\n\nWhat I changed, all through BaroCSS (no inline styles or hand-written CSS):\n\n1. **Theme config** — extended the live `BrowserRuntime` config via its `updateConfig` API, adding `theme.extend.colors.brand = '#5B21B6'`. This makes `bg-brand` a valid utility that BaroCSS generates as `.bg-brand { background-color: #5B21B6; }`.\n2. **Save button** — swapped its class from `bg-blue-600` to `bg-brand`.\n\nVerification: `bg-brand` resolves in the engine, and the Save button's computed `background-color` is `rgb(91, 33, 182)`. The Cancel button is unchanged. Task complete.\n\nNote: these changes were applied to the running page (runtime config + DOM class). Since the page's HTML has no persisted theme config file, a reload would reset it — if you want this permanent, the `brand` color needs to be baked into the page's BaroCSS setup (e.g. passing the config to `new BrowserRuntime({ config: { theme: { extend: { colors: { brand: '#5B21B6' } } } } })`) and the button markup updated in source.",
+  "is_error": false,
+  "num_turns": 14,
+  "duration_ms": 55052,
+  "cost_usd": 0.29221500000000006,
+  "classes_changed": {
+    "save-button#10": {
+      "before": "px-4 py-2 rounded-md bg-blue-600 text-sm font-medium text-white",
+      "after": "px-4 py-2 rounded-md bg-brand text-sm font-medium text-white"
+    }
+  },
+  "grader": {
+    "pass": true,
+    "classCheck": true,
+    "styleCheck": true,
+    "regressions": [],
+    "detail": {
+      "bg": [
+        "oklch(0.546 0.245 262.881)",
+        "rgb(91, 33, 182)"
+      ],
+      "classes": [
+        "px-4",
+        "py-2",
+        "rounded-md",
+        "bg-brand",
+        "text-sm",
+        "font-medium",
+        "text-white"
+      ]
+    },
+    "route": {
+      "styleAttrChanged": [],
+      "directWrites": [],
+      "configCalls": [
+        {
+          "call": 9,
+          "tool": "browser_evaluate"
+        }
+      ]
+    }
+  },
+  "baseline": {
+    "1024": {
+      "width": 1024,
+      "styleAttrs": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "classes": {
+        "save": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-blue-600",
+          "text-sm",
+          "font-medium",
+          "text-white"
+        ],
+        "card": [
+          "mt-8",
+          "bg-white",
+          "border",
+          "border-gray-200",
+          "rounded-md",
+          "p-4",
+          "shadow-sm"
+        ]
+      },
+      "props": {
+        "save": {
+          "backgroundColor": "oklch(0.546 0.245 262.881)",
+          "paddingTop": "8px",
+          "paddingRight": "16px",
+          "paddingBottom": "8px",
+          "paddingLeft": "16px",
+          "fontSize": "14px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 255)",
+          "borderTopLeftRadius": "6px",
+          "borderTopRightRadius": "6px",
+          "borderBottomRightRadius": "6px",
+          "borderBottomLeftRadius": "6px"
+        },
+        "card": {
+          "borderTopLeftRadius": "6px",
+          "borderTopRightRadius": "6px",
+          "borderBottomRightRadius": "6px",
+          "borderBottomLeftRadius": "6px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "borderTopWidth": "1px",
+          "borderRightWidth": "1px",
+          "borderBottomWidth": "1px",
+          "borderLeftWidth": "1px",
+          "borderTopColor": "oklch(0.928 0.006 264.531)",
+          "paddingTop": "16px",
+          "paddingRight": "16px",
+          "paddingBottom": "16px",
+          "paddingLeft": "16px",
+          "boxShadow": "rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+        },
+        "intro": {
+          "color": "oklch(0.446 0.03 256.802)",
+          "fontSize": "16px",
+          "maxWidth": "576px"
+        },
+        "media": {
+          "height": 96,
+          "width": 814,
+          "backgroundColor": "oklch(0.967 0.003 264.542)"
+        },
+        "cancel": {
+          "color": "oklch(0.373 0.034 259.733)",
+          "borderTopColor": "oklch(0.872 0.01 258.338)",
+          "borderTopLeftRadius": "6px",
+          "borderTopRightRadius": "6px",
+          "borderBottomRightRadius": "6px",
+          "borderBottomLeftRadius": "6px"
+        },
+        "headline": {
+          "fontSize": "30px",
+          "fontWeight": "700"
+        },
+        "body": {
+          "backgroundColor": "oklch(0.985 0.002 247.839)",
+          "color": "oklch(0.21 0.034 264.665)",
+          "fontFamily": "Times"
+        }
+      }
+    }
+  },
+  "current": {
+    "1024": {
+      "width": 1024,
+      "styleAttrs": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "classes": {
+        "save": [
+          "px-4",
+          "py-2",
+          "rounded-md",
+          "bg-brand",
+          "text-sm",
+          "font-medium",
+          "text-white"
+        ],
+        "card": [
+          "mt-8",
+          "bg-white",
+          "border",
+          "border-gray-200",
+          "rounded-md",
+          "p-4",
+          "shadow-sm"
+        ]
+      },
+      "props": {
+        "save": {
+          "backgroundColor": "rgb(91, 33, 182)",
+          "paddingTop": "8px",
+          "paddingRight": "16px",
+          "paddingBottom": "8px",
+          "paddingLeft": "16px",
+          "fontSize": "14px",
+          "fontWeight": "500",
+          "color": "rgb(255, 255, 255)",
+          "borderTopLeftRadius": "6px",
+          "borderTopRightRadius": "6px",
+          "borderBottomRightRadius": "6px",
+          "borderBottomLeftRadius": "6px"
+        },
+        "card": {
+          "borderTopLeftRadius": "6px",
+          "borderTopRightRadius": "6px",
+          "borderBottomRightRadius": "6px",
+          "borderBottomLeftRadius": "6px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "borderTopWidth": "1px",
+          "borderRightWidth": "1px",
+          "borderBottomWidth": "1px",
+          "borderLeftWidth": "1px",
+          "borderTopColor": "oklch(0.928 0.006 264.531)",
+          "paddingTop": "16px",
+          "paddingRight": "16px",
+          "paddingBottom": "16px",
+          "paddingLeft": "16px",
+          "boxShadow": "rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+        },
+        "intro": {
+          "color": "oklch(0.446 0.03 256.802)",
+          "fontSize": "16px",
+          "maxWidth": "576px"
+        },
+        "media": {
+          "height": 96,
+          "width": 814,
+          "backgroundColor": "oklch(0.967 0.003 264.542)"
+        },
+        "cancel": {
+          "color": "oklch(0.373 0.034 259.733)",
+          "borderTopColor": "oklch(0.872 0.01 258.338)",
+          "borderTopLeftRadius": "6px",
+          "borderTopRightRadius": "6px",
+          "borderBottomRightRadius": "6px",
+          "borderBottomLeftRadius": "6px"
+        },
+        "headline": {
+          "fontSize": "30px",
+          "fontWeight": "700"
+        },
+        "body": {
+          "backgroundColor": "oklch(0.985 0.002 247.839)",
+          "color": "oklch(0.21 0.034 264.665)",
+          "fontFamily": "Times"
+        }
+      }
+    }
+  }
+}

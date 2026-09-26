@@ -5,12 +5,12 @@ description: Start the BaroCSS browser runtime with a package manager or a CDN
 
 # Quick Start
 
-These examples use the public browser API. The npm and CDN examples pin the published `0.0.3` release. The `0.4.0` candidate is under review and is not yet a published installation target.
+These examples use the public browser API. The npm and CDN examples pin the published `0.5.0` release.
 
 ## Install with a package manager
 
 ```bash
-pnpm add @barocss/browser@0.0.3
+pnpm add @barocss/browser@0.5.0
 ```
 
 `@barocss/browser` installs `@barocss/kit` as a dependency. Install `@barocss/kit` directly when you use its core API. Install `@barocss/server` separately for server-side CSS generation.
@@ -24,9 +24,13 @@ runtime.observe(document.body, { scan: true })
 
 Call `observe` after `document.body` exists. It scans existing classes and watches later DOM changes. Call `runtime.destroy()` when the runtime is no longer needed.
 
+If the page already links a Tailwind or shadcn build, use the [Next to a Tailwind build](./integration/tailwind-companion) recipe instead of the defaults.
+
+**Browser support:** Chrome/Edge 85+, Safari/iOS 16.4+, Firefox 128+ (the runtime needs CSS `@property`).
+
 ## Use the CDN without a build step
 
-The `dist/cdn/barocss.js` and `dist/cdn/barocss.umd.cjs` files are part of the browser package. The paths below refer to the published `0.0.3` files. The `0.4.0` candidate is not published; use these URLs until its CDN files are verified after publication.
+The `dist/cdn/barocss.js` and `dist/cdn/barocss.umd.cjs` files are part of the published `0.5.0` browser package.
 
 ### ESM
 
@@ -34,7 +38,7 @@ Place this script near the end of the page body:
 
 ```html
 <script type="module">
-  import { baroStart } from 'https://unpkg.com/@barocss/browser@0.0.3/dist/cdn/barocss.js'
+  import { baroStart } from 'https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.js'
   baroStart()
 </script>
 ```
@@ -44,7 +48,7 @@ Place this script near the end of the page body:
 Place these scripts near the end of the page body:
 
 ```html
-<script src="https://unpkg.com/@barocss/browser@0.0.3/dist/cdn/barocss.umd.cjs"></script>
+<script src="https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.umd.cjs"></script>
 <script>
   BaroCSS.baroStart()
 </script>

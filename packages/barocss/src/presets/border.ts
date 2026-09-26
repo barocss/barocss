@@ -1,6 +1,6 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRule, decl } from "../core/ast";
-import { parseNumber, parseLength, parseColor } from "../core/utils";
+import { atRoot, atRule, decl, property, rule } from "../core/ast";
+import { parseNumber, parseLength, parseColor, themeColorDecls } from "../core/utils";
 
 // --- Border Radius ---
 //  border-radius documentation
@@ -8,12 +8,14 @@ import { parseNumber, parseLength, parseColor } from "../core/utils";
 // Static border radius utilities
 staticUtility("rounded-none", [["border-radius", "0px"]], { category: 'borders' });
 staticUtility("rounded-sm", [["border-radius", "var(--radius-sm)"]], { category: 'borders' });
-staticUtility("rounded", [["border-radius", "var(--radius)"]], { category: 'borders' });
+staticUtility("rounded", [["border-radius", "0.25rem"]], { category: 'borders' });
 staticUtility("rounded-md", [["border-radius", "var(--radius-md)"]], { category: 'borders' });
 staticUtility("rounded-lg", [["border-radius", "var(--radius-lg)"]], { category: 'borders' });
 staticUtility("rounded-xl", [["border-radius", "var(--radius-xl)"]], { category: 'borders' });
 staticUtility("rounded-2xl", [["border-radius", "var(--radius-2xl)"]], { category: 'borders' });
 staticUtility("rounded-3xl", [["border-radius", "var(--radius-3xl)"]], { category: 'borders' });
+staticUtility("rounded-4xl", [["border-radius", "var(--radius-4xl)"]], { category: 'borders' });
+staticUtility("rounded-xs", [["border-radius", "var(--radius-xs)"]], { category: 'borders' });
 staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'borders' });
 
 
@@ -32,12 +34,14 @@ staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'border
   // Static utilities
   staticUtility(`${name}-none`, propList.map(prop => [prop, "0px"]), { category: 'borders' });
   staticUtility(`${name}-sm`, propList.map(prop => [prop, "var(--radius-sm)"]), { category: 'borders' });
-  staticUtility(`${name}`, propList.map(prop => [prop, "var(--radius)"]), { category: 'borders' });
+  staticUtility(`${name}`, propList.map(prop => [prop, "0.25rem"]), { category: 'borders' });
   staticUtility(`${name}-md`, propList.map(prop => [prop, "var(--radius-md)"]), { category: 'borders' });
   staticUtility(`${name}-lg`, propList.map(prop => [prop, "var(--radius-lg)"]), { category: 'borders' });
   staticUtility(`${name}-xl`, propList.map(prop => [prop, "var(--radius-xl)"]), { category: 'borders' });
   staticUtility(`${name}-2xl`, propList.map(prop => [prop, "var(--radius-2xl)"]), { category: 'borders' });
   staticUtility(`${name}-3xl`, propList.map(prop => [prop, "var(--radius-3xl)"]), { category: 'borders' });
+  staticUtility(`${name}-4xl`, propList.map(prop => [prop, "var(--radius-4xl)"]), { category: 'borders' });
+  staticUtility(`${name}-xs`, propList.map(prop => [prop, "var(--radius-xs)"]), { category: 'borders' });
   staticUtility(`${name}-full`, propList.map(prop => [prop, "9999px"]), { category: 'borders' });
 
   // Functional utility
@@ -77,12 +81,20 @@ functionalUtility({
 // --- Border Width ---
 //  border-width documentation
 
+// Like Tailwind v4, every border-width utility also sets border-style through a registered var whose initial value is
+// solid, so a bare border/border-t renders without relying on a preflight reset, and border-dashed/dotted/none (which
+// set the var) still win whatever the rule order.
+const borderStyleProperty = () => atRoot([property("--baro-border-style", "solid")]);
+const withBorderStyle = (props: string[], width: string) => [
+  borderStyleProperty(),
+  ...props.map((prop) => decl(prop.replace("width", "style"), "var(--baro-border-style)")),
+  ...props.map((prop) => decl(prop, width)),
+];
+
 // Static border width utilities
-staticUtility("border-0", [["border-width", "0px"]], { category: 'borders' });
-staticUtility("border-2", [["border-width", "2px"]], { category: 'borders' });
-staticUtility("border-4", [["border-width", "4px"]], { category: 'borders' });
-staticUtility("border-8", [["border-width", "8px"]], { category: 'borders' });
-staticUtility("border", [["border-width", "1px"]], { category: 'borders' });
+[["border-0", "0px"], ["border-2", "2px"], ["border-4", "4px"], ["border-8", "8px"], ["border", "1px"]].forEach(([name, width]) => {
+  staticUtility(name, [borderStyleProperty, ["border-style", "var(--baro-border-style)"], ["border-width", width]], { category: 'borders' });
+});
 
 
 
@@ -97,11 +109,16 @@ staticUtility("border", [["border-width", "1px"]], { category: 'borders' });
 ].forEach(([name, props]) => {
   const propList = props as string[];
   // Static utilities
-  staticUtility(`${name}-0`, propList.map(prop => [prop, "0px"]));
-  staticUtility(`${name}-2`, propList.map(prop => [prop, "2px"]));
-  staticUtility(`${name}-4`, propList.map(prop => [prop, "4px"]));
-  staticUtility(`${name}-8`, propList.map(prop => [prop, "8px"]));
-  staticUtility(`${name}`, propList.map(prop => [prop, "1px"]));
+  const styled = (width: string) => [
+    borderStyleProperty,
+    ...propList.map((prop) => [prop.replace("width", "style"), "var(--baro-border-style)"] as [string, string]),
+    ...propList.map((prop) => [prop, width] as [string, string]),
+  ];
+  staticUtility(`${name}-0`, styled("0px"));
+  staticUtility(`${name}-2`, styled("2px"));
+  staticUtility(`${name}-4`, styled("4px"));
+  staticUtility(`${name}-8`, styled("8px"));
+  staticUtility(`${name}`, styled("1px"));
 
   // Functional utility
   functionalUtility({
@@ -115,19 +132,20 @@ staticUtility("border", [["border-width", "1px"]], { category: 'borders' });
       }
       return null;
     },
-    handle: (value, ctx, token) => {
+    handle: (value, ctx, token, extra) => {
+      if (extra?.realThemeValue) return propList.flatMap(prop => themeColorDecls(prop.replace("width", "color"), value, extra));
       if (parseColor(value)) {
         return propList.map(prop => decl(prop.replace("width", "color"), value));
       }
       if (token.arbitrary) {
-        return propList.map(prop => decl(prop, value));
+        return withBorderStyle(propList, value);
       }
       return null;
     },
     handleCustomProperty: (value) => {
 
       if (value.startsWith("length:")) {
-        return propList.map(prop => decl(prop, `var(${value.replace("length:", "")})`));
+        return withBorderStyle(propList, `var(${value.replace("length:", "")})`);
       }
 
       return propList.map(prop => decl(prop.replace("width", "color"), `var(${value})`));
@@ -149,12 +167,37 @@ staticUtility("border-transparent", [["border-color", "transparent"]], { categor
 //  border-style documentation
 
 // Static border style utilities
-staticUtility("border-solid", [["border-style", "solid"]], { category: 'borders' });
-staticUtility("border-dashed", [["border-style", "dashed"]], { category: 'borders' });
-staticUtility("border-dotted", [["border-style", "dotted"]], { category: 'borders' });
-staticUtility("border-double", [["border-style", "double"]], { category: 'borders' });
-staticUtility("border-hidden", [["border-style", "hidden"]], { category: 'borders' });
-staticUtility("border-none", [["border-style", "none"]], { category: 'borders' });
+staticUtility("border-solid", [["--baro-border-style", "solid"], ["border-style", "solid"]], { category: 'borders' });
+staticUtility("border-dashed", [["--baro-border-style", "dashed"], ["border-style", "dashed"]], { category: 'borders' });
+staticUtility("border-dotted", [["--baro-border-style", "dotted"], ["border-style", "dotted"]], { category: 'borders' });
+staticUtility("border-double", [["--baro-border-style", "double"], ["border-style", "double"]], { category: 'borders' });
+staticUtility("border-hidden", [["--baro-border-style", "hidden"], ["border-style", "hidden"]], { category: 'borders' });
+staticUtility("border-none", [["--baro-border-style", "none"], ["border-style", "none"]], { category: 'borders' });
+
+// --- Divide Width --- (Tailwind 4: `:where(& > :not(:last-child))`, style from the registered border-style var)
+const divideSides = { x: ["border-inline-start", "border-inline-end", "border-inline-style"], y: ["border-top", "border-bottom", "border-bottom-style", "border-top-style"] };
+Object.entries(divideSides).forEach(([axis, [start, end, ...styles]]) => {
+  const rev = `--baro-divide-${axis}-reverse`;
+  const divide = (width: string) => [
+    borderStyleProperty(),
+    rule(":where(& > :not(:last-child))", [
+      decl(rev, "0"),
+      ...styles.map((s) => decl(s, "var(--baro-border-style)")),
+      decl(`${start}-width`, `calc(${width} * var(${rev}))`),
+      decl(`${end}-width`, `calc(${width} * calc(1 - var(${rev})))`),
+    ]),
+  ];
+  staticUtility(`divide-${axis}`, divide("1px"), { category: 'borders' });
+  staticUtility(`divide-${axis}-reverse`, [rule(":where(& > :not(:last-child))", [decl(rev, "1")])], { category: 'borders' });
+  functionalUtility({
+    name: `divide-${axis}`,
+    supportsArbitrary: true,
+    handleBareValue: ({ value }) => (/^\d+$/.test(value) ? `${value}px` : null),
+    handle: (value) => divide(value),
+    description: `divide-${axis} width utility`,
+    category: "borders",
+  });
+});
 
 
 // Functional border width utility
@@ -166,27 +209,17 @@ functionalUtility({
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
 
-    if (extra?.realThemeValue) {
-      if (extra.opacity) {
-        return [
-          atRule("supports", `(color:color-mix(in lab, red, red))`, [
-            decl("border-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-          ]),
-          decl("border-color", `color-mix(in lab, ${value} ${extra.opacity}%, transparent)`),
-        ];
-      }
-      return [decl("border-color", value)];
-    }
+    if (extra?.realThemeValue) return themeColorDecls("border-color", value, extra);
 
     if (token.arbitrary) {
       if (parseLength(value)) {
-        return [decl("border-width", value)];
+        return withBorderStyle(["border-width"], value);
       }
       return [decl("border-color", value)];
     }
 
     if (parseNumber(value)) {
-      return [decl("border-width", `${value}px`)];
+      return withBorderStyle(["border-width"], `${value}px`);
     }
     if (parseColor(value)) {
       return [decl("border-color", value)];
@@ -195,7 +228,7 @@ functionalUtility({
   },
   handleCustomProperty: (value) => {
     if (value.startsWith("length:")) {
-      return [decl("border-width", `var(${value.replace("length:", "")})`)];
+      return withBorderStyle(["border-width"], `var(${value.replace("length:", "")})`);
     }
     return [decl("border-color", `var(${value})`)];
   },
@@ -206,12 +239,19 @@ functionalUtility({
 // --- Outline Width ---
 //  outline-width documentation
 
+// Like border (and Tailwind v4), outline width utilities set outline-style through a registered var whose initial value
+// is solid, so outline-2/focus-visible:outline-1 render; outline-dashed/none/hidden set the var and win in either order.
+const outlineStyleProperty = () => atRoot([property("--baro-outline-style", "solid")]);
+const withOutlineStyle = (width: string) => [
+  outlineStyleProperty(),
+  decl("outline-style", "var(--baro-outline-style)"),
+  decl("outline-width", width),
+];
+
 // Static outline width utilities
-staticUtility("outline-0", [["outline-width", "0px"]], { category: 'borders' });
-staticUtility("outline-1", [["outline-width", "1px"]], { category: 'borders' });
-staticUtility("outline-2", [["outline-width", "2px"]], { category: 'borders' });
-staticUtility("outline-4", [["outline-width", "4px"]], { category: 'borders' });
-staticUtility("outline-8", [["outline-width", "8px"]], { category: 'borders' });
+[["outline-0", "0px"], ["outline-1", "1px"], ["outline-2", "2px"], ["outline-4", "4px"], ["outline-8", "8px"]].forEach(([name, width]) => {
+  staticUtility(name, [outlineStyleProperty, ["outline-style", "var(--baro-outline-style)"], ["outline-width", width]], { category: 'borders' });
+});
 
 // --- Outline Color ---
 //  outline-color documentation
@@ -226,11 +266,18 @@ staticUtility("outline-transparent", [["outline-color", "transparent"]], { categ
 //  outline-style documentation
 
 // Static outline style utilities
-staticUtility("outline-none", [["outline", "2px solid transparent"], ["outline-offset", "2px"]], { category: 'borders' });
-staticUtility("outline", [["outline-style", "solid"]], { category: 'borders' });
-staticUtility("outline-dashed", [["outline-style", "dashed"]], { category: 'borders' });
-staticUtility("outline-dotted", [["outline-style", "dotted"]], { category: 'borders' });
-staticUtility("outline-double", [["outline-style", "double"]], { category: 'borders' });
+// Tailwind v4: outline-none removes the outline; outline-hidden (v3's outline-none) hides it but keeps a transparent
+// outline in forced-colors mode for accessibility.
+staticUtility("outline-none", [["--baro-outline-style", "none"], ["outline-style", "none"]], { category: 'borders' });
+staticUtility("outline-hidden", [
+  ["--baro-outline-style", "none"],
+  ["outline-style", "none"],
+  atRule("media", "(forced-colors: active)", [decl("outline", "2px solid transparent"), decl("outline-offset", "2px")]),
+], { category: 'borders' });
+staticUtility("outline", [outlineStyleProperty, ["outline-style", "var(--baro-outline-style)"], ["outline-width", "1px"]], { category: 'borders' });
+["solid", "dashed", "dotted", "double"].forEach((style) => {
+  staticUtility(`outline-${style}`, [["--baro-outline-style", style], ["outline-style", style]], { category: 'borders' });
+});
 
 // --- Outline Offset ---
 //  outline-offset documentation
@@ -265,21 +312,24 @@ functionalUtility({
   themeKeys: ["colors", "borderWidth"],
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  supportsOpacity: true,
+  handle: (value, ctx, token, extra) => {
+
+    if (extra?.realThemeValue) return themeColorDecls("outline-color", value, extra);
 
     if (parseColor(value)) {
       return [decl("outline-color", value)];
     }
 
     if (parseNumber(value)) {
-      return [decl("outline-width", `${value}px`)];
+      return withOutlineStyle(`${value}px`);
     }
 
     // Handle arbitrary values
     if (token.arbitrary) {
 
       if (parseLength(value)) {
-        return [decl("outline-width", value)];
+        return withOutlineStyle(value);
       }
 
       return [decl("outline-color", value)];
@@ -296,7 +346,7 @@ functionalUtility({
     }
 
     if (value.startsWith("length:")) {
-      return [decl("outline-width", `var(${value.replace("length:", "")})`)];
+      return withOutlineStyle(`var(${value.replace("length:", "")})`);
     }
 
     return [decl("outline-color", `var(${value})`)];
@@ -319,5 +369,30 @@ functionalUtility({
     return null;
   },
   description: "outline-width utility (number, arbitrary, custom property support)",
+  category: "borders",
+});
+
+// --- Divide Color --- (Tailwind 4: `:where(& > :not(:last-child)) { border-color: … }`, same selector as divide-x/y)
+const divideColor = (value: string) => [rule(":where(& > :not(:last-child))", [decl("border-color", value)])];
+staticUtility("divide-inherit", divideColor("inherit"), { category: 'borders' });
+staticUtility("divide-current", divideColor("currentColor"), { category: 'borders' });
+staticUtility("divide-transparent", divideColor("transparent"), { category: 'borders' });
+functionalUtility({
+  name: "divide",
+  themeKeys: ["colors"],
+  supportsArbitrary: true,
+  supportsCustomProperty: true,
+  supportsOpacity: true,
+  handle: (value, _ctx, _token, extra) => {
+    // Theme colours go through the shared helper (var(--color-*) and Tailwind's /alpha form, #228).
+    if (extra?.realThemeValue) {
+      return [rule(":where(& > :not(:last-child))", themeColorDecls("border-color", value, extra))];
+    }
+    // Arbitrary values only when they are colours: divide-[3px] is not a divide colour (Tailwind emits nothing).
+    if (parseColor(value)) return divideColor(value);
+    return null;
+  },
+  handleCustomProperty: (value) => divideColor(`var(${value})`),
+  description: "divide-color utility (theme, alpha, arbitrary, custom property)",
   category: "borders",
 });

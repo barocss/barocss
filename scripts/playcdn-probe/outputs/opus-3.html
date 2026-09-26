@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Dashboard</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #1a1d27;
+    --panel-2: #22263314;
+    --border: #2a2e3b;
+    --text: #e6e8ee;
+    --muted: #8b90a0;
+    --accent: #5b8cff;
+    --green: #35c98a;
+    --red: #ff6b6b;
+    --amber: #f7b955;
+    --purple: #a78bfa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  header p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .controls { display: flex; gap: 8px; }
+  .controls button {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .controls button:hover { color: var(--text); border-color: var(--accent); }
+  .controls button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .grid { display: grid; gap: 16px; }
+  .kpis { grid-template-columns: repeat(4, 1fr); }
+  .charts { grid-template-columns: 2fr 1fr; margin-top: 16px; }
+  .bottom { grid-template-columns: 1fr 1fr; margin-top: 16px; }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .kpi .label { color: var(--muted); font-size: 13px; }
+  .kpi .value { font-size: 28px; font-weight: 600; margin: 8px 0 6px; letter-spacing: -0.02em; }
+  .kpi .delta { font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+  .delta.up { color: var(--green); }
+  .delta.down { color: var(--red); }
+  .spark { margin-top: 10px; width: 100%; height: 36px; }
+
+  .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .card .sub { color: var(--muted); font-size: 12px; margin-bottom: 16px; }
+
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--muted); margin-top: 12px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  .donut-wrap { display: flex; align-items: center; gap: 20px; }
+  .donut-legend { flex: 1; }
+  .donut-legend .row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; padding: 6px 0; }
+  .donut-legend .row .name { display: flex; align-items: center; gap: 8px; color: var(--text); }
+  .donut-legend .row .pct { color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; color: var(--muted); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 12px; }
+  td { padding: 11px 10px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .prod { display: flex; align-items: center; gap: 10px; }
+  .thumb { width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0; }
+  .bar-cell { display: flex; align-items: center; gap: 8px; }
+  .bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+  .tag { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .tag.in { background: rgba(53,201,138,.15); color: var(--green); }
+  .tag.low { background: rgba(247,185,85,.15); color: var(--amber); }
+  .tag.out { background: rgba(255,107,107,.15); color: var(--red); }
+  .num { text-align: right; }
+
+  @media (max-width: 900px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .charts, .bottom { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Nimbus Store — Sales Overview</h1>
+      <p>Sept 1 – 26, 2026 · updated just now</p>
+    </div>
+    <div class="controls">
+      <button>7d</button>
+      <button class="active">30d</button>
+      <button>QTD</button>
+      <button>YTD</button>
+    </div>
+  </header>
+
+  <!-- KPIs -->
+  <div class="grid kpis">
+    <div class="card kpi">
+      <div class="label">Revenue</div>
+      <div class="value">$284,910</div>
+      <div class="delta up">▲ 12.4% vs prev</div>
+      <svg class="spark" viewBox="0 0 200 40" preserveAspectRatio="none" data-color="#35c98a" data-points="18,20,16,24,22,28,26,25,30,34,32,38"></svg>
+    </div>
+    <div class="card kpi">
+      <div class="label">Orders</div>
+      <div class="value">6,148</div>
+      <div class="delta up">▲ 8.1% vs prev</div>
+      <svg class="spark" viewBox="0 0 200 40" preserveAspectRatio="none" data-color="#5b8cff" data-points="22,24,20,26,25,23,28,30,29,33,31,35"></svg>
+    </div>
+    <div class="card kpi">
+      <div class="label">Avg Order Value</div>
+      <div class="value">$46.34</div>
+      <div class="delta up">▲ 3.9% vs prev</div>
+      <svg class="spark" viewBox="0 0 200 40" preserveAspectRatio="none" data-color="#a78bfa" data-points="20,22,21,23,22,24,23,25,24,26,25,27"></svg>
+    </div>
+    <div class="card kpi">
+      <div class="label">Conversion Rate</div>
+      <div class="value">3.21%</div>
+      <div class="delta down">▼ 0.6% vs prev</div>
+      <svg class="spark" viewBox="0 0 200 40" preserveAspectRatio="none" data-color="#ff6b6b" data-points="30,28,29,26,27,25,24,26,23,22,24,21"></svg>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid charts">
+    <div class="card">
+      <h3>Revenue vs Orders</h3>
+      <div class="sub">Daily, last 30 days</div>
+      <svg id="mainChart" viewBox="0 0 720 260" style="width:100%;height:auto"></svg>
+      <div class="legend">
+        <span><i class="dot" style="background:var(--accent)"></i> Revenue</span>
+        <span><i class="dot" style="background:var(--purple)"></i> Orders</span>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Sales by Channel</h3>
+      <div class="sub">Share of revenue</div>
+      <div class="donut-wrap">
+        <svg id="donut" width="140" height="140" viewBox="0 0 140 140"></svg>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom -->
+  <div class="grid bottom">
+    <div class="card">
+      <h3>Top Products</h3>
+      <div class="sub">By revenue this period</div>
+      <table>
+        <thead><tr><th>Product</th><th>Units</th><th>Revenue</th><th class="num">Share</th></tr></thead>
+        <tbody id="productBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Inventory Alerts</h3>
+      <div class="sub">Stock status for key SKUs</div>
+      <table>
+        <thead><tr><th>SKU</th><th>Product</th><th class="num">On hand</th><th>Status</th></tr></thead>
+        <tbody id="stockBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+// --- Sparklines ---
+document.querySelectorAll('.spark').forEach(svg => {
+  const pts = svg.dataset.points.split(',').map(Number);
+  const color = svg.dataset.color;
+  const w = 200, h = 40, max = Math.max(...pts), min = Math.min(...pts);
+  const step = w / (pts.length - 1);
+  const norm = v => h - 4 - ((v - min) / (max - min || 1)) * (h - 8);
+  let d = '', area = '';
+  pts.forEach((v, i) => {
+    const x = i * step, y = norm(v);
+    d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+  });
+  area = d + `L${w} ${h} L0 ${h} Z`;
+  const id = 'g' + Math.random().toString(36).slice(2, 7);
+  svg.innerHTML = `
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${color}" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#${id})"/>
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+});
+
+// --- Main dual chart ---
+(function () {
+  const revenue = [7.2,7.8,7.1,8.4,9.0,9.6,8.8,9.2,10.1,9.7,10.4,11.0,10.2,11.3,12.0,11.5,12.4,12.9,11.8,12.6,13.2,12.7,13.8,14.1,13.5,14.6,15.0,14.2,15.4,16.1];
+  const orders  = [190,205,188,215,230,242,225,238,255,246,262,275,258,282,298,286,305,318,296,312,330,320,342,352,338,360,372,356,384,400];
+  const svg = document.getElementById('mainChart');
+  const W = 720, H = 260, pad = { l: 44, r: 44, t: 16, b: 28 };
+  const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+  const rMax = Math.max(...revenue), oMax = Math.max(...orders);
+  const n = revenue.length, bw = iw / n;
+  const xR = i => pad.l + i * (iw / (n - 1));
+  const yR = v => pad.t + ih - (v / rMax) * ih;
+  const yO = v => pad.t + ih - (v / oMax) * ih;
+
+  let bars = '', line = '', dots = '', gridLines = '';
+  for (let g = 0; g <= 4; g++) {
+    const y = pad.t + (ih / 4) * g;
+    gridLines += `<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="#2a2e3b" stroke-width="1"/>`;
+    const val = (rMax * (4 - g) / 4).toFixed(0);
+    gridLines += `<text x="${pad.l-8}" y="${y+4}" fill="#8b90a0" font-size="10" text-anchor="end">$${val}k</text>`;
+  }
+  revenue.forEach((v, i) => {
+    const x = pad.l + i * bw + bw * 0.2, y = yR(v);
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw*0.6).toFixed(1)}" height="${(pad.t+ih-y).toFixed(1)}" rx="2" fill="#5b8cff" opacity="0.55"/>`;
+  });
+  orders.forEach((v, i) => {
+    const x = xR(i), y = yO(v);
+    line += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+    if (i % 3 === 0) dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="#a78bfa"/>`;
+  });
+  svg.innerHTML = gridLines + bars +
+    `<path d="${line}" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` + dots;
+})();
+
+// --- Donut ---
+(function () {
+  const data = [
+    { name: 'Web Store', val: 46, color: '#5b8cff' },
+    { name: 'Mobile App', val: 31, color: '#a78bfa' },
+    { name: 'Marketplace', val: 15, color: '#35c98a' },
+    { name: 'Wholesale', val: 8, color: '#f7b955' },
+  ];
+  const svg = document.getElementById('donut');
+  const cx = 70, cy = 70, r = 54, sw = 20;
+  const total = data.reduce((s, d) => s + d.val, 0);
+  let angle = -90, out = '';
+  const pt = (a, rad) => [cx + rad * Math.cos(a * Math.PI/180), cy + rad * Math.sin(a * Math.PI/180)];
+  data.forEach(d => {
+    const sweep = (d.val / total) * 360;
+    const a0 = angle, a1 = angle + sweep;
+    const [x0, y0] = pt(a0, r), [x1, y1] = pt(a1, r);
+    const large = sweep > 180 ? 1 : 0;
+    out += `<path d="M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}" fill="none" stroke="${d.color}" stroke-width="${sw}"/>`;
+    angle = a1;
+  });
+  svg.innerHTML = out + `<text x="${cx}" y="${cy-2}" text-anchor="middle" fill="#e6e8ee" font-size="20" font-weight="600">$285k</text><text x="${cx}" y="${cy+15}" text-anchor="middle" fill="#8b90a0" font-size="10">total</text>`;
+  document.getElementById('donutLegend').innerHTML = data.map(d =>
+    `<div class="row"><span class="name"><i class="dot" style="background:${d.color}"></i>${d.name}</span><span class="pct">${d.val}%</span></div>`
+  ).join('');
+})();
+
+// --- Tables ---
+(function () {
+  const products = [
+    { n: 'Aero Running Shoes', u: 1240, r: 61980, c: '#5b8cff', s: 100 },
+    { n: 'Terra Backpack 30L', u: 980, r: 44100, c: '#a78bfa', s: 71 },
+    { n: 'Pulse Wireless Buds', u: 1520, r: 38000, c: '#35c98a', s: 61 },
+    { n: 'Nova Desk Lamp', u: 610, r: 27450, c: '#f7b955', s: 44 },
+    { n: 'Drift Water Bottle', u: 2100, r: 21000, c: '#ff6b6b', s: 34 },
+  ];
+  document.getElementById('productBody').innerHTML = products.map(p => `
+    <tr>
+      <td><div class="prod"><div class="thumb" style="background:${p.c}"></div>${p.n}</div></td>
+      <td>${p.u.toLocaleString()}</td>
+      <td>$${p.r.toLocaleString()}</td>
+      <td><div class="bar-cell"><div class="bar-track"><div class="bar-fill" style="width:${p.s}%;background:${p.c}"></div></div><span class="num">${p.s}%</span></div></td>
+    </tr>`).join('');
+
+  const stock = [
+    { sku: 'AER-104', n: 'Aero Running Shoes', q: 320, st: 'in' },
+    { sku: 'PLS-220', n: 'Pulse Wireless Buds', q: 48, st: 'low' },
+    { sku: 'NOV-011', n: 'Nova Desk Lamp', q: 0, st: 'out' },
+    { sku: 'TER-030', n: 'Terra Backpack 30L', q: 156, st: 'in' },
+    { sku: 'DRF-500', n: 'Drift Water Bottle', q: 27, st: 'low' },
+  ];
+  const label = { in: 'In stock', low: 'Low', out: 'Out' };
+  document.getElementById('stockBody').innerHTML = stock.map(s => `
+    <tr>
+      <td style="color:var(--muted)">${s.sku}</td>
+      <td>${s.n}</td>
+      <td class="num">${s.q}</td>
+      <td><span class="tag ${s.st}">${label[s.st]}</span></td>
+    </tr>`).join('');
+})();
+
+// --- Range buttons ---
+document.querySelectorAll('.controls button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.controls button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

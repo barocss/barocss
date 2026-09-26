@@ -1,0 +1,306 @@
+{
+  "pin": "bf979c6",
+  "primaryMetric": "first-try parity misses shipped silently under a \"done\" claim",
+  "arms": [
+    {
+      "label": "arm0 (E-007 baseline, no report)",
+      "present": 3,
+      "rows": [
+        {
+          "task": "G1",
+          "arm": "arm0",
+          "firstTry": [
+            "focus:ring-2",
+            "focus:ring-offset-2",
+            "ring-1",
+            "-translate-x-1/2",
+            "shadow"
+          ],
+          "final": [
+            "focus:ring-2",
+            "focus:ring-offset-2",
+            "-translate-x-1/2",
+            "shadow"
+          ],
+          "selfFixed": [
+            "ring-1"
+          ],
+          "shippedNamed": [
+            "shadow"
+          ],
+          "shippedSilent": [
+            "focus:ring-2",
+            "focus:ring-offset-2",
+            "-translate-x-1/2"
+          ],
+          "claimNamesAny": true,
+          "turns": 20,
+          "cost": 0.653117,
+          "graderPass": false,
+          "graderReasons": [
+            "baseline style attribute changed",
+            "PARITY-MISS in section: focus:ring-2 focus:ring-offset-2 -translate-x-1/2 shadow"
+          ],
+          "flagged": [],
+          "flaggedFixed": []
+        },
+        {
+          "task": "G2",
+          "arm": "arm0",
+          "firstTry": [
+            "focus:ring-2"
+          ],
+          "final": [
+            "focus:ring-2"
+          ],
+          "selfFixed": [],
+          "shippedNamed": [],
+          "shippedSilent": [
+            "focus:ring-2"
+          ],
+          "claimNamesAny": false,
+          "turns": 10,
+          "cost": 0.34482750000000006,
+          "graderPass": false,
+          "graderReasons": [
+            "style attribute on new element",
+            "baseline style attribute changed",
+            "PARITY-MISS in section: focus:ring-2"
+          ],
+          "flagged": [],
+          "flaggedFixed": []
+        },
+        {
+          "task": "G3",
+          "arm": "arm0",
+          "firstTry": [
+            "hover:-translate-y-0.5",
+            "leading-relaxed"
+          ],
+          "final": [
+            "hover:-translate-y-0.5",
+            "leading-relaxed"
+          ],
+          "selfFixed": [],
+          "shippedNamed": [],
+          "shippedSilent": [
+            "hover:-translate-y-0.5",
+            "leading-relaxed"
+          ],
+          "claimNamesAny": false,
+          "turns": 10,
+          "cost": 0.43950500000000003,
+          "graderPass": false,
+          "graderReasons": [
+            "baseline style attribute changed",
+            "PARITY-MISS in section: hover:-translate-y-0.5 leading-relaxed"
+          ],
+          "flagged": [],
+          "flaggedFixed": []
+        }
+      ],
+      "firstTryMisses": 8,
+      "selfFixed": 1,
+      "shippedSilent": 6,
+      "shippedNamed": 1,
+      "reportFlagged": 0,
+      "reportFlaggedFixed": 0
+    },
+    {
+      "label": "arm1 (BaroCSS resolution report)",
+      "present": 3,
+      "rows": [
+        {
+          "task": "G1",
+          "arm": "arm1",
+          "firstTry": [
+            "ring-1",
+            "-translate-x-1/2",
+            "shadow"
+          ],
+          "final": [],
+          "selfFixed": [
+            "ring-1",
+            "-translate-x-1/2",
+            "shadow"
+          ],
+          "shippedNamed": [],
+          "shippedSilent": [],
+          "claimNamesAny": true,
+          "turns": 19,
+          "cost": 0.8864055,
+          "graderPass": false,
+          "graderReasons": [
+            "baseline style attribute changed"
+          ],
+          "flagged": [
+            "-translate-x-1/2",
+            "ring-1",
+            "shadow"
+          ],
+          "flaggedFixed": [
+            "-translate-x-1/2",
+            "ring-1",
+            "shadow"
+          ]
+        },
+        {
+          "task": "G2",
+          "arm": "arm1",
+          "firstTry": [
+            "focus:ring-2"
+          ],
+          "final": [],
+          "selfFixed": [
+            "focus:ring-2"
+          ],
+          "shippedNamed": [],
+          "shippedSilent": [],
+          "claimNamesAny": true,
+          "turns": 17,
+          "cost": 0.6245605000000001,
+          "graderPass": false,
+          "graderReasons": [
+            "style attribute on new element",
+            "baseline style attribute changed"
+          ],
+          "flagged": [
+            "focus:ring-2"
+          ],
+          "flaggedFixed": [
+            "focus:ring-2"
+          ]
+        },
+        {
+          "task": "G3",
+          "arm": "arm1",
+          "firstTry": [
+            "leading-relaxed"
+          ],
+          "final": [],
+          "selfFixed": [
+            "leading-relaxed"
+          ],
+          "shippedNamed": [],
+          "shippedSilent": [],
+          "claimNamesAny": true,
+          "turns": 13,
+          "cost": 0.4258545000000001,
+          "graderPass": false,
+          "graderReasons": [
+            "baseline style attribute changed"
+          ],
+          "flagged": [
+            "leading-relaxed"
+          ],
+          "flaggedFixed": [
+            "leading-relaxed"
+          ]
+        }
+      ],
+      "firstTryMisses": 5,
+      "selfFixed": 5,
+      "shippedSilent": 0,
+      "shippedNamed": 0,
+      "reportFlagged": 5,
+      "reportFlaggedFixed": 5
+    },
+    {
+      "label": "arm2 (computed-style control)",
+      "present": 3,
+      "rows": [
+        {
+          "task": "G1",
+          "arm": "arm2",
+          "firstTry": [
+            "ring-1",
+            "-translate-x-1/2",
+            "shadow"
+          ],
+          "final": [
+            "ring-1",
+            "shadow"
+          ],
+          "selfFixed": [
+            "-translate-x-1/2"
+          ],
+          "shippedNamed": [],
+          "shippedSilent": [
+            "ring-1",
+            "shadow"
+          ],
+          "claimNamesAny": true,
+          "turns": 14,
+          "cost": 0.5143535,
+          "graderPass": false,
+          "graderReasons": [
+            "baseline style attribute changed",
+            "PARITY-MISS in section: ring-1 shadow"
+          ],
+          "flagged": [],
+          "flaggedFixed": []
+        },
+        {
+          "task": "G2",
+          "arm": "arm2",
+          "firstTry": [
+            "focus:ring-2"
+          ],
+          "final": [
+            "focus:ring-2"
+          ],
+          "selfFixed": [],
+          "shippedNamed": [],
+          "shippedSilent": [
+            "focus:ring-2"
+          ],
+          "claimNamesAny": false,
+          "turns": 13,
+          "cost": 0.40824650000000007,
+          "graderPass": false,
+          "graderReasons": [
+            "style attribute on new element",
+            "baseline style attribute changed",
+            "PARITY-MISS in section: focus:ring-2"
+          ],
+          "flagged": [],
+          "flaggedFixed": []
+        },
+        {
+          "task": "G3",
+          "arm": "arm2",
+          "firstTry": [
+            "hover:-translate-y-1",
+            "leading-relaxed"
+          ],
+          "final": [
+            "hover:-translate-y-1",
+            "leading-relaxed"
+          ],
+          "selfFixed": [],
+          "shippedNamed": [],
+          "shippedSilent": [
+            "hover:-translate-y-1",
+            "leading-relaxed"
+          ],
+          "claimNamesAny": false,
+          "turns": 21,
+          "cost": 0.7051109999999999,
+          "graderPass": false,
+          "graderReasons": [
+            "baseline style attribute changed",
+            "PARITY-MISS in section: hover:-translate-y-1 leading-relaxed"
+          ],
+          "flagged": [],
+          "flaggedFixed": []
+        }
+      ],
+      "firstTryMisses": 6,
+      "selfFixed": 1,
+      "shippedSilent": 5,
+      "shippedNamed": 0,
+      "reportFlagged": 0,
+      "reportFlaggedFixed": 0
+    }
+  ]
+}

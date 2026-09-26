@@ -11,22 +11,22 @@ describe("pseudo-elements", () => {
         {
           type: "rule",
           selector: "&::placeholder",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
         {
           type: "rule",
           selector: "&::-webkit-input-placeholder",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
         {
           type: "rule",
           selector: "&::-moz-placeholder",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
         {
           type: "rule",
           selector: "&:-ms-input-placeholder",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -37,12 +37,12 @@ describe("pseudo-elements", () => {
         {
           type: "rule",
           selector: "&::selection",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
         {
           type: "rule",
           selector: "&::-moz-selection",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -53,12 +53,12 @@ describe("pseudo-elements", () => {
         {
           type: "rule",
           selector: "&::file-selector-button",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
         {
           type: "rule",
           selector: "&::-webkit-file-upload-button",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -67,20 +67,28 @@ describe("pseudo-elements", () => {
   describe("basic pseudo-elements", () => {
     it("before:bg-red-500 → &::before { ... }", () => {
       expect(parseClassToAst("before:bg-red-500", ctx)).toMatchObject([
+        { type: "at-root", nodes: [{ type: "at-rule", name: "property", params: "--baro-content" }] },
         {
           type: "rule",
           selector: "&::before",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [
+            { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
+            { type: "decl", prop: "content", value: "var(--baro-content)" },
+          ],
         },
       ]);
     });
 
     it("after:bg-red-500 → &::after { ... }", () => {
       expect(parseClassToAst("after:bg-red-500", ctx)).toMatchObject([
+        { type: "at-root", nodes: [{ type: "at-rule", name: "property", params: "--baro-content" }] },
         {
           type: "rule",
           selector: "&::after",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [
+            { type: "decl", prop: "background-color", value: "var(--color-red-500)" },
+            { type: "decl", prop: "content", value: "var(--baro-content)" },
+          ],
         },
       ]);
     });
@@ -90,7 +98,7 @@ describe("pseudo-elements", () => {
         {
           type: "rule",
           selector: "&::first-line",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -100,7 +108,7 @@ describe("pseudo-elements", () => {
         {
           type: "rule",
           selector: "&::first-letter",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -110,7 +118,7 @@ describe("pseudo-elements", () => {
         {
           type: "rule",
           selector: "&::backdrop",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });
@@ -120,7 +128,7 @@ describe("pseudo-elements", () => {
         {
           type: "rule",
           selector: "&::details-content",
-          nodes: [{ type: "decl", prop: "background-color", value: "#f00" }],
+          nodes: [{ type: "decl", prop: "background-color", value: "var(--color-red-500)" }],
         },
       ]);
     });

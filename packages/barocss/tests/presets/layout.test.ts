@@ -25,7 +25,7 @@ describe("preset layout utilities", () => {
       {
         type: "decl",
         prop: "aspect-ratio",
-        value: "var(--aspect-ratio-video)",
+        value: "var(--aspect-video)",
       },
     ]);
     expect(parseClassToAst("aspect-auto", ctx)).toEqual([
@@ -46,7 +46,7 @@ describe("preset layout utilities", () => {
       { type: "decl", prop: "aspect-ratio", value: "4/3" },
     ]);
     expect(parseClassToAst("aspect-[calc(16+9)/9]", ctx)).toEqual([
-      { type: "decl", prop: "aspect-ratio", value: "calc(16+9)/9" },
+      { type: "decl", prop: "aspect-ratio", value: "calc(16 + 9)/9" },
     ]);
     // custom property
     expect(parseClassToAst("aspect-(--my-ratio)", ctx)).toEqual([

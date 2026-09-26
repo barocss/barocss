@@ -1,0 +1,73 @@
+{
+ "root": "empty-state-card",
+ "elements": {
+  "empty-state-card": {
+   "type": "Card",
+   "props": {
+    "className": "flex flex-col items-center justify-center text-center p-12 max-w-md mx-auto bg-card border-border rounded-lg"
+   },
+   "children": [
+    "content-stack"
+   ]
+  },
+  "content-stack": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col items-center gap-6"
+   },
+   "children": [
+    "illustration",
+    "text-stack",
+    "cta-button"
+   ]
+  },
+  "illustration": {
+   "type": "Card",
+   "props": {
+    "className": "flex items-center justify-center w-24 h-24 rounded-full bg-muted text-muted-foreground text-4xl"
+   },
+   "children": [
+    "illustration-icon"
+   ]
+  },
+  "illustration-icon": {
+   "type": "Text",
+   "props": {
+    "text": "📁",
+    "variant": "h1"
+   }
+  },
+  "text-stack": {
+   "type": "Stack",
+   "props": {
+    "className": "flex flex-col items-center gap-2"
+   },
+   "children": [
+    "title",
+    "description"
+   ]
+  },
+  "title": {
+   "type": "Text",
+   "props": {
+    "text": "No projects yet",
+    "variant": "h3"
+   }
+  },
+  "description": {
+   "type": "Text",
+   "props": {
+    "text": "Get started by creating your first project. Your projects will show up here.",
+    "variant": "muted"
+   }
+  },
+  "cta-button": {
+   "type": "Button",
+   "props": {
+    "label": "Create project",
+    "variant": "default",
+    "size": "lg"
+   }
+  }
+ }
+}

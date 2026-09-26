@@ -3,7 +3,11 @@ import { describe, it, expect } from 'vitest';
 import { parseClassToAst, generateCss, generateCssRules } from '../src/core/engine';
 import '../src/presets';
 import { createContext } from '../src/core/context';
+import { rootToCss } from '../src/core/astToCss';
 import { functionalModifier } from '../src/core/registry';
+
+// before:/after: register --baro-content so the pseudo-element exists (#191).
+const BARO_CONTENT_PROPERTY = '@property --baro-content {\n\tsyntax: "*";\n\tinherits: false;\n\tinitial-value: "";\n}\n';
 
 describe('parseClassToAst (end-to-end)', () => {
   const ctx = createContext({
@@ -24,7 +28,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('basic utility', () => {
     expect(generateCss('bg-red-500', ctx)).toBe(
       `.bg-red-500 {
-  background-color: #ef4444;
+  background-color: var(--color-red-500);
 }
 `
     );
@@ -35,7 +39,7 @@ describe('parseClassToAst (end-to-end)', () => {
       `@media (min-width: 640px) {
   @media (hover: hover) {
     .sm\\:hover\\:bg-red-500:hover {
-      background-color: #ef4444;
+      background-color: var(--color-red-500);
     }
   }
 }
@@ -45,8 +49,10 @@ describe('parseClassToAst (end-to-end)', () => {
 
   it('group-hover + focus', () => {
     expect(generateCss('group-hover:focus:bg-blue-500', ctx)).toBe(
-      `.group-hover\\:focus\\:bg-blue-500:is(:where(.group):hover *):focus {
-  background-color: #3b82f6;
+      `@media (hover: hover) {
+  .group-hover\\:focus\\:bg-blue-500:is(:where(.group):hover *):focus {
+    background-color: var(--color-blue-500);
+  }
 }
 `
     );
@@ -64,7 +70,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('custom property', () => {
     expect(generateCss('bg-(--my-bg)', ctx)).toBe(
       `.bg-\\(--my-bg\\) {
-  background-size: var(--my-bg);
+  background-color: var(--my-bg);
 }
 `
     );
@@ -95,8 +101,10 @@ describe('parseClassToAst (end-to-end)', () => {
   it('complex: sm:group-hover:bg-[red]', () => {
     expect(generateCss('sm:group-hover:bg-[red]', ctx)).toBe(
       `@media (min-width: 640px) {
-  .sm\\:group-hover\\:bg-\\[red\\]:is(:where(.group):hover *) {
-    background-color: red;
+  @media (hover: hover) {
+    .sm\\:group-hover\\:bg-\\[red\\]:is(:where(.group):hover *) {
+      background-color: red;
+    }
   }
 }
 `
@@ -108,7 +116,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('text-lg', ctx)).toBe(
       `.text-lg {
   font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
+  line-height: var(--baro-leading, var(--text-lg--line-height));
 }
 `
     );
@@ -118,17 +126,17 @@ describe('parseClassToAst (end-to-end)', () => {
     const classList = 'bg-red-500 text-lg hover:bg-blue-500';
     expect(generateCss(classList, ctx)).toBe(
       `.bg-red-500 {
-  background-color: #ef4444;
+  background-color: var(--color-red-500);
 }
 
 .text-lg {
   font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
+  line-height: var(--baro-leading, var(--text-lg--line-height));
 }
 
 @media (hover: hover) {
   .hover\\:bg-blue-500:hover {
-    background-color: #3b82f6;
+    background-color: var(--color-blue-500);
   }
 }
 `
@@ -139,7 +147,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('md:focus:bg-yellow-500', ctx)).toBe(
       `@media (min-width: 768px) {
   .md\\:focus\\:bg-yellow-500:focus {
-    background-color: #eab308;
+    background-color: var(--color-yellow-500);
   }
 }
 `
@@ -149,7 +157,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('complex arbitrary value', () => {
     expect(generateCss('w-[calc(100%-2rem)]', ctx)).toBe(
       `.w-\\[calc\\(100\\%-2rem\\)\\] {
-  width: calc(100%-2rem);
+  width: calc(100% - 2rem);
 }
 `
     );
@@ -167,7 +175,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('dark:focus:bg-yellow-500', ctx)).toBe(
       `@media (prefers-color-scheme: dark) {
   .dark\\:focus\\:bg-yellow-500:focus {
-    background-color: #eab308;
+    background-color: var(--color-yellow-500);
   }
 }
 `
@@ -177,7 +185,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('peer-checked + text', () => {
     expect(generateCss('peer-checked:text-green-500', ctx)).toBe(
       `.peer-checked\\:text-green-500:is(:where(.peer):checked~*) {
-  color: #22c55e;
+  color: var(--color-green-500);
 }
 `
     );
@@ -195,7 +203,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('keeps important per class in generateCssRules', () => {
     const [importantRule, regularRule] = generateCssRules('!bg-[red] bg-blue-500', ctx);
     expect(importantRule.css).toContain('background-color: red !important;');
-    expect(regularRule.css).toContain('background-color: #3b82f6;');
+    expect(regularRule.css).toContain('background-color: var(--color-blue-500);');
     expect(regularRule.css).not.toContain('!important');
   });
 
@@ -221,7 +229,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(css.match(/@property --baro-gradient-from \{/g)).toHaveLength(1);
     expect(css).toMatch(/^@property --baro-gradient-position \{/);
     expect(css).not.toContain(':root,:host {@property');
-    expect(css).toContain('background-color: #3b82f6;');
+    expect(css).toContain('background-color: var(--color-blue-500);');
   });
 
   it('does not emit CSS for an unsupported container orientation variant', () => {
@@ -245,8 +253,9 @@ describe('parseClassToAst (end-to-end)', () => {
 
   it('before:content', () => {
     expect(generateCss("before:content-['foo']", ctx)).toBe(
-      `.before\\:content-\\[\\'foo\\'\\]::before {
-  content: "'foo'";
+      `${BARO_CONTENT_PROPERTY}.before\\:content-\\[\\'foo\\'\\]::before {
+  --baro-content: "'foo'";
+  content: var(--baro-content);
 }
 `
     );
@@ -256,7 +265,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('peer-[.bar]:text-lg', ctx)).toBe(
       `.peer-\\[\\.bar\\]\\:text-lg:is(:where(.peer):is(.bar)~*) {
   font-size: var(--text-lg);
-  line-height: var(--text-lg--line-height);
+  line-height: var(--baro-leading, var(--text-lg--line-height));
 }
 `
     );
@@ -265,7 +274,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('group-[.foo]:bg-red-500', () => {
     expect(generateCss('group-[.foo]:bg-red-500', ctx)).toBe(
       `.group-\\[\\.foo\\]\\:bg-red-500:is(:where(.group):is(.foo) *) {
-  background-color: #ef4444;
+  background-color: var(--color-red-500);
 }
 `
     );
@@ -284,9 +293,10 @@ describe('parseClassToAst (end-to-end)', () => {
 
   it('sm:before:content-[attr(data-label)]', () => {
     expect(generateCss('sm:before:content-[attr(data-label)]', ctx)).toBe(
-      `@media (min-width: 640px) {
+      `${BARO_CONTENT_PROPERTY}@media (min-width: 640px) {
   .sm\\:before\\:content-\\[attr\\(data-label\\)\\]::before {
-    content: "attr(data-label)";
+    --baro-content: "attr(data-label)";
+    content: var(--baro-content);
   }
 }
 `
@@ -310,8 +320,9 @@ describe('parseClassToAst (end-to-end)', () => {
 
   it('arbitrary + pseudo', () => {
     expect(generateCss("before:bg-[color:var(--brand)]", ctx)).toBe(
-      `.before\\:bg-\\[color\\:var\\(--brand\\)\\]::before {
+      `${BARO_CONTENT_PROPERTY}.before\\:bg-\\[color\\:var\\(--brand\\)\\]::before {
   background-color: var(--brand);
+  content: var(--baro-content);
 }
 `
     );
@@ -330,7 +341,7 @@ describe('variant chain engine', () => {
         selector: '&:hover',
         nodes: [
           { type: 'rule', selector: '&:focus', nodes: [
-            { type: 'decl', prop: 'background-color', value: '#f00' }
+            { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' }
           ]}
         ]
       }
@@ -338,13 +349,13 @@ describe('variant chain engine', () => {
   });
 
   it('group-hover:*:bg-red-500 → &:is(:where(.group):hover > *)', () => {
-    expect(parseClassToAst('group-hover:*:bg-red-500', ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia('group-hover:*:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
         selector: '&:is(:where(.group):hover *)',
         nodes: [
-          { type: 'style-rule', selector: ':is(.group-hover\\:\\*\\:bg-red-500 > *)', nodes: [
-              { type: 'decl', prop: 'background-color', value: '#f00' }
+          { type: 'rule', selector: ':is(& > *)', nodes: [
+              { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' }
           ]},
         ]
       }
@@ -357,9 +368,40 @@ describe('variant chain engine', () => {
         type: 'rule',
         selector: '&:hover',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' }
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' }
         ]
       }
     ]);
+  });
+
+  it('minifies root at-rules and :root declarations', () => {
+    const css = generateCss('from-red-500 bg-blue-500 ring-2', ctx, { minify: true });
+    expect(css).not.toMatch(/[\n\t]/);
+    expect(css).toContain('@property --baro-gradient-from{');
+  });
+
+  it('minified root output equals non-minified after stripping whitespace', () => {
+    const classes = 'from-red-500 bg-blue-500 ring-2';
+    const strip = (css: string) => css.replace(/\s+/g, '');
+    expect(strip(generateCss(classes, ctx, { minify: true }))).toBe(strip(generateCss(classes, ctx)));
+  });
+
+  it('rootToCss drops unsafe declarations identically in minified and non-minified mode', () => {
+    const unsafe = { type: 'decl', prop: '--x', value: 'a}b' } as any;
+    const safe = { type: 'decl', prop: '--y', value: '1' } as any;
+    expect(rootToCss([unsafe])).toBe('');
+    expect(rootToCss([unsafe], { minify: true })).toBe('');
+    const rule = { type: 'at-rule', name: 'property', params: '--z', nodes: [unsafe, safe] } as any;
+    const min = rootToCss([rule], { minify: true });
+    expect(min).toBe('@property --z{--y:1;}');
+    expect(min).not.toMatch(/[\n\t]/);
+    expect(rootToCss([rule]).replace(/\s+/g, '')).toBe(min.replace(/\s+/g, ''));
+  });
+
+  it('emits no :root block when no root declaration survives', () => {
+    const unsafe = { type: 'decl', prop: '--x', value: 'a}b' } as any;
+    const kept = [unsafe].map((n) => rootToCss([n], { minify: true })).filter((d) => d !== '');
+    expect(kept).toHaveLength(0);
+    expect(generateCss('bg-blue-500', ctx, { minify: true })).not.toContain(':root');
   });
 });

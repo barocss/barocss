@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        .toggle-checkbox:checked { background-color: rgb(59, 130, 246); }
+        .toggle-checkbox { transition: background-color 0.2s; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-2xl mx-auto p-6">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Settings</h1>
+            <p class="text-gray-600 mt-2">Manage your preferences and application settings</p>
+        </div>
+
+        <!-- Settings Form -->
+        <div class="space-y-6">
+            <!-- Appearance Section -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Appearance</h2>
+                
+                <div class="space-y-4">
+                    <!-- Dark Mode Toggle -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900">Dark Mode</label>
+                            <p class="text-xs text-gray-500 mt-1">Enable dark theme across the application</p>
+                        </div>
+                        <input type="checkbox" class="toggle-checkbox w-5 h-5 rounded border-gray-300 cursor-pointer" id="darkMode">
+                    </div>
+
+                    <!-- Theme Selection -->
+                    <div class="pt-4 border-t border-gray-200">
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Color Theme</label>
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="blue">Blue</option>
+                            <option value="green">Green</option>
+                            <option value="purple">Purple</option>
+                            <option value="red">Red</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Notifications</h2>
+                
+                <div class="space-y-4">
+                    <!-- Email Notifications -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900">Email Notifications</label>
+                            <p class="text-xs text-gray-500 mt-1">Receive updates via email</p>
+                        </div>
+                        <input type="checkbox" class="toggle-checkbox w-5 h-5 rounded border-gray-300 cursor-pointer" id="emailNotif" checked>
+                    </div>
+
+                    <!-- Push Notifications -->
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900">Push Notifications</label>
+                            <p class="text-xs text-gray-500 mt-1">Receive browser notifications</p>
+                        </div>
+                        <input type="checkbox" class="toggle-checkbox w-5 h-5 rounded border-gray-300 cursor-pointer" id="pushNotif" checked>
+                    </div>
+
+                    <!-- Notification Frequency -->
+                    <div class="pt-4 border-t border-gray-200">
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Frequency</label>
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="instant">Instant</option>
+                            <option value="daily">Daily Digest</option>
+                            <option value="weekly">Weekly Digest</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacy Section -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Privacy & Security</h2>
+                
+                <div class="space-y-4">
+                    <!-- Analytics -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900">Share Analytics</label>
+                            <p class="text-xs text-gray-500 mt-1">Help improve the app with usage data</p>
+                        </div>
+                        <input type="checkbox" class="toggle-checkbox w-5 h-5 rounded border-gray-300 cursor-pointer" id="analytics" checked>
+                    </div>
+
+                    <!-- Two-Factor Authentication -->
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900">Two-Factor Authentication</label>
+                            <p class="text-xs text-gray-500 mt-1">Require authentication code on login</p>
+                        </div>
+                        <input type="checkbox" class="toggle-checkbox w-5 h-5 rounded border-gray-300 cursor-pointer" id="twoFactor">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Section -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Account</h2>
+                
+                <div class="space-y-4">
+                    <!-- Language Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Language</label>
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="en">English</option>
+                            <option value="ko">한국어</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                            <option value="de">Deutsch</option>
+                        </select>
+                    </div>
+
+                    <!-- Timezone -->
+                    <div class="pt-4 border-t border-gray-200">
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Timezone</label>
+                        <select class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="utc">UTC</option>
+                            <option value="est">Eastern Time</option>
+                            <option value="cst">Central Time</option>
+                            <option value="mst">Mountain Time</option>
+                            <option value="pst">Pacific Time</option>
+                            <option value="kst">Korea Standard Time</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Danger Zone</h2>
+                <button class="px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-md text-sm font-medium transition-colors">
+                    Clear All Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-3 mt-8 justify-end">
+            <button class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors" id="cancelBtn">
+                Cancel
+            </button>
+            <button class="px-6 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors" id="saveBtn">
+                Save Changes
+            </button>
+        </div>
+
+        <!-- Status Message -->
+        <div id="statusMsg" class="mt-4 text-center text-sm font-medium hidden"></div>
+    </div>
+
+    <script>
+        const saveBtn = document.getElementById('saveBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const statusMsg = document.getElementById('statusMsg');
+        const initialState = {};
+
+        // Store initial state
+        document.querySelectorAll('input[type="checkbox"], select').forEach(el => {
+            if (el.type === 'checkbox') {
+                initialState[el.id] = el.checked;
+            } else {
+                initialState[el.id] = el.value;
+            }
+        });
+
+        saveBtn.addEventListener('click', () => {
+            statusMsg.classList.remove('hidden', 'text-red-600');
+            statusMsg.classList.add('text-green-600');
+            statusMsg.textContent = '✓ Settings saved successfully';
+            setTimeout(() => statusMsg.classList.add('hidden'), 2500);
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            document.querySelectorAll('input[type="checkbox"], select').forEach(el => {
+                if (el.type === 'checkbox') {
+                    el.checked = initialState[el.id];
+                } else {
+                    el.value = initialState[el.id];
+                }
+            });
+            statusMsg.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>

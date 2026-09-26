@@ -1,0 +1,291 @@
+# Durable project state. STRATEGY-owned; EXECUTION never edits this file.
+# Keep < ~150 lines. Git history holds everything older.
+updated: 2026-09-25   # D22: PLAN — contracted 3 open items (E-012 durability step1, E-013 option A json-render, E-014 parity measure+rank); all product_code:false
+
+now:                       # dashboard view; mode comes from contract status
+  active_outcome: O2
+  experiment: "3 open (the backlog cap), all ready, all product_code:false, distinct ports 5200/5201/5202. E-012 (question lane, prio1, port5200): durability step 1 — bucket E-007/E-011 AGENT tokens (invalid vs intentional) and measure the report's precision/recall vs PARITY-MISS; gates the flow-1 code-gen test. E-013 (question lane, prio2, port5201): option A first experiment — do className-carrying json-render specs render as intended under BaroCSS on current develop, attribute misses to parity families, and is there any gap beyond the zero-build runtime (§5 existence check). E-014 (parity lane, prio3, port5202): measure F2 translate + PR#84 candidates vs Tailwind 4.1.13 and rank by v0/shadcn frequency — the measured backlog the next fix batch draws from. No fix/product code in any."
+  last_result: "E-011 PROVEN (K13): a per-class BaroCSS resolution report (has()/getCss() only) shown to the agent right after it generates cut first-try silent parity misses from 7-of-8 (arm0) to 0 (arm1), clearly below a browser computed-style control (arm2, 5); the actor fixed exactly the flagged classes citing UNDEFINED-VAR. Criterion 5 holds for option B: class->rule resolution state is BaroCSS-unique. n=1/task, one strong actor; shared-core coverage only (neither target flow end to end)."
+  next: "EXECUTE E-012/E-013/E-014 in priority order (they are independent, depends_on: []). After E-012 durability reports: if flagged tokens include genuinely-invalid ones the parity lane can't erase (durable), contract the flow-1 code-gen experiment (B's report in a code-gen pipeline); else contract durability step 2 (post-parity build + weaker actor, U1) first. After E-013: contract a minimum-gap flow-2 experiment only if a real runtime gap was found (else flow-2 value is parity-only). After E-014: contract the parity FIX batch (product_code) from the ranked backlog, top-first, under the approval/tests-in-scope/draft directives. No report-productizing code until n>=3, a weaker actor, and E-012's accuracy check are all in hand."
+  blockers: []
+
+outcomes:
+  O1:
+    status: done           # D14: K3, K5, K7, K8, K9; zero BaroCSS changes
+    statement: An AI agent can modify+verify styling on a running BaroCSS page with the smallest BaroCSS-specific surface.
+  O2:
+    status: active
+    statement: An AI generates new UI with BaroCSS classes that render as intended on the first try.
+  O3:
+    status: candidate
+    statement: An AI can explain why an existing element looks the way it does (styling provenance).
+
+knowledge:
+  proven:
+    - {id: K2, level: L2, fact: "astToJson (branch codex/pr-feature-evidence, unmerged) serializes AST; no scenario needs it."}
+    # K3-K9 are O1-era evidence (outcome done, D14); compacted, full text in git log -p -- .ai/STATE.yaml.
+    - {id: K3, level: L3, fact: "E-001: a real agent (claude-opus-4-8, Playwright MCP only, fresh context) modified+verified classes on a live page 4/4, claims matched the hidden grader; no BaroCSS help needed. n=1/task, all classes resolved. .ai/evidence/E-001/."}
+    - id: K4
+      level: L1
+      fact: >
+        BaroCSS fails silently for some Tailwind v4 classes: empty rule (text-balance/pretty/wrap/nowrap,
+        text-shadow-*), rule with an undefined var (aspect-video, font-sans), or no rule plus a console
+        warning (rounded-4xl, [prop:value]). Also no effect: *-xs scales, rotate-x-*, perspective-*,
+        bg-(--var), outline-hidden, wrap-anywhere, mask-*, bg-radial/conic. Arbitrary values on known
+        utilities work (aspect-[16/9], rounded-[2rem], text-[42px], bg-[#hex]).
+      caveat: >
+        Hand probe 2026-09-24; E-002's four classes are L2 (.ai/evidence/E-002/). Parity gaps are not work
+        items: K5 shows they did not cause false claims.
+    - {id: K5, level: L3, fact: "E-002: same actor, 4 tasks whose natural class is a K4 no-op. Grader 4/4, no false 'done'; all 17 no-ops detected pre-report (mainly computed style), recovered only where an arbitrary value exists. Detecting unresolved classes is AGENT-owned for this actor. Silent empty rules cost turns, not false claims. .ai/evidence/E-002/."}
+    - {id: K6, level: L2, fact: "E-003: theme.extend.colors.brand via updateConfig makes bg-brand work (deep-merge); theme.extend.borderRadius only emits :root --radius-* (rounded-* names hard-coded), no config route adds rounded-4xl; no plugin hook. {DEFAULT} colour objects throw. .ai/evidence/E-003/."}
+    - {id: K7, level: L3, fact: "E-004: same actor on fixtures added theme.extend.colors.brand live, used bg-brand 3/3, claims agree; discovery via page source/exports/global then updateConfig.toString(). Arm A passed via a duplicate non-observing CDN runtime. .ai/evidence/E-004/."}
+    - {id: K8, level: L2, fact: "E-005 on apps/barocss-site: vite dev import() of the served module URL returns baroStart's runtime; updateConfig replaces the whole config so a bare theme call drops preflight (config-preserving calls pass); production build exposes no route. No agent runs. .ai/evidence/E-005/."}
+    - {id: K9, level: L3, fact: "E-006: same actor on the site's vite dev (app-origin-only) read updateConfig's source and passed a config-preserving object to the page's own runtime, used bg-brand 3/3, 0 regressions, preflight kept, claims agree. 0/3 made the bare call (drop-then-notice unobserved); dev /@fs exposes repo source, production has none. .ai/evidence/E-006/."}
+    - id: K10
+      level: L3
+      fact: >
+        E-007: same actor/prompt on apps/barocss-site's vite dev, natural generation of 3 new sections (G1 pricing,
+        G2 newsletter, G3 testimonials). First-try silent parity misses per section 5/1/2; the agent's own
+        verification caught 1 of 8 (only a property it happened to read); 7 shipped under a "done" claim naming
+        none, so all 3 claims disagree with the grader (FAIL). Families: ring box-shadow composition (undefined
+        --baro-shadow / --baro-inset-shadow / --baro-inset-ring-shadow; focus:ring-offset-2 has no rule),
+        single-axis translate (other-axis --baro-translate-* undefined), theme var name (--shadow-default,
+        --line-height-relaxed undefined). Also preflight sets no border-style:solid, so bare border/border-t are
+        invisible page-wide (3/3, outside K4's definition). For generation, class -> rule parity is a correctness gap.
+      caveat: >
+        n=1 per task, one strong model; remaining misses are state-only (focus:/hover:) or cosmetic. Contrasts K5,
+        where the same actor caught every no-op on modify tasks. Evidence: .ai/evidence/E-007/SUMMARY.md, runs/, audit.json.
+    - id: K11
+      level: L2
+      fact: >
+        E-008: the minimum edit in packages/barocss/src/presets/effects.ts closes the ring box-shadow parity family
+        (K10) — register --baro-shadow/--baro-inset-shadow/--baro-inset-ring-shadow via @property 0 0 #0000
+        (Tailwind v4's mechanism), drop the hardcoded v3 blue --baro-ring-color so a lone ring defaults to
+        currentColor, add ring-offset-{0,1,2,4,8}. ring-1/ring-2/focus:ring-2 then compute box-shadow byte-identical
+        to Tailwind 4.1.13; focus:ring-offset-2 alone emits box-shadow:none in both engines (parity). No control
+        regressed; the real-Tailwind compat/compare.test.ts passes with the fix. Per-family patching reaches exact parity.
+      caveat: >
+        INCONCLUSIVE, not merged: the contract's allowed.paths omitted packages/barocss/tests/, so 4 exact-AST ring
+        tests that froze the parity-wrong v3 blue default fail pnpm check; L3 (G1/G2 rerun) not run. Re-issued as
+        E-009 with scope fixed. Branch ai/E-008-ring-parity kept as reference. Evidence: .ai/evidence/E-008/.
+    - id: K12
+      level: L2
+      fact: >
+        E-010 (PARTIAL): batching measured parity families into one product PR works for families that are true
+        composition-default gaps. F1 ring (register --baro-shadow/--baro-inset-shadow/--baro-inset-ring-shadow via
+        @property 0 0 #0000, drop the v3 blue --baro-ring-color, add ring-offset-{0,1,2,4,8}) and F3 preflight border
+        (universal `border: 0 solid`) both reach exact Tailwind-4.1.13 per-token parity at L2 (browser parity.mjs;
+        ring also corroborated by the untouched, passing compat/compare.test.ts), pnpm check GREEN (1451), no control
+        regressed. Product diff = effects.ts + preflight.ts + changeset + the frozen ring assertions only. PR #141.
+      caveat: >
+        F2 single-axis translate is NOT a composition-default gap and was dropped: integer translate-x/-y emit
+        calc(N * 100%) where Tailwind emits calc(var(--spacing) * N), a value-formula defect the contract's allowed
+        F2 change (registering the @property axis default) cannot fix — re-scoped as a parity candidate (value-formula
+        fix + register --baro-translate-* defaults). The one L3 G1/G2/G3 rerun was deferred to that fully-fixed build.
+        Merge of the landed part is held on the human-approved label. Evidence: .ai/evidence/E-010/.
+    - id: K13
+      level: L3
+      fact: >
+        E-011 (PROVEN, option B first experiment): showing the actor, right after it generates and before it claims
+        done, a per-class BaroCSS resolution report built ONLY from the runtime's existing has()/getCss() (each class
+        marked RESOLVED / UNRESOLVED / EMPTY-RULE / UNDEFINED-VAR) cut first-try silent parity misses shipped under a
+        "done" claim from 7-of-8 (arm0, E-007 baseline) to 0 (arm1), clearly below a browser computed-style control
+        (arm2, 5 shipped silently). The actor fixed exactly the classes the report flagged (flagged->fixed 5/5),
+        naming them and citing UNDEFINED-VAR. Criterion 5 HOLDS for option B: class->rule resolution state is
+        BaroCSS-unique — computed style can't separate "broken rule" from "inactive state / plausible value"
+        (focus:ring-2, hover:-translate, leading-relaxed shipped silently in arm2). All arms pinned to develop bf979c6
+        (E-007's world), E-007's actor/tasks/prompt/site and frozen classifier+grader unchanged; no product code (the
+        two reports are evidence scripts). Evidence: .ai/evidence/E-011/SUMMARY.md, audit.json, runs/. PR #157 merged.
+      caveat: >
+        n=1 per task per arm, one strong actor (claude-opus-4-8[1m]) — a directional L3 signal, not a statistic. The
+        report was injected once, after the FIRST DOM generation; all six runs built the section in one main insert so
+        coverage was complete, but an incremental multi-insert actor would get a report over only the first chunk. This
+        is FREE-FORM CLASSES WITH RUNTIME DELIVERY (the shared core of both target flows); it claims NEITHER target
+        flow end to end — not the code-gen pipeline (flow 1), not the json-render/catalog className spec (flow 2).
+        Productizing a resolution-report API into packages/barocss is a separate LATER contract (non-goal here).
+  disproven: []
+  working_assumptions:     # L0; plausible but untested, don't treat as proven
+    - Natural-language reasoning doesn't belong inside BaroCSS.
+    - Visual/semantic verification belongs to browser/agent tooling.
+    - AI-specific BaroCSS APIs are not yet shown to be needed.
+  unknown:                 # seeds for STRATEGY; unordered, not a backlog
+    - id: U1
+      q: Do weaker/cheaper models still verify via computed style and avoid false "done" on K4 no-ops (K3/K5)?
+    - id: U3
+      q: When is a runtime-generated rule actually applied? Can an agent tell "not yet applied" from "never will be"?
+    - id: U4
+      q: Where does BaroCSS behavior differ from the Tailwind knowledge models already have, and do those differences cause agent errors?
+    - id: U5
+      q: "Theme change on a production bundle with no exposed runtime (K8: no route). Open; no scenario needs it yet."
+    - id: U6
+      q: "Which theme namespaces drive class generation (K6: colors yes, borderRadius no)? Open until a scenario needs one."
+
+decisions:                 # older entries compressed; full text in git log -p -- .ai/STATE.yaml
+  - id: D1-D4
+    date: 2026-09-24
+    decision: >
+      Strategy/Execution isolation via one handoff file; retired the AI-Interaction roadmap; froze AST work (K2)
+      unless a scenario needs it; only Strategy accepts/merges experiments and its own .ai/-only PRs.
+    why: Role overhead, easy-task bias, self-confirming loops, solutions before evidence (astToJson drift).
+  - id: D5-D13
+    date: 2026-09-25
+    decision: >
+      Real-agent evidence first: E-001 (K3), E-002 (K5) PROVEN, so class-level modify+verify needs zero BaroCSS
+      surface. Theme/config edits (U5): E-003 INCONCLUSIVE (K6), E-004 PROVEN on fixtures (K7), E-005 INCONCLUSIVE
+      on the real site (K8: replace semantics; its bare-call control was the contract's error), E-006 reran agents there.
+    why: >
+      Guessed gaps risk invent-then-solve; theme/config semantics is what only BaroCSS owns; done_when needs a realistic page.
+  - id: D14-D15
+    date: 2026-09-25
+    decision: >
+      Accepted E-006 PROVEN (K9) and E-007 DISPROVEN (K10), both merged. O1 done (modify+verify on a realistic page,
+      zero BaroCSS changes); active outcome -> O2 (generate). E-007 showed agents ship silent Tailwind-v4 parity
+      misses under "done", so class -> rule parity is an evidence-backed BAROCSS gap; E-008 was contracted as the first
+      product_code experiment to fix the minimum family (ring box-shadow), other families left one-per-contract.
+    why: >
+      done_when met without new surface; generation is where parity gaps bite first-try rendering. Ring is the
+      canonical idiom agents reach for unprompted (2/3 runs), a measured PARITY-MISS with unambiguous BAROCSS ownership.
+  - id: D16
+    date: 2026-09-25
+    decision: >
+      Reviewed E-008: accepted INCONCLUSIVE, did not merge PR #128 (closed, branch kept as reference). The minimum
+      effects.ts edit reaches exact Tailwind-4.1.13 ring box-shadow parity at L2 with no regression (K11), but the
+      contract's allowed.paths omitted packages/barocss/tests/, so the parity fix's necessary update to 4 frozen
+      exact-AST ring tests fails pnpm check — a contract scope error, not a fix defect. Re-issued as work-store
+      contract E-009 with packages/barocss/tests/ in scope and the factually-wrong standalone focus:ring-offset-2
+      "offset ring" expectation dropped (Tailwind emits box-shadow:none for ring-offset alone); E-009 keeps the unrun
+      L3 G1/G2 rerun arm and moves the first product fix into the work store.
+    why: >
+      Product PRs merge only on green CI + PROVEN; a scope error froze parity-wrong tests outside scope. The fix is
+      real (compat/compare.test.ts agrees), so the correction is to widen scope to the tests that encode the old
+      bug, not to abandon per-family patching.
+  - id: D17
+    date: 2026-09-25
+    decision: >
+      No outcome change this pass. The 2026-09-25 human directive to re-derive outcomes from VISION's "Who it is for"
+      (v0-like AI UI platforms; parity table stakes + three wins O4/O5/O6 vs @tailwindcss/browser; park O3) was
+      withdrawn by the human mid-session (develop d0476ac removed the directive; a pending branch withdraws the VISION
+      section too — "withdraw the #130 Tailwind-replacement framing"). Reverted my in-flight application of it;
+      outcomes stay O1 done / O2 active / O3 candidate. E-008 review and the E-009 parity contract stand on their own
+      (O2 parity predates the directive), and the still-active directives — product_code contracts include the
+      package's test dirs, and open the experiment PR as a draft until local checks pass — remain applied to E-009.
+    why: >
+      A withdrawn directive is not a directive; building on it would contradict the human's explicit signal. The
+      review and parity work are independent of the framing, so only the outcome re-derivation is dropped.
+
+  - id: D18
+    date: 2026-09-25
+    decision: >
+      Human withdrew E-009 (evaluated/INCONCLUSIVE, not merged — interrupted before any result) and added the
+      parity-lane directive. Contracted E-010 (work store, O2, product_code) as the first parity-lane batch: three
+      measured K10 families that each drop silently because BaroCSS omits a Tailwind-v4 composition default —
+      F1 ring box-shadow (starts from the proven E-008 fix, K11), F2 single-axis translate (unregistered other-axis
+      --baro-translate-* var), F3 preflight border-style (universal reset lacks border-style:solid). One PR = one
+      capability (Tailwind v4 parity) per the directive; evidence L2 per-token vs Tailwind 4.1.13 + pnpm check green,
+      plus one G1/G2/G3 rerun. Deferred to a later batch: the theme-var --shadow-*/--leading- family (K10) and the
+      PR #84 candidates (must be measured with the E-007/E-008 classifier first, per that directive).
+    why: >
+      The parity lane treats a family BaroCSS resolves differently from the 4.1.13 reference as a known-answer bug,
+      not an open question, and prefers batching measured families while any remain. These three share one mechanism
+      (missing composition default) and one-line-per-file local fixes, maximizing a mergeable first product PR;
+      murkier or unmeasured families are held back so scope errors don't sink the batch. Human-approval,
+      tests-in-scope and draft-when-red directives all carried into the contract.
+
+  - id: D19
+    date: 2026-09-25
+    decision: >
+      Reviewed E-010 (§2A of PR #141): accepted PARTIAL, decided to merge the landed part (merged: true), merge held
+      on the human-approved label. F1 ring + F3 preflight border reach exact Tailwind-4.1.13 per-token L2 parity with
+      pnpm check GREEN and no control regression (K12); the diff is the minimum allowed (effects.ts + preflight.ts +
+      changeset + the frozen ring assertions, no assertion weakened, transform.ts untouched). F2 single-axis translate
+      dropped: reran translate-gap.mjs and confirmed a value-formula gap (calc(N*100%) vs calc(var(--spacing)*N)) the
+      contract's allowed F2 change cannot fix — it changed no product code, so the parity-lane PARTIAL-merge directive
+      is satisfied. Did NOT run gh pr merge (no human-approved label); recorded merged: true and stop. Per that
+      directive §2B is held until the merge lands. F2 goes back as a parity candidate (value-formula fix + register
+      --baro-translate-* @property defaults); the single L3 G1/G2/G3 rerun is deferred to that fully-fixed build.
+    why: >
+      A PARTIAL parity batch may merge its landed families (human directive) when each reaches exact per-token L2
+      parity with green check and no regression and each dropped family touched no product code — all true here — so
+      the "merge only if PROVEN" rule applies to the landed part, not the whole batch. Product-code merges still wait
+      for the human-approved label. F2's miss has a second, independent cause (wrong value formula), so it is a
+      separate parity fix, not a scope failure of this batch.
+
+  - id: D20
+    date: 2026-09-25
+    decision: >
+      Landed the E-010 merge already decided in D19: PR #141 carried the human-approved label, CI green, so ran
+      gh pr merge --merge (after gh pr update-branch, since develop's branch protection is strict) → develop 5bf258b.
+      First product code for O2 is in (F1 ring + F3 preflight border, K12). Then contracted the next question (§2B):
+      E-011, the QUESTION-LANE option B "design guardrail" first experiment, which the human ordered to run as soon as
+      E-010 is evaluated and before any further parity batch. E-011 shows the agent, right after it generates and
+      before it claims done, a per-class BaroCSS resolution report built ONLY from the existing runtime has()/getCss()
+      (unresolved / empty-rule / undefined-var), and measures whether first-try silent misses shipped under a "done"
+      claim fall below E-007's baseline (arm 0) and below a browser computed-style control (arm 2). 3 arms, E-007's
+      tasks/actor/prompt/site/frozen classifier+grader, all pinned to develop bf979c6 (E-007's world, pre-E-008/E-010,
+      so the K10 misses still exist). No product code (product_code: false); L3; the reports are evidence scripts.
+    why: >
+      Direct application of the human directive "run direction-proposal option B's first experiment ... Order: contract
+      it as soon as the parity-lane batch E-010 is evaluated, before any further parity batch," and the delegated order
+      B -> A -> next parity batch. The experiment targets criterion 5 (is class->rule resolution BaroCSS-unique, or
+      does browser computed style suffice — the arm-1-vs-arm-2 control), the core open question for whether BaroCSS
+      owns anything in the generation loop; K5 (strong actor self-verifies MODIFY tasks from computed style) is the
+      reason it may come back negative, which is itself progress. Pinned pre-fix so the fixes shipped in E-010 do not
+      erase the misses under study. Per the coverage directive, E-011's setup covers only the shared core of both
+      target flows (free-form classes delivered at runtime) and its result claims neither flow end to end; O3 stays a
+      separate candidate. F2 translate remains a queued value-formula parity candidate for the batch after A.
+
+  - id: D21
+    date: 2026-09-25
+    decision: >
+      Reviewed E-011 (§2A of PR #157): accepted PROVEN and merged (evidence-only, product_code: false → merge whatever
+      the verdict; no human-approved label needed). check.py OK (contract frozen; changes only in .ai/evidence/E-011/ +
+      the contract), CI green, frozen assets byte-identical to E-007 (classify.mjs/grader.js/grade.mjs), and the arms
+      independently verified honestly isolated (arm1 has()/getCss() + rule text only; arm2 getComputedStyle only; same
+      frozen-grader tokens). Re-ran agg.mjs and reproduced arm1=0 vs arm2=5 vs arm0=6-7 silent misses, and spot-checked
+      G2.arm1 (focus:ring-2 flagged UNDEFINED-VAR → fixed before claim). K13 recorded: a per-class BaroCSS resolution
+      report cuts first-try silent generation misses to 0, and the information is BaroCSS-unique (criterion 5 holds for
+      option B). Next: PLAN option A's first experiment (json-render/catalog className specs) per the delegated order
+      B -> A -> next parity batch; a flow-(1) code-gen direction experiment testing this report inside a code-gen
+      pipeline is now worth contracting; F2 translate stays a queued value-formula parity candidate. This pass does not
+      contract A (§1: REVIEW is one pass; a fresh STRATEGY/PLAN pass writes the next contract).
+    why: >
+      §2A: evidence-only PRs are merged regardless of verdict (negative evidence is knowledge too), and the
+      human-approval label gates only product-code merges. The verdict meets proves_yes at full strength with a
+      reproduced causal chain, so no downgrade. Criterion 5 holding for option B is the first BaroCSS-unique signal in
+      the generation loop and directly sets the next directions the human delegated (option A, then the flow-1
+      code-gen experiment), so it belongs in decisions, not just knowledge.
+
+  - id: D22
+    date: 2026-09-25
+    decision: >
+      PLAN pass (planners-plan directive: write every ready contract, up to 3 open across lanes). Contracted three
+      independent, product_code:false, ready work items, distinct ports so they run in parallel:
+      E-012 (question lane, prio1, port5200) — durability Step 1, the human's "agreed after E-011" note: over every
+      class token in E-007's + E-011's recorded sections, (A) bucket the classifier's AGENT tokens into
+      invalid vs intentional and (B) measure the arm1 has()/getCss() report's precision/recall vs the classifier's
+      PARITY-MISS. Offline, no agent runs; it gates the flow-1 code-gen test (which the human ordered to wait on this).
+      E-013 (question lane, prio2, port5201) — option A's first experiment (the delegated B->A order; B is done):
+      do className-carrying json-render specs render as intended under BaroCSS on current develop (classify + attribute
+      misses to parity families), and the §5 existence check "is there any gap beyond the existing zero-build runtime"
+      (K8 production-runtime = Q4 trigger, not a general gap). Deterministic render+classify (L2) + analysis; flow-2 only.
+      E-014 (parity lane, prio3, port5202) — the measurement the next parity batch must start with: measure F2 translate
+      + the four PR#84 candidates against Tailwind 4.1.13 with the frozen classifier, tag each MATCHES or
+      MISS+mechanism+min-fix-shape, and rank by v0/shadcn frequency. No fix, no product code — it produces the ranked
+      backlog the later fix contract draws from.
+    why: >
+      Planners-plan directive: fill the backlog with justifiable ready contracts instead of one per pass. Question
+      lane keeps its order (B done -> A = E-013) and durability (E-012) runs beside A per the after-E-011 note; a parity
+      measurement (E-014) may run alongside (planners-plan relaxes B->A->parity to the question lane's internal order).
+      All three are product_code:false, so no human-approval/draft gates apply and no self-judging risk; each is a
+      cheap L2/analysis measurement that can end in "no new BaroCSS code needed", which the vision counts as progress.
+      F1 ring/F3 border (K12) are excluded from E-014's backlog (already at parity); report-productizing stays blocked
+      until n>=3, a weaker actor, and E-012's accuracy check exist. Ports 5200/5201/5202 avoid the parallel-session
+      collision; no shared product path is written, so port locks are the only locks needed.
+
+open_items:                # for STRATEGY, not EXECUTION
+  - "Branch codex/pr-feature-evidence (astToJson, claims it 'enables AI to reason'): don't merge as-is; drop or keep as reference."
+  - "(human) Main checkout holds stale untracked AGENTS.md, .ai/, test-scenario*.html, opencode.json; remove after merge."
+  - "check.py requires non-empty allowed.paths though EXPERIMENT.yaml and .ai/evidence/<id>/ are implicit; align later."
+
+human_directives: []       # moved to GitHub issues labelled `directive` (#160): #162-#173 hold the
+                           # 12 entries that were here; read them with tools/ai-supervisor/directives.py

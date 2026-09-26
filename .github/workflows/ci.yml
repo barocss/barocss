@@ -18,6 +18,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check autonomous protocol state
+        run: |
+          python3 -c "import yaml" 2>/dev/null || python3 -m pip install --user pyyaml
+          python3 .ai/check.py
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

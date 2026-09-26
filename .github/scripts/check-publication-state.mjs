@@ -51,6 +51,9 @@ export async function checkPublication(version, mode, expectedSha, token, allowE
     return Boolean(result);
   }));
   const state = classifyPublication(published);
+  if (mode === 'post' && state !== 'published') {
+    throw new Error(`${version}: package versions are not visible in the npm registry yet`);
+  }
 
   for (const name of packageNames) {
     const tag = `${name}@${version}`;
@@ -73,7 +76,6 @@ export async function checkPublication(version, mode, expectedSha, token, allowE
     }
   }
 
-  if (mode === 'post') assert.equal(state, 'published', 'Not all npm packages were published');
   return state;
 }
 

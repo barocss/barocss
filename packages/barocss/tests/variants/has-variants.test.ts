@@ -1,3 +1,4 @@
+import { parseWithoutHoverMedia } from '../hover-media-test-utils';
 import { describe, it, expect } from "vitest";
 import "../../src/presets";
 import { parseClassToAst } from "../../src/core/engine";
@@ -11,14 +12,14 @@ describe("has variants", () => {
         type: 'rule',
         selector: '&:has(.child)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#f00' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' },
         ],
       },
     ]);
   });
 
   it('group-hover:has-[.child]:bg-red-500 → .group:hover &:has(.child) { ... }', () => {
-    expect(parseClassToAst('group-hover:has-[.child]:bg-red-500', ctx)).toMatchObject([
+    expect(parseWithoutHoverMedia('group-hover:has-[.child]:bg-red-500', ctx)).toMatchObject([
       {
         type: 'rule',
         selector: '&:is(:where(.group):hover *)',
@@ -26,7 +27,7 @@ describe("has variants", () => {
           {
             type: 'rule',
             selector: '&:has(.child)',
-            nodes: [{ type: 'decl', prop: 'background-color', value: '#f00' }],
+            nodes: [{ type: 'decl', prop: 'background-color', value: 'var(--color-red-500)' }],
           },
         ],
       },
@@ -40,7 +41,7 @@ describe("has variants", () => {
         type: 'rule',
         selector: '&:has(.foo>.bar)',
         nodes: [
-          { type: 'decl', prop: 'background-color', value: '#00f' },
+          { type: 'decl', prop: 'background-color', value: 'var(--color-blue-500)' },
         ],
       },
     ]);

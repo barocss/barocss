@@ -8,6 +8,41 @@
 
 @barocss/browser provides a browser-specific runtime that automatically detects DOM changes and generates CSS in real-time. It includes DOM change detection, style injection, and performance optimizations for browser environments.
 
+## Recipe: BaroCSS next to a Tailwind/shadcn build (json-render)
+
+Use this when the page already links a Tailwind 4 / shadcn build and a model sends json-render specs whose `className` values the build never saw. Copy it as is:
+
+```js
+import { getRuntime, shadcnTheme, preloadJsonRenderClasses } from '@barocss/browser';
+// CDN/UMD build: const { getRuntime, shadcnTheme, preloadJsonRenderClasses } = window.BaroCSS;
+
+const runtime = getRuntime({
+  skipExisting: true,               // only generate classes the build does not already define
+  config: {
+    cssVarPrefix: 'tw',             // share --tw-* composite variables with the Tailwind build
+    theme: { extend: shadcnTheme }, // use the shadcn :root tokens (primary, muted-foreground, ...)
+    // preflight: leave unset. The layered preflight (@layer base) is the default and should stay on.
+  },
+});
+runtime.observe(document.body, { scan: true }); // also covers classes added later
+
+const spec = validateResponse(response);  // your catalog / class allowlist checks
+preloadJsonRenderClasses(spec, runtime);  // BEFORE mounting, so there is no unstyled flash
+renderJsonUi(spec);                       // mount your json-render Renderer
+```
+
+The five settings: `skipExisting: true`, `cssVarPrefix: 'tw'`, `theme: { extend: shadcnTheme }`, `preloadJsonRenderClasses(spec, runtime)` before mount, and the default layered preflight (don't set `preflight: false`).
+
+**Verify it rendered** (DevTools console, after mount):
+
+```js
+runtime.getCss('bg-primary');   // a CSS string once generated (undefined if the build already had it)
+getComputedStyle(document.querySelector('[class~="bg-primary"]')).backgroundColor; // not 'rgba(0, 0, 0, 0)'
+document.querySelectorAll('style[id^="barocss-runtime"]').length; // > 0
+```
+
+**Browser support:** Chrome/Edge 85+, Safari/iOS 16.4+, Firefox 128+. The runtime needs CSS `@property`; composite utilities (shadows, rings, transforms, filters) may not render on older engines.
+
 ## ✨ Key Features
 
 - **🚀 Real-time DOM Detection** - Automatically detects and processes class changes
@@ -36,7 +71,7 @@ yarn add @barocss/browser
 ```typescript
 import { BrowserRuntime } from '@barocss/browser';
 
-// Initialize runtime
+// Standalone page with no Tailwind build: defaults are fine. Next to a build, use the recipe above.
 const runtime = new BrowserRuntime();
 
 // Watch DOM changes and auto-style
@@ -50,6 +85,25 @@ document.body.innerHTML = `
   </div>
 `;
 ```
+
+### Preload classes from json-render
+
+Call the preloader after validating the response and before mounting the renderer:
+
+```typescript
+import { BrowserRuntime, preloadJsonRenderClasses, shadcnTheme } from '@barocss/browser';
+
+// Same options as the recipe above; drop them only when there is no Tailwind/shadcn build on the page.
+const runtime = new BrowserRuntime({
+  skipExisting: true,
+  config: { cssVarPrefix: 'tw', theme: { extend: shadcnTheme } },
+});
+const spec = validateResponse(response); // Your catalog and class allowlist checks
+preloadJsonRenderClasses(spec, runtime);
+renderJsonUi(spec); // Mount your json-render Renderer here
+```
+
+The helper reads literal `props.className` strings in the flat `spec.elements` map. It splits class lists, removes duplicates, and calls `runtime.addClass` synchronously. It does not return a CSS readiness result. The application must validate the spec, response size, class allowlist, class support, and runtime state before this call. The helper reads every entry, including nodes that the renderer may not mount. State-derived classes and classes added inside registered components need a separate source of classes.
 
 ### CDN Usage
 
@@ -70,7 +124,7 @@ document.body.innerHTML = `
   <script type="module">
     import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@latest/dist/cdn/barocss.js';
     
-    const runtime = new BrowserRuntime();
+    const runtime = new BrowserRuntime(); // no Tailwind build here; next to one, use the recipe's options
     runtime.observe(document.body, { scan: true });
   </script>
 </body>
@@ -90,7 +144,7 @@ The browser runtime provides real-time CSS generation:
 ```typescript
 import { BrowserRuntime } from '@barocss/browser';
 
-const runtime = new BrowserRuntime();
+const runtime = new BrowserRuntime(); // no Tailwind build here; next to one, use the recipe's options
 
 // Automatically detects and processes these changes:
 document.body.innerHTML = `
@@ -114,7 +168,7 @@ document.body.innerHTML = `
 ```typescript
 import { BrowserRuntime } from '@barocss/browser';
 
-const runtime = new BrowserRuntime();
+const runtime = new BrowserRuntime(); // no Tailwind build here; next to one, use the recipe's options
 
 // Watch entire document
 runtime.observe(document.body, { scan: true });
@@ -129,6 +183,7 @@ runtime.observe(container, { scan: true });
 ```typescript
 import { BrowserRuntime } from '@barocss/browser';
 
+// Custom theme, no Tailwind build; next to one, add the recipe's options too
 const runtime = new BrowserRuntime({
   config: {
     theme: {
@@ -154,7 +209,7 @@ const runtime = new BrowserRuntime({
 ```typescript
 import { BrowserRuntime } from '@barocss/browser';
 
-const runtime = new BrowserRuntime();
+const runtime = new BrowserRuntime(); // no Tailwind build here; next to one, use the recipe's options
 
 // Get runtime statistics
 const stats = runtime.getStats();
@@ -166,6 +221,10 @@ runtime.clearCaches();
 ```
 
 ## 🔧 Configuration
+
+`getRuntime()` / `baroStart()` share one runtime. Passing a `config` when that runtime
+already exists applies it with `updateConfig` (replacing the whole config), so calling
+`getRuntime()` before `baroStart({ config })` does not lose the config.
 
 ### Runtime Options
 
@@ -271,3 +330,29 @@ This project is licensed under the MIT License - see the [LICENSE](../../LICENSE
 ---
 
 **@barocss/browser** - Real-time CSS generation for browsers.
+
+## BaroCSS next to a shadcn build
+
+A shadcn app built with Tailwind 4 can make the runtime use its theme without a duplicate JS config:
+
+```js
+import { baroStart, shadcnTheme } from '@barocss/browser';
+
+baroStart({ config: { theme: { extend: shadcnTheme } } }); // theme only; with a Tailwind build + json-render use the full recipe at the top
+```
+
+`shadcnTheme` maps the shadcn colours (`background`, `primary`, `muted-foreground`, `border`, `ring`, `chart-1..5`, `sidebar-*`, ...) and `rounded-sm/md/lg/xl` to the raw `:root` variables (`var(--primary)`, `calc(var(--radius) - 2px)`). It does not use `--color-*`, because `@theme inline` doesn't emit those to the page. Opacity modifiers such as `bg-primary/90` work. It expects full colour values in `:root`, as shadcn v4 ships them (e.g. `--primary: oklch(0.205 0 0)`). Older shadcn v3 themes that store bare HSL channels (`--primary: 222 47% 11%`) won't resolve through `var(--primary)`; map those tokens to `hsl(var(--primary))` in your own `theme.extend` instead.
+
+Custom tokens (for example `--brand`) are not included. Add them yourself: `theme: { extend: { ...shadcnTheme, colors: { ...shadcnTheme.colors, brand: 'var(--brand)' } } }`.
+
+## BaroCSS next to a Tailwind build (companion mode)
+
+When the page already links a Tailwind 4 build and the runtime only fills in classes the build did not see, set `cssVarPrefix: 'tw'` so the runtime writes its composite variables with the build's names (`--tw-shadow`, `--tw-ring-shadow`, `--tw-translate-x`, `--tw-skew-x`, `--tw-blur`, `--tw-border-style`, ...):
+
+```js
+baroStart({ skipExisting: true, config: { cssVarPrefix: 'tw' } }); // add theme: { extend: shadcnTheme } for shadcn (recipe at the top)
+```
+
+The rename applies to every `--baro-` name in the generated CSS, including `--baro-*` names you write in your own arbitrary or custom-property values.
+
+A build class and a runtime class on one element then compose: build `ring-2` + runtime `shadow-md` gives both layers, build `translate-x-2` + runtime `translate-y-4` gives `8px 16px`, build `border-dashed` + runtime `border-2` stays dashed. Without it the runtime uses `--baro-*` names, and the two halves overwrite each other. Leave it unset when there is no Tailwind build. Gradient stops (`from-*`/`via-*`/`to-*` with `bg-linear-*`) do not yet follow Tailwind's variable protocol, so mixing them between build and runtime is not supported.

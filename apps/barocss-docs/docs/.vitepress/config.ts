@@ -58,6 +58,7 @@ export default defineConfig(withMermaid({
           text: 'Integration',
           items: [
             { text: 'Overview', link: '/guide/integration/overview' },
+            { text: 'Next to a Tailwind build', link: '/guide/integration/tailwind-companion' },
             { text: 'Frameworks (React, Vue, Svelte, Solid)', link: '/guide/integration/frameworks' },
             { text: 'jQuery', link: '/guide/integration/jquery' }
           ]

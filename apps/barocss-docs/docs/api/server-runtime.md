@@ -423,7 +423,7 @@ setInterval(() => {
 
 ### Static HTML build script
 
-Install the published `0.0.3` package with `pnpm add @barocss/server@0.0.3`. The `0.4.0` candidate is not yet published. Save this as `build-css.mjs` and run it from the project root with `node build-css.mjs`.
+Install the published `0.5.0` package with `pnpm add @barocss/server@0.5.0`. Save this as `build-css.mjs` and run it from the project root with `node build-css.mjs`.
 
 ```js
 import { readdirSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'

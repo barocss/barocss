@@ -132,6 +132,10 @@ select {
 html {
   line-height: 1.15;
   -webkit-text-size-adjust: 100%;
+  /* Tailwind 4.1.13 root font (app --default-font-family / --font-sans win) */
+  font-family: var(--default-font-family, var(--font-sans, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'));
+  font-feature-settings: var(--default-font-feature-settings, normal);
+  font-variation-settings: var(--default-font-variation-settings, normal);
 }
 
 /* Remove the gray background on active links in IE 10 */
@@ -297,6 +301,60 @@ textarea {
 [type="search"]::-webkit-search-decoration {
   -webkit-appearance: none;
 }
+
+/* Tailwind 4.1.13 monospace stack for code-like elements */
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--default-mono-font-family, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace));
+  font-feature-settings: var(--default-mono-font-feature-settings, normal);
+  font-variation-settings: var(--default-mono-font-variation-settings, normal);
+  font-size: 1em;
+}
+
+/* Tailwind 4.1.13 form-control reset: inherit typography and colour, drop native radius/background (#228) */
+button,
+input,
+select,
+optgroup,
+textarea,
+::file-selector-button {
+  font: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  border-radius: 0;
+  background-color: transparent;
+  opacity: 1;
+}
+
+:where(select:is([multiple], [size])) optgroup {
+  font-weight: bolder;
+}
+
+:where(select:is([multiple], [size])) optgroup option {
+  padding-inline-start: 20px;
+}
+
+::file-selector-button {
+  margin-inline-end: 4px;
+}
+
+::placeholder {
+  opacity: 1;
+}
+
+@supports (not (-webkit-appearance: -apple-pay-button)) or (contain-intrinsic-size: 1px) {
+  ::placeholder {
+    color: color-mix(in oklab, currentcolor 50%, transparent);
+  }
+}
+
+textarea {
+  resize: vertical;
+}
 `;
 
 export const preflightFullCSS = `
@@ -310,10 +368,14 @@ export const preflightFullCSS = `
   box-sizing: border-box;
 }
 
-/* Remove default margin and padding */
+/* Remove default margin and padding; reset border to Tailwind v4's universal
+   \`border: 0 solid\` so a bare border/border-t (width set by the utility, style
+   otherwise \`none\`) renders. Width 0 keeps borders invisible until a utility
+   sets one. */
 * {
   margin: 0;
   padding: 0;
+  border: 0 solid;
 }
 
 /* Set core body defaults */
@@ -374,6 +436,10 @@ html {
   line-height: 1.15;
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
+  /* Tailwind 4.1.13 root font (app --default-font-family / --font-sans win) */
+  font-family: var(--default-font-family, var(--font-sans, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'));
+  font-feature-settings: var(--default-font-feature-settings, normal);
+  font-variation-settings: var(--default-font-variation-settings, normal);
 }
 
 /* Remove the gray background on active links in IE 10 */
@@ -559,7 +625,9 @@ code,
 kbd,
 pre,
 samp {
-  font-family: monospace, monospace;
+  font-family: var(--default-mono-font-family, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace));
+  font-feature-settings: var(--default-mono-font-feature-settings, normal);
+  font-variation-settings: var(--default-mono-font-variation-settings, normal);
   font-size: 1em;
 }
 
@@ -660,5 +728,48 @@ template {
   h3 {
     page-break-after: avoid;
   }
+}
+
+/* Tailwind 4.1.13 form-control reset: inherit typography and colour, drop native radius/background (#228) */
+button,
+input,
+select,
+optgroup,
+textarea,
+::file-selector-button {
+  font: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  border-radius: 0;
+  background-color: transparent;
+  opacity: 1;
+}
+
+:where(select:is([multiple], [size])) optgroup {
+  font-weight: bolder;
+}
+
+:where(select:is([multiple], [size])) optgroup option {
+  padding-inline-start: 20px;
+}
+
+::file-selector-button {
+  margin-inline-end: 4px;
+}
+
+::placeholder {
+  opacity: 1;
+}
+
+@supports (not (-webkit-appearance: -apple-pay-button)) or (contain-intrinsic-size: 1px) {
+  ::placeholder {
+    color: color-mix(in oklab, currentcolor 50%, transparent);
+  }
+}
+
+textarea {
+  resize: vertical;
 }
 `;

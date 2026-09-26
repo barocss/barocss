@@ -1,8 +1,8 @@
 export function normalizeClassName(className: any): string {
     if (!className) return '';
   
-    if (className instanceof SVGAnimatedString) {
-      return className.baseVal.toString();
+    if (typeof className === 'object' && typeof className.baseVal === 'string') {
+      return className.baseVal;
     }
   
     return className.toString();

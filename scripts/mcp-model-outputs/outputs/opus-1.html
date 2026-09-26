@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather</title>
+<style>
+  :root {
+    --bg-top: #4a90d9;
+    --bg-bottom: #6db3f2;
+    --card-bg: rgba(255, 255, 255, 0.14);
+    --text: #ffffff;
+    --text-dim: rgba(255, 255, 255, 0.78);
+    --stroke: rgba(255, 255, 255, 0.22);
+    --shadow: rgba(20, 40, 80, 0.28);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: linear-gradient(160deg, var(--bg-top), var(--bg-bottom));
+    color: var(--text);
+    transition: background 0.6s ease;
+  }
+  .card {
+    width: 100%;
+    max-width: 360px;
+    background: var(--card-bg);
+    border: 1px solid var(--stroke);
+    border-radius: 22px;
+    padding: 22px 24px 20px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 12px 32px var(--shadow);
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .place {
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+  .updated {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0 4px;
+  }
+  .icon {
+    font-size: 62px;
+    line-height: 1;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.18));
+  }
+  .temp {
+    font-size: 58px;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .temp sup {
+    font-size: 22px;
+    font-weight: 400;
+    vertical-align: super;
+    top: -0.4em;
+  }
+  .cond {
+    font-size: 15px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    text-transform: capitalize;
+  }
+  .hilo {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-left: 4px;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    border-top: 1px solid var(--stroke);
+    padding-top: 16px;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+  }
+  .stat .label {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+  .stat .value {
+    font-size: 15px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+  <main class="card" id="card" role="group" aria-label="Weather card">
+    <div class="head">
+      <div class="place" id="place">—</div>
+      <div class="updated" id="updated"></div>
+    </div>
+    <div class="main">
+      <div class="icon" id="icon" aria-hidden="true">•</div>
+      <div class="temp" id="temp">--<sup>°</sup></div>
+    </div>
+    <div class="cond" id="cond">—
+      <span class="hilo" id="hilo"></span>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="label">Feels</span><span class="value" id="feels">—</span></div>
+      <div class="stat"><span class="label">Humidity</span><span class="value" id="humidity">—</span></div>
+      <div class="stat"><span class="label">Wind</span><span class="value" id="wind">—</span></div>
+    </div>
+  </main>
+
+<script>
+(function () {
+  "use strict";
+
+  // Default sample data; overridden by tool result if provided.
+  var DEFAULT = {
+    location: "San Francisco, CA",
+    unit: "F",
+    temp: 63,
+    feelsLike: 61,
+    high: 67,
+    low: 55,
+    condition: "partly cloudy",
+    humidity: 72,
+    windSpeed: 8,
+    windUnit: "mph",
+    updated: "Just now"
+  };
+
+  // Map a normalized condition to an emoji glyph and a gradient palette.
+  var THEMES = {
+    clear:   { icon: "☀️", top: "#3a7bd5", bottom: "#5fa8f5" },
+    sunny:   { icon: "☀️", top: "#3a7bd5", bottom: "#5fa8f5" },
+    cloud:   { icon: "⛅", top: "#5a7a9a", bottom: "#8fb0cc" },
+    overcast:{ icon: "☁️", top: "#5c6b7a", bottom: "#8a99a8" },
+    rain:    { icon: "🌧️", top: "#4a5b6c", bottom: "#6f8494" },
+    drizzle: { icon: "🌦️", top: "#4a5b6c", bottom: "#7f94a4" },
+    storm:   { icon: "⛈️", top: "#2c3440", bottom: "#4a5666" },
+    thunder: { icon: "⛈️", top: "#2c3440", bottom: "#4a5666" },
+    snow:    { icon: "🌨️", top: "#7089a8", bottom: "#b7c9dd" },
+    fog:     { icon: "🌫️", top: "#6b7480", bottom: "#9aa4b0" },
+    mist:    { icon: "🌫️", top: "#6b7480", bottom: "#9aa4b0" },
+    wind:    { icon: "💨", top: "#5a7a9a", bottom: "#8fb0cc" }
+  };
+
+  function pickTheme(cond) {
+    var c = String(cond || "").toLowerCase();
+    var keys = Object.keys(THEMES);
+    for (var i = 0; i < keys.length; i++) {
+      if (c.indexOf(keys[i]) !== -1) return THEMES[keys[i]];
+    }
+    return { icon: "🌡️", top: "#4a90d9", bottom: "#6db3f2" };
+  }
+
+  function num(v, fallback) {
+    return (typeof v === "number" && isFinite(v)) ? v : fallback;
+  }
+
+  function setText(id, txt) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = txt;
+  }
+
+  function render(d) {
+    var unit = d.unit === "C" ? "C" : (d.unit || "F");
+    var t = pickTheme(d.condition);
+
+    document.documentElement.style.setProperty("--bg-top", t.top);
+    document.documentElement.style.setProperty("--bg-bottom", t.bottom);
+    document.getElementById("icon").textContent = t.icon;
+
+    setText("place", d.location || "—");
+    setText("updated", d.updated ? "Updated " + d.updated : "");
+
+    var temp = num(d.temp, null);
+    document.getElementById("temp").innerHTML =
+      (temp === null ? "--" : Math.round(temp)) + "<sup>°" + unit + "</sup>";
+
+    setText("cond", d.condition || "—");
+
+    var hi = num(d.high, null), lo = num(d.low, null);
+    if (hi !== null || lo !== null) {
+      setText("hilo", "H:" + (hi !== null ? Math.round(hi) + "°" : "–") +
+                      "  L:" + (lo !== null ? Math.round(lo) + "°" : "–"));
+    }
+
+    var feels = num(d.feelsLike, null);
+    setText("feels", feels === null ? "—" : Math.round(feels) + "°");
+    var hum = num(d.humidity, null);
+    setText("humidity", hum === null ? "—" : Math.round(hum) + "%");
+    var wind = num(d.windSpeed, null);
+    setText("wind", wind === null ? "—" : Math.round(wind) + " " + (d.windUnit || "mph"));
+
+    document.getElementById("card").setAttribute(
+      "aria-label",
+      "Weather in " + (d.location || "unknown") + ": " +
+      (temp === null ? "" : Math.round(temp) + " degrees, ") + (d.condition || "")
+    );
+  }
+
+  function merge(base, extra) {
+    var out = {}, k;
+    for (k in base) if (base.hasOwnProperty(k)) out[k] = base[k];
+    if (extra && typeof extra === "object") {
+      for (k in extra) if (extra.hasOwnProperty(k) && extra[k] != null) out[k] = extra[k];
+    }
+    return out;
+  }
+
+  // Accept data pushed by the host via postMessage: { type:"weather", data:{...} }
+  window.addEventListener("message", function (e) {
+    var msg = e && e.data;
+    if (msg && msg.type === "weather" && msg.data) {
+      try { render(merge(DEFAULT, msg.data)); } catch (_) {}
+    }
+  });
+
+  // Optionally read data embedded by the host in a <script type="application/json" id="weather-data">.
+  var embedded = null;
+  var node = document.getElementById("weather-data");
+  if (node) {
+    try { embedded = JSON.parse(node.textContent); } catch (_) {}
+  }
+
+  render(merge(DEFAULT, embedded));
+})();
+</script>
+</body>
+</html>

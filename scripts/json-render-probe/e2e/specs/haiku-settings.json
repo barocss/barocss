@@ -1,0 +1,103 @@
+{
+ "root": "settings_form",
+ "elements": {
+  "settings_form": {
+   "type": "Card",
+   "props": {
+    "className": "w-full max-w-md p-6"
+   },
+   "children": [
+    "title",
+    "email_input",
+    "notifications_section",
+    "separator",
+    "actions_stack"
+   ]
+  },
+  "title": {
+   "type": "Text",
+   "props": {
+    "text": "Notification Preferences",
+    "variant": "h2"
+   },
+   "children": []
+  },
+  "email_input": {
+   "type": "Input",
+   "props": {
+    "label": "Email Address",
+    "placeholder": "your@email.com",
+    "type": "email"
+   },
+   "children": []
+  },
+  "notifications_section": {
+   "type": "Stack",
+   "props": {
+    "className": "space-y-4 mt-6"
+   },
+   "children": [
+    "toggle_1",
+    "toggle_2",
+    "toggle_3"
+   ]
+  },
+  "toggle_1": {
+   "type": "Switch",
+   "props": {
+    "label": "Email Notifications",
+    "checked": true
+   },
+   "children": []
+  },
+  "toggle_2": {
+   "type": "Switch",
+   "props": {
+    "label": "Marketing Emails",
+    "checked": false
+   },
+   "children": []
+  },
+  "toggle_3": {
+   "type": "Switch",
+   "props": {
+    "label": "Weekly Digest",
+    "checked": true
+   },
+   "children": []
+  },
+  "separator": {
+   "type": "Separator",
+   "props": {
+    "className": "my-6"
+   },
+   "children": []
+  },
+  "actions_stack": {
+   "type": "Stack",
+   "props": {
+    "className": "flex gap-3 justify-end"
+   },
+   "children": [
+    "cancel_button",
+    "save_button"
+   ]
+  },
+  "cancel_button": {
+   "type": "Button",
+   "props": {
+    "label": "Cancel",
+    "variant": "outline"
+   },
+   "children": []
+  },
+  "save_button": {
+   "type": "Button",
+   "props": {
+    "label": "Save",
+    "variant": "default"
+   },
+   "children": []
+  }
+ }
+}

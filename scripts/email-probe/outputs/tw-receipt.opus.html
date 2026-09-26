@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Order Receipt — Chapter One Books</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+  <div class="max-w-2xl mx-auto my-8 bg-white rounded-2xl shadow-md overflow-hidden">
+
+    <!-- Header -->
+    <div class="bg-indigo-700 px-8 py-6 text-center">
+      <h1 class="text-2xl font-bold text-white tracking-tight">Chapter One Books</h1>
+      <p class="text-indigo-200 text-sm mt-1">Thanks for reading with us</p>
+    </div>
+
+    <!-- Confirmation -->
+    <div class="px-8 py-6 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Order Confirmed 🎉</h2>
+      <p class="text-sm text-gray-600 mt-1">
+        Hi Jordan, your order has been received and is being prepared for shipment.
+      </p>
+      <div class="mt-4 flex flex-wrap gap-x-8 gap-y-2 text-sm">
+        <div>
+          <span class="block text-gray-400">Order Number</span>
+          <span class="font-medium text-gray-900">#BK-2026-04871</span>
+        </div>
+        <div>
+          <span class="block text-gray-400">Order Date</span>
+          <span class="font-medium text-gray-900">September 26, 2026</span>
+        </div>
+        <div>
+          <span class="block text-gray-400">Payment</span>
+          <span class="font-medium text-gray-900">Visa •••• 4242</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line Items -->
+    <div class="px-8 py-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-400 border-b border-gray-200">
+            <th class="pb-3 font-medium">Item</th>
+            <th class="pb-3 font-medium text-center">Qty</th>
+            <th class="pb-3 font-medium text-right">Price</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr>
+            <td class="py-4">
+              <p class="font-medium text-gray-900">The Midnight Library</p>
+              <p class="text-gray-500">Matt Haig · Paperback</p>
+            </td>
+            <td class="py-4 text-center text-gray-700">1</td>
+            <td class="py-4 text-right font-medium text-gray-900">$16.99</td>
+          </tr>
+          <tr>
+            <td class="py-4">
+              <p class="font-medium text-gray-900">Project Hail Mary</p>
+              <p class="text-gray-500">Andy Weir · Hardcover</p>
+            </td>
+            <td class="py-4 text-center text-gray-700">2</td>
+            <td class="py-4 text-right font-medium text-gray-900">$53.98</td>
+          </tr>
+          <tr>
+            <td class="py-4">
+              <p class="font-medium text-gray-900">Atomic Habits</p>
+              <p class="text-gray-500">James Clear · Paperback</p>
+            </td>
+            <td class="py-4 text-center text-gray-700">1</td>
+            <td class="py-4 text-right font-medium text-gray-900">$18.00</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Totals -->
+      <div class="mt-6 border-t border-gray-200 pt-4 space-y-2 text-sm">
+        <div class="flex justify-between text-gray-600">
+          <span>Subtotal</span>
+          <span>$88.97</span>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>Shipping</span>
+          <span>$4.99</span>
+        </div>
+        <div class="flex justify-between text-gray-600">
+          <span>Tax (8.25%)</span>
+          <span>$7.34</span>
+        </div>
+        <div class="flex justify-between text-base font-bold text-gray-900 border-t border-gray-200 pt-3 mt-2">
+          <span>Total</span>
+          <span>$101.30</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shipping Address -->
+    <div class="px-8 py-6 bg-gray-50 border-t border-gray-200">
+      <h3 class="text-sm font-semibold text-gray-900">Shipping To</h3>
+      <p class="text-sm text-gray-600 mt-2 leading-relaxed">
+        Jordan Rivera<br />
+        482 Maple Avenue, Apt 3B<br />
+        Portland, OR 97205<br />
+        United States
+      </p>
+      <a href="#" class="inline-block mt-4 bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-medium px-5 py-2.5 rounded-lg">
+        Track Your Order
+      </a>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-8 py-6 text-center border-t border-gray-200">
+      <p class="text-xs text-gray-400">
+        Questions about your order? Reply to this email or visit our
+        <a href="#" class="text-indigo-600 underline">Help Center</a>.
+      </p>
+      <p class="text-xs text-gray-400 mt-2">
+        Chapter One Books · 100 Bookbinder Lane, Portland, OR 97205
+      </p>
+      <p class="text-xs text-gray-300 mt-1">© 2026 Chapter One Books. All rights reserved.</p>
+    </div>
+
+  </div>
+</body>
+</html>
