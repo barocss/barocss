@@ -78,6 +78,15 @@ export function boxShadowToCssVars(boxShadow?: Record<string, unknown>): Record<
  * fontSize: { xs: ['0.75rem', '1rem'], ... }
  * → { '--text-xs': '0.75rem', '--text-xs--line-height': '1rem' }
  */
+/** The line height of a fontSize tuple: `['4rem', '1.1']` or Tailwind's `['4rem', { lineHeight: '1.1' }]` (#300). */
+export function fontSizeLineHeight(value: unknown): string | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const second = value[1] as unknown;
+  if (typeof second === 'string' || typeof second === 'number') return String(second);
+  const lh = (second as { lineHeight?: unknown } | undefined)?.lineHeight;
+  return lh == null ? undefined : String(lh);
+}
+
 export function fontSizeToCssVars(fontSize?: Record<string, unknown>): Record<string, string> {
   if (!fontSize) return {};
   const result: Record<string, string> = {};
@@ -85,7 +94,8 @@ export function fontSizeToCssVars(fontSize?: Record<string, unknown>): Record<st
     const value = fontSize[key] as unknown;
     if (Array.isArray(value)) {
       result[`--text-${key}`] = value[0] as string;
-      if (value[1]) result[`--text-${key}--line-height`] = value[1];
+      const lineHeight = fontSizeLineHeight(value);
+      if (lineHeight) result[`--text-${key}--line-height`] = lineHeight;
     } else {
       result[`--text-${key}`] = value as string;
     }

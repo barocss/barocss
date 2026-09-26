@@ -1,4 +1,5 @@
-import { staticUtility, functionalUtility } from "../core/registry";
+import { staticUtility, functionalUtility, registerUtility, themeKeyVar, themeKeyValue } from "../core/registry";
+import { fontSizeLineHeight } from "../core/cssVars";
 import { atRoot, decl, property, rule } from "../core/ast";
 
 // Tailwind v4: leading-* sets --tw-leading (registered, non-inheriting) and text-<size> reads
@@ -31,23 +32,41 @@ staticUtility("text-9xl", [["font-size", "var(--text-9xl)"], ["line-height", "va
 
 
 // --- Typography: Font Weight ---
-staticUtility("font-thin", [["font-weight", "var(--font-weight-thin)"]], { category: 'typography' });
-staticUtility("font-extralight", [["font-weight", "var(--font-weight-extralight)"]], { category: 'typography' });
-staticUtility("font-light", [["font-weight", "var(--font-weight-light)"]], { category: 'typography' });
-staticUtility("font-normal", [["font-weight", "var(--font-weight-normal)"]], { category: 'typography' });
-staticUtility("font-medium", [["font-weight", "var(--font-weight-medium)"]], { category: 'typography' });
-staticUtility("font-semibold", [["font-weight", "var(--font-weight-semibold)"]], { category: 'typography' });
-staticUtility("font-bold", [["font-weight", "var(--font-weight-bold)"]], { category: 'typography' });
-staticUtility("font-extrabold", [["font-weight", "var(--font-weight-extrabold)"]], { category: 'typography' });
-staticUtility("font-black", [["font-weight", "var(--font-weight-black)"]], { category: 'typography' });
+// #300: Tailwind 4.3.3 resolves --font-<key> before --font-weight-<key>, so a theme.fontFamily key named like a
+// weight (`fontFamily.bold`) turns `font-bold` into that family, as `@theme { --font-bold: ... }` does.
+function fontWeightUtility(name: string) {
+  registerUtility({
+    name: `font-${name}`,
+    match: (className: string) => className === `font-${name}`,
+    handler: (_value, ctx) => {
+      const family = themeKeyVar(ctx, "fontFamily", name, "font");
+      return family ? [decl("font-family", family)] : [decl("font-weight", `var(--font-weight-${name})`)];
+    },
+    category: "typography",
+  });
+}
+fontWeightUtility("thin");
+fontWeightUtility("extralight");
+fontWeightUtility("light");
+fontWeightUtility("normal");
+fontWeightUtility("medium");
+fontWeightUtility("semibold");
+fontWeightUtility("bold");
+fontWeightUtility("extrabold");
+fontWeightUtility("black");
 
 functionalUtility({
   name: "font",
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  // #300: font-<any theme.fontFamily key> → var(--font-<key>), else font-<any theme.fontWeight key> →
+  // var(--font-weight-<key>) (family first, as Tailwind resolves --font before --font-weight).
+  handleBareValue: ({ value, ctx }) =>
+    themeKeyVar(ctx, "fontFamily", value, "font") ?? themeKeyVar(ctx, "fontWeight", value, "font-weight") ?? (/^(\d|\.\d)/.test(value) ? value : null),
   handle: (value, _ctx, token) => {
     // font-features-*/font-stretch-* belong to their own registrations (#309).
     if (token.prefix !== "font") return null;
+    if (!token.arbitrary && value.startsWith("var(--font-weight-")) return [decl("font-weight", value)];
     if (parseNumber(value)) {
       return [decl("font-weight", value)];
     }
@@ -79,9 +98,10 @@ staticUtility("tracking-widest", [["letter-spacing", "var(--letter-spacing-wides
 functionalUtility({
   name: "tracking",
   prop: "letter-spacing",
-  themeKey: "letterSpacing",
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  // #300: tracking-<any theme.letterSpacing key> → var(--letter-spacing-<key>), the form of the built-in names.
+  handleBareValue: ({ value, ctx }) => themeKeyVar(ctx, "letterSpacing", value, "letter-spacing") ?? (/^(\d|\.\d)/.test(value) ? value : null),
   description: "letter-spacing utility (theme, arbitrary, custom property supported)",
   category: "typography",
 });
@@ -96,11 +116,16 @@ staticUtility("leading-loose", [["--baro-leading", "var(--leading-loose, 2)"], [
 
 functionalUtility({
   name: "leading",
-  prop: "line-height",
-  themeKey: "lineHeight",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handleBareValue: ({ value }) => parseNumber(value),
+  // #300: leading-<any theme.lineHeight key> → var(--leading-<key>, <value>) plus --baro-leading, like the built-in
+  // names (no `prop`, so the theme path goes through handle and keeps --baro-leading).
+  handleBareValue: ({ value, ctx }) => {
+    const v = themeKeyValue(ctx, "lineHeight", value);
+    if (v != null) return `var(--leading-${value}, ${v})`;
+    const numbered = ctx.theme("lineHeight", value); // numeric theme keys (leading-7 → 1.75rem) stay literal
+    return typeof numbered === "string" ? numbered : parseNumber(value);
+  },
   handle: (value) => [decl("--baro-leading", value), decl("line-height", value), leadingProperty()],
   handleCustomProperty: (value) => [decl("--baro-leading", `var(${value})`), decl("line-height", `var(${value})`), leadingProperty()],
   description: "line-height utility (theme, number, arbitrary, custom property supported)",
@@ -144,8 +169,17 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsOpacity: true,
+  // #300: text-<any theme.fontSize key> (text-hero) → var(--text-hero), when no colour matched.
+  handleBareValue: ({ value, ctx, extra }) => (extra?.opacity ? null : themeKeyVar(ctx, "fontSize", value, "text")) ?? (/^(\d|\.\d)/.test(value) ? value : null),
   handle: (value, ctx, token, extra) => {
     if (extra?.realThemeValue) return themeColorDecls("color", value, extra);
+    const sizeKey = !token.arbitrary && !token.customProperty ? /^var\(--text-([\w-]+)\)$/.exec(value)?.[1] : undefined;
+    if (sizeKey) {
+      const lineHeight = fontSizeLineHeight(ctx.theme("fontSize", sizeKey));
+      return lineHeight
+        ? [decl("font-size", value), decl("line-height", `var(--baro-leading, var(--text-${sizeKey}--line-height))`)]
+        : [decl("font-size", value)];
+    }
 
     const kind = textArbitraryKind(value);
     return [decl(kind.fontSize ? "font-size" : "color", kind.value)];

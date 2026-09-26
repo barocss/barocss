@@ -1,4 +1,5 @@
-import { staticUtility, functionalUtility, registerUtility } from "../core/registry";
+import { staticUtility, functionalUtility, registerUtility, themeKeyValue } from "../core/registry";
+import type { Context } from "../core/context";
 import { shadowColorDecls, shadowValueDecls, type ShadowLayer } from "./shadow-color";
 import { atRule, atRoot, decl, property } from "../core/ast";
 import { parseColor, parseNumber } from "../core/utils";
@@ -68,11 +69,16 @@ function boxShadowLayer(layer: "shadow" | "inset-shadow", value: string, opacity
   return [ringShadowProperties(), shadowColorProperties(layer), ...decls, decl("box-shadow", SHADOW_COMPOSITE)];
 }
 
-function namedBoxShadow(layer: "shadow" | "inset-shadow", name: string, opacity: string | undefined) {
-  if (layer === "shadow") return own(NAMED_SHADOWS, name) ? boxShadowLayer(layer, NAMED_SHADOWS[name], opacity) : null;
-  if (own(NAMED_INSET_SHADOWS, name)) return boxShadowLayer(layer, NAMED_INSET_SHADOWS[name], opacity);
-  if (!opacity && own(INSET_EXTENSIONS, name)) return boxShadowLayer(layer, INSET_EXTENSIONS[name], undefined);
-  return null;
+function namedBoxShadow(layer: "shadow" | "inset-shadow", name: string, opacity: string | undefined, ctx?: Context) {
+  if (layer === "shadow") {
+    if (own(NAMED_SHADOWS, name)) return boxShadowLayer(layer, NAMED_SHADOWS[name], opacity);
+  } else {
+    if (own(NAMED_INSET_SHADOWS, name)) return boxShadowLayer(layer, NAMED_INSET_SHADOWS[name], opacity);
+    if (!opacity && own(INSET_EXTENSIONS, name)) return boxShadowLayer(layer, INSET_EXTENSIONS[name], undefined);
+  }
+  // #300: any other key of theme.boxShadow / theme.insetShadow (`shadow-card`), composed like the named sizes.
+  const custom = ctx && name !== "none" ? themeKeyValue(ctx, layer === "shadow" ? "boxShadow" : "insetShadow", name) : null;
+  return custom ? boxShadowLayer(layer, custom, opacity) : null;
 }
 
 staticUtility("shadow-none", [ringShadowProperties, ["--baro-shadow", "0 0 #0000"], ["box-shadow", SHADOW_COMPOSITE]], { category: 'effects' });
@@ -110,10 +116,10 @@ for (const layer of ["shadow", "inset-shadow"] as const) {
     supportsCustomProperty: true,
     supportsOpacity: true,
     themeKeys: ["colors"],
-    handleBareValue: ({ value, extra }) => (namedBoxShadow(layer, value, extra?.opacity) ? value : null),
-    handle: (value, _ctx, token, extra) => {
+    handleBareValue: ({ value, ctx, extra }) => (namedBoxShadow(layer, value, extra?.opacity, ctx) ? value : null),
+    handle: (value, ctx, token, extra) => {
       const opacity = extra?.opacity;
-      const named = !extra?.realThemeValue && !token.arbitrary ? namedBoxShadow(layer, value, opacity) : null;
+      const named = !extra?.realThemeValue && !token.arbitrary ? namedBoxShadow(layer, value, opacity, ctx) : null;
       if (named) return named;
       const color = layerColor(layer, value, opacity, token, extra?.realThemeValue);
       if (color !== undefined) return color;

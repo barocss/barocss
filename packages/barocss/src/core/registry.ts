@@ -467,6 +467,30 @@ export type FunctionalUtilityOptions = {
  *     category: 'layout',
  *   });
  */
+/**
+ * #300: a theme key that no built-in utility names (`theme.extend.borderRadius.card`) still resolves, as in
+ * Tailwind 4 where `--radius-card` gives `rounded-card`. Only word keys that start with a letter (numbers stay
+ * bare values), never `DEFAULT`; unknown keys return null so the utility emits nothing (#213).
+ */
+function themeKeyEntry(ctx: Context, namespace: string, key: string): unknown {
+  if (key === 'DEFAULT' || !/^[a-zA-Z][\w-]*$/.test(key) || typeof ctx?.theme !== 'function') return undefined;
+  // An own key of the namespace only: ctx.theme() also resolves dashed paths (`shadow-lg` → shadow.lg).
+  const table = ctx.theme(namespace) as Record<string, unknown> | undefined;
+  if (!table || typeof table !== 'object' || !Object.prototype.hasOwnProperty.call(table, key)) return undefined;
+  return table[key] ?? undefined;
+}
+
+/** #300: the literal value of `theme.<namespace>.<key>` when it is a string, else null. */
+export function themeKeyValue(ctx: Context, namespace: string, key: string): string | null {
+  const v = themeKeyEntry(ctx, namespace, key);
+  return typeof v === 'string' ? v : null;
+}
+
+/** #300: `var(--<varPrefix>-<key>)` when `theme.<namespace>.<key>` exists (the :root var BaroCSS emits for it), else null. */
+export function themeKeyVar(ctx: Context, namespace: string, key: string, varPrefix: string): string | null {
+  return themeKeyEntry(ctx, namespace, key) === undefined ? null : `var(--${varPrefix}-${key})`;
+}
+
 /** #261: `var(--spacing-<key>)` for a named (non-numeric) `theme.spacing` key, else null. */
 function spacingKeyValue(ctx: Context, key: string, negative: boolean): string | null {
   if (key === 'px' || !/^[a-zA-Z][\w-]*$/.test(key) || ctx.theme('spacing', key) == null) return null;
