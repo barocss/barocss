@@ -44,3 +44,27 @@ target of 10 to 20.
 - Conclusion: no runtime action (ownership APP for any flicker concern). An app that wants zero intermediate styles
   can render class attributes only on tag close (the `incremental` mode already does this). Confirm with N≥10 at
   20/100 tok/s before closing.
+
+## Confirming run (2026-09-27, v3/issue-415b): BLOCKED by the host, N still below target
+
+Harness changes: one browser per invocation, a new 1300x900 context per trial, concurrency 1, background-throttling
+flags, 100 ms sampling on class-bearing elements, result.json appended per trial, CLI `run.mjs rounds conc rate`,
+`DOCS=a,b` slice, `REF_CACHE` (refs reused across invocations), resume (skips done cond/doc pairs), a 60 s trial cap
+that ends the invocation, and a hard in-process deadline (`DEADLINE_S`, default 450). The earlier partial
+result.json was replaced (it stays in history). Rerun: `PW_DIR=... CHROME=... REF_CACHE=/tmp/refs.json
+node scripts/stream-415/run.mjs 1 1 100` (with MODES=, SETTLED=0, DOCS=), repeated until N=10.
+
+| condition | N | junk rules | calls | wrong-style samples | streams w/ wrong | last token→final med / p90 | cache end / after GC |
+|---|---|---|---|---|---|---|---|
+| settled | 3 | 0 | 1 | 0% | 1/3 | 28 / 238 ms | 43 / 43 |
+| innerHTML@100 | 1 | 0 | 23 | 0.6% | 1/1 | 0.6 / 0.6 ms | 51 / 51 |
+| incremental@100 | 6 | 0 | 22 | 0.4% | 5/6 | 0.5 / 0.6 ms | 58 / 58 |
+| 50 and 20 tok/s | 0 | not measured | | | | | |
+
+Why so few: the machine (load 10 to 23 from other sessions) repeatedly froze processes for minutes; a trial that
+normally takes about 27 s hit the 60 s cap, and one invocation completed 0 trials. `pnpm install` also hung, so the
+runtime is the integration checkout's prebuilt `@barocss/browser` dist (same develop).
+
+Reading: every new trial agrees with the partial run (0 junk rules, 0 junk cached, GC has nothing to reclaim, final
+style under 1 ms after the last token, wrong-style samples under 1%). "No BaroCSS gap; APP owns any flicker" still
+holds, but it is not confirmed at N>=10 or at 20/50 tok/s. Next: rerun on an idle machine (the harness resumes).
