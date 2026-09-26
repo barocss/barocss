@@ -124,8 +124,9 @@ const srv = http.createServer((q, r) => {
   r.writeHead(404); r.end();
 });
 await new Promise((ok) => srv.listen(PORT, '127.0.0.1', ok));
-const { chromium } = createRequire(path.join(process.env.PW_DIR, 'node_modules/'))('playwright-core');
-const browser = await chromium.launch({ executablePath: process.env.CHROME });
+const ENGINE = process.env.ENGINE || 'chromium'; // #374: ENGINE=firefox|webkit uses PW_DIR's bundled engine
+const pwEngines = createRequire(path.join(process.env.PW_DIR, 'node_modules/'))('playwright-core'), chromium = pwEngines[ENGINE];
+const browser = await chromium.launch({ executablePath: ENGINE === 'chromium' ? process.env.CHROME : undefined });
 async function run(kind, arm, m) {
   const p = await browser.newPage({ viewport: { width: 1280, height: 1400 } });
   const cons = [];
