@@ -241,27 +241,28 @@ export class StylePartitionManager {
       categoryPartition = this.createNewCategoryPartition("root");
     }   
 
-    try {
-
-      const sheet = categoryPartition.styleElement.sheet;
-
-      for (const rule of rules) {
+    // #406: blank rules are skipped and each rule is inserted on its own, so one rule the browser rejects
+    // no longer stops the root rules after it.
+    const sheet = categoryPartition.styleElement.sheet;
+    let success = 0;
+    let failed = 0;
+    for (const rule of rules) {
+      if (!rule || !rule.trim()) continue;
+      try {
         if (sheet) {
           sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
         } else {
           categoryPartition.styleElement.textContent += rule + "\n";
         }
+        success++;
+      } catch (error) {
+        failed++;
+        // eslint-disable-next-line no-console
+        if (isDebug()) console.warn(`[StylePartitionManager] Failed to insert rule in category: root ${rule}`, error);
       }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      if (isDebug()) console.warn(
-        `[StylePartitionManager] Failed to insert rule in category: root ${rules.join("\n")}`,
-        error
-      );
-      return { success: 0, failed: rules.length };
     }
 
-    return { success: rules.length, failed: 0 };
+    return { success, failed };
   }
 
   addRules(rules: GenerateCssRulesResult[]) {
