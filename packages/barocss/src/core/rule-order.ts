@@ -5,7 +5,8 @@
  * seen before `sm:px-6` would land earlier and lose at >= 1024px. Each rule
  * gets a sort key derived from its leading `@media` / `@container` preludes:
  *
- *   0  base, state media (hover), motion/contrast, unknown
+ *   0  base, negated media (`not-md:` → `@media not (…)`, as Tailwind 4.3.3 orders them, #352),
+ *      state media (hover), motion/contrast, unknown
  *   1  max-* breakpoints        (larger width first)
  *   2  min-* breakpoints        (smaller width first)
  *   3  @max-* container queries (larger width first)
@@ -29,6 +30,7 @@ function toPx(n: string, unit?: string): number {
 
 function preludeKey(kind: string, prelude: string): [number, number] {
   const container = kind === "container";
+  if (!container && /^\s*not\b/i.test(prelude)) return [0, 0];
   const min = MIN_W.exec(prelude);
   if (min) return [container ? 4 : 2, toPx(min[1], min[2])];
   const max = MAX_W.exec(prelude);

@@ -1,4 +1,4 @@
-import { functionalArgument, pseudoClassOf } from "./utils";
+import { functionalArgument, negatableSelectorOf } from "./utils";
 import { functionalModifier } from "../../core/registry";
 
 // --- Standard aria and not- variants ---
@@ -53,7 +53,7 @@ functionalModifier(
       }
     } else {
       // not-hover → :not(:hover); not-first → :not(:first-child); unknown → nothing (#335)
-      const inner = pseudoClassOf(pseudo, context);
+      const inner = negatableSelectorOf(pseudo, context);
       if (!inner) return null;
       return {
         selector: `&:not(${inner})`,
