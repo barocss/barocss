@@ -1,5 +1,7 @@
+// TODO(#304): known 4.3 difference, so this file stays pinned to Tailwind 4.1.13 (`tailwindcss-4-1`). 4.3 flattens nested `&` rules (`.hover\:block:hover` instead of `.hover\:block { &:hover {...} }`), so this exact-structure snapshot differs in shape, not in effect.
+// Effective-value parity against 4.3 is covered by parity-corpus/parity-heldout; port this text/shape check to 4.3 output.
 import { describe, expect, it } from 'vitest';
-import { compile } from 'tailwindcss';
+import { compile } from 'tailwindcss-4-1';
 import postcss, { type ChildNode } from 'postcss';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';

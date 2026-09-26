@@ -1,3 +1,5 @@
+// TODO(#304): known 4.3 difference, so this file stays pinned to Tailwind 4.1.13 (`tailwindcss-4-1`). 4.3 flattens nested `&` rules and drops the redundant `*` in `:not(*:is(.a))` -> `:not(:is(.a))`; this test compares selector text.
+// Effective-value parity against 4.3 is covered by parity-corpus/parity-heldout; port this text/shape check to 4.3 output.
 /**
  * #226: variant/selector parity with Tailwind 4.1.13. Tailwind nests (`.cls { &X { @media … { … } } }`);
  * BaroCSS emits the flattened rule inside its at-rules. Both are reduced to
@@ -6,13 +8,13 @@
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
-import { compile } from 'tailwindcss';
+import { compile } from 'tailwindcss-4-1';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
 import '../../src/presets';
 
 const req = createRequire(import.meta.url);
-const theme = fs.readFileSync(req.resolve('tailwindcss/theme.css'), 'utf8');
+const theme = fs.readFileSync(req.resolve('tailwindcss-4-1/theme.css'), 'utf8');
 const ws = (s: string) => s.replace(/\s+/g, ' ').trim();
 
 type Flat = { media: string[]; selector: string; decls: string };

@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import { compile } from 'tailwindcss';
+import { compile as compile41 } from 'tailwindcss-4-1';
 import postcss, { type AtRule, type Container, type Declaration, type Rule } from 'postcss';
 import { createContext } from '../../src/core/context';
 import { generateCss } from '../../src/core/engine';
@@ -175,13 +176,40 @@ export function diffKeyframes(twCss: string, baroCss: string, out: string[]) {
 
 export type ParityResult = { token: string; uses: number; family: string; varOnly: boolean; pass: boolean; diffs: string[] };
 
-export async function runParity(corpus: readonly (readonly [string, number])[]): Promise<ParityResult[]> {
+// #304: the primary reference is Tailwind 4.3.x (`tailwindcss`); 4.1.13 (`tailwindcss-4-1`) is kept for a
+// report-only comparison line.
+export type TwRef = 'tailwindcss' | 'tailwindcss-4-1';
+const compilers = { tailwindcss: compile, 'tailwindcss-4-1': compile41 } as const;
+
+export function tailwindBuilder(ref: TwRef = 'tailwindcss') {
   const require = createRequire(import.meta.url);
-  const themeCss = fs.readFileSync(require.resolve('tailwindcss/theme.css'), 'utf8');
+  const themeCss = fs.readFileSync(require.resolve(`${ref}/theme.css`), 'utf8');
+  return async (tokens: string[]) => (await compilers[ref](`${themeCss}\n@tailwind utilities;`)).build(tokens);
+}
+
+/** #304: tokens whose *effective* Tailwind output differs between 4.1.13 and 4.3.x. */
+export async function tailwindVersionDiffs(tokens: readonly string[]): Promise<string[]> {
+  const a = tailwindBuilder('tailwindcss-4-1');
+  const b = tailwindBuilder('tailwindcss');
+  const key = (e: Effective) => JSON.stringify([e.decls, e.vars, e.wrappers]);
+  const out: string[] = [];
+  for (const t of tokens) {
+    const [ea, eb] = [effective(await a([t]), new Map()), effective(await b([t]), new Map())];
+    if (key(ea) === key(eb)) continue;
+    const d: string[] = [];
+    for (const p of new Set([...Object.keys(ea.decls), ...Object.keys(eb.decls)])) if (ea.decls[p] !== eb.decls[p]) d.push(`${p}: ${ea.decls[p] ?? '∅'} → ${eb.decls[p] ?? '∅'}`);
+    for (const p of new Set([...Object.keys(ea.vars), ...Object.keys(eb.vars)])) if (ea.vars[p] !== eb.vars[p]) d.push(`${p}: ${ea.vars[p] ?? '∅'} → ${eb.vars[p] ?? '∅'}`);
+    if (ea.wrappers !== eb.wrappers) d.push(`wrapper: ${ea.wrappers || '∅'} → ${eb.wrappers || '∅'}`);
+    out.push(`${t}: ${d.join('; ')}`);
+  }
+  return out;
+}
+
+export async function runParity(corpus: readonly (readonly [string, number])[], ref: TwRef = 'tailwindcss'): Promise<ParityResult[]> {
   const ctx = createContext({ preflight: false });
   const baroRoot: Scope = new Map();
   postcss.parse(ctx.themeToCssVars()).walkDecls((d) => { if (d.prop.startsWith('--')) baroRoot.set(d.prop, d.value); });
-  const twCss = async (tokens: string[]) => (await compile(`${themeCss}\n@tailwind utilities;`)).build(tokens);
+  const twCss = tailwindBuilder(ref);
   const baroCss = (tokens: string[]) => tokens.map((t) => { try { return generateCss(t, ctx); } catch { return ''; } }).join('\n');
 
   return Promise.all(corpus.map(async ([token, uses]) => {
