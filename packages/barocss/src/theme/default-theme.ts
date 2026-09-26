@@ -49,4 +49,6 @@ export const defaultTheme = {
   keyframes,
   animationVars,
   blur,
+  // Tailwind 4.1.13 --aspect-* (aspect-video → var(--aspect-video))
+  aspect: { video: '16 / 9' },
 } as UserTheme; 
