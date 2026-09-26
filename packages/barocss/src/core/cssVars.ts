@@ -225,6 +225,46 @@ export function keyframesToCss(keyframes?: Record<string, unknown>): string {
   return css;
 }
 
+const COMMENT_OR_BLOCK = /\/\*|\*\/|[{};]/;
+
+/** #274: one `@keyframes` block in Tailwind's layout, or '' when a name/step/declaration could break out of it (#273). */
+export function keyframesBlock(name: string, frames: unknown): string {
+  if (!name || COMMENT_OR_BLOCK.test(name) || /\s/.test(name) || !frames || typeof frames !== 'object') return '';
+  let body = '';
+  for (const [step, props] of Object.entries(frames as Record<string, unknown>)) {
+    if (COMMENT_OR_BLOCK.test(step) || !props || typeof props !== 'object') return '';
+    let decls = '';
+    for (const [prop, value] of Object.entries(props as Record<string, unknown>)) {
+      const v = String(value);
+      if (COMMENT_OR_BLOCK.test(prop) || COMMENT_OR_BLOCK.test(v)) return '';
+      decls += `    ${prop}: ${v};\n`;
+    }
+    body += `  ${step} {\n${decls}  }\n`;
+  }
+  return `@keyframes ${name} {\n${body}}`;
+}
+
+/**
+ * #274: the `@keyframes` blocks generated CSS needs: every theme keyframes name that an `animation` /
+ * `animation-name` declaration mentions, directly or through a theme `var(--animate-*)`.
+ */
+export function referencedKeyframes(css: string, ctx: Context): string[] {
+  if (!css.includes('animation')) return [];
+  const all = ctx.theme('keyframes') as Record<string, unknown> | undefined;
+  if (!all || typeof all !== 'object') return [];
+  const names = new Set<string>();
+  for (const m of css.matchAll(/(?:^|[\s;{])animation(?:-name)?\s*:\s*([^;}]+)/g)) {
+    const value = m[1].replace(/var\(--animate-([\w-]+)\)/g, (whole, key: string) => {
+      const v = ctx.theme('animations', key) ?? ctx.theme('animation', key);
+      return typeof v === 'string' ? v : whole;
+    });
+    for (const word of value.split(/[\s,()]+/)) {
+      if (word && Object.prototype.hasOwnProperty.call(all, word)) names.add(word);
+    }
+  }
+  return [...names].map((n) => keyframesBlock(n, all[n])).filter(Boolean);
+}
+
 /**
  * transition: { duration: '150ms', ... }
  * → { '--transition-duration': '150ms' }
@@ -323,7 +363,7 @@ export function themeToCssVarsAll(theme: Theme): Record<string, string> {
     ...borderRadiusToCssVars(theme.borderRadius! as Record<string, unknown>),
     ...zIndexToCssVars(theme.zIndex! as Record<string, unknown>),
     ...opacityToCssVars(theme.opacity! as Record<string, unknown>),
-    ...animationToCssVars(theme.animations! as Record<string, unknown>),
+    ...animationToCssVars({ ...(theme.animations as Record<string, unknown>), ...(theme.animation as Record<string, unknown>) }),
     ...transitionTimingFunctionToCssVars(theme.transitionTimingFunction! as Record<string, string>),
     ...transitionDurationToCssVars(theme.transitionDuration! as Record<string, string>),
     ...transitionDelayToCssVars(theme.transitionDelay! as Record<string, string>),

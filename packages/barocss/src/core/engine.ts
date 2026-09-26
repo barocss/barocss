@@ -7,7 +7,7 @@ import { Context } from "./context";
 import { astToCss, rootToCss } from "./astToCss";
 import { clearAllCaches } from "../utils/cache";
 import { clearContextCaches, getContextState } from './contextState';
-import { applyVarPrefix } from "./cssVars";
+import { applyVarPrefix, referencedKeyframes } from "./cssVars";
 
 // Failure cache for invalid class names
 const failureCache = new Set<string>();
@@ -537,9 +537,13 @@ export function generateCss(
     })
     .join(opts?.minify ? "" : "\n");
 
-  const rootRules = [...new Set(allAtRootNodes
-    .filter((node) => node.type === "at-rule")
-    .map((node) => rootToCss([node], { minify: opts?.minify })))];
+  const rootRules = [...new Set([
+    ...allAtRootNodes
+      .filter((node) => node.type === "at-rule")
+      .map((node) => rootToCss([node], { minify: opts?.minify })),
+    // #274: the @keyframes the class rules reference, once per sheet.
+    ...referencedKeyframes(results, ctx),
+  ])];
   const rootDeclarations = [...new Set(allAtRootNodes
     .filter((node) => node.type === "decl")
     .map((node) => rootToCss([node], { minify: opts?.minify }))
@@ -645,6 +649,8 @@ export function generateCssRules(
         const css = rootToCss([node]);
         rootCssList.push(css);
       }
+      // #274: referenced @keyframes are root-level blocks too (deduped by content by every consumer).
+      rootCssList.push(...referencedKeyframes(cssList.join("\n"), ctx));
       // console.log("[generateCssRules] rootCss", rootCssList, allAtRootNodes);
       return {
         cls,

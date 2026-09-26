@@ -3,7 +3,7 @@ import { createContext, clearAstCache, IncrementalParser, parseClassName } from 
 import type { Config, Context } from '@barocss/kit';
 import { StylePartitionManager } from './style-partition-manager';
 import { ChangeDetector } from './change-detector';
-import { collectLeadingClasses } from './existing-classes';
+import { collectKeyframeNames, collectLeadingClasses } from './existing-classes';
 import { ClassGc } from './class-gc';
 
 export interface BrowserRuntimeOptions {
@@ -50,6 +50,8 @@ export class BrowserRuntime {
   private options: Required<BrowserRuntimeOptions>;
   private isDestroyed = false;
   private existing: Set<string> | null = null;
+  /** #274: @keyframes names the page's own sheets define (filled with `existing`). */
+  private existingKeyframes = new Set<string>();
   private existingSheetCount = -1;
   /** #269: classes requested explicitly through addClass(); never reclaimed. */
   private pinned = new Set<string>();
@@ -255,6 +257,9 @@ export class BrowserRuntime {
     if (results.length === 0) return;
     const cssRules: GenerateCssRulesResult[] = [];
     const rootCssRules: string[] = [];
+    // #274: companion mode leaves a @keyframes the page's own sheets define to them.
+    const pageKeyframes = this.options.skipExisting && typeof document !== 'undefined'
+      ? (this.getExistingClasses(), this.existingKeyframes) : null;
 
     for (const result of results) {
       if (result.css && Array.isArray(result.cssList)) {
@@ -264,6 +269,10 @@ export class BrowserRuntime {
 
       if (result.rootCss && Array.isArray(result.rootCssList)) {
         for (const rootCss of result.rootCssList) {
+          if (pageKeyframes?.size) {
+            const kf = /^\s*@keyframes\s+([^\s{]+)/.exec(rootCss)?.[1];
+            if (kf && pageKeyframes.has(kf)) continue;
+          }
           if (!this.rootCache.has(rootCss)) {
             this.rootCache.add(rootCss);
             rootCssRules.push(rootCss);
@@ -294,7 +303,7 @@ export class BrowserRuntime {
   }
 
   /**
-   * #269: delete the generated rules of classes no live element uses. Root/@property rules stay
+   * #269: delete the generated rules of classes no live element uses. Root/@property/@keyframes rules stay
    * (they are shared and harmless); a rule text another cached class still emits is kept.
    */
   private reclaim(classes: string[]): void {
@@ -329,11 +338,14 @@ export class BrowserRuntime {
     });
     if (this.existing && sheets.length === this.existingSheetCount) return this.existing;
     const out = new Set<string>();
+    const keyframes = new Set<string>();
     for (const sheet of sheets) {
       let rules: CSSRuleList;
       try { rules = sheet.cssRules; } catch { continue; } // cross-origin
       collectLeadingClasses(rules, out);
+      collectKeyframeNames(rules, keyframes);
     }
+    this.existingKeyframes = keyframes;
     this.existing = out;
     this.existingSheetCount = sheets.length;
     return out;
