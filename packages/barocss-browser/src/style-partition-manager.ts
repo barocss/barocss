@@ -271,6 +271,43 @@ export class StylePartitionManager {
   }
 
   /**
+   * Remove one generated rule (#269 GC). Keeps `styles`, the #254 `keys` and the
+   * sheet's cssRules parallel: one deleteRule at the rule's index, or a text
+   * rebuild when the sheet isn't solely ours / has no CSSOM. Returns whether
+   * the rule was found.
+   */
+  removeRule(rule: string, category?: string): boolean {
+    let partition: StylePartition | undefined;
+    if (category) {
+      if (this.classToCategoryPartitionMap.get(rule) !== category) return false;
+      partition = this.categoryPartitions.get(category);
+    } else {
+      const partitionIndex = this.classToPartitionMap.get(rule);
+      partition = partitionIndex === undefined ? undefined : this.partitions[partitionIndex];
+    }
+    if (!partition) return false;
+    const index = partition.styles.indexOf(rule);
+    if (index === -1) return false;
+    const sheet = partition.styleElement.sheet;
+    const inSync = !!sheet && sheet.cssRules.length === partition.styles.length;
+    partition.styles.splice(index, 1);
+    partition.keys?.splice(index, 1);
+    if (inSync && sheet) {
+      sheet.deleteRule(index);
+    } else {
+      partition.styleElement.textContent = partition.styles.length ? partition.styles.join("\n") + "\n" : "";
+    }
+    if (category) this.classToCategoryPartitionMap.delete(rule);
+    else this.classToPartitionMap.delete(rule);
+    return true;
+  }
+
+  /** Number of generated (non-root, non-preflight) rules currently held. */
+  get ruleCount(): number {
+    return this.classToPartitionMap.size + this.classToCategoryPartitionMap.size;
+  }
+
+  /**
    * 특정 규칙이 어느 파티션에 있는지 찾기
    */
   findRulePartition(rule: string): StylePartition | null {

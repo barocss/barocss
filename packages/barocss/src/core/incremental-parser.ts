@@ -311,6 +311,16 @@ export class IncrementalParser {
   }
 
   /**
+   * Forgets that a class was processed, so a later request generates it again
+   * (used when the browser runtime reclaims an unused class's rules, #269).
+   *
+   * @param cls - The CSS class name to forget
+   */
+  unmarkProcessed(cls: string): void {
+    this.processedClasses.delete(cls);
+  }
+
+  /**
    * Process classes synchronously and update BrowserRuntime cache
    * This method is used by ChangeDetector for scan operations
    */

@@ -1,6 +1,7 @@
 import { IncrementalParser, parseClassName } from "@barocss/kit";
 import { BrowserRuntime } from "./browser-runtime";
 import { normalizeClassNameList } from "./utils";
+import type { ClassGc } from "./class-gc";
 
 /**
  * Change detection system for DOM mutations
@@ -40,6 +41,13 @@ export class ChangeDetector {
       this.getCategory = getCategory;
     }
 
+    /** #269: refcount/GC tracker, when the runtime has GC enabled. */
+    private gc: ClassGc | null = null;
+
+    setGc(gc: ClassGc | null): void {
+      this.gc = gc;
+    }
+
     setParser(parser: IncrementalParser): void {
       this.incrementalParser = parser;
     }
@@ -69,10 +77,21 @@ export class ChangeDetector {
         this.observer.disconnect();
       }
   
+      this.gc?.setRoot(root);
+
       this.observer = new MutationObserver((mutations) => {
         const newClasses = new Set<string>();
-  
+        const gc = this.gc;
+
         mutations.forEach(mutation => {
+          if (gc) {
+            if (mutation.type === 'attributes') {
+              gc.reconcile(mutation.target as Element);
+            } else if (mutation.type === 'childList') {
+              mutation.removedNodes.forEach(node => gc.reconcileTree(node));
+              mutation.addedNodes.forEach(node => gc.reconcileTree(node));
+            }
+          }
           // Handle attribute changes (class modifications)
           if (mutation.type === 'attributes' && mutation.attributeName === 'class' && root.contains(mutation.target)) {
             const target = mutation.target as HTMLElement;
@@ -114,6 +133,7 @@ export class ChangeDetector {
         } else {
           this.BrowserRuntime?.applyParseResults([]);
         }
+        gc?.afterBatch();
       });
   
       this.observer.observe(root, {
