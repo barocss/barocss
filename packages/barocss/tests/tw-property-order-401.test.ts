@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createContext, generateCss, rulePropertySort, ruleSortKey, compareKeys, compareCandidates } from '../src/index';
+import { createContext, generateCss, ruleSortKey, compareKeys } from '../src/index';
+import { rulePropertySort, compareCandidates } from '../src/core/rule-order';
 import { TW_PROPERTY_ORDER, TW_PROPERTY_ORDER_VERSION } from '../src/core/tw-property-order';
 
 // #401: output follows Tailwind 4.3.3's candidate sort: variant order, then property order, then name.

@@ -90,7 +90,7 @@ function sortOverride(selector: string, props: string[], candidate: string): str
  * Tailwind's per-candidate property sort (#401): the sorted, de-duplicated TW property-order indices of
  * the rule's declarations (at any depth), and the declaration count. `--baro-*` vars count as `--tw-*`.
  */
-export function rulePropertySort(rule: string, candidate = ruleCandidate(rule)): { order: number[]; count: number } {
+/** @internal (#401) */ export function rulePropertySort(rule: string, candidate = ruleCandidate(rule)): { order: number[]; count: number } {
   const props: string[] = [];
   for (const d of rule.matchAll(DECL)) props.push(d[1].startsWith("--baro-") ? "--tw-" + d[1].slice(7) : d[1]);
   const override = sortOverride(ruleSelector(rule), props, candidate);
@@ -106,13 +106,13 @@ export function rulePropertySort(rule: string, candidate = ruleCandidate(rule)):
 }
 
 /** The (unescaped) first class in the rule's selector, e.g. `sm:px-2`. */
-export function ruleCandidate(rule: string): string {
+/** @internal (#401) */ export function ruleCandidate(rule: string): string {
   const c = CLASS.exec(ruleSelector(rule));
   return c ? c[1].replace(/\\(.)/g, "$1") : "";
 }
 
 /** Tailwind's candidate compare: runs of digits compare by value, other chars by code. */
-export function compareCandidates(a: string, b: string): number {
+/** @internal (#401) */ export function compareCandidates(a: string, b: string): number {
   const n = Math.min(a.length, b.length);
   for (let i = 0; i < n; i++) {
     let x = a.charCodeAt(i);
@@ -136,7 +136,7 @@ export function compareCandidates(a: string, b: string): number {
 }
 
 /** The #254 variant part of the key (leading `@media` / `@container` preludes). */
-export function ruleVariantKey(rule: string): number[] {
+/** @internal (#401) */ export function ruleVariantKey(rule: string): number[] {
   const key: number[] = [];
   let rest = rule;
   let m: RegExpExecArray | null;

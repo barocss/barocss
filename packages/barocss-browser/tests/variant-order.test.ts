@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BrowserRuntime } from '../src/browser-runtime';
 import { StylePartitionManager } from '../src/style-partition-manager';
-import { ruleSortKey, ruleVariantKey, compareKeys } from '../src/rule-order';
+import { ruleSortKey, compareKeys } from '../src/rule-order';
+import { ruleVariantKey } from '../../barocss/src/core/rule-order';
 
 const ruleTexts = () => Array.from(document.querySelectorAll<HTMLStyleElement>('[data-barocss="partition"]'))
   .flatMap(style => Array.from(style.sheet?.cssRules ?? []).map(rule => rule.cssText));
