@@ -1,5 +1,22 @@
 # @barocss/browser
 
+## 0.10.1
+
+### Patch Changes
+
+- 0.10.1: variant and border parity with Tailwind 4.3.
+
+  - Variants: `not-[@media …]` / `not-[@supports …]` negation (other at-rule forms emit nothing); `contrast-more:` / `contrast-less:`, `noscript:`, `supports-<feature>:`; underscores in `supports-[…]` become spaces.
+  - Borders: `border-x-*` / `border-y-*` use the logical `border-inline` / `border-block` properties, as in Tailwind 4 (visible in right-to-left layouts); `divide-x-<colour>` emits nothing, as in Tailwind; custom border width keys reference `var(--border-width-*)`.
+  - `bg-(position:…)` / `bg-(size:…)` / `bg-(image:…)` type hints, and `stroke-[<length>]` sets `stroke-width`.
+
+- Updated dependencies [dc0217f]
+- Updated dependencies [64d7685]
+- Updated dependencies [c2004d6]
+- Updated dependencies
+- Updated dependencies [5dee769]
+  - @barocss/kit@0.10.1
+
 ## 0.10.0
 
 ### Minor Changes
