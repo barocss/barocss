@@ -386,7 +386,8 @@ export function countRules(css) {
 
 /** Allow-predicate for a class input: the whitespace-separated tokens of the input. */
 export function classPredicate(input) {
-  const set = new Set(input.split(/[ \t\n\r\f]+/).filter(Boolean));
+  // #392: HTML and CSS both preprocess U+0000 to U+FFFD, so a NUL in a class token matches as U+FFFD.
+  const set = new Set(input.replace(/\0/g, '\uFFFD').split(/[ \t\n\r\f]+/).filter(Boolean));
   return (name) => set.has(name);
 }
 

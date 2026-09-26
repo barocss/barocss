@@ -343,4 +343,13 @@ export const corpus: ReadonlyArray<readonly [token: string, uses: number]> = [
   ["bg-red-500/[0.5]", 1],
   ["text-blue-500/[.8]", 1],
   ["border-slate-900/[0.25]", 1],
+  // #386: untyped var() in arbitrary colour positions, and the transform utilities
+  ["bg-[var(--primary)]", 1],
+  ["text-[var(--primary)]", 1],
+  ["border-[var(--primary)]", 1],
+  ["ring-[var(--primary)]", 1],
+  ["outline-[var(--primary)]", 1],
+  ["transform-none", 1],
+  ["transform-gpu", 1],
+  ["transform-cpu", 1],
 ];
