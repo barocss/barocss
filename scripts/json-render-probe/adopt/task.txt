@@ -1,0 +1,1 @@
+This app renders JSON UI specs produced by a model; their className values are Tailwind classes the build never saw, so they don't render. Make them render correctly in production using the BaroCSS runtime in vendor/ (docs in docs/). Don't change the specs.
