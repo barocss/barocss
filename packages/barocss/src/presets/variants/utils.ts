@@ -82,7 +82,10 @@ export function attributeVariantSelector(variant: string): string | undefined {
     return `[${kind}-${key}=${value}]`;
   }
   const bare = /^data-([a-zA-Z0-9_-]+)$/.exec(variant);
-  return bare ? `[data-${bare[1]}]` : undefined;
+  if (bare) return `[data-${bare[1]}]`;
+  // #352: bare `aria-<state>` is `[aria-<state>="true"]`
+  const aria = /^aria-([a-zA-Z0-9_-]+)$/.exec(variant);
+  return aria ? `[aria-${aria[1]}="true"]` : undefined;
 }
 
 /**
@@ -119,4 +122,47 @@ export function pseudoClassOf(name: string, ctx: Context): string | null {
   if (list.length !== 1) return null;
   const m = /^&(:(?!:)[a-zA-Z-]+(?:\(.*\))?)$/.exec(list[0].selector);
   return m ? m[1] : null;
+}
+
+/**
+ * #352: the selector `not-<v>` / `group-not-<v>` negates: an attribute variant (`data-*`, `aria-*`), a
+ * pseudo-class (#335), or a wrap-free `has-*` variant (`has-[…]`, `has-aria-*`), as Tailwind 4.3.3 compounds
+ * them. Null when `<v>` is unknown or is not a single compound on `&`.
+ */
+export function negatableSelectorOf(name: string, ctx: Context): string | null {
+  const attr = attributeVariantSelector(name);
+  if (attr) return attr;
+  const pc = pseudoClassOf(name, ctx);
+  if (pc || !name.startsWith('has-')) return pc;
+  const plugin = getModifier(ctx).find((p) => p.match(name, ctx));
+  if (!plugin?.modifySelector || plugin.wrap || plugin.astHandler) return null;
+  const r = plugin.modifySelector({ selector: '&', fullClassName: '', mod: { type: name }, context: ctx });
+  const list = Array.isArray(r) ? r : r && typeof r === 'object' ? [r] : typeof r === 'string' ? [{ selector: r }] : [];
+  if (list.length !== 1) return null;
+  const m = /^&(:has\(.+\))$/.exec(list[0].selector);
+  return m && !m[1].includes('&') ? m[1] : null;
+}
+
+/**
+ * #352: `not-<v>` for a wrap-only at-rule variant (`md`, `max-md`, `min-[…]`, `print`, `motion-safe`,
+ * `supports-[…]`, `dark` in media mode): the same at-rule with its condition negated (`@media not (…)`,
+ * `@supports not (…)`), as Tailwind 4.3.3 emits it. Null for anything else, and for a prelude that is a list
+ * or already combines conditions, where a leading `not` would not negate the whole query.
+ */
+export function negatedAtRuleOf(name: string, ctx: Context): AstNode | null {
+  if (name.startsWith('not-')) return null;
+  const plugin = getModifier(ctx).find((p) => p.match(name, ctx));
+  if (!plugin?.wrap || plugin.astHandler) return null;
+  if (plugin.modifySelector) {
+    const r = plugin.modifySelector({ selector: '&', fullClassName: '', mod: { type: name }, context: ctx });
+    const sel = typeof r === 'string' ? r : Array.isArray(r) ? (r.length === 1 ? r[0].selector : null) : r?.selector;
+    if (sel !== '&') return null;
+  }
+  const items = plugin.wrap({ type: name }, ctx);
+  if (items.length !== 1) return null;
+  const node = items[0];
+  if (node.type !== 'at-rule' || (node.name !== 'media' && node.name !== 'supports') || node.nodes?.length) return null;
+  const params = (node.params ?? '').trim();
+  if (!params || /^not\b|,|\s(and|or)\s/i.test(params)) return null;
+  return { ...node, params: `not ${params}`, nodes: [] };
 }

@@ -1,6 +1,6 @@
 import { functionalModifier } from "../../core/registry";
 import { atRule } from "../../core/ast";
-import { attributeVariantSelector, decodeArbitrarySelector, functionalArgument, pseudoClassOf } from "./utils";
+import { attributeVariantSelector, decodeArbitrarySelector, functionalArgument, negatableSelectorOf, pseudoClassOf } from "./utils";
 import type { Context } from "../../core/context";
 import { startsAtRule } from "./has-variants";
 
@@ -30,7 +30,7 @@ functionalModifier(
 function negated(value: string, ctx: Context): string | null {
   const v = value.slice(4);
   if (v.startsWith('[') && v.endsWith(']')) return `:not(*:is(${decodeArbitrarySelector(v.slice(1, -1))}))`;
-  const inner = pseudoClassOf(v, ctx);
+  const inner = negatableSelectorOf(v, ctx);
   return inner ? `:not(${inner})` : null;
 }
 

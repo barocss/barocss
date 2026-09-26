@@ -92,5 +92,9 @@ describe('runtime keeps Tailwind variant order (#254)', () => {
     expect(ruleSortKey('@container (width >= 28rem){.x{}}')).toEqual([4, 448]);
     expect(ruleSortKey('@media print{.x{}}')).toEqual([5, 0]);
     expect(ruleSortKey('@media (hover: hover){.x{}}')).toEqual([0, 0]);
+    // #352: negated media sorts with base, before every breakpoint, as Tailwind 4.3.3 orders not-* variants
+    expect(ruleSortKey('@media not (min-width: 48rem){.x{}}')).toEqual([0, 0]);
+    expect(ruleSortKey('@media not (width < 48rem){.x{}}')).toEqual([0, 0]);
+    expect(ruleSortKey('@media not print{.x{}}')).toEqual([0, 0]);
   });
 });
