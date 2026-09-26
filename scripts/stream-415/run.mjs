@@ -13,15 +13,17 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
 const ROUNDS = Number(process.argv[2] ?? 1);
-const CONC = Number(process.argv[3] || 2);
-const PORT = Number(process.env.PORT || 8150);
+const CONC = Number(process.argv[3] || 1);
+const PORT = Number(process.env.PORT || 8400);
+if (process.argv[4]) process.env.RATES = process.argv[4]; // CLI: rounds conc rate
+const [DOC_FROM, DOC_TO] = (process.env.DOCS || '0,10').split(',').map(Number); // doc slice for long (20 tok/s) runs
 const CHARS_PER_TOKEN = 4;
 const GC_WAIT_MS = 7000; // gcGraceMs default 3000; a sweep can re-arm once
 const { chromium } = createRequire(path.join(process.env.PW_DIR, 'node_modules/'))('playwright-core');
 
 const UMD = fs.readFileSync(path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'));
 const OUT_DIR = path.join(ROOT, 'scripts/mcp-model-outputs/outputs-tw');
-const DOCS = fs.readdirSync(OUT_DIR).filter((f) => f.endsWith('.html')).sort().map((f) => {
+const DOCS = fs.readdirSync(OUT_DIR).filter((f) => f.endsWith('.html')).sort().slice(DOC_FROM, DOC_TO).map((f) => {
   const src = fs.readFileSync(path.join(OUT_DIR, f), 'utf8');
   const m = src.match(/<body([^>]*)>([\s\S]*)<\/body>/i);
   const bodyCls = (m[1].match(/class="([^"]*)"/) || [])[1] || '';
@@ -54,6 +56,8 @@ const SNAP = `window.__snap = (props, idx) => { const els = Array.from(document.
   return els.map((el, i) => { if (want && !want.has(i)) return null; const cs = getComputedStyle(el);
     return { tag: el.tagName, cls: el.hasAttribute('class'), v: props.map((p) => cs.getPropertyValue(p)) }; }); };`;
 
+// Hard deadline: exit before an outer `timeout 470` so result.json (written per trial) is never lost mid-run.
+setTimeout(() => { process.stderr.write('\ndeadline\n'); process.exit(0); }, Number(process.env.DEADLINE_S || 450) * 1000).unref();
 const browser = await chromium.launch({ executablePath: process.env.CHROME,
   // Concurrent pages are background tabs: stop Chrome from throttling their timers (stalled earlier runs).
   args: ['--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'] });
@@ -73,7 +77,8 @@ for (const d of DOCS) {
 }
 
 async function trial(cond, doc) {
-  const page = await browser.newPage({ viewport: { width: 1300, height: 900 } });
+  const ctx = await browser.newContext(); // fresh context per trial
+  const page = await ctx.newPage({ viewport: { width: 1300, height: 900 } });
   await page.goto(`http://127.0.0.1:${PORT}/rt`); await page.addScriptTag({ content: SNAP });
   const r = await page.evaluate(async ({ cond, html, ref, props, cpt, gcWait }) => {
     const rt = BaroCSS.getRuntime();
@@ -130,7 +135,8 @@ async function trial(cond, doc) {
     }
     const tLast = performance.now();
     let settleMs = null;
-    for (let k = 0; k < 600; k++) { const s = __snap(props);
+    const tCap = performance.now() + 5000; // settle check bounded by time, not frames (host load)
+    while (performance.now() < tCap) { const s = __snap(props);
       if (s.length === ref.final.length && s.every((e, i) => eq(e.v, ref.final[i].v))) { settleMs = performance.now() - tLast; break; }
       await nextFrame(); }
     streaming = false; await sampler;
@@ -145,7 +151,7 @@ async function trial(cond, doc) {
     return { streamMs: tLast - t0, calls, generated: generated.size, junk: junk.length, junkSample: junk.slice(0, 8),
       frames, elemSamples, wrongSamples, wrongEls: wrongEls.size, wrongProps, settleMs, atEnd, cachedJunkEnd, afterGc, cachedJunkAfterGc };
   }, { cond, html: doc.html, ref: REF[doc.id], props: PROPS, cpt: CHARS_PER_TOKEN, gcWait: GC_WAIT_MS });
-  await page.close();
+  await ctx.close();
   return { cond: cond.id, doc: doc.id, ...r };
 }
 
@@ -182,7 +188,7 @@ return out;
 }
 
 await Promise.all(Array.from({ length: CONC }, async () => { while (next < jobs.length) { const [c, d, r] = jobs[next++];
-  const t = await Promise.race([trial(c, d), new Promise((res) => setTimeout(() => res(null), 150000))]);
+  const t = await Promise.race([trial(c, d), new Promise((res) => setTimeout(() => res(null), 60000))]);
   if (!t) { process.stderr.write(`timeout ${c.id} ${d.id}\n`); continue; }
   raw.push({ round: r, ...t }); save(); process.stderr.write('.'); } }));
 
