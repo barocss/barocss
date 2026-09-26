@@ -113,6 +113,10 @@ functionalUtility({
 // solid, so a bare border/border-t renders without relying on a preflight reset, and border-dashed/dotted/none (which
 // set the var) still win whatever the rule order.
 const borderStyleProperty = () => atRoot([property("--baro-border-style", "solid")]);
+// #344: a borderWidth theme key reads its :root var (`--border-width-<key>`), as Tailwind 4.3.3, so runtime overrides reach it.
+const borderWidthRef = (value: string, extra?: { themeKey?: string }) =>
+  extra?.themeKey && extra.themeKey !== "DEFAULT" ? `var(--border-width-${extra.themeKey.replace(".", "\\.")})` : value;
+
 const withBorderStyle = (props: string[], width: string) => [
   borderStyleProperty(),
   ...props.map((prop) => decl(prop.replace("width", "style"), "var(--baro-border-style)")),
@@ -128,8 +132,8 @@ const withBorderStyle = (props: string[], width: string) => [
 
 // Individual side border width utilities
 [
-  ["border-x", ["border-left-width", "border-right-width"]],
-  ["border-y", ["border-top-width", "border-bottom-width"]],
+  ["border-x", ["border-inline-width"]], // #344: logical, as Tailwind 4.3.3 (flips in RTL)
+  ["border-y", ["border-block-width"]],
   ["border-bs", ["border-block-start-width"]],
   ["border-be", ["border-block-end-width"]],
   ["border-s", ["border-inline-start-width"]], // #311 (Tailwind 4.3)
@@ -166,7 +170,7 @@ const withBorderStyle = (props: string[], width: string) => [
       return null;
     },
     handle: (value, ctx, token, extra) => {
-      if (extra?.themeNamespace === "borderWidth") return withBorderStyle(propList, value);
+      if (extra?.themeNamespace === "borderWidth") return withBorderStyle(propList, borderWidthRef(value, extra));
       if (extra?.realThemeValue) return propList.flatMap(prop => themeColorDecls(prop.replace("width", "color"), value, extra));
       if (parseColor(value)) {
         return propList.map(prop => decl(prop.replace("width", "color"), value));
@@ -174,6 +178,8 @@ const withBorderStyle = (props: string[], width: string) => [
       if (token.arbitrary) {
         return withBorderStyle(propList, value);
       }
+      // #344: a bare number (border-x-3 → 3px) is a width here; returning null fell through to border-* (all sides).
+      if (parseLength(value)) return withBorderStyle(propList, value);
       return null;
     },
     handleCustomProperty: (value) => {
@@ -227,8 +233,10 @@ Object.entries(divideSides).forEach(([axis, [start, end, ...styles]]) => {
     name: `divide-${axis}`,
     themeKeys: ["divideWidth", "borderWidth"], // #338, as Tailwind's --divide-width then --border-width
     supportsArbitrary: true,
+    supportsCustomProperty: true, // #344: divide-x-(--w) is a width in Tailwind 4.3.3, never a colour
+    handleCustomProperty: (value) => divide(`var(${value.replace(/^length:/, "")})`),
     handleBareValue: ({ value }) => (/^\d+$/.test(value) ? `${value}px` : null),
-    handle: (value) => divide(value),
+    handle: (value, _ctx, _token, extra) => divide(extra?.themeNamespace === "borderWidth" ? borderWidthRef(value, extra) : value),
     description: `divide-${axis} width utility`,
     category: "borders",
   });
@@ -244,7 +252,7 @@ functionalUtility({
   supportsOpacity: true,
   handle: (value, ctx, token, extra) => {
 
-    if (extra?.themeNamespace === "borderWidth") return withBorderStyle(["border-width"], value);
+    if (extra?.themeNamespace === "borderWidth") return withBorderStyle(["border-width"], borderWidthRef(value, extra));
     if (extra?.realThemeValue) return themeColorDecls("border-color", value, extra);
 
     if (token.arbitrary) {
@@ -420,7 +428,9 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsOpacity: true,
-  handle: (value, _ctx, _token, extra) => {
+  handle: (value, _ctx, token, extra) => {
+    // #344: divide-x-<colour> / divide-y-<colour> fall through to here; Tailwind 4.3.3 emits nothing for them.
+    if (token.prefix !== "divide") return null;
     // Theme colours go through the shared helper (var(--color-*) and Tailwind's /alpha form, #228).
     if (extra?.realThemeValue) {
       return [rule(":where(& > :not(:last-child))", themeColorDecls("border-color", value, extra))];
@@ -429,7 +439,7 @@ functionalUtility({
     if (parseColor(value)) return divideColor(value);
     return null;
   },
-  handleCustomProperty: (value) => divideColor(`var(${value})`),
+  handleCustomProperty: (value, _ctx, token) => (token.prefix === "divide" ? divideColor(`var(${value})`) : []),
   description: "divide-color utility (theme, alpha, arbitrary, custom property)",
   category: "borders",
 });

@@ -192,16 +192,12 @@ describe("border utilities", () => {
 
     it("individual side border width utilities", () => {
       expect(decls("border-x-2")).toMatchObject([
-      { type: "decl", prop: "border-left-style", value: "var(--baro-border-style)" },
-      { type: "decl", prop: "border-right-style", value: "var(--baro-border-style)" },
-        { type: "decl", prop: "border-left-width", value: "2px" },
-        { type: "decl", prop: "border-right-width", value: "2px" },
+      { type: "decl", prop: "border-inline-style", value: "var(--baro-border-style)" },
+        { type: "decl", prop: "border-inline-width", value: "2px" },
       ]);
       expect(decls("border-y-4")).toMatchObject([
-      { type: "decl", prop: "border-top-style", value: "var(--baro-border-style)" },
-      { type: "decl", prop: "border-bottom-style", value: "var(--baro-border-style)" },
-        { type: "decl", prop: "border-top-width", value: "4px" },
-        { type: "decl", prop: "border-bottom-width", value: "4px" },
+      { type: "decl", prop: "border-block-style", value: "var(--baro-border-style)" },
+        { type: "decl", prop: "border-block-width", value: "4px" },
       ]);
       expect(decls("border-t")).toMatchObject([
       { type: "decl", prop: "border-top-style", value: "var(--baro-border-style)" },
@@ -277,12 +273,10 @@ describe("border utilities", () => {
 
     it("individual side border color utilities", () => {
       expect(parseClassToAst("border-x-red-500", ctx)).toMatchObject([
-        { type: "decl", prop: "border-left-color", value: "var(--color-red-500)" },
-        { type: "decl", prop: "border-right-color", value: "var(--color-red-500)" },
+        { type: "decl", prop: "border-inline-color", value: "var(--color-red-500)" },
       ]);
       expect(parseClassToAst("border-y-blue-500", ctx)).toMatchObject([
-        { type: "decl", prop: "border-top-color", value: "var(--color-blue-500)" },
-        { type: "decl", prop: "border-bottom-color", value: "var(--color-blue-500)" },
+        { type: "decl", prop: "border-block-color", value: "var(--color-blue-500)" },
       ]);
       expect(parseClassToAst("border-t-[#00ff00]", ctx)).toMatchObject([
         { type: "decl", prop: "border-top-color", value: "#00ff00" },
