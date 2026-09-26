@@ -44,8 +44,8 @@ const POLICY = {
 const MODELS = ['opus', 'haiku'], BLOCKS = ['hero', 'feature-grid', 'callout', 'comparison-table', 'testimonial', 'cta'];
 const html = Object.fromEntries(MODELS.map((m) => [m, BLOCKS.map((b) => `<div data-block="${b}">${fs.readFileSync(path.join(CMS, 'blocks', `${m}-${b}.html`), 'utf8')}</div>`).join('\n')]));
 const toks = (h) => [...h.matchAll(/class="([^"]*)"/g)].flatMap((m) => m[1].split(/\s+/).filter(Boolean));
-async function build(tokens, entry = '@import "tailwindcss";') {
-  const c = await compile(`${entry}\n${SITE_CSS}`, {
+async function build(tokens) {
+  const c = await compile(`@import "tailwindcss";\n${SITE_CSS}`, {
     base: twDir,
     loadStylesheet: async (id, base) => {
       const p = id === 'tailwindcss' ? path.join(twDir, 'index.css') : path.resolve(base, id.replace(/^tailwindcss\//, ''));
@@ -59,7 +59,8 @@ const shellTokens = toks(SHELL).concat(['prose']);
 const CSS = { build: await build(shellTokens) };
 // #355: the site's own base CSS (theme vars, h1-h3 display font, body/link colors, .prose) without utilities. A document stylesheet
 // does not cross the shadow boundary, so the app ships it into the root itself (the ref arm gets it inside ref-<m>.css).
-CSS['site-base'] = await build([], '@import "tailwindcss/theme.css" layer(theme);'); // no preflight, no utilities
+// Site-only: the site's own @theme tokens as plain vars plus its base/components CSS; no Tailwind theme, preflight or utilities.
+CSS['site-base'] = SITE_CSS.replace(SITE_THEME_CSS, SITE_THEME_CSS.replace('@theme {', ':root, :host {'));
 for (const m of MODELS) CSS['ref-' + m] = await build([...shellTokens, ...toks(html[m])]);
 const FILES = { baro: path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'), twb: path.join(process.env.TWB_DIR || '', 'dist/index.global.js') };
 
