@@ -23,9 +23,9 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
 - **Bytes vs a pre-built sheet.** The BaroCSS UMD CDN bundle is 52.8 KB gz (published 0.10.1, #383; the ESM
   CDN bundle was 48 KB gz in #305, dev after 0.8.0). That is smaller than twb's 68.7 KB gz but far larger than
   a 3.2 KB gz built shell (#218).
-- **Shadow DOM root mode (known gap).** Found during launch prep: in Shadow DOM root mode, @property-backed
-  utilities (gradients, shadow, ring, translate) don't render because browsers ignore @property inside shadow
-  roots; the fix is in progress (#384).
+- **Shadow DOM root mode (fixed in 0.10.2).** Found during launch prep: @property-backed utilities (gradients,
+  shadow, ring, translate) didn't render in shadow roots because browsers ignore @property there. Fixed in
+  0.10.2 (#384): full-corpus shadow vs document mode differs on 0/905 classes in Chromium, Firefox and WebKit.
 
 ## Measured axes
 
@@ -35,7 +35,7 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
 | Held-out classes (567 unseen) | 100% (94.5% in #243) | – | – | – | held-out parity test (dev after 0.10.1); #243 (dev after 0.4.0) |
 | CMS blocks (#253 set) on a strict-CSP page | **1.0 / 1.0** (nonce or constructable), 0 violations | broken (styles blocked) | – | – | #347 (dev after 0.9.0) |
 | Real model specs in a built app (10 specs) | 0.904 of elements; shell 1.000 before mount, 0.997 after | 0.000, shell 0.969 | – | 0.163 | #231 rerun in #383 (published 0.10.1) |
-| Shadow DOM widget, strict CSP, hostile host | host damage 0; @property-backed utilities don't render in shadow roots (fix in progress, #384) | 0.000 | – | 0.000 | #364 (published 0.10.0), #384 |
+| Shadow DOM widget, strict CSP, hostile host | host damage 0; @property-backed utilities fixed in 0.10.2 (0/905 in 3 engines, #384) | 0.000 | – | 0.000 | #364 (published 0.10.0), #384 |
 | Untrusted classes (22 adversarial shapes) | 0 host changes, 0 cross-origin `url()` hits (1 same-origin hit unless pre-filtered) | n/a | – | – | #364 (0.10.0) |
 | SSR first paint | 1.0 match at FCP with `@barocss/server`; client-only leaves ~350–410 ms unstyled | client-only | 1.0 if the build knew the classes | – | #266 rerun in #383 (published 0.10.1) |
 | No-build HTML, default CSP | parity 100% (default and preflight), final 43 ms | 100%, final 24 ms | – | 73% | #198 rerun in #383 (published 0.10.1) |

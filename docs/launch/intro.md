@@ -12,9 +12,8 @@ Tailwind-compatible CSS for those classes at runtime, alongside your existing bu
 ## What we measured
 
 - Shadow DOM widgets under strict CSP on a hostile host: 0 host damage and 0 cross-origin loads from 22
-  adversarial class shapes (#364, published 0.10.0). Found during launch prep: in Shadow DOM root mode,
-  @property-backed utilities (gradients, shadow, ring, translate) don't render because browsers ignore @property
-  inside shadow roots; the fix is in progress (#384).
+  adversarial class shapes (#364, published 0.10.0). A gap found during launch prep (@property-backed
+  utilities didn't render inside shadow roots) is fixed in 0.10.2 (0/905 in 3 engines, #384).
 - AI-written CMS blocks on a strict-CSP page: 1.0 (#347, dev after 0.9.0).
 - Real model-written json-render specs in a Tailwind-built app: 0.904 of elements match, against 0.163
   build-only; the shell is untouched before mount and 0.997 after (#231 rerun in #383, published 0.10.1).
