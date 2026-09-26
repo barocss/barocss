@@ -76,7 +76,8 @@ let sharedRt = new ServerRuntime(BARO_CONFIG);
 // Server companion: CSS for this response's classes. dedupe=true skips classes the build CSS already defines.
 function serverCss(bodyHtml, { dedupe = true, rt = sharedRt } = {}) {
   const classes = [...new Set(toks(bodyHtml))].filter((c) => !dedupe || !BUILD_CLASSES.has(c));
-  return rt.generateCssForClasses(classes).map((x) => x.css).filter(Boolean).join('\n');
+  // #267: generateCss(classes.join(' ')) is the documented complete-sheet path (per-class entries are self-contained).
+  return classes.length ? rt.generateCss(classes.join(' ')) : '';
 }
 // server-fixed = app-side workaround for the two server gaps found: (1) generateCss defines only --color-* vars, so
 // --radius-*/--text-*/--container-*/--shadow-* used by the output are undefined when the build did not emit them;

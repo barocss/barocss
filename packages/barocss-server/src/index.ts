@@ -1,9 +1,9 @@
-import { parseClassToAst, generateCssRules, createContext } from '@barocss/kit';
+import { parseClassToAst, generateCssRules, createContext, ruleSortKey, compareKeys } from '@barocss/kit';
 import type { Config, Context } from '@barocss/kit';
 
 /**
  * Server-side runtime for Barocss
- * 
+ *
  * This provides server-side utilities for parsing classes and generating CSS
  * without browser-specific features like DOM manipulation or MutationObserver.
  */
@@ -22,22 +22,56 @@ export class ServerRuntime {
   }
 
   /**
-   * Generate CSS for a class name
+   * Generate CSS for a class name (or whitespace-separated class names) as one complete sheet (#267):
+   * one `:root,:host` block defining every theme var the output references, each root/@property block
+   * once, then the class rules in Tailwind variant order (base < sm < md < lg ...).
    */
   generateCss(className: string) {
-    const result = generateCssRules(className, this.context);
-    const rootRules = new Set(result.flatMap(({ rootCssList }) => rootCssList).filter(Boolean));
-    const classRules = result.map(({ css }) => css).filter(Boolean);
-    const colorVars = this.colorVarsBlock([...rootRules, ...classRules].join('\n'));
-    return [...(colorVars ? [colorVars] : []), ...rootRules, ...classRules].join('\n');
+    const results = generateCssRules(className, this.context);
+    const roots = this.uniqueRoots(results.flatMap(({ rootCssList }) => rootCssList));
+    const rules = this.sortRules(results.map(({ css }) => css).filter(Boolean));
+    const vars = this.themeVarsBlock([...roots, ...rules].join('\n'));
+    return [...(vars ? [vars] : []), ...roots, ...rules].join('\n');
   }
 
   /**
-   * #228: theme colours are emitted as var(--color-*). Define only the ones this output references
-   * (the full theme block is large), including --color-* vars those definitions reference in turn.
+   * CSS per class, in input order. Each entry is self-contained (its own `:root,:host` vars block,
+   * @property blocks and variant-sorted rules), so entries repeat shared blocks and are not ordered
+   * against each other. For one complete sheet use `generateCss(classes.join(' '))`.
    */
-  private colorVarsBlock(css: string): string {
-    const refs = (text: string) => [...text.matchAll(/var\((--[\w-]*color-[\w-]+)/g)].map((m) => m[1]);
+  generateCssForClasses(classes: string[]) {
+    return classes.map((className) => ({ className, css: this.generateCss(className) }));
+  }
+
+  /** Dedupe root-level blocks by content, and @property blocks by property name. */
+  private uniqueRoots(list: string[]): string[] {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const css of list) {
+      if (!css) continue;
+      const key = /^\s*@property\s+(--[\w-]+)/.exec(css)?.[1] ?? css;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(css);
+    }
+    return out;
+  }
+
+  /** Stable sort by the #254 variant key shared with @barocss/browser. */
+  private sortRules(rules: string[]): string[] {
+    return rules
+      .map((css, i) => ({ css, i, key: ruleSortKey(css) }))
+      .sort((a, b) => compareKeys(a.key, b.key) || a.i - b.i)
+      .map(({ css }) => css);
+  }
+
+  /**
+   * #228 generalised (#267): define every var(--x) the output references that the theme defines
+   * (radius, text, spacing, shadow, font, colour ...), including vars those definitions reference.
+   * themeToCssVars() already omits self-referencing entries (#260).
+   */
+  private themeVarsBlock(css: string): string {
+    const refs = (text: string) => [...text.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1]);
     const pending = refs(css);
     if (pending.length === 0) return '';
     const defs = new Map<string, string>();
@@ -52,16 +86,5 @@ export class ServerRuntime {
     }
     if (used.size === 0) return '';
     return ':root,:host {\n' + [...used].map(([k, v]) => `  ${k}: ${v};`).join('\n') + '\n}';
-  }
-
-  /**
-   * Parse multiple classes and return their CSS
-   */
-  generateCssForClasses(classes: string[]) {
-    const results = classes.map(className => ({
-      className,
-      css: this.generateCss(className)
-    }));
-    return results;
   }
 }
