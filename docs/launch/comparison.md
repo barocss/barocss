@@ -20,7 +20,11 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
   published 0.10.1 BaroCSS ties it on parity (100% vs 100%, dynamic classes 20/20 both), but twb reaches the
   final styled state sooner (median 24 ms, range 21–32, vs 42 ms, range 33–237 with 14 of 40 BaroCSS loads at
   176–237 ms; N=40 page loads per arm, interleaved in one session, twb 4.1.13 vs BaroCSS 0.10.3, #404) and is the
-  official runtime (#198 rerun in #383, published 0.10.1).
+  official runtime (#198 rerun in #383, published 0.10.1). BaroCSS's fast mode is the ~42 ms median; the slow tail
+  was a boot race, not generation cost: when the browser rendered a frame before the runtime inserted its CSS,
+  `transition` utilities animated from unstyled values for 150 ms (#405). The next release removes it (#407: boot
+  finishes the transitions its first insert started; with a frame forced before boot, 0 of 40 loads animate vs 40
+  of 40 before).
   Under a strict CSP without a nonce, both runtimes are blocked alike (73%, same as no runtime).
 - **Bytes vs a pre-built sheet.** The BaroCSS UMD CDN bundle is 52.8 KB gz (published 0.10.1, #383; the ESM
   CDN bundle was 48 KB gz in #305, dev after 0.8.0). That is smaller than twb's 68.7 KB gz but far larger than
