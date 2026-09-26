@@ -1,5 +1,11 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from "vitepress-plugin-mermaid";
+import { readFileSync } from 'node:fs'
+
+// Install/CDN snippets write __BAROCSS_VERSION__; the build fills in the current @barocss/browser version (#419).
+const BAROCSS_VERSION: string = JSON.parse(
+  readFileSync(new URL('../../../../packages/barocss-browser/package.json', import.meta.url), 'utf8')
+).version
 
 export default defineConfig(withMermaid({
   title: 'BaroCSS',
@@ -60,6 +66,7 @@ export default defineConfig(withMermaid({
           items: [
             { text: 'Overview', link: '/guide/integration/overview' },
             { text: 'Next to a Tailwind build', link: '/guide/integration/tailwind-companion' },
+            { text: 'Vite + Tailwind 4', link: '/guide/integration/vite-tailwind' },
             { text: 'Astro (SSR and static)', link: '/guide/integration/astro' },
             { text: 'Embedding AI widgets (Shadow DOM)', link: '/guide/integration/shadow-dom' },
             { text: 'Frameworks (React, Vue, Svelte, Solid)', link: '/guide/integration/frameworks' },
@@ -429,5 +436,17 @@ export default defineConfig(withMermaid({
   // Markdown configuration
   markdown: {
     lineNumbers: true
+  },
+
+  vite: {
+    plugins: [{
+      name: 'barocss-version',
+      enforce: 'pre',
+      transform(code: string, id: string) {
+        if (id.endsWith('.md') && code.includes('__BAROCSS_VERSION__')) {
+          return code.replaceAll('__BAROCSS_VERSION__', BAROCSS_VERSION)
+        }
+      }
+    }]
   }
 }))

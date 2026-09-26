@@ -1,0 +1,17 @@
+{
+  "name": "vite-barocss-test",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/vite": "^4.0.0"
+  },
+  "dependencies": {
+    "@barocss/browser": "^0.11.0"
+  }
+}

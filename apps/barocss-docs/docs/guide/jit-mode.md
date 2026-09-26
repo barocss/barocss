@@ -164,7 +164,7 @@ Start using BaroCSS immediately without complex setup or build processes.
 
 ```html
 <script type="module">
-  import { baroStart } from 'https://cdn.jsdelivr.net/npm/@barocss/browser@0.10.1/dist/cdn/barocss.js'
+  import { baroStart } from 'https://cdn.jsdelivr.net/npm/@barocss/browser@__BAROCSS_VERSION__/dist/cdn/barocss.js'
   baroStart()
 </script>
 ```

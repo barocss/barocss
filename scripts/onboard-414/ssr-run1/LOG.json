@@ -1,0 +1,31 @@
+{
+  "task": "ssr",
+  "run": 1,
+  "success": true,
+  "minutes_to_first_working_page": 10,
+  "doc_urls_used": [
+    "https://www.npmjs.com/package/@barocss/server",
+    "https://barocss.com",
+    "https://github.com/barocss/barocss",
+    "https://barocss.com/api/",
+    "https://barocss.com/guide/quick-start.html",
+    "https://barocss.com/api/server-runtime.html"
+  ],
+  "steps": [
+    {"doc_url": "https://www.npmjs.com/package/@barocss/server", "instruction_followed": "read npm README for @barocss/server", "result": "WebFetch got HTTP 403 Forbidden", "problem": "missing", "note": "npm package page could not be fetched at all (blocked), had to rely on GitHub README instead"},
+    {"doc_url": "https://github.com/barocss/barocss", "instruction_followed": "install @barocss/server, use ServerRuntime.generateCss(classString)", "result": "installed @barocss/server 0.11.0, generateCss worked", "problem": "none", "note": "README example omitted ssrStyleTag helper, found only via API docs"},
+    {"doc_url": "https://barocss.com/api/server-runtime.html", "instruction_followed": "use ssrStyleTag(css) to wrap CSS in a <style data-barocss-ssr> tag for the <head>", "result": "worked exactly as documented, generated valid inlined <style> with vars, @property blocks, and rules for the given classes", "problem": "none", "note": ""},
+    {"doc_url": "https://barocss.com/guide/quick-start.html", "instruction_followed": "quick start mentions @barocss/browser@0.10.1 as the pinned version example", "result": "actual installed server package resolved to 0.11.0 via @latest", "problem": "version-mismatch", "note": "docs reference an older pinned version (0.10.1) than what npm currently serves (0.11.0); not a blocker but inconsistent across pages"},
+    {"doc_url": "https://barocss.com/api/", "instruction_followed": "find ServerRuntime API reference link", "result": "overview page did not include constructor/method signatures itself, had to follow to /api/server-runtime.html", "problem": "confusing", "note": "top-level API page is a index/overview only, not obvious it lacks detail until fetched"}
+  ],
+  "version_mismatches": [
+    "quick-start.html example pins @barocss/browser@0.10.1 while npm install @barocss/server@latest resolved to 0.11.0"
+  ],
+  "installed": ["@barocss/server@0.11.0"],
+  "final_files": [
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/ssr-run1/server.js",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/ssr-run1/verify.cjs",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/ssr-run1/package.json",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/ssr-run1/LOG.json"
+  ]
+}
