@@ -93,3 +93,6 @@ Issue says `Parallel: safe | after #N | serial`.
 
 ## Review rounds (2026-09-26)
 For medium and high risk, NEEDS_CHANGE (CHANGES) means: fix, then get Review's ACCEPT on the fix commit, *then* integrate. "Addressed" isn't acceptance. Every integration also runs lint for the changed packages, and checkpoints (full `pnpm check` + PR) belong to the Planner.
+
+## Parity numbers under vitest 5 (2026-09-26)
+vitest 5 (#302) hides console output by default. To see the coverage lines, run the parity files with `--silent=false`, e.g. `pnpm --filter @barocss/kit exec vitest run tests/compat --silent=false`. The parity reference is Tailwind 4.3.3, with 4.1.13 as report-only (#304).
