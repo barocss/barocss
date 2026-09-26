@@ -65,7 +65,7 @@ describe("border utilities", () => {
         },
       ]);
       expect(parseClassToAst("rounded-full", ctx)).toMatchObject([
-        { type: "decl", prop: "border-radius", value: "9999px" },
+        { type: "decl", prop: "border-radius", value: "calc(infinity * 1px)" },
       ]);
     });
 
@@ -118,7 +118,7 @@ describe("border utilities", () => {
         },
       ]);
       expect(parseClassToAst("rounded-br-full", ctx)).toMatchObject([
-        { type: "decl", prop: "border-bottom-right-radius", value: "9999px" },
+        { type: "decl", prop: "border-bottom-right-radius", value: "calc(infinity * 1px)" },
       ]);
     });
 

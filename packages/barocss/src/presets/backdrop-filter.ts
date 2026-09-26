@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility } from "../core/registry";
+import { staticUtility, functionalUtility, themeKeyVar } from "../core/registry";
 import { decl } from "../core/ast";
 import { parseNumber } from "../core/utils";
 
@@ -62,6 +62,8 @@ functionalUtility({
   prop: "backdrop-filter",
   supportsArbitrary: true,
   supportsCustomProperty: true,
+  // #300: backdrop-blur-<any theme.blur key> → blur(var(--blur-<key>)).
+  handleBareValue: ({ value, ctx }) => themeKeyVar(ctx, "blur", value, "blur") ?? (/^(\d|\.\d)/.test(value) ? value : null),
   handle: (value, _ctx, token) => {
     if (token.customProperty)
       return [

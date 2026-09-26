@@ -55,7 +55,7 @@ theme: { extend: {
 } },
 ```
 
-New `borderRadius`/`fontFamily` names (`rounded-card`, `font-display`) don't resolve from the theme; declare them in `utilities`. `var(--color-brand)`-style values that point at the build's own vars are skipped safely, but only render if the build emits those vars; literal values always do.
+New theme names create utilities, as in Tailwind 4: `borderRadius.card` gives `rounded-card`, `fontFamily.display` gives `font-display`, `boxShadow.card` gives `shadow-card`, `fontSize.hero` gives `text-hero`. `var(--color-brand)`-style values that point at the build's own vars are skipped safely, but only render if the build emits those vars; literal values always do.
 
 **`@utility` rules:** mirror the build's static `@utility` rules in `config.utilities`, e.g. `@utility max-w-app { max-width: 48rem; margin-inline: auto; }` becomes `utilities: { 'max-w-app': { 'max-width': '48rem', 'margin-inline': 'auto' } }`. Functional `@utility name-*` isn't supported.
 

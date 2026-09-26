@@ -96,3 +96,6 @@ For medium and high risk, NEEDS_CHANGE (CHANGES) means: fix, then get Review's A
 
 ## Parity numbers under vitest 5 (2026-09-26)
 vitest 5 (#302) hides console output by default. To see the coverage lines, run the parity files with `--silent=false`, e.g. `pnpm --filter @barocss/kit exec vitest run tests/compat --silent=false`. The parity reference is Tailwind 4.3.3, with 4.1.13 as report-only (#304).
+
+## CI-only steps in integration checks (2026-09-26)
+`pnpm check` doesn't run every CI step. Integration checks and checkpoints also run `node .github/scripts/check-packages.mjs` (after `build:library`), which validates the packed packages' exports, types and CDN files. The 0.8.2 checkpoint failed there first (#340). Lesson from #235 (lint) and #340 (check-packages): when a CI step fails that local checks passed, add that step to the local integration check.

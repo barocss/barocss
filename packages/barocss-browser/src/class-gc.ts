@@ -30,7 +30,7 @@ export class ClassGc {
   /** class -> time its count reached 0 (insertion order = oldest first). */
   private candidates = new Map<string, number>();
   private timer: ReturnType<typeof setTimeout> | null = null;
-  private root: Element | null = null;
+  private root: Element | ShadowRoot | null = null;
 
   constructor(
     private host: ClassGcHost,
@@ -40,13 +40,14 @@ export class ClassGc {
   ) {}
 
   /** Start counting for a new root: count every element currently inside it. */
-  setRoot(root: Element): void {
+  setRoot(root: Element | ShadowRoot): void {
     this.counts.clear();
     this.counted = new WeakMap();
     this.candidates.clear();
     this.cancel();
     this.root = root;
-    this.reconcileTree(root);
+    if (root.nodeType === 1) this.reconcileTree(root);
+    else root.querySelectorAll('[class]').forEach(child => this.reconcile(child));
   }
 
   count(cls: string): number {
@@ -132,9 +133,11 @@ export class ClassGc {
   private inDom(cls: string): boolean {
     const root = this.root;
     if (!root) return false;
+    // #327: a shadow root: only its own tree can use its rules.
+    if (root.nodeType !== 1) return Array.from(root.querySelectorAll('[class]')).some(el => el.classList.contains(cls));
     // Document-wide: an element outside the observed root (portal, <html class>) may share the class.
     const doc = root.ownerDocument ?? document;
-    return root.classList.contains(cls)
+    return (root as Element).classList.contains(cls)
       || doc.documentElement.classList.contains(cls)
       || doc.getElementsByClassName(cls).length > 0;
   }

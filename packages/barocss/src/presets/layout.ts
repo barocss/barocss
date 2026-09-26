@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility, registerUtility } from "../core/registry";
+import { staticUtility, functionalUtility, registerUtility, themeKeyVar } from "../core/registry";
 import { decl, atRule } from "../core/ast";
 import {
   parseNumber,
@@ -37,6 +37,8 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsFraction: true,
+  // #300: aspect-<any theme.aspect key> → var(--aspect-<key>); numbers and fractions pass through as before.
+  handleBareValue: ({ value, ctx }) => themeKeyVar(ctx, "aspect", value, "aspect") ?? (/^(\d|\.\d)/.test(value) ? value : null),
   description:
     "aspect-ratio utility (theme, arbitrary, custom property, fraction supported)",
   category: "layout",
@@ -63,7 +65,7 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsFraction: true,
-  handleBareValue: ({ value }) => parseNumber(value),
+  handleBareValue: ({ value, ctx }) => parseNumber(value) ?? themeKeyVar(ctx, "container", value, "container"), // #300
   description:
     "columns utility (theme, arbitrary, custom property, fraction supported)",
   category: "layout",

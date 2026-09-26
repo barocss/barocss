@@ -254,7 +254,7 @@ describe('parseClassToAst (end-to-end)', () => {
   it('before:content', () => {
     expect(generateCss("before:content-['foo']", ctx)).toBe(
       `${BARO_CONTENT_PROPERTY}.before\\:content-\\[\\'foo\\'\\]::before {
-  --baro-content: "'foo'";
+  --baro-content: 'foo';
   content: var(--baro-content);
 }
 `
@@ -295,7 +295,7 @@ describe('parseClassToAst (end-to-end)', () => {
     expect(generateCss('sm:before:content-[attr(data-label)]', ctx)).toBe(
       `${BARO_CONTENT_PROPERTY}@media (min-width: 640px) {
   .sm\\:before\\:content-\\[attr\\(data-label\\)\\]::before {
-    --baro-content: "attr(data-label)";
+    --baro-content: attr(data-label);
     content: var(--baro-content);
   }
 }

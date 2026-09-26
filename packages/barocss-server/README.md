@@ -1,5 +1,7 @@
 # @barocss/server
 
+> **Rendering untrusted class strings (AI output, CMS, users)?** See the [security guide](../../apps/barocss-docs/docs/guide/security.md).
+
 [![npm version](https://img.shields.io/npm/v/@barocss/server.svg)](https://www.npmjs.com/package/@barocss/server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
@@ -95,8 +97,8 @@ const config = {
   theme: { extend: {                        // your own theme: literal values, not var(--build-vars)
     colors: { brand: '#2563eb' },
     spacing: { gutter: '1.5rem' },          // named spacing: p-gutter
-    borderRadius: { lg: '0.75rem' },        // override existing keys; new radius/font names go in utilities
-    fontFamily: { sans: ['Inter', 'sans-serif'] },
+    borderRadius: { lg: '0.75rem', card: '1.25rem' }, // override rounded-lg; new keys work too: rounded-card
+    fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Fraunces', 'serif'] }, // font-display
   } },
   utilities: { 'max-w-app': { 'max-width': '48rem', 'margin-inline': 'auto' } }, // static @utility rules; `@utility name-*` unsupported
 };

@@ -1,5 +1,7 @@
 # @barocss/browser
 
+> **Rendering untrusted class strings (AI output, CMS, users)?** See the [security guide](../../apps/barocss-docs/docs/guide/security.md).
+
 [![npm version](https://img.shields.io/npm/v/@barocss/browser.svg)](https://www.npmjs.com/package/@barocss/browser)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
@@ -60,6 +62,29 @@ document.querySelectorAll('style[id^="barocss-runtime"]').length; // > 0
 ```
 
 **Browser support:** Chrome/Edge 85+, Safari/iOS 16.4+, Firefox 128+. The runtime needs CSS `@property`; composite utilities (shadows, rings, transforms, filters) may not render on older engines.
+
+## Recipe: Embedding AI widgets (Shadow DOM)
+
+A widget in a shadow root is isolated from the host page's CSS, but a `<head>` stylesheet cannot reach it either. Pass the root:
+
+```ts
+import { BrowserRuntime } from '@barocss/browser';
+
+const host = document.querySelector('ai-widget')!;
+const root = host.attachShadow({ mode: 'open' }); // 'closed' works too: the embedder holds the reference
+root.innerHTML = modelHtml;
+const runtime = new BrowserRuntime({ root, config }); // or baroStart({ root, config })
+// later: runtime.destroy() when the widget is removed
+```
+
+**Call `runtime.destroy()` when the widget unmounts** (for example in a custom element's `disconnectedCallback`). Otherwise a removed host keeps its rule references and its shared-sheet registry entry, so those rules are never reclaimed.
+
+- The runtime observes `root` (with an initial scan) and puts all of its CSS inside it: utilities, theme variables (`:root,:host`), `@property`, `@keyframes` and preflight. Nothing goes to `document.head`, and the host page is not changed.
+- **Preflight is scoped to the root.** `html`/`:root` selectors become `:host`. `body` rules are dropped and their declarations are re-emitted last on `:host`, without `min-height: 100vh` and `scroll-behavior`. So the widget gets the preflight font (it no longer inherits the host's `font-family`) and border reset, as in a Tailwind 4 build. Like Tailwind, preflight does not set `color`, so the host's text colour still inherits into the widget unless you set one (for example `text-gray-900` on the widget's wrapper).
+- **Shared sheets.** Runtimes with the same config (and prefix) share one constructable stylesheet that every root adopts through `root.adoptedStyleSheets`. Each class is generated once, whichever root uses it first. Rules keep Tailwind's variant order (#254). GC (#269) counts per root and across roots: a rule is deleted only when no root still uses its class. `runtime.getStats().sharedSheet` reports roots, rules and generations of the shared sheet.
+- **Fallback.** Without constructable stylesheets, each root gets two `<style data-barocss>` elements (prologue and rules) at its start, which mirror the same shared rule list.
+- `insertionPoint`, `styleId` and `maxRulesPerPartition` do not apply in this mode, and a server-rendered `<style data-barocss-ssr>` sheet (#268) is adopted only in document mode.
+- `root` must be a `ShadowRoot` (or `document`, which is the normal document mode). For a widget in a plain `<div>`, use the document mode (`getRuntime().observe(container)`): the host's CSS and the widget's CSS then cascade together, so use a shadow root when you need isolation.
 
 ## Server-rendered pages (SSR)
 
