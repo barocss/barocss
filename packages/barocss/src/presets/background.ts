@@ -171,85 +171,48 @@ functionalUtility({
   category: "background",
 });
 
-// --- Background Gradients: Radial ---
-staticUtility("bg-radial", [
-  ["background-image", "radial-gradient(in oklab, var(--baro-gradient-stops))"],
-], { category: 'background' });
+// --- Background Gradients: Radial / Conic ---
+// Tailwind 4 shape: the utility sets --baro-gradient-position (the stops composite starts with it,
+// and it is registered without an initial value) and the image is just <fn>(var(--baro-gradient-stops)).
+const gradientImage = (fn: string, position: string, fallback?: string): AstNode[] => [
+  decl("--baro-gradient-position", position),
+  decl("background-image", `${fn}(var(--baro-gradient-stops${fallback ? `,${fallback}` : ""}))`),
+];
+staticUtility("bg-radial", gradientImage("radial-gradient", "in oklab"), { category: 'background' });
 functionalUtility({
   name: "bg-radial",
   prop: "background-image",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, context, token) => {
-    if (token.arbitrary) {
-      // bg-radial-[at_50%_75%]
-      return [
-        decl(
-          "background-image",
-          `radial-gradient(var(--baro-gradient-stops, ${value}))`
-        ),
-      ];
-    }
-    if (token.customProperty) {
-      // bg-radial-(--my-gradient)
-      return [
-        decl(
-          "background-image",
-          `radial-gradient(var(--baro-gradient-stops, var(${value})))`
-        ),
-      ];
-    }
+  handle: (value, _context, token) => {
+    // bg-radial-[at_50%_75%]
+    if (token.arbitrary) return gradientImage("radial-gradient", value, value);
+    if (token.customProperty) return gradientImage("radial-gradient", `var(${value})`, `var(${value})`);
     return null;
   },
-  handleCustomProperty: (value) => [
-    decl(
-      "background-image",
-      `radial-gradient(var(--baro-gradient-stops, var(${value})))`
-    ),
-  ],
+  handleCustomProperty: (value) => gradientImage("radial-gradient", `var(${value})`, `var(${value})`),
   description:
     "radial-gradient background-image utility (arbitrary, custom property supported)",
   category: "background",
 });
 
-// --- Background Gradients: Conic ---
-staticUtility("bg-conic", [
-  [
-    "background-image",
-    "conic-gradient(from 0deg in oklab, var(--baro-gradient-stops))",
-  ],
-], { category: 'background' });
+staticUtility("bg-conic", gradientImage("conic-gradient", "in oklab"), { category: 'background' });
 functionalUtility({
   name: "bg-conic",
   prop: "background-image",
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, context, token) => {
-    if (parseNumber(value)) {
-      // bg-conic-180 → conic-gradient(from 180deg in oklab, var(--baro-gradient-stops))
-      return [
-        decl(
-          "background-image",
-          `conic-gradient(from ${value}deg in oklab, var(--baro-gradient-stops))`
-        ),
-      ];
+  handle: (value, _context, token) => {
+    // bg-conic-180 → --baro-gradient-position: from 180deg in oklab
+    if (!token.arbitrary && !token.customProperty && parseNumber(value)) {
+      return gradientImage("conic-gradient", `from ${value}deg in oklab`);
     }
-    if (token.arbitrary) {
-      // bg-conic-[at_50%_75%]
-      return [decl("background-image", `${value}`)];
-    }
-    if (token.customProperty) {
-      // bg-conic-(--my-gradient)
-      return [
-        decl(
-          "background-image",
-          `conic-gradient(var(--baro-gradient-stops, var(${value})))`
-        ),
-      ];
-    }
+    // bg-conic-[from_45deg]
+    if (token.arbitrary) return gradientImage("conic-gradient", value, value);
+    if (token.customProperty) return gradientImage("conic-gradient", `var(${value})`, `var(${value})`);
     return null;
   },
-  handleCustomProperty: (value) => [decl("background-image", `var(${value})`)],
+  handleCustomProperty: (value) => gradientImage("conic-gradient", `var(${value})`, `var(${value})`),
   description:
     "conic-gradient background-image utility (angle, arbitrary, custom property supported)",
   category: "background",

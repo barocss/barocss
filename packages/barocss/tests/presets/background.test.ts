@@ -244,62 +244,19 @@ describe("background utilities", () => {
     ]);
   });
 
-  // Radial gradient
-  it("bg-radial → background-image: radial-gradient(in oklab, var(--baro-gradient-stops))", () => {
-    expect(parseClassToAst("bg-radial", ctx)).toMatchObject([
-      {
-        type: "decl",
-        prop: "background-image",
-        value: "radial-gradient(in oklab, var(--baro-gradient-stops))",
-      },
-    ]);
-  });
-  it("bg-radial-[at_50%_75%] → background-image: radial-gradient(var(--baro-gradient-stops, at 50% 75%))", () => {
-    expect(parseClassToAst("bg-radial-[at_50%_75%]", ctx)).toMatchObject([
-      {
-        type: "decl",
-        prop: "background-image",
-        value: "radial-gradient(var(--baro-gradient-stops, at 50% 75%))",
-      },
-    ]);
-  });
-  it("bg-radial-(--my-gradient) → background-image: radial-gradient(var(--baro-gradient-stops, var(--my-gradient)))", () => {
-    expect(parseClassToAst("bg-radial-(--my-gradient)", ctx)).toMatchObject([
-      {
-        type: "decl",
-        prop: "background-image",
-        value: "radial-gradient(var(--baro-gradient-stops, var(--my-gradient)))",
-      },
-    ]);
-  });
-
-  // Conic gradient
-  it("bg-conic → background-image: conic-gradient(from 0deg in oklab, var(--baro-gradient-stops))", () => {
-    expect(parseClassToAst("bg-conic", ctx)).toMatchObject([
-      {
-        type: "decl",
-        prop: "background-image",
-        value: "conic-gradient(from 0deg in oklab, var(--baro-gradient-stops))",
-      },
-    ]);
-  });
-  it("bg-conic-180 → background-image: conic-gradient(from 180deg in oklab, var(--baro-gradient-stops))", () => {
-    expect(parseClassToAst("bg-conic-180", ctx)).toMatchObject([
-      {
-        type: "decl",
-        prop: "background-image",
-        value: "conic-gradient(from 180deg in oklab, var(--baro-gradient-stops))",
-      },
-    ]);
-  });
-  it("bg-conic-[at_50%_75%] → background-image: at 50% 75%", () => {
-    expect(parseClassToAst("bg-conic-[at_50%_75%]", ctx)).toMatchObject([
-      { type: "decl", prop: "background-image", value: "at 50% 75%" },
-    ]);
-  });
-  it("bg-conic-(--my-gradient) → background-image: var(--my-gradient)", () => {
-    expect(parseClassToAst("bg-conic-(--my-gradient)", ctx)).toMatchObject([
-      { type: "decl", prop: "background-image", value: "var(--my-gradient)" },
+  // Radial / conic gradients: Tailwind 4.1.13 shape (position var + <fn>(var(--baro-gradient-stops)))
+  it.each([
+    ["bg-radial", "in oklab", "radial-gradient(var(--baro-gradient-stops))"],
+    ["bg-radial-[at_50%_75%]", "at 50% 75%", "radial-gradient(var(--baro-gradient-stops,at 50% 75%))"],
+    ["bg-radial-(--my-gradient)", "var(--my-gradient)", "radial-gradient(var(--baro-gradient-stops,var(--my-gradient)))"],
+    ["bg-conic", "in oklab", "conic-gradient(var(--baro-gradient-stops))"],
+    ["bg-conic-180", "from 180deg in oklab", "conic-gradient(var(--baro-gradient-stops))"],
+    ["bg-conic-[at_50%_75%]", "at 50% 75%", "conic-gradient(var(--baro-gradient-stops,at 50% 75%))"],
+    ["bg-conic-(--my-gradient)", "var(--my-gradient)", "conic-gradient(var(--baro-gradient-stops,var(--my-gradient)))"],
+  ])("%s → --baro-gradient-position: %s; background-image: %s", (cls, position, image) => {
+    expect(parseClassToAst(cls, ctx)).toMatchObject([
+      { type: "decl", prop: "--baro-gradient-position", value: position },
+      { type: "decl", prop: "background-image", value: image },
     ]);
   });
 
