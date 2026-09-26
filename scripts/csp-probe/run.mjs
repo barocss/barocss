@@ -17,7 +17,9 @@
 //   document  baro { constructable }, style-src 'self' 1.000/1.000   0 (no nonce needed at all)
 //   document  @tailwindcss/browser (nonce'd script)    0.029/0.023   12 (its <style> has no nonce option)
 //   shadow    ref (<link> in the root)                 1.000/1.000   0
-//   shadow    baro root (#327), no CSP / nonce / self  0.978/0.942   0 (constructable already; same as without CSP)
+//   shadow    baro root (#327), no CSP / nonce / self  1.000/1.000   0 (constructable already; same as without CSP)
+// #355: was 0.978/0.942 because only the ref arm had the site's base CSS (h1-h3 display font) inside the root; a
+//   document stylesheet does not cross the shadow boundary. The baro arm now links site-base.css in the root, as an app would.
 // insertRule into a nonce'd <style> is not governed by CSP; adoptedStyleSheets need no nonce.
 import http from 'node:http';
 import fs from 'node:fs';
@@ -55,6 +57,10 @@ async function build(tokens) {
 }
 const shellTokens = toks(SHELL).concat(['prose']);
 const CSS = { build: await build(shellTokens) };
+// #355: the site's own base CSS (theme vars, h1-h3 display font, body/link colors, .prose) without utilities. A document stylesheet
+// does not cross the shadow boundary, so the app ships it into the root itself (the ref arm gets it inside ref-<m>.css).
+// Site-only: the site's own @theme tokens as plain vars plus its base/components CSS; no Tailwind theme, preflight or utilities.
+CSS['site-base'] = SITE_CSS.replace(SITE_THEME_CSS, SITE_THEME_CSS.replace('@theme {', ':root, :host {'));
 for (const m of MODELS) CSS['ref-' + m] = await build([...shellTokens, ...toks(html[m])]);
 const FILES = { baro: path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'), twb: path.join(process.env.TWB_DIR || '', 'dist/index.global.js') };
 
@@ -96,7 +102,7 @@ const PROPS = ['display', 'margin-top', 'padding-top', 'padding-left', 'width', 
   'flex-direction', 'justify-content', 'align-items', 'text-align'];
 function shadowPage(arm, m) {
   const [, rt, opt] = SHADOW_ARMS[arm];
-  const inner = rt === 'ref' ? `<link rel="stylesheet" href="/ref-${m}.css">` : '';
+  const inner = rt === 'ref' ? `<link rel="stylesheet" href="/ref-${m}.css">` : '<link rel="stylesheet" href="/site-base.css">';
   const boot = rt === 'baro' ? `<script ${S} src="/baro.js"></script>` : '';
   return `<!doctype html><html><head><meta charset="utf-8">${VIOL}<link rel="stylesheet" href="/build.css">${FREEZE}${boot}</head><body><div id="host"></div>
 <script ${S}>window.__H=${JSON.stringify(html[m]).replace(/</g, '\\u003c')};var host=document.getElementById('host');var sr=host.attachShadow({mode:'open'});sr.innerHTML=${JSON.stringify(inner)}+'<div id="blocks"></div>';
