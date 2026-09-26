@@ -8,6 +8,8 @@
 
 @barocss/browser provides a browser-specific runtime that automatically detects DOM changes and generates CSS in real-time. It includes DOM change detection, style injection, and performance optimizations for browser environments.
 
+> **Need styled first paint on server-rendered pages?** Use the [`@barocss/server` recipe](../barocss-server/README.md#recipe-ssr-with-a-tailwind-build-nextjs-app-router-astro) (Astro: [docs guide](../../apps/barocss-docs/docs/guide/integration/astro.md)). The recipe below is client-only.
+
 ## Recipe: BaroCSS next to a Tailwind/shadcn build (json-render)
 
 Use this when the page already links a Tailwind 4 / shadcn build and a model sends json-render specs whose `className` values the build never saw. Copy it as is:
@@ -130,6 +132,8 @@ renderJsonUi(spec); // Mount your json-render Renderer here
 The helper reads literal `props.className` strings in the flat `spec.elements` map. It splits class lists, removes duplicates, and calls `runtime.addClass` synchronously. It does not return a CSS readiness result. The application must validate the spec, response size, class allowlist, class support, and runtime state before this call. The helper reads every entry, including nodes that the renderer may not mount. State-derived classes and classes added inside registered components need a separate source of classes.
 
 ### CDN Usage
+
+> **CDN global is browser-only.** The CDN UMD script's `window.BaroCSS` exposes only `@barocss/browser`: `BrowserRuntime`, `getRuntime`, `baroBoot`/`baroStart`, `ChangeDetector`, `StylePartitionManager`, `shadcnTheme`, `preloadJsonRenderClasses`, `collectJsonRenderClassNames`, `normalizeClassName(List)`, `SSR_STYLE_SELECTOR`, `LAYER_ORDER`. There is no `generateCss`/`generateCssForHtml`/`ServerRuntime` in it: server-side generation needs `@barocss/server` in Node.
 
 ```html
 <!DOCTYPE html>

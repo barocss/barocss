@@ -60,6 +60,14 @@ Don't give this `<style>` a `precedence` or `href`, so React leaves it where it 
 
 ```ts
 import { defineMiddleware } from 'astro:middleware';
+import { ServerRuntime, ssrStyleTag } from '@barocss/server';
+const runtime = new ServerRuntime({
+  cssVarPrefix: 'tw',                      // always, next to a Tailwind build
+  // from the build's `@custom-variant dark (...)`: shadcn -> '.dark &',
+  // `[data-theme=dark]` variant -> '[data-theme=dark] &', none -> omit (default 'media')
+  darkMode: 'class',
+  darkModeSelector: '.dark &',
+});
 const dir = path.resolve('dist/client/_astro');
 const BUILD_CSS = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.css')).map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n') : '';
 
@@ -74,7 +82,7 @@ export const onRequest = defineMiddleware(async (_ctx, next) => {
 });
 ```
 
-**Astro, static output:** do the same once in an integration's `astro:build:done` hook: read every `.css` under `dir` as the skip CSS, then rewrite every `.html`. The full recipe (shared config, static hook, client companion) is in the docs: `guide/integration/astro`.
+**Astro, static output:** do the same once in an integration's `astro:build:done` hook: read every `.css` under `dir` as the skip CSS, then rewrite every `.html`, with the same `cssVarPrefix: 'tw'` and `darkModeSelector` on the `ServerRuntime`. The full recipe (shared config, static hook, client companion) is in the docs: `guide/integration/astro`.
 
 **Config to copy from the build CSS** (use the same object on server and client):
 

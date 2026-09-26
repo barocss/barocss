@@ -55,7 +55,17 @@ import { defineMiddleware } from 'astro:middleware';
 import { ServerRuntime, ssrStyleTag } from '@barocss/server';
 import { barocssConfig } from './barocss.config';
 
-const runtime = new ServerRuntime(barocssConfig);   // once per process; caches per-class results
+// once per process; caches per-class results
+const runtime = new ServerRuntime({
+  ...barocssConfig,
+  cssVarPrefix: 'tw',                      // always, next to a Tailwind build
+  // darkModeSelector from the build's `@custom-variant dark (...)`:
+  //   shadcn `(&:is(.dark *))` -> '.dark &'
+  //   `(&:where([data-theme=dark], [data-theme=dark] *))` -> '[data-theme=dark] &'
+  //   no `@custom-variant dark` -> omit darkMode/darkModeSelector (default 'media')
+  darkMode: 'class',
+  darkModeSelector: '[data-theme=dark] &',
+});
 
 // The Tailwind build Astro emitted (node adapter: dist/client/_astro/*.css). Read once.
 const assets = path.resolve('dist/client/_astro');
@@ -99,7 +109,16 @@ const barocss = {
     'astro:build:done': ({ dir }) => {
       const files = walk(fileURLToPath(dir));
       const buildCss = files.filter((f) => f.endsWith('.css')).map((f) => fs.readFileSync(f, 'utf8')).join('\n');
-      const runtime = new ServerRuntime(barocssConfig);
+      const runtime = new ServerRuntime({
+        ...barocssConfig,
+        cssVarPrefix: 'tw',                      // always, next to a Tailwind build
+        // darkModeSelector from the build's `@custom-variant dark (...)`:
+        //   shadcn `(&:is(.dark *))` -> '.dark &'
+        //   `(&:where([data-theme=dark], [data-theme=dark] *))` -> '[data-theme=dark] &'
+        //   no `@custom-variant dark` -> omit darkMode/darkModeSelector (default 'media')
+        darkMode: 'class',
+        darkModeSelector: '[data-theme=dark] &',
+      });
       for (const file of files.filter((f) => f.endsWith('.html'))) {
         const html = fs.readFileSync(file, 'utf8');
         const css = runtime.generateCssForHtml(html, { skip: buildCss });
@@ -115,6 +134,10 @@ export default defineConfig({ integrations: [barocss] });
 With `output: 'server'` plus prerendered pages, use both: the middleware for on-demand pages and the hook for the prerendered HTML.
 
 ## 4. Client companion
+
+::: warning The CDN global is the browser runtime only
+`window.BaroCSS` from the CDN UMD script exposes only `@barocss/browser` (`BrowserRuntime`, `getRuntime`, `baroBoot`, `shadcnTheme`, ...). There is no `generateCss`, `generateCssForHtml` or `ServerRuntime` in it: server-side generation needs `@barocss/server` in Node, as in the recipes above.
+:::
 
 Only needed when the page adds classes after load (client islands, live previews). It adopts the `<style data-barocss-ssr>` sheet and never regenerates those classes:
 
