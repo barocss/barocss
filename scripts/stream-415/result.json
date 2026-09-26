@@ -5,14 +5,7 @@
  "docs": [
   "haiku-1",
   "haiku-2",
-  "haiku-3",
-  "haiku-4",
-  "haiku-5",
-  "opus-1",
-  "opus-2",
-  "opus-3",
-  "opus-4",
-  "opus-5"
+  "haiku-3"
  ],
  "concurrency": 1,
  "charsPerToken": 4,
@@ -74,6 +67,24 @@
    "cacheAfterGc": 51,
    "cachedJunkAfterGc": 0,
    "streamS": 10.7
+  },
+  "incremental@100": {
+   "n": 3,
+   "junkRules": 0,
+   "junkMax": 0,
+   "calls": 11,
+   "generated": 43,
+   "wrongStyleSamplePct": 0.9,
+   "streamsWithWrongStyle": 2,
+   "wrongEls": 4,
+   "lastTokenToFinalMs": 0.5,
+   "lastTokenToFinalP90": 0.6,
+   "unsettled": 0,
+   "cacheEnd": 43,
+   "cachedJunkEnd": 0,
+   "cacheAfterGc": 43,
+   "cachedJunkAfterGc": 0,
+   "streamS": 9.3
   }
  },
  "raw": [
@@ -181,6 +192,94 @@
     "background-color": 2
    },
    "settleMs": 238.3,
+   "atEnd": {
+    "cachedClasses": 43,
+    "ruleCount": 43,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 43,
+    "ruleCount": 43,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "haiku-1",
+   "streamMs": 10652,
+   "calls": 23,
+   "generated": 51,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 100,
+   "elemSamples": 2507,
+   "wrongSamples": 23,
+   "wrongEls": 11,
+   "wrongProps": {
+    "width": 23
+   },
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 51,
+    "ruleCount": 60,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 51,
+    "ruleCount": 60,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "haiku-2",
+   "streamMs": 4802,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 46,
+   "elemSamples": 473,
+   "wrongSamples": 28,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 28
+   },
+   "settleMs": 0.5,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "haiku-3",
+   "streamMs": 9282.3,
+   "calls": 11,
+   "generated": 43,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 88,
+   "elemSamples": 1090,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 0.3,
    "atEnd": {
     "cachedClasses": 43,
     "ruleCount": 43,

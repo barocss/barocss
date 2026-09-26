@@ -57,14 +57,17 @@ const SNAP = `window.__snap = (props, idx) => { const els = Array.from(document.
     return { tag: el.tagName, cls: el.hasAttribute('class'), v: props.map((p) => cs.getPropertyValue(p)) }; }); };`;
 
 // Hard deadline: exit before an outer `timeout 470` so result.json (written per trial) is never lost mid-run.
-setTimeout(() => { process.stderr.write('\ndeadline\n'); process.exit(0); }, Number(process.env.DEADLINE_S || 450) * 1000).unref();
-const browser = await chromium.launch({ executablePath: process.env.CHROME,
+let browser;
+setTimeout(async () => { process.stderr.write('\ndeadline\n'); await Promise.race([browser?.close(), new Promise((r) => setTimeout(r, 5000))]); process.exit(0); }, Number(process.env.DEADLINE_S || 450) * 1000).unref();
+browser = await chromium.launch({ executablePath: process.env.CHROME,
   // Concurrent pages are background tabs: stop Chrome from throttling their timers (stalled earlier runs).
   args: ['--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'] });
 
 // Per doc: unstyled reference (no runtime) and final styled reference (runtime, settled).
-const REF = {};
-for (const d of DOCS) {
+// Refs are cached (REF_CACHE path) so each per-rate invocation does not redo them.
+const REF_CACHE = process.env.REF_CACHE;
+const REF = REF_CACHE && fs.existsSync(REF_CACHE) ? JSON.parse(fs.readFileSync(REF_CACHE, 'utf8')) : {};
+for (const d of DOCS) { if (REF[d.id]) continue;
   const p = await browser.newPage({ viewport: { width: 1300, height: 900 } });
   await p.goto(`http://127.0.0.1:${PORT}/bare`); await p.addScriptTag({ content: SNAP });
   const unstyled = await p.evaluate(([h, pr]) => { document.getElementById('msg').innerHTML = h; return __snap(pr); }, [d.html, PROPS]);
@@ -72,13 +75,14 @@ for (const d of DOCS) {
   const final = await p.evaluate(async ([h, pr]) => { document.getElementById('msg').innerHTML = h;
     await new Promise((r) => setTimeout(r, 500)); return __snap(pr); }, [d.html, PROPS]);
   const finalClasses = await p.evaluate(() => [...new Set(Array.from(document.querySelectorAll('#msg *')).flatMap((e) => [...e.classList]))]);
-  REF[d.id] = { unstyled, final, finalClasses };
+  REF[d.id] = { unstyled, final, finalClasses }; process.stderr.write('r');
   await p.close();
+  if (REF_CACHE) fs.writeFileSync(REF_CACHE, JSON.stringify(REF));
 }
 
 async function trial(cond, doc) {
-  const ctx = await browser.newContext(); // fresh context per trial
-  const page = await ctx.newPage({ viewport: { width: 1300, height: 900 } });
+  const ctx = await browser.newContext({ viewport: { width: 1300, height: 900 } }); // fresh context per trial
+  const page = await ctx.newPage();
   await page.goto(`http://127.0.0.1:${PORT}/rt`); await page.addScriptTag({ content: SNAP });
   const r = await page.evaluate(async ({ cond, html, ref, props, cpt, gcWait }) => {
     const rt = BaroCSS.getRuntime();
@@ -156,7 +160,7 @@ async function trial(cond, doc) {
 }
 
 // Warm-up (discarded), then ROUNDS x docs x conds, interleaved (order reversed on odd rounds); CONC pages at once.
-await trial(CONDS[CONDS.length - 1], DOCS[0]);
+const tw = Date.now(); await trial(CONDS[CONDS.length - 1], DOCS[0]); process.stderr.write(`warm ${Date.now() - tw}ms\n`);
 const jobs = [];
 for (let r = 0; r < ROUNDS; r++) for (const d of DOCS) for (const c of (r % 2 ? [...CONDS].reverse() : CONDS)) jobs.push([c, d, r]);
 const RES = path.join(HERE, 'result.json');
@@ -190,7 +194,7 @@ return out;
 await Promise.all(Array.from({ length: CONC }, async () => { while (next < jobs.length) { const [c, d, r] = jobs[next++];
   const t = await Promise.race([trial(c, d), new Promise((res) => setTimeout(() => res(null), 60000))]);
   if (!t) { process.stderr.write(`timeout ${c.id} ${d.id}\n`); continue; }
-  raw.push({ round: r, ...t }); save(); process.stderr.write('.'); } }));
+  raw.push({ round: r, ...t }); save(); process.stderr.write(` ${c.id} ${d.id} ${Math.round(t.streamMs)}ms settle=${t.settleMs}\n`); } }));
 
 await browser.close(); srv.close();
 const out = save();
