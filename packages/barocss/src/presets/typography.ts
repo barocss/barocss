@@ -1,5 +1,5 @@
 import { staticUtility, functionalUtility } from "../core/registry";
-import { atRule, decl } from "../core/ast";
+import { decl } from "../core/ast";
 import { themeColorDecls,
   parseNumber,
   parseLength,
