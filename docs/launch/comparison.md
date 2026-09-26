@@ -18,7 +18,8 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
   it was 94.5% when #243 first measured it on dev after 0.4.0). Plugins such as typography are untested (#253).
 - **No-build pages (MCP Apps, default CSP): BaroCSS is not unique.** twb already covers the scenario. On
   published 0.10.1 BaroCSS ties it on parity (100% vs 100%, dynamic classes 20/20 both), but twb reaches the
-  final styled state sooner (24 vs 43 ms, both measured side by side in the same #383 session) and is the
+  final styled state sooner (median 24 ms, range 21–32, vs 42 ms, range 33–237 with 14 of 40 BaroCSS loads at
+  176–237 ms; N=40 page loads per arm, interleaved in one session, twb 4.1.13 vs BaroCSS 0.10.3, #404) and is the
   official runtime (#198 rerun in #383, published 0.10.1).
   Under a strict CSP without a nonce, both runtimes are blocked alike (73%, same as no runtime).
 - **Bytes vs a pre-built sheet.** The BaroCSS UMD CDN bundle is 52.8 KB gz (published 0.10.1, #383; the ESM
@@ -39,7 +40,7 @@ Published version: `@barocss/kit`, `@barocss/browser`, `@barocss/server` **0.10.
 | Shadow DOM widget, strict CSP, hostile host | host damage 0; @property-backed utilities fixed in 0.10.2 (0/905 in 3 engines, #384) | 0.000 | – | 0.000 | #364 (published 0.10.0), #384 |
 | Untrusted classes (22 adversarial shapes) | 0 host changes, 0 cross-origin `url()` hits (1 same-origin hit unless pre-filtered) | n/a | – | – | #364 (0.10.0) |
 | SSR first paint | 1.0 match at FCP with `@barocss/server`; client-only leaves a median 408 / 360 ms unstyled (0.8.0 in the same session: 390 / 327 ms; N=3) | client-only | 1.0 if the build knew the classes | – | #394 same-session rerun of #266 (published 0.10.1) |
-| No-build HTML, default CSP | parity 100% (default and preflight), final 43 ms | 100%, final 24 ms | – | 73% | #198 rerun in #383 (published 0.10.1) |
+| No-build HTML, default CSP | parity 100% (default and preflight), final 42 ms (33–237, N=40) | 100%, final 24 ms (21–32, N=40) | – | 73% | parity: #198 rerun in #383 (published 0.10.1); timing: #404 same session (twb 4.1.13, BaroCSS 0.10.3) |
 | Agent adoption from the docs (AstroPaper) | strong model 0.983 at first paint, 0 damage; weak model (haiku) 2/2 after the #306 doc fixes (first paint 0.983 / 0.958, hydrated 1.0 / 0.975, 0 damage; it was 1 of 2 in #289) | – | – | – | #289, #306 recheck (published 0.7.0, `scripts/cms-starter-probe/results-306-recheck.json`) |
 | Script bytes (gz) | 52.8 KB (UMD CDN) | 68.7 KB | 0 | 0 | #383 (published 0.10.1) |
 | Pre-generated CSS (gz) | – | – | 144 KB (families) to 342 KB (wide) | 0 | #218 |

@@ -30,8 +30,10 @@ Tailwind-compatible CSS for those classes at runtime, alongside your existing bu
 
 - **You know the class set in advance:** pre-generate at build time. Parity 1.0 with no runtime (#218).
 - **A no-build page under a default CSP:** `@tailwindcss/browser`, the official runtime, already covers it.
-  BaroCSS now matches it there (100% vs 100%), but twb reached the final state sooner in the same run (24 vs 43 ms,
-  #198 rerun in #383, published 0.10.1, single session, both runtimes side by side).
+  BaroCSS now matches it there (100% vs 100%), but twb reached the final state sooner: median 24 ms
+  (range 21–32) vs 42 ms (range 33–237; 14 of 40 BaroCSS loads took 176–237 ms), N=40 page loads per arm (10
+  interleaved rounds x 4 pages, warm-up discarded), one session (#404: `@tailwindcss/browser` 4.1.13 vs
+  `@barocss/browser` 0.10.3, headless Chromium 148, Apple M3 Max).
 - BaroCSS is a reimplementation: 100% on its parity corpora (#241, #304), 100% on 567 held-out classes (dev after 0.10.1; 94.5% when #243 first measured it).
 
 ## Security posture
