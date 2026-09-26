@@ -1,4 +1,4 @@
-import { IncrementalParser, createContext, parseClassName } from "@barocss/kit";
+import { IncrementalParser, createContext, parseClassName, isDebug } from "@barocss/kit";
 import type { Config, Context, GenerateCssRulesResult } from "@barocss/kit";
 import { ruleSortKey, upperBound, type RuleKey } from "./rule-order";
 
@@ -151,7 +151,7 @@ export class SharedRootSheet {
       this.insertAt(rule, index);
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.warn(`[BrowserRuntime] Failed to insert rule into shadow root sheet: ${rule}`, error);
+      if (isDebug()) console.warn(`[BrowserRuntime] Failed to insert rule into shadow root sheet: ${rule}`, error);
       return false;
     }
     seg.rules.splice(local, 0, rule);
