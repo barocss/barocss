@@ -45,6 +45,8 @@ interface BrowserRuntimeOptions {
   styleId?: string;                   // Custom style element ID
   insertionPoint?: 'head' | 'body' | HTMLElement; // CSS insertion point
   maxRulesPerPartition?: number;      // Max rules per style partition
+  nonce?: string;                     // #347: CSP nonce set on every <style> the runtime creates
+  constructable?: boolean;            // #347: document mode in document.adoptedStyleSheets (falls back to <style>)
 }
 ```
 

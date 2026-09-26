@@ -6,7 +6,7 @@ import { ChangeDetector } from './change-detector';
 import { collectKeyframeNames, collectLeadingClasses } from './existing-classes';
 import { ClassGc } from './class-gc';
 import { normalizeClassNameList } from './utils';
-import { acquireSharedRootSheet, ShadowRootStyles, SharedIncrementalParser } from './shadow-root-sheet';
+import { acquireSharedRootSheet, canConstruct, ShadowRootStyles, SharedIncrementalParser, SharedRootSheet } from './shadow-root-sheet';
 
 export interface BrowserRuntimeOptions {
   config?: Config;  // full config object
@@ -47,6 +47,22 @@ export interface BrowserRuntimeOptions {
    * are not adopted. `document` (or omitting it) keeps the document mode.
    */
   root?: ShadowRoot | Document;
+  /**
+   * #347: a CSP nonce set on every `<style>` element the runtime creates (preflight, theme variables, rule
+   * partitions, and the shadow-root fallback `<style>`s), so the runtime works under
+   * `style-src 'nonce-…'` without `'unsafe-inline'`. Rules are then added through CSSOM (`insertRule`),
+   * which CSP does not govern. Default: none.
+   */
+  nonce?: string;
+  /**
+   * #347: document mode only. Put all CSS in constructable sheets adopted by the document
+   * (`document.adoptedStyleSheets`) instead of `<style>` elements; CSP `style-src` does not apply to them,
+   * so no nonce is needed. The adopted sheets come after every document sheet in cascade order (preflight stays
+   * in `@layer base`). Where `document.adoptedStyleSheets` is unsupported it falls back to `<style>` elements
+   * (with `nonce` when set). `insertionPoint`, `styleId` and `maxRulesPerPartition` are ignored when adopted.
+   * Default: false.
+   */
+  constructable?: boolean;
 }
 
 /** #268: marks a server-rendered sheet (`@barocss/server` `ssrStyleTag()`); the runtime adopts its class rules. */
@@ -95,6 +111,8 @@ export class BrowserRuntime {
       gc: options.gc ?? true,
       gcGraceMs: options.gcGraceMs ?? 3000,
       maxRules: options.maxRules ?? Infinity,
+      nonce: options.nonce ?? '',
+      constructable: options.constructable ?? false,
     };
 
     const root = options.root;
@@ -139,9 +157,14 @@ export class BrowserRuntime {
         this.incrementalParser = new SharedIncrementalParser(shared);
         this.changeDetector?.setParser(this.incrementalParser);
       }
-      return new ShadowRootStyles(shared, this.shadowRoot, this.getCategory);
+      return new ShadowRootStyles(shared, this.shadowRoot, this.getCategory, { nonce: this.options.nonce });
     }
-    return new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
+    if (this.options.constructable && typeof document !== 'undefined' && canConstruct('document')) {
+      // #347: a private (not shared) #327 sheet pair, adopted by the document; reuses this runtime's context.
+      const sheet = new SharedRootSheet('document', this.options.config, 'document', { context: this.context, target: 'document' });
+      return new ShadowRootStyles(sheet, document, this.getCategory);
+    }
+    return new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory, this.options.nonce);
   }
 
   // Debugging and logging helpers
@@ -525,6 +548,8 @@ export class BrowserRuntime {
       config: this.options.config,
       cacheStats: this.getCacheStats(),
       /** #327: the shared shadow-root sheet this runtime uses (null in document mode). */
+      /** #347: whether the document-mode CSS lives in adopted constructable sheets. */
+      adopted: !this.shadowRoot && this.stylePartitionManager instanceof ShadowRootStyles,
       sharedSheet: this.shadowRoot && this.stylePartitionManager instanceof ShadowRootStyles
         ? { roots: this.stylePartitionManager.shared.rootCount, rules: this.stylePartitionManager.shared.ruleCount, generations: this.stylePartitionManager.shared.generations, constructable: this.stylePartitionManager.shared.constructable }
         : null,
