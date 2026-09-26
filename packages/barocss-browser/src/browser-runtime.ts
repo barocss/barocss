@@ -5,6 +5,7 @@ import { StylePartitionManager } from './style-partition-manager';
 import { ChangeDetector } from './change-detector';
 import { collectKeyframeNames, collectLeadingClasses } from './existing-classes';
 import { ClassGc } from './class-gc';
+import { normalizeClassNameList } from './utils';
 import { acquireSharedRootSheet, ShadowRootStyles, SharedIncrementalParser } from './shadow-root-sheet';
 
 export interface BrowserRuntimeOptions {
@@ -402,9 +403,7 @@ export class BrowserRuntime {
   }
 
   private normalizeClasses(classes: string | string[]): string[] {
-    return Array.isArray(classes)
-      ? classes.flatMap(cls => cls.split(/\s+/))
-      : classes.split(/\s+/);
+    return (Array.isArray(classes) ? classes : [classes]).flatMap(normalizeClassNameList);
   }
 
   has(cls: string): boolean {

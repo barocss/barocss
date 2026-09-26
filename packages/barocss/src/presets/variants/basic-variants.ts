@@ -18,25 +18,16 @@ const withPseudoContent = (ast: AstNode[]): AstNode[] => [
 ];
 staticModifier('before', ['&::before'], { source: 'pseudo', astHandler: withPseudoContent });
 staticModifier('after', ['&::after'], { source: 'pseudo', astHandler: withPseudoContent });
-staticModifier('placeholder', [
-  '&::placeholder',
-  '&::-webkit-input-placeholder',
-  '&::-moz-placeholder',
-  '&:-ms-input-placeholder',
-], { source: 'pseudo' });
-staticModifier('selection', [
-  '&::selection',
-  '&::-moz-selection',
-], { source: 'pseudo' });
-staticModifier('file', [
-  '&::file-selector-button',
-  '&::-webkit-file-upload-button',
-], { source: 'pseudo' });
+// #335: the selectors Tailwind 4.3.3 emits. Each vendor pseudo-element is its own rule in a browser that
+// does not know it, and the legacy ones (::-moz-selection, :-ms-input-placeholder, ...) are no longer needed.
+staticModifier('placeholder', ['&::placeholder'], { source: 'pseudo' });
+staticModifier('selection', ['& *::selection', '&::selection'], { source: 'pseudo' });
+staticModifier('file', ['&::file-selector-button'], { source: 'pseudo' });
 staticModifier('marker', [
+  '& *::marker',
   '&::marker',
+  '& *::-webkit-details-marker',
   '&::-webkit-details-marker',
-  '&::-moz-list-bullet',
-  '&::-moz-list-number',
 ], { source: 'pseudo' });
 staticModifier('details-content', ['&::details-content'], { source: 'pseudo' });
 staticModifier('first-line', ['&::first-line'], { source: 'pseudo' });

@@ -52,6 +52,7 @@ function innerCompound(variant: string, ctx: Context): Omit<HasIn, 'kind'> | und
   const inner = getModifier(ctx).find((m) => m.match(variant, ctx));
   if (!inner?.modifySelector || inner.astHandler) return undefined;
   const out = inner.modifySelector({ selector: '&', fullClassName: '', mod: { type: variant } as ParsedModifier, context: ctx });
+  if (out == null) return undefined;
   const list = typeof out === 'string' ? [{ selector: out }] : Array.isArray(out) ? out : [out];
   if (list.length !== 1) return undefined;
   const sel = list[0].selector;

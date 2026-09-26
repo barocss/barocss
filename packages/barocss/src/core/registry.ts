@@ -80,7 +80,7 @@ export type ModifierSelector = {
 
 export type ModifierRegistration = {
   match: (mod: string, context: Context) => boolean;
-  modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: Context; variantChain?: ParsedModifier[]; index?: number }) => string | ModifierSelector | ModifierSelector[];
+  modifySelector?: (params: { selector: string; fullClassName: string; mod: ParsedModifier; context: Context; variantChain?: ParsedModifier[]; index?: number }) => string | ModifierSelector | ModifierSelector[] | null;
   wrap?: (mod: ParsedModifier, context: Context) => AstNode[];
   astHandler?: (ast: AstNode[], mod: ParsedModifier, context: Context, variantChain?: ParsedModifier[], index?: number) => AstNode[];
   sort?: number;

@@ -1,5 +1,6 @@
 import { AstNode } from "../../core/ast";
 import { Context } from "../../core/context";
+import { getModifier } from "../../core/registry";
 
 /**
  * Create container query parameters
@@ -103,4 +104,19 @@ function hasTopLevelComma(value: string): boolean {
     else if (c === ',' && depth === 0) return true;
   }
   return false;
+}
+/**
+ * #335: the pseudo-class selector (`:hover`, `:first-child`, `:nth-child(odd)`) of a registered static
+ * variant, for compounding in not-/group-/peer-/has- forms, or null when the variant is unknown or is not a
+ * single pseudo-class (pseudo-elements, at-rules, multi-selector variants). Tailwind 4.3.3 emits nothing
+ * for a compound variant whose inner variant it cannot compound (`not-foo`, `group-before`, `peer-has-foo`).
+ */
+export function pseudoClassOf(name: string, ctx: Context): string | null {
+  const plugin = getModifier(ctx).find((p) => p.name === name && p.match(name, ctx));
+  if (!plugin?.modifySelector) return null;
+  const r = plugin.modifySelector({ selector: '&', fullClassName: '', mod: { type: name }, context: ctx });
+  const list = Array.isArray(r) ? r : r && typeof r === 'object' ? [r] : typeof r === 'string' ? [{ selector: r }] : [];
+  if (list.length !== 1) return null;
+  const m = /^&(:(?!:)[a-zA-Z-]+(?:\(.*\))?)$/.exec(list[0].selector);
+  return m ? m[1] : null;
 }
