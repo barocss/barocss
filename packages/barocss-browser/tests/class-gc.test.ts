@@ -155,6 +155,20 @@ describe('class GC (#269)', () => {
     expect(stats.ruleCount).toBe(list.length);
   });
 
+  it('keeps a class still used outside the observed root (portal)', async () => {
+    const app = div(''); const portal = div('pb-7');
+    document.body.append(app, portal);
+    runtime = new BrowserRuntime({ gcGraceMs: GRACE });
+    runtime.observe(app);
+    const a = div('pb-7');
+    app.appendChild(a);
+    await flush();
+    expect(has('.pb-7')).toBe(true);
+    a.remove();
+    await wait(GRACE * 3);
+    expect(has('.pb-7')).toBe(true);
+  });
+
   it('gc: false never reclaims', async () => {
     await setup({ gc: false });
     const a = div('m-8');

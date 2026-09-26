@@ -132,7 +132,11 @@ export class ClassGc {
   private inDom(cls: string): boolean {
     const root = this.root;
     if (!root) return false;
-    return root.classList.contains(cls) || root.getElementsByClassName(cls).length > 0;
+    // Document-wide: an element outside the observed root (portal, <html class>) may share the class.
+    const doc = root.ownerDocument ?? document;
+    return root.classList.contains(cls)
+      || doc.documentElement.classList.contains(cls)
+      || doc.getElementsByClassName(cls).length > 0;
   }
 
   cancel(): void {
