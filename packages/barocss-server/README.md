@@ -38,6 +38,7 @@ const tag = ssrStyleTag(css); // '<style data-barocss-ssr>…</style>': put it i
   The output never contains `@layer` statements.
 - The result is one ordered sheet (#267): each referenced theme var once, each `@property` block once, rules in Tailwind variant order.
 - Also exported: `ssrStyleTag(css, { nonce })`, `SSR_STYLE_ATTRIBUTE`.
+- **Inlining CSS into HTML: use the helper.** Wrap server output with `ssrStyleTag(css)` (or, where a framework takes a string, apply the same end-tag escaping as the Next.js example below). Never interpolate raw CSS into `<style>${css}</style>`.
 
 **Next.js App Router** (a server component; `html` is the CMS or model markup you render):
 
@@ -54,7 +55,7 @@ export default async function Page() {
 }
 ```
 
-Don't give this `<style>` a `precedence` or `href`, so React leaves it where it is. It only has to come before the content it styles. When you render components rather than an HTML string, pass the class list instead: `runtime.generateCssForHtml(['p-4 sm:p-6', …], { skip: BUILD_CSS })`.
+The `.replace(/<\/style/gi, '<\\/style')` is what `ssrStyleTag` does for you: raw CSS inlined into HTML must never contain a markup end-tag sequence, or it could close the `<style>` element early. Don't give this `<style>` a `precedence` or `href`, so React leaves it where it is. It only has to come before the content it styles. When you render components rather than an HTML string, pass the class list instead: `runtime.generateCssForHtml(['p-4 sm:p-6', …], { skip: BUILD_CSS })`.
 
 **Astro, SSR** (`src/middleware.ts`; read the emitted build CSS once at startup):
 

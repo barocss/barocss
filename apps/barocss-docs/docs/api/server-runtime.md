@@ -269,7 +269,7 @@ fs.writeFileSync('dist/styles.css', css);
 ### Server-Side Rendering (SSR)
 
 ```typescript
-import { ServerRuntime } from '@barocss/server';
+import { ServerRuntime, ssrStyleTag } from '@barocss/server';
 
 // Initialize once per request or globally
 const serverRuntime = new ServerRuntime({
@@ -284,15 +284,16 @@ const serverRuntime = new ServerRuntime({
 
 // In your SSR function
 function renderPage(componentClasses: string[]) {
-  // Generate CSS for component classes
-  const results = serverRuntime.generateCssForClasses(componentClasses);
-  const css = results.map(r => r.css).join('\n');
-  
+  // One complete, ordered sheet for the component classes
+  const css = serverRuntime.generateCss(componentClasses.join(' '));
+
+  // Always inline through ssrStyleTag, never `<style>${css}</style>`: it neutralises
+  // any markup end-tag sequence in the CSS and marks the sheet for the browser runtime.
   return `
     <!DOCTYPE html>
     <html>
       <head>
-        <style>${css}</style>
+        ${ssrStyleTag(css)}
       </head>
       <body>
         ${renderComponent()}
