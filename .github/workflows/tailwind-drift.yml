@@ -61,6 +61,7 @@ jobs:
         run: pnpm exec vitest run tests/compat/tailwind-drift-365.test.ts
 
       - name: Report
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
