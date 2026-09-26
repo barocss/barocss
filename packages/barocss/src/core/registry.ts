@@ -4,6 +4,7 @@ import type { Context } from './context';
 import { clearContextCaches, getContextState } from './contextState';
 import { ParsedModifier, ParsedUtility } from './parser';
 import { parseResultCache, utilityCache } from '../utils/cache';
+import { applyColorAlpha } from './utils';
 
 // Utility registration
 export interface UtilityRegistration {
@@ -359,6 +360,11 @@ export type FunctionalUtilityOptions = {
    */
   supportsOpacity?: boolean;
   /**
+   * #393: the handlers apply the opacity modifier of an arbitrary / custom-property value themselves (shadow
+   * alpha); otherwise functionalUtility mixes the emitted colour, and emits nothing if there is no colour to mix.
+   */
+  ownsOpacity?: boolean;
+  /**
    * The handler function that processes values
    * 
    * @example
@@ -530,42 +536,56 @@ export function functionalUtility(opts: FunctionalUtilityOptions, ctx?: Context)
         }
       }
 
-      // 1. Arbitrary value - already parsed in parser.ts
-      if (opts.supportsArbitrary && parsedUtility.arbitrary) {
-        const processedValue = normalizeMathSpacing(expandThemeFunctions(finalValue.replace(/_/g, ' ')));
-        // console.log('[functionalUtility] arbitrary', { processedValue });
-        // 7. handle (custom AST generation)
-        if (opts.handle) {
-          const result = opts.handle(processedValue, ctx, token, extra);
-          // console.log('[functionalUtility] arbitrary handle result', result);
-          if (result) return result;
+      // 1./2. Arbitrary value and custom property - already parsed in parser.ts
+      const direct = (x: FunctionalUtilityExtra): AstNode[] | null => {
+        // 1. Arbitrary value - already parsed in parser.ts
+        if (opts.supportsArbitrary && parsedUtility.arbitrary) {
+          const processedValue = normalizeMathSpacing(expandThemeFunctions(finalValue.replace(/_/g, ' ')));
+          // console.log('[functionalUtility] arbitrary', { processedValue });
+          // 7. handle (custom AST generation)
+          if (opts.handle) {
+            const result = opts.handle(processedValue, ctx, token, x);
+            // console.log('[functionalUtility] arbitrary handle result', result);
+            if (result) return result;
+          }
+          // 8. default decl
+          if (opts.prop) {
+            // console.log('[functionalUtility] arbitrary default decl', { prop: opts.prop, processedValue });
+            return [decl(opts.prop, processedValue)];
+          }
+          return [];
         }
-        // 8. default decl
-        if (opts.prop) {
-          // console.log('[functionalUtility] arbitrary default decl', { prop: opts.prop, processedValue });
-          return [decl(opts.prop, processedValue)];
+        // 2. Custom property - already parsed in parser.ts
+        if (opts.supportsCustomProperty && parsedUtility.customProperty) {
+          // console.log('[functionalUtility] customProperty', { finalValue });
+          if (opts.handleCustomProperty) {
+            return opts.handleCustomProperty(finalValue, ctx, token, x) ?? null;
+          }
+          const customValue = `var(${finalValue})`;
+          if (opts.handle) {
+            const result = opts.handle(customValue, ctx, token, x);
+            // console.log('[functionalUtility] customProperty handle result', result);
+            if (result) return result;
+          }
+          if (opts.prop) {
+            // console.log('[functionalUtility] customProperty default decl', { prop: opts.prop, customValue });
+            return [decl(opts.prop, customValue)];
+          }
+          return [];
         }
-        return [];
-      }
-      // 2. Custom property - already parsed in parser.ts
-      if (opts.supportsCustomProperty && parsedUtility.customProperty) {
-        // console.log('[functionalUtility] customProperty', { finalValue });
-        if (opts.handleCustomProperty) {
-          const result = opts.handleCustomProperty(finalValue, ctx, token, extra);
-          // console.log('[functionalUtility] customProperty handleCustomProperty result', result);
-          return result;
+        return null;
+      };
+      if ((opts.supportsArbitrary && parsedUtility.arbitrary) || (opts.supportsCustomProperty && parsedUtility.customProperty)) {
+        const result = direct(extra);
+        // #393: an opacity modifier on an arbitrary / custom-property colour: the declarations carrying the bare
+        // colour get Tailwind's color-mix; no colour to mix, or a malformed modifier, emits nothing.
+        if (opts.supportsOpacity && !opts.ownsOpacity && extra.opacity && result?.length) {
+          const raw = parsedUtility.arbitrary ? normalizeMathSpacing(expandThemeFunctions(finalValue.replace(/_/g, ' '))) : `var(${finalValue})`;
+          const hint = parsedUtility.arbitrary ? /^color:(.+)$/.exec(raw)?.[1] : /^color:(--.+)$/.exec(finalValue)?.[1];
+          const colors = [raw, ...(hint ? [hint, `var(${hint})`] : [])];
+          return applyColorAlpha(result, colors, String(extra.opacity)) ?? [];
         }
-        const customValue = `var(${finalValue})`;
-        if (opts.handle) {
-          const result = opts.handle(customValue, ctx, token, extra);
-          // console.log('[functionalUtility] customProperty handle result', result);
-          if (result) return result;
-        }
-        if (opts.prop) {
-          // console.log('[functionalUtility] customProperty default decl', { prop: opts.prop, customValue });
-          return [decl(opts.prop, customValue)];
-        }
-        return [];
+        return result;
       }
       // 3. Theme lookup (themeKey or themeKeys); only scalar results count as a value (#333)
       let themeValue: string | undefined;

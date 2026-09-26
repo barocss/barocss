@@ -362,3 +362,44 @@ export function normalizeAlpha(raw: string): { amount: string; isVar: boolean } 
   }
   return { amount: v, isVar: false };
 }
+
+const MIX_SUPPORTS = "(color:color-mix(in lab, red, red))";
+const COLOR_PROP = /(^|-)color$|^(fill|stroke)$|^--baro-gradient-(from|via|to)$/;
+const ALPHA_AMOUNT = /^(\d+(\.\d+)?|\.\d+)%$|^var\(--[\w-]+\)$/;
+
+/**
+ * #393: an arbitrary or custom-property colour with an opacity modifier, as Tailwind 4.3.3 emits it: a literal
+ * colour with a literal alpha mixes directly (`color-mix(in oklab, #f00 50%, transparent)`); a var colour or a var
+ * alpha keeps the plain colour and mixes only under `@supports`. Returns null for an alpha it can't express.
+ */
+export function colorAlphaDecls(prop: string, color: string, opacity: string): AstNode[] | null {
+  const alpha = normalizeAlpha(opacity);
+  if (!ALPHA_AMOUNT.test(alpha.amount)) return null;
+  const mix = `color-mix(in oklab, ${color} ${alpha.amount}, transparent)`;
+  if (alpha.isVar || color.startsWith("var(")) return [decl(prop, color), atRule("supports", MIX_SUPPORTS, [decl(prop, mix)])];
+  return [decl(prop, mix)];
+}
+
+/**
+ * #393: applies an opacity modifier to every declaration of `nodes` whose value is one of `colors` (the colour an
+ * arbitrary / custom-property utility emitted without the modifier). Returns null when none matched or the alpha
+ * is invalid, so the caller emits nothing rather than dropping the modifier or writing a malformed value.
+ */
+export function applyColorAlpha(nodes: AstNode[], colors: string[], opacity: string): AstNode[] | null {
+  let matched = false;
+  let invalid = false;
+  const walk = (list: AstNode[]): AstNode[] => list.flatMap((n): AstNode[] => {
+    if (n.type === "decl" && typeof n.value === "string" && colors.includes(n.value)) {
+      matched = true;
+      // Only a colour property takes the mix: `bg-[10px]/50` (background-size) emits nothing, as in Tailwind.
+      const out = COLOR_PROP.test(n.prop) ? colorAlphaDecls(n.prop, n.value, opacity) : null;
+      if (!out) invalid = true;
+      return out ?? [];
+    }
+    if (n.type === "at-rule" || n.type === "rule" || n.type === "style-rule" || n.type === "at-root") return [{ ...n, nodes: walk(n.nodes) }];
+    if (n.type === "wrap") return [{ ...n, items: walk(n.items) }];
+    return [n];
+  });
+  const out = walk(nodes);
+  return matched && !invalid ? out : null;
+}

@@ -1,4 +1,5 @@
 import { atRule, decl, type AstNode } from "../core/ast";
+import { normalizeAlpha } from "../core/utils";
 
 // #313: shared shadow colour/alpha handling for shadow-*, inset-shadow-*, text-shadow-* and drop-shadow-*,
 // matching Tailwind 4.3.3. Each shadow layer's colour is wrapped as var(--baro-<layer>-color, <colour>) so a
@@ -12,6 +13,8 @@ export function parseAlpha(op: string | undefined): { alpha: string; isVar: bool
   if (/^\d+(\.\d+)?$/.test(op)) return { alpha: `${op}%`, isVar: false };
   const pct = /^\[(\d+(?:\.\d+)?)%\]$/.exec(op);
   if (pct) return { alpha: `${pct[1]}%`, isVar: false };
+  // #393: a bracketed number is a fraction when ≤ 1 (`[0.3]` → 30%), as in Tailwind.
+  if (/^\[(\d+(\.\d+)?|\.\d+)\]$/.test(op)) return { alpha: normalizeAlpha(op).amount, isVar: false };
   const cp = /^\((--[\w-]+)\)$/.exec(op);
   if (cp) return { alpha: `var(${cp[1]})`, isVar: true };
   return null;

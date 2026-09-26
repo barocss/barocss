@@ -387,7 +387,7 @@ functionalUtility({
   handleCustomProperty: (value) => {
 
     if (value.startsWith("color:")) {
-      return [decl("outline-color", value.replace("color:", ""))];
+      return [decl("outline-color", `var(${value.slice(6)})`)];
     }
 
     if (value.startsWith("length:")) {
@@ -436,7 +436,7 @@ functionalUtility({
       return [rule(":where(& > :not(:last-child))", themeColorDecls("border-color", value, extra))];
     }
     // Arbitrary values only when they are colours: divide-[3px] is not a divide colour (Tailwind emits nothing).
-    if (parseColor(value)) return divideColor(value);
+    if (parseColor(value) || /^var\(--[\w-]+\)$/.test(value)) return divideColor(value);
     return null;
   },
   handleCustomProperty: (value, _ctx, token) => (token.prefix === "divide" ? divideColor(`var(${value})`) : []),
