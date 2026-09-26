@@ -8,14 +8,36 @@
 
 import { GenerateCssRulesResult } from "@barocss/kit";
 import { parseClassName } from "@barocss/kit";
+import { compareKeys, ruleSortKey, upperBound, type RuleKey } from "./rule-order";
 
 export interface StylePartition {
   id: string;
   styles: string[];
   styleElement: HTMLStyleElement;
+  /** Sort keys parallel to `styles` / the sheet's cssRules (#254). */
+  keys?: RuleKey[];
 }
 
 export class StylePartitionManager {
+  /**
+   * Insert `rule` at its Tailwind variant position within `partition` (#254):
+   * one insertRule at a binary-searched index, no sheet rewrite.
+   */
+  private insertSorted(partition: StylePartition, rule: string, key: RuleKey) {
+    const keys = (partition.keys ??= []);
+    const index = upperBound(keys, key);
+    const sheet = partition.styleElement.sheet;
+    if (sheet && sheet.cssRules.length === keys.length) {
+      sheet.insertRule(this.escapeCssRule(rule), index);
+      partition.styles.splice(index, 0, rule);
+    } else {
+      // No CSSOM (detached) or sheet not solely ours: rebuild text in order.
+      partition.styles.splice(index, 0, rule);
+      partition.styleElement.textContent = partition.styles.join("\n") + "\n";
+    }
+    keys.splice(index, 0, key);
+  }
+
   private partitions: StylePartition[] = [];
   private categoryPartitions: Map<string, StylePartition> = new Map();
   private partitionCounter = 0;
@@ -139,27 +161,24 @@ export class StylePartitionManager {
       return false;
     }
 
-    if (this.currentPartition.styles.length >= this.maxRulesPerPartition) {
-      this.createNewPartition();
+    const key = ruleSortKey(rule);
+    // Earliest partition holding a rule that must come after this one; the
+    // chunks are consecutive <style> elements, so this keeps global order.
+    let partitionIndex = this.partitions.findIndex(p => {
+      const keys = p.keys;
+      return !!keys && keys.length > 0 && compareKeys(keys[keys.length - 1], key) > 0;
+    });
+    if (partitionIndex === -1) {
+      if (this.currentPartition.styles.length >= this.maxRulesPerPartition) {
+        this.createNewPartition();
+      }
+      partitionIndex = this.partitions.length - 1;
     }
-
-    const currentPartition = this.currentPartition;
-    const partitionIndex = this.partitions.length - 1;
+    const partition = this.partitions[partitionIndex];
 
     try {
-      // CSS 규칙 삽입
-      const sheet = currentPartition.styleElement.sheet;
-      if (sheet) {
-        sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
-      } else {
-        // sheet가 없는 경우 textContent로 폴백
-        currentPartition.styleElement.textContent += rule + "\n";
-      }
-
-      // 성공적으로 삽입된 경우에만 캐시 업데이트
+      this.insertSorted(partition, rule, key);
       this.setRuleCache(rule, partitionIndex);
-      currentPartition.styles.push(rule);
-
       return true;
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -182,12 +201,7 @@ export class StylePartitionManager {
     }
 
     try {
-      const sheet = categoryPartition.styleElement.sheet;
-      if (sheet) {
-        sheet.insertRule(this.escapeCssRule(rule), sheet.cssRules.length);
-      } else {
-        categoryPartition.styleElement.textContent += rule + "\n";
-      }
+      this.insertSorted(categoryPartition, rule, ruleSortKey(rule));
     } catch (error) {
       // eslint-disable-next-line no-console
       console.warn(
@@ -198,7 +212,6 @@ export class StylePartitionManager {
     }
 
     this.setCategoryRuleCache(rule, category);
-    categoryPartition.styles.push(rule);
 
     return true;
   }
