@@ -8,6 +8,107 @@
 
 @barocss/server provides server-side utilities for parsing Tailwind classes and generating CSS without browser-specific features. Perfect for SSR, static site generation, and server-side CSS processing.
 
+## Recipe: SSR with a Tailwind build (Next.js App Router, Astro)
+
+> `generateCssForHtml` and `ssrStyleTag` are **available from 0.7.0**.
+>
+> BaroCSS is JS-only: there is no CSS entry, so never `@import "@barocss/kit"` in CSS.
+
+Use this when pages link a build stylesheet (a Tailwind or BaroCSS build) but render classes the build never saw, such as CMS blocks or model output. At request time, generate only the missing CSS and inline it, so the first paint is already styled:
+
+```ts
+import fs from 'node:fs';
+import { ServerRuntime, ssrStyleTag } from '@barocss/server';
+
+// Once per server process: the runtime caches per-class results; read the shipped build CSS once.
+const runtime = new ServerRuntime({ cssVarPrefix: 'tw', theme: { extend: siteTheme } });
+const BUILD_CSS = fs.readFileSync('dist/app.css', 'utf8');
+
+// Per request: this response's delta only (never cumulative across requests).
+const css = runtime.generateCssForHtml(html, { skip: BUILD_CSS });
+const tag = ssrStyleTag(css); // '<style data-barocss-ssr>…</style>': put it in <head>, after the build <link>
+```
+
+- `generateCssForHtml(htmlOrClasses, { skip })` takes HTML or a class list. From HTML it reads the `class` attributes (any quoting, entities decoded) and ignores comments and `<script>`/`<style>` contents.
+- `skip` is either the build CSS text or a set of class names. With CSS text it:
+  - skips the classes that lead its selectors (`.p-4`, `.md\:p-4` inside `@media`, `:where(.divide-y > …)`)
+  - doesn't re-emit the theme vars its `:root`/`:host` blocks declare
+  - doesn't re-emit its `@property` or `@keyframes` names
+
+  The output never contains `@layer` statements.
+- The result is one ordered sheet (#267): each referenced theme var once, each `@property` block once, rules in Tailwind variant order.
+- Also exported: `ssrStyleTag(css, { nonce })`, `SSR_STYLE_ATTRIBUTE`.
+
+**Next.js App Router** (a server component; `html` is the CMS or model markup you render):
+
+```tsx
+export default async function Page() {
+  const html = await getBlocksHtml();
+  const css = runtime.generateCssForHtml(html, { skip: BUILD_CSS });
+  return (
+    <>
+      <style data-barocss-ssr="" dangerouslySetInnerHTML={{ __html: css.replace(/<\/style/gi, '<\\/style') }} />
+      <div dangerouslySetInnerHTML={{ __html: html }} />
+    </>
+  );
+}
+```
+
+Don't give this `<style>` a `precedence` or `href`, so React leaves it where it is. It only has to come before the content it styles. When you render components rather than an HTML string, pass the class list instead: `runtime.generateCssForHtml(['p-4 sm:p-6', …], { skip: BUILD_CSS })`.
+
+**Astro, SSR** (`src/middleware.ts`; read the emitted build CSS once at startup):
+
+```ts
+import { defineMiddleware } from 'astro:middleware';
+const dir = path.resolve('dist/client/_astro');
+const BUILD_CSS = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.css')).map((f) => fs.readFileSync(path.join(dir, f), 'utf8')).join('\n') : '';
+
+export const onRequest = defineMiddleware(async (_ctx, next) => {
+  const res = await next();
+  if (!res.headers.get('content-type')?.includes('text/html')) return res;
+  const html = await res.text();
+  const css = runtime.generateCssForHtml(html, { skip: BUILD_CSS });
+  const headers = new Headers(res.headers);
+  headers.delete('content-length');
+  return new Response(css ? html.replace('</head>', `${ssrStyleTag(css)}</head>`) : html, { status: res.status, headers });
+});
+```
+
+**Astro, static output:** do the same once in an integration's `astro:build:done` hook: read every `.css` under `dir` as the skip CSS, then rewrite every `.html`. The full recipe (shared config, static hook, client companion) is in the docs: `guide/integration/astro`.
+
+**Config to copy from the build CSS** (use the same object on server and client):
+
+```ts
+const config = {
+  cssVarPrefix: 'tw',                       // prefix(tw) build: also set prefix: 'tw' (BOTH are needed)
+  darkMode: 'class',
+  darkModeSelector: '[data-theme=dark] &',  // the selector inside `@custom-variant dark (...)`; shadcn v4: '.dark &'
+  theme: { extend: {                        // your own theme: literal values, not var(--build-vars)
+    colors: { brand: '#2563eb' },
+    spacing: { gutter: '1.5rem' },          // named spacing: p-gutter
+    borderRadius: { lg: '0.75rem' },        // override existing keys; new radius/font names go in utilities
+    fontFamily: { sans: ['Inter', 'sans-serif'] },
+  } },
+  utilities: { 'max-w-app': { 'max-width': '48rem', 'margin-inline': 'auto' } }, // static @utility rules; `@utility name-*` unsupported
+};
+```
+
+**Client companion** (only needed when the page adds classes after load). Load `@barocss/browser` as usual; it adopts the `<style data-barocss-ssr>` sheet:
+
+```js
+import { getRuntime } from '@barocss/browser';
+const rt = getRuntime({ skipExisting: true, config: { cssVarPrefix: 'tw', theme: { extend: siteTheme } } });
+rt.observe(document.body, { scan: true });
+```
+
+Only a marked sheet that is in `<head>` when the runtime starts (at construction or the first `observe()`) is adopted. Put the tag in `<head>`, which streaming SSR sends first. A `<style data-barocss-ssr>` injected later, or placed in `<body>` (for example inside model or user HTML), is treated as an ordinary sheet. The client never regenerates the server's classes, and GC never reclaims them. Later client rules keep Tailwind's combined order with the server's rules: a client `sm:` rule never lands after a server `lg:` rule.
+
+Measured with `scripts/ssr-probe` (#266/#268):
+- first paint matched a full Tailwind build (1.0)
+- still 1.0 after a later client addition
+- 0 duplicate rules and 0 re-emitted build definitions
+- about 0.2 ms per request on a warm runtime
+
 ## ✨ Key Features
 
 - **🚀 Server-Side CSS Generation** - Generate CSS on the server without browser APIs

@@ -1,5 +1,49 @@
 # @barocss/server
 
+## 0.7.0
+
+### Minor Changes
+
+- 0.7.0: a server companion API for SSR, and companion mode that follows a Tailwind 4 build's CSS-side configuration.
+
+  **New:**
+
+  - `@barocss/server`: `generateCssForHtml(htmlOrClasses, { skip })` returns one ordered, deduplicated sheet for the classes in the rendered HTML, minus those the build already has. It emits no theme variable, `@property` or `@layer` the build already defines. The browser runtime adopts the server sheet (only from `<head>` at startup) and keeps the combined order. See the Astro / SSR recipe.
+  - Static custom utilities via config (the equivalent of a project's `@utility` rules). A same-named built-in is extended, as in Tailwind 4.
+  - `config.prefix` is honoured when parsing: under `prefix: 'tw'`, `tw:flex` is styled and bare `flex` isn't, matching a `prefix(tw)` build. Set `cssVarPrefix` to match.
+  - `animate-*` utilities emit their `@keyframes` in every output path.
+
+  **Behaviour changes (please check when upgrading):**
+
+  - `animate-*` now emits `@keyframes` in kit, server and browser output. If you defined those keyframes yourself, they're now emitted once by BaroCSS unless the build already has them.
+  - Server HTML extraction ignores `<script>` / comment content, and runs in linear time on malformed input.
+
+  **Docs:** the companion recipe maps the build's `@custom-variant dark` to `darkModeSelector` (shadcn `.dark &`, `[data-theme=dark] &`, or `media`). New: an Astro / SSR recipe, an own-theme example, and a note that BaroCSS has no CSS entry to `@import`.
+
+  **Known limitation:** new theme keys (e.g. `borderRadius.card`) don't create new utilities yet (only existing keys can be overridden); use custom utilities for now.
+
+- 95890d4: `@barocss/server` (#268): `generateCssForHtml(htmlOrClasses, { skip })` returns the complete ordered sheet for the classes of one server response, minus what the page's build CSS already provides.
+
+  - It reads classes from HTML `class` attributes (any quoting, entities decoded; `<script>`/`<style>` contents and comments ignored), or takes a class list.
+  - `skip` is build CSS text or a set of class names. With CSS it also leaves out the theme vars, `@property` and `@keyframes` the build defines.
+  - Each call returns that request's delta only.
+  - New exports: `ssrStyleTag(css, { nonce })` (wraps the sheet in `<style data-barocss-ssr>`) and `SSR_STYLE_ATTRIBUTE`.
+
+  `@barocss/browser`: the runtime adopts `<style data-barocss-ssr>` sheets that are in `<head>` when it starts (at construction or the first `observe()`). Their class rules move into its ordered partitions, so later client rules keep Tailwind variant order. Those classes are never regenerated and never reclaimed by GC. `skipExisting` and the server skip now also treat `:where(.cls …)` / `:is(.cls …)` selectors (divide/space utilities) as defining `.cls`. New export: `SSR_STYLE_SELECTOR`.
+
+### Patch Changes
+
+- 520ddef: Honour `config.prefix` in class parsing, matching Tailwind 4 `prefix(tw)`: with `prefix: 'tw'`, `tw:flex`, `tw:hover:bg-red-500`, `tw:!flex`, `tw:-mt-2` are styled and unprefixed classes generate nothing. The unused `prefix: 'barocss-'` entry is removed from `defaultConfig`.
+- 6fd7577: #274: `animate-spin/ping/pulse/bounce` and custom theme animations (`theme.extend.animation` + `keyframes`) now emit the `@keyframes` they reference, once per sheet, in kit `generateCss`/`generateCssRules`, server `generateCss`/`generateCssForHtml` (skipped when the `skip` build CSS defines it) and the browser runtime (inserted once, never reclaimed by GC, skipped under `skipExisting` when a page sheet defines it). `themeToCssVars()` no longer appends every theme `@keyframes`; the `bounce`/`ping` frames now match Tailwind 4.1.13.
+
+  If your own CSS or inline styles use a theme animation name (e.g. `animation: spin 1s`) without an `animate-*` class, its `@keyframes` is no longer injected automatically; use the `animate-*` class or define the `@keyframes` yourself.
+
+- Updated dependencies [520ddef]
+- Updated dependencies [7d9edf0]
+- Updated dependencies [6fd7577]
+- Updated dependencies
+  - @barocss/kit@0.7.0
+
 ## 0.6.0
 
 ### Minor Changes

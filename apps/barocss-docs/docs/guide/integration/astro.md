@@ -1,0 +1,151 @@
+---
+title: Astro (SSR and static)
+description: Inline the CSS a Tailwind build is missing into Astro pages, with a client companion
+---
+
+# Astro (SSR and static)
+
+Use this when an Astro site ships a Tailwind 4 build but renders classes that build never saw (CMS blocks, Markdown from an editor, model output). BaroCSS generates only the missing CSS, inlines it in `<head>`, and an optional client runtime covers classes added after load.
+
+::: warning Available from 0.7.0
+`generateCssForHtml` and `ssrStyleTag` ship in `@barocss/server` 0.7.0. `0.6.0` has only `generateCss`.
+:::
+
+::: danger BaroCSS is JavaScript only
+There is no CSS entry. Never write `@import "@barocss/kit";` (or `@barocss/browser`) in a CSS file: keep your Tailwind CSS as it is and use BaroCSS from JS.
+:::
+
+## 1. Shared config
+
+Copy the settings from your build CSS once and use them on the server and in the browser:
+
+```ts
+// src/barocss.config.ts
+export const barocssConfig = {
+  cssVarPrefix: 'tw',                       // share --tw-* composite vars with the Tailwind build
+  // prefix: 'tw',                          // only for a `@import "tailwindcss" prefix(tw);` build: set BOTH prefix and cssVarPrefix
+  darkMode: 'class',
+  darkModeSelector: '[data-theme=dark] &',  // from `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));`
+  theme: {
+    extend: {
+      colors: { accent: '#006cac', muted: '#e6e6e6' }, // literal values, see "Your own theme"
+      spacing: { gutter: '1.5rem' },                   // named key: p-gutter, gap-gutter, mx-gutter ...
+    },
+  },
+  utilities: {
+    // mirrors `@utility max-w-app { max-width: 48rem; margin-inline: auto; }` in the build CSS
+    'max-w-app': { 'max-width': '48rem', 'margin-inline': 'auto' },
+  },
+};
+```
+
+- **Dark mode:** set `darkModeSelector` to the selector inside the build's `@custom-variant dark (...)`: `(&:is(.dark *))` (shadcn v4) becomes `'.dark &'`, `(&:where([data-theme=dark], [data-theme=dark] *))` becomes `'[data-theme=dark] &'`. No `@custom-variant dark` means leave `darkMode` unset (`'media'`).
+- **`utilities`:** mirror each static `@utility name { ... }` rule of the build as property → value. Functional utilities (`@utility tab-* { ... }` with `--value()`) aren't supported.
+- **`prefix(tw)` builds:** set both `prefix: 'tw'` (classes are `tw:flex`, `tw:hover:p-4`; unprefixed classes are ignored) and `cssVarPrefix: 'tw'`.
+
+## 2. SSR: middleware
+
+Read the built CSS once at startup and transform each HTML response in [middleware](https://docs.astro.build/en/guides/middleware/):
+
+```ts
+// src/middleware.ts
+import fs from 'node:fs';
+import path from 'node:path';
+import { defineMiddleware } from 'astro:middleware';
+import { ServerRuntime, ssrStyleTag } from '@barocss/server';
+import { barocssConfig } from './barocss.config';
+
+const runtime = new ServerRuntime(barocssConfig);   // once per process; caches per-class results
+
+// The Tailwind build Astro emitted (node adapter: dist/client/_astro/*.css). Read once.
+const assets = path.resolve('dist/client/_astro');
+const BUILD_CSS = fs.existsSync(assets)
+  ? fs.readdirSync(assets).filter((f) => f.endsWith('.css')).map((f) => fs.readFileSync(path.join(assets, f), 'utf8')).join('\n')
+  : ''; // `astro dev`: no build yet, BaroCSS then generates every class it finds
+
+export const onRequest = defineMiddleware(async (_ctx, next) => {
+  const res = await next();
+  if (!res.headers.get('content-type')?.includes('text/html')) return res;
+  const html = await res.text();
+  const css = runtime.generateCssForHtml(html, { skip: BUILD_CSS }); // this response's delta only
+  const out = css ? html.replace('</head>', `${ssrStyleTag(css)}</head>`) : html;
+  const headers = new Headers(res.headers);
+  headers.delete('content-length');                  // the body changed
+  return new Response(out, { status: res.status, statusText: res.statusText, headers });
+});
+```
+
+`skip: BUILD_CSS` leaves out every class the build already has, plus the theme vars, `@property` and `@keyframes` it defines. The tag goes after the build's `<link>`, inside `<head>`.
+
+## 3. Static output: `astro:build:done`
+
+Static pages aren't served through middleware in production, so rewrite the emitted files once after the build with a small integration:
+
+```ts
+// astro.config.mjs
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'astro/config';
+import { ServerRuntime, ssrStyleTag } from '@barocss/server';
+import { barocssConfig } from './src/barocss.config';
+
+const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true })
+  .flatMap((e) => (e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)]));
+
+const barocss = {
+  name: 'barocss-inline',
+  hooks: {
+    'astro:build:done': ({ dir }) => {
+      const files = walk(fileURLToPath(dir));
+      const buildCss = files.filter((f) => f.endsWith('.css')).map((f) => fs.readFileSync(f, 'utf8')).join('\n');
+      const runtime = new ServerRuntime(barocssConfig);
+      for (const file of files.filter((f) => f.endsWith('.html'))) {
+        const html = fs.readFileSync(file, 'utf8');
+        const css = runtime.generateCssForHtml(html, { skip: buildCss });
+        if (css) fs.writeFileSync(file, html.replace('</head>', `${ssrStyleTag(css)}</head>`));
+      }
+    },
+  },
+};
+
+export default defineConfig({ integrations: [barocss] });
+```
+
+With `output: 'server'` plus prerendered pages, use both: the middleware for on-demand pages and the hook for the prerendered HTML.
+
+## 4. Client companion
+
+Only needed when the page adds classes after load (client islands, live previews). It adopts the `<style data-barocss-ssr>` sheet and never regenerates those classes:
+
+```astro
+<script>
+  import { getRuntime } from '@barocss/browser';
+  import { barocssConfig } from '../barocss.config';
+  getRuntime({ skipExisting: true, config: barocssConfig }).observe(document.body, { scan: true });
+</script>
+```
+
+Only a marked sheet that is in `<head>` when the runtime starts is adopted, which is where the recipes above put it.
+
+## Your own theme
+
+For a shadcn build use `theme: { extend: shadcnTheme }` (from `@barocss/browser`). For your own tokens, give `theme.extend` **literal values**:
+
+```ts
+theme: {
+  extend: {
+    colors: { brand: '#2563eb', 'brand-foreground': '#ffffff', surface: 'oklch(0.98 0 0)' },
+    spacing: { gutter: '1.5rem', section: '6rem' },         // p-gutter, py-section, gap-gutter
+    borderRadius: { lg: '0.75rem' },                         // overrides the existing rounded-lg
+    fontFamily: { sans: ['"Inter Variable"', 'sans-serif'] }, // overrides the existing font-sans
+  },
+},
+utilities: {
+  'rounded-card': { 'border-radius': '0.75rem' },            // new radius / font names: use utilities
+  'font-display': { 'font-family': '"Fraunces", serif' },
+},
+```
+
+- New names work for `colors` and `spacing`. For `borderRadius` and `fontFamily`, override the existing keys (`sm` … `4xl`, `sans`/`serif`/`mono`); new names such as `rounded-card` or `font-display` don't resolve from the theme, so declare them in `utilities`.
+- Don't point theme values at the build's own variable names (`var(--color-brand)`, `var(--tw-…)`). `skip` recognises and leaves those alone, but whether a given var reaches the page depends on the build (`@theme inline` doesn't emit them). Literal values always render.

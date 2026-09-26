@@ -144,6 +144,35 @@ function diff(tw: Effective, baro: Effective, out: string[], tag = '') {
   if (baro.wrappers !== tw.wrappers) out.push(`${tag}wrapper: ${baro.wrappers || '∅'} ≠ ${tw.wrappers || '∅'}`);
 }
 
+// #274: name → { frame selector → effective declarations }, one entry per frame (`75%, 100%` splits; from/to → 0%/100%).
+export function keyframesOf(css: string): Map<string, string> {
+  const out = new Map<string, string>();
+  postcss.parse(css).walkAtRules(/^(-\w+-)?keyframes$/, (at) => {
+    const frames: Record<string, Record<string, string>> = {};
+    at.each((node) => {
+      if (node.type !== 'rule') return;
+      for (const sel of node.selector.split(',')) {
+        const key = sel.trim().replace(/^from$/, '0%').replace(/^to$/, '100%');
+        const decls = (frames[key] ??= {});
+        node.walkDecls((d) => { decls[d.prop] = normalize(d.prop, d.value); });
+      }
+    });
+    const sorted = Object.keys(frames).sort().map((k) => `${k}{${Object.keys(frames[k]).sort().map((p) => `${p}:${frames[k][p]}`).join(';')}}`);
+    out.set(at.params.trim(), sorted.join(' '));
+  });
+  return out;
+}
+
+/** #274: every @keyframes Tailwind emits must be defined by BaroCSS with the same effective frames. */
+export function diffKeyframes(twCss: string, baroCss: string, out: string[]) {
+  const baro = keyframesOf(baroCss);
+  for (const [name, frames] of keyframesOf(twCss)) {
+    const b = baro.get(name);
+    if (b === undefined) out.push(`@keyframes ${name} missing`);
+    else if (b !== frames) out.push(`@keyframes ${name}: ${b} ≠ ${frames}`);
+  }
+}
+
 export type ParityResult = { token: string; uses: number; family: string; varOnly: boolean; pass: boolean; diffs: string[] };
 
 export async function runParity(corpus: readonly (readonly [string, number])[]): Promise<ParityResult[]> {
@@ -156,8 +185,10 @@ export async function runParity(corpus: readonly (readonly [string, number])[]):
   const baroCss = (tokens: string[]) => tokens.map((t) => { try { return generateCss(t, ctx); } catch { return ''; } }).join('\n');
 
   return Promise.all(corpus.map(async ([token, uses]) => {
-    const tw = effective(await twCss([token]), new Map());
-    const baro = effective(baroCss([token]), baroRoot);
+    const twText = await twCss([token]);
+    const baroText = baroCss([token]);
+    const tw = effective(twText, new Map());
+    const baro = effective(baroText, baroRoot);
     // Var-only: Tailwind's rule sets custom properties and nothing else (ring colours, ring-inset, from-*, …).
     const varOnly = !Object.keys(tw.decls).length && Object.keys(tw.vars).length > 0;
     const diffs: string[] = [];
@@ -181,6 +212,7 @@ export async function runParity(corpus: readonly (readonly [string, number])[]):
         }
       }
     }
+    diffKeyframes(twText, baroText, diffs);
     return { token, uses, family: familyOf(token), varOnly, pass: diffs.length === 0, diffs };
   }));
 }

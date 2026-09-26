@@ -21,6 +21,8 @@ const runtime = getRuntime({
   config: {
     cssVarPrefix: 'tw',             // share --tw-* composite variables with the Tailwind build
     theme: { extend: shadcnTheme }, // use the shadcn :root tokens (primary, muted-foreground, ...)
+    darkMode: 'class',              // dark: follows the page's dark class, not the OS setting
+    darkModeSelector: '.dark &',    // mirrors shadcn v4's `@custom-variant dark (&:is(.dark *))`
     // preflight: leave unset. The layered preflight (@layer base) is the default and should stay on.
   },
 });
@@ -31,9 +33,21 @@ preloadJsonRenderClasses(spec, runtime);  // BEFORE mounting, so there is no uns
 renderJsonUi(spec);                       // mount your json-render Renderer
 ```
 
-The five settings: `skipExisting: true`, `cssVarPrefix: 'tw'`, `theme: { extend: shadcnTheme }`, `preloadJsonRenderClasses(spec, runtime)` before mount, and the default layered preflight (don't set `preflight: false`).
+The six settings: `skipExisting: true`, `cssVarPrefix: 'tw'`, `theme: { extend: shadcnTheme }`, `darkMode: 'class'` with `darkModeSelector` copied from the build, `preloadJsonRenderClasses(spec, runtime)` before mount, and the default layered preflight (don't set `preflight: false`).
+
+**Dark mode:** set `darkModeSelector` to the selector inside your CSS's `@custom-variant dark (...)`, so runtime `dark:` classes switch at the same moment as the build's:
+
+| build CSS | companion config |
+|---|---|
+| `@custom-variant dark (&:is(.dark *));` (shadcn v4) | `darkMode: 'class', darkModeSelector: '.dark &'` |
+| `@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));` (e.g. AstroPaper) | `darkMode: 'class', darkModeSelector: '[data-theme=dark] &'` |
+| no `@custom-variant dark` (OS setting) | leave `darkMode` unset (`'media'`) |
+
+Don't use `darkMode: 'class'` without a selector here: it matches `.dark` on the same element only, so `<html class="dark">` does not switch runtime classes.
 
 **Non-shadcn site theme:** put the site's own tokens in `theme.extend` (e.g. `colors: { brand: { 600: '#2563eb' } }`). Literal values are safe. Pointing a token at the build's own var name (`brand: { 600: 'var(--color-brand-600)' }`) is also fine: BaroCSS skips that self-referencing `:root` var, so the build's value wins and `bg-brand-600` still uses it.
+
+**Custom utilities:** mirror each static `@utility name { ... }` from your CSS in `utilities`, so runtime content that reuses it (with variants and `!`) matches the build: `utilities: { 'max-w-app': { 'max-width': '72rem', 'margin-inline': 'auto' } }`. A name that equals a built-in extends it as `@utility` does in Tailwind 4: the built-in declarations come first, then yours, so a repeated property takes your value. Names must be plain class idents; invalid names or unsafe declarations are skipped. Functional `@utility name-*` is not supported.
 
 **Verify it rendered** (DevTools console, after mount):
 
@@ -44,6 +58,14 @@ document.querySelectorAll('style[id^="barocss-runtime"]').length; // > 0
 ```
 
 **Browser support:** Chrome/Edge 85+, Safari/iOS 16.4+, Firefox 128+. The runtime needs CSS `@property`; composite utilities (shadows, rings, transforms, filters) may not render on older engines.
+
+## Server-rendered pages (SSR)
+
+> BaroCSS is JS-only: there is no CSS entry, so never `@import "@barocss/kit"` in CSS. `generateCssForHtml`/`ssrStyleTag` are available from `@barocss/server` 0.7.0.
+>
+> Use the same config as the server: `darkModeSelector` from the build's `@custom-variant dark`, `utilities` mirroring static `@utility` rules (functional `@utility name-*` unsupported), both `prefix: 'tw'` and `cssVarPrefix: 'tw'` for a `prefix(tw)` build, and literal values in `theme.extend` for your own theme (next to `shadcnTheme`).
+
+The runtime adopts a `<style data-barocss-ssr>` sheet from `@barocss/server` (`ssrStyleTag(runtime.generateCssForHtml(html, { skip: buildCss }))`), but only one that is in `<head>` when the runtime starts (at construction or the first `observe()`). A marked sheet added later or placed in `<body>` is treated as an ordinary sheet. It never regenerates those classes and GC never reclaims them. Their rules move into the runtime's ordered partitions, so later client rules keep Tailwind's variant order. For the Next.js App Router and Astro recipe, see the [`@barocss/server` README](../barocss-server/README.md#recipe-ssr-with-a-tailwind-build-nextjs-app-router-astro).
 
 ## ✨ Key Features
 

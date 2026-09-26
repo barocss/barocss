@@ -1,8 +1,9 @@
 import { setDebug } from "../utils/debug";
 import { defaultTheme } from "../theme";
-import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
+import { themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
 import { getModifier, getUtility } from './registry';
 import { clearContextCaches, initializeContextState } from './contextState';
+import { registerCustomUtilities } from './customUtilities';
 import { preflightMinimalCSS, preflightStandardCSS, preflightFullCSS } from "../css/preflight";
 
 type PreflightLevel = 'minimal' | 'standard' | 'full' | true | false;
@@ -32,7 +33,7 @@ export interface Theme {
 }
 
 export interface Config {
-  prefix?: string;  // prefix for class names, default is 'barocss-'
+  prefix?: string;  // class prefix, Tailwind 4 `prefix(tw)` syntax: 'tw' -> `tw:flex`, `tw:hover:p-4`; lowercase letters; default none
   cssVarPrefix?: string; // prefix for generated CSS custom properties, default '--bcss-'
   /**
    * Modern dark mode strategy
@@ -66,11 +67,25 @@ export interface Config {
    * clear caches that belong to another context.
    */
   clearCacheOnContextChange?: boolean;
+  /**
+   * #287: static custom utilities, the runtime mirror of a stylesheet's static `@utility name { ... }`.
+   * Name → declarations (property → value; CSS custom properties allowed). Each one is registered on
+   * this context only; variants and `!` apply as usual. A name equal to a built-in extends it like
+   * `@utility` in Tailwind 4: the built-in declarations are emitted first, then the custom ones (a later
+   * duplicate property wins). An entry with an invalid name, property or value is skipped whole.
+   * @example utilities: { 'max-w-app': { 'max-width': '72rem', 'margin-inline': 'auto' } }
+   */
+  utilities?: CustomUtilities;
   [key: string]: unknown;
 }
 
+/** #287: declarations of one static custom utility (property → value). */
+export type CustomUtilityDeclarations = Record<string, string | number>;
+/** #287: static custom utilities by class name. */
+export type CustomUtilities = Record<string, CustomUtilityDeclarations>;
+
+
 export const defaultConfig: Config = {
-  prefix: 'barocss-',
   darkMode: 'media', // same as default
 };
 
@@ -246,9 +261,9 @@ export function resolveTheme(config: Config): Theme {
 export function themeToCssVars(theme: Theme): string {
   const vars = themeToCssVarsAll(theme);
   // console.log('[themeToCssVars] vars', vars);
-  const result = toCssVarsBlock(vars, `
-${keyframesToCss((theme.keyframes || {}) as Record<string, unknown>)}
-`);
+  // #274: @keyframes are emitted on demand next to the classes that reference them (referencedKeyframes),
+  // so a page's own @keyframes of the same name is never overridden by an unused theme copy.
+  const result = toCssVarsBlock(vars);
 
 // console.log('[themeToCssVars] result', result);
 
@@ -343,5 +358,6 @@ export function createContext(configObj: Config): Context {
   // ctx.themeToCssVars = () => themeToCssVars(themeObj);
 
   initializeContextState(ctx, getUtility(), getModifier());
+  registerCustomUtilities(ctx, configObj.utilities);
   return ctx;
 }

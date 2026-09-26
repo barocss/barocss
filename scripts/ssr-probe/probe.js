@@ -16,15 +16,28 @@
   } catch (e) {}
   function runtimeBytes() {
     var n = 0, sh = [].slice.call(document.styleSheets).concat(document.adoptedStyleSheets || []);
-    sh.forEach(function (s) { var o = s.ownerNode; if (o && (o.tagName === 'LINK' || o.hasAttribute('data-baro-ssr') || /animation:none/.test(o.textContent))) return;
+    sh.forEach(function (s) { var o = s.ownerNode; if (o && (o.tagName === 'LINK' || o.hasAttribute('data-barocss-ssr') || /animation:none/.test(o.textContent))) return;
       try { for (var i = 0; i < s.cssRules.length; i++) n += s.cssRules[i].cssText.length; } catch (e) {} });
     return n;
   }
-  addEventListener('load', function () { loaded = performance.now(); });
+  // #268: duplicate class style rules (same @media/@container context + selector containing a class) across inline <style> sheets (server + client).
+  function dupRules() {
+    var seen = {}, d = 0;
+    function walk(rules, ctx) { for (var i = 0; i < rules.length; i++) { var r = rules[i];
+      if (r.selectorText && r.selectorText.indexOf('.') >= 0) { var k = ctx + '|' + r.selectorText; if (seen[k]) { d++; (window.__dupKeys = window.__dupKeys || []).push(k); } else seen[k] = 1; }
+      else if (r.cssRules) walk(r.cssRules, ctx + (r.conditionText || r.name || '') + ';'); } }
+    [].slice.call(document.styleSheets).forEach(function (s) { var o = s.ownerNode; if (!o || o.tagName !== 'STYLE' || /animation:none/.test(o.textContent)) return;
+      try { walk(s.cssRules, ''); } catch (e) {} });
+    return d;
+  }
+  var addT = null;
+  // #268 later client addition: one block of new classes, inserted 1s after load (after hydration).
+  addEventListener('load', function () { loaded = performance.now(); setTimeout(function () {
+    addT = performance.now(); document.getElementById('blocks').insertAdjacentHTML('beforeend', window.__ADD); }, 1000); });
   (function tick() {
     var t = performance.now();
     if (document.getElementById('blocks')) frames.push({ t: t, sig: sig() });
-    if (loaded == null || t - loaded < 2000) return requestAnimationFrame(tick);
-    window.__r = { frames: frames, final: frames[frames.length - 1].sig, fcp: fcp, lcp: lcp, cls: cls, load: loaded, runtimeBytes: runtimeBytes() };
+    if (loaded == null || t - loaded < 2500) return requestAnimationFrame(tick);
+    window.__r = { frames: frames, final: frames[frames.length - 1].sig, fcp: fcp, lcp: lcp, cls: cls, load: loaded, runtimeBytes: runtimeBytes(), addT: addT, dupRules: dupRules(), dupKeys: (window.__dupKeys || []).slice(0, 12) };
   })();
 })();

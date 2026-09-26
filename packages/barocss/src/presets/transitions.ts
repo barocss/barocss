@@ -155,10 +155,12 @@ staticUtility("animate-none", [["animation", "none"]], { category: 'transitions'
 
 functionalUtility({
   name: "animate",
-  prop: "animation",
+  // #274: theme.animations (and Tailwind's theme.animation) names, e.g. theme.extend.animation.wiggle.
+  themeKeys: ["animations", "animation"],
   supportsArbitrary: true,
   supportsCustomProperty: true,
-  handle: (value, ctx, token) => {
+  handle: (value, ctx, token, extra) => {
+    if (extra?.realThemeValue) return [decl("animation", `var(--animate-${extra.realThemeValue})`)];
     if (token.customProperty) {
       return [decl("animation", `var(${value})`)];
     }
