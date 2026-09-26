@@ -75,7 +75,7 @@ Guides: [Vite + Tailwind 4](/guide/integration/vite-tailwind), [Next to a Tailwi
 
 ```typescript
 // CDN
-import { BrowserRuntime } from 'https://unpkg.com/@barocss/browser@0.10.1/dist/cdn/barocss.js';
+import { BrowserRuntime } from 'https://cdn.jsdelivr.net/npm/@barocss/browser@__BAROCSS_VERSION__/dist/cdn/barocss.js';
 
 // NPM
 import { BrowserRuntime } from '@barocss/browser';
