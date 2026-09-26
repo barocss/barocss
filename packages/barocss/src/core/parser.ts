@@ -225,7 +225,22 @@ export function hasCommentToken(value: string): boolean {
 }
 
 export function isStructureSafeValue(value: string): boolean {
+  // #247 review: a comment opener/closer in any arbitrary value could swallow the rest of the stylesheet.
+  if (hasCommentToken(value)) return false;
   return isSafeVariantValue(value, true);
+}
+
+/** An unquoted `@` would start an at-rule token; no declaration value of an arbitrary property needs one. */
+function hasUnquotedAt(value: string): boolean {
+  let quote = '';
+  for (let i = 0; i < value.length; i++) {
+    const c = value[i];
+    if (c === '\\') { i++; continue; }
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === "'") quote = c;
+    else if (c === '@') return true;
+  }
+  return false;
 }
 
 export function isSafeVariantValue(value: string, allowTopLevelComma = false): boolean {
@@ -290,8 +305,10 @@ function parseUtility(value: string, ctx?: Context): ParsedUtility {
   let priority = 0;
   
   // Tailwind arbitrary property: [--cell-size:8px], [mask-type:luminance]
-  const prop = /^\[(--[a-zA-Z0-9_-]+|-?[a-z][a-z-]*):(.+)\]$/.exec(value);
+  const prop = /^\[(--[a-zA-Z_][a-zA-Z0-9_-]*|-?[a-z][a-z-]*):(.+)\]$/.exec(value);
   if (prop) {
+    // Same #224 guard as every other arbitrary value, plus no at-rule token.
+    if (!isStructureSafeValue(prop[2]) || hasUnquotedAt(prop[2])) return { prefix: '', value: '' };
     return { prefix: '', value: prop[2], arbitrary: true, property: prop[1] };
   }
 
