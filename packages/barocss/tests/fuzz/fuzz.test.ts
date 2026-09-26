@@ -17,7 +17,7 @@ const SEED = 319;
 const PER_GENERATOR = 5000;
 
 // Open counts per property for SEED/PER_GENERATOR (tracked in #319). Lower them when fixes land.
-const BASELINE: Record<string, number> = { P1: 0, P2: 134, P3: 0, P4: 0, throws: 22 };
+const BASELINE: Record<string, number> = { P1: 0, P2: 134, P3: 0, P4: 0, throws: 0 };
 
 function runCampaign() {
   const ctx = createContext({});
