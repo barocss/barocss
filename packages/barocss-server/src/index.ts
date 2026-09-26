@@ -80,7 +80,8 @@ export class ServerRuntime {
    * page's build CSS already provides. `htmlOrClasses` is HTML (classes are read from `class`
    * attributes; `<script>`/`<style>` contents and comments ignored) or a class list. Stateless per
    * call: it returns this request's delta, never classes emitted for earlier requests. Wrap the result
-   * with `ssrStyleTag()` so `@barocss/browser` adopts it.
+   * with `ssrStyleTag()` so `@barocss/browser` adopts it; under a strict CSP pass the response nonce,
+   * `ssrStyleTag(css, { nonce })` (#347), and give the browser runtime the same `nonce`.
    */
   generateCssForHtml(htmlOrClasses: string | string[], opts: GenerateCssForHtmlOptions = {}) {
     const classes = typeof htmlOrClasses === 'string' ? extractClasses(htmlOrClasses) : [...new Set(htmlOrClasses.flatMap((c) => c.split(CLASS_SEPARATOR)).filter(Boolean))];

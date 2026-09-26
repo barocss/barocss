@@ -47,19 +47,30 @@ export class StylePartitionManager {
   private classToCategoryPartitionMap = new Map<string, string>();
   private styleIdPrefix = "barocss-style-partition-";
   private getCategory: (cls: string) => string | undefined;
+  /** #347: CSP nonce set on every `<style>` this manager creates (empty = none). */
+  private nonce: string;
 
   constructor(
     insertionPoint: HTMLElement,
     maxRulesPerPartition: number = 50,
     styleIdPrefix: string = "barocss-style-partition-",
-    getCategory: (cls: string) => string | undefined = cls => parseClassName(cls).utility?.category
+    getCategory: (cls: string) => string | undefined = cls => parseClassName(cls).utility?.category,
+    nonce: string = ""
   ) {
+    this.nonce = nonce;
     this.insertionPoint = insertionPoint;
     this.maxRulesPerPartition = maxRulesPerPartition;
     this.styleIdPrefix = styleIdPrefix;
     this.getCategory = getCategory;
 
     this.initializeDefaultPartition();
+  }
+
+  /** A new `<style>`, carrying the #347 CSP nonce when one is configured. */
+  private createStyleElement(): HTMLStyleElement {
+    const el = document.createElement("style");
+    if (this.nonce) el.setAttribute("nonce", this.nonce);
+    return el;
   }
 
   private initializeDefaultPartition() {
@@ -70,7 +81,7 @@ export class StylePartitionManager {
     const newPartition: StylePartition = {
       id: this.styleIdPrefix + `-${category}`,
       styles: [],
-      styleElement: document.createElement("style"),
+      styleElement: this.createStyleElement(),
     };
 
     // set id
@@ -97,7 +108,7 @@ export class StylePartitionManager {
     const newPartition: StylePartition = {
       id: this.styleIdPrefix + `-${this.partitionCounter++}`,
       styles: [],
-      styleElement: document.createElement("style"),
+      styleElement: this.createStyleElement(),
     };
     this.partitions.push(newPartition);
 
