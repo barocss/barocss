@@ -32,9 +32,10 @@ functionalModifier(
   }
 );
 
-// not-: functionalModifier for pseudo-class negation
+// not-: functionalModifier for pseudo-class negation. not-@… is container-query negation (container-queries.ts);
+// anything it does not accept (e.g. not-@container) emits nothing, like Tailwind 4.3.3 (#311).
 functionalModifier(
-  (mod: string) => /^not-/.test(mod),
+  (mod: string) => /^not-/.test(mod) && !mod.startsWith('not-@'),
   ({ selector, mod }) => {
     const m = /^not-(.+)$/.exec(mod.type);
     return {
