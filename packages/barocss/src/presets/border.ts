@@ -102,6 +102,8 @@ const withBorderStyle = (props: string[], width: string) => [
 [
   ["border-x", ["border-left-width", "border-right-width"]],
   ["border-y", ["border-top-width", "border-bottom-width"]],
+  ["border-bs", ["border-block-start-width"]],
+  ["border-be", ["border-block-end-width"]],
   ["border-t", ["border-top-width"]],
   ["border-r", ["border-right-width"]],
   ["border-b", ["border-bottom-width"]],
@@ -124,6 +126,7 @@ const withBorderStyle = (props: string[], width: string) => [
   functionalUtility({
     name: name as string,
     themeKeys: ["borderWidth", "colors"],
+    supportsOpacity: true,
     supportsArbitrary: true,
     supportsCustomProperty: true,
     handleBareValue: ({ value }) => {

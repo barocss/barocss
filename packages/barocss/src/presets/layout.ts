@@ -261,6 +261,11 @@ staticUtility("sticky", [["position", "sticky"]], { category: 'layout' });
 [
   ["inset-x", "inset-inline"],
   ["inset-y", "inset-block"],
+  // Tailwind 4.3 logical sides; registered before `inset` so their handler runs first for `inset-s-*` etc.
+  ["inset-s", "inset-inline-start"],
+  ["inset-e", "inset-inline-end"],
+  ["inset-bs", "inset-block-start"],
+  ["inset-be", "inset-block-end"],
   ["inset", "inset"],
   ["start", "inset-inline-start"],
   ["end", "inset-inline-end"],
