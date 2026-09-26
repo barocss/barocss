@@ -1,5 +1,13 @@
 # @barocss/kit
 
+## 0.10.3
+
+### Patch Changes
+
+- 0.10.3: security fix. Class input containing unusual separator characters can no longer produce a rule that applies outside the element carrying the class. Also: `bg-[var(--x)]` and `ring-[var(--x)]` resolve as colours, as in Tailwind; the browser runtime keeps rule order across its internal partitions. Upgrading is recommended for all 0.x users.
+- a91c7b2: Hardened class scoping against unusual separator characters: such code points in class names are now hex-escaped in selectors, and the serializer drops any style rule that is not scoped to its generating class.
+- d5a561d: `bg-[var(--x)]` now emits `background-color` and `ring-[var(--x)]` sets the ring colour, matching Tailwind 4.3.3.
+
 ## 0.10.2
 
 ### Patch Changes

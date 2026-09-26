@@ -137,7 +137,8 @@ export function getModifier(ctx?: Context): ModifierRegistration[] {
 }
 
 //  escapeClassName
-const ESCAPE_REGEX = /[^A-Za-z0-9_-]/g;
+const ESCAPE_REGEX = /[^A-Za-z0-9_-]/gu;
+const UNSAFE_RAW = /^[\s\p{C}\p{Z}]$/u;
 export function escapeClassName(className: string) {
   // #334: CSS.escape first-char rules — an identifier can't start with a digit, or `-` + digit, or be a lone `-`.
   if (className === '-') return '\\-';
@@ -181,6 +182,9 @@ function escapeRest(className: string) {
     if (c === '}') return '\\}';
     if (c === '|') return '\\|';
     if (c === '\\') return '\\\\';
+    // #392: whitespace, invisible, format, control and separator code points are hex-escaped (never a
+    // backslash followed by the raw character, which text tools may trim or drop and so detach the escape).
+    if (UNSAFE_RAW.test(c)) return '\\' + c.codePointAt(0)!.toString(16) + ' ';
     return '\\' + c;
   });
 }

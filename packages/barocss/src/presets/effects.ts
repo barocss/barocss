@@ -359,7 +359,7 @@ functionalUtility({
           decl("box-shadow", SHADOW_COMPOSITE),
         ];
       }
-      return [parseColor(main) ? decl("--baro-ring-color", main) : decl("box-shadow", main)];
+      return [parseColor(main) || /^var\(--[^)]+\)$/.test(main) ? decl("--baro-ring-color", main) : decl("box-shadow", main)];
     }
     if (main === "inherit" || main === "current" || main === "transparent") {
       return [

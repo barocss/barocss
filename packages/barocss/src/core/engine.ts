@@ -539,6 +539,7 @@ export function generateCss(
       const css = astToCss(cleanAst.filter((node) => node.type !== "at-root"), hasStyleRule ? undefined : cls, {
         minify: opts?.minify,
         important: parsedResult?.utility?.important ?? false,
+        scope: cls, // #392: every emitted style rule must be scoped to this class
       }); // Conditional baseSelector
 
       const result = css;
@@ -659,7 +660,7 @@ export function generateCssRules(
             cssList.push(css);
           });
         } else {
-          const css = astToCss([node], cls, options);
+          const css = astToCss([node], cls, { ...options, scope: cls });
           cssList.push(css);
         }
       }

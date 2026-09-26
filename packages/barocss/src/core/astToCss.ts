@@ -1,7 +1,7 @@
 import { debugWarn } from "../utils/debug";
 import { type AstNode } from "./ast";
 import { escapeClassName } from "./registry";
-import { isStructureSafeValue, hasCommentDelimiter, hasHtmlEndTagOpener, isBalancedPrelude } from "./parser";
+import { isStructureSafeValue, hasCommentDelimiter, hasHtmlEndTagOpener, isBalancedPrelude, isScopedSelector } from "./parser";
 
 // #273: a selector or at-rule prelude that contains a comment delimiter is never emitted (with its whole subtree).
 // #323: nor one carrying a markup end-tag opener (hasHtmlEndTagOpener).
@@ -37,7 +37,7 @@ const importantPrefix = "!important";
 function astToCss(
   ast: AstNode[],
   baseSelector?: string,
-  opts?: { minify?: boolean, important?: boolean },
+  opts?: { minify?: boolean, important?: boolean, scope?: string, nested?: boolean },
   _indent = ""
 ): string {
   const minify = opts?.minify;
@@ -45,6 +45,11 @@ function astToCss(
   const nextIndent = _indent + "  "; // Next-level indentation: current + 2 spaces
   const important = opts?.important ?? false;
   const importantString = important ? ` ${importantPrefix}` : "";
+  // #392: defence in depth. With `scope` (the generating class), a style rule whose selector does not name that
+  // class in every top-level part (or, nested inside a rule, use `&`) is dropped with its subtree.
+  const nestedOpts = opts ? { ...opts, nested: true } : opts;
+  const scopeClass = opts?.scope ? "." + escapeClassName(opts.scope) : "";
+  const inScope = (sel: string): boolean => !scopeClass || isScopedSelector(sel, scopeClass, !!opts?.nested);
   // Note: Caching is handled at a higher level (IncrementalParser); omit here
 
   // Debug logging for empty AST
@@ -157,13 +162,13 @@ function astToCss(
             }
           }
           
-          if (!isSafePrelude(selector)) return "";
+          if (!isSafePrelude(selector) || !inScope(selector)) return "";
           // Create CSS rule
           if (minify) {
             const css = `${indent}${selector}{${astToCss(
               node.nodes, // Recursively process child nodes
               baseSelector, // Pass baseSelector (used in nested rules)
-              opts,
+              nestedOpts,
               nextIndent
             )}}`;
             // console.log("[astToCss] rule minify", css);
@@ -172,7 +177,7 @@ function astToCss(
             const css = `${indent}${selector} {\n${astToCss(
               node.nodes, // Recursively process child nodes
               baseSelector, // Pass baseSelector (used in nested rules)
-              opts,
+              nestedOpts,
               nextIndent
             )}${indent}}`;
             // console.log("[astToCss] rule pretty", css);
@@ -186,12 +191,12 @@ function astToCss(
           // - Currently: pass baseSelector as-is
           // - Caveat: nested rules may not handle baseSelector correctly
           // - Example: .bg-white/60 { .nested { ... } } → .bg-white/60 .nested { ... }
-          if (!isSafePrelude(node.selector)) return "";
+          if (!isSafePrelude(node.selector) || !inScope(node.selector)) return "";
           if (minify) {
             const css = `${indent}${node.selector} {${astToCss(
               node.nodes, // Recursively process child nodes
               baseSelector, // Pass baseSelector (used in nested rules)
-              opts,
+              nestedOpts,
               nextIndent
             )}}`;
             // console.log("[astToCss] style-rule minify", css);
@@ -200,7 +205,7 @@ function astToCss(
             const css = `${indent}${node.selector} {\n${astToCss(
               node.nodes, // Recursively process child nodes
               baseSelector, // Pass baseSelector (used in nested rules)
-              opts,
+              nestedOpts,
               nextIndent
             )}${indent}}`;
             // console.log("[astToCss] style-rule pretty", css, JSON.stringify(node, null, 2));
