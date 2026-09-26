@@ -357,105 +357,81 @@ textarea {
 }
 `;
 
+/**
+ * Full preflight: a port of Tailwind CSS v4.3.3's preflight.css (MIT), rule for rule (#336).
+ * `--theme(--x, fallback)` becomes `var(--x, fallback)`; the default sans/mono families also fall back to
+ * `--font-sans`/`--font-mono` so a BaroCSS theme applies. Checked by tests/compat/preflight-336.test.ts.
+ */
 export const preflightFullCSS = `
-/* BaroCSS Preflight - Full Reset */
-/* =============================== */
-
-/* Box sizing rules */
+/* BaroCSS Preflight - Full (Tailwind 4.3.3) */
 *,
-*::before,
-*::after {
+::after,
+::before,
+::backdrop,
+::file-selector-button {
   box-sizing: border-box;
-}
-
-/* Remove default margin and padding; reset border to Tailwind v4's universal
-   \`border: 0 solid\` so a bare border/border-t (width set by the utility, style
-   otherwise \`none\`) renders. Width 0 keeps borders invisible until a utility
-   sets one. */
-* {
   margin: 0;
   padding: 0;
   border: 0 solid;
 }
 
-/* Set core body defaults */
-body {
-  min-height: 100vh;
-  scroll-behavior: smooth;
-  text-rendering: optimizeSpeed;
+html,
+:host {
   line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Remove list styles on ul, ol elements */
-ul,
-ol {
-  list-style: none;
-}
-
-/* Make images easier to work with */
-img,
-picture {
-  max-width: 100%;
-  display: block;
-}
-
-/* Inherit fonts for inputs and buttons */
-input,
-button,
-textarea,
-select {
-  font: inherit;
-}
-
-/* Remove all animations, transitions and smooth scroll for people that prefer not to see them */
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-  
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure, 
-footer, header, hgroup, menu, nav, section {
-  display: block;
-}
-
-/* Additional full resets */
-html {
-  line-height: 1.15;
   -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  /* Tailwind 4.1.13 root font (app --default-font-family / --font-sans win) */
+  tab-size: 4;
   font-family: var(--default-font-family, var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'));
   font-feature-settings: var(--default-font-feature-settings, normal);
   font-variation-settings: var(--default-font-variation-settings, normal);
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Remove the gray background on active links in IE 10 */
-a {
-  background-color: transparent;
-  text-decoration: none;
+hr {
+  height: 0;
   color: inherit;
+  border-top-width: 1px;
 }
 
-/* Add the correct font weight in Chrome, Edge, and Safari */
+abbr:where([title]) {
+  -webkit-text-decoration: underline dotted;
+  text-decoration: underline dotted;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+a {
+  color: inherit;
+  -webkit-text-decoration: inherit;
+  text-decoration: inherit;
+}
+
 b,
 strong {
   font-weight: bolder;
 }
 
-/* Prevent sub and sup elements from affecting the line height */
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--default-mono-font-family, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace));
+  font-feature-settings: var(--default-mono-font-feature-settings, normal);
+  font-variation-settings: var(--default-mono-font-variation-settings, normal);
+  font-size: 1em;
+}
+
+small {
+  font-size: 80%;
+}
+
 sub,
 sup {
   font-size: 75%;
@@ -472,265 +448,49 @@ sup {
   top: -0.5em;
 }
 
-/* Improve media defaults */
-svg {
-  vertical-align: middle;
-}
-
-/* Remove border on iframe */
-iframe {
-  border: 0;
-}
-
-/* Table defaults */
 table {
+  text-indent: 0;
+  border-color: inherit;
   border-collapse: collapse;
-  border-spacing: 0;
 }
 
-/* Form element defaults */
-button,
-input,
-optgroup,
-select,
-textarea {
-  font-family: inherit;
-  font-size: 100%;
-  line-height: 1.15;
-  margin: 0;
+:-moz-focusring:where(:not(iframe)) {
+  outline: auto;
 }
 
-button,
-select {
-  text-transform: none;
-}
-
-button,
-[type="button"],
-[type="reset"],
-[type="submit"] {
-  -webkit-appearance: button;
-}
-
-button::-moz-focus-inner,
-[type="button"]::-moz-focus-inner,
-[type="reset"]::-moz-focus-inner,
-[type="submit"]::-moz-focus-inner {
-  border-style: none;
-  padding: 0;
-}
-
-button:-moz-focusring,
-[type="button"]:-moz-focusring,
-[type="reset"]:-moz-focusring,
-[type="submit"]:-moz-focusring {
-  outline: 1px dotted ButtonText;
-}
-
-/* Remove the inner border and padding in Firefox */
-button::-moz-focus-inner,
-[type="button"]::-moz-focus-inner,
-[type="reset"]::-moz-focus-inner,
-[type="submit"]::-moz-focus-inner {
-  border-style: none;
-  padding: 0;
-}
-
-/* Restore the focus styles unset by the previous rule */
-button:-moz-focusring,
-[type="button"]:-moz-focusring,
-[type="reset"]:-moz-focusring,
-[type="submit"]:-moz-focusring {
-  outline: 1px dotted ButtonText;
-}
-
-/* Correct the padding in Firefox */
-fieldset {
-  padding: 0.35em 0.75em 0.625em;
-}
-
-/* Remove padding so developers aren't caught out when they zero out fieldset elements */
-legend {
-  box-sizing: border-box;
-  color: inherit;
-  display: table;
-  max-width: 100%;
-  padding: 0;
-  white-space: normal;
-}
-
-/* Add the correct vertical alignment in Chrome, Firefox, and Opera */
 progress {
   vertical-align: baseline;
 }
 
-/* Remove the default vertical scrollbar in IE */
-textarea {
-  overflow: auto;
+summary {
+  display: list-item;
 }
 
-/* Correct the cursor style of increment and decrement buttons in Chrome */
-[type="number"]::-webkit-inner-spin-button,
-[type="number"]::-webkit-outer-spin-button {
-  height: auto;
+ol,
+ul,
+menu {
+  list-style: none;
 }
 
-/* Remove the inner padding in Chrome and Safari on macOS */
-[type="search"] {
-  -webkit-appearance: textfield;
-  outline-offset: -2px;
-}
-
-/* Remove the inner padding in Chrome and Safari on macOS */
-[type="search"]::-webkit-search-decoration {
-  -webkit-appearance: none;
-}
-
-/* Remove the default vertical scrollbar in IE */
-textarea {
-  overflow: auto;
-}
-
-/* Correct the cursor style of increment and decrement buttons in Chrome */
-[type="number"]::-webkit-inner-spin-button,
-[type="number"]::-webkit-outer-spin-button {
-  height: auto;
-}
-
-/* Remove the inner padding in Chrome and Safari on macOS */
-[type="search"] {
-  -webkit-appearance: textfield;
-  outline-offset: -2px;
-}
-
-/* Remove the inner padding in Chrome and Safari on macOS */
-[type="search"]::-webkit-search-decoration {
-  -webkit-appearance: none;
-}
-
-/* Additional full reset styles */
-abbr[title] {
-  border-bottom: none;
-  text-decoration: underline;
-  text-decoration: underline dotted;
-}
-
-/* Add the correct font size in all browsers */
-small {
-  font-size: 80%;
-}
-
-/* Prevent overflow of the container in all browsers */
-code,
-kbd,
-pre,
-samp {
-  font-family: var(--default-mono-font-family, var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace));
-  font-feature-settings: var(--default-mono-font-feature-settings, normal);
-  font-variation-settings: var(--default-mono-font-variation-settings, normal);
-  font-size: 1em;
-}
-
-/* Add the correct display in IE 9 */
+img,
+svg,
+video,
+canvas,
 audio,
+iframe,
+embed,
+object {
+  display: block;
+  vertical-align: middle;
+}
+
+img,
 video {
-  display: inline-block;
+  max-width: 100%;
+  height: auto;
 }
 
-/* Add the correct display in IE */
-template {
-  display: none;
-}
-
-/* Hidden attribute */
-[hidden] {
-  display: none;
-}
-
-/* Focus styles */
-:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-/* Skip link for accessibility */
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 6px;
-  background: #000;
-  color: white;
-  padding: 8px;
-  text-decoration: none;
-  z-index: 100;
-}
-
-.skip-link:focus {
-  top: 6px;
-}
-
-/* Print styles */
-@media print {
-  *,
-  *::before,
-  *::after {
-    background: transparent !important;
-    color: #000 !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
-  
-  a,
-  a:visited {
-    text-decoration: underline;
-  }
-  
-  a[href]:after {
-    content: " (" attr(href) ")";
-  }
-  
-  abbr[title]:after {
-    content: " (" attr(title) ")";
-  }
-  
-  a[href^="#"]:after,
-  a[href^="javascript:"]:after {
-    content: "";
-  }
-  
-  pre,
-  blockquote {
-    border: 1px solid #999;
-    page-break-inside: avoid;
-  }
-  
-  thead {
-    display: table-header-group;
-  }
-  
-  tr,
-  img {
-    page-break-inside: avoid;
-  }
-  
-  img {
-    max-width: 100% !important;
-  }
-  
-  p,
-  h2,
-  h3 {
-    orphans: 3;
-    widows: 3;
-  }
-  
-  h2,
-  h3 {
-    page-break-after: avoid;
-  }
-}
-
-/* Tailwind 4.1.13 form-control reset: inherit typography and colour, drop native radius/background (#228) */
+/* form-control reset */
 button,
 input,
 select,
@@ -763,7 +523,8 @@ textarea,
   opacity: 1;
 }
 
-@supports (not (-webkit-appearance: -apple-pay-button)) or (contain-intrinsic-size: 1px) {
+@supports (not (-webkit-appearance: -apple-pay-button)) or
+  (contain-intrinsic-size: 1px)  {
   ::placeholder {
     color: color-mix(in oklab, currentcolor 50%, transparent);
   }
@@ -771,5 +532,57 @@ textarea,
 
 textarea {
   resize: vertical;
+}
+
+::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+::-webkit-date-and-time-value {
+  min-height: 1lh;
+  text-align: inherit;
+}
+
+::-webkit-datetime-edit {
+  display: inline-flex;
+}
+
+::-webkit-datetime-edit-fields-wrapper {
+  padding: 0;
+}
+
+::-webkit-datetime-edit,
+::-webkit-datetime-edit-year-field,
+::-webkit-datetime-edit-month-field,
+::-webkit-datetime-edit-day-field,
+::-webkit-datetime-edit-hour-field,
+::-webkit-datetime-edit-minute-field,
+::-webkit-datetime-edit-second-field,
+::-webkit-datetime-edit-millisecond-field,
+::-webkit-datetime-edit-meridiem-field {
+  padding-block: 0;
+}
+
+::-webkit-calendar-picker-indicator {
+  line-height: 1;
+}
+
+:-moz-ui-invalid {
+  box-shadow: none;
+}
+
+button,
+input:where([type='button'], [type='reset'], [type='submit']),
+::file-selector-button {
+  appearance: button;
+}
+
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+  height: auto;
+}
+
+[hidden]:where(:not([hidden='until-found'])) {
+  display: none !important;
 }
 `;

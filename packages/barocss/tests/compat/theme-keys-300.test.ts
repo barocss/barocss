@@ -141,8 +141,8 @@ describe('#300 new theme keys create utilities (Tailwind 4.3.3)', () => {
     expect(decls(generateCss(candidate, c))).toEqual(decls(tailwind));
   });
 
-  it('keeps font-bold a weight and rounded-full 9999px without those keys', () => {
+  it('keeps font-bold a weight and rounded-full calc(infinity * 1px) without those keys (#336)', () => {
     expect(decls(generateCss('font-bold', ctx()))).toEqual(['font-weight: var(--font-weight-bold)']);
-    expect(decls(generateCss('rounded-full', ctx()))).toEqual(['border-radius: 9999px']);
+    expect(decls(generateCss('rounded-full', ctx()))).toEqual(['border-radius: calc(infinity * 1px)']);
   });
 });
