@@ -39,7 +39,16 @@ describe('#233 divide-<color> vs Tailwind 4.1.13', () => {
     const t = ws(await tw('divide-red-500/50'));
     expect(baro).toContain('color-mix(in srgb, oklch(63.7% 0.237 25.331) 50%, transparent)');
     expect(t).toContain('color-mix(in srgb, oklch(63.7% 0.237 25.331) 50%, transparent)');
-    expect(baro).toContain('color-mix(in oklab, oklch(63.7% 0.237 25.331) 50%, transparent)');
+    expect(baro).toContain('color-mix(in oklab, var(--color-red-500) 50%, transparent)');
     expect(t).toContain('color-mix(in oklab, var(--color-red-500) 50%, transparent)');
+  });
+});
+
+describe('#233 divide-<color> rejects non-colour arbitrary values', () => {
+  it('divide-[3px] emits nothing (Tailwind emits nothing)', () => {
+    expect(generateCss('divide-[3px]', createContext({}))).toBe('');
+  });
+  it('divide-red-500 references the theme var', () => {
+    expect(generateCss('divide-red-500', createContext({}))).toContain('border-color: var(--color-red-500)');
   });
 });

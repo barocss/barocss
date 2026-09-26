@@ -383,16 +383,13 @@ functionalUtility({
   supportsArbitrary: true,
   supportsCustomProperty: true,
   supportsOpacity: true,
-  handle: (value, _ctx, token, extra) => {
-    if (extra?.realThemeValue && extra.opacity) {
-      return [rule(":where(& > :not(:last-child))", [
-        decl("border-color", `color-mix(in srgb, ${value} ${extra.opacity}%, transparent)`),
-        atRule("supports", "(color: color-mix(in lab, red, red))", [
-          decl("border-color", `color-mix(in oklab, ${value} ${extra.opacity}%, transparent)`),
-        ]),
-      ])];
+  handle: (value, _ctx, _token, extra) => {
+    // Theme colours go through the shared helper (var(--color-*) and Tailwind's /alpha form, #228).
+    if (extra?.realThemeValue) {
+      return [rule(":where(& > :not(:last-child))", themeColorDecls("border-color", value, extra))];
     }
-    if (extra?.realThemeValue || token.arbitrary || parseColor(value)) return divideColor(value);
+    // Arbitrary values only when they are colours: divide-[3px] is not a divide colour (Tailwind emits nothing).
+    if (parseColor(value)) return divideColor(value);
     return null;
   },
   handleCustomProperty: (value) => divideColor(`var(${value})`),
