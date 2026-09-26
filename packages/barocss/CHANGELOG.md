@@ -1,5 +1,47 @@
 # @barocss/kit
 
+## 0.9.0
+
+### Minor Changes
+
+- 0b4acbf: The `full` preflight (the default, `preflight: true`) is now a rule-for-rule port of Tailwind CSS 4.3.3's preflight, and `rounded-full` emits Tailwind 4.3.3's value.
+
+  BEHAVIOUR CHANGE (every page using the default preflight):
+
+  - `img, svg, video, canvas, audio, iframe, embed, object` are now `display: block; vertical-align: middle`, as in Tailwind (before: only `img, picture` were block, `svg` was `vertical-align: middle`, `audio, video` were `inline-block`). `img, video` get `max-width: 100%; height: auto`.
+  - `table` now has `text-indent: 0; border-color: inherit; border-collapse: collapse` (before: `border-collapse: collapse; border-spacing: 0`).
+  - `*, ::after, ::before, ::backdrop, ::file-selector-button` carry the box-sizing / margin / padding / `border: 0 solid` reset (before: `*, *::before, *::after`).
+  - `html, :host`: `line-height: 1.5; tab-size: 4; -webkit-tap-highlight-color: transparent` (before: `line-height: 1.15` on html and `line-height: 1.5` plus smoothing/`text-rendering`/`min-height: 100vh`/`scroll-behavior: smooth` on `body`). The `body` rule is removed.
+  - New Tailwind rules: `hr` (height 0, colour inherit, 1px top border), `h1`–`h6` (font size/weight inherit), `a` (colour and text-decoration inherit, before `text-decoration: none`), `abbr:where([title])`, `menu` list reset, `summary { display: list-item }`, `:-moz-focusring`, `:-moz-ui-invalid`, date/time and search input fixes, `button, input:where([type=button|reset|submit]), ::file-selector-button { appearance: button }`, spin-button height, and `[hidden]:where(:not([hidden='until-found'])) { display: none !important }`.
+  - Removed BaroCSS-only extras: the global `:focus` blue outline, `.skip-link`, `@media print` styles, the `prefers-reduced-motion` override, `picture`/sectioning-element `display: block`, `template`/`[hidden]` plain `display: none`, `iframe { border: 0 }`, `fieldset`/`legend` and the normalize.css form-control rules (`font-size: 100%`, `line-height: 1.15`, `text-transform: none`, `-webkit-appearance`, `textarea { overflow: auto }`).
+  - `rounded-full` and every `rounded-*-full` corner utility now emit `calc(infinity * 1px)` (before: `9999px`). A theme that sets `borderRadius.full` to a non-default value still gets `var(--radius-full)` (#300).
+
+  The `standard` and `minimal` levels are unchanged; their deliberate differences from Tailwind are listed in `tests/compat/preflight-336.test.ts`.
+
+  Focus now uses the browser's default focus ring; if you relied on the removed `prefers-reduced-motion` override, use `motion-reduce:` / `motion-safe:` variants or your own `@media (prefers-reduced-motion: reduce)` rule.
+
+- 0.9.0: embedding AI widgets in Shadow DOM, new theme keys, and preflight parity with Tailwind 4.3.
+
+  **New:**
+
+  - `@barocss/browser`: a `root` option for Shadow DOM. The runtime's preflight and utilities live in the shadow root (using `:host`), never in `document.head`; roots with the same config share one constructable stylesheet; rule GC works per root. The host page is untouched, and host fonts and colours don't leak in.
+  - New theme keys create utilities (e.g. `theme.extend.borderRadius.card` → `rounded-card`, `fontFamily.display` → `font-display`).
+  - Custom theme keys follow Tailwind's per-utility precedence on shared roots (e.g. a custom `borderWidth` key gives `border-thick` a width, not a colour); functional `ring-offset-<colour|width>`.
+
+  **Behaviour changes (please check when upgrading):**
+
+  - Preflight matches Tailwind 4.3.3 rule by rule (e.g. `svg` is `display: block`; table border colours are inherited; focus-ring and reduced-motion rules as in Tailwind). `rounded-full` is `calc(infinity * 1px)`.
+  - `content-["x"]` keeps its quotes correctly; `content-[url(x)]` emits `url()` as in Tailwind. See the new security guide for untrusted class input and CSP.
+
+  **Docs:** a security guide for untrusted class input (what classes can and can't do, CSP, `ssrStyleTag`, the Shadow `root` option).
+
+- f25fa7f: New theme keys create utilities, as in Tailwind 4 (#300): `theme.extend.borderRadius.card` gives `rounded-card` (and `rounded-t-card` …), `fontFamily.display` gives `font-display`, `fontWeight.heavy` gives `font-heavy`, `boxShadow.card`/`insetShadow.card` give `shadow-card`/`inset-shadow-card` (with shadow colours and `/alpha`), `fontSize.hero` (including `['4rem', { lineHeight }]`) gives `text-hero`, and `blur`, `transitionTimingFunction`, `aspect`, `container` (`max-w-*`, `columns-*`, `max-inline-*`), `lineHeight` and `letterSpacing` keys resolve the same way. Built-in keys are unchanged; a key that isn't in the theme still emits nothing. Collisions follow Tailwind 4.3.3: a `fontFamily` key named like a weight (`bold`) makes `font-bold` that family, and a `borderRadius.full` other than `9999px` makes `rounded-full` (and `rounded-t-full` ...) read `var(--radius-full)`.
+
+### Patch Changes
+
+- 1d017f0: `content-[…]` passes the arbitrary value through like Tailwind 4.3 (`content-["x"]` → `"x"`, `content-['x']` → `'x'`, `content-[a_b]` → `a b`), and `before:`/`after:` put their default `content` first so a `content-*` utility wins.
+- 0b60476: Custom theme keys resolve to their own namespace on utility roots shared with colours (#338): `border-*`, `outline-*`, `ring-*`, `ring-offset-*`, `divide-x/y-*`, `decoration-*` and `stroke-*` use `borderWidth`, `outlineWidth`, `ringWidth`, `ringOffsetWidth`, `divideWidth`, `textDecorationThickness` and `strokeWidth` keys instead of emitting a colour var. A key in both follows Tailwind 4.3.3: the colour wins on border/outline/ring/text/stroke; the shadow, inset/text/drop shadow, ring-offset width and decoration thickness win on their roots. Adds functional `ring-offset-<colour|width>`.
+
 ## 0.8.2
 
 ### Patch Changes

@@ -1,5 +1,34 @@
 # @barocss/browser
 
+## 0.9.0
+
+### Minor Changes
+
+- ea19857: Add a `root` option for Shadow DOM: `new BrowserRuntime({ root: shadowRoot })` (or `baroStart({ root })`) observes that root and places all of its CSS inside it, with a preflight scoped to `:host`. Runtimes with the same config share one adopted constructable sheet (a `<style>` fallback without constructable sheets), generate each class once and reclaim a rule only when no root uses it. `runtime.getStats().sharedSheet` reports the shared sheet.
+- 0.9.0: embedding AI widgets in Shadow DOM, new theme keys, and preflight parity with Tailwind 4.3.
+
+  **New:**
+
+  - `@barocss/browser`: a `root` option for Shadow DOM. The runtime's preflight and utilities live in the shadow root (using `:host`), never in `document.head`; roots with the same config share one constructable stylesheet; rule GC works per root. The host page is untouched, and host fonts and colours don't leak in.
+  - New theme keys create utilities (e.g. `theme.extend.borderRadius.card` → `rounded-card`, `fontFamily.display` → `font-display`).
+  - Custom theme keys follow Tailwind's per-utility precedence on shared roots (e.g. a custom `borderWidth` key gives `border-thick` a width, not a colour); functional `ring-offset-<colour|width>`.
+
+  **Behaviour changes (please check when upgrading):**
+
+  - Preflight matches Tailwind 4.3.3 rule by rule (e.g. `svg` is `display: block`; table border colours are inherited; focus-ring and reduced-motion rules as in Tailwind). `rounded-full` is `calc(infinity * 1px)`.
+  - `content-["x"]` keeps its quotes correctly; `content-[url(x)]` emits `url()` as in Tailwind. See the new security guide for untrusted class input and CSP.
+
+  **Docs:** a security guide for untrusted class input (what classes can and can't do, CSP, `ssrStyleTag`, the Shadow `root` option).
+
+### Patch Changes
+
+- Updated dependencies [1d017f0]
+- Updated dependencies [0b4acbf]
+- Updated dependencies
+- Updated dependencies [0b60476]
+- Updated dependencies [f25fa7f]
+  - @barocss/kit@0.9.0
+
 ## 0.8.2
 
 ### Patch Changes
