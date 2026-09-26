@@ -32,7 +32,7 @@ export interface Theme {
 }
 
 export interface Config {
-  prefix?: string;  // prefix for class names, default is 'barocss-'
+  prefix?: string;  // class prefix, Tailwind 4 `prefix(tw)` syntax: 'tw' -> `tw:flex`, `tw:hover:p-4`; lowercase letters; default none
   cssVarPrefix?: string; // prefix for generated CSS custom properties, default '--bcss-'
   /**
    * Modern dark mode strategy
@@ -70,7 +70,6 @@ export interface Config {
 }
 
 export const defaultConfig: Config = {
-  prefix: 'barocss-',
   darkMode: 'media', // same as default
 };
 
