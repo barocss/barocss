@@ -362,6 +362,12 @@ export function parseClassToAst(
         variantChain: modifiers,
         index: i,
       });
+      // #335: null means the variant matched the shape but its inner variant is unknown: emit nothing.
+      if (result == null) {
+        debugWarn(`[BAROCSS] Unknown variant: "${variant.type}" in "${fullClassName}"`);
+        failures.add(fullClassName);
+        return [];
+      }
       // A wrapped identity selector adds no rule. Media-only modifiers use it.
       if (plugin.wrap && (
         result === '&' ||
@@ -484,6 +490,10 @@ export function getAstCacheStats(ctx?: Context) {
  * @example
  *   const css = generateCss('sm:dark:hover:bg-red-500 sm:focus:bg-blue-500', ctx);
  */
+// #335: class lists split on ASCII whitespace only, as HTML classList and Tailwind's candidate scanner do;
+// a non-ASCII space (U+00A0, U+3000, ...) is part of a token, which then matches no utility.
+const CLASS_SEPARATOR = /[ \t\n\f\r]+/;
+
 export function generateCss(
   classList: string,
   ctx: Context,
@@ -493,7 +503,7 @@ export function generateCss(
   const allAtRootNodes: AstNode[] = [];
 
   const results = classList
-    .split(/\s+/)
+    .split(CLASS_SEPARATOR)
     .filter((cls) => {
       if (!cls) return false;
       if (opts?.dedup) {
@@ -607,7 +617,7 @@ export function generateCssRules(
 ): Array<GenerateCssRulesResult> {
   const seen = new Set<string>();
   return classList
-    .split(/\s+/)
+    .split(CLASS_SEPARATOR)
     .filter((cls) => {
       if (!cls) return false;
       if (opts?.dedup) {

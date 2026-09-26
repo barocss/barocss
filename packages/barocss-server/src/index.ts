@@ -1,6 +1,6 @@
 import { parseClassToAst, generateCssRules, createContext, ruleSortKey, compareKeys, isDebug } from '@barocss/kit';
 import type { Config, Context } from '@barocss/kit';
-import { extractClasses, parseCssDefinitions, type CssDefinitions } from './ssr';
+import { CLASS_SEPARATOR, extractClasses, parseCssDefinitions, type CssDefinitions } from './ssr';
 
 export { ssrStyleTag, SSR_STYLE_ATTRIBUTE } from './ssr';
 
@@ -72,7 +72,7 @@ export class ServerRuntime {
    * once, then the class rules in Tailwind variant order (base < sm < md < lg ...).
    */
   generateCss(className: string) {
-    return this.sheet(className.split(/\s+/).filter(Boolean));
+    return this.sheet(className.split(CLASS_SEPARATOR).filter(Boolean));
   }
 
   /**
@@ -83,7 +83,7 @@ export class ServerRuntime {
    * with `ssrStyleTag()` so `@barocss/browser` adopts it.
    */
   generateCssForHtml(htmlOrClasses: string | string[], opts: GenerateCssForHtmlOptions = {}) {
-    const classes = typeof htmlOrClasses === 'string' ? extractClasses(htmlOrClasses) : [...new Set(htmlOrClasses.flatMap((c) => c.split(/\s+/)).filter(Boolean))];
+    const classes = typeof htmlOrClasses === 'string' ? extractClasses(htmlOrClasses) : [...new Set(htmlOrClasses.flatMap((c) => c.split(CLASS_SEPARATOR)).filter(Boolean))];
     const skip = opts.skip;
     if (skip === undefined) return this.sheet(classes);
     if (typeof skip === 'string') {

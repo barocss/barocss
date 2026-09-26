@@ -239,6 +239,7 @@ export function jsonToAst(input: BaroJsonInput, ctx: Context): AstNode[] {
                     index: i,
                 });
 
+                if (result == null) continue; // #335: unknown inner variant
                 const identityWithWrap = plugin.wrap && (
                     result === '&' ||
                     (typeof result === 'object' && !Array.isArray(result) && result.selector === '&') ||

@@ -1,5 +1,5 @@
 import { functionalModifier } from "../../core/registry";
-import { functionalArgument } from "./utils";
+import { functionalArgument, pseudoClassOf } from "./utils";
 
 // not-[]: functionalModifier for arbitrary negation
 functionalModifier(
@@ -36,10 +36,12 @@ functionalModifier(
 // anything it does not accept (e.g. not-@container) emits nothing, like Tailwind 4.3.3 (#311).
 functionalModifier(
   (mod: string) => /^not-/.test(mod) && !mod.startsWith('not-@'),
-  ({ selector, mod }) => {
+  ({ selector, mod, context }) => {
     const m = /^not-(.+)$/.exec(mod.type);
+    const inner = m ? pseudoClassOf(m[1], context) : null;
+    if (m && !inner) return null; // #335: unknown inner variant emits nothing
     return {
-      selector: m ? `&:not(:${m[1]})` : selector,
+      selector: inner ? `&:not(${inner})` : selector,
       flatten: false,
       wrappingType: 'rule',
       source: 'attribute'

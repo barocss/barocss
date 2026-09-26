@@ -1,6 +1,7 @@
 import { functionalModifier } from "../../core/registry";
 import { atRule } from "../../core/ast";
-import { attributeVariantSelector, decodeArbitrarySelector, functionalArgument } from "./utils";
+import { attributeVariantSelector, decodeArbitrarySelector, functionalArgument, pseudoClassOf } from "./utils";
+import type { Context } from "../../core/context";
 import { startsAtRule } from "./has-variants";
 
 // `group-has-[@…]` / `peer-has-[@…]`: an at-rule is not a selector, the variant does not match (as has-[…]).
@@ -26,15 +27,17 @@ functionalModifier(
 );
 
 // `group-not-[x]` / `peer-not-[x]` → `:not(*:is(x))`; `group-not-focus` → `:not(:focus)`.
-function negated(value: string): string {
+function negated(value: string, ctx: Context): string | null {
   const v = value.slice(4);
-  return v.startsWith('[') && v.endsWith(']') ? `:not(*:is(${decodeArbitrarySelector(v.slice(1, -1))}))` : `:not(:${v})`;
+  if (v.startsWith('[') && v.endsWith(']')) return `:not(*:is(${decodeArbitrarySelector(v.slice(1, -1))}))`;
+  const inner = pseudoClassOf(v, ctx);
+  return inner ? `:not(${inner})` : null;
 }
 
 // --- group/peer/parent/child extensions (examples: group-focus, peer-active, etc.) ---
 functionalModifier(
   (mod: string) => /^group-(.+)$/.test(mod) && !atRuleHas(mod),
-  ({ selector, mod }) => {
+  ({ selector, mod, context }) => {
     const raw = /^group-(.+)$/.exec(mod.type);
     const [variant, base] = splitGroupName('group', raw?.[1] ?? '');
     const m = raw ? [raw[0], variant] as const : null;
@@ -54,7 +57,8 @@ functionalModifier(
     }
 
     if (m?.[1]?.startsWith('not-')) {
-      return { selector: `&:is(${g}${negated(m[1])} *)`, wrappingType: 'rule', source: 'group' };
+      const neg = negated(m[1], context);
+      return neg ? { selector: `&:is(${g}${neg} *)`, wrappingType: 'rule', source: 'group' } : null;
     }
 
     if (m?.[1]?.startsWith('has-')) {
@@ -90,8 +94,10 @@ functionalModifier(
       }
     }
 
+    const pc = m ? pseudoClassOf(m[1], context) : null;
+    if (m && !pc) return null; // #335: unknown inner variant emits nothing
     return m ? {
-      selector: `&:is(${g}:${m[1]} *)`,
+      selector: `&:is(${g}${pc} *)`,
       wrappingType: 'rule',
       source: 'group'
     } : {
@@ -104,7 +110,7 @@ functionalModifier(
 
 functionalModifier(
   (mod: string) => /^peer-(.+)$/.test(mod) && !atRuleHas(mod),
-  ({ selector, mod }) => {
+  ({ selector, mod, context }) => {
     const raw = /^peer-(.+)$/.exec(mod.type);
     const [variant, base] = splitGroupName('peer', raw?.[1] ?? '');
     const m = raw ? [raw[0], variant] as const : null;
@@ -132,15 +138,19 @@ functionalModifier(
     }
 
     if (value?.startsWith('has-')) {
+      const pc = pseudoClassOf(value.slice(4), context);
+      if (!pc) return null;
       return {
-        selector: `&:is(${g}:has(:${value.slice(4)})~*)`,
+        selector: `&:is(${g}:has(${pc})~*)`,
         source: 'peer'
       };
     }
 
     if (value?.startsWith('not-')) {
+      const neg = negated(value, context);
+      if (!neg) return null;
       return {
-        selector: `&:is(${g}${negated(value)} ~ *)`,
+        selector: `&:is(${g}${neg} ~ *)`,
         source: 'peer'
       };
     }
@@ -175,8 +185,10 @@ functionalModifier(
       }
     }
 
+    const pc = m ? pseudoClassOf(value!, context) : null;
+    if (m && !pc) return null; // #335: unknown inner variant emits nothing
     return m ? {
-      selector: `&:is(${g}:${value}~*)`,
+      selector: `&:is(${g}${pc}~*)`,
       source: 'peer'
     } : {
       selector,
