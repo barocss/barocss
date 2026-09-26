@@ -16,6 +16,7 @@ import { atRoot, decl, property, rule } from "../core/ast";
 ].forEach(([name, prop]) => {
   staticUtility(`${name}-px`, [[prop, "1px"]], { category: 'spacing' });
   functionalUtility({
+    spacingKeys: true,
     name,
     prop,
     supportsArbitrary: true,
@@ -42,6 +43,7 @@ import { atRoot, decl, property, rule } from "../core/ast";
   staticUtility(`${name}-px`, [[prop, "1px"]], { category: 'spacing' });
   staticUtility(`-${name}-px`, [[prop, "-1px"]], { category: 'spacing' });
   functionalUtility({
+    spacingKeys: true,
     name,
     prop,
     supportsNegative: true,
@@ -83,6 +85,7 @@ const SPACE_SELECTOR = ":where(& > :not(:last-child))";
   ], { category: "spacing" });
 
   functionalUtility({
+    spacingKeys: true,
     name,
     supportsNegative: true,
     supportsArbitrary: true,

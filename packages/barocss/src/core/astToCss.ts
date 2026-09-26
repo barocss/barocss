@@ -1,7 +1,10 @@
 import { debugWarn } from "../utils/debug";
 import { type AstNode } from "./ast";
 import { escapeClassName } from "./registry";
-import { isStructureSafeValue } from "./parser";
+import { isStructureSafeValue, hasCommentDelimiter } from "./parser";
+
+// #273: a selector or at-rule prelude that contains a comment delimiter is never emitted (with its whole subtree).
+const isSafePrelude = (text: unknown): boolean => !hasCommentDelimiter(String(text ?? ""));
 
 // #224 defensive layer: a declaration whose property or value could end or open a block is dropped.
 const isSafeDecl = (prop: unknown, value: unknown): boolean =>
@@ -139,6 +142,7 @@ function astToCss(
             }
           }
           
+          if (!isSafePrelude(selector)) return "";
           // Create CSS rule
           if (minify) {
             const css = `${indent}${selector}{${astToCss(
@@ -167,6 +171,7 @@ function astToCss(
           // - Currently: pass baseSelector as-is
           // - Caveat: nested rules may not handle baseSelector correctly
           // - Example: .bg-white/60 { .nested { ... } } → .bg-white/60 .nested { ... }
+          if (!isSafePrelude(node.selector)) return "";
           if (minify) {
             const css = `${indent}${node.selector} {${astToCss(
               node.nodes, // Recursively process child nodes
@@ -194,6 +199,7 @@ function astToCss(
           // - Pass baseSelector to inner nodes of the at-rule
           // - Ensure nested rules get correct selectors
           // - Example: @media (min-width: 768px) { .parent .child { ... } }
+          if (!isSafePrelude(node.name) || !isSafePrelude(node.params)) return "";
           if (minify) {
             const css = `${indent}@${node.name} ${node.params}{${astToCss(
               node.nodes, // Recursively process inner nodes of the at-rule
@@ -256,7 +262,7 @@ function rootToCss(nodes: AstNode[], opts?: { minify?: boolean }): string {
         if (isSafeDecl(node.prop, node.value)) {
           list.push(minify ? `${node.prop}:${node.value};` : `${node.prop}: ${node.value};`);
         }
-      } else if (node.type === "at-rule") {
+      } else if (node.type === "at-rule" && isSafePrelude(node.name) && isSafePrelude(node.params)) {
         if (minify) {
           const body = node.nodes
             .filter((child) => child.type === "decl" && isSafeDecl(child.prop, child.value))

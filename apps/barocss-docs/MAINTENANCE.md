@@ -1,6 +1,6 @@
 # Documentation site maintenance
 
-Status: 2026-09-23. BaroCSS `0.4.0` is published on npm, and both browser CDN files are available. The first main Pages deployment passed live smoke at `main@9d0ab731`. Future Docs updates still require the normal develop-to-main release path.
+Status: 2026-09-26. BaroCSS `0.5.0` is the verified release: it is published on npm, and both browser CDN files return HTTP 200. Earlier (2026-09-23) `0.4.0` notes below are kept as history. The first main Pages deployment passed live smoke at `main@9d0ab731`. Future Docs updates still require the normal develop-to-main release path.
 
 ## Sources of truth
 
@@ -13,7 +13,7 @@ Status: 2026-09-23. BaroCSS `0.4.0` is published on npm, and both browser CDN fi
 
 | Priority | Work | Acceptance criterion |
 | --- | --- | --- |
-| P0 | Keep the home, introduction, Quick Start, and main examples aligned with the published release. | No full Tailwind compatibility claim. `baroStart` and `BrowserRuntime` match public exports. npm and CDN examples use the verified published `0.4.0` files. |
+| P0 | Keep the home, introduction, Quick Start, and main examples aligned with the published release. | No full Tailwind compatibility claim. `baroStart` and `BrowserRuntime` match public exports. npm and CDN examples use the verified published `0.5.0` files. |
 | P1 | Audit every API and integration example against package exports and generated output. | Each runnable example has a stated package version and a working import. Remove incomplete or speculative snippets. |
 | P1 | Check navigation and Markdown links. | Every internal sidebar link and Markdown page link resolves; the VitePress build passes. |
 | P2 | Review accessibility and information structure. | Check keyboard navigation, heading order, link text, color contrast, and narrow-screen layout in a browser. Record each defect and fix it. |
@@ -21,6 +21,9 @@ Status: 2026-09-23. BaroCSS `0.4.0` is published on npm, and both browser CDN fi
 
 ## Current evidence and limits
 
+- `0.5.0` CDN check, 2026-09-26 (`curl -L`, every CDN URL in `docs/`):
+  - `https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.js` — 200
+  - `https://unpkg.com/@barocss/browser@0.5.0/dist/cdn/barocss.umd.cjs` — 200
 - The [first main Pages run](https://github.com/barocss/barocss/actions/runs/35848469099) built and deployed `main@9d0ab731`. The [live smoke record](https://github.com/barocss/barocss/pull/92#issuecomment-5793205551) checked six key pages, 198 internal path targets, and browser execution of the then-published CDN examples.
 - The corrected Docs tree built with Node `22.22.0` and pnpm `9.15.4`. Its generated link audit covered 220 HTML pages and 41,692 internal links with zero missing targets. Re-run these checks for each Docs change.
 - The public `0.4.0` browser ESM and UMD files returned HTTP 200. Both exposed `baroStart` and generated CSS for `bg-red-500` in isolated Chromium frames. npm reports `0.4.0` for kit, browser, and server.
