@@ -237,6 +237,8 @@ export function transitionTimingFunctionToCssVars(transition: Record<string, str
       result[`--default-transition-timing-function`] = transition[key];
     } else {
       result[`--transition-timing-function-${escapeKey(key)}`] = transition[key];
+      // Tailwind v4 names: --ease-in / --ease-out / --ease-in-out (ease-linear uses a literal `linear`).
+      if (key !== 'linear') result[`--ease-${escapeKey(key)}`] = transition[key];
     }
   }
   return result;
