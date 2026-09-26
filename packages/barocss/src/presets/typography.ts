@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility, themeKeyVar, themeKeyValue } from "../core/registry";
+import { staticUtility, functionalUtility, registerUtility, themeKeyVar, themeKeyValue } from "../core/registry";
 import { fontSizeLineHeight } from "../core/cssVars";
 import { atRoot, decl, property, rule } from "../core/ast";
 
@@ -32,15 +32,28 @@ staticUtility("text-9xl", [["font-size", "var(--text-9xl)"], ["line-height", "va
 
 
 // --- Typography: Font Weight ---
-staticUtility("font-thin", [["font-weight", "var(--font-weight-thin)"]], { category: 'typography' });
-staticUtility("font-extralight", [["font-weight", "var(--font-weight-extralight)"]], { category: 'typography' });
-staticUtility("font-light", [["font-weight", "var(--font-weight-light)"]], { category: 'typography' });
-staticUtility("font-normal", [["font-weight", "var(--font-weight-normal)"]], { category: 'typography' });
-staticUtility("font-medium", [["font-weight", "var(--font-weight-medium)"]], { category: 'typography' });
-staticUtility("font-semibold", [["font-weight", "var(--font-weight-semibold)"]], { category: 'typography' });
-staticUtility("font-bold", [["font-weight", "var(--font-weight-bold)"]], { category: 'typography' });
-staticUtility("font-extrabold", [["font-weight", "var(--font-weight-extrabold)"]], { category: 'typography' });
-staticUtility("font-black", [["font-weight", "var(--font-weight-black)"]], { category: 'typography' });
+// #300: Tailwind 4.3.3 resolves --font-<key> before --font-weight-<key>, so a theme.fontFamily key named like a
+// weight (`fontFamily.bold`) turns `font-bold` into that family, as `@theme { --font-bold: ... }` does.
+function fontWeightUtility(name: string) {
+  registerUtility({
+    name: `font-${name}`,
+    match: (className: string) => className === `font-${name}`,
+    handler: (_value, ctx) => {
+      const family = themeKeyVar(ctx, "fontFamily", name, "font");
+      return family ? [decl("font-family", family)] : [decl("font-weight", `var(--font-weight-${name})`)];
+    },
+    category: "typography",
+  });
+}
+fontWeightUtility("thin");
+fontWeightUtility("extralight");
+fontWeightUtility("light");
+fontWeightUtility("normal");
+fontWeightUtility("medium");
+fontWeightUtility("semibold");
+fontWeightUtility("bold");
+fontWeightUtility("extrabold");
+fontWeightUtility("black");
 
 functionalUtility({
   name: "font",

@@ -1,4 +1,4 @@
-import { staticUtility, functionalUtility, themeKeyVar } from "../core/registry";
+import { staticUtility, functionalUtility, registerUtility, themeKeyVar, themeKeyValue } from "../core/registry";
 import { atRoot, atRule, decl, property, rule } from "../core/ast";
 import { parseNumber, parseLength, parseColor, themeColorDecls } from "../core/utils";
 
@@ -16,7 +16,21 @@ staticUtility("rounded-2xl", [["border-radius", "var(--radius-2xl)"]], { categor
 staticUtility("rounded-3xl", [["border-radius", "var(--radius-3xl)"]], { category: 'borders' });
 staticUtility("rounded-4xl", [["border-radius", "var(--radius-4xl)"]], { category: 'borders' });
 staticUtility("rounded-xs", [["border-radius", "var(--radius-xs)"]], { category: 'borders' });
-staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'borders' });
+// #300: a theme.borderRadius.full other than the default wins over the literal, like Tailwind 4.3.3 where
+// `@theme { --radius-full: ... }` makes rounded-full (and rounded-t-full ...) read var(--radius-full).
+function roundedFull(name: string, props: string[]) {
+  registerUtility({
+    name,
+    match: (className: string) => className === name,
+    handler: (_value, ctx) => {
+      const own = themeKeyValue(ctx, "borderRadius", "full");
+      const value = own != null && own !== "9999px" ? "var(--radius-full)" : "9999px";
+      return props.map((prop) => decl(prop, value));
+    },
+    category: "borders",
+  });
+}
+roundedFull("rounded-full", ["border-radius"]);
 
 
 // Individual corner radius utilities
@@ -42,7 +56,7 @@ staticUtility("rounded-full", [["border-radius", "9999px"]], { category: 'border
   staticUtility(`${name}-3xl`, propList.map(prop => [prop, "var(--radius-3xl)"]), { category: 'borders' });
   staticUtility(`${name}-4xl`, propList.map(prop => [prop, "var(--radius-4xl)"]), { category: 'borders' });
   staticUtility(`${name}-xs`, propList.map(prop => [prop, "var(--radius-xs)"]), { category: 'borders' });
-  staticUtility(`${name}-full`, propList.map(prop => [prop, "9999px"]), { category: 'borders' });
+  roundedFull(`${name}-full`, propList);
 
   // Functional utility
   functionalUtility({

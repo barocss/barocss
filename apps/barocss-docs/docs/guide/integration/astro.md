@@ -168,5 +168,5 @@ theme: {
 },
 ```
 
-- New names work in every theme namespace, as in Tailwind 4 (`--radius-card` gives `rounded-card`): `colors`, `spacing`, `borderRadius`, `fontFamily`, `fontWeight`, `fontSize`, `boxShadow`, `insetShadow`, `dropShadow`, `textShadow`, `blur`, `transitionTimingFunction`, `animations`, `aspect`, `container` (`max-w-*`, `@<name>:`), `lineHeight`, `letterSpacing` and `breakpoints`. A name that isn't in the theme emits nothing.
+- New names work in every theme namespace, as in Tailwind 4 (`--radius-card` gives `rounded-card`): `colors`, `spacing`, `borderRadius`, `fontFamily`, `fontWeight`, `fontSize`, `boxShadow`, `insetShadow`, `dropShadow`, `textShadow`, `blur`, `transitionTimingFunction`, `animations`, `aspect`, `container` (`max-w-*`, `@<name>:`), `lineHeight`, `letterSpacing` and `breakpoints`. A name that isn't in the theme emits nothing. Collisions follow Tailwind 4.3.3: a `fontFamily` key named like a weight (`bold`) makes `font-bold` that family, and your own `borderRadius.full` replaces `rounded-full`'s `9999px`.
 - Don't point theme values at the build's own variable names (`var(--color-brand)`, `var(--tw-…)`). `skip` recognises and leaves those alone, but whether a given var reaches the page depends on the build (`@theme inline` doesn't emit them). Literal values always render.

@@ -131,4 +131,18 @@ describe('#300 new theme keys create utilities (Tailwind 4.3.3)', () => {
       expect(root, name).toMatch(new RegExp(`${name}:\\s*[^;]+;`));
     expect(root).toMatch(/--text-hero--line-height:\s*1\.1;/);
   });
+
+  // Collisions with built-in names follow Tailwind 4.3.3: --font-<key> beats --font-weight-<key>, and an own
+  // --radius-full replaces rounded-full's literal.
+  it.each(['font-bold', 'rounded-full', 'rounded-t-full'])('collision %s matches Tailwind', async (candidate) => {
+    const input = `@theme { --font-bold: Fancy, serif; --font-weight-bold: 700; --radius-full: 2rem; }\n@tailwind utilities;`;
+    const tailwind = (await compile(input)).build([candidate]);
+    const c = createContext({ preflight: false, theme: { extend: { fontFamily: { bold: ['Fancy', 'serif'] }, borderRadius: { full: '2rem' } } } } as never);
+    expect(decls(generateCss(candidate, c))).toEqual(decls(tailwind));
+  });
+
+  it('keeps font-bold a weight and rounded-full 9999px without those keys', () => {
+    expect(decls(generateCss('font-bold', ctx()))).toEqual(['font-weight: var(--font-weight-bold)']);
+    expect(decls(generateCss('rounded-full', ctx()))).toEqual(['border-radius: 9999px']);
+  });
 });
