@@ -1,6 +1,10 @@
 import { decl } from "../core/ast";
 import { staticUtility, functionalUtility } from "../core/registry";
-import { parseNumber } from "../core/utils";
+import { parseNumber, parseColor } from "../core/utils";
+
+// #303: stroke-[…] / stroke-(…) type hints that mean stroke-width in Tailwind
+const STROKE_WIDTH_HINT = /^(length|number|percentage):(.+)$/;
+const STROKE_LENGTH = /^(\d*\.)?\d+(px|em|rem|vh|vw|vmin|vmax|%|in|cm|mm|pt|pc|ex|ch|q|lh|rlh|svh|lvh|dvh|cqw|cqh)$/i;
 
 // --- Fill Utilities ---
 //  fill documentation
@@ -47,16 +51,23 @@ functionalUtility({
       return [decl("stroke-width", value)];
     }
 
+    // #303: arbitrary lengths, percentages and length/number hints are stroke-width
+    if (token.arbitrary) {
+      const hint = STROKE_WIDTH_HINT.exec(value);
+      if (hint) return [decl("stroke-width", hint[2])];
+      if (!parseColor(value) && (STROKE_LENGTH.test(value) || /^calc\(/.test(value))) {
+        return [decl("stroke-width", value)];
+      }
+    }
+
     if (extra?.realThemeValue) {
       return [decl("stroke", `var(--color-${extra.realThemeValue})`)];
     }
     return [decl("stroke", value)];
   },
   handleCustomProperty: (value) => {
-    if (value.startsWith("length:")) {
-      const cp = value.replace("length:", "");
-      return [decl("stroke-width", `var(${cp})`)];
-    }
+    const hint = STROKE_WIDTH_HINT.exec(value);
+    if (hint) return [decl("stroke-width", `var(${hint[2]})`)];
     return [decl("stroke", `var(${value})`)];
   },
   description: "stroke utility (static, theme, arbitrary, custom property supported)",

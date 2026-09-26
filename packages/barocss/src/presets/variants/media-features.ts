@@ -12,6 +12,22 @@ staticModifier('prefers-contrast-less', ['&'], {
   wrap: () => [atRule('media', '(prefers-contrast: less)', [], 'media')],
   source: 'media'
 });
+// #354: Tailwind 4.3.3 built-ins contrast-more / contrast-less (prefers-contrast) and noscript (scripting: none).
+staticModifier('contrast-more', ['&'], {
+  order: 5,
+  wrap: () => [atRule('media', '(prefers-contrast: more)', [], 'media')],
+  source: 'media'
+});
+staticModifier('contrast-less', ['&'], {
+  order: 5,
+  wrap: () => [atRule('media', '(prefers-contrast: less)', [], 'media')],
+  source: 'media'
+});
+staticModifier('noscript', ['&'], {
+  order: 5,
+  wrap: () => [atRule('media', '(scripting: none)', [], 'media')],
+  source: 'media'
+});
 staticModifier('forced-colors', ['&'], {
   order: 5,
   wrap: () => [atRule('media', '(forced-colors: active)', [], 'media')],

@@ -1,4 +1,4 @@
-import { AstNode } from "../../core/ast";
+import { AstNode, atRule } from "../../core/ast";
 import { Context } from "../../core/context";
 import { getModifier } from "../../core/registry";
 
@@ -165,4 +165,26 @@ export function negatedAtRuleOf(name: string, ctx: Context): AstNode | null {
   const params = (node.params ?? '').trim();
   if (!params || /^not\b|,|\s(and|or)\s/i.test(params)) return null;
   return { ...node, params: `not ${params}`, nodes: [] };
+}
+
+/**
+ * #354: the at-rule for `not-[@<name> <params>]` (`_` decoded to a space), as Tailwind 4.3.3 emits it:
+ * `@media`/`@supports` → `not <params>` (a leading `not` is removed instead), `@container [name] <query>` →
+ * `@container [name] not <query>`. Null for any other at-rule, an empty condition or a top-level comma list,
+ * where Tailwind emits nothing or an invalid prelude.
+ */
+export function negatedArbitraryAtRuleOf(value: string): AstNode | null {
+  const m = /^@(media|supports|container)(?:\s+|(?=\()|$)([\s\S]*)$/.exec(decodeArbitrarySelector(value).trim());
+  if (!m) return null;
+  const name = m[1];
+  let params = (m[2] ?? '').trim();
+  let prefix = '';
+  if (name === 'container') {
+    const n = /^(?!not\b)([a-zA-Z_-][a-zA-Z0-9_-]*)\s+([\s\S]*)$/.exec(params);
+    if (n) { prefix = `${n[1]} `; params = n[2].trim(); }
+  }
+  if (!params || hasTopLevelComma(params)) return null;
+  const neg = /^not\s+/i.test(params) ? params.replace(/^not\s+/i, '') : `not ${params}`;
+  if (!neg) return null;
+  return atRule(name, `${prefix}${neg}`, [], name);
 }
