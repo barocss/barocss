@@ -150,11 +150,11 @@ const withBorderStyle = (props: string[], width: string) => [
     ...propList.map((prop) => [prop.replace("width", "style"), "var(--baro-border-style)"] as [string, string]),
     ...propList.map((prop) => [prop, width] as [string, string]),
   ];
-  staticUtility(`${name}-0`, styled("0px"));
-  staticUtility(`${name}-2`, styled("2px"));
-  staticUtility(`${name}-4`, styled("4px"));
-  staticUtility(`${name}-8`, styled("8px"));
-  staticUtility(`${name}`, styled("1px"));
+  staticUtility(`${name}-0`, styled("0px"), { category: "borders" });
+  staticUtility(`${name}-2`, styled("2px"), { category: "borders" });
+  staticUtility(`${name}-4`, styled("4px"), { category: "borders" });
+  staticUtility(`${name}-8`, styled("8px"), { category: "borders" });
+  staticUtility(`${name}`, styled("1px"), { category: "borders" });
 
   // Functional utility
   functionalUtility({

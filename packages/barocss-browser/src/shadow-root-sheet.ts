@@ -234,13 +234,13 @@ export class SharedRootSheet {
   }
 
   /** Take a reference on `rule`; inserts it (sorted, #254) when this is the first root to use it. */
-  retain(rule: string, segmentName: string): boolean {
+  retain(rule: string, segmentName: string, cls?: string): boolean {
     const count = this.refs.get(rule);
     if (count !== undefined) { this.refs.set(rule, count + 1); return true; }
     let seg = this.segments.get(segmentName);
     if (!seg) { seg = { rules: [], keys: [] }; this.segments.set(segmentName, seg); }
     const isRoot = segmentName === 'root';
-    const key = ruleSortKey(rule);
+    const key = ruleSortKey(rule, cls);
     const local = isRoot ? seg.rules.length : upperBound(seg.keys, key);
     const index = this.offset(seg) + local;
     try {
@@ -358,7 +358,7 @@ export class ShadowRootStyles {
     else if (category === 'css-vars') this.shared.setPrologue('vars', ruleContent);
   }
 
-  private take(rule: string, segment: string): boolean {
+  private take(rule: string, segment: string, cls?: string): boolean {
     if (this.owned.has(rule)) return false;
     // #384: @property does nothing inside a shadow root (it arrives both as a root rule and among a utility's
     // rules); register it in the document, or fall back to :host initial values. It also stays in the root sheet.
@@ -366,13 +366,14 @@ export class ShadowRootStyles {
       const doc = (this.root as ShadowRoot).ownerDocument ?? (typeof document !== 'undefined' ? document : null);
       if (!registerDocumentProperties(doc, [rule], this.opts)) this.shared.addPropertyFallback([rule]);
     }
-    if (!this.shared.retain(rule, segment)) return false;
+    if (!this.shared.retain(rule, segment, cls)) return false;
     this.owned.add(rule);
     return true;
   }
 
-  addRule(rule: string): boolean { return this.take(rule, ''); }
-  addCategoryRule(rule: string, category: string): boolean { return this.take(rule, `c:${category}`); }
+  addRule(rule: string, cls?: string): boolean { return this.take(rule, '', cls); }
+  // #401: one globally sorted segment for every utility rule (variant, then TW property order).
+  addCategoryRule(rule: string, _category: string, cls?: string): boolean { return this.take(rule, '', cls); }
 
   addRootRules(rules: string[]) {
     let success = 0;
@@ -385,7 +386,7 @@ export class ShadowRootStyles {
     for (const result of rules) {
       const category = this.getCategory(result.cls);
       for (const css of result.cssList) {
-        if (category ? this.addCategoryRule(css, category) : this.addRule(css)) success++; else failed++;
+        if (category ? this.addCategoryRule(css, category, result.cls) : this.addRule(css, result.cls)) success++; else failed++;
       }
     }
     return { success, failed };

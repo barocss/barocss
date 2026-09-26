@@ -19,9 +19,8 @@ function referenceGenerateCss(className: string, config: Config): string {
     roots.push(css);
   }
   const rules = results
-    .map(({ css }) => css)
-    .filter(Boolean)
-    .map((css, i) => ({ css, i, key: ruleSortKey(css) }))
+    .filter(({ css }) => Boolean(css))
+    .map(({ css, cls }, i) => ({ css, i, key: ruleSortKey(css, cls) }))
     .sort((a, b) => compareKeys(a.key, b.key) || a.i - b.i)
     .map(({ css }) => css);
   const refs = (text: string) => [...text.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1]);

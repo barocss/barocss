@@ -147,7 +147,7 @@ export class ServerRuntime {
       }
     }
     if (entry.css) {
-      entry.key = ruleSortKey(entry.css);
+      entry.key = ruleSortKey(entry.css, cls);
       entry.refs = refsOf(entry.css);
     }
     if (this.cacheSize > 0) {
@@ -172,7 +172,7 @@ export class ServerRuntime {
     return list.filter(({ dedupeKey }) => !seen.has(dedupeKey) && !!seen.add(dedupeKey));
   }
 
-  /** Stable sort by the #254 variant key shared with @barocss/browser. */
+  /** Stable sort by the shared key: #254 variant order, then Tailwind property order and class name (#401). */
   private sortRules(rules: ClassEntry[]): ClassEntry[] {
     return rules
       .map((entry, i) => ({ entry, i }))
