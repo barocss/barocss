@@ -1,4 +1,4 @@
-import { parseClassToAst, generateCssRules, createContext, ruleSortKey, compareKeys } from '@barocss/kit';
+import { parseClassToAst, generateCssRules, createContext, ruleSortKey, compareKeys, isDebug } from '@barocss/kit';
 import type { Config, Context } from '@barocss/kit';
 import { extractClasses, parseCssDefinitions, type CssDefinitions } from './ssr';
 
@@ -129,7 +129,15 @@ export class ServerRuntime {
       return hit;
     }
     const entry: ClassEntry = { css: '', key: null, refs: [], roots: [] };
-    for (const { css, rootCssList } of generateCssRules(cls, this.context)) {
+    // #333: a class whose generation throws contributes nothing; the rest of the sheet still generates.
+    let generated: ReturnType<typeof generateCssRules> = [];
+    try {
+      generated = generateCssRules(cls, this.context);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      if (isDebug()) console.warn('[barocss/server] class generation failed:', cls, err);
+    }
+    for (const { css, rootCssList } of generated) {
       if (css) entry.css = css;
       for (const root of rootCssList) {
         if (!root) continue;

@@ -30,14 +30,27 @@ try {
     assert.equal(manifest.repository?.url, 'git+https://github.com/barocss/barocss.git');
     assert.equal(manifest.repository?.directory, `packages/${directory}`);
     packedManifests.set(name, manifest);
+    // Conditions may nest (e.g. `require: { types, default }`); walk to every leaf path.
+    const leaves = (value, path) => typeof value === 'string'
+      ? [{ path, target: value }]
+      : Object.entries(value).flatMap(([condition, next]) => leaves(next, [...path, condition]));
+    const requireDefault = (value) => {
+      const req = typeof value === 'object' ? value.require : undefined;
+      return typeof req === 'string' ? req : req?.default;
+    };
     for (const [subpath, conditions] of Object.entries(manifest.exports)) {
-      for (const [condition, target] of Object.entries(conditions)) {
-        assert.ok(existsSync(join(destination, target)), `${manifest.name}${subpath}: missing ${condition} target ${target}`);
-        if (condition === 'require' && manifest.type === 'module') assert.match(target, /\.cjs$/, `${manifest.name}${subpath}: require must target CommonJS`);
+      for (const { path, target } of leaves(conditions, [])) {
+        const where = `${manifest.name}${subpath} [${path.join('.')}]`;
+        assert.ok(existsSync(join(destination, target)), `${where}: missing target ${target}`);
+        if (path.includes('require') && !path.includes('types') && manifest.type === 'module') {
+          assert.match(target, /\.cjs$/, `${where}: require must target CommonJS`);
+        }
+        if (path.includes('types')) assert.match(target, /\.d\.c?ts$/, `${where}: types must be a declaration file`);
       }
     }
     assert.ok(existsSync(join(destination, manifest.main)), `${manifest.name}: missing main`);
-    if (manifest.exports['.']?.require) assert.equal(manifest.main, manifest.exports['.'].require, `${manifest.name}: main must match require export`);
+    const mainRequire = requireDefault(manifest.exports['.']);
+    if (mainRequire) assert.equal(manifest.main, mainRequire, `${manifest.name}: main must match the require export`);
     assert.ok(existsSync(join(destination, manifest.types)), `${manifest.name}: missing types`);
     assert.ok(existsSync(join(destination, 'LICENSE')), `${manifest.name}: missing LICENSE`);
   }
@@ -70,6 +83,8 @@ try {
     const require = createRequire(import.meta.url);
     assert.equal(typeof require('@barocss/kit').generateCss, 'function');
     assert.equal(typeof require('@barocss/server').ServerRuntime, 'function');
+    assert.ok(require('@barocss/kit/theme/default').defaultTheme.colors);
+    assert.equal(typeof require('@barocss/browser').BrowserRuntime, 'function');
   `);
   execFileSync(process.execPath, [smoke], { cwd: temp, stdio: 'inherit' });
 

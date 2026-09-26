@@ -205,6 +205,40 @@ export async function tailwindVersionDiffs(tokens: readonly string[]): Promise<s
   return out;
 }
 
+// #334: a light selector-validity check. Browsers drop a whole rule whose selector is invalid, so an emitted
+// class identifier that starts with a digit (or `-` + digit, or `--`-less lone `-`) unescaped fails parity even
+// when its declarations match. Scans each `.ident` outside escapes, strings and attribute brackets.
+export function invalidSelectorReason(sel: string): string | undefined {
+  let depthAttr = 0, quote = '';
+  for (let i = 0; i < sel.length; i++) {
+    const c = sel[i];
+    if (c === '\\') { i++; continue; }
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === "'") { quote = c; continue; }
+    if (c === '[') { depthAttr++; continue; }
+    if (c === ']') { depthAttr--; if (depthAttr < 0) return 'unbalanced ]'; continue; }
+    if (c !== '.' || depthAttr > 0) continue;
+    const a = sel[i + 1] ?? '', b = sel[i + 2] ?? '';
+    if (/[0-9]/.test(a)) return `class starts with a digit at ${i}`;
+    if (a === '-' && /[0-9]/.test(b)) return `class starts with -digit at ${i}`;
+    if (a === '-' && (b === '' || /[\s.:,>+~)[#]/.test(b))) return `lone - class at ${i}`;
+    if (!a || !/[A-Za-z_\\\-\u0080-\uffff]/.test(a)) return `empty class at ${i}`;
+  }
+  if (quote || depthAttr) return 'unterminated string or [';
+  return undefined;
+}
+export function invalidSelectors(css: string): string[] {
+  const out: string[] = [];
+  try {
+    postcss.parse(css).walkRules((r) => {
+      if (r.parent?.type === 'atrule' && /keyframes$/.test((r.parent as AtRule).name)) return;
+      const why = invalidSelectorReason(r.selector);
+      if (why) out.push(`invalid selector ${r.selector} (${why})`);
+    });
+  } catch { /* unparsable CSS is reported by the declaration diff */ }
+  return out;
+}
+
 export async function runParity(corpus: readonly (readonly [string, number])[], ref: TwRef = 'tailwindcss'): Promise<ParityResult[]> {
   const ctx = createContext({ preflight: false });
   const baroRoot: Scope = new Map();
@@ -241,6 +275,7 @@ export async function runParity(corpus: readonly (readonly [string, number])[], 
       }
     }
     diffKeyframes(twText, baroText, diffs);
+    diffs.push(...invalidSelectors(baroText));
     return { token, uses, family: familyOf(token), varOnly, pass: diffs.length === 0, diffs };
   }));
 }

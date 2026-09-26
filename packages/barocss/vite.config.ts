@@ -32,6 +32,9 @@ export default defineConfig({
         // vite-plugin-dts rolls the theme entry into dist/default.d.ts.
         // Copy it to the public subpath used by package.json.
         copyFileSync('dist/default.d.ts', 'dist/theme/default.d.ts');
+        // CommonJS consumers (type: module package) need .d.cts declarations.
+        copyFileSync('dist/index.d.ts', 'dist/index.d.cts');
+        copyFileSync('dist/default.d.ts', 'dist/theme/default.d.cts');
       }
     })
   ],

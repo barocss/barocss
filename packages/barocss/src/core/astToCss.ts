@@ -1,13 +1,14 @@
 import { debugWarn } from "../utils/debug";
 import { type AstNode } from "./ast";
 import { escapeClassName } from "./registry";
-import { isStructureSafeValue, hasCommentDelimiter, hasHtmlEndTagOpener } from "./parser";
+import { isStructureSafeValue, hasCommentDelimiter, hasHtmlEndTagOpener, isBalancedPrelude } from "./parser";
 
 // #273: a selector or at-rule prelude that contains a comment delimiter is never emitted (with its whole subtree).
 // #323: nor one carrying a markup end-tag opener (hasHtmlEndTagOpener).
+// #332: nor one whose brackets, parens or braces do not balance and close (isBalancedPrelude).
 const isSafePrelude = (text: unknown): boolean => {
   const t = String(text ?? "");
-  return !hasCommentDelimiter(t) && !hasHtmlEndTagOpener(t);
+  return !hasCommentDelimiter(t) && !hasHtmlEndTagOpener(t) && isBalancedPrelude(t);
 };
 
 // #224 defensive layer: a declaration whose property or value could end or open a block is dropped.
