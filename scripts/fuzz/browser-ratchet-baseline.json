@@ -1,0 +1,26 @@
+{
+ "inputs": 20000,
+ "P1": {
+  "1": {
+   "kit|P1|cssom-rule-dropped": 113,
+   "server|P1|cssom-rule-dropped": 113,
+   "html|P1|cssom-rule-dropped": 109,
+   "browser|P1|cssom-rule-dropped": 113,
+   "browser|P1|insertrule-throws": 67
+  },
+  "319": {
+   "kit|P1|cssom-rule-dropped": 102,
+   "server|P1|cssom-rule-dropped": 102,
+   "html|P1|cssom-rule-dropped": 97,
+   "browser|P1|cssom-rule-dropped": 102,
+   "browser|P1|insertrule-throws": 67
+  },
+  "7777": {
+   "kit|P1|cssom-rule-dropped": 93,
+   "server|P1|cssom-rule-dropped": 93,
+   "html|P1|cssom-rule-dropped": 92,
+   "browser|P1|cssom-rule-dropped": 93,
+   "browser|P1|insertrule-throws": 60
+  }
+ }
+}

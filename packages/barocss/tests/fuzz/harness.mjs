@@ -393,7 +393,9 @@ export function classPredicate(input) {
 
 /** Loose allow-predicate for the HTML path: any class name that occurs verbatim in the (entity-decoded) input. */
 export function htmlPredicate(input) {
-  return (name) => name.length > 0 && input.includes(name);
+  // #406: same U+0000 -> U+FFFD preprocessing as classPredicate (the HTML parser and CSS both apply it).
+  const norm = input.replace(/\0/g, '\uFFFD');
+  return (name) => name.length > 0 && norm.includes(name);
 }
 
 /** Delta-debugging minimiser: shrink `input` while `still(input)` stays true. */
