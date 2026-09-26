@@ -1,0 +1,50 @@
+{
+  "task": "cdn",
+  "run": 2,
+  "success": true,
+  "minutes_to_first_working_page": 0.04,
+  "doc_urls_used": [
+    "https://barocss.com",
+    "https://barocss.com/guide/quick-start.html"
+  ],
+  "steps": [
+    {
+      "doc_url": "https://barocss.com",
+      "instruction_followed": "Found Quick Start link",
+      "result": "Located CDN documentation",
+      "problem": "none",
+      "note": "Homepage clearly directs to Quick Start guide"
+    },
+    {
+      "doc_url": "https://barocss.com/guide/quick-start.html",
+      "instruction_followed": "Found CDN section with ESM and UMD examples",
+      "result": "Got jsdelivr CDN URL for v0.10.1",
+      "problem": "none",
+      "note": "ESM import with baroStart() function worked perfectly. Both URLs checked as HTTP 200 on 2026-09-26"
+    },
+    {
+      "doc_url": "https://barocss.com/guide/quick-start.html",
+      "instruction_followed": "Created HTML with inline setTimeout to add classes after 1 second",
+      "result": "Dynamic classes applied and styled correctly",
+      "problem": "none",
+      "note": "Playwright verified both static and late-added classes rendered with correct computed styles"
+    }
+  ],
+  "version_mismatches": [],
+  "final_files": [
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/cdn-run2/index.html",
+    "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-barocss-v3-redesign-9a3073/f06162e8-e1ee-4a13-8618-d0a3c033ee73/scratchpad/onboard-414/cdn-run2/test.js"
+  ],
+  "test_results": {
+    "static_element": {
+      "classes": "bg-blue-500 text-white p-4 rounded",
+      "computed_bg": "oklch(0.623 0.214 259.815)"
+    },
+    "dynamic_element": {
+      "classes_added_at_1s": "bg-slate-900 text-slate-100 p-6 rounded-xl shadow-lg",
+      "computed_bg": "oklch(0.208 0.042 265.755)",
+      "computed_color": "oklch(0.968 0.007 247.896)",
+      "computed_padding": "24px"
+    }
+  }
+}

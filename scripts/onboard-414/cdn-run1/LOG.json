@@ -1,0 +1,52 @@
+{
+  "task": "cdn",
+  "run": 1,
+  "success": true,
+  "minutes_to_first_working_page": 8,
+  "doc_urls_used": [
+    "https://barocss.com",
+    "https://barocss.com/guide/quick-start.html",
+    "https://github.com/barocss/barocss",
+    "https://www.npmjs.com/package/@barocss/browser"
+  ],
+  "steps": [
+    {
+      "doc_url": "https://barocss.com",
+      "instruction_followed": "Looked for CDN instructions on homepage",
+      "result": "Homepage did not contain CDN script tag or config, only pointed to /guide/quick-start.html",
+      "problem": "missing",
+      "note": "Homepage should link or show a minimal CDN snippet directly; had to hop to quick-start guide"
+    },
+    {
+      "doc_url": "https://www.npmjs.com/package/@barocss/browser",
+      "instruction_followed": "Tried to fetch npm package page for CDN usage",
+      "result": "HTTP 403 Forbidden when fetched",
+      "problem": "missing",
+      "note": "npm page inaccessible via fetch tool (bot protection); could not verify README content there"
+    },
+    {
+      "doc_url": "https://barocss.com/guide/quick-start.html",
+      "instruction_followed": "Used ESM CDN snippet: import { baroStart } from jsdelivr .../dist/cdn/barocss.js; baroStart()",
+      "result": "Worked as documented: utility classes styled correctly, including classes added via setTimeout 1s after load",
+      "problem": "none",
+      "note": "baroStart() auto-observes DOM mutations, so dynamically added classes are picked up without extra config"
+    },
+    {
+      "doc_url": "https://github.com/barocss/barocss",
+      "instruction_followed": "Cross-checked alternate CDN URL (unpkg) mentioned in README-style summary",
+      "result": "Used jsdelivr version instead (unpkg@latest vs jsdelivr pinned @0.10.1); both are documented but README and quick-start didn't agree on unpkg vs jsdelivr or pinned vs latest",
+      "problem": "version-mismatch",
+      "note": "Quick-start guide pins version 0.10.1 on jsdelivr; GitHub summary suggested unpkg@latest. Minor inconsistency across public sources, not a functional issue since jsdelivr version worked."
+    }
+  ],
+  "version_mismatches": [
+    "Quick-start guide CDN snippet uses jsdelivr @0.10.1 pinned version; GitHub README-derived summary suggested unpkg@latest instead. Did not verify if unpkg@latest resolves to same version."
+  ],
+  "final_files": [
+    "index.html",
+    "check.js",
+    "server.log",
+    "server.pid",
+    "LOG.json"
+  ]
+}

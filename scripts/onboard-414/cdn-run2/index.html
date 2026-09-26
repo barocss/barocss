@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BaroCSS CDN Test</title>
+</head>
+<body>
+  <div id="static" class="bg-blue-500 text-white p-4 rounded">Static element with classes</div>
+
+  <div id="dynamic" style="margin-top: 20px;">Waiting for classes...</div>
+
+  <script type="module">
+    import { baroStart } from 'https://cdn.jsdelivr.net/npm/@barocss/browser@0.10.1/dist/cdn/barocss.js'
+    baroStart()
+
+    // Add classes after 1 second
+    setTimeout(() => {
+      document.getElementById('dynamic').className = 'bg-slate-900 text-slate-100 p-6 rounded-xl shadow-lg'
+    }, 1000)
+  </script>
+</body>
+</html>
