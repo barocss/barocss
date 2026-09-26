@@ -3,7 +3,7 @@ import { createContext, clearAstCache, IncrementalParser, parseClassName } from 
 import type { Config, Context } from '@barocss/kit';
 import { StylePartitionManager } from './style-partition-manager';
 import { ChangeDetector } from './change-detector';
-import { collectLeadingClasses } from './existing-classes';
+import { collectKeyframeNames, collectLeadingClasses } from './existing-classes';
 import { ClassGc } from './class-gc';
 
 export interface BrowserRuntimeOptions {
@@ -37,6 +37,9 @@ export interface BrowserRuntimeOptions {
   maxRules?: number;
 }
 
+/** #268: marks a server-rendered sheet (`@barocss/server` `ssrStyleTag()`); the runtime adopts its class rules. */
+export const SSR_STYLE_SELECTOR = 'style[data-barocss-ssr]';
+
 /** Tailwind 4 layer order, declared by BaroCSS's first <style> in <head>. */
 export const LAYER_ORDER = "@layer theme, base, components, utilities;";
 
@@ -47,11 +50,17 @@ export class BrowserRuntime {
   private options: Required<BrowserRuntimeOptions>;
   private isDestroyed = false;
   private existing: Set<string> | null = null;
+  /** #274: @keyframes names the page's own sheets define (filled with `existing`). */
+  private existingKeyframes = new Set<string>();
   private existingSheetCount = -1;
   /** #269: classes requested explicitly through addClass(); never reclaimed. */
   private pinned = new Set<string>();
   private gc: ClassGc | null = null;
   private reclaimedCount = 0;
+  /** #268: class rules adopted from `<style data-barocss-ssr>`, in sheet order, and the classes they lead. */
+  private ssrRules: Array<{ css: string; cls: string }> = [];
+  private ssrClasses = new Set<string>();
+  private observedOnce = false;
 
   private incrementalParser: IncrementalParser;
   private changeDetector: ChangeDetector;
@@ -111,6 +120,48 @@ export class BrowserRuntime {
     console.log('[BrowserRuntime] init');
     this.injectPreflightCSS();
     this.ensureCssVars();
+    this.adoptSsrSheets();
+  }
+
+  /**
+   * #268: adopt the class rules of server-rendered `<style data-barocss-ssr>` sheets in <head>, at startup
+   * (constructor and the first observe()). Each rule moves
+   * (same task, so no paint in between) into the partition its class would get if generated here, at
+   * its #254 sorted position, so a later client `sm:` rule lands before a server `lg:` rule. Its classes
+   * are never regenerated and never reclaimed. `:root`, `@property` and `@keyframes` stay in the sheet.
+   */
+  private adoptSsrSheets(): void {
+    if (typeof document === 'undefined') return;
+    const adopted: Array<{ css: string; cls: string }> = [];
+    // Only sheets in <head> at startup (constructor / observe()): a marked <style> injected later or into
+    // <body> (model or user HTML) must not suppress generation or GC for its classes (#268 review).
+    if (!document.head) return;
+    for (const el of Array.from(document.head.querySelectorAll<HTMLStyleElement>(`${SSR_STYLE_SELECTOR}:not([data-barocss-adopted])`))) {
+      const sheet = el.sheet;
+      if (!sheet) continue;
+      el.setAttribute('data-barocss-adopted', '');
+      const moved: Array<{ css: string; cls: string }> = [];
+      for (let i = sheet.cssRules.length - 1; i >= 0; i--) {
+        const rule = sheet.cssRules[i];
+        const classes = collectLeadingClasses([rule]);
+        if (classes.size === 0) continue;
+        classes.forEach(cls => this.ssrClasses.add(cls));
+        moved.unshift({ css: rule.cssText, cls: classes.values().next().value! });
+        sheet.deleteRule(i);
+      }
+      adopted.push(...moved);
+    }
+    if (adopted.length === 0) return;
+    this.ssrRules.push(...adopted);
+    this.insertSsrRules(adopted);
+  }
+
+  private insertSsrRules(rules: Array<{ css: string; cls: string }>): void {
+    for (const { css, cls } of rules) {
+      const category = this.getCategory(cls);
+      if (category) this.stylePartitionManager.addCategoryRule(css, category);
+      else this.stylePartitionManager.addRule(css);
+    }
   }
 
   private injectPreflightCSS() {
@@ -198,6 +249,7 @@ export class BrowserRuntime {
       results = [...existingResults, ...results];
       results.forEach(result => this.incrementalParser.markProcessed(result.cls));
     }
+    if (this.ssrClasses.size > 0) results = results.filter(result => !this.ssrClasses.has(result.cls));
     if (this.options.skipExisting && results.length > 0 && typeof document !== 'undefined') {
       const existing = this.getExistingClasses();
       results = results.filter(result => !existing.has(result.cls));
@@ -205,6 +257,9 @@ export class BrowserRuntime {
     if (results.length === 0) return;
     const cssRules: GenerateCssRulesResult[] = [];
     const rootCssRules: string[] = [];
+    // #274: companion mode leaves a @keyframes the page's own sheets define to them.
+    const pageKeyframes = this.options.skipExisting && typeof document !== 'undefined'
+      ? (this.getExistingClasses(), this.existingKeyframes) : null;
 
     for (const result of results) {
       if (result.css && Array.isArray(result.cssList)) {
@@ -214,6 +269,10 @@ export class BrowserRuntime {
 
       if (result.rootCss && Array.isArray(result.rootCssList)) {
         for (const rootCss of result.rootCssList) {
+          if (pageKeyframes?.size) {
+            const kf = /^\s*@keyframes\s+([^\s{]+)/.exec(rootCss)?.[1];
+            if (kf && pageKeyframes.has(kf)) continue;
+          }
           if (!this.rootCache.has(rootCss)) {
             this.rootCache.add(rootCss);
             rootCssRules.push(rootCss);
@@ -238,13 +297,13 @@ export class BrowserRuntime {
 
   /** #269: a class that must never be reclaimed. */
   private isPermanent(cls: string): boolean {
-    if (this.pinned.has(cls)) return true;
+    if (this.pinned.has(cls) || this.ssrClasses.has(cls)) return true;
     if (typeof document === 'undefined') return true;
     return this.getExistingClasses().has(cls);
   }
 
   /**
-   * #269: delete the generated rules of classes no live element uses. Root/@property rules stay
+   * #269: delete the generated rules of classes no live element uses. Root/@property/@keyframes rules stay
    * (they are shared and harmless); a rule text another cached class still emits is kept.
    */
   private reclaim(classes: string[]): void {
@@ -279,11 +338,14 @@ export class BrowserRuntime {
     });
     if (this.existing && sheets.length === this.existingSheetCount) return this.existing;
     const out = new Set<string>();
+    const keyframes = new Set<string>();
     for (const sheet of sheets) {
       let rules: CSSRuleList;
       try { rules = sheet.cssRules; } catch { continue; } // cross-origin
       collectLeadingClasses(rules, out);
+      collectKeyframeNames(rules, keyframes);
     }
+    this.existingKeyframes = keyframes;
     this.existing = out;
     this.existingSheetCount = sheets.length;
     return out;
@@ -293,6 +355,7 @@ export class BrowserRuntime {
    * MutationObserver instance method to automatically call addClass when class attributes change in DOM
    */
   observe(root: HTMLElement = document.body, options?: { scan?: boolean; onReady?: () => void }): MutationObserver {
+    if (!this.observedOnce) { this.observedOnce = true; this.adoptSsrSheets(); }
     return this.changeDetector.observe(root, options);
   }
 
@@ -353,6 +416,7 @@ export class BrowserRuntime {
     this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
     this.injectPreflightCSS();
     this.ensureCssVars();
+    this.insertSsrRules(this.ssrRules);
   }
 
 
@@ -365,6 +429,7 @@ export class BrowserRuntime {
     this.stylePartitionManager = new StylePartitionManager(this.getInsertionPoint(), this.options.maxRulesPerPartition, `${this.options.styleId}-partition`, this.getCategory);
     this.injectPreflightCSS();
     this.ensureCssVars();
+    this.insertSsrRules(this.ssrRules);
   }
 
   updateConfig(newConfig: Config): void {

@@ -1,6 +1,6 @@
 import { setDebug } from "../utils/debug";
 import { defaultTheme } from "../theme";
-import { keyframesToCss, themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
+import { themeToCssVarsAll, toCssVarsBlock } from "./cssVars";
 import { getModifier, getUtility } from './registry';
 import { clearContextCaches, initializeContextState } from './contextState';
 import { preflightMinimalCSS, preflightStandardCSS, preflightFullCSS } from "../css/preflight";
@@ -246,9 +246,9 @@ export function resolveTheme(config: Config): Theme {
 export function themeToCssVars(theme: Theme): string {
   const vars = themeToCssVarsAll(theme);
   // console.log('[themeToCssVars] vars', vars);
-  const result = toCssVarsBlock(vars, `
-${keyframesToCss((theme.keyframes || {}) as Record<string, unknown>)}
-`);
+  // #274: @keyframes are emitted on demand next to the classes that reference them (referencedKeyframes),
+  // so a page's own @keyframes of the same name is never overridden by an unused theme copy.
+  const result = toCssVarsBlock(vars);
 
 // console.log('[themeToCssVars] result', result);
 
