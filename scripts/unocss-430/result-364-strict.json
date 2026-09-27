@@ -1,0 +1,499 @@
+{
+ "csp": "default-src 'self'; script-src 'self' 'nonce-o5N0nce364'; style-src 'self' 'nonce-o5N0nce364'; img-src 'self'; font-src 'self'; connect-src 'self'",
+ "adversarial": [
+  "bg-[url(http://localhost:8559/c/bg)]",
+  "[background-image:url(http://localhost:8559/c/prop)]",
+  "cursor-[url(http://localhost:8559/c/cur),auto]",
+  "bg-[url(/count/same)]",
+  "[--o5:url(http://localhost:8559/c/var)] bg-(image:--o5)",
+  "bg-[image-set(url(http://localhost:8559/c/iset)_1x)]",
+  "before:content-[url(http://localhost:8559/c/content)]",
+  "mask-[url(http://localhost:8559/c/mask)]",
+  "bg-[red",
+  "w-[calc(100%-1px]",
+  "text-[red]]",
+  "p-[1px]]]",
+  "[color:red;}*{color:blue]",
+  "bg-[red]}body{display:none",
+  "[color:red]/*",
+  "[html_&]:hidden",
+  "[body_&]:bg-red-500",
+  "[:root_&]:opacity-0",
+  "[:host_&]:outline-8",
+  "p-[99999px]",
+  "bg-[red]\\",
+  "[&_*]:hidden"
+ ],
+ "arms": {
+  "ref": {
+   "opus": {
+    "parity": 1,
+    "parityHostile": 0.022556390977443608,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 130,
+    "hostToWidget": 130,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 3,
+    "violSamples": [
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd"
+    ],
+    "advXO": [
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": 13.400000005960464,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 1,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 65,
+    "hostToWidget": 65,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 0,
+    "violSamples": [],
+    "advXO": [],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": 8.900000005960464,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "none": {
+   "opus": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 123,
+    "hostToWidget": 123,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 3,
+    "violSamples": [
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd"
+    ],
+    "advXO": [
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": null,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 60,
+    "hostToWidget": 60,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 0,
+    "violSamples": [],
+    "advXO": [],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": null,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "baro root": {
+   "opus": {
+    "parity": 1,
+    "parityHostile": 0.022556390977443608,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 130,
+    "hostToWidget": 130,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 103,
+    "violSamples": [
+     "style-src-elem inline",
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd",
+     "img-src http://localhost:8559/c/bg",
+     "img-src http://localhost:8559/c/prop",
+     "img-src http://localhost:8559/c/cur",
+     "img-src http://localhost:8559/c/var"
+    ],
+    "advXO": [
+     "http://localhost:8559/c/bg",
+     "http://localhost:8559/c/prop",
+     "http://localhost:8559/c/cur",
+     "http://localhost:8559/c/var",
+     "http://localhost:8559/c/content",
+     "http://localhost:8559/c/mask",
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [
+     "same:/count/same"
+    ],
+    "advStyled": [
+     "bg-[url(http://localhost:8559/c/bg)]",
+     "[background-image:url(http://localhost:8559/c/prop)]",
+     "cursor-[url(http://localhost:8559/c/cur),auto]",
+     "bg-[url(/count/same)]",
+     "[--o5:url(http://localhost:8559/c/var)] bg-(image:--o5)",
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 162235,
+    "sheets": 2,
+    "ms": 41.099999994039536,
+    "headStyles": 1,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 1,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 1,
+    "hostToWidgetNoBox": 65,
+    "hostToWidget": 65,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 136,
+    "violSamples": [
+     "style-src-elem inline",
+     "img-src http://localhost:8559/c/bg",
+     "img-src http://localhost:8559/c/prop",
+     "img-src http://localhost:8559/c/cur",
+     "img-src http://localhost:8559/c/var",
+     "img-src http://localhost:8559/c/content"
+    ],
+    "advXO": [
+     "http://localhost:8559/c/bg",
+     "http://localhost:8559/c/prop",
+     "http://localhost:8559/c/cur",
+     "http://localhost:8559/c/var",
+     "http://localhost:8559/c/content",
+     "http://localhost:8559/c/mask"
+    ],
+    "advHits": [
+     "same:/count/same"
+    ],
+    "advStyled": [
+     "bg-[url(http://localhost:8559/c/bg)]",
+     "[background-image:url(http://localhost:8559/c/prop)]",
+     "cursor-[url(http://localhost:8559/c/cur),auto]",
+     "bg-[url(/count/same)]",
+     "[--o5:url(http://localhost:8559/c/var)] bg-(image:--o5)",
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 157480,
+    "sheets": 2,
+    "ms": 34.30000001192093,
+    "headStyles": 1,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "baro root + nonce": {
+   "opus": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 130,
+    "hostToWidget": 130,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 9,
+    "violSamples": [
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd",
+     "img-src http://localhost:8559/c/bg",
+     "img-src http://localhost:8559/c/prop",
+     "img-src http://localhost:8559/c/cur",
+     "img-src http://localhost:8559/c/var",
+     "img-src http://localhost:8559/c/content"
+    ],
+    "advXO": [
+     "http://localhost:8559/c/bg",
+     "http://localhost:8559/c/prop",
+     "http://localhost:8559/c/cur",
+     "http://localhost:8559/c/var",
+     "http://localhost:8559/c/content",
+     "http://localhost:8559/c/mask",
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [
+     "same:/count/same"
+    ],
+    "advStyled": [
+     "bg-[url(http://localhost:8559/c/bg)]",
+     "[background-image:url(http://localhost:8559/c/prop)]",
+     "cursor-[url(http://localhost:8559/c/cur),auto]",
+     "bg-[url(/count/same)]",
+     "[--o5:url(http://localhost:8559/c/var)] bg-(image:--o5)",
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 162235,
+    "sheets": 2,
+    "ms": 42.19999998807907,
+    "headStyles": 1,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 0.15384615384615385,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0.15384615384615385,
+    "hostToWidgetNoBox": 65,
+    "hostToWidget": 65,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 6,
+    "violSamples": [
+     "img-src http://localhost:8559/c/bg",
+     "img-src http://localhost:8559/c/prop",
+     "img-src http://localhost:8559/c/cur",
+     "img-src http://localhost:8559/c/var",
+     "img-src http://localhost:8559/c/content",
+     "img-src http://localhost:8559/c/mask"
+    ],
+    "advXO": [
+     "http://localhost:8559/c/bg",
+     "http://localhost:8559/c/prop",
+     "http://localhost:8559/c/cur",
+     "http://localhost:8559/c/var",
+     "http://localhost:8559/c/content",
+     "http://localhost:8559/c/mask"
+    ],
+    "advHits": [
+     "same:/count/same"
+    ],
+    "advStyled": [
+     "bg-[url(http://localhost:8559/c/bg)]",
+     "[background-image:url(http://localhost:8559/c/prop)]",
+     "cursor-[url(http://localhost:8559/c/cur),auto]",
+     "bg-[url(/count/same)]",
+     "[--o5:url(http://localhost:8559/c/var)] bg-(image:--o5)",
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 157480,
+    "sheets": 2,
+    "ms": 33.5,
+    "headStyles": 1,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "baro root + nonce + prefilter": {
+   "opus": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 130,
+    "hostToWidget": 130,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 6,
+    "violSamples": [
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd"
+    ],
+    "advXO": [
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80",
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [],
+    "advStyled": [
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 162235,
+    "sheets": 2,
+    "ms": 41.39999997615814,
+    "headStyles": 1,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 0.15384615384615385,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0.15384615384615385,
+    "hostToWidgetNoBox": 65,
+    "hostToWidget": 65,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 0,
+    "violSamples": [],
+    "advXO": [],
+    "advHits": [],
+    "advStyled": [
+     "[:host_&]:outline-8",
+     "p-[99999px]"
+    ],
+    "bytes": 157480,
+    "sheets": 2,
+    "ms": 32.70000001788139,
+    "headStyles": 1,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "uno": {
+   "opus": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 123,
+    "hostToWidget": 123,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 63,
+    "violSamples": [
+     "style-src-elem inline",
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd"
+    ],
+    "advXO": [
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80"
+    ],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": null,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 60,
+    "hostToWidget": 60,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 60,
+    "violSamples": [
+     "style-src-elem inline"
+    ],
+    "advXO": [],
+    "advHits": [],
+    "advStyled": [],
+    "bytes": 0,
+    "sheets": 0,
+    "ms": null,
+    "headStyles": 0,
+    "errs": [],
+    "blockEls": 65
+   }
+  },
+  "uno + nonce + per-root glue": {
+   "opus": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 133,
+    "hostToWidget": 133,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 55,
+    "violSamples": [
+     "style-src-elem inline",
+     "img-src https://images.unsplash.com/photo-1518444065439-e933c06ce9cd",
+     "img-src http://localhost:8559/c/bg",
+     "img-src http://localhost:8559/c/cur",
+     "img-src http://localhost:8559/c/content",
+     "img-src http://localhost:8559/c/mask"
+    ],
+    "advXO": [
+     "https://images.unsplash.com/photo-1518444065439-e933c06ce9cd?auto=format&fit=crop&w=600&q=80",
+     "http://localhost:8559/c/bg",
+     "http://localhost:8559/c/cur",
+     "http://localhost:8559/c/content",
+     "http://localhost:8559/c/mask"
+    ],
+    "advHits": [
+     "same:/count/same"
+    ],
+    "advStyled": [
+     "bg-[url(http://localhost:8559/c/bg)]",
+     "cursor-[url(http://localhost:8559/c/cur),auto]",
+     "bg-[url(/count/same)]",
+     "p-[99999px]"
+    ],
+    "bytes": 66039,
+    "sheets": 0,
+    "ms": 43.5,
+    "headStyles": 5,
+    "errs": [],
+    "blockEls": 133
+   },
+   "haiku": {
+    "parity": 0,
+    "parityHostile": 0,
+    "parityVsRefOnHostile": 0,
+    "hostToWidgetNoBox": 65,
+    "hostToWidget": 65,
+    "widgetToHost": 0,
+    "hostEls": 15,
+    "advParityDrop": 0,
+    "viol": 52,
+    "violSamples": [
+     "style-src-elem inline",
+     "img-src http://localhost:8559/c/bg",
+     "img-src http://localhost:8559/c/cur",
+     "img-src http://localhost:8559/c/content",
+     "img-src http://localhost:8559/c/mask"
+    ],
+    "advXO": [
+     "http://localhost:8559/c/bg",
+     "http://localhost:8559/c/cur",
+     "http://localhost:8559/c/content",
+     "http://localhost:8559/c/mask"
+    ],
+    "advHits": [
+     "same:/count/same"
+    ],
+    "advStyled": [
+     "bg-[url(http://localhost:8559/c/bg)]",
+     "cursor-[url(http://localhost:8559/c/cur),auto]",
+     "bg-[url(/count/same)]",
+     "p-[99999px]"
+    ],
+    "bytes": 57005,
+    "sheets": 0,
+    "ms": 33.30000001192093,
+    "headStyles": 5,
+    "errs": [],
+    "blockEls": 65
+   }
+  }
+ }
+}

@@ -3,10 +3,10 @@
   "build": "packages/barocss-browser/dist/cdn/barocss.umd.cjs",
   "corpora": {
     "corpus": {
-      "classes": 346,
+      "classes": 372,
       "shadow": {
         "differing": 0,
-        "documentRules": 17,
+        "documentRules": 28,
         "documentNonPropertyRules": 0,
         "diffs": []
       },
@@ -14,11 +14,16 @@
         "differing": 0,
         "documentRules": 0,
         "documentNonPropertyRules": 0,
+        "fallbackProbe": {
+          "adoptedSupported": true,
+          "adoptionAttempts": 28,
+          "styleAttempts": 0
+        },
         "diffs": []
       }
     },
     "heldout": {
-      "classes": 567,
+      "classes": 575,
       "shadow": {
         "differing": 0,
         "documentRules": 27,
@@ -29,6 +34,11 @@
         "differing": 0,
         "documentRules": 0,
         "documentNonPropertyRules": 0,
+        "fallbackProbe": {
+          "adoptedSupported": true,
+          "adoptionAttempts": 27,
+          "styleAttempts": 0
+        },
         "diffs": []
       }
     }

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Coffee Kiosk</title>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-neutral-100 to-neutral-300 font-sans text-neutral-900">
+  <div class="mx-auto flex max-w-6xl flex-col items-center gap-6 p-6 lg:flex-row lg:items-start lg:justify-center">
+    <!-- the kiosk: a portrait 1080x1920 panel at half scale inside a bezel -->
+    <div id="device" class="relative shrink-0 rounded-[48px] bg-neutral-900 p-5 shadow-2xl ring-8 ring-white">
+      <div class="mx-auto mb-3 h-3 w-24 rounded-full bg-neutral-700"></div>
+      <div class="relative h-[960px] w-[540px] overflow-hidden rounded-2xl bg-white">
+        <div id="stage" class="h-full w-full"></div>
+        <div id="loading" class="absolute inset-0 hidden items-center justify-center bg-white/70 text-lg font-semibold text-neutral-700">Designing your screen…</div>
+      </div>
+      <div class="mx-auto mt-3 h-2 w-16 rounded-full bg-neutral-700"></div>
+    </div>
+    <!-- developer controls live outside the device -->
+    <details id="devtools" class="w-full max-w-md rounded-2xl bg-white/80 p-3 text-sm shadow-lg" open>
+      <summary class="cursor-pointer font-bold text-neutral-700">Demo controls</summary>
+      <div id="toolbar" class="mt-3 flex flex-wrap items-center gap-2">
+        <label class="flex items-center gap-1">Persona
+          <select id="persona" class="rounded border border-neutral-300 px-1 py-0.5">
+            <option value="senior">senior</option><option value="regular">busy regular</option>
+            <option value="family">family with kids</option><option value="foreign">foreign visitor</option>
+          </select></label>
+        <label class="flex items-center gap-1">Weather
+          <select id="weather" class="rounded border border-neutral-300 px-1 py-0.5">
+            <option>sunny</option><option>rainy</option><option>hot</option><option>cold</option>
+          </select></label>
+        <label class="flex items-center gap-1">Time
+          <select id="daypart" class="rounded border border-neutral-300 px-1 py-0.5">
+            <option>morning</option><option>afternoon</option><option>evening</option>
+          </select></label>
+        <button id="regen" type="button" class="rounded bg-neutral-800 px-2 py-1 text-white">Regenerate</button>
+      </div>
+      <details id="dev" class="mt-3 rounded-lg bg-neutral-900 p-3 font-mono text-xs text-neutral-200">
+        <summary class="cursor-pointer text-sm font-bold text-white">Dev panel</summary>
+        <div id="dev-status" class="mt-2">idle</div>
+        <div id="dev-noop" class="mt-2"></div>
+        <div id="dev-removed" class="mt-2"></div>
+        <div id="dev-error" class="mt-2 text-red-400"></div>
+      </details>
+    </details>
+  </div>
+  <script type="module" src="/kiosk.js"></script>
+</body>
+</html>

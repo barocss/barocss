@@ -230,7 +230,8 @@ const stopsDecls = (stop: string, color: string | AstNode[]): AstNode[] => {
     return [
       gradientStopProperties(),
       ...colorDecls,
-      decl(`${G}-via-stops`, `var(${G}-position), var(${G}-from) var(${G}-from-position), var(${G}-via) var(${G}-via-position), var(${G}-to) var(${G}-to-position)`),
+      // A missing alpha variable invalidates an unregistered fallback property; match @property initial #0000.
+      decl(`${G}-via-stops`, `var(${G}-position), var(${G}-from) var(${G}-from-position), var(${G}-via, #0000) var(${G}-via-position), var(${G}-to) var(${G}-to-position)`),
       decl(`${G}-stops`, `var(${G}-via-stops)`),
     ];
   }

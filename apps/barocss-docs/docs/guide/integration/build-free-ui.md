@@ -142,6 +142,48 @@ const updateProperty = async (element, property, value) => {
 };
 ```
 
+### Streaming AI output
+
+You can insert token-streamed HTML as it arrives. The runtime needs no special mode. In a Chromium replay of real model
+output at 20, 50 and 100 tokens/s ([#415](https://github.com/barocss/barocss/issues/415)), streaming generated no
+extra rules and nothing for GC to clean up, and the final styles applied less than 1 ms after the last token. To keep
+half-typed class names out of the DOM and cut DOM work, do this in your app:
+
+- Set a class attribute only after its tag has closed (for example, append only the markup up to the last `>`).
+- Or batch DOM writes to one per animation frame instead of one per token.
+
+```javascript
+let buffer = '';
+let scheduled = false;
+function onToken(token) {
+  buffer += token;
+  if (scheduled) return;
+  scheduled = true;
+  requestAnimationFrame(() => {
+    scheduled = false;
+    const end = buffer.lastIndexOf('>') + 1; // complete tags only
+    target.innerHTML = buffer.slice(0, end);
+  });
+}
+```
+
+Intermediate layout (for example, a width that changes as content arrives) comes from content that hasn't arrived
+yet, not from styling. Styling can't prevent it.
+
+### Finding classes that generate no CSS
+
+To check which classes in generated markup do nothing, run each unique token through `generateCss` and keep the empty ones (#426):
+
+```javascript
+import { createContext, generateCss } from '@barocss/kit';
+
+const ctx = createContext({}); // pass the same config as your runtime
+const noOps = [...new Set(classes.split(/\s+/))].filter((c) => !generateCss(c, ctx).trim());
+// 'p-4 text-md bg-blue-500 card-title' → ['text-md', 'card-title']
+```
+
+The result also lists your app's own classes (such as `card-title` above, styled by your CSS), so filter those out before treating the rest as mistakes. In #426, almost every no-op class in AI output was an app class or a template fragment, not a missing utility.
+
  
 
  

@@ -35,8 +35,9 @@ describe('#384 document-level @property registration in root mode', () => {
   it('writes only @property rules to the document, once, across roots, runtimes and later rules', async () => {
     const a = widget('<div class="shadow-lg p-4">a</div>');
     const b = widget('<div class="shadow-lg translate-x-2">b</div>');
-    start({ root: a });
-    start({ root: b, config: { theme: { extend: {} } } }); // a second runtime (other config) on the same document
+    // #442: without constructable document sheets (jsdom), the <style> path needs a nonce
+    start({ root: a, nonce: 'n' });
+    start({ root: b, nonce: 'n', config: { theme: { extend: {} } } }); // a second runtime (other config) on the same document
     await flush();
     const styles = docStyles();
     expect(styles).toHaveLength(1);
@@ -63,7 +64,7 @@ describe('#384 document-level @property registration in root mode', () => {
   });
 
   it('keeps the registrations when every runtime is destroyed (global, harmless)', async () => {
-    const rt = start({ root: widget('<div class="ring-2">x</div>') });
+    const rt = start({ root: widget('<div class="ring-2">x</div>'), nonce: 'n' });
     await flush();
     rt.destroy();
     expect(docStyles()).toHaveLength(1);
@@ -76,6 +77,48 @@ describe('#384 document-level @property registration in root mode', () => {
     const styles = docStyles();
     expect(styles).toHaveLength(1);
     expect(styles[0].getAttribute('nonce')).toBe('n-384');
+  });
+
+  it('#442: without constructable support and without a nonce, writes no <style> and uses the :host fallback', async () => {
+    const sr = widget('<div class="shadow-md">x</div>');
+    start({ root: sr });
+    await flush();
+    expect(docStyles()).toHaveLength(0);
+    expect(rootCss(sr)).toMatch(/@layer properties/);
+    expect(rootCss(sr)).toMatch(/\.shadow-md/);
+  });
+
+  it('#442: by default (no option, no nonce) uses one document adopted sheet, keeping foreign ones', async () => {
+    class MockSheet {
+      cssRules: Array<{ cssText: string }> = [];
+      replaceSync() {}
+      insertRule(r: string, i: number) { this.cssRules.splice(i, 0, { cssText: r }); return i; }
+      deleteRule(i: number) { this.cssRules.splice(i, 1); }
+    }
+    vi.stubGlobal('CSSStyleSheet', MockSheet);
+    const foreign = new MockSheet();
+    let adopted: unknown[] = [foreign];
+    Object.defineProperty(Document.prototype, 'adoptedStyleSheets', { configurable: true, get: () => adopted, set: (v: unknown[]) => { adopted = v; } });
+    try {
+      const a = widget('<div class="shadow-md">x</div>');
+      start({ root: a });
+      start({ root: widget('<div class="ring-1">y</div>') });
+      await flush();
+      expect(docStyles()).toHaveLength(0);
+      expect(adopted).toHaveLength(2);
+      expect(adopted[0]).toBe(foreign);
+      const cssTexts = (adopted[1] as MockSheet).cssRules.map(r => r.cssText);
+      expect(cssTexts.length).toBeGreaterThan(0);
+      expect(new Set(cssTexts).size).toBe(cssTexts.length);
+      // replaced by someone else: re-adopted on the next rule, theirs kept
+      const ours = adopted[1];
+      adopted = [foreign];
+      a.querySelector('div')!.className = 'translate-x-2';
+      await flush();
+      expect(adopted).toEqual([foreign, ours]);
+    } finally {
+      delete (Document.prototype as unknown as Record<string, unknown>).adoptedStyleSheets;
+    }
   });
 
   it('with constructable, uses one document adopted sheet and no <style> in the document', async () => {

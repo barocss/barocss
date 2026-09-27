@@ -13,20 +13,32 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
 const ROUNDS = Number(process.argv[2] ?? 1);
-const CONC = Number(process.argv[3] || 2);
-const PORT = Number(process.env.PORT || 8150);
+const CONC = Number(process.argv[3] || 1);
+const PORT = Number(process.env.PORT || 8400);
+if (process.argv[4]) process.env.RATES = process.argv[4]; // CLI: rounds conc rate
+const [DOC_FROM, DOC_TO] = (process.env.DOCS || '0,10').split(',').map(Number); // doc slice for long (20 tok/s) runs
 const CHARS_PER_TOKEN = 4;
 const GC_WAIT_MS = 7000; // gcGraceMs default 3000; a sweep can re-arm once
 const { chromium } = createRequire(path.join(process.env.PW_DIR, 'node_modules/'))('playwright-core');
 
 const UMD = fs.readFileSync(path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'));
 const OUT_DIR = path.join(ROOT, 'scripts/mcp-model-outputs/outputs-tw');
-const DOCS = fs.readdirSync(OUT_DIR).filter((f) => f.endsWith('.html')).sort().map((f) => {
+function firstBlocks(src, max) { // cut after the last element that closes within max chars, then close open ancestors
+  const VOID = /^(area|base|br|col|embed|hr|img|input|link|meta|source|track|wbr)$/i;
+  const st = []; let cut = 0, open = []; const re = /<(\/?)([a-zA-Z][\w-]*)[^>]*?(\/?)>/g; let t;
+  while ((t = re.exec(src)) && re.lastIndex <= max) {
+    if (t[1]) { st.pop(); cut = re.lastIndex; open = [...st]; } else if (!t[3] && !VOID.test(t[2])) st.push(t[2]); }
+  return cut ? src.slice(0, cut) + open.reverse().map((n) => `</${n}>`).join('') : src;
+}
+const DOCS = fs.readdirSync(OUT_DIR).filter((f) => f.endsWith('.html')).sort().slice(DOC_FROM, DOC_TO).map((f) => {
   const src = fs.readFileSync(path.join(OUT_DIR, f), 'utf8');
   const m = src.match(/<body([^>]*)>([\s\S]*)<\/body>/i);
   const bodyCls = (m[1].match(/class="([^"]*)"/) || [])[1] || '';
   // The model's <body> becomes a wrapper div (chat UIs render the reply inside a message node); scripts dropped.
-  const html = `<div class="${bodyCls}">${m[2].replace(/<script[\s\S]*?<\/script>/gi, '')}</div>`.trim();
+  let inner = m[2].replace(/<script[\s\S]*?<\/script>/gi, '');
+  // MAX_CHARS: keep the first K top-level blocks (whole elements) whose total fits, so 20 tok/s trials stay under the cap.
+  if (process.env.MAX_CHARS) inner = firstBlocks(inner, Number(process.env.MAX_CHARS));
+  const html = `<div class="${bodyCls}">${inner}</div>`.trim();
   return { id: f.replace('.html', ''), html };
 });
 // innerHTML: re-render the whole growing string per token (common chat-UI pattern).
@@ -54,13 +66,18 @@ const SNAP = `window.__snap = (props, idx) => { const els = Array.from(document.
   return els.map((el, i) => { if (want && !want.has(i)) return null; const cs = getComputedStyle(el);
     return { tag: el.tagName, cls: el.hasAttribute('class'), v: props.map((p) => cs.getPropertyValue(p)) }; }); };`;
 
-const browser = await chromium.launch({ executablePath: process.env.CHROME,
+// Hard deadline: exit before an outer `timeout 470` so result.json (written per trial) is never lost mid-run.
+let browser;
+setTimeout(async () => { process.stderr.write('\ndeadline\n'); await Promise.race([browser?.close(), new Promise((r) => setTimeout(r, 5000))]); process.exit(0); }, Number(process.env.DEADLINE_S || 450) * 1000).unref();
+browser = await chromium.launch({ executablePath: process.env.CHROME,
   // Concurrent pages are background tabs: stop Chrome from throttling their timers (stalled earlier runs).
   args: ['--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows'] });
 
 // Per doc: unstyled reference (no runtime) and final styled reference (runtime, settled).
-const REF = {};
-for (const d of DOCS) {
+// Refs are cached (REF_CACHE path) so each per-rate invocation does not redo them.
+const REF_CACHE = process.env.REF_CACHE;
+const REF = REF_CACHE && fs.existsSync(REF_CACHE) ? JSON.parse(fs.readFileSync(REF_CACHE, 'utf8')) : {};
+for (const d of DOCS) { if (REF[d.id]) continue;
   const p = await browser.newPage({ viewport: { width: 1300, height: 900 } });
   await p.goto(`http://127.0.0.1:${PORT}/bare`); await p.addScriptTag({ content: SNAP });
   const unstyled = await p.evaluate(([h, pr]) => { document.getElementById('msg').innerHTML = h; return __snap(pr); }, [d.html, PROPS]);
@@ -68,12 +85,14 @@ for (const d of DOCS) {
   const final = await p.evaluate(async ([h, pr]) => { document.getElementById('msg').innerHTML = h;
     await new Promise((r) => setTimeout(r, 500)); return __snap(pr); }, [d.html, PROPS]);
   const finalClasses = await p.evaluate(() => [...new Set(Array.from(document.querySelectorAll('#msg *')).flatMap((e) => [...e.classList]))]);
-  REF[d.id] = { unstyled, final, finalClasses };
+  REF[d.id] = { unstyled, final, finalClasses }; process.stderr.write('r');
   await p.close();
+  if (REF_CACHE) fs.writeFileSync(REF_CACHE, JSON.stringify(REF));
 }
 
 async function trial(cond, doc) {
-  const page = await browser.newPage({ viewport: { width: 1300, height: 900 } });
+  const ctx = await browser.newContext({ viewport: { width: 1300, height: 900 } }); // fresh context per trial
+  const page = await ctx.newPage();
   await page.goto(`http://127.0.0.1:${PORT}/rt`); await page.addScriptTag({ content: SNAP });
   const r = await page.evaluate(async ({ cond, html, ref, props, cpt, gcWait }) => {
     const rt = BaroCSS.getRuntime();
@@ -130,7 +149,8 @@ async function trial(cond, doc) {
     }
     const tLast = performance.now();
     let settleMs = null;
-    for (let k = 0; k < 600; k++) { const s = __snap(props);
+    const tCap = performance.now() + 5000; // settle check bounded by time, not frames (host load)
+    while (performance.now() < tCap) { const s = __snap(props);
       if (s.length === ref.final.length && s.every((e, i) => eq(e.v, ref.final[i].v))) { settleMs = performance.now() - tLast; break; }
       await nextFrame(); }
     streaming = false; await sampler;
@@ -145,18 +165,20 @@ async function trial(cond, doc) {
     return { streamMs: tLast - t0, calls, generated: generated.size, junk: junk.length, junkSample: junk.slice(0, 8),
       frames, elemSamples, wrongSamples, wrongEls: wrongEls.size, wrongProps, settleMs, atEnd, cachedJunkEnd, afterGc, cachedJunkAfterGc };
   }, { cond, html: doc.html, ref: REF[doc.id], props: PROPS, cpt: CHARS_PER_TOKEN, gcWait: GC_WAIT_MS });
-  await page.close();
+  await ctx.close();
   return { cond: cond.id, doc: doc.id, ...r };
 }
 
 // Warm-up (discarded), then ROUNDS x docs x conds, interleaved (order reversed on odd rounds); CONC pages at once.
-await trial(CONDS[CONDS.length - 1], DOCS[0]);
+const tw = Date.now(); await trial(CONDS[CONDS.length - 1], DOCS[0]); process.stderr.write(`warm ${Date.now() - tw}ms\n`);
 const jobs = [];
 for (let r = 0; r < ROUNDS; r++) for (const d of DOCS) for (const c of (r % 2 ? [...CONDS].reverse() : CONDS)) jobs.push([c, d, r]);
 const RES = path.join(HERE, 'result.json');
-let raw = []; try { raw = JSON.parse(fs.readFileSync(RES, 'utf8')).raw || []; } catch {}
+var raw = []; try { raw = JSON.parse(fs.readFileSync(RES, 'utf8')).raw || []; } catch {}
 const version = browser.version();
 let next = 0;
+// Resume: skip (cond, doc) pairs already in result.json, so a repeated invocation fills the gaps.
+for (let i = jobs.length - 1; i >= 0; i--) if (raw.some((x) => x.cond === jobs[i][0].id && x.doc === jobs[i][1].id)) jobs.splice(i, 1);
 const q = (a, f) => { const s = a.filter((x) => x != null).sort((x, y) => x - y); return s.length ? s[Math.min(s.length - 1, Math.floor(s.length * f))] : null; };
 const med = (a) => q(a, 0.5);
 function save() {
@@ -182,9 +204,9 @@ return out;
 }
 
 await Promise.all(Array.from({ length: CONC }, async () => { while (next < jobs.length) { const [c, d, r] = jobs[next++];
-  const t = await Promise.race([trial(c, d), new Promise((res) => setTimeout(() => res(null), 150000))]);
-  if (!t) { process.stderr.write(`timeout ${c.id} ${d.id}\n`); continue; }
-  raw.push({ round: r, ...t }); save(); process.stderr.write('.'); } }));
+  const t = await Promise.race([trial(c, d), new Promise((res) => setTimeout(() => res(null), 60000))]);
+  if (!t) { process.stderr.write(`timeout ${c.id} ${d.id}; exiting (rerun resumes)\n`); await Promise.race([browser.close(), new Promise((r) => setTimeout(r, 5000))]); process.exit(0); }
+  raw.push({ round: r, ...t }); save(); process.stderr.write(` ${c.id} ${d.id} ${Math.round(t.streamMs)}ms settle=${t.settleMs}\n`); } }));
 
 await browser.close(); srv.close();
 const out = save();
