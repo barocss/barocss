@@ -49,3 +49,23 @@ test('a semantic failure poisons the complete session chain', async () => {
     assert.equal(scored[1].chainBefore, false);
   } finally { fs.rmSync(parent, { recursive: true, force: true }); }
 });
+
+test('valid final text after timeout, quota or missing completion never earns success', async () => {
+  for (const reason of ['timeout', 'quota', 'missing-completion-event']) {
+    const base = stubTransport();
+    const transport = async (args) => {
+      const response = await base(args);
+      if (args.row.ordinal === 0) { response.stopReason = reason; response.exitCode = null; }
+      return response;
+    };
+    const { parent, outputDir, rows } = await run(transport);
+    try {
+      const scored = scoreSaved(rows, outputDir);
+      assert.equal(scored[0].schemaValid, true, reason);
+      assert.equal(scored[0].transportValid, false, reason);
+      assert.equal(scored[0].requestSatisfied, false, reason);
+      assert.equal(scored[0].chainAfter, false, reason);
+      assert.equal(scored.filter((row) => row.requestSatisfied && row.session === 'settings--variable').length, 0, reason);
+    } finally { fs.rmSync(parent, { recursive: true, force: true }); }
+  }
+});

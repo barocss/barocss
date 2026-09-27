@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SAFE_BUTTON_CLASSES, SAFE_LAYOUT_CLASSES, schedule } from './plan.mjs';
 import { parseFinal, safeSpec, semanticErrors } from './validate.mjs';
+import { verifyCapture } from './provenance.mjs';
 
 const numericClass = (tokens, prefix, fixed) => {
   const matches = tokens.filter((token) => token.startsWith(prefix));
@@ -36,13 +37,15 @@ export function derivedStyle(spec, arm, scenario) {
 }
 export function scoreSaved(rows, outputDir) {
   const planned = schedule();
-  if (!Array.isArray(rows) || !same(rows.map((row) => row.id), planned.map((row) => row.id))) throw new Error('Capture rows differ from frozen schedule');
+  const verified = verifyCapture(outputDir);
+  if (!Array.isArray(rows) || !same(rows, verified.rows)) throw new Error('Capture rows differ from verified evidence');
   const prior = new Map();
   const chains = new Map();
-  return rows.map((row) => {
+  return rows.map((row, index) => {
+    const frozen = planned[index];
     const chainBefore = chains.get(row.session) ?? true;
-    const result = { id: row.id, session: row.session, scenario: row.scenario, arm: row.arm, stage: row.stage,
-      attempted: row.attempted, captureStatus: row.status, support: row.support,
+    const result = { id: frozen.id, session: frozen.session, scenario: frozen.scenario, arm: frozen.arm, stage: frozen.stage,
+      attempted: row.attempted, captureStatus: row.status, support: frozen.support,
       schemaValid: false, semanticValid: false, requestSatisfied: false, abstentionCorrect: false,
       chainBefore, chainAfter: false, errors: [] };
     if (!row.attempted || row.status.startsWith('skipped-')) { chains.set(row.session, false); return result; }
@@ -50,30 +53,32 @@ export function scoreSaved(rows, outputDir) {
     if (!fs.existsSync(rawPath)) { result.errors.push('Missing captured final response'); chains.set(row.session, false); return result; }
     const parsed = parseFinal(fs.readFileSync(rawPath, 'utf8'));
     if (parsed.status !== 'parsed') { result.errors.push(...parsed.errors); chains.set(row.session, false); return result; }
-    const schemaErrors = safeSpec(parsed.spec, row.scenario, row.arm);
+    const schemaErrors = safeSpec(parsed.spec, frozen.scenario, frozen.arm);
     if (schemaErrors.length) { result.errors.push(...schemaErrors); chains.set(row.session, false); return result; }
     result.schemaValid = true;
-    result.errors.push(...semanticErrors(parsed.spec, row.scenario));
+    result.errors.push(...semanticErrors(parsed.spec, frozen.scenario));
     result.semanticValid = result.errors.length === 0;
     result.cannotExpress = parsed.cannotExpress;
-    const actual = derivedStyle(parsed.spec, row.arm, row.scenario);
+    const actual = derivedStyle(parsed.spec, frozen.arm, frozen.scenario);
     result.derivedStyle = actual;
-    for (const [key, expected] of Object.entries(row.required)) {
+    for (const [key, expected] of Object.entries(frozen.required)) {
       const met = ['paddingPx', 'gapPx', 'radiusPx'].includes(key) ? close(actual[key], expected) : actual[key] === expected;
       if (!met) result.errors.push(`Requested ${key} not met`);
     }
     if (!actual.placementConsistent) result.errors.push('Columns/placement mismatch');
     const previous = prior.get(row.session);
-    if (!row.support.supported) {
-      result.abstentionCorrect = parsed.cannotExpress && result.semanticValid && previous !== undefined && same(parsed.spec, previous);
+    result.transportValid = ['valid', 'declared-unexpressible', 'unexpected-unexpressible'].includes(row.status) && row.exitCode === 0 && row.stopReason === null && row.usage !== null;
+    if (!result.transportValid) result.errors.push(`Capture transport not accepted: ${row.status}`);
+    if (!frozen.support.supported) {
+      result.abstentionCorrect = result.transportValid && parsed.cannotExpress && result.semanticValid && previous !== undefined && same(parsed.spec, previous);
       if (!result.abstentionCorrect) result.errors.push('Expected unchanged complete spec with cannotExpress=true');
     } else {
-      result.requestSatisfied = !parsed.cannotExpress && result.semanticValid && result.errors.length === 0;
+      result.requestSatisfied = result.transportValid && !parsed.cannotExpress && result.semanticValid && result.errors.length === 0;
       if (parsed.cannotExpress) result.errors.push('Unexpected cannotExpress=true');
     }
-    result.chainAfter = chainBefore && (row.support.supported ? result.requestSatisfied : result.abstentionCorrect);
+    result.chainAfter = chainBefore && (frozen.support.supported ? result.requestSatisfied : result.abstentionCorrect);
     chains.set(row.session, result.chainAfter);
-    if (result.schemaValid && result.semanticValid && (row.support.supported ? result.requestSatisfied : result.abstentionCorrect)) prior.set(row.session, parsed.spec);
+    if (result.schemaValid && result.semanticValid && (frozen.support.supported ? result.requestSatisfied : result.abstentionCorrect)) prior.set(row.session, parsed.spec);
     return result;
   });
 }

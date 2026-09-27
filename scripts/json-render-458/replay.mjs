@@ -80,6 +80,8 @@ async function measure(page, target, buttonId, hostBefore) {
       hostUnchanged: JSON.stringify(host) === JSON.stringify(hostBefore),
       themeBackground: c.backgroundColor, buttonBackground: b.backgroundColor,
       themeAdherence: c.backgroundColor === cardColor && b.backgroundColor === primaryColor,
+      customPadding: layout.style.getPropertyValue('--ui-padding'), customGap: layout.style.getPropertyValue('--ui-gap'),
+      customRadius: layout.style.getPropertyValue('--ui-radius'), directPadding: layout.style.padding, directGap: layout.style.gap, directRadius: layout.style.borderRadius,
       styleBytes: [...document.querySelectorAll('style')].reduce((sum, el) => sum + el.textContent.length, 0) };
   }, { target, buttonId, hostBefore });
 }
@@ -92,10 +94,12 @@ function measuredStylePass(measured, expected) {
   }
   return true;
 }
-export async function replaySaved({ captureDir, outputDir }) {
+export async function replaySaved({ captureDir, outputDir, faultInjection = null }) {
   if (fs.existsSync(outputDir)) throw new Error('Replay output already exists');
   const verified = verifyCapture(captureDir);
   const rows = verified.rows;
+  const frozen = schedule();
+  if (faultInjection && (!verified.manifest.synthetic || faultInjection !== 'blur-settings-variable-scalar')) throw new Error('Fault injection is limited to the named synthetic regression');
   const scoring = scoreSaved(rows, captureDir);
   const deps = dependencies();
   const asset = await assets(deps);
@@ -116,34 +120,37 @@ export async function replaySaved({ captureDir, outputDir }) {
       page.on('pageerror', (error) => pageErrors.push(`page:${String(error.message).slice(0, 200)}`));
       page.on('request', (request) => { if (!request.url().startsWith(base)) pageErrors.push(`external:${request.url().slice(0, 120)}`); });
       let blocked = false;
+      let browserChain = true;
       try {
         await page.goto(`${base}/?arm=${arm}`, { waitUntil: 'load' });
         const hostBefore = await page.evaluate(() => { const h = getComputedStyle(document.getElementById('host')); return [h.color, h.backgroundColor, h.fontSize, h.position, h.zIndex]; });
         for (const row of rows.filter((item) => item.session === session)) {
           const result = { id: row.id, session, status: 'skipped', screen: {}, errors: [] };
           if (blocked || !scoring[row.ordinal].schemaValid || !scoring[row.ordinal].semanticValid) {
-            result.status = blocked ? 'skipped-chain' : 'invalid-spec'; blocked = true; results.push(result); continue;
+            result.status = blocked ? 'skipped-chain' : 'invalid-spec'; result.sessionSuccess = false; blocked = true; browserChain = false; results.push(result); continue;
           }
           const raw = read(path.join(captureDir, `attempt-${String(row.ordinal).padStart(2, '0')}`, 'raw-final.txt')).toString();
           const spec = parseFinal(raw).spec;
           if (safeSpec(spec, scenario, arm).length) throw new Error('Unsafe spec reached browser');
           try {
+            const target = targetFor(fixture), buttonId = buttonFor(fixture);
+            if (row.stage !== 'initial') await page.locator(target).focus();
             const render = await page.evaluate(({ first, arm, state, spec }) => first ? window.REPLAY458.mount(arm, state, spec) : window.REPLAY458.update(spec),
               { first: row.stage === 'initial', arm, state: initialState(scenario), spec });
-            if (!render.ok) { result.status = 'official-schema'; result.errors.push(...render.errors); blocked = true; results.push(result); continue; }
-            const target = targetFor(fixture), buttonId = buttonFor(fixture);
+            if (!render.ok) { result.status = 'official-schema'; result.errors.push(...render.errors); result.sessionSuccess = false; blocked = true; browserChain = false; results.push(result); continue; }
+            if (faultInjection === 'blur-settings-variable-scalar' && row.id === 'settings--variable--scalar') await page.evaluate(() => document.activeElement?.blur());
             if (row.stage === 'initial') {
               if (fixture.nodes.find((node) => node.id === fixture.interaction.target).type === 'Select') await page.locator(target).selectOption(fixture.interaction.enter);
               else await page.locator(target).fill(fixture.interaction.enter);
             }
-            await page.locator(target).focus();
+            if (row.stage === 'initial') await page.locator(target).focus();
             for (const [viewportName, viewport] of Object.entries(VIEWPORTS)) {
               await page.setViewportSize(viewport);
               await page.evaluate(() => new Promise(requestAnimationFrame));
               const measured = await measure(page, target, buttonId, hostBefore);
               const shot = `shots/${row.id}--${viewportName}.png`;
               await page.screenshot({ path: path.join(outputDir, shot), fullPage: true });
-              result.screen[viewportName] = { ...measured, stylePass: measuredStylePass(measured, row.required), screenshot: shot };
+              result.screen[viewportName] = { ...measured, stylePass: measuredStylePass(measured, frozen[row.ordinal].required), screenshot: shot };
             }
             const stateValue = await page.evaluate((key) => window.REPLAY458.state()?.[key] ?? null, fixture.interaction.target);
             await page.locator(`[data-node-id="${buttonId}"]`).click();
@@ -156,18 +163,24 @@ export async function replaySaved({ captureDir, outputDir }) {
             result.themeAdherence = Object.values(result.screen).every((screen) => screen.themeAdherence);
             result.stylePass = Object.values(result.screen).every((screen) => screen.stylePass);
             result.overflowFree = Object.values(result.screen).every((screen) => !screen.overflow);
+            result.typedVariablePass = arm !== 'variable' || Object.values(result.screen).every((screen) => screen.customPadding && screen.customGap && screen.customRadius && !screen.directPadding && !screen.directGap && !screen.directRadius);
             result.status = 'replayed';
           } catch (error) { result.status = 'browser-error'; result.errors.push(String(error.message).slice(0, 200)); blocked = true; }
           result.errors.push(...pageErrors.splice(0));
           if (result.errors.length) blocked = true;
+          const browserPass = result.status === 'replayed' && result.statePreserved && result.focusPreserved && result.actionPass &&
+            result.domPass && result.hostUnchanged && result.themeAdherence && result.overflowFree && result.typedVariablePass &&
+            (!frozen[row.ordinal].support.supported || result.stylePass) && result.errors.length === 0;
+          result.sessionSuccess = browserChain && scoring[row.ordinal].chainAfter && browserPass;
+          browserChain = result.sessionSuccess;
           results.push(result);
         }
       } catch (error) {
-        for (const row of rows.filter((item) => item.session === session).slice(results.filter((item) => item.session === session).length)) results.push({ id: row.id, session, status: 'browser-error', errors: [String(error.message).slice(0, 200)] });
+        for (const row of rows.filter((item) => item.session === session).slice(results.filter((item) => item.session === session).length)) results.push({ id: row.id, session, status: 'browser-error', sessionSuccess: false, errors: [String(error.message).slice(0, 200)] });
       } finally { await page.close(); }
     }
   } finally { if (browser) await browser.close(); await new Promise((resolve) => server.close(resolve)); }
-  const report = { kind: 'saved-response-browser-replay', synthetic: JSON.parse(read(path.join(captureDir, 'manifest.json'))).synthetic,
+  const report = { kind: 'saved-response-browser-replay', synthetic: verified.manifest.synthetic, faultInjection,
     captureManifestSha256: verified.manifestSha256, captureEvidenceSha256: verified.evidenceSha256, versions: deps.versions, assetHashes: asset.hashes,
     scoring, replay: results };
   fs.writeFileSync(path.join(outputDir, 'report.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx', mode: 0o600 });

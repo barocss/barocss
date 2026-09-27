@@ -4,7 +4,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
-import { createHash } from 'node:crypto';
 import { capture } from './capture.mjs';
 import { stubTransport } from './stub.mjs';
 import { scoreSaved } from './score.mjs';
@@ -12,7 +11,6 @@ import { verifyFrozen } from './freeze.mjs';
 import { createViewer, escapeHtml } from './viewer.mjs';
 import { verifyCapture } from './provenance.mjs';
 
-const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 test('viewer serves only tokenized read-only saved artifacts on loopback', async () => {
   const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'baro-458-viewer-'));
   const captureDir = path.join(parent, 'capture'), replayDir = path.join(parent, 'replay');

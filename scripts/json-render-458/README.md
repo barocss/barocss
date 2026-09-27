@@ -11,7 +11,7 @@ node --test scripts/json-render-458/*.test.mjs
 node scripts/json-render-458/capture.mjs --stub --output /private/tmp/baro-458-stub-NEW
 ```
 
-The output directory must not exist before capture. It contains a manifest, 24 scheduled rows, and one immutable raw final per attempted stub call. Malformed, truncated, schema, quota, timeout, and missing-usage stub modes are covered by tests. `frozen-plan.json` binds the contract sources and imported #446 fixtures and bundle by SHA-256. `freeze.mjs` checks that binding.
+The output directory must not exist before capture. Set the three browser environment variables above while running `node --test scripts/json-render-458/replay.test.mjs` to exercise the lost-focus fault regression in the installed browser. It contains a manifest, 24 scheduled rows, and one immutable raw final per attempted stub call. Malformed, truncated, schema, quota, timeout, and missing-usage stub modes are covered by tests. `frozen-plan.json` binds the contract sources and imported #446 fixtures and bundle by SHA-256. `freeze.mjs` checks that binding.
 
 Browser replay requires already installed packages, with no download:
 
@@ -25,7 +25,7 @@ node scripts/json-render-458/replay.mjs \
   --output /private/tmp/baro-458-replay-NEW
 ```
 
-`REPO_DEPS_ROOT` may be omitted when this checkout has `esbuild`. The replay reads only saved responses, validates each spec before the browser, serves fixed local assets on an ephemeral loopback port, and writes `report.json` plus desktop/narrow screenshots to a new output directory. It never invokes Codex. A fresh replay directory can be used to correct replay or scoring defects without a new generation attempt.
+`REPO_DEPS_ROOT` may be omitted when this checkout has `esbuild`. The replay verifies the frozen capture, reads only saved responses, validates each spec before the browser, serves fixed local assets on an ephemeral loopback port, and writes `report.json` plus desktop/narrow screenshots to a new output directory. The bounded arm passes validated pixel values through CSS custom properties into fixed host rules. It never invokes Codex. A fresh replay directory can be used to correct replay or scoring defects without a new generation attempt.
 
 View the saved results locally:
 

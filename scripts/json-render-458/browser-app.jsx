@@ -37,11 +37,11 @@ function registryFor(arm, catalog) {
         const bounded = arm === 'variable';
         const base = props.density === 'compact' ? 12 : 24;
         const style = bounded ? {
-          padding: `${props.variables?.paddingPx ?? base}px`, gap: `${props.variables?.gapPx ?? base}px`,
-          borderRadius: `${props.variables?.radiusPx ?? 14}px`,
+          '--ui-padding': `${props.variables?.paddingPx ?? base}px`, '--ui-gap': `${props.variables?.gapPx ?? base}px`,
+          '--ui-radius': `${props.variables?.radiusPx ?? 14}px`,
         } : undefined;
         const classes = bounded ? `grid-cols-${props.columns}` : props.className;
-        return <section data-node-id={props.id} className={cx(BASE.layout, classes)} style={style}>{children}</section>;
+        return <section data-node-id={props.id} className={cx(BASE.layout, bounded && 'typed-layout', classes)} style={style}>{children}</section>;
       },
       Text: ({ props }) => props.id === 'heading'
         ? <h2 data-node-id={props.id} className={BASE.heading}>{props.text}</h2>

@@ -33,3 +33,20 @@ test('transport exception still produces replayable failed-attempt evidence', as
     assert.equal(verifyCapture(outputDir).rows.length, 24);
   } finally { fs.rmSync(parent, { recursive: true, force: true }); }
 });
+
+test('capture cannot substitute output-owned requirements or support claims', async () => {
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'baro-458-plan-tamper-'));
+  const outputDir = path.join(parent, 'capture');
+  try {
+    await capture({ outputDir, transport: stubTransport(), planHash: verifyFrozen(), synthetic: true });
+    const rowsPath = path.join(outputDir, 'rows.json');
+    const original = fs.readFileSync(rowsPath, 'utf8');
+    const rows = JSON.parse(original);
+    rows[0].required = { paddingPx: 999 };
+    rows[0].support = { supported: false, reason: 'modified' };
+    fs.writeFileSync(rowsPath, JSON.stringify(rows));
+    assert.throws(() => verifyCapture(outputDir), /Capture plan or schedule mismatch/);
+    fs.writeFileSync(rowsPath, original);
+    assert.equal(verifyCapture(outputDir).rows.length, 24);
+  } finally { fs.rmSync(parent, { recursive: true, force: true }); }
+});
