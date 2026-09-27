@@ -36,6 +36,8 @@ function partnerOf(token) {
   return undefined;
 }
 const corpora = { corpus: readCorpus('corpus.ts'), heldout: readCorpus('corpus-heldout.ts') };
+// #445: keep the variable-alpha gradient regression in the forced-fallback corpus.
+if (!corpora.heldout.includes('via-[rgb(0_0_255)]/(--o)')) throw new Error('missing #445 held-out gradient token');
 
 const browser = await pw[ENGINE].launch({ executablePath: ENGINE === 'chromium' ? process.env.CHROME : undefined });
 async function measure(mode, tokens) {
