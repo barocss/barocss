@@ -26,6 +26,12 @@ visitor), weather and time, and "Regenerate" asks for a different layout of the 
 the step, generation time, what the sanitiser removed, and the #426 no-op check: class tokens for which BaroCSS
 generates no CSS (should be 0).
 
+The kiosk is a portrait 1080x1920 panel at half scale in a bezel: promo banner, rewards/language bar, left
+category rail, product-card grid and an always-visible "My Order" tray. Product and category images are the
+hand-drawn, unbranded SVGs in `assets/`. The prompt (`lib/prompt.mjs`) carries the design brief, the persona
+variations and the asset ids; the stub screens follow the same brief. `screenshots/` holds every step for
+each persona (stub generator).
+
 Tests (stub generator, no CLI): `node --test examples/ai-kiosk/test/kiosk.test.mjs`.
 
 ## Recording (real model)
@@ -63,7 +69,9 @@ overlay covers the wait. The timeout is 120 s (`KIOSK_TIMEOUT_MS`), output is ca
   tags and only the attributes `class`, `data-action`, `data-item`, `data-option`. `script`, `style`, `iframe`,
   `object`, `embed`, `svg`, `math`, `template`, `form`, `link`, `meta` and similar are dropped with their
   content; other unknown tags are unwrapped. Every `on*`, `style`, `href`, `src` and other URL-bearing attribute
-  is dropped (no URL attribute is allowed at all, so no images). `data-action` must be in the contract
+  is dropped, with one exception: `<img>` keeps `src` only when it matches exactly
+  `^/assets/[a-z0-9-]+\.(svg|png|webp)$` (same-origin, no query, no traversal); any other or missing/duplicate
+  `src` drops the whole `<img>`. `<img>` may carry only `class`, `src` and `alt` (plain text, 120 chars). `data-action` must be in the contract
   (`lib/contract.mjs`), `data-item` must be a menu id, `data-option` a short plain token. Comments, doctypes,
   unterminated tags and quotes are dropped; text and attribute values are re-escaped.
 - **Client.** Event delegation on `[data-action]` inside the stage, checked against the same contract; the
@@ -71,8 +79,9 @@ overlay covers the wait. The timeout is 120 s (`KIOSK_TIMEOUT_MS`), output is ca
   style-src 'self'; img-src 'self'; object-src 'none'; form-action 'none'` (no `'unsafe-inline'`). The runtime runs
   with `constructable: true`, so its CSS lives in adopted sheets that `style-src` does not govern and needs no
   nonce.
-- **Static files.** An explicit allowlist of example files plus `/vendor/barocss.js`, each resolved with a
-  path-traversal check.
+- **Static files.** An explicit allowlist of example files plus `/vendor/barocss.js`, and `/assets/<name>` (the
+  same asset rule, then a path-traversal check; served as `image/svg+xml` / `image/png` / `image/webp` with
+  `nosniff`), each resolved with a path-traversal check.
 - **Classes.** Class tokens containing `url(` (any case) are dropped by the sanitiser, and `img-src 'self'` blocks
   any external load that would still slip through a generated rule. BaroCSS's usual handling of untrusted class
   names applies otherwise.

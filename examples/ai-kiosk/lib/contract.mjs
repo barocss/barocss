@@ -13,3 +13,6 @@ export const PERSONAS = Object.freeze({
 export const TOKEN_RE = /^[A-Za-z0-9][A-Za-z0-9_-]{0,40}$/;
 export const isAction = (a) => typeof a === 'string' && ACTIONS.includes(a);
 export const isToken = (v) => typeof v === 'string' && TOKEN_RE.test(v);
+/** The only image sources allowed anywhere: same-origin files under /assets/ with a plain name. */
+export const ASSET_RE = /^\/assets\/[a-z0-9-]+\.(svg|png|webp)$/;
+export const isAsset = (v) => typeof v === 'string' && ASSET_RE.test(v);

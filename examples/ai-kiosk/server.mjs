@@ -12,13 +12,14 @@ import { buildPrompt } from './lib/prompt.mjs';
 import { sanitize } from './lib/sanitize.mjs';
 import { claudeGenerator, stubGenerator } from './lib/generators.mjs';
 import { noopCheck } from './lib/noop.mjs';
+import { isAsset } from './lib/contract.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 export const menu = JSON.parse(fs.readFileSync(path.join(HERE, 'menu.json'), 'utf8'));
 const ITEM_IDS = new Set(menu.items.map((i) => i.id));
 // Prebuilt browser runtime, served as /vendor/barocss.js. Override with BARO_BROWSER_DIST=/abs/dist.
 const BROWSER_DIST = process.env.BARO_BROWSER_DIST || path.resolve(HERE, '../../packages/barocss-browser/dist');
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json', '.css': 'text/css', '.map': 'application/json' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json', '.css': 'text/css', '.map': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp' };
 const STATIC_OK = new Set(['/index.html', '/kiosk.js', '/menu.json', '/lib/contract.mjs', '/lib/sanitize.mjs']);
 const MAX_BODY = 16 * 1024;
 const MAX_SESSIONS = 200;
@@ -95,6 +96,9 @@ export function createKioskServer({ generator, log = () => {} } = {}) {
     else if (url.pathname.startsWith('/vendor/')) {
       const f = url.pathname.slice('/vendor/'.length);
       if (f === 'barocss.js' || f === 'barocss.js.map') file = safeResolve(path.join(BROWSER_DIST, 'cdn'), f);
+    } else if (url.pathname.startsWith('/assets/')) {
+      // Same rule as the sanitiser: a plain file name only, then the traversal check as a second fence.
+      if (isAsset(url.pathname)) file = safeResolve(path.join(HERE, 'assets'), url.pathname.slice('/assets/'.length));
     } else if (STATIC_OK.has(url.pathname)) file = safeResolve(HERE, url.pathname);
     if (!file || !fs.existsSync(file)) return send(res, 404, 'text/plain', 'not found');
     send(res, 200, TYPES[path.extname(file)] ?? 'application/octet-stream', fs.readFileSync(file));

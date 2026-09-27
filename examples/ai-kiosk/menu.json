@@ -2,25 +2,89 @@
   "currency": "KRW",
   "shop": "Corner Bean (fictional demo shop)",
   "sizes": [
-    { "id": "S", "label": "Small", "delta": 0 },
-    { "id": "M", "label": "Medium", "delta": 500 },
-    { "id": "L", "label": "Large", "delta": 1000 }
+    {
+      "id": "S",
+      "label": "Small",
+      "delta": 0
+    },
+    {
+      "id": "M",
+      "label": "Medium",
+      "delta": 500
+    },
+    {
+      "id": "L",
+      "label": "Large",
+      "delta": 1000
+    }
   ],
   "options": [
-    { "id": "extra-shot", "label": "Extra shot", "price": 500 },
-    { "id": "oat-milk", "label": "Oat milk", "price": 600 },
-    { "id": "decaf", "label": "Decaf", "price": 300 },
-    { "id": "less-sweet", "label": "Less sweet", "price": 0 },
-    { "id": "iced", "label": "Iced", "price": 0 }
+    {
+      "id": "extra-shot",
+      "label": "Extra shot",
+      "price": 500
+    },
+    {
+      "id": "oat-milk",
+      "label": "Oat milk",
+      "price": 600
+    },
+    {
+      "id": "decaf",
+      "label": "Decaf",
+      "price": 300
+    },
+    {
+      "id": "less-sweet",
+      "label": "Less sweet",
+      "price": 0
+    },
+    {
+      "id": "iced",
+      "label": "Iced",
+      "price": 0
+    }
   ],
+  "categories": [
+    {
+      "id": "popular",
+      "label": "Popular",
+      "icon": "/assets/cat-popular.svg"
+    },
+    {
+      "id": "coffee",
+      "label": "Coffee",
+      "icon": "/assets/cat-coffee.svg"
+    },
+    {
+      "id": "tea",
+      "label": "Tea",
+      "icon": "/assets/cat-tea.svg"
+    },
+    {
+      "id": "kids",
+      "label": "Kids",
+      "icon": "/assets/cat-kids.svg"
+    },
+    {
+      "id": "dessert",
+      "label": "Dessert",
+      "icon": "/assets/cat-dessert.svg"
+    }
+  ],
+  "assets": {
+    "hero": "/assets/hero-banner.svg",
+    "pay": "/assets/pay-terminal.svg",
+    "done": "/assets/done-check.svg"
+  },
   "items": [
-    { "id": "americano", "name": "Americano", "category": "coffee", "price": 3500, "sized": true, "options": ["extra-shot", "decaf", "iced"] },
-    { "id": "latte", "name": "Cafe Latte", "category": "coffee", "price": 4500, "sized": true, "options": ["extra-shot", "oat-milk", "decaf", "iced"] },
-    { "id": "vanilla-latte", "name": "Vanilla Latte", "category": "coffee", "price": 5000, "sized": true, "options": ["extra-shot", "oat-milk", "less-sweet", "iced"] },
-    { "id": "green-tea", "name": "Green Tea", "category": "tea", "price": 4000, "sized": true, "options": ["iced", "less-sweet"] },
-    { "id": "hot-choco", "name": "Hot Chocolate", "category": "kids", "price": 4000, "sized": true, "options": ["oat-milk", "less-sweet"] },
-    { "id": "apple-juice", "name": "Apple Juice", "category": "kids", "price": 3000, "sized": false, "options": [] },
-    { "id": "croissant", "name": "Butter Croissant", "category": "dessert", "price": 3200, "sized": false, "options": [] },
-    { "id": "cheesecake", "name": "Cheesecake Slice", "category": "dessert", "price": 5500, "sized": false, "options": [] }
+    {"id": "americano", "name": "Americano", "category": "coffee", "price": 3500, "sized": true, "options": ["extra-shot", "decaf", "iced"], "image": "/assets/americano.svg"},
+    {"id": "latte", "name": "Cafe Latte", "category": "coffee", "price": 4500, "sized": true, "options": ["extra-shot", "oat-milk", "decaf", "iced"], "image": "/assets/latte.svg"},
+    {"id": "vanilla-latte", "name": "Vanilla Latte", "category": "coffee", "price": 5000, "sized": true, "options": ["extra-shot", "oat-milk", "less-sweet", "iced"], "image": "/assets/vanilla-latte.svg"},
+    {"id": "green-tea", "name": "Green Tea", "category": "tea", "price": 4000, "sized": true, "options": ["iced", "less-sweet"], "image": "/assets/green-tea.svg"},
+    {"id": "hot-choco", "name": "Hot Chocolate", "category": "kids", "price": 4000, "sized": true, "options": ["oat-milk", "less-sweet"], "image": "/assets/hot-choco.svg"},
+    {"id": "apple-juice", "name": "Apple Juice", "category": "kids", "price": 3000, "sized": false, "options": [], "image": "/assets/apple-juice.svg"},
+    {"id": "croissant", "name": "Butter Croissant", "category": "dessert", "price": 3200, "sized": false, "options": [], "image": "/assets/croissant.svg"},
+    {"id": "cheesecake", "name": "Cheesecake Slice", "category": "dessert", "price": 5500, "sized": false, "options": [], "image": "/assets/cheesecake.svg"}
   ]
 }
