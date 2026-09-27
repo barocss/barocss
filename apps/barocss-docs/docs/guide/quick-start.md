@@ -5,7 +5,7 @@ description: Start the BaroCSS browser runtime with a package manager or a CDN
 
 # Quick Start
 
-These examples use the public browser API. The npm and CDN examples pin the current release, `__BAROCSS_VERSION__`; the docs build fills in the version from `@barocss/browser`'s `package.json`.
+These examples use the public browser API. The npm and CDN examples pin the current release, `__BAROCSS_VERSION__`; the docs build fills in the last verified npm version from `apps/barocss-docs/published-version.json`.
 
 ## Install with a package manager
 

@@ -2,9 +2,9 @@ import { defineConfig } from 'vitepress'
 import { withMermaid } from "vitepress-plugin-mermaid";
 import { readFileSync } from 'node:fs'
 
-// Install/CDN snippets write __BAROCSS_VERSION__; the build fills in the current @barocss/browser version (#419).
+// Install/CDN snippets use the last verified published version during release staging.
 const BAROCSS_VERSION: string = JSON.parse(
-  readFileSync(new URL('../../../../packages/barocss-browser/package.json', import.meta.url), 'utf8')
+  readFileSync(new URL('../../published-version.json', import.meta.url), 'utf8')
 ).version
 
 export default defineConfig(withMermaid({
