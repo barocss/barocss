@@ -24,6 +24,7 @@ const ROOT = path.resolve(HERE, '../..');
 const req = createRequire(path.join(ROOT, 'packages/barocss/package.json'));
 const { compile } = req('tailwindcss');
 const twDir = path.dirname(req.resolve('tailwindcss/package.json'));
+const NORM = process.env.NORM_COLOR ? (await import('../unocss-430/norm-color.mjs')).normReport : (r) => r; // #430
 const PORT = Number(process.env.PROBE_PORT || 7164), CPORT = PORT + 1;
 const N = 'o5N0nce364';
 const CSP = `default-src 'self'; script-src 'self' 'nonce-${N}'; style-src 'self' 'nonce-${N}'; img-src 'self'; font-src 'self'; connect-src 'self'`;
@@ -80,12 +81,17 @@ const ARMS = {
   'baro root + nonce': 'baro-nonce',
   'baro root + nonce + prefilter': 'baro-filter',
   twb: 'twb',
+  // #430 (only with PROBE_ARMS naming them): UnoCSS runtime core + presetWind4, documented CDN setup (document-level);
+  // '+ glue': runtime.inject sets the nonce, and the app generates each shadow root's CSS with the runtime's generator.
+  ...(process.env.UNO_JS ? { uno: 'uno', 'uno + nonce + per-root glue': 'uno-root' } : {}),
 };
+if (process.env.PROBE_ARMS) for (const a of Object.keys(ARMS)) if (!process.env.PROBE_ARMS.split(',').includes(a)) delete ARMS[a]; // #430
 const S = `nonce="${N}"`;
 function page(arm, m, hostile, adv) {
   const rt = ARMS[arm];
   const inner = rt === 'ref' ? `<link rel="stylesheet" href="/ref-${m}.css">` : '';
-  const head = rt.startsWith('baro') ? `<script ${S} src="/baro.js"></script>` : rt === 'twb' ? `<script ${S} src="/twb.js"></script>` : '';
+  const uno = rt.startsWith('uno') ? `<script ${S}>window.__unocss={presets:[function(){return window.__unocss_runtime.presets.presetWind4()}]${rt === 'uno-root' ? `,runtime:{inject:function(s){s.nonce='${N}';document.head.prepend(s)}}` : ''}};</script><script ${S} src="/uno.js"></script>` : '';
+  const head = rt.startsWith('baro') ? `<script ${S} src="/baro.js"></script>` : rt === 'twb' ? `<script ${S} src="/twb.js"></script>` : uno;
   const opts = rt === 'baro' ? {} : { nonce: N };
   const W = blocks[m].map((h) => `<div class="${CHROME_CLS}"><span class="${SENT}"></span><div class="blk">${h}</div></div>`);
   if (adv) W.push(`<div class="${CHROME_CLS}"><div class="adv">${ADV.map((c) => `<div class="${c.replace(/"/g, '&quot;')}">a</div>`).join('')}</div></div>`);
@@ -108,7 +114,8 @@ window.addEventListener('load',function(){setTimeout(function(){
  var before=hostSig(),roots=[],t0=performance.now(),chat=document.getElementById('chat');
  C.W.forEach(function(h){var host=document.createElement('div');host.className='widget';chat.appendChild(host);
   var sr=host.attachShadow({mode:'open'});sr.innerHTML=C.inner+clean(h);roots.push(sr);
-  if(C.rt.indexOf('baro')===0)new BaroCSS.BrowserRuntime(Object.assign({root:sr},C.opts));});
+  if(C.rt.indexOf('baro')===0)new BaroCSS.BrowserRuntime(Object.assign({root:sr},C.opts));
+  if(C.rt==='uno-root')(function w(){var U=window.__unocss_runtime;if(!U||!U.uno)return setTimeout(w,5);U.uno.generate(sr.innerHTML).then(function(r){var s=document.createElement('style');s.nonce=C.opts.nonce;s.textContent=r.css;sr.prepend(s)})})();});
  function ready(){return roots.slice(0,5).every(function(r){var s=r.querySelector('span');return s&&getComputedStyle(s).paddingTop==='7px'})}
  var ms=null;(function poll(n){if(ready()){ms=performance.now()-t0;return}if(n<120)requestAnimationFrame(function(){poll(n+1)})})(0);
  setTimeout(function(){var bytes=0;roots.forEach(function(r){(r.adoptedStyleSheets||[]).forEach(function(s){[].forEach.call(s.cssRules,function(x){bytes+=x.cssText.length})});
@@ -136,6 +143,8 @@ const srv = http.createServer((q, r) => {
   if (u.pathname === '/widget.js') return send('text/javascript', WIDGET_JS);
   if (u.pathname === '/baro.js') return send('text/javascript', JS.baro);
   if (u.pathname === '/twb.js') return send('text/javascript', JS.twb);
+  // #430 UnoCSS arm (research, closed): only when UNO_JS points at a local runtime file.
+  if (u.pathname === '/uno.js' && process.env.UNO_JS) return send('text/javascript', fs.readFileSync(process.env.UNO_JS));
   r.writeHead(404); r.end();
 });
 const csrv = http.createServer((q, r) => { hits.push('xo:' + q.url); r.writeHead(204); r.end(); });
@@ -157,6 +166,7 @@ async function run(arm, m, h, a) {
   await p.close();
   // #374: NORM_QUOTES=1 drops '"' from computed values (Firefox serializes var()-substituted font-family unquoted)
   if (process.env.NORM_QUOTES) for (const k of ['blockSig', 'hostBefore', 'hostAfter']) if (r[k]) r[k] = JSON.parse(JSON.stringify(r[k]).replace(/\\"/g, ''));
+  NORM(r, ['blockSig', 'hostBefore', 'hostAfter']);
   return { ...r, viol, xo, hits: [...hits], errs };
 }
 const eq = (x, y) => JSON.stringify(x) === JSON.stringify(y);

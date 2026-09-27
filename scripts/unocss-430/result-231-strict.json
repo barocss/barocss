@@ -1,0 +1,1194 @@
+{
+ "question": "#231",
+ "specTokens": 63,
+ "knownTokens": 63,
+ "summary": {
+  "all": {
+   "ref": {
+    "elemParity": 1,
+    "propParity": 1,
+    "shellParity": 1,
+    "shellBeforeParity": 1,
+    "injectedBytes": 0,
+    "scriptGz": 0,
+    "mountToFinalMs": 0.4
+   },
+   "build": {
+    "elemParity": 0.1629,
+    "propParity": 0.9548,
+    "shellParity": 0.995,
+    "shellBeforeParity": 1,
+    "injectedBytes": 0,
+    "scriptGz": 0,
+    "mountToFinalMs": 0.4
+   },
+   "baro": {
+    "elemParity": 0.904,
+    "propParity": 0.994,
+    "shellParity": 0.9972,
+    "shellBeforeParity": 1,
+    "injectedBytes": 24623,
+    "scriptGz": 56665,
+    "mountToFinalMs": 0.2
+   },
+   "uno": {
+    "elemParity": 0,
+    "propParity": 0.9331,
+    "shellParity": 0.9441,
+    "shellBeforeParity": 0.9463,
+    "injectedBytes": 13329,
+    "scriptGz": 59814,
+    "mountToFinalMs": 75.4
+   },
+   "uno-noreset": {
+    "elemParity": 0,
+    "propParity": 0.9585,
+    "shellParity": 0.97,
+    "shellBeforeParity": 0.9722,
+    "injectedBytes": 9733,
+    "scriptGz": 59814,
+    "mountToFinalMs": 76.7
+   }
+  },
+  "opus": {
+   "ref": {
+    "elemParity": 1,
+    "propParity": 1,
+    "shellParity": 1,
+    "shellBeforeParity": 1,
+    "injectedBytes": 0,
+    "scriptGz": 0,
+    "mountToFinalMs": 0.4
+   },
+   "build": {
+    "elemParity": 0.2102,
+    "propParity": 0.957,
+    "shellParity": 0.9956,
+    "shellBeforeParity": 1,
+    "injectedBytes": 0,
+    "scriptGz": 0,
+    "mountToFinalMs": 0.4
+   },
+   "baro": {
+    "elemParity": 0.8667,
+    "propParity": 0.9915,
+    "shellParity": 0.9967,
+    "shellBeforeParity": 1,
+    "injectedBytes": 24470,
+    "scriptGz": 56665,
+    "mountToFinalMs": 0.2
+   },
+   "uno": {
+    "elemParity": 0,
+    "propParity": 0.9305,
+    "shellParity": 0.9441,
+    "shellBeforeParity": 0.9463,
+    "injectedBytes": 13416,
+    "scriptGz": 59814,
+    "mountToFinalMs": 77.1
+   },
+   "uno-noreset": {
+    "elemParity": 0,
+    "propParity": 0.9551,
+    "shellParity": 0.97,
+    "shellBeforeParity": 0.9722,
+    "injectedBytes": 9820,
+    "scriptGz": 59814,
+    "mountToFinalMs": 79.5
+   }
+  },
+  "haiku": {
+   "ref": {
+    "elemParity": 1,
+    "propParity": 1,
+    "shellParity": 1,
+    "shellBeforeParity": 1,
+    "injectedBytes": 0,
+    "scriptGz": 0,
+    "mountToFinalMs": 0.4
+   },
+   "build": {
+    "elemParity": 0.1156,
+    "propParity": 0.9526,
+    "shellParity": 0.9944,
+    "shellBeforeParity": 1,
+    "injectedBytes": 0,
+    "scriptGz": 0,
+    "mountToFinalMs": 0.4
+   },
+   "baro": {
+    "elemParity": 0.9414,
+    "propParity": 0.9965,
+    "shellParity": 0.9978,
+    "shellBeforeParity": 1,
+    "injectedBytes": 24775,
+    "scriptGz": 56665,
+    "mountToFinalMs": 0.3
+   },
+   "uno": {
+    "elemParity": 0,
+    "propParity": 0.9357,
+    "shellParity": 0.9441,
+    "shellBeforeParity": 0.9463,
+    "injectedBytes": 13242,
+    "scriptGz": 59814,
+    "mountToFinalMs": 73.7
+   },
+   "uno-noreset": {
+    "elemParity": 0,
+    "propParity": 0.9619,
+    "shellParity": 0.97,
+    "shellBeforeParity": 0.9722,
+    "injectedBytes": 9646,
+    "scriptGz": 59814,
+    "mountToFinalMs": 73.9
+   }
+  }
+ },
+ "per": [
+  {
+   "spec": "haiku-dashboard",
+   "model": "haiku",
+   "arm": "ref",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.4000000059604645,
+   "errs": []
+  },
+  {
+   "spec": "haiku-dashboard",
+   "model": "haiku",
+   "arm": "build",
+   "elemParity": 0.11111111111111116,
+   "propParity": 0.9629629629629629,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.4000000059604645,
+   "errs": []
+  },
+  {
+   "spec": "haiku-dashboard",
+   "model": "haiku",
+   "arm": "baro",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 24108,
+   "scriptGz": 56665,
+   "mountToFinalMs": 0.20000001788139343,
+   "errs": []
+  },
+  {
+   "spec": "haiku-dashboard",
+   "model": "haiku",
+   "arm": "uno",
+   "elemParity": 0,
+   "propParity": 0.9351851851851852,
+   "shellParity": 0.9407407407407408,
+   "shellBeforeParity": 0.9462962962962963,
+   "injectedBytes": 12701,
+   "scriptGz": 59814,
+   "mountToFinalMs": 4.5999999940395355,
+   "errs": []
+  },
+  {
+   "spec": "haiku-dashboard",
+   "model": "haiku",
+   "arm": "uno-noreset",
+   "elemParity": 0,
+   "propParity": 0.9598765432098766,
+   "shellParity": 0.9666666666666667,
+   "shellBeforeParity": 0.9722222222222222,
+   "injectedBytes": 9105,
+   "scriptGz": 59814,
+   "mountToFinalMs": 5.5,
+   "errs": []
+  },
+  {
+   "spec": "haiku-empty",
+   "model": "haiku",
+   "arm": "ref",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.30000001192092896,
+   "errs": []
+  },
+  {
+   "spec": "haiku-empty",
+   "model": "haiku",
+   "arm": "build",
+   "elemParity": 0,
+   "propParity": 0.9444444444444444,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.30000001192092896,
+   "errs": []
+  },
+  {
+   "spec": "haiku-empty",
+   "model": "haiku",
+   "arm": "baro",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 24031,
+   "scriptGz": 56665,
+   "mountToFinalMs": 0.19999998807907104,
+   "errs": []
+  },
+  {
+   "spec": "haiku-empty",
+   "model": "haiku",
+   "arm": "uno",
+   "elemParity": 0,
+   "propParity": 0.9365079365079365,
+   "shellParity": 0.9462962962962963,
+   "shellBeforeParity": 0.9462962962962963,
+   "injectedBytes": 11876,
+   "scriptGz": 59814,
+   "mountToFinalMs": 26.099999994039536,
+   "errs": []
+  },
+  {
+   "spec": "haiku-empty",
+   "model": "haiku",
+   "arm": "uno-noreset",
+   "elemParity": 0,
+   "propParity": 0.9642857142857143,
+   "shellParity": 0.9722222222222222,
+   "shellBeforeParity": 0.9722222222222222,
+   "injectedBytes": 8280,
+   "scriptGz": 59814,
+   "mountToFinalMs": 25.400000005960464,
+   "errs": []
+  },
+  {
+   "spec": "haiku-pricing",
+   "model": "haiku",
+   "arm": "ref",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.5,
+   "errs": []
+  },
+  {
+   "spec": "haiku-pricing",
+   "model": "haiku",
+   "arm": "build",
+   "elemParity": 0.4666666666666667,
+   "propParity": 0.9722222222222222,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.4000000059604645,
+   "errs": []
+  },
+  {
+   "spec": "haiku-pricing",
+   "model": "haiku",
+   "arm": "baro",
+   "elemParity": 0.8888888888888888,
+   "propParity": 0.9925925925925926,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 26543,
+   "scriptGz": 56665,
+   "mountToFinalMs": 0.30000001192092896,
+   "errs": []
+  },
+  {
+   "spec": "haiku-pricing",
+   "model": "haiku",
+   "arm": "uno",
+   "elemParity": 0,
+   "propParity": 0.9388888888888889,
+   "shellParity": 0.9462962962962963,
+   "shellBeforeParity": 0.9462962962962963,
+   "injectedBytes": 14401,
+   "scriptGz": 59814,
+   "mountToFinalMs": 166.39999997615814,
+   "errs": []
+  },
+  {
+   "spec": "haiku-pricing",
+   "model": "haiku",
+   "arm": "uno-noreset",
+   "elemParity": 0,
+   "propParity": 0.9641975308641976,
+   "shellParity": 0.9722222222222222,
+   "shellBeforeParity": 0.9722222222222222,
+   "injectedBytes": 10805,
+   "scriptGz": 59814,
+   "mountToFinalMs": 162.5,
+   "errs": []
+  },
+  {
+   "spec": "haiku-settings",
+   "model": "haiku",
+   "arm": "ref",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.3999999761581421,
+   "errs": []
+  },
+  {
+   "spec": "haiku-settings",
+   "model": "haiku",
+   "arm": "build",
+   "elemParity": 0,
+   "propParity": 0.952020202020202,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.4000000059604645,
+   "errs": []
+  },
+  {
+   "spec": "haiku-settings",
+   "model": "haiku",
+   "arm": "baro",
+   "elemParity": 0.8181818181818181,
+   "propParity": 0.98989898989899,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 24456,
+   "scriptGz": 56665,
+   "mountToFinalMs": 0.29999998211860657,
+   "errs": []
+  },
+  {
+   "spec": "haiku-settings",
+   "model": "haiku",
+   "arm": "uno",
+   "elemParity": 0,
+   "propParity": 0.9343434343434344,
+   "shellParity": 0.9462962962962963,
+   "shellBeforeParity": 0.9462962962962963,
+   "injectedBytes": 14079,
+   "scriptGz": 59814,
+   "mountToFinalMs": 163.90000000596046,
+   "errs": []
+  },
+  {
+   "spec": "haiku-settings",
+   "model": "haiku",
+   "arm": "uno-noreset",
+   "elemParity": 0,
+   "propParity": 0.9621212121212122,
+   "shellParity": 0.9722222222222222,
+   "shellBeforeParity": 0.9722222222222222,
+   "injectedBytes": 10483,
+   "scriptGz": 59814,
+   "mountToFinalMs": 166.5,
+   "errs": []
+  },
+  {
+   "spec": "haiku-table",
+   "model": "haiku",
+   "arm": "ref",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.5999999940395355,
+   "errs": []
+  },
+  {
+   "spec": "haiku-table",
+   "model": "haiku",
+   "arm": "build",
+   "elemParity": 0,
+   "propParity": 0.9314814814814815,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.5,
+   "errs": []
+  },
+  {
+   "spec": "haiku-table",
+   "model": "haiku",
+   "arm": "baro",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 24738,
+   "scriptGz": 56665,
+   "mountToFinalMs": 0.29999998211860657,
+   "errs": []
+  },
+  {
+   "spec": "haiku-table",
+   "model": "haiku",
+   "arm": "uno",
+   "elemParity": 0,
+   "propParity": 0.9333333333333333,
+   "shellParity": 0.9407407407407408,
+   "shellBeforeParity": 0.9462962962962963,
+   "injectedBytes": 13154,
+   "scriptGz": 59814,
+   "mountToFinalMs": 7.4000000059604645,
+   "errs": []
+  },
+  {
+   "spec": "haiku-table",
+   "model": "haiku",
+   "arm": "uno-noreset",
+   "elemParity": 0,
+   "propParity": 0.9592592592592593,
+   "shellParity": 0.9666666666666667,
+   "shellBeforeParity": 0.9722222222222222,
+   "injectedBytes": 9558,
+   "scriptGz": 59814,
+   "mountToFinalMs": 9.400000005960464,
+   "errs": []
+  },
+  {
+   "spec": "opus-dashboard",
+   "model": "opus",
+   "arm": "ref",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.3999999761581421,
+   "errs": []
+  },
+  {
+   "spec": "opus-dashboard",
+   "model": "opus",
+   "arm": "build",
+   "elemParity": 0.37037037037037035,
+   "propParity": 0.9629629629629629,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.4000000059604645,
+   "errs": []
+  },
+  {
+   "spec": "opus-dashboard",
+   "model": "opus",
+   "arm": "baro",
+   "elemParity": 0.962962962962963,
+   "propParity": 0.9989711934156379,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 24185,
+   "scriptGz": 56665,
+   "mountToFinalMs": 0.20000001788139343,
+   "errs": []
+  },
+  {
+   "spec": "opus-dashboard",
+   "model": "opus",
+   "arm": "uno",
+   "elemParity": 0,
+   "propParity": 0.9228395061728395,
+   "shellParity": 0.9407407407407408,
+   "shellBeforeParity": 0.9462962962962963,
+   "injectedBytes": 13232,
+   "scriptGz": 59814,
+   "mountToFinalMs": 7.800000011920929,
+   "errs": []
+  },
+  {
+   "spec": "opus-dashboard",
+   "model": "opus",
+   "arm": "uno-noreset",
+   "elemParity": 0,
+   "propParity": 0.9475308641975309,
+   "shellParity": 0.9666666666666667,
+   "shellBeforeParity": 0.9722222222222222,
+   "injectedBytes": 9636,
+   "scriptGz": 59814,
+   "mountToFinalMs": 7.799999982118607,
+   "errs": []
+  },
+  {
+   "spec": "opus-empty",
+   "model": "opus",
+   "arm": "ref",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.29999998211860657,
+   "errs": []
+  },
+  {
+   "spec": "opus-empty",
+   "model": "opus",
+   "arm": "build",
+   "elemParity": 0.125,
+   "propParity": 0.9270833333333334,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.5,
+   "errs": []
+  },
+  {
+   "spec": "opus-empty",
+   "model": "opus",
+   "arm": "baro",
+   "elemParity": 0.875,
+   "propParity": 0.9895833333333334,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 24224,
+   "scriptGz": 56665,
+   "mountToFinalMs": 0.10000002384185791,
+   "errs": []
+  },
+  {
+   "spec": "opus-empty",
+   "model": "opus",
+   "arm": "uno",
+   "elemParity": 0,
+   "propParity": 0.9340277777777778,
+   "shellParity": 0.9462962962962963,
+   "shellBeforeParity": 0.9462962962962963,
+   "injectedBytes": 12302,
+   "scriptGz": 59814,
+   "mountToFinalMs": 28.599999994039536,
+   "errs": []
+  },
+  {
+   "spec": "opus-empty",
+   "model": "opus",
+   "arm": "uno-noreset",
+   "elemParity": 0,
+   "propParity": 0.9583333333333334,
+   "shellParity": 0.9722222222222222,
+   "shellBeforeParity": 0.9722222222222222,
+   "injectedBytes": 8706,
+   "scriptGz": 59814,
+   "mountToFinalMs": 26.5,
+   "errs": []
+  },
+  {
+   "spec": "opus-pricing",
+   "model": "opus",
+   "arm": "ref",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.4000000059604645,
+   "errs": []
+  },
+  {
+   "spec": "opus-pricing",
+   "model": "opus",
+   "arm": "build",
+   "elemParity": 0.02631578947368418,
+   "propParity": 0.9619883040935673,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.4000000059604645,
+   "errs": []
+  },
+  {
+   "spec": "opus-pricing",
+   "model": "opus",
+   "arm": "baro",
+   "elemParity": 0.7894736842105263,
+   "propParity": 0.9853801169590644,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 25637,
+   "scriptGz": 56665,
+   "mountToFinalMs": 0.20000001788139343,
+   "errs": []
+  },
+  {
+   "spec": "opus-pricing",
+   "model": "opus",
+   "arm": "uno",
+   "elemParity": 0,
+   "propParity": 0.9378654970760234,
+   "shellParity": 0.9462962962962963,
+   "shellBeforeParity": 0.9462962962962963,
+   "injectedBytes": 14316,
+   "scriptGz": 59814,
+   "mountToFinalMs": 181.40000000596046,
+   "errs": []
+  },
+  {
+   "spec": "opus-pricing",
+   "model": "opus",
+   "arm": "uno-noreset",
+   "elemParity": 0,
+   "propParity": 0.9627192982456141,
+   "shellParity": 0.9722222222222222,
+   "shellBeforeParity": 0.9722222222222222,
+   "injectedBytes": 10720,
+   "scriptGz": 59814,
+   "mountToFinalMs": 186.5,
+   "errs": []
+  },
+  {
+   "spec": "opus-settings",
+   "model": "opus",
+   "arm": "ref",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.5,
+   "errs": []
+  },
+  {
+   "spec": "opus-settings",
+   "model": "opus",
+   "arm": "build",
+   "elemParity": 0,
+   "propParity": 0.9624183006535948,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.4000000059604645,
+   "errs": []
+  },
+  {
+   "spec": "opus-settings",
+   "model": "opus",
+   "arm": "baro",
+   "elemParity": 0.8235294117647058,
+   "propParity": 0.9918300653594772,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 24043,
+   "scriptGz": 56665,
+   "mountToFinalMs": 0.29999998211860657,
+   "errs": []
+  },
+  {
+   "spec": "opus-settings",
+   "model": "opus",
+   "arm": "uno",
+   "elemParity": 0,
+   "propParity": 0.934640522875817,
+   "shellParity": 0.9462962962962963,
+   "shellBeforeParity": 0.9462962962962963,
+   "injectedBytes": 13668,
+   "scriptGz": 59814,
+   "mountToFinalMs": 159.30000001192093,
+   "errs": []
+  },
+  {
+   "spec": "opus-settings",
+   "model": "opus",
+   "arm": "uno-noreset",
+   "elemParity": 0,
+   "propParity": 0.9624183006535948,
+   "shellParity": 0.9722222222222222,
+   "shellBeforeParity": 0.9722222222222222,
+   "injectedBytes": 10072,
+   "scriptGz": 59814,
+   "mountToFinalMs": 167.7999999821186,
+   "errs": []
+  },
+  {
+   "spec": "opus-table",
+   "model": "opus",
+   "arm": "ref",
+   "elemParity": 1,
+   "propParity": 1,
+   "shellParity": 1,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.4000000059604645,
+   "errs": []
+  },
+  {
+   "spec": "opus-table",
+   "model": "opus",
+   "arm": "build",
+   "elemParity": 0.5294117647058824,
+   "propParity": 0.9705882352941176,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 0,
+   "scriptGz": 0,
+   "mountToFinalMs": 0.5,
+   "errs": []
+  },
+  {
+   "spec": "opus-table",
+   "model": "opus",
+   "arm": "baro",
+   "elemParity": 0.8823529411764706,
+   "propParity": 0.9918300653594772,
+   "shellParity": 0.9944444444444445,
+   "shellBeforeParity": 1,
+   "injectedBytes": 24263,
+   "scriptGz": 56665,
+   "mountToFinalMs": 0.29999998211860657,
+   "errs": []
+  },
+  {
+   "spec": "opus-table",
+   "model": "opus",
+   "arm": "uno",
+   "elemParity": 0,
+   "propParity": 0.923202614379085,
+   "shellParity": 0.9407407407407408,
+   "shellBeforeParity": 0.9462962962962963,
+   "injectedBytes": 13564,
+   "scriptGz": 59814,
+   "mountToFinalMs": 8.300000011920929,
+   "errs": []
+  },
+  {
+   "spec": "opus-table",
+   "model": "opus",
+   "arm": "uno-noreset",
+   "elemParity": 0,
+   "propParity": 0.9444444444444444,
+   "shellParity": 0.9666666666666667,
+   "shellBeforeParity": 0.9722222222222222,
+   "injectedBytes": 9968,
+   "scriptGz": 59814,
+   "mountToFinalMs": 8.799999982118607,
+   "errs": []
+  }
+ ],
+ "misses": [
+  {
+   "spec": "haiku-pricing",
+   "id": "pricing-container",
+   "type": "Stack",
+   "props": [
+    "height"
+   ],
+   "causes": [
+    "composite: layout knock-on"
+   ],
+   "tokens": [],
+   "cls": "w-full py-12 px-4 space-y-12"
+  },
+  {
+   "spec": "haiku-pricing",
+   "id": "pricing-grid",
+   "type": "Grid",
+   "props": [
+    "height"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "grid-cols-1",
+    "gap-8"
+   ],
+   "cls": "grid-cols-1 gap-8"
+  },
+  {
+   "spec": "haiku-pricing",
+   "id": "plan-starter",
+   "type": "Card",
+   "props": [
+    "padding-top",
+    "height",
+    "border-top-left-radius"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "border-border",
+    "rounded-lg"
+   ],
+   "cls": "border-border rounded-lg"
+  },
+  {
+   "spec": "haiku-pricing",
+   "id": "plan-pro",
+   "type": "Card",
+   "props": [
+    "padding-top",
+    "height",
+    "border-top-left-radius",
+    "box-shadow"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "border-2",
+    "border-primary",
+    "bg-primary/5",
+    "rounded-lg",
+    "shadow-lg"
+   ],
+   "cls": "border-2 border-primary bg-primary/5 rounded-lg shadow-lg"
+  },
+  {
+   "spec": "haiku-pricing",
+   "id": "plan-enterprise",
+   "type": "Card",
+   "props": [
+    "padding-top",
+    "height",
+    "border-top-left-radius"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "border-border",
+    "rounded-lg"
+   ],
+   "cls": "border-border rounded-lg"
+  },
+  {
+   "spec": "haiku-settings",
+   "id": "settings_form",
+   "type": "Card",
+   "props": [
+    "height"
+   ],
+   "causes": [
+    "composite: layout knock-on"
+   ],
+   "tokens": [],
+   "cls": "w-full max-w-md p-6"
+  },
+  {
+   "spec": "haiku-settings",
+   "id": "actions_stack",
+   "type": "Stack",
+   "props": [
+    "height",
+    "gap",
+    "row-gap"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "gap-3"
+   ],
+   "cls": "gap-3"
+  },
+  {
+   "spec": "opus-dashboard",
+   "id": "kpi-card",
+   "type": "Card",
+   "props": [
+    "border-top-left-radius"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "border-border",
+    "rounded-lg"
+   ],
+   "cls": "border-border rounded-lg"
+  },
+  {
+   "spec": "opus-empty",
+   "id": "empty-state-card",
+   "type": "Card",
+   "props": [
+    "padding-top",
+    "height",
+    "border-top-left-radius"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "text-center",
+    "border-border",
+    "rounded-lg"
+   ],
+   "cls": "text-center border-border rounded-lg"
+  },
+  {
+   "spec": "opus-pricing",
+   "id": "header",
+   "type": "Stack",
+   "props": [
+    "height",
+    "gap",
+    "row-gap"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "gap-3"
+   ],
+   "cls": "gap-3"
+  },
+  {
+   "spec": "opus-pricing",
+   "id": "plans-grid",
+   "type": "Grid",
+   "props": [
+    "height"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "grid-cols-1"
+   ],
+   "cls": "grid-cols-1"
+  },
+  {
+   "spec": "opus-pricing",
+   "id": "plan-starter",
+   "type": "Card",
+   "props": [
+    "padding-top",
+    "height"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "border-border"
+   ],
+   "cls": "border-border"
+  },
+  {
+   "spec": "opus-pricing",
+   "id": "starter-features",
+   "type": "Stack",
+   "props": [
+    "height",
+    "gap",
+    "row-gap"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "gap-3"
+   ],
+   "cls": "gap-3"
+  },
+  {
+   "spec": "opus-pricing",
+   "id": "plan-pro",
+   "type": "Card",
+   "props": [
+    "padding-top",
+    "height",
+    "box-shadow"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "border-2",
+    "border-primary",
+    "shadow-lg"
+   ],
+   "cls": "border-2 border-primary shadow-lg"
+  },
+  {
+   "spec": "opus-pricing",
+   "id": "pro-features",
+   "type": "Stack",
+   "props": [
+    "height",
+    "gap",
+    "row-gap"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "gap-3"
+   ],
+   "cls": "gap-3"
+  },
+  {
+   "spec": "opus-pricing",
+   "id": "plan-enterprise",
+   "type": "Card",
+   "props": [
+    "padding-top",
+    "height"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "border-border"
+   ],
+   "cls": "border-border"
+  },
+  {
+   "spec": "opus-pricing",
+   "id": "ent-features",
+   "type": "Stack",
+   "props": [
+    "height",
+    "gap",
+    "row-gap"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "gap-3"
+   ],
+   "cls": "gap-3"
+  },
+  {
+   "spec": "opus-settings",
+   "id": "settings-card",
+   "type": "Card",
+   "props": [
+    "height"
+   ],
+   "causes": [
+    "composite: layout knock-on"
+   ],
+   "tokens": [],
+   "cls": "max-w-lg mx-auto p-6"
+  },
+  {
+   "spec": "opus-settings",
+   "id": "main-stack",
+   "type": "Stack",
+   "props": [
+    "height"
+   ],
+   "causes": [
+    "composite: layout knock-on"
+   ],
+   "tokens": [],
+   "cls": "flex flex-col gap-6"
+  },
+  {
+   "spec": "opus-settings",
+   "id": "actions-grid",
+   "type": "Grid",
+   "props": [
+    "height",
+    "gap",
+    "row-gap"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "gap-3"
+   ],
+   "cls": "gap-3"
+  },
+  {
+   "spec": "opus-table",
+   "id": "orders_card",
+   "type": "Card",
+   "props": [
+    "height",
+    "border-top-left-radius"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "border-border",
+    "rounded-lg"
+   ],
+   "cls": "border-border rounded-lg"
+  },
+  {
+   "spec": "opus-table",
+   "id": "table_area",
+   "type": "Stack",
+   "props": [
+    "height",
+    "gap",
+    "row-gap"
+   ],
+   "causes": [
+    "composite: base-class conflict (cascade order)"
+   ],
+   "tokens": [
+    "gap-3"
+   ],
+   "cls": "gap-3"
+  }
+ ],
+ "byCause": {
+  "composite: layout knock-on": [
+   "haiku-pricing/pricing-container [w-full py-12 px-4 space-y-12] height",
+   "haiku-settings/settings_form [w-full max-w-md p-6] height",
+   "opus-settings/settings-card [max-w-lg mx-auto p-6] height",
+   "opus-settings/main-stack [flex flex-col gap-6] height"
+  ],
+  "composite: base-class conflict (cascade order)": [
+   "haiku-pricing/pricing-grid [grid-cols-1 gap-8] height",
+   "haiku-pricing/plan-starter [border-border rounded-lg] padding-top,height,border-top-left-radius",
+   "haiku-pricing/plan-pro [border-2 border-primary bg-primary/5 rounded-lg shadow-lg] padding-top,height,border-top-left-radius,box-shadow",
+   "haiku-pricing/plan-enterprise [border-border rounded-lg] padding-top,height,border-top-left-radius",
+   "haiku-settings/actions_stack [gap-3] height,gap,row-gap",
+   "opus-dashboard/kpi-card [border-border rounded-lg] border-top-left-radius",
+   "opus-empty/empty-state-card [text-center border-border rounded-lg] padding-top,height,border-top-left-radius",
+   "opus-pricing/header [gap-3] height,gap,row-gap",
+   "opus-pricing/plans-grid [grid-cols-1] height",
+   "opus-pricing/plan-starter [border-border] padding-top,height",
+   "opus-pricing/starter-features [gap-3] height,gap,row-gap",
+   "opus-pricing/plan-pro [border-2 border-primary shadow-lg] padding-top,height,box-shadow",
+   "opus-pricing/pro-features [gap-3] height,gap,row-gap",
+   "opus-pricing/plan-enterprise [border-border] padding-top,height",
+   "opus-pricing/ent-features [gap-3] height,gap,row-gap",
+   "opus-settings/actions-grid [gap-3] height,gap,row-gap",
+   "opus-table/orders_card [border-border rounded-lg] height,border-top-left-radius",
+   "opus-table/table_area [gap-3] height,gap,row-gap"
+  ]
+ },
+ "badTokens": {}
+}

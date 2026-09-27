@@ -1,0 +1,58 @@
+{"specTokens":63,"known":63}
+all    ref    {"elemParity":1,"propParity":1,"shellParity":1,"shellBeforeParity":1,"injectedBytes":0,"scriptGz":0,"mountToFinalMs":0.4}
+all    build  {"elemParity":0.1629,"propParity":0.9548,"shellParity":0.995,"shellBeforeParity":1,"injectedBytes":0,"scriptGz":0,"mountToFinalMs":0.4}
+all    baro   {"elemParity":0.904,"propParity":0.994,"shellParity":0.9972,"shellBeforeParity":1,"injectedBytes":24623,"scriptGz":56665,"mountToFinalMs":0.2}
+all    uno    {"elemParity":0,"propParity":0.9331,"shellParity":0.9441,"shellBeforeParity":0.9463,"injectedBytes":13329,"scriptGz":59814,"mountToFinalMs":75.4}
+all    uno-noreset {"elemParity":0,"propParity":0.9585,"shellParity":0.97,"shellBeforeParity":0.9722,"injectedBytes":9733,"scriptGz":59814,"mountToFinalMs":76.7}
+opus   ref    {"elemParity":1,"propParity":1,"shellParity":1,"shellBeforeParity":1,"injectedBytes":0,"scriptGz":0,"mountToFinalMs":0.4}
+opus   build  {"elemParity":0.2102,"propParity":0.957,"shellParity":0.9956,"shellBeforeParity":1,"injectedBytes":0,"scriptGz":0,"mountToFinalMs":0.4}
+opus   baro   {"elemParity":0.8667,"propParity":0.9915,"shellParity":0.9967,"shellBeforeParity":1,"injectedBytes":24470,"scriptGz":56665,"mountToFinalMs":0.2}
+opus   uno    {"elemParity":0,"propParity":0.9305,"shellParity":0.9441,"shellBeforeParity":0.9463,"injectedBytes":13416,"scriptGz":59814,"mountToFinalMs":77.1}
+opus   uno-noreset {"elemParity":0,"propParity":0.9551,"shellParity":0.97,"shellBeforeParity":0.9722,"injectedBytes":9820,"scriptGz":59814,"mountToFinalMs":79.5}
+haiku  ref    {"elemParity":1,"propParity":1,"shellParity":1,"shellBeforeParity":1,"injectedBytes":0,"scriptGz":0,"mountToFinalMs":0.4}
+haiku  build  {"elemParity":0.1156,"propParity":0.9526,"shellParity":0.9944,"shellBeforeParity":1,"injectedBytes":0,"scriptGz":0,"mountToFinalMs":0.4}
+haiku  baro   {"elemParity":0.9414,"propParity":0.9965,"shellParity":0.9978,"shellBeforeParity":1,"injectedBytes":24775,"scriptGz":56665,"mountToFinalMs":0.3}
+haiku  uno    {"elemParity":0,"propParity":0.9357,"shellParity":0.9441,"shellBeforeParity":0.9463,"injectedBytes":13242,"scriptGz":59814,"mountToFinalMs":73.7}
+haiku  uno-noreset {"elemParity":0,"propParity":0.9619,"shellParity":0.97,"shellBeforeParity":0.9722,"injectedBytes":9646,"scriptGz":59814,"mountToFinalMs":73.9}
+haiku-dashboard  build  0.111 0.9630 shell 0.9944 
+haiku-dashboard  baro   1.000 1.0000 shell 1.0000 
+haiku-dashboard  uno    0.000 0.9352 shell 0.9407 
+haiku-dashboard  uno-noreset 0.000 0.9599 shell 0.9667 
+haiku-empty      build  0.000 0.9444 shell 0.9944 
+haiku-empty      baro   1.000 1.0000 shell 1.0000 
+haiku-empty      uno    0.000 0.9365 shell 0.9463 
+haiku-empty      uno-noreset 0.000 0.9643 shell 0.9722 
+haiku-pricing    build  0.467 0.9722 shell 0.9944 
+haiku-pricing    baro   0.889 0.9926 shell 0.9944 
+haiku-pricing    uno    0.000 0.9389 shell 0.9463 
+haiku-pricing    uno-noreset 0.000 0.9642 shell 0.9722 
+haiku-settings   build  0.000 0.9520 shell 0.9944 
+haiku-settings   baro   0.818 0.9899 shell 0.9944 
+haiku-settings   uno    0.000 0.9343 shell 0.9463 
+haiku-settings   uno-noreset 0.000 0.9621 shell 0.9722 
+haiku-table      build  0.000 0.9315 shell 0.9944 
+haiku-table      baro   1.000 1.0000 shell 1.0000 
+haiku-table      uno    0.000 0.9333 shell 0.9407 
+haiku-table      uno-noreset 0.000 0.9593 shell 0.9667 
+opus-dashboard   build  0.370 0.9630 shell 0.9944 
+opus-dashboard   baro   0.963 0.9990 shell 1.0000 
+opus-dashboard   uno    0.000 0.9228 shell 0.9407 
+opus-dashboard   uno-noreset 0.000 0.9475 shell 0.9667 
+opus-empty       build  0.125 0.9271 shell 0.9944 
+opus-empty       baro   0.875 0.9896 shell 0.9944 
+opus-empty       uno    0.000 0.9340 shell 0.9463 
+opus-empty       uno-noreset 0.000 0.9583 shell 0.9722 
+opus-pricing     build  0.026 0.9620 shell 0.9944 
+opus-pricing     baro   0.789 0.9854 shell 1.0000 
+opus-pricing     uno    0.000 0.9379 shell 0.9463 
+opus-pricing     uno-noreset 0.000 0.9627 shell 0.9722 
+opus-settings    build  0.000 0.9624 shell 1.0000 
+opus-settings    baro   0.824 0.9918 shell 0.9944 
+opus-settings    uno    0.000 0.9346 shell 0.9463 
+opus-settings    uno-noreset 0.000 0.9624 shell 0.9722 
+opus-table       build  0.529 0.9706 shell 0.9944 
+opus-table       baro   0.882 0.9918 shell 0.9944 
+opus-table       uno    0.000 0.9232 shell 0.9407 
+opus-table       uno-noreset 0.000 0.9444 shell 0.9667 
+baro misses by cause: {"composite: layout knock-on":4,"composite: base-class conflict (cascade order)":18}
+bad tokens: {}
