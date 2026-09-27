@@ -131,8 +131,9 @@ async function js(url, file) {
   if (url) { const r = await fetch(url); if (!r.ok) throw new Error(`fetch ${url}: ${r.status}`); return r.text(); }
   if (!fs.existsSync(file)) throw new Error(`missing ${file} (set BARO_URL/TWB_URL)`); return fs.readFileSync(file, 'utf8');
 }
-const JS = { baro: await js(process.env.BARO_URL, path.join(HERE, '.pkgs/browser/package/dist/cdn/barocss.umd.cjs')),
-  twb: await js(process.env.TWB_URL, path.join(HERE, '.pkgs/twb/package/dist/index.global.js')) };
+// #442: BARO_FILE = a local build (e.g. packages/barocss-browser/dist/cdn/barocss.umd.cjs); twb is read only when its arm runs.
+const JS = { baro: await js(process.env.BARO_URL, process.env.BARO_FILE || path.join(HERE, '.pkgs/browser/package/dist/cdn/barocss.umd.cjs')),
+  twb: ARMS.twb ? await js(process.env.TWB_URL, path.join(HERE, '.pkgs/twb/package/dist/index.global.js')) : '' };
 const hits = [];
 const srv = http.createServer((q, r) => {
   const u = new URL(q.url, 'http://x');

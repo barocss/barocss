@@ -18,6 +18,9 @@
 //   document  @tailwindcss/browser (nonce'd script)    0.029/0.023   12 (its <style> has no nonce option)
 //   shadow    ref (<link> in the root)                 1.000/1.000   0
 //   shadow    baro root (#327), no CSP / nonce / self  1.000/1.000   0 (constructable already; same as without CSP)
+// #442 (2026-09-27, local build): shadow ref now registers @property in the document (props-<m>.css, like #439's o5 fix);
+//   shadow baro root / + nonce / + constructable, each under nonce and style-src 'self' policies: 1.000/1.000, 0 violations
+//   (0.11.1 root without nonce under 'self': document @property <style> blocked). twb arm skipped without TWB_DIR/TWB_URL.
 // #355: was 0.978/0.942 because only the ref arm had the site's base CSS (h1-h3 display font) inside the root; a
 //   document stylesheet does not cross the shadow boundary. The baro arm now links site-base.css in the root, as an app would.
 // insertRule into a nonce'd <style> is not governed by CSP; adoptedStyleSheets need no nonce.
@@ -62,6 +65,9 @@ const CSS = { build: await build(shellTokens) };
 // Site-only: the site's own @theme tokens as plain vars plus its base/components CSS; no Tailwind theme, preflight or utilities.
 CSS['site-base'] = SITE_CSS.replace(SITE_THEME_CSS, SITE_THEME_CSS.replace('@theme {', ':root, :host {'));
 for (const m of MODELS) CSS['ref-' + m] = await build([...shellTokens, ...toks(html[m])]);
+// #442 (like #439's o5 fix): Chrome ignores @property inside a shadow root, so the shadow ref also registers the
+// @property rules in the document (a file, allowed by every policy), as a real app and the runtime (#384) do.
+for (const m of MODELS) CSS['props-' + m] = (CSS['ref-' + m].match(/@property [^{]+\{[^}]*\}/g) || []).join('\n');
 const FILES = { baro: path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'), twb: path.join(process.env.TWB_DIR || '', 'dist/index.global.js') };
 
 // arm: [policy, runtime] ; runtime: ref | baro(options) | twb
@@ -82,6 +88,8 @@ const SHADOW_ARMS = {
   'baro root': ['nonce', 'baro', ''],
   'baro root + nonce': ['nonce', 'baro', `nonce: '${N}',`],
   'baro root, style-src self': ['self', 'baro', ''],
+  'baro root + nonce, style-src self': ['self', 'baro', `nonce: '${N}',`],
+  'baro root + constructable, self': ['self', 'baro', 'constructable: true,'],
 };
 const S = `nonce="${N}"`;
 const VIOL = `<script ${S}>window.__viol=[];document.addEventListener('securitypolicyviolation',function(e){window.__viol.push(e.violatedDirective+' '+(e.blockedURI||'')+' '+(e.sample||'').slice(0,40))});</script>`;
@@ -104,7 +112,8 @@ function shadowPage(arm, m) {
   const [, rt, opt] = SHADOW_ARMS[arm];
   const inner = rt === 'ref' ? `<link rel="stylesheet" href="/ref-${m}.css">` : '<link rel="stylesheet" href="/site-base.css">';
   const boot = rt === 'baro' ? `<script ${S} src="/baro.js"></script>` : '';
-  return `<!doctype html><html><head><meta charset="utf-8">${VIOL}<link rel="stylesheet" href="/build.css">${FREEZE}${boot}</head><body><div id="host"></div>
+  const props = rt === 'ref' ? `<link rel="stylesheet" href="/props-${m}.css">` : '';
+  return `<!doctype html><html><head><meta charset="utf-8">${VIOL}${props}<link rel="stylesheet" href="/build.css">${FREEZE}${boot}</head><body><div id="host"></div>
 <script ${S}>window.__H=${JSON.stringify(html[m]).replace(/</g, '\\u003c')};var host=document.getElementById('host');var sr=host.attachShadow({mode:'open'});sr.innerHTML=${JSON.stringify(inner)}+'<div id="blocks"></div>';
 ${rt === 'baro' ? `var rt=new BaroCSS.BrowserRuntime(Object.assign({root:sr},${baroOpts(opt).replace('skipExisting: true,', '')}));` : ''}
 window.addEventListener('load',function(){setTimeout(function(){sr.getElementById('blocks').innerHTML=window.__H;setTimeout(function(){var P=${JSON.stringify(PROPS)};
@@ -112,7 +121,9 @@ window.__r={blockSig:[].map.call(sr.querySelectorAll('#blocks *'),function(e){va
 }
 // #439: BARO_URL loads the runtime from a CDN URL (in memory) instead of the local dist build.
 const BARO_JS = process.env.BARO_URL ? await fetch(process.env.BARO_URL).then((r) => { if (!r.ok) throw new Error('fetch ' + r.status); return r.text(); }) : fs.readFileSync(FILES.baro, 'utf8');
-const TWB_JS = process.env.TWB_URL ? await fetch(process.env.TWB_URL).then((r) => r.text()) : fs.readFileSync(FILES.twb, 'utf8');
+// #442: without TWB_DIR/TWB_URL the twb arm is skipped (baro/ref arms only).
+if (!process.env.TWB_URL && !fs.existsSync(FILES.twb)) delete ARMS.twb;
+const TWB_JS = process.env.TWB_URL ? await fetch(process.env.TWB_URL).then((r) => r.text()) : ARMS.twb ? fs.readFileSync(FILES.twb, 'utf8') : '';
 const PAGE_JS = fs.readFileSync(path.join(CMS, 'page.js'), 'utf8');
 const srv = http.createServer((q, r) => {
   const u = new URL(q.url, 'http://x');
