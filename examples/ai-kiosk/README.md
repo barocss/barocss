@@ -26,13 +26,33 @@ visitor), weather and time, and "Regenerate" asks for a different layout of the 
 the step, generation time, what the sanitiser removed, and the #426 no-op check: class tokens for which BaroCSS
 generates no CSS (should be 0).
 
-The kiosk is a portrait 1080x1920 panel at half scale in a bezel: promo banner, rewards/language bar, left
-category rail, product-card grid and an always-visible "My Order" tray. Product and category images are the
-hand-drawn, unbranded SVGs in `assets/`. The prompt (`lib/prompt.mjs`) carries the design brief, the persona
+The kiosk is a portrait 1080x1920 panel at half scale in a bezel. Its entry screen offers touch order,
+low-posture order and a voice-order demo. Low-posture mode moves the content lower and reduces the page size.
+Voice order has no microphone input or speech recognition: a button stands in for saying "start". The entry
+screen also has a high-contrast toggle and a visual guide-volume indicator; it does not play audio.
+
+The ordering screens share a shop header, home and Korean/English controls, a step breadcrumb and back button.
+Their bottom bar offers a zoom control, a local call-staff message and a step-specific order action. In touch
+mode, zoom increases the text size and uses two columns. The menu shows the live cart count; detail and cart
+screens provide the add and checkout actions.
+The entry and completion screens omit the ordering breadcrumb and bottom bar. These are demo display controls;
+the call-staff action does not contact anyone.
+
+The menu has a category rail and paginated product grid. Sold-out products have a badge and cannot be selected;
+the server also rejects a direct selection. Best/New badges identify featured products. Bundle items use
+stacked-card artwork and show their pack count. Item details show an image, unit price, quantity controls and
+required or optional option groups with price additions. The add control is unavailable until all required
+choices are made, and the server validates those choices before changing the cart. `menu.json` owns the
+`soldOut`, `bundle` and option-group definitions; the server owns the active page, order step and totals.
+
+Product and category images are the hand-drawn, unbranded SVGs in `assets/`. The prompt (`lib/prompt.mjs`) carries the design brief, the persona
 variations and the asset ids; the stub screens follow the same brief. `screenshots/` holds every step for
 each persona (stub generator).
 
 Tests (stub generator, no CLI): `node --test examples/ai-kiosk/test/kiosk.test.mjs`.
+The suite covers all four personas, entry modes, persistent controls, pagination bounds, sold-out rejection,
+required options, the prompt flow contract, strict CSP and the #426 no-op check. Required-option failures are
+checked on the server as well as in the rendered controls.
 Frame check (no flash on a press; skipped without Playwright): `PW_DIR=<dir with node_modules/playwright> CHROME=<chromium> node --test examples/ai-kiosk/test/frames.test.mjs`.
 
 ## Recording (real model)
