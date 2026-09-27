@@ -37,7 +37,7 @@ export function claudeGenerator({ model = 'haiku', timeoutMs = DEFAULT_TIMEOUT_M
       child.stderr.on('data', (d) => { if (err.length < 4096) err += d; });
       child.on('error', (e) => finish(reject, e));
       child.on('close', (code) => {
-        if (code !== 0) return finish(reject, new Error(`claude exited ${code}: ${err.slice(0, 300)}`));
+        if (code !== 0) return finish(reject, new Error(`claude exited ${code}: ${(err || out).slice(0, 300)}`));
         let j;
         try { j = JSON.parse(out); } catch { return finish(reject, new Error('claude returned non-JSON')); }
         if (j.is_error || typeof j.result !== 'string') return finish(reject, new Error('claude returned an error result'));
