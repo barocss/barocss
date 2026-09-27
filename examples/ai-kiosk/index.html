@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Coffee Kiosk</title>
+  <link rel="icon" href="data:,">
+</head>
+<body class="bg-neutral-200 font-sans">
+  <div class="mx-auto flex max-w-6xl flex-col gap-4 p-4 lg:flex-row">
+    <div class="flex flex-col gap-2 lg:w-[480px]">
+      <div id="toolbar" class="flex flex-wrap items-center gap-2 rounded-lg bg-white p-2 text-sm shadow">
+        <label class="flex items-center gap-1">Persona
+          <select id="persona" class="rounded border border-neutral-300 px-1 py-0.5">
+            <option value="senior">senior</option><option value="regular">busy regular</option>
+            <option value="family">family with kids</option><option value="foreign">foreign visitor</option>
+          </select></label>
+        <label class="flex items-center gap-1">Weather
+          <select id="weather" class="rounded border border-neutral-300 px-1 py-0.5">
+            <option>sunny</option><option>rainy</option><option>hot</option><option>cold</option>
+          </select></label>
+        <label class="flex items-center gap-1">Time
+          <select id="daypart" class="rounded border border-neutral-300 px-1 py-0.5">
+            <option>morning</option><option>afternoon</option><option>evening</option>
+          </select></label>
+        <button id="regen" type="button" class="rounded bg-neutral-800 px-2 py-1 text-white">Regenerate</button>
+      </div>
+      <div class="relative overflow-hidden rounded-2xl border-8 border-neutral-800 bg-white shadow-xl">
+        <div id="stage" class="min-h-[720px]"></div>
+        <div id="loading" class="absolute inset-0 hidden items-center justify-center bg-white/70 text-lg font-semibold text-neutral-700">Designing your screen…</div>
+      </div>
+    </div>
+    <aside id="dev" class="flex-1 rounded-lg bg-neutral-900 p-3 font-mono text-xs text-neutral-200">
+      <h2 class="mb-2 text-sm font-bold text-white">Dev panel</h2>
+      <div id="dev-status">idle</div>
+      <div id="dev-noop" class="mt-2"></div>
+      <div id="dev-removed" class="mt-2"></div>
+      <div id="dev-error" class="mt-2 text-red-400"></div>
+    </aside>
+  </div>
+  <script type="module" src="/kiosk.js"></script>
+</body>
+</html>
