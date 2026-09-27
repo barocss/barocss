@@ -325,6 +325,15 @@ export class StylePartitionManager {
       segment.styleElement.textContent = segment.styles.length ? segment.styles.join("\n") + "\n" : "";
     }
     this.ruleSegment.delete(rule);
+    // #440: drop a segment the GC emptied, so churn doesn't leave empty `<style>` elements behind. The
+    // remaining segments keep their order, and a later rule at this position opens or joins a neighbour.
+    if (segment.styles.length === 0 && this.segments.length > 1) {
+      const position = this.segments.indexOf(segment);
+      if (position !== -1) {
+        this.segments.splice(position, 1);
+        segment.styleElement.parentNode?.removeChild(segment.styleElement);
+      }
+    }
     return true;
   }
 
