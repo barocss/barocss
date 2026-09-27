@@ -1,5 +1,17 @@
 # @barocss/browser
 
+## 0.11.2
+
+### Patch Changes
+
+- 0e48cf6: Sort class-based `dark:` utilities after matching base utilities, including classes discovered later by the browser runtime. Media-based dark variants retain their existing order.
+- b32f831: Preserve the transparent initial gradient stop when an arbitrary `via-*` color uses an unset alpha variable in the Shadow DOM property fallback. Registered-property rendering is unchanged.
+- 3249147: Shadow DOM `root` mode: the document-level `@property` registrations (#384) now go into one constructable sheet in `document.adoptedStyleSheets` by default, so a strict CSP (`style-src 'self'`) without a nonce no longer blocks them (0.11.1 inserted a `<style>`, and gradients, `shadow-*`, `ring-*` and `translate-*` stopped rendering). Other adopted sheets are kept. Without adopted-sheet support the runtime uses a `<style>` only when a `nonce` is given, otherwise the `:host` `@layer properties` fallback (#442).
+- 08364ba: Remove a utility `<style>` segment once rule GC empties it, so the number of `<style>` elements stays bounded in long-running pages (#440).
+- Updated dependencies [0e48cf6]
+- Updated dependencies [b32f831]
+  - @barocss/kit@0.11.2
+
 ## 0.11.1
 
 ### Patch Changes
