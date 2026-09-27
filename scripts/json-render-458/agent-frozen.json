@@ -1,0 +1,20 @@
+{
+  "issue": 458,
+  "route": "codex-cli-agent",
+  "basePlanSha256": "f9ff9ab08f49fb79e7444e11ce6ceb02f10366466df92c7d4fcf0a8b712b28e3",
+  "model": "gpt-6-sol",
+  "reasoning": "high",
+  "cliVersion": "0.156.1",
+  "maxAttempts": 24,
+  "files": {
+    "agent-profile.mjs": "4a8770609350c40e494fbc0170ddbea4009662208b9e8111abedd336d1c7feb8",
+    "agent-transport.mjs": "ebfc5e463103c28bf52f6f6e9b5d11c8e0ed781c1a7af21a3c5c337bd49a3033",
+    "agent-live.mjs": "4a3f35ad6d301e69d924d3ba3dc2c59a413f8aa6062a83b00132913cc4de5d2b",
+    "agent-run.mjs": "e6ec13ef5c8d95a74ce832a371b1174cf57f8976445f7af2efaf4a7034530396",
+    "agent-provenance.mjs": "2beb29de60fb0fbaf0fb21817258b3f3ceded3450f18d968c3f2c1dccbbaacce",
+    "agent-consumers.mjs": "30a7887b8cd20f543cdc47869e61e45f1a28f0a7f8d5410bd2027b2bd47e793f",
+    "agent-freeze.mjs": "7005824ec37fc19915271bff885caa153fe8d56d52bfa4b42a4a6e5d97c76b3c",
+    "AGENT-CLI-BOUNDARY.md": "1a17b2e18debaf1ad0d6698f2f269b73dbc765b1fea3a05ef0d8f8585019f758",
+    "AGENT-CLI-RUN-PACKET.md": "4c983c578ce8499551d74ca6e02f90d6611aa0e2a89780b51287ede3d91ba4ef"
+  }
+}

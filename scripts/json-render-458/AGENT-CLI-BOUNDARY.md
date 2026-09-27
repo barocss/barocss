@@ -27,4 +27,4 @@ A prior probe using scratch under `/private/tmp` without explicit temp denials *
 
 ## Next gate
 
-The launch transport, single-run reservation, route-specific provenance, and exact final argv are still pending. There is no live dispatch path from this checkpoint. Independent Review must accept the final exact pre-live commit and immutable plan before any of the owner's 24 authorized CLI attempts can start.
+The launch transport, one-run claim, route-specific provenance, and consumers are now implemented in separate `agent-*` modules. Their exact final commit and frozen agent plan still require independent pre-live Review ACCEPT. The old CLI hard block remains unchanged. See `AGENT-CLI-RUN-PACKET.md` for the reviewed execution sequence. No model call has occurred at this checkpoint.
