@@ -1,17 +1,8 @@
 {
  "issue": 415,
- "date": "2026-09-26",
+ "date": "2026-09-27",
  "note": "raw accumulates across per-rate invocations in one session; see NOTES.md",
  "docs": [
-  "haiku-1",
-  "haiku-2",
-  "haiku-3",
-  "haiku-4",
-  "haiku-5",
-  "opus-1",
-  "opus-2",
-  "opus-3",
-  "opus-4",
   "opus-5"
  ],
  "concurrency": 1,
@@ -40,58 +31,130 @@
  "runtime": "local packages/barocss-browser dist (baroBoot default config: observe body, gc on, gcGraceMs 3000)",
  "summary": {
   "settled": {
-   "n": 3,
+   "n": 10,
    "junkRules": 0,
    "junkMax": 0,
    "calls": 1,
-   "generated": 43,
+   "generated": 56,
    "wrongStyleSamplePct": 0,
-   "streamsWithWrongStyle": 1,
+   "streamsWithWrongStyle": 0,
    "wrongEls": 0,
-   "lastTokenToFinalMs": 28.3,
-   "lastTokenToFinalP90": 238.3,
+   "lastTokenToFinalMs": 29.4,
+   "lastTokenToFinalP90": 34.8,
    "unsettled": 0,
-   "cacheEnd": 43,
+   "cacheEnd": 56,
    "cachedJunkEnd": 0,
-   "cacheAfterGc": 43,
+   "cacheAfterGc": 56,
    "cachedJunkAfterGc": 0,
    "streamS": 0
   },
-  "innerHTML@100": {
-   "n": 1,
+  "innerHTML@20": {
+   "n": 10,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 23,
-   "generated": 51,
-   "wrongStyleSamplePct": 0.6,
-   "streamsWithWrongStyle": 1,
-   "wrongEls": 6,
-   "lastTokenToFinalMs": 0.6,
-   "lastTokenToFinalP90": 0.6,
+   "calls": 17,
+   "generated": 56,
+   "wrongStyleSamplePct": 0.8,
+   "streamsWithWrongStyle": 8,
+   "wrongEls": 4,
+   "lastTokenToFinalMs": 0.7,
+   "lastTokenToFinalP90": 1.3,
    "unsettled": 0,
-   "cacheEnd": 51,
+   "cacheEnd": 56,
    "cachedJunkEnd": 0,
-   "cacheAfterGc": 51,
+   "cacheAfterGc": 56,
    "cachedJunkAfterGc": 0,
-   "streamS": 10.7
+   "streamS": 37.4
+  },
+  "incremental@20": {
+   "n": 10,
+   "junkRules": 0,
+   "junkMax": 0,
+   "calls": 17,
+   "generated": 56,
+   "wrongStyleSamplePct": 0.8,
+   "streamsWithWrongStyle": 8,
+   "wrongEls": 5,
+   "lastTokenToFinalMs": 0.3,
+   "lastTokenToFinalP90": 0.7,
+   "unsettled": 1,
+   "cacheEnd": 56,
+   "cachedJunkEnd": 0,
+   "cacheAfterGc": 56,
+   "cachedJunkAfterGc": 0,
+   "streamS": 37.4
+  },
+  "innerHTML@50": {
+   "n": 10,
+   "junkRules": 0,
+   "junkMax": 0,
+   "calls": 17,
+   "generated": 56,
+   "wrongStyleSamplePct": 0.7,
+   "streamsWithWrongStyle": 8,
+   "wrongEls": 4,
+   "lastTokenToFinalMs": 0.8,
+   "lastTokenToFinalP90": 1.1,
+   "unsettled": 0,
+   "cacheEnd": 56,
+   "cachedJunkEnd": 0,
+   "cacheAfterGc": 56,
+   "cachedJunkAfterGc": 0,
+   "streamS": 15
+  },
+  "incremental@50": {
+   "n": 10,
+   "junkRules": 0,
+   "junkMax": 0,
+   "calls": 17,
+   "generated": 56,
+   "wrongStyleSamplePct": 0.8,
+   "streamsWithWrongStyle": 8,
+   "wrongEls": 4,
+   "lastTokenToFinalMs": 0.4,
+   "lastTokenToFinalP90": 1.1,
+   "unsettled": 1,
+   "cacheEnd": 56,
+   "cachedJunkEnd": 0,
+   "cacheAfterGc": 56,
+   "cachedJunkAfterGc": 0,
+   "streamS": 15
+  },
+  "innerHTML@100": {
+   "n": 10,
+   "junkRules": 0,
+   "junkMax": 0,
+   "calls": 17,
+   "generated": 56,
+   "wrongStyleSamplePct": 0.6,
+   "streamsWithWrongStyle": 8,
+   "wrongEls": 3,
+   "lastTokenToFinalMs": 0.7,
+   "lastTokenToFinalP90": 0.8,
+   "unsettled": 0,
+   "cacheEnd": 56,
+   "cachedJunkEnd": 0,
+   "cacheAfterGc": 56,
+   "cachedJunkAfterGc": 0,
+   "streamS": 7.5
   },
   "incremental@100": {
-   "n": 6,
+   "n": 10,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 22,
-   "generated": 58,
-   "wrongStyleSamplePct": 0.4,
-   "streamsWithWrongStyle": 5,
+   "calls": 17,
+   "generated": 56,
+   "wrongStyleSamplePct": 0.8,
+   "streamsWithWrongStyle": 8,
    "wrongEls": 4,
-   "lastTokenToFinalMs": 0.5,
-   "lastTokenToFinalP90": 0.6,
-   "unsettled": 0,
-   "cacheEnd": 58,
+   "lastTokenToFinalMs": 0.4,
+   "lastTokenToFinalP90": 0.5,
+   "unsettled": 1,
+   "cacheEnd": 56,
    "cachedJunkEnd": 0,
-   "cacheAfterGc": 58,
+   "cacheAfterGc": 56,
    "cachedJunkAfterGc": 0,
-   "streamS": 9.3
+   "streamS": 7.5
   }
  },
  "raw": [
@@ -101,24 +164,144 @@
    "doc": "haiku-1",
    "streamMs": 0.1,
    "calls": 1,
-   "generated": 51,
+   "generated": 49,
    "junk": 0,
    "junkSample": [],
    "frames": 1,
-   "elemSamples": 48,
+   "elemSamples": 36,
    "wrongSamples": 0,
    "wrongEls": 0,
    "wrongProps": {},
-   "settleMs": 28.3,
+   "settleMs": 29.4,
    "atEnd": {
-    "cachedClasses": 51,
-    "ruleCount": 60,
+    "cachedClasses": 49,
+    "ruleCount": 58,
     "reclaimed": 0
    },
    "cachedJunkEnd": 0,
    "afterGc": {
-    "cachedClasses": 51,
-    "ruleCount": 60,
+    "cachedClasses": 49,
+    "ruleCount": 58,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "haiku-1",
+   "streamMs": 38400.3,
+   "calls": 22,
+   "generated": 49,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 378,
+   "elemSamples": 6702,
+   "wrongSamples": 57,
+   "wrongEls": 11,
+   "wrongProps": {
+    "width": 57
+   },
+   "settleMs": 0.7,
+   "atEnd": {
+    "cachedClasses": 49,
+    "ruleCount": 58,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 49,
+    "ruleCount": 58,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "haiku-1",
+   "streamMs": 38400.2,
+   "calls": 22,
+   "generated": 49,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 379,
+   "elemSamples": 6726,
+   "wrongSamples": 58,
+   "wrongEls": 12,
+   "wrongProps": {
+    "width": 58
+   },
+   "settleMs": 0.3,
+   "atEnd": {
+    "cachedClasses": 49,
+    "ruleCount": 58,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 49,
+    "ruleCount": 58,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "haiku-1",
+   "streamMs": 15360.6,
+   "calls": 22,
+   "generated": 49,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 151,
+   "elemSamples": 2694,
+   "wrongSamples": 17,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 17
+   },
+   "settleMs": 0.4,
+   "atEnd": {
+    "cachedClasses": 49,
+    "ruleCount": 58,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 49,
+    "ruleCount": 58,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "haiku-1",
+   "streamMs": 15360.3,
+   "calls": 22,
+   "generated": 49,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 151,
+   "elemSamples": 2697,
+   "wrongSamples": 22,
+   "wrongEls": 9,
+   "wrongProps": {
+    "width": 22
+   },
+   "settleMs": 0.2,
+   "atEnd": {
+    "cachedClasses": 49,
+    "ruleCount": 58,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 49,
+    "ruleCount": 58,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
@@ -127,28 +310,58 @@
    "round": 0,
    "cond": "innerHTML@100",
    "doc": "haiku-1",
-   "streamMs": 10651.1,
-   "calls": 23,
-   "generated": 51,
+   "streamMs": 7680.4,
+   "calls": 22,
+   "generated": 49,
    "junk": 0,
    "junkSample": [],
-   "frames": 102,
-   "elemSamples": 2555,
-   "wrongSamples": 15,
-   "wrongEls": 6,
+   "frames": 74,
+   "elemSamples": 1334,
+   "wrongSamples": 7,
+   "wrongEls": 3,
    "wrongProps": {
-    "width": 15
+    "width": 7
    },
-   "settleMs": 0.6,
+   "settleMs": 0.8,
    "atEnd": {
-    "cachedClasses": 51,
-    "ruleCount": 60,
+    "cachedClasses": 49,
+    "ruleCount": 58,
     "reclaimed": 0
    },
    "cachedJunkEnd": 0,
    "afterGc": {
-    "cachedClasses": 51,
-    "ruleCount": 60,
+    "cachedClasses": 49,
+    "ruleCount": 58,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "haiku-1",
+   "streamMs": 7680.8,
+   "calls": 22,
+   "generated": 49,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 74,
+   "elemSamples": 1329,
+   "wrongSamples": 16,
+   "wrongEls": 9,
+   "wrongProps": {
+    "width": 16
+   },
+   "settleMs": 0.4,
+   "atEnd": {
+    "cachedClasses": 49,
+    "ruleCount": 58,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 49,
+    "ruleCount": 58,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
@@ -167,7 +380,187 @@
    "wrongSamples": 0,
    "wrongEls": 0,
    "wrongProps": {},
-   "settleMs": 22.2,
+   "settleMs": 22.6,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "haiku-2",
+   "streamMs": 23901.5,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 236,
+   "elemSamples": 2376,
+   "wrongSamples": 142,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 142
+   },
+   "settleMs": 0.3,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "haiku-2",
+   "streamMs": 23900.7,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 236,
+   "elemSamples": 2371,
+   "wrongSamples": 149,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 149
+   },
+   "settleMs": 0.2,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "haiku-2",
+   "streamMs": 9560.9,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 94,
+   "elemSamples": 953,
+   "wrongSamples": 59,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 59
+   },
+   "settleMs": 0.4,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "haiku-2",
+   "streamMs": 9561.2,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 94,
+   "elemSamples": 953,
+   "wrongSamples": 59,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 59
+   },
+   "settleMs": 0.3,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "haiku-2",
+   "streamMs": 4781.4,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 46,
+   "elemSamples": 471,
+   "wrongSamples": 27,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 27
+   },
+   "settleMs": 0.5,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "haiku-2",
+   "streamMs": 4780.6,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 47,
+   "elemSamples": 483,
+   "wrongSamples": 30,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 30
+   },
+   "settleMs": 0.3,
    "atEnd": {
     "cachedClasses": 34,
     "ruleCount": 34,
@@ -185,89 +578,166 @@
    "round": 0,
    "cond": "settled",
    "doc": "haiku-3",
-   "streamMs": 1.4,
+   "streamMs": 1.2,
    "calls": 1,
-   "generated": 43,
+   "generated": 28,
    "junk": 0,
    "junkSample": [],
-   "frames": 3,
-   "elemSamples": 66,
-   "wrongSamples": 2,
-   "wrongEls": 1,
-   "wrongProps": {
-    "color": 2,
-    "background-color": 2
-   },
-   "settleMs": 238.3,
+   "frames": 1,
+   "elemSamples": 17,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 29.8,
    "atEnd": {
-    "cachedClasses": 43,
-    "ruleCount": 43,
+    "cachedClasses": 28,
+    "ruleCount": 28,
     "reclaimed": 0
    },
    "cachedJunkEnd": 0,
    "afterGc": {
-    "cachedClasses": 43,
-    "ruleCount": 43,
+    "cachedClasses": 28,
+    "ruleCount": 28,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
   },
   {
    "round": 0,
-   "cond": "incremental@100",
-   "doc": "haiku-1",
-   "streamMs": 10652,
-   "calls": 23,
-   "generated": 51,
+   "cond": "innerHTML@20",
+   "doc": "haiku-3",
+   "streamMs": 37151.1,
+   "calls": 6,
+   "generated": 28,
    "junk": 0,
    "junkSample": [],
-   "frames": 100,
-   "elemSamples": 2507,
-   "wrongSamples": 23,
-   "wrongEls": 11,
-   "wrongProps": {
-    "width": 23
-   },
-   "settleMs": 0.6,
+   "frames": 366,
+   "elemSamples": 3878,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 0.8,
    "atEnd": {
-    "cachedClasses": 51,
-    "ruleCount": 60,
+    "cachedClasses": 28,
+    "ruleCount": 28,
     "reclaimed": 0
    },
    "cachedJunkEnd": 0,
    "afterGc": {
-    "cachedClasses": 51,
-    "ruleCount": 60,
+    "cachedClasses": 28,
+    "ruleCount": 28,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
   },
   {
    "round": 0,
-   "cond": "incremental@100",
-   "doc": "haiku-2",
-   "streamMs": 4802,
-   "calls": 10,
-   "generated": 34,
+   "cond": "incremental@20",
+   "doc": "haiku-3",
+   "streamMs": 37151.2,
+   "calls": 6,
+   "generated": 28,
    "junk": 0,
    "junkSample": [],
-   "frames": 46,
-   "elemSamples": 473,
-   "wrongSamples": 28,
-   "wrongEls": 4,
-   "wrongProps": {
-    "width": 28
-   },
-   "settleMs": 0.5,
+   "frames": 367,
+   "elemSamples": 3890,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 0.3,
    "atEnd": {
-    "cachedClasses": 34,
-    "ruleCount": 34,
+    "cachedClasses": 28,
+    "ruleCount": 28,
     "reclaimed": 0
    },
    "cachedJunkEnd": 0,
    "afterGc": {
-    "cachedClasses": 34,
-    "ruleCount": 34,
+    "cachedClasses": 28,
+    "ruleCount": 28,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "haiku-3",
+   "streamMs": 14861,
+   "calls": 6,
+   "generated": 28,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 146,
+   "elemSamples": 1556,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 1.1,
+   "atEnd": {
+    "cachedClasses": 28,
+    "ruleCount": 28,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 28,
+    "ruleCount": 28,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "haiku-3",
+   "streamMs": 14861.1,
+   "calls": 6,
+   "generated": 28,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 146,
+   "elemSamples": 1553,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 0.3,
+   "atEnd": {
+    "cachedClasses": 28,
+    "ruleCount": 28,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 28,
+    "ruleCount": 28,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "haiku-3",
+   "streamMs": 7430.7,
+   "calls": 6,
+   "generated": 28,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 71,
+   "elemSamples": 762,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 0.8,
+   "atEnd": {
+    "cachedClasses": 28,
+    "ruleCount": 28,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 28,
+    "ruleCount": 28,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
@@ -276,26 +746,204 @@
    "round": 0,
    "cond": "incremental@100",
    "doc": "haiku-3",
-   "streamMs": 9282.3,
-   "calls": 11,
-   "generated": 43,
+   "streamMs": 7430.9,
+   "calls": 6,
+   "generated": 28,
    "junk": 0,
    "junkSample": [],
-   "frames": 88,
-   "elemSamples": 1090,
+   "frames": 72,
+   "elemSamples": 771,
    "wrongSamples": 0,
    "wrongEls": 0,
    "wrongProps": {},
-   "settleMs": 0.3,
+   "settleMs": 0.4,
    "atEnd": {
-    "cachedClasses": 43,
-    "ruleCount": 43,
+    "cachedClasses": 28,
+    "ruleCount": 28,
     "reclaimed": 0
    },
    "cachedJunkEnd": 0,
    "afterGc": {
-    "cachedClasses": 43,
-    "ruleCount": 43,
+    "cachedClasses": 28,
+    "ruleCount": 28,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "settled",
+   "doc": "haiku-4",
+   "streamMs": 0.2,
+   "calls": 1,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 1,
+   "elemSamples": 32,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 27.9,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "haiku-4",
+   "streamMs": 37400.4,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 369,
+   "elemSamples": 6474,
+   "wrongSamples": 5,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 5
+   },
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "haiku-4",
+   "streamMs": 37401,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 369,
+   "elemSamples": 6473,
+   "wrongSamples": 6,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 6
+   },
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "haiku-4",
+   "streamMs": 14961,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 147,
+   "elemSamples": 2589,
+   "wrongSamples": 2,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 2
+   },
+   "settleMs": 0.5,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "haiku-4",
+   "streamMs": 14960.4,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 147,
+   "elemSamples": 2589,
+   "wrongSamples": 2,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 2
+   },
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "haiku-4",
+   "streamMs": 7480.3,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 72,
+   "elemSamples": 1281,
+   "wrongSamples": 1,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 1
+   },
+   "settleMs": 0.8,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
@@ -304,17 +952,17 @@
    "round": 0,
    "cond": "incremental@100",
    "doc": "haiku-4",
-   "streamMs": 8972,
+   "streamMs": 7480.6,
    "calls": 27,
    "generated": 65,
    "junk": 0,
    "junkSample": [],
-   "frames": 85,
-   "elemSamples": 1745,
-   "wrongSamples": 3,
-   "wrongEls": 3,
+   "frames": 72,
+   "elemSamples": 1278,
+   "wrongSamples": 1,
+   "wrongEls": 1,
    "wrongProps": {
-    "width": 3
+    "width": 1
    },
    "settleMs": 0.2,
    "atEnd": {
@@ -326,6 +974,184 @@
    "afterGc": {
     "cachedClasses": 65,
     "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "settled",
+   "doc": "haiku-5",
+   "streamMs": 0.1,
+   "calls": 1,
+   "generated": 44,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 1,
+   "elemSamples": 25,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 23.1,
+   "atEnd": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "haiku-5",
+   "streamMs": 37701.6,
+   "calls": 16,
+   "generated": 44,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 372,
+   "elemSamples": 5382,
+   "wrongSamples": 42,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 42
+   },
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "haiku-5",
+   "streamMs": 37701.4,
+   "calls": 16,
+   "generated": 44,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 372,
+   "elemSamples": 5379,
+   "wrongSamples": 44,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 44
+   },
+   "settleMs": 0.7,
+   "atEnd": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "haiku-5",
+   "streamMs": 15081.2,
+   "calls": 16,
+   "generated": 44,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 148,
+   "elemSamples": 2147,
+   "wrongSamples": 16,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 16
+   },
+   "settleMs": 0.8,
+   "atEnd": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "haiku-5",
+   "streamMs": 15080.6,
+   "calls": 16,
+   "generated": 44,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 148,
+   "elemSamples": 2147,
+   "wrongSamples": 19,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 19
+   },
+   "settleMs": 0.4,
+   "atEnd": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "haiku-5",
+   "streamMs": 7540.6,
+   "calls": 16,
+   "generated": 44,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 73,
+   "elemSamples": 1076,
+   "wrongSamples": 8,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 8
+   },
+   "settleMs": 0.5,
+   "atEnd": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 44,
+    "ruleCount": 44,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
@@ -334,28 +1160,206 @@
    "round": 0,
    "cond": "incremental@100",
    "doc": "haiku-5",
-   "streamMs": 20821.1,
-   "calls": 22,
-   "generated": 62,
+   "streamMs": 7541.4,
+   "calls": 16,
+   "generated": 44,
    "junk": 0,
    "junkSample": [],
-   "frames": 197,
-   "elemSamples": 6280,
-   "wrongSamples": 23,
-   "wrongEls": 12,
+   "frames": 73,
+   "elemSamples": 1066,
+   "wrongSamples": 8,
+   "wrongEls": 4,
    "wrongProps": {
-    "width": 23
+    "width": 8
    },
    "settleMs": 0.5,
    "atEnd": {
-    "cachedClasses": 62,
-    "ruleCount": 62,
+    "cachedClasses": 44,
+    "ruleCount": 44,
     "reclaimed": 0
    },
    "cachedJunkEnd": 0,
    "afterGc": {
-    "cachedClasses": 62,
-    "ruleCount": 62,
+    "cachedClasses": 44,
+    "ruleCount": 44,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "settled",
+   "doc": "opus-1",
+   "streamMs": 0.1,
+   "calls": 1,
+   "generated": 58,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 1,
+   "elemSamples": 26,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 31.5,
+   "atEnd": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "opus-1",
+   "streamMs": 27800.6,
+   "calls": 20,
+   "generated": 58,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 274,
+   "elemSamples": 3590,
+   "wrongSamples": 18,
+   "wrongEls": 3,
+   "wrongProps": {
+    "width": 18
+   },
+   "settleMs": 0.7,
+   "atEnd": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "opus-1",
+   "streamMs": 27800.3,
+   "calls": 20,
+   "generated": 58,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 273,
+   "elemSamples": 3562,
+   "wrongSamples": 20,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 20
+   },
+   "settleMs": 0.5,
+   "atEnd": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "opus-1",
+   "streamMs": 11121.3,
+   "calls": 20,
+   "generated": 58,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 108,
+   "elemSamples": 1422,
+   "wrongSamples": 6,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 6
+   },
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "opus-1",
+   "streamMs": 11121.1,
+   "calls": 20,
+   "generated": 58,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 109,
+   "elemSamples": 1442,
+   "wrongSamples": 9,
+   "wrongEls": 3,
+   "wrongProps": {
+    "width": 9
+   },
+   "settleMs": 0.4,
+   "atEnd": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "opus-1",
+   "streamMs": 5561.1,
+   "calls": 20,
+   "generated": 58,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 53,
+   "elemSamples": 703,
+   "wrongSamples": 3,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 3
+   },
+   "settleMs": 0.5,
+   "atEnd": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 58,
+    "ruleCount": 74,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
@@ -364,19 +1368,19 @@
    "round": 0,
    "cond": "incremental@100",
    "doc": "opus-1",
-   "streamMs": 5562,
+   "streamMs": 5562.3,
    "calls": 20,
    "generated": 58,
    "junk": 0,
    "junkSample": [],
    "frames": 53,
-   "elemSamples": 704,
+   "elemSamples": 708,
    "wrongSamples": 3,
    "wrongEls": 1,
    "wrongProps": {
     "width": 3
    },
-   "settleMs": 0.2,
+   "settleMs": 0.5,
    "atEnd": {
     "cachedClasses": 58,
     "ruleCount": 74,
@@ -386,6 +1390,826 @@
    "afterGc": {
     "cachedClasses": 58,
     "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "settled",
+   "doc": "opus-2",
+   "streamMs": 0.3,
+   "calls": 1,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 1,
+   "elemSamples": 19,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 28.6,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "opus-2",
+   "streamMs": 30702.1,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 302,
+   "elemSamples": 3012,
+   "wrongSamples": 114,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 114
+   },
+   "settleMs": 0.7,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "opus-2",
+   "streamMs": 30702.8,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 348,
+   "elemSamples": 3891,
+   "wrongSamples": 385,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 385
+   },
+   "settleMs": null,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "opus-2",
+   "streamMs": 12282.5,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 120,
+   "elemSamples": 1208,
+   "wrongSamples": 44,
+   "wrongEls": 2,
+   "wrongProps": {
+    "width": 44
+   },
+   "settleMs": 1.1,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "opus-2",
+   "streamMs": 12282,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 167,
+   "elemSamples": 2096,
+   "wrongSamples": 211,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 211
+   },
+   "settleMs": null,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "opus-2",
+   "streamMs": 6140.4,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 59,
+   "elemSamples": 602,
+   "wrongSamples": 22,
+   "wrongEls": 3,
+   "wrongProps": {
+    "width": 22
+   },
+   "settleMs": 0.7,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "opus-2",
+   "streamMs": 6142.2,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 107,
+   "elemSamples": 1519,
+   "wrongSamples": 155,
+   "wrongEls": 3,
+   "wrongProps": {
+    "width": 155
+   },
+   "settleMs": null,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "settled",
+   "doc": "opus-3",
+   "streamMs": 1.3,
+   "calls": 1,
+   "generated": 46,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 1,
+   "elemSamples": 22,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 34.8,
+   "atEnd": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "opus-3",
+   "streamMs": 38150.8,
+   "calls": 11,
+   "generated": 46,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 376,
+   "elemSamples": 4626,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 1.3,
+   "atEnd": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "opus-3",
+   "streamMs": 38151.6,
+   "calls": 11,
+   "generated": 46,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 376,
+   "elemSamples": 4624,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 0.3,
+   "atEnd": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "opus-3",
+   "streamMs": 15260.8,
+   "calls": 11,
+   "generated": 46,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 150,
+   "elemSamples": 1850,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 0.8,
+   "atEnd": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "opus-3",
+   "streamMs": 15260.5,
+   "calls": 11,
+   "generated": 46,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 150,
+   "elemSamples": 1852,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 0.2,
+   "atEnd": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "opus-3",
+   "streamMs": 7630.9,
+   "calls": 11,
+   "generated": 46,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 73,
+   "elemSamples": 906,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "opus-3",
+   "streamMs": 7629.9,
+   "calls": 11,
+   "generated": 46,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 74,
+   "elemSamples": 921,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 0.2,
+   "atEnd": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 46,
+    "ruleCount": 46,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "settled",
+   "doc": "opus-4",
+   "streamMs": 0.3,
+   "calls": 1,
+   "generated": 68,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 1,
+   "elemSamples": 29,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 27.8,
+   "atEnd": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "opus-4",
+   "streamMs": 38501.1,
+   "calls": 19,
+   "generated": 68,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 379,
+   "elemSamples": 4903,
+   "wrongSamples": 132,
+   "wrongEls": 6,
+   "wrongProps": {
+    "width": 132
+   },
+   "settleMs": 0.9,
+   "atEnd": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "opus-4",
+   "streamMs": 38500.6,
+   "calls": 19,
+   "generated": 68,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 380,
+   "elemSamples": 4922,
+   "wrongSamples": 133,
+   "wrongEls": 6,
+   "wrongProps": {
+    "width": 133
+   },
+   "settleMs": 0.3,
+   "atEnd": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "opus-4",
+   "streamMs": 15401.8,
+   "calls": 19,
+   "generated": 68,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 152,
+   "elemSamples": 1987,
+   "wrongSamples": 52,
+   "wrongEls": 6,
+   "wrongProps": {
+    "width": 52
+   },
+   "settleMs": 1.1,
+   "atEnd": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "opus-4",
+   "streamMs": 15400.4,
+   "calls": 19,
+   "generated": 68,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 151,
+   "elemSamples": 1971,
+   "wrongSamples": 51,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 51
+   },
+   "settleMs": 1.1,
+   "atEnd": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "opus-4",
+   "streamMs": 7700.3,
+   "calls": 19,
+   "generated": 68,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 74,
+   "elemSamples": 978,
+   "wrongSamples": 26,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 26
+   },
+   "settleMs": 0.7,
+   "atEnd": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "opus-4",
+   "streamMs": 7702.4,
+   "calls": 19,
+   "generated": 68,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 73,
+   "elemSamples": 961,
+   "wrongSamples": 26,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 26
+   },
+   "settleMs": 0.3,
+   "atEnd": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 68,
+    "ruleCount": 69,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "settled",
+   "doc": "opus-5",
+   "streamMs": 0.2,
+   "calls": 1,
+   "generated": 56,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 1,
+   "elemSamples": 24,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 34.7,
+   "atEnd": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "opus-5",
+   "streamMs": 35702.8,
+   "calls": 16,
+   "generated": 56,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 350,
+   "elemSamples": 4220,
+   "wrongSamples": 32,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 32
+   },
+   "settleMs": 0.9,
+   "atEnd": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "opus-5",
+   "streamMs": 35700.8,
+   "calls": 16,
+   "generated": 56,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 350,
+   "elemSamples": 4223,
+   "wrongSamples": 34,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 34
+   },
+   "settleMs": 0.5,
+   "atEnd": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "opus-5",
+   "streamMs": 14282.1,
+   "calls": 16,
+   "generated": 56,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 139,
+   "elemSamples": 1686,
+   "wrongSamples": 14,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 14
+   },
+   "settleMs": 1,
+   "atEnd": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "opus-5",
+   "streamMs": 14282.1,
+   "calls": 16,
+   "generated": 56,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 140,
+   "elemSamples": 1702,
+   "wrongSamples": 12,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 12
+   },
+   "settleMs": 0.5,
+   "atEnd": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "opus-5",
+   "streamMs": 7140.7,
+   "calls": 16,
+   "generated": 56,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 69,
+   "elemSamples": 842,
+   "wrongSamples": 5,
+   "wrongEls": 3,
+   "wrongProps": {
+    "width": 5
+   },
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "opus-5",
+   "streamMs": 7140.4,
+   "calls": 16,
+   "generated": 56,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 69,
+   "elemSamples": 845,
+   "wrongSamples": 7,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 7
+   },
+   "settleMs": 0.4,
+   "atEnd": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 56,
+    "ruleCount": 56,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
