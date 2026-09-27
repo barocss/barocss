@@ -49,35 +49,5 @@ export function claudeGenerator({ model = 'haiku', timeoutMs = DEFAULT_TIMEOUT_M
   };
 }
 
-// ---- stub: canned, persona-styled HTML built from the server facts (no CLI) ----
-const THEMES = {
-  senior: { wrap: 'min-h-screen bg-white text-black p-10 flex flex-col gap-8', h: 'text-5xl font-extrabold', btn: 'w-full rounded-xl border-4 border-black bg-yellow-300 px-8 py-6 text-3xl font-bold', alt: 'w-full rounded-xl border-4 border-black bg-white px-8 py-6 text-3xl', grid: 'flex flex-col gap-6' },
-  regular: { wrap: 'min-h-screen bg-zinc-900 text-zinc-100 p-4 flex flex-col gap-3', h: 'text-lg font-semibold tracking-tight', btn: 'rounded-md bg-emerald-500 px-3 py-2 text-sm font-medium text-zinc-900', alt: 'rounded-md border border-zinc-700 px-3 py-2 text-sm', grid: 'grid grid-cols-3 gap-2' },
-  family: { wrap: 'min-h-screen bg-gradient-to-b from-pink-100 to-sky-100 p-6 flex flex-col gap-5', h: 'text-4xl font-black text-fuchsia-600', btn: 'rounded-3xl bg-orange-400 px-6 py-5 text-2xl font-bold text-white shadow-lg', alt: 'rounded-3xl bg-white px-6 py-5 text-2xl text-sky-700 shadow', grid: 'grid grid-cols-2 gap-4' },
-  foreign: { wrap: 'min-h-screen bg-slate-50 text-slate-800 p-6 flex flex-col gap-4', h: 'text-3xl font-bold text-indigo-700', btn: 'rounded-lg bg-indigo-600 px-5 py-4 text-xl text-white', alt: 'rounded-lg border border-indigo-200 bg-white px-5 py-4 text-xl', grid: 'grid grid-cols-2 gap-3' },
-  none: { wrap: 'min-h-screen bg-amber-50 p-8 flex flex-col items-center justify-center gap-6', h: 'text-4xl font-bold text-amber-900', btn: 'rounded-full bg-amber-700 px-10 py-5 text-2xl text-white', alt: 'rounded-full border border-amber-700 px-6 py-4 text-xl', grid: 'grid grid-cols-2 gap-4' },
-};
-const won = (n) => `${n.toLocaleString('en-US')}원`;
-const e = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
-
-export function stubGenerator() {
-  return {
-    name: 'stub',
-    generate: async ({ facts: f, menu, variant = 0 }) => {
-      const t = THEMES[f.persona ?? 'none'];
-      const b = (action, label, extra = '', cls = t.btn) => `<button class="${cls}" data-action="${action}"${extra}>${e(label)}</button>`;
-      const flip = variant % 2 ? ' flex-col-reverse' : '';
-      let body = '';
-      switch (f.step) {
-        case 'start': body = `<h1 class="${t.h}">Welcome</h1>${b('start', 'Touch to order')}`; break;
-        case 'persona': body = `<h1 class="${t.h}">Who is ordering?</h1><div class="${t.grid}">${['senior', 'regular', 'family', 'foreign'].map((p) => b('choose-persona', p, ` data-option="${p}"`)).join('')}</div>`; break;
-        case 'menu': body = `<h1 class="${t.h}">Menu (${e(f.context.weather)} ${e(f.context.daypart)})</h1><div class="${t.grid}">${menu.items.map((i) => b('select-item', `${i.name} ${won(i.price)}`, ` data-item="${i.id}"`, t.alt)).join('')}</div>${f.cart.length ? b('view-cart', `Cart (${f.cart.length})`) : ''}`; break;
-        case 'options': body = `<h1 class="${t.h}">${e(f.current.name)} <span class="opacity-70">${won(f.current.price)}</span></h1><div class="${t.grid}">${f.current.sizes.map((z) => b('set-size', z.label, ` data-option="${z.id}"`, z.id === f.current.size ? t.btn : t.alt)).join('')}${f.current.offered.map((o) => b('toggle-option', o.label, ` data-option="${o.id}"`, f.current.options.includes(o.id) ? t.btn : t.alt)).join('')}</div>${b('add-to-cart', 'Add to cart')}${b('open-menu', 'Back', '', t.alt)}`; break;
-        case 'cart': body = `<h1 class="${t.h}">Your order</h1><ul class="flex flex-col gap-2">${f.cart.map((l) => `<li class="flex justify-between items-center">${e(l.name)} ${e(l.size ?? '')} ${won(l.price)} ${b('remove-item', 'Remove', ` data-option="${l.index}"`, t.alt)}</li>`).join('')}</ul><p class="${t.h}">Total ${won(f.total)}</p>${b('checkout', 'Pay')}${b('open-menu', 'Add more', '', t.alt)}`; break;
-        case 'pay': body = `<h1 class="${t.h}">Pay ${won(f.total)}</h1><p class="opacity-80">Demo only: nothing is charged.</p>${b('pay', 'Confirm payment')}${b('back', 'Back', '', t.alt)}`; break;
-        case 'done': body = `<h1 class="${t.h}">Order #${f.orderNo}</h1><p class="text-xl">Thank you!</p>${b('restart', 'New order')}`; break;
-      }
-      return { html: `<main class="${t.wrap}${flip}">${body}</main>`, meta: { ms: 0, model: 'stub' } };
-    },
-  };
-}
+// The stub generator (canned screens, no CLI) lives in stub.mjs.
+export { stubScreen, stubGenerator } from './stub.mjs';

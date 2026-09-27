@@ -1,0 +1,388 @@
+{
+  "kind": "offline-preflight",
+  "node": "v22.22.0",
+  "contractSha256": "3b62dbe15a670e7ae1708af113cdda5770fb9198f85d8ebef96e63469020523f",
+  "localPackageVersions": {
+    "@barocss/browser": "0.11.1",
+    "@barocss/kit": "0.11.1",
+    "tailwindcss": "4.3.3"
+  },
+  "dependencies": {
+    "@json-render/core": null,
+    "@json-render/react": null,
+    "react": null,
+    "react-dom": null,
+    "playwright-core": null,
+    "tailwindcss": null,
+    "@barocss/browser": null
+  },
+  "measureKeys": [
+    "specValid",
+    "expressible",
+    "domSignature",
+    "inputValuePreserved",
+    "focusPreserved",
+    "actionCount",
+    "unstyledFrames",
+    "themeAdherence",
+    "hostStyleDelta",
+    "screenshot"
+  ],
+  "interactionOrder": [
+    "render-baseline-if-initial",
+    "focus-target",
+    "enter-value-if-initial",
+    "apply-stage-edit",
+    "capture-dom-value-focus",
+    "capture-style-and-frames",
+    "trigger-action",
+    "capture-action-count"
+  ],
+  "buildControl": {
+    "inventoryStage": "initial",
+    "allowLaterStageTokens": false
+  },
+  "evidence": {
+    "prior": "scripts/json-render-376/result.json",
+    "sampleLimit": "one output per model/format/request; no edit replay"
+  },
+  "blockedReason": "Official json-render React renderer or browser dependencies are absent from this worktree. No substitute renderer or model output is used.",
+  "cases": [
+    {
+      "scenario": "settings",
+      "arm": "fixed",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "fixed",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "fixed",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "fixed",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "bounded",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "bounded",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "bounded",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "bounded",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "utility",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "utility",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "utility",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "utility",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "build",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "build",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "build",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "settings",
+      "arm": "build",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "utility",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "utility",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "utility",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "utility",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "build",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "build",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "build",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "dashboard",
+      "arm": "build",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "utility",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "utility",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "utility",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "utility",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "build",
+      "stage": "initial",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "build",
+      "stage": "density",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "build",
+      "stage": "responsive",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    },
+    {
+      "scenario": "kiosk",
+      "arm": "build",
+      "stage": "structure",
+      "status": "blocked:official-renderer-unavailable",
+      "measures": null
+    }
+  ]
+}

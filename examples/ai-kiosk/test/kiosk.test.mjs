@@ -70,6 +70,27 @@ test('sanitise is idempotent', () => {
 test('tokenizer never emits a tag token for text-looking input', () => {
   assert.deepEqual(tokenize('1 <2').map((t) => t.type), ['text']);
 });
+test('img: kept only with an allow-listed same-origin asset src, plus class and alt', () => {
+  assert.equal(S('<img src="/assets/a-b1.svg" alt="A cup" class="h-10 w-10">'), '<img src="/assets/a-b1.svg" alt="A cup" class="h-10 w-10">');
+  assert.equal(S('<img alt="x" src="/assets/x.png"><img src="/assets/y.webp">'), '<img alt="x" src="/assets/x.png"><img src="/assets/y.webp">');
+  assert.equal(S('<img src="/assets/x.svg" onerror="z" style="s" data-action="start" width="9">'), '<img src="/assets/x.svg">');
+  assert.equal(S('<p><img src="/assets/x.svg">t</img></p>'), '<p><img src="/assets/x.svg">t</p>');
+});
+test('img: every other src form drops the whole tag', () => {
+  for (const src of ['https://e.example/x.svg', '//e.example/x.svg', 'http://127.0.0.1/assets/x.svg', 'data:image/svg+xml,<svg>', 'javascript:x',
+    '/assets/../server.mjs', '/assets/%2e%2e/x.svg', '/assets/x.svg?y=1', '/assets/x.svg#f', '/assets/X.SVG', '/assets/x.gif', '/assets/sub/x.svg',
+    '/assets/x.svg/', ' /assets/x.svg', 'assets/x.svg', '/vendor/x.svg', '/assets/.svg', '/assets/x.svg\n', '&#47;assets&#47;x.svg&#10;', ''])
+    assert.equal(S(`<p>a<img src="${src}" alt="z">b</p>`), '<p>ab</p>', src);
+  assert.equal(S('<p>a<img alt="no src">b</p>'), '<p>ab</p>');
+  assert.equal(S('<p>a<img src="/assets/x.svg" src="https://e.example/y">b</p>'), '<p>ab</p>'); // duplicate src
+  assert.equal(S('<p>a<img srcset="/assets/x.svg 1x">b</p>'), '<p>ab</p>');
+  assert.equal(S('<div src="/assets/x.svg" alt="x">t</div>'), '<div>t</div>'); // src/alt only on img
+});
+test('img: alt is plain escaped text, control characters rejected, length capped', () => {
+  assert.equal(S('<img src="/assets/x.svg" alt="&quot;&gt;<b>">'), '<img src="/assets/x.svg" alt="&quot;&gt;<b>">'.replace('<b>', '&lt;b&gt;'));
+  assert.equal(S('<img src="/assets/x.svg" alt="a&#10;b">'), '<img src="/assets/x.svg">');
+  assert.equal(S(`<img src="/assets/x.svg" alt="${'a'.repeat(300)}">`), `<img src="/assets/x.svg" alt="${'a'.repeat(120)}">`);
+});
 test('extractFragment strips fences', () => {
   assert.equal(extractFragment('```html\n<p>x</p>\n```'), '<p>x</p>');
 });
@@ -145,7 +166,9 @@ for (const persona of ['senior', 'regular', 'family', 'foreign']) {
         const r = await post(base, { session, action, item, option });
         assert.equal(r.status, 200, `${action}: ${JSON.stringify(r.data)}`);
         assert.deepEqual(r.data.noop.unstyled, [], `unstyled at ${r.data.facts.step}`);
-        assert.ok(!/on\w+=|<script|href=|src=/i.test(r.data.html));
+        assert.ok(!/on\w+=|<script|href=/i.test(r.data.html));
+        for (const [, src] of r.data.html.matchAll(/src="([^"]*)"/g)) assert.match(src, /^\/assets\/[a-z0-9-]+\.svg$/);
+        assert.ok(r.data.facts.step === 'start' || r.data.facts.step === 'done' || /<img src="\/assets\//.test(r.data.html));
         return r.data;
       };
       data = await act('start'); assert.equal(data.facts.step, 'persona');
@@ -194,4 +217,158 @@ test('static: serves only allowlisted files', async () => {
     for (const p of ['/server.mjs', '/../package.json', '/%2e%2e/package.json', '/vendor/../server.mjs', '/test/kiosk.test.mjs'])
       assert.equal((await fetch(`${base}${p}`)).status, 404, p);
   });
+});
+test('static: /assets serves only plain asset names with the right type', async () => {
+  await withServer(async (base) => {
+    const r = await fetch(`${base}/assets/latte.svg`);
+    assert.equal(r.status, 200);
+    assert.equal(r.headers.get('content-type'), 'image/svg+xml');
+    assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
+    assert.match(await r.text(), /^<svg /);
+    for (const p of ['/assets/../server.mjs', '/assets/%2e%2e/server.mjs', '/assets/..%2fserver.mjs', '/assets/nope.svg', '/assets/LATTE.svg',
+      '/assets/latte.svg.bak', '/assets/', '/assets/sub/x.svg', '/assets/%6catte.svg'])
+      assert.equal((await fetch(`${base}${p}`)).status, 404, p);
+  });
+});
+test('every image the menu and stub use exists and matches the asset rule', async () => {
+  const fs = await import('node:fs');
+  const { menu } = await import('../server.mjs');
+  const { isAsset } = await import('../lib/contract.mjs');
+  const srcs = [...menu.items.map((i) => i.image), ...menu.categories.map((c) => c.icon), ...Object.values(menu.assets)];
+  for (const s of srcs) {
+    assert.ok(isAsset(s), s);
+    assert.ok(fs.existsSync(new URL(`..${s}`, import.meta.url)), s);
+  }
+});
+
+// ---------------- #443: order method, chrome, menu variety, required options ----------------
+async function session(base) {
+  const { data } = await post(base, {});
+  const id = data.session;
+  return async (action, item, option, want = 200) => {
+    const r = await post(base, { session: id, action, item, option });
+    assert.equal(r.status, want, `${action} ${item ?? ''} ${option ?? ''}: ${JSON.stringify(r.data).slice(0, 200)}`);
+    if (want === 200) assert.deepEqual(r.data.noop.unstyled, [], `unstyled at ${r.data.facts.step}`);
+    return r.data;
+  };
+}
+test('order-method screen: touch, low-posture and voice (mock) entries; bad method rejected', async () => {
+  await withServer(async (base) => {
+    const act = await session(base);
+    const d0 = (await post(base, {})).data;
+    for (const m of ['touch', 'low', 'voice']) assert.match(d0.html, new RegExp(`data-action="order-method" data-option="${m}"`));
+    assert.match(d0.html, /data-action="toggle-contrast"/);
+    await act('order-method', undefined, 'wheelchair', 422);
+    await act('voice-start', undefined, undefined, 422); // only on the voice screen
+    let d = await act('order-method', undefined, 'voice'); assert.equal(d.facts.step, 'voice');
+    assert.match(d.html, /data-action="voice-start"/);
+    d = await act('back'); assert.equal(d.facts.step, 'start');
+    await act('order-method', undefined, 'voice');
+    d = await act('voice-start'); assert.equal(d.facts.step, 'persona');
+  });
+});
+test('low-posture mode: content in the lower part, fewer items per page, a way back', async () => {
+  await withServer(async (base) => {
+    const act = await session(base);
+    let d = await act('order-method', undefined, 'low');
+    assert.equal(d.facts.ui.mode, 'low'); assert.equal(d.facts.step, 'persona');
+    d = await act('choose-persona', undefined, 'family');
+    assert.equal(d.facts.view.pageSize, 3); assert.equal(d.facts.view.items.length, 3);
+    assert.match(d.html, /<main class="flex h-full flex-col[^"]*"><div class="flex h-2\/5 shrink-0/);
+    assert.match(d.html, /data-action="order-method" data-option="touch"/);
+    d = await act('order-method', undefined, 'touch');
+    assert.equal(d.facts.ui.mode, 'touch'); assert.equal(d.facts.view.pageSize, 6);
+    assert.doesNotMatch(d.html, /h-2\/5/);
+  });
+});
+test('chrome on every step: home, language, breadcrumb, back, zoom, call and the live order-N button', async () => {
+  await withServer(async (base) => {
+    const act = await session(base);
+    await act('start');
+    let d = await act('choose-persona', undefined, 'senior');
+    for (const re of [/data-action="restart"/, /data-action="set-lang" data-option="en"/, /data-action="back"/, /data-action="toggle-zoom"/, /data-action="call-staff"/, /메뉴보기/])
+      assert.match(d.html, re);
+    assert.doesNotMatch(d.html, /data-action="view-cart"/); // 0 items: the order button is a greyed span
+    assert.match(d.html, /0개 주문하기/);
+    d = await act('select-item', 'latte'); await act('set-size', undefined, 'M');
+    d = await act('set-qty', undefined, 'inc'); assert.equal(d.facts.current.qty, 2); assert.equal(d.facts.current.lineTotal, 10000);
+    await act('set-qty', undefined, 'up', 422);
+    d = await act('add-to-cart'); assert.equal(d.facts.cartCount, 2); assert.equal(d.facts.crumb, 'review');
+    d = await act('open-menu');
+    assert.match(d.html, /data-action="view-cart"[^>]*>2개 주문하기</);
+    d = await act('add-to-cart', 'croissant'); assert.equal(d.facts.cartCount, 3); assert.equal(d.facts.total, 10000 + 3200);
+    d = await act('open-menu'); assert.match(d.html, />3개 주문하기</);
+    d = await act('call-staff'); assert.equal(d.facts.ui.toast, 'staff'); assert.match(d.html, /직원을 호출했어요/);
+    d = await act('set-lang', undefined, 'en'); assert.equal(d.facts.ui.toast, null); assert.match(d.html, />Order 3 items</);
+    d = await act('toggle-contrast'); assert.match(d.html, /bg-black text-white/);
+    d = await act('toggle-zoom'); assert.equal(d.facts.ui.zoom, true); assert.equal(d.facts.view.pageSize, 4);
+    d = await act('toggle-zoom'); assert.equal(d.facts.ui.zoom, false);
+    await act('set-lang', undefined, 'fr', 422);
+  });
+});
+test('pagination within a category; out-of-range pages rejected', async () => {
+  await withServer(async (base) => {
+    const act = await session(base);
+    await act('start'); await act('choose-persona', undefined, 'foreign');
+    let d = await act('set-category', undefined, 'coffee');
+    assert.equal(d.facts.view.pages, 2); assert.equal(d.facts.view.items.length, 6);
+    assert.match(d.html, /1\/2/); assert.match(d.html, /data-action="page" data-option="next"/); assert.doesNotMatch(d.html, /data-option="prev"/);
+    await act('page', undefined, 'prev', 422);
+    d = await act('page', undefined, 'next'); assert.equal(d.facts.view.page, 1); assert.equal(d.facts.view.items.length, 2);
+    assert.match(d.html, /2\/2/); assert.doesNotMatch(d.html, /data-option="next"/);
+    await act('page', undefined, 'next', 422);
+    await act('page', undefined, '3', 422);
+    await act('set-category', undefined, 'secret', 422);
+    d = await act('set-category', undefined, 'bundle');
+    assert.ok(d.facts.view.items.every((i) => i.bundle)); assert.match(d.html, /translate-x-2 -translate-y-2/); assert.match(d.html, /x10/);
+  });
+});
+test('sold-out items are labelled, not tappable, and rejected by the server', async () => {
+  await withServer(async (base) => {
+    const act = await session(base);
+    await act('start'); await act('choose-persona', undefined, 'regular');
+    const d = await act('set-category', undefined, 'coffee');
+    assert.equal(d.facts.view.pages, 1); // 8 per page for the busy regular
+    assert.ok(d.facts.view.items.find((i) => i.id === 'cold-brew').soldOut);
+    assert.doesNotMatch(d.html, /data-item="cold-brew"/);
+    assert.match(d.html, /grayscale/); assert.match(d.html, /품절/);
+    await act('select-item', 'cold-brew', undefined, 422);
+    await act('add-to-cart', 'cold-brew', undefined, 422);
+  });
+});
+test('required options: add stays disabled and the server rejects it until size and temperature are chosen', async () => {
+  await withServer(async (base) => {
+    const act = await session(base);
+    await act('start'); await act('choose-persona', undefined, 'family');
+    await act('add-to-cart', 'vanilla-latte', undefined, 422); // no one-tap for items with required choices
+    let d = await act('select-item', 'americano');
+    assert.deepEqual(d.facts.current.missing, ['size', 'temp']); assert.equal(d.facts.current.ready, false);
+    assert.doesNotMatch(d.html, /data-action="add-to-cart"/); assert.match(d.html, /옵션을 선택해주세요/);
+    assert.match(d.html, /\(필수\)/); assert.match(d.html, /\(선택\)/);
+    await act('add-to-cart', undefined, undefined, 422);
+    d = await act('set-size', undefined, 'L'); assert.deepEqual(d.facts.current.missing, ['temp']);
+    await act('add-to-cart', undefined, undefined, 422);
+    await act('set-temp', undefined, 'warm', 422);
+    d = await act('set-temp', undefined, 'iced'); assert.equal(d.facts.current.ready, true);
+    assert.match(d.html, /data-action="add-to-cart"/);
+    d = await act('toggle-option', undefined, 'extra-shot'); assert.equal(d.facts.current.price, 3500 + 1000 + 500); // menu.json only
+    d = await act('add-to-cart'); assert.equal(d.facts.total, 5000);
+    await act('open-menu');
+    await act('set-temp', undefined, 'hot', 422); // nothing being customised
+    d = await act('select-item', 'croissant'); assert.equal(d.facts.current.ready, true); // no required groups
+  });
+});
+test('client pre-check mirrors the fixed option sets', async () => {
+  const { isValidPress } = await import('../lib/contract.mjs');
+  assert.ok(isValidPress('order-method', 'low')); assert.ok(!isValidPress('order-method', 'x'));
+  assert.ok(isValidPress('select-item', undefined)); assert.ok(!isValidPress('refund', undefined));
+  assert.ok(!isValidPress('page', undefined)); assert.ok(isValidPress('set-size', 'L'));
+});
+test('prompt carries the chrome and the new step goals', async () => {
+  const { buildPrompt } = await import('../lib/prompt.mjs');
+  const { facts, newState } = await import('../lib/order.mjs');
+  const { menu } = await import('../server.mjs');
+  const p = buildPrompt({ menu, facts: facts(menu, newState()) });
+  for (const s of ['CHROME', 'order-method', 'set-temp', 'soldOut', 'facts.cartCount', 'low-posture']) assert.ok(p.includes(s), s);
+  assert.ok(!p.includes('"usual"'));
 });

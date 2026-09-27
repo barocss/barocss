@@ -20,10 +20,11 @@ const ROOT = path.resolve(HERE, '../../..');
 const req = createRequire(path.join(ROOT, 'packages/barocss/package.json'));
 const { compile } = req('tailwindcss');
 const twDir = path.dirname(req.resolve('tailwindcss/package.json'));
+const NORM = process.env.NORM_COLOR ? (await import('../../unocss-430/norm-color.mjs')).normReport : (r) => r; // #430
 const PORT = Number(process.env.PROBE_PORT || 5931);
 const RUNS = Number(process.argv[2] || 3);
-const ARMS = ['ref', 'build', 'twb', 'baro'];
-const FILES = { baro: path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'), twb: path.join(process.env.TWB_DIR || '', 'dist/index.global.js') };
+const ARMS = process.env.PROBE_ARMS ? process.env.PROBE_ARMS.split(',') : ['ref', 'build', 'twb', 'baro']; // #430: e.g. PROBE_ARMS=ref,build,baro,uno
+const FILES = { baro: path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'), twb: path.join(process.env.TWB_DIR || '', 'dist/index.global.js'), uno: process.env.UNO_JS || '' };
 const SHELL = fs.readFileSync(path.join(HERE, '../shell.html'), 'utf8');
 const APP_CSS = fs.readFileSync(path.join(HERE, 'app.css'), 'utf8');
 const PAGE_JS = fs.readFileSync(path.join(HERE, 'page.js'), 'utf8');
@@ -74,10 +75,15 @@ const emptyLen = (await build([])).length, known = new Set();
 for (const t of allSpecTokens) if ((await build([t])).length > emptyLen) known.add(t);
 
 const BARO_BOOT = `<script src="/baro.js"></script><script>BaroCSS.baroStart({ skipExisting: true, config: { cssVarPrefix: 'tw', theme: { extend: BaroCSS.shadcnTheme } } });</script>`;
+// #430: UnoCSS runtime (core + presetWind4, documented CDN setup) with the app's shadcn colors/radii as theme.
+const UNO_THEME = { colors: Object.fromEntries([...APP_CSS.matchAll(/--color-([\w-]+): (var\(--[\w-]+\))/g)].map((m) => [m[1], m[2]])),
+  radius: Object.fromEntries([...APP_CSS.matchAll(/--radius-(\w+): ([^;]+);/g)].map((m) => [m[1], m[2]])) };
+// 'uno' = presetWind4() defaults; 'uno-noreset' = presetWind4({ preflights: { reset: false } }) (the host build already has a reset).
+const UNO_BOOT = (o = '') => `<script>window.__unocss={presets:[function(){return window.__unocss_runtime.presets.presetWind4(${o})}],theme:${JSON.stringify(UNO_THEME)}};</script><script src="/uno.js"></script>`;
 const head = (arm, k) => ({
   ref: `<link rel="stylesheet" href="/ref-${k}.css">`, build: '<link rel="stylesheet" href="/build.css">',
   twb: '<link rel="stylesheet" href="/build.css"><script src="/twb.js"></script>',
-  baro: '<link rel="stylesheet" href="/build.css">' + BARO_BOOT,
+  baro: '<link rel="stylesheet" href="/build.css">' + BARO_BOOT, uno: '<link rel="stylesheet" href="/build.css">' + UNO_BOOT(), 'uno-noreset': '<link rel="stylesheet" href="/build.css">' + UNO_BOOT('{preflights:{reset:false}}'),
   isoref: '<link rel="stylesheet" href="/all.css">', isobaro: '<link rel="stylesheet" href="/build.css">' + BARO_BOOT,
 })[arm];
 const page = (arm, k) => `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=1280">${head(arm, k)}
@@ -96,6 +102,7 @@ const srv = http.createServer((q, r) => {
   if (u.pathname === '/page.js') return send('text/javascript', PAGE_JS);
   if (u.pathname === '/baro.js') return send('text/javascript', fs.readFileSync(FILES.baro));
   if (u.pathname === '/twb.js') return send('text/javascript', fs.readFileSync(FILES.twb));
+  if (u.pathname === '/uno.js') return send('text/javascript', fs.readFileSync(FILES.uno));
   r.writeHead(404); r.end();
 });
 await new Promise((ok) => srv.listen(PORT, '127.0.0.1', ok));
@@ -109,7 +116,7 @@ for (const k of Object.keys(SPECS)) for (const arm of ARMS) for (let i = 0; i < 
   await p.goto(`http://127.0.0.1:${PORT}/app?arm=${arm}&spec=${k}`);
   const r = await p.waitForFunction(() => window.__r, null, { timeout: 15000 }).then((x) => x.jsonValue()).catch(() => ({ error: 'no report' }));
   if (process.env.SHOTS && i === 0) await p.locator('#out').screenshot({ path: path.join(HERE, 'shots-tmp', `${k}.${arm}.jpg`), type: 'jpeg', quality: 60 }).catch(() => {});
-  raw.push({ spec: k, arm, i, errs, ...r });
+  raw.push({ spec: k, arm, i, errs, ...NORM(r, ['specSig', 'shellSig', 'shellSigBefore']) });
   await p.close();
 }
 const iso = {};
@@ -133,7 +140,7 @@ const cause = (t) => { const x = tokInfo[t]; if (!x.known) return 'invented/non-
 const med = (a) => { const s = a.filter((x) => x != null).sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : null; };
 function cmp(a, b) { if (!a || !b || a.length !== b.length) return null; let s = 0, n = 0; const bad = []; a.forEach((row, i) => { let ok = true; row.forEach((v, j) => { n++; if (v === b[i][j]) s++; else ok = false; }); if (!ok) bad.push(i); }); return { prop: s / n, elem: 1 - bad.length / a.length, bad }; }
 const gz = (f) => zlib.gzipSync(fs.readFileSync(f)).length;
-const scriptBytes = { twb: gz(FILES.twb), baro: gz(FILES.baro), ref: 0, build: 0 };
+const scriptBytes = { twb: ARMS.includes('twb') ? gz(FILES.twb) : null, baro: gz(FILES.baro), ref: 0, build: 0, ...(ARMS.some((a) => a.startsWith('uno')) ? { uno: gz(FILES.uno), 'uno-noreset': gz(FILES.uno) } : {}) };
 const per = [], misses = [];
 for (const k of Object.keys(SPECS)) {
   const ref = raw.find((r) => r.spec === k && r.arm === 'ref' && r.i === 0), bld = raw.find((r) => r.spec === k && r.arm === 'build' && r.i === 0);

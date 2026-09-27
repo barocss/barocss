@@ -285,9 +285,13 @@ describe("background utilities", () => {
   it("via-blue-500 → --baro-gradient-via + via-stops", () => {
     expect(decls("via-blue-500")).toEqual([
       ["--baro-gradient-via", expect.any(String)],
-      ["--baro-gradient-via-stops", "var(--baro-gradient-position), var(--baro-gradient-from) var(--baro-gradient-from-position), var(--baro-gradient-via) var(--baro-gradient-via-position), var(--baro-gradient-to) var(--baro-gradient-to-position)"],
+      ["--baro-gradient-via-stops", "var(--baro-gradient-position), var(--baro-gradient-from) var(--baro-gradient-from-position), var(--baro-gradient-via, #0000) var(--baro-gradient-via-position), var(--baro-gradient-to) var(--baro-gradient-to-position)"],
       ["--baro-gradient-stops", "var(--baro-gradient-via-stops)"],
     ]);
+  });
+  it("via arbitrary color with variable alpha keeps the registered via initial as a fallback", () => {
+    const rules = decls("via-[rgb(0_0_255)]/(--o)");
+    expect(rules).toContainEqual(["--baro-gradient-via-stops", expect.stringContaining("var(--baro-gradient-via, #0000) var(--baro-gradient-via-position)")]);
   });
   it("to-green-700 → --baro-gradient-to + composed stops", () => {
     expect(decls("to-green-700")).toEqual([["--baro-gradient-to", expect.any(String)], ["--baro-gradient-stops", stops]]);
