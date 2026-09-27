@@ -20,6 +20,11 @@ const script = (dir, body) => {
   fs.writeFileSync(file, `#!/bin/bash\n${body}\n`, { mode: 0o700 });
   return file;
 };
+const jsScript = (dir, body) => {
+  const file = path.join(dir, 'fake-codex.mjs');
+  fs.writeFileSync(file, `#!${process.execPath}\n${body}\n`, { mode: 0o700 });
+  return file;
+};
 const clean = (parts) => { fs.rmSync(parts.cwd, { recursive: true, force: true }); fs.rmSync(parts.attemptDir, { recursive: true, force: true }); };
 
 test('fake CLI command is retained as observable tool evidence without output or reasoning text', async () => {
@@ -50,4 +55,45 @@ test('unexpected tool, timeout and incomplete final fail without retry', async (
       assert.match(result.stopReason, expected);
     } finally { clean(parts); }
   }
+});
+
+test('automatic approval denial on fragmented stderr stops even after a zero exit', async () => {
+  const parts = fixture();
+  try {
+    const cliPath = jsScript(parts.attemptDir, `
+import fs from 'node:fs';
+const out = process.argv[process.argv.indexOf('--output-last-message') + 1];
+fs.writeFileSync(out, '{"specJson":"{}","cannotExpress":false}');
+process.stderr.write('Automatic app');
+setTimeout(() => { process.stderr.write('roval review denied the action\\n'); process.exit(0); }, 20);
+`);
+    const result = await runAgentCodex({ ...parts, cliPath, prompt: 'stub', timeoutMs: 3000 });
+    assert.equal(result.stopReason, 'approval-or-sandbox');
+  } finally { clean(parts); }
+});
+
+test('transport drains a delayed inherited stdout pipe before judging completion', async () => {
+  const parts = fixture();
+  try {
+    const final = '{"specJson":"{}","cannotExpress":false}';
+    const lines = [
+      { type: 'thread.started', thread_id: 'stub' },
+      { type: 'turn.started' },
+      { type: 'item.completed', item: { type: 'agent_message', text: final } },
+      { type: 'turn.completed', usage: { input_tokens: 10, output_tokens: 5 } },
+    ].map((event) => JSON.stringify(event)).join('\n') + '\n';
+    const cliPath = jsScript(parts.attemptDir, `
+import fs from 'node:fs';
+import { spawn } from 'node:child_process';
+const out = process.argv[process.argv.indexOf('--output-last-message') + 1];
+fs.writeFileSync(out, ${JSON.stringify(final)});
+spawn(process.execPath, ['-e', ${JSON.stringify(`setTimeout(() => process.stdout.write(${JSON.stringify(lines)}), 150);`)}],
+  { stdio: ['ignore', 'inherit', 'inherit'] });
+process.exit(0);
+`);
+    const result = await runAgentCodex({ ...parts, cliPath, prompt: 'stub', timeoutMs: 3000 });
+    assert.equal(result.stopReason, null);
+    assert.equal(result.eventCount, 4);
+    assert.ok(result.elapsedMs >= 100);
+  } finally { clean(parts); }
 });

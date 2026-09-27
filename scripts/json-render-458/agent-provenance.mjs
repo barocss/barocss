@@ -11,17 +11,46 @@ import { CLI_VERSION, MODEL, REASONING, MAX_ATTEMPTS } from './plan.mjs';
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const environmentKeys = ['CODEX_HOME', 'HOME', 'LANG', 'NO_COLOR', 'PATH', 'TERM'];
+const privateRoot = '/Users/user/.barocss-ai/v3/private-458';
+const builtInSkillsSha = '5ba0f9dbe3610088107ce8a891d894a2c90dab7730326e4e0c81ae693f0ac16f';
 function option(args, key) { const i = args.indexOf(key); return i >= 0 ? args[i + 1] : null; }
+function verifyLiveClaim(captureDir, route, inventory) {
+  if (path.dirname(captureDir) !== privateRoot || !/^cli-run-[a-z0-9-]+$/.test(path.basename(captureDir))) throw new Error('Live CLI route outside private root');
+  if (!/^[a-f0-9]{40}$/.test(route.reviewedCommit) ||
+      !String(route.reviewUrl).startsWith('https://github.com/barocss/barocss/issues/458#issuecomment-') ||
+      !/^[a-z0-9.-]+\.json$/.test(route.approvalFile) || route.approvalFile.startsWith('.')) throw new Error('Live Review identity missing');
+  const claimPath = path.join(privateRoot, `.claim-${path.basename(captureDir)}`);
+  const approvalPath = path.join(privateRoot, route.approvalFile);
+  if (fs.realpathSync(privateRoot) !== privateRoot || (fs.statSync(privateRoot).mode & 0o077) !== 0 ||
+      !fs.lstatSync(claimPath).isFile() || !fs.lstatSync(approvalPath).isFile() ||
+      (fs.statSync(claimPath).mode & 0o077) !== 0 || (fs.statSync(approvalPath).mode & 0o077) !== 0) throw new Error('Live private evidence path or mode drift');
+  const claimBytes = fs.readFileSync(claimPath), approvalBytes = fs.readFileSync(approvalPath);
+  const claim = JSON.parse(claimBytes), approval = JSON.parse(approvalBytes);
+  if (sha(claimBytes) !== route.claimSha256 || sha(approvalBytes) !== route.approvalSha256 ||
+      claim.kind !== 'barocss-458-cli-agent-claim' || claim.issue !== 458 ||
+      claim.agentPlanHash !== route.agentPlanSha256 || claim.basePlanHash !== route.basePlanSha256 ||
+      claim.outputDir !== captureDir || claim.commit !== route.reviewedCommit ||
+      claim.reviewUrl !== route.reviewUrl || claim.approvalFile !== route.approvalFile ||
+      claim.approvalSha256 !== route.approvalSha256 || claim.startupSha256 !== builtInSkillsSha ||
+      approval.issue !== 458 || approval.decision !== 'ACCEPT' ||
+      approval.agentPlanSha256 !== route.agentPlanSha256 || approval.commit !== route.reviewedCommit ||
+      approval.outputDir !== captureDir || approval.reviewUrl !== route.reviewUrl) throw new Error('Live CLI claim or Review binding drift');
+  inventory[path.basename(claimPath)] = sha(claimBytes);
+  inventory[route.approvalFile] = sha(approvalBytes);
+}
 export function verifyAgentCapture(captureDir) {
   const base = verifyCapture(captureDir);
   const routePath = path.join(captureDir, 'agent-route.json');
   const routeBytes = fs.readFileSync(routePath);
   const route = JSON.parse(routeBytes);
   const attempted = base.rows.filter((row) => row.attempted);
-  if (base.manifest.synthetic !== false || route.kind !== 'barocss-458-cli-agent' ||
+  if (!((base.manifest.synthetic === false && route.kind === 'barocss-458-cli-agent-live') ||
+        (base.manifest.synthetic === true && route.kind === 'barocss-458-cli-agent-synthetic')) ||
       route.agentPlanSha256 !== verifyAgentFrozen() || route.basePlanSha256 !== verifyFrozen() ||
       route.scheduled !== MAX_ATTEMPTS || route.attempted !== attempted.length) throw new Error('CLI agent route binding drift');
   const inventory = { ...base.inventory, 'agent-route.json': sha(routeBytes) };
+  if (base.manifest.synthetic === false) verifyLiveClaim(captureDir, route, inventory);
+  else if (Object.keys(route).some((key) => ['claimSha256', 'approvalFile', 'approvalSha256', 'reviewedCommit', 'reviewUrl'].includes(key))) throw new Error('Synthetic route must not carry live Review identity');
   let scratchCwd = null;
   const toolUse = {};
   for (const row of attempted) {

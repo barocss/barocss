@@ -16,6 +16,10 @@ export const AGENT_FILES = Object.freeze([
 export function currentAgentPlan() {
   return { issue: 458, route: 'codex-cli-agent', basePlanSha256: verifyFrozen(),
     model: MODEL, reasoning: REASONING, cliVersion: CLI_VERSION, maxAttempts: MAX_ATTEMPTS,
+    startupContext: { isolatedCodexHome: true, existingChatGptAuthSymlink: true,
+      globalAgentsAbsent: true, userRulesAbsent: true, userSkillsAbsent: true,
+      userConfigIgnored: true, hostSkillDiscoverySkipped: true,
+      normalizedBuiltInSkillInventorySha256: '5ba0f9dbe3610088107ce8a891d894a2c90dab7730326e4e0c81ae693f0ac16f' },
     files: Object.fromEntries(AGENT_FILES.map((name) => [name, sha(fs.readFileSync(path.join(here, name)))])) };
 }
 export function verifyAgentFrozen() {

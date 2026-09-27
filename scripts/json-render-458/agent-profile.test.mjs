@@ -6,6 +6,8 @@ test('agent argv uses only the native restricted permission profile', () => {
   const args = buildAgentArgv({ cwd: '/Users/user/.barocss-ai/v3/agent-scratch-458-test', schemaPath: '/Users/user/.barocss-ai/v3/agent-scratch-458-test/schema.json', finalPath: '/Users/user/.barocss-ai/v3/private-458/raw.txt' });
   assert.equal(args[0], 'exec');
   assert.ok(args.includes('--ignore-user-config'));
+  assert.ok(!args.includes('--ignore-rules'));
+  assert.ok(args.includes('skip_host_skill_discovery'));
   assert.ok(args.includes('--strict-config'));
   assert.ok(args.includes(`default_permissions="${PROFILE}"`));
   assert.ok(args.includes(PROFILE_RULES));

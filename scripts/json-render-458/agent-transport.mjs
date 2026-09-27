@@ -39,6 +39,7 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
   let completed = false;
   let finalHash = null;
   let stderrClass = null;
+  let stderrTail = '';
   try {
     child = spawn(cliPath, args, { cwd, env, detached: true, stdio: ['pipe', 'pipe', 'pipe'] });
     const stopNow = (reason) => { if (!stop) { stop = reason; stopGroup(child); } };
@@ -66,19 +67,33 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
     });
     child.stderr.setEncoding('utf8');
     child.stderr.on('data', (chunk) => {
-      const message = String(chunk).slice(0, 16_384);
-      if (/quota|rate.limit/i.test(message)) stderrClass = 'quota';
-      else if (/bill|credit|payment/i.test(message)) stderrClass = 'billing';
-      else if (/auth|login|credential/i.test(message)) stderrClass = 'auth';
-      else if (/approval|permission|denied|sandbox/i.test(message)) stderrClass = 'approval-or-sandbox';
+      const message = (stderrTail + String(chunk)).slice(-16_384);
+      stderrTail = message.slice(-256);
+      const failure = /quota|rate.limit/i.test(message) ? 'quota'
+        : /bill|credit|payment/i.test(message) ? 'billing'
+        : /auth|login|credential/i.test(message) ? 'auth'
+        : /approval|permission|denied|sandbox/i.test(message) ? 'approval-or-sandbox' : null;
+      if (failure) { stderrClass = failure; stopNow(failure); }
     });
+    child.stdout.on('error', () => stopNow('stdout-error'));
+    child.stderr.on('error', () => stopNow('stderr-error'));
+    child.stdin.on('error', () => stopNow('stdin-error'));
     child.stdin.end(prompt);
     const timer = setTimeout(() => stopNow('timeout'), timeoutMs);
+    let drainTimer;
     const exit = await new Promise((resolve) => {
-      child.once('error', (error) => resolve({ code: null, signal: null, spawnError: error.code || 'spawn-error' }));
-      child.once('exit', (code, signal) => resolve({ code, signal }));
+      let spawnError = null;
+      child.once('error', (error) => { spawnError = error.code || 'spawn-error'; stopNow(spawnError); });
+      child.once('exit', () => {
+        drainTimer = setTimeout(() => {
+          stopNow('stdio-drain-timeout');
+          child.stdout.destroy(); child.stderr.destroy();
+        }, 2000);
+      });
+      child.once('close', (code, signal) => resolve({ code, signal, spawnError }));
     });
     clearTimeout(timer);
+    clearTimeout(drainTimer);
     if (pending.trim()) stop ||= 'incomplete-event-line';
     const rawFinal = fs.existsSync(finalPath) ? fs.readFileSync(finalPath, 'utf8') : null;
     if (rawFinal !== null) fs.chmodSync(finalPath, 0o400);
@@ -87,7 +102,7 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
     if (!stop && rawFinal !== null && finalHash !== sha(rawFinal)) stop = 'final-event-mismatch';
     return { cliVersion: agentCliVersion, modelRequested: MODEL, reasoningRequested: REASONING,
       argv: args, environmentKeys: Object.keys(env).sort(), exitCode: exit.code, signal: exit.signal,
-      spawnError: exit.spawnError ?? null, stopReason: stop || (exit.code === 0 ? null : stderrClass),
+      spawnError: exit.spawnError ?? null, stopReason: stop || stderrClass,
       elapsedMs: Math.round(performance.now() - started), eventCount, toolCount, usage, responseModel, rawFinal };
   } finally { fs.fsyncSync(fd); fs.closeSync(fd); fs.chmodSync(eventsPath, 0o400); }
 }

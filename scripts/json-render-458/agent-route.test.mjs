@@ -38,13 +38,38 @@ test('CLI agent route verifies all saved commands, launch settings, and 24 stub 
         argv: buildAgentArgv({ cwd, schemaPath, finalPath: path.join(request.attemptDir, 'raw-final.txt') }),
         environmentKeys: ['CODEX_HOME', 'HOME', 'LANG', 'NO_COLOR', 'PATH', 'TERM'] };
     };
-    const rows = await capture({ outputDir, transport, planHash: verifyFrozen(), synthetic: false });
+    const rows = await capture({ outputDir, transport, planHash: verifyFrozen(), synthetic: true });
     assert.equal(rows.length, MAX_ATTEMPTS);
-    fs.writeFileSync(path.join(outputDir, 'agent-route.json'), JSON.stringify({ kind: 'barocss-458-cli-agent',
+    fs.writeFileSync(path.join(outputDir, 'agent-route.json'), JSON.stringify({ kind: 'barocss-458-cli-agent-synthetic',
       agentPlanSha256: verifyAgentFrozen(), basePlanSha256: verifyFrozen(), scheduled: MAX_ATTEMPTS, attempted: MAX_ATTEMPTS }) + '\n');
     const verified = verifyAgentCapture(outputDir);
+    assert.equal(verified.manifest.synthetic, true);
     assert.equal(Object.values(verified.toolUse).reduce((sum, count) => sum + count, 0), MAX_ATTEMPTS);
     assert.equal(scoreAgentSaved(outputDir).scoring.length, MAX_ATTEMPTS);
+    assert.equal(scoreAgentSaved(outputDir).synthetic, true);
+    const routePath = path.join(outputDir, 'agent-route.json');
+    const manifestPath = path.join(outputDir, 'manifest.json');
+    const savedRoute = fs.readFileSync(routePath), savedManifest = fs.readFileSync(manifestPath);
+    fs.writeFileSync(routePath, JSON.stringify({ ...JSON.parse(savedRoute), kind: 'barocss-458-cli-agent-live' }));
+    fs.writeFileSync(manifestPath, JSON.stringify({ ...JSON.parse(savedManifest), synthetic: false }));
+    assert.throws(() => verifyAgentCapture(outputDir), /Live CLI route outside private root/);
+    fs.writeFileSync(routePath, savedRoute);
+    fs.writeFileSync(manifestPath, savedManifest);
+    const liveDir = path.join(privateRoot, `cli-run-test-no-claim-${process.pid}`);
+    const privateRootExisted = fs.existsSync(privateRoot);
+    if (!privateRootExisted) fs.mkdirSync(privateRoot, { mode: 0o700 });
+    try {
+      fs.cpSync(outputDir, liveDir, { recursive: true, errorOnExist: true, force: false });
+      fs.writeFileSync(path.join(liveDir, 'manifest.json'), JSON.stringify({ ...JSON.parse(savedManifest), synthetic: false }));
+      fs.writeFileSync(path.join(liveDir, 'agent-route.json'), JSON.stringify({ ...JSON.parse(savedRoute),
+        kind: 'barocss-458-cli-agent-live', claimSha256: '0'.repeat(64),
+        approvalFile: 'review-test.json', approvalSha256: '0'.repeat(64),
+        reviewedCommit: '0'.repeat(40), reviewUrl: 'https://github.com/barocss/barocss/issues/458#issuecomment-1' }));
+      assert.throws(() => verifyAgentCapture(liveDir), /ENOENT/);
+    } finally {
+      fs.rmSync(liveDir, { recursive: true, force: true });
+      if (!privateRootExisted) fs.rmdirSync(privateRoot);
+    }
     const transportPath = path.join(outputDir, 'attempt-00', 'transport.json');
     const saved = fs.readFileSync(transportPath);
     const altered = JSON.parse(saved);

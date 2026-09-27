@@ -28,7 +28,8 @@ export function buildAgentArgv({ cwd, schemaPath, finalPath }) {
     '-c', 'mcp_servers={}', '-c', 'shell_environment_policy.inherit=none',
     '-c', 'approval_policy="on-request"',
     '-c', `default_permissions="${PROFILE}"`, '-c', PROFILE_RULES,
-    '-c', `permissions.${PROFILE}.network.enabled=false`];
+    '-c', `permissions.${PROFILE}.network.enabled=false`,
+    '--enable', 'skip_host_skill_discovery'];
   for (const feature of DISABLED_AGENT_FEATURES) args.push('--disable', feature);
   return [...args, '--cd', cwd, '--json', '--output-schema', schemaPath,
     '--output-last-message', finalPath, '-'];

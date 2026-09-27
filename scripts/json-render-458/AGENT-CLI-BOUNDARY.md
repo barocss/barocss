@@ -6,7 +6,7 @@ This checkpoint does not launch Codex `exec` or spend a model invocation. The ac
 
 The CLI launch must use a unique empty `agent-scratch-458-*` directory directly under `/Users/user/.barocss-ai/v3/`. Its schema copy is the only initial file in that directory. The agent prompt contains the semantic request and bounded catalog, but no repository path, evaluator, rubric, expected response, or evidence path. The host process writes the final response and event ledger outside the agent workspace. The profile has `:root=deny`, `:minimal=read`, `:tmpdir=deny`, `:slash_tmp=deny`, `:workspace_roots/.=read`, and command network disabled. It uses Codex's native permission profile, not a sandbox bypass.
 
-The installed CLI is `codex-cli 0.156.1`; `codex login status` reports ChatGPT. These are read-only preflight observations, not a live readiness verdict. `:minimal` still grants platform runtime paths. The host process may read the schema and ChatGPT login; model-generated commands are restricted by the profile. The later exact launch must verify its effective profile and startup context before Review can accept it.
+The installed CLI is `codex-cli 0.156.1`; `codex login status` reports ChatGPT. These are read-only preflight observations, not a live readiness verdict. `:minimal` still grants platform runtime paths. The host process may read the schema and ChatGPT login; model-generated commands are restricted by the profile. The exact launch uses a fresh mode-0700 `CODEX_HOME` outside scratch with only a symlink to the existing ChatGPT auth file. It does not copy or print the credential. The CLI can authenticate through that reference, while the native profile denies command reads of both the reference and original auth paths. No global AGENTS, user rules, user config, plugins, or user skills are copied into this home. A no-model `codex debug prompt-input` check binds the path-normalized inventory of the five CLI built-in `.system` skills and rejects unexpected project/global instructions. CLI-created cache, tmp, and built-in skill files are allowed only after the checked startup; new instruction sources are rejected before every attempt. The isolated home is removed after all CLI streams close; the claim and run evidence remain.
 
 ## No-model probes
 
@@ -20,6 +20,7 @@ Run `BARO_458_PROBE=1 node scripts/json-render-458/agent-boundary.test.mjs` with
 | Read host evidence sentinel | Deny | 1 |
 | Read system temp sentinel | Deny | 1 |
 | Read outside sentinel through scratch symlink | Deny | 1 |
+| Read isolated auth symlink or original auth file | Deny | 1 each |
 | Create file in scratch | Deny | nonzero; file absent |
 | Create file in host evidence directory | Deny | nonzero; file absent |
 
@@ -27,4 +28,4 @@ A prior probe using scratch under `/private/tmp` without explicit temp denials *
 
 ## Next gate
 
-The launch transport, one-run claim, route-specific provenance, and consumers are now implemented in separate `agent-*` modules. Their exact final commit and frozen agent plan still require independent pre-live Review ACCEPT. The old CLI hard block remains unchanged. See `AGENT-CLI-RUN-PACKET.md` for the reviewed execution sequence. No model call has occurred at this checkpoint.
+The launch transport, one-run claim, route-specific provenance, and consumers are implemented in separate `agent-*` modules. The live route requires a matching Review approval file and durable claim; stub/browser smoke uses a distinct synthetic route that the viewer labels synthetic. A fragmented approval denial stops the run, and the transport waits for a bounded stdout/stderr drain before judging completion. Their exact final commit and frozen agent plan still require independent pre-live Review ACCEPT. The old CLI hard block remains unchanged. See `AGENT-CLI-RUN-PACKET.md` for the reviewed execution sequence. No model call has occurred at this checkpoint.

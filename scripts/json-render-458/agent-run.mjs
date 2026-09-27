@@ -12,14 +12,19 @@ export async function runReviewedAgentPilot({ outputDir, approvalPath }) {
   const agentPlanSha256 = verifyAgentFrozen();
   const basePlanSha256 = verifyFrozen();
   const transport = agentLiveTransport({ approvalPath, outputDir, agentPlanHash: agentPlanSha256 });
-  const rows = await capture({ outputDir, transport, planHash: basePlanSha256, synthetic: false });
-  const route = { kind: 'barocss-458-cli-agent', agentPlanSha256, basePlanSha256,
-    scheduled: rows.length, attempted: rows.filter((row) => row.attempted).length };
-  const fd = fs.openSync(path.join(outputDir, 'agent-route.json'), 'wx', 0o600);
-  try { fs.writeFileSync(fd, JSON.stringify(route, null, 2) + '\n'); fs.fsyncSync(fd); }
-  finally { fs.closeSync(fd); }
-  const evidence = verifyAgentCapture(outputDir);
-  return { rows, agentEvidenceSha256: evidence.agentEvidenceSha256 };
+  try {
+    const rows = await capture({ outputDir, transport, planHash: basePlanSha256, synthetic: false });
+    const route = { kind: 'barocss-458-cli-agent-live', agentPlanSha256, basePlanSha256,
+      scheduled: rows.length, attempted: rows.filter((row) => row.attempted).length,
+      claimSha256: transport.claim.sha256, approvalFile: transport.claim.approvalFile,
+      approvalSha256: transport.claim.approvalSha256,
+      reviewedCommit: transport.claim.reviewedCommit, reviewUrl: transport.claim.reviewUrl };
+    const fd = fs.openSync(path.join(outputDir, 'agent-route.json'), 'wx', 0o600);
+    try { fs.writeFileSync(fd, JSON.stringify(route, null, 2) + '\n'); fs.fsyncSync(fd); }
+    finally { fs.closeSync(fd); }
+    const evidence = verifyAgentCapture(outputDir);
+    return { rows, agentEvidenceSha256: evidence.agentEvidenceSha256 };
+  } finally { transport.cleanup(); }
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);
