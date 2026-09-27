@@ -11,7 +11,7 @@ export const DISABLED_AGENT_FEATURES = Object.freeze([
   'apps', 'plugins', 'remote_plugin', 'browser_use', 'browser_use_external',
   'browser_use_full_cdp_access', 'computer_use', 'in_app_browser',
   'code_mode_host', 'code_mode', 'multi_agent', 'worktrees', 'hooks',
-  'skill_search', 'view_image', 'image_generation', 'web_search_request',
+  'skill_search', 'view_image', 'image_generation',
   'standalone_web_search', 'tool_suggest', 'goals', 'sleep_tool',
   'deferred_executor',
 ]);
