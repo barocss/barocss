@@ -1,5 +1,12 @@
 # @barocss/kit
 
+## 0.11.2
+
+### Patch Changes
+
+- 0e48cf6: Sort class-based `dark:` utilities after matching base utilities, including classes discovered later by the browser runtime. Media-based dark variants retain their existing order.
+- b32f831: Preserve the transparent initial gradient stop when an arbitrary `via-*` color uses an unset alpha variable in the Shadow DOM property fallback. Registered-property rendering is unchanged.
+
 ## 0.11.1
 
 ### Patch Changes
