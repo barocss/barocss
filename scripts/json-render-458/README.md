@@ -40,3 +40,7 @@ The command prints a random tokenized `127.0.0.1` URL. The viewer accepts GET on
 ## Live gate
 
 `--live` always fails before dispatch in this preparation commit. Review's preparation-only ACCEPT is not pre-live authorization. A future exact commit would need an enforceable pre-dispatch tool isolation boundary, independent Review ACCEPT, and a separately frozen plan before any call. Do not remove the hard block or call `runCodex` directly. See [RUBRIC.md](RUBRIC.md) for denominators and [SYNTHETIC-FINDINGS.md](SYNTHETIC-FINDINGS.md) for the local stub replay result.
+
+## Direct API preparation
+
+The direct Responses API run packet is in [API-RUN-PACKET.md](API-RUN-PACKET.md). Its implemented command requires exact owner approval, a reviewed clean commit, private output, and project credentials before network dispatch. No API call has been made. The CLI hard block remains.
