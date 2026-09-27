@@ -57,6 +57,9 @@ export async function capture({ outputDir, transport, planHash, synthetic = fals
     let response;
     try { response = await transport({ row, prompt, attemptDir: dir, timeoutMs: request.timeoutMs }); }
     catch (error) { response = { exitCode: null, stopReason: `transport-exception:${String(error?.message ?? error).slice(0, 80)}`, rawFinal: null, usage: null, elapsedMs: null }; }
+    const eventsFile = path.join(dir, 'events.jsonl');
+    if (!fs.existsSync(eventsFile)) saveExclusive(eventsFile, '');
+    fs.chmodSync(eventsFile, 0o400);
     const rawFile = path.join(dir, 'raw-final.txt');
     if (!fs.existsSync(rawFile) && typeof response.rawFinal === 'string') saveExclusive(rawFile, response.rawFinal);
     if (fs.existsSync(rawFile)) fs.chmodSync(rawFile, 0o400);

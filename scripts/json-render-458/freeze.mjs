@@ -8,8 +8,11 @@ import { schedule, MODEL, REASONING, CLI_VERSION, MAX_ATTEMPTS } from './plan.mj
 const here = path.dirname(fileURLToPath(import.meta.url));
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 export const CONTRACT_FILES = Object.freeze([
-  'capture.mjs', 'cli.mjs', 'freeze.mjs', 'live.mjs', 'output.schema.json',
-  'plan.mjs', 'stub.mjs', 'validate.mjs',
+  'base.css', 'browser-app.jsx', 'capture.mjs', 'cli.mjs', 'freeze.mjs', 'live.mjs',
+  'output.schema.json', 'plan.mjs', 'provenance.mjs', 'replay.mjs', 'score.mjs', 'stub.mjs',
+  'validate.mjs', 'viewer.mjs', 'RUBRIC.md',
+  '../json-render-446/contract.mjs', '../json-render-446/spec.mjs',
+  '../json-render-446/styles.mjs', '../json-render-446/evidence/baro.umd.cjs',
 ]);
 export function currentFrozenPlan() {
   const files = Object.fromEntries(CONTRACT_FILES.map((name) => [name, sha(fs.readFileSync(path.join(here, name)))]));

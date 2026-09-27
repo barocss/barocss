@@ -81,6 +81,8 @@ export async function runCodex({ cliPath, cwd, home, codexHome, nodeBin, schemaP
   let usage = null;
   let responseModel = null;
   let eventCount = 0;
+  let completed = false;
+  let agentMessageHash = null;
   let stderrClass = null;
   try {
     child = spawn(cliPath, args, { cwd, env, detached: true, stdio: ['pipe', 'pipe', 'pipe'] });
@@ -98,6 +100,8 @@ export async function runCodex({ cliPath, cwd, home, codexHome, nodeBin, schemaP
           if (filtered.model && filtered.model !== MODEL) return stopNow('model-drift');
           if (filtered.model) responseModel = filtered.model;
           if (filtered.usage) usage = filtered.usage;
+          if (filtered.type === 'turn.completed') completed = true;
+          if (filtered.itemType === 'agent_message' && filtered.type === 'item.completed') agentMessageHash = filtered.textSha256 ?? null;
           if (filtered.errorClass && ['quota', 'billing', 'auth'].includes(filtered.errorClass)) stopNow(filtered.errorClass);
           fs.writeSync(fd, JSON.stringify(filtered) + '\n'); fs.fsyncSync(fd); eventCount++;
         } catch (error) { stopNow(String(error.message).slice(0, 80)); }
@@ -120,6 +124,9 @@ export async function runCodex({ cliPath, cwd, home, codexHome, nodeBin, schemaP
     if (pending.trim()) stop ||= 'incomplete-event-line';
     const rawFinal = fs.existsSync(finalPath) ? fs.readFileSync(finalPath, 'utf8') : null;
     if (rawFinal !== null) fs.chmodSync(finalPath, 0o400);
+    if (!stop && exit.code === 0 && !completed) stop = 'missing-completion-event';
+    if (!stop && exit.code === 0 && !agentMessageHash) stop = 'missing-final-event';
+    if (!stop && rawFinal !== null && agentMessageHash !== sha(rawFinal)) stop = 'final-event-mismatch';
     return { cliVersion: CLI_VERSION, modelRequested: MODEL, reasoningRequested: REASONING, argv: args, environmentKeys: Object.keys(env).sort(),
       exitCode: exit.code, signal: exit.signal, spawnError: exit.spawnError ?? null, stopReason: stop || stderrClass,
       elapsedMs: Math.round(performance.now() - started), eventCount, usage, responseModel, rawFinal };
