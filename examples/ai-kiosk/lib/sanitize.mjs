@@ -5,15 +5,19 @@
 // re-escaped, tag and attribute names come from the allowlist). Output can therefore contain only:
 //   - the tags in ALLOWED_TAGS, with no attributes other than class / data-action / data-item / data-option
 //   - escaped text
-// No URL-bearing attribute survives (href, src, srcset, action, formaction, style, on*, ...): none is allowed.
-import { isAction, isToken } from './contract.mjs';
+// No URL-bearing attribute survives (href, srcset, action, formaction, style, on*, ...), with one exception:
+// <img src> is kept ONLY when it matches ASSET_RE (same-origin /assets/<name>.svg|png|webp); an <img> whose
+// src is missing, repeated or anything else is dropped entirely. <img> may also carry class and alt (text).
+import { isAction, isAsset, isToken } from './contract.mjs';
 
 export const ALLOWED_TAGS = new Set([
   'div', 'span', 'p', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'button', 'section', 'header', 'footer',
   'main', 'nav', 'article', 'aside', 'strong', 'em', 'b', 'i', 'small', 'br', 'hr', 'figure', 'figcaption',
-  'table', 'thead', 'tbody', 'tr', 'th', 'td', 'dl', 'dt', 'dd',
+  'table', 'thead', 'tbody', 'tr', 'th', 'td', 'dl', 'dt', 'dd', 'img',
 ]);
-const VOID_TAGS = new Set(['br', 'hr']);
+const VOID_TAGS = new Set(['br', 'hr', 'img']);
+const IMG_ATTRS = new Set(['class', 'src', 'alt']);
+const MAX_ALT = 120;
 // Elements dropped together with everything inside them (raw-text / foreign / embedding content).
 export const DROP_WITH_CONTENT = new Set([
   'script', 'style', 'iframe', 'frame', 'frameset', 'object', 'embed', 'applet', 'noscript', 'noembed',
@@ -104,9 +108,11 @@ export function tokenize(html) {
   return out;
 }
 
-function cleanAttr(name, value, opts) {
-  if (!ALLOWED_ATTRS.has(name)) return null;
+function cleanAttr(name, value, opts, tag) {
+  if (tag === 'img' ? !IMG_ATTRS.has(name) : !ALLOWED_ATTRS.has(name)) return null;
   const v = value.trim();
+  if (name === 'src') return isAsset(value) ? value : null; // exact match, no trimming
+  if (name === 'alt') return [...v].some((ch) => ch.charCodeAt(0) < 0x20) ? null : v.slice(0, MAX_ALT);
   if (name === 'class') {
     const toks = v.split(/\s+/).filter((t) => t && t.length <= 120 && !/[<>"'`\\]/.test(t) && ![...t].some((ch) => ch.charCodeAt(0) < 0x20) && !/url\(/i.test(t));
     const out = toks.join(' ').slice(0, MAX_CLASS);
@@ -141,10 +147,14 @@ export function sanitize(html, opts = {}) {
         continue;
       }
       if (!ALLOWED_TAGS.has(t.name) || stack.length >= MAX_DEPTH) { removed.tags++; continue; } // unwrap
+      if (t.name === 'img') { // kept only with exactly one src, and that src an allow-listed asset
+        const srcs = t.attrs.filter(([n]) => n === 'src');
+        if (srcs.length !== 1 || !isAsset(srcs[0][1])) { removed.tags++; continue; }
+      }
       let attrs = ''; const seen = new Set();
       for (const [n, v] of t.attrs) {
         if (seen.has(n)) { removed.attrs++; continue; }
-        const cv = cleanAttr(n, v, opts);
+        const cv = cleanAttr(n, v, opts, t.name);
         if (cv === null) { removed.attrs++; if (n === 'data-action') removed.actions++; continue; }
         seen.add(n); attrs += ` ${n}="${esc(cv)}"`;
       }

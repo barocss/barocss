@@ -70,6 +70,27 @@ test('sanitise is idempotent', () => {
 test('tokenizer never emits a tag token for text-looking input', () => {
   assert.deepEqual(tokenize('1 <2').map((t) => t.type), ['text']);
 });
+test('img: kept only with an allow-listed same-origin asset src, plus class and alt', () => {
+  assert.equal(S('<img src="/assets/a-b1.svg" alt="A cup" class="h-10 w-10">'), '<img src="/assets/a-b1.svg" alt="A cup" class="h-10 w-10">');
+  assert.equal(S('<img alt="x" src="/assets/x.png"><img src="/assets/y.webp">'), '<img alt="x" src="/assets/x.png"><img src="/assets/y.webp">');
+  assert.equal(S('<img src="/assets/x.svg" onerror="z" style="s" data-action="start" width="9">'), '<img src="/assets/x.svg">');
+  assert.equal(S('<p><img src="/assets/x.svg">t</img></p>'), '<p><img src="/assets/x.svg">t</p>');
+});
+test('img: every other src form drops the whole tag', () => {
+  for (const src of ['https://e.example/x.svg', '//e.example/x.svg', 'http://127.0.0.1/assets/x.svg', 'data:image/svg+xml,<svg>', 'javascript:x',
+    '/assets/../server.mjs', '/assets/%2e%2e/x.svg', '/assets/x.svg?y=1', '/assets/x.svg#f', '/assets/X.SVG', '/assets/x.gif', '/assets/sub/x.svg',
+    '/assets/x.svg/', ' /assets/x.svg', 'assets/x.svg', '/vendor/x.svg', '/assets/.svg', '/assets/x.svg\n', '&#47;assets&#47;x.svg&#10;', ''])
+    assert.equal(S(`<p>a<img src="${src}" alt="z">b</p>`), '<p>ab</p>', src);
+  assert.equal(S('<p>a<img alt="no src">b</p>'), '<p>ab</p>');
+  assert.equal(S('<p>a<img src="/assets/x.svg" src="https://e.example/y">b</p>'), '<p>ab</p>'); // duplicate src
+  assert.equal(S('<p>a<img srcset="/assets/x.svg 1x">b</p>'), '<p>ab</p>');
+  assert.equal(S('<div src="/assets/x.svg" alt="x">t</div>'), '<div>t</div>'); // src/alt only on img
+});
+test('img: alt is plain escaped text, control characters rejected, length capped', () => {
+  assert.equal(S('<img src="/assets/x.svg" alt="&quot;&gt;<b>">'), '<img src="/assets/x.svg" alt="&quot;&gt;<b>">'.replace('<b>', '&lt;b&gt;'));
+  assert.equal(S('<img src="/assets/x.svg" alt="a&#10;b">'), '<img src="/assets/x.svg">');
+  assert.equal(S(`<img src="/assets/x.svg" alt="${'a'.repeat(300)}">`), `<img src="/assets/x.svg" alt="${'a'.repeat(120)}">`);
+});
 test('extractFragment strips fences', () => {
   assert.equal(extractFragment('```html\n<p>x</p>\n```'), '<p>x</p>');
 });
@@ -145,7 +166,9 @@ for (const persona of ['senior', 'regular', 'family', 'foreign']) {
         const r = await post(base, { session, action, item, option });
         assert.equal(r.status, 200, `${action}: ${JSON.stringify(r.data)}`);
         assert.deepEqual(r.data.noop.unstyled, [], `unstyled at ${r.data.facts.step}`);
-        assert.ok(!/on\w+=|<script|href=|src=/i.test(r.data.html));
+        assert.ok(!/on\w+=|<script|href=/i.test(r.data.html));
+        for (const [, src] of r.data.html.matchAll(/src="([^"]*)"/g)) assert.match(src, /^\/assets\/[a-z0-9-]+\.svg$/);
+        assert.ok(r.data.facts.step === 'start' || r.data.facts.step === 'done' || /<img src="\/assets\//.test(r.data.html));
         return r.data;
       };
       data = await act('start'); assert.equal(data.facts.step, 'persona');
@@ -194,4 +217,26 @@ test('static: serves only allowlisted files', async () => {
     for (const p of ['/server.mjs', '/../package.json', '/%2e%2e/package.json', '/vendor/../server.mjs', '/test/kiosk.test.mjs'])
       assert.equal((await fetch(`${base}${p}`)).status, 404, p);
   });
+});
+test('static: /assets serves only plain asset names with the right type', async () => {
+  await withServer(async (base) => {
+    const r = await fetch(`${base}/assets/latte.svg`);
+    assert.equal(r.status, 200);
+    assert.equal(r.headers.get('content-type'), 'image/svg+xml');
+    assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
+    assert.match(await r.text(), /^<svg /);
+    for (const p of ['/assets/../server.mjs', '/assets/%2e%2e/server.mjs', '/assets/..%2fserver.mjs', '/assets/nope.svg', '/assets/LATTE.svg',
+      '/assets/latte.svg.bak', '/assets/', '/assets/sub/x.svg', '/assets/%6catte.svg'])
+      assert.equal((await fetch(`${base}${p}`)).status, 404, p);
+  });
+});
+test('every image the menu and stub use exists and matches the asset rule', async () => {
+  const fs = await import('node:fs');
+  const { menu } = await import('../server.mjs');
+  const { isAsset } = await import('../lib/contract.mjs');
+  const srcs = [...menu.items.map((i) => i.image), ...menu.categories.map((c) => c.icon), ...Object.values(menu.assets)];
+  for (const s of srcs) {
+    assert.ok(isAsset(s), s);
+    assert.ok(fs.existsSync(new URL(`..${s}`, import.meta.url)), s);
+  }
 });
