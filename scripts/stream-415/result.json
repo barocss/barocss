@@ -3,7 +3,7 @@
  "date": "2026-09-27",
  "note": "raw accumulates across per-rate invocations in one session; see NOTES.md",
  "docs": [
-  "opus-1"
+  "opus-2"
  ],
  "concurrency": 1,
  "charsPerToken": 4,
@@ -31,7 +31,7 @@
  "runtime": "local packages/barocss-browser dist (baroBoot default config: observe body, gc on, gcGraceMs 3000)",
  "summary": {
   "settled": {
-   "n": 6,
+   "n": 7,
    "junkRules": 0,
    "junkMax": 0,
    "calls": 1,
@@ -39,7 +39,7 @@
    "wrongStyleSamplePct": 0,
    "streamsWithWrongStyle": 0,
    "wrongEls": 0,
-   "lastTokenToFinalMs": 29.4,
+   "lastTokenToFinalMs": 28.6,
    "lastTokenToFinalP90": 31.5,
    "unsettled": 0,
    "cacheEnd": 49,
@@ -49,14 +49,14 @@
    "streamS": 0
   },
   "innerHTML@20": {
-   "n": 6,
+   "n": 7,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 20,
+   "calls": 17,
    "generated": 49,
    "wrongStyleSamplePct": 0.8,
-   "streamsWithWrongStyle": 5,
-   "wrongEls": 5,
+   "streamsWithWrongStyle": 6,
+   "wrongEls": 4,
    "lastTokenToFinalMs": 0.7,
    "lastTokenToFinalP90": 0.8,
    "unsettled": 0,
@@ -64,35 +64,35 @@
    "cachedJunkEnd": 0,
    "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 37.4
+   "streamS": 37.2
   },
   "incremental@20": {
-   "n": 6,
+   "n": 7,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 20,
+   "calls": 17,
    "generated": 49,
    "wrongStyleSamplePct": 0.8,
-   "streamsWithWrongStyle": 5,
+   "streamsWithWrongStyle": 6,
    "wrongEls": 5,
    "lastTokenToFinalMs": 0.5,
    "lastTokenToFinalP90": 0.7,
-   "unsettled": 0,
+   "unsettled": 1,
    "cacheEnd": 49,
    "cachedJunkEnd": 0,
    "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 37.4
+   "streamS": 37.2
   },
   "innerHTML@50": {
-   "n": 6,
+   "n": 7,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 20,
+   "calls": 17,
    "generated": 49,
    "wrongStyleSamplePct": 0.6,
-   "streamsWithWrongStyle": 5,
-   "wrongEls": 5,
+   "streamsWithWrongStyle": 6,
+   "wrongEls": 2,
    "lastTokenToFinalMs": 0.6,
    "lastTokenToFinalP90": 1.1,
    "unsettled": 0,
@@ -100,61 +100,61 @@
    "cachedJunkEnd": 0,
    "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 15
+   "streamS": 14.9
   },
   "incremental@50": {
-   "n": 6,
+   "n": 7,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 20,
+   "calls": 17,
    "generated": 49,
    "wrongStyleSamplePct": 0.8,
-   "streamsWithWrongStyle": 5,
-   "wrongEls": 5,
+   "streamsWithWrongStyle": 6,
+   "wrongEls": 4,
    "lastTokenToFinalMs": 0.4,
    "lastTokenToFinalP90": 0.6,
-   "unsettled": 0,
+   "unsettled": 1,
    "cacheEnd": 49,
    "cachedJunkEnd": 0,
    "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 15
+   "streamS": 14.9
   },
   "innerHTML@100": {
-   "n": 6,
+   "n": 7,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 20,
+   "calls": 17,
    "generated": 49,
    "wrongStyleSamplePct": 0.5,
-   "streamsWithWrongStyle": 5,
+   "streamsWithWrongStyle": 6,
    "wrongEls": 3,
-   "lastTokenToFinalMs": 0.8,
+   "lastTokenToFinalMs": 0.7,
    "lastTokenToFinalP90": 0.8,
    "unsettled": 0,
    "cacheEnd": 49,
    "cachedJunkEnd": 0,
    "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 7.5
+   "streamS": 7.4
   },
   "incremental@100": {
-   "n": 6,
+   "n": 7,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 20,
+   "calls": 17,
    "generated": 49,
    "wrongStyleSamplePct": 0.8,
-   "streamsWithWrongStyle": 5,
-   "wrongEls": 4,
+   "streamsWithWrongStyle": 6,
+   "wrongEls": 3,
    "lastTokenToFinalMs": 0.4,
    "lastTokenToFinalP90": 0.5,
-   "unsettled": 0,
+   "unsettled": 1,
    "cacheEnd": 49,
    "cachedJunkEnd": 0,
    "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 7.5
+   "streamS": 7.4
   }
  },
  "raw": [
@@ -1390,6 +1390,214 @@
    "afterGc": {
     "cachedClasses": 58,
     "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "settled",
+   "doc": "opus-2",
+   "streamMs": 0.3,
+   "calls": 1,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 1,
+   "elemSamples": 19,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 28.6,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "opus-2",
+   "streamMs": 30702.1,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 302,
+   "elemSamples": 3012,
+   "wrongSamples": 114,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 114
+   },
+   "settleMs": 0.7,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "opus-2",
+   "streamMs": 30702.8,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 348,
+   "elemSamples": 3891,
+   "wrongSamples": 385,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 385
+   },
+   "settleMs": null,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "opus-2",
+   "streamMs": 12282.5,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 120,
+   "elemSamples": 1208,
+   "wrongSamples": 44,
+   "wrongEls": 2,
+   "wrongProps": {
+    "width": 44
+   },
+   "settleMs": 1.1,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "opus-2",
+   "streamMs": 12282,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 167,
+   "elemSamples": 2096,
+   "wrongSamples": 211,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 211
+   },
+   "settleMs": null,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "opus-2",
+   "streamMs": 6140.4,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 59,
+   "elemSamples": 602,
+   "wrongSamples": 22,
+   "wrongEls": 3,
+   "wrongProps": {
+    "width": 22
+   },
+   "settleMs": 0.7,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "opus-2",
+   "streamMs": 6142.2,
+   "calls": 17,
+   "generated": 66,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 107,
+   "elemSamples": 1519,
+   "wrongSamples": 155,
+   "wrongEls": 3,
+   "wrongProps": {
+    "width": 155
+   },
+   "settleMs": null,
+   "atEnd": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 66,
+    "ruleCount": 67,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
