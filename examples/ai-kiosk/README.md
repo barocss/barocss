@@ -33,6 +33,7 @@ variations and the asset ids; the stub screens follow the same brief. `screensho
 each persona (stub generator).
 
 Tests (stub generator, no CLI): `node --test examples/ai-kiosk/test/kiosk.test.mjs`.
+Frame check (no flash on a press; skipped without Playwright): `PW_DIR=<dir with node_modules/playwright> CHROME=<chromium> node --test examples/ai-kiosk/test/frames.test.mjs`.
 
 ## Recording (real model)
 
