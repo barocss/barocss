@@ -33,6 +33,10 @@ function verifyLiveClaim(captureDir, route, inventory) {
       claim.outputDir !== captureDir || claim.commit !== route.reviewedCommit ||
       claim.reviewUrl !== route.reviewUrl || claim.approvalFile !== route.approvalFile ||
       claim.approvalSha256 !== route.approvalSha256 || claim.startupSha256 !== builtInSkillsSha ||
+      claim.runKind !== approval.runKind || claim.maxCliInvocations !== approval.maxCliInvocations ||
+      claim.ownerDecisionRef !== approval.ownerDecisionRef ||
+      route.maxCliInvocations !== claim.maxCliInvocations ||
+      claim.runKind !== (route.kind === 'barocss-458-cli-agent-diagnostic-live' ? 'one-invocation-diagnostic' : 'full-pilot') ||
       approval.issue !== 458 || approval.decision !== 'ACCEPT' ||
       approval.agentPlanSha256 !== route.agentPlanSha256 || approval.commit !== route.reviewedCommit ||
       approval.outputDir !== captureDir || approval.reviewUrl !== route.reviewUrl) throw new Error('Live CLI claim or Review binding drift');
@@ -45,10 +49,14 @@ export function verifyAgentCapture(captureDir) {
   const routeBytes = fs.readFileSync(routePath);
   const route = JSON.parse(routeBytes);
   const attempted = base.rows.filter((row) => row.attempted);
-  if (!((base.manifest.synthetic === false && route.kind === 'barocss-458-cli-agent-live') ||
-        (base.manifest.synthetic === true && route.kind === 'barocss-458-cli-agent-synthetic')) ||
+  if (!((base.manifest.synthetic === false && ['barocss-458-cli-agent-live', 'barocss-458-cli-agent-diagnostic-live'].includes(route.kind)) ||
+        (base.manifest.synthetic === true && ['barocss-458-cli-agent-synthetic', 'barocss-458-cli-agent-diagnostic-synthetic'].includes(route.kind))) ||
       route.agentPlanSha256 !== verifyAgentFrozen() || route.basePlanSha256 !== verifyFrozen() ||
       route.scheduled !== MAX_ATTEMPTS || route.attempted !== attempted.length) throw new Error('CLI agent route binding drift');
+  if (route.kind.includes('-diagnostic-') && (route.maxCliInvocations !== 1 || attempted.length !== 1 ||
+      attempted[0].ordinal !== 0 || base.rows.slice(1).some((row) => row.attempted ||
+        row.status !== 'skipped-global' || row.reason !== 'one-invocation-diagnostic-limit'))) throw new Error('CLI diagnostic invocation limit drift');
+  if (route.kind === 'barocss-458-cli-agent-live' && route.maxCliInvocations !== 24) throw new Error('CLI full pilot invocation limit drift');
   const inventory = { ...base.inventory, 'agent-route.json': sha(routeBytes) };
   if (base.manifest.synthetic === false) verifyLiveClaim(captureDir, route, inventory);
   else if (Object.keys(route).some((key) => ['claimSha256', 'approvalFile', 'approvalSha256', 'reviewedCommit', 'reviewUrl'].includes(key))) throw new Error('Synthetic route must not carry live Review identity');

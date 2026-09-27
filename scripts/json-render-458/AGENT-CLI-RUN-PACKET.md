@@ -18,6 +18,18 @@ For a new CLI attempt, the host saves the first CLI `item.*` error event (at mos
 
 The first saved live attempt predates this collector change. It stopped after one CLI invocation, but its raw error item and stderr were not retained. The underlying cause cannot be recovered from that capture. The accepted capture stays bound to its original source commit through a local evidence ref. This correction is a no-model preparation step; it does not authorize another live pilot.
 
+## Proposed single-invocation diagnostic
+
+The separate `agent-diagnostic.mjs` entry point is limited to one CLI invocation. It keeps the 24-cell schedule in the manifest, reserves only cell 0, and marks cells 1–23 `skipped-global` with `one-invocation-diagnostic-limit`. A successful cell 0 keeps its JSON and can be scored or replayed by the existing saved-artifact consumers. An error keeps the bounded private diagnostics. There is no loop that can start a second CLI invocation.
+
+This entry point requires a fresh private run directory and a separate mode-0600 approval JSON bound to the exact clean commit, frozen agent plan, output path, independent pre-live Review verdict, and owner's concrete decision reference. Set `runKind` to `one-invocation-diagnostic` and `maxCliInvocations` to `1`; the full pilot approval kind cannot launch it. After separate owner authorization and Review acceptance for the exact diagnostic commit and plan, the only proposed model command is:
+
+The approval JSON keys are `issue`, `decision`, `agentPlanSha256`, `commit`, `reviewUrl`, `outputDir`, `runKind`, `maxCliInvocations`, and `ownerDecisionRef`. The `reviewUrl` must point to a pre-live Review ACCEPT for the exact diagnostic commit; `ownerDecisionRef` must identify the separate owner's one-invocation decision. Keep the file under the private evidence root.
+
+`node scripts/json-render-458/agent-diagnostic.mjs --output /Users/user/.barocss-ai/v3/private-458/cli-run-<fresh-id> --approval /Users/user/.barocss-ai/v3/private-458/<approved-file>.json`
+
+The approval file must not be created from a collector-only Review verdict. Do not execute this command until the owner decision and matching pre-live Review are recorded. No automatic retry, provider switch, API fallback, or expansion to 24 cells is permitted.
+
 ## Agent workspace and evidence
 
 The agent cwd is a unique `agent-scratch-458-*` direct child under `/Users/user/.barocss-ai/v3/`. Initially it contains only an empty HOME directory and a copy of the output envelope schema. The prompt contains the semantic request and bounded catalog, with no evaluator, expected answer fixture, rubric path, repository path, or evidence path. A fresh private `CODEX_HOME` holds only a reference to the existing ChatGPT login at startup. No global AGENTS, user rules, user config, plugins, or user skills enter that home. A no-model CLI diagnostic checks the built-in skill inventory and absence of project/global instructions. The native named permission profile has `:root=deny`, `:minimal=read`, `:tmpdir=deny`, `:slash_tmp=deny`, scratch workspace root=read, and command network disabled. It denies reads of the auth reference and original file. The launch explicitly selects the standard `on-request` approval policy. The profile leaves supported shell command tools available but disables apps, plugins, browser, web search, hooks, multi-agent, and code-mode host features. The agent can observe tool results but cannot edit scratch, evaluator, or host evidence through those commands. The host writes raw final text and a filtered JSONL event ledger outside scratch. The ledger retains command strings, exit status and output hashes/lengths; it discards command output text and reasoning content.
