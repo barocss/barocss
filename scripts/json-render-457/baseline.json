@@ -1,0 +1,315 @@
+{
+  "kind": "json-render-457-frozen-baseline",
+  "releasedDevelop": "9ef236cafe618add8848aa94a0d58798958b3c91",
+  "packageVersions": {
+    "kit": "0.11.2",
+    "browser": "0.11.2",
+    "jsonRenderCore": "0.21.0",
+    "jsonRenderReact": "0.21.0",
+    "react": "19.2.3",
+    "playwrightCore": "1.60.0",
+    "tailwindcss": "4.3.3"
+  },
+  "nodeVersion": "v22.22.0",
+  "browser": {
+    "executableVersion": "Google Chrome for Testing 148.0.7778.96",
+    "executableSha256": "2447c7bdea8e8ad38b52594f1ba53e18821c05445e8a07ad1cf3b0f23931d89d"
+  },
+  "baroBundleSha256": "968d1bd6b55909624b29e8ff04c026104fd4a73a105d7ceb8f07eb26f575e041",
+  "sources": {
+    "scripts/json-render-446/contract.mjs": "a8ca5120994a3ace76b548529933dd55d58c1e765379c0bd1f5b9bce4f410405",
+    "scripts/json-render-446/styles.mjs": "50231f1a47f0bde0a6889b9b0098f35bd3e42a9df1532dd81faf3ac76543b7a7",
+    "scripts/json-render-446/spec.mjs": "26904cbd7f5175d437e7e2e463632fadbe1c7a551a3bc302400d7e515650321b",
+    "scripts/json-render-446/browser-app.jsx": "524c62a9dac752468c07e2394f455adc22ee51245f08861240dbf5932c0394af",
+    "scripts/json-render-probe/e2e/app.css": "fca02af7fa74dd712119266eb2d1b1c1d990228e5f1693b038f41d4454b93972",
+    "scripts/json-render-457/baseline.mjs": "ab1c4cec18d2abd21a60653c3c4907e1c73cb59176455dc0283882c972467dcb",
+    "scripts/json-render-457/browser-app.jsx": "d460a5bb711d52c29ab88b4bd272e79d010490de96ce7c3abfc8ccd2844b1722",
+    "scripts/json-render-457/BASELINE.md": "fb481d490826f10a05cf7ad8d1b3174095e4cfe8f5c908906b2caf9167c83c07",
+    "scripts/json-render-457/freeze.mjs": "47b1f42715f245f26bb93b434de56e043a9748de562a398b2eb43b6846e8a273"
+  },
+  "arms": [
+    "preset",
+    "variable",
+    "utility",
+    "build"
+  ],
+  "scenarios": [
+    "settings",
+    "dashboard",
+    "kiosk"
+  ],
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 900
+    },
+    "narrow": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "repeats": 2,
+  "initial": {
+    "density": "regular",
+    "columns": 2,
+    "placement": "side"
+  },
+  "catalog": {
+    "components": [
+      "Layout",
+      "Text",
+      "Input",
+      "Select",
+      "Button"
+    ],
+    "actions": [
+      "save",
+      "refresh",
+      "add"
+    ],
+    "layout": {
+      "preset": {
+        "density": [
+          "regular",
+          "compact"
+        ],
+        "columns": [
+          1,
+          2
+        ],
+        "placement": [
+          "side",
+          "stacked"
+        ]
+      },
+      "variable": {
+        "density": [
+          "regular",
+          "compact"
+        ],
+        "columns": [
+          1,
+          2
+        ],
+        "placement": [
+          "side",
+          "stacked"
+        ],
+        "variables": [
+          "paddingPx",
+          "gapPx",
+          "radiusPx"
+        ],
+        "densityDefaults": {
+          "regular": {
+            "paddingPx": 24,
+            "gapPx": 24
+          },
+          "compact": {
+            "paddingPx": 12,
+            "gapPx": 12
+          }
+        }
+      },
+      "utility": {
+        "className": "schema-validated string; runner supplies authored local classes only"
+      },
+      "build": {
+        "className": "same validated string; only initial inventory is compiled"
+      }
+    },
+    "button": {
+      "presetAndVariable": [
+        "hoverUnderline:boolean"
+      ],
+      "utilityAndBuild": [
+        "className:string"
+      ]
+    },
+    "semantics": "The #446 scenario nodes, state paths, focus targets and actions are unchanged. Placement and columns remain coupled as in the authored #446 stages: side/2 or stacked/1."
+  },
+  "variableFields": {
+    "paddingPx": {
+      "min": 8,
+      "max": 32,
+      "finite": true,
+      "initial": 24,
+      "cssName": "--ui-pad",
+      "unit": "px"
+    },
+    "gapPx": {
+      "min": 8,
+      "max": 32,
+      "finite": true,
+      "initial": 24,
+      "cssName": "--ui-gap",
+      "unit": "px"
+    },
+    "radiusPx": {
+      "min": 0,
+      "max": 24,
+      "finite": true,
+      "initial": 14,
+      "cssName": "--ui-radius",
+      "unit": "px"
+    }
+  },
+  "stateTemplates": {
+    "hoverUnderline": "hover:underline"
+  },
+  "hostCssSha256": "4284f9df4b5326501006373d54bfeea95fa3cf9b0311eb0b065ccd29c4715669",
+  "inventory": {
+    "preset": {
+      "tokens": [
+        "bg-background",
+        "bg-card",
+        "bg-primary",
+        "border",
+        "border-border",
+        "border-input",
+        "font-medium",
+        "font-semibold",
+        "gap-2",
+        "gap-3",
+        "gap-6",
+        "grid",
+        "grid-cols-1",
+        "grid-cols-2",
+        "h-9",
+        "hover:underline",
+        "inline-flex",
+        "items-center",
+        "justify-center",
+        "p-3",
+        "p-6",
+        "px-3",
+        "px-4",
+        "py-1",
+        "rounded-md",
+        "rounded-xl",
+        "text-2xl",
+        "text-card-foreground",
+        "text-foreground",
+        "text-primary-foreground",
+        "text-sm",
+        "w-full"
+      ],
+      "tokenSha256": "3ec603102601aa232b339a70066e676afe93ecfb0bf31ed78f1d56db0c3dd7a0",
+      "cssSha256": "2ec6a5ae1f144b6dc577f6a5911e7b4a9abaa1eec3a62b1747a54ca5b18515a1",
+      "cssBytes": 8514
+    },
+    "variable": {
+      "tokens": [
+        "bg-background",
+        "bg-card",
+        "bg-primary",
+        "border",
+        "border-border",
+        "border-input",
+        "font-medium",
+        "font-semibold",
+        "gap-2",
+        "gap-[var(--ui-gap)]",
+        "grid",
+        "grid-cols-1",
+        "grid-cols-2",
+        "h-9",
+        "hover:underline",
+        "inline-flex",
+        "items-center",
+        "justify-center",
+        "p-[var(--ui-pad)]",
+        "px-3",
+        "px-4",
+        "py-1",
+        "rounded-[var(--ui-radius)]",
+        "rounded-md",
+        "rounded-xl",
+        "text-2xl",
+        "text-card-foreground",
+        "text-foreground",
+        "text-primary-foreground",
+        "text-sm",
+        "w-full"
+      ],
+      "tokenSha256": "d108b4579938309e3741d14a76f839c7891380979dd170e37c820299cdcbf255",
+      "cssSha256": "9a855cd5bf5dc0d093f99a35df95044602e51ca50b5e20e0053eeed6ec98725b",
+      "cssBytes": 8503
+    },
+    "utility": {
+      "tokens": [
+        "bg-background",
+        "bg-card",
+        "bg-primary",
+        "border",
+        "border-border",
+        "border-input",
+        "font-medium",
+        "font-semibold",
+        "gap-2",
+        "gap-6",
+        "grid",
+        "grid-cols-2",
+        "h-9",
+        "inline-flex",
+        "items-center",
+        "justify-center",
+        "p-6",
+        "px-3",
+        "px-4",
+        "py-1",
+        "rounded-md",
+        "rounded-xl",
+        "text-2xl",
+        "text-card-foreground",
+        "text-foreground",
+        "text-primary-foreground",
+        "text-sm",
+        "w-full"
+      ],
+      "tokenSha256": "126d1f71b93be727c62767dfe7cc3e38f7ec4c2fbe85ec1dc91ed25de680869a",
+      "cssSha256": "6b8c2cec1841310cf00a12929e129a957c7cc3a14926075023b44d85fb4d0dda",
+      "cssBytes": 8232
+    },
+    "build": {
+      "tokens": [
+        "bg-background",
+        "bg-card",
+        "bg-primary",
+        "border",
+        "border-border",
+        "border-input",
+        "font-medium",
+        "font-semibold",
+        "gap-2",
+        "gap-6",
+        "grid",
+        "grid-cols-2",
+        "h-9",
+        "inline-flex",
+        "items-center",
+        "justify-center",
+        "p-6",
+        "px-3",
+        "px-4",
+        "py-1",
+        "rounded-md",
+        "rounded-xl",
+        "text-2xl",
+        "text-card-foreground",
+        "text-foreground",
+        "text-primary-foreground",
+        "text-sm",
+        "w-full"
+      ],
+      "tokenSha256": "126d1f71b93be727c62767dfe7cc3e38f7ec4c2fbe85ec1dc91ed25de680869a",
+      "cssSha256": "6b8c2cec1841310cf00a12929e129a957c7cc3a14926075023b44d85fb4d0dda",
+      "cssBytes": 8232
+    }
+  },
+  "limitations": [
+    "Authored deterministic edits only",
+    "No model calls or population inference",
+    "No adaptive catalog additions in primary run"
+  ]
+}
