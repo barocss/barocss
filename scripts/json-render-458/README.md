@@ -43,4 +43,4 @@ The command prints a random tokenized `127.0.0.1` URL. The viewer accepts GET on
 
 ## Direct API preparation
 
-The separate, no-network direct Responses API preparation and owner decision packet is in [API-RUN-PACKET.md](API-RUN-PACKET.md). It does not enable live dispatch or remove the CLI hard block.
+The direct Responses API run packet is in [API-RUN-PACKET.md](API-RUN-PACKET.md). Its implemented command requires exact owner approval, a reviewed clean commit, private output, and project credentials before network dispatch. No API call has been made. The CLI hard block remains.

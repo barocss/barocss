@@ -4,6 +4,8 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { MAX_ATTEMPTS, MODEL, REASONING } from './plan.mjs';
+import { verifyFrozen } from './freeze.mjs';
+import { verifyApiFrozen } from './api-frozen.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const schema = JSON.parse(fs.readFileSync(path.join(here, 'output.schema.json'), 'utf8'));
@@ -21,7 +23,7 @@ export const API_PRICE_MICRO_USD_PER_MILLION = Object.freeze({
 export const API_RESERVATION_MICRO_USD = Math.ceil(
   (API_CONTEXT_TOKENS * API_PRICE_MICRO_USD_PER_MILLION.long.write +
     API_MAX_OUTPUT_TOKENS * API_PRICE_MICRO_USD_PER_MILLION.long.output) / 1_000_000);
-export const API_CEILING_MICRO_USD = MAX_ATTEMPTS * API_RESERVATION_MICRO_USD;
+export const API_CEILING_MICRO_USD = 10_000_000;
 
 export function apiRequest(prompt) {
   if (typeof prompt !== 'string' || !prompt) fail('empty prompt');
@@ -45,16 +47,42 @@ function saveExclusive(file, value) {
 export function reserveApiCharge({ runDir, attemptDir, ordinal, request }) {
   if (!whole(ordinal) || ordinal >= MAX_ATTEMPTS || path.dirname(attemptDir) !== runDir || !fs.statSync(attemptDir).isDirectory()) fail('reservation path or ordinal');
   const prior = fs.readdirSync(runDir).filter((name) => /^attempt-\d{2}$/.test(name)).flatMap((name) => {
-    const file = path.join(runDir, name, 'api-charge-reservation.json');
-    return fs.existsSync(file) ? [JSON.parse(fs.readFileSync(file, 'utf8'))] : [];
+    const dir = path.join(runDir, name);
+    const file = path.join(dir, 'api-charge-reservation.json');
+    if (!fs.existsSync(file)) return [];
+    const record = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (!whole(record.ordinal) || record.ordinal >= ordinal || record.reservedMicroUsd !== API_RESERVATION_MICRO_USD ||
+        record.ceilingMicroUsd !== API_CEILING_MICRO_USD) fail('reservation ledger drift');
+    const settlementFile = path.join(dir, 'api-charge-settlement.json');
+    if (!fs.existsSync(settlementFile)) return [{ record, held: API_RESERVATION_MICRO_USD }];
+    const responseFile = path.join(dir, 'api-response.json');
+    if (!fs.existsSync(responseFile)) fail('settlement missing response');
+    const responseBytes = fs.readFileSync(responseFile);
+    const settlement = JSON.parse(fs.readFileSync(settlementFile, 'utf8'));
+    const checked = inspectApiResponse(JSON.parse(responseBytes));
+    if (settlement.ordinal !== record.ordinal || settlement.responseSha256 !== sha(responseBytes) ||
+        settlement.actualMicroUsd !== checked.usage.microUsd) fail('settlement ledger drift');
+    return [{ record, held: settlement.actualMicroUsd }];
   });
-  if (prior.some((entry) => !whole(entry.ordinal) || entry.ordinal >= ordinal || entry.reservedMicroUsd !== API_RESERVATION_MICRO_USD)) fail('reservation ledger drift');
-  if (prior.length >= MAX_ATTEMPTS || (prior.length + 1) * API_RESERVATION_MICRO_USD > API_CEILING_MICRO_USD) fail('aggregate charge ceiling');
+  if (new Set(prior.map(({ record }) => record.ordinal)).size !== prior.length) fail('duplicate reservation');
+  const aggregate = prior.reduce((sum, entry) => sum + entry.held, 0);
+  if (prior.length >= MAX_ATTEMPTS || aggregate + API_RESERVATION_MICRO_USD > API_CEILING_MICRO_USD) fail('aggregate charge ceiling');
   const record = { ordinal, requestedModel: MODEL, serviceTier: 'default', requestedEndpoint: 'https://api.openai.com/v1/responses',
     requestSha256: sha(JSON.stringify(request)), reservedMicroUsd: API_RESERVATION_MICRO_USD,
-    aggregateReservedMicroUsd: (prior.length + 1) * API_RESERVATION_MICRO_USD, ceilingMicroUsd: API_CEILING_MICRO_USD };
+    aggregateHeldBeforeMicroUsd: aggregate, aggregateHeldAfterMicroUsd: aggregate + API_RESERVATION_MICRO_USD,
+    ceilingMicroUsd: API_CEILING_MICRO_USD };
   saveExclusive(path.join(attemptDir, 'api-charge-reservation.json'), record);
   return record;
+}
+export function settleApiCharge({ attemptDir, ordinal, response }) {
+  const reservation = JSON.parse(fs.readFileSync(path.join(attemptDir, 'api-charge-reservation.json'), 'utf8'));
+  if (reservation.ordinal !== ordinal) fail('settlement ordinal drift');
+  const responseBytes = fs.readFileSync(path.join(attemptDir, 'api-response.json'));
+  if (JSON.stringify(JSON.parse(responseBytes)) !== JSON.stringify(response)) fail('settlement response drift');
+  const checked = inspectApiResponse(response);
+  saveExclusive(path.join(attemptDir, 'api-charge-settlement.json'),
+    { ordinal, responseSha256: sha(responseBytes), actualMicroUsd: checked.usage.microUsd });
+  return checked;
 }
 export function chargeForUsage(usage) {
   if (!usage || !whole(usage.input_tokens) || !whole(usage.output_tokens) || !whole(usage.total_tokens) ||
@@ -86,21 +114,29 @@ export function inspectApiResponse(response) {
       (part.annotations !== undefined && (!Array.isArray(part.annotations) || part.annotations.length))) fail('refusal or unexpected output content');
   return { rawFinal: part.text, usage: chargeForUsage(response.usage) };
 }
-// Only a test-supplied responder is accepted. This never reads a key or sends HTTP.
-export function stubApiTransport(responder) {
-  if (typeof responder !== 'function') fail('stub responder required');
-  return async ({ row, prompt, attemptDir }) => {
+function ensureApiRunManifest(runDir, transportKind, metadata) {
+  const expected = { kind: 'barocss-458-direct-responses', transportKind, synthetic: transportKind === 'api-stub',
+    apiPlanHash: verifyApiFrozen(), capturePlanHash: verifyFrozen(), maxChargeMicroUsd: API_CEILING_MICRO_USD,
+    approvalSha256: metadata.approvalSha256 ?? null, reviewedCommit: metadata.reviewedCommit ?? null };
+  const file = path.join(runDir, 'api-run-manifest.json');
+  if (!fs.existsSync(file)) saveExclusive(file, expected);
+  else if (JSON.stringify(JSON.parse(fs.readFileSync(file, 'utf8'))) !== JSON.stringify(expected)) fail('API run manifest drift');
+}
+export function preparedApiTransport(responder, transportKind, metadata = {}) {
+  if (typeof responder !== 'function' || !['api-stub', 'api-live'].includes(transportKind)) fail('invalid prepared responder');
+  return async ({ row, prompt, attemptDir, timeoutMs }) => {
+    const runDir = path.dirname(attemptDir);
+    ensureApiRunManifest(runDir, transportKind, metadata);
     const request = apiRequest(prompt);
-    reserveApiCharge({ runDir: path.dirname(attemptDir), attemptDir, ordinal: row.ordinal, request });
+    reserveApiCharge({ runDir, attemptDir, ordinal: row.ordinal, request });
     saveExclusive(path.join(attemptDir, 'api-request.json'), request);
-    const response = await responder(request, row, attemptDir);
+    const response = await responder(request, row, attemptDir, timeoutMs);
     saveExclusive(path.join(attemptDir, 'api-response.json'), response);
-    const checked = inspectApiResponse(response);
+    const checked = settleApiCharge({ attemptDir, ordinal: row.ordinal, response });
     return { rawFinal: checked.rawFinal, usage: { input_tokens: checked.usage.inputTokens,
       cached_input_tokens: checked.usage.cachedInputTokens, output_tokens: checked.usage.outputTokens },
       responseModel: response.model, exitCode: 0, stopReason: null };
   };
 }
-export function apiLiveTransport() {
-  fail('live API dispatch requires a later owner-approved, independently reviewed exact commit');
-}
+// Only a test-supplied responder is accepted. This function never reads a key or sends HTTP.
+export function stubApiTransport(responder) { return preparedApiTransport(responder, 'api-stub'); }
