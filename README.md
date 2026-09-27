@@ -8,6 +8,19 @@
 
 BaroCSS generates utility CSS in the browser or on a server. It has a CSS engine, a browser runtime, and a server runtime. See the [Tailwind compatibility report](packages/barocss/docs/tailwind-compatibility.md) for measured coverage.
 
+## Why BaroCSS
+
+Tailwind only styles the classes it sees at build time. BaroCSS styles the ones that arrive later, from
+AI models, CMS content, or widgets in a shadow root, alongside your Tailwind build.
+
+- Real model-written UI specs in a built app: 0.859 of elements match Tailwind, vs 0.163 build-only ([#231](https://github.com/barocss/barocss/issues/231))
+- Widgets in a Shadow DOM under strict CSP: full parity, no host-page damage ([#364](https://github.com/barocss/barocss/issues/364), [#384](https://github.com/barocss/barocss/issues/384))
+- CMS blocks under strict CSP or in shadow roots: 1.0 ([#347](https://github.com/barocss/barocss/issues/347), [#355](https://github.com/barocss/barocss/issues/355))
+- Full match at SSR first paint with `@barocss/server` ([#266](https://github.com/barocss/barocss/issues/266))
+
+**Don't use it** when your class set is known in advance (let Tailwind generate it at build time, [#218](https://github.com/barocss/barocss/issues/218)), or for a
+no-build page where the official `@tailwindcss/browser` already works ([#198](https://github.com/barocss/barocss/issues/198)).
+
 ## ✨ Key Features
 
 - **🚀 Real-time JIT Mode** - Generate CSS instantly as you use it
