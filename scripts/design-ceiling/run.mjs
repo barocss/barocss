@@ -80,10 +80,20 @@ async function render(scene, mode) {
     const nodes = document.querySelectorAll('[data-tile]');
     const rects = [...nodes].map(el => { const r = el.getBoundingClientRect(); return { id: el.dataset.tile, x: Math.round(r.x), y: Math.round(r.y + scrollY), w: Math.round(r.width), h: Math.round(r.height) }; });
     const probes = nodes.length ? [...nodes].map(tile => [...tile.querySelectorAll('[data-probe]')].map(snap)) : [...document.querySelectorAll('[data-probe]')].map(el => [snap(el)]);
+    const effects = nodes.length ? Object.fromEntries(['aspect-video', 'line-clamp'].map(id => {
+      const el = document.querySelector(`[data-tile="${id}"] [data-probe]`);
+      const className = id === 'aspect-video' ? 'aspect-video' : 'line-clamp-3';
+      const measure = () => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+        return { width: r.width, height: r.height, clientHeight: el.clientHeight, scrollHeight: el.scrollHeight,
+          display: cs.display, aspectRatio: cs.aspectRatio, lineClamp: cs.webkitLineClamp }; };
+      const enabled = measure(); el.classList.remove(className);
+      const disabled = measure(); el.classList.add(className);
+      return [id, { enabled, disabled }];
+    })) : {};
     const runtime = window.__runtime?.getCacheStats().runtime ?? null;
     const rules = [...document.styleSheets].flatMap((sheet, sheetIndex) => [...sheet.cssRules].map((r, ruleIndex) => ({ sheetIndex, ruleIndex, css: r.cssText })));
     const darkRuleEvidence = rules.filter(r => /(?:dark\\:text-white|text-slate-900|dark\\:bg-slate-900|bg-white)/.test(r.css)).slice(0, 30);
-    return { rects, probes, runtime, cssRuleCount: rules.length, darkRuleEvidence, pageHeight: document.documentElement.scrollHeight,
+    return { rects, probes, effects, runtime, cssRuleCount: rules.length, darkRuleEvidence, pageHeight: document.documentElement.scrollHeight,
       images: [...document.images].map(i => ({ src: i.getAttribute('src'), ready: i.complete && i.naturalWidth > 0 })) };
   });
   const screenshot = await page.screenshot({ fullPage: true, animations: 'allow' });
@@ -135,6 +145,7 @@ for (const scene of scenes) {
   if (scene.id === 'tiles') {
     result.darkRuleEvidence = { tailwind: tw.darkRuleEvidence, baro: baro.darkRuleEvidence };
     result.tileControls = { tailwindCssRules: tw.cssRuleCount, baroCssRules: baro.cssRuleCount };
+    result.tileEffects = { tailwind: tw.effects, baro: baro.effects };
   } else {
     result.showcaseControls ??= [];
     result.showcaseControls.push({ id: scene.id, tailwindCssRules: tw.cssRuleCount, baroCssRules: baro.cssRuleCount });
@@ -143,8 +154,8 @@ for (const scene of scenes) {
     .map(p => ({ probe: j, property: p, tailwind: ref[p], baro: baro.probes[i][j]?.[p] }))));
   if (scene.id === 'tiles') {
     const observedProps = ['background-color', 'background-image', 'background-blend-mode', 'backdrop-filter', 'mask-image',
-      'clip-path', 'perspective', 'transform', 'animation-name', 'font-family', 'grid-template-areas', 'grid-template-columns',
-      'container-type', 'scroll-snap-type', '-webkit-line-clamp'];
+      'clip-path', 'perspective', 'transform', 'transform-style', 'animation-name', 'font-family', 'grid-template-areas', 'grid-template-columns',
+      'container-type', 'scroll-snap-type', '-webkit-line-clamp', 'display', 'aspect-ratio'];
     const pick = values => Object.fromEntries(observedProps.map(p => [p, values?.[p]]).filter(([, value]) => value !== undefined));
     result.tiles = tiles.map((t, i) => ({ id: t.id, group: t.group, ...diffs[i], computedDiffs: styles[i].slice(0, 12),
       computedDiffCount: styles[i].length, tailwindStyle: pick(tw.probes[i][0]),

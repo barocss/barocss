@@ -45,7 +45,7 @@ export const tiles = [
 ].map(([id, group, classes]) => ({ id, group, classes }));
 
 export function tileMarkup({ id, group, classes }) {
-  const text = id === 'line-clamp' ? 'A thoughtful interface balances clarity, rhythm, contrast, and precise detail across every viewport.' : 'Visual detail';
+  const text = id === 'line-clamp' ? 'A thoughtful interface balances clarity, rhythm, contrast, and precise detail across every viewport. Long-form content must be constrained by the clamp itself, so this sentence continues beyond the third visible line.' : 'Visual detail';
   const children = id === 'scroll-snap'
     ? '<span class="snap-center shrink-0 w-32 h-16 bg-sky-300"></span><span class="snap-center shrink-0 w-32 h-16 bg-pink-300"></span>'
     : id === 'container-query'
@@ -57,8 +57,8 @@ export function tileMarkup({ id, group, classes }) {
           : id === 'perspective' ? '<span class="block h-16 w-24 rotate-y-30 bg-orange-300">3D</span>' : text;
   const extra = id === 'container-query' ? ' @container' : id === 'scroll-snap' ? ' gap-3' : '';
   if (id === 'subgrid') return `<section data-tile="${id}" class="tile"><span class="tile-label">${group} · ${id}</span><div class="tile-stage"><div class="grid grid-cols-2 w-48"><div data-probe class="${classes}">${children}</div></div></div></section>`;
-  const sizing = id === 'line-clamp' ? ' w-48 h-16 overflow-hidden text-left' : ' w-48 h-24 items-center justify-center';
-  return `<section data-tile="${id}" class="tile"><span class="tile-label">${group} · ${id}</span><div class="tile-stage"><div data-probe class="relative flex${sizing} rounded-xl p-3 ${classes}${extra}">${children}</div></div></section>`;
+  const sizing = id === 'line-clamp' ? ' w-48 text-left' : id === 'aspect-video' ? ' flex w-48 items-center justify-center' : ' flex w-48 h-24 items-center justify-center';
+  return `<section data-tile="${id}" class="tile"><span class="tile-label">${group} · ${id}</span><div class="tile-stage"><div data-probe class="relative${sizing} rounded-xl p-3 ${classes}${extra}">${children}</div></div></section>`;
 }
 
 export const showcases = [

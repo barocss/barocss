@@ -4,7 +4,7 @@ This is a synthetic, hand-authored comparison of BaroCSS browser runtime against
 
 ## Controls and method
 
-- Input: 42 technique tiles and three showcase scenes. Input SHA-256: `1fe24d743aa2ffdd469a2efdedb1d22fbc3ab4c59d64bdd10d9802c433a41b9e`.
+- Input: 42 technique tiles and three showcase scenes. Input SHA-256: `d7a24c4134d4a0c53f1794cb2588ca8abf1af6a28af6bb9ff90f5215035a7f50`.
 - Browser: Chromium `148.0.7778.96`, device scale 1; tile viewport 1140×900, kiosk 620×1060, chat/dashboard 900×680. Full-page captures include overflow.
 - Baro bundle SHA-256: `825a7df6e4c860d1bb3ea6e331ccc0dbad6bb6c72112f50ba2341277b2815efc`. Tailwind source: installed `theme.css` plus the fixture’s `@theme` values; both engines use the same brand color, Georgia display font and orbit keyframes. Browser/runtime preflight is off; shared reset and tile-frame CSS is identical.
 - Light color scheme with an explicit `.dark` root and matched dark selector. No external fonts, URLs or model calls. Local kiosk stub markup and SVG assets are reused read-only; all images decoded before capture.
@@ -39,7 +39,7 @@ This is a synthetic, hand-authored comparison of BaroCSS browser runtime against
 | 3D | `perspective` | Match | 0.00% | — |
 | 3D | `rotate-x` | Match | 0.00% | — |
 | 3D | `rotate-y` | Match | 0.00% | — |
-| 3D | `transform-3d` | Match | 0.00% | — |
+| 3D | `transform-3d` | Match | 0.00% | Computed preserve-3d parity; no nested depth behavior tested |
 | Motion | `transition-colors` | Rendered match; computed diff | 0.00% | Nonvisual: engine-specific gradient variable names in transition-property |
 | Motion | `animate-pulse` | Match | 0.00% | — |
 | Motion | `animate-spin` | Match | 0.00% | — |
@@ -58,7 +58,7 @@ This is a synthetic, hand-authored comparison of BaroCSS browser runtime against
 | Type | `fluid-type` | Match | 0.00% | — |
 | Type | `theme-font` | Match | 0.00% | — |
 
-**Result:** 36 exact computed/pixel matches, one visual match with a nonvisual computed-value difference, and 5 visual differences. All three showcases have 0.00% pixel difference and no marked-element computed differences.
+**Result:** 36 exact computed/pixel matches, one visual match with a nonvisual computed-value difference, and 5 visual differences. The aspect-ratio and line-clamp tiles now change their measured height when the target utility is removed, so their effects are active in both engines. All three showcases have 0.00% pixel difference and no marked-element computed differences.
 
 The [five differing tiles side by side](evidence/tile-differences-side-by-side.png) show Tailwind on the left and BaroCSS on the right.
 
@@ -68,7 +68,7 @@ The [five differing tiles side by side](evidence/tile-differences-side-by-side.p
 - [Glassy AI chat card](evidence/chat-side-by-side.png) — authored static content.
 - [Operations dashboard](evidence/dashboard-side-by-side.png) — authored static content.
 
-Individual captures are also committed under `evidence/`; `result.json` contains the per-tile pixel percentages, computed-property differences, stylesheet controls and rule-order evidence.
+Individual captures are also committed under `evidence/`; `result.json` contains the per-tile pixel percentages, computed-property differences, effect-on/effect-off measurements, stylesheet controls and rule-order evidence. With `aspect-video`, height is 108 px versus 42 px without it at 192 px width. With `line-clamp-3`, height is 78 px versus 222 px without it; clamped content has 222 px scroll height and 78 px client height in both engines.
 
 ## Minimum gaps and attribution
 
@@ -94,4 +94,4 @@ node scripts/design-ceiling/isolate.mjs
 node scripts/design-ceiling/verify.mjs
 ```
 
-Limitations: one Chromium build and one fixed viewport per showcase; no Firefox/WebKit, responsive matrix, repeated-run variance, user interaction, real model output or production deployment. The 0% showcase finding applies to these authored static screens only.
+Limitations: the `transform-3d` tile compares the parent’s computed transform and rendering but has no nested depth test. One Chromium build and one fixed viewport per showcase; no Firefox/WebKit, responsive matrix, repeated-run variance, user interaction, real model output or production deployment. The 0% showcase finding applies to these authored static screens only.

@@ -31,11 +31,27 @@ const tile = id => result.tiles.find(t => t.id === id);
 assert.equal(tile('container-query').tailwindStyle['container-type'], 'inline-size');
 assert.match(tile('container-query').tailwindNestedStyle['background-color'], /oklch/);
 assert.equal(tile('perspective').tailwindStyle.perspective, '600px');
+assert.equal(tile('transform-3d').tailwindStyle['transform-style'], 'preserve-3d');
 assert.match(tile('subgrid').tailwindStyle['grid-template-columns'], /subgrid/);
 assert.equal(tile('theme-keyframes').tailwindStyle['animation-name'], 'orbit');
 assert.match(tile('theme-font').tailwindStyle['font-family'], /Georgia/);
 assert.match(tile('backdrop-blur').tailwindStyle['backdrop-filter'], /blur/);
 assert.match(tile('mask-radial').tailwindStyle['mask-image'], /radial-gradient/);
 assert.equal(tile('scroll-snap').tailwindStyle['scroll-snap-type'], 'x mandatory');
+for (const mode of ['tailwind', 'baro']) {
+  const aspect = result.tileEffects[mode]['aspect-video'];
+  assert.equal(aspect.enabled.aspectRatio, '16 / 9');
+  assert.equal(aspect.disabled.aspectRatio, 'auto');
+  assert.equal(aspect.enabled.width, aspect.disabled.width);
+  assert.ok(aspect.enabled.height > aspect.disabled.height + 50, `${mode}: aspect ratio must determine height`);
+  assert.ok(Math.abs(aspect.enabled.width / aspect.enabled.height - 16 / 9) < 0.01);
+  const clamp = result.tileEffects[mode]['line-clamp'];
+  assert.equal(clamp.enabled.lineClamp, '3');
+  assert.equal(clamp.disabled.lineClamp, 'none');
+  assert.equal(clamp.enabled.display, 'flow-root');
+  assert.ok(clamp.enabled.scrollHeight > clamp.enabled.clientHeight, `${mode}: content must exceed the clamp`);
+  assert.ok(clamp.disabled.height > clamp.enabled.height + 80, `${mode}: clamp must determine height`);
+}
+assert.deepEqual(result.tileEffects.tailwind, result.tileEffects.baro);
 assert.ok(result.darkRuleEvidence.tailwind.length && result.darkRuleEvidence.baro.length);
 console.log(`${tiles.length} tiles, ${observed.length} visual differences, three showcase pairs, controls and screenshots verified.`);
