@@ -8,7 +8,7 @@ Use Node 22.22.0 and the existing #446 installed dependencies. Run the commands 
 node --test scripts/json-render-447/budget.test.mjs scripts/json-render-447/capture.test.mjs scripts/json-render-447/provider.test.mjs scripts/json-render-447/plan.test.mjs
 node scripts/json-render-447/capture.mjs --freeze > /tmp/barocss-447-frozen-plan.json
 node scripts/json-render-447/capture.mjs --phase pilot-b --output /tmp/barocss-447-dry-valid
-JR_ROOT=/Users/user/.barocss-ai/v3/wt/issue-446/scripts/json-render-446/scratch/jr PW_DIR=/Users/user/github/real-ime/real-ime/node_modules/.pnpm/playwright-core@1.60.0/node_modules CHROME='/Users/user/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing' REPO_DEPS_ROOT=/Users/user/.barocss-ai/v3/integration node scripts/json-render-447/replay.mjs --input /tmp/barocss-447-dry-valid/rows.json --output /tmp/barocss-447-dry-valid/replay.json
+JR_ROOT=/path/to/approved-json-render-install PW_DIR=/path/to/existing/playwright-core-project CHROME='/path/to/existing/chromium-148' REPO_DEPS_ROOT=/path/to/barocss-dependencies node scripts/json-render-447/replay.mjs --input /tmp/barocss-447-dry-valid/rows.json --output /tmp/barocss-447-dry-valid/replay.json
 node scripts/json-render-447/verify.mjs /tmp/barocss-447-dry-valid
 ```
 

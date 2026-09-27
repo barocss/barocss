@@ -54,13 +54,13 @@ The owner-approved pinned renderer is installed in an ignored isolated research 
 
 ```sh
 JR_ROOT="$PWD/scripts/json-render-446/scratch/jr" \
-PW_DIR="/Users/user/github/real-ime/real-ime/node_modules/.pnpm/playwright-core@1.60.0/node_modules" \
-CHROME="/Users/user/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" \
-REPO_DEPS_ROOT="/Users/user/.barocss-ai/v3/integration" \
+PW_DIR="/path/to/existing/playwright-core-project" \
+CHROME="/path/to/existing/chromium-148" \
+REPO_DEPS_ROOT="/path/to/barocss-dependencies" \
 REPEATS=2 \
-/Users/user/.nvm/versions/node/v22.22.0/bin/node scripts/json-render-446/run.mjs
-/Users/user/.nvm/versions/node/v22.22.0/bin/node scripts/json-render-446/verify.mjs
-/Users/user/.nvm/versions/node/v22.22.0/bin/node --test scripts/json-render-446/contract.test.mjs
+/path/to/node-22.22.0/bin/node scripts/json-render-446/run.mjs
+/path/to/node-22.22.0/bin/node scripts/json-render-446/verify.mjs
+/path/to/node-22.22.0/bin/node --test scripts/json-render-446/contract.test.mjs
 ```
 
 `evidence/replay.json` contains 96 measured rows and the arm summaries; `evidence/shots/` contains 48 screenshots. The build-only control has a fixed initial CSS inventory and fails layout style on later edits while preserving DOM/state/action. See the decision report before interpreting `unstyledFrames`: it counts failing computed-style samples, including persistent missing CSS. The two full runs were byte-identical. Independent Review of the final commit is required before local develop integration. Paid live-model work requires separate owner approval.
