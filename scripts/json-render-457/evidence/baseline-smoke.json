@@ -1,6 +1,6 @@
 {
   "kind": "baseline-smoke",
-  "baselineSha256": "d3ad115dfb375f4386f645a754c2d3317aa24847df0f386be89d7d6c45d68ee0",
+  "baselineSha256": "b5c47fbda88ff4063728dccea902f05f262b50daf2d9eab30df9c251ae8fc4ef",
   "rows": [
     {
       "viewport": "desktop",

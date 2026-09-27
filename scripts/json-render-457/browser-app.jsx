@@ -30,12 +30,13 @@ function catalogFor(arm) {
     Select: z.object({ id, label: z.string(), options: z.array(z.string()), value: textValue, ...classProp }).strict(),
     Button: z.object({ id, label: z.string(), ...classProp, ...buttonState }).strict(),
   };
-  return defineCatalog(schema, {
+  const catalog = defineCatalog(schema, {
     components: Object.fromEntries(Object.entries(props).map(([name, shape]) => [name, {
       props: shape, description: `${name} in the frozen #457 catalog`, ...(name === 'Layout' ? { slots: ['default'] } : {}),
     }])),
     actions: { save: { description: 'Record a local save' }, refresh: { description: 'Record a local refresh' }, add: { description: 'Record a local add' } },
   });
+  return { catalog, props };
 }
 
 function registryFor(arm, catalog) {
@@ -76,12 +77,21 @@ let reactRoot;
 let store;
 let arm;
 let catalog;
+let shapes;
 let registry;
 let actions;
 const handlers = Object.fromEntries(['save', 'refresh', 'add'].map((name) => [name, () => { actions.push(name); }]));
 function render(spec) {
   const validated = catalog.validate(spec);
   if (!validated.success) return { ok: false, errors: validated.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`) };
+  const propErrors = [];
+  for (const [nodeId, node] of Object.entries(spec.elements)) {
+    const shape = shapes[node.type];
+    if (!shape) { propErrors.push(`elements.${nodeId}: unknown component`); continue; }
+    const checked = shape.safeParse(node.props);
+    if (!checked.success) for (const issue of checked.error.issues) propErrors.push(`elements.${nodeId}.props.${issue.path.join('.')}: ${issue.message}`);
+  }
+  if (propErrors.length) return { ok: false, errors: propErrors };
   if (arm === 'utility') window.BaroCSS.preloadJsonRenderClasses(spec, window.BaroCSS.getRuntime());
   flushSync(() => reactRoot.render(<JSONUIProvider store={store} handlers={handlers}><Renderer spec={spec} registry={registry} /></JSONUIProvider>));
   return { ok: true, errors: [] };
@@ -90,7 +100,7 @@ window.REPLAY = {
   mount(selectedArm, initialState, spec) {
     if (reactRoot) throw new Error('mount must run once per page');
     arm = selectedArm;
-    catalog = catalogFor(arm);
+    ({ catalog, props: shapes } = catalogFor(arm));
     registry = registryFor(arm, catalog);
     store = createStateStore(initialState);
     actions = [];
