@@ -1,6 +1,6 @@
 # Documentation site maintenance
 
-Status: 2026-09-27. BaroCSS `0.11.1` is published on npm for kit, browser, and server. Both `0.11.1` browser CDN files return HTTP 200 on jsDelivr. The Docs update in PR #423 deployed from `main@6c2bf15c` and passed live smoke; its Quick Start and API index show `0.11.1`. Earlier release checks below are historical. Future Docs updates still require the normal develop-to-main release path.
+Status: 2026-09-27. BaroCSS `0.11.2` is published on npm for kit, browser, and server. Both exact `0.11.2` browser CDN files return HTTP 200 on jsDelivr. The Docs build takes install/CDN example versions from `apps/barocss-docs/published-version.json`; this change advances that file to `0.11.2`. Confirm the Pages deployment and live smoke after merging this Docs-only update. Earlier release checks below are historical.
 
 ## Sources of truth
 
@@ -21,8 +21,9 @@ Status: 2026-09-27. BaroCSS `0.11.1` is published on npm for kit, browser, and s
 
 ## Current evidence and limits
 
-- `0.11.1` check, 2026-09-27: npm reports `0.11.1` for kit, browser, and server; `https://cdn.jsdelivr.net/npm/@barocss/browser@0.11.1/dist/cdn/barocss.js` and `https://cdn.jsdelivr.net/npm/@barocss/browser@0.11.1/dist/cdn/barocss.umd.cjs` both return HTTP 200. The [exact-main Pages run](https://github.com/barocss/barocss/actions/runs/36266525664) succeeded. The [post-deployment live read](https://github.com/barocss/barocss/pull/423#issuecomment-5849740018) checked the Quick Start, Vite + Tailwind guide, companion guide, API index, and homepage. This is the current release evidence; recheck before changing installation examples.
-- The `0.6.0`, `0.5.0`, and `0.4.0` checks below record earlier releases, not the current npm or CDN version.
+- `0.11.2` check, 2026-09-27: the [release reconciliation](https://github.com/barocss/barocss/pull/451#issuecomment-5856240655) confirms all three npm versions and latest tags, git tags, and GitHub Releases at `0.11.2` from `main@0f3560a3`. The exact jsDelivr browser URLs `https://cdn.jsdelivr.net/npm/@barocss/browser@0.11.2/dist/cdn/barocss.js` and `https://cdn.jsdelivr.net/npm/@barocss/browser@0.11.2/dist/cdn/barocss.umd.cjs` both returned HTTP 200 (255,268 and 254,803 bytes). The local Docs build and emitted install/CDN snippets use `0.11.2`; the final Pages deployment and live smoke must be checked after this Docs-only change reaches `main`.
+- Historical `0.11.1` check, 2026-09-27: npm reports `0.11.1` for kit, browser, and server; `https://cdn.jsdelivr.net/npm/@barocss/browser@0.11.1/dist/cdn/barocss.js` and `https://cdn.jsdelivr.net/npm/@barocss/browser@0.11.1/dist/cdn/barocss.umd.cjs` both return HTTP 200. The [exact-main Pages run](https://github.com/barocss/barocss/actions/runs/36266525664) succeeded. The [post-deployment live read](https://github.com/barocss/barocss/pull/423#issuecomment-5849740018) checked the Quick Start, Vite + Tailwind guide, companion guide, API index, and homepage. This was the previous release evidence.
+- The `0.6.0`, `0.5.0`, and `0.4.0` checks below also record earlier releases.
 - `0.6.0` CDN check, 2026-09-26 (`curl -L`):
   - `https://cdn.jsdelivr.net/npm/@barocss/browser@0.6.0/dist/cdn/barocss.js` — 200
   - `https://cdn.jsdelivr.net/npm/@barocss/browser@0.6.0/dist/cdn/barocss.umd.cjs` — 200
@@ -50,4 +51,4 @@ For the next release:
 
 ## GitHub Pages procedure
 
-`.github/workflows/deploy-docs.yml` builds Docs pull requests without deployment. A reviewed `main` push that changes Docs content or the Docs package manifest builds and deploys `apps/barocss-docs/docs/.vitepress/dist` automatically. Docs changes enter `develop` first; the user manually merges a release-ready develop-to-main PR. Confirm the Pages run SHA, deployment record, live Quick Start, CDN URLs, and internal links after that merge. Manual workflow dispatch is limited to `main` and requires approval. npm publication is a separate release action.
+`.github/workflows/deploy-docs.yml` builds Docs pull requests without deployment. A reviewed `main` push that changes Docs content, the Docs package manifest, or `apps/barocss-docs/published-version.json` builds and deploys `apps/barocss-docs/docs/.vitepress/dist` automatically. Docs changes enter `develop` first; the user manually merges a release-ready develop-to-main PR. Confirm the Pages run SHA, deployment record, live Quick Start, CDN URLs, and internal links after that merge. Manual workflow dispatch is limited to `main` and requires approval. npm publication is a separate release action.
