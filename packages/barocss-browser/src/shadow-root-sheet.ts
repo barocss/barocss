@@ -60,8 +60,10 @@ const escapeCssRule = (rule: string) => rule.replace(/\\\//g, '\\/');
  * #384: `@property` only registers at document level; browsers ignore it inside a shadow root's sheets, so every
  * utility built on registered custom properties (gradients, shadow-*, ring-*, translate-*, ...) computed to `none`
  * in root mode. Root-mode runtimes therefore also register their `@property` rules in the document, in one small
- * sheet shared by every root and runtime: a `<style data-barocss="document-properties">` in `<head>` (carrying
- * `nonce`), or with `constructable` one sheet in `document.adoptedStyleSheets`. Only `@property` rules go there:
+ * sheet shared by every root and runtime. #442: by default (no option needed) one constructable sheet in
+ * `document.adoptedStyleSheets` when supported, so a strict CSP (`style-src 'self'`) without a nonce stays clean;
+ * otherwise a `<style data-barocss="document-properties">` in `<head>` only when a `nonce` is given; otherwise
+ * (no support and no nonce, or insertion failed) the caller's `:host` `@layer properties` fallback. Only `@property` rules go there:
  * utilities, theme variables and preflight stay in the shadow root (#327).
  *
  * Destroy: the registrations are never removed. They are global and harmless without a utility that reads them,
@@ -87,12 +89,19 @@ export function registerDocumentProperties(doc: Document | null | undefined, rul
   if (props.length === 0) return true;
   try {
     if (!doc) return false;
-    if (!documentProperties || documentProperties.doc !== doc || (documentProperties.style && !documentProperties.style.isConnected)) {
+    let cur = documentProperties;
+    if (cur && cur.doc === doc && cur.sheet && !doc.adoptedStyleSheets.includes(cur.sheet)) {
+      // #442: someone replaced document.adoptedStyleSheets; re-adopt ours, keeping theirs.
+      doc.adoptedStyleSheets = [...doc.adoptedStyleSheets, cur.sheet];
+    }
+    if (!cur || cur.doc !== doc || (cur.style && !cur.style.isConnected)) {
       const entry: DocumentProperties = { doc, rules: new Set() };
-      if (opts.constructable && canConstruct('document')) {
+      if (canConstruct('document')) {
         entry.sheet = new CSSStyleSheet();
         doc.adoptedStyleSheets = [...doc.adoptedStyleSheets, entry.sheet];
       } else {
+        // #442: an un-nonce'd <style> would violate a strict CSP (and silently drop @property): use the fallback.
+        if (!opts.nonce) return false;
         const parent = doc.head ?? doc.documentElement;
         if (!parent) return false;
         const style = doc.createElement('style');
@@ -101,9 +110,9 @@ export function registerDocumentProperties(doc: Document | null | undefined, rul
         parent.appendChild(style);
         entry.style = style;
       }
-      documentProperties = entry;
+      documentProperties = cur = entry;
     }
-    const entry = documentProperties;
+    const entry = cur;
     for (const rule of props) {
       if (entry.rules.has(rule)) continue;
       const sheet = entry.sheet ?? entry.style?.sheet ?? null;

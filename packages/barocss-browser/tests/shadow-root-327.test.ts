@@ -35,7 +35,7 @@ const rootCss = (sr: ShadowRoot) => Array.from(sr.querySelectorAll<HTMLStyleElem
 describe('#327 shadow root option (fallback <style> path)', () => {
   it('scopes utilities, theme vars and preflight into the root, only @property into document.head (#384)', async () => {
     const sr = widget('<div class="p-4 text-red-500">x</div>');
-    start(sr);
+    runtimes.push(new BrowserRuntime({ root: sr, nonce: 'n', gcGraceMs: GRACE })); // #442: the <style> path (no constructable document sheets) needs a nonce
     await flush();
     const css = rootCss(sr);
     expect(css).toMatch(/\.p-4/);
