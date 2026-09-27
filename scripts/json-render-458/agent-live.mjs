@@ -19,6 +19,11 @@ const NODE_BIN = '/Users/user/Library/pnpm/nodejs/22.19.0/bin';
 const AUTH_PATH = '/Users/user/.codex/auth.json';
 const BUILTIN_SKILLS_SHA = '5ba0f9dbe3610088107ce8a891d894a2c90dab7730326e4e0c81ae693f0ac16f';
 const sha = (value) => createHash('sha256').update(value).digest('hex');
+export function checkCliLogin(env) {
+  const result = spawnSync(CLI_PATH, ['login', 'status'], { encoding: 'utf8', env });
+  if (result.status !== 0 || result.error || String(result.stdout ?? '').trim() !== '' ||
+      String(result.stderr ?? '').trim() !== 'Logged in using ChatGPT') throw new Error('Codex ChatGPT login status drift');
+}
 function assertNoStartupSources(codexHome) {
   for (const name of ['AGENTS.md', 'AGENTS.override.md', 'config.toml', 'rules', 'plugins']) {
     if (fs.existsSync(path.join(codexHome, name))) throw new Error(`Isolated Codex home gained ${name}`);
@@ -106,8 +111,8 @@ export function agentLiveTransport({ approvalPath, outputDir, agentPlanHash }) {
     fs.chmodSync(schemaPath, 0o400);
     env = agentEnv({ home, codexHome, nodeBin: NODE_BIN });
     const version = execFileSync(CLI_PATH, ['--version'], { encoding: 'utf8', env }).trim();
-    const login = execFileSync(CLI_PATH, ['login', 'status'], { encoding: 'utf8', env }).trim();
-    if (version !== `codex-cli ${CLI_VERSION}` || login !== 'Logged in using ChatGPT') throw new Error('Codex version or ChatGPT login drift');
+    if (version !== `codex-cli ${CLI_VERSION}`) throw new Error('Codex CLI version drift');
+    checkCliLogin(env);
     if (!fs.lstatSync(path.join(codexHome, 'auth.json')).isSymbolicLink()) throw new Error('Isolated auth reference changed');
     if (fs.realpathSync(path.join(codexHome, 'auth.json')) !== AUTH_PATH ||
         fs.existsSync(path.join(codexHome, 'AGENTS.md'))) throw new Error('Isolated Codex home gained startup files');

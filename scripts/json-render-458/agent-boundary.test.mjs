@@ -6,6 +6,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { PROFILE, PROFILE_RULES, SCRATCH_PARENT } from './agent-profile.mjs';
+import { checkCliLogin } from './agent-live.mjs';
 
 const codex = '/Users/user/Library/pnpm/nodejs/22.19.0/bin/codex';
 const repoEvaluator = path.join(path.dirname(fileURLToPath(import.meta.url)), 'plan.mjs');
@@ -19,6 +20,7 @@ test('native profile reads only scratch and blocks evaluator, temp, symlink and 
     const authHome = fs.mkdtempSync(path.join(SCRATCH_PARENT, 'agent-auth-458-probe-'));
     try {
       fs.symlinkSync('/Users/user/.codex/auth.json', path.join(authHome, 'auth.json'));
+      checkCliLogin({ ...process.env, CODEX_HOME: authHome });
       const scratchFile = path.join(scratch, 'sentinel');
       const siblingFile = path.join(sibling, 'sentinel');
       const evidenceFile = path.join(evidence, 'sentinel');
