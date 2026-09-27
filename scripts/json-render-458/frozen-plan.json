@@ -1,0 +1,475 @@
+{
+  "issue": 458,
+  "model": "gpt-6-sol",
+  "reasoning": "high",
+  "cliVersion": "0.156.1",
+  "maxAttempts": 24,
+  "schedule": [
+    {
+      "id": "settings--variable--initial",
+      "session": "settings--variable",
+      "scenario": "settings",
+      "arm": "variable",
+      "stage": "initial",
+      "ordinal": 0,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "hoverUnderline": false,
+        "hoverItalic": false
+      }
+    },
+    {
+      "id": "settings--variable--scalar",
+      "session": "settings--variable",
+      "scenario": "settings",
+      "arm": "variable",
+      "stage": "scalar",
+      "ordinal": 1,
+      "support": {
+        "supported": true,
+        "reason": "typed-variable"
+      },
+      "required": {
+        "paddingPx": 17.5,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "hoverUnderline": false,
+        "hoverItalic": false
+      }
+    },
+    {
+      "id": "settings--variable--compiled",
+      "session": "settings--variable",
+      "scenario": "settings",
+      "arm": "variable",
+      "stage": "compiled",
+      "ordinal": 2,
+      "support": {
+        "supported": true,
+        "reason": "precompiled-choice"
+      },
+      "required": {
+        "paddingPx": 17.5,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "hoverUnderline": true,
+        "hoverItalic": false
+      }
+    },
+    {
+      "id": "settings--variable--absent",
+      "session": "settings--variable",
+      "scenario": "settings",
+      "arm": "variable",
+      "stage": "absent",
+      "ordinal": 3,
+      "support": {
+        "supported": false,
+        "reason": "frozen-catalog:no-rule-or-prop"
+      },
+      "required": {
+        "paddingPx": 17.5,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "hoverUnderline": true,
+        "hoverItalic": true
+      }
+    },
+    {
+      "id": "settings--utility--initial",
+      "session": "settings--utility",
+      "scenario": "settings",
+      "arm": "utility",
+      "stage": "initial",
+      "ordinal": 4,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "hoverUnderline": false,
+        "hoverItalic": false
+      }
+    },
+    {
+      "id": "settings--utility--scalar",
+      "session": "settings--utility",
+      "scenario": "settings",
+      "arm": "utility",
+      "stage": "scalar",
+      "ordinal": 5,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 17.5,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "hoverUnderline": false,
+        "hoverItalic": false
+      }
+    },
+    {
+      "id": "settings--utility--compiled",
+      "session": "settings--utility",
+      "scenario": "settings",
+      "arm": "utility",
+      "stage": "compiled",
+      "ordinal": 6,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 17.5,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "hoverUnderline": true,
+        "hoverItalic": false
+      }
+    },
+    {
+      "id": "settings--utility--absent",
+      "session": "settings--utility",
+      "scenario": "settings",
+      "arm": "utility",
+      "stage": "absent",
+      "ordinal": 7,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 17.5,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "hoverUnderline": true,
+        "hoverItalic": true
+      }
+    },
+    {
+      "id": "dashboard--variable--initial",
+      "session": "dashboard--variable",
+      "scenario": "dashboard",
+      "arm": "variable",
+      "stage": "initial",
+      "ordinal": 8,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2
+      }
+    },
+    {
+      "id": "dashboard--variable--scalar",
+      "session": "dashboard--variable",
+      "scenario": "dashboard",
+      "arm": "variable",
+      "stage": "scalar",
+      "ordinal": 9,
+      "support": {
+        "supported": true,
+        "reason": "typed-variable"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 21.25,
+        "radiusPx": 14,
+        "columns": 2
+      }
+    },
+    {
+      "id": "dashboard--variable--compiled",
+      "session": "dashboard--variable",
+      "scenario": "dashboard",
+      "arm": "variable",
+      "stage": "compiled",
+      "ordinal": 10,
+      "support": {
+        "supported": true,
+        "reason": "precompiled-choice"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 21.25,
+        "radiusPx": 14,
+        "columns": 1
+      }
+    },
+    {
+      "id": "dashboard--variable--absent",
+      "session": "dashboard--variable",
+      "scenario": "dashboard",
+      "arm": "variable",
+      "stage": "absent",
+      "ordinal": 11,
+      "support": {
+        "supported": false,
+        "reason": "frozen-catalog:no-rule-or-prop"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 21.25,
+        "radiusPx": 14,
+        "columns": 3
+      }
+    },
+    {
+      "id": "dashboard--utility--initial",
+      "session": "dashboard--utility",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "stage": "initial",
+      "ordinal": 12,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2
+      }
+    },
+    {
+      "id": "dashboard--utility--scalar",
+      "session": "dashboard--utility",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "stage": "scalar",
+      "ordinal": 13,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 21.25,
+        "radiusPx": 14,
+        "columns": 2
+      }
+    },
+    {
+      "id": "dashboard--utility--compiled",
+      "session": "dashboard--utility",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "stage": "compiled",
+      "ordinal": 14,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 21.25,
+        "radiusPx": 14,
+        "columns": 1
+      }
+    },
+    {
+      "id": "dashboard--utility--absent",
+      "session": "dashboard--utility",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "stage": "absent",
+      "ordinal": 15,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 21.25,
+        "radiusPx": 14,
+        "columns": 3
+      }
+    },
+    {
+      "id": "kiosk--variable--initial",
+      "session": "kiosk--variable",
+      "scenario": "kiosk",
+      "arm": "variable",
+      "stage": "initial",
+      "ordinal": 16,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "uppercase": false
+      }
+    },
+    {
+      "id": "kiosk--variable--scalar",
+      "session": "kiosk--variable",
+      "scenario": "kiosk",
+      "arm": "variable",
+      "stage": "scalar",
+      "ordinal": 17,
+      "support": {
+        "supported": true,
+        "reason": "typed-variable"
+      },
+      "required": {
+        "paddingPx": 23.75,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "uppercase": false
+      }
+    },
+    {
+      "id": "kiosk--variable--compiled",
+      "session": "kiosk--variable",
+      "scenario": "kiosk",
+      "arm": "variable",
+      "stage": "compiled",
+      "ordinal": 18,
+      "support": {
+        "supported": true,
+        "reason": "precompiled-choice"
+      },
+      "required": {
+        "paddingPx": 23.75,
+        "gapPx": 12,
+        "radiusPx": 14,
+        "columns": 1,
+        "uppercase": false
+      }
+    },
+    {
+      "id": "kiosk--variable--absent",
+      "session": "kiosk--variable",
+      "scenario": "kiosk",
+      "arm": "variable",
+      "stage": "absent",
+      "ordinal": 19,
+      "support": {
+        "supported": false,
+        "reason": "frozen-catalog:no-rule-or-prop"
+      },
+      "required": {
+        "paddingPx": 23.75,
+        "gapPx": 12,
+        "radiusPx": 14,
+        "columns": 1,
+        "uppercase": true
+      }
+    },
+    {
+      "id": "kiosk--utility--initial",
+      "session": "kiosk--utility",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "stage": "initial",
+      "ordinal": 20,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 24,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "uppercase": false
+      }
+    },
+    {
+      "id": "kiosk--utility--scalar",
+      "session": "kiosk--utility",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "stage": "scalar",
+      "ordinal": 21,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 23.75,
+        "gapPx": 24,
+        "radiusPx": 14,
+        "columns": 2,
+        "uppercase": false
+      }
+    },
+    {
+      "id": "kiosk--utility--compiled",
+      "session": "kiosk--utility",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "stage": "compiled",
+      "ordinal": 22,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 23.75,
+        "gapPx": 12,
+        "radiusPx": 14,
+        "columns": 1,
+        "uppercase": false
+      }
+    },
+    {
+      "id": "kiosk--utility--absent",
+      "session": "kiosk--utility",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "stage": "absent",
+      "ordinal": 23,
+      "support": {
+        "supported": true,
+        "reason": "frozen-capability"
+      },
+      "required": {
+        "paddingPx": 23.75,
+        "gapPx": 12,
+        "radiusPx": 14,
+        "columns": 1,
+        "uppercase": true
+      }
+    }
+  ],
+  "files": {
+    "capture.mjs": "377e36c2e3b0462a5b845935790ce7ea922e8870aa4d346fb313875404c28384",
+    "cli.mjs": "22390c4ddb1084184dd3b163ed7af5e0f9f3e5ef423006252ab1fcf357a3322d",
+    "freeze.mjs": "58cda90e347def4ddc3c18f7b8048c5b2c1764dd414dc960ec797fcc57730222",
+    "live.mjs": "7650f9e173be988b35854e997577e9bb315816ba121914b9bb10d6392b44fc9d",
+    "output.schema.json": "fbe2375a4ff621101245172cf6ccd03112f78e7b156ae5c14f126d6515de5626",
+    "plan.mjs": "f4e91502fa59665d6e2599a33d2b25867f9c7e136e23c05344fce6ff8d3690b8",
+    "stub.mjs": "7bca4d860f0a001d4d8696d11f7d37a61ba8bd54b08a0946d38c47dfed12ba20",
+    "validate.mjs": "21869be6c0f82f10d3315895c7987e46af3a380cb781ece118de305b0f16c77c"
+  }
+}
