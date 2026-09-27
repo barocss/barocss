@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { performance } from 'node:perf_hooks';
 import { MAX_ATTEMPTS, MODEL, REASONING } from './plan.mjs';
 import { verifyFrozen } from './freeze.mjs';
 import { verifyApiFrozen } from './api-frozen.mjs';
@@ -125,17 +126,25 @@ function ensureApiRunManifest(runDir, transportKind, metadata) {
 export function preparedApiTransport(responder, transportKind, metadata = {}) {
   if (typeof responder !== 'function' || !['api-stub', 'api-live'].includes(transportKind)) fail('invalid prepared responder');
   return async ({ row, prompt, attemptDir, timeoutMs }) => {
-    const runDir = path.dirname(attemptDir);
-    ensureApiRunManifest(runDir, transportKind, metadata);
-    const request = apiRequest(prompt);
-    reserveApiCharge({ runDir, attemptDir, ordinal: row.ordinal, request });
-    saveExclusive(path.join(attemptDir, 'api-request.json'), request);
-    const response = await responder(request, row, attemptDir, timeoutMs);
-    saveExclusive(path.join(attemptDir, 'api-response.json'), response);
-    const checked = settleApiCharge({ attemptDir, ordinal: row.ordinal, response });
-    return { rawFinal: checked.rawFinal, usage: { input_tokens: checked.usage.inputTokens,
-      cached_input_tokens: checked.usage.cachedInputTokens, output_tokens: checked.usage.outputTokens },
-      responseModel: response.model, exitCode: 0, stopReason: null };
+    const started = performance.now();
+    try {
+      const runDir = path.dirname(attemptDir);
+      ensureApiRunManifest(runDir, transportKind, metadata);
+      const request = apiRequest(prompt);
+      reserveApiCharge({ runDir, attemptDir, ordinal: row.ordinal, request });
+      saveExclusive(path.join(attemptDir, 'api-request.json'), request);
+      const response = await responder(request, row, attemptDir, timeoutMs);
+      saveExclusive(path.join(attemptDir, 'api-response.json'), response);
+      const checked = settleApiCharge({ attemptDir, ordinal: row.ordinal, response });
+      return { rawFinal: checked.rawFinal, usage: { input_tokens: checked.usage.inputTokens,
+        cached_input_tokens: checked.usage.cachedInputTokens, output_tokens: checked.usage.outputTokens },
+        responseModel: response.model, exitCode: 0, stopReason: null,
+        elapsedMs: Math.max(0, Math.round(performance.now() - started)) };
+    } catch (error) {
+      return { rawFinal: null, usage: null, exitCode: null,
+        stopReason: `api-error:${String(error?.message ?? error).slice(0, 80)}`,
+        elapsedMs: Math.max(0, Math.round(performance.now() - started)) };
+    }
   };
 }
 // Only a test-supplied responder is accepted. This function never reads a key or sends HTTP.

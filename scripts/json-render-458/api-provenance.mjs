@@ -31,6 +31,8 @@ export function verifyApiCapture(runDir) {
   for (const row of capture.rows.filter((item) => item.attempted)) {
     const dirName = `attempt-${String(row.ordinal).padStart(2, '0')}`;
     const dir = path.join(runDir, dirName);
+    const transport = JSON.parse(fs.readFileSync(path.join(dir, 'transport.json'), 'utf8'));
+    if (!Number.isSafeInteger(row.elapsedMs) || row.elapsedMs < 0 || transport.elapsedMs !== row.elapsedMs) throw new Error(`API elapsed time drift: ${row.id}`);
     const requestPath = path.join(dir, 'api-request.json');
     const reservationPath = path.join(dir, 'api-charge-reservation.json');
     if (!fs.existsSync(reservationPath)) {
@@ -54,14 +56,14 @@ export function verifyApiCapture(runDir) {
     if (held > API_CEILING_MICRO_USD) throw new Error('API aggregate charge ceiling exceeded');
     const responsePath = path.join(dir, 'api-response.json'), settlementPath = path.join(dir, 'api-charge-settlement.json');
     if (!fs.existsSync(responsePath)) {
-      if (fs.existsSync(settlementPath) || !String(row.stopReason).startsWith('transport-exception:')) throw new Error(`Missing API response: ${row.id}`);
+      if (fs.existsSync(settlementPath) || !String(row.stopReason).startsWith('api-error:')) throw new Error(`Missing API response: ${row.id}`);
       continue;
     }
     const responseBytes = fs.readFileSync(responsePath), response = JSON.parse(responseBytes);
     inventory[`${dirName}/api-response.json`] = sha(responseBytes);
     if (!fs.existsSync(settlementPath)) {
       let reason;
-      try { inspectApiResponse(response); } catch (error) { reason = `transport-exception:${String(error.message).slice(0, 80)}`; }
+      try { inspectApiResponse(response); } catch (error) { reason = `api-error:${String(error.message).slice(0, 80)}`; }
       if (!reason || row.stopReason !== reason) throw new Error(`Missing or inconsistent API settlement: ${row.id}`);
       continue;
     }

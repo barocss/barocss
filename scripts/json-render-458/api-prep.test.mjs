@@ -84,6 +84,7 @@ test('durable reservations precede each stub dispatch and full histories replay 
   assert.equal(rows.length, 24);
   assert.equal(rows.filter((row) => row.attempted).length, 24);
   assert.equal(rows.filter((row) => row.status === 'valid').length, 21);
+  assert.ok(rows.filter((row) => row.attempted).every((row) => Number.isSafeInteger(row.elapsedMs) && row.elapsedMs >= 0));
   assert.equal(verifyCapture(run).rows.length, 24);
   assert.equal(verifyApiCapture(run).rows.length, 24);
   const last = JSON.parse(fs.readFileSync(path.join(run, 'attempt-23/api-request.json')));
@@ -97,11 +98,12 @@ test('timeout and missing usage retain the full reservation and stop the schedul
   for (const kind of ['timeout', 'missing-usage']) {
     const run = fresh();
     const transport = stubApiTransport(async () => {
-      if (kind === 'timeout') throw new Error('timeout after possible charge');
+      if (kind === 'timeout') { await new Promise((resolve) => setTimeout(resolve, 15)); throw new Error('timeout after possible charge'); }
       const r = response(); delete r.usage; return r;
     });
     const rows = await capture({ outputDir: run, transport, planHash: verifyFrozen(), synthetic: true });
     assert.equal(rows.filter((row) => row.attempted).length, 1);
+    assert.ok(Number.isSafeInteger(rows[0].elapsedMs) && rows[0].elapsedMs >= (kind === 'timeout' ? 10 : 0));
     assert.equal(rows.filter((row) => row.status === 'skipped-global').length, 23);
     assert.equal(JSON.parse(fs.readFileSync(path.join(run, 'attempt-00/api-charge-reservation.json'))).reservedMicroUsd, API_RESERVATION_MICRO_USD);
     assert.equal(verifyApiCapture(run).heldMicroUsd, API_RESERVATION_MICRO_USD);
@@ -131,6 +133,11 @@ test('API provenance rejects missing and mutated request, reservation, and respo
     assert.throws(() => verifyApiCapture(run));
     fs.renameSync(file + '.held', file);
   }
+  const rowsFile = path.join(run, 'rows.json'), rowsOriginal = fs.readFileSync(rowsFile);
+  const changedRows = JSON.parse(rowsOriginal); changedRows[0].elapsedMs = null;
+  fs.writeFileSync(rowsFile, JSON.stringify(changedRows));
+  assert.throws(() => verifyApiCapture(run), /elapsed time drift/);
+  fs.writeFileSync(rowsFile, rowsOriginal);
   assert.equal(verifyApiCapture(run).apiEvidenceSha256, baseline);
 });
 test('the $10 cap settles complete usage and denies the next request before responder dispatch', async () => {
@@ -149,6 +156,7 @@ test('the $10 cap settles complete usage and denies the next request before resp
   assert.equal(rows.filter((r) => r.attempted).length, 2); // The second is a local capture slot, never an HTTP attempt.
   assert.equal(rows.filter((r) => r.status === 'skipped-global').length, 22);
   assert.match(rows[1].stopReason, /aggregate charge ceiling/);
+  assert.ok(Number.isSafeInteger(rows[1].elapsedMs) && rows[1].elapsedMs >= 0);
   assert.ok(!fs.existsSync(path.join(run, 'attempt-01/api-charge-reservation.json')));
   assert.ok(verifyApiCapture(run).heldMicroUsd <= API_CEILING_MICRO_USD);
 });
