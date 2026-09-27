@@ -3,7 +3,7 @@
  "date": "2026-09-27",
  "note": "raw accumulates across per-rate invocations in one session; see NOTES.md",
  "docs": [
-  "haiku-1"
+  "haiku-2"
  ],
  "concurrency": 1,
  "charsPerToken": 4,
@@ -31,7 +31,7 @@
  "runtime": "local packages/barocss-browser dist (baroBoot default config: observe body, gc on, gcGraceMs 3000)",
  "summary": {
   "settled": {
-   "n": 1,
+   "n": 2,
    "junkRules": 0,
    "junkMax": 0,
    "calls": 1,
@@ -49,13 +49,13 @@
    "streamS": 0
   },
   "innerHTML@20": {
-   "n": 1,
+   "n": 2,
    "junkRules": 0,
    "junkMax": 0,
    "calls": 22,
    "generated": 49,
-   "wrongStyleSamplePct": 0.9,
-   "streamsWithWrongStyle": 1,
+   "wrongStyleSamplePct": 6,
+   "streamsWithWrongStyle": 2,
    "wrongEls": 11,
    "lastTokenToFinalMs": 0.7,
    "lastTokenToFinalP90": 0.7,
@@ -67,13 +67,13 @@
    "streamS": 38.4
   },
   "incremental@20": {
-   "n": 1,
+   "n": 2,
    "junkRules": 0,
    "junkMax": 0,
    "calls": 22,
    "generated": 49,
-   "wrongStyleSamplePct": 0.9,
-   "streamsWithWrongStyle": 1,
+   "wrongStyleSamplePct": 6.3,
+   "streamsWithWrongStyle": 2,
    "wrongEls": 12,
    "lastTokenToFinalMs": 0.3,
    "lastTokenToFinalP90": 0.3,
@@ -85,13 +85,13 @@
    "streamS": 38.4
   },
   "innerHTML@50": {
-   "n": 1,
+   "n": 2,
    "junkRules": 0,
    "junkMax": 0,
    "calls": 22,
    "generated": 49,
-   "wrongStyleSamplePct": 0.6,
-   "streamsWithWrongStyle": 1,
+   "wrongStyleSamplePct": 6.2,
+   "streamsWithWrongStyle": 2,
    "wrongEls": 5,
    "lastTokenToFinalMs": 0.4,
    "lastTokenToFinalP90": 0.4,
@@ -103,16 +103,16 @@
    "streamS": 15.4
   },
   "incremental@50": {
-   "n": 1,
+   "n": 2,
    "junkRules": 0,
    "junkMax": 0,
    "calls": 22,
    "generated": 49,
-   "wrongStyleSamplePct": 0.8,
-   "streamsWithWrongStyle": 1,
+   "wrongStyleSamplePct": 6.2,
+   "streamsWithWrongStyle": 2,
    "wrongEls": 9,
-   "lastTokenToFinalMs": 0.2,
-   "lastTokenToFinalP90": 0.2,
+   "lastTokenToFinalMs": 0.3,
+   "lastTokenToFinalP90": 0.3,
    "unsettled": 0,
    "cacheEnd": 49,
    "cachedJunkEnd": 0,
@@ -121,14 +121,14 @@
    "streamS": 15.4
   },
   "innerHTML@100": {
-   "n": 1,
+   "n": 2,
    "junkRules": 0,
    "junkMax": 0,
    "calls": 22,
    "generated": 49,
-   "wrongStyleSamplePct": 0.5,
-   "streamsWithWrongStyle": 1,
-   "wrongEls": 3,
+   "wrongStyleSamplePct": 5.7,
+   "streamsWithWrongStyle": 2,
+   "wrongEls": 4,
    "lastTokenToFinalMs": 0.8,
    "lastTokenToFinalP90": 0.8,
    "unsettled": 0,
@@ -139,13 +139,13 @@
    "streamS": 7.7
   },
   "incremental@100": {
-   "n": 1,
+   "n": 2,
    "junkRules": 0,
    "junkMax": 0,
    "calls": 22,
    "generated": 49,
-   "wrongStyleSamplePct": 1.2,
-   "streamsWithWrongStyle": 1,
+   "wrongStyleSamplePct": 6.2,
+   "streamsWithWrongStyle": 2,
    "wrongEls": 9,
    "lastTokenToFinalMs": 0.4,
    "lastTokenToFinalP90": 0.4,
@@ -365,10 +365,218 @@
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "settled",
+   "doc": "haiku-2",
+   "streamMs": 0.1,
+   "calls": 1,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 1,
+   "elemSamples": 16,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 22.6,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "haiku-2",
+   "streamMs": 23901.5,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 236,
+   "elemSamples": 2376,
+   "wrongSamples": 142,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 142
+   },
+   "settleMs": 0.3,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "haiku-2",
+   "streamMs": 23900.7,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 236,
+   "elemSamples": 2371,
+   "wrongSamples": 149,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 149
+   },
+   "settleMs": 0.2,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "haiku-2",
+   "streamMs": 9560.9,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 94,
+   "elemSamples": 953,
+   "wrongSamples": 59,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 59
+   },
+   "settleMs": 0.4,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "haiku-2",
+   "streamMs": 9561.2,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 94,
+   "elemSamples": 953,
+   "wrongSamples": 59,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 59
+   },
+   "settleMs": 0.3,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "haiku-2",
+   "streamMs": 4781.4,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 46,
+   "elemSamples": 471,
+   "wrongSamples": 27,
+   "wrongEls": 4,
+   "wrongProps": {
+    "width": 27
+   },
+   "settleMs": 0.5,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "haiku-2",
+   "streamMs": 4780.6,
+   "calls": 10,
+   "generated": 34,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 47,
+   "elemSamples": 483,
+   "wrongSamples": 30,
+   "wrongEls": 5,
+   "wrongProps": {
+    "width": 30
+   },
+   "settleMs": 0.3,
+   "atEnd": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 34,
+    "ruleCount": 34,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
   }
  ],
  "maxChars": 3000,
  "loads": {
-  "round0": "8.29 7.58 8.25"
+  "round1": "4.35 6.27 7.56"
  }
 }
