@@ -1,0 +1,656 @@
+{
+  "synthetic": true,
+  "phase": "pilot-b",
+  "planHash": "9d3b8b5249144d3ef520093c911c87c97215bb895f2cfc67f77684b07770cefc",
+  "planned": [
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/fixed/0/initial",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/fixed/0/density",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/fixed/0/responsive",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/fixed/0/structure",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/fixed/0/initial",
+      "session": "pilot-b/claude-sonnet-5/settings/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/fixed/0/density",
+      "session": "pilot-b/claude-sonnet-5/settings/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/fixed/0/responsive",
+      "session": "pilot-b/claude-sonnet-5/settings/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/fixed/0/structure",
+      "session": "pilot-b/claude-sonnet-5/settings/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/bounded/0/initial",
+      "session": "pilot-b/claude-sonnet-5/settings/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/bounded/0/density",
+      "session": "pilot-b/claude-sonnet-5/settings/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/bounded/0/responsive",
+      "session": "pilot-b/claude-sonnet-5/settings/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/bounded/0/structure",
+      "session": "pilot-b/claude-sonnet-5/settings/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/bounded/0/initial",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/bounded/0/density",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/bounded/0/responsive",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/bounded/0/structure",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/utility/0/initial",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/utility/0/density",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/utility/0/responsive",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/settings/utility/0/structure",
+      "session": "pilot-b/claude-haiku-4-5-20251001/settings/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/utility/0/initial",
+      "session": "pilot-b/claude-sonnet-5/settings/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/utility/0/density",
+      "session": "pilot-b/claude-sonnet-5/settings/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/utility/0/responsive",
+      "session": "pilot-b/claude-sonnet-5/settings/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/settings/utility/0/structure",
+      "session": "pilot-b/claude-sonnet-5/settings/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/bounded/0/initial",
+      "session": "pilot-b/claude-sonnet-5/dashboard/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/bounded/0/density",
+      "session": "pilot-b/claude-sonnet-5/dashboard/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/bounded/0/responsive",
+      "session": "pilot-b/claude-sonnet-5/dashboard/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/bounded/0/structure",
+      "session": "pilot-b/claude-sonnet-5/dashboard/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/bounded/0/initial",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/bounded/0/density",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/bounded/0/responsive",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/bounded/0/structure",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/utility/0/initial",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/utility/0/density",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/utility/0/responsive",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/utility/0/structure",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/utility/0/initial",
+      "session": "pilot-b/claude-sonnet-5/dashboard/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/utility/0/density",
+      "session": "pilot-b/claude-sonnet-5/dashboard/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/utility/0/responsive",
+      "session": "pilot-b/claude-sonnet-5/dashboard/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/utility/0/structure",
+      "session": "pilot-b/claude-sonnet-5/dashboard/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/fixed/0/initial",
+      "session": "pilot-b/claude-sonnet-5/dashboard/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/fixed/0/density",
+      "session": "pilot-b/claude-sonnet-5/dashboard/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/fixed/0/responsive",
+      "session": "pilot-b/claude-sonnet-5/dashboard/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/dashboard/fixed/0/structure",
+      "session": "pilot-b/claude-sonnet-5/dashboard/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/fixed/0/initial",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/fixed/0/density",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/fixed/0/responsive",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/dashboard/fixed/0/structure",
+      "session": "pilot-b/claude-haiku-4-5-20251001/dashboard/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/utility/0/initial",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/utility/0/density",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/utility/0/responsive",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/utility/0/structure",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/utility/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/utility/0/initial",
+      "session": "pilot-b/claude-sonnet-5/kiosk/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/utility/0/density",
+      "session": "pilot-b/claude-sonnet-5/kiosk/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/utility/0/responsive",
+      "session": "pilot-b/claude-sonnet-5/kiosk/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/utility/0/structure",
+      "session": "pilot-b/claude-sonnet-5/kiosk/utility/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/fixed/0/initial",
+      "session": "pilot-b/claude-sonnet-5/kiosk/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/fixed/0/density",
+      "session": "pilot-b/claude-sonnet-5/kiosk/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/fixed/0/responsive",
+      "session": "pilot-b/claude-sonnet-5/kiosk/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/fixed/0/structure",
+      "session": "pilot-b/claude-sonnet-5/kiosk/fixed/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/fixed/0/initial",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/fixed/0/density",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/fixed/0/responsive",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/fixed/0/structure",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/fixed/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/bounded/0/initial",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/bounded/0/density",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/bounded/0/responsive",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-haiku-4-5-20251001/kiosk/bounded/0/structure",
+      "session": "pilot-b/claude-haiku-4-5-20251001/kiosk/bounded/0",
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "structure"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/bounded/0/initial",
+      "session": "pilot-b/claude-sonnet-5/kiosk/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "initial"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/bounded/0/density",
+      "session": "pilot-b/claude-sonnet-5/kiosk/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "density"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/bounded/0/responsive",
+      "session": "pilot-b/claude-sonnet-5/kiosk/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "responsive"
+    },
+    {
+      "id": "pilot-b/claude-sonnet-5/kiosk/bounded/0/structure",
+      "session": "pilot-b/claude-sonnet-5/kiosk/bounded/0",
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "repeat": 0,
+      "stage": "structure"
+    }
+  ],
+  "budgetMicroUsd": 81411840
+}

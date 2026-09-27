@@ -1,3 +1,4 @@
+import { BASE_TOKENS, ALL_LAYOUT_TOKENS } from '../json-render-446/styles.mjs';
 // Frozen model inputs. No reference output specs are included in these messages.
 import { SCENARIOS } from '../json-render-446/contract.mjs';
 
@@ -16,10 +17,11 @@ export function catalogFor(arm) {
     ? 'Layout props: id:string, variant:"regular"|"compact"|"stacked". regular means two columns with 24px padding and gap; compact means two columns with 12px padding and gap; stacked means one column with 12px padding and gap.'
     : arm === 'bounded'
       ? 'Layout props: id:string, density:"regular"|"compact", columns:1|2, placement:"side"|"stacked". regular density means 24px padding and gap; compact density means 12px padding and gap. columns controls column count; placement describes the same layout intention (side for two columns, stacked for one).'
-      : 'Layout props: id:string, className:string. Use Tailwind-compatible utility tokens to control column count, padding and gap. The host runtime resolves these classes. The base font size is 16px and the spacing unit is 4px. Optional className:string is also allowed on Text, Input, Select and Button. Do not use arbitrary values, arbitrary variants, URLs or CSS source.';
+      : 'Layout props: id:string, className:string. Use Tailwind-compatible utility tokens to control column count, padding and gap. The host runtime resolves these classes. The base font size is 16px and the spacing unit is 4px. Optional className:string is also allowed on Text, Input, Select and Button. Do not use arbitrary values, arbitrary variants, URLs or CSS source. Accepted class tokens are listed separately below.';
   return `Catalog version: 447-v1 (json-render 0.21.0; inherited #446 semantics).
 Spec shape: {root:string,elements:object}. elements maps stable node IDs to objects with type, props, children (array of child IDs), and optional on. No other spec fields are allowed. Each props.id must equal its element key. Use one Layout root named layout. Layout children must list all leaf nodes in the required order. Leaf children are empty arrays. No additional nodes or props.
 ${layout}
+${arm === 'utility' ? `Accepted utility token vocabulary: ${[...new Set([...BASE_TOKENS, ...ALL_LAYOUT_TOKENS])].sort().join(' ')}. This bounded vocabulary is part of the frozen safety catalog.` : ''}
 Text props: id:string, text:string. The heading ID renders as a heading; other Text nodes render as paragraphs.
 Input props: id:string, label:string, value:{"$bindState":"/<field-id>"}.
 Select props: id:string, label:string, options:string[], value:{"$bindState":"/<field-id>"}.

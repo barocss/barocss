@@ -133,12 +133,12 @@ const capture = async (page, expected, edit) => page.evaluate(async ({ expected,
   const take = () => {
     const c = getComputedStyle(root); const h = getComputedStyle(host); const b = button && getComputedStyle(button);
     const columns = c.gridTemplateColumns === 'none' ? 0 : c.gridTemplateColumns.trim().split(/\s+/).length;
-    const padding = parseFloat(c.paddingTop), gap = parseFloat(c.columnGap);
+    const padding = parseFloat(c.paddingTop), gap = parseFloat(c.columnGap), rowGap = parseFloat(c.rowGap);
     const want = expected.density === 'regular' ? 24 : 12;
-    return { columns, padding, gap, background: c.backgroundColor, buttonBackground: b?.backgroundColor ?? null,
+    return { columns, padding, gap, rowGap, background: c.backgroundColor, buttonBackground: b?.backgroundColor ?? null,
       host: [h.color, h.backgroundColor, h.fontSize, h.position, h.zIndex],
       styleBytes: [...document.querySelectorAll('style')].reduce((sum, style) => sum + style.textContent.length, 0),
-      pass: columns === expected.columns && Math.abs(padding - want) < 1 && Math.abs(gap - want) < 1 };
+      pass: columns === expected.columns && Math.abs(padding - want) < 1 && Math.abs(gap - want) < 1 && Math.abs(rowGap - want) < 1 };
   };
   const frames = [take()];
   for (let i = 0; i < 3; i++) { await new Promise(requestAnimationFrame); frames.push(take()); }
@@ -201,8 +201,9 @@ try {
             const actions=await page.evaluate(()=>window.REPLAY.actions());
             actionCount++;
             const domPass=JSON.stringify(preAction.domSignature)===JSON.stringify(['layout',...expectedNodes.map(n=>n.id)]);
-            const semanticPass=semantic&&domPass;
-            rows.push({...base,rendered:true,classification:!semanticPass?'semantic':!(preAction.value===fixture.interaction.enter&&stateValue===fixture.interaction.enter&&preAction.focus&&actions.length===actionCount&&actions.at(-1)===fixture.interaction.action)?'runtime':!measured.final?.pass?'style':'pass',specValid:true,domPass,semanticPass,domSignature:preAction.domSignature,inputValue:preAction.value,stateValue,inputValuePreserved:preAction.value===fixture.interaction.enter&&stateValue===fixture.interaction.enter,focusPreserved:preAction.focus,actionCount:actions.length,actionPass:actions.length===actionCount&&actions.at(-1)===fixture.interaction.action,stylePass:measured.final?.pass??false,themeAdherence:measured.themeAdherence,hostStyleDelta:measured.final?JSON.stringify(measured.final.host)!==JSON.stringify(hostBefore):null,frames:measured.frames,missingStyleSamples:measured.unstyledFrames,screenshot,errors:[...errors]});
+            const bindingPass=expectedNodes.filter(n=>n.type==='Input'||n.type==='Select').every(n=>JSON.stringify(cell.spec.elements[n.id]?.props?.value)===JSON.stringify({$bindState:`/${n.id}`}));
+            const semanticPass=semantic&&domPass&&bindingPass;
+            rows.push({...base,rendered:true,classification:!semanticPass?'semantic':!(preAction.value===fixture.interaction.enter&&stateValue===fixture.interaction.enter&&preAction.focus&&actions.length===actionCount&&actions.at(-1)===fixture.interaction.action)?'runtime':errors.length?'runtime':JSON.stringify(measured.final?.host)!==JSON.stringify(hostBefore)?'host':!measured.final?.pass||!measured.themeAdherence?'style':'pass',specValid:true,domPass,semanticPass,domSignature:preAction.domSignature,inputValue:preAction.value,stateValue,inputValuePreserved:preAction.value===fixture.interaction.enter&&stateValue===fixture.interaction.enter,focusPreserved:preAction.focus,actionCount:actions.length,actionPass:actions.length===actionCount&&actions.at(-1)===fixture.interaction.action,stylePass:measured.final?.pass??false,themeAdherence:measured.themeAdherence,hostStyleDelta:measured.final?JSON.stringify(measured.final.host)!==JSON.stringify(hostBefore):null,frames:measured.frames,missingStyleSamples:measured.unstyledFrames,screenshot,errors:[...errors]});
           } catch(error){ rows.push({...base,rendered:false,classification:'runtime',error:String(error.message).slice(0,180),errors:[...errors]});chainComplete=false; }
         }
       } catch(error) {

@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: equality dispatches once; one microUSD over fails before dispatch
+ok 1 - equality dispatches once; one microUSD over fails before dispatch
+  ---
+  duration_ms: 57.264833
+  type: 'test'
+  ...
+# Subtest: known actual usage releases unused reservation; duplicate and changed budget reject
+ok 2 - known actual usage releases unused reservation; duplicate and changed budget reject
+  ---
+  duration_ms: 43.541375
+  type: 'test'
+  ...
+# Subtest: concurrent dispatch is rejected while durable pending reservation exists
+ok 3 - concurrent dispatch is rejected while durable pending reservation exists
+  ---
+  duration_ms: 23.595125
+  type: 'test'
+  ...
+# Subtest: missing retains full reservation across restart
+ok 4 - missing retains full reservation across restart
+  ---
+  duration_ms: 22.270958
+  type: 'test'
+  ...
+# Subtest: provider retains full reservation across restart
+ok 5 - provider retains full reservation across restart
+  ---
+  duration_ms: 25.347708
+  type: 'test'
+  ...
+# Subtest: over-input retains full reservation across restart
+ok 6 - over-input retains full reservation across restart
+  ---
+  duration_ms: 20.050917
+  type: 'test'
+  ...
+# Subtest: over-output retains full reservation across restart
+ok 7 - over-output retains full reservation across restart
+  ---
+  duration_ms: 20.748833
+  type: 'test'
+  ...
+# Subtest: crash lock is never stolen; persisted pending also blocks without lock
+ok 8 - crash lock is never stolen; persisted pending also blocks without lock
+  ---
+  duration_ms: 2.546167
+  type: 'test'
+  ...
+# Subtest: unknown rates, unsafe arithmetic and malformed ledger fail closed
+ok 9 - unknown rates, unsafe arithmetic and malformed ledger fail closed
+  ---
+  duration_ms: 2.241583
+  type: 'test'
+  ...
+# Subtest: balanced phased schedule and full-context arithmetic
+ok 10 - balanced phased schedule and full-context arithmetic
+  ---
+  duration_ms: 1.326292
+  type: 'test'
+  ...
+# Subtest: valid stub preserves every raw assistant turn in complete request history
+ok 11 - valid stub preserves every raw assistant turn in complete request history
+  ---
+  duration_ms: 639.311292
+  type: 'test'
+  ...
+# Subtest: invalid-json first response retained; later cells stay in denominator
+ok 12 - invalid-json first response retained; later cells stay in denominator
+  ---
+  duration_ms: 173.730375
+  type: 'test'
+  ...
+# Subtest: schema first response retained; later cells stay in denominator
+ok 13 - schema first response retained; later cells stay in denominator
+  ---
+  duration_ms: 192.106334
+  type: 'test'
+  ...
+# Subtest: truncated first response retained; later cells stay in denominator
+ok 14 - truncated first response retained; later cells stay in denominator
+  ---
+  duration_ms: 176.600917
+  type: 'test'
+  ...
+# Subtest: missing-usage stops entire run without retry
+ok 15 - missing-usage stops entire run without retry
+  ---
+  duration_ms: 39.284875
+  type: 'test'
+  ...
+# Subtest: transport stops entire run without retry
+ok 16 - transport stops entire run without retry
+  ---
+  duration_ms: 39.24525
+  type: 'test'
+  ...
+# Subtest: exhausted aggregate budget blocks before dispatch
+ok 17 - exhausted aggregate budget blocks before dispatch
+  ---
+  duration_ms: 14.879709
+  type: 'test'
+  ...
+# Subtest: context overflow keeps full request and does not generate or truncate
+ok 18 - context overflow keeps full request and does not generate or truncate
+  ---
+  duration_ms: 46.247084
+  type: 'test'
+  ...
+# Subtest: unknown live readiness cannot initiate a provider call
+ok 19 - unknown live readiness cannot initiate a provider call
+  ---
+  duration_ms: 2.480875
+  type: 'test'
+  ...
+# Subtest: direct provider maps token caps, has no retry, and preserves failed body
+ok 20 - direct provider maps token caps, has no retry, and preserves failed body
+  ---
+  duration_ms: 0.352208
+  type: 'test'
+  ...
+# Subtest: model drift retains reservation and blocks remaining calls
+ok 21 - model drift retains reservation and blocks remaining calls
+  ---
+  duration_ms: 37.859875
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1919.918833
