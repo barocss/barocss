@@ -1,0 +1,14 @@
+ref                            opus  par 1.000 parH 0.023 parRefH 1.000 h->w(noWH) 130 h->w 130 w->h 0 advDrop 0 viol 3 xo 1 hits 0 bytes 0 ms 13 
+ref                            haiku par 1.000 parH 0.000 parRefH 1.000 h->w(noWH) 65 h->w 65 w->h 0 advDrop 0 viol 0 xo 0 hits 0 bytes 0 ms 9 
+none                           opus  par 0.000 parH 0.000 parRefH 0.000 h->w(noWH) 123 h->w 123 w->h 0 advDrop 0 viol 3 xo 1 hits 0 bytes 0 ms undefined 
+none                           haiku par 0.000 parH 0.000 parRefH 0.000 h->w(noWH) 60 h->w 60 w->h 0 advDrop 0 viol 0 xo 0 hits 0 bytes 0 ms undefined 
+baro root                      opus  par 1.000 parH 0.023 parRefH 1.000 h->w(noWH) 130 h->w 130 w->h 0 advDrop 0 viol 103 xo 7 hits 1 bytes 162235 ms 41 
+baro root                      haiku par 1.000 parH 0.000 parRefH 1.000 h->w(noWH) 65 h->w 65 w->h 0 advDrop 0 viol 136 xo 6 hits 1 bytes 157480 ms 34 
+baro root + nonce              opus  par 0.000 parH 0.000 parRefH 0.000 h->w(noWH) 130 h->w 130 w->h 0 advDrop 0 viol 9 xo 7 hits 1 bytes 162235 ms 42 
+baro root + nonce              haiku par 0.154 parH 0.000 parRefH 0.154 h->w(noWH) 65 h->w 65 w->h 0 advDrop 0 viol 6 xo 6 hits 1 bytes 157480 ms 34 
+baro root + nonce + prefilter  opus  par 0.000 parH 0.000 parRefH 0.000 h->w(noWH) 130 h->w 130 w->h 0 advDrop 0 viol 6 xo 2 hits 0 bytes 162235 ms 41 
+baro root + nonce + prefilter  haiku par 0.154 parH 0.000 parRefH 0.154 h->w(noWH) 65 h->w 65 w->h 0 advDrop 0 viol 0 xo 0 hits 0 bytes 157480 ms 33 
+uno                            opus  par 0.000 parH 0.000 parRefH 0.000 h->w(noWH) 123 h->w 123 w->h 0 advDrop 0 viol 63 xo 1 hits 0 bytes 0 ms undefined 
+uno                            haiku par 0.000 parH 0.000 parRefH 0.000 h->w(noWH) 60 h->w 60 w->h 0 advDrop 0 viol 60 xo 0 hits 0 bytes 0 ms undefined 
+uno + nonce + per-root glue    opus  par 0.000 parH 0.000 parRefH 0.000 h->w(noWH) 133 h->w 133 w->h 0 advDrop 0 viol 55 xo 5 hits 1 bytes 66039 ms 44 
+uno + nonce + per-root glue    haiku par 0.000 parH 0.000 parRefH 0.000 h->w(noWH) 65 h->w 65 w->h 0 advDrop 0 viol 52 xo 4 hits 1 bytes 57005 ms 33 

@@ -1,0 +1,419 @@
+{
+ "currency": "KRW",
+ "shop": "Corner Bean (fictional demo shop)",
+ "sizes": [
+  {
+   "id": "S",
+   "label": "Small",
+   "delta": 0,
+   "ko": "작게"
+  },
+  {
+   "id": "M",
+   "label": "Medium",
+   "delta": 500,
+   "ko": "보통"
+  },
+  {
+   "id": "L",
+   "label": "Large",
+   "delta": 1000,
+   "ko": "크게"
+  }
+ ],
+ "options": [
+  {
+   "id": "extra-shot",
+   "label": "Extra shot",
+   "price": 500,
+   "ko": "샷 추가"
+  },
+  {
+   "id": "oat-milk",
+   "label": "Oat milk",
+   "price": 600,
+   "ko": "오트 우유"
+  },
+  {
+   "id": "decaf",
+   "label": "Decaf",
+   "price": 300,
+   "ko": "디카페인"
+  },
+  {
+   "id": "less-sweet",
+   "label": "Less sweet",
+   "price": 0,
+   "ko": "덜 달게"
+  },
+  {
+   "id": "iced",
+   "label": "Iced",
+   "price": 0,
+   "ko": "얼음 추가"
+  },
+  {
+   "id": "vanilla-syrup",
+   "label": "Vanilla syrup",
+   "price": 500,
+   "ko": "바닐라 시럽"
+  },
+  {
+   "id": "caramel-syrup",
+   "label": "Caramel syrup",
+   "price": 500,
+   "ko": "카라멜 시럽"
+  }
+ ],
+ "categories": [
+  {
+   "id": "popular",
+   "label": "Popular",
+   "icon": "/assets/cat-popular.svg",
+   "ko": "인기"
+  },
+  {
+   "id": "coffee",
+   "label": "Coffee",
+   "icon": "/assets/cat-coffee.svg",
+   "ko": "커피"
+  },
+  {
+   "id": "tea",
+   "label": "Tea",
+   "icon": "/assets/cat-tea.svg",
+   "ko": "차"
+  },
+  {
+   "id": "kids",
+   "label": "Kids",
+   "icon": "/assets/cat-kids.svg",
+   "ko": "키즈"
+  },
+  {
+   "id": "dessert",
+   "label": "Dessert",
+   "icon": "/assets/cat-dessert.svg",
+   "ko": "디저트"
+  },
+  {
+   "id": "bundle",
+   "label": "Bundles",
+   "ko": "묶음·세트",
+   "icon": "/assets/cat-bundle.svg"
+  }
+ ],
+ "assets": {
+  "hero": "/assets/hero-banner.svg",
+  "pay": "/assets/pay-terminal.svg",
+  "done": "/assets/done-check.svg"
+ },
+ "items": [
+  {
+   "id": "latte",
+   "name": "Cafe Latte",
+   "ko": "카페라떼",
+   "category": "coffee",
+   "price": 4500,
+   "sized": true,
+   "temps": false,
+   "options": [
+    "extra-shot",
+    "oat-milk",
+    "decaf",
+    "iced"
+   ],
+   "image": "/assets/latte.svg",
+   "badge": "Best"
+  },
+  {
+   "id": "americano",
+   "name": "Americano",
+   "ko": "아메리카노",
+   "category": "coffee",
+   "price": 3500,
+   "sized": true,
+   "temps": true,
+   "options": [
+    "extra-shot",
+    "decaf"
+   ],
+   "image": "/assets/americano.svg",
+   "badge": "Best",
+   "usual": {
+    "size": "M",
+    "temp": "hot"
+   }
+  },
+  {
+   "id": "vanilla-latte",
+   "name": "Vanilla Latte",
+   "ko": "바닐라라떼",
+   "category": "coffee",
+   "price": 5000,
+   "sized": true,
+   "temps": true,
+   "options": [
+    "extra-shot",
+    "oat-milk",
+    "less-sweet"
+   ],
+   "image": "/assets/vanilla-latte.svg",
+   "badge": "New"
+  },
+  {
+   "id": "cappuccino",
+   "name": "Cappuccino",
+   "ko": "카푸치노",
+   "category": "coffee",
+   "price": 4500,
+   "sized": true,
+   "temps": true,
+   "options": [
+    "extra-shot",
+    "oat-milk"
+   ],
+   "image": "/assets/latte.svg"
+  },
+  {
+   "id": "caramel-latte",
+   "name": "Caramel Latte",
+   "ko": "카라멜라떼",
+   "category": "coffee",
+   "price": 5200,
+   "sized": true,
+   "temps": true,
+   "options": [
+    "extra-shot",
+    "caramel-syrup",
+    "oat-milk"
+   ],
+   "image": "/assets/vanilla-latte.svg"
+  },
+  {
+   "id": "cold-brew",
+   "name": "Cold Brew",
+   "ko": "콜드브루",
+   "category": "coffee",
+   "price": 4800,
+   "sized": true,
+   "temps": false,
+   "options": [
+    "extra-shot"
+   ],
+   "image": "/assets/americano.svg",
+   "soldOut": true
+  },
+  {
+   "id": "mocha",
+   "name": "Cafe Mocha",
+   "ko": "카페모카",
+   "category": "coffee",
+   "price": 5300,
+   "sized": true,
+   "temps": true,
+   "options": [
+    "extra-shot",
+    "oat-milk",
+    "vanilla-syrup"
+   ],
+   "image": "/assets/hot-choco.svg"
+  },
+  {
+   "id": "espresso",
+   "name": "Espresso",
+   "ko": "에스프레소",
+   "category": "coffee",
+   "price": 3000,
+   "sized": false,
+   "temps": false,
+   "options": [
+    "extra-shot"
+   ],
+   "image": "/assets/americano.svg"
+  },
+  {
+   "id": "green-tea",
+   "name": "Green Tea",
+   "ko": "녹차",
+   "category": "tea",
+   "price": 4000,
+   "sized": true,
+   "temps": true,
+   "options": [
+    "less-sweet"
+   ],
+   "image": "/assets/green-tea.svg"
+  },
+  {
+   "id": "yuzu-tea",
+   "name": "Citrus Tea",
+   "ko": "유자차",
+   "category": "tea",
+   "price": 4500,
+   "sized": true,
+   "temps": true,
+   "options": [
+    "less-sweet"
+   ],
+   "image": "/assets/green-tea.svg",
+   "badge": "New"
+  },
+  {
+   "id": "chai",
+   "name": "Chai Latte",
+   "ko": "차이라떼",
+   "category": "tea",
+   "price": 4800,
+   "sized": true,
+   "temps": true,
+   "options": [
+    "oat-milk"
+   ],
+   "image": "/assets/latte.svg",
+   "soldOut": true
+  },
+  {
+   "id": "hot-choco",
+   "name": "Hot Chocolate",
+   "ko": "핫초코",
+   "category": "kids",
+   "price": 4000,
+   "sized": true,
+   "temps": false,
+   "options": [
+    "oat-milk",
+    "less-sweet"
+   ],
+   "image": "/assets/hot-choco.svg",
+   "badge": "Kids"
+  },
+  {
+   "id": "apple-juice",
+   "name": "Apple Juice",
+   "ko": "사과주스",
+   "category": "kids",
+   "price": 3000,
+   "sized": false,
+   "temps": false,
+   "options": [],
+   "image": "/assets/apple-juice.svg"
+  },
+  {
+   "id": "croissant",
+   "name": "Butter Croissant",
+   "ko": "버터 크루아상",
+   "category": "dessert",
+   "price": 3200,
+   "sized": false,
+   "temps": false,
+   "options": [],
+   "image": "/assets/croissant.svg"
+  },
+  {
+   "id": "cheesecake",
+   "name": "Cheesecake Slice",
+   "ko": "치즈케이크",
+   "category": "dessert",
+   "price": 5500,
+   "sized": false,
+   "temps": false,
+   "options": [],
+   "image": "/assets/cheesecake.svg",
+   "badge": "-10%"
+  },
+  {
+   "id": "muffin",
+   "name": "Choco Muffin",
+   "ko": "초코 머핀",
+   "category": "dessert",
+   "price": 3500,
+   "sized": false,
+   "temps": false,
+   "options": [],
+   "image": "/assets/croissant.svg",
+   "soldOut": true
+  },
+  {
+   "id": "coupon-3",
+   "name": "Drink coupon x3",
+   "ko": "음료 쿠폰 3매",
+   "category": "bundle",
+   "price": 10000,
+   "sized": false,
+   "temps": false,
+   "options": [],
+   "image": "/assets/coupon.svg",
+   "bundle": {
+    "count": 3
+   }
+  },
+  {
+   "id": "coupon-5",
+   "name": "Drink coupon x5",
+   "ko": "음료 쿠폰 5매",
+   "category": "bundle",
+   "price": 16000,
+   "sized": false,
+   "temps": false,
+   "options": [],
+   "image": "/assets/coupon.svg",
+   "bundle": {
+    "count": 5
+   },
+   "badge": "Best"
+  },
+  {
+   "id": "coupon-10",
+   "name": "Drink coupon x10",
+   "ko": "음료 쿠폰 10매",
+   "category": "bundle",
+   "price": 30000,
+   "sized": false,
+   "temps": false,
+   "options": [],
+   "image": "/assets/coupon.svg",
+   "bundle": {
+    "count": 10
+   }
+  },
+  {
+   "id": "morning-set",
+   "name": "Morning set (Americano + Croissant)",
+   "ko": "모닝 세트 (아메리카노+크루아상)",
+   "category": "bundle",
+   "price": 6000,
+   "sized": false,
+   "temps": false,
+   "options": [],
+   "image": "/assets/croissant.svg",
+   "bundle": {
+    "includes": [
+     "americano",
+     "croissant"
+    ]
+   }
+  }
+ ],
+ "temps": [
+  {
+   "id": "hot",
+   "label": "Hot",
+   "ko": "따뜻하게",
+   "delta": 0
+  },
+  {
+   "id": "iced",
+   "label": "Iced",
+   "ko": "차갑게",
+   "delta": 0
+  }
+ ],
+ "pageSize": {
+  "default": 6,
+  "senior": 4,
+  "regular": 8,
+  "zoom": 4,
+  "low": 3
+ }
+}

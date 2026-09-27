@@ -1,0 +1,32 @@
+{
+  "bg-linear-to-r/oklch": {
+    "tailwindGenerated": true,
+    "baroGenerated": false,
+    "tailwindCssTail": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.bg-linear-to-r\\/oklch {\n  --tw-gradient-position: to right;\n  @supports (background-image: linear-gradient(in lab, red, red)) {\n    --tw-gradient-position: to right in oklch;\n  }\n  background-image: linear-gradient(var(--tw-gradient-stops));\n}\n",
+    "baroCss": ""
+  },
+  "mask-linear-to-90%": {
+    "tailwindGenerated": true,
+    "baroGenerated": false,
+    "tailwindCssTail": "itial-value: 0%;\n}\n@property --tw-mask-linear-to-position {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: 100%;\n}\n@property --tw-mask-linear-from-color {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: black;\n}\n@property --tw-mask-linear-to-color {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: transparent;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-mask-linear: linear-gradient(#fff, #fff);\n      --tw-mask-radial: linear-gradient(#fff, #fff);\n      --tw-mask-conic: linear-gradient(#fff, #fff);\n      --tw-mask-linear-position: 0deg;\n      --tw-mask-linear-from-position: 0%;\n      --tw-mask-linear-to-position: 100%;\n      --tw-mask-linear-from-color: black;\n      --tw-mask-linear-to-color: transparent;\n    }\n  }\n}\n",
+    "baroCss": ""
+  },
+  "mask-radial-from-20%": {
+    "tailwindGenerated": true,
+    "baroGenerated": false,
+    "tailwindCssTail": "lse;\n  initial-value: ellipse;\n}\n@property --tw-mask-radial-size {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: farthest-corner;\n}\n@property --tw-mask-radial-position {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: center;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-mask-linear: linear-gradient(#fff, #fff);\n      --tw-mask-radial: linear-gradient(#fff, #fff);\n      --tw-mask-conic: linear-gradient(#fff, #fff);\n      --tw-mask-radial-from-position: 0%;\n      --tw-mask-radial-to-position: 100%;\n      --tw-mask-radial-from-color: black;\n      --tw-mask-radial-to-color: transparent;\n      --tw-mask-radial-shape: ellipse;\n      --tw-mask-radial-size: farthest-corner;\n      --tw-mask-radial-position: center;\n    }\n  }\n}\n",
+    "baroCss": ""
+  },
+  "mask-radial-to-90%": {
+    "tailwindGenerated": true,
+    "baroGenerated": false,
+    "tailwindCssTail": "lse;\n  initial-value: ellipse;\n}\n@property --tw-mask-radial-size {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: farthest-corner;\n}\n@property --tw-mask-radial-position {\n  syntax: \"*\";\n  inherits: false;\n  initial-value: center;\n}\n@layer properties {\n  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {\n    *, ::before, ::after, ::backdrop {\n      --tw-mask-linear: linear-gradient(#fff, #fff);\n      --tw-mask-radial: linear-gradient(#fff, #fff);\n      --tw-mask-conic: linear-gradient(#fff, #fff);\n      --tw-mask-radial-from-position: 0%;\n      --tw-mask-radial-to-position: 100%;\n      --tw-mask-radial-from-color: black;\n      --tw-mask-radial-to-color: transparent;\n      --tw-mask-radial-shape: ellipse;\n      --tw-mask-radial-size: farthest-corner;\n      --tw-mask-radial-position: center;\n    }\n  }\n}\n",
+    "baroCss": ""
+  },
+  "bg-[linear-gradient(45deg,#f59e0b_50%,transparent_50%),linear-gradient(135deg,#a855f7_50%,transparent_50%)]": {
+    "tailwindGenerated": true,
+    "baroGenerated": true,
+    "tailwindCssTail": "/*! tailwindcss v4.3.3 | MIT License | https://tailwindcss.com */\n.bg-\\[linear-gradient\\(45deg\\,\\#f59e0b_50\\%\\,transparent_50\\%\\)\\,linear-gradient\\(135deg\\,\\#a855f7_50\\%\\,transparent_50\\%\\)\\] {\n  background-image: linear-gradient(45deg,#f59e0b 50%,transparent 50%),linear-gradient(135deg,#a855f7 50%,transparent 50%);\n}\n",
+    "baroCss": ".bg-\\[linear-gradient\\(45deg\\,\\#f59e0b_50\\%\\,transparent_50\\%\\)\\,linear-gradient\\(135deg\\,\\#a855f7_50\\%\\,transparent_50\\%\\)\\] {\n  background-image: linear-gradient(var(--baro-gradient-stops, linear-gradient(45deg,#f59e0b 50%,transparent 50%),linear-gradient(135deg,#a855f7 50%,transparent 50%)));\n}\n"
+  }
+}

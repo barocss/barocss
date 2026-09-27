@@ -1,0 +1,258 @@
+{
+ "kit": "packages/barocss/dist/index.js",
+ "tailwind": "4.3.3 compile()",
+ "corpora": [
+  {
+   "id": "#182 json-render specs",
+   "unique": 93,
+   "unresolved": 0,
+   "rate": 0,
+   "filesWithOwnConfig": 0,
+   "models": {
+    "unrecorded": {
+     "unique": 93,
+     "unresolved": 0
+    }
+   },
+   "categories": {}
+  },
+  {
+   "id": "#199 MCP-App (unprompted)",
+   "unique": 127,
+   "unresolved": 124,
+   "rate": 0.976,
+   "filesWithOwnConfig": 0,
+   "models": {
+    "haiku": {
+     "unique": 60,
+     "unresolved": 58
+    },
+    "opus": {
+     "unique": 71,
+     "unresolved": 70
+    }
+   },
+   "categories": {
+    "app-custom-class": [
+     "weather-card",
+     "header",
+     "location-info",
+     "weather-icon",
+     "temperature-section",
+     "current-temp",
+     "condition",
+     "temp-range",
+     "high",
+     "low",
+     "details",
+     "detail-item",
+     "detail-label",
+     "detail-value",
+     "forecast",
+     "forecast-title",
+     "forecast-items",
+     "forecast-item",
+     "forecast-day",
+     "forecast-icon",
+     "forecast-temp",
+     "search-box",
+     "search-input",
+     "result-count",
+     "table-wrapper",
+     "sort-indicator",
+     "empty-state",
+     "empty-state-icon",
+     "highlight",
+     "success-message",
+     "form-group",
+     "error",
+     "form-row",
+     "content",
+     "stat-card",
+     "stat-label",
+     "stat-value",
+     "stat-change",
+     "positive",
+     "negative",
+     "chart-section",
+     "chart-container",
+     "legend",
+     "legend-item",
+     "legend-dot",
+     "footer",
+     "section",
+     "section-title",
+     "setting-item",
+     "setting-label",
+     "toggle",
+     "toggle-slider",
+     "select-input",
+     "text-input",
+     "status",
+     "btn",
+     "btn-secondary",
+     "btn-primary",
+     "card",
+     "head",
+     "place",
+     "updated",
+     "main",
+     "icon",
+     "temp",
+     "cond",
+     "hilo",
+     "stats",
+     "stat",
+     "label",
+     "value",
+     "wrap",
+     "toolbar",
+     "search",
+     "table-card",
+     "scroll",
+     "arrow",
+     "num-h",
+     "count",
+     "empty",
+     "num",
+     "field",
+     "req",
+     "err",
+     "row",
+     "col",
+     "steppers",
+     "summary",
+     "line",
+     "muted",
+     "total",
+     "submit",
+     "note",
+     "done",
+     "check",
+     "ref",
+     "subtitle",
+     "badge",
+     "metrics",
+     "metric",
+     "delta",
+     "up",
+     "chart-wrap",
+     "chart-head",
+     "t",
+     "dot",
+     "bar",
+     "app",
+     "tabs",
+     "tab",
+     "active",
+     "panel-body",
+     "page",
+     "name",
+     "desc",
+     "control",
+     "seg",
+     "switch",
+     "slider",
+     "range-wrap",
+     "range-val",
+     "actions",
+     "primary"
+    ],
+    "extraction-artifact (JS template fragment)": [
+     "${esc(r.status)}"
+    ]
+   }
+  },
+  {
+   "id": "#209 MCP-App (Tailwind-prompted)",
+   "unique": 311,
+   "unresolved": 18,
+   "rate": 0.058,
+   "filesWithOwnConfig": 4,
+   "models": {
+    "haiku": {
+     "unique": 159,
+     "unresolved": 11
+    },
+    "opus": {
+     "unique": 225,
+     "unresolved": 7
+    }
+   },
+   "categories": {
+    "extraction-artifact (JS template fragment)": [
+     "${row.status",
+     "===",
+     "'Active'",
+     "?",
+     "'bg-green-100",
+     "text-green-800'",
+     ":",
+     "'bg-gray-100",
+     "text-gray-800'}",
+     "'",
+     "+",
+     "cls",
+     "alignCls"
+    ],
+    "typo-or-invented-utility": [
+     "text-md"
+    ],
+    "app-custom-class": [
+     "toggle-checkbox",
+     "tbl-scroll",
+     "fade-in",
+     "theme-opt"
+    ]
+   }
+  },
+  {
+   "id": "#253 CMS blocks (site theme)",
+   "unique": 211,
+   "unresolved": 0,
+   "rate": 0,
+   "filesWithOwnConfig": 12,
+   "models": {
+    "haiku": {
+     "unique": 124,
+     "unresolved": 0
+    },
+    "opus": {
+     "unique": 148,
+     "unresolved": 0
+    }
+   },
+   "categories": {}
+  },
+  {
+   "id": "#364 O5 widget blocks",
+   "unique": 161,
+   "unresolved": 0,
+   "rate": 0,
+   "filesWithOwnConfig": 0,
+   "models": {
+    "haiku": {
+     "unique": 87,
+     "unresolved": 0
+    },
+    "opus": {
+     "unique": 125,
+     "unresolved": 0
+    }
+   },
+   "categories": {}
+  }
+ ],
+ "categoryTotals": {
+  "app-custom-class": 127,
+  "extraction-artifact (JS template fragment)": 14,
+  "typo-or-invented-utility": 1
+ },
+ "parityCandidates": [],
+ "snippetCheck": {
+  "corpus": "#209 MCP-App (Tailwind-prompted)",
+  "snippetCount": 18,
+  "scriptCount": 18,
+  "match": true
+ }
+}

@@ -1,5 +1,13 @@
 # @barocss/server
 
+## 0.11.2
+
+### Patch Changes
+
+- Updated dependencies [0e48cf6]
+- Updated dependencies [b32f831]
+  - @barocss/kit@0.11.2
+
 ## 0.11.1
 
 ### Patch Changes

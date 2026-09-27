@@ -1,0 +1,15 @@
+{"blockTokens":211,"known":211,"inSafelist":161,"themeTokensUsed":0,"blockEls":{"opus":137,"haiku":86},"cssGz":{"build":3619,"safelist":141213,"all":7036,"ref-opus":5912,"ref-haiku":5798}}
+all    ref      {"blockElem":1,"blockProp":1,"shellAfter":0.997,"shellVsRef":1,"shellBefore":1,"shellBadEls":0,"injectedBytes":116,"cssGz":5855,"scriptGz":0,"insertToFinalMs":0.3}
+all    build    {"blockElem":0.0262,"blockProp":0.9093,"shellAfter":1,"shellVsRef":0.997,"shellBefore":1,"shellBadEls":4,"injectedBytes":116,"cssGz":3619,"scriptGz":0,"insertToFinalMs":10.3}
+all    baro     {"blockElem":1,"blockProp":1,"shellAfter":0.997,"shellVsRef":1,"shellBefore":1,"shellBadEls":0,"injectedBytes":34110,"cssGz":3619,"scriptGz":56665,"insertToFinalMs":38.3}
+all    uno      {"blockElem":0.1253,"blockProp":0.9547,"shellAfter":0.9348,"shellVsRef":0.9348,"shellBefore":0.9348,"shellBadEls":32,"injectedBytes":30568,"cssGz":3619,"scriptGz":59814,"insertToFinalMs":41.1}
+all    uno-noreset {"blockElem":0.2724,"blockProp":0.966,"shellAfter":0.9803,"shellVsRef":0.9833,"shellBefore":0.9833,"shellBadEls":11,"injectedBytes":27122,"cssGz":3619,"scriptGz":59814,"insertToFinalMs":42}
+opus   build    0.029 0.9084 shellVsRef 0.9970 vsBuild 1.0000 
+opus   baro     1.000 1.0000 shellVsRef 1.0000 vsBuild 0.9970 
+opus   uno      0.146 0.9544 shellVsRef 0.9348 vsBuild 0.9348 
+opus   uno-noreset 0.277 0.9661 shellVsRef 0.9833 vsBuild 0.9803 
+haiku  build    0.023 0.9102 shellVsRef 0.9970 vsBuild 1.0000 
+haiku  baro     1.000 1.0000 shellVsRef 1.0000 vsBuild 0.9970 
+haiku  uno      0.105 0.9549 shellVsRef 0.9348 vsBuild 0.9348 
+haiku  uno-noreset 0.267 0.9660 shellVsRef 0.9833 vsBuild 0.9803 
+bad tokens: {"animate-bounce":{"cause":"unknown class (runtime lacks/mis-renders it)","diffs":["transform: matrix(1, 0, 0, 1, 0, -10.9189) != matrix(1, 0, 0, 1, 0, -10.715)"]}}

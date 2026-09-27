@@ -27,6 +27,7 @@ export type RuleKey = Array<number | string>;
 
 const LEADING_AT = /^\s*@(media|container)\s+([^{]*)\{/;
 const LATE_MEDIA = /prefers-color-scheme|\bprint\b|forced-colors|orientation/;
+const DARK_MEDIA_PRELUDE = /@media\s*\([^{}]*prefers-color-scheme\s*:/;
 const MIN_W = /(?:min-width\s*:\s*|width\s*>=?\s*)([\d.]+)(px|rem|em)?/;
 const MAX_W = /(?:max-width\s*:\s*|width\s*<=?\s*)([\d.]+)(px|rem|em)?/;
 
@@ -148,6 +149,26 @@ function sortOverride(selector: string, props: string[], candidate: string): str
   return key;
 }
 
+/** A `dark:` modifier outside arbitrary values/variants and escaped text. */
+function hasTopLevelDarkVariant(candidate: string): boolean {
+  const close: string[] = [];
+  let start = 0;
+  let quote = "";
+  for (let i = 0; i < candidate.length; i++) {
+    const char = candidate[i];
+    if (char === "\\") { i++; continue; }
+    if (quote) { if (char === quote) quote = ""; continue; }
+    if (close.length && (char === "'" || char === '"')) { quote = char; continue; }
+    if (char === "[" || char === "(" || char === "{") { close.push(char === "[" ? "]" : char === "(" ? ")" : "}"); continue; }
+    if (char === close[close.length - 1]) { close.pop(); continue; }
+    if (char === ":" && close.length === 0) {
+      if (candidate.slice(start, i) === "dark") return true;
+      start = i + 1;
+    }
+  }
+  return false;
+}
+
 /**
  * Full sort key: the #254 variant pairs, then (#401) Tailwind's property sort and the class name.
  * `candidate` defaults to the rule's first class.
@@ -156,6 +177,9 @@ export function ruleSortKey(rule: string, candidate?: string): RuleKey {
   const name = candidate ?? ruleCandidate(rule);
   const { order, count } = rulePropertySort(rule, name);
   const key: RuleKey = ruleVariantKey(rule);
+  // A class-based dark selector has no @media prelude, but Tailwind still sorts it after base
+  // utilities. Keep media dark's existing key; class selectors need the same late group.
+  if (hasTopLevelDarkVariant(name) && !DARK_MEDIA_PRELUDE.test(rule)) key.push(5, 0);
   key.push(PROPERTY_PART, ...order, NO_MORE, -count, name);
   return key;
 }

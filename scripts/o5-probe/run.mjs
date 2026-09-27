@@ -24,6 +24,7 @@ const ROOT = path.resolve(HERE, '../..');
 const req = createRequire(path.join(ROOT, 'packages/barocss/package.json'));
 const { compile } = req('tailwindcss');
 const twDir = path.dirname(req.resolve('tailwindcss/package.json'));
+const NORM = process.env.NORM_COLOR ? (await import('../unocss-430/norm-color.mjs')).normReport : (r) => r; // #430
 const PORT = Number(process.env.PROBE_PORT || 7164), CPORT = PORT + 1;
 const N = 'o5N0nce364';
 const CSP = `default-src 'self'; script-src 'self' 'nonce-${N}'; style-src 'self' 'nonce-${N}'; img-src 'self'; font-src 'self'; connect-src 'self'`;
@@ -55,6 +56,10 @@ const CHROME_CLS = 'font-sans text-gray-900 text-base leading-normal p-3 bg-whit
 const SENT = 'p-[7px]';
 const CSS = {};
 for (const m of MODELS) CSS['ref-' + m] = (await build([...toks(blocks[m].join('')), ...CHROME_CLS.split(' '), SENT])).replace(/:root, :host|:root,:host/g, ':root, :host');
+// #439: Chrome ignores @property inside shadow roots, so a ref that only <link>s CSS in the root renders every
+// @property-backed utility unregistered (border-style/box-shadow vars invalid -> border 0, shadow none). A real app
+// registers them in the document, as the runtime does since #384; the ref page does the same (REF_NO_PROPS=1 = old ref).
+for (const m of MODELS) CSS['props-' + m] = (CSS['ref-' + m].match(/@property [^{]+\{[^}]*\}/g) || []).join('\n');
 // Hostile host: aggressive own CSS, utility-named classes with host meanings, inherited props that cross the boundary.
 CSS.host = `*{box-sizing:content-box}body{font:18px/2 Georgia,serif;color:#553;letter-spacing:.5px;margin:0}
 div{padding:2px}button{background:hotpink;border:3px dashed}h2,h3{font-family:Impact,sans-serif;text-transform:uppercase}
@@ -76,19 +81,24 @@ const ARMS = {
   'baro root + nonce': 'baro-nonce',
   'baro root + nonce + prefilter': 'baro-filter',
   twb: 'twb',
+  // #430 (only with PROBE_ARMS naming them): UnoCSS runtime core + presetWind4, documented CDN setup (document-level);
+  // '+ glue': runtime.inject sets the nonce, and the app generates each shadow root's CSS with the runtime's generator.
+  ...(process.env.UNO_JS ? { uno: 'uno', 'uno + nonce + per-root glue': 'uno-root' } : {}),
 };
+if (process.env.PROBE_ARMS) for (const a of Object.keys(ARMS)) if (!process.env.PROBE_ARMS.split(',').includes(a)) delete ARMS[a]; // #430
 const S = `nonce="${N}"`;
 function page(arm, m, hostile, adv) {
   const rt = ARMS[arm];
   const inner = rt === 'ref' ? `<link rel="stylesheet" href="/ref-${m}.css">` : '';
-  const head = rt.startsWith('baro') ? `<script ${S} src="/baro.js"></script>` : rt === 'twb' ? `<script ${S} src="/twb.js"></script>` : '';
+  const uno = rt.startsWith('uno') ? `<script ${S}>window.__unocss={presets:[function(){return window.__unocss_runtime.presets.presetWind4()}]${rt === 'uno-root' ? `,runtime:{inject:function(s){s.nonce='${N}';document.head.prepend(s)}}` : ''}};</script><script ${S} src="/uno.js"></script>` : '';
+  const head = rt.startsWith('baro') ? `<script ${S} src="/baro.js"></script>` : rt === 'twb' ? `<script ${S} src="/twb.js"></script>` : uno;
   const opts = rt === 'baro' ? {} : { nonce: N };
   const W = blocks[m].map((h) => `<div class="${CHROME_CLS}"><span class="${SENT}"></span><div class="blk">${h}</div></div>`);
   if (adv) W.push(`<div class="${CHROME_CLS}"><div class="adv">${ADV.map((c) => `<div class="${c.replace(/"/g, '&quot;')}">a</div>`).join('')}</div></div>`);
   const cfg = { rt, inner, opts, W, props: PROPS, filter: rt === 'baro-filter' };
   return `<!doctype html><html><head><meta charset="utf-8">
 <script ${S}>window.__viol=[];document.addEventListener('securitypolicyviolation',function(e){window.__viol.push(e.violatedDirective+' '+(e.blockedURI||'').slice(0,60))});</script>
-${hostile ? '<link rel="stylesheet" href="/host.css">' : ''}<link rel="stylesheet" href="/freeze.css">${head}
+${rt === 'ref' && !process.env.REF_NO_PROPS ? `<link rel="stylesheet" href="/props-${m}.css">` : ''}${hostile ? '<link rel="stylesheet" href="/host.css">' : ''}<link rel="stylesheet" href="/freeze.css">${head}
 <script ${S}>window.__CFG=${JSON.stringify(cfg).replace(/</g, '\\u003c')};</script></head><body>${HOST_BODY}<section id="chat"></section>
 <script ${S} src="/widget.js"></script></body></html>`;
 }
@@ -104,7 +114,8 @@ window.addEventListener('load',function(){setTimeout(function(){
  var before=hostSig(),roots=[],t0=performance.now(),chat=document.getElementById('chat');
  C.W.forEach(function(h){var host=document.createElement('div');host.className='widget';chat.appendChild(host);
   var sr=host.attachShadow({mode:'open'});sr.innerHTML=C.inner+clean(h);roots.push(sr);
-  if(C.rt.indexOf('baro')===0)new BaroCSS.BrowserRuntime(Object.assign({root:sr},C.opts));});
+  if(C.rt.indexOf('baro')===0)new BaroCSS.BrowserRuntime(Object.assign({root:sr},C.opts));
+  if(C.rt==='uno-root')(function w(){var U=window.__unocss_runtime;if(!U||!U.uno)return setTimeout(w,5);U.uno.generate(sr.innerHTML).then(function(r){var s=document.createElement('style');s.nonce=C.opts.nonce;s.textContent=r.css;sr.prepend(s)})})();});
  function ready(){return roots.slice(0,5).every(function(r){var s=r.querySelector('span');return s&&getComputedStyle(s).paddingTop==='7px'})}
  var ms=null;(function poll(n){if(ready()){ms=performance.now()-t0;return}if(n<120)requestAnimationFrame(function(){poll(n+1)})})(0);
  setTimeout(function(){var bytes=0;roots.forEach(function(r){(r.adoptedStyleSheets||[]).forEach(function(s){[].forEach.call(s.cssRules,function(x){bytes+=x.cssText.length})});
@@ -114,6 +125,15 @@ window.addEventListener('load',function(){setTimeout(function(){
   var ctl=roots[0]?sig(roots[0].querySelector('.blk')):null;
   window.__r={blockSig:[].concat.apply([],roots.slice(0,5).map(function(r){return [].map.call(r.querySelectorAll('.blk *'),sig)})),
    hostBefore:before,hostAfter:hostSig(),ms:ms,bytes:bytes,sheets:shared.size,adv:adv,headStyles:document.head.querySelectorAll('style').length}},1500)},100)});})();`;
+// #439: BARO_URL / TWB_URL load the runtime from a CDN URL (in memory, served same-origin); else the local .pkgs tarballs.
+// A missing runtime file now fails loudly instead of silently reading as parity 0.
+async function js(url, file) {
+  if (url) { const r = await fetch(url); if (!r.ok) throw new Error(`fetch ${url}: ${r.status}`); return r.text(); }
+  if (!fs.existsSync(file)) throw new Error(`missing ${file} (set BARO_URL/TWB_URL)`); return fs.readFileSync(file, 'utf8');
+}
+// #442: BARO_FILE = a local build (e.g. packages/barocss-browser/dist/cdn/barocss.umd.cjs); twb is read only when its arm runs.
+const JS = { baro: await js(process.env.BARO_URL, process.env.BARO_FILE || path.join(HERE, '.pkgs/browser/package/dist/cdn/barocss.umd.cjs')),
+  twb: ARMS.twb ? await js(process.env.TWB_URL, path.join(HERE, '.pkgs/twb/package/dist/index.global.js')) : '' };
 const hits = [];
 const srv = http.createServer((q, r) => {
   const u = new URL(q.url, 'http://x');
@@ -122,8 +142,10 @@ const srv = http.createServer((q, r) => {
   if (u.pathname === '/p') return send('text/html', page(u.searchParams.get('arm'), u.searchParams.get('m'), u.searchParams.get('h') === '1', u.searchParams.get('a') === '1'), CSP);
   const cm = u.pathname.match(/^\/([\w-]+)\.css$/); if (cm && CSS[cm[1]]) return send('text/css', CSS[cm[1]]);
   if (u.pathname === '/widget.js') return send('text/javascript', WIDGET_JS);
-  if (u.pathname === '/baro.js') return send('text/javascript', fs.readFileSync(path.join(HERE, '.pkgs/browser/package/dist/cdn/barocss.umd.cjs')));
-  if (u.pathname === '/twb.js') return send('text/javascript', fs.readFileSync(path.join(HERE, '.pkgs/twb/package/dist/index.global.js')));
+  if (u.pathname === '/baro.js') return send('text/javascript', JS.baro);
+  if (u.pathname === '/twb.js') return send('text/javascript', JS.twb);
+  // #430 UnoCSS arm (research, closed): only when UNO_JS points at a local runtime file.
+  if (u.pathname === '/uno.js' && process.env.UNO_JS) return send('text/javascript', fs.readFileSync(process.env.UNO_JS));
   r.writeHead(404); r.end();
 });
 const csrv = http.createServer((q, r) => { hits.push('xo:' + q.url); r.writeHead(204); r.end(); });
@@ -145,6 +167,7 @@ async function run(arm, m, h, a) {
   await p.close();
   // #374: NORM_QUOTES=1 drops '"' from computed values (Firefox serializes var()-substituted font-family unquoted)
   if (process.env.NORM_QUOTES) for (const k of ['blockSig', 'hostBefore', 'hostAfter']) if (r[k]) r[k] = JSON.parse(JSON.stringify(r[k]).replace(/\\"/g, ''));
+  NORM(r, ['blockSig', 'hostBefore', 'hostAfter']);
   return { ...r, viol, xo, hits: [...hits], errs };
 }
 const eq = (x, y) => JSON.stringify(x) === JSON.stringify(y);
@@ -159,6 +182,10 @@ for (const m of MODELS) {
     const neutral = arm === 'ref' ? ref : await run(arm, m, 0, 0);
     const hostile = arm === 'ref' ? refH : await run(arm, m, 1, 0);
     const adv = await run(arm, m, 1, 1);
+    if (process.env.DIFF && neutral.blockSig && ref.blockSig) { // #439: which properties differ from ref (first 3 rows)
+      const d = neutral.blockSig.map((row, i) => PROPS.filter((_, k) => row[k] !== ref.blockSig[i][k]).map((p) => `${p}:${ref.blockSig[i][PROPS.indexOf(p)]}->${row[PROPS.indexOf(p)]}`)).filter((x) => x.length);
+      console.log('DIFF', arm, m, d.length, JSON.stringify(d.slice(0, 3)).slice(0, 400));
+    }
     const pN = parity(neutral.blockSig, ref.blockSig), pA = parity(adv.blockSig, hostile.blockSig);
     const row = (out.arms[arm] ||= {});
     // Adversarial outcome: per class, did it style its element at all (sig differs from a class-less sibling = the first plain one)?

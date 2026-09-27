@@ -36,6 +36,8 @@ function partnerOf(token) {
   return undefined;
 }
 const corpora = { corpus: readCorpus('corpus.ts'), heldout: readCorpus('corpus-heldout.ts') };
+// #445: keep the variable-alpha gradient regression in the forced-fallback corpus.
+if (!corpora.heldout.includes('via-[rgb(0_0_255)]/(--o)')) throw new Error('missing #445 held-out gradient token');
 
 const browser = await pw[ENGINE].launch({ executablePath: ENGINE === 'chromium' ? process.env.CHROME : undefined });
 async function measure(mode, tokens) {
@@ -46,14 +48,20 @@ async function measure(mode, tokens) {
     const html = items.map(([t, cls], i) => `<div class="w"><div data-i="${i}" class="${cls.replace(/"/g, '&quot;')}">${t.includes('content') ? '' : 'x'}<span>y</span></div></div>`).join('');
     const host = document.getElementById('host');
     let scope;
+    const fallbackProbe = { adoptedSupported: 'adoptedStyleSheets' in document, adoptionAttempts: 0, styleAttempts: 0 };
     if (mode === 'document') {
       host.innerHTML = html; scope = host;
       // Default 50-rule partitions (#387: cross-partition order matches the single-sheet order); MAX_RULES overrides.
       BaroCSS.getRuntime(maxRules ? { maxRulesPerPartition: maxRules } : {}).observe(host, { scan: true });
     } else {
-      // 'fallback': the document refuses the <style> (as in an environment without document access), so the
-      // runtime has to use the :host initial values inside the root.
-      if (mode === 'fallback') document.head.appendChild = () => { throw new Error('no document access'); };
+      // Refuse both document registration routes. Shadow-root adoption remains available.
+      if (mode === 'fallback') {
+        Object.defineProperty(document, 'adoptedStyleSheets', {
+          configurable: true, get: () => [],
+          set: () => { fallbackProbe.adoptionAttempts++; throw new Error('no document adoption'); },
+        });
+        document.head.appendChild = () => { fallbackProbe.styleAttempts++; throw new Error('no document style insertion'); };
+      }
       const sr = host.attachShadow({ mode: 'open' }); sr.innerHTML = html; scope = sr;
       new BaroCSS.BrowserRuntime({ root: sr, config: {} });
     }
@@ -71,7 +79,11 @@ async function measure(mode, tokens) {
       res.push(snap);
     }
     const docText = [...document.styleSheets, ...document.adoptedStyleSheets].flatMap((s) => [...s.cssRules].map((r) => r.cssText));
-    return { res, documentRules: docText.length, documentNonProperty: mode !== 'document' ? docText.filter((t) => !/^@property\s/.test(t)).length : null };
+    if (mode === 'fallback') {
+      if (fallbackProbe.adoptedSupported && fallbackProbe.adoptionAttempts === 0) throw new Error('fallback did not attempt document adoption');
+      if (docText.length !== 0) throw new Error('fallback leaked document rules');
+    }
+    return { res, fallbackProbe: mode === 'fallback' ? fallbackProbe : null, documentRules: docText.length, documentNonProperty: mode !== 'document' ? docText.filter((t) => !/^@property\s/.test(t)).length : null };
   }, { mode, maxRules: Number(process.env.MAX_RULES) || 0, items: tokens.map((t) => [t, [t, partnerOf(t)].filter(Boolean).join(' ')]) });
   await page.close();
   return out;
@@ -91,7 +103,7 @@ for (const [name, tokens] of Object.entries(corpora)) {
       if (props.length) diffs.push({ token: t, props: props.slice(0, 6).map((p) => `${p}: ${b[p]} ≠ ${a[p]}`) });
     });
     failed += diffs.length + (sh.documentNonProperty ? 1 : 0);
-    result.corpora[name][mode] = { differing: diffs.length, documentRules: sh.documentRules, documentNonPropertyRules: sh.documentNonProperty, diffs: diffs.slice(0, 40) };
+    result.corpora[name][mode] = { differing: diffs.length, documentRules: sh.documentRules, documentNonPropertyRules: sh.documentNonProperty, ...(sh.fallbackProbe ? { fallbackProbe: sh.fallbackProbe } : {}), diffs: diffs.slice(0, 40) };
     console.log(`${ENGINE} ${name} ${mode}: ${tokens.length} classes, ${diffs.length} differ from document mode; the document holds ${sh.documentRules} rules (${sh.documentNonProperty} non-@property)`);
     for (const d of diffs.slice(0, 8)) console.log(`  ${d.token}: ${d.props.slice(0, 2).join('; ')}`);
   }
