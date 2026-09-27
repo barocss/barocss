@@ -1,5 +1,5 @@
 {
- "kit": "integration develop packages/barocss/dist",
+ "kit": "packages/barocss/dist/index.js",
  "tailwind": "4.3.3 compile()",
  "corpora": [
   {
@@ -86,12 +86,15 @@
      "setting-label",
      "toggle",
      "toggle-slider",
+     "select-input",
+     "text-input",
      "status",
      "btn",
      "btn-secondary",
      "btn-primary",
      "card",
      "head",
+     "place",
      "updated",
      "main",
      "icon",
@@ -115,6 +118,8 @@
      "field",
      "req",
      "err",
+     "row",
+     "col",
      "steppers",
      "summary",
      "line",
@@ -153,13 +158,6 @@
      "actions",
      "primary"
     ],
-    "typo-or-invented-utility": [
-     "select-input",
-     "text-input",
-     "place",
-     "row",
-     "col"
-    ],
     "extraction-artifact (JS template fragment)": [
      "${esc(r.status)}"
     ]
@@ -193,7 +191,9 @@
      "'bg-gray-100",
      "text-gray-800'}",
      "'",
-     "+"
+     "+",
+     "cls",
+     "alignCls"
     ],
     "typo-or-invented-utility": [
      "text-md"
@@ -201,8 +201,6 @@
     "app-custom-class": [
      "toggle-checkbox",
      "tbl-scroll",
-     "cls",
-     "alignCls",
      "fade-in",
      "theme-opt"
     ]
@@ -246,9 +244,9 @@
   }
  ],
  "categoryTotals": {
-  "app-custom-class": 124,
-  "typo-or-invented-utility": 6,
-  "extraction-artifact (JS template fragment)": 12
+  "app-custom-class": 127,
+  "extraction-artifact (JS template fragment)": 14,
+  "typo-or-invented-utility": 1
  },
  "parityCandidates": [],
  "snippetCheck": {
