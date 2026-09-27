@@ -1,7 +1,7 @@
 {
   "synthetic": true,
   "phase": "pilot-b",
-  "planHash": "9d3b8b5249144d3ef520093c911c87c97215bb895f2cfc67f77684b07770cefc",
+  "planHash": "94b4760fdeb86550bab1df9c26857cb4ef3414bb1cc2bcae66619f545584534f",
   "planned": [
     {
       "id": "pilot-b/claude-haiku-4-5-20251001/settings/fixed/0/initial",

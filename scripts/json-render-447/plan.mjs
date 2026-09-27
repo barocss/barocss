@@ -1,6 +1,7 @@
 // Candidate direct-API plan. This module does not authorize generation.
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ARMS, SCENARIO_IDS, STAGES, sessionMessages, editPrompt, cases } from './fixtures.mjs';
 export const MODELS = Object.freeze([
@@ -27,12 +28,34 @@ export function schedule(phase = 'pilot-a') {
 export function maximumMicroUsd(phase) {
   return schedule(phase).reduce((sum, row) => { const m = MODELS.find(x => x.id === row.model); return sum + m.contextTokens * m.rates.inputMicroUsdPerToken + LIMITS.maxOutputTokens * m.rates.outputMicroUsdPerToken; }, 0);
 }
+// Follow local imports, and include the runtime assets loaded by the browser harness.
+export function inputHashes(root = fileURLToPath(new URL('../../', import.meta.url))) {
+  const pending = ['scripts/json-render-447/fixtures.mjs', 'scripts/json-render-447/RUBRIC.md',
+    'scripts/json-render-447/plan.mjs', 'scripts/json-render-447/capture.mjs',
+    'scripts/json-render-447/provider.mjs', 'scripts/json-render-447/budget.mjs',
+    'scripts/json-render-447/replay.mjs', 'scripts/json-render-447/APPROVAL-PLAN.md',
+    'scripts/json-render-446/browser-app.jsx', 'scripts/json-render-446/evidence/baro.umd.cjs',
+    'scripts/json-render-probe/e2e/app.css', 'scripts/json-render-447/dependency-lock.json', 'pnpm-lock.yaml'];
+  const files = {};
+  while (pending.length) {
+    const name = pending.pop();
+    if (Object.hasOwn(files, name)) continue;
+    const bytes = fs.readFileSync(path.join(root, name));
+    files[name] = createHash('sha256').update(bytes).digest('hex');
+    if (/\.(mjs|jsx)$/.test(name)) for (const match of bytes.toString().matchAll(/(?:from\s*|import\s*)['"](\.[^'"]+)['"]/g)) {
+      const dependency = path.posix.normalize(path.posix.join(path.posix.dirname(name), match[1]));
+      if (dependency.startsWith('../')) throw new Error('Input escapes repository');
+      pending.push(dependency);
+    }
+  }
+  return Object.fromEntries(Object.entries(files).sort(([a], [b]) => a.localeCompare(b)));
+}
 export function frozenPlan() {
   return { version: 1, provider: 'anthropic-direct-standard-global', models: MODELS, limits: LIMITS,
     settings: { thinking: { type: 'disabled' }, tools: [], tool_choice: { type: 'none' }, stream: false, service_tier: 'standard_only', caching: 'no cache_control field', sampling: 'provider defaults; no seed/temperature/top_p override' },
     phases: Object.fromEntries(['pilot-a', 'pilot-b', 'study'].map(phase => [phase, { rows: schedule(phase), maximumMicroUsd: maximumMicroUsd(phase) }])),
     cases: cases(), prompts: SCENARIO_IDS.flatMap(scenario => ARMS.map(arm => ({ scenario, arm, initial: sessionMessages(scenario, arm), edits: STAGES.slice(1).map(stage => ({ stage, content: editPrompt(scenario, stage) })) }))),
-    files: Object.fromEntries(['fixtures.mjs','RUBRIC.md','plan.mjs','capture.mjs','provider.mjs','budget.mjs','replay.mjs','APPROVAL-PLAN.md'].map(name => [name, createHash('sha256').update(fs.readFileSync(fileURLToPath(new URL(name, import.meta.url)))).digest('hex')])),
+    files: inputHashes(),
   };
 }
 export const digest = object => createHash('sha256').update(JSON.stringify(object)).digest('hex');

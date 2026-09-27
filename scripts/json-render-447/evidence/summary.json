@@ -3,12 +3,12 @@
   "modelCalls": 0,
   "newInstalls": 0,
   "node": "22.22.0",
-  "testsPassed": 21,
+  "testsPassed": 40,
   "scheduledSyntheticResponses": 72,
   "browserControlRows": 96,
-  "scorerFailureCases": 5,
-  "scorerFailureRowsRetained": 40,
-  "planHash": "9d3b8b5249144d3ef520093c911c87c97215bb895f2cfc67f77684b07770cefc",
+  "scorerFailureCases": 10,
+  "scorerFailureRowsRetained": 80,
+  "planHash": "94b4760fdeb86550bab1df9c26857cb4ef3414bb1cc2bcae66619f545584534f",
   "readOnlyCredentialVisibility": {
     "claudeVersion": "2.1.283",
     "loggedIn": false,
@@ -20,10 +20,10 @@
     "billingVerified": false
   },
   "hashes": {
-    "frozen-plan.json": "2b7eab5752bac9c4e278000442dcd94e2e9e7d12c92b4344cea4a515ce8ae182",
+    "frozen-plan.json": "564354680af1a22a2809fd0222db5c574e8c003eccb5e7bf8aae514f312647eb",
     "synthetic-rows.json": "110c6afb78a0e00a51d2432cac4f7dd44753dc118b36b112ab1fd17e9707f9e8",
-    "synthetic-manifest.json": "de0386857d92ea6a3bf1db21fecc0deb0cbb3f2afc966a13903bc9b86c389588",
-    "replay.json": "60670f2b885426b6bf8f43d1a6f6aa0168fd31382f0fc1d816bae64247208f23"
+    "synthetic-manifest.json": "e6b2490396d819883952738f3fe80518f79231dc2737f72ce6a7785ea6b39ff1",
+    "replay.json": "f1245de9074428a2fed364aa9ce25a57c8bfa21c33bb7a744a32cb23e6a390ce"
   },
   "screenshotHashes": {
     "00ac3f36ed93e7eb8dbb0fb7b487a70700a18f39bafe5bd8ff6e208c14fb6fec.png": "fd98c790713ab41a57f98ed3ace6335d5f83a6c6b999b6d73a213b1866733fc0",

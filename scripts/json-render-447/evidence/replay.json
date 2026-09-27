@@ -956,6 +956,224 @@
       "initialCaptured": true
     }
   ],
+  "sessions": [
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "fixed",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "fixed",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "bounded",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "bounded",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "utility",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "settings",
+      "arm": "build",
+      "repeat": 0,
+      "completeSessionSuccess": false,
+      "passedAnchors": 1,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "utility",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "settings",
+      "arm": "build",
+      "repeat": 0,
+      "completeSessionSuccess": false,
+      "passedAnchors": 1,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "bounded",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "build",
+      "repeat": 0,
+      "completeSessionSuccess": false,
+      "passedAnchors": 1,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "utility",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "build",
+      "repeat": 0,
+      "completeSessionSuccess": false,
+      "passedAnchors": 1,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "dashboard",
+      "arm": "fixed",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "build",
+      "repeat": 0,
+      "completeSessionSuccess": false,
+      "passedAnchors": 1,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "utility",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "build",
+      "repeat": 0,
+      "completeSessionSuccess": false,
+      "passedAnchors": 1,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "fixed",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-haiku-4-5-20251001",
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    },
+    {
+      "model": "claude-sonnet-5",
+      "scenario": "kiosk",
+      "arm": "bounded",
+      "repeat": 0,
+      "completeSessionSuccess": true,
+      "passedAnchors": 4,
+      "totalAnchors": 4
+    }
+  ],
   "rows": [
     {
       "id": "pilot-b/claude-haiku-4-5-20251001/settings/fixed/0/initial",
@@ -3304,7 +3522,7 @@
       "stage": "responsive",
       "status": "valid",
       "specSha256": "984e631da2a6239260e5a09627c8a2ea332ae58086d74b2658f9e005574d124e",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -3410,7 +3628,7 @@
       "stage": "structure",
       "status": "valid",
       "specSha256": "3bd89f6a5b7cfa82516ee06bdafe9d20d75551bd1d6668e6db596b245c67bad1",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -4154,7 +4372,7 @@
       "stage": "responsive",
       "status": "valid",
       "specSha256": "984e631da2a6239260e5a09627c8a2ea332ae58086d74b2658f9e005574d124e",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -4260,7 +4478,7 @@
       "stage": "structure",
       "status": "valid",
       "specSha256": "3bd89f6a5b7cfa82516ee06bdafe9d20d75551bd1d6668e6db596b245c67bad1",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -5868,7 +6086,7 @@
       "stage": "responsive",
       "status": "valid",
       "specSha256": "cea06acd5967fa8103a0fa11456261bcd005c5928910e33e0ee1f5ca3130055b",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -5975,7 +6193,7 @@
       "stage": "structure",
       "status": "valid",
       "specSha256": "da0ca29936829e17c59284ccc2e9b2829ee2cc63fc46b57e937dc5f0a62d73f9",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -6726,7 +6944,7 @@
       "stage": "responsive",
       "status": "valid",
       "specSha256": "cea06acd5967fa8103a0fa11456261bcd005c5928910e33e0ee1f5ca3130055b",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -6833,7 +7051,7 @@
       "stage": "structure",
       "status": "valid",
       "specSha256": "da0ca29936829e17c59284ccc2e9b2829ee2cc63fc46b57e937dc5f0a62d73f9",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -8442,7 +8660,7 @@
       "stage": "responsive",
       "status": "valid",
       "specSha256": "6cc78a9aeb2b1089953c74c77bda7cdaaf80503ab1768d0d2c96f90618b2fe12",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -8549,7 +8767,7 @@
       "stage": "structure",
       "status": "valid",
       "specSha256": "eca57a7bc79104495a5e46809c4581708222e8e154ef3f8a3a0f49d7ae7510b1",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -9300,7 +9518,7 @@
       "stage": "responsive",
       "status": "valid",
       "specSha256": "6cc78a9aeb2b1089953c74c77bda7cdaaf80503ab1768d0d2c96f90618b2fe12",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,
@@ -9407,7 +9625,7 @@
       "stage": "structure",
       "status": "valid",
       "specSha256": "eca57a7bc79104495a5e46809c4581708222e8e154ef3f8a3a0f49d7ae7510b1",
-      "priorChainComplete": true,
+      "priorChainComplete": false,
       "rendered": true,
       "classification": "style",
       "specValid": true,

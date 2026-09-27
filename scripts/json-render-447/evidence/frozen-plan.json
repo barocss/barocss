@@ -1,5 +1,5 @@
 {
-  "planHash": "9d3b8b5249144d3ef520093c911c87c97215bb895f2cfc67f77684b07770cefc",
+  "planHash": "94b4760fdeb86550bab1df9c26857cb4ef3414bb1cc2bcae66619f545584534f",
   "plan": {
     "version": 1,
     "provider": "anthropic-direct-standard-global",
@@ -5244,14 +5244,22 @@
       }
     ],
     "files": {
-      "fixtures.mjs": "61808febac660a64f30f76ef146428d28b96c1b7e208802bc22c95d7eff179da",
-      "RUBRIC.md": "bb7d36fcea6195e99fe2523bca5988a33036b9dd9ffbc1f090145dcf8071d785",
-      "plan.mjs": "26b7811f77cdd63060a20f53425f180358ef97faabeb9be1400b37a59d6f2673",
-      "capture.mjs": "2f086f4a40d6bcb5a476e83aff6b78b73f20c50f4b53c5111d201ba035a8909e",
-      "provider.mjs": "1a9aec2d013d3d03b57b40d104743e244639db384fefd1227c7287c0e3f62524",
-      "budget.mjs": "60e866dd772d1f83bc7a9fa5f6086b525241755c13202cb3390f0f10f2105fd4",
-      "replay.mjs": "bde15d556adcea3edd157512c1cd21bd6d484de3f0cf1b248b8bef8daa2b50f8",
-      "APPROVAL-PLAN.md": "33693d1c82e065a845e728e52fc31560dd5695603282453c00b809c221a5536b"
+      "pnpm-lock.yaml": "4e937da6cec7e026e102a44baf3695dc68fb630ff858e76b286a77b433c851aa",
+      "scripts/json-render-446/browser-app.jsx": "524c62a9dac752468c07e2394f455adc22ee51245f08861240dbf5932c0394af",
+      "scripts/json-render-446/contract.mjs": "a8ca5120994a3ace76b548529933dd55d58c1e765379c0bd1f5b9bce4f410405",
+      "scripts/json-render-446/evidence/baro.umd.cjs": "8aec807f9929f32e3d3804b9657d102b4f8aaffba2297708d031fc54b314328f",
+      "scripts/json-render-446/spec.mjs": "26904cbd7f5175d437e7e2e463632fadbe1c7a551a3bc302400d7e515650321b",
+      "scripts/json-render-446/styles.mjs": "50231f1a47f0bde0a6889b9b0098f35bd3e42a9df1532dd81faf3ac76543b7a7",
+      "scripts/json-render-447/APPROVAL-PLAN.md": "33693d1c82e065a845e728e52fc31560dd5695603282453c00b809c221a5536b",
+      "scripts/json-render-447/budget.mjs": "60e866dd772d1f83bc7a9fa5f6086b525241755c13202cb3390f0f10f2105fd4",
+      "scripts/json-render-447/capture.mjs": "2f086f4a40d6bcb5a476e83aff6b78b73f20c50f4b53c5111d201ba035a8909e",
+      "scripts/json-render-447/dependency-lock.json": "d9da12f6286473b3630d4615141e1e3ec8b6c372629c0a222ac0ad0264bbb8a5",
+      "scripts/json-render-447/fixtures.mjs": "61808febac660a64f30f76ef146428d28b96c1b7e208802bc22c95d7eff179da",
+      "scripts/json-render-447/plan.mjs": "05c8d3684b82b683218aaffdf0943194d66de7b4d06334755a3ffb6e370c136b",
+      "scripts/json-render-447/provider.mjs": "6c334718d00d6e3d9034f1d0203703b902720006afb9237ad1c462fb6bf067d1",
+      "scripts/json-render-447/replay.mjs": "5f7cf1d733355ade779c2aad13b86bb4e8a083ec3726a33b6db0de00a37ba78c",
+      "scripts/json-render-447/RUBRIC.md": "bb7d36fcea6195e99fe2523bca5988a33036b9dd9ffbc1f090145dcf8071d785",
+      "scripts/json-render-probe/e2e/app.css": "fca02af7fa74dd712119266eb2d1b1c1d990228e5f1693b038f41d4454b93972"
     }
   }
 }
