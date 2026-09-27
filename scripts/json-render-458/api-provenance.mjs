@@ -20,6 +20,13 @@ export function verifyApiCapture(runDir) {
         !/^[a-f0-9]{40}$/.test(apiManifest.reviewedCommit))) ||
       (apiManifest.transportKind === 'api-stub' && (apiManifest.approvalSha256 !== null || apiManifest.reviewedCommit !== null))) throw new Error('API run manifest drift');
   const inventory = { ...capture.inventory, 'api-run-manifest.json': sha(manifestBytes) };
+  if (apiManifest.transportKind === 'api-live') {
+    const claimBytes = fs.readFileSync(`${runDir}.claim`);
+    const claim = JSON.parse(claimBytes);
+    if (claim.outputDir !== runDir || claim.runId !== path.basename(runDir).slice(4) ||
+        claim.approvalSha256 !== apiManifest.approvalSha256) throw new Error('API run claim drift');
+    inventory['../run.claim'] = sha(claimBytes);
+  }
   let held = 0;
   for (const row of capture.rows.filter((item) => item.attempted)) {
     const dirName = `attempt-${String(row.ordinal).padStart(2, '0')}`;

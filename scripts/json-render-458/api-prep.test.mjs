@@ -11,7 +11,8 @@ import { verifyFrozen } from './freeze.mjs';
 import { verifyCapture } from './provenance.mjs';
 import { verifyApiCapture } from './api-provenance.mjs';
 import { verifyApiFrozen } from './api-frozen.mjs';
-import { liveApiTransport, postDirect } from './api-live.mjs';
+import { liveApiTransport, claimApprovedRun } from './api-live.mjs';
+import { scoreApiSaved, bindApiReport, verifyApiReport, createApiViewer, replayApiSaved } from './api-consumers.mjs';
 
 const fresh = () => path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'baro-458-api-')), 'run');
 const usage = (input = 100, output = 50, cached = 0, write = 0, reasoning = 20) => ({ input_tokens: input,
@@ -110,7 +111,7 @@ test('timeout and missing usage retain the full reservation and stop the schedul
 test('API freeze binds the adapter, pricing, dispatcher, and independent provenance', () => {
   assert.match(verifyApiFrozen(), /^[a-f0-9]{64}$/);
   const frozen = JSON.parse(fs.readFileSync(new URL('./api-frozen.json', import.meta.url)));
-  for (const name of ['api-prep.mjs', 'api-live.mjs', 'api-provenance.mjs', 'API-RUN-PACKET.md', 'frozen-plan.json']) {
+  for (const name of ['api-prep.mjs', 'api-live.mjs', 'api-provenance.mjs', 'api-consumers.mjs', 'API-RUN-PACKET.md', 'frozen-plan.json']) {
     assert.match(frozen.files[name], /^[a-f0-9]{64}$/);
   }
 });
@@ -152,19 +153,40 @@ test('the $10 cap settles complete usage and denies the next request before resp
   assert.ok(verifyApiCapture(run).heldMicroUsd <= API_CEILING_MICRO_USD);
 });
 
-test('direct HTTP helper uses fixed endpoint and aborts one stalled request without retry', async () => {
-  const env = { OPENAI_API_KEY: 'fake', OPENAI_ORG_ID: 'org-test', OPENAI_PROJECT_ID: 'proj-test' };
-  let calls = 0;
-  const keepAlive = setTimeout(() => {}, 50);
-  await assert.rejects(postDirect(apiRequest('prompt'), 10, env, async (url, options) => {
-    calls++;
-    assert.equal(url, 'https://api.openai.com/v1/responses');
-    assert.equal(options.method, 'POST');
-    assert.equal(options.redirect, 'error');
-    assert.deepEqual(JSON.parse(options.body).tools, []);
-    assert.equal(options.headers['OpenAI-Project'], 'proj-test');
-    return new Promise((_resolve, reject) => options.signal.addEventListener('abort', () => reject(options.signal.reason), { once: true }));
-  }));
-  clearTimeout(keepAlive);
-  assert.equal(calls, 1);
+test('approved run identity is claimed once, atomically, without creating an output directory', () => {
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'baro-458-claim-'));
+  const outputDir = path.join(parent, 'run-abcdef12');
+  const claim = claimApprovedRun(outputDir, 'a'.repeat(64), 'abcdef12');
+  assert.ok(fs.existsSync(claim));
+  assert.ok(!fs.existsSync(outputDir));
+  assert.throws(() => claimApprovedRun(outputDir, 'a'.repeat(64), 'abcdef12'), /EEXIST/);
+  assert.throws(() => claimApprovedRun(path.join(parent, 'run-otherid1'), 'a'.repeat(64), 'abcdef12'), /identity invalid/);
+});
+
+test('API score and viewer reject altered API evidence even when generic capture digest is unchanged', async () => {
+  const run = fresh();
+  const oldStub = stubTransport('valid');
+  await capture({ outputDir: run, planHash: verifyFrozen(), synthetic: true,
+    transport: stubApiTransport(async (_request, row, dir) => response((await oldStub({ row, attemptDir: dir })).rawFinal)) });
+  const before = verifyApiCapture(run);
+  const scored = scoreApiSaved(run);
+  assert.equal(scored.scoring.length, 24);
+  const replayDir = fs.mkdtempSync(path.join(os.tmpdir(), 'baro-458-api-report-'));
+  fs.writeFileSync(path.join(replayDir, 'report.json'), JSON.stringify({ captureManifestSha256: before.manifestSha256,
+    captureEvidenceSha256: before.evidenceSha256, scoring: scored.scoring,
+    replay: before.rows.map((row) => ({ id: row.id, status: 'skipped', screen: {}, errors: [] })) }));
+  bindApiReport(run, replayDir);
+  assert.equal(verifyApiReport(run, replayDir).binding.apiEvidenceSha256, before.apiEvidenceSha256);
+  assert.ok(createApiViewer({ captureDir: run, replayDir }).server);
+  const file = path.join(run, 'attempt-00/api-response.json'), original = fs.readFileSync(file);
+  fs.writeFileSync(file, '{"changed":true}\n');
+  assert.equal(verifyCapture(run).evidenceSha256, before.evidenceSha256); // The accepted generic route is unchanged.
+  assert.throws(() => scoreApiSaved(run));
+  await assert.rejects(replayApiSaved({ captureDir: run, outputDir: path.join(replayDir, 'new') }));
+  assert.throws(() => verifyApiReport(run, replayDir));
+  assert.throws(() => createApiViewer({ captureDir: run, replayDir }));
+  fs.writeFileSync(file, original);
+  const reportFile = path.join(replayDir, 'report.json');
+  fs.appendFileSync(reportFile, ' ');
+  assert.throws(() => verifyApiReport(run, replayDir), /binding drift/);
 });

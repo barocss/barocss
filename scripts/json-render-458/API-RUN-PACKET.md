@@ -25,7 +25,19 @@ From the repository root:
 node --test scripts/json-render-458/*.test.mjs
 ```
 
-The API tests assert exact request fields, denial before network without private owner approval and project key, cache-write/long-context/reasoning accounting, strict rejection of tool/refusal/incomplete/model/tier/usage drift, durable reservation and settlement, full 24-cell saved-response provenance, API artifact mutation detection, and retained reservation plus scheduled skips after timeout or missing usage. The stub responder makes no HTTP request and spends nothing. Existing replay and viewer commands in `README.md` work with the saved capture format. The CLI hard block has its own test.
+The API tests assert exact request fields, denial before network without private owner approval and project key, one-run atomic claim, cache-write/long-context/reasoning accounting, strict rejection of tool/refusal/incomplete/model/tier/usage drift, durable reservation and settlement, full 24-cell saved-response provenance, API artifact mutation detection across scoring/replay/viewer, and retained reservation plus scheduled skips after timeout or missing usage. The stub responder makes no HTTP request and spends nothing. The CLI hard block has its own test.
+
+## API saved-evidence commands
+
+Use the route-aware commands below for any API capture. They verify the API source freeze and the saved API request, charge reservation, response, and settlement before scoring or browser replay. Replay writes an `api-report-binding.json` sidecar that binds the report to the API evidence digest; the API viewer requires it. The generic CLI/stub consumers remain for accepted legacy captures and must not be used for an API run.
+
+```sh
+node scripts/json-render-458/api-consumers.mjs score --capture /Users/user/.barocss-ai/v3/private-458/run-UNIQUE123
+node scripts/json-render-458/api-consumers.mjs replay --capture /Users/user/.barocss-ai/v3/private-458/run-UNIQUE123 --output /Users/user/.barocss-ai/v3/private-458/replay-UNIQUE123
+node scripts/json-render-458/api-consumers.mjs view --capture /Users/user/.barocss-ai/v3/private-458/run-UNIQUE123 --replay /Users/user/.barocss-ai/v3/private-458/replay-UNIQUE123
+```
+
+Browser replay still needs the already installed renderer/browser environment described in `README.md`. Do not download dependencies to run this packet.
 
 ## Exact gated command and unresolved owner decision
 
@@ -34,10 +46,10 @@ This command is implemented but **must not be run yet**. It fails before network
 ```sh
 node scripts/json-render-458/api-live.mjs \
   --approval /Users/user/.barocss-ai/v3/private-458/owner-approved-api-458.json \
-  --output /Users/user/.barocss-ai/v3/private-458/run-UNIQUE
+  --output /Users/user/.barocss-ai/v3/private-458/run-UNIQUE123
 ```
 
-The approval file is **not created by this preparation**. It must contain `issue: 458`, `ownerDecision: "APPROVED_LIVE_API_458"`, the exact clean Git `commit`, `apiPlanHash`, `capturePlanHash`, `endpoint: "https://api.openai.com/v1/responses"`, `model: "gpt-6-sol"`, `maxChargeMicroUsd: 10000000`, `organizationId`, `projectId`, and the independent final Review `reviewDecision: "ACCEPT"` and `reviewUrl`. The private approval file hash and reviewed commit are recorded in the API run manifest, without saving the API key. The run environment must supply `OPENAI_API_KEY`, `OPENAI_ORG_ID`, and `OPENAI_PROJECT_ID` through an approved secret channel; the organization/project must match the approval file. `OPENAI_BASE_URL` must be unset. The command does no retry. At completion it verifies and prints the API evidence digest and held charge. A timeout or HTTP failure retains the full reservation and stops. The old CLI `--live` command remains an unconditional hard block.
+The approval file is **not created by this preparation**. It must contain `issue: 458`, `ownerDecision: "APPROVED_LIVE_API_458"`, the exact clean Git `commit`, `apiPlanHash`, `capturePlanHash`, `endpoint: "https://api.openai.com/v1/responses"`, `model: "gpt-6-sol"`, `maxChargeMicroUsd: 10000000`, `organizationId`, `projectId`, and the independent final Review `reviewDecision: "ACCEPT"` and `reviewUrl`. The private approval file hash and reviewed commit are recorded in the API run manifest, without saving the API key. The approval also names the exact canonical `outputDir` and a unique `runId` that matches its `run-<id>` basename. Before dispatch, the command creates an exclusive, durable `.claim` next to that directory; the same approval cannot start a second run or a parallel restart. The run environment must supply `OPENAI_API_KEY`, `OPENAI_ORG_ID`, and `OPENAI_PROJECT_ID` through an approved secret channel; the organization/project must match the approval file. `OPENAI_BASE_URL` must be unset. The command does no retry. At completion it verifies and prints the API evidence digest and held charge. A timeout or HTTP failure retains the full reservation and stops. The old CLI `--live` command remains an unconditional hard block.
 
 Before owner GO, confirm model ID and alias behavior, API access, Standard tier billing and price, available credit, organization/project identity, budget and rate limits, data-retention policy for `store: false`, and any tax or non-token charge. The owner must decide whether **$10.000000** token-charge authorization, up to 24 scheduled slots with possible early stop, is acceptable. Independent Review must ACCEPT the final dispatch implementation at its exact SHA. Local develop integration of preparation is not permission to spend. The run is allowed only after a separate owner GO and matching private approval file. A timeout must never trigger a replacement request.
 
