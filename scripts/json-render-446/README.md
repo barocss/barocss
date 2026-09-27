@@ -1,6 +1,6 @@
-# #446 multi-turn UI experiment: offline contract and preflight
+# #446 multi-turn UI experiment: official renderer browser replay
 
-This directory is research only. It defines a frozen replay contract and checks whether the official renderer and browser dependencies are available locally. It does **not** implement a replacement renderer, produce a visual score, or call a model.
+This directory is research only. It defines a frozen replay contract and runs the official json-render React renderer in a deterministic local browser. It does **not** implement a replacement renderer or call a model. See [DECISION.md](DECISION.md) for measured results, attribution and limits.
 
 ## Evidence and versions
 
@@ -46,8 +46,21 @@ node scripts/json-render-446/check.mjs --write
 git diff --exit-code -- scripts/json-render-446/offline-preflight.json
 ```
 
-Optional `JR_ROOT` and `PW_DIR` are module resolution roots for the official renderer and Playwright (a pnpm virtual `node_modules` directory is valid); omitting them checks this worktree only. The generated [`offline-preflight.json`](offline-preflight.json) is deterministic for a fixed installed environment. All 48 cells currently have `blocked:official-renderer-unavailable` and null measurements because the official json-render packages, React and Playwright are absent from this worktree. A Playwright package exists in a separate unrelated workspace, but using it alone does not supply the official renderer. No download or paid call was made. The historical #376 outputs remain evidence of their own one-shot runs only.
+Optional `JR_ROOT` and `PW_DIR` are module resolution roots for the official renderer and Playwright (a pnpm virtual `node_modules` directory is valid); omitting them checks this worktree only. The generated [`offline-preflight.json`](offline-preflight.json) is deterministic for a fixed installed environment. The initial pre-install file has 48 `blocked:official-renderer-unavailable` cells and null measurements. The owner-approved isolated install is recorded in `INSTALL-PLAN.md` and `evidence/`; the post-install preflight has 48 `not-run` cells. Neither file is a rendered result. A Playwright package exists in a separate unrelated workspace, but using it alone does not supply the official renderer. The approved pinned npm install is recorded separately. No browser download or paid call was made. The historical #376 outputs remain evidence of their own one-shot runs only.
 
-## Next gate
+## Deterministic replay and current gate
 
-Run the full browser replay only after an approved, pinned official renderer installation is available in an isolated research directory. Add the exact runner command to #446 before executing it. Until then, the experiment cannot support a recommendation to add a BaroCSS UI layer or a claim about multi-turn model reliability. A later live-model follow-up must freeze prompts and fixtures, use repeated samples from two model tiers, and report tokens, latency, parse/render/state failures and cost estimates before any paid run.
+The owner-approved pinned renderer is installed in an ignored isolated research directory. The exact command was added to #446 before execution. From this worktree, use Node.js 22.22.0 and the existing matching Chromium/Playwright pair:
+
+```sh
+JR_ROOT="$PWD/scripts/json-render-446/scratch/jr" \
+PW_DIR="/Users/user/github/real-ime/real-ime/node_modules/.pnpm/playwright-core@1.60.0/node_modules" \
+CHROME="/Users/user/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" \
+REPO_DEPS_ROOT="/Users/user/.barocss-ai/v3/integration" \
+REPEATS=2 \
+/Users/user/.nvm/versions/node/v22.22.0/bin/node scripts/json-render-446/run.mjs
+/Users/user/.nvm/versions/node/v22.22.0/bin/node scripts/json-render-446/verify.mjs
+/Users/user/.nvm/versions/node/v22.22.0/bin/node --test scripts/json-render-446/contract.test.mjs
+```
+
+`evidence/replay.json` contains 96 measured rows and the arm summaries; `evidence/shots/` contains 48 screenshots. The build-only control has a fixed initial CSS inventory and fails layout style on later edits while preserving DOM/state/action. See the decision report before interpreting `unstyledFrames`: it counts failing computed-style samples, including persistent missing CSS. The two full runs were byte-identical. Independent Review of the final commit is required before local develop integration. Paid live-model work requires separate owner approval.

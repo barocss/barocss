@@ -2,7 +2,7 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { ARMS, BUILD_CONTROL, INTERACTION_ORDER, SCENARIOS, MEASURES, fixtureCases, validateContract } from './contract.mjs';
 
 const errors = validateContract();
@@ -10,7 +10,21 @@ if (errors.length) throw new Error(errors.join('\n'));
 const require = createRequire(import.meta.url);
 const rendererRequire = process.env.JR_ROOT ? createRequire(path.join(process.env.JR_ROOT, 'package.json')) : require;
 const browserRequire = process.env.PW_DIR ? createRequire(path.join(process.env.PW_DIR, 'package.json')) : require;
-const version = (name, from = require) => { try { return from(`${name}/package.json`).version; } catch { return null; } };
+const version = (name, from = require) => {
+  try { return from(`${name}/package.json`).version; } catch { /* package may hide its manifest via exports */ }
+  try {
+    let dir = path.dirname(from.resolve(name));
+    while (dir !== path.dirname(dir)) {
+      const manifest = path.join(dir, 'package.json');
+      if (existsSync(manifest)) {
+        const metadata = JSON.parse(readFileSync(manifest, 'utf8'));
+        if (metadata.name === name) return metadata.version;
+      }
+      dir = path.dirname(dir);
+    }
+  } catch { /* unavailable dependency */ }
+  return null;
+};
 const dependencies = {
   '@json-render/core': version('@json-render/core', rendererRequire),
   '@json-render/react': version('@json-render/react', rendererRequire),
