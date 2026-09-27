@@ -27,6 +27,7 @@ export type RuleKey = Array<number | string>;
 
 const LEADING_AT = /^\s*@(media|container)\s+([^{]*)\{/;
 const LATE_MEDIA = /prefers-color-scheme|\bprint\b|forced-colors|orientation/;
+const DARK_MEDIA_PRELUDE = /@media\s*\([^{}]*prefers-color-scheme\s*:/;
 const MIN_W = /(?:min-width\s*:\s*|width\s*>=?\s*)([\d.]+)(px|rem|em)?/;
 const MAX_W = /(?:max-width\s*:\s*|width\s*<=?\s*)([\d.]+)(px|rem|em)?/;
 
@@ -156,6 +157,9 @@ export function ruleSortKey(rule: string, candidate?: string): RuleKey {
   const name = candidate ?? ruleCandidate(rule);
   const { order, count } = rulePropertySort(rule, name);
   const key: RuleKey = ruleVariantKey(rule);
+  // A class-based dark selector has no @media prelude, but Tailwind still sorts it after base
+  // utilities. Keep media dark's existing key; class selectors need the same late group.
+  if (/(?:^|:)dark:/.test(name) && !DARK_MEDIA_PRELUDE.test(rule)) key.push(5, 0);
   key.push(PROPERTY_PART, ...order, NO_MORE, -count, name);
   return key;
 }
