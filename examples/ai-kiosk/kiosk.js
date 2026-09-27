@@ -1,7 +1,7 @@
 // Kiosk client: posts actions to /screen, injects the sanitised fragment, BaroCSS styles it on insertion.
 import { getRuntime } from '/vendor/barocss.js';
 import { sanitize } from '/lib/sanitize.mjs';
-import { isAction } from '/lib/contract.mjs';
+import { isAction, isValidPress } from '/lib/contract.mjs';
 
 const $ = (id) => document.getElementById(id);
 const stage = $('stage');
@@ -80,8 +80,9 @@ stage.addEventListener('click', (ev) => {
   const el = ev.target instanceof Element ? ev.target.closest('[data-action]') : null;
   if (!el || !stage.contains(el)) return;
   const action = el.getAttribute('data-action');
-  if (!isAction(action)) return;
-  go(action, el.getAttribute('data-item') ?? undefined, el.getAttribute('data-option') ?? undefined);
+  const option = el.getAttribute('data-option') ?? undefined;
+  if (!isValidPress(action, option)) return; // same contract + fixed option sets as the server
+  go(action, el.getAttribute('data-item') ?? undefined, option);
 });
 $('regen').addEventListener('click', () => go('regenerate'));
 for (const id of ['persona', 'weather', 'daypart']) $(id).addEventListener('change', () => go('regenerate'));

@@ -2,7 +2,18 @@
 export const ACTIONS = Object.freeze([
   'start', 'choose-persona', 'open-menu', 'select-item', 'set-size', 'toggle-option',
   'add-to-cart', 'view-cart', 'remove-item', 'checkout', 'pay', 'back', 'restart',
+  // #443: order method, persistent chrome, menu paging, required options
+  'order-method', 'voice-start', 'set-lang', 'toggle-zoom', 'toggle-contrast', 'call-staff',
+  'set-category', 'page', 'set-temp', 'set-qty',
 ]);
+/** Closed data-option sets for the actions that take a fixed choice (checked by the server and the client). */
+export const OPTION_SETS = Object.freeze({
+  'order-method': ['touch', 'low', 'voice'], 'set-lang': ['ko', 'en'], page: ['next', 'prev'],
+  'set-qty': ['inc', 'dec'], 'set-temp': ['hot', 'iced'], 'set-size': ['S', 'M', 'L'],
+});
+/** Client-side pre-check: the action is in the contract and a fixed-choice option is one of its values. */
+export const isValidPress = (action, option) => isAction(action)
+  && (!Object.hasOwn(OPTION_SETS, action) || OPTION_SETS[action].includes(option));
 export const PERSONAS = Object.freeze({
   senior: 'Senior: very large text, high contrast, at most 4 choices per screen, plain words, generous spacing.',
   regular: 'Busy regular: dense layout, a one-tap "the usual" (Americano), minimal copy, fastest path to pay.',
