@@ -1,0 +1,54 @@
+{
+  "version": "0.0.0",
+  "name": "json-render-446-research",
+  "dependencies": {
+    "@json-render/core": {
+      "version": "0.21.0",
+      "resolved": "https://registry.npmjs.org/@json-render/core/-/core-0.21.0.tgz",
+      "overridden": false,
+      "dependencies": {
+        "zod": {
+          "version": "4.3.6"
+        }
+      }
+    },
+    "@json-render/react": {
+      "version": "0.21.0",
+      "resolved": "https://registry.npmjs.org/@json-render/react/-/react-0.21.0.tgz",
+      "overridden": false,
+      "dependencies": {
+        "@json-render/core": {
+          "version": "0.21.0"
+        },
+        "react": {
+          "version": "19.2.3"
+        }
+      }
+    },
+    "react-dom": {
+      "version": "19.2.3",
+      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-19.2.3.tgz",
+      "overridden": false,
+      "dependencies": {
+        "react": {
+          "version": "19.2.3"
+        },
+        "scheduler": {
+          "version": "0.27.0",
+          "resolved": "https://registry.npmjs.org/scheduler/-/scheduler-0.27.0.tgz",
+          "overridden": false
+        }
+      }
+    },
+    "react": {
+      "version": "19.2.3",
+      "resolved": "https://registry.npmjs.org/react/-/react-19.2.3.tgz",
+      "overridden": false
+    },
+    "zod": {
+      "version": "4.3.6",
+      "resolved": "https://registry.npmjs.org/zod/-/zod-4.3.6.tgz",
+      "overridden": false
+    }
+  }
+}

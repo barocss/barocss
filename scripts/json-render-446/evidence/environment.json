@@ -1,0 +1,33 @@
+{
+  "approval": "Owner approval relayed by V3 Planner on 2026-09-27 for isolated pinned dependency install and deterministic replay only; paid model calls remain unapproved.",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v22.22.0",
+  "registry": "https://registry.npmjs.org/",
+  "install": {
+    "scope": "scripts/json-render-446/scratch/jr",
+    "scripts": "disabled",
+    "cache": "/private/tmp/barocss-446-npm-install-cache",
+    "status": "succeeded after default home cache EACCES"
+  },
+  "lockSha256": "d9da12f6286473b3630d4615141e1e3ec8b6c372629c0a222ac0ad0264bbb8a5",
+  "playwright": {
+    "version": "1.60.0",
+    "source": "existing read-only installation",
+    "chromiumRevision": "1223",
+    "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+    "browserExecutableSha256": "2447c7bdea8e8ad38b52594f1ba53e18821c05445e8a07ad1cf3b0f23931d89d"
+  },
+  "barocss": {
+    "sourceDevelopCommit": "ad63984b19571a184e1133c24e521e2ddfbd622c",
+    "bundleSource": "existing local develop packages/barocss-browser/dist/cdn/barocss.umd.cjs, copied to evidence/baro.umd.cjs",
+    "bundleSha256": "8aec807f9929f32e3d3804b9657d102b4f8aaffba2297708d031fc54b314328f"
+  },
+  "replay": {
+    "runs": 2,
+    "repeatsPerRun": 2,
+    "reportSha256": "1657d752fe7d44c0c5cc7a894e72a846e898a2e7249924ce071890fa8b90fbd6",
+    "screenshotManifestSha256": "324ffee92d9087efdb945216f5e62ef2093cd6a7cfed8bed5234c8b429af7fd4",
+    "screenshotManifestCommand": "find scripts/json-render-446/evidence/shots -type f -name '*.png' -print0 | sort -z | xargs -0 sha256sum | sha256sum"
+  }
+}
