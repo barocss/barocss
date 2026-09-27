@@ -46,7 +46,7 @@ For the next release:
 2. Review the single release PR and record the PM go decision before the user merges it to `main`.
 3. If Docs changed, check the automatic Pages run and live smoke at the merged `main` SHA.
 4. Run the separate manual OIDC npm action only after the release gate; verify the published versions and CDN files.
-5. Sync `main` back into `develop`, then update published-version guidance when the release is public.
+5. Sync `main` back into `develop`. After all three npm packages and the browser CDN files are verified, advance `apps/barocss-docs/published-version.json` in a Docs-only change and deploy it. The Docs build uses this verified version for install/CDN snippets, independent of the source package manifests.
 
 ## GitHub Pages procedure
 
