@@ -1,7 +1,7 @@
 {
   "tailwind": "4.3.3",
   "chromium": "148.0.7778.96",
-  "bundleSha256": "9dc322e072afa26424b99cbca6a632f0f621d0c1306f321829edd1b56bdc03dc",
+  "bundleSha256": "968d1bd6b55909624b29e8ff04c026104fd4a73a105d7ceb8f07eb26f575e041",
   "cases": [
     {
       "case": "static-base-first",
