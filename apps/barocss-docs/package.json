@@ -6,13 +6,14 @@
   "type": "module",
   "scripts": {
     "dev": "vitepress dev docs",
-    "build": "node scripts/check-version-pins.mjs && vitepress build docs",
+    "build": "node scripts/check-version-pins.mjs && node scripts/check-vanilla-examples.mjs && vitepress build docs",
     "preview": "vitepress preview docs",
     "serve": "vitepress serve docs",
     "docs:dev": "vitepress dev docs",
-    "docs:build": "node scripts/check-version-pins.mjs && vitepress build docs",
+    "docs:build": "node scripts/check-version-pins.mjs && node scripts/check-vanilla-examples.mjs && vitepress build docs",
     "docs:preview": "vitepress preview docs",
     "check:pins": "node scripts/check-version-pins.mjs",
+    "check:vanilla-examples": "node scripts/check-vanilla-examples.mjs",
     "docs:serve": "vitepress serve docs"
   },
   "keywords": [
