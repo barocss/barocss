@@ -43,7 +43,7 @@ function registryFor(arm, catalog) {
     components: {
       Layout: ({ props, children }) => {
         const defaults = props.density === 'compact' ? { paddingPx: 12, gapPx: 12 } : { paddingPx: 24, gapPx: 24 };
-        const values = { ...defaults, radiusPx: 12, ...props.variables };
+        const values = { ...defaults, radiusPx: VARIABLE_FIELDS.radiusPx.initial, ...props.variables };
         const style = arm === 'variable' ? Object.fromEntries(Object.entries(VARIABLE_FIELDS).map(([name, field]) => [field.cssName, `${values[name]}${field.unit}`])) : undefined;
         const layoutClasses = arm === 'preset'
           ? cx(`grid-cols-${props.columns}`, props.density === 'compact' ? 'p-3 gap-3' : 'p-6 gap-6')

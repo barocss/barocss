@@ -22,9 +22,9 @@
     "scripts/json-render-446/spec.mjs": "26904cbd7f5175d437e7e2e463632fadbe1c7a551a3bc302400d7e515650321b",
     "scripts/json-render-446/browser-app.jsx": "524c62a9dac752468c07e2394f455adc22ee51245f08861240dbf5932c0394af",
     "scripts/json-render-probe/e2e/app.css": "fca02af7fa74dd712119266eb2d1b1c1d990228e5f1693b038f41d4454b93972",
-    "scripts/json-render-457/baseline.mjs": "d158fd54451d059ed6dc20dd86e047c5b6188f06ba12c16af36d6dad96832cd1",
-    "scripts/json-render-457/browser-app.jsx": "70bcb4c0bf50b8b1bafb61b570a9c76a336fe973e104db09ac1094b553ff59ff",
-    "scripts/json-render-457/BASELINE.md": "6222d8fcf5c4af1cd43d57a21d4e72d932123421584b140b8cbc04618438ffec",
+    "scripts/json-render-457/baseline.mjs": "ab1c4cec18d2abd21a60653c3c4907e1c73cb59176455dc0283882c972467dcb",
+    "scripts/json-render-457/browser-app.jsx": "50a6eb74e2f4fb8c3a74078342aedc2bc69bd679c98536daf20df02bdbb0b92f",
+    "scripts/json-render-457/BASELINE.md": "d2dbcaafccaec86322c13f01e57ba88a6c1f18491f583d8e0746ba2b80083bbd",
     "scripts/json-render-457/freeze.mjs": "47b1f42715f245f26bb93b434de56e043a9748de562a398b2eb43b6846e8a273"
   },
   "arms": [
@@ -149,7 +149,7 @@
       "min": 0,
       "max": 24,
       "finite": true,
-      "initial": 12,
+      "initial": 14,
       "cssName": "--ui-radius",
       "unit": "px"
     }

@@ -12,7 +12,7 @@ export const INITIAL = Object.freeze({ density: 'regular', columns: 2, placement
 export const VARIABLE_FIELDS = Object.freeze({
   paddingPx: { min: 8, max: 32, finite: true, initial: 24, cssName: '--ui-pad', unit: 'px' },
   gapPx: { min: 8, max: 32, finite: true, initial: 24, cssName: '--ui-gap', unit: 'px' },
-  radiusPx: { min: 0, max: 24, finite: true, initial: 12, cssName: '--ui-radius', unit: 'px' },
+  radiusPx: { min: 0, max: 24, finite: true, initial: 14, cssName: '--ui-radius', unit: 'px' },
 });
 
 // One precompiled state template is selectable by the bounded catalogs; no arbitrary selector prop exists.
