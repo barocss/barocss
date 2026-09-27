@@ -1,7 +1,7 @@
 {
   "kind": "offline-preflight",
   "node": "v22.22.0",
-  "contractSha256": "022418de3f4a6c4ce0f8893c8909d6e7b417e5c4e677d7a3e522b9a713087e04",
+  "contractSha256": "3b62dbe15a670e7ae1708af113cdda5770fb9198f85d8ebef96e63469020523f",
   "localPackageVersions": {
     "@barocss/browser": "0.11.1",
     "@barocss/kit": "0.11.1",
@@ -28,6 +28,20 @@
     "hostStyleDelta",
     "screenshot"
   ],
+  "interactionOrder": [
+    "render-baseline-if-initial",
+    "focus-target",
+    "enter-value-if-initial",
+    "apply-stage-edit",
+    "capture-dom-value-focus",
+    "capture-style-and-frames",
+    "trigger-action",
+    "capture-action-count"
+  ],
+  "buildControl": {
+    "inventoryStage": "initial",
+    "allowLaterStageTokens": false
+  },
   "evidence": {
     "prior": "scripts/json-render-376/result.json",
     "sampleLimit": "one output per model/format/request; no edit replay"

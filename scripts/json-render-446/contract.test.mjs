@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ARMS, MEASURES, SCENARIOS, fixtureCases, validateContract } from './contract.mjs';
+import { ARMS, BUILD_CONTROL, INTERACTION_ORDER, MEASURES, SCENARIOS, fixtureCases, validateContract } from './contract.mjs';
 
 test('frozen replay covers every scenario, styling arm, and edit', () => {
   assert.deepEqual(validateContract(), []);
@@ -23,4 +23,9 @@ test('structure edit adds only the help node and keeps interaction identity', ()
 
 test('measurement contract separates renderer and styling outcomes', () => {
   for (const key of ['domSignature', 'inputValuePreserved', 'focusPreserved', 'actionCount', 'unstyledFrames', 'themeAdherence', 'hostStyleDelta']) assert.ok(MEASURES.includes(key));
+});
+
+test('focus is captured before action and build inventory is frozen', () => {
+  assert.ok(INTERACTION_ORDER.indexOf('capture-dom-value-focus') < INTERACTION_ORDER.indexOf('trigger-action'));
+  assert.deepEqual(BUILD_CONTROL, { inventoryStage: 'initial', allowLaterStageTokens: false });
 });

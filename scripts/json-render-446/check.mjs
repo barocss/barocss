@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { ARMS, SCENARIOS, MEASURES, fixtureCases, validateContract } from './contract.mjs';
+import { ARMS, BUILD_CONTROL, INTERACTION_ORDER, SCENARIOS, MEASURES, fixtureCases, validateContract } from './contract.mjs';
 
 const errors = validateContract();
 if (errors.length) throw new Error(errors.join('\n'));
@@ -27,10 +27,12 @@ const cases = fixtureCases().map(({ scenario, arm, stage }) => ({ scenario, arm,
 const report = {
   kind: 'offline-preflight',
   node: process.version,
-  contractSha256: createHash('sha256').update(JSON.stringify({ ARMS, SCENARIOS, MEASURES })).digest('hex'),
+  contractSha256: createHash('sha256').update(JSON.stringify({ ARMS, BUILD_CONTROL, INTERACTION_ORDER, SCENARIOS, MEASURES })).digest('hex'),
   localPackageVersions: { '@barocss/browser': browserManifest.version, '@barocss/kit': kitManifest.version, tailwindcss: kitManifest.devDependencies?.tailwindcss ?? null },
   dependencies,
   measureKeys: MEASURES,
+  interactionOrder: INTERACTION_ORDER,
+  buildControl: BUILD_CONTROL,
   evidence: { prior: 'scripts/json-render-376/result.json', sampleLimit: 'one output per model/format/request; no edit replay' },
   blockedReason: ready ? null : 'Official json-render React renderer or browser dependencies are absent from this worktree. No substitute renderer or model output is used.',
   cases,

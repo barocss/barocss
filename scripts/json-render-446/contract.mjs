@@ -54,6 +54,15 @@ export const SCENARIOS = Object.freeze({
   },
 });
 
+// Measure focus/value before the action click; a click may blur an input by design.
+export const INTERACTION_ORDER = Object.freeze([
+  'render-baseline-if-initial', 'focus-target', 'enter-value-if-initial', 'apply-stage-edit',
+  'capture-dom-value-focus', 'capture-style-and-frames', 'trigger-action', 'capture-action-count',
+]);
+
+// The build-only control cannot gain tokens from density/responsive/structure edits.
+export const BUILD_CONTROL = Object.freeze({ inventoryStage: 'initial', allowLaterStageTokens: false });
+
 export const MEASURES = Object.freeze([
   'specValid', 'expressible', 'domSignature', 'inputValuePreserved', 'focusPreserved',
   'actionCount', 'unstyledFrames', 'themeAdherence', 'hostStyleDelta', 'screenshot',

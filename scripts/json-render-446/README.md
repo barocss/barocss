@@ -24,11 +24,11 @@ The three planned catalog styling arms are:
 2. **Bounded:** catalog-owned density, columns and placement props.
 3. **Utility:** catalog admits a model-selected `className`, with BaroCSS resolving tokens.
 
-**Build** is a matched control for the utility arm: the same component tree and classes with a CSS build whose inventory is frozen before the replay. It is not a fourth AI UI renderer. The offline contract covers 3 scenarios × 4 arms × 4 stages = 48 cells. It does not assume an arm can express an edit simply because the contract names a styling knob; that requires a rendered result and computed style.
+**Build** is a matched control for the utility arm: the same component tree and classes with a CSS build whose class inventory is frozen from the initial stage before replay. Classes first requested by later edits cannot enter that build. It is not a fourth AI UI renderer. The offline contract covers 3 scenarios × 4 arms × 4 stages = 48 cells. It does not assume an arm can express an edit simply because the contract names a styling knob; that requires a rendered result and computed style.
 
 ## Measurement and attribution rules
 
-For each stage, a future official-renderer runner must capture schema validity, a stable DOM/component signature, the edited value, focused element, action count, unstyled frame count, theme adherence, host style delta, and a screenshot. `null` means unmeasured. Unavailable/unsupported cells remain in the denominator and are never passes.
+For each stage, the runner must render the baseline only once, focus the target before every edit, enter the edited value on the initial stage, apply the stage edit, and capture value/focus before it clicks the action button. A click can legitimately blur an input. The runner then captures style/frame evidence, clicks the action and counts that action separately. For each stage, a future official-renderer runner must capture schema validity, a stable DOM/component signature, the edited value, focused element, action count, unstyled frame count, theme adherence, host style delta, and a screenshot. `null` means unmeasured. Unavailable/unsupported cells remain in the denominator and are never passes.
 
 - **Renderer/state failure:** the validated spec fails to mount, the expected DOM node is absent, or the edited value, focus or action changes before CSS comparison.
 - **Styling failure:** DOM/state/action remain correct, but computed style, stylesheet insertion, theme tokens or layout violate the expected style contract.
