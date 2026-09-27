@@ -74,7 +74,9 @@ function probeBoundary(cwd, schemaPath, codexHome, codexEnv) {
     fs.rmSync(sibling, { recursive: true, force: true });
   }
 }
-export function agentLiveTransport({ approvalPath, outputDir, agentPlanHash }) {
+export function agentLiveTransport({ approvalPath, outputDir, agentPlanHash, runKind = 'full-pilot' }) {
+  const maxCliInvocations = runKind === 'one-invocation-diagnostic' ? 1 : runKind === 'full-pilot' ? 24 : null;
+  if (maxCliInvocations === null) throw new Error('Unknown CLI run kind');
   exactOutput(outputDir);
   if (!approvalPath || !path.isAbsolute(approvalPath) || path.dirname(approvalPath) !== privateRoot || !fs.existsSync(approvalPath)) throw new Error('Private pre-live Review ACCEPT file required');
   if (!/^[a-z0-9-]+\.json$/.test(path.basename(approvalPath)) || !fs.lstatSync(approvalPath).isFile() ||
@@ -83,6 +85,8 @@ export function agentLiveTransport({ approvalPath, outputDir, agentPlanHash }) {
   const approvalSha256 = sha(approvalBytes);
   const approval = JSON.parse(approvalBytes);
   if (approval.issue !== 458 || approval.decision !== 'ACCEPT' || approval.agentPlanSha256 !== agentPlanHash ||
+      approval.runKind !== runKind || approval.maxCliInvocations !== maxCliInvocations ||
+      typeof approval.ownerDecisionRef !== 'string' || approval.ownerDecisionRef.length < 12 ||
       approval.outputDir !== outputDir || typeof approval.reviewUrl !== 'string' ||
       !approval.reviewUrl.startsWith('https://github.com/barocss/barocss/issues/458#issuecomment-')) throw new Error('Approval must bind Review, agent plan and one output directory');
   const current = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
@@ -122,6 +126,7 @@ export function agentLiveTransport({ approvalPath, outputDir, agentPlanHash }) {
     claimPath = path.join(privateRoot, `.claim-${path.basename(outputDir)}`);
     const claim = { kind: 'barocss-458-cli-agent-claim', issue: 458, agentPlanHash,
       basePlanHash: verifyFrozen(), outputDir, commit: current, reviewUrl: approval.reviewUrl,
+      runKind, maxCliInvocations, ownerDecisionRef: approval.ownerDecisionRef,
       approvalFile: path.basename(approvalPath), approvalSha256,
       startupSha256 };
     const fd = fs.openSync(claimPath, 'wx', 0o600);
@@ -147,7 +152,8 @@ export function agentLiveTransport({ approvalPath, outputDir, agentPlanHash }) {
   };
   transport.claim = { path: claimPath, sha256: sha(fs.readFileSync(claimPath)),
     approvalFile: path.basename(approvalPath), approvalSha256,
-    reviewedCommit: current, reviewUrl: approval.reviewUrl };
+    reviewedCommit: current, reviewUrl: approval.reviewUrl,
+    runKind, maxCliInvocations, ownerDecisionRef: approval.ownerDecisionRef };
   transport.cleanup = () => {
     fs.rmSync(codexHome, { recursive: true, force: true });
     fs.rmSync(cwd, { recursive: true, force: true });

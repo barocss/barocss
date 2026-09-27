@@ -16,6 +16,7 @@ export async function runReviewedAgentPilot({ outputDir, approvalPath }) {
     const rows = await capture({ outputDir, transport, planHash: basePlanSha256, synthetic: false });
     const route = { kind: 'barocss-458-cli-agent-live', agentPlanSha256, basePlanSha256,
       scheduled: rows.length, attempted: rows.filter((row) => row.attempted).length,
+      maxCliInvocations: transport.claim.maxCliInvocations,
       claimSha256: transport.claim.sha256, approvalFile: transport.claim.approvalFile,
       approvalSha256: transport.claim.approvalSha256,
       reviewedCommit: transport.claim.reviewedCommit, reviewUrl: transport.claim.reviewUrl };
