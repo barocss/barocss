@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { spawnSync } from 'node:child_process';
+import { pathToFileURL } from 'node:url';
 import { runAgentCodex } from './agent-transport.mjs';
 import { SCRATCH_PARENT } from './agent-profile.mjs';
 
@@ -96,4 +98,42 @@ process.exit(0);
     assert.equal(result.eventCount, 4);
     assert.ok(result.elapsedMs >= 100);
   } finally { clean(parts); }
+});
+
+test('separate wrapper exits only after a SIGTERM-ignoring owned child is gone', () => {
+  const parts = fixture();
+  const pidPath = path.join(parts.attemptDir, 'owned-child.pid');
+  let ownedPid;
+  try {
+    const cliPath = jsScript(parts.attemptDir, `
+import fs from 'node:fs';
+import { spawn } from 'node:child_process';
+const child = spawn(process.execPath, ['-e', "process.on('SIGTERM', () => {}); setInterval(() => {}, 1000);"],
+  { stdio: ['ignore', 'inherit', 'inherit'] });
+fs.writeFileSync(${JSON.stringify(pidPath)}, String(child.pid));
+setTimeout(() => process.exit(0), 150);
+`);
+    const wrapper = path.join(parts.attemptDir, 'wrapper.mjs');
+    const resultPath = path.join(parts.attemptDir, 'wrapper-result.json');
+    fs.writeFileSync(wrapper, `
+import fs from 'node:fs';
+import { runAgentCodex } from ${JSON.stringify(pathToFileURL(path.join(import.meta.dirname, 'agent-transport.mjs')).href)};
+const result = await runAgentCodex({ cliPath: ${JSON.stringify(cliPath)}, cwd: ${JSON.stringify(parts.cwd)},
+  home: ${JSON.stringify(parts.home)}, codexHome: ${JSON.stringify(parts.codexHome)},
+  nodeBin: ${JSON.stringify(parts.nodeBin)}, schemaPath: ${JSON.stringify(parts.schemaPath)},
+  attemptDir: ${JSON.stringify(parts.attemptDir)}, prompt: 'stub', timeoutMs: 6000 });
+fs.writeFileSync(${JSON.stringify(resultPath)}, JSON.stringify({ stopReason: result.stopReason, elapsedMs: result.elapsedMs }));
+`);
+    const wrapperExit = spawnSync(process.execPath, [wrapper], { encoding: 'utf8', timeout: 10_000 });
+    assert.equal(wrapperExit.status, 0, wrapperExit.stderr);
+    const result = JSON.parse(fs.readFileSync(resultPath, 'utf8'));
+    assert.equal(result.stopReason, 'stdio-drain-timeout');
+    assert.ok(result.elapsedMs < 5000, `bounded drain took ${result.elapsedMs}ms`);
+    ownedPid = Number(fs.readFileSync(pidPath, 'utf8'));
+    const state = spawnSync('/bin/ps', ['-o', 'stat=', '-p', String(ownedPid)], { encoding: 'utf8' }).stdout.trim();
+    assert.ok(!state || state.startsWith('Z'), `owned child survived wrapper exit: ${state}`);
+  } finally {
+    if (ownedPid) { try { process.kill(ownedPid, 'SIGKILL'); } catch { /* exited */ } }
+    clean(parts);
+  }
 });

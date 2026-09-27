@@ -18,13 +18,13 @@
   },
   "files": {
     "agent-profile.mjs": "2bfc5d8ff53195cc0f1ad2328b173bdc2b6834ec45f041a8f057a673890fce65",
-    "agent-transport.mjs": "15f74592c83aaae70c6e4cf05566e1f56613797d20dbb4c2c8cd58f29f6c8e85",
+    "agent-transport.mjs": "2b3020fac4af9603df1379df9343006b2f21fe4992f8234073eaa651e2787cb6",
     "agent-live.mjs": "33157ec2b55801c2dfa99c46ac1a23b1fe5d3f859a029e7157b1c8ef79c6c08d",
     "agent-run.mjs": "d73539f98ddb1fe41458d040b79b34d594156cc4db7558edf3104effb81ed862",
     "agent-provenance.mjs": "e15a7559111337ae902bb98c5b6bed60dab46063781ad235911ca6dd3a21895b",
     "agent-consumers.mjs": "b50e77bf57629da07a9b8059ec35195b0a0b344f978c74d73f904fd6508f098d",
     "agent-freeze.mjs": "6ed5468dfa7ebe2134bc3d638c100b61f2e1b81c6ecf5d4fe693b0caa3e16fd6",
-    "AGENT-CLI-BOUNDARY.md": "cc7fc57b31faa19586e839cfe1e7d1bc09fb2c5141044ece8c009a8e5c16282a",
+    "AGENT-CLI-BOUNDARY.md": "f2dc0dfee5dde6eec35e909e794e96cf0569103079cc931b1b33f971e60ff9a3",
     "AGENT-CLI-RUN-PACKET.md": "b469f11a4fa981dc228680d6df03121f7594ef0063470deeec7a3ba754218690"
   }
 }

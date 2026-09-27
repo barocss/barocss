@@ -17,6 +17,7 @@ function stopGroup(child) {
   try { process.kill(-child.pid, 'SIGTERM'); } catch { try { child.kill('SIGTERM'); } catch { /* exited */ } }
   const timer = setTimeout(() => { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* exited */ } }, 2000);
   timer.unref();
+  return timer;
 }
 export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, schemaPath, attemptDir, prompt, timeoutMs = PER_ATTEMPT_TIMEOUT_MS }) {
   if (JSON.stringify(fs.readdirSync(cwd).sort()) !== JSON.stringify(['home', 'schema.json'])) throw new Error('Agent scratch contents changed');
@@ -40,9 +41,10 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
   let finalHash = null;
   let stderrClass = null;
   let stderrTail = '';
+  let killTimer;
   try {
     child = spawn(cliPath, args, { cwd, env, detached: true, stdio: ['pipe', 'pipe', 'pipe'] });
-    const stopNow = (reason) => { if (!stop) { stop = reason; stopGroup(child); } };
+    const stopNow = (reason) => { if (!stop) { stop = reason; killTimer = stopGroup(child); } };
     child.stdout.setEncoding('utf8');
     child.stdout.on('data', (chunk) => {
       pending += chunk;
@@ -94,6 +96,10 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
     });
     clearTimeout(timer);
     clearTimeout(drainTimer);
+    if (stop && child.pid) {
+      clearTimeout(killTimer);
+      try { process.kill(-child.pid, 'SIGKILL'); } catch { /* group already exited */ }
+    }
     if (pending.trim()) stop ||= 'incomplete-event-line';
     const rawFinal = fs.existsSync(finalPath) ? fs.readFileSync(finalPath, 'utf8') : null;
     if (rawFinal !== null) fs.chmodSync(finalPath, 0o400);
