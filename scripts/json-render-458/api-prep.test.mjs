@@ -1,0 +1,99 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { apiLiveTransport, apiRequest, inspectApiResponse, chargeForUsage, stubApiTransport,
+  reserveApiCharge, API_CEILING_MICRO_USD, API_RESERVATION_MICRO_USD, API_MAX_OUTPUT_TOKENS } from './api-prep.mjs';
+import { capture } from './capture.mjs';
+import { stubTransport } from './stub.mjs';
+import { verifyFrozen } from './freeze.mjs';
+import { verifyCapture } from './provenance.mjs';
+
+const fresh = () => path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'baro-458-api-')), 'run');
+const usage = (input = 100, output = 50, cached = 0, write = 0, reasoning = 20) => ({ input_tokens: input,
+  input_tokens_details: { cached_tokens: cached, cache_write_tokens: write }, output_tokens: output,
+  output_tokens_details: { reasoning_tokens: reasoning }, total_tokens: input + output });
+const response = (text = '{"specJson":"{}","cannotExpress":false}') => ({ object: 'response', id: 'resp_stub', status: 'completed',
+  model: 'gpt-6-sol', service_tier: 'default', usage: usage(), output: [{ type: 'reasoning', summary: [] },
+    { type: 'message', role: 'assistant', status: 'completed', content: [{ type: 'output_text', text, annotations: [] }] }] });
+
+test('production API route denies dispatch even with an environment key', () => {
+  const before = process.env.OPENAI_API_KEY;
+  process.env.OPENAI_API_KEY = 'test-key-never-used';
+  try { assert.throws(() => apiLiveTransport(), /requires a later owner-approved/); }
+  finally { if (before === undefined) delete process.env.OPENAI_API_KEY; else process.env.OPENAI_API_KEY = before; }
+});
+test('exact request is text-only with no tools, hidden state, fallback, or background work', () => {
+  const prompt = '{"transcript":[{"role":"user","content":"hello"}]}';
+  const request = apiRequest(prompt);
+  assert.equal(request.model, 'gpt-6-sol');
+  assert.deepEqual(request.reasoning, { effort: 'high' });
+  assert.deepEqual(request.input, [{ role: 'user', content: [{ type: 'input_text', text: prompt }] }]);
+  assert.deepEqual(request.tools, []);
+  assert.equal(request.tool_choice, 'none');
+  assert.equal(request.service_tier, 'default');
+  assert.equal(request.max_output_tokens, API_MAX_OUTPUT_TOKENS);
+  assert.equal(request.truncation, 'disabled');
+  assert.equal(request.store, false);
+  assert.equal(request.background, false);
+  assert.equal(request.stream, false);
+  assert.deepEqual(Object.keys(request).sort(), ['background','input','max_output_tokens','model','reasoning','service_tier','store','stream','text','tool_choice','tools','truncation'].sort());
+  assert.equal(request.text.format.strict, true);
+});
+test('charge accounting covers cache writes, cached input, hidden reasoning, and long context', () => {
+  assert.equal(chargeForUsage(usage(100, 50, 20, 30, 40)).microUsd, 679);
+  assert.equal(chargeForUsage(usage(272001, 8192, 0, 272001, 8192)).microUsd, 1_482_885);
+  assert.equal(API_CEILING_MICRO_USD, 24 * API_RESERVATION_MICRO_USD);
+  assert.equal(API_CEILING_MICRO_USD, 128_949_120);
+  assert.throws(() => chargeForUsage({ ...usage(), input_tokens_details: { cached_tokens: 0 } }), /missing or invalid/);
+  assert.throws(() => chargeForUsage(usage(100, 50, 60, 50)), /inconsistent/);
+  assert.throws(() => chargeForUsage(usage(100, 50, 0, 0, 51)), /inconsistent/);
+});
+test('strict response rejects tools, refusal, incomplete, drift, and missing usage', () => {
+  assert.equal(inspectApiResponse(response()).rawFinal, '{"specJson":"{}","cannotExpress":false}');
+  for (const mutation of [
+    (r) => { r.output.unshift({ type: 'function_call', name: 'shell' }); },
+    (r) => { r.output[1].content = [{ type: 'refusal', refusal: 'no' }]; },
+    (r) => { r.status = 'incomplete'; },
+    (r) => { r.model = 'gpt-6-sol-new'; },
+    (r) => { r.service_tier = 'priority'; },
+    (r) => { r.usage = null; },
+  ]) {
+    const r = response(); mutation(r);
+    assert.throws(() => inspectApiResponse(r), /API pilot stopped/);
+  }
+});
+test('durable reservations precede each stub dispatch and full histories replay through existing capture', async () => {
+  const run = fresh();
+  const oldStub = stubTransport('valid');
+  const transport = stubApiTransport(async (request, row, attemptDir) => {
+    assert.ok(fs.existsSync(path.join(attemptDir, 'api-charge-reservation.json')));
+    assert.ok(fs.existsSync(path.join(attemptDir, 'api-request.json')));
+    const old = await oldStub({ row, attemptDir });
+    return response(old.rawFinal);
+  });
+  const rows = await capture({ outputDir: run, transport, planHash: verifyFrozen(), synthetic: true });
+  assert.equal(rows.length, 24);
+  assert.equal(rows.filter((row) => row.attempted).length, 24);
+  assert.equal(rows.filter((row) => row.status === 'valid').length, 21);
+  assert.equal(verifyCapture(run).rows.length, 24);
+  const last = JSON.parse(fs.readFileSync(path.join(run, 'attempt-23/api-request.json')));
+  assert.equal(JSON.parse(last.input[0].content[0].text).transcript.length, 7);
+  const finalReserve = JSON.parse(fs.readFileSync(path.join(run, 'attempt-23/api-charge-reservation.json')));
+  assert.equal(finalReserve.aggregateReservedMicroUsd, API_CEILING_MICRO_USD);
+  assert.throws(() => reserveApiCharge({ runDir: run, attemptDir: path.join(run, 'attempt-23'), ordinal: 23, request: last }), /reservation ledger drift/);
+});
+test('timeout and missing usage retain the full reservation and stop the scheduled run', async () => {
+  for (const kind of ['timeout', 'missing-usage']) {
+    const run = fresh();
+    const transport = stubApiTransport(async () => {
+      if (kind === 'timeout') throw new Error('timeout after possible charge');
+      const r = response(); delete r.usage; return r;
+    });
+    const rows = await capture({ outputDir: run, transport, planHash: verifyFrozen(), synthetic: true });
+    assert.equal(rows.filter((row) => row.attempted).length, 1);
+    assert.equal(rows.filter((row) => row.status === 'skipped-global').length, 23);
+    assert.equal(JSON.parse(fs.readFileSync(path.join(run, 'attempt-00/api-charge-reservation.json'))).reservedMicroUsd, API_RESERVATION_MICRO_USD);
+  }
+});
