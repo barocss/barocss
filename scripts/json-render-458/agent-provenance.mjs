@@ -6,6 +6,7 @@ import { verifyCapture } from './provenance.mjs';
 import { verifyAgentFrozen } from './agent-freeze.mjs';
 import { verifyFrozen } from './freeze.mjs';
 import { buildAgentArgv } from './agent-profile.mjs';
+import { verifyAgentDiagnostics } from './agent-diagnostics.mjs';
 import { CLI_VERSION, MODEL, REASONING, MAX_ATTEMPTS } from './plan.mjs';
 
 const sha = (value) => createHash('sha256').update(value).digest('hex');
@@ -58,9 +59,13 @@ export function verifyAgentCapture(captureDir) {
     const dir = path.join(captureDir, name);
     const transport = JSON.parse(fs.readFileSync(path.join(dir, 'transport.json')));
     const present = fs.readdirSync(dir).sort();
+    const diagnosticNames = ['diagnostics.json', 'stderr.txt', 'error-item.jsonl'].filter((file) => fs.existsSync(path.join(dir, file)));
     const allowed = ['events.jsonl', 'request.json', 'reservation.json', 'transport.json',
-      ...(fs.existsSync(path.join(dir, 'raw-final.txt')) ? ['raw-final.txt'] : [])].sort();
+      ...(fs.existsSync(path.join(dir, 'raw-final.txt')) ? ['raw-final.txt'] : []), ...diagnosticNames].sort();
     if (!same(present, allowed)) throw new Error(`CLI agent unexpected attempt artifacts: ${name}`);
+    if (base.manifest.synthetic === false && transport.argv !== null && !diagnosticNames.includes('diagnostics.json')) throw new Error(`Private CLI diagnostics missing: ${name}`);
+    const diagnostics = diagnosticNames.length ? verifyAgentDiagnostics(dir) : null;
+    if (diagnostics) for (const [file, hash] of Object.entries(diagnostics.files)) inventory[`${name}/${file}`] = hash;
     if (transport.argv === null) {
       if (!String(transport.stopReason).startsWith('transport-exception:')) throw new Error(`Missing agent argv: ${name}`);
       toolUse[row.id] = 0;
@@ -80,7 +85,9 @@ export function verifyAgentCapture(captureDir) {
     for (const line of lines) {
       const event = JSON.parse(line);
       if (!['thread.started', 'turn.started', 'turn.completed', 'turn.failed', 'item.started', 'item.updated', 'item.completed', 'error'].includes(event.type)) throw new Error(`Unknown agent event: ${name}`);
-      if (event.itemType && !['agent_message', 'reasoning', 'command_execution'].includes(event.itemType)) throw new Error(`Unknown agent item: ${name}`);
+      if (event.itemType && !['agent_message', 'reasoning', 'command_execution', 'error'].includes(event.itemType)) throw new Error(`Unknown agent item: ${name}`);
+      if (event.itemType === 'error' && (!diagnostics?.summary.errorItemBytes ||
+          diagnostics.summary.errorItemClass !== event.errorClass)) throw new Error(`CLI error item lost private diagnostics: ${name}`);
       if (event.itemType === 'reasoning' && Object.keys(event).some((key) => key !== 'type' && key !== 'itemType' && key !== 'itemId')) throw new Error(`Reasoning payload retained: ${name}`);
       if (event.itemType === 'command_execution' && event.type === 'item.completed') {
         if (typeof event.command !== 'string') throw new Error(`Command evidence missing: ${name}`);

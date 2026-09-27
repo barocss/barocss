@@ -133,6 +133,7 @@ export function agentLiveTransport({ approvalPath, outputDir, agentPlanHash }) {
     throw error;
   }
   const transport = async ({ prompt, attemptDir, timeoutMs }) => {
+    if (path.dirname(attemptDir) !== outputDir || !/^attempt-\d{2}$/.test(path.basename(attemptDir))) throw new Error('CLI diagnostics must remain in the private run directory');
     if (sha(fs.readFileSync(approvalPath)) !== approvalSha256 ||
         sha(fs.readFileSync(claimPath)) !== transport.claim.sha256 ||
         verifyAgentFrozen() !== agentPlanHash ||

@@ -9,7 +9,7 @@ import { MAX_ATTEMPTS, MODEL, REASONING, CLI_VERSION } from './plan.mjs';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 export const AGENT_FILES = Object.freeze([
-  'agent-profile.mjs', 'agent-transport.mjs', 'agent-live.mjs', 'agent-run.mjs',
+  'agent-profile.mjs', 'agent-diagnostics.mjs', 'agent-transport.mjs', 'agent-live.mjs', 'agent-run.mjs',
   'agent-provenance.mjs', 'agent-consumers.mjs', 'agent-freeze.mjs',
   'AGENT-CLI-BOUNDARY.md', 'AGENT-CLI-RUN-PACKET.md',
 ]);

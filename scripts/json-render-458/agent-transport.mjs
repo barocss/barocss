@@ -5,6 +5,7 @@ import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { buildAgentArgv, summarizeAgentEvent, agentCliVersion } from './agent-profile.mjs';
+import { classifyDiagnostic, createAgentDiagnostics } from './agent-diagnostics.mjs';
 import { MODEL, PER_ATTEMPT_TIMEOUT_MS, REASONING } from './plan.mjs';
 
 const sha = (value) => createHash('sha256').update(value).digest('hex');
@@ -27,6 +28,7 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
   const eventsPath = path.join(attemptDir, 'events.jsonl');
   if (fs.existsSync(finalPath) || fs.existsSync(eventsPath)) throw new Error('Attempt output already exists');
   const fd = fs.openSync(eventsPath, 'wx', 0o600);
+  const diagnostics = createAgentDiagnostics(attemptDir);
   const args = buildAgentArgv({ cwd, schemaPath, finalPath });
   const env = agentEnv({ home, codexHome, nodeBin });
   const started = performance.now();
@@ -54,27 +56,36 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
         const line = pending.slice(0, split); pending = pending.slice(split + 1);
         if (!line.trim()) continue;
         try {
+          const raw = JSON.parse(line);
+          if (raw.type?.startsWith('item.') && raw.item?.type === 'error') diagnostics.errorItem(line);
           const event = summarizeAgentEvent(line);
           if (event.model && event.model !== MODEL) return stopNow('model-drift');
           if (event.model) responseModel = event.model;
           if (event.usage) usage = event.usage;
           if (event.type === 'turn.completed') completed = true;
           if (event.type === 'turn.failed') stopNow(event.errorClass ?? 'turn-failed');
+          if (event.itemType === 'error') stopNow(`error-item:${event.errorClass}`);
           if (event.itemType === 'command_execution' && event.type === 'item.completed') toolCount++;
           if (event.itemType === 'agent_message' && event.type === 'item.completed') finalHash = event.textSha256 ?? null;
           if (event.errorClass && ['quota', 'billing', 'auth', 'approval-or-sandbox'].includes(event.errorClass)) stopNow(event.errorClass);
           fs.writeSync(fd, JSON.stringify(event) + '\n'); fs.fsyncSync(fd); eventCount++;
-        } catch (error) { stopNow(String(error.message).slice(0, 80)); }
+        } catch (error) {
+          const message = String(error?.message ?? '');
+          const reason = /^unexpected-tool:[a-z_]{1,40}$/.test(message) ? message
+            : message === 'Error item contains hidden reasoning' ? 'error-item-hidden-reasoning'
+            : error instanceof SyntaxError ? 'malformed-event' : 'event-sanitizer-failure';
+          stopNow(reason);
+        }
       }
     });
     child.stderr.setEncoding('utf8');
     child.stderr.on('data', (chunk) => {
+      try { if (!diagnostics.stderr(chunk)) stopNow('stderr-limit'); }
+      catch { stopNow('diagnostic-write-failure'); }
       const message = (stderrTail + String(chunk)).slice(-16_384);
       stderrTail = message.slice(-256);
-      const failure = /quota|rate.limit/i.test(message) ? 'quota'
-        : /bill|credit|payment/i.test(message) ? 'billing'
-        : /auth|login|credential/i.test(message) ? 'auth'
-        : /approval|permission|denied|sandbox/i.test(message) ? 'approval-or-sandbox' : null;
+      const category = classifyDiagnostic(message);
+      const failure = category === 'other' ? null : category;
       if (failure) { stderrClass = failure; stopNow(failure); }
     });
     child.stdout.on('error', () => stopNow('stdout-error'));
@@ -110,5 +121,8 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
       argv: args, environmentKeys: Object.keys(env).sort(), exitCode: exit.code, signal: exit.signal,
       spawnError: exit.spawnError ?? null, stopReason: stop || stderrClass,
       elapsedMs: Math.round(performance.now() - started), eventCount, toolCount, usage, responseModel, rawFinal };
-  } finally { fs.fsyncSync(fd); fs.closeSync(fd); fs.chmodSync(eventsPath, 0o400); }
+  } finally {
+    try { diagnostics.close(); }
+    finally { fs.fsyncSync(fd); fs.closeSync(fd); fs.chmodSync(eventsPath, 0o400); }
+  }
 }

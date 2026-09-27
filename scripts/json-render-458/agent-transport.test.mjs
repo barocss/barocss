@@ -6,6 +6,7 @@ import os from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { runAgentCodex } from './agent-transport.mjs';
+import { MAX_STDERR_BYTES, verifyAgentDiagnostics } from './agent-diagnostics.mjs';
 import { SCRATCH_PARENT } from './agent-profile.mjs';
 
 const fixture = () => {
@@ -71,6 +72,57 @@ setTimeout(() => { process.stderr.write('roval review denied the action\\n'); pr
 `);
     const result = await runAgentCodex({ ...parts, cliPath, prompt: 'stub', timeoutMs: 3000 });
     assert.equal(result.stopReason, 'approval-or-sandbox');
+    const diagnostics = verifyAgentDiagnostics(parts.attemptDir);
+    assert.equal(diagnostics.summary.stderrTruncated, false);
+    assert.equal(diagnostics.summary.errorItemBytes, 0);
+    assert.equal(fs.readFileSync(path.join(parts.attemptDir, 'stderr.txt'), 'utf8'), 'Automatic approval review denied the action\n');
+  } finally { clean(parts); }
+});
+
+test('fake CLI error item and stderr remain private, bounded, and bound to the filtered event', async () => {
+  const parts = fixture();
+  try {
+    const message = 'safe diagnostic marker';
+    const item = JSON.stringify({ type: 'item.completed', item: { type: 'error', message } });
+    const cliPath = jsScript(parts.attemptDir, `
+process.stdout.write(${JSON.stringify(item + '\n')});
+process.stderr.write('safe stderr marker\\n');
+setTimeout(() => process.exit(0), 20);
+`);
+    const result = await runAgentCodex({ ...parts, cliPath, prompt: 'stub', timeoutMs: 3000 });
+    assert.equal(result.stopReason, 'error-item:other');
+    assert.ok(result.signal === 'SIGTERM' || result.signal === 'SIGKILL' || result.exitCode === 0);
+    const events = fs.readFileSync(path.join(parts.attemptDir, 'events.jsonl'), 'utf8');
+    assert.match(events, /"itemType":"error"/);
+    assert.doesNotMatch(events, /safe diagnostic marker|safe stderr marker/);
+    const diagnostics = verifyAgentDiagnostics(parts.attemptDir);
+    assert.equal(diagnostics.summary.errorItemClass, 'other');
+    assert.equal(diagnostics.summary.errorItemTruncated, false);
+    assert.equal(fs.readFileSync(path.join(parts.attemptDir, 'error-item.jsonl'), 'utf8'), item + '\n');
+    assert.equal(fs.readFileSync(path.join(parts.attemptDir, 'stderr.txt'), 'utf8'), 'safe stderr marker\n');
+    for (const file of ['error-item.jsonl', 'stderr.txt', 'diagnostics.json']) {
+      assert.equal(fs.statSync(path.join(parts.attemptDir, file)).mode & 0o777, 0o400);
+    }
+    const errorPath = path.join(parts.attemptDir, 'error-item.jsonl');
+    fs.chmodSync(errorPath, 0o600);
+    fs.appendFileSync(errorPath, 'tamper');
+    assert.throws(() => verifyAgentDiagnostics(parts.attemptDir), /binding drift/);
+  } finally { clean(parts); }
+});
+
+test('fake CLI stderr is capped and stops the attempt without a retry', async () => {
+  const parts = fixture();
+  try {
+    const cliPath = jsScript(parts.attemptDir, `
+process.stderr.write('x'.repeat(${MAX_STDERR_BYTES + 4096}));
+setTimeout(() => process.exit(0), 20);
+`);
+    const result = await runAgentCodex({ ...parts, cliPath, prompt: 'stub', timeoutMs: 3000 });
+    assert.equal(result.stopReason, 'stderr-limit');
+    const diagnostics = verifyAgentDiagnostics(parts.attemptDir);
+    assert.equal(diagnostics.summary.stderrBytes, MAX_STDERR_BYTES);
+    assert.equal(diagnostics.summary.stderrTruncated, true);
+    assert.equal(diagnostics.summary.errorItemBytes, 0);
   } finally { clean(parts); }
 });
 

@@ -35,4 +35,7 @@ test('event summary records observable command use without reasoning or command 
   assert.deepEqual(summarizeAgentEvent(JSON.stringify({ type: 'item.completed', item: { type: 'reasoning', text: 'PRIVATE' } })), { type: 'item.completed', itemType: 'reasoning' });
   assert.throws(() => summarizeAgentEvent(JSON.stringify({ type: 'item.started', item: { type: 'file_change' } })), /unexpected-tool/);
   assert.throws(() => summarizeAgentEvent('{bad'), /malformed-event/);
+  const error = summarizeAgentEvent(JSON.stringify({ type: 'item.completed', item: { type: 'error', message: 'safe diagnostic marker' } }));
+  assert.deepEqual(error, { type: 'item.completed', itemType: 'error', errorClass: 'other' });
+  assert.doesNotMatch(JSON.stringify(error), /safe diagnostic marker/);
 });

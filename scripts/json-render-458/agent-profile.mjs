@@ -2,6 +2,7 @@
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { CLI_VERSION, MODEL, REASONING } from './plan.mjs';
+import { classifyDiagnostic } from './agent-diagnostics.mjs';
 
 export const PROFILE = 'baro-458-isolated';
 export const SCRATCH_PARENT = '/Users/user/.barocss-ai/v3';
@@ -16,7 +17,7 @@ export const DISABLED_AGENT_FEATURES = Object.freeze([
 ]);
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 const events = new Set(['thread.started', 'turn.started', 'turn.completed', 'turn.failed', 'item.started', 'item.updated', 'item.completed', 'error']);
-const items = new Set(['agent_message', 'reasoning', 'command_execution']);
+const items = new Set(['agent_message', 'reasoning', 'command_execution', 'error']);
 
 export function buildAgentArgv({ cwd, schemaPath, finalPath }) {
   for (const value of [cwd, schemaPath, finalPath]) if (!path.isAbsolute(value)) throw new Error('Absolute launch paths required');
@@ -60,6 +61,7 @@ export function summarizeAgentEvent(line) {
         summary.outputSha256 = sha(item.aggregated_output);
       }
     }
+    if (item.type === 'error') summary.errorClass = classifyDiagnostic(JSON.stringify(item));
     // Reasoning content is never retained.
   }
   if (event.type === 'turn.completed' || event.type === 'turn.failed') {
@@ -70,10 +72,7 @@ export function summarizeAgentEvent(line) {
   }
   if (event.type === 'error' || event.type === 'turn.failed') {
     const message = String(event.message ?? event.error?.message ?? '');
-    summary.errorClass = /quota|rate.limit/i.test(message) ? 'quota'
-      : /bill|credit|payment/i.test(message) ? 'billing'
-      : /auth|login|credential/i.test(message) ? 'auth'
-      : /approval|permission|denied|sandbox/i.test(message) ? 'approval-or-sandbox' : 'other';
+    summary.errorClass = classifyDiagnostic(message);
   }
   if (typeof event.model === 'string') summary.model = event.model;
   return summary;

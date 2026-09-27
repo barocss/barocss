@@ -17,14 +17,15 @@
     "normalizedBuiltInSkillInventorySha256": "5ba0f9dbe3610088107ce8a891d894a2c90dab7730326e4e0c81ae693f0ac16f"
   },
   "files": {
-    "agent-profile.mjs": "2bfc5d8ff53195cc0f1ad2328b173bdc2b6834ec45f041a8f057a673890fce65",
-    "agent-transport.mjs": "2b3020fac4af9603df1379df9343006b2f21fe4992f8234073eaa651e2787cb6",
-    "agent-live.mjs": "8cd8473a1be8bb752a604623164b859de45710bd805802dbc9248fd3e0bb2bf7",
+    "agent-profile.mjs": "d971d1ad4ec9565531a7bd14bf20f161d85b71bd955595041fbee92ef0ad8eae",
+    "agent-diagnostics.mjs": "ca9d41d8115ae8eefbc0d19cc3fce66048b87f16583f110aa6b3e907a5670524",
+    "agent-transport.mjs": "ec4d0c545d1236e1027844f50c6b224cf36d6a148e0ba6e988689810ba878037",
+    "agent-live.mjs": "3b996e61beeb7334de9e1cccc99485723d95577b0538d95c87fcd4be75f1e0fc",
     "agent-run.mjs": "d73539f98ddb1fe41458d040b79b34d594156cc4db7558edf3104effb81ed862",
-    "agent-provenance.mjs": "e15a7559111337ae902bb98c5b6bed60dab46063781ad235911ca6dd3a21895b",
+    "agent-provenance.mjs": "917558cf3b9554746db0f2a269facd84383f81c339f9b20503b3d33e052cbd13",
     "agent-consumers.mjs": "b50e77bf57629da07a9b8059ec35195b0a0b344f978c74d73f904fd6508f098d",
-    "agent-freeze.mjs": "6ed5468dfa7ebe2134bc3d638c100b61f2e1b81c6ecf5d4fe693b0caa3e16fd6",
-    "AGENT-CLI-BOUNDARY.md": "f2dc0dfee5dde6eec35e909e794e96cf0569103079cc931b1b33f971e60ff9a3",
-    "AGENT-CLI-RUN-PACKET.md": "b469f11a4fa981dc228680d6df03121f7594ef0063470deeec7a3ba754218690"
+    "agent-freeze.mjs": "a59908a267a7e42da100a7bab991bc6b33124daa1ca9d2db3f1d9f570bbb4b7e",
+    "AGENT-CLI-BOUNDARY.md": "0032776a087bd67571016bd30972a082ed0e2d7944f631872a48cbd986327a24",
+    "AGENT-CLI-RUN-PACKET.md": "29ad2b61bc1a056b6a2c74f7329ba184e19694abf7879e6c2aa84868470b0e68"
   }
 }

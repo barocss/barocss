@@ -29,3 +29,7 @@ A prior probe using scratch under `/private/tmp` without explicit temp denials *
 ## Next gate
 
 The launch transport, one-run claim, route-specific provenance, and consumers are implemented in separate `agent-*` modules. The live route requires a matching Review approval file and durable claim; stub/browser smoke uses a distinct synthetic route that the viewer labels synthetic. A fragmented approval denial stops the run. The transport waits for a bounded stdout/stderr drain and kills its process group before return if a stop was latched, including when a descendant ignores SIGTERM. Their exact final commit and frozen agent plan still require independent pre-live Review ACCEPT. The old CLI hard block remains unchanged. See `AGENT-CLI-RUN-PACKET.md` for the reviewed execution sequence. No model call has occurred at this checkpoint.
+
+## Later saved-run status
+
+An independently accepted later commit made one CLI invocation. The collector stopped on an error classification and skipped the remaining 23 scheduled cells. The original collector did not save the raw error item or stderr, so the saved run does not identify the underlying cause. The no-model collector correction described in `AGENT-CLI-RUN-PACKET.md` retains bounded private diagnostics for any separately authorized future run. The original capture and its source commit remain unchanged. No further model invocation is authorized by this correction.
