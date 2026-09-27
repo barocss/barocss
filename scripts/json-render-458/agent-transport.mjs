@@ -49,6 +49,7 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
     const stopNow = (reason) => { if (!stop) { stop = reason; killTimer = stopGroup(child); } };
     child.stdout.setEncoding('utf8');
     child.stdout.on('data', (chunk) => {
+      if (stop) return;
       pending += chunk;
       if (Buffer.byteLength(pending) > 1_000_000) return stopNow('event-buffer-limit');
       let split;
@@ -69,6 +70,7 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
           if (event.itemType === 'agent_message' && event.type === 'item.completed') finalHash = event.textSha256 ?? null;
           if (event.errorClass && ['quota', 'billing', 'auth', 'approval-or-sandbox'].includes(event.errorClass)) stopNow(event.errorClass);
           fs.writeSync(fd, JSON.stringify(event) + '\n'); fs.fsyncSync(fd); eventCount++;
+          if (stop) return;
         } catch (error) {
           const message = String(error?.message ?? '');
           const reason = /^unexpected-tool:[a-z_]{1,40}$/.test(message) ? message
@@ -80,7 +82,7 @@ export async function runAgentCodex({ cliPath, cwd, home, codexHome, nodeBin, sc
     });
     child.stderr.setEncoding('utf8');
     child.stderr.on('data', (chunk) => {
-      try { if (!diagnostics.stderr(chunk)) stopNow('stderr-limit'); }
+      try { const diagnosticStop = diagnostics.stderr(chunk); if (diagnosticStop) stopNow(diagnosticStop); }
       catch { stopNow('diagnostic-write-failure'); }
       const message = (stderrTail + String(chunk)).slice(-16_384);
       stderrTail = message.slice(-256);

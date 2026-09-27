@@ -10,7 +10,10 @@ import { verifyFrozen } from './freeze.mjs';
 import { verifyAgentFrozen } from './agent-freeze.mjs';
 import { verifyCapture } from './provenance.mjs';
 import { buildAgentArgv } from './agent-profile.mjs';
+import { SCRATCH_PARENT } from './agent-profile.mjs';
 import { verifyAgentCapture } from './agent-provenance.mjs';
+import { runAgentCodex } from './agent-transport.mjs';
+import { verifyAgentDiagnostics } from './agent-diagnostics.mjs';
 import { scoreAgentSaved } from './agent-consumers.mjs';
 import { agentLiveTransport } from './agent-live.mjs';
 import { CLI_VERSION, MAX_ATTEMPTS } from './plan.mjs';
@@ -96,4 +99,40 @@ test('live CLI route rejects missing Review acceptance before any claim or outpu
     assert.equal(fs.existsSync(outputDir), false);
     assert.equal(fs.existsSync(claim), false);
   } finally { if (!existed) fs.rmdirSync(privateRoot); }
+});
+
+test('one stdout chunk with two error items stops at the first and verifies saved provenance', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'baro-458-first-error-'));
+  const cwd = fs.mkdtempSync(path.join(SCRATCH_PARENT, 'agent-scratch-458-'));
+  const home = path.join(cwd, 'home');
+  const schemaPath = path.join(cwd, 'schema.json');
+  const outputDir = path.join(root, 'capture');
+  try {
+    fs.mkdirSync(home);
+    fs.writeFileSync(schemaPath, '{}');
+    const cliPath = path.join(root, 'fake-codex.mjs');
+    fs.writeFileSync(cliPath, `#!${process.execPath}\n` +
+      `process.stdout.write([` +
+      `${JSON.stringify(JSON.stringify({ type: 'item.started', item: { type: 'error', id: 'same', message: 'first failure' } }))},` +
+      `${JSON.stringify(JSON.stringify({ type: 'item.completed', item: { type: 'error', id: 'same', message: 'authentication failure' } }))}` +
+      `].join('\\n') + '\\n');\nsetTimeout(() => process.exit(0), 20);\n`, { mode: 0o700 });
+    const transport = ({ prompt, attemptDir, timeoutMs }) => runAgentCodex({ cliPath, cwd, home,
+      codexHome: path.join(os.homedir(), '.codex'), nodeBin: path.dirname(process.execPath),
+      schemaPath, attemptDir, prompt, timeoutMs });
+    const rows = await capture({ outputDir, transport, planHash: verifyFrozen(), synthetic: true });
+    assert.equal(rows.filter((row) => row.attempted).length, 1);
+    assert.equal(rows[0].stopReason, 'error-item:other');
+    fs.writeFileSync(path.join(outputDir, 'agent-route.json'), JSON.stringify({ kind: 'barocss-458-cli-agent-synthetic',
+      agentPlanSha256: verifyAgentFrozen(), basePlanSha256: verifyFrozen(),
+      scheduled: MAX_ATTEMPTS, attempted: 1 }) + '\n');
+    const verified = verifyAgentCapture(outputDir);
+    assert.equal(verified.toolUse[rows[0].id], 0);
+    const events = fs.readFileSync(path.join(outputDir, 'attempt-00', 'events.jsonl'), 'utf8').trim().split('\n');
+    assert.equal(events.length, 1);
+    assert.equal(JSON.parse(events[0]).errorClass, 'other');
+    assert.equal(verifyAgentDiagnostics(path.join(outputDir, 'attempt-00')).summary.errorItemClass, 'other');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
 });

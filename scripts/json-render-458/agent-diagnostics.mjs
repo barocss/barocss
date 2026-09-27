@@ -19,8 +19,16 @@ export function classifyDiagnostic(message) {
 
 function hasReasoningKey(value) {
   if (!value || typeof value !== 'object') return false;
+  if (value.type === 'reasoning') return true;
   return Object.entries(value).some(([key, child]) =>
     /^(reasoning|analysis|chain_of_thought|hidden_reasoning)$/i.test(key) || hasReasoningKey(child));
+}
+function hasStructuredReasoning(text) {
+  if (/"(?:reasoning|analysis|chain_of_thought|hidden_reasoning)"\s*:|"type"\s*:\s*"reasoning"/i.test(text)) return true;
+  return text.split('\n').some((line) => {
+    try { return hasReasoningKey(JSON.parse(line)); }
+    catch { return false; }
+  });
 }
 
 export function createAgentDiagnostics(attemptDir) {
@@ -28,21 +36,28 @@ export function createAgentDiagnostics(attemptDir) {
   const errorPath = path.join(attemptDir, 'error-item.jsonl');
   const summaryPath = path.join(attemptDir, 'diagnostics.json');
   const stderrFd = fs.openSync(stderrPath, 'wx', 0o600);
-  let stderrBytes = 0, stderrTruncated = false, errorItemBytes = 0, errorItemTruncated = false;
+  let stderrBytes = 0, stderrTruncated = false, stderrOmittedReasoning = false;
+  let stderrParts = [], errorItemBytes = 0, errorItemTruncated = false;
   let errorItemClass = null, closed = false;
   return {
     stderr(chunk) {
+      if (stderrOmittedReasoning) return 'stderr-hidden-reasoning';
       const bytes = Buffer.from(String(chunk), 'utf8');
       const allowed = Math.min(bytes.length, MAX_STDERR_BYTES - stderrBytes);
-      if (allowed > 0) { fs.writeSync(stderrFd, bytes, 0, allowed); fs.fsyncSync(stderrFd); stderrBytes += allowed; }
+      if (allowed > 0) { stderrParts.push(bytes.subarray(0, allowed)); stderrBytes += allowed; }
       if (allowed < bytes.length) stderrTruncated = true;
-      return !stderrTruncated;
+      if (hasStructuredReasoning(Buffer.concat(stderrParts).toString('utf8'))) {
+        stderrOmittedReasoning = true;
+        stderrParts = [];
+        stderrBytes = 0;
+      }
+      return stderrOmittedReasoning ? 'stderr-hidden-reasoning' : stderrTruncated ? 'stderr-limit' : null;
     },
     errorItem(line) {
       if (errorItemBytes) return errorItemClass;
       const event = JSON.parse(line);
       if (!event.type?.startsWith('item.') || event.item?.type !== 'error') throw new Error('Not a CLI error item');
-      if (hasReasoningKey(event.item)) throw new Error('Error item contains hidden reasoning');
+      if (hasReasoningKey(event)) throw new Error('Error item contains hidden reasoning');
       const bytes = Buffer.from(line + '\n', 'utf8');
       errorItemClass = classifyDiagnostic(JSON.stringify(event.item));
       errorItemBytes = Math.min(bytes.length, MAX_ERROR_ITEM_BYTES);
@@ -55,9 +70,15 @@ export function createAgentDiagnostics(attemptDir) {
     close() {
       if (closed) return;
       closed = true;
+      if (!stderrOmittedReasoning && hasStructuredReasoning(Buffer.concat(stderrParts).toString('utf8'))) {
+        stderrOmittedReasoning = true;
+        stderrParts = [];
+        stderrBytes = 0;
+      }
+      for (const part of stderrParts) fs.writeSync(stderrFd, part);
       fs.fsyncSync(stderrFd); fs.closeSync(stderrFd); fs.chmodSync(stderrPath, 0o400);
       const summary = { kind: 'barocss-458-private-cli-diagnostics',
-        stderrBytes, stderrSha256: sha(fs.readFileSync(stderrPath)), stderrTruncated,
+        stderrBytes, stderrSha256: sha(fs.readFileSync(stderrPath)), stderrTruncated, stderrOmittedReasoning,
         errorItemBytes, errorItemSha256: errorItemBytes ? sha(fs.readFileSync(errorPath)) : null,
         errorItemTruncated, errorItemClass };
       const fd = fs.openSync(summaryPath, 'wx', 0o600);
@@ -82,13 +103,15 @@ export function verifyAgentDiagnostics(attemptDir) {
       !Number.isSafeInteger(summary.stderrBytes) || summary.stderrBytes !== stderr.length ||
       stderr.length > MAX_STDERR_BYTES || summary.stderrSha256 !== sha(stderr) ||
       typeof summary.stderrTruncated !== 'boolean' ||
+      typeof summary.stderrOmittedReasoning !== 'boolean' ||
+      (summary.stderrOmittedReasoning ? stderr.length !== 0 : hasStructuredReasoning(stderr.toString('utf8'))) ||
       !Number.isSafeInteger(summary.errorItemBytes) || summary.errorItemBytes !== (error?.length ?? 0) ||
       (error?.length ?? 0) > MAX_ERROR_ITEM_BYTES || summary.errorItemSha256 !== (error ? sha(error) : null) ||
       typeof summary.errorItemTruncated !== 'boolean' ||
       (error ? !classes.has(summary.errorItemClass) : summary.errorItemClass !== null)) throw new Error('Private diagnostics binding drift');
   if (error && !summary.errorItemTruncated) {
     const event = JSON.parse(error.toString('utf8'));
-    if (!event.type?.startsWith('item.') || event.item?.type !== 'error' || hasReasoningKey(event.item) ||
+    if (!event.type?.startsWith('item.') || event.item?.type !== 'error' || hasReasoningKey(event) ||
         classifyDiagnostic(JSON.stringify(event.item)) !== summary.errorItemClass) throw new Error('Private error-item classification drift');
   }
   return { summary, files: Object.fromEntries([summaryPath, stderrPath, ...(error ? [errorPath] : [])]
