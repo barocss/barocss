@@ -110,6 +110,9 @@ ${rt === 'baro' ? `var rt=new BaroCSS.BrowserRuntime(Object.assign({root:sr},${b
 window.addEventListener('load',function(){setTimeout(function(){sr.getElementById('blocks').innerHTML=window.__H;setTimeout(function(){var P=${JSON.stringify(PROPS)};
 window.__r={blockSig:[].map.call(sr.querySelectorAll('#blocks *'),function(e){var c=getComputedStyle(e);return P.map(function(p){return c.getPropertyValue(p)})}),adopted:sr.adoptedStyleSheets.length,styles:sr.querySelectorAll('style').length};},1200)},100)});</script></body></html>`;
 }
+// #439: BARO_URL loads the runtime from a CDN URL (in memory) instead of the local dist build.
+const BARO_JS = process.env.BARO_URL ? await fetch(process.env.BARO_URL).then((r) => { if (!r.ok) throw new Error('fetch ' + r.status); return r.text(); }) : fs.readFileSync(FILES.baro, 'utf8');
+const TWB_JS = process.env.TWB_URL ? await fetch(process.env.TWB_URL).then((r) => r.text()) : fs.readFileSync(FILES.twb, 'utf8');
 const PAGE_JS = fs.readFileSync(path.join(CMS, 'page.js'), 'utf8');
 const srv = http.createServer((q, r) => {
   const u = new URL(q.url, 'http://x');
@@ -119,8 +122,8 @@ const srv = http.createServer((q, r) => {
   if (u.pathname === '/shadow') return send('text/html', shadowPage(arm, m), POLICY[SHADOW_ARMS[arm][0]]);
   const cm = u.pathname.match(/^\/([\w-]+)\.css$/); if (cm && CSS[cm[1]]) return send('text/css', CSS[cm[1]]);
   if (u.pathname === '/page.js') return send('text/javascript', PAGE_JS);
-  if (u.pathname === '/baro.js') return send('text/javascript', fs.readFileSync(FILES.baro));
-  if (u.pathname === '/twb.js') return send('text/javascript', fs.readFileSync(FILES.twb));
+  if (u.pathname === '/baro.js') return send('text/javascript', BARO_JS);
+  if (u.pathname === '/twb.js') return send('text/javascript', TWB_JS);
   r.writeHead(404); r.end();
 });
 await new Promise((ok) => srv.listen(PORT, '127.0.0.1', ok));

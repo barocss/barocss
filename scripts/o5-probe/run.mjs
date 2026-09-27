@@ -55,6 +55,10 @@ const CHROME_CLS = 'font-sans text-gray-900 text-base leading-normal p-3 bg-whit
 const SENT = 'p-[7px]';
 const CSS = {};
 for (const m of MODELS) CSS['ref-' + m] = (await build([...toks(blocks[m].join('')), ...CHROME_CLS.split(' '), SENT])).replace(/:root, :host|:root,:host/g, ':root, :host');
+// #439: Chrome ignores @property inside shadow roots, so a ref that only <link>s CSS in the root renders every
+// @property-backed utility unregistered (border-style/box-shadow vars invalid -> border 0, shadow none). A real app
+// registers them in the document, as the runtime does since #384; the ref page does the same (REF_NO_PROPS=1 = old ref).
+for (const m of MODELS) CSS['props-' + m] = (CSS['ref-' + m].match(/@property [^{]+\{[^}]*\}/g) || []).join('\n');
 // Hostile host: aggressive own CSS, utility-named classes with host meanings, inherited props that cross the boundary.
 CSS.host = `*{box-sizing:content-box}body{font:18px/2 Georgia,serif;color:#553;letter-spacing:.5px;margin:0}
 div{padding:2px}button{background:hotpink;border:3px dashed}h2,h3{font-family:Impact,sans-serif;text-transform:uppercase}
@@ -88,7 +92,7 @@ function page(arm, m, hostile, adv) {
   const cfg = { rt, inner, opts, W, props: PROPS, filter: rt === 'baro-filter' };
   return `<!doctype html><html><head><meta charset="utf-8">
 <script ${S}>window.__viol=[];document.addEventListener('securitypolicyviolation',function(e){window.__viol.push(e.violatedDirective+' '+(e.blockedURI||'').slice(0,60))});</script>
-${hostile ? '<link rel="stylesheet" href="/host.css">' : ''}<link rel="stylesheet" href="/freeze.css">${head}
+${rt === 'ref' && !process.env.REF_NO_PROPS ? `<link rel="stylesheet" href="/props-${m}.css">` : ''}${hostile ? '<link rel="stylesheet" href="/host.css">' : ''}<link rel="stylesheet" href="/freeze.css">${head}
 <script ${S}>window.__CFG=${JSON.stringify(cfg).replace(/</g, '\\u003c')};</script></head><body>${HOST_BODY}<section id="chat"></section>
 <script ${S} src="/widget.js"></script></body></html>`;
 }
@@ -114,6 +118,14 @@ window.addEventListener('load',function(){setTimeout(function(){
   var ctl=roots[0]?sig(roots[0].querySelector('.blk')):null;
   window.__r={blockSig:[].concat.apply([],roots.slice(0,5).map(function(r){return [].map.call(r.querySelectorAll('.blk *'),sig)})),
    hostBefore:before,hostAfter:hostSig(),ms:ms,bytes:bytes,sheets:shared.size,adv:adv,headStyles:document.head.querySelectorAll('style').length}},1500)},100)});})();`;
+// #439: BARO_URL / TWB_URL load the runtime from a CDN URL (in memory, served same-origin); else the local .pkgs tarballs.
+// A missing runtime file now fails loudly instead of silently reading as parity 0.
+async function js(url, file) {
+  if (url) { const r = await fetch(url); if (!r.ok) throw new Error(`fetch ${url}: ${r.status}`); return r.text(); }
+  if (!fs.existsSync(file)) throw new Error(`missing ${file} (set BARO_URL/TWB_URL)`); return fs.readFileSync(file, 'utf8');
+}
+const JS = { baro: await js(process.env.BARO_URL, path.join(HERE, '.pkgs/browser/package/dist/cdn/barocss.umd.cjs')),
+  twb: await js(process.env.TWB_URL, path.join(HERE, '.pkgs/twb/package/dist/index.global.js')) };
 const hits = [];
 const srv = http.createServer((q, r) => {
   const u = new URL(q.url, 'http://x');
@@ -122,8 +134,8 @@ const srv = http.createServer((q, r) => {
   if (u.pathname === '/p') return send('text/html', page(u.searchParams.get('arm'), u.searchParams.get('m'), u.searchParams.get('h') === '1', u.searchParams.get('a') === '1'), CSP);
   const cm = u.pathname.match(/^\/([\w-]+)\.css$/); if (cm && CSS[cm[1]]) return send('text/css', CSS[cm[1]]);
   if (u.pathname === '/widget.js') return send('text/javascript', WIDGET_JS);
-  if (u.pathname === '/baro.js') return send('text/javascript', fs.readFileSync(path.join(HERE, '.pkgs/browser/package/dist/cdn/barocss.umd.cjs')));
-  if (u.pathname === '/twb.js') return send('text/javascript', fs.readFileSync(path.join(HERE, '.pkgs/twb/package/dist/index.global.js')));
+  if (u.pathname === '/baro.js') return send('text/javascript', JS.baro);
+  if (u.pathname === '/twb.js') return send('text/javascript', JS.twb);
   r.writeHead(404); r.end();
 });
 const csrv = http.createServer((q, r) => { hits.push('xo:' + q.url); r.writeHead(204); r.end(); });
@@ -159,6 +171,10 @@ for (const m of MODELS) {
     const neutral = arm === 'ref' ? ref : await run(arm, m, 0, 0);
     const hostile = arm === 'ref' ? refH : await run(arm, m, 1, 0);
     const adv = await run(arm, m, 1, 1);
+    if (process.env.DIFF && neutral.blockSig && ref.blockSig) { // #439: which properties differ from ref (first 3 rows)
+      const d = neutral.blockSig.map((row, i) => PROPS.filter((_, k) => row[k] !== ref.blockSig[i][k]).map((p) => `${p}:${ref.blockSig[i][PROPS.indexOf(p)]}->${row[PROPS.indexOf(p)]}`)).filter((x) => x.length);
+      console.log('DIFF', arm, m, d.length, JSON.stringify(d.slice(0, 3)).slice(0, 400));
+    }
     const pN = parity(neutral.blockSig, ref.blockSig), pA = parity(adv.blockSig, hostile.blockSig);
     const row = (out.arms[arm] ||= {});
     // Adversarial outcome: per class, did it style its element at all (sig differs from a class-less sibling = the first plain one)?
