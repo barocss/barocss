@@ -23,12 +23,22 @@ const { chromium } = createRequire(path.join(process.env.PW_DIR, 'node_modules/'
 
 const UMD = fs.readFileSync(path.join(ROOT, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'));
 const OUT_DIR = path.join(ROOT, 'scripts/mcp-model-outputs/outputs-tw');
+function firstBlocks(src, max) { // cut after the last element that closes within max chars, then close open ancestors
+  const VOID = /^(area|base|br|col|embed|hr|img|input|link|meta|source|track|wbr)$/i;
+  const st = []; let cut = 0, open = []; const re = /<(\/?)([a-zA-Z][\w-]*)[^>]*?(\/?)>/g; let t;
+  while ((t = re.exec(src)) && re.lastIndex <= max) {
+    if (t[1]) { st.pop(); cut = re.lastIndex; open = [...st]; } else if (!t[3] && !VOID.test(t[2])) st.push(t[2]); }
+  return cut ? src.slice(0, cut) + open.reverse().map((n) => `</${n}>`).join('') : src;
+}
 const DOCS = fs.readdirSync(OUT_DIR).filter((f) => f.endsWith('.html')).sort().slice(DOC_FROM, DOC_TO).map((f) => {
   const src = fs.readFileSync(path.join(OUT_DIR, f), 'utf8');
   const m = src.match(/<body([^>]*)>([\s\S]*)<\/body>/i);
   const bodyCls = (m[1].match(/class="([^"]*)"/) || [])[1] || '';
   // The model's <body> becomes a wrapper div (chat UIs render the reply inside a message node); scripts dropped.
-  const html = `<div class="${bodyCls}">${m[2].replace(/<script[\s\S]*?<\/script>/gi, '')}</div>`.trim();
+  let inner = m[2].replace(/<script[\s\S]*?<\/script>/gi, '');
+  // MAX_CHARS: keep the first K top-level blocks (whole elements) whose total fits, so 20 tok/s trials stay under the cap.
+  if (process.env.MAX_CHARS) inner = firstBlocks(inner, Number(process.env.MAX_CHARS));
+  const html = `<div class="${bodyCls}">${inner}</div>`.trim();
   return { id: f.replace('.html', ''), html };
 });
 // innerHTML: re-render the whole growing string per token (common chat-UI pattern).
