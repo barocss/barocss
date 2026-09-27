@@ -3,7 +3,7 @@
  "date": "2026-09-27",
  "note": "raw accumulates across per-rate invocations in one session; see NOTES.md",
  "docs": [
-  "haiku-3"
+  "haiku-4"
  ],
  "concurrency": 1,
  "charsPerToken": 4,
@@ -31,130 +31,130 @@
  "runtime": "local packages/barocss-browser dist (baroBoot default config: observe body, gc on, gcGraceMs 3000)",
  "summary": {
   "settled": {
-   "n": 3,
+   "n": 4,
    "junkRules": 0,
    "junkMax": 0,
    "calls": 1,
-   "generated": 34,
+   "generated": 49,
    "wrongStyleSamplePct": 0,
    "streamsWithWrongStyle": 0,
    "wrongEls": 0,
    "lastTokenToFinalMs": 29.4,
    "lastTokenToFinalP90": 29.8,
    "unsettled": 0,
-   "cacheEnd": 34,
+   "cacheEnd": 49,
    "cachedJunkEnd": 0,
-   "cacheAfterGc": 34,
+   "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
    "streamS": 0
   },
   "innerHTML@20": {
-   "n": 3,
+   "n": 4,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 10,
-   "generated": 34,
+   "calls": 22,
+   "generated": 49,
    "wrongStyleSamplePct": 0.9,
-   "streamsWithWrongStyle": 2,
+   "streamsWithWrongStyle": 3,
    "wrongEls": 5,
    "lastTokenToFinalMs": 0.7,
    "lastTokenToFinalP90": 0.8,
    "unsettled": 0,
-   "cacheEnd": 34,
+   "cacheEnd": 49,
    "cachedJunkEnd": 0,
-   "cacheAfterGc": 34,
+   "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 37.2
+   "streamS": 37.4
   },
   "incremental@20": {
-   "n": 3,
+   "n": 4,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 10,
-   "generated": 34,
+   "calls": 22,
+   "generated": 49,
    "wrongStyleSamplePct": 0.9,
-   "streamsWithWrongStyle": 2,
+   "streamsWithWrongStyle": 3,
    "wrongEls": 5,
    "lastTokenToFinalMs": 0.3,
-   "lastTokenToFinalP90": 0.3,
+   "lastTokenToFinalP90": 0.6,
    "unsettled": 0,
-   "cacheEnd": 34,
+   "cacheEnd": 49,
    "cachedJunkEnd": 0,
-   "cacheAfterGc": 34,
+   "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 37.2
+   "streamS": 37.4
   },
   "innerHTML@50": {
-   "n": 3,
+   "n": 4,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 10,
-   "generated": 34,
+   "calls": 22,
+   "generated": 49,
    "wrongStyleSamplePct": 0.6,
-   "streamsWithWrongStyle": 2,
+   "streamsWithWrongStyle": 3,
    "wrongEls": 5,
-   "lastTokenToFinalMs": 0.4,
+   "lastTokenToFinalMs": 0.5,
    "lastTokenToFinalP90": 1.1,
    "unsettled": 0,
-   "cacheEnd": 34,
+   "cacheEnd": 49,
    "cachedJunkEnd": 0,
-   "cacheAfterGc": 34,
+   "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 14.9
+   "streamS": 15
   },
   "incremental@50": {
-   "n": 3,
+   "n": 4,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 10,
-   "generated": 34,
+   "calls": 22,
+   "generated": 49,
    "wrongStyleSamplePct": 0.8,
-   "streamsWithWrongStyle": 2,
+   "streamsWithWrongStyle": 3,
    "wrongEls": 5,
    "lastTokenToFinalMs": 0.3,
-   "lastTokenToFinalP90": 0.3,
+   "lastTokenToFinalP90": 0.6,
    "unsettled": 0,
-   "cacheEnd": 34,
+   "cacheEnd": 49,
    "cachedJunkEnd": 0,
-   "cacheAfterGc": 34,
+   "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 14.9
+   "streamS": 15
   },
   "innerHTML@100": {
-   "n": 3,
+   "n": 4,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 10,
-   "generated": 34,
+   "calls": 22,
+   "generated": 49,
    "wrongStyleSamplePct": 0.5,
-   "streamsWithWrongStyle": 2,
+   "streamsWithWrongStyle": 3,
    "wrongEls": 3,
    "lastTokenToFinalMs": 0.8,
    "lastTokenToFinalP90": 0.8,
    "unsettled": 0,
-   "cacheEnd": 34,
+   "cacheEnd": 49,
    "cachedJunkEnd": 0,
-   "cacheAfterGc": 34,
+   "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 7.4
+   "streamS": 7.5
   },
   "incremental@100": {
-   "n": 3,
+   "n": 4,
    "junkRules": 0,
    "junkMax": 0,
-   "calls": 10,
-   "generated": 34,
+   "calls": 22,
+   "generated": 49,
    "wrongStyleSamplePct": 1.2,
-   "streamsWithWrongStyle": 2,
+   "streamsWithWrongStyle": 3,
    "wrongEls": 5,
    "lastTokenToFinalMs": 0.4,
    "lastTokenToFinalP90": 0.4,
    "unsettled": 0,
-   "cacheEnd": 34,
+   "cacheEnd": 49,
    "cachedJunkEnd": 0,
-   "cacheAfterGc": 34,
+   "cacheAfterGc": 49,
    "cachedJunkAfterGc": 0,
-   "streamS": 7.4
+   "streamS": 7.5
   }
  },
  "raw": [
@@ -766,6 +766,214 @@
    "afterGc": {
     "cachedClasses": 28,
     "ruleCount": 28,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "settled",
+   "doc": "haiku-4",
+   "streamMs": 0.2,
+   "calls": 1,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 1,
+   "elemSamples": 32,
+   "wrongSamples": 0,
+   "wrongEls": 0,
+   "wrongProps": {},
+   "settleMs": 27.9,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@20",
+   "doc": "haiku-4",
+   "streamMs": 37400.4,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 369,
+   "elemSamples": 6474,
+   "wrongSamples": 5,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 5
+   },
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@20",
+   "doc": "haiku-4",
+   "streamMs": 37401,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 369,
+   "elemSamples": 6473,
+   "wrongSamples": 6,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 6
+   },
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@50",
+   "doc": "haiku-4",
+   "streamMs": 14961,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 147,
+   "elemSamples": 2589,
+   "wrongSamples": 2,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 2
+   },
+   "settleMs": 0.5,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@50",
+   "doc": "haiku-4",
+   "streamMs": 14960.4,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 147,
+   "elemSamples": 2589,
+   "wrongSamples": 2,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 2
+   },
+   "settleMs": 0.6,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "innerHTML@100",
+   "doc": "haiku-4",
+   "streamMs": 7480.3,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 72,
+   "elemSamples": 1281,
+   "wrongSamples": 1,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 1
+   },
+   "settleMs": 0.8,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkAfterGc": 0
+  },
+  {
+   "round": 0,
+   "cond": "incremental@100",
+   "doc": "haiku-4",
+   "streamMs": 7480.6,
+   "calls": 27,
+   "generated": 65,
+   "junk": 0,
+   "junkSample": [],
+   "frames": 72,
+   "elemSamples": 1278,
+   "wrongSamples": 1,
+   "wrongEls": 1,
+   "wrongProps": {
+    "width": 1
+   },
+   "settleMs": 0.2,
+   "atEnd": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
+    "reclaimed": 0
+   },
+   "cachedJunkEnd": 0,
+   "afterGc": {
+    "cachedClasses": 65,
+    "ruleCount": 74,
     "reclaimed": 0
    },
    "cachedJunkAfterGc": 0
