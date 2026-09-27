@@ -49,12 +49,16 @@ async function generateAIComponent(prompt) {
             <p class="${aiResponse.styles.content}">${aiResponse.content}</p>
         </div>
     `;
+}
 
 // Add component to DOM
 async function addAIComponent() {
     const component = await generateAIComponent('Create a modern card');
-    document.getElementById('app').innerHTML += component;
+    document.getElementById('app').insertAdjacentHTML('beforeend', component);
     // BaroCSS automatically processes the new classes
+}
+
+addAIComponent();
 ```
 
 ## Dynamic Style Generation
@@ -126,6 +130,7 @@ class DynamicStyleGenerator {
         
         return form;
     }
+}
 
 // Usage
 const generator = new DynamicStyleGenerator();
@@ -178,11 +183,8 @@ class AIComponentSystem {
             case 'notification':
                 component = this.createNotification(config);
                 break;
-            case 'modal':
-                component = this.createModal(config);
-                break;
             default:
-                component = this.createGenericCard(config);
+                throw new Error(`Unsupported component type: ${type}`);
         }
         
         this.componentCache.set(cacheKey, component);
@@ -354,6 +356,7 @@ class AIComponentSystem {
         
         return notification;
     }
+}
 
 // Usage Examples
 const aiSystem = new AIComponentSystem();
@@ -397,6 +400,7 @@ async function createDashboard() {
     dashboard.appendChild(chart);
     
     app.appendChild(dashboard);
+}
 
 // Create notification system
 function showNotifications() {
@@ -411,6 +415,7 @@ function showNotifications() {
             aiSystem.generateComponent('notification', notif);
         }, index * 1000);
     });
+}
 
 // Initialize the demo
 createDashboard();
@@ -420,6 +425,12 @@ setTimeout(showNotifications, 2000);
 ## Partial UI Updates
 
 ### Live Style Modifications
+
+Mark an element as editable before running the script. Right-click it to enter an instruction such as “bigger blue”.
+
+```html
+<div data-editable class="p-4 text-[16px] bg-white">Right-click to edit</div>
+```
 
 ```javascript
 class LiveStyleEditor {
@@ -503,6 +514,7 @@ class LiveStyleEditor {
         
         return updates;
     }
+}
 
 // Usage
 const editableElements = document.querySelectorAll('[data-editable]');
@@ -562,6 +574,7 @@ class BatchOperationManager {
         this.pendingOperations = [];
         this.batchTimeout = null;
     }
+}
 
 const batchManager = new BatchOperationManager();
 
@@ -576,6 +589,12 @@ function addMultipleComponents(components) {
             element: element.firstElementChild
         });
     });
+}
+
+addMultipleComponents([
+    '<div class="p-4 bg-blue-500 text-white">First component</div>',
+    '<div class="p-4 bg-emerald-500 text-white">Second component</div>'
+]);
 ```
 
 This comprehensive vanilla HTML/JavaScript integration shows how BaroCSS enables true build-free UI generation with AI-driven components, real-time style updates, and optimal performance through smart caching and batching.
