@@ -203,17 +203,25 @@ try {
             const domPass=JSON.stringify(preAction.domSignature)===JSON.stringify(['layout',...expectedNodes.map(n=>n.id)]);
             const bindingPass=expectedNodes.filter(n=>n.type==='Input'||n.type==='Select').every(n=>JSON.stringify(cell.spec.elements[n.id]?.props?.value)===JSON.stringify({$bindState:`/${n.id}`}));
             const semanticPass=semantic&&domPass&&bindingPass;
-            rows.push({...base,rendered:true,classification:!semanticPass?'semantic':!(preAction.value===fixture.interaction.enter&&stateValue===fixture.interaction.enter&&preAction.focus&&actions.length===actionCount&&actions.at(-1)===fixture.interaction.action)?'runtime':errors.length?'runtime':JSON.stringify(measured.final?.host)!==JSON.stringify(hostBefore)?'host':!measured.final?.pass||!measured.themeAdherence?'style':'pass',specValid:true,domPass,semanticPass,domSignature:preAction.domSignature,inputValue:preAction.value,stateValue,inputValuePreserved:preAction.value===fixture.interaction.enter&&stateValue===fixture.interaction.enter,focusPreserved:preAction.focus,actionCount:actions.length,actionPass:actions.length===actionCount&&actions.at(-1)===fixture.interaction.action,stylePass:measured.final?.pass??false,themeAdherence:measured.themeAdherence,hostStyleDelta:measured.final?JSON.stringify(measured.final.host)!==JSON.stringify(hostBefore):null,frames:measured.frames,missingStyleSamples:measured.unstyledFrames,screenshot,errors:[...errors]});
+            const classification=!semanticPass?'semantic':!(preAction.value===fixture.interaction.enter&&stateValue===fixture.interaction.enter&&preAction.focus&&actions.length===actionCount&&actions.at(-1)===fixture.interaction.action)?'runtime':errors.length?'runtime':JSON.stringify(measured.final?.host)!==JSON.stringify(hostBefore)?'host':!measured.final?.pass||!measured.themeAdherence?'style':'pass';
+            chainComplete = chainComplete && classification === 'pass';
+            rows.push({...base,rendered:true,classification,specValid:true,domPass,semanticPass,domSignature:preAction.domSignature,inputValue:preAction.value,stateValue,inputValuePreserved:preAction.value===fixture.interaction.enter&&stateValue===fixture.interaction.enter,focusPreserved:preAction.focus,actionCount:actions.length,actionPass:actions.length===actionCount&&actions.at(-1)===fixture.interaction.action,stylePass:measured.final?.pass??false,themeAdherence:measured.themeAdherence,hostStyleDelta:measured.final?JSON.stringify(measured.final.host)!==JSON.stringify(hostBefore):null,frames:measured.frames,missingStyleSamples:measured.unstyledFrames,screenshot,errors:[...errors]});
           } catch(error){ rows.push({...base,rendered:false,classification:'runtime',error:String(error.message).slice(0,180),errors:[...errors]});chainComplete=false; }
         }
       } catch(error) {
         for(const stage of fixture.stages) if(!rows.some(row=>row.model===model&&row.scenario===scenario&&row.arm===arm&&row.repeat===repeat&&row.stage===stage.id)) {
           const cell=session.find(row=>row.stage===stage.id);
-          rows.push({id:cell?.id??null,model,scenario,arm,sourceArm,repeat,stage:stage.id,status:cell?.status??'missing',rendered:false,classification:'runtime',error:String(error.message).slice(0,180)});
+          rows.push({id:cell?.id??null,model,scenario,arm,sourceArm,repeat,stage:stage.id,status:cell?.status??'missing',priorChainComplete:chainComplete,rendered:false,classification:'runtime',error:String(error.message).slice(0,180)});
         }
       } finally {await page.close();}
     }
   }
 } finally {await browser.close();await new Promise(resolve=>srv.close(resolve));}
-fs.writeFileSync(output,JSON.stringify({kind:'captured-output-replay',inputSha256:sha(inputBytes),artifactHashes:{baroBundleSha256:sha(bundleBytes),appBundleSha256:sha(appJS),themeSha256:sha(themeCSS)},inventory,rows},null,2)+'\n');
+// A later independently successful cell cannot repair a failed session anchor.
+const sessions = inventory.map(({model,scenario,arm,repeat}) => {
+  const cells = rows.filter(row=>row.model===model&&row.scenario===scenario&&row.arm===arm&&row.repeat===repeat);
+  const anchors = SCENARIOS[scenario].stages.map(stage=>stage.id);
+  return {model,scenario,arm,repeat,completeSessionSuccess:cells.length===anchors.length&&anchors.every(stage=>cells.some(row=>row.stage===stage&&row.classification==='pass'&&row.rendered===true)),passedAnchors:cells.filter(row=>row.classification==='pass'&&row.rendered===true).length,totalAnchors:anchors.length};
+});
+fs.writeFileSync(output,JSON.stringify({kind:'captured-output-replay',inputSha256:sha(inputBytes),artifactHashes:{baroBundleSha256:sha(bundleBytes),appBundleSha256:sha(appJS),themeSha256:sha(themeCSS)},inventory,sessions,rows},null,2)+'\n');
 console.log(JSON.stringify({output,rows:rows.length}));
