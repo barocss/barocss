@@ -52,6 +52,7 @@ export function createKioskServer({ generator, log = () => {} } = {}) {
     }
     ses.variant = body.action === 'regenerate' ? ses.variant + 1 : 0;
     const f = facts(menu, ses.state);
+    if (body.skipRender) return { session: id, html: '', removed: { tags: 0, attrs: 0, actions: 0 }, facts: f, noop: { tokens: 0, unstyled: [] }, timings: { genMs: 0 }, generator: 'none' };
     const prompt = buildPrompt({ menu, facts: f, variant: ses.variant });
     const t0 = Date.now();
     const raw = await generator.generate({ prompt, facts: f, menu, variant: ses.variant });
@@ -64,7 +65,7 @@ export function createKioskServer({ generator, log = () => {} } = {}) {
 
   const send = (res, code, type, data) => {
     res.writeHead(code, { 'content-type': type, 'x-content-type-options': 'nosniff', 'cache-control': 'no-store',
-      'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" });
+      'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" });
     res.end(data);
   };
 
@@ -88,6 +89,7 @@ export function createKioskServer({ generator, log = () => {} } = {}) {
       return;
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return send(res, 405, 'text/plain', 'method not allowed');
+    if (url.pathname === '/favicon.ico') { res.writeHead(204); return res.end(); }
     let file = null;
     if (url.pathname === '/') file = path.join(HERE, 'index.html');
     else if (url.pathname.startsWith('/vendor/')) {

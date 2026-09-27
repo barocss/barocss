@@ -26,6 +26,9 @@ test('strips every event-handler, style and URL-bearing attribute', () => {
   const out = S('<div onclick="x" OnMouseOver=y onx class="a" style="color:red" href="h" src="s" srcset="s" action="a" formaction="f" background="b" xlink:href="x" poster="p" data-url="u">t</div>');
   assert.equal(out, '<div class="a">t</div>');
 });
+test('drops class tokens carrying url( in any case', () => {
+  assert.equal(S('<div class="p-4 bg-[url(x)] BG-[URL(y)] text-lg [mask:Url(z)]">t</div>'), '<div class="p-4 text-lg">t</div>');
+});
 test('removes non-contract data-action and unknown data-item', () => {
   const r = sanitize('<button data-action="delete-everything" data-item="nope">x</button>', { itemIds: new Set(['latte']) });
   assert.equal(r.html, '<button type="button">x</button>');
@@ -183,6 +186,9 @@ test('regenerate bumps the variant and keeps state', async () => {
 });
 test('static: serves only allowlisted files', async () => {
   await withServer(async (base) => {
+    const csp = (await fetch(`${base}/`)).headers.get('content-security-policy');
+    assert.match(csp, /default-src 'self'/); assert.match(csp, /img-src 'self';/); assert.match(csp, /style-src 'self';/);
+    assert.ok(!csp.includes('unsafe-inline'));
     assert.equal((await fetch(`${base}/`)).status, 200);
     assert.equal((await fetch(`${base}/lib/sanitize.mjs`)).status, 200);
     for (const p of ['/server.mjs', '/../package.json', '/%2e%2e/package.json', '/vendor/../server.mjs', '/test/kiosk.test.mjs'])

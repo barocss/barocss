@@ -34,10 +34,14 @@ Tests (stub generator, no CLI): `node --test examples/ai-kiosk/test/kiosk.test.m
 node examples/ai-kiosk/record.mjs                  # all 4 personas; or: record.mjs senior family
 ```
 
-It drives one full order per persona (start, persona, menu, options, cart, regenerate, pay, done) through the
-real server and writes `recordings/<persona>.json`: each screen's prompt, raw model HTML, sanitised HTML,
-sanitiser removals, unstyled tokens and timings. It exits non-zero if an order does not complete. About 12
-`claude -p` calls per persona. `KIOSK_GENERATOR=stub` dry-runs the script and writes `<persona>.stub.json`.
+It drives one full order per persona (menu, a regeneration of the menu, options, cart, pay, done: 6 `claude -p`
+calls; the persona-independent welcome and picker screens are not rendered) through the real server and writes
+`recordings/<persona>.json`: each screen's prompt, raw model HTML, sanitised HTML, sanitiser removals, unstyled
+tokens and timings. It exits non-zero if an order does not complete. `KIOSK_MAX_CALLS` (default 32) caps the
+CLI calls per run, and it stops after two errors. `KIOSK_GENERATOR=stub` dry-runs it into `<persona>.stub.json`.
+
+> **The recordings hold unsanitised model output** (`rawHtml`). Treat it as untrusted: show it as text, or run it
+> through `lib/sanitize.mjs` again before rendering it anywhere. Only `html` is the sanitised fragment.
 
 ## Model and latency
 
@@ -63,8 +67,12 @@ overlay covers the wait. The timeout is 120 s (`KIOSK_TIMEOUT_MS`), output is ca
   (`lib/contract.mjs`), `data-item` must be a menu id, `data-option` a short plain token. Comments, doctypes,
   unterminated tags and quotes are dropped; text and attribute values are re-escaped.
 - **Client.** Event delegation on `[data-action]` inside the stage, checked against the same contract; the
-  model's HTML carries no scripts. The page is served with a CSP (`script-src 'self'`, `object-src 'none'`,
-  `form-action 'none'`).
+  model's HTML carries no scripts. Every response carries a CSP: `default-src 'self'; script-src 'self';
+  style-src 'self'; img-src 'self'; object-src 'none'; form-action 'none'` (no `'unsafe-inline'`). The runtime runs
+  with `constructable: true`, so its CSS lives in adopted sheets that `style-src` does not govern and needs no
+  nonce.
 - **Static files.** An explicit allowlist of example files plus `/vendor/barocss.js`, each resolved with a
   path-traversal check.
-- **Classes.** BaroCSS's usual handling of untrusted class names applies.
+- **Classes.** Class tokens containing `url(` (any case) are dropped by the sanitiser, and `img-src 'self'` blocks
+  any external load that would still slip through a generated rule. BaroCSS's usual handling of untrusted class
+  names applies otherwise.

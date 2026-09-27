@@ -108,7 +108,7 @@ function cleanAttr(name, value, opts) {
   if (!ALLOWED_ATTRS.has(name)) return null;
   const v = value.trim();
   if (name === 'class') {
-    const toks = v.split(/\s+/).filter((t) => t && t.length <= 120 && !/[<>"'`\\]/.test(t) && ![...t].some((ch) => ch.charCodeAt(0) < 0x20));
+    const toks = v.split(/\s+/).filter((t) => t && t.length <= 120 && !/[<>"'`\\]/.test(t) && ![...t].some((ch) => ch.charCodeAt(0) < 0x20) && !/url\(/i.test(t));
     const out = toks.join(' ').slice(0, MAX_CLASS);
     return out || null;
   }

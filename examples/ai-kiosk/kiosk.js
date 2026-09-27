@@ -5,7 +5,8 @@ import { isAction } from '/lib/contract.mjs';
 
 const $ = (id) => document.getElementById(id);
 const stage = $('stage');
-const runtime = getRuntime();
+// constructable: CSS lives in adopted sheets, so the page CSP needs no 'unsafe-inline' or nonce for styles.
+const runtime = getRuntime({ constructable: true });
 runtime.observe(document.body, { scan: true }); // the stage and the chrome around it
 
 let session = null;
