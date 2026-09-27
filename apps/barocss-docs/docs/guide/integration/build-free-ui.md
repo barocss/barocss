@@ -142,6 +142,20 @@ const updateProperty = async (element, property, value) => {
 };
 ```
 
+### Finding classes that generate no CSS
+
+To check which classes in generated markup do nothing, run each unique token through `generateCss` and keep the empty ones (#426):
+
+```javascript
+import { createContext, generateCss } from '@barocss/kit';
+
+const ctx = createContext({}); // pass the same config as your runtime
+const noOps = [...new Set(classes.split(/\s+/))].filter((c) => !generateCss(c, ctx).trim());
+// 'p-4 text-md bg-blue-500 card-title' → ['text-md', 'card-title']
+```
+
+The result also lists your app's own classes (such as `card-title` above, styled by your CSS), so filter those out before treating the rest as mistakes. In #426, almost every no-op class in AI output was an app class or a template fragment, not a missing utility.
+
  
 
  
