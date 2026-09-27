@@ -46,7 +46,7 @@ node scripts/json-render-446/check.mjs --write
 git diff --exit-code -- scripts/json-render-446/offline-preflight.json
 ```
 
-Optional `JR_ROOT` and `PW_DIR` point to directories containing `node_modules` for the official renderer and Playwright; omitting them checks this worktree only. The generated [`offline-preflight.json`](offline-preflight.json) is deterministic for a fixed installed environment. All 48 cells currently have `blocked:official-renderer-unavailable` and null measurements because the official json-render packages, React and Playwright are absent from this worktree. A Playwright package exists in a separate unrelated workspace, but using it alone does not supply the official renderer. No download or paid call was made. The historical #376 outputs remain evidence of their own one-shot runs only.
+Optional `JR_ROOT` and `PW_DIR` are module resolution roots for the official renderer and Playwright (a pnpm virtual `node_modules` directory is valid); omitting them checks this worktree only. The generated [`offline-preflight.json`](offline-preflight.json) is deterministic for a fixed installed environment. All 48 cells currently have `blocked:official-renderer-unavailable` and null measurements because the official json-render packages, React and Playwright are absent from this worktree. A Playwright package exists in a separate unrelated workspace, but using it alone does not supply the official renderer. No download or paid call was made. The historical #376 outputs remain evidence of their own one-shot runs only.
 
 ## Next gate
 
