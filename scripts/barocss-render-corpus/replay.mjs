@@ -8,6 +8,7 @@ import { performance } from 'node:perf_hooks';
 import { fileURLToPath } from 'node:url';
 import { validateSpec } from '../../packages/barocss-render/src/contract.mjs';
 import { scoreInitialContent } from './rubric.mjs';
+import { verifyCorpus } from './verify.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -20,7 +21,7 @@ function assertDirectory(value, label) {
   }
 }
 
-function readSavedTurnCore(turn, kind) {
+function readSavedTurnCore(turn, kind, expectedRawSha256) {
   const result = { declaredStatus: turn?.status ?? null, filePresent: false, rawSha256: null,
     specSha256: null, specBytes: null, envelopeValid: false, specValid: false, errors: [] };
   if (!turn || typeof turn !== 'object' || typeof turn.status !== 'string') {
@@ -43,6 +44,11 @@ function readSavedTurnCore(turn, kind) {
   const raw = fs.readFileSync(finalPath);
   result.filePresent = true;
   result.rawSha256 = sha(raw);
+  const expected = expectedRawSha256 ?? turn.rawSha256;
+  if (expected && result.rawSha256 !== expected) {
+    result.errors.push('Saved final digest differs from verified lineage');
+    return result;
+  }
   if (raw.byteLength > 32_768) {
     result.errors.push('Saved final output exceeds the transport limit');
     return result;
@@ -76,9 +82,9 @@ function readSavedTurnCore(turn, kind) {
   return { ...result, specJson: envelope.specJson };
 }
 
-export function readSavedTurn(turn, kind) {
+export function readSavedTurn(turn, kind, expectedRawSha256) {
   const started = performance.now();
-  const result = readSavedTurnCore(turn, kind);
+  const result = readSavedTurnCore(turn, kind, expectedRawSha256);
   return { ...result, parseValidateMs: performance.now() - started };
 }
 
@@ -168,18 +174,45 @@ function createLocalServer(assets) {
 async function snapshot(page, name) {
   await page.evaluate(() => new Promise(requestAnimationFrame));
   return page.evaluate((expectedName) => {
-    const layout = document.querySelector('[data-node-id="layout"]');
-    const card = document.querySelector('[data-node-id="card"]');
-    const input = document.querySelector('[data-node-id="name"] input');
+    const spec = window.CORPUS_REPLAY.currentSpec();
+    const rendered = new Map([...document.querySelectorAll('[data-node-id]')]
+      .map((element) => [element.dataset.nodeId, element]));
+    const ids = [...rendered.keys()];
+    const missingIds = Object.keys(spec.elements).filter((id) => !rendered.has(id));
+    const layout = rendered.get(spec.root);
     const layoutStyle = layout && getComputedStyle(layout);
-    const cardStyle = card && getComputedStyle(card);
-    const ids = [...document.querySelectorAll('[data-node-id]')].map((element) => element.dataset.nodeId);
+    const descendants = (id) => {
+      const found = new Set();
+      const visit = (current) => {
+        found.add(current);
+        for (const child of spec.elements[current].children) visit(child);
+      };
+      visit(id);
+      return found;
+    };
+    const cardNodes = Object.entries(spec.elements).filter(([, node]) => node.type === 'Card');
+    const cards = cardNodes.map(([id, node]) => {
+      const element = rendered.get(id);
+      const style = element && getComputedStyle(element);
+      const subtree = descendants(id);
+      return { id, present: Boolean(element), children: node.children,
+        containsForm: subtree.has('name') && subtree.has('save'), subtreeSize: subtree.size,
+        paddingPx: style ? parseFloat(style.paddingTop) : null,
+        background: style?.backgroundColor ?? null, textColor: style?.color ?? null };
+    });
+    const formCard = cards.filter((card) => card.containsForm)
+      .sort((a, b) => a.subtreeSize - b.subtreeSize)[0];
+    const primaryCard = formCard ?? cards[0];
+    const input = rendered.get('name')?.querySelector('input');
     const textNodes = [...document.querySelectorAll('[data-node-id]')].filter((element) =>
       element.tagName === 'P' || /^H[1-6]$/.test(element.tagName));
-    return { ids, columns: layoutStyle?.gridTemplateColumns.trim().split(/\s+/).length ?? null,
+    return { ids, missingIds, rootId: spec.root, formCardId: formCard?.id ?? null, cards,
+      measurementComplete: Boolean(layoutStyle && layoutStyle.display === 'grid'
+        && missingIds.length === 0 && cards.every((card) => card.present)),
+      columns: layoutStyle?.display === 'grid' ? layoutStyle.gridTemplateColumns.trim().split(/\s+/).length : null,
       gapPx: layoutStyle ? parseFloat(layoutStyle.gap) : null,
-      paddingPx: cardStyle ? parseFloat(cardStyle.paddingTop) : null,
-      background: cardStyle?.backgroundColor ?? null, textColor: cardStyle?.color ?? null,
+      paddingPx: primaryCard?.paddingPx ?? null,
+      background: primaryCard?.background ?? null, textColor: primaryCard?.textColor ?? null,
       inputValue: input?.value ?? null, stateName: window.CORPUS_REPLAY.state()?.name ?? null,
       nameVisible: textNodes.some((element) => [expectedName, `Name: ${expectedName}`].includes(element.textContent)),
       overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
@@ -221,6 +254,8 @@ async function replayArm({ browser, base, arm, row, initialJson, nextJson, shots
       result.next.screens[viewportName] = { ...screen, screenshot: `shots/${filename}`, screenshotSha256: sha(bytes) };
     }
     result.status = 'replayed';
+    if ([...Object.values(result.initial.screens), ...Object.values(result.next.screens)]
+      .some((screen) => !screen.measurementComplete)) result.status = 'measurement-incomplete';
     result.actionPass = result.action.stateName === row.name
       && JSON.stringify(result.action.events) === JSON.stringify([{ action: 'save', value: row.name }]);
     result.nextNameVisible = Object.values(result.next.screens).every((screen) => screen.nameVisible);
@@ -246,9 +281,10 @@ function compareArms(arms) {
     const right = official[stage].screens[viewport];
     screens[`${stage}-${viewport}`] = {
       screenshotIdentical: left.screenshotSha256 === right.screenshotSha256,
-      layoutIdentical: JSON.stringify([left.ids, left.columns, left.gapPx, left.paddingPx,
-        left.background, left.textColor, left.overflow]) === JSON.stringify([right.ids, right.columns,
-        right.gapPx, right.paddingPx, right.background, right.textColor, right.overflow]),
+      layoutIdentical: left.measurementComplete && right.measurementComplete
+        && JSON.stringify([left.ids, left.rootId, left.columns, left.gapPx, left.cards,
+          left.overflow]) === JSON.stringify([right.ids, right.rootId, right.columns,
+          right.gapPx, right.cards, right.overflow]),
       stateIdentical: left.stateName === right.stateName && left.inputValue === right.inputValue,
     };
   }
@@ -261,10 +297,20 @@ export async function replaySaved({ corpusDir, resultDir, assetRoots } = {}) {
   if (typeof resultDir !== 'string' || !path.isAbsolute(resultDir) || fs.existsSync(resultDir)) {
     throw new Error('resultDir must be a fresh absolute path');
   }
+  const isActualCorpus = path.dirname(corpusDir) === '/Users/user/.barocss-ai/v3'
+    && path.basename(corpusDir).startsWith('private-458-corpus-run-');
+  const isCalibration = path.dirname(corpusDir) === '/Users/user/.barocss-ai/v3'
+    && path.basename(corpusDir).startsWith('private-458-calibration-');
+  const verified = isActualCorpus ? verifyCorpus(corpusDir) : null;
   const { manifest, manifestSha256 } = loadManifest(corpusDir);
+  if (verified && verified.corpusManifestSha256 !== manifestSha256) {
+    throw new Error('Corpus manifest changed after lineage verification');
+  }
+  const verifiedHashes = new Map(verified?.lineage.filter((turn) => turn.rawSha256)
+    .map((turn) => [`${turn.rowId}:${turn.kind}`, turn.rawSha256]) ?? []);
   const prepared = manifest.rows.map((row) => {
-    const initial = readSavedTurn(row.initial, 'initial');
-    const next = readSavedTurn(row.next, 'next');
+    const initial = readSavedTurn(row.initial, 'initial', verifiedHashes.get(`${row.id}:initial`));
+    const next = readSavedTurn(row.next, 'next', verifiedHashes.get(`${row.id}:next`));
     const eligible = row.initial.status === 'valid' && row.next.status === 'valid'
       && initial.specValid && next.specValid;
     return { row, initial, next, eligible, skipReason: eligible ? null
@@ -272,7 +318,9 @@ export async function replaySaved({ corpusDir, resultDir, assetRoots } = {}) {
         : !initial.specValid ? 'initial-saved-output-invalid'
           : row.next.status !== 'valid' ? `next-${row.next.status}` : 'next-saved-output-invalid' };
   });
-  const report = { kind: 'barocss-render-saved-replay-v1', corpusManifestSha256: manifestSha256,
+  const report = { kind: 'barocss-render-saved-replay-v1',
+    source: verified ? 'verified-458-corpus' : isCalibration ? 'accepted-460-calibration-replay' : 'authored-fixture-replay',
+    frozenPlanSha256: verified?.frozenPlanSha256 ?? null, corpusManifestSha256: manifestSha256,
     viewports, arms: armNames, rows: prepared.map(({ row, initial, next, eligible, skipReason }) => ({
       id: row.id, eligible, skipReason,
       generation: { initial: generationEvidence(row.initial, 'initial'), next: generationEvidence(row.next, 'next') },

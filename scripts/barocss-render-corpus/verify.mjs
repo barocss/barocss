@@ -112,7 +112,10 @@ export function verifyCorpus(corpusDir) {
       if (fs.existsSync(finalPath)) {
         const raw = fs.readFileSync(finalPath);
         rawSha256 = sha256(raw);
-        if (turn.rawSha256) must(turn.rawSha256 === rawSha256, 'Saved final digest changed');
+        if (['valid', 'invalid'].includes(turn.status)) {
+          must(typeof turn.rawSha256 === 'string' && turn.rawSha256 === rawSha256,
+            'Saved final digest changed');
+        } else if (turn.rawSha256) must(turn.rawSha256 === rawSha256, 'Saved final digest changed');
         const text = raw.toString('utf8').replace(/\r?\n$/, '');
         must(!result.finalEventHash || result.finalEventHash === sha256(text), 'CLI event/final mismatch');
         if (turn.status === 'valid' || turn.status === 'invalid') {
