@@ -1,0 +1,30 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { randomBytes } from 'node:crypto';
+import { readLaunchApproval, LIVE_PROMPT, LIVE_NAME } from './live.mjs';
+import { MAX_DISPATCHES, PER_CALL_TIMEOUT_MS, TOTAL_TIMEOUT_MS, PRIVATE_ROOT } from './cli-profile.mjs';
+
+test('live entry refuses unreviewed, changed or widened approval data without any dispatch', () => {
+  const file = path.join(PRIVATE_ROOT, `private-460-approval-${randomBytes(6).toString('hex')}.json`);
+  const commit = 'a'.repeat(40);
+  const valid = { kind: 'barocss-460-two-generation-live', issue: 460, taskCommit: commit,
+    ownerDecisionRef: 'https://github.com/barocss/barocss/issues/460#issuecomment-123',
+    reviewUrl: 'https://github.com/barocss/barocss/issues/460#issuecomment-456',
+    prompt: LIVE_PROMPT, name: LIVE_NAME, maxDispatches: MAX_DISPATCHES,
+    perCallTimeoutMs: PER_CALL_TIMEOUT_MS, totalTimeoutMs: TOTAL_TIMEOUT_MS };
+  try {
+    fs.writeFileSync(file, JSON.stringify(valid), { mode: 0o600 });
+    assert.deepEqual(readLaunchApproval(file, commit), valid);
+    assert.throws(() => readLaunchApproval(file, 'b'.repeat(40)), /exact reviewed/);
+    fs.writeFileSync(file, JSON.stringify({ ...valid, maxDispatches: 3 }));
+    assert.throws(() => readLaunchApproval(file, commit), /exact reviewed/);
+    fs.writeFileSync(file, JSON.stringify({ ...valid, name: 'Other' }));
+    assert.throws(() => readLaunchApproval(file, commit), /exact reviewed/);
+    fs.writeFileSync(file, JSON.stringify({ ...valid, extraArgv: ['--unsafe'] }));
+    assert.throws(() => readLaunchApproval(file, commit), /exact reviewed/);
+  } finally {
+    fs.rmSync(file, { force: true });
+  }
+});

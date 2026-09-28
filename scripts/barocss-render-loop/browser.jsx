@@ -21,6 +21,10 @@ function App() {
   const [sending, setSending] = useState(false);
   const [requestError, setRequestError] = useState('');
   const startedAt = useRef({ first: null, action: null });
+  const requestEpoch = useRef(0);
+  const pollIssued = useRef(0);
+  const pollApplied = useRef(0);
+  const currentScreen = useRef(null);
   window.LOOP_METRICS ??= { firstVisibleMs: null, actionToNextVisibleMs: null, sampleCount: 0 };
 
   useEffect(() => {
@@ -33,14 +37,19 @@ function App() {
     if (!token) return undefined;
     let active = true;
     async function poll() {
+      const epoch = requestEpoch.current;
+      const sequence = ++pollIssued.current;
       try {
         const response = await fetch('/api/state', { headers: { 'x-session-token': token } });
         if (!response.ok) throw new Error('Cannot read session state');
         const next = await response.json();
-        if (!active) return;
+        if (!active || epoch !== requestEpoch.current || sequence <= pollApplied.current
+          || next.revision < (currentScreen.current?.revision ?? 0)) return;
+        pollApplied.current = sequence;
+        currentScreen.current = next;
         setScreen(next);
         if (next.phase === 'failed' || next.phase === 'cancelled' || next.turn === 2) setSending(false);
-      } catch { if (active) setRequestError('Cannot read local session state'); }
+      } catch { if (active && epoch === requestEpoch.current) setRequestError('Cannot read local session state'); }
     }
     void poll();
     const interval = setInterval(poll, 100);
@@ -63,6 +72,7 @@ function App() {
 
   async function send(path, body) {
     setRequestError('');
+    requestEpoch.current++;
     try {
       const response = await fetch(path, { method: 'POST', headers: {
         'content-type': 'application/json', 'x-session-token': token,
@@ -71,6 +81,7 @@ function App() {
       if (!response.ok) setRequestError(result.error ?? 'Request rejected');
       return response.ok;
     } catch { setRequestError('Local request failed'); return false; }
+    finally { requestEpoch.current++; }
   }
   async function start() {
     startedAt.current.first = performance.now();

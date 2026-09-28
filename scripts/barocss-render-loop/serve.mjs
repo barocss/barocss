@@ -23,8 +23,10 @@ const page = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewp
 const baseCSS = '*{box-sizing:border-box}body{margin:0;font:16px system-ui,sans-serif}main{max-width:900px;margin:auto}button{cursor:pointer}button:disabled{cursor:wait}header{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}#status{min-height:24px;margin:8px 0}';
 const bootJS = 'BaroCSS.baroStart({skipExisting:true,config:{cssVarPrefix:"tw",theme:{extend:BaroCSS.shadcnTheme}}});';
 
-export async function createLoopServer({ generate = generateMockScreen, mode = 'authored-mock', port = 0 } = {}) {
+export async function createLoopServer({ generate = generateMockScreen, mode = 'authored-mock', liveInputs, port = 0 } = {}) {
   if (!['authored-mock', 'local-cli'].includes(mode)) throw new Error('Invalid generation mode');
+  if (mode === 'local-cli' && (!liveInputs || typeof liveInputs.prompt !== 'string'
+    || typeof liveInputs.name !== 'string')) throw new Error('Live inputs must be fixed at launch');
   const { esbuild, baro } = bundleAssets();
   const bundle = (await esbuild.build({ entryPoints: [path.join(here, 'browser.jsx')], bundle: true,
     write: false, platform: 'browser', format: 'iife', jsx: 'automatic',
@@ -63,13 +65,20 @@ export async function createLoopServer({ generate = generateMockScreen, mode = '
       return json(403, { error: 'Invalid origin or session token' });
     }
     if (!/^application\/json(?:;|$)/i.test(req.headers['content-type'] ?? '')) return json(415, { error: 'JSON required' });
-    let raw = '';
+    const chunks = [];
+    let size = 0;
     try {
       for await (const chunk of req) {
-        raw += chunk;
-        if (Buffer.byteLength(raw) > 4096) return json(413, { error: 'Request too large' });
+        size += chunk.length;
+        if (size > 4096) return json(413, { error: 'Request too large' });
+        chunks.push(chunk);
       }
+      const raw = new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks, size));
       const body = JSON.parse(raw);
+      if (liveInputs && ((url.pathname === '/api/start' && body?.prompt !== liveInputs.prompt)
+        || (url.pathname === '/api/action' && body?.input?.name !== liveInputs.name))) {
+        return json(403, { error: 'Input is outside the approved live run' });
+      }
       const result = url.pathname === '/api/start' ? controller.start(body)
         : url.pathname === '/api/action' ? controller.action(body)
           : body !== null && typeof body === 'object' && !Array.isArray(body) && !Object.keys(body).length
