@@ -27,6 +27,7 @@ test('initial and resumed CLI arguments keep the same isolated boundary', () => 
     assert(args.includes('mcp_servers={}'));
     assert(args.includes('web_search="disabled"'));
     assert(args.includes('shell_environment_policy.inherit=none'));
+    assert(args.includes('suppress_unstable_features_warning=true'));
     assert(args.some((arg) => arg.endsWith('.network.enabled=false')));
     assert.equal(args.includes('--ephemeral'), false);
     assert.equal(args.at(-1), '-');

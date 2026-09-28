@@ -33,6 +33,8 @@ test('fake process proves fixed initial/resume argv, two-call ceiling and privat
       const final = JSON.stringify({ specJson: JSON.stringify(INITIAL) });
       fs.writeFileSync(finalPath, `${final}\n`);
       child.stdout.end([JSON.stringify({ type: 'thread.started', thread_id: threadId }),
+        JSON.stringify({ type: 'item.completed', item: { type: 'error', message:
+          'Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.' } }),
         JSON.stringify({ type: 'turn.started' }),
         JSON.stringify({ type: 'item.completed', item: { type: 'agent_message', text: final } }),
         JSON.stringify({ type: 'turn.completed' }), ''].join('\n'));
@@ -63,6 +65,7 @@ test('fake process proves fixed initial/resume argv, two-call ceiling and privat
       assert.equal(dispatch.dispatchNumber, kind === 'initial' ? 1 : 2);
       assert.equal(result.exitCode, 0);
       assert.equal(result.threadId, threadId);
+      assert.deepEqual(result.diagnostics, ['code-mode-host-disabled']);
       assert.match(fs.readFileSync(path.join(outputDir, `${kind}-stdout.jsonl`), 'utf8'), /thread.started/);
       assert.match(fs.readFileSync(path.join(outputDir, `${kind}-stderr.txt`), 'utf8'), /diagnostic/);
     }
@@ -103,6 +106,36 @@ test('unexpected CLI tool is stopped and its failure evidence stays private', as
     assert.match(fs.readFileSync(path.join(outputDir, 'initial-stdout.jsonl'), 'utf8'), /command_execution/);
     await assert.rejects(() => generate({ kind: 'initial', prompt: 'Retry' }), /Invalid CLI turn order/);
     assert.equal(spawns, 1);
+  } finally {
+    fs.rmSync(outputDir, { recursive: true, force: true });
+    fs.rmSync(codexHome, { recursive: true, force: true });
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('unknown CLI diagnostic still fails closed before generation', async () => {
+  const cwd = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'agent-scratch-460-test-'));
+  const codexHome = fs.mkdtempSync(path.join(PRIVATE_ROOT, '.codex-home-460-test-'));
+  const outputDir = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'private-460-test-'));
+  const home = path.join(cwd, 'home');
+  const schemaPath = path.join(cwd, 'schema.json');
+  fs.mkdirSync(home);
+  fs.copyFileSync(path.join(import.meta.dirname, 'output.schema.json'), schemaPath);
+  function fakeSpawn() {
+    const child = new EventEmitter();
+    child.stdout = new PassThrough(); child.stderr = new PassThrough(); child.stdin = new PassThrough();
+    child.kill = () => { child.stdout.end(); child.stderr.end(); setImmediate(() => child.emit('close', null)); };
+    child.stdin.on('finish', () => child.stdout.write(`${JSON.stringify({ type: 'item.completed',
+      item: { type: 'error', message: 'Permission denied' } })}\n`));
+    return child;
+  }
+  try {
+    const generate = createCliGenerator({ cliPath: `${nodeBin}/codex`, cwd, home, codexHome,
+      nodeBin, schemaPath, outputDir, spawnProcess: fakeSpawn });
+    await assert.rejects(() => generate({ kind: 'initial', prompt: 'Profile form' }), /cli-diagnostic/);
+    const result = JSON.parse(fs.readFileSync(path.join(outputDir, 'initial-result.json')));
+    assert.equal(result.stopReason, 'cli-diagnostic');
+    assert.deepEqual(result.diagnostics, []);
   } finally {
     fs.rmSync(outputDir, { recursive: true, force: true });
     fs.rmSync(codexHome, { recursive: true, force: true });

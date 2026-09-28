@@ -39,6 +39,7 @@ export function buildCliArgv({ kind, cwd, schemaPath, finalPath, threadId }) {
   const common = ['--ignore-user-config', '--strict-config', '--skip-git-repo-check',
     '--model', MODEL, '-c', `model_reasoning_effort="${REASONING}"`,
     '-c', 'mcp_servers={}', '-c', 'shell_environment_policy.inherit=none',
+    '-c', 'suppress_unstable_features_warning=true',
     '-c', 'web_search="disabled"', '-c', 'approval_policy="on-request"',
     '-c', `default_permissions="${PROFILE}"`, '-c', PROFILE_RULES,
     '-c', `permissions.${PROFILE}.network.enabled=false`,

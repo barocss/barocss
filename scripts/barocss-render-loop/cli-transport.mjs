@@ -9,6 +9,7 @@ import { buildCliArgv, buildCliPrompt, MODEL, MAX_DISPATCHES, PER_CALL_TIMEOUT_M
 const sessionIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const eventTypes = new Set(['thread.started', 'turn.started', 'turn.completed', 'turn.failed',
   'item.started', 'item.updated', 'item.completed', 'error']);
+const CODE_MODE_NOTICE = 'Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.';
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 const validationError = (code, message) => Object.assign(new Error(message), { validationCode: code });
 
@@ -61,6 +62,7 @@ export function createCliGenerator({ cliPath, cwd, home, codexHome, nodeBin, sch
     }
     let seenSession = null, completed = false, stopReason = null, pending = '', outputBytes = 0;
     let finalEventHash = null, responseModel = null;
+    const diagnostics = [];
     let stderrBytes = 0;
     let killTimer;
     const stop = (reason) => {
@@ -105,6 +107,14 @@ export function createCliGenerator({ cliPath, cwd, home, codexHome, nodeBin, sch
           }
           if (seenSession && seenSession !== event.thread_id) return stop('session-drift');
           seenSession = event.thread_id;
+        }
+        if (event.type.startsWith('item.') && event.item?.type === 'error') {
+          if (event.type === 'item.completed' && event.item.message === CODE_MODE_NOTICE
+            && !completed && !diagnostics.includes('code-mode-host-disabled')) {
+            diagnostics.push('code-mode-host-disabled');
+            continue;
+          }
+          return stop('cli-diagnostic');
         }
         if (event.type.startsWith('item.') && !['agent_message', 'reasoning'].includes(event.item?.type)) {
           return stop('unexpected-cli-tool');
@@ -165,7 +175,7 @@ export function createCliGenerator({ cliPath, cwd, home, codexHome, nodeBin, sch
     } catch (error) { failure = error; }
     fs.writeFileSync(`${prefix}-result.json`, JSON.stringify({ exitCode: exit.code, stopReason,
       elapsedMs: Math.round(clock() - started), eventBytes: outputBytes, stderrBytes,
-      completed, threadId: seenSession, responseModel, finalEventHash,
+      completed, threadId: seenSession, responseModel, finalEventHash, diagnostics,
       validationFailure: failure?.validationCode ?? null }) + '\n', { flag: 'wx', mode: 0o600 });
     if (failure) throw failure;
     if (request.kind === 'initial') sessionId = seenSession;
