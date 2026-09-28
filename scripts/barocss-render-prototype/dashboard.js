@@ -21,11 +21,12 @@ window.addEventListener('load', () => {
     apply();
   };
   document.getElementById('apply').onclick = apply;
-  fetch('/capture.json').then((response) => {
+  fetch('/capture.json').then(async (response) => {
     if (!response.ok) return;
+    const capture = await response.json();
     document.getElementById('capture').hidden = false;
-    document.getElementById('capture').onclick = async () => {
-      editor.value = JSON.stringify(await response.json(), null, 2);
+    document.getElementById('capture').onclick = () => {
+      editor.value = JSON.stringify(capture, null, 2);
       apply();
     };
   }).catch(() => {});

@@ -163,6 +163,27 @@ test('synthetic saved-output envelope is replayed only after strict validation',
       const response = await fetch(`${url}/capture.json`);
       assert.equal(response.status, 200);
       assert.deepEqual(await response.json(), INITIAL);
+      const browser = await chromium.launch({ executablePath: chrome, headless: true });
+      try {
+        const page = await browser.newPage();
+        const pageErrors = [];
+        page.on('pageerror', (error) => pageErrors.push(error.message));
+        await page.goto(url, { waitUntil: 'load' });
+        await page.locator('#capture:visible').waitFor();
+        await page.locator('#capture').click();
+        await page.locator('#edit').click();
+        await page.locator('#capture').click();
+        assert.deepEqual(JSON.parse(await page.locator('#spec').inputValue()), INITIAL);
+        assert.equal(await page.locator('#errors').textContent(), 'Both screens updated.');
+        for (const frameId of ['#prototype', '#official']) {
+          const spec = await page.frameLocator(frameId).locator('body').evaluate(() => window.COMPARE.currentSpec());
+          assert.deepEqual(spec, INITIAL);
+          const padding = await page.frameLocator(frameId).locator('[data-node-id="card"]').evaluate(
+            (node) => parseFloat(getComputedStyle(node).paddingTop));
+          assert.equal(padding, 14);
+        }
+        assert.deepEqual(pageErrors, []);
+      } finally { await browser.close(); }
       const blocked = await new Promise((resolve, reject) => {
         http.get({ host: '127.0.0.1', port: Number(new URL(url).port), path: '/capture.json',
           headers: { host: 'untrusted.example' } }, (reply) => { reply.resume(); reply.on('end', () => resolve(reply.statusCode)); })
