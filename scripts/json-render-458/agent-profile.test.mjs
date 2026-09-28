@@ -12,6 +12,7 @@ test('agent argv uses only the native restricted permission profile', () => {
   assert.ok(args.includes(`default_permissions="${PROFILE}"`));
   assert.ok(args.includes(PROFILE_RULES));
   assert.ok(args.includes('approval_policy="on-request"'));
+  assert.ok(args.includes('web_search="disabled"'));
   assert.match(PROFILE_RULES, /:tmpdir.*deny/);
   assert.match(PROFILE_RULES, /:slash_tmp.*deny/);
   assert.ok(args.includes(`permissions.${PROFILE}.network.enabled=false`));
@@ -20,6 +21,9 @@ test('agent argv uses only the native restricted permission profile', () => {
   assert.ok(!args.includes('--approve-for-me'));
   assert.ok(!DISABLED_AGENT_FEATURES.includes('shell_tool'));
   assert.ok(!DISABLED_AGENT_FEATURES.includes('unified_exec'));
+  assert.ok(!DISABLED_AGENT_FEATURES.includes('web_search_request'));
+  assert.ok(DISABLED_AGENT_FEATURES.includes('standalone_web_search'));
+  assert.ok(!args.includes('--search'));
   assert.equal(args.at(-1), '-');
   assert.throws(() => buildAgentArgv({ cwd: '/Users/user/.barocss-ai/v3/agent-scratch-458-test', schemaPath: '/tmp/schema.json', finalPath: '/tmp/final' }), /Schema must be inside/);
   assert.throws(() => buildAgentArgv({ cwd: '/Users/user/.barocss-ai/v3/agent-scratch-458-test', schemaPath: '/Users/user/.barocss-ai/v3/agent-scratch-458-test/schema.json', finalPath: '/Users/user/.barocss-ai/v3/agent-scratch-458-test/final' }), /outside the agent workspace/);

@@ -110,6 +110,26 @@ setTimeout(() => process.exit(0), 20);
   } finally { clean(parts); }
 });
 
+test('a synthetic deprecated-feature notice remains a stop, never a model success', async () => {
+  const parts = fixture();
+  try {
+    const notice = 'The features.web_search_request feature is deprecated; set web search in config if needed.';
+    const events = [
+      { type: 'item.completed', item: { type: 'error', message: notice } },
+      { type: 'turn.completed', usage: { input_tokens: 1, output_tokens: 1 } },
+    ].map((event) => JSON.stringify(event)).join('\n') + '\n';
+    const cliPath = jsScript(parts.attemptDir, `
+process.stdout.write(${JSON.stringify(events)});
+setTimeout(() => process.exit(0), 20);
+`);
+    const result = await runAgentCodex({ ...parts, cliPath, prompt: 'stub', timeoutMs: 3000 });
+    assert.equal(result.stopReason, 'error-item:other');
+    assert.equal(result.eventCount, 1);
+    assert.equal(result.usage, null);
+    assert.equal(verifyAgentDiagnostics(parts.attemptDir).summary.errorItemClass, 'other');
+  } finally { clean(parts); }
+});
+
 test('fake CLI stderr is capped and stops the attempt without a retry', async () => {
   const parts = fixture();
   try {
