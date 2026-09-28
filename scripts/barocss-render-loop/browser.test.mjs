@@ -280,3 +280,26 @@ test('live mode rejects changed prompt and name before generator dispatch', asyn
     assert.equal(calls.length, 1);
   } finally { await new Promise((resolve) => server.close(resolve)); }
 });
+
+test('registered save action works when the valid button label changes', async () => {
+  const { server, url } = await createLoopServer({ generate: async (request) => {
+    const result = await generateMockScreen(request);
+    if (request.kind !== 'initial') return result;
+    const spec = JSON.parse(result.specJson);
+    spec.elements.save.props.label = 'Save';
+    return { ...result, specJson: JSON.stringify(spec) };
+  } });
+  const browser = await chromium.launch({ executablePath: chrome, headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'load' });
+    await page.getByRole('button', { name: 'Generate' }).click();
+    await page.locator('[data-phase="ready"]').waitFor();
+    await page.locator('[data-node-id="name"] input').fill('Bea');
+    await page.locator('[data-node-id="save"]').click();
+    await page.getByText('Name: Bea', { exact: true }).waitFor();
+  } finally {
+    await browser.close();
+    await new Promise((resolve) => server.close(resolve));
+  }
+});

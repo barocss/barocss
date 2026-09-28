@@ -5,7 +5,7 @@
 ## Exact local flow
 
 1. The browser submits the fixed request `Create a profile form`. The server starts one Codex CLI `exec` turn. The CLI returns an envelope with a complete `specJson` string. The server checks the envelope and the private renderer schema before revision 1 appears.
-2. The browser enters `Bea` in the `/name` field and presses the registered `save` action. The server accepts only action `save`, the current revision and that exact name. It resumes the same explicit CLI session ID for one next turn. The next complete screen must be valid and show `Bea` as Text before revision 2 appears.
+2. The browser enters `Bea` in the `/name` field and presses the registered `save` node, regardless of the model's allowed button label. The server accepts only action `save`, the current revision and that exact name. It resumes the same explicit CLI session ID for one next turn. The next complete screen must contain a Text node whose text is exactly `Bea` or `Name: Bea` before revision 2 appears.
 3. The browser records one first-visible time and one action-to-next-visible time, screenshots, both accepted specs, errors and external request attempts. These are observations with sample count one, not production latency or a comparative speed claim.
 
 There are no per-node or patch updates. A partial or invalid response is never rendered. A failed next turn leaves revision 1 and the entered name visible. Cancel aborts the started CLI process group; restart cannot add a third dispatch. Browser input cannot choose a CLI argument, path, model, action name or network destination.
@@ -20,11 +20,11 @@ There are no per-node or patch updates. A partial or invalid response is never r
 
 ## Private lineage and failure evidence
 
-`live.mjs` creates one `~/.barocss-ai/v3/private-460-run-*` directory. For each attempted turn it saves the fixed argv and environment key names, exact prompt, bounded raw JSONL stdout and stderr, CLI final response, exit code, timing, session ID and stop reason. It also saves the first and next screenshots and `live-result.json` with accepted specs, browser observations and failure classification. The output directory is private; do not paste raw prompts, responses, diagnostics, credentials or private security reproductions into a public Issue. Invalid samples stay in this private lineage and are not repaired or dropped. A short safe summary can be posted after Review.
+`live.mjs` atomically creates the durable private `private-460-live-claim.json` before it creates one `~/.barocss-ai/v3/private-460-run-*` directory. The claim blocks replay and concurrent launches, even after an early failure; removing it requires a new owner decision. For each attempted turn the run saves fixed argv and environment key names, exact prompt, bounded raw JSONL stdout and stderr, CLI final response, exit code, timing, session ID, stop reason and a bounded validation failure code. It also saves the first and next screenshots and `live-result.json` with accepted specs, browser observations and failure classification. The output directory is private; do not paste raw prompts, responses, diagnostics, credentials or private security reproductions into a public Issue. Invalid samples stay in this private lineage and are not repaired or dropped. A short safe summary can be posted after Review.
 
 ## Launch command after the gates
 
-The operator creates a private `private-460-approval-<id>.json` file under `~/.barocss-ai/v3/` with the exact reviewed task commit and the owner decision and pre-live Review comment links. `live.mjs` rejects a dirty worktree, changed commit, widened input or ceiling, missing CLI login and changed CLI version. This file records the decision; creating it does not grant authority by itself.
+The operator creates a private `private-460-approval-<id>.json` file under `~/.barocss-ai/v3/` with the exact reviewed task commit and the owner decision and pre-live Review comment links. `live.mjs` rejects a dirty worktree, changed commit, widened input or ceiling, missing CLI login, changed CLI version and an existing #460 live claim. This file records the decision; creating it does not grant authority by itself.
 
 ```json
 {

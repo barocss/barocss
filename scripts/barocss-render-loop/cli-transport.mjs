@@ -10,6 +10,7 @@ const sessionIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a
 const eventTypes = new Set(['thread.started', 'turn.started', 'turn.completed', 'turn.failed',
   'item.started', 'item.updated', 'item.completed', 'error']);
 const sha = (value) => createHash('sha256').update(value).digest('hex');
+const validationError = (code, message) => Object.assign(new Error(message), { validationCode: code });
 
 export function createCliGenerator({ cliPath, cwd, home, codexHome, nodeBin, schemaPath, outputDir,
   spawnProcess = spawn, clock = () => performance.now() }) {
@@ -140,24 +141,33 @@ export function createCliGenerator({ cliPath, cwd, home, codexHome, nodeBin, sch
       fs.fsyncSync(stdoutFd); fs.closeSync(stdoutFd);
       fs.fsyncSync(stderrFd); fs.closeSync(stderrFd);
     }
+    let envelope, failure;
+    try {
+      if (stopReason || exit.code !== 0 || !completed || !seenSession || pending.trim()) {
+        throw validationError('transport-incomplete', `CLI turn failed: ${stopReason ?? 'incomplete'}`);
+      }
+      if (request.kind === 'next' && seenSession !== sessionId) {
+        throw validationError('session-drift', 'CLI session changed');
+      }
+      if (!fs.existsSync(finalPath)) throw validationError('final-missing', 'CLI final output missing');
+      const raw = fs.readFileSync(finalPath, 'utf8');
+      if (Buffer.byteLength(raw) > 32_768) throw validationError('final-limit', 'CLI final output too large');
+      const finalText = raw.replace(/\r?\n$/, '');
+      if (!finalEventHash || finalEventHash !== sha(finalText)) {
+        throw validationError('final-event-mismatch', 'CLI final event mismatch');
+      }
+      try { envelope = JSON.parse(raw); }
+      catch { throw validationError('final-json', 'CLI final envelope is not JSON'); }
+      if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)
+        || Object.keys(envelope).join(',') !== 'specJson' || typeof envelope.specJson !== 'string') {
+        throw validationError('final-envelope', 'CLI final envelope is invalid');
+      }
+    } catch (error) { failure = error; }
     fs.writeFileSync(`${prefix}-result.json`, JSON.stringify({ exitCode: exit.code, stopReason,
       elapsedMs: Math.round(clock() - started), eventBytes: outputBytes, stderrBytes,
-      completed, threadId: seenSession, responseModel, finalEventHash }) + '\n', { flag: 'wx', mode: 0o600 });
-    if (stopReason || exit.code !== 0 || !completed || !seenSession || pending.trim()) {
-      throw new Error(`CLI turn failed: ${stopReason ?? 'incomplete'}`);
-    }
-    if (request.kind === 'next' && seenSession !== sessionId) throw new Error('CLI session changed');
-    if (!fs.existsSync(finalPath)) throw new Error('CLI final output missing');
-    const raw = fs.readFileSync(finalPath, 'utf8');
-    if (Buffer.byteLength(raw) > 32_768) throw new Error('CLI final output too large');
-    const finalText = raw.replace(/\r?\n$/, '');
-    if (!finalEventHash || finalEventHash !== sha(finalText)) throw new Error('CLI final event mismatch');
-    let envelope;
-    try { envelope = JSON.parse(raw); } catch { throw new Error('CLI final envelope is not JSON'); }
-    if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)
-      || Object.keys(envelope).join(',') !== 'specJson' || typeof envelope.specJson !== 'string') {
-      throw new Error('CLI final envelope is invalid');
-    }
+      completed, threadId: seenSession, responseModel, finalEventHash,
+      validationFailure: failure?.validationCode ?? null }) + '\n', { flag: 'wx', mode: 0o600 });
+    if (failure) throw failure;
     if (request.kind === 'initial') sessionId = seenSession;
     return { threadId: seenSession, specJson: envelope.specJson };
   };

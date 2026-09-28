@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { randomBytes } from 'node:crypto';
-import { readLaunchApproval, LIVE_PROMPT, LIVE_NAME } from './live.mjs';
+import { readLaunchApproval, claimLiveRun, LIVE_PROMPT, LIVE_NAME } from './live.mjs';
 import { MAX_DISPATCHES, PER_CALL_TIMEOUT_MS, TOTAL_TIMEOUT_MS, PRIVATE_ROOT } from './cli-profile.mjs';
 
 test('live entry refuses unreviewed, changed or widened approval data without any dispatch', () => {
@@ -27,4 +27,16 @@ test('live entry refuses unreviewed, changed or widened approval data without an
   } finally {
     fs.rmSync(file, { force: true });
   }
+});
+
+test('one private claim blocks approval replay across fresh processes', () => {
+  const claim = path.join(PRIVATE_ROOT, `private-460-live-claim-test-${randomBytes(6).toString('hex')}.json`);
+  const approval = { taskCommit: 'a'.repeat(40), ownerDecisionRef: 'owner-record', reviewUrl: 'review-record' };
+  try {
+    claimLiveRun(approval, claim);
+    const saved = JSON.parse(fs.readFileSync(claim, 'utf8'));
+    assert.equal(saved.taskCommit, approval.taskCommit);
+    assert.throws(() => claimLiveRun(approval, claim), /already claimed/);
+    assert.throws(() => claimLiveRun({ ...approval, taskCommit: 'b'.repeat(40) }, claim), /already claimed/);
+  } finally { fs.rmSync(claim, { force: true }); }
 });

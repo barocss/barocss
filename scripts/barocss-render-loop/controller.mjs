@@ -45,9 +45,13 @@ export function createSessionController({ generate, clock = () => performance.no
       if (kind === 'initial') {
         const nodes = Object.values(spec.elements);
         if (nodes.filter((node) => node.type === 'Input').length !== 1
-          || nodes.filter((node) => node.type === 'Button' && node.on?.press?.action === 'save').length !== 1) {
+          || nodes.filter((node) => node.type === 'Button' && node.on?.press?.action === 'save').length !== 1
+          || spec.elements.name?.type !== 'Input' || spec.elements.save?.type !== 'Button') {
           throw new Error('Initial screen requires one name input and one save action');
         }
+      } else if (!Object.values(spec.elements).some((node) => node.type === 'Text'
+        && [input.input.name, `Name: ${input.input.name}`].includes(node.props.text))) {
+        throw new Error('Next screen must show the exact entered name');
       }
       state = { ...state, phase: 'ready', revision: state.revision + 1,
         turn: kind === 'initial' ? 1 : 2, spec, threadId: result.threadId, error: null,
@@ -56,7 +60,8 @@ export function createSessionController({ generate, clock = () => performance.no
     }).catch((error) => {
       if (ticket !== epoch) return;
       const safeErrors = new Set(['Invalid generation envelope', 'Session changed',
-        'Generated screen is not JSON', 'Initial screen requires one name input and one save action']);
+        'Generated screen is not JSON', 'Initial screen requires one name input and one save action',
+        'Next screen must show the exact entered name']);
       const message = error instanceof Error ? error.message : '';
       const safeMessage = safeErrors.has(message) || /^Invalid generated screen at [a-z0-9.$-]+$/i.test(message)
         ? message : 'Generation failed';

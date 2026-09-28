@@ -9,7 +9,7 @@ const next = { threadId, specJson: JSON.stringify({
   root: 'layout', elements: {
     layout: { type: 'Layout', props: { id: 'layout', columns: 'single', gap: 'fractional' }, children: ['card'] },
     card: { type: 'Card', props: { id: 'card', padding: 'spacious', tone: 'light' }, children: ['heading'] },
-    heading: { type: 'Text', props: { id: 'heading', text: 'Saved Bea' }, children: [] },
+    heading: { type: 'Text', props: { id: 'heading', text: 'Name: Bea' }, children: [] },
   },
 }) };
 const deferred = () => {
@@ -51,9 +51,24 @@ test('validated initial screen and one action use one session and ordered revisi
   const done = await until(controller, 'ready');
   assert.equal(done.revision, 2);
   assert.equal(done.turn, 2);
-  assert.equal(done.spec.elements.heading.props.text, 'Saved Bea');
+  assert.equal(done.spec.elements.heading.props.text, 'Name: Bea');
   assert.equal(controller.action({ action: 'save', revision: 2, input: { name: 'Bea' } }).status, 409);
   assert.equal(calls.length, 2);
+});
+
+test('a similar name is not accepted as the entered name on the next screen', async () => {
+  const similar = structuredClone(JSON.parse(next.specJson));
+  similar.elements.heading.props.text = 'Name: Beatrice';
+  const controller = createSessionController({ generate: ({ kind }) => kind === 'initial'
+    ? first : { threadId, specJson: JSON.stringify(similar) } });
+  controller.start({ prompt: 'Make a profile form' });
+  await until(controller, 'ready');
+  assert.equal(controller.action({ action: 'save', revision: 1, input: { name: 'Bea' } }).status, 202);
+  const failed = await until(controller, 'failed');
+  assert.equal(failed.error, 'Next screen must show the exact entered name');
+  assert.equal(failed.revision, 1);
+  assert.deepEqual(failed.spec, INITIAL);
+  assert.equal(failed.name, 'Bea');
 });
 
 test('invalid requests start zero generations', async () => {

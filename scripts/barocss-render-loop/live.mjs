@@ -14,6 +14,7 @@ const repo = path.resolve(here, '../..');
 const CLI_PATH = '/Users/user/Library/pnpm/nodejs/22.19.0/bin/codex';
 const NODE_BIN = '/Users/user/Library/pnpm/nodejs/22.19.0/bin';
 const AUTH_PATH = '/Users/user/.codex/auth.json';
+const LIVE_CLAIM = path.join(PRIVATE_ROOT, 'private-460-live-claim.json');
 const ASSET_ROOTS = Object.freeze({
   JR_ROOT: '/Users/user/.barocss-ai/v3/wt/issue-446/scripts/json-render-446/scratch/jr',
   PW_DIR: '/Users/user/github/ai-based/abs/node_modules/.pnpm/playwright-core@1.60.0/node_modules/playwright-core',
@@ -45,6 +46,24 @@ export function readLaunchApproval(file, taskCommit) {
   return value;
 }
 
+export function claimLiveRun(approval, file = LIVE_CLAIM) {
+  if (path.dirname(file) !== PRIVATE_ROOT || !path.basename(file).startsWith('private-460-live-claim')) {
+    throw new Error('Invalid private live claim path');
+  }
+  let fd;
+  try { fd = fs.openSync(file, 'wx', 0o600); }
+  catch (error) {
+    if (error?.code === 'EEXIST') throw new Error('The #460 live allowance is already claimed');
+    throw error;
+  }
+  try {
+    fs.writeSync(fd, JSON.stringify({ issue: 460, taskCommit: approval.taskCommit,
+      ownerDecisionRef: approval.ownerDecisionRef, reviewUrl: approval.reviewUrl,
+      claimedAt: new Date().toISOString() }) + '\n');
+    fs.fsyncSync(fd);
+  } finally { fs.closeSync(fd); }
+}
+
 async function run() {
   if (process.argv.length !== 4 || process.argv[2] !== '--approval') {
     throw new Error('Usage: node live.mjs --approval /Users/user/.barocss-ai/v3/private-460-approval-ID.json');
@@ -58,6 +77,7 @@ async function run() {
     throw new Error('Use the approved local JR_ROOT, PW_DIR and REPO_DEPS_ROOT');
   }
   const pwDir = ASSET_ROOTS.PW_DIR;
+  claimLiveRun(approval);
   const outputDir = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'private-460-run-'));
   const cwd = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'agent-scratch-460-'));
   const codexHome = fs.mkdtempSync(path.join(PRIVATE_ROOT, '.codex-home-460-'));
@@ -101,7 +121,7 @@ async function run() {
     await page.screenshot({ path: path.join(outputDir, 'first-screen.png') });
     if (report.first.phase !== 'ready') throw new Error(`Initial generation ${report.first.phase}`);
     await page.locator('[data-node-id="name"] input').fill(approval.name);
-    await page.getByRole('button', { name: 'Save profile' }).click();
+    await page.locator('[data-node-id="save"]').click();
     await page.waitForFunction(() => {
       const status = document.querySelector('#status');
       return status?.dataset.phase === 'failed' || status?.dataset.phase === 'cancelled'
@@ -112,8 +132,10 @@ async function run() {
     if (report.next.phase !== 'ready' || report.next.turn !== 2) {
       throw new Error(`Action generation ${report.next.phase}`);
     }
-    const visibleText = await page.locator('main').innerText();
-    if (!visibleText.includes(approval.name)) throw new Error('Next screen omitted entered name');
+    const exactName = report.next.spec.elements && Object.values(report.next.spec.elements).find((node) =>
+      node.type === 'Text' && [approval.name, `Name: ${approval.name}`].includes(node.props.text));
+    if (!exactName || await page.locator(`[data-node-id="${exactName.props.id}"]`).textContent()
+      !== exactName.props.text) throw new Error('Next screen omitted the exact entered name');
     await page.waitForFunction(() => window.LOOP_METRICS.sampleCount === 2);
     report.browserMetrics = await page.evaluate(() => window.LOOP_METRICS);
     if (report.pageErrors.length || report.externalRequests.length) throw new Error('Browser error or external request');

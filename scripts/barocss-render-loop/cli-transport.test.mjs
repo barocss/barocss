@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { EventEmitter } from 'node:events';
+import { spawn } from 'node:child_process';
 import { PassThrough } from 'node:stream';
 import { createCliGenerator } from './cli-transport.mjs';
 import { PRIVATE_ROOT } from './cli-profile.mjs';
@@ -106,5 +107,98 @@ test('unexpected CLI tool is stopped and its failure evidence stays private', as
     fs.rmSync(outputDir, { recursive: true, force: true });
     fs.rmSync(codexHome, { recursive: true, force: true });
     fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('final-event mismatch is rejected and classified in private evidence', async () => {
+  const cwd = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'agent-scratch-460-test-'));
+  const codexHome = fs.mkdtempSync(path.join(PRIVATE_ROOT, '.codex-home-460-test-'));
+  const outputDir = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'private-460-test-'));
+  const home = path.join(cwd, 'home');
+  const schemaPath = path.join(cwd, 'schema.json');
+  fs.mkdirSync(home);
+  fs.copyFileSync(path.join(import.meta.dirname, 'output.schema.json'), schemaPath);
+  function fakeSpawn(_cliPath, argv) {
+    const child = new EventEmitter();
+    child.stdout = new PassThrough(); child.stderr = new PassThrough(); child.stdin = new PassThrough();
+    child.kill = () => {};
+    child.stdin.on('finish', () => {
+      fs.writeFileSync(argv[argv.indexOf('--output-last-message') + 1], JSON.stringify({ specJson: '{}' }));
+      child.stdout.end([JSON.stringify({ type: 'thread.started', thread_id: threadId }),
+        JSON.stringify({ type: 'item.completed', item: { type: 'agent_message', text: 'different' } }),
+        JSON.stringify({ type: 'turn.completed' }), ''].join('\n'));
+      child.stderr.end();
+      setImmediate(() => child.emit('close', 0));
+    });
+    return child;
+  }
+  try {
+    const generate = createCliGenerator({ cliPath: `${nodeBin}/codex`, cwd, home, codexHome,
+      nodeBin, schemaPath, outputDir, spawnProcess: fakeSpawn });
+    await assert.rejects(() => generate({ kind: 'initial', prompt: 'Profile form' }), /final event mismatch/);
+    const result = JSON.parse(fs.readFileSync(path.join(outputDir, 'initial-result.json')));
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.completed, true);
+    assert.equal(result.validationFailure, 'final-event-mismatch');
+  } finally {
+    fs.rmSync(outputDir, { recursive: true, force: true });
+    fs.rmSync(codexHome, { recursive: true, force: true });
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('native owned process group stops its child on cancel and timeout', async () => {
+  for (const mode of ['cancel', 'timeout']) {
+    const cwd = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'agent-scratch-460-test-'));
+    const codexHome = fs.mkdtempSync(path.join(PRIVATE_ROOT, '.codex-home-460-test-'));
+    const outputDir = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'private-460-test-'));
+    const home = path.join(cwd, 'home');
+    const schemaPath = path.join(cwd, 'schema.json');
+    const heartbeat = path.join(outputDir, 'owned-child-heartbeat');
+    const pidFile = path.join(outputDir, 'owned-child-pid');
+    let ownedPid, grandchildPid;
+    fs.mkdirSync(home);
+    fs.copyFileSync(path.join(import.meta.dirname, 'output.schema.json'), schemaPath);
+    const childScript = `const fs=require('node:fs'); setInterval(()=>fs.appendFileSync(${JSON.stringify(heartbeat)},'.'),25);`;
+    const parentScript = `const fs=require('node:fs'); const {spawn}=require('node:child_process');
+      const child=spawn(process.execPath,['-e',${JSON.stringify(childScript)}],{stdio:'ignore'});
+      fs.writeFileSync(${JSON.stringify(pidFile)},String(child.pid));
+      process.stdout.write(JSON.stringify({type:'thread.started',thread_id:${JSON.stringify(threadId)}})+'\\n');
+      setInterval(()=>{},1000);`;
+    const spawnProcess = (_cli, _argv, options) => {
+      const child = spawn(process.execPath, ['-e', parentScript], options);
+      ownedPid = child.pid;
+      return child;
+    };
+    let calls = 0;
+    const clock = mode === 'timeout'
+      ? () => (calls++ === 0 ? 0 : 360_000 - 1200) : undefined;
+    try {
+      const generate = createCliGenerator({ cliPath: `${nodeBin}/codex`, cwd, home, codexHome,
+        nodeBin, schemaPath, outputDir, spawnProcess, ...(clock ? { clock } : {}) });
+      const controller = new AbortController();
+      const running = generate({ kind: 'initial', prompt: 'Profile form', signal: controller.signal });
+      for (let attempt = 0; attempt < 100 && (!fs.existsSync(pidFile)
+        || !fs.existsSync(heartbeat)); attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      assert(fs.existsSync(pidFile) && fs.existsSync(heartbeat), 'Native child did not start');
+      grandchildPid = Number(fs.readFileSync(pidFile, 'utf8'));
+      if (mode === 'cancel') controller.abort();
+      await assert.rejects(running, /CLI turn failed/);
+      const result = JSON.parse(fs.readFileSync(path.join(outputDir, 'initial-result.json')));
+      assert.equal(result.stopReason, mode === 'cancel' ? 'cancelled' : 'timeout');
+      assert.equal(result.validationFailure, 'transport-incomplete');
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      const count = fs.statSync(heartbeat).size;
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      assert.equal(fs.statSync(heartbeat).size, count, 'Owned child kept running after group stop');
+    } finally {
+      if (grandchildPid) { try { process.kill(grandchildPid, 'SIGKILL'); } catch { /* already stopped */ } }
+      if (ownedPid) { try { process.kill(-ownedPid, 'SIGKILL'); } catch { /* already stopped */ } }
+      fs.rmSync(outputDir, { recursive: true, force: true });
+      fs.rmSync(codexHome, { recursive: true, force: true });
+      fs.rmSync(cwd, { recursive: true, force: true });
+    }
   }
 });
