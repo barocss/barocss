@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
 import { buildCliArgv, buildCliPrompt, MODEL, MAX_DISPATCHES, PER_CALL_TIMEOUT_MS,
-  TOTAL_TIMEOUT_MS, PRIVATE_ROOT } from './cli-profile.mjs';
+  TOTAL_TIMEOUT_MS, PRIVATE_ROOT, PROMPT_VERSION, PROMPT_CONTRACT_SHA256 } from './cli-profile.mjs';
 
 const sessionIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const eventTypes = new Set(['thread.started', 'turn.started', 'turn.completed', 'turn.failed',
@@ -51,6 +51,8 @@ export function createCliGenerator({ cliPath, cwd, home, codexHome, nodeBin, sch
     fs.writeFileSync(`${prefix}-prompt.txt`, prompt, { flag: 'wx', mode: 0o600 });
     fs.writeFileSync(`${prefix}-dispatch.json`, JSON.stringify({ kind: request.kind, dispatchNumber: dispatches,
       argv, cliPath, cwd, environmentKeys: Object.keys(env).sort(), timeoutMs,
+      promptVersion: PROMPT_VERSION, promptContractSha256: PROMPT_CONTRACT_SHA256,
+      promptSha256: sha(prompt),
       startedAt: new Date().toISOString() }, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
     let child;
     try { child = spawnProcess(cliPath, argv, { cwd, env, detached: true, stdio: ['pipe', 'pipe', 'pipe'] }); }

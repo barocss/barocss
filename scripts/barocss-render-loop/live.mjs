@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { createCliGenerator } from './cli-transport.mjs';
 import { CLI_VERSION, MAX_DISPATCHES, PER_CALL_TIMEOUT_MS, TOTAL_TIMEOUT_MS,
-  PRIVATE_ROOT } from './cli-profile.mjs';
+  PRIVATE_ROOT, PROMPT_VERSION, PROMPT_CONTRACT_SHA256 } from './cli-profile.mjs';
 import { createLoopServer } from './serve.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -14,10 +14,16 @@ const repo = path.resolve(here, '../..');
 const CLI_PATH = '/Users/user/Library/pnpm/nodejs/22.19.0/bin/codex';
 const NODE_BIN = '/Users/user/Library/pnpm/nodejs/22.19.0/bin';
 const AUTH_PATH = '/Users/user/.codex/auth.json';
-const PRIOR_CLAIM = path.join(PRIVATE_ROOT, 'private-460-live-claim.json');
-const PRIOR_EVIDENCE = path.join(PRIVATE_ROOT, 'private-460-run-Y9ch1k');
-const LIVE_CLAIM = path.join(PRIVATE_ROOT, 'private-460-live-claim-continuation-1.json');
-const PRIOR_DISPATCHES = 1;
+const PRIOR_ATTEMPTS = Object.freeze([
+  { claim: path.join(PRIVATE_ROOT, 'private-460-live-claim.json'),
+    evidence: path.join(PRIVATE_ROOT, 'private-460-run-Y9ch1k'),
+    taskCommit: '957e1564e2e6011eb77edf831478c14742668814', stopReason: 'unexpected-cli-tool' },
+  { claim: path.join(PRIVATE_ROOT, 'private-460-live-claim-continuation-1.json'),
+    evidence: path.join(PRIVATE_ROOT, 'private-460-run-eS95yj'),
+    taskCommit: 'bddce535eb7ee205ab4fd5ad460b22941852d93c', stopReason: null },
+]);
+const LIVE_CLAIM = path.join(PRIVATE_ROOT, 'private-460-live-claim-continuation-2.json');
+const PRIOR_DISPATCHES = 2;
 const AGGREGATE_CEILING = 20;
 const ASSET_ROOTS = Object.freeze({
   JR_ROOT: '/Users/user/.barocss-ai/v3/wt/issue-446/scripts/json-render-446/scratch/jr',
@@ -36,15 +42,17 @@ export function readLaunchApproval(file, taskCommit) {
   if (!fs.lstatSync(file).isFile()) throw new Error('Approval file must be a regular file');
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
   const keys = ['kind', 'issue', 'taskCommit', 'ownerDecisionRef', 'continuationRef', 'reviewUrl',
-    'prompt', 'name', 'priorDispatches', 'aggregateCeiling', 'maxDispatches',
+    'prompt', 'name', 'promptVersion', 'promptContractSha256',
+    'priorDispatches', 'aggregateCeiling', 'maxDispatches',
     'perCallTimeoutMs', 'totalTimeoutMs'];
   if (!value || typeof value !== 'object' || Array.isArray(value)
     || Object.keys(value).sort().join(',') !== keys.sort().join(',')
-    || value.kind !== 'barocss-460-reviewed-continuation' || value.issue !== 460
+    || value.kind !== 'barocss-460-prompt-v2-continuation' || value.issue !== 460
     || value.taskCommit !== taskCommit || !issueComment.test(value.ownerDecisionRef)
     || !issueComment.test(value.continuationRef) || !issueComment.test(value.reviewUrl)
     || value.priorDispatches !== PRIOR_DISPATCHES || value.aggregateCeiling !== AGGREGATE_CEILING
     || value.priorDispatches + value.maxDispatches > value.aggregateCeiling
+    || value.promptVersion !== PROMPT_VERSION || value.promptContractSha256 !== PROMPT_CONTRACT_SHA256
     || typeof value.prompt !== 'string'
     || value.prompt !== LIVE_PROMPT || value.name !== LIVE_NAME
     || value.maxDispatches !== MAX_DISPATCHES || value.perCallTimeoutMs !== PER_CALL_TIMEOUT_MS
@@ -54,17 +62,23 @@ export function readLaunchApproval(file, taskCommit) {
   return value;
 }
 
-export function verifyPriorAttempt(claimFile = PRIOR_CLAIM, evidenceDir = PRIOR_EVIDENCE) {
-  if (!fs.existsSync(claimFile) || !fs.statSync(claimFile).isFile()
-    || !fs.existsSync(evidenceDir) || !fs.statSync(evidenceDir).isDirectory()) {
-    throw new Error('Previous #460 claim and evidence are required');
-  }
-  const dispatch = JSON.parse(fs.readFileSync(path.join(evidenceDir, 'initial-dispatch.json'), 'utf8'));
-  const result = JSON.parse(fs.readFileSync(path.join(evidenceDir, 'initial-result.json'), 'utf8'));
-  if (dispatch.kind !== 'initial' || dispatch.dispatchNumber !== PRIOR_DISPATCHES
-    || result.stopReason !== 'unexpected-cli-tool'
-    || fs.existsSync(path.join(evidenceDir, 'next-dispatch.json'))) {
-    throw new Error('Previous #460 dispatch accounting changed');
+export function verifyPriorAttempts(attempts = PRIOR_ATTEMPTS) {
+  if (attempts.length !== PRIOR_DISPATCHES) throw new Error('Previous #460 dispatch count changed');
+  for (const attempt of attempts) {
+    if (!fs.existsSync(attempt.claim) || !fs.statSync(attempt.claim).isFile()
+      || !fs.existsSync(attempt.evidence) || !fs.statSync(attempt.evidence).isDirectory()) {
+      throw new Error('Previous #460 claim and evidence are required');
+    }
+    const claim = JSON.parse(fs.readFileSync(attempt.claim, 'utf8'));
+    const dispatch = JSON.parse(fs.readFileSync(path.join(attempt.evidence, 'initial-dispatch.json'), 'utf8'));
+    const result = JSON.parse(fs.readFileSync(path.join(attempt.evidence, 'initial-result.json'), 'utf8'));
+    const live = JSON.parse(fs.readFileSync(path.join(attempt.evidence, 'live-result.json'), 'utf8'));
+    if (claim.taskCommit !== attempt.taskCommit || live.taskCommit !== attempt.taskCommit
+      || dispatch.kind !== 'initial' || dispatch.dispatchNumber !== 1
+      || result.stopReason !== attempt.stopReason
+      || fs.existsSync(path.join(attempt.evidence, 'next-dispatch.json'))) {
+      throw new Error('Previous #460 dispatch accounting changed');
+    }
   }
 }
 
@@ -82,6 +96,7 @@ export function claimLiveRun(approval, file = LIVE_CLAIM) {
     fs.writeSync(fd, JSON.stringify({ issue: 460, taskCommit: approval.taskCommit,
       ownerDecisionRef: approval.ownerDecisionRef, continuationRef: approval.continuationRef,
       reviewUrl: approval.reviewUrl, priorDispatches: PRIOR_DISPATCHES,
+      promptVersion: PROMPT_VERSION, promptContractSha256: PROMPT_CONTRACT_SHA256,
       reservedDispatches: MAX_DISPATCHES, aggregateCeiling: AGGREGATE_CEILING,
       claimedAt: new Date().toISOString() }) + '\n');
     fs.fsyncSync(fd);
@@ -96,7 +111,7 @@ async function run() {
   const dirty = execFileSync('git', ['status', '--porcelain'], { cwd: repo, encoding: 'utf8' }).trim();
   if (dirty) throw new Error('Exact reviewed task commit must be clean before live dispatch');
   const approval = readLaunchApproval(process.argv[3], taskCommit);
-  verifyPriorAttempt();
+  verifyPriorAttempts();
   if (!fs.existsSync(AUTH_PATH)) throw new Error('Existing Codex CLI login is unavailable');
   if (Object.entries(ASSET_ROOTS).some(([key, value]) => process.env[key] !== value)) {
     throw new Error('Use the approved local JR_ROOT, PW_DIR and REPO_DEPS_ROOT');
@@ -110,7 +125,9 @@ async function run() {
   const schemaPath = path.join(cwd, 'schema.json');
   let browser, server, controller;
   const report = { kind: 'barocss-460-live-attempt', source: 'real-codex-cli', taskCommit,
-    ownerDecisionRef: approval.ownerDecisionRef, reviewUrl: approval.reviewUrl,
+    ownerDecisionRef: approval.ownerDecisionRef, continuationRef: approval.continuationRef,
+    reviewUrl: approval.reviewUrl, promptVersion: PROMPT_VERSION,
+    promptContractSha256: PROMPT_CONTRACT_SHA256, priorDispatches: PRIOR_DISPATCHES,
     limits: { maxDispatches: MAX_DISPATCHES, perCallTimeoutMs: PER_CALL_TIMEOUT_MS,
       totalTimeoutMs: TOTAL_TIMEOUT_MS }, prompt: approval.prompt, name: approval.name,
     granularity: 'complete-response', first: null, next: null, pageErrors: [], externalRequests: [],

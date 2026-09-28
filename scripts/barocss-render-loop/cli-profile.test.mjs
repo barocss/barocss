@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { buildCliArgv, buildCliPrompt, CLI_VERSION, MAX_DISPATCHES,
+import { buildCliArgv, buildCliPrompt, BUTTON_EXAMPLE, CLI_VERSION, MAX_DISPATCHES,
+  PROMPT_VERSION, PROMPT_CONTRACT_SHA256,
   PER_CALL_TIMEOUT_MS, TOTAL_TIMEOUT_MS } from './cli-profile.mjs';
+import { validateSpec } from '../../packages/barocss-render/src/contract.mjs';
+import { INITIAL } from '../barocss-render-prototype/fixture.mjs';
 
 const cwd = '/Users/user/.barocss-ai/v3/agent-scratch-460-example';
 const schemaPath = `${cwd}/schema.json`;
@@ -45,6 +48,14 @@ test('browser input cannot change CLI arguments or output locations', () => {
   assert.throws(() => buildCliArgv({ kind: 'initial', cwd, schemaPath,
     finalPath: '/tmp/output.txt' }), /private V3/);
   const initialPrompt = buildCliPrompt({ kind: 'initial', prompt: 'Show a profile form' });
+  const instruction = JSON.parse(initialPrompt).contract;
+  assert.equal(JSON.parse(initialPrompt).contractVersion, PROMPT_VERSION);
+  assert.match(PROMPT_CONTRACT_SHA256, /^[0-9a-f]{64}$/);
+  assert.match(instruction, /Button\.on is a sibling of props and children, never inside props/);
+  assert(instruction.includes(JSON.stringify(BUTTON_EXAMPLE)));
+  const validExample = structuredClone(INITIAL);
+  validExample.elements.save = BUTTON_EXAMPLE;
+  assert.equal(validateSpec(validExample).ok, true);
   const nextPrompt = buildCliPrompt({ kind: 'next', action: 'save', revision: 1, input: { name: 'Bea' } });
   assert.equal(JSON.parse(initialPrompt).request, 'Show a profile form');
   assert.deepEqual(JSON.parse(nextPrompt).input, { name: 'Bea' });
