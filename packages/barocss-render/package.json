@@ -1,0 +1,12 @@
+{
+  "name": "@barocss/render",
+  "version": "0.0.0-private-prototype",
+  "private": true,
+  "type": "module",
+  "peerDependencies": {
+    "react": "19.2.3"
+  },
+  "exports": {
+    ".": "./src/index.jsx"
+  }
+}
