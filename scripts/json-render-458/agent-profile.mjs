@@ -27,6 +27,7 @@ export function buildAgentArgv({ cwd, schemaPath, finalPath }) {
   const args = ['exec', '--ignore-user-config', '--strict-config', '--ephemeral', '--skip-git-repo-check',
     '--model', MODEL, '-c', `model_reasoning_effort="${REASONING}"`,
     '-c', 'mcp_servers={}', '-c', 'shell_environment_policy.inherit=none',
+    '-c', 'web_search="disabled"',
     '-c', 'approval_policy="on-request"',
     '-c', `default_permissions="${PROFILE}"`, '-c', PROFILE_RULES,
     '-c', `permissions.${PROFILE}.network.enabled=false`,

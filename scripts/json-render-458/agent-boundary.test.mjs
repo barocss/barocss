@@ -11,7 +11,7 @@ import { checkCliLogin } from './agent-live.mjs';
 const codex = '/Users/user/Library/pnpm/nodejs/22.19.0/bin/codex';
 const repoEvaluator = path.join(path.dirname(fileURLToPath(import.meta.url)), 'plan.mjs');
 
-test('isolated CLI keeps web search off without a deprecated launch feature',
+test('isolated CLI accepts explicit disabled web search without a deprecated launch feature',
   { skip: process.env.BARO_458_PROBE !== '1' }, () => {
     const isolated = fs.mkdtempSync(path.join(SCRATCH_PARENT, 'agent-feature-458-'));
     try {
@@ -25,6 +25,10 @@ test('isolated CLI keeps web search off without a deprecated launch feature',
       }));
       for (const name of ['web_search_request', 'web_search_cached', 'standalone_web_search'])
         assert.equal(features.get(name), 'false', `${name} must be off in the isolated home`);
+      const parseMode = (mode) => spawnSync(codex, ['debug', 'prompt-input', '-c', `web_search="${mode}"`, 'probe'],
+        { encoding: 'utf8', env, cwd: isolated, maxBuffer: 2_000_000 });
+      assert.equal(parseMode('disabled').status, 0, 'installed CLI must accept disabled web search');
+      assert.notEqual(parseMode('obviously-invalid').status, 0, 'mode probe must reject invalid values');
       const help = spawnSync(codex, ['--help'], { encoding: 'utf8', env });
       assert.equal(help.status, 0);
       assert.equal(/--search\s+Enable live web search/.test(help.stdout), true,
@@ -34,6 +38,7 @@ test('isolated CLI keeps web search off without a deprecated launch feature',
         finalPath: path.join(SCRATCH_PARENT, 'private-458', 'probe-final.txt') });
       assert.ok(!args.includes('web_search_request'));
       assert.ok(!args.includes('--search'));
+      assert.ok(args.includes('web_search="disabled"'));
       assert.ok(args.includes('standalone_web_search'));
       assert.ok(args.includes(`permissions.${PROFILE}.network.enabled=false`));
     } finally { fs.rmSync(isolated, { recursive: true, force: true }); }

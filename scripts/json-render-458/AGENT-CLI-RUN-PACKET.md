@@ -34,7 +34,7 @@ The approval file must not be created from a collector-only Review verdict. Do n
 
 The separately authorized one-invocation diagnostic stopped on a CLI `item.completed` notice that the `web_search_request` feature is deprecated. The saved evidence has no final response, usage, or observable tool call; the other 23 cells were not attempted. The notice alone does not prove a fatal CLI rejection or a model/backend failure. Its raw text remains in the private capture.
 
-The follow-up launch setting removes only `--disable web_search_request`. The installed CLI reports that deprecated feature, `web_search_cached`, and `standalone_web_search` are all false in a fresh isolated home. Live web search still requires the opt-in `--search` switch, which this route does not pass. It continues to disable `standalone_web_search` explicitly and to deny command network access through the native profile. The event collector still stops on any error item; it does not suppress notices. This flag correction is no-model preparation and grants no new invocation.
+The follow-up launch setting removes `--disable web_search_request` and explicitly sets `web_search="disabled"`. The installed CLI accepts `disabled` and rejects an invalid web-search mode in a fresh isolated home. Feature-flag states alone do not establish the web-search mode: the CLI reports the same false feature flags for its default, cached, and disabled modes. The route also omits the `--search` opt-in switch, continues to disable `standalone_web_search`, and denies command network access through the native profile. The event collector still stops on any error item; it does not suppress notices. This correction is no-model preparation and grants no new invocation.
 
 ## Agent workspace and evidence
 
