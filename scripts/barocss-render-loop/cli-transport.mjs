@@ -60,7 +60,7 @@ export function createCliGenerator({ cliPath, cwd, home, codexHome, nodeBin, sch
         elapsedMs: Math.round(clock() - started) }) + '\n', { flag: 'wx', mode: 0o600 });
       throw new Error('CLI spawn failed');
     }
-    let seenSession = null, completed = false, stopReason = null, pending = '', outputBytes = 0;
+    let seenSession = null, turnStarted = false, completed = false, stopReason = null, pending = '', outputBytes = 0;
     let finalEventHash = null, responseModel = null;
     const diagnostics = [];
     let stderrBytes = 0;
@@ -108,9 +108,10 @@ export function createCliGenerator({ cliPath, cwd, home, codexHome, nodeBin, sch
           if (seenSession && seenSession !== event.thread_id) return stop('session-drift');
           seenSession = event.thread_id;
         }
+        if (event.type === 'turn.started') turnStarted = true;
         if (event.type.startsWith('item.') && event.item?.type === 'error') {
           if (event.type === 'item.completed' && event.item.message === CODE_MODE_NOTICE
-            && !completed && !diagnostics.includes('code-mode-host-disabled')) {
+            && !turnStarted && !completed && !diagnostics.includes('code-mode-host-disabled')) {
             diagnostics.push('code-mode-host-disabled');
             continue;
           }

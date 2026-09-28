@@ -143,6 +143,40 @@ test('unknown CLI diagnostic still fails closed before generation', async () => 
   }
 });
 
+test('the known startup notice fails closed after a turn starts', async () => {
+  const cwd = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'agent-scratch-460-test-'));
+  const codexHome = fs.mkdtempSync(path.join(PRIVATE_ROOT, '.codex-home-460-test-'));
+  const outputDir = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'private-460-test-'));
+  const home = path.join(cwd, 'home');
+  const schemaPath = path.join(cwd, 'schema.json');
+  fs.mkdirSync(home);
+  fs.copyFileSync(path.join(import.meta.dirname, 'output.schema.json'), schemaPath);
+  function fakeSpawn() {
+    const child = new EventEmitter();
+    child.stdout = new PassThrough(); child.stderr = new PassThrough(); child.stdin = new PassThrough();
+    child.kill = () => { child.stdout.end(); child.stderr.end(); setImmediate(() => child.emit('close', null)); };
+    child.stdin.on('finish', () => child.stdout.write([
+      JSON.stringify({ type: 'turn.started' }),
+      JSON.stringify({ type: 'item.completed', item: { type: 'error', message:
+        'Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.' } }),
+      '',
+    ].join('\n')));
+    return child;
+  }
+  try {
+    const generate = createCliGenerator({ cliPath: `${nodeBin}/codex`, cwd, home, codexHome,
+      nodeBin, schemaPath, outputDir, spawnProcess: fakeSpawn });
+    await assert.rejects(() => generate({ kind: 'initial', prompt: 'Profile form' }), /cli-diagnostic/);
+    const result = JSON.parse(fs.readFileSync(path.join(outputDir, 'initial-result.json')));
+    assert.equal(result.stopReason, 'cli-diagnostic');
+    assert.deepEqual(result.diagnostics, []);
+  } finally {
+    fs.rmSync(outputDir, { recursive: true, force: true });
+    fs.rmSync(codexHome, { recursive: true, force: true });
+    fs.rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
 test('final-event mismatch is rejected and classified in private evidence', async () => {
   const cwd = fs.mkdtempSync(path.join(PRIVATE_ROOT, 'agent-scratch-460-test-'));
   const codexHome = fs.mkdtempSync(path.join(PRIVATE_ROOT, '.codex-home-460-test-'));
