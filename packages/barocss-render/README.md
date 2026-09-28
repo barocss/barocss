@@ -87,4 +87,4 @@ The demo uses an in-memory action log. See [the prototype adapter](../../scripts
 
 ## Current boundary
 
-This package accepts an authored, screen-specific data contract. It does not call Codex or Claude, retain an agent session, accept generated scripts or arbitrary CSS, or implement a two-turn AI loop. Issue #460 proposes that later loop; it needs separate review and authority. The [comparison and decision](../../scripts/barocss-render-prototype/README.md) measure this private prototype against official json-render with the same fixture.
+This package accepts a screen-specific data contract. It does not call Codex or Claude, retain an agent session, or accept generated scripts or arbitrary CSS. The separate [#460 loopback host](../../scripts/barocss-render-loop/README.md) tests a two-turn flow with this package; its real CLI route has a separate review and launch gate. The [comparison and decision](../../scripts/barocss-render-prototype/README.md) measure this private prototype against official json-render with the same fixture.
