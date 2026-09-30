@@ -52,8 +52,10 @@ gh api repos/barocss/barocss/compare/main...develop --jq '{ahead_by, behind_by}'
 gh pr view PR_NUMBER --repo barocss/barocss --json headRefOid --jq '.headRefOid'
 ```
 
-The compare result requires `behind_by: 0` and positive `ahead_by`. Main promotion/publication
-remains blocked until Planner resolves the first renderer package's npm Trusted Publisher setup.
+The compare result requires `behind_by: 0` and positive `ahead_by`. Reviewed source promotion to
+main and staged Pages deployment may proceed after the source, independent Review and required CI
+gates pass. Actual npm publication remains blocked until Planner resolves the first renderer
+package's authentication and Trusted Publisher setup.
 
 ## Protected main PR and manual publication
 
@@ -91,7 +93,8 @@ Execute does not authenticate, bootstrap, add a token fallback or publish in thi
 A failed or partial publication requires a separate reviewed recovery decision, never an automatic
 resume or republish. OIDC token issuance and `npm whoami` do not prove npm publication acceptance.
 
-The website's render guide/API are explicitly staged. Existing installation/CDN snippets continue
+The website's render guide/API are explicitly staged. Pages may deploy these staged Docs before
+npm publication after the source, Review and CI gates pass. Existing installation/CDN snippets continue
 using `published-version.json` (currently 0.11.2). After independent four-package publication checks,
 promote that marker, replace the staged renderer notice with the verified install version, rebuild
 Docs and verify live installation links. Do not claim an unpublished renderer version is available.
