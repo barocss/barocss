@@ -34,7 +34,9 @@ It hashes inspected local inputs and pinned binary identity privately, without p
 values or credentials. It rejects unapproved config categories, routing or credential environment
 variables, system config, and ancestor project config. It recomputes the fingerprint before spawn,
 thread creation and each turn. Drift stops the run. Each inspected MCP name receives a TOML-quoted
-`enabled=false` override because an empty table does not clear a recursively merged table.
+`enabled=false` override because an empty table does not clear a recursively merged table. The
+[actual result](./RESULT-464.md) found this quoted-key encoding incompatible with the pinned CLI
+parser; it is not ready for another live run. A separate no-model correction is required.
 
 Fixed per-process settings disable known model tools, hooks, notification commands, plugins,
 connectors and browser capabilities. Managed/cloud policy remains authoritative and is not fully

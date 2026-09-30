@@ -13,7 +13,8 @@ negative finding for an installed standalone resolver diagnostic. It leaves the 
 
 The [#464 current-host packet](./CURRENT-HOST-PACKET.md) defines the separately selected mode for
 the owner-approved current-Mac experiment. It preserves the default #462 guard and records startup
-limits explicitly.
+limits explicitly. The [actual #464 result](./RESULT-464.md) records one failed native
+initialization, one consumed reservation and zero model/UI timing samples. No retry occurred.
 
 ## Capability and ownership
 
