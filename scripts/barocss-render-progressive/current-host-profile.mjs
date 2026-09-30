@@ -9,6 +9,7 @@ const PRIVATE_ROOT = '/Users/user/.barocss-ai/v3';
 const PYTHON = '/opt/homebrew/bin/python3.11';
 const CODEX_SHIM = '/Users/user/Library/pnpm/nodejs/22.19.0/lib/node_modules/@openai/codex/bin/codex.js';
 const CODEX_NATIVE = '/Users/user/Library/pnpm/nodejs/22.19.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/bin/codex';
+const MCP_NAME = /^[A-Za-z0-9_-]+$/;
 const APPROVED = Object.freeze(['hooks', 'marketplaces', 'mcp_servers', 'notify', 'plugins']);
 const BENIGN = new Set(['model', 'model_reasoning_effort', 'projects', 'tui', 'desktop', 'notice']);
 const CREDENTIAL_ENV = /(?:^|_)(?:API_KEY|ACCESS_TOKEN|REFRESH_TOKEN|AUTH_TOKEN|CLIENT_SECRET|IDENTITY_TOKEN(?:_FILE)?|CREDENTIALS_FILE)$/i;
@@ -184,6 +185,11 @@ export function inspectCurrentHost({ env = process.env, cwd = process.cwd(), inv
   const parsed = configPresent ? parseConfig(userConfig, configHome, path.join(runtimeRoot, 'plugins'))
     : { keys: [], mcpNames: [], customModelProvider: false, featuresPresent: false, toolsPresent: false };
   if (!Array.isArray(parsed.mcpNames)) throw new Error('MCP registration shape is unknown');
+  // The pinned CLI splits the key at literal dots; it does not parse TOML quoted segments.
+  // Reject unsupported names during inspection, before any claim or reservation.
+  if (parsed.mcpNames.some((name) => typeof name !== 'string' || !MCP_NAME.test(name))) {
+    throw new Error('MCP name cannot be addressed by the pinned CLI key syntax');
+  }
   if (parsed.badApprovedShape) throw new Error('Approved inherited category has unknown shape');
   if (parsed.customModelProvider) throw new Error('Custom model provider is outside approval');
   if (parsed.unknownLocalMarketplaceSource) throw new Error('Uninventoried local marketplace source');
@@ -229,12 +235,11 @@ export function verifyCurrentHost({ expectedFingerprintSha256, inventoryFile, ..
 export function buildCurrentHostArgv({ cwd, inspection } = {}) {
   if (!inspection || !/^[0-9a-f]{64}$/.test(inspection.fingerprintSha256)
     || !Array.isArray(inspection.mcpNames)
-    || inspection.mcpNames.some((name) => typeof name !== 'string' || !name
-      || /[\uD800-\uDFFF]/u.test(name))
+    || inspection.mcpNames.some((name) => typeof name !== 'string' || !MCP_NAME.test(name))
     || new Set(inspection.mcpNames).size !== inspection.mcpNames.length) {
     throw new Error('Verified current-host inspection is required');
   }
   const args = buildAppServerArgv({ cwd });
-  for (const name of [...inspection.mcpNames].sort()) args.push('-c', `mcp_servers.${JSON.stringify(name)}.enabled=false`);
+  for (const name of [...inspection.mcpNames].sort()) args.push('-c', `mcp_servers.${name}.enabled=false`);
   return args;
 }
