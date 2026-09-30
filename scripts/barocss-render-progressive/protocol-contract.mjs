@@ -11,6 +11,34 @@ const plans = new Set(['free', 'go', 'plus', 'pro', 'prolite', 'team', 'self_ser
   'self_serve_business_usage_based', 'business', 'ent26', 'enterprise_cbp_automation',
   'enterprise_cbp_usage_based', 'enterprise', 'edu', 'edu_plus', 'edu_pro', 'unknown']);
 const requireValid = (condition, message) => { if (!condition) throw new Error(message); };
+const nullable = (value, check) => value === undefined || value === null || check(value);
+const int32 = (value) => Number.isInteger(value) && value >= -2147483648 && value <= 2147483647;
+const string = (value) => typeof value === 'string';
+const reachedTypes = new Set(['rate_limit_reached', 'workspace_owner_credits_depleted',
+  'workspace_member_credits_depleted', 'workspace_owner_usage_limit_reached',
+  'workspace_member_usage_limit_reached']);
+
+// Sparse rolling updates are informational. Missing/null fields do not clear prior data or
+// grant headroom; this host deliberately keeps no quota state and never dispatches from it.
+function validRateLimitSnapshot(value) {
+  const window = (item) => keys(item, ['usedPercent', 'windowDurationMins', 'resetsAt'])
+    && int32(item.usedPercent) && nullable(item.windowDurationMins, Number.isSafeInteger)
+    && nullable(item.resetsAt, Number.isSafeInteger);
+  const credits = (item) => keys(item, ['hasCredits', 'unlimited', 'balance'])
+    && typeof item.hasCredits === 'boolean' && typeof item.unlimited === 'boolean'
+    && nullable(item.balance, string);
+  const spend = (item) => keys(item, ['limit', 'remainingPercent', 'resetsAt', 'used'])
+    && string(item.limit) && string(item.used) && int32(item.remainingPercent)
+    && Number.isSafeInteger(item.resetsAt);
+  return keys(value, ['credits', 'individualLimit', 'limitId', 'limitName', 'normalModelSlug',
+    'planType', 'primary', 'secondary', 'rateLimitReachedType', 'spendControlReached'])
+    && ['limitId', 'limitName', 'normalModelSlug'].every((key) => nullable(value[key], string))
+    && nullable(value.planType, (item) => plans.has(item))
+    && nullable(value.primary, window) && nullable(value.secondary, window)
+    && nullable(value.credits, credits) && nullable(value.individualLimit, spend)
+    && nullable(value.rateLimitReachedType, (item) => reachedTypes.has(item))
+    && nullable(value.spendControlReached, (item) => typeof item === 'boolean');
+}
 
 export function validateInitializeResponse(value, version, { codexHome } = {}) {
   requireValid(object(value) && ['codexHome', 'platformFamily', 'platformOs', 'userAgent']
@@ -95,7 +123,8 @@ export function validateThreadStatusNotification(event, { phase, threadId } = {}
 }
 
 export function acceptPassiveNotification(event, { phase } = {}) {
-  if (!['account/updated', 'remoteControl/status/changed'].includes(event?.method)) return false;
+  if (!['account/updated', 'remoteControl/status/changed', 'account/rateLimits/updated']
+    .includes(event?.method)) return false;
   validateNotificationEnvelope(event, phase);
   const value = event.params;
   if (event.method === 'account/updated') {
@@ -103,6 +132,9 @@ export function acceptPassiveNotification(event, { phase } = {}) {
     requireValid(keys(value, ['authMode', 'planType']) && value.authMode === 'chatgpt'
       && (value.planType === undefined || value.planType === null || plans.has(value.planType)),
     'Account metadata differs from approved context');
+  } else if (event.method === 'account/rateLimits/updated') {
+    requireValid(keys(value, ['rateLimits']) && validRateLimitSnapshot(value.rateLimits),
+      'Malformed rate-limit metadata');
   } else {
     requireValid(keys(value, ['installationId', 'serverName', 'status', 'environmentId'])
       && text(value.installationId) && text(value.serverName) && value.status === 'disabled'
