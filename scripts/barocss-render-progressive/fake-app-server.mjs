@@ -23,6 +23,23 @@ const threadId = () => `fake-thread-${session}`;
 const turnId = () => `fake-turn-${ordinal}`;
 const messageId = () => `fake-message-${ordinal}`;
 
+function passiveMetadata() {
+  const remote = { installationId: 'authored-installation', serverName: 'authored-server',
+    status: 'disabled', environmentId: null };
+  if (mode === 'startup-remote-active') remote.status = 'connected';
+  if (mode === 'startup-remote-malformed') delete remote.installationId;
+  notify('remoteControl/status/changed', remote);
+  if (mode === 'startup-remote-drift') notify('remoteControl/status/changed', {
+    ...remote, installationId: 'authored-other-installation' });
+  if (mode === 'startup-metadata-overflow') {
+    for (let i = 0; i < 65; i++) notify('account/updated', { authMode: 'chatgpt' });
+  }
+  notify('account/updated', { authMode: mode === 'startup-account-drift' ? 'apikey' : 'chatgpt', planType: null });
+  if (mode === 'startup-unknown') notify('unknown/startup', {});
+  if (mode === 'startup-request') send({ id: 777, method: 'account/updated', params: { authMode: 'chatgpt' } });
+  if (mode === 'startup-metadata') notify('account/updated', { authMode: 'chatgpt', planType: null });
+}
+
 function confirmation(name) {
   return { root: 'layout', elements: {
     layout: { type: 'Layout', props: { id: 'layout', columns: 'single', gap: 'fractional' }, children: ['card'] },
@@ -36,6 +53,10 @@ function completedTurn(spec) {
   const text = JSON.stringify({ specJson: JSON.stringify(spec) });
   const base = { threadId: threadId(), turnId: turnId() };
   const item = { id: messageId(), type: 'agentMessage', phase: 'final_answer', text };
+  if (mode === 'startup-metadata') {
+    passiveMetadata();
+    notify('thread/status/changed', { threadId: base.threadId, status: { type: 'active', activeFlags: [] } });
+  }
   notify('thread/tokenUsage/updated', { ...base, tokenUsage: { total: {} } });
   notify('turn/started', { threadId: base.threadId,
     turn: { id: base.turnId, status: 'inProgress', items: [] } });
@@ -65,7 +86,13 @@ function handle(request) {
     if (initializedRequest || request.params?.clientInfo?.name !== 'barocss_462'
       || request.params.clientInfo.version !== '1') throw new Error('Invalid initialize request');
     initializedRequest = true;
-    send({ id: request.id, result: { userAgent: 'codex-cli 0.156.1 authored fake' } });
+    const initialized = { userAgent: 'codex-cli 0.156.1 authored fake',
+      codexHome: process.env.BAROCSS_FAKE_CODEX_HOME ?? process.env.CODEX_HOME
+        ?? path.join(process.env.HOME, '.codex'), platformFamily: 'unix', platformOs: 'macos' };
+    if (mode === 'missing-init-home') delete initialized.codexHome;
+    if (mode === 'startup-metadata-before-init') passiveMetadata();
+    send({ id: request.id, result: initialized });
+    if (mode.startsWith('startup-') && mode !== 'startup-metadata-before-init') passiveMetadata();
     return;
   }
   if (request.method === 'initialized') {
@@ -104,11 +131,23 @@ function handle(request) {
     if (mode === 'nested-wrong-provider') result.thread.modelProvider = 'local';
     if (mode === 'missing-reviewer') delete result.approvalsReviewer;
     if (mode === 'wrong-reviewer') result.approvalsReviewer = 'user';
-    if (mode === 'missing-sources') delete result.instructionSources;
+    if (mode === 'missing-sources' || mode === 'schema-defaults') delete result.instructionSources;
+    if (mode === 'schema-defaults') delete result.sandbox.networkAccess;
     if (mode === 'null-sources') result.instructionSources = null;
     if (mode === 'instruction-sources') result.instructionSources = ['/tmp/test-instructions'];
+    if (mode === 'startup-metadata') {
+      notify('thread/status/changed', { threadId: thread.id, status: { type: 'idle' } });
+      passiveMetadata();
+    }
+    if (mode === 'startup-unowned-status') notify('thread/status/changed', {
+      threadId: 'unowned-thread', status: { type: 'idle' } });
+    if (mode === 'startup-active-status') notify('thread/status/changed', {
+      threadId: thread.id, status: { type: 'active', activeFlags: [] } });
     notify('thread/started', { thread });
     send({ id: request.id, result });
+    if (mode === 'startup-metadata-after-response') notify('thread/status/changed', {
+      threadId: thread.id, status: { type: 'idle' } });
+    if (mode === 'startup-duplicate-thread') notify('thread/started', { thread });
     return;
   }
   if (request.method === 'turn/interrupt') {

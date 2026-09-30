@@ -191,7 +191,7 @@ test('missing or changed effective thread metadata fails before any turn reserva
   const modes = ['missing-effort', 'null-effort', 'wrong-effort',
     'missing-provider', 'wrong-provider', 'nested-wrong-provider',
     'missing-reviewer', 'wrong-reviewer',
-    'missing-sources', 'null-sources', 'instruction-sources'];
+    'null-sources', 'instruction-sources'];
   for (const mode of modes) await t.test(mode, async () => {
     const state = setup();
     const seen = records();
@@ -272,4 +272,41 @@ test('known-turn timeout sends one interrupt after the reserved turn starts', as
     assert.equal(fs.existsSync(path.join(state.resultDir, 'turn-1.json')), false);
     assert.equal(JSON.parse(fs.readFileSync(path.join(state.resultDir, 'report.json'))).status, 'failed');
   } finally { state.cleanup(); }
+});
+
+// Authored no-model protocol-order tests. No native Codex process is launched.
+test('schema defaults and bounded passive metadata preserve all four authored turns', async (t) => {
+  for (const mode of ['schema-defaults', 'missing-sources', 'startup-metadata', 'startup-metadata-before-init',
+    'startup-metadata-after-response']) {
+    await t.test(mode, async () => {
+      const state = setup(), seen = records();
+      try {
+        const report = await runExperiment(runOptions(state, mode, seen));
+        assert.equal(report.turns.length, 4);
+        assert.equal(report.modelTurnsReserved, 4);
+        assert.equal(seen.launches, 1);
+        assert.equal(seen.events.some((event) => ['account/updated', 'remoteControl/status/changed',
+          'thread/status/changed'].includes(event.method)), false, 'metadata must not reach UI delivery');
+      } finally { state.cleanup(); }
+    });
+  }
+});
+
+test('unsafe startup metadata stops before any authored turn dispatch', async (t) => {
+  for (const mode of ['missing-init-home', 'startup-remote-active', 'startup-remote-malformed',
+    'startup-account-drift', 'startup-unknown', 'startup-request', 'startup-unowned-status',
+    'startup-active-status', 'startup-remote-drift', 'startup-metadata-overflow',
+    'startup-duplicate-thread']) {
+    await t.test(mode, async () => {
+      const state = setup(), seen = records();
+      try {
+        await assert.rejects(runExperiment(runOptions(state, mode, seen)));
+        const requests = fs.readFileSync(path.join(state.resultDir, 'requests.jsonl'), 'utf8')
+          .trim().split('\n').map(JSON.parse);
+        assert.equal(requests.some((request) => request.method === 'turn/start'), false);
+        assert.equal(seen.starts.length, 0);
+        assert.equal(seen.launches, 1);
+      } finally { state.cleanup(); }
+    });
+  }
 });

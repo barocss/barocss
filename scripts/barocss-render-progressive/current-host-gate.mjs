@@ -27,7 +27,12 @@ export function verifyCurrentHostPlan({ planFile = CURRENT_PLAN } = {}) {
     || profile.model !== 'gpt-6.1-sol' || profile.reasoningEffort !== 'high'
     || profile.sandboxPolicy !== 'readOnly' || profile.approvalPolicy !== 'never'
     || profile.reserveFirstBeforeInitialization !== true
-    || profile.preparationIssue !== 465 || profile.mcpKeyEncoding !== 'literal-safe-segment-v1'
+    || profile.preparationIssue !== 467 || profile.mcpKeyEncoding !== 'literal-safe-segment-v1'
+    || profile.protocolContract !== 'startup-metadata-467-v1'
+    || profile.protocolContractSha256 !== sha(fs.readFileSync(path.join(here, 'protocol-contract.mjs')))
+    || JSON.stringify(profile.passiveMetadataPolicy) !== JSON.stringify({ accountAuthMode: 'chatgpt',
+      remoteStatus: 'disabled', remoteEnvironment: 'absent-or-null', stableRemoteIdentity: true,
+      maxGlobalNotifications: 64, maxPendingThreadStatuses: 16, bindPendingStatusToOwnedResponse: true })
     || profile.mcpNamePattern !== '^[A-Za-z0-9_-]+$'
     || profile.perEntryMcpDisablePolicy?.rejectUnsupportedNamesBeforeClaim !== true
     || profile.perEntryMcpDisablePolicy?.cliOverrideTemplate !== 'mcp_servers.<SAFE_NAME>.enabled=false'
@@ -44,7 +49,7 @@ export function verifyCurrentHostPlan({ planFile = CURRENT_PLAN } = {}) {
     kind: 'barocss-464-current-host-plan-v1', issue: 464, mode: 'owner-approved-current-host',
     basePlanSha256: frozen.planSha256, runProfileSha256: sha(profileBytes),
     ...frozenFields, reserveFirstBeforeInitialization: true,
-    preparationIssue: 465, prior464LaunchConsumed: true,
+    preparationIssue: 467, prior464LaunchConsumed: true, prior466LaunchConsumed: true,
   };
   try { assert.deepStrictEqual(plan, expected); }
   catch { throw new Error('Current-host plan differs from frozen bounds, model, prompts, or hashes'); }

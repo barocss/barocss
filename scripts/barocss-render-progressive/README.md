@@ -23,6 +23,10 @@ The [actual #466 corrected-run result](./RESULT-466.md) records successful nativ
 one consumed startup, rejection of documented pre-turn metadata, and zero model/UI samples.
 The new one-launch decision is consumed; no retry occurred.
 
+The [#467 startup correction](./PACKET-467.md) validates narrowly scoped passive metadata and
+replays the saved native startup bytes without a new process. It is preparation only; neither
+spent decision authorizes a new launch. Native session/model/UI outcomes remain unmeasured.
+
 ## Capability and ownership
 
 The installed Codex 0.156.1 app-server protocol has `item/agentMessage/delta`,

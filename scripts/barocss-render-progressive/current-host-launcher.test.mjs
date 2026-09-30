@@ -48,7 +48,8 @@ function fixture() {
         'uncertain initialization is charged before spawn');
       return spawn(node, [path.join(here, 'fake-app-server.mjs')], {
         cwd, shell: false, stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env, BAROCSS_FAKE_MODE: fakeMode, BAROCSS_FAKE_LEDGER: reservationDir },
+        env: { ...process.env, BAROCSS_FAKE_CODEX_HOME: path.join(home, '.codex'),
+          BAROCSS_FAKE_MODE: fakeMode, BAROCSS_FAKE_LEDGER: reservationDir },
       });
     },
     browserFactory: async () => ({
