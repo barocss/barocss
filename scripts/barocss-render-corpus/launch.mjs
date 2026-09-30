@@ -17,20 +17,45 @@ const authPath = '/Users/user/.codex/auth.json';
 const claimFile = path.join(PRIVATE_ROOT, 'private-458-corpus-claim.json');
 const issueRef = /^https:\/\/github\.com\/barocss\/barocss\/issues\/458(?:#issuecomment-[0-9]+)?$/;
 const prior = [
-  { dir: 'private-460-run-Y9ch1k', turns: ['initial'], stop: 'unexpected-cli-tool',
-    hashes: { 'initial-dispatch.json': '973fd1eee847f49e6f60dd44a6ade943ec0380e3c34221e8aacc921379d20b95',
-      'initial-result.json': '58a9fdd7d8757401919e00b90a38e358b81a9034bf7b78f40b2f9a51667e07b5' } },
-  { dir: 'private-460-run-eS95yj', turns: ['initial'], stop: null,
-    hashes: { 'initial-dispatch.json': '3b71f0e6dd49a6a62beaccb3f1d8076a8d1f3e87973013bee2067b6f603d04a4',
-      'initial-result.json': 'a82bbfd436ad918beed2a4312162050aa248b6c44ad8f2abbf66290833aeb539',
-      'initial-final.txt': '0994bf26f6368d5afb4d281166b34078874bea77c948a5166d8b9b99b5d643f1' } },
-  { dir: 'private-460-run-f6gsoX', turns: ['initial', 'next'], stop: null,
-    hashes: { 'initial-dispatch.json': 'da4c9dc2e653d0dc9966556bbbe099e849b991f2e017453a8d76d8325c9056df',
-      'initial-result.json': 'd9835eb0ab141df7bee6d5663f5415884cbd0413f2fea48ca75c8fcbc5f1f391',
-      'initial-final.txt': 'd541652a1030eb8a66ea238159042564f33b1b5b00d61db34592ad28ddbb5708',
-      'next-dispatch.json': '9e28e41eef57e4e6e54f6901e429194d577a4ae822c25f8dd971b496b8d6e454',
-      'next-result.json': '7125b18ae3df634bfc47dd8ecec02dd719026a4f41539cc544ee2a240da817d3',
-      'next-final.txt': 'feb374c3f7e9a55788a3d468a5ec4aa60c1b6d0b5db3168d357cea9e685a60fe' } },
+  {
+    "dir": "private-460-run-Y9ch1k",
+    "turns": [
+      "initial"
+    ],
+    "stop": "unexpected-cli-tool",
+    "files": [
+      "initial-dispatch.json",
+      "initial-result.json"
+    ]
+  },
+  {
+    "dir": "private-460-run-eS95yj",
+    "turns": [
+      "initial"
+    ],
+    "stop": null,
+    "files": [
+      "initial-dispatch.json",
+      "initial-result.json",
+      "initial-final.txt"
+    ]
+  },
+  {
+    "dir": "private-460-run-f6gsoX",
+    "turns": [
+      "initial",
+      "next"
+    ],
+    "stop": null,
+    "files": [
+      "initial-dispatch.json",
+      "initial-result.json",
+      "initial-final.txt",
+      "next-dispatch.json",
+      "next-result.json",
+      "next-final.txt"
+    ]
+  }
 ];
 
 function exactKeys(value, keys) {
@@ -39,11 +64,27 @@ function exactKeys(value, keys) {
 }
 
 export function verifyPriorDispatches(root = PRIVATE_ROOT) {
+  // Actual response and dispatch digests stay in private retained provenance.
+  // Missing or altered provenance fails closed; the historical frozen verifier stays on its baseline.
+  const provenance = JSON.parse(fs.readFileSync(path.join(root, 'private-471-prior-provenance.json'), 'utf8'));
+  if (!exactKeys(provenance, ['kind', 'baselineCommit', 'attempts'])
+    || provenance.kind !== 'barocss-471-private-prior-provenance-v1'
+    || provenance.baselineCommit !== '3d325f146a92a263b78bd0864ef489c44664cadd'
+    || !Array.isArray(provenance.attempts) || provenance.attempts.length !== prior.length) {
+    throw new Error('Private prior provenance does not match the retained baseline');
+  }
   let count = 0;
   for (const attempt of prior) {
     const dir = path.join(root, attempt.dir);
     if (!fs.statSync(dir).isDirectory()) throw new Error('Prior #460 evidence missing');
-    for (const [name, hash] of Object.entries(attempt.hashes)) {
+    const retained = provenance.attempts[prior.indexOf(attempt)];
+    if (!exactKeys(retained, ['dir', 'turns', 'stop', 'hashes']) || retained.dir !== attempt.dir
+      || JSON.stringify(retained.turns) !== JSON.stringify(attempt.turns) || retained.stop !== attempt.stop
+      || !exactKeys(retained.hashes, attempt.files)
+      || !Object.values(retained.hashes).every((value) => /^[a-f0-9]{64}$/.test(value))) {
+      throw new Error('Private prior provenance shape changed');
+    }
+    for (const [name, hash] of Object.entries(retained.hashes)) {
       if (sha256(fs.readFileSync(path.join(dir, name))) !== hash) {
         throw new Error('Accepted #460 evidence digest changed');
       }

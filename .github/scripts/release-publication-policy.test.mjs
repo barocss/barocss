@@ -7,12 +7,12 @@ const ci = readFileSync('.github/workflows/ci.yml', 'utf8');
 const mainChecker = readFileSync('.github/scripts/check-release-main.mjs', 'utf8');
 
 function assertManualOidcPublication(source) {
-  assert.match(source, /push:\n    branches: \[main\]/);
-  assert.match(source, /pull_request:\n    branches: \[main\]/);
-  assert.match(source, /workflow_dispatch:\n    inputs:\n      publish:/);
-  assert.match(source, /type: boolean\n        default: false/);
-  assert.match(source, /^  build:\n    name: build/m);
-  assert.match(source, /^  test:\n    name: test/m);
+  assert.match(source, /push:\n {4}branches: \[main\]/);
+  assert.match(source, /pull_request:\n {4}branches: \[main\]/);
+  assert.match(source, /workflow_dispatch:\n {4}inputs:\n {6}publish:/);
+  assert.match(source, /type: boolean\n {8}default: false/);
+  assert.match(source, /^ {2}build:\n {4}name: build/m);
+  assert.match(source, /^ {2}test:\n {4}name: test/m);
   assert.match(source, /if: github\.repository == 'barocss\/barocss' && github\.event_name == 'workflow_dispatch' && inputs\.publish == true && github\.ref == 'refs\/heads\/main'/);
   assert.match(source, /needs: \[build, test\]/);
   assert.match(source, /test "\$GITHUB_ACTOR" = easylogic/);
@@ -23,7 +23,7 @@ function assertManualOidcPublication(source) {
       < source.indexOf('node .github/scripts/check-publication-state.mjs'),
     'PM and main provenance checks must run before any published-state shortcut',
   );
-  assert.match(source, /environment: npm\n    permissions:\n      contents: write[\s\S]*?      id-token: write/);
+  assert.match(source, /environment: npm\n {4}permissions:\n {6}contents: write[\s\S]*? {6}id-token: write/);
   assert.match(source, /npm install --global npm@11\.5\.1/);
   assert.match(source, /node-version: '22\.22\.0'/);
   assert.match(source, /PACK_OUTPUT_DIR: /);
@@ -34,7 +34,7 @@ function assertManualOidcPublication(source) {
 
 test('main push and PR run checks but only explicit manual true can publish', () => {
   assertManualOidcPublication(release);
-  assert.doesNotMatch(ci, /      - main\n|^  publish:|^  build:|^  test:/m);
+  assert.doesNotMatch(ci, / {6}- main\n|^ {2}publish:|^ {2}build:|^ {2}test:/m);
 });
 
 test('default, event, and branch gates fail closed', () => {
@@ -69,4 +69,12 @@ test('there is no separate promotion dispatch or approval-triggered publishing p
 
 test('manual publication checks previous main ancestry of the merged develop candidate', () => {
   assert.match(mainChecker, /verifyMainAncestry\(parents\[0\], candidateSha\)/);
+});
+
+test('render is published first and all four packages get tags only after publication succeeds', () => {
+  assert.equal((release.match(/for name in render kit browser server; do/g) || []).length, 2);
+  assert.match(release, /name: Create package tags and GitHub Releases\n {8}if: steps\.oidc_publish\.outcome == 'success'/);
+  assert.match(mainChecker, /verifyReadiness\(comment.body, candidateSha, version\)/);
+  assert.match(mainChecker, /verifyRenderEvidence\(renderComment, renderEvidence.slice\('Render: '.length\), candidateSha, version\)/);
+  assert.match(mainChecker, /main.protected, true/);
 });

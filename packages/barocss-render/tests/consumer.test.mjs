@@ -47,7 +47,7 @@ async function consumer() {
       artifactHashes: Object.fromEntries(['dist/index.js', 'dist/index.d.ts', 'package.json'].map((name) => [name, digest(path.join(packageDir, name))])),
       kind: 'barocss-render-local-consumer-v1', source: 'authored-profile-form',
       modelCalls: 0, packageEntries: ['dist/index.js', 'dist/index.d.ts'],
-      runtimeSourceCopied: false, researchScriptsImported: false, packagePrivate: true };
+      runtimeSourceCopied: false, researchScriptsImported: false, packagePrivate: JSON.parse(fs.readFileSync(path.join(packageDir, 'package.json'))).private === true };
     return { scratch, dir, packageDir, metadata };
   })();
   return prepared;
@@ -56,9 +56,9 @@ async function consumer() {
 async function bundleExample(dir, entry, outfile) {
   const result = await build({ entryPoints: [entry], outfile, bundle: true, format: 'esm',
     platform: 'browser', jsx: 'automatic', target: 'es2022', metafile: true });
-  const inputs = Object.keys(result.metafile.inputs).map((name) => path.resolve(name));
-  assert(inputs.includes(path.join(dir, 'node_modules/@barocss/render/dist/index.js')));
-  assert(inputs.every((name) => name.startsWith(dir + path.sep)
+  const inputs = Object.keys(result.metafile.inputs).map((name) => fs.realpathSync(path.resolve(name)));
+  assert(inputs.includes(fs.realpathSync(path.join(dir, 'node_modules/@barocss/render/dist/index.js'))));
+  assert(inputs.every((name) => name.startsWith(fs.realpathSync(dir) + path.sep)
     || name.startsWith(fs.realpathSync(path.join(reactRoot, 'node_modules')) + path.sep)));
   return result.metafile;
 }
@@ -99,7 +99,7 @@ void [badColumns, badBinding, badAction, badType];
   const compiler = deps.resolve('typescript/bin/tsc');
   await exec(process.execPath, [compiler, '-p', path.join(dir, 'tsconfig.json')], { timeout: 30_000 });
   const pkg = JSON.parse(fs.readFileSync(path.join(packageDir, 'package.json')));
-  assert.equal(pkg.private, true);
+  assert.notEqual(pkg.private, true);
   assert.deepEqual(pkg.exports['.'], { types: './dist/index.d.ts', import: './dist/index.js' });
 });
 

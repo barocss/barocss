@@ -3,10 +3,18 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "linked": [
-    ["@barocss/kit", "@barocss/browser", "@barocss/server"]
+    [
+      "@barocss/kit",
+      "@barocss/browser",
+      "@barocss/server",
+      "@barocss/render"
+    ]
   ],
   "access": "public",
   "baseBranch": "develop",
   "updateInternalDependencies": "patch",
-  "ignore": ["barocss-docs", "@barocss/site"]
+  "ignore": [
+    "barocss-docs",
+    "@barocss/site"
+  ]
 }
