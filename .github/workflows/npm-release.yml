@@ -17,11 +17,11 @@ on:
         required: false
         type: string
       expected_version:
-        description: Exact version of all three packages
+        description: Exact version of all four packages
         required: false
         type: string
       readiness_comment_url:
-        description: PM release-ready comment with Guard and Ship evidence
+        description: Release-ready comment with Review, pack, and render evidence
         required: false
         type: string
 
@@ -114,7 +114,7 @@ jobs:
         run: node .github/scripts/check-release-version.mjs
         env:
           EXPECTED_VERSION: ${{ steps.version.outputs.release_version }}
-      - name: Verify reviewed main merge and PM readiness
+      - name: Verify reviewed main merge and release readiness
         run: node .github/scripts/check-release-main.mjs
         env:
           EXPECTED_MAIN_SHA: ${{ inputs.expected_main_sha }}
@@ -163,7 +163,7 @@ jobs:
           npmrc="$RUNNER_TEMP/barocss-oidc-npmrc"
           : > "$npmrc"
           export NPM_CONFIG_USERCONFIG="$npmrc"
-          for name in kit browser server; do
+          for name in render kit browser server; do
             npm publish "$RUNNER_TEMP/barocss-packs/barocss-$name-$RELEASE_VERSION.tgz" --access public --registry=https://registry.npmjs.org
           done
       - name: Create package tags and GitHub Releases
@@ -173,7 +173,7 @@ jobs:
           RELEASE_VERSION: ${{ steps.version.outputs.release_version }}
         run: |
           set -euo pipefail
-          for name in kit browser server; do
+          for name in render kit browser server; do
             tag="@barocss/$name@$RELEASE_VERSION"
             gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA" > /dev/null
             gh release create "$tag" --verify-tag --title "$tag" --generate-notes

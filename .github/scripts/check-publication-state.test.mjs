@@ -39,19 +39,19 @@ async function withRegistryState(publishedNames, options, check) {
 }
 
 test('all missing versions may enter the release preflight', () => {
-  assert.equal(classifyPublication([false, false, false]), 'unpublished');
+  assert.equal(classifyPublication([false, false, false, false]), 'unpublished');
 });
 
 test('all existing versions are idempotent', () => {
-  assert.equal(classifyPublication([true, true, true]), 'published');
+  assert.equal(classifyPublication([true, true, true, true]), 'published');
 });
 
 test('any partial package publication stops automatic retry', () => {
-  assert.throws(() => classifyPublication([true, false, false]), /Partial npm publication/);
-  assert.throws(() => classifyPublication([true, true, false]), /Partial npm publication/);
+  assert.throws(() => classifyPublication([true, false, false, false]), /Partial npm publication/);
+  assert.throws(() => classifyPublication([true, true, false, false]), /Partial npm publication/);
 });
 
-test('preflight accepts only three absent versions with no tags or Releases', async () => {
+test('preflight accepts only four absent versions with no tags or Releases', async () => {
   await withRegistryState([], { tags: false, releases: false }, async () => {
     assert.equal(await checkPublication(version, 'pre', sha, 'token'), 'unpublished');
   });
@@ -84,7 +84,7 @@ test('postflight waits for all exact npm records before checking tags', async ()
 
 test('postflight accepts complete npm records with exact tags and Releases', async () => {
   await withRegistryState(
-    ['@barocss/kit', '@barocss/browser', '@barocss/server'],
+    ['@barocss/kit', '@barocss/browser', '@barocss/server', '@barocss/render'],
     { tags: true, releases: true },
     async () => {
       assert.equal(await checkPublication(version, 'post', sha, 'token'), 'published');
@@ -94,11 +94,20 @@ test('postflight accepts complete npm records with exact tags and Releases', asy
 
 test('a later main commit skips a complete earlier release', async () => {
   await withRegistryState(
-    ['@barocss/kit', '@barocss/browser', '@barocss/server'],
+    ['@barocss/kit', '@barocss/browser', '@barocss/server', '@barocss/render'],
     { tags: true, releases: true, tagSha: oldSha },
     async () => {
       assert.equal(await checkPublication(version, 'pre', sha, 'token', true), 'published');
       await assert.rejects(checkPublication(version, 'post', sha, 'token', true), /tag does not target/);
     },
   );
+});
+
+test('every partial four-package state, including missing render, fails closed', () => {
+  for (let mask = 1; mask < 15; mask++) {
+    const states = [0, 1, 2, 3].map((bit) => Boolean(mask & (1 << bit)));
+    assert.throws(() => classifyPublication(states), /Partial npm publication/);
+  }
+  assert.throws(() => classifyPublication([true, true, true]), /all four/);
+  assert.throws(() => classifyPublication([true, true, true, 'true']), /booleans/);
 });
