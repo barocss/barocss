@@ -69,6 +69,7 @@ export default defineConfig(withMermaid({
             { text: 'Vite + Tailwind 4', link: '/guide/integration/vite-tailwind' },
             { text: 'Astro (SSR and static)', link: '/guide/integration/astro' },
             { text: 'Embedding AI widgets (Shadow DOM)', link: '/guide/integration/shadow-dom' },
+            { text: 'React renderer (staged)', link: '/guide/render' },
             { text: 'Frameworks (React, Vue, Svelte, Solid)', link: '/guide/integration/frameworks' },
             { text: 'jQuery', link: '/guide/integration/jquery' }
           ]
@@ -356,7 +357,8 @@ export default defineConfig(withMermaid({
             { text: 'Context API', link: '/api/context' },
             { text: 'Configuration', link: '/api/configuration' },
             { text: 'Browser Runtime', link: '/api/browser-runtime' },
-            { text: 'Server Runtime', link: '/api/server-runtime' }
+            { text: 'Server Runtime', link: '/api/server-runtime' },
+            { text: 'React renderer (staged)', link: '/api/render' }
           ]
         },
         {

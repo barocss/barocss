@@ -1,0 +1,19 @@
+{
+  "issue": 458,
+  "route": "direct-openai-standard-responses",
+  "capturePlanHash": "f9ff9ab08f49fb79e7444e11ce6ceb02f10366466df92c7d4fcf0a8b712b28e3",
+  "files": {
+    "api-prep.mjs": "2ccfcca613957d1f68bc833fce2b8823d28e11b69aacc0a931dee836c4c23811",
+    "api-live.mjs": "611d69b06fc594c7020485d05df84abed5e25d952f4424c1ef9cdccebdcf4fb9",
+    "api-provenance.mjs": "c10a5084b8ea049e4d6d6eca2b6864183cab5cd017c16a8fd5f29da81e9eb320",
+    "api-frozen.mjs": "0e2069def8757590d27563f52a762118fc4570153e109c6263f67a7cff279008",
+    "plan.mjs": "f4e91502fa59665d6e2599a33d2b25867f9c7e136e23c05344fce6ff8d3690b8",
+    "capture.mjs": "ca3fe74ea9b5e1baa2e8f4877edd8aab84be4e2deb0e4fd953670fa5b4bf916b",
+    "validate.mjs": "21869be6c0f82f10d3315895c7987e46af3a380cb781ece118de305b0f16c77c",
+    "score.mjs": "e79e66610d2973795db0cd14f2df733ec519ab9d60a9fb3ffa62c49e00322b3e",
+    "output.schema.json": "fbe2375a4ff621101245172cf6ccd03112f78e7b156ae5c14f126d6515de5626",
+    "frozen-plan.json": "f9ff9ab08f49fb79e7444e11ce6ceb02f10366466df92c7d4fcf0a8b712b28e3",
+    "API-RUN-PACKET.md": "a36db6094fd2e9b1ee45994053e2cc360fd8c63b96b39ba8a99dd55180948271",
+    "api-consumers.mjs": "04e26d73be943d062ff34e2879d41f5be9ebe6e8f235f4bcd3b7451db1d6ac57"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "status": "excluded diagnostic attempt",
+  "reason": "The adapter did not enforce component prop schemas, so three invalid values were accepted. The result.json from this attempt was superseded by the corrected full rerun; this file preserves the observed summary and known unexpected rows from its console output.",
+  "baselineSha256": "d3ad115dfb375f4386f645a754c2d3317aa24847df0f386be89d7d6c45d68ee0",
+  "measuredCells": 192,
+  "summary": {
+    "preset": {
+      "planned": 48,
+      "supported": 20,
+      "pass": 20,
+      "unsupported": 28,
+      "failure": 0,
+      "classificationDrift": 0
+    },
+    "variable": {
+      "planned": 48,
+      "supported": 36,
+      "pass": 36,
+      "unsupported": 12,
+      "failure": 0,
+      "classificationDrift": 0
+    },
+    "utility": {
+      "planned": 48,
+      "supported": 48,
+      "pass": 48,
+      "unsupported": 0,
+      "failure": 0,
+      "classificationDrift": 0
+    },
+    "build": {
+      "planned": 48,
+      "supported": 0,
+      "pass": 0,
+      "unsupported": 44,
+      "failure": 0,
+      "classificationDrift": 4
+    }
+  },
+  "unexpectedComputedMatches": [
+    "dashboard-one-column--desktop--build--0",
+    "dashboard-one-column--desktop--build--1",
+    "dashboard-one-column--narrow--build--0",
+    "dashboard-one-column--narrow--build--1"
+  ],
+  "policyNegatives": [
+    {
+      "name": "url-string",
+      "rejected": false,
+      "unchanged": false
+    },
+    {
+      "name": "below-range",
+      "rejected": false,
+      "unchanged": false
+    },
+    {
+      "name": "above-range",
+      "rejected": false,
+      "unchanged": false
+    }
+  ],
+  "missingOriginalArtifacts": [
+    "Per-cell first-attempt result.json was overwritten by the corrected full rerun before preservation was requested.",
+    "First-attempt screenshot files were overwritten and cannot be attributed to this diagnostic attempt."
+  ]
+}

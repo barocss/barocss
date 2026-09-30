@@ -3,9 +3,12 @@ import { appendFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-export const packageNames = ['@barocss/kit', '@barocss/browser', '@barocss/server'];
+import { packageNames } from './release-manifests.mjs';
+export { packageNames };
 
 export function classifyPublication(states) {
+  assert.equal(states.length, packageNames.length, 'Expected all four publication states');
+  assert.ok(states.every((state) => typeof state === 'boolean'), 'Publication states must be booleans');
   const count = states.filter(Boolean).length;
   if (count === 0) return 'unpublished';
   if (count === states.length) return 'published';
