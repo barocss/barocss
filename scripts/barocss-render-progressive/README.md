@@ -19,6 +19,10 @@ initialization, one consumed reservation and zero model/UI timing samples. No re
 The [#465 corrected proposal](./CORRECTED-PACKET-465.md) addresses native CLI key semantics with
 source-contract checks only. It supplies no live GO and cannot reuse the spent #464 decision.
 
+The [actual #466 corrected-run result](./RESULT-466.md) records successful native initialization,
+one consumed startup, rejection of documented pre-turn metadata, and zero model/UI samples.
+The new one-launch decision is consumed; no retry occurred.
+
 ## Capability and ownership
 
 The installed Codex 0.156.1 app-server protocol has `item/agentMessage/delta`,
