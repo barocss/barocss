@@ -11,6 +11,11 @@ the implementation tests.
 The [#463 configuration inspection result](./CONFIG-INSPECTION-463.md) records the bounded
 negative finding for an installed standalone resolver diagnostic. It leaves the #462 guards intact.
 
+The [#464 current-host packet](./CURRENT-HOST-PACKET.md) defines the separately selected mode for
+the owner-approved current-Mac experiment. It preserves the default #462 guard and records startup
+limits explicitly. The [actual #464 result](./RESULT-464.md) records one failed native
+initialization, one consumed reservation and zero model/UI timing samples. No retry occurred.
+
 ## Capability and ownership
 
 The installed Codex 0.156.1 app-server protocol has `item/agentMessage/delta`,

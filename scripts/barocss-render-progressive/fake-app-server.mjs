@@ -81,12 +81,18 @@ function handle(request) {
       throw new Error('Invalid thread start settings');
     }
     session++;
+    if (session === 2 && mode === 'second-session-timeout') return;
+    if (session === 2 && mode === 'second-session-rpc-error') {
+      send({ id: request.id, error: { code: -32000, message: 'Authored second-session failure' } });
+      return;
+    }
     const thread = { id: threadId(), cliVersion: '0.156.1', createdAt: 0, updatedAt: 0,
       cwd: request.params.cwd, ephemeral: false, modelProvider: 'openai', preview: '',
       projectId: null, sessionId: 'fake-id', source: 'appServer',
       status: { type: 'idle' }, turns: [] };
     const result = { thread,
-      model: mode === 'wrong-model' ? 'wrong-model' : 'gpt-6.1-sol', cwd: request.params.cwd,
+      model: mode === 'wrong-model' || (session === 2 && mode === 'second-session-wrong-model')
+        ? 'wrong-model' : 'gpt-6.1-sol', cwd: request.params.cwd,
       approvalPolicy: 'never', sandbox: { type: 'readOnly', networkAccess: false },
       approvalsReviewer: 'auto_review', modelProvider: 'openai', reasoningEffort: 'high',
       instructionSources: [] };
