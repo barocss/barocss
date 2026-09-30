@@ -1,93 +1,141 @@
-# `@barocss/render` private prototype
+# `@barocss/render` private local library
 
-This workspace package tests a small React renderer for a fixed profile form. It is private and exports source JSX. It has no publish build, Changeset, release, or stable API promise.
+This package builds a small React renderer for the existing profile-form contract. Implementation,
+build and type declarations live in `packages/barocss-render`. It is **private**, ESM-only and
+prototype-only: no npm publication, stable API promise, model transport or new component catalog.
 
-## How a screen reaches the browser
+## Build and use locally
+
+React 19.2.3 is an external peer; the application also needs its normal React DOM/browser setup.
+The build uses the repository's installed esbuild. It emits `dist/index.js` and `dist/index.d.ts`;
+package root exports resolve those files, with no repository JSX or research-script import required.
+Use installed assets; no dependency or browser download is part of these commands.
+
+```sh
+NODE=/Users/user/Library/pnpm/nodejs/22.19.0/bin/node
+# Set REPO_DEPS_ROOT only when the current worktree lacks installed root tools.
+REPO_DEPS_ROOT=/Users/user/.barocss-ai/v3/integration \
+  "$NODE" packages/barocss-render/build.mjs
+```
+
+Link the built package into a local consumer's `node_modules/@barocss/render`, or use a local package
+copy containing its `package.json` and `dist`. That consumer supplies React. Source is not a package
+export. The [small TypeScript example](./examples/profile-form.tsx) imports only React and
+`@barocss/render`; it defines application components, state and a save callback, not another server
+or model caller. Its fixture is authored form-compatible data, **not a captured model response**.
+
+```tsx
+import { Renderer, validateSpec, classesFor } from '@barocss/render';
+import type { ComponentRegistry, FormState, ScreenSpec } from '@barocss/render';
+```
+
+The existing [loopback demo](../../scripts/barocss-render-loop/README.md) remains the interactive
+Generate → name input → Save → confirmation host. Its default authored-mock mode calls no model.
+It still uses its retained source-based research adapter; the new separate-consumer check below
+uses the **built package**. These are distinct evidence paths, not a second demo framework.
+
+## Data flow and ownership
 
 ```mermaid
 flowchart LR
-  A[User request] --> B[Host calls fixed Codex CLI]
-  B --> C[Complete initial JSON response]
-  C --> D[Host parses and validates]
-  D -- errors --> E[Keep last valid screen]
-  D -- valid --> F[Registered React components]
-  F --> G[BaroCSS classes and browser runtime]
-  G --> H[Visible form]
-  H -- name input and save action --> I[Host owns state and action]
-  I --> J[Codex CLI resumes same session]
-  J --> K[Complete next JSON response]
-  K --> D
+  A[Host receives complete JSON] --> B[Host parses outer response and specJson]
+  B --> C[validateSpec]
+  C -- errors --> D[Host keeps last valid screen]
+  C -- valid --> E[Renderer revalidates]
+  E --> F[Application component registry]
+  F --> G[Fixed BaroCSS classes and browser runtime]
+  G --> H[Input and save]
+  H --> I[Host state and action callback]
 ```
 
-The [#460 accepted live proof](https://github.com/barocss/barocss/issues/460#issuecomment-5862705075) followed this path for one profile form and one action-driven confirmation. It used two complete responses in one CLI session. This is a private prototype observation, not a streaming or latency claim. The package contains the validator and renderer; the [loopback host](../../scripts/barocss-render-loop/README.md) owns CLI calls and actions. The authored fixture and API example below remain separate from model output.
+The renderer receives an **inner screen object**. It does not parse a JSON string or unwrap the
+research host's `{ "specJson": "..." }` envelope. The host does both JSON.parse steps and calls
+`validateSpec` before accepting a candidate. No repair or normalization occurs. `validateSpec`
+returns `{ ok: boolean, errors: { path, message }[] }`, not a normalized spec or TypeScript type guard.
+After `ok`, a typed host can treat the checked candidate as `ScreenSpec`.
 
-1. The host parses JSON. `validateSpec` returns `{ ok, errors }`; each error has a field path and message. The host keeps the last valid spec if parsing or validation fails.
-2. Validation accepts only `root`, `elements`, 2–32 nodes, and the registered `Layout`, `Card`, `Text`, `Input`, and `Button` shapes. It checks required props, exact style choices, the `/name` binding, the `save` action, ID references, one parent per node, reachability, and cycles. Unknown fields and components fail.
-3. The host passes a valid spec, a component registry, form state, a state setter, and a named action registry to `Renderer`. `Renderer` validates again before it constructs React elements. A missing registered component also fails.
-4. Each JSON node ID becomes a React key. The registered components create HTML elements. `classesFor` maps reviewed style names to fixed BaroCSS utility classes; the JSON cannot supply a class string. The host starts the BaroCSS browser runtime and preloads the fixed class set before rendering.
-5. `Input` reads `state.name` and calls the host setter. `Button` calls the registered `save` function. The renderer does not execute JSON, create arbitrary HTML, or perform a network request.
-6. When the host accepts a new complete JSON screen, React updates the tree. An unrelated new node can leave the existing input value and focus in place because its ID and component position stay stable. Moving or replacing that node can remount it and lose focus. The host owns the form state and the last valid spec.
+The host owns:
 
-## Actual accepted JSON
+- The last valid screen and parse/validation error display. `Renderer` throws on an invalid spec;
+  it is not an error boundary and does not store an earlier screen.
+- Form state, its setter and the `save` function. The default `FormState` is `{ name: string }`;
+  generic state is also passed through to application components. The renderer does not validate
+  state values or action registry functions. A used action must have a callable host handler.
+- All component functions and their HTML. The typed `ComponentRegistry` names the five existing
+  components. Register ordinary React component functions/classes; wrapped object-valued memo or
+  forwardRef registrations are not supported by the current function check. A missing used component
+  throws `Missing registered component: TYPE`.
+- BaroCSS browser startup. `classesFor` maps validated Layout/Card style choices to reviewed classes;
+  other nodes return an empty string. Application components may add fixed authored utility classes.
+  The package starts no CSS runtime and accepts no arbitrary class, HTML, JS or CSS string from JSON.
+- Any model connection, session, timeout, revision, cancellation or next-response action. These are
+  application concerns. The package calls no model, opens no network connection and keeps no CLI session.
 
-This is the authored [comparison fixture](../../scripts/barocss-render-prototype/fixture.mjs). It is not model output.
+Each node ID is its React key. Stable ID and component position can preserve an input during a
+complete-screen update. Moving or replacing that node can remount it; the host remains responsible
+for state and focus. Text is rendered through the application's ordinary React text children.
 
-```json
-{
-  "root": "layout",
-  "elements": {
-    "layout": { "type": "Layout", "props": { "id": "layout", "columns": "responsive", "gap": "fractional" }, "children": ["card"] },
-    "card": { "type": "Card", "props": { "id": "card", "padding": "fractional", "tone": "light" }, "children": ["heading", "name", "save"] },
-    "heading": { "type": "Text", "props": { "id": "heading", "text": "Profile settings" }, "children": [] },
-    "name": { "type": "Input", "props": { "id": "name", "label": "Name", "value": { "$bindState": "/name" } }, "children": [] },
-    "save": { "type": "Button", "props": { "id": "save", "label": "Save profile" }, "children": [], "on": { "press": { "action": "save" } } }
-  }
-}
+## Existing screen contract
+
+`validateSpec(unknown)` accepts only `root` and `elements`, with 2–32 nodes. Root must be a Layout.
+Node IDs match `[a-z][a-z0-9-]{0,31}`, and each `props.id` matches its element key. All references must
+exist, each node has one parent, all nodes are reachable and cycles are rejected. Unknown fields,
+props and component types fail. Text/labels require 1–300 characters.
+
+| Component | Required props in addition to id | Children / action |
+| --- | --- | --- |
+| Layout | columns: responsive or single; gap: fractional or wide | Node ID array |
+| Card | padding: fractional or spacious; tone: light or dark | Node ID array |
+| Text | text | Empty array |
+| Input | label; value: `{ "$bindState": "/name" }` | Empty array |
+| Button | label | Empty array; on: `{ "press": { "action": "save" } }` |
+
+Type declarations express the component/prop/style/binding/action shapes. They cannot prove node
+counts, ID equality, graph structure, text length or that untrusted runtime data is valid. Always
+run the runtime validator. `classesFor` expects an already validated node and is not another validator.
+
+## Verify a separate built-package consumer
+
+Use the already installed esbuild, TypeScript, React/React DOM, React type declarations and Chromium.
+The default package `test` runs the built ESM export smoke check with the installed React peer.
+The focused `test:consumer` includes TypeScript and browser interaction checks and needs the installed
+asset paths below. React type declarations belong to the consuming TypeScript application's setup.
+No `pnpm install`, browser download, native Codex process or paid model call is needed.
+
+```sh
+NODE=/Users/user/Library/pnpm/nodejs/22.19.0/bin/node
+export REPO_DEPS_ROOT=/Users/user/.barocss-ai/v3/integration
+export REACT_ROOT=/Users/user/.barocss-ai/v3/wt/issue-446/scripts/json-render-446/scratch/jr
+export REACT_TYPES_ROOT=/Users/user/github/ai-based/abs
+export PW_DIR=/Users/user/github/ai-based/abs/node_modules/.pnpm/playwright-core@1.60.0/node_modules/playwright-core
+"$NODE" --test packages/barocss-render/tests/consumer.test.mjs
 ```
 
-## API example
+The check builds the package, copies only package metadata and dist into a separate temporary consumer,
+and links installed React peers. No renderer source directory or research scripts are copied. It then:
 
-This authored example uses the comparison app's real component registry. If an editor calls `applyJson`, invalid edits set errors and leave `acceptedSpec` unchanged. The host must load and start BaroCSS before it mounts this component, as [the loopback demo does](../../scripts/barocss-render-prototype/serve.mjs). The relative imports below assume this code sits in this package directory.
+1. Type-checks the example against built declarations and rejects unsupported component/style/binding/action types.
+2. Bundles a browser consumer through package root exports; all inputs are the isolated consumer or installed third-party assets.
+3. Measures applied BaroCSS layout classes, changes the input and invokes the host save callback.
+4. Rejects invalid data, retains the previous valid screen and input, then accepts another complete screen.
+5. Checks no page errors or external requests and records an authored screenshot. These observations
+   establish this narrow local consumer path, not arbitrary UI support or model performance.
 
-```jsx
-import { useState } from 'react';
-import { Renderer, validateSpec } from '@barocss/render';
-import { Layout, Card, Text, Input, Button } from '../../scripts/barocss-render-prototype/visual.jsx';
-import { INITIAL } from '../../scripts/barocss-render-prototype/fixture.mjs';
+Set `CONSUMER_RESULT_ROOT` to an existing private output root to retain the report, screenshot and
+bundler inputs. Each run creates a fresh child directory. The report binds artifact hashes to the
+source commit and records whether the worktree was clean. Keep real captured inputs private.
 
-const components = {
-  Layout, Card, Text,
-  Input: ({ node, state, setState }) => <Input node={node} value={state.name}
-    onChange={(name) => setState((old) => ({ ...old, name }))} />,
-  Button: ({ node, onAction }) => <Button node={node} onClick={onAction} />,
-};
+## Retained research and limits
 
-function ScreenHost({ onSave }) {
-  const [acceptedSpec, setAcceptedSpec] = useState(INITIAL);
-  const [state, setState] = useState({ name: 'Ada' });
-  const [errors, setErrors] = useState([]);
+The [#469 result](../../scripts/barocss-render-progressive/RESULT-469.md) and
+[data-lineage manifest](../../scripts/barocss-render-progressive/DATA-LINEAGE-469.json) distinguish
+original stream bytes, parsed agent text, screen specs, state/action projections and browser evidence.
+That measurement stage ended before any new model turn. The historical #458 corpus has 18 verified
+actual complete responses, including the accepted #460 two-turn pair; the new consumer test uses
+separate deterministic authored data. It adds no model observation or launch allowance.
 
-  function applyJson(raw) {
-    let candidate;
-    try { candidate = JSON.parse(raw); }
-    catch { setErrors([{ path: '$', message: 'Invalid JSON' }]); return; }
-    const result = validateSpec(candidate);
-    setErrors(result.errors);
-    if (result.ok) setAcceptedSpec(candidate);
-  }
-
-  const actions = { save: () => onSave({ name: state.name }) };
-  return <>
-    <textarea aria-label="Screen JSON" onChange={(event) => applyJson(event.target.value)} />
-    <ul>{errors.map(({ path, message }) => <li key={path}>{path}: {message}</li>)}</ul>
-    <Renderer spec={acceptedSpec} components={components} state={state}
-      setState={setState} actions={actions} />
-  </>;
-}
-```
-
-The demo uses an in-memory action log. See [the prototype adapter](../../scripts/barocss-render-prototype/prototype-adapter.jsx) and [browser host](../../scripts/barocss-render-prototype/browser-app.jsx) for the executed path.
-
-## Current boundary
-
-This package accepts a screen-specific data contract. It does not call Codex or Claude, retain an agent session, or accept generated scripts or arbitrary CSS. The separate [#460 loopback host](../../scripts/barocss-render-loop/README.md) ran one accepted two-turn CLI proof under a separate review and launch gate. The [authored comparison and decision](../../scripts/barocss-render-prototype/README.md) measure this private prototype against official json-render with the same authored fixture.
+Historical freezes bind exact source and README bytes. This updated README intentionally makes the
+#458 freeze differ at current HEAD. Old plans, claims, corpus and accepted baseline commits remain
+unchanged. Historical verification runs at their retained baseline; new built-package/consumer
+verification binds to this candidate. Do not rewrite old freezes or use a historical live ACCEPT
+for this new package build. See [local-library result](./RESULT-470.md) for exact evidence and checks.
