@@ -1,0 +1,43 @@
+{
+  "name": "@barocss/render",
+  "version": "0.12.0",
+  "type": "module",
+  "peerDependencies": {
+    "react": "19.2.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "examples/profile-form.tsx",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "build:library": "node build.mjs",
+    "test": "node --test --test-name-pattern=\"built ESM\" tests/consumer.test.mjs",
+    "test:consumer": "node --test tests/consumer.test.mjs"
+  },
+  "description": "Experimental React renderer for validated BaroCSS profile-form screen specs",
+  "license": "MIT",
+  "author": "BaroCSS Team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/barocss/barocss.git",
+    "directory": "packages/barocss-render"
+  },
+  "homepage": "https://barocss.com",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14"
+  }
+}

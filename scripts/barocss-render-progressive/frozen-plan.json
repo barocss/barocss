@@ -1,0 +1,38 @@
+{
+  "kind": "barocss-progressive-live-plan-v1",
+  "issue": 461,
+  "phase": "preparation-only",
+  "codexVersion": "0.156.1",
+  "transport": "app-server-stdio-v2",
+  "model": "gpt-6.1-sol",
+  "reasoningEffort": "high",
+  "sandboxPolicy": "readOnly",
+  "approvalPolicy": "never",
+  "maxNewTurns": 4,
+  "maxSessions": 2,
+  "perTurnTimeoutMs": 180000,
+  "wholeRunTimeoutMs": 720000,
+  "maxEventBytesPerTurn": 2000000,
+  "noAutomaticRetry": true,
+  "prior458AllowanceExhausted": true,
+  "protocolSchemaSha256": "995fc3b8f8c469f6787e8fc5be4038c4f31359025edd8480b862e83355f3bf3b",
+  "outputSchemaSha256": "7909df65cc3b6025fe9de2ec1b204d3bd4cfcde0e8e7d74ab14905f8797f499c",
+  "validationContractSha256": "1eb435bd1c80aa5ef591c38c986f189d4ee235c12ec61866ca06cee155543a8e",
+  "promptContractSha256": "e397a7a0becc33b49e0bbeea92544b4348fe9d1d711b38a865b30e9d4a59f235",
+  "scenarios": [
+    {
+      "id": "01",
+      "prompt": "Create a profile form",
+      "name": "Bea",
+      "initialPromptSha256": "c81610c2180537e32ba6a5bd636f3fe6c61ae970351a9f0a0899c87b57543ba0",
+      "nextPromptSha256": "2de04115b82b94d24131f9af0a929b2e0710b2b225080166c2d8996043d5518f"
+    },
+    {
+      "id": "03",
+      "prompt": "Create a light profile form with the heading Profile settings, a Name input, and a Save profile button.",
+      "name": "Zoë",
+      "initialPromptSha256": "d9e99c3d9d360bddc789be441d3f559bee9f924d399087152df5ded6d44d0466",
+      "nextPromptSha256": "8bf4878f4336f8b3e7451c8f93bd48ccc954ad141caaa178c0f3c3834315e749"
+    }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "kind": "baseline-smoke",
+  "baselineSha256": "b5c47fbda88ff4063728dccea902f05f262b50daf2d9eab30df9c251ae8fc4ef",
+  "rows": [
+    {
+      "viewport": "desktop",
+      "arm": "preset",
+      "schemaValid": true,
+      "errors": [],
+      "computed": {
+        "padding": "24px",
+        "gap": "24px",
+        "radius": "14px",
+        "columns": 2,
+        "layoutBackground": "oklch(1 0 0)",
+        "layoutColor": "oklch(0.145 0 0)",
+        "buttonBackground": "oklch(0.205 0 0)",
+        "host": [
+          "oklch(0.145 0 0)",
+          "oklch(1 0 0)",
+          "16px",
+          "static",
+          "auto"
+        ]
+      },
+      "screenshot": "baseline-desktop-preset.png"
+    },
+    {
+      "viewport": "desktop",
+      "arm": "variable",
+      "schemaValid": true,
+      "errors": [],
+      "computed": {
+        "padding": "24px",
+        "gap": "24px",
+        "radius": "14px",
+        "columns": 2,
+        "layoutBackground": "oklch(1 0 0)",
+        "layoutColor": "oklch(0.145 0 0)",
+        "buttonBackground": "oklch(0.205 0 0)",
+        "host": [
+          "oklch(0.145 0 0)",
+          "oklch(1 0 0)",
+          "16px",
+          "static",
+          "auto"
+        ]
+      },
+      "screenshot": "baseline-desktop-variable.png"
+    },
+    {
+      "viewport": "desktop",
+      "arm": "utility",
+      "schemaValid": true,
+      "errors": [],
+      "computed": {
+        "padding": "24px",
+        "gap": "24px",
+        "radius": "14px",
+        "columns": 2,
+        "layoutBackground": "oklch(1 0 0)",
+        "layoutColor": "oklch(0.145 0 0)",
+        "buttonBackground": "oklch(0.205 0 0)",
+        "host": [
+          "oklch(0.145 0 0)",
+          "oklch(1 0 0)",
+          "16px",
+          "static",
+          "auto"
+        ]
+      },
+      "screenshot": "baseline-desktop-utility.png"
+    },
+    {
+      "viewport": "desktop",
+      "arm": "build",
+      "schemaValid": true,
+      "errors": [],
+      "computed": {
+        "padding": "24px",
+        "gap": "24px",
+        "radius": "14px",
+        "columns": 2,
+        "layoutBackground": "oklch(1 0 0)",
+        "layoutColor": "oklch(0.145 0 0)",
+        "buttonBackground": "oklch(0.205 0 0)",
+        "host": [
+          "oklch(0.145 0 0)",
+          "oklch(1 0 0)",
+          "16px",
+          "static",
+          "auto"
+        ]
+      },
+      "screenshot": "baseline-desktop-build.png"
+    },
+    {
+      "viewport": "narrow",
+      "arm": "preset",
+      "schemaValid": true,
+      "errors": [],
+      "computed": {
+        "padding": "24px",
+        "gap": "24px",
+        "radius": "14px",
+        "columns": 2,
+        "layoutBackground": "oklch(1 0 0)",
+        "layoutColor": "oklch(0.145 0 0)",
+        "buttonBackground": "oklch(0.205 0 0)",
+        "host": [
+          "oklch(0.145 0 0)",
+          "oklch(1 0 0)",
+          "16px",
+          "static",
+          "auto"
+        ]
+      },
+      "screenshot": "baseline-narrow-preset.png"
+    },
+    {
+      "viewport": "narrow",
+      "arm": "variable",
+      "schemaValid": true,
+      "errors": [],
+      "computed": {
+        "padding": "24px",
+        "gap": "24px",
+        "radius": "14px",
+        "columns": 2,
+        "layoutBackground": "oklch(1 0 0)",
+        "layoutColor": "oklch(0.145 0 0)",
+        "buttonBackground": "oklch(0.205 0 0)",
+        "host": [
+          "oklch(0.145 0 0)",
+          "oklch(1 0 0)",
+          "16px",
+          "static",
+          "auto"
+        ]
+      },
+      "screenshot": "baseline-narrow-variable.png"
+    },
+    {
+      "viewport": "narrow",
+      "arm": "utility",
+      "schemaValid": true,
+      "errors": [],
+      "computed": {
+        "padding": "24px",
+        "gap": "24px",
+        "radius": "14px",
+        "columns": 2,
+        "layoutBackground": "oklch(1 0 0)",
+        "layoutColor": "oklch(0.145 0 0)",
+        "buttonBackground": "oklch(0.205 0 0)",
+        "host": [
+          "oklch(0.145 0 0)",
+          "oklch(1 0 0)",
+          "16px",
+          "static",
+          "auto"
+        ]
+      },
+      "screenshot": "baseline-narrow-utility.png"
+    },
+    {
+      "viewport": "narrow",
+      "arm": "build",
+      "schemaValid": true,
+      "errors": [],
+      "computed": {
+        "padding": "24px",
+        "gap": "24px",
+        "radius": "14px",
+        "columns": 2,
+        "layoutBackground": "oklch(1 0 0)",
+        "layoutColor": "oklch(0.145 0 0)",
+        "buttonBackground": "oklch(0.205 0 0)",
+        "host": [
+          "oklch(0.145 0 0)",
+          "oklch(1 0 0)",
+          "16px",
+          "static",
+          "auto"
+        ]
+      },
+      "screenshot": "baseline-narrow-build.png"
+    }
+  ]
+}

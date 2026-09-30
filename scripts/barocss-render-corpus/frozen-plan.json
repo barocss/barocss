@@ -1,0 +1,208 @@
+{
+  "kind": "barocss-render-corpus-v1",
+  "contract": {
+    "kind": "barocss-render-corpus-v1",
+    "issue": 458,
+    "aggregateCeiling": 20,
+    "priorDispatches": 4,
+    "newDispatchCeiling": 16,
+    "perCallTimeoutMs": 180000,
+    "wholeRunTimeoutMs": 3600000,
+    "viewportWidths": [
+      1200,
+      390
+    ],
+    "granularity": "complete-response",
+    "promptVersion": "profile-form-v2",
+    "invalidInitialNextStatus": "unattempted",
+    "noAutomaticRetry": true,
+    "rowOrder": [
+      "01",
+      "02",
+      "03",
+      "04",
+      "05",
+      "06",
+      "07",
+      "08",
+      "09",
+      "10"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "01",
+      "prompt": "Create a profile form",
+      "name": "Bea"
+    },
+    {
+      "id": "02",
+      "prompt": "이름을 입력하고 저장할 수 있는 밝은 프로필 폼을 만들어 줘. 화면 문구는 한국어로 써 줘.",
+      "name": "서연"
+    },
+    {
+      "id": "03",
+      "prompt": "Create a light profile form with the heading Profile settings, a Name input, and a Save profile button.",
+      "name": "Zoë"
+    },
+    {
+      "id": "04",
+      "prompt": "Create a dark profile form with one name input and a save button.",
+      "name": "O'Neil"
+    },
+    {
+      "id": "05",
+      "prompt": "Create a single-column profile form with spacious card padding and a name input plus a save button.",
+      "name": "Alex Chen"
+    },
+    {
+      "id": "06",
+      "prompt": "Create a responsive profile layout with a form card and a separate short help card. Include exactly one name input and one save button.",
+      "name": "Morgan"
+    },
+    {
+      "id": "07",
+      "prompt": "Create a compact light profile form using fractional spacing. Include a name input and a save button.",
+      "name": "A"
+    },
+    {
+      "id": "08",
+      "prompt": "Create a dark profile layout with wide gaps and spacious padding. Include exactly one name input and one save button.",
+      "name": "Jean-Luc"
+    },
+    {
+      "id": "09",
+      "prompt": "밝은 프로필 폼을 만들어 줘. 제목은 내 프로필, 입력 이름은 이름, 저장 버튼은 저장으로 써 줘.",
+      "name": "민수 Kim"
+    },
+    {
+      "id": "10",
+      "prompt": "Create a profile form with a heading, a short help text explaining that saving shows a local confirmation, one name input and a save button.",
+      "name": "Avery Taylor Morgan"
+    }
+  ],
+  "rubric": {
+    "version": "profile-form-content-v1",
+    "contentChecks": {
+      "10": [
+        "one-name-input",
+        "one-save-button",
+        "help-text-present",
+        "manual-local-confirmation-semantics"
+      ],
+      "01": [
+        "one-name-input",
+        "one-save-button"
+      ],
+      "02": [
+        "one-name-input",
+        "one-save-button",
+        "light-tone",
+        "korean-script-copy",
+        "manual-korean-language-quality"
+      ],
+      "03": [
+        "one-name-input",
+        "one-save-button",
+        "light-tone",
+        "exact-heading-profile-settings",
+        "exact-label-name",
+        "exact-button-save-profile"
+      ],
+      "04": [
+        "one-name-input",
+        "one-save-button",
+        "dark-tone"
+      ],
+      "05": [
+        "one-name-input",
+        "one-save-button",
+        "single-column",
+        "spacious-padding"
+      ],
+      "06": [
+        "one-name-input",
+        "one-save-button",
+        "responsive-columns",
+        "two-separate-cards",
+        "help-card-text"
+      ],
+      "07": [
+        "one-name-input",
+        "one-save-button",
+        "light-tone",
+        "fractional-gap",
+        "fractional-padding"
+      ],
+      "08": [
+        "one-name-input",
+        "one-save-button",
+        "dark-tone",
+        "wide-gap",
+        "spacious-padding"
+      ],
+      "09": [
+        "one-name-input",
+        "one-save-button",
+        "light-tone",
+        "exact-heading-my-profile",
+        "exact-label-korean-name",
+        "exact-button-korean-save"
+      ]
+    }
+  },
+  "cli": {
+    "version": "0.156.1",
+    "model": "gpt-6-sol",
+    "reasoning": "high",
+    "promptVersion": "profile-form-v2",
+    "promptContractSha256": "e397a7a0becc33b49e0bbeea92544b4348fe9d1d711b38a865b30e9d4a59f235",
+    "perCallTimeoutMs": 180000,
+    "perSessionTimeoutMs": 360000
+  },
+  "calibration": {
+    "issue": 460,
+    "acceptedTaskCommit": "a2cdd935f884f9a592d9b651e4827ffda23841d7",
+    "proofOutputDir": "/Users/user/.barocss-ai/v3/private-460-run-f6gsoX",
+    "priorAttemptOutputDirs": [
+      "/Users/user/.barocss-ai/v3/private-460-run-Y9ch1k",
+      "/Users/user/.barocss-ai/v3/private-460-run-eS95yj"
+    ],
+    "chargedDispatches": 4,
+    "promptV1SeparateCohort": true
+  },
+  "boundaries": {
+    "cliOnly": true,
+    "noApiFallback": true,
+    "noAutomaticRetry": true,
+    "noNewDownloads": true,
+    "serialSessions": true,
+    "strictSharedSpec": true,
+    "invalidOutputRetained": true,
+    "generatedCodeExecution": false,
+    "row10CanBeSkippedAtCeiling": true
+  },
+  "sourceSha256": {
+    "scripts/barocss-render-corpus/plan.mjs": "e821b9328a6e6e2919b4773ca1913b72daf464b0e6ef0f1523c4e9957520e1e7",
+    "scripts/barocss-render-corpus/collector.mjs": "e5adfaa480bd8a7224ef1e9252bcce8f2dc2ce530b9be1136134c288fc8d5869",
+    "scripts/barocss-render-corpus/freeze.mjs": "310a43c0d3271c2b1f145bc10c04435b0df5b60ea649fa29480d6a2102595e7f",
+    "scripts/barocss-render-corpus/launch.mjs": "de02d8c066500fb72ad77e43643a9402deb36e57853652a228c2b71949163374",
+    "scripts/barocss-render-corpus/verify.mjs": "b5e27df7c51c04a5b99b005255e784ff74e9efc720a0044221225c87adef2ce1",
+    "scripts/barocss-render-corpus/rubric.mjs": "0530db82d7d98a787c9ff545adede1cd2390f7be13b5ca2564646684a641228e",
+    "scripts/barocss-render-corpus/LAUNCH-PACKET.md": "abe987e2354e5037f65b96158ec10c1c7cd268524a696733b1ca7ab8485343e2",
+    "scripts/barocss-render-corpus/replay.mjs": "367937722ed2d311f3bec162fcd3a07d4c60b463dbf88dae7a595cdd22597919",
+    "scripts/barocss-render-corpus/browser-app.jsx": "9aab9c2badb88ce6c0497515e10297374dd4156ab622f13b01938ed21c26e8a9",
+    "scripts/barocss-render-corpus/base.css": "29aba1c86282d0c3ad60c5f254bedf6c326aa4ab36132c3587ab27a9d69d98fc",
+    "scripts/barocss-render-loop/cli-profile.mjs": "63dbb8f71973a1e0cdab9afdef93bd8feec54019b3c28af05ea69b542ca59586",
+    "scripts/barocss-render-loop/cli-transport.mjs": "c2e40a3f9afee0dddc5358f504b9dddd56c75bbf7736700e63888c6208c448f2",
+    "scripts/barocss-render-loop/output.schema.json": "7909df65cc3b6025fe9de2ec1b204d3bd4cfcde0e8e7d74ab14905f8797f499c",
+    "packages/barocss-render/src/contract.mjs": "1eb435bd1c80aa5ef591c38c986f189d4ee235c12ec61866ca06cee155543a8e",
+    "packages/barocss-render/src/index.jsx": "93f9269b4e6827bdda1dfa75cfdbb02bfc242051498e2a21f45fa0d525dce71c",
+    "scripts/barocss-render-prototype/json-adapter.jsx": "2ded91ed7cadef4f3aef9c7d39ea539abef4b68e4a5b46f14daf271c2d2587af",
+    "scripts/barocss-render-prototype/prototype-adapter.jsx": "56e07c7b08d4347b063a0f7ce471c31eb96cd296f76b1a541a199bb13e8d7fb6",
+    "scripts/barocss-render-prototype/visual.jsx": "dcf0d17ae814d7df20d7eb028a7c0e1f23fa0867b9e216774baab9248c2ba908",
+    "packages/barocss-render/README.md": "7c57ee5eb05d2beafe778cbc6c900b1be11e29bb3d66aaa5a54b4df1da0e529a",
+    "scripts/barocss-render-loop/README.md": "093cb53f0c589a99e25a6679946e5830cd35e58b5c6f62943774717835e57f02",
+    "pnpm-lock.yaml": "3c8f922b58671c8e5c54b0732fbeb6adf5b3825342ebb26dfbfe2579b0568d51"
+  }
+}

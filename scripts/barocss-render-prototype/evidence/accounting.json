@@ -1,0 +1,53 @@
+{
+  "privateRendererCore": {
+    "sourceLines": 16,
+    "files": [
+      "../../packages/barocss-render/src/index.jsx"
+    ]
+  },
+  "sharedValidationPolicy": {
+    "sourceLines": 82,
+    "files": [
+      "../../packages/barocss-render/src/contract.mjs"
+    ]
+  },
+  "prototypeApplicationIntegration": {
+    "sourceLines": 18,
+    "files": [
+      "prototype-adapter.jsx"
+    ]
+  },
+  "jsonRenderApplicationIntegration": {
+    "sourceLines": 40,
+    "files": [
+      "json-adapter.jsx"
+    ]
+  },
+  "sharedApplicationComponents": {
+    "sourceLines": 27,
+    "files": [
+      "visual.jsx"
+    ]
+  },
+  "sharedHarness": {
+    "sourceLines": 146,
+    "files": [
+      "browser-app.jsx",
+      "dashboard.js",
+      "serve.mjs"
+    ]
+  },
+  "authoredFixture": {
+    "sourceLines": 19,
+    "files": [
+      "fixture.mjs"
+    ]
+  },
+  "verification": {
+    "sourceLines": 209,
+    "files": [
+      "contract.test.mjs",
+      "browser.test.mjs"
+    ]
+  }
+}

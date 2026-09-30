@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { verifyLinkedSourceVersions } from './release-manifests.mjs';
+import { releasePackages, verifyLinkedSourceVersions, verifyReadiness, verifyRenderEvidence } from './release-manifests.mjs';
 import { verifyMainAncestry, verifyMainMerge } from './release-provenance.mjs';
 
 const repository = 'barocss/barocss';
@@ -41,8 +41,9 @@ const localSha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }
 assert.equal(localSha, sha, 'Checkout must match the manual main commit');
 const main = await api('branches/main');
 assert.equal(main.commit.sha, sha, 'main moved after manual release dispatch');
+assert.equal(main.protected, true, 'main must remain protected');
 
-const manifests = ['barocss', 'barocss-browser', 'barocss-server'].map((directory) =>
+const manifests = releasePackages.map(({ directory }) =>
   JSON.parse(readFileSync(`packages/${directory}/package.json`, 'utf8')),
 );
 verifyLinkedSourceVersions(manifests, version);
@@ -62,14 +63,12 @@ verifyMainAncestry(parents[0], candidateSha);
 
 const comment = await api(`issues/comments/${readiness[2]}`);
 assert.equal(comment.issue_url, `https://api.github.com/repos/${repository}/issues/${readiness[1]}`);
-assert.equal(comment.user?.login, 'easylogic', 'PM release-ready record must be posted by the owner');
-assert.ok(
-  comment.body?.includes(`BAROCSS_RELEASE_READY SHA=${candidateSha} VERSION=${version}`),
-  'PM release-ready record must match the merged develop SHA and version',
-);
-for (const role of ['Guard', 'Ship']) {
-  assert.match(comment.body, new RegExp(`${role}: https://github\\.com/barocss/barocss/[^\\s]+`));
-}
+assert.equal(comment.user?.login, 'easylogic', 'Release-ready record must be posted by the owner');
+verifyReadiness(comment.body, candidateSha, version);
+const renderEvidence = comment.body.split(/\r?\n/).find((line) => line.startsWith('Render: '));
+const renderCommentId = renderEvidence.match(/#issuecomment-([0-9]+)$/)[1];
+const renderComment = await api(`issues/comments/${renderCommentId}`);
+verifyRenderEvidence(renderComment, renderEvidence.slice('Render: '.length), candidateSha, version);
 
 const runs = await api(
   `actions/workflows/ci.yml/runs?branch=develop&event=push&head_sha=${candidateSha}&per_page=30`,

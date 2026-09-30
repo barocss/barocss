@@ -1,0 +1,238 @@
+{
+  "kind": "authored-local-renderer-comparison",
+  "source": "authored",
+  "url": "loopback-only",
+  "rows": [
+    {
+      "arm": "prototype",
+      "initial": {
+        "columns": 2,
+        "gapPx": 10,
+        "paddingPx": 14,
+        "background": "rgb(255, 255, 255)",
+        "textColor": "oklch(0.208 0.042 265.755)",
+        "value": "Ada",
+        "focused": false,
+        "ids": [
+          "layout",
+          "card",
+          "heading",
+          "name",
+          "save"
+        ],
+        "actions": [],
+        "state": {
+          "name": "Ada"
+        }
+      },
+      "edited": {
+        "columns": 2,
+        "gapPx": 14,
+        "paddingPx": 22,
+        "background": "oklch(0.208 0.042 265.755)",
+        "textColor": "rgb(255, 255, 255)",
+        "value": "Bea",
+        "focused": true,
+        "ids": [
+          "layout",
+          "card",
+          "heading",
+          "help",
+          "name",
+          "save"
+        ],
+        "actions": [],
+        "state": {
+          "name": "Bea"
+        }
+      },
+      "narrow": {
+        "columns": 1,
+        "gapPx": 14,
+        "paddingPx": 22,
+        "background": "oklch(0.208 0.042 265.755)",
+        "textColor": "rgb(255, 255, 255)",
+        "value": "Bea",
+        "focused": true,
+        "ids": [
+          "layout",
+          "card",
+          "heading",
+          "help",
+          "name",
+          "save"
+        ],
+        "actions": [],
+        "state": {
+          "name": "Bea"
+        }
+      },
+      "action": [
+        {
+          "name": "save",
+          "value": "Bea"
+        }
+      ],
+      "externalRequests": [],
+      "pageErrors": [],
+      "screenshots": [
+        "prototype-initial.png",
+        "prototype-edited.png",
+        "prototype-narrow.png"
+      ]
+    },
+    {
+      "arm": "json-render",
+      "initial": {
+        "columns": 2,
+        "gapPx": 10,
+        "paddingPx": 14,
+        "background": "rgb(255, 255, 255)",
+        "textColor": "oklch(0.208 0.042 265.755)",
+        "value": "Ada",
+        "focused": false,
+        "ids": [
+          "layout",
+          "card",
+          "heading",
+          "name",
+          "save"
+        ],
+        "actions": [],
+        "state": {
+          "name": "Ada"
+        }
+      },
+      "edited": {
+        "columns": 2,
+        "gapPx": 14,
+        "paddingPx": 22,
+        "background": "oklch(0.208 0.042 265.755)",
+        "textColor": "rgb(255, 255, 255)",
+        "value": "Bea",
+        "focused": true,
+        "ids": [
+          "layout",
+          "card",
+          "heading",
+          "help",
+          "name",
+          "save"
+        ],
+        "actions": [],
+        "state": {
+          "name": "Bea"
+        }
+      },
+      "narrow": {
+        "columns": 1,
+        "gapPx": 14,
+        "paddingPx": 22,
+        "background": "oklch(0.208 0.042 265.755)",
+        "textColor": "rgb(255, 255, 255)",
+        "value": "Bea",
+        "focused": true,
+        "ids": [
+          "layout",
+          "card",
+          "heading",
+          "help",
+          "name",
+          "save"
+        ],
+        "actions": [],
+        "state": {
+          "name": "Bea"
+        }
+      },
+      "action": [
+        {
+          "name": "save",
+          "value": "Bea"
+        }
+      ],
+      "externalRequests": [],
+      "pageErrors": [],
+      "screenshots": [
+        "json-render-initial.png",
+        "json-render-edited.png",
+        "json-render-narrow.png"
+      ]
+    }
+  ],
+  "negatives": [
+    {
+      "arm": "prototype",
+      "name": "component",
+      "path": "elements.help.type",
+      "lastValidUnchanged": true
+    },
+    {
+      "arm": "prototype",
+      "name": "prop",
+      "path": "elements.card.props.className",
+      "lastValidUnchanged": true
+    },
+    {
+      "arm": "prototype",
+      "name": "style",
+      "path": "elements.card.props.padding",
+      "lastValidUnchanged": true
+    },
+    {
+      "arm": "prototype",
+      "name": "action",
+      "path": "elements.save.on",
+      "lastValidUnchanged": true
+    },
+    {
+      "arm": "json-render",
+      "name": "component",
+      "path": "elements.help.type",
+      "lastValidUnchanged": true
+    },
+    {
+      "arm": "json-render",
+      "name": "prop",
+      "path": "elements.card.props.className",
+      "lastValidUnchanged": true
+    },
+    {
+      "arm": "json-render",
+      "name": "style",
+      "path": "elements.card.props.padding",
+      "lastValidUnchanged": true
+    },
+    {
+      "arm": "json-render",
+      "name": "action",
+      "path": "elements.save.on",
+      "lastValidUnchanged": true
+    }
+  ],
+  "versions": {
+    "node": "v22.19.0",
+    "chromium": "148.0.7778.96",
+    "playwrightCore": "1.60.0",
+    "jsonRenderCore": "0.21.0",
+    "jsonRenderReact": "0.21.0",
+    "react": "19.2.3",
+    "reactDom": "19.2.3",
+    "zod": "4.3.6",
+    "esbuild": "0.25.12",
+    "barocssKit": "0.11.2",
+    "barocssBrowser": "0.11.2",
+    "privateRenderer": "0.0.0-private-prototype",
+    "barocssBundleSha256": "968d1bd6b55909624b29e8ff04c026104fd4a73a105d7ceb8f07eb26f575e041"
+  },
+  "visualParity": {
+    "initial": true,
+    "edited": true,
+    "narrow": true
+  },
+  "dashboard": {
+    "authoredEditApplied": true,
+    "invalidPathShown": true,
+    "lastValidBothArms": true
+  }
+}

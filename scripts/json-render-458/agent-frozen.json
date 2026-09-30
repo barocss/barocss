@@ -1,0 +1,32 @@
+{
+  "issue": 458,
+  "route": "codex-cli-agent",
+  "basePlanSha256": "f9ff9ab08f49fb79e7444e11ce6ceb02f10366466df92c7d4fcf0a8b712b28e3",
+  "model": "gpt-6-sol",
+  "reasoning": "high",
+  "cliVersion": "0.156.1",
+  "maxAttempts": 24,
+  "startupContext": {
+    "isolatedCodexHome": true,
+    "existingChatGptAuthSymlink": true,
+    "globalAgentsAbsent": true,
+    "userRulesAbsent": true,
+    "userSkillsAbsent": true,
+    "userConfigIgnored": true,
+    "hostSkillDiscoverySkipped": true,
+    "normalizedBuiltInSkillInventorySha256": "5ba0f9dbe3610088107ce8a891d894a2c90dab7730326e4e0c81ae693f0ac16f"
+  },
+  "files": {
+    "agent-profile.mjs": "dbdb15657f2fe08c8e9dc3ffe60c54dd3355c8fe23a36e18f1ec5c2fa59786d1",
+    "agent-diagnostics.mjs": "43925297b87748520d65cb3cc8b83a969a5fa0069a3d36e4871885182fcbef70",
+    "agent-transport.mjs": "9402bd924bc6e31b84673c2a3fcdeb323d3d768cc0e4cf69f58323ccc579c871",
+    "agent-live.mjs": "a0e7f7b2f51b3c7e363407f5081e60f1b1cfe78eedaba47810ca0ecf371ee54a",
+    "agent-run.mjs": "b33f207fb8bf82b1b10d7e205559e29d9848edf8cbeb9656f0f7d29e26fad5d4",
+    "agent-diagnostic.mjs": "af526df539be1ea8e1ad44ecf170eaf17da29941bb6c0a41a2cab2663f2ad5e1",
+    "agent-provenance.mjs": "05bd04ca373f39dfa65f4791e495e9d00a6bd349d53086bcc35c1355109d2db5",
+    "agent-consumers.mjs": "b50e77bf57629da07a9b8059ec35195b0a0b344f978c74d73f904fd6508f098d",
+    "agent-freeze.mjs": "0f399b26df96e01c384148d69a132cd0d5c348e5490926cbe8f75224b413e39a",
+    "AGENT-CLI-BOUNDARY.md": "0032776a087bd67571016bd30972a082ed0e2d7944f631872a48cbd986327a24",
+    "AGENT-CLI-RUN-PACKET.md": "2f755846bd415bd7549bebe6326cc59deb334423451af3a1d3ce8f02e2697706"
+  }
+}

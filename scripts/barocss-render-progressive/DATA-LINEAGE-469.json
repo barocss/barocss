@@ -1,0 +1,255 @@
+{
+  "kind": "barocss-469-data-lineage-v1",
+  "issue": 469,
+  "source": "actual-native-startup",
+  "runtimeCommit": "693dc5a6336cddb930fdfd368b4cf1df5901b753",
+  "binding": {
+    "planSha256": "2a9f1db5a180a45c19bc9f9e58d2fad285fb6f048e0f67fb566ad41667dc89ea",
+    "profileSha256": "7404fdd3cdc5ecb49185bad38487e675e84e367338aaac27003d3ac7aaef2ace"
+  },
+  "outcome": {
+    "status": "failed",
+    "nativeLaunches": 1,
+    "startupReservations": 1,
+    "requestAttempts": {
+      "initialize": 1,
+      "thread/start": 1,
+      "turn/start": 0
+    },
+    "rawBytes": {
+      "stdout": 3687,
+      "stderr": 400
+    },
+    "stdoutFrames": {
+      "responses": 2,
+      "notifications": 4
+    },
+    "nativeThreadResponses": 1,
+    "acceptedProfileSessions": 0,
+    "completedModelTurns": 0,
+    "acceptedScreenSpecs": 0,
+    "browserObservations": 0,
+    "hostActions": 0,
+    "baselineSamples": 0,
+    "timingSamples": 0,
+    "latencyClaim": "none"
+  },
+  "mismatches": [
+    {
+      "field": "thread/start.result.instructionSources",
+      "expected": "empty or absent",
+      "observed": "one entry; private contents omitted"
+    },
+    {
+      "field": "thread/start.result.thread.source",
+      "expected": "appServer",
+      "observed": "vscode"
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "report.json",
+      "present": true,
+      "fields": [
+        "source",
+        "candidateCommit",
+        "planSha256",
+        "runProfileSha256",
+        "sessions",
+        "turns",
+        "status",
+        "error",
+        "modelTurnsReserved",
+        "stdoutBytes",
+        "stderrBytes",
+        "elapsedMs"
+      ],
+      "boundary": "Private host identity and ledger path omitted from this public manifest."
+    },
+    {
+      "file": "stdout.bin / stderr.bin",
+      "present": true,
+      "fields": [
+        "original observed stream bytes"
+      ],
+      "boundary": "No repair or normalization; stderr is not agent text. Capture stops at failure; not proof of all bytes the native process could produce."
+    },
+    {
+      "file": "chunks.jsonl",
+      "present": true,
+      "fields": [
+        "stream",
+        "receivedMs",
+        "length",
+        "endOffset"
+      ],
+      "boundary": "Chunk timestamps and offsets describe local receipt, not model generation."
+    },
+    {
+      "file": "requests.jsonl",
+      "present": true,
+      "fields": [
+        "id",
+        "method",
+        "sentMs"
+      ],
+      "boundary": "Attempt metadata logged before write. Serialized request bodies and initialized notification are not independently captured."
+    },
+    {
+      "file": "events.jsonl",
+      "present": true,
+      "fields": [
+        "receivedMs",
+        "event.method",
+        "event.params"
+      ],
+      "boundary": "Notification payload retained before validation; receipt does not imply acceptance."
+    },
+    {
+      "file": "reservations.jsonl and canonical launch.json / 1-01-initial.json",
+      "present": true,
+      "fields": [
+        "ordinal",
+        "rowId",
+        "kind",
+        "reservedAt",
+        "candidateCommit",
+        "planSha256",
+        "decisionSha256"
+      ],
+      "boundary": "Exactly one launch claim and one initial slot; uncertain startup is charged. Canonical and report-log reservation records retain reservedAt wall time; launch.json retains claimedAt."
+    },
+    {
+      "file": "browser/report.json",
+      "present": true,
+      "fields": [
+        "source",
+        "modelCallsByHarness",
+        "viewports",
+        "chromium",
+        "assetHashes",
+        "observations",
+        "actions",
+        "baselines",
+        "networkErrors"
+      ],
+      "boundary": "Observers opened, but all observation/action/baseline lists are empty. No screen screenshots."
+    },
+    {
+      "file": "turn-N.json / actions.jsonl / browser/shots/*.png",
+      "present": false,
+      "fields": [
+        "final",
+        "observations",
+        "baseline",
+        "specSha256",
+        "previewMs",
+        "actionReadyMs",
+        "completedMs",
+        "revision",
+        "name"
+      ],
+      "boundary": "These are prospective successful-turn artifacts, absent in #469. No accumulated agent text, parsed screen or action snapshot was produced."
+    },
+    {
+      "file": "separate private parsed-native-frames and data-lineage JSON",
+      "present": true,
+      "fields": [
+        "frames",
+        "initializeValidation",
+        "threadStartValidation",
+        "threadValidation",
+        "artifact_digests",
+        "ledgerFiles",
+        "stages",
+        "preservation"
+      ],
+      "boundary": "Derived only from retained originals after dispatch; raw hashes and private values remain private. These cannot authorize another launch."
+    }
+  ],
+  "transformations": [
+    {
+      "stage": "prompt-and-schema",
+      "input": "frozen scenario + buildCliPrompt + output.schema.json",
+      "output": "turn/start text input and outputSchema",
+      "validation": "Exact reviewed plan/profile; host owns model/sandbox/effort/limits. Request bodies reconstructable from source; not wire-captured.",
+      "observed469": false
+    },
+    {
+      "stage": "stdio-to-frames",
+      "input": "stdout.bin and chunks.jsonl",
+      "output": "request-id result/error or notification method/params",
+      "validation": "Fatal UTF-8, LF frames, object JSON, response-id/exclusive-result-error checks and byte/event ceilings. Raw originals preserve whitespace and framing lost by JSON.parse.",
+      "observed469": true
+    },
+    {
+      "stage": "session-contract",
+      "input": "initialize and thread/start responses, startup notifications",
+      "output": "owned profile session",
+      "validation": "Version/home/settings/identity checks. Native response received but additional instructions and source differ; no owned profile session accepted.",
+      "observed469": false
+    },
+    {
+      "stage": "accumulated-agent-text",
+      "input": "owned item/agentMessage/delta and item/completed",
+      "output": "ordered complete outer JSON text",
+      "validation": "Process/thread/turn/item match, bounds and exact completed text; reject tools/unknown events. Deltas discard transport envelopes but originals retain them.",
+      "observed469": false
+    },
+    {
+      "stage": "outer-specJson",
+      "input": "complete agent text",
+      "output": "specJson string",
+      "validation": "Exactly one specJson string, outer and inner JSON.parse separately; no repair. JSON parsing does not preserve duplicate keys or number/string spelling.",
+      "observed469": false
+    },
+    {
+      "stage": "inner-screen-spec",
+      "input": "parsed specJson",
+      "output": "validated root/elements screen object",
+      "validation": "validateSpec allowlist, graph, props/style and state/action contract; reject free HTML/JS/CSS/classes. Valid spec is data, not executable code.",
+      "observed469": false
+    },
+    {
+      "stage": "host-state-and-actions",
+      "input": "validated candidate, authoritative item/turn and input",
+      "output": "preview, action-ready, committed spec; at most one released save",
+      "validation": "Preview is not committed; action queued until exact completed turn. Host owns revision/name and exact confirmation. Failure cancels queued action. Snapshots omit raw protocol text.",
+      "observed469": false
+    },
+    {
+      "stage": "renderer-and-browser",
+      "input": "validated spec + host state + registered components",
+      "output": "React DOM, fixed BaroCSS classes, generated CSS; measurements/screenshots",
+      "validation": "Package revalidates; classesFor selects fixed reviewed classes; host starts browser runtime. Layout/style/content/spec/action/overflow/network checks measure selected properties, not arbitrary UI or model value.",
+      "observed469": false
+    }
+  ],
+  "dataClasses": {
+    "historical458": "18 verified actual complete responses; nine eligible two-turn rows; no allowance reset",
+    "historical460": "Accepted real complete-JSON two-turn loop proof; included calibration, not added again to #458 count",
+    "synthetic461": "Saved actual responses with authored notification chunks/pacing; 144 passing viewport/stage observations, not native latency",
+    "sourceShaped467468": "Schema/source-shaped passive-metadata fixtures; saved startup replay, no model call",
+    "actual469": "Native startup only: one observed thread response rejected before model turn",
+    "authoredDemo": "Existing #460 default mock server; complete validated JSON interaction, no model"
+  },
+  "stageExit": {
+    "measurementStage": "ended",
+    "paidRetryAuthorized": false,
+    "deliveryPath": "existing scripts/barocss-render-loop/serve.mjs authored mock and verified #458 complete-response corpus replay",
+    "remainingGap": "No accepted current-host app-server model turn under the unchanged exact session contract; early-screen timing remains unmeasured",
+    "nextProductDirection": "Complete validated JSON; no demonstrated early-screen benefit and no automatic protocol-fix/live-run loop"
+  },
+  "verification": {
+    "authoredLoopBrowserControllerTests": {
+      "passed": 12,
+      "failed": 0,
+      "modelCalls": 0
+    },
+    "historicalCorpusLineage": "passed without dispatch; package README frozen bytes preserved",
+    "progressivePlans": "original/current hashes unchanged",
+    "privateAudit": "saved originals, ledger, native profile mismatches, zero UI/model stages and public redaction checked",
+    "historical466": "raw artifact and canonical ledger hashes unchanged",
+    "authoredDemoScreenshot": "separate private authored-demo directory; not a #469 native output"
+  }
+}

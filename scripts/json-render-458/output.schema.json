@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["specJson", "cannotExpress"],
+  "properties": {
+    "specJson": { "type": "string" },
+    "cannotExpress": { "type": "boolean" }
+  }
+}

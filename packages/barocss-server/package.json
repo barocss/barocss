@@ -1,6 +1,6 @@
 {
   "name": "@barocss/server",
-  "version": "0.11.2",
+  "version": "0.12.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/barocss/barocss.git",
@@ -54,5 +54,6 @@
     "vite": "^8.3.1",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^5.0.2"
-  }
+  },
+  "license": "MIT"
 }
