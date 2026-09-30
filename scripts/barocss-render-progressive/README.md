@@ -3,6 +3,11 @@
 This directory is a local research host under `scripts`. The private renderer remains in
 `packages/barocss-render`. No package or BaroCSS runtime API changes are proposed.
 
+The [#462 executable packet](./EXECUTABLE-PACKET.md) documents the bounded launcher, one-use decision
+claim, private evidence and authored fake-stdio verification. It remains preparation only until fresh
+owner GO on the independently accepted exact launcher commit. No actual app-server was started by
+the implementation tests.
+
 ## Capability and ownership
 
 The installed Codex 0.156.1 app-server protocol has `item/agentMessage/delta`,
