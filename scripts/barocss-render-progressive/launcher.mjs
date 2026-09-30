@@ -8,6 +8,9 @@ import { createDelivery } from './delivery.mjs';
 import { createRpc } from './rpc.mjs';
 import { claimApprovedLaunch, reserveApprovedTurn } from './gate.mjs';
 import { verifyFrozenPlan } from './freeze.mjs';
+import { verifyCurrentHostPlan, readCurrentHostDecision, claimCurrentHostLaunch,
+  reserveCurrentHostTurn } from './current-host-gate.mjs';
+import { verifyCurrentHost, buildCurrentHostArgv } from './current-host-profile.mjs';
 import { buildCliPrompt } from '../barocss-render-loop/cli-profile.mjs';
 import { openExperimentBrowser } from './live-browser.mjs';
 import { buildAppServerArgv, assertLocalConfiguration } from './launch-profile.mjs';
@@ -16,7 +19,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const privateRoot = '/Users/user/.barocss-ai/v3';
 const codex = '/Users/user/Library/pnpm/nodejs/22.19.0/bin/codex';
-const planFile = path.join(here, 'frozen-plan.json');
+const defaultPlanFile = path.join(here, 'frozen-plan.json');
+const currentHostPlanFile = path.join(here, 'current-host-plan.json');
 const schemaFile = path.join(root, 'scripts/barocss-render-loop/output.schema.json');
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const id = (value) => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(value);
@@ -34,16 +38,26 @@ const reasoningEvents = new Set(['item/reasoning/summaryTextDelta', 'item/reason
 // Injected factories are for caller-owned authored tests. The command below has no factory flag.
 export async function runExperiment({ decisionFile, candidateCommit, resultDir,
   processFactory, browserFactory = openExperimentBrowser, assetRoots,
-  signal, timeouts = {}, source = 'live-app-server' }) {
-  const frozen = verifyFrozenPlan();
+  signal, timeouts = {}, source = 'live-app-server', mode = 'default', hostOptions = {} }) {
+  if (!['default', 'owner-approved-current-host'].includes(mode)) throw new Error('Unknown launch mode');
+  const currentHost = mode === 'owner-approved-current-host';
+  const planFile = currentHost ? currentHostPlanFile : defaultPlanFile;
+  const frozen = currentHost ? verifyCurrentHostPlan({ planFile }) : verifyFrozenPlan();
   const plan = JSON.parse(fs.readFileSync(planFile));
   if (typeof processFactory !== 'function' || typeof browserFactory !== 'function'
     || path.dirname(resultDir ?? '') !== privateRoot
-    || !path.basename(resultDir).startsWith('private-462-') || fs.existsSync(resultDir)) {
+    || !path.basename(resultDir).startsWith(currentHost ? 'private-464-' : 'private-462-') || fs.existsSync(resultDir)) {
     throw new Error('Fresh private result directory and owned factories required');
   }
   if (signal?.aborted) throw new Error('Cancelled before launch');
-  const claim = claimApprovedLaunch({ decisionFile, planFile, candidateCommit });
+  const decision = currentHost
+    ? readCurrentHostDecision({ decisionFile, planFile, candidateCommit }).decision : null;
+  const inspectHost = () => verifyCurrentHost({ ...hostOptions, cwd: hostOptions.cwd ?? privateRoot,
+    expectedFingerprintSha256: decision.hostFingerprintSha256 });
+  const inspection = currentHost ? inspectHost() : null;
+  const gateOptions = { decisionFile, planFile, candidateCommit, ...(currentHost
+    ? { hostFingerprintSha256: inspection.fingerprintSha256 } : {}) };
+  const claim = currentHost ? claimCurrentHostLaunch(gateOptions) : claimApprovedLaunch(gateOptions);
   fs.mkdirSync(resultDir, { mode: 0o700 });
   const scratch = path.join(privateRoot, `agent-scratch-462-${path.basename(resultDir)}`);
   fs.mkdirSync(scratch, { mode: 0o700 });
@@ -52,12 +66,22 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
   const clock = () => performance.now() - started;
   const log = (filename, value) => fs.appendFileSync(path.join(resultDir, filename),
     JSON.stringify(value) + '\n', { mode: 0o600 });
-  const report = { kind: 'barocss-462-experiment-v1', source, candidateCommit,
+  const report = { kind: currentHost ? 'barocss-464-experiment-v1' : 'barocss-462-experiment-v1',
+    mode, source, candidateCommit, ...(currentHost ? { hostFingerprintSha256: inspection.fingerprintSha256,
+      startupLimits: inspection.limits } : {}),
     ...frozen, reservationDir: claim.reservationDir, model: plan.model,
     reasoningEffort: plan.reasoningEffort, sessions: [], turns: [], status: 'running',
     latencyClaim: 'none', prior458AllowanceExhausted: true };
   const failed = deferred();
   let failure = null, rpc, browser, active = null, child;
+  let reservations = 0, firstReservation = null;
+  const reserve = (ordinal, rowId, kind) => {
+    const options = { ...gateOptions, ordinal, rowId, kind };
+    const reservation = currentHost ? reserveCurrentHostTurn(options) : reserveApprovedTurn(options);
+    reservations++;
+    log('reservations.jsonl', reservation);
+    return reservation;
+  };
   const fail = (error) => {
     if (failure) return;
     failure = error instanceof Error ? error : new Error(String(error));
@@ -136,9 +160,9 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
   }
   async function runTurn(row, kind, threadId, ordinal) {
     if (failure) throw failure;
-    const reservation = reserveApprovedTurn({ decisionFile, planFile, candidateCommit,
-      ordinal, rowId: row.id, kind });
-    log('reservations.jsonl', reservation);
+    if (currentHost) inspectHost();
+    if (ordinal === 1 && firstReservation) firstReservation = null;
+    else reserve(ordinal, row.id, kind);
     const turnStartedMs = clock();
     const current = { ready: deferred(), complete: deferred(), threadId, turnId: null,
       processId: `process-${child.pid}`, reasoning: new Set(), observations: [],
@@ -201,7 +225,11 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
   }
   try {
     browser = await openBrowser(path.join(resultDir, 'browser'));
-    child = processFactory({ cwd: scratch, argv: buildAppServerArgv({ cwd: scratch }) });
+    const beforeSpawn = currentHost ? inspectHost() : null;
+    // Charge uncertain initialization or session failures before the native process starts.
+    if (currentHost) firstReservation = reserve(1, plan.scenarios[0].id, 'initial');
+    child = processFactory({ cwd: scratch, argv: currentHost
+      ? buildCurrentHostArgv({ cwd: scratch, inspection: beforeSpawn }) : buildAppServerArgv({ cwd: scratch }) });
     if (!Number.isSafeInteger(child?.pid)) throw new Error('Owned process PID missing');
     rpc = createRpc({ child, clock, onEvent, onFailure: fail,
       requestTimeoutMs: Math.min(timeouts.request ?? plan.perTurnTimeoutMs, plan.perTurnTimeoutMs),
@@ -224,6 +252,7 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
     rpc.notify('initialized', {});
     for (const row of plan.scenarios) {
       // The two rows use independent delivery state, but one process and no session resume.
+      if (currentHost) inspectHost();
       const response = await bounded(rpc.request('thread/start', { cwd: scratch, model: plan.model,
         modelProvider: 'openai', approvalsReviewer: 'auto_review',
         sandbox: 'read-only', approvalPolicy: 'never', config: { model_reasoning_effort: 'high' } }));
@@ -253,7 +282,7 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
       }
     }
     report.status = 'completed';
-    report.modelTurnsReserved = report.turns.length;
+    report.modelTurnsReserved = reservations;
     const stats = (values) => {
       const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
       return sorted.length ? { n: sorted.length, median: (sorted[Math.floor((sorted.length - 1) / 2)]
@@ -280,6 +309,7 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
     signal?.removeEventListener('abort', abort);
     if (rpc) await rpc.close();
     if (browser) await browser.close();
+    report.modelTurnsReserved = reservations;
     report.stdoutBytes = stdoutBytes;
     report.stderrBytes = stderrBytes;
     report.elapsedMs = clock();
@@ -289,8 +319,11 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
 }
 
 async function main() {
-  if (process.argv.length !== 6 || process.argv[2] !== '--decision' || process.argv[4] !== '--result') {
-    throw new Error('Use --decision PRIVATE_DECISION --result FRESH_PRIVATE_DIRECTORY');
+  const args = process.argv.slice(2);
+  const currentHost = args[0] === '--current-host';
+  if (currentHost) args.shift();
+  if (args.length !== 4 || args[0] !== '--decision' || args[2] !== '--result') {
+    throw new Error('Use [--current-host] --decision PRIVATE_DECISION --result FRESH_PRIVATE_DIRECTORY');
   }
   const candidateCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   const dirty = execFileSync('git', ['status', '--porcelain', '--untracked-files=all'], { cwd: root, encoding: 'utf8' });
@@ -298,13 +331,14 @@ async function main() {
   if (execFileSync(codex, ['--version'], { encoding: 'utf8' }).trim() !== 'codex-cli 0.156.1') {
     throw new Error('Pinned Codex installation is required');
   }
-  assertLocalConfiguration();
+  if (!currentHost) assertLocalConfiguration();
   const controller = new AbortController();
   const cancel = () => controller.abort();
   process.once('SIGINT', cancel);
   process.once('SIGTERM', cancel);
   try {
-    const report = await runExperiment({ decisionFile: process.argv[3], resultDir: process.argv[5],
+    const report = await runExperiment({ decisionFile: args[1], resultDir: args[3],
+      mode: currentHost ? 'owner-approved-current-host' : 'default',
       candidateCommit, signal: controller.signal, processFactory: ({ cwd, argv }) =>
         spawn(codex, argv, { cwd, shell: false, stdio: ['pipe', 'pipe', 'pipe'] }) });
     console.log(JSON.stringify({ status: report.status, turns: report.turns.length, latencyClaim: 'none' }));
