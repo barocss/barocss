@@ -84,7 +84,18 @@ node scripts/barocss-render-progressive/saved-startup-replay.mjs \
   /Users/user/.barocss-ai/v3/private-467-startup-replay-NEW.json
 ```
 
-The original saved replay and preservation audit are private `private-467-*-20260930-v1.json` files.
-Final affected harness: 105/105 no-model tests pass. Scoped lint has zero errors/warnings;
+The final saved replay is private `private-467-startup-replay-20260930-v2.json`; the original
+replay and preservation audit remain retained as v1 files.
+Final affected harness: 107/107 no-model tests pass. Scoped lint has zero errors/warnings;
 both plan checks and diff check pass. The Issue records exact independent ACCEPT and local
 integration SHAs.
+
+## Independent review correction
+
+[The first exact Review](https://github.com/barocss/barocss/issues/467#issuecomment-5904966313)
+reproduced two saved-replay gaps: replacement decoding of invalid UTF-8 and acceptance of a
+success response with an `error` property carrying a falsy value. The replay now uses fatal UTF-8,
+requires a complete final newline, and rejects server requests, unexpected/duplicate response IDs,
+and any error property in a success response. Focused regressions cover falsy error values,
+invalid bytes, partial lines, non-object messages and invalid envelopes. Live runtime, private
+original bytes, plan/profile and all launch boundaries are unchanged by this follow-up fix.

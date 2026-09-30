@@ -32,3 +32,23 @@ test('saved replay rejects malformed, unknown, active, RPC-request, and unowned 
   }
   assert.throws(() => replaySavedStartup(Buffer.from('{malformed')));
 });
+
+test('saved replay uses fatal UTF-8 and complete newline framing like live RPC', () => {
+  const invalid = bytes([initialized]);
+  invalid[invalid.indexOf(Buffer.from('macos'))] = 0xff;
+  assert.throws(() => replaySavedStartup(invalid));
+  const truncated = bytes([initialized]);
+  assert.throws(() => replaySavedStartup(truncated.subarray(0, -1)), /Incomplete saved RPC line/);
+  assert.throws(() => replaySavedStartup(bytes([null])));
+  assert.throws(() => replaySavedStartup(bytes([[]])));
+});
+
+test('saved initialize success cannot carry an error property even when falsy', () => {
+  for (const error of [null, false, 0, '', {}, { code: -32000 }]) {
+    assert.throws(() => replaySavedStartup(bytes([{ ...initialized, error }])));
+  }
+  assert.throws(() => replaySavedStartup(bytes([{ id: 1, error: null }])));
+  assert.throws(() => replaySavedStartup(bytes([{ id: 1 }])));
+  assert.throws(() => replaySavedStartup(bytes([{ ...initialized, id: 2 }])));
+  assert.throws(() => replaySavedStartup(bytes([{ ...initialized, method: null }])));
+});

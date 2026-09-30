@@ -6,11 +6,20 @@ import { acceptPassiveNotification, validateInitializeResponse } from './protoco
 // Read saved bytes only. This module cannot spawn Codex, connect, or create a session.
 export function replaySavedStartup(bytes, { initializeRequestId = 1, codexHome } = {}) {
   if (!Buffer.isBuffer(bytes) || bytes.length > 32768) throw new Error('Invalid saved startup bytes');
-  const frames = bytes.toString('utf8').trim().split('\n').map((line) => JSON.parse(line));
+  // Match live RPC decoding/framing: no replacement characters or partial final line.
+  if (bytes.at(-1) !== 10) throw new Error('Incomplete saved RPC line');
+  const decoded = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  const frames = decoded.split('\n').filter((line) => line.trim()).map((line) => JSON.parse(line));
   let initialized = false, notifications = 0;
   for (const event of frames) {
-    if (event?.id === initializeRequestId && event.method === undefined) {
-      if (initialized || event.error || !event.result) throw new Error('Unexpected saved initialize response');
+    if (event === null || typeof event !== 'object' || Array.isArray(event)) {
+      throw new Error('Invalid saved RPC message');
+    }
+    if (Object.hasOwn(event, 'id')) {
+      if (Object.hasOwn(event, 'method') || event.id !== initializeRequestId || initialized
+        || !Object.hasOwn(event, 'result') || Object.hasOwn(event, 'error')) {
+        throw new Error('Unexpected saved initialize response');
+      }
       validateInitializeResponse(event.result, '0.156.1', { codexHome });
       initialized = true;
     } else {
