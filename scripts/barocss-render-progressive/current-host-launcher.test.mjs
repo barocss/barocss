@@ -133,3 +133,29 @@ test('configuration drift between turns preserves the first result and prevents 
     assert.equal(state.launches, 1);
   } finally { state.cleanup(); }
 });
+
+test('second-session RPC, timeout and metadata failures retain the third reservation', async (t) => {
+  for (const mode of ['second-session-rpc-error', 'second-session-timeout', 'second-session-wrong-model']) {
+    await t.test(mode, async () => {
+      const state = fixture();
+      try {
+        await assert.rejects(runExperiment(state.options(mode)));
+        const report = JSON.parse(fs.readFileSync(path.join(state.resultDir, 'report.json')));
+        assert.equal(report.status, 'failed');
+        assert.equal(report.modelTurnsReserved, 3);
+        assert.equal(report.turns.length, 2);
+        assert.equal(state.launches, 1);
+        assert.deepEqual(fs.readdirSync(state.reservationDir).filter((name) => /^[1-4]-/.test(name)).sort(),
+          ['1-01-initial.json', '2-01-next.json', '3-03-initial.json']);
+        const requests = fs.readFileSync(path.join(state.resultDir, 'requests.jsonl'), 'utf8')
+          .trim().split('\n').map(JSON.parse);
+        assert.equal(requests.filter((request) => request.method === 'turn/start').length, 2,
+          'third turn must not be dispatched after failed session start');
+        assert.equal(requests.filter((request) => request.method === 'thread/start').length, 2);
+        await assert.rejects(runExperiment({ ...state.options(mode),
+          resultDir: `${state.resultDir}-again` }), /allowance was already used/);
+        assert.equal(state.launches, 1);
+      } finally { state.cleanup(); }
+    });
+  }
+});

@@ -22,7 +22,8 @@ V3 root, with prefix `private-464-current-host-decision-`. Keep it mode 0600.
 
 The canonical ledger binds owner reference, candidate and plan. An exclusive launch claim prevents
 relaunch with a copied decision. The first turn is reserved **before native process initialization**;
-startup uncertainty consumes that reservation. Later reservations precede each turn dispatch. The
+startup uncertainty consumes that reservation. Each later session reserves its initial slot before
+`thread/start` and reuses it for the initial turn. Later-turn reservations precede turn dispatch. The
 report states consumed reservations separately from completed turns. A failure stops the run.
 
 ## Inspected configuration and limits

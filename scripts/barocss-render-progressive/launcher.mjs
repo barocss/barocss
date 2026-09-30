@@ -74,7 +74,7 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
     latencyClaim: 'none', prior458AllowanceExhausted: true };
   const failed = deferred();
   let failure = null, rpc, browser, active = null, child;
-  let reservations = 0, firstReservation = null;
+  let reservations = 0, pendingInitial = null;
   const reserve = (ordinal, rowId, kind) => {
     const options = { ...gateOptions, ordinal, rowId, kind };
     const reservation = currentHost ? reserveCurrentHostTurn(options) : reserveApprovedTurn(options);
@@ -161,7 +161,7 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
   async function runTurn(row, kind, threadId, ordinal) {
     if (failure) throw failure;
     if (currentHost) inspectHost();
-    if (ordinal === 1 && firstReservation) firstReservation = null;
+    if (kind === 'initial' && pendingInitial?.ordinal === ordinal) pendingInitial = null;
     else reserve(ordinal, row.id, kind);
     const turnStartedMs = clock();
     const current = { ready: deferred(), complete: deferred(), threadId, turnId: null,
@@ -227,7 +227,7 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
     browser = await openBrowser(path.join(resultDir, 'browser'));
     const beforeSpawn = currentHost ? inspectHost() : null;
     // Charge uncertain initialization or session failures before the native process starts.
-    if (currentHost) firstReservation = reserve(1, plan.scenarios[0].id, 'initial');
+    if (currentHost) pendingInitial = reserve(1, plan.scenarios[0].id, 'initial');
     child = processFactory({ cwd: scratch, argv: currentHost
       ? buildCurrentHostArgv({ cwd: scratch, inspection: beforeSpawn }) : buildAppServerArgv({ cwd: scratch }) });
     if (!Number.isSafeInteger(child?.pid)) throw new Error('Owned process PID missing');
@@ -252,7 +252,11 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
     rpc.notify('initialized', {});
     for (const row of plan.scenarios) {
       // The two rows use independent delivery state, but one process and no session resume.
-      if (currentHost) inspectHost();
+      if (currentHost) {
+        inspectHost();
+        // Every uncertain session start consumes its initial slot, including row 03.
+        pendingInitial ??= reserve(report.turns.length + 1, row.id, 'initial');
+      }
       const response = await bounded(rpc.request('thread/start', { cwd: scratch, model: plan.model,
         modelProvider: 'openai', approvalsReviewer: 'auto_review',
         sandbox: 'read-only', approvalPolicy: 'never', config: { model_reasoning_effort: 'high' } }));
