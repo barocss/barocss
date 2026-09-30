@@ -119,7 +119,8 @@ function syntheticTurn(ids, specJson) {
       preview: event('item/agentMessage/delta', { ...base, itemId: messageId, delta: raw.slice(cut) }),
       ready: event('item/completed', { ...base, item: { id: messageId, type: 'agentMessage',
         phase: 'final_answer', text: raw }, completedAtMs: 30 }),
-      committed: event('turn/completed', { threadId: ids.threadId, turn: { id: ids.turnId, status: 'completed' } }),
+      committed: event('turn/completed', { threadId: ids.threadId, turn: { id: ids.turnId,
+        status: 'completed', items: [{ id: messageId, type: 'agentMessage', phase: 'final_answer', text: raw }] } }),
     },
   };
 }

@@ -50,6 +50,7 @@ export function createDelivery({ clock = () => performance.now(), onAction = () 
     return true;
   }
   function handle(event) {
+    if (!active()) return fail('event-after-terminal');
     if (!event || typeof event !== 'object' || typeof event.method !== 'string'
       || !checkIds(event.params, event.method)) return fail('event-id-or-shape');
     const { method, params } = event;
@@ -92,6 +93,14 @@ export function createDelivery({ clock = () => performance.now(), onAction = () 
     if (method === 'turn/completed') {
       if (params.turn.status !== 'completed' || !itemComplete || !completedText
         || completedText !== text) return fail('turn-incomplete');
+      const items = params.turn.items;
+      const messages = Array.isArray(items) ? items.filter((item) => item?.type === 'agentMessage') : [];
+      if (!Array.isArray(items) || messages.length !== 1 || messages[0].id !== itemId
+        || messages[0].text !== completedText
+        || (messages[0].phase && messages[0].phase !== 'final_answer')
+        || items.some((item) => !['userMessage', 'reasoning', 'agentMessage'].includes(item?.type))) {
+        return fail('final-item-mismatch');
+      }
       const spec = readScreen(completedText);
       if (!spec) return fail('final-screen-mismatch');
       state = { ...state, phase: 'committed', visibleSpec: spec, committedSpec: spec,
@@ -122,7 +131,8 @@ export function createDelivery({ clock = () => performance.now(), onAction = () 
     },
     push(bytes, processId) {
       if (processId !== state.processId) return { ok: false, reason: 'stale-process' };
-      if (!active()) return { ok: false, reason: 'inactive' };
+      if (!active()) return state.phase === 'committed'
+        ? fail('event-after-terminal') : { ok: false, reason: 'inactive' };
       const data = typeof bytes === 'string' ? new TextEncoder().encode(bytes) : bytes;
       if (!(data instanceof Uint8Array)) return fail('invalid-bytes');
       receivedBytes += data.byteLength;

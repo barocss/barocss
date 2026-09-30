@@ -17,8 +17,10 @@ const delta = (text) => event('item/agentMessage/delta', { threadId: ids.threadI
 const itemEnd = (text) => event('item/completed', { threadId: ids.threadId,
   turnId: ids.turnId, completedAtMs: 1,
   item: { id: 'message-1', type: 'agentMessage', phase: 'final_answer', text } });
-const turnEnd = (status = 'completed') => event('turn/completed', { threadId: ids.threadId,
-  turn: { id: ids.turnId, status } });
+const turnEnd = (status = 'completed', text = envelope()) => event('turn/completed', { threadId: ids.threadId,
+  turn: { id: ids.turnId, status, items: [
+    { id: 'message-1', type: 'agentMessage', phase: 'final_answer', text },
+  ] } });
 
 test('split UTF-8 and JSON produce preview, action-ready, then committed screen', () => {
   const actions = [];
@@ -49,7 +51,7 @@ test('split UTF-8 and JSON produce preview, action-ready, then committed screen'
   assert.deepEqual(delivery.action({ revision: 1, name: 'Bea' }), { ok: true, queued: true });
   assert.deepEqual(actions, []);
   elapsed = 44;
-  assert.equal(delivery.push(turnEnd(), ids.processId).ok, true);
+  assert.equal(delivery.push(turnEnd('completed', raw), ids.processId).ok, true);
   assert.equal(delivery.finish(ids.processId).ok, true);
   const state = delivery.snapshot();
   assert.equal(state.phase, 'committed');
@@ -132,6 +134,44 @@ test('a queued action is dropped if final completion fails', () => {
   assert.equal(delivery.push(turnEnd('failed'), ids.processId).reason, 'turn-incomplete');
   assert.deepEqual(actions, []);
   assert.equal(delivery.snapshot().phase, 'failed');
+});
+
+test('duplicate completion in one or later chunks cannot commit twice', () => {
+  for (const coalesced of [true, false]) {
+    const actions = [];
+    const delivery = createDelivery({ onAction: (action) => actions.push(action) });
+    const raw = envelope();
+    delivery.start(ids);
+    delivery.push(itemStart() + delta(raw) + itemEnd(raw), ids.processId);
+    delivery.action({ revision: 1, name: 'Bea' });
+    const first = turnEnd('completed', raw);
+    if (coalesced) {
+      assert.equal(delivery.push(first + first, ids.processId).reason, 'event-after-terminal');
+    } else {
+      assert.equal(delivery.push(first, ids.processId).ok, true);
+      assert.equal(delivery.push(first, ids.processId).reason, 'event-after-terminal');
+    }
+    assert.equal(delivery.snapshot().phase, 'failed');
+    assert.equal(delivery.snapshot().revision, 1);
+    assert.equal(actions.length, 1);
+  }
+});
+
+test('authoritative turn item mismatch drops queued action and retains committed screen', () => {
+  const actions = [];
+  const delivery = createDelivery({ onAction: (action) => actions.push(action) });
+  const raw = envelope();
+  delivery.start(ids);
+  delivery.push(itemStart() + delta(raw) + itemEnd(raw), ids.processId);
+  delivery.action({ revision: 1, name: 'Bea' });
+  const changedSpec = structuredClone(INITIAL);
+  changedSpec.elements.heading.props.text = 'Changed final';
+  const changed = envelope(changedSpec);
+  assert.equal(delivery.push(turnEnd('completed', changed), ids.processId).reason, 'final-item-mismatch');
+  assert.equal(delivery.snapshot().phase, 'failed');
+  assert.equal(delivery.snapshot().revision, 0);
+  assert.equal(delivery.snapshot().visibleSpec, null);
+  assert.deepEqual(actions, []);
 });
 
 test('local stdio chunks reach the same validator without a model', async () => {

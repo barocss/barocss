@@ -32,12 +32,13 @@ It gives three distinct timestamps measured from the local turn start:
    display it. No action is dispatched.
 2. **Action-ready:** the authoritative `item/completed` text exactly equals the accumulated text
    and passes the schema. Input and clicks may be collected, but an action is queued.
-3. **Committed screen:** `turn/completed` reports `completed` and the accepted item still matches.
+3. **Committed screen:** `turn/completed` reports `completed`, contains exactly the accepted final
+   agent message in its authoritative `turn.items`, and the accepted item still matches.
    The host commits the screen and may release one queued action.
 
-Cancellation, changed IDs, malformed bytes/events, incomplete turns, and failure keep the previous
-committed screen. User input stays in the host state. A duplicate action is rejected. The action
-is not released if final completion fails. These are implementation safety properties, not evidence
+Cancellation, changed IDs, malformed bytes/events, duplicate terminal events, incomplete turns, and
+failure keep the previous committed screen. User input stays in the host state. A duplicate action
+is rejected. The action is not released if final completion fails. These are implementation safety properties, not evidence
 that a model streams a screen early.
 
 `stdio.mjs` consumes a caller-owned stdout stream and never starts a process. The browser replay
@@ -55,8 +56,8 @@ this reducer. This preparation is not a general app-server client.
 The no-model replay of the verified #458 corpus completed 9 eligible two-turn rows; the tenth row
 remains ineligible under the frozen ceiling. All 144 recorded viewport/stage screens passed the
 phase, content, style, exact-spec, action, and overflow checks. Browser errors: 0. The private
-report is `~/.barocss-ai/v3/private-461-browser-replay-20260930-codex-v3/report.json`, SHA-256
-`b1663384853a42bed07545f3ff513f7df7ec5e753e4f20c646694eb3d6c40f29`. This proves
+report is `~/.barocss-ai/v3/private-461-browser-replay-20260930-codex-v4/report.json`, SHA-256
+`f54c11d5812fbcdf1b6370968e745af399f8250f200658a638a96440a2b6efd9`. This proves
 deterministic replay of saved responses, not a latency gain or genuine streaming behavior.
 
 ## No-model verification

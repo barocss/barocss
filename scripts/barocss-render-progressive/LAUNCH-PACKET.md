@@ -32,15 +32,18 @@ create an approval or launch a model.
 1. Review the exact candidate commit, this plan hash, no-model browser evidence, and failure tests.
    Do not start app-server until Review returns ACCEPT and the owner records a fresh GO that names
    the commit, plan hash, four-turn ceiling, and Review record.
-2. Create a new private decision file and reservation directory under `~/.barocss-ai/v3/`.
-   The later launcher calls `reserveApprovedTurn` before every `turn/start`. A failed start uses its
+2. Create a new private decision file under `~/.barocss-ai/v3/`. `reserveApprovedTurn` derives one
+   canonical private reservation ledger from the owner approval reference, candidate commit, and plan
+   hash; the caller cannot select or reset its directory. The later launcher calls it before every
+   `turn/start`. A failed start uses its
    reservation. Stop on a missing/mismatched approval, tool item, session or turn drift, event limit,
    timeout, malformed UTF-8/JSON-RPC, or uncertain completion. Never auto-retry.
 3. Start each session through `thread/start`, then `turn/start` with the frozen prompt and output
    schema. For the second turn, use only the same returned thread ID and the host-owned save action.
    Capture process, thread, turn, and item IDs with monotonic timestamps. `turn/interrupt` is only
    for cancellation of an owned active turn.
-4. Save raw stdout and final items privately. Hash the raw bytes, confirm final item/turn integrity,
+4. Save raw stdout and final items privately. Hash the raw bytes, compare the authoritative
+   `turn.items` final message with the accepted item, confirm turn integrity,
    parse the `specJson` envelope, and apply the shared validator. Replay the accepted screen in the
    browser at 1200 px and 390 px. Keep generation, parse/validation, render, first preview,
    first action-ready, and final completion times separate. Reject missing screenshots or content.
