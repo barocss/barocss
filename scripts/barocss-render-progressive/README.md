@@ -8,6 +8,9 @@ claim, private evidence and authored fake-stdio verification. It remains prepara
 owner GO on the independently accepted exact launcher commit. No actual app-server was started by
 the implementation tests.
 
+The [#463 configuration inspection result](./CONFIG-INSPECTION-463.md) records the bounded
+negative finding for an installed standalone resolver diagnostic. It leaves the #462 guards intact.
+
 ## Capability and ownership
 
 The installed Codex 0.156.1 app-server protocol has `item/agentMessage/delta`,
