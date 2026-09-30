@@ -108,6 +108,8 @@ test('spent #464 plan and profile bindings cannot authorize the corrected packet
   const { args, decision, clean } = fixture();
   try {
     for (const previousBinding of [
+      { planSha256: '6a6047695f6ebb90aad9b07809af6703a00495ae148774ff2974964d2fe4d392' },
+      { runProfileSha256: '5a8becc005729526498a0440b34f578880511fbcc75b4a9d222d1a030ad56c41' },
       { planSha256: '31dafc46de475fe7de3160e51bc5a6426e8bdadfdfbe0760b03e1d369a3ccb34' },
       { runProfileSha256: '11e4608299ac6c7ff85b2ddb1af1f842e65abad9c729d09250a4cfc7db1d0656' },
       { planSha256: '814a8206ec0ef582b1c208b02427ed07e1c979c3ae6dd2d0b269b3caf35fb0f1' },

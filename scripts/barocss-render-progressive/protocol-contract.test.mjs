@@ -181,3 +181,47 @@ test('thread status metadata requires an owned identity and phase-compatible sta
   ]) assert.throws(() => validateThreadStatusNotification(event, context), undefined,
     `${event.params?.status?.type ?? event.method} accepted in ${context.phase}`);
 });
+
+// Pinned v2 RateLimitSnapshot schema; authored values, not captured account data.
+const rateNotice = (rateLimits) => notification('account/rateLimits/updated', { rateLimits });
+test('sparse rate metadata accepts source-shaped optional/null values in bounded phases', () => {
+  const snapshots = [{}, { primary: { usedPercent: 25 }, secondary: null },
+    { credits: { hasCredits: true, unlimited: false, balance: null },
+      individualLimit: { limit: '100.00', used: '25.00', remainingPercent: 75, resetsAt: 12345 },
+      limitId: 'authored-quota', limitName: 'Authored quota', normalModelSlug: 'authored-display-model',
+      planType: 'free', primary: { usedPercent: 125, windowDurationMins: 60, resetsAt: 12345 },
+      secondary: { usedPercent: 0, windowDurationMins: null, resetsAt: null },
+      rateLimitReachedType: 'rate_limit_reached', spendControlReached: true },
+    { credits: null, individualLimit: null, limitId: null, limitName: null, normalModelSlug: null,
+      planType: null, primary: null, secondary: null, rateLimitReachedType: null, spendControlReached: null }];
+  for (const phase of ['initializing', 'starting-session', 'turn-active', 'between-turns']) {
+    for (const value of snapshots) {
+      const event = rateNotice(value), before = structuredClone(event);
+      assert.equal(acceptPassiveNotification(event, { phase }), true);
+      assert.equal(acceptPassiveNotification(event, { phase }), true, 'duplicates remain inert');
+      assert.deepEqual(event, before, 'metadata must not mutate producer data');
+    }
+  }
+});
+
+test('rate metadata rejects malformed snapshots, nested required fields, identities and RPC requests', () => {
+  for (const snapshot of [undefined, null, [], 'quota', { primary: {} },
+    { primary: { usedPercent: 1.5 } }, { primary: { usedPercent: 2147483648 } },
+    { primary: { usedPercent: 1, resetsAt: Number.MAX_SAFE_INTEGER + 1 } },
+    { primary: { usedPercent: 1, windowDurationMins: '60' } },
+    { primary: { usedPercent: 1, threadId: 'unowned' } },
+    { credits: { hasCredits: true } }, { credits: { hasCredits: 1, unlimited: false } },
+    { credits: { hasCredits: true, unlimited: false, balance: 10 } },
+    { individualLimit: { limit: '100', used: '0', remainingPercent: 100 } },
+    { individualLimit: { limit: 100, used: '0', remainingPercent: 100, resetsAt: 1 } },
+    { planType: 'unsupported' }, { rateLimitReachedType: 'unsupported' },
+    { spendControlReached: 1 }, { normalModelSlug: 1 }, { threadId: 'unowned' }]) {
+    assert.throws(() => acceptPassiveNotification(rateNotice(snapshot), { phase: 'turn-active' }));
+  }
+  for (const event of [{ ...rateNotice({}), id: 7 },
+    notification('account/rateLimits/updated', { rateLimits: {}, threadId: 'unowned' }),
+    notification('account/rateLimits/updated', { rateLimits: {}, turnId: 'unowned' })]) {
+    assert.throws(() => acceptPassiveNotification(event, { phase: 'turn-active' }));
+  }
+  assert.throws(() => acceptPassiveNotification(rateNotice({}), { phase: 'stopped' }));
+});

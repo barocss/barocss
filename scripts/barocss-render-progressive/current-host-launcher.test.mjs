@@ -171,3 +171,48 @@ test('unsupported native key names stop before launch claim, reservation or proc
     assert.equal(fs.existsSync(state.resultDir), false);
   } finally { state.cleanup(); }
 });
+
+// Source-shaped authored rate notices; no account read, Codex process or model request.
+test('rate metadata around model events/completion is inert and preserves four reservations', async () => {
+  const state = fixture();
+  try {
+    const options = state.options('rate-metadata');
+    const factory = options.browserFactory;
+    const delivered = [];
+    options.browserFactory = async () => {
+      const browser = await factory();
+      browser.event = async ({ line }) => { delivered.push(JSON.parse(line).method); return { ok: true }; };
+      return browser;
+    };
+    const report = await runExperiment(options);
+    assert.equal(report.status, 'completed');
+    assert.equal(report.modelTurnsReserved, 4);
+    assert.equal(report.sessions.length, 2);
+    assert.equal(report.turns.length, 4);
+    assert.equal(state.launches, 1);
+    assert.equal(delivered.includes('account/rateLimits/updated'), false);
+    assert.equal(delivered.filter((method) => method === 'turn/completed').length, 4);
+    const events = fs.readFileSync(path.join(state.resultDir, 'events.jsonl'), 'utf8')
+      .trim().split('\n').map(JSON.parse);
+    assert.equal(events.filter((record) => record.event.method === 'account/rateLimits/updated').length, 16);
+  } finally { state.cleanup(); }
+});
+
+test('invalid, identity-bearing, server-request and excessive rate updates stop after one fake reservation', async (t) => {
+  for (const mode of ['rate-malformed', 'rate-unowned', 'rate-request', 'rate-overflow',
+    'rate-tool', 'rate-wrong-id', 'rate-unknown']) {
+    await t.test(mode, async () => {
+      const state = fixture();
+      try {
+        await assert.rejects(runExperiment(state.options(mode)));
+        const report = JSON.parse(fs.readFileSync(path.join(state.resultDir, 'report.json')));
+        assert.equal(report.modelTurnsReserved, 1);
+        assert.equal(report.turns.length, 0);
+        assert.equal(state.launches, 1);
+        const requests = fs.readFileSync(path.join(state.resultDir, 'requests.jsonl'), 'utf8')
+          .trim().split('\n').map(JSON.parse);
+        assert.equal(requests.filter((request) => request.method === 'turn/start').length, 1);
+      } finally { state.cleanup(); }
+    });
+  }
+});

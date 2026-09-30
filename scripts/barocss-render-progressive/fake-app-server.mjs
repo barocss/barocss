@@ -40,6 +40,19 @@ function passiveMetadata() {
   if (mode === 'startup-metadata') notify('account/updated', { authMode: 'chatgpt', planType: null });
 }
 
+function rateMetadata() {
+  const snapshot = { limitId: 'authored-quota', primary: { usedPercent: 25 }, secondary: null,
+    credits: null, individualLimit: null, planType: null, spendControlReached: null };
+  if (mode === 'rate-malformed') snapshot.primary = { usedPercent: '25' };
+  const event = { method: 'account/rateLimits/updated', params: { rateLimits: snapshot } };
+  if (mode === 'rate-unowned') event.params.threadId = 'unowned-thread';
+  if (mode === 'rate-request') event.id = 777;
+  send(event);
+  if (mode === 'rate-overflow') {
+    for (let i = 0; i < 64; i++) notify('account/rateLimits/updated', { rateLimits: {} });
+  }
+}
+
 function confirmation(name) {
   return { root: 'layout', elements: {
     layout: { type: 'Layout', props: { id: 'layout', columns: 'single', gap: 'fractional' }, children: ['card'] },
@@ -58,9 +71,11 @@ function completedTurn(spec) {
     notify('thread/status/changed', { threadId: base.threadId, status: { type: 'active', activeFlags: [] } });
   }
   notify('thread/tokenUsage/updated', { ...base, tokenUsage: { total: {} } });
+  if (mode.startsWith('rate-')) rateMetadata();
+  if (mode === 'rate-unknown') notify('unknown/model-event', base);
   notify('turn/started', { threadId: base.threadId,
     turn: { id: base.turnId, status: 'inProgress', items: [] } });
-  if (mode === 'tool') {
+  if (mode === 'tool' || mode === 'rate-tool') {
     notify('item/started', { ...base, startedAtMs: 1,
       item: { id: 'fake-tool', type: 'commandExecution', command: 'false',
         commandActions: [], cwd: process.cwd(), status: 'inProgress' } });
@@ -73,11 +88,13 @@ function completedTurn(spec) {
     return;
   }
   notify('item/agentMessage/delta', { ...base,
-    turnId: mode === 'wrong-id' ? 'other-turn' : base.turnId,
+    turnId: ['wrong-id', 'rate-wrong-id'].includes(mode) ? 'other-turn' : base.turnId,
     itemId: item.id, delta: text });
+  if (mode === 'rate-metadata') rateMetadata();
   notify('item/completed', { ...base, completedAtMs: 3, item });
   notify('turn/completed', { threadId: base.threadId,
     turn: { id: base.turnId, status: 'completed', itemsView: 'full', items: [item] } });
+  if (mode === 'rate-metadata') rateMetadata();
 }
 
 function handle(request) {
@@ -143,6 +160,7 @@ function handle(request) {
       threadId: 'unowned-thread', status: { type: 'idle' } });
     if (mode === 'startup-active-status') notify('thread/status/changed', {
       threadId: thread.id, status: { type: 'active', activeFlags: [] } });
+    if (mode === 'rate-metadata') { rateMetadata(); rateMetadata(); }
     notify('thread/started', { thread });
     send({ id: request.id, result });
     if (mode === 'startup-metadata-after-response') notify('thread/status/changed', {

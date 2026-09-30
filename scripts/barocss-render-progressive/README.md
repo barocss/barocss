@@ -27,6 +27,10 @@ The [#467 startup correction](./PACKET-467.md) validates narrowly scoped passive
 replays the saved native startup bytes without a new process. It is preparation only; neither
 spent decision authorizes a new launch. Native session/model/UI outcomes remain unmeasured.
 
+The [#468 rate metadata correction](./PACKET-468.md) handles the source-established global
+rate-limit notification before the owned-turn guard. Its sparse snapshot remains informational.
+It is a separate frozen preparation packet with no native/model call or new GO.
+
 ## Capability and ownership
 
 The installed Codex 0.156.1 app-server protocol has `item/agentMessage/delta`,
