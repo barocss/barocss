@@ -3,6 +3,13 @@
 This directory is a local research host under `scripts`. The private renderer remains in
 `packages/barocss-render`. No package or BaroCSS runtime API changes are proposed.
 
+**Measurement stage ended at [#469](./RESULT-469.md).** Its sole fresh approved native launch
+returned a session profile that the unchanged contract rejected, with zero model/UI samples.
+Use the existing complete-JSON [loopback demo](../barocss-render-loop/README.md) and verified
+[#458 corpus replay](../barocss-render-corpus/README.md). No further paid experiment or protocol-fix
+cycle is authorized here. The [data-lineage manifest](./DATA-LINEAGE-469.json) lists actual retained
+artifacts and missing stages. The historical packets below do not grant new launch authority.
+
 The [#462 executable packet](./EXECUTABLE-PACKET.md) documents the bounded launcher, one-use decision
 claim, private evidence and authored fake-stdio verification. It remains preparation only until fresh
 owner GO on the independently accepted exact launcher commit. No actual app-server was started by
@@ -75,9 +82,10 @@ measure model latency. A passing replay needs complete layout measurements, corr
 behavior, no page error, no external request, no overflow, and final spec equality with the saved
 output. Raw model output and screenshots stay in private V3 directories.
 
-The reducer expects notifications already scoped to one turn. A later live app-server client must
-initialize the protocol, match request responses, and route only the owned turn's notifications to
-this reducer. This preparation is not a general app-server client.
+The reducer expects notifications already scoped to one turn. `launcher.mjs` initializes the
+protocol, matches request responses, checks session settings and routes only the owned turn's
+notifications to this reducer. Its exact current-host contract did not accept the #469 native
+session. It is not a general app-server client.
 
 ## Saved-output replay result
 
@@ -102,8 +110,9 @@ The browser test also needs the installed `JR_ROOT`, `PW_DIR`, and `REPO_DEPS_RO
 in `browser-replay.test.mjs`. The private saved-corpus replay command is documented in
 `LAUNCH-PACKET.md`. It does not start Codex.
 
-## Remaining question
+## Stage exit
 
-Only a fresh, reviewed, bounded live run can observe genuine app-server delta timing. This
-preparation must not be described as a realtime latency win. The original interaction goal remains
-open even when the no-model replay passes.
+Genuine app-server early-screen timing remains unmeasured. #469 has N=0, not a zero-latency result.
+This measurement stage ends with the existing complete-validated-JSON delivery path. Passing saved
+replay does not establish a realtime latency win, and the remaining startup gap does not authorize
+a new paid experiment. See [RESULT-469.md](./RESULT-469.md) for counts and transformation boundaries.
