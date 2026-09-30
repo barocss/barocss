@@ -187,6 +187,34 @@ test('wrong model, identity drift, tool item, and malformed RPC fail without ret
   });
 });
 
+test('missing or changed effective thread metadata fails before any turn reservation', async (t) => {
+  const modes = ['missing-effort', 'null-effort', 'wrong-effort',
+    'missing-provider', 'wrong-provider', 'nested-wrong-provider',
+    'missing-reviewer', 'wrong-reviewer',
+    'missing-sources', 'null-sources', 'instruction-sources'];
+  for (const mode of modes) await t.test(mode, async () => {
+    const state = setup();
+    const seen = records();
+    try {
+      await assert.rejects(runExperiment(runOptions(state, mode, seen)),
+        /Effective session settings or identity differ/);
+      assert.equal(seen.launches, 1);
+      assert.equal(fs.existsSync(path.join(state.reservationDir, 'launch.json')), true);
+      assert.deepEqual(fs.readdirSync(state.reservationDir).filter((name) => /^[1-4]-/.test(name)), []);
+      const requests = fs.readFileSync(path.join(state.resultDir, 'requests.jsonl'), 'utf8')
+        .trim().split('\n').map((line) => JSON.parse(line));
+      assert.deepEqual(requests.map((request) => request.method), ['initialize', 'thread/start']);
+      assert.equal(JSON.parse(fs.readFileSync(path.join(state.resultDir, 'report.json'))).status, 'failed');
+      fs.copyFileSync(state.decisionFile, state.copiedDecisionFile);
+      await assert.rejects(runExperiment({ ...runOptions(state, mode, seen),
+        decisionFile: state.copiedDecisionFile,
+        resultDir: path.join(root, `private-462-test-copy-${path.basename(state.resultDir)}`) }),
+      /EEXIST/);
+      assert.equal(seen.launches, 1, 'copied decision must not launch a second child');
+    } finally { state.cleanup(); }
+  });
+});
+
 test('missing decision and mismatched candidate never start a child', async (t) => {
   await t.test('missing decision', async () => {
     const state = setup();

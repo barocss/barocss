@@ -69,6 +69,12 @@ tool-free protocol. Any tool item or server request is rejected. Effective threa
 the frozen model, reasoning and sandbox. Unknown events, rerouting, missing/full-item mismatch,
 identity drift, malformed UTF-8/JSON, uncertain completion and timeouts stop the run.
 
+Before the first turn reservation, the thread response must explicitly report `high` reasoning,
+the `openai` provider (including nested thread provenance), `auto_review` approval reviewer,
+matching working directories, and an empty `instructionSources` array. Missing, null or conflicting
+metadata is not inferred from the request. Provider/reviewer are pinned in supported CLI and protocol
+fields; accepted values are recorded in the private session evidence.
+
 The TOML preflight uses the installed `/opt/homebrew/bin/python3.11` in isolated mode. Missing parser
 support stops the launch; the launcher does not install a parser. Cloud-managed defaults cannot be
 fully inspected through these local files. This remains an explicit limitation of the launch packet.

@@ -15,8 +15,8 @@ test('fixed app-server argv accepts only a private scratch with an optional copi
     assert.equal(args.includes('--ignore-user-config'), false);
     assert.equal(args.includes('--enable'), true);
     assert.equal(args.includes('skip_host_skill_discovery'), true);
-    for (const value of ['model="gpt-6.1-sol"', 'model_reasoning_effort="high"',
-      'approval_policy="never"', 'sandbox_mode="read-only"', 'notify=[]',
+    for (const value of ['model="gpt-6.1-sol"', 'model_provider="openai"', 'model_reasoning_effort="high"',
+      'approval_policy="never"', 'approvals_reviewer="auto_review"', 'sandbox_mode="read-only"', 'notify=[]',
       'web_search="disabled"', 'mcp_servers={}', 'tools.update_plan.enabled=false',
       'tools.experimental_request_user_input.enabled=false', 'project_doc_max_bytes=0',
       'shell_environment_policy.inherit="none"']) assert(args.includes(value), value);

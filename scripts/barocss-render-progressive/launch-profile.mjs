@@ -15,8 +15,8 @@ const DISABLED = Object.freeze([
   'deferred_executor', 'skill_mcp_dependency_install', 'workspace_dependencies',
 ]);
 const OVERRIDES = Object.freeze([
-  'model="gpt-6.1-sol"', 'model_reasoning_effort="high"',
-  'approval_policy="never"', 'sandbox_mode="read-only"',
+  'model="gpt-6.1-sol"', 'model_provider="openai"', 'model_reasoning_effort="high"',
+  'approval_policy="never"', 'approvals_reviewer="auto_review"', 'sandbox_mode="read-only"',
   'notify=[]', 'web_search="disabled"', 'mcp_servers={}',
   'tools.update_plan.enabled=false',
   'tools.experimental_request_user_input.enabled=false',

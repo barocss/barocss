@@ -75,15 +75,34 @@ function handle(request) {
   }
   if (request.method === 'thread/start') {
     if (!initializedNotice || request.params?.model !== 'gpt-6.1-sol'
+      || request.params.modelProvider !== 'openai'
+      || request.params.approvalsReviewer !== 'auto_review'
       || request.params.sandbox !== 'read-only' || request.params.approvalPolicy !== 'never') {
       throw new Error('Invalid thread start settings');
     }
     session++;
-    notify('thread/started', { thread: { id: threadId() } });
-    send({ id: request.id, result: { thread: { id: threadId() },
+    const thread = { id: threadId(), cliVersion: '0.156.1', createdAt: 0, updatedAt: 0,
+      cwd: request.params.cwd, ephemeral: false, modelProvider: 'openai', preview: '',
+      projectId: null, sessionId: 'fake-id', source: 'appServer',
+      status: { type: 'idle' }, turns: [] };
+    const result = { thread,
       model: mode === 'wrong-model' ? 'wrong-model' : 'gpt-6.1-sol', cwd: request.params.cwd,
       approvalPolicy: 'never', sandbox: { type: 'readOnly', networkAccess: false },
-      reasoningEffort: 'high' } });
+      approvalsReviewer: 'auto_review', modelProvider: 'openai', reasoningEffort: 'high',
+      instructionSources: [] };
+    if (mode === 'missing-effort') delete result.reasoningEffort;
+    if (mode === 'null-effort') result.reasoningEffort = null;
+    if (mode === 'wrong-effort') result.reasoningEffort = 'low';
+    if (mode === 'missing-provider') delete result.modelProvider;
+    if (mode === 'wrong-provider') result.modelProvider = 'local';
+    if (mode === 'nested-wrong-provider') result.thread.modelProvider = 'local';
+    if (mode === 'missing-reviewer') delete result.approvalsReviewer;
+    if (mode === 'wrong-reviewer') result.approvalsReviewer = 'user';
+    if (mode === 'missing-sources') delete result.instructionSources;
+    if (mode === 'null-sources') result.instructionSources = null;
+    if (mode === 'instruction-sources') result.instructionSources = ['/tmp/test-instructions'];
+    notify('thread/started', { thread });
+    send({ id: request.id, result });
     return;
   }
   if (request.method === 'turn/interrupt') {
@@ -104,6 +123,7 @@ function handle(request) {
   const expectedSchema = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'schema.json')));
   if (request.params.model !== 'gpt-6.1-sol' || request.params.effort !== 'high'
     || request.params.approvalPolicy !== 'never'
+    || request.params.approvalsReviewer !== 'auto_review'
     || request.params.sandboxPolicy?.type !== 'readOnly'
     || request.params.sandboxPolicy.networkAccess !== false
     || !Array.isArray(input) || input.length !== 1 || input[0].type !== 'text'

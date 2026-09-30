@@ -154,6 +154,7 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
       const response = await bounded(rpc.request('turn/start', { threadId,
         input: [{ type: 'text', text: prompt }], model: plan.model, effort: plan.reasoningEffort,
         approvalPolicy: 'never', sandboxPolicy: { type: 'readOnly', networkAccess: false },
+        approvalsReviewer: 'auto_review',
         outputSchema: JSON.parse(fs.readFileSync(schemaFile)) }));
       if (!id(response.turn?.id) || response.turn.status !== 'inProgress'
         || !Array.isArray(response.turn.items) || response.turn.items.some((item) =>
@@ -224,18 +225,24 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
     for (const row of plan.scenarios) {
       // The two rows use independent delivery state, but one process and no session resume.
       const response = await bounded(rpc.request('thread/start', { cwd: scratch, model: plan.model,
+        modelProvider: 'openai', approvalsReviewer: 'auto_review',
         sandbox: 'read-only', approvalPolicy: 'never', config: { model_reasoning_effort: 'high' } }));
       await bounded(rpc.drain());
       if (!id(response.thread?.id) || response.model !== plan.model || response.cwd !== scratch
         || response.approvalPolicy !== 'never' || !safeSandbox(response.sandbox)
-        || (response.reasoningEffort && response.reasoningEffort !== 'high')
+        || response.reasoningEffort !== 'high' || response.modelProvider !== 'openai'
+        || response.thread.modelProvider !== 'openai' || response.thread.cwd !== scratch
+        || response.approvalsReviewer !== 'auto_review'
+        || !Array.isArray(response.instructionSources) || response.instructionSources.length !== 0
         || (announcedThread && announcedThread !== response.thread.id)
         || report.sessions.some((session) => session.threadId === response.thread.id)) {
         throw new Error('Effective session settings or identity differ');
       }
       announcedThread = null;
       report.sessions.push({ rowId: row.id, threadId: response.thread.id, model: response.model,
-        cwd: response.cwd, sandbox: response.sandbox, approvalPolicy: response.approvalPolicy });
+        cwd: response.cwd, sandbox: response.sandbox, approvalPolicy: response.approvalPolicy,
+        modelProvider: response.modelProvider, reasoningEffort: response.reasoningEffort,
+        approvalsReviewer: response.approvalsReviewer, instructionSources: response.instructionSources });
       await runTurn(row, 'initial', response.thread.id, report.turns.length + 1);
       await runTurn(row, 'next', response.thread.id, report.turns.length + 1);
       // Browser/reducer revisions restart for each independent scenario.
