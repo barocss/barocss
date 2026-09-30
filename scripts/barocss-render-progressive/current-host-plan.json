@@ -3,7 +3,7 @@
   "issue": 464,
   "mode": "owner-approved-current-host",
   "basePlanSha256": "ff9df0ba9c16c08e13a087978009ab4d3dbb6ed031620a6461d9d27493684141",
-  "runProfileSha256": "11e4608299ac6c7ff85b2ddb1af1f842e65abad9c729d09250a4cfc7db1d0656",
+  "runProfileSha256": "5a8becc005729526498a0440b34f578880511fbcc75b4a9d222d1a030ad56c41",
   "codexVersion": "0.156.1",
   "transport": "app-server-stdio-v2",
   "model": "gpt-6.1-sol",
@@ -38,6 +38,7 @@
       "nextPromptSha256": "8bf4878f4336f8b3e7451c8f93bd48ccc954ad141caaa178c0f3c3834315e749"
     }
   ],
-  "preparationIssue": 465,
-  "prior464LaunchConsumed": true
+  "preparationIssue": 467,
+  "prior464LaunchConsumed": true,
+  "prior466LaunchConsumed": true
 }

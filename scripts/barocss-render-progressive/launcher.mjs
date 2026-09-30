@@ -6,6 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { createDelivery } from './delivery.mjs';
 import { createRpc } from './rpc.mjs';
+import { acceptPassiveNotification, validateInitializeResponse, validateThread,
+  validateThreadStartResponse, validateTurnStartResponse, validateThreadStatusNotification }
+  from './protocol-contract.mjs';
 import { claimApprovedLaunch, reserveApprovedTurn } from './gate.mjs';
 import { verifyFrozenPlan } from './freeze.mjs';
 import { verifyCurrentHostPlan, readCurrentHostDecision, claimCurrentHostLaunch,
@@ -30,8 +33,7 @@ const deferred = () => {
   promise.catch(() => {});
   return { promise, resolve, reject };
 };
-const safeSandbox = (value) => value?.type === 'readOnly' && value.networkAccess === false;
-const metadata = new Set(['thread/tokenUsage/updated', 'thread/status/changed', 'turn/moderationMetadata']);
+const metadata = new Set(['thread/tokenUsage/updated', 'turn/moderationMetadata']);
 const reasoningEvents = new Set(['item/reasoning/summaryTextDelta', 'item/reasoning/textDelta',
   'item/reasoning/summaryPartAdded']);
 
@@ -75,6 +77,8 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
   const failed = deferred();
   let failure = null, rpc, browser, active = null, child;
   let reservations = 0, pendingInitial = null;
+  let phase = 'initializing', pendingSession = null, ownedThread = null;
+  let passiveCount = 0, remoteIdentity = null;
   const reserve = (ordinal, rowId, kind) => {
     const options = { ...gateOptions, ordinal, rowId, kind };
     const reservation = currentHost ? reserveCurrentHostTurn(options) : reserveApprovedTurn(options);
@@ -108,9 +112,30 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
   }));
   async function onEvent({ event, line, receivedMs }) {
     log('events.jsonl', { receivedMs, event });
+    if (acceptPassiveNotification(event, { phase })) {
+      if (++passiveCount > 64) throw new Error('Passive metadata ceiling exceeded');
+      if (event.method === 'remoteControl/status/changed') {
+        const identity = JSON.stringify([event.params.installationId, event.params.serverName]);
+        if (remoteIdentity !== null && identity !== remoteIdentity) throw new Error('Remote identity drift');
+        remoteIdentity = identity;
+      }
+      return;
+    }
     if (event.method === 'thread/started') {
-      if (active || announcedThread || !id(event.params?.thread?.id)) throw new Error('Unexpected thread start');
+      if (active || !pendingSession || announcedThread) throw new Error('Unexpected thread start');
+      validateThread(event.params?.thread, { model: plan.model, cwd: scratch });
       announcedThread = event.params.thread.id;
+      return;
+    }
+    if (event.method === 'thread/status/changed') {
+      if (pendingSession) {
+        // Buffer only during this owned request, then bind every notice to its validated response.
+        if (pendingSession.statusIds.length >= 16) throw new Error('Startup metadata ceiling exceeded');
+        pendingSession.statusIds.push(validateThreadStatusNotification(event, { phase }));
+      } else {
+        if (!ownedThread) throw new Error('Notification outside owned session');
+        validateThreadStatusNotification(event, { phase, threadId: ownedThread });
+      }
       return;
     }
     const current = active;
@@ -168,6 +193,7 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
       processId: `process-${child.pid}`, reasoning: new Set(), observations: [],
       bytes: 0, startedMs: turnStartedMs };
     active = current;
+    phase = 'turn-active';
     const timer = setTimeout(() => fail(new Error('Turn timeout; no retry')),
       Math.min(timeouts.turn ?? plan.perTurnTimeoutMs, plan.perTurnTimeoutMs));
     try {
@@ -180,9 +206,7 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
         approvalPolicy: 'never', sandboxPolicy: { type: 'readOnly', networkAccess: false },
         approvalsReviewer: 'auto_review',
         outputSchema: JSON.parse(fs.readFileSync(schemaFile)) }));
-      if (!id(response.turn?.id) || response.turn.status !== 'inProgress'
-        || !Array.isArray(response.turn.items) || response.turn.items.some((item) =>
-          !['userMessage', 'reasoning'].includes(item.type))) throw new Error('Invalid turn start response');
+      validateTurnStartResponse(response);
       const turnKey = `${threadId}\0${response.turn.id}`;
       if (seenTurns.has(turnKey)) throw new Error('Repeated owned turn identity');
       seenTurns.add(turnKey);
@@ -221,6 +245,7 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
         log('actions.jsonl', action);
       }
       active = null;
+      phase = 'between-turns';
     } finally { clearTimeout(timer); }
   }
   try {
@@ -246,9 +271,8 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
       } });
     const initialized = await bounded(rpc.request('initialize', {
       clientInfo: { name: 'barocss_462', version: '1' }, capabilities: { experimentalApi: false } }));
-    if (typeof initialized.userAgent !== 'string' || !initialized.userAgent.includes(plan.codexVersion)) {
-      throw new Error('Installed app-server version differs from frozen plan');
-    }
+    validateInitializeResponse(initialized, plan.codexVersion, currentHost
+      ? { codexHome: inspection.inspected.configHome } : {});
     rpc.notify('initialized', {});
     for (const row of plan.scenarios) {
       // The two rows use independent delivery state, but one process and no session resume.
@@ -257,20 +281,22 @@ export async function runExperiment({ decisionFile, candidateCommit, resultDir,
         // Every uncertain session start consumes its initial slot, including row 03.
         pendingInitial ??= reserve(report.turns.length + 1, row.id, 'initial');
       }
+      phase = 'starting-session';
+      pendingSession = { statusIds: [] };
+      ownedThread = null;
       const response = await bounded(rpc.request('thread/start', { cwd: scratch, model: plan.model,
         modelProvider: 'openai', approvalsReviewer: 'auto_review',
         sandbox: 'read-only', approvalPolicy: 'never', config: { model_reasoning_effort: 'high' } }));
+      validateThreadStartResponse(response, { model: plan.model, cwd: scratch });
       await bounded(rpc.drain());
-      if (!id(response.thread?.id) || response.model !== plan.model || response.cwd !== scratch
-        || response.approvalPolicy !== 'never' || !safeSandbox(response.sandbox)
-        || response.reasoningEffort !== 'high' || response.modelProvider !== 'openai'
-        || response.thread.modelProvider !== 'openai' || response.thread.cwd !== scratch
-        || response.approvalsReviewer !== 'auto_review'
-        || !Array.isArray(response.instructionSources) || response.instructionSources.length !== 0
-        || (announcedThread && announcedThread !== response.thread.id)
+      if ((announcedThread && announcedThread !== response.thread.id)
+        || pendingSession.statusIds.some((threadId) => threadId !== response.thread.id)
         || report.sessions.some((session) => session.threadId === response.thread.id)) {
         throw new Error('Effective session settings or identity differ');
       }
+      ownedThread = response.thread.id;
+      pendingSession = null;
+      phase = 'between-turns';
       announcedThread = null;
       report.sessions.push({ rowId: row.id, threadId: response.thread.id, model: response.model,
         cwd: response.cwd, sandbox: response.sandbox, approvalPolicy: response.approvalPolicy,
@@ -345,10 +371,12 @@ async function main() {
       mode: currentHost ? 'owner-approved-current-host' : 'default',
       candidateCommit, signal: controller.signal, processFactory: ({ cwd, argv }) =>
         spawn(codex, argv, { cwd, shell: false, stdio: ['pipe', 'pipe', 'pipe'] }) });
+    // eslint-disable-next-line no-console -- CLI emits only the public-safe aggregate.
     console.log(JSON.stringify({ status: report.status, turns: report.turns.length, latencyClaim: 'none' }));
   } finally { process.removeListener('SIGINT', cancel); process.removeListener('SIGTERM', cancel); }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  // eslint-disable-next-line no-console -- CLI reports a bounded failure.
   main().catch((error) => { console.error(error.message); process.exitCode = 1; });
 }

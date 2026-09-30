@@ -55,7 +55,18 @@
     "rejectUnsupportedNamesBeforeClaim": true
   },
   "uncertainty": "Installed configuration evidence does not prove every future host extension is inert. Reject unrecognized registration sources and unexpected app-server requests or tool items.",
-  "preparationIssue": 465,
+  "preparationIssue": 467,
   "mcpKeyEncoding": "literal-safe-segment-v1",
-  "mcpNamePattern": "^[A-Za-z0-9_-]+$"
+  "mcpNamePattern": "^[A-Za-z0-9_-]+$",
+  "protocolContract": "startup-metadata-467-v1",
+  "protocolContractSha256": "5aea8e47acdaabfa87767fa38db852412cb059fe296f9185d5c6073700c3799e",
+  "passiveMetadataPolicy": {
+    "accountAuthMode": "chatgpt",
+    "remoteStatus": "disabled",
+    "remoteEnvironment": "absent-or-null",
+    "stableRemoteIdentity": true,
+    "maxGlobalNotifications": 64,
+    "maxPendingThreadStatuses": 16,
+    "bindPendingStatusToOwnedResponse": true
+  }
 }
