@@ -1,0 +1,15 @@
+/* Frozen host-owned base styles. Model output can select only validated layout/button classes. */
+:root{--radius:10px;--background:oklch(1 0 0);--foreground:oklch(.145 0 0);--card:oklch(1 0 0);--card-foreground:oklch(.145 0 0);--primary:oklch(.205 0 0);--primary-foreground:oklch(.985 0 0);--border:oklch(.922 0 0);--input:oklch(.922 0 0)}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--background);color:var(--foreground)}
+#host{padding:12px;border-bottom:1px solid var(--border);color:var(--foreground);background:var(--background)}#out{padding:18px}
+.grid{display:grid}.rounded-xl{border-radius:14px}.border{border-width:1px;border-style:solid}.border-border{border-color:var(--border)}
+.bg-card{background:var(--card)}.text-card-foreground{color:var(--card-foreground)}.text-foreground{color:var(--foreground)}
+.text-2xl{font-size:24px;line-height:32px}.font-semibold{font-weight:600}.text-sm{font-size:14px;line-height:20px}.font-medium{font-weight:500}
+.gap-2{gap:8px}.h-9{height:36px}.w-full{width:100%}.rounded-md{border-radius:8px}.border-input{border-color:var(--input)}
+.bg-background{background:var(--background)}.px-3{padding-inline:12px}.py-1{padding-block:4px}
+.inline-flex{display:inline-flex}.items-center{align-items:center}.justify-center{justify-content:center}.bg-primary{background:var(--primary)}
+.px-4{padding-inline:16px}.text-primary-foreground{color:var(--primary-foreground)}
+body.bounded .grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}body.bounded .grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.bounded .hover\:underline:hover{text-decoration-line:underline}
+
+body.bounded .typed-layout{padding:var(--ui-padding,24px);gap:var(--ui-gap,24px);border-radius:var(--ui-radius,14px)}

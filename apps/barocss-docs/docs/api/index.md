@@ -19,6 +19,12 @@ One line per page. New here? Start with the [Quick Start](/guide/quick-start); c
 |---|---|
 | [Server Runtime](/api/server-runtime) | `ServerRuntime`: `generateCssForHtml(html, { skip })` returns the CSS for one HTML response's classes; `generateCss('a b c')` returns one complete sheet for class names; `ssrStyleTag(css, { nonce })` wraps it in `<style data-barocss-ssr>` for `<head>` so the browser runtime adopts it |
 
+## Experimental renderer (`@barocss/render`, staged)
+
+| page | what it covers |
+|---|---|
+| [Renderer API](/api/render) | `Renderer`, `validateSpec`, `classesFor`: five-component profile forms with host state/actions; [local example](/guide/render). First public release is not yet published. |
+
 ## Configuration and core (`@barocss/kit`)
 
 | page | what it covers |

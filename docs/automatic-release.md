@@ -4,19 +4,47 @@
 
 Version 0.4.0 was published from `main` commit `9d0ab73176593cb06f65f48e173bb66020b724ee`. All three npm packages, tags, and GitHub Releases were independently verified. The original publish run failed its final check while npm was still processing the registry records; do not rerun it or republish 0.4.0. [PM's completion record](https://github.com/barocss/barocss/pull/92#issuecomment-5793372228) and [the verification record](https://github.com/barocss/barocss/pull/92#issuecomment-5793362713) document the outcome. Use the steps below for a **new** version only.
 
-## Release candidate review
+## Current V3 release candidate
 
-Development and version PRs stay on `develop`. After Guard and Ship accept one candidate, PM posts a comment in `barocss/barocss` with these exact lines:
+Planner owns release scope and checkpoint decisions. Execute implements and integrates local tasks.
+Review independently accepts medium/high-risk exact commits. Task integration is local; only a
+reviewed checkpoint and a separate Changesets version PR reach remote `develop`. See
+[the V3 handoff](../tools/ai-v3/HANDOFF.md).
+
+The next planned release includes `@barocss/kit`, `@barocss/browser`, `@barocss/server`, and the first
+experimental `@barocss/render`, coordinated at 0.12.0. This is a plan, not a published-version claim.
+Run Changesets version only in the reviewed version step. Pending changesets block publication.
+Public checkpoint/version branches start from the accepted remote checkpoint; private local research
+ancestors are not pushed. Preserve original historical baselines and private artifacts locally.
+
+After the exact public candidate passes independent Review, full `pnpm check`, four-package
+`check-packages.mjs`, Docs build and public-boundary checks, Planner records:
 
 ```text
 BAROCSS_RELEASE_READY SHA=<40-character-develop-SHA> VERSION=<version>
-Guard: https://github.com/barocss/barocss/...
-Ship: https://github.com/barocss/barocss/...
+Packages: @barocss/kit @barocss/browser @barocss/server @barocss/render
+Guard: https://github.com/barocss/barocss/issues/<id>#issuecomment-<review>
+Ship: https://github.com/barocss/barocss/issues/<id>#issuecomment-<pack-check>
+Render: https://github.com/barocss/barocss/issues/<id>#issuecomment-<render-check>
 ```
 
-Before the main PR, the release owner and PM review the exact current `develop` SHA. Confirm that `main` is an ancestor of that SHA (`behind_by=0` and `ahead_by>0` for `main...develop`), the exact SHA passed develop's `Test and Build`, Guard and Ship accepted that SHA, the three package versions and packed internal dependencies match, no changesets remain, and the version and tags are unused. Record the SHA, version, and evidence in the PM comment. If `main` is ahead, synchronize it into `develop` through a normal PR, repeat CI and reviews, and issue a new PM record for the new SHA. Recheck the PR head against the current `develop` SHA immediately before the owner merges it. A moved head needs new evidence and a new PM record.
+`Guard:` and `Ship:` are retained wire fields from the existing release workflow. They mean the
+current **Review** acceptance and **Execute** pack/check evidence; they do not create separate
+legacy roles or gates. `Render:` links an owner-posted packed-consumer record with this exact line:
 
-Use these read-only GitHub checks for the final merge review; the PR head, current `develop` head, and PM record must name the same full SHA:
+```text
+BAROCSS_RENDER_READY SHA=<same-develop-SHA> VERSION=<same-version>
+```
+
+The record must describe the isolated packed ESM/type consumer and the artifact verification.
+The workflow checks the exact line and owner identity, not the prose's technical conclusions;
+independent Review must judge those conclusions before release readiness. All records currently
+share the `easylogic` GitHub identity, so links alone cannot prove independent authorship.
+
+Before the main PR, confirm main is an ancestor of the candidate, package identities/versions match,
+packed dependencies resolve correctly, no changesets remain, and the new npm version/tags are unused.
+Recheck the PR head and live develop SHA immediately before merge. Changed commits need fresh
+verification, Review and readiness records.
 
 ```sh
 gh api repos/barocss/barocss/branches/develop --jq '.commit.sha'
@@ -24,25 +52,49 @@ gh api repos/barocss/barocss/compare/main...develop --jq '{ahead_by, behind_by}'
 gh pr view PR_NUMBER --repo barocss/barocss --json headRefOid --jq '.headRefOid'
 ```
 
-Replace `PR_NUMBER` with the release PR number. The compare result must have `behind_by: 0` and `ahead_by` greater than zero.
-
-The PM comment links Guard and Ship evidence. Since these records currently share the `easylogic` GitHub identity, the publication workflow verifies the links and exact SHA but cannot prove separate human authorship.
+The compare result requires `behind_by: 0` and positive `ahead_by`. Main promotion/publication
+remains blocked until Planner resolves the first renderer package's npm Trusted Publisher setup.
 
 ## Protected main PR and manual publication
 
-1. Open a normal PR from the reviewed current `develop` commit to `main`. Use an ordinary merge commit. `easylogic` merges the green PR after required `build` and `test` checks, resolved conversations, and the final candidate SHA/ancestry review above. Do not use a GitHub App, approval-triggered workflow, auto-merge, squash, rebase, or branch-protection bypass. The selected no-App model has zero required approvals; strict checks and conversation resolution remain in place.
-2. The merged `main` push runs `build` and `test` only. It never publishes npm. Wait for both checks and any separate Docs deployment/smoke gate before a manual npm release.
-3. In **Npm release** (`npm-release.yml`), choose `main` and enter `publish=true`, the exact current main SHA, the same version in all three manifests, and the PM readiness comment URL. The default `publish=false` runs checks only. Only `easylogic` can complete a `publish=true` run. The job requires successful `build` and `test` and the protected main-only `npm` environment.
-4. Before publication, the job verifies the live main SHA, the ordinary two-parent merge from `develop`, that the merged candidate contains the previous main commit, that `easylogic` merged the PR, the exact candidate SHA/version in the PM record, Guard and Ship links, successful develop CI for that candidate, no pending changesets, all three package versions, npm/tag/Release collisions, and the retained tarballs' export/type/CDN/runtime checks. It rechecks main and the registry immediately before the first publish.
-5. The job uses GitHub OIDC with Node 22.22.0, npm CLI 11.5.1, `id-token: write`, and no npm token. It publishes the validated kit, browser, and server tarballs in that order. Only after all three succeed does it create package tags and GitHub Releases at the exact main SHA. A final check requires all three npm versions, tags, and non-draft Releases.
+1. Merge the reviewed public `develop` candidate to protected `main` through a normal two-parent PR
+   merged by the owner. Required `build`/`test`, conversation resolution and exact SHA/ancestry gates
+   apply. No App, auto-merge or protection bypass.
+2. Main push runs build/test only. Wait for those checks and separate Docs deployment/smoke evidence.
+3. The manual **Npm release** workflow defaults to `publish=false`. Only owner-dispatched
+   `publish=true` on `main` with exact main SHA, version and readiness URL can enter publication.
+4. Before publication, the workflow verifies live protected main, the ordinary develop merge,
+   previous-main ancestry, owner merge, exact four-package/renderer readiness, successful develop
+   CI, no pending changesets, four manifest identities/versions, and npm/tag/Release collisions.
+   Retained tarballs pass isolated export/type/license/runtime checks. Recheck main and registry
+   immediately before the first publish.
+5. Publish the validated **render, kit, browser, server** tarballs in that order using GitHub OIDC,
+   Node 22.22.0, npm 11.5.1 and `id-token: write`, without an npm token. Render goes first so its
+   first-package trust failure cannot advance the existing packages. This ordering is not atomic.
+   Only after all four succeed, create all four tags/Releases at exact main. Final verification
+   requires all four npm versions, exact tags and non-draft Releases.
 
-| Event | `build`/`test` | npm publish |
+| Event | build/test | npm publication |
 | --- | --- | --- |
-| PR to `main` | Run and satisfy branch protection | Never |
-| Push to `main` | Run on the exact merged commit | Never |
-| Manual `publish=false` on `main` | Run | Never |
-| Manual `publish=true` on `main` | Must pass first | Only after all gates |
-| `develop` push | `Test and Build` in `ci.yml` | Never |
+| PR/push to main | Required | Never |
+| Manual publish=false | Required | Never |
+| Manual publish=true on main | Required | Only after every gate |
+| develop push | Test and Build | Never |
+
+## First renderer publication and Docs staging
+
+The existing three packages have published versions. `@barocss/render` is a new npm package; an
+absent registry entry is not proof of Trusted Publisher readiness. npm's
+[trust command prerequisites](https://docs.npmjs.com/cli/v11/commands/npm-trust/#prerequisites)
+require an existing package. The owner/Planner must resolve the permitted first-publication setup;
+Execute does not authenticate, bootstrap, add a token fallback or publish in this preparation task.
+A failed or partial publication requires a separate reviewed recovery decision, never an automatic
+resume or republish. OIDC token issuance and `npm whoami` do not prove npm publication acceptance.
+
+The website's render guide/API are explicitly staged. Existing installation/CDN snippets continue
+using `published-version.json` (currently 0.11.2). After independent four-package publication checks,
+promote that marker, replace the staged renderer notice with the verified install version, rebuild
+Docs and verify live installation links. Do not claim an unpublished renderer version is available.
 
 ## One-time repository setup
 
@@ -58,6 +110,6 @@ The one-time setup removed the legacy publish path before Docs or product change
 
 ## Repeat runs and failure response
 
-An already published version with complete npm packages, tags, and Releases is not republished. The final check waits up to five minutes for npm registry processing. A partial npm publication, existing tag before npm publication, missing Release, wrong tag target, moved main, failed CI, disabled environment, or npm OIDC trust failure stops the workflow. Do not automatically retry a partial publication. Record npm versions, tags, Releases, and logs; use a separate reviewed recovery plan. npm cannot atomically publish three packages.
+An already published version with complete npm packages, tags, and Releases is not republished. The final check waits up to five minutes for npm registry processing. A partial npm publication, existing tag before npm publication, missing Release, wrong tag target, moved main, failed CI, disabled environment, or npm OIDC trust failure stops the workflow. Do not automatically retry a partial publication. Record npm versions, tags, Releases, and logs; use a separate reviewed recovery plan. npm cannot atomically publish four packages.
 
 Recheck packed internal dependencies and npm version collisions at each final candidate SHA. Do not run an unreviewed `changeset version` step.
