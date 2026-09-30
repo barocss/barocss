@@ -1,5 +1,13 @@
 # @barocss/browser
 
+## 0.12.1
+
+### Patch Changes
+
+- Release all four public packages together at 0.12.1.
+- Updated dependencies
+  - @barocss/kit@0.12.1
+
 ## 0.12.0
 
 ### Minor Changes
