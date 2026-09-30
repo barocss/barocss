@@ -17,6 +17,7 @@ const depsRoot = process.env.REPO_DEPS_ROOT ?? repo;
 const reactRoot = process.env.REACT_ROOT ?? process.env.JR_ROOT ?? path.join(depsRoot, 'packages/barocss-render');
 const typesRoot = process.env.REACT_TYPES_ROOT ?? reactRoot;
 const deps = createRequire(path.join(depsRoot, 'package.json'));
+const peers = createRequire(path.join(reactRoot, 'package.json'));
 const { build } = deps('esbuild');
 let prepared;
 
@@ -34,8 +35,8 @@ async function consumer() {
     fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
     fs.copyFileSync(path.join(here, 'examples/profile-form.tsx'), path.join(dir, 'profile-form.tsx'));
     for (const name of ['react']) {
-      const from = path.join(reactRoot, 'node_modules', name);
-      assert(fs.existsSync(from), `Missing installed peer: ${name}`);
+      const from = path.dirname(peers.resolve(`${name}/package.json`));
+      assert.equal(JSON.parse(fs.readFileSync(path.join(from, 'package.json'))).version, '19.2.3', 'Expected the supported React peer');
       fs.symlinkSync(from, path.join(dir, 'node_modules', name), 'dir');
     }
     assert(!fs.existsSync(path.join(packageDir, 'src')));
@@ -58,8 +59,12 @@ async function bundleExample(dir, entry, outfile) {
     platform: 'browser', jsx: 'automatic', target: 'es2022', metafile: true });
   const inputs = Object.keys(result.metafile.inputs).map((name) => fs.realpathSync(path.resolve(name)));
   assert(inputs.includes(fs.realpathSync(path.join(dir, 'node_modules/@barocss/render/dist/index.js'))));
+  const domPackage = peers.resolve('react-dom/package.json');
+  const domPeers = createRequire(domPackage);
+  const assets = [peers.resolve('react/package.json'), domPackage, domPeers.resolve('scheduler/package.json')]
+    .map((manifest) => fs.realpathSync(path.dirname(manifest)) + path.sep);
   assert(inputs.every((name) => name.startsWith(fs.realpathSync(dir) + path.sep)
-    || name.startsWith(fs.realpathSync(path.join(reactRoot, 'node_modules')) + path.sep)));
+    || assets.some((root) => name.startsWith(root))));
   return result.metafile;
 }
 
@@ -105,8 +110,8 @@ void [badColumns, badBinding, badAction, badType];
 
 test('separate built-package browser consumer preserves host input/actions and last valid spec', async () => {
   const { dir, scratch, metadata } = await consumer();
-  const dom = path.join(reactRoot, 'node_modules/react-dom');
-  assert(fs.existsSync(dom), 'Installed react-dom is required for the consumer browser check');
+  const dom = path.dirname(peers.resolve('react-dom/package.json'));
+  assert.equal(JSON.parse(fs.readFileSync(path.join(dom, 'package.json'))).version, '19.2.3', 'Expected matching installed React DOM');
   fs.symlinkSync(dom, path.join(dir, 'node_modules/react-dom'), 'dir');
   assert(process.env.PW_DIR, 'Set PW_DIR to the already installed Playwright assets');
   const pw = createRequire(path.join(process.env.PW_DIR, 'package.json'))('playwright-core');
@@ -204,4 +209,26 @@ process.stdout.write(JSON.stringify({exports:Object.keys(built).sort(), invalid:
   assert(!source.includes('child_process'));
   assert(!/from\s*['"][^'"]*src\/index\.jsx/.test(source));
   assert(fs.existsSync(path.join(dir, 'node_modules/react')));
+});
+
+// Reproduce the repository's hoisted linker without an install or dependency download.
+test('built ESM smoke resolves a React peer hoisted above the package', async () => {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'barocss-hoisted-peer-'));
+  try {
+    const anchor = path.join(scratch, 'packages/host');
+    fs.mkdirSync(anchor, { recursive: true });
+    fs.mkdirSync(path.join(scratch, 'node_modules'));
+    fs.writeFileSync(path.join(anchor, 'package.json'), JSON.stringify({ private: true }));
+    fs.symlinkSync(path.dirname(peers.resolve('react/package.json')),
+      path.join(scratch, 'node_modules/react'), 'dir');
+    assert(!fs.existsSync(path.join(anchor, 'node_modules')));
+    const env = { ...process.env, REACT_ROOT: anchor };
+    delete env.NODE_TEST_CONTEXT;
+    const { stdout } = await exec(process.execPath, ['--test', '--test-reporter=tap',
+      '--test-name-pattern=^built ESM root exports', fileURLToPath(import.meta.url)], {
+      env, timeout: 30_000,
+    });
+    assert.match(stdout, /# pass 1/);
+    assert.match(stdout, /# fail 0/);
+  } finally { fs.rmSync(scratch, { recursive: true, force: true }); }
 });
