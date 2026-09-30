@@ -27,6 +27,10 @@ export function verifyCurrentHostPlan({ planFile = CURRENT_PLAN } = {}) {
     || profile.model !== 'gpt-6.1-sol' || profile.reasoningEffort !== 'high'
     || profile.sandboxPolicy !== 'readOnly' || profile.approvalPolicy !== 'never'
     || profile.reserveFirstBeforeInitialization !== true
+    || profile.preparationIssue !== 465 || profile.mcpKeyEncoding !== 'literal-safe-segment-v1'
+    || profile.mcpNamePattern !== '^[A-Za-z0-9_-]+$'
+    || profile.perEntryMcpDisablePolicy?.rejectUnsupportedNamesBeforeClaim !== true
+    || profile.perEntryMcpDisablePolicy?.cliOverrideTemplate !== 'mcp_servers.<SAFE_NAME>.enabled=false'
     || JSON.stringify(profile.allowedConfigCategories)
       !== JSON.stringify(['hooks', 'marketplaces', 'mcp_servers', 'notify', 'plugins'])
     || profile.perEntryMcpDisablePolicy?.setEnabledFalseForEveryRegisteredServer !== true) {
@@ -40,6 +44,7 @@ export function verifyCurrentHostPlan({ planFile = CURRENT_PLAN } = {}) {
     kind: 'barocss-464-current-host-plan-v1', issue: 464, mode: 'owner-approved-current-host',
     basePlanSha256: frozen.planSha256, runProfileSha256: sha(profileBytes),
     ...frozenFields, reserveFirstBeforeInitialization: true,
+    preparationIssue: 465, prior464LaunchConsumed: true,
   };
   try { assert.deepStrictEqual(plan, expected); }
   catch { throw new Error('Current-host plan differs from frozen bounds, model, prompts, or hashes'); }

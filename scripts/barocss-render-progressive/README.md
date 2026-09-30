@@ -16,6 +16,9 @@ the owner-approved current-Mac experiment. It preserves the default #462 guard a
 limits explicitly. The [actual #464 result](./RESULT-464.md) records one failed native
 initialization, one consumed reservation and zero model/UI timing samples. No retry occurred.
 
+The [#465 corrected proposal](./CORRECTED-PACKET-465.md) addresses native CLI key semantics with
+source-contract checks only. It supplies no live GO and cannot reuse the spent #464 decision.
+
 ## Capability and ownership
 
 The installed Codex 0.156.1 app-server protocol has `item/agentMessage/delta`,

@@ -3,7 +3,7 @@
   "issue": 464,
   "mode": "owner-approved-current-host",
   "basePlanSha256": "ff9df0ba9c16c08e13a087978009ab4d3dbb6ed031620a6461d9d27493684141",
-  "runProfileSha256": "80661644f79f76748e6c31ff5fa87140a776bda121cc018e846c9f0073be00c8",
+  "runProfileSha256": "11e4608299ac6c7ff85b2ddb1af1f842e65abad9c729d09250a4cfc7db1d0656",
   "codexVersion": "0.156.1",
   "transport": "app-server-stdio-v2",
   "model": "gpt-6.1-sol",
@@ -33,9 +33,11 @@
     {
       "id": "03",
       "prompt": "Create a light profile form with the heading Profile settings, a Name input, and a Save profile button.",
-      "name": "Zoë",
+      "name": "Zo\u00eb",
       "initialPromptSha256": "d9e99c3d9d360bddc789be441d3f559bee9f924d399087152df5ded6d44d0466",
       "nextPromptSha256": "8bf4878f4336f8b3e7451c8f93bd48ccc954ad141caaa178c0f3c3834315e749"
     }
-  ]
+  ],
+  "preparationIssue": 465,
+  "prior464LaunchConsumed": true
 }

@@ -18,7 +18,7 @@ function fixture() {
   fs.mkdirSync(cwd);
   const config = path.join(configHome, 'config.toml');
   fs.writeFileSync(config, `model="gpt-6.1-sol"\nnotify=["private command"]\n
-[mcp_servers."local.test"]\ncommand="private command"\n
+[mcp_servers.local_test]\ncommand="private command"\n
 [hooks]\nSessionStart=[]\n
 [marketplaces.bundled]\nsource="private source"\n
 [plugins."x@bundled"]\nenabled=true\n`);
@@ -40,7 +40,7 @@ test('opt-in inventory is private, stable, and rejects ancillary drift while def
     assert.throws(() => assertLocalConfiguration({ env: f.env, cwd: f.cwd }), /prohibited settings/);
     const inspected = inspectCurrentHost({ env: f.env, cwd: f.cwd, inventoryFile });
     assert.match(inspected.fingerprintSha256, /^[0-9a-f]{64}$/);
-    assert.deepEqual(inspected.mcpNames, ['local.test']);
+    assert.deepEqual(inspected.mcpNames, ['local_test']);
     assert(inspected.inspected.registrationCount >= 4);
     assert.equal(fs.statSync(inventoryFile).mode & 0o077, 0);
     const inventory = fs.readFileSync(inventoryFile, 'utf8');
@@ -51,7 +51,7 @@ test('opt-in inventory is private, stable, and rejects ancillary drift while def
       env: f.env, cwd: f.cwd }).fingerprintSha256, inspected.fingerprintSha256);
     fs.writeFileSync(path.join(scratch, 'schema.json'), '{}\n');
     const argv = buildCurrentHostArgv({ cwd: scratch, inspection: inspected });
-    assert(argv.includes('mcp_servers."local.test".enabled=false'));
+    assert(argv.includes('mcp_servers.local_test.enabled=false'));
     assert(argv.includes('mcp_servers={}'));
     assert(argv.includes('notify=[]'));
     for (const feature of ['hooks', 'plugins', 'remote_plugin']) {
@@ -101,5 +101,21 @@ test('opt-in rejects unapproved provider, instructions, features, credentials, a
     fs.mkdirSync(path.dirname(projectConfig));
     fs.writeFileSync(projectConfig, 'model="gpt-6.1-sol"\n');
     assert.throws(() => inspectCurrentHost({ env: f.env, cwd: f.cwd }), /Ancestor project/);
+  } finally { f.cleanup(); }
+});
+
+test('MCP names outside the pinned CLI literal path syntax stop at inspection and argv construction', () => {
+  const f = fixture();
+  try {
+    for (const name of ['local.test', 'quoted"name', 'white space', 'semi;colon',
+      'control\nname', '']) {
+      fs.writeFileSync(f.config, `model="gpt-6.1-sol"\n[mcp_servers.${JSON.stringify(name)}]\ncommand="fixture"\n`);
+      assert.throws(() => inspectCurrentHost({ env: f.env, cwd: f.cwd }),
+        /MCP name cannot be addressed/, `inspection accepted ${JSON.stringify(name)}`);
+      assert.throws(() => buildCurrentHostArgv({ cwd: f.cwd, inspection: {
+        fingerprintSha256: 'a'.repeat(64), mcpNames: [name],
+      } }), /Verified current-host inspection is required/,
+      `argv construction accepted ${JSON.stringify(name)}`);
+    }
   } finally { f.cleanup(); }
 });

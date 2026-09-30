@@ -102,3 +102,19 @@ test('exclusive launch and ordered pre-turn reservations consume the allowance',
     } finally { fs.rmSync(copy, { force: true }); }
   } finally { clean(reservationDir); }
 });
+
+
+test('spent #464 plan and profile bindings cannot authorize the corrected packet', () => {
+  const { args, decision, clean } = fixture();
+  try {
+    for (const previousBinding of [
+      { planSha256: '814a8206ec0ef582b1c208b02427ed07e1c979c3ae6dd2d0b269b3caf35fb0f1' },
+      { runProfileSha256: '80661644f79f76748e6c31ff5fa87140a776bda121cc018e846c9f0073be00c8' },
+    ]) {
+      fs.writeFileSync(args.decisionFile, JSON.stringify({ ...decision, ...previousBinding }));
+      assert.throws(() => readCurrentHostDecision({ decisionFile: args.decisionFile,
+        planFile, candidateCommit }));
+      assert.throws(() => claimCurrentHostLaunch(args));
+    }
+  } finally { clean(); }
+});

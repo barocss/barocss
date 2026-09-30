@@ -33,10 +33,11 @@ only the reviewed local registration categories: hooks, marketplaces, MCP, notif
 It hashes inspected local inputs and pinned binary identity privately, without printing configuration
 values or credentials. It rejects unapproved config categories, routing or credential environment
 variables, system config, and ancestor project config. It recomputes the fingerprint before spawn,
-thread creation and each turn. Drift stops the run. Each inspected MCP name receives a TOML-quoted
+thread creation and each turn. Drift stops the run. The original #464 encoding gave each inspected MCP name a TOML-quoted
 `enabled=false` override because an empty table does not clear a recursively merged table. The
 [actual result](./RESULT-464.md) found this quoted-key encoding incompatible with the pinned CLI
-parser; it is not ready for another live run. A separate no-model correction is required.
+parser. The [#465 corrected proposal](./CORRECTED-PACKET-465.md) uses only literal safe name segments
+and rejects unsupported names before claim. It has not been tested by another native launch.
 
 Fixed per-process settings disable known model tools, hooks, notification commands, plugins,
 connectors and browser capabilities. Managed/cloud policy remains authoritative and is not fully

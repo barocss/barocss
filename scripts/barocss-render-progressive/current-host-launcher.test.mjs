@@ -21,7 +21,7 @@ function fixture() {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'barocss-464-launcher-'));
   fs.mkdirSync(path.join(home, '.codex'));
   const config = path.join(home, '.codex/config.toml');
-  fs.writeFileSync(config, '[mcp_servers."fixture.local"]\ncommand="never executed"\n');
+  fs.writeFileSync(config, '[mcp_servers."fixture_local"]\ncommand="never executed"\n');
   const hostOptions = { env: { HOME: home }, cwd: home };
   const inspection = inspectCurrentHost(hostOptions);
   const verified = verifyCurrentHostPlan();
@@ -43,7 +43,7 @@ function fixture() {
     processFactory: ({ cwd, argv }) => {
       state.launches++;
       assert.equal(cwd, scratch);
-      assert(argv.includes('mcp_servers."fixture.local".enabled=false'));
+      assert(argv.includes('mcp_servers.fixture_local.enabled=false'));
       assert(fs.existsSync(path.join(reservationDir, '1-01-initial.json')),
         'uncertain initialization is charged before spawn');
       return spawn(node, [path.join(here, 'fake-app-server.mjs')], {
@@ -158,4 +158,15 @@ test('second-session RPC, timeout and metadata failures retain the third reserva
       } finally { state.cleanup(); }
     });
   }
+});
+
+test('unsupported native key names stop before launch claim, reservation or process', async () => {
+  const state = fixture();
+  try {
+    fs.writeFileSync(state.config, '[mcp_servers."unsupported.name"]\ncommand="never executed"\n');
+    await assert.rejects(runExperiment(state.options('success')), /pinned CLI key syntax/);
+    assert.equal(state.launches, 0);
+    assert.equal(fs.existsSync(state.reservationDir), false);
+    assert.equal(fs.existsSync(state.resultDir), false);
+  } finally { state.cleanup(); }
 });
