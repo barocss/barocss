@@ -7,6 +7,22 @@
     "react": "19.2.3"
   },
   "exports": {
-    ".": "./src/index.jsx"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "examples/profile-form.tsx"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "build:library": "node build.mjs",
+    "test": "node --test --test-name-pattern=\"built ESM\" tests/consumer.test.mjs",
+    "test:consumer": "node --test tests/consumer.test.mjs"
   }
 }
