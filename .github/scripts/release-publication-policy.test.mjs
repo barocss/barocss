@@ -7,14 +7,14 @@ const ci = readFileSync('.github/workflows/ci.yml', 'utf8');
 const mainChecker = readFileSync('.github/scripts/check-release-main.mjs', 'utf8');
 
 function assertManualOidcPublication(source) {
-  assert.match(source, /push:\n {4}branches: \[main\]/);
+  assert.doesNotMatch(source, /(?:^|\n)  push:\n/);
   assert.match(source, /pull_request:\n {4}branches: \[main\]/);
   assert.match(source, /workflow_dispatch:\n {4}inputs:\n {6}publish:/);
   assert.match(source, /type: boolean\n {8}default: false/);
   assert.match(source, /^ {2}build:\n {4}name: build/m);
   assert.match(source, /^ {2}test:\n {4}name: test/m);
   assert.match(source, /if: github\.repository == 'barocss\/barocss' && github\.event_name == 'workflow_dispatch' && inputs\.publish == true && github\.ref == 'refs\/heads\/main'/);
-  assert.match(source, /needs: \[build, test\]/);
+  assert.doesNotMatch(source, /needs: \[build, test\]/);
   assert.match(source, /test "\$GITHUB_ACTOR" = easylogic/);
   assert.match(source, /test "\$GITHUB_SHA" = "\$EXPECTED_MAIN_SHA"/);
   assert.match(source, /node \.github\/scripts\/check-release-main\.mjs/);
@@ -32,9 +32,24 @@ function assertManualOidcPublication(source) {
   assert.doesNotMatch(source, /secrets\.NPM_TOKEN|secrets\.NPM_PUBLISH_TOKEN|npm whoami|pnpm changeset publish|changesets\/action/);
 }
 
-test('main push and PR run checks but only explicit manual true can publish', () => {
+test('PR runs checks and only explicit manual true can publish', () => {
   assertManualOidcPublication(release);
   assert.doesNotMatch(ci, / {6}- main\n|^ {2}publish:|^ {2}build:|^ {2}test:/m);
+  const publishJobStart = release.indexOf('  publish:\n    name: Publish npm packages');
+  assert.ok(publishJobStart > 0, 'publish job section is missing');
+  const pullRequestBuild = release.slice(release.indexOf('  build:'), release.indexOf('  test:'));
+  const pullRequestTest = release.slice(release.indexOf('  test:'), publishJobStart);
+  const publish = release.slice(publishJobStart);
+  assert.match(pullRequestBuild, /if: github\.event_name == 'pull_request'/);
+  assert.match(pullRequestBuild, /docs:build/);
+  assert.match(pullRequestTest, /if: github\.event_name == 'pull_request'/);
+  assert.match(pullRequestTest, /run: pnpm test/);
+  assert.match(publish, /run: pnpm build:library/);
+  assert.doesNotMatch(publish, /run: pnpm check/);
+  assert.doesNotMatch(publish, /docs:build/);
+  assert.match(mainChecker, /verifySameSourceTree\(mainTree, candidateTree\)/);
+  assert.match(mainChecker, /verifyReleasePullRequestRun\(/);
+  assert.match(mainChecker, /verifyReleasePullRequestJobs\(/);
 });
 
 test('default, event, and branch gates fail closed', () => {
