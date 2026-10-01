@@ -59,12 +59,12 @@ never starts or owns that runtime.
 
 ## API and ownership
 
-- `validateSpec(value: unknown)` returns `{ ok, errors: { path, message }[] }`. Pass the **inner
+- `validateSpec(value: unknown, contract?)` returns `{ ok, errors: { path, message }[] }`. Pass the **inner
   screen object**, after the host parses any JSON string or outer response envelope. It does no
   repair or normalization and is not a TypeScript type guard. After `ok`, a typed host may cast
   the candidate to `ScreenSpec`. Validation errors belong to the host.
-- `Renderer({ spec, components, state, setState, actions })` validates again and renders the
-  registered components. It throws on invalid data or a missing used component. It is not an
+- `Renderer({ spec, components, state, setState, actions, contract? })` validates again and renders the
+  registered components. It throws on invalid data, a missing used component, or a missing/non-function used action handler. It is not an
   error boundary and does not retain the previous screen. The host owns last-valid-screen storage.
 - `classesFor(node)` maps already validated Layout/Card choices to fixed BaroCSS utilities;
   other nodes return an empty string. It is not a validator. Register ordinary React component
@@ -72,9 +72,58 @@ never starts or owns that runtime.
 
 The host owns form state (`FormState` defaults to `{ name: string }`), `setState`, the callable
 `save` action, all component HTML, BaroCSS startup, and any transport/session/cancellation policy.
-The renderer does not validate state values or action functions. Stable node IDs become React
+The renderer does not interpret or validate state values. It validates used action registrations before rendering. Stable node IDs become React
 keys; retaining IDs and positions can preserve an input across complete-screen updates. Moving
 or replacing a node can remount it. The host owns state and focus.
+
+## Host-declared bindings and actions
+
+With no contract, both runtime validation and the default TypeScript types retain `/name` and
+`save`. To permit a different screen, declare its allowed paths and action names once and pass
+**the same contract** to `validateSpec(candidate, contract)` and `<Renderer contract={contract} … />`.
+The contract is host configuration; a generated screen cannot declare its own permissions.
+
+```tsx
+import type { RenderContract, ScreenSpec, ComponentRegistry } from '@barocss/render';
+
+type Binding = '/draft/name' | '/draft/topic';
+type Action = 'review' | 'edit' | 'confirm';
+type State = { draft: { name: string; topic: string } };
+const contract = {
+  textBindings: ['/draft/name', '/draft/topic'],
+  actions: ['review', 'edit', 'confirm'],
+} as const satisfies RenderContract<Binding, Action>;
+// Use ScreenSpec<Binding, Action> and ComponentRegistry<State, Binding, Action>.
+// validateSpec(candidate, contract); Renderer receives this same contract.
+```
+
+The repository example [request-form.tsx](./examples/request-form.tsx) supplies both controlled
+inputs and separate review/edit/confirm callbacks with current host snapshots. This new example
+is repository source, not an additional packed entry. The existing packaged profile-form example
+and no-option API are retained. No state interpreter, transport or model call is added.
+
+`textBindings` and `actions` must be own arrays of at most 32 unique strings (empty arrays are
+allowed). Unknown contract fields and malformed/duplicate declarations fail at `contract.*`.
+The supported pointer syntax is a restricted, unescaped path: a leading `/`, then nonempty
+segments separated by `/`. Each segment matches `[a-zA-Z][a-zA-Z0-9_-]{0,31}`; the whole path is at
+most 256 characters. Numeric array indices, empty segments, dot/bracket notation, percent encoding
+and JSON Pointer `~0`/`~1` escapes are unsupported and rejected. `__proto__`, `prototype` and
+`constructor` segments are forbidden. The renderer passes the literal binding to the host component;
+it never traverses state. The host explicitly reads/writes its own declared fields.
+
+Action names match `[a-z][a-z0-9-]{0,31}` and exclude the same unsafe names. A Button must name a
+declared action and cannot supply parameters or expressions. Every action used by the screen must
+have an **own data property whose value is a function** in `actions`. Inherited methods, accessor
+properties, missing handlers and non-functions throw before any user activation. The renderer
+captures the validated handler for that render; replacing a registry property afterward cannot
+redirect its callback. Unused declared actions do not require handlers at runtime; the configured
+TypeScript action registry describes all declared callbacks.
+
+Compatibility: existing valid profile screens and CSS mappings are unchanged. The default
+`ScreenSpec`, `InputNode`, `ButtonNode`, `ComponentRegistry` and `RendererProps` remain typed with
+`/name` and `save`. Configured generic types require an explicit contract. Hosts that previously
+supplied a missing or inherited `save` handler now fail at render time instead of during a click.
+This intentional action-registration guard does not add CSS utilities or change CSS semantics.
 
 ## Accepted screen contract
 
@@ -90,6 +139,9 @@ and types fail. Text and labels contain 1–300 characters.
 | Text | `text` | Empty array |
 | Input | `label`; `value: { "$bindState": "/name" }` | Empty array |
 | Button | `label` | Empty array; `on: { "press": { "action": "save" } }` |
+
+The table shows the legacy defaults; an explicit host contract can replace only the binding paths
+and action names. It cannot extend component types, props, styles or graph limits.
 
 Types describe shapes; they cannot prove graph structure, counts, matching IDs, text length or
 validity of untrusted data. Always run the runtime validator. JSON cannot supply component
