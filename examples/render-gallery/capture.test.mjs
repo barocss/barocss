@@ -38,7 +38,7 @@ test('12-by-2 actual captures remain paired across append and immutable second b
     } finally { await app.close(); }
     if (process.env.GALLERY_RESULT_ROOT) {
       const target = path.join(process.env.GALLERY_RESULT_ROOT, `verified-dataset-${randomUUID()}`);
-      fs.mkdirSync(process.env.GALLERY_RESULT_ROOT, { recursive: true, mode: 0o700 }); fs.cpSync(root, target, { recursive: true });
+      fs.mkdirSync(process.env.GALLERY_RESULT_ROOT, { recursive: true, mode: 0o700 }); fs.cpSync(root, target, { recursive: true }); fs.chmodSync(target, 0o700);
     }
     const originalIndex = fs.readFileSync(path.join(root, 'index.json')), originalBatch = fs.readFileSync(path.join(root, 'captures', 'initial', 'batch.json'));
     batch.captures[0].stateDigest = '0'.repeat(64);
