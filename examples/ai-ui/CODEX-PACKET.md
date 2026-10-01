@@ -1,26 +1,34 @@
 # Prepared Codex request UI packet
 
-Status: **prepared-not-approved**. Issue #491 prepares an adapter and fake-process evidence. It does not authorize a real model call. The spent #458 and #460 approvals cannot be reused. Ordinary `serve.mjs` startup remains `authored-fixtures`.
+Status: **prepared-not-approved**. Issues #491 and #494 prepare the adapter, executable browser host and injected-process evidence. They do not authorize a real model call. The spent #458 and #460 approvals cannot be reused. Ordinary `serve.mjs` startup remains `authored-fixtures`.
 
 ## Prepare and approve
 
-After committing the candidate, prepare a fresh private directory:
+After committing and locally integrating the candidate, use its clean checkout and a fresh absolute private directory:
 
 ```sh
-node examples/ai-ui/launch-packet.mjs --dry-run PRIVATE_ROOT
+node examples/ai-ui/run-packet.mjs --prepare ABS_PRIVATE_ROOT
 ```
 
-Use an absolute private path. This command records `packet.json`, checks the installed CLI version and initial/resume help, and prints the candidate SHA and packet digest. It makes zero model calls. Preparation must be repeated if the candidate, declarations, CLI or packet changes.
+The same committed runner creates `packet.json`, `experiment.json` and `request.txt`. It freezes the candidate SHA, packet/declaration/experiment digests, run UUID, installed environment, bounded request, initial input, both topic edits and future command. CLI help/version checks make zero model calls. Preparation cannot enter the live branch. Repeat preparation if any bound value or the committed runner changes.
 
-The implemented app entry is the imported `createPacketApp({ packet, approval, ... })` function in `codex-transport.mjs`. There is no live CLI launcher. A trusted host must supply the approval record; browser requests and model output cannot grant approval. `owner-approved` requires the fresh packet digest, exact candidate SHA, run UUID and owner decision ID. The real adapter checks the candidate HEAD, clean worktree and CLI version before dispatch.
+After the owner directly approves that exact request, the future command is:
 
-`fake-test` requires an injected process. It is test data, not owner authority. The browser labels prepared real mode `codex-cli` as “actual Codex CLI” and injected mode `codex-cli-fake` as “fake process; no model”. Neither label proves that a model run was approved or completed.
+```sh
+node examples/ai-ui/run-packet.mjs --run ABS_PRIVATE_ROOT/experiment.json --approval ABS_PRIVATE_APPROVAL_FILE
+```
+
+The approval is trusted private host input. It binds `kind: owner-approved`, `candidateSha`, `packetDigest`, `declarationsDigest`, `experimentDigest`, `runId` and `ownerDecisionId`. A file alone does not substitute for the owner's decision. Missing or mismatched authority fails before process dispatch. Browser requests and model output cannot grant approval. Preparation creates neither approval nor authentication files.
+
+The runner reuses `preparePacket`, `validatePacket` and `createPacketApp`; it does not add a second generation protocol. The real adapter checks the candidate HEAD, clean worktree and CLI version before dispatch. Existing ChatGPT CLI authentication in the isolated private Codex home is a prerequisite. This Issue does not provision or copy it. There is no API-key fallback.
+
+Tests inject a fake child process through a programmatic test boundary. The CLI has no fake-process override. `fake-test` is test data and cannot launch the native Codex process. The browser labels real mode `codex-cli` as “actual Codex CLI” and injected mode `codex-cli-fake` as “fake process; no model”. Neither label alone proves approval or a completed model run.
 
 ### Prospective direct owner approval request
 
 Fill every placeholder from the committed candidate and fresh preparation output. Do not treat this template as approval:
 
-> Approve one request UI experiment for candidate `<40-character SHA>` and packet SHA-256 `<packet digest>`, with declaration digest `<declaration digest>`, private root `<absolute path>` and run UUID `<UUID>`. Use Codex CLI 0.156.1, model gpt-6.1-sol and high reasoning effort. Allow at most five turn reservations, including failed or uncertain starts, with 180 seconds per turn, 900 seconds total and zero retries. Use one host session and one explicitly mapped Codex UUID for the five displays described below. Use existing ChatGPT CLI authentication in an isolated Codex home, without API-key fallback. Disable agent network access and tools; abort on a tool item or any stop condition. Keep raw output private and export only approved derived/browser evidence. This approval is for this exact packet and candidate only. It authorizes no downloads, release, publication or other experiment.
+> Approve one request UI experiment for candidate `<40-character SHA>` and packet SHA-256 `<packet digest>`, with declaration digest `<declaration digest>`, experiment digest `<experiment digest>`, private root `<absolute path>` and run UUID `<UUID>`. Use Codex CLI 0.156.1, model gpt-6.1-sol and high reasoning effort. Allow at most five turn reservations, including failed or uncertain starts, with 180 seconds per turn, 900 seconds total and zero retries. Use the committed runner and frozen request/input edits in experiment.json, one host session and one explicitly mapped Codex UUID for the five displays described below. Use existing ChatGPT CLI authentication in an isolated Codex home, without API-key fallback. Disable agent network access and tools; abort on a tool item or any stop condition. Keep raw output private and export only approved derived/browser evidence. This approval is for this exact packet and candidate only. It authorizes no downloads, release, publication or other experiment.
 
 Until the owner directly approves that binding, execute only preparation and injected-process tests. A host record alone does not substitute for the owner's decision.
 
@@ -56,13 +64,19 @@ Use one host session throughout. Record the accepted user request and initial na
 | 4 | `review` after a second, different topic edit | Corrected review | Second topic replaces the first; name stays correct |
 | 5 | `confirm` | Confirmed | Exact corrected summaries; no further actions |
 
-For a successful run, all five candidates must be validated, committed and shown with useful content and BaroCSS styles. Record input edits, action invocations and display observations. Confirm that each action runs once with the current host state. Reject stale/duplicate correlation or a changed host/Codex identity. Preserve the explicit mapping between the host session UUID and the different Codex thread UUID; do not imply that they are interchangeable.
+For a successful run, all five candidates must be validated, committed and shown with useful content and BaroCSS styles. The browser driver finds bound fields and exposed actions from the accepted spec, not fixture labels or container IDs. It supports permitted renamed nodes, labels and a no-Card layout. Record input edits, action invocations and display observations. Confirm that each action runs once with the current host state. Reject stale/duplicate correlation or a changed host/Codex identity. Preserve the explicit mapping between the host session UUID and the different Codex thread UUID; do not imply that they are interchangeable.
 
 Report reservations, attempted starts, completed turns, accepted candidates and useful displays separately. A failed or uncertain start consumes its reservation and stops the packet. Fewer than five accepted useful displays is incomplete evidence, even when a process exits successfully. Fake-process success proves wiring and checks only; it is not evidence of model output quality, latency or user value.
 
 ## Private evidence and clocks
 
-The private root holds the packet, run lock, fixed argv reservations, prompts, raw stdout JSONL, stderr, final files, validated specs, per-turn results and identity mapping. Root directories require private permissions; evidence files use mode 0600. Raw output may contain input or auth diagnostics. Keep it private. Browser API responses expose validated host state and safe errors, not raw CLI output, process options or credentials. Derived reports and screenshots can still contain input: review them before sharing. Public recording or publication needs its own authorization.
+The private root holds the prepared packet/experiment/request, run lock, fixed argv reservations, prompts, raw stdout JSONL, stderr, final files, validated specs, per-turn results and identity mapping. The browser host writes `display-N.json`, `display-N.png` and `report.json` with correlated host snapshots, browser observations, screenshots and the terminal result. Ctrl+C or SIGTERM cancels owned pending generation; the total deadline also closes the owned browser. Each display retains its accepted spec, current input, action, revision/request mapping, all six fields, separate `userActionSent`, useful content/styles and browser/CSP/external-request errors.
+
+Keep original response bytes separate from derived validated specs, host state, browser observations and screenshots. The report follows root/child traversal to compare each accepted screen with its stage fixture for semantic structure, style and label differences. JSON object insertion order is ignored. ID-only changes are reported separately as identity differences. No variation is a valid result; the driver must not force it. State/action continuity and variation are separate findings.
+
+The terminal report records reserved, attempted, completed, accepted and useful counts separately. Invalid output stops the packet, retains the last valid screen and produces partial failure evidence without retry. Cancellation and deadlines are terminal too. Cleanup closes only owned child processes, server and browser resources. Normal stdout reports safe status/counts/digests; it does not print input, identities, raw output or credentials.
+
+Root directories require private permissions; evidence files use mode 0600. Raw output may contain input or auth diagnostics. Keep it private. Browser API responses expose validated host state and safe errors, not raw CLI output, process options or credentials. Derived reports and screenshots can still contain input: review them before sharing. Public recording or publication needs its own authorization.
 
 Retain all six observation fields, including nulls:
 
@@ -77,4 +91,17 @@ Retain all six observation fields, including nulls:
 
 Transport observations leave unobserved host/browser boundaries null. Session and browser observations supply their own boundaries; preserve provenance rather than filling gaps with guessed timestamps. The presentation check is a proxy, not physical paint. `actionReleased` is the server dispatch boundary. The separate `userActionSent` browser point records a click and does not replace it. Restart clears both lineages. Browser polling, rendering and input save can add delay.
 
-Never subtract browser timestamps from server timestamps. Compare durations only inside the same clock domain and process/navigation, with request/session/revision correlation. State generation/validation timing scope, sample count and spread. Preparation and fake-process timing cannot establish real model latency; there is no live result yet.
+Never subtract browser timestamps from server timestamps. The runner derives browser action-to-useful-screen duration only from matching `userActionSent` and `firstUsefulPresentation` points in the same navigation, with request/session/revision correlation. Missing points remain null. Compare other durations only inside the same clock domain and process/navigation. State generation/validation timing scope, sample count and spread. Preparation and fake-process timing cannot establish real model latency; there is no live result yet.
+
+## No-model verification
+
+Use already installed dependencies and Chromium. Do not download a browser for this preparation:
+
+```sh
+pnpm build:library
+node --test examples/ai-ui/run-packet.test.mjs
+node --test examples/ai-ui/codex-transport.test.mjs examples/ai-ui/launch-packet.test.mjs
+node --test examples/ai-ui/session.test.mjs examples/ai-ui/server.test.mjs examples/ai-ui/browser.test.mjs
+```
+
+The runner tests use the actual browser and an injected child process for all five displays and both edits. They check permitted structural variants, styles, correlation, action dispatch, authority rejection and terminal partial failure. This proves host wiring only. It does not prove account/model/profile acceptance, live generation quality, physical paint, real-time suitability or user value. Fresh direct live authority and live evidence remain separate work.

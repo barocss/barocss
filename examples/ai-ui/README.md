@@ -66,15 +66,34 @@ modes. The browser distinguishes actual CLI from fake-process data. Restart and 
 owned packet work. Browser requests cannot provide credentials, process flags or approval.
 
 [The prepared packet contract](./CODEX-PACKET.md) specifies fixed argv, finite reservations, private
-artifacts, identity mapping, timing boundaries and the exact future owner request. Dry preparation
-runs installed CLI help/version checks only. A real invocation requires fresh direct authority for
-its exact packet digest and candidate commit. Preparation and tests start zero model processes.
+artifacts, identity mapping, timing boundaries and the exact future owner request. The committed
+runner provides these commands:
+
+```sh
+node examples/ai-ui/run-packet.mjs --prepare ABS_PRIVATE_ROOT
+node examples/ai-ui/run-packet.mjs --run ABS_PRIVATE_ROOT/experiment.json --approval ABS_PRIVATE_APPROVAL_FILE
+```
+
+Preparation freezes `packet.json`, `experiment.json` and `request.txt` at the exact committed
+candidate. It creates no authority or authentication files. It runs installed CLI help/version checks
+only. Preparation and tests start zero model processes. The execution command requires the direct
+owner's new decision and a private record binding candidate, packet/declaration/experiment digests
+and run UUID.
+The CLI has no fake-process override; tests inject a process programmatically.
+
+The runner drives five displays and two topic edits through spec-derived field/action selectors. It
+keeps private host/browser snapshots, screenshots, spec differences and terminal success or partial
+failure counts. It reports state/action continuity separately from structural/style/label variation,
+including absent variation. It stops at the first failure and closes only owned resources.
+The browser action latency uses matching `userActionSent` and `firstUsefulPresentation` points in one
+navigation. Missing observations stay null; server and browser timestamps are never subtracted.
 
 ## Browser and server evidence
 
 With an already installed Playwright Core and Chromium (no browser download), run:
 
 ```sh
+node --test examples/ai-ui/run-packet.test.mjs
 node --test examples/ai-ui/session.test.mjs examples/ai-ui/server.test.mjs examples/ai-ui/browser.test.mjs
 ```
 
