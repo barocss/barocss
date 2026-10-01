@@ -1,0 +1,16 @@
+{
+  "name": "barocss-ai-ui-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node serve.mjs",
+    "test": "node --test session.test.mjs server.test.mjs browser.test.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "playwright-core": "1.60.0"
+  }
+}
