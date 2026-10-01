@@ -1,5 +1,13 @@
 # @barocss/server
 
+## 0.12.2
+
+### Patch Changes
+
+- 199d878: Prepare the coordinated four-package 0.12.2 patch release.
+- Updated dependencies [199d878]
+  - @barocss/kit@0.12.2
+
 ## 0.12.1
 
 ### Patch Changes
