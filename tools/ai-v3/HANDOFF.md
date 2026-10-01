@@ -17,6 +17,14 @@ Issue, claims it, works in a branch/worktree off local develop, verifies, commit
 takes the next ready Issue. Priority is the Issue body's PRIORITY integer, smaller first, default 100,
 ties by Issue number. Preserve existing claims and unrelated dirty work. No normal approval questions.
 
+Both roles have owner authorization to use transient helpers when useful: start with at most TWO.
+Planner can delegate independent research, Issue preparation and evidence-backed analysis; Execute
+can split implementation/tests/verification inside its selected Issue. Define scope, file/branch/
+worktree ownership, completion conditions and evidence; no same-file concurrent edits. The primary
+keeps doing core work and consumes results incrementally, avoiding all-helper batch waits. Classify
+CI/tool/connection/role/task waits using actual evidence, not elapsed gaps. Execute alone integrates
+product changes. No extra permanent Work, duplicate work or restored Review gate. See COLLABORATION.md.
+
 Required script: `python3 tools/ai-v3/verify-local.py --base <base-sha> --issue-body <saved-body-file>`.
 After integration add --head HEAD against the pre-merge SHA to exclude inherited unrelated dirty work.
 It enforces the verify block, changed-package lint/type-check, build/package validation and insert/scope

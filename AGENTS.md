@@ -6,6 +6,12 @@ Planner uses `gpt-6.1-sol` / high; Execute uses `gpt-6.1-sol` / medium.
 Planner owns GitHub planning; Execute owns implementation, verification, local commits and serial
 local merges into `~/.barocss-ai/v3/integration` (`develop`). Work through one highest-priority ready
 Issue at a time and continue to the next without routine questions or approval waits.
+Planner and Execute may each use transient helpers without repeated permission: start with at most
+two for independent research/Issue preparation/analysis (Planner) or implementation/tests/verification
+(Execute). Name scope, file/branch/worktree ownership, completion conditions and evidence. Never edit
+the same file concurrently. Keep doing the core task; do not wait for all helpers as a batch. Classify
+actual wait dependencies from evidence, not wall-clock gaps. Execute alone integrates product results.
+See tools/ai-v3/COLLABORATION.md. Do not invent new product scope or duplicate claims.
 Review is inactive: preserve its history/worktrees; do not call it or wait for its verdict.
 Retain required scripted verification and record reasoning/evidence for public API, CSS semantics,
 security and other consequential changes. Report only concrete blockers requiring a decision.

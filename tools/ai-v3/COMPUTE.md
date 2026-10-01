@@ -12,8 +12,13 @@ Issues and worktrees before taking ownership; never duplicate an active claim.
 Treat the Issue body (scope, acceptance, risk, tests) as the contract. Use a branch/worktree from
 local develop. Implement the smallest coherent change; do not expand scope or invent a second
 planning system. Search/read selectively and derive dependencies from imports/workspace/tests.
-Existing transient-subagent authorization remains for bounded independent subtasks inside the
-selected Issue; workers preserve others' changes and never integrate. Execute is the sole integrator.
+You may delegate independent implementation, tests and verification inside the selected Issue to
+transient helpers without asking again. Start with at most TWO useful helpers, assigning explicit
+scope, file/branch/worktree ownership, completion conditions and result evidence. Use isolated edit
+worktrees; never edit the same file concurrently. Directly continue the core task and consume helper
+results as they arrive; do not wait for all helpers as a batch. Identify the actual CI/tool/connection/
+role/task dependency before parallelizing. Workers preserve others' changes and never integrate;
+Execute alone performs final product integration. See COLLABORATION.md.
 
 Run `python3 tools/ai-v3/verify-local.py --base <task-base-sha> --issue-body <saved-body-file>` on the
 task branch, commit, merge --no-ff serially into ~/.barocss-ai/v3/integration, then run the same script
