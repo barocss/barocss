@@ -1,98 +1,61 @@
-# BaroCSS autonomy V3
+# BaroCSS autonomy V3 (current: 2026-10-01)
 
-Planning lives on GitHub; code lives in local git. No PRs, no CI round trip per task.
+Planning lives on GitHub; implementation and integration stay in local git until final release.
+Current user instructions override historical protocols and migration notes.
 
-| world | where | who writes |
-|---|---|---|
-| Vision, principles, durable discoveries | GitHub **Wiki** | Planner, humans |
-| ideas, hypotheses, research questions, LATER | GitHub **Discussions** | Planner, humans |
-| actionable work (NOW / NEXT / BLOCKED) | GitHub **Issues** | Planner; Supervisor updates state |
-| code, branches, worktrees, integration | local git (`develop`) | Compute, Supervisor |
+## Roles and continuous loop
 
-## Loop
+Planner (gpt-6.1-sol / high) independently maintains Issues, Wiki, Discussions and priorities.
+It prepares new features with bounded scope, completion conditions and reproducible tests.
+Execute (gpt-6.1-sol / medium) selects ONE highest-priority eligible ready Issue, claims it,
+implements, verifies, commits, merges locally, verifies again, closes it and continues to the next.
+Review is inactive; preserve its records/worktrees and remove automatic calls and verdict waits.
+Normal work does not wait for Planner assignment, role questions or approval. Report concrete blockers.
 
-```
-Planner (fresh Opus, effort medium) ─ writes Issue labelled v3:ready
-Supervisor (tools/ai-v3/v3.py run) ─ claims it (v3:running), branch v3/issue-N + worktree off local develop
-Compute (fresh Opus, effort low) ─ implements, targeted tests, one local commit, compact result
-Supervisor ─ runs the Issue's ```verify block on the branch → git merge --no-ff into local develop
-           ─ reruns verify on develop (reset on failure) → closes Issue (v3:done) with the summary + SHAs
-           ─ records a Planner wake reason (result arrived / ready work below threshold)
-```
+Labels: v3:ready → v3:running → v3:done; use blocked for real unresolved dependencies.
+Issue body: Goal, Why, Scope/non-goals, Acceptance, Relevant area, Risk, nonempty ```verify commands,
+PRIORITY integer (smaller first, default 100; tie by number), real Dependencies and ownership.
+NOW 1–3 ready Issues; NEXT 3–5 likely follow-ups; LATER Discussions. IDLE is valid.
+Do not start claimed running work until its preserved branch/results and ownership are reconciled.
 
-Labels: `v3:ready` → `v3:running` → `v3:done` | `v3:failed` (2 attempts; the first failure re-queues).
-Local state: `~/.barocss-ai/v3/` (`tasks.json`, `control.json`, `planner-wake.json`, `sessions/`,
-`integration/` = the worktree holding local `develop`, `wt/issue-N`).
+## Local integration and required validation
 
-## Issue shape
+Execute alone integrates serially into ~/.barocss-ai/v3/integration (local develop).
+Task branches/worktrees start from local develop. Preserve inherited uncommitted changes and recordings.
+Use git merge --no-ff; do not overwrite dirty files, reset --hard, force branches or delete others' trees.
+Run `python3 tools/ai-v3/verify-local.py --base <base-sha> --issue-body <saved-body-file>` before committing
+and again after integration against the pre-merge SHA. The script requires the Issue verification,
+affected-package lint/type-check, library build plus .github/scripts/check-packages.mjs for package
+changes, and scripts/fuzz/browser-ratchet.mjs for runtime insert/scope changes.
+Use --full for pnpm check, which additionally covers core/cross-package changes, unclear impact, explicit acceptance
+and release candidates. Existing safety scripts/tests remain intact; no weaker substitute for failure.
+Record consequential API/CSS semantics/security rationale, compatibility criteria, exact SHAs, commands,
+results and limits. Missing evidence can block integration; no standing Review role is required.
+Private security repros remain private. Close only after post-merge checks pass, with task/merge SHAs.
+Changesets apply to published-package changes only, including render; not docs/tests/examples alone.
 
-Goal · Why · Relevant area · Acceptance · Risk (low | medium | high) · a ```verify block (targeted shell
-commands). Risk: low = Compute + verify; medium = a fresh review may be added; high = fresh independent
-review required before integration (not automated yet: the Planner does not mark high-risk Issues ready).
+## Checkpoints and release ownership
 
-## Planning horizon
+Development and checkpoints use local commits/branch merges only; do not push or open PRs until final
+release. Absence of a PR/push is never an incomplete task. No branch-protection bypass: remote
+protected develop/main changes and required checks belong to the existing final release process.
+Planner consolidates release scope, completion conditions, candidate SHAs, required validation and
+blockers in one release Issue. Once ready, hand it once to Release Work
+01a0f29f-0a94-751c-b710-7ec88d91c00a and record the handoff in the Issue to prevent duplicate dispatch.
+Release owns the existing Actions deployment. Its approved 0.12.2 work is already active: preserve its
+model, files, branches, runs and dispatch; this operating change does not issue another release.
 
-NOW 1-3 ready Issues · NEXT 3-5 plain Issues · LATER Discussions only · BLOCKED label + dependency.
-The Planner wakes on: ready work below threshold, a Compute result, a blocker change, human feedback, a
-milestone, unclear direction. Never merely because Compute is idle. IDLE is valid.
+## Coordination and preserved systems
 
-## Verification and checkpoints
-
-Per task: the Issue's verify block (directly related tests, package type-check when useful), on the task
-branch and again after integration. Broad `pnpm check` and `git push origin develop` happen only at a
-checkpoint (a batch or milestone done, backup, release, core change, or unclear scope), started by a human
-or the Planner's explicit decision.
-
-## Commands
-
-```
-python3 tools/ai-v3/v3.py status | start | pause | resume | stop
-python3 tools/ai-v3/v3.py plan
-python3 tools/ai-v3/v3.py run --once          # or --issue N; plain `run` loops until paused/stopped/idle
-```
-
-## Kept from V1/V2, deprecated, rollback
-
-Kept: fresh context per unit, the supervisor-owned lifecycle (control file, timeout, retry with a bounded
-attempt count, crash recovery by recreating the worktree), env scrubbing for nested `claude`, serial by
-default. Deprecated (not deleted): `.ai/` as runtime database, `EXPERIMENT.yaml` / `.ai/work` contracts,
-evidence / Strategy / Review PRs, CI per semantic step, `tools/ai-supervisor/` V2 scheduler. They still
-work unchanged: rollback = stop using `v3.py` and run `tools/ai-supervisor/supervise.py` as before; the V1
-protocol text is kept in AGENTS.md below the V3 header.
-
-## Three sessions (Planner, Compute, Review)
-
-Ownership: Planner = direction, priority, scope, Issues/Discussions/Wiki, human directives. Compute =
-implementation, targeted verification, local commits. Review = independent evaluation of medium/high-risk
-changes and whether verification fits the risk. Act first within your ownership; message another
-session only when it has information or authority that materially changes the decision; async by
-default; never ask for routine approval.
-
-| from → to | when | shape |
-|---|---|---|
-| Compute → Planner | ambiguous behavior, wrong task assumption, scope/product/API decision, priority-changing blocker | TASK/ISSUE · DISCOVERY · QUESTION · OPTIONS · RECOMMENDATION |
-| Compute → Review | medium/high risk before integration | ISSUE · COMMIT · RISK · AREA · ACCEPTANCE · VERIFICATION · KNOWN CONCERNS |
-| Review → Compute | verdict | ACCEPT · NEEDS_CHANGE (smallest blocking problem) · REJECT · ESCALATE_TO_PLANNER |
-| Review → Planner | product ambiguity, reconsider/split/abandon, API/architecture direction | TASK · REVIEW DECISION · STRATEGIC CONCERN · DECISION NEEDED |
-
-Transport: direct session messages when available, otherwise the Supervisor routes (Issue comments).
-No loops: after two unresolved exchanges, escalate once to the owner with decision, evidence, options.
-Durable outcomes land in their home (Issue, Discussion, Wiki, local git, Supervisor state); messages
-themselves are not stored. Escalate to the human only for Vision changes, human-only product choices,
-credentials/permissions, irreversible external actions, or real deadlock.
-Claiming: a session that starts an Issue moves `v3:ready` → `v3:running` first, so it never runs twice.
-
-## Parallel Compute (enabled 2026-09-26)
-
-One Compute session runs up to 3 Issues at once as subagents (Agent tool, `isolation: "worktree"`), each
-branched off local `develop` and claimed first (`v3:ready` → `v3:running`). Only the Compute session
-integrates, one merge at a time, rerunning that Issue's verify block after each. Issues that touch the
-same files or share a runtime resource never run together; browser/dev-server tasks get separate port
-ranges (5200 + 100·n). Subagents never ask the human; questions go through the Compute session. Each
-Issue says `Parallel: safe | after #N | serial`.
-
-## Review rounds (2026-09-26)
-For medium and high risk, NEEDS_CHANGE (CHANGES) means: fix, then get Review's ACCEPT on the fix commit, *then* integrate. "Addressed" isn't acceptance. Every integration also runs lint for the changed packages, and checkpoints (full `pnpm check` + PR) belong to the Planner.
+Use Issue bodies/results for routine coordination; direct messages only for material scope/priority
+changes or genuine blockers. No standing Review calls, ACCEPT waits or extra permanent Works.
+Existing transient-subagent authorization is preserved inside Execute's one selected Issue; workers
+never integrate and do not replace the inactive Review Work. See COLLABORATION.md.
+The Claude-backed tools/ai-v3/v3.py plan/run and V1/V2 supervisors remain paused historical tools.
+Their model constants are Claude configuration, not active Codex Work settings. Do not restart them.
+Local task/control/session files are evidence, not a second planning database. Old protocols in
+AGENTS.md are historical only. Preserve automatic approval rejections and never route denied work
+through another role. Speak Korean to the user and English in code/commits/GitHub/inter-Work records.
 
 ## Parity numbers under vitest 5 (2026-09-26)
 vitest 5 (#302) hides console output by default. To see the coverage lines, run the parity files with `--silent=false`, e.g. `pnpm --filter @barocss/kit exec vitest run tests/compat --silent=false`. The parity reference is Tailwind 4.3.3, with 4.1.13 as report-only (#304).

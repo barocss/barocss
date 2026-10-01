@@ -1,9 +1,21 @@
-# BaroCSS — V3 workflow (current)
+# BaroCSS — current Work operation (2026-10-01)
 
-Default workflow is V3: planning on GitHub (Wiki / Discussions / Issues), code in local git, no PRs per
-task. See `docs/autonomy-v3.md`. **New agent or tool (Codex etc.): read `tools/ai-v3/HANDOFF.md` first.** A Compute or Planner session is told its role in its prompt; follow that
-prompt and ignore the V1 protocol below. The V1 protocol applies only to sessions launched with a V1 step
-(`EXECUTE E-…`, `REVIEW E-…`, `MERGE #…`, `PLAN`) by `tools/ai-supervisor/` (rollback path).
+Read `tools/ai-v3/HANDOFF.md` first, then the role prompt and `docs/autonomy-v3.md`.
+Current owner instructions take precedence over older policies and migration notes.
+Planner uses `gpt-6.1-sol` / high; Execute uses `gpt-6.1-sol` / medium.
+Planner owns GitHub planning; Execute owns implementation, verification, local commits and serial
+local merges into `~/.barocss-ai/v3/integration` (`develop`). Work through one highest-priority ready
+Issue at a time and continue to the next without routine questions or approval waits.
+Review is inactive: preserve its history/worktrees; do not call it or wait for its verdict.
+Retain required scripted verification and record reasoning/evidence for public API, CSS semantics,
+security and other consequential changes. Report only concrete blockers requiring a decision.
+All development and checkpoints stay in local git until final release: no push or PR completion gate.
+Planner prepares one release Issue and hands it once to the existing Release Work; that Work owns
+protected remote PRs and the existing Actions release flow. Preserve its active 0.12.2 work.
+The Claude supervisor remains paused; do not launch `v3.py plan/run` or V1/V2 automation.
+
+The protocol below is historical, preserved for reference. It does not authorize current PRs,
+Review dependencies, supervisor launches, or a change to the current Work operation.
 
 ---
 
