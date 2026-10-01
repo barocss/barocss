@@ -18,6 +18,7 @@ takes the next ready Issue. Priority is the Issue body's PRIORITY integer, small
 ties by Issue number. Preserve existing claims and unrelated dirty work. No normal approval questions.
 
 Required script: `python3 tools/ai-v3/verify-local.py --base <base-sha> --issue-body <saved-body-file>`.
+After integration add --head HEAD against the pre-merge SHA to exclude inherited unrelated dirty work.
 It enforces the verify block, changed-package lint/type-check, build/package validation and insert/scope
 browser fuzz. Use --full for pnpm check, additionally required for core/unclear impact or explicit acceptance.
 Public API/CSS semantics/security changes retain exact compatibility reasoning and validation evidence;

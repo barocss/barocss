@@ -9,13 +9,13 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def commands(base, body, full=False):
+def commands(base, body, full=False, head=None):
     blocks = re.findall(r"```verify\s*\n(.*?)```", body, re.S)
     verify = [line.strip() for block in blocks for line in block.splitlines()
               if line.strip() and not line.lstrip().startswith("#")]
     if not verify:
         raise ValueError("Issue must contain a nonempty verify block")
-    diff = subprocess.run(["git", "diff", "--name-only", "-z", base, "--"], cwd=ROOT,
+    diff = subprocess.run(["git", "diff", "--name-only", "-z", base, *([head] if head else []), "--"], cwd=ROOT,
                           capture_output=True, text=True, check=True).stdout
     paths = [p for p in diff.split("\0") if p]
     packages = sorted({"/".join(p.split("/")[:2]) for p in paths
@@ -51,11 +51,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base", required=True, help="Task base or pre-merge integration SHA")
     parser.add_argument("--issue-body", required=True, type=Path)
+    parser.add_argument("--head", help="Compare committed changes only (HEAD after merge); preserve unrelated dirty work")
     parser.add_argument("--full", action="store_true", help="Core change, unclear impact or required acceptance")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     try:
-        checks = commands(args.base, args.issue_body.read_text(), args.full)
+        checks = commands(args.base, args.issue_body.read_text(), args.full, args.head)
         if args.dry_run:
             print(json.dumps(checks, indent=2))
         else:
