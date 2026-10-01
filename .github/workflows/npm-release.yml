@@ -130,14 +130,12 @@ jobs:
           ALLOW_EXISTING_TAG_SHA: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - if: steps.publication.outputs.publication_state == 'unpublished'
-        run: pnpm check
+        run: pnpm build:library
       - name: Validate and retain the packages to publish
         if: steps.publication.outputs.publication_state == 'unpublished'
         run: node .github/scripts/check-packages.mjs
         env:
           PACK_OUTPUT_DIR: ${{ runner.temp }}/barocss-packs
-      - if: steps.publication.outputs.publication_state == 'unpublished'
-        run: pnpm --filter barocss-docs docs:build
       - name: Recheck main SHA and registry before first publish
         if: steps.publication.outputs.publication_state == 'unpublished'
         env:

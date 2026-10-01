@@ -35,6 +35,21 @@ function assertManualOidcPublication(source) {
 test('PR runs checks and only explicit manual true can publish', () => {
   assertManualOidcPublication(release);
   assert.doesNotMatch(ci, / {6}- main\n|^ {2}publish:|^ {2}build:|^ {2}test:/m);
+  const publishJobStart = release.indexOf('  publish:\n    name: Publish npm packages');
+  assert.ok(publishJobStart > 0, 'publish job section is missing');
+  const pullRequestBuild = release.slice(release.indexOf('  build:'), release.indexOf('  test:'));
+  const pullRequestTest = release.slice(release.indexOf('  test:'), publishJobStart);
+  const publish = release.slice(publishJobStart);
+  assert.match(pullRequestBuild, /if: github\.event_name == 'pull_request'/);
+  assert.match(pullRequestBuild, /docs:build/);
+  assert.match(pullRequestTest, /if: github\.event_name == 'pull_request'/);
+  assert.match(pullRequestTest, /run: pnpm test/);
+  assert.match(publish, /run: pnpm build:library/);
+  assert.doesNotMatch(publish, /run: pnpm check/);
+  assert.doesNotMatch(publish, /docs:build/);
+  assert.match(mainChecker, /verifySameSourceTree\(mainTree, candidateTree\)/);
+  assert.match(mainChecker, /verifyReleasePullRequestRun\(/);
+  assert.match(mainChecker, /verifyReleasePullRequestJobs\(/);
 });
 
 test('default, event, and branch gates fail closed', () => {
