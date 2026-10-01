@@ -59,12 +59,16 @@ no CSS core change is needed.
 
 ### Prepared Codex boundary and remaining evidence gate
 
-`createAppServer({ generate, mode })` is the server-side injection point. Its request/envelope contract
-is described below. Current modes are only authored-fixtures and injected-test; `codex-cli` is rejected.
-An approved future packet must supply the Codex adapter, fixed executable/argv, budget/call bounds,
-abort behavior and explicit actual-CLI mode before any live dispatch. Browser request text remains data
-in that adapter. No flags or credentials come from HTTP fields. **#491 and its separately approved live
-evidence packet remain the actual Codex generation gate.** This task starts zero model processes.
+`createAppServer({ generate, mode })` is the server-side injection point. Ordinary startup remains
+`authored-fixtures`; `injected-test` remains a no-model mode. Only `createPacketApp` can provide the
+branded `codex-cli` or `codex-cli-fake` transport. An arbitrary injected function cannot select these
+modes. The browser distinguishes actual CLI from fake-process data. Restart and server close stop
+owned packet work. Browser requests cannot provide credentials, process flags or approval.
+
+[The prepared packet contract](./CODEX-PACKET.md) specifies fixed argv, finite reservations, private
+artifacts, identity mapping, timing boundaries and the exact future owner request. Dry preparation
+runs installed CLI help/version checks only. A real invocation requires fresh direct authority for
+its exact packet digest and candidate commit. Preparation and tests start zero model processes.
 
 ## Browser and server evidence
 

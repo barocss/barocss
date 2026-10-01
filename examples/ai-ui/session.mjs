@@ -27,7 +27,7 @@ export function createRequestSession({ generate, contract = REQUEST_CONTRACT, cr
   contract = Object.freeze({ textBindings: Object.freeze([...contract.textBindings]), actions: Object.freeze([...contract.actions]) });
   let epoch = 0, serial = 0, pending = null;
   let state = { phase: 'idle', sessionId: null, revision: 0, displays: 0, stage: 'form', spec: null,
-    input: { draft: { name: '', topic: '' } }, screenRequest: null, timings: null, error: null };
+    input: { draft: { name: '', topic: '' } }, screenRequest: null, timings: null, observation: null, error: null };
   const snapshot = () => structuredClone(state);
   const usable = () => state.spec && ['ready', 'failed', 'cancelled'].includes(state.phase);
 
@@ -35,12 +35,23 @@ export function createRequestSession({ generate, contract = REQUEST_CONTRACT, cr
     const ticket = ++epoch;
     const abort = new AbortController();
     const started = performance.now();
+    const point = (value) => ({ value, clock: 'server-process-monotonic-ms' });
     const request = { kind, sessionId: state.sessionId, revision: state.revision,
       requestId: `${state.sessionId}:${++serial}`, action, target, input: structuredClone(state.input), screenRequest: state.screenRequest };
+    state = { ...state, observation: { requestId: request.requestId, requestAccepted: point(started), firstByteReceived: null,
+      firstValidCandidate: null, firstUsefulPresentation: null, committed: null, actionReleased: null } };
     // State and transport never share mutable payload objects.
     const done = Promise.resolve().then(() => {
       if (ticket !== epoch) return null;
-      return generate({ ...structuredClone(request), signal: abort.signal, contract });
+      const payload = { ...structuredClone(request), signal: abort.signal, contract };
+      Object.defineProperty(payload, 'observe', { value(field, value) {
+        if (ticket === epoch && field === 'firstByteReceived' && Number.isFinite(value))
+          state = { ...state, observation: { ...state.observation, firstByteReceived: point(value) } };
+      } });
+      if (kind === 'next') state = { ...state, observation: {
+        ...state.observation, actionReleased: point(performance.now()),
+      } };
+      return generate(payload);
     }).then((result) => {
       if (ticket !== epoch) return;
       const generated = performance.now();
@@ -53,8 +64,10 @@ export function createRequestSession({ generate, contract = REQUEST_CONTRACT, cr
       try { spec = JSON.parse(result.specJson); } catch { throw new Error('Generated screen is not JSON'); }
       if (!validateSpec(spec, contract).ok) throw new Error('Invalid generated screen');
       checkRequestScreen(spec, target, request.input);
+      const validated = performance.now();
       state = { ...state, phase: 'ready', stage: target, spec, revision: state.revision + 1,
-        displays: state.displays + 1, timings: { generationMs: generated - started, validationMs: performance.now() - generated }, error: null };
+        displays: state.displays + 1, timings: { generationMs: generated - started, validationMs: validated - generated },
+        observation: { ...state.observation, firstValidCandidate: point(validated), committed: point(performance.now()) }, error: null };
       pending = null;
     }).catch((error) => {
       if (ticket !== epoch) return;
@@ -116,7 +129,7 @@ export function createRequestSession({ generate, contract = REQUEST_CONTRACT, cr
     restart() {
       epoch++; pending?.abort.abort(); pending = null;
       state = { phase: 'idle', sessionId: null, revision: state.revision + 1, displays: 0,
-        stage: 'form', spec: null, input: { draft: { name: '', topic: '' } }, screenRequest: null, timings: null, error: null };
+        stage: 'form', spec: null, input: { draft: { name: '', topic: '' } }, screenRequest: null, timings: null, observation: null, error: null };
       return { ok: true, status: 200 };
     },
   };
