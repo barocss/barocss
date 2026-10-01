@@ -34,6 +34,8 @@ async function consumer() {
     fs.copyFileSync(path.join(here, 'package.json'), path.join(packageDir, 'package.json'));
     fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
     fs.copyFileSync(path.join(here, 'examples/profile-form.tsx'), path.join(dir, 'profile-form.tsx'));
+    // This authored repository example is deliberately outside the published files list.
+    fs.copyFileSync(path.join(here, 'examples/request-form.tsx'), path.join(dir, 'request-form.tsx'));
     for (const name of ['react']) {
       const from = path.dirname(peers.resolve(`${name}/package.json`));
       assert.equal(JSON.parse(fs.readFileSync(path.join(from, 'package.json'))).version, '19.2.3', 'Expected the supported React peer');
@@ -231,4 +233,106 @@ test('built ESM smoke resolves a React peer hoisted above the package', async ()
     assert.match(stdout, /# pass 1/);
     assert.match(stdout, /# fail 0/);
   } finally { fs.rmSync(scratch, { recursive: true, force: true }); }
+});
+
+test('configured built declarations enforce host paths, actions, contract and handlers', async () => {
+  const { dir } = await consumer();
+  fs.writeFileSync(path.join(dir, 'configured-contract-check.ts'), `
+import { Renderer, validateSpec } from '@barocss/render';
+import type { InputNode, ButtonNode, RendererProps } from '@barocss/render';
+import { REQUEST_CONTRACT, REQUEST_SPEC } from './request-form.js';
+import type { RequestState, RequestAction } from './request-form.js';
+type Binding = '/draft/name' | '/draft/topic';
+validateSpec(REQUEST_SPEC, REQUEST_CONTRACT);
+const input: InputNode<Binding>['props']['value'] = { $bindState: '/draft/topic' };
+const action: ButtonNode<RequestAction>['on'] = { press: { action: 'confirm' } };
+// @ts-expect-error host did not declare this field
+const badInput: InputNode<Binding>['props']['value'] = { $bindState: '/draft/password' };
+// @ts-expect-error host did not declare this action
+const badAction: ButtonNode<RequestAction>['on'] = { press: { action: 'pay' } };
+declare const props: RendererProps<RequestState, Binding, RequestAction>;
+Renderer<RequestState, Binding, RequestAction>(props);
+const { contract, ...withoutContract } = props;
+// @ts-expect-error configured renderer requires its host contract
+Renderer<RequestState, Binding, RequestAction>(withoutContract);
+// @ts-expect-error each configured action needs a function
+const missingHandler: RendererProps<RequestState, Binding, RequestAction>['actions'] = { review() {}, edit() {} };
+// @ts-expect-error action handlers must be functions
+const invalidHandler: RendererProps<RequestState, Binding, RequestAction>['actions'] = { review() {}, edit() {}, confirm: 'confirm' };
+void [input, action, badInput, badAction, contract, missingHandler, invalidHandler];
+`);
+  fs.writeFileSync(path.join(dir, 'configured-tsconfig.json'), JSON.stringify({
+    extends: './tsconfig.json', include: ['configured-contract-check.ts', 'request-form.tsx'],
+  }));
+  await exec(process.execPath, [deps.resolve('typescript/bin/tsc'), '-p', path.join(dir, 'configured-tsconfig.json')], { timeout: 30_000 });
+});
+
+test('configured built-package browser consumer keeps two host fields and three callbacks independent', async () => {
+  const { dir, scratch, metadata } = await consumer();
+  const entry = path.join(dir, 'request-app.tsx');
+  const bundle = path.join(dir, 'request-app.js');
+  fs.writeFileSync(entry, `
+import { createRoot } from 'react-dom/client';
+import { RequestForm } from './request-form.js';
+window.REQUEST_EVENTS = [];
+createRoot(document.getElementById('root')).render(<RequestForm onAction={(action, snapshot) => window.REQUEST_EVENTS.push({action, snapshot})} />);
+`);
+  const metafile = await bundleExample(dir, entry, bundle);
+  fs.writeFileSync(path.join(scratch, 'configured-bundle-inputs.json'), JSON.stringify(metafile, null, 2));
+  const runtime = fs.readFileSync(path.join(depsRoot, 'packages/barocss-browser/dist/cdn/barocss.umd.cjs'));
+  const html = `<!doctype html><html><head><meta charset="utf-8"><script src="/baro.js"></script>
+<script>window.BaroCSS.baroStart({skipExisting:false,theme:'shadcn-default'});</script></head>
+<body><div id="root"></div><script type="module" src="/app.js"></script></body></html>`;
+  const assets = { '/': ['text/html', html], '/app.js': ['text/javascript', fs.readFileSync(bundle)], '/baro.js': ['text/javascript', runtime] };
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'GET' || !Object.hasOwn(assets, req.url)) { res.writeHead(404); res.end(); return; }
+    const [type, body] = assets[req.url]; res.writeHead(200, { 'content-type': type }); res.end(body);
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const pw = createRequire(path.join(process.env.PW_DIR, 'package.json'))('playwright-core');
+  let browser;
+  try {
+    assert(fs.existsSync(pw.chromium.executablePath()), 'Use installed Chromium; no download');
+    browser = await pw.chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    const errors = [], external = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.route('**/*', (route) => {
+      if (new URL(route.request().url()).origin !== base) { external.push(route.request().url()); return route.abort(); }
+      return route.continue();
+    });
+    await page.goto(base);
+    const name = page.getByRole('textbox', { name: 'Request name', exact: true });
+    const topic = page.getByRole('textbox', { name: 'Request topic', exact: true });
+    await name.waitFor();
+    await name.fill('Bea');
+    assert.equal(await topic.inputValue(), 'Coffee');
+    await page.getByRole('button', { name: 'Review request', exact: true }).click();
+    await topic.fill('Tea');
+    assert.equal(await name.inputValue(), 'Bea');
+    await page.getByRole('button', { name: 'Edit request', exact: true }).click();
+    await name.fill('Cam');
+    assert.equal(await topic.inputValue(), 'Tea');
+    await page.getByRole('button', { name: 'Confirm request', exact: true }).click();
+    const events = await page.evaluate(() => window.REQUEST_EVENTS);
+    assert.deepEqual(events, [
+      { action: 'review', snapshot: { draft: { name: 'Bea', topic: 'Coffee' } } },
+      { action: 'edit', snapshot: { draft: { name: 'Bea', topic: 'Tea' } } },
+      { action: 'confirm', snapshot: { draft: { name: 'Cam', topic: 'Tea' } } },
+    ]);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('[data-node-id="layout"]')).display === 'grid');
+    assert.equal(await page.locator('[data-node-id="layout"]').getAttribute('class'), 'grid grid-cols-1 gap-3.5');
+    assert.deepEqual(errors, []);
+    assert.deepEqual(external, []);
+    await page.screenshot({ path: path.join(scratch, 'configured-consumer.png') });
+    fs.writeFileSync(path.join(scratch, 'configured-report.json'), JSON.stringify({ ...metadata,
+      source: 'authored-request-form', contract: { textBindings: ['/draft/name', '/draft/topic'], actions: ['review', 'edit', 'confirm'] },
+      checks: { builtPackageImported: true, independentHostFields: true, eachActionOnce: true,
+        currentSnapshots: events, barocssClassesApplied: true, pageErrors: errors.length, externalRequests: external.length },
+    }, null, 2));
+  } finally {
+    if (browser) await browser.close();
+    await new Promise((resolve) => server.close(resolve));
+  }
 });
