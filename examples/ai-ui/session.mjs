@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { performance } from 'node:perf_hooks';
 import { readFileSync } from 'node:fs';
 import { REQUEST_CONTRACT, TRANSITIONS, requestScreen, checkRequestScreen } from './scenario.mjs';
 
@@ -26,21 +27,23 @@ export function createRequestSession({ generate, contract = REQUEST_CONTRACT, cr
   contract = Object.freeze({ textBindings: Object.freeze([...contract.textBindings]), actions: Object.freeze([...contract.actions]) });
   let epoch = 0, serial = 0, pending = null;
   let state = { phase: 'idle', sessionId: null, revision: 0, displays: 0, stage: 'form', spec: null,
-    input: { draft: { name: '', topic: '' } }, error: null };
+    input: { draft: { name: '', topic: '' } }, screenRequest: null, timings: null, error: null };
   const snapshot = () => structuredClone(state);
   const usable = () => state.spec && ['ready', 'failed', 'cancelled'].includes(state.phase);
 
   function launch(kind, action, target) {
     const ticket = ++epoch;
     const abort = new AbortController();
+    const started = performance.now();
     const request = { kind, sessionId: state.sessionId, revision: state.revision,
-      requestId: `${state.sessionId}:${++serial}`, action, target, input: structuredClone(state.input) };
+      requestId: `${state.sessionId}:${++serial}`, action, target, input: structuredClone(state.input), screenRequest: state.screenRequest };
     // State and transport never share mutable payload objects.
     const done = Promise.resolve().then(() => {
       if (ticket !== epoch) return null;
       return generate({ ...structuredClone(request), signal: abort.signal, contract });
     }).then((result) => {
       if (ticket !== epoch) return;
+      const generated = performance.now();
       if (!exact(result, ['sessionId', 'revision', 'requestId', 'specJson'])
         || typeof result.specJson !== 'string' || Buffer.byteLength(result.specJson) > 32_768)
         throw new Error('Invalid generation envelope');
@@ -51,7 +54,7 @@ export function createRequestSession({ generate, contract = REQUEST_CONTRACT, cr
       if (!validateSpec(spec, contract).ok) throw new Error('Invalid generated screen');
       checkRequestScreen(spec, target, request.input);
       state = { ...state, phase: 'ready', stage: target, spec, revision: state.revision + 1,
-        displays: state.displays + 1, error: null };
+        displays: state.displays + 1, timings: { generationMs: generated - started, validationMs: performance.now() - generated }, error: null };
       pending = null;
     }).catch((error) => {
       if (ticket !== epoch) return;
@@ -75,10 +78,14 @@ export function createRequestSession({ generate, contract = REQUEST_CONTRACT, cr
     settled: () => pending?.done ?? Promise.resolve(),
     start(request) {
       if (state.phase !== 'idle') return reject(409, 'Session already started');
-      if (!exact(request, ['input']) || !validInput(request.input)) return reject(400, 'Invalid input');
+      const legacy = exact(request, ['input']);
+      if ((!legacy && !exact(request, ['input', 'screenRequest'])) || !validInput(request.input)) return reject(400, 'Invalid input');
+      const screenRequest = legacy ? 'Create a request form' : request.screenRequest;
+      if (typeof screenRequest !== 'string' || screenRequest.length < 1 || screenRequest.length > 300)
+        return reject(400, 'Invalid screen request');
       const sessionId = createId();
       if (typeof sessionId !== 'string' || !uuid.test(sessionId)) throw new Error('Invalid host session ID');
-      state = { ...state, sessionId, input: structuredClone(request.input), phase: 'generating', error: null };
+      state = { ...state, sessionId, screenRequest, input: structuredClone(request.input), phase: 'generating', error: null };
       launch('initial', null, 'form');
       return { ok: true, status: 202 };
     },
@@ -109,7 +116,7 @@ export function createRequestSession({ generate, contract = REQUEST_CONTRACT, cr
     restart() {
       epoch++; pending?.abort.abort(); pending = null;
       state = { phase: 'idle', sessionId: null, revision: state.revision + 1, displays: 0,
-        stage: 'form', spec: null, input: { draft: { name: '', topic: '' } }, error: null };
+        stage: 'form', spec: null, input: { draft: { name: '', topic: '' } }, screenRequest: null, timings: null, error: null };
       return { ok: true, status: 200 };
     },
   };
