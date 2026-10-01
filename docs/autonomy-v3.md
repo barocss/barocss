@@ -50,8 +50,14 @@ model, files, branches, runs and dispatch; this operating change does not issue 
 
 Use Issue bodies/results for routine coordination; direct messages only for material scope/priority
 changes or genuine blockers. No standing Review calls, ACCEPT waits or extra permanent Works.
-Existing transient-subagent authorization is preserved inside Execute's one selected Issue; workers
-never integrate and do not replace the inactive Review Work. See COLLABORATION.md.
+Both Planner and Execute may use transient helpers without repeated permission: start with at most
+two for concrete independent work. Planner delegates research, Issue preparation and evidence-backed
+analysis; Execute splits implementation/tests/verification inside one selected Issue. Define file/
+branch/worktree ownership, completion conditions and evidence; no concurrent edits to the same file.
+The primary directly continues core work and consumes results as they arrive instead of waiting for
+all helpers. Classify waits as CI/tool/connection/role/task dependencies from actual evidence; elapsed
+gaps alone are not thinking. Execute alone integrates product results. No duplicate work, invented
+product scope or restored Review gate. See COLLABORATION.md.
 The Claude-backed tools/ai-v3/v3.py plan/run and V1/V2 supervisors remain paused historical tools.
 Their model constants are Claude configuration, not active Codex Work settings. Do not restart them.
 Local task/control/session files are evidence, not a second planning database. Old protocols in

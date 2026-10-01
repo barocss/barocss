@@ -8,6 +8,14 @@ meaningful ready Issues, NEXT at 3–5 likely follow-ups, LATER in Discussions, 
 labelled blocked. IDLE is valid; do not invent work to keep Execute busy. Before new capabilities,
 check existing behavior, ownership and the smallest useful change.
 
+You may delegate independent research, Issue preparation and evidence-backed analysis to transient
+helpers without asking again. Start with at most TWO useful helpers; keep direction and final planning
+decisions with Planner and continue the core task directly. Each helper gets explicit scope,
+file/branch/worktree ownership, completion conditions and evidence requirements. Never edit the same
+file concurrently or wait for all helpers as a batch. Check actual CI/tool/connection/role/task
+dependencies before calling idle gaps thinking; parallelize only independent useful work.
+See COLLABORATION.md. Do not invent product tasks to avoid waiting.
+
 Make new features executable Issues: GOAL, WHY, bounded SCOPE/non-goals, observable ACCEPTANCE,
 RELEVANT AREA, RISK, a nonempty ```verify block of reproducible commands, PRIORITY (smaller integer
 runs first; default 100), real DEPENDENCIES and ownership. Keep about four scope items per Issue.
