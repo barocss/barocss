@@ -32,6 +32,7 @@ function Application({ resources }) {
   const latest = useRef({ state: null, draft, screenRequest, token: null });
   latest.current = { ...latest.current, state, draft, screenRequest };
   const api = useRef(null);
+  const userActionSent = useRef(null);
   useEffect(() => {
     let disposed = false, epoch = 0, timer = null, lastRevision = -1;
     const aborts = new Set();
@@ -85,17 +86,52 @@ function Application({ resources }) {
   useEffect(() => {
     if (!state?.spec || state.phase !== 'ready') return;
     const frame = requestAnimationFrame(() => {
-      const layout = document.querySelector('[data-node-id="layout"]'), card = document.querySelector('[data-node-id="card"]');
-      if (layout && card && getComputedStyle(layout).display === 'grid' && parseFloat(getComputedStyle(card).paddingTop) > 0
+      const elements = [...document.querySelectorAll('[data-node-id]')];
+      const findElement = (id) => elements.find((element) => element.dataset.nodeId === id);
+      const root = findElement(state.spec.root);
+      const theme = getComputedStyle(document.documentElement);
+      const rem = parseFloat(theme.fontSize);
+      const colorParts = (color) => color.match(/[\d.]+%?/g)?.map((part) => parseFloat(part) / (part.endsWith('%') ? 100 : 1));
+      const darkColor = colorParts(theme.getPropertyValue('--color-slate-900'));
+      const useful = Object.values(state.spec.elements).every((node) => {
+        const element = findElement(node.props.id);
+        if (!element) return false;
+        if (node.type === 'Text') return element.textContent === node.props.text;
+        if (node.type === 'Button') return element.textContent === node.props.label;
+        if (node.type === 'Input') return element.value === latest.current.draft.draft[node.props.value.$bindState === '/draft/name' ? 'name' : 'topic'];
+        const style = getComputedStyle(element);
+        if (element.getBoundingClientRect().height <= 0) return false;
+        if (node.type === 'Layout') {
+          const gap = (node.props.gap === 'fractional' ? 0.625 : 0.875) * rem;
+          const columns = node.props.columns === 'responsive' && window.innerWidth >= 768 ? 2 : 1;
+          return style.display === 'grid' && Math.abs(parseFloat(style.gap) - gap) < 0.1
+            && style.gridTemplateColumns.split(' ').length === columns;
+        }
+        if (node.type === 'Card') {
+          const padding = (node.props.padding === 'fractional' ? 0.875 : 1.375) * rem;
+          const actualColor = colorParts(style.backgroundColor);
+          const backgroundMatches = node.props.tone === 'light' ? style.backgroundColor === 'rgb(255, 255, 255)'
+            : style.backgroundColor.startsWith('oklch(') && actualColor?.length === 3 && darkColor?.length === 3
+              && actualColor.every((value, index) => Math.abs(value - darkColor[index]) < 0.001);
+          return Math.abs(parseFloat(style.paddingTop) - padding) < 0.1 && backgroundMatches;
+        }
+        return false;
+      });
+      if (useful && root && root.getBoundingClientRect().height > 0
         && !diagnostics.displays.some((record) => record.revision === state.revision && record.sessionId === state.sessionId))
         diagnostics.displays.push({ sessionId: state.sessionId, revision: state.revision, stage: state.stage,
           generationMs: state.timings.generationMs, validationMs: state.timings.validationMs,
-          firstVisibleStyledMs: performance.now(), source: mode });
+          firstVisibleStyledMs: performance.now(), source: mode,
+          userActionSent: userActionSent.current,
+          observation: { ...state.observation,
+            firstUsefulPresentation: { value: performance.now(), clock: 'browser-navigation-monotonic-ms' } },
+          presentation: 'requestAnimationFrame plus useful content/style checks; physical paint not observed' });
     });
     return () => cancelAnimationFrame(frame);
   }, [state, mode]);
   const pending = ['generating', 'action-pending'].includes(state?.phase);
   const sendAction = (action) => {
+    userActionSent.current = { value: performance.now(), clock: 'browser-navigation-monotonic-ms' };
     const current = latest.current;
     api.current?.('/api/action', { sessionId: current.state.sessionId, revision: current.state.revision, action }, current.state.stage === 'form');
   };
@@ -116,12 +152,12 @@ function Application({ resources }) {
     Button: ({ node, onAction }) => <button data-node-id={node.props.id} disabled={pendingRef.current} onClick={onAction}>{node.props.label}</button>,
   };
   return <main className="min-h-screen bg-slate-100 p-4">
-    <h1>BaroCSS request UI</h1><p id="mode">Data source: {mode} (no model)</p>
+    <h1>BaroCSS request UI</h1><p id="mode">Data source: {mode} {mode === 'codex-cli' ? '(actual Codex CLI)' : mode === 'codex-cli-fake' ? '(fake process; no model)' : '(no model)'}</p>
     <label>Screen request<textarea aria-label="Screen request" maxLength={300} disabled={state?.phase !== 'idle'}
       value={screenRequest} onChange={(event) => setScreenRequest(event.target.value)} /></label>
-    <header><button disabled={!state || state.phase !== 'idle'} onClick={() => api.current?.('/api/start', { screenRequest: latest.current.screenRequest, input: latest.current.draft })}>Generate</button>
+    <header><button disabled={!state || state.phase !== 'idle'} onClick={() => { userActionSent.current = null; api.current?.('/api/start', { screenRequest: latest.current.screenRequest, input: latest.current.draft }); }}>Generate</button>
       <button disabled={!pending} onClick={() => api.current?.('/api/cancel', {})}>Cancel</button>
-      <button disabled={!state} onClick={() => api.current?.('/api/restart', {})}>Restart</button></header>
+      <button disabled={!state} onClick={() => { userActionSent.current = null; api.current?.('/api/restart', {}); }}>Restart</button></header>
     <p role="status" data-phase={state?.phase ?? 'connecting'} data-revision={state?.revision ?? 0}>{state?.phase ?? 'connecting'} · revision {state?.revision ?? 0}</p>
     {(error || state?.error) && <p role="alert">{error || state.error}</p>}
     {state?.spec && contract && <Renderer spec={state.spec} contract={contract} components={registry.current}

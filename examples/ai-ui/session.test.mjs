@@ -176,3 +176,25 @@ test('cancellation before dispatch starts no generation and requires explicit re
   assert.equal(session.start({ input: input() }).status, 409);
   session.restart(); await start(session); assert.equal(calls, 1);
 });
+
+test('actionReleased records accepted server dispatch only and clears on restart', async () => {
+  const calls = [];
+  const session = create((request) => { calls.push(request); return response(request); });
+  await start(session);
+  assert.equal(session.snapshot().observation.actionReleased, null);
+  const initial = session.snapshot().observation;
+  assert.equal(action(session, 'confirm').status, 409);
+  assert.deepEqual(session.snapshot().observation, initial);
+  assert.equal(action(session, 'review').status, 202);
+  assert.equal(session.snapshot().observation.actionReleased, null);
+  const cancelled = session.settled(); session.cancel(); await cancelled;
+  assert.equal(calls.length, 1);
+  assert.equal(session.snapshot().observation.actionReleased, null);
+  assert.equal(action(session, 'review').status, 202); await session.settled();
+  const seen = session.snapshot().observation;
+  assert.equal(calls.length, 2);
+  assert.equal(seen.actionReleased.clock, 'server-process-monotonic-ms');
+  assert(seen.actionReleased.value >= seen.requestAccepted.value);
+  assert(seen.actionReleased.value <= seen.committed.value);
+  session.restart(); assert.equal(session.snapshot().observation, null);
+});

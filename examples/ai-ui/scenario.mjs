@@ -9,6 +9,24 @@ export const TRANSITIONS = Object.freeze({
   confirmed: Object.freeze({}),
 });
 const headings = { form: 'Request details', review: 'Review request', confirmed: 'Request confirmed' };
+function freeze(value) {
+  for (const child of Object.values(value)) if (child && typeof child === 'object') freeze(child);
+  return Object.freeze(value);
+}
+// Application prompt declarations, checked against the built renderer by the packet tests.
+export const SCREEN_DECLARATIONS = freeze({
+  version: 'request-ui-v1', permissions: REQUEST_CONTRACT,
+  components: {
+    Layout: { props: { id: 'node ID', columns: ['responsive', 'single'], gap: ['fractional', 'wide'] }, container: true },
+    Card: { props: { id: 'node ID', padding: ['fractional', 'spacious'], tone: ['light', 'dark'] }, container: true },
+    Text: { props: { id: 'node ID', text: '1–300 characters' }, container: false },
+    Input: { props: { id: 'node ID', label: '1–300 characters', value: { $bindState: REQUEST_CONTRACT.textBindings } }, container: false },
+    Button: { props: { id: 'node ID', label: '1–300 characters' }, on: { press: { action: REQUEST_CONTRACT.actions } }, container: false },
+  },
+  limits: { nodes: [2, 32], text: [1, 300], declarations: 32 }, transitions: TRANSITIONS,
+  graph: 'root is a Layout; one parent per non-root node; all nodes reachable; no cycles; matching IDs; leaf children empty',
+  forbidden: ['unknown fields', 'action parameters', 'expressions', 'HTML', 'JavaScript', 'CSS', 'class strings', 'URLs', 'tools'],
+});
 
 export function requestScreen(stage, input) {
   const elements = {

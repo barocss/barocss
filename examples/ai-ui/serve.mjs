@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { createRequestSession } from './session.mjs';
 import { requestScreen } from './scenario.mjs';
+import { packetTransportMode, disposePacketTransport } from './codex-transport.mjs';
 
 const repo = new URL('../../', import.meta.url);
 const deps = createRequire(new URL('package.json', repo));
@@ -16,7 +17,9 @@ const sameToken = (candidate, expected) => typeof candidate === 'string' && Buff
 const empty = (body) => body && typeof body === 'object' && !Array.isArray(body) && Object.keys(body).length === 0;
 
 export async function createAppServer({ generate = fixture, mode = 'authored-fixtures', port = 0 } = {}) {
-  if (!['authored-fixtures', 'injected-test'].includes(mode)) throw new Error('Live dispatch is not enabled');
+  if (!['authored-fixtures', 'injected-test'].includes(mode)
+    && (!['codex-cli', 'codex-cli-fake'].includes(mode) || packetTransportMode(generate) !== mode))
+    throw new Error('Live dispatch is not enabled');
   const peers = process.env.REACT_ROOT ? createRequire(`${process.env.REACT_ROOT}/package.json`) : createRequire(import.meta.url);
   const renderer = new URL('packages/barocss-render/', repo);
   const renderManifest = JSON.parse(readFileSync(new URL('package.json', renderer), 'utf8'));
@@ -68,7 +71,8 @@ export async function createAppServer({ generate = fixture, mode = 'authored-fix
       } else if (path === '/api/input') result = session.updateInput(body);
       else if (path === '/api/action') result = session.action(body);
       else if (!empty(body)) result = { status: 400, error: 'Expected empty control body' };
-      else result = path === '/api/cancel' ? session.cancel() : session.restart();
+      else if (path === '/api/cancel') result = session.cancel();
+      else { result = session.restart(); disposePacketTransport(generate); }
       return json(result.status, result);
     } catch { return json(400, { error: 'Invalid request body' }); }
   });
@@ -76,7 +80,7 @@ export async function createAppServer({ generate = fixture, mode = 'authored-fix
   server.headersTimeout = 5000;
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });
   return { server, session, url: `http://127.0.0.1:${server.address().port}`, mode,
-    async close() { session.restart(); server.closeAllConnections(); await new Promise((resolve) => server.close(resolve)); } };
+    async close() { session.restart(); disposePacketTransport(generate); server.closeAllConnections(); await new Promise((resolve) => server.close(resolve)); } };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
