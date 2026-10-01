@@ -47,6 +47,13 @@ class LocalVerificationTests(unittest.TestCase):
         self.assertIn(["pnpm", "check"], self.plan(["packages/barocss/src/index.ts", "packages/barocss-server/src/index.ts"]))
         self.assertIn(["pnpm", "check"], self.plan(["docs/autonomy-v3.md"], full=True))
 
+    def test_committed_comparison_excludes_inherited_dirty_work(self):
+        result = subprocess.CompletedProcess([], 0, "docs/autonomy-v3.md")
+        with patch.object(verify_local.subprocess, "run", return_value=result) as diff:
+            checks = verify_local.commands("base", BODY, head="HEAD")
+            self.assertEqual(len(checks), 1)
+            self.assertEqual(diff.call_args.args[0], ["git", "diff", "--name-only", "-z", "base", "HEAD", "--"])
+
     def test_failure_stops_before_later_commands(self):
         with patch.object(verify_local.subprocess, "run", side_effect=subprocess.CalledProcessError(1, "first")) as run:
             with self.assertRaises(subprocess.CalledProcessError):

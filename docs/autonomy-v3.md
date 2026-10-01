@@ -24,7 +24,8 @@ Execute alone integrates serially into ~/.barocss-ai/v3/integration (local devel
 Task branches/worktrees start from local develop. Preserve inherited uncommitted changes and recordings.
 Use git merge --no-ff; do not overwrite dirty files, reset --hard, force branches or delete others' trees.
 Run `python3 tools/ai-v3/verify-local.py --base <base-sha> --issue-body <saved-body-file>` before committing
-and again after integration against the pre-merge SHA. The script requires the Issue verification,
+and again after integration against the pre-merge SHA with --head HEAD, comparing committed changes
+without including inherited unrelated dirty work. The script requires the Issue verification,
 affected-package lint/type-check, library build plus .github/scripts/check-packages.mjs for package
 changes, and scripts/fuzz/browser-ratchet.mjs for runtime insert/scope changes.
 Use --full for pnpm check, which additionally covers core/cross-package changes, unclear impact, explicit acceptance

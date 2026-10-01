@@ -17,7 +17,7 @@ selected Issue; workers preserve others' changes and never integrate. Execute is
 
 Run `python3 tools/ai-v3/verify-local.py --base <task-base-sha> --issue-body <saved-body-file>` on the
 task branch, commit, merge --no-ff serially into ~/.barocss-ai/v3/integration, then run the same script
-against the pre-merge integration SHA. It runs the Issue verify block plus affected-package lint and
+against the pre-merge integration SHA, adding --head HEAD to compare the committed merge only. It runs the Issue verify block plus affected-package lint and
 type-check, package build/pack validation when packages change, and the browser fuzz ratchet for
 runtime insert/scope changes. Use --full for pnpm check, additionally required for core/cross-package changes,
 unclear impact, explicit acceptance or a release candidate. Diagnose/fix failures autonomously.
