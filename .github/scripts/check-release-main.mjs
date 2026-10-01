@@ -2,7 +2,13 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { releasePackages, verifyLinkedSourceVersions, verifyReadiness, verifyRenderEvidence } from './release-manifests.mjs';
-import { verifyMainAncestry, verifyMainMerge } from './release-provenance.mjs';
+import {
+  verifyMainAncestry,
+  verifyMainMerge,
+  verifyReleasePullRequestJobs,
+  verifyReleasePullRequestRun,
+  verifySameSourceTree,
+} from './release-provenance.mjs';
 
 const repository = 'barocss/barocss';
 const sha = process.env.GITHUB_SHA;
@@ -60,6 +66,9 @@ const parents = execFileSync('git', ['show', '-s', '--format=%P', 'HEAD'], { enc
   .trim().split(' ');
 const candidateSha = verifyMainMerge(pr, sha, parents);
 verifyMainAncestry(parents[0], candidateSha);
+const mainTree = execFileSync('git', ['rev-parse', `${sha}^{tree}`], { encoding: 'utf8' }).trim();
+const candidateTree = execFileSync('git', ['rev-parse', `${candidateSha}^{tree}`], { encoding: 'utf8' }).trim();
+verifySameSourceTree(mainTree, candidateTree);
 
 const comment = await api(`issues/comments/${readiness[2]}`);
 assert.equal(comment.issue_url, `https://api.github.com/repos/${repository}/issues/${readiness[1]}`);
@@ -83,4 +92,14 @@ assert.ok(
   'Test and Build did not pass on the merged candidate',
 );
 
-console.log(`Manual release main ${sha} merges reviewed develop ${candidateSha} at ${version}.`);
+const releasePrRuns = await api(
+  `actions/workflows/npm-release.yml/runs?event=pull_request&head_sha=${candidateSha}&per_page=100`,
+);
+const releasePrRunId = verifyReleasePullRequestRun(
+  releasePrRuns.workflow_runs,
+  candidateSha,
+);
+const releasePrJobs = await api(`actions/runs/${releasePrRunId}/jobs?per_page=100`);
+verifyReleasePullRequestJobs(releasePrJobs.jobs);
+
+console.log(`Manual release main ${sha} matches tested develop tree ${candidateTree} at ${version}.`);
