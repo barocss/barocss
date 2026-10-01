@@ -82,3 +82,82 @@ The capture test creates the initial 12×2 dataset, appends a thirteenth sample 
 a second batch, checks all original bytes and reloads 26 paired images. Set
 `GALLERY_RESULT_ROOT` to retain each successful test dataset in a fresh UUID
 subdirectory. Without it, test data is temporary. Normal CLI data is durable.
+
+## Relational workflow gallery (#498)
+
+The improved example starts with Orders, then Projects and the original specimens.
+Run it separately from the original gallery:
+
+```sh
+pnpm build:library
+node examples/render-gallery/workflows/serve.mjs /absolute/local/original-gallery-data
+```
+
+Open the printed loopback URL (`http://127.0.0.1:5176`). Port 5175 and its immutable
+original dataset stay unchanged. An occupied port fails; the host never stops
+another process. Omitting the data path uses the retained #496 local baseline.
+Use the existing installed React, esbuild, Playwright and Chromium; no downloads.
+
+The versioned authored fixture has 48 orders, 12 customers, 16 products, three
+projects, 24 tasks and six assignees. It freezes the date, uses integer cents,
+validates references and bounds serialized data at 1 MiB. Long bilingual text,
+missing notes/assignees/dates, overdue tasks and empty subtasks are explicit cases.
+
+Orders searches customer/product/order data, combines status/customer filters,
+sorts date/total with ID ties, paginates four rows, retains hidden selection and
+provides real overview, product-line and local-status-history tabs. Pack advances
+queued→packed, then Dispatch advances packed→dispatched. Bulk Pack accepts only
+1–4 checked queued records on the current page; mixed, hidden, unknown or stale
+sets reject atomically. Clear selected rows removes retained hidden checks.
+
+Projects searches linked task/subtask/project/assignee text, filters project/status/
+assignee and sorts due dates with nulls last in both directions. The current page
+is grouped by status. Finish/Reopen subtask buttons update selected task state.
+Complete task rejects incomplete subtasks; completing the last subtask then the
+task updates board counts and detail. Reopen a completed task before editing it.
+Queries, filters, page, selection, Orders checked set/tab and accepted changes
+survive workspace and original-specimen switches within one browser session.
+A reload starts a fresh session; no server persistence is claimed.
+
+### Host versus renderer
+
+The semantic Orders table, mobile labelled rows, navigation, filters, checkboxes,
+tabs and pagination are native **authored host UI**. They are not render Spec
+components. A separate `workflow-host-v1` preset supplies typography/density.
+Data-derived Orders summary/detail and four project column/detail panels use the
+built-root `Renderer`, unchanged `validateSpec` and `classesFor`. Each projected
+panel has 2–32 nodes and at most 32 declarations; no public contract expansion.
+The disclosure shows current projected Specs/contracts/state and their fixture/
+build digests. Original specimens retain their original Specs and gallery-v1
+preset, separately from workflow projections. No Table/Chart/Image/Modal/free
+style support is added to the public renderer. All data is fictional authored
+content; no model generation, payments or external services.
+
+### Operations and actual captures
+
+```sh
+node --test examples/render-gallery/workflows/data.test.mjs examples/render-gallery/workflows/state.test.mjs examples/render-gallery/workflows/browser.test.mjs
+node examples/render-gallery/workflows/milestone.mjs /absolute/fresh/orders-evidence
+```
+
+The second command captures only the running Orders host and exercises its
+operations. The browser test starts its own ephemeral host, exercises both
+workspaces and captures 18 actual PNG/JSON pairs at 1200×900 and 390×900: Orders
+normal/empty/error/mutated/mixed-bulk-error, Projects normal/empty/error/mutated.
+It verifies relations, counts, totals, selected detail, atomic rejection, state
+preservation, content/runtime styles, no viewport overflow, page/CSP/external
+errors, and owned cleanup that preserves another runtime. Original 13 samples/
+26 images are hashed before/after and the baseline server remains reachable.
+
+Set `WORKFLOW_RESULT_ROOT` to retain each verified test dataset in a fresh private
+subdirectory. Normal milestone output is durable. `evidence.mjs` writes a separate
+`workflow-index.json` with immutable PNG/JSON files, complete current state and
+projected panels, bounded operation history/trace, candidate/build/fixture/preset/
+browser/viewport/image digests and native table observations. `verifyArtifacts`
+detects duplicate names, missing/corrupt images, metadata mismatch and unsafe
+paths; it does not silently repair them. Failed writes can leave unindexed partial
+files: preserve them and use a new root. The original specimen storage contract
+and its initial-state capture invariant are unchanged. Working-tree milestone
+captures are preliminary; final clean merged-head captures are the committed
+verification evidence. No public deployment, model call or private corpus import
+is part of this example.
