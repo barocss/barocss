@@ -1,0 +1,29 @@
+{
+  "name": "@barocss/gpu",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Experimental bounded CSS scene compiler and WebGL2 SDF renderer",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit",
+    "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
+    "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs",
+    "test:consumer": "node --test tests/consumer.test.mjs",
+    "test:browser": "node --test tests/browser.test.mjs"
+  }
+}
