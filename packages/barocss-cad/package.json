@@ -1,0 +1,12 @@
+{
+  "name": "@barocss/cad", "version": "0.0.0-private-experimental", "private": true,
+  "type": "module", "description": "Original bounded CSS model NURBS and IGES experiment",
+  "license": "MIT", "main": "./dist/index.js", "types": "./dist/index.d.ts",
+  "exports": {".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"}},
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "lint": "node scripts/tool.mjs lint", "type-check": "node scripts/tool.mjs type-check",
+    "build:library": "node scripts/tool.mjs build", "test": "node --test test/*.test.mjs",
+    "test:consumer": "node scripts/consumer.mjs", "test:exchange": "node scripts/exchange.mjs"
+  }
+}

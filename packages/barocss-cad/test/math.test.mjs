@@ -147,3 +147,22 @@ test('surface, model and sample bounds reject invalid data', () => {
   assert.equal(sampleSurface(cylinder, 64, 64).flat().length, 4096);
   assert.deepEqual(sampleCurve(circle, 17), sampleCurve(circle, 17));
 });
+
+test('planar and weighted nonplanar patches match independent bilinear controls', () => {
+  const patch = {kind:'surface',id:'weighted',degreeU:1,degreeV:1,knotsU:[0,0,1,1],knotsV:[0,0,1,1],controlPoints:[[[0,0,0],[1,7,3]],[[9,2,4],[12,8,-2]]],weights:[[1,2],[3,4]]};
+  for (const row of sampleSurface(patch,9,9)) for(const {u,v,point} of row) {
+    const factors=[(1-u)*(1-v), (1-u)*v, u*(1-v),u*v];
+    const poles=patch.controlPoints.flat(),weights=patch.weights.flat();
+    const denominator=factors.reduce((sum,f,i)=>sum+f*weights[i],0);
+    pointClose(point,[0,1,2].map(axis=>factors.reduce((sum,f,i)=>sum+f*weights[i]*poles[i][axis],0)/denominator));
+  }
+  const planar={...patch,weights:[[1,1],[1,1]],controlPoints:patch.controlPoints.map(row=>row.map(([x,y])=>[x,y,2*x+3*y+4]))};
+  for(const row of sampleSurface(planar,9,9)) for(const {point:[x,y,z]} of row) close(z,2*x+3*y+4);
+});
+test('maximum pole/degree/weight/coordinate bounds are accepted', () => {
+  const knots=(n,p)=>[...Array(p+1).fill(0),...Array.from({length:n-p-1},(_,i)=>i+1),...Array(p+1).fill(n-p)];
+  const curve={kind:'curve',id:'maximum',degree:5,knots:knots(64,5),controlPoints:Array.from({length:64},(_,i)=>[i%2?1e6:-1e6,0,0]),weights:Array.from({length:64},(_,i)=>i%2?1e6:1e-6)};
+  validateCurve(curve); assert.ok(evaluateCurve(curve,29).every(Number.isFinite));
+  const surface={kind:'surface',id:'maximum',degreeU:5,degreeV:5,knotsU:knots(16,5),knotsV:knots(16,5),controlPoints:Array.from({length:16},(_,i)=>Array.from({length:16},(_,j)=>[i,j,0])),weights:Array.from({length:16},()=>Array(16).fill(1))};
+  validateSurface(surface); pointClose(evaluateSurface(surface,0,0),[0,0,0]);
+});
