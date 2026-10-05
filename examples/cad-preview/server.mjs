@@ -10,7 +10,7 @@ const files = new Map([
   ['/style.css', ['text/css; charset=utf-8', path.join(here,'style.css')]],
   ['/gpu.js', ['text/javascript; charset=utf-8', path.join(repo,'packages/barocss-gpu/dist/index.js')]],
   ['/cad.js', ['text/javascript; charset=utf-8', path.join(repo,'packages/barocss-cad/dist/index.js')]],
-  ...['types','math','parser','iges','packet','preview'].map(name => [`/${name}.js`, ['text/javascript; charset=utf-8', path.join(repo,`packages/barocss-cad/dist/${name}.js`)]]),
+  ...['types','math','parser','iges','packet','preview','extrusion','compiler'].map(name => [`/${name}.js`, ['text/javascript; charset=utf-8', path.join(repo,`packages/barocss-cad/dist/${name}.js`)]]),
 ]);
 export const csp = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'";
 export async function startServer(port = 0) {

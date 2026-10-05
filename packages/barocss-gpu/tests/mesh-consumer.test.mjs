@@ -41,6 +41,13 @@ assert.deepEqual(validatePreviewPacket(literal), literal);
 const options = { mmToSceneUnit: .25, translate: [-1.125,-1.5,-.5], color: [1,.2,.1], background: [.04,.08,.12] };
 const converted = prepareMesh(literal, options);
 assert.equal(converted.packet.revision, 7);
+assert.equal(Object.hasOwn(converted.options, 'camera'), false);
+const camera = { eye: [4,3,6], target: [0,0,0], up: [0,1,0], fovYDegrees: 45, near: .01, far: 100 };
+const viewed = prepareMesh(literal, { ...options, camera });
+assert.deepEqual(viewed.packet, converted.packet);
+camera.eye[0] = 999;
+assert.equal(viewed.options.camera.eye[0], 4);
+assert.throws(() => prepareMesh(literal, { ...options, camera: { ...camera, near: 100, far: 1 } }));
 assert.equal(converted.packet.surfaceId, 'flat_patch');
 literal.positions[0] = 999;
 assert.equal(converted.packet.positions[0], 1);
@@ -72,6 +79,10 @@ const revision: number = mesh.revision;
 const accepted = mesh.packet;
 const updated = mesh.update(packet, options);
 if (!updated.ok) { const error: Error = updated.error; void error; }
+const cameraOptions = { ...options, camera: { eye: [4,3,6] as [number,number,number], target: [0,0,0] as [number,number,number], up: [0,1,0] as [number,number,number], fovYDegrees: 45, near: .01, far: 100 } };
+mesh.update(packet, cameraOptions);
+// @ts-expect-error camera optics must all be explicit
+mesh.update(packet, { ...options, camera: { eye: [0,0,6] } });
 mesh.resize(64,64);
 const pixels: Uint8Array = mesh.readPixels();
 mesh.dispose();

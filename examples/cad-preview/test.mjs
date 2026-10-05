@@ -249,3 +249,64 @@ test('loopback server serves only explicit built/example routes under strict CSP
   }
   assert.equal(running.server.listening, false);
 });
+
+
+test('camera-only host updates never recompute CAD and retain native geometry transactionally', () => {
+  const counts = {};
+  const trackedCad = {};
+  for (const [name, value] of Object.entries(cad)) trackedCad[name] = typeof value === 'function'
+    ? (...args) => { counts[name] = (counts[name] ?? 0) + 1; return value(...args); } : value;
+  const listeners = new Map();
+  const canvas = { addEventListener: (name, fn) => listeners.set(name, fn), removeEventListener: name => listeners.delete(name) };
+  let reject = false, updates = 0;
+  const fakeGpu = { ...gpu, mountMesh(_canvas, packet, options) {
+    let acceptedPacket = structuredClone(packet), acceptedOptions = structuredClone(options);
+    return { update(next, settings) {
+      updates++;
+      if (reject) return { ok: false, error: new Error('Injected camera rejection') };
+      const prepared = gpu.prepareMesh(next, settings);
+      acceptedPacket = prepared.packet; acceptedOptions = prepared.options;
+      return { ok: true };
+    }, readPixels: () => Uint8Array.of(acceptedPacket.revision), dispose() {},
+    get packet() { return structuredClone(acceptedPacket); }, get options() { return structuredClone(acceptedOptions); } };
+  } };
+  const host = createPreviewController(canvas, trackedCad, fakeGpu);
+  const fixture = fixtures[0];
+  assert.equal(host.setCamera(undefined).ok, false);
+  assert(host.apply(fixture.source, { surfaceId: fixture.id, countU: fixture.countU, countV: fixture.countV, options: fixture.options }).ok);
+  const initial = host.snapshot(), cadCalls = structuredClone(counts);
+  const native = snapshot => Object.fromEntries(['source','model','packet','report','iges','revision'].map(key => [key,snapshot[key]]));
+  for (const eye of [[0,0,6],[6,0,0],[4,3,6]]) {
+    const camera = { eye, target: [0,0,0], up: [0,1,0], fovYDegrees: 45, near: .01, far: 100 };
+    const before = host.snapshot();
+    assert(host.setCamera(camera).ok);
+    assert.equal(host.snapshot().viewRevision, before.viewRevision + 1);
+    assert.deepEqual(native(host.snapshot()), native(initial));
+    camera.eye[0] = 999;
+    assert.notEqual(host.snapshot().options.camera.eye[0], 999);
+  }
+  assert.deepEqual(counts, cadCalls, 'No parse, tessellation, CAD validation or export on camera-only actions');
+  const accepted = host.snapshot(), acceptedPixels = host.readPixels();
+  for (const camera of [ { eye:[0,0,6], target:[0,0,6], up:[0,1,0], fovYDegrees:45, near:.01, far:100 },
+    { eye:[0,0,6], target:[0,0,0], up:[0,0,1], fovYDegrees:45, near:.01, far:100 },
+    { eye:[0,0,6], target:[0,0,0], up:[0,1,0], fovYDegrees:9, near:.01, far:100 } ]) {
+    assert.equal(host.setCamera(camera).ok, false); assert.deepEqual(host.snapshot(), accepted);
+  }
+  reject = true;
+  assert.equal(host.setCamera(undefined).ok, false);
+  assert.deepEqual(host.snapshot(), accepted); assert.deepEqual(host.readPixels(), acceptedPixels);
+  reject = false; assert(host.setCamera(undefined).ok);
+  assert.equal(Object.hasOwn(host.snapshot().options, 'camera'), false);
+  assert.deepEqual(native(host.snapshot()), native(initial)); assert.deepEqual(counts, cadCalls);
+  assert(updates >= 4);
+  const camera = { eye:[4,3,6], target:[0,0,0], up:[0,1,0], fovYDegrees:45, near:.01, far:100 };
+  assert(host.setCamera(camera).ok);
+  const beforeEdit = host.snapshot();
+  assert(host.apply(controlPointEdit(fixture.source), { surfaceId: fixture.id, countU: fixture.countU,
+    countV: fixture.countV, options: {...fixture.options,camera} }).ok);
+  assert.equal(host.snapshot().revision, beforeEdit.revision + 1);
+  assert.equal(host.snapshot().viewRevision, beforeEdit.viewRevision + 1);
+  assert.deepEqual(host.snapshot().options.camera, camera);
+  assert(counts.parseModel > cadCalls.parseModel);
+  host.dispose(); assert.equal(host.setCamera(undefined).ok, false);
+});
