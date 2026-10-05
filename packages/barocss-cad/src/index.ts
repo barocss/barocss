@@ -6,3 +6,4 @@ export * from './packet.js';
 export * from './preview.js';
 export * from './extrusion.js';
 export * from './compiler.js';
+export * from './derivatives.js';

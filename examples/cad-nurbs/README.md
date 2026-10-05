@@ -39,3 +39,18 @@ The host uses the built ESM package. It retains source and construction history,
 finds the native surface through the feature output ID, tessellates that surface,
 and exports only that ID to IGES. The resolved model also contains the input curve.
 No caps or solid topology are created.
+
+Native first derivatives use the original knot parameters. After building CAD:
+
+```sh
+node examples/cad-nurbs/derivative-demo.mjs /tmp/cad-derivative-report.json
+```
+
+The report shows curve tangents and both extrusion partials at endpoints and local
+spans. At the exact asymmetric interior knot U=3, D1 rejects its C0 continuity.
+Positions remain accepted by the existing point API. The report does not infer
+unit normals, surface regularity or solid topology.
+
+`derivative-c1.css` describes the cubic polynomial [u,u²,u³] and its extrusion.
+The internal double knot at 0.5 has continuity C1. Its exact-knot query is
+retained in the packed and independent exported-geometry derivative checks.
