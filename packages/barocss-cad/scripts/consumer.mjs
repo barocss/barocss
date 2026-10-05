@@ -6,6 +6,7 @@ import { join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { writePreviewEvidence } from './preview-evidence.mjs';
+import { writeConstructionEvidence } from './construction-evidence.mjs';
 const temp = mkdtempSync(join(tmpdir(), 'cad-consumer-'));
 const root = resolve(import.meta.dirname, '../../..');
 const require = createRequire(resolve(process.env.REPO_DEPS_ROOT ?? root, 'package.json'));
@@ -18,9 +19,10 @@ try {
   const source = readFileSync(join(root,'examples/cad-nurbs/quarter-circle.css'),'utf8');
   writeFileSync(join(temp,'smoke.mjs'), `import assert from 'node:assert/strict'; import {parseModel,evaluateCurve,exportIGES} from '@barocss/cad'; const m=parseModel(${JSON.stringify(source)}); assert.ok(Math.abs(evaluateCurve(m.objects[0],0.5)[0]-Math.sqrt(50))<1e-9); assert.ok(exportIGES(m,['arc']).iges.includes('126'));`);
   execFileSync(process.execPath,[join(temp,'smoke.mjs')],{stdio:'inherit'});
-  writeFileSync(join(temp,'smoke.ts'), "import {parseModel,evaluateCurve,exportIGES,tessellateSurface,validatePreviewPacket,copyPreviewPacket} from '@barocss/cad'; import type {Point, Curve, Surface, PreviewPacket, ApproximationReport} from '@barocss/cad'; const m=parseModel(''); const p:Point=evaluateCurve(m.objects[0] as Curve,0.5); const result=tessellateSurface(m.objects[0] as Surface,{countU:2,countV:2,revision:7}); const packet:PreviewPacket=result.packet; const report:ApproximationReport=result.report; validatePreviewPacket(packet); void [p,exportIGES(m,['arc']),copyPreviewPacket(packet),report];");
+  writeFileSync(join(temp,'smoke.ts'), "import {parseModel,evaluateCurve,exportIGES,tessellateSurface,validatePreviewPacket,copyPreviewPacket,compileConstruction,extrudeCurve} from '@barocss/cad'; import type {Point, Curve, Surface, PreviewPacket, ApproximationReport,ConstructionResult,ExtrusionConstruction,ExtrusionOptions} from '@barocss/cad'; const m=parseModel(''); const p:Point=evaluateCurve(m.objects[0] as Curve,0.5); const result=tessellateSurface(m.objects[0] as Surface,{countU:2,countV:2,revision:7}); const packet:PreviewPacket=result.packet; const report:ApproximationReport=result.report; validatePreviewPacket(packet); const compiled:ConstructionResult=compileConstruction(''); const lineage:ExtrusionConstruction[]=compiled.constructions; const extrusion:ExtrusionOptions={id:'wall',vector:[0,0,30]}; void [extrudeCurve(m.objects[0] as Curve,extrusion),lineage,p,exportIGES(m,['arc']),copyPreviewPacket(packet),report];");
   execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'--noEmit','--strict','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext',join(temp,'smoke.ts')],{stdio:'inherit'});
   const api = await import(pathToFileURL(join(destination, 'dist/index.js')).href);
   writePreviewEvidence(api);
+  writeConstructionEvidence(api);
   console.log('Packed CAD ESM, runtime math/export, and external TypeScript consumer passed');
 } finally {rmSync(temp,{recursive:true,force:true});}
