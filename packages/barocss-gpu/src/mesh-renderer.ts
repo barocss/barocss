@@ -1,6 +1,7 @@
 import { GPUError } from './renderer.js';
 import type { UpdateResult } from './renderer.js';
 import { prepareMesh } from './mesh-packet.js';
+import { prepareCamera } from './camera.js';
 import type { PreviewPacket, MeshOptions } from './mesh-packet.js';
 import type { SceneShaders } from './compiler.js';
 
@@ -17,11 +18,18 @@ precision highp float;
 layout(location=0) in vec3 position;
 layout(location=1) in vec3 normal;
 uniform float aspect;
+uniform bool defaultCamera;
+uniform mat4 view;
+uniform mat4 projection;
 out vec3 worldNormal;
 void main(){
- vec3 p=position-vec3(0.0,0.0,6.0);
- float f=2.414213562373095;
- gl_Position=vec4(p.x*f/aspect,p.y*f,-1.000200020002*p.z-0.02000200020002,-p.z);
+ if(defaultCamera){
+  vec3 p=position-vec3(0.0,0.0,6.0);
+  float f=2.414213562373095;
+  gl_Position=vec4(p.x*f/aspect,p.y*f,-1.000200020002*p.z-0.02000200020002,-p.z);
+ }else{
+  gl_Position=projection*view*vec4(position,1.0);
+ }
  worldNormal=normal;
 }`,
   fragment: `#version 300 es
@@ -74,6 +82,7 @@ export class MeshRenderer {
   }
   private create(mesh: Mesh, width: number, height: number): Resources {
     this.live(); this.check();
+    const camera = prepareCamera(mesh.options.camera, width / height);
     const gl = this.gl;
     const resources: Resources = { mesh, program: null, vao: null, buffers: [], framebuffer: null, color: null, depth: null, width, height };
     const shaders: WebGLShader[] = [];
@@ -116,6 +125,9 @@ export class MeshRenderer {
       gl.depthFunc(gl.LESS); gl.depthMask(true); gl.colorMask(true, true, true, true);
       gl.clearColor(...mesh.options.background, 1); gl.clearDepth(1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.uniform1f(gl.getUniformLocation(resources.program, 'aspect'), width / height);
+      gl.uniform1i(gl.getUniformLocation(resources.program, 'defaultCamera'), mesh.options.camera === undefined ? 1 : 0);
+      gl.uniformMatrix4fv(gl.getUniformLocation(resources.program, 'view'), false, camera.view);
+      gl.uniformMatrix4fv(gl.getUniformLocation(resources.program, 'projection'), false, camera.projection);
       gl.uniform3fv(gl.getUniformLocation(resources.program, 'color'), mesh.options.color);
       gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
       this.check(); return resources;

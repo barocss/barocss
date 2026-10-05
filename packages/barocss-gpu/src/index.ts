@@ -7,3 +7,5 @@ export type { UpdateResult } from './renderer.js';
 export { validatePreviewPacket, validateMeshOptions, prepareMesh } from './mesh-packet.js';
 export type { PreviewPacket, MeshOptions } from './mesh-packet.js';
 export { mountMesh, MeshRenderer } from './mesh-renderer.js';
+export { validateMeshCamera, prepareCamera } from './camera.js';
+export type { MeshCamera } from './camera.js';

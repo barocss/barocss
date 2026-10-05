@@ -1,3 +1,6 @@
+import { validateMeshCamera } from './camera.js';
+import type { MeshCamera } from './camera.js';
+
 /** Host-owned CAD preview provenance. Geometry is an approximate open surface in millimetres. */
 export interface PreviewPacket {
   version: 0;
@@ -15,6 +18,7 @@ export interface PreviewPacket {
 
 /** Explicit host conversion and opaque normalized RGB; no camera fitting or inferred units. */
 export interface MeshOptions {
+  camera?: MeshCamera;
   mmToSceneUnit: number;
   translate: [number, number, number];
   color: [number, number, number];
@@ -117,12 +121,15 @@ export function validatePreviewPacket(input: unknown): PreviewPacket {
 }
 
 export function validateMeshOptions(input: unknown): MeshOptions {
-  const value = object(input, ['mmToSceneUnit', 'translate', 'color', 'background'], 'Mesh options');
+  const keys = ['mmToSceneUnit', 'translate', 'color', 'background'];
+  if (input !== null && typeof input === 'object' && Object.hasOwn(input, 'camera')) keys.push('camera');
+  const value = object(input, keys, 'Mesh options');
   requireValue(typeof value.mmToSceneUnit === 'number' && Number.isFinite(value.mmToSceneUnit) && value.mmToSceneUnit > 0,
     'mmToSceneUnit must be finite and positive');
   const translate = triple(value.translate, 'translate', 1000);
   const color = triple(value.color, 'color', 1, true), background = triple(value.background, 'background', 1, true);
   const result: MeshOptions = { mmToSceneUnit: value.mmToSceneUnit, translate: [...translate], color: [...color], background: [...background] };
+  if (keys.includes('camera')) result.camera = validateMeshCamera(value.camera);
   for (const owned of [result.translate, result.color, result.background, result]) Object.freeze(owned);
   return result;
 }

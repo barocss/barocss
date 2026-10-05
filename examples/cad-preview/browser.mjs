@@ -31,7 +31,7 @@ await access(process.env.CHROME);
 const { chromium } = createRequire(path.join(process.env.PW_DIR, 'package.json'))('playwright');
 const taskCommit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repo, encoding: 'utf8' }).trim();
 const integrationCommit = process.env.BAROCSS_CAD_PREVIEW_INTEGRATION_SHA ?? null;
-const evidence = process.env.BAROCSS_CAD_PREVIEW_BROWSER_EVIDENCE ?? `/Users/user/.barocss-ai/v3/cad-preview-504-${taskCommit.slice(0, 8)}`;
+const evidence = process.env.BAROCSS_CAD_PREVIEW_BROWSER_EVIDENCE ?? `/Users/user/.barocss-ai/v3/cad-preview-camera-506-${taskCommit.slice(0, 8)}`;
 await mkdir(evidence, { recursive: true });
 const server = await startServer(0);
 let browser;
@@ -41,7 +41,7 @@ try {
     args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await browser.newPage();
   page.on('pageerror', error => errors.push(error.message));
-  const allowed = new Set(['/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -50,7 +50,7 @@ try {
     return route.continue();
   });
   await page.addInitScript(() => {
-    window.previewProbe = { resources: [], contexts: [], violations: [], compile: [], link: [], drawCalls: 0 };
+    window.previewProbe = { uniforms: [], resources: [], contexts: [], violations: [], compile: [], link: [], drawCalls: 0 };
     document.addEventListener('securitypolicyviolation', event => window.previewProbe.violations.push({
       directive: event.violatedDirective, blocked: event.blockedURI }));
     const original = HTMLCanvasElement.prototype.getContext;
@@ -58,6 +58,13 @@ try {
       const gl = original.apply(this, args);
       if (args[0] !== 'webgl2' || !gl || window.previewProbe.contexts.includes(gl)) return gl;
       window.previewProbe.contexts.push(gl);
+      const location = gl.getUniformLocation.bind(gl), names = new Map();
+      gl.getUniformLocation = (program, name) => { const loc = location(program, name); if (loc) names.set(loc, name); return loc; };
+      const matrix = gl.uniformMatrix4fv.bind(gl);
+      gl.uniformMatrix4fv = (loc, transpose, value) => {
+        window.previewProbe.uniforms.push({ name: names.get(loc), transpose, value: Array.from(value) });
+        return matrix(loc, transpose, value);
+      };
       const compile = gl.compileShader.bind(gl), link = gl.linkProgram.bind(gl), draw = gl.drawElements.bind(gl);
       gl.compileShader = shader => { compile(shader); window.previewProbe.compile.push(gl.getShaderParameter(shader, gl.COMPILE_STATUS)); };
       gl.linkProgram = program => { link(program); window.previewProbe.link.push(gl.getProgramParameter(program, gl.LINK_STATUS)); };
@@ -102,7 +109,7 @@ try {
       const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       validateCadPacket(generated.packet); validateGpuPacket(generated.packet);
       const gl = document.querySelector('canvas').getContext('webgl2');
-      return { snapshot, shaders: host.shaders(), bytes: Array.from(host.readPixels()),
+      return { snapshot, uniforms: structuredClone(window.previewProbe.uniforms), shaders: host.shaders(), bytes: Array.from(host.readPixels()),
         width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, glError: gl.getError(),
         compile: [...window.previewProbe.compile], link: [...window.previewProbe.link], drawCalls: window.previewProbe.drawCalls,
         sourceReplayed: same(model, snapshot.model), packetReplayed: same(generated.packet, snapshot.packet),
@@ -122,7 +129,7 @@ try {
       [`${name}.model.json`]: json(frame.snapshot.model),
       [`${name}.packet.json`]: json(frame.snapshot.packet),
       [`${name}.report.json`]: json(frame.snapshot.report),
-      [`${name}.display.json`]: json({ options: frame.snapshot.options, revision: frame.snapshot.revision,
+      [`${name}.display.json`]: json({ options: frame.snapshot.options, revision: frame.snapshot.revision, viewRevision: frame.snapshot.viewRevision, uniforms: frame.uniforms,
         canonicalLengthUnit: 'mm', displayTransform: 'explicit uniform scale and translation; no GPU rotation' }),
       [`${name}.iges.json`]: json(frame.snapshot.iges),
       [`${name}.vert.glsl`]: frame.shaders.vertex,
@@ -137,7 +144,7 @@ try {
     const record = { name, taskCommit, integrationCommit, browser: browser.version(), backend,
       physicalGpuEvidence: false, performanceEvidence: false, actualReadPixels: true,
       sourceReplayed: true, packetReplayed: true, reportReplayed: true, sameRenderer: true,
-      revision: frame.snapshot.revision, buffer: [frame.width, frame.height], masks: mask(frame.bytes, frame.width, frame.height),
+      revision: frame.snapshot.revision, viewRevision: frame.snapshot.viewRevision, uniforms: frame.uniforms, buffer: [frame.width, frame.height], masks: mask(frame.bytes, frame.width, frame.height),
       readbackHash: hash(Uint8Array.from(frame.bytes)), hashes, sampledDeviationMM: frame.snapshot.report.maxSampledDeviationMM,
       certified: false, glError: frame.glError, compileStatuses: frame.compile, linkStatuses: frame.link, drawCalls: frame.drawCalls };
     await writeFile(path.join(evidence, `${name}.json`), json(record)); frames.push(record);
@@ -208,6 +215,49 @@ try {
   assert.deepEqual(deterministic.snapshot.model, initial.snapshot.model);
   assert.equal(deterministic.readbackHash, initial.readbackHash);
   assert(deterministic.revision > initial.revision);
+  // These views consume the same accepted CAD-generated packet without a source action.
+  const optics = eye => ({ eye, target: [0,0,0], up: [0,1,0], fovYDegrees: 45, near: .01, far: 100 });
+  const views = [];
+  for (const [name, eye] of [['front',[0,0,6]],['side',[6,0,0]],['oblique',[4,3,6]]]) {
+    await page.click(`#camera-${name}`);
+    const frame = await capture(`camera-${name}`); views.push(frame);
+    assert.deepEqual(frame.snapshot.options.camera.eye, eye);
+    assert(frame.masks.foreground > 20);
+    assert.equal(frame.revision, deterministic.revision);
+    for (const key of ['source','model','packet','report','iges']) assert.deepEqual(frame.snapshot[key], deterministic.snapshot[key], `Camera must preserve ${key}`);
+  }
+  assert.equal(new Set(views.map(view => view.viewRevision)).size, 3);
+  assert.equal(new Set(views.map(view => view.readbackHash)).size, 3);
+  for (const key of ['source.css','model.json','packet.json','report.json','iges.json'])
+    assert.equal(new Set(views.map(view => view.hashes[`camera-${view.name.slice(7)}.${key}`])).size, 1, `${key} lineage must be identical across views`);
+  await page.click('#camera-reset');
+  const resetView = await capture('camera-reset');
+  assert.equal(Object.hasOwn(resetView.snapshot.options, 'camera'), false);
+  assert.equal(resetView.readbackHash, deterministic.readbackHash);
+  assert.equal(resetView.revision, deterministic.revision);
+  const opticsBefore = await page.evaluate(() => JSON.stringify({snapshot:window.cadPreview.snapshot(),pixels:Array.from(window.cadPreview.readPixels())}));
+  await page.locator('#camera-fov').fill('9'); await page.click('#camera-apply');
+  assert.equal(await page.evaluate(() => JSON.stringify({snapshot:window.cadPreview.snapshot(),pixels:Array.from(window.cadPreview.readPixels())})), opticsBefore);
+  await page.locator('#camera-fov').fill('45');
+  await page.click('#camera-apply');
+  assert.equal(await page.evaluate(() => window.cadPreview.snapshot().revision), deterministic.revision);
+  await page.click('#camera-reset');
+  const cameraFailures = [];
+  for (const [name, changes, injection] of [ ['eye-target',{eye:[0,0,0]}], ['up-parallel',{up:[0,0,1]}], ['near',{near:0}],
+    ['far',{far:10001}], ['fov',{fovYDegrees:9}], ['matrix-gl-error',{},'uniform'], ['draw-gl-error',{},'draw'] ]) {
+    const result = await page.evaluate(({camera,injection}) => {
+      const host = window.cadPreview, gl = document.querySelector('canvas').getContext('webgl2');
+      const snapshot = () => JSON.stringify({accepted:host.snapshot(),pixels:Array.from(host.readPixels())});
+      const before = snapshot(), matrix = gl.uniformMatrix4fv.bind(gl), draw = gl.drawElements.bind(gl);
+      if (injection === 'uniform') gl.uniformMatrix4fv = (loc,_transpose,value) => matrix(loc,false,new Float32Array(15));
+      if (injection === 'draw') gl.drawElements = (...args) => draw(0xdead,...args.slice(1));
+      let response; try { response = host.setCamera(camera); } finally { gl.uniformMatrix4fv = matrix; gl.drawElements = draw; }
+      return {rejected:!response.ok,error:String(response.error),retained:snapshot()===before};
+    }, {camera:{...optics([0,0,6]),...changes},injection});
+    assert(result.rejected && result.retained, `${name}: ${json(result)}`); cameraFailures.push({name,...result});
+  }
+  const cameraLineage = {sameGeometryRevision:deterministic.revision,viewRevisions:views.map(view=>view.viewRevision),
+    nativeIdentityAcrossViews:true,distinctActualPixels:true,resetDefault:true,failures:cameraFailures};
   async function reject(name, source, candidateSettings, injection = null) {
     const result = await page.evaluate(async ({ source, settings, injection }) => {
       const host = window.cadPreview, renderer = host.renderer;
@@ -280,7 +330,7 @@ try {
   const result = { taskCommit, integrationCommit, backend, backendDescription: 'ANGLE SwiftShader software WebGL2; functional composition only',
     packageArtifacts: { cad: hash(await readFile(path.join(repo, 'packages/barocss-cad/dist/index.js'))),
       gpu: hash(await readFile(path.join(repo, 'packages/barocss-gpu/dist/index.js'))) },
-    frames, failures, repeated, lifecycle, navigation, contextLoss, ui, errors, requests, cspViolations, csp,
+    frames, failures, cameraLineage, repeated, lifecycle, navigation, contextLoss, ui, errors, requests, cspViolations, csp,
     deterministicFields: ['source', 'model', 'packet except host-issued revision', 'report', 'IGES', 'display options'],
     environmentFields: ['taskCommit', 'integrationCommit', 'browser', 'backend', 'evidence path'],
     limitations: ['Finite sampled deviation is not a global bound', 'Software rendering is not physical GPU performance',

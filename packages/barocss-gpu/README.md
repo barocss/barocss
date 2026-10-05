@@ -149,7 +149,7 @@ Structural/count checks precede array allocation. Approximate previews do not re
 NURBS/IGES or demonstrate watertight/manufacturable geometry.
 
 The mesh path uses original fixed GLSL ES3.00 shaders and indexed WebGL2 triangles.
-Camera/light/gamma match the primitive path; perspective near plane .01 and far100.
+Default camera/light/gamma match the primitive path; default perspective near plane .01 and far100. The optional mesh camera changes only the view; primitive rendering stays fixed.
 No face culling: open surfaces remain visible from either side, using their supplied
 world normals without reversing them. Depth uses LESS, with earlier triangles winning
 exact depth ties. Buffer/pixel limits match the primitive path (4096 per side,
@@ -177,3 +177,40 @@ Host placement/scale remain explicit;
 no CAD package imports are required. The literal asymmetric patch is a deterministic
 contract replay control. Actual CAD output integration is recorded separately when both
 independently verified lanes are available. See `examples/gpu-scene/mesh.html`.
+
+
+### Optional mesh camera
+
+`MeshOptions.camera` accepts owned plain JSON data:
+
+```js
+const camera = {
+  eye: [4, 3, 6], target: [0, 0, 0], up: [0, 1, 0],
+  fovYDegrees: 45, near: 0.01, far: 100,
+};
+const result = renderer.update(renderer.packet, { ...renderer.options, camera });
+```
+
+Absence preserves the old options shape and fixed mesh projection: eye(0,0,6),
+target(0,0,0), up(0,1,0), vertical FOV45, near0.01/far100. Camera vectors and
+clipping distances use scene units. Packet positions still use mm; the host's
+explicit scale/translation creates world positions before camera projection.
+`up` is a dimensionless direction, normalized internally. Normals and light
+remain in world coordinates; changing the camera does not rotate geometry or
+infer an outward direction.
+
+Eye/target components must be finite within +/-1000, with separation >=1e-4.
+Up norm must be >=1e-6; the normalized forward/up cross norm must be >=1e-6.
+FOV is 10..100 degrees; near>=1e-4 and near<far<=10000. Unknown fields,
+accessors, invalid axes/optics and unstable Float32 projection requests reject.
+Numeric bounds alone do not guarantee a stable Float32 matrix. The near/far
+planes must remain distinct after Float32 conversion, and their computed
+normalized-device depth endpoints must remain within 1e-3 of -1/+1. No silent
+clamping, unit inference or automatic camera fitting occurs. Caller vectors
+and nested accepted getters own separate copies.
+
+`prepareCamera(camera, aspect)` returns column-major Float32 view/projection
+matrices for bounded independent host diagnostics. The renderer computes its
+aspect from its own buffer dimensions and accepts no raw matrix/shader input.
+Candidate uniform/upload/draw failures retain the prior usable frame/options
+when the context remains available. Context loss requires a new renderer.

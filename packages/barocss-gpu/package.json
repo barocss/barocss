@@ -22,8 +22,8 @@
     "lint": "eslint src",
     "type-check": "tsc --noEmit",
     "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js",
-    "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/mesh-packet.test.mjs",
+    "test": "node --test tests/scene.test.mjs tests/compiler.test.mjs tests/mesh-packet.test.mjs tests/camera.test.mjs",
     "test:consumer": "node --test tests/consumer.test.mjs tests/mesh-consumer.test.mjs",
-    "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs"
+    "test:browser": "node --test --test-concurrency=1 tests/browser.test.mjs tests/mesh-browser.test.mjs tests/camera-browser.test.mjs"
   }
 }
