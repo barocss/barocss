@@ -54,3 +54,16 @@ unit normals, surface regularity or solid topology.
 `derivative-c1.css` describes the cubic polynomial [u,u²,u³] and its extrusion.
 The internal double knot at 0.5 has continuity C1. Its exact-knot query is
 retained in the packed and independent exported-geometry derivative checks.
+
+After building CAD, retain four oriented boundaries with explicit IDs:
+
+```sh
+node examples/cad-nurbs/boundary-demo.mjs examples/cad-nurbs/quarter-cylinder.css cylinder /tmp/cad-boundaries 0
+node examples/cad-nurbs/boundary-demo.mjs examples/cad-nurbs/extruded-asymmetric.css oblique_wall /tmp/cad-constructed-boundaries 1
+```
+
+Select source version and surface ID explicitly. The host retains native source
+and feature data, boundary mapping, four curves, and one four-entity IGES file.
+The traversal is v-min, u-max, v-max, u-min. Endpoint joins and curve orientation
+do not establish a topological wire, trim loop or solid. Constant boundaries are
+geometric curves with zero tangents, without a regular-edge claim.
