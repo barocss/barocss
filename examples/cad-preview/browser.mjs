@@ -42,7 +42,7 @@ try {
     args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await browser.newPage();
   page.on('pageerror', error => errors.push(error.message));
-  const allowed = new Set(['/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {

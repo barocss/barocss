@@ -218,7 +218,7 @@ test('loopback server serves only explicit built/example routes under strict CSP
     });
   try {
     for (const route of ['/', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css',
-      '/cad.js', '/gpu.js', ...['types', 'math', 'parser', 'iges', 'packet', 'preview'].map(name => `/${name}.js`)]) {
+      '/cad.js', '/gpu.js', ...['types', 'math', 'parser', 'iges', 'packet', 'preview', 'extrusion', 'compiler', 'derivatives'].map(name => `/${name}.js`)]) {
       const response = await get(route);
       assert.equal(response.status, 200, route);
       assert.ok(response.body.length > 0, route);

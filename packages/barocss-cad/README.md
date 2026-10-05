@@ -115,6 +115,50 @@ checks transferred U degree 1, knots [2,3,7], multiplicities [2,1,2] and U conti
 C0; the interior multiplicity gives continuity degree minus multiplicity = 0. Every transfer
 failure and any other diagnostic fails. No healing or tolerance override is added.
 
+## Analytic first derivatives
+
+`evaluateCurveD1(curve, parameter)` returns `CurveD1Result` with `{ point, derivative }`.
+`evaluateSurfaceD1(surface, u, v)` returns `SurfaceD1Result` with `{ point, du, dv }`.
+All results own independent finite XYZ arrays. Existing point APIs are unchanged.
+The new queries reuse strict native geometry bounds and input validation. Each
+scalar query uses bounded local basis storage with at most six values per direction.
+
+Derivatives use **original knot parameters**, in mm per dimensionless parameter.
+They are not normalized. The implementation analytically differentiates the local
+B-spline basis, then uses the rational quotient `(A' - W' * point) / W` in each
+direction. Basis ratios use stabilized knot differences; derivative denominators
+restore original scale. Zero knot denominators contribute zero. Unrepresentable
+nonzero knot distances and nonfinite arithmetic fail. No finite differences,
+parameter nudging, external kernel or runtime dependency implements these APIs.
+
+Endpoints select the interior one-sided span. A non-knot parameter uses its containing
+span even if another knot is C0. At an exact interior knot with multiplicity m and
+degree p, D1 rejects when p-m < 1, including a surface query if either direction
+fails. This conservative rule applies even if particular poles cancel a kink.
+C1 or higher knots are accepted. There is no public left/right selector. Finite
+zero derivatives are valid and do not certify regularity or define a unit normal.
+No version, source grammar, preview normals or exchange format changes follow.
+
+The native example is `examples/cad-nurbs/derivative-demo.mjs`. Packed consumers
+retain eleven actual selected exports in `BAROCSS_CAD_DERIVATIVE_EVIDENCE` (default:
+isolated environment's `evidence-507/derivatives`). Independent formulas cover the
+rational circle, original-domain rescaling, both weighted bilinear partials and
+extrusion du=C'(u), dv=D, and an exact repeated C1 cubic knot. Unit tests additionally cover degrees 1..5, continuity,
+ownership, degeneracy and arithmetic rejection.
+
+Run the current-head packed consumer before exchange. Installed OCP reads actual
+IGES entities and checks original/transferred degrees, knots, domains and positions.
+The derivative reader uses documented LocalD1 on the declared distinct-knot interval
+for local C0 geometry away from the kink, and D1 at exact C1-or-higher interior knots.
+Endpoints use first/last intervals. No epsilon, healing or tolerance override hides
+the kink. The existing fixture-specific C0 warning policy remains mandatory.
+Reports retain parameters, span indices, derivatives, hashes and exact task SHA.
+Wrong original-domain scale, swapped partials and negated tangents must fail vector
+comparison. Selected-fixture analytic error is at most `1e-9 * max(1, expected norm)`;
+exchange derivative error is at most `1e-7 * max(1, expected norm)`. Existing position
+tolerances stay unchanged. These are finite fixture checks, without a universal
+accuracy, topology, certified normal or manufacturing claim.
+
 ## IGES delivery
 
 `exportIGES(model, ids)` requires explicit unique IDs. It writes deterministic

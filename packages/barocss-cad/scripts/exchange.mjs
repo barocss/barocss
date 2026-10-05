@@ -58,3 +58,5 @@ console.log(JSON.stringify(digestReport,null,2));
 // Preserve the legacy read-back and add the actual extracted construction path.
 const { runConstructionExchange } = await import('./construction-exchange.mjs');
 runConstructionExchange();
+const { runDerivativeExchange } = await import('./derivative-exchange.mjs');
+runDerivativeExchange();
