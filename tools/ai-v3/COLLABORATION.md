@@ -1,5 +1,31 @@
 # BaroCSS Work collaboration
 
+## Current owner decision: parallel GPU and CAD (2026-10-06)
+
+This section supersedes conflicting single-Execute selection rules below for #499 and #500.
+Planner owns GitHub scope, priorities and interpretation. Execute GPU
+`01a0cc08-dfb5-7142-90d9-77574034103d` has the fixed #499 implementation claim.
+Execute CAD `01a10cee-3bbd-7012-abb7-bc09b2d6048c` has the fixed #500 claim.
+Both implement concurrently in separate local branches/worktrees with disjoint package files.
+GPU owns `packages/barocss-gpu/`; CAD owns `packages/barocss-cad/`.
+Examples belong under `examples/`; packages belong under `packages/`.
+
+GPU Execute alone edits root manifests, workspace lockfile and current policy headers.
+CAD records any required shared registration as a proposed patch in #500.
+GPU Execute is the sole local develop integrator for both tasks. It may integrate a verified
+CAD branch while GPU implementation continues, but performs one no-ff merge and its mandatory
+post-merge verification at a time. Each task requires its own prechecks, independent consumer
+evidence and exact merged-head postchecks before closure with SHAs. No standing Review gate.
+Scoped transient helpers remain authorized inside each assigned Issue; no duplicate claims.
+
+Routine evidence and integration readiness belong in the assigned Issue. Contact Planner only
+for material scope, ownership or unresolved verification blockers. Development stays local:
+no product push, task PR, deployment, publication or live-model run. Preserve inherited dirty
+files, kiosk recordings, inactive Review history and active Release 0.12.2 authority/work.
+Do not restart the Claude supervisor. Historical text below remains reference material.
+
+---
+
 Current development has two active roles: Planner and Execute. Existing Review is inactive;
 its history and worktrees remain preserved. No automatic call or approval/wait dependency on Review.
 

@@ -22,16 +22,16 @@ function masks(bytes, width, height) {
   const background = pixel(2, 2);
   const delta = (a, b) => Math.max(...a.slice(0, 3).map((value, index) => Math.abs(value - b[index])));
   let foreground = 0, interior = 0, border = 0, borderChanged = 0;
-  let foregroundX = 0;
+  let foregroundX = 0, redPixels = 0, greenPixels = 0;
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const changed = delta(pixel(x, y), background) > 12;
-    if (changed) { foreground++; foregroundX += x; }
+    if (changed) { foreground++; foregroundX += x; const rgb = pixel(x, y); if (rgb[0] > rgb[1] + 30) redPixels++; if (rgb[1] > rgb[0] + 30) greenPixels++; }
     if (x > width * .35 && x < width * .65 && y > height * .35 && y < height * .65 && changed) interior++;
     if (x < width * .05 || x >= width * .95 || y < height * .05 || y >= height * .95) { border++; if (changed) borderChanged++; }
   }
   return { background, center: pixel(Math.floor(width / 2), Math.floor(height / 2)), foreground,
     foregroundRatio: foreground / (width * height), interior, borderChanged, border,
-    centroidX: foreground ? foregroundX / foreground : null };
+    redPixels, greenPixels, centroidX: foreground ? foregroundX / foreground : null };
 }
 
 test('installed Chrome renders real WebGL2 frames and preserves accepted lifecycle state', { timeout: 120_000 }, async () => {
@@ -70,7 +70,7 @@ test('installed Chrome renders real WebGL2 frames and preserves accepted lifecyc
       window.gpuTest = { api, canvas, renderer: null };
     });
     const details = await page.evaluate(() => {
-      const gl = window.gpuTest.canvas.getContext('webgl2');
+      const gl = window.gpuTest.canvas.getContext('webgl2', { alpha: false, antialias: false, preserveDrawingBuffer: true });
       if (!gl) throw new Error('Actual WebGL2 context unavailable');
       const debug = gl.getExtension('WEBGL_debug_renderer_info');
       return { version: gl.getParameter(gl.VERSION), shadingLanguageVersion: gl.getParameter(gl.SHADING_LANGUAGE_VERSION),
@@ -87,10 +87,12 @@ test('installed Chrome renders real WebGL2 frames and preserves accepted lifecyc
         } else state.renderer = state.api.mountScene(state.canvas, text);
         const bytes = Array.from(state.renderer.readPixels());
         return { scene: state.renderer.scene, shaders: state.renderer.shaders, bytes,
-          width: state.canvas.width, height: state.canvas.height };
+          width: state.canvas.width, height: state.canvas.height, actualBuffer: [state.canvas.getContext('webgl2').drawingBufferWidth, state.canvas.getContext('webgl2').drawingBufferHeight] };
       }, source);
       assert.equal(frame.bytes.length, frame.width * frame.height * 4);
+      assert.deepEqual(frame.actualBuffer, [frame.width, frame.height]);
       const mask = masks(frame.bytes, frame.width, frame.height);
+      assert.deepEqual(mask.background, [16, 32, 48, 255]);
       const filenames = [`${name}.scene.css`, `${name}.scene.json`, `${name}.vert.glsl`, `${name}.frag.glsl`, `${name}.png`];
       const contents = [source, JSON.stringify(frame.scene, null, 2), frame.shaders.vertex, frame.shaders.fragment];
       for (let i = 0; i < contents.length; i++) await writeFile(path.join(evidence, filenames[i]), contents[i]);
@@ -118,6 +120,7 @@ test('installed Chrome renders real WebGL2 frames and preserves accepted lifecyc
     const combined = await capture('combined', fixtures.combined);
     assert(combined.mask.foregroundRatio > .03 && combined.mask.foregroundRatio < .6);
     assert.equal(combined.mask.borderChanged, 0);
+    assert(combined.mask.redPixels > 100 && combined.mask.greenPixels > 100, 'Both combined shapes must be visible');
     const empty = await capture('empty', fixtures.empty);
     assert.equal(empty.mask.foreground, 0, 'Empty scene must be uniform background');
     assert.equal(empty.mask.background[3], 255);
@@ -152,7 +155,7 @@ test('installed Chrome renders real WebGL2 frames and preserves accepted lifecyc
       gl.getProgramParameter = (program, pname) => pname === gl.LINK_STATUS ? false : originalParameter(program, pname);
       const link = renderer.update(source);
       gl.getProgramParameter = originalParameter;
-      return { compileRejected: !compile.ok, linkRejected: !link.ok,
+      return { faultInjection: { compile: 'invalid tokens appended by shaderSource interceptor', link: 'LINK_STATUS forced false after real link' }, compileRejected: !compile.ok, linkRejected: !link.ok,
         compileMessage: String(compile.error), linkMessage: String(link.error),
         compilePixelsRetained: before === afterCompile,
         linkPixelsRetained: before === JSON.stringify(Array.from(renderer.readPixels())) };
@@ -173,6 +176,9 @@ test('installed Chrome renders real WebGL2 frames and preserves accepted lifecyc
     await page.evaluate(() => {
       const gl = window.gpuTest.canvas.getContext('webgl2');
       window.gpuTest.foreignBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, window.gpuTest.foreignBuffer);
+      window.gpuTest.ownedProgram = gl.getParameter(gl.CURRENT_PROGRAM);
+      window.gpuTest.ownedVao = gl.getParameter(gl.VERTEX_ARRAY_BINDING);
       const deleted = [];
       for (const name of ['deleteBuffer', 'deleteShader', 'deleteProgram']) {
         const original = gl[name].bind(gl);
@@ -188,10 +194,15 @@ test('installed Chrome renders real WebGL2 frames and preserves accepted lifecyc
         resize: () => renderer.resize(10, 10) })) {
         try { operation(); failures[name] = false; } catch { failures[name] = true; }
       }
-      return { failures, deleted: window.gpuTest.deleted, canvasRetained: canvas.isConnected, updateRejected: !renderer.update('@scene empty { version: 0; }').ok };
+      const gl = canvas.getContext('webgl2');
+      return { ownedProgramReleased: !gl.isProgram(window.gpuTest.ownedProgram),
+        ownedVaoReleased: !gl.isVertexArray(window.gpuTest.ownedVao),
+        foreignBufferRetained: gl.isBuffer(window.gpuTest.foreignBuffer),
+        failures, deleted: window.gpuTest.deleted, canvasRetained: canvas.isConnected, updateRejected: !renderer.update('@scene empty { version: 0; }').ok };
     });
     assert.deepEqual(disposed.failures, { readPixels: true, resize: true });
     assert(disposed.canvasRetained && disposed.updateRejected);
+    assert(disposed.ownedProgramReleased && disposed.ownedVaoReleased && disposed.foreignBufferRetained);
     assert(disposed.deleted.some((entry) => entry.name === 'deleteProgram'));
     assert(disposed.deleted.every((entry) => !entry.foreign), 'Dispose must preserve host GL resources');
     const contextLoss = await page.evaluate(async () => {

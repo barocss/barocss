@@ -90,7 +90,7 @@ export function parseScene(source: string): Scene {
   const numeric = (token: Token, positive: boolean): number => {
     if (!NUMBER.test(token.text)) fail('Expected a finite numeric scene value', token);
     const value = Number(token.text);
-    if (!Number.isFinite(value) || Math.abs(value) > 1000 || (positive && value <= 0)) fail(positive ? 'Dimension must be positive and at most 1000' : 'Coordinate must be finite and within -1000 to 1000', token);
+    if (!Number.isFinite(value) || Math.abs(value) > 1000 || (positive && (value <= 0 || Math.fround(value) <= 0))) fail(positive ? 'Dimension must be positive and at most 1000' : 'Coordinate must be finite and within -1000 to 1000', token);
     return Object.is(value, -0) ? 0 : value;
   };
   const valuesUntilSemicolon = (): Token[] => {
