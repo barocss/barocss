@@ -24,3 +24,9 @@ PW_DIR=/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node
 retains source, validated scene, generated shaders, PNG, and JSON hashes/readback
 assertions. Software WebGL is functional evidence, not physical GPU or performance
 proof. Missing Chrome or WebGL2 fails the suite.
+
+The additive host mesh example is at `/mesh.html` on the same loopback server.
+It uses independently authored analytic/literal preview packets and explicit
+millimetres-to-scene conversion. It does not import the CAD package or alter the
+sphere/box source grammar. The host fixture documents its coordinate reorientation;
+the renderer has no rotation or automatic camera fitting.
