@@ -21,3 +21,21 @@ Preview fixtures:
 `tessellateSurface` returns a separate approximate packet/report. Its five
 probes per cell and averaged triangle normals are finite preview evidence,
 not exact derivative normals, certified distance bounds or GPU pixel evidence.
+
+Construction source v1 fixtures:
+
+- `extruded-cylinder.css`: rational radius 10 mm arc translated by [0,0,30].
+- `extruded-asymmetric.css`: nonuniform rational degree-one curve, forward reference,
+  and translation [3,-2,7]. Its interior knot has C0 continuity.
+- `extruded-straight.css`: line translated into an open planar patch.
+
+Build the CAD package, then run the host demonstration from the repository root:
+
+```sh
+node examples/cad-nurbs/construction-demo.mjs examples/cad-nurbs/extruded-cylinder.css /tmp/cad-construction-demo
+```
+
+The host uses the built ESM package. It retains source and construction history,
+finds the native surface through the feature output ID, tessellates that surface,
+and exports only that ID to IGES. The resolved model also contains the input curve.
+No caps or solid topology are created.

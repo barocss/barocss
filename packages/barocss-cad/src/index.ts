@@ -4,3 +4,5 @@ export * from './parser.js';
 export * from './iges.js';
 export * from './packet.js';
 export * from './preview.js';
+export * from './extrusion.js';
+export * from './compiler.js';

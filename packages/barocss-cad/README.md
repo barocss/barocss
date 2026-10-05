@@ -68,6 +68,53 @@ includes endpoints and is deterministic; it is not arc-length sampling.
 Curve samples are `{parameter, point}`. Surface samples are U rows of `{u,v,point}`.
 Typed native objects can be used directly without parsing.
 
+## Additive construction source v1
+
+`compileConstruction(source)` accepts a separate version 1 language. It accepts
+the existing curve blocks plus `@extrude #wall { curve: #arc; vector: [0,0,30]; }`.
+The required model fields are `version: 1; length-unit: mm;`. All IDs are unique
+across at most 16 declarations, with the same 256 KiB source bound. Curve references
+can point forward. Missing references and references to extrusion outputs fail.
+Native objects retain declaration order. A curve-only model is accepted.
+Other geometry blocks, operations, expressions and executable forms fail.
+`parseModel` remains strict v0 and rejects construction source.
+
+The result is `{ sourceVersion: 1, model, constructions }`. Resolved `model.version`
+is 0. Each construction retains `outputId`, `inputId`, `operation: 'extrude'`,
+`vector`, declaration `span` and `referenceSpan`. Errors use `ConstructionSyntaxError`,
+a `CadSyntaxError` subclass with code and source span. Spans use UTF-16 indices and
+1-based line/column. Source version, native geometry version, preview packet version
+and IGES format version are separate values.
+
+`extrudeCurve(curve, { id, vector })` creates the rational affine surface
+`S(u,v)=C(u)+vD`, with V domain [0,1]. Each pole becomes [Pi,Pi+D], each weight
+becomes [wi,wi], U degree/knots are copied, and V degree/knots are 1/[0,0,1,1].
+The API owns its output arrays and preserves inputs. Output IDs must differ from
+the input ID; hosts enforce uniqueness against other native objects. At most 16
+curve poles fit the existing surface bounds. The vector must be finite and nonzero,
+and every translated coordinate must remain within 1e6 mm. Coordinates use binary64
+addition. A translation that vanishes at every represented pole fails. Exact binary64
+determinants reject wholly collinear collapsed constructions without an epsilon.
+Other folds or singularities have no regularity certificate and can fail preview.
+This operation creates an open surface, with no caps, solid topology or STEP.
+
+See `examples/cad-nurbs/construction-demo.mjs` for a built-package host that maps
+feature output ID to native surface, preview packet and explicit IGES selection.
+The input curve is exported only if selected separately.
+
+Run `test:consumer` on the current committed HEAD before `test:exchange`.
+The extracted archive produces three construction exports and retained source,
+features, native models, packets, reports and hashes. `BAROCSS_CAD_CONSTRUCTION_EVIDENCE`
+selects the separate construction directory (default: isolated environment's
+`evidence-505/construction`). OCP reads each actual entity 128 and compares 17×9
+positions with independent formulas and the affine identity. Pole and source-parameter
+corruptions must reach geometric comparison and fail. Legacy exchange gates remain.
+The degree-one asymmetric fixture intentionally has C0 continuity: its exact OCP
+continuity warning is retained and expected only for that fixture. The reader also
+checks transferred U degree 1, knots [2,3,7], multiplicities [2,1,2] and U continuity
+C0; the interior multiplicity gives continuity degree minus multiplicity = 0. Every transfer
+failure and any other diagnostic fails. No healing or tolerance override is added.
+
 ## IGES delivery
 
 `exportIGES(model, ids)` requires explicit unique IDs. It writes deterministic

@@ -1,0 +1,16 @@
+@model extruded_asymmetric {
+  version: 1;
+  length-unit: mm;
+  /* Forward reference; native geometry stays in declaration order. */
+  @extrude #oblique_wall {
+    curve: #polyline;
+    vector: [3,-2,7];
+  }
+  @curve #polyline {
+    type: nurbs;
+    degree: 1;
+    knots: [2,2,3,7,7];
+    control-points: [[1,2,3],[5,7,-1],[12,3,4]];
+    weights: [1,2,0.5];
+  }
+}

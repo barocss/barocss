@@ -54,3 +54,7 @@ const digestReport={...report,negativeControl:{pointerStatus:negative.status,geo
 writeFileSync(resolve(output,'report.json'),JSON.stringify(digestReport,null,2)+'\n');
 writeFileSync(resolve(output,'report.sha256'),hash(readFileSync(resolve(output,'report.json')))+'\n');
 console.log(JSON.stringify(digestReport,null,2));
+
+// Preserve the legacy read-back and add the actual extracted construction path.
+const { runConstructionExchange } = await import('./construction-exchange.mjs');
+runConstructionExchange();

@@ -1,0 +1,15 @@
+@model extruded_straight {
+  version: 1;
+  length-unit: mm;
+  @curve #line {
+    type: nurbs;
+    degree: 1;
+    knots: [-2,-2,3,3];
+    control-points: [[1,2,3],[9,4,6]];
+    weights: [1,1];
+  }
+  @extrude #plane {
+    curve: #line;
+    vector: [-1,5,4];
+  }
+}
