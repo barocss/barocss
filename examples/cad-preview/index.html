@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CAD surface preview</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header><p class="eyebrow">BAROCSS · PRIVATE EXPERIMENT</p><h1>CAD surface preview</h1><p>Edit a NURBS model in millimetres. Compare its native geometry with a triangle preview.</p></header>
+<main>
+<section aria-labelledby="source-title"><h2 id="source-title">Native source</h2><label>Example <select id="fixture"></select></label><label>Surface ID <input id="surface" value="cylinder" autocomplete="off"></label><label for="source">Bounded model CSS</label><textarea id="source" spellcheck="false"></textarea><div class="row"><button id="apply">Apply source</button><button id="control-edit">Edit control point</button><button id="weight-edit">Edit rational weight</button></div></section>
+<section aria-labelledby="preview-title"><h2 id="preview-title">Triangle preview</h2><canvas id="preview" width="512" height="384" aria-label="Rendered CAD surface"></canvas><p id="status" role="status"></p><pre id="summary"></pre><details><summary>Accepted native model and preview report</summary><pre id="details"></pre></details></section>
+<section class="controls" aria-labelledby="controls-title"><h2 id="controls-title">Explicit preview settings</h2><div class="grid"><label>U samples <input id="count-u" type="number" min="2" max="64"></label><label>V samples <input id="count-v" type="number" min="2" max="64"></label><label>Scene units per mm <input id="scale" type="number" step="0.01"></label><label>Scene translation X, Y, Z <input id="translate"></label><label>Color RGB (0–1) <input id="color"></label><label>Background RGB (0–1) <input id="background"></label></div><div class="row"><button id="fine">Finer grid</button><button id="export">Download native IGES</button><a href="/">Reload example</a></div><p>Canonical coordinates remain in mm. Display scale and translation are explicit. Preview normals average incident triangles. Reported distance is a finite sampled maximum, not a guaranteed tolerance. Native IGES comes from the accepted NURBS model.</p></section>
+</main><script type="module" src="/app.mjs"></script>
+</body></html>
