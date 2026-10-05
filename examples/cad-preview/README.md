@@ -126,3 +126,40 @@ Other diagnostics fail. No healing or tolerance override is applied. Wrong-expor
 and changed-pole controls must fail independently. Module/artifact hashes and HEAD
 link the captured pixels and exports to this checkout. Software WebGL2 evidence
 does not establish physical-GPU performance or manufacturing fitness.
+
+## Accepted native object inspector
+
+The object list comes only from the last successful native model, with at most16
+rows. **Inspect** is read-only for curves and surfaces. It reports degrees, original
+knot domains/counts, pole counts, weight range and native control-point bounds inmm.
+Construction outputs retain their actual input/output/operation/vector/source-span
+record; objects from source0 are marked native-v0. Inspected and displayed IDs are
+separate. The control-point bounds and displayed sampled preview-mesh bounds are
+labelled separately; neither is a tight surface extent or certified tolerance.
+
+**Show surface** selects a supported surface from the accepted model. It reuses the
+accepted source/version, grid, display and camera options through the existing
+transactional pipeline. Pending textarea/version/grid/display values are ignored.
+The original manual Surface ID and Apply source controls remain available. Curve
+inspection performs no CAD calls and keeps the displayed packet, export, pixels
+and revisions unchanged. A successful Show action uses the existing Apply model
+and view revision semantics; a camera action still advances only view revision.
+Failed selection retains the accepted list, inspector and usable frame. Successful
+source changes reconcile the inspected ID to the newly displayed supported surface.
+Lost/disposed contexts disable object actions and retain explicit unavailable state.
+
+The Objects examples contain native curves arc/polyline and surfaces wall/oblique_wall.
+The native-v0 example authors both surface nets directly; the construction-v1 example
+uses the two original curves and explicit extrusions. Select the second surface and
+return to the first to compare actual pixels and selected IGES identity. Safe text
+properties render IDs/labels; no object metadata provides HTML or code. No picking,
+source editing grammar, derivative normals, topology or new engine API is added.
+
+Browser evidence retains six additional multi-object selected/replay frames with
+inspected/displayed IDs, object summaries, native/source/feature hashes, actual PNG
+and downloads. The same current-HEAD captured-export gate independently reads the
+selected entity128 bytes for both source versions. Native-v0 analytic fixture
+descriptors are test oracles, not invented construction history. Selected checks
+still use153 parameter samples/export and1e-9mm analytic/1e-7mm reader limits.
+Wrong same-type surface exports and the prior wrong-curve/pole controls must reject.
+All prior source/view/lifecycle and exact module/artifact hash gates remain required.

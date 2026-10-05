@@ -1,3 +1,4 @@
+import { inspectNativeObject, objectRows } from './inspector.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { request } from 'node:http';
@@ -5,7 +6,7 @@ import * as cad from '../../packages/barocss-cad/dist/index.js';
 import * as gpu from '../../packages/barocss-gpu/dist/index.js';
 import { validatePreviewPacket as validateCadPacket } from '../../packages/barocss-cad/dist/index.js';
 import { validatePreviewPacket as validateGpuPacket } from '../../packages/barocss-gpu/dist/index.js';
-import { fixtures, constructionFixtures, controlPointEdit, weightEdit, vectorEdit, constructionWeightEdit, density } from './fixtures.mjs';
+import { fixtures, constructionFixtures, objectFixtures, controlPointEdit, weightEdit, vectorEdit, constructionWeightEdit, density } from './fixtures.mjs';
 import { prepareCandidate, createPreviewController } from './pipeline.mjs';
 import { startServer, csp } from './server.mjs';
 
@@ -217,7 +218,7 @@ test('loopback server serves only explicit built/example routes under strict CSP
       req.on('error', reject); req.end();
     });
   try {
-    for (const route of ['/', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css',
+    for (const route of ['/', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/inspector.mjs', '/style.css',
       '/cad.js', '/gpu.js', ...['types', 'math', 'parser', 'iges', 'packet', 'preview', 'extrusion', 'compiler', 'derivatives'].map(name => `/${name}.js`)]) {
       const response = await get(route);
       assert.equal(response.status, 200, route);
@@ -425,4 +426,74 @@ test('valid construction can still fail the actual preview regularity boundary',
     .replace('weights: [1,0.7071067811865476,1]','weights: [1,1,1]');
   assert.equal(cad.compileConstruction(source).constructions.length, 1);
   assert.throws(() => candidate(fixture, { sourceVersion: 1 }, source), /Cancelling|normal|Collapsed/);
+});
+
+
+test('bounded native object metadata uses only accepted data with distinct bound labels', () => {
+  for (const fixture of objectFixtures) {
+    const value = candidate(fixture, { sourceVersion: fixture.sourceVersion ?? 0 });
+    assert.equal(value.model.objects.length,4);
+    const arc = inspectNativeObject(value, 'arc');
+    assert.deepEqual(arc.degrees,{curve:2});assert.deepEqual(arc.originalDomains,{curve:[0,1]});
+    assert.deepEqual(arc.knotCounts,{curve:6});assert.deepEqual(arc.poleCounts,{total:3});
+    assert.deepEqual(arc.weightRange,[Math.SQRT1_2,1]);
+    assert.deepEqual(arc.controlPointBoundsMM,{min:[0,0,0],max:[10,10,0]});
+    const wall = inspectNativeObject(value,'wall');
+    assert.deepEqual(wall.degrees,{u:2,v:1});assert.deepEqual(wall.originalDomains,{u:[0,1],v:[0,1]});
+    assert.deepEqual(wall.poleCounts,{u:3,v:2,total:6});
+    assert.deepEqual(wall.controlPointBoundsMM,{min:[0,0,0],max:[10,10,30]});
+    assert.deepEqual(wall.displayedSampledMeshBoundsMM,value.packet.bounds);
+    assert.equal(wall.nativeSource,fixture.sourceVersion===1?'construction-v1':'native-v0');
+    assert.equal(Object.hasOwn(wall,'construction'),fixture.sourceVersion===1);
+    if(fixture.sourceVersion===1)assert.deepEqual(wall.construction,value.constructions.find(f=>f.outputId==='wall'));
+    wall.controlPointBoundsMM.max[0]=999;assert.equal(inspectNativeObject(value,'wall').controlPointBoundsMM.max[0],10);
+    assert.equal(objectRows(value).filter(row=>row.supportedSurface).length,2);
+    assert.throws(()=>objectRows({...value,model:{objects:Array(17).fill(value.model.objects[0])}}),/limit/);
+  }
+});
+
+test('inspection and surface selection retain one accepted identity with zero inspection CAD calls', () => {
+  for(const fixture of objectFixtures) {
+    const calls={};const tracked=Object.fromEntries(Object.entries(cad).map(([name,value])=>[name,typeof value==='function'
+      ?(...args)=>{calls[name]=(calls[name]??0)+1;return value(...args);}:value]));
+    const listeners=new Map(),canvas={addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
+    let reject=false,mounts=0,shown;
+    const rendering={...gpu,mountMesh(_canvas,packet){mounts++;shown=structuredClone(packet);return {
+      update(next){if(reject)return{ok:false,error:new Error('Selection renderer failure')};shown=structuredClone(next);return{ok:true};},
+      readPixels:()=>Uint8Array.of(shown.revision),dispose(){}};}};
+    const host=createPreviewController(canvas,tracked,rendering);
+    const settings={sourceVersion:fixture.sourceVersion??0,surfaceId:'wall',countU:17,countV:9,options:structuredClone(fixture.options)};
+    assert(host.apply(fixture.source,settings).ok);const initial=host.snapshot(),pixels=host.readPixels(),counts=structuredClone(calls);
+    assert(host.inspectObject('arc').ok);assert.equal(host.inspectedId,'arc');
+    assert.deepEqual(host.snapshot(),initial);assert.deepEqual(host.readPixels(),pixels);assert.deepEqual(calls,counts);
+    const description=host.inspection();description.controlPointBoundsMM.max[0]=999;
+    assert.equal(host.inspection().controlPointBoundsMM.max[0],10);
+    const rowCopy=host.objects();rowCopy[0].id='foreign';assert.equal(host.objects()[0].id,'arc');
+    const inspected=host.inspection();let getterCalls=0;const foreign={get id(){getterCalls++;return 'wall';}};
+    for(const id of ['unknown',foreign,{},['wall'],null,new String('wall')]) {
+      assert.equal(host.showSurface(id).ok,false);assert.equal(host.inspectObject(id).ok,false);
+      assert.equal(host.inspectedId,'arc');assert.deepEqual(host.inspection(),inspected);assert.deepEqual(host.snapshot(),initial);
+    }
+    assert.equal(getterCalls,0);assert.equal(host.showSurface('arc').ok,false);assert.deepEqual(host.snapshot(),initial);
+    // A rejected editor attempt must not become the source/settings for selection.
+    assert.equal(host.apply('invalid pending source',{...settings,countU:65,options:{...settings.options,mmToSceneUnit:0}}).ok,false);
+    reject=true;assert.equal(host.showSurface('oblique_wall').ok,false);assert.equal(host.inspectedId,'arc');
+    assert.deepEqual(host.snapshot(),initial);assert.deepEqual(host.readPixels(),pixels);reject=false;
+    assert(host.showSurface('oblique_wall').ok);const second=host.snapshot();
+    assert.equal(second.packet.surfaceId,'oblique_wall');assert.equal(second.iges.report.objects[0].id,'oblique_wall');
+    assert.deepEqual(second.source,initial.source);assert.deepEqual(second.model,initial.model);assert.deepEqual(second.constructions,initial.constructions);
+    assert.deepEqual(second.options,initial.options);assert.deepEqual(second.report.grid,initial.report.grid);
+    assert.equal(second.revision,initial.revision+1);assert.equal(second.viewRevision,initial.viewRevision+1);
+    assert.equal(host.inspectedId,'oblique_wall');
+    assert(host.showSurface('wall').ok);const returned=host.snapshot();
+    assert.deepEqual({...returned.packet,revision:initial.packet.revision},initial.packet);assert.deepEqual(returned.iges,initial.iges);
+    assert.equal(returned.revision,second.revision+1);assert.equal(mounts,1);
+    assert(host.inspectObject('polyline').ok);
+    assert(host.apply(fixtures[0].source,{surfaceId:'cylinder',countU:17,countV:9,options:fixtures[0].options}).ok);
+    assert.equal(host.inspectedId,'cylinder');assert.deepEqual(host.objects().map(row=>row.id),['cylinder']);
+    assert.equal(host.inspectObject('polyline').ok,false);assert.equal(host.showSurface('wall').ok,false);
+    assert(host.apply(fixture.source,settings).ok);assert.equal(host.objects().length,4);
+    listeners.get('webglcontextlost')();assert.equal(host.inspectObject('arc').ok,false);assert.equal(host.showSurface('wall').ok,false);
+    host.dispose();assert.equal(host.inspectObject('arc').ok,false);assert.equal(host.showSurface('wall').ok,false);
+  }
 });
