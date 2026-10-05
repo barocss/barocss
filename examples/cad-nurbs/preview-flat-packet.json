@@ -1,0 +1,13 @@
+{
+  "version": 0,
+  "surfaceId": "flat_patch",
+  "revision": 7,
+  "lengthUnit": "mm",
+  "coordinateSystem": "right-handed-y-up",
+  "winding": "ccw",
+  "positions": [1,2,2,2,9,2,7,3,2,8,10,2],
+  "normals": [0,0,1,0,0,1,0,0,1,0,0,1],
+  "indices": [0,2,1,2,3,1],
+  "parameters": [-2,4,-2,6,3,4,3,6],
+  "bounds": {"min": [1,2,2], "max": [8,10,2]}
+}

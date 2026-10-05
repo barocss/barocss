@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { parseModel } from '../dist/parser.js';
 import { tessellateSurface } from '../dist/preview.js';
-import { validatePreviewPacket } from '../dist/packet.js';
+import { validatePreviewPacket, copyPreviewPacket } from '../dist/packet.js';
 
 const cylinder = {
   kind: 'surface', id: 'quarter-cylinder', degreeU: 2, degreeV: 1,
@@ -387,4 +388,35 @@ test('packet validator rejects malformed metadata, arrays, bounds, indices, wind
   const before = structuredClone(original);
   validatePreviewPacket(original);
   assert.deepEqual(original, before);
+});
+
+test('committed preview sources independently match analytic positions and triangle distances', () => {
+  for (const [name, countU, countV] of [['preview-flat', 2, 2], ['preview-weighted', 9, 9]]) {
+    const source = readFileSync(new URL(`../../../examples/cad-nurbs/${name}.css`, import.meta.url), 'utf8');
+    const surface = parseModel(source).objects[0];
+    const result = tessellateSurface(surface, { countU, countV, revision: 19 });
+    const independent = checkPacket(result, surface, countU, countV, (u, v) => bilinearPoint(surface, u, v));
+    retainAudit(name, { grid: result.report.grid, revision: result.packet.revision, probeOffsets: probes, reportMaximumMM: result.report.maxSampledDeviationMM, ...independent, certified: false });
+  }
+});
+
+test('defensive packet copies retain caller ownership and reject host getter data', () => {
+  const original = tessellateSurface(plane, { countU: 2, countV: 2, revision: 19 }).packet;
+  const before = structuredClone(original);
+  const copy = copyPreviewPacket(original);
+  assert.deepEqual(copy, original);
+  for (const key of ['positions', 'normals', 'parameters', 'indices']) {
+    assert.notEqual(copy[key], original[key]); copy[key][0] = 999;
+  }
+  assert.notEqual(copy.bounds, original.bounds); copy.bounds.min[0] = 999; copy.bounds.max[0] = 999;
+  assert.deepEqual(original, before);
+  let calls = 0;
+  const accessorPacket = { ...original };
+  Object.defineProperty(accessorPacket, 'positions', { enumerable: true, get() { calls++; return original.positions; } });
+  assert.throws(() => copyPreviewPacket(accessorPacket));
+  const accessorArray = structuredClone(original);
+  Object.defineProperty(accessorArray.positions, '0', { enumerable: true, get() { calls++; return 1; } });
+  assert.throws(() => copyPreviewPacket(accessorArray));
+  assert.equal(calls, 0);
+  assert.throws(() => copyPreviewPacket({ ...original, url: 'https://example.invalid' }));
 });

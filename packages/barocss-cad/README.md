@@ -136,3 +136,69 @@ proxy (Apache-2.0 metadata), with VTK 9.6.2 (BSD metadata). OCCT itself uses LGP
 2.1 with the OCCT exception; see [OCCT license](https://github.com/Open-Cascade-SAS/OCCT/blob/V7_9_0/LICENSE_LGPL_21.txt).
 Consumer wheels and their license files remain in the isolated environment.
 No consumer implementation is included in the product bundle.
+
+## Surface preview packet v0
+
+`tessellateSurface(surface, { countU, countV, revision })` is an additive host API.
+It returns `{ packet, report }`; it does not change source grammar, authoritative
+NURBS data, sampled geometry APIs or IGES. No GPU dependency is added.
+Counts are integers 2..64 in each direction. The product is at most 4096 vertices,
+3969 cells, 7938 triangles and 19845 distance probes. Revision is an integer
+0..2147483647 supplied by the host; it records provenance, not freshness.
+All counts and native geometry are validated before mesh allocation.
+
+The packet is a plain JSON-compatible object with version 0, surfaceId, revision,
+lengthUnit `mm`, coordinateSystem `right-handed-y-up`, winding `ccw`, flat numeric
+positions/normals/indices/parameters, and bounds `{ min, max }`. No axis conversion
+is applied: XYZ values retain the native coordinates. The host must interpret
+those coordinates under the declared convention; this API does not infer a CAD
+up axis or closed-solid outward direction.
+Positions are in mm, at uniform U/V parameters including endpoints. Parameters
+retain the actual native domain; the angular parameter of a rational circle is
+not uniform angle. Vertices use U-major rows: `index(i,j)=i*countV+j`. Each cell
+uses triangles `(a,b,c),(b,d,c)` for a=(i,j), b=(i+1,j), c=(i,j+1), d=(i+1,j+1).
+Bounds are exact component-wise minima/maxima of sampled positions, not poles.
+
+Each triangle's `(b-a) × (c-a)` is summed into its incident vertices in cell/
+triangle order and normalized once per vertex. These are area-weighted averaged
+triangle preview normals, not exact NURBS derivative normals. The orientation
+retains the U/V cross-product direction. Collapsed/nonfinite triangles, zero or
+cancelling sums, and triangles whose direction disagrees with any incident
+vertex normal fail. No triangles are dropped, repaired or reversed. Cusps,
+folds and self-intersections have no general acceptance guarantee.
+
+The separate report retains grid, counts, domain, normal method,
+`maxSampledDeviationMM` and `certified: false`. For each cell it evaluates its
+center and four quarter-cell points at actual NURBS positions, then measures
+the closest Euclidean distance to that cell's two triangles. The maximum is
+**observed finite-sample deviation**, never a certified global bound, requested
+tolerance or guarantee between samples. Uniform grids can miss high curvature.
+The distance computation checks vertex/edge/face regions of each triangle.
+Arithmetic failures return errors rather than silent clamping or substitutes.
+
+`validatePreviewPacket(unknown)` and `copyPreviewPacket(unknown)` are exported.
+They check the shared v0 fields, dense plain arrays and bounds before allocating
+copied output: 4..4096 vertices, 2..7938 triangles, matching XYZ/UV lengths,
+finite values, XYZ magnitude at most 1e6 mm, unit normals within 1e-5, valid
+nonrepeated indices, positive-area CCW triangles, and exact position bounds.
+Winding must agree with each of a triangle's vertex normals. Unsupported fields,
+versions, units or conventions fail. Typed arrays, subclasses, sparse arrays,
+accessor properties and non-plain metadata are rejected. Host getters are not
+called. JavaScript Proxy reflection traps remain the host's responsibility.
+Each returned packet owns its arrays and bounds. Callers retain input ownership.
+
+`examples/cad-nurbs/preview-flat-packet.json` is a deterministic asymmetric plane
+literal for independent GPU replay; its matching source is `preview-flat.css`.
+`preview-weighted.css` is a rational nonplanar fixture. Packed-consumer checks
+invoke tessellation from an actual extracted ESM/types package and retain source,
+native model, IGES, samples, packet, report, revision, task SHA and SHA-256 hashes.
+Default preview evidence is the isolated test environment's `evidence-502/preview`.
+`BAROCSS_CAD_PREVIEW_EVIDENCE` changes that path. Set `BAROCSS_CAD_AUDIT_EVIDENCE`
+for retained independent dense audit JSON from unit tests; its extra non-probe
+samples are reported separately, not folded into the API's fixed five probes.
+
+The existing OCP test remains mandatory and proves the IGES path. When checking
+this task, set `BAROCSS_CAD_EVIDENCE` to `evidence-502/iges` to preserve the original
+#500 files. No preview normals/triangles replace native curves/surfaces or their
+exchange evidence. No pixel, GPU consumer, watertight-solid, manufacturing or
+certified-tolerance result is implied by this independent CAD stage.
