@@ -29,7 +29,7 @@ def diagnostics(iterator, warnings=True):
 
 
 def analytic(fixture, u, v):
-    curve, vector = fixture['curve'], fixture['feature']['vector']
+    curve, vector = fixture['curve'], fixture['analyticDescriptor']['vector']
     if fixture['outputId'] == 'wall':
         assert curve['id'] == 'arc' and curve['degree'] == 2
         assert curve['knots'] == [0, 0, 0, 1, 1, 1]
@@ -60,9 +60,16 @@ output = Path(sys.argv[1])
 mode = sys.argv[2] if len(sys.argv) > 2 else ''
 manifest = json.loads((output/'manifest.json').read_text())
 results = []
-for fixture in manifest['fixtures'][:1] if mode else manifest['fixtures']:
+selected_fixtures = manifest['fixtures']
+if mode.startswith('--wrong-object-'):
+    version = mode.removeprefix('--wrong-object-')
+    selected_fixtures = [fixture for fixture in selected_fixtures if fixture['name'] == 'multi_'+version+'-wall']
+    assert len(selected_fixtures) == 1
+elif mode:
+    selected_fixtures = selected_fixtures[:1]
+for fixture in selected_fixtures:
     name = fixture['name']
-    filename = output / ('corrupted-pole.iges' if mode == '--corrupt-pole' else 'wrong-selected.iges' if mode == '--wrong-selected' else fixture['igesFile'])
+    filename = output / ('wrong-object-'+version+'.iges' if mode.startswith('--wrong-object-') else 'corrupted-pole.iges' if mode == '--corrupt-pole' else 'wrong-selected.iges' if mode == '--wrong-selected' else fixture['igesFile'])
     reader = IGESControl_Reader()
     settings = {'xstep.cascade.unit':'MM', 'read.iges.bspline.continuity':0,
                 'read.precision.mode':0, 'read.iges.faulty.entities':0,
@@ -120,6 +127,20 @@ for fixture in manifest['fixtures'][:1] if mode else manifest['fixtures']:
     u_multiplicities = [spline.UMultiplicity(i) for i in range(1, spline.NbUKnots()+1)]
     native_model = json.loads((output/fixture['modelFile']).read_text())
     native_surface = next(obj for obj in native_model['objects'] if obj['id'] == fixture['outputId'])
+    if fixture['sourceVersion'] == 0:
+        descriptor = fixture['analyticDescriptor']
+        assert fixture['feature'] is None and fixture['featureHash'] is None
+        assert descriptor['origin'] == 'declared native-v0 fixture oracle; not construction provenance'
+        curve, vector = fixture['curve'], descriptor['vector']
+        assert native_surface['degreeU'] == curve['degree'] and native_surface['degreeV'] == 1
+        assert native_surface['knotsU'] == curve['knots'] and native_surface['knotsV'] == [0,0,1,1]
+        assert native_surface['weights'] == [[weight, weight] for weight in curve['weights']]
+        assert native_surface['controlPoints'] == [[pole, [pole[k]+vector[k] for k in range(3)]] for pole in curve['controlPoints']]
+    else:
+        assert fixture['feature']['inputId'] == fixture['inputId']
+        assert fixture['feature']['outputId'] == fixture['outputId']
+        assert fixture['feature']['operation'] == 'extrude'
+        assert fixture['feature']['vector'] == fixture['analyticDescriptor']['vector']
     native_u_knots = native_surface['knotsU']
     assert native_surface['degreeU'] == spline.UDegree()
     assert native_u_knots == [knot for knot, count in zip(u_knots, u_multiplicities) for _ in range(count)]
@@ -138,8 +159,8 @@ for fixture in manifest['fixtures'][:1] if mode else manifest['fixtures']:
         value = adapter.Value(u,v)
         position = [value.X(),value.Y(),value.Z()]
         expected, vector = analytic(fixture,u,v)
-        assert vector == fixture['feature']['vector']
-        assert fixture['sourceVersion'] == 1 and fixture['geometryVersion'] == 0 and fixture['packetVersion'] == 0
+        assert vector == fixture['analyticDescriptor']['vector']
+        assert fixture['sourceVersion'] in [0, 1] and fixture['geometryVersion'] == 0 and fixture['packetVersion'] == 0
         affine = [sample['sourceCurvePoint'][k]+v*vector[k] for k in range(3)]
         max_source = max(max_source,math.dist(position,sample['point']))
         max_analytic = max(max_analytic,math.dist(position,expected))
@@ -150,7 +171,8 @@ for fixture in manifest['fixtures'][:1] if mode else manifest['fixtures']:
         ', own analytic='+str(max_own_analytic)+', affine='+str(max_affine))
     results.append({'name':name,'entity':128,'roots':1,'shape':'open face','solid':False,
         'inputId':fixture['inputId'],'outputId':fixture['outputId'],'feature':fixture['feature'],
-        'sourceVersion':1,'geometryVersion':0,'packetVersion':0,'samples':len(fixture['samples']),
+        'analyticDescriptor':fixture['analyticDescriptor'],'inspectedId':fixture['inspectedId'],
+        'displayedId':fixture['displayedId'],'sourceVersion':fixture['sourceVersion'],'geometryVersion':0,'packetVersion':0,'samples':len(fixture['samples']),
         'serializedDomain':serialized_domain,'rawOCCTEntityDomain':raw_domain,'transferredDomain':transferred_domain,
         'consumerDomainNote':'Raw OCP128 accessor swaps U1/V0; transferred domain verified unchanged',
         'units':'MM','scale':1,'fileResolutionMM':global_section.Resolution(),

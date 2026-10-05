@@ -6,7 +6,7 @@ import { mkdir, writeFile, readFile, access, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { startServer } from './server.mjs';
-import { fixtures, controlPointEdit, weightEdit, singularSource, constructionFixtures, vectorEdit, constructionWeightEdit } from './fixtures.mjs';
+import { fixtures, controlPointEdit, weightEdit, singularSource, constructionFixtures, vectorEdit, constructionWeightEdit, objectFixtures } from './fixtures.mjs';
 import { readbackPng } from './png.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -36,13 +36,13 @@ const evidence = process.env.BAROCSS_CAD_PREVIEW_BROWSER_EVIDENCE;
 await mkdir(evidence, { recursive: true });
 const server = await startServer(0);
 let browser;
-const errors = [], requests = [], cspViolations = [], frames = [], failures = [], constructionFrames = [], constructionFailures = [];
+const errors = [], requests = [], cspViolations = [], frames = [], failures = [], constructionFrames = [], constructionFailures = [], objectFrames = [], objectFailures = [];
 try {
   browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true,
     args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await browser.newPage();
   page.on('pageerror', error => errors.push(error.message));
-  const allowed = new Set(['/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -99,7 +99,7 @@ try {
     const result = await page.evaluate(async ({ source, settings }) => window.cadPreview.apply(source, settings), { source, settings: candidateSettings });
     assert(result.ok, result.error ?? 'Candidate was rejected');
   }
-  async function capture(name) {
+  async function capture(name, objectFixture = null) {
     const frame = await page.evaluate(async () => {
       const host = window.cadPreview, snapshot = host.snapshot();
       const cad = await import('/cad.js'), gpu = await import('/gpu.js');
@@ -111,7 +111,7 @@ try {
       const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       validateCadPacket(generated.packet); validateGpuPacket(generated.packet);
       const gl = document.querySelector('canvas').getContext('webgl2');
-      return { snapshot, uniforms: structuredClone(window.previewProbe.uniforms), shaders: host.shaders(), bytes: Array.from(host.readPixels()),
+      return { snapshot, inspectedId: host.inspectedId ?? null, objects: host.objects?.() ?? null, inspection: host.inspection?.() ?? null, uniforms: structuredClone(window.previewProbe.uniforms), shaders: host.shaders(), bytes: Array.from(host.readPixels()),
         width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, glError: gl.getError(),
         compile: [...window.previewProbe.compile], link: [...window.previewProbe.link], drawCalls: window.previewProbe.drawCalls,
         sourceReplayed: same(model, snapshot.model), constructionsReplayed: !compiled || same(compiled.constructions, snapshot.constructions),
@@ -144,6 +144,8 @@ try {
     if (frame.snapshot.sourceVersion === 1) {
       files[`${name}.constructions.json`] = json(frame.snapshot.constructions);
       files[`${name}.selected-construction.json`] = json(frame.snapshot.selectedConstruction);
+    }
+    if (frame.snapshot.sourceVersion === 1 || objectFixture) {
       const downloadEvent = page.waitForEvent('download');
       await page.click('#export');
       const download = await downloadEvent;
@@ -151,19 +153,24 @@ try {
       assert.equal(bytes, frame.snapshot.iges.iges, 'Constructed download must match this exact accepted native export');
       files[`${name}.downloaded.igs`] = bytes;
     }
+    if (objectFixture) {
+      files[`${name}.objects.json`] = json(frame.objects);
+      files[`${name}.inspection.json`] = json(frame.inspection);
+    }
     const hashes = {};
     for (const [filename, content] of Object.entries(files)) {
       await writeFile(path.join(evidence, filename), content); hashes[filename] = hash(content);
     }
     const record = { name, taskCommit, integrationCommit, browser: browser.version(), backend,
       physicalGpuEvidence: false, performanceEvidence: false, actualReadPixels: true,
+      fixtureId: objectFixture?.selectorId ?? null, displayedId: frame.snapshot.packet.surfaceId, inspectedId: frame.inspectedId, objectSummaries: objectFixture ? frame.objects : null,
       sourceVersion: frame.snapshot.sourceVersion ?? 0, constructionsReplayed: frame.constructionsReplayed,
-      selectedConstructionReplayed: frame.selectedConstructionReplayed, exportReplayed: frame.exportReplayed, downloadedMatchedAccepted: frame.snapshot.sourceVersion === 1,
+      selectedConstructionReplayed: frame.selectedConstructionReplayed, exportReplayed: frame.exportReplayed, downloadedMatchedAccepted: frame.snapshot.sourceVersion === 1 || Boolean(objectFixture),
       sourceReplayed: true, packetReplayed: true, reportReplayed: true, sameRenderer: true,
       revision: frame.snapshot.revision, viewRevision: frame.snapshot.viewRevision, uniforms: frame.uniforms, buffer: [frame.width, frame.height], masks: mask(frame.bytes, frame.width, frame.height),
       readbackHash: hash(Uint8Array.from(frame.bytes)), hashes, sampledDeviationMM: frame.snapshot.report.maxSampledDeviationMM,
       certified: false, glError: frame.glError, compileStatuses: frame.compile, linkStatuses: frame.link, drawCalls: frame.drawCalls };
-    await writeFile(path.join(evidence, `${name}.json`), json(record)); (frame.snapshot.sourceVersion === 1 ? constructionFrames : frames).push(record);
+    await writeFile(path.join(evidence, `${name}.json`), json(record)); (objectFixture ? objectFrames : frame.snapshot.sourceVersion === 1 ? constructionFrames : frames).push(record);
     return { ...frame, ...record };
   }
   // Exercise actual source editor controls before using the inspection API.
@@ -390,6 +397,113 @@ try {
   assert(constructedRepeated.sameRenderer); assert.equal(constructedRepeated.before, constructedRepeated.after);
   const constructionLineage = { nativeIdentityAcrossViews: true, distinctActualPixels: true, cameraNativeHashesPreserved: true, viewFailures: constructionViewFailures,
     sourceEditPreservedCamera: true, viewRevisions: constructionViews.map(frame => frame.viewRevision), repeated: constructedRepeated };
+  // Selection consumes accepted source, version, options and grid, never pending inputs.
+  const objectControls = [];
+  const state = () => page.evaluate(() => JSON.stringify({ snapshot: window.cadPreview.snapshot(),
+    objects: window.cadPreview.objects(), inspection: window.cadPreview.inspection(),
+    inspectedId: window.cadPreview.inspectedId, pixels: Array.from(window.cadPreview.readPixels()) }));
+  for (const fixture of objectFixtures) {
+    await page.selectOption('#fixture', fixture.selectorId);
+    assert.equal(await page.locator('#objects [data-object-id]').count(), 4);
+    const rows = await page.locator('#objects [data-object-id]').evaluateAll(nodes => nodes.map(node => ({id:node.dataset.objectId,text:node.textContent,show:!!node.querySelector('[data-action="show"]')})));
+    assert.deepEqual(new Set(rows.map(row => row.id)), new Set(['arc','polyline','wall','oblique_wall']));
+    assert(rows.filter(row => row.show).every(row => ['wall','oblique_wall'].includes(row.id)));
+    assert.equal(rows.filter(row => row.show).length, 2);
+    const initialObject = await capture(`${fixture.selectorId}-wall`, fixture);
+    assert.equal(initialObject.displayedId, 'wall'); assert(initialObject.masks.foreground > 20);
+    assert.equal(initialObject.inspectedId,'wall'); assert.equal(initialObject.inspection.id,'wall');
+    assert.equal(initialObject.inspection.displayedSurfaceId,'wall');
+    assert.deepEqual(initialObject.inspection.displayedSampledMeshBoundsMM,initialObject.snapshot.packet.bounds);
+    assert.equal(initialObject.inspection.nativeSource,fixture.sourceVersion===1?'construction-v1':'native-v0');
+    if(fixture.sourceVersion===1) assert.deepEqual(initialObject.inspection.construction,initialObject.snapshot.selectedConstruction);
+    const acceptedBeforeInspect = await page.evaluate(() => JSON.stringify({ snapshot:window.cadPreview.snapshot(),pixels:Array.from(window.cadPreview.readPixels()) }));
+    await page.locator('[data-object-id="arc"] [data-action="inspect"]').click();
+    assert.equal(await page.evaluate(() => window.cadPreview.inspectedId), 'arc');
+    assert.equal(await page.evaluate(() => JSON.stringify({ snapshot:window.cadPreview.snapshot(),pixels:Array.from(window.cadPreview.readPixels()) })), acceptedBeforeInspect);
+    assert.equal(await page.locator('[data-object-id="arc"] [data-action="show"]').count(), 0);
+    const inspectionText = await page.locator('#inspection').innerText();
+    assert.match(inspectionText, /control.point bounds/i); assert.match(inspectionText, /sampled preview.mesh bounds/i); assert.match(inspectionText, /mm/i);
+    const inspectedCurve=await page.evaluate(()=>window.cadPreview.inspection());
+    assert.deepEqual(inspectedCurve.degrees,{curve:2}); assert.deepEqual(inspectedCurve.originalDomains,{curve:[0,1]});
+    assert.deepEqual(inspectedCurve.knotCounts,{curve:6}); assert.equal(inspectedCurve.poleCounts.total,3);
+    assert.deepEqual(inspectedCurve.weightRange,[0.7071067811865476,1]);
+    assert.deepEqual(inspectedCurve.controlPointBoundsMM,{min:[0,0,0],max:[10,10,0]});
+    // Every pending editor field deliberately disagrees with the accepted snapshot.
+    await page.locator('#source').fill('invalid pending source');
+    await page.locator('#surface').fill('missing_pending_id');
+    await page.locator('#count-u').fill('65'); await page.locator('#count-v').fill('1');
+    await page.locator('#scale').fill('0'); await page.locator('#translate').fill('999,999,999');
+    await page.locator('#source-version').selectOption(fixture.sourceVersion === 1 ? '0' : '1');
+    await page.locator('[data-object-id="oblique_wall"] [data-action="show"]').click();
+    const secondObject = await capture(`${fixture.selectorId}-oblique_wall`, fixture);
+    assert.equal(secondObject.displayedId, 'oblique_wall'); assert(secondObject.masks.foreground > 20);
+    for (const key of ['source','model','constructions']) assert.deepEqual(secondObject.snapshot[key], initialObject.snapshot[key]);
+    assert.deepEqual(secondObject.snapshot.options, initialObject.snapshot.options);
+    assert.deepEqual(secondObject.snapshot.report.grid, initialObject.snapshot.report.grid);
+    assert.equal(secondObject.sourceVersion, initialObject.sourceVersion);
+    assert.equal(secondObject.revision, initialObject.revision + 1); assert.equal(secondObject.viewRevision, initialObject.viewRevision + 1);
+    assert.notEqual(secondObject.readbackHash, initialObject.readbackHash);
+    await page.locator('[data-object-id="wall"] [data-action="show"]').click();
+    const returnedObject = await capture(`${fixture.selectorId}-wall-replay`, fixture);
+    assert.deepEqual(comparable(returnedObject.snapshot.packet), comparable(initialObject.snapshot.packet));
+    assert.deepEqual(returnedObject.snapshot.iges, initialObject.snapshot.iges);
+    assert.equal(returnedObject.readbackHash, initialObject.readbackHash);
+    assert.equal(returnedObject.revision, secondObject.revision + 1);
+    for (const [name, id, injection] of [['unknown','absent'],['curve','arc'],['foreign-payload',{id:'oblique_wall'}],['mutated-payload',['oblique_wall']],['renderer','oblique_wall','renderer']]) {
+      const before = await state();
+      const result = await page.evaluate(({id,injection}) => {
+        const host=window.cadPreview, update=host.renderer.update.bind(host.renderer);
+        if(injection==='renderer') host.renderer.update=()=>({ok:false,error:Error('Injected selection renderer failure')});
+        try { const result=host.showSurface(id); return {rejected:!result.ok,error:String(result.error)}; }
+        finally {host.renderer.update=update;}
+      }, {id,injection});
+      assert(result.rejected, `${name} selection must fail`); assert.equal(await state(), before);
+      objectFailures.push({fixtureId:fixture.selectorId,name,...result,retained:true});
+    }
+    const beforeUnknown = await state();
+    const unknown = await page.evaluate(()=>window.cadPreview.inspectObject('absent'));
+    assert.equal(unknown.ok,false); assert.equal(await state(),beforeUnknown);
+    // Safe identifiers are native data, displayed as text; bounded rows cannot execute markup.
+    const safeSource = fixture.source.replaceAll('#arc', '#arc_script');
+    await apply(safeSource,{...settings(fixture),sourceVersion:fixture.sourceVersion ?? 0});
+    assert.equal(await page.locator('#objects [data-object-id]').count(),4);
+    assert.equal(await page.locator('[data-object-id="arc_script"]').count(),1);
+    assert.equal(await page.locator('#objects script, #inspection script').count(),0);
+    // A successful source addition/removal reconciles the current inspection.
+    const curveBlock = /@curve #polyline\s*\{[^}]*\}/.exec(safeSource)?.[0];
+    assert(curveBlock,'Multi-object fixture must expose its bounded native curve record');
+    const addedSource=safeSource.replace(/\}\s*$/, `${curveBlock.replace('#polyline','#added_curve')}\n}`);
+    await apply(addedSource,{...settings(fixture),sourceVersion:fixture.sourceVersion ?? 0});
+    assert.equal(await page.locator('#objects [data-object-id]').count(),5);
+    assert((await page.evaluate(()=>window.cadPreview.inspectObject('added_curve'))).ok);
+    await apply(safeSource,{...settings(fixture),sourceVersion:fixture.sourceVersion ?? 0});
+    assert.equal(await page.locator('#objects [data-object-id]').count(),4);
+    assert.notEqual(await page.evaluate(()=>window.cadPreview.inspectedId),'added_curve');
+    const atLimit=safeSource.replace(/\}\s*$/,Array.from({length:12},(_,i)=>curveBlock.replace('#polyline',`#bounded_curve_${i}`)).join('\n')+'\n}');
+    await apply(atLimit,{...settings(fixture),sourceVersion:fixture.sourceVersion ?? 0});
+    assert.equal(await page.locator('#objects [data-object-id]').count(),16);
+    const limitBefore=await state();
+    const overLimit=atLimit.replace(/\}\s*$/,curveBlock.replace('#polyline','#overflow_curve')+'\n}');
+    const rejectedLimit=await page.evaluate(({source,settings})=>window.cadPreview.apply(source,settings),{source:overLimit,settings:{...settings(fixture),sourceVersion:fixture.sourceVersion ?? 0}});
+    assert.equal(rejectedLimit.ok,false); assert.equal(await state(),limitBefore);
+    await apply(fixture.source,{...settings(fixture),sourceVersion:fixture.sourceVersion ?? 0});
+    assert.equal(await page.evaluate(()=>window.cadPreview.snapshot().packet.surfaceId),'wall');
+    const mixed = await page.evaluate(({source,settings})=> {
+      const host=window.cadPreview,live=()=>window.previewProbe.resources.filter(({kind,resource,gl})=>gl[`is${kind}`](resource)).length;
+      const before=live();
+      for(let i=0;i<12;i++) {
+        const result=i%3===0 ? host.apply(source,settings) : i%3===1 ? host.showSurface(i%2?'oblique_wall':'wall') : host.setCamera(host.snapshot().options.camera);
+        if(!result.ok) throw Error(result.error);
+        const inspected=host.inspectObject(i%2?'arc':'polyline'); if(!inspected.ok) throw Error(inspected.error);
+      }
+      return {count:12,before,after:live(),sameRenderer:host.renderer===window.originalPreviewRenderer};
+    },{source:fixture.source,settings:{...settings(fixture),sourceVersion:fixture.sourceVersion ?? 0}});
+    assert(mixed.sameRenderer); assert.equal(mixed.before,mixed.after);
+    objectControls.push({fixtureId:fixture.selectorId,rows,pendingIgnored:true,curveInspectPreservedNativeAndPixels:true,
+      sourceAddRemoveReconciled:true,safeText:true,maximumRows:16,overflowRejected:true,mixed,inspectionText});
+  }
+  const objectLineage={controls:objectControls,actualSelectedDownloads:objectFrames.length,
+    curveInspectionNoGeometryAdoption:true,acceptedSourceSelection:true};
   await apply(cylinder.source, { ...settings(cylinder), countU: 64, countV: 64 });
   const boundary = await capture('boundary-grid'); assert.equal(boundary.snapshot.report.vertexCount, 4096);
   const repeated = await page.evaluate(async ({ source, settings }) => {
@@ -409,7 +523,11 @@ try {
     window.dispatchEvent(new PageTransitionEvent('pagehide'));
     host.dispose(); host.dispose();
     let readRejected = false; try { host.readPixels(); } catch { readRejected = true; }
-    return { ownedCount: owned.length, ownedReleased: owned.every(({ kind, resource }) => !gl[`is${kind}`](resource)),
+    const disposedBefore=JSON.stringify({snapshot:host.snapshot(),objects:host.objects(),inspection:host.inspection(),inspectedId:host.inspectedId});
+    const selection=host.showSurface('wall'),inspection=host.inspectObject('arc');
+    if(selection.ok || inspection.ok) throw Error('Disposed selection/inspection was accepted');
+    const disposedRetained=disposedBefore===JSON.stringify({snapshot:host.snapshot(),objects:host.objects(),inspection:host.inspection(),inspectedId:host.inspectedId});
+    return { disposedRetained, selectionRejected:!selection.ok, inspectionRejected:!inspection.ok, ownedCount: owned.length, ownedReleased: owned.every(({ kind, resource }) => !gl[`is${kind}`](resource)),
       foreignRetained: gl.isBuffer(foreign), readRejected, pagehideExercised: true, violations: window.previewProbe.violations };
   }); }
   const lifecycle = await disposeCheck();
@@ -432,7 +550,11 @@ try {
     let readRejected = false; try { host.readPixels(); } catch { readRejected = true; }
     const snapshot = host.snapshot();
     const response = await host.apply(snapshot.source, { surfaceId: snapshot.packet.surfaceId, sourceVersion: snapshot.sourceVersion ?? 0, ...snapshot.report.grid, options: snapshot.options });
-    const result = { readRejected, updateRejected: !response.ok, status: host.status, violations: window.previewProbe.violations };
+    const before=JSON.stringify({snapshot:host.snapshot(),objects:host.objects(),inspection:host.inspection(),inspectedId:host.inspectedId});
+    const selected=host.showSurface(snapshot.packet.surfaceId), inspected=host.inspectObject('arc');
+    if(selected.ok || inspected.ok) throw Error('Lost-context selection/inspection was accepted');
+    const retained=before===JSON.stringify({snapshot:host.snapshot(),objects:host.objects(),inspection:host.inspection(),inspectedId:host.inspectedId});
+    const result = { readRejected, selectionRejected:!selected.ok,inspectionRejected:!inspected.ok,retained, updateRejected: !response.ok, status: host.status, violations: window.previewProbe.violations };
     host.dispose(); return result;
   }); }
   const contextLoss = await loseContextCheck();
@@ -443,6 +565,20 @@ try {
   const constructionContextLoss = await loseContextCheck();
   assert(constructionContextLoss.readRejected && constructionContextLoss.updateRejected && /unavailable|lost/i.test(constructionContextLoss.status));
   cspViolations.push(...constructionContextLoss.violations);
+  objectLineage.lifecycle=[];
+  for(const fixture of objectFixtures) {
+    await page.reload(); await page.waitForFunction(()=>window.cadPreview?.snapshot()?.packet);
+    await page.selectOption('#fixture',fixture.selectorId);
+    const disposed=await disposeCheck();
+    assert(disposed.ownedReleased && disposed.foreignRetained && disposed.readRejected && disposed.disposedRetained);
+    cspViolations.push(...disposed.violations);
+    await page.reload(); await page.waitForFunction(()=>window.cadPreview?.snapshot()?.packet);
+    await page.selectOption('#fixture',fixture.selectorId);
+    const lost=await loseContextCheck();
+    assert(lost.readRejected && lost.updateRejected && lost.retained);
+    cspViolations.push(...lost.violations);
+    objectLineage.lifecycle.push({fixtureId:fixture.selectorId,disposed,lost});
+  }
   assert.deepEqual(errors, []); assert.deepEqual(requests, []); assert.deepEqual(cspViolations, []);
   const packageModules = {};
   for (const packageName of ['barocss-cad', 'barocss-gpu']) {
@@ -457,15 +593,15 @@ try {
   const result = { taskCommit, integrationCommit, backend, packageModules, sourceModules, backendDescription: 'ANGLE SwiftShader software WebGL2; functional composition only',
     packageArtifacts: { cad: hash(await readFile(path.join(repo, 'packages/barocss-cad/dist/index.js'))),
       gpu: hash(await readFile(path.join(repo, 'packages/barocss-gpu/dist/index.js'))) },
-    frames, constructionFrames, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
+    frames, constructionFrames, objectFrames, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
     deterministicFields: ['source', 'model', 'packet except host-issued revision', 'report', 'IGES', 'display options'],
     environmentFields: ['taskCommit', 'integrationCommit', 'browser', 'backend', 'evidence path'],
     limitations: ['Finite sampled deviation is not a global bound', 'Surfaces remain open; no solid, topology, STEP, or manufacturing claim', 'Software rendering is not physical GPU performance',
       'This composition does not add IGES exchange certification; the independent OCP gate remains required'] };
   await writeFile(path.join(evidence, 'index.json'), json(result));
-  const gallery = '<!doctype html><html lang="en"><meta charset="utf-8"><title>CAD to GPU retained evidence</title><h1>CAD to GPU retained evidence</h1><p>Actual framebuffer readbacks. ANGLE SwiftShader software WebGL2. Finite sampled distance is not a global bound. Surfaces remain open; no solid, topology, STEP, or manufacturing claim.</p>' + [...frames, ...constructionFrames].map(frame => `<section><h2>${frame.name}</h2><img src="${frame.name}.png" alt="${frame.name} actual readback"><p>Revision ${frame.revision}; sampled distance ${frame.sampledDeviationMM} mm. <a href="${frame.name}.source.css">Source</a> <a href="${frame.name}.model.json">Native model</a> ${frame.sourceVersion === 1 ? `<a href="${frame.name}.constructions.json">Construction history</a> <a href="${frame.name}.selected-construction.json">Selected feature</a> <a href="${frame.name}.downloaded.igs">Actual download</a>` : ''} <a href="${frame.name}.display.json">Camera and view</a> <a href="${frame.name}.packet.json">Packet</a> <a href="${frame.name}.report.json">Report</a> <a href="${frame.name}.igs">IGES</a></p></section>`).join('') + '<p><a href="index.json">SHA manifest and controls</a></p></html>';
+  const gallery = '<!doctype html><html lang="en"><meta charset="utf-8"><title>CAD to GPU retained evidence</title><h1>CAD to GPU retained evidence</h1><p>Actual framebuffer readbacks. ANGLE SwiftShader software WebGL2. Finite sampled distance is not a global bound. Surfaces remain open; no solid, topology, STEP, or manufacturing claim.</p>' + [...frames, ...constructionFrames, ...objectFrames].map(frame => `<section><h2>${frame.name}</h2><img src="${frame.name}.png" alt="${frame.name} actual readback"><p>Inspected ${frame.inspectedId ?? "none"}; displayed ${frame.displayedId}. Revision ${frame.revision}; sampled distance ${frame.sampledDeviationMM} mm. <a href="${frame.name}.source.css">Source</a> <a href="${frame.name}.model.json">Native model</a> ${frame.sourceVersion === 1 ? `<a href="${frame.name}.constructions.json">Construction history</a> <a href="${frame.name}.selected-construction.json">Selected feature</a> <a href="${frame.name}.downloaded.igs">Actual download</a>` : ''} ${frame.fixtureId ? `<a href="${frame.name}.objects.json">Accepted objects</a> <a href="${frame.name}.inspection.json">Native inspection</a> <a href="${frame.name}.downloaded.igs">Selected actual download</a>` : ''} <a href="${frame.name}.display.json">Camera and view</a> <a href="${frame.name}.packet.json">Packet</a> <a href="${frame.name}.report.json">Report</a> <a href="${frame.name}.igs">IGES</a></p></section>`).join('') + '<p><a href="index.json">SHA manifest and controls</a></p></html>';
   await writeFile(path.join(evidence, 'gallery.html'), gallery);
-  console.log(`CAD preview browser evidence: ${evidence}; ${frames.length + constructionFrames.length} actual framebuffer states; ${failures.length} legacy and ${constructionFailures.length} construction rejection controls`);
+  console.log(`CAD preview browser evidence: ${evidence}; ${frames.length + constructionFrames.length + objectFrames.length} actual framebuffer states; ${failures.length} legacy and ${constructionFailures.length} construction rejection controls`);
 } finally {
   if (browser) await browser.close();
   await server.close();

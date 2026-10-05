@@ -1,3 +1,4 @@
+import { objectRows, inspectNativeObject, requireSurface } from './inspector.mjs';
 // The host uses public built APIs. Canonical millimetre geometry is never rotated here.
 export function prepareCandidate(source, settings, cad, gpu) {
   const { surfaceId, countU, countV, revision, options } = settings;
@@ -22,7 +23,7 @@ export function prepareCandidate(source, settings, cad, gpu) {
 }
 
 export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
-  let renderer, accepted, revision = 0, viewRevision = 0, disposed = false, unavailable = false;
+  let renderer, accepted, inspectedId, revision = 0, viewRevision = 0, disposed = false, unavailable = false;
   let status = 'No accepted preview';
   const announce = message => { status = message; notify(message, accepted && structuredClone(accepted)); };
   const onLoss = () => { unavailable = true; announce('Preview unavailable: GPU context lost. Reload to create a new context.'); };
@@ -38,6 +39,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
           if (!result.ok) throw result.error;
         } else renderer = gpu.mountMesh(canvas, candidate.packet, candidate.options);
         accepted = { ...candidate, viewRevision: ++viewRevision }; revision = candidate.revision;
+        inspectedId = candidate.packet.surfaceId;
         announce(`Accepted model revision ${revision}, view revision ${viewRevision}`);
         return { ok: true };
       } catch (error) {
@@ -47,6 +49,26 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
           : `Rejected: ${error.message}. No accepted preview.`);
         return { ok: false, error: error.message };
       }
+    },
+    objects() { return structuredClone(objectRows(accepted)); },
+    inspection() { return accepted && inspectedId ? inspectNativeObject(accepted, inspectedId) : undefined; },
+    get inspectedId() { return inspectedId; },
+    inspectObject(id) {
+      try {
+        if (disposed || unavailable || !accepted) throw new Error('Preview unavailable');
+        const description = inspectNativeObject(accepted, id);
+        inspectedId = description.id;
+        announce(`Inspecting ${inspectedId}; displayed surface ${accepted.packet.surfaceId}`);
+        return { ok: true };
+      } catch (error) { return { ok: false, error: error.message }; }
+    },
+    showSurface(id) {
+      try {
+        if (disposed || unavailable || !accepted) throw new Error('Preview unavailable');
+        const surfaceId = requireSurface(accepted, id);
+        return controller.apply(accepted.source, { surfaceId, sourceVersion: accepted.sourceVersion ?? 0,
+          ...accepted.report.grid, options: structuredClone(accepted.options) });
+      } catch (error) { return { ok: false, error: error.message }; }
     },
     setCamera(camera) {
       try {

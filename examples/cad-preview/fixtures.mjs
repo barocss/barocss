@@ -107,3 +107,35 @@ export function constructionWeightEdit(source) {
   if (source.includes('@curve #polyline')) return source.replace('weights: [1,2,0.5]', 'weights: [1,3,0.5]');
   throw new RangeError('This source has no construction-weight edit fixture');
 }
+
+// Two surfaces and their native curves remain explicit and independently selectable.
+const multiConstruction = `@model multi_construction {
+ version: 1; length-unit: mm;
+ @curve #arc { type: nurbs; degree: 2; knots: [0,0,0,1,1,1];
+  control-points: [[10,0,0],[10,10,0],[0,10,0]]; weights: [1,0.7071067811865476,1]; }
+ @curve #polyline { type: nurbs; degree: 1; knots: [2,2,3,7,7];
+  control-points: [[1,2,3],[5,7,-1],[12,3,4]]; weights: [1,2,0.5]; }
+ @extrude #wall { curve: #arc; vector: [0,0,30]; }
+ @extrude #oblique_wall { curve: #polyline; vector: [3,-2,7]; }
+}`;
+const multiNative = `@model multi_native {
+ version: 0; length-unit: mm;
+ @curve #arc { type: nurbs; degree: 2; knots: [0,0,0,1,1,1];
+  control-points: [[10,0,0],[10,10,0],[0,10,0]]; weights: [1,0.7071067811865476,1]; }
+ @curve #polyline { type: nurbs; degree: 1; knots: [2,2,3,7,7];
+  control-points: [[1,2,3],[5,7,-1],[12,3,4]]; weights: [1,2,0.5]; }
+ @surface #wall { type: nurbs; degree-u: 2; degree-v: 1;
+  knots-u: [0,0,0,1,1,1]; knots-v: [0,0,1,1];
+  control-points: [[[10,0,0],[10,0,30]],[[10,10,0],[10,10,30]],[[0,10,0],[0,10,30]]];
+  weights: [[1,1],[0.7071067811865476,0.7071067811865476],[1,1]]; }
+ @surface #oblique_wall { type: nurbs; degree-u: 1; degree-v: 1;
+  knots-u: [2,2,3,7,7]; knots-v: [0,0,1,1];
+  control-points: [[[1,2,3],[4,0,10]],[[5,7,-1],[8,5,6]],[[12,3,4],[15,1,11]]];
+  weights: [[1,1],[2,2],[0.5,0.5]]; }
+}`;
+export const objectFixtures = [
+ {selectorId:'multi_native',id:'wall',label:'Objects · native v0 · two surfaces',source:multiNative,
+  countU:17,countV:9,options:{...options([-0.75,-0.5,-1.5],[0.2,0.75,0.9]),camera:constructionCamera}},
+ {selectorId:'multi_construction',id:'wall',label:'Objects · construction v1 · two surfaces',sourceVersion:1,source:multiConstruction,
+  countU:17,countV:9,options:{...options([-0.75,-0.5,-1.5],[0.2,0.75,0.9]),camera:constructionCamera}},
+];
