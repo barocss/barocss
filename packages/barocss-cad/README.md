@@ -110,7 +110,9 @@ selects the separate construction directory (default: isolated environment's
 positions with independent formulas and the affine identity. Pole and source-parameter
 corruptions must reach geometric comparison and fail. Legacy exchange gates remain.
 The degree-one asymmetric fixture intentionally has C0 continuity: its exact OCP
-continuity warning is retained and expected only for that fixture. Every transfer
+continuity warning is retained and expected only for that fixture. The reader also
+checks transferred U degree 1, knots [2,3,7], multiplicities [2,1,2] and U continuity
+C0; the interior multiplicity gives continuity degree minus multiplicity = 0. Every transfer
 failure and any other diagnostic fails. No healing or tolerance override is added.
 
 ## IGES delivery
