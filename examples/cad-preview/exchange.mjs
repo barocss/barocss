@@ -73,7 +73,8 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames]) {
   const history = compiled ? await readJSON('constructions.json') : null;
   const feature = compiled ? await readJSON('selected-construction.json') : null;
   const report = await readJSON('report.json'), display = await readJSON('display.json'), exported = await readJSON('iges.json');
-  assert.deepEqual(compiled ? compiled.model : cad.parseModel(source), model);
+  // Captures are JSON data; preserve all fields while comparing serialized metadata.
+  assert.deepEqual(JSON.parse(JSON.stringify(compiled ? compiled.model : cad.parseModel(source))), model);
   if (compiled) {
     assert.deepEqual(compiled.constructions, history);
     assert.deepEqual(history.find(item => item.outputId === packet.surfaceId), feature);
