@@ -106,7 +106,7 @@ test('global section contains exact Hollerith lengths and unit/scale fields', ()
   const globals = sections(iges).G.map(row => row.slice(0, 72)).join('')
   assert.match(globals, /1H,,1H;,/)
   assert.match(globals, /1\.0,2,2HMM,/)
-  assert.match(globals, /14H20000101\.000000/)
+  assert.match(globals, /15H20000101\.000000/)
   // Delimiters in a name are Hollerith content, not extra global parameters.
   assert.match(globals, /12Ha,b;name\.igs/)
 })
