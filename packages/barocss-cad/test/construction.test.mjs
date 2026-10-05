@@ -37,6 +37,10 @@ function syntaxFailure(text) {
     const expected = position(text, error.offset, error.offset);
     assert.equal(error.line, expected.line);
     assert.equal(error.column, expected.column);
+    assert.equal(error.span.start, error.offset);
+    assert.ok(Number.isInteger(error.span.end) && error.span.end >= error.span.start && error.span.end <= text.length);
+    assert.equal(error.span.line, error.line);
+    assert.equal(error.span.column, error.column);
     return true;
   });
   assert.throws(() => compileConstruction(text), error => {
@@ -68,8 +72,11 @@ test('construction entry explicitly separates source v1, canonical v0 and unchan
   syntaxFailure(source.replace('version: 1', 'version: 2'));
   syntaxFailure(source.replace('version: 1;', ''));
   syntaxFailure(source.replace('length-unit: mm;', ''));
+  assert.equal(compileConstruction(modelSource(curveBody())).model.objects.length, 1);
+  assert.deepEqual(compileConstruction(modelSource(curveBody())).constructions, []);
+  syntaxFailure(modelSource());
   assert.throws(() => compileConstruction(null), TypeError);
-}) ;
+});
 
 test('extrusion lineage retains independent exact declaration and reference source spans', () => {
   const compiled = compileConstruction(source);
