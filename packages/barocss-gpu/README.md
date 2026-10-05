@@ -94,3 +94,86 @@ is failure, never skip. Software WebGL proves functionality only; it proves no
 physical-GPU execution, throughput or performance. Evidence retains source,
 validated data, shaders, PNG/JSON, SHA/hash/backend/buffer/assertion details.
 The example lives in `examples/gpu-scene/`; follow its README to run on loopback.
+
+## Host triangle preview API (packet v0)
+
+This additive host API is separate from the unchanged sphere/box stylesheet grammar.
+It attaches one approximate open-surface preview per dedicated canvas, with no SDF
+composition, CAD runtime, automatic camera fit, tessellation, rotation or nonuniform scale.
+
+```js
+import { mountMesh } from '@barocss/gpu';
+const options = {
+  mmToSceneUnit: 0.1, translate: [-0.5, -0.5, -1.5],
+  color: [0.9, 0.4, 0.1], background: [0.06, 0.12, 0.19],
+};
+const renderer = mountMesh(canvas, packet, options);
+const result = renderer.update(nextPacket, options);
+console.log(renderer.revision, renderer.packet, renderer.options);
+renderer.resize(640, 480);
+const rgba = renderer.readPixels();
+renderer.dispose();
+```
+
+All option fields are required. Scale is explicit finite positive millimetres-to-scene
+conversion; translation is scene-space XYZ. RGB values are finite opaque normalized
+components 0..1. Resulting coordinates must be finite within -1000..1000.
+Packets/options are defensively copied, and accepted getters return copies.
+Revision is host provenance, integer 0..2147483647; lower/equal revisions are allowed
+and are not a freshness or synchronization policy. Unknown packet/option fields fail.
+
+The identical GPU/CAD JSON-compatible contract is:
+
+```js
+{
+  version: 0, surfaceId: 'surface', revision: 0,
+  lengthUnit: 'mm', coordinateSystem: 'right-handed-y-up', winding: 'ccw',
+  positions: [/* flat XYZ in mm */], normals: [/* flat unit XYZ */],
+  indices: [/* triangle indices */], parameters: [/* flat CAD-domain UV */],
+  bounds: { min: [/* XYZ */], max: [/* XYZ */] }
+}
+```
+
+surfaceId is an ASCII identifier. Dense ordinary numeric arrays only; no executable
+accessors, custom prototypes, external assets, source or shader input. Vertex count
+4..4096, triangle count 2..7938; matching XYZ/normal/UV lengths, all finite, positions
+within +/-1e6 mm, unit normals within 1e-5, exact component min/max bounds. Each
+triangle has three distinct valid indices and nonzero area, with CCW face direction
+agreeing with its vertex normals. GPU conversion must preserve nondegenerate geometry
+and winding. UV is retained as provenance and has no GPU meaning.
+CAD U-major rows use index(i,j)=i*countV+j, triangles (a,b,c),(b,d,c),
+a=(i,j), b=(i+1,j), c=(i,j+1), d=(i+1,j+1).
+`validatePreviewPacket` and `validateMeshOptions` return defensive accepted values;
+`prepareMesh` returns validated copies and bounded Float32/Uint16 buffers.
+Structural/count checks precede array allocation. Approximate previews do not replace
+NURBS/IGES or demonstrate watertight/manufacturable geometry.
+
+The mesh path uses original fixed GLSL ES3.00 shaders and indexed WebGL2 triangles.
+Camera/light/gamma match the primitive path; perspective near plane .01 and far100.
+No face culling: open surfaces remain visible from either side, using their supplied
+world normals without reversing them. Depth uses LESS, with earlier triangles winning
+exact depth ties. Buffer/pixel limits match the primitive path (4096 per side,
+4,194,304 pixels total). Positions/normals each allocate <=49,152 bytes; indices
+<=47,628 bytes. One accepted and one candidate set coexist during updates. Each owns
+one program/VAO, three buffers, RGBA8 texture, depth24 renderbuffer and framebuffer.
+Shaders are released after linking. Framebuffer storage is bounded by the pixel ceiling;
+backend-specific physical allocation is not a performance claim.
+
+Candidates validate, upload and draw offscreen before presenting with WebGL2 blit.
+Failed validation/upload/compile/link/draw keeps accepted metadata and usable prior
+pixels; failed presentation restores from the accepted framebuffer when context is usable.
+Resize allocates/draws before resizing the host buffer and restores on failure.
+Lost context requires a fresh mount and cannot promise usable retained pixels.
+Dispose is idempotent, releases only owned resources/listener; it retains the canvas.
+Use a dedicated context: host GL state is changed and not restored.
+No animation loop, network, file operations or third-party renderer is included.
+
+Both original and mesh browser gates must pass without skips. The analytic host fixture
+uses radius10/height30 quarter-cylinder p(u,v)=(10*cos(pi*u/2),10*sin(pi*u/2),30*v),
+normal oriented by cross(partialU,partialV). The visibility fixture explicitly
+reorients host coordinates by -90 degrees about X, (x,y,z)->(x,z,-y), and
+transforms normals identically; the renderer itself supports no rotation.
+Host placement/scale remain explicit;
+no CAD package imports are required. The literal asymmetric patch is a deterministic
+contract replay control. Actual CAD output integration is recorded separately when both
+independently verified lanes are available. See `examples/gpu-scene/mesh.html`.

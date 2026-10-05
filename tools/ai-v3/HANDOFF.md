@@ -2,16 +2,22 @@
 
 ## Current owner decision: parallel GPU and CAD (2026-10-06)
 
-This section supersedes conflicting single-Execute selection rules below for #499 and #500.
+Current continuation: GPU #501 and CAD #502 use the identical preview packet v0 contract.
+#499 and #500 are completed baselines. The fixed GPU/CAD owners and sole GPU integrator
+continue for #501/#502; both branches run independently, with one serial merge/postcheck
+at a time. CAD records any shared registration proposal in #502. Existing primitive APIs,
+private status, inherited changes and Release authority remain preserved.
+
+This section supersedes conflicting single-Execute selection rules below for this pair.
 Planner owns GitHub scope, priorities and interpretation. Execute GPU
-`01a0cc08-dfb5-7142-90d9-77574034103d` has the fixed #499 implementation claim.
-Execute CAD `01a10cee-3bbd-7012-abb7-bc09b2d6048c` has the fixed #500 claim.
+`01a0cc08-dfb5-7142-90d9-77574034103d` has the fixed #501 implementation claim (completed baseline #499).
+Execute CAD `01a10cee-3bbd-7012-abb7-bc09b2d6048c` has the fixed #502 claim (completed baseline #500).
 Both implement concurrently in separate local branches/worktrees with disjoint package files.
 GPU owns `packages/barocss-gpu/`; CAD owns `packages/barocss-cad/`.
 Examples belong under `examples/`; packages belong under `packages/`.
 
 GPU Execute alone edits root manifests, workspace lockfile and current policy headers.
-CAD records any required shared registration as a proposed patch in #500.
+CAD records any required shared registration as a proposed patch in #502.
 GPU Execute is the sole local develop integrator for both tasks. It may integrate a verified
 CAD branch while GPU implementation continues, but performs one no-ff merge and its mandatory
 post-merge verification at a time. Each task requires its own prechecks, independent consumer
