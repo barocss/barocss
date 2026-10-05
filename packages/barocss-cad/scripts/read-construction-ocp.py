@@ -111,7 +111,13 @@ for fixture in manifest['fixtures'][:1] if mode else manifest['fixtures']:
     continuity = str(adapter.UContinuity())
     u_knots = [spline.UKnot(i) for i in range(1, spline.NbUKnots()+1)]
     u_multiplicities = [spline.UMultiplicity(i) for i in range(1, spline.NbUKnots()+1)]
+    native_model = json.loads((output/(name+'.native.json')).read_text())
+    native_surface = next(obj for obj in native_model['objects'] if obj['id'] == fixture['outputId'])
+    native_u_knots = native_surface['knotsU']
+    assert native_surface['degreeU'] == spline.UDegree()
+    assert native_u_knots == [knot for knot, count in zip(u_knots, u_multiplicities) for _ in range(count)]
     if name == 'extruded-asymmetric':
+        assert native_surface['degreeU'] == 1 and native_u_knots == [2,2,3,7,7]
         assert spline.UDegree() == 1 and u_knots == [2,3,7] and u_multiplicities == [2,1,2]
         assert adapter.UContinuity() == GeomAbs_C0
         # Interior multiplicity one at degree one gives C^(p-m) = C0.
@@ -148,7 +154,8 @@ for fixture in manifest['fixtures'][:1] if mode else manifest['fixtures']:
         'loadDiagnostics':load_diagnostics,'transferDiagnostics':transfer_diagnostics,
         'transferFailures':transfer_failures,'transferredContinuity':continuity,
         'transferredUDegree':spline.UDegree(),'transferredUKnots':u_knots,
-        'transferredUMultiplicities':u_multiplicities,'settings':settings,
+        'transferredUMultiplicities':u_multiplicities,'nativeUDegree':native_surface['degreeU'],
+        'nativeUKnots':native_u_knots,'settings':settings,
         'healing':'Named sequence disabled; no tolerance override','sourceHash':fixture['hashes']['css'],
         'featureHash':fixture['hashes']['features.json'],'modelHash':fixture['hashes']['native.json'],
         'igesHash':hashlib.sha256(filename.read_bytes()).hexdigest()})
