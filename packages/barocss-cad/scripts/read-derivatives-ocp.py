@@ -131,8 +131,26 @@ def closed_form_basis(knots, degree, count, parameter):
     return basis, derivatives
 
 
-def analytic_native(native, u, v=None):
-    """Independent closed-form rational fixture point and first derivative(s)."""
+def analytic_native(native, u, v=None, name=None):
+    """Independent closed-form rational/polynomial fixture first derivatives."""
+    if name in ('c1-repeated-curve', 'c1-repeated-surface'):
+        surface = name == 'c1-repeated-surface'
+        require(native['kind'] == ('surface' if surface else 'curve')
+                and native['degreeU' if surface else 'degree'] == 3
+                and native['knotsU' if surface else 'knots'] == [-2, -2, -2, -2, 0.5, 0.5, 3, 3, 3, 3],
+                'C1 polynomial fixture requires degree three and multiplicity two at 0.5')
+        weights = [value for row in native['weights'] for value in row] if surface else native['weights']
+        require(all(value == 1 for value in weights), 'C1 polynomial fixture must retain unit weights')
+        # The committed poles are blossom coefficients of [u,u^2,u^3].
+        # Differentiate that polynomial directly, including at the exact C1 knot.
+        point = [u, u*u, u*u*u]
+        derivative = [1, 2*u, 3*u*u]
+        if surface:
+            require(native['degreeV'] == 1 and native['knotsV'] == [0, 0, 1, 1],
+                    'C1 extrusion V direction changed')
+            point[2] += 7*v
+            return point, derivative, [0, 0, 7]
+        return point, derivative
     if native['kind'] == 'curve':
         basis, derivative = closed_form_basis(native['knots'], native['degree'], len(native['controlPoints']), u)
         terms = [(basis[i], derivative[i], native['weights'][i], pole)
@@ -243,7 +261,7 @@ def read_fixture(output, fixture, mode):
                 adapter.D1(u, point, first)
             source_vectors = [finite_vector(sample['derivative'])]
             analytic_vectors = [finite_vector(sample['analyticDerivative'])]
-        independent = analytic_native(native, u, v)
+        independent = analytic_native(native, u, v, fixture['name'])
         actual_point = xyz(point)
         maximum_point = max(maximum_point, math.dist(actual_point, finite_vector(sample['point'])))
         maximum_analytic_point = max(maximum_analytic_point, math.dist(actual_point, independent[0]))
@@ -310,7 +328,7 @@ def main():
         'units': 'mm per original dimensionless knot parameter',
         'limits': {'pointMM': 1e-7, 'derivativeScaled': 1e-7, 'analyticScaled': 1e-9,
                    'scaleDefinition': 'absolute vector error / max(1, expected vector norm)'},
-        'fixtureOracle': 'Independent closed-form Bernstein/piecewise-linear rational differentiation, no finite differences',
+        'fixtureOracle': 'Independent Bernstein/piecewise-linear rational and explicit cubic-polynomial differentiation, no finite differences',
         'fixtures': results,
         'limitations': ['Selected fixtures only; no universal accuracy or regularity guarantee.',
             'LocalD1 uses exact containing distinct-knot intervals for globally C0 geometry.',
