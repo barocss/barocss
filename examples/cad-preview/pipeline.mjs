@@ -2,7 +2,10 @@
 export function prepareCandidate(source, settings, cad, gpu) {
   const { surfaceId, countU, countV, revision, options } = settings;
   if (typeof surfaceId !== 'string') throw new TypeError('Select a surface ID');
-  const model = cad.parseModel(source);
+  const sourceVersion = settings.sourceVersion === undefined ? 0 : settings.sourceVersion;
+  if (sourceVersion !== 0 && sourceVersion !== 1) throw new RangeError('Source version must be explicitly 0 or 1');
+  const compiled = sourceVersion === 1 ? cad.compileConstruction(source) : undefined;
+  const model = sourceVersion === 1 ? compiled.model : cad.parseModel(source);
   const surface = model.objects.find(object => object.id === surfaceId);
   if (!surface || surface.kind !== 'surface') throw new RangeError('Select a supported untrimmed surface');
   const { packet, report } = cad.tessellateSurface(surface, { countU, countV, revision });
@@ -12,7 +15,10 @@ export function prepareCandidate(source, settings, cad, gpu) {
   validateGpuPacket(packet);
   const prepared = gpu.prepareMesh(packet, options);
   const iges = cad.exportIGES(model, [surfaceId]);
-  return structuredClone({ source, model, packet, report, options: prepared.options, iges, revision });
+  const provenance = sourceVersion === 1 ? { sourceVersion: 1, constructions: compiled.constructions,
+    selectedConstruction: compiled.constructions.find(feature => feature.outputId === surfaceId) } : {};
+  if (sourceVersion === 1 && !provenance.selectedConstruction) throw new RangeError('Select a constructed output surface');
+  return structuredClone({ source, model, packet, report, options: prepared.options, iges, revision, ...provenance });
 }
 
 export function createPreviewController(canvas, cad, gpu, notify = () => {}) {

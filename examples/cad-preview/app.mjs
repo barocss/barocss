@@ -1,43 +1,51 @@
 import * as cad from '/cad.js';
 import * as gpu from '/gpu.js';
 import { createPreviewController } from '/pipeline.mjs';
-import { fixtures, controlPointEdit, weightEdit } from '/fixtures.mjs';
+import { fixtures, constructionFixtures, controlPointEdit, weightEdit, vectorEdit, constructionWeightEdit } from '/fixtures.mjs';
 const $ = id => document.getElementById(id);
 const canvas = $('preview');
+const allFixtures = [...fixtures, ...constructionFixtures];
 const controller = createPreviewController(canvas, cad, gpu, (message, accepted) => {
   $('status').textContent = message;
   $('export').disabled = !accepted || !controller.available;
   if (accepted) {
     const { packet,report,options,revision,viewRevision } = accepted;
     $('summary').textContent = `Accepted model revision ${revision} · view revision ${viewRevision} · ${packet.surfaceId}\nCanonical bounds (mm): ${JSON.stringify(packet.bounds)}\nScene units/mm: ${options.mmToSceneUnit} · translation: ${JSON.stringify(options.translate)}\nVertices: ${packet.positions.length/3} · triangles: ${packet.indices.length/3}\nSampled maximum distance (mm): ${report.maxSampledDeviationMM}\nFinite samples only · certified: ${report.certified}`;
-    $('details').textContent = JSON.stringify({model:accepted.model,report,camera:options.camera??'Original fixed default'},null,2);
+    $('source-version').value=String(accepted.sourceVersion ?? 0);
+    $('details').textContent = JSON.stringify({sourceVersion:accepted.sourceVersion??0,constructions:accepted.constructions,selectedConstruction:accepted.selectedConstruction,model:accepted.model,report,camera:options.camera??'Original fixed default'},null,2);
   }
 });
 function fields(fixture) {
-  $('source').value=fixture.source;$('surface').value=fixture.id;
+  $('source').value=fixture.source;$('surface').value=fixture.id;$('source-version').value=String(fixture.sourceVersion??0);
   $('count-u').value=fixture.countU;$('count-v').value=fixture.countV;
   $('scale').value=fixture.options.mmToSceneUnit;$('translate').value=fixture.options.translate.join(',');$('color').value=fixture.options.color.join(',');$('background').value=fixture.options.background.join(',');
   $('weight-edit').disabled=fixture.id==='flat_patch';
+  $('vector-edit').disabled=fixture.sourceVersion!==1;$('control-edit').disabled=fixture.sourceVersion===1;
 }
 function settings() {
   const camera=controller.snapshot()?.options.camera;
-  return {surfaceId:$('surface').value,countU:Number($('count-u').value),countV:Number($('count-v').value),options:{mmToSceneUnit:Number($('scale').value),translate:$('translate').value.split(',').map(Number),color:$('color').value.split(',').map(Number),background:$('background').value.split(',').map(Number),...(camera ? {camera} : {})}};
+  return {sourceVersion:Number($('source-version').value),surfaceId:$('surface').value,countU:Number($('count-u').value),countV:Number($('count-v').value),options:{mmToSceneUnit:Number($('scale').value),translate:$('translate').value.split(',').map(Number),color:$('color').value.split(',').map(Number),background:$('background').value.split(',').map(Number),...(camera ? {camera} : {})}};
 }
 function applyEditor() { return controller.apply($('source').value,settings()); }
 function select(id) {
-  const fixture=fixtures.find(value=>value.id===id);
+  const fixture=allFixtures.find(value=>value.id===id);
   if (!fixture) throw new RangeError('Unknown example');
-  fields(fixture);$('fixture').value=id;return applyEditor();
+  fields(fixture);$('fixture').value=id;
+  const next=settings();
+  if (fixture.options.camera) {next.options.camera=structuredClone(fixture.options.camera);cameraFields(next.options.camera);}
+  return controller.apply(fixture.source,next);
 }
-for (const fixture of fixtures) { const option=document.createElement('option');option.value=fixture.id;option.textContent=fixture.label;$('fixture').append(option); }
+for (const fixture of allFixtures) { const option=document.createElement('option');option.value=fixture.id;option.textContent=fixture.label;$('fixture').append(option); }
 $('fixture').addEventListener('change',()=>select($('fixture').value));
 $('apply').addEventListener('click',applyEditor);
+$('source-version').addEventListener('change',applyEditor);
 function edit(transform) {
   try { $('source').value=transform($('source').value);applyEditor(); }
   catch(error) { $('status').textContent=`Source edit unavailable: ${error.message}. Accepted preview retained.`; }
 }
 $('control-edit').addEventListener('click',()=>edit(controlPointEdit));
-$('weight-edit').addEventListener('click',()=>edit(weightEdit));
+$('weight-edit').addEventListener('click',()=>edit(Number($('source-version').value)===1 ? constructionWeightEdit : weightEdit));
+$('vector-edit').addEventListener('click',()=>edit(vectorEdit));
 $('fine').addEventListener('click',()=>{ $('count-u').value=33;$('count-v').value=17;applyEditor(); });
 $('export').addEventListener('click',()=>{
   const accepted=controller.snapshot();if(!accepted||!controller.available)return;

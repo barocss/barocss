@@ -5,7 +5,7 @@ import * as cad from '../../packages/barocss-cad/dist/index.js';
 import * as gpu from '../../packages/barocss-gpu/dist/index.js';
 import { validatePreviewPacket as validateCadPacket } from '../../packages/barocss-cad/dist/index.js';
 import { validatePreviewPacket as validateGpuPacket } from '../../packages/barocss-gpu/dist/index.js';
-import { fixtures, controlPointEdit, weightEdit, density } from './fixtures.mjs';
+import { fixtures, constructionFixtures, controlPointEdit, weightEdit, vectorEdit, constructionWeightEdit, density } from './fixtures.mjs';
 import { prepareCandidate, createPreviewController } from './pipeline.mjs';
 import { startServer, csp } from './server.mjs';
 
@@ -309,4 +309,120 @@ test('camera-only host updates never recompute CAD and retain native geometry tr
   assert.deepEqual(host.snapshot().options.camera, camera);
   assert(counts.parseModel > cadCalls.parseModel);
   host.dispose(); assert.equal(host.setCamera(undefined).ok, false);
+});
+
+
+test('explicit v1 compiles actual source and preserves selected construction and export identity', () => {
+  for (const fixture of constructionFixtures) {
+    const accepted = candidate(fixture, { sourceVersion: 1 });
+    const compiled = cad.compileConstruction(fixture.source);
+    assert.equal(accepted.sourceVersion, 1);
+    assert.deepEqual(accepted.model, compiled.model);
+    assert.deepEqual(accepted.constructions, compiled.constructions);
+    assert.deepEqual(accepted.selectedConstruction, compiled.constructions.find(f => f.outputId === fixture.id));
+    const surface = compiled.model.objects.find(o => o.id === fixture.id);
+    const mesh = cad.tessellateSurface(surface, { countU: fixture.countU, countV: fixture.countV, revision: 7 });
+    assert.deepEqual(accepted.packet, mesh.packet); assert.deepEqual(accepted.report, mesh.report);
+    assert.deepEqual(accepted.iges, cad.exportIGES(compiled.model, [fixture.id]));
+    assert.equal(accepted.model.version, 0); assert.equal(accepted.packet.version, 0);
+    assert.equal(accepted.iges.report.objects.length, 1);
+    assert.equal(accepted.iges.report.objects[0].id, fixture.id);
+    assert.equal(accepted.selectedConstruction.operation, 'extrude');
+    assert.equal(accepted.selectedConstruction.inputId, fixture.id === 'wall' ? 'arc' : 'polyline');
+    assert(accepted.selectedConstruction.span.end > accepted.selectedConstruction.span.start);
+    accepted.constructions[0].vector[0] = 999;
+    assert.notEqual(candidate(fixture, { sourceVersion: 1 }).constructions[0].vector[0], 999);
+  }
+  const legacy = candidate(fixtures[0]);
+  for (const key of ['sourceVersion', 'constructions', 'selectedConstruction']) assert(!Object.hasOwn(legacy, key));
+  assert.deepEqual(legacy, candidate(fixtures[0], { sourceVersion: 0 }));
+});
+
+test('source versions are explicit and never fall back to the other compiler', () => {
+  const fixture = constructionFixtures[0];
+  for (const sourceVersion of [undefined, 0, 2, '1', null, false, NaN])
+    assert.throws(() => candidate(fixture, { sourceVersion }));
+  assert.throws(() => candidate(fixtures[0], { sourceVersion: 1 }));
+  assert.throws(() => candidate(fixture, { sourceVersion: 1, surfaceId: 'arc' }), /surface/);
+  assert.throws(() => candidate(fixture, { sourceVersion: 1, surfaceId: 'absent' }), /surface/);
+  for (const source of [fixture.source.replace('curve: #arc', 'curve: #missing'),
+    fixture.source.replace('@extrude #wall', '@extrude #arc'),
+    fixture.source.replace('@extrude', '@revolve'),
+    fixture.source.replace('vector: [0,0,30]', 'script: alert(1)')])
+    assert.throws(() => candidate(fixture, { sourceVersion: 1 }, source));
+  let parseCalls = 0, compileCalls = 0;
+  const api = { ...cad, parseModel(...args) { parseCalls++; return cad.parseModel(...args); },
+    compileConstruction(...args) { compileCalls++; return cad.compileConstruction(...args); } };
+  assert.throws(() => candidate(fixture, { sourceVersion: 0 }, fixture.source, api));
+  assert.equal(compileCalls, 0); assert.equal(parseCalls, 1);
+  assert.throws(() => candidate(fixtures[0], { sourceVersion: 1 }, fixtures[0].source, api));
+  assert.equal(compileCalls, 1); assert.equal(parseCalls, 1);
+});
+
+test('construction vector and rational source edits change actual canonical geometry', () => {
+  const fixture = constructionFixtures[0], initial = candidate(fixture, { sourceVersion: 1 });
+  const vector = candidate(fixture, { sourceVersion: 1 }, vectorEdit(fixture.source));
+  near(initial.packet.bounds.max, [10,10,30]);
+  near(vector.packet.bounds.max, [10,10,40]);
+  assert.deepEqual(vector.selectedConstruction.vector, [0,0,40]);
+  const rational = candidate(fixture, { sourceVersion: 1 }, constructionWeightEdit(fixture.source));
+  const surface = rational.model.objects.find(o => o.id === fixture.id);
+  near(cad.evaluateSurface(surface, .5, .5), [35/6,35/6,15]);
+  assert.notDeepEqual(rational.packet.positions, initial.packet.positions);
+  assert.notEqual(rational.iges.iges, initial.iges.iges);
+  for (const value of [vector,rational]) {
+    assert.equal(value.selectedConstruction.outputId, initial.selectedConstruction.outputId);
+    assert.equal(value.selectedConstruction.inputId, initial.selectedConstruction.inputId);
+    assert.equal(value.selectedConstruction.operation, initial.selectedConstruction.operation);
+    assert.deepEqual(value.options.camera, initial.options.camera);
+  }
+});
+
+test('one transactional controller retains construction lineage on rejected source or view', () => {
+  const calls = {};
+  const api = Object.fromEntries(Object.entries(cad).map(([key,value]) => [key, typeof value === 'function'
+    ? (...args) => { calls[key] = (calls[key] ?? 0) + 1; return value(...args); } : value]));
+  const listeners = new Map(), canvas = {addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
+  let fail = false, mounts = 0;
+  const rendering = {...gpu, mountMesh(_canvas, packet) {
+    mounts++; let shown = structuredClone(packet);
+    return {update(next) {if(fail)return {ok:false,error:new Error('Injected constructed candidate failure')};
+      shown=structuredClone(next);return {ok:true};},readPixels:()=>Uint8Array.of(shown.revision),dispose(){}};
+  }};
+  const host = createPreviewController(canvas,api,rendering), fixture = constructionFixtures[0];
+  const settings = {sourceVersion:1,surfaceId:fixture.id,countU:fixture.countU,countV:fixture.countV,options:structuredClone(fixture.options)};
+  assert(host.apply(fixture.source, settings).ok);
+  const accepted = host.snapshot(), pixels = host.readPixels(), counts = structuredClone(calls);
+  const camera = {...fixture.options.camera,eye:[6,0,0]};
+  assert(host.setCamera(camera).ok);
+  const view = host.snapshot();
+  assert.equal(view.revision,accepted.revision); assert.equal(view.viewRevision,accepted.viewRevision+1);
+  for(const key of ['source','sourceVersion','constructions','selectedConstruction','model','packet','report','iges'])
+    assert.deepEqual(view[key],accepted[key]);
+  assert.deepEqual(calls,counts,'Camera-only actions must not compile, evaluate, tessellate or export CAD');
+  for(const [source,changes] of [[fixture.source,{sourceVersion:0}],[fixture.source,{sourceVersion:2}],
+    [fixture.source.replace('curve: #arc','curve: #missing'),{}],
+    [fixture.source.replace('vector: [0,0,30]','vector: [0,0,0]'),{}],
+    [fixture.source.replace('[0,10,0]','[10,0,0]').replace('weights: [1,0.7071067811865476,1]','weights: [1,1,1]'),{}],
+    [fixture.source,{surfaceId:'arc'}],[fixture.source,{countU:65}]]) {
+    assert.equal(host.apply(source,{...settings,...changes}).ok,false); assert.deepEqual(host.snapshot(),view);
+    assert.deepEqual(host.readPixels(),pixels);
+  }
+  fail=true;assert.equal(host.apply(vectorEdit(fixture.source),settings).ok,false);assert.deepEqual(host.snapshot(),view);
+  assert.equal(host.setCamera(undefined).ok,false);assert.deepEqual(host.snapshot(),view);fail=false;
+  const options={...settings.options,camera:view.options.camera};
+  assert(host.apply(vectorEdit(fixture.source),{...settings,options}).ok);
+  assert.equal(host.snapshot().revision,accepted.revision+1);assert.deepEqual(host.snapshot().options.camera,camera);
+  const exposed=host.snapshot();exposed.constructions[0].vector[2]=999;
+  assert.notEqual(host.snapshot().constructions[0].vector[2],999);
+  assert(host.apply(fixtures[0].source,{surfaceId:'cylinder',countU:17,countV:9,options:fixtures[0].options}).ok);
+  assert(!Object.hasOwn(host.snapshot(),'constructions'));assert.equal(mounts,1);host.dispose();
+});
+
+test('valid construction can still fail the actual preview regularity boundary', () => {
+  const fixture = constructionFixtures[0];
+  const source = fixture.source.replace('[0,10,0]','[10,0,0]')
+    .replace('weights: [1,0.7071067811865476,1]','weights: [1,1,1]');
+  assert.equal(cad.compileConstruction(source).constructions.length, 1);
+  assert.throws(() => candidate(fixture, { sourceVersion: 1 }, source), /Cancelling|normal|Collapsed/);
 });

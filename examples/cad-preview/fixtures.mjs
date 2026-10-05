@@ -59,3 +59,51 @@ export function singularSource(source) {
     '[[[0,0,0],[0,0,0]],[[0,0,0],[0,0,0]]]');
   throw new RangeError('No singular-source control is defined for this source');
 }
+
+// Construction source is explicitly v1; native coordinates stay in their source axes.
+const constructionCamera = { eye: [4,3,6], target: [0,0,0], up: [0,1,0], fovYDegrees: 45, near: 0.01, far: 100 };
+export const constructionFixtures = [
+  { id: 'wall', label: 'Construction v1 · extruded rational arc', sourceVersion: 1, source: `@model extruded_arc {
+  version: 1;
+  length-unit: mm;
+  @curve #arc {
+    type: nurbs;
+    degree: 2;
+    knots: [0,0,0,1,1,1];
+    control-points: [[10,0,0],[10,10,0],[0,10,0]];
+    weights: [1,0.7071067811865476,1];
+  }
+  @extrude #wall {
+    curve: #arc;
+    vector: [0,0,30];
+  }
+}`,
+    countU: 17, countV: 9, options: { ...options([-0.5,-0.5,-1.5], [0.2,0.75,0.9]), camera: constructionCamera } },
+  { id: 'oblique_wall', label: 'Construction v1 · asymmetric oblique extrusion', sourceVersion: 1, source: `@model extruded_asymmetric {
+  version: 1;
+  length-unit: mm;
+  /* Forward reference; native geometry stays in declaration order. */
+  @extrude #oblique_wall {
+    curve: #polyline;
+    vector: [3,-2,7];
+  }
+  @curve #polyline {
+    type: nurbs;
+    degree: 1;
+    knots: [2,2,3,7,7];
+    control-points: [[1,2,3],[5,7,-1],[12,3,4]];
+    weights: [1,2,0.5];
+  }
+}`,
+    countU: 17, countV: 9, options: { ...options([-0.75,-0.35,-0.5], [0.9,0.55,0.2]), camera: constructionCamera } },
+];
+export function vectorEdit(source) {
+  if (source.includes('@extrude #wall')) return source.replace('vector: [0,0,30]', 'vector: [0,0,40]');
+  if (source.includes('@extrude #oblique_wall')) return source.replace('vector: [3,-2,7]', 'vector: [5,-3,10]');
+  throw new RangeError('This source has no construction-vector edit fixture');
+}
+export function constructionWeightEdit(source) {
+  if (source.includes('@curve #arc')) return source.replace('weights: [1,0.7071067811865476,1]', 'weights: [1,0.2,1]');
+  if (source.includes('@curve #polyline')) return source.replace('weights: [1,2,0.5]', 'weights: [1,3,0.5]');
+  throw new RangeError('This source has no construction-weight edit fixture');
+}
