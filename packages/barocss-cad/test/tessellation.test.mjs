@@ -20,8 +20,8 @@ const plane = {
 const weightedPatch = {
   kind: 'surface', id: 'weighted-patch', degreeU: 1, degreeV: 1,
   knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1],
-  controlPoints: [[[0, 0, 0], [0, 7, 2]], [[9, 0, 3], [11, 8, 10]]],
-  weights: [[1, 0.5], [2, 3]],
+  controlPoints: [[[0, 0, 0], [1, 7, 3]], [[9, 2, 4], [12, 8, -2]]],
+  weights: [[1, 2], [3, 4]],
 };
 
 const sub = (a, b) => a.map((value, axis) => value - b[axis]);
