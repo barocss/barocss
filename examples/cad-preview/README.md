@@ -80,3 +80,49 @@ Source actions retain their model revision contract and also record the new
 accepted view. Display controls do not imply view-dependent native exports.
 The browser capture records model/view revisions and explicit camera options
 alongside actual readPixels, world-normal shaders and backend metadata.
+
+## Explicit construction source
+
+Select **1 · construction** or a construction example to use the built
+`compileConstruction` API. The default **0 · native model** uses `parseModel`.
+Version/source mismatches reject; there is no detection or parser fallback.
+Accepted version0 snapshots retain their original fields. Version1 snapshots
+also retain `sourceVersion`, copied `constructions` and `selectedConstruction`
+(output ID, input curve ID, operation, vector and source/reference spans). Native
+model and preview packet versions remain0. Selecting the input curve as a surface
+is rejected. Changing the version choice adopts data only after successful draw.
+
+The construction cylinder is a rational XY quarter-circle of radius10mm extruded
+along canonical Z by30mm. The asymmetric fixture extrudes a degree-one rational
+curve with nonuniform U knots by[3,-2,7]mm. Source coordinates are never rotated.
+The view uses explicit scale/translation and an oblique camera. Vector and rational
+weight buttons edit actual construction source; applying edits preserves the chosen
+camera. Camera actions retain all construction/native/export provenance.
+
+Extrusion yields open surfaces, not caps, topology or a closed solid. A construction
+may compile yet have a singular/folded preview; tessellation rejects invalid triangles
+or cancelling incident normals. A failed compiler, preview, camera or GPU candidate
+retains the last accepted source, operation, geometry, export and usable frame.
+
+For one exact committed checkout, set a fresh evidence directory for the browser and
+exchange runs below. The exchange command requires that exact browser capture: no
+stale or missing-artifact fallback. Reuse installed Chrome/Playwright/OCP.
+
+```sh
+export BAROCSS_CAD_PREVIEW_BROWSER_EVIDENCE=/absolute/fresh/evidence-directory
+node examples/cad-preview/test.mjs
+PW_DIR=/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" node examples/cad-preview/browser.mjs
+BAROCSS_CAD_PYTHON=/Users/user/.barocss-ai/v3/verify-cad-ocp-8.0.1.1.0/bin/python node examples/cad-preview/exchange.mjs
+```
+
+The gallery links accepted source, operation/native/preview/view records, actual PNG
+and selected native IGES. Independent OCP reads those captured/downloaded bytes as
+one intended open entity128 surface in MM scale1. It compares17×9 samples with
+accepted native positions and a separate rational-curve affine formula; selected
+analytic/reader limits are1e-9mm/1e-7mm. These checks do not certify global accuracy.
+The exact known C0 continuity warning is allowed only for the asymmetric degree-one
+fixture with its interior knot; warning and degree/knot multiplicities are retained.
+Other diagnostics fail. No healing or tolerance override is applied. Wrong-export
+and changed-pole controls must fail independently. Module/artifact hashes and HEAD
+link the captured pixels and exports to this checkout. Software WebGL2 evidence
+does not establish physical-GPU performance or manufacturing fitness.
