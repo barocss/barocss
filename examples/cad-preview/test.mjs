@@ -1,3 +1,4 @@
+import './test-parameters.mjs';
 import { inspectNativeObject, objectRows } from './inspector.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -6,7 +7,7 @@ import * as cad from '../../packages/barocss-cad/dist/index.js';
 import * as gpu from '../../packages/barocss-gpu/dist/index.js';
 import { validatePreviewPacket as validateCadPacket } from '../../packages/barocss-cad/dist/index.js';
 import { validatePreviewPacket as validateGpuPacket } from '../../packages/barocss-gpu/dist/index.js';
-import { fixtures, constructionFixtures, objectFixtures, controlPointEdit, weightEdit, vectorEdit, constructionWeightEdit, density } from './fixtures.mjs';
+import { fixtures, constructionFixtures, objectFixtures, parameterFixture, controlPointEdit, weightEdit, vectorEdit, constructionWeightEdit, density } from './fixtures.mjs';
 import { prepareCandidate, createPreviewController } from './pipeline.mjs';
 import { startServer, csp } from './server.mjs';
 
@@ -218,7 +219,7 @@ test('loopback server serves only explicit built/example routes under strict CSP
       req.on('error', reject); req.end();
     });
   try {
-    for (const route of ['/', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/inspector.mjs', '/style.css',
+    for (const route of ['/', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/inspector.mjs', '/parameters.mjs', '/style.css',
       '/cad.js', '/gpu.js', ...['types', 'math', 'parser', 'iges', 'packet', 'preview', 'extrusion', 'compiler', 'derivatives', 'boundary'].map(name => `/${name}.js`)]) {
       const response = await get(route);
       assert.equal(response.status, 200, route);
@@ -496,4 +497,26 @@ test('inspection and surface selection retain one accepted identity with zero in
     listeners.get('webglcontextlost')();assert.equal(host.inspectObject('arc').ok,false);assert.equal(host.showSurface('wall').ok,false);
     host.dispose();assert.equal(host.inspectObject('arc').ok,false);assert.equal(host.showSurface('wall').ok,false);
   }
+});
+
+
+test('typed parameter adoption preserves accepted settings, shared inputs and pending source', () => {
+ const listeners=new Map(),canvas={addEventListener:(k,v)=>listeners.set(k,v),removeEventListener:k=>listeners.delete(k)};let fail=false;
+ const counts={};const tracked=Object.fromEntries(Object.entries(cad).map(([k,v])=>[k,typeof v==='function'? (...args)=>{counts[k]=(counts[k]??0)+1;return v(...args);}:v]));
+ const rendering={...gpu,mountMesh(_canvas,packet){let shown=packet;return{update(next){if(fail)return{ok:false,error:new Error('Typed draw failure')};shown=next;return{ok:true};},readPixels:()=>Uint8Array.of(shown.revision),dispose(){}};}};
+ const host=createPreviewController(canvas,tracked,rendering),fixture=parameterFixture;
+ assert(host.apply(fixture.source,{sourceVersion:1,surfaceId:'wall',countU:17,countV:9,options:fixture.options}).ok);
+ assert.deepEqual(host.parameterState().sharedOutputs,['wall','second_wall']);
+ const initial=host.snapshot(),pixels=host.readPixels();
+ assert.equal(host.applyParameters({vector:[0,0,40]},initial.source+' /* pending */').ok,false);assert.deepEqual(host.snapshot(),initial);assert.deepEqual(host.readPixels(),pixels);
+ for(const request of [{vector:[0,0,0]},{vector:[-10,10,0]},{vector:[1e9,0,30]},{weight:{index:1,value:0}},{weight:{index:99,value:1}},{vector:[NaN,0,30]},{field:1}]){assert.equal(host.applyParameters(request,initial.source).ok,false);assert.deepEqual(host.snapshot(),initial);}
+ fail=true;assert.equal(host.applyParameters({vector:[0,0,40]},initial.source).ok,false);assert.deepEqual(host.snapshot(),initial);fail=false;
+ assert(host.applyParameters({vector:[0,0,40],weight:{index:1,value:.2}},initial.source).ok);const adopted=host.snapshot();
+ assert.deepEqual(adopted.options,initial.options);assert.deepEqual(adopted.report.grid,initial.report.grid);assert.equal(adopted.revision,initial.revision+1);
+ assert.deepEqual(adopted.model.objects.map(o=>o.id),initial.model.objects.map(o=>o.id));
+ assert.deepEqual(adopted.model.objects.find(o=>o.id==='unused'),initial.model.objects.find(o=>o.id==='unused'));
+ for(const id of ['wall','second_wall'])assert.notDeepEqual(adopted.model.objects.find(o=>o.id===id).weights,initial.model.objects.find(o=>o.id===id).weights);
+ assert.deepEqual(adopted.constructions.find(f=>f.outputId==='second_wall').vector,[3,0,15]);
+ const called=structuredClone(counts);assert(host.inspectObject('arc').ok);assert(host.setCamera(adopted.options.camera).ok);assert.deepEqual(counts,called);
+ const source=host.snapshot().source;listeners.get('webglcontextlost')();assert.equal(host.applyParameters({},source).ok,false);host.dispose();assert.equal(host.applyParameters({},source).ok,false);
 });

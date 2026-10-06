@@ -163,3 +163,37 @@ descriptors are test oracles, not invented construction history. Selected checks
 still use153 parameter samples/export and1e-9mm analytic/1e-7mm reader limits.
 Wrong same-type surface exports and the prior wrong-curve/pole controls must reject.
 All prior source/view/lifecycle and exact module/artifact hash gates remain required.
+
+## Numeric construction parameters
+
+The panel targets only the accepted displayed source-v1 extrusion and its input
+curve. It shows the input/output IDs, vector inmm, input weight index/value and
+all outputs sharing that curve. Read-only inspection does not retarget the panel.
+Native-v0 and nonconstructed data show an unsupported-panel state.
+
+Apply numeric parameters generates explicit canonical source in the existing
+construction grammar. All original declarations/IDs/order and unedited native
+values are retained; source comments/formatting and feature spans are replaced.
+The shortest binary64 decimal is expanded when necessary, preserving values and
+negative zero without fixed precision, locale formatting or clamping. Generated
+UTF-8 source must fit256KiB. Unknown or unrepresentable provenance rejects. A
+weight edit changes every derived output sharing that input; unrelated curves
+and other feature vectors remain intact.
+
+Source stays authoritative. Numeric actions reuse the accepted selected ID/grid/
+camera/options through the existing compiler, tessellation and transactional GPU
+pipeline. Generated CSS replaces the editor only after success. If the raw editor
+differs from accepted source, first explicitly Apply source or Discard pending
+source; numeric actions never silently discard pending text. Empty/nonfinite input,
+bad index/weight, singular/native/compiler or GPU failures retain accepted state
+and usable pixels. Camera/inspection actions still perform no CAD recomputation.
+
+The browser gate enters vector and weight numbers through actual controls and
+retains requested values, generated accepted source/native/feature spans, packet/
+report/view/pixels and selected download hashes. Independent OCP compares those
+actual edited files using the same rational/affine selected-fixture position limits.
+Shared-input propagation, mixed updates, pending source protection and existing
+object/view/resource/context-loss gates remain required. Canonical generation is
+private example code, not a public serializer, new parser/operation or geometry
+model. Surfaces stay open and software pixels do not establish manufacturing or
+physical-GPU guarantees.

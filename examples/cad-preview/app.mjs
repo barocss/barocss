@@ -1,10 +1,10 @@
 import * as cad from '/cad.js';
 import * as gpu from '/gpu.js';
 import { createPreviewController } from '/pipeline.mjs';
-import { fixtures, constructionFixtures, objectFixtures, controlPointEdit, weightEdit, vectorEdit, constructionWeightEdit } from '/fixtures.mjs';
+import { fixtures, constructionFixtures, objectFixtures, parameterFixture, controlPointEdit, weightEdit, vectorEdit, constructionWeightEdit } from '/fixtures.mjs';
 const $ = id => document.getElementById(id);
 const canvas = $('preview');
-const allFixtures = [...fixtures, ...constructionFixtures, ...objectFixtures];
+const allFixtures = [...fixtures, ...constructionFixtures, ...objectFixtures, parameterFixture];
 const controller = createPreviewController(canvas, cad, gpu, (message, accepted) => {
   $('status').textContent = message;
   $('export').disabled = !accepted || !controller.available;
@@ -12,7 +12,7 @@ const controller = createPreviewController(canvas, cad, gpu, (message, accepted)
     const { packet,report,options,revision,viewRevision } = accepted;
     $('summary').textContent = `Accepted model revision ${revision} · view revision ${viewRevision} · ${packet.surfaceId}\nCanonical bounds (mm): ${JSON.stringify(packet.bounds)}\nScene units/mm: ${options.mmToSceneUnit} · translation: ${JSON.stringify(options.translate)}\nVertices: ${packet.positions.length/3} · triangles: ${packet.indices.length/3}\nSampled maximum distance (mm): ${report.maxSampledDeviationMM}\nFinite samples only · certified: ${report.certified}`;
     $('source-version').value=String(accepted.sourceVersion ?? 0);
-    renderObjects();
+    renderObjects();renderParameters();
     $('details').textContent = JSON.stringify({sourceVersion:accepted.sourceVersion??0,constructions:accepted.constructions,selectedConstruction:accepted.selectedConstruction,model:accepted.model,report,camera:options.camera??'Original fixed default'},null,2);
   }
 });
@@ -66,6 +66,34 @@ $('camera-apply').addEventListener('click',()=>controller.setCamera({
   eye:$('camera-eye').value.split(',').map(Number),target:$('camera-target').value.split(',').map(Number),up:$('camera-up').value.split(',').map(Number),
   fovYDegrees:Number($('camera-fov').value),near:Number($('camera-near').value),far:Number($('camera-far').value),
 }));
+function renderParameters() {
+  const state=controller.parameterState(), available=Boolean(state)&&controller.available;
+  $('parameter-apply').disabled=!available;
+  for(const id of ['parameter-vector-x','parameter-vector-y','parameter-vector-z','parameter-weight-index','parameter-weight-value']) $(id).disabled=!available;
+  $('parameter-state').textContent=state ? `Displayed output: ${state.surfaceId} · input curve: ${state.inputId}\nShared outputs: ${state.sharedOutputs.join(', ')} · weights: ${state.indexCount}` : 'Numeric controls require an accepted displayed source-v1 extrusion.';
+  if(state) {
+    for(const [axis,value] of ['x','y','z'].map((axis,index)=>[axis,state.vector[index]])) $(`parameter-vector-${axis}`).value=Object.is(value,-0)?'-0':String(value);
+    $('parameter-weight-index').max=String(state.indexCount-1);
+    const index=Number($('parameter-weight-index').value);
+    const ownedIndex=Number.isInteger(index)&&index>=0&&index<state.indexCount?index:0;
+    $('parameter-weight-index').value=String(ownedIndex);$('parameter-weight-value').value=String(state.weights[ownedIndex]);
+  }
+}
+function numberField(id) {const text=$(id).value.trim();if(!text)throw new RangeError('Numeric fields cannot be empty');const value=Number(text);if(!Number.isFinite(value))throw new RangeError('Numeric fields must be finite');return value;}
+$('parameter-weight-index').addEventListener('change',()=>{
+  const state=controller.parameterState(),index=Number($('parameter-weight-index').value);
+  if(state&&Number.isInteger(index)&&index>=0&&index<state.indexCount)$('parameter-weight-value').value=String(state.weights[index]);
+});
+$('parameter-apply').addEventListener('click',()=>{
+  try {
+    const request={vector:['x','y','z'].map(axis=>numberField(`parameter-vector-${axis}`)),weight:{index:numberField('parameter-weight-index'),value:numberField('parameter-weight-value')}};
+    const result=controller.applyParameters(request,$('source').value);
+    if(result.ok)$('source').value=controller.snapshot().source;
+    else $('status').textContent=`Parameter edit rejected: ${result.error}. Accepted preview retained.`;
+  } catch(error) {$('status').textContent=`Parameter edit rejected: ${error.message}. Accepted preview retained.`;}
+});
+$('discard-source').addEventListener('click',()=>{const accepted=controller.snapshot();if(accepted)$('source').value=accepted.source;});
+
 function renderObjects() {
   const rows=controller.objects(), inspection=controller.inspection();
   const list=$('objects');list.replaceChildren();
@@ -84,6 +112,6 @@ function renderObjects() {
   $('inspection').textContent=inspection ? `Inspected object: ${inspection.id} · ${inspection.kind}\nDisplayed surface: ${inspection.displayedSurfaceId}\nNative control-point bounds (mm; not tight surface extent): ${JSON.stringify(inspection.controlPointBoundsMM)}\nDisplayed sampled preview-mesh bounds (mm; not tight surface extent): ${JSON.stringify(inspection.displayedSampledMeshBoundsMM)}\n${JSON.stringify(inspection,null,2)}` : 'No accepted native object';
 }
 // Inspection API for the local evidence runner. No source-provided code is evaluated.
-window.cadPreview={inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>controller.dispose(),get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
+window.cadPreview={parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>controller.dispose(),get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
 window.addEventListener('pagehide',()=>controller.dispose(),{once:true});
 select(fixtures[0].id);

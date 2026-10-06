@@ -45,10 +45,11 @@ assert.deepEqual((index.constructionFrames ?? []).map(frame => frame.name).sort(
 const objectNames = ['multi_native-wall', 'multi_native-oblique_wall', 'multi_native-wall-replay',
   'multi_construction-wall', 'multi_construction-oblique_wall', 'multi_construction-wall-replay'];
 assert.deepEqual((index.objectFrames ?? []).map(frame => frame.name).sort(), objectNames.sort());
+assert.deepEqual((index.parameterFrames??[]).map(frame=>frame.name).sort(),['typed-vector','typed-weight']);
 const fractionsU = [0,.03,.07,.123,.2,.271,.33,.41,.5,.57,.66,.719,.8,.877,.93,.97,1];
 const fractionsV = [0,.11,.23,.37,.5,.61,.79,.91,1];
 const fixtures = [];
-for (const frame of [...index.constructionFrames, ...index.objectFrames]) {
+for (const frame of [...index.constructionFrames, ...index.objectFrames, ...index.parameterFrames]) {
   const multi = objectNames.includes(frame.name);
   assert.equal(frame.taskCommit, head);
   assert([0, 1].includes(frame.sourceVersion));
@@ -59,6 +60,7 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames]) {
   const required = ['source.css','model.json','packet.json','report.json','display.json','iges.json','igs','downloaded.igs','png'];
   if (frame.sourceVersion === 1) required.push('constructions.json', 'selected-construction.json');
   if (multi) required.push('objects.json', 'inspection.json');
+  if(frame.parameterRequest)required.push('parameters.json');
   for (const suffix of required) assert(frame.hashes[`${frame.name}.${suffix}`], `Missing captured ${suffix}`);
   for (const [file, expected] of Object.entries(frame.hashes)) {
     assert.equal(path.basename(file), file, 'Artifact path must be a local basename');
@@ -117,6 +119,7 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames]) {
 
   }
   // v0 is a directly authored surface. This known-fixture oracle is not feature history.
+  if(frame.parameterRequest){const typed=await readJSON('parameters.json');assert.deepEqual(typed.requested,frame.parameterRequest);assert.deepEqual(typed.selectedConstruction,feature);assert.deepEqual(feature.vector,frame.parameterRequest.vector);assert.equal(curve.weights[frame.parameterRequest.weight.index],frame.parameterRequest.weight.value);}
   const analyticDescriptor = { inputId: curve.id, outputId: surface.id,
     vector: feature?.vector ?? (surface.id === 'wall' ? [0,0,30] : [3,-2,7]),
     origin: compiled ? 'accepted construction feature' : 'declared native-v0 fixture oracle; not construction provenance' };

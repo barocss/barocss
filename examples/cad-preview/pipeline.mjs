@@ -1,3 +1,4 @@
+import { parameterState as readParameterState, canonicalConstruction } from './parameters.mjs';
 import { objectRows, inspectNativeObject, requireSurface } from './inspector.mjs';
 // The host uses public built APIs. Canonical millimetre geometry is never rotated here.
 export function prepareCandidate(source, settings, cad, gpu) {
@@ -49,6 +50,17 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
           : `Rejected: ${error.message}. No accepted preview.`);
         return { ok: false, error: error.message };
       }
+    },
+    parameterState() { return readParameterState(accepted); },
+    applyParameters(request, editorSource) {
+      try {
+        if (disposed || unavailable || !accepted) throw new Error('Preview unavailable');
+        if (typeof editorSource !== 'string' || editorSource !== accepted.source)
+          throw new Error('Apply or discard pending source before editing parameters');
+        const source = canonicalConstruction(accepted, request);
+        return controller.apply(source, { sourceVersion: 1, surfaceId: accepted.packet.surfaceId,
+          ...accepted.report.grid, options: structuredClone(accepted.options) });
+      } catch (error) { return { ok: false, error: error.message }; }
     },
     objects() { return structuredClone(objectRows(accepted)); },
     inspection() { return accepted && inspectedId ? inspectNativeObject(accepted, inspectedId) : undefined; },
