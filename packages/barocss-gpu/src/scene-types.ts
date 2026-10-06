@@ -18,7 +18,13 @@ export interface CylinderSceneObject extends Omit<RotatedSceneObject, 'type'> {
   /** Full local Y height. */
   height: number;
 }
-export type SceneObject1 = RotatedSceneObject | CylinderSceneObject;
+export interface CapsuleSceneObject extends Omit<RotatedSceneObject, 'type'> {
+  type: 'capsule';
+  /** Center segment endpoints in local scene units. */
+  start: Vec3;
+  end: Vec3;
+}
+export type SceneObject1 = RotatedSceneObject | CylinderSceneObject | CapsuleSceneObject;
 export interface Scene1 {
   version: 1;
   name: string;

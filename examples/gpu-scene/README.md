@@ -58,3 +58,13 @@ After the affected GPU build, run `examples/gpu-scene/cylinder-smoke.mjs` with
 PW_DIR, CHROME and BAROCSS_CYLINDER_EVIDENCE. This short actual browser run also
 checks unchanged source0/source1 sphere/box shader controls. The preview server
 needs the existing built CAD graph; no native cylinder capability is claimed.
+
+## Source1 capsule prototype
+
+**GPU · Capsule** at `/#capsule` uses local start/end/radius and existing rigid
+rotation. After the affected GPU build, run `examples/gpu-scene/capsule-smoke.mjs`
+with PW_DIR, CHROME and BAROCSS_CAPSULE_EVIDENCE. One actual browser run checks
+axis/oblique segment and rounded-end distances, source edits, retained invalid
+frames and exact old source0/rotation/cylinder shader controls. It requires the
+existing built CAD module graph for the preview server; no native CAD capability
+or physical GPU performance is claimed.
