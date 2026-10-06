@@ -134,6 +134,7 @@ function activate() {
   if (active && !accepted) adopt(initial);
   if (active && renderer && !unavailable) renderer.resize(...dimensions());
 }
+$('body-shape').addEventListener('change',()=>{if($('body-shape').value!=='workspace-box')location.href='/#'+$('body-shape').value;});
 $('body-create').addEventListener('click', () => applyValues(true));
 $('body-update').addEventListener('click', () => applyValues());
 $('body-discard').addEventListener('click', () => { refresh(); message('Pending dimensions discarded.'); });

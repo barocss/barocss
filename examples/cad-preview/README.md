@@ -377,3 +377,15 @@ sampled at the accepted grid count with at most 64 points per path. This is not
 arbitrary trimming, silhouettes, picking or a complete hidden-line drawing system.
 Run the same short browser demonstration with `model-smoke.mjs --edges` for actual
 native-path/toggle/orbit/rear-occlusion/stale-packet prototype evidence.
+
+## Additional shape previews
+
+The root Example menu includes GPU Sphere, native Triangle/L filled regions, and
+native Triangle/L capped prism previews. The Box workspace's **Preview shape**
+menu links directly to these views. Native polygon examples call the actual region,
+triangulation and prism APIs; the L has area7mm² and its6mm prism has volume42mm³
+and area110mm². The missing concave quadrant remains empty in the real top view.
+
+Sphere uses the existing own GPU source compiler/SDF renderer. It is not represented
+as a CAD B-Rep sphere. Polygon/prism packets are prototype displays, with no generic
+solid/topology or interchange certification. Root stays canvas plus Example.
