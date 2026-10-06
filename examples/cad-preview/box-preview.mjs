@@ -16,6 +16,7 @@ function own(value,seen=new Set(),depth=0,budget={count:0}){
 }
 function exact(value,keys,label){if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).length!==keys.length||!keys.every(k=>Object.hasOwn(value,k)))throw new TypeError(label+' has missing or foreign fields');}
 function requestData(input){const r=own(input);exact(r,['id','origin','sides','revision'],'Box request');if(typeof r.id!=='string'||r.id.length>128||!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(r.id)||[...surfaces,...wrappers,...vertices,...edges].includes(r.id))throw new RangeError('Use a distinct derived box mesh ID');if(!Number.isInteger(r.revision)||r.revision<0||r.revision>2147483647)throw new RangeError('Box revision must be 0..2147483647');for(const[k,tuple]of Object.entries({origin:r.origin,sides:r.sides})){if(!Array.isArray(tuple)||tuple.length!==3||!tuple.every(Number.isInteger))throw new TypeError('Box '+k+' must be an integer triple');}if(!r.sides.every(n=>n>=1&&n<=10000)||!r.origin.every((n,i)=>n>=-10000&&n+r.sides[i]<=10000))throw new RangeError('Box sides/corners exceed original bounds');return r;}
+function immutableLineage(result){for(const face of result.lineage.faces)Object.freeze(face);Object.freeze(result.lineage.faces);Object.freeze(result.lineage);return result;}
 const point=(origin,sides,index)=>origin.map((n,k)=>(index>>k)&1?n+sides[k]:n);
 const encode=v=>Array.isArray(v)?'['+v.map(encode).join(',')+']':decimal(v);
 function same(a,b,label){if(typeof a!==typeof b||a===null||b===null){if(a!==b)throw new RangeError('Box '+label+' association mismatch');return;}if(typeof a!=='object'){if(!Object.is(a,b))throw new RangeError('Box '+label+' association mismatch');return;}if(Array.isArray(a)!==Array.isArray(b)||Object.keys(a).length!==Object.keys(b).length)throw new RangeError('Box '+label+' association mismatch');for(const key of Object.keys(b)){if(!Object.hasOwn(a,key))throw new RangeError('Box '+label+' association mismatch');same(a[key],b[key],label+'.'+key);}}
@@ -36,12 +37,12 @@ export function prepareBoxPreview(input,cad){
  for(const[resultIndex,result]of facePackets.entries()){const p=result.packet;packet.positions.push(...p.positions);packet.normals.push(...p.normals);packet.parameters.push(...p.parameters);packet.indices.push(...p.indices.map(n=>n+4*resultIndex));for(let k=0;k<3;k++){packet.bounds.min[k]=Math.min(packet.bounds.min[k],p.bounds.min[k]);packet.bounds.max[k]=Math.max(packet.bounds.max[k],p.bounds.max[k]);}}
  cad.validatePreviewPacket(packet);for(let k=0;k<3;k++)if(packet.bounds.min[k]!==solidReport.boundsMM.min[k]||packet.bounds.max[k]!==solidReport.boundsMM.max[k])throw new RangeError('Box bounds/solid association mismatch');
  const lineage={meshId:r.id,sourceVersion:0,faces:surfaces.map((surfaceId,i)=>({faceId:wrappers[i],surfaceId,vertexStart:4*i,vertexCount:4,indexStart:6*i,indexCount:6})),units:'mm',coordinateSystem:'right-handed-y-up',winding:'ccw',revision:r.revision};
- return structuredClone({source,sourceVersion:0,model,shell,solidReport,facePackets,packet,lineage});
+ return immutableLineage(structuredClone({source,sourceVersion:0,model,shell,solidReport,facePackets,packet,lineage}));
 }
 // Rebuild every native association before a stored/corrupted consumer record can draw.
 export function validateBoxPreview(input,cad){
  const value=own(input);exact(value,['source','sourceVersion','model','shell','solidReport','facePackets','packet','lineage'],'Box preview');
  const expected=prepareBoxPreview({id:value.shell.id,origin:value.shell.origin,sides:value.shell.sides,revision:value.packet.revision},cad);
  for(const key of Object.keys(expected))same(value[key],expected[key],key);
- return value;
+ return immutableLineage(value);
 }
