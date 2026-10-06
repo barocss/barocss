@@ -389,3 +389,17 @@ and area110mm². The missing concave quadrant remains empty in the real top view
 Sphere uses the existing own GPU source compiler/SDF renderer. It is not represented
 as a CAD B-Rep sphere. Polygon/prism packets are prototype displays, with no generic
 solid/topology or interchange certification. Root stays canvas plus Example.
+
+## Editable polygon prism
+
+Open `/workspace.html#polygon-prism`, or choose **Polygon prism · Create / Edit**
+from Example. Create a Triangle or L preset, edit numbered integer X/Y rows and
+Height, then Apply. Add/remove vertices within the native 3–63 range without
+reordering or silently closing the profile. Invalid input retains the last prism.
+
+Save downloads the original `barocss-xy-polygon-prism-feature` format0 intent in a
+`.barocad.json` file. Open uses the native128KiB/duplicate-key parser and rebuilds
+before adoption. This is separate from Surface project1 and rectangle feature0.
+Metrics describe the closed preview family, not a certified B-Rep solid. Camera,
+mesh caches and general history are not stored. The short actual workflow is
+`polygon-workspace-smoke.mjs`; comprehensive regression remains deferred.

@@ -4,3 +4,5 @@
 .edge-toggle{display:flex!important;align-items:center;gap:8px;font-size:12px}.edge-toggle input[type=checkbox]{width:auto!important;margin:0}
 
 .body-header nav{align-items:center;flex-wrap:wrap}.body-header nav label{display:grid;gap:4px;font-size:10px}.body-header nav select{font-size:12px;padding:7px;min-width:145px}
+
+#polygon-workspace[hidden]{display:none}.poly-table{width:100%;border-collapse:collapse;margin:16px 0}.poly-table th{font-size:11px}.poly-table td{padding:3px}.poly-table input{padding:7px;min-width:0}.poly-table button{padding:5px 8px}#poly-status{font-size:12px;line-height:1.5;overflow-wrap:anywhere}#poly-height{margin-top:14px}
