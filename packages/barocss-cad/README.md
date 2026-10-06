@@ -2570,3 +2570,67 @@ JSON semantics, not signed-zero exchange. Invalid options/native references/
 getters and actual native-valid Float32 collapse preserve earlier data. No
 raster/GUI/cylinder grammar/document/graph/ray/Boolean/intersection/STEP/general
 mesher or solid certification is claimed; broad validation is deferred.
+
+## Original one-circle extrusion intent and native Save/Open
+
+`evaluateXYCirclePrismDocument(document)` and
+`updateXYCirclePrismDocument(document,patch)` return owned
+`{document,sketchEvaluation,shell,report}`. Distinct authored format
+barocss-xy-circle-prism-feature0/mm has exact root format/version/id/lengthUnit/
+sketch/feature; feature exact id/kind:xy-circle-extrude/profileId/shellId/height,
+height exact id/valueMM. Embedded actual arc-sketch intent must contain EXACTLY
+ONE original circle matching profileId. Empty/multiple/quarter/missing references
+reject in this family; standalone arc sketch remains unchanged.
+
+Native evaluation calls actual arc-sketch evaluator, then actual circle-prism
+constructor with original id/centre/radius and positiveheight. Source0/original
+Curve/plane trim/candidate shell/UV/world Surfaces remain accessible with exact
+native bindings; no analytic independent cylinder or compiled source/IR. Report
+binds document/sketch/feature/profile/shell/centre/radius/seam/height IDs and
+values/native domains/bounds/reference volume/candidate flags.
+
+Authored slots are globally distinct ASCII1..64, with original profile/shell
+1..48 under native admission. Referenced profileCurve and shell root IDs are
+intentional same-entity references, not duplicate objects. Distinct authored
+slots also cannot collide with native generated Curve/Surface/vertex/edge/use/
+loop/pcurve IDs/Model names. No identifier rename/repair. All numeric edits/Open
+retain original IDs. Radius/height finite fractional0.001..10000mm and original
+centre/computed-pole bounds remain authoritative.
+
+Patch permits one or more of EXACT centreMM,radiusMM,heightMM; centreMM is finite
+XY. Whole owned candidate uses actual arc-sketch upsert of existing circle with
+stable kind/slot/centre-radius-seam IDs, then actual native extrusion admission.
+Failure leaves caller/native data unchanged/reusable. No IDs/lifecycle/rebind/
+expression/general graph/constraint fields are added. British centreMM is the
+patch name; the original arc intent retains its centerMM field unchanged.
+
+Native evaluate/serialize/parse NEVER invokes display generation/Float32
+admission. A valid distant small native circle can evaluate/save/open even when
+separate preview sampling refuses display. Consumer meshID/revision/quality is
+separate, excluded from intent. Display adoption remains a consumer transaction,
+not a native validity condition. candidateClosedShell is structural only,
+geometricValidity:not-certified,topologyCertified:false,solid:false remain.
+
+Serialize/Open execute native candidate and save only canonical exact authored
+root/sketch/feature numbers/order, preserving−0 with explicit numeric encoder.
+No generated source/Model/topology/report/mesh/quality/camera/history. Own input/
+patch4096values/depth10/arrays64/records12/strings128 rejects getters/symbols/
+hidden/foreign/sparse/nonfinite. UTF-8<=128KiB, preparse lexical decoded-duplicate
+key/depth/array/field budgets precede JSON.parse. Existing arc/linear/rectangle
+Graph/cutout/project/source formats are strict and distinct, no silent migration.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/circle-prism-document-demo.mjs /tmp/barocss-circle-prism-document-prototype
+```
+
+The short actual authored/native/file/packet demo starts centre[2,-3]/r4/h6
+with reference96*pi, atomically changes centre[30,1]/r3/h2→18*pi and retains IDs.
+Decimalcentre[.2,.2]/r.1/h.3 and height-only changes work. Actual saved bytes
+read/parse/rebuild match native sources/coefficients/bindings; separate−0 intent
+round trip stays. Separate previewk8 gives194v/128tri/three paths on admitted
+seed/opened geometry. Native-valid[9000,9000]/r.001/h6 evaluates/saves/opens,
+while separate high-subdivision Float32 preview actually refuses. Invalid refs/
+geometry/IDs/getters/schema/text/bad combined edits preserve prior data. Affected
+build/this run are prototype checks; UI/raster/solid certification and broader
+validation remain deferred.
