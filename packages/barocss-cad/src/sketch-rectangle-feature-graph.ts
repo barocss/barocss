@@ -16,6 +16,11 @@ export interface SketchRectangleFeatureGraphEdits {
   parameterEdits?: { parameterId: string; definition: SketchRectangleLengthDefinition }[];
   sketchEdits?: XYSketchDocumentEdit[]; featureEdits?: { featureId: string; suppressed: boolean }[];
 }
+export type SketchRectangleFeatureOperation = { kind: 'upsert'; feature: SketchRectangleGraphFeature } | { kind: 'remove'; featureId: string };
+export interface SketchRectangleFeatureLifecycleEdits {
+  featureOperations: SketchRectangleFeatureOperation[];
+  parameterEdits?: SketchRectangleFeatureGraphEdits['parameterEdits']; sketchEdits?: XYSketchDocumentEdit[];
+}
 export interface SketchRectangleResolvedParameter { id: string; type: 'length'; valueMM: number; dependencyIds: string[]; order: number }
 export interface SketchRectangleFeatureBindings {
   sketchId: string; profileId: string; curveId: string; authoredPointIds: string[]; pointBindings: XYSketchPointBinding[];
@@ -88,6 +93,11 @@ function definition(input: unknown, label: string, path: string): SketchRectangl
   return kind === 'literal' ? { kind, valueMM: length(data.valueMM, label, path + '.valueMM') }
     : { kind, parameterId: identifier(data.parameterId, label, path + '.parameterId'), offsetMM: length(data.offsetMM, label, path + '.offsetMM') };
 }
+function admitFeature(input: unknown, label: string, path: string): SketchRectangleGraphFeature {
+  const f = record(input, ['id', 'kind', 'profileId', 'bodyId', 'distanceParameterId', 'suppressed'], label, path), fid = identifier(f.id, label, path + '.id'), owner = label + ' feature #' + fid;
+  check(f.kind === 'axis-rectangle-extrude' && typeof f.suppressed === 'boolean', owner, path + '.kind/suppressed', 'axis-rectangle-extrude and explicit boolean suppression required');
+  return { id: fid, kind: 'axis-rectangle-extrude', profileId: identifier(f.profileId, owner, path + '.profileId'), bodyId: identifier(f.bodyId, owner, path + '.bodyId'), distanceParameterId: identifier(f.distanceParameterId, owner, path + '.distanceParameterId'), suppressed: f.suppressed };
+}
 function admit(input: unknown, label: string): SketchRectangleFeatureGraphV0 {
   const data = record(snapshot(input, label, '$'), ['format', 'version', 'id', 'lengthUnit', 'sketch', 'parameters', 'features'], label, '$');
   check(data.format === 'barocss-sketch-rectangle-feature-graph' && data.version === 0 && data.lengthUnit === 'mm', label, '$.format/version/lengthUnit', 'sketch rectangle graph0/mm required');
@@ -100,9 +110,7 @@ function admit(input: unknown, label: string): SketchRectangleFeatureGraphV0 {
   });
   check(Array.isArray(data.features) && data.features.length >= 1 && data.features.length <= 4, label, '$.features', '1..4 rectangle extrusion features required');
   const features = data.features.map((value, index): SketchRectangleGraphFeature => {
-    const path = '$.features[' + index + ']', f = record(value, ['id', 'kind', 'profileId', 'bodyId', 'distanceParameterId', 'suppressed'], label, path), fid = identifier(f.id, label, path + '.id'), owner = label + ' feature #' + fid;
-    check(f.kind === 'axis-rectangle-extrude' && typeof f.suppressed === 'boolean', owner, path + '.kind/suppressed', 'axis-rectangle-extrude and explicit boolean suppression required');
-    return { id: fid, kind: 'axis-rectangle-extrude', profileId: identifier(f.profileId, owner, path + '.profileId'), bodyId: identifier(f.bodyId, owner, path + '.bodyId'), distanceParameterId: identifier(f.distanceParameterId, owner, path + '.distanceParameterId'), suppressed: f.suppressed };
+    return admitFeature(value, label, '$.features[' + index + ']');
   });
   return { format: 'barocss-sketch-rectangle-feature-graph', version: 0, id, lengthUnit: 'mm', sketch: data.sketch as XYSketchDocumentV0, parameters, features };
 }
@@ -136,12 +144,15 @@ function sameData(a: unknown, b: unknown): boolean {
   }
   return Object.is(a, b);
 }
+function authoredGraphIds(document: SketchRectangleFeatureGraphV0): string[] {
+  return [document.id, document.sketch.id,
+    ...document.sketch.profiles.flatMap(p => [p.id, ...(p.kind === 'rectangle' ? p.cornerIds : p.points.map(point => point.id))]),
+    ...document.parameters.map(p => p.id), ...document.features.flatMap(f => [f.id, f.bodyId])];
+}
 function evaluate(document: SketchRectangleFeatureGraphV0, label: string): SketchRectangleFeatureGraphResult {
   const sketchEvaluation = guard(label + ': $.sketch', () => evaluateXYSketchDocument(document.sketch));
   document.sketch = sketchEvaluation.document;
-  const authored = [document.id, document.sketch.id,
-    ...document.sketch.profiles.flatMap(p => [p.id, ...(p.kind === 'rectangle' ? p.cornerIds : p.points.map(point => point.id))]),
-    ...document.parameters.map(p => p.id), ...document.features.flatMap(f => [f.id, f.bodyId])];
+  const authored = authoredGraphIds(document);
   const seen = new Set<string>();
   for (const id of authored) { identifier(id, label, '$.ids'); check(!seen.has(id), label, '$.ids #' + id, 'all graph/sketch/profile/authored point/parameter/feature/body IDs must be globally distinct'); seen.add(id); }
   const parameters = resolve(document.parameters, label), values = new Map(parameters.map(p => [p.id, p.valueMM]));
@@ -174,6 +185,18 @@ function evaluate(document: SketchRectangleFeatureGraphV0, label: string): Sketc
 export function evaluateSketchRectangleFeatureGraph(document: SketchRectangleFeatureGraphV0): SketchRectangleFeatureGraphResult {
   const label = context(document); return guard(label, () => evaluate(admit(document, label), label));
 }
+function applyInputEdits(candidate: SketchRectangleFeatureGraphV0, data: Record<string, unknown>, label: string): void {
+  if (Object.hasOwn(data, 'parameterEdits')) {
+    const targets = new Set<string>();
+    for (const [index, input] of (data.parameterEdits as unknown[]).entries()) {
+      const path = '$edits.parameterEdits[' + index + ']', e = record(input, ['parameterId', 'definition'], label, path), id = identifier(e.parameterId, label, path + '.parameterId');
+      check(!targets.has(id), label + ' parameter #' + id, path, 'repeated parameter edit target'); targets.add(id);
+      const p = candidate.parameters.find(p => p.id === id); check(!!p, label + ' parameter #' + id, path, 'existing parameter edit target required');
+      p.definition = definition(e.definition, label + ' parameter #' + id, path + '.definition');
+    }
+  }
+  if (Object.hasOwn(data, 'sketchEdits')) candidate.sketch = guard(label + ': $edits.sketchEdits', () => updateXYSketchDocument(candidate.sketch, data.sketchEdits as XYSketchDocumentEdit[]).document);
+}
 export function updateSketchRectangleFeatureGraph(document: SketchRectangleFeatureGraphV0, edits: SketchRectangleFeatureGraphEdits): SketchRectangleFeatureGraphResult {
   const label = context(document);
   return guard(label, () => {
@@ -182,16 +205,7 @@ export function updateSketchRectangleFeatureGraph(document: SketchRectangleFeatu
     const data = value as Record<string, unknown>, keys = Object.keys(data);
     check(keys.length >= 1 && keys.length <= 3 && keys.every(key => ['parameterEdits', 'sketchEdits', 'featureEdits'].includes(key)), label, '$edits', 'at least one exact nonempty parameter/sketch/feature edit array required');
     for (const key of keys) check(Array.isArray(data[key]) && (data[key] as unknown[]).length >= 1 && (data[key] as unknown[]).length <= (key === 'featureEdits' ? 4 : 8), label, '$edits.' + key, 'nonempty bounded operation array required');
-    if (Object.hasOwn(data, 'parameterEdits')) {
-      const targets = new Set<string>();
-      for (const [index, input] of (data.parameterEdits as unknown[]).entries()) {
-        const path = '$edits.parameterEdits[' + index + ']', e = record(input, ['parameterId', 'definition'], label, path), id = identifier(e.parameterId, label, path + '.parameterId');
-        check(!targets.has(id), label + ' parameter #' + id, path, 'repeated parameter edit target'); targets.add(id);
-        const p = candidate.parameters.find(p => p.id === id); check(!!p, label + ' parameter #' + id, path, 'existing parameter edit target required');
-        p.definition = definition(e.definition, label + ' parameter #' + id, path + '.definition');
-      }
-    }
-    if (Object.hasOwn(data, 'sketchEdits')) candidate.sketch = guard(label + ': $edits.sketchEdits', () => updateXYSketchDocument(candidate.sketch, data.sketchEdits as XYSketchDocumentEdit[]).document);
+    applyInputEdits(candidate, data, label);
     if (Object.hasOwn(data, 'featureEdits')) {
       const targets = new Set<string>();
       for (const [index, input] of (data.featureEdits as unknown[]).entries()) {
@@ -200,6 +214,47 @@ export function updateSketchRectangleFeatureGraph(document: SketchRectangleFeatu
         const f = candidate.features.find(f => f.id === id); check(!!f && typeof e.suppressed === 'boolean', label + ' feature #' + id, path, 'existing feature and boolean suppression required'); f.suppressed = e.suppressed;
       }
     }
+    return evaluate(admit(candidate, label), label);
+  });
+}
+/** One final graph transaction; existing native body identity cannot be replaced. */
+export function editSketchRectangleFeatureGraphFeatures(document: SketchRectangleFeatureGraphV0, edits: SketchRectangleFeatureLifecycleEdits): SketchRectangleFeatureGraphResult {
+  const label = context(document);
+  return guard(label, () => {
+    // Full native starting admission avoids editing a merely structural graph.
+    const candidate = evaluate(admit(document, label), label).document, value = snapshot(edits, label, '$edits');
+    check(value !== null && typeof value === 'object' && !Array.isArray(value), label, '$edits', 'feature lifecycle edit record required');
+    const data = value as Record<string, unknown>, keys = Object.keys(data);
+    check(Object.hasOwn(data, 'featureOperations') && keys.length <= 3 && keys.every(key => ['featureOperations', 'parameterEdits', 'sketchEdits'].includes(key)), label, '$edits', 'required featureOperations and optional parameterEdits/sketchEdits only');
+    for (const key of keys) check(Array.isArray(data[key]) && (data[key] as unknown[]).length >= 1 && (data[key] as unknown[]).length <= 8, label, '$edits.' + key, 'nonempty1..8 operations required');
+    const starting = new Map(candidate.features.map(f => [f.id, copyCadData(f)]));
+    // Starting identities remain reserved even after removal in this transaction.
+    const reserved = new Set(authoredGraphIds(candidate)), targets = new Set<string>();
+    for (const [index, input] of (data.featureOperations as unknown[]).entries()) {
+      const path = '$edits.featureOperations[' + index + ']';
+      check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'feature operation record required');
+      const kind = (input as Record<string, unknown>).kind;
+      check(kind === 'upsert' || kind === 'remove', label, path + '.kind', 'upsert/remove feature operation required');
+      const operation = record(input, kind === 'upsert' ? ['kind', 'feature'] : ['kind', 'featureId'], label, path);
+      const next = kind === 'upsert' ? admitFeature(operation.feature, label, path + '.feature') : undefined;
+      const id = next ? next.id : identifier(operation.featureId, label, path + '.featureId'), owner = label + ' feature #' + id;
+      check(!targets.has(id), owner, path, 'target feature appears more than once in the batch'); targets.add(id);
+      const previous = starting.get(id), slot = candidate.features.findIndex(f => f.id === id);
+      if (next) {
+        if (previous) {
+          check(next.kind === previous.kind && next.bodyId === previous.bodyId, owner, path + '.feature.bodyId', 'existing feature kind/body identity must remain unchanged');
+          check(slot >= 0, owner, path, 'existing feature slot required'); candidate.features[slot] = next;
+        } else {
+          check(!reserved.has(next.id) && !reserved.has(next.bodyId) && next.id !== next.bodyId, owner, path + '.feature.id/bodyId', 'new feature/body IDs must be fresh relative to starting and new transaction identities');
+          reserved.add(next.id); reserved.add(next.bodyId); candidate.features.push(next);
+        }
+      } else {
+        check(!!previous && slot >= 0, owner, path + '.featureId', 'remove must resolve an existing starting feature'); candidate.features.splice(slot, 1);
+      }
+    }
+    // Only the complete final feature set owns the1..4 count/reference decision.
+    // Sketch edits can remove/rebind a previously referenced profile atomically.
+    applyInputEdits(candidate, data, label);
     return evaluate(admit(candidate, label), label);
   });
 }
