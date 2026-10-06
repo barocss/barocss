@@ -1916,8 +1916,8 @@ prototype demo are bounded checks; wider validation and edit UI are deferred.
 
 `queryXYPolygonPrismShellWithHoleRay(shell,{originMM,direction,maxDistanceMM})`
 consumes an owned, validated actual through-hole shell, including one produced
-by the cutout document API. It returns status/body/query/nullable nearest
-DistanceMM, co-nearest `hits`, all ordered finite-domain `candidates`, separate
+by the cutout document API. It returns status/body/query/nullable
+`nearestDistanceMM`, co-nearest `hits`, all ordered finite-domain `candidates`, separate
 `coplanarFaces` and a policy/native report. It uses no display triangles.
 
 Every original cap/world or natural wall SurfaceD1 defines its actual plane,
@@ -1966,7 +1966,10 @@ node examples/cad-nurbs/xy-polygon-prism-shell-hole-ray-demo.mjs /tmp/barocss-th
 The short actual native API demo checks top annular cap t2, through-hole miss,
 inner-right wall t2/normal-X, outer-left t1 with later inner candidates, top
 hole-rim diagonal co-nearest cap/wall atsqrt2 and conservative coplanar rim.
-ConcaveL hole/notch rays miss while material hits top; reversed authored loops
+ConcaveL hole[3,23] and notch[20,21] rays miss while material hits top.
+Notch[20,20] lies on the original hole wall's y20 supporting plane: it has no
+finite hits and remains ambiguous-coplanar. Fractional square material/hole
+rays also resolve without widening the integer point API. Reversed authored loops
 retain equivalent queries. Actual SurfaceD1/UV/normals and qualified boundary
 Curve/global references resolve, corrupt cap/wall references and invalid
 direction/range reject while previous shell/results remain reusable. Affected
