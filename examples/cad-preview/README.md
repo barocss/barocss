@@ -197,3 +197,45 @@ object/view/resource/context-loss gates remain required. Canonical generation is
 private example code, not a public serializer, new parser/operation or geometry
 model. Surfaces stay open and software pixels do not establish manufacturing or
 physical-GPU guarantees.
+
+## CAD workspace layout
+
+The topbar identifies the actual accepted scene and selected native export. The
+central viewport and camera poses remain visible on desktop; object navigation
+is on the left, native properties/history and typed extrusion controls on the
+right. On narrow screens the viewport comes first and panels stack without
+horizontal scrolling. Only implemented controls are shown.
+
+Source, grid/display, camera optics and raw diagnostics use keyboard-operable
+details. The Source button opens the editor and focuses it. Inspection/Show
+buttons restore focus to their native row after a list rerender. Removing an
+object moves focus to the object heading. Lost contexts disable unavailable
+actions. Live status and the pending-source label distinguish accepted geometry
+from unsubmitted text. No raw source is automatically discarded.
+
+Scene properties use the actual inspector fields. Display-only numbers use four
+significant digits; raw inspection/source, numeric input, geometry and IGES retain
+full values. Native-v0 is direct authorship; construction history comes only from
+accepted records. Control-point and sampled mesh bounds remain distinct and are
+not presented as tight extents or certified accuracy.
+
+The browser gate captures full-page1440×900 and390×844 before/after UI screenshots
+from committed baseline/current checkouts, separately from actual readPixels. It
+checks first-screen viewport/core actions, overflow, labelled/unique controls,
+keyboard collapse/focus and accepted labels during source rejection, then retains
+all original numeric/source/selection/view/download/lifecycle/OCP gates. The
+`ui-workspace.json` records screenshot hashes, exact SHAs, dimensions/backend and
+baseline native/framebuffer identity; current package/host module hashes remain
+in index.json. Use a fresh evidence directory for each exact pre/post run.
+
+For baseline screenshots, build both packages in the clean baseline checkout,
+then use the installed browser/runtime with:
+
+```sh
+PW_DIR=/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" node examples/cad-preview/screens.mjs /absolute/clean/baseline /absolute/private/baseline-evidence 3b5e3acbf9fdb902d2d1381809e7e4edebd2a203
+```
+
+Set `BAROCSS_CAD_PREVIEW_BASELINE_UI` to that baseline evidence directory for
+browser.mjs (default private path is the recorded #513 baseline). Screenshots
+show actual software-WebGL geometry; they do not replace native/selected-export
+checks or imply physical-GPU performance or manufactured solids.
