@@ -3,6 +3,11 @@ import type { CadModelAst, CadAstDeclaration, CadAstValue, CadSourceRange } from
 import type { Curve, Surface, Point } from './types.js';
 import { validateCurve, validateSurface } from './math.js';
 import { preflightExtrusion } from './extrusion-validation.js';
+import { copyCadData } from './data-copy.js';
+import { resolveCadParameters } from './parameter-semantics.js';
+import type { CadResolvedParameter, CadFieldBinding, CadParameterDependency } from './parameter-semantics.js';
+export { copyCadData } from './data-copy.js';
+export type { CadResolvedParameter, CadFieldBinding, CadQuantityKind, CadParameterDependency } from './parameter-semantics.js';
 
 export type CadLiteralIRNode = { id: string; span: CadSourceRange; fieldTypes: Record<string, string> } &
   ({ kind: 'curve'; geometry: Curve } | { kind: 'surface'; geometry: Surface });
@@ -10,20 +15,23 @@ export interface CadExtrudeIRNode {
   kind: 'extrude'; id: string; inputId: string; vector: Point;
   span: CadSourceRange; referenceSpan: CadSourceRange; fieldTypes: Record<string, string>;
 }
-export interface CadModelIR {
+export interface CadModelIR1 {
   schema: 'barocss-cad-ir'; schemaVersion: 1; sourceVersion: 0 | 1;
   name: string; lengthUnit: 'mm'; nodes: (CadLiteralIRNode | CadExtrudeIRNode)[];
   dependencies: { fromId: string; toId: string; kind: 'curve-input'; span: CadSourceRange }[];
 }
-export function copyCadData<T>(value: T): T {
-  if (Array.isArray(value)) return value.map(item => copyCadData(item)) as T;
-  if (value !== null && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, copyCadData(item)])) as T;
-  return value;
+export interface CadModelIR2 {
+  schema: 'barocss-cad-ir'; schemaVersion: 2; sourceVersion: 2;
+  name: string; lengthUnit: 'mm'; nodes: (CadLiteralIRNode | CadExtrudeIRNode)[];
+  dependencies: (CadModelIR1['dependencies'][number] | CadParameterDependency)[];
+  parameters: CadResolvedParameter[]; bindings: CadFieldBinding[];
 }
+export type CadModelIR = CadModelIR1 | CadModelIR2;
 function raw(value: CadAstValue): unknown {
   if (value.kind === 'array') return value.items.map(raw);
   if (value.kind === 'reference') return value.id;
-  return value.value;
+  if (value.kind === 'number' || value.kind === 'identifier') return value.value;
+  throw new CadAstError('TYPE', 'Resolved numeric values are required', value.range);
 }
 const zeroRange = (): CadSourceRange => ({ start: 0, end: 0, line: 1, column: 1, endLine: 1, endColumn: 1 });
 function nativeCode(message: string): string {
@@ -42,11 +50,12 @@ function geometryRange(d: CadAstDeclaration, message: string): CadSourceRange {
   return d.fields.find(f => keys.includes(f.name))?.value.range ?? d.range;
 }
 /** Resolve original source data and preflight every feature before any lowering. */
-export function analyzeCadAst(ast: CadModelAst, sourceVersion: 0 | 1, _source: string): CadModelIR {
+function analyzeGeometry(ast: CadModelAst, sourceVersion: 0 | 1 | 2): { name: string; lengthUnit: 'mm'; nodes: (CadLiteralIRNode | CadExtrudeIRNode)[]; dependencies: CadModelIR1['dependencies'] } {
   const nodes: (CadLiteralIRNode | CadExtrudeIRNode)[] = [];
   const literals = new Map<string, CadLiteralIRNode>();
   const byId = new Map(ast.declarations.map(d => [d.id, d]));
   for (const declaration of ast.declarations) {
+    if (declaration.kind === 'parameter') throw new CadAstError('TYPE', 'Unresolved parameter cannot enter geometry validation', declaration.range, declaration.id);
     if (declaration.kind === 'extrude') {
       if (!declaration.fields.some(f => f.name === 'curve') || !declaration.fields.some(f => f.name === 'vector')) throw new CadAstError('FIELD', 'Extrusion requires curve and vector fields', declaration.range, declaration.id);
       continue;
@@ -75,7 +84,7 @@ export function analyzeCadAst(ast: CadModelAst, sourceVersion: 0 | 1, _source: s
   if (!version || raw(version.value) !== sourceVersion) throw new CadAstError('VERSION', 'Declared source version must match sourceVersion: ' + sourceVersion, version?.value.range ?? zeroRange());
   if (!unit || raw(unit.value) !== 'mm') throw new CadAstError('UNIT', 'length-unit: mm is required', unit?.value.range ?? zeroRange());
   if (!ast.declarations.length) throw new CadAstError('GEOMETRY', 'Model must contain geometry', zeroRange(), undefined);
-  const dependencies: CadModelIR['dependencies'] = [];
+  const dependencies: CadModelIR1['dependencies'] = [];
   for (const declaration of ast.declarations) {
     if (declaration.kind !== 'extrude') { nodes.push(literals.get(declaration.id)!); continue; }
     const reference = declaration.fields.find(f => f.name === 'curve'), vectorField = declaration.fields.find(f => f.name === 'vector');
@@ -91,5 +100,18 @@ export function analyzeCadAst(ast: CadModelAst, sourceVersion: 0 | 1, _source: s
     nodes.push({ kind: 'extrude', id: declaration.id, inputId, vector: copyCadData(vector), span: { ...declaration.range }, referenceSpan: { ...reference.value.range }, fieldTypes: { curve: 'curve-reference', vector: 'mm-vector3' } });
     dependencies.push({ fromId: declaration.id, toId: inputId, kind: 'curve-input', span: { ...reference.value.range } });
   }
-  return { schema: 'barocss-cad-ir', schemaVersion: 1, sourceVersion, name: ast.name, lengthUnit: 'mm', nodes, dependencies };
+  return { name: ast.name, lengthUnit: 'mm', nodes, dependencies };
+}
+
+/** All references/quantities/native inputs resolve before any derived lowering. */
+export function analyzeCadAst(ast: CadModelAst, sourceVersion: 0 | 1 | 2, _source: string): CadModelIR {
+  if (sourceVersion !== 2) {
+    const geometry = analyzeGeometry(ast, sourceVersion);
+    return { schema: 'barocss-cad-ir', schemaVersion: 1, sourceVersion, ...geometry };
+  }
+  const resolved = resolveCadParameters(ast);
+  const geometry = analyzeGeometry(resolved.ast, 2);
+  const dependencies = [...geometry.dependencies, ...resolved.dependencies].sort((a,b) => a.span.start - b.span.start);
+  return { schema: 'barocss-cad-ir', schemaVersion: 2, sourceVersion: 2, ...geometry, dependencies,
+    parameters: resolved.parameters, bindings: resolved.bindings };
 }

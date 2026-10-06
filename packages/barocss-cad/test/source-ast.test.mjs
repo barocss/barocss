@@ -42,7 +42,7 @@ test('forward v1 references, comment braces and actual source version fields rem
   assert.equal(parseCadAst('@model x{version:9;length-unit:wrong;@curve #bad{degree:broken;}}', 0).fields[0].value.value, 9);
   assert.doesNotThrow(() => parseCadAst('@model x{version:1;length-unit:mm;@extrude #a{curve:#missing;vector:[0,0,0];}}', 1));
   const compiled = compileCadModel(source, { sourceVersion: 1 }); assert.equal(compiled.ok, true); const metadata = compiled.constructions[0]; assert.equal(field.value.range.start, metadata.referenceSpan.start); assert.equal(field.value.range.end, metadata.referenceSpan.end);
-  const implementation = readFileSync(new URL('../src/source-ast.ts', import.meta.url), 'utf8'); assert.ok(!/^import\s/m.test(implementation), 'AST parser has no native/parser/compiler runtime dependencies');
+  const implementation = readFileSync(new URL('../src/source-ast.ts', import.meta.url), 'utf8'); const imports = [...implementation.matchAll(/^import(?! type).*from ['\"]([^'\"]+)['\"]/gm)].map(match => match[1]); assert.deepEqual(imports, ['./expression-parser.js'], 'AST parsing may import only its bounded expression parser');
 });
 
 test('direct v1 curve errors refer only to actual source and expose no partial model', () => {
@@ -109,7 +109,7 @@ test('malicious allocation, declaration growth, byte overflow and deep arrays fa
   assert.throws(() => parseCadAst('@model x{' + Array.from({ length: 17 }, (_, i) => `@curve #a${i}{}`).join('') + '}', 0), (e) => e.code === 'LIMIT');
   assert.throws(() => parseCadAst(' '.repeat(262145), 0), (e) => e.code === 'LIMIT' && e.range.start === 0);
   assert.throws(() => parseCadAst('/*' + '😀'.repeat(65536) + '*/', 0), (e) => e.code === 'LIMIT');
-  assert.throws(() => parseCadAst(null, 0), TypeError); assert.throws(() => parseCadAst('', 2), TypeError);
+  assert.throws(() => parseCadAst(null, 0), TypeError); assert.throws(() => parseCadAst('', 3), TypeError);
 });
 
 test('fresh ASTs own source ranges and nested values independently', () => {

@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
+import { writeParameterEvidence } from './parameter-evidence.mjs';
 import { writePreviewEvidence } from './preview-evidence.mjs';
 import { writeConstructionEvidence } from './construction-evidence.mjs';
 import { writeDerivativeEvidence } from './derivative-evidence.mjs';
@@ -40,5 +41,6 @@ try {
   writeOrthogonalEvidence(api);
   writeBoxShellEvidence(api);
   writeBoxSolidEvidence(api);
+  writeParameterEvidence(api);
   console.log('Packed CAD ESM, runtime math/export, and external TypeScript consumer passed');
 } finally {rmSync(temp,{recursive:true,force:true});}

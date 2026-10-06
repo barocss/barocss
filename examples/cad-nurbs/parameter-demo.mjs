@@ -1,0 +1,13 @@
+import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {compileCadModel,tessellateSurface,exportIGES} from '../../packages/barocss-cad/dist/index.js';
+const [sourcePath,outputPath]=process.argv.slice(2);
+if(!sourcePath||!outputPath)throw new Error('Usage: node parameter-demo.mjs source-v2.css output-directory');
+const source=readFileSync(resolve(sourcePath),'utf8'),compiled=compileCadModel(source,{sourceVersion:2});
+if(!compiled.ok)throw new Error(JSON.stringify(compiled.diagnostics));
+const surface=compiled.model.objects.find(o=>o.kind==='surface');
+if(!surface)throw new Error('Parameter demonstration needs a native surface');
+const preview=tessellateSurface(surface,{countU:17,countV:9,revision:545}),exchange=exportIGES(compiled.model,[surface.id]),output=resolve(outputPath);
+mkdirSync(output,{recursive:true});const json=value=>JSON.stringify(value,null,2)+'\n';
+for(const [filename,bytes]of Object.entries({'source.css':source,'ast.json':json(compiled.ast),'ir.json':json(compiled.ir),'native.json':json(compiled.model),'parameters.json':json(compiled.ir.parameters),'packet.json':json(preview.packet),'preview-report.json':json(preview.report),'geometry.iges':exchange.iges,'export-report.json':json(exchange.report)}))writeFileSync(resolve(output,filename),bytes);
+console.log(json({output,sourceVersion:2,irSchemaVersion:2,nativeVersion:0,selectedId:surface.id,limitations:'No parameter GUI/project2/save override, solid or general feature graph claim.'}));
