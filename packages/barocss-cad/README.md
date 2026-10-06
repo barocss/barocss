@@ -2502,3 +2502,71 @@ Ordinary finite native artifact read/validation is not a signed-zero product
 file guarantee. Request/canonical geometry/UV/seam/use failures preserve prior
 outputs. Affected build/this run are prototype checks; broader validation and
 candidate curved-shell display/solid certification remain deferred.
+
+## Original circle prism cap/wall display and seam lineage
+
+`tessellateXYCirclePrismShell(bundle,{meshId,revision,segmentsPerQuarter})`
+owns the actual circle-prism candidate and calls its unchanged canonical gate.
+Exact options require distinct native-ID/Model-name ASCII meshID1..64, integer
+revision0..2147483647 and k2..32. Returns owned packet/faceRanges/edgePaths/
+edgeProvenance/report under unchanged PreviewPacket0/mm/right-handed-y-up/ccw.
+Input bounds32768values/depth14/arrays128/records24/strings128 stay unchanged.
+
+N=4*k native parameter samplesj/k retain original caps' world Curves and
+rational UV pcurves. Each cap centre/boundary point and oriented normal comes
+from its actual world plane SurfaceD1/represented inverseUV. Bottom winding/
+normal reverses once by face orientation, not a second coedge reversal; top+Z.
+Actual Curve/Surface binding is measured within1e-7mm, without rewriting/clamps.
+Neither cap renders the supporting square or a separate analytic cylinder.
+
+Wall points use actual ruled Surface point evaluation at U=t_j/t_{j+1},V0/1,
+including valid C0 knot points. Each panel duplicates four vertices, triangles
+[0,1,2]/[1,3,2], and assigns ONE actual normalized SurfaceD1 du×dv normal
+sampled at its strict interior midpointU,V.5. Panel normalSampleUV/vertex and
+scalar-index ranges are recorded. These are explicit faceted display normals,
+not exact endpoint normals/smooth continuity/regularity. Existing D1 refusal
+atU1/2/3 remains; no knot nudging/finite differences/radial substitutes.
+WallU0..4 remains raw native UV, not normalized. Face ranges retain actual
+face/Surface/role/orientation/domain and sampling lineage. Native faces stay3.
+
+Vertices6*N+2,triangles4*N: k2 gives50/32, k8 gives194/128, k32 gives770/512.
+All native and Float32 world triangles must remain finite/nonzero/outward with
+positive dot against each assigned normal before packet adoption. Exact bounds
+come from emitted positions. Native-valid Float32 collapse refuses display
+with no recenter/rescale/heal/drop or caller mutation. Original native objects/
+source/topology remain unchanged/reusable; cap/wall/panel duplication is display
+connectivity only, no tolerance welding or native panel edges.
+
+Exactly THREE original edge paths: bottom/top Curve0..4,N+1 samples each;
+actual seam line0..1,two endpoints. Seam is drawn once. Both original uses are
+retained per edge with use/face/Surface/loop/pcurve IDs/sense and actual UV
+curve coefficients/sample bindings. Seam uses own the SAME wall atU4/U0 with
+opposite senses; no invented second seam path or radial/panel CAD edges.
+Native maximum129 circle path points at k32 exceeds existing GPU overlay's
+64points/path. A later overlay consumer selects k2..15 (max61), with no split/
+truncation/budget widening. Report only marks that path-budget eligibility,
+not complete renderer interoperability.
+
+Report retains original native595 candidate flags and IDs, local ranges/panel
+normal provenance/sampling/bounds, actual cap/wall/total triangle area, native
+reference boundary area and signed difference. Actual bottom/top Curve interval
+midpoint-to-chord deviations and sampled Curve/Surface discrepancies are finite
+observations, not certified maximum errors/solid mass/numerical/performance.
+Uniform native parameter is not uniform angle. periodic:false,
+candidateClosedShell:true as native structural observation only,
+geometricValidity:not-certified,topologyCertified:false,solid:false remain.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/circle-prism-shell-preview-demo.mjs /tmp/barocss-circle-prism-shell-preview-prototype
+```
+
+The short actual packet/provenance/file run checks maink2/k8/k32, every owning
+Surface/UV/cap-normal or recorded panel-midpoint normal, native/Float32 winding,
+cap area against actual disk sampling, three paths and repeated same-wall seam
+uses. Original C0 D1 refusal stays. Decimal/fractional-height and edited arc
+inputs retain native lineage. Ordinary packet/provenance JSON read uses numeric
+JSON semantics, not signed-zero exchange. Invalid options/native references/
+getters and actual native-valid Float32 collapse preserve earlier data. No
+raster/GUI/cylinder grammar/document/graph/ray/Boolean/intersection/STEP/general
+mesher or solid certification is claimed; broad validation is deferred.
