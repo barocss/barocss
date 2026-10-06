@@ -39,6 +39,9 @@ for (const manifest of [index.packageModules, index.sourceModules]) {
 }
 const cad = await import(pathToFileURL(path.join(repo, 'packages/barocss-cad/dist/index.js')).href);
 const gpu = await import(pathToFileURL(path.join(repo, 'packages/barocss-gpu/dist/index.js')).href);
+assert.equal(index.historyFrames?.length,8);
+const historyLineage=JSON.parse(await readFile(path.join(evidence,'history-lineage.json'),'utf8'));assert.deepEqual(historyLineage,index.historyLineage);assert(historyLineage.loss.cursorRetained&&historyLineage.pendingRetained);
+for(const receipt of historyLineage.records){assert.equal(path.basename(receipt.file),receipt.file);const bytes=await readFile(path.join(evidence,receipt.file));assert.equal(hash(bytes),receipt.fileHash);const file=parseProject(bytes.toString('utf8'),gpu);assert.equal(cad.exportIGES(cad.compileConstruction(file.source).model,[file.surfaceId]).iges,await readFile(path.join(evidence,'history-redo-'+receipt.kind+'.downloaded.igs'),'utf8'));}
 const projectLineage=JSON.parse(await readFile(path.join(evidence,'project-lineage.json'),'utf8'));
 assert.deepEqual(projectLineage,index.projectLineage);assert.equal(projectLineage.records.length,4);assert.equal(projectLineage.negatives.length,13);
 assert(projectLineage.drawFailureRetained&&projectLineage.pendingFieldsRetained&&projectLineage.lifecycle.ownerRetained);
@@ -66,7 +69,7 @@ assert.deepEqual((index.primitiveFrames??[]).map(f=>f.name).sort(),['create-quar
 const fractionsU = [0,.03,.07,.123,.2,.271,.33,.41,.5,.57,.66,.719,.8,.877,.93,.97,1];
 const fractionsV = [0,.11,.23,.37,.5,.61,.79,.91,1];
 const fixtures = [];
-for (const frame of [...index.constructionFrames, ...index.objectFrames, ...index.parameterFrames, ...index.primitiveFrames, ...index.projectFrames]) {
+for (const frame of [...index.constructionFrames, ...index.objectFrames, ...index.parameterFrames, ...index.primitiveFrames, ...index.projectFrames, ...index.historyFrames]) {
   const multi = objectNames.includes(frame.name)||Boolean(frame.fixtureId);
   assert.equal(frame.taskCommit, head);
   assert([0, 1].includes(frame.sourceVersion));

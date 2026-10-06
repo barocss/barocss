@@ -1,3 +1,4 @@
+import { createProjectHistory } from './history.mjs';
 import { validateProject } from './project.mjs';
 import { preparePrimitive, dimensionUpdate } from './primitives.mjs';
 import { parameterState as readParameterState, canonicalConstruction } from './parameters.mjs';
@@ -27,6 +28,8 @@ export function prepareCandidate(source, settings, cad, gpu) {
 
 export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
   let renderer, accepted, inspectedId, primitive, revision = 0, viewRevision = 0, disposed = false, unavailable = false;
+  const history=createProjectHistory(gpu);
+  let transactionDepth=0,plannedPrimitive=null,plannedEntry,restoring=false;
   let loadingProject=false;
   let status = 'No accepted preview';
   const announce = message => { status = message; if(!loadingProject)notify(message, accepted && structuredClone(accepted)); };
@@ -38,6 +41,11 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
         if (disposed || unavailable) throw new Error('Preview unavailable');
         if (revision === 2147483647 || viewRevision === 2147483647) throw new RangeError('Revision limit reached');
         const candidate = prepareCandidate(source, { ...settings, revision: revision + 1 }, cad, gpu);
+        // Preflight the final logical document before any GPU adoption. The outer
+        // transaction commits this entry only after final primitive ownership adoption.
+        plannedEntry=history.prepare({format:'barocss-cad-project',version:1,sourceVersion:candidate.sourceVersion??0,
+          source:candidate.source,surfaceId:candidate.packet.surfaceId,grid:structuredClone(candidate.report.grid),
+          options:structuredClone(candidate.options),primitive:plannedPrimitive});
         if (renderer) {
           const result = renderer.update(candidate.packet, candidate.options);
           if (!result.ok) throw result.error;
@@ -54,6 +62,9 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
         return { ok: false, error: error.message };
       }
     },
+    historyState(){return history.state(controller.available);},
+    undo(editorSource){return restoreHistory(-1,editorSource);},
+    redo(editorSource){return restoreHistory(1,editorSource);},
     projectState() {
       if(!accepted)throw new Error('No accepted project');
       const owned=controller.primitiveState();
@@ -67,6 +78,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
         if(typeof editorSource!=='string'||editorSource!==accepted.source)throw new Error('Apply or discard pending source first');
         const file=validateProject(record,gpu);
         // apply prepares all native geometry/options before its one renderer transaction.
+        plannedPrimitive=file.primitive;
         let result;loadingProject=true;
         try{result=controller.apply(file.source,{sourceVersion:file.sourceVersion,surfaceId:file.surfaceId,...file.grid,options:file.options});}finally{loadingProject=false;}
         if(result.ok){primitive=file.primitive?{...file.primitive,source:file.source}:undefined;announce(`Opened local project; model revision ${revision}`);}
@@ -82,6 +94,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
         if(disposed||unavailable||!accepted||!renderer)throw new Error('Preview unavailable');
         if(typeof editorSource!=='string'||editorSource!==accepted.source)throw new Error('Apply or discard pending source first');
         const generated=preparePrimitive(request);
+        plannedPrimitive={kind:generated.kind,size:generated.size,height:generated.height};
         const result=controller.apply(generated.source,{sourceVersion:1,surfaceId:generated.surfaceId,countU:generated.countU,countV:generated.countV,options:generated.options});
         if(result.ok){primitive={kind:generated.kind,size:generated.size,height:generated.height,source:generated.source};announce(`Created open ${generated.kind}; model revision ${revision}`);}
         return result;
@@ -94,6 +107,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
         if(typeof editorSource!=='string'||editorSource!==accepted.source)throw new Error('Apply or discard pending source first');
         const dimensions=dimensionUpdate(request),generated=preparePrimitive({kind:owned.kind,...dimensions});
         const options=structuredClone(accepted.options);options.translate=generated.options.translate;
+        plannedPrimitive={kind:generated.kind,size:generated.size,height:generated.height};
         const result=controller.apply(generated.source,{sourceVersion:1,surfaceId:generated.surfaceId,...accepted.report.grid,options});
         if(result.ok){primitive={kind:owned.kind,...dimensions,source:generated.source};announce(`Updated open ${owned.kind}; model revision ${revision}`);}
         return result;
@@ -167,5 +181,36 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
     get status() { return status; },
     get available() { return Boolean(renderer) && !disposed && !unavailable; },
   };
+  function restoreHistory(direction,editorSource){
+    try{
+      if(disposed||unavailable||!accepted||!renderer)throw new Error('Preview unavailable');
+      if(typeof editorSource!=='string'||editorSource!==accepted.source)throw new Error('Apply or discard pending source first');
+      const target=history.target(direction),camera=accepted.options.camera;
+      if(camera===undefined)delete target.record.options.camera;
+      else target.record.options.camera=structuredClone(camera);
+      let result;restoring=true;
+      try{result=controller.loadProject(target.record,editorSource);}finally{restoring=false;}
+      if(!result.ok)return result;
+      history.move(target.cursor);announce(`Restored model; revision ${revision}`);
+      return{ok:true,history:controller.historyState()};
+    }catch(error){return{ok:false,error:error.message};}
+  }
+  // Nested apply calls are implementation details of one explicit modelling action.
+  for(const name of ['apply','createPrimitive','updateDimensions','applyParameters','showSurface','loadProject']){
+    const action=controller[name];
+    controller[name]=(...args)=>{
+      if(transactionDepth)return action(...args);
+      transactionDepth=1;plannedPrimitive=null;plannedEntry=undefined;
+      let result;
+      try{
+        result=action(...args);
+        if(result.ok&&!restoring)history.commit(plannedEntry);
+        return result;
+      }finally{
+        transactionDepth=0;plannedPrimitive=null;plannedEntry=undefined;
+        if(result?.ok)announce(status);
+      }
+    };
+  }
   return controller;
 }

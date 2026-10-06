@@ -146,6 +146,7 @@ function updateEditorState(){
   const accepted=controller.snapshot(),pending=Boolean(accepted)&&$('source').value!==accepted.source;
   $('editor-state').textContent=accepted?(pending?'Pending source · not applied':'Source matches accepted scene'):'No accepted source';
   $('editor-state').classList.toggle('is-pending',pending);
+  renderHistory(pending);
 }
 function renderScene(accepted){
   const {model,packet,report,options,revision,viewRevision}=accepted;
@@ -177,6 +178,15 @@ function renderProperties(inspection){
   for(const [label,value] of fields){const row=document.createElement('div'),term=document.createElement('dt'),description=document.createElement('dd');term.textContent=label;description.textContent=value;row.append(term,description);$('properties').append(row);}
 }
 
+function renderHistory(pending=false){
+ const state=controller.historyState();$('history-undo').disabled=pending||!state.canUndo;$('history-redo').disabled=pending||!state.canRedo;
+ $('history-count').textContent=state.count?`State ${state.cursor+1} of ${state.count} · Undo ${state.undoCount} · Redo ${state.redoCount}`:'No accepted model history';
+}
+for(const direction of ['undo','redo'])$('history-'+direction).addEventListener('click',()=>{
+ const result=controller[direction]($('source').value);
+ if(result.ok){refreshProjectFields();if($('history-'+direction).disabled){const next=$('history-'+(direction==='undo'?'redo':'undo'));(next.disabled?$('history-count'):next).focus({preventScroll:true});}$('history-status').textContent=`${direction==='undo'?'Undo':'Redo'} restored the accepted model. Current camera retained.`;}
+ else $('history-status').textContent=`History rejected: ${result.error}. Accepted scene and history retained.`;
+});
 function refreshProjectFields(){
  const accepted=controller.snapshot(),owned=controller.primitiveState();
  fields({source:accepted.source,id:accepted.packet.surfaceId,sourceVersion:accepted.sourceVersion??0,...accepted.report.grid,options:accepted.options});
@@ -207,6 +217,6 @@ $('project-open').addEventListener('change',async()=>{
 });
 const mouseOrbit=bindMouseOrbit(canvas,controller,cameraFields);
 // Inspection API for the local evidence runner. No source-provided code is evaluated.
-window.cadPreview={projectState:()=>controller.projectState(),loadProject:(record,editorSource)=>controller.loadProject(record,editorSource),primitiveState:()=>controller.primitiveState(),createPrimitive:(request,editorSource)=>controller.createPrimitive(request,editorSource),updateDimensions:(request,editorSource)=>controller.updateDimensions(request,editorSource),parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>{mouseOrbit.dispose();controller.dispose();},get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
+window.cadPreview={historyState:()=>controller.historyState(),undo:source=>controller.undo(source),redo:source=>controller.redo(source),projectState:()=>controller.projectState(),loadProject:(record,editorSource)=>controller.loadProject(record,editorSource),primitiveState:()=>controller.primitiveState(),createPrimitive:(request,editorSource)=>controller.createPrimitive(request,editorSource),updateDimensions:(request,editorSource)=>controller.updateDimensions(request,editorSource),parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>{mouseOrbit.dispose();controller.dispose();},get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
 window.addEventListener('pagehide',()=>{mouseOrbit.dispose();controller.dispose();},{once:true});
 select(fixtures[0].id);

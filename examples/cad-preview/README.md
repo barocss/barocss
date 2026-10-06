@@ -297,3 +297,17 @@ IDs match exactly. Manual projects retain native geometry without claiming tool 
 The data serializer preserves binary64 settings, including negative zero. Project files contain
 no cached geometry certificate or revision. IGES remains a separate original native export;
 project files are not STEP, IGES, BREP or shared-topology exchange.
+
+
+## Modelling history
+
+Undo and Redo retain at most 20 accepted document states, bounded to 8 MiB total and
+300 KiB per serialized project. Source, selection, grid, placement and tool dimensions
+belong to a state. Current camera settings are retained during restoration. Typing,
+inspection, camera gestures and Save do not enter history. Apply or discard pending source
+before restoration. A successful new modelling change truncates Redo; rejection preserves it.
+
+History records completed outer actions only. New documents are preflighted before GPU
+adoption; restoration uses one validated project load with new revisions and the existing
+renderer. No historical native/GPU handles, cached certificates or old revisions are restored.
+Saved project files still contain only the current accepted document, without history.
