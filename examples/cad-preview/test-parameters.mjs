@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compileConstruction } from '../../packages/barocss-cad/dist/index.js';
+import { compileCadModel } from '../../packages/barocss-cad/dist/index.js';
 import { canonicalConstruction, parameterState, decimal } from './parameters.mjs';
 
 const source = `@model original_name {
@@ -11,13 +11,14 @@ const source = `@model original_name {
  @extrude #second {curve:#input; vector:[0,3,1];}
 }`;
 function accepted(text = source, selectedId = 'first') {
-  const result = compileConstruction(text);
-  return { source: text, ...result, selectedConstruction: result.constructions.find(f => f.outputId === selectedId), packet: { surfaceId: selectedId } };
+  const result = compileCadModel(text, {sourceVersion:1});
+  assert(result.ok, JSON.stringify(result.diagnostics));
+  return { source: text, sourceVersion:1, model:result.model, constructions:result.constructions, selectedConstruction: result.constructions.find(f => f.outputId === selectedId), packet: { surfaceId: selectedId } };
 }
 function semantics(result) { return { model: result.model, constructions: result.constructions.map(({ span, referenceSpan, ...feature }) => feature) }; }
 function assertRoundtrip(value) {
   const generated = canonicalConstruction(value);
-  assert.deepStrictEqual(semantics(compileConstruction(generated)), semantics(value));
+  assert.deepStrictEqual(semantics(compileCadModel(generated, {sourceVersion:1})), semantics(value));
   assert.ok(!generated.includes('e+')); assert.ok(!generated.includes('e-'));
   return generated;
 }
@@ -27,7 +28,7 @@ test('canonical no-edit source preserves native values, order, forward reference
   assert.deepStrictEqual(value, original);
   assert.deepStrictEqual(value.model.objects.map(o => o.id), ['first', 'unused', 'input', 'second']);
   assert.ok(generated.indexOf('@extrude #first') < generated.indexOf('@curve #input'));
-  const rebuilt = compileConstruction(generated);
+  const rebuilt = compileCadModel(generated, {sourceVersion:1});
   for (const feature of rebuilt.constructions) {
     assert.match(generated.slice(feature.span.start, feature.span.end), new RegExp('@extrude #' + feature.outputId));
     assert.equal(generated.slice(feature.referenceSpan.start, feature.referenceSpan.end), '#' + feature.inputId);
@@ -40,7 +41,7 @@ test('canonical no-edit source preserves native values, order, forward reference
 test('typed vector and weight modify only intended fields, preserving shared feature relationships', () => {
   const value = accepted(), original = structuredClone(value);
   const request = { vector: [-0, 5.25, -2], weight: { index: 1, value: 0.875 } };
-  const generated = canonicalConstruction(value, request), rebuilt = compileConstruction(generated);
+  const generated = canonicalConstruction(value, request), rebuilt = compileCadModel(generated, {sourceVersion:1});
   const expected = structuredClone(value);
   expected.model.objects.find(o => o.id === 'input').weights[1] = 0.875;
   expected.constructions[0].vector = [-0, 5.25, -2];
@@ -49,7 +50,7 @@ test('typed vector and weight modify only intended fields, preserving shared fea
   for (const surface of rebuilt.model.objects.filter(o => o.kind === 'surface')) assert.deepStrictEqual(surface.weights[1], [0.875, 0.875]);
   assert.deepStrictEqual(rebuilt.model.objects.find(o => o.id === 'input'), expected.model.objects.find(o => o.id === 'input'));
   request.vector[1] = 99; request.weight.value = 99;
-  assert.equal(compileConstruction(generated).constructions[0].vector[1], 5.25);
+  assert.equal(compileCadModel(generated, {sourceVersion:1}).constructions[0].vector[1], 5.25);
   assert.deepStrictEqual(value, original);
   assertRoundtrip(accepted(generated));
 });
@@ -75,7 +76,7 @@ test('strict typed data rejects foreign/accessor/symbol/sparse requests without 
   const decorated = [0, 1, 0]; decorated.extra = 1; malformed.push({ vector: decorated });
   for (const request of malformed) assert.throws(() => canonicalConstruction(value, request));
   assert.equal(reads, 0);
-  for (const weight of [1e-6, 1e6]) assert.equal(compileConstruction(canonicalConstruction(value, { weight: { index: 0, value: weight } })).model.objects.find(o => o.id === 'input').weights[0], weight);
+  for (const weight of [1e-6, 1e6]) assert.equal(compileCadModel(canonicalConstruction(value, { weight: { index: 0, value: weight } }), {sourceVersion:1}).model.objects.find(o => o.id === 'input').weights[0], weight);
 });
 test('malformed native/provenance records cannot be silently discarded', () => {
   const mutators = [

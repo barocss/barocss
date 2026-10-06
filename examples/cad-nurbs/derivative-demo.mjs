@@ -1,11 +1,11 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { compileConstruction, evaluateCurveD1, evaluateSurfaceD1 } from '../../packages/barocss-cad/dist/index.js';
+import { compileCadModel, evaluateCurveD1, evaluateSurfaceD1 } from '../../packages/barocss-cad/dist/index.js';
 
 const [outputPath] = process.argv.slice(2);
 if (!outputPath) throw new Error('Usage: node derivative-demo.mjs output-report.json');
 const source = readFileSync(new URL('./extruded-asymmetric.css', import.meta.url),'utf8');
-const compiled = compileConstruction(source), feature = compiled.constructions[0];
+const compiled = compileCadModel(source,{sourceVersion:1});if(!compiled.ok)throw new Error(JSON.stringify(compiled.diagnostics));const feature=compiled.constructions[0];
 const curve = compiled.model.objects.find(object => object.id === feature.inputId);
 const surface = compiled.model.objects.find(object => object.id === feature.outputId);
 const samples = [2,2.5,3.5,7].map(u => ({u,v:.5,curve:evaluateCurveD1(curve,u),surface:evaluateSurfaceD1(surface,u,.5)}));

@@ -42,7 +42,7 @@ const cad = await import(pathToFileURL(path.join(repo, 'packages/barocss-cad/dis
 const gpu = await import(pathToFileURL(path.join(repo, 'packages/barocss-gpu/dist/index.js')).href);
 assert.equal(index.historyFrames?.length,8);
 const historyLineage=JSON.parse(await readFile(path.join(evidence,'history-lineage.json'),'utf8'));assert.deepEqual(historyLineage,index.historyLineage);assert(historyLineage.loss.cursorRetained&&historyLineage.pendingRetained);
-for(const receipt of historyLineage.records){assert.equal(path.basename(receipt.file),receipt.file);const bytes=await readFile(path.join(evidence,receipt.file));assert.equal(hash(bytes),receipt.fileHash);const file=parseProject(bytes.toString('utf8'),gpu);assert.equal(cad.exportIGES(cad.compileConstruction(file.source).model,[file.surfaceId]).iges,await readFile(path.join(evidence,'history-redo-'+receipt.kind+'.downloaded.igs'),'utf8'));}
+for(const receipt of historyLineage.records){assert.equal(path.basename(receipt.file),receipt.file);const bytes=await readFile(path.join(evidence,receipt.file));assert.equal(hash(bytes),receipt.fileHash);const file=parseProject(bytes.toString('utf8'),gpu);assert.equal(cad.exportIGES(cad.compileCadModel(file.source,{sourceVersion:file.sourceVersion}).model,[file.surfaceId]).iges,await readFile(path.join(evidence,'history-redo-'+receipt.kind+'.downloaded.igs'),'utf8'));}
 const projectLineage=JSON.parse(await readFile(path.join(evidence,'project-lineage.json'),'utf8'));
 assert.deepEqual(projectLineage,index.projectLineage);assert.equal(projectLineage.records.length,4);assert.equal(projectLineage.negatives.length,13);
 assert(projectLineage.drawFailureRetained&&projectLineage.pendingFieldsRetained&&projectLineage.lifecycle.ownerRetained);
@@ -52,7 +52,7 @@ for(const receipt of projectLineage.records){
  const file=parseProject(bytes.toString('utf8'),gpu),name=receipt.kind?`project-reopened-${receipt.kind}`:`project-${receipt.fixtureId}`;
  assert.equal(await readFile(path.join(evidence,name+'.source.css'),'utf8'),file.source);
  const display=JSON.parse(await readFile(path.join(evidence,name+'.display.json'),'utf8'));assert.deepEqual(display.options,JSON.parse(JSON.stringify(file.options)));
- const model=file.sourceVersion===1?cad.compileConstruction(file.source).model:cad.parseModel(file.source);
+ const compiled=cad.compileCadModel(file.source,{sourceVersion:file.sourceVersion});assert(compiled.ok);const model=compiled.model;
  assert.equal(cad.exportIGES(model,[file.surfaceId]).iges,await readFile(path.join(evidence,name+'.downloaded.igs'),'utf8'));
  if(receipt.kind==='sheet')assert(Object.is(file.options.camera.target[0],-0));
 }
@@ -93,14 +93,17 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames, ...inde
   const read = suffix => readFile(path.join(evidence, `${frame.name}.${suffix}`), 'utf8');
   const readJSON = async suffix => JSON.parse(await read(suffix));
   const source = await read('source.css');
-  const compiled = frame.sourceVersion === 1 ? cad.compileConstruction(source) : null;
+  const compiled = cad.compileCadModel(source,{sourceVersion:frame.sourceVersion??0});assert(compiled.ok);
+  assert.deepEqual(compiled.ast,await readJSON('ast.json'));
+  assert.deepEqual(compiled.ir,await readJSON('ir.json'));
+  assert.deepEqual(compiled.diagnostics,await readJSON('diagnostics.json'));
   const model = await readJSON('model.json'), packet = await readJSON('packet.json');
-  const history = compiled ? await readJSON('constructions.json') : null;
-  const feature = compiled ? await readJSON('selected-construction.json') : null;
+  const history = frame.sourceVersion === 1 ? await readJSON('constructions.json') : null;
+  const feature = frame.sourceVersion === 1 ? await readJSON('selected-construction.json') : null;
   const report = await readJSON('report.json'), display = await readJSON('display.json'), exported = await readJSON('iges.json');
   // Captures are JSON data; preserve all fields while comparing serialized metadata.
-  assert.deepEqual(JSON.parse(JSON.stringify(compiled ? compiled.model : cad.parseModel(source))), model);
-  if (compiled) {
+  assert.deepEqual(JSON.parse(JSON.stringify(compiled.model)), model);
+  if (frame.sourceVersion === 1) {
     assert.deepEqual(compiled.constructions, history);
     assert.deepEqual(history.find(item => item.outputId === packet.surfaceId), feature);
     assert.equal(feature.operation, 'extrude');
@@ -124,7 +127,7 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames, ...inde
     const points = isSurface ? inspected.controlPoints.flat() : inspected.controlPoints;
     const weights = isSurface ? inspected.weights.flat() : inspected.weights;
     assert.equal(inspection.id, inspected.id); assert.equal(inspection.kind, inspected.kind);
-    assert.equal(inspection.nativeSource, compiled ? 'construction-v1' : 'native-v0');
+    assert.equal(inspection.nativeSource, frame.sourceVersion === 1 ? 'construction-v1' : 'native-v0');
     assert.equal(inspection.displayedSurfaceId, surface.id);
     assert.deepEqual(inspection.displayedSampledMeshBoundsMM, packet.bounds);
     assert.deepEqual(inspection.weightRange, [Math.min(...weights), Math.max(...weights)]);
@@ -146,7 +149,7 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames, ...inde
   if(frame.primitiveRequest){const tool=preparePrimitive(frame.primitiveRequest),receipt=await readJSON('primitive.json');assert.equal(tool.source,source);assert.deepEqual(receipt.requested,frame.primitiveRequest);assert.equal(feature.inputId,'profile');assert.equal(feature.outputId,'surface');}
   const analyticDescriptor = { inputId: curve.id, outputId: surface.id,
     vector: feature?.vector ?? (surface.id === 'wall' ? [0,0,30] : [3,-2,7]),
-    origin: compiled ? 'accepted construction feature' : 'declared native-v0 fixture oracle; not construction provenance' };
+    origin: frame.sourceVersion === 1 ? 'accepted construction feature' : 'declared native-v0 fixture oracle; not construction provenance' };
   assert.equal(packet.revision, frame.revision); assert.equal(display.revision, frame.revision); assert.equal(display.viewRevision, frame.viewRevision);
   const replay = cad.tessellateSurface(surface, { ...report.grid, revision: frame.revision });
   assert.deepEqual(replay.packet, packet); assert.deepEqual(replay.report, report);

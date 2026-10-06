@@ -22,11 +22,11 @@ export async function runProjectBrowser({browser,page,server,evidence,allowed,ta
  }
  async function capture(p,name,primitiveRequest=null,fixture=null){
   const s=(await state(p)).snapshot,bytes=await p.evaluate(()=>Array.from(window.cadPreview.readPixels())),size=await p.locator('#preview').evaluate(e=>[e.width,e.height]);
-  const compiled=s.sourceVersion===1?cad.compileConstruction(s.source):null,model=compiled?.model??cad.parseModel(s.source),surface=model.objects.find(o=>o.id===s.packet.surfaceId);
-  assert.deepEqual(normalize(model),normalize(s.model));if(compiled)assert.deepEqual(compiled.constructions,s.constructions);
+  const compiled=cad.compileCadModel(s.source,{sourceVersion:s.sourceVersion??0});assert(compiled.ok);const model=compiled.model,surface=model.objects.find(o=>o.id===s.packet.surfaceId);
+  assert.deepEqual(normalize(model),normalize(s.model));if(s.sourceVersion===1)assert.deepEqual(compiled.constructions,s.constructions);
   const replay=cad.tessellateSurface(surface,{...s.report.grid,revision:s.revision});assert.deepEqual(replay.packet,s.packet);assert.deepEqual(replay.report,s.report);assert.deepEqual(cad.exportIGES(model,[surface.id]),s.iges);
   const native=await download(p,'#export');assert.equal(native.bytes.toString(),s.iges.iges);
-  const data={'source.css':s.source,'model.json':json(s.model),'packet.json':json(s.packet),'report.json':json(s.report),'display.json':json({options:s.options,revision:s.revision,viewRevision:s.viewRevision}),'iges.json':json(s.iges),'igs':s.iges.iges,'downloaded.igs':native.bytes,'png':readbackPng(bytes,...size)};
+  const data={'ast.json':json(compiled.ast),'ir.json':json(compiled.ir),'diagnostics.json':json(compiled.diagnostics),'source.css':s.source,'model.json':json(s.model),'packet.json':json(s.packet),'report.json':json(s.report),'display.json':json({options:s.options,revision:s.revision,viewRevision:s.viewRevision}),'iges.json':json(s.iges),'igs':s.iges.iges,'downloaded.igs':native.bytes,'png':readbackPng(bytes,...size)};
   if(s.sourceVersion===1){data['constructions.json']=json(s.constructions);data['selected-construction.json']=json(s.selectedConstruction);}
   if(primitiveRequest)data['primitive.json']=json({requested:primitiveRequest});
   if(fixture){data['objects.json']=json(await p.evaluate(()=>window.cadPreview.objects()));data['inspection.json']=json(await p.evaluate(()=>window.cadPreview.inspection()));}

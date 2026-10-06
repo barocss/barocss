@@ -25,8 +25,8 @@ export function writeFaceEvidence(api) {
   const fractions=[0,.03,.07,.11,.17,.23,.29,.37,.43,.5,.57,.63,.71,.77,.83,.89,.93,.97,1];
   for(const {name,ids,area} of definitions) {
     const source=readFileSync(resolve(root,'examples/cad-nurbs/'+name+'.css'),'utf8');
-    const compiled=name.startsWith('extruded-')?api.compileConstruction(source):null,model=compiled?.model??api.parseModel(source);
-    const surface=compiled?model.objects.find(o=>o.id===compiled.constructions[0].outputId):model.objects[0],before=json(model);
+    const construction=name.startsWith('extruded-'),compiled=api.compileCadModel(source,{sourceVersion:construction?1:0});assert.equal(compiled.ok,true,JSON.stringify(compiled.diagnostics));const model=compiled.model;
+    const surface=construction?model.objects.find(o=>o.id===compiled.constructions[0].outputId):model.objects[0],before=json(model);
     const bundle=api.buildParametricFace(surface,ids),validation=api.validateFaceBundle(bundle),samples=[];
     assert.deepEqual(validation,{incidenceValid:true,geometricValidity:'not-certified',solid:false});assert.equal(json(model),before);
     assert.equal(bundle.geometry.objects.length,5);const edges=bundle.topology.edges,uses=bundle.topology.loop.uses;
@@ -41,9 +41,9 @@ export function writeFaceEvidence(api) {
       samples.push(queries);
     }
     const exported=api.exportIGES(bundle.geometry,bundle.geometry.objects.map(o=>o.id));assert.deepEqual(exported.report.objects.map(o=>o.entity),[128,126,126,126,126]);
-    const contents={'css':source,'bundle.json':json(bundle),'topology.json':json(bundle.topology),'geometry.json':json(bundle.geometry),'native-source.json':json(model),'features.json':json(compiled?.constructions??[]),'ids.json':json(ids),'validation.json':json(validation),'samples.json':json(samples),'iges':exported.iges,'export-report.json':json(exported.report)};
+    const contents={'css':source,'bundle.json':json(bundle),'topology.json':json(bundle.topology),'geometry.json':json(bundle.geometry),'native-source.json':json(model),'features.json':json(compiled.constructions),'ids.json':json(ids),'validation.json':json(validation),'samples.json':json(samples),'iges':exported.iges,'export-report.json':json(exported.report)};
     const artifactHashes={};for(const [suffix,bytes]of Object.entries(contents)){writeFileSync(resolve(output,name+'.'+suffix),bytes);artifactHashes[suffix]=hash(bytes);}
-    fixtures.push({name,bundle,sourceVersion:compiled?1:0,constructions:compiled?.constructions??[],validation,samples,analyticAreaMM2:area,
+    fixtures.push({name,bundle,sourceVersion:compiled.ir.sourceVersion,constructions:compiled.constructions,validation,samples,analyticAreaMM2:area,
       surfaceExport:exported.report.objects[0],edgeExports:exported.report.objects.slice(1),
       files:{source:name+'.css',bundle:name+'.bundle.json',iges:name+'.iges',exportReport:name+'.export-report.json'},hashes:{source:hash(source),bundle:hash(contents['bundle.json']),iges:hash(exported.iges),exportReport:hash(contents['export-report.json'])},artifactHashes});
   }

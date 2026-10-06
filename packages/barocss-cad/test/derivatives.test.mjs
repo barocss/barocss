@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/derivatives.js';
 import { evaluateCurve, evaluateSurface } from '../dist/math.js';
-import { compileConstruction } from '../dist/compiler.js';
+import { compileCadModel } from '../dist/index.js';
 import { extrudeCurve } from '../dist/extrusion.js';
 
 const subtract = (a, b) => a.map((value, axis) => value - b[axis]);
@@ -124,7 +124,7 @@ function lineSpanOracle(curve, u) {
 
 test('actual asymmetric extrusion rejects exact C0 knot but accepts both spans and endpoints', () => {
   const source = readFileSync(new URL('../../../examples/cad-nurbs/extruded-asymmetric.css', import.meta.url), 'utf8');
-  const result = compileConstruction(source);
+  const result = compileCadModel(source,{sourceVersion:1});assert.equal(result.ok,true,JSON.stringify(result.diagnostics));
   const curve = result.model.objects.find((object) => object.kind === 'curve');
   const surface = result.model.objects.find((object) => object.kind === 'surface');
   assert.deepEqual(curve.knots, [2, 2, 3, 7, 7]);
@@ -282,7 +282,7 @@ test('asymmetric flat tangents retain exact domain scale and known U cross V ori
 
 test('actual quarter-circle extrusion has du = curve derivative and dv = construction vector', () => {
   const source = readFileSync(new URL('../../../examples/cad-nurbs/extruded-cylinder.css', import.meta.url), 'utf8');
-  const result = compileConstruction(source);
+  const result = compileCadModel(source,{sourceVersion:1});assert.equal(result.ok,true,JSON.stringify(result.diagnostics));
   const curve = result.model.objects.find((object) => object.kind === 'curve');
   const surface = result.model.objects.find((object) => object.kind === 'surface');
   for (let i = 0; i < 17; i++) for (let j = 0; j < 9; j++) {

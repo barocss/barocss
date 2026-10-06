@@ -1,11 +1,11 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { parseModel, compileConstruction, buildParametricFace, validateFaceBundle, exportIGES } from '../../packages/barocss-cad/dist/index.js';
+import { compileCadModel, buildParametricFace, validateFaceBundle, exportIGES } from '../../packages/barocss-cad/dist/index.js';
 
 const [sourcePath,surfaceId,idsPath,outputPath,sourceVersion]=process.argv.slice(2);
 if(!sourcePath||!surfaceId||!idsPath||!outputPath||!['0','1'].includes(sourceVersion)) throw new Error('Usage: node face-demo.mjs source.css surfaceId ids.json output-directory source-version(0|1)');
 const source=readFileSync(resolve(sourcePath),'utf8'),ids=JSON.parse(readFileSync(resolve(idsPath),'utf8'));
-const compiled=sourceVersion==='1'?compileConstruction(source):null,model=compiled?.model??parseModel(source);
+const compiled=compileCadModel(source,{sourceVersion:Number(sourceVersion)});if(!compiled.ok)throw new Error(JSON.stringify(compiled.diagnostics));const model=compiled.model;
 const surface=model.objects.find(o=>o.id===surfaceId),bundle=buildParametricFace(surface,ids),validation=validateFaceBundle(bundle);
 const exported=exportIGES(bundle.geometry,bundle.geometry.objects.map(o=>o.id));
 const output=resolve(outputPath);mkdirSync(output,{recursive:true});const json=value=>JSON.stringify(value,null,2)+'\n';

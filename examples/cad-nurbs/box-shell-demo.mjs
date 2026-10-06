@@ -1,10 +1,10 @@
 import { readFileSync,mkdirSync,writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { parseModel,buildParametricFace,buildAxisBoxShell,validateAxisBoxShell,validateFaceBundle,exportIGES } from '../../packages/barocss-cad/dist/index.js';
+import { compileCadModel,buildParametricFace,buildAxisBoxShell,validateAxisBoxShell,validateFaceBundle,exportIGES } from '../../packages/barocss-cad/dist/index.js';
 
 const [sourcePath,inputPath,outputPath]=process.argv.slice(2);
 if(!sourcePath||!inputPath||!outputPath)throw new Error('Usage: node box-shell-demo.mjs six-surfaces.css input.json output-directory');
-const source=readFileSync(resolve(sourcePath),'utf8'),input=JSON.parse(readFileSync(resolve(inputPath),'utf8')),model=parseModel(source);
+const source=readFileSync(resolve(sourcePath),'utf8'),input=JSON.parse(readFileSync(resolve(inputPath),'utf8'));const compiled=compileCadModel(source,{sourceVersion:0});if(!compiled.ok)throw new Error(JSON.stringify(compiled.diagnostics));const model=compiled.model;
 const bundles=input.surfaceIds.map(id=>buildParametricFace(model.objects.find(o=>o.id===id),input.localIds));
 const shell=buildAxisBoxShell(input.origin,input.sides,bundles,input.shellIds),validation=validateAxisBoxShell(shell),output=resolve(outputPath),json=v=>JSON.stringify(v,null,2)+'\n';mkdirSync(output,{recursive:true});
 for(const [name,bytes]of Object.entries({'source.css':source,'input.json':json(input),'source-model.json':json(model),'shell.json':json(shell),'validation.json':json(validation)}))writeFileSync(resolve(output,name),bytes);

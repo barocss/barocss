@@ -29,7 +29,7 @@ for(const [name,origin,sides]of definitions) {
   for(let fi=0;fi<6;fi++) {
     const [i0,i1,i2,i3]=faceCorners[fi],corners=[vertices[i0],vertices[i1],vertices[i2],vertices[i3]],A=corners[1].map((x,k)=>x-corners[0][k]),B=corners[3].map((x,k)=>x-corners[0][k]);
     const surface={kind:'surface',id:'local_patch',degreeU:1,degreeV:1,knotsU:[0,0,1,1],knotsV:[0,0,1,1],controlPoints:[[corners[0].slice(),corners[3].slice()],[corners[1].slice(),corners[2].slice()]],weights:[[1,1],[1,1]]},bundle=api.buildParametricFace(surface,localIds),source=sourceFor(surface);
-    assert.deepEqual(api.parseModel(source).objects[0],surface);assert.deepEqual(api.validateFaceBundle(bundle),{incidenceValid:true,geometricValidity:'not-certified',solid:false});
+    const sourceResult=api.compileCadModel(source,{sourceVersion:0});assert.equal(sourceResult.ok,true,JSON.stringify(sourceResult.diagnostics));assert.deepEqual(sourceResult.model.objects[0],surface);assert.deepEqual(api.validateFaceBundle(bundle),{incidenceValid:true,geometricValidity:'not-certified',solid:false});
     assert.deepEqual(cross(A,B).map(x=>x===0?0:Math.sign(x)),normals[fi]);bundles.push(bundle);authored.push({surface,source,origin:corners[0],A,B,normal:normals[fi],area:Math.hypot(...A)*Math.hypot(...B)});
   }
   const before=json(bundles),ids=globalIds(prefix),descriptor=api.buildAxisBoxShell(origin,sides,bundles,ids),validation=api.validateAxisBoxShell(descriptor);assert.equal(json(bundles),before);

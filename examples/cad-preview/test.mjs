@@ -225,7 +225,7 @@ test('loopback server serves only explicit built/example routes under strict CSP
     });
   try {
     for (const route of ['/', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/inspector.mjs', '/parameters.mjs', '/orbit.mjs', '/primitives.mjs', '/project.mjs', '/history.mjs', '/box-preview.mjs', '/style.css',
-      '/cad.js', '/gpu.js', ...['types', 'math', 'parser', 'iges', 'packet', 'preview', 'extrusion', 'compiler', 'derivatives', 'boundary', 'face', 'adjacency', 'orthogonal-adjacency', 'box-shell', 'box-solid'].map(name => `/${name}.js`)]) {
+      '/cad.js', '/gpu.js', ...['types', 'math', 'iges', 'packet', 'preview', 'extrusion', 'derivatives', 'boundary', 'face', 'adjacency', 'orthogonal-adjacency', 'box-shell', 'box-solid', 'model-compiler', 'source-ast', 'semantic-model', 'lower-model', 'construction-types', 'extrusion-validation'].map(name => `/${name}.js`)]) {
       const response = await get(route);
       assert.equal(response.status, 200, route);
       assert.ok(response.body.length > 0, route);
@@ -314,7 +314,7 @@ test('camera-only host updates never recompute CAD and retain native geometry tr
   assert.equal(host.snapshot().revision, beforeEdit.revision + 1);
   assert.equal(host.snapshot().viewRevision, beforeEdit.viewRevision + 1);
   assert.deepEqual(host.snapshot().options.camera, camera);
-  assert(counts.parseModel > cadCalls.parseModel);
+  assert(counts.compileCadModel > cadCalls.compileCadModel);
   host.dispose(); assert.equal(host.setCamera(undefined).ok, false);
 });
 
@@ -322,7 +322,7 @@ test('camera-only host updates never recompute CAD and retain native geometry tr
 test('explicit v1 compiles actual source and preserves selected construction and export identity', () => {
   for (const fixture of constructionFixtures) {
     const accepted = candidate(fixture, { sourceVersion: 1 });
-    const compiled = cad.compileConstruction(fixture.source);
+    const compiled = cad.compileCadModel(fixture.source, {sourceVersion:1});
     assert.equal(accepted.sourceVersion, 1);
     assert.deepEqual(accepted.model, compiled.model);
     assert.deepEqual(accepted.constructions, compiled.constructions);
@@ -357,13 +357,12 @@ test('source versions are explicit and never fall back to the other compiler', (
     fixture.source.replace('@extrude', '@revolve'),
     fixture.source.replace('vector: [0,0,30]', 'script: alert(1)')])
     assert.throws(() => candidate(fixture, { sourceVersion: 1 }, source));
-  let parseCalls = 0, compileCalls = 0;
-  const api = { ...cad, parseModel(...args) { parseCalls++; return cad.parseModel(...args); },
-    compileConstruction(...args) { compileCalls++; return cad.compileConstruction(...args); } };
+  const versions = [];
+  const api = { ...cad, compileCadModel(source, options) { versions.push(options.sourceVersion); return cad.compileCadModel(source, options); } };
   assert.throws(() => candidate(fixture, { sourceVersion: 0 }, fixture.source, api));
-  assert.equal(compileCalls, 0); assert.equal(parseCalls, 1);
+  assert.deepEqual(versions, [0]);
   assert.throws(() => candidate(fixtures[0], { sourceVersion: 1 }, fixtures[0].source, api));
-  assert.equal(compileCalls, 1); assert.equal(parseCalls, 1);
+  assert.deepEqual(versions, [0, 1]);
 });
 
 test('construction vector and rational source edits change actual canonical geometry', () => {
@@ -430,7 +429,7 @@ test('valid construction can still fail the actual preview regularity boundary',
   const fixture = constructionFixtures[0];
   const source = fixture.source.replace('[0,10,0]','[10,0,0]')
     .replace('weights: [1,0.7071067811865476,1]','weights: [1,1,1]');
-  assert.equal(cad.compileConstruction(source).constructions.length, 1);
+  assert.equal(cad.compileCadModel(source, {sourceVersion:1}).constructions.length, 1);
   assert.throws(() => candidate(fixture, { sourceVersion: 1 }, source), /Cancelling|normal|Collapsed/);
 });
 
@@ -524,4 +523,35 @@ test('typed parameter adoption preserves accepted settings, shared inputs and pe
  assert.deepEqual(adopted.constructions.find(f=>f.outputId==='second_wall').vector,[3,0,15]);
  const called=structuredClone(counts);assert(host.inspectObject('arc').ok);assert(host.setCamera(adopted.options.camera).ok);assert.deepEqual(counts,called);
  const source=host.snapshot().source;listeners.get('webglcontextlost')();assert.equal(host.applyParameters({},source).ok,false);host.dispose();assert.equal(host.applyParameters({},source).ok,false);
+});
+
+
+test('removed CAD compiler names and obsolete routes remain absent', async () => {
+  for(const name of ['parseModel','compileConstruction','CadSyntaxError','ConstructionSyntaxError'])assert.equal(Object.hasOwn(cad,name),false);
+  assert.equal(typeof gpu.compileScene,'function');
+  const server=await startServer();
+  try{for(const name of ['parser','compiler','legacy-diagnostics'])assert.equal((await fetch(server.url+'/'+name+'.js')).status,404);}finally{await server.close();}
+});
+
+test('unified structured diagnostics reject source before render and retain accepted document', () => {
+  for (const sourceVersion of [0, 1]) {
+    const fixture = sourceVersion === 0 ? fixtures[0] : constructionFixtures[0];
+    let mounts = 0, updates = 0;
+    const canvas = { addEventListener() {}, removeEventListener() {} };
+    const rendering = { ...gpu, mountMesh() { mounts++; return { update() { updates++; return {ok:true}; }, dispose() {} }; } };
+    const host = createPreviewController(canvas, cad, rendering);
+    assert(host.apply(fixture.source, {sourceVersion, surfaceId:fixture.id, countU:fixture.countU, countV:fixture.countV, options:fixture.options}).ok);
+    const accepted = host.snapshot(), history = host.historyState();
+    const rejected = host.apply(fixture.source.replace('length-unit: mm', 'length-unit: metres'), {sourceVersion, surfaceId:fixture.id, countU:fixture.countU, countV:fixture.countV, options:fixture.options});
+    assert.equal(rejected.ok, false);
+    assert(rejected.diagnostics.length > 0);
+    const diagnostic = rejected.diagnostics[0];
+    assert.equal(diagnostic.severity, 'error'); assert(diagnostic.code && diagnostic.message);
+    assert(diagnostic.range.line >= 1 && diagnostic.range.column >= 1);
+    assert(diagnostic.range.end >= diagnostic.range.start);
+    assert.deepEqual(host.snapshot(), accepted); assert.deepEqual(host.historyState(), history);
+    assert.equal(mounts, 1); assert.equal(updates, 0);
+    rejected.diagnostics[0].message = 'caller mutation';
+    assert.notEqual(host.status, 'caller mutation'); host.dispose();
+  }
 });

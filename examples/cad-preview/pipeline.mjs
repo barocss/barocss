@@ -9,8 +9,14 @@ export function prepareCandidate(source, settings, cad, gpu) {
   if (typeof surfaceId !== 'string') throw new TypeError('Select a surface ID');
   const sourceVersion = settings.sourceVersion === undefined ? 0 : settings.sourceVersion;
   if (sourceVersion !== 0 && sourceVersion !== 1) throw new RangeError('Source version must be explicitly 0 or 1');
-  const compiled = sourceVersion === 1 ? cad.compileConstruction(source) : undefined;
-  const model = sourceVersion === 1 ? compiled.model : cad.parseModel(source);
+  const compiled = cad.compileCadModel(source, { sourceVersion });
+  if (!compiled.ok) {
+    const diagnostic = compiled.diagnostics[0];
+    const error = new Error(`${diagnostic.code} at ${diagnostic.range.line}:${diagnostic.range.column}: ${diagnostic.message}`);
+    error.diagnostics = structuredClone(compiled.diagnostics);
+    throw error;
+  }
+  const model = compiled.model;
   const surface = model.objects.find(object => object.id === surfaceId);
   if (!surface || surface.kind !== 'surface') throw new RangeError('Select a supported untrimmed surface');
   const { packet, report } = cad.tessellateSurface(surface, { countU, countV, revision });
@@ -59,7 +65,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
           : disposed ? 'Preview unavailable: disposed'
           : accepted ? `Rejected: ${error.message}. Last accepted revision ${revision} retained.`
           : `Rejected: ${error.message}. No accepted preview.`);
-        return { ok: false, error: error.message };
+        return { ok: false, error: error.message, ...(error.diagnostics ? { diagnostics: structuredClone(error.diagnostics) } : {}) };
       }
     },
     historyState(){return history.state(controller.available);},
@@ -122,7 +128,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
         const source = canonicalConstruction(accepted, request);
         return controller.apply(source, { sourceVersion: 1, surfaceId: accepted.packet.surfaceId,
           ...accepted.report.grid, options: structuredClone(accepted.options) });
-      } catch (error) { return { ok: false, error: error.message }; }
+      } catch (error) { return { ok: false, error: error.message, ...(error.diagnostics ? { diagnostics: structuredClone(error.diagnostics) } : {}) }; }
     },
     objects() { return structuredClone(objectRows(accepted)); },
     inspection() { return accepted && inspectedId ? inspectNativeObject(accepted, inspectedId) : undefined; },
@@ -134,7 +140,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
         inspectedId = description.id;
         announce(`Inspecting ${inspectedId}; displayed surface ${accepted.packet.surfaceId}`);
         return { ok: true };
-      } catch (error) { return { ok: false, error: error.message }; }
+      } catch (error) { return { ok: false, error: error.message, ...(error.diagnostics ? { diagnostics: structuredClone(error.diagnostics) } : {}) }; }
     },
     showSurface(id) {
       try {
@@ -142,7 +148,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
         const surfaceId = requireSurface(accepted, id);
         return controller.apply(accepted.source, { surfaceId, sourceVersion: accepted.sourceVersion ?? 0,
           ...accepted.report.grid, options: structuredClone(accepted.options) });
-      } catch (error) { return { ok: false, error: error.message }; }
+      } catch (error) { return { ok: false, error: error.message, ...(error.diagnostics ? { diagnostics: structuredClone(error.diagnostics) } : {}) }; }
     },
     setCamera(camera) {
       try {
@@ -162,7 +168,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
           : disposed ? 'Preview unavailable: disposed'
           : accepted ? `Rejected view: ${error.message}. Last accepted view revision ${viewRevision} retained.`
           : `Rejected view: ${error.message}. No accepted preview.`);
-        return { ok: false, error: error.message };
+        return { ok: false, error: error.message, ...(error.diagnostics ? { diagnostics: structuredClone(error.diagnostics) } : {}) };
       }
     },
     snapshot() { return accepted && structuredClone(accepted); },

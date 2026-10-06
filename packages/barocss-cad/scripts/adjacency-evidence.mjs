@@ -26,7 +26,7 @@ export function writeAdjacencyEvidence(api) {
     const origins=[origin,origin.map((x,k)=>x+a[k])],vectors=[a,ar],bundles=[],faceRecords=[],authored=[];
     for(let owner=0;owner<2;owner++) {
       const p=repeat?'same_local':prefix+(owner===0?'_L':'_R'),surface=side(origins[owner],vectors[owner],b,p+'_surface'),source=sourceFor(surface);
-      assert.deepEqual(api.parseModel(source).objects[0],surface);const ids=localIds(p),bundle=api.buildParametricFace(surface,ids);
+      const sourceResult=api.compileCadModel(source,{sourceVersion:0});assert.equal(sourceResult.ok,true,JSON.stringify(sourceResult.diagnostics));assert.deepEqual(sourceResult.model.objects[0],surface);const ids=localIds(p),bundle=api.buildParametricFace(surface,ids);
       assert.deepEqual(api.validateFaceBundle(bundle),{incidenceValid:true,geometricValidity:'not-certified',solid:false});bundles.push(bundle);authored.push({surface,source,ids});
     }
     const before=json(bundles),ids=globalIds(prefix),descriptor=api.buildRectangleAdjacency(...bundles,ids),validation=api.validateRectangleAdjacency(descriptor);

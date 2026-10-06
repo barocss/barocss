@@ -84,7 +84,7 @@ alongside actual readPixels, world-normal shaders and backend metadata.
 ## Explicit construction source
 
 Select **1 · construction** or a construction example to use the built
-`compileConstruction` API. The default **0 · native model** uses `parseModel`.
+`compileCadModel(source, {sourceVersion: 1})` API. The default **0 · native model** uses the same API with `sourceVersion: 0`. Compilation returns owned AST, semantic IR, native model and structured diagnostics. A rejected compilation does not replace the accepted preview.
 Version/source mismatches reject; there is no detection or parser fallback.
 Accepted version0 snapshots retain their original fields. Version1 snapshots
 also retain `sourceVersion`, copied `constructions` and `selectedConstruction`

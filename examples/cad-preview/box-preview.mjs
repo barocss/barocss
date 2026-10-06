@@ -23,7 +23,7 @@ function same(a,b,label){if(typeof a!==typeof b||a===null||b===null){if(a!==b)th
 export function prepareBoxPreview(input,cad){
  const r=requestData(input),corners=Array.from({length:8},(_,i)=>point(r.origin,r.sides,i));
  const source='@model preview_box {\n version: 0; length-unit: mm;\n'+surfaces.map((id,i)=>{const[a,b,c,d]=cornersByFace[i];return` @surface #${id} { type: nurbs; degree-u: 1; degree-v: 1; knots-u: [0,0,1,1]; knots-v: [0,0,1,1]; control-points: ${encode([[corners[a],corners[d]],[corners[b],corners[c]]])}; weights: [[1,1],[1,1]]; }\n`;}).join('')+'}\n';
- const model=cad.parseModel(source);if(model.objects.length!==6||model.version!==0)throw new RangeError('Box source model association mismatch');
+ const compiled=cad.compileCadModel(source,{sourceVersion:0});if(!compiled.ok)throw new Error(compiled.diagnostics[0].message);const model=compiled.model;if(model.objects.length!==6||model.version!==0)throw new RangeError('Box source model association mismatch');
  const bundles=model.objects.map((surface,i)=>{if(surface.kind!=='surface'||surface.id!==surfaces[i])throw new RangeError('Box source face order association mismatch');return cad.buildParametricFace(surface,localIds);});
  const shell=cad.buildAxisBoxShell(r.origin,r.sides,bundles,{shellId:r.id,faceIds:wrappers,vertexIds:vertices,edgeIds:edges}),solidReport=cad.validateAxisBoxSolid(shell);
  const facePackets=model.objects.map((surface,i)=>{
