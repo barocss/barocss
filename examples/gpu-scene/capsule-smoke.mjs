@@ -1,0 +1,51 @@
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {mkdir,writeFile} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import path from 'node:path';
+import {startServer} from '../cad-preview/server.mjs';
+import {compileGpu,compileScene,parseScene} from '../../packages/barocss-gpu/dist/index.js';
+const output=process.env.BAROCSS_CAPSULE_EVIDENCE;
+assert(output&&process.env.PW_DIR&&process.env.CHROME,'Set evidence path and installed browser/runtime paths');await mkdir(output,{recursive:true});
+const source='@scene struts{version:1;capsule #strut;cylinder #post;box #block;}capsule{start:0 -1 0;end:0 1 0;radius:.4;color:#80d0a0;}#strut{rotate-x:20deg;rotate-z:-20deg;translate:-1.3 0 0;}#post{radius:.4;height:1.5;translate:.5 0 0;color:#e08040;}#block{size:.7 .7 .7;translate:1.6 0 0;color:#4090e0;}';
+const controls=[
+ {source:'@scene baseline{version:0;background:#101820;box #b;sphere #s;}#b{size:1 2 .8;translate:-1 0 0;color:#e08040;}#s{radius:.6;translate:1.4 0 0;color:#4090e0;}',fragment:'c4b95dc50621c36148237628216d0f241cf376b013d0f0fe6bc8f857cafe2381',head:'c27d170fd66fc270de9781ed83fb57b256df6f52'},
+ {source:'@scene tilted{version:1;background:#101820;box #block;sphere #ball;}#block{size:1 2 .8;rotate-x:20deg;rotate-y:35deg;rotate-z:-10deg;color:#e08040;}#ball{radius:.6;translate:1.4 0 0;color:#4090e0;}',sourceVersion:1,fragment:'f30b84c809d687832894996f32551caffadc31d609d9d179b11ae337ac704a76',head:'917da5ad30799551865a3c8a7805ef75f5afd4e8'},
+ {source:'@scene posts{version:1;background:#101820;cylinder #post;box #block;sphere #ball;}cylinder{radius:.6;height:2;color:#e08040;}#post{translate:-1.4 0 0;rotate-x:20deg;rotate-z:-15deg;}#block{size:1 1 1;translate:.4 0 0;color:#4090e0;}#ball{radius:.4;translate:1.7 0 0;color:#80d040;}',sourceVersion:1,fragment:'da9bfa309da166ee64e022387c7b64899392e3663b4884107f8625597b7ed502',head:'532d4c9aaddf6983883375e01fe66ebd96d8292d'}];
+const vertexHash='a7ced79fa042f2bd638dca61eed0b28cb711572fe30952b95ef035621ab7408a',hash=s=>createHash('sha256').update(s).digest('hex');
+for(const c of controls){const r=compileGpu({kind:'scene',source:c.source,...(c.sourceVersion?{sourceVersion:1}:{})});assert(r.ok);assert.equal(hash(r.execution.shaders.vertex),vertexHash);assert.equal(hash(r.execution.shaders.fragment),c.fragment);assert(r.ir.draws.every(d=>!('start'in d)&&!('end'in d)));assert(!r.execution.shaders.fragment.includes('capsuleDistance'));}
+const result=compileGpu({kind:'scene',source,sourceVersion:1});assert(result.ok);assert.equal(result.ir.schemaVersion,2);
+const strut=result.ir.draws[0];assert.equal(strut.kind,'capsule');assert.deepEqual(strut.start,[0,-1,0]);assert.deepEqual(strut.end,[0,1,0]);assert.equal(strut.radius,.4);assert(!('height'in strut));assert(result.ir.draws.slice(1).every(d=>!('start'in d)&&!('end'in d)));
+assert(Object.isFrozen(strut.start)&&Object.isFrozen(strut.end));assert.notEqual(strut.start,result.execution.scene.objects[0].start);
+assert.deepEqual(compileScene(parseScene(source,{sourceVersion:1})),result.execution.shaders);
+const defaults=parseScene('@scene defaults{version:1;capsule #a;}',{sourceVersion:1}).objects[0];assert.equal(defaults.radius,1);assert.deepEqual(defaults.start,[0,-1,0]);assert.deepEqual(defaults.end,[0,1,0]);
+assert.deepEqual(parseScene(source+'#strut{end:1 2 0;}capsule{end:0 3 0;}',{sourceVersion:1}).objects[0].end,[1,2,0]);
+for(const rejected of [source.replace('end:0 1 0','end:0 -1 0'),source.replace('start:0 -1 0;end:0 1 0','start:1000 0 0;end:999.99999 0 0'),source.replace('start:0 -1 0;end:0 1 0','start:0 0 0;end:1e-30 0 0'),source+'box{start:0 0 0;}'])assert.equal(compileGpu({kind:'scene',source:rejected,sourceVersion:1}).ok,false);
+assert.equal(compileGpu({kind:'scene',source:source.replace('version:1','version:0')}).ok,false);
+const structured=structuredClone(result.execution.scene),missing={...structured.objects[0]};delete missing.end;
+assert.throws(()=>compileScene({...structured,objects:[missing]}));assert.throws(()=>compileScene({...structured,objects:[{...structured.objects[1],start:[0,0,0],end:[0,1,0]}]}));assert.throws(()=>compileScene({...structured,objects:[{...structured.objects[0],start:[0,,0]}]}));
+let reads=0;const accessor={...structured.objects[0]};Object.defineProperty(accessor,'end',{enumerable:true,get(){reads++;return[0,1,0];}});assert.throws(()=>compileScene({...structured,objects:[accessor]}));assert.equal(reads,0);
+function distance(p,a,b,r){const ba=b.map((n,i)=>n-a[i]),pa=p.map((n,i)=>n-a[i]),dot=(u,v)=>u.reduce((sum,n,i)=>sum+n*v[i],0),h=Math.max(0,Math.min(1,dot(pa,ba)/dot(ba,ba)));return Math.hypot(...pa.map((n,i)=>n-h*ba[i]))-r;}
+const distances=[{point:[0,0,0],a:[0,-1,0],b:[0,1,0],expected:-.4},{point:[0,1.6,0],a:[0,-1,0],b:[0,1,0],expected:.2},{point:[.7,0,0],a:[0,-1,0],b:[0,1,0],expected:.3},
+ ...[[[0,0,0],-.4],[[-.6,0,0],.2],[[1.6,1,0],.2],[[.5,.5,.7],.3],[[1,0,0],Math.sqrt(.5)-.4]].map(([point,expected])=>({point,a:[0,0,0],b:[1,1,0],expected}))];
+for(const c of distances){c.value=distance(c.point,c.a,c.b,.4);assert(Math.abs(c.value-c.expected)<1e-12);}
+const {chromium}=createRequire(path.join(process.env.PW_DIR,'package.json'))('playwright');const server=await startServer();const browser=await chromium.launch({executablePath:process.env.CHROME,headless:true,args:['--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+try{
+ const page=await browser.newPage({viewport:{width:800,height:600}}),errors=[],frames=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(server.url+'/#capsule');await page.waitForFunction(()=>window.examplePreview?.snapshot()?.id==='capsule');assert(await page.locator('#error').isHidden());assert.equal(await page.locator('select').count(),1);
+ const frame=async name=>{const data=await page.evaluate(async()=>{const r=window.examplePreview.renderer,bytes=await crypto.subtle.digest('SHA-256',r.readPixels());return{scene:r.scene,camera:r.camera,hash:Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('')};});frames.push({name,...data});await page.screenshot({path:path.join(output,name+'.png')});return data;};
+ const gpuDistances=await page.evaluate(()=>{
+  const shaders=window.examplePreview.renderer.shaders,c=document.createElement('canvas');c.width=8;c.height=1;const gl=c.getContext('webgl2',{antialias:false,preserveDrawingBuffer:true}),compiled=[];let program;
+  try{const fragment=shaders.fragment.split('void main(){')[0]+`void main(){vec3 controls[8]=vec3[8](vec3(0.0),vec3(0.0,1.6,0.0),vec3(.7,0.0,0.0),vec3(0.0),vec3(-.6,0.0,0.0),vec3(1.6,1.0,0.0),vec3(.5,.5,.7),vec3(1.0,0.0,0.0));int i=int(gl_FragCoord.x);vec3 a=i<3?vec3(0.0,-1.0,0.0):vec3(0.0);vec3 b=i<3?vec3(0.0,1.0,0.0):vec3(1.0,1.0,0.0);float d=capsuleDistance(controls[i],a,b,.4);outputColor=vec4(d*.5+.5,0.0,0.0,1.0);}`;
+   for(const[type,text]of[[gl.VERTEX_SHADER,shaders.vertex],[gl.FRAGMENT_SHADER,fragment]]){const shader=gl.createShader(type);compiled.push(shader);gl.shaderSource(shader,text);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(shader));}program=gl.createProgram();compiled.forEach(shader=>gl.attachShader(program,shader));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));gl.useProgram(program);gl.viewport(0,0,8,1);gl.disable(gl.DITHER);gl.drawArrays(gl.TRIANGLES,0,3);const pixels=new Uint8Array(32);gl.readPixels(0,0,8,1,gl.RGBA,gl.UNSIGNED_BYTE,pixels);if(gl.getError()!==gl.NO_ERROR)throw new Error('Distance probe WebGL failure');return Array.from({length:8},(_,i)=>pixels[4*i]/255*2-1);
+  }finally{if(program)gl.deleteProgram(program);compiled.forEach(shader=>gl.deleteShader(shader));gl.getExtension('WEBGL_lose_context')?.loseContext();}
+ });gpuDistances.forEach((v,i)=>assert(Math.abs(v-distances[i].expected)<=2/255));
+ const initial=await frame('capsule-rounded-ends');let prior=initial;
+ const edits=[source.replace('end:0 1 0','end:.5 1.5 .3'),source.replace('radius:.4;color:#80d0a0','radius:.6;color:#80d0a0'),source.replace('20deg','65deg'),source.replace('translate:-1.3 0 0','translate:-1.7 .3 0').replace('color:#80d0a0','color:#d070d0')];
+ for(let i=0;i<edits.length;i++){assert(await page.evaluate(s=>window.examplePreview.renderer.update(s).ok,edits[i]));const now=await frame('edit-'+i);assert.notEqual(now.hash,prior.hash);prior=now;}
+ for(const rejected of [edits.at(-1).replace('end:0 1 0','end:0 -1 0'),edits.at(-1)+'box{start:0 0 0;}',edits.at(-1).replace('version:1','version:0')]){assert.equal(await page.evaluate(s=>window.examplePreview.renderer.update(s).ok,rejected),false);const retained=await frame('retained-'+frames.length);assert.equal(retained.hash,prior.hash);assert.deepEqual(retained.scene,prior.scene);}
+ await page.mouse.move(400,300);await page.mouse.down();await page.mouse.move(455,325,{steps:3});await page.mouse.up();const orbit=await frame('orbit');assert.deepEqual(orbit.scene,prior.scene);assert.notEqual(orbit.hash,prior.hash);
+ const backend=await page.evaluate(()=>{const gl=document.getElementById('preview').getContext('webgl2'),ext=gl.getExtension('WEBGL_debug_renderer_info');return{version:gl.getParameter(gl.VERSION),renderer:ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER)};});
+ for(let i=0;i<controls.length;i++){await page.selectOption('#example',['box','rotated-box','cylinder'][i]);assert(await page.evaluate(s=>window.examplePreview.renderer.update(s).ok,controls[i].source));await frame('control-'+i);}assert.deepEqual(errors,[]);
+ await writeFile(path.join(output,'index.json'),JSON.stringify({head:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),source,ast:result.ast,ir:result.ir,execution:result.execution,controls,vertexHash,distances,cpuTolerance:1e-12,gpuDistances,gpuTolerance:2/255,backend,frames,errors,broaderValidation:'deferred'},null,2)+'\n');console.log('Capsule prototype: original projected segment SDF, real helper distances for axis/oblique/end regions, source edits/orbit/invalid retention, exact source0/rotation/cylinder byte controls passed.');
+}finally{await browser.close();await server.close();}

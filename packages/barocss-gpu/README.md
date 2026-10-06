@@ -109,6 +109,43 @@ under BAROCSS_CYLINDER_EVIDENCE, using existing PW_DIR/CHROME installations.
 This is prototype evidence; broader numerical/resource/performance suites remain
 deferred. No CAD cylinder, B-Rep, capsule, groups, CSG or material system is added.
 
+## Source1 capsule (prototype)
+
+```css
+@scene struts { version: 1; capsule #strut; }
+#strut { start: 0 -1 0; end: 0 1 0; radius: .4; rotate-z: -20deg; }
+```
+
+Explicit source1 adds `capsule` declarations/type selectors and capsule-only
+`start`/`end` vectors: three finite unitless local coordinates within +/-1000.
+Defaults are [0,-1,0], [0,1,0] and radius1. Radius is finite, positive, <=1000,
+and positive in Float32. It applies to sphere, cylinder and capsule; height is
+still cylinder-only and size box-only. Existing color/translation/rotation and
+per-property cascade apply. No height-to-segment conversion is performed.
+
+The segment must remain noncoincident after Float32 endpoint conversion, with
+finite positive Float32 dot(delta,delta). Coincident, collapsed and underflowed
+segments fail before lowering. There is no snapping/healing. The original SDF
+projects the inverse-rotated local point onto the clamped segment, then subtracts
+radius from distance to that closest point. Rotation preserves world distance.
+Normals use the existing world-distance gradient.
+
+Scene1 capsule objects and IR2 draws carry owned, frozen start/end vectors;
+other shapes gain no endpoint fields and capsules gain no height field. The
+common unused size layout has no capsule dimension meaning. Structured admission
+requires both vectors and rejects sparse/accessor/foreign/extra values without
+invoking getters. This is an additive private source1/IR2 kind; older consumers
+must not be assumed to support it. Source0/Scene0/IR1 reject capsule.
+
+Select **GPU · Capsule** at `/#capsule` for an oblique mixed-primitive view.
+`examples/gpu-scene/capsule-smoke.mjs` runs real generated GLSL axis/oblique/end
+region distance probes (RGBA8 tolerance2/255), CPU intent controls (1e-12), source
+edits/orbit/invalid-frame retention and exact old source0/rotation/cylinder shader
+controls. Use existing PW_DIR/CHROME and BAROCSS_CAPSULE_EVIDENCE paths for PNGs
+and exact HEAD/source/AST/IR/execution/camera/backend lineage. Broader numerical,
+resource, performance and compatibility suites remain deferred. No native CAD
+capsule/B-Rep, groups, scale, CSG, materials, animation or picking is added.
+
 ## Built ESM API
 
 ```js
