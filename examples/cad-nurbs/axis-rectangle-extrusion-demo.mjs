@@ -1,0 +1,10 @@
+import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {buildAxisRectangleExtrusion,exportIGES} from '../../packages/barocss-cad/dist/index.js';
+const [filename,directory]=process.argv.slice(2);
+if(!filename||!directory)throw new Error('Usage: node axis-rectangle-extrusion-demo.mjs request.json output-directory');
+const request=JSON.parse(readFileSync(resolve(filename),'utf8')),built=buildAxisRectangleExtrusion(request),output=resolve(directory);
+mkdirSync(output,{recursive:true});const exported=exportIGES(built.model,built.model.objects.map(object=>object.id));
+for(const [name,value]of Object.entries({request,model:built.model,ir:built.ir,profile:built.profile,faces:built.faces,shell:built.shell,solidReport:built.solidReport,construction:built.construction,exportReport:exported.report}))writeFileSync(resolve(output,name+'.json'),JSON.stringify(value,null,2)+'\n');
+writeFileSync(resolve(output,'source.css'),built.source);writeFileSync(resolve(output,'geometry.iges'),exported.iges);
+console.log('Exact native axis-box solid report saved. IGES carries one curve and six surfaces; it does not carry a whole solid.');

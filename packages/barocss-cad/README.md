@@ -894,3 +894,60 @@ Actual packed runtime/types and independent authored-file reader cases run in
 `test:consumer` and `test:exchange`. Set `BAROCSS_CAD_XY_ARC_EVIDENCE` to fresh
 exact-head evidence. Interactive circle tools, curve rendering, project/history
 and wider angular/periodic/trim scope are separate features.
+
+## Parameter-bound rectangle solid extrusion
+
+`buildAxisRectangleExtrusion(request)` creates a capped box from one canonical
+XY rectangle and a positive Z distance:
+
+```js
+import { buildAxisRectangleExtrusion, compileCadModel, exportIGES } from '@barocss/cad';
+const part = buildAxisRectangleExtrusion({
+  bodyId: 'part',
+  profile: { kind: 'rectangle', id: 'footprint', origin: [4, -3], width: 7, height: 5 },
+  distance: 6,
+});
+// part.solidReport: volumeMM3 210, areaMM2 214.
+const file = exportIGES(part.model, part.model.objects.map(object => object.id));
+const edited = compileCadModel(
+  part.source.replace('value:7mm;', 'value:8mm;'), { sourceVersion: 2 },
+);
+```
+
+The request has exactly `bodyId`, `profile` and `distance`. The profile has exactly
+`kind`, `id`, `origin`, `width` and `height`. Origin coordinates are integer mm.
+Width, height and distance are integers in1..10000mm. Every represented box
+corner must remain within±10000mm. Strict own-data validation rejects getters,
+foreign prototypes, symbols, sparse arrays, unsupported fields and ID collisions.
+The body ID is ASCII with at most80 characters; all derived IDs and the profile ID
+have at most128 characters. Request snapshots use the existing1024-value,
+depth4 and64-element array limits.
+
+The result contains `source`, `sourceVersion:2`, native `model`, schema2 `ir`,
+the original `profile`, six `faces`, `shell`, `solidReport` and `construction`.
+The generated source has five length parameters: `_rect_ox`, `_rect_oy`,
+`_rect_w`, `_rect_h` and `_rect_d`. Its actual compiler result contains the
+input Curve and six outward degree1 planar Surfaces. Parameter declarations
+do not count as geometric objects. Initial mm literals retain signed zero.
+Each returned nested occurrence owns its data independently.
+
+The original profile remains source0 with `regionCertified:false`. The shell
+validator keeps its separate `solid:false` report. The solid report proves only
+the existing `exact-axis-box-solid-v0` family. Construction metadata records
+profile/body IDs, direction `[0,0,1]`, distance, parameter IDs and four original
+profile ranges with their global edge IDs and forward/reverse senses. Interior
+D1 and point comparisons verify those mappings. Exact C0 corner D1 still fails.
+
+Manual parameter edits compile to new geometry. Build new FaceBundles and a
+new AxisBoxShell from those compiled Surfaces, then call `validateAxisBoxSolid`
+to prove that geometry. An8×5×6 edit has volume240mm³ and area236mm². The
+original result cannot certify edited geometry. Noninteger edited geometry
+can compile, but the integer box-family guard rejects it.
+
+The selected IGES export contains one Curve126 and six Surface128 entities.
+It does not serialize a closed solid or STEP body. `test:consumer` checks the
+packed runtime and external TypeScript declarations. `test:exchange` reads
+the original files with the installed independent reader and checks poles,
+weights, domains, points, D1, outward normals and footprint associations. Set
+`BAROCSS_CAD_RECTANGLE_EXTRUSION_EVIDENCE` to a fresh evidence directory. The
+example is `examples/cad-nurbs/axis-rectangle-extrusion-demo.mjs`.
