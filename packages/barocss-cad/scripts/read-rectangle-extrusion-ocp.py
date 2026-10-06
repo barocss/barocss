@@ -63,9 +63,6 @@ def geometry(adapters,shapes,fixture):
     spline=curve.BSpline();direction=h['spline_direction'](spline,False)
     require(direction['degree']==1 and direction['expandedKnots']==[0,0,1,2,3,4,4],'Rectangle profile degree/knots changed')
     require(direction['c0InteriorKnots']==[1,2,3],'Rectangle profile C0 guards changed')
-    expected_profile=[fixture['vertices'][i] for i in [0,1,3,2,0]]
-    require(spline.NbPoles()==5 and [h['xyz'](spline.Pole(i)) for i in range(1,6)]==expected_profile
-            and [spline.Weight(i) for i in range(1,6)]==[1]*5,'Rectangle original profile poles/weights changed')
     checks=[];area=flux=0
     for index,data in enumerate(fixture['faceChecks']):
         adapter=adapters[index+1];surface=adapter.BSpline()
@@ -95,6 +92,9 @@ def geometry(adapters,shapes,fixture):
         area+=actual_area;flux+=signed_flux;checks.append({'id':data['id'],'wrapperId':data['wrapperId'],'samples':samples,'sampleCount':len(samples),'boundsMM':bounds,'areaMM2':actual_area,'signedSurfaceFluxMM3':signed_flux,'maxPointDeviationMM':maxpoint,'maxDerivativeScaledDeviation':maxderivative,'quadrature':{'requestedRelativePrecision':1e-10,'estimatedRelativePrecision':estimated}})
     require(abs(area-fixture['analyticAreaMM2'])<=1e-7*max(1,area),'Rectangle extrusion geometry comparison failed: area sum')
     require(abs(flux-fixture['analyticVolumeMM3'])<=1e-7*max(1,fixture['analyticVolumeMM3']),'Rectangle extrusion geometry comparison failed: signed face flux')
+    expected_profile=[fixture['vertices'][i] for i in [0,1,3,2,0]]
+    require(spline.NbPoles()==5 and [h['xyz'](spline.Pole(i)) for i in range(1,6)]==expected_profile
+            and [spline.Weight(i) for i in range(1,6)]==[1]*5,'Rectangle original profile poles/weights changed')
     return {'faces':checks,'areaMM2':area,'signedFaceFluxMM3':flux,'actualSurfaceCount':6,'nativeSolidReport':fixture['solidReport'],'readerSolidConstructed':False,'wholeSolidInterchange':False}
 
 
