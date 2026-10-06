@@ -12,7 +12,7 @@ export interface GpuDiagnostic {code:string;severity:'error';message:string;rang
 interface IRCommon {schema:'barocss-gpu-render-ir';name:string;coordinateSystem:'right-handed-y-up';background:[number,number,number]}
 interface SDFDraw {kind:'sphere'|'box';id:string;color:[number,number,number];translate:[number,number,number];radius:number;size:[number,number,number]}
 export type GpuRenderIR=(IRCommon&{schemaVersion:1;pipeline:'sdf';draws:SDFDraw[]})
- |(IRCommon&{schemaVersion:2;pipeline:'sdf';rotationOrder:'X-Y-Z';angleUnit:'deg';draws:((SDFDraw&{rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'cylinder';height:number;rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'capsule';start:[number,number,number];end:[number,number,number];rotateDegrees:[number,number,number]}))[]})
+ |(IRCommon&{schemaVersion:2;pipeline:'sdf';rotationOrder:'X-Y-Z';angleUnit:'deg';draws:((SDFDraw&{rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'cylinder';height:number;rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'capsule';start:[number,number,number];end:[number,number,number];rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'rounded-box';rotateDegrees:[number,number,number]}))[]})
  |(IRCommon&{schemaVersion:1;pipeline:'indexed-mesh';draws:[{kind:'indexed-mesh';id:string;packet:PreviewPacket;options:MeshOptions}]});
 export type GpuExecution={kind:'sdf';scene:AnyScene;shaders:SceneShaders}|{kind:'indexed-mesh';mesh:ReturnType<typeof lowerMesh>};
 export type GpuCompileResult={ok:true;ast:SceneAst|null;ir:GpuRenderIR;execution:GpuExecution;diagnostics:[]}|{ok:false;diagnostics:GpuDiagnostic[]};

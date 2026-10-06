@@ -1,5 +1,5 @@
 export { parseScene, SceneError } from './scene.js';
-export type { Scene, Scene1, SceneObject, SceneObject1, RotatedSceneObject, CylinderSceneObject, CapsuleSceneObject, AnyScene, SceneSourceOptions, RGB, Vec3 } from './scene.js';
+export type { Scene, Scene1, SceneObject, SceneObject1, RotatedSceneObject, CylinderSceneObject, CapsuleSceneObject, RoundedBoxSceneObject, AnyScene, SceneSourceOptions, RGB, Vec3 } from './scene.js';
 export { compileScene, GPU_LIMITS } from './compiler.js';
 export type { SceneShaders } from './compiler.js';
 export { mountScene, SceneRenderer, GPUError } from './renderer.js';
