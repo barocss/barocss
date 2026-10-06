@@ -23,3 +23,5 @@ export { buildXYArc } from './xy-arc.js';
 export type { XYArcRequest, XYArcReport, XYArcResult } from './xy-arc.js';
 export { buildAxisRectangleExtrusion } from './axis-rectangle-extrusion.js';
 export type { AxisRectangleExtrusionRequest, AxisRectangleExtrusionConstruction, AxisRectangleExtrusionResult } from './axis-rectangle-extrusion.js';
+export { evaluateAxisRectangleFeatureDocument, editAxisRectangleFeatureDocument, serializeAxisRectangleFeatureDocument } from './axis-rectangle-feature-document.js';
+export type { AxisRectangleFeatureDocumentV0, AxisRectangleFeatureDocumentResult, AxisRectangleParameterEdit } from './axis-rectangle-feature-document.js';

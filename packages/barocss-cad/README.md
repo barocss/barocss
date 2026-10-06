@@ -951,3 +951,72 @@ the original files with the installed independent reader and checks poles,
 weights, domains, points, D1, outward normals and footprint associations. Set
 `BAROCSS_CAD_RECTANGLE_EXTRUSION_EVIDENCE` to a fresh evidence directory. The
 example is `examples/cad-nurbs/axis-rectangle-extrusion-demo.mjs`.
+
+## Editable rectangle extrusion feature document
+
+The native `barocss-axis-rectangle-feature` document v0 retains one XY rectangle,
+five ordered length parameters and one positive-Z extrusion feature. It is
+separate from source2, native Model0 and the application's project1 format.
+
+```js
+import { evaluateAxisRectangleFeatureDocument, editAxisRectangleFeatureDocument,
+  serializeAxisRectangleFeatureDocument } from '@barocss/cad';
+const accepted = evaluateAxisRectangleFeatureDocument(document);
+const edited = editAxisRectangleFeatureDocument(accepted.document, [
+  { parameterId: '_rect_w', valueMM: 8 },
+]);
+const json = serializeAxisRectangleFeatureDocument(edited.document);
+const reopened = evaluateAxisRectangleFeatureDocument(JSON.parse(json));
+```
+
+The complete input example is
+`examples/cad-nurbs/axis-rectangle-feature-document.json`. Its exact fields are
+`format`, `version`, `id`, `lengthUnit`, `parameters`, `profile` and `feature`.
+Parameters are the reserved `_rect_ox`, `_rect_oy`, `_rect_w`, `_rect_h`, `_rect_d`
+in that order, each `{ id, type:'length', valueMM }`. The profile has `id`,
+`kind:'xy-rectangle'`, and the four matching origin/size parameter references.
+The feature has `id`, `kind:'axis-rectangle-extrude'`, matching `profileId`,
+`bodyId` and `distance:'_rect_d'`. Runtime admission resolves these records and
+references before generating geometry. Numeric values are mm, with the original
+integer axis-box family restrictions. Document/feature/body IDs have at most80
+ASCII characters; profile IDs have at most128. All are distinct from reserved
+parameters and every deterministic derived geometry/topology ID.
+
+Each input snapshot has at most512 own values, depth4, arrays of at most5
+elements, records of at most8 fields and strings of at most128 characters.
+Ordinary/null-prototype records and ordinary dense arrays are supported.
+Accessors, symbols, nonenumerable/extra fields, foreign prototypes, malformed
+references and reordered/missing parameters fail without geometry adoption.
+Diagnostics carry document/feature identity and the offending input path.
+These local budgets do not alter parent builder or compiler limits.
+
+Evaluation returns exactly `{ document, evaluation, bindings }`. Evaluation
+is the actual `buildAxisRectangleExtrusion` result: source2/compiler IR2/native
+Model0/profile/six FaceBundles/shell/fresh solid report. Bindings name the actual
+document, feature, profile, output body and five parameters; the actual source2
+IR values and construction references are checked before success. Every nested
+output occurrence owns its data independently of inputs and previous results.
+
+Edits accept1..5 exact `{ parameterId, valueMM }` records. Duplicate/unknown
+parameters fail. All edits are prepared in one owned candidate and its completed
+geometry is evaluated once. No intermediate geometry is adopted. A failed edit
+throws and leaves caller/prior source, IR, topology and report unchanged. Width8
+on the example produces volume240/area236; a subsequent distance10 edit produces
+volume400/area340. IDs and semantic box roles remain stable within this family.
+There is no global accepted state or implicit history stack.
+
+Serialization validates the complete document/family and writes authoring data
+only, in canonical key order, with a lossless decimal number encoder preserving
+`-0`. Output is deterministic ASCII JSON of at most8192 UTF-8 bytes. Actual
+`JSON.parse` and reevaluation reconstruct the same native identities/values.
+Source/IR/meshes/reports/file pointers are never persisted as authoring proof.
+This API supplies no arbitrary-text loader or duplicate-key/migration/GUI file
+admission policy. Multiple features/bodies, general constraint graphs, topology
+splits/merges, source3 grammar and current project migration remain separate.
+
+`test:consumer` uses the actual built archive and external TypeScript.
+`test:exchange` reads original initial/edited/reopened selected Curve126/Surface128
+files and checks original geometry, normals, domains and identity associations,
+with corrupt-file controls. Set `BAROCSS_CAD_RECTANGLE_FEATURE_EVIDENCE` to fresh
+exact-head evidence. The files contain separate curve/surface geometry, not a
+whole-solid interchange or feature history.
