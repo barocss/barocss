@@ -1718,3 +1718,71 @@ omission. Corrupt inner pcurves/references and native mesh-ID collisions
 reject while prior native/packet data stay usable. Affected CAD build and
 this actual demo are the prototype checks; broader validation remains
 deferred.
+
+### Original through-hole polygon prism shell
+
+`buildXYPolygonPrismShellWithHole(faceBundle, { bodyId, distanceMM })` consumes
+the actual validated one-hole planar face and returns a distinct version0
+`xy-polygon-prism-shell-with-hole` shell/report.
+`validateXYPolygonPrismShellWithHole(shell)` validates that exact family.
+Original source face, Curves, loop roles/order and native identities remain
+in `sourceFace` and construction provenance. Existing single-loop shell,
+planar preview, ray query and original hole-face validators stay unchanged.
+
+Bottom and top keep validated local one-hole faces plus explicit placement
+and orientation. Actual world cap Models translate both source Curves,
+Surface poles, segment Curves and vertices alongZ, with derived world source
+IDs reflected in source/edge/loop references. Outer/inner trim loops and
+pcurves remain bound to the actual world Surface. Bottom isZ0/reverse/-Z;
+top isdistance/forward/+Z. These distinct placed/reversed records are never
+passed as unchanged Z0/forward572 bundles. No bounding plane substitutes for
+an annular cap.
+
+Every original outer/hole segment owns a real five-object natural lateral
+FaceBundle. Outer U followsCCW; inner U followsCW so hole-wall normals point
+into the void. Original authoring is preserved for all four orientation
+combinations. Two-loop cap Models ownN+3<=15objects, N+2<=14faces preserve
+parent Model0 limits, and actual SurfaceD1 normals/Curve endpoints are
+resolved from each owning Model.
+
+TwoN global vertices,threeN original shared edges andsixN qualified uses
+come from original face/Curve/loop/segment/vertex identities, not coordinate
+welding. Each edge has exactly two opposite uses after native Curve
+direction, edge sense and face orientation compose. Global provenance keeps
+original source segment ranges or vertex parameters and outer/hole roles.
+Validation reconstructs the bounded family from its actual original face,
+body and distance, checks world pcurve/source parameter evaluations within
+1e-9mm, native endpoint/global binding and actual composed orientation.
+Corrupt references, missing/duplicate/same-direction uses and misplaced caps
+reject atomically; returned occurrences own their data.
+
+Both caps have one inner loop and contribute0 to the weighted face Euler
+sum; each wall contributes1. `weightedEuler` is V-E+sum(1-innerLoopCount)=0
+for this through-hole shell. It is bounded combinatorial evidence, never a
+naive disk-face V-E+F=2 or solid/manifold certificate. `closed:true` and
+`incidenceValid:true` describe oriented shared-edge completeness only.
+`referenceSweptVolumeMM3` is exact net planar area times height, a mathematical
+construction reference rather than a certified solid mass property.
+
+Exactly one original strictly contained integerXY/Z0 hole, at least3points
+per loop and combinedN<=12 remain supported. +Z height is integer1..10000mm;
+body ID ASCII1..64. All generated qualified/global IDs are distinct,
+<=128characters and checked against every original face ID/Model name.
+Own input budgets65536values/depth20/arrays128/records16/strings128 reject
+getters/hidden/symbol/sparse/foreign data. No snapping/healing/construction
+tolerance or source mutation occurs. Report retains source orientation,
+real counts/normals/bounds, weighted contributions and explicit limits;
+geometricValidity:not-certified,topologyCertified:false,solid:false remain.
+
+```sh
+node examples/cad-nurbs/xy-polygon-prism-shell-hole-demo.mjs /tmp/barocss-through-hole-shell-prototype
+```
+
+The short actual square-hole height6 demo checks10faces/16vertices/24edges/
+48uses, weightedEuler0, cutout cap exclusion, inner-left+X and outer-left-X,
+and mathematical reference504mm3. ConcaveL/triangle-hole gives11/18/27/54
+and reference4020mm3 with the notch/hole excluded. All four authored square
+orientations retain original source data. Affected build and actual native
+demo are the prototype checks; broader validation remains deferred. No
+mesh/raster/ray/UI/Boolean/solid/exchange functionality is added by this
+shell construction.
