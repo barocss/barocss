@@ -47,6 +47,8 @@ const shader: { vertex: string; fragment: string } = compileScene(scene);
 declare const canvas: HTMLCanvasElement;
 const renderer = mountScene(canvas, '@scene types { version: 0; }');
 const result = renderer.update('@scene updated { version: 0; }');
+const viewResult = renderer.setCamera({eye:[4,3,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100});
+const viewEye: [number,number,number] | undefined = renderer.camera?.eye;void viewResult;void viewEye;
 if (!result.ok) { const failure: Error = result.error; void failure; }
 const bytes: Uint8Array = renderer.readPixels();
 renderer.resize(320, 240);

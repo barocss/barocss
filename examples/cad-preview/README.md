@@ -2,8 +2,8 @@
 
 The loopback root now shows only a canvas and an Example selector. Existing GPU
 sphere, box and combined scenes, the original native six-face box, and current CAD
-surface fixtures are available in one list. Native mesh examples retain mouse orbit.
-GPU SDF scenes retain their original fixed camera. Selection creates an owned view
+surface fixtures are available in one list. All gallery examples support mouse orbit. GPU SDF scenes opt into the strict
+presentation camera; callers without a camera keep the original fixed view. Selection creates an owned view
 and disposes the previous renderer/context; errors keep the previous view.
 
 The existing CAD workspace and its editing/inspection/project/history tools remain
