@@ -118,3 +118,15 @@ writes the shell descriptor and six separate five-object geometry IGES files.
 The exact report is closed:true, solid:false, solidProductImplemented:false.
 Local face reports remain not-certified. Area/flux-volume tests are separate
 evidence; this command supplies no original solid/STEP or sewn reader topology.
+
+Derive exact restricted-box solid analysis from the same validated owned shell:
+
+```sh
+node examples/cad-nurbs/box-solid-demo.mjs examples/cad-nurbs/axis-box.css examples/cad-nurbs/box-shell-input.json /tmp/cad-box-solid
+```
+
+The demo retains separate shell-validation and solid-validation JSON. Shell status
+stays solid:false. The new exact-axis-box-solid-v0 report includes valid/closed/
+solid:true with integer volume/area and owned min/max bounds. This is the restricted
+filled-box analysis, without a mutable kernel solid or serialized STEP/global
+topology. Original six per-face geometry files and local statuses remain unchanged.
