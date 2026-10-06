@@ -2051,3 +2051,83 @@ geometry/identities/topology edits and malformed/duplicate-key/schema inputs
 reject. Affected build and this short run are prototype checks; broad validation
 and workplane authoring UI are deferred. regionCertified:false,face:false,
 solid:false remain explicit; no commercial parity or screen authoring claim.
+
+## Sketch rectangle feature dependency graph
+
+`evaluateSketchRectangleFeatureGraph(document)` and
+`updateSketchRectangleFeatureGraph(document,edits)` return owned
+`{document,sketchEvaluation,parameters,features,report}`. Distinct version0/mm
+format `barocss-sketch-rectangle-feature-graph` has exact root fields
+format/version/id/lengthUnit/sketch/parameters/features. The embedded sketch is
+an actual unchanged XY sketch document. This family connects existing original
+rectangle profiles and source2 extrusion; it adds no parallel geometry builder.
+
+Length parameters1..8 have exact id/type:length/definition. A definition is
+literal `{kind:'literal',valueMM}` or offset `{kind:'offset',parameterId,offsetMM}`.
+Literal/offset/resolved values are finite integers within±10000mm. Forward
+references are allowed. Every parameter, including unused ones, resolves by a
+stable topological order with authored order breaking ties. Missing/self/cyclic
+dependencies reject with parameter IDs/path. No general expression grammar or
+implicit unit/reference conversion is added. Definitions/order/negative-zero
+intent are retained; resolved parameters separately record id/type/valueMM/
+dependencyIds/zero-based order.
+
+Features1..4 have exact id/kind:axis-rectangle-extrude/profileId/bodyId/
+distanceParameterId/suppressed boolean. Profile resolves an actual sketch
+rectangle with integer origin/width/height under original extrusion limits;
+resolved distance is integer1..10000mm. All graph/sketch/profile/authored point/
+corner/parameter/feature/body IDs are globally distinct ASCII1..64. Native
+reserved/derived identity is checked by the unchanged original constructor.
+One profile may feed several features; bodies remain separate original bodies,
+not a combined Model/Boolean/assembly. Canonical `_rect_*` source2 parameters
+remain local to each body's Model and are explicitly mapped to graph IDs.
+
+Every feature is admitted through actual buildAxisRectangleExtrusion, including
+suppressed input/geometry/reference/identity admission. Active features retain
+actual source2/Model/IR/profile/FaceBundles/shell/restricted solid report;
+suppressed features return evaluation:null with no active output, retaining
+feature/dependency/native identity bindings. Original sketch source0 and actual
+extrusion input Curve coefficients/identity/domain match exactly. Bindings
+include authored point/corner pole mapping, resolved graph height and local
+source2 parameter IDs, body/shell IDs and qualified shell/local face/Surface
+IDs. Reports retain actual dependency edges/order/status/active body IDs and
+parent-specific solid reports; wholeGraphCertified:false makes no whole-graph
+geometric proof.
+
+Atomic edits have exact optional parameterEdits/sketchEdits/featureEdits with
+at least one supplied nonempty array. Parameter edits1..8 target existing IDs
+once and replace only definitions; sketch edits1..8 use unchanged numeric/stable
+identity sketch operations; feature edits1..4 target existing feature IDs once
+and toggle suppression only. All edits form one complete candidate, then all
+sketch/IDs/refs/parameter DAG/features and active outputs execute before return.
+IDs and feature order remain. Shared parameter edits regenerate every dependent
+body; suppressed outputs disappear from activeBodyIds and unsuppression rebuilds
+the same body ID. Cycles/deleted refs/bad geometry/downstream ID failures adopt
+no partial state; caller's prior document/native outputs remain reusable.
+
+Serialize/Open both execute the entire original candidate. Canonical JSON stores
+only exact graph/embedded sketch/parameter definitions/features, preserving−0,
+order and booleans. No resolved cache/source/Model/IR/native output/selection/
+camera/history/certificate is saved. UTF-8<=128KiB, lexical duplicate decoded-key
+and budget checks precede JSON.parse. Own/parser budgets8192values/keys,depth10,
+arrays64,records12,strings128 reject getters/symbols/hidden/sparse/foreign values.
+Existing sketch/rectangle/Box/polygon/cutout/Model/project formats, constraints
+and source0/1/2 grammar remain unchanged. No GUI/general feature expressions,
+face-dependent features/stable topology naming/union/manufacturing/mates are
+claimed.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/sketch-rectangle-feature-graph-demo.mjs /tmp/barocss-feature-graph-prototype
+```
+
+The short actual graph/API-file demo uses two rectangles and forward-authored
+shared height dependencies: heights6/8 and separate parent volumes72/80.
+Shared height8 yields96/100; a single rectangle-width5/height9 batch yields135/110.
+SuppressA keeps B active; actual saved/reopened intent then unsuppression restores
+same body A/volume135. Actual source0/2 Curve/IR/Model/FaceBundle/shell/native cap
+D1/identity/local parameter mappings and−0 intent are checked, with invalid
+DAG/reference/height/profile/IDs/edits/JSON controls and previous output reuse.
+Affected build and this run are prototype checks; wider validation and graph UI
+remain deferred. Native validity is the existing exact-axis-box family only,
+not arbitrary multi-body/commercial certification.
