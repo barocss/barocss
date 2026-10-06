@@ -156,25 +156,6 @@ try {
   await writeFile(path.join(evidence,'mouse-orbit.json'),json(orbitEvidence));
   await writeFile(path.join(evidence,'mouse-orbit-before.png'),readbackPng(orbitBefore.bytes,512,384));await writeFile(path.join(evidence,'mouse-orbit-after.png'),readbackPng(orbitAfter.bytes,512,384));
 
-  const primitiveControls=[];
-  for(const kind of ['sheet','quarter-wall']){
-    await page.locator('#primitive-kind').selectOption(kind);await page.fill('#primitive-size','100');await page.fill('#primitive-height','100');
-    await page.click('#primitive-create');const created=await capture(`create-${kind}`,null,null,{kind,size:100,height:100});
-    assert.equal(await page.locator('#source').inputValue(),created.snapshot.source);assert.equal(created.snapshot.packet.surfaceId,'surface');assert.equal(created.snapshot.options.mmToSceneUnit,.01);
-    const size=kind==='sheet'?128.5:42.375,height=76.625;
-    await page.fill('#primitive-size',String(size));await page.fill('#primitive-height',String(height));await page.click('#primitive-update');const edited=await capture(`update-${kind}`,null,null,{kind,size,height});
-    assert.notEqual(created.readbackHash,edited.readbackHash);assert.notEqual(created.snapshot.iges.iges,edited.snapshot.iges.iges);assert.deepEqual(edited.snapshot.options.camera,created.snapshot.options.camera);
-    await page.fill('#primitive-height','125.25');await page.click('#primitive-update');await capture(`height-${kind}`,null,null,{kind,size,height:125.25});
-    const owner=await page.evaluate(()=>window.cadPreview.primitiveState());assert.equal(owner.height,125.25);
-    const before=await state();await page.fill('#source',owner.source+' /* pending */');await page.click('#primitive-create');assert.equal(await state(),before);assert.equal(await page.locator('#source').inputValue(),owner.source+' /* pending */');await page.click('#discard-source');
-    await page.fill('#primitive-size','');await page.click('#primitive-update');assert.equal(await state(),before);await page.fill('#primitive-size','301');await page.click('#primitive-update');assert.equal(await state(),before);await page.fill('#primitive-size',String(size));
-    await page.locator('#preview').scrollIntoViewIfNeeded();const box=await page.locator('#preview').boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+25,box.y+box.height/2+15,{steps:3});await page.mouse.up();assert.deepEqual(await page.evaluate(()=>window.cadPreview.primitiveState()),owner);
-    primitiveControls.push({kind,created:true,updatedTwice:true,pendingPreserved:true,invalidPreserved:true,orbitProvenancePreserved:true});
-  }
-  const primitiveMixed=await page.evaluate(()=>{const host=window.cadPreview,live=()=>window.previewProbe.resources.filter(({kind,resource,gl})=>gl[`is${kind}`](resource)).length,before=live(),renderer=host.renderer;for(let i=0;i<12;i++){const a=host.createPrimitive({kind:i%2?'sheet':'quarter-wall',size:80+i,height:100},host.snapshot().source);if(!a.ok)throw Error(a.error);const b=host.updateDimensions({size:90+i,height:120},host.snapshot().source);if(!b.ok)throw Error(b.error);}return{count:12,before,after:live(),sameRenderer:renderer===host.renderer};});assert(primitiveMixed.sameRenderer&&primitiveMixed.before===primitiveMixed.after);
-  await page.setViewportSize({width:1440,height:900});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(evidence,'primitive-desktop.ui.png'),fullPage:true,animations:'disabled'});await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:path.join(evidence,'primitive-mobile.ui.png'),fullPage:true,animations:'disabled'});await page.setViewportSize({width:1280,height:720});
-  const primitiveLineage={controls:primitiveControls,mixed:primitiveMixed,explicitToolPlacement:true};
-
   // Restore the original consumer fixture; open advanced controls through real summaries.
   await page.setViewportSize({width:1280,height:720});await page.reload();await page.waitForFunction(()=>window.cadPreview?.snapshot()?.packet);
   await page.evaluate(()=>window.originalPreviewRenderer=window.cadPreview.renderer);
@@ -634,6 +615,26 @@ try {
   const parameterMixed=await page.evaluate(()=>{const host=window.cadPreview,live=()=>window.previewProbe.resources.filter(({kind,resource,gl})=>gl[`is${kind}`](resource)).length,before=live(),renderer=host.renderer;for(let i=0;i<12;i++){const r=host.applyParameters({weight:{index:1,value:i%2?0.2:Math.SQRT1_2}},host.snapshot().source);if(!r.ok)throw Error(r.error);if(!host.showSurface(i%2?'wall':'second_wall').ok)throw Error('Selection failed');if(!host.setCamera({eye:[4,3,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100}).ok)throw Error('View failed');}return{count:12,before,after:live(),sameRenderer:renderer===host.renderer};});
   assert(parameterMixed.sameRenderer&&parameterMixed.before===parameterMixed.after);
   const parameterLineage={typedActions:2,pendingSourcePreserved:true,sharedInputPropagation:true,unrelatedSemanticFieldsPreserved:true,mixed:parameterMixed};
+
+  const primitiveControls=[];
+  for(const kind of ['sheet','quarter-wall']){
+    await page.locator('#primitive-kind').selectOption(kind);await page.fill('#primitive-size','100');await page.fill('#primitive-height','100');
+    await page.click('#primitive-create');const created=await capture(`create-${kind}`,null,null,{kind,size:100,height:100});
+    assert.equal(await page.locator('#source').inputValue(),created.snapshot.source);assert.equal(created.snapshot.packet.surfaceId,'surface');assert.equal(created.snapshot.options.mmToSceneUnit,.01);
+    const size=kind==='sheet'?128.5:42.375,height=76.625;
+    await page.fill('#primitive-size',String(size));await page.fill('#primitive-height',String(height));await page.click('#primitive-update');const edited=await capture(`update-${kind}`,null,null,{kind,size,height});
+    assert.notEqual(created.readbackHash,edited.readbackHash);assert.notEqual(created.snapshot.iges.iges,edited.snapshot.iges.iges);assert.deepEqual(edited.snapshot.options.camera,created.snapshot.options.camera);
+    await page.fill('#primitive-height','125.25');await page.click('#primitive-update');await capture(`height-${kind}`,null,null,{kind,size,height:125.25});
+    const owner=await page.evaluate(()=>window.cadPreview.primitiveState());assert.equal(owner.height,125.25);
+    const before=await state();await page.fill('#source',owner.source+' /* pending */');await page.click('#primitive-create');assert.equal(await state(),before);assert.equal(await page.locator('#source').inputValue(),owner.source+' /* pending */');await page.click('#discard-source');
+    await page.fill('#primitive-size','');await page.click('#primitive-update');assert.equal(await state(),before);await page.fill('#primitive-size','301');await page.click('#primitive-update');assert.equal(await state(),before);await page.fill('#primitive-size',String(size));
+    await page.locator('#preview').scrollIntoViewIfNeeded();const box=await page.locator('#preview').boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+25,box.y+box.height/2+15,{steps:3});await page.mouse.up();assert.deepEqual(await page.evaluate(()=>window.cadPreview.primitiveState()),owner);
+    primitiveControls.push({kind,created:true,updatedTwice:true,pendingPreserved:true,invalidPreserved:true,orbitProvenancePreserved:true});
+  }
+  const primitiveMixed=await page.evaluate(()=>{const host=window.cadPreview,live=()=>window.previewProbe.resources.filter(({kind,resource,gl})=>gl[`is${kind}`](resource)).length,before=live(),renderer=host.renderer;for(let i=0;i<12;i++){const a=host.createPrimitive({kind:i%2?'sheet':'quarter-wall',size:80+i,height:100},host.snapshot().source);if(!a.ok)throw Error(a.error);const b=host.updateDimensions({size:90+i,height:120},host.snapshot().source);if(!b.ok)throw Error(b.error);}return{count:12,before,after:live(),sameRenderer:renderer===host.renderer};});assert(primitiveMixed.sameRenderer&&primitiveMixed.before===primitiveMixed.after);
+  await page.setViewportSize({width:1440,height:900});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(evidence,'primitive-desktop.ui.png'),fullPage:true,animations:'disabled'});await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:path.join(evidence,'primitive-mobile.ui.png'),fullPage:true,animations:'disabled'});await page.setViewportSize({width:1280,height:720});
+  const primitiveLineage={controls:primitiveControls,mixed:primitiveMixed,explicitToolPlacement:true};
+
 
   await apply(cylinder.source, { ...settings(cylinder), countU: 64, countV: 64 });
   const boundary = await capture('boundary-grid'); assert.equal(boundary.snapshot.report.vertexCount, 4096);
