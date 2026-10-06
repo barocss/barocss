@@ -434,3 +434,29 @@ It also records GL errors and backend. No pointer selection, through-hole shell
 raster, general geometric/topology/solid certificate or physical GPU performance
 is claimed. Broader unit/packed/readers/package/workspace/gallery/numerical/resource
 validation remains deferred under the prototype policy.
+
+## Original through-hole shell display (prototype)
+
+Select **CAD · Through-hole shell + edges** at `/#cad-native-hole-shell`.
+The actual outer10x10 square/inner4x4 square first produce the native two-loop
+face, then the original6mm through-hole shell. Its actual world cap/wall Surfaces
+and D1 produce the577 packet64 vertices/32 triangles and24 original global Curve
+paths. It is a distinct3D view from the planar hole-face example; both annular
+caps retain the opening and actual inner walls provide the depth.
+
+The existing complete-packet overlay uses the same centered mm placement, camera
+and depth as fill. Original source/face/body/Surface/Curve identity, shell, packet,
+face ranges and edge provenance remain in own snapshots. Mouse orbit changes only
+the view. Root remains canvas+Example with original edges enabled and no edit or
+selection controls. Existing L-shell, hole-face and authoring workspaces remain.
+
+Run `native-hole-shell-gallery-smoke.mjs` after affected CAD/GPU builds using
+PW_DIR, CHROME and BAROCSS_NATIVE_HOLE_SHELL_EVIDENCE. The short mounted-gallery
+run records actual native/source/world Model/packet/overlay/camera/PNG lineage,
+top filled/open/outside controls and an oblique inner-wall Surface/D1 point bound
+to its native face range. It checks edge off/on, stale same-identity packet
+rejection, orbit ownership, GL error0 and one hole-face reselect. Software backend
+functional results do not establish physical GPU performance. Broader campaigns
+remain deferred. Native geometricValidity:not-certified,topologyCertified:false,
+solid:false persist; combinatorial closure/Euler0 is not a solid certificate.
+No picking, document edit or saved-file schema changes are added.

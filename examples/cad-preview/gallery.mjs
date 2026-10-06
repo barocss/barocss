@@ -15,6 +15,7 @@ const examples=[
  {id:'cylinder',label:'GPU · Cylinder',kind:'sdf',sourceVersion:1,camera:{...defaultOrbitCamera,eye:[3,2.5,7]},source:'@scene posts{version:1;background:#101820;cylinder #post;box #block;sphere #ball;}cylinder{radius:.6;height:2;color:#e08040;}#post{translate:-1.4 0 0;rotate-x:20deg;rotate-z:-15deg;}#block{size:1 1 1;translate:.4 0 0;color:#4090e0;}#ball{radius:.4;translate:1.7 0 0;color:#80d040;}'},
  {id:'rotated-box',label:'GPU · Rotated box',kind:'sdf',sourceVersion:1,source:'@scene tilted{version:1;background:#101820;box #block;sphere #ball;}#block{size:1 2 .8;rotate-x:20deg;rotate-y:35deg;rotate-z:-10deg;color:#e08040;}#ball{radius:.6;translate:1.4 0 0;color:#4090e0;}'},
  {id:'cad-native-l-shell',label:'CAD · Original L shell + edges',kind:'native-shell'},
+ {id:'cad-native-hole-shell',label:'CAD · Through-hole shell + edges',kind:'native-hole-shell'},
  {id:'cad-native-hole-face',label:'CAD · Planar face with hole + edges',kind:'native-hole'},
  {id:'native-box',label:'CAD · Six-face box',kind:'box'},
  {id:'cad-triangle-region',label:'CAD · Triangle filled region',kind:'region',request:{id:'gallery_triangle',points:[[0,0],[3,0],[0,3]]}},
@@ -35,7 +36,7 @@ function select(id){
  try{
   if(example.kind==='sdf')renderer=gpu.mountScene(canvas,example.source,example.camera??defaultOrbitCamera,example.sourceVersion===1?{sourceVersion:1}:undefined);
   else{
-   if(example.kind==='native-shell'||example.kind==='native-hole'){({native,packet,options,overlay}=prepareNativeTopologyPreview(example.kind,cad,gpu));}
+   if(example.kind==='native-shell'||example.kind==='native-hole'||example.kind==='native-hole-shell'){({native,packet,options,overlay}=prepareNativeTopologyPreview(example.kind,cad,gpu));}
    else if(example.kind==='box'){native=prepareBoxPreview({id:'gallery_box',origin:[0,0,0],sides:[2,3,5],revision:1},cad);packet=native.packet;options={mmToSceneUnit:.5,translate:[-.5,-.75,-1.25],color:[.25,.8,.75],background:[16/255,24/255,32/255],camera:{eye:[4,3,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100}};}
    else if(example.kind==='region'||example.kind==='prism'){
     const authoring=cad.buildXYPolygonRegion(example.request);
@@ -63,6 +64,6 @@ const polygonOption=document.createElement('option');polygonOption.value='worksp
 picker.addEventListener('change',()=>{if(picker.value==='workspace-polygon'){location.href='/workspace.html#polygon-prism';return;}if(picker.value==='workspace-box'){location.href='/workspace.html#box';return;}if(select(picker.value))history.replaceState(null,'','#'+picker.value);});
 addEventListener('resize',()=>{if(!active||!active.available)return;try{active.renderer.resize(...dimensions());}catch(cause){error.textContent=cause.message;error.hidden=false;}});
 addEventListener('pagehide',()=>{disposed=true;release(active);},{once:true});
-window.examplePreview={select,examples:()=>examples.map(({id,label,kind})=>({id,label,kind})),snapshot:()=>active?{id:active.id,kind:active.kind,viewRevision:active.viewRevision,...(['region','prism','native-shell','native-hole'].includes(active.kind)?{native:structuredClone(active.native)}:{}),...(['native-shell','native-hole'].includes(active.kind)?{overlay:active.renderer.edgeOverlay}:{}),...(active.kind==='sdf'?{scene:active.renderer.scene,options:{camera:active.renderer.camera}}:{packet:active.renderer.packet,options:active.renderer.options})}:null,readPixels:()=>active.renderer.readPixels(),get renderer(){return active?.renderer;}};
+window.examplePreview={select,examples:()=>examples.map(({id,label,kind})=>({id,label,kind})),snapshot:()=>active?{id:active.id,kind:active.kind,viewRevision:active.viewRevision,...(['region','prism','native-shell','native-hole','native-hole-shell'].includes(active.kind)?{native:structuredClone(active.native)}:{}),...(['native-shell','native-hole','native-hole-shell'].includes(active.kind)?{overlay:active.renderer.edgeOverlay}:{}),...(active.kind==='sdf'?{scene:active.renderer.scene,options:{camera:active.renderer.camera}}:{packet:active.renderer.packet,options:active.renderer.options})}:null,readPixels:()=>active.renderer.readPixels(),get renderer(){return active?.renderer;}};
 const initialId=location.hash.slice(1);select(examples.some(example=>example.id===initialId)?initialId:'sphere');
 addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(id!==active?.id&&examples.some(example=>example.id===id))select(id);});
