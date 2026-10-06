@@ -1,3 +1,6 @@
+import {validateMeshCamera} from './camera.js';
+import type {MeshCamera} from './camera.js';
+import {sceneViewShaders,sceneViewUniforms} from './scene-view.js';
 import {requireSceneExecution} from './gpu-compiler.js';
 import type { Scene } from './scene.js';
 import type { SceneShaders } from './compiler.js';
@@ -6,7 +9,7 @@ export class GPUError extends Error {
   constructor(message: string) { super(message); this.name = 'GPUError'; }
 }
 export type UpdateResult = { ok: true } | { ok: false; error: Error };
-interface Accepted { scene: Scene; shaders: SceneShaders; program: WebGLProgram; resolution: WebGLUniformLocation | null }
+interface Accepted { scene: Scene; shaders: SceneShaders; program: WebGLProgram; resolution: WebGLUniformLocation | null;camera?:MeshCamera;view:Record<string,WebGLUniformLocation|null> }
 const MAX_SIDE = 4096;
 const MAX_PIXELS = 4194304;
 
@@ -18,8 +21,9 @@ export class SceneRenderer {
   private disposed = false;
   private lost = false;
   private readonly onLoss = (event: Event): void => { event.preventDefault(); this.lost = true; };
-  constructor(private readonly canvas: HTMLCanvasElement, source: string) {
+  constructor(private readonly canvas: HTMLCanvasElement, source: string, camera?:MeshCamera) {
     const {scene,shaders}=requireSceneExecution(source);
+    const ownedCamera=camera===undefined?undefined:validateMeshCamera(camera);
     this.dimensions(canvas.width, canvas.height);
     const gl = canvas.getContext('webgl2', { alpha: false, antialias: false, preserveDrawingBuffer: true });
     if (!gl || gl.isContextLost()) throw new GPUError('WebGL2 is unavailable');
@@ -28,12 +32,13 @@ export class SceneRenderer {
     try {
       this.vao = gl.createVertexArray();
       if (!this.vao) throw new GPUError('Cannot allocate vertex array');
-      this.accepted = this.prepare(scene, shaders);
+      this.accepted = this.prepare(scene, shaders, ownedCamera);
       this.draw(this.accepted);
     } catch (error) { this.dispose(); throw error; }
   }
   get scene(): Scene { this.assertLive(); return this.accepted!.scene; }
   get shaders(): SceneShaders { this.assertLive(); return { ...this.accepted!.shaders }; }
+  get camera():MeshCamera|undefined {this.assertLive();return this.accepted!.camera&&structuredClone(this.accepted!.camera);}
   private assertLive(): void {
     if (this.disposed) throw new GPUError('Renderer is disposed');
     if (this.lost || this.gl.isContextLost()) throw new GPUError('WebGL2 context is lost; mount a new renderer');
@@ -42,7 +47,8 @@ export class SceneRenderer {
     const error = this.gl.getError();
     if (error !== this.gl.NO_ERROR) throw new GPUError(`WebGL2 error 0x${error.toString(16)}`);
   }
-  private prepare(scene: Scene, shaders: SceneShaders): Accepted {
+  private prepare(scene: Scene, shaders: SceneShaders, camera?:MeshCamera): Accepted {
+    if(camera)shaders=sceneViewShaders(shaders);
     const gl = this.gl;
     const compiled: WebGLShader[] = [];
     let program: WebGLProgram | null = null;
@@ -59,7 +65,8 @@ export class SceneRenderer {
       if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new GPUError(`Program link failed: ${gl.getProgramInfoLog(program) ?? 'unknown'}`);
       const resolution = gl.getUniformLocation(program, 'resolution');
       this.checkGL();
-      return { scene, shaders, program, resolution };
+      const view:Record<string,WebGLUniformLocation|null>={};if(camera)for(const name of ['viewEye','viewRight','viewUp','viewBackward','viewFocal','viewClip'])view[name]=gl.getUniformLocation(program,name);
+      return { scene, shaders, program, resolution, camera, view };
     } catch (error) { if (program) gl.deleteProgram(program); throw error; }
     finally { compiled.forEach(shader => gl.deleteShader(shader)); }
   }
@@ -74,6 +81,7 @@ export class SceneRenderer {
     gl.disable(gl.BLEND); gl.disable(gl.DEPTH_TEST); gl.disable(gl.SCISSOR_TEST); gl.disable(gl.CULL_FACE);
     gl.colorMask(true, true, true, true);
     gl.uniform2f(state.resolution, this.canvas.width, this.canvas.height);
+    if(state.camera){const v=sceneViewUniforms(state.camera);gl.uniform3f(state.view.viewEye,...v.eye);gl.uniform3f(state.view.viewRight,v.right[0],v.right[1],v.right[2]);gl.uniform3f(state.view.viewUp,v.up[0],v.up[1],v.up[2]);gl.uniform3f(state.view.viewBackward,v.backward[0],v.backward[1],v.backward[2]);gl.uniform1f(state.view.viewFocal,v.focal);gl.uniform2f(state.view.viewClip,v.clip[0],v.clip[1]);}
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     this.checkGL();
   }
@@ -82,7 +90,7 @@ export class SceneRenderer {
     try {
       this.assertLive();
       const {scene,shaders}=requireSceneExecution(source);
-      next = this.prepare(scene, shaders);
+      next = this.prepare(scene, shaders, this.accepted!.camera);
       this.draw(next);
       const previous = this.accepted!;
       this.accepted = next;
@@ -97,6 +105,21 @@ export class SceneRenderer {
         }
       }
       return { ok: false, error: error instanceof Error ? error : new GPUError('Update failed') };
+    }
+  }
+  /** Camera-only transaction: existing scene and program remain accepted on failure. */
+  setCamera(camera:MeshCamera):UpdateResult {
+    let candidate:Accepted|null=null;
+    try{
+      this.assertLive();const owned=validateMeshCamera(camera),previous=this.accepted!;
+      candidate=previous.camera?{...previous,camera:owned}:this.prepare(previous.scene,previous.shaders,owned);
+      this.draw(candidate);this.accepted=candidate;
+      if(candidate.program!==previous.program)this.gl.deleteProgram(previous.program);
+      return{ok:true};
+    }catch(error){
+      if(candidate&&this.accepted&&candidate.program!==this.accepted.program)this.gl.deleteProgram(candidate.program);
+      if(candidate&&!this.disposed&&!this.lost&&!this.gl.isContextLost()&&this.accepted){try{this.draw(this.accepted);}catch{this.lost=true;}}
+      return{ok:false,error:error instanceof Error?error:new GPUError('Camera update failed')};
     }
   }
   private dimensions(width: number, height: number): void {
@@ -135,4 +158,4 @@ export class SceneRenderer {
     this.accepted = null; this.vao = null;
   }
 }
-export function mountScene(canvas: HTMLCanvasElement, source: string): SceneRenderer { return new SceneRenderer(canvas, source); }
+export function mountScene(canvas: HTMLCanvasElement, source: string, camera?:MeshCamera): SceneRenderer { return new SceneRenderer(canvas, source, camera); }

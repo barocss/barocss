@@ -255,3 +255,18 @@ and at most1000. Scene negativezero still normalizes to positivezero. Original
 positive Scene/shader/buffer fixtures and exact packed/browser compiler records
 are retained by the verification tests. Software SwiftShader proof is functional
 evidence and does not claim physical GPU performance.
+
+## Opt-in scene presentation camera
+
+`mountScene(canvas, source, camera)` can use the existing strict `MeshCamera` data
+contract as a presentation camera for SDF scenes. `renderer.camera` returns an owned
+copy and `renderer.setCamera(camera)` redraws through view uniforms. Camera-only
+actions retain parsed geometry, shader program and resources; invalid camera or
+draw failures retain the last accepted camera/frame. Source updates and resize keep
+the accepted view. Lost/disposed contexts reject camera updates.
+
+The source grammar and render IR are unchanged. Omitting the third argument keeps
+the original fixed-camera shader bytes and behaviour. Opt-in view rays use the
+existing validated right-handed basis and FOV, explicit near/far, and the original
+128-step/100-scene-unit workload cap. No authored GLSL or implicit geometry rotation
+is admitted. Gallery mouse orbit uses this view API for sphere/box and mesh examples.
