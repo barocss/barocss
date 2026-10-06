@@ -1,4 +1,5 @@
 import { createProjectHistory } from './history.mjs';
+import { surfaceEdges } from './cad-edge-overlay.mjs';
 import { validateProject } from './project.mjs';
 import { preparePrimitive, dimensionUpdate } from './primitives.mjs';
 import { parameterState as readParameterState, canonicalConstruction } from './parameters.mjs';
@@ -37,6 +38,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
   const history=createProjectHistory(gpu);
   let transactionDepth=0,plannedPrimitive=null,plannedEntry,restoring=false;
   let loadingProject=false;
+  let edgesEnabled=false;
   let status = 'No accepted preview';
   const announce = message => { status = message; if(!loadingProject)notify(message, accepted && structuredClone(accepted)); };
   const onLoss = () => { unavailable = true; announce('Preview unavailable: GPU context lost. Reload to create a new context.'); };
@@ -52,11 +54,12 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
         plannedEntry=history.prepare({format:'barocss-cad-project',version:1,sourceVersion:candidate.sourceVersion??0,
           source:candidate.source,surfaceId:candidate.packet.surfaceId,grid:structuredClone(candidate.report.grid),
           options:structuredClone(candidate.options),primitive:plannedPrimitive});
+        const edges=edgesEnabled?surfaceEdges(candidate,cad):null;
         if (renderer) {
-          const result = renderer.update(candidate.packet, candidate.options);
+          const result = renderer.update(candidate.packet, candidate.options,edges?.overlay??null);
           if (!result.ok) throw result.error;
-        } else renderer = gpu.mountMesh(canvas, candidate.packet, candidate.options);
-        accepted = { ...candidate, viewRevision: ++viewRevision }; revision = candidate.revision;
+        } else renderer = gpu.mountMesh(canvas, candidate.packet, candidate.options,edges?.overlay??null);
+        accepted = { ...candidate,edgeLineage:edges?.lineage??null, viewRevision: ++viewRevision }; revision = candidate.revision;
         inspectedId = candidate.packet.surfaceId; primitive = undefined;
         announce(`Accepted model revision ${revision}, view revision ${viewRevision}`);
         return { ok: true };
@@ -171,6 +174,16 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
         return { ok: false, error: error.message, ...(error.diagnostics ? { diagnostics: structuredClone(error.diagnostics) } : {}) };
       }
     },
+    setEdges(enabled) {
+      try {
+        if(typeof enabled!=='boolean'||disposed||unavailable||!renderer||!accepted)throw new Error('Preview unavailable or invalid edge setting');
+        const edges=enabled?surfaceEdges(accepted,cad):null,result=renderer.setEdgeOverlay(edges?.overlay??null);
+        if(!result.ok)throw result.error;
+        edgesEnabled=enabled;accepted={...accepted,edgeLineage:edges?.lineage??null,viewRevision:++viewRevision};
+        announce(enabled?'Original natural surface boundaries shown.':'Surface edges hidden.');return{ok:true};
+      }catch(error){return{ok:false,error:error.message};}
+    },
+    get edgesEnabled(){return edgesEnabled;},
     snapshot() { return accepted && structuredClone(accepted); },
     readPixels() { if (disposed || unavailable || !renderer) throw new Error('Preview unavailable'); return renderer.readPixels(); },
     shaders() { if (!renderer) throw new Error('No renderer'); return renderer.shaders; },
