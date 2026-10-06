@@ -1221,3 +1221,51 @@ Native/packed/typed/independent-reader control scripts are prepared in the
 existing test:consumer/test:exchange drivers for later verification. Under the
 current prototype policy, the completion gate is affected-package build plus
 a short actual positive/rejection smoke; broader validation is deferred.
+
+## Filled XY polygon preview packets
+
+`tessellateXYPolygonRegion(curve, { meshId, revision })` converts an actual
+validated integer polygon region into the existing PreviewPacket0. Options are
+exact own-data fields; meshId is bounded ASCII and differs from the source
+Curve ID, revision is an integer0..2147483647. The curve/options are snapshotted
+before use, and actual region validity is recomputed rather than trusting a report.
+
+```js
+import { buildXYPolygonRegion, tessellateXYPolygonRegion } from '@barocss/cad';
+const native = buildXYPolygonRegion({ id:'triangle', points:[[0,0],[3,0],[0,3]] });
+const preview = tessellateXYPolygonRegion(native.curve, { meshId:'triangle_mesh', revision:1 });
+```
+
+Original boundary positions/order are preserved. A separate CCW working index
+order clips strictly positive exact integer ears containing no other active
+vertex inside or on their closed triangle. Concave regions and original
+collinear boundary vertices are retained. Attempts are bounded; failed/collapsed
+generated geometry throws instead of adopting a partial packet.
+
+N>=4 uses N vertices/N-2 triangles. Triangle3 adds one deterministic display
+centroid to meet the existing four-vertex packet minimum and emits three
+positive-Z triangles. No packet schema/minimum change is made. Normals are+Z,
+units stay mm/right-handed-y-up/ccw and bounds come from actual output positions.
+The completed actual packet passes the original native packet validator.
+
+The report names source Curve/derived mesh/revision, source/output counts and
+each curve index/original parameter or triangle-centroid source. UV is the
+explicit affine XY bounding-plane map, with origin/uAxis/vAxis; it is not a
+Curve parameter or authored NURBS Surface domain. The derived packet surfaceId
+contains meshId and must not be treated as a source Surface/project/export ID.
+Packet/region/report occurrences own data independently. Report retains
+certified:false, face:false and solid:false; this creates display geometry,
+not a B-Rep trimmed face, cap interchange or solid.
+
+Run the real prototype:
+
+```sh
+node examples/cad-nurbs/xy-polygon-preview-demo.mjs /tmp/barocss-polygon-preview-prototype
+```
+
+It invokes the actual region builder and tessellator for triangle/L profiles,
+writes source/Curve/packet/report files, checks counts/positive winding/area
+and missing-quadrant behavior, retains CW source order, and prints a crossed
+region rejection. Prototype completion uses affected CAD build plus this short
+real demo. Broader unit/rational/raster/reader/compatibility verification is
+deferred; actual GPU consumption is a separate integration step.
