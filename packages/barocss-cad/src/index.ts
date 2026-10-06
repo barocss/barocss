@@ -30,3 +30,5 @@ export type { XYLinearSketchDocumentV0, XYLinearSketchResult, XYLinearSketchCons
 export type { XYLinearSketchDocumentV1, XYLinearSketchConstraintV1, XYLinearSketchResultV1, XYLinearSketchDimensionReport } from './xy-linear-sketch.js';
 export { buildXYPolygonRegion, validateXYPolygonRegion } from './xy-polygon-region.js';
 export type { XYPolygonRegionRequest, XYPolygonRegionResult, XYPolygonRegionReport } from './xy-polygon-region.js';
+export { tessellateXYPolygonRegion } from './xy-polygon-preview.js';
+export type { XYPolygonPreviewOptions, XYPolygonPreviewVertexSource, XYPolygonPreviewReport, XYPolygonPreviewResult } from './xy-polygon-preview.js';
