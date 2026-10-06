@@ -68,3 +68,13 @@ axis/oblique segment and rounded-end distances, source edits, retained invalid
 frames and exact old source0/rotation/cylinder shader controls. It requires the
 existing built CAD module graph for the preview server; no native CAD capability
 or physical GPU performance is claimed.
+
+## Source1 rounded-box prototype
+
+**GPU · Rounded box** at `/#rounded-box` compiles the own ranged source1 grammar
+through semantic/IR2/original GLSL. Size is outer size; radius is positive and at
+most its smallest half extent, equality accepted. Run `rounded-box-smoke.mjs`
+after the affected GPU build with existing PW_DIR/CHROME and
+BAROCSS_ROUNDED_BOX_EVIDENCE. The preview needs the existing built CAD graph.
+The short real source/structured/browser run retains actual corner-removal,
+radius/orbit/equality/failure controls and exact native GPU compiler lineage.

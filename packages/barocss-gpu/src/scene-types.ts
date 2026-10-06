@@ -24,7 +24,10 @@ export interface CapsuleSceneObject extends Omit<RotatedSceneObject, 'type'> {
   start: Vec3;
   end: Vec3;
 }
-export type SceneObject1 = RotatedSceneObject | CylinderSceneObject | CapsuleSceneObject;
+export interface RoundedBoxSceneObject extends Omit<RotatedSceneObject, 'type'> {
+  type: 'rounded-box';
+}
+export type SceneObject1 = RotatedSceneObject | CylinderSceneObject | CapsuleSceneObject | RoundedBoxSceneObject;
 export interface Scene1 {
   version: 1;
   name: string;

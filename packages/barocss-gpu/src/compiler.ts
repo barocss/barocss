@@ -1,4 +1,5 @@
 import { resolveStructuredScene } from './gpu-data.js';
+import {roundedBoxInner} from './rounded-box.js';
 import {validateCapsuleSegment} from './capsule.js';
 import {inverseRotation} from './rotation.js';
 import type { AnyScene, Scene, Scene1, RGB, Vec3 } from './scene.js';
@@ -25,7 +26,7 @@ export function lowerSceneShaders(scene: AnyScene): SceneShaders {
   const seen = new Set<string>();
   const shapes: string[] = [];
   scene.objects.forEach((object,index) => {
-    if (!object || typeof object.id !== 'string' || seen.has(object.id) || !['sphere', 'box',...(scene.version===1?['cylinder','capsule']:[])].includes(object.type)) throw new Error('Invalid scene object');
+    if (!object || typeof object.id !== 'string' || seen.has(object.id) || !['sphere', 'box',...(scene.version===1?['cylinder','capsule','rounded-box']:[])].includes(object.type)) throw new Error('Invalid scene object');
     seen.add(object.id);
     color(object.color);
     vector(object.translate, false, 1000);
@@ -38,7 +39,9 @@ export function lowerSceneShaders(scene: AnyScene): SceneShaders {
     }
     if(object.type==='cylinder'&&(!Number.isFinite(object.height)||object.height<=0||object.height>1000||Math.fround(object.height/2)<=0))throw new Error('Invalid cylinder height');
     if(object.type==='capsule'){vector(object.start,false,1000);vector(object.end,false,1000);validateCapsuleSegment(object.start,object.end);}
-    const distance = object.type === 'capsule'
+    const distance = object.type === 'rounded-box'
+      ? `boxDistance(${point},${vec(roundedBoxInner(object.size,object.radius))})-${scalar(object.radius)}`
+      : object.type === 'capsule'
       ? `capsuleDistance(${point},${vec(object.start)},${vec(object.end)},${scalar(object.radius)})`
       : object.type === 'cylinder'
       ? `cylinderDistance(${point},${scalar(object.radius)},${scalar(object.height/2)})`

@@ -422,3 +422,31 @@ boundary samples may retain the selected face's color; this does not establish a
 hidden-line or geometric visibility certificate. The focused prototype measured
 bottom-face changes only within1.1 physical pixels of its actual original boundary
 paths and unchanged protected cap/wall interior samples.
+
+## Source1 rounded box (prototype)
+
+```css
+@scene rounded { version: 1; rounded-box #block; }
+#block { size: 2 2 2; radius: .35; color: #7cd8ca; }
+```
+
+`rounded-box` is an additive explicit source1/Scene1/IR2 kind. `size` specifies
+full OUTER XYZ extents, default[2,2,2]; `radius` default0.25. After the full
+property cascade, radius must be positive and <=min(size)/2. Equality is supported:
+size2/radius1 is sphere-shaped. Extents/radius remain finite<=1000; represented
+Float32 half-extents/radius must be positive and inner extents nonnegative.
+Zero inner components at equality are permitted; no radius clamping/rescaling.
+
+The original inverse-rigid query lowers boxDistance(local,halfSize-radius)-radius,
+using admitted scalar Float32 coefficients. Outer extents stay fixed. Existing
+color/translate/degree rotation/cascade apply; height/start/end are unsupported.
+Structured compile and original source/AST/IR agree. Source0 rejects this kind;
+old box/sphere/cylinder/capsule data and shader semantics stay unchanged. No native
+CAD fillet, B-Rep rounded solid, Boolean or commercial parity is claimed.
+
+The root Example **GPU · Rounded box** uses actual original source1 compilation.
+`examples/gpu-scene/rounded-box-smoke.mjs` after the affected GPU build, with
+PW_DIR/CHROME and BAROCSS_ROUNDED_BOX_EVIDENCE, records source/AST/semantic/IR/GLSL,
+actual plain-vs-rounded projected center/corner controls, radius edit/orbit,
+sphere-equality pixel comparison, source/structured/range failures with frame
+retention, backend/GL0 and PNG lineage. Broader validation remains deferred.
