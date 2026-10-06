@@ -1654,3 +1654,67 @@ native boundary identities, and builds a concave outer with a contained
 triangle. Crossing/touch/outside holes and corrupted inner pcurves/references
 reject while prior data remain usable. Affected build and this short actual
 demo are the prototype checks; broader validation remains deferred.
+
+### Preview of the actual one-hole planar face
+
+`tessellateXYPolygonPlanarFaceWithHole(bundle, { meshId, revision })` consumes
+the validated original one-hole face and returns unchanged `PreviewPacket0`
+as `packet`, original `edgePaths`, separate `edgeProvenance` and a report.
+Mesh identity differs from all native IDs/Model name; report preserves the
+actual forward face/Surface identity and sourceVersion0. Original sources,
+two-loop topology and prior face/preview/query schemas remain unchanged.
+
+The original segment Curves define vertical slabs between sorted distinct
+native vertex X coordinates. Exact rational midpoint intersections are
+sorted with checked safe-integer cross products and paired by even/odd fill.
+Each interval is a trapezoid supported by two original edges, evaluated at
+both slab ends. Original vertical edges remain native paths even though they
+do not support interior slab intersections. Native strict containment and
+non-crossing ensure supporting order cannot swap inside a slab.
+
+Connectivity never uses floating near-equality. A collapsed rational corner
+omits only its exactly zero-area triangle, explicitly recorded in the
+interval report. Other pieces must have positive evaluated CCW area and
+positive area after world-coordinate Float32 conversion; collapse/reversal
+rejects with an actionable unsupported-preview error. No epsilon deletion,
+snapping, native edge invention or coordinate welding occurs. Four local
+vertices per trapezoid retain hard+Z normals and provenance; display seams
+and an unused duplicate collapsed corner are permitted.
+
+Each sampled corner records its supporting native edge/Curve/source/loop,
+exact parameter fraction and rational planar point, native/source parameter
+and actual pcurve-derived Surface UV. Emitted positions and unit outward
+normals come from the owning SurfaceD1 evaluation. Actual native Curve and
+rational cut agree within evaluation comparison1e-9mm, not a construction
+or manufacturing tolerance. Paths evaluate each original native Curve's
+ends once in native edge order; slab splits/diagonals are never paths.
+
+Budgets: combined12 native vertices, at most11 slabs,6 intervals per slab,
+66trapezoids,264display vertices,132triangles and12two-point paths. Reduced
+rational numerator absolute value is at most1.2e9, denominator at most40000;
+all intermediate products/sums/comparisons require safe integers. Existing
+packet limits remain unchanged. Mesh ID is ASCII1..128 and revision is an
+integer0..2147483647. Own native snapshot budgets16384values/depth12/
+arrays128/records16/strings128 are retained; output arrays have their own
+explicit display budgets. Invalid input/options/binding/parity/arithmetic/
+Float32 pieces reject without modifying prior accepted data.
+
+Report retains exact native net area and evaluated mesh triangle-area sum.
+Their display comparison is `1e-8 + 1e-12 * max(1, nativeArea)` mm2. Actual
+bounds are computed from emitted positions. Every output data occurrence is
+owned. geometricValidity:not-certified,topologyCertified:false,solid:false
+remain explicit; no GPU raster, hole extrusion, curved/multiple-hole trim,
+Boolean/solid/exchange or general triangulation certificate is implied.
+
+```sh
+node examples/cad-nurbs/xy-polygon-planar-face-hole-preview-demo.mjs /tmp/barocss-hole-face-preview-prototype
+```
+
+The one short actual demo checks all four authored square-loop orientations
+with net84mm2/eight original paths, concaveL/triangle-hole net670mm2/nine
+paths, uncovered cutout/notch/outside points and actual SurfaceD1/Curve
+bindings. A triangular outer/hole net70mm2 exercises exact collapsed-piece
+omission. Corrupt inner pcurves/references and native mesh-ID collisions
+reject while prior native/packet data stay usable. Affected CAD build and
+this actual demo are the prototype checks; broader validation remains
+deferred.
