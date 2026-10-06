@@ -35,6 +35,9 @@ export async function verifyCompilerConsumer(context) {
     const runtime = `import assert from 'node:assert/strict';
 import {compileCadModel,evaluateSurface,exportIGES} from '@barocss/cad';
 const sources=${JSON.stringify(sources)};
+const driven=${JSON.stringify(readFileSync(join(root,'examples/cad-nurbs/parameter-line-v2.css'),'utf8'))};
+const two=compileCadModel(driven,{sourceVersion:2});assert.equal(two.ok,true);assert.equal(two.ir.schemaVersion,2);assert.equal(two.ir.parameters[0].value,100);assert.equal(two.model.objects[1].controlPoints[1][1][2],100);
+assert.equal(compileCadModel(driven.replace('10 cm','12cm'),{sourceVersion:2}).model.objects[0].controlPoints[1][0],120);
 const zero=compileCadModel(sources[0],{sourceVersion:0});assert.equal(zero.ok,true);
 assert.equal(zero.model.version,0);assert.equal(zero.model.objects[0].id,'arc');assert.ok(Object.is(zero.model.objects[0].controlPoints[0][1],-0));
 const one=compileCadModel(sources[1],{sourceVersion:1});assert.equal(one.ok,true);
@@ -45,7 +48,7 @@ assert.deepEqual(one.model.objects.map(o=>o.id),['wall','arc']);
 const p=evaluateSurface(one.model.objects[0],.5,.5);assert.ok(Math.hypot(p[0]-Math.sqrt(50),p[1]-Math.sqrt(50),p[2]-15)<1e-9);
 assert.equal(exportIGES(one.model,['wall']).report.objects[0].entity,128);
 const bad=compileCadModel(sources[1].replace('curve: #arc','curve: #missing'),{sourceVersion:1});assert.equal(bad.ok,false);assert.equal(bad.diagnostics[0].code,'REFERENCE');assert.equal(bad.model,undefined);
-for(const options of [{sourceVersion:2},{sourceVersion:0,target:'iges'},{sourceVersion:1,profile:'AP214'}])assert.equal(compileCadModel(sources[0],options).ok,false);
+for(const options of [{sourceVersion:3},{sourceVersion:0,target:'iges'},{sourceVersion:1,profile:'AP214'}])assert.equal(compileCadModel(sources[0],options).ok,false);
 const old=compileCadModel(sources[1],{sourceVersion:1});one.ir.nodes[1].geometry.controlPoints[0][0]=70;one.constructions[0].vector[2]=90;
 assert.deepEqual(compileCadModel(sources[1],{sourceVersion:1}),old);
 `;
@@ -54,10 +57,12 @@ assert.deepEqual(compileCadModel(sources[1],{sourceVersion:1}),old);
     writeFileSync(join(scratch,'compiler-types.ts'), `import {compileCadModel} from '@barocss/cad';
 import type {CadCompileOptions,CadCompileResult,CadDiagnostic,CadModelAst,CadModelIR} from '@barocss/cad';
 const options:CadCompileOptions={sourceVersion:1}; const result:CadCompileResult=compileCadModel('',options);
-if(result.ok){const ast:CadModelAst=result.ast;const ir:CadModelIR=result.ir;const version:0=result.model.version;const schemaVersion:1=ir.schemaVersion;void[ast,version,schemaVersion];}
+if(result.ok){const ast:CadModelAst=result.ast;const ir:CadModelIR=result.ir;const version:0=result.model.version;if(ir.schemaVersion===1){const schemaVersion:1=ir.schemaVersion;void schemaVersion;}void[ast,version];}
 else {const first:CadDiagnostic=result.diagnostics[0];const severity:'error'=first.severity;const line:number=first.range.line;void[severity,line];}
-// @ts-expect-error Source version2 is a separately gated language.
-compileCadModel('',{sourceVersion:2});
+const source2:CadCompileResult=compileCadModel('',{sourceVersion:2});
+if(source2.ok&&source2.ir.schemaVersion===2){const version:2=source2.ir.sourceVersion;const parameters=source2.ir.parameters;const bindings=source2.ir.bindings;void[version,parameters,bindings];}
+// @ts-expect-error Source version3 is not an implemented language.
+compileCadModel('',{sourceVersion:3});
 // @ts-expect-error Exchange formats belong to native adapters.
 compileCadModel('',{sourceVersion:0,target:'iges'});
 `);
