@@ -1,5 +1,6 @@
 import { resolveStructuredScene } from './gpu-data.js';
-import type { Scene, RGB, Vec3 } from './scene.js';
+import {inverseRotation} from './rotation.js';
+import type { AnyScene, Scene, Scene1, RGB, Vec3 } from './scene.js';
 
 export const GPU_LIMITS = Object.freeze({ maxObjects: 32, maxSteps: 128, maxDistance: 100, epsilon: 0.001, maxShaderBytes: 65536 });
 export interface SceneShaders { vertex: string; fragment: string }
@@ -17,21 +18,26 @@ function scalar(value: number): string { return Math.fround(value).toExponential
 function vec(value: Vec3): string { return `vec3(${value.map(scalar).join(',')})`; }
 
 /** Validate structured input again: identifiers and source text never enter GLSL. */
-export function lowerSceneShaders(scene: Scene): SceneShaders {
-  if (!scene || scene.version !== 0 || !Array.isArray(scene.objects) || scene.objects.length > GPU_LIMITS.maxObjects) throw new Error('Invalid scene');
+export function lowerSceneShaders(scene: AnyScene): SceneShaders {
+  if (!scene || (scene.version !== 0 && scene.version !== 1) || !Array.isArray(scene.objects) || scene.objects.length > GPU_LIMITS.maxObjects) throw new Error('Invalid scene');
   color(scene.background);
   const seen = new Set<string>();
   const shapes: string[] = [];
-  scene.objects.forEach(object => {
+  scene.objects.forEach((object,index) => {
     if (!object || typeof object.id !== 'string' || seen.has(object.id) || !['sphere', 'box'].includes(object.type)) throw new Error('Invalid scene object');
     seen.add(object.id);
     color(object.color);
     vector(object.translate, false, 1000);
     vector(object.size, true, 1000);
     if (typeof object.radius !== 'number' || !Number.isFinite(object.radius) || object.radius <= 0 || object.radius > 1000 || Math.fround(object.radius) <= 0) throw new Error('Invalid sphere radius');
+    let point=`p-${vec(object.translate)}`;
+    if(scene.version===1){
+      const rotation=scene.objects[index].rotateDegrees;
+      if(rotation.some(n=>n!==0))point=`(mat3(${inverseRotation(rotation).map(scalar).join(',')})*(${point}))`;
+    }
     const distance = object.type === 'sphere'
-      ? `length(p-${vec(object.translate)})-${scalar(object.radius)}`
-      : `boxDistance(p-${vec(object.translate)},${vec(object.size.map(n => n / 2) as Vec3)})`;
+      ? `length(${point})-${scalar(object.radius)}`
+      : `boxDistance(${point},${vec(object.size.map(n => n / 2) as Vec3)})`;
     shapes.push(`d=${distance}; if(d<nearest){nearest=d; material=${vec(object.color)};}`);
   });
   const vertex = `#version 300 es
@@ -65,4 +71,6 @@ void main(){
 }
 
 /** Existing structured convenience API over semantic validation and original lowering. */
-export function compileScene(scene:Scene):SceneShaders{return lowerSceneShaders(resolveStructuredScene(scene));}
+export function compileScene(scene:Scene):SceneShaders;
+export function compileScene(scene:Scene1):SceneShaders;
+export function compileScene(scene:AnyScene):SceneShaders{return lowerSceneShaders(resolveStructuredScene(scene));}

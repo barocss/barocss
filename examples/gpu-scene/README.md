@@ -30,3 +30,22 @@ It uses independently authored analytic/literal preview packets and explicit
 millimetres-to-scene conversion. It does not import the CAD package or alter the
 sphere/box source grammar. The host fixture documents its coordinate reorientation;
 the renderer has no rotation or automatic camera fitting.
+
+## Source1 rotation prototype
+
+The CAD preview's minimal Example menu includes **GPU · Rotated box** at
+`/#rotated-box`. It calls the original GPU compiler with explicit source1 and
+uses the existing runtime mouse-orbit camera. See the GPU package README for
+syntax, angle bounds and transform order.
+
+Focused rerun (with existing Chrome and Playwright installations):
+
+```sh
+pnpm --filter @barocss/gpu build:library
+PW_DIR=<installed-runtime> CHROME=<installed-chrome> BAROCSS_ROTATION_EVIDENCE=<output-dir> node examples/gpu-scene/rotation-smoke.mjs
+```
+
+The preview server also needs the existing built CAD module graph. The smoke
+uses a fresh loopback port and closes its own server/browser. Screenshots and
+index.json contain source, ranged AST, owned IR2/execution, camera, backend and
+exact HEAD. Broader suites are deferred under the prototype policy.
