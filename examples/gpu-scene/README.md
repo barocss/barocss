@@ -78,3 +78,23 @@ after the affected GPU build with existing PW_DIR/CHROME and
 BAROCSS_ROUNDED_BOX_EVIDENCE. The preview needs the existing built CAD graph.
 The short real source/structured/browser run retains actual corner-removal,
 radius/orbit/equality/failure controls and exact native GPU compiler lineage.
+
+
+## Torus source1 prototype
+
+Select Torus in the editor, then Apply scene. Source version1 is explicit; an
+invalid source/version change keeps the accepted view. The shared CAD gallery
+has `/#torus` with a local-Y camera and mouse orbit. Ring and tube radii are
+scene units. Use `major-radius:1; minor-radius:.25;` and keep0<minor<major with
+sum<=1000, including Float32. This is the GPU scene language, not CAD geometry.
+
+Focused verification after the GPU build:
+
+```sh
+BAROCSS_TORUS_EVIDENCE=/tmp/barocss-torus-prototype node examples/gpu-scene/torus-smoke.mjs
+```
+
+Set PW_DIR and CHROME to the installed Playwright runtime and browser. This one
+actual flow records generated helper distances, hole/annulus pixels, rotation,
+orbit, invalid update retention, source-editor adoption and unchanged source0
+shader bytes. Broader validation is deferred.

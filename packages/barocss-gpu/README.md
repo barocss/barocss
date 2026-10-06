@@ -450,3 +450,30 @@ PW_DIR/CHROME and BAROCSS_ROUNDED_BOX_EVIDENCE, records source/AST/semantic/IR/G
 actual plain-vs-rounded projected center/corner controls, radius edit/orbit,
 sphere-equality pixel comparison, source/structured/range failures with frame
 retention, backend/GL0 and PNG lineage. Broader validation remains deferred.
+
+
+## Source1 ring torus (prototype)
+
+```css
+@scene ring { version:1; torus #ring; }
+#ring { major-radius:1; minor-radius:.25; color:#7cd8ca; }
+```
+
+Use explicit `sourceVersion:1`. Local Y is the axis; the centreline circle lies
+in XZ. `major-radius` is the centreline radius and `minor-radius` is the tube
+radius, in scene units. Defaults are1 and.25. The admitted ordinary ring requires
+finite `0 < minor < major` and `major + minor <= 1000`, including its Float32
+representation. A collapsed hole or extent overflow rejects after the final
+selector cascade. Existing translation and X/Y/Z degree rotations apply.
+Generic radius/size/height/start/end properties are unsupported for torus; new
+major/minor properties are unsupported on other primitives. Scene1 and IR2 carry
+`majorRadius`/`minorRadius`; existing radius/size layout fields are placeholders,
+not aliases. Source0 remains unchanged.
+
+The original compiler lowers distance to the XZ centreline circle minus the tube
+radius. Select **GPU · Torus** at `/#torus`, drag to orbit, or select Torus and
+Apply in the GPU source editor. Invalid editor source/version retains the accepted
+view. `examples/gpu-scene/torus-smoke.mjs` runs one affected-build actual source,
+helper-distance, hole/annulus/rotation pixel and editor-retention flow. Software
+WebGL is permitted; broad validation and physical performance claims are deferred.
+This GPU SDF is separate from native CAD geometry or certified solids.

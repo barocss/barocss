@@ -1,4 +1,5 @@
 import { resolveStructuredScene } from './gpu-data.js';
+import {validateTorusRadii} from './torus.js';
 import {roundedBoxInner} from './rounded-box.js';
 import {validateCapsuleSegment} from './capsule.js';
 import {inverseRotation} from './rotation.js';
@@ -26,7 +27,7 @@ export function lowerSceneShaders(scene: AnyScene): SceneShaders {
   const seen = new Set<string>();
   const shapes: string[] = [];
   scene.objects.forEach((object,index) => {
-    if (!object || typeof object.id !== 'string' || seen.has(object.id) || !['sphere', 'box',...(scene.version===1?['cylinder','capsule','rounded-box']:[])].includes(object.type)) throw new Error('Invalid scene object');
+    if (!object || typeof object.id !== 'string' || seen.has(object.id) || !['sphere', 'box',...(scene.version===1?['cylinder','capsule','rounded-box','torus']:[])].includes(object.type)) throw new Error('Invalid scene object');
     seen.add(object.id);
     color(object.color);
     vector(object.translate, false, 1000);
@@ -39,7 +40,10 @@ export function lowerSceneShaders(scene: AnyScene): SceneShaders {
     }
     if(object.type==='cylinder'&&(!Number.isFinite(object.height)||object.height<=0||object.height>1000||Math.fround(object.height/2)<=0))throw new Error('Invalid cylinder height');
     if(object.type==='capsule'){vector(object.start,false,1000);vector(object.end,false,1000);validateCapsuleSegment(object.start,object.end);}
-    const distance = object.type === 'rounded-box'
+    if(object.type==='torus')validateTorusRadii(object.majorRadius,object.minorRadius);
+    const distance = object.type === 'torus'
+      ? `torusDistance(${point},${scalar(object.majorRadius)},${scalar(object.minorRadius)})`
+      : object.type === 'rounded-box'
       ? `boxDistance(${point},${vec(roundedBoxInner(object.size,object.radius))})-${scalar(object.radius)}`
       : object.type === 'capsule'
       ? `capsuleDistance(${point},${vec(object.start)},${vec(object.end)},${scalar(object.radius)})`
@@ -59,7 +63,7 @@ precision highp float;
 uniform vec2 resolution;
 out vec4 outputColor;
 float boxDistance(vec3 p,vec3 extent){vec3 q=abs(p)-extent;return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0);}
-${scene.objects.some(o=>o.type==='cylinder')?'float cylinderDistance(vec3 p,float radius,float halfHeight){vec2 d=vec2(length(p.xz)-radius,abs(p.y)-halfHeight);return length(max(d,0.0))+min(max(d.x,d.y),0.0);}'+'\n':''}${scene.objects.some(o=>o.type==='capsule')?'float capsuleDistance(vec3 p,vec3 start,vec3 end,float radius){vec3 ba=end-start;vec3 pa=p-start;float h=clamp(dot(pa,ba)/dot(ba,ba),0.0,1.0);return length(pa-ba*h)-radius;}'+'\n':''}float sceneDistance(vec3 p,out vec3 material){float nearest=1.0e20;float d;material=vec3(0.0);${shapes.join('\n')}return nearest;}
+${scene.objects.some(o=>o.type==='cylinder')?'float cylinderDistance(vec3 p,float radius,float halfHeight){vec2 d=vec2(length(p.xz)-radius,abs(p.y)-halfHeight);return length(max(d,0.0))+min(max(d.x,d.y),0.0);}'+'\n':''}${scene.objects.some(o=>o.type==='capsule')?'float capsuleDistance(vec3 p,vec3 start,vec3 end,float radius){vec3 ba=end-start;vec3 pa=p-start;float h=clamp(dot(pa,ba)/dot(ba,ba),0.0,1.0);return length(pa-ba*h)-radius;}'+'\n':''}${scene.objects.some(o=>o.type==='torus')?'float torusDistance(vec3 p,float majorRadius,float minorRadius){return length(vec2(length(p.xz)-majorRadius,p.y))-minorRadius;}'+'\n':''}float sceneDistance(vec3 p,out vec3 material){float nearest=1.0e20;float d;material=vec3(0.0);${shapes.join('\n')}return nearest;}
 void main(){
  vec3 background=${vec(scene.background)};
  vec2 uv=(2.0*gl_FragCoord.xy-resolution)/resolution.y;
