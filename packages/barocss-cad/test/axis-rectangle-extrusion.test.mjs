@@ -45,6 +45,7 @@ test('actual source width edit recompiles and fresh face/shell/solid guards prov
   const faces=compiled.model.objects.slice(1).map((surface,i)=>buildParametricFace(surface,faceIds(result.faces[i])));const shell=buildAxisBoxShell([4,-3,0],[8,5,6],faces,shellIds(result.shell));const report=validateAxisBoxSolid(shell);assert.equal(report.volumeMM3,240);assert.equal(report.areaMM2,236);assert.equal(result.solidReport.volumeMM3,210);assert.notDeepEqual(shell,result.shell);
   const inward=structuredClone(faces);const surface=inward[0].geometry.objects[0];surface.controlPoints.reverse();const nativeInward=buildParametricFace(surface,faceIds(result.faces[0]));assert.throws(()=>buildAxisBoxShell([4,-3,0],[8,5,6],[nativeInward,...faces.slice(1)],shellIds(result.shell)));
   assert.throws(()=>buildAxisBoxShell([4,-3,0],[8,5,6],faces.slice(0,5),shellIds(result.shell)));
+  const fractional=result.source.replace(/(@parameter\s+#_rect_w\s*\{[^}]*value\s*:\s*)7\s*mm\s*;/,(_,prefix)=>prefix+'7.5mm;');const nativeFractional=compileCadModel(fractional,{sourceVersion:2});assert.equal(nativeFractional.ok,true);const fractionalFaces=nativeFractional.model.objects.slice(1).map((surface,i)=>buildParametricFace(surface,faceIds(result.faces[i])));assert.throws(()=>buildAxisBoxShell([4,-3,0],[7.5,5,6],fractionalFaces,shellIds(result.shell))); // Constructor family restriction is not a compiler-wide integer rule.
   const bad=structuredClone(shell);bad.edges[0].uses[1].sense='forward';assert.throws(()=>validateAxisBoxSolid(bad));
 });
 test('integer operation limits, exact field/ID family and corner bounds reject before partial adoption',()=>{
@@ -56,6 +57,7 @@ test('integer operation limits, exact field/ID family and corner bounds reject b
   ];const before=buildAxisRectangleExtrusion(request);for(const input of bad)assert.throws(()=>buildAxisRectangleExtrusion(input));assert.deepEqual(buildAxisRectangleExtrusion(request),before);
   const valid=buildAxisRectangleExtrusion({...request,bodyId:'a'.repeat(80),profile:{...request.profile,id:'b'.repeat(128)}});assert.equal(valid.construction.outputBodyId.length,80);assert.ok(valid.shell.id.length<=128);
   for(const object of before.model.objects.slice(1))assert.throws(()=>buildAxisRectangleExtrusion({...request,profile:{...request.profile,id:object.id}}));
+  for(const id of [before.shell.id,before.shell.vertices[0].id,before.shell.edges[0].id,before.faces[0].topology.loop.id,before.faces[0].topology.vertices[0].id,before.faces[0].topology.edges[0].curveId])assert.throws(()=>buildAxisRectangleExtrusion({...request,profile:{...request.profile,id}}));
 });
 test('strict own-data snapshot rejects malformed records and getters without execution',()=>{
   let calls=0;for(const key of Object.keys(request)){const input={...request};Object.defineProperty(input,key,{enumerable:true,get(){calls++;return request[key];}});assert.throws(()=>buildAxisRectangleExtrusion(input));}
