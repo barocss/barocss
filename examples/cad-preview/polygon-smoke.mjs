@@ -23,7 +23,7 @@ try {
     return Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('');
   });
   const sphere = await snapshot(); assert.equal(sphere.id, 'sphere');
-  assert.equal(sphere.scene.objects[0].kind, 'sphere');
+  assert.equal(sphere.scene.objects[0].type, 'sphere');
   await page.screenshot({ path: path.join(output, 'sphere.png') });
   for (const id of ['cad-triangle-region', 'cad-l-region', 'cad-triangle-prism', 'cad-l-prism']) {
     await page.selectOption('#example', id);
