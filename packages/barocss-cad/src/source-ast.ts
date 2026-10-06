@@ -45,10 +45,10 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1): CadModelAst {
   if (typeof source !== 'string') throw new TypeError('Source must be a string');
   if (sourceVersion !== 0 && sourceVersion !== 1) throw new TypeError('Source version must be 0 or 1');
   const emptyRange = { start: 0, end: 0, line: 1, column: 1, endLine: 1, endColumn: 1 };
-  const utf8BytesWithinLimit = () => {
-    let bytes = 0;
-    for (let i = 0; i < source.length; i++) {
-      const code = source.charCodeAt(i), next = source.charCodeAt(i + 1);
+  const utf8BytesWithinLimit = (start = 0, end = source.length, extraBytes = 0) => {
+    let bytes = extraBytes;
+    for (let i = start; i < end; i++) {
+      const code = source.charCodeAt(i), next = i + 1 < end ? source.charCodeAt(i + 1) : NaN;
       if (code < 128) bytes++;
       else if (code < 2048) bytes += 2;
       else if (code >= 0xd800 && code <= 0xdbff && next >= 0xdc00 && next <= 0xdfff) { bytes += 4; i++; }
@@ -174,6 +174,14 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1): CadModelAst {
         if (source[scan] === '{') depth++; else if (source[scan] === '}') depth--; scan++;
       }
       virtual = { start, end: scan };
+      // The former v1 entry parsed this exact virtual v0 source. Its header can
+      // overflow even when a malformed outer model fits the256KiB limit.
+      if (!utf8BytesWithinLimit(start, scan, prefix.length + 1)) {
+        throw new CadAstError('LIMIT', 'Source exceeds 256 KiB', range(start, Math.min(source.length, start + 1)), {
+          objectId, completedDeclarations: declarations, modelFields, modelName,
+          legacyCurve: { start, end: scan, innerOffset: 0, innerMessage: 'LIMIT at 1:1: Source exceeds 256 KiB' },
+        });
+      }
     }
     while (true) {
       skip(); if (source[at] === '}') { take('}'); break; }

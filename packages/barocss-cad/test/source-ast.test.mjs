@@ -114,3 +114,22 @@ test('fresh ASTs own source ranges and nested values independently', () => {
   own(first); first.declarations[0].fields[0].value.value = 'changed'; first.fields[0].range.start = 999; first.declarations[0].range.end = 999;
   assert.deepEqual(parseCadAst(source0, 0), second);
 });
+
+test('v1 virtual wrapper preserves byte-limit priority for ASCII, astral and lone-surrogate comments', () => {
+  const curveHead = '@curve #a{type:nurbs;degree:1;knots:[0,0,1,1];control-points:[[0,0,0],[1,0,0]];weights:[1,1];/*';
+  const ending = '*/}}';
+  function fullSource(header, comment) {
+    const minimum = header + curveHead + comment + ending;
+    return header + curveHead + comment + ' '.repeat(262144 - Buffer.byteLength(minimum)) + ending;
+  }
+  for (const comment of ['', '😀'.repeat(60000), '\ud800'.repeat(60000)]) {
+    const malformed = fullSource('@model x{', comment); assert.equal(Buffer.byteLength(malformed), 262144);
+    const declarationStart = malformed.indexOf('@curve');
+    assert.throws(() => parseCadAst(malformed, 1), (error) => {
+      assert.equal(error.code, 'LIMIT'); assert.equal(error.range.start, declarationStart); assert.equal(error.range.end, declarationStart + 1);
+      assert.equal(error.legacyCurve.innerOffset, 0); assert.equal(error.legacyCurve.innerMessage, 'LIMIT at 1:1: Source exceeds 256 KiB'); return true;
+    });
+    const valid = fullSource('@model x{version:1;length-unit:mm;', comment); assert.equal(Buffer.byteLength(valid), 262144);
+    assert.equal(parseCadAst(valid, 1).declarations.length, 1); assert.doesNotThrow(() => compileConstruction(valid));
+  }
+});
