@@ -1,0 +1,5 @@
+{
+  "adjacencyId": "rectangle_adjacency", "faceIds": ["left","right"],
+  "vertexIds": ["global_v0","global_v1","global_v2","global_v3","global_v4","global_v5"],
+  "edgeIds": ["global_e0","global_e1","global_e2","global_e3","global_e4","global_e5","global_e6"]
+}

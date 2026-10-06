@@ -1,0 +1,6 @@
+{
+  "faceId": "local_face", "loopId": "local_loop",
+  "vertexIds": ["local_v0","local_v1","local_v2","local_v3"],
+  "edgeIds": ["local_e0","local_e1","local_e2","local_e3"],
+  "curveIds": ["local_c0","local_c1","local_c2","local_c3"]
+}

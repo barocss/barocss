@@ -64,3 +64,5 @@ const { runBoundaryExchange } = await import('./boundary-exchange.mjs');
 runBoundaryExchange();
 const { runFaceExchange } = await import('./face-exchange.mjs');
 runFaceExchange();
+const { runAdjacencyExchange } = await import('./adjacency-exchange.mjs');
+runAdjacencyExchange();

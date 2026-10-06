@@ -81,3 +81,16 @@ surface and four curves, not these separate topology IDs or relationships.
 C0/repeated-corner/constant-boundary cases are outside this face subset. Smooth
 internal folds can remain structurally valid, so the report does not certify a
 regular face, shell, solid or manufactured part.
+
+Build exact adjacency for two rectangles with unequal U side lengths:
+
+```sh
+node examples/cad-nurbs/adjacency-demo.mjs examples/cad-nurbs/rectangle-left.css patch examples/cad-nurbs/rectangle-right.css patch examples/cad-nurbs/rectangle-local-ids.json examples/cad-nurbs/rectangle-global-ids.json /tmp/cad-adjacency
+```
+
+Both local bundles intentionally reuse the same surface/face/edge/curve IDs. Global
+wrapper IDs qualify references. The host writes one2face/6vertex/7edge descriptor
+and two separate five-object geometry IGES files. The single common edge uses
+opposite canonical senses; local forward loops remain unchanged. Local reports
+remain not-certified. Exact restricted-family association is not a sewn shell,
+shared reader IsSame edge, closed solid, STEP or manufacturing claim.
