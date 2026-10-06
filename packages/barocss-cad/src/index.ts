@@ -17,3 +17,5 @@ export type { CadCompileOptions, CadCompileResult, CadDiagnostic, CadModelIR, Ca
 export type { SourceSpan, ExtrusionConstruction } from './construction-types.js';
 export type { CadModelIR1, CadModelIR2, CadResolvedParameter, CadFieldBinding, CadQuantityKind, CadParameterDependency } from './model-compiler.js';
 export type { CadExpression } from './model-compiler.js';
+export { buildXYProfile } from './xy-profile.js';
+export type { XYPoint, XYProfileRequest, XYProfileReport, XYProfileResult } from './xy-profile.js';
