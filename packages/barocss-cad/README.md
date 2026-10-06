@@ -405,6 +405,73 @@ manufacturing result follows. New `dist/orthogonal-adjacency.js` imports only ex
 are erased. GPU alone registers exact `/orthogonal-adjacency.js`, integrates and
 runs same-head native/current-host/browser/captured-export postchecks.
 
+## Exact outward axis-box shell v0
+
+`buildAxisBoxShell(origin, sides, bundles, ids)` and `validateAxisBoxShell(unknown)`
+add a separate bounded closed-boundary operation. Exported `AxisBoxShellIds`,
+`AxisBoxShell` and `AxisBoxShellValidationReport` use the frozen descriptor contract.
+The report is exactly `{ incidenceValid: true, geometryFamily: 'exact-axis-box-shell-v0',
+closed: true, solid: false, solidProductImplemented: false }`. There is no public
+volume/area field or general solid certificate. Local FaceBundle reports remain
+not-certified/solidfalse. Existing face/coplanar/orthogonal code and bytes are unchanged.
+
+Origin is a three-item integer-mm tuple; sides are positive integer lengths1..10000.
+All eight represented corners lie in[-10000,10000]mm. Six valid owned FaceBundles
+must exactly match the outward min/max planes, clamped degree1×1/2×2 unit-weight
+canonical rectangles and full original-domain extents. Faces are ordered x-min,
+x-max,y-min,y-max,z-min,z-max. Corner i=xbit+2*ybit+4*zbit. Local P00/P10/P11/P01
+indices are [0,4,6,2],[1,3,7,5],[0,1,5,4],[2,6,7,3],[0,2,3,1],[4,5,7,6]. U-major
+poles are [P00,P01]/[P10,P11]. Outward coefficients/half-space conditions establish
+this exact box boundary; counts/Euler/positive volume/reader IsValid alone do not.
+
+Descriptor own fields are version0,id,origin,sides,faces,vertices,edges. IDs are
+explicit `{ shellId, faceIds:[6], vertexIds:[8], edgeIds:[12] }`,27globally distinct
+ASCII identifiers<=128characters. Local IDs may repeat inside qualified wrappers.
+Canonical directed segments are (0,1),(0,2),(0,4),(1,3),(1,5),(2,3),(2,6),(3,7),
+(4,5),(4,6),(5,7),(6,7). Each has exactly two opposite qualified boundary uses,
+forward then reverse; canonical is the fixed actual forward local curve. Every
+local edge use is reached once; face and vertex graphs must be connected. Each
+actual boundary/pcurve/pole/weight/knot/endpoint matches its full segment exactly,
+with original parameter reversal1-t and separately measured D1/positions.
+There is no arbitrary edge discovery, fitting, snapping or reparameterization.
+
+Snapshot guards remain32768visited values/depth18/array128/record16, own enumerable
+plain records and dense exact tuples, with finite scalar/signed-zero preservation.
+Every output occurrence is independently owned. Getters are not called; symbols,
+foreign/hidden/nonenumerable/sparse/cyclic/nonfinite/oversized/cached-proof data
+and fake numeric-key records in place of arrays reject. Proxy reflection traps
+remain the host's responsibility. Exact global/local coordinates never use epsilon
+matching. Missing/duplicate/inward/near/partial faces, reversed/missing/duplicate
+uses, wrong qualified owner/vertex,1e-10mm point changes,zero sides and unsupported
+weighted/non-axis/folded/collapsed inputs reject before claiming closed incidence.
+
+Six separate Models each contain one surface/four boundary curves. Thirty local
+geometry objects stay distributed under unchanged Model16. This new27-ID shell
+subset does not widen the two-face16-ID contract. Current fixed orthogonal pair
+functions directly accept only3of12outward box pairs; local faces are not mutated
+to force the remaining pairs through them. A distinct original solid-validity/
+volume operation and STEP are future scopes, not this shell API.
+
+The actual packed product consumer freshly builds four pinned boxes/24native face
+files/120IGESentities,912common and1824boundary queries. `BAROCSS_CAD_BOX_SHELL_EVIDENCE`
+selects fresh evidence, defaulting to the isolated environment's `evidence-523/box-shell`.
+Run current-head packed consumer before exchange. `test:exchange` necessarily runs
+the new installed-reader suite plus all old suites. It verifies exact coefficients,
+qualified original-byte/directory/native-ID association, outward signs, areas and
+separate numerical signed face-flux volumes1,30,216,6mm³. Flux/area are evidence only,
+never report fields. Native position/scaledD1 limit1e-9, reader1e-7; area/selected
+volume1e-7*max(1,expected), quadrature1e-10 request/estimate separately recorded.
+Twelve actual product controls and thirteen reader graph/actual-pole controls fail.
+Readable valid individual faces cannot hide incorrect global references. Existing
+folded/collapsed reader acceptance/defaultfuzzy limitations are retained. No sewing,
+healing/tolerance override, shared IsSame, serialized global shell, original solid,
+STEP/manufacturing/hardware claim follows.
+
+New `dist/box-shell.js` imports only existing `dist/face.js` and `dist/derivatives.js`
+at runtime. Native/adjacency type references are erased. GPU alone registers the
+exact static `/box-shell.js` route and performs serial same-head native/current
+project-host/browser/selected-export/CSP/module postchecks before closure.
+
 ## IGES delivery
 
 `exportIGES(model, ids)` requires explicit unique IDs. It writes deterministic

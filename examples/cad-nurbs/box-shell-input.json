@@ -1,0 +1,77 @@
+{
+  "origin": [
+    0,
+    0,
+    0
+  ],
+  "sides": [
+    2,
+    3,
+    5
+  ],
+  "surfaceIds": [
+    "xmin",
+    "xmax",
+    "ymin",
+    "ymax",
+    "zmin",
+    "zmax"
+  ],
+  "localIds": {
+    "faceId": "local_face",
+    "loopId": "local_loop",
+    "vertexIds": [
+      "local_v0",
+      "local_v1",
+      "local_v2",
+      "local_v3"
+    ],
+    "edgeIds": [
+      "local_e0",
+      "local_e1",
+      "local_e2",
+      "local_e3"
+    ],
+    "curveIds": [
+      "local_c0",
+      "local_c1",
+      "local_c2",
+      "local_c3"
+    ]
+  },
+  "shellIds": {
+    "shellId": "box_shell",
+    "faceIds": [
+      "box_xmin",
+      "box_xmax",
+      "box_ymin",
+      "box_ymax",
+      "box_zmin",
+      "box_zmax"
+    ],
+    "vertexIds": [
+      "box_v0",
+      "box_v1",
+      "box_v2",
+      "box_v3",
+      "box_v4",
+      "box_v5",
+      "box_v6",
+      "box_v7"
+    ],
+    "edgeIds": [
+      "box_e0",
+      "box_e1",
+      "box_e2",
+      "box_e3",
+      "box_e4",
+      "box_e5",
+      "box_e6",
+      "box_e7",
+      "box_e8",
+      "box_e9",
+      "box_e10",
+      "box_e11"
+    ]
+  }
+}
