@@ -21,3 +21,5 @@ export { buildXYProfile } from './xy-profile.js';
 export type { XYPoint, XYProfileRequest, XYProfileReport, XYProfileResult } from './xy-profile.js';
 export { buildXYArc } from './xy-arc.js';
 export type { XYArcRequest, XYArcReport, XYArcResult } from './xy-arc.js';
+export { buildAxisRectangleExtrusion } from './axis-rectangle-extrusion.js';
+export type { AxisRectangleExtrusionRequest, AxisRectangleExtrusionConstruction, AxisRectangleExtrusionResult } from './axis-rectangle-extrusion.js';
