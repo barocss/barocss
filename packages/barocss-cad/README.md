@@ -2131,3 +2131,57 @@ DAG/reference/height/profile/IDs/edits/JSON controls and previous output reuse.
 Affected build and this run are prototype checks; wider validation and graph UI
 remain deferred. Native validity is the existing exact-axis-box family only,
 not arbitrary multi-body/commercial certification.
+
+## Rectangle feature creation, removal and rebinding
+
+`editSketchRectangleFeatureGraphFeatures(document,edits)` returns the existing
+owned graph result with an additive feature transaction API. Exact edit fields
+are required featureOperations and optional parameterEdits/sketchEdits. Ordered
+feature operations1..8 are `{kind:'upsert',feature}` using the exact existing
+feature record, or `{kind:'remove',featureId}`. Each target ID appears once.
+The old suppression-only updater, graph0 format/evaluator/Save/Open, source
+families, input/parser budgets and numeric semantics remain unchanged.
+
+Existing upserts keep id/kind/bodyId and authored array slot; profileId,
+distanceParameterId and suppression may change. Existing body identity cannot
+be replaced. New feature/body IDs are fresh relative to the starting graph
+and prior new transaction identities, with removed feature/body IDs still
+reserved. New entries append in operation order. Remove resolves an existing
+starting feature; no same-ID remove/readd, silent remove or implicit cascade.
+Survivors keep relative order. The final graph must have1..4 features, checked
+against the complete candidate: at-four add then remove a different feature
+is valid. No reorder or parameter creation/deletion is added.
+
+The starting graph first passes complete actual native admission. Feature,
+optional parameter-definition and actual sketch edits then form one owned
+candidate before final graph evaluation. Internal feature admission/input-edit
+helpers are shared with the old updater; the public updater is not called on
+an invalid intermediate graph. Profile deletion with final feature deletion
+or rebinding is atomic; profile addition with new feature creation is atomic.
+All parameters, profiles and remaining active/suppressed features still pass
+original reference/geometry/derived-ID admission using actual graph/sketch/
+rectangle builders. Invalid final candidate publishes no partial caller or
+native state. Old accepted outputs remain exact/reusable.
+
+Original source0/source2 Curve equality, authored pole/corner IDs, local source2
+parameter scope and real body/FaceBundle/shell/Surface/parent validity bindings
+remain. Bodies are separate original outputs, not a Boolean union or assembly;
+wholeGraphCertified:false. Existing serializer/parser save final authored
+feature refs/order only. No UI, undo/history, generic topology references,
+format migration/cache or grammar/budget widening is introduced.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/rectangle-feature-lifecycle-demo.mjs /tmp/barocss-feature-lifecycle-prototype
+```
+
+The short actual API/file run starts with A72/B80, adds C96 and rebinds A to
+another profile/height under the same bodyID. Atomic removeB/removeprofileB/
+rebindA gives A72/C96. Add a new2x2 sketch rectangle and D together→D32;
+removeC/base9→A108/D44; rebind D to base→D36 with unchanged bodyID. Existing
+Save/Open retain final A/D order, native bindings and108/36 volumes. A
+four-feature add-before-remove transaction preserves survivors/fresh append.
+Identity recycling/replacement, bad refs/geometry/suppression/final counts,
+cycle and incomplete deletion reject with prior output reuse. Native curves,
+source2 IR, real cap D1 and−0 intent remain. Affected build/this run are
+prototype checks; broader validation and graph UI remain deferred.
