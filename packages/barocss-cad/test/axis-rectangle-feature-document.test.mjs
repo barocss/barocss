@@ -42,3 +42,18 @@ test('every nested occurrence owns data; frozen document/edits and prior success
   const d=document();for(const p of d.parameters)Object.freeze(p);Object.freeze(d.parameters);Object.freeze(d.profile);Object.freeze(d.feature);Object.freeze(d);const inputs=new WeakSet();collect(d,inputs);const r=evaluate(d);independent(r,new WeakSet(),inputs);const edits=Object.freeze([Object.freeze({parameterId:ids[2],valueMM:8})]);collect(edits,inputs);const prior=new WeakSet();collect(r,prior);const next=edit(d,edits);independent(next,new WeakSet(),prior);independent(next,new WeakSet(),inputs);
   const before=structuredClone(r);try{next.document.parameters[2].valueMM=9;}catch{}try{next.evaluation.shell.vertices[0].point[0]=99;}catch{}assert.deepEqual(r,before);assert.equal(d.parameters[2].valueMM,7);assert.deepEqual(evaluate(d),before);
 });
+function boundedRecordTree(count,depth=0){
+  if(count===1)return 0;
+  assert.ok(depth<4);const childCapacity=Array.from({length:4-depth},(_,i)=>8**i).reduce((a,b)=>a+b,0);const node={};let remaining=count-1;
+  for(let i=0;remaining>0;i++){assert.ok(i<8);const amount=Math.min(remaining,childCapacity);node['k'+i]=boundedRecordTree(amount,depth+1);remaining-=amount;}
+  return node;
+}
+function countOwnValues(value,depth=0){assert.ok(depth<=4);if(value&&typeof value==='object'){assert.equal(Array.isArray(value),false);assert.ok(Object.keys(value).length<=8);return 1+Object.values(value).reduce((n,child)=>n+countOwnValues(child,depth+1),0);}return 1;}
+test('512-value admission reaches schema validation; 513 values and nine fields reject their distinct guards',()=>{
+  const at=boundedRecordTree(512),over=boundedRecordTree(513);assert.equal(countOwnValues(at),512);assert.equal(countOwnValues(over),513);
+  assert.throws(()=>evaluate(at),error=>error instanceof Error && /exact fields/.test(error.message) && !/512 own values/.test(error.message));
+  assert.throws(()=>evaluate(over),error=>error instanceof Error && /512 own values/.test(error.message));
+  const record=Object.fromEntries(Array.from({length:9},(_,i)=>['k'+i,0]));assert.throws(()=>evaluate(record),/record exceeds 8 fields/);
+  const d=document();const bad=[{parameterId:{toString:'bad'},valueMM:8}];assert.throws(()=>edit(d,bad),error=>error instanceof Error && !(error instanceof TypeError) && /part_doc/.test(error.message) && /extrusion/.test(error.message) && /\$edits\[0\]\.parameterId/.test(error.message));
+  const max=document();max.id='d'.repeat(80);max.feature.id='f'.repeat(80);max.feature.bodyId='b'.repeat(80);max.profile.id='p'.repeat(128);max.feature.profileId=max.profile.id;max.parameters.forEach((p,i)=>p.valueMM=[-10000,-10000,10000,10000,10000][i]);const text=serialize(max);assert.ok(Buffer.byteLength(text)<=8192);console.log(JSON.stringify({maxLegalDocumentSerializedBytes:Buffer.byteLength(text),snapshotAcceptedValues:512,snapshotRejectedValues:513}));const tooLong=structuredClone(max);tooLong.id+='d';assert.throws(()=>serialize(tooLong),/1\.\.80/);
+});
