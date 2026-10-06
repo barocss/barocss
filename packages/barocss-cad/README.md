@@ -1373,3 +1373,56 @@ The real demo evaluates L atheight6 (42/110 volume/area), height8 (56/142),
 profile replacement4x3 atheight8 (96/136), intent Save/Open and fresh reedit,
 plus CW/signedzero and actual invalid-edit retention. Affected build and this
 short native run are the prototype gate; broader suites remain deferred.
+
+## Original XY polygon planar trim face
+
+`buildXYPolygonPlanarFace(profile,{faceId})` builds a distinct native
+`XYPolygonPlanarFaceBundle` with actual Model0 geometry and explicit trim-loop
+incidence. Input is the existing canonical integer polygon Curve, narrowed to
+3..12 vertices. Geometry holds the unchanged source Curve, one actual degree1
+unit-weight bounding-plane Surface and N authored-direction edge Curves.
+The N+2 object count stays within the existing Model0 maximum16.
+
+```js
+import { buildXYPolygonRegion, buildXYPolygonPlanarFace,
+  classifyXYPolygonPlanarFacePoint } from '@barocss/cad';
+const source = buildXYPolygonRegion({ id:'L', points:[[0,0],[4,0],[4,1],[1,1],[1,4],[0,4]] });
+const face = buildXYPolygonPlanarFace(source.curve, { faceId:'L_face' });
+const notch = classifyXYPolygonPlanarFacePoint(face.bundle, [2,2,0]); // outside
+```
+
+Bundle fields are exactly geometry/topology. Topology records version0, kind
+xy-polygon-planar-face, sourceCurveId, face, vertices, edges and loop. The face
+names actual Surface/outer-loop IDs with forward orientation. Edge records
+retain authored vertex IDs, source segment indices/ranges and actual unit-domain
+line Curves. Directed loop uses areCCW/+Z; CW source stays unchanged but runs
+reverse edge order/sense. Pcurve UV endpoints follow that directed use over the
+actual U-major bounding Surface. No natural-boundary name or cap triangle is
+substituted for a trim edge. Face/source/derived IDs are bounded and distinct.
+
+`validateXYPolygonPlanarFaceBundle(bundle)` snapshots8192 own values/depth10/
+arrays128/records16/strings128, validates actual native geometry and source
+region, reconstructs canonical family and checks all Surface/Curve/vertex/
+reference/loop/sense/pcurve data, directed incidence and finite affine bindings.
+Changed pcurves/endpoints reject. The report declares incidence/trim-family
+status, geometricValidity:not-certified, topologyCertified:false, solid:false.
+Old four-natural-boundary FaceBundle0 remains unchanged and distinct.
+
+`classifyXYPolygonPlanarFacePoint(bundle,pointMM)` validates first, then uses
+exact safe-integer winding/on-segment predicates over actual source boundaries,
+not display triangles. Queries are integer XY within±10000 atZ0. Results name
+inside/outside/boundary, actual face/Surface IDs, affine UV and boundary edge IDs/
+original ranges. Outside UV may lie beyond the underlying plane's unit domain.
+The bounding Surface alone covers the rectangle; the trim loop defines the
+actual region. Untrimmed tessellation/export is not a trimmed-face certificate.
+
+```sh
+node examples/cad-nurbs/xy-polygon-planar-face-demo.mjs /tmp/barocss-polygon-planar-face-prototype
+```
+
+The real demo builds concaveL, CW-L, triangle and10x-L native models/trim data,
+queries notch/corners/interior and rejects pcurve/edge endpoint corruption.
+Original Curves and topology files are retained. Affected build and this native
+run are the prototype gate; deeper trim/numerical/readers/full certification
+is deferred. Generic curved trims, holes, Boolean, sewing/solid and existing
+file/renderer migrations remain separate.
