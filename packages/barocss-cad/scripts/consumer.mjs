@@ -12,6 +12,8 @@ import { writeRectangleExtrusionEvidence } from './rectangle-extrusion-evidence.
 import { writeRectangleFeatureEvidence } from './rectangle-feature-evidence.mjs';
 import { writeLinearSketchEvidence } from './linear-sketch-evidence.mjs';
 import { writeAxisDimensionEvidence } from './axis-dimension-evidence.mjs';
+import { writePolygonRegionEvidence } from './polygon-region-evidence.mjs';
+import { verifyPolygonRegionConsumer } from './polygon-region-consumer.mjs';
 import { verifyAxisDimensionConsumer } from './axis-dimension-consumer.mjs';
 import { verifyLinearSketchConsumer } from './linear-sketch-consumer.mjs';
 import { verifyRectangleFeatureConsumer } from './rectangle-feature-consumer.mjs';
@@ -66,5 +68,7 @@ try {
   writeLinearSketchEvidence(api);
   await verifyAxisDimensionConsumer({ api, destination, temp, require, root });
   writeAxisDimensionEvidence(api);
+  await verifyPolygonRegionConsumer({ api, destination, temp, require, root });
+  writePolygonRegionEvidence(api);
   console.log('Packed CAD ESM, runtime math/export, and external TypeScript consumer passed');
 } finally {rmSync(temp,{recursive:true,force:true});}

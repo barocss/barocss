@@ -94,3 +94,6 @@ runLinearSketchExchange();
 
 const { runAxisDimensionExchange } = await import('./axis-dimension-exchange.mjs');
 runAxisDimensionExchange();
+
+const { runPolygonRegionExchange } = await import('./polygon-region-exchange.mjs');
+runPolygonRegionExchange();
