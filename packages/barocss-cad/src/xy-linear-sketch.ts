@@ -185,7 +185,7 @@ function solveV1(document: XYLinearSketchDocumentV1): XYLinearSketchResultV1 {
   const relations = (c: XYLinearSketchConstraintV1): [number, number, number][] => {
     if (c.kind === 'fixed') return [];
     if (c.kind === 'coincident') { const a = coordinate(c.pointA), b = coordinate(c.pointB); return [[a, b, 0], [a + 1, b + 1, 0]]; }
-    if (c.kind === 'distance-x' || c.kind === 'distance-y') { const axis = c.kind === 'distance-x' ? 0 : 1; return [[coordinate(c.pointA) + axis, coordinate(c.pointB) + axis, c.distanceMM]]; }
+    if ('distanceMM' in c) { const axis = c.kind === 'distance-x' ? 0 : 1; return [[coordinate(c.pointA) + axis, coordinate(c.pointB) + axis, c.distanceMM]]; }
     const segment = document.segments.find(s => s.id === c.segmentId)!, axis = c.kind === 'horizontal' ? 1 : 0;
     return [[coordinate(segment.startPointId) + axis, coordinate(segment.endPointId) + axis, 0]];
   };
