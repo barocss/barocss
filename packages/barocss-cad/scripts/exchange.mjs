@@ -66,3 +66,5 @@ const { runFaceExchange } = await import('./face-exchange.mjs');
 runFaceExchange();
 const { runAdjacencyExchange } = await import('./adjacency-exchange.mjs');
 runAdjacencyExchange();
+const { runOrthogonalExchange } = await import('./orthogonal-exchange.mjs');
+runOrthogonalExchange();
