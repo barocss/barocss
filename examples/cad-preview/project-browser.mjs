@@ -1,3 +1,4 @@
+import * as cad from '../../packages/barocss-cad/dist/index.js';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import {readFile,writeFile} from 'node:fs/promises';
@@ -21,6 +22,9 @@ export async function runProjectBrowser({browser,page,server,evidence,allowed,ta
  }
  async function capture(p,name,primitiveRequest=null,fixture=null){
   const s=(await state(p)).snapshot,bytes=await p.evaluate(()=>Array.from(window.cadPreview.readPixels())),size=await p.locator('#preview').evaluate(e=>[e.width,e.height]);
+  const compiled=s.sourceVersion===1?cad.compileConstruction(s.source):null,model=compiled?.model??cad.parseModel(s.source),surface=model.objects.find(o=>o.id===s.packet.surfaceId);
+  assert.deepEqual(normalize(model),normalize(s.model));if(compiled)assert.deepEqual(compiled.constructions,s.constructions);
+  const replay=cad.tessellateSurface(surface,{...s.report.grid,revision:s.revision});assert.deepEqual(replay.packet,s.packet);assert.deepEqual(replay.report,s.report);assert.deepEqual(cad.exportIGES(model,[surface.id]),s.iges);
   const native=await download(p,'#export');assert.equal(native.bytes.toString(),s.iges.iges);
   const data={'source.css':s.source,'model.json':json(s.model),'packet.json':json(s.packet),'report.json':json(s.report),'display.json':json({options:s.options,revision:s.revision,viewRevision:s.viewRevision}),'iges.json':json(s.iges),'igs':s.iges.iges,'downloaded.igs':native.bytes,'png':readbackPng(bytes,...size)};
   if(s.sourceVersion===1){data['constructions.json']=json(s.constructions);data['selected-construction.json']=json(s.selectedConstruction);}
@@ -28,7 +32,7 @@ export async function runProjectBrowser({browser,page,server,evidence,allowed,ta
   if(fixture){data['objects.json']=json(await p.evaluate(()=>window.cadPreview.objects()));data['inspection.json']=json(await p.evaluate(()=>window.cadPreview.inspection()));}
   const hashes={};for(const [suffix,content]of Object.entries(data)){const file=name+'.'+suffix;await writeFile(path.join(evidence,file),content);hashes[file]=hash(content);}
   const glError=await p.locator('#preview').evaluate(e=>e.getContext('webgl2').getError());assert.equal(glError,0);
-  const frame={glError,certified:false,name,taskCommit,integrationCommit,sourceVersion:s.sourceVersion??0,revision:s.revision,viewRevision:s.viewRevision,displayedId:s.packet.surfaceId,inspectedId:s.packet.surfaceId,fixtureId:fixture?.selectorId??null,primitiveRequest,hashes,actualReadPixels:true,readbackHash:hash(Uint8Array.from(bytes))};frames.push(frame);return frame;
+  const frame={sourceReplayed:true,packetReplayed:true,reportReplayed:true,glError,certified:false,name,taskCommit,integrationCommit,sourceVersion:s.sourceVersion??0,revision:s.revision,viewRevision:s.viewRevision,displayedId:s.packet.surfaceId,inspectedId:s.packet.surfaceId,fixtureId:fixture?.selectorId??null,primitiveRequest,hashes,actualReadPixels:true,readbackHash:hash(Uint8Array.from(bytes))};frames.push(frame);return frame;
  }
  // Actual UI Create -> Update -> downloaded accepted file -> separate fresh page Open.
  for(const kind of ['sheet','quarter-wall']){
