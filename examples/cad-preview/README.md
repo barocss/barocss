@@ -521,3 +521,40 @@ BAROCSS_FACE_SELECTION_EVIDENCE after affected CAD/GPU builds. Exact ray/matrix,
 query/native/range/packet/camera/PNG lineage is recorded. This is bounded display
 selection, not certified manufacturing accuracy or general curved B-Rep picking;
 broader numerical/resource/performance and compatibility campaigns remain deferred.
+
+## Rectangle feature graph workspace (prototype)
+
+Open `/workspace.html#rectangle-features`, or choose **Rectangle features · Create /
+Edit**. The authored-order list retains native feature/body IDs and applied restricted
+body volumes. Select a row to draft its existing rectangle/height reference or
+suppression. Shared length rows edit literal or existing-parameter+offset definitions;
+existing rectangle rows edit numeric coordinates/dimensions. Other admitted sketch
+profiles stay read-only and remain in the saved graph.
+
+Add generates fresh feature/body IDs on existing admitted inputs. Delete drafts one
+feature. Apply coalesces each target once and uses the actual585 update or586 feature
+lifecycle API for a whole native transaction. No intermediate graph is adopted.
+Errors retain applied graph/geometry/camera/selection and the recoverable draft.
+Discard restores applied fields. New/Open require clean drafts. Save downloads the
+accepted native graph0 only; pending fields/source/Model/IR/mesh/selection/view data
+are excluded. Native128KiB/duplicate-key parser rejects old/unknown formats.
+
+Each active original555 body result supplies its actual six Surfaces to the existing
+2x2 tessellator. Face-local vertices/normals/UV and vertex-offset indices are joined
+into an explicit display packet, with qualified feature/body/local Surface/face and
+source2/IR/body ranges kept separately. Existing bodyEdges consumes each actual shell
+and its12 canonical original Curve paths bound to that complete display packet.
+No independent display box, topology welding, Boolean union or assembly is created.
+One camera and centered mm placement fit all actual body bounds; Apply/Open retain
+pose and New resets framing. All suppressed means an honest empty canvas, no fake
+packet/body; graph Save/Open and later unsuppression still work.
+
+`rectangle-feature-workspace-smoke.mjs` after affected CAD/GPU builds, with existing
+PW_DIR/CHROME and BAROCSS_RECTANGLE_FEATURE_EVIDENCE, runs actual native editor/file
+flow:72/80→96/100→135/110, suppression/empty native file, fresh C165→rebound90,
+deleteB, accepted-only download/Open and concrete invalid retention. It records
+actual source/IR/native/face/body/packet/path/pixel/camera/file/PNG lineage, original
+seeded separated-body material controls, edges/orbit and one cutout-return state
+visit. Broader numerical/resource/performance/unit/packed/readers/workspace/gallery
+campaigns remain deferred. This bounded graph consumer is not whole551 completion
+or a combined solid certificate; software pixels are functional evidence only.
