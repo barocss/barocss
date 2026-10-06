@@ -1163,3 +1163,61 @@ controls. Set `BAROCSS_CAD_AXIS_DIMENSION_EVIDENCE` to fresh exact-head evidence
 Interactive tools, fractional/unanchored dimensions, nonlinear distance/angle/
 radius/tangent constraints and source/project/wire/region/solid/history-export
 extensions remain separately scoped.
+
+## Exact simple XY polygon regions
+
+`buildXYPolygonRegion({ id, points })` creates one original closed-coordinate
+degree1 Curve and certifies its simple integer XY mathematical region.
+`validateXYPolygonRegion(curve)` separately validates that canonical Curve
+family. The input example is `examples/cad-nurbs/xy-polygon-region.json`.
+
+```js
+import { buildXYPolygonRegion, validateXYPolygonRegion } from '@barocss/cad';
+const polygon = buildXYPolygonRegion({ id: 'triangle', points: [[0,0],[3,0],[0,3]] });
+// polygon.region.areaMM2 === 4.5; parameter domain0..3.
+const region = validateXYPolygonRegion(polygon.curve);
+```
+
+Input has exactly `id` and3..63 distinct integer XY points within±10000mm,
+in authored order, without repeating the first endpoint. The ASCII ID has at
+most128 characters. A fresh closing pole repeats the first coordinates, with
+degree1, unit weights, uniform clamped knots and original domain0..N. Actual
+source0 compiles through the existing compiler; sourceVersion remains0 and
+native Model0 contains only that Curve. Signedzero coordinates are preserved;
+geometric duplicate/closure predicates treat+0/-0 as the same location.
+
+Both APIs snapshot bounded own data:4096 values/depth4/arrays70/records8/
+strings128. Getters/symbols/hidden/extra fields, foreign prototypes, sparse
+arrays and unsupported families reject. The validator requires4..64 poles,
+canonical knots, integer XY/Z0, unit weights, degree1 and exact endpoint closure.
+It accepts an existing integer rectangle Curve without changing the original
+profile's regionCertified:false report or global Curve validation semantics.
+
+Every segment pair is checked by exact bounded integer orientation/on-segment
+predicates. Nonadjacent crossings, touches and overlaps reject. Adjacent edges
+may share only their common vertex; forward collinear continuation is retained,
+while backtracking overlap rejects, including the cyclic first/last pair.
+Shoelace signed area is computed only afterward, with explicit safe arithmetic
+bounds. Clockwise order is preserved and returns negative signedAreaMM2;
+areaMM2 is positive. Concave L area is7; forward-collinear rectangle area is8.
+No epsilon, snapping, healing or sampling-based simplicity decision is used.
+
+The region report includes orientation, vertex/segment counts, original domain,
+signed/absolute area, XY bounds and every original span/vertex-index association.
+It has regionCertified:true only for exact-simple-integer-xy-polygon-v0, with
+topologicalWire:false, face:false and solid:false. It constructs no B-Rep wire,
+trimmed face, cap or body and accepts no holes/multiple rings. Existing C0 D1
+refusals remain. IGES126 retains its general/open/nonperiodic flags even when
+coordinates close. Every output occurrence owns data; malformed input throws
+a bounded contextual Error without partial region adoption or caller mutation.
+
+Run the native prototype:
+
+```sh
+node examples/cad-nurbs/xy-polygon-region-demo.mjs examples/cad-nurbs/xy-polygon-region.json /tmp/polygon-region-demo
+```
+
+Native/packed/typed/independent-reader control scripts are prepared in the
+existing test:consumer/test:exchange drivers for later verification. Under the
+current prototype policy, the completion gate is affected-package build plus
+a short actual positive/rejection smoke; broader validation is deferred.
