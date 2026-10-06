@@ -115,6 +115,66 @@ checks transferred U degree 1, knots [2,3,7], multiplicities [2,1,2] and U conti
 C0; the interior multiplicity gives continuity degree minus multiplicity = 0. Every transfer
 failure and any other diagnostic fails. No healing or tolerance override is added.
 
+## Structured source compiler
+
+`compileCadModel(source, { sourceVersion: 0 | 1 })` selects the existing source
+dialect explicitly. The declared `version` must match that selection. This API
+adds no expressions, unit literals, object kinds or source-v2 grammar.
+
+```js
+import { compileCadModel, exportIGES } from '@barocss/cad';
+const result = compileCadModel(source, { sourceVersion: 1 });
+if (result.ok) {
+  const { ast, ir, model, constructions } = result;
+  const artifact = exportIGES(model, ['wall']);
+  // The host owns file selection, storage and rendering.
+} else {
+  console.log(result.diagnostics[0]);
+}
+```
+
+Success is `{ ok: true, ast, ir, model, constructions, diagnostics: [] }`.
+Failure contains only `{ ok: false, diagnostics }`; it exposes no partial model.
+Each diagnostic has `code`, `severity: 'error'`, `message`, source `range` and an
+optional owning `objectId`. Ranges use exclusive UTF-16 `start`/`end` offsets and
+one-based `line`, `column`, `endLine` and `endColumn`. At least the first useful
+error is returned. This slice does not provide general error recovery.
+
+The parser records the actual model name, ordered fields and declarations,
+numbers, arrays, identifiers and references with their original source ranges.
+It calls no geometry evaluator or construction operation. The semantic stage
+resolves IDs and curve dependencies, validates native literal geometry and
+preflights every extrusion before lowering any derived geometry. Forward curve
+references retain source declaration order. Lowering calls the original native
+extrusion operation and emits the unchanged geometry `Model` version 0.
+
+The own IR is `{ schema: 'barocss-cad-ir', schemaVersion: 1, sourceVersion,
+name, lengthUnit: 'mm', nodes, dependencies }`. Literal nodes contain typed
+original geometry, source span and field types. Extrusion nodes retain output
+ID, curve input ID, vector, declaration span and reference span. Dependencies
+are explicit `curve-input` edges. Degrees are integers; points and vectors use
+millimetres; knots and weights are dimensionless. No export schema or file
+pointer defines native IR semantics. Export adapters consume validated native
+output separately. The returned IR is data; no public API adopts it as a
+validity cache or executable feature registry.
+
+AST, IR, model and constructions own every nested occurrence independently.
+Copies preserve binary64 values and negative zero. Mutating one result cannot
+change another output or a later compilation. Compiler options must contain
+exactly one own enumerable data property, `sourceVersion: 0` or `1`, on a plain
+or null-prototype record. Accessors, foreign options and export target/profile
+options fail without invoking getters. The legacy `parseModel` and
+`compileConstruction` APIs use this pipeline and retain their old result and
+exception presentation, including construction reference spans.
+
+The 256 KiB source and native geometry limits remain unchanged. The parser
+checks UTF-8 size before AST allocation, array dimensions/counts before each
+push, and caps allocation at 65,536 value/AST nodes and 131,072 tokens. Depth is
+at most three and declaration count is at most sixteen. The maximum legal
+sixteen 16×16 surface fixture uses 21,810 values, 21,941 AST nodes and 43,949
+tokens. Whitespace and comments remain bounded by source bytes. The AST limits
+include source metadata and are separate from native topology snapshot limits.
+
 ## Analytic first derivatives
 
 `evaluateCurveD1(curve, parameter)` returns `CurveD1Result` with `{ point, derivative }`.

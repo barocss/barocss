@@ -13,3 +13,6 @@ export * from './adjacency.js';
 export * from './orthogonal-adjacency.js';
 export * from './box-shell.js';
 export * from './box-solid.js';
+
+export { compileCadModel } from './model-compiler.js';
+export type { CadCompileOptions, CadCompileResult, CadDiagnostic, CadModelIR, CadModelAst, CadSourceRange } from './model-compiler.js';
