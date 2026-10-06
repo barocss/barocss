@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
@@ -13,7 +12,6 @@ const { chromium } = createRequire(path.join(process.env.PW_DIR, 'package.json')
 const server = await startServer();
 const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true,
   args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 try {
   const page = await browser.newPage({ viewport: { width: 1024, height: 720 } });
   const errors = [];
@@ -32,13 +30,16 @@ try {
   assert.equal(initial.packet.positions.length, 72);
   assert.equal(initial.packet.indices.length, 36);
   assert.equal(initial.lineage.faces.length, 6);
-  const pixels = () => page.evaluate(() => Array.from(window.boxWorkspace.readPixels()));
-  const beforePixels = hash(Uint8Array.from(await pixels()));
+  const pixelHash = () => page.evaluate(async () => {
+    const digest = await crypto.subtle.digest('SHA-256', window.boxWorkspace.readPixels());
+    return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  });
+  const beforePixels = await pixelHash();
   await page.fill('#body-width', '45'); await page.click('#body-update');
   const updated = await state();
   assert.equal(updated.evaluation.solidReport.volumeMM3, 27000);
   assert.equal(updated.evaluation.solidReport.areaMM2, 5700);
-  assert.notEqual(hash(Uint8Array.from(await pixels())), beforePixels);
+  assert.notEqual(await pixelHash(), beforePixels);
   const downloadPromise = page.waitForEvent('download');
   await page.click('#body-save');
   const download = await downloadPromise, file = path.join(output, 'box.feature.json');
@@ -56,10 +57,10 @@ try {
   const edited = await state();
   assert.equal(edited.evaluation.solidReport.volumeMM3, 30000);
   assert.equal(edited.evaluation.solidReport.areaMM2, 6200);
-  const acceptedPixels = hash(Uint8Array.from(await pixels()));
+  const acceptedPixels = await pixelHash();
   await page.fill('#body-width', '0'); await page.click('#body-update');
   assert.deepEqual(await state(), edited);
-  assert.equal(hash(Uint8Array.from(await pixels())), acceptedPixels);
+  assert.equal(await pixelHash(), acceptedPixels);
   assert.match(await page.locator('#body-status').innerText(), /Cannot apply/);
   await page.click('#body-discard');
   const box = await page.locator('#body-preview').boundingBox();
@@ -69,13 +70,15 @@ try {
   assert.deepEqual(rotated.document, edited.document);
   assert.deepEqual(rotated.packet, edited.packet);
   assert(rotated.options.camera.eye[1] > edited.options.camera.eye[1]);
-  assert.notEqual(hash(Uint8Array.from(await pixels())), acceptedPixels);
+  assert.notEqual(await pixelHash(), acceptedPixels);
   await page.screenshot({ path: path.join(output, 'box-workspace.png') });
   await page.click('a[href="#surface"]');
+  await page.locator('#primitive-create').waitFor({ state: 'visible' });
   assert(await page.locator('#primitive-create').isVisible());
   assert(await page.locator('#project-save').isVisible());
   assert(await page.evaluate(() => Boolean(window.cadPreview.snapshot()?.packet)));
   await page.click('a[href="#box"]');
+  await page.locator('#body-update').waitFor({ state: 'visible' });
   assert.deepEqual((await state()).document, edited.document);
   assert.deepEqual(errors, []);
   const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
