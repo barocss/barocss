@@ -32,3 +32,5 @@ export { buildXYPolygonRegion, validateXYPolygonRegion } from './xy-polygon-regi
 export type { XYPolygonRegionRequest, XYPolygonRegionResult, XYPolygonRegionReport } from './xy-polygon-region.js';
 export { tessellateXYPolygonRegion } from './xy-polygon-preview.js';
 export type { XYPolygonPreviewOptions, XYPolygonPreviewVertexSource, XYPolygonPreviewReport, XYPolygonPreviewResult } from './xy-polygon-preview.js';
+export { buildXYPolygonPrismPreview } from './xy-polygon-prism-preview.js';
+export type { XYPolygonPrismPreviewRequest, XYPolygonPrismPreviewConstruction, XYPolygonPrismPreviewRole, XYPolygonPrismPreviewReport, XYPolygonPrismPreviewResult } from './xy-polygon-prism-preview.js';
