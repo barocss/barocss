@@ -86,9 +86,12 @@ test('installed Chrome renders real WebGL2 frames and preserves accepted lifecyc
           if (!result.ok) throw result.error;
         } else state.renderer = state.api.mountScene(state.canvas, text);
         const bytes = Array.from(state.renderer.readPixels());
-        return { scene: state.renderer.scene, shaders: state.renderer.shaders, bytes,
+        const compiled=state.api.compileGpu({kind:'scene',source:text});if(!compiled.ok||compiled.execution.kind!=='sdf')throw Error('Scene pipeline failed');
+        return {compiler:compiled, scene: state.renderer.scene, shaders: state.renderer.shaders, bytes,
           width: state.canvas.width, height: state.canvas.height, actualBuffer: [state.canvas.getContext('webgl2').drawingBufferWidth, state.canvas.getContext('webgl2').drawingBufferHeight] };
       }, source);
+      assert.deepEqual(frame.compiler.execution.scene,frame.scene);assert.deepEqual(frame.compiler.execution.shaders,frame.shaders);
+      const compilerFile=`${name}.compiler.json`;await writeFile(path.join(evidence,compilerFile),JSON.stringify(frame.compiler,null,2));
       assert.equal(frame.bytes.length, frame.width * frame.height * 4);
       assert.deepEqual(frame.actualBuffer, [frame.width, frame.height]);
       const mask = masks(frame.bytes, frame.width, frame.height);
@@ -98,6 +101,7 @@ test('installed Chrome renders real WebGL2 frames and preserves accepted lifecyc
       for (let i = 0; i < contents.length; i++) await writeFile(path.join(evidence, filenames[i]), contents[i]);
       await page.locator('#test-canvas').screenshot({ path: path.join(evidence, filenames[4]) });
       const hashes = {};
+      filenames.push(compilerFile);
       for (const name of filenames) hashes[name] = digest(await readFile(path.join(evidence, name)));
       const result = { fixture: name, taskCommit: sha, integrationCommit: process.env.BAROCSS_GPU_INTEGRATION_SHA ?? null,
         browser: browser.version(), executable: process.env.CHROME, webgl: details,

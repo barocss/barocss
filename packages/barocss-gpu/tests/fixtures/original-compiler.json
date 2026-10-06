@@ -1,0 +1,919 @@
+{
+  "head": "e62930f5b30d8f877bf96dcfaf2ee5108a4162f0",
+  "sources": [
+    {
+      "source": "@scene empty {version:0;}",
+      "scene": {
+        "version": 0,
+        "name": "empty",
+        "background": [
+          0.06274509803921569,
+          0.09411764705882353,
+          0.12549019607843137
+        ],
+        "objects": []
+      },
+      "shaders": {
+        "vertex": "#version 300 es\nprecision highp float;\nvoid main(){ vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2)); gl_Position=vec4(p*2.0-1.0,0.0,1.0); }\n",
+        "fragment": "#version 300 es\nprecision highp float;\nuniform vec2 resolution;\nout vec4 outputColor;\nfloat boxDistance(vec3 p,vec3 extent){vec3 q=abs(p)-extent;return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0);}\nfloat sceneDistance(vec3 p,out vec3 material){float nearest=1.0e20;float d;material=vec3(0.0);return nearest;}\nvoid main(){\n vec3 background=vec3(6.27451017e-2,9.41176489e-2,1.25490203e-1);\n vec2 uv=(2.0*gl_FragCoord.xy-resolution)/resolution.y;\n vec3 direction=normalize(vec3(uv*0.414213562373095, -1.0));\n vec3 origin=vec3(0.0,0.0,6.0); float travel=0.0; bool hit=false; vec3 material;\n for(int step=0;step<128;step++){ float d=sceneDistance(origin+direction*travel,material);if(d<0.001){hit=true;break;}travel+=d;if(travel>100.0)break; }\n if(!hit){outputColor=vec4(background,1.0);return;}\n vec3 p=origin+direction*travel; vec3 unusedColor;\n vec3 normal=normalize(vec3(\n sceneDistance(p+vec3(0.001,0.0,0.0),unusedColor)-sceneDistance(p-vec3(0.001,0.0,0.0),unusedColor),\n sceneDistance(p+vec3(0.0,0.001,0.0),unusedColor)-sceneDistance(p-vec3(0.0,0.001,0.0),unusedColor),\n sceneDistance(p+vec3(0.0,0.0,0.001),unusedColor)-sceneDistance(p-vec3(0.0,0.0,0.001),unusedColor)));\n float light=0.35+0.65*max(dot(normal,normalize(vec3(-0.6,0.8,1.0))),0.0);\n outputColor=vec4(pow(pow(material,vec3(2.2))*light,vec3(1.0/2.2)),1.0);\n}\n"
+      }
+    },
+    {
+      "source": "@scene original {background:#123;version:0;sphere #s;box #b;} sphere {color:#abc;radius:2;translate:-0 1 -2;} #s{radius:3;} sphere{radius:4;} box{size:1 2 3;}",
+      "scene": {
+        "version": 0,
+        "name": "original",
+        "background": [
+          0.06666666666666667,
+          0.13333333333333333,
+          0.2
+        ],
+        "objects": [
+          {
+            "id": "s",
+            "type": "sphere",
+            "color": [
+              0.6666666666666666,
+              0.7333333333333333,
+              0.8
+            ],
+            "translate": [
+              0,
+              1,
+              -2
+            ],
+            "radius": 3,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "b",
+            "type": "box",
+            "color": [
+              0.8784313725490196,
+              0.5019607843137255,
+              0.25098039215686274
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 1,
+            "size": [
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      "shaders": {
+        "vertex": "#version 300 es\nprecision highp float;\nvoid main(){ vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2)); gl_Position=vec4(p*2.0-1.0,0.0,1.0); }\n",
+        "fragment": "#version 300 es\nprecision highp float;\nuniform vec2 resolution;\nout vec4 outputColor;\nfloat boxDistance(vec3 p,vec3 extent){vec3 q=abs(p)-extent;return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0);}\nfloat sceneDistance(vec3 p,out vec3 material){float nearest=1.0e20;float d;material=vec3(0.0);d=length(p-vec3(0.00000000e+0,1.00000000e+0,-2.00000000e+0))-3.00000000e+0; if(d<nearest){nearest=d; material=vec3(6.66666687e-1,7.33333349e-1,8.00000012e-1);}\nd=boxDistance(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0),vec3(5.00000000e-1,1.00000000e+0,1.50000000e+0)); if(d<nearest){nearest=d; material=vec3(8.78431380e-1,5.01960814e-1,2.50980407e-1);}return nearest;}\nvoid main(){\n vec3 background=vec3(6.66666701e-2,1.33333340e-1,2.00000003e-1);\n vec2 uv=(2.0*gl_FragCoord.xy-resolution)/resolution.y;\n vec3 direction=normalize(vec3(uv*0.414213562373095, -1.0));\n vec3 origin=vec3(0.0,0.0,6.0); float travel=0.0; bool hit=false; vec3 material;\n for(int step=0;step<128;step++){ float d=sceneDistance(origin+direction*travel,material);if(d<0.001){hit=true;break;}travel+=d;if(travel>100.0)break; }\n if(!hit){outputColor=vec4(background,1.0);return;}\n vec3 p=origin+direction*travel; vec3 unusedColor;\n vec3 normal=normalize(vec3(\n sceneDistance(p+vec3(0.001,0.0,0.0),unusedColor)-sceneDistance(p-vec3(0.001,0.0,0.0),unusedColor),\n sceneDistance(p+vec3(0.0,0.001,0.0),unusedColor)-sceneDistance(p-vec3(0.0,0.001,0.0),unusedColor),\n sceneDistance(p+vec3(0.0,0.0,0.001),unusedColor)-sceneDistance(p-vec3(0.0,0.0,0.001),unusedColor)));\n float light=0.35+0.65*max(dot(normal,normalize(vec3(-0.6,0.8,1.0))),0.0);\n outputColor=vec4(pow(pow(material,vec3(2.2))*light,vec3(1.0/2.2)),1.0);\n}\n"
+      }
+    },
+    {
+      "source": "@scene max {version:0;sphere #s0;sphere #s1;sphere #s2;sphere #s3;sphere #s4;sphere #s5;sphere #s6;sphere #s7;sphere #s8;sphere #s9;sphere #s10;sphere #s11;sphere #s12;sphere #s13;sphere #s14;sphere #s15;sphere #s16;sphere #s17;sphere #s18;sphere #s19;sphere #s20;sphere #s21;sphere #s22;sphere #s23;sphere #s24;sphere #s25;sphere #s26;sphere #s27;sphere #s28;sphere #s29;sphere #s30;sphere #s31;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}sphere{radius:1;color:#f00;translate:0 0 0;radius:2;}",
+      "scene": {
+        "version": 0,
+        "name": "max",
+        "background": [
+          0.06274509803921569,
+          0.09411764705882353,
+          0.12549019607843137
+        ],
+        "objects": [
+          {
+            "id": "s0",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s1",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s2",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s3",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s4",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s5",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s6",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s7",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s8",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s9",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s10",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s11",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s12",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s13",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s14",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s15",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s16",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s17",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s18",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s19",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s20",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s21",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s22",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s23",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s24",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s25",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s26",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s27",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s28",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s29",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s30",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "s31",
+            "type": "sphere",
+            "color": [
+              1,
+              0,
+              0
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 2,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          }
+        ]
+      },
+      "shaders": {
+        "vertex": "#version 300 es\nprecision highp float;\nvoid main(){ vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2)); gl_Position=vec4(p*2.0-1.0,0.0,1.0); }\n",
+        "fragment": "#version 300 es\nprecision highp float;\nuniform vec2 resolution;\nout vec4 outputColor;\nfloat boxDistance(vec3 p,vec3 extent){vec3 q=abs(p)-extent;return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0);}\nfloat sceneDistance(vec3 p,out vec3 material){float nearest=1.0e20;float d;material=vec3(0.0);d=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}\nd=length(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0))-2.00000000e+0; if(d<nearest){nearest=d; material=vec3(1.00000000e+0,0.00000000e+0,0.00000000e+0);}return nearest;}\nvoid main(){\n vec3 background=vec3(6.27451017e-2,9.41176489e-2,1.25490203e-1);\n vec2 uv=(2.0*gl_FragCoord.xy-resolution)/resolution.y;\n vec3 direction=normalize(vec3(uv*0.414213562373095, -1.0));\n vec3 origin=vec3(0.0,0.0,6.0); float travel=0.0; bool hit=false; vec3 material;\n for(int step=0;step<128;step++){ float d=sceneDistance(origin+direction*travel,material);if(d<0.001){hit=true;break;}travel+=d;if(travel>100.0)break; }\n if(!hit){outputColor=vec4(background,1.0);return;}\n vec3 p=origin+direction*travel; vec3 unusedColor;\n vec3 normal=normalize(vec3(\n sceneDistance(p+vec3(0.001,0.0,0.0),unusedColor)-sceneDistance(p-vec3(0.001,0.0,0.0),unusedColor),\n sceneDistance(p+vec3(0.0,0.001,0.0),unusedColor)-sceneDistance(p-vec3(0.0,0.001,0.0),unusedColor),\n sceneDistance(p+vec3(0.0,0.0,0.001),unusedColor)-sceneDistance(p-vec3(0.0,0.0,0.001),unusedColor)));\n float light=0.35+0.65*max(dot(normal,normalize(vec3(-0.6,0.8,1.0))),0.0);\n outputColor=vec4(pow(pow(material,vec3(2.2))*light,vec3(1.0/2.2)),1.0);\n}\n"
+      }
+    },
+    {
+      "source": "@scene /*actual*/ precision {version:0;sphere #tiny;box #full;} #tiny{radius:1.401298464324817e-45;translate:+0 -.0 1e-10;} #full{size:1000 1000 1000;}",
+      "scene": {
+        "version": 0,
+        "name": "precision",
+        "background": [
+          0.06274509803921569,
+          0.09411764705882353,
+          0.12549019607843137
+        ],
+        "objects": [
+          {
+            "id": "tiny",
+            "type": "sphere",
+            "color": [
+              0.8784313725490196,
+              0.5019607843137255,
+              0.25098039215686274
+            ],
+            "translate": [
+              0,
+              0,
+              1e-10
+            ],
+            "radius": 1.401298464324817e-45,
+            "size": [
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "id": "full",
+            "type": "box",
+            "color": [
+              0.8784313725490196,
+              0.5019607843137255,
+              0.25098039215686274
+            ],
+            "translate": [
+              0,
+              0,
+              0
+            ],
+            "radius": 1,
+            "size": [
+              1000,
+              1000,
+              1000
+            ]
+          }
+        ]
+      },
+      "shaders": {
+        "vertex": "#version 300 es\nprecision highp float;\nvoid main(){ vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2)); gl_Position=vec4(p*2.0-1.0,0.0,1.0); }\n",
+        "fragment": "#version 300 es\nprecision highp float;\nuniform vec2 resolution;\nout vec4 outputColor;\nfloat boxDistance(vec3 p,vec3 extent){vec3 q=abs(p)-extent;return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0);}\nfloat sceneDistance(vec3 p,out vec3 material){float nearest=1.0e20;float d;material=vec3(0.0);d=length(p-vec3(0.00000000e+0,0.00000000e+0,1.00000001e-10))-1.40129846e-45; if(d<nearest){nearest=d; material=vec3(8.78431380e-1,5.01960814e-1,2.50980407e-1);}\nd=boxDistance(p-vec3(0.00000000e+0,0.00000000e+0,0.00000000e+0),vec3(5.00000000e+2,5.00000000e+2,5.00000000e+2)); if(d<nearest){nearest=d; material=vec3(8.78431380e-1,5.01960814e-1,2.50980407e-1);}return nearest;}\nvoid main(){\n vec3 background=vec3(6.27451017e-2,9.41176489e-2,1.25490203e-1);\n vec2 uv=(2.0*gl_FragCoord.xy-resolution)/resolution.y;\n vec3 direction=normalize(vec3(uv*0.414213562373095, -1.0));\n vec3 origin=vec3(0.0,0.0,6.0); float travel=0.0; bool hit=false; vec3 material;\n for(int step=0;step<128;step++){ float d=sceneDistance(origin+direction*travel,material);if(d<0.001){hit=true;break;}travel+=d;if(travel>100.0)break; }\n if(!hit){outputColor=vec4(background,1.0);return;}\n vec3 p=origin+direction*travel; vec3 unusedColor;\n vec3 normal=normalize(vec3(\n sceneDistance(p+vec3(0.001,0.0,0.0),unusedColor)-sceneDistance(p-vec3(0.001,0.0,0.0),unusedColor),\n sceneDistance(p+vec3(0.0,0.001,0.0),unusedColor)-sceneDistance(p-vec3(0.0,0.001,0.0),unusedColor),\n sceneDistance(p+vec3(0.0,0.0,0.001),unusedColor)-sceneDistance(p-vec3(0.0,0.0,0.001),unusedColor)));\n float light=0.35+0.65*max(dot(normal,normalize(vec3(-0.6,0.8,1.0))),0.0);\n outputColor=vec4(pow(pow(material,vec3(2.2))*light,vec3(1.0/2.2)),1.0);\n}\n"
+      }
+    }
+  ],
+  "mesh": {
+    "packet": {
+      "version": 0,
+      "surfaceId": "flat_patch",
+      "revision": 7,
+      "lengthUnit": "mm",
+      "coordinateSystem": "right-handed-y-up",
+      "winding": "ccw",
+      "positions": [
+        1,
+        2,
+        2,
+        2,
+        9,
+        2,
+        7,
+        3,
+        2,
+        8,
+        10,
+        2
+      ],
+      "normals": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "indices": [
+        0,
+        2,
+        1,
+        2,
+        3,
+        1
+      ],
+      "parameters": [
+        -2,
+        4,
+        -2,
+        6,
+        3,
+        4,
+        3,
+        6
+      ],
+      "bounds": {
+        "min": [
+          1,
+          2,
+          2
+        ],
+        "max": [
+          8,
+          10,
+          2
+        ]
+      }
+    },
+    "options": {
+      "mmToSceneUnit": 0.25,
+      "translate": [
+        -1.125,
+        -1.5,
+        -0.5
+      ],
+      "color": [
+        1,
+        0.2,
+        0.1
+      ],
+      "background": [
+        0.04,
+        0.08,
+        0.12
+      ]
+    },
+    "positions": [
+      -0.875,
+      -1,
+      0,
+      -0.625,
+      0.75,
+      0,
+      0.625,
+      -0.75,
+      0,
+      0.875,
+      1,
+      0
+    ],
+    "normals": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1
+    ],
+    "indices": [
+      0,
+      2,
+      1,
+      2,
+      3,
+      1
+    ]
+  },
+  "sourceHash": "63cdfc43f40d4d819f6934c53638ae3e10ecee5e2f3168ff995a28c0f7888b1e"
+}

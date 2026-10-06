@@ -137,7 +137,11 @@ export function validateMeshOptions(input: unknown): MeshOptions {
 export function prepareMesh(packetInput: unknown, optionsInput: unknown): {
   packet: PreviewPacket; options: MeshOptions; positions: Float32Array; normals: Float32Array; indices: Uint16Array;
 } {
-  const packet = validatePreviewPacket(packetInput), options = validateMeshOptions(optionsInput);
+  const {packet,options}=resolveMeshIntent(packetInput,optionsInput);
+  return lowerMesh(packet,options);
+}
+export function resolveMeshIntent(packetInput:unknown,optionsInput:unknown):{packet:PreviewPacket;options:MeshOptions}{return{packet:validatePreviewPacket(packetInput),options:validateMeshOptions(optionsInput)};}
+export function lowerMesh(packet:PreviewPacket,options:MeshOptions):{packet:PreviewPacket;options:MeshOptions;positions:Float32Array;normals:Float32Array;indices:Uint16Array}{
   // All structural ceilings are validated before typed GPU buffers are allocated.
   for (let i = 0; i < packet.positions.length; i++) {
     const converted = packet.positions[i] * options.mmToSceneUnit + options.translate[i % 3];

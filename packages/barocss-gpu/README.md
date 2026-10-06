@@ -214,3 +214,44 @@ matrices for bounded independent host diagnostics. The renderer computes its
 aspect from its own buffer dimensions and accepts no raw matrix/shader input.
 Candidate uniform/upload/draw failures retain the prior usable frame/options
 when the context remains available. Context loss requires a new renderer.
+
+## Own compiler pipeline
+
+`compileGpu({kind: 'scene', source})` compiles the existing independent `@scene`
+language through original ranged syntax AST, symbol/type/default/cascade analysis,
+versioned render IR, and original fixed SDF GLSL lowering. The actual scene renderer
+uses this pipeline once per candidate. `parseScene` and structured `compileScene`
+remain supported conveniences over the same parser/semantic/lowering phases.
+
+`compileGpu({kind: 'mesh', packet, options})` validates the original packet and
+explicit millimetre conversion/camera, emits one indexed-mesh IR draw, and lowers
+that intent through the original Float32/Uint16 preparation. The mesh renderer uses
+this path for creation and updates. CAD is one packet producer; GPU imports no CAD
+package. `prepareMesh` and the original validators remain supported.
+
+Success returns `{ok:true, ast, ir, execution, diagnostics:[]}`. Scene execution is
+`{kind:'sdf', scene, shaders}`; mesh execution is `{kind:'indexed-mesh', mesh}` and
+has `ast:null`. IR uses `schema:'barocss-gpu-render-ir'`, `schemaVersion:1`,
+`pipeline:'sdf'|'indexed-mesh'`, name, right-handed-y-up coordinates, background and
+resolved draws. SDF dimensions remain full extents in dimensionless scene units.
+Mesh packet data retains native mm/UV/winding/revision/ID provenance; conversion
+is explicit in options. These are alternative backends, not mixed depth rendering.
+
+Failures return only `{ok:false, diagnostics}` with code, error severity, message
+and original UTF16 range (line/column start at1). Mesh failures have range:null and
+a dataPath. Invalid semantics never reach shader or typed-buffer lowering, and
+Float32 collapse remains a hard lowering error. No WebGL calls occur in compilation.
+AST/immutable IR/execution independently own their data, including writable typed
+buffer instances. No authored IR, callbacks, raw GLSL, imports, eval or new grammar
+is admitted. Actual renderer transactions/loss/disposal remain unchanged.
+
+Allocation bounds:64KiB UTF8 source, at most65536 lexer tokens,4096 syntax nodes,
+32 objects,128 style rules,512 style declarations and two grammar levels (scene
+body/style body). Valid maximal style/object fixtures use at most2208 AST nodes
+plus the two header fields, below the4096 ceiling. Lexing ranges use bounded newline
+indices and binary search; malformed nesting/token growth stays inside those bounds.
+Coordinates remain within1000; positive dimensions must remain Float32-representable
+and at most1000. Scene negativezero still normalizes to positivezero. Original
+positive Scene/shader/buffer fixtures and exact packed/browser compiler records
+are retained by the verification tests. Software SwiftShader proof is functional
+evidence and does not claim physical GPU performance.
