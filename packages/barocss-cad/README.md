@@ -1786,3 +1786,58 @@ orientations retain original source data. Affected build and actual native
 demo are the prototype checks; broader validation remains deferred. No
 mesh/raster/ray/UI/Boolean/solid/exchange functionality is added by this
 shell construction.
+
+## Actual through-hole shell display consumer
+
+`tessellateXYPolygonPrismShellWithHole(shell, { meshId, revision })` consumes
+an owned, validated original through-hole shell and returns
+`{ packet, faceRanges, edgePaths, edgeProvenance, report }`. Its preview kind is
+`xy-polygon-prism-shell-with-hole-preview`; PreviewPacket0 remains unchanged.
+The local annular face consumer supplies only accepted slab connectivity,
+UVs and original parameter provenance. Every cap vertex is re-evaluated on
+its actual placed world Surface with SurfaceD1, including world pcurve,
+native edge Curve and translated source Curve associations within1e-9mm.
+Bottom face orientation reverses normals and winding. Top and bottom keep
+the empty hole. Each actual outer/inner natural wall emits four SurfaceD1
+vertices and two outward triangles; hole-wall normals face into the void.
+
+Face ranges have contiguous half-open vertex/scalar-index offsets and name
+the owning face, Surface, Model and original source face. Cap provenance
+separates original/local/world source IDs, placement, unchanged local slab
+parameters and corresponding world vertex bindings. Wall provenance retains
+original Curve, loop role and segment index. Native and Float32 world triangles
+must retain positive outward winding; unusable geometry rejects without
+snapping, welding or dropping near-collapsed triangles. The inherited exact
+slab collapse policy remains unchanged. Each cap's actual world triangle area
+agrees with native net area within1e-8+1e-12*max(1,area)mm2.
+
+Each original global edge appears once, using its canonical qualified actual
+Curve endpoints. Provenance includes both adjacent qualified native uses,
+original source/loop role and segment or vertex parameter. No slab seam or
+triangle diagonal becomes a CAD edge. Evaluated endpoints retain their actual
+values and are compared with global native vertex references within1e-9mm.
+
+Input remains exactly one strict integer XY/Z0 hole, combinedN<=12 and integer
++Z height1..10000mm. Snapshot bounds remain65536 values/depth20/arrays128/
+records16/strings128. meshId is ASCII1..128 and differs from all native IDs and
+Model names; revision is integer0..2147483647. Output is bounded by14 faces,
+576 vertices,288 triangles and36 two-point original paths. Actual evaluated
+positions define exact packet bounds. Invalid shell/identity/revision/reference
+fails before output and leaves previous caller data usable. WeightedEuler0,
+reference swept volume and closed incidence remain native construction reports;
+geometricValidity:not-certified, topologyCertified:false and solid:false remain.
+This consumer adds no solid certification, Boolean, exchange, query or grammar.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/xy-polygon-prism-shell-hole-preview-demo.mjs /tmp/barocss-through-hole-shell-preview-prototype
+```
+
+The short actual API demo uses four authored square orientation combinations
+at height6:64 display vertices,32 triangles,24 original edge paths,84mm2 per
+cap and bounds[0,0,0]..[10,10,6]. Actual concaveL/triangle-hole gives76/38/27
+and670mm2 per cap. It checks actual world SurfaceD1 bindings, normals, Float32
+winding, cap hole/notch coverage, original paths and opposite adjacent uses;
+corrupted placement/inner Curve/use, native-ID collision and invalid revision
+reject while prior shell/preview remain usable. Affected build and this demo
+are prototype checks; broader validation and visible rendering remain deferred.
