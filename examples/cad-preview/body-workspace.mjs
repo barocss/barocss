@@ -88,6 +88,7 @@ function refreshButtons() {
   for (const id of ['body-create', 'body-update']) $(id).disabled = opening || unavailable;
   $('body-update').disabled ||= !accepted;
   $('body-open').disabled = opening;
+  $('body-edges').disabled = unavailable || disposed || !accepted;
   for (const id of fieldIds) $(id).disabled = opening;
   $('body-save').disabled = opening || !accepted;
 }

@@ -130,8 +130,12 @@ try {
     edgeEvidence = { paths: 12, noTriangulationDiagonals: true, toggleRetainedNative: true,
       staleSameIdentityPacketRejected: stale, rearEdgeOccluded: occlusion };
     await page.screenshot({ path: path.join(output, 'box-front-edges.png') });
+    await page.evaluate(camera => {
+      const r = window.boxWorkspace.renderer, result = r.update(r.packet, { ...r.options, camera });
+      if (!result.ok) throw result.error;
+    }, rotated.options.camera);
   }
-  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.evaluate(() => { window.scrollTo(0, 0); document.querySelector('.body-controls').scrollTop = 0; });
   await page.screenshot({ path: path.join(output, 'box-workspace.png') });
   await page.click('a[href="#surface"]');
   await page.locator('#primitive-create').waitFor({ state: 'visible' });
