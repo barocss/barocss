@@ -16,6 +16,7 @@ const examples=[
  {id:'capsule',label:'GPU · Capsule',kind:'sdf',sourceVersion:1,camera:{...defaultOrbitCamera,eye:[3,2.5,7]},source:'@scene struts{version:1;capsule #strut;cylinder #post;box #block;}capsule{start:0 -1 0;end:0 1 0;radius:.4;color:#80d0a0;}#strut{rotate-x:20deg;rotate-z:-20deg;translate:-1.3 0 0;}#post{radius:.4;height:1.5;translate:.5 0 0;color:#e08040;}#block{size:.7 .7 .7;translate:1.6 0 0;color:#4090e0;}'},
  {id:'cylinder',label:'GPU · Cylinder',kind:'sdf',sourceVersion:1,camera:{...defaultOrbitCamera,eye:[3,2.5,7]},source:'@scene posts{version:1;background:#101820;cylinder #post;box #block;sphere #ball;}cylinder{radius:.6;height:2;color:#e08040;}#post{translate:-1.4 0 0;rotate-x:20deg;rotate-z:-15deg;}#block{size:1 1 1;translate:.4 0 0;color:#4090e0;}#ball{radius:.4;translate:1.7 0 0;color:#80d040;}'},
  {id:'rotated-box',label:'GPU · Rotated box',kind:'sdf',sourceVersion:1,source:'@scene tilted{version:1;background:#101820;box #block;sphere #ball;}#block{size:1 2 .8;rotate-x:20deg;rotate-y:35deg;rotate-z:-10deg;color:#e08040;}#ball{radius:.6;translate:1.4 0 0;color:#4090e0;}'},
+ {id:'cad-native-circle-shell',label:'CAD · Original circle prism shell + edges',kind:'native-circle-shell'},
  {id:'cad-native-l-shell',label:'CAD · Original L shell + edges',kind:'native-shell'},
  {id:'cad-native-hole-shell',label:'CAD · Through-hole shell + edges',kind:'native-hole-shell'},
  {id:'cad-native-hole-face',label:'CAD · Planar face with hole + edges',kind:'native-hole'},
@@ -34,11 +35,11 @@ function select(id){
  if(disposed)return false;
  const example=examples.find(x=>x.id===id);if(!example)throw new RangeError('Unknown example');
  const canvas=document.createElement('canvas');canvas.id='preview';canvas.tabIndex=0;canvas.setAttribute('aria-label',example.label);[canvas.width,canvas.height]=dimensions();
- let renderer,packet,options,native,overlay;
+ let renderer,packet,options,native,overlay,compiled;
  try{
   if(example.kind==='sdf')renderer=gpu.mountScene(canvas,example.source,example.camera??defaultOrbitCamera,example.sourceVersion===1?{sourceVersion:1}:undefined);
   else{
-   if(example.kind==='native-shell'||example.kind==='native-hole'||example.kind==='native-hole-shell'){({native,packet,options,overlay}=prepareNativeTopologyPreview(example.kind,cad,gpu));}
+   if(example.kind==='native-circle-shell'||example.kind==='native-shell'||example.kind==='native-hole'||example.kind==='native-hole-shell'){({native,packet,options,overlay,compiled}=prepareNativeTopologyPreview(example.kind,cad,gpu));}
    else if(example.kind==='box'){native=prepareBoxPreview({id:'gallery_box',origin:[0,0,0],sides:[2,3,5],revision:1},cad);packet=native.packet;options={mmToSceneUnit:.5,translate:[-.5,-.75,-1.25],color:[.25,.8,.75],background:[16/255,24/255,32/255],camera:{eye:[4,3,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100}};}
    else if(example.kind==='region'||example.kind==='prism'){
     const authoring=cad.buildXYPolygonRegion(example.request);
@@ -50,7 +51,7 @@ function select(id){
    else{const f=example.fixture,candidate=prepareCandidate(f.source,{sourceVersion:f.sourceVersion??0,surfaceId:f.id,countU:f.countU,countV:f.countV,revision:1,options:f.options},cad,gpu);packet=candidate.packet;options=candidate.options;native=candidate;}
    renderer=gpu.mountMesh(canvas,packet,options,overlay);
   }
-  const next={id,kind:example.kind,canvas,renderer,native,viewRevision:0,available:true};
+  const next={id,kind:example.kind,canvas,renderer,native,compiled,viewRevision:0,available:true};
   canvas.addEventListener('webglcontextlost',()=>{if(active!==next)return;next.available=false;error.textContent='Preview unavailable. Choose an example to create a new view.';error.hidden=false;});
   const previous=active;document.getElementById('preview').replaceWith(canvas);active=next;release(previous);
   {
@@ -69,6 +70,18 @@ const circleOption=document.createElement('option');circleOption.value='workspac
 picker.addEventListener('change',()=>{if(picker.value==='workspace-circle-face'){location.href='/workspace.html#circle-face';return;}if(picker.value==='workspace-rectangle-features'){location.href='/workspace.html#rectangle-features';return;}if(picker.value==='workspace-cutout'){location.href='/workspace.html#cutout-prism';return;}if(picker.value==='workspace-polygon'){location.href='/workspace.html#polygon-prism';return;}if(picker.value==='workspace-box'){location.href='/workspace.html#box';return;}if(select(picker.value))history.replaceState(null,'','#'+picker.value);});
 addEventListener('resize',()=>{if(!active||!active.available)return;try{active.renderer.resize(...dimensions());}catch(cause){error.textContent=cause.message;error.hidden=false;}});
 addEventListener('pagehide',()=>{disposed=true;release(active);},{once:true});
-window.examplePreview={select,examples:()=>examples.map(({id,label,kind})=>({id,label,kind})),snapshot:()=>active?{id:active.id,kind:active.kind,viewRevision:active.viewRevision,...(['region','prism','native-shell','native-hole','native-hole-shell'].includes(active.kind)?{native:structuredClone(active.native)}:{}),...(['native-shell','native-hole','native-hole-shell'].includes(active.kind)?{overlay:active.renderer.edgeOverlay}:{}),...(active.kind==='sdf'?{scene:active.renderer.scene,options:{camera:active.renderer.camera}}:{packet:active.renderer.packet,options:active.renderer.options})}:null,readPixels:()=>active.renderer.readPixels(),get renderer(){return active?.renderer;}};
+function updateCircleShell(input){
+ if(!active||active.kind!=='native-circle-shell'||!active.available)return{ok:false,error:new Error('Circle shell preview is unavailable')};
+ try{
+  const candidate=prepareNativeTopologyPreview('native-circle-shell',cad,gpu,input);
+  candidate.options.camera=active.renderer.options.camera;
+  candidate.compiled=gpu.compileGpu({kind:'mesh',packet:candidate.packet,options:candidate.options});
+  if(!candidate.compiled.ok)throw new Error(candidate.compiled.diagnostics[0].message);
+  const result=active.renderer.update(candidate.packet,candidate.options,candidate.overlay);
+  if(result.ok){active.native=candidate.native;active.compiled=candidate.compiled;}
+  return result;
+ }catch(error){return{ok:false,error};}
+}
+window.examplePreview={select,updateCircleShell,examples:()=>examples.map(({id,label,kind})=>({id,label,kind})),snapshot:()=>active?{id:active.id,kind:active.kind,viewRevision:active.viewRevision,...(['region','prism','native-circle-shell','native-shell','native-hole','native-hole-shell'].includes(active.kind)?{native:structuredClone(active.native)}:{}),...(['native-circle-shell','native-shell','native-hole','native-hole-shell'].includes(active.kind)?{overlay:active.renderer.edgeOverlay}:{}),...(active.kind==='native-circle-shell'?{compiled:structuredClone(active.compiled)}:{}),...(active.kind==='sdf'?{scene:active.renderer.scene,options:{camera:active.renderer.camera}}:{packet:active.renderer.packet,options:active.renderer.options})}:null,readPixels:()=>active.renderer.readPixels(),get renderer(){return active?.renderer;}};
 const initialId=location.hash.slice(1);select(examples.some(example=>example.id===initialId)?initialId:'sphere');
 addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(id!==active?.id&&examples.some(example=>example.id===id))select(id);});
