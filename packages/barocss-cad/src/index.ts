@@ -27,3 +27,4 @@ export { evaluateAxisRectangleFeatureDocument, editAxisRectangleFeatureDocument,
 export type { AxisRectangleFeatureDocumentV0, AxisRectangleFeatureDocumentResult, AxisRectangleParameterEdit } from './axis-rectangle-feature-document.js';
 export { solveXYLinearSketch } from './xy-linear-sketch.js';
 export type { XYLinearSketchDocumentV0, XYLinearSketchResult, XYLinearSketchConstraint, XYLinearSketchDiagnostic } from './xy-linear-sketch.js';
+export type { XYLinearSketchDocumentV1, XYLinearSketchConstraintV1, XYLinearSketchResultV1, XYLinearSketchDimensionReport } from './xy-linear-sketch.js';

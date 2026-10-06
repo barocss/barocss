@@ -23,6 +23,16 @@ export type XYLinearSketchResult = { ok: true; document: XYLinearSketchDocumentV
   solution: { points: SketchPoint[]; source: string; sourceVersion: 0; model: Model; ir: CadModelIR1 };
   report: { degreesOfFreedom: number; rank: number; fullyConstrained: boolean; redundantConstraintIds: string[] } }
   | { ok: false; diagnostics: XYLinearSketchDiagnostic[] };
+export type XYLinearSketchConstraintV1 = XYLinearSketchConstraint
+  | { id: string; kind: 'distance-x' | 'distance-y'; pointA: string; pointB: string; distanceMM: number };
+export interface XYLinearSketchDocumentV1 extends Omit<XYLinearSketchDocumentV0, 'version' | 'constraints'> {
+  version: 1; constraints: XYLinearSketchConstraintV1[];
+}
+export interface XYLinearSketchDimensionReport { id: string; axis: 'x' | 'y'; pointA: string; pointB: string; requestedMM: number; actualMM: number }
+export type XYLinearSketchResultV1 = { ok: true; document: XYLinearSketchDocumentV1;
+  solution: Extract<XYLinearSketchResult, { ok: true }>['solution'];
+  report: Extract<XYLinearSketchResult, { ok: true }>['report'] & { dimensions: XYLinearSketchDimensionReport[] } }
+  | Extract<XYLinearSketchResult, { ok: false }>;
 class SketchFailure extends Error {
   constructor(readonly code: XYLinearSketchDiagnostic['code'], message: string, readonly path: string, readonly constraintIds: string[] = []) { super(message); }
 }
@@ -69,9 +79,10 @@ function xy(value: unknown, path: string): XYPoint {
   check(Array.isArray(value) && value.length === 2 && value.every(n => typeof n === 'number'), 'INVALID_DOCUMENT', 'Two numeric XY coordinates required', path);
   check(value.every(n => Math.abs(n) <= 10000), 'UNSUPPORTED', 'XY coordinates must remain within +/-10000 mm', path); return [value[0], value[1]];
 }
-function admit(input: unknown): XYLinearSketchDocumentV0 {
+function admit(input: unknown): XYLinearSketchDocumentV0 | XYLinearSketchDocumentV1 {
   const data = record(snapshot(input), ['format', 'version', 'id', 'lengthUnit', 'points', 'segments', 'constraints'], '$');
-  check(data.format === 'barocss-xy-linear-sketch' && data.version === 0 && data.lengthUnit === 'mm', 'UNSUPPORTED', 'XY linear sketch v0 and mm required', '$.format/version/lengthUnit');
+  check(data.format === 'barocss-xy-linear-sketch' && (data.version === 0 || data.version === 1) && data.lengthUnit === 'mm', 'UNSUPPORTED', 'XY linear sketch v0 and mm required', '$.format/version/lengthUnit');
+  const version = data.version as 0 | 1;
   const id = identifier(data.id, 80, '$.id'), ids = new Set([id]);
   const unique = (value: unknown, path: string) => { const name = identifier(value, 128, path); check(!ids.has(name), 'INVALID_DOCUMENT', 'Duplicate global ID #' + name, path); ids.add(name); return name; };
   const list = (value: unknown, min: number, max: number, path: string): unknown[] => {
@@ -89,17 +100,24 @@ function admit(input: unknown): XYLinearSketchDocumentV0 {
   });
   points.forEach((point, i) => check(used.has(point.id), 'REFERENCE', 'Point #' + point.id + ' does not participate in a segment', '$.points[' + i + ']'));
   const segmentIds = new Set(segments.map(segment => segment.id));
-  const constraints = list(data.constraints, 0, 32, '$.constraints').map((value, i): XYLinearSketchConstraint => {
+  const constraints = list(data.constraints, 0, 32, '$.constraints').map((value, i): XYLinearSketchConstraintV1 => {
     const path = '$.constraints[' + i + ']'; check(value !== null && typeof value === 'object' && !Array.isArray(value), 'INVALID_DOCUMENT', 'Constraint record required', path);
     const kind = (value as Record<string, unknown>).kind;
-    check(kind === 'horizontal' || kind === 'vertical' || kind === 'coincident' || kind === 'fixed', 'UNSUPPORTED', 'Supported linear constraint kind required', path + '.kind');
-    const c = record(value, kind === 'fixed' ? ['id', 'kind', 'pointId', 'target'] : kind === 'coincident' ? ['id', 'kind', 'pointA', 'pointB'] : ['id', 'kind', 'segmentId'], path), name = unique(c.id, path + '.id');
+    check(kind === 'horizontal' || kind === 'vertical' || kind === 'coincident' || kind === 'fixed' || version === 1 && (kind === 'distance-x' || kind === 'distance-y'), 'UNSUPPORTED', 'Supported linear constraint kind required', path + '.kind');
+    const c = record(value, kind === 'distance-x' || kind === 'distance-y' ? ['id', 'kind', 'pointA', 'pointB', 'distanceMM'] : kind === 'fixed' ? ['id', 'kind', 'pointId', 'target'] : kind === 'coincident' ? ['id', 'kind', 'pointA', 'pointB'] : ['id', 'kind', 'segmentId'], path), name = unique(c.id, path + '.id');
     if (kind === 'horizontal' || kind === 'vertical') return { id: name, kind, segmentId: reference(c.segmentId, segmentIds, path + '.segmentId') };
     if (kind === 'fixed') return { id: name, kind, pointId: reference(c.pointId, pointIds, path + '.pointId'), target: xy(c.target, path + '.target') };
     const pointA = reference(c.pointA, pointIds, path + '.pointA'), pointB = reference(c.pointB, pointIds, path + '.pointB');
-    check(pointA !== pointB, 'REFERENCE', 'Coincidence requires distinct point IDs', path); return { id: name, kind, pointA, pointB };
+    check(pointA !== pointB, 'REFERENCE', kind === 'coincident' ? 'Coincidence requires distinct point IDs' : 'Distance #' + name + ' requires distinct point IDs', path);
+    if (kind === 'distance-x' || kind === 'distance-y') {
+      check(typeof c.distanceMM === 'number', 'INVALID_DOCUMENT', 'Numeric signed distanceMM required', path + '.distanceMM');
+      if (!Number.isInteger(c.distanceMM) || Math.abs(c.distanceMM) > 10000) fail('UNSUPPORTED', 'Distance #' + name + ' requires integer mm within +/-10000', path + '.distanceMM', [name]);
+      return { id: name, kind, pointA, pointB, distanceMM: c.distanceMM };
+    }
+    return { id: name, kind, pointA, pointB };
   });
-  return { format: 'barocss-xy-linear-sketch', version: 0, id, lengthUnit: 'mm', points, segments, constraints };
+  return version === 0 ? { format: 'barocss-xy-linear-sketch', version: 0, id, lengthUnit: 'mm', points, segments, constraints: constraints as XYLinearSketchConstraint[] }
+    : { format: 'barocss-xy-linear-sketch', version: 1, id, lengthUnit: 'mm', points, segments, constraints };
 }
 function exact(actual: unknown, expected: unknown): boolean {
   if (Array.isArray(actual) && Array.isArray(expected)) return actual.length === expected.length && actual.every((value, i) => exact(value, expected[i]));
@@ -144,7 +162,107 @@ function solve(document: XYLinearSketchDocumentV0): XYLinearSketchResult {
     check(Number.isFinite(value) && Math.abs(value) <= 10000, 'UNSUPPORTED', 'Solved coordinates must remain finite and bounded', '$.points');
     for (const member of members) values[member] = value;
   }
-  const points: SketchPoint[] = document.points.map((point, i) => ({ id: point.id, position: [values[i * 2], values[i * 2 + 1]] })), solved = new Map(points.map(point => [point.id, point.position]));
+  const points: SketchPoint[] = document.points.map((point, i) => ({ id: point.id, position: [values[i * 2], values[i * 2 + 1]] }));
+  return { ok: true, document: copyCadData(document), solution: buildLineSolution(document, points),
+    report: { degreesOfFreedom, rank: n - degreesOfFreedom, fullyConstrained: degreesOfFreedom === 0, redundantConstraintIds: [...redundantConstraintIds] } };
+}
+function solveV1(document: XYLinearSketchDocumentV1): XYLinearSketchResultV1 {
+  const dimensions = document.constraints.filter((c): c is Extract<XYLinearSketchConstraintV1, { distanceMM: number }> => c.kind === 'distance-x' || c.kind === 'distance-y');
+  if (!dimensions.length) {
+    const result = solve({ ...document, version: 0, constraints: document.constraints as XYLinearSketchConstraint[] });
+    return result.ok ? { ok: true, document: copyCadData(document), solution: result.solution, report: { ...result.report, dimensions: [] } } : result;
+  }
+  const n = document.points.length * 2, parents = Array.from({ length: n }, (_, i) => i), offsets = Array(n).fill(0) as number[];
+  const provenance = Array.from({ length: n }, () => new Set<string>()), distanceIds = Array.from({ length: n }, () => new Set<string>());
+  const indices = new Map(document.points.map((p, i) => [p.id, i * 2])), coordinate = (id: string) => indices.get(id)!;
+  const ordered = (ids: Set<string>): string[] => document.constraints.filter(c => ids.has(c.id)).map(c => c.id);
+  const find = (index: number): { root: number; potential: number } => {
+    let potential = 0;
+    while (parents[index] !== index) { potential += offsets[index]; index = parents[index]; }
+    check(Number.isSafeInteger(potential) && Math.abs(potential) <= 310000, 'UNSUPPORTED', 'Relative potential exceeds bounded integer family', '$.constraints');
+    return { root: index, potential };
+  };
+  const relations = (c: XYLinearSketchConstraintV1): [number, number, number][] => {
+    if (c.kind === 'fixed') return [];
+    if (c.kind === 'coincident') { const a = coordinate(c.pointA), b = coordinate(c.pointB); return [[a, b, 0], [a + 1, b + 1, 0]]; }
+    if (c.kind === 'distance-x' || c.kind === 'distance-y') { const axis = c.kind === 'distance-x' ? 0 : 1; return [[coordinate(c.pointA) + axis, coordinate(c.pointB) + axis, c.distanceMM]]; }
+    const segment = document.segments.find(s => s.id === c.segmentId)!, axis = c.kind === 'horizontal' ? 1 : 0;
+    return [[coordinate(segment.startPointId) + axis, coordinate(segment.endPointId) + axis, 0]];
+  };
+  // Complete relative graph consistency precedes family/anchor checks.
+  document.constraints.forEach((c, i) => {
+    for (const [a, b, distance] of relations(c)) {
+      const left = find(a), right = find(b), r = left.root, q = right.root;
+      if (r === q && right.potential - left.potential !== distance) fail('CONFLICT', 'Inconsistent signed relation cycle at #' + c.id, '$.constraints[' + i + ']', ordered(new Set([...provenance[r], c.id])));
+      if (r !== q) {
+        parents[q] = r; offsets[q] = distance + left.potential - right.potential;
+        check(Number.isSafeInteger(offsets[q]) && Math.abs(offsets[q]) <= 310000, 'UNSUPPORTED', 'Relative potential exceeds bounded integer family', '$.constraints[' + i + ']');
+        for (const id of provenance[q]) provenance[r].add(id);
+        for (const id of distanceIds[q]) distanceIds[r].add(id);
+      }
+      provenance[r].add(c.id);
+      if (c.kind === 'distance-x' || c.kind === 'distance-y') distanceIds[r].add(c.id);
+    }
+  });
+  const components = new Map<number, number[]>();
+  for (let i = 0; i < n; i++) { const r = find(i).root; if (!components.has(r)) components.set(r, []); components.get(r)!.push(i); }
+  interface Pin { member: number; value: number; id: string; order: number }
+  const pins = new Map<number, Pin[]>();
+  document.constraints.forEach((c, order) => {
+    if (c.kind !== 'fixed') return;
+    for (let axis = 0; axis < 2; axis++) { const member = coordinate(c.pointId) + axis, r = find(member).root; if (!pins.has(r)) pins.set(r, []); pins.get(r)!.push({ member, value: c.target[axis], id: c.id, order }); }
+  });
+  for (const [r] of components) {
+    if (!distanceIds[r].size) continue;
+    const ids = ordered(distanceIds[r]), first = document.constraints.findIndex(c => c.id === ids[0]), anchors = pins.get(r) ?? [];
+    if (!anchors.length) fail('UNSUPPORTED', 'Distance component #' + ids[0] + ' requires a fixed integer axis target', '$.constraints[' + first + ']', ids);
+    const fractional = anchors.find(pin => !Number.isInteger(pin.value));
+    if (fractional) fail('UNSUPPORTED', 'Distance #' + ids[0] + ' has fractional fixed-axis target #' + fractional.id, '$.constraints[' + first + ']', ordered(new Set([...ids, fractional.id])));
+  }
+  const anchors = new Map<number, Pin>();
+  for (const [r, componentPins] of pins) {
+    const first = componentPins[0], used = new Set([...provenance[r], first.id]); anchors.set(r, first);
+    for (const pin of componentPins.slice(1)) {
+      const delta = find(pin.member).potential - find(first.member).potential, expected = delta === 0 ? first.value : first.value + delta;
+      used.add(pin.id);
+      if (expected !== pin.value) fail('CONFLICT', 'Different exact anchors connected by constraint #' + pin.id, '$.constraints[' + pin.order + ']', ordered(used));
+    }
+  }
+  const values: number[] = Array(n), seeds = document.points.flatMap(p => p.position), degreesOfFreedom = [...components.keys()].filter(r => !anchors.has(r)).length;
+  for (const [r, members] of components) {
+    const anchor = anchors.get(r);
+    if (anchor) {
+      const base = find(anchor.member).potential;
+      for (const member of members) { const delta = find(member).potential - base; values[member] = delta === 0 ? anchor.value : anchor.value + delta; }
+    } else {
+      let sum = seeds[members[0]]; for (let i = 1; i < members.length; i++) sum += seeds[members[i]];
+      const value = members.length === 1 ? sum : sum / members.length; for (const member of members) values[member] = value;
+    }
+    const invalid = members.find(member => !Number.isFinite(values[member]) || Math.abs(values[member]) > 10000 || distanceIds[r].size > 0 && !Number.isSafeInteger(values[member]));
+    if (invalid !== undefined) fail('UNSUPPORTED', 'Solved coordinates outside supported distance/bound family', '$.points[' + Math.floor(invalid / 2) + ']', ordered(distanceIds[r]));
+  }
+  // Independent chronological condition counting includes pins at their authored position.
+  const rankParents = Array.from({ length: n }, (_, i) => i), rankAnchored = Array(n).fill(false) as boolean[];
+  const rankRoot = (index: number): number => { while (rankParents[index] !== index) index = rankParents[index]; return index; };
+  const join = (a: number, b: number): number => { a = rankRoot(a); b = rankRoot(b); if (a === b) return 0; const increase = rankAnchored[a] && rankAnchored[b] ? 0 : 1; rankParents[b] = a; rankAnchored[a] ||= rankAnchored[b]; return increase; };
+  const redundantConstraintIds: string[] = []; let rank = 0;
+  for (const c of document.constraints) {
+    let increase = 0;
+    if (c.kind === 'fixed') { const p = coordinate(c.pointId); for (const member of [p, p + 1]) { const r = rankRoot(member); if (!rankAnchored[r]) { rankAnchored[r] = true; increase++; } } }
+    else for (const [a, b] of relations(c)) increase += join(a, b);
+    rank += increase; if (increase === 0) redundantConstraintIds.push(c.id);
+  }
+  check(rank === n - degreesOfFreedom, 'COMPILATION', 'Chronological rank and final scalar DOF differ', '$.report');
+  const points: SketchPoint[] = document.points.map((p, i) => ({ id: p.id, position: [values[i * 2], values[i * 2 + 1]] })), solved = new Map(points.map(p => [p.id, p.position]));
+  const reports: XYLinearSketchDimensionReport[] = dimensions.map(c => {
+    const axis = c.kind === 'distance-x' ? 0 : 1, actualMM = solved.get(c.pointB)![axis] - solved.get(c.pointA)![axis];
+    check(actualMM === c.distanceMM, 'COMPILATION', 'Actual solved driving distance differs from authored #' + c.id, '$.report.dimensions');
+    return { id: c.id, axis: axis === 0 ? 'x' : 'y', pointA: c.pointA, pointB: c.pointB, requestedMM: c.distanceMM, actualMM };
+  });
+  return { ok: true, document: copyCadData(document), solution: buildLineSolution(document, points), report: { degreesOfFreedom, rank, fullyConstrained: degreesOfFreedom === 0, redundantConstraintIds, dimensions: copyCadData(reports) } };
+}
+function buildLineSolution(document: Pick<XYLinearSketchDocumentV0, 'id' | 'segments'>, points: SketchPoint[]): Extract<XYLinearSketchResult, { ok: true }>['solution'] {
+  const solved = new Map(points.map(point => [point.id, point.position]));
   const curves = document.segments.map((segment, i) => {
     const a = solved.get(segment.startPointId)!, b = solved.get(segment.endPointId)!;
     if (Math.hypot(b[0] - a[0], b[1] - a[1]) < .001) fail('DEGENERATE_GEOMETRY', 'Solved segment #' + segment.id + ' is collapsed or shorter than 0.001 mm', '$.segments[' + i + ']');
@@ -154,15 +272,17 @@ function solve(document: XYLinearSketchDocumentV0): XYLinearSketchResult {
   const compiled = compileCadModel(source, { sourceVersion: 0 });
   if (!compiled.ok) fail('COMPILATION', 'Actual complete line source failed: ' + compiled.diagnostics[0].message, '$.solution.source');
   check(compiled.ir.schemaVersion === 1 && exact(compiled.model.objects, curves), 'COMPILATION', 'Compiled native line identities/coefficients differ from actual profiles', '$.solution.model');
-  return { ok: true, document: copyCadData(document), solution: { points: copyCadData(points), source, sourceVersion: 0, model: copyCadData(compiled.model), ir: copyCadData(compiled.ir) },
-    report: { degreesOfFreedom, rank: n - degreesOfFreedom, fullyConstrained: degreesOfFreedom === 0, redundantConstraintIds: [...redundantConstraintIds] } };
+  return { points: copyCadData(points), source, sourceVersion: 0, model: copyCadData(compiled.model), ir: copyCadData(compiled.ir) };
 }
 /** One bounded own snapshot, exact scalar equalities/anchors and original compiled lines. */
-export function solveXYLinearSketch(document: XYLinearSketchDocumentV0): XYLinearSketchResult {
+export function solveXYLinearSketch(document: XYLinearSketchDocumentV0): XYLinearSketchResult;
+export function solveXYLinearSketch(document: XYLinearSketchDocumentV1): XYLinearSketchResultV1;
+export function solveXYLinearSketch(document: XYLinearSketchDocumentV0 | XYLinearSketchDocumentV1): XYLinearSketchResult | XYLinearSketchResultV1;
+export function solveXYLinearSketch(document: XYLinearSketchDocumentV0 | XYLinearSketchDocumentV1): XYLinearSketchResult | XYLinearSketchResultV1 {
   let label = '?', phase: XYLinearSketchDiagnostic['code'] = 'INVALID_DOCUMENT';
   try {
     if (document !== null && typeof document === 'object') { const descriptor = Object.getOwnPropertyDescriptor(document, 'id'); if (descriptor && 'value' in descriptor && typeof descriptor.value === 'string' && descriptor.value.length <= 80 && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(descriptor.value)) label = descriptor.value; }
-    const admitted = admit(document); label = admitted.id; phase = 'COMPILATION'; return solve(admitted);
+    const admitted = admit(document); label = admitted.id; phase = 'COMPILATION'; return admitted.version === 0 ? solve(admitted) : solveV1(admitted);
   } catch (error) {
     const failure = error instanceof SketchFailure ? error : new SketchFailure(phase, error instanceof Error ? error.message : 'Rejected sketch data/native computation', '$');
     return { ok: false, diagnostics: [{ code: failure.code, message: ('XY linear sketch #' + label + ': ' + failure.message).slice(0, 512), path: failure.path.slice(0, 256), constraintIds: [...failure.constraintIds] }] };
