@@ -27,7 +27,14 @@ export interface CapsuleSceneObject extends Omit<RotatedSceneObject, 'type'> {
 export interface RoundedBoxSceneObject extends Omit<RotatedSceneObject, 'type'> {
   type: 'rounded-box';
 }
-export type SceneObject1 = RotatedSceneObject | CylinderSceneObject | CapsuleSceneObject | RoundedBoxSceneObject;
+export interface TorusSceneObject extends Omit<RotatedSceneObject, 'type'> {
+  type: 'torus';
+  /** Local XZ centreline circle radius, axis local Y; scene units. */
+  majorRadius: number;
+  /** Tube radius; strictly smaller than majorRadius. */
+  minorRadius: number;
+}
+export type SceneObject1 = RotatedSceneObject | CylinderSceneObject | CapsuleSceneObject | RoundedBoxSceneObject | TorusSceneObject;
 export interface Scene1 {
   version: 1;
   name: string;

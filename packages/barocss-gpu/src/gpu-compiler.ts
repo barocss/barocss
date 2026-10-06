@@ -12,14 +12,14 @@ export interface GpuDiagnostic {code:string;severity:'error';message:string;rang
 interface IRCommon {schema:'barocss-gpu-render-ir';name:string;coordinateSystem:'right-handed-y-up';background:[number,number,number]}
 interface SDFDraw {kind:'sphere'|'box';id:string;color:[number,number,number];translate:[number,number,number];radius:number;size:[number,number,number]}
 export type GpuRenderIR=(IRCommon&{schemaVersion:1;pipeline:'sdf';draws:SDFDraw[]})
- |(IRCommon&{schemaVersion:2;pipeline:'sdf';rotationOrder:'X-Y-Z';angleUnit:'deg';draws:((SDFDraw&{rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'cylinder';height:number;rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'capsule';start:[number,number,number];end:[number,number,number];rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'rounded-box';rotateDegrees:[number,number,number]}))[]})
+ |(IRCommon&{schemaVersion:2;pipeline:'sdf';rotationOrder:'X-Y-Z';angleUnit:'deg';draws:((SDFDraw&{rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'cylinder';height:number;rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'capsule';start:[number,number,number];end:[number,number,number];rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'rounded-box';rotateDegrees:[number,number,number]})|(Omit<SDFDraw,'kind'>&{kind:'torus';majorRadius:number;minorRadius:number;rotateDegrees:[number,number,number]}))[]})
  |(IRCommon&{schemaVersion:1;pipeline:'indexed-mesh';draws:[{kind:'indexed-mesh';id:string;packet:PreviewPacket;options:MeshOptions}]});
 export type GpuExecution={kind:'sdf';scene:AnyScene;shaders:SceneShaders}|{kind:'indexed-mesh';mesh:ReturnType<typeof lowerMesh>};
 export type GpuCompileResult={ok:true;ast:SceneAst|null;ir:GpuRenderIR;execution:GpuExecution;diagnostics:[]}|{ok:false;diagnostics:GpuDiagnostic[]};
 function code(message:string):string{if(/exceeds|limit|64 KiB/.test(message))return'LIMIT';if(/Duplicate/.test(message))return'DUPLICATE';if(/Unknown object/.test(message))return'REFERENCE';if(/version/.test(message))return'VERSION';if(/Expected|Unterminated|close/.test(message))return'SYNTAX';return'VALIDATION';}
 function lowerGpuIR(ir:GpuRenderIR):GpuExecution{
  if(ir.pipeline==='sdf'){
-  const objects=ir.draws.map(d=>({id:d.id,type:d.kind,color:copyGpuData(d.color),translate:copyGpuData(d.translate),radius:d.radius,size:copyGpuData(d.size),...('rotateDegrees'in d?{rotateDegrees:copyGpuData(d.rotateDegrees)}:{}),...('height'in d?{height:d.height}:{}),...('start'in d?{start:copyGpuData(d.start),end:copyGpuData(d.end)}:{})}));
+  const objects=ir.draws.map(d=>({id:d.id,type:d.kind,color:copyGpuData(d.color),translate:copyGpuData(d.translate),radius:d.radius,size:copyGpuData(d.size),...('rotateDegrees'in d?{rotateDegrees:copyGpuData(d.rotateDegrees)}:{}),...('majorRadius'in d?{majorRadius:d.majorRadius,minorRadius:d.minorRadius}:{}),...('height'in d?{height:d.height}:{}),...('start'in d?{start:copyGpuData(d.start),end:copyGpuData(d.end)}:{})}));
   const scene=ir.schemaVersion===2?freezeScene({version:1,name:ir.name,background:copyGpuData(ir.background),objects:objects as SceneObject1[]}):freezeScene({version:0,name:ir.name,background:copyGpuData(ir.background),objects:objects as SceneObject[]});
   return{kind:'sdf',scene,shaders:lowerSceneShaders(scene)};
  }
@@ -38,7 +38,7 @@ export function compileGpu(input:GpuCompileInput):GpuCompileResult{
    const common={schema:'barocss-gpu-render-ir' as const,pipeline:'sdf' as const,name:scene.name,coordinateSystem:'right-handed-y-up' as const,background:copyGpuData(scene.background)};
    const draw=(o:AnyScene['objects'][number])=>({kind:o.type,id:o.id,color:copyGpuData(o.color),translate:copyGpuData(o.translate),radius:o.radius,size:copyGpuData(o.size)});
    const ir:GpuRenderIR=freezeGpuData(scene.version===1
-    ?{...common,schemaVersion:2,rotationOrder:'X-Y-Z',angleUnit:'deg',draws:scene.objects.map(o=>o.type==='cylinder'?{...draw(o),kind:'cylinder' as const,height:o.height,rotateDegrees:copyGpuData(o.rotateDegrees)}:o.type==='capsule'?{...draw(o),kind:'capsule' as const,start:copyGpuData(o.start),end:copyGpuData(o.end),rotateDegrees:copyGpuData(o.rotateDegrees)}:{...draw(o),kind:o.type,rotateDegrees:copyGpuData(o.rotateDegrees)})}
+    ?{...common,schemaVersion:2,rotationOrder:'X-Y-Z',angleUnit:'deg',draws:scene.objects.map(o=>o.type==='torus'?{...draw(o),kind:'torus' as const,majorRadius:o.majorRadius,minorRadius:o.minorRadius,rotateDegrees:copyGpuData(o.rotateDegrees)}:o.type==='cylinder'?{...draw(o),kind:'cylinder' as const,height:o.height,rotateDegrees:copyGpuData(o.rotateDegrees)}:o.type==='capsule'?{...draw(o),kind:'capsule' as const,start:copyGpuData(o.start),end:copyGpuData(o.end),rotateDegrees:copyGpuData(o.rotateDegrees)}:{...draw(o),kind:o.type,rotateDegrees:copyGpuData(o.rotateDegrees)})}
     :{...common,schemaVersion:1,draws:scene.objects.map(o=>({...draw(o),kind:o.type}))});
    stage='lowering';const execution=lowerGpuIR(ir);
    return{ok:true,ast:scene.version===1?freezeGpuData(copyGpuData(ast)):copyGpuData(ast),ir,execution,diagnostics:[]};
