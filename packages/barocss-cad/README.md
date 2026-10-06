@@ -2185,3 +2185,66 @@ Identity recycling/replacement, bad refs/geometry/suppression/final counts,
 cycle and incomplete deletion reject with prior output reuse. Native curves,
 source2 IR, real cap D1 and−0 intent remain. Affected build/this run are
 prototype checks; broader validation and graph UI remain deferred.
+
+## Native circle and quarter-arc sketch intent
+
+`evaluateXYArcSketchDocument(document)` and `updateXYArcSketchDocument(document,edits)`
+return owned `{document,profiles,report}`. Distinct `barocss-xy-arc-sketch`
+version0/mm/xy has exact root format/version/id/lengthUnit/workplane/profiles,
+ordered0..8profiles; empty is valid. Circle intent has exact id/kind:circle/
+centerId/centerMM/radius/seamId. Quarter intent has id/kind:quarter-arc/centerId/
+centerMM/radius/quadrant/endpointIds. Radius is exact `{id,valueMM}`;
+quarter has two ordered authored start/end IDs and quadrant integer0..3 under
+the unchanged original CCW definition. Circle seam is original+X. All document/
+profile/centre/radius/end-or-seam IDs are globally distinct ASCII1..64.
+
+Each entry is `{profileId,evaluation,bindings}`. Evaluation calls the unchanged
+original buildXYArc with exact id/centre/radius/quadrant; actual source0/Model/
+rational degree2 Curve/weights/knots/domain/report remain accessible. Finite
+XY centre, radius0.001..10000mm and every computed native pole are admitted by
+the original±10000mm family. Fractional centre/radius remain supported within
+those limits; no parallel rational geometry constructor or sampled native data.
+
+Bindings name curveId/nativeDomain and separately record authored centre
+`{pointId,pointMM:[x,y,0],role:'center'}` and radius`{parameterId,valueMM}`.
+Centre is a construction point with no native pole or parameter. Quarter
+curvePoints bind authored endpoints to real pole0/2, parameter0/1 and start/end
+roles. Circle curvePoints bind the same seam ID to real poles0/8, parameter0/4.
+The native report retains endpointClosed separately and periodic:false;
+regionCertified:false,face:false,solid:false remain explicit. Endpoint equality
+does not create periodic/region/topology proof or change existing exporters.
+
+Ordered1..8 exact upsert(profile)/remove(profileId) operations target each ID
+once. Existing upsert keeps kind/id/centerId/radius.id/ordered endpoints or
+seam ID and array slot; only numeric centre/radius/quadrant changes. New
+profiles append; removal resolves. Kind/identity replacement uses accepted
+removal then later fresh-ID authoring. The entire candidate's original native
+curves and global IDs validate before return. Invalid radius/computed poles/
+quadrant/IDs/operations preserve prior caller intent/native results; no partial
+adoption, rounding or healing.
+
+Serialize/Open execute the entire actual candidate. Canonical authored JSON
+preserves−0/order and excludes generated poles/source/Model/cache/query/camera/
+selection/periodic/certificates. UTF-8<=128KiB; lexical duplicate decoded-key/
+budget guard precedes JSON.parse. Own/parser4096values/keys,depth8,arrays64,
+records12,strings128 reject getters/symbols/hidden/sparse/foreign values and
+unsupported format/fields. Existing XY sketch and rectangle graph documents
+remain strict; arc intent is a separate format. Existing source0/1/2/native
+arc/query/export behavior and degree2C0 derivative policy remain unchanged.
+No general angles/solver/snap/wires/regions/trims/circle extrusion/cylinder/
+Boolean/STEP/UI or generic curve-authoring claim follows.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/xy-arc-sketch-document-demo.mjs /tmp/barocss-arc-sketch-prototype
+```
+
+The short actual API/file run starts empty and adds a quarter and circle,
+checks actual original poles/weights/cardinals/point-D1 queries and authored
+centre/radius/end/seam bindings. One numeric batch edits both profiles, saves/
+reads/parses/rebuilds actual intent, then changes quarter quadrant3 with stable
+endpoint roles and removes the circle. Native−0 centre intent round trip,
+prior result reuse and geometry/identity/parser/old-format rejection are checked.
+Actual numerical values are observations under existing native arithmetic,
+not a new numerical quality target. Affected build/this run are prototype
+checks; broad validation and arc sketch UI remain deferred.
