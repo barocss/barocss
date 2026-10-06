@@ -36,3 +36,5 @@ export { buildXYPolygonPrismPreview } from './xy-polygon-prism-preview.js';
 export type { XYPolygonPrismPreviewRequest, XYPolygonPrismPreviewConstruction, XYPolygonPrismPreviewRole, XYPolygonPrismPreviewReport, XYPolygonPrismPreviewResult } from './xy-polygon-prism-preview.js';
 export { evaluateXYPolygonPrismDocument, updateXYPolygonPrismDocument, serializeXYPolygonPrismDocument, parseXYPolygonPrismDocument } from './xy-polygon-prism-document.js';
 export type { XYPolygonPrismDocumentV0, XYPolygonPrismDocumentOptions, XYPolygonPrismDocumentUpdate, XYPolygonPrismDocumentEvaluation, XYPolygonPrismDocumentResult } from './xy-polygon-prism-document.js';
+export { buildXYPolygonPlanarFace, validateXYPolygonPlanarFaceBundle, classifyXYPolygonPlanarFacePoint } from './xy-polygon-planar-face.js';
+export type { XYPolygonPlanarFaceOptions, XYPolygonPlanarFaceBundle, XYPolygonPlanarFaceReport, XYPolygonPlanarFaceResult, XYPolygonPlanarFacePointResult } from './xy-polygon-planar-face.js';
