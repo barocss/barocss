@@ -18,7 +18,7 @@ export async function runProjectBrowser({browser,page,server,evidence,allowed,ta
   p.on('pageerror',error=>errors.push(error.message));
   await p.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin!==server.url||!allowed.has(url.pathname)||url.search){blocked.push(url.href);return route.abort();}return route.continue();});
   await p.addInitScript(()=>{window.projectProbe={resources:[],violations:[]};document.addEventListener('securitypolicyviolation',e=>window.projectProbe.violations.push(e.violatedDirective));const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(...args){const gl=original.apply(this,args);if(gl&&args[0]==='webgl2'&&!gl.projectTracked){gl.projectTracked=true;for(const kind of ['Buffer','Shader','Program','VertexArray','Framebuffer','Renderbuffer','Texture']){const fn=gl['create'+kind].bind(gl);gl['create'+kind]=(...a)=>{const resource=fn(...a);if(resource)window.projectProbe.resources.push({kind,resource,gl});return resource;};}}return gl;};});
-  await p.goto(server.url);await p.waitForFunction(()=>window.cadPreview?.snapshot()?.packet);return p;
+  await p.goto(server.url+'/workspace.html');await p.waitForFunction(()=>window.cadPreview?.snapshot()?.packet);return p;
  }
  async function capture(p,name,primitiveRequest=null,fixture=null){
   const s=(await state(p)).snapshot,bytes=await p.evaluate(()=>Array.from(window.cadPreview.readPixels())),size=await p.locator('#preview').evaluate(e=>[e.width,e.height]);

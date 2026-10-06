@@ -48,7 +48,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const cadModuleRequests = new Set();
   page.on('request', request => cadModuleRequests.add(new URL(request.url()).pathname));
-  const allowed = new Set(['/expression-parser.js', '/parameter-semantics.js', '/data-copy.js', '/model-compiler.js', '/source-ast.js', '/semantic-model.js', '/lower-model.js', '/construction-types.js', '/extrusion-validation.js', '/box-preview.mjs', '/box-solid.js', '/history.mjs', '/box-shell.js', '/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/workspace.html','/expression-parser.js', '/parameter-semantics.js', '/data-copy.js', '/model-compiler.js', '/source-ast.js', '/semantic-model.js', '/lower-model.js', '/construction-types.js', '/extrusion-validation.js', '/box-preview.mjs', '/box-solid.js', '/history.mjs', '/box-shell.js', '/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -87,7 +87,7 @@ try {
       return gl;
     };
   });
-  const response = await page.goto(server.url);
+  const response = await page.goto(server.url+'/workspace.html');
   const csp = response.headers()['content-security-policy'];
   assert(csp && csp.includes("default-src 'none'") && !csp.includes('unsafe-inline') && !csp.includes('unsafe-eval'), 'Strict CSP required');
   await page.waitForFunction(() => window.cadPreview?.snapshot()?.packet);
@@ -495,7 +495,7 @@ try {
     await page.selectOption('#fixture', fixture.selectorId);
     assert.equal(await page.locator('#objects [data-object-id]').count(), 4);
     const rows = await page.locator('#objects [data-object-id]').evaluateAll(nodes => nodes.map(node => ({id:node.dataset.objectId,text:node.textContent,show:!!node.querySelector('[data-action="show"]')})));
-    assert.deepEqual(new Set(rows.map(row => row.id)), new Set(['arc','polyline','wall','oblique_wall']));
+    assert.deepEqual(new Set(rows.map(row => row.id)), new Set(['/workspace.html','arc','polyline','wall','oblique_wall']));
     assert(rows.filter(row => row.show).every(row => ['wall','oblique_wall'].includes(row.id)));
     assert.equal(rows.filter(row => row.show).length, 2);
     const initialObject = await capture(`${fixture.selectorId}-wall`, fixture);
