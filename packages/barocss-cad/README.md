@@ -1911,3 +1911,67 @@ and preserves empty hole/notch. Reversed authored loops and−0 survive an actua
 file round trip. Invalid edits/references/fields/versions/decoded duplicate
 keys reject without changing prior good results. Affected build and this
 prototype demo are bounded checks; wider validation and edit UI are deferred.
+
+## Original through-hole shell ray query
+
+`queryXYPolygonPrismShellWithHoleRay(shell,{originMM,direction,maxDistanceMM})`
+consumes an owned, validated actual through-hole shell, including one produced
+by the cutout document API. It returns status/body/query/nullable
+`nearestDistanceMM`, co-nearest `hits`, all ordered finite-domain `candidates`, separate
+`coplanarFaces` and a policy/native report. It uses no display triangles.
+
+Every original cap/world or natural wall SurfaceD1 defines its actual plane,
+parameter domain and oriented outward normal. Forward finite ray-plane t is
+in millimetres, actual world UV is resolved without clamping and the emitted
+point/normal are evaluated on that original SurfaceD1. Annular cap containment
+uses directed winding of both actual world native trim loops: outer interior
+minus hole interior, with both native boundaries admitted. Actual native
+segment distances handle finite noninteger ray intersections without changing
+the existing integer-only face classifier. Natural walls keep their actual
+finite UV domains. Hole interiors never create cap hits.
+
+Each hit names body/face/Surface, cap or outer/hole-wall role, tMM, actual
+pointMM/UV/outward normal and boundary original global edge IDs. Each boundary
+reference resolves the actual qualified native face/edge/Curve, native domain,
+original use and original source/loop role/segment or vertex parameter. No
+coordinate welding or packet identity replaces those native associations.
+Candidates sort by distance then stable original face order; hits retain all
+candidates within1e-7mm of the nearest distance, leaving later candidates
+available separately. Boundary comparison is1e-7mm, parallel cosine1e-12,
+and unit direction comparison1e-9. These are display query policies, not
+construction/healing/manufacturing tolerances. Actual world values remain.
+
+Statuses are miss,unique-hit,ambiguous-nearest,ambiguous-coplanar. Any support
+plane coplanarity conservatively returns ambiguous-coplanar even if isolated
+hits remain inspectable; finite coplanar overlap is unresolved and no hit is
+invented. Without coplanarity, multiple co-nearest native faces are ambiguous
+and retain all results. No isolated or coplanar candidates means miss.
+Existing single-loop ray behavior and all native/source/document families
+remain unchanged. This API adds no screen picking or generic curved kernel.
+
+Origin is finite XYZ within±10000mm, direction is a dense finite3-vector
+with norm within1e-9 of1 (never normalized), maximum distance is positive
+finite<=50000mm. Actual shell bounds stay combinedN<=12, one strict integer
+XY/Z0 hole, +Z height1..10000mm, <=14 faces/36 original edges. Owned snapshot
+65536 values/depth20/arrays128/records16/strings128 rejects getters/symbols/
+hidden/sparse/foreign data. Invalid query/native binding returns no partial
+result and leaves previous caller data usable. Reports explicitly retain
+geometricValidity:not-certified,topologyCertified:false,solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/xy-polygon-prism-shell-hole-ray-demo.mjs /tmp/barocss-through-hole-ray-prototype
+```
+
+The short actual native API demo checks top annular cap t2, through-hole miss,
+inner-right wall t2/normal-X, outer-left t1 with later inner candidates, top
+hole-rim diagonal co-nearest cap/wall atsqrt2 and conservative coplanar rim.
+ConcaveL hole[3,23] and notch[20,21] rays miss while material hits top.
+Notch[20,20] lies on the original hole wall's y20 supporting plane: it has no
+finite hits and remains ambiguous-coplanar. Fractional square material/hole
+rays also resolve without widening the integer point API. Reversed authored loops
+retain equivalent queries. Actual SurfaceD1/UV/normals and qualified boundary
+Curve/global references resolve, corrupt cap/wall references and invalid
+direction/range reject while previous shell/results remain reusable. Affected
+build and this short prototype run are bounded checks; wider validation,
+certified accuracy/solid/Boolean/interchange and screen selection are deferred.
