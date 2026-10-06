@@ -1,0 +1,38 @@
+import assert from 'node:assert/strict';import path from 'node:path';import {writeFile}from'node:fs/promises';import{createHash}from'node:crypto';import{readbackPng}from'./png.mjs';
+const hash=b=>createHash('sha256').update(b).digest('hex'),json=v=>JSON.stringify(v,null,2)+'\n';
+export async function runBoxBrowser({page,evidence,taskCommit,integrationCommit}){
+ const before=await page.evaluate(()=>({snapshot:window.cadPreview.snapshot(),history:window.cadPreview.historyState(),primitive:window.cadPreview.primitiveState()}));
+ await page.evaluate(async()=>{
+  const cad=await import('/cad.js'),gpu=await import('/gpu.js'),helper=await import('/box-preview.mjs');
+  const section=document.createElement('section');section.className='box-test';section.setAttribute('aria-label','Separate native six-face transfer consumer');const label=document.createElement('h2');label.textContent='Native six-face box · separate transfer consumer';const canvas=document.createElement('canvas');canvas.width=512;canvas.height=384;canvas.setAttribute('aria-label','Actual six-face composite GPU render');section.append(label,canvas);document.body.append(section);window.boxConsumer={cad,gpu,helper,section,canvas,renderer:null,accepted:null,options:null};
+ });
+ const camera={eye:[4,3,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100},base={color:[.2,.75,.9],background:[.025,.035,.055],camera};
+ const definitions=[['box-unit',[0,0,0],[1,1,1],{...base,mmToSceneUnit:1,translate:[-.5,-.5,-.5]}],['box-noncubic',[0,0,0],[2,3,5],{...base,mmToSceneUnit:.5,translate:[-.5,-.75,-1.25]}],['box-translated',[-7,11,-13],[4,6,9],{...base,mmToSceneUnit:.25,translate:[1.25,-3.5,2.125]}],['box-boundary',[9998,-10000,0],[2,3,1],{...base,mmToSceneUnit:.05,translate:[-499.95,499.925,-.025],camera:{...camera,eye:[.4,.3,.6],near:.0001}}],['box-dimension-update',[-7,11,-13],[6,8,10],{...base,mmToSceneUnit:.25,translate:[1,-3.75,2]}]];
+ const frames=[];
+ for(const[name,origin,sides,options]of definitions){
+  const request={id:'box_view',origin,sides,revision:frames.length+1};
+  const captured=await page.evaluate(({request,options})=>{const h=window.boxConsumer,result=h.helper.prepareBoxPreview(request,h.cad),owned=h.helper.validateBoxPreview(result,h.cad);h.gpu.prepareMesh(owned.packet,options);
+   if(h.renderer){const updated=h.renderer.update(owned.packet,options);if(!updated.ok)throw updated.error;}else h.renderer=h.gpu.mountMesh(h.canvas,owned.packet,options);
+   h.accepted=owned;h.options=structuredClone(h.renderer.options);return{result:owned,options:h.options,bytes:Array.from(h.renderer.readPixels()),shaders:h.renderer.shaders,glError:h.canvas.getContext('webgl2').getError(),rendererPacket:h.renderer.packet};},{request,options});
+  assert.equal(captured.glError,0);assert.deepEqual(captured.rendererPacket,captured.result.packet);assert.equal(captured.result.packet.positions.length,72);assert.equal(captured.result.packet.indices.length,36);
+  const background=captured.bytes.slice(0,3);let foreground=0;for(let i=0;i<captured.bytes.length;i+=4)if([0,1,2].some(k=>Math.abs(captured.bytes[i+k]-background[k])>12))foreground++;assert(foreground>100, name+' must draw actual visible pixels');
+  const data={'request.json':json(request),'source.css':captured.result.source,'model.json':json(captured.result.model),'shell.json':json(captured.result.shell),'solid.json':json(captured.result.solidReport),'faces.json':json(captured.result.facePackets),'packet.json':json(captured.result.packet),'lineage.json':json(captured.result.lineage),'options.json':json(captured.options),'vert.glsl':captured.shaders.vertex,'frag.glsl':captured.shaders.fragment,'rgba.bin':Uint8Array.from(captured.bytes),'png':readbackPng(captured.bytes,512,384)};
+  const hashes={};for(const[suffix,content]of Object.entries(data)){const file=name+'.'+suffix;await writeFile(path.join(evidence,file),content);hashes[file]=hash(content);}
+  frames.push({name,taskCommit,integrationCommit,request,hashes,actualReadPixels:true,foreground,glError:0,derivedMeshId:'box_view',nativeSurfaceIds:captured.result.model.objects.map(o=>o.id),buffer:[512,384],readbackHash:hash(Uint8Array.from(captured.bytes))});
+  await page.locator('.box-test canvas').screenshot({path:path.join(evidence,name+'.canvas.png')});
+ }
+ assert.notEqual(frames[2].readbackHash,frames[4].readbackHash);assert.equal(frames[2].derivedMeshId,frames[4].derivedMeshId);assert.deepEqual(frames[2].nativeSurfaceIds,frames[4].nativeSurfaceIds);
+ const controls=await page.evaluate(()=>{
+  const h=window.boxConsumer,old=structuredClone(h.accepted),options=structuredClone(h.options),pixels=Array.from(h.renderer.readPixels()),live=()=>window.previewProbe.resources.filter(({kind,resource,gl})=>gl===h.canvas.getContext('webgl2')&&gl['is'+kind](resource)).length,before=live(),renderer=h.renderer,failures=[];
+  for(const mutate of [r=>r.lineage.faces[0].vertexStart=4,r=>r.packet.indices[0]=23,r=>r.packet.bounds.min[0]=99,r=>r.solidReport.volumeMM3++,r=>r.shell.faces.pop(),r=>r.source+=' ']){const r=structuredClone(old);mutate(r);let rejected=false;try{h.helper.validateBoxPreview(r,h.cad);}catch{rejected=true;}if(!rejected)throw Error('Corrupt box accepted');failures.push({rejected});}
+  const bad=h.renderer.update(old.packet,{...options,mmToSceneUnit:0});if(bad.ok)throw Error('Unsafe options accepted');
+  const gl=h.canvas.getContext('webgl2'),get=gl.getError.bind(gl);let injected=false;gl.getError=()=>{if(!injected){injected=true;return 0x500;}return get();};const draw=h.renderer.update(old.packet,options);gl.getError=get;if(draw.ok)throw Error('Transient draw accepted');
+  if(JSON.stringify(h.renderer.packet)!==JSON.stringify(old.packet)||JSON.stringify(Array.from(h.renderer.readPixels()))!==JSON.stringify(pixels))throw Error('Failed draw replaced accepted box');
+  let calls=0,foreign=false;try{h.gpu.mountMesh({getContext(){calls++;return gl;}},old.packet,options);}catch{foreign=true;}if(!foreign||calls)throw Error('Foreign canvas handle accepted');
+  for(let i=0;i<12;i++){const r=h.helper.prepareBoxPreview({id:'box_view',origin:[-7,11,-13],sides:i%2?[4,6,9]:[6,8,10],revision:6+i},h.cad);const update=h.renderer.update(r.packet,options);if(!update.ok)throw update.error;h.accepted=r;}
+  return{failures,invalidOptionsRejected:!bad.ok,transientDrawRejected:!draw.ok,foreignCanvasRejected:foreign,callbacks:calls,retainedPixels:true,before,after:live(),sameRenderer:renderer===h.renderer};
+ });assert.equal(controls.before,controls.after);assert(controls.sameRenderer);
+ const lifecycle=await page.evaluate(async()=>{const h=window.boxConsumer,packet=h.renderer.packet,options=h.renderer.options,gl=h.canvas.getContext('webgl2'),lost=new Promise(resolve=>h.canvas.addEventListener('webglcontextlost',resolve,{once:true}));gl.getExtension('WEBGL_lose_context').loseContext();await lost;const update=h.renderer.update(packet,options);let readRejected=false;try{h.renderer.readPixels();}catch{readRejected=true;}h.renderer.dispose();const disposed=h.renderer.update(packet,options);h.section.remove();return{lossRejected:!update.ok,readRejected,disposedRejected:!disposed.ok};});assert(lifecycle.lossRejected&&lifecycle.readRejected&&lifecycle.disposedRejected);
+ const after=await page.evaluate(()=>({snapshot:window.cadPreview.snapshot(),history:window.cadPreview.historyState(),primitive:window.cadPreview.primitiveState()}));assert.deepEqual(after,before,'Separate box canvas must not adopt the application document');
+ const result={taskCommit,integrationCommit,frames,controls,lifecycle,appDocumentUnchanged:true,faceLocalParameters:true,unweldedSharpCreases:true};await writeFile(path.join(evidence,'box-consumer.json'),json(result));return result;
+}
