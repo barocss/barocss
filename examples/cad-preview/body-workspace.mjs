@@ -53,7 +53,9 @@ function packetFor(result, nextRevision) {
     positions: [], normals: [], indices: [], parameters: [],
     bounds: structuredClone(evaluation.solidReport.boundsMM) };
   for (const [i, bundle] of evaluation.faces.entries()) {
-    const { packet: face } = cad.tessellateSurface(bundle.surface, { countU: 2, countV: 2, revision: nextRevision });
+    const surface = evaluation.model.objects.find(object => object.kind === 'surface' && object.id === bundle.topology.face.surfaceId);
+    if (!surface) throw Error('Compiled native face identity is missing.');
+    const { packet: face } = cad.tessellateSurface(surface, { countU: 2, countV: 2, revision: nextRevision });
     cad.validatePreviewPacket(face);
     packet.positions.push(...face.positions); packet.normals.push(...face.normals);
     packet.parameters.push(...face.parameters); packet.indices.push(...face.indices.map(index => index + i * 4));
@@ -103,7 +105,7 @@ function adopt(document) {
       renderer = gpu.mountMesh(next, packet, options); bind(next);
     }
     accepted = { ...result, lineage: { sourceVersion: 2, source: result.evaluation.source, bodyId: result.document.feature.bodyId,
-      faces: result.evaluation.faces.map((face, i) => ({ faceId: face.topology.face.id, surfaceId: face.surface.id, vertexStart: i * 4, vertexCount: 4, indexStart: i * 6, indexCount: 6 })) } }; revision++; viewRevision++;
+      faces: result.evaluation.faces.map((face, i) => ({ faceId: face.topology.face.id, surfaceId: face.topology.face.surfaceId, vertexStart: i * 4, vertexCount: 4, indexStart: i * 6, indexCount: 6 })) } }; revision++; viewRevision++;
     refresh(); refreshButtons(); message('Box updated. Drag the canvas to rotate.');
     return { ok: true };
   } catch (error) {
