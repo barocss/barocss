@@ -2373,3 +2373,65 @@ geometry/pcurve/seam/ref/use/request/query/getter controls reject. No mesh or
 renderer is added. Broad validation, generic trims/circle extrusion/cylinder/
 solid/Boolean/exchange/assembly/commercial parity remain deferred or outside
 this family; actual finite observations are not full numerical-quality passes.
+
+## Original circle face display mesh and edge path
+
+`tessellateXYCirclePlanarFace(bundle,{meshId,revision,segmentsPerQuarter})`
+first owns and validates the actual original circle face and returns owned
+`{packet,edgePaths,edgeProvenance,report}`. Exact options require ASCII meshID
+1..64 distinct from native IDs/Model names, integerrevision0..2147483647 and
+integersegmentsPerQuarter2..32. Extras/getters/symbols/nonfinite data reject.
+The existing PreviewPacket0 schema/units/convention remains unchanged.
+
+With k segments per quarter, N=4*k. Sample original world Curve and its actual
+UV pcurve at native parametersj/k forj0..N-1. Each packet boundary point comes
+from actual SurfaceD1(pcurveUV); centre UV comes from original construction
+centre and actual represented plane inverse, with centre point from SurfaceD1.
+Every normal is actual derivative cross normalized+Z. Centre plusN boundary
+vertices formN CCW fan triangles[0,1+j,1+(j+1)%N]. The seam vertex occurs once
+in mesh connectivity. Native UV is never clamped; no analytic/trigonometric
+replacement circle or supporting-square tessellation is used. Exact bounds
+come from emitted positions. Max129vertices/128triangles remain below the
+unchanged packet budgets.
+
+ONE closed path retains the original rational edge ID and original world Curve
+samples0..4 inclusive,N+1points. No radial fan diagonal becomes a CAD edge.
+Provenance names native face/Surface/source Curve/edge/loop/seam, loop sense,
+original parameter range0..4, sampled native parameters and pcurve ID. The one
+native edge is distinct from N display approximation segments. Packet positions
+and edge path coordinates remain their actual independent native evaluations;
+maximum observed binding difference is measured under explicit1e-7mm comparison.
+Original native geometry/topology/query data remains unchanged/reusable.
+
+Report retains admitted native report, IDs/counts/uniform-native-parameter
+sampling, actual triangle-sum meshAreaMM2, analytic referenceDiskAreaMM2 and
+signed area difference. observedChordDeviationMM is the maximum observed
+original Curve interval-midpoint versus chord-midpoint distance at these N
+intervals, including closure. It is not a certified global Hausdorff/tolerance
+bound; sampling is uniform in parameter, not claimed uniform angle. No adaptive
+sampling, generic trimmed area or solid certificate is added.
+
+Existing packet admission checks finite nonzero winding against each normal.
+Actual world positions also convert to Float32 for explicit collapse/reversal
+refusal before return. A valid translated small native circle may be unsupported
+for this display sampling; no automatic recenter/rescale/healing or triangle
+deletion. Returned arrays own their data. geometricValidity:not-certified,
+topologyCertified:false,solid:false remain. Input snapshot8192values/depth10/
+arrays64/records12/strings128 is inherited; trusted output arrays have separately
+bounded129path points/129vertices, with no packet budget change.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/circle-planar-face-preview-demo.mjs /tmp/barocss-circle-face-preview-prototype
+```
+
+The short actual native packet/file demo uses r4/centre[2,-3] withk2:
+9vertices/8triangles/one9point path, area approximately32*sqrt2 rather than64
+supporting-square area. Same original bundle withk8 gives33/32/path33, lower
+observed chord deviation and closer area for this seed only. Actual edited
+arc-sketch circlecentre[30,1]/r3 and corrected decimalcentre[.2,.2]/r.1 retain
+native Curve/Surface/UV bindings. Options/native forgeries and a demonstrably
+Float32-collapsing but native-valid circle reject while prior data stays reusable.
+Ordinary packet JSON read/admission is a demo artifact, not a document/exchange
+format. Affected build/this run are prototype checks; broader validation,
+renderer/UI/cylinder/general trim/solid/commercial claims remain deferred.
