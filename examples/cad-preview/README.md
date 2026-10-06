@@ -587,3 +587,39 @@ numeric staging retention, final8 replacement/final9/empty rejection, original
 source2/body/face/packet/path/camera/PNG lineage and view controls. Broader campaigns
 remain deferred. This is a bounded native parameter GUI, not a constraint system,
 combined solid certificate or full533/551/commercial CAD completion.
+
+## Original circle planar face workspace (prototype)
+
+Open `/workspace.html#circle-face` or **Circle face · Create / Edit**. Seed centre
+[2,-3],radius4 is actual587 one-circle intent, actual590 native circle/UV trim on
+its represented plane and actual592 Surface-evaluated packet plus ONE native edge.
+Centre/radius accept existing finite fractional mm admission. Apply/Discard gates
+pending intent before New/Open/destructive navigation. Actual native file Save
+serializes accepted587 intent only; quality/face/packet/report/camera are excluded.
+Open accepts exactlyONE admitted circle profile, rejecting empty/multiple/quarter
+and native identity collisions without changing accepted intent/frame.
+
+Display sampling2–15/default8 gives N=4*k triangles and N+1 edge path points,
+max61 under the original GPU64point limit. Native2–32 remains unchanged; no path
+truncation/split/downsample or overlay schema widening. Quality-only retessellates
+accepted native data and keeps pending numeric fields unapplied. Equal-current
+quality events are no-ops. Apply/Open retain accepted camera/mm mapping; Fit view
+explicitly centres/scales/reframes the current real packet, New fits the seed.
+One complete packet binds mesh and actual original edge path. Orbit/edge/quality
+never edit saved intent; failed native/preview/render candidates keep prior state.
+
+Metrics distinguish analytic admitted-circle Reference disk area, approximate fan
+triangle area and observedChordDeviationMM (not certified tolerance). Actual native
+face/Curve/Surface/ONE edge IDs and separate mesh/camera mapping remain in snapshots.
+No supporting-square raster or independent trigonometric disk is generated here.
+
+`circle-face-workspace-smoke.mjs` after affected CAD/GPU builds uses existing
+PW_DIR/CHROME and BAROCSS_CIRCLE_FACE_EVIDENCE. It records originalSurface/pcurve/
+Curve/provenance/compiler input/packet/ONEedge/pixel/file/PNG lineage, material centre
+and outside-square controls, coarse2 vs fine8 behavior for native-inside sample,
+accepted-only download/Open, translated/decimal native/Fit, explicit native-valid
+Float32-collapse rejection, invalid files/quality/packet retention, edges/orbit and
+one graph workspace state visit. First equal-quality blur-event failure is retained
+and fixed. Broader numerical/resource/performance/compatibility campaigns remain
+deferred. This is an approximate planar face, not a curved shell/solid/STEP or
+commercial certificate; software pixels are functional evidence only.
