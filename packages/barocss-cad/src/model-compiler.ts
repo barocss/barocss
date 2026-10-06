@@ -7,12 +7,14 @@ import type { Model } from './types.js';
 import type { ExtrusionConstruction } from './construction-types.js';
 
 export type { CadModelAst, CadSourceRange, CadModelIR };
-export interface CadCompileOptions { sourceVersion: 0 | 1 }
+export type { CadExpression } from './source-ast.js';
+export type { CadModelIR1, CadModelIR2, CadResolvedParameter, CadFieldBinding, CadQuantityKind, CadParameterDependency } from './semantic-model.js';
+export interface CadCompileOptions { sourceVersion: 0 | 1 | 2 }
 export interface CadDiagnostic { code: string; severity: 'error'; message: string; range: CadSourceRange; objectId?: string }
 export type CadCompileResult = { ok: true; ast: CadModelAst; ir: CadModelIR; model: Model; constructions: ExtrusionConstruction[]; diagnostics: [] }
   | { ok: false; diagnostics: CadDiagnostic[] };
 
-export function compileCadStages(source: string, sourceVersion: 0 | 1):
+export function compileCadStages(source: string, sourceVersion: 0 | 1 | 2):
   { ok: true; ast: CadModelAst; ir: CadModelIR; model: Model; constructions: ExtrusionConstruction[] } | { ok: false; error: CadAstError } {
   try {
     const ast = parseCadAst(source, sourceVersion);
@@ -29,8 +31,8 @@ export function compileCadModel(source: string, options: CadCompileOptions): Cad
   if (typeof source !== 'string') return programmingFailure('TYPE', 'Source must be a string');
   if (!options || typeof options !== 'object' || Array.isArray(options)) return programmingFailure('OPTIONS', 'An explicit sourceVersion option is required');
   const prototype = Object.getPrototypeOf(options), descriptors = Object.getOwnPropertyDescriptors(options), keys = Reflect.ownKeys(options);
-  if ((prototype !== Object.prototype && prototype !== null) || keys.length !== 1 || keys[0] !== 'sourceVersion' || !descriptors.sourceVersion || !('value' in descriptors.sourceVersion) || !descriptors.sourceVersion.enumerable || (descriptors.sourceVersion.value !== 0 && descriptors.sourceVersion.value !== 1)) return programmingFailure('OPTIONS', 'Only own sourceVersion: 0 or 1 data is supported');
-  const result = compileCadStages(source, descriptors.sourceVersion.value as 0 | 1);
+  if ((prototype !== Object.prototype && prototype !== null) || keys.length !== 1 || keys[0] !== 'sourceVersion' || !descriptors.sourceVersion || !('value' in descriptors.sourceVersion) || !descriptors.sourceVersion.enumerable || (descriptors.sourceVersion.value !== 0 && descriptors.sourceVersion.value !== 1 && descriptors.sourceVersion.value !== 2)) return programmingFailure('OPTIONS', 'Only own sourceVersion: 0, 1 or 2 data is supported');
+  const result = compileCadStages(source, descriptors.sourceVersion.value as 0 | 1 | 2);
   if (!result.ok) {
     const error = result.error;
     const diagnostic: CadDiagnostic = { code: error.code, severity: 'error', message: error.detail, range: { ...error.range } };

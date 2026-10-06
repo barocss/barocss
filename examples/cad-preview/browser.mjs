@@ -1,3 +1,4 @@
+import { runSource2Browser } from './source2-browser.mjs';
 import { runBoxBrowser } from './box-browser.mjs';
 import { runHistoryBrowser } from './history-browser.mjs';
 import { runProjectBrowser } from './project-browser.mjs';
@@ -47,7 +48,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const cadModuleRequests = new Set();
   page.on('request', request => cadModuleRequests.add(new URL(request.url()).pathname));
-  const allowed = new Set(['/model-compiler.js', '/source-ast.js', '/semantic-model.js', '/lower-model.js', '/construction-types.js', '/extrusion-validation.js', '/box-preview.mjs', '/box-solid.js', '/history.mjs', '/box-shell.js', '/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/expression-parser.js', '/parameter-semantics.js', '/data-copy.js', '/model-compiler.js', '/source-ast.js', '/semantic-model.js', '/lower-model.js', '/construction-types.js', '/extrusion-validation.js', '/box-preview.mjs', '/box-solid.js', '/history.mjs', '/box-shell.js', '/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -117,7 +118,7 @@ try {
   const {spans:removedSourceMetadata,...originalPhysicalModel}=originalNative;
   assert(removedSourceMetadata);
   await writeFile(path.join(evidence,'ui-original-native.json'),originalNativeBytes);
-  for(const name of ['model-compiler','source-ast','semantic-model','lower-model','extrusion-validation'])assert(cadModuleRequests.has('/'+name+'.js'));
+  for(const name of ['model-compiler','source-ast','semantic-model','lower-model','extrusion-validation','expression-parser','parameter-semantics','data-copy'])assert(cadModuleRequests.has('/'+name+'.js'));
   for(const name of ['parser','compiler','legacy-diagnostics'])assert(!cadModuleRequests.has('/'+name+'.js'));
   const uiScreens=[];
   for(const [name,width,height] of [['desktop',1440,900],['mobile',390,844]]){
@@ -655,6 +656,7 @@ try {
   const projectLineage=await runProjectBrowser({browser,page,server,evidence,allowed,taskCommit,integrationCommit});
   const historyLineage=await runHistoryBrowser({browser,server,evidence,allowed,taskCommit,integrationCommit});
   const boxLineage=await runBoxBrowser({page,evidence,taskCommit,integrationCommit});
+  const source2Lineage=await runSource2Browser({page,evidence,taskCommit,integrationCommit});
   assert.ok(cadModuleRequests.has('/box-preview.mjs'), 'Separate box consumer must request exact helper route');
 
 
@@ -749,7 +751,7 @@ try {
   const result = { taskCommit, integrationCommit, backend, packageModules, sourceModules, backendDescription: 'ANGLE SwiftShader software WebGL2; functional composition only',
     packageArtifacts: { cad: hash(await readFile(path.join(repo, 'packages/barocss-cad/dist/index.js'))),
       gpu: hash(await readFile(path.join(repo, 'packages/barocss-gpu/dist/index.js'))) },
-    boxLineage, boxFrames:boxLineage.frames, historyLineage, historyFrames:historyLineage.frames, projectLineage, projectFrames:projectLineage.frames, orbitEvidence, uiWorkspace, frames, constructionFrames, objectFrames, primitiveFrames, primitiveLineage, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
+    source2Lineage, source2Frames:source2Lineage.frames, boxLineage, boxFrames:boxLineage.frames, historyLineage, historyFrames:historyLineage.frames, projectLineage, projectFrames:projectLineage.frames, orbitEvidence, uiWorkspace, frames, constructionFrames, objectFrames, primitiveFrames, primitiveLineage, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
     deterministicFields: ['source', 'model', 'packet except host-issued revision', 'report', 'IGES', 'display options'],
     environmentFields: ['taskCommit', 'integrationCommit', 'browser', 'backend', 'evidence path'],
     limitations: ['Finite sampled deviation is not a global bound', 'Surfaces remain open; no solid, topology, STEP, or manufacturing claim', 'Software rendering is not physical GPU performance',

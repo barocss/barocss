@@ -326,3 +326,14 @@ control scale, translation and camera; there is no geometry auto-fit. Retained s
 solid/per-face/composite/range/pixel hashes and thirty separate original face exports feed
 the independent installed reader. This adds no Box UI, file-v2, packet protocol, whole-solid
 IGES action, STEP, general-solid certificate or hardware performance claim.
+
+### Separate source2 parameter consumer
+
+The browser verification also compiles the original source2 named-length/scalar
+fixtures, tessellates their native surfaces, draws four real framebuffer states,
+and reads the exact selected IGES files with the installed independent OCP reader.
+AST/IR2/native0/packet0/source/PNG/file hashes are retained. Width edits from
+10cm to12cm resolve to100mm and120mm, including the dependent height expression;
+rational radius/height controls use the same original compiler and math.
+This is a separate test canvas. The current application and project version1
+continue to accept only source0/1; this task adds no parameter editor or file schema.
