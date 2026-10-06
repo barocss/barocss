@@ -1841,3 +1841,73 @@ winding, cap hole/notch coverage, original paths and opposite adjacent uses;
 corrupted placement/inner Curve/use, native-ID collision and invalid revision
 reject while prior shell/preview remain usable. Affected build and this demo
 are prototype checks; broader validation and visible rendering remain deferred.
+
+## Editable original cutout extrusion intent
+
+`evaluateXYPolygonPrismHoleDocument(document,{revision})` and
+`updateXYPolygonPrismHoleDocument(document,edits,{revision})` return
+`{document,evaluation,report}`. Evaluation exposes actual original region
+results in `profiles.outer/hole`, the actual annular `face` result, the native
+through-hole `shell` result and its actual world Surface/Curve `preview` result.
+This is one executable feature, not a general feature graph.
+
+```js
+const document = {
+  format:'barocss-xy-polygon-prism-hole-feature', version:0,
+  id:'cutout_document', lengthUnit:'mm',
+  profiles:{
+    outer:{id:'cutout_outer',kind:'xy-polygon',points:[[0,0],[10,0],[10,10],[0,10]]},
+    hole:{id:'cutout_hole',kind:'xy-polygon',points:[[3,3],[7,3],[7,7],[3,7]]}
+  },
+  feature:{id:'cutout_extrusion',kind:'xy-polygon-prism-with-hole',
+    outerProfileId:'cutout_outer',holeProfileId:'cutout_hole',
+    faceId:'cutout_face',bodyId:'cutout_body',distanceMM:6}
+};
+const initial = evaluateXYPolygonPrismHoleDocument(document,{revision:1});
+const edited = updateXYPolygonPrismHoleDocument(initial.document,
+  {holePoints:[[2,2],[8,2],[8,8],[2,8]],distanceMM:8},{revision:2});
+const saved = serializeXYPolygonPrismHoleDocument(edited.document);
+const reopened = parseXYPolygonPrismHoleDocument(saved);
+```
+
+Only the exact illustrated native intent fields are supported. Six authored
+IDs are distinct ASCII1..64; references explicitly resolve outer/hole IDs.
+Each authored loop has at least3 vertices, combinedN<=12, integer XY within
+±10000mm, no repeated closing vertex, and retains order/CW/CCW/negative-zero
+intent. Exactly one strictly contained hole is admitted by the original face
+API; crossing, touching, overlap and invalid simple polygons reject. Height is
+positive integer1..10000mm in+Z. Downstream native construction checks actual
+and derived identity; display mesh ID is bodyId+'_preview' and remains separate
+from all native IDs/Model names. Revision0..2147483647 affects display only.
+
+Edits permit optional outerPoints/holePoints/distanceMM with at least one
+supplied. All edits apply to one owned whole candidate before actual original
+profiles→face→shell→world mesh execution. IDs stay stable. Failure adopts no
+partial change and leaves caller intent/native/packet reusable. Both loops
+may move together even when either edit alone would violate containment.
+
+Save and Open both execute the complete native candidate at private revision0
+before returning. Canonical JSON contains native intent only, preserves−0,
+and excludes compiled source/Model/world topology/mesh/metrics/revision/camera/
+history/certificates. Open bounds UTF-8 text to128KiB, performs a lexical guard
+before JSON.parse to reject duplicate decoded keys, limits depth6, arrays16,
+records12, strings128 and1024 lexical values/keys, then applies the owned data
+snapshot1024 values/depth6 and whole native admission. Getters/symbols/hidden/
+sparse/foreign data and unsupported format/version/unit/kind/field/reference
+reject. Existing single-loop/Box documents and source grammar remain unchanged.
+Reports retain native construction references and geometricValidity:not-certified,
+topologyCertified:false,solid:false; no certified mass/Boolean/assembly claim.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/xy-polygon-prism-hole-document-demo.mjs /tmp/barocss-through-hole-document-prototype
+```
+
+The short actual API/file demo follows square reference volume504 atheight6,
+height8→672, expanded hole→512, saved/reopened intent andheight10→640. Actual
+cap areas/emptyhole, top Surface/Curve height, packets and original paths update;
+all six IDs remain and the initial504 result remains exact. ConcaveL gives4020
+and preserves empty hole/notch. Reversed authored loops and−0 survive an actual
+file round trip. Invalid edits/references/fields/versions/decoded duplicate
+keys reject without changing prior good results. Affected build and this
+prototype demo are bounded checks; wider validation and edit UI are deferred.
