@@ -28,3 +28,5 @@ export type { AxisRectangleFeatureDocumentV0, AxisRectangleFeatureDocumentResult
 export { solveXYLinearSketch } from './xy-linear-sketch.js';
 export type { XYLinearSketchDocumentV0, XYLinearSketchResult, XYLinearSketchConstraint, XYLinearSketchDiagnostic } from './xy-linear-sketch.js';
 export type { XYLinearSketchDocumentV1, XYLinearSketchConstraintV1, XYLinearSketchResultV1, XYLinearSketchDimensionReport } from './xy-linear-sketch.js';
+export { buildXYPolygonRegion, validateXYPolygonRegion } from './xy-polygon-region.js';
+export type { XYPolygonRegionRequest, XYPolygonRegionResult, XYPolygonRegionReport } from './xy-polygon-region.js';
