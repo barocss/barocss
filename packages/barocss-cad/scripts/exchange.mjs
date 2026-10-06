@@ -68,3 +68,5 @@ const { runAdjacencyExchange } = await import('./adjacency-exchange.mjs');
 runAdjacencyExchange();
 const { runOrthogonalExchange } = await import('./orthogonal-exchange.mjs');
 runOrthogonalExchange();
+const { runBoxShellExchange } = await import('./box-shell-exchange.mjs');
+runBoxShellExchange();

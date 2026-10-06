@@ -106,3 +106,15 @@ report is exact-orthogonal-axis-rectangles-v0, closed false, solid false. Indivi
 local face reports remain not-certified. Perpendicular normals mark a crease;
 there is no one shared smooth normal or sewn reader topology. The original coplanar
 demo/API remains unchanged and rejects this orthogonal pair.
+
+Build a closed axis-box boundary from six explicit outward source surfaces:
+
+```sh
+node examples/cad-nurbs/box-shell-demo.mjs examples/cad-nurbs/axis-box.css examples/cad-nurbs/box-shell-input.json /tmp/cad-box-shell
+```
+
+The input retains explicit origin/sides/source-surface/local/global IDs. The host
+writes the shell descriptor and six separate five-object geometry IGES files.
+The exact report is closed:true, solid:false, solidProductImplemented:false.
+Local face reports remain not-certified. Area/flux-volume tests are separate
+evidence; this command supplies no original solid/STEP or sewn reader topology.
