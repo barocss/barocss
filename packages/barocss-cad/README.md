@@ -1975,3 +1975,79 @@ Curve/global references resolve, corrupt cap/wall references and invalid
 direction/range reject while previous shell/results remain reusable. Affected
 build and this short prototype run are bounded checks; wider validation,
 certified accuracy/solid/Boolean/interchange and screen selection are deferred.
+
+## Native XY sketch intent and edits
+
+`evaluateXYSketchDocument(document)` and `updateXYSketchDocument(document,edits)`
+return owned `{document,profiles,report}`. Distinct version0 format
+`barocss-xy-sketch` has exact root fields format/version/id/lengthUnit/workplane/
+profiles; unit is mm, workplane is xy and profiles are ordered0..8. An empty
+sketch is valid. This document is editable intent backed by the unchanged
+original line/open-polyline/rectangle source0 builder.
+
+```js
+const sketch = {format:'barocss-xy-sketch',version:0,id:'sketch',
+  lengthUnit:'mm',workplane:'xy',profiles:[]};
+const created = updateXYSketchDocument(sketch,[
+  {kind:'upsert',profile:{id:'A',kind:'line',points:[
+    {id:'A0',xy:[0,0]},{id:'A1',xy:[10,0]}]}},
+  {kind:'upsert',profile:{id:'C',kind:'rectangle',originMM:[20,0],
+    widthMM:4,heightMM:3,cornerIds:['C0','C1','C2','C3']}}
+]);
+const edited = updateXYSketchDocument(created.document,[
+  {kind:'upsert',profile:{...created.document.profiles[1],widthMM:6}}
+]);
+const saved = serializeXYSketchDocument(edited.document);
+const reopened = parseXYSketchDocument(saved);
+```
+
+A line has exactly2 authored `{id,xy}` points; an open polyline has2..64.
+A rectangle has originMM,widthMM,heightMM and exactly4cornerIds, ordered
+origin,origin+[width,0],origin+[width,height],origin+[0,height]. Document,
+profile and all authored point/corner IDs are globally distinct ASCII1..64;
+combined authored points/corners<=128. Native Curve ID is the profile ID.
+Finite XY within±10000mm, adjacent segment length>=0.001mm, open line/polyline
+endpoints, rectangle dimensions0.001..10000mm and resulting corner bounds
+are still checked by the actual original profile builder. Authored order and
+negative-zero intent remain. No custom plane/origin/units conversion is added.
+
+Each ordered result entry is `{profileId,evaluation,pointBindings}`.
+Evaluation is the actual original buildXYProfile result with source0,Model,
+Curve and report. Per-native-pole bindings name pointId/curveId/poleIndex and
+parameter derived from actual Curve knots and report domain. The rectangle
+has5 actual native poles:0/4 both bind its first authored corner ID at
+parameters0/4. This is endpoint closure and degree1 C0 segment geometry,
+not a region/face/solid certificate. Existing derivative safeguards remain.
+
+Edits are1..8 ordered exact upsert/remove operations, each target profile ID
+at most once. Existing upserts keep array position; new profiles append in
+batch order; removal must resolve. Numeric edits preserve existing kind,
+point count, point IDs/order or corner IDs/order. Topology replacement requires
+removal in one accepted transaction and a fresh-ID profile in a later one.
+All operations form one candidate, globally admitted and fully rebuilt before
+return. Invalid profiles/identity/edit leave prior caller intent/native data
+unchanged/reusable. No constraints/dependency graph/snap/history/UI is implied.
+
+Save and Open both execute all actual profiles before returning. Canonical
+JSON stores only exact sketch intent, preserving−0 and excluding source/Model/
+evaluation/metrics/packet/revision/camera/constraints/certificates. UTF-8<=128KiB;
+lexical duplicate decoded-key rejection precedes JSON.parse with4096values/keys,
+depth8, arrays64, records12, strings128. The own-data snapshot has the same
+local budgets. Getters/symbols/hidden/sparse/foreign data and unsupported
+format/version/unit/plane/field reject. Existing documents/native profiles,
+constraint/dimension APIs and source0/1/2 grammar remain unchanged.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/xy-sketch-document-demo.mjs /tmp/barocss-xy-sketch-prototype
+```
+
+The short actual API/file demo starts empty, adds a line/open polyline/rectangle
+in one batch, edits line endpoint and rectangle width together, removes the
+polyline, saves/reads/parses actual intent, then edits rectangle height.
+Original source/Model/Curve/native parameter bindings, rectangle closure,
+stable IDs/order, prior result reuse and−0 round trip are checked. Invalid
+geometry/identities/topology edits and malformed/duplicate-key/schema inputs
+reject. Affected build and this short run are prototype checks; broad validation
+and workplane authoring UI are deferred. regionCertified:false,face:false,
+solid:false remain explicit; no commercial parity or screen authoring claim.
