@@ -60,3 +60,5 @@ const { runConstructionExchange } = await import('./construction-exchange.mjs');
 runConstructionExchange();
 const { runDerivativeExchange } = await import('./derivative-exchange.mjs');
 runDerivativeExchange();
+const { runBoundaryExchange } = await import('./boundary-exchange.mjs');
+runBoundaryExchange();

@@ -159,6 +159,57 @@ exchange derivative error is at most `1e-7 * max(1, expected norm)`. Existing po
 tolerances stay unchanged. These are finite fixture checks, without a universal
 accuracy, topology, certified normal or manufacturing claim.
 
+## Oriented native surface boundaries
+
+`extractSurfaceBoundary(surface, { boundary, id })` returns an owned native `Curve`.
+`SurfaceBoundary` is `'v-min' | 'u-max' | 'v-max' | 'u-min'`;
+`SurfaceBoundaryOptions` requires both selector and explicit native ID. Options
+must have Object.prototype or null prototype and exactly two own data properties.
+Unknown keys, symbols, accessors, inherited fields and unsupported selectors fail.
+Accessors are not called. Proxy reflection traps remain the host's responsibility.
+The existing surface validator is unchanged. Callers manage IDs when assembling
+Models; duplicate IDs still fail the existing model/export checks.
+
+The traversal is the positive parameter rectangle: v-min follows increasing U,
+u-max follows increasing V, v-max follows decreasing U, u-min follows decreasing V.
+Open-clamped endpoints select the first/last pole column or row with matching
+weights, degree and directional knots. Decreasing boundaries reverse poles and
+weights and reflect knots about the original endpoints. For original domain [a,b],
+curve parameter t maps to surface parameter a+b-t. Stable subtraction/addition
+avoids an overflowing a+b. Unrepresentable reflected interior knots, reordered
+knots or collapsed distinct knots fail rather than changing geometry or domain.
+Every output owns its pole arrays, weights and knots, including across calls.
+
+This is exact endpoint extraction, without sampling, fitting or degree reduction.
+Tangents retain original units: increasing edges use surface du/dv; decreasing
+edges use their negatives at the reflected parameter. Existing D1 rules still
+reject exact C0 knots and accept local spans, one-sided endpoints and C1 knots.
+Floating reflection need not be bitwise involutive; selected double-reversal tests
+use 1e-12 knot tolerance, identical recovered poles/weights and independent
+geometry checks at the stated native tolerances. A constant
+boundary is retained with finite zero derivative. It is not a regular edge, and
+its parent surface is not certified regular. Endpoint agreement is geometry only,
+without a trim loop, topological wire, sewing, face/shell, solid or STEP claim.
+
+`examples/cad-nurbs/boundary-demo.mjs` uses built ESM to create four explicit IDs,
+retain source/feature/native mapping, and export only four entity126 curves in
+one native Model. The packed consumer covers flat, rational, weighted, asymmetric
+and constructed surfaces. `BAROCSS_CAD_BOUNDARY_EVIDENCE` selects a separate path,
+defaulting to the isolated environment's `evidence-509/boundaries`. Retained files
+include actual four-root IGES, poles/weights/knots, source/surface/feature data,
+oriented sample parameters, mapping and hashes. Run current-head packed consumer
+before exchange. Installed OCP verifies explicit export-directory mapping, four
+intended roots and original/transferred domains without assuming name retention.
+Wrong edge, sign/scale and corrupt pole controls must fail geometric/vector checks.
+Selected position limits are 1e-9 mm native and 1e-7 mm reader; derivative limits
+are 1e-9 and 1e-7 times max(1, expected vector norm), in original parameter units.
+All legacy construction, derivative, preview and exchange gates remain mandatory.
+
+The additive index export loads `dist/boundary.js`, whose only runtime dependency
+is existing `dist/math.js`; the types import is erased. The preview host needs the
+exact static `/boundary.js` route. CAD records a proposed registration patch;
+the GPU integrator applies it and verifies the actual host serially.
+
 ## IGES delivery
 
 `exportIGES(model, ids)` requires explicit unique IDs. It writes deterministic
