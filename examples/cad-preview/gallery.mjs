@@ -52,7 +52,8 @@ function select(id){
 }
 for(const example of examples){const option=document.createElement('option');option.value=example.id;option.textContent=example.label;picker.append(option);}
 const workspaceOption=document.createElement('option');workspaceOption.value='workspace-box';workspaceOption.textContent='Box workspace · Create / Edit';picker.append(workspaceOption);
-picker.addEventListener('change',()=>{if(picker.value==='workspace-box'){location.href='/workspace.html#box';return;}if(select(picker.value))history.replaceState(null,'','#'+picker.value);});
+const polygonOption=document.createElement('option');polygonOption.value='workspace-polygon';polygonOption.textContent='Polygon prism · Create / Edit';picker.append(polygonOption);
+picker.addEventListener('change',()=>{if(picker.value==='workspace-polygon'){location.href='/workspace.html#polygon-prism';return;}if(picker.value==='workspace-box'){location.href='/workspace.html#box';return;}if(select(picker.value))history.replaceState(null,'','#'+picker.value);});
 addEventListener('resize',()=>{if(!active||!active.available)return;try{active.renderer.resize(...dimensions());}catch(cause){error.textContent=cause.message;error.hidden=false;}});
 addEventListener('pagehide',()=>{disposed=true;release(active);},{once:true});
 window.examplePreview={select,examples:()=>examples.map(({id,label,kind})=>({id,label,kind})),snapshot:()=>active?{id:active.id,kind:active.kind,viewRevision:active.viewRevision,...(['region','prism'].includes(active.kind)?{native:structuredClone(active.native)}:{}),...(active.kind==='sdf'?{scene:active.renderer.scene,options:{camera:active.renderer.camera}}:{packet:active.renderer.packet,options:active.renderer.options})}:null,readPixels:()=>active.renderer.readPixels(),get renderer(){return active?.renderer;}};
