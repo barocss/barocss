@@ -330,6 +330,16 @@ def main():
     for mode in MODES:group.add_argument('--'+mode,dest='negative',action='store_const',const=mode)
     args=parser.parse_args();output=Path(args.evidence).resolve()
     manifest=json.loads((output/'manifest.json').read_text())
+    controls=manifest['negativeControls']
+    require(set(controls)==set(MODES)-{'corrupt-pole'}
+            and all(value['status']=='rejected' and value.get('reason') for value in controls.values()),
+            'Actual new shell validator must retain all12 named product graph rejections')
+    source_controls=manifest['sourceControls']
+    require(set(source_controls)=={'non-axis','weighted','invalid-native'}
+            and source_controls['non-axis']['classification']=='valid-native-unsupported'
+            and source_controls['weighted']['classification']=='valid-native-unsupported'
+            and source_controls['invalid-native']['classification']=='invalid-native',
+            'Actual product must preserve valid-unsupported versus malformed-native source controls')
     require(len(manifest['fixtures'])==4,'Four actual bounded native axis-box shell fixtures')
     if args.negative:
         if args.negative=='corrupt-pole':
@@ -350,7 +360,7 @@ def main():
         'reader':{'cadquery-ocp':importlib.metadata.version('cadquery-ocp'),'python':sys.version,'interpreter':sys.executable,'platform':platform.platform()},
         'readerHashes':{'read-box-shell-ocp.py':sha(Path(__file__)),'read-adjacency-ocp.py':sha(ADJ_READER),
                         'read-face-ocp.py':sha(FACE_READER),'read-derivatives-ocp.py':sha(D1_READER)},
-        'fixtures':results,'negativeGraphControls':negatives,'corruptPoleEvidence':corrupt_evidence,'negativeControls':manifest.get('negativeControls',{}),
+        'fixtures':results,'negativeGraphControls':negatives,'corruptPoleEvidence':corrupt_evidence,'negativeControls':manifest['negativeControls'],'sourceControls':source_controls,
         'unsupportedControls':controls,'productReuseEvidence':{fixture['name']:fixture['productReuseEvidence'] for fixture in manifest['fixtures']},
         'limits':{'nativePositionMM':1e-9,'nativeDerivativeScaled':1e-9,'readerPositionMM':1e-7,'readerDerivativeScaled':1e-7,'areaScaled':1e-7,'volumeScaled':1e-7},
         'limitations':['Original exact axis-box shell API only; solid:false and solidProductImplemented:false.',
