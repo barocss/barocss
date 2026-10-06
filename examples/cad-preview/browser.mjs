@@ -48,7 +48,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const cadModuleRequests = new Set();
   page.on('request', request => cadModuleRequests.add(new URL(request.url()).pathname));
-  const allowed = new Set(['/xy-profile.js', '/workspace.html','/expression-parser.js', '/parameter-semantics.js', '/data-copy.js', '/model-compiler.js', '/source-ast.js', '/semantic-model.js', '/lower-model.js', '/construction-types.js', '/extrusion-validation.js', '/box-preview.mjs', '/box-solid.js', '/history.mjs', '/box-shell.js', '/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/curve-source.js', '/xy-arc.js', '/xy-profile.js', '/workspace.html','/expression-parser.js', '/parameter-semantics.js', '/data-copy.js', '/model-compiler.js', '/source-ast.js', '/semantic-model.js', '/lower-model.js', '/construction-types.js', '/extrusion-validation.js', '/box-preview.mjs', '/box-solid.js', '/history.mjs', '/box-shell.js', '/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -92,6 +92,8 @@ try {
   assert(csp && csp.includes("default-src 'none'") && !csp.includes('unsafe-inline') && !csp.includes('unsafe-eval'), 'Strict CSP required');
   await page.waitForFunction(() => window.cadPreview?.snapshot()?.packet);
   assert.ok(cadModuleRequests.has('/xy-profile.js'), 'CAD index must load exact native profile module');
+  assert.ok(cadModuleRequests.has('/curve-source.js'), 'CAD profile and arc must load exact source adoption module');
+  assert.ok(cadModuleRequests.has('/xy-arc.js'), 'CAD index must load exact native arc module');
   assert.ok(cadModuleRequests.has('/box-solid.js'), 'CAD index must load the exact box-solid module');
   assert.ok(cadModuleRequests.has('/box-shell.js'), 'CAD index must load the exact box-shell module');
   assert.ok(cadModuleRequests.has('/orthogonal-adjacency.js'), 'CAD index must load the exact orthogonal adjacency module');
