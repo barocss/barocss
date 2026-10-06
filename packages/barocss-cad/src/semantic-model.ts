@@ -15,18 +15,6 @@ export interface CadModelIR {
   name: string; lengthUnit: 'mm'; nodes: (CadLiteralIRNode | CadExtrudeIRNode)[];
   dependencies: { fromId: string; toId: string; kind: 'curve-input'; span: CadSourceRange }[];
 }
-export class CadSemanticError extends CadAstError {
-  readonly legacyCode: string;
-  readonly legacyDetail: string;
-  readonly legacyRange: CadSourceRange;
-  readonly curveDeclaration?: CadAstDeclaration;
-  constructor(code: string, detail: string, range: CadSourceRange, objectId: string | undefined,
-    legacyCode = code, legacyDetail = detail, legacyRange = range, curveDeclaration?: CadAstDeclaration) {
-    super(code, detail, range, { objectId, completedDeclarations: [], modelFields: [], modelName: '' });
-    this.legacyCode = legacyCode; this.legacyDetail = legacyDetail; this.legacyRange = { ...legacyRange };
-    this.curveDeclaration = curveDeclaration;
-  }
-}
 export function copyCadData<T>(value: T): T {
   if (Array.isArray(value)) return value.map(item => copyCadData(item)) as T;
   if (value !== null && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, copyCadData(item)])) as T;
@@ -60,13 +48,13 @@ export function analyzeCadAst(ast: CadModelAst, sourceVersion: 0 | 1, _source: s
   const byId = new Map(ast.declarations.map(d => [d.id, d]));
   for (const declaration of ast.declarations) {
     if (declaration.kind === 'extrude') {
-      if (!declaration.fields.some(f => f.name === 'curve') || !declaration.fields.some(f => f.name === 'vector')) throw new CadSemanticError('FIELD', 'Extrusion requires curve and vector fields', declaration.range, declaration.id);
+      if (!declaration.fields.some(f => f.name === 'curve') || !declaration.fields.some(f => f.name === 'vector')) throw new CadAstError('FIELD', 'Extrusion requires curve and vector fields', declaration.range, declaration.id);
       continue;
     }
     const props = new Map(declaration.fields.map(f => [f.name, f]));
     const keys = declaration.kind === 'curve' ? ['type', 'degree', 'knots', 'control-points', 'weights'] : ['type', 'degree-u', 'degree-v', 'knots-u', 'knots-v', 'control-points', 'weights'];
-    for (const key of keys) if (!props.has(key)) throw new CadSemanticError('FIELD', 'Missing field ' + key, declaration.range, declaration.id, 'FIELD', 'Missing field ' + key, declaration.range, sourceVersion === 1 ? declaration : undefined);
-    if (raw(props.get('type')!.value) !== 'nurbs') throw new CadSemanticError('VALUE', 'Only nurbs is supported', props.get('type')!.value.range, declaration.id, 'VALUE', 'Only nurbs is supported', declaration.range, sourceVersion === 1 ? declaration : undefined);
+    for (const key of keys) if (!props.has(key)) throw new CadAstError('FIELD', 'Missing field ' + key, declaration.range, declaration.id);
+    if (raw(props.get('type')!.value) !== 'nurbs') throw new CadAstError('VALUE', 'Only nurbs is supported', props.get('type')!.value.range, declaration.id);
     const get = (name: string) => raw(props.get(name)!.value);
     const geometry: Curve | Surface = declaration.kind === 'curve' ? {
       kind: 'curve', id: declaration.id, degree: get('degree') as number, knots: get('knots') as number[],
@@ -77,29 +65,29 @@ export function analyzeCadAst(ast: CadModelAst, sourceVersion: 0 | 1, _source: s
       controlPoints: get('control-points') as Point[][], weights: get('weights') as number[][],
     };
     try { if (geometry.kind === 'curve') validateCurve(geometry); else validateSurface(geometry); }
-    catch (error) { const message = (error as Error).message; throw new CadSemanticError(nativeCode(message), message, geometryRange(declaration, message), declaration.id, 'GEOMETRY', message, declaration.range, sourceVersion === 1 ? declaration : undefined); }
+    catch (error) { const message = (error as Error).message; throw new CadAstError(nativeCode(message), message, geometryRange(declaration, message), declaration.id); }
     const suffix = declaration.kind === 'surface' ? '[][]' : '[]';
     const fieldTypes = Object.fromEntries(keys.map(key => [key, key === 'type' ? 'geometry-kind' : key.startsWith('degree') ? 'integer' : key.startsWith('knots') ? 'dimensionless[]' : key === 'control-points' ? 'mm-point3' + suffix : 'dimensionless' + suffix]));
     const fields = { id: declaration.id, span: { ...declaration.range }, fieldTypes };
     literals.set(declaration.id, geometry.kind === 'curve' ? { ...fields, kind: 'curve', geometry } : { ...fields, kind: 'surface', geometry });
   }
   const version = ast.fields.find(f => f.name === 'version'), unit = ast.fields.find(f => f.name === 'length-unit');
-  if (!version || raw(version.value) !== sourceVersion) throw new CadSemanticError('VERSION', 'Declared source version must match sourceVersion: ' + sourceVersion, version?.value.range ?? zeroRange(), undefined, 'VERSION', sourceVersion === 0 ? 'version: 0 is required' : 'compileConstruction requires version: 1', sourceVersion === 0 ? zeroRange() : version?.range ?? zeroRange());
-  if (!unit || raw(unit.value) !== 'mm') throw new CadSemanticError('UNIT', 'length-unit: mm is required', unit?.value.range ?? zeroRange(), undefined, 'UNIT', 'length-unit: mm is required', sourceVersion === 0 ? zeroRange() : unit?.range ?? zeroRange());
-  if (!ast.declarations.length) throw new CadSemanticError('GEOMETRY', 'Model must contain geometry', zeroRange(), undefined);
+  if (!version || raw(version.value) !== sourceVersion) throw new CadAstError('VERSION', 'Declared source version must match sourceVersion: ' + sourceVersion, version?.value.range ?? zeroRange());
+  if (!unit || raw(unit.value) !== 'mm') throw new CadAstError('UNIT', 'length-unit: mm is required', unit?.value.range ?? zeroRange());
+  if (!ast.declarations.length) throw new CadAstError('GEOMETRY', 'Model must contain geometry', zeroRange(), undefined);
   const dependencies: CadModelIR['dependencies'] = [];
   for (const declaration of ast.declarations) {
     if (declaration.kind !== 'extrude') { nodes.push(literals.get(declaration.id)!); continue; }
     const reference = declaration.fields.find(f => f.name === 'curve'), vectorField = declaration.fields.find(f => f.name === 'vector');
-    if (!reference || !vectorField) throw new CadSemanticError('FIELD', 'Extrusion requires curve and vector fields', declaration.range, declaration.id);
+    if (!reference || !vectorField) throw new CadAstError('FIELD', 'Extrusion requires curve and vector fields', declaration.range, declaration.id);
     const inputId = raw(reference.value) as string, input = byId.get(inputId), vector = raw(vectorField.value) as Point;
     if (!input || input.kind !== 'curve') {
       const detail = !input ? 'Undefined curve reference ' + inputId : 'Reference ' + inputId + ' has kind ' + input.kind + '; a curve is required';
-      throw new CadSemanticError('REFERENCE', detail, reference.value.range, declaration.id, 'REFERENCE', 'Reference ' + inputId + ' must name a declared curve', reference.value.range);
+      throw new CadAstError('REFERENCE', detail, reference.value.range, declaration.id);
     }
     const curve = literals.get(inputId)!.geometry as Curve;
     try { preflightExtrusion(curve, { id: declaration.id, vector }); }
-    catch (error) { const message = (error as Error).message; throw new CadSemanticError(nativeCode(message), message, vectorField.value.range, declaration.id, 'GEOMETRY', message, declaration.range); }
+    catch (error) { const message = (error as Error).message; throw new CadAstError(nativeCode(message), message, vectorField.value.range, declaration.id); }
     nodes.push({ kind: 'extrude', id: declaration.id, inputId, vector: copyCadData(vector), span: { ...declaration.range }, referenceSpan: { ...reference.value.range }, fieldTypes: { curve: 'curve-reference', vector: 'mm-vector3' } });
     dependencies.push({ fromId: declaration.id, toId: inputId, kind: 'curve-input', span: { ...reference.value.range } });
   }

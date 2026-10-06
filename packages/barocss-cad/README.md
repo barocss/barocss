@@ -6,8 +6,10 @@ no runtime dependencies. OCP is an independent test consumer, never a product ke
 The private package is not registered for release or publication.
 
 ```js
-import { parseModel, evaluateCurve, exportIGES } from '@barocss/cad';
-const model = parseModel(source);
+import { compileCadModel, evaluateCurve, exportIGES } from '@barocss/cad';
+const compiled = compileCadModel(source, { sourceVersion: 0 });
+if (!compiled.ok) throw new Error(compiled.diagnostics[0].message);
+const model = compiled.model;
 const point = evaluateCurve(model.objects[0], 0.5);
 const { iges, report } = exportIGES(model, ['arc']);
 // The host retains source and report, hashes iges, and writes the bytes.
@@ -32,10 +34,10 @@ Coordinates are millimetres; knots, parameters and weights are dimensionless.
 No other fields, units, object kinds, periodic forms or trim definitions are accepted.
 See the three fixtures in `examples/cad-nurbs`.
 
-`parseModel` throws `CadSyntaxError` with code, offset (UTF-16 source index), line
-and column (1-based). Geometry errors point to the object's declaration.
-The parsed result includes each object's source span. Other public APIs throw on
-invalid geometry or requests. No failed geometry is clamped or substituted.
+`compileCadModel` returns source-associated diagnostics on invalid input. Ranges
+use exclusive UTF-16 offsets and one-based line/column coordinates. A failure
+contains no partial AST, IR or model. Native geometry APIs throw on invalid
+geometry or requests. No failed geometry is clamped or substituted.
 
 ## Fixed bounds and mathematical semantics
 
@@ -70,21 +72,21 @@ Typed native objects can be used directly without parsing.
 
 ## Additive construction source v1
 
-`compileConstruction(source)` accepts a separate version 1 language. It accepts
+`compileCadModel(source, { sourceVersion: 1 })` accepts version 1 source. It accepts
 the existing curve blocks plus `@extrude #wall { curve: #arc; vector: [0,0,30]; }`.
 The required model fields are `version: 1; length-unit: mm;`. All IDs are unique
 across at most 16 declarations, with the same 256 KiB source bound. Curve references
 can point forward. Missing references and references to extrusion outputs fail.
 Native objects retain declaration order. A curve-only model is accepted.
 Other geometry blocks, operations, expressions and executable forms fail.
-`parseModel` remains strict v0 and rejects construction source.
+Selecting sourceVersion 0 rejects construction declarations.
 
-The result is `{ sourceVersion: 1, model, constructions }`. Resolved `model.version`
-is 0. Each construction retains `outputId`, `inputId`, `operation: 'extrude'`,
-`vector`, declaration `span` and `referenceSpan`. Errors use `ConstructionSyntaxError`,
-a `CadSyntaxError` subclass with code and source span. Spans use UTF-16 indices and
-1-based line/column. Source version, native geometry version, preview packet version
-and IGES format version are separate values.
+The successful result includes `ast`, `ir`, `model` and `constructions`.
+`ir.sourceVersion` is 1 and `model.version` is 0. Each construction retains
+`outputId`, `inputId`, `operation: 'extrude'`, `vector`, declaration `span` and
+`referenceSpan`. Diagnostics use actual source ranges. Source version, IR schema
+version, native geometry version, preview packet version and exchange format
+version are separate values.
 
 `extrudeCurve(curve, { id, vector })` creates the rational affine surface
 `S(u,v)=C(u)+vD`, with V domain [0,1]. Each pole becomes [Pi,Pi+D], each weight
@@ -163,9 +165,8 @@ Copies preserve binary64 values and negative zero. Mutating one result cannot
 change another output or a later compilation. Compiler options must contain
 exactly one own enumerable data property, `sourceVersion: 0` or `1`, on a plain
 or null-prototype record. Accessors, foreign options and export target/profile
-options fail without invoking getters. The legacy `parseModel` and
-`compileConstruction` APIs use this pipeline and retain their old result and
-exception presentation, including construction reference spans.
+options fail without invoking getters. `compileCadModel` is the single source compiler entry point. There is no
+separate compatibility parser, historical error replay or virtual source wrapper.
 
 The 256 KiB source and native geometry limits remain unchanged. The parser
 checks UTF-8 size before AST allocation, array dimensions/counts before each
@@ -263,7 +264,7 @@ intended roots and original/transferred domains without assuming name retention.
 Wrong edge, sign/scale and corrupt pole controls must fail geometric/vector checks.
 Selected position limits are 1e-9 mm native and 1e-7 mm reader; derivative limits
 are 1e-9 and 1e-7 times max(1, expected vector norm), in original parameter units.
-All legacy construction, derivative, preview and exchange gates remain mandatory.
+All current construction, derivative, preview and exchange gates remain mandatory.
 
 The additive index export loads `dist/boundary.js`, whose only runtime dependency
 is existing `dist/math.js`; the types import is erased. The preview host needs the
@@ -334,7 +335,7 @@ area within1e-7*max(1,area)mm². Requested quadrature precision and its estimate
 error are separate report fields, without a certified quadrature error claim.
 Reader-generated valid faces are selected independent consumer evidence, not
 validation of every native input or interchange of our graph. No healing/tolerance
-override or runtime kernel is added. All legacy gates remain mandatory.
+override or runtime kernel is added. All current gates remain mandatory.
 
 The additive `dist/face.js` export imports only existing `dist/derivatives.js`,
 `dist/boundary.js` and `dist/math.js` at runtime; type imports are erased. GPU alone

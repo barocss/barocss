@@ -1,5 +1,5 @@
 import type { Model, Curve } from './types.js';
-import type { ExtrusionConstruction } from './compiler.js';
+import type { ExtrusionConstruction } from './construction-types.js';
 import type { CadModelIR } from './semantic-model.js';
 import { copyCadData } from './semantic-model.js';
 import { extrudeCurve } from './extrusion.js';

@@ -1,8 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { compileCadModel, compileConstruction } from '../dist/index.js';
+import { compileCadModel } from '../dist/index.js';
+import * as api from '../dist/index.js';
 
-test('undefined and wrong-kind references have distinct source diagnostics and compatible legacy errors', () => {
+test('the public namespace exposes one source compiler without old compiler aliases', () => {
+  assert.equal(typeof api.compileCadModel, 'function');
+  for (const name of ['parseModel', 'compileConstruction', 'CadSyntaxError', 'ConstructionSyntaxError']) assert.equal(Object.hasOwn(api, name), false);
+});
+
+test('undefined and wrong-kind references have distinct source diagnostics', () => {
   const source = '@model m {version:1;length-unit:mm;@curve #c {type:nurbs;degree:1;knots:[0,0,1,1];control-points:[[0,0,0],[1,0,0]];weights:[1,1];}@extrude #s {curve:#c;vector:[0,0,1];}@extrude #t {curve:#INPUT;vector:[0,1,0];}}';
   const absent = source.replace('#INPUT', '#absent'), wrong = source.replace('#INPUT', '#s');
   const a = compileCadModel(absent, { sourceVersion: 1 }), b = compileCadModel(wrong, { sourceVersion: 1 });
@@ -11,7 +17,6 @@ test('undefined and wrong-kind references have distinct source diagnostics and c
   assert.match(b.diagnostics[0].message, /has kind extrude; a curve is required/);
   assert.notEqual(a.diagnostics[0].message, b.diagnostics[0].message);
   assert.equal(a.diagnostics[0].objectId, 't'); assert.equal(b.diagnostics[0].objectId, 't');
-  for (const text of [absent, wrong]) assert.throws(() => compileConstruction(text), error => error.code === 'REFERENCE' && error.message.includes('must name a declared curve'));
 });
 
 test('surface axis failures do not blame a valid field and knot count diagnostics remain distinct', () => {
