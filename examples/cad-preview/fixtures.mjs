@@ -139,3 +139,16 @@ export const objectFixtures = [
  {selectorId:'multi_construction',id:'wall',label:'Objects · construction v1 · two surfaces',sourceVersion:1,source:multiConstruction,
   countU:17,countV:9,options:{...options([-0.75,-0.5,-1.5],[0.2,0.75,0.9]),camera:constructionCamera}},
 ];
+
+export const parameterFixture = {
+ selectorId:'shared_parameters',id:'wall',label:'Parameters · shared input and unused curve',sourceVersion:1,
+ source:`@model shared_parameters {
+ version: 1; length-unit: mm;
+ @extrude #wall { curve: #arc; vector: [0,0,30]; }
+ @curve #unused { type: nurbs; degree: 1; knots: [-2,-2,3,3];
+  control-points: [[-0,0.0000001,0],[2,3,4]]; weights: [2,0.5]; }
+ @curve #arc { type: nurbs; degree: 2; knots: [0,0,0,1,1,1];
+  control-points: [[10,0,0],[10,10,0],[0,10,0]]; weights: [1,0.7071067811865476,1]; }
+ @extrude #second_wall { curve: #arc; vector: [3,0,15]; }
+}`,countU:17,countV:9,options:{...options([-0.5,-0.5,-1.5],[0.2,0.75,0.9]),camera:constructionCamera},
+};

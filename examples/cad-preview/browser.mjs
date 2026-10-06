@@ -6,7 +6,7 @@ import { mkdir, writeFile, readFile, access, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { startServer } from './server.mjs';
-import { fixtures, controlPointEdit, weightEdit, singularSource, constructionFixtures, vectorEdit, constructionWeightEdit, objectFixtures } from './fixtures.mjs';
+import { fixtures, controlPointEdit, weightEdit, singularSource, constructionFixtures, vectorEdit, constructionWeightEdit, objectFixtures, parameterFixture } from './fixtures.mjs';
 import { readbackPng } from './png.mjs';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -36,7 +36,7 @@ const evidence = process.env.BAROCSS_CAD_PREVIEW_BROWSER_EVIDENCE;
 await mkdir(evidence, { recursive: true });
 const server = await startServer(0);
 let browser;
-const errors = [], requests = [], cspViolations = [], frames = [], failures = [], constructionFrames = [], constructionFailures = [], objectFrames = [], objectFailures = [];
+const errors = [], requests = [], cspViolations = [], frames = [], failures = [], constructionFrames = [], constructionFailures = [], objectFrames = [], objectFailures = [], parameterFrames = [], parameterFailures = [];
 try {
   browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true,
     args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
@@ -44,7 +44,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const cadModuleRequests = new Set();
   page.on('request', request => cadModuleRequests.add(new URL(request.url()).pathname));
-  const allowed = new Set(['/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -103,7 +103,7 @@ try {
     const result = await page.evaluate(async ({ source, settings }) => window.cadPreview.apply(source, settings), { source, settings: candidateSettings });
     assert(result.ok, result.error ?? 'Candidate was rejected');
   }
-  async function capture(name, objectFixture = null) {
+  async function capture(name, objectFixture = null, parameterRequest = null) {
     const frame = await page.evaluate(async () => {
       const host = window.cadPreview, snapshot = host.snapshot();
       const cad = await import('/cad.js'), gpu = await import('/gpu.js');
@@ -161,20 +161,21 @@ try {
       files[`${name}.objects.json`] = json(frame.objects);
       files[`${name}.inspection.json`] = json(frame.inspection);
     }
+    if(parameterRequest) files[`${name}.parameters.json`]=json({requested:parameterRequest,selectedConstruction:frame.snapshot.selectedConstruction});
     const hashes = {};
     for (const [filename, content] of Object.entries(files)) {
       await writeFile(path.join(evidence, filename), content); hashes[filename] = hash(content);
     }
     const record = { name, taskCommit, integrationCommit, browser: browser.version(), backend,
       physicalGpuEvidence: false, performanceEvidence: false, actualReadPixels: true,
-      fixtureId: objectFixture?.selectorId ?? null, displayedId: frame.snapshot.packet.surfaceId, inspectedId: frame.inspectedId, objectSummaries: objectFixture ? frame.objects : null,
+      parameterRequest, fixtureId: objectFixture?.selectorId ?? null, displayedId: frame.snapshot.packet.surfaceId, inspectedId: frame.inspectedId, objectSummaries: objectFixture ? frame.objects : null,
       sourceVersion: frame.snapshot.sourceVersion ?? 0, constructionsReplayed: frame.constructionsReplayed,
       selectedConstructionReplayed: frame.selectedConstructionReplayed, exportReplayed: frame.exportReplayed, downloadedMatchedAccepted: frame.snapshot.sourceVersion === 1 || Boolean(objectFixture),
       sourceReplayed: true, packetReplayed: true, reportReplayed: true, sameRenderer: true,
       revision: frame.snapshot.revision, viewRevision: frame.snapshot.viewRevision, uniforms: frame.uniforms, buffer: [frame.width, frame.height], masks: mask(frame.bytes, frame.width, frame.height),
       readbackHash: hash(Uint8Array.from(frame.bytes)), hashes, sampledDeviationMM: frame.snapshot.report.maxSampledDeviationMM,
       certified: false, glError: frame.glError, compileStatuses: frame.compile, linkStatuses: frame.link, drawCalls: frame.drawCalls };
-    await writeFile(path.join(evidence, `${name}.json`), json(record)); (objectFixture ? objectFrames : frame.snapshot.sourceVersion === 1 ? constructionFrames : frames).push(record);
+    await writeFile(path.join(evidence, `${name}.json`), json(record)); (parameterRequest ? parameterFrames : objectFixture ? objectFrames : frame.snapshot.sourceVersion === 1 ? constructionFrames : frames).push(record);
     return { ...frame, ...record };
   }
   // Exercise actual source editor controls before using the inspection API.
@@ -508,6 +509,48 @@ try {
   }
   const objectLineage={controls:objectControls,actualSelectedDownloads:objectFrames.length,
     curveInspectionNoGeometryAdoption:true,acceptedSourceSelection:true};
+  // Enter real typed numbers; canonical CSS is adopted only after a successful GPU candidate.
+  await page.selectOption('#fixture','wall');
+  const beforeParameter=JSON.parse(await state());
+  assert.equal(await page.locator('#parameter-apply').isEnabled(),true);
+  await page.click('[data-object-id="arc"] [data-action="inspect"]');
+  assert.equal((await page.evaluate(()=>window.cadPreview.parameterState())).surfaceId,'wall');
+  await page.fill('#parameter-weight-index','1');await page.locator('#parameter-weight-index').dispatchEvent('change');
+  await page.fill('#parameter-vector-z','40');await page.click('#parameter-apply');
+  const typedVector=await capture('typed-vector',null,{vector:[0,0,40],weight:{index:1,value:Math.SQRT1_2}});
+  assert.deepEqual(typedVector.snapshot.selectedConstruction.vector,[0,0,40]);
+  assert.notDeepEqual(typedVector.snapshot.packet.bounds,beforeParameter.snapshot.packet.bounds);
+  assert.equal(await page.locator('#source').inputValue(),typedVector.snapshot.source);
+  assert.deepEqual(typedVector.snapshot.options,beforeParameter.snapshot.options);
+  await page.fill('#parameter-weight-value','0.2');await page.click('#parameter-apply');
+  const typedWeight=await capture('typed-weight',null,{vector:[0,0,40],weight:{index:1,value:0.2}});
+  assert.equal(typedWeight.snapshot.model.objects.find(o=>o.id==='arc').weights[1],0.2);
+  assert.notEqual(typedWeight.readbackHash,typedVector.readbackHash);assert.notEqual(typedWeight.snapshot.iges.iges,typedVector.snapshot.iges.iges);
+  assert.deepEqual(typedWeight.snapshot.options,typedVector.snapshot.options);
+  const goodParameterState=await state(),pending=typedWeight.snapshot.source+'\n/* unsubmitted edit */';
+  await page.fill('#source',pending);await page.fill('#parameter-vector-z','50');await page.click('#parameter-apply');
+  assert.deepEqual(await state(),goodParameterState);assert.equal(await page.locator('#source').inputValue(),pending);
+  await page.click('#discard-source');assert.equal(await page.locator('#source').inputValue(),typedWeight.snapshot.source);
+  await page.fill('#parameter-weight-value','');await page.click('#parameter-apply');assert.deepEqual(await state(),goodParameterState);await page.fill('#parameter-weight-value','0.2');
+  for(const request of [{vector:[0,0,0]},{vector:[-10,10,0]},{weight:{index:-1,value:1}},{weight:{index:1,value:0}},{foreign:1},{vector:['1',0,30]}]) {
+    const before=await state();const result=await page.evaluate(request=>{const host=window.cadPreview;return host.applyParameters(request,host.snapshot().source);},request);
+    assert.equal(result.ok,false);assert.deepEqual(await state(),before);parameterFailures.push({request,rejected:true,retained:true,error:result.error});
+  }
+  const failedDraw=await page.evaluate(()=>{const host=window.cadPreview,before=JSON.stringify(host.snapshot()),pixels=Array.from(host.readPixels()),gl=document.querySelector('canvas').getContext('webgl2'),draw=gl.drawElements.bind(gl);gl.drawElements=()=>draw(0xdead,3,gl.UNSIGNED_SHORT,0);const result=host.applyParameters({vector:[0,0,45]},host.snapshot().source);gl.drawElements=draw;return{ok:result.ok,error:result.error,retained:before===JSON.stringify(host.snapshot())&&JSON.stringify(pixels)===JSON.stringify(Array.from(host.readPixels()))};});
+  assert.equal(failedDraw.ok,false);assert(failedDraw.retained);parameterFailures.push({name:'draw-gl-error',...failedDraw});
+  await page.selectOption('#fixture',parameterFixture.selectorId);
+  const sharedBefore=await page.evaluate(()=>window.cadPreview.snapshot());
+  await page.fill('#parameter-weight-index','1');await page.locator('#parameter-weight-index').dispatchEvent('change');await page.fill('#parameter-weight-value','0.2');await page.click('#parameter-apply');
+  const sharedAfter=await page.evaluate(()=>window.cadPreview.snapshot());
+  assert.deepEqual(sharedAfter.model.objects.map(o=>o.id),sharedBefore.model.objects.map(o=>o.id));
+  assert.deepEqual(sharedAfter.model.objects.find(o=>o.id==='unused'),sharedBefore.model.objects.find(o=>o.id==='unused'));
+  for(const id of ['wall','second_wall'])assert.notDeepEqual(sharedAfter.model.objects.find(o=>o.id===id).weights,sharedBefore.model.objects.find(o=>o.id===id).weights);
+  assert.deepEqual(sharedAfter.constructions.map(f=>({inputId:f.inputId,outputId:f.outputId,vector:f.vector})),sharedBefore.constructions.map(f=>({inputId:f.inputId,outputId:f.outputId,vector:f.vector})));
+  await writeFile(path.join(evidence,'shared-parameters.json'),json({before:sharedBefore,after:sharedAfter,requested:{weight:{index:1,value:0.2}}}));
+  const parameterMixed=await page.evaluate(()=>{const host=window.cadPreview,live=()=>window.previewProbe.resources.filter(({kind,resource,gl})=>gl[`is${kind}`](resource)).length,before=live(),renderer=host.renderer;for(let i=0;i<12;i++){const r=host.applyParameters({weight:{index:1,value:i%2?0.2:Math.SQRT1_2}},host.snapshot().source);if(!r.ok)throw Error(r.error);if(!host.showSurface(i%2?'wall':'second_wall').ok)throw Error('Selection failed');if(!host.setCamera({eye:[4,3,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100}).ok)throw Error('View failed');}return{count:12,before,after:live(),sameRenderer:renderer===host.renderer};});
+  assert(parameterMixed.sameRenderer&&parameterMixed.before===parameterMixed.after);
+  const parameterLineage={typedActions:2,pendingSourcePreserved:true,sharedInputPropagation:true,unrelatedSemanticFieldsPreserved:true,mixed:parameterMixed};
+
   await apply(cylinder.source, { ...settings(cylinder), countU: 64, countV: 64 });
   const boundary = await capture('boundary-grid'); assert.equal(boundary.snapshot.report.vertexCount, 4096);
   const repeated = await page.evaluate(async ({ source, settings }) => {
@@ -529,6 +572,7 @@ try {
     let readRejected = false; try { host.readPixels(); } catch { readRejected = true; }
     const disposedBefore=JSON.stringify({snapshot:host.snapshot(),objects:host.objects(),inspection:host.inspection(),inspectedId:host.inspectedId});
     const selection=host.showSurface('wall'),inspection=host.inspectObject('arc');
+    if(host.applyParameters({},host.snapshot().source).ok)throw Error('Disposed parameter action accepted');
     if(selection.ok || inspection.ok) throw Error('Disposed selection/inspection was accepted');
     const disposedRetained=disposedBefore===JSON.stringify({snapshot:host.snapshot(),objects:host.objects(),inspection:host.inspection(),inspectedId:host.inspectedId});
     return { disposedRetained, selectionRejected:!selection.ok, inspectionRejected:!inspection.ok, ownedCount: owned.length, ownedReleased: owned.every(({ kind, resource }) => !gl[`is${kind}`](resource)),
@@ -556,6 +600,7 @@ try {
     const response = await host.apply(snapshot.source, { surfaceId: snapshot.packet.surfaceId, sourceVersion: snapshot.sourceVersion ?? 0, ...snapshot.report.grid, options: snapshot.options });
     const before=JSON.stringify({snapshot:host.snapshot(),objects:host.objects(),inspection:host.inspection(),inspectedId:host.inspectedId});
     const selected=host.showSurface(snapshot.packet.surfaceId), inspected=host.inspectObject('arc');
+    if(host.applyParameters({},snapshot.source).ok)throw Error('Lost-context parameter action accepted');
     if(selected.ok || inspected.ok) throw Error('Lost-context selection/inspection was accepted');
     const retained=before===JSON.stringify({snapshot:host.snapshot(),objects:host.objects(),inspection:host.inspection(),inspectedId:host.inspectedId});
     const result = { readRejected, selectionRejected:!selected.ok,inspectionRejected:!inspected.ok,retained, updateRejected: !response.ok, status: host.status, violations: window.previewProbe.violations };
@@ -597,15 +642,15 @@ try {
   const result = { taskCommit, integrationCommit, backend, packageModules, sourceModules, backendDescription: 'ANGLE SwiftShader software WebGL2; functional composition only',
     packageArtifacts: { cad: hash(await readFile(path.join(repo, 'packages/barocss-cad/dist/index.js'))),
       gpu: hash(await readFile(path.join(repo, 'packages/barocss-gpu/dist/index.js'))) },
-    frames, constructionFrames, objectFrames, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
+    frames, constructionFrames, objectFrames, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
     deterministicFields: ['source', 'model', 'packet except host-issued revision', 'report', 'IGES', 'display options'],
     environmentFields: ['taskCommit', 'integrationCommit', 'browser', 'backend', 'evidence path'],
     limitations: ['Finite sampled deviation is not a global bound', 'Surfaces remain open; no solid, topology, STEP, or manufacturing claim', 'Software rendering is not physical GPU performance',
       'This composition does not add IGES exchange certification; the independent OCP gate remains required'] };
   await writeFile(path.join(evidence, 'index.json'), json(result));
-  const gallery = '<!doctype html><html lang="en"><meta charset="utf-8"><title>CAD to GPU retained evidence</title><h1>CAD to GPU retained evidence</h1><p>Actual framebuffer readbacks. ANGLE SwiftShader software WebGL2. Finite sampled distance is not a global bound. Surfaces remain open; no solid, topology, STEP, or manufacturing claim.</p>' + [...frames, ...constructionFrames, ...objectFrames].map(frame => `<section><h2>${frame.name}</h2><img src="${frame.name}.png" alt="${frame.name} actual readback"><p>Inspected ${frame.inspectedId ?? "none"}; displayed ${frame.displayedId}. Revision ${frame.revision}; sampled distance ${frame.sampledDeviationMM} mm. <a href="${frame.name}.source.css">Source</a> <a href="${frame.name}.model.json">Native model</a> ${frame.sourceVersion === 1 ? `<a href="${frame.name}.constructions.json">Construction history</a> <a href="${frame.name}.selected-construction.json">Selected feature</a> <a href="${frame.name}.downloaded.igs">Actual download</a>` : ''} ${frame.fixtureId ? `<a href="${frame.name}.objects.json">Accepted objects</a> <a href="${frame.name}.inspection.json">Native inspection</a> <a href="${frame.name}.downloaded.igs">Selected actual download</a>` : ''} <a href="${frame.name}.display.json">Camera and view</a> <a href="${frame.name}.packet.json">Packet</a> <a href="${frame.name}.report.json">Report</a> <a href="${frame.name}.igs">IGES</a></p></section>`).join('') + '<p><a href="index.json">SHA manifest and controls</a></p></html>';
+  const gallery = '<!doctype html><html lang="en"><meta charset="utf-8"><title>CAD to GPU retained evidence</title><h1>CAD to GPU retained evidence</h1><p>Actual framebuffer readbacks. ANGLE SwiftShader software WebGL2. Finite sampled distance is not a global bound. Surfaces remain open; no solid, topology, STEP, or manufacturing claim.</p>' + [...frames, ...constructionFrames, ...objectFrames, ...parameterFrames].map(frame => `<section><h2>${frame.name}</h2><img src="${frame.name}.png" alt="${frame.name} actual readback"><p>Inspected ${frame.inspectedId ?? "none"}; displayed ${frame.displayedId}. Revision ${frame.revision}; sampled distance ${frame.sampledDeviationMM} mm. <a href="${frame.name}.source.css">Source</a> <a href="${frame.name}.model.json">Native model</a> ${frame.sourceVersion === 1 ? `<a href="${frame.name}.constructions.json">Construction history</a> <a href="${frame.name}.selected-construction.json">Selected feature</a> <a href="${frame.name}.downloaded.igs">Actual download</a>` : ''} ${frame.fixtureId ? `<a href="${frame.name}.objects.json">Accepted objects</a> <a href="${frame.name}.inspection.json">Native inspection</a> <a href="${frame.name}.downloaded.igs">Selected actual download</a>` : ''} <a href="${frame.name}.display.json">Camera and view</a> <a href="${frame.name}.packet.json">Packet</a> <a href="${frame.name}.report.json">Report</a> <a href="${frame.name}.igs">IGES</a></p></section>`).join('') + '<p><a href="index.json">SHA manifest and controls</a></p></html>';
   await writeFile(path.join(evidence, 'gallery.html'), gallery);
-  console.log(`CAD preview browser evidence: ${evidence}; ${frames.length + constructionFrames.length + objectFrames.length} actual framebuffer states; ${failures.length} legacy and ${constructionFailures.length} construction rejection controls`);
+  console.log(`CAD preview browser evidence: ${evidence}; ${frames.length + constructionFrames.length + objectFrames.length + parameterFrames.length} actual framebuffer states; ${failures.length} legacy and ${constructionFailures.length} construction rejection controls`);
 } finally {
   if (browser) await browser.close();
   await server.close();
