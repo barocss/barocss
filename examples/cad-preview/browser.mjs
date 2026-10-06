@@ -87,6 +87,7 @@ try {
   const csp = response.headers()['content-security-policy'];
   assert(csp && csp.includes("default-src 'none'") && !csp.includes('unsafe-inline') && !csp.includes('unsafe-eval'), 'Strict CSP required');
   await page.waitForFunction(() => window.cadPreview?.snapshot()?.packet);
+  assert.ok(cadModuleRequests.has('/orthogonal-adjacency.js'), 'CAD index must load the exact orthogonal adjacency module');
   assert.ok(cadModuleRequests.has('/adjacency.js'), 'CAD index must load the exact adjacency module');
   assert.ok(cadModuleRequests.has('/face.js'), 'CAD index must load the exact face module');
   assert.ok(cadModuleRequests.has('/derivatives.js'), 'Face dependency must use the existing derivatives route');
