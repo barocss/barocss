@@ -403,3 +403,34 @@ before adoption. This is separate from Surface project1 and rectangle feature0.
 Metrics describe the closed preview family, not a certified B-Rep solid. Camera,
 mesh caches and general history are not stored. The short actual workflow is
 `polygon-workspace-smoke.mjs`; comprehensive regression remains deferred.
+
+## Original native topology displays (prototype)
+
+The root canvas + Example menu now includes:
+
+- **CAD · Original L shell + edges** at `/#cad-native-l-shell`. The actual original
+  polygon Curve builds a native shell; its owning cap/wall Surfaces and D1 values
+  produce the displayed36 vertices/20 triangles. All18 global edge paths come from
+  qualified native Curves; cap diagonals are not supplied as CAD edges.
+- **CAD · Planar face with hole + edges** at `/#cad-native-hole-face`. The actual
+ 10x10 outer and4x4 inner profiles build one two-loop native face. Its actual
+  Surface/pcurves and slab connectivity produce16 vertices/8 triangles, area84mm²,
+  and8 original outer/hole boundary paths. The cutout remains empty; slab seams
+  are not displayed as CAD edges. This is a planar face with no thickness.
+
+Fill and existing MeshEdgeOverlay0 use the same complete packet, centered mm
+placement, camera and depth. Both examples show original edges by default. Drag
+orbits the camera; authored/native data, packet/revision and edge provenance stay
+unchanged. Candidate preparation and renderer mount finish before view adoption.
+Invalid packet/path/complete binding retains the prior renderer/frame. Snapshot
+exports own copies of actual authoring/shell or face, consumer output, packet,
+original paths/provenance, accepted overlay and options; no saved-file schema changes.
+
+After affected CAD/GPU builds, run `native-topology-gallery-smoke.mjs` with existing
+PW_DIR/CHROME and BAROCSS_NATIVE_TOPOLOGY_EVIDENCE paths. The short real gallery run
+records native/source/packet/PNG/camera lineage, projected filled/empty controls,
+outline off/on, stale same-identity packet rejection, orbit and Sphere reselect.
+It also records GL errors and backend. No pointer selection, through-hole shell
+raster, general geometric/topology/solid certificate or physical GPU performance
+is claimed. Broader unit/packed/readers/package/workspace/gallery/numerical/resource
+validation remains deferred under the prototype policy.
