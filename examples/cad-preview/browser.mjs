@@ -42,7 +42,9 @@ try {
     args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await browser.newPage();
   page.on('pageerror', error => errors.push(error.message));
-  const allowed = new Set(['/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
+  const cadModuleRequests = new Set();
+  page.on('request', request => cadModuleRequests.add(new URL(request.url()).pathname));
+  const allowed = new Set(['/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -85,6 +87,8 @@ try {
   const csp = response.headers()['content-security-policy'];
   assert(csp && csp.includes("default-src 'none'") && !csp.includes('unsafe-inline') && !csp.includes('unsafe-eval'), 'Strict CSP required');
   await page.waitForFunction(() => window.cadPreview?.snapshot()?.packet);
+  assert.ok(cadModuleRequests.has('/boundary.js'), 'CAD index must load the exact boundary module');
+  assert.ok(cadModuleRequests.has('/math.js'), 'Boundary dependency must use the existing static math route');
   const backend = await page.evaluate(() => {
     const canvas = document.querySelector('canvas'), gl = canvas.getContext('webgl2');
     const extension = gl.getExtension('WEBGL_debug_renderer_info');
