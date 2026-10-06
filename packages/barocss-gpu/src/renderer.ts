@@ -2,27 +2,30 @@ import {validateMeshCamera} from './camera.js';
 import type {MeshCamera} from './camera.js';
 import {sceneViewShaders,sceneViewUniforms} from './scene-view.js';
 import {requireSceneExecution} from './gpu-compiler.js';
-import type { Scene } from './scene.js';
+import {sceneSourceVersion} from './scene.js';
+import type { AnyScene, Scene, Scene1, SceneSourceOptions } from './scene.js';
 import type { SceneShaders } from './compiler.js';
 
 export class GPUError extends Error {
   constructor(message: string) { super(message); this.name = 'GPUError'; }
 }
 export type UpdateResult = { ok: true } | { ok: false; error: Error };
-interface Accepted { scene: Scene; shaders: SceneShaders; program: WebGLProgram; resolution: WebGLUniformLocation | null;camera?:MeshCamera;view:Record<string,WebGLUniformLocation|null> }
+interface Accepted { scene: AnyScene; shaders: SceneShaders; program: WebGLProgram; resolution: WebGLUniformLocation | null;camera?:MeshCamera;view:Record<string,WebGLUniformLocation|null> }
 const MAX_SIDE = 4096;
 const MAX_PIXELS = 4194304;
 
 /** One synchronous frame per accepted edit; no timer or animation resources. */
-export class SceneRenderer {
+export class SceneRenderer<V extends 0|1=0> {
   private readonly gl: WebGL2RenderingContext;
   private vao: WebGLVertexArrayObject | null = null;
   private accepted: Accepted | null = null;
   private disposed = false;
   private lost = false;
   private readonly onLoss = (event: Event): void => { event.preventDefault(); this.lost = true; };
-  constructor(private readonly canvas: HTMLCanvasElement, source: string, camera?:MeshCamera) {
-    const {scene,shaders}=requireSceneExecution(source);
+  constructor(private readonly canvas: HTMLCanvasElement, source: string, camera?:MeshCamera, private readonly sourceOptions?:SceneSourceOptions & {sourceVersion:V}) {
+    sceneSourceVersion(sourceOptions);
+    this.sourceOptions=sourceOptions===undefined?undefined:Object.freeze({sourceVersion:1 as V & 1});
+    const {scene,shaders}=requireSceneExecution(source,this.sourceOptions);
     const ownedCamera=camera===undefined?undefined:validateMeshCamera(camera);
     this.dimensions(canvas.width, canvas.height);
     const gl = canvas.getContext('webgl2', { alpha: false, antialias: false, preserveDrawingBuffer: true });
@@ -36,7 +39,7 @@ export class SceneRenderer {
       this.draw(this.accepted);
     } catch (error) { this.dispose(); throw error; }
   }
-  get scene(): Scene { this.assertLive(); return this.accepted!.scene; }
+  get scene(): V extends 0?Scene:Scene1 { this.assertLive(); return this.accepted!.scene as V extends 0?Scene:Scene1; }
   get shaders(): SceneShaders { this.assertLive(); return { ...this.accepted!.shaders }; }
   get camera():MeshCamera|undefined {this.assertLive();return this.accepted!.camera&&structuredClone(this.accepted!.camera);}
   private assertLive(): void {
@@ -47,7 +50,7 @@ export class SceneRenderer {
     const error = this.gl.getError();
     if (error !== this.gl.NO_ERROR) throw new GPUError(`WebGL2 error 0x${error.toString(16)}`);
   }
-  private prepare(scene: Scene, shaders: SceneShaders, camera?:MeshCamera): Accepted {
+  private prepare(scene: AnyScene, shaders: SceneShaders, camera?:MeshCamera): Accepted {
     if(camera)shaders=sceneViewShaders(shaders);
     const gl = this.gl;
     const compiled: WebGLShader[] = [];
@@ -89,7 +92,7 @@ export class SceneRenderer {
     let next: Accepted | null = null;
     try {
       this.assertLive();
-      const {scene,shaders}=requireSceneExecution(source);
+      const {scene,shaders}=requireSceneExecution(source,this.sourceOptions);
       next = this.prepare(scene, shaders, this.accepted!.camera);
       this.draw(next);
       const previous = this.accepted!;
@@ -158,4 +161,6 @@ export class SceneRenderer {
     this.accepted = null; this.vao = null;
   }
 }
-export function mountScene(canvas: HTMLCanvasElement, source: string, camera?:MeshCamera): SceneRenderer { return new SceneRenderer(canvas, source, camera); }
+export function mountScene(canvas:HTMLCanvasElement,source:string,camera?:MeshCamera):SceneRenderer;
+export function mountScene(canvas:HTMLCanvasElement,source:string,camera:MeshCamera|undefined,options:SceneSourceOptions):SceneRenderer<1>;
+export function mountScene(canvas:HTMLCanvasElement,source:string,camera?:MeshCamera,options?:SceneSourceOptions):SceneRenderer<0|1>{return new SceneRenderer<0|1>(canvas,source,camera,options);}

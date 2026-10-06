@@ -9,6 +9,18 @@ export interface SceneObject {
   /** Full box extents, not half extents. */
   size: Vec3;
 }
+export interface SceneObject1 extends SceneObject {
+  /** Local right-handed degrees; X then Y then Z. */
+  rotateDegrees: Vec3;
+}
+export interface Scene1 {
+  version: 1;
+  name: string;
+  background: RGB;
+  objects: SceneObject1[];
+}
+export type AnyScene = Scene | Scene1;
+export interface SceneSourceOptions { sourceVersion: 1 }
 export interface Scene {
   version: 0;
   name: string;

@@ -36,6 +36,46 @@ Geometry must also remain positive after conversion to GPU float32. Values small
 than the ray epsilon may be accepted but need not produce visible geometry.
 Diagnostics carry source offsets and one-based line/column positions.
 
+## Source1 rigid rotation (prototype)
+
+Opt in with `parseScene(source, {sourceVersion: 1})` or
+`compileGpu({kind: 'scene', source, sourceVersion: 1})`. The source header must
+be `version: 1;`. Existing calls remain source0 and reject rotation properties.
+
+```css
+@scene tilted { version: 1; box #block; }
+#block { size: 1 2 .8; rotate-x: 20deg; rotate-y: 35deg; rotate-z: -10deg; }
+```
+
+`rotate-x`, `rotate-y`, `rotate-z` apply to boxes and spheres, default to `0deg`,
+and cascade separately. Each accepts one finite literal with explicit `deg`,
+within [-360, 360]. Unitless values, radians, functions and expressions fail.
+Axes are right-handed; local rotations apply X then Y then Z. For column vectors,
+world = translate + Rz * Ry * Rx * local; distance uses the transpose of that
+matrix on (world - translate). Rotations preserve distance; normals use the
+existing world-space distance gradient. Rotating a sphere retains authored data
+but does not change its ideal spherical geometry.
+
+Structured `Scene1` uses `version: 1` and requires each object's owned
+`rotateDegrees: [x, y, z]` data. `compileScene(Scene1)` accepts the same bounds.
+Source1 emits SDF render IR schema2 with `angleUnit: 'deg'`, `rotationOrder: 'X-Y-Z'`
+and per-draw `rotateDegrees`. Scene0, SDF IR1, mesh IR1 and old shader bytes
+remain unchanged. AST schema1 identifies source0 or source1 in `sourceVersion`.
+
+Use `mountScene(canvas, source, camera, {sourceVersion: 1})`, or the matching
+fourth constructor argument. The third argument remains the runtime camera.
+The renderer keeps its selected source version for all updates. Camera changes
+alter only the view. Unknown options and invalid source updates fail before
+adoption; the accepted scene and frame remain usable.
+
+The minimal root preview includes **GPU · Rotated box**, with mouse orbit.
+Build the GPU package and run `examples/gpu-scene/rotation-smoke.mjs` using the
+installed PW_DIR/CHROME and BAROCSS_ROTATION_EVIDENCE paths. This short smoke
+checks real shader compile/link/draw, rotated/edit/orbit frames, inverse-axis
+order, invalid-update retention and an unchanged source0 shader fixture.
+Broader numerical/resource/performance/compatibility validation is deferred.
+This increment adds no groups, scale, CSG, animation, materials or picking.
+
 ## Built ESM API
 
 ```js
