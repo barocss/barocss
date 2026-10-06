@@ -1,3 +1,4 @@
+import { validateProject } from './project.mjs';
 import { preparePrimitive, dimensionUpdate } from './primitives.mjs';
 import { parameterState as readParameterState, canonicalConstruction } from './parameters.mjs';
 import { objectRows, inspectNativeObject, requireSurface } from './inspector.mjs';
@@ -26,8 +27,9 @@ export function prepareCandidate(source, settings, cad, gpu) {
 
 export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
   let renderer, accepted, inspectedId, primitive, revision = 0, viewRevision = 0, disposed = false, unavailable = false;
+  let loadingProject=false;
   let status = 'No accepted preview';
-  const announce = message => { status = message; notify(message, accepted && structuredClone(accepted)); };
+  const announce = message => { status = message; if(!loadingProject)notify(message, accepted && structuredClone(accepted)); };
   const onLoss = () => { unavailable = true; announce('Preview unavailable: GPU context lost. Reload to create a new context.'); };
   canvas.addEventListener('webglcontextlost', onLoss);
   const controller = {
@@ -51,6 +53,25 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
           : `Rejected: ${error.message}. No accepted preview.`);
         return { ok: false, error: error.message };
       }
+    },
+    projectState() {
+      if(!accepted)throw new Error('No accepted project');
+      const owned=controller.primitiveState();
+      return validateProject({format:'barocss-cad-project',version:1,sourceVersion:accepted.sourceVersion??0,
+        source:accepted.source,surfaceId:accepted.packet.surfaceId,grid:structuredClone(accepted.report.grid),
+        options:structuredClone(accepted.options),primitive:owned?{kind:owned.kind,size:owned.size,height:owned.height}:null},gpu);
+    },
+    loadProject(record,editorSource) {
+      try{
+        if(disposed||unavailable||!accepted||!renderer)throw new Error('Preview unavailable');
+        if(typeof editorSource!=='string'||editorSource!==accepted.source)throw new Error('Apply or discard pending source first');
+        const file=validateProject(record,gpu);
+        // apply prepares all native geometry/options before its one renderer transaction.
+        let result;loadingProject=true;
+        try{result=controller.apply(file.source,{sourceVersion:file.sourceVersion,surfaceId:file.surfaceId,...file.grid,options:file.options});}finally{loadingProject=false;}
+        if(result.ok){primitive=file.primitive?{...file.primitive,source:file.source}:undefined;announce(`Opened local project; model revision ${revision}`);}
+        return result;
+      }catch(error){return{ok:false,error:error.message};}
     },
     primitiveState() {
       if(!primitive||!accepted||accepted.sourceVersion!==1||accepted.source!==primitive.source||accepted.packet.surfaceId!=='surface')return undefined;

@@ -3,3 +3,5 @@
 #preview{cursor:grab;user-select:none}#preview.is-dragging{cursor:grabbing}
 
 .object-rail .field-grid{margin:12px 0}.object-rail .row{margin-top:12px}#primitive-kind{margin-bottom:10px}
+
+#project-save{margin:12px 0}#project-open{width:100%;min-width:0;font-size:10px;padding:7px 0}

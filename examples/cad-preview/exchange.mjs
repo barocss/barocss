@@ -47,12 +47,13 @@ const objectNames = ['multi_native-wall', 'multi_native-oblique_wall', 'multi_na
   'multi_construction-wall', 'multi_construction-oblique_wall', 'multi_construction-wall-replay'];
 assert.deepEqual((index.objectFrames ?? []).map(frame => frame.name).sort(), objectNames.sort());
 assert.deepEqual((index.parameterFrames??[]).map(frame=>frame.name).sort(),['typed-vector','typed-weight']);
+assert.equal(index.projectFrames?.length,6);
 assert.deepEqual((index.primitiveFrames??[]).map(f=>f.name).sort(),['create-quarter-wall','create-sheet','height-quarter-wall','height-sheet','update-quarter-wall','update-sheet']);
 const fractionsU = [0,.03,.07,.123,.2,.271,.33,.41,.5,.57,.66,.719,.8,.877,.93,.97,1];
 const fractionsV = [0,.11,.23,.37,.5,.61,.79,.91,1];
 const fixtures = [];
-for (const frame of [...index.constructionFrames, ...index.objectFrames, ...index.parameterFrames, ...index.primitiveFrames]) {
-  const multi = objectNames.includes(frame.name);
+for (const frame of [...index.constructionFrames, ...index.objectFrames, ...index.parameterFrames, ...index.primitiveFrames, ...index.projectFrames]) {
+  const multi = objectNames.includes(frame.name)||Boolean(frame.fixtureId);
   assert.equal(frame.taskCommit, head);
   assert([0, 1].includes(frame.sourceVersion));
   if (!multi) assert.equal(frame.sourceVersion, 1);

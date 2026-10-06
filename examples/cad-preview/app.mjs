@@ -1,3 +1,4 @@
+import { parseProject, serializeProject, projectByteLimit } from '/project.mjs';
 import { bindMouseOrbit } from '/orbit.mjs';
 import * as cad from '/cad.js';
 import * as gpu from '/gpu.js';
@@ -159,7 +160,7 @@ function renderScene(accepted){
   $('view-label').textContent=camera?(pose?pose[0]+' view':'Custom camera'):'Default view';
   for(const [name] of poses)$(`camera-${name}`).classList.toggle('is-active',pose?.[0]===name);
   $('camera-reset').classList.toggle('is-active',!camera);
-  for(const id of ['camera-front','camera-side','camera-oblique','camera-reset','camera-apply','camera-eye','camera-target','camera-up','camera-fov','camera-near','camera-far','apply','fine','discard-source','fixture','source-version','primitive-create'])$(id).disabled=!controller.available;
+  for(const id of ['camera-front','camera-side','camera-oblique','camera-reset','camera-apply','camera-eye','camera-target','camera-up','camera-fov','camera-near','camera-far','apply','fine','discard-source','fixture','source-version','primitive-create','project-save','project-open'])$(id).disabled=!controller.available;
   if(!controller.available)for(const id of ['control-edit','weight-edit','vector-edit'])$(id).disabled=true;
   const history=$('creation-history');history.replaceChildren();
   if(accepted.sourceVersion===1){for(const feature of accepted.constructions){const item=document.createElement('li');item.textContent=`${feature.outputId} ← ${feature.inputId} · ${feature.operation} [${displayVector(feature.vector)}] mm`;item.title=JSON.stringify(feature);history.append(item);}}
@@ -176,8 +177,36 @@ function renderProperties(inspection){
   for(const [label,value] of fields){const row=document.createElement('div'),term=document.createElement('dt'),description=document.createElement('dd');term.textContent=label;description.textContent=value;row.append(term,description);$('properties').append(row);}
 }
 
+function refreshProjectFields(){
+ const accepted=controller.snapshot(),owned=controller.primitiveState();
+ fields({source:accepted.source,id:accepted.packet.surfaceId,sourceVersion:accepted.sourceVersion??0,...accepted.report.grid,options:accepted.options});
+ cameraFields(accepted.options.camera??defaultCamera);
+ if(owned){$('primitive-kind').value=owned.kind;$('primitive-size').value=String(owned.size);$('primitive-height').value=String(owned.height);$('primitive-kind').dispatchEvent(new Event('change'));}
+ updateEditorState();
+}
+$('project-save').addEventListener('click',()=>{
+ try{
+  const text=serializeProject(controller.projectState(),gpu),url=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+  const link=document.createElement('a');link.href=url;link.download='accepted.barocad.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),0);
+  $('project-status').textContent='Saved accepted project. Pending fields were not saved.';
+ }catch(error){$('project-status').textContent=`Save rejected: ${error.message}`;}
+});
+let opening=false;
+$('project-open').addEventListener('change',async()=>{
+ if(opening)return;
+ opening=true;
+ try{
+  const file=$('project-open').files[0];if(!file)throw new Error('Choose a local project file');
+  if(file.size>projectByteLimit)throw new RangeError('Project file exceeds 300 KiB');
+  const text=new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());
+  const record=parseProject(text,gpu),result=controller.loadProject(record,$('source').value);
+  if(!result.ok)throw new Error(result.error);
+  refreshProjectFields();$('project-status').textContent=`Opened ${file.name}. Accepted source and settings restored.`;
+ }catch(error){$('project-status').textContent=`Open rejected: ${error.message}. Accepted scene and staged fields retained.`;}
+ finally{opening=false;$('project-open').value='';}
+});
 const mouseOrbit=bindMouseOrbit(canvas,controller,cameraFields);
 // Inspection API for the local evidence runner. No source-provided code is evaluated.
-window.cadPreview={primitiveState:()=>controller.primitiveState(),createPrimitive:(request,editorSource)=>controller.createPrimitive(request,editorSource),updateDimensions:(request,editorSource)=>controller.updateDimensions(request,editorSource),parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>{mouseOrbit.dispose();controller.dispose();},get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
+window.cadPreview={projectState:()=>controller.projectState(),loadProject:(record,editorSource)=>controller.loadProject(record,editorSource),primitiveState:()=>controller.primitiveState(),createPrimitive:(request,editorSource)=>controller.createPrimitive(request,editorSource),updateDimensions:(request,editorSource)=>controller.updateDimensions(request,editorSource),parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>{mouseOrbit.dispose();controller.dispose();},get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
 window.addEventListener('pagehide',()=>{mouseOrbit.dispose();controller.dispose();},{once:true});
 select(fixtures[0].id);
