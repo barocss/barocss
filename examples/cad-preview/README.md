@@ -368,3 +368,12 @@ project1 files; it does not store mesh caches, body history, or whole-solid inte
 Prototype verification is the short `model-smoke.mjs` browser run with
 `PW_DIR`, `CHROME`, and a fresh `BAROCSS_MODEL_EVIDENCE` directory. Broader numerical,
 file/resource/compatibility and whole-browser validation is deferred.
+
+The Box prototype defaults to **Original CAD edges**. Its twelve global edge paths
+come from qualified native shell/face/curve data, without triangulation diagonals.
+The toggle is a view action and is not saved in the feature document. Surface tools
+have an **Edges** control for their four original natural parameter boundaries,
+sampled at the accepted grid count with at most 64 points per path. This is not
+arbitrary trimming, silhouettes, picking or a complete hidden-line drawing system.
+Run the same short browser demonstration with `model-smoke.mjs --edges` for actual
+native-path/toggle/orbit/rear-occlusion/stale-packet prototype evidence.

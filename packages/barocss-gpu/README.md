@@ -270,3 +270,22 @@ the original fixed-camera shader bytes and behaviour. Opt-in view rays use the
 existing validated right-handed basis and FOV, explicit near/far, and the original
 128-step/100-scene-unit workload cap. No authored GLSL or implicit geometry rotation
 is admitted. Gallery mouse orbit uses this view API for sphere/box and mesh examples.
+
+### Derived CAD edge display (prototype)
+
+`mountMesh(canvas, packet, options, overlay)` accepts an optional `MeshEdgeOverlay`
+with `version: 0`, a complete matching `packet`, up to 64 uniquely named paths,
+and opaque RGB `color`. Each path has 2–64 original-mm XYZ points; the total is
+at most 4096. The renderer uses the mesh conversion/camera and one-pixel,
+depth-tested line strips in the same candidate framebuffer.
+
+`renderer.setEdgeOverlay(overlay)` changes this display atomically; `null` removes
+it. `renderer.edgeOverlay` returns owned data. `update(packet, options, overlay)`
+sets fresh paths; omitted overlay retains existing paths only when the complete
+packet is exactly equal, including all numbers and metadata. A changed packet
+with omitted overlay drops paths. This does not change mesh/compiler IR, source
+grammar, model geometry or topology, and does not certify input paths as CAD edges.
+
+The host Box prototype supplies its twelve actual global native edges; supported
+Surface previews supply sampled natural boundaries. Broad resource, compatibility
+and pixel/regression validation is deferred under the prototype-first policy.
