@@ -6,7 +6,7 @@ import {createPreviewController} from './pipeline.mjs';
 const near=(a,b)=>a.forEach((v,i)=>assert(Math.abs(v-b[i])<1e-9));
 test('dimension tools emit actual existing native sheets and rational quarter walls',()=>{
  for(const kind of ['sheet','quarter-wall'])for(const [size,height] of [[100,100],[128.5,76.625],[1,300]]){
-  const p=preparePrimitive({kind,size,height}),c=cad.compileConstruction(p.source),s=c.model.objects.find(o=>o.id==='surface');
+  const p=preparePrimitive({kind,size,height}),c=cad.compileCadModel(p.source, {sourceVersion:1}),s=c.model.objects.find(o=>o.id==='surface');
   assert.equal(c.model.version,0);assert.equal(c.model.objects.length,2);assert.equal(c.constructions[0].inputId,'profile');
   near(cad.evaluateSurface(s,0,0),kind==='sheet'?[0,0,0]:[size,0,0]);near(cad.evaluateSurface(s,1,1),kind==='sheet'?[size,0,height]:[0,size,height]);
   if(kind==='sheet'){const d=cad.evaluateSurfaceD1(s,.37,.41);near(d.du,[size,0,0]);near(d.dv,[0,0,height]);}

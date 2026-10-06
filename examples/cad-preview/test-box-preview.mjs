@@ -18,6 +18,6 @@ test('bounded own request schema source negativezero and independently owned out
 });
 test('actual native and face-packet defects reject before any composite can render',()=>{
  const request={id:'whole_box',origin:[0,0,0],sides:[2,3,5],revision:3};
- for(const change of [m=>m.objects.pop(),m=>m.objects[0].controlPoints.reverse(),m=>m.objects[0].controlPoints[0][0][0]+=1e-10])assert.throws(()=>prepareBoxPreview(request,{...cad,parseModel:s=>{const m=structuredClone(cad.parseModel(s));change(m);return m;}}));
+ for(const change of [m=>m.objects.pop(),m=>m.objects[0].controlPoints.reverse(),m=>m.objects[0].controlPoints[0][0][0]+=1e-10])assert.throws(()=>prepareBoxPreview(request,{...cad,compileCadModel:(s,options)=>{const result=cad.compileCadModel(s,options);assert(result.ok);change(result.model);return result;}}));
  for(const change of [p=>p.surfaceId='wrong',p=>p.revision++,p=>p.parameters[0]=.1,p=>p.positions[0]+=1e-10,p=>p.indices[0]=3])assert.throws(()=>prepareBoxPreview(request,{...cad,tessellateSurface:(s,o)=>{const r=structuredClone(cad.tessellateSurface(s,o));change(r.packet);return r;}}));
 });

@@ -47,7 +47,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const cadModuleRequests = new Set();
   page.on('request', request => cadModuleRequests.add(new URL(request.url()).pathname));
-  const allowed = new Set(['/box-preview.mjs', '/box-solid.js', '/history.mjs', '/box-shell.js', '/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/model-compiler.js', '/source-ast.js', '/semantic-model.js', '/lower-model.js', '/construction-types.js', '/extrusion-validation.js', '/box-preview.mjs', '/box-solid.js', '/history.mjs', '/box-shell.js', '/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -178,18 +178,19 @@ try {
       const host = window.cadPreview, snapshot = host.snapshot();
       const cad = await import('/cad.js'), gpu = await import('/gpu.js');
       const { validatePreviewPacket: validateCadPacket } = cad, { validatePreviewPacket: validateGpuPacket } = gpu;
-      const compiled = snapshot.sourceVersion === 1 ? cad.compileConstruction(snapshot.source) : null;
-      const model = compiled ? compiled.model : cad.parseModel(snapshot.source);
+      const compiled = cad.compileCadModel(snapshot.source, {sourceVersion:snapshot.sourceVersion??0});
+      if(!compiled.ok)throw new Error(JSON.stringify(compiled.diagnostics));
+      const model = compiled.model;
       const surface = model.objects.find(object => object.id === snapshot.packet.surfaceId);
       const generated = cad.tessellateSurface(surface, { ...snapshot.report.grid, revision: snapshot.revision });
       const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
       validateCadPacket(generated.packet); validateGpuPacket(generated.packet);
       const gl = document.querySelector('canvas').getContext('webgl2');
-      return { snapshot, inspectedId: host.inspectedId ?? null, objects: host.objects?.() ?? null, inspection: host.inspection?.() ?? null, uniforms: structuredClone(window.previewProbe.uniforms), shaders: host.shaders(), bytes: Array.from(host.readPixels()),
+      return { snapshot, compiler:{ast:compiled.ast,ir:compiled.ir,diagnostics:compiled.diagnostics}, inspectedId: host.inspectedId ?? null, objects: host.objects?.() ?? null, inspection: host.inspection?.() ?? null, uniforms: structuredClone(window.previewProbe.uniforms), shaders: host.shaders(), bytes: Array.from(host.readPixels()),
         width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, glError: gl.getError(),
         compile: [...window.previewProbe.compile], link: [...window.previewProbe.link], drawCalls: window.previewProbe.drawCalls,
-        sourceReplayed: same(model, snapshot.model), constructionsReplayed: !compiled || same(compiled.constructions, snapshot.constructions),
-        selectedConstructionReplayed: !compiled || same(compiled.constructions.find(feature => feature.outputId === snapshot.packet.surfaceId), snapshot.selectedConstruction),
+        sourceReplayed: same(model, snapshot.model), constructionsReplayed: snapshot.sourceVersion !== 1 || same(compiled.constructions, snapshot.constructions),
+        selectedConstructionReplayed: snapshot.sourceVersion !== 1 || same(compiled.constructions.find(feature => feature.outputId === snapshot.packet.surfaceId), snapshot.selectedConstruction),
         exportReplayed: same(cad.exportIGES(model, [surface.id]), snapshot.iges), packetReplayed: same(generated.packet, snapshot.packet),
         reportReplayed: same(generated.report, snapshot.report), sameRenderer: host.renderer === window.originalPreviewRenderer,
         rendererPacket: host.renderer.packet, rendererOptions: host.renderer.options, rendererRevision: host.renderer.revision };
@@ -205,6 +206,9 @@ try {
     const files = {
       [`${name}.source.css`]: frame.snapshot.source,
       [`${name}.model.json`]: json(frame.snapshot.model),
+      [`${name}.ast.json`]: json(frame.compiler.ast),
+      [`${name}.ir.json`]: json(frame.compiler.ir),
+      [`${name}.diagnostics.json`]: json(frame.compiler.diagnostics),
       [`${name}.packet.json`]: json(frame.snapshot.packet),
       [`${name}.report.json`]: json(frame.snapshot.report),
       [`${name}.display.json`]: json({ options: frame.snapshot.options, revision: frame.snapshot.revision, viewRevision: frame.snapshot.viewRevision, uniforms: frame.uniforms,
