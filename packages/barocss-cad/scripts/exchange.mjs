@@ -70,3 +70,6 @@ const { runOrthogonalExchange } = await import('./orthogonal-exchange.mjs');
 runOrthogonalExchange();
 const { runBoxShellExchange } = await import('./box-shell-exchange.mjs');
 runBoxShellExchange();
+
+const { runBoxSolidExchange } = await import('./box-solid-exchange.mjs');
+runBoxSolidExchange();
