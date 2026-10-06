@@ -281,3 +281,19 @@ primitive receipts/source/native/feature/packet/view/readback/module/HEAD record
 feed independent line/rational-affine OCP controls at153 parameters/export with
 unchanged1e-9mm native/1e-7mm reader limits. Desktop/mobile screenshots and repeated
 create/update resource checks are retained alongside all prior regression gates.
+
+
+## Local projects
+
+Save project downloads `accepted.barocad.json` with the accepted native source, selected
+surface, grid and display options. Staged source and numeric fields are not adopted by Save.
+Open uses a local file input; apply or discard pending source before opening. Files are bounded
+at 300 KiB UTF-8 and source at 256 KiB. Invalid data or failed rendering retains the accepted
+scene and staged fields. Format/version, own fields, finite settings, native source and selected
+surface are checked before a single renderer transaction. No authored code or URL is executed.
+
+Tool-created sheet/quarter-wall dimension hints restore Update only when canonical source and
+IDs match exactly. Manual projects retain native geometry without claiming tool ownership.
+The data serializer preserves binary64 settings, including negative zero. Project files contain
+no cached geometry certificate or revision. IGES remains a separate original native export;
+project files are not STEP, IGES, BREP or shared-topology exchange.

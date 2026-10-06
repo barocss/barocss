@@ -1,3 +1,4 @@
+import { parseProject } from './project.mjs';
 import { preparePrimitive } from './primitives.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -38,6 +39,19 @@ for (const manifest of [index.packageModules, index.sourceModules]) {
 }
 const cad = await import(pathToFileURL(path.join(repo, 'packages/barocss-cad/dist/index.js')).href);
 const gpu = await import(pathToFileURL(path.join(repo, 'packages/barocss-gpu/dist/index.js')).href);
+const projectLineage=JSON.parse(await readFile(path.join(evidence,'project-lineage.json'),'utf8'));
+assert.deepEqual(projectLineage,index.projectLineage);assert.equal(projectLineage.records.length,4);assert.equal(projectLineage.negatives.length,13);
+assert(projectLineage.drawFailureRetained&&projectLineage.pendingFieldsRetained&&projectLineage.lifecycle.ownerRetained);
+for(const receipt of projectLineage.records){
+ assert.equal(path.basename(receipt.file),receipt.file);
+ const bytes=await readFile(path.join(evidence,receipt.file));assert.equal(hash(bytes),receipt.fileHash);
+ const file=parseProject(bytes.toString('utf8'),gpu),name=receipt.kind?`project-reopened-${receipt.kind}`:`project-${receipt.fixtureId}`;
+ assert.equal(await readFile(path.join(evidence,name+'.source.css'),'utf8'),file.source);
+ const display=JSON.parse(await readFile(path.join(evidence,name+'.display.json'),'utf8'));assert.deepEqual(display.options,JSON.parse(JSON.stringify(file.options)));
+ const model=file.sourceVersion===1?cad.compileConstruction(file.source).model:cad.parseModel(file.source);
+ assert.equal(cad.exportIGES(model,[file.surfaceId]).iges,await readFile(path.join(evidence,name+'.downloaded.igs'),'utf8'));
+ if(receipt.kind==='sheet')assert(Object.is(file.options.camera.target[0],-0));
+}
 const output = path.join(evidence, 'exchange');
 await mkdir(output, { recursive: true });
 const names = ['construction-cylinder', 'construction-vector-edit', 'construction-weight-edit', 'construction-asymmetric',
@@ -47,12 +61,13 @@ const objectNames = ['multi_native-wall', 'multi_native-oblique_wall', 'multi_na
   'multi_construction-wall', 'multi_construction-oblique_wall', 'multi_construction-wall-replay'];
 assert.deepEqual((index.objectFrames ?? []).map(frame => frame.name).sort(), objectNames.sort());
 assert.deepEqual((index.parameterFrames??[]).map(frame=>frame.name).sort(),['typed-vector','typed-weight']);
+assert.equal(index.projectFrames?.length,6);
 assert.deepEqual((index.primitiveFrames??[]).map(f=>f.name).sort(),['create-quarter-wall','create-sheet','height-quarter-wall','height-sheet','update-quarter-wall','update-sheet']);
 const fractionsU = [0,.03,.07,.123,.2,.271,.33,.41,.5,.57,.66,.719,.8,.877,.93,.97,1];
 const fractionsV = [0,.11,.23,.37,.5,.61,.79,.91,1];
 const fixtures = [];
-for (const frame of [...index.constructionFrames, ...index.objectFrames, ...index.parameterFrames, ...index.primitiveFrames]) {
-  const multi = objectNames.includes(frame.name);
+for (const frame of [...index.constructionFrames, ...index.objectFrames, ...index.parameterFrames, ...index.primitiveFrames, ...index.projectFrames]) {
+  const multi = objectNames.includes(frame.name)||Boolean(frame.fixtureId);
   assert.equal(frame.taskCommit, head);
   assert([0, 1].includes(frame.sourceVersion));
   if (!multi) assert.equal(frame.sourceVersion, 1);

@@ -1,3 +1,4 @@
+import { runProjectBrowser } from './project-browser.mjs';
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -44,7 +45,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const cadModuleRequests = new Set();
   page.on('request', request => cadModuleRequests.add(new URL(request.url()).pathname));
-  const allowed = new Set(['/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -635,6 +636,7 @@ try {
   const primitiveMixed=await page.evaluate(()=>{const host=window.cadPreview,live=()=>window.previewProbe.resources.filter(({kind,resource,gl})=>gl[`is${kind}`](resource)).length,before=live(),renderer=host.renderer;for(let i=0;i<12;i++){const a=host.createPrimitive({kind:i%2?'sheet':'quarter-wall',size:80+i,height:100},host.snapshot().source);if(!a.ok)throw Error(a.error);const b=host.updateDimensions({size:90+i,height:120},host.snapshot().source);if(!b.ok)throw Error(b.error);}return{count:12,before,after:live(),sameRenderer:renderer===host.renderer};});assert(primitiveMixed.sameRenderer&&primitiveMixed.before===primitiveMixed.after);
   await page.setViewportSize({width:1440,height:900});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(evidence,'primitive-desktop.ui.png'),fullPage:true,animations:'disabled'});await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:path.join(evidence,'primitive-mobile.ui.png'),fullPage:true,animations:'disabled'});await page.setViewportSize({width:1280,height:720});
   const primitiveLineage={controls:primitiveControls,mixed:primitiveMixed,explicitToolPlacement:true};
+  const projectLineage=await runProjectBrowser({browser,page,server,evidence,allowed,taskCommit,integrationCommit});
 
 
   await apply(cylinder.source, { ...settings(cylinder), countU: 64, countV: 64 });
@@ -728,7 +730,7 @@ try {
   const result = { taskCommit, integrationCommit, backend, packageModules, sourceModules, backendDescription: 'ANGLE SwiftShader software WebGL2; functional composition only',
     packageArtifacts: { cad: hash(await readFile(path.join(repo, 'packages/barocss-cad/dist/index.js'))),
       gpu: hash(await readFile(path.join(repo, 'packages/barocss-gpu/dist/index.js'))) },
-    orbitEvidence, uiWorkspace, frames, constructionFrames, objectFrames, primitiveFrames, primitiveLineage, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
+    projectLineage, projectFrames:projectLineage.frames, orbitEvidence, uiWorkspace, frames, constructionFrames, objectFrames, primitiveFrames, primitiveLineage, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
     deterministicFields: ['source', 'model', 'packet except host-issued revision', 'report', 'IGES', 'display options'],
     environmentFields: ['taskCommit', 'integrationCommit', 'browser', 'backend', 'evidence path'],
     limitations: ['Finite sampled deviation is not a global bound', 'Surfaces remain open; no solid, topology, STEP, or manufacturing claim', 'Software rendering is not physical GPU performance',
