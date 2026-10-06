@@ -1,3 +1,4 @@
+import {runSource2Exchange}from'./source2-exchange.mjs';
 import {runBoxExchange}from'./box-exchange.mjs';
 import { parseProject } from './project.mjs';
 import { preparePrimitive } from './primitives.mjs';
@@ -57,6 +58,7 @@ for(const receipt of projectLineage.records){
  if(receipt.kind==='sheet')assert(Object.is(file.options.camera.target[0],-0));
 }
 await runBoxExchange({index,evidence,head,cad,gpu,python});
+await runSource2Exchange({index,evidence,head,cad,gpu,python});
 const output = path.join(evidence, 'exchange');
 await mkdir(output, { recursive: true });
 const names = ['construction-cylinder', 'construction-vector-edit', 'construction-weight-edit', 'construction-asymmetric',

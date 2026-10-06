@@ -1,3 +1,4 @@
+import './test-source2.mjs';
 import './test-box-preview.mjs';
 import './test-history.mjs';
 import './test-project.mjs';
@@ -225,7 +226,7 @@ test('loopback server serves only explicit built/example routes under strict CSP
     });
   try {
     for (const route of ['/', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/inspector.mjs', '/parameters.mjs', '/orbit.mjs', '/primitives.mjs', '/project.mjs', '/history.mjs', '/box-preview.mjs', '/style.css',
-      '/cad.js', '/gpu.js', ...['types', 'math', 'iges', 'packet', 'preview', 'extrusion', 'derivatives', 'boundary', 'face', 'adjacency', 'orthogonal-adjacency', 'box-shell', 'box-solid', 'model-compiler', 'source-ast', 'semantic-model', 'lower-model', 'construction-types', 'extrusion-validation'].map(name => `/${name}.js`)]) {
+      '/cad.js', '/gpu.js', ...['types', 'math', 'iges', 'packet', 'preview', 'extrusion', 'derivatives', 'boundary', 'face', 'adjacency', 'orthogonal-adjacency', 'box-shell', 'box-solid', 'model-compiler', 'source-ast', 'semantic-model', 'lower-model', 'construction-types', 'extrusion-validation', 'expression-parser', 'parameter-semantics', 'data-copy'].map(name => `/${name}.js`)]) {
       const response = await get(route);
       assert.equal(response.status, 200, route);
       assert.ok(response.body.length > 0, route);
