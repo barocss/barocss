@@ -2248,3 +2248,57 @@ prior result reuse and geometry/identity/parser/old-format rejection are checked
 Actual numerical values are observations under existing native arithmetic,
 not a new numerical quality target. Affected build/this run are prototype
 checks; broad validation and arc sketch UI remain deferred.
+
+## Typed height parameter creation and removal
+
+`editSketchRectangleFeatureGraphParameters(document,edits)` returns the existing
+owned graph result with additive typed parameter authoring. Exact edits require
+parameterOperations, optional featureOperations/sketchEdits only; every present
+array is nonempty1..8. No parameterEdits/featureEdits aliases are admitted here.
+Each parameter target appears once: exact upsert with the complete existing
+`{id,type:'length',definition}` record, or remove(parameterId). Definition
+literal/offset and all integer length bounds/resolution stay unchanged.
+
+Existing upserts retain id/type/authored slot; new IDs are fresh relative to
+all starting authored graph identities and append in operation order. Remove
+resolves a starting parameter; no implicit cascade/rename/same-ID readd. Removed
+identities remain reserved across parameter/feature/body/new-sketch categories;
+existing sketch/profile/corner identities remain legal in original roles.
+Survivors retain order. Final parameter count1..8 is checked after all operations,
+so add-at-eight/remove-other can succeed. No parameter reorder, arbitrary
+expressions/scalar/angle/unit conversion or sketch dimension binding is added.
+
+A starting actual graph passes full admission, then all parameter/optional
+original feature and sketch operations form one owned candidate. The same
+private admission/feature-operation helpers preserve old public585/586 API
+behavior; no intermediate public updater or duplicated DAG/geometry engine.
+Deleting a used height requires every final offset/feature reference, including
+suppressed features, to be removed or rebound in that candidate. New heights
+may be forward-referenced by offsets and existing/new features. All parameters,
+remaining profiles and active/suppressed native features execute original full
+admission before return; invalid final graph publishes no partial state.
+
+Original source0/source2 Curve/IR, native body/FaceBundle/shell/Surface/corner/
+parameter/face bindings and per-body reports remain. Separate bodies and
+wholeGraphCertified:false; no union/global certificate. Existing graph0 file
+format/Save/Open/parser budgets/negative-zero semantics and strict separate arc
+format remain unchanged. No cache/editor state/file migration or UI extension.
+Old definition/suppression and feature lifecycle APIs remain usable and reject
+parameterOperations. Typed parameter Add/Delete UI is a later separate consumer.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/rectangle-parameter-lifecycle-demo.mjs /tmp/barocss-rectangle-parameters-prototype
+```
+
+The short actual API/file flow starts A72/B80 with base6/derived+2/unused−0.
+Add newHeight=base+4 and rebindB→B100. Atomically removebase/addnewBase9/repair
+both offsets andAref→A108/B130; authored survivors/append and stable topo order
+are retained. Remove newHeight and rebindB→110, removeunusedidle, then newBase9/
+Awidth5 batch→A135/B110. Save actual intent; editbase10→150/120; read saved bytes
+restores135/110. Add extraHeight11 andfreshC→165, then removeparameter+feature
+together. Eight-parameter add-before-remove stays final8. Used/suppressed height,
+DAG/ID/category reuse/type/definition/budget/combined sketch errors reject with
+previous outputs reusable. Native original bindings and−0 file intent are
+checked. Affected build/this run are prototype checks; broad validation and
+parameter lifecycle UI remain deferred.

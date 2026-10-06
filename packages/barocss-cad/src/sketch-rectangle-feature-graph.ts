@@ -21,6 +21,11 @@ export interface SketchRectangleFeatureLifecycleEdits {
   featureOperations: SketchRectangleFeatureOperation[];
   parameterEdits?: SketchRectangleFeatureGraphEdits['parameterEdits']; sketchEdits?: XYSketchDocumentEdit[];
 }
+export type SketchRectangleParameterOperation = { kind: 'upsert'; parameter: SketchRectangleLengthParameter } | { kind: 'remove'; parameterId: string };
+export interface SketchRectangleParameterLifecycleEdits {
+  parameterOperations: SketchRectangleParameterOperation[];
+  featureOperations?: SketchRectangleFeatureOperation[]; sketchEdits?: XYSketchDocumentEdit[];
+}
 export interface SketchRectangleResolvedParameter { id: string; type: 'length'; valueMM: number; dependencyIds: string[]; order: number }
 export interface SketchRectangleFeatureBindings {
   sketchId: string; profileId: string; curveId: string; authoredPointIds: string[]; pointBindings: XYSketchPointBinding[];
@@ -93,6 +98,11 @@ function definition(input: unknown, label: string, path: string): SketchRectangl
   return kind === 'literal' ? { kind, valueMM: length(data.valueMM, label, path + '.valueMM') }
     : { kind, parameterId: identifier(data.parameterId, label, path + '.parameterId'), offsetMM: length(data.offsetMM, label, path + '.offsetMM') };
 }
+function admitParameter(input: unknown, label: string, path: string): SketchRectangleLengthParameter {
+  const p = record(input, ['id', 'type', 'definition'], label, path), pid = identifier(p.id, label, path + '.id');
+  check(p.type === 'length', label + ' parameter #' + pid, path + '.type', 'length parameter required');
+  return { id: pid, type: 'length', definition: definition(p.definition, label + ' parameter #' + pid, path + '.definition') };
+}
 function admitFeature(input: unknown, label: string, path: string): SketchRectangleGraphFeature {
   const f = record(input, ['id', 'kind', 'profileId', 'bodyId', 'distanceParameterId', 'suppressed'], label, path), fid = identifier(f.id, label, path + '.id'), owner = label + ' feature #' + fid;
   check(f.kind === 'axis-rectangle-extrude' && typeof f.suppressed === 'boolean', owner, path + '.kind/suppressed', 'axis-rectangle-extrude and explicit boolean suppression required');
@@ -104,9 +114,7 @@ function admit(input: unknown, label: string): SketchRectangleFeatureGraphV0 {
   const id = identifier(data.id, label, '$.id');
   check(Array.isArray(data.parameters) && data.parameters.length >= 1 && data.parameters.length <= 8, label, '$.parameters', '1..8 typed length parameters required');
   const parameters = data.parameters.map((value, index): SketchRectangleLengthParameter => {
-    const path = '$.parameters[' + index + ']', p = record(value, ['id', 'type', 'definition'], label, path), pid = identifier(p.id, label, path + '.id');
-    check(p.type === 'length', label + ' parameter #' + pid, path + '.type', 'length parameter required');
-    return { id: pid, type: 'length', definition: definition(p.definition, label + ' parameter #' + pid, path + '.definition') };
+    return admitParameter(value, label, '$.parameters[' + index + ']');
   });
   check(Array.isArray(data.features) && data.features.length >= 1 && data.features.length <= 4, label, '$.features', '1..4 rectangle extrusion features required');
   const features = data.features.map((value, index): SketchRectangleGraphFeature => {
@@ -217,6 +225,31 @@ export function updateSketchRectangleFeatureGraph(document: SketchRectangleFeatu
     return evaluate(admit(candidate, label), label);
   });
 }
+function applyFeatureOperations(candidate: SketchRectangleFeatureGraphV0, operations: unknown[], starting: Map<string, SketchRectangleGraphFeature>, reserved: Set<string>, label: string): void {
+  const targets = new Set<string>();
+  for (const [index, input] of operations.entries()) {
+    const path = '$edits.featureOperations[' + index + ']';
+    check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'feature operation record required');
+    const kind = (input as Record<string, unknown>).kind;
+    check(kind === 'upsert' || kind === 'remove', label, path + '.kind', 'upsert/remove feature operation required');
+    const operation = record(input, kind === 'upsert' ? ['kind', 'feature'] : ['kind', 'featureId'], label, path);
+    const next = kind === 'upsert' ? admitFeature(operation.feature, label, path + '.feature') : undefined;
+    const id = next ? next.id : identifier(operation.featureId, label, path + '.featureId'), owner = label + ' feature #' + id;
+    check(!targets.has(id), owner, path, 'target feature appears more than once in the batch'); targets.add(id);
+    const previous = starting.get(id), slot = candidate.features.findIndex(f => f.id === id);
+    if (next) {
+      if (previous) {
+        check(next.kind === previous.kind && next.bodyId === previous.bodyId, owner, path + '.feature.bodyId', 'existing feature kind/body identity must remain unchanged');
+        check(slot >= 0, owner, path, 'existing feature slot required'); candidate.features[slot] = next;
+      } else {
+        check(!reserved.has(next.id) && !reserved.has(next.bodyId) && next.id !== next.bodyId, owner, path + '.feature.id/bodyId', 'new feature/body IDs must be fresh relative to starting and new transaction identities');
+        reserved.add(next.id); reserved.add(next.bodyId); candidate.features.push(next);
+      }
+    } else {
+      check(!!previous && slot >= 0, owner, path + '.featureId', 'remove must resolve an existing starting feature'); candidate.features.splice(slot, 1);
+    }
+  }
+}
 /** One final graph transaction; existing native body identity cannot be replaced. */
 export function editSketchRectangleFeatureGraphFeatures(document: SketchRectangleFeatureGraphV0, edits: SketchRectangleFeatureLifecycleEdits): SketchRectangleFeatureGraphResult {
   const label = context(document);
@@ -229,32 +262,68 @@ export function editSketchRectangleFeatureGraphFeatures(document: SketchRectangl
     for (const key of keys) check(Array.isArray(data[key]) && (data[key] as unknown[]).length >= 1 && (data[key] as unknown[]).length <= 8, label, '$edits.' + key, 'nonempty1..8 operations required');
     const starting = new Map(candidate.features.map(f => [f.id, copyCadData(f)]));
     // Starting identities remain reserved even after removal in this transaction.
-    const reserved = new Set(authoredGraphIds(candidate)), targets = new Set<string>();
-    for (const [index, input] of (data.featureOperations as unknown[]).entries()) {
-      const path = '$edits.featureOperations[' + index + ']';
-      check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'feature operation record required');
-      const kind = (input as Record<string, unknown>).kind;
-      check(kind === 'upsert' || kind === 'remove', label, path + '.kind', 'upsert/remove feature operation required');
-      const operation = record(input, kind === 'upsert' ? ['kind', 'feature'] : ['kind', 'featureId'], label, path);
-      const next = kind === 'upsert' ? admitFeature(operation.feature, label, path + '.feature') : undefined;
-      const id = next ? next.id : identifier(operation.featureId, label, path + '.featureId'), owner = label + ' feature #' + id;
-      check(!targets.has(id), owner, path, 'target feature appears more than once in the batch'); targets.add(id);
-      const previous = starting.get(id), slot = candidate.features.findIndex(f => f.id === id);
-      if (next) {
-        if (previous) {
-          check(next.kind === previous.kind && next.bodyId === previous.bodyId, owner, path + '.feature.bodyId', 'existing feature kind/body identity must remain unchanged');
-          check(slot >= 0, owner, path, 'existing feature slot required'); candidate.features[slot] = next;
-        } else {
-          check(!reserved.has(next.id) && !reserved.has(next.bodyId) && next.id !== next.bodyId, owner, path + '.feature.id/bodyId', 'new feature/body IDs must be fresh relative to starting and new transaction identities');
-          reserved.add(next.id); reserved.add(next.bodyId); candidate.features.push(next);
-        }
-      } else {
-        check(!!previous && slot >= 0, owner, path + '.featureId', 'remove must resolve an existing starting feature'); candidate.features.splice(slot, 1);
-      }
-    }
+    const reserved = new Set(authoredGraphIds(candidate));
+    applyFeatureOperations(candidate, data.featureOperations as unknown[], starting, reserved, label);
     // Only the complete final feature set owns the1..4 count/reference decision.
     // Sketch edits can remove/rebind a previously referenced profile atomically.
     applyInputEdits(candidate, data, label);
+    return evaluate(admit(candidate, label), label);
+  });
+}
+function authoredGraphRoles(document: SketchRectangleFeatureGraphV0): Map<string, string> {
+  const roles = new Map<string, string>([[document.id, 'graph'], [document.sketch.id, 'sketch']]);
+  for (const p of document.sketch.profiles) {
+    roles.set(p.id, 'profile:' + p.id);
+    const ids = p.kind === 'rectangle' ? p.cornerIds : p.points.map(point => point.id);
+    ids.forEach((id, index) => roles.set(id, 'point:' + p.id + ':' + index));
+  }
+  document.parameters.forEach(p => roles.set(p.id, 'parameter:' + p.id));
+  document.features.forEach(f => { roles.set(f.id, 'feature:' + f.id); roles.set(f.bodyId, 'body:' + f.id); });
+  return roles;
+}
+/** Parameter and reference repair share one complete final native transaction. */
+export function editSketchRectangleFeatureGraphParameters(document: SketchRectangleFeatureGraphV0, edits: SketchRectangleParameterLifecycleEdits): SketchRectangleFeatureGraphResult {
+  const label = context(document);
+  return guard(label, () => {
+    const candidate = evaluate(admit(document, label), label).document, value = snapshot(edits, label, '$edits');
+    check(value !== null && typeof value === 'object' && !Array.isArray(value), label, '$edits', 'parameter lifecycle edit record required');
+    const data = value as Record<string, unknown>, keys = Object.keys(data);
+    check(Object.hasOwn(data, 'parameterOperations') && keys.length <= 3 && keys.every(key => ['parameterOperations', 'featureOperations', 'sketchEdits'].includes(key)), label, '$edits', 'required parameterOperations and optional featureOperations/sketchEdits only');
+    for (const key of keys) check(Array.isArray(data[key]) && (data[key] as unknown[]).length >= 1 && (data[key] as unknown[]).length <= 8, label, '$edits.' + key, 'nonempty1..8 operations required');
+    const startingRoles = authoredGraphRoles(candidate), reserved = new Set(startingRoles.keys());
+    const startingParameters = new Map(candidate.parameters.map(p => [p.id, copyCadData(p)]));
+    const startingFeatures = new Map(candidate.features.map(f => [f.id, copyCadData(f)])), targets = new Set<string>();
+    for (const [index, input] of (data.parameterOperations as unknown[]).entries()) {
+      const path = '$edits.parameterOperations[' + index + ']';
+      check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'parameter operation record required');
+      const kind = (input as Record<string, unknown>).kind;
+      check(kind === 'upsert' || kind === 'remove', label, path + '.kind', 'upsert/remove parameter operation required');
+      const operation = record(input, kind === 'upsert' ? ['kind', 'parameter'] : ['kind', 'parameterId'], label, path);
+      const next = kind === 'upsert' ? admitParameter(operation.parameter, label, path + '.parameter') : undefined;
+      const id = next ? next.id : identifier(operation.parameterId, label, path + '.parameterId'), owner = label + ' parameter #' + id;
+      check(!targets.has(id), owner, path, 'target parameter appears more than once in batch'); targets.add(id);
+      const previous = startingParameters.get(id), slot = candidate.parameters.findIndex(p => p.id === id);
+      if (next) {
+        if (previous) {
+          check(next.type === previous.type && slot >= 0, owner, path + '.parameter.type', 'existing parameter type/identity/slot must remain'); candidate.parameters[slot] = next;
+        } else {
+          check(!reserved.has(id), owner, path + '.parameter.id', 'new parameter ID must be fresh relative to all starting/new transaction identities'); reserved.add(id); candidate.parameters.push(next);
+        }
+      } else {
+        check(!!previous && slot >= 0, owner, path + '.parameterId', 'remove must resolve an existing starting parameter'); candidate.parameters.splice(slot, 1);
+      }
+    }
+    if (Object.hasOwn(data, 'featureOperations')) applyFeatureOperations(candidate, data.featureOperations as unknown[], startingFeatures, reserved, label);
+    if (Object.hasOwn(data, 'sketchEdits')) {
+      candidate.sketch = guard(label + ': $edits.sketchEdits', () => updateXYSketchDocument(candidate.sketch, data.sketchEdits as XYSketchDocumentEdit[]).document);
+      for (const [id, role] of authoredGraphRoles(candidate)) {
+        if (role !== 'sketch' && !role.startsWith('profile:') && !role.startsWith('point:')) continue;
+        const originalRole = startingRoles.get(id);
+        check(originalRole === role || originalRole === undefined && !reserved.has(id), label, '$edits.sketchEdits.ids #' + id, 'new sketch identity cannot recycle a starting removed identity or new parameter/feature/body ID');
+        reserved.add(id);
+      }
+    }
+    // No intermediate count/reference/DAG decision; all repair operations now exist.
     return evaluate(admit(candidate, label), label);
   });
 }
