@@ -239,3 +239,17 @@ Set `BAROCSS_CAD_PREVIEW_BASELINE_UI` to that baseline evidence directory for
 browser.mjs (default private path is the recorded #513 baseline). Screenshots
 show actual software-WebGL geometry; they do not replace native/selected-export
 checks or imply physical-GPU performance or manufactured solids.
+
+## Mouse camera orbit
+
+Drag the viewport with the primary left mouse button to rotate the accepted
+camera around its existing target. Distance, up direction, FOV and near/far
+remain unchanged. Pitch movement stops short of a singular up axis. Mouse orbit
+calls the existing validated camera transaction; it changes only view revision,
+not CAD source, native geometry, packet/report, model revision or selected IGES.
+Presets, reset and explicit camera inputs remain available.
+
+Pointer capture keeps a drag active outside the canvas until release. Cancellation,
+window blur, context loss, disposal or another accepted source/view action ends
+the gesture. Invalid/out-of-bound camera candidates retain the accepted view.
+No inertia, timer, zoom, pan or touch-scroll interception is added.

@@ -1,3 +1,4 @@
+import { bindMouseOrbit } from '/orbit.mjs';
 import * as cad from '/cad.js';
 import * as gpu from '/gpu.js';
 import { createPreviewController } from '/pipeline.mjs';
@@ -162,7 +163,8 @@ function renderProperties(inspection){
   for(const [label,value] of fields){const row=document.createElement('div'),term=document.createElement('dt'),description=document.createElement('dd');term.textContent=label;description.textContent=value;row.append(term,description);$('properties').append(row);}
 }
 
+const mouseOrbit=bindMouseOrbit(canvas,controller,cameraFields);
 // Inspection API for the local evidence runner. No source-provided code is evaluated.
-window.cadPreview={parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>controller.dispose(),get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
-window.addEventListener('pagehide',()=>controller.dispose(),{once:true});
+window.cadPreview={parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>{mouseOrbit.dispose();controller.dispose();},get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
+window.addEventListener('pagehide',()=>{mouseOrbit.dispose();controller.dispose();},{once:true});
 select(fixtures[0].id);

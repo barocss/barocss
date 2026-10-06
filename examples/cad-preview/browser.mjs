@@ -44,7 +44,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const cadModuleRequests = new Set();
   page.on('request', request => cadModuleRequests.add(new URL(request.url()).pathname));
-  const allowed = new Set(['/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -137,6 +137,23 @@ try {
   const cameraSummary=page.locator('#camera-panel > summary');await cameraSummary.focus();await cameraSummary.press('Enter');await cameraSummary.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'camera-eye');await cameraSummary.focus();await cameraSummary.press('Enter');
   const uiWorkspace={constructionScreen,screens:uiScreens,baselineIndexHash:hash(baselineIndexBytes),keyboardSourceAndDiagnostics:true,focusRestoredAfterInspection:true,acceptedLabelRetainedOnInvalidSource:true,controlsLabelled:true,noHorizontalOverflow:true};
   await writeFile(path.join(evidence,'ui-workspace.json'),json(uiWorkspace));
+  const orbitBefore=await page.evaluate(()=>({snapshot:window.cadPreview.snapshot(),bytes:Array.from(window.cadPreview.readPixels()),inspectedId:window.cadPreview.inspectedId}));
+  const dragBox=await page.locator('#preview').boundingBox();assert(dragBox);
+  const center={x:dragBox.x+dragBox.width/2,y:dragBox.y+dragBox.height/2};
+  await page.mouse.move(center.x,center.y);await page.mouse.down();await page.mouse.move(center.x+90,center.y+45,{steps:6});await page.mouse.up();
+  const orbitAfter=await page.evaluate(()=>({snapshot:window.cadPreview.snapshot(),bytes:Array.from(window.cadPreview.readPixels()),inspectedId:window.cadPreview.inspectedId,dragging:document.getElementById('preview').classList.contains('is-dragging')}));
+  for(const key of ['source','model','packet','report','iges','revision','constructions','selectedConstruction'])assert.deepEqual(orbitAfter.snapshot[key],orbitBefore.snapshot[key]);
+  assert.equal(orbitAfter.inspectedId,orbitBefore.inspectedId);assert(orbitAfter.snapshot.viewRevision>orbitBefore.snapshot.viewRevision);assert.notDeepEqual(orbitAfter.bytes,orbitBefore.bytes);assert.equal(orbitAfter.dragging,false);
+  for(const key of ['target','up','fovYDegrees','near','far'])assert.deepEqual(orbitAfter.snapshot.options.camera[key],orbitBefore.snapshot.options.camera[key]);
+  const radius=c=>Math.hypot(...c.eye.map((v,i)=>v-c.target[i]));assert(Math.abs(radius(orbitAfter.snapshot.options.camera)-radius(orbitBefore.snapshot.options.camera))<1e-9);
+  await page.mouse.move(center.x+130,center.y+70);assert.equal(await page.evaluate(()=>window.cadPreview.snapshot().viewRevision),orbitAfter.snapshot.viewRevision);
+  await page.mouse.move(center.x,center.y);await page.mouse.down();await page.mouse.move(dragBox.x+dragBox.width+25,center.y,{steps:3});await page.mouse.up();assert.equal(await page.locator('#preview').evaluate(el=>el.classList.contains('is-dragging')),false);
+  const capturedView=await page.evaluate(()=>window.cadPreview.snapshot().viewRevision);
+  await page.mouse.move(center.x,center.y);await page.mouse.down();await page.locator('#preview').dispatchEvent('pointercancel',{pointerId:1,pointerType:'mouse'});await page.mouse.move(center.x+60,center.y);await page.mouse.up();assert.equal(await page.evaluate(()=>window.cadPreview.snapshot().viewRevision),capturedView);
+  const orbitEvidence={head:taskCommit,actualMouseDrag:true,actualReadPixelsChanged:true,nativeIdentityPreserved:true,modelRevision:orbitAfter.snapshot.revision,beforeViewRevision:orbitBefore.snapshot.viewRevision,afterViewRevision:orbitAfter.snapshot.viewRevision,beforeCamera:orbitBefore.snapshot.options.camera,afterCamera:orbitAfter.snapshot.options.camera,pointerCaptureOutside:true,cancelRetained:true,releaseStopped:true};
+  await writeFile(path.join(evidence,'mouse-orbit.json'),json(orbitEvidence));
+  await writeFile(path.join(evidence,'mouse-orbit-before.png'),readbackPng(orbitBefore.bytes,512,384));await writeFile(path.join(evidence,'mouse-orbit-after.png'),readbackPng(orbitAfter.bytes,512,384));
+
   // Restore the original consumer fixture; open advanced controls through real summaries.
   await page.setViewportSize({width:1280,height:720});await page.reload();await page.waitForFunction(()=>window.cadPreview?.snapshot()?.packet);
   await page.evaluate(()=>window.originalPreviewRenderer=window.cadPreview.renderer);
@@ -687,7 +704,7 @@ try {
   const result = { taskCommit, integrationCommit, backend, packageModules, sourceModules, backendDescription: 'ANGLE SwiftShader software WebGL2; functional composition only',
     packageArtifacts: { cad: hash(await readFile(path.join(repo, 'packages/barocss-cad/dist/index.js'))),
       gpu: hash(await readFile(path.join(repo, 'packages/barocss-gpu/dist/index.js'))) },
-    uiWorkspace, frames, constructionFrames, objectFrames, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
+    orbitEvidence, uiWorkspace, frames, constructionFrames, objectFrames, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
     deterministicFields: ['source', 'model', 'packet except host-issued revision', 'report', 'IGES', 'display options'],
     environmentFields: ['taskCommit', 'integrationCommit', 'browser', 'backend', 'evidence path'],
     limitations: ['Finite sampled deviation is not a global bound', 'Surfaces remain open; no solid, topology, STEP, or manufacturing claim', 'Software rendering is not physical GPU performance',
