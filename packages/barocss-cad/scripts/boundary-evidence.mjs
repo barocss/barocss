@@ -42,7 +42,7 @@ export function writeBoundaryEvidence(api) {
   for(const name of ['preview-flat','quarter-cylinder','asymmetric-patch','preview-weighted','extruded-cylinder','extruded-asymmetric','derivative-c1']) {
     const source=readFileSync(resolve(root,'examples/cad-nurbs/'+name+'.css'),'utf8');
     const isConstruction=name.startsWith('extruded-')||name==='derivative-c1';
-    const compiled=api.compileCadModel(source,{sourceVersion:compiled.ir.sourceVersion});assert.equal(compiled.ok,true,JSON.stringify(compiled.diagnostics));const model=compiled.model;
+    const compiled=api.compileCadModel(source,{sourceVersion:isConstruction?1:0});assert.equal(compiled.ok,true,JSON.stringify(compiled.diagnostics));const model=compiled.model;
     const surface=isConstruction?model.objects.find(o=>o.id===compiled.constructions[0].outputId):model.objects[0];
     const before=json(model),domain=api.surfaceDomain(surface),boundaries=[],curves=[];
     for(const boundary of ['v-min','u-max','v-max','u-min']) {
