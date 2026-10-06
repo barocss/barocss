@@ -88,3 +88,6 @@ runRectangleExtrusionExchange();
 
 const { runRectangleFeatureExchange } = await import('./rectangle-feature-exchange.mjs');
 runRectangleFeatureExchange();
+
+const { runLinearSketchExchange } = await import('./linear-sketch-exchange.mjs');
+runLinearSketchExchange();

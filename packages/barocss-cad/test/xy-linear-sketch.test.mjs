@@ -1,0 +1,70 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {solveXYLinearSketch as solve,buildXYProfile,compileCadModel,evaluateCurveD1,exportIGES} from '../dist/index.js';
+const point=(id,x,y)=>({id,position:[x,y]}),segment=(id,a,b)=>({id,startPointId:a,endPointId:b});
+const doc=(points,segments,constraints=[])=>({format:'barocss-xy-linear-sketch',version:0,id:'sketch',lengthUnit:'mm',points,segments,constraints});
+const horizontal=()=>doc([point('A',0,1),point('B',4,3)],[segment('line','A','B')],[{id:'h',kind:'horizontal',segmentId:'line'}]);
+const rectangle=()=>doc([point('A',1,1),point('B',6,2),point('C',8,6),point('D',-1,4)],[segment('bottom','A','B'),segment('right','B','C'),segment('top','C','D'),segment('left','D','A')],[{id:'hb',kind:'horizontal',segmentId:'bottom'},{id:'ht',kind:'horizontal',segmentId:'top'},{id:'vl',kind:'vertical',segmentId:'left'},{id:'vr',kind:'vertical',segmentId:'right'}]);
+// Exact rational Gaussian elimination, independent of component/union-find logic.
+const gcd=(a,b)=>{a=a<0n?-a:a;b=b<0n?-b:b;while(b)[a,b]=[b,a%b];return a;};
+const fraction=(n,d=1n)=>{if(d<0n){n=-n;d=-d;}const g=gcd(n,d);return [n/g,d/g];};
+const sub=(a,b)=>fraction(a[0]*b[1]-b[0]*a[1],a[1]*b[1]);
+const mul=(a,b)=>fraction(a[0]*b[0],a[1]*b[1]);
+const div=(a,b)=>fraction(a[0]*b[1],a[1]*b[0]);
+function rank(rows,n){const m=rows.map(r=>r.map(x=>fraction(BigInt(x))));let pivot=0;for(let col=0;col<n&&pivot<m.length;col++){const next=m.findIndex((r,i)=>i>=pivot&&r[col][0]!==0n);if(next<0)continue;[m[pivot],m[next]]=[m[next],m[pivot]];const value=m[pivot][col];m[pivot]=m[pivot].map(x=>div(x,value));for(let i=0;i<m.length;i++)if(i!==pivot&&m[i][col][0]!==0n){const factor=m[i][col];m[i]=m[i].map((x,k)=>sub(x,mul(factor,m[pivot][k])));}pivot++;}return pivot;}
+function equations(d,c){const n=d.points.length*2,index=id=>d.points.findIndex(p=>p.id===id),equal=(a,b,axis)=>{const r=Array(n).fill(0);r[2*index(a)+axis]=1;r[2*index(b)+axis]=-1;return r;};
+  if(c.kind==='fixed')return [0,1].map(axis=>{const r=Array(n).fill(0);r[2*index(c.pointId)+axis]=1;return r;});
+  if(c.kind==='coincident')return [0,1].map(axis=>equal(c.pointA,c.pointB,axis));const s=d.segments.find(s=>s.id===c.segmentId);return [equal(s.startPointId,s.endPointId,c.kind==='horizontal'?1:0)];
+}
+function oracle(d){let rows=[],r=0;const redundant=[];for(const c of d.constraints){rows.push(...equations(d,c));const next=rank(rows,2*d.points.length);if(next===r)redundant.push(c.id);r=next;}return {degreesOfFreedom:2*d.points.length-r,rank:r,fullyConstrained:r===2*d.points.length,redundantConstraintIds:redundant};}
+function check(d){const result=solve(d);assert.equal(result.ok,true,JSON.stringify(result));assert.deepEqual(result.report,oracle(d));assert.deepEqual(result.document,d);assert.equal(result.solution.sourceVersion,0);assert.equal(result.solution.ir.schemaVersion,1);assert.equal(result.solution.model.version,0);assert.deepEqual(result.solution.points.map(p=>p.id),d.points.map(p=>p.id));
+  const positions=new Map(result.solution.points.map(p=>[p.id,p.position]));for(const c of d.constraints){if(c.kind==='fixed')assert.deepEqual(positions.get(c.pointId),c.target);else if(c.kind==='coincident'){const a=positions.get(c.pointA),b=positions.get(c.pointB);assert.equal(a[0]-b[0],0);assert.equal(a[1]-b[1],0);}else{const s=d.segments.find(s=>s.id===c.segmentId),axis=c.kind==='horizontal'?1:0;assert.equal(positions.get(s.startPointId)[axis]-positions.get(s.endPointId)[axis],0);}}
+  const compiled=compileCadModel(result.solution.source,{sourceVersion:0});assert.equal(compiled.ok,true);assert.deepEqual(compiled.model,result.solution.model);assert.deepEqual(compiled.ir,result.solution.ir);
+  for(let i=0;i<d.segments.length;i++){const s=d.segments[i],a=positions.get(s.startPointId),b=positions.get(s.endPointId),profile=buildXYProfile({kind:'line',id:s.id,points:[a,b]});assert.deepEqual(result.solution.model.objects[i],profile.curve);assert.deepEqual(evaluateCurveD1(result.solution.model.objects[i],.5).derivative,[b[0]-a[0],b[1]-a[1],0]);}return result;
+}
+function failure(d,code){const result=solve(d);assert.equal(result.ok,false);assert.deepEqual(Object.keys(result).sort(),['ok','diagnostics'].sort());assert.ok(result.diagnostics.length>0);assert.equal(result.diagnostics[0].code,code);for(const diagnostic of result.diagnostics){assert.deepEqual(Object.keys(diagnostic).sort(),['code','message','path','constraintIds'].sort());assert.equal(typeof diagnostic.message,'string');assert.equal(typeof diagnostic.path,'string');assert.ok(Array.isArray(diagnostic.constraintIds));}return result;}
+test('exact rational rank oracle validates horizontal/free and fully fixed rectangle reports',()=>{
+  assert.equal(rank([[1,-1],[2,-2]],2),1);assert.equal(rank([[1,1],[1,-1]],2),2);
+  const h=horizontal(),free=check(h);assert.deepEqual(free.solution.points,[point('A',0,2),point('B',4,2)]);assert.equal(free.report.rank,1);assert.equal(free.report.degreesOfFreedom,3);
+  h.constraints.push({id:'fa',kind:'fixed',pointId:'A',target:[0,5]});const pinned=check(h);assert.deepEqual(pinned.solution.points,[point('A',0,5),point('B',4,5)]);assert.equal(pinned.report.degreesOfFreedom,1);
+  const r=rectangle();assert.equal(check(r).report.degreesOfFreedom,4);r.constraints.push({id:'fa',kind:'fixed',pointId:'A',target:[0,0]});assert.equal(check(r).report.degreesOfFreedom,2);r.constraints.push({id:'fc',kind:'fixed',pointId:'C',target:[7,5]});assert.equal(check(r).report.degreesOfFreedom,0);
+});
+test('whole versus partial redundancy follows exact incremental matrix rank for fixed and coincidence constraints',()=>{
+  const h=horizontal();h.constraints.push({id:'fa',kind:'fixed',pointId:'A',target:[0,5]},{id:'fb',kind:'fixed',pointId:'B',target:[4,5]},{id:'fb_again',kind:'fixed',pointId:'B',target:[4,5]},{id:'h_again',kind:'horizontal',segmentId:'line'});assert.deepEqual(check(h).report.redundantConstraintIds,['fb_again','h_again']);
+  const d=doc([point('A',0,1),point('B',0,3),point('C',0,8)],[segment('ac','A','C'),segment('bc','B','C')],[{id:'va',kind:'vertical',segmentId:'ac'},{id:'vb',kind:'vertical',segmentId:'bc'},{id:'partial',kind:'coincident',pointA:'A',pointB:'B'},{id:'repeat',kind:'coincident',pointA:'A',pointB:'B'}]);assert.deepEqual(check(d).report.redundantConstraintIds,['repeat']);
+});
+test('conflict diagnostics retain relevant component anchors/equalities and exclude unrelated components',()=>{
+  const d=rectangle();d.points.push(point('E',20,1),point('F',24,3));d.segments.push(segment('extra','E','F'));d.constraints.push({id:'fa',kind:'fixed',pointId:'A',target:[0,0]},{id:'fc',kind:'fixed',pointId:'C',target:[7,5]},{id:'extra_h',kind:'horizontal',segmentId:'extra'},{id:'extra_fixed',kind:'fixed',pointId:'E',target:[20,2]},{id:'bad_join',kind:'coincident',pointA:'B',pointB:'D'});
+  const result=failure(d,'CONFLICT'),ids=result.diagnostics[0].constraintIds;for(const id of ['fa','fc','vl','vr','bad_join'])assert.ok(ids.includes(id),JSON.stringify(ids));for(const id of ['extra_h','extra_fixed'])assert.ok(!ids.includes(id));assert.deepEqual(ids,d.constraints.map(c=>c.id).filter(id=>ids.includes(id)));
+  const close=horizontal();close.constraints.push({id:'one',kind:'fixed',pointId:'A',target:[0,5]},{id:'two',kind:'fixed',pointId:'A',target:[Number.EPSILON,5]});assert.deepEqual(failure(close,'CONFLICT').diagnostics[0].constraintIds.filter(id=>id==='one'||id==='two'),['one','two']);
+});
+test('compatible zero anchors retain first representation; singleton seeds and point-order means retain binary64 rules',()=>{
+  const zero=doc([point('A',-0,-0),point('B',1,1)],[segment('line','A','B')]);assert.ok(Object.is(check(zero).solution.points[0].position[0],-0));
+  for(const first of [-0,0]){const d=doc([point('A',4,4),point('B',1,1)],[segment('line','A','B')],[{id:'first',kind:'fixed',pointId:'A',target:[first,first]},{id:'second',kind:'fixed',pointId:'A',target:[Object.is(first,-0)?0:-0,Object.is(first,-0)?0:-0]}]);const r=solve(d);assert.equal(r.ok,true);assert.deepEqual(r.report,oracle(d));assert.ok(Object.is(r.solution.points[0].position[0],first));assert.deepEqual(r.report.redundantConstraintIds,['second']);}
+  const mean=doc([point('A',0,10000),point('B',2,-10000),point('C',4,1e-13)],[segment('ab','A','B'),segment('bc','B','C')],[{id:'hab',kind:'horizontal',segmentId:'ab'},{id:'hbc',kind:'horizontal',segmentId:'bc'}]);const result=check(mean),expected=((10000+-10000)+1e-13)/3;for(const p of result.solution.points)assert.ok(Object.is(p.position[1],expected));
+});
+test('degenerate seeds can become valid; solved collapsed/subminimum segments fail atomically with segment path',()=>{
+  const d=doc([point('A',0,0),point('B',0,0)],[segment('line','A','B')],[{id:'fa',kind:'fixed',pointId:'A',target:[0,0]},{id:'fb',kind:'fixed',pointId:'B',target:[1,0]}]);check(d);
+  const collapsed=horizontal();collapsed.constraints.push({id:'same',kind:'coincident',pointA:'A',pointB:'B'});const result=failure(collapsed,'DEGENERATE_GEOMETRY');assert.match(result.diagnostics[0].path,/segments/);assert.match(result.diagnostics[0].message,/line/);
+  failure(doc([point('A',0,0),point('B',.0009,0)],[segment('short','A','B')]),'DEGENERATE_GEOMETRY');
+});
+test('global identities/references/counts and strict own-data admission return no partial success',()=>{
+  const bad=[];const change=fn=>{const d=horizontal();fn(d);bad.push(d);};change(d=>d.version=1);change(d=>d.lengthUnit='cm');change(d=>d.id='x'.repeat(81));change(d=>d.points[0].id=d.segments[0].id);change(d=>d.constraints[0].segmentId='missing');change(d=>d.segments[0].endPointId='missing');change(d=>d.segments[0].endPointId='A');change(d=>d.points.push(point('unused',2,2)));change(d=>d.points[0].position=[Infinity,0]);change(d=>d.points[0].position=[10001,0]);change(d=>d.constraints[0].kind='angle');change(d=>d.proof={valid:true});change(d=>d.constraints=Array.from({length:33},(_,i)=>({id:'h'+i,kind:'horizontal',segmentId:'line'})));change(d=>d.points=Array.from({length:17},(_,i)=>point('p'+i,i,0)));change(d=>d.segments=Array.from({length:9},(_,i)=>segment('s'+i,'A','B')));
+  for(const d of bad){const result=solve(d);assert.equal(result.ok,false);assert.equal(result.solution,undefined);assert.equal(result.report,undefined);}
+  let calls=0;for(const key of ['points','segments','constraints']){const d=horizontal();Object.defineProperty(d,key,{enumerable:true,get(){calls++;return [];}});assert.equal(solve(d).ok,false);}const nested=horizontal();Object.defineProperty(nested.points[0].position,'0',{enumerable:true,get(){calls++;return 0;}});assert.equal(solve(nested).ok,false);assert.equal(calls,0);
+  for(const d of [null,[],Object.assign(Object.create({extra:1}),horizontal()),Object.create(horizontal()),{...horizontal(),[Symbol('x')]:1}])assert.equal(solve(d).ok,false);
+  const late=horizontal();late.constraints=[{id:'early_a',kind:'fixed',pointId:'A',target:[0,0]},{id:'early_b',kind:'fixed',pointId:'A',target:[1,0]},{id:'late_missing',kind:'horizontal',segmentId:'missing'}];failure(late,'REFERENCE');
+  const sparse=horizontal();delete sparse.points[0];assert.equal(solve(sparse).ok,false);const hidden=horizontal();Object.defineProperty(hidden,'hidden',{value:1});assert.equal(solve(hidden).ok,false);const cycle=horizontal();cycle.points=[cycle,cycle];assert.equal(solve(cycle).ok,false);const deep=horizontal();deep.points[0].position=[[[[[0]]]],0];assert.equal(solve(deep).ok,false);assert.equal(solve(Object.assign(Object.create(null),horizontal())).ok,true);
+});
+function collect(v,set){if(v&&typeof v==='object'){set.add(v);for(const c of Object.values(v))collect(c,set);}}
+function owned(v,seen,input){if(v&&typeof v==='object'){assert.ok(!input.has(v),'input/previous alias');assert.ok(!seen.has(v),'sibling alias');seen.add(v);for(const c of Object.values(v))owned(c,seen,input);}}
+test('every nested output occurrence is independent; conflict leaves previous accepted seed/source/native/report usable',()=>{
+  const d=horizontal();d.points.forEach(p=>{Object.freeze(p.position);Object.freeze(p);});d.segments.forEach(Object.freeze);d.constraints.forEach(Object.freeze);Object.freeze(d.points);Object.freeze(d.segments);Object.freeze(d.constraints);Object.freeze(d);const input=new WeakSet();collect(d,input);const result=check(d);owned(result,new WeakSet(),input);const before=structuredClone(result),prior=new WeakSet();collect(result,prior);owned(check(d),new WeakSet(),prior);
+  const conflict=structuredClone(d);conflict.constraints.push({id:'a',kind:'fixed',pointId:'A',target:[0,2]},{id:'b',kind:'fixed',pointId:'A',target:[1,2]});failure(conflict,'CONFLICT');assert.deepEqual(result,before);assert.deepEqual(check(d),before);assert.equal(exportIGES(result.solution.model,['line']).report.objects[0].entity,126);
+});
+function tree(count,depth=0){if(count===1)return 0;const capacity=Array.from({length:4-depth},(_,i)=>8**i).reduce((a,b)=>a+b,0),record={};let left=count-1;for(let i=0;left;i++){assert.ok(i<8&&depth<4);const n=Math.min(left,capacity);record['k'+i]=tree(n,depth+1);left-=n;}return record;}
+function occurrences(value,depth=0){assert.ok(depth<=4);if(value&&typeof value==='object'){assert.ok(Object.keys(value).length<=8);return 1+Object.values(value).reduce((n,v)=>n+occurrences(v,depth+1),0);}return 1;}
+test('max16 points/eight segments/32 constraints and exact512/513 own-value guards are distinct',()=>{
+  const points=Array.from({length:16},(_,i)=>point('p'+i,i,1+(i%2))),segments=Array.from({length:8},(_,i)=>segment('s'+i,'p'+(2*i),'p'+(2*i+1))),constraints=Array.from({length:32},(_,i)=>({id:'h'+i,kind:'horizontal',segmentId:'s0'}));const d=doc(points,segments,constraints);d.id='d'.repeat(80);const result=check(d);assert.equal(result.report.rank,1);assert.equal(result.report.redundantConstraintIds.length,31);
+  const at=tree(512),over=tree(513);assert.equal(occurrences(at),512);assert.equal(occurrences(over),513);failure(at,'INVALID_DOCUMENT');failure(over,'LIMIT');failure(Object.fromEntries(Array.from({length:9},(_,i)=>['k'+i,0])),'LIMIT');
+});
