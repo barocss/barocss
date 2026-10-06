@@ -210,6 +210,76 @@ is existing `dist/math.js`; the types import is erased. The preview host needs t
 exact static `/boundary.js` route. CAD records a proposed registration patch;
 the GPU integrator applies it and verifies the actual host serially.
 
+## Fixed parametric face incidence v0
+
+`buildParametricFace(surface, ids)` returns a `FaceBundle`. `FaceIds` requires
+explicit faceId, loopId and four-item vertexIds/edgeIds/curveIds tuples. All fifteen
+geometry/topology IDs, including surface.id, must be distinct ASCII identifiers
+of at most 128 characters. `Four<T>`, `UV`, `FaceVertex`, `FaceEdge`, `FaceUse` and
+`FaceValidationReport` are exported. No identifier is inferred by the native API.
+
+The bundle separates `geometry` (an existing version0 millimetre Model with one
+copied source surface and four actual boundary curves) from `topology` (version0).
+Topology contains one forward face with surfaceId/outerLoopId, four vertices with
+native corner points, four edges with curveId and cyclic start/end vertex IDs, and
+one loop with four forward uses. Uses are ordered v-min,u-max,v-max,u-min. Each
+use retains its boundary selector and a linear pcurve `{ domain, uv0, uv1 }`.
+Domains are original directional knot intervals; decreasing uses keep increasing
+curve parameter while their UV endpoints traverse the opposite surface direction.
+The builder's Model name is `parametric_face`; valid Model names are metadata,
+separate from the fifteen reference IDs.
+
+`validateFaceBundle(unknown)` checks the complete fixed incidence subset and
+returns exactly `{ incidenceValid: true, geometricValidity: 'not-certified',
+solid: false }`. It rejects unsupported fields/versions/senses, duplicate or
+unreachable references, broken cyclic order, wrong exact boundary data and pcurve
+mapping. It never repairs or reorders input. All records must be own plain data
+(Object.prototype or null); arrays must have Array.prototype, exact dense schema
+lengths and no foreign fields. Symbols, accessors and executable values reject
+without calling getters. A snapshot uses at most8192 values, depth10 and128 items
+per array and sixteen fields per record before strict schema/native validation.
+Cycles fail these bounds. Proxy
+reflection traps remain the host's responsibility. Valid source aliases are copied
+per occurrence; returned nested geometry/topology arrays do not share input data.
+
+This new subset requires C1-or-higher interior knots in both directions and four
+pairwise distinct corner points separated by at least1e-6mm. C0, seams/repeated
+corners and constant boundaries reject here. General #509 boundary extraction
+and existing native validators remain unchanged. Nineteen fixed parameters per
+edge include endpoints and seventeen nonuniform interior queries. Native curve,
+vertex and surface-pcurve positions must agree within1e-9mm; signed original-domain
+tangents within1e-9*max(1,expected norm). Equal UV components and endpoints retain
+their exact values during interpolation, without nudging or clamping parameters.
+These structural/selected mapping checks do not prove absence of internal folds
+or self-intersection. A smooth folded quadratic counterexample passes incidence
+while remaining not-certified. No regular face, shell, solid or manufacturing
+guarantee follows, and finite zero interior derivatives do not become a normal.
+
+The built-package example `examples/cad-nurbs/face-demo.mjs` reads explicit IDs
+from `face-ids.json` and retains original source/features, bundle and report.
+The unchanged IGES writer exports only native geometry: one entity128 surface
+and four entity126 curves. It does not serialize the separate incidence IDs/graph.
+`BAROCSS_CAD_FACE_EVIDENCE` selects retained packed/reader evidence, defaulting to
+the isolated environment's `evidence-511/faces`. Run the current-head packed consumer
+before exchange. Independent OCP checks actual directory mapping, graph corner
+references, pcurves, original knots/domains and signed tangents. Reader limits remain
+1e-7mm position and1e-7*max(1,expected norm) derivative. Wrong graph association,
+missing vertex, reversed pcurve and corrupt exported pole controls must fail.
+
+For four smooth representative flat/oblique-plane/quarter-cylinder fixtures only,
+the reader also uses BRepCheck_Analyzer with geometry controls, counts one wire,
+four edges and four distinct vertices using IsSame, and records reader face/wire/
+edge orientations. SurfaceProperties area is checked against independent analytic
+area within1e-7*max(1,area)mm². Requested quadrature precision and its estimated
+error are separate report fields, without a certified quadrature error claim.
+Reader-generated valid faces are selected independent consumer evidence, not
+validation of every native input or interchange of our graph. No healing/tolerance
+override or runtime kernel is added. All legacy gates remain mandatory.
+
+The additive `dist/face.js` export imports only existing `dist/derivatives.js`,
+`dist/boundary.js` and `dist/math.js` at runtime; type imports are erased. GPU alone
+registers exact `/face.js` and verifies native plus actual-host final merged heads.
+
 ## IGES delivery
 
 `exportIGES(model, ids)` requires explicit unique IDs. It writes deterministic

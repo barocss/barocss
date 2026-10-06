@@ -8,3 +8,4 @@ export * from './extrusion.js';
 export * from './compiler.js';
 export * from './derivatives.js';
 export * from './boundary.js';
+export * from './face.js';
