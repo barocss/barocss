@@ -1,0 +1,6 @@
+{
+  "format":"barocss-xy-linear-sketch","version":0,"id":"horizontal_doc","lengthUnit":"mm",
+  "points":[{"id":"A","position":[0,1]},{"id":"B","position":[4,3]}],
+  "segments":[{"id":"line","startPointId":"A","endPointId":"B"}],
+  "constraints":[{"id":"horizontal","kind":"horizontal","segmentId":"line"}]
+}

@@ -1020,3 +1020,78 @@ files and checks original geometry, normals, domains and identity associations,
 with corrupt-file controls. Set `BAROCSS_CAD_RECTANGLE_FEATURE_EVIDENCE` to fresh
 exact-head evidence. The files contain separate curve/surface geometry, not a
 whole-solid interchange or feature history.
+
+## Bounded XY linear sketch constraints
+
+`solveXYLinearSketch(document)` solves one original
+`barocss-xy-linear-sketch` document v0. The complete example is
+`examples/cad-nurbs/xy-linear-sketch.json`. It contains `format`, `version`,
+`id`, `lengthUnit:'mm'`, `points`, `segments` and `constraints`. Points are
+`{ id, position:[x,y] }`; segments are `{ id, startPointId, endPointId }`.
+
+```js
+import { solveXYLinearSketch } from '@barocss/cad';
+const result = solveXYLinearSketch(document);
+if (result.ok) {
+  console.log(result.report.degreesOfFreedom, result.solution.model);
+} else {
+  console.log(result.diagnostics);
+}
+```
+
+The supported constraints are exactly `{ id, kind:'horizontal', segmentId }`,
+`{ id, kind:'vertical', segmentId }`,
+`{ id, kind:'coincident', pointA, pointB }`, and
+`{ id, kind:'fixed', pointId, target:[x,y] }`. The sketch has2..16 points,
+1..8 segments and0..32 constraints. Coordinates/targets are finite XY mm
+within±10000. Every point belongs to a segment; segment endpoint and coincidence
+references name distinct points. Document IDs have at most80 ASCII characters;
+all point/segment/constraint IDs have at most128. All IDs are globally distinct.
+All references resolve before any constraint solving or native geometry work.
+
+Admission snapshots the entire input once, with512 own values, depth4, arrays32,
+records8 and strings128. Ordinary/null-prototype records and ordinary dense
+arrays are accepted. Getters are never evaluated. Foreign prototypes, symbols,
+hidden/extra fields, sparse arrays and invalid references/counts fail atomically.
+Parent builder/compiler budgets and source dialects remain unchanged.
+
+Each allowed equation identifies two scalar coordinates or pins one coordinate.
+Horizontal joins Y; vertical joins X; coincidence joins both; fixed anchors both.
+Anchors compare with exact numeric equality: distinct close values conflict,
+while +0/-0 agree. The first fixed target in input order determines a compatible
+zero anchor's representation. A free component uses the arithmetic mean of its
+original seeds, summed in original point order starting with the first seed.
+Singleton seeds retain their exact bits, including -0. Members receive one
+identical value, so represented equation residuals are exactly0.
+
+Remaining unanchored scalar components count as degrees of freedom. Rank is
+2N minus DOF; fullyConstrained is exactly DOF0. Constraints are processed in
+input order. A constraint is redundant only if it adds no independent scalar
+condition; one redundant axis does not make a two-axis constraint redundant.
+Conflict diagnostics include the actual component anchors/equalities in input
+order, without unrelated components. Minimal irreducible conflict sets are not
+claimed. No iterative/nonlinear/general matrix solver is introduced.
+
+Success is `{ ok:true, document, solution, report }`. The document retains
+authoring seeds; solution.points retain point IDs/order with derived positions.
+Actual solved segments become original `buildXYProfile` lines, then one complete
+source0 is compiled through `compileCadModel`. Native Model0 contains the same
+1..8 degree1/two-pole/unit-weight Curves in segment order, original domain0..1,
+and schema1 IR. Every nested returned occurrence owns its data independently.
+A horizontal line from seedsA(0,1),B(4,3) solves toA(0,2),B(4,2), rank1/DOF3.
+Adding fixedA(0,5) producesA(0,5),B(4,5), rank3/DOF1.
+
+Failure is exactly `{ ok:false, diagnostics }`, with bounded `code`, `message`,
+`path` and `constraintIds`. Codes distinguish INVALID_DOCUMENT, UNSUPPORTED,
+LIMIT, REFERENCE, CONFLICT, DEGENERATE_GEOMETRY and COMPILATION. Collapsed or
+sub0.001mm solved segments fail; initially invalid-length seeds may still solve
+to valid lines. No partial source/Model/report or caller/prior result mutation
+is adopted. The API has no global state, history stack or new file loader.
+
+Native/packed/external TypeScript tests include independent exact rational
+matrix-rank and incremental redundancy controls. `test:exchange` reads actual
+selected IGES126 line files and independently checks equations, coefficient/
+augmented matrix ranks, domains, IDs, points and D1, with corrupt-pointer/readable
+shifted-geometry controls. Set `BAROCSS_CAD_LINEAR_SKETCH_EVIDENCE` to fresh
+exact-head evidence. This adds no GUI, driving distances/angles/radii/tangency,
+source syntax/project admission, region/wire/solid certificate or history export.
