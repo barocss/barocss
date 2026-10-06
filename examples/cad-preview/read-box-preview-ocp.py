@@ -34,8 +34,8 @@ for box in manifest['boxes'][:1]if mode else manifest['boxes']:
   for k,v in settings.items():assert (Interface_Static.SetCVal_s(k,v)if isinstance(v,str)else Interface_Static.SetIVal_s(k,v))
   lines=filename.read_text().splitlines();assert all(len(line)==80 for line in lines);directory=[line for line in lines if line[72]=='D'];assert len(directory)==2 and int(directory[0][:8])==128
   assert reader.ReadFile(str(filename))==IFSelect_RetDone;assert not diag(reader.WS().ModelCheckList(True));assert reader.NbRootsForTransfer()==1;assert reader.TransferRoots()==1;assert not diag(reader.WS().TransferReader().LastCheckList())
-  model=reader.IGESModel();assert model.GlobalSection().UnitName().ToCString()=='MM'and model.GlobalSection().Scale()==1 and model.NbEntities()==1 and model.IGESEntity(1).TypeNumber()==128
-  exp=TopExp_Explorer(reader.OneShape(),TopAbs_FACE);assert exp.More();shape=TopoDS.Face_s(exp.Current());exp.Next();assert not exp.More();surface=BRepAdaptor_Surface(shape,False);assert [surface.FirstUParameter(),surface.LastUParameter(),surface.FirstVParameter(),surface.LastVParameter()]==[0,1,0,1]
+  model=reader.IGESModel();assert model.GlobalSection().UnitName().ToCString()=='MM'and model.GlobalSection().Scale()==1 and model.NbEntities()==1 and model.Entity(1).TypeNumber()==128
+  exp=TopExp_Explorer(reader.OneShape(),TopAbs_FACE);assert exp.More();shape=TopoDS.Face(exp.Current());exp.Next();assert not exp.More();surface=BRepAdaptor_Surface(shape,False);assert [surface.FirstUParameter(),surface.LastUParameter(),surface.FirstVParameter(),surface.LastVParameter()]==[0,1,0,1]
   print('REACHED_GEOMETRY',box['name'],IDS[i],flush=True)
   du=[corners[b][k]-corners[a][k]for k in range(3)];dv=[corners[d][k]-corners[a][k]for k in range(3)];maximum=0
   for sample in face['samples']:
