@@ -1,0 +1,11 @@
+@model compiler_curve {
+  version: 0;
+  length-unit: mm;
+  @curve #arc {
+    type: nurbs;
+    degree: 2;
+    knots: [0,0,0,1,1,1];
+    control-points: [[10,-0,0],[10,10,0],[0,10,0]];
+    weights: [1,0.7071067811865476,1];
+  }
+}
