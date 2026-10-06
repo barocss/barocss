@@ -19,3 +19,5 @@ export type { CadModelIR1, CadModelIR2, CadResolvedParameter, CadFieldBinding, C
 export type { CadExpression } from './model-compiler.js';
 export { buildXYProfile } from './xy-profile.js';
 export type { XYPoint, XYProfileRequest, XYProfileReport, XYProfileResult } from './xy-profile.js';
+export { buildXYArc } from './xy-arc.js';
+export type { XYArcRequest, XYArcReport, XYArcResult } from './xy-arc.js';

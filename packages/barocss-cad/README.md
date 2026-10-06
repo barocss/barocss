@@ -846,3 +846,51 @@ The profile packed consumer and independent actual-byte reader run through the
 existing consumer/exchange commands. Set `BAROCSS_CAD_XY_PROFILE_EVIDENCE` to
 fresh exact-head evidence. Sketch UI, workplane snapping/document/history,
 constraints and curve rendering remain separately scoped features.
+
+## Rational XY quarter arcs and circles
+
+`buildXYArc(request)` creates one original source0/native rational Curve:
+
+```js
+import { buildXYArc, exportIGES } from '@barocss/cad';
+const quarter = buildXYArc({ kind: 'quarter-arc', id: 'arc', center: [0, 0], radius: 10, quadrant: 0 });
+const circle = buildXYArc({ kind: 'circle', id: 'rim', center: [4, -3], radius: 10 });
+const file = exportIGES(circle.model, ['rim']);
+```
+
+A quarter request has exactly `kind`, `id`, `center`, `radius` and `quadrant`.
+A circle omits `quadrant`. ID and strict own-data snapshot bounds match the XY
+profile builder. Center and every computed pole use finite XY millimetres
+within±10000; radius is0.001..10000mm and local quarter poles remain distinct.
+Ordinary binary64 addition computes translated poles. There is no coordinate
+snapping, angle fitting or radius clamping. Unsupported planes, angles,
+clockwise orientation and foreign options fail.
+
+Quarters run CCW in quadrants0..3. Each has degree2, three poles,
+weights`[1,Math.SQRT1_2,1]`, knots`[0,0,0,1,1,1]` and original domain`[0,1]`.
+A circle joins all four quarters: nine poles, alternating unit/diagonal weights,
+knots`[0,0,0,1,1,2,2,3,3,4,4,4]` and domain`[0,4]`. Shared quarter endpoints
+occur once inside the pole list; the last pole repeats the first coordinates
+in a fresh array. These are rational control poles, not a polygonal sample.
+
+A span parameter is the original rational-quadratic parameter, not a linear
+angular coordinate. Circle spanq uses`u=q+t`. Public D1 still rejects exact
+interior knots1/2/3 under the existing degree/multiplicity C0 rule; point queries
+at those knots work and global endpoints keep one-sided D1. The builder makes
+no G1/C1, periodicity or smooth-seam certificate.
+
+Return is `{ source, sourceVersion: 0, model, curve, report }`. Common bounded
+source formatting and actual compiler adoption preserve profile source bytes.
+Each model/curve/report occurrence owns data independently. Report keeps
+provided `centerMM` bits (including signed zero), `radiusMM`, `startQuadrant`,
+`spanCount`, `controlPointCount` and `parameterDomain`, plus `kind`, plane`xy`,
+lengthUnit`mm`, `endpointClosed`, `periodic:false`, `regionCertified:false` and
+`solid:false`. Endpoint closure is true only for circle and means coordinate
+equality, not a closed wire/region/solid. Native representation remains
+open-clamped/nonperiodic; IGES126 retains its existing general/open/nonperiodic
+flags. No new native Curve type or export profile is introduced.
+
+Actual packed runtime/types and independent authored-file reader cases run in
+`test:consumer` and `test:exchange`. Set `BAROCSS_CAD_XY_ARC_EVIDENCE` to fresh
+exact-head evidence. Interactive circle tools, curve rendering, project/history
+and wider angular/periodic/trim scope are separate features.

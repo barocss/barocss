@@ -1,0 +1,10 @@
+import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {buildXYArc,exportIGES} from '../../packages/barocss-cad/dist/index.js';
+const [filename,directory]=process.argv.slice(2);
+if(!filename||!directory)throw new Error('Usage: node xy-arc-demo.mjs request.json output-directory');
+const request=JSON.parse(readFileSync(resolve(filename),'utf8')),built=buildXYArc(request),output=resolve(directory);
+mkdirSync(output,{recursive:true});const exported=exportIGES(built.model,[built.curve.id]);
+for(const [name,value]of Object.entries({request,model:built.model,curve:built.curve,report:built.report,exportReport:exported.report}))writeFileSync(resolve(output,name+'.json'),JSON.stringify(value,null,2)+'\n');
+writeFileSync(resolve(output,'source.css'),built.source);writeFileSync(resolve(output,'curve.iges'),exported.iges);
+console.log('Original rational XY curve exported; periodic=false, regionCertified=false, solid=false.');
