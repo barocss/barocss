@@ -1426,3 +1426,57 @@ Original Curves and topology files are retained. Affected build and this native
 run are the prototype gate; deeper trim/numerical/readers/full certification
 is deferred. Generic curved trims, holes, Boolean, sewing/solid and existing
 file/renderer migrations remain separate.
+
+## Original capped polygon prism shell incidence
+
+`buildXYPolygonPrismShell(profile,{bodyId,distanceMM})` constructs original
+placed polygon trim caps, lateral NURBS FaceBundles and qualified shared edges.
+`validateXYPolygonPrismShell(shell)` admits bounded own data and canonically
+reconstructs the actual family before checking oriented incidence.
+
+```js
+import { buildXYPolygonRegion, buildXYPolygonPrismShell } from '@barocss/cad';
+const profile = buildXYPolygonRegion({ id:'L', points:[[0,0],[4,0],[4,1],[1,1],[1,4],[0,4]] });
+const body = buildXYPolygonPrismShell(profile.curve, { bodyId:'part', distanceMM:6 });
+// body.report:8 faces,12 global vertices,18 edges,36 uses; solid:false.
+```
+
+Source is the actual canonical3..12 vertex integer XY Curve. bodyId is
+ASCII1..64 so cap IDs remain within the original80-character face ID bound;
+derived/source IDs remain at most128. Positive integer distance1..10000
+translates to+Z within original represented bounds±10000mm. IDs are checked
+across original/global/qualified local roles before construction.
+
+Each cap keeps its validated local XY planar-face bundle and explicit
+translation/orientation. Actual world Models/Surfaces/edge Curves/vertices
+retain provenance, with derived world source-Curve IDs. Top is atdistance and
+forward/+Z, bottom is0/reverse/-Z. Placed/reversed world topology is a distinct
+family, not an unchanged Z0/forward-only planar-face bundle. CW authoring stays
+intact. Side U followsCCW traversal and each actual5-object natural FaceBundle
+is built by the original buildParametricFace. Cap Models haveN+2<=14 objects;
+no aggregation widens Model0's16-object bound.
+
+Global vertices are2N and shared edges3N (bottom/top/vertical). Incidence comes
+from original segment/vertex identity rather than coordinate welding. Every
+qualified reference resolves an actual owning face/edge/Curve. Native Curve
+direction, edge sense and face orientation compose into exactly two opposite
+global uses. Actual endpoints bind global vertices. Cap pcurve bindings and
+local/side validation remain original; malformed qualified/missing/opposed
+uses reject without caller/prior mutation.
+
+Report includes source/body/orientation/face IDs, actual counts/normals/bounds
+and explicit limits:65536 own values, depth20, arrays128, records16, strings128.
+Every output occurrence owns data. incidenceValid:true/closed:true describe
+complete oriented combinatorial shell incidence only; geometricValidity remains
+not-certified, topologyCertified:false and solid:false. No generic B-Rep sewing,
+intersections/Boolean/solid/STEP certificate or manufacturing tolerance is claimed.
+
+```sh
+node examples/cad-nurbs/xy-polygon-prism-shell-demo.mjs /tmp/barocss-polygon-prism-shell-prototype
+```
+
+The short real demo writes source/profile/cap placements/actual face Models/
+shell/report, checks triangle/L/CW counts and actual outward normals/Z6 cap,
+uses the native local cap to classify the notch, and rejects qualified-reference/
+missing/opposed-use corruption. Affected build/run is the prototype gate;
+broader suites/readers/full/graphics certification remain deferred.
