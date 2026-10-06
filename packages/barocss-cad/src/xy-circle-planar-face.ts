@@ -68,8 +68,12 @@ function assemble(construction: XYCircleFaceProfile, faceId: string): { profile:
   const [cx, cy] = construction.center, r = construction.radius, x0 = cx - r, x1 = cx + r, y0 = cy - r, y1 = cy + r;
   const surface: Surface = { kind: 'surface', id: surfaceId, degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1],
     controlPoints: [[[x0, y0, 0], [x0, y1, 0]], [[x1, y0, 0], [x1, y1, 0]]], weights: [[1, 1], [1, 1]] };
+  const spanX = surface.controlPoints[1][0][0] - surface.controlPoints[0][0][0], spanY = surface.controlPoints[0][1][1] - surface.controlPoints[0][0][1];
+  check(Number.isFinite(spanX) && spanX > 0 && Number.isFinite(spanY) && spanY > 0, '$surface', 'positive represented native plane spans required');
+  // Use the represented Surface axes: ideal2*r can differ by an ULP and put
+  // an unchanged original boundary outside the strict native UV domain.
   const uvCurve: Curve = { ...copyCadData(source), id: pcurveId,
-    controlPoints: source.controlPoints.map(point => [(point[0] - x0) / (2 * r), (point[1] - y0) / (2 * r), 0]) };
+    controlPoints: source.controlPoints.map(point => [(point[0] - x0) / spanX, (point[1] - y0) / spanY, 0]) };
   validateCurve(uvCurve); validateSurface(surface);
   const bundle: XYCirclePlanarFaceBundle = { construction: copyCadData(construction),
     geometry: { name: faceId, version: 0, lengthUnit: 'mm', objects: [copyCadData(source), surface] },

@@ -2321,7 +2321,11 @@ actual circle pole0/8, one closed edge using the original Curve and same seam
 ID at both ends/sourceParameterRange0..4, one forward loop use. No straight
 polygon edges replace the original rational boundary. Its UV pcurve lives
 inside topology with explicit coordinateSystem:uv/domain0..4, degree2 original
-knots/weights and actual world poles mapped by(x-(cx-r))/(2r),(y-(cy-r))/(2r).
+knots/weights and actual world poles mapped by(x-x0)/(x1-x0),(y-y0)/(y1-y0)
+using the actual represented Surface axes. These spans are mathematically2r;
+their binary64 coefficients can differ from a separately computed2*r. This
+retains strict nativeUV0..1 at actual border poles, without clamping or moving
+the original world Curve/Surface.
 It is dimensionless UV data, not a world-mm Model object. Rational middle
 poles are control coefficients, not samples inside the disk.
 
