@@ -76,3 +76,6 @@ runBoxSolidExchange();
 
 const { runParameterExchange } = await import('./parameter-exchange.mjs');
 runParameterExchange();
+
+const { runXYProfileExchange } = await import('./profile-exchange.mjs');
+runXYProfileExchange();

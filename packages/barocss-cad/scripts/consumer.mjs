@@ -6,6 +6,8 @@ import { join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { writeParameterEvidence } from './parameter-evidence.mjs';
+import { writeXYProfileEvidence } from './profile-evidence.mjs';
+import { verifyProfileConsumer } from './profile-consumer.mjs';
 import { writePreviewEvidence } from './preview-evidence.mjs';
 import { writeConstructionEvidence } from './construction-evidence.mjs';
 import { writeDerivativeEvidence } from './derivative-evidence.mjs';
@@ -42,5 +44,7 @@ try {
   writeBoxShellEvidence(api);
   writeBoxSolidEvidence(api);
   writeParameterEvidence(api);
+  await verifyProfileConsumer({ api, destination, temp, require, root });
+  writeXYProfileEvidence(api);
   console.log('Packed CAD ESM, runtime math/export, and external TypeScript consumer passed');
 } finally {rmSync(temp,{recursive:true,force:true});}
