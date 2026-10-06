@@ -1,0 +1,15 @@
+{
+  "format": "barocss-axis-rectangle-feature",
+  "version": 0,
+  "id": "part_doc",
+  "lengthUnit": "mm",
+  "parameters": [
+    {"id": "_rect_ox", "type": "length", "valueMM": 4},
+    {"id": "_rect_oy", "type": "length", "valueMM": -3},
+    {"id": "_rect_w", "type": "length", "valueMM": 7},
+    {"id": "_rect_h", "type": "length", "valueMM": 5},
+    {"id": "_rect_d", "type": "length", "valueMM": 6}
+  ],
+  "profile": {"id": "footprint", "kind": "xy-rectangle", "originX": "_rect_ox", "originY": "_rect_oy", "width": "_rect_w", "height": "_rect_h"},
+  "feature": {"id": "extrusion", "kind": "axis-rectangle-extrude", "profileId": "footprint", "bodyId": "body", "distance": "_rect_d"}
+}

@@ -85,3 +85,6 @@ runXYArcExchange();
 
 const { runRectangleExtrusionExchange } = await import('./rectangle-extrusion-exchange.mjs');
 runRectangleExtrusionExchange();
+
+const { runRectangleFeatureExchange } = await import('./rectangle-feature-exchange.mjs');
+runRectangleFeatureExchange();

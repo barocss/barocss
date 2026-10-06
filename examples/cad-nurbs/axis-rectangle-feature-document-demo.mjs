@@ -1,0 +1,10 @@
+import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {evaluateAxisRectangleFeatureDocument,editAxisRectangleFeatureDocument,serializeAxisRectangleFeatureDocument,exportIGES} from '../../packages/barocss-cad/dist/index.js';
+const [filename,directory,width,distance]=process.argv.slice(2);
+if(!filename||!directory)throw new Error('Usage: node axis-rectangle-feature-document-demo.mjs document.json output-directory [widthMM distanceMM]');
+const original=JSON.parse(readFileSync(resolve(filename),'utf8'));const edits=[];if(width!==undefined)edits.push({parameterId:'_rect_w',valueMM:Number(width)});if(distance!==undefined)edits.push({parameterId:'_rect_d',valueMM:Number(distance)});
+const result=edits.length?editAxisRectangleFeatureDocument(original,edits):evaluateAxisRectangleFeatureDocument(original),saved=serializeAxisRectangleFeatureDocument(result.document),reopened=evaluateAxisRectangleFeatureDocument(JSON.parse(saved)),output=resolve(directory);
+mkdirSync(output,{recursive:true});writeFileSync(resolve(output,'document.json'),saved);const built=reopened.evaluation,exported=exportIGES(built.model,built.model.objects.map(o=>o.id));
+for(const [name,value]of Object.entries({bindings:reopened.bindings,ir:built.ir,model:built.model,construction:built.construction,shell:built.shell,solidReport:built.solidReport,exportReport:exported.report}))writeFileSync(resolve(output,name+'.json'),JSON.stringify(value,null,2)+'\n');writeFileSync(resolve(output,'source.css'),built.source);writeFileSync(resolve(output,'geometry.iges'),exported.iges);
+console.log('Authoring document reopened through actual source2/native evaluation. IGES contains separate geometry, not feature history or a whole solid.');
