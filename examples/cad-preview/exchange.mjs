@@ -127,7 +127,7 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames, ...inde
     const points = isSurface ? inspected.controlPoints.flat() : inspected.controlPoints;
     const weights = isSurface ? inspected.weights.flat() : inspected.weights;
     assert.equal(inspection.id, inspected.id); assert.equal(inspection.kind, inspected.kind);
-    assert.equal(inspection.nativeSource, compiled ? 'construction-v1' : 'native-v0');
+    assert.equal(inspection.nativeSource, frame.sourceVersion === 1 ? 'construction-v1' : 'native-v0');
     assert.equal(inspection.displayedSurfaceId, surface.id);
     assert.deepEqual(inspection.displayedSampledMeshBoundsMM, packet.bounds);
     assert.deepEqual(inspection.weightRange, [Math.min(...weights), Math.max(...weights)]);
@@ -149,7 +149,7 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames, ...inde
   if(frame.primitiveRequest){const tool=preparePrimitive(frame.primitiveRequest),receipt=await readJSON('primitive.json');assert.equal(tool.source,source);assert.deepEqual(receipt.requested,frame.primitiveRequest);assert.equal(feature.inputId,'profile');assert.equal(feature.outputId,'surface');}
   const analyticDescriptor = { inputId: curve.id, outputId: surface.id,
     vector: feature?.vector ?? (surface.id === 'wall' ? [0,0,30] : [3,-2,7]),
-    origin: compiled ? 'accepted construction feature' : 'declared native-v0 fixture oracle; not construction provenance' };
+    origin: frame.sourceVersion === 1 ? 'accepted construction feature' : 'declared native-v0 fixture oracle; not construction provenance' };
   assert.equal(packet.revision, frame.revision); assert.equal(display.revision, frame.revision); assert.equal(display.viewRevision, frame.viewRevision);
   const replay = cad.tessellateSurface(surface, { ...report.grid, revision: frame.revision });
   assert.deepEqual(replay.packet, packet); assert.deepEqual(replay.report, report);
