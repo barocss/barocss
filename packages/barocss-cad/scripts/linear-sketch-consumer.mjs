@@ -20,7 +20,7 @@ const document:XYLinearSketchDocumentV0=${JSON.stringify(document)};const result
 // @ts-expect-error Angular constraints are outside this equality subset.
 solveXYLinearSketch({...document,constraints:[{id:'angle',kind:'angle',segmentId:'line',value:90}]});
 // @ts-expect-error Native sketch document versions are explicit.
-solveXYLinearSketch({...document,version:1});
+solveXYLinearSketch({...document,version:2});
 `);execFileSync(process.execPath,[require.resolve('typescript/bin/tsc'),'--noEmit','--strict','--target','ES2022','--module','NodeNext','--moduleResolution','NodeNext',join(temp,'linear-sketch-types.ts')],{stdio:'inherit'});
   const result=api.solveXYLinearSketch(document);assert.equal(result.ok,true);const hash=x=>createHash('sha256').update(x).digest('hex');const record={producer:'Actual extracted public @barocss/cad ESM/types archive',archiveSHA256:hash(readFileSync(join(temp,'barocss-cad-0.0.0-private-experimental.tgz'))),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),sourceSHA256:hash(result.solution.source),report:result.report,sourceVersion:0,nativeVersion:0,selectedEntity:126};
   if(process.env.BAROCSS_CAD_LINEAR_SKETCH_EVIDENCE){const folder=resolve(process.env.BAROCSS_CAD_LINEAR_SKETCH_EVIDENCE);mkdirSync(folder,{recursive:true});writeFileSync(join(folder,'consumer-report.json'),JSON.stringify(record,null,2)+'\n');writeFileSync(join(folder,'packed-sketch-result.json'),JSON.stringify(result,null,2)+'\n');writeFileSync(join(folder,'packed-sketch.css'),result.solution.source);}
