@@ -99,6 +99,49 @@ try {
       unmaskedRenderer: extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) : null };
   });
   assert(/SwiftShader/i.test(backend.unmaskedRenderer ?? ''), 'Named software backend required');
+  // UI screenshots are separate from GPU readback and exchange artifacts.
+  const baselineDir=process.env.BAROCSS_CAD_PREVIEW_BASELINE_UI??'/Users/user/.barocss-ai/v3/ui-513-baseline';
+  const baselineIndexBytes=await readFile(path.join(baselineDir,'index.json'));
+  const baselineUI=JSON.parse(baselineIndexBytes);
+  assert.equal(baselineUI.head,'3b5e3acbf9fdb902d2d1381809e7e4edebd2a203');
+  const uiScreens=[];
+  for(const [name,width,height] of [['desktop',1440,900],['mobile',390,844]]){
+    await page.setViewportSize({width,height});
+    const layout=await page.evaluate(()=>{const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,bottom:r.bottom,right:r.right};};const labels=[...document.querySelectorAll('input,select,textarea')].every(control=>control.labels.length>0);const ids=[...document.querySelectorAll('[id]')].map(el=>el.id);return{overflow:document.documentElement.scrollWidth>innerWidth,viewport:rect('preview'),objects:rect('objects'),download:rect('export'),camera:rect('camera-front'),sourceCollapsed:!document.getElementById('source-panel').open,diagnosticsCollapsed:!document.getElementById('diagnostics-panel').open,allControlsLabelled:labels,uniqueIds:ids.length===new Set(ids).size,heading:document.getElementById('scene-title').textContent};});
+    assert.equal(layout.overflow,false);assert(layout.allControlsLabelled&&layout.uniqueIds);assert(layout.sourceCollapsed&&layout.diagnosticsCollapsed);
+    assert(layout.viewport.width>=300&&layout.viewport.height>=220&&layout.viewport.right<=width+1&&layout.viewport.bottom<=height);
+    if(name==='desktop'){assert(layout.objects.right<=width&&layout.camera.bottom<=height&&layout.download.bottom<=height);}
+    const native=await page.evaluate(()=>({snapshot:window.cadPreview.snapshot(),bytes:Array.from(window.cadPreview.readPixels())}));
+    const before=baselineUI.records.find(record=>record.name===name);assert(before);assert.equal(hash(native.snapshot.source),before.sourceHash);assert.equal(hash(JSON.stringify(native.snapshot.model)),before.nativeHash);assert.equal(hash(Uint8Array.from(native.bytes)),before.readbackHash,'Layout must preserve the baseline framebuffer');
+    const filename=`${name}-after.ui.png`;await page.screenshot({path:path.join(evidence,filename),fullPage:true,animations:'disabled'});
+    const baselineBytes=await readFile(path.join(baselineDir,before.filename));assert.equal(hash(baselineBytes),before.sha256);const baselineFile=`${name}-before.ui.png`;await writeFile(path.join(evidence,baselineFile),baselineBytes);
+    uiScreens.push({name,viewport:{width,height},baselineHead:baselineUI.head,head:taskCommit,backend,layout,before:{file:baselineFile,sha256:before.sha256},after:{file:filename,sha256:hash(await readFile(path.join(evidence,filename)))},sourceHash:before.sourceHash,nativeHash:before.nativeHash,readbackHash:before.readbackHash});
+  }
+  await page.setViewportSize({width:1440,height:900});
+  const sourceSummary=page.locator('#source-panel > summary');await sourceSummary.focus();await sourceSummary.press('Enter');assert.equal(await page.locator('#source-panel').getAttribute('open'),'');
+  await sourceSummary.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'source-version');
+  await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'surface');
+  await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'source');
+  const acceptedUI=await page.evaluate(()=>({snapshot:window.cadPreview.snapshot(),pixels:Array.from(window.cadPreview.readPixels()),title:document.getElementById('scene-title').textContent}));
+  await page.fill('#source','invalid pending source');await page.click('#apply');
+  const rejectedUI=await page.evaluate(()=>({snapshot:window.cadPreview.snapshot(),pixels:Array.from(window.cadPreview.readPixels()),title:document.getElementById('scene-title').textContent,pending:document.getElementById('editor-state').textContent,invalid:document.getElementById('source').getAttribute('aria-invalid')}));
+  assert.deepEqual(rejectedUI.snapshot,acceptedUI.snapshot);assert.deepEqual(rejectedUI.pixels,acceptedUI.pixels);assert.equal(rejectedUI.title,acceptedUI.title);assert(/Pending/.test(rejectedUI.pending));assert.equal(rejectedUI.invalid,'true');
+  await page.click('#discard-source');assert.equal(await page.locator('#source').inputValue(),acceptedUI.snapshot.source);
+  await page.selectOption('#fixture','wall');
+  await page.click('[data-object-id="arc"] [data-action="inspect"]');
+  const focus=await page.evaluate(()=>({action:document.activeElement.dataset.action,id:document.activeElement.closest('[data-object-id]')?.dataset.objectId,properties:document.getElementById('properties').textContent,context:document.getElementById('inspected-context').textContent,history:document.getElementById('creation-history').textContent}));
+  assert.equal(focus.action,'inspect');assert.equal(focus.id,'arc');assert(/arc/.test(focus.context)&&/wall/.test(focus.context));assert(/Degree/.test(focus.properties)&&/Original domains/.test(focus.properties)&&/Weight range/.test(focus.properties));assert(/extrude/.test(focus.history));
+  await page.locator('#diagnostics-panel > summary').focus();await page.locator('#diagnostics-panel > summary').press('Enter');assert.equal(await page.locator('#diagnostics-panel').getAttribute('open'),'');
+  await page.screenshot({path:path.join(evidence,'desktop-construction.ui.png'),fullPage:true,animations:'disabled'});
+  const constructionScreen={file:'desktop-construction.ui.png',sha256:hash(await readFile(path.join(evidence,'desktop-construction.ui.png'))),head:taskCommit,viewport:{width:1440,height:900},inspectedId:'arc',displayedId:'wall',backend};
+  const cameraSummary=page.locator('#camera-panel > summary');await cameraSummary.focus();await cameraSummary.press('Enter');await cameraSummary.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'camera-eye');await cameraSummary.focus();await cameraSummary.press('Enter');
+  const uiWorkspace={constructionScreen,screens:uiScreens,baselineIndexHash:hash(baselineIndexBytes),keyboardSourceAndDiagnostics:true,focusRestoredAfterInspection:true,acceptedLabelRetainedOnInvalidSource:true,controlsLabelled:true,noHorizontalOverflow:true};
+  await writeFile(path.join(evidence,'ui-workspace.json'),json(uiWorkspace));
+  // Restore the original consumer fixture; open advanced controls through real summaries.
+  await page.setViewportSize({width:1280,height:720});await page.reload();await page.waitForFunction(()=>window.cadPreview?.snapshot()?.packet);
+  await page.evaluate(()=>window.originalPreviewRenderer=window.cadPreview.renderer);
+  for(const id of ['source-panel','display-panel','camera-panel','inspection-raw','diagnostics-panel'])await page.locator(`#${id} > summary`).click();
+
   const cylinder = fixtures.find(fixture => fixture.id === 'cylinder') ?? fixtures[0];
   const settings = fixture => ({ surfaceId: fixture.id, countU: fixture.countU, countV: fixture.countV, options: fixture.options });
   async function apply(source, candidateSettings) {
@@ -644,7 +687,7 @@ try {
   const result = { taskCommit, integrationCommit, backend, packageModules, sourceModules, backendDescription: 'ANGLE SwiftShader software WebGL2; functional composition only',
     packageArtifacts: { cad: hash(await readFile(path.join(repo, 'packages/barocss-cad/dist/index.js'))),
       gpu: hash(await readFile(path.join(repo, 'packages/barocss-gpu/dist/index.js'))) },
-    frames, constructionFrames, objectFrames, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
+    uiWorkspace, frames, constructionFrames, objectFrames, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
     deterministicFields: ['source', 'model', 'packet except host-issued revision', 'report', 'IGES', 'display options'],
     environmentFields: ['taskCommit', 'integrationCommit', 'browser', 'backend', 'evidence path'],
     limitations: ['Finite sampled deviation is not a global bound', 'Surfaces remain open; no solid, topology, STEP, or manufacturing claim', 'Software rendering is not physical GPU performance',
