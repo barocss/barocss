@@ -399,3 +399,26 @@ grammar, model geometry or topology, and does not certify input paths as CAD edg
 The host Box prototype supplies its twelve actual global native edges; supported
 Surface previews supply sampled natural boundaries. Broad resource, compatibility
 and pixel/regression validation is deferred under the prototype-first policy.
+
+## Display face highlight (prototype)
+
+`MeshFaceHighlight` version0 binds the complete accepted packet, ASCII faceId,
+exclusive indexRange[start,end] and opaque RGB. Range endpoints are integer
+multiples of3, nonempty and within the original indices. The host resolves that
+range from actual native face metadata; GPU does not infer topology.
+
+Pass optional highlight after the existing edge overlay to mountMesh/constructor,
+or as update's fourth argument. `setFaceHighlight(highlight|null)` and the owned
+`faceHighlight` getter support atomic view changes. Omitted highlight retains only
+for the exact same packet; a changed packet clears it. Invalid range/stale packet
+rejects before candidate adoption and retains frame. Highlight draws the selected
+original indices with the original shader/camera/depth and a separate color; hidden
+faces remain occluded and original edge overlay stays on top. No new packet schema,
+CAD dependency, material/selection kernel or renderer-budget widening is added.
+
+Highlight uses depth EQUAL against the original accepted fill, with the same
+polygon offset when original edges are enabled. Raster-visible shared silhouette
+boundary samples may retain the selected face's color; this does not establish a
+hidden-line or geometric visibility certificate. The focused prototype measured
+bottom-face changes only within1.1 physical pixels of its actual original boundary
+paths and unchanged protected cap/wall interior samples.

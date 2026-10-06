@@ -495,3 +495,29 @@ state-preservation visit. Broader suites and numerical/resource/performance
 campaigns remain deferred; software backend pixels are functional evidence only.
 Native uncertified/solid:false status persists; no picking/Boolean/feature-graph
 or exchange capability is added.
+
+## Original face selection (prototype)
+
+The cutout workspace defaults to **Orbit**. Choose **Select face**, then click
+material to select its original CAD face. A blue highlight, face role/ID, Surface
+ID, native mm hit point and outward normal identify the accepted result. A miss
+clears selection; ambiguous-nearest/coplanar shows real candidates and chooses no
+single face. Clear selection restores fill. Orbit and edge toggle keep the native
+identity; successful Apply/Create/Open clears stale selection, failed edits retain
+it. Saved intent never includes selections, rays or highlights.
+
+The host maps CSS coordinates to physical framebuffer pixel centers and unprojects
+near/far OpenGL clipping points with inverse projection*view from the exact exported
+Float32 camera matrices. It reverses the accepted mm mapping and sends only that
+finite segment to the original581 shell query. Unsupported native ray bounds or
+stale accepted/view/viewport bindings reject rather than clamp. The actual native
+face/Surface resolves one exact577 face range for complete-packet highlight.
+
+`cutout-face-selection-smoke.mjs` uses actual mouse events for top, void, outside,
+inner-wall, orbit and resized view clicks, an odd-buffer supporting-plane ambiguity,
+face-only/hidden-face pixel controls, stale/range/ray failures, edit clear/retention
+and saved-intent exclusion. Use existing PW_DIR/CHROME and
+BAROCSS_FACE_SELECTION_EVIDENCE after affected CAD/GPU builds. Exact ray/matrix,
+query/native/range/packet/camera/PNG lineage is recorded. This is bounded display
+selection, not certified manufacturing accuracy or general curved B-Rep picking;
+broader numerical/resource/performance and compatibility campaigns remain deferred.
