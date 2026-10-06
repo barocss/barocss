@@ -79,3 +79,6 @@ runParameterExchange();
 
 const { runXYProfileExchange } = await import('./profile-exchange.mjs');
 runXYProfileExchange();
+
+const { runXYArcExchange } = await import('./arc-exchange.mjs');
+runXYArcExchange();
