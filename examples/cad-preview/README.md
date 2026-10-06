@@ -558,3 +558,32 @@ seeded separated-body material controls, edges/orbit and one cutout-return state
 visit. Broader numerical/resource/performance/unit/packed/readers/workspace/gallery
 campaigns remain deferred. This bounded graph consumer is not whole551 completion
 or a combined solid certificate; software pixels are functional evidence only.
+
+## Typed parameter Add/Delete (prototype)
+
+The rectangle-feature workspace adds length parameters through **Add length
+parameter** and stages **Delete parameter** per authored row. Generated height_N
+IDs are fresh across accepted/current/new/removed draft graph identities. Existing
+rows retain ID/order and show applied resolved value or pending edit/new status.
+Removed IDs stay visible in reference selectors as **Missing / removed** until the
+user explicitly repairs/removes every dependent offset/feature. No auto-retarget,
+rename, implicit cascade, arbitrary expression or unit conversion is performed.
+
+Every structural action first captures all safe current numeric/profile/selected-
+feature/reference drafts. Malformed numeric text rejects staging without rerender
+or lost raw input. Apply coalesces one final operation per ID and calls actual589
+parameter lifecycle once with optional original feature/sketch operations. Old588
+routes remain when no parameter operation exists. Final1–8 parameters; bounded
+staged rows allow ninth-plus-removal for a final8 transaction, at most16 rows and8
+parameter operations per Apply. Starting/removed IDs are reserved through the draft.
+New-added-then-deleted contributes no native operation. Discard restores accepted
+intent; Save excludes pending structural/reference drafts and native caches.
+
+`rectangle-parameter-workspace-smoke.mjs` after affected CAD/GPU builds uses existing
+PW_DIR/CHROME and BAROCSS_PARAMETER_EDITOR_EVIDENCE. It records actual Add/repair/
+Delete108/110, preserved width/offset and new-feature135/110/165, offset+feature
+removal, actual accepted native file/Open, explicit dangling/suppressed refs, raw
+numeric staging retention, final8 replacement/final9/empty rejection, original
+source2/body/face/packet/path/camera/PNG lineage and view controls. Broader campaigns
+remain deferred. This is a bounded native parameter GUI, not a constraint system,
+combined solid certificate or full533/551/commercial CAD completion.
