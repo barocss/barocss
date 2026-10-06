@@ -2,8 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parseCadAst, CadAstError, CAD_AST_LIMITS } from '../dist/source-ast.js';
-import { parseModel } from '../dist/parser.js';
-import { compileConstruction } from '../dist/compiler.js';
+import { compileCadModel } from '../dist/model-compiler.js';
 
 const curve = '@curve #arc { type:nurbs; degree:2; knots:[0,0,0,1,1,1]; control-points:[[10,-0,0],[10,10,0],[0,10,0]]; weights:[1,.7071067811865476,1]; }';
 const source0 = `/*😀*/\n@model example {\n  length-unit: mm;\n  ${curve}\n  version: 0;\n}`;
@@ -29,7 +28,8 @@ test('actual UTF16 token/field/header/declaration ranges and binary64 negative z
   assertRange(source0, fields['control-points'].value.range, '[[10,-0,0],[10,10,0],[0,10,0]]');
   const negativeZero = fields['control-points'].value.items[0].items[1]; assert.ok(Object.is(negativeZero.value, -0)); assertRange(source0, negativeZero.range, '-0');
   assert.equal(fields.weights.value.items[1].value, 0.7071067811865476); assertRange(source0, fields.weights.value.items[1].range, '.7071067811865476');
-  const legacy = parseModel(source0).objects[0]; assert.deepEqual(plain(fields.knots.value), legacy.knots); assert.deepEqual(plain(fields['control-points'].value), legacy.controlPoints);
+  const compiled = compileCadModel(source0, { sourceVersion: 0 }); assert.equal(compiled.ok, true);
+  assert.deepEqual(plain(fields.knots.value), compiled.model.objects[0].knots); assert.deepEqual(plain(fields['control-points'].value), compiled.model.objects[0].controlPoints);
 });
 
 test('forward v1 references, comment braces and actual source version fields remain AST data', () => {
@@ -41,44 +41,49 @@ test('forward v1 references, comment braces and actual source version fields rem
   assert.equal(ast.fields[0].value.value, 1);
   assert.equal(parseCadAst('@model x{version:9;length-unit:wrong;@curve #bad{degree:broken;}}', 0).fields[0].value.value, 9);
   assert.doesNotThrow(() => parseCadAst('@model x{version:1;length-unit:mm;@extrude #a{curve:#missing;vector:[0,0,0];}}', 1));
-  const metadata = compileConstruction(source).constructions[0]; assert.equal(field.value.range.start, metadata.referenceSpan.start); assert.equal(field.value.range.end, metadata.referenceSpan.end);
+  const compiled = compileCadModel(source, { sourceVersion: 1 }); assert.equal(compiled.ok, true); const metadata = compiled.constructions[0]; assert.equal(field.value.range.start, metadata.referenceSpan.start); assert.equal(field.value.range.end, metadata.referenceSpan.end);
   const implementation = readFileSync(new URL('../src/source-ast.ts', import.meta.url), 'utf8'); assert.ok(!/^import\s/m.test(implementation), 'AST parser has no native/parser/compiler runtime dependencies');
 });
 
-test('completed declarations accompany later syntax errors without adopting geometry', () => {
-  const source = `@model x{version:0;length-unit:mm;${curve}@curve #broken{degree:1;unknown:0;}}`;
-  assert.throws(() => parseCadAst(source, 0), (error) => {
-    assert.ok(error instanceof CadAstError); assert.equal(error.code, 'FIELD'); assert.equal(error.objectId, 'broken');
-    assert.equal(error.completedDeclarations.length, 1); assert.equal(error.completedDeclarations[0].id, 'arc'); assert.equal(error.modelName, 'x'); assert.equal(error.modelFields.length, 2);
-    assert.equal(error.range.start, source.indexOf('unknown')); return true;
-  });
-});
-
-test('v1 virtual curve syntax diagnostics match original wrapper offsets and embedded messages', () => {
-  for (const body of ['type:nurbs;unsupported:0;', 'type:nurbs;knots:[1,];', 'type:nurbs;degree:1e2;', 'type:nurbs;weights:[[1]];', 'type:nurbs;degree:1;degree:2;']) {
-    const declaration = `@curve #bad {${body}}`, source = '/*line*/\n@model x{version:1;length-unit:mm;' + declaration + '}';
-    let expected; try { parseModel('@model x{version:0;length-unit:mm;' + declaration + '}'); } catch (error) { expected = error; }
-    assert.ok(expected);
+test('direct v1 curve errors refer only to actual source and expose no partial model', () => {
+  for (const [body, code, marker] of [
+    ['type:nurbs;unsupported:0;', 'FIELD', 'unsupported'],
+    ['type:nurbs;knots:[1,];', 'SYNTAX', ']'],
+    ['type:nurbs;degree:1e2;', 'SYNTAX', 'e2'],
+    ['type:nurbs;weights:[[1]];', 'DIMENSION', '[1]'],
+    ['type:nurbs;degree:1;degree:2;', 'DUPLICATE', 'degree:2'],
+  ]) {
+    const source = '/*😀*/\n@model actual{version:1;length-unit:mm;@curve #bad {' + body + '}}';
     assert.throws(() => parseCadAst(source, 1), (error) => {
-      assert.equal(error.code, expected.code); assert.equal(error.legacyCurve.innerOffset, expected.offset); assert.equal(error.legacyCurve.innerMessage, expected.message);
-      assert.equal(error.legacyCurve.start, source.indexOf('@curve')); assert.equal(error.legacyCurve.end, source.indexOf('@curve') + declaration.length);
-      assert.equal(error.range.start, Math.max(error.legacyCurve.start, Math.min(error.legacyCurve.end - 1, error.legacyCurve.start + expected.offset - '@model x{version:0;length-unit:mm;'.length))); return true;
+      assert.ok(error instanceof CadAstError); assert.equal(error.code, code); assert.equal(error.objectId, 'bad');
+      assert.equal(error.range.start, source.indexOf(marker));
+      assert.deepEqual({ line: error.range.line, column: error.range.column }, coordinates(source, source.indexOf(marker)));
+      assert.deepEqual(Object.keys(error).sort(), ['code', 'detail', 'name', 'objectId', 'range'].sort());
+      return true;
     });
   }
-  assert.throws(() => parseCadAst('@model x{version:1;@curve #a{bad:', 1), (error) => error.code === 'SYNTAX' && error.detail === 'Unterminated curve declaration');
+  const source = '@model x{version:1;@curve #a{bad:';
+  assert.throws(() => parseCadAst(source, 1), (error) => error.code === 'FIELD' && error.range.start === source.indexOf('bad'));
+  const earlierInvalid = `@model x{version:0;length-unit:mm;@curve #a{}@curve #b{unknown:0;}}`;
+  assert.throws(() => parseCadAst(earlierInvalid, 0), (error) => error.code === 'FIELD' && error.objectId === 'b');
 });
 
-test('legacy first lexical positions reject exponents, commas, dimensions, foreign fields and duplicate IDs', () => {
+test('current grammar rejects exponents, commas, dimensions, foreign fields and duplicate IDs', () => {
   const cases = [
-    '@model x{version:0;degree:0;}', '@model x{version:0;version:0;}',
-    '@model x{version:0;@surface #s{weights:[[[1]]];}}', '@model x{version:0;@curve #a{knots:[0,];}}',
-    '@model x{version:0;@curve #a{degree:1e3;}}', '@model x{version:0;@import #a{}}',
-    '@model x{version:0;@curve #a{degree:1;degree:2;}}', '@model x{/*unfinished',
-    `@model x{version:0;length-unit:mm;${curve}${curve}}`,
+    ['@model x{version:0;degree:0;}', 'FIELD', 'degree'],
+    ['@model x{version:0;version:0;}', 'DUPLICATE', 'version', true],
+    ['@model x{version:0;@surface #s{weights:[[[1]]];}}', 'DIMENSION', '[1]'],
+    ['@model x{version:0;@curve #a{knots:[0,];}}', 'SYNTAX', ']'],
+    ['@model x{version:0;@curve #a{degree:1e3;}}', 'SYNTAX', 'e3'],
+    ['@model x{version:0;@import #a{}}', 'KIND', '@import'],
+    ['@model x{version:0;@curve #a{degree:1;degree:2;}}', 'DUPLICATE', 'degree:2'],
+    ['@model x{/*unfinished', 'SYNTAX', '/*'],
+    [`@model x{version:0;length-unit:mm;${curve}${curve}}`, 'DUPLICATE', '@curve', true],
   ];
-  for (const source of cases) {
-    let old; try { parseModel(source); } catch (error) { old = error; }
-    assert.ok(old); assert.throws(() => parseCadAst(source, 0), (error) => { assert.equal(error.code, old.code); assert.equal(error.range.start, old.offset); return true; });
+  for (const [source, code, marker, last] of cases) {
+    assert.throws(() => parseCadAst(source, 0), (error) => {
+      assert.equal(error.code, code); assert.equal(error.range.start, last ? source.lastIndexOf(marker) : source.indexOf(marker)); return true;
+    });
   }
 });
 
@@ -88,7 +93,7 @@ test('maximum sixteen 16x16 surfaces fit source and explicitly proven AST/token/
   const weights = Array.from({ length: 16 }, () => Array(16).fill(1));
   const source = '@model maximum{version:0;length-unit:mm;' + Array.from({ length: 16 }, (_, i) => `@surface #s${i}{type:nurbs;degree-u:5;degree-v:5;knots-u:${JSON.stringify(knots)};knots-v:${JSON.stringify(knots)};control-points:${JSON.stringify(points)};weights:${JSON.stringify(weights)};}`).join('') + '}';
   // JSON emits exponent-free decimals for these specific bounded fixtures.
-  assert.ok(Buffer.byteLength(source) <= 262144); assert.equal(parseModel(source).objects.length, 16);
+  assert.ok(Buffer.byteLength(source) <= 262144); const compiled = compileCadModel(source, { sourceVersion: 0 }); assert.equal(compiled.ok, true); assert.equal(compiled.model.objects.length, 16);
   const ast = parseCadAst(source, 0); let values = 0, records = 1 + ast.fields.length + ast.declarations.length;
   const count = (value) => { values++; if (value.kind === 'array') value.items.forEach(count); };
   ast.fields.forEach((f) => count(f.value)); for (const d of ast.declarations) { records += d.fields.length; d.fields.forEach((f) => count(f.value)); }
@@ -115,7 +120,7 @@ test('fresh ASTs own source ranges and nested values independently', () => {
   assert.deepEqual(parseCadAst(source0, 0), second);
 });
 
-test('v1 virtual wrapper preserves byte-limit priority for ASCII, astral and lone-surrogate comments', () => {
+test('only actual UTF8 source bytes bound ASCII, astral and lone-surrogate comments', () => {
   const curveHead = '@curve #a{type:nurbs;degree:1;knots:[0,0,1,1];control-points:[[0,0,0],[1,0,0]];weights:[1,1];/*';
   const ending = '*/}}';
   function fullSource(header, comment) {
@@ -123,13 +128,11 @@ test('v1 virtual wrapper preserves byte-limit priority for ASCII, astral and lon
     return header + curveHead + comment + ' '.repeat(262144 - Buffer.byteLength(minimum)) + ending;
   }
   for (const comment of ['', '😀'.repeat(60000), '\ud800'.repeat(60000)]) {
-    const malformed = fullSource('@model x{', comment); assert.equal(Buffer.byteLength(malformed), 262144);
-    const declarationStart = malformed.indexOf('@curve');
-    assert.throws(() => parseCadAst(malformed, 1), (error) => {
-      assert.equal(error.code, 'LIMIT'); assert.equal(error.range.start, declarationStart); assert.equal(error.range.end, declarationStart + 1);
-      assert.equal(error.legacyCurve.innerOffset, 0); assert.equal(error.legacyCurve.innerMessage, 'LIMIT at 1:1: Source exceeds 256 KiB'); return true;
-    });
+    const missingMetadata = fullSource('@model x{', comment); assert.equal(Buffer.byteLength(missingMetadata), 262144);
+    assert.equal(parseCadAst(missingMetadata, 1).declarations.length, 1);
+    const missing = compileCadModel(missingMetadata, { sourceVersion: 1 }); assert.equal(missing.ok, false); assert.equal(missing.diagnostics[0].code, 'VERSION');
     const valid = fullSource('@model x{version:1;length-unit:mm;', comment); assert.equal(Buffer.byteLength(valid), 262144);
-    assert.equal(parseCadAst(valid, 1).declarations.length, 1); assert.doesNotThrow(() => compileConstruction(valid));
+    assert.equal(parseCadAst(valid, 1).declarations.length, 1); assert.equal(compileCadModel(valid, { sourceVersion: 1 }).ok, true);
+    assert.throws(() => parseCadAst(valid + ' ', 1), (error) => error.code === 'LIMIT' && error.range.start === 0);
   }
 });

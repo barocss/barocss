@@ -7,24 +7,16 @@ export type CadAstValue = { kind: 'number'; value: number; range: CadSourceRange
 export interface CadAstField { name: string; value: CadAstValue; range: CadSourceRange; nameRange: CadSourceRange }
 export interface CadAstDeclaration { kind: 'curve' | 'surface' | 'extrude'; id: string; range: CadSourceRange; idRange: CadSourceRange; fields: CadAstField[] }
 export interface CadModelAst { kind: 'model'; name: string; range: CadSourceRange; nameRange: CadSourceRange; fields: CadAstField[]; declarations: CadAstDeclaration[] }
-export interface LegacyCurveAstError { start: number; end: number; innerOffset: number; innerMessage: string }
 
-/** Internal compatibility evidence; no partial model is adopted by the compiler. */
+/** An actual-source parser diagnostic, with no synthetic or partial model. */
 export class CadAstError extends Error {
   readonly code: string;
   readonly detail: string;
   readonly range: CadSourceRange;
   readonly objectId?: string;
-  readonly legacyCurve?: LegacyCurveAstError;
-  readonly completedDeclarations: CadAstDeclaration[];
-  readonly modelFields: CadAstField[];
-  readonly modelName: string;
-  constructor(code: string, detail: string, range: CadSourceRange, context: {
-    objectId?: string; legacyCurve?: LegacyCurveAstError; completedDeclarations: CadAstDeclaration[]; modelFields: CadAstField[]; modelName: string;
-  }) {
-    super(detail); this.name = 'CadAstError'; this.code = code; this.detail = detail; this.range = range;
-    this.objectId = context.objectId; this.legacyCurve = context.legacyCurve;
-    this.completedDeclarations = [...context.completedDeclarations]; this.modelFields = [...context.modelFields]; this.modelName = context.modelName;
+  constructor(code: string, detail: string, range: CadSourceRange, objectId?: string) {
+    super(detail); this.name = 'CadAstError'; this.code = code; this.detail = detail;
+    this.range = range; this.objectId = objectId;
   }
 }
 
@@ -37,7 +29,6 @@ export class CadAstError extends Error {
 export const CAD_AST_LIMITS = Object.freeze({ sourceBytes: 262144, values: 65536, nodes: 65536, tokens: 131072, arrayDepth: 3, declarations: 16 });
 const curveFields = ['type', 'degree', 'knots', 'control-points', 'weights'];
 const surfaceFields = ['type', 'degree-u', 'degree-v', 'knots-u', 'knots-v', 'control-points', 'weights'];
-const prefix = '@model x{version:0;length-unit:mm;';
 const fieldBounds: Record<string, number[]> = { knots: [70], 'knots-u': [22], 'knots-v': [22], 'control-points': [64, 3], weights: [64] };
 
 /** Parse only source data; unit/types/native geometry belong to semantics. */
@@ -45,10 +36,10 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1): CadModelAst {
   if (typeof source !== 'string') throw new TypeError('Source must be a string');
   if (sourceVersion !== 0 && sourceVersion !== 1) throw new TypeError('Source version must be 0 or 1');
   const emptyRange = { start: 0, end: 0, line: 1, column: 1, endLine: 1, endColumn: 1 };
-  const utf8BytesWithinLimit = (start = 0, end = source.length, extraBytes = 0) => {
-    let bytes = extraBytes;
-    for (let i = start; i < end; i++) {
-      const code = source.charCodeAt(i), next = i + 1 < end ? source.charCodeAt(i + 1) : NaN;
+  const utf8BytesWithinLimit = () => {
+    let bytes = 0;
+    for (let i = 0; i < source.length; i++) {
+      const code = source.charCodeAt(i), next = source.charCodeAt(i + 1);
       if (code < 128) bytes++;
       else if (code < 2048) bytes += 2;
       else if (code >= 0xd800 && code <= 0xdbff && next >= 0xdc00 && next <= 0xdfff) { bytes += 4; i++; }
@@ -58,7 +49,7 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1): CadModelAst {
     return true;
   };
   if (source.length > CAD_AST_LIMITS.sourceBytes || !utf8BytesWithinLimit()) {
-    throw new CadAstError('LIMIT', 'Source exceeds 256 KiB', emptyRange, { completedDeclarations: [], modelFields: [], modelName: '' });
+    throw new CadAstError('LIMIT', 'Source exceeds 256 KiB', emptyRange);
   }
   // At most sourceBytes+1 line starts; no oversized UTF8 temporary is allocated.
   const lineStarts = [0];
@@ -72,20 +63,10 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1): CadModelAst {
     const first = location(start), last = location(end);
     return { start, end, ...first, endLine: last.line, endColumn: last.column };
   };
-  let at = 0, tokens = 0, values = 0, nodes = 0, modelName = '', objectId: string | undefined;
+  let at = 0, tokens = 0, values = 0, nodes = 0, objectId: string | undefined;
   const declarations: CadAstDeclaration[] = [], modelFields: CadAstField[] = [];
-  let virtual: { start: number; end: number } | undefined;
   const fail = (code: string, detail: string, start = at, end = Math.min(source.length, start + 1)): never => {
-    let legacyCurve: LegacyCurveAstError | undefined;
-    if (virtual) {
-      const innerOffset = prefix.length + start - virtual.start;
-      const innerSource = prefix + source.slice(virtual.start, virtual.end) + '}';
-      const lines = innerSource.slice(0, innerOffset).split('\n');
-      const innerMessage = `${code} at ${lines.length}:${lines.at(-1)!.length + 1}: ${detail}`;
-      legacyCurve = { ...virtual, innerOffset, innerMessage };
-      start = Math.max(virtual.start, Math.min(virtual.end - 1, start)); end = Math.min(source.length, start + 1);
-    }
-    throw new CadAstError(code, detail, range(start, end), { objectId, legacyCurve, completedDeclarations: declarations, modelFields, modelName });
+    throw new CadAstError(code, detail, range(start, end), objectId);
   };
   const chargeToken = () => { if (tokens >= CAD_AST_LIMITS.tokens) fail('LIMIT', 'Source exceeds AST token limit'); tokens++; };
   const chargeNode = (isValue = false) => {
@@ -152,7 +133,7 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1): CadModelAst {
   };
   skip(); const modelStart = at; chargeNode(); take('@');
   if (ident().value !== 'model') fail('SYNTAX', 'Expected @model', sourceVersion === 1 ? 0 : at);
-  const modelIdentifier = ident(); modelName = modelIdentifier.value; take('{');
+  const modelIdentifier = ident(); take('{');
   const headerNames = new Set<string>(), ids = new Set<string>();
   while (true) {
     skip(); if (source[at] === '}') { take('}'); break; }
@@ -164,31 +145,12 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1): CadModelAst {
     skip(); const idStart = at; take('#'); const identifier = ident(); objectId = identifier.value;
     if (ids.has(objectId)) fail('DUPLICATE', 'Duplicate ID ' + objectId, start, sourceVersion === 0 ? Math.min(source.length, start + 1) : at);
     ids.add(objectId); take('{'); const fields: CadAstField[] = [], seen = new Set<string>();
-    if (sourceVersion === 1 && kind === 'curve') {
-      // Legacy v1 balances the raw curve block before parsing it in a virtual
-      // v0 model. This bounded linear scan preserves that diagnostic precedence.
-      let scan = at, depth = 1;
-      while (depth > 0) {
-        if (scan >= source.length) fail('SYNTAX', 'Unterminated curve declaration', start, source.length);
-        if (source.startsWith('/*', scan)) { const end = source.indexOf('*/', scan + 2); if (end < 0) fail('SYNTAX', 'Unterminated comment', scan); scan = end + 2; continue; }
-        if (source[scan] === '{') depth++; else if (source[scan] === '}') depth--; scan++;
-      }
-      virtual = { start, end: scan };
-      // The former v1 entry parsed this exact virtual v0 source. Its header can
-      // overflow even when a malformed outer model fits the256KiB limit.
-      if (!utf8BytesWithinLimit(start, scan, prefix.length + 1)) {
-        throw new CadAstError('LIMIT', 'Source exceeds 256 KiB', range(start, Math.min(source.length, start + 1)), {
-          objectId, completedDeclarations: declarations, modelFields, modelName,
-          legacyCurve: { start, end: scan, innerOffset: 0, innerMessage: 'LIMIT at 1:1: Source exceeds 256 KiB' },
-        });
-      }
-    }
     while (true) {
       skip(); if (source[at] === '}') { take('}'); break; }
       fields.push(field(kind === 'curve' ? curveFields : kind === 'surface' ? surfaceFields : ['curve', 'vector'], kind === 'surface', seen, kind === 'extrude' ? 'extrude' : 'literal'));
     }
-    virtual = undefined; chargeNode(); declarations.push({ kind: kind as CadAstDeclaration['kind'], id: objectId, range: range(start, at), idRange: range(idStart, identifier.range.end), fields });
+    chargeNode(); declarations.push({ kind: kind as CadAstDeclaration['kind'], id: objectId, range: range(start, at), idRange: range(idStart, identifier.range.end), fields });
   }
   const modelEnd = at; objectId = undefined; skip(); if (at !== source.length) fail('SYNTAX', 'Unexpected content after model');
-  return { kind: 'model', name: modelName, range: range(modelStart, modelEnd), nameRange: modelIdentifier.range, fields: modelFields, declarations };
+  return { kind: 'model', name: modelIdentifier.value, range: range(modelStart, modelEnd), nameRange: modelIdentifier.range, fields: modelFields, declarations };
 }
