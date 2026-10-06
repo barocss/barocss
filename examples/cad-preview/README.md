@@ -623,3 +623,25 @@ one graph workspace state visit. First equal-quality blur-event failure is retai
 and fixed. Broader numerical/resource/performance/compatibility campaigns remain
 deferred. This is an approximate planar face, not a curved shell/solid/STEP or
 commercial certificate; software pixels are functional evidence only.
+
+
+## Original circle prism shell preview (prototype)
+
+Choose **CAD · Original circle prism shell + edges** at
+`/#cad-native-circle-shell`. The seed circle has center[2,-3],radius4 and positive
+height6mm. Actual original rational caps/ruled-wall construction produces the
+accepted display packet. Display quality is fixed at8 segments per quarter:
+194vertices/128triangles,3face ranges and3native paths with33/33/2points.
+The same native wall seam has two opposite UV uses atU0/U4 but one displayed path.
+Cap spokes and wall-panel diagonals are absent from native edges. Drag to orbit;
+back edges may be occluded. Mesh and paths use the same reported mm mapping.
+Wall facet normals come from original interior-midpoint D1 evaluations. Native
+C0 knot derivative refusal remains. This is approximate display of an original
+candidate shell; not a certified solid or an editable-height document.
+
+The focused `circle-prism-consumer-smoke.mjs` records native source/bundle/packet,
+face/path/seam provenance, mesh compiler IR and actual uploaded WebGL buffers,
+cap/wall/edge pixels, orbit, one original native-derived dimension update and
+invalid/stale rejection retention. Affected CAD/GPU builds and this flow suffice
+for the prototype; broad validation is deferred. Existing GPU path limits remain:
+consumer sampling2..15 only if later exposed, native2..32 unchanged.
