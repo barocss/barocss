@@ -16,6 +16,7 @@ try{
  const record=await page.evaluate(async issue=>{
   const api=await import('/cad.js'),native=api.buildXYPolygonRegion({id:'browser_L',points:[[0,0],[4,0],[4,1],[1,1],[1,4],[0,4]]});
   if(issue===566){const face=api.buildXYPolygonPlanarFace(native.curve,{faceId:'browser_face'}),answer=api.classifyXYPolygonPlanarFacePoint(face.bundle,[2,2,0]);if(face.report.edgeCount!==6||answer.classification!=='outside'||face.report.solid!==false)throw new Error('Actual planar trim face import/query failed');return{report:face.report,answer};}
+  if(issue===567){const shell=api.buildXYPolygonPrismShell(native.curve,{bodyId:'browser_shell',distanceMM:6}),report=api.validateXYPolygonPrismShell(shell.shell);if(report.faceCount!==8||report.edgeCount!==18||report.edgeUseCount!==36||!report.closed||report.solid!==false)throw new Error('Actual native prism shell import/incidence failed');return{report};}
   throw new Error('Unsupported native smoke issue');
  },issue);
  const reachable=new Set();function visit(name){if(reachable.has(name))return;assert(proposal.modules[name],'Unregistered native import: '+name);reachable.add(name);for(const dependency of proposal.modules[name].imports){assert(dependency.startsWith('./'));visit(dependency.slice(2));}}visit('index.js');for(const name of reachable)assert(requests.has(name==='index.js'?'/cad.js':'/'+name),name);assert.deepEqual(errors,[]);
