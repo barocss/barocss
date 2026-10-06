@@ -1588,3 +1588,69 @@ top-cap and lateral hits, concave notch misses, boundary/coplanar ambiguity,
 native identities and invalid-input retention. Affected build/run is the
 prototype checkpoint; numerical robustness and broad regression campaigns
 remain deferred.
+
+### Original planar polygon face with one hole
+
+`buildXYPolygonPlanarFaceWithHole(outerProfile, holeProfile, { faceId })`
+returns a distinct native `xy-polygon-planar-face-with-hole` bundle/report.
+`validateXYPolygonPlanarFaceWithHoleBundle(bundle)` validates that family;
+`classifyXYPolygonPlanarFaceWithHolePoint(bundle, pointMM)` queries integer
+XY points at Z0. Existing single-loop faces, prism shells, previews and ray
+queries retain their original separate schemas and validators.
+
+Both inputs are actual canonical degree1/unit-weight closed integer XY
+Curves from the original polygon region API. Each has at least3 vertices;
+their combined count is at most12. Coordinates remain within±10000mm. Exactly
+one hole is supported. All outer/hole segment pairs use exact safe-integer
+orientation and on-segment predicates, at most36 cross-loop pairs. Any
+crossing, touch, shared endpoint or collinear overlap rejects. Every hole
+vertex must also be strictly inside the actual outer polygon. This rejects
+an edge crossing a concave missing region even when its endpoints are inside.
+No centroid/bounding-box assumption, snapping, healing or tolerance-based
+construction is used. Source self-intersection/degeneracy remains subject to
+the original polygon validator.
+
+The actual Model contains both unchanged source Curves, one shared degree1
+by-degree1 +Z supporting Surface over the outer bounds, and one native
+segment Curve per original edge. N+3<=15 objects preserve Model0's16-object
+limit. Native vertices/edges retain source Curve, segment index/parameter
+range, loop ID and role. Outer uses runCCW and hole uses runCW with respect to
+the forward+Z face, reversing topology order/sense as needed while preserving
+authored source order/orientation. Both directed loops have their actual
+affine pcurves in the shared Surface. The face names outerLoopId and exactly
+one innerLoopId.
+
+Validation reconstructs the complete bounded canonical family from its
+actual source references. Directed endpoints/source/role bindings and
+actual Surface/edge evaluations at endpoints/midpoints are checked;
+1e-9mm is an evaluation comparison, not a construction/manufacturing
+tolerance. Changed pcurves, references, coefficients or loop incidence
+reject atomically. Areas are exact safe-integer half-shoelace values: outer,
+hole and positive net area. Every output occurrence owns data.
+
+Point queries accept integer XYZ within±10000mm atZ0. Any original boundary
+wins `boundary`; a hole-interior point or point outside the outer loop is
+`outside`; only the remaining outer interior is `inside`. At a vertex all
+qualifying original edges are returned in native edge order, with edge ID,
+source Curve/segment range and outer/hole loop identity. Native face/Surface
+IDs and affine UV are retained, including outside-domain UV for outside
+points; the query does not clamp or evaluate an out-of-domain Surface point.
+
+Face ID is ASCII1..80 and all original/derived IDs are distinct and at
+most128. Own snapshot limits are16384 values/depth12/arrays128/records16/
+strings128; getters, hidden/symbol/sparse fields and foreign prototypes
+reject. Report limits and geometricValidity:not-certified,
+topologyCertified:false,solid:false remain explicit. No tessellation,
+hole extrusion, multiple holes, curved trim, Boolean/solid or exchange
+certificate is included.
+
+```sh
+node examples/cad-nurbs/xy-polygon-planar-face-hole-demo.mjs /tmp/barocss-planar-face-hole-prototype
+```
+
+The actual square10x10/hole4x4 demo reports net area84mm2 with8vertices,
+8edges,2loops and11Model objects, tests all four authored orientations and
+native boundary identities, and builds a concave outer with a contained
+triangle. Crossing/touch/outside holes and corrupted inner pcurves/references
+reject while prior data remain usable. Affected build and this short actual
+demo are the prototype checks; broader validation remains deferred.
