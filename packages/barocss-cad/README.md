@@ -1095,3 +1095,71 @@ augmented matrix ranks, domains, IDs, points and D1, with corrupt-pointer/readab
 shifted-geometry controls. Set `BAROCSS_CAD_LINEAR_SKETCH_EVIDENCE` to fresh
 exact-head evidence. This adds no GUI, driving distances/angles/radii/tangency,
 source syntax/project admission, region/wire/solid certificate or history export.
+
+## Anchored signed XY driving dimensions
+
+The same `solveXYLinearSketch` API accepts `XYLinearSketchDocumentV1`. Its
+format, points, segments, original constraints, IDs/units and admission bounds
+match document v0. Version1 adds exactly `{ id, kind:'distance-x', pointA,
+pointB, distanceMM }` and the analogous `distance-y` record. The signed relation
+is B.x-A.x or B.y-A.y, not Euclidean line length. Targets are integer mm in
+[-10000,10000], including0/-0. References name distinct admitted points.
+
+```js
+import { solveXYLinearSketch } from '@barocss/cad';
+const initial = solveXYLinearSketch(document);
+const candidate = structuredClone(document);
+candidate.constraints.find(c => c.kind === 'distance-x').distanceMM = 8;
+const edited = solveXYLinearSketch(candidate);
+// Example endpoints: A(0,0), B(8,0), with actual source0/native D1[8,0,0].
+```
+
+The complete document is `examples/cad-nurbs/xy-axis-dimensions.json`.
+Positive7 gives B(7,0);8 gives B(8,0); negative7 gives B(-7,0), preserving
+point/segment IDs and endpoint order. A rectangle with width7/height5 becomes
+width8/height5 by changing its actual driving target. New native geometry,
+source and reports are recomputed; the prior result remains independently owned.
+
+Complete reference/data admission precedes relative affine-cycle checks. Every
+final scalar component containing a distance record needs a fixed target on
+that axis; every fixed target on that axis must be integer. Missing anchors or
+fractional fixed-axis targets return UNSUPPORTED. A fixed anchor declared after
+the dimension is valid. Unrelated components with no distance preserve old
+floating seed means/anchors and exact close-target conflicts. No centroid
+rounding, fuzzy residual tolerance or arbitrary free-floating offset placement
+is performed. Relative cycles are checked before anchor-family admission,
+then exact fixed-anchor consistency and final bounded geometry are checked.
+
+Relative potentials use exact safe-integer offsets bounded by310000mm. Solved
+distance-component coordinates must be safe integers within±10000mm. Compatible
+zero anchors retain the first fixed representation; zero relative displacement
+copies that value without unnecessary +0 addition. Inconsistent offset cycles
+return CONFLICT even when unanchored. Relevant equality/dimension/anchor IDs
+are reported without unrelated scalar components. Chronological whole/partial
+redundancy and rank/DOF follow actual independent scalar conditions.
+
+V1 reports add authored-order `dimensions`: `{ id, axis:'x'|'y', pointA, pointB,
+requestedMM, actualMM }`. Requested values retain authoring bits, including -0.
+Actual values are computed from returned solved endpoints and agree numerically
+exactly; actual zero may have a different sign. V1 without dimensions matches
+V0 source/geometry/rank/diagnostics and adds only dimensions[]/document version.
+V0 types/reports keep their original members and no dimensions field; V0 rejects
+new distance kinds. The former unsupported-version1 test now targets unsupported
+version2 because1 is explicitly admitted.
+
+Native sourceVersion remains0, geometry Model0 and compiler IR1. Document1 is
+a separately versioned native input, not source1 or application project1. Actual
+profile/source compiler adoption and the0.001mm line minimum remain unchanged.
+Failures return diagnostics only, without partial geometry or prior-state
+mutation. Additive public types are XYLinearSketchConstraintV1,
+XYLinearSketchDocumentV1, XYLinearSketchResultV1 and XYLinearSketchDimensionReport.
+
+Packed runtime/external TypeScript and independent exact rational coefficient/
+augmented/prefix-rank tests cover edits, signed/zero targets, cycles, late pins,
+restricted family and V0 parity. `test:exchange` reads original initial/edited
+IGES126 files, computes distances from reader endpoints and checks points/D1,
+IDs/domains/units and original equations, with pointer/length/endpoint corrupt
+controls. Set `BAROCSS_CAD_AXIS_DIMENSION_EVIDENCE` to fresh exact-head evidence.
+Interactive tools, fractional/unanchored dimensions, nonlinear distance/angle/
+radius/tangent constraints and source/project/wire/region/solid/history-export
+extensions remain separately scoped.
