@@ -280,6 +280,78 @@ The additive `dist/face.js` export imports only existing `dist/derivatives.js`,
 `dist/boundary.js` and `dist/math.js` at runtime; type imports are erased. GPU alone
 registers exact `/face.js` and verifies native plus actual-host final merged heads.
 
+## Exact two-rectangle adjacency v0
+
+`buildRectangleAdjacency(leftBundle, rightBundle, ids)` returns owned
+`RectangleAdjacency`. `validateRectangleAdjacency(unknown)` returns exactly
+`{ incidenceValid: true, geometryFamily: 'exact-axis-rectangles-v0', sharedEdges: 1,
+closed: false, solid: false }`. Exported types include `RectangleAdjacencyIds`,
+`RectangleAdjacencyValidationReport`, `QualifiedEdgeReference` and face/vertex/
+edge/use records. The API does not change either local `FaceBundle` or its existing
+`geometricValidity: 'not-certified'` status.
+
+The new family is degree1×1,2×2 unit weights, exact U/V knots [0,0,1,1], integer
+poles in [-10000,10000]mm, two nonzero signed sides A=P10-P00 and B=P01-P00 on
+different axes with magnitudes1..10000mm, and exact P11=P00+A+B. Both faces have
+the same signed A axis and exactly equal B; right.P00=left.P00+left.A. A lengths
+may differ. These represented coefficient conditions give S=P00+uA+vB, constant
+independent tangents, a full common edge, equal signed normal and disjoint interiors.
+Only left u-max/right u-min association is supported. Curved/weighted/twisted/folded,
+reversed-normal, partial/corner-only/overlapping/coincident/disjoint pairs are outside
+this new API. Existing native geometry APIs retain their previous acceptance.
+No samples, reader IsValid, epsilon matching, snapping, fitting or edge search
+establish this exact family. Selected floating position/D1 comparisons are separate.
+
+IDs are caller-supplied `{ adjacencyId, faceIds:[2], vertexIds:[6], edgeIds:[7] }`.
+All sixteen descriptor IDs are distinct ASCII identifiers<=128characters. Each
+wrapper `{ id, bundle }` defines its own local namespace; local IDs can repeat
+between the two unchanged bundles. Qualified references are records
+`{ faceId, edgeId, curveId }`, never concatenated strings. They resolve only inside
+their owning wrapper bundle. All records are strict own enumerable plain data;
+arrays are exact dense tuples. Snapshots preserve scalar values including signed
+zeros, duplicate aliases and use at most32768 values/depth18,128items per array
+and16fields per record. Accessors/symbols/nonenumerable/foreign/sparse/nonfinite/
+oversized/cyclic data reject without executing getters. Proxy reflection traps
+remain the host's responsibility.
+
+Global vertices are [left0,left1,left2,left3,right1,right2] in native corner order
+P00,P10,P11,P01; right0=left1 and right3=left2. Global edges are left0..3 then right0..2.
+Their endpoint indices are [(0,1),(1,2),(2,3),(3,0),(1,4),(4,5),(5,2)]. Edge1 has
+left1 forward and right3 reverse uses relative to its left canonical curve. All
+other edges have one canonical forward use. Each qualified local edge occurs once
+across eight uses. Local curves/pcurves/loops stay forward and unchanged; common
+parameters follow tRight=1-tLeft with opposite D1. Local/global vertices must be
+numerically EXACTLY equal to recognized pole corners, not merely within the old
+face tolerance. A1e-10mm global point change fails. Snapshots do not normalize signed
+zero data; geometric equality uses strict numeric equality.
+
+Named data/IDs/family/vertices/references/shared-geometry gates recompute the fixed
+descriptor and reject cached proof fields, wrong owners/curves/order/senses/counts,
+mutated copies and unsupported families. Every returned point/ref/use/array owns
+its data independently. Native selected position limit1e-9mm and D1 error
+1e-9*max(1,expected norm) do not relax exact graph coincidence.
+
+The built ESM demo uses rectangle-left/right.css plus explicit local/global ID files.
+It deliberately repeats local IDs, stores the global descriptor separately, and
+exports two original five-object geometry Models to two IGES files. Existing
+Model16 bounds are unchanged. IGES does not serialize global incidence or create
+shared IsSame topology, a sewn shell, solid or STEP.
+
+`BAROCSS_CAD_ADJACENCY_EVIDENCE` selects packed/OCP artifacts, defaulting to the
+isolated environment's `evidence-515/adjacency`. Seven signed XY/YZ/ZX/translated
+pairs retain authored data, IDs, owned bundles, exact references, native queries,
+actual per-face exports and directory mapping. Independent OCP compares both faces,
+signed normals/areas, qualified ownership and common positions/D1 at reversed
+parameters. Reader position/scaled D1 limits stay1e-7; area limit1e-7*max(1,area)mm².
+Quadrature request/estimate is separate. Wrong owner/sense/global point/curve controls
+must fail even when both original exported faces are valid. Folded/collapsed reader
+acceptance is retained as a limitation, never a general native certificate. All old
+point/source/preview/IGES/D1/boundary/face gates remain mandatory.
+
+New `dist/adjacency.js` imports existing `dist/face.js` and `dist/derivatives.js`.
+Type imports are erased. GPU alone registers exact `/adjacency.js` and runs serial
+native plus current actual-host/browser/captured-export final-head postchecks.
+
 ## IGES delivery
 
 `exportIGES(model, ids)` requires explicit unique IDs. It writes deterministic
