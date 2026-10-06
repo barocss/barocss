@@ -144,7 +144,7 @@ try {
   await page.mouse.move(center.x,center.y);await page.mouse.down();await page.mouse.move(center.x+90,center.y+45,{steps:6});await page.mouse.up();
   const orbitAfter=await page.evaluate(()=>({snapshot:window.cadPreview.snapshot(),bytes:Array.from(window.cadPreview.readPixels()),inspectedId:window.cadPreview.inspectedId,dragging:document.getElementById('preview').classList.contains('is-dragging')}));
   for(const key of ['source','model','packet','report','iges','revision','constructions','selectedConstruction'])assert.deepEqual(orbitAfter.snapshot[key],orbitBefore.snapshot[key]);
-  assert.equal(orbitAfter.inspectedId,orbitBefore.inspectedId);assert(orbitAfter.snapshot.viewRevision>orbitBefore.snapshot.viewRevision);assert.notDeepEqual(orbitAfter.bytes,orbitBefore.bytes);assert.equal(orbitAfter.dragging,false);
+  assert.equal(orbitAfter.inspectedId,orbitBefore.inspectedId);assert(orbitAfter.snapshot.viewRevision>orbitBefore.snapshot.viewRevision);assert.notDeepEqual(orbitAfter.bytes,orbitBefore.bytes);assert.equal(orbitAfter.dragging,false);assert(orbitAfter.snapshot.options.camera.eye[1]>orbitBefore.snapshot.options.camera.eye[1], 'Downward drag must use the corrected vertical direction');
   for(const key of ['target','up','fovYDegrees','near','far'])assert.deepEqual(orbitAfter.snapshot.options.camera[key],orbitBefore.snapshot.options.camera[key]);
   const radius=c=>Math.hypot(...c.eye.map((v,i)=>v-c.target[i]));assert(Math.abs(radius(orbitAfter.snapshot.options.camera)-radius(orbitBefore.snapshot.options.camera))<1e-9);
   await page.mouse.move(center.x+130,center.y+70);assert.equal(await page.evaluate(()=>window.cadPreview.snapshot().viewRevision),orbitAfter.snapshot.viewRevision);
