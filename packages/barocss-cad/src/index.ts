@@ -34,3 +34,5 @@ export { tessellateXYPolygonRegion } from './xy-polygon-preview.js';
 export type { XYPolygonPreviewOptions, XYPolygonPreviewVertexSource, XYPolygonPreviewReport, XYPolygonPreviewResult } from './xy-polygon-preview.js';
 export { buildXYPolygonPrismPreview } from './xy-polygon-prism-preview.js';
 export type { XYPolygonPrismPreviewRequest, XYPolygonPrismPreviewConstruction, XYPolygonPrismPreviewRole, XYPolygonPrismPreviewReport, XYPolygonPrismPreviewResult } from './xy-polygon-prism-preview.js';
+export { evaluateXYPolygonPrismDocument, updateXYPolygonPrismDocument, serializeXYPolygonPrismDocument, parseXYPolygonPrismDocument } from './xy-polygon-prism-document.js';
+export type { XYPolygonPrismDocumentV0, XYPolygonPrismDocumentOptions, XYPolygonPrismDocumentUpdate, XYPolygonPrismDocumentEvaluation, XYPolygonPrismDocumentResult } from './xy-polygon-prism-document.js';
