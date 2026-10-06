@@ -13,6 +13,7 @@ export function orbitCamera(camera,dx,dy,width,height){
  const pitch=Math.max(lower,Math.min(upper,theta+dy*Math.PI/height))-theta;
  const yaw=(-dx/width*2*Math.PI)%(2*Math.PI);
  const horizontal=rotate(offset,up,yaw),right=unit(cross(up,unit(horizontal))),moved=rotate(horizontal,right,pitch);
+ if(!moved.every(Number.isFinite))throw new RangeError('Orbit arithmetic must remain finite');
  result.eye=moved.map((value,index)=>value+camera.target[index]);
  return result;
 }
@@ -24,10 +25,12 @@ export function bindMouseOrbit(canvas,host,onAccepted=()=>{}){
   if(disposed||gesture||event.pointerType!=='mouse'||!event.isPrimary||event.button!==0||!host.available)return;
   const accepted=host.snapshot(),rect=canvas.getBoundingClientRect();if(!accepted||rect.width<=0||rect.height<=0)return;
   gesture={id:event.pointerId,x:event.clientX,y:event.clientY,width:rect.width,height:rect.height,camera:structuredClone(accepted.options.camera??defaultOrbitCamera),viewRevision:accepted.viewRevision};
-  canvas.setPointerCapture(event.pointerId);canvas.classList.add('is-dragging');event.preventDefault();
+  try{canvas.setPointerCapture(event.pointerId);}catch{end();return;}
+  canvas.classList.add('is-dragging');event.preventDefault();
  }
  function move(event){
-  if(!gesture||event.pointerId!==gesture.id)return;
+  if(!gesture||event.pointerId!==gesture.id||event.pointerType!=='mouse'||!event.isPrimary)return;
+  if(!(event.buttons&1)){end();return;}
   if(!host.available||host.snapshot()?.viewRevision!==gesture.viewRevision){end();return;}
   const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;if(dx===0&&dy===0)return;
   try{const camera=orbitCamera(gesture.camera,dx,dy,gesture.width,gesture.height),result=host.setCamera(camera);

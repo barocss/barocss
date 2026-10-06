@@ -138,6 +138,7 @@ try {
   const uiWorkspace={constructionScreen,screens:uiScreens,baselineIndexHash:hash(baselineIndexBytes),keyboardSourceAndDiagnostics:true,focusRestoredAfterInspection:true,acceptedLabelRetainedOnInvalidSource:true,controlsLabelled:true,noHorizontalOverflow:true};
   await writeFile(path.join(evidence,'ui-workspace.json'),json(uiWorkspace));
   const orbitBefore=await page.evaluate(()=>({snapshot:window.cadPreview.snapshot(),bytes:Array.from(window.cadPreview.readPixels()),inspectedId:window.cadPreview.inspectedId}));
+  await page.locator('#preview').scrollIntoViewIfNeeded();
   const dragBox=await page.locator('#preview').boundingBox();assert(dragBox);
   const center={x:dragBox.x+dragBox.width/2,y:dragBox.y+dragBox.height/2};
   await page.mouse.move(center.x,center.y);await page.mouse.down();await page.mouse.move(center.x+90,center.y+45,{steps:6});await page.mouse.up();

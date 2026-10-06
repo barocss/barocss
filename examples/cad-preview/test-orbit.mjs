@@ -17,11 +17,12 @@ test('pointer capture orbit updates only accepted views and cancels cleanly',()=
  const canvas={ownerDocument:{defaultView:{addEventListener:(k,v)=>windowListeners.set(k,v),removeEventListener:k=>windowListeners.delete(k)}},classList:{add:k=>classes.add(k),remove:k=>classes.delete(k)},getBoundingClientRect:()=>({width:512,height:384}),addEventListener:(k,v)=>listeners.set(k,v),removeEventListener:k=>listeners.delete(k),setPointerCapture:id=>captured=id,hasPointerCapture:id=>captured===id,releasePointerCapture:()=>captured=undefined};
  let accepted={options:{},viewRevision:1},available=true,calls=0,reject=false;
  const host={get available(){return available;},snapshot:()=>structuredClone(accepted),setCamera(camera){calls++;if(reject)return{ok:false};accepted={options:{camera},viewRevision:accepted.viewRevision+1};return{ok:true};}};
- const orbit=bindMouseOrbit(canvas,host),event=(changes={})=>({pointerId:1,pointerType:'mouse',isPrimary:true,button:0,clientX:10,clientY:10,preventDefault(){},...changes});
+ const orbit=bindMouseOrbit(canvas,host),event=(changes={})=>({pointerId:1,pointerType:'mouse',isPrimary:true,button:0,buttons:1,clientX:10,clientY:10,preventDefault(){},...changes});
  for(const changes of [{button:2},{pointerType:'touch'},{isPrimary:false}])listeners.get('pointerdown')(event(changes));assert.equal(captured,undefined);
  listeners.get('pointerdown')(event());assert.equal(captured,1);listeners.get('pointermove')(event({clientX:138}));assert.equal(calls,1);assert.equal(accepted.viewRevision,2);
  listeners.get('pointerup')(event());assert.equal(captured,undefined);assert(!classes.has('is-dragging'));listeners.get('pointermove')(event({clientX:150}));assert.equal(calls,1);
  listeners.get('pointerdown')(event());accepted.viewRevision++;listeners.get('pointermove')(event({clientX:100}));assert.equal(calls,1);assert.equal(captured,undefined);
+ listeners.get('pointerdown')(event());listeners.get('pointermove')(event({buttons:0,clientX:100}));assert.equal(captured,undefined);assert.equal(calls,1);
  listeners.get('pointerdown')(event());windowListeners.get('blur')();assert.equal(captured,undefined);
  listeners.get('pointerdown')(event());reject=true;const saved=structuredClone(accepted);listeners.get('pointermove')(event({clientX:100}));assert.deepEqual(accepted,saved);assert.equal(captured,undefined);
  listeners.get('pointerdown')(event());available=false;listeners.get('webglcontextlost')();assert.equal(captured,undefined);orbit.dispose();orbit.dispose();assert.equal(listeners.size,0);assert.equal(windowListeners.size,0);
