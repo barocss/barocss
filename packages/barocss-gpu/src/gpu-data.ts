@@ -12,6 +12,7 @@ function array(value:unknown,maximum:number,path:string):unknown[]{
  if(!Array.isArray(value)||Object.getPrototypeOf(value)!==Array.prototype)throw new Error(`${path} must be a plain array`);
  const length=Object.getOwnPropertyDescriptor(value,'length')!.value as number;
  if(length>maximum)throw new Error(`${path} exceeds ${maximum}`);
+ const keys=Reflect.ownKeys(value);if(keys.length!==length+1)throw new Error(`${path} is sparse or has non-data array fields`);
  const descriptors=Object.getOwnPropertyDescriptors(value) as Record<string,PropertyDescriptor>;
  for(const k of Reflect.ownKeys(descriptors)){if(k==='length')continue;if(typeof k!=='string'||!/^(0|[1-9]\d*)$/.test(k)||Number(k)>=length||!('value'in descriptors[k])||!descriptors[k].enumerable)throw new Error(`${path} has non-data array fields`);}
  return Array.from({length},(_,i)=>{if(!Object.hasOwn(descriptors,i))throw new Error(`${path} is sparse`);return descriptors[i].value;});
