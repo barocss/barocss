@@ -50,3 +50,5 @@ export { tessellateXYPolygonPlanarFaceWithHole } from './xy-polygon-planar-face-
 export type { XYPolygonHoleFacePreviewOptions, XYPolygonHoleRational, XYPolygonHolePreviewCorner, XYPolygonHolePreviewSlab, XYPolygonHolePreviewEdgeProvenance, XYPolygonHoleFacePreviewReport, XYPolygonHoleFacePreviewResult } from './xy-polygon-planar-face-hole-preview.js';
 export { buildXYPolygonPrismShellWithHole, validateXYPolygonPrismShellWithHole } from './xy-polygon-prism-shell-hole.js';
 export type { XYPolygonPrismShellWithHoleOptions, XYPolygonPrismShellWithHole, XYPolygonPrismShellWithHoleReport, XYPolygonPrismShellWithHoleResult, XYPolygonPrismHoleCapFace, XYPolygonPrismHoleWallFace } from './xy-polygon-prism-shell-hole.js';
+export { tessellateXYPolygonPrismShellWithHole } from './xy-polygon-prism-shell-hole-preview.js';
+export type { XYPolygonPrismHoleShellPreviewOptions, XYPolygonPrismHoleShellFaceRange, XYPolygonPrismHoleShellEdgePath, XYPolygonPrismHoleShellEdgeProvenance, XYPolygonPrismHoleShellPreviewReport, XYPolygonPrismHoleShellPreviewResult } from './xy-polygon-prism-shell-hole-preview.js';
