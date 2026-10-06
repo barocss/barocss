@@ -49,3 +49,12 @@ The preview server also needs the existing built CAD module graph. The smoke
 uses a fresh loopback port and closes its own server/browser. Screenshots and
 index.json contain source, ranged AST, owned IR2/execution, camera, backend and
 exact HEAD. Broader suites are deferred under the prototype policy.
+
+## Source1 capped cylinder prototype
+
+The root Example menu includes **GPU · Cylinder** at `/#cylinder`. It uses the
+same explicit source1/IR2 path as rotation, with radius and full local Y height.
+After the affected GPU build, run `examples/gpu-scene/cylinder-smoke.mjs` with
+PW_DIR, CHROME and BAROCSS_CYLINDER_EVIDENCE. This short actual browser run also
+checks unchanged source0/source1 sphere/box shader controls. The preview server
+needs the existing built CAD graph; no native cylinder capability is claimed.

@@ -10,6 +10,7 @@ const examples=[
  {id:'sphere',label:'GPU · Sphere',kind:'sdf',source:scene('sphere','sphere #ball;','#ball{radius:1;color:#ee7358;}')},
  {id:'box',label:'GPU · Box',kind:'sdf',source:scene('box','box #block;','#block{size:2 2 2;color:#7cd8ca;}')},
  {id:'sphere-box',label:'GPU · Sphere + Box',kind:'sdf',source:scene('pair','sphere #ball;box #block;','#ball{radius:.8;translate:-1 0 0;color:#ee7358;}#block{size:1.2 1.2 1.2;translate:1 0 0;color:#7cd8ca;}')},
+ {id:'cylinder',label:'GPU · Cylinder',kind:'sdf',sourceVersion:1,camera:{...defaultOrbitCamera,eye:[3,2.5,7]},source:'@scene posts{version:1;background:#101820;cylinder #post;box #block;sphere #ball;}cylinder{radius:.6;height:2;color:#e08040;}#post{translate:-1.4 0 0;rotate-x:20deg;rotate-z:-15deg;}#block{size:1 1 1;translate:.4 0 0;color:#4090e0;}#ball{radius:.4;translate:1.7 0 0;color:#80d040;}'},
  {id:'rotated-box',label:'GPU · Rotated box',kind:'sdf',sourceVersion:1,source:'@scene tilted{version:1;background:#101820;box #block;sphere #ball;}#block{size:1 2 .8;rotate-x:20deg;rotate-y:35deg;rotate-z:-10deg;color:#e08040;}#ball{radius:.6;translate:1.4 0 0;color:#4090e0;}'},
  {id:'native-box',label:'CAD · Six-face box',kind:'box'},
  {id:'cad-triangle-region',label:'CAD · Triangle filled region',kind:'region',request:{id:'gallery_triangle',points:[[0,0],[3,0],[0,3]]}},
@@ -28,7 +29,7 @@ function select(id){
  const canvas=document.createElement('canvas');canvas.id='preview';canvas.tabIndex=0;canvas.setAttribute('aria-label',example.label);[canvas.width,canvas.height]=dimensions();
  let renderer,packet,options,native;
  try{
-  if(example.kind==='sdf')renderer=gpu.mountScene(canvas,example.source,defaultOrbitCamera,example.sourceVersion===1?{sourceVersion:1}:undefined);
+  if(example.kind==='sdf')renderer=gpu.mountScene(canvas,example.source,example.camera??defaultOrbitCamera,example.sourceVersion===1?{sourceVersion:1}:undefined);
   else{
    if(example.kind==='box'){native=prepareBoxPreview({id:'gallery_box',origin:[0,0,0],sides:[2,3,5],revision:1},cad);packet=native.packet;options={mmToSceneUnit:.5,translate:[-.5,-.75,-1.25],color:[.25,.8,.75],background:[16/255,24/255,32/255],camera:{eye:[4,3,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100}};}
    else if(example.kind==='region'||example.kind==='prism'){

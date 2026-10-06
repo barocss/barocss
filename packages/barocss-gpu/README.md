@@ -76,6 +76,39 @@ order, invalid-update retention and an unchanged source0 shader fixture.
 Broader numerical/resource/performance/compatibility validation is deferred.
 This increment adds no groups, scale, CSG, animation, materials or picking.
 
+## Source1 capped cylinder (prototype)
+
+```css
+@scene posts { version: 1; cylinder #post; }
+cylinder { radius: .6; height: 2; color: #e08040; }
+#post { rotate-x: 20deg; rotate-z: -15deg; translate: -1.4 0 0; }
+```
+
+Explicit source1 adds `cylinder` declarations and type selectors. Its centered
+local axis is Y; full `height` spans [-height/2, height/2], with radius in XZ.
+Defaults are radius1 and full height2. Both dimensions must be finite, positive,
+<=1000; Float32 radius and half-height must remain positive. Rotation, translation,
+color and existing cascade rules apply. Radius applies to spheres and cylinders;
+height is cylinder-only; size is box-only. Units/functions are not accepted for
+dimensions. The original capped signed distance combines radial and axial outside
+distances with the inside maximum; rotation preserves that distance.
+
+Structured Scene1 cylinders and IR2 cylinder draws use type/kind `cylinder` and
+require `height`. Sphere/box records have no height field. The common unused size
+layout remains, but does not determine cylinder dimensions. Source0/Scene0/IR1
+reject cylinders; source1 sphere/box shader bytes stay unchanged when no cylinder
+is present. This is an additive private source1/IR2 kind; an older implementation
+or consumer must not be assumed to support it.
+
+Select **GPU · Cylinder** in the minimal Example menu to see the cap and side.
+`examples/gpu-scene/cylinder-smoke.mjs` checks actual generated GLSL distance
+control points (RGBA8 tolerance2/255), source edits, orbit, invalid-frame retention
+and unchanged source0/source1 shader controls. CPU intent controls use tolerance
+1e-12. It writes exact HEAD, source/AST/IR/execution/camera/backend and PNG lineage
+under BAROCSS_CYLINDER_EVIDENCE, using existing PW_DIR/CHROME installations.
+This is prototype evidence; broader numerical/resource/performance suites remain
+deferred. No CAD cylinder, B-Rep, capsule, groups, CSG or material system is added.
+
 ## Built ESM API
 
 ```js

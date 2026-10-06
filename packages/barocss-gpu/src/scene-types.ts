@@ -9,10 +9,16 @@ export interface SceneObject {
   /** Full box extents, not half extents. */
   size: Vec3;
 }
-export interface SceneObject1 extends SceneObject {
+export interface RotatedSceneObject extends SceneObject {
   /** Local right-handed degrees; X then Y then Z. */
   rotateDegrees: Vec3;
 }
+export interface CylinderSceneObject extends Omit<RotatedSceneObject, 'type'> {
+  type: 'cylinder';
+  /** Full local Y height. */
+  height: number;
+}
+export type SceneObject1 = RotatedSceneObject | CylinderSceneObject;
 export interface Scene1 {
   version: 1;
   name: string;
