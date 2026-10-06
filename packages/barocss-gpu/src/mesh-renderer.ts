@@ -149,7 +149,7 @@ export class MeshRenderer {
       gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
       if(highlight){
         gl.uniform3fv(gl.getUniformLocation(resources.program, 'color'),highlight.color);
-        gl.depthFunc(gl.LEQUAL);gl.depthMask(false);
+        gl.depthFunc(gl.EQUAL);gl.depthMask(false);
         gl.drawElements(gl.TRIANGLES,highlight.indexRange[1]-highlight.indexRange[0],gl.UNSIGNED_SHORT,highlight.indexRange[0]*2);
         gl.depthMask(true);gl.depthFunc(gl.LESS);
       }

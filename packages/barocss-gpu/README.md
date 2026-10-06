@@ -415,3 +415,10 @@ rejects before candidate adoption and retains frame. Highlight draws the selecte
 original indices with the original shader/camera/depth and a separate color; hidden
 faces remain occluded and original edge overlay stays on top. No new packet schema,
 CAD dependency, material/selection kernel or renderer-budget widening is added.
+
+Highlight uses depth EQUAL against the original accepted fill, with the same
+polygon offset when original edges are enabled. Raster-visible shared silhouette
+boundary samples may retain the selected face's color; this does not establish a
+hidden-line or geometric visibility certificate. The focused prototype measured
+bottom-face changes only within1.1 physical pixels of its actual original boundary
+paths and unchanged protected cap/wall interior samples.
