@@ -10,7 +10,7 @@ export function orbitCamera(camera,dx,dy,width,height){
  const theta=Math.acos(Math.max(-1,Math.min(1,dot(direction,up))));
  // Preserve an already near-pole starting pose; constrain movement toward either singular axis.
  const lower=Math.min(theta,.02),upper=Math.max(theta,Math.PI-.02);
- const pitch=Math.max(lower,Math.min(upper,theta+dy*Math.PI/height))-theta;
+ const pitch=Math.max(lower,Math.min(upper,theta-dy*Math.PI/height))-theta;
  const yaw=(-dx/width*2*Math.PI)%(2*Math.PI);
  const horizontal=rotate(offset,up,yaw),right=unit(cross(up,unit(horizontal))),moved=rotate(horizontal,right,pitch);
  if(!moved.every(Number.isFinite))throw new RangeError('Orbit arithmetic must remain finite');

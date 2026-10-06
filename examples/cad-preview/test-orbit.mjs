@@ -7,7 +7,9 @@ test('mouse orbit preserves target, radius, up, optics and owned camera data',()
  assert(Math.abs(turned.eye[0]+6)<1e-10&&Math.abs(turned.eye[2])<1e-10);
  for(const key of ['target','up','fovYDegrees','near','far'])assert.deepEqual(turned[key],original[key]);
  assert(Math.abs(radius(turned)-6)<1e-10);assert.deepEqual(original,defaultOrbitCamera);
- const raised=orbitCamera(original,0,-96,512,384);assert(raised.eye[1]>0);
+ const upwardDrag=orbitCamera(original,0,-96,512,384),downwardDrag=orbitCamera(original,0,96,512,384);
+ assert(upwardDrag.eye[1]<0);assert(downwardDrag.eye[1]>0);
+ assert(Math.abs(upwardDrag.eye[1]+downwardDrag.eye[1])<1e-10);
  for(const dy of [-1e6,1e6]){const bounded=orbitCamera(original,0,dy,512,384);assert(Math.abs(bounded.eye[2])>0.1);assert(Math.abs(radius(bounded)-6)<1e-9);}
  const rolled={...original,target:[2,3,4],eye:[2,3,10],up:[1,0,0]};assert(Math.abs(radius(orbitCamera(rolled,100,80,512,384))-6)<1e-9);
  assert.throws(()=>orbitCamera(original,NaN,0,512,384));assert.throws(()=>orbitCamera(original,1,0,0,384));
