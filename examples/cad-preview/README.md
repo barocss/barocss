@@ -311,3 +311,18 @@ History records completed outer actions only. New documents are preflighted befo
 adoption; restoration uses one validated project load with new revisions and the existing
 renderer. No historical native/GPU handles, cached certificates or old revisions are restored.
 Saved project files still contain only the current accepted document, without history.
+
+
+## Whole-box transfer consumer
+
+The separate test consumer builds one source-v0 Model with six named native surfaces,
+validates six independently owned face bundles and the restricted shell/solid, then calls
+native tessellation for each 2×2 face. The existing packet-v0 has 24 vertices/12 triangles,
+with local UV ranges and per-face normals retained at duplicated crease corners.
+`box_view` is a derived mesh identity, not a native Surface or single-Surface project.
+
+The owned consumer canvas never adopts the application document. Explicit fixture options
+control scale, translation and camera; there is no geometry auto-fit. Retained source/native/
+solid/per-face/composite/range/pixel hashes and thirty separate original face exports feed
+the independent installed reader. This adds no Box UI, file-v2, packet protocol, whole-solid
+IGES action, STEP, general-solid certificate or hardware performance claim.

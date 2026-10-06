@@ -1,3 +1,4 @@
+import {runBoxExchange}from'./box-exchange.mjs';
 import { parseProject } from './project.mjs';
 import { preparePrimitive } from './primitives.mjs';
 import assert from 'node:assert/strict';
@@ -55,6 +56,7 @@ for(const receipt of projectLineage.records){
  assert.equal(cad.exportIGES(model,[file.surfaceId]).iges,await readFile(path.join(evidence,name+'.downloaded.igs'),'utf8'));
  if(receipt.kind==='sheet')assert(Object.is(file.options.camera.target[0],-0));
 }
+await runBoxExchange({index,evidence,head,cad,gpu,python});
 const output = path.join(evidence, 'exchange');
 await mkdir(output, { recursive: true });
 const names = ['construction-cylinder', 'construction-vector-edit', 'construction-weight-edit', 'construction-asymmetric',

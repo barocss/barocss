@@ -5,3 +5,5 @@
 .object-rail .field-grid{margin:12px 0}.object-rail .row{margin-top:12px}#primitive-kind{margin-bottom:10px}
 
 #project-save{margin:12px 0}#project-open{width:100%;min-width:0;font-size:10px;padding:7px 0}
+
+.box-test{position:fixed;inset:0;z-index:100;background:#101820;display:grid;place-content:center;gap:16px}.box-test canvas{width:512px;height:384px;max-width:90vw;max-height:70vh}.box-test h2{color:#b8e6e6;font-size:15px}
