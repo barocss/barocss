@@ -352,6 +352,59 @@ New `dist/adjacency.js` imports existing `dist/face.js` and `dist/derivatives.js
 Type imports are erased. GPU alone registers exact `/adjacency.js` and runs serial
 native plus current actual-host/browser/captured-export final-head postchecks.
 
+## Additive orthogonal rectangle adjacency v0
+
+`buildOrthogonalRectangleAdjacency(leftBundle, rightBundle, ids)` and
+`validateOrthogonalRectangleAdjacency(unknown)` add a separate operation.
+`OrthogonalRectangleAdjacencyIds` and `OrthogonalRectangleAdjacency` retain the
+existing ID/descriptor layouts; `OrthogonalRectangleAdjacencyValidationReport`
+is exactly `{ incidenceValid: true, geometryFamily: 'exact-orthogonal-axis-rectangles-v0',
+sharedEdges: 1, closed: false, solid: false }`. Existing coplanar functions, report,
+acceptance and native bytes are unchanged. Old coplanar APIs reject orthogonal
+pairs; the new functions reject coplanar pairs rather than silently widening them.
+
+Each surface is the same restricted unit-weight canonical integer axis rectangle.
+The fixed maps are left `O+uA+vB` and right `O+A+uC+vB`, with A,B,C on three
+mutually different coordinate axes. The existing degree1×1/2×2, [0,0,1,1] knots,
+integer pole range±10000mm and signed side magnitudes1..10000mm are required.
+Coefficients establish regular injective individual maps and perpendicular signed
+normals. Equal A/C components force leftU1/rightU0; B then gives equal V, so the
+bounded planes intersect only on the full common segment. Perpendicular normals
+describe an orthogonal crease, not shared smooth-normal continuity.
+
+The exact two-face/6vertex/7edge/8use/16explicit-global-ID namespace and fixed
+qualified references match the coplanar descriptor. Common left u-max/right u-min
+uses are forward/reverse, with tRight=1-tLeft in original canonical parameters.
+Local five-object FaceBundles, geometry, pcurves, loops, repeated local IDs and
+not-certified/solidfalse reports remain unchanged and independently owned.
+Snapshot guards remain32768values/depth18/array128/record16, own enumerable plain
+data, dense tuples and finite scalars. Getter/symbol/foreign/nonenumerable/cyclic/
+sparse/cached-proof data reject without execution. Scalar signed zeros are preserved.
+Exact local/global corner/reference association never uses a comparison epsilon.
+Weighted/rotated/folded/collapsed, partial/reversed-B/near/disjoint/noncanonical
+sources and malformed graphs reject without fitting, guessing or repair.
+
+`orthogonal-demo.mjs` pairs rectangle-left.css with orthogonal-right.css and explicit
+local/global IDs. `BAROCSS_CAD_ORTHOGONAL_EVIDENCE` selects fresh actual product
+archive evidence, defaulting to the isolated environment's `evidence-519/orthogonal`.
+The packed ESM/types consumer calls the new builder and validator, not private
+research graphs. Twelve signed-axis/translated pairs retain24actual per-face
+surface+four-boundary IGES files,228common and1824boundary queries and the named
+source/graph controls. `test:exchange` requires current-head packed evidence and
+runs the new independent reader alongside every old suite. Original domains,
+qualified file/directory ownership, signed normals and areas are checked separately.
+Native position/scaledD1 limits are1e-9, reader1e-7; area1e-7*max(1,area)mm² with
+quadrature request/estimate retained separately. A valid exported pair cannot hide
+a wrong owner/sense/edge/vertex/missing-or-duplicate use or1e-10mm global point change.
+Actual folded/collapsed reader acceptance remains a limitation, not a product proof.
+
+Two separate five-object Models preserve Model16. No sewing, shared IsSame edge,
+serialized global graph, closed shell/solid/STEP, general geometric certificate or
+manufacturing result follows. New `dist/orthogonal-adjacency.js` imports only existing
+`dist/face.js` and `dist/derivatives.js` at runtime; type-only adjacency/types imports
+are erased. GPU alone registers exact `/orthogonal-adjacency.js`, integrates and
+runs same-head native/current-host/browser/captured-export postchecks.
+
 ## IGES delivery
 
 `exportIGES(model, ids)` requires explicit unique IDs. It writes deterministic
