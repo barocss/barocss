@@ -225,7 +225,7 @@ test('loopback server serves only explicit built/example routes under strict CSP
       req.on('error', reject); req.end();
     });
   try {
-    for (const route of ['/', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/inspector.mjs', '/parameters.mjs', '/orbit.mjs', '/primitives.mjs', '/project.mjs', '/history.mjs', '/box-preview.mjs', '/style.css',
+    for (const route of ['/', '/workspace.html', '/gallery.mjs', '/gallery.css', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/inspector.mjs', '/parameters.mjs', '/orbit.mjs', '/primitives.mjs', '/project.mjs', '/history.mjs', '/box-preview.mjs', '/style.css',
       '/cad.js', '/gpu.js', ...['types', 'math', 'iges', 'packet', 'preview', 'extrusion', 'derivatives', 'boundary', 'face', 'adjacency', 'orthogonal-adjacency', 'box-shell', 'box-solid', 'model-compiler', 'source-ast', 'semantic-model', 'lower-model', 'construction-types', 'extrusion-validation', 'expression-parser', 'parameter-semantics', 'data-copy'].map(name => `/${name}.js`)]) {
       const response = await get(route);
       assert.equal(response.status, 200, route);
@@ -234,7 +234,7 @@ test('loopback server serves only explicit built/example routes under strict CSP
       assert.equal(response.headers['cache-control'], 'no-store');
       assert.equal(response.headers['x-content-type-options'], 'nosniff');
       assert.equal(response.headers['referrer-policy'], 'no-referrer');
-      assert.match(response.headers['content-type'], route === '/' ? /^text\/html/
+      assert.match(response.headers['content-type'], ['/','/workspace.html'].includes(route) ? /^text\/html/
         : route.endsWith('.css') ? /^text\/css/ : /^text\/javascript/);
     }
     assert.match(csp, /default-src 'none'/);

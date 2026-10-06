@@ -1,3 +1,15 @@
+## Default example gallery
+
+The loopback root now shows only a canvas and an Example selector. Existing GPU
+sphere, box and combined scenes, the original native six-face box, and current CAD
+surface fixtures are available in one list. Native mesh examples retain mouse orbit.
+GPU SDF scenes retain their original fixed camera. Selection creates an owned view
+and disposes the previous renderer/context; errors keep the previous view.
+
+The existing CAD workspace and its editing/inspection/project/history tools remain
+at `/workspace.html`. The gallery adds no new grammar, geometry, project schema or
+Box authoring tool. Actual browser checks are in `gallery-browser.mjs`.
+
 # Native CAD to GPU preview
 
 This local consumer imports the built private `@barocss/cad` and

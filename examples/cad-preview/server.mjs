@@ -5,8 +5,10 @@ import path from 'node:path';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
 const files = new Map([
-  ['/', ['text/html; charset=utf-8', path.join(here, 'index.html')]],
-  ...['app.mjs','pipeline.mjs','fixtures.mjs','inspector.mjs','parameters.mjs','orbit.mjs','primitives.mjs','project.mjs','history.mjs','box-preview.mjs'].map(name => [`/${name}`, ['text/javascript; charset=utf-8', path.join(here, name)]]),
+  ['/', ['text/html; charset=utf-8', path.join(here, 'gallery.html')]],
+  ['/workspace.html', ['text/html; charset=utf-8', path.join(here, 'index.html')]],
+  ['/gallery.css', ['text/css; charset=utf-8', path.join(here, 'gallery.css')]],
+  ...['gallery.mjs','app.mjs','pipeline.mjs','fixtures.mjs','inspector.mjs','parameters.mjs','orbit.mjs','primitives.mjs','project.mjs','history.mjs','box-preview.mjs'].map(name => [`/${name}`, ['text/javascript; charset=utf-8', path.join(here, name)]]),
   ['/style.css', ['text/css; charset=utf-8', path.join(here,'style.css')]],
   ['/gpu.js', ['text/javascript; charset=utf-8', path.join(repo,'packages/barocss-gpu/dist/index.js')]],
   ['/cad.js', ['text/javascript; charset=utf-8', path.join(repo,'packages/barocss-cad/dist/index.js')]],

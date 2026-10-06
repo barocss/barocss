@@ -10,7 +10,7 @@ export async function runHistoryBrowser({browser,server,evidence,allowed,taskCom
  const frames=[],records=[],failures=[],errors=[],blocked=[];
  async function fresh(){const p=await browser.newPage({viewport:{width:1280,height:720}});p.on('pageerror',e=>errors.push(e.message));await p.route('**/*',r=>{const u=new URL(r.request().url());if(u.origin!==server.url||!allowed.has(u.pathname)||u.search){blocked.push(u.href);return r.abort();}return r.continue();});
   await p.addInitScript(()=>{window.historyProbe={resources:[],violations:[]};document.addEventListener('securitypolicyviolation',e=>window.historyProbe.violations.push(e.violatedDirective));const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(...args){const gl=original.apply(this,args);if(gl&&args[0]==='webgl2'&&!gl.historyTracked){gl.historyTracked=true;for(const kind of ['Buffer','Shader','Program','VertexArray','Framebuffer','Renderbuffer','Texture']){const fn=gl['create'+kind].bind(gl);gl['create'+kind]=(...a)=>{const resource=fn(...a);if(resource)window.historyProbe.resources.push({kind,resource,gl});return resource;};}}return gl;};});
-  await p.goto(server.url);await p.waitForFunction(()=>window.cadPreview?.snapshot()?.packet);assert.equal((await state(p)).history.count,1);return p;
+  await p.goto(server.url+'/workspace.html');await p.waitForFunction(()=>window.cadPreview?.snapshot()?.packet);assert.equal((await state(p)).history.count,1);return p;
  }
  async function capture(p,name,primitiveRequest=null,fixture=null){
   const s=(await state(p)).snapshot,bytes=await p.evaluate(()=>Array.from(window.cadPreview.readPixels())),size=await p.locator('#preview').evaluate(e=>[e.width,e.height]);
