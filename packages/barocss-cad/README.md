@@ -1322,3 +1322,54 @@ triangle profiles atdistance6, checks metrics/bounds/CW source retention and
 zero-distance rejection, and writes actual source/Curve/region/packet/role data
 for GPU consumption. Completion uses affected build plus this short real run.
 Broad tests/readers/raster/parity/resource validation remain deferred.
+
+## Editable polygon-prism intent document
+
+The native `barocss-xy-polygon-prism-feature` document0 owns one polygon profile
+and one prism-preview feature. Exact fields are `format`, `version`, `id`,
+`lengthUnit:'mm'`, `profile:{id,kind:'xy-polygon',points}` and
+`feature:{id,kind:'xy-polygon-prism-preview',profileId,bodyId,distanceMM}`.
+Document/feature/profile/body IDs are distinct ASCII1..80, including every
+actual derived prism role ID. Integer/simple XY and positive height restrictions
+remain those of the original region/prism constructors.
+
+```js
+import { evaluateXYPolygonPrismDocument, updateXYPolygonPrismDocument,
+  serializeXYPolygonPrismDocument, parseXYPolygonPrismDocument } from '@barocss/cad';
+const initial = evaluateXYPolygonPrismDocument(document, { revision:1 });
+const changed = updateXYPolygonPrismDocument(initial.document, { distanceMM:8 }, { revision:2 });
+const reopened = parseXYPolygonPrismDocument(serializeXYPolygonPrismDocument(changed.document));
+const fresh = evaluateXYPolygonPrismDocument(reopened, { revision:3 });
+```
+
+Evaluation resolves actual profile references, calls the original region builder
+and prism preview, and checks construction IDs/height. Result contains owned
+document/evaluation/bindings; evaluation retains original source/Model, actual
+profile/region/prism and the actual packet. Every nested occurrence owns data.
+It does not recover intent from triangles or introduce another source compiler.
+
+Updates accept at least one exact `points`/`distanceMM` edit. All edits are
+prepared in one owned candidate, then the complete candidate is admitted and
+evaluated before returning. Stable authoring IDs remain. Failed crossing/zero
+height/mismatched reference edits throw bounded document/feature errors and
+never mutate caller or prior accepted source/packet. Winding and forward
+collinear vertices are preserved; this is one feature, not a general graph.
+
+Serialization writes canonical ordered intent fields only, using lossless native
+decimal spelling including -0. No source/IR/geometry/packet/metrics/camera/proof
+is stored. Revision belongs only to display options. Parse accepts at most128KiB
+UTF-8 JSON and rebuilds through actual constructors before returning owned intent.
+A bounded admission scan before JSON.parse rejects duplicate decoded object keys,
+overdeep containers, excessive arrays/fields and oversized strings.
+Own snapshots bound4096 values/depth4/arrays70/records8/strings128 and reject
+foreign/accessor/sparse/hidden/extra/malformed data before adoption. This new
+native file format does not migrate the application's existing project files.
+
+```sh
+node examples/cad-nurbs/xy-polygon-prism-document-demo.mjs /tmp/barocss-polygon-prism-document-prototype
+```
+
+The real demo evaluates L atheight6 (42/110 volume/area), height8 (56/142),
+profile replacement4x3 atheight8 (96/136), intent Save/Open and fresh reedit,
+plus CW/signedzero and actual invalid-edit retention. Affected build and this
+short native run are the prototype gate; broader suites remain deferred.
