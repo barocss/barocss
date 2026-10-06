@@ -36,7 +36,7 @@ const evidence = process.env.BAROCSS_CAD_PREVIEW_BROWSER_EVIDENCE;
 await mkdir(evidence, { recursive: true });
 const server = await startServer(0);
 let browser;
-const errors = [], requests = [], cspViolations = [], frames = [], failures = [], constructionFrames = [], constructionFailures = [], objectFrames = [], objectFailures = [], parameterFrames = [], parameterFailures = [];
+const errors = [], requests = [], cspViolations = [], frames = [], failures = [], constructionFrames = [], constructionFailures = [], objectFrames = [], objectFailures = [], parameterFrames = [], parameterFailures = [], primitiveFrames = [];
 try {
   browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true,
     args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
@@ -44,7 +44,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const cadModuleRequests = new Set();
   page.on('request', request => cadModuleRequests.add(new URL(request.url()).pathname));
-  const allowed = new Set(['/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -156,6 +156,25 @@ try {
   await writeFile(path.join(evidence,'mouse-orbit.json'),json(orbitEvidence));
   await writeFile(path.join(evidence,'mouse-orbit-before.png'),readbackPng(orbitBefore.bytes,512,384));await writeFile(path.join(evidence,'mouse-orbit-after.png'),readbackPng(orbitAfter.bytes,512,384));
 
+  const primitiveControls=[];
+  for(const kind of ['sheet','quarter-wall']){
+    await page.locator('#primitive-kind').selectOption(kind);await page.fill('#primitive-size','100');await page.fill('#primitive-height','100');
+    await page.click('#primitive-create');const created=await capture(`create-${kind}`,null,null,{kind,size:100,height:100});
+    assert.equal(await page.locator('#source').inputValue(),created.snapshot.source);assert.equal(created.snapshot.packet.surfaceId,'surface');assert.equal(created.snapshot.options.mmToSceneUnit,.01);
+    const size=kind==='sheet'?128.5:42.375,height=76.625;
+    await page.fill('#primitive-size',String(size));await page.fill('#primitive-height',String(height));await page.click('#primitive-update');const edited=await capture(`update-${kind}`,null,null,{kind,size,height});
+    assert.notEqual(created.readbackHash,edited.readbackHash);assert.notEqual(created.snapshot.iges.iges,edited.snapshot.iges.iges);assert.deepEqual(edited.snapshot.options.camera,created.snapshot.options.camera);
+    await page.fill('#primitive-height','125.25');await page.click('#primitive-update');await capture(`height-${kind}`,null,null,{kind,size,height:125.25});
+    const owner=await page.evaluate(()=>window.cadPreview.primitiveState());assert.equal(owner.height,125.25);
+    const before=await state();await page.fill('#source',owner.source+' /* pending */');await page.click('#primitive-create');assert.equal(await state(),before);assert.equal(await page.locator('#source').inputValue(),owner.source+' /* pending */');await page.click('#discard-source');
+    await page.fill('#primitive-size','');await page.click('#primitive-update');assert.equal(await state(),before);await page.fill('#primitive-size','301');await page.click('#primitive-update');assert.equal(await state(),before);await page.fill('#primitive-size',String(size));
+    await page.locator('#preview').scrollIntoViewIfNeeded();const box=await page.locator('#preview').boundingBox();await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+25,box.y+box.height/2+15,{steps:3});await page.mouse.up();assert.deepEqual(await page.evaluate(()=>window.cadPreview.primitiveState()),owner);
+    primitiveControls.push({kind,created:true,updatedTwice:true,pendingPreserved:true,invalidPreserved:true,orbitProvenancePreserved:true});
+  }
+  const primitiveMixed=await page.evaluate(()=>{const host=window.cadPreview,live=()=>window.previewProbe.resources.filter(({kind,resource,gl})=>gl[`is${kind}`](resource)).length,before=live(),renderer=host.renderer;for(let i=0;i<12;i++){const a=host.createPrimitive({kind:i%2?'sheet':'quarter-wall',size:80+i,height:100},host.snapshot().source);if(!a.ok)throw Error(a.error);const b=host.updateDimensions({size:90+i,height:120},host.snapshot().source);if(!b.ok)throw Error(b.error);}return{count:12,before,after:live(),sameRenderer:renderer===host.renderer};});assert(primitiveMixed.sameRenderer&&primitiveMixed.before===primitiveMixed.after);
+  await page.setViewportSize({width:1440,height:900});await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:path.join(evidence,'primitive-desktop.ui.png'),fullPage:true,animations:'disabled'});await page.setViewportSize({width:390,height:844});await page.evaluate(()=>scrollTo(0,0));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await page.screenshot({path:path.join(evidence,'primitive-mobile.ui.png'),fullPage:true,animations:'disabled'});await page.setViewportSize({width:1280,height:720});
+  const primitiveLineage={controls:primitiveControls,mixed:primitiveMixed,explicitToolPlacement:true};
+
   // Restore the original consumer fixture; open advanced controls through real summaries.
   await page.setViewportSize({width:1280,height:720});await page.reload();await page.waitForFunction(()=>window.cadPreview?.snapshot()?.packet);
   await page.evaluate(()=>window.originalPreviewRenderer=window.cadPreview.renderer);
@@ -167,7 +186,7 @@ try {
     const result = await page.evaluate(async ({ source, settings }) => window.cadPreview.apply(source, settings), { source, settings: candidateSettings });
     assert(result.ok, result.error ?? 'Candidate was rejected');
   }
-  async function capture(name, objectFixture = null, parameterRequest = null) {
+  async function capture(name, objectFixture = null, parameterRequest = null, primitiveRequest = null) {
     const frame = await page.evaluate(async () => {
       const host = window.cadPreview, snapshot = host.snapshot();
       const cad = await import('/cad.js'), gpu = await import('/gpu.js');
@@ -226,20 +245,21 @@ try {
       files[`${name}.inspection.json`] = json(frame.inspection);
     }
     if(parameterRequest) files[`${name}.parameters.json`]=json({requested:parameterRequest,selectedConstruction:frame.snapshot.selectedConstruction});
+    if(primitiveRequest) files[`${name}.primitive.json`]=json({requested:primitiveRequest,surfaceId:frame.snapshot.packet.surfaceId,source:frame.snapshot.source});
     const hashes = {};
     for (const [filename, content] of Object.entries(files)) {
       await writeFile(path.join(evidence, filename), content); hashes[filename] = hash(content);
     }
     const record = { name, taskCommit, integrationCommit, browser: browser.version(), backend,
       physicalGpuEvidence: false, performanceEvidence: false, actualReadPixels: true,
-      parameterRequest, fixtureId: objectFixture?.selectorId ?? null, displayedId: frame.snapshot.packet.surfaceId, inspectedId: frame.inspectedId, objectSummaries: objectFixture ? frame.objects : null,
+      primitiveRequest, parameterRequest, fixtureId: objectFixture?.selectorId ?? null, displayedId: frame.snapshot.packet.surfaceId, inspectedId: frame.inspectedId, objectSummaries: objectFixture ? frame.objects : null,
       sourceVersion: frame.snapshot.sourceVersion ?? 0, constructionsReplayed: frame.constructionsReplayed,
       selectedConstructionReplayed: frame.selectedConstructionReplayed, exportReplayed: frame.exportReplayed, downloadedMatchedAccepted: frame.snapshot.sourceVersion === 1 || Boolean(objectFixture),
       sourceReplayed: true, packetReplayed: true, reportReplayed: true, sameRenderer: true,
       revision: frame.snapshot.revision, viewRevision: frame.snapshot.viewRevision, uniforms: frame.uniforms, buffer: [frame.width, frame.height], masks: mask(frame.bytes, frame.width, frame.height),
       readbackHash: hash(Uint8Array.from(frame.bytes)), hashes, sampledDeviationMM: frame.snapshot.report.maxSampledDeviationMM,
       certified: false, glError: frame.glError, compileStatuses: frame.compile, linkStatuses: frame.link, drawCalls: frame.drawCalls };
-    await writeFile(path.join(evidence, `${name}.json`), json(record)); (parameterRequest ? parameterFrames : objectFixture ? objectFrames : frame.snapshot.sourceVersion === 1 ? constructionFrames : frames).push(record);
+    await writeFile(path.join(evidence, `${name}.json`), json(record)); (primitiveRequest ? primitiveFrames : parameterRequest ? parameterFrames : objectFixture ? objectFrames : frame.snapshot.sourceVersion === 1 ? constructionFrames : frames).push(record);
     return { ...frame, ...record };
   }
   // Exercise actual source editor controls before using the inspection API.
@@ -706,15 +726,15 @@ try {
   const result = { taskCommit, integrationCommit, backend, packageModules, sourceModules, backendDescription: 'ANGLE SwiftShader software WebGL2; functional composition only',
     packageArtifacts: { cad: hash(await readFile(path.join(repo, 'packages/barocss-cad/dist/index.js'))),
       gpu: hash(await readFile(path.join(repo, 'packages/barocss-gpu/dist/index.js'))) },
-    orbitEvidence, uiWorkspace, frames, constructionFrames, objectFrames, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
+    orbitEvidence, uiWorkspace, frames, constructionFrames, objectFrames, primitiveFrames, primitiveLineage, parameterFrames, parameterFailures, parameterLineage, objectFailures, objectLineage, constructionFailures, constructionLineage, failures, cameraLineage, repeated, lifecycle, constructionLifecycle, navigation, contextLoss, constructionContextLoss, ui, errors, requests, cspViolations, csp,
     deterministicFields: ['source', 'model', 'packet except host-issued revision', 'report', 'IGES', 'display options'],
     environmentFields: ['taskCommit', 'integrationCommit', 'browser', 'backend', 'evidence path'],
     limitations: ['Finite sampled deviation is not a global bound', 'Surfaces remain open; no solid, topology, STEP, or manufacturing claim', 'Software rendering is not physical GPU performance',
       'This composition does not add IGES exchange certification; the independent OCP gate remains required'] };
   await writeFile(path.join(evidence, 'index.json'), json(result));
-  const gallery = '<!doctype html><html lang="en"><meta charset="utf-8"><title>CAD to GPU retained evidence</title><h1>CAD to GPU retained evidence</h1><p>Actual framebuffer readbacks. ANGLE SwiftShader software WebGL2. Finite sampled distance is not a global bound. Surfaces remain open; no solid, topology, STEP, or manufacturing claim.</p>' + [...frames, ...constructionFrames, ...objectFrames, ...parameterFrames].map(frame => `<section><h2>${frame.name}</h2><img src="${frame.name}.png" alt="${frame.name} actual readback"><p>Inspected ${frame.inspectedId ?? "none"}; displayed ${frame.displayedId}. Revision ${frame.revision}; sampled distance ${frame.sampledDeviationMM} mm. <a href="${frame.name}.source.css">Source</a> <a href="${frame.name}.model.json">Native model</a> ${frame.sourceVersion === 1 ? `<a href="${frame.name}.constructions.json">Construction history</a> <a href="${frame.name}.selected-construction.json">Selected feature</a> <a href="${frame.name}.downloaded.igs">Actual download</a>` : ''} ${frame.fixtureId ? `<a href="${frame.name}.objects.json">Accepted objects</a> <a href="${frame.name}.inspection.json">Native inspection</a> <a href="${frame.name}.downloaded.igs">Selected actual download</a>` : ''} <a href="${frame.name}.display.json">Camera and view</a> <a href="${frame.name}.packet.json">Packet</a> <a href="${frame.name}.report.json">Report</a> <a href="${frame.name}.igs">IGES</a></p></section>`).join('') + '<p><a href="index.json">SHA manifest and controls</a></p></html>';
+  const gallery = '<!doctype html><html lang="en"><meta charset="utf-8"><title>CAD to GPU retained evidence</title><h1>CAD to GPU retained evidence</h1><p>Actual framebuffer readbacks. ANGLE SwiftShader software WebGL2. Finite sampled distance is not a global bound. Surfaces remain open; no solid, topology, STEP, or manufacturing claim.</p>' + [...frames, ...constructionFrames, ...objectFrames, ...parameterFrames, ...primitiveFrames].map(frame => `<section><h2>${frame.name}</h2><img src="${frame.name}.png" alt="${frame.name} actual readback"><p>Inspected ${frame.inspectedId ?? "none"}; displayed ${frame.displayedId}. Revision ${frame.revision}; sampled distance ${frame.sampledDeviationMM} mm. <a href="${frame.name}.source.css">Source</a> <a href="${frame.name}.model.json">Native model</a> ${frame.sourceVersion === 1 ? `<a href="${frame.name}.constructions.json">Construction history</a> <a href="${frame.name}.selected-construction.json">Selected feature</a> <a href="${frame.name}.downloaded.igs">Actual download</a>` : ''} ${frame.fixtureId ? `<a href="${frame.name}.objects.json">Accepted objects</a> <a href="${frame.name}.inspection.json">Native inspection</a> <a href="${frame.name}.downloaded.igs">Selected actual download</a>` : ''} <a href="${frame.name}.display.json">Camera and view</a> <a href="${frame.name}.packet.json">Packet</a> <a href="${frame.name}.report.json">Report</a> <a href="${frame.name}.igs">IGES</a></p></section>`).join('') + '<p><a href="index.json">SHA manifest and controls</a></p></html>';
   await writeFile(path.join(evidence, 'gallery.html'), gallery);
-  console.log(`CAD preview browser evidence: ${evidence}; ${frames.length + constructionFrames.length + objectFrames.length + parameterFrames.length} actual framebuffer states; ${failures.length} legacy and ${constructionFailures.length} construction rejection controls`);
+  console.log(`CAD preview browser evidence: ${evidence}; ${frames.length + constructionFrames.length + objectFrames.length + parameterFrames.length + primitiveFrames.length} actual framebuffer states; ${failures.length} legacy and ${constructionFailures.length} construction rejection controls`);
 } finally {
   if (browser) await browser.close();
   await server.close();

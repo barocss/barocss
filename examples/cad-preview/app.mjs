@@ -13,7 +13,7 @@ const controller = createPreviewController(canvas, cad, gpu, (message, accepted)
     const { packet,report,options,revision,viewRevision } = accepted;
     $('summary').textContent = `Accepted model revision ${revision} · view revision ${viewRevision} · ${packet.surfaceId}\nCanonical bounds (mm): ${JSON.stringify(packet.bounds)}\nScene units/mm: ${options.mmToSceneUnit} · translation: ${JSON.stringify(options.translate)}\nVertices: ${packet.positions.length/3} · triangles: ${packet.indices.length/3}\nSampled maximum distance (mm): ${report.maxSampledDeviationMM}\nFinite samples only · certified: ${report.certified}`;
     $('source-version').value=String(accepted.sourceVersion ?? 0);
-    renderObjects();renderParameters();renderScene(accepted);updateEditorState();
+    renderObjects();renderParameters();renderPrimitive();renderScene(accepted);updateEditorState();
     $('details').textContent = JSON.stringify({sourceVersion:accepted.sourceVersion??0,constructions:accepted.constructions,selectedConstruction:accepted.selectedConstruction,model:accepted.model,report,camera:options.camera??'Original fixed default'},null,2);
   }else{
     $('scene-title').textContent='No accepted surface';$('scene-meta').textContent='No native geometry adopted';
@@ -125,6 +125,19 @@ function renderObjects() {
   renderProperties(inspection);
   $('inspection').textContent=inspection ? `Inspected object: ${inspection.id} · ${inspection.kind}\nDisplayed surface: ${inspection.displayedSurfaceId}\nNative control-point bounds (mm; not tight surface extent): ${JSON.stringify(inspection.controlPointBoundsMM)}\nDisplayed sampled preview-mesh bounds (mm; not tight surface extent): ${JSON.stringify(inspection.displayedSampledMeshBoundsMM)}\n${JSON.stringify(inspection,null,2)}` : 'No accepted native object';
 }
+function renderPrimitive(){
+ const owned=controller.primitiveState();$('primitive-update').disabled=!owned||!controller.available;
+ $('primitive-state').textContent=owned?`Accepted ${owned.kind} · ${owned.size} × ${owned.height} mm · displayed #surface`:'Update requires a matching tool-created surface';
+}
+$('primitive-kind').addEventListener('change',()=>{$('primitive-size-label').textContent=$('primitive-kind').value==='sheet'?'Width · mm':'Radius · mm';});
+function primitiveAction(update){
+ try{const dimensions={size:numberField('primitive-size'),height:numberField('primitive-height')};const result=update?controller.updateDimensions(dimensions,$('source').value):controller.createPrimitive({kind:$('primitive-kind').value,...dimensions},$('source').value);
+ if(result.ok){const accepted=controller.snapshot(),owned=controller.primitiveState();$('source').value=accepted.source;$('surface').value=accepted.packet.surfaceId;$('source-version').value='1';$('count-u').value=accepted.report.grid.countU;$('count-v').value=accepted.report.grid.countV;$('scale').value=accepted.options.mmToSceneUnit;$('translate').value=accepted.options.translate.join(',');$('color').value=accepted.options.color.join(',');$('background').value=accepted.options.background.join(',');$('primitive-kind').value=owned.kind;$('primitive-kind').dispatchEvent(new Event('change'));cameraFields(accepted.options.camera??defaultCamera);updateEditorState();}
+ else $('status').textContent=`Creation rejected: ${result.error}. Accepted state retained.`;
+ }catch(error){$('status').textContent=`Creation rejected: ${error.message}. Accepted state retained.`;}
+}
+$('primitive-create').addEventListener('click',()=>primitiveAction(false));$('primitive-update').addEventListener('click',()=>primitiveAction(true));
+
 // Display formatting never feeds source, parameters, packet data or exports.
 function displayNumber(value){return Number(value.toPrecision(4)).toString();}
 function displayVector(value){return value.map(displayNumber).join(', ');}
@@ -146,7 +159,7 @@ function renderScene(accepted){
   $('view-label').textContent=camera?(pose?pose[0]+' view':'Custom camera'):'Default view';
   for(const [name] of poses)$(`camera-${name}`).classList.toggle('is-active',pose?.[0]===name);
   $('camera-reset').classList.toggle('is-active',!camera);
-  for(const id of ['camera-front','camera-side','camera-oblique','camera-reset','camera-apply','camera-eye','camera-target','camera-up','camera-fov','camera-near','camera-far','apply','fine','discard-source','fixture','source-version'])$(id).disabled=!controller.available;
+  for(const id of ['camera-front','camera-side','camera-oblique','camera-reset','camera-apply','camera-eye','camera-target','camera-up','camera-fov','camera-near','camera-far','apply','fine','discard-source','fixture','source-version','primitive-create'])$(id).disabled=!controller.available;
   if(!controller.available)for(const id of ['control-edit','weight-edit','vector-edit'])$(id).disabled=true;
   const history=$('creation-history');history.replaceChildren();
   if(accepted.sourceVersion===1){for(const feature of accepted.constructions){const item=document.createElement('li');item.textContent=`${feature.outputId} ← ${feature.inputId} · ${feature.operation} [${displayVector(feature.vector)}] mm`;item.title=JSON.stringify(feature);history.append(item);}}
@@ -165,6 +178,6 @@ function renderProperties(inspection){
 
 const mouseOrbit=bindMouseOrbit(canvas,controller,cameraFields);
 // Inspection API for the local evidence runner. No source-provided code is evaluated.
-window.cadPreview={parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>{mouseOrbit.dispose();controller.dispose();},get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
+window.cadPreview={primitiveState:()=>controller.primitiveState(),createPrimitive:(request,editorSource)=>controller.createPrimitive(request,editorSource),updateDimensions:(request,editorSource)=>controller.updateDimensions(request,editorSource),parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>{mouseOrbit.dispose();controller.dispose();},get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
 window.addEventListener('pagehide',()=>{mouseOrbit.dispose();controller.dispose();},{once:true});
 select(fixtures[0].id);
