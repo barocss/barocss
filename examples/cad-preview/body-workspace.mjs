@@ -71,7 +71,7 @@ function optionsFor(packet) {
 }
 function bind(nextCanvas) {
   orbit?.dispose(); canvas = nextCanvas; unavailable = false;
-  canvas.addEventListener('webglcontextlost', () => { unavailable = true; refreshButtons(); message('View unavailable. Recover the view to continue.'); });
+  canvas.addEventListener('webglcontextlost', () => { if (canvas !== nextCanvas || disposed) return; unavailable = true; refreshButtons(); message('View unavailable. Recover the view to continue.'); });
   orbit = bindMouseOrbit(canvas, {
     get available() { return Boolean(renderer) && !unavailable && !disposed; },
     snapshot: () => accepted && { options: renderer.options, viewRevision },
@@ -163,7 +163,8 @@ $('body-recover').addEventListener('click', () => {
   [next.width, next.height] = dimensions();
   try {
     const packet = packetFor(accepted, revision), nextRenderer = gpu.mountMesh(next, packet, optionsFor(packet));
-    const previous = renderer; canvas.replaceWith(next); renderer = nextRenderer; bind(next); previous?.dispose();
+    const previous = renderer, previousCanvas = canvas; canvas.replaceWith(next); renderer = nextRenderer; bind(next); previous?.dispose();
+    previousCanvas.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext();
     refreshButtons(); message('View recovered. Box document retained.');
   } catch { message('Cannot recover the view. The box document is retained.'); }
 });
