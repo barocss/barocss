@@ -71,6 +71,7 @@ try {
   assert.deepEqual(rotated.packet, edited.packet);
   assert(rotated.options.camera.eye[1] > edited.options.camera.eye[1]);
   assert.notEqual(await pixelHash(), acceptedPixels);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(output, 'box-workspace.png') });
   await page.click('a[href="#surface"]');
   await page.locator('#primitive-create').waitFor({ state: 'visible' });
