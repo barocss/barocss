@@ -98,11 +98,37 @@ export function serializeXYPolygonPrismDocument(document: XYPolygonPrismDocument
     const text = encode(accepted) + '\n'; check(text.length <= 131072, label, '$serialization', 'intent JSON exceeds128KiB'); return text;
   });
 }
+/** Admission scan only; JSON.parse remains the JSON syntax/value parser. */
+function admitJSONText(text: string, label: string): void {
+  const stack: { kind: '{' | '['; keys: Set<string>; count: number; nextValue: boolean }[] = [];
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]; if (c === ' ' || c === '\n' || c === '\r' || c === '\t') continue;
+    const parent = stack.at(-1);
+    if (parent?.kind === '[' && parent.nextValue && c !== ']' && c !== ',') { check(++parent.count <= 70, label, '$text[' + i + ']', 'JSON array exceeds70 elements'); parent.nextValue = false; }
+    if (c === '"') {
+      let end = i + 1;
+      for (; end < text.length; end++) { if (text[end] === '\\') end++; else if (text[end] === '"') break; }
+      check(end < text.length && end - i <= 769, label, '$text[' + i + ']', 'unterminated/oversized JSON string');
+      const value: unknown = JSON.parse(text.slice(i, end + 1)); check(typeof value === 'string' && value.length <= 128, label, '$text[' + i + ']', 'JSON string exceeds128 characters');
+      let next = end + 1; while (next < text.length && /[ \n\r\t]/.test(text[next])) next++;
+      if (text[next] === ':') {
+        check(parent?.kind === '{', label, '$text[' + i + ']', 'JSON object key outside object');
+        check(!parent.keys.has(value), label, '$text[' + i + ']', 'duplicate JSON field ' + value); parent.keys.add(value);
+        check(parent.keys.size <= 8, label, '$text[' + i + ']', 'JSON object exceeds8 fields');
+      }
+      i = end; continue;
+    }
+    if (c === '{' || c === '[') { stack.push({ kind: c, keys: new Set(), count: 0, nextValue: true }); check(stack.length <= 4, label, '$text[' + i + ']', 'JSON nesting exceeds admitted depth4'); }
+    else if (c === '}' || c === ']') { check(parent?.kind === (c === '}' ? '{' : '['), label, '$text[' + i + ']', 'unbalanced JSON container'); stack.pop(); }
+    else if (c === ',' && parent?.kind === '[') parent.nextValue = true;
+  }
+  check(stack.length === 0, label, '$text', 'unclosed JSON container');
+}
 export function parseXYPolygonPrismDocument(text: string): XYPolygonPrismDocumentV0 {
   const label = 'XY polygon prism document parse';
   return guard(label, () => {
     check(typeof text === 'string' && text.length <= 131072, label, '$text', 'JSON text within128KiB UTF-8 required'); let bytes = 0;
     for (let i = 0; i < text.length; i++) { const code = text.charCodeAt(i), next = text.charCodeAt(i + 1); if (code < 128) bytes++; else if (code < 2048) bytes += 2; else if (code >= 0xd800 && code <= 0xdbff && next >= 0xdc00 && next <= 0xdfff) { bytes += 4; i++; } else bytes += 3; check(bytes <= 131072, label, '$text', 'JSON exceeds128KiB UTF-8'); }
-    const data = JSON.parse(text); return evaluateXYPolygonPrismDocument(data, { revision: 0 }).document;
+    admitJSONText(text, label); const data = JSON.parse(text); return evaluateXYPolygonPrismDocument(data, { revision: 0 }).document;
   });
 }

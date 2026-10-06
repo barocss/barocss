@@ -1359,6 +1359,8 @@ Serialization writes canonical ordered intent fields only, using lossless native
 decimal spelling including -0. No source/IR/geometry/packet/metrics/camera/proof
 is stored. Revision belongs only to display options. Parse accepts at most128KiB
 UTF-8 JSON and rebuilds through actual constructors before returning owned intent.
+A bounded admission scan before JSON.parse rejects duplicate decoded object keys,
+overdeep containers, excessive arrays/fields and oversized strings.
 Own snapshots bound4096 values/depth4/arrays70/records8/strings128 and reject
 foreign/accessor/sparse/hidden/extra/malformed data before adoption. This new
 native file format does not migrate the application's existing project files.
