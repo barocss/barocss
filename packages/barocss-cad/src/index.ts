@@ -46,3 +46,5 @@ export { queryXYPolygonPrismShellRay } from './xy-polygon-prism-ray-query.js';
 export type { XYPolygonPrismShellRayQueryOptions, XYPolygonPrismShellRayHit, XYPolygonPrismShellCoplanarFace, XYPolygonPrismShellRayQueryReport, XYPolygonPrismShellRayQueryResult } from './xy-polygon-prism-ray-query.js';
 export { buildXYPolygonPlanarFaceWithHole, validateXYPolygonPlanarFaceWithHoleBundle, classifyXYPolygonPlanarFaceWithHolePoint } from './xy-polygon-planar-face-hole.js';
 export type { XYPolygonPlanarFaceWithHoleOptions, XYPolygonPlanarFaceWithHoleBundle, XYPolygonPlanarFaceWithHoleReport, XYPolygonPlanarFaceWithHoleResult, XYPolygonPlanarFaceWithHolePointResult } from './xy-polygon-planar-face-hole.js';
+export { tessellateXYPolygonPlanarFaceWithHole } from './xy-polygon-planar-face-hole-preview.js';
+export type { XYPolygonHoleFacePreviewOptions, XYPolygonHoleRational, XYPolygonHolePreviewCorner, XYPolygonHolePreviewSlab, XYPolygonHolePreviewEdgeProvenance, XYPolygonHoleFacePreviewReport, XYPolygonHoleFacePreviewResult } from './xy-polygon-planar-face-hole-preview.js';
