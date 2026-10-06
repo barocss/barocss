@@ -3,14 +3,16 @@ import {freezeScene} from './scene-front.js';
 /** Reflective data checks happen before reading any authored field/accessor. */
 export function ownRecord(value:unknown,allowed:readonly string[],required:readonly string[]=allowed,path='input'):Record<string,unknown>{
  if(!value||typeof value!=='object'||![Object.prototype,null].includes(Object.getPrototypeOf(value)))throw new Error(`${path} must be a plain data record`);
- const descriptors=Object.getOwnPropertyDescriptors(value),keys=Reflect.ownKeys(descriptors);
+ const keys=Reflect.ownKeys(value);if(keys.length>allowed.length||keys.some(k=>typeof k!=='string'||!allowed.includes(k)))throw new Error(`${path} has missing or unsupported data fields`);
+ const descriptors=Object.getOwnPropertyDescriptors(value);
  if(keys.some(k=>typeof k!=='string'||!allowed.includes(k)||!('value'in descriptors[k])||!descriptors[k].enumerable)||required.some(k=>!Object.hasOwn(descriptors,k)))throw new Error(`${path} has missing or unsupported data fields`);
  return Object.fromEntries(Object.entries(descriptors).map(([k,d])=>[k,d.value]));
 }
 function array(value:unknown,maximum:number,path:string):unknown[]{
  if(!Array.isArray(value)||Object.getPrototypeOf(value)!==Array.prototype)throw new Error(`${path} must be a plain array`);
- const descriptors=Object.getOwnPropertyDescriptors(value) as Record<string,PropertyDescriptor>,length=descriptors.length.value as number;
+ const length=Object.getOwnPropertyDescriptor(value,'length')!.value as number;
  if(length>maximum)throw new Error(`${path} exceeds ${maximum}`);
+ const descriptors=Object.getOwnPropertyDescriptors(value) as Record<string,PropertyDescriptor>;
  for(const k of Reflect.ownKeys(descriptors)){if(k==='length')continue;if(typeof k!=='string'||!/^(0|[1-9]\d*)$/.test(k)||Number(k)>=length||!('value'in descriptors[k])||!descriptors[k].enumerable)throw new Error(`${path} has non-data array fields`);}
  return Array.from({length},(_,i)=>{if(!Object.hasOwn(descriptors,i))throw new Error(`${path} is sparse`);return descriptors[i].value;});
 }

@@ -4,7 +4,7 @@ import {parseSceneAst,analyzeSceneAst,freezeScene} from './scene-front.js';
 import type {SceneAst,SourceRange} from './scene-front.js';
 import {lowerSceneShaders} from './compiler.js';
 import type {SceneShaders} from './compiler.js';
-import {resolveMeshIntent,lowerMesh} from './mesh-packet.js';
+import {validatePreviewPacket,validateMeshOptions,lowerMesh} from './mesh-packet.js';
 import type {PreviewPacket,MeshOptions} from './mesh-packet.js';
 import {ownRecord,copyGpuData,freezeGpuData} from './gpu-data.js';
 export type GpuCompileInput={kind:'scene';source:string}|{kind:'mesh';packet:PreviewPacket;options:MeshOptions};
@@ -35,7 +35,7 @@ export function compileGpu(input:GpuCompileInput):GpuCompileResult{
    return{ok:true,ast:copyGpuData(ast),ir,execution,diagnostics:[]};
   }
   if(tag.kind==='mesh'){
-   const record=ownRecord(input,['kind','packet','options']);stage='packet/options';const intent=resolveMeshIntent(record.packet,record.options);
+   const record=ownRecord(input,['kind','packet','options']);stage='packet';const packet=validatePreviewPacket(record.packet);stage='options';const options=validateMeshOptions(record.options);const intent={packet,options};
    const ir:GpuRenderIR=freezeGpuData({schema:'barocss-gpu-render-ir',schemaVersion:1,pipeline:'indexed-mesh',name:intent.packet.surfaceId,coordinateSystem:'right-handed-y-up',background:copyGpuData(intent.options.background),draws:[{kind:'indexed-mesh',id:intent.packet.surfaceId,packet:copyGpuData(intent.packet),options:copyGpuData(intent.options)}]});
    stage='lowering';const execution=lowerGpuIR(ir);
    return{ok:true,ast:null,ir,execution,diagnostics:[]};
@@ -43,7 +43,7 @@ export function compileGpu(input:GpuCompileInput):GpuCompileResult{
   throw new Error('Only scene or mesh compiler input is supported');
  }catch(error){const message=error instanceof Error?error.message:'Invalid compiler input';const diagnostic:GpuDiagnostic={code:stage==='lowering'?'LOWERING':code(message),severity:'error',message,range:mesh?null:{start:0,end:0,line:1,column:1}};
   if(error instanceof SceneError){const first=error.diagnostics[0];diagnostic.message=first.message;diagnostic.code=code(first.message);diagnostic.range={start:first.start,end:first.end,line:first.line,column:first.column};const id=/object ID '([^']+)'/.exec(first.message);if(id)diagnostic.objectId=id[1];}
-  if(mesh)diagnostic.dataPath=stage;return{ok:false,diagnostics:[diagnostic]};
+  if(mesh)diagnostic.dataPath=stage==='lowering'?'execution.mesh':stage;return{ok:false,diagnostics:[diagnostic]};
  }
 }
 export function requireSceneExecution(source:string):Extract<GpuExecution,{kind:'sdf'}>{const result=compileGpu({kind:'scene',source});if(!result.ok){const d=result.diagnostics[0];if(d.range&&d.code!=='LOWERING')throw new SceneError([{message:d.message,...d.range}]);throw new Error(d.message);}if(result.execution.kind!=='sdf')throw new Error('Unexpected GPU pipeline');return result.execution;}
