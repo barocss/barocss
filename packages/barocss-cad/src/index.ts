@@ -12,3 +12,4 @@ export * from './face.js';
 export * from './adjacency.js';
 export * from './orthogonal-adjacency.js';
 export * from './box-shell.js';
+export * from './box-solid.js';

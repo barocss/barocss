@@ -472,6 +472,62 @@ at runtime. Native/adjacency type references are erased. GPU alone registers the
 exact static `/box-shell.js` route and performs serial same-head native/current
 project-host/browser/selected-export/CSP/module postchecks before closure.
 
+## Restricted axis-box solid validity and analysis
+
+`validateAxisBoxSolid(unknown)` is a distinct additive operation returning
+`AxisBoxSolidValidationReport`: `{ valid: true, geometryFamily: 'exact-axis-box-solid-v0',
+closed: true, solid: true, volumeMM3, areaMM2, boundsMM: { min, max } }`.
+It consumes only the current exact outward `AxisBoxShell` family. The actual shell
+validator establishes the six complete distinct min/max planes, outward regular
+coefficients, original boundaries/pcurves and qualified closed incidence before
+any volume calculation. Their half-space intersection is the restricted filled box.
+Counts/Euler/positive flux/reader IsValid or caller-supplied proof fields are not
+the recognition rule. Generic/rotated/weighted/trimmed B-Rep data stays unsupported.
+
+The function takes ONE strict independently owned caller snapshot first, calls
+actual `validateAxisBoxShell` on it, checks the real unchanged shell report and
+calculates from that SAME validated copy. It never rereads the caller after the
+guard. Shell validation can safely copy the owned plain data internally. Existing
+module-private snapshot code is not exposed or changed. Guards remain32768values/
+depth18/array128/record16, finite scalars, own enumerable plain data/dense tuples;
+getters/symbols/foreign/hidden/cyclic/sparse/oversized/cached-proof data reject.
+Reflection traps remain the host's responsibility. Validated copy consistency is
+tested even when caller data changes during initial reflection. Signed-zero data
+is preserved. Report/min/max arrays own data independently of input and other reports.
+
+Positive integer lengths<=10000 and represented corner bounds±10000mm imply exact
+safe binary64 integers: `volumeMM3=dx*dy*dz<=1e12`,
+`areaMM2=2*(dx*dy+dy*dz+dz*dx)<=6e8`. Bounds are copied origin and exact origin+sides.
+No rounding or absolute-value repair of bad signed volume is used. Maximum accepted
+lengths/bounds and malformed/unsupported inputs are explicitly tested. A positive
+numeric volume with a missing/inward/partial/wrongly associated face still fails.
+Existing shell report stays closed:true/solid:false/solidProductImplemented:false;
+all local face reports remain not-certified/solidfalse. No old API/version/Model
+limit or generic local face validity is promoted by this separate restricted report.
+
+The actual packed consumer builds four new shells through the real product builder,
+then calls both solid and shell validators. `BAROCSS_CAD_BOX_SOLID_EVIDENCE` selects
+fresh evidence, defaulting to the isolated environment's `evidence-524/box-solid`.
+The exact reports give volumes1,30,216,6mm³, areas6,62,228,22mm² and authored bounds.
+Independent native D1/centroid-flux and actual installed-reader per-face area/flux
+are separate selected numerical evidence. Reader checks24original per-face files/
+120entities/912common+1824boundary queries before comparing the derived report.
+Native1e-9/reader1e-7 point/scaledD1 limits and area/flux-volume1e-7*max(1,expected)
+remain unchanged; requested quadrature and estimated error are separate. Thirteen
+independent graph/actual exported-pole controls fail after readable geometry checks.
+Folded/collapsed reader acceptance is retained as a limitation, not native proof.
+
+`test:exchange` necessarily runs this new suite plus all old gates. The retained
+actual archive is replayed to regenerate reports/geometry and independent reader
+evidence. The built demo writes shell and derived solid reports separately. No
+reader sewing/shared IsSame/global topology serialization or mutable kernel solid
+is created. Original bounded STEP, arbitrary solid/manufacturing/hardware claims
+remain outside this exact operation.
+
+New `dist/box-solid.js` imports ONLY existing `dist/box-shell.js` at runtime;
+native types are erased. GPU alone registers exact static `/box-solid.js` and
+runs same-head native/current project/browser/save-open/selected-IGES postchecks.
+
 ## IGES delivery
 
 `exportIGES(model, ids)` requires explicit unique IDs. It writes deterministic
