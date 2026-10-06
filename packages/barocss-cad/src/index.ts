@@ -42,3 +42,5 @@ export { buildXYPolygonPrismShell, validateXYPolygonPrismShell } from './xy-poly
 export type { XYPolygonPrismShellOptions, XYPolygonPrismShell, XYPolygonPrismShellReport, XYPolygonPrismShellResult, XYPolygonPrismCapFace, XYPolygonPrismLateralFace, XYPolygonPrismQualifiedUse } from './xy-polygon-prism-shell.js';
 export { tessellateXYPolygonPrismShell } from './xy-polygon-prism-shell-preview.js';
 export type { XYPolygonPrismShellPreviewOptions, XYPolygonPrismShellFaceRange, XYPolygonPrismShellEdgePath, XYPolygonPrismShellEdgeProvenance, XYPolygonPrismShellPreviewReport, XYPolygonPrismShellPreviewResult } from './xy-polygon-prism-shell-preview.js';
+export { queryXYPolygonPrismShellRay } from './xy-polygon-prism-ray-query.js';
+export type { XYPolygonPrismShellRayQueryOptions, XYPolygonPrismShellRayHit, XYPolygonPrismShellCoplanarFace, XYPolygonPrismShellRayQueryReport, XYPolygonPrismShellRayQueryResult } from './xy-polygon-prism-ray-query.js';

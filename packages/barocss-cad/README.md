@@ -1530,3 +1530,61 @@ Surfaces/derivatives and qualified Curves, checks cap placement/outward
 winding, original path counts and the L notch, and rejects a corrupt native
 reference. The affected build and demo are the prototype checks; broader
 regression, packed and independent-reader campaigns remain deferred.
+
+### Original polygon shell face ray query
+
+`queryXYPolygonPrismShellRay(shell, { originMM, direction, maxDistanceMM })`
+queries the unchanged original3..12-vertex polygon prism shell. It validates
+an owned snapshot before resolving each world cap or lateral Model/Surface.
+No packet triangle participates in selection.
+
+Origin is finite XYZ within±10000mm. Direction is an authored finite vector
+whose norm differs from1 by at most1e-9; it is never normalized. Maximum
+positive distance is at most50000mm. `tMM` is the original ray parameter for
+that accepted unit-vector query. The report retains its actual direction
+norm. Native65536-value/depth20/array128/record16/string128 input budgets
+remain explicit, with at most14 faces and36 original global edges.
+
+The actual SurfaceD1 basis provides the supporting plane, affine inverse UV
+and outward normal. Candidate distance is strictly0..maxDistanceMM; owning
+Surface UV domains remain strict, with no clamping. Actual Surface evaluation
+must agree with the ray-plane point within1e-7mm. A cap additionally queries
+its actual local trim-loop edge Curves through explicit placement, using
+floating winding and linear near-edge distance. This does not widen the
+existing integer-only planar-face classifier. Lateral natural UV bounds
+provide their finite face region.
+
+`hits` contains all isolated faces within1e-7mm of the nearest distance,
+sorted by distance then native face order. Each hit records body/face/Surface
+IDs, `tMM`, actual evaluated `pointMM`, owning-face UV, outward normal and
+original global `edgeIds`. Boundary association resolves qualified native
+Curves through actual shell incidence and compares their endpoint segments
+within1e-7mm. It does not match display indices or triangulation diagonals.
+
+Status is `miss`, `unique-hit`, `ambiguous-nearest` or `ambiguous-coplanar`.
+A direction-plane cosine at most1e-12 is parallel and produces no isolated
+plane hit. Supporting planes within1e-7mm of the origin are reported in
+`coplanarFaces`, separately from finite hits. This prototype deliberately
+uses a conservative supporting-plane policy: any coplanar record prevents
+a unique status, including when the ray's finite-face overlap is unresolved.
+No fabricated finite coplanar distance is returned. With isolated hits this
+is `ambiguous-nearest`; without them it is `ambiguous-coplanar` and
+`nearestDistanceMM:null`. Multiple co-nearest isolated faces are also
+`ambiguous-nearest`. Other misses have no hits and null nearest distance.
+
+Invalid/nonunit/corrupt input rejects atomically; previous shell/results stay
+usable. Query output owns all data. Boundary/coincident/parallel tolerances
+are display-query policy, not manufacturing tolerances or native geometry
+certificates. Reports retain geometricValidity:not-certified,
+topologyCertified:false and solid:false. This is neither a general curved
+intersection nor an inside/outside solid classifier.
+
+```sh
+node examples/cad-nurbs/xy-polygon-prism-ray-query-demo.mjs /tmp/barocss-polygon-shell-ray-query-prototype
+```
+
+The short actual native demo exercises original triangle/L/CW shells,
+top-cap and lateral hits, concave notch misses, boundary/coplanar ambiguity,
+native identities and invalid-input retention. Affected build/run is the
+prototype checkpoint; numerical robustness and broad regression campaigns
+remain deferred.
