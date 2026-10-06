@@ -82,3 +82,6 @@ runXYProfileExchange();
 
 const { runXYArcExchange } = await import('./arc-exchange.mjs');
 runXYArcExchange();
+
+const { runRectangleExtrusionExchange } = await import('./rectangle-extrusion-exchange.mjs');
+runRectangleExtrusionExchange();

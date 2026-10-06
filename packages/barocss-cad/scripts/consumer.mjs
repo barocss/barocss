@@ -8,6 +8,8 @@ import { pathToFileURL } from 'node:url';
 import { writeParameterEvidence } from './parameter-evidence.mjs';
 import { writeXYProfileEvidence } from './profile-evidence.mjs';
 import { writeXYArcEvidence } from './arc-evidence.mjs';
+import { writeRectangleExtrusionEvidence } from './rectangle-extrusion-evidence.mjs';
+import { verifyRectangleExtrusionConsumer } from './rectangle-extrusion-consumer.mjs';
 import { verifyArcConsumer } from './arc-consumer.mjs';
 import { verifyProfileConsumer } from './profile-consumer.mjs';
 import { writePreviewEvidence } from './preview-evidence.mjs';
@@ -50,5 +52,7 @@ try {
   writeXYProfileEvidence(api);
   await verifyArcConsumer({ api, destination, temp, require, root });
   writeXYArcEvidence(api);
+  await verifyRectangleExtrusionConsumer({ api, destination, temp, require, root });
+  writeRectangleExtrusionEvidence(api);
   console.log('Packed CAD ESM, runtime math/export, and external TypeScript consumer passed');
 } finally {rmSync(temp,{recursive:true,force:true});}
