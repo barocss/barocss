@@ -40,3 +40,5 @@ export { buildXYPolygonPlanarFace, validateXYPolygonPlanarFaceBundle, classifyXY
 export type { XYPolygonPlanarFaceOptions, XYPolygonPlanarFaceBundle, XYPolygonPlanarFaceReport, XYPolygonPlanarFaceResult, XYPolygonPlanarFacePointResult } from './xy-polygon-planar-face.js';
 export { buildXYPolygonPrismShell, validateXYPolygonPrismShell } from './xy-polygon-prism-shell.js';
 export type { XYPolygonPrismShellOptions, XYPolygonPrismShell, XYPolygonPrismShellReport, XYPolygonPrismShellResult, XYPolygonPrismCapFace, XYPolygonPrismLateralFace, XYPolygonPrismQualifiedUse } from './xy-polygon-prism-shell.js';
+export { tessellateXYPolygonPrismShell } from './xy-polygon-prism-shell-preview.js';
+export type { XYPolygonPrismShellPreviewOptions, XYPolygonPrismShellFaceRange, XYPolygonPrismShellEdgePath, XYPolygonPrismShellEdgeProvenance, XYPolygonPrismShellPreviewReport, XYPolygonPrismShellPreviewResult } from './xy-polygon-prism-shell-preview.js';

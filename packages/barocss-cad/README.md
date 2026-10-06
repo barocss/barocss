@@ -1480,3 +1480,53 @@ shell/report, checks triangle/L/CW counts and actual outward normals/Z6 cap,
 uses the native local cap to classify the notch, and rejects qualified-reference/
 missing/opposed-use corruption. Affected build/run is the prototype gate;
 broader suites/readers/full/graphics certification remain deferred.
+
+### Preview from the original polygon prism shell
+
+`tessellateXYPolygonPrismShell(shell, { meshId, revision })` consumes the
+validated original shell above. It returns the unchanged `PreviewPacket0`
+shape as `packet`, separate `faceRanges`, unique `edgePaths`,
+`edgeProvenance` and a report. This is a native shell consumer for GPU display.
+
+Cap triangulation reuses the local polygon trim only for connectivity, UVs
+and original boundary/triangle-centroid provenance. Each emitted position
+comes from the actual placed world Surface; each normal comes from its
+actual SurfaceD1 derivatives composed with face orientation. Bottom winding
+and normals reverse; the top uses its real translated Surface. Lateral
+faces use the actual Surface with a2-by-2 tessellation and actual derivative
+normals. Face vertices remain separate for hard normals. Packet UVs belong
+to the owning face; half-open vertex/scalar-index ranges identify its real
+face ID, Surface ID and parameter domain. Cap metadata records local/world
+source IDs and placement.
+
+Each original global edge supplies exactly one `{ id, points }` overlay
+path. Points are evaluated at the canonical qualified native Curve domain
+ends and aligned with the original global vertex direction. Provenance
+records the canonical face/edge/Curve, both adjacent faces, original source
+segment range or vertex parameter, domain and native Curve direction. Paths
+never come from triangulation adjacency; diagonals and centroid spokes are
+not original edges.
+
+Mesh ID is ASCII1..128 and must differ from every native ID and Model name.
+Revision is integer0..2147483647. The unchanged native3..12-vertex family has
+at most72 display vertices,44 triangles and36 two-point original edge paths.
+The triangle family uses20vertices/12triangles/9paths, including its cap
+centroids; L uses36/20/18. Own snapshots retain the native65536-value,
+depth20,array128,record16,string128 limits. Shell/options corruption rejects
+before output and does not mutate prior input/output. Every returned data
+occurrence is owned.
+
+Report retains the actual native incidence report, display identities,
+counts and evaluated bounds. geometricValidity remains not-certified,
+topologyCertified:false and solid:false. No GPU raster, generic solid,
+curved trim, Boolean, hidden-line or exchange certification is implied.
+
+```sh
+node examples/cad-nurbs/xy-polygon-prism-shell-preview-demo.mjs /tmp/barocss-polygon-shell-preview-prototype
+```
+
+The short actual demo resolves original shell Models, evaluates their
+Surfaces/derivatives and qualified Curves, checks cap placement/outward
+winding, original path counts and the L notch, and rejects a corrupt native
+reference. The affected build and demo are the prototype checks; broader
+regression, packed and independent-reader campaigns remain deferred.
