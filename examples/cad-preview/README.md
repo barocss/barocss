@@ -645,3 +645,29 @@ cap/wall/edge pixels, orbit, one original native-derived dimension update and
 invalid/stale rejection retention. Affected CAD/GPU builds and this flow suffice
 for the prototype; broad validation is deferred. Existing GPU path limits remain:
 consumer sampling2..15 only if later exposed, native2..32 unchanged.
+
+## Original circle prism authoring (prototype)
+
+Choose **Circle prism · Create / Edit** or `/workspace.html#circle-prism`.
+Edit finite Centre X/Y, Radius and Height in mm, then Apply prism. Discard restores
+accepted values; New resets the seed after a pending-field gate. Actual native599
+numeric updates regenerate the original sketch and capped ruled-wall shell.
+Quality2–15 is display-only; same quality is a no-op and numeric drafts remain.
+Three native paths are drawn: bottom/top circles and one same-wall parameter seam.
+Drag to orbit; Fit view explicitly centers/scales the accepted candidate. Apply
+and Open preserve the current camera and mm mapping. Wall normals remain faceted
+original midpoint-D1 observations, not a smooth or certified-solid claim.
+
+Save accepted native intent downloads the actual `barocss-xy-circle-prism-feature`
+version0 document. Open uses its native parser and rebuilds geometry before display
+adoption. Drafts, quality, mesh, camera and reports are excluded. Native file
+validity is separate from display limits: a valid tiny circle at a large world
+coordinate can fail Float32 triangle admission. The editor retains the old native
+intent and frame and reports **Display rejected**; no coordinate healing occurs.
+Files use the native128KiB parser limit. Malformed, unsupported, excessive or
+colliding authored input is refused by original admission.
+
+`circle-prism-workspace-smoke.mjs` records one actual edit/download/read/Open flow,
+accepted packet/IR/WebGL uploads, quality/draft/orbit/edges, translated and decimal
+views, stale binding and native-valid display refusal. Affected CAD/GPU builds
+and that flow are the prototype check; broader validation is deferred.
