@@ -61,10 +61,21 @@ try {
     assert.equal(result.ir.parameters.length, 5);
     assert.deepEqual(profileMidpoint, [4 + w / 2, -3, 0]);
   }
-  for (const name of Object.keys(proposal.modules)) assert(requests.has(name === 'index.js' ? '/cad.js' : '/' + name), name);
+  const reachable = new Set();
+  const visit = name => {
+    if (reachable.has(name)) return;
+    assert(proposal.modules[name], 'Unregistered native import: ' + name);
+    reachable.add(name);
+    for (const dependency of proposal.modules[name].imports) {
+      assert(dependency.startsWith('./'), 'Native import must be local');
+      visit(dependency.slice(2));
+    }
+  };
+  visit('index.js');
+  for (const name of reachable) assert(requests.has(name === 'index.js' ? '/cad.js' : '/' + name), name);
   assert.deepEqual(errors, []);
   const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-  await writeFile(path.join(output, 'index.json'), JSON.stringify({ head, modules, requests: [...requests].sort(), ...records, errors }, null, 2) + '\n');
+  await writeFile(path.join(output, 'index.json'), JSON.stringify({ head, modules, runtimeModules: [...reachable].sort(), requests: [...requests].sort(), ...records, errors }, null, 2) + '\n');
   console.log('Native rectangle browser import passed:', Object.keys(modules).length, 'exact modules; three actual source/solid cases; workspace retained.');
 } finally {
   if (browser) await browser.close();
