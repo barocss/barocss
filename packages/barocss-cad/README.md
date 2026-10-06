@@ -796,3 +796,53 @@ read-back checks through the existing consumer/exchange commands. Set
 `BAROCSS_CAD_PARAMETER_EVIDENCE` to a fresh directory for the exact committed
 HEAD. The current project-v1 example envelope supports source0/1 only; source2
 project saving, parameter UI and history require their own document/host work.
+
+## Bounded XY profile builders
+
+`buildXYProfile(request)` creates one original source0/native Curve:
+
+```js
+import { buildXYProfile, exportIGES } from '@barocss/cad';
+const line = buildXYProfile({ kind: 'line', id: 'edge', points: [[0, 0], [120, 0]] });
+const rectangle = buildXYProfile({ kind: 'rectangle', id: 'outline', origin: [4, -3], width: 7, height: 5 });
+const artifact = exportIGES(rectangle.model, ['outline']);
+```
+
+Requests use exactly one plain own-data shape. Line requires two XY points.
+Polyline requires2..64 points in their original order, with different first/last
+positions. Rectangle requires an XY origin and positive width/height. IDs are
+supported native ASCII identifiers within128 characters. All coordinates are
+finite millimetres within±10000. Rectangle dimensions are0.001..10000mm;
+computed corners also satisfy coordinate bounds. Each actual binary64 adjacent
+segment must be at least0.001mm. Rounded/short/coincident segments fail without
+snapping or epsilon. A crossing open polyline is not rejected as a region:
+this API supplies an uncertified curve, not a simple-region validator.
+
+Return fields are `{ source, sourceVersion: 0, model, curve, report }`. The
+fixed generated current source contains round-trippable plain decimal literals,
+including signed zero and tiny scientific-form binary64 values. The actual
+`compileCadModel` source0 output is authoritative. Model and curve have separate
+owned arrays; caller data and previous results are preserved. Getters, symbols,
+foreign prototypes, sparse arrays and extra fields fail before compilation.
+Snapshots have at most1024 values,depth4 and64-entry arrays.
+
+Every curve has degree1, unit weights and poles `[x,y,0]`. WithN poles, its
+original parameter domain is `[0,N-1]` and knots are
+`[0,0,1,...,N-2,N-1,N-1]`. A span between consecutive vertices is a native
+linear segment; its parameter derivative is that segment vector. Public D1
+rejects exact internal C0 knots and accepts span interiors and global endpoints,
+using the existing original derivative rules. No seam smoothing or periodic
+curve is produced.
+
+The rectangle has five fresh poles in CCW order:
+`[x,y]`, `[x+w,y]`, `[x+w,y+h]`, `[x,y+h]`, `[x,y]`. Report fields are kind,
+plane:`xy`,lengthUnit:`mm`,vertexCount,segmentCount,parameterDomain:{min,max},
+endpointClosed,regionCertified:false,solid:false. Endpoint closure is true only
+for rectangle. Equal endpoints do not certify a topological wire, planar region
+or solid. The existing IGES126 adapter still writes general/open/nonperiodic
+flags; this helper does not redefine them.
+
+The profile packed consumer and independent actual-byte reader run through the
+existing consumer/exchange commands. Set `BAROCSS_CAD_XY_PROFILE_EVIDENCE` to
+fresh exact-head evidence. Sketch UI, workplane snapping/document/history,
+constraints and curve rendering remain separately scoped features.
