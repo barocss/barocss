@@ -495,7 +495,7 @@ try {
     await page.selectOption('#fixture', fixture.selectorId);
     assert.equal(await page.locator('#objects [data-object-id]').count(), 4);
     const rows = await page.locator('#objects [data-object-id]').evaluateAll(nodes => nodes.map(node => ({id:node.dataset.objectId,text:node.textContent,show:!!node.querySelector('[data-action="show"]')})));
-    assert.deepEqual(new Set(rows.map(row => row.id)), new Set(['/workspace.html','arc','polyline','wall','oblique_wall']));
+    assert.deepEqual(new Set(rows.map(row => row.id)), new Set(['arc','polyline','wall','oblique_wall']));
     assert(rows.filter(row => row.show).every(row => ['wall','oblique_wall'].includes(row.id)));
     assert.equal(rows.filter(row => row.show).length, 2);
     const initialObject = await capture(`${fixture.selectorId}-wall`, fixture);
