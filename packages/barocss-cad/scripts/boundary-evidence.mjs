@@ -42,8 +42,8 @@ export function writeBoundaryEvidence(api) {
   for(const name of ['preview-flat','quarter-cylinder','asymmetric-patch','preview-weighted','extruded-cylinder','extruded-asymmetric','derivative-c1']) {
     const source=readFileSync(resolve(root,'examples/cad-nurbs/'+name+'.css'),'utf8');
     const isConstruction=name.startsWith('extruded-')||name==='derivative-c1';
-    const compiled=isConstruction?api.compileConstruction(source):null, model=compiled?.model??api.parseModel(source);
-    const surface=compiled?model.objects.find(o=>o.id===compiled.constructions[0].outputId):model.objects[0];
+    const compiled=api.compileCadModel(source,{sourceVersion:compiled.ir.sourceVersion});assert.equal(compiled.ok,true,JSON.stringify(compiled.diagnostics));const model=compiled.model;
+    const surface=isConstruction?model.objects.find(o=>o.id===compiled.constructions[0].outputId):model.objects[0];
     const before=json(model),domain=api.surfaceDomain(surface),boundaries=[],curves=[];
     for(const boundary of ['v-min','u-max','v-max','u-min']) {
       const variesU=boundary==='v-min'||boundary==='v-max', decreasing=boundary==='v-max'||boundary==='u-min';
@@ -76,9 +76,9 @@ export function writeBoundaryEvidence(api) {
     assert.equal(exported.report.objects.length,4);assert.ok(exported.report.objects.every(o=>o.entity===126));
     boundaries.forEach((entry,i)=>entry.exportMapping=exported.report.objects[i]);assert.equal(json(model),before);
     const mapping={surfaceId:surface.id,boundaries:boundaries.map(({samples,rejectedQueries,...entry})=>entry)};
-    const contents={'css':source,'surface.json':json(surface),'mapping.json':json(mapping),'model.json':json(boundaryModel),'samples.json':json(boundaries),'iges':exported.iges,'export-report.json':json(exported.report),'features.json':json(compiled?.constructions??[])};
+    const contents={'css':source,'surface.json':json(surface),'mapping.json':json(mapping),'model.json':json(boundaryModel),'samples.json':json(boundaries),'iges':exported.iges,'export-report.json':json(exported.report),'features.json':json(compiled.constructions??[])};
     const artifactHashes={};for(const [suffix,bytes] of Object.entries(contents)){writeFileSync(resolve(output,name+'.'+suffix),bytes);artifactHashes[suffix]=hash(bytes);}
-    fixtures.push({name,surface,sourceVersion:compiled?1:0,constructions:compiled?.constructions??[],boundaries,
+    fixtures.push({name,surface,sourceVersion:compiled.ir.sourceVersion,constructions:compiled.constructions??[],boundaries,
       files:{source:name+'.css',surface:name+'.surface.json',mapping:name+'.mapping.json',iges:name+'.iges'},
       hashes:{source:hash(source),surface:hash(contents['surface.json']),mapping:hash(contents['mapping.json']),iges:hash(exported.iges)},artifactHashes});
   }

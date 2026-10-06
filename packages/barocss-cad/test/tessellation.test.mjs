@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { parseModel } from '../dist/parser.js';
+import { compileCadModel } from '../dist/index.js';
 import { tessellateSurface } from '../dist/preview.js';
 import { validatePreviewPacket, copyPreviewPacket } from '../dist/packet.js';
 
@@ -393,7 +393,7 @@ test('packet validator rejects malformed metadata, arrays, bounds, indices, wind
 test('committed preview sources independently match analytic positions and triangle distances', () => {
   for (const [name, countU, countV] of [['preview-flat', 2, 2], ['preview-weighted', 9, 9]]) {
     const source = readFileSync(new URL(`../../../examples/cad-nurbs/${name}.css`, import.meta.url), 'utf8');
-    const surface = parseModel(source).objects[0];
+    const compiled = compileCadModel(source,{sourceVersion:0});assert.equal(compiled.ok,true,JSON.stringify(compiled.diagnostics));const surface=compiled.model.objects[0];
     const result = tessellateSurface(surface, { countU, countV, revision: 19 });
     const independent = checkPacket(result, surface, countU, countV, (u, v) => bilinearPoint(surface, u, v));
     retainAudit(name, { grid: result.report.grid, revision: result.packet.revision, probeOffsets: probes, reportMaximumMM: result.report.maxSampledDeviationMM, ...independent, certified: false });

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve, join } from 'node:path';
 import { createRequire } from 'node:module';
@@ -25,19 +25,21 @@ export async function verifyCompilerConsumer(context) {
     const manifest = JSON.parse(readFileSync(join(destination,'package.json'),'utf8'));
     assert.equal(manifest.private, true);
     assert.equal(manifest.dependencies, undefined);
+    for(const module of ['parser','compiler','legacy-diagnostics'])for(const extension of ['js','d.ts']) {
+      assert.equal(existsSync(join(destination,'dist',module+'.'+extension)),false,'Removed compiler artifact was packed');
+    }
     const sources = [
       readFileSync(join(root,'examples/cad-nurbs/compiler-curve-v0.css'),'utf8'),
       readFileSync(join(root,'examples/cad-nurbs/compiler-extrusion-v1.css'),'utf8'),
     ];
     const runtime = `import assert from 'node:assert/strict';
-import {compileCadModel,parseModel,compileConstruction,evaluateSurface,exportIGES} from '@barocss/cad';
+import {compileCadModel,evaluateSurface,exportIGES} from '@barocss/cad';
 const sources=${JSON.stringify(sources)};
-const native=m=>({name:m.name,version:m.version,lengthUnit:m.lengthUnit,objects:m.objects});
 const zero=compileCadModel(sources[0],{sourceVersion:0});assert.equal(zero.ok,true);
-assert.deepEqual(zero.model,native(parseModel(sources[0])));assert.ok(Object.is(zero.model.objects[0].controlPoints[0][1],-0));
+assert.equal(zero.model.version,0);assert.equal(zero.model.objects[0].id,'arc');assert.ok(Object.is(zero.model.objects[0].controlPoints[0][1],-0));
 const one=compileCadModel(sources[1],{sourceVersion:1});assert.equal(one.ok,true);
 assert.equal(one.ir.schema,'barocss-cad-ir');assert.equal(one.ir.schemaVersion,1);assert.equal(one.ir.sourceVersion,1);assert.equal(one.model.version,0);
-assert.deepEqual(one.model,compileConstruction(sources[1]).model);assert.deepEqual(one.constructions,compileConstruction(sources[1]).constructions);
+assert.equal(one.constructions.length,1);assert.deepEqual(one.constructions[0].vector,[0,0,30]);
 assert.deepEqual(one.ir.dependencies.map(d=>[d.fromId,d.toId,d.kind]),[['wall','arc','curve-input']]);
 assert.deepEqual(one.model.objects.map(o=>o.id),['wall','arc']);
 const p=evaluateSurface(one.model.objects[0],.5,.5);assert.ok(Math.hypot(p[0]-Math.sqrt(50),p[1]-Math.sqrt(50),p[2]-15)<1e-9);
@@ -64,6 +66,7 @@ compileCadModel('',{sourceVersion:0,target:'iges'});
     const api = context?.api ?? await import(pathToFileURL(join(destination,'dist/index.js')).href);
     const values = sources.map((source,index) => api.compileCadModel(source,{sourceVersion:index}));
     assert.ok(values.every(value=>value.ok));
+    for(const name of ['parseModel','compileConstruction','CadSyntaxError','ConstructionSyntaxError'])assert.equal(Object.hasOwn(api,name),false);
     const record = {archiveSHA256:hash(readFileSync(archive)),indexSHA256:hash(readFileSync(join(destination,'dist/index.js'))),
       sources:sources.map(source=>hash(source)),producer:'Actual extracted public @barocss/cad ESM/types archive',
       sourceVersions:[0,1],schema:'barocss-cad-ir',schemaVersion:1,nativeVersion:0};
@@ -72,7 +75,7 @@ compileCadModel('',{sourceVersion:0,target:'iges'});
       writeFileSync(join(evidence,'consumer-report.json'),JSON.stringify(record,null,2)+'\n');
       for(let index=0;index<values.length;index++) writeFileSync(join(evidence,`compiled-v${index}.json`),JSON.stringify(values[index],null,2)+'\n');
     }
-    console.log('Packed CAD compiler ESM/types, AST/IR/native ownership and unchanged adapters passed');
+    console.log('Packed CAD compiler ESM/types, AST/IR/native ownership and native adapters passed');
     return record;
   } finally {if (!context) rmSync(scratch,{recursive:true,force:true});}
 }

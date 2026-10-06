@@ -22,7 +22,8 @@ export function writePreviewEvidence(api) {
   ];
   for (const [fixture, name, countU, countV] of cases) {
     const source = readFileSync(resolve(root, `examples/cad-nurbs/${fixture}.css`), 'utf8');
-    const model = api.parseModel(source), before = json(model), surface = model.objects[0];
+    const compilation = api.compileCadModel(source,{sourceVersion:0}); assert.equal(compilation.ok,true,JSON.stringify(compilation.diagnostics));
+    const model = compilation.model, before = json(model), surface = model.objects[0];
     const originalIGES = api.exportIGES(model, [surface.id]).iges;
     const result = api.tessellateSurface(surface, { countU, countV, revision: 7 });
     assert.equal(json(model), before, 'Tessellation changed authoritative model');

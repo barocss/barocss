@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { compileCadModel, parseModel, compileConstruction, exportIGES, evaluateSurface } from '../dist/index.js';
+import * as cad from '../dist/index.js';
+import { compileCadModel, exportIGES, evaluateSurface } from '../dist/index.js';
 import { parseCadAst } from '../dist/source-ast.js';
 import { analyzeCadAst } from '../dist/semantic-model.js';
 import { lowerCadIR } from '../dist/lower-model.js';
@@ -17,7 +18,6 @@ const surface = '@surface #plane { type: nurbs; degree-u: 1; degree-v: 1; knots-
 const wrap = (version, declarations) => `@model model {\n  version: ${version};\n  length-unit: mm;\n  ${declarations}\n}`;
 const v0 = wrap(0, curve);
 const v1 = wrap(1, curve + '\n  ' + feature);
-const native = model => ({name:model.name,version:model.version,lengthUnit:model.lengthUnit,objects:model.objects});
 const shortSpan = range => ({start:range.start,end:range.end,line:range.line,column:range.column});
 const success = (source, version) => {
   const value = compileCadModel(source, {sourceVersion:version});
@@ -51,25 +51,22 @@ function checkRange(source, range, expected) {
   assert.equal(range.endColumn, last.at(-1).length + 1);
 }
 
-test('public v0/v1 compiler preserves native values, constructions and unchanged export bytes', () => {
-  const zero = success(v0, 0);
-  const legacyZero = parseModel(v0);
-  assert.deepEqual(zero.model, native(legacyZero));
-  assert.deepEqual(zero.constructions, []);
-  assert.equal(zero.ir.schema, 'barocss-cad-ir');
-  assert.equal(zero.ir.schemaVersion, 1);
-  assert.equal(zero.ir.sourceVersion, 0);
-  assert.equal(zero.model.version, 0);
-  assert.deepEqual(shortSpan(zero.ir.nodes[0].span), legacyZero.spans.arc);
-  assert.deepEqual(exportIGES(zero.model, ['arc']), exportIGES(legacyZero, ['arc']));
-  const one = success(v1, 1);
-  const legacyOne = compileConstruction(v1);
-  assert.deepEqual(one.model, legacyOne.model);
-  assert.deepEqual(one.constructions, legacyOne.constructions);
-  assert.equal(one.ir.sourceVersion, 1);
-  assert.equal(one.model.version, 0);
-  assert.deepEqual(exportIGES(one.model, ['wall']), exportIGES(legacyOne.model, ['wall']));
-  assert.deepEqual(success(wrap(0, surface), 0).model, native(parseModel(wrap(0, surface))));
+test('one public compiler replaces old entry names and produces original native geometry and adapters', () => {
+  for(const name of ['parseModel','compileConstruction','CadSyntaxError','ConstructionSyntaxError']) assert.equal(Object.hasOwn(cad,name),false);
+  const curveGeometry={kind:'curve',id:'arc',degree:2,knots:[0,0,0,1,1,1],controlPoints:[[10,0,0],[10,10,0],[0,10,0]],weights:[1,0.7071067811865476,1]};
+  const surfaceGeometry={kind:'surface',id:'wall',degreeU:2,degreeV:1,knotsU:[0,0,0,1,1,1],knotsV:[0,0,1,1],
+    controlPoints:curveGeometry.controlPoints.map(([x,y,z])=>[[x,y,z],[x,y,z+30]]),weights:curveGeometry.weights.map(w=>[w,w])};
+  const zero=success(v0,0),one=success(v1,1);
+  assert.deepEqual(zero.model,{name:'model',version:0,lengthUnit:'mm',objects:[curveGeometry]});
+  assert.deepEqual(one.model,{name:'model',version:0,lengthUnit:'mm',objects:[curveGeometry,surfaceGeometry]});
+  assert.deepEqual(zero.constructions,[]);assert.equal(one.constructions.length,1);
+  assert.deepEqual(one.constructions[0],{outputId:'wall',inputId:'arc',operation:'extrude',vector:[0,0,30],
+    span:shortSpan(one.ir.nodes[1].span),referenceSpan:shortSpan(one.ir.nodes[1].referenceSpan)});
+  assert.equal(zero.ir.schema,'barocss-cad-ir');assert.equal(zero.ir.schemaVersion,1);assert.equal(zero.ir.sourceVersion,0);
+  assert.equal(one.ir.sourceVersion,1);assert.equal(one.model.version,0);
+  assert.deepEqual(exportIGES(one.model,['wall']),exportIGES({name:'model',version:0,lengthUnit:'mm',objects:[curveGeometry,surfaceGeometry]},['wall']));
+  const plane=success(wrap(0,surface),0).model.objects[0];
+  assert.deepEqual(plane.controlPoints,[[[0,0,0],[0,2,0]],[[3,0,0],[3,2,0]]]);
 });
 
 test('AST preserves ordered fields and exact exclusive ranges including references and numeric arrays', () => {
@@ -98,7 +95,7 @@ test('AST preserves ordered fields and exact exclusive ranges including referenc
   assert.deepEqual(compiled.model.objects.map(item => item.id), ['wall','arc']);
   assert.deepEqual(compiled.ir.dependencies, [{fromId:'wall',toId:'arc',kind:'curve-input',span:input.value.range}]);
   assert.deepEqual(compiled.ir.nodes[0].referenceSpan, input.value.range);
-  assert.deepEqual(shortSpan(compiled.ir.nodes[0].span), compileConstruction(source).constructions[0].span);
+  assert.deepEqual(shortSpan(compiled.ir.nodes[0].span),compiled.constructions[0].span);
 });
 
 test('resolved IR carries primitive field units and no executable/export-specific state', () => {
@@ -139,7 +136,7 @@ test('field/header order remains free and forward references resolve without dec
   const reorderedCurve = '@curve #arc { weights: [1,0.7071067811865476,1]; control-points: [[10,0,0],[10,10,0],[0,10,0]]; knots: [0,0,0,1,1,1]; degree: 2; type: nurbs; }';
   const reordered = `@model model { ${feature} ${reorderedCurve} length-unit: mm; version: 1; }`;
   const compiled = success(reordered, 1);
-  assert.deepEqual(compiled.model, compileConstruction(reordered).model);
+  assert.deepEqual(compiled.model.objects[0].controlPoints,success(v1,1).model.objects[1].controlPoints);
   assert.deepEqual(compiled.model.objects.map(item => item.id), ['wall','arc']);
   assert.deepEqual(compiled.ast.declarations[1].fields.map(f => f.name), ['weights','control-points','knots','degree','type']);
   const nodes = compiled.ir.nodes;
@@ -217,8 +214,7 @@ test('diagnostics are deterministic source-associated syntax/type/reference/vers
   assert.equal(ref.code, 'REFERENCE');
   assert.equal(ref.objectId, 'wall');
   checkRange(reference,ref.range,'#missing');
-  assert.throws(() => parseModel(v1));
-  assert.throws(() => compileConstruction(v0));
+  failure(v1,0);failure(v0,1);
 });
 
 test('strict options and nonstring source use structured diagnostics without executing host accessors', () => {
@@ -238,8 +234,7 @@ test('strict options and nonstring source use structured diagnostics without exe
     const result = compileCadModel(input,{sourceVersion:0});
     assert.equal(result.ok,false); assert.equal(result.diagnostics[0].code,'TYPE');
   }
-  assert.throws(() => parseModel(null),TypeError);
-  assert.throws(() => compileConstruction(false),TypeError);
+  assert.equal(compileCadModel(false,{sourceVersion:1}).diagnostics[0].code,'TYPE');
   assert.equal(success(v0,0).ok,true);
 });
 
@@ -254,7 +249,8 @@ test('complete native source bounds remain accepted and excessive source/nesting
   assert.equal(compiled.model.objects.length,16);
   assert.equal(compiled.model.objects[0].controlPoints.flat().length,256);
   assert.deepEqual(evaluateSurface(compiled.model.objects[0],0,0),[0,0,0]);
-  assert.deepEqual(compiled.model,native(parseModel(maximum)));
+  assert.equal(compiled.ast.declarations.length,16);assert.equal(compiled.ir.nodes.length,16);
+  assert.deepEqual(compiled.model.objects[0].knotsU,knots);assert.deepEqual(compiled.model.objects[0].weights,weights);
   assert.equal(success(v0+' '.repeat(262144-Buffer.byteLength(v0)),0).model.objects.length,1);
   assert.equal(failure(v0+' '.repeat(262145-Buffer.byteLength(v0)),0).diagnostics[0].code,'LIMIT');
   failure(v0+'/*'+'😀'.repeat(65536)+'*/',0);
@@ -264,65 +260,4 @@ test('complete native source bounds remain accepted and excessive source/nesting
   const sixtyFour = {kind:'curve',id:'limit',degree:5,knots:[...Array(6).fill(0),...Array.from({length:58},(_,i)=>i+1),...Array(6).fill(59)],controlPoints:Array.from({length:64},(_,i)=>[i,0,0]),weights:Array(64).fill(1)};
   const c = `@curve #limit {type:nurbs;degree:5;knots:${JSON.stringify(sixtyFour.knots)};control-points:${JSON.stringify(sixtyFour.controlPoints)};weights:${JSON.stringify(sixtyFour.weights)};}`;
   assert.equal(success(wrap(0,c),0).model.objects[0].controlPoints.length,64);
-});
-
-const legacyGolden = {"parseModel.bad-degree":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"GEOMETRY at 4:3: Degree must be in 1..5 and smaller than the control point count","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":null},"compileConstruction.bad-degree":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 4:3: Invalid curve arc: GEOMETRY at 1:35: Degree must be in 1..5 and smaller than the control point count","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":{"start":50,"end":51,"line":4,"column":3}},"parseModel.bad-weight":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"GEOMETRY at 4:3: Weights must be in [1e-6, 1e6]","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":null},"compileConstruction.bad-weight":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 4:3: Invalid curve arc: GEOMETRY at 1:35: Weights must be in [1e-6, 1e6]","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":{"start":50,"end":51,"line":4,"column":3}},"parseModel.bad-knots":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"GEOMETRY at 4:3: Knots must be nondecreasing","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":null},"compileConstruction.bad-knots":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 4:3: Invalid curve arc: GEOMETRY at 1:35: Knots must be nondecreasing","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":{"start":50,"end":51,"line":4,"column":3}},"parseModel.empty-knots":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"GEOMETRY at 4:3: Knot count must equal control point count + degree + 1","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":null},"compileConstruction.empty-knots":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 4:3: Invalid curve arc: GEOMETRY at 1:35: Knot count must equal control point count + degree + 1","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":{"start":50,"end":51,"line":4,"column":3}},"parseModel.bad-point-dimension":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"GEOMETRY at 4:3: A control point must have three coordinates","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":null},"compileConstruction.bad-point-dimension":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 4:3: Invalid curve arc: GEOMETRY at 1:35: A control point must have three coordinates","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":{"start":50,"end":51,"line":4,"column":3}},"parseModel.coordinate-bound":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"GEOMETRY at 4:3: Coordinates must be finite and within 1e6 mm","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":null},"compileConstruction.coordinate-bound":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 4:3: Invalid curve arc: GEOMETRY at 1:35: Coordinates must be finite and within 1e6 mm","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":{"start":50,"end":51,"line":4,"column":3}},"parseModel.duplicate-field":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"DUPLICATE at 6:16: Duplicate field degree","code":"DUPLICATE","offset":96,"line":6,"column":16,"span":null},"compileConstruction.duplicate-field":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"DUPLICATE at 6:16: Invalid curve arc: DUPLICATE at 3:16: Duplicate field degree","code":"DUPLICATE","offset":96,"line":6,"column":16,"span":{"start":96,"end":97,"line":6,"column":16}},"parseModel.foreign-field":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"FIELD at 6:5: Unsupported field target","code":"FIELD","offset":85,"line":6,"column":5,"span":null},"compileConstruction.foreign-field":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"FIELD at 6:5: Invalid curve arc: FIELD at 3:5: Unsupported field target","code":"FIELD","offset":85,"line":6,"column":5,"span":{"start":85,"end":86,"line":6,"column":5}},"parseModel.nonfinite":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"GEOMETRY at 4:3: Weights must be in [1e-6, 1e6]","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":null},"compileConstruction.nonfinite":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 4:3: Invalid curve arc: GEOMETRY at 1:35: Weights must be in [1e-6, 1e6]","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":{"start":50,"end":51,"line":4,"column":3}},"parseModel.bad-id":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"SYNTAX at 4:11: Expected identifier","code":"SYNTAX","offset":58,"line":4,"column":11,"span":null},"compileConstruction.bad-id":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"SYNTAX at 4:11: Expected identifier","code":"SYNTAX","offset":58,"line":4,"column":11,"span":{"start":58,"end":59,"line":4,"column":11}},"parseModel.units":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"UNIT at 1:1: length-unit: mm is required","code":"UNIT","offset":0,"line":1,"column":1,"span":null},"compileConstruction.units":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"UNIT at 3:3: length-unit: mm is required","code":"UNIT","offset":31,"line":3,"column":3,"span":{"start":31,"end":32,"line":3,"column":3}},"parseModel.missing-unit":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"UNIT at 1:1: length-unit: mm is required","code":"UNIT","offset":0,"line":1,"column":1,"span":null},"compileConstruction.missing-unit":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"UNIT at 1:1: length-unit: mm is required","code":"UNIT","offset":0,"line":1,"column":1,"span":{"start":0,"end":1,"line":1,"column":1}},"parseModel.missing-version":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"VERSION at 1:1: version: 0 is required","code":"VERSION","offset":0,"line":1,"column":1,"span":null},"compileConstruction.missing-version":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"VERSION at 1:1: compileConstruction requires version: 1","code":"VERSION","offset":0,"line":1,"column":1,"span":{"start":0,"end":1,"line":1,"column":1}},"parseModel.wrong-version":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"VERSION at 1:1: version: 0 is required","code":"VERSION","offset":0,"line":1,"column":1,"span":null},"compileConstruction.wrong-version":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"VERSION at 2:3: compileConstruction requires version: 1","code":"VERSION","offset":17,"line":2,"column":3,"span":{"start":17,"end":18,"line":2,"column":3}},"parseModel.decimal-exponent":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"SYNTAX at 6:14: Expected ;","code":"SYNTAX","offset":94,"line":6,"column":14,"span":null},"compileConstruction.decimal-exponent":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"SYNTAX at 6:14: Invalid curve arc: SYNTAX at 3:14: Expected ;","code":"SYNTAX","offset":94,"line":6,"column":14,"span":{"start":94,"end":95,"line":6,"column":14}},"parseModel.expression":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"SYNTAX at 6:17: Expected ;","code":"SYNTAX","offset":97,"line":6,"column":17,"span":null},"compileConstruction.expression":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"SYNTAX at 6:17: Invalid curve arc: SYNTAX at 3:17: Expected ;","code":"SYNTAX","offset":97,"line":6,"column":17,"span":{"start":97,"end":98,"line":6,"column":17}},"parseModel.nested-array":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"DIMENSION at 7:13: Array nesting exceeds field dimension","code":"DIMENSION","offset":108,"line":7,"column":13,"span":null},"compileConstruction.nested-array":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"DIMENSION at 7:13: Invalid curve arc: DIMENSION at 4:13: Array nesting exceeds field dimension","code":"DIMENSION","offset":108,"line":7,"column":13,"span":{"start":108,"end":109,"line":7,"column":13}},"parseModel.trailing":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"SYNTAX at 11:3: Unexpected content after model","code":"SYNTAX","offset":218,"line":11,"column":3,"span":null},"compileConstruction.trailing":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"SYNTAX at 12:3: Unexpected content after model","code":"SYNTAX","offset":270,"line":12,"column":3,"span":{"start":270,"end":271,"line":12,"column":3}},"parseModel.unterminated-comment":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"SYNTAX at 11:3: Unterminated comment","code":"SYNTAX","offset":218,"line":11,"column":3,"span":null},"compileConstruction.unterminated-comment":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"SYNTAX at 12:3: Unterminated comment","code":"SYNTAX","offset":270,"line":12,"column":3,"span":{"start":270,"end":271,"line":12,"column":3}},"parseModel.degree-before-wrong-version":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"GEOMETRY at 4:3: Degree must be in 1..5 and smaller than the control point count","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":null},"compileConstruction.degree-before-wrong-version":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 4:3: Invalid curve arc: GEOMETRY at 1:35: Degree must be in 1..5 and smaller than the control point count","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":{"start":50,"end":51,"line":4,"column":3}},"parseModel.degree-before-wrong-unit":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"GEOMETRY at 4:3: Degree must be in 1..5 and smaller than the control point count","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":null},"compileConstruction.degree-before-wrong-unit":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 4:3: Invalid curve arc: GEOMETRY at 1:35: Degree must be in 1..5 and smaller than the control point count","code":"GEOMETRY","offset":50,"line":4,"column":3,"span":{"start":50,"end":51,"line":4,"column":3}},"parseModel.unknown-field-before-duplicate-id":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"FIELD at 6:5: Unsupported field shader","code":"FIELD","offset":85,"line":6,"column":5,"span":null},"compileConstruction.unknown-field-before-duplicate-id":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"FIELD at 6:5: Invalid curve arc: FIELD at 3:5: Unsupported field shader","code":"FIELD","offset":85,"line":6,"column":5,"span":{"start":85,"end":86,"line":6,"column":5}},"parseModel.source-too-long":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"LIMIT at 1:1: Source exceeds 256 KiB","code":"LIMIT","offset":0,"line":1,"column":1,"span":null},"compileConstruction.source-too-long":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"LIMIT at 1:1: Source exceeds 256 KiB","code":"LIMIT","offset":0,"line":1,"column":1,"span":{"start":0,"end":0,"line":1,"column":1}},"parseModel.deep-array-limit":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"DIMENSION at 7:13: Array nesting exceeds field dimension","code":"DIMENSION","offset":108,"line":7,"column":13,"span":null},"compileConstruction.deep-array-limit":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"DIMENSION at 7:13: Invalid curve arc: DIMENSION at 4:13: Array nesting exceeds field dimension","code":"DIMENSION","offset":108,"line":7,"column":13,"span":{"start":108,"end":109,"line":7,"column":13}},"parseModel.version1-only":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"VERSION at 1:1: version: 0 is required","code":"VERSION","offset":0,"line":1,"column":1,"span":null},"parseModel.extrude-rejected":{"name":"CadSyntaxError","constructor":"CadSyntaxError","message":"KIND at 11:1: Unsupported object extrude","code":"KIND","offset":216,"line":11,"column":1,"span":null},"compileConstruction.v0-rejected":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"VERSION at 2:3: compileConstruction requires version: 1","code":"VERSION","offset":17,"line":2,"column":3,"span":{"start":17,"end":18,"line":2,"column":3}},"compileConstruction.missing-reference":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"REFERENCE at 11:27: Reference missing must name a declared curve","code":"REFERENCE","offset":242,"line":11,"column":27,"span":{"start":242,"end":250,"line":11,"column":27}},"compileConstruction.wrong-kind-reference":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"REFERENCE at 12:25: Reference wall must name a declared curve","code":"REFERENCE","offset":290,"line":12,"column":25,"span":{"start":290,"end":295,"line":12,"column":25}},"compileConstruction.self-reference":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"REFERENCE at 11:27: Reference wall must name a declared curve","code":"REFERENCE","offset":242,"line":11,"column":27,"span":{"start":242,"end":247,"line":11,"column":27}},"compileConstruction.duplicate-id":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"DUPLICATE at 11:1: Duplicate ID arc","code":"DUPLICATE","offset":216,"line":11,"column":1,"span":{"start":216,"end":229,"line":11,"column":1}},"compileConstruction.zero-vector":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 11:3: Extrusion vector must be nonzero","code":"GEOMETRY","offset":218,"line":11,"column":3,"span":{"start":218,"end":266,"line":11,"column":3}},"compileConstruction.vector-rank":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"SYNTAX at 11:46: Expected ,","code":"SYNTAX","offset":261,"line":11,"column":46,"span":{"start":261,"end":262,"line":11,"column":46}},"compileConstruction.vector-four":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"SYNTAX at 11:48: Expected ]","code":"SYNTAX","offset":263,"line":11,"column":48,"span":{"start":263,"end":264,"line":11,"column":48}},"compileConstruction.vector-negative-reference":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"REFERENCE at 11:27: Reference missing must name a declared curve","code":"REFERENCE","offset":242,"line":11,"column":27,"span":{"start":242,"end":250,"line":11,"column":27}},"compileConstruction.missing-fields":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"FIELD at 11:3: Extrusion requires curve and vector fields","code":"FIELD","offset":218,"line":11,"column":3,"span":{"start":218,"end":250,"line":11,"column":3}},"compileConstruction.surface-v1":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"KIND at 4:3: Unsupported declaration surface","code":"KIND","offset":50,"line":4,"column":3,"span":{"start":50,"end":58,"line":4,"column":3}},"compileConstruction.empty":{"name":"ConstructionSyntaxError","constructor":"ConstructionSyntaxError","message":"GEOMETRY at 1:1: Model must contain geometry","code":"GEOMETRY","offset":0,"line":1,"column":1,"span":{"start":0,"end":1,"line":1,"column":1}}};
-
-function legacyError(error) {
-  return {name:error.name,constructor:error.constructor.name,message:error.message,code:error.code??null,
-    offset:error.offset??null,line:error.line??null,column:error.column??null,span:error.span??null};
-}
-test('frozen actual legacy error corpus preserves classes, first-error precedence, messages and spans', () => {
-  const mutations = {
-    'bad-degree':s=>s.replace('degree: 2','degree: 0'),
-    'bad-weight':s=>s.replace('[1,0.7071067811865476,1]','[1,0,1]'),
-    'bad-knots':s=>s.replace('[0,0,0,1,1,1]','[0,0,0,1,0,1]'),
-    'empty-knots':s=>s.replace('[0,0,0,1,1,1]','[]'),
-    'bad-point-dimension':s=>s.replace('[[10,0,0]','[[10,0]'),
-    'coordinate-bound':s=>s.replace('[[10,0,0]','[[1000001,0,0]'),
-    'duplicate-field':s=>s.replace('degree: 2','degree: 2; degree: 2'),
-    'foreign-field':s=>s.replace('degree: 2','target: iges; degree: 2'),
-    'nonfinite':s=>s.replace('[1,0.7071067811865476,1]','[1,Infinity,1]'),
-    'bad-id':s=>s.replace('#arc','#1arc'),
-    'units':s=>s.replace('length-unit: mm','length-unit: cm'),
-    'missing-unit':s=>s.replace('length-unit: mm;',''),
-    'missing-version':s=>s.replace(/version: [01];/,''),
-    'wrong-version':s=>s.replace(/version: [01]/,'version: 2'),
-    'decimal-exponent':s=>s.replace('degree: 2','degree: 2e0'),
-    'expression':s=>s.replace('degree: 2','degree: calc(1+1)'),
-    'nested-array':s=>s.replace('[0,0,0,1,1,1]','[[0],0,0,1,1,1]'),
-    'trailing':s=>s+' @model extra {}',
-    'unterminated-comment':s=>s+' /*',
-    'degree-before-wrong-version':s=>s.replace('degree: 2','degree: 0').replace(/version: [01]/,'version: 2'),
-    'degree-before-wrong-unit':s=>s.replace('degree: 2','degree: 0').replace('length-unit: mm','length-unit: cm'),
-    'unknown-field-before-duplicate-id':s=>s.replace('degree: 2','shader: bad; degree: 2').replace(/\n}$/,`\n${curve}\n}`),
-    'source-too-long':s=>s+' '.repeat(262145),
-    'deep-array-limit':s=>s.replace('[0,0,0,1,1,1]','['.repeat(40)+'0'+']'.repeat(40)),
-  };
-  let checked=0;
-  const apis={parseModel,compileConstruction};
-  function compare(api,name,source) {
-    const expected=legacyGolden[api+'.'+name];assert.ok(expected,'Missing frozen oracle');
-    assert.throws(()=>apis[api](source),error=>{assert.deepEqual(legacyError(error),expected,api+'.'+name);return true;});
-    checked++;
-  }
-  for(const [name,mutate]of Object.entries(mutations)) {
-    compare('parseModel',name,mutate(v0));compare('compileConstruction',name,mutate(v1));
-  }
-  compare('parseModel','version1-only',wrap(1,curve));
-  compare('parseModel','extrude-rejected',wrap(0,curve+'\n'+feature));
-  for(const [name,source]of [
-    ['v0-rejected',v1.replace('version: 1','version: 0')],
-    ['missing-reference',v1.replace('curve: #arc','curve: #missing')],
-    ['wrong-kind-reference',wrap(1,curve+'\n'+feature+'\n@extrude #second {curve:#wall;vector:[0,0,4];}')],
-    ['self-reference',v1.replace('curve: #arc','curve: #wall')],
-    ['duplicate-id',wrap(1,curve+'\n'+feature.replace('#wall','#arc'))],
-    ['zero-vector',v1.replace('[0,0,30]','[0,0,0]')],
-    ['vector-rank',v1.replace('[0,0,30]','[0,30]')],
-    ['vector-four',v1.replace('[0,0,30]','[0,0,30,40]')],
-    ['vector-negative-reference',v1.replace('[0,0,30]','[0,0,0]').replace('curve: #arc','curve: #missing')],
-    ['missing-fields',v1.replace('vector: [0,0,30];','')],
-    ['surface-v1',wrap(1,surface)],['empty',wrap(1,'')],
-  ])compare('compileConstruction',name,source);
-  assert.equal(checked,62);
 });

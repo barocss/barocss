@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { extractSurfaceBoundary } from '../dist/boundary.js';
 import { evaluateCurve, evaluateSurface, validateCurve, validateModel } from '../dist/math.js';
 import { evaluateCurveD1, evaluateSurfaceD1 } from '../dist/derivatives.js';
-import { compileConstruction } from '../dist/compiler.js';
+import { compileCadModel } from '../dist/index.js';
 
 const edges = ['v-min', 'u-max', 'v-max', 'u-min'];
 const fractions = [0, ...Array.from({ length: 17 }, (_, i) => ((i + 1) / 18) ** 1.37), 1];
@@ -165,7 +165,7 @@ function lineOracle(curve, u) {
 
 test('actual constructed nonuniform boundaries retain C0 rejection at original and reflected knots', () => {
   const source = readFileSync(new URL('../../../examples/cad-nurbs/extruded-asymmetric.css', import.meta.url), 'utf8');
-  const result = compileConstruction(source);
+  const result = compileCadModel(source,{sourceVersion:1});assert.equal(result.ok,true,JSON.stringify(result.diagnostics));
   const input = result.model.objects.find((object) => object.kind === 'curve');
   const surface = result.model.objects.find((object) => object.kind === 'surface');
   const curves = checkAllEdges(surface, (u, v) => {
