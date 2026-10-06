@@ -27,7 +27,8 @@ export async function runProjectBrowser({browser,page,server,evidence,allowed,ta
   if(primitiveRequest)data['primitive.json']=json({requested:primitiveRequest});
   if(fixture){data['objects.json']=json(await p.evaluate(()=>window.cadPreview.objects()));data['inspection.json']=json(await p.evaluate(()=>window.cadPreview.inspection()));}
   const hashes={};for(const [suffix,content]of Object.entries(data)){const file=name+'.'+suffix;await writeFile(path.join(evidence,file),content);hashes[file]=hash(content);}
-  const frame={name,taskCommit,integrationCommit,sourceVersion:s.sourceVersion??0,revision:s.revision,viewRevision:s.viewRevision,displayedId:s.packet.surfaceId,inspectedId:s.packet.surfaceId,fixtureId:fixture?.selectorId??null,primitiveRequest,hashes,actualReadPixels:true,readbackHash:hash(Uint8Array.from(bytes))};frames.push(frame);return frame;
+  const glError=await p.locator('#preview').evaluate(e=>e.getContext('webgl2').getError());assert.equal(glError,0);
+  const frame={glError,certified:false,name,taskCommit,integrationCommit,sourceVersion:s.sourceVersion??0,revision:s.revision,viewRevision:s.viewRevision,displayedId:s.packet.surfaceId,inspectedId:s.packet.surfaceId,fixtureId:fixture?.selectorId??null,primitiveRequest,hashes,actualReadPixels:true,readbackHash:hash(Uint8Array.from(bytes))};frames.push(frame);return frame;
  }
  // Actual UI Create -> Update -> downloaded accepted file -> separate fresh page Open.
  for(const kind of ['sheet','quarter-wall']){
