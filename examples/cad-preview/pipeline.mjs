@@ -1,3 +1,4 @@
+import { preparePrimitive, dimensionUpdate } from './primitives.mjs';
 import { parameterState as readParameterState, canonicalConstruction } from './parameters.mjs';
 import { objectRows, inspectNativeObject, requireSurface } from './inspector.mjs';
 // The host uses public built APIs. Canonical millimetre geometry is never rotated here.
@@ -24,7 +25,7 @@ export function prepareCandidate(source, settings, cad, gpu) {
 }
 
 export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
-  let renderer, accepted, inspectedId, revision = 0, viewRevision = 0, disposed = false, unavailable = false;
+  let renderer, accepted, inspectedId, primitive, revision = 0, viewRevision = 0, disposed = false, unavailable = false;
   let status = 'No accepted preview';
   const announce = message => { status = message; notify(message, accepted && structuredClone(accepted)); };
   const onLoss = () => { unavailable = true; announce('Preview unavailable: GPU context lost. Reload to create a new context.'); };
@@ -40,7 +41,7 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
           if (!result.ok) throw result.error;
         } else renderer = gpu.mountMesh(canvas, candidate.packet, candidate.options);
         accepted = { ...candidate, viewRevision: ++viewRevision }; revision = candidate.revision;
-        inspectedId = candidate.packet.surfaceId;
+        inspectedId = candidate.packet.surfaceId; primitive = undefined;
         announce(`Accepted model revision ${revision}, view revision ${viewRevision}`);
         return { ok: true };
       } catch (error) {
@@ -50,6 +51,32 @@ export function createPreviewController(canvas, cad, gpu, notify = () => {}) {
           : `Rejected: ${error.message}. No accepted preview.`);
         return { ok: false, error: error.message };
       }
+    },
+    primitiveState() {
+      if(!primitive||!accepted||accepted.sourceVersion!==1||accepted.source!==primitive.source||accepted.packet.surfaceId!=='surface')return undefined;
+      return structuredClone(primitive);
+    },
+    createPrimitive(request,editorSource) {
+      try {
+        if(disposed||unavailable||!accepted||!renderer)throw new Error('Preview unavailable');
+        if(typeof editorSource!=='string'||editorSource!==accepted.source)throw new Error('Apply or discard pending source first');
+        const generated=preparePrimitive(request);
+        const result=controller.apply(generated.source,{sourceVersion:1,surfaceId:generated.surfaceId,countU:generated.countU,countV:generated.countV,options:generated.options});
+        if(result.ok){primitive={kind:generated.kind,size:generated.size,height:generated.height,source:generated.source};announce(`Created open ${generated.kind}; model revision ${revision}`);}
+        return result;
+      }catch(error){return{ok:false,error:error.message};}
+    },
+    updateDimensions(request,editorSource) {
+      try {
+        if(disposed||unavailable||!accepted||!renderer)throw new Error('Preview unavailable');
+        const owned=controller.primitiveState();if(!owned)throw new Error('Update requires the matching accepted tool-created primitive');
+        if(typeof editorSource!=='string'||editorSource!==accepted.source)throw new Error('Apply or discard pending source first');
+        const dimensions=dimensionUpdate(request),generated=preparePrimitive({kind:owned.kind,...dimensions});
+        const options=structuredClone(accepted.options);options.translate=generated.options.translate;
+        const result=controller.apply(generated.source,{sourceVersion:1,surfaceId:generated.surfaceId,...accepted.report.grid,options});
+        if(result.ok){primitive={kind:owned.kind,...dimensions,source:generated.source};announce(`Updated open ${owned.kind}; model revision ${revision}`);}
+        return result;
+      }catch(error){return{ok:false,error:error.message};}
     },
     parameterState() { return readParameterState(accepted); },
     applyParameters(request, editorSource) {

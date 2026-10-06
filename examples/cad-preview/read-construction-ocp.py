@@ -30,6 +30,17 @@ def diagnostics(iterator, warnings=True):
 
 def analytic(fixture, u, v):
     curve, vector = fixture['curve'], fixture['analyticDescriptor']['vector']
+    if fixture.get('primitive'):
+        tool=fixture['primitive']; size,height=tool['size'],tool['height']
+        assert 1 <= size <= 300 and 1 <= height <= 300
+        assert fixture['inputId']=='profile' and fixture['outputId']=='surface' and vector==[0,0,height]
+        if tool['kind']=='sheet':
+            assert curve['degree']==1 and curve['knots']==[0,0,1,1] and curve['controlPoints']==[[0,0,0],[size,0,0]] and curve['weights']==[1,1]
+            return [size*u,0,height*v],vector
+        assert tool['kind']=='quarter-wall' and curve['degree']==2 and curve['knots']==[0,0,0,1,1,1]
+        assert curve['controlPoints']==[[size,0,0],[size,size,0],[0,size,0]] and curve['weights']==[1,math.sqrt(.5),1]
+        w=curve['weights'][1]; b0=(1-u)**2; b1=2*u*(1-u)*w; b2=u*u; den=b0+b1+b2
+        return [size*(b0+b1)/den,size*(b1+b2)/den,height*v],vector
     if fixture['outputId'] == 'wall':
         assert curve['id'] == 'arc' and curve['degree'] == 2
         assert curve['knots'] == [0, 0, 0, 1, 1, 1]

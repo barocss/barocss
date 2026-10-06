@@ -1,3 +1,4 @@
+import { preparePrimitive } from './primitives.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -46,10 +47,11 @@ const objectNames = ['multi_native-wall', 'multi_native-oblique_wall', 'multi_na
   'multi_construction-wall', 'multi_construction-oblique_wall', 'multi_construction-wall-replay'];
 assert.deepEqual((index.objectFrames ?? []).map(frame => frame.name).sort(), objectNames.sort());
 assert.deepEqual((index.parameterFrames??[]).map(frame=>frame.name).sort(),['typed-vector','typed-weight']);
+assert.deepEqual((index.primitiveFrames??[]).map(f=>f.name).sort(),['create-quarter-wall','create-sheet','height-quarter-wall','height-sheet','update-quarter-wall','update-sheet']);
 const fractionsU = [0,.03,.07,.123,.2,.271,.33,.41,.5,.57,.66,.719,.8,.877,.93,.97,1];
 const fractionsV = [0,.11,.23,.37,.5,.61,.79,.91,1];
 const fixtures = [];
-for (const frame of [...index.constructionFrames, ...index.objectFrames, ...index.parameterFrames]) {
+for (const frame of [...index.constructionFrames, ...index.objectFrames, ...index.parameterFrames, ...index.primitiveFrames]) {
   const multi = objectNames.includes(frame.name);
   assert.equal(frame.taskCommit, head);
   assert([0, 1].includes(frame.sourceVersion));
@@ -61,6 +63,7 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames, ...inde
   if (frame.sourceVersion === 1) required.push('constructions.json', 'selected-construction.json');
   if (multi) required.push('objects.json', 'inspection.json');
   if(frame.parameterRequest)required.push('parameters.json');
+  if(frame.primitiveRequest)required.push('primitive.json');
   for (const suffix of required) assert(frame.hashes[`${frame.name}.${suffix}`], `Missing captured ${suffix}`);
   for (const [file, expected] of Object.entries(frame.hashes)) {
     assert.equal(path.basename(file), file, 'Artifact path must be a local basename');
@@ -120,6 +123,7 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames, ...inde
   }
   // v0 is a directly authored surface. This known-fixture oracle is not feature history.
   if(frame.parameterRequest){const typed=await readJSON('parameters.json');assert.deepEqual(typed.requested,frame.parameterRequest);assert.deepEqual(typed.selectedConstruction,feature);assert.deepEqual(feature.vector,frame.parameterRequest.vector);assert.equal(curve.weights[frame.parameterRequest.weight.index],frame.parameterRequest.weight.value);}
+  if(frame.primitiveRequest){const tool=preparePrimitive(frame.primitiveRequest),receipt=await readJSON('primitive.json');assert.equal(tool.source,source);assert.deepEqual(receipt.requested,frame.primitiveRequest);assert.equal(feature.inputId,'profile');assert.equal(feature.outputId,'surface');}
   const analyticDescriptor = { inputId: curve.id, outputId: surface.id,
     vector: feature?.vector ?? (surface.id === 'wall' ? [0,0,30] : [3,-2,7]),
     origin: compiled ? 'accepted construction feature' : 'declared native-v0 fixture oracle; not construction provenance' };
@@ -140,7 +144,7 @@ for (const frame of [...index.constructionFrames, ...index.objectFrames, ...inde
   const igesFile = `${frame.name}.downloaded.iges`, modelFile = `${frame.name}.native.json`;
   await writeFile(path.join(output, igesFile), downloaded); await writeFile(path.join(output, modelFile), json(model));
   fixtures.push({ name:frame.name, sourceVersion:frame.sourceVersion, geometryVersion:0, packetVersion:0, inputId:curve.id, outputId:surface.id,
-    feature, analyticDescriptor, curve, domain, samples, igesFile, modelFile,
+    primitive:frame.primitiveRequest??null, feature, analyticDescriptor, curve, domain, samples, igesFile, modelFile,
     inspectedId:frame.inspectedId ?? null, displayedId:surface.id,
     sourceHash:frame.hashes[`${frame.name}.source.css`], featureHash:frame.hashes[`${frame.name}.constructions.json`] ?? null,
     modelHash:frame.hashes[`${frame.name}.model.json`], capturedHashes:frame.hashes, revision:frame.revision, viewRevision:frame.viewRevision });

@@ -253,3 +253,31 @@ Pointer capture keeps a drag active outside the canvas until release. Cancellati
 window blur, context loss, disposal or another accepted source/view action ends
 the gesture. Invalid/out-of-bound camera candidates retain the accepted view.
 No inertia, timer, zoom, pan or touch-scroll interception is added.
+
+## Create dimensioned open surfaces
+
+Choose Sheet or Quarter-cylinder wall in Create, enter width/radius and extrusion
+height in native mm, then click Create. Dimensions1..300mm are explicit tool
+limits and accept decimals without rounding/clamping. Sketches lie in XY and
+extrude along+Z. A sheet uses a degree-one line; the quarter wall uses the stored
+rational quadratic arc weightMath.SQRT1_2. Results are open surfaces, not capped
+solids or whole circles. Existing source-v1 remains visible and authoritative.
+
+Create uses deterministic tool settings: mmToSceneUnit0.01, explicit centre
+translation computed from those dimensions, fixed oblique camera and documented
+grid. This is tool initial placement, not generic geometry auto-fit. Update
+dimensions preserves the accepted camera/grid/display and replaces only a matching
+tool-owned source. Other successful raw/fixture/typed/selection replacements
+invalidate primitive provenance; readonly inspection and orbit keep it.
+
+Typing only stages values. Apply or discard pending raw source before Create or
+Update. Invalid dimensions, unavailable contexts, ownership mismatch or failed
+GPU candidates retain accepted source/native/pixels/export/provenance. After
+success the actual accepted generated source and displayed dimensions are shown.
+
+The browser gate creates both defaults and performs two entered decimal updates
+per shape, orbits, and downloads six actual current selected surfaces. Separate
+primitive receipts/source/native/feature/packet/view/readback/module/HEAD records
+feed independent line/rational-affine OCP controls at153 parameters/export with
+unchanged1e-9mm native/1e-7mm reader limits. Desktop/mobile screenshots and repeated
+create/update resource checks are retained alongside all prior regression gates.
