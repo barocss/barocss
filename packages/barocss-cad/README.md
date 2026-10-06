@@ -2435,3 +2435,70 @@ Float32-collapsing but native-valid circle reject while prior data stays reusabl
 Ordinary packet JSON read/admission is a demo artifact, not a document/exchange
 format. Affected build/this run are prototype checks; broader validation,
 renderer/UI/cylinder/general trim/solid/commercial claims remain deferred.
+
+## Original circle prism candidate shell
+
+`buildXYCirclePrismShell(profile,{shellId,heightMM})` returns owned
+`{profile,baseFace,bundle,report}`. Exact circle request uses the actual original
+circle profile and unmodifiedz0 planar trim face with baseFace IDshell+'_z_min'.
+Authored profile/shell IDs are ASCII1..48, all native derived IDs<=80 and distinct.
+Finite positive height0.001..10000mm supports fractions; original centre/radius/
+computed-pole bounds remain. Existing Curve/Surface/Model/face/source schemas
+stay strict. No compiled cylinder source/IR is invented.
+
+Distinct xy-circle-prism-shell version0 bundle has construction/geometry/topology.
+Construction retains exact original profile/shellID/height. World Model0 contains
+six original native objects: bottom circle Curve, translated top Curve, seam
+line, original bottom supporting plane, translated top plane, and actual
+extrudeCurve(bottomCircle,[0,0,height]) ruled wall. Circle degree/knots/weights/
+XYpoles remain, topZ translates; wall has9×2poles/U0..4/V0..1. Caps remain actual
+rational disk trims, not full supporting squares or four planar walls.
+
+Two seam vertices and three unique edges are explicit: bottom closed circle,
+top closed circle, vertical seam line. Bottom/top closed edges each use their
+own same seam ID at both endpoints/domain0..4; seam line has bottom/top IDs/
+domain0..1. Three faces/loops contain six directed uses. Bottom face orientation
+reverse and cap use reverse give outward-Z, top forward/+Z. Wall forward uses
+bottomforward,seam-rightforward,topreverse,seam-leftreverse; the same unique
+seam edge occurs twice on the same wall with distinct use/pcurve IDs. This is
+a parameter seam with periodic:false, not a periodic or manifold certificate.
+
+Cap UV curves retain actual original rational trim coefficients; top gets a
+separate UV ID and translated supporting plane. Wall boundary UVcurves are
+actual degree1native parameter lines: bottom[top]t0..4→[t,0][t,1], right[left]
+v0..1→[4,v][0,v]. Use sense determines traversal, independent of increasing
+native parameter. WallU remains0..4, never normalized to0..1. Pcurves are
+explicit UV coordinates inside topology, not world-mm Model objects.
+
+`validateXYCirclePrismShellBundle` owns32768values/depth14/arrays128/records24/
+strings128 plain finite data, rebuilds actual base face/extrudeCurve/translated
+curves-planes/seam/pcurves/topology, compares every coefficient/reference/ID/use
+exactly, and runs original native validators. Directed native vertex IDs and
+actual Curve/Surface endpoint/pcurve evaluations close each loop; each edge has
+two opposite-sense uses, seam twice on wall. Finite1e-7mm comparison records
+consistency, no construction healing or general topology proof. Actual wall
+D1 uses interior halfspans; originalC0 knot D1 refusal remains.
+
+Counts2vertices/3edges/6uses/3faces/3loops/6worldobjects are structural native
+incidence. Report candidateClosedShell:true means canonical use/loop closure
+only; geometricValidity:not-certified,topologyCertified:false,solid:false.
+Original source/IDs/base trim report/domains/bounds/finite normals/incidence
+remain. Reference volume pi*r*r*height, lateral2*pi*r*height and boundary
+2*pi*r*r+2*pi*r*height are analytic family reference formulae, not integrated
+certified solid properties. No ray/Boolean/STEP/document/graph/mesh/renderer
+admission or generic stable topology/regularity claim is added.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/circle-prism-shell-demo.mjs /tmp/barocss-circle-prism-shell-prototype
+```
+
+The short actual demo checks circlecentre[2,-3]/r4/height6, source0/baseFace/
+actual ruled wall/top translation/seam points and every coedge UV/worldCurve/
+Surface/closure/opposite-use reference. Actual wallhalfspans give radial normals,
+bottom-/top+Z and references96*pi/48*pi/80*pi. Decimal[.2,.2]/r.1/height.3 and
+an explicitly selected edited arc-sketch circle[30,1]/r3/height2 are admitted.
+Ordinary finite native artifact read/validation is not a signed-zero product
+file guarantee. Request/canonical geometry/UV/seam/use failures preserve prior
+outputs. Affected build/this run are prototype checks; broader validation and
+candidate curved-shell display/solid certification remain deferred.
