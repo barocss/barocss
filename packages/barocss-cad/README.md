@@ -119,9 +119,9 @@ failure and any other diagnostic fails. No healing or tolerance override is adde
 
 ## Structured source compiler
 
-`compileCadModel(source, { sourceVersion: 0 | 1 })` selects the existing source
+`compileCadModel(source, { sourceVersion: 0 | 1 | 2 })` selects the existing source
 dialect explicitly. The declared `version` must match that selection. This API
-adds no expressions, unit literals, object kinds or source-v2 grammar.
+preserves the original v0/v1 dialects. Source v2 adds the bounded parameter and expression forms described below.
 
 ```js
 import { compileCadModel, exportIGES } from '@barocss/cad';
@@ -163,7 +163,7 @@ validity cache or executable feature registry.
 AST, IR, model and constructions own every nested occurrence independently.
 Copies preserve binary64 values and negative zero. Mutating one result cannot
 change another output or a later compilation. Compiler options must contain
-exactly one own enumerable data property, `sourceVersion: 0` or `1`, on a plain
+exactly one own enumerable data property, `sourceVersion: 0`, `1` or `2`, on a plain
 or null-prototype record. Accessors, foreign options and export target/profile
 options fail without invoking getters. `compileCadModel` is the single source compiler entry point. There is no
 separate compatibility parser, historical error replay or virtual source wrapper.
@@ -723,3 +723,76 @@ this task, set `BAROCSS_CAD_EVIDENCE` to `evidence-502/iges` to preserve the ori
 #500 files. No preview normals/triangles replace native curves/surfaces or their
 exchange evidence. No pixel, GPU consumer, watertight-solid, manufacturing or
 certified-tolerance result is implied by this independent CAD stage.
+
+## Named parameters and expressions in source v2
+
+`compileCadModel(source, { sourceVersion: 2 })` uses the same compiler phases.
+Source v2 accepts the current curve, surface and extrusion declarations plus at
+most 64 `@parameter` declarations. Parameters do not count as native geometry
+objects; the native output remains Model-v0 with at most sixteen objects.
+
+```css
+@model driven {
+  version: 2;
+  length-unit: mm;
+  @parameter #width { type: length; value: 10 cm; }
+  @parameter #height { type: length; value: $width / 2; }
+  @parameter #scale { type: scalar; value: 2; }
+  @curve #profile {
+    type: nurbs; degree: 1; knots: [0,0,1,1];
+    control-points: [[0,0,0],[$width,0,0]]; weights: [1,1];
+  }
+  @extrude #wall { curve: #profile; vector: [0,0,$height * $scale]; }
+}
+```
+
+The profile endpoint and extrusion height are 100mm. Changing width to 12cm
+recompiles both values to 120mm. IDs and native output order remain stable.
+Parameter IDs use `[A-Za-z_][A-Za-z0-9_]*`; geometry IDs retain their existing
+rules. All IDs are globally unique. `$name` references a parameter; `#name`
+references geometry. Forward references are supported. Complete parameter
+reference and cycle checks run before quantity evaluation or native lowering.
+
+Expression leaves use finite unsigned decimal literals with optional `mm`,
+`cm` or `m` units, `$references`, unary signs, arithmetic and parentheses.
+Unary sign has highest precedence, then multiplication/division, then
+addition/subtraction. Binary operations are left associative. Parameters have
+`length` or `scalar` type. Length values normalize to millimetres; scalar values
+are dimensionless. Addition/subtraction requires equal types. Multiplication
+requires at least one scalar. Division supports scalar/scalar, length/scalar
+and length/length. Scalar divided by length and products of two lengths are unsupported.
+Division by either signed zero fails. Every literal and evaluated intermediate
+must be finite and have absolute value at most 1e12. No epsilon or clamping is
+applied.
+
+Coordinate and vector expressions require length; knots and weights require
+scalar; degrees require scalar integers and existing native degree bounds.
+A single bare decimal with signs/parentheses retains the literal-mm shorthand
+in coordinate/vector fields. This rule does not turn a scalar parameter or a
+compound scalar expression into length. For example, `$width/2` and
+`1mm+2mm` are lengths, while a coordinate expression `1+2` is rejected.
+Parameters themselves receive no implicit units. Functions, exponent literals,
+member/index access, interpolation, imports and source execution are rejected.
+
+Source v2 emits `barocss-cad-ir` schemaVersion2, sourceVersion2. Its root keeps
+name, mm units, numeric geometry nodes and dependencies, and adds authored-order
+`parameters` and field/index-order `bindings`. Each parameter retains its typed
+normalized value, original ranged expression and declaration span. Each binding
+retains owning object ID, field/indices, expression, resolved value/type/span and
+all parameter reference occurrences. Dependencies preserve every reference
+occurrence, including duplicates, in source order. Expression AST, parameters,
+bindings, native objects and construction records own independent data.
+Source v0/v1 still emit schemaVersion1 and retain their original behavior.
+
+Limits per expression are 256 nodes and depth32, including unary/group/binary
+nodes. Aggregate expression nodes are at most32,768. Every expression node also
+counts toward the shared 65,536 AST node/value and 131,072 token limits. Source
+remains bounded at256KiB. Counts/depth are checked before further parser growth;
+evaluation uses a bounded dependency order and memoized expression values.
+No public override/cache/IR-ingestion API is added. Recompile the edited source.
+
+Parameter source2 examples feed actual packed ESM/types and independent IGES
+read-back checks through the existing consumer/exchange commands. Set
+`BAROCSS_CAD_PARAMETER_EVIDENCE` to a fresh directory for the exact committed
+HEAD. The current project-v1 example envelope supports source0/1 only; source2
+project saving, parameter UI and history require their own document/host work.

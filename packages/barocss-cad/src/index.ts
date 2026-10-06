@@ -15,3 +15,5 @@ export * from './box-solid.js';
 export { compileCadModel } from './model-compiler.js';
 export type { CadCompileOptions, CadCompileResult, CadDiagnostic, CadModelIR, CadModelAst, CadSourceRange } from './model-compiler.js';
 export type { SourceSpan, ExtrusionConstruction } from './construction-types.js';
+export type { CadModelIR1, CadModelIR2, CadResolvedParameter, CadFieldBinding, CadQuantityKind, CadParameterDependency } from './model-compiler.js';
+export type { CadExpression } from './model-compiler.js';
