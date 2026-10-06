@@ -223,9 +223,9 @@ test('compiler respects 16-pole constructed-surface ceiling and rejects wholly c
     knots: [${[0, 0, ...Array.from({ length: n - 2 }, (_, i) => i + 1), n - 1, n - 1]}];
     control-points: [${Array.from({ length: n }, (_, i) => `[${i},0,0]`).join(',')}];
     weights: [${Array(n).fill(1)}]; }`;
-  const accepted = accepted(modelSource(line(16), extrudeBody('plane', 'line')));
-  assert.equal(accepted.model.objects[1].controlPoints.length, 16);
-  assert.equal(accepted.model.objects[1].controlPoints.flat().length, 32);
+  const limitResult = accepted(modelSource(line(16), extrudeBody('plane', 'line')));
+  assert.equal(limitResult.model.objects[1].controlPoints.length, 16);
+  assert.equal(limitResult.model.objects[1].controlPoints.flat().length, 32);
   syntaxFailure(modelSource(line(17), extrudeBody('plane', 'line')));
   const collapsed = line(2).replace('[[0,0,0],[1,0,0]]', '[[0,0,0],[0,0,1]]');
   syntaxFailure(modelSource(collapsed, extrudeBody('collapsed', 'line')));
