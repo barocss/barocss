@@ -2302,3 +2302,70 @@ DAG/ID/category reuse/type/definition/budget/combined sketch errors reject with
 previous outputs reusable. Native original bindings and−0 file intent are
 checked. Affected build/this run are prototype checks; broad validation and
 parameter lifecycle UI remain deferred.
+
+## Original rational circle planar trim face
+
+`buildXYCirclePlanarFace(profile,{faceId})` consumes the exact original circle
+request and returns owned `{profile,bundle,report}`. Profile is the actual
+unchanged buildXYArc/source0/Model/rational degree2 Curve result. Distinct
+xy-circle-planar-face version0 bundle has exact construction/geometry/topology;
+existing natural four-boundary FaceBundle and integer polygon faces stay strict.
+Circle and face IDs are ASCII1..64, deterministic generated IDs<=80 and all
+source/face/Surface/loop/seam/edge/pcurve IDs distinct. Original finite XY/radius
+0.001..10000mm/computed-pole±10000 admission remains; fractions supported.
+
+World Model0/mm contains exactly the original circle Curve and new degree1×1
+plane Surface with poles bounding cx±r,cy±r atZ0, unit weights andU/V0..1.
+U points+X,V+Y and actual forward normal+Z. Topology has one seam vertex at
+actual circle pole0/8, one closed edge using the original Curve and same seam
+ID at both ends/sourceParameterRange0..4, one forward loop use. No straight
+polygon edges replace the original rational boundary. Its UV pcurve lives
+inside topology with explicit coordinateSystem:uv/domain0..4, degree2 original
+knots/weights and actual world poles mapped by(x-(cx-r))/(2r),(y-(cy-r))/(2r).
+It is dimensionless UV data, not a world-mm Model object. Rational middle
+poles are control coefficients, not samples inside the disk.
+
+`validateXYCirclePlanarFaceBundle(bundle)` owns bounded plain data and rebuilds
+from retained exact construction through the actual original circle builder.
+Exact canonical comparison includes world geometry/seam/edge/use/UV pcurve and
+all references; no forged flags/report are trusted. Original Curve/Surface/
+Model validators run. Cardinal/half-span native Curve-vs-Surface(pcurve) and
+interior derivative-chain/+Z normal observations run; existing circle C0
+interior-knot D1 rejection stays. Comparison1e-7mm and derivative relative1e-9
+are finite consistency observations, not native construction tolerance or a
+geometric certificate. Input snapshot8192values/depth10, arrays64, records12,
+strings128 rejects getters/symbols/hidden/foreign/sparse/nonfinite data.
+
+Report names original IDs/domains/centre/radius/bounds and1vertex/1edge/1use/
+2worldobjects with canonical closed-use incidenceValid:true. periodic:false,
+geometricValidity:not-certified,topologyCertified:false,solid:false remain.
+referenceDiskAreaMM2=pi*r*r is an analytic admitted-circle reference, not the
+square Surface's area or certified general trimmed area. No capped shell follows.
+
+`classifyXYCirclePlanarFacePoint(bundle,pointMM)` first admits the entire native
+bundle, then accepts exact finite XYZ within±10000mm. Fixed prototype plane and
+radial-boundary tolerance1e-7mm: abs(z)>epsilon is off-plane; on-plane radial
+distance<r-epsilon inside, abs(distance-r)<=epsilon boundary, otherwiseoutside.
+Result names native face/Surface/source and original edge only on boundary.
+Input values remain; no query snap/clamp or fabricated circle parameter. Actual
+affine surfaceUV is supplied only on-plane and within exactU/V0..1, otherwise
+null. A near-rim boundary point outside the plane domain may have nullUV.
+No arbitrary projection/intersection/picking/inverse circle solver is added.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/circle-planar-face-demo.mjs /tmp/barocss-circle-face-prototype
+```
+
+The short actual native construction/query/file demo checks centre[2,-3]/r4,
+original rational circle/plane/UV bindings, one seam/edge/use, native cardinal/
+half-span point-D1 chain, normal+Z and analytic reference16*pi. Centre/seam/
+square-corner/out-of-domain/off-plane and explicit near-boundary floating points
+classify without mutation/clamping. A separate actual edited arc-sketch circle
+centre[30,1]/r3 is explicitly selected; earlier data remains. One ordinary
+finite native bundle artifact is written/read/validated; this is not a new
+product document/exchange/signed-zero file guarantee. Concrete canonical
+geometry/pcurve/seam/ref/use/request/query/getter controls reject. No mesh or
+renderer is added. Broad validation, generic trims/circle extrusion/cylinder/
+solid/Boolean/exchange/assembly/commercial parity remain deferred or outside
+this family; actual finite observations are not full numerical-quality passes.
