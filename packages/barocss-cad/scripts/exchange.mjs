@@ -91,3 +91,6 @@ runRectangleFeatureExchange();
 
 const { runLinearSketchExchange } = await import('./linear-sketch-exchange.mjs');
 runLinearSketchExchange();
+
+const { runAxisDimensionExchange } = await import('./axis-dimension-exchange.mjs');
+runAxisDimensionExchange();

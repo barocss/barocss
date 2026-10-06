@@ -1,0 +1,10 @@
+{
+ "format":"barocss-xy-linear-sketch","version":1,"id":"dimension_doc","lengthUnit":"mm",
+ "points":[{"id":"A","position":[0,1]},{"id":"B","position":[4,3]}],
+ "segments":[{"id":"line","startPointId":"A","endPointId":"B"}],
+ "constraints":[
+  {"id":"horizontal","kind":"horizontal","segmentId":"line"},
+  {"id":"pin_A","kind":"fixed","pointId":"A","target":[0,0]},
+  {"id":"width","kind":"distance-x","pointA":"A","pointB":"B","distanceMM":7}
+ ]
+}
