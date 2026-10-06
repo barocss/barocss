@@ -1269,3 +1269,56 @@ and missing-quadrant behavior, retains CW source order, and prints a crossed
 region rejection. Prototype completion uses affected CAD build plus this short
 real demo. Broader unit/rational/raster/reader/compatibility verification is
 deferred; actual GPU consumption is a separate integration step.
+
+## Capped XY polygon prism preview
+
+`buildXYPolygonPrismPreview({ bodyId, profile, distanceMM, revision })` builds
+actual top/bottom cap triangles and outward flat side quads from the original
+validated XY region and polygon tessellator. The canonical Curve is retained
+unchanged; CW order is preserved while packet winding follows outward normals.
+
+```js
+import { buildXYPolygonRegion, buildXYPolygonPrismPreview } from '@barocss/cad';
+const profile = buildXYPolygonRegion({ id:'L', points:[[0,0],[4,0],[4,1],[1,1],[1,4],[0,4]] });
+const prism = buildXYPolygonPrismPreview({ bodyId:'part', profile:profile.curve, distanceMM:6, revision:1 });
+// prism.report.volumeMM3 === 42; areaMM2 === 110.
+```
+
+The request contains exactly those four fields and strict own bounded data.
+bodyId is ASCII1..80, distinct from source/derived role IDs; revision is
+integer0..2147483647. Positive integer distance1..10000 extrudes fromZ0 in+Z,
+with every generated position within±10000mm. Curve/options/report caches are
+not accepted as geometry proof. The original region is recomputed and the
+actual existing polygon preview supplies its caps.
+
+Bottom cap triangles reverse toward-Z, top triangles face+Z. Each actual
+boundary segment adds four hard-normal vertices and two outward triangles.
+The cap's triangle centroid remains a display vertex. Counts remain bounded
+by378 vertices/248 triangles; a triangular prism uses20 vertices/12 triangles.
+The original PreviewPacket0 validator checks the completed native mm/y-up/ccw
+packet. surfaceId is derived bodyId+'_preview', not an authored Surface ID.
+
+Return is `{ profile, region, packet, construction, report }`, with every
+nested occurrence independently owned. Construction records the actual Curve/
+body IDs, +Z direction and distance. Report includes cap/side vertex and index
+ranges (exclusive ends), normals, cap-plane/side-segment affine UV axes,
+original segment parameter ranges, bounds and source/output counts. Caps retain
+the actual polygon-preview vertex-source records; sides mapu along the original
+segment andv along extrusion.
+
+Volume is region.areaMM2*distance; area is2*region.areaMM2 plus original boundary
+perimeter*distance. Perimeter/area use explicit floating arithmetic. Report
+closedMesh:true describes generated geometric closure with duplicated vertices
+for hard normals; topologyCertified:false and solid:false remain truthful.
+This creates no generic B-Rep wire/trimmed cap/kernel solid or STEP/whole-solid
+IGES certificate, and leaves axis-box/FaceBundle validators unchanged.
+
+```sh
+node examples/cad-nurbs/xy-polygon-prism-demo.mjs /tmp/barocss-polygon-prism-prototype
+```
+
+The real demo invokes native region construction and prism assembly for L and
+triangle profiles atdistance6, checks metrics/bounds/CW source retention and
+zero-distance rejection, and writes actual source/Curve/region/packet/role data
+for GPU consumption. Completion uses affected build plus this short real run.
+Broad tests/readers/raster/parity/resource validation remain deferred.
