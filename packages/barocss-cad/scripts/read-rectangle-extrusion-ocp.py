@@ -63,6 +63,9 @@ def geometry(adapters,shapes,fixture):
     spline=curve.BSpline();direction=h['spline_direction'](spline,False)
     require(direction['degree']==1 and direction['expandedKnots']==[0,0,1,2,3,4,4],'Rectangle profile degree/knots changed')
     require(direction['c0InteriorKnots']==[1,2,3],'Rectangle profile C0 guards changed')
+    expected_profile=[fixture['vertices'][i] for i in [0,1,3,2,0]]
+    require(spline.NbPoles()==5 and [h['xyz'](spline.Pole(i)) for i in range(1,6)]==expected_profile
+            and [spline.Weight(i) for i in range(1,6)]==[1]*5,'Rectangle original profile poles/weights changed')
     checks=[];area=flux=0
     for index,data in enumerate(fixture['faceChecks']):
         adapter=adapters[index+1];surface=adapter.BSpline()
@@ -80,6 +83,9 @@ def geometry(adapters,shapes,fixture):
             _,eu=h['compare'](u,data['A'],1e-7,'Rectangle extrusion derivative comparison failed: U');_,ev=h['compare'](v,data['B'],1e-7,'Rectangle extrusion derivative comparison failed: V')
             normal=cross(u,v);h['compare'](normal,[x*data['areaMM2'] for x in data['normal']],1e-7,'Rectangle extrusion derivative comparison failed: outward normal')
             maxpoint=max(maxpoint,deviation);maxderivative=max(maxderivative,eu,ev);samples.append({'u':row['u'],'v':row['v'],'point':actual,'du':u,'dv':v,'normalArea':normal})
+        expected_grid=[[data['origin'],[x+b for x,b in zip(data['origin'],data['B'])]],[[x+a for x,a in zip(data['origin'],data['A'])],[x+a+b for x,a,b in zip(data['origin'],data['A'],data['B'])]]]
+        require(surface.NbUPoles()==surface.NbVPoles()==2 and [[h['xyz'](surface.Pole(u,v)) for v in range(1,3)] for u in range(1,3)]==expected_grid
+                and all(surface.Weight(u,v)==1 for u in range(1,3) for v in range(1,3)),'Rectangle original surface poles/weights changed')
         corners=[h['xyz'](adapter.Value(u,v)) for u,v in [(0,0),(1,0),(1,1),(0,1)]]
         bounds={'min':[min(p[k] for p in corners) for k in range(3)],'max':[max(p[k] for p in corners) for k in range(3)]}
         require(all(math.dist(bounds[k],data['bounds'][k])<=1e-7 for k in ('min','max')),'Rectangle extrusion geometry comparison failed: face bounds')
