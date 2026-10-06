@@ -14,3 +14,5 @@ export type { MeshCamera } from './camera.js';
 export {compileGpu} from './gpu-compiler.js';
 export type {GpuCompileInput,GpuCompileResult,GpuDiagnostic,GpuRenderIR,GpuExecution} from './gpu-compiler.js';
 export type {SceneAst,SourceRange} from './scene-front.js';
+
+export type {MeshFaceHighlight} from './face-highlight.js';

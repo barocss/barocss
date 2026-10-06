@@ -7,8 +7,12 @@ import type { SceneShaders } from './compiler.js';
 import { prepareEdgeOverlay, sameMeshPacket } from './edge-overlay.js';
 import type { MeshEdgeOverlay, PreparedMeshEdges } from './edge-overlay.js';
 
+import {prepareFaceHighlight} from './face-highlight.js';
+import type {MeshFaceHighlight} from './face-highlight.js';
+
 type Mesh = ReturnType<typeof requireMeshExecution>;
 interface Resources {
+  highlight: MeshFaceHighlight | null;
   mesh: Mesh; program: WebGLProgram | null; vao: WebGLVertexArrayObject | null;
   buffers: WebGLBuffer[]; framebuffer: WebGLFramebuffer | null;
   color: WebGLTexture | null; depth: WebGLRenderbuffer | null;
@@ -58,9 +62,10 @@ export class MeshRenderer {
   private disposed = false;
   private lost = false;
   private readonly onLoss = (event: Event): void => { event.preventDefault(); this.lost = true; };
-  constructor(private readonly canvas: HTMLCanvasElement, packet: unknown, options: unknown, overlay?: MeshEdgeOverlay | null) {
+  constructor(private readonly canvas: HTMLCanvasElement, packet: unknown, options: unknown, overlay?: MeshEdgeOverlay | null, highlight?:MeshFaceHighlight|null) {
     const mesh = requireMeshExecution(packet, options);
     const edges = prepareEdgeOverlay(overlay === undefined ? null : overlay, mesh.packet, mesh.options);
+    const face=prepareFaceHighlight(highlight===undefined?null:highlight,mesh.packet);
     this.dimensions(canvas.width, canvas.height);
     const gl = canvas.getContext('webgl2', { alpha: false, antialias: false, depth: true, preserveDrawingBuffer: true });
     if (!gl || gl.isContextLost()) throw new GPUError('WebGL2 is unavailable');
@@ -68,7 +73,7 @@ export class MeshRenderer {
     canvas.addEventListener('webglcontextlost', this.onLoss);
     let candidate: Resources | null = null;
     try {
-      candidate = this.create(mesh, canvas.width, canvas.height, edges);
+      candidate = this.create(mesh, canvas.width, canvas.height, edges, face);
       this.present(candidate);
       this.accepted = candidate;
     } catch (error) { if (candidate) this.release(candidate); this.dispose(); throw error; }
@@ -76,6 +81,7 @@ export class MeshRenderer {
   get packet(): PreviewPacket { this.live(); return structuredClone(this.accepted!.mesh.packet); }
   get options(): MeshOptions { this.live(); return structuredClone(this.accepted!.mesh.options); }
   get edgeOverlay(): MeshEdgeOverlay | null { this.live(); return this.accepted!.edges ? structuredClone(this.accepted!.edges.overlay) : null; }
+  get faceHighlight():MeshFaceHighlight|null {this.live();return this.accepted!.highlight&&structuredClone(this.accepted!.highlight);}
   get revision(): number { this.live(); return this.accepted!.mesh.packet.revision; }
   get shaders(): SceneShaders { this.live(); return { ...SHADERS }; }
   private live(): void {
@@ -90,11 +96,11 @@ export class MeshRenderer {
     if (error !== this.gl.NO_ERROR) throw new GPUError(`WebGL2 error 0x${error.toString(16)}`);
     if (this.gl.isContextLost()) throw new GPUError('WebGL2 context is lost');
   }
-  private create(mesh: Mesh, width: number, height: number, edges: PreparedMeshEdges | null): Resources {
+  private create(mesh: Mesh, width: number, height: number, edges: PreparedMeshEdges | null, highlight:MeshFaceHighlight|null): Resources {
     this.live(); this.check();
     const camera = prepareCamera(mesh.options.camera, width / height);
     const gl = this.gl;
-    const resources: Resources = { mesh, program: null, vao: null, buffers: [], framebuffer: null, color: null, depth: null, width, height, edges, edgeProgram: null, edgeVao: null };
+    const resources: Resources = { highlight, mesh, program: null, vao: null, buffers: [], framebuffer: null, color: null, depth: null, width, height, edges, edgeProgram: null, edgeVao: null };
     const shaders: WebGLShader[] = [];
     try {
       for (const [kind, text] of [[gl.VERTEX_SHADER, SHADERS.vertex], [gl.FRAGMENT_SHADER, SHADERS.fragment]] as const) {
@@ -141,6 +147,12 @@ export class MeshRenderer {
       gl.uniform3fv(gl.getUniformLocation(resources.program, 'color'), mesh.options.color);
       if (edges) { gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, 1); }
       gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
+      if(highlight){
+        gl.uniform3fv(gl.getUniformLocation(resources.program, 'color'),highlight.color);
+        gl.depthFunc(gl.LEQUAL);gl.depthMask(false);
+        gl.drawElements(gl.TRIANGLES,highlight.indexRange[1]-highlight.indexRange[0],gl.UNSIGNED_SHORT,highlight.indexRange[0]*2);
+        gl.depthMask(true);gl.depthFunc(gl.LESS);
+      }
       if (edges) {
         gl.disable(gl.POLYGON_OFFSET_FILL);
         for (const [kind, text] of [[gl.VERTEX_SHADER, SHADERS.vertex], [gl.FRAGMENT_SHADER, EDGE_FRAGMENT]] as const) {
@@ -185,13 +197,15 @@ export class MeshRenderer {
     this.check();
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
-  update(packet: PreviewPacket, options: MeshOptions, overlay?: MeshEdgeOverlay | null): UpdateResult {
+  update(packet: PreviewPacket, options: MeshOptions, overlay?: MeshEdgeOverlay | null, highlight?:MeshFaceHighlight|null): UpdateResult {
     let candidate: Resources | null = null;
     try {
       this.live(); const mesh = requireMeshExecution(packet, options);
       const retained = overlay === undefined && this.accepted!.edges && sameMeshPacket(mesh.packet, this.accepted!.mesh.packet) ? this.accepted!.edges.overlay : null;
       const edges = prepareEdgeOverlay(overlay === undefined ? retained : overlay, mesh.packet, mesh.options);
-      candidate = this.create(mesh, this.canvas.width, this.canvas.height, edges);
+      const oldFace=highlight===undefined&&sameMeshPacket(mesh.packet,this.accepted!.mesh.packet)?this.accepted!.highlight:null;
+      const face=prepareFaceHighlight(highlight===undefined?oldFace:highlight,mesh.packet);
+      candidate = this.create(mesh, this.canvas.width, this.canvas.height, edges, face);
       this.present(candidate);
       const previous = this.accepted!; this.accepted = candidate; this.release(previous);
       return { ok: true };
@@ -210,12 +224,16 @@ export class MeshRenderer {
       return this.update(this.accepted!.mesh.packet, this.accepted!.mesh.options, overlay);
     } catch (error) { return { ok: false, error: error instanceof Error ? error : new GPUError('Edge update failed') }; }
   }
+  setFaceHighlight(highlight:MeshFaceHighlight|null):UpdateResult{
+    try{this.live();if(highlight===undefined)throw new GPUError('Use null to clear highlight');return this.update(this.accepted!.mesh.packet,this.accepted!.mesh.options,undefined,highlight);}
+    catch(error){return{ok:false,error:error instanceof Error?error:new GPUError('Highlight update failed')};}
+  }
   resize(width: number, height: number): void {
     this.live(); this.dimensions(width, height);
     let candidate: Resources | null = null;
     const previous = this.accepted!;
     try {
-      candidate = this.create(previous.mesh, width, height, previous.edges);
+      candidate = this.create(previous.mesh, width, height, previous.edges, previous.highlight);
       this.canvas.width = width; this.canvas.height = height;
       if (this.gl.drawingBufferWidth !== width || this.gl.drawingBufferHeight !== height) throw new GPUError('Requested mesh buffer allocation failed');
       this.present(candidate); this.accepted = candidate; this.release(previous);
@@ -258,4 +276,4 @@ export class MeshRenderer {
     if (this.accepted) this.release(this.accepted); this.accepted = null;
   }
 }
-export function mountMesh(canvas: HTMLCanvasElement, packet: PreviewPacket, options: MeshOptions, overlay?: MeshEdgeOverlay | null): MeshRenderer { return new MeshRenderer(canvas, packet, options, overlay); }
+export function mountMesh(canvas: HTMLCanvasElement, packet: PreviewPacket, options: MeshOptions, overlay?: MeshEdgeOverlay | null, highlight?:MeshFaceHighlight|null): MeshRenderer { return new MeshRenderer(canvas, packet, options, overlay, highlight); }

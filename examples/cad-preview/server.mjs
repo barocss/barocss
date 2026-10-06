@@ -8,7 +8,7 @@ const files = new Map([
   ['/', ['text/html; charset=utf-8', path.join(here, 'gallery.html')]],
   ['/workspace.html', ['text/html; charset=utf-8', path.join(here, 'index.html')]],
   ['/gallery.css', ['text/css; charset=utf-8', path.join(here, 'gallery.css')]],
-  ...['cutout-workspace.mjs','native-topology-preview.mjs','polygon-workspace.mjs','cad-edge-overlay.mjs','gallery.mjs','app.mjs','pipeline.mjs','fixtures.mjs','inspector.mjs','parameters.mjs','orbit.mjs','primitives.mjs','project.mjs','history.mjs','box-preview.mjs'].map(name => [`/${name}`, ['text/javascript; charset=utf-8', path.join(here, name)]]),
+  ...['screen-ray.mjs','cutout-workspace.mjs','native-topology-preview.mjs','polygon-workspace.mjs','cad-edge-overlay.mjs','gallery.mjs','app.mjs','pipeline.mjs','fixtures.mjs','inspector.mjs','parameters.mjs','orbit.mjs','primitives.mjs','project.mjs','history.mjs','box-preview.mjs'].map(name => [`/${name}`, ['text/javascript; charset=utf-8', path.join(here, name)]]),
   ['/body-workspace.css', ['text/css; charset=utf-8', path.join(here,'body-workspace.css')]],
   ['/body-workspace.mjs', ['text/javascript; charset=utf-8', path.join(here,'body-workspace.mjs')]],
   ['/style.css', ['text/css; charset=utf-8', path.join(here,'style.css')]],
