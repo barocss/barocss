@@ -1,0 +1,45 @@
+import {SceneError} from './scene-types.js';
+import type {Scene,SceneObject,Vec3,RGB} from './scene-types.js';
+export interface SourceRange {start:number;end:number;line:number;column:number}
+export interface SceneToken {text:string;range:SourceRange}
+interface Field {property:SceneToken;literals:SceneToken[];range:SourceRange}
+type Declaration={kind:'object';type:SceneToken;id:SceneToken;range:SourceRange}|{kind:'header';field:Field;range:SourceRange};
+export interface SceneAst {schema:'barocss-gpu-scene-ast';schemaVersion:1;sourceVersion:0;source:string;header:SceneToken;name:SceneToken;range:SourceRange;declarations:Declaration[];rules:{selector:SceneToken;declarations:Field[];range:SourceRange}[]}
+export const SCENE_PARSE_LIMITS=Object.freeze({sourceBytes:65536,tokens:65536,objects:32,rules:128,declarations:512,astNodes:4096,nesting:2});
+const IDENTIFIER=/^[A-Za-z_][A-Za-z0-9_-]*$/,NUMBER=/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+function fail(message:string,token:SceneToken):never{throw new SceneError([{message,...token.range}]);}
+/** Syntax only: real original tokens/ranges, no cascade, GLSL or GPU buffers. */
+export function parseSceneAst(source:string):SceneAst{
+ if(typeof source!=='string')throw new SceneError([{message:'Source must be a string',start:0,end:0,line:1,column:1}]);
+ const newlines:number[]=[];for(let i=0;i<source.length&&i<=65536;i++)if(source[i]==='\n')newlines.push(i);
+ const range=(start:number,end:number):SourceRange=>{let low=0,high=newlines.length;while(low<high){const middle=(low+high)>>>1;if(newlines[middle]<start)low=middle+1;else high=middle;}return{start,end,line:low+1,column:start-(low?newlines[low-1]:-1)};};
+ const eof:SceneToken={text:'',range:range(source.length,source.length)};
+ if(source.length>65536||new TextEncoder().encode(source).length>65536)fail('Source exceeds 64 KiB UTF-8',{text:'',range:{start:0,end:source.length,line:1,column:1}});
+ const tokens:SceneToken[]=[];let offset=0;
+ while(offset<source.length){if(/\s/.test(source[offset]!)){offset++;continue;}if(source.startsWith('/*',offset)){const end=source.indexOf('*/',offset+2);if(end<0)fail('Unterminated comment',{text:'',range:range(offset,source.length)});offset=end+2;continue;}const start=offset;if('{}:;@'.includes(source[offset]!))offset++;else while(offset<source.length&&!/[\s{}:;@]/.test(source[offset]!)&&!source.startsWith('/*',offset))offset++;if(tokens.length===SCENE_PARSE_LIMITS.tokens)fail('Token limit exceeded',{text:'',range:range(start,offset)});tokens.push({text:source.slice(start,offset),range:range(start,offset)});}
+ let cursor=0,nodes=0,objectCount=0,declarationCount=0;
+ const peek=()=>tokens[cursor]??eof,take=()=>{const t=peek();if(cursor<tokens.length)cursor++;return t;};
+ const expect=(text:string)=>{const t=take();if(t.text!==text)fail(`Expected '${text}'`,t);return t;};
+ const node=()=>{if(++nodes>SCENE_PARSE_LIMITS.astNodes)fail('AST node limit exceeded',peek());};
+ const field=(property:SceneToken):Field=>{expect(':');const literals:SceneToken[]=[];while(peek().text!==';'){if(!peek().text||'{}'.includes(peek().text))fail("Expected ';' after declaration",peek());node();literals.push(take());}const end=expect(';');node();return{property,literals,range:range(property.range.start,end.range.end)};};
+ expect('@');const header=expect('scene');const name=take();if(!IDENTIFIER.test(name.text))fail('Expected an ASCII identifier',name);expect('{');
+ const declarations:Declaration[]=[];
+ while(peek().text!=='}'){const token=take();if(!token.text)fail("Expected '}' to close scene",token);if(token.text==='sphere'||token.text==='box'){if(objectCount===32)fail('Scene exceeds 32 objects',token);const id=take();if(!id.text.startsWith('#'))fail('Expected object #id',id);const end=expect(';');node();objectCount++;declarations.push({kind:'object',type:token,id,range:range(token.range.start,end.range.end)});}else if(token.text==='version'||token.text==='background'){const value=field(token);declarations.push({kind:'header',field:value,range:{...value.range}});}else fail('Unsupported scene declaration',token);}
+ expect('}');const rules:SceneAst['rules']=[];
+ while(peek().text){const selector=take();if(selector.text!=='sphere'&&selector.text!=='box'&&(!selector.text.startsWith('#')||!IDENTIFIER.test(selector.text.slice(1))))fail('Only sphere, box, and #id selectors are supported',selector);if(rules.length===128)fail('Styles exceed 128 rules',selector);expect('{');const fields:Field[]=[];while(peek().text!=='}'){const property=take();if(!property.text)fail("Expected '}' to close style rule",property);if(declarationCount===512)fail('Styles exceed 512 total declarations',property);fields.push(field(property));declarationCount++;}const end=expect('}');node();rules.push({selector,declarations:fields,range:range(selector.range.start,end.range.end)});}
+ return{schema:'barocss-gpu-scene-ast',schemaVersion:1,sourceVersion:0,source,header,name,range:range(0,source.length),declarations,rules};
+}
+function rgb(values:SceneToken[],fallback:SceneToken):RGB{const token=values[0]??fallback;if(values.length!==1||!/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(token.text))fail('Expected opaque #rgb or #rrggbb color',token);const hex=token.text.slice(1),expanded=hex.length===3?[...hex].map(d=>d+d).join(''):hex;return[0,2,4].map(i=>Number.parseInt(expanded.slice(i,i+2),16)/255)as RGB;}
+function numeric(token:SceneToken,positive:boolean):number{if(!NUMBER.test(token.text))fail('Expected a finite numeric scene value',token);const n=Number(token.text);if(!Number.isFinite(n)||Math.abs(n)>1000||(positive&&(n<=0||Math.fround(n)<=0)))fail(positive?'Dimension must be positive and at most 1000':'Coordinate must be finite and within -1000 to 1000',token);return Object.is(n,-0)?0:n;}
+export function freezeScene(scene:Scene):Scene{for(const o of scene.objects){Object.freeze(o.color);Object.freeze(o.translate);Object.freeze(o.size);Object.freeze(o);}Object.freeze(scene.background);Object.freeze(scene.objects);return Object.freeze(scene);}
+/** Resolve original symbols/defaults/kinds/cascade before either backend runs. */
+export function analyzeSceneAst(ast:SceneAst):Scene{
+ const objects:SceneObject[]=[],ids=new Map<string,SceneObject>();let version=false,backgroundSeen=false;let background:RGB=[16/255,24/255,32/255];
+ for(const declaration of ast.declarations){if(declaration.kind==='object'){const token=declaration.id,id=token.text.slice(1);if(!IDENTIFIER.test(id))fail('Expected an ASCII identifier',token);if(ids.has(id))fail(`Duplicate object ID '${id}'`,token);const object:SceneObject={id,type:declaration.type.text as 'sphere'|'box',color:[224/255,128/255,64/255],translate:[0,0,0],radius:1,size:[2,2,2]};objects.push(object);ids.set(id,object);}else{const f=declaration.field;if(f.property.text==='version'){if(version)fail('Duplicate scene version',f.property);if(f.literals.length!==1||f.literals[0]!.text!=='0')fail('Only scene version 0 is supported',f.literals[0]??f.property);version=true;}else{if(backgroundSeen)fail('Duplicate scene background',f.property);background=rgb(f.literals,f.property);backgroundSeen=true;}}}
+ if(!version)fail('Scene requires version: 0;',ast.header);
+ type Property='color'|'translate'|'radius'|'size';
+ const rules=ast.rules.map(rule=>{const selector=rule.selector;if(selector.text!=='sphere'&&selector.text!=='box'){if(!selector.text.startsWith('#')||!IDENTIFIER.test(selector.text.slice(1)))fail('Only sphere, box, and #id selectors are supported',selector);if(!ids.has(selector.text.slice(1)))fail(`Unknown object ID '${selector.text.slice(1)}'`,selector);}const type=selector.text.startsWith('#')?ids.get(selector.text.slice(1))!.type:selector.text;
+  const declarations=rule.declarations.map(f=>{const property=f.property.text as Property;if(!['color','translate','radius','size'].includes(property))fail('Unsupported style property',f.property);if((property==='radius'&&type!=='sphere')||(property==='size'&&type!=='box'))fail(`Property '${property}' is not supported for ${type}`,f.property);let value:number|Vec3;if(property==='color')value=rgb(f.literals,f.property);else{const count=property==='radius'?1:3;if(f.literals.length!==count)fail(`Property '${property}' requires ${count} numeric value${count===1?'':'s'}`,f.literals[0]??f.property);const values=f.literals.map(t=>numeric(t,property!=='translate'));value=property==='radius'?values[0]!:values as Vec3;}return{property,value};});return{selector:selector.text,declarations};});
+ for(const object of objects){const specificity=new Map<Property,number>();for(const rule of rules){const score=rule.selector===`#${object.id}`?1:rule.selector===object.type?0:-1;if(score<0)continue;for(const d of rule.declarations){if(score<(specificity.get(d.property)??-1))continue;specificity.set(d.property,score);if(d.property==='radius')object.radius=d.value as number;else object[d.property]=[...d.value as Vec3];}}}
+ return freezeScene({version:0,name:ast.name.text,background,objects});
+}

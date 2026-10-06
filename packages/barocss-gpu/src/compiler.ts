@@ -1,3 +1,4 @@
+import { resolveStructuredScene } from './gpu-data.js';
 import type { Scene, RGB, Vec3 } from './scene.js';
 
 export const GPU_LIMITS = Object.freeze({ maxObjects: 32, maxSteps: 128, maxDistance: 100, epsilon: 0.001, maxShaderBytes: 65536 });
@@ -16,7 +17,7 @@ function scalar(value: number): string { return Math.fround(value).toExponential
 function vec(value: Vec3): string { return `vec3(${value.map(scalar).join(',')})`; }
 
 /** Validate structured input again: identifiers and source text never enter GLSL. */
-export function compileScene(scene: Scene): SceneShaders {
+export function lowerSceneShaders(scene: Scene): SceneShaders {
   if (!scene || scene.version !== 0 || !Array.isArray(scene.objects) || scene.objects.length > GPU_LIMITS.maxObjects) throw new Error('Invalid scene');
   color(scene.background);
   const seen = new Set<string>();
@@ -62,3 +63,6 @@ void main(){
   if (new TextEncoder().encode(fragment).length > GPU_LIMITS.maxShaderBytes) throw new Error('Shader workload limit exceeded');
   return { vertex, fragment };
 }
+
+/** Existing structured convenience API over semantic validation and original lowering. */
+export function compileScene(scene:Scene):SceneShaders{return lowerSceneShaders(resolveStructuredScene(scene));}

@@ -9,3 +9,7 @@ export type { PreviewPacket, MeshOptions } from './mesh-packet.js';
 export { mountMesh, MeshRenderer } from './mesh-renderer.js';
 export { validateMeshCamera, prepareCamera } from './camera.js';
 export type { MeshCamera } from './camera.js';
+
+export {compileGpu} from './gpu-compiler.js';
+export type {GpuCompileInput,GpuCompileResult,GpuDiagnostic,GpuRenderIR,GpuExecution} from './gpu-compiler.js';
+export type {SceneAst,SourceRange} from './scene-front.js';

@@ -1,6 +1,5 @@
-import { parseScene } from './scene.js';
+import {requireSceneExecution} from './gpu-compiler.js';
 import type { Scene } from './scene.js';
-import { compileScene } from './compiler.js';
 import type { SceneShaders } from './compiler.js';
 
 export class GPUError extends Error {
@@ -20,8 +19,7 @@ export class SceneRenderer {
   private lost = false;
   private readonly onLoss = (event: Event): void => { event.preventDefault(); this.lost = true; };
   constructor(private readonly canvas: HTMLCanvasElement, source: string) {
-    const scene = parseScene(source);
-    const shaders = compileScene(scene);
+    const {scene,shaders}=requireSceneExecution(source);
     this.dimensions(canvas.width, canvas.height);
     const gl = canvas.getContext('webgl2', { alpha: false, antialias: false, preserveDrawingBuffer: true });
     if (!gl || gl.isContextLost()) throw new GPUError('WebGL2 is unavailable');
@@ -83,8 +81,8 @@ export class SceneRenderer {
     let next: Accepted | null = null;
     try {
       this.assertLive();
-      const scene = parseScene(source);
-      next = this.prepare(scene, compileScene(scene));
+      const {scene,shaders}=requireSceneExecution(source);
+      next = this.prepare(scene, shaders);
       this.draw(next);
       const previous = this.accepted!;
       this.accepted = next;

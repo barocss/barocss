@@ -50,14 +50,16 @@ test('installed Chrome draws bounded mesh packets with actual depth and atomic f
     async function capture(name,packet,options=meshOptions) {
       const frame=await page.evaluate(({packet,options})=>{
         const s=window.meshTest;if(s.renderer){const result=s.renderer.update(packet,options);if(!result.ok)throw result.error;}else s.renderer=s.api.mountMesh(s.canvas,packet,options);
-        return {packet:s.renderer.packet,revision:s.renderer.revision,options:s.renderer.options,shaders:s.renderer.shaders,bytes:Array.from(s.renderer.readPixels()),width:s.canvas.width,height:s.canvas.height,buffer:[s.gl.drawingBufferWidth,s.gl.drawingBufferHeight]};
+        const compiled=s.api.compileGpu({kind:'mesh',packet,options});if(!compiled.ok||compiled.execution.kind!=='indexed-mesh')throw Error('Mesh pipeline failed');return {compiler:{...compiled,execution:{kind:'indexed-mesh',mesh:{...compiled.execution.mesh,positions:[...compiled.execution.mesh.positions],normals:[...compiled.execution.mesh.normals],indices:[...compiled.execution.mesh.indices]}}},packet:s.renderer.packet,revision:s.renderer.revision,options:s.renderer.options,shaders:s.renderer.shaders,bytes:Array.from(s.renderer.readPixels()),width:s.canvas.width,height:s.canvas.height,buffer:[s.gl.drawingBufferWidth,s.gl.drawingBufferHeight]};
       },{packet,options});
+      assert.deepEqual(frame.compiler.execution.mesh.packet,frame.packet);assert.deepEqual(frame.compiler.execution.mesh.options,frame.options);
+      const compilerFile=`${name}.compiler.json`;await writeFile(path.join(evidence,compilerFile),JSON.stringify(frame.compiler,null,2));
       assert.deepEqual(frame.buffer,[frame.width,frame.height]);assert.equal(frame.bytes.length,frame.width*frame.height*4);
       const summary=mask(frame.bytes,frame.width,frame.height);const filenames=[`${name}.input.json`,`${name}.accepted.json`,`${name}.vert.glsl`,`${name}.frag.glsl`,`${name}.png`];
       const contents=[JSON.stringify({packet,options},null,2),JSON.stringify({packet:frame.packet,options:frame.options},null,2),frame.shaders.vertex,frame.shaders.fragment];
       for(let i=0;i<contents.length;i++)await writeFile(path.join(evidence,filenames[i]),contents[i]);
       await writeFile(path.join(evidence,filenames[4]),readbackPng(frame.bytes,frame.width,frame.height));
-      const hashes={};for(const file of filenames)hashes[file]=hash(await readFile(path.join(evidence,file)));
+      filenames.push(compilerFile);const hashes={};for(const file of filenames)hashes[file]=hash(await readFile(path.join(evidence,file)));
       const result={name,taskCommit:sha,integrationCommit:process.env.BAROCSS_GPU_INTEGRATION_SHA??null,browser:browser.version(),backend,physicalGpuEvidence:false,performanceEvidence:false,scale:options.mmToSceneUnit,buffer:frame.buffer,masks:summary,readbackHash:hash(Uint8Array.from(frame.bytes)),hashes,limits:{vertices:4096,triangles:7938,pixels:4194304},actualReadPixels:true};
       await writeFile(path.join(evidence,`${name}.json`),JSON.stringify(result,null,2));frames.push(result);return {...frame,mask:summary,hash:result.readbackHash};
     }

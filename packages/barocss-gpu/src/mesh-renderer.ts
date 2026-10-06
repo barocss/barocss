@@ -1,11 +1,11 @@
 import { GPUError } from './renderer.js';
 import type { UpdateResult } from './renderer.js';
-import { prepareMesh } from './mesh-packet.js';
+import {requireMeshExecution} from './gpu-compiler.js';
 import { prepareCamera } from './camera.js';
 import type { PreviewPacket, MeshOptions } from './mesh-packet.js';
 import type { SceneShaders } from './compiler.js';
 
-type Mesh = ReturnType<typeof prepareMesh>;
+type Mesh = ReturnType<typeof requireMeshExecution>;
 interface Resources {
   mesh: Mesh; program: WebGLProgram | null; vao: WebGLVertexArrayObject | null;
   buffers: WebGLBuffer[]; framebuffer: WebGLFramebuffer | null;
@@ -51,7 +51,7 @@ export class MeshRenderer {
   private lost = false;
   private readonly onLoss = (event: Event): void => { event.preventDefault(); this.lost = true; };
   constructor(private readonly canvas: HTMLCanvasElement, packet: unknown, options: unknown) {
-    const mesh = prepareMesh(packet, options);
+    const mesh = requireMeshExecution(packet, options);
     this.dimensions(canvas.width, canvas.height);
     const gl = canvas.getContext('webgl2', { alpha: false, antialias: false, depth: true, preserveDrawingBuffer: true });
     if (!gl || gl.isContextLost()) throw new GPUError('WebGL2 is unavailable');
@@ -146,7 +146,7 @@ export class MeshRenderer {
   update(packet: PreviewPacket, options: MeshOptions): UpdateResult {
     let candidate: Resources | null = null;
     try {
-      this.live(); const mesh = prepareMesh(packet, options);
+      this.live(); const mesh = requireMeshExecution(packet, options);
       candidate = this.create(mesh, this.canvas.width, this.canvas.height);
       this.present(candidate);
       const previous = this.accepted!; this.accepted = candidate; this.release(previous);
