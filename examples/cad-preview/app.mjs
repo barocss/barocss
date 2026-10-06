@@ -184,7 +184,7 @@ function renderHistory(pending=false){
 }
 for(const direction of ['undo','redo'])$('history-'+direction).addEventListener('click',()=>{
  const result=controller[direction]($('source').value);
- if(result.ok){refreshProjectFields();$('history-status').textContent=`${direction==='undo'?'Undo':'Redo'} restored the accepted model. Current camera retained.`;}
+ if(result.ok){refreshProjectFields();if($('history-'+direction).disabled){const next=$('history-'+(direction==='undo'?'redo':'undo'));(next.disabled?$('history-count'):next).focus({preventScroll:true});}$('history-status').textContent=`${direction==='undo'?'Undo':'Redo'} restored the accepted model. Current camera retained.`;}
  else $('history-status').textContent=`History rejected: ${result.error}. Accepted scene and history retained.`;
 });
 function refreshProjectFields(){
