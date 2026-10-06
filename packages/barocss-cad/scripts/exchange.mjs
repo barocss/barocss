@@ -73,3 +73,6 @@ runBoxShellExchange();
 
 const { runBoxSolidExchange } = await import('./box-solid-exchange.mjs');
 runBoxSolidExchange();
+
+const { runParameterExchange } = await import('./parameter-exchange.mjs');
+runParameterExchange();

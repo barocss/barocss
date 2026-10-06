@@ -1,0 +1,13 @@
+@model oracle {
+  version: 2;
+  length-unit: mm;
+  @parameter #radius { type: length; value: 1 cm; }
+  @parameter #height { type: length; value: 30 mm; }
+  @parameter #q { type: scalar; value: 0.7071067811865476; }
+  @curve #profile {
+    type: nurbs; degree: 2; knots: [0,0,0,1,1,1];
+    control-points: [[$radius,0,0],[$radius,$radius,0],[0,$radius,0]];
+    weights: [1,$q,1];
+  }
+  @extrude #wall { curve: #profile; vector: [0,0,$height]; }
+}
