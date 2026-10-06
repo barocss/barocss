@@ -39,7 +39,8 @@ function select(id){
  }catch(cause){renderer?.dispose();canvas.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext();if(active)picker.value=active.id;error.textContent=cause.message;error.hidden=false;return false;}
 }
 for(const example of examples){const option=document.createElement('option');option.value=example.id;option.textContent=example.label;picker.append(option);}
-picker.addEventListener('change',()=>select(picker.value));
+const workspaceOption=document.createElement('option');workspaceOption.value='workspace-box';workspaceOption.textContent='Box workspace · Create / Edit';picker.append(workspaceOption);
+picker.addEventListener('change',()=>{if(picker.value==='workspace-box'){location.href='/workspace.html#box';return;}select(picker.value);});
 addEventListener('resize',()=>{if(!active||!active.available)return;try{active.renderer.resize(...dimensions());}catch(cause){error.textContent=cause.message;error.hidden=false;}});
 addEventListener('pagehide',()=>{disposed=true;release(active);},{once:true});
 window.examplePreview={select,examples:()=>examples.map(({id,label,kind})=>({id,label,kind})),snapshot:()=>active?{id:active.id,kind:active.kind,viewRevision:active.viewRevision,...(active.kind==='sdf'?{scene:active.renderer.scene,options:{camera:active.renderer.camera}}:{packet:active.renderer.packet,options:active.renderer.options})}:null,readPixels:()=>active.renderer.readPixels(),get renderer(){return active?.renderer;}};

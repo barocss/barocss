@@ -1,0 +1,87 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
+import { startServer } from './server.mjs';
+
+assert(process.env.PW_DIR && process.env.CHROME && process.env.BAROCSS_MODEL_EVIDENCE);
+const output = process.env.BAROCSS_MODEL_EVIDENCE;
+await mkdir(output, { recursive: true });
+const { chromium } = createRequire(path.join(process.env.PW_DIR, 'package.json'))('playwright');
+const server = await startServer();
+const browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true,
+  args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const hash = bytes => createHash('sha256').update(bytes).digest('hex');
+try {
+  const page = await browser.newPage({ viewport: { width: 1024, height: 720 } });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(server.url);
+  await page.waitForFunction(() => window.examplePreview?.snapshot());
+  assert.equal(await page.locator('select').count(), 1);
+  assert.equal(await page.locator('button,input,textarea').count(), 0);
+  await page.selectOption('#example', 'workspace-box');
+  await page.waitForURL(server.url + '/workspace.html#box');
+  await page.waitForFunction(() => window.boxWorkspace?.snapshot());
+  const state = () => page.evaluate(() => window.boxWorkspace.snapshot());
+  const initial = await state();
+  assert.equal(initial.evaluation.solidReport.volumeMM3, 24000);
+  assert.equal(initial.evaluation.solidReport.areaMM2, 5200);
+  assert.equal(initial.packet.positions.length, 72);
+  assert.equal(initial.packet.indices.length, 36);
+  assert.equal(initial.lineage.faces.length, 6);
+  const pixels = () => page.evaluate(() => Array.from(window.boxWorkspace.readPixels()));
+  const beforePixels = hash(Uint8Array.from(await pixels()));
+  await page.fill('#body-width', '45'); await page.click('#body-update');
+  const updated = await state();
+  assert.equal(updated.evaluation.solidReport.volumeMM3, 27000);
+  assert.equal(updated.evaluation.solidReport.areaMM2, 5700);
+  assert.notEqual(hash(Uint8Array.from(await pixels())), beforePixels);
+  const downloadPromise = page.waitForEvent('download');
+  await page.click('#body-save');
+  const download = await downloadPromise, file = path.join(output, 'box.feature.json');
+  await download.saveAs(file);
+  const saved = JSON.parse(await readFile(file, 'utf8'));
+  assert.equal(saved.format, 'barocss-axis-rectangle-feature');
+  assert.equal(saved.parameters.find(p => p.id === '_rect_w').valueMM, 45);
+  assert(!Object.hasOwn(saved, 'model') && !Object.hasOwn(saved, 'packet') && !Object.hasOwn(saved, 'source'));
+  await page.fill('#body-width', '60'); await page.click('#body-update');
+  assert.equal((await state()).evaluation.solidReport.volumeMM3, 36000);
+  await page.setInputFiles('#body-open', file);
+  await page.waitForFunction(() => window.boxWorkspace.snapshot().evaluation.solidReport.volumeMM3 === 27000);
+  const reopened = await state(); assert.deepEqual(reopened.document, saved);
+  await page.fill('#body-width', '50'); await page.click('#body-update');
+  const edited = await state();
+  assert.equal(edited.evaluation.solidReport.volumeMM3, 30000);
+  assert.equal(edited.evaluation.solidReport.areaMM2, 6200);
+  const acceptedPixels = hash(Uint8Array.from(await pixels()));
+  await page.fill('#body-width', '0'); await page.click('#body-update');
+  assert.deepEqual(await state(), edited);
+  assert.equal(hash(Uint8Array.from(await pixels())), acceptedPixels);
+  assert.match(await page.locator('#body-status').innerText(), /Cannot apply/);
+  await page.click('#body-discard');
+  const box = await page.locator('#body-preview').boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 30, { steps: 3 }); await page.mouse.up();
+  const rotated = await state();
+  assert.deepEqual(rotated.document, edited.document);
+  assert.deepEqual(rotated.packet, edited.packet);
+  assert(rotated.options.camera.eye[1] > edited.options.camera.eye[1]);
+  assert.notEqual(hash(Uint8Array.from(await pixels())), acceptedPixels);
+  await page.screenshot({ path: path.join(output, 'box-workspace.png') });
+  await page.click('a[href="#surface"]');
+  assert(await page.locator('#primitive-create').isVisible());
+  assert(await page.locator('#project-save').isVisible());
+  assert(await page.evaluate(() => Boolean(window.cadPreview.snapshot()?.packet)));
+  await page.click('a[href="#box"]');
+  assert.deepEqual((await state()).document, edited.document);
+  assert.deepEqual(errors, []);
+  const head = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+  await writeFile(path.join(output, 'index.json'), JSON.stringify({ head, initial, updated, reopened, edited, rotated,
+    source: 'Actual public native document evaluation and compiled Surface tessellation',
+    actualDownload: download.suggestedFilename(), invalidWidthRetained: true, orbitRetainedNative: true,
+    rootMinimal: true, legacyWorkspaceAccessible: true, broaderValidation: 'deferred', errors }, null, 2) + '\n');
+  console.log('Box prototype passed: Create40×30×20 → Update45 → Save/Open → Edit50; invalid width retained; actual pixels/orbit; legacy tools accessible.');
+} finally { await browser.close(); await server.close(); }

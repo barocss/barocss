@@ -349,3 +349,22 @@ AST/IR2/native0/packet0/source/PNG/file hashes are retained. Width edits from
 rational radius/height controls use the same original compiler and math.
 This is a separate test canvas. The current application and project version1
 continue to accept only source0/1; this task adds no parameter editor or file schema.
+
+## Box authoring prototype
+
+Choose **Box workspace · Create / Edit** from the default Example menu, or open
+`/workspace.html#box`. The existing surface tools remain at `/workspace.html`.
+
+The Box tool creates one editable native rectangle/extrusion part. Sizes are integer
+millimetres from 1 to 300; XY origins are integer millimetres within ±300. Create and
+Update center and fit the native geometry through explicit host display options.
+Mouse drag changes the view; the native document stays unchanged.
+
+Save writes the accepted `barocss-axis-rectangle-feature` version 0 authoring intent
+as `body.feature.json`. Open evaluates that intent again and rebuilds the six native
+faces. Pending dimensions are not saved. This is separate from legacy surface
+project1 files; it does not store mesh caches, body history, or whole-solid interchange.
+
+Prototype verification is the short `model-smoke.mjs` browser run with
+`PW_DIR`, `CHROME`, and a fresh `BAROCSS_MODEL_EVIDENCE` directory. Broader numerical,
+file/resource/compatibility and whole-browser validation is deferred.
