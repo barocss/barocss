@@ -94,3 +94,15 @@ and two separate five-object geometry IGES files. The single common edge uses
 opposite canonical senses; local forward loops remain unchanged. Local reports
 remain not-certified. Exact restricted-family association is not a sewn shell,
 shared reader IsSame edge, closed solid, STEP or manufacturing claim.
+
+The separate orthogonal operation uses a right-angle pair:
+
+```sh
+node examples/cad-nurbs/orthogonal-demo.mjs examples/cad-nurbs/rectangle-left.css patch examples/cad-nurbs/orthogonal-right.css patch examples/cad-nurbs/rectangle-local-ids.json examples/cad-nurbs/rectangle-global-ids.json /tmp/cad-orthogonal
+```
+
+It retains the same qualified IDs and two five-object geometry exports. The distinct
+report is exact-orthogonal-axis-rectangles-v0, closed false, solid false. Individual
+local face reports remain not-certified. Perpendicular normals mark a crease;
+there is no one shared smooth normal or sewn reader topology. The original coplanar
+demo/API remains unchanged and rejects this orthogonal pair.
