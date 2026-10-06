@@ -32,7 +32,7 @@ for(const d of definitions) {
   const faces=[];
   for(let owner=0;owner<2;owner++) {
     const bundle=descriptor.faces[owner].bundle,surface=surfaces[owner],origin=owner===0?d.origin:originR,A=owner===0?d.A:d.C,source=sourceFor(surface),queries=[];
-    assert.deepEqual(api.parseModel(source).objects[0],surface);assert.deepEqual(api.validateFaceBundle(bundle),{incidenceValid:true,geometricValidity:'not-certified',solid:false});
+    const sourceResult=api.compileCadModel(source,{sourceVersion:0});assert.equal(sourceResult.ok,true,JSON.stringify(sourceResult.diagnostics));assert.deepEqual(sourceResult.model.objects[0],surface);assert.deepEqual(api.validateFaceBundle(bundle),{incidenceValid:true,geometricValidity:'not-certified',solid:false});
     for(let edge=0;edge<4;edge++) {
       const map=bundle.topology.loop.uses[edge].pcurve,curve=bundle.geometry.objects[edge+1],rows=[];
       for(const parameter of fractions) {

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  CadSyntaxError, compileConstruction, parseModel, evaluateCurve, evaluateSurface,
+  compileCadModel, evaluateCurve, evaluateSurface,
   surfaceDomain, tessellateSurface, validatePreviewPacket, exportIGES,
 } from '../dist/index.js';
 
@@ -26,29 +26,15 @@ const position = (text, start, end) => {
   const lines = text.slice(0, start).split('\n');
   return { start, end, line: lines.length, column: lines.at(-1).length + 1 };
 };
+function accepted(text,sourceVersion=1) {
+  const result=compileCadModel(text,{sourceVersion});assert.equal(result.ok,true,JSON.stringify(result.diagnostics));return result;
+}
 function syntaxFailure(text) {
-  let first;
-  assert.throws(() => compileConstruction(text), error => {
-    first = error;
-    assert.ok(error instanceof CadSyntaxError);
-    assert.equal(typeof error.code, 'string');
-    assert.ok(error.code.length > 0);
-    assert.ok(Number.isInteger(error.offset) && error.offset >= 0 && error.offset <= text.length);
-    const expected = position(text, error.offset, error.offset);
-    assert.equal(error.line, expected.line);
-    assert.equal(error.column, expected.column);
-    assert.equal(error.span.start, error.offset);
-    assert.ok(Number.isInteger(error.span.end) && error.span.end >= error.span.start && error.span.end <= text.length);
-    assert.equal(error.span.line, error.line);
-    assert.equal(error.span.column, error.column);
-    return true;
-  });
-  assert.throws(() => compileConstruction(text), error => {
-    assert.equal(error.message, first.message);
-    assert.equal(error.code, first.code);
-    assert.equal(error.offset, first.offset);
-    return true;
-  });
+  const result=compileCadModel(text,{sourceVersion:1});assert.equal(result.ok,false);assert.ok(result.diagnostics.length);
+  assert.deepEqual(compileCadModel(text,{sourceVersion:1}),result);
+  const first=result.diagnostics[0];assert.equal(first.severity,'error');const range=first.range;
+  assert.ok(Number.isInteger(range.start)&&range.start>=0&&range.end>=range.start&&range.end<=text.length);
+  const expected=position(text,range.start,range.end);assert.equal(range.line,expected.line);assert.equal(range.column,expected.column);
   return first;
 }
 function pointClose(actual, expected) {
@@ -57,29 +43,28 @@ function pointClose(actual, expected) {
     `Point ${actual} differs from ${expected}`);
 }
 
-test('construction entry explicitly separates source v1, canonical v0 and unchanged legacy parser', () => {
-  const compiled = compileConstruction(source);
-  assert.equal(compiled.sourceVersion, 1);
+test('one compiler explicitly separates selected source v1 and canonical native v0', () => {
+  const compiled = accepted(source);
+  assert.equal(compiled.ir.sourceVersion, 1);
   assert.equal(compiled.model.version, 0);
   assert.equal(compiled.model.name, 'extrusion');
   assert.equal(compiled.model.lengthUnit, 'mm');
   assert.deepEqual(compiled.model.objects.map(({ id, kind }) => [id, kind]), [['arc', 'curve'], ['wall', 'surface']]);
   assert.equal(compiled.constructions.length, 1);
-  assert.throws(() => parseModel(source), CadSyntaxError);
-  const legacy = modelSource(curveBody()).replace('version: 1', 'version: 0');
-  assert.equal(parseModel(legacy).version, 0);
-  syntaxFailure(legacy);
+  assert.equal(compileCadModel(source,{sourceVersion:0}).ok,false);
+  const source0 = modelSource(curveBody()).replace('version: 1', 'version: 0');
+  assert.equal(accepted(source0,0).model.version,0);syntaxFailure(source0);
   syntaxFailure(source.replace('version: 1', 'version: 2'));
   syntaxFailure(source.replace('version: 1;', ''));
   syntaxFailure(source.replace('length-unit: mm;', ''));
-  assert.equal(compileConstruction(modelSource(curveBody())).model.objects.length, 1);
-  assert.deepEqual(compileConstruction(modelSource(curveBody())).constructions, []);
+  assert.equal(accepted(modelSource(curveBody())).model.objects.length, 1);
+  assert.deepEqual(accepted(modelSource(curveBody())).constructions, []);
   syntaxFailure(modelSource());
-  assert.throws(() => compileConstruction(null), TypeError);
+  assert.equal(compileCadModel(null,{sourceVersion:1}).diagnostics[0].code,'TYPE');
 });
 
 test('extrusion lineage retains independent exact declaration and reference source spans', () => {
-  const compiled = compileConstruction(source);
+  const compiled = accepted(source);
   const item = compiled.constructions[0];
   const start = source.indexOf('@extrude');
   const reference = source.indexOf('#arc', start);
@@ -91,16 +76,16 @@ test('extrusion lineage retains independent exact declaration and reference sour
   assert.deepEqual(item.referenceSpan, position(source, reference, reference + 4));
   assert.equal(source.slice(item.span.start, item.span.end), extrudeBody());
   assert.equal(source.slice(item.referenceSpan.start, item.referenceSpan.end), '#arc');
-  assert.deepEqual(compileConstruction(source), compiled);
+  assert.deepEqual(accepted(source), compiled);
   const withComments = source.replace('@extrude', '/* feature */\n  @extrude');
-  const shifted = compileConstruction(withComments).constructions[0];
+  const shifted = accepted(withComments).constructions[0];
   assert.equal(shifted.span.start, withComments.indexOf('@extrude'));
   assert.equal(shifted.span.line, item.span.line + 1);
 });
 
 test('forward curve references resolve with source declaration order and independent output arrays', () => {
   const forward = modelSource(extrudeBody('first'), curveBody(), extrudeBody('second', 'arc', '[1,2,3]'));
-  const compiled = compileConstruction(forward);
+  const compiled = accepted(forward);
   assert.deepEqual(compiled.model.objects.map(object => object.id), ['first', 'arc', 'second']);
   assert.deepEqual(compiled.constructions.map(item => item.outputId), ['first', 'second']);
   const [first, curve, second] = compiled.model.objects;
@@ -116,7 +101,7 @@ test('forward curve references resolve with source declaration order and indepen
     assert.notEqual(first.controlPoints[index][0], first.controlPoints[index][1]);
     assert.notEqual(first.weights[index], second.weights[index]);
   }
-  const original = compileConstruction(forward);
+  const original = accepted(forward);
   first.controlPoints[0][0][0] = -400;
   first.weights[0][0] = 25;
   first.knotsU[0] = -10;
@@ -124,12 +109,12 @@ test('forward curve references resolve with source declaration order and indepen
   compiled.constructions[0].span.start = 0;
   assert.deepEqual(curve, original.model.objects[1]);
   assert.deepEqual(second, original.model.objects[2]);
-  assert.deepEqual(compileConstruction(forward), original);
+  assert.deepEqual(accepted(forward), original);
   assert.equal(forward, modelSource(extrudeBody('first'), curveBody(), extrudeBody('second', 'arc', '[1,2,3]')));
 });
 
 test('constructed rational geometry, explicit IGES selection and preview retain distinct versions/IDs', () => {
-  const { model, constructions } = compileConstruction(source);
+  const { model, constructions } = accepted(source);
   const [curve, surface] = model.objects;
   assert.equal(surface.degreeU, 2);
   assert.equal(surface.degreeV, 1);
@@ -196,7 +181,7 @@ test('unknown syntax, fields, duplicate fields and executable expressions reject
     source + '@model extra {}', source + '/*',
   ]) syntaxFailure(text);
   const fieldError = source.replace('vector:', 'shader:');
-  assert.equal(syntaxFailure(fieldError).offset, fieldError.indexOf('shader:'));
+  assert.equal(syntaxFailure(fieldError).range.start, fieldError.indexOf('shader:'));
 });
 
 test('invalid curve or construction geometry returns no partial accepted result', () => {
@@ -215,18 +200,18 @@ test('invalid curve or construction geometry returns no partial accepted result'
   ]) syntaxFailure(text);
   const overflow = source.replace('[[10,0,0]', '[[999999,0,0]').replace('[0,0,30]', '[2,0,30]');
   syntaxFailure(overflow);
-  assert.deepEqual(compileConstruction(source).model.objects.map(object => object.id), ['arc', 'wall']);
+  assert.deepEqual(accepted(source).model.objects.map(object => object.id), ['arc', 'wall']);
 });
 
 test('source UTF8 and total declaration ceilings accept boundaries and reject excess', () => {
   const curves = Array.from({ length: 8 }, (_, i) => curveBody(`arc${i}`));
   const extrusions = curves.map((_, i) => extrudeBody(`wall${i}`, `arc${i}`));
   const sixteen = modelSource(...curves, ...extrusions);
-  assert.equal(compileConstruction(sixteen).model.objects.length, 16);
-  assert.equal(compileConstruction(sixteen).constructions.length, 8);
+  assert.equal(accepted(sixteen).model.objects.length, 16);
+  assert.equal(accepted(sixteen).constructions.length, 8);
   syntaxFailure(modelSource(...curves, ...extrusions, curveBody('extra')));
   const limit = 262144;
-  assert.equal(compileConstruction(source + ' '.repeat(limit - Buffer.byteLength(source))).model.objects.length, 2);
+  assert.equal(accepted(source + ' '.repeat(limit - Buffer.byteLength(source))).model.objects.length, 2);
   assert.equal(syntaxFailure(source + ' '.repeat(limit + 1 - Buffer.byteLength(source))).code, 'LIMIT');
   assert.equal(syntaxFailure(source + `/*${'😀'.repeat(65536)}*/`).code, 'LIMIT');
   const manyKnots = source.replace('[0,0,0,1,1,1]', `[${Array(71).fill(0).join(',')}]`);
@@ -238,18 +223,18 @@ test('compiler respects 16-pole constructed-surface ceiling and rejects wholly c
     knots: [${[0, 0, ...Array.from({ length: n - 2 }, (_, i) => i + 1), n - 1, n - 1]}];
     control-points: [${Array.from({ length: n }, (_, i) => `[${i},0,0]`).join(',')}];
     weights: [${Array(n).fill(1)}]; }`;
-  const accepted = compileConstruction(modelSource(line(16), extrudeBody('plane', 'line')));
-  assert.equal(accepted.model.objects[1].controlPoints.length, 16);
-  assert.equal(accepted.model.objects[1].controlPoints.flat().length, 32);
+  const limitResult = accepted(modelSource(line(16), extrudeBody('plane', 'line')));
+  assert.equal(limitResult.model.objects[1].controlPoints.length, 16);
+  assert.equal(limitResult.model.objects[1].controlPoints.flat().length, 32);
   syntaxFailure(modelSource(line(17), extrudeBody('plane', 'line')));
   const collapsed = line(2).replace('[[0,0,0],[1,0,0]]', '[[0,0,0],[0,0,1]]');
   syntaxFailure(modelSource(collapsed, extrudeBody('collapsed', 'line')));
 });
 
 test('authoring retains rational controls, weight-scaling equivalence and asymmetric nonuniform geometry', () => {
-  const scaled = compileConstruction(source.replace('[1,0.7071067811865476,1]', '[10,7.071067811865476,10]')).model.objects[1];
-  const original = compileConstruction(source).model.objects[1];
-  const unit = compileConstruction(source.replace('[1,0.7071067811865476,1]', '[1,1,1]')).model.objects[1];
+  const scaled = accepted(source.replace('[1,0.7071067811865476,1]', '[10,7.071067811865476,10]')).model.objects[1];
+  const original = accepted(source).model.objects[1];
+  const unit = accepted(source.replace('[1,0.7071067811865476,1]', '[1,1,1]')).model.objects[1];
   for (const u of [0, 0.03125, 0.25, 0.5, 0.71, 1]) for (const v of [0, 0.23, 0.5, 1]) {
     pointClose(evaluateSurface(scaled, u, v), evaluateSurface(original, u, v));
   }
@@ -257,7 +242,7 @@ test('authoring retains rational controls, weight-scaling equivalence and asymme
   assert.ok(Math.abs(Math.hypot(x, y) - 10) > 0.1, 'Unit-weight control must fail the circle oracle');
   const nonuniform = `@curve #path {type: nurbs; degree: 1; knots: [2,2,3,7,7];
     control-points: [[0,0,0],[2,4,1],[10,0,2]]; weights: [1,2,1];}`;
-  const result = compileConstruction(modelSource(nonuniform, extrudeBody('slant', 'path', '[3,-2,5]')));
+  const result = accepted(modelSource(nonuniform, extrudeBody('slant', 'path', '[3,-2,5]')));
   const surface = result.model.objects[1];
   assert.deepEqual(surfaceDomain(surface), { u: [2, 7], v: [0, 1] });
   const poles = [[0, 0, 0], [2, 4, 1], [10, 0, 2]];

@@ -18,10 +18,11 @@ export function writeConstructionEvidence(api) {
   const fractionsV = [0, .11, .23, .37, .5, .61, .79, .91, 1];
   for (const name of ['extruded-cylinder', 'extruded-asymmetric', 'extruded-straight']) {
     const source = readFileSync(resolve(root, 'examples/cad-nurbs/' + name + '.css'), 'utf8');
-    assert.throws(() => api.parseModel(source), api.CadSyntaxError);
-    const compiled = api.compileConstruction(source);
-    assert.equal(compiled.sourceVersion, 1); assert.equal(compiled.model.version, 0);
-    assert.deepEqual(api.compileConstruction(source), compiled);
+    assert.equal(api.compileCadModel(source,{sourceVersion:0}).ok,false);
+    const compiled = api.compileCadModel(source,{sourceVersion:1});
+    assert.equal(compiled.ok,true,JSON.stringify(compiled.diagnostics));
+    assert.equal(compiled.ir.sourceVersion, 1); assert.equal(compiled.model.version, 0);
+    assert.deepEqual(api.compileCadModel(source,{sourceVersion:1}), compiled);
     const before = json(compiled), feature = compiled.constructions[0];
     assert.equal(compiled.constructions.length, 1);
     const curve = compiled.model.objects.find(object => object.id === feature.inputId);
@@ -40,7 +41,7 @@ export function writeConstructionEvidence(api) {
       samples.push({ u, v, point: api.evaluateSurface(surface, u, v), sourceCurvePoint,
         affinePoint: sourceCurvePoint.map((value, axis) => value + v * feature.vector[axis]) });
     }
-    const featureData = { sourceVersion: compiled.sourceVersion, constructions: compiled.constructions };
+    const featureData = { sourceVersion: compiled.ir.sourceVersion, constructions: compiled.constructions };
     const contents = { 'css': source, 'features.json': json(featureData), 'native.json': json(compiled.model),
       'packet.json': json(packet), 'preview-report.json': json(report), 'iges': exported.iges,
       'export-report.json': json(exported.report), 'samples.json': json(samples) };

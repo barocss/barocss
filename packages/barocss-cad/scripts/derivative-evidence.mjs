@@ -65,9 +65,10 @@ export function writeDerivativeEvidence(api) {
     const construction = name.startsWith('extruded-') || name === 'extrusion-asymmetric-curve' || name.startsWith('c1-repeated-');
     const filename = name.startsWith('c1-repeated-')?'derivative-c1':name==='extrusion-asymmetric-curve'?'extruded-asymmetric':name;
     const source = name === 'reparameterized-circle' ? reparameterized : readFileSync(resolve(root,'examples/cad-nurbs/'+filename+'.css'),'utf8');
-    const compiled = construction ? api.compileConstruction(source) : null;
-    const model = compiled?.model ?? api.parseModel(source);
-    const id = compiled ? (name==='extrusion-asymmetric-curve'||name==='c1-repeated-curve'?compiled.constructions[0].inputId:compiled.constructions[0].outputId) : model.objects[0].id;
+    const compiled = api.compileCadModel(source,{sourceVersion:construction?1:0});
+    assert.equal(compiled.ok,true,JSON.stringify(compiled.diagnostics));
+    const model = compiled.model;
+    const id = construction ? (name==='extrusion-asymmetric-curve'||name==='c1-repeated-curve'?compiled.constructions[0].inputId:compiled.constructions[0].outputId) : model.objects[0].id;
     const native = model.objects.find(object=>object.id===id), before=json(model);
     const domain = native.kind==='curve'?api.curveDomain(native):api.surfaceDomain(native);
     const exported = api.exportIGES(model,[id]), samples=[];
@@ -88,10 +89,10 @@ export function writeDerivativeEvidence(api) {
     if (name==='extruded-asymmetric') assert.throws(()=>api.evaluateSurfaceD1(native,3,.5),/C0/);
     if (name==='extrusion-asymmetric-curve') assert.throws(()=>api.evaluateCurveD1(native,3),/C0/);
     assert.equal(json(model),before);
-    const contents={'css':source,'native.json':json(native),'iges':exported.iges,'samples.json':json(samples),'export-report.json':json(exported.report),'lineage.json':json(compiled?.constructions ?? [])};
+    const contents={'css':source,'native.json':json(native),'iges':exported.iges,'samples.json':json(samples),'export-report.json':json(exported.report),'lineage.json':json(compiled.constructions)};
     for(const [suffix,bytes] of Object.entries(contents)) writeFileSync(resolve(output,name+'.'+suffix),bytes);
     fixtures.push({name,id,entity:native.kind==='curve'?126:128,native,domain,samples,
-      sourceVersion:compiled?1:0,geometryVersion:0,constructions:compiled?.constructions ?? [],
+      sourceVersion:compiled.ir.sourceVersion,geometryVersion:0,constructions:compiled.constructions,
       files:{source:name+'.css',native:name+'.native.json',iges:name+'.iges'},
       hashes:{source:hash(source),native:hash(contents['native.json']),iges:hash(exported.iges)}});
   }
