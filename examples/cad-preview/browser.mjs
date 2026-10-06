@@ -111,6 +111,14 @@ try {
   const baselineIndexBytes=await readFile(path.join(baselineDir,'index.json'));
   const baselineUI=JSON.parse(baselineIndexBytes);
   assert.equal(baselineUI.head,'3b5e3acbf9fdb902d2d1381809e7e4edebd2a203');
+  const originalNativeBytes=await readFile(process.env.BAROCSS_CAD_PREVIEW_BASELINE_NATIVE??'/Users/user/.barocss-ai/v3/ui-513-native-baseline/model.json');
+  const originalNative=JSON.parse(originalNativeBytes);
+  const originalNativeHash=hash(JSON.stringify(originalNative));
+  const {spans:removedSourceMetadata,...originalPhysicalModel}=originalNative;
+  assert(removedSourceMetadata);
+  await writeFile(path.join(evidence,'ui-original-native.json'),originalNativeBytes);
+  for(const name of ['model-compiler','source-ast','semantic-model','lower-model','extrusion-validation'])assert(cadModuleRequests.has('/'+name+'.js'));
+  for(const name of ['parser','compiler','legacy-diagnostics'])assert(!cadModuleRequests.has('/'+name+'.js'));
   const uiScreens=[];
   for(const [name,width,height] of [['desktop',1440,900],['mobile',390,844]]){
     await page.setViewportSize({width,height});
@@ -119,10 +127,10 @@ try {
     assert(layout.viewport.width>=300&&layout.viewport.height>=220&&layout.viewport.right<=width+1&&layout.viewport.bottom<=height);
     if(name==='desktop'){assert(layout.objects.right<=width&&layout.camera.bottom<=height&&layout.download.bottom<=height);}
     const native=await page.evaluate(()=>({snapshot:window.cadPreview.snapshot(),bytes:Array.from(window.cadPreview.readPixels())}));
-    const before=baselineUI.records.find(record=>record.name===name);assert(before);assert.equal(hash(native.snapshot.source),before.sourceHash);assert.equal(hash(JSON.stringify(native.snapshot.model)),before.nativeHash);assert.equal(hash(Uint8Array.from(native.bytes)),before.readbackHash,'Layout must preserve the baseline framebuffer');
+    const before=baselineUI.records.find(record=>record.name===name);assert(before);assert.equal(hash(native.snapshot.source),before.sourceHash);assert.equal(originalNativeHash,before.nativeHash);assert.deepEqual(native.snapshot.model,originalPhysicalModel);assert.equal(hash(Uint8Array.from(native.bytes)),before.readbackHash,'Layout must preserve the baseline framebuffer');
     const filename=`${name}-after.ui.png`;await page.screenshot({path:path.join(evidence,filename),fullPage:true,animations:'disabled'});
     const baselineBytes=await readFile(path.join(baselineDir,before.filename));assert.equal(hash(baselineBytes),before.sha256);const baselineFile=`${name}-before.ui.png`;await writeFile(path.join(evidence,baselineFile),baselineBytes);
-    uiScreens.push({name,viewport:{width,height},baselineHead:baselineUI.head,head:taskCommit,backend,layout,before:{file:baselineFile,sha256:before.sha256},after:{file:filename,sha256:hash(await readFile(path.join(evidence,filename)))},sourceHash:before.sourceHash,nativeHash:before.nativeHash,readbackHash:before.readbackHash});
+    uiScreens.push({name,viewport:{width,height},baselineHead:baselineUI.head,head:taskCommit,backend,layout,before:{file:baselineFile,sha256:before.sha256},after:{file:filename,sha256:hash(await readFile(path.join(evidence,filename)))},sourceHash:before.sourceHash,originalNativeHash:before.nativeHash,nativeHash:hash(JSON.stringify(native.snapshot.model)),nativeComparison:'same physical model; former spans field moved to AST/IR',readbackHash:before.readbackHash});
   }
   await page.setViewportSize({width:1440,height:900});
   const sourceSummary=page.locator('#source-panel > summary');await sourceSummary.focus();await sourceSummary.press('Enter');assert.equal(await page.locator('#source-panel').getAttribute('open'),'');
