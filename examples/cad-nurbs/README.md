@@ -67,3 +67,17 @@ and feature data, boundary mapping, four curves, and one four-entity IGES file.
 The traversal is v-min, u-max, v-max, u-min. Endpoint joins and curve orientation
 do not establish a topological wire, trim loop or solid. Constant boundaries are
 geometric curves with zero tangents, without a regular-edge claim.
+
+Build a bounded face incidence descriptor with explicit IDs:
+
+```sh
+node examples/cad-nurbs/face-demo.mjs examples/cad-nurbs/quarter-cylinder.css cylinder examples/cad-nurbs/face-ids.json /tmp/cad-face 0
+```
+
+The host retains source/features, native bundle, incidence report and five-entity
+geometry IGES. The graph has one face/loop and four edges/vertices. Incidence checks
+always report geometricValidity not-certified and solid false. IGES carries the
+surface and four curves, not these separate topology IDs or relationships.
+C0/repeated-corner/constant-boundary cases are outside this face subset. Smooth
+internal folds can remain structurally valid, so the report does not certify a
+regular face, shell, solid or manufactured part.

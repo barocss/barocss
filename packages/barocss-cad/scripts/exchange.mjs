@@ -62,3 +62,5 @@ const { runDerivativeExchange } = await import('./derivative-exchange.mjs');
 runDerivativeExchange();
 const { runBoundaryExchange } = await import('./boundary-exchange.mjs');
 runBoundaryExchange();
+const { runFaceExchange } = await import('./face-exchange.mjs');
+runFaceExchange();

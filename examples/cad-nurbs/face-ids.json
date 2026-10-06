@@ -1,0 +1,7 @@
+{
+  "faceId": "demo_face",
+  "loopId": "demo_loop",
+  "vertexIds": ["demo_v0", "demo_v1", "demo_v2", "demo_v3"],
+  "edgeIds": ["demo_e0", "demo_e1", "demo_e2", "demo_e3"],
+  "curveIds": ["demo_c0", "demo_c1", "demo_c2", "demo_c3"]
+}
