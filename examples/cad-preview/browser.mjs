@@ -45,7 +45,7 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const cadModuleRequests = new Set();
   page.on('request', request => cadModuleRequests.add(new URL(request.url()).pathname));
-  const allowed = new Set(['/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
+  const allowed = new Set(['/box-shell.js', '/project.mjs', '/orthogonal-adjacency.js', '/primitives.mjs', '/adjacency.js', '/orbit.mjs', '/face.js', '/parameters.mjs', '/boundary.js', '/inspector.mjs', '/derivatives.js', '/extrusion.js', '/compiler.js', '/', '/index.html', '/app.mjs', '/pipeline.mjs', '/fixtures.mjs', '/style.css', '/cad.js', '/gpu.js', '/types.js', '/math.js', '/parser.js', '/iges.js', '/packet.js', '/preview.js']);
   await page.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.origin !== server.url || !allowed.has(url.pathname) || url.search) {
@@ -88,6 +88,7 @@ try {
   const csp = response.headers()['content-security-policy'];
   assert(csp && csp.includes("default-src 'none'") && !csp.includes('unsafe-inline') && !csp.includes('unsafe-eval'), 'Strict CSP required');
   await page.waitForFunction(() => window.cadPreview?.snapshot()?.packet);
+  assert.ok(cadModuleRequests.has('/box-shell.js'), 'CAD index must load the exact box-shell module');
   assert.ok(cadModuleRequests.has('/orthogonal-adjacency.js'), 'CAD index must load the exact orthogonal adjacency module');
   assert.ok(cadModuleRequests.has('/adjacency.js'), 'CAD index must load the exact adjacency module');
   assert.ok(cadModuleRequests.has('/face.js'), 'CAD index must load the exact face module');
