@@ -38,3 +38,5 @@ export { evaluateXYPolygonPrismDocument, updateXYPolygonPrismDocument, serialize
 export type { XYPolygonPrismDocumentV0, XYPolygonPrismDocumentOptions, XYPolygonPrismDocumentUpdate, XYPolygonPrismDocumentEvaluation, XYPolygonPrismDocumentResult } from './xy-polygon-prism-document.js';
 export { buildXYPolygonPlanarFace, validateXYPolygonPlanarFaceBundle, classifyXYPolygonPlanarFacePoint } from './xy-polygon-planar-face.js';
 export type { XYPolygonPlanarFaceOptions, XYPolygonPlanarFaceBundle, XYPolygonPlanarFaceReport, XYPolygonPlanarFaceResult, XYPolygonPlanarFacePointResult } from './xy-polygon-planar-face.js';
+export { buildXYPolygonPrismShell, validateXYPolygonPrismShell } from './xy-polygon-prism-shell.js';
+export type { XYPolygonPrismShellOptions, XYPolygonPrismShell, XYPolygonPrismShellReport, XYPolygonPrismShellResult, XYPolygonPrismCapFace, XYPolygonPrismLateralFace, XYPolygonPrismQualifiedUse } from './xy-polygon-prism-shell.js';
