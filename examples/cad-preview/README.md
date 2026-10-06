@@ -460,3 +460,38 @@ functional results do not establish physical GPU performance. Broader campaigns
 remain deferred. Native geometricValidity:not-certified,topologyCertified:false,
 solid:false persist; combinatorial closure/Euler0 is not a solid certificate.
 No picking, document edit or saved-file schema changes are added.
+
+## Editable cutout prism (prototype)
+
+Open `/workspace.html#cutout-prism`, or choose **Cutout prism · Create / Edit**.
+Edit both outer/hole profiles as explicit JSON integer XY pairs and Height in mm,
+then Apply. At least3 vertices per loop, at most12 combined, coordinates±10000mm,
+height1..10000mm. Both profiles are evaluated in one whole native transaction, so
+moving them together does not pass through an invalid intermediate model. All six
+intent IDs stay stable. Discard restores applied draft values. New square/Open
+require Apply or Discard before replacing any pending input.
+
+The real579 document API rebuilds profiles→native face→world shell→actual577 mesh
+and original edges. A detached candidate renderer draws before the view/native
+intent is adopted; invalid parse/native/packet/overlay/view retains accepted data,
+camera and frame. Apply/Open retain the accepted orbit camera while fitting the
+new actual packet. Edge toggle/drag change view revision only. Same-page workspace
+switching preserves each tool's accepted state and drafts.
+
+Save native intent downloads the accepted `barocss-xy-polygon-prism-hole-feature`
+version0/mm `.barocad.json`; pending text, source/Model/topology/packet/revision,
+metrics/camera/history are excluded. Open uses the actual128KiB/duplicate-decoded-
+key parser and complete native evaluation before candidate adoption. Other Box,
+single-loop or project formats are rejected without migration. Authored ordering,
+CW/CCW and negative zero remain native intent. Net profile area and Reference swept
+volume are construction metrics, not certified solid mass properties.
+
+After affected CAD/GPU builds, run `cutout-workspace-smoke.mjs` with existing
+PW_DIR/CHROME and BAROCSS_CUTOUT_EDITOR_EVIDENCE. The short mounted editor run
+records actual downloaded bytes/Open, height/hole/whole-profile edits, original
+IDs/source/world Models/packet/path/camera/PNG lineage, pending-draft gates,
+invalid retention, edge toggle/orbit, projected open cutout and one polygon-tool
+state-preservation visit. Broader suites and numerical/resource/performance
+campaigns remain deferred; software backend pixels are functional evidence only.
+Native uncertified/solid:false status persists; no picking/Boolean/feature-graph
+or exchange capability is added.
