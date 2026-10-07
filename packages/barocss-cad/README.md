@@ -3915,3 +3915,96 @@ reuse. A direct prior ruled mismatch demonstrates the added explicit matching
 operation. One supported matched patch uses existing5x5 packet/native UV/ordinary
 JSON readback. Interactive controls use the unified editor. General matching,
 multi-section loft/sweep/caps/trims/B-Rep/Boolean and broader validation remain pending.
+
+## Own rectangular plate with a circular through-hole
+
+`buildOwnPlateCircularHole(request)` constructs one bounded native cut candidate.
+The request supplies stable body, feature and six parameter IDs, integer
+`widthMM`, `heightMM`, `thicknessMM`, an absolute XY `centreMM`, and `radiusMM`.
+The plate starts at XYZ0 and extends in +Z. Dimensions are 1..10000 mm.
+The original circle parent admits radius .001..10000 mm. The represented circle
+must have strictly positive clearance from each rectangular side. Touching,
+outside, malformed or unsafe inputs refuse before a result is accepted.
+
+```js
+const native = cad.buildOwnPlateCircularHole({
+  bodyId: 'plate_body', featureId: 'plate_hole',
+  parameterIds: {
+    width: 'plate_width', height: 'plate_height', thickness: 'plate_thickness',
+    centerX: 'hole_center_x', centerY: 'hole_center_y', radius: 'hole_radius',
+  },
+  widthMM: 80, heightMM: 40, thicknessMM: 8,
+  centreMM: [40, 20], radiusMM: 5,
+});
+```
+
+The owned result contains `{bundle, report}`. Seven native Surfaces retain the
+original box side and cap IDs and the original circle wall ID. The caps contain
+an exact outer rectangle and rational-circle inner pcurve in each actual plane
+UV frame. Bottom and top planes have different UV axes. The cavity wall uses
+the reversed native face sense. Fifteen shared edges, ten vertices, nine loops
+and thirty uses describe a closed-shell candidate. Each edge has two opposite
+uses; the wall seam occurs twice on its wall. Native curve/surface mapping,
+directed closure, incidence and D1 normals are observed with the existing own
+evaluators. This operation does not implement general surface intersections or
+unrestricted Boolean operations.
+
+Seven separate source0 Models contain the real face Surface and its used native
+Curves. Each source is compiled through `compileCadModel` before adoption, with
+full ID/order/coefficient/weight/knot/sign equality. Explicit owned topology
+remains separate from the source grammar. `validateOwnPlateCircularHoleBundle`
+reconstructs this authored family and compares the full owned bundle before
+observing native incidence. Cached reports and meshes have no authoring authority.
+
+The native bundle guard permits131072 own values/depth24, arrays1024, records32
+and bounded source strings. The request guard permits4096 own values/depth8.
+Getters, hidden fields, foreign prototypes, sparse arrays, symbols, cycles and
+unknown request fields refuse. Body IDs are ASCII1..32; feature and parameter
+IDs are ASCII1..48 and all authored IDs are distinct. Derived native IDs remain
+bounded. Caller requests and previous accepted results remain reusable.
+
+The report labels volume and cap/cavity areas as analytic authored-family
+formulas. They are not independently certified manufacturing measurements.
+`geometricValidity:'not-certified'`, `topologyCertified:false`, and `solid:false`
+remain explicit. The stricter uncut integer-box solid gate does not certify this
+cut candidate. General B-Rep validation, intersections, sewing, Boolean/detail
+features and commercial CAD parity remain pending.
+
+`tessellateOwnPlateCircularHole(bundle, {context, segmentsPerQuarter})` returns
+`{mesh, provenance, report}`. `mesh` follows private native-face-mesh v0: mm,
+right-handed part XYZ, genuine per-face UV, local triangle indices and native
+face IDs. Context contains exactly documentId/bodyId/documentRevision/
+kernelResultRevision/topologyRevision/taskToken. These opaque IDs qualify a
+specific accepted result; they are separate from sourceVersion0. The GPU bridge
+converts positions and normals to display axes and owns qualified picking.
+
+The preview samples the original native circle with2..8 segments per quarter
+(default4). Corner-ray parameters are added through bounded native evaluations
+so the outer rectangular cap retains its actual corners. Caps and the cavity
+wall share the same circle parameters. Each panel uses actual SurfaceD1 at a
+strict smooth midpoint, with native face sense applied once. The wall preview
+uses facet normals sampled from that native surface. Positions remain actual
+surface evaluations, with corresponding UV and native edge/loop provenance.
+The preview approximates the curved boundary; it does not replace the authored
+rational circle or add shader-only clipping.
+
+`validateOwnNativeFaceMesh` admits the exact DTO fields and bounded plain data:
+131072 values/depth12, arrays23814, records16, strings512, up to64 face chunks,
+4096 aggregate vertices and7938 triangles. Finite position, unit normal, genuine
+UV, local index, nondegenerate triangle and Float32 winding checks are display
+admission. A display refusal does not certify or invalidate the separately built
+native candidate. `validateOwnPlateHolePreviewContext` checks the context record.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/own-plate-circular-hole-demo.mjs --source
+```
+
+The example writes real per-face source files, explicit native topology and the
+actual derived DTO. It changes80x40x8/r5 to width100, then radius6, with the same
+body/feature/parameter IDs and absolute centre. Invalid requests preserve the
+caller's accepted native/display state. Old face references remain qualified by
+their original result context. The native source flow is separate from the
+artifact build and GPU browser/pixel evidence. General topology naming across
+Boolean operations, a public Part grammar and commercial project serialization
+remain pending.
