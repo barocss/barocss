@@ -21,3 +21,6 @@ export type {MeshObjectHighlight} from './object-highlight.js';
 
 export { mountMeshViewport, MeshViewport } from './mesh-viewport.js';
 export type { MeshViewportState, MeshViewportSelection } from './mesh-viewport.js';
+
+export {prepareKernelFacePreview,resolveKernelFaceReference} from './kernel-face-preview.js';
+export type {KernelFaceContext,KernelNormalSource,KernelFaceReference,KernelFaceBinding,KernelFacePreview,KernelFacePreviewOptions} from './kernel-face-preview.js';

@@ -529,3 +529,53 @@ observes its actual position upload and pixels, clears geometry, injects a real
 framebuffer allocation refusal, and checks retained state and resource cleanup.
 The host exits with the posted browser result. This is bounded lifecycle evidence;
 commercial editor interaction and hardware performance remain separate scopes.
+
+## Own CAD face preview bridge (private prototype)
+
+`prepareKernelFacePreview(dto, {displayId, packetRevision})` admits the exact
+`barocss-native-face-mesh` v0 DTO from the own CAD engine. It returns an owned,
+frozen original preview packet, context and face bindings. Each binding retains
+its original `nativeFaceId`, result-scoped `faceToken`, six context tokens,
+normal source, applied face sense and exclusive vertex/index ranges.
+
+Native XYZ/mm positions and supplied normals rotate once by `[x,y,z] -> [x,z,-y]`.
+Actual UVs and triangle order remain unchanged. Native location and orientation
+must already be applied by CAD. Sharp-normal/UV face vertices remain separate;
+only local indices gain each face's vertex offset. Exact converted extrema and
+original packet guards are authoritative for display admission. No fabricated
+Surface, source grammar, UVs, edges, normal source or solid claim is introduced.
+
+Limits: 64 chunks, aggregate 4..4096 vertices and 2..7938 triangles; each face
+has at least three vertices and one triangle. Native positions stay within
+±1e6 mm, normal length within 1e-5 of one, and actual UVs are finite. Strict
+own-data copying rejects accessors, symbols, hidden/sparse/foreign/cyclic data,
+unknown fields and over-budget inputs (131072 values, depth12, arrays23814,
+records16, strings512). Context/face tokens are nonempty printable ASCII1..48;
+untouched native face IDs are printable ASCII1..128. Derived display IDs are
+ASCII identifiers1..48. Native validity and display acceptance are separate.
+
+`resolveKernelFaceReference(prepared, reference)` takes an original prepared
+result plus an exact serialized reference and returns its frozen binding or
+`null`. Every context field, face token and original native face ID must match.
+An old reference resolves only against its pinned old result; a repeated token
+cannot attach it to a rebuilt body. Malformed references throw. Prepared results
+are library-owned (a serialized/cloned result is not an admitted result).
+There is no general persistent naming, nearest-triangle repair or native topology
+certification. Selection captions and triangle array positions are not keys.
+
+Keep the prepared context paired with the renderer's accepted packet. Stage a
+new prepared result, call the original renderer update, and adopt the context
+only on success. Existing renderer options, Float32 admission, camera, shading,
+face tint and atomic candidate behavior remain unchanged. The focused source
+smoke consumes real recorded own-CAD DTOs; external CAD kernels are references
+only and are not runtime dependencies.
+
+Focused source verification uses `node examples/cad-preview/kernel-face-preview-smoke.mjs`
+with recorded `BAROCSS_NATIVE_FACE_INITIAL`, `BAROCSS_NATIVE_FACE_REBUILT`,
+`BAROCSS_NATIVE_FACE_METADATA` and a unique `BAROCSS_NATIVE_FACE_EVIDENCE` directory.
+The ephemeral loopback host bundles only actual GPU source, serves the recorded
+own-CAD data and awaits one controlled-browser flow. Open its printed URL and
+press **Run recorded native flow**. It records actual GL position/normal/index
+buffers, native UV/sense/ranges, readback frames, qualified face selection,
+rebuild/stale-reference and an original Float32 refusal. It does not evaluate
+CAD again, install a backend, or mount a new product editor route.
