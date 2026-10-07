@@ -760,3 +760,31 @@ and real UI/file/source-packet-upload-PNG flow. It covers forward references and
 repair, cancel/undo,16-operation replacement, actual Save/Open, empty restore and
 native/display failure retention. Broader validation is deferred. Driven radius
 GUI and general solver/assembly/Boolean/solid certification are separate scopes.
+
+## Explicit driven circle radius workspace (prototype)
+
+Choose **Driven circle features · Radius parameters / Edit** or
+`/workspace.html#driven-circle-features`. This authoring mode uses native driven
+graph1 only; the old Circle features graph0 route/file admission remains strict.
+Two original circle radii initially reference length r=4, with heights base6 and
+raised=base+.5. An unused original literal quarter is preserved/read-only.
+
+Selected circle centre remains literal. Radius is exactly one literal mm value
+or candidate length parameter reference; dimension/profile/centre/seam IDs are
+immutable. Native resolved radius and applied state are reported. Parameter and
+feature authoring/reference repair uses actual608; missing radius/height/offset
+references remain for explicit whole-candidate repair. No UI dependency evaluator,
+implicit literal fallback, profile lifecycle, sketch drawing or format migration.
+
+Actual driven document→original nativeGraph projection→599/595/596→shared display
+packet/compiler/renderer/three-edge provenance stages before accepting. Projection
+and resolved radii are derived data, never file authority. Quality/orbit/edges keep
+pending radius/parameter/feature fields; Discard restores. Save/Open uses actual
+canonical authored graph1 only, preserving definitions/order/IDs/-0 and excluding
+results/ops/view/cache. All-suppressed empty states and native/display failure
+retention remain; unused quarters and suppressed inputs still validate.
+
+`driven-circle-radius-workspace-smoke.mjs` is the one affected CAD/GPU build and
+actual editor/API/file/native-packet-upload-PNG flow. Broader checks are deferred.
+Faceted midpoint-D1/not-certified/private experimental limitations remain; no
+solver/Boolean/assembly/solid/commercial parity or physical performance claim.
