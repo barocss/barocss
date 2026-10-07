@@ -3790,3 +3790,66 @@ uses existing5x5 tessellation/packet/native UV/ordinary JSON readback. Display
 approximation/normal admission remains separate. Future controls use the unified
 editor; general degree/freeform/modelling/topology/exchange and broader validation
 remain pending.
+
+## Rational ruled Surface with independent section weights
+
+`buildRationalRuledSurface(first, second, {surfaceId})` constructs an original
+rational Surface between two 3D sections with equal degree/pole count/Object.is
+knots, allowing independent positive weights. Existing buildCompatibleRuledSurface
+keeps its exact equal-weight requirement and Cartesian interpolation unchanged.
+No automatic basis matching, reversal, elevation/refinement, fitting or healing.
+
+```js
+const ruled = cad.buildRationalRuledSurface(firstSection, secondSection, {
+  surfaceId: 'rational_sections',
+});
+```
+
+The owned result contains `{first, second, surface, source, sourceVersion:0,
+model, construction, report}`. Exact original Curve/options snapshots allow1024
+values/depth6 per input, arrays <=64, records <=8 and strings <=128 without getters.
+Three distinct ASCII IDs1..48, section degree1..3/poles2..16, original native finite
+open-clamped/repeated knots, XYZ +/-10000 mm and weights1e-6..1e6 are required.
+The common represented domain span is finite and positive. Mismatched degree,
+count or original knot bits/domain, duplicate IDs, hidden/foreign/sparse/cyclic/
+symbol/unknown/malformed/unsafe data refuses atomically. Caller and prior results
+remain reusable. Original weights stay unscaled; no normalization or new kernel.
+
+U follows the common original parameter. V is0..1, degree1 with knots[0,0,1,1].
+Row i directly copies first/second Cartesian poles and their independent weights;
+max16x2/32 poles. Every original coefficient/weight/knot bit and -0 remains.
+Complete native Surface admission precedes one literal source0 three-object Model
+[first, second, Surface]. Actual full Model/name/IDs/degrees/order/poles/weights/
+knots/domains comparison precedes adopting the real compiled data. Construction
+records original row/pole/weight/knot origins, without topology or feature identity.
+
+Let Wj(u)=sum(N_i(u)*wj_i) from the existing internal native basis and Cj(u) from
+the original evaluator. Surface(u,v)=[(1-v)*W0*C0+v*W1*C1]/[(1-v)*W0+v*W1].
+For fixed U the segment fraction is v*W1/[(1-v)*W0+v*W1], generally not uniform
+Cartesian v. End sections match at V0/1; equal weights reproduce the original
+compatible ruled coefficients and linear blend. Denominators/fractions/expected
+points are actual binary64 observations, not an independent exact-real oracle.
+No inverse-weight dummy geometry, second basis/evaluator/derivative or parent refactor.
+
+Report contains domains/degree/grid, independent-weight semantics, <=15 actual
+point/blend observations and <=5 SurfaceD1 query records with actual section D1
+statuses. Successfully evaluated point comparisons use local1e-7 mm only. Genuine
+native observation/C0/arithmetic refusals remain separate statuses after coefficient/
+source admission. No epsilon/denominator/derivative repair, global midpoint/error/
+continuity/normal/regularity/solid certificate. Same/coincident sections remain
+native coefficients. Existing oriented parameter boundaries stay unchanged. Flags
+remain periodic:false/not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/rational-ruled-surface-demo.mjs --source
+```
+
+One final artifact checkpoint is separate from installed in-memory esbuild source
+API/file/packet flow, without CAD dist import/write or per-demo dependency build.
+Independent/equal weights, line/quadratic/cubic/shifted/C0/full16, edited/elevated
+sections and actual iso/oriented boundaries compare native bits and rational
+parameter effects. One eligible ruled result feeds actual selected-axis elevation;
+one supported curved result uses existing5x5 packet/native UV/ordinary JSON read.
+Display approximation remains separate. General basis matching/multi-section loft,
+sweep/caps/trims/B-Rep/Boolean, interactive tools and broader validation remain pending.
