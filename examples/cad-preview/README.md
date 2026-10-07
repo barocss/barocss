@@ -894,3 +894,44 @@ display sampling integer reader and sibling workspaces are unchanged.
 signed-zero witness, original packet/upload and blank/native invalid retention
 after affected builds. First unmodified failure/file remains private evidence.
 Broader validation is deferred.
+
+## Revolve Surface tool (#623)
+
+Open `/workspace.html#revolve` with `pnpm dev:cad`, or choose **Revolve Surface**
+in the unified Tool menu. New creates an original degree2 rational XZ meridian
+with five poles and three knot spans. The left list shows original meridian,
+feature and Surface IDs; choose a pole index. Object edits radius/Z in mm and
+weight without units. Typing stages original pole fields; select more poles and
+Apply adopts one atomic native612 poleEdits transaction. Discard clears drafts.
+Original fixed Y (including -0), IDs, degree, ordered knots and pole count stay.
+No pole addition/removal, weight normalization, axis change or inferred geometry.
+
+Native612 owns authored intent; native613 creates the actual original Surface
+preview and exactly three parameter boundaries: start ring, end ring, one
+meridian seam bound to both V0 and V4. These are parameter paths, not topology
+edges. View controls sampling U1–2 per original knot span / V2–8 per quarter,
+forward/reverse winding/normal orientation and boundary visibility. Native
+midpoint faceted normals are used, without global outward/accuracy certification.
+Orbit/zoom/Fit/resize and view sampling preserve accepted intent and pole drafts.
+
+Save downloads accepted native `barocss-z-axis-revolve-feature` version0 only,
+excluding pending edits, generated Surface/packet/report/cache/view. Open uses
+actual strict128KiB native parser/evaluator, native preview and GPU upload before
+whole adoption. A native-valid display-refused file stays in the failed-file
+record with its name/bytes and validity; the old accepted frame/camera survives.
+Native radius/weight errors and display/sampling/Float32 errors are labelled
+separately. Apply/Discard resolves drafts before New/Open/tool/home navigation.
+
+One source-only flow, using installed tooling and no dependency prebuild:
+
+```sh
+PW_DIR=<installed-playwright-runtime> CHROME=<installed-chrome> BAROCSS_REVOLVE_EDITOR_EVIDENCE=<fresh-output-dir> node examples/cad-preview/revolve-editor-smoke.mjs
+```
+
+It records real pole selection/multi-pole edits, actual612/613/GL upload lineage,
+genuine authored files and fixed-Y signed zero, pending/view/error preservation,
+released previous renderer/context, one adjacent mode switch, desktop/compact
+pixels, GL0 and backend. A final affected GPU artifact build is separate. Broader
+validation is deferred. This is an open global-Z full-turn positive-radius
+Surface, without apex/caps/trim/shell/solid, picking/gizmo/history or mixed-scene
+certification. Source packages stay private; no release/publication is involved.
