@@ -1063,3 +1063,36 @@ GPU buffers. Save evidence is the actual Save Blob payload read into a clearly
 collector-created file and reopened through the real Open chooser. OS Downloads
 completion remains unverified in the current browser automation environment.
 Broad parent suites, numerical/topology certification and release checks are deferred.
+
+## Direct NURBS Surface controls in the Part scene
+
+**Add body → NURBS Surface** adds one directly authored quadratic3×3 rational
+patch beside the existing bodies. Its literal own source0 Surface is the local
+geometry authority. Select an original U/V pole in Properties, stage XYZ(mm) or
+its dimensionless positive weight, switch poles and Apply up to16 pairs once.
+Poles are coefficients, not points on the Surface. Unrequested coefficients,
+knots, domains, degree, order and ID bits remain unchanged. Instance Translate/
+Rotate/Scale keeps the original local source and uses the existing scenev1 path.
+
+A fixed17×17 mesh has finite area-weighted incident triangle normals. Four actual
+parameter-boundary Curves are sampled through their native domains. Selection
+identifies an untrimmed original Surface chart, without B-Rep face/solid claims.
+Supported degrees1..3, grids2..16, coordinates±10000mm and weights1e-6..1e6 use
+native619 admission. This is an open patch, not certified topology or a solid.
+
+Save stores only accepted literal sourceVersion0/source plus the existing scene
+object/name/visibility/instance transform/view. Pole drafts, reports and meshes
+are excluded. Actual Open runs the own compiler/native/mesh/GPU transaction.
+Native or display refusal retains the accepted frame/document and staged edits.
+Old body/plate files, scenev0 identity migration and20-state Undo remain.
+
+Focused source prototype gate:
+
+```sh
+pnpm --filter @barocss/cad-editor-example build
+BAROCSS_SURFACE_SCENE_EVIDENCE=<fresh-output-dir> node examples/cad-preview/scene-surface-control-smoke.mjs
+```
+
+Actual source/browser/pole/native/buffer/refusal/Save Blob-Open evidence is scoped
+to this adapter. OS Downloads completion and broad parent/numerical/solid/release
+validation remain deferred; old626/paused629 are preserved.

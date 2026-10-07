@@ -3,7 +3,7 @@ import {signedJson} from './scene-document';
 import type {AxisRectangleFeatureDocumentV0,XYCirclePrismDocumentV0,OwnPlateCircularHoleRequest,Surface,SurfacePoleEdit} from '@barocss/cad';
 export type BoxIntent={kind:'box';document:AxisRectangleFeatureDocumentV0};
 export type CircleIntent={kind:'circle-prism';document:XYCirclePrismDocumentV0};
-export type PlateIntent={kind:'plate-hole';request:OwnPlateCircularHoleRequest,Surface,SurfacePoleEdit};
+export type PlateIntent={kind:'plate-hole';request:OwnPlateCircularHoleRequest};
 export type SurfaceIntent={kind:'surface';sourceVersion:0;source:string};
 export type NativeIntent=BoxIntent|CircleIntent|PlateIntent|SurfaceIntent;
 export type {SurfacePoleEdit} from '@barocss/cad';
