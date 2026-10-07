@@ -115,3 +115,5 @@ export type { XYCirclePrismPlaneIntersectionOptions, XYCirclePrismPlaneBindings,
 export { intersectFiniteXYCirclePrismWallWithPlane, validateFiniteXYCirclePrismPlaneIntersection } from './own-plane-cylinder-clipped.js';
 export type { FinitePlaneCylinderEquation, FinitePlaneCylinderBoundaryEvent, FinitePlaneCylinderEndpointApproximation, FinitePlaneCylinderPiece, FiniteXYCirclePrismPlaneIntersectionReport, FiniteXYCirclePrismPlaneIntersectionResult } from './own-plane-cylinder-clipped.js';
 export type { FinitePlaneCylinderOriginalDerivativeGuard } from './own-plane-cylinder-clipped.js';
+export { intersectBezierCurveWithAffinePlaneSurface, validateBezierCurveAffinePlaneIntersection } from './own-curve-plane-intersection.js';
+export type { BezierCurveAffinePlaneIntersectionOptions, BezierCurveAffinePlaneIntersectionReport, BezierCurveAffinePlaneIntersectionResult, BezierCurvePlanePointEvent, CurveAffinePlaneAxes, CurvePlaneD1State } from './own-curve-plane-intersection.js';
