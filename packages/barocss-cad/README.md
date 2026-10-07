@@ -3238,3 +3238,52 @@ Skewed lines/rational sections/shifted knots/C0/max16/coincident and translated
 extrusion cases compare original points/D1/boundary mappings and actual source
 file read/compile. A future editable consumer joins unified editor615. General
 loft, sweep, caps/topology/solid/exchange and deeper validation remain separate.
+
+## Original rational Curve knot insertion
+
+`insertCurveKnot(curve, {knot, insertions})` refines the original control polygon
+in homogeneous coordinates. The locally implemented convex recurrence follows
+standard knot insertion, identified as A5.1 in the [official helper reference](https://nurbs-python.readthedocs.io/en/latest/module_utilities.html#geomdl.helpers.knot_insertion).
+The reference describes the operation; actual native witnesses validate this code.
+
+```js
+const result = cad.insertCurveKnot(originalCurve, { knot: 0.5, insertions: 2 });
+```
+
+Result is owned `{original, refined, source, sourceVersion:0, model, provenance,
+report}`. Exact Curve/options data, ASCII ID48, degree1..3, initial/final poles<=16,
+XYZ±10000mm and original native knots/positive weights are required. The finite
+knot is strictly inside the original domain, insertion count1..3 and final numeric
+multiplicity<=degree. Mathematical +0/-0 knots count together; their original
+stored bits remain. Endpoints/no-op counts/overflow/malformed data refuse.
+
+Each requested insertion uses homogeneous[w*x,w*y,w*z,w] convex blends. Unchanged
+original entries copy their Cartesian coefficients/weights directly, preserving
+Object.is endpoint/unaffected bits. Homogeneous generated entries remain in that
+form across repeated insertion; final generated Cartesian values use actual
+binary64 projection. Original degree/ID/domain and every old knot/order remain.
+Finite positive native output, denominator and strict convex coefficient checks
+refuse unsafe arithmetic without clamp/snap/knot or weight normalization.
+
+The refined source0 Curve is compiled through the actual native compiler and
+adopted only after complete coefficient/ID/order/domain bit comparison. Explicit
+provenance maps original unaffected poles/knots and local insertion steps. Bounded
+point observations compare actual original/refined evaluators at breakpoints and
+representable span interiors. Local1e-7mm admission is not a global error bound.
+The existing D1 guard stays unchanged: a newly repeated knot can be guarded even
+when the insertion intends unchanged geometry. No continuity certificate, fitter,
+removal, degree elevation, Surface refinement or topology operation is supplied.
+Flags remain not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/curve-knot-insertion-demo.mjs --source
+```
+
+One final artifact build is separate from the actual in-memory src API/file demo;
+no CAD dist import or per-demo dependency build. Actual554 rational quarters,
+original lines/rational/cubic/shifted/repeated/max-pole inputs compare points and
+smooth D1 while retaining guards and real source file identity/-0. Refined curves
+feed actual610 revolve and actual616 compatible ruled consumers with observed
+geometry retention. Later control-polygon tools join unified editor615; broader
+validation and commercial modelling capabilities remain tracked separately.
