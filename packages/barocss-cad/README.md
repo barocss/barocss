@@ -3023,3 +3023,54 @@ original source/coefficient/domain/UV/binding comparisons and file readback, plu
 one ordinary596k8 packet. This adds no drawing/snapping UI, general constraints,
 Boolean, exchange or assembly. Reports remain not-certified/solid:false; broader
 validation remains deferred.
+
+## Full-turn Z-axis revolved NURBS surface
+
+`buildZAxisRevolvedSurface(meridian, {surfaceId})` constructs an original tensor
+product surface from a real XZ meridian Curve and the actual original554 full
+circle basis. It returns owned `{meridian, source, sourceVersion:0, model, surface,
+construction, report}` adopted from actual literal source0 compilation.
+
+```js
+const result = cad.buildZAxisRevolvedSurface({
+  kind: 'curve', id: 'meridian', degree: 1, knots: [2, 2, 7, 7],
+  controlPoints: [[2, 0, 0], [4, 0, 6]], weights: [1, 1],
+}, { surfaceId: 'frustum_wall' });
+```
+
+Accept degree1..3,2..16 original poles and valid finite open-clamped knots. Every
+pole is `[radius,0,z]`, radius0.001..10000mm, |z|<=10000mm. Meridian weights remain
+within actual1e-6..1e6 limits; every generated product weight must also be native
+valid. A lowest-bound input weight can therefore refuse after multiplication by
+an angular weight. No weight normalization, snapping or healing is performed.
+Curve/surface IDs are distinct ASCII1..48. Exact owned Curve/options records and
+1024-value/depth6/array64/record8/string128 guards reject malformed/accessor data.
+A constant meridian, axis/apex/negative radius and off-plane poles refuse.
+
+U retains the original meridian degree, knots, weights and domain; V is the real
+original quadratic circle domain0..4. With angular poles[a,b,0] and weightsq,
+poles are[r*a,r*b,z] and weightsw*q. The returned source0 contains the original
+meridian and constructed surface, with exact coefficients/order/IDs/signed zero
+verified against the real compiler. Private angular helper IDs are not persisted.
+Write/read/recompile this source as native geometry; it is not a feature-intent
+Save/Open document or a new source dialect.
+
+The report records original domains/control counts/endpoints, actual closed
+angular seam coefficients, finite sampled boundary correspondence and existing
+D1 guard knot parameters. Closure does not assert periodicity. Exact C0 interior
+knots retain the original native D1 refusal. Report remains
+`geometricValidity:'not-certified'`, `topologyCertified:false`, `solid:false`.
+Only full360 degrees around global +Z at origin is supported. Partial/arbitrary
+axis revolution, axis crossing, caps, trim faces, shells/solids and UI are separate.
+Native construction imports no preview or Float32 path.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/z-axis-revolve-surface-demo.mjs /tmp/barocss-z-axis-revolve-surface-prototype
+```
+
+The one native prototype demo uses real cylindrical, sloped, rational curved,
+piecewise and shifted-domain meridians. It compares points and D1 product-rule
+witnesses to actual original curves, preserves C0 refusals and recompiles real
+source files including decimals/-0. Broader validation and original readers,
+exports, display, capped part features and commercial certification remain deferred.
