@@ -1096,3 +1096,29 @@ BAROCSS_SURFACE_SCENE_EVIDENCE=<fresh-output-dir> node examples/cad-preview/scen
 Actual source/browser/pole/native/buffer/refusal/Save Blob-Open evidence is scoped
 to this adapter. OS Downloads completion and broad parent/numerical/solid/release
 validation remain deferred; old626/paused629 are preserved.
+
+### Visible boundaries and direct pole XYZ handles
+
+Select the Surface and choose **Poles · P**. The labeled X-ray control net shows
+original U/V poles and straight coefficient-neighbor lines; these are not Surface
+points or native boundary Curves. Click a marker or its indexed Properties pair.
+Near-tied projected poles refuse ambiguous selection; use the indexed list.
+
+The selected pole has local native X/Y/Z handles. Instance rotation and positive
+scale are inverse-mapped from pointer movement into only that original local
+coefficient. Native619 regenerates the Surface/source, sampled mesh, normals,
+UV and four original boundaries for live previews. A completed drag is one Undo
+command. Escape/cancel/lost capture restores the accepted frame/source/history;
+pending numeric drafts use the existing Apply/Discard gate. Weight is not dragged.
+The four actual Surface parameter boundaries use a contrasting display color.
+
+```sh
+pnpm --filter @barocss/cad-editor-example build
+BAROCSS_POLE_GIZMO_EVIDENCE=<fresh-output-dir> node examples/cad-preview/scene-surface-pole-gizmo-smoke.mjs
+```
+
+One actual source/pointer/native/buffer/file flow observes three axes on a rotated,
+nonuniform-scaled Surface, marker selection, bounds refusal, one-command history,
+controlled Escape handler cancellation and accepted-only Save Blob/Open. Physical
+Escape during a held drag and OS Downloads remain explicitly deferred. No Surface
+pole addition/refinement, B-Rep edges, topology/solid or numerical certification.
