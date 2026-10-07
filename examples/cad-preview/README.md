@@ -788,3 +788,16 @@ retention remain; unused quarters and suppressed inputs still validate.
 actual editor/API/file/native-packet-upload-PNG flow. Broader checks are deferred.
 Faceted midpoint-D1/not-certified/private experimental limitations remain; no
 solver/Boolean/assembly/solid/commercial parity or physical performance claim.
+
+
+## Existing graph0 signed-zero capture
+
+Circle features scalar fields preserve explicitly authored -0 through finite,
+nonempty raw-text capture, original native Apply and genuine graph0 Save/Open.
+Center, unused literal and admitted offset signs remain authored values. Blank
+input refuses; native zero radius/height restrictions remain authoritative. The
+display sampling integer reader and sibling workspaces are unchanged.
+`circle-feature-signed-zero-smoke.mjs` records one actual raw/staged/native/file
+signed-zero witness, original packet/upload and blank/native invalid retention
+after affected builds. First unmodified failure/file remains private evidence.
+Broader validation is deferred.
