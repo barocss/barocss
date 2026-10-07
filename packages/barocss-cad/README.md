@@ -3601,3 +3601,61 @@ existing extrusion and small5x5 packets with native UV validation/ordinary JSON
 readback. Native construction remains separate from display admission. Later
 split controls belong in the unified editor. General modelling/topology/exchange
 and broader validation remain separate.
+
+## Atomic original Curve control-polygon edits
+
+`editCurveControlPolygon(curve, {poleEdits})` changes directly authored arbitrary
+3D rational Curve coordinates/weights in one transaction. Each patch specifies
+an existing integer `index` and at least one `xMM`, `yMM`, `zMM` or `weight`.
+Between 1 and 16 distinct poles may be requested. Explicit equal-value fields
+are accepted and report no changed fields; empty or fieldless patches refuse.
+
+```js
+const edited = cad.editCurveControlPolygon(originalCurve, {
+  poleEdits: [{ index: 1, xMM: 4, zMM: 2, weight: 1.5 }],
+});
+```
+
+The owned result contains `{original, curve, source, sourceVersion:0, model,
+provenance, report}`. Exact original Curve/options use 1024 own values, depth6,
+dense arrays <=64, records <=8 and strings <=128. Original ID is ASCII1..48,
+degree1..3/poles2..16, with original native open/clamped/multiplicity/domain
+validation, XYZ within +/-10000 mm and weights1e-6..1e6. Getter/hidden/foreign/
+sparse/symbol/cyclic/unknown/duplicate/index or coordinate/weight range data
+refuse. Every patch record is admitted before staging. The owned complete net
+is validated after all patches, so mixed valid/invalid transactions have no
+partial output. Caller and prior results remain reusable.
+
+Original ID, degree, ordered knots/count/domain and every unrequested coordinate
+or weight bit remain Object.is, including -0. Explicit authored -0 remains when
+admitted. Actual compileCurveSource emits the entire staged Curve source0; its
+real single-Curve Model is adopted after full native bit comparison. No fitting,
+normalization, snapping, recenter/rebase, constraints, implicit pole/refinement/
+degree changes, new document schema, cached geometry authority or feature repair.
+Editing a copied sketch/circle/iso/meridian/boundary Curve creates detached literal
+Curve authority and never reverse-writes the original linked authoring input.
+
+Provenance records each requested pole/field, actual changed fields and before/
+after coefficients. Report includes actual domain/degree/count, changed/untouched
+pole/field counts, native point effects at endpoints/breaks/representable interiors
+and at most three native D1 queries away from guarded knots. Native derivative
+results or actual arithmetic refusals are recorded separately, without converting
+coefficient validity into a tangent certificate. Existing C0/D1 guards remain.
+Observed effects are not shape-preservation, global error, G1/G2, normal/length/
+regularity/solid certificates. Constant/singular native data follows admission.
+Flags remain not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/curve-control-polygon-demo.mjs --source
+```
+
+One final artifact build is separate from installed in-memory esbuild source
+API/file/consumer flow, with no CAD dist import/write or per-demo dependency build.
+General3D/rational/shifted/C0/signed-zero/equal-value/constant/full16 atomic inputs
+and actual quarter/iso/split Curve dependencies compare native bits/effects/D1/
+guards, provenance and real source file Model identity. One supported edited
+Curve feeds existing extrusion and small5x5 packet/native UV/ordinary JSON
+readback. Native validity remains separate from display/normal admission. Later
+control-polygon selection/editing belongs in the unified editor. Broader modelling,
+validation, topology and exchange remain separate.
