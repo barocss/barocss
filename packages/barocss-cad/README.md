@@ -3287,3 +3287,57 @@ smooth D1 while retaining guards and real source file identity/-0. Refined curve
 feed actual610 revolve and actual616 compatible ruled consumers with observed
 geometry retention. Later control-polygon tools join unified editor615; broader
 validation and commercial modelling capabilities remain tracked separately.
+
+## Atomic original Surface control-net edits
+
+`editSurfaceControlNet(surface, {poleEdits})` changes Cartesian coordinates and
+weights of a directly authored original rational Surface in one transaction.
+Each edit specifies `uIndex`, `vIndex` and at least one of `xMM`, `yMM`, `zMM`
+or `weight`. Between 1 and 16 unique existing poles can be requested.
+
+```js
+const edited = cad.editSurfaceControlNet(originalSurface, {
+  poleEdits: [{ uIndex: 1, vIndex: 1, zMM: 2, weight: 1.5 }],
+});
+```
+
+The owned result contains `{original, surface, source, sourceVersion:0, model,
+provenance, report}`. Original ID, degrees, ordered knots, domains and grid size
+remain. All unrequested coefficients retain their Object.is bits, including -0.
+Provenance distinguishes requested fields from fields whose stored values change.
+An explicitly requested equal value is valid; an empty or fieldless edit refuses.
+
+Original native validation admits degree 1..3, rectangular grids 2..16 per axis,
+positive weights 1e-6..1e6 and finite XYZ coordinates within +/-10000 mm. The ID
+is ASCII 1..48. Own-data snapshots allow 4096 values, depth 8, dense arrays up to
+64 elements, plain records up to 8 fields and strings up to 128 characters.
+Getter, hidden, foreign, sparse, duplicate and unknown data refuse. The complete
+staged net is validated before adoption; caller data and prior results are owned
+and reusable after success or refusal.
+
+Literal single-Surface source0 is compiled once through compileCadModel. The
+actual Model is adopted only after full coefficient, ID, order and signed-zero
+comparison. Editing a generated revolve or ruled Surface creates detached
+Surface source. It does not reverse-write its original meridian or sections.
+No fitting, normalization, pole insertion, boundary locking or linked-feature
+repair is implied.
+
+The report records actual domains, degrees, grid counts, changed and untouched
+field counts, and finite before/after point observations. These differences show
+local editing effects; they are not an error bound or a regularity certificate.
+Singular nets remain valid native parametric data where native validation accepts
+them. Flags remain not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/surface-control-net-demo.mjs --source
+```
+
+One artifact build is separate from the in-memory installed esbuild source API
+flow, which imports no CAD dist and writes no library bundle. The demo exercises
+bilinear, rational quadratic/cubic, shifted C0, actual quarter-arc extrusion and
+16x16 nets with atomic edits. It compares native D1, original guards, parameter
+boundaries, actual source file read/compile and one existing tessellateSurface
+packet with its original preview approximation semantics. Ordinary packet JSON
+is display evidence. Selection and property controls belong in the unified
+editor; broader validation and commercial modelling capabilities remain separate.

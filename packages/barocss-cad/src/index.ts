@@ -86,3 +86,5 @@ export { buildCompatibleRuledSurface } from './compatible-ruled-surface.js';
 export type { CompatibleRuledSurfaceOptions, CompatibleRuledSurfaceConstruction, CompatibleRuledSurfaceObservation, CompatibleRuledSurfaceReport, CompatibleRuledSurfaceResult } from './compatible-ruled-surface.js';
 export { insertCurveKnot } from './curve-knot-insertion.js';
 export type { CurveKnotInsertionOptions, CurveKnotUnchangedPole, CurveKnotUnchangedKnot, CurveKnotInsertionStep, CurveKnotInsertionProvenance, CurveKnotInsertionReport, CurveKnotInsertionResult } from './curve-knot-insertion.js';
+export { editSurfaceControlNet } from './surface-control-net.js';
+export type { SurfacePoleField, SurfacePoleEdit, SurfaceControlNetEdits, SurfacePoleEditProvenance, SurfaceControlNetReport, SurfaceControlNetResult } from './surface-control-net.js';
