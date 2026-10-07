@@ -4332,3 +4332,79 @@ results use131072 own values/depth24, arrays1024, records32 and bounded source
 strings; inputs retain their smaller plain-data guards. Authored IDs are ASCII1..48.
 Inserting or splitting beyond inherited16 temporary poles refuses. These records
 are observed derivation data, not a global continuity or accuracy certificate.
+
+## Own coincident Curve intervals clipped to a finite affine Plane
+
+`clipCurvePlaneCoincidentIntervals(original640Result, options)` rebuilds a genuine
+multiple-span Curve/Plane result and clips only its coincident-support spans to
+the original affine Surface's finite UV rectangle. Noncoincident parent events
+remain unchanged referenced evidence. Original positive rational degree1/2 Curve,
+12-pole/8-span limits, Plane axes/domains and original identities remain authority.
+Public637/638/639/640 admission and geometry remain unchanged.
+
+Options contain exactly evaluationId/pieceIds/contactIds/spanBindingIds/
+pieceBindingIds. Piece capacity is1..32 and contact capacity1..64; full-span binding
+IDs match the coincident span count, and piece-binding capacity matches piece IDs.
+All explicit identities are distinct from parent geometry/evaluation/span/event
+identities. No capacity expansion or persistent topology name is inferred.
+
+Each coincident span maps its original Cartesian poles through the actual Plane
+Gram UV axes into a genuine dimensionless rational UV Curve. Degree, weights,
+knots and native parameter domain remain unchanged. Four actual homogeneous
+boundary equations locate u-min/u-max/v-min/v-max contacts with the inherited
+bounded linear/quadratic root solver. All-zero equations retain boundary-overlap
+span evidence instead of isolated roots. Strict-sign exclusion, nonzero-product
+underflow guards, original-domain root brackets/width1e-12, at most64 refinements
+and unsafe/tangent/order refusals remain explicit prototype policies.
+
+Native span boundaries and actual roots partition intervals; original Curve/UV
+samples classify them after root coverage. Exact equal original parameters can
+group affected boundary contributions. Distinct close parameters and equal world
+points do not merge. Unresolved corner/order/finite-domain arithmetic refuses;
+the native circle's0/4 seam and original C0 derivative states remain visible.
+
+Kept XYZ and actual UV Curves are restricted with the existing own numerical
+splitting operation to the SAME original parameter interval and inherited16-pole
+limits. UV reuse retains only dimensionless coefficients and selected split maps;
+its temporary utility source/model and mm-labeled observations are not exposed as
+physical geometry. UV shared coefficients are labeled pointUV. Actual public
+source0 files contain XYZ Curve+Plane geometry only; genuine UV binding artifacts
+remain separate. Native numeric coordinate/split bounds can refuse unsupported
+UV ranges, without normalization or parent-budget changes.
+
+Every admitted piece binding evaluates the ORIGINAL complete Curve, actual piece
+Curve, genuine UV Curve and ORIGINAL finite Surface. Original/child differences,
+actual Surface binding and original/child derivative states remain observed.
+Inward numerical root-bracket endpoints require explicit estimate/bracket/offset,
+dimensionless boundary residuals and mm point-binding observations. No UV clamp,
+authored point projection, coordinate snap or exact sewn trim vertex is claimed.
+
+The result owns parent/options, original source0/model, spans, grouped contacts,
+finite pieces, referenced parent events and report. Piece kinds include pieces,
+finite-disjoint, isolated-contacts, overlap-boundary, mixed and no-coincident-spans.
+Each span records its UV Curve/four equations/overlap boundaries/outside intervals;
+each piece owns native XYZ/UV/domain, binding observations, endpoint approximation,
+selected XYZ/UV provenance and actual geometry source. Bounds32 pieces/64 boundary
+contributions/8 spans are admission limits, not a validation matrix.
+
+`validateCurvePlaneCoincidentClip` rebuilds the actual parent and every accepted
+interval/UV/root/lineage/source record. Whole results and parent input use bounded
+131072 values/depth24, arrays1024, records32 and source strings; construction and
+validation share those bounds. Getter/hidden/foreign/sparse/symbol/cyclic/unknown/
+unsafe or altered parent/interval/bracket/UV/identity refuses with prior accepted
+parent/clip/source state reusable.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/own-coincident-plane-clip-demo.mjs --source
+```
+
+The actual source flow uses a coplanar rational circle in a narrower rectangle,
+nonuniform weighted spans with same-ID edit, a rectangle-edge overlap line,
+containing/disjoint rectangles, mixed coincident/noncoincident parent evidence and
+an honestly admitted or refused corner/contact seed. Original and piece XYZ/Plane
+source files compile full coefficients/order/weights/knots/domains/IDs/signs;
+owned dimensionless UV/root/result JSON is read back through the real validator.
+Arbitrary trimmed polygons/holes, exact tangent predicates, closed-loop sewing,
+Boolean/solid certification and commercial CAD parity remain pending. Flags remain
+geometricValidity:not-certified/topologyCertified:false/solid:false.
