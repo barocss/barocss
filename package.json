@@ -14,7 +14,7 @@
     "check": "pnpm type-check && pnpm lint && pnpm test && pnpm build:library",
     "changeset:version": "pnpm changeset version && pnpm install --lockfile-only",
     "changeset:publish": "pnpm changeset publish",
-    "dev:cad": "node examples/cad-preview/source-server.mjs",
+    "dev:cad": "pnpm --filter @barocss/cad-editor-example dev",
     "dev:gpu": "node examples/gpu-scene/source-server.mjs",
     "test:editor:source": "node examples/cad-preview/unified-editor-smoke.mjs"
   },
