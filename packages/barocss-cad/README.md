@@ -3536,3 +3536,68 @@ curved child pair uses existing 5x5 tessellation/packet validation/native UV/JSO
 readback. Native admission remains separate from downstream approximation/normal
 admission. Later split controls belong in the unified editor. General trim/join/
 extend/fill/B-Rep/Boolean, exchange and broader validation remain separate.
+
+## Original Curve split at one parameter
+
+`splitCurveAtParameter(curve, {parameter, lowerCurveId, upperCurveId})` creates
+two directly authored native Curves in increasing original parameter subdomains.
+The operation supplies a coefficient partition, without trim/intersection,
+topology sewing or split-feature document meaning.
+
+```js
+const split = cad.splitCurveAtParameter(originalCurve, {
+  parameter: 0.5, lowerCurveId: 'lower_curve', upperCurveId: 'upper_curve',
+});
+```
+
+The owned result contains `{original, refined, lower, upper, source,
+sourceVersion:0, model, provenance, report}`. Original exact Curve/options use
+1024 own values, depth6, dense arrays <=64, records <=8 and strings <=128.
+Three distinct ASCII IDs 1..48, original degree1..3/poles2..16, native open-clamped
+knots, positive weights1e-6..1e6 and arbitrary3D finite XYZ within +/-10000 mm are
+required. The finite parameter is strictly inside the original domain. Endpoint,
+outside/nonfinite, colliding/unknown/getter/hidden/foreign/sparse/cyclic data,
+refinement overflow or unsafe native arithmetic refuses the complete call.
+Caller, original authored inputs and prior results remain reusable.
+
+Actual insertCurveKnot brings numeric multiplicity to degree. Already degree-
+multiplicity data directly copies the admitted original; zero-count insertion is
+not called. Refinement must fit the existing16-pole cap. No unbounded temporary
+net, duplicated kernel/evaluator, fit, normalization, epsilon cut or healing.
+
+The shared pole is immediately before the first numeric repeated cut knot.
+Both children include its directly copied coefficient/weight. Lower retains the
+prefix through the degree-multiplicity group and adds one requested clamp. Upper
+adds one requested clamp before the suffix beginning at that group. Degree,
+original outer domain endpoints and every retained pole/weight/knot bit remain,
+including -0. Original/refined IDs remain; children use the requested distinct
+IDs. New clamps use the requested scalar, while inherited cut endpoint signs
+remain. Actual report numbers/negative-zero flags expose the distinction.
+No parameter rebase/reversal, topology ID or linked authoring reverse-write.
+
+Both complete candidates pass native validation before one actual literal
+source0 Model containing exactly lower and upper Curves in that order. The real
+compiled Model is adopted only after full Object.is ID/degree/knot/pole/weight/
+domain comparison. Provenance includes actual617 refinement or identity maps,
+direct child pole/knot maps, clamp origins and the copied shared coefficient.
+Report records domains/counts/multiplicities, exact cut signs, genuine endpoint
+points, bounded original/refined/child observations and original/native guards.
+Local1e-7 mm comparison is not a global shape error or G1/G2/no-gap certificate.
+Original/refined C0 can refuse D1 while children admit one-sided endpoint D1;
+existing guards remain. Singular native data follows native admission. Flags
+remain not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/curve-parameter-split-demo.mjs --source
+```
+
+One final artifact checkpoint is separate from installed in-memory esbuild source
+API/file/consumer flow, with no CAD dist import/write or per-demo dependency build.
+3D/rational/nonuniform/shifted/C0/signed-zero/near/full16 inputs and actual quarter,
+iso-Curve/refined dependencies compare native bits, maps, points/D1/guards and
+real two-Curve source file Model identity. One supported curved child pair feeds
+existing extrusion and small5x5 packets with native UV validation/ordinary JSON
+readback. Native construction remains separate from display admission. Later
+split controls belong in the unified editor. General modelling/topology/exchange
+and broader validation remain separate.
