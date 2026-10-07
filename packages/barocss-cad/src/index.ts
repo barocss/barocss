@@ -84,3 +84,5 @@ export { tessellateZAxisRevolvedSurface } from './z-axis-revolve-preview.js';
 export type { ZAxisRevolvePreviewOptions, ZAxisRevolvePreviewPanel, ZAxisRevolveBoundaryRole, ZAxisRevolveBoundaryPath, ZAxisRevolveBoundaryProvenance, ZAxisRevolvePreviewReport, ZAxisRevolvePreviewResult } from './z-axis-revolve-preview.js';
 export { buildCompatibleRuledSurface } from './compatible-ruled-surface.js';
 export type { CompatibleRuledSurfaceOptions, CompatibleRuledSurfaceConstruction, CompatibleRuledSurfaceObservation, CompatibleRuledSurfaceReport, CompatibleRuledSurfaceResult } from './compatible-ruled-surface.js';
+export { insertCurveKnot } from './curve-knot-insertion.js';
+export type { CurveKnotInsertionOptions, CurveKnotUnchangedPole, CurveKnotUnchangedKnot, CurveKnotInsertionStep, CurveKnotInsertionProvenance, CurveKnotInsertionReport, CurveKnotInsertionResult } from './curve-knot-insertion.js';
