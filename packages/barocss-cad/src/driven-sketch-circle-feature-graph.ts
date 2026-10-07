@@ -195,7 +195,15 @@ export function editDrivenSketchCircleFeatureGraphParameters(document: DrivenSke
     if (Object.hasOwn(data, 'featureOperations')) applyFeatureOperations(candidate, data.featureOperations as unknown[], startingFeatures, reserved, label);
     if (Object.hasOwn(data, 'circleEdits')) applyCircleEdits(candidate, data.circleEdits as unknown[], label);
     // Full final radius/offset/height references and count admission only now.
-    return evaluate(admit(candidate, label), label);
+    const finalNative = new Map<string, string>(), result = evaluate(admit(candidate, label), label, finalNative);
+    // A fresh shell's generated descendants must not recycle a removed authored
+    // or generated ID under a different entity role either. Stable original
+    // descendants and intentional source/shell aliases retain their roles.
+    for (const [id, role] of [...authoredRoles(result.projection, label), ...finalNative]) {
+      const originalAuthored = startingAuthored.get(id), originalNative = selectableNative.get(id);
+      check((originalAuthored === undefined || originalAuthored === role) && (originalNative === undefined || originalNative === role), label, '$edits.generatedIds #' + id, 'final identity cannot recycle a starting authored/selectable native identity under another role');
+    }
+    return result;
   });
 }
 export function serializeDrivenSketchCircleFeatureGraph(document: DrivenSketchCircleFeatureGraphV1): string {
