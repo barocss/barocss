@@ -13,7 +13,10 @@
     "test:shadow-parity": "node scripts/shadow-parity/run.mjs",
     "check": "pnpm type-check && pnpm lint && pnpm test && pnpm build:library",
     "changeset:version": "pnpm changeset version && pnpm install --lockfile-only",
-    "changeset:publish": "pnpm changeset publish"
+    "changeset:publish": "pnpm changeset publish",
+    "dev:cad": "node examples/cad-preview/source-server.mjs",
+    "dev:gpu": "node examples/gpu-scene/source-server.mjs",
+    "test:editor:source": "node examples/cad-preview/unified-editor-smoke.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",

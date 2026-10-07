@@ -189,6 +189,7 @@ addEventListener('hashchange', activate);
 addEventListener('resize', () => { if (!disposed && renderer && !unavailable && !$('body-workspace').hidden) renderer.resize(...dimensions()); });
 addEventListener('pagehide', () => { disposed = true; orbit?.dispose(); renderer?.dispose(); }, { once: true });
 window.boxWorkspace = {
+  get pending(){return dirty();}, newDocument:()=>adopt(initial), fitView:()=>{const result=renderer.update(renderer.packet,optionsFor(renderer.packet));if(result.ok)viewRevision++;return result;},
   applyValues, loadDocument: document => adopt(document),
   snapshot: () => accepted && structuredClone({ ...accepted, packet: renderer.packet, options: renderer.options, edgeOverlay: renderer.edgeOverlay, revision, viewRevision }),
   readPixels: () => renderer.readPixels(), get renderer() { return renderer; },

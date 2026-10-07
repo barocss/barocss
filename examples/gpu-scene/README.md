@@ -1,6 +1,19 @@
 # Local GPU scene example
 
-Build the private package, then start the loopback server from the repository root:
+Start source development from the repository root:
+
+```sh
+pnpm dev:gpu
+```
+
+The installed esbuild transforms the original `packages/barocss-gpu/src/index.ts`
+graph in memory. Reload sees source edits without a package build or server
+restart. The private workspace package entry points to src. No dist prebuild,
+watcher or downloaded runtime is needed. The source host keeps a finite local
+route list and strict CSP. The unified CAD editor uses the same source host via
+`pnpm dev:cad`.
+
+For a separate explicit artifact checkpoint, the existing static host remains:
 
 ```sh
 pnpm --filter @barocss/gpu build:library
@@ -8,7 +21,7 @@ node examples/gpu-scene/server.mjs
 ```
 
 Open `http://127.0.0.1:5180`. `PORT` can select another port. The server binds to
-127.0.0.1 and serves only three exact local routes. It has no model endpoint.
+127.0.0.1 and serves only exact local example routes. It has no model endpoint.
 The textarea is parsed as scene data; it is never evaluated as code or HTML.
 Apply accepts valid changes and displays diagnostics for invalid changes while
 keeping the accepted scene. Reset restores the authored sphere/box fixture.

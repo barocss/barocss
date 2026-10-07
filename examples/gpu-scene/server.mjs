@@ -7,6 +7,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
 // Exact routes only: request paths never become filesystem paths.
 const files = new Map([
+  ['/scene.css', ['text/css; charset=utf-8', path.join(here,'style.css')]],
+  ['/mesh.css', ['text/css; charset=utf-8', path.join(here,'mesh-style.css')]],
   ['/mesh.html', ['text/html; charset=utf-8', path.join(here, 'mesh.html')]],
   ['/mesh.js', ['text/javascript; charset=utf-8', path.join(here, 'mesh.js')]],
   ['/mesh-fixtures.js', ['text/javascript; charset=utf-8', path.join(here, 'mesh-fixtures.mjs')]],

@@ -4,6 +4,17 @@ An independent CSS-shaped scene language and original WebGL2 SDF renderer.
 This package has no React, Three.js, GSS, CAD or existing utility-class dependency.
 It is private, additive and not a claim of CSS/GSS compatibility or production readiness.
 
+## Local source development
+
+This private workspace package exposes `src/index.ts` through main, types and
+import exports. Use `pnpm dev:gpu` from the repository root for the
+loopback example. Installed esbuild resolves the original TypeScript module
+graph in memory, including `.js` relative imports. Reload consumes source edits
+without a dependency build or server restart. A plain browser cannot load raw
+TypeScript; use the source host. Existing Node artifact demos explicitly import
+`dist/index.js` and retain their separate `build:library` checkpoint. This private
+entry change is not a published-package or release change.
+
 ## Supported language
 
 ```css
