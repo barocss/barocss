@@ -2707,3 +2707,58 @@ succeeds even when separate Float32 preview refuses. Limited dependency/identity
 reference/edit/schema/getter controls preserve earlier data. Affected build/this
 run are prototype checks; UI/solver/Boolean/solid/commercial certification and
 broader validation remain deferred.
+
+## Original circle feature lifecycle and reference repair
+
+`editSketchCircleFeatureGraphFeatures(document,edits)` is additive and returns
+the existing circle graph result. Exact required featureOperations1..8 plus
+optional parameterEdits0..8/sketchEdits0..8 reuse current native definitions/
+arc sketch operations; no new graph format or public updater acceptance. Each
+exact upsert(feature) or remove(featureId) target occurs once per transaction.
+
+Existing feature upsert keeps id/kind/shellId/authored slot; only circle/height
+reference and suppression change. New feature/shell IDs are fresh relative to
+ALL starting/new authored slots and actual selectable starting native IDs,
+including removed ones. Native source0's repeated Model containernameprofile
+stays scoped, not a global reservation. Original sourceCurve/profile and shared
+height aliases stay explicit. Removal resolves a STARTING feature, never an
+unknown/newly added ID or same-target delete/recreate. Survivors keep relative
+order, new entries append by operations. Final1..4features, bounded working<=8:
+a full graph may atomically createfourfresh thenremovefourold in eightoperations.
+Finalempty refuses; allsuppressed remains valid after native admission.
+
+Starting complete native evaluation captures selectable generated identities
+for active AND suppressed candidates. Only needed private feature-admission/
+input-edit/identity-observation helpers are shared with unchanged public graph
+behavior. Feature/parameter/sketch edits form one owned candidate; no invalid
+intermediate public updater. Delete referenced circle only when every final
+user is removed/rebound explicitly in that transaction. New circle and feature
+can be authored together. All final dependencies/profiles/suppressed native
+features admit through actual graph/one-circle/candidate-shell pipeline before
+return. Previous caller/source/native output stays exact/reusable on failure;
+no implicit cascade/rename/geometry repair. New sketch IDs cannot recycle a
+removed starting authored/native ID or new feature/shell ID; existing original
+roles stay. Source/native generated collision checks remain authoritative.
+
+Existing graph0/native-only Save/Open preserves authored definitions/features/
+order/−0/booleans, no operation/result/projection/preview cache. No preview or
+Float32 admission is imported into this native transaction. Original bounded
+snapshot8192values/depth10/arrays64/records12/strings128 and native frame limits
+stay; existing APIs/source/file/packet versions remain strict. Limited stable
+shell naming is not a generic topology-history certificate. No parameter
+lifecycle/reorder/expressions/mixed graph/UI/solver/Boolean/assembly claim.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/sketch-circle-feature-lifecycle-demo.mjs /tmp/barocss-sketch-circle-feature-lifecycle-prototype
+```
+
+The short native lifecycle/file demo adds a sharedsource C, rebinds it to another
+original circle/derivedheight whilebase changes, removes now-unreferencedAfeature
+andcircleA together, adds a freshcircle/feature in one candidate, and replaces
+fourfeatures withfourfresh in eightoperations. Actual projected native geometry/
+UV/domain/bindings, suppression, fractionalheight, saved/reopened−0 and previous
+native outputs remain. One separate previewk8 call is consumer-only; tiny
+native validity is independent of display. Concrete reference/identity/schema/
+cycle/getter controls refuse. Affected build/this run are prototype checks;
+UI/general topology/solid certification and broader validation remain deferred.
