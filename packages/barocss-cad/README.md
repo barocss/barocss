@@ -3341,3 +3341,65 @@ boundaries, actual source file read/compile and one existing tessellateSurface
 packet with its original preview approximation semantics. Ordinary packet JSON
 is display evidence. Selection and property controls belong in the unified
 editor; broader validation and commercial modelling capabilities remain separate.
+
+## Original rational Surface knot insertion
+
+`insertSurfaceKnot(surface, {axis, knot, insertions})` refines one original U or V
+parameter axis through the existing `insertCurveKnot` API on each rational strip.
+U strips follow a fixed V pole; V strips follow a fixed U row. Each strip retains
+homogeneous coefficients across all requested insertions through that existing
+implementation. The complete refined net is staged before native adoption.
+
+```js
+const refined = cad.insertSurfaceKnot(originalSurface, {
+  axis: 'u', knot: 0.5, insertions: 2,
+});
+```
+
+The owned result contains `{original, refined, source, sourceVersion:0, model,
+provenance, report}`. Options are exact own data. The knot is finite and strictly
+inside the selected original domain. Insertions are integer 1..3, final numeric
+multiplicity is at most the selected degree, and final grids are at most 16x16.
+Original degree U/V is 1..3; original native open-clamped knots, positive weights
+1e-6..1e6, ASCII ID 1..48 and finite XYZ within +/-10000 mm remain required.
+Surface snapshots allow 4096 values, depth 8, arrays up to 64, records up to 8
+fields and strings up to 128. Empty, unknown, hidden, sparse, foreign, getter,
+unsafe arithmetic, multiplicity and grid overflow data refuse atomically.
+
+All strips must agree on selected knot bits, original mappings and insertion
+steps. Only private temporary Curve IDs are used; the output Model contains one
+Surface with its original ID. Provenance records actual per-strip Curve results,
+selected original knot mappings and directly unaffected Surface pole mappings.
+Original ID/degrees/U and V domain bits, nonselected knots and directly unaffected
+pole/weight bits remain, including -0. Numeric +0/-0 multiplicities count together.
+Generated binary64 coefficients are calculated values; no fitting, normalization,
+parameter rebase, degree operation, knot removal or output healing is provided.
+
+The refined Surface is literal source0 compiled once at Surface level. Actual
+compiled Model adoption requires complete Object.is net/ID/order/knot/weight and
+domain comparison. Copied edited/revolved/ruled Surfaces are direct Surface
+inputs. Refinement does not reverse-write the original linked authoring inputs.
+Sequential U and V refinement uses two explicit operations.
+
+The report contains actual axis, knot/count, domains, degrees, grid counts,
+multiplicities, unchanged/generated counts and original/refined guarded knots.
+Bounded native point observations cover selected breaks and representable span
+interiors with at most three perpendicular parameters and 128 total samples.
+Local 1e-7 mm acceptance is not a global shape error or continuity certificate.
+Native D1 guards remain, including new repeated knots. Singular nets remain
+native data where validators admit them. Flags remain
+not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/surface-knot-insertion-demo.mjs --source
+```
+
+One final artifact checkpoint is separate from the installed in-memory esbuild
+source API flow, with no CAD dist import/write or dependency build inside the
+demo. Bilinear, nonseparable rational quadratic/cubic, repeated/shifted/signed-zero,
+near-limit, edited and existing generated inputs compare native points/D1, full
+source file identity and mapped coefficient bits. One small existing preview
+packet retains its native UV positions and approximation/normal admission.
+Later refinement tools belong in the unified editor. General removal, degree,
+fit, continuity, loft/sweep, trim/B-Rep/Boolean and broader validation remain separate.
