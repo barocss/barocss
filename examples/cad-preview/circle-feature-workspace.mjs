@@ -1,0 +1,94 @@
+import * as cad from '/cad.js';
+import * as gpu from '/gpu.js';
+import {bindMouseOrbit} from '/orbit.mjs';
+import {sameData} from '/screen-ray.mjs';
+import {circleFeatureDisplay} from '/circle-feature-display.mjs';
+const $=id=>document.getElementById(id),defaultCamera={eye:[4,3,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100};
+let accepted,draft,selected,renderer,canvas,orbit,lastOptions,quality=8,intentRevision=0,displayRevision=0,viewRevision=0;
+let pending=false,opening=false,disposed=false,unavailable=false,edges=true,previousHash=location.hash;
+function message(text){$('cg-status').textContent=text;}
+function seed(){const profiles=[{id:'circle_A',kind:'circle',centerId:'A_center',centerMM:[2,-3],radius:{id:'A_radius',valueMM:4},seamId:'A_seam'},{id:'circle_B',kind:'circle',centerId:'B_center',centerMM:[20,1],radius:{id:'B_radius',valueMM:3},seamId:'B_seam'}];return{format:'barocss-sketch-circle-feature-graph',version:0,id:'circle_feature_graph',lengthUnit:'mm',sketch:{format:'barocss-xy-arc-sketch',version:0,id:'circle_sketch',lengthUnit:'mm',workplane:'xy',profiles},parameters:[{id:'raised',type:'length',definition:{kind:'offset',parameterId:'base',offsetMM:.5}},{id:'base',type:'length',definition:{kind:'literal',valueMM:6}}],features:profiles.map((p,i)=>({id:i?'feature_B':'feature_A',kind:'xy-circle-extrude',profileId:p.id,shellId:i?'shell_B':'shell_A',distanceParameterId:i?'raised':'base',suppressed:false}))};}
+function mark(){pending=true;message('Draft pending. Apply the whole graph or discard.');}
+function number(id){const value=$(id).valueAsNumber;if(!Number.isFinite(value))throw Error('Enter a finite number: '+id);return value;}
+function field(parent,label,id,value){const l=document.createElement('label');l.textContent=label;const input=document.createElement('input');input.type='number';input.step='any';input.id=id;input.value=Object.is(value,-0)?'-0':String(value);input.addEventListener('input',mark);l.append(input);parent.append(l);return input;}
+function choose(parent,label,id,values,value){const l=document.createElement('label');l.textContent=label;const input=document.createElement('select');input.id=id;for(const item of values){const option=document.createElement('option');option.value=item;option.textContent=item;input.append(option);}if(!values.includes(value)){const option=document.createElement('option');option.value=value;option.textContent='Missing: '+value;input.append(option);}input.value=value;l.append(input);parent.append(l);return input;}
+function capture(){
+ const next=structuredClone(draft);
+ for(const p of next.parameters){const kind=$('cg-kind-'+p.id).value,value=number('cg-value-'+p.id);p.definition=kind==='literal'?{kind,valueMM:value}:{kind,parameterId:$('cg-ref-'+p.id).value,offsetMM:value};}
+ const f=next.features.find(f=>f.id===selected);
+ if(f){const p=next.sketch.profiles.find(p=>p.id===f.profileId);p.centerMM=[number('cg-x'),number('cg-y')];p.radius.valueMM=number('cg-radius');f.suppressed=$('cg-suppressed').checked;}
+ draft=next;
+}
+function renderList(){
+ const list=$('cg-list');list.replaceChildren();
+ for(const f of draft.features){const actual=accepted.native.features.find(feature=>feature.featureId===f.id),view=accepted.display.features.find(feature=>feature.featureId===f.id),button=document.createElement('button');button.type='button';button.dataset.feature=f.id;button.className='feature-row'+(f.id===selected?' selected':'');button.textContent=f.id+' · '+f.shellId+'\n'+f.profileId+' / '+f.distanceParameterId+'\nApplied: '+actual.status+', '+actual.bindings.heightMM+' mm'+(actual.evaluation?' · reference '+actual.evaluation.report.referenceVolumeMM3.toPrecision(6)+' mm³':'')+(view?' · approximate '+view.localPreview.report.areasMM2.total.toPrecision(6)+' mm²':'');button.addEventListener('click',()=>{try{capture();selected=f.id;renderList();renderSelected();controls();}catch(error){message('Cannot select: '+error.message);}});list.append(button);}
+}
+function renderSelected(){
+ const panel=$('cg-selected');panel.replaceChildren();const f=draft.features.find(f=>f.id===selected);if(!f)return;
+ const p=draft.sketch.profiles.find(p=>p.id===f.profileId),note=document.createElement('p');note.className='body-note';note.textContent='Original circle: '+p.id+' · height parameter: '+f.distanceParameterId;panel.append(note);
+ field(panel,'Centre X · mm','cg-x',p.centerMM[0]);field(panel,'Centre Y · mm','cg-y',p.centerMM[1]);field(panel,'Radius · mm','cg-radius',p.radius.valueMM);
+ const label=document.createElement('label');label.className='edge-toggle';const input=document.createElement('input');input.id='cg-suppressed';input.type='checkbox';input.checked=f.suppressed;input.addEventListener('change',mark);label.append(input,' Suppress selected feature');panel.append(label);
+}
+function renderParameters(){
+ const root=$('cg-parameters');root.replaceChildren();
+ for(const p of draft.parameters){const box=document.createElement('fieldset'),legend=document.createElement('legend'),resolved=accepted.native.parameters.find(item=>item.id===p.id);legend.textContent=p.id+' · length · applied '+resolved.valueMM+' mm';box.append(legend);
+  const kind=choose(box,'Definition','cg-kind-'+p.id,['literal','offset'],p.definition.kind),ref=choose(box,'Existing parameter reference','cg-ref-'+p.id,draft.parameters.map(p=>p.id),p.definition.parameterId??draft.parameters[0].id);
+  field(box,'Literal value / offset · mm','cg-value-'+p.id,p.definition.kind==='literal'?p.definition.valueMM:p.definition.offsetMM);ref.parentElement.hidden=kind.value==='literal';
+  kind.addEventListener('change',()=>{ref.parentElement.hidden=kind.value==='literal';mark();});ref.addEventListener('change',mark);root.append(box);
+ }
+}
+function controls(){
+ for(const id of ['cg-new','cg-apply','cg-quality','cg-fit','cg-edges'])$(id).disabled=opening||unavailable||disposed;
+ for(const root of ['cg-list','cg-selected','cg-parameters'])for(const input of $(root).querySelectorAll('input,select,button'))input.disabled=opening||unavailable||disposed;
+ $('cg-discard').disabled=opening||!accepted;$('cg-save').disabled=opening||!accepted;$('cg-open').disabled=opening;
+}
+function metrics(){
+ const n=accepted.native,display=accepted.display;
+ $('cg-quality').value=String(quality);$('cg-active').textContent=n.report.activeShellIds.length+' active / '+n.document.features.length+' features';
+ $('cg-order').textContent='Native dependency order: '+n.report.parameterOrder.join(' → ');
+ $('cg-count').textContent=display.packet?display.packet.positions.length/3+' vertices / '+display.packet.indices.length/3+' triangles / '+display.overlay.paths.length+' native paths':'No active features';
+ $('cg-empty').hidden=Boolean(display.packet);controls();
+}
+function refresh(){draft=structuredClone(accepted.native.document);if(!draft.features.some(f=>f.id===selected))selected=draft.features[0].id;renderParameters();renderList();renderSelected();pending=false;metrics();}
+function dims(){const r=$('cg-viewport').getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2),w=Math.max(1,Math.min(4096,Math.round(r.width*d))),h=Math.max(1,Math.min(4096,Math.round(r.height*d))),s=Math.min(1,Math.sqrt(4000000/(w*h)));return[Math.max(1,Math.floor(w*s)),Math.max(1,Math.floor(h*s))];}
+function options(packet,fit){
+ if(!fit&&(renderer||lastOptions))return renderer?renderer.options:structuredClone(lastOptions);
+ const span=packet.bounds.max.map((n,i)=>n-packet.bounds.min[i]),scale=3/Math.max(...span);
+ return{mmToSceneUnit:scale,translate:packet.bounds.min.map((n,i)=>-(n+span[i]/2)*scale),color:[.82,.55,.36],background:[16/255,24/255,32/255],camera:structuredClone(defaultCamera)};
+}
+function release(r,o,c){o?.dispose();r?.dispose();c?.getContext('webgl2')?.getExtension('WEBGL_lose_context')?.loseContext();}
+function blank(c){const ctx=c.getContext('2d');if(!ctx)throw Error('Empty view unavailable');ctx.fillStyle='#101820';ctx.fillRect(0,0,c.width,c.height);}
+function adopt(native,k,{intent=false,fit=false}={}){
+ let next,c,o;
+ try{
+  if(disposed||unavailable)throw Error('View unavailable. Save accepted graph, then reload.');
+  const display=circleFeatureDisplay(native,displayRevision+1,k,cad,gpu),previousOptions=renderer?.options??lastOptions;let opts=previousOptions,compiled=null;
+  c=document.createElement('canvas');c.id='cg-preview';c.tabIndex=0;c.setAttribute('aria-label','Original circle features; drag to orbit');[c.width,c.height]=dims();
+  if(display.packet){opts=options(display.packet,fit);compiled=gpu.compileGpu({kind:'mesh',packet:display.packet,options:opts});if(!compiled.ok)throw Error(compiled.diagnostics[0].message);next=gpu.mountMesh(c,display.packet,opts,edges?display.overlay:null);const mounted=next;
+   o=bindMouseOrbit(c,{get available(){return renderer===mounted&&!unavailable&&!disposed;},snapshot:()=>({options:mounted.options,viewRevision}),setCamera(camera){const result=mounted.update(mounted.packet,{...mounted.options,camera});if(result.ok){lastOptions=mounted.options;viewRevision++;}return result;}});
+   c.addEventListener('webglcontextlost',()=>{if(renderer!==mounted)return;unavailable=true;controls();message('View unavailable. Save graph, then reload.');});
+  }else blank(c);
+  const old={renderer,orbit,canvas};$('cg-preview').replaceWith(c);renderer=next;orbit=o;canvas=c;lastOptions=opts&&structuredClone(opts);
+  accepted={native,display,compiled};quality=k;displayRevision++;viewRevision++;if(intent){intentRevision++;refresh();}else metrics();release(old.renderer,old.orbit,old.canvas);
+  message(display.packet?(intent?'Original circle graph applied.':'Display updated. Native graph and pending fields unchanged.'):'No active features. Native graph retained.');return{ok:true};
+ }catch(error){release(next,o,c);$('cg-quality').value=String(quality);const text='Display rejected: '+error.message;message(text);return{ok:false,error:text};}
+}
+function clean(){if(pending)throw Error('Apply or discard pending graph fields first.');}
+function create(){try{clean();return adopt(cad.evaluateSketchCircleFeatureGraph(seed()),quality,{intent:true,fit:true});}catch(error){message('Create rejected: '+error.message);return{ok:false};}}
+function apply(){
+ try{capture();const parameterEdits=draft.parameters.map(p=>({parameterId:p.id,definition:p.definition})),sketchEdits=draft.sketch.profiles.filter(p=>p.kind==='circle'&&!sameData(p,accepted.native.document.sketch.profiles.find(original=>original.id===p.id))).map(profile=>({kind:'upsert',profile})),featureEdits=draft.features.map(f=>({featureId:f.id,suppressed:f.suppressed}));return adopt(cad.updateSketchCircleFeatureGraph(accepted.native.document,{parameterEdits,sketchEdits,featureEdits}),quality,{intent:true});}
+ catch(error){message('Cannot apply native graph: '+error.message);return{ok:false,error:error.message};}
+}
+$('cg-apply').addEventListener('click',apply);$('cg-new').addEventListener('click',create);$('cg-discard').addEventListener('click',()=>{refresh();message('Pending graph fields discarded.');});
+$('cg-quality').addEventListener('change',()=>{try{const k=$('cg-quality').valueAsNumber;if(!Number.isInteger(k)||k<2||k>15)throw Error('Sampling must be an integer2–15');if(k!==quality)adopt(accepted.native,k);}catch(error){$('cg-quality').value=String(quality);message(error.message);}});
+$('cg-fit').addEventListener('click',()=>{if(accepted.display.packet)adopt(accepted.native,quality,{fit:true});else message('No active features to fit.');});
+$('cg-edges').addEventListener('change',()=>{const enabled=$('cg-edges').checked,result=renderer?renderer.setEdgeOverlay(enabled?accepted.display.overlay:null):{ok:true};if(!result.ok){$('cg-edges').checked=edges;message(result.error.message);return;}edges=enabled;viewRevision++;message('Edge view changed. Native graph unchanged.');});
+$('cg-save').addEventListener('click',()=>{try{const text=cad.serializeSketchCircleFeatureGraph(accepted.native.document),url=URL.createObjectURL(new Blob([text],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=accepted.native.document.id+'.barocad.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);message(pending?'Download requested for accepted graph; draft excluded.':'Native graph download requested.');}catch(error){message('Save rejected: '+error.message);}});
+$('cg-open').addEventListener('change',async()=>{try{const file=$('cg-open').files[0];if(!file)return;clean();if(file.size>131072)throw Error('Graph exceeds128KiB');opening=true;controls();const text=new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer()),document=cad.parseSketchCircleFeatureGraph(text),result=adopt(cad.evaluateSketchCircleFeatureGraph(document),quality,{intent:true});if(!result.ok)throw Error(result.error);message('Original circle graph opened and rebuilt.');}catch(error){message('Open rejected: '+error.message);}finally{opening=false;$('cg-open').value='';controls();}});
+for(const anchor of $('circle-feature-workspace').querySelectorAll('a'))anchor.addEventListener('click',event=>{if(pending){event.preventDefault();message('Apply or discard pending fields before leaving.');}});
+function hideOther(){for(const id of ['surface-workspace','body-workspace','polygon-workspace','cutout-workspace','rectangle-feature-workspace','circle-face-workspace','circle-prism-workspace'])$(id).hidden=true;}
+function activate(){if(previousHash==='#circle-features'&&location.hash!=='#circle-features'&&pending){history.replaceState(null,'','#circle-features');hideOther();message('Apply or discard pending fields before leaving.');return;}previousHash=location.hash;const active=location.hash==='#circle-features';$('circle-feature-workspace').hidden=!active;if(active){hideOther();if(!accepted)create();if(renderer&&!unavailable)renderer.resize(...dims());else if(canvas){[canvas.width,canvas.height]=dims();blank(canvas);}}}
+addEventListener('hashchange',activate);addEventListener('resize',()=>{if(!canvas||unavailable||disposed||$('circle-feature-workspace').hidden)return;if(renderer)renderer.resize(...dims());else{[canvas.width,canvas.height]=dims();blank(canvas);}});
+addEventListener('pagehide',()=>{disposed=true;release(renderer,orbit,canvas);},{once:true});
+window.circleFeatureWorkspace={snapshot:()=>accepted&&structuredClone({...accepted,packet:renderer?.packet??null,edgeOverlay:renderer?.edgeOverlay??null,options:renderer?.options??lastOptions??null,quality,intentRevision,displayRevision,viewRevision,pending,selected}),readPixels:()=>renderer?renderer.readPixels():Uint8Array.from(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data),get renderer(){return renderer;}};
+activate();

@@ -671,3 +671,37 @@ colliding authored input is refused by original admission.
 accepted packet/IR/WebGL uploads, quality/draft/orbit/edges, translated and decimal
 views, stale binding and native-valid display refusal. Affected CAD/GPU builds
 and that flow are the prototype check; broader validation is deferred.
+
+## Circle feature graph editor (prototype)
+
+Choose **Circle features · Shared height / Edit** or
+`/workspace.html#circle-features`. Existing typed length parameters are literal
+values or offsets from another existing parameter. Resolved values and order
+come from the actual native graph. Select an existing feature to edit its
+original circle centre/radius or suppression. Apply whole graph stages every
+active original shell before accepting the graph; Discard restores fields.
+There is no parameter/profile/feature creation, deletion or rebinding in this tool.
+
+Each active original601 feature is an actual599 projection into595 construction.
+Actual596 packets are concatenated only for display, with explicit per-feature
+vertex/index and original face ranges. All active geometry and original paths
+share one mm transform/camera; source/native IDs and opposite same-wall seam UV
+uses remain unchanged. This display mesh is not a native Model, union or assembly.
+Quality2–15 is separate from native intent and preserves pending fields. Apply
+and Open preserve camera; Fit reframes combined active bounds. Empty all-suppressed
+intent is valid: no invented mesh packet, explicit no-active-feature canvas,
+retained camera, actual Save/Open and original geometry when a feature is restored.
+
+Save accepted graph downloads the actual `barocss-sketch-circle-feature-graph`
+version0 authored document only. Open uses its native128KiB parser and whole
+candidate admission. Numeric drafts, results, projections, display quality and
+camera are excluded. Cyclic/missing/nonpositive dependencies remain native errors
+also for suppressed features. Valid native data may be refused by Float32 display;
+previous accepted graph/frame remains, without coordinate or ID healing.
+Per-feature volumes are native family references; displayed boundary areas/facets
+are approximate. No aggregate certified mass, smooth/periodic/manifold/solid claim.
+
+`circle-feature-graph-workspace-smoke.mjs` records one actual shared-parameter,
+circle/suppression, native-file download/read/Open, per-packet offset/WebGL upload,
+pixel/orbit/draft/empty-state/error flow after affected CAD/GPU builds. Broader
+validation remains deferred.
