@@ -4481,3 +4481,87 @@ owned data through the real validator. Public637..641 remain unchanged. General
 curve-curve intersections, exact tangent predicates, arbitrary trimming/sewing,
 Boolean/solid certification and commercial CAD quality remain pending. Flags remain
 geometricValidity:not-certified/topologyCertified:false/solid:false.
+
+## Own rational Curve clipped by a strict-convex native Line loop
+
+`clipCurveWithConvexLineLoop(curve, {id, edges}, plane,
+{evaluationId, resultIdPrefix})` clips an original coplanar rational Curve against
+an authored ordered3..8 finite native Line loop on an actual affine Plane. Original
+Curve degree1/2,12-pole/8-span bounds and inherited16 temporary-pole split limits
+remain unchanged. Each Line retains its own two-pole/equal-positive-weight native
+domain and direction. Represented original end/start coordinates must close
+exactly. No line is snapped, reordered or substituted with a mesh boundary.
+
+Safely represented native UV determinants prove strict convexity and authored
+orientation. All nonadjacent vertices must agree with the directed halfspaces;
+local turns alone do not certify a simple convex loop. CW and CCW are supported
+as authored. Open/concave/self-crossing/repeated/collinear/noncoplanar/unsafe loops
+refuse. Curved boundary edges and holes remain outside this operation.
+
+Actual `intersectCoplanarCurveWithLineSegment` results are retained per native
+edge. Infinite-line support roots outside that edge are not polygon contacts.
+Only exactly equal original Curve parameters consolidate, retaining every finite
+edge/native Line parameter/bracket/D1/overlap contribution at a vertex. Near roots
+and world-equal seam0/4 never merge. Original knot limits and relevant finite roots/
+overlap endpoints partition spans; original Curve evaluations and directed
+halfspaces classify intervals after native root coverage.
+
+Accepted XYZ and genuine dimensionless UV restrictions use SAME original Curve
+parameter intervals and own split provenance. Original full Curve remains point/
+derivative authority. Native Surface/edge bindings, authored loop orientation,
+interior/boundary classification, actual Line range/overlap orientation and rational
+monotonicity proof stay explicit. Inward numerical endpoints require all halfspaces
+to admit, with root brackets/offsets/residuals and no UV clamp/point projection/
+coordinate snap/exact sewn topology claim. Unsafe corners, reversing overlap or
+unresolved order/classification refuses.
+
+Caller prefix produces deterministic bounded span/contact/piece/UV and per-edge
+parent identities after collision checks. IDs come from native context and original
+parameter order, without mesh picking or a persistent topology naming promise.
+Maximum8 edges/8 spans/128 contacts/128 pieces/256 boundary contributions are
+aggregate admission budgets. Existing per-edge operation budgets remain unchanged.
+Whole owned results retain per-edge native evidence, original source geometry,
+contacts, accepted pieces, outside intervals and report under bounded own-data
+construction/rebuild limits; over-budget aggregates refuse atomically.
+
+`validateConvexLineLoopClip` reconstructs original geometry, ordered edges, authored
+orientation, interval/UV/Line parameter/edge identity and lineage. Getter/hidden/
+foreign/sparse/symbol/cyclic/unknown/unsafe or changed source/metadata refuses
+without changing previous accepted sources/results. Actual source0 geometry is
+original or piece XYZ Curve, Plane and original native Lines; UV is dimensionless
+owned coefficient/binding data, not mm geometry. The inherited numerical UV
+splitter's temporary mm source/model/observation labels are omitted.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/own-convex-loop-clip-demo.mjs --source
+```
+
+The source flow consumes the prepared tilted/skew Plane Z=X, strict-convex native
+triangle and weighted quadratic with original nonuniform spans[2,3]/[3,5], then
+real circle/nonrectangular multiple pieces, authored orientation reversal,
+contained/disjoint/edge overlap/vertex or honest uncertainty, same-ID boundary edit
+and seam/shared-knot evidence. Original/piece source files preserve full native
+coefficients/order/weights/knots/domains/IDs/signed zero. Raw owned numeric result
+JSON is read through the actual validator. No general Boolean, arbitrary nonconvex/
+hole trim, native face sewing or solid certificate. Flags remain
+geometricValidity:not-certified/topologyCertified:false/solid:false.
+
+Aggregate construction/rebuild guards use262144 own values/depth28, arrays2048,
+records48 and bounded source strings; smaller inputs use4096 values/depth8,
+arrays64/records16. Native per-edge limits remain unchanged. Original IDs are
+ASCII1..48 and caller prefix1..20. Deterministic prefix `_e<edge>_*` roles preserve
+per-edge contexts; `_c<i>`/`_p<i>`/`_b<i>` identify original-parameter-ordered contacts,
+XYZ pieces and piece UV. All expanded roles are reserved/collision-checked before
+native calls. Only bounded `_t<n>` names are generated for private temporary
+source/split contexts.
+
+The result exposes authored orientation, actual UV vertices, every strict convexity
+determinant/unsafe threshold, actual per-edge native644 results, native spans,
+consolidated contacts and finite pieces. Piece `boundaryBindings` retain original
+Line domains/ranges/directions, overlap IDs, derivative-numerator signs and actual
+Line/Plane/D1 observations. Piece sources are `[XYZ Curve, relevant native boundary
+Lines, Plane]`; interior pieces need only actual Curve/Plane geometry. Original
+sources contain the whole Curve, all original Lines and Plane. No UV source/model
+is exported as millimetre geometry. Numeric inward endpoints carry all incident
+brackets/estimates/offsets and actual halfspace values.
