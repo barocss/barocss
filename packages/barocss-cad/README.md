@@ -4631,3 +4631,81 @@ collision checks. Boundary classification returns use/pcurve/Curve IDs, original
 native Line parameter, traversal sense and actual LineD1 binding. Outside-domain
 has null point/normal and performs no native Surface evaluation; chart-admitted
 outside-trim queries retain the actual Plane point without a finite face hit.
+
+## Own two nonparallel convex trimmed affine Plane face intersection
+
+`intersectConvexPlanarFaces(faceA, faceB, {evaluationId, resultIdPrefix})` rebuilds
+two actual native convex planar-face results and computes their common support
+line, clipped against BOTH original finite UV trim loops. No synthetic probe Curve,
+fixed-XY flattening, mesh intersection or parent topology cache admits the faces.
+Original degree1x1/equal-weight affine Plane,3..8 finite native Line loops, native
+UV/Line domains, original geometry/IDs/source order and face/use orientation remain.
+
+Support direction is the normalized cross product of the UN-ORIENTED original
+Plane U/V normals in caller A→B order. Face-sense reversal changes oriented normal/
+use evidence, not support geometry or existence. Original plane offsets and a
+scale-aware safe nonparallel denominator determine the anchor; parallel/coincident/
+ill-conditioned/nonfinite/cancellation/unsupported cases refuse. A direction/order
+convention does not guarantee persistent naming across later Boolean operations.
+
+Actual original Gram axes map the support into both native UV charts, including
+nonunit domains. Linear directed halfspace inequalities clip a common scalar
+interval against each actual convex loop. Root bounds, denominator/order/near-zero
+uncertainty and inward numerical offsets remain explicit64-epsilon prototype
+policies. Corners retain BOTH original boundary contributors; simultaneous bounds
+from both faces retain ALL face/loop/edge/use/pcurve/native Line parameter evidence.
+No endpoint projection, UV clamp, coordinate snap or exact sewn vertex is claimed.
+
+A positive admitted interval yields a real degree1/two-pole/equal-weight XYZ Line
+and two genuine dimensionless UV Curves on the SAME explicit native support domain.
+Original Surface/derived Line/pcurve point and D1 chains at endpoints/midpoint
+observe dual binding and direction. Native Surface evaluation occurs only inside
+its original chart. Finite-disjoint output is successful empty evidence. An exact
+isolated point requires represented parameter coincidence and actual admission of
+both constraints; ambiguous zero-length/order decisions refuse instead of guessing.
+
+Caller ASCII evaluation/prefix identities are bounded and distinct against all
+input/generated roles before staging. Prefix1..20 produces `_line`, `_uv_a`,
+`_uv_b`, `_point`, `_end_0`, `_end_1`; point/end roles are owned numerical metadata,
+not topological sewn vertices. At most two faces/one segment or point/16 endpoint
+contributors and bounded samples/data are admitted. `validateConvexPlanarFaceIntersection`
+rebuilds from original faces/options and rejects altered source/dual UV/interval/
+direction/contributor/native edge parameter/face lineage/accessor data while prior
+accepted geometry/source results remain reusable.
+
+Both original Plane-first/authored-Line source Models are preserved independently.
+Actual derived XYZ Line may have its own source0 file; dual UV/topology/lineage stay
+owned dimensionless metadata. Source/compiler/owned JSON roundtrips preserve full
+original coefficient/ID/order/domain/weight/signed-zero data. Public511/637..648
+and native parents remain unchanged unless a documented small internal reuse is
+necessary; that concrete risk gets one source consumer, not a parent campaign.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/own-convex-planar-face-intersection-demo.mjs --source
+```
+
+The source flow uses actual transverse tilted/skew faces and nonunit Plane/Line
+domains, unequal finite trim extents, authored direction/face-sense changes,
+disjoint finite faces, native corner/all-contributor endpoints, exact point when
+admitted, same-ID boundary edit and concrete uncertainty/altered-data refusals.
+Actual dual Surface/Curve/pcurve D1/file evidence is separate from renderer/UI.
+General curved/nonconvex/hole faces, coplanar overlap regions, NURBS SurfaceSurface,
+sewing/Boolean/solid/manifold/persistent naming and commercial quality remain
+pending. Flags remain geometricValidity:not-certified/topologyCertified:false/
+solid:false; no triangulation, UI or fully-validated claim.
+
+The owned result exposes both unchanged native faces, original support anchor/
+direction/normals/denominator threshold and dual native UV affine maps. Each actual
+edge constraint records alpha/beta/uncertainty, lower/upper/parallel-inside/
+coincident-boundary/parallel-outside status and original scalar root. Accepted
+endpoints retain all exact tied constraints and coincident boundary contributors;
+unequal root bounds within uncertainty refuse instead of merging a corner.
+Original native edge parameters bind the scalar-root point, while actual inward
+endpoint offsets/residuals are separately recorded.
+
+Segment source0 contains only actual XYZ Line; dual UV Curves are dimensionless
+owned bindings. Point/disjoint outcomes contain no invented degenerate Line.
+Construction/rebuild guards131072 values/depth24, arrays1024, records48 and bounded
+source strings; original face validators keep their limits. No parent public
+contract/import changed for this leaf, so no standalone parent witness is needed.
