@@ -2898,3 +2898,65 @@ The short native prototype uses shared and offset radius dependencies, atomic
 radius/height/centre edits, original literal quarters, decimal native UV and actual
 file readback, with one separate596k8 display packet. Broader validation and an
 interactive radius-driving workspace remain separate work.
+
+## Driven circle graph parameter and feature lifecycle
+
+`editDrivenSketchCircleFeatureGraphParameters(document, edits)` adds/removes typed
+fractional length parameters and original circle extrusion features in the existing
+one-authority driven graph1. It returns the same `DrivenSketchCircleFeatureGraphResult`.
+
+```js
+const next = cad.editDrivenSketchCircleFeatureGraphParameters(document, {
+  parameterOperations: [
+    { kind: 'upsert', parameter: {
+      id: 'replacement_radius', type: 'length',
+      definition: { kind: 'literal', valueMM: 3.25 },
+    } },
+    { kind: 'remove', parameterId: 'r' },
+  ],
+  circleEdits: [
+    { profileId: 'circle_A', radiusDefinition: {
+      kind: 'parameter', parameterId: 'replacement_radius',
+    } },
+    { profileId: 'circle_B', radiusDefinition: { kind: 'literal', valueMM: 1 } },
+  ],
+});
+```
+
+Every remaining offset, circle radius and active or suppressed feature height must
+reference an existing valid final length parameter. If other definitions/features
+reference `r`, explicitly repair them in the same batch. There is no cascade or
+fallback. A literal radius switch keeps the original radius dimension identity.
+
+Edits require1..16 original parameter upsert/remove operations. Optional present
+feature operations and driven circle edits each require1..8 entries. Each target
+occurs once. Existing parameter IDs/types/slots and feature IDs/kinds/shells/slots
+stay fixed; fresh parameters/features append. Remove resolves a starting item.
+Working limits16 parameters/8 features permit eight-for-eight parameter and
+four-for-four feature replacement together. Final counts remain1..8 and1..4.
+
+The original accepted graph is admitted once to reserve every authored and actual
+selectable native identity, including suppressed candidates and removed items.
+Apply all owned operations and circle edits before the complete final radius,
+dependency and native evaluation. No partially edited candidate is admitted.
+New parameters/features/shells cannot recycle an old authored or generated ID.
+Circle/profile lifecycle is unsupported; centre/radius edits retain original IDs.
+All unused definitions/profiles and suppressed features validate.
+
+Actual original601/603/604 staging rules and resolver are shared internally;
+original587/599/595 geometry/UV/source bindings remain authoritative. Old graph0
+and its lifecycle APIs remain strict. Driven graph1 Save/Open stays canonical
+with definitions/references/order/IDs/booleans/signed zero only; operation logs,
+resolved radius values and derived native/display results are not persisted.
+Native file admission imports no Float32 preview gate. Reports remain uncertified.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/driven-circle-parameter-lifecycle-demo.mjs /tmp/barocss-driven-circle-parameter-lifecycle-prototype
+```
+
+The short native demo covers fresh shared radius/height authoring, explicit atomic
+reference repair/removal, full replacements, actual original projection/binding
+comparisons and file readback, plus one ordinary596k8 display packet. Broader
+validation, interactive lifecycle UI, general solver/topology/Boolean operations,
+exchange and assemblies remain separate work.
