@@ -1,5 +1,5 @@
 export * from './types.js';
-export * from './math.js';
+export { MAX_SAMPLES, validateCurve, validateSurface, validateModel, curveDomain, surfaceDomain, evaluateCurve, evaluateSurface, sampleCurve, sampleSurface } from './math.js';
 export * from './iges.js';
 export * from './packet.js';
 export * from './preview.js';
@@ -90,3 +90,5 @@ export { editSurfaceControlNet } from './surface-control-net.js';
 export type { SurfacePoleField, SurfacePoleEdit, SurfaceControlNetEdits, SurfacePoleEditProvenance, SurfaceControlNetReport, SurfaceControlNetResult } from './surface-control-net.js';
 export { insertSurfaceKnot } from './surface-knot-insertion.js';
 export type { SurfaceKnotInsertionOptions, SurfaceKnotUnchangedPole, SurfaceKnotInsertionStrip, SurfaceKnotInsertionProvenance, SurfaceKnotGridCount, SurfaceKnotInsertionReport, SurfaceKnotInsertionResult } from './surface-knot-insertion.js';
+export { extractSurfaceIsoCurve } from './surface-isocurve.js';
+export type { SurfaceIsoCurveOptions, SurfaceIsoCurveBasis, SurfaceIsoCurveContribution, SurfaceIsoCurvePole, SurfaceIsoCurveProvenance, SurfaceIsoCurveReport, SurfaceIsoCurveResult } from './surface-isocurve.js';

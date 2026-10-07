@@ -3403,3 +3403,68 @@ source file identity and mapped coefficient bits. One small existing preview
 packet retains its native UV positions and approximation/normal admission.
 Later refinement tools belong in the unified editor. General removal, degree,
 fit, continuity, loft/sweep, trim/B-Rep/Boolean and broader validation remain separate.
+
+## Original Surface parameter iso-Curve
+
+`extractSurfaceIsoCurve(surface, {fixedAxis, parameter, curveId})` constructs an
+original rational Curve at fixed U or V. Fixed U varies in original V; fixed V
+varies in original U. The Curve follows increasing original parameter order.
+It is a parameter construction, without trim/edge/intersection/topology meaning.
+
+```js
+const iso = cad.extractSurfaceIsoCurve(originalSurface, {
+  fixedAxis: 'u', parameter: 0.5, curveId: 'section_v',
+});
+```
+
+The owned result contains `{original, curve, source, sourceVersion:0, model,
+provenance, report}`. Exact own original Surface/options use a 4096-value snapshot,
+depth 8, arrays up to 64, records up to 8 and strings up to 128. Surface U/V degrees
+are 1..3 and grids are 2..16 per axis/at most 256 poles. Original native clamped
+knots, finite XYZ within +/-10000 mm and weights 1e-6..1e6 are required. IDs are
+distinct ASCII 1..48. The finite parameter is inside the inclusive fixed domain.
+Wrong axis, outside, unknown, getter/hidden/foreign/sparse/symbol/cyclic data,
+ID collision or unsafe generated native coefficients refuse without healing.
+Caller, original coefficients/domains and prior results remain reusable.
+
+The unchanged existing local math basis function is shared internally. Package
+index keeps every existing math export explicit and does not expose the basis.
+For each varying pole, the interior construction sums original homogeneous
+[B*w*x, B*w*y, B*w*z, B*w] terms, then divides XYZ by the positive finite W.
+All basis values, factors, sums and projected coefficients must be finite and
+pass native Curve/coordinate/weight validation. At fixed endpoints the original
+row/column coefficients and weights copy directly, preserving Object.is signs
+including -0. Varying degree, knot bits, count/order and domain bits remain.
+No sampled fitting, inverse-weight dummy geometry, new evaluator, reversal,
+parameter rebase, weight normalization or implicit source-feature update.
+
+Actual compileCurveSource emits one source0 Curve and its complete compiled
+Model is adopted only after Object.is coefficient/ID/degree/knot/domain comparison.
+Provenance and report include fixed/varying parameters/domains, actual local basis,
+per-pole original indices, homogeneous terms and endpoint copy mappings. Interior
+binary64 coefficients are calculated values, not bit-exact real arithmetic.
+Point observations cover varying endpoints, original breaks and representable
+span interiors with at most 32 samples. Local 1e-7 mm comparison is not a global
+error, normal, regularity or continuity certificate. Native Curve and Surface
+D1 guards remain; a fixed C0 Surface knot can refuse Surface derivatives while
+the varying iso-Curve admits a tangent. Flags remain
+not-certified/topologyCertified:false/solid:false.
+
+Existing extractSurfaceBoundary keeps its oriented convention: u-min and v-max
+reverse varying parameter direction. Endpoint iso-Curves always increase. The
+demo compares each using the correct original/reversed parameter mapping.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/surface-isocurve-demo.mjs --source
+```
+
+One final artifact checkpoint is separate from installed in-memory esbuild source
+API/file/downstream flow, with no CAD dist import/write or per-demo dependency
+build. Both axes, interiors/endpoints, nonseparable rational/shifted/C0/full16x16,
+actual edited/refined and existing generated inputs compare native points/D1,
+bits, guards and real source file identity. One small interior iso-Curve feeds
+existing extrusion and 5x5 preview packet validation/native UV/readback. Native
+Curve success is separate from display approximation/normal admission. Later
+selection/analysis belongs in the unified editor. General modelling, topology,
+exchange and broader validation remain separate.

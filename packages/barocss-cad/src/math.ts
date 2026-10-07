@@ -110,7 +110,7 @@ export function surfaceDomain(surface: Surface): { u: [number, number]; v: [numb
 }
 
 /** Compute the local nonzero basis functions. The right endpoint uses the last span. */
-function basis(knots: number[], degree: number, count: number, parameter: number): { start: number; values: number[] } {
+export function basis(knots: number[], degree: number, count: number, parameter: number): { start: number; values: number[] } {
   const left = knots[degree];
   const right = knots[count];
   requireValue(Number.isFinite(parameter) && parameter >= left && parameter <= right, 'Parameter is outside the knot domain');
