@@ -4709,3 +4709,68 @@ owned bindings. Point/disjoint outcomes contain no invented degenerate Line.
 Construction/rebuild guards131072 values/depth24, arrays1024, records48 and bounded
 source strings; original face validators keep their limits. No parent public
 contract/import changed for this leaf, so no standalone parent witness is needed.
+
+## Own affine planar face with convex holes
+
+`buildConvexPlanarFaceWithHoles(plane, outerLoop, holeLoops, options)` constructs
+one authored affine Plane face with a strict convex outer native Line loop and
+one or two strict convex native Line holes. Every loop has 3..8 edges. The total
+is at most15 Lines; the original Plane plus those Lines fits the unchanged
+source0 Model16-object limit. `plane` is the actual degree1x1 equal-weight
+four-pole affine Surface, including its original nonunit U/V domains. Each loop
+is `{id, edges}` with original equal-weight degree1/two-pole finite Curves and
+original native Line domains. Hole identity is the supplied loop ID.
+
+Options are `{faceId, evaluationId, resultIdPrefix, orientation}`; orientation
+is `forward` or `reverse`, and the ASCII prefix is1..20 characters. Generated
+IDs are `prefix_lN_v_I`, `prefix_lN_e_I`, `prefix_lN_use_I` and
+`prefix_lN_uv_I`, where N0 is the outer loop, N1..2 are supplied hole loops,
+and I is the authored native edge index. All original/context/generated IDs
+are reserved as distinct before native staging.
+
+Admission uses the genuine original Gram chart and native Line coplanarity,
+represented-bit endpoint closure and every-nonadjacent vertex halfspaces.
+Every hole vertex must lie strictly inside every outer halfspace. Two holes
+must have a strict separating axis from their actual convex native UV edges.
+Crossing, touching, overlap, nesting and unsafe near-boundary cancellation
+refuse; a centroid or bounding rectangle does not establish admission.
+
+Face-forward outer uses are CCW and inner uses CW in the original UV chart.
+Face-reverse reverses those roles. Original authored Curves and source order
+remain intact. Real vertices, edges, directed uses and dimensionless UV pcurves
+retain loop ownership and the original Line intervals. Endpoint/midpoint
+observations use actual LineD1, pcurveD1 and SurfaceD1, with face-oriented
+normal and tangent evidence.
+
+`classifyConvexPlanarFaceWithHolesUV(result, [u,v])` returns `inside` for material,
+`inside-hole` for a strict hole interior with its original loop ID, `boundary`
+with the actual outer/hole loop and all incident boundary contributors,
+`outside`, or `outside-domain`. Exact hole corners retain both original edge
+parameters. Within the Plane chart, a strict hole-interior query retains the
+true Plane XYZ point and normal with `material:false`. Material interior and
+admitted boundary return `material:true`. Outside-domain point and normal
+are null without evaluating Surface outside its domain. Exact represented zero
+identifies boundary; uncertain nonzero64-epsilon determinants refuse without
+snapping.
+
+The source0 Model contains the original Plane, then authored outer Lines, then
+hole Lines in the supplied loop order. Full coefficient, knot, weight, native
+domain, order, ID and signed-zero bits survive compiler adoption. UV pcurves
+and topology stay separate owned numeric metadata. The result validator
+rebuilds from original Plane/loops/options and rejects altered source,
+loop roles, directed uses, pcurves, intervals, identity and vertex lineage.
+Construction/rebuild snapshots bound65536 values, depth20, arrays512,
+records48 and source strings262144 characters. Input snapshots also have
+separate smaller bounds. Getters, hidden/symbol fields, foreign prototypes,
+sparse/cyclic and unsupported data refuse before adoption.
+
+```sh
+node examples/cad-nurbs/own-convex-planar-face-holes-demo.mjs --source
+```
+
+This is authored planar trim construction. General Boolean Cut, automatic Hole
+feature graphs, hole-aware surface intersection, tessellation/ray queries,
+curved/nonconvex/touching/nested holes and sewn manifold B-Rep remain open.
+Reports retain geometricValidity:not-certified, topologyCertified:false and
+solid:false. Native implementation requires separate sole-GPU serial
+integration and current-host consumer verification.
