@@ -98,3 +98,5 @@ export { splitCurveAtParameter } from './curve-parameter-split.js';
 export type { CurveParameterSplitOptions, CurveSplitPoleMapping, CurveSplitKnotMapping, CurveSplitChildProvenance, CurveSplitRefinementProvenance, CurveSplitSharedCoefficient, CurveParameterSplitProvenance, CurveParameterSplitReport, CurveParameterSplitResult } from './curve-parameter-split.js';
 export { editCurveControlPolygon } from './curve-control-polygon.js';
 export type { CurvePoleField, CurvePoleEdit, CurveControlPolygonEdits, CurvePoleEditProvenance, CurveControlPolygonD1Evaluation, CurveControlPolygonD1Observation, CurveControlPolygonReport, CurveControlPolygonResult } from './curve-control-polygon.js';
+export { elevateBezierCurveDegree } from './bezier-curve-degree-elevation.js';
+export type { BezierCurveDegreeElevationOptions, BezierCurveElevatedInteriorPole, BezierCurveElevationKnot, BezierCurveDegreeElevationProvenance, BezierCurveDegreeD1Evaluation, BezierCurveDegreeD1Observation, BezierCurveDegreeElevationReport, BezierCurveDegreeElevationResult } from './bezier-curve-degree-elevation.js';

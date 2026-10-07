@@ -3659,3 +3659,67 @@ Curve feeds existing extrusion and small5x5 packet/native UV/ordinary JSON
 readback. Native validity remains separate from display/normal admission. Later
 control-polygon selection/editing belongs in the unified editor. Broader modelling,
 validation, topology and exchange remain separate.
+
+## One-step original rational Bezier Curve degree elevation
+
+`elevateBezierCurveDegree(curve, {targetDegree})` raises a single-span original
+rational Bezier Curve by exactly one degree:1->2 or2->3. Cubic, unchanged/skipped
+targets and multi-span NURBS inputs refuse; general elevation remains separate.
+The [official helper reference](https://nurbs-python.readthedocs.io/en/latest/module_utilities.html#geomdl.helpers.degree_elevation)
+identifies Bezier degree elevation as Eq.5.36. This implementation uses the frozen
+one-step homogeneous Bernstein formula locally, without an external library.
+
+```js
+const elevated = cad.elevateBezierCurveDegree(originalQuadratic, {
+  targetDegree: 3,
+});
+```
+
+The owned result contains `{original, elevated, source, sourceVersion:0, model,
+provenance, report}`. Exact original Curve/options use1024 own values/depth6,
+arrays <=64, records <=8 and strings <=128. Original ASCII ID1..48, degree1..2,
+exactly degree+1 poles/2*(degree+1) knots, native clamped knots/weights and one
+finite positive represented max-min span are required. XYZ is within +/-10000 mm,
+weights1e-6..1e6. Every start/end knot is numerically equal to the corresponding
+original domain endpoint. No getter/hidden/foreign/sparse/symbol/cyclic/unknown,
+unsafe/nonfinite/range data, epsilon domain or multi-span fallback. Caller and
+prior native results remain reusable; constant/coincident data follows admission.
+
+For p and q=p+1, each new interior pole i uses alpha=i/q and homogeneous
+H'_i=alpha*H_(i-1)+(1-alpha)*H_i, where H=(w*x,w*y,w*z,w). Finite contributions
+and positive calculated W are required; new interior XYZ divides by W once.
+Original endpoint Cartesian poles/weights copy directly, preserving Object.is
+bits and -0 without lift-divide roundtrip. No rescale/normalization/clamp/healing,
+new evaluator/derivative or parent math/serializer/kernel refactor.
+
+Output degree q/count p+2 retains original ID/orientation/domain bits. Every old
+knot remains in order with its original bits. One actual domain-min entry appends
+to the start group, and one actual domain-max entry prepends to the end group.
+Thus mixed-zero clamps preserve both old signs and original domain endpoints.
+Provenance records direct endpoint maps, actual homogeneous contributions/new
+coefficients, every retained old knot and added clamp origin. Generated binary64
+interior values are calculations, without exact-real-arithmetic guarantees.
+
+The complete elevated Curve passes native admission before actual compileCurveSource
+emission and full single-Curve Model/coefficient/ID/degree/knot/domain comparison.
+No linked sketch/Surface/meridian/feature reverse update or topology identity.
+Report includes degree/count/domain, endpoint bits, bounded native point comparisons
+(local1e-7 mm, <=5 queries) and actual native D1 values/refusal statuses (<=3).
+This is not a global numerical/continuity/regularity/tangent/solid certificate.
+No interior C0 knot is added. Flags remain
+not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/bezier-curve-degree-elevation-demo.mjs --source
+```
+
+One final artifact build is separate from installed in-memory esbuild source
+API/file/consumer flow, with no CAD dist import/write or per-demo dependency build.
+Line1->2 then explicit2->3, rational quarter/shifted/mixed-zero/constant and actual
+edited/iso/split single-span inputs compare native endpoints/knots/points/D1 and
+real source file Model bits. One supported elevated Curve feeds existing extrusion
+and small5x5 packet/native UV/ordinary JSON readback; display admission remains
+separate. General multi-span elevation, removal/reduction/fit/continuity and Surface
+operations remain backlog. Later degree controls belong in the unified editor;
+broader validation, modelling, topology and exchange remain separate.
