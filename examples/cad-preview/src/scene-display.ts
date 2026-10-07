@@ -62,5 +62,5 @@ export function buildSceneDisplay(scene:SceneDocument,revision:number,cache:Scen
  if(!objects.length){const display:SceneDisplay={packet:null,overlay:null,objects,faces,edges,plateContexts,surfaceCharts};preparedByDisplay.set(display,preparedForDisplay);return{display,cache:next};}
  for(let i=0;i<packet.positions.length;i++){const axis=i%3;packet.bounds.min[axis]=Math.min(packet.bounds.min[axis],packet.positions[i]);packet.bounds.max[axis]=Math.max(packet.bounds.max[axis],packet.positions[i]);}
  const owned=validatePreviewPacket(packet);if(paths.length>64||paths.reduce((n,p)=>n+p.points.length,0)>4096)throw Error('Scene native edges exceed display limits');
- const display:SceneDisplay={packet:owned,overlay:{version:0,packet:owned,paths,color:[.07,.11,.14]},objects,faces,edges,plateContexts,surfaceCharts};preparedByDisplay.set(display,preparedForDisplay);return{display,cache:next};
+ const display:SceneDisplay={packet:owned,overlay:{version:0,packet:owned,paths,color:scene.objects.some(o=>o.visible&&o.intent.kind==='surface')?[.12,.32,.4]:[.07,.11,.14]},objects,faces,edges,plateContexts,surfaceCharts};preparedByDisplay.set(display,preparedForDisplay);return{display,cache:next};
 }
