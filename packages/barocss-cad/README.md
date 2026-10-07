@@ -2826,3 +2826,75 @@ reference repair, sixteen-operation replacement, fractional heights and real
 file readback, with one separate596k8 display output. Broader validation remains
 deferred. Candidate reports retain `wholeGraphCertified:false`,
 `geometricValidity:'not-certified'`, `topologyCertified:false` and `solid:false`.
+
+## Named parameters driving original circle radii
+
+`evaluateDrivenSketchCircleFeatureGraph`, `updateDrivenSketchCircleFeatureGraph`,
+`serializeDrivenSketchCircleFeatureGraph` and `parseDrivenSketchCircleFeatureGraph`
+add a distinct authored format: `barocss-driven-sketch-circle-feature-graph`,
+version1/mm. Its embedded sketch is `barocss-driven-xy-arc-sketch`, version0/xy.
+Existing literal arc-sketch0 and circle feature graph0 formats remain strict.
+
+A circle retains its original profile/centre/radius-dimension/seam IDs and literal
+centre. Its radius is exactly one authority:
+
+```js
+radius: { id: 'A_radius', definition: { kind: 'parameter', parameterId: 'r' } }
+// Or: radius: { id: 'A_radius', definition: { kind: 'literal', valueMM: 4 } }
+```
+
+The radius dimension ID differs from the referenced length parameter ID. There is
+no sibling resolved value or fallback. Original quarter-arc profiles use the same
+radius envelope with a literal definition only. Parameter-driven quarters refuse.
+
+The result is `{document, parameters, profileDimensions, projection, nativeGraph,
+report}`. The authored `document` contains the original definitions. The shared
+original fractional length resolver supplies radii and heights. `projection` is
+an explicitly derived old graph0/literal sketch0; actual original587/601/599/595
+admission constructs every native Curve/Surface/topology/UV. `nativeGraph` is the
+actual old graph result. New report bindings label `resolved-radius-projection`,
+retain authored/projection versions and IDs, radius definitions/dependencies,
+original profile/feature bindings and actual face/edge/loop/use/pcurve identities.
+Suppressed features retain identity bindings and actual native admission.
+
+```js
+const next = cad.updateDrivenSketchCircleFeatureGraph(document, {
+  parameterEdits: [
+    { parameterId: 'r', definition: { kind: 'literal', valueMM: 3 } },
+    { parameterId: 'base', definition: { kind: 'literal', valueMM: 8 } },
+  ],
+  circleEdits: [
+    { profileId: 'circle_B', radiusDefinition: { kind: 'parameter', parameterId: 'rB' } },
+  ],
+});
+```
+
+Updates accept optional parameterEdits0..8, circleEdits0..8 and featureEdits0..4,
+with at least one actual operation. Circle edits require an existing circle ID
+and centre and/or radius definition; feature edits change suppression only. IDs,
+kinds and authored slots stay fixed. Apply all owned edits before resolving the
+final radii/native graph, so reference, centre and definition repairs are atomic.
+No parameter/profile/feature lifecycle, height rebind, general formulas or solver
+is added here. The old graph0 lifecycle APIs retain their original format.
+
+Every profile, unused parameter and suppressed feature validates. Radii resolve
+to0.001..10000mm and pass original coefficient/bounds checks. Original height,
+identity, alias and scoped source-Model rules remain. Native input/edit/file paths
+import no preview or Float32 display gate. Failed candidates retain caller data
+and reusable original native outputs. Existing8192-value/depth10/array64/record12/
+string128 and128KiB JSON guards apply, including decoded duplicate-key refusal.
+
+Save/Open preserves only authored format/sketch/definitions/features/order/IDs/
+booleans/signed zero. Derived radii, projections, native results, packets and view
+state are excluded. Separate candidate shells retain `wholeGraphCertified:false`,
+`geometricValidity:'not-certified'`, `topologyCertified:false` and `solid:false`.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/driven-circle-radius-graph-demo.mjs /tmp/barocss-driven-circle-radius-prototype
+```
+
+The short native prototype uses shared and offset radius dependencies, atomic
+radius/height/centre edits, original literal quarters, decimal native UV and actual
+file readback, with one separate596k8 display packet. Broader validation and an
+interactive radius-driving workspace remain separate work.
