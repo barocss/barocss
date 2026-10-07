@@ -2762,3 +2762,67 @@ native outputs remain. One separate previewk8 call is consumer-only; tiny
 native validity is independent of display. Concrete reference/identity/schema/
 cycle/getter controls refuse. Affected build/this run are prototype checks;
 UI/general topology/solid certification and broader validation remain deferred.
+
+## Original circle height parameter creation and removal
+
+`editSketchCircleFeatureGraphParameters(document, edits)` adds and removes typed
+fractional length parameters in the existing circle graph0 document. It returns
+the same owned `SketchCircleFeatureGraphResult`. Existing graph evaluation,
+definition updates, feature lifecycle and Save/Open APIs retain their contracts.
+
+```js
+const result = cad.editSketchCircleFeatureGraphParameters(document, {
+  parameterOperations: [
+    { kind: 'upsert', parameter: {
+      id: 'replacement_height', type: 'length',
+      definition: { kind: 'literal', valueMM: 3.25 },
+    } },
+    { kind: 'remove', parameterId: 'base' },
+    { kind: 'upsert', parameter: {
+      id: 'raised', type: 'length',
+      definition: { kind: 'offset', parameterId: 'replacement_height', offsetMM: 0.5 },
+    } },
+  ],
+  featureOperations: [
+    { kind: 'upsert', feature: {
+      ...document.features[0], distanceParameterId: 'replacement_height',
+    } },
+  ],
+});
+```
+
+Every remaining offset and active or suppressed feature must have a valid final
+reference. If other features reference `base`, explicitly repair them in the same
+batch. The function does not cascade deletion or retarget references.
+
+Edits require1..16 parameter operations. Optional present feature operations and
+sketch edits each require1..8 entries; definition-edit and suppression-edit aliases
+are unsupported. Each target occurs once. Existing parameters retain their ID,
+length type and authored slot; fresh parameters append. Remove resolves a starting
+parameter. Final counts remain1..8 parameters and1..4 features. A bounded working
+array of16 parameters permits eight fresh additions followed by eight removals.
+Same-batch forward dependencies resolve only after the entire candidate is ready.
+
+Starting authored and selectable native IDs remain reserved after removal. Fresh
+parameter, feature, shell and sketch identities must be distinct, including actual
+generated native IDs. Original source/shell aliases remain valid. All parameters
+and suppressed features receive full native admission. Heights remain fractional
+0.001..10000mm; unused negative/zero lengths remain valid under existing rules.
+Circle radius stays an original sketch literal. This API adds no radius binding,
+solver, Boolean, assembly or general solid certificate.
+
+Canonical graph0 files preserve authored definitions/order/IDs/booleans/signed
+zero. Operations, resolved caches, native output and preview state are not saved.
+Native edit/file admission imports no preview or Float32 display gate. Failure
+leaves the caller's intent and existing native outputs unchanged.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/sketch-circle-parameter-lifecycle-demo.mjs /tmp/barocss-sketch-circle-parameter-lifecycle-prototype
+```
+
+The short prototype demo compares actual original587/599/595 lineage, atomic
+reference repair, sixteen-operation replacement, fractional heights and real
+file readback, with one separate596k8 display output. Broader validation remains
+deferred. Candidate reports retain `wholeGraphCertified:false`,
+`geometricValidity:'not-certified'`, `topologyCertified:false` and `solid:false`.
