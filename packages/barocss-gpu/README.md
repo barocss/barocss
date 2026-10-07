@@ -501,3 +501,31 @@ Camera/edge updates and resize retain it only for the same accepted packet.
 Changed geometry clears the old binding until the host supplies the new range.
 The lighting getter reports the fixed direction/ambient/diffuse values used by
 the original mesh shader. No editable light/shadow/scene grammar is added.
+
+## Empty or mesh viewport (private editor)
+
+`mountMeshViewport(canvas, options)` starts with a real opaque empty framebuffer,
+without a placeholder mesh, shader, native Surface or document. It reuses the
+original renderer's context and staged framebuffer lifecycle. `state.kind` is
+`empty` or `mesh`; each state getter returns owned display data. Mesh states
+include the accepted packet, edge overlay and resolved face/object selection;
+empty states contain none of these. Existing `mountMesh` still requires a valid
+nonempty packet.
+
+`update(packet, options, overlay?, selection?)` accepts the original packet/options
+and optional `{face, object}` highlight records. Omitted records are retained only
+for the same packet; `selection: null` clears both highlights. `clear(options?)`
+commits a validated empty background and releases old geometry resources.
+Both return `UpdateResult` and retain the accepted frame, options and selection
+when admission or actual GL allocation fails. `setCamera(camera)` also returns
+`UpdateResult`; `resize(width, height)` and `render()` preserve empty state.
+`readPixels()` observes the real displayed framebuffer. `dispose()` is idempotent.
+Camera/resize do not resurrect cleared geometry, and the canvas/context remain
+stable across empty/mesh transitions. Context loss requires mounting a new viewport.
+
+Run `node examples/cad-preview/mesh-viewport-smoke.mjs`, then open its printed
+localhost URL. This one source-only browser flow uses the original own CAD Box,
+observes its actual position upload and pixels, clears geometry, injects a real
+framebuffer allocation refusal, and checks retained state and resource cleanup.
+The host exits with the posted browser result. This is bounded lifecycle evidence;
+commercial editor interaction and hardware performance remain separate scopes.
