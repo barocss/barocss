@@ -4091,3 +4091,87 @@ results. No external backend or mesh intersection is used. GPU display and picki
 remain separate. periodic:false, geometricValidity:not-certified,
 topologyCertified:false and solid:false remain explicit. General intersection,
 Boolean/solid certification and commercial CAD parity remain pending.
+
+## Own finite-wall clipping of plane/cylinder sections
+
+`intersectFiniteXYCirclePrismWallWithPlane(shellBundle, options)` uses the original
+circle-cylinder shell and the same explicit plane/curve/pcurve/evaluation IDs as
+the transverse-plane intersection. It admits finite wall pieces where a genuine
+native rational section crosses the wall's bottom or top axial boundary. The
+original public `intersectXYCirclePrismWallWithPlane` still requires a strictly
+contained full section. A small internal constructor supplies the common derived
+infinite-support section, plane and genuine dual UV curves before finite-wall
+admission. This derived provenance is not a completed finite-wall intersection.
+
+For each original rational quadratic quarter, the clipping equations are the
+actual homogeneous Bernstein numerators Z-0*W and Z-height*W. Positive weights
+make numerator zero equivalent to the axial boundary equation. Degree reduction,
+all-zero equations and unsafe or ambiguous root arithmetic require explicit
+outcomes. The algorithm uses bounded root refinement, with at most64 steps per
+root, a parameter-width target1e-12 and local native point/binding observations
+within1e-7 mm. These are finite prototype numerical policies. They are not exact
+algebraic roots or certified global tolerances.
+
+Original rational parameters remain authority. Distinct close events cannot be
+silently merged; identical quarter-boundary parameters may share an event while
+the seam retains separate0 and4 UV endpoints. Actual section evaluations classify
+intervals. Kept native XYZ, plane UV and wall UV restrictions use the same original
+parameter domain and the existing `splitCurveAtParameter` operation. Native
+coefficients/weights/knots and child source/split provenance remain explicit.
+Original quarter C0 derivative refusals remain visible.
+
+A crossing endpoint can use an inward represented root-bracket endpoint only as
+an explicitly labeled interval approximation. Its bracket, root residual,
+parameter offset and actual dual-surface/domain observations remain recorded.
+The section is not snapped to a cap, and the UV is not clamped. Returned numeric
+endpoints do not establish exact cap topology or sew cap loops. Unresolved event
+order, strict surface-domain admission or unsafe arithmetic refuses the candidate
+atomically. At most24 pieces and24 contact events are supported.
+
+Outputs distinguish curve segments, disjoint, isolated touch and coincident
+boundary. A horizontal section exactly on a cap can be a coincident-boundary
+result, without a unique trim or solid claim. Native mm piece geometry is written
+as actual source0 Models with real plane/cylinder Surfaces. UV/binding artifacts
+remain separate owned data and are passed back through the result validator after
+file readback. Prior authored/native/source results remain reusable after edits
+or invalid candidate refusal. No new public Part grammar or display renderer.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/own-plane-cylinder-clipped-demo.mjs --source
+```
+
+The source flow uses original circle centre[2,-3]/radius4: height6 with z=x+1
+crosses both axial levels; height10 with z=x+6 clips at the top. A plane edit uses
+the same authored IDs and a new evaluation token. Narrow existing horizontal/
+oblique witnesses preserve the original full-section family. Cardinal/seam
+contact, horizontal z0 coincidence and above-wall z12 are recorded honestly.
+General surface intersections, cap-loop sewing, Boolean operations, solid
+certification and commercial CAD parity remain pending. External engines,
+angle/mesh intersections and numeric endpoint repair are not used.
+
+The owned result contains `kind`, shell/options, plane/wallSurface,
+`derivedSupport`, events, pieces and report. The derived support labels its
+unrestricted section/dual UV/homogeneous spans explicitly. Each finite piece
+contains pieceId/domain, native curve/bindings, source0/model, endpoint
+approximation metadata and actual observations. Each contact event records its
+boundary/level, crossing or touch kind, native parameter, bracket/iterations/
+residual, original homogeneous equation provenance and separate seam endpoint
+representation. Per-piece source Models contain `[curve, plane, wallSurface]`;
+there is no oversized aggregate Model. Isolated point contacts remain explicit
+contact data rather than invented point Curves.
+
+`validateFiniteXYCirclePrismPlaneIntersection(result)` reconstructs the staged
+native result and refuses altered intervals, UV, source or contact metadata.
+`endpointApproximations` distinguishes inward numeric endpoints from unchanged
+original endpoints. The output keeps the original plane/curve/evaluation IDs and
+native parameter intervals; derived piece IDs do not certify persistent topology.
+
+Strictly same-sign actual Bernstein coefficients exclude roots on that quarter
+before discriminant analysis. This positive-basis control-hull proof avoids a
+false ambiguity from a double root outside the native quarter domain. The report
+labels that exclusion policy. Mixed or zero coefficient cases still use the
+explicit endpoint/root-bracket/ambiguity rules. `originalDerivativeGuards` records
+three actual original section/pcurve/wall SurfaceD1 attempts at1,2,3, separately
+from valid clamped derivative evaluations on restricted pieces. No guard is
+relaxed merely because a quarter endpoint becomes a child Curve endpoint.

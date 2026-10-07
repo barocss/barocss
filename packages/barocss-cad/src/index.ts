@@ -112,3 +112,6 @@ export { tessellateOwnPlateCircularHole, validateOwnNativeFaceMesh, validateOwnP
 export type { OwnPlateHolePreviewContext, OwnPlateHolePreviewOptions, OwnPlateHolePreviewFaceProvenance, OwnPlateHolePreviewReport, OwnPlateHolePreviewResult, OwnNativeFaceMesh, OwnNativeFaceMeshChunk } from './own-plate-circular-hole-preview.js';
 export { intersectXYCirclePrismWallWithPlane, validateXYCirclePrismPlaneIntersection } from './own-plane-cylinder-intersection.js';
 export type { XYCirclePrismPlaneIntersectionOptions, XYCirclePrismPlaneBindings, PlaneCylinderCurveD1State, PlaneCylinderSurfaceD1State, PlaneCylinderIntersectionObservation, PlaneCylinderHomogeneousSpan, XYCirclePrismPlaneIntersectionReport, XYCirclePrismPlaneSection, XYCirclePrismPlaneDisjoint, XYCirclePrismPlaneIntersectionResult } from './own-plane-cylinder-intersection.js';
+export { intersectFiniteXYCirclePrismWallWithPlane, validateFiniteXYCirclePrismPlaneIntersection } from './own-plane-cylinder-clipped.js';
+export type { FinitePlaneCylinderEquation, FinitePlaneCylinderBoundaryEvent, FinitePlaneCylinderEndpointApproximation, FinitePlaneCylinderPiece, FiniteXYCirclePrismPlaneIntersectionReport, FiniteXYCirclePrismPlaneIntersectionResult } from './own-plane-cylinder-clipped.js';
+export type { FinitePlaneCylinderOriginalDerivativeGuard } from './own-plane-cylinder-clipped.js';
