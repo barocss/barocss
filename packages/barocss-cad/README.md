@@ -4258,3 +4258,77 @@ refuses before coincidence classification. True represented zero and cancellatio
 remain allowed. The source example includes one native-valid tiny-coordinate/
 positive-weight input that triggers this refusal and retains prior native/source
 state; it does not normalize that input into a coincident Curve.
+
+## Own multiple-span NURBS Curve / affine Plane Surface intersection
+
+`intersectCurveWithAffinePlaneSurface(originalCurve, originalPlane, options)`
+extends the existing native Bezier/Plane primitive to an authored clamped
+nonperiodic rational degree1/2 Curve. It admits at most12 original poles and8
+nonzero original knot spans, with positive native weights and original parameter
+domain. Existing `splitCurveAtParameter` extracts actual native Bezier spans at
+represented original internal knots, through its actual knot insertion when
+needed. Temporary16-pole limits remain unchanged. Unsupported degree, discontinuity,
+unsafe arithmetic or an operation outside those budgets refuses without repair.
+
+Options contain exactly evaluationId/derivedSpanIds/pointEventIds. Derived span
+IDs match the actual1..8 span count. One to sixteen point IDs bound consolidated
+support events. Original Curve/Plane, evaluation, span and event IDs are globally
+distinct. Internal temporary identities are separate. No source ID, authored
+pole/weight/knot or native domain is normalized or changed.
+
+Every real child span calls `intersectBezierCurveWithAffinePlaneSurface` with the
+actual original Plane. Its source, geometry, root evidence and native UV remain
+explicit. Each event is re-evaluated on the ORIGINAL complete Curve; original
+point and derivative states remain accepted authority. Original/extracted point
+comparisons and actual Plane Surface binding residuals are observed. The inherited
+Gram/UV-boundary/coefficient-underflow/tangent refusal policy remains unchanged.
+
+Only exactly equal original parameters at shared internal knots consolidate into
+one knot-event. Both span contributions, actual child and original points/D1,
+brackets and one-sided neighboring evidence remain available. An inherited child
+endpoint is not a global crossing or tangent merely by its label. Original C0
+D1 refusals remain visible even when a newly clamped span endpoint differentiates.
+Equal world points at different parameters do not merge; the native circle's0/4
+seam remains two parameter events.
+
+The result owns original curve/plane/options, full source0/model, actual extraction
+provenance, spans, consolidated events and report. Its kinds include isolated,
+support-disjoint, finite-disjoint, coincident-spans and mixed. A coincident child
+span is an interval with control-hull-contained or finite-containment-not-proven
+semantics. It does not make the entire original Curve coincide or establish a
+unique finite trim. Outside support events remain distinct from bounded face hits.
+Maximum32 contributions/16 consolidated events/8 spans are operation budgets,
+not a validation matrix.
+
+Each actual span keeps its original domain, source0/model and whole existing
+Bezier/Plane intersection result. Original full Curve+Plane geometry and derived
+span geometry write/read/compile complete native coefficient/order/ID/knot/domain/
+weight/sign data. Owned extraction/contribution/UV results are read back and passed
+to `validateCurveAffinePlaneIntersection`. Altered source/native extraction,
+contribution, UV, bracket or identity refuses while previous accepted source/result
+remain reusable. No invented Part grammar, resampling or authored point projection.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/own-multispan-curve-plane-demo.mjs --source
+```
+
+The source flow uses the actual four-quarter rational circle and a true vertical
+Plane Surface, including exact shared-knot consolidation, original derivative
+refusal and separate0/4 seam. An authored nonuniform/nonunit-weight quadratic on
+a nonzero domain and same-ID edit retain original parameter authority. Smaller
+finite patches, mixed coincident/noncoincident intervals and disjoint support have
+explicit outcomes. Genuine inherited tangent uncertainty may refuse atomically.
+Public637/638/639 remain unchanged. Higher-degree/general intersections, exact
+tangent predicates, coincident finite clipping, trimming/sewing, Boolean/solid
+certification and commercial CAD parity remain pending. Flags remain
+geometricValidity:not-certified/topologyCertified:false/solid:false.
+
+`extraction` stores each actual `{parameter, result:CurveParameterSplitResult}`.
+The event contributions retain the whole child Bezier event plus original/child
+point and derivative states. Side observations sample a represented midpoint
+between the event and nearest other span root or boundary on that side. Whole
+results use131072 own values/depth24, arrays1024, records32 and bounded source
+strings; inputs retain their smaller plain-data guards. Authored IDs are ASCII1..48.
+Inserting or splitting beyond inherited16 temporary poles refuses. These records
+are observed derivation data, not a global continuity or accuracy certificate.

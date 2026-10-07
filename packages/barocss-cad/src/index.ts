@@ -117,3 +117,5 @@ export type { FinitePlaneCylinderEquation, FinitePlaneCylinderBoundaryEvent, Fin
 export type { FinitePlaneCylinderOriginalDerivativeGuard } from './own-plane-cylinder-clipped.js';
 export { intersectBezierCurveWithAffinePlaneSurface, validateBezierCurveAffinePlaneIntersection } from './own-curve-plane-intersection.js';
 export type { BezierCurveAffinePlaneIntersectionOptions, BezierCurveAffinePlaneIntersectionReport, BezierCurveAffinePlaneIntersectionResult, BezierCurvePlanePointEvent, CurveAffinePlaneAxes, CurvePlaneD1State } from './own-curve-plane-intersection.js';
+export { intersectCurveWithAffinePlaneSurface, validateCurveAffinePlaneIntersection } from './own-multispan-curve-plane.js';
+export type { CurveAffinePlaneIntersectionOptions, CurveAffinePlaneSpan, CurvePlaneSpanContribution, CurvePlaneSideObservation, CurvePlanePointEvent, CurveAffinePlaneIntersectionReport, CurveAffinePlaneIntersectionResult } from './own-multispan-curve-plane.js';
