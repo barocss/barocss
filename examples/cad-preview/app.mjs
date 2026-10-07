@@ -1,3 +1,4 @@
+import {createSurfaceNetEditor} from '/surface-net-editor.mjs';
 import { parseProject, serializeProject, projectByteLimit } from '/project.mjs';
 import { bindMouseOrbit } from '/orbit.mjs';
 import * as cad from '/cad.js';
@@ -5,7 +6,7 @@ import * as gpu from '/gpu.js';
 import { createPreviewController } from '/pipeline.mjs';
 import { fixtures, constructionFixtures, objectFixtures, parameterFixture, controlPointEdit, weightEdit, vectorEdit, constructionWeightEdit } from '/fixtures.mjs';
 const $ = id => document.getElementById(id);
-let primitiveDraft=false,parameterDraft=false;
+let primitiveDraft=false,parameterDraft=false,netEditor;
 const canvas = $('preview');
 const allFixtures = [...fixtures, ...constructionFixtures, ...objectFixtures, parameterFixture];
 const controller = createPreviewController(canvas, cad, gpu, (message, accepted) => {
@@ -15,7 +16,7 @@ const controller = createPreviewController(canvas, cad, gpu, (message, accepted)
     const { packet,report,options,revision,viewRevision } = accepted;
     $('summary').textContent = `Accepted model revision ${revision} · view revision ${viewRevision} · ${packet.surfaceId}\nCanonical bounds (mm): ${JSON.stringify(packet.bounds)}\nScene units/mm: ${options.mmToSceneUnit} · translation: ${JSON.stringify(options.translate)}\nVertices: ${packet.positions.length/3} · triangles: ${packet.indices.length/3}\nSampled maximum distance (mm): ${report.maxSampledDeviationMM}\nFinite samples only · certified: ${report.certified}`;
     $('source-version').value=String(accepted.sourceVersion ?? 0);
-    renderObjects();if(!parameterDraft)renderParameters();if(!primitiveDraft)renderPrimitive();renderScene(accepted);updateEditorState();
+    renderObjects();if(!parameterDraft)renderParameters();if(!primitiveDraft)renderPrimitive();renderScene(accepted);netEditor?.sync(accepted);updateEditorState();
     $('details').textContent = JSON.stringify({sourceVersion:accepted.sourceVersion??0,constructions:accepted.constructions,selectedConstruction:accepted.selectedConstruction,model:accepted.model,report,camera:options.camera??'Original fixed default'},null,2);
   }else{
     $('scene-title').textContent='No accepted surface';$('scene-meta').textContent='No native geometry adopted';
@@ -34,8 +35,8 @@ function settings() {
   const camera=controller.snapshot()?.options.camera;
   return {sourceVersion:Number($('source-version').value),surfaceId:$('surface').value,countU:Number($('count-u').value),countV:Number($('count-v').value),options:{mmToSceneUnit:Number($('scale').value),translate:$('translate').value.split(',').map(Number),color:$('color').value.split(',').map(Number),background:$('background').value.split(',').map(Number),...(camera ? {camera} : {})}};
 }
-function applyEditor() { const result=controller.apply($('source').value,settings());$('source').setAttribute('aria-invalid',String(!result.ok));updateEditorState();return result; }
-function select(id) {
+function applyEditor() { if(netEditor?.pending)return netEditor.apply();const result=controller.apply($('source').value,settings());$('source').setAttribute('aria-invalid',String(!result.ok));updateEditorState();return result; }
+function select(id) {if(netEditor?.pending){$('fixture').value=controller.snapshot().packet.surfaceId;messageSurface('Apply or discard pending pole edits before choosing another example.');return{ok:false};}
   const fixture=allFixtures.find(value=>(value.selectorId??value.id)===id);
   if (!fixture) throw new RangeError('Unknown example');
   fields(fixture);$('fixture').value=id;
@@ -54,7 +55,7 @@ function edit(transform) {
 $('control-edit').addEventListener('click',()=>edit(controlPointEdit));
 $('weight-edit').addEventListener('click',()=>edit(Number($('source-version').value)===1 ? constructionWeightEdit : weightEdit));
 $('vector-edit').addEventListener('click',()=>edit(vectorEdit));
-$('fine').addEventListener('click',()=>{ $('count-u').value=33;$('count-v').value=17;applyEditor(); });
+$('fine').addEventListener('click',()=>{ $('count-u').value=33;$('count-v').value=17;if(netEditor?.state().available)applyGrid();else applyEditor(); });
 $('export').addEventListener('click',()=>{
   const accepted=controller.snapshot();if(!accepted||!controller.available)return;
   const url=URL.createObjectURL(new Blob([accepted.iges.iges],{type:'application/iges'}));
@@ -92,7 +93,7 @@ $('parameter-weight-index').addEventListener('change',()=>{
   const state=controller.parameterState(),index=Number($('parameter-weight-index').value);
   if(state&&Number.isInteger(index)&&index>=0&&index<state.indexCount)$('parameter-weight-value').value=String(state.weights[index]);
 });
-$('parameter-apply').addEventListener('click',()=>{
+$('parameter-apply').addEventListener('click',()=>{if(netEditor?.pending){messageSurface('Apply or discard pending pole edits first.');return;}
   try {
     const request={vector:['x','y','z'].map(axis=>numberField(`parameter-vector-${axis}`)),weight:{index:numberField('parameter-weight-index'),value:numberField('parameter-weight-value')}};
     const result=controller.applyParameters(request,$('source').value);
@@ -132,7 +133,7 @@ function renderPrimitive(){
  $('primitive-state').textContent=owned?`Accepted ${owned.kind} · ${owned.size} × ${owned.height} mm · displayed #surface`:'Update requires a matching tool-created surface';
 }
 $('primitive-kind').addEventListener('change',()=>{$('primitive-size-label').textContent=$('primitive-kind').value==='sheet'?'Width · mm':'Radius · mm';});
-function primitiveAction(update){
+function primitiveAction(update){if(netEditor?.pending){messageSurface('Apply or discard pending pole edits first.');return{ok:false};}
  try{const dimensions={size:numberField('primitive-size'),height:numberField('primitive-height')};const result=update?controller.updateDimensions(dimensions,$('source').value):controller.createPrimitive({kind:$('primitive-kind').value,...dimensions},$('source').value);
  if(result.ok){primitiveDraft=false;renderPrimitive();const accepted=controller.snapshot(),owned=controller.primitiveState();$('source').value=accepted.source;$('surface').value=accepted.packet.surfaceId;$('source-version').value='1';$('count-u').value=accepted.report.grid.countU;$('count-v').value=accepted.report.grid.countV;$('scale').value=accepted.options.mmToSceneUnit;$('translate').value=accepted.options.translate.join(',');$('color').value=accepted.options.color.join(',');$('background').value=accepted.options.background.join(',');$('primitive-kind').value=owned.kind;$('primitive-kind').dispatchEvent(new Event('change'));cameraFields(accepted.options.camera??defaultCamera);updateEditorState();}
  else $('status').textContent=`Creation rejected: ${result.error}. Accepted state retained.`;
@@ -180,7 +181,7 @@ function renderProperties(inspection){
 }
 
 function renderHistory(pending=false){
- const state=controller.historyState();$('history-undo').disabled=pending||!state.canUndo;$('history-redo').disabled=pending||!state.canRedo;
+ const state=controller.historyState();pending=pending||Boolean(netEditor?.pending);$('history-undo').disabled=pending||!state.canUndo;$('history-redo').disabled=pending||!state.canRedo;
  $('history-count').textContent=state.count?`State ${state.cursor+1} of ${state.count} · Undo ${state.undoCount} · Redo ${state.redoCount}`:'No accepted model history';
 }
 for(const direction of ['undo','redo'])$('history-'+direction).addEventListener('click',()=>{
@@ -205,13 +206,14 @@ $('project-save').addEventListener('click',()=>{
 let opening=false;
 $('project-open').addEventListener('change',async()=>{
  if(opening)return;
+ if(netEditor?.pending||primitiveDraft||parameterDraft){$('project-status').textContent='Open rejected: Apply or discard pending controls first.';$('project-open').value='';return;}
  opening=true;
  try{
   const file=$('project-open').files[0];if(!file)throw new Error('Choose a local project file');
   if(file.size>projectByteLimit)throw new RangeError('Project file exceeds 300 KiB');
   const text=new TextDecoder('utf-8',{fatal:true}).decode(await file.arrayBuffer());
-  const record=parseProject(text,gpu),result=controller.loadProject(record,$('source').value);
-  if(!result.ok)throw new Error(result.error);
+  const record=parseProject(text,gpu),native=cad.compileCadModel(record.source,{sourceVersion:record.sourceVersion});if(!native.ok)throw Error('Native source rejected: '+native.diagnostics[0].message);const result=controller.loadProject(record,$('source').value);
+  if(!result.ok)throw new Error('Display rejected: '+result.error+' Native source is valid.');
   refreshProjectFields();$('project-status').textContent=`Opened ${file.name}. Accepted source and settings restored.`;
  }catch(error){$('project-status').textContent=`Open rejected: ${error.message}. Accepted scene and staged fields retained.`;}
  finally{opening=false;$('project-open').value='';}
@@ -221,7 +223,12 @@ const mouseOrbit=bindMouseOrbit(canvas,controller,cameraFields);
 $('surface-edges').addEventListener('change',()=>{const result=controller.setEdges($('surface-edges').checked);if(!result.ok){$('surface-edges').checked=controller.edgesEnabled;$('status').textContent=result.error;}});
 for(const id of ['primitive-kind','primitive-size','primitive-height'])$(id).addEventListener('input',()=>{primitiveDraft=true;});
 for(const id of ['parameter-vector-x','parameter-vector-y','parameter-vector-z','parameter-weight-value'])$(id).addEventListener('input',()=>{parameterDraft=true;});
-const editorBridge={get pending(){return primitiveDraft||parameterDraft||Boolean(controller.snapshot()&&$('source').value!==controller.snapshot().source);},apply(){if($('source').value!==controller.snapshot()?.source)return applyEditor();if(parameterDraft){$('parameter-apply').click();return;}if(primitiveDraft)return primitiveAction(Boolean(controller.primitiveState()));return applyEditor();},discard(){primitiveDraft=false;parameterDraft=false;$('discard-source').click();renderPrimitive();renderParameters();},newDocument(){primitiveDraft=false;parameterDraft=false;return select(fixtures[0].id);},fit(){const a=controller.snapshot(),bounds=a.packet.bounds,points=[bounds.min,bounds.max].map(p=>p.map((n,i)=>n*a.options.mmToSceneUnit+a.options.translate[i])),target=points[0].map((n,i)=>(n+points[1][i])/2),distance=Math.max(.01,...points[0].map((n,i)=>points[1][i]-n))*2.5;return controller.setCamera({eye:target.map((n,i)=>n+[.5,.4,.8][i]*distance),target,up:[0,1,0],fovYDegrees:45,near:.0001,far:Math.max(100,distance*10)});}};
-window.cadPreview={editor:editorBridge,setEdges:enabled=>controller.setEdges(enabled),historyState:()=>controller.historyState(),undo:source=>controller.undo(source),redo:source=>controller.redo(source),projectState:()=>controller.projectState(),loadProject:(record,editorSource)=>controller.loadProject(record,editorSource),primitiveState:()=>controller.primitiveState(),createPrimitive:(request,editorSource)=>controller.createPrimitive(request,editorSource),updateDimensions:(request,editorSource)=>controller.updateDimensions(request,editorSource),parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>{mouseOrbit.dispose();controller.dispose();},get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
+const editorBridge={get pending(){return Boolean(netEditor?.pending)||primitiveDraft||parameterDraft||Boolean(controller.snapshot()&&($('source').value!==controller.snapshot().source||Number($('source-version').value)!==(controller.snapshot().sourceVersion??0)));},apply(){if(netEditor?.pending)return netEditor.apply();if($('source').value!==controller.snapshot()?.source)return applyEditor();if(parameterDraft){$('parameter-apply').click();return;}if(primitiveDraft)return primitiveAction(Boolean(controller.primitiveState()));return applyEditor();},discard(){netEditor?.discard();primitiveDraft=false;parameterDraft=false;$('discard-source').click();refreshProjectFields();renderPrimitive();renderParameters();},newDocument(){return netEditor.newDocument();},fit(){const a=controller.snapshot(),bounds=a.packet.bounds,points=[bounds.min,bounds.max].map(p=>p.map((n,i)=>n*a.options.mmToSceneUnit+a.options.translate[i])),target=points[0].map((n,i)=>(n+points[1][i])/2),distance=Math.max(.01,...points[0].map((n,i)=>points[1][i]-n))*2.5;return controller.setCamera({eye:target.map((n,i)=>n+[.5,.4,.8][i]*distance),target,up:[0,1,0],fovYDegrees:45,near:.0001,far:Math.max(100,distance*10)});}};
+window.cadPreview={editor:editorBridge,netState:()=>netEditor.state(),setEdges:enabled=>controller.setEdges(enabled),historyState:()=>controller.historyState(),undo:source=>controller.undo(source),redo:source=>controller.redo(source),projectState:()=>controller.projectState(),loadProject:(record,editorSource)=>controller.loadProject(record,editorSource),primitiveState:()=>controller.primitiveState(),createPrimitive:(request,editorSource)=>controller.createPrimitive(request,editorSource),updateDimensions:(request,editorSource)=>controller.updateDimensions(request,editorSource),parameterState:()=>controller.parameterState(),applyParameters:(request,editorSource)=>controller.applyParameters(request,editorSource),inspectObject:id=>controller.inspectObject(id),showSurface:id=>controller.showSurface(id),objects:()=>controller.objects(),inspection:()=>controller.inspection(),get inspectedId(){return controller.inspectedId;},setCamera:camera=>controller.setCamera(camera),apply:(source,options)=>controller.apply(source,options),select,snapshot:()=>controller.snapshot(),readPixels:()=>controller.readPixels(),shaders:()=>controller.shaders(),resize:(w,h)=>controller.resize(w,h),dispose:()=>{mouseOrbit.dispose();controller.dispose();},get renderer(){return controller.renderer;},get status(){return controller.status;},get available(){return controller.available;}};
 window.addEventListener('pagehide',()=>{mouseOrbit.dispose();controller.dispose();},{once:true});
-select(fixtures[0].id);
+function messageSurface(text){$('status').textContent=text;updateEditorState();}
+function otherSurfaceDraft(){const a=controller.snapshot();return primitiveDraft||parameterDraft||Boolean(a&&($('source').value!==a.source||Number($('source-version').value)!==(a.sourceVersion??0)));}
+netEditor=createSurfaceNetEditor(controller,cad,{otherDraft:otherSurfaceDraft,refreshFields:refreshProjectFields,message:messageSurface});
+function applyGrid(){const a=controller.snapshot();try{const countU=Number($('count-u').value),countV=Number($('count-v').value);if(!Number.isInteger(countU)||!Number.isInteger(countV)||countU<2||countU>64||countV<2||countV>64)throw Error('Grid must be integer2–64 per axis.');const result=controller.apply(a.source,{sourceVersion:a.sourceVersion??0,surfaceId:a.packet.surfaceId,countU,countV,options:a.options});if(!result.ok)throw Error(result.error);messageSurface('Grid view updated. Native Surface and pole drafts retained.');}catch(error){$('count-u').value=String(a.report.grid.countU);$('count-v').value=String(a.report.grid.countV);messageSurface('Display grid rejected: '+error.message);}}
+for(const id of ['count-u','count-v'])$(id).addEventListener('change',()=>{if(netEditor.state().available)applyGrid();});
+select(fixtures[0].id);netEditor.newDocument();

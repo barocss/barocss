@@ -935,3 +935,47 @@ pixels, GL0 and backend. A final affected GPU artifact build is separate. Broade
 validation is deferred. This is an open global-Z full-turn positive-radius
 Surface, without apex/caps/trim/shell/solid, picking/gizmo/history or mixed-scene
 certification. Source packages stay private; no release/publication is involved.
+
+## Direct Surface control-net editing (#626)
+
+The existing Surface tool (`/workspace.html#surface`, `pnpm dev:cad`) starts with
+one nonplanar weighted degree2 3×3 source0 patch. New creates this original direct
+coefficient project. Select a U/V pole pair in the left list, then stage X/Y/Z mm
+or dimensionless weight. Select further pairs and Apply sends only explicitly
+requested fields, at most16 unique pairs, to actual editSurfaceControlNet619.
+Original ID/degrees/knots/domains/count/order/unrequested bits and -0 remain.
+The original source compiler/tessellator/boundaries/GPU transaction accepts the
+whole candidate before adopted source/project/native/frame/selection changes.
+
+Direct controls require one accepted source0 Surface, degrees1–3/grids2–16,
+native coordinate ±10000mm and weight1e-6..1e6 limits. Source1/multi-object or
+unsupported states keep their original inspection/source/view/project behavior,
+with direct pole controls unavailable. Literal copied Surfaces are detached
+coefficient authority; generated feature ancestors are not reverse-written.
+No pole Add/Remove, degree/knot/refinement/split/iso or drag-gizmo tool is added.
+
+Existing `barocss-cad-project` version1 remains the file format. Save uses actual
+accepted project serialization, source0 coefficient authority and primitive:null,
+excluding drafts/packet/cache. Open retains strict300KiB project/256KiB source
+limits and the original sign serializer. Genuine source1 projects remain
+supported. Native errors and valid-native display/Float32/normal refusal retain
+the previous accepted native/frame/camera and pole drafts, without healing.
+
+Grid2–64 per axis, Fit/orbit/wheel/resize and boundary view retain pole drafts.
+The four original oriented509 parameter-boundary Curves are used, without grid
+or triangle diagonal/topology invention. Existing area-weighted faceted normals
+and finite sampled deviation remain approximation observations, not certificates.
+
+One focused source-native-project-file-upload-pixel flow:
+
+```sh
+PW_DIR=<installed-playwright-runtime> CHROME=<installed-chrome> BAROCSS_SURFACE_NET_EVIDENCE=<fresh-output-dir> node examples/cad-preview/surface-control-net-editor-smoke.mjs
+```
+
+No CAD dependency build or dist gate is required. One final GPU artifact build is
+separate. The flow covers staged multi-pair edits, actual619/source/packet/upload
+and changed pixels, unrequested bits/signs, genuine accepted-only project files,
+view/draft/dirty/error retention, one source1 compatibility observation, released
+previous renderer buffers/framebuffer, backend/GL0 and desktop/compact captures.
+It does not test every256-pole/4096-vertex case or commercial correctness. Broader
+validation remains deferred. No new native schema/kernel or dependency is added.
