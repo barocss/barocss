@@ -2960,3 +2960,66 @@ reference repair/removal, full replacements, actual original projection/binding
 comparisons and file readback, plus one ordinary596k8 display packet. Broader
 validation, interactive lifecycle UI, general solver/topology/Boolean operations,
 exchange and assemblies remain separate work.
+
+## Original driven circle and quarter profile lifecycle
+
+`editDrivenSketchCircleFeatureGraphProfiles(document, edits)` adds, updates and
+removes original circle/quarter profiles in the existing authored driven graph1.
+It returns the same owned `DrivenSketchCircleFeatureGraphResult`.
+
+```js
+const next = cad.editDrivenSketchCircleFeatureGraphProfiles(document, {
+  profileOperations: [
+    { kind: 'upsert', profile: {
+      id: 'circle_C', kind: 'circle', centerId: 'C_center', centerMM: [30, 2],
+      radius: { id: 'C_radius', definition: { kind: 'parameter', parameterId: 'r' } },
+      seamId: 'C_seam',
+    } },
+    { kind: 'remove', profileId: 'circle_A' },
+  ],
+  featureOperations: [
+    { kind: 'upsert', feature: { ...document.features[0], profileId: 'circle_C' } },
+  ],
+});
+```
+
+Explicitly repair every remaining feature using a removed circle. The API does
+not clone, retarget or cascade features. New circles may reference fresh forward
+length parameters and fresh features in the same complete candidate.
+
+Required profileOperations1..16 reuse the exact original driven profile shapes.
+Optional present parameterOperations1..16 and featureOperations1..8 reuse original
+staging rules. Each target occurs once; remove resolves a starting profile. New
+profiles append with fresh profile/centre/radius/seam/endpoint identities. Existing
+profile IDs/kinds/centre IDs/radius dimension IDs/slots remain; circle seam IDs and
+quarter quadrants/endpoint IDs/order remain. Existing upsert changes only literal
+centre and radius definition. Circle radius has one literal-or-length authority;
+quarter radius is literal-only. Kind/orientation conversion and rename refuse.
+
+Working16 profiles/16 parameters/8 features permit complete replacements before
+final0..8 profiles/1..8 parameters/1..4 features are checked. Each final feature
+references an admitted circle; unused quarters do not supply extrusion caps.
+All profiles/parameters/suppressed references receive complete native admission.
+No intermediate count, radius, dependency or partial native candidate is adopted.
+
+Starting authored and actual generated roles stay reserved after deletion.
+New authored IDs are distinct from old and fresh transaction slots; actual final
+generated descendants are checked against both original role maps, retaining
+only intentional source/shell aliases and stable same-entity descendants. Actual
+original587/554 rational curves and601/599/595 native outputs remain authoritative.
+The canonical driven graph1 serializer/parser stays unchanged, with authored-only
+IDs/order/definitions/booleans/signed zero and no projection/operation/result cache.
+Native edit/file admission imports no596 or Float32 display gate. Failed candidates
+retain caller data and previous whole native results.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/driven-circle-profile-lifecycle-demo.mjs /tmp/barocss-driven-circle-profile-lifecycle-prototype
+```
+
+The short prototype demo exercises original circle/quarter authoring, shared
+radius and feature reference repairs, eight-for-eight profile replacement, actual
+original source/coefficient/domain/UV/binding comparisons and file readback, plus
+one ordinary596k8 packet. This adds no drawing/snapping UI, general constraints,
+Boolean, exchange or assembly. Reports remain not-certified/solid:false; broader
+validation remains deferred.
