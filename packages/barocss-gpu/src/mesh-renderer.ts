@@ -10,9 +10,14 @@ import type { MeshEdgeOverlay, PreparedMeshEdges } from './edge-overlay.js';
 import {prepareFaceHighlight} from './face-highlight.js';
 import type {MeshFaceHighlight} from './face-highlight.js';
 
+import {prepareObjectHighlight} from './object-highlight.js';
+import type {MeshObjectHighlight} from './object-highlight.js';
+const LIGHTING=Object.freeze({kind:'fixed-directional-and-ambient',direction:Object.freeze([-.6,.8,1]),ambientStrength:.35,diffuseStrength:.65});
+
 type Mesh = ReturnType<typeof requireMeshExecution>;
 interface Resources {
   highlight: MeshFaceHighlight | null;
+  objectHighlight: MeshObjectHighlight | null;
   mesh: Mesh; program: WebGLProgram | null; vao: WebGLVertexArrayObject | null;
   buffers: WebGLBuffer[]; framebuffer: WebGLFramebuffer | null;
   color: WebGLTexture | null; depth: WebGLRenderbuffer | null;
@@ -45,7 +50,7 @@ in vec3 worldNormal;
 uniform vec3 color;
 out vec4 outputColor;
 void main(){
- float light=0.35+0.65*max(dot(normalize(worldNormal),normalize(vec3(-0.6,0.8,1.0))),0.0);
+ float light=${LIGHTING.ambientStrength.toFixed(2)}+${LIGHTING.diffuseStrength.toFixed(2)}*max(dot(normalize(worldNormal),normalize(vec3(${LIGHTING.direction.map(n=>n.toFixed(1)).join(',')}))),0.0);
  outputColor=vec4(pow(pow(color,vec3(2.2))*light,vec3(1.0/2.2)),1.0);
 }`,
 };
@@ -82,6 +87,8 @@ export class MeshRenderer {
   get options(): MeshOptions { this.live(); return structuredClone(this.accepted!.mesh.options); }
   get edgeOverlay(): MeshEdgeOverlay | null { this.live(); return this.accepted!.edges ? structuredClone(this.accepted!.edges.overlay) : null; }
   get faceHighlight():MeshFaceHighlight|null {this.live();return this.accepted!.highlight&&structuredClone(this.accepted!.highlight);}
+  get objectHighlight():MeshObjectHighlight|null {this.live();return this.accepted!.objectHighlight&&structuredClone(this.accepted!.objectHighlight);}
+  get lighting() {return structuredClone(LIGHTING);}
   get revision(): number { this.live(); return this.accepted!.mesh.packet.revision; }
   get shaders(): SceneShaders { this.live(); return { ...SHADERS }; }
   private live(): void {
@@ -96,11 +103,11 @@ export class MeshRenderer {
     if (error !== this.gl.NO_ERROR) throw new GPUError(`WebGL2 error 0x${error.toString(16)}`);
     if (this.gl.isContextLost()) throw new GPUError('WebGL2 context is lost');
   }
-  private create(mesh: Mesh, width: number, height: number, edges: PreparedMeshEdges | null, highlight:MeshFaceHighlight|null): Resources {
+  private create(mesh: Mesh, width: number, height: number, edges: PreparedMeshEdges | null, highlight:MeshFaceHighlight|null,objectHighlight:MeshObjectHighlight|null=null): Resources {
     this.live(); this.check();
     const camera = prepareCamera(mesh.options.camera, width / height);
     const gl = this.gl;
-    const resources: Resources = { highlight, mesh, program: null, vao: null, buffers: [], framebuffer: null, color: null, depth: null, width, height, edges, edgeProgram: null, edgeVao: null };
+    const resources: Resources = { highlight, objectHighlight, mesh, program: null, vao: null, buffers: [], framebuffer: null, color: null, depth: null, width, height, edges, edgeProgram: null, edgeVao: null };
     const shaders: WebGLShader[] = [];
     try {
       for (const [kind, text] of [[gl.VERTEX_SHADER, SHADERS.vertex], [gl.FRAGMENT_SHADER, SHADERS.fragment]] as const) {
@@ -147,6 +154,12 @@ export class MeshRenderer {
       gl.uniform3fv(gl.getUniformLocation(resources.program, 'color'), mesh.options.color);
       if (edges) { gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, 1); }
       gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
+      if(objectHighlight){
+        gl.uniform3fv(gl.getUniformLocation(resources.program,'color'),objectHighlight.color);
+        gl.depthFunc(gl.EQUAL);gl.depthMask(false);
+        gl.drawElements(gl.TRIANGLES,objectHighlight.indexRange[1]-objectHighlight.indexRange[0],gl.UNSIGNED_SHORT,objectHighlight.indexRange[0]*2);
+        gl.depthMask(true);gl.depthFunc(gl.LESS);
+      }
       if(highlight){
         gl.uniform3fv(gl.getUniformLocation(resources.program, 'color'),highlight.color);
         gl.depthFunc(gl.EQUAL);gl.depthMask(false);
@@ -197,7 +210,7 @@ export class MeshRenderer {
     this.check();
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
-  update(packet: PreviewPacket, options: MeshOptions, overlay?: MeshEdgeOverlay | null, highlight?:MeshFaceHighlight|null): UpdateResult {
+  update(packet: PreviewPacket, options: MeshOptions, overlay?: MeshEdgeOverlay | null, highlight?:MeshFaceHighlight|null, objectHighlight?:MeshObjectHighlight|null): UpdateResult {
     let candidate: Resources | null = null;
     try {
       this.live(); const mesh = requireMeshExecution(packet, options);
@@ -205,7 +218,9 @@ export class MeshRenderer {
       const edges = prepareEdgeOverlay(overlay === undefined ? retained : overlay, mesh.packet, mesh.options);
       const oldFace=highlight===undefined&&sameMeshPacket(mesh.packet,this.accepted!.mesh.packet)?this.accepted!.highlight:null;
       const face=prepareFaceHighlight(highlight===undefined?oldFace:highlight,mesh.packet);
-      candidate = this.create(mesh, this.canvas.width, this.canvas.height, edges, face);
+      const retainedObject=objectHighlight===undefined&&sameMeshPacket(mesh.packet,this.accepted!.mesh.packet)?this.accepted!.objectHighlight:null;
+      const object=prepareObjectHighlight(objectHighlight===undefined?retainedObject:objectHighlight,mesh.packet);
+      candidate = this.create(mesh, this.canvas.width, this.canvas.height, edges, face, object);
       this.present(candidate);
       const previous = this.accepted!; this.accepted = candidate; this.release(previous);
       return { ok: true };
@@ -224,6 +239,10 @@ export class MeshRenderer {
       return this.update(this.accepted!.mesh.packet, this.accepted!.mesh.options, overlay);
     } catch (error) { return { ok: false, error: error instanceof Error ? error : new GPUError('Edge update failed') }; }
   }
+  setObjectHighlight(highlight:MeshObjectHighlight|null):UpdateResult {
+    try{this.live();if(highlight===undefined)throw new GPUError('Use null to clear object selection');return this.update(this.accepted!.mesh.packet,this.accepted!.mesh.options,undefined,undefined,highlight);}
+    catch(error){return{ok:false,error:error instanceof Error?error:new GPUError('Object selection failed')};}
+  }
   setFaceHighlight(highlight:MeshFaceHighlight|null):UpdateResult{
     try{this.live();if(highlight===undefined)throw new GPUError('Use null to clear highlight');return this.update(this.accepted!.mesh.packet,this.accepted!.mesh.options,undefined,highlight);}
     catch(error){return{ok:false,error:error instanceof Error?error:new GPUError('Highlight update failed')};}
@@ -233,7 +252,7 @@ export class MeshRenderer {
     let candidate: Resources | null = null;
     const previous = this.accepted!;
     try {
-      candidate = this.create(previous.mesh, width, height, previous.edges, previous.highlight);
+      candidate = this.create(previous.mesh, width, height, previous.edges, previous.highlight, previous.objectHighlight);
       this.canvas.width = width; this.canvas.height = height;
       if (this.gl.drawingBufferWidth !== width || this.gl.drawingBufferHeight !== height) throw new GPUError('Requested mesh buffer allocation failed');
       this.present(candidate); this.accepted = candidate; this.release(previous);

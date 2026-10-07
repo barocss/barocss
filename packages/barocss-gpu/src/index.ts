@@ -16,3 +16,5 @@ export type {GpuCompileInput,GpuCompileResult,GpuDiagnostic,GpuRenderIR,GpuExecu
 export type {SceneAst,SourceRange} from './scene-front.js';
 
 export type {MeshFaceHighlight} from './face-highlight.js';
+
+export type {MeshObjectHighlight} from './object-highlight.js';
