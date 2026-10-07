@@ -1,3 +1,5 @@
+import { createHomogeneousBernsteinEquation, solveHomogeneousBernsteinEquation } from './own-homogeneous-bernstein-roots.js';
+import type { HomogeneousBernsteinRoot } from './own-homogeneous-bernstein-roots.js';
 import { constructPlaneCylinderCandidate, constructPlaneCylinderBindings, same, adopt } from './own-plane-cylinder-intersection-internal.js';
 import type { OwnPlaneCylinderCandidate } from './own-plane-cylinder-intersection-internal.js';
 import type { XYCirclePrismShellBundle } from './xy-circle-prism-shell.js';
@@ -63,30 +65,10 @@ function allocator(candidate:OwnPlaneCylinderCandidate): (role:string)=>string {
   return role=>{for(let i=0;i<1024;i++){const id='__finite_'+role+'_'+serial++;check(id.length<=48,'bounded derived ID');if(!reserved.has(id)){reserved.add(id);return id;}}throw new Error('Own finite plane-cylinder clipping: fresh derived ID budget exhausted');};
 }
 function equation(quarter:number,values:number[]):FinitePlaneCylinderEquation {
-  const [f0,f1,f2]=values,a=finite(f0-2*f1+f2),b=finite(2*(f1-f0)),c=f0;
-  const degree=values.every(x=>x===0)?'zero':a!==0?'quadratic':b!==0?'linear':'constant';
-  const bb=finite(b*b),ac=finite(4*a*c),discriminant=degree==='quadratic'?finite(bb-ac):null,uncertainty=finite(32*Number.EPSILON*(Math.abs(bb)+Math.abs(ac)));
-  return{quarter,bernstein:values,power:[a,b,c],degree,discriminant,uncertainty};
+  return {quarter,...createHomogeneousBernsteinEquation(values,'Own finite plane-cylinder clipping')};
 }
-function bernstein(e:FinitePlaneCylinderEquation,t:number):number {const [a,b,c]=e.bernstein,s=1-t;return finite(finite(a*s*s)+finite(2*b*s*t)+finite(c*t*t));}
-interface Root {t:number;bracket:[number,number];iterations:number;touch:boolean}
-function roots(e:FinitePlaneCylinderEquation):Root[] {
-  // Positive Bernstein basis cannot cross a level when every actual homogeneous
-  // coefficient has the same strict sign. No outside-domain discriminant guess.
-  if(e.bernstein.every(x=>x>0)||e.bernstein.every(x=>x<0)){e.exclusionPolicy='strict-Bernstein-sign-control-hull-exclusion';return[];}
-  if(e.degree==='zero'||e.degree==='constant')return[];const [a,b,c]=e.power,estimated:number[]=[];
-  // Exact native endpoint coefficients are separate from discriminant ambiguity.
-  if(e.bernstein[0]===0){estimated.push(0);if(a!==0)estimated.push(finite(-b/a));}
-  else if(e.bernstein[2]===0){estimated.push(1);if(a!==0)estimated.push(finite(c/a));}
-  else if(e.degree==='linear')estimated.push(finite(-c/b));
-  else {const d=e.discriminant!;if(d < -e.uncertainty)return[];check(d>e.uncertainty,'unresolved interior tangent/discriminant ambiguity');const q=finite(-.5*(b+(b>=0?1:-1)*Math.sqrt(d)));check(q!==0,'stable quadratic root denominator not representable');estimated.push(finite(q/a),finite(c/q));}
-  for(const t of estimated)check(t!==0||e.bernstein[0]===0,'interior root rounded to quarter start');for(const t of estimated)check(t!==1||e.bernstein[2]===0,'interior root rounded to quarter end');
-  const ordered=[...new Set(estimated.filter(t=>t>=0&&t<=1))].sort((x,y)=>x-y);check(ordered.length<=2,'quadratic root count');
-  return ordered.map((estimate,index)=>{if(estimate===0||estimate===1){const tangent=estimate===0?e.bernstein[1]===0:e.bernstein[1]===0;return{t:estimate,bracket:[estimate,estimate],iterations:0,touch:tangent};}
-    let lo=index>0?midpoint(ordered[index-1],estimate):0,hi=index+1<ordered.length?midpoint(estimate,ordered[index+1]):1;
-    check(lo<estimate&&estimate<hi,'distinct root ordering not representable');let fl=bernstein(e,lo),fh=bernstein(e,hi);check(fl!==0&&fh!==0&&Math.sign(fl)!==Math.sign(fh),'root bracket sign/order unresolved');const sign=Math.sign(fl);let iterations=0;
-    while(hi-lo>WIDTH&&iterations<64){const mid=midpoint(lo,hi);check(mid>lo&&mid<hi,'root midpoint not representable');const fm=bernstein(e,mid);if(fm===0){const left=midpoint(lo,mid),right=midpoint(mid,hi);check(left>lo&&left<mid&&right>mid&&right<hi,'zero-root bracket not representable');const l=bernstein(e,left),r=bernstein(e,right);check((l===0||Math.sign(l)===sign)&&(r===0||Math.sign(r)!==sign),'zero-root bracket order unresolved');lo=left;hi=right;fl=l;fh=r;}else if(Math.sign(fm)===sign){lo=mid;fl=fm;}else{hi=mid;fh=fm;}iterations++;}
-    check(hi-lo<=WIDTH&&lo>0&&hi<1,'root bracket width/quarter ordering unresolved');return{t:midpoint(lo,hi),bracket:[lo,hi],iterations,touch:false};});
+function roots(e:FinitePlaneCylinderEquation):HomogeneousBernsteinRoot[] {
+  return solveHomogeneousBernsteinEquation(e,{parameterWidthTarget:WIDTH,label:'Own finite plane-cylinder clipping'});
 }
 function inDomain(surface:Surface,uv:Point):boolean {const d=surfaceDomain(surface);return uv[2]===0&&uv[0]>=d.u[0]&&uv[0]<=d.u[1]&&uv[1]>=d.v[0]&&uv[1]<=d.v[1];}
 function admitted(candidate:OwnPlaneCylinderCandidate,bindings:XYCirclePrismPlaneBindings,t:number):boolean {try{const point=evaluateCurve(candidate.section,t),p=evaluateCurve(bindings.plane.curve,t),w=evaluateCurve(bindings.wall.curve,t);if(point[2]<0||point[2]>candidate.shell.construction.heightMM||!inDomain(candidate.plane,p)||!inDomain(candidate.wallSurface,w))return false;return residual(point,evaluateSurface(candidate.plane,p[0],p[1]))<=TOL&&residual(point,evaluateSurface(candidate.wallSurface,w[0],w[1]))<=TOL&&Math.abs(w[0]-t)<=1e-12;}catch{return false;}}

@@ -4175,3 +4175,86 @@ explicit endpoint/root-bracket/ambiguity rules. `originalDerivativeGuards` recor
 three actual original section/pcurve/wall SurfaceD1 attempts at1,2,3, separately
 from valid clamped derivative evaluations on restricted pieces. No guard is
 relaxed merely because a quarter endpoint becomes a child Curve endpoint.
+
+## Own rational Bezier Curve / affine Plane Surface intersection
+
+`intersectBezierCurveWithAffinePlaneSurface(curve, plane, options)` handles one
+original nonperiodic clamped Bezier span of degree1 or2 against an actual affine
+rectangular degree1x1 Plane Surface. Positive rational Curve weights and the
+original parameter domain remain unchanged. Plane weights must be equal represented
+values, with independent finite U/V directions. Tilted and skew axes are supported;
+non-affine bilinear patches, degenerate axes, unsupported bases and unsafe arithmetic
+refuse. The operation evaluates original native geometry rather than a mesh.
+
+Options contain exactly `{evaluationId, pointEventIds}`. One to four explicit
+ASCII event IDs1..48 must be distinct from the original Curve/Plane/evaluation
+identities and cover all actual support events. The result owns unchanged original
+curve/plane/options, source0/model, events and report. Its kinds are isolated,
+support-disjoint, finite-disjoint and coincident-support. Evaluation IDs qualify
+individual results; approximate point events do not establish sewn topology or
+persistent naming across edits.
+
+The plane normal comes from its actual represented U/V axes. Actual homogeneous
+Bernstein coefficients are n dot(P_i-planeOrigin)*w_i. A small shared own root
+internal reuses the finite-cylinder quadratic arithmetic and accepts the actual
+two coefficients of a linear numerator without a dummy degree elevation. Reports
+retain degree reduction, strict-sign exclusion, discriminant uncertainty, original
+parameter/root bracket, refinement steps and residual observations. The policy
+allows at most64 refinement steps per root, an original-domain bracket-width
+target1e-12 and local point/binding comparison1e-7 mm. Ambiguous ordering/count/
+tangency or unrepresentable mapping refuses, without merging close distinct roots.
+An exact represented endpoint remains distinct from a numerical interior estimate.
+
+Each event evaluates the ORIGINAL Curve at its original root parameter. UV uses
+the Gram system of the original independent plane axes, including skew planes;
+the authored point remains unchanged. The ORIGINAL Surface is evaluated only if
+that UV lies within its native rectangle. Support roots outside that rectangle
+remain outside-domain events, with no finite face hit or invented Surface sample.
+Numerical UV-boundary uncertainty remains explicit. Side-distance observations and
+actual original CurveD1 states are separate from intersection acceptance.
+
+All-zero homogeneous coefficients label the original whole Curve as coincident
+with the plane support. Finite containment is proven only when the positive-weight
+original Curve control hull maps inside the actual rectangle. Otherwise finite
+clipping remains not-proven. The operation does not replace a coincident Curve
+with a unique trim, or silently treat its support as a bounded face.
+
+Actual source0 geometry is the unchanged `[Curve, Surface]` Model. Files are
+compiled through `compileCadModel` with complete native coefficient/order/ID/
+weight/knot/domain/sign identity. Owned event results are separate data, read back
+and supplied to `validateBezierCurveAffinePlaneIntersection`. The validator
+reconstructs geometry/root/UV/domain/source evidence and refuses changed events,
+brackets, UV or identities. Getters must not execute. Invalid candidates retain
+previous accepted native/source results.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/own-curve-plane-intersection-demo.mjs --source
+```
+
+The source flow includes a linear Curve on a tilted/skew plane, rational quadratic
+two-crossing support events, the same support against a smaller rectangle,
+endpoint/tangent/coincident/disjoint semantics and a same-ID pole or plane edit
+with a new evaluation token. Genuine numerical tangent uncertainty may refuse.
+One narrow existing finite-cylinder clipping witness checks shared root reuse;
+there is no parent replay. Original637/638 public admission semantics remain.
+No UV clamping, authored point repair, new Part grammar or renderer is introduced.
+geometricValidity:not-certified, topologyCertified:false and solid:false remain.
+General intersections, trimming/sewing, Boolean/solid certification and commercial
+CAD parity remain pending.
+
+Curve/plane/options inputs use4096 own values/depth8, arrays64, records16 and
+strings128. Native authored IDs are ASCII1..48. Result validation has its separate
+131072-value/depth24, arrays1024, records32 and bounded source-string budget,
+including nullable outside-domain Surface samples. Skew-axis admission refuses
+Gram determinants within the64-epsilon-scaled unsafe range. Events retain original
+Curve point semantics, actual bracket side observations and original D1 statuses.
+A root bracket must agree on finite-rectangle admission; a bracket that straddles
+a represented UV boundary refuses rather than forcing a hit.
+
+Nonzero dot-product terms and nonzero signed-distance times positive-weight
+coefficients must remain nonzero when represented. Actual underflow to zero
+refuses before coincidence classification. True represented zero and cancellation
+remain allowed. The source example includes one native-valid tiny-coordinate/
+positive-weight input that triggers this refusal and retains prior native/source
+state; it does not normalize that input into a coincident Curve.
