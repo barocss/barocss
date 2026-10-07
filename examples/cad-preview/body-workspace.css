@@ -20,3 +20,5 @@
 #circle-feature-workspace[hidden]{display:none}#circle-feature-workspace .body-layout{grid-template-columns:320px minmax(0,1fr)}#cg-status{font-size:12px;line-height:1.5;overflow-wrap:anywhere}#circle-feature-workspace fieldset{margin:12px 0;border:1px solid var(--line);padding:10px}#circle-feature-workspace summary{padding:12px 0;cursor:pointer;font-size:12px}#cg-empty{position:absolute;inset:45% 0 auto;text-align:center;color:#b7cbcf;pointer-events:none}
 
 #cg-parameters label[hidden]{display:none}
+
+#cg-parameter-add-fields label[hidden]{display:none}

@@ -736,3 +736,27 @@ browser/file/source→packet→accepted upload→PNG check. It covers Add/rebind
 shared numeric inputs, cancel/undo, four-for-four replacement, real accepted-only
 Save/Open, empty/active restore and native/display failure retention. Broader
 validation is deferred.
+
+## Circle height parameter authoring (prototype)
+
+Circle features now supports explicit length parameter Add, Remove, Undo and
+cancel of unapplied additions. Existing parameter IDs/type remain read-only;
+literal/offset definitions and references use candidate existing/new IDs. Missing
+references remain visible for explicit repair. Coalesced upsert/remove operations
+and feature/sketch repairs are passed to actual604 in one native transaction;
+there is no separate definition-edit channel or UI dependency evaluator.
+
+Up to16 working rows/parameter operations allow full8-for8 replacement. Final
+1–8 parameters/1–4 features, including unused and suppressed references, are
+admitted natively. Starting authored/generated IDs remain reserved within the
+draft; scoped source Model container names are not global parameter identities.
+Quality/orbit/edges preserve all drafts, and Discard clears them. Only accepted
+canonical graph0 is downloaded; actual Open rebuilds the complete native/display
+candidate, including empty all-suppressed state. Failures keep the old graph/view.
+Existing feature lifecycle and numeric shared-circle edits remain available.
+
+`circle-parameter-lifecycle-workspace-smoke.mjs` is the one affected CAD/GPU build
+and real UI/file/source-packet-upload-PNG flow. It covers forward references and
+repair, cancel/undo,16-operation replacement, actual Save/Open, empty restore and
+native/display failure retention. Broader validation is deferred. Driven radius
+GUI and general solver/assembly/Boolean/solid certification are separate scopes.
