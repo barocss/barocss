@@ -488,3 +488,16 @@ view. `examples/gpu-scene/torus-smoke.mjs` runs one affected-build actual source
 helper-distance, hole/annulus/rotation pixel and editor-retention flow. Software
 WebGL is permitted; broad validation and physical performance claims are deferred.
 This GPU SDF is separate from native CAD geometry or certified solids.
+
+## Host object selection (private editor)
+
+MeshRenderer.setObjectHighlight accepts null or an exact version0 record with the
+complete accepted packet, objectId, aligned nonempty indexRange and bounded RGB
+color. The host resolves native object identity and contiguous triangle range;
+GPU does not infer topology. Admission reuses strict own-data packet/range/color
+checks, rejects stale packets/getters and retains the previous frame on failure.
+Object tint is display-only and stays distinct from original face highlighting.
+Camera/edge updates and resize retain it only for the same accepted packet.
+Changed geometry clears the old binding until the host supplies the new range.
+The lighting getter reports the fixed direction/ambient/diffuse values used by
+the original mesh shader. No editable light/shadow/scene grammar is added.

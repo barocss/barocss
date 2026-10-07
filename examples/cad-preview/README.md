@@ -64,6 +64,49 @@ inputs, exact HEAD, original files, backend and screenshots are retained. This i
 software functional evidence; broader validation and physical performance are
 deferred. The probe must run in an isolated checkout, not a shared owner editor.
 
+## Direct object editing
+
+The toolbar now has Add Box / Add Circle prism, Select / Orbit, Move XY and zoom
+buttons. Add creates original native graph intent with a fresh profile, feature
+and independent literal height parameter, then selects it and fits the view. Box
+and circle families keep explicit document modes; no mixed-type project format
+or new native geometry evaluator is introduced. Native family limits still apply.
+
+Click an object row or its visible accepted preview triangles to select it. The
+original feature ID is shown in the list, viewport and Object inspector. The
+renderer tints that object's complete accepted triangle range; hidden geometry
+stays occluded and original face highlights stay separate. Preview picking is
+not a certified native topology query; equal-distance/coincident objects can be
+selected explicitly through the list. Object properties show only the selected
+profile and height. Document holds shared inputs and native structural/file
+controls; View shows quality and the actual fixed lighting constants. Shared
+profile/parameter dependencies remain linked and can affect their references.
+
+Drag normally to orbit. Wheel, +/− buttons, and focused-canvas +/− keys zoom by
+changing camera distance, keeping native intent and staged properties. Move XY
+changes the selected accepted native rectangle origin or circle centre through
+original whole-candidate updates. Boxes use their native whole-mm grid; circles
+use native finite-mm coordinates. Camera/mm mapping and unrelated local profiles
+are retained. Apply/Discard resolves drafts before movement or Add. Native/display
+refusal retains the previous accepted frame and fields for repair. This is XY
+workplane movement, not a free XYZ transform, gizmo, assembly or mesh-only file.
+
+Lighting is a fixed world direction [-.6,.8,1] with ambient .35 and diffuse .65,
+read from the actual renderer metadata and used by its shader. It is shown under
+View. It is not an editable scene Light object or a shadow engine.
+
+One focused source flow for this editor increment:
+
+```sh
+PW_DIR=<installed-playwright-runtime> CHROME=<installed-chrome> BAROCSS_EDITOR_SELECTION_EVIDENCE=<fresh-output-dir> node examples/cad-preview/editor-selection-smoke.mjs
+```
+
+It uses real wheel events, Add, list/canvas selection, selected properties,
+rectangle/circle dragging, unchanged other-object/camera checks, strict failed
+selection retention and genuine moved native graph download/read/Open. Existing
+installed Chrome/Playwright and original source host are used. No whole-gallery
+or numerical/performance campaign is implied.
+
 ## Separate build artifact host
 
 The historical static host still consumes explicit built private ESM artifacts.

@@ -89,5 +89,5 @@ function activate(){
 addEventListener('hashchange',activate);
 addEventListener('resize',()=>{if(renderer&&!unavailable&&!disposed&&!$('circle-prism-workspace').hidden)renderer.resize(...dims());});
 addEventListener('pagehide',()=>{disposed=true;release(renderer,orbit,canvas);},{once:true});
-window.circlePrismWorkspace={snapshot:()=>accepted&&structuredClone({...accepted,packet:renderer.packet,edgeOverlay:renderer.edgeOverlay,options:renderer.options,quality,intentRevision,displayRevision,viewRevision,pending}),readPixels:()=>renderer.readPixels(),get renderer(){return renderer;}};
+window.circlePrismWorkspace={editor:{get position(){return accepted?.native.document.sketch.profiles[0].centerMM.slice();},moveTo(position){['cp-x','cp-y'].forEach((id,i)=>{$(id).value=String(position[i]);});pending=true;return apply();}},snapshot:()=>accepted&&structuredClone({...accepted,packet:renderer.packet,edgeOverlay:renderer.edgeOverlay,options:renderer.options,quality,intentRevision,displayRevision,viewRevision,pending}),readPixels:()=>renderer.readPixels(),get renderer(){return renderer;}};
 activate();

@@ -92,13 +92,13 @@ function refreshButtons() {
   for (const id of fieldIds) $(id).disabled = opening;
   $('body-save').disabled = opening || !accepted;
 }
-function adopt(document) {
+function adopt(document, retainView = false) {
   if (disposed || unavailable || opening) return { ok: false, error: 'View unavailable or a file is opening.' };
   try {
     const result = cad.evaluateAxisRectangleFeatureDocument(document);
     const sizes = result.document.parameters.map(parameter => parameter.valueMM);
     if (sizes.slice(0, 2).some(value => Math.abs(value) > 300) || sizes.slice(2).some(value => value < 1 || value > 300)) throw Error('Outside prototype dimension limits.');
-    const packet = packetFor(result, revision + 1), options = optionsFor(packet);
+    const packet = packetFor(result, revision + 1), options = retainView && renderer ? renderer.options : optionsFor(packet);
     const edges = edgesEnabled ? bodyEdges(result.evaluation, packet, cad) : null;
     if (renderer) {
       const update = renderer.update(packet, options, edges?.overlay ?? null);
@@ -117,11 +117,11 @@ function adopt(document) {
     return { ok: false, error: error.message };
   }
 }
-function applyValues(create = false) {
+function applyValues(create = false, retainView = false) {
   try {
     const edits = values().map((valueMM, i) => ({ parameterId: parameterIds[i], valueMM }));
     const result = cad.editAxisRectangleFeatureDocument(create || !accepted ? initial : accepted.document, edits);
-    return adopt(result.document);
+    return adopt(result.document, retainView);
   } catch (error) { message('Cannot apply this box. Use integer sizes 1–300 mm and origins within ±300 mm.'); return { ok: false, error: error.message }; }
 }
 function download(text, type, filename) {
@@ -189,6 +189,7 @@ addEventListener('hashchange', activate);
 addEventListener('resize', () => { if (!disposed && renderer && !unavailable && !$('body-workspace').hidden) renderer.resize(...dimensions()); });
 addEventListener('pagehide', () => { disposed = true; orbit?.dispose(); renderer?.dispose(); }, { once: true });
 window.boxWorkspace = {
+  editor:{get position(){return accepted&&['_rect_ox','_rect_oy'].map(id=>accepted.document.parameters.find(p=>p.id===id).valueMM);},moveTo(position){['body-x','body-y'].forEach((id,i)=>{$(id).value=String(Math.round(position[i]));});return applyValues(false,true);}},
   get pending(){return dirty();}, newDocument:()=>adopt(initial), fitView:()=>{const result=renderer.update(renderer.packet,optionsFor(renderer.packet));if(result.ok)viewRevision++;return result;},
   applyValues, loadDocument: document => adopt(document),
   snapshot: () => accepted && structuredClone({ ...accepted, packet: renderer.packet, options: renderer.options, edgeOverlay: renderer.edgeOverlay, revision, viewRevision }),
