@@ -1030,3 +1030,36 @@ view/draft/dirty/error retention, one source1 compatibility observation, release
 previous renderer buffers/framebuffer, backend/GL0 and desktop/compact captures.
 It does not test every256-pole/4096-vertex case or commercial correctness. Broader
 validation remains deferred. No new native schema/kernel or dependency is added.
+
+## Own plate with a circular through hole
+
+The same React/shadcn Part editor supports **Add body → Plate with hole**.
+Edit Width, Depth, Thickness, Hole X/Y and Radius. Width/depth/thickness are integer
+millimetres. The native hole must remain strictly inside the plate. This supported
+shell candidate is not certified as a solid. Box and Cylinder remain supported.
+
+Select a real displayed face to see its native face/body/revision and face tint.
+Native face chunks come from the own plate tessellator and qualified GPU bridge;
+edge paths sample shared native boundary Curves, not triangulation diagonals.
+A geometry or instance placement change invalidates stale displayed face context.
+
+Scene v1 stores the accepted native request, stable authored IDs, XYZ translation,
+X→Y→Z rotation, local positive scale and view. It excludes mesh/bundle/report,
+face proof, pending edits, Undo history and GPU resources. Earlier scene v0 files
+still open with identity rotation/scale. Geometry dimensions stay local; instance
+transforms retain the current editor's conventions. Undo/Redo and Apply/Discard/
+Cancel use the same document transaction. Native/display refusal retains the
+accepted document, face context, frame, selection and history.
+
+Focused source evidence:
+
+```sh
+pnpm --filter @barocss/cad-editor-example build
+BAROCSS_PLATE_EVIDENCE=<fresh-output-directory> node examples/cad-preview/scene-plate-hole-smoke.mjs
+```
+
+The controlled collector observes actual editor pointer/file actions and native
+GPU buffers. Save evidence is the actual Save Blob payload read into a clearly
+collector-created file and reopened through the real Open chooser. OS Downloads
+completion remains unverified in the current browser automation environment.
+Broad parent suites, numerical/topology certification and release checks are deferred.
