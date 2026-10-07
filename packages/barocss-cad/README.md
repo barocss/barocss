@@ -4008,3 +4008,86 @@ their original result context. The native source flow is separate from the
 artifact build and GPU browser/pixel evidence. General topology naming across
 Boolean operations, a public Part grammar and commercial project serialization
 remain pending.
+
+## Own transverse affine-plane / circular-cylinder intersection
+
+`intersectXYCirclePrismWallWithPlane(shellBundle, options)` intersects an original
+`buildXYCirclePrismShell` wall with the graph
+`z = slopeX*x + slopeY*y + zInterceptMM`. The plane spans the original circle's
+represented XY support rectangle. Slopes are finite within[-1,1], and intercept
+is within[-10000,10000] mm. Explicit curveId/planeId/planePcurveId/wallPcurveId
+and evaluationId are distinct ASCII IDs1..48 and cannot collide with native shell
+identities. The evaluation token qualifies one owned result; it does not provide
+persistent naming across geometry changes.
+
+```js
+const shell = cad.buildXYCirclePrismShell({
+  kind: 'circle', id: 'section_circle', center: [2, -3], radius: 4,
+}, {shellId: 'section_shell', heightMM: 10});
+const section = cad.intersectXYCirclePrismWallWithPlane(shell.bundle, {
+  curveId: 'intersection_curve', planeId: 'intersection_plane',
+  planePcurveId: 'intersection_plane_uv', wallPcurveId: 'intersection_wall_uv',
+  evaluationId: 'evaluation_oblique', slopeX: .2, slopeY: -.1, zInterceptMM: 4.5,
+});
+```
+
+The native section retains the original circle's quadratic degree, knot domain,
+weights, XY coefficients and closed endpoints. Its Z coefficients are the actual
+affine plane elevation. A horizontal section is a circle; an oblique section is
+its planar ellipse. The original cylinder Surface and all parent data remain
+unchanged. The constructed degree1 plane Surface uses actual represented support
+spans. Full sections return `kind:'intersection'`, curve/plane/wallSurface,
+owned shell/options, source/sourceVersion0/Model, dual UV bindings and report.
+
+Plane UV is an affine mapping of the original rational circle coefficients.
+Cylinder UV requires different algebra: its U coordinate is native parameter t,
+not a circle angle. In each original quadratic Bezier span t=q+s, multiply the
+original denominator W(s) by q+s to obtain a cubic U numerator. Elevate the
+original denominator and the weighted section Z/height numerator to degree3.
+Project those three homogeneous coefficient sets into a genuine cubic UV Curve.
+Four spans share exact original endpoints, with13 poles and original quarter
+boundaries at0,1,2,3,4. Interior knot multiplicity is3; original section knots and
+weights are not normalized or replaced. The wall pcurve is not a naive copy of
+the circle's quadratic parameter coordinates. Its seam UV endpoints0 and4 remain
+distinct while the native XYZ endpoint is closed.
+
+Admission uses a documented sufficient axial bound from the section's positive
+weight control hull. A full curve requires minZ>0 and maxZ<original height.
+Strict minZ>height or maxZ<0 proves a conservative disjoint result with plane/wall
+source geometry and its bound. Touching, mixed or partial hulls refuse. A failed
+full-containment bound never implies disjointness. Vertical planes, clipping,
+other intersection branches, general NURBS intersections and topology sewing
+are outside this operation.
+
+Seventeen actual native observations include endpoints, quarter knots and span
+interiors. The 3D Curve is compared with both Surface(pcurve) evaluations, and the
+wall U is compared with t. Actual CurveD1/pcurve D1/SurfaceD1 states are recorded;
+existing C0 quarter-knot derivative refusals remain explicit. Successful tangent
+chains use the actual surface partials and pcurve derivatives. Local1e-7 mm and
+1e-12 parameter comparisons are observed prototype checks, not a global error
+certificate. Reports retain original IDs/domains, represented spans, sufficient
+control hull bounds, each homogeneous span and separate seam representations.
+
+`validateXYCirclePrismPlaneIntersection(result)` reconstructs this bounded family
+and refuses changed geometry, UV binding, evaluation token, source or report.
+Own-data limits are131072 values/depth24, arrays1024, records32 and bounded source
+strings. Getter/hidden/foreign/sparse/symbol/cyclic/unknown/malformed/unsafe data
+refuse without caller mutation. Actual source0 geometry contains section Curve,
+plane Surface and original cylinder Surface in that order. Disjoint source has
+plane and cylinder only. Source file adoption preserves complete native IDs,
+coefficients/order/weights/knots/signs. UV bindings remain separate owned artifacts,
+with no mm-source relabeling, fake Surface or new public Part grammar.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/own-plane-cylinder-intersection-demo.mjs --source
+```
+
+The source example uses original circle centre[2,-3]/r4/height10, horizontal z5,
+oblique slopes.2/-.1/intercept4.5 and a same-ID intercept5 rebuild with a new
+explicit evaluation token. Actual files, dual-surface UV, tangents, seam, disjoint
+z12, mixed/touching/invalid inputs and altered binding refusal preserve prior
+results. No external backend or mesh intersection is used. GPU display and picking
+remain separate. periodic:false, geometricValidity:not-certified,
+topologyCertified:false and solid:false remain explicit. General intersection,
+Boolean/solid certification and commercial CAD parity remain pending.
