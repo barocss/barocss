@@ -4565,3 +4565,69 @@ Lines, Plane]`; interior pieces need only actual Curve/Plane geometry. Original
 sources contain the whole Curve, all original Lines and Plane. No UV source/model
 is exported as millimetre geometry. Numeric inward endpoints carry all incident
 brackets/estimates/offsets and actual halfspace values.
+
+## Own affine Plane face with a convex native trim loop
+
+`buildConvexPlanarFace(plane, loop, {faceId, evaluationId, resultIdPrefix,
+orientation})` constructs an owned face from the actual affine Plane and3..8
+ordered finite native Line Curves. Shared internal Plane/loop admission derives
+real original Gram axes, homogeneous Line coplanarity, represented XYZ closure,
+native UV rectangle membership and strict convexity. No synthetic Curve probe is
+used to admit a face. Native sources retain original Plane/Line IDs/order/poles/
+weights/knots/domains/signed zero. Existing511 fixed four-boundary face remains
+unchanged; this face owns an actual nonrectangular convex trim.
+
+Each generated topological vertex holds its original represented XYZ point; each
+edge references its actual Line Curve ID, endpoint vertex IDs and original native
+parameter interval. Edge uses retain direction and a genuine dimensionless UV
+pcurve with original Line basis/domain/weights. Face references actual Surface ID
+and authored outer loop. Caller face/evaluation/prefix identities are distinct from
+original geometry/loop IDs, with deterministic checked vertex/edge/use/pcurve roles.
+
+Authored CW/CCW source order remains unchanged. Canonical outer-use traversal is
+CCW in native UV for forward face sense and CW for reverse. Opposite author/sense
+combination reverses USE order/direction/vertex traversal, not original Line data.
+Actual original Line(t)=Surface(pcurve(t)) and LineD1/SurfaceD1 chain tangents are
+observed at both endpoints and interior samples, with traversal signs and oriented
+face normal recorded. Cyclic vertex incidence is validated; it is not geometry,
+topology or solid certification.
+
+`classifyConvexPlanarFaceUV(face, [u,v])` returns inside/boundary/outside using the
+actual native chart and strict-convex trim halfspaces. Surface point is evaluated
+only in the original Plane rectangle. Outside-chart queries retain null native
+Surface point. A boundary carries every applicable original edge/use/native Line
+parameter; a corner retains BOTH incident edges. Exact represented zero is distinct
+from ambiguous nonzero near-zero determinants, which refuse instead of snapping.
+Face-sense and authored-loop reversal preserve the geometric region and explicitly
+change directed pcurve/use/normal evidence. No 3D point projection, ray or mesh test.
+
+Actual source0 Model is `[original Plane, authored native Lines]`. Owned face/loop/
+vertex/edge-use/pcurve topology is separate from source grammar. Dimensionless UV
+is not mm source geometry. `validateConvexPlanarFace` reconstructs the owned result
+and refuses changed source/UV/domain/interval/use direction/vertex/loop/identity/
+accessor data without mutating earlier accepted native/source results.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/own-convex-planar-face-demo.mjs --source
+```
+
+The source flow uses actual tilted/skew triangle boundaries and an independent
+nonrectangular quadrilateral with nonunit native Plane/Line domains, authored
+CCW/CW and both face senses. Source/pcurve incidence, native point/D1, inside/
+outside/boundary/corner and honest near-boundary ambiguity are measured. Exact
+original source files and owned numeric topology JSON preserve lexical -0 and
+roundtrip through compiler/validator. A single compatible645 consumer in this new
+flow verifies the necessary shared loop admission reuse, without parent replay.
+No triangulation/UI/extrusion/holes/nonconvex/curved trims/sewn B-Rep/Boolean/solid
+or commercial certification. Flags remain incidenceValid for admitted loop only,
+geometricValidity:not-certified/topologyCertified:false/solid:false.
+
+Native face construction/rebuild guards32768 own values/depth16, arrays256,
+records32 and bounded source strings; inputs retain4096/depth8 own-data guards.
+Three to eight vertices/edges/uses/pcurves remain explicit. Prefix1..20 generates
+`_v_<i>`, `_e_<i>`, `_use_<i>`, `_uv_<i>` by original authored edge index after
+collision checks. Boundary classification returns use/pcurve/Curve IDs, original
+native Line parameter, traversal sense and actual LineD1 binding. Outside-domain
+has null point/normal and performs no native Surface evaluation; chart-admitted
+outside-trim queries retain the actual Plane point without a finite face hit.

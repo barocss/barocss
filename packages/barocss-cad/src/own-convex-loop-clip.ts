@@ -1,3 +1,4 @@
+import { admitConvexNativeLineLoop } from './own-affine-plane-loop-internal.js';
 import { validateCurve, curveDomain, evaluateCurve, evaluateSurface } from './math.js';
 import { evaluateCurveD1 } from './derivatives.js';
 import { splitCurveAtParameter } from './curve-parameter-split.js';
@@ -124,13 +125,7 @@ export function clipCurveWithConvexLineLoop(curveInput:Curve,loopInput:ConvexNat
   let serial=0;const temporary=():string=>{let value:string;do{check(++serial<=2048,'bounded temporary source/split context');value=role('_t'+serial);}while(reserved.has(value));reserved.add(value);return value;};
   const edgeResults=edges.map((edge,index)=>intersectCoplanarCurveWithLineSegment(c,edge,p,{evaluationId:role('_e'+index+'_eval'),derivedSpanIds:Array.from({length:breaks.length-1},(_,i)=>role('_e'+index+'_s'+i)),spanBindingIds:Array.from({length:breaks.length-1},(_,i)=>role('_e'+index+'_u'+i)),pointEventIds:Array.from({length:16},(_,i)=>role('_e'+index+'_p'+i)),overlapIds:Array.from({length:32},(_,i)=>role('_e'+index+'_o'+i)),overlapBindingIds:Array.from({length:32},(_,i)=>role('_e'+index+'_b'+i)),boundaryContactIds:Array.from({length:64},(_,i)=>role('_e'+index+'_c'+i))}));
   const axes=edgeResults[0].report.planeAxes;check(edgeResults.every(result=>same(result.report.planeAxes,axes)),'all native edges must bind the same actual Plane axes');
-  const verticesUV=edges.map(edge=>uvOf(edge.controlPoints[0],axes));
-  for(let i=0;i<verticesUV.length;i++)for(let j=i+1;j<verticesUV.length;j++)check(verticesUV[i][0]!==verticesUV[j][0]||verticesUV[i][1]!==verticesUV[j][1],'repeated native UV loop vertex refused');
-  const first=determinant(delta(verticesUV[1],verticesUV[0]),delta(verticesUV[2],verticesUV[0]));check(Math.abs(first.value)>first.threshold,'first directed determinant is uncertain or collinear');const sign=first.value>0?1:-1,orientation:ConvexLineLoopClipResult['orientation']=sign===1?'ccw':'cw',convexityEvidence:ConvexLineLoopClipResult['convexityEvidence']=[];
-  for(let i=0;i<edges.length;i++)for(let j=0;j<verticesUV.length;j++){
-    if(j===i||j===(i+1)%verticesUV.length)continue;const observation=determinant(delta(verticesUV[(i+1)%verticesUV.length],verticesUV[i]),delta(verticesUV[j],verticesUV[i]));
-    check(sign*observation.value>observation.threshold,'every nonadjacent vertex must lie strictly inside every directed edge; unsafe/concave/self-crossed loop refused');convexityEvidence.push({edgeIndex:i,vertexIndex:j,determinant:observation.value,unsafeThreshold:observation.threshold});
-  }
+  const {verticesUV,orientation,convexityEvidence}=admitConvexNativeLineLoop(edges,axes,LABEL),sign=orientation==='ccw'?1:-1;
   const halfspaces=(uv:Point):number[]=>verticesUV.map((vertex,i)=>finite(sign*determinant(delta(verticesUV[(i+1)%verticesUV.length],vertex),delta(uv,vertex)).value));
   const admitted=(uv:Point):boolean=>inRectangle(uv,axes)&&halfspaces(uv).every(value=>value>=0);
   const spans:ConvexLoopClipSpan[]=edgeResults[0].parent.spans.map((span,index)=>{const curve=copyCadData(span.curve);curve.id=role('_s'+index);const uvCurve:Curve={kind:'curve',id:role('_u'+index),degree:curve.degree,knots:copyCadData(curve.knots),weights:copyCadData(curve.weights),controlPoints:curve.controlPoints.map(point=>uvOf(point,axes))};validateCurve(curve);validateCurve(uvCurve);return{spanId:curve.id,originalDerivedSpanId:span.spanId,domain:span.domain,curve,uvCurve,coordinateSystem:'uv'};});
