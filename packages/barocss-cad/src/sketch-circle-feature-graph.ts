@@ -22,6 +22,11 @@ export interface SketchCircleFeatureLifecycleEdits {
   featureOperations: SketchCircleFeatureOperation[];
   parameterEdits?: SketchCircleFeatureGraphEdits['parameterEdits']; sketchEdits?: XYArcSketchDocumentEdit[];
 }
+export type SketchCircleParameterOperation = { kind: 'upsert'; parameter: SketchCircleLengthParameter } | { kind: 'remove'; parameterId: string };
+export interface SketchCircleParameterLifecycleEdits {
+  parameterOperations: SketchCircleParameterOperation[];
+  featureOperations?: SketchCircleFeatureOperation[]; sketchEdits?: XYArcSketchDocumentEdit[];
+}
 export interface SketchCircleResolvedParameter { id: string; type: 'length'; valueMM: number; dependencyIds: string[]; order: number }
 export interface SketchCircleFeatureBindings {
   kind: 'derived-one-circle-projection'; graphDocumentId: string; graphSketchId: string; featureId: string; profileId: string; shellId: string;
@@ -92,6 +97,11 @@ function definition(input: unknown, label: string, path: string): SketchCircleLe
   return kind === 'literal' ? { kind, valueMM: length(data.valueMM, label, path + '.valueMM') }
     : { kind, parameterId: identifier(data.parameterId, label, path + '.parameterId'), offsetMM: length(data.offsetMM, label, path + '.offsetMM') };
 }
+function admitParameter(input: unknown, label: string, path: string): SketchCircleLengthParameter {
+  const p = record(input, ['id', 'type', 'definition'], label, path), pid = identifier(p.id, label, path + '.id');
+  check(p.type === 'length', label + ' parameter #' + pid, path + '.type', 'length parameter required');
+  return { id: pid, type: 'length', definition: definition(p.definition, label + ' parameter #' + pid, path + '.definition') };
+}
 function admitFeature(input: unknown, label: string, path: string): SketchCircleGraphFeature {
   const f = record(input, ['id', 'kind', 'profileId', 'shellId', 'distanceParameterId', 'suppressed'], label, path), fid = identifier(f.id, label, path + '.id'), owner = label + ' feature #' + fid;
   const profileId = identifier(f.profileId, owner, path + '.profileId'), shellId = identifier(f.shellId, owner, path + '.shellId');
@@ -104,9 +114,7 @@ function admit(input: unknown, label: string): SketchCircleFeatureGraphV0 {
   const id = identifier(data.id, label, '$.id');
   check(Array.isArray(data.parameters) && data.parameters.length >= 1 && data.parameters.length <= 8, label, '$.parameters', '1..8 fractional typed length parameters required');
   const parameters = data.parameters.map((value, index): SketchCircleLengthParameter => {
-    const path = '$.parameters[' + index + ']', p = record(value, ['id', 'type', 'definition'], label, path), pid = identifier(p.id, label, path + '.id');
-    check(p.type === 'length', label + ' parameter #' + pid, path + '.type', 'length parameter required');
-    return { id: pid, type: 'length', definition: definition(p.definition, label + ' parameter #' + pid, path + '.definition') };
+    return admitParameter(value, label, '$.parameters[' + index + ']');
   });
   check(Array.isArray(data.features) && data.features.length >= 1 && data.features.length <= 4, label, '$.features', '1..4 original circle extrusion features required');
   const features = data.features.map((value, index): SketchCircleGraphFeature => {
@@ -242,6 +250,38 @@ export function updateSketchCircleFeatureGraph(document: SketchCircleFeatureGrap
     return evaluate(admit(candidate, label), label);
   });
 }
+function applyFeatureOperations(candidate: SketchCircleFeatureGraphV0, operations: unknown[], startingFeatures: Map<string, SketchCircleGraphFeature>, reserved: Set<string>, label: string): void {
+  const targets = new Set<string>();
+  for (const [index, input] of operations.entries()) {
+    const path = '$edits.featureOperations[' + index + ']';
+    check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'feature operation record required');
+    const kind = (input as Record<string, unknown>).kind;
+    check(kind === 'upsert' || kind === 'remove', label, path + '.kind', 'upsert/remove required');
+    const operation = record(input, kind === 'upsert' ? ['kind', 'feature'] : ['kind', 'featureId'], label, path);
+    const next = kind === 'upsert' ? admitFeature(operation.feature, label, path + '.feature') : undefined;
+    const id = next ? next.id : identifier(operation.featureId, label, path + '.featureId'), owner = label + ' feature #' + id;
+    check(!targets.has(id), owner, path, 'target feature appears more than once in transaction'); targets.add(id);
+    const previous = startingFeatures.get(id), slot = candidate.features.findIndex(f => f.id === id);
+    if (next) {
+      if (previous) {
+        check(previous.kind === next.kind && previous.shellId === next.shellId && slot >= 0, owner, path + '.feature.kind/shellId', 'existing feature kind/shell identity and slot must remain'); candidate.features[slot] = next;
+      } else {
+        check(!reserved.has(next.id) && !reserved.has(next.shellId) && next.id !== next.shellId, owner, path + '.feature.id/shellId', 'new feature/shell identities must be fresh relative to starting/new authored/selectable native IDs');
+        check(candidate.features.length < 8, owner, path, 'bounded working feature array cannot exceed8');
+        reserved.add(next.id); reserved.add(next.shellId); candidate.features.push(next);
+      }
+    } else {
+      check(!!previous && slot >= 0, owner, path + '.featureId', 'remove must resolve a starting feature'); candidate.features.splice(slot, 1);
+    }
+  }
+}
+function reserveSketchIdentities(candidate: SketchCircleFeatureGraphV0, startingAuthored: Map<string, string>, reserved: Set<string>, label: string): void {
+  for (const [id, role] of authoredRoles(candidate, label)) {
+    if (!['source:', 'center:', 'radius:', 'seam:', 'endpoint:'].some(prefix => role.startsWith(prefix))) continue;
+    const originalRole = startingAuthored.get(id);
+    check(originalRole === role || originalRole === undefined && !reserved.has(id), label, '$edits.sketchEdits.ids #' + id, 'new sketch identity cannot recycle starting/removed authored or selectable native identity or new feature/shell identity'); reserved.add(id);
+  }
+}
 export function editSketchCircleFeatureGraphFeatures(document: SketchCircleFeatureGraphV0, edits: SketchCircleFeatureLifecycleEdits): SketchCircleFeatureGraphResult {
   const label = context(document);
   return guard(label, () => {
@@ -250,42 +290,60 @@ export function editSketchCircleFeatureGraphFeatures(document: SketchCircleFeatu
     // per-Model container name is intentionally absent from this global pool.
     const candidate = evaluate(admit(document, label), label, selectableNative).document;
     const startingAuthored = authoredRoles(candidate, label), startingFeatures = new Map(candidate.features.map(f => [f.id, copyCadData(f)]));
-    const reserved = new Set([...startingAuthored.keys(), ...selectableNative.keys()]), targets = new Set<string>();
+    const reserved = new Set([...startingAuthored.keys(), ...selectableNative.keys()]);
     const value = snapshot(edits, label, '$edits');
     check(value !== null && typeof value === 'object' && !Array.isArray(value), label, '$edits', 'feature lifecycle edit record required');
     const data = value as Record<string, unknown>, keys = Object.keys(data);
     check(Object.hasOwn(data, 'featureOperations') && keys.length <= 3 && keys.every(key => ['featureOperations', 'parameterEdits', 'sketchEdits'].includes(key)), label, '$edits', 'required featureOperations and optional parameterEdits/sketchEdits only');
     check(Array.isArray(data.featureOperations) && data.featureOperations.length >= 1 && data.featureOperations.length <= 8, label, '$edits.featureOperations', 'ordered1..8 feature operations required');
     for (const key of ['parameterEdits', 'sketchEdits']) if (Object.hasOwn(data, key)) check(Array.isArray(data[key]) && (data[key] as unknown[]).length <= 8, label, '$edits.' + key, 'optional0..8 existing input edits required');
-    for (const [index, input] of data.featureOperations.entries()) {
-      const path = '$edits.featureOperations[' + index + ']';
-      check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'feature operation record required');
+    applyFeatureOperations(candidate, data.featureOperations as unknown[], startingFeatures, reserved, label);
+    applyInputEdits(candidate, data, label);
+    reserveSketchIdentities(candidate, startingAuthored, reserved, label);
+    // Only the complete final candidate owns1..4 count and reference admission.
+    return evaluate(admit(candidate, label), label);
+  });
+}
+export function editSketchCircleFeatureGraphParameters(document: SketchCircleFeatureGraphV0, edits: SketchCircleParameterLifecycleEdits): SketchCircleFeatureGraphResult {
+  const label = context(document);
+  return guard(label, () => {
+    const selectableNative = new Map<string, string>();
+    const candidate = evaluate(admit(document, label), label, selectableNative).document;
+    const startingAuthored = authoredRoles(candidate, label), reserved = new Set([...startingAuthored.keys(), ...selectableNative.keys()]);
+    const startingParameters = new Map(candidate.parameters.map(p => [p.id, copyCadData(p)]));
+    const startingFeatures = new Map(candidate.features.map(f => [f.id, copyCadData(f)])), targets = new Set<string>();
+    const value = snapshot(edits, label, '$edits');
+    check(value !== null && typeof value === 'object' && !Array.isArray(value), label, '$edits', 'parameter lifecycle edit record required');
+    const data = value as Record<string, unknown>, keys = Object.keys(data);
+    check(Object.hasOwn(data, 'parameterOperations') && keys.length <= 3 && keys.every(key => ['parameterOperations', 'featureOperations', 'sketchEdits'].includes(key)), label, '$edits', 'required parameterOperations and optional featureOperations/sketchEdits only');
+    for (const key of keys) check(Array.isArray(data[key]) && (data[key] as unknown[]).length >= 1 && (data[key] as unknown[]).length <= (key === 'parameterOperations' ? 16 : 8), label, '$edits.' + key, key === 'parameterOperations' ? 'ordered1..16 parameter operations required' : 'optional present1..8 operations required');
+    for (const [index, input] of (data.parameterOperations as unknown[]).entries()) {
+      const path = '$edits.parameterOperations[' + index + ']';
+      check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'parameter operation record required');
       const kind = (input as Record<string, unknown>).kind;
-      check(kind === 'upsert' || kind === 'remove', label, path + '.kind', 'upsert/remove required');
-      const operation = record(input, kind === 'upsert' ? ['kind', 'feature'] : ['kind', 'featureId'], label, path);
-      const next = kind === 'upsert' ? admitFeature(operation.feature, label, path + '.feature') : undefined;
-      const id = next ? next.id : identifier(operation.featureId, label, path + '.featureId'), owner = label + ' feature #' + id;
-      check(!targets.has(id), owner, path, 'target feature appears more than once in transaction'); targets.add(id);
-      const previous = startingFeatures.get(id), slot = candidate.features.findIndex(f => f.id === id);
+      check(kind === 'upsert' || kind === 'remove', label, path + '.kind', 'upsert/remove parameter operation required');
+      const operation = record(input, kind === 'upsert' ? ['kind', 'parameter'] : ['kind', 'parameterId'], label, path);
+      const next = kind === 'upsert' ? admitParameter(operation.parameter, label, path + '.parameter') : undefined;
+      const id = next ? next.id : identifier(operation.parameterId, label, path + '.parameterId'), owner = label + ' parameter #' + id;
+      check(!targets.has(id), owner, path, 'target parameter appears more than once in transaction'); targets.add(id);
+      const previous = startingParameters.get(id), slot = candidate.parameters.findIndex(p => p.id === id);
       if (next) {
         if (previous) {
-          check(previous.kind === next.kind && previous.shellId === next.shellId && slot >= 0, owner, path + '.feature.kind/shellId', 'existing feature kind/shell identity and slot must remain'); candidate.features[slot] = next;
+          check(next.type === previous.type && slot >= 0, owner, path + '.parameter.type', 'existing parameter type/identity and slot must remain'); candidate.parameters[slot] = next;
         } else {
-          check(!reserved.has(next.id) && !reserved.has(next.shellId) && next.id !== next.shellId, owner, path + '.feature.id/shellId', 'new feature/shell identities must be fresh relative to starting/new authored/selectable native IDs');
-          check(candidate.features.length < 8, owner, path, 'bounded working feature array cannot exceed8');
-          reserved.add(next.id); reserved.add(next.shellId); candidate.features.push(next);
+          check(!reserved.has(id), owner, path + '.parameter.id', 'new parameter identity must be fresh relative to starting/new authored/selectable native IDs');
+          check(candidate.parameters.length < 16, owner, path, 'bounded working parameter array cannot exceed16');
+          reserved.add(id); candidate.parameters.push(next);
         }
       } else {
-        check(!!previous && slot >= 0, owner, path + '.featureId', 'remove must resolve a starting feature'); candidate.features.splice(slot, 1);
+        check(!!previous && slot >= 0, owner, path + '.parameterId', 'remove must resolve a starting parameter'); candidate.parameters.splice(slot, 1);
       }
     }
+    if (Object.hasOwn(data, 'featureOperations')) applyFeatureOperations(candidate, data.featureOperations as unknown[], startingFeatures, reserved, label);
     applyInputEdits(candidate, data, label);
-    for (const [id, role] of authoredRoles(candidate, label)) {
-      if (!['source:', 'center:', 'radius:', 'seam:', 'endpoint:'].some(prefix => role.startsWith(prefix))) continue;
-      const originalRole = startingAuthored.get(id);
-      check(originalRole === role || originalRole === undefined && !reserved.has(id), label, '$edits.sketchEdits.ids #' + id, 'new sketch identity cannot recycle starting/removed authored or selectable native identity or new feature/shell identity'); reserved.add(id);
-    }
-    // Only the complete final candidate owns1..4 count and reference admission.
+    reserveSketchIdentities(candidate, startingAuthored, reserved, label);
+    // Count, references, forward dependencies and native validity belong to the
+    // complete final candidate, after every explicit repair has been applied.
     return evaluate(admit(candidate, label), label);
   });
 }
