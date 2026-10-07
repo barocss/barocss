@@ -4,6 +4,7 @@ import {bindMouseOrbit} from '/orbit.mjs';
 import {sameData} from '/screen-ray.mjs';
 import {circleFeatureDisplay} from '/circle-feature-display.mjs';
 const $=id=>document.getElementById(id),defaultCamera={eye:[4,3,6],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100};
+let reserved=new Set(),forms={};
 let accepted,draft,selected,renderer,canvas,orbit,lastOptions,quality=8,intentRevision=0,displayRevision=0,viewRevision=0;
 let pending=false,opening=false,disposed=false,unavailable=false,edges=true,previousHash=location.hash;
 function message(text){$('cg-status').textContent=text;}
@@ -12,20 +13,32 @@ function mark(){pending=true;message('Draft pending. Apply the whole graph or di
 function number(id){const value=$(id).valueAsNumber;if(!Number.isFinite(value))throw Error('Enter a finite number: '+id);return value;}
 function field(parent,label,id,value){const l=document.createElement('label');l.textContent=label;const input=document.createElement('input');input.type='number';input.step='any';input.id=id;input.value=Object.is(value,-0)?'-0':String(value);input.addEventListener('input',mark);l.append(input);parent.append(l);return input;}
 function choose(parent,label,id,values,value){const l=document.createElement('label');l.textContent=label;const input=document.createElement('select');input.id=id;for(const item of values){const option=document.createElement('option');option.value=item;option.textContent=item;input.append(option);}if(!values.includes(value)){const option=document.createElement('option');option.value=value;option.textContent='Missing: '+value;input.append(option);}input.value=value;l.append(input);parent.append(l);return input;}
+function identities(data,result=new Set()){if(Array.isArray(data))data.forEach(value=>identities(value,result));else if(data&&typeof data==='object')for(const[key,value]of Object.entries(data)){if((key==='id'||key==='name')&&typeof value==='string')result.add(value);identities(value,result);}return result;}
+function suggestions(){let n=1;while(reserved.has('feature_new_'+n)||reserved.has('shell_new_'+n))n++;return{featureId:'feature_new_'+n,shellId:'shell_new_'+n};}
+function operations(doc){const result=[];for(const f of accepted.native.document.features)if(!doc.features.some(next=>next.id===f.id))result.push({kind:'remove',featureId:f.id});for(const f of doc.features)if(!sameData(f,accepted.native.document.features.find(old=>old.id===f.id)))result.push({kind:'upsert',feature:structuredClone(f)});return result;}
+function bounded(doc){if(doc.features.length>8)throw Error('At most8 working feature rows.');if(operations(doc).length>8)throw Error('At most8 feature operations per Apply.');}
+function renderOps(){$('cg-operations').textContent='Draft: '+draft.features.length+' features / '+operations(draft).length+' coalesced feature operations';}
+function textField(parent,label,id,value){const l=document.createElement('label');l.textContent=label;const input=document.createElement('input');input.type='text';input.id=id;input.value=value;input.addEventListener('input',mark);l.append(input);parent.append(l);return input;}
+function renderAdd(){const root=$('cg-add-fields');root.replaceChildren();const suggested=suggestions();forms={...suggested,profileId:draft.sketch.profiles.find(p=>p.kind==='circle')?.id,parameterId:draft.parameters[0].id,suppressed:false,...forms};textField(root,'New feature ID','cg-add-id',forms.featureId);textField(root,'New output shell ID','cg-add-shell',forms.shellId);for(const input of [choose(root,'Existing circle','cg-add-profile',draft.sketch.profiles.filter(p=>p.kind==='circle').map(p=>p.id),forms.profileId),choose(root,'Existing height parameter','cg-add-distance',draft.parameters.map(p=>p.id),forms.parameterId)])input.addEventListener('change',mark);const label=document.createElement('label');label.className='edge-toggle';const input=document.createElement('input');input.id='cg-add-suppressed';input.type='checkbox';input.checked=forms.suppressed;input.addEventListener('change',mark);label.append(input,' Start suppressed');root.append(label);}
+function renderRemoved(){const root=$('cg-removed');root.replaceChildren();for(const f of accepted.native.document.features.filter(f=>!draft.features.some(next=>next.id===f.id))){const button=document.createElement('button');button.dataset.undo=f.id;button.textContent='Undo removal: '+f.id;button.addEventListener('click',()=>{try{capture();const next=structuredClone(draft);next.features.push(structuredClone(f));const order=new Map(accepted.native.document.features.map((f,i)=>[f.id,i]));next.features.sort((a,b)=>(order.get(a.id)??Infinity)-(order.get(b.id)??Infinity));bounded(next);draft=next;selected=f.id;mark();renderList();renderSelected();renderRemoved();renderOps();controls();}catch(error){message('Cannot undo removal: '+error.message);}});root.append(button);}}
+function add(){try{capture();const featureId=forms.featureId,shellId=forms.shellId;if(!/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(featureId)||!/^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(shellId))throw Error('Use supported ASCII feature/shell IDs.');if(reserved.has(featureId)||reserved.has(shellId)||featureId===shellId)throw Error('New feature and shell IDs must be fresh.');const f={id:featureId,kind:'xy-circle-extrude',profileId:forms.profileId,shellId,distanceParameterId:forms.parameterId,suppressed:forms.suppressed},next=structuredClone(draft);next.features.push(f);bounded(next);draft=next;reserved.add(featureId);reserved.add(shellId);selected=featureId;forms={...forms,...suggestions()};mark();renderList();renderSelected();renderAdd();renderRemoved();renderOps();controls();}catch(error){message('Cannot add: '+error.message);}}
+function remove(){try{capture();const next=structuredClone(draft);next.features=next.features.filter(f=>f.id!==selected);bounded(next);draft=next;selected=draft.features[0]?.id;mark();renderList();renderSelected();renderRemoved();renderOps();controls();}catch(error){message('Cannot remove: '+error.message);}}
 function capture(){
  const next=structuredClone(draft);
  for(const p of next.parameters){const kind=$('cg-kind-'+p.id).value,value=number('cg-value-'+p.id);p.definition=kind==='literal'?{kind,valueMM:value}:{kind,parameterId:$('cg-ref-'+p.id).value,offsetMM:value};}
  const f=next.features.find(f=>f.id===selected);
- if(f){const p=next.sketch.profiles.find(p=>p.id===f.profileId);p.centerMM=[number('cg-x'),number('cg-y')];p.radius.valueMM=number('cg-radius');f.suppressed=$('cg-suppressed').checked;}
- draft=next;
+ if(f){const p=next.sketch.profiles.find(p=>p.id===f.profileId);p.centerMM=[number('cg-x'),number('cg-y')];p.radius.valueMM=number('cg-radius');f.suppressed=$('cg-suppressed').checked;f.profileId=$('cg-profile').value;f.distanceParameterId=$('cg-distance').value;}
+ const nextForms={featureId:$('cg-add-id').value,shellId:$('cg-add-shell').value,profileId:$('cg-add-profile').value,parameterId:$('cg-add-distance').value,suppressed:$('cg-add-suppressed').checked};draft=next;forms=nextForms;
 }
 function renderList(){
  const list=$('cg-list');list.replaceChildren();
- for(const f of draft.features){const actual=accepted.native.features.find(feature=>feature.featureId===f.id),view=accepted.display.features.find(feature=>feature.featureId===f.id),button=document.createElement('button');button.type='button';button.dataset.feature=f.id;button.className='feature-row'+(f.id===selected?' selected':'');button.textContent=f.id+' · '+f.shellId+'\n'+f.profileId+' / '+f.distanceParameterId+'\nApplied: '+actual.status+', '+actual.bindings.heightMM+' mm'+(actual.evaluation?' · reference '+actual.evaluation.report.referenceVolumeMM3.toPrecision(6)+' mm³':'')+(view?' · approximate '+view.localPreview.report.areasMM2.total.toPrecision(6)+' mm²':'');button.addEventListener('click',()=>{try{capture();selected=f.id;renderList();renderSelected();controls();}catch(error){message('Cannot select: '+error.message);}});list.append(button);}
+ for(const f of draft.features){const actual=accepted.native.features.find(feature=>feature.featureId===f.id),view=accepted.display.features.find(feature=>feature.featureId===f.id),button=document.createElement('button');button.type='button';button.dataset.feature=f.id;button.className='feature-row'+(f.id===selected?' selected':'');button.textContent=f.id+' · '+f.shellId+'\n'+f.profileId+' / '+f.distanceParameterId+(actual?'\nApplied: '+actual.status+', '+actual.bindings.heightMM+' mm'+(actual.evaluation?' · reference '+actual.evaluation.report.referenceVolumeMM3.toPrecision(6)+' mm³':''):'\nPending new feature')+(view?' · approximate '+view.localPreview.report.areasMM2.total.toPrecision(6)+' mm²':'');button.addEventListener('click',()=>{try{capture();selected=f.id;renderList();renderSelected();controls();}catch(error){message('Cannot select: '+error.message);}});list.append(button);}
 }
 function renderSelected(){
  const panel=$('cg-selected');panel.replaceChildren();const f=draft.features.find(f=>f.id===selected);if(!f)return;
- const p=draft.sketch.profiles.find(p=>p.id===f.profileId),note=document.createElement('p');note.className='body-note';note.textContent='Original circle: '+p.id+' · height parameter: '+f.distanceParameterId;panel.append(note);
+ const p=draft.sketch.profiles.find(p=>p.id===f.profileId),note=document.createElement('p');note.className='body-note';note.textContent='Immutable feature: '+f.id+' · '+f.kind+' · shell: '+f.shellId;panel.append(note);
+ const profile=choose(panel,'Existing circle profile','cg-profile',draft.sketch.profiles.filter(p=>p.kind==='circle').map(p=>p.id),f.profileId),distance=choose(panel,'Existing height parameter','cg-distance',draft.parameters.map(p=>p.id),f.distanceParameterId);
+ for(const input of [profile,distance])input.addEventListener('change',()=>{const before=structuredClone(draft),old=draft.features.find(f=>f.id===selected);try{capture();bounded(draft);mark();renderList();renderSelected();renderOps();controls();}catch(error){draft=before;profile.value=old.profileId;distance.value=old.distanceParameterId;message('Cannot rebind: '+error.message);}});
  field(panel,'Centre X · mm','cg-x',p.centerMM[0]);field(panel,'Centre Y · mm','cg-y',p.centerMM[1]);field(panel,'Radius · mm','cg-radius',p.radius.valueMM);
  const label=document.createElement('label');label.className='edge-toggle';const input=document.createElement('input');input.id='cg-suppressed';input.type='checkbox';input.checked=f.suppressed;input.addEventListener('change',mark);label.append(input,' Suppress selected feature');panel.append(label);
 }
@@ -38,8 +51,9 @@ function renderParameters(){
  }
 }
 function controls(){
- for(const id of ['cg-new','cg-apply','cg-quality','cg-fit','cg-edges'])$(id).disabled=opening||unavailable||disposed;
- for(const root of ['cg-list','cg-selected','cg-parameters'])for(const input of $(root).querySelectorAll('input,select,button'))input.disabled=opening||unavailable||disposed;
+ for(const id of ['cg-new','cg-apply','cg-quality','cg-fit','cg-edges','cg-add','cg-delete'])$(id).disabled=opening||unavailable||disposed;
+ for(const root of ['cg-list','cg-selected','cg-parameters','cg-add-fields','cg-removed'])for(const input of $(root).querySelectorAll('input,select,button'))input.disabled=opening||unavailable||disposed;
+ $('cg-delete').disabled=opening||unavailable||disposed||!draft?.features.some(f=>f.id===selected);
  $('cg-discard').disabled=opening||!accepted;$('cg-save').disabled=opening||!accepted;$('cg-open').disabled=opening;
 }
 function metrics(){
@@ -47,9 +61,9 @@ function metrics(){
  $('cg-quality').value=String(quality);$('cg-active').textContent=n.report.activeShellIds.length+' active / '+n.document.features.length+' features';
  $('cg-order').textContent='Native dependency order: '+n.report.parameterOrder.join(' → ');
  $('cg-count').textContent=display.packet?display.packet.positions.length/3+' vertices / '+display.packet.indices.length/3+' triangles / '+display.overlay.paths.length+' native paths':'No active features';
- $('cg-empty').hidden=Boolean(display.packet);controls();
+ $('cg-empty').hidden=Boolean(display.packet);renderOps();controls();
 }
-function refresh(){draft=structuredClone(accepted.native.document);if(!draft.features.some(f=>f.id===selected))selected=draft.features[0].id;renderParameters();renderList();renderSelected();pending=false;metrics();}
+function refresh(){draft=structuredClone(accepted.native.document);reserved=identities(accepted.native);forms={};if(!draft.features.some(f=>f.id===selected))selected=draft.features[0].id;renderParameters();renderList();renderSelected();renderAdd();renderRemoved();pending=false;metrics();}
 function dims(){const r=$('cg-viewport').getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2),w=Math.max(1,Math.min(4096,Math.round(r.width*d))),h=Math.max(1,Math.min(4096,Math.round(r.height*d))),s=Math.min(1,Math.sqrt(4000000/(w*h)));return[Math.max(1,Math.floor(w*s)),Math.max(1,Math.floor(h*s))];}
 function options(packet,fit){
  if(!fit&&(renderer||lastOptions))return renderer?renderer.options:structuredClone(lastOptions);
@@ -76,9 +90,10 @@ function adopt(native,k,{intent=false,fit=false}={}){
 function clean(){if(pending)throw Error('Apply or discard pending graph fields first.');}
 function create(){try{clean();return adopt(cad.evaluateSketchCircleFeatureGraph(seed()),quality,{intent:true,fit:true});}catch(error){message('Create rejected: '+error.message);return{ok:false};}}
 function apply(){
- try{capture();const parameterEdits=draft.parameters.map(p=>({parameterId:p.id,definition:p.definition})),sketchEdits=draft.sketch.profiles.filter(p=>p.kind==='circle'&&!sameData(p,accepted.native.document.sketch.profiles.find(original=>original.id===p.id))).map(profile=>({kind:'upsert',profile})),featureEdits=draft.features.map(f=>({featureId:f.id,suppressed:f.suppressed}));return adopt(cad.updateSketchCircleFeatureGraph(accepted.native.document,{parameterEdits,sketchEdits,featureEdits}),quality,{intent:true});}
+ try{capture();bounded(draft);const featureOperations=operations(draft),parameterEdits=draft.parameters.map(p=>({parameterId:p.id,definition:p.definition})),sketchEdits=draft.sketch.profiles.filter(p=>p.kind==='circle'&&!sameData(p,accepted.native.document.sketch.profiles.find(original=>original.id===p.id))).map(profile=>({kind:'upsert',profile})),featureEdits=draft.features.map(f=>({featureId:f.id,suppressed:f.suppressed}));const native=featureOperations.length?cad.editSketchCircleFeatureGraphFeatures(accepted.native.document,{featureOperations,parameterEdits,sketchEdits}):cad.updateSketchCircleFeatureGraph(accepted.native.document,{parameterEdits,sketchEdits,featureEdits});return adopt(native,quality,{intent:true});}
  catch(error){message('Cannot apply native graph: '+error.message);return{ok:false,error:error.message};}
 }
+$('cg-add').addEventListener('click',add);$('cg-delete').addEventListener('click',remove);
 $('cg-apply').addEventListener('click',apply);$('cg-new').addEventListener('click',create);$('cg-discard').addEventListener('click',()=>{refresh();message('Pending graph fields discarded.');});
 $('cg-quality').addEventListener('change',()=>{try{const k=$('cg-quality').valueAsNumber;if(!Number.isInteger(k)||k<2||k>15)throw Error('Sampling must be an integer2–15');if(k!==quality)adopt(accepted.native,k);}catch(error){$('cg-quality').value=String(quality);message(error.message);}});
 $('cg-fit').addEventListener('click',()=>{if(accepted.display.packet)adopt(accepted.native,quality,{fit:true});else message('No active features to fit.');});
@@ -90,5 +105,5 @@ function hideOther(){for(const id of ['surface-workspace','body-workspace','poly
 function activate(){if(previousHash==='#circle-features'&&location.hash!=='#circle-features'&&pending){history.replaceState(null,'','#circle-features');hideOther();message('Apply or discard pending fields before leaving.');return;}previousHash=location.hash;const active=location.hash==='#circle-features';$('circle-feature-workspace').hidden=!active;if(active){hideOther();if(!accepted)create();if(renderer&&!unavailable)renderer.resize(...dims());else if(canvas){[canvas.width,canvas.height]=dims();blank(canvas);}}}
 addEventListener('hashchange',activate);addEventListener('resize',()=>{if(!canvas||unavailable||disposed||$('circle-feature-workspace').hidden)return;if(renderer)renderer.resize(...dims());else{[canvas.width,canvas.height]=dims();blank(canvas);}});
 addEventListener('pagehide',()=>{disposed=true;release(renderer,orbit,canvas);},{once:true});
-window.circleFeatureWorkspace={snapshot:()=>accepted&&structuredClone({...accepted,packet:renderer?.packet??null,edgeOverlay:renderer?.edgeOverlay??null,options:renderer?.options??lastOptions??null,quality,intentRevision,displayRevision,viewRevision,pending,selected}),readPixels:()=>renderer?renderer.readPixels():Uint8Array.from(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data),get renderer(){return renderer;}};
+window.circleFeatureWorkspace={snapshot:()=>accepted&&structuredClone({...accepted,packet:renderer?.packet??null,edgeOverlay:renderer?.edgeOverlay??null,options:renderer?.options??lastOptions??null,quality,intentRevision,displayRevision,viewRevision,pending,selected,draft,featureOperations:operations(draft),forms}),readPixels:()=>renderer?renderer.readPixels():Uint8Array.from(canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data),get renderer(){return renderer;}};
 activate();

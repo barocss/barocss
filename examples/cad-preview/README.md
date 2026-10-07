@@ -705,3 +705,34 @@ are approximate. No aggregate certified mass, smooth/periodic/manifold/solid cla
 circle/suppression, native-file download/read/Open, per-packet offset/WebGL upload,
 pixel/orbit/draft/empty-state/error flow after affected CAD/GPU builds. Broader
 validation remains deferred.
+
+
+## Circle feature Add / Rebind / Delete (prototype)
+
+The existing Circle features editor now stages fresh feature/shell IDs, an
+existing circle and existing height parameter. Add may start active or suppressed.
+Selected feature/kind/shell IDs remain immutable. Existing profile/height selectors
+rebind only the selected feature; numeric circle edits rebuild every reference.
+Delete stages an existing removal, Undo restores its accepted definition, and
+Delete of an unapplied addition cancels only that draft. No profile/parameter
+creation or deletion is included.
+
+Apply coalesces one operation per feature target and batches original numeric
+sketch/parameter edits through actual603. Up to8 working rows/operations allow
+four fresh additions and four original removals; final1–4 is admitted natively.
+Removing the last feature without replacement rejects. Complete native packets,
+bindings and one renderer/overlay candidate must succeed before accepting the
+whole graph. Coincident separate shells may share material pixels; original
+per-feature packets/bindings/upload ranges retain identity, not a union claim.
+
+Quality/orbit/edge view preserve structural and numeric drafts. Save downloads
+accepted graph0 only, without operations or derived cache. Real Open stages the
+whole native/display candidate and retains camera. Empty all-suppressed intent
+remains valid; native-valid Float32-refused data keeps the accepted frame. Existing
+faceted midpoint-D1/private/not-certified limitations remain.
+
+`circle-feature-lifecycle-workspace-smoke.mjs` is the one affected-build actual
+browser/file/source→packet→accepted upload→PNG check. It covers Add/rebind/delete,
+shared numeric inputs, cancel/undo, four-for-four replacement, real accepted-only
+Save/Open, empty/active restore and native/display failure retention. Broader
+validation is deferred.
