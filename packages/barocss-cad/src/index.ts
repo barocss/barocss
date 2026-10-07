@@ -92,3 +92,5 @@ export { insertSurfaceKnot } from './surface-knot-insertion.js';
 export type { SurfaceKnotInsertionOptions, SurfaceKnotUnchangedPole, SurfaceKnotInsertionStrip, SurfaceKnotInsertionProvenance, SurfaceKnotGridCount, SurfaceKnotInsertionReport, SurfaceKnotInsertionResult } from './surface-knot-insertion.js';
 export { extractSurfaceIsoCurve } from './surface-isocurve.js';
 export type { SurfaceIsoCurveOptions, SurfaceIsoCurveBasis, SurfaceIsoCurveContribution, SurfaceIsoCurvePole, SurfaceIsoCurveProvenance, SurfaceIsoCurveReport, SurfaceIsoCurveResult } from './surface-isocurve.js';
+export { splitSurfaceAtParameter } from './surface-parameter-split.js';
+export type { SurfaceParameterSplitOptions, SurfaceSplitPoleMapping, SurfaceSplitKnotMapping, SurfaceSplitChildProvenance, SurfaceSplitRefinementProvenance, SurfaceSplitSharedCoefficients, SurfaceParameterSplitProvenance, SurfaceParameterSplitReport, SurfaceParameterSplitResult } from './surface-parameter-split.js';

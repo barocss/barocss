@@ -3468,3 +3468,71 @@ existing extrusion and 5x5 preview packet validation/native UV/readback. Native
 Curve success is separate from display approximation/normal admission. Later
 selection/analysis belongs in the unified editor. General modelling, topology,
 exchange and broader validation remain separate.
+
+## Original Surface split at one parameter
+
+`splitSurfaceAtParameter(surface, {axis, parameter, lowerSurfaceId, upperSurfaceId})`
+creates two directly authored native patches in increasing original parameter
+subdomains. This operation supplies a parameter cut, without arbitrary trim,
+intersection, topology sewing or split-feature document meaning.
+
+```js
+const split = cad.splitSurfaceAtParameter(originalSurface, {
+  axis: 'u', parameter: 0.5,
+  lowerSurfaceId: 'lower_patch', upperSurfaceId: 'upper_patch',
+});
+```
+
+The owned result contains `{original, refined, lower, upper, source,
+sourceVersion:0, model, provenance, report}`. Exact original Surface/options use
+Surface-sized 4096-value/depth8 snapshots, dense arrays <=64, records <=8 and
+strings <=128. Three distinct ASCII IDs 1..48, original native degree U/V 1..3,
+grids 2..16 per axis/max256, finite XYZ within +/-10000 mm and weights 1e-6..1e6
+are required. The finite selected parameter is strictly inside its original
+domain. Endpoint/outside, unknown, malformed/getter/hidden/foreign/sparse/cyclic,
+ID collision, required refinement overflow or unsafe native arithmetic refuses
+atomically. Caller and prior results remain reusable.
+
+Actual insertSurfaceKnot brings the selected numeric multiplicity to its degree.
+An already degree-multiplicity cut copies the admitted original net directly;
+there is no unsupported zero-insertion call. Required refinement must fit the
+existing 16-axis cap. No unbounded temporary net, replacement kernel, evaluator,
+rebase/reversal, fitting, weight normalization or linked feature reverse-write.
+
+The common row/column is immediately before the first repeated split knot.
+Both children include it by direct copy. The lower knot vector keeps the refined
+prefix through the repeated group and adds one requested clamp entry. The upper
+adds one requested clamp entry before the suffix starting at that repeated group.
+All retained knots/poles/weights preserve their bits and -0; both degrees and
+nonselected domains stay exact. Original outer endpoint bits remain. New clamps
+use the requested scalar, while inherited cut endpoint entries retain their own
+zero signs. Report cut endpoint numbers and negative-zero flags show this actual
+behavior without normalizing inherited data.
+
+Both complete candidates pass native admission before one literal two-Surface
+source0 Model is compiled/adopted after full Object.is Model/order/ID/degree/knot/
+weight/net/domain comparison. Provenance contains actual refinement or identity
+maps, child pole/knot mappings and shared coefficients. Reports contain actual
+grids/domains/multiplicities, shared oriented parameter boundaries, cut signs and
+bounded native original/child observations (<=128, local 1e-7 mm comparison).
+This is not a global no-gap/shape error or continuity certificate. Existing D1
+guards remain: original/refined C0 may refuse while a child endpoint admits a
+one-sided derivative. Shared u-max/u-min or v-max/v-min boundaries have opposite
+existing extractSurfaceBoundary orientations. No topology edge/wire/sew, normal,
+regularity/G1/G2/solid claim. Flags remain
+not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/surface-parameter-split-demo.mjs --source
+```
+
+One final artifact build is separate from the installed in-memory esbuild source
+API/file/packet flow, with no CAD dist import/write or per-demo dependency build.
+Both axes, nonseparable rational/shifted/signed-zero/C0, direct-copy/full16x16 and
+near-limit refinement inputs compare actual child points, shared bits, iso-Curves,
+oriented boundaries, guards and real two-Surface source file identity. One small
+curved child pair uses existing 5x5 tessellation/packet validation/native UV/JSON
+readback. Native admission remains separate from downstream approximation/normal
+admission. Later split controls belong in the unified editor. General trim/join/
+extend/fill/B-Rep/Boolean, exchange and broader validation remain separate.
