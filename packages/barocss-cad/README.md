@@ -3723,3 +3723,70 @@ and small5x5 packet/native UV/ordinary JSON readback; display admission remains
 separate. General multi-span elevation, removal/reduction/fit/continuity and Surface
 operations remain backlog. Later degree controls belong in the unified editor;
 broader validation, modelling, topology and exchange remain separate.
+
+## One-step Surface Bezier-axis degree elevation
+
+`elevateSurfaceBezierAxisDegree(surface, {axis, targetDegree})` raises exactly one
+original single-span U or V Bezier axis by one explicit step:1->2 or2->3. The other
+native degree1..3 axis may remain multi-span/C0. General multi-span selected-axis
+elevation, simultaneous automatic U+V elevation and degree beyond3 are unsupported.
+
+```js
+const elevated = cad.elevateSurfaceBezierAxisDegree(originalSurface, {
+  axis: 'u', targetDegree: 3,
+});
+```
+
+The owned result contains `{original, elevated, source, sourceVersion:0, model,
+provenance, report}`. Exact original Surface/options use4096 own values/depth8,
+arrays <=64, records <=8 and strings <=128. Original ASCII ID1..48, U/V degrees
+1..3, native rectangular grids2..16/at most256, XYZ +/-10000 mm and weights1e-6..1e6
+are required. Selected degree1..2 uses exactly degree+1 poles/2*(degree+1) knots
+and one clamped span. Both original represented domain spans must be finite and
+positive. Target is exactly selected degree+1. Output selected3/4 poles by other
+<=16, at most64 poles. The generic16x16 input admission ceiling does not promise
+selected16-pole elevation. Cubic/multi-span/no-op/skipped/wrong-axis, unknown/
+accessor/hidden/foreign/sparse/cyclic/malformed/unsafe inputs refuse atomically.
+No normalization/rescale/healing/fallback. Constant data follows native admission.
+
+Actual elevateBezierCurveDegree runs once per original selected-axis strip. U
+holds each original V pole; V holds each original U row. Every real strip result
+stages before whole-net adoption; elevated knot bits/order/origin maps must agree.
+Reassembly uses actual returned Cartesian coefficients/weights, without another
+elevation kernel. Private deterministic Curve IDs remain staging provenance;
+only the original-ID Surface appears in the output Model. Selected endpoint rows/
+columns and weights copy bits/-0 directly. Original orientation/both domain bits,
+nonselected degree/knots/order and every original selected knot remain. Added clamps
+use actual domain-min/max bits as in the Curve operation. Generated Float64
+interiors are calculated coefficients, without exact-real-arithmetic promises.
+
+The complete candidate passes actual native Surface validation and one literal
+source0 single-Surface compilation. Actual Model/name/ID/degrees/net/weights/knots/
+domain comparison precedes adopting its real compiled data. Provenance contains
+all endpoint/knot maps and actual strip homogeneous contributions/reports. No
+parent math/Curve/serializer/compiler refactor, new grammar/dependency or linked
+sketch/meridian/extrusion/revolve/ruled/feature reverse-write. Caller and prior
+results remain reusable.
+
+Reports contain actual degrees/grids/domains/spans/strip count, copied-bit facts,
+original/elevated native points (<=9, local1e-7 mm), native SurfaceD1 statuses
+(<=5) and original retained strip reports. Other-axis C0 and actual arithmetic
+refusals remain native behavior, separate from coefficient/source validity. No
+fabricated derivatives or epsilon parameters, global error/continuity/normal/
+regularity/topology/solid certificate. Flags remain
+not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/surface-bezier-axis-degree-elevation-demo.mjs --source
+```
+
+One final artifact checkpoint is separate from installed in-memory esbuild source
+API/file/packet flow, without CAD dist import/write or per-demo dependency build.
+Weighted nonplanar U/V, explicit two-step linear axis, edited/split/ruled inputs,
+other-axis C0/16 strips and actual iso-Curve orientation observations retain native
+bits/provenance/guards/source file Model identity. One supported elevated patch
+uses existing5x5 tessellation/packet/native UV/ordinary JSON readback. Display
+approximation/normal admission remains separate. Future controls use the unified
+editor; general degree/freeform/modelling/topology/exchange and broader validation
+remain pending.
