@@ -48,7 +48,7 @@ function same(a, b) {
   const keys = Object.keys(a); return keys.length === Object.keys(b).length && keys.every(key => Object.hasOwn(b, key) && same(a[key], b[key]));
 }
 function acceptedData(accepted) {
-  const root = record(accepted, ['source', 'sourceVersion', 'model', 'packet', 'report', 'options', 'iges', 'revision', 'viewRevision', 'constructions', 'selectedConstruction'], ['source', 'sourceVersion', 'model', 'packet', 'constructions', 'selectedConstruction']);
+  const root = record(accepted, ['source', 'sourceVersion', 'model', 'packet', 'report', 'options', 'iges', 'revision', 'viewRevision', 'edgeLineage', 'constructions', 'selectedConstruction'], ['source', 'sourceVersion', 'model', 'packet', 'constructions', 'selectedConstruction']);
   if (root.sourceVersion !== 1 || typeof root.source !== 'string' || new TextEncoder().encode(root.source).length > limit) throw new TypeError('An accepted construction-v1 source is required');
   const model = record(root.model, ['name', 'version', 'lengthUnit', 'objects']);
   id(model.name); if (model.version !== 0 || model.lengthUnit !== 'mm') throw new TypeError('Unsupported native model');
