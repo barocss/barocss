@@ -82,3 +82,5 @@ export { evaluateZAxisRevolveFeatureDocument, updateZAxisRevolveFeatureDocument,
 export type { ZAxisRevolveFeatureDocumentV0, ZAxisRevolvePoleEdit, ZAxisRevolveFeatureDocumentEdits, ZAxisRevolveFeatureDocumentReport, ZAxisRevolveFeatureDocumentResult } from './z-axis-revolve-document.js';
 export { tessellateZAxisRevolvedSurface } from './z-axis-revolve-preview.js';
 export type { ZAxisRevolvePreviewOptions, ZAxisRevolvePreviewPanel, ZAxisRevolveBoundaryRole, ZAxisRevolveBoundaryPath, ZAxisRevolveBoundaryProvenance, ZAxisRevolvePreviewReport, ZAxisRevolvePreviewResult } from './z-axis-revolve-preview.js';
+export { buildCompatibleRuledSurface } from './compatible-ruled-surface.js';
+export type { CompatibleRuledSurfaceOptions, CompatibleRuledSurfaceConstruction, CompatibleRuledSurfaceObservation, CompatibleRuledSurfaceReport, CompatibleRuledSurfaceResult } from './compatible-ruled-surface.js';

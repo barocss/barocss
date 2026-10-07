@@ -3190,3 +3190,51 @@ bindings, both orientations, edited612 meridians and maximum counts. Packet and
 provenance files are ordinary display artifacts, with JSON numeric-zero semantics;
 native source0 read/compile remains distinct. Deeper validation, GPU pixels/UI,
 physical performance, caps/topology/solid and commercial completion are separate.
+
+## Compatible original two-curve ruled Surface
+
+`buildCompatibleRuledSurface(first, second, {surfaceId})` connects two separately
+authored original 3D Curves sharing exactly the same native basis. It returns
+owned `{first, second, source, sourceVersion:0, model, surface, construction, report}`.
+
+```js
+const surface = cad.buildCompatibleRuledSurface(firstSection, secondSection, {
+  surfaceId: 'ruled_sections',
+});
+```
+
+Each section has degree1..3,2..16 poles, finite XYZ coordinates within10000mm,
+positive native weights and original valid open-clamped knots. The three IDs are
+distinct ASCII1..48. Exact degree/pole count/ordered knots/weights match, including
+Object.is signed-zero knot identity. No knot/weight normalization, fitting,
+resampling, reversal/alignment, degree operation or implicit compatibility repair.
+There is no plane restriction; coincident/crossing/singular sections can remain
+valid native parametric data without a regularity or solid certificate.
+
+U follows the common original section parameter; V is linear interpolation0..1.
+Surface row i copies first/second poles and their common weights, degreeV1 with
+knotsV[0,0,1,1]. Thus original native Surface evaluation gives the Cartesian blend
+of original Curve values. Construction keeps explicit row-to-section-pole IDs.
+Both Curves and Surface are literal source0 compiled once; complete original
+coefficients/order/IDs/domain/signed zero match before adopting the actual Model.
+No generated Surface/cache is accepted as authoring authority.
+
+The report records bounded point/blend observations at endpoints, original knots
+and representable span midpoints, U guarded knots and original domains/counts.
+Local1e-7mm witnesses are not a global error certificate. Existing
+extractSurfaceBoundary orientation remains authoritative; v-max/u-min boundaries
+use reversed parameter mappings. Four parameter boundaries are not B-Rep edges.
+Flags remain periodic:false/not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/compatible-ruled-surface-demo.mjs --source
+```
+
+The affected library build is an artifact checkpoint. The actual demo consumes
+src/index.ts with installed esbuild in memory (write:false); it does not import
+CAD dist or build dependencies on each run. Source graph evidence is retained.
+Skewed lines/rational sections/shifted knots/C0/max16/coincident and translated
+extrusion cases compare original points/D1/boundary mappings and actual source
+file read/compile. A future editable consumer joins unified editor615. General
+loft, sweep, caps/topology/solid/exchange and deeper validation remain separate.
