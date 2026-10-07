@@ -4408,3 +4408,76 @@ owned dimensionless UV/root/result JSON is read back through the real validator.
 Arbitrary trimmed polygons/holes, exact tangent predicates, closed-loop sewing,
 Boolean/solid certification and commercial CAD parity remain pending. Flags remain
 geometricValidity:not-certified/topologyCertified:false/solid:false.
+
+## Own coplanar rational Curve / finite native Line intersection
+
+`intersectCoplanarCurveWithLineSegment(curve, line, affinePlane, options)` uses an
+actual native affine Plane UV chart to intersect a rational original Curve with a
+finite native Line. Curve admission is clamped positive-weight degree1/2, at most12
+original poles/8 spans; actual source splits retain16 temporary-pole limits. Line
+is a nondegenerate clamped degree1/two-pole/equal-positive-weight Curve with its own
+original finite native domain. Both Line endpoints must lie in the original finite
+Plane rectangle. Original homogeneous support equations admit coplanarity;
+unproven/noncoplanar/unsafe geometry refuses. Plane can be tilted or skew.
+
+Options contain evaluationId/derivedSpanIds/pointEventIds/overlapIds/spanBindingIds/
+overlapBindingIds/boundaryContactIds. Span and span-binding IDs match actual spans;
+point capacity is1..16, overlap1..32 with matching binding capacity, boundary contact
+capacity1..64. All explicit IDs are bounded distinct ASCII identities. Original
+Curve/Line/Plane/source/IDs/domains remain unchanged. Actual own640 span extraction
+and native Gram axes are reused, with no parent public API change.
+
+Real rational UV Bezier coefficients solve the homogeneous signed-line equation
+`(U-u0*W)*dv - (V-v0*W)*du = 0` through the existing bounded linear/quadratic solver.
+Original Curve evaluation remains point authority. A dominant safely represented
+UV direction maps each observed point into actual normalized Line coordinate and
+then its ORIGINAL Line domain. Actual native Line/Surface binding and original
+Curve/Line D1 states are observed only within their admitted domains. Beyond-segment
+support roots retain original scalar evidence, with no fake finite hit, endpoint
+snap or out-of-domain native Line evaluation. Shared-knot parameters consolidate
+with actual contributions and neighboring sides; equal world seam0/4 remains two
+Curve parameters. Inherited unsafe Gram/product/bracket/endpoint/tangent conditions
+refuse without projecting the Curve point or clamping UV/Line coordinates.
+
+An all-zero signed-line equation is a collinear support SPAN, not an isolated root.
+Its actual two finite Line-coordinate boundary equations partition native intervals.
+Overlap XYZ and genuine dimensionless UV restrictions use the same original Curve
+domain and existing own split operations. Original Line parameter range and forward/
+reverse orientation require the positive-weight rational derivative-numerator
+Bernstein sign proof; endpoint order alone cannot establish monotonicity. Unresolved
+turning/order/root uncertainty refuses. Repeated/reversing Curve parameters stay
+separate; world proximity never welds different native intervals.
+
+Overlap pieces own XYZ/UV/domain, actual original Line range/orientation, native
+binding/D1 observations, selected XYZ/UV split provenance and source0 geometry.
+Inward numerical endpoints carry bracket/estimate/used parameter/offset/dimensionless
+boundary residuals. UV is owned dimensionless data; the numerical splitter's temporary
+mm source/model/observation labels are omitted, as in the prior native clip operation.
+Public source0 files contain real original or overlap XYZ Curve + Line + Plane.
+No exact sewn vertex, trimmed face loop, shell/solid or general Boolean certificate.
+
+The owned result has original curve/line/plane/options, actual640 parent/spans,
+source0/model, point events, overlaps, overlap contacts and report. Kinds include
+points/overlaps/mixed/outside-segment/finite-disjoint/isolated-contacts. Maximum16
+point events/32 overlaps/64 boundary contributions/8 spans are operation budgets,
+not a campaign. `validateCoplanarCurveLineIntersection` rebuilds original geometry,
+root/UV/Line parameter/overlap/lineage/source evidence. Construction and rebuild
+share131072-value/depth24, arrays1024, records32 and bounded source-string guards;
+smaller inputs/options retain own plain-data limits. Getter/hidden/foreign/sparse/
+symbol/cyclic/unknown/unsafe and changed metadata refuse with prior native/source
+results reusable.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/own-curve-line-intersection-demo.mjs --source
+```
+
+The actual source flow includes a tilted/skew Plane with weighted nonuniform Curve
+and arbitrary-domain finite Line, real circle secant/shortened Line/knot/seam,
+collinear overlap and same-ID pole edit, disjoint/noncoplanar/unsafe/tangent outcomes.
+Original and overlap source0 geometry files compile full native Model bits,
+including signed zero; UV/root/original Line parameters and lineage roundtrip as
+owned data through the real validator. Public637..641 remain unchanged. General
+curve-curve intersections, exact tangent predicates, arbitrary trimming/sewing,
+Boolean/solid certification and commercial CAD quality remain pending. Flags remain
+geometricValidity:not-certified/topologyCertified:false/solid:false.
