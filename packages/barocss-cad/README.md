@@ -3074,3 +3074,56 @@ piecewise and shifted-domain meridians. It compares points and D1 product-rule
 witnesses to actual original curves, preserves C0 refusals and recompiles real
 source files including decimals/-0. Broader validation and original readers,
 exports, display, capped part features and commercial certification remain deferred.
+
+## Authored Z-axis revolve feature and pole edits
+
+`evaluateZAxisRevolveFeatureDocument`, `updateZAxisRevolveFeatureDocument`,
+`serializeZAxisRevolveFeatureDocument` and `parseZAxisRevolveFeatureDocument`
+use distinct `barocss-z-axis-revolve-feature` version0/mm authored documents:
+
+```js
+const document = {
+  format: 'barocss-z-axis-revolve-feature', version: 0,
+  id: 'revolve_document', lengthUnit: 'mm',
+  meridian: { kind: 'curve', id: 'meridian', degree: 1,
+    knots: [2, 2, 7, 7], controlPoints: [[2, -0, -0], [4, 0, 6]], weights: [1, 1] },
+  feature: { id: 'revolve_feature', kind: 'z-axis-revolve', surfaceId: 'revolved_wall' },
+};
+const next = cad.updateZAxisRevolveFeatureDocument(document, {
+  poleEdits: [{ index: 0, radiusMM: 3 }, { index: 1, radiusMM: 5, zMM: 8, weight: 0.9 }],
+});
+```
+
+Document/feature/meridian/surface IDs are distinct ASCII1..48. The original Curve
+is the only geometric authority. Fixed full-turn global +Z semantics use actual
+`buildZAxisRevolvedSurface` as the sole evaluator. Result is owned
+`{document, native, report}`; bindings identify the authored IDs, actual source0
+Model/domain and original pole-to-surface-row relationship. Native flags remain
+not-certified/topologyCertified:false/solid:false.
+
+Updates require exact poleEdits1..16. Each existing integer index occurs once,
+with at least one finite radiusMM/zMM/weight scalar. Apply all owned edits before
+one actual610 evaluation. IDs/kind/degree/knots/count/order and y, including -0,
+stay fixed. No pole add/remove, reorder, knot/degree/axis edit, normalization,
+clamp or generated Surface edit. Actual610 positive-radius XZ/native product
+weight and coefficient limits apply to the whole final candidate. Failure retains
+caller intent and previous document/native/source results exactly.
+
+Canonical Save/Open persists only authored format/version/ID/mm/meridian/feature
+fields, with original coefficients/order/domain/signed zero. Generated Surface,
+source/angular helper/projection/report/operations/view/history are excluded.
+The actual parser performs native evaluation before accepting, with4096 own
+values/depth8/arrays64/records12/strings128/UTF-8 JSON128KiB and decoded duplicate
+key protection. Old schemas are not guessed or migrated. Native source0 geometry
+files from610 remain separate from this editable authored JSON. Neither path
+imports preview or Float32 admission.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/z-axis-revolve-document-demo.mjs /tmp/barocss-z-axis-revolve-document-prototype
+```
+
+The short prototype demo compares complete standalone610 native output, atomic
+multiple-pole/full16-pole edits, shifted domains/decimals/-0 and real authored
+file readback. Broader validation, readers/exports, UI, caps/topology/solid and
+commercial part completion remain separate work.
