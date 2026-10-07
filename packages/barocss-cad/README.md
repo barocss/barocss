@@ -2634,3 +2634,76 @@ while separate high-subdivision Float32 preview actually refuses. Invalid refs/
 geometry/IDs/getters/schema/text/bad combined edits preserve prior data. Affected
 build/this run are prototype checks; UI/raster/solid certification and broader
 validation remain deferred.
+
+## Circle extrusion graph with shared fractional heights
+
+`evaluateSketchCircleFeatureGraph(document)` and
+`updateSketchCircleFeatureGraph(document,edits)` return owned
+`{document,sketchEvaluation,parameters,features,report}`. Distinct
+barocss-sketch-circle-feature-graph0/mm exact root fields are format/version/id/
+lengthUnit/sketch/parameters/features. Embedded original arc-sketch retains0..8
+circle/quarter profiles; used extrusion profiles must be circles. Unreferenced
+valid quarters remain. No radius authority or profile coercion is introduced.
+
+Parameters1..8 exact id/type:length/definition are finite fractional literals or
+referenced offset definitions within±10000mm, including resolved values. Forward
+references and all unused/suppressed dependencies resolve in deterministic
+first-authored-ready topological order; missing/self/cycle/type/nonfinite/overflow
+refuse with IDs/field. There is no rectangle-graph integer-height restriction,
+generic expression/scalar/angle/unit conversion or external solver here.
+
+Features1..4 exact id/kind:xy-circle-extrude/profileId/shellId/distanceParameterId/
+suppressed reference an original circle and positive resolvedheight0.001..10000mm.
+Shared height IDs may drive several circles; centre/radius stay original sketch
+literal dimensions. Authored graph/sketch/profile/centre/radius/seam/endpoints/
+parameter/feature/shell IDs are globally distinct ASCII1..64; used profile/shell
+<=48 under one-circle native admission. SourceCurve/profile and shell/topology/
+Model aliases reference the same entities. Generated native identities cannot
+collide across distinct features/entities or unrelated authored slots. Source0
+fixed Model container name profile remains scoped per original Model and may
+repeat; it is not entered as a globally selectable native graph entity. Actual
+one-circle projection admission still applies its own local authored/name checks.
+
+Each feature projects an explicit derived one-circle document with graph.id,
+original sketch.id and unchanged referenced circle, originalfeature IDs and
+height{id:distanceParameterId,valueMM:resolved}. Actual one-circle evaluator
+returns original source0/curve/trim/candidate shell/pcurves/native domains;
+full sketch's original profile coefficients/source/IDs equal the projection.
+Bindings label derived-one-circle-projection and retain full authored profile,
+height graph dependency, local projection bindings/native geometry/face/domain
+IDs. The projection is an evaluated candidate, not a persisted second authority.
+Active features expose actual one-circle result; suppressedevaluation:null still
+requires complete actual native candidate/identity admission. Separate original
+shells, not union/assembly/mass/general solid proof; wholeGraphCertified:false.
+Native evaluation/file/update never invokes preview/Float32 admission.
+
+Exact edits optionally contain parameterEdits0..8/sketchEdits0..8/featureEdits0..4
+with at least one actual operation overall. Existing parameter definitions and
+feature suppression only, unique targets; no lifecycle/rebind/reorder/radius
+binding. Sketch operations use the original arc updater with stable kind/IDs/
+slots. All final references/dependencies/native features admit before owned
+result; deleted referenced profile/malformed suppressed input refuses, leaving
+prior intent/source/native outputs unchanged/reusable.
+
+Save/Open execute native candidate and write only exact graph/sketch/authored
+parameter definitions/features, preserving−0/order/booleans. No resolved cache/
+projection docs/source/Model/topology/mesh/quality/camera/history/reports. Own/
+parser8192values/depth10/arrays64/records12/strings128, UTF-8<=128KiB and lexical
+decoded-duplicate-key/budget guard before JSON.parse. Existing standalone circle/
+arc/rectangle/cutout/source formats stay strict and distinct, no migration.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/sketch-circle-feature-graph-demo.mjs /tmp/barocss-sketch-circle-feature-graph-prototype
+```
+
+The short native/API-file/separatepacket run uses shared base6/raised+.5 giving
+heights6/6.5 and references96*pi/58.5*pi. Base8 and combined original circle
+centre/radius+base2 edits regenerate native shells with stable IDs; suppression/
+restore, fractionaldecimal construction, unreferencedquarter and shared source
+alias remain. Actual files restore authored/native/−0; separatek8packet per
+active result is a consumer only. Native-valid distant small graphSave/Open
+succeeds even when separate Float32 preview refuses. Limited dependency/identity/
+reference/edit/schema/getter controls preserve earlier data. Affected build/this
+run are prototype checks; UI/solver/Boolean/solid/commercial certification and
+broader validation remain deferred.
