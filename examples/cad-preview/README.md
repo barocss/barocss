@@ -7,17 +7,67 @@ presentation camera; callers without a camera keep the original fixed view. Sele
 and disposes the previous renderer/context; errors keep the previous view.
 
 The existing CAD workspace and its editing/inspection/project/history tools remain
-at `/workspace.html`. The gallery adds no new grammar, geometry, project schema or
-Box authoring tool. Actual browser checks are in `gallery-browser.mjs`.
+at `/workspace.html`. The gallery adds no new grammar, geometry or project schema. Actual browser checks are in `gallery-browser.mjs`.
 
-# Native CAD to GPU preview
+# Unified CAD editor and source development
 
-This local consumer imports the built private `@barocss/cad` and
-`@barocss/gpu` ESM APIs. It creates no new package.
+From the repository root, with the existing workspace dependencies:
 
-## Run
+```sh
+pnpm dev:cad
+```
 
-From the repository root:
+Open `http://127.0.0.1:51208/workspace.html`. `PORT` selects another loopback
+port. The root still has only a canvas and Example selector; **Editor · Create /
+Edit** opens the primary editor. Technical examples are under Advanced examples.
+
+The persistent toolbar uses New, Apply, Discard, Save, Open, Fit and Edges. The
+left list contains original native objects/features. The centre holds the active
+renderer. The right panel contains its original properties and parameters. Raw
+native records are under collapsed details. Select one of nine existing tools:
+Surface, Box, polygon prism, cutout prism, rectangle features, circle face, circle
+prism, circle height features, or circle radius features. Tool changes preserve
+accepted documents and views. Only one native document type is active at a time;
+this is not mixed-type assembly/project persistence.
+
+Apply adopts a complete native/display candidate. Discard restores accepted
+fields. New, Open, tool changes and the Examples link require a resolved draft.
+Save downloads accepted intent only; the toolbar says when the draft is excluded.
+Open names the active document type and uses its original strict file parser.
+A different type is refused, without migration or format detection. Errors retain
+the previous accepted native frame and draft for repair. Drag the canvas to orbit.
+Fit, Edges and quality change the view, not authored geometry. Unsupported native
+commands are disabled. Desktop panes scroll independently; compact layouts keep
+one viewport and a scrollable property panel.
+
+The private CAD/GPU workspace main/types/import entries point to `src/index.ts`,
+as the other source-first workspace packages do. The loopback host transforms
+those original TypeScript graphs with the installed esbuild, in memory. Existing
+`.js` relative imports resolve to actual `.ts` files. Reload observes source
+changes without `build:library`, a build watcher or a server restart. No package
+`dist` is read or written by development commands. The host serves a finite local
+asset list, retains the strict CSP, and exposes no arbitrary filesystem route,
+remote resource, model endpoint or websocket.
+
+ONE representative source-only editor check:
+
+```sh
+PW_DIR=<installed-playwright-runtime> CHROME=<installed-chrome> BAROCSS_EDITOR_EVIDENCE=<fresh-output-dir> pnpm test:editor:source
+```
+
+It temporarily makes only this checkout's ignored CAD/GPU dist unavailable and
+restores artifacts in `finally`. It drives actual Box and driven-radius Apply,
+selection, native downloads/read/Open, draft/error/empty-state guards, real WebGL
+uploads, view controls, desktop and compact layouts. It also temporarily changes
+and restores an isolated GPU source export, proving same-server reload. Source
+inputs, exact HEAD, original files, backend and screenshots are retained. This is
+software functional evidence; broader validation and physical performance are
+deferred. The probe must run in an isolated checkout, not a shared owner editor.
+
+## Separate build artifact host
+
+The historical static host still consumes explicit built private ESM artifacts.
+Use this only for an artifact checkpoint, not the normal development loop:
 
 ```sh
 pnpm --filter @barocss/cad build:library

@@ -15,6 +15,17 @@ const { iges, report } = exportIGES(model, ['arc']);
 // The host retains source and report, hashes iges, and writes the bytes.
 ```
 
+## Local source development
+
+This private workspace package exposes `src/index.ts` through main, types and
+import exports. Use `pnpm dev:cad` from the repository root for the
+loopback example. Installed esbuild resolves the original TypeScript module
+graph in memory, including `.js` relative imports. Reload consumes source edits
+without a dependency build or server restart. A plain browser cannot load raw
+TypeScript; use the source host. Existing Node artifact demos explicitly import
+`dist/index.js` and retain their separate `build:library` checkpoint. This private
+entry change is not a published-package or release change.
+
 ## Exact language v0
 
 One `@model name { ... }` contains required `version: 0;` and `length-unit: mm;`
