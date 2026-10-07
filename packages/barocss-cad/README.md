@@ -3138,3 +3138,55 @@ The short prototype demo compares complete standalone610 native output, atomic
 multiple-pole/full16-pole edits, shifted domains/decimals/-0 and real authored
 file readback. Broader validation, readers/exports, UI, caps/topology/solid and
 commercial part completion remain separate work.
+
+## Native revolved Surface preview and parameter boundaries
+
+`tessellateZAxisRevolvedSurface(meridian, options)` calls actual610 once, then
+samples its original Surface into PreviewPacket0. Options are exact and explicit:
+
+```js
+const display = cad.tessellateZAxisRevolvedSurface(meridian, {
+  surfaceId: 'revolved_wall', meshId: 'revolve_display', revision: 0,
+  segmentsPerMeridianSpan: 2, segmentsPerQuarter: 8, orientation: 'forward',
+});
+```
+
+Result is `{native, packet, panels, boundaryPaths, boundaryProvenance, report}`.
+`native` retains the complete original610 Curve/Surface/source/Model. Packet
+surfaceId is the display mesh ID; native IDs remain in explicit provenance.
+No generated Surface/cache is accepted as input authority. Native IDs are ASCII48,
+mesh ID64, revision0..2147483647; descriptor checks refuse unknown/getter options.
+
+U splits at every original positive knot span with1..2 subdivisions. V splits at
+original circle quarters with2..8 subdivisions. Four independent vertices and two
+triangles form each panel. Original endpoint point queries include C0 boundaries;
+strictly interior actual D1 supplies one faceted normal per panel. Forward uses
+du cross dv; reverse flips both normals and triangle winding. Neither is labelled
+globally outward. No smoothing, welding, epsilon, skipping or quality healing.
+Unsafe/zero native derivatives, unrepresentable intervals and degenerate native
+or world Float32 triangles refuse display while native geometry stays separate.
+
+The full16-pole/15-span case at U2/V8 has960 panels,3840 vertices and1920 triangles,
+within original CAD/GPU packet limits. Bounds are sampled extrema. Original UV,
+panel ranges and smooth normalSampleUV remain explicit. Normals are
+native-midpoint-faceted; no certified approximation/shape/area/volume bound.
+
+Exactly three display paths bind Surface parameter boundaries: Umin ring, Umax
+ring and one original meridian seam. Rings have<=33 points; seam<=31. Provenance
+contains source surface/meridian IDs, native sample parameters and complete UV
+locations. Seam points compare to Surface(U,0) and Surface(U,4) within1e-7mm.
+Coincident end rings retain distinct parameter roles. These are not topology
+edges/faces/loops; no grid/triangle diagonals or duplicate seam path is generated.
+All paths fit existing64-point GPU overlay limits. Native coefficient closure
+remains periodic:false and not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/z-axis-revolve-preview-demo.mjs /tmp/barocss-z-axis-revolve-preview-prototype
+```
+
+The one actual native demo compares original points/D1/panels/UV/winding/boundary
+bindings, both orientations, edited612 meridians and maximum counts. Packet and
+provenance files are ordinary display artifacts, with JSON numeric-zero semantics;
+native source0 read/compile remains distinct. Deeper validation, GPU pixels/UI,
+physical performance, caps/topology/solid and commercial completion are separate.
