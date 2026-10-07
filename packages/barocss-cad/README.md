@@ -3853,3 +3853,65 @@ parameter effects. One eligible ruled result feeds actual selected-axis elevatio
 one supported curved result uses existing5x5 packet/native UV/ordinary JSON read.
 Display approximation remains separate. General basis matching/multi-section loft,
 sweep/caps/trims/B-Rep/Boolean, interactive tools and broader validation remain pending.
+
+## Explicit degree-matched Bezier sections for rational ruled Surface
+
+`buildDegreeMatchedBezierRuledSurface(first, second, {surfaceId, targetDegree})`
+matches two original single-span Bezier section degrees through actual one-step
+elevations, then calls actual buildRationalRuledSurface once. Target2/3 is explicit
+and at least both original degrees. Same-target sections remain owned unchanged
+copies. General multi-span matching/fitting/domain remapping stays unsupported.
+
+```js
+const ruled = cad.buildDegreeMatchedBezierRuledSurface(lineSection, quadraticSection, {
+  surfaceId: 'degree_matched_sections', targetDegree: 3,
+});
+```
+
+The owned result contains `{originalFirst, originalSecond, matchedFirst,
+matchedSecond, steps:{first,second}, ruled, surface, source, sourceVersion:0,
+model, provenance, report}`. Exact original Curve/options snapshots use1024 own
+values/depth6 per input, arrays64, records8 and strings128 without getters. Three
+distinct ASCII IDs1..48, original degree1..3/exactly degree+1 poles/2*(degree+1)
+clamped knots, finite positive represented single spans, XYZ +/-10000 mm and
+weights1e-6..1e6 are required. Original domain endpoints agree Object.is. Downward/
+wrong target, multi-span/domain/ID/unknown/foreign/hidden/sparse/symbol/cyclic/
+malformed/native arithmetic failures refuse without mutation or partial output.
+
+At most two actual elevateBezierCurveDegree calls stage per section. No second
+kernel, manual knot/weight rewriting, normalization or parent API refactor. Real
+step results retain original IDs/domains, direct endpoints and original knot maps.
+Composition tracks every original knot through actual step provenance; unchanged
+sections keep complete bits. Final actual rational ruled admission requires exact
+matched degree/count/Object.is knot basis. Mixed-zero clamp patterns can remain
+incompatible after elevation and refuse rather than normalizing original signs.
+
+The actual ruled result supplies the whole source0 Model [matched original-ID
+Curves, Surface] in native order, complete source/coefficients/provenance/statuses.
+Original lower-degree Curves stay separately owned in the result. Surface rows
+refer to matched section poles, with independent original unscaled weight meaning.
+V remains denominator-weighted rational segment interpolation, without a uniform
+Cartesian blend guarantee. No linked feature reverse update, cached mesh authority,
+new grammar or project schema.
+
+Reports contain original/matched degree/count/domain, actual step counts and
+source/endpoint/knot provenance, <=5 matching native point observations and<=3
+actual CurveD1 statuses per section, plus the unchanged native ruled report.
+Local1e-7 mm comparisons are observations, without global error/continuity/
+regularity/solid certification. Native coefficient/file validity remains separate
+from actual arithmetic refusal and display approximation. Flags remain
+not-certified/topologyCertified:false/solid:false.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/degree-matched-bezier-ruled-demo.mjs --source
+```
+
+One final artifact checkpoint is separate from installed in-memory esbuild source
+API/file/packet flow, without CAD dist import/write or per-demo dependency build.
+Line/quadratic/cubic/same-target/quarter/edited/shifted/mixed-zero/constant sections
+check actual elevation/ruled provenance, source file full Model bits and caller
+reuse. A direct prior ruled mismatch demonstrates the added explicit matching
+operation. One supported matched patch uses existing5x5 packet/native UV/ordinary
+JSON readback. Interactive controls use the unified editor. General matching,
+multi-section loft/sweep/caps/trims/B-Rep/Boolean and broader validation remain pending.
