@@ -1,0 +1,32 @@
+{
+  "name": "@barocss/cad-editor-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build"
+  },
+  "dependencies": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "radix-ui": "1.7.0",
+    "react-resizable-panels": "4.14.2",
+    "lucide-react": "1.52.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "tailwind-merge": "3.7.0",
+    "@barocss/cad": "workspace:*",
+    "@barocss/gpu": "workspace:*"
+  },
+  "devDependencies": {
+    "tailwindcss": "4.3.3",
+    "@tailwindcss/vite": "4.3.3",
+    "vite": "8.3.1",
+    "typescript": "5.9.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/node": "26.6.4",
+    "esbuild": "0.28.2"
+  }
+}
