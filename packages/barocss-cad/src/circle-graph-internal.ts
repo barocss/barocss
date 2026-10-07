@@ -1,4 +1,4 @@
-import type { SketchCircleLengthDefinition, SketchCircleLengthParameter, SketchCircleGraphFeature, SketchCircleResolvedParameter } from './sketch-circle-feature-graph.js';
+import type { SketchCircleLengthDefinition, SketchCircleLengthParameter, SketchCircleGraphFeature, SketchCircleResolvedParameter, SketchCircleFeatureGraphV0 } from './sketch-circle-feature-graph.js';
 
 // Shared original circle admission and resolution. This module is internal.
 export function check(condition: boolean, label: string, path: string, detail: string): asserts condition { if (!condition) throw new Error((label + ': ' + path.slice(0, 256) + ': ' + detail).slice(0, 1024)); }
@@ -115,4 +115,69 @@ export function admitJSONText(text: string, label: string): void {
     else if (c === '-' || /[0-9tfn]/.test(c)) { while (i + 1 < text.length && !/[ \n\r\t,}\]]/.test(text[i + 1])) i++; }
   }
   check(stack.length === 0, label, '$text', 'unclosed JSON container');
+}
+
+export function authoredRoles(document: SketchCircleFeatureGraphV0, label: string): Map<string, string> {
+  const roles = new Map<string, string>();
+  const add = (id: string, role: string): void => { identifier(id, label, '$.ids'); check(!roles.has(id), label, '$.ids #' + id, 'authored graph/sketch/profile/point/radius/parameter/feature/shell slots must be globally distinct'); roles.set(id, role); };
+  add(document.id, 'graph'); add(document.sketch.id, 'sketch');
+  for (const p of document.sketch.profiles) {
+    add(p.id, 'source:' + p.id); add(p.centerId, 'center:' + p.id); add(p.radius.id, 'radius:' + p.id);
+    if (p.kind === 'circle') add(p.seamId, 'seam:' + p.id); else p.endpointIds.forEach((id, i) => add(id, 'endpoint:' + p.id + ':' + i));
+  }
+  document.parameters.forEach(p => add(p.id, 'parameter:' + p.id));
+  document.features.forEach(f => { add(f.id, 'feature:' + f.id); add(f.shellId, 'shell:' + f.id); });
+  return roles;
+}
+
+export function applyFeatureOperations(candidate: Pick<SketchCircleFeatureGraphV0, 'features'>, operations: unknown[], startingFeatures: Map<string, SketchCircleGraphFeature>, reserved: Set<string>, label: string): void {
+  const targets = new Set<string>();
+  for (const [index, input] of operations.entries()) {
+    const path = '$edits.featureOperations[' + index + ']';
+    check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'feature operation record required');
+    const kind = (input as Record<string, unknown>).kind;
+    check(kind === 'upsert' || kind === 'remove', label, path + '.kind', 'upsert/remove required');
+    const operation = record(input, kind === 'upsert' ? ['kind', 'feature'] : ['kind', 'featureId'], label, path);
+    const next = kind === 'upsert' ? admitFeature(operation.feature, label, path + '.feature') : undefined;
+    const id = next ? next.id : identifier(operation.featureId, label, path + '.featureId'), owner = label + ' feature #' + id;
+    check(!targets.has(id), owner, path, 'target feature appears more than once in transaction'); targets.add(id);
+    const previous = startingFeatures.get(id), slot = candidate.features.findIndex(f => f.id === id);
+    if (next) {
+      if (previous) {
+        check(previous.kind === next.kind && previous.shellId === next.shellId && slot >= 0, owner, path + '.feature.kind/shellId', 'existing feature kind/shell identity and slot must remain'); candidate.features[slot] = next;
+      } else {
+        check(!reserved.has(next.id) && !reserved.has(next.shellId) && next.id !== next.shellId, owner, path + '.feature.id/shellId', 'new feature/shell identities must be fresh relative to starting/new authored/selectable native IDs');
+        check(candidate.features.length < 8, owner, path, 'bounded working feature array cannot exceed8');
+        reserved.add(next.id); reserved.add(next.shellId); candidate.features.push(next);
+      }
+    } else {
+      check(!!previous && slot >= 0, owner, path + '.featureId', 'remove must resolve a starting feature'); candidate.features.splice(slot, 1);
+    }
+  }
+}
+
+export function applyParameterOperations(candidate: Pick<SketchCircleFeatureGraphV0, 'parameters'>, operations: unknown[], startingParameters: Map<string, SketchCircleLengthParameter>, reserved: Set<string>, label: string): void {
+  const targets = new Set<string>();
+  for (const [index, input] of operations.entries()) {
+    const path = '$edits.parameterOperations[' + index + ']';
+    check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'parameter operation record required');
+    const kind = (input as Record<string, unknown>).kind;
+    check(kind === 'upsert' || kind === 'remove', label, path + '.kind', 'upsert/remove parameter operation required');
+    const operation = record(input, kind === 'upsert' ? ['kind', 'parameter'] : ['kind', 'parameterId'], label, path);
+    const next = kind === 'upsert' ? admitParameter(operation.parameter, label, path + '.parameter') : undefined;
+    const id = next ? next.id : identifier(operation.parameterId, label, path + '.parameterId'), owner = label + ' parameter #' + id;
+    check(!targets.has(id), owner, path, 'target parameter appears more than once in transaction'); targets.add(id);
+    const previous = startingParameters.get(id), slot = candidate.parameters.findIndex(p => p.id === id);
+    if (next) {
+      if (previous) {
+        check(next.type === previous.type && slot >= 0, owner, path + '.parameter.type', 'existing parameter type/identity and slot must remain'); candidate.parameters[slot] = next;
+      } else {
+        check(!reserved.has(id), owner, path + '.parameter.id', 'new parameter identity must be fresh relative to starting/new authored/selectable native IDs');
+        check(candidate.parameters.length < 16, owner, path, 'bounded working parameter array cannot exceed16');
+        reserved.add(id); candidate.parameters.push(next);
+      }
+    } else {
+      check(!!previous && slot >= 0, owner, path + '.parameterId', 'remove must resolve a starting parameter'); candidate.parameters.splice(slot, 1);
+    }
+  }
 }

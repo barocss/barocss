@@ -1,7 +1,7 @@
-import { check, guard, snapshot, record, identifier, length, definition, admitParameter, admitFeature, resolve, admitJSONText } from './circle-graph-internal.js';
-import { evaluateSketchCircleFeatureGraph } from './sketch-circle-feature-graph.js';
+import { check, guard, snapshot, record, identifier, length, definition, admitParameter, admitFeature, resolve, admitJSONText, authoredRoles, applyFeatureOperations, applyParameterOperations } from './circle-graph-internal.js';
+import { evaluateSketchCircleFeatureGraph, evaluateCircleGraphWithIdentities } from './sketch-circle-feature-graph.js';
 import { evaluateXYCirclePrismDocument } from './xy-circle-prism-document.js';
-import type { SketchCircleLengthParameter, SketchCircleGraphFeature, SketchCircleResolvedParameter, SketchCircleFeatureGraphV0, SketchCircleFeatureGraphResult, SketchCircleFeatureGraphReport, SketchCircleFeatureGraphEdits, SketchCircleFeatureBindings } from './sketch-circle-feature-graph.js';
+import type { SketchCircleLengthParameter, SketchCircleGraphFeature, SketchCircleResolvedParameter, SketchCircleFeatureGraphV0, SketchCircleFeatureGraphResult, SketchCircleFeatureGraphReport, SketchCircleFeatureGraphEdits, SketchCircleFeatureBindings, SketchCircleParameterOperation, SketchCircleFeatureOperation } from './sketch-circle-feature-graph.js';
 import type { XYArcSketchProfileIntent, XYArcSketchBindings } from './xy-arc-sketch-document.js';
 import type { XYPoint } from './xy-profile.js';
 import { copyCadData } from './data-copy.js';
@@ -21,6 +21,11 @@ export interface DrivenSketchCircleFeatureGraphEdits {
   parameterEdits?: SketchCircleFeatureGraphEdits['parameterEdits'];
   circleEdits?: { profileId: string; centerMM?: XYPoint; radiusDefinition?: DrivenCircleRadiusDefinition }[];
   featureEdits?: SketchCircleFeatureGraphEdits['featureEdits'];
+}
+export interface DrivenSketchCircleParameterLifecycleEdits {
+  parameterOperations: SketchCircleParameterOperation[];
+  featureOperations?: SketchCircleFeatureOperation[];
+  circleEdits?: DrivenSketchCircleFeatureGraphEdits['circleEdits'];
 }
 export interface DrivenCircleProfileDimension {
   profileId: string; radiusId: string; definition: DrivenCircleRadiusDefinition; parameterId: string | null; resolvedRadiusMM: number; dependencyIds: string[];
@@ -88,7 +93,7 @@ function admit(input: unknown, label: string): DrivenSketchCircleFeatureGraphV1 
     parameters: data.parameters.map((p, i) => admitParameter(p, label, '$.parameters[' + i + ']')),
     features: data.features.map((f, i) => admitFeature(f, label, '$.features[' + i + ']')) };
 }
-function evaluate(document: DrivenSketchCircleFeatureGraphV1, label: string): DrivenSketchCircleFeatureGraphResult {
+function evaluate(document: DrivenSketchCircleFeatureGraphV1, label: string, nativeIdentities?: Map<string, string>): DrivenSketchCircleFeatureGraphResult {
   const resolved = resolve(document.parameters, label), values = new Map(resolved.map(p => [p.id, p.valueMM]));
   const profileDimensions = document.sketch.profiles.map((p): DrivenCircleProfileDimension => {
     const d = p.radius.definition, parameterId = d.kind === 'parameter' ? d.parameterId : null;
@@ -103,7 +108,7 @@ function evaluate(document: DrivenSketchCircleFeatureGraphV1, label: string): Dr
     parameters: document.parameters, features: document.features,
   };
   // Original601 admission owns global identities and actual587/599/595 geometry.
-  const nativeGraph = evaluateSketchCircleFeatureGraph(projection);
+  const nativeGraph = nativeIdentities ? evaluateCircleGraphWithIdentities(projection, nativeIdentities) : evaluateSketchCircleFeatureGraph(projection);
   const nativeFeatures = nativeGraph.features.map(f => {
     //601 intentionally omits suppressed evaluation. Obtain its selectable IDs
     //from the same actual599 projection, never from a naming approximation.
@@ -133,6 +138,19 @@ function evaluate(document: DrivenSketchCircleFeatureGraphV1, label: string): Dr
 export function evaluateDrivenSketchCircleFeatureGraph(document: DrivenSketchCircleFeatureGraphV1): DrivenSketchCircleFeatureGraphResult {
   const label = context(document); return guard(label, () => evaluate(admit(document, label), label));
 }
+function applyCircleEdits(candidate: DrivenSketchCircleFeatureGraphV1, operations: unknown[], label: string): void {
+  const circleTargets = new Set<string>();
+  for (const [i, input] of operations.entries()) {
+    const path = '$edits.circleEdits[' + i + ']';
+    check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'circle edit record required');
+    const e = input as Record<string, unknown>, fields = Object.keys(e);
+    check(Object.hasOwn(e, 'profileId') && fields.length >= 2 && fields.length <= 3 && fields.every(k => ['profileId', 'centerMM', 'radiusDefinition'].includes(k)), label, path, 'existing profileId and centre/radius definition only');
+    const id = identifier(e.profileId, label, path + '.profileId'); check(!circleTargets.has(id), label, path, 'duplicate circle target #' + id); circleTargets.add(id);
+    const p = candidate.sketch.profiles.find(p => p.id === id); check(p?.kind === 'circle', label, path, 'existing original circle required #' + id);
+    if (Object.hasOwn(e, 'centerMM')) p.centerMM = center(e.centerMM, label, path + '.centerMM');
+    if (Object.hasOwn(e, 'radiusDefinition')) p.radius.definition = radiusDefinition(e.radiusDefinition, label, path + '.radiusDefinition');
+  }
+}
 export function updateDrivenSketchCircleFeatureGraph(document: DrivenSketchCircleFeatureGraphV1, edits: DrivenSketchCircleFeatureGraphEdits): DrivenSketchCircleFeatureGraphResult {
   const label = context(document);
   return guard(label, () => {
@@ -143,28 +161,49 @@ export function updateDrivenSketchCircleFeatureGraph(document: DrivenSketchCircl
     let count = 0;
     for (const key of keys) { check(Array.isArray(data[key]) && (data[key] as unknown[]).length <= (key === 'featureEdits' ? 4 : 8), label, '$edits.' + key, 'bounded edit array required'); count += (data[key] as unknown[]).length; }
     check(count > 0, label, '$edits', 'at least one actual edit required');
-    const parameterTargets = new Set<string>(), circleTargets = new Set<string>(), featureTargets = new Set<string>();
+    const parameterTargets = new Set<string>(), featureTargets = new Set<string>();
     for (const [i, input] of ((data.parameterEdits ?? []) as unknown[]).entries()) {
       const path = '$edits.parameterEdits[' + i + ']', e = record(input, ['parameterId', 'definition'], label, path), id = identifier(e.parameterId, label, path + '.parameterId');
       check(!parameterTargets.has(id), label, path, 'duplicate parameter target #' + id); parameterTargets.add(id);
       const p = candidate.parameters.find(p => p.id === id); check(!!p, label, path, 'existing parameter required #' + id); p.definition = definition(e.definition, label, path + '.definition');
     }
-    for (const [i, input] of ((data.circleEdits ?? []) as unknown[]).entries()) {
-      const path = '$edits.circleEdits[' + i + ']';
-      check(input !== null && typeof input === 'object' && !Array.isArray(input), label, path, 'circle edit record required');
-      const e = input as Record<string, unknown>, fields = Object.keys(e);
-      check(Object.hasOwn(e, 'profileId') && fields.length >= 2 && fields.length <= 3 && fields.every(k => ['profileId', 'centerMM', 'radiusDefinition'].includes(k)), label, path, 'existing profileId and centre/radius definition only');
-      const id = identifier(e.profileId, label, path + '.profileId'); check(!circleTargets.has(id), label, path, 'duplicate circle target #' + id); circleTargets.add(id);
-      const p = candidate.sketch.profiles.find(p => p.id === id); check(p?.kind === 'circle', label, path, 'existing original circle required #' + id);
-      if (Object.hasOwn(e, 'centerMM')) p.centerMM = center(e.centerMM, label, path + '.centerMM');
-      if (Object.hasOwn(e, 'radiusDefinition')) p.radius.definition = radiusDefinition(e.radiusDefinition, label, path + '.radiusDefinition');
-    }
+    applyCircleEdits(candidate, (data.circleEdits ?? []) as unknown[], label);
     for (const [i, input] of ((data.featureEdits ?? []) as unknown[]).entries()) {
       const path = '$edits.featureEdits[' + i + ']', e = record(input, ['featureId', 'suppressed'], label, path), id = identifier(e.featureId, label, path + '.featureId');
       check(!featureTargets.has(id), label, path, 'duplicate feature target #' + id); featureTargets.add(id);
       check(typeof e.suppressed === 'boolean', label, path, 'boolean suppression required'); const f = candidate.features.find(f => f.id === id); check(!!f, label, path, 'existing feature required #' + id); f.suppressed = e.suppressed;
     }
     return evaluate(admit(candidate, label), label);
+  });
+}
+export function editDrivenSketchCircleFeatureGraphParameters(document: DrivenSketchCircleFeatureGraphV1, edits: DrivenSketchCircleParameterLifecycleEdits): DrivenSketchCircleFeatureGraphResult {
+  const label = context(document);
+  return guard(label, () => {
+    // Admit the original accepted graph once to reserve actual generated IDs,
+    // including suppressed candidates. No partially edited graph is evaluated.
+    const selectableNative = new Map<string, string>();
+    const original = evaluate(admit(document, label), label, selectableNative), candidate = original.document;
+    const startingAuthored = authoredRoles(original.projection, label), reserved = new Set([...startingAuthored.keys(), ...selectableNative.keys()]);
+    const startingParameters = new Map(candidate.parameters.map(p => [p.id, copyCadData(p)]));
+    const startingFeatures = new Map(candidate.features.map(f => [f.id, copyCadData(f)]));
+    const value = snapshot(edits, label, '$edits');
+    check(value !== null && typeof value === 'object' && !Array.isArray(value), label, '$edits', 'driven parameter lifecycle record required');
+    const data = value as Record<string, unknown>, keys = Object.keys(data);
+    check(Object.hasOwn(data, 'parameterOperations') && keys.length <= 3 && keys.every(k => ['parameterOperations', 'featureOperations', 'circleEdits'].includes(k)), label, '$edits', 'required parameterOperations and optional featureOperations/circleEdits only');
+    for (const key of keys) check(Array.isArray(data[key]) && (data[key] as unknown[]).length >= 1 && (data[key] as unknown[]).length <= (key === 'parameterOperations' ? 16 : 8), label, '$edits.' + key, key === 'parameterOperations' ? 'ordered1..16 parameter operations required' : 'optional present1..8 operations required');
+    applyParameterOperations(candidate, data.parameterOperations as unknown[], startingParameters, reserved, label);
+    if (Object.hasOwn(data, 'featureOperations')) applyFeatureOperations(candidate, data.featureOperations as unknown[], startingFeatures, reserved, label);
+    if (Object.hasOwn(data, 'circleEdits')) applyCircleEdits(candidate, data.circleEdits as unknown[], label);
+    // Full final radius/offset/height references and count admission only now.
+    const finalNative = new Map<string, string>(), result = evaluate(admit(candidate, label), label, finalNative);
+    // A fresh shell's generated descendants must not recycle a removed authored
+    // or generated ID under a different entity role either. Stable original
+    // descendants and intentional source/shell aliases retain their roles.
+    for (const [id, role] of [...authoredRoles(result.projection, label), ...finalNative]) {
+      const originalAuthored = startingAuthored.get(id), originalNative = selectableNative.get(id);
+      check((originalAuthored === undefined || originalAuthored === role) && (originalNative === undefined || originalNative === role), label, '$edits.generatedIds #' + id, 'final identity cannot recycle a starting authored/selectable native identity under another role');
+    }
+    return result;
   });
 }
 export function serializeDrivenSketchCircleFeatureGraph(document: DrivenSketchCircleFeatureGraphV1): string {
