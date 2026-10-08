@@ -24,7 +24,7 @@ let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'))
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('Atlas', image);
 renderer.setView(view);
-/** @type {import('@barocss/canvas2d').SceneV9} */
+/** @type {import('@barocss/canvas2d').SceneV9 | import('@barocss/canvas2d').SceneV10} */
 let accepted = tree.snapshot(); renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 /** @type {string[]} */ let pointerLog = [];
@@ -111,7 +111,7 @@ async function openText(text) {
   /** @type {import('@barocss/canvas2d').SpriteHandle} */ let nextSprite;
   /** @type {import('@barocss/canvas2d').RectHandle} */ let nextBack;
   try {
-    if (staged.scene.version !== 9) throw new Error('Document needs Scene v9');
+    if (staged.scene.version !== 9 && staged.scene.version !== 10) throw new Error('Document needs Scene v9 or v10');
     nextTree = createDisplayTreeFromScene(staged.scene);
     const container = nextTree.get('Parent'), main = nextTree.get('Sprite');
     const underlay = nextTree.get('Back');
@@ -130,7 +130,7 @@ async function openText(text) {
   tree = nextTree; parent = nextParent; sprite = nextSprite; back = nextBack;
   accepted = staged.scene;
   generation++; pointerLog = []; subscribe(); unbind = bind(); old.dispose();
-  show('Opened Scene v9 points');
+  show('Opened Scene v9 or v10 points');
 }
 subscribe(); unbind = bind();
 document.querySelector('#move')?.addEventListener('click', move);

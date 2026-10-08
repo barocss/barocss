@@ -121,7 +121,8 @@ export function sourceRect(node: ImageNode, asset: ImageAsset): SourceRect {
 }
 
 export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
-  vertices: Float32Array, node: ImageNode, asset: ImageAsset, size: Size, view: View): void {
+  vertices: Float32Array, node: ImageNode, asset: ImageAsset, opacity: number,
+  size: Size, view: View): void {
   if (!asset.texture) throw new Canvas2DError('CONTEXT_LOST', 'image texture is unavailable');
   const rect = sourceRect(node, asset);
   const u0 = rect.x / asset.width, u1 = (rect.x + rect.width) / asset.width;
@@ -130,7 +131,7 @@ export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   gl.useProgram(gpu.program); gl.bindVertexArray(gpu.vao);
   gl.uniform2f(gpu.size, size.width, size.height);
   gl.uniform3f(gpu.view, view.panX, view.panY, view.zoom);
-  gl.uniform1f(gpu.opacity, node.opacity); gl.uniform1i(gpu.sampler, 0);
+  gl.uniform1f(gpu.opacity, opacity); gl.uniform1i(gpu.sampler, 0);
   const tint = 'tint' in node ? node.tint as [number, number, number] : [1, 1, 1];
   gl.uniform3f(gpu.tint, tint[0], tint[1], tint[2]);
   gl.uniform4f(gpu.uvClamp, (rect.x + 0.5) / asset.width, (rect.y + 0.5) / asset.height,

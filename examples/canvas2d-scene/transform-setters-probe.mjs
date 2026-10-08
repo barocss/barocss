@@ -64,5 +64,5 @@ const restored = createDisplayTreeFromScene(reopened.scene);
 assert.equal(stringifySceneJSON(restored.snapshot()), stringifySceneJSON(saved));
 restored.get('Sprite').setPosition(7, 8);
 assert.deepEqual(restored.get('Sprite').data.transform, { ...pose, x: 7, y: 8 });
-console.log(JSON.stringify({ result: 'ok', kinds: 7, sceneVersion: 9,
+console.log(JSON.stringify({ result: 'ok', kinds: 7, sceneVersion: 10,
   fileBytes: Buffer.byteLength(file) }));
