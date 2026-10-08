@@ -747,16 +747,18 @@ reversal, interval and wide-refinement output sources over HTTP into one
 Pixi3D 2.5.0/PixiJS 7.2.4 Application. It checks native IDs, sample-v1
 parameters, copied buffers, visible lines, refusal/retention and owned
 disposal. The host applies an explicit display rotation and poses; native
-source coordinates do not change. `./pixi3d-document` remains Surface-only.
+source coordinates do not change. The document adapter has a separate selected-body contract below.
 
-### Display selected document Surfaces in Pixi3D
+### Display selected document Surfaces and Curves in Pixi3D
 
 The optional `./pixi3d-document` entry composes the same source-backed
 document body selection as `./document` with the pinned source0 Pixi3D
-Surface adapter. It accepts 1–4 selected Surface bodies in authored order
-and refuses a selected Curve or any `curveDisplay` option. A document with
-more than four bodies needs explicit `bodyIds`. Unselected native Curves
-remain in the authoritative Model; the adapter does not draw them.
+adapter. It accepts 1–4 selected Surface or sample-v1 Curve bodies in
+authored order. A selected Curve requires explicit `native.curveDisplay`
+version 1. Without that option, the earlier Surface-only path remains.
+The three-field v0 Curve display option still refuses. A document with
+more than four bodies needs explicit `bodyIds`. Unselected native objects
+remain in the authoritative Model and outside the visible display tree.
 
 ```js
 import { loadBaroCadDocument } from '@barocss/cad-interop/document';
@@ -774,23 +776,45 @@ app.stage.addChild(display.root);
 display.dispose();
 ```
 
+To select Curves, opt into the bounded sample-v1 display profile:
+
+```js
+const mixed = createBaroCadDocumentPixi3DDisplay(cad, {
+  native: { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } },
+  basis: 'authored-xyz-matches-rhyup',
+  bodyIds: ['body_0_curve', 'body_0_surface', 'body_1_curve', 'body_1_surface'],
+});
+app.stage.addChild(mixed.root);
+mixed.dispose();
+```
+
 The result contains one owned root, one node per selected asset and
-bindings with original document/asset/body/revision/frame/Surface IDs,
+bindings with original document/asset/body/revision/frame/geometry IDs,
 the asset-scoped ref, actual `Mesh3D` and asset node. The source adapter
 constructs the bounded whole source Model. It keeps any unselected
-Surface meshes outside the visible result tree until owned disposal.
+Surface and Curve meshes outside the visible result tree until owned disposal.
 Failed candidates release staged resources and keep an accepted display.
 `dispose()` is idempotent and does not destroy the caller Application,
 renderer, stage, camera, canvas or unrelated children. The caller must
 assert that authored XYZ matches the target right-handed Y-up display
 frame; the document does not certify this or define CAD assembly poses.
-PixiJS v8 and Curve rendering are outside this entry's profile.
+Curve lines are display samples, not native topology or exact picks.
+PixiJS v8 is outside this entry's profile.
 
 `examples/document-pixi3d-v1.html` reads the actual 3,172-byte document
 over local HTTP and renders two selected Surface meshes in one Pixi3D
 2.5.0/PixiJS 7.2.4 WebGL2 canvas. It also checks a second source with an
 unselected Surface, source IDs/scale, refusal, staged cleanup and owned
 disposal. This optional Pixi entry requires a browser runtime.
+
+`examples/document-pixi3d-v2.html` uses the same document and explicit
+sample-v1 to render two selected Surfaces and two selected Curves in one
+Pixi3D canvas. Its four bindings follow authored body order, even when
+`bodyIds` are requested out of order. Asset-qualified refs distinguish
+the repeated native geometry IDs. The example checks hidden unselected
+Curves, native sample parameters, one-time scaling, invalid selections,
+later-asset cleanup and caller-owned resources.
 
 ## Neutral model set
 

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Selected CAD document Curves and Surfaces in Pixi3D</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Selected CAD document Curves and Surfaces · Pixi3D</h1>
+  <p>Each asset shows one Surface and one sampled Curve. Two extra Curves stay hidden.</p>
+  <div id="view"></div>
+  <button id="reject" type="button">Try invalid selections</button>
+  <button id="dispose" type="button">Dispose owned display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Application, DRAW_MODES, Graphics } from 'pixi.js';
+  import { Camera, Color } from 'pixi3d/pixi7';
+  import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '../dist/document.js';
+  import { BaroCADPixi3DLoader } from '../dist/pixi3d.js';
+  import { createBaroCadDocumentPixi3DDisplay } from '../dist/pixi3d-document.js';
+
+  const status = document.querySelector('#status');
+  const app = new Application({ width: 800, height: 480, background: '#101b2c',
+    antialias: false, preserveDrawingBuffer: true });
+  const canvas = app.view;
+  document.querySelector('#view').append(canvas);
+  const callerChild = new Graphics().beginFill(0xffffff).drawCircle(22, 22, 6).endFill();
+  app.stage.addChild(callerChild);
+  const camera = Camera.main ?? new Camera(app.renderer);
+  camera.orthographic = true;
+  camera.orthographicSize = 0.018;
+  camera.position.set(0, 0, 0.35);
+  const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const request = { native, basis: 'authored-xyz-matches-rhyup',
+    bodyIds: ['body_1_surface', 'body_0_curve', 'body_1_curve', 'body_0_surface'] };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const pixels = () => {
+    app.renderer.render(app.stage);
+    const gl = app.renderer.gl;
+    const data = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Pixi WebGL readPixels failed');
+    return data;
+  };
+  const colored = data => {
+    const counts = { cyan: 0, magenta: 0, yellow: 0, green: 0 };
+    for (let index = 0; index < data.length; index += 4) {
+      const r = data[index], g = data[index + 1], b = data[index + 2];
+      if (r < 90 && g > 145 && b > 145) counts.cyan++;
+      if (r > 145 && g < 90 && b > 145) counts.magenta++;
+      if (r > 145 && g > 145 && b < 90) counts.yellow++;
+      if (r < 90 && g > 145 && b < 90) counts.green++;
+    }
+    return counts;
+  };
+  let cad, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    cad = await loadBaroCadDocument(new URL('document-gpu-v2.cad-document.json', location.href).href);
+    const projected = prepareBaroCadDocumentPrimitiveNativeRefsV2(cad, request);
+    const parsed = [];
+    const originalParse = BaroCADPixi3DLoader.prototype.parse;
+    try {
+      BaroCADPixi3DLoader.prototype.parse = function (source) {
+        const result = originalParse.call(this, source);
+        parsed.push(result);
+        return result;
+      };
+      display = createBaroCadDocumentPixi3DDisplay(cad, request);
+    } finally { BaroCADPixi3DLoader.prototype.parse = originalParse; }
+    const expectedIds = ['body_0_curve', 'body_0_surface', 'body_1_curve', 'body_1_surface'];
+    if (JSON.stringify(display.bindings.map(binding => binding.bodyId)) !== JSON.stringify(expectedIds) ||
+        display.assetNodes.length !== 2 || display.assetNodes.some(node => node.children.length !== 2) ||
+        parsed.length !== 2 || parsed.some(result => result.renderedCurves.length !== 2 ||
+          result.renderedSurfaces.length !== 1)) {
+      throw new Error('Selected mixed document Mesh3D bindings differ from authored bodies');
+    }
+    display.assetNodes[0].position.set(-0.006, 0, 0);
+    display.assetNodes[1].position.set(0.006, 0, 0);
+    const nativeSamples = [];
+    for (const binding of display.bindings) {
+      const entry = projected.find(value => value.binding.bodyId === binding.bodyId);
+      // The two assets deliberately share source text, so source text cannot qualify a binding.
+      const source = parsed[binding.assetId === 'asset-a' ? 0 : 1];
+      const expected = entry.kind === 'surface'
+        ? Float32Array.from(entry.packet.positions, value => Math.fround(value * 0.001))
+        : Float32Array.from(entry.sample.pointsMM.flat(), value => Math.fround(value * 0.001));
+      const actual = binding.mesh.geometry.positions.buffer;
+      if (actual.length !== expected.length ||
+          actual.some((value, index) => !Object.is(value, expected[index])) ||
+          binding.geometryKind !== entry.kind || binding.geometryId !== entry.ref.geometryId ||
+          binding.ref.modelId !== entry.ref.modelId || binding.ref.geometryId !== entry.ref.geometryId ||
+          binding.documentRevision !== 5 || binding.assetRevision !== (binding.assetId === 'asset-a' ? 2 : 7)) {
+        throw new Error('Pixi Mesh3D differs from selected native document body');
+      }
+      if (entry.kind === 'curve') {
+        const rendered = source.renderedCurves.find(value => value.curveId === binding.geometryId);
+        if (rendered.mesh !== binding.mesh || rendered.sampleReport.dto.version !== 1 ||
+            binding.mesh.material.drawMode !== DRAW_MODES.LINE_STRIP ||
+            JSON.stringify(rendered.nativeParameters) !== JSON.stringify(entry.sample.parameters) ||
+            JSON.stringify(rendered.nativeIntervals) !==
+              JSON.stringify(entry.sample.segments.map(segment => segment.domain))) {
+          throw new Error('Document Curve native sample binding differs from source adapter');
+        }
+        nativeSamples.push({ bodyId: binding.bodyId, points: entry.sample.pointsMM.length,
+          parameters: rendered.nativeParameters.length, intervals: rendered.nativeIntervals.length });
+        // Display-only offset keeps the line clear of its asset's Surface.
+        binding.mesh.position.set(0, 0.004, 0);
+        binding.mesh.material.baseColor = binding.assetId === 'asset-a'
+          ? new Color(1, 1, 0) : new Color(0, 1, 0);
+      } else {
+        binding.mesh.material.baseColor = binding.assetId === 'asset-a'
+          ? new Color(0, 1, 1) : new Color(1, 0, 1);
+      }
+    }
+    if (!parsed.every(result => result.renderedCurves.some(value => value.curveId === 'skip_path_native' &&
+        value.mesh.parent === result.root)) ||
+        !cad.compiledAssets.every(asset => Object.is(asset.model.objects[0].controlPoints[0][1], -0))) {
+      throw new Error('Unselected Curve leaked or original signed zero changed');
+    }
+    app.stage.addChild(display.root);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const first = pixels();
+    const counts = colored(first);
+    if (Object.values(counts).some(value => value < 10)) throw new Error('A selected kind or asset has no visible pixels');
+    evidence = {
+      documentId: cad.document.documentId, documentRevision: cad.document.revision,
+      assetRevisions: cad.document.assets.map(asset => asset.revision),
+      bodyIds: display.bindings.map(binding => binding.bodyId),
+      kinds: display.bindings.map(binding => binding.geometryKind),
+      refs: display.bindings.map(binding => binding.ref),
+      originalIds: cad.compiledAssets.map(asset => asset.model.objects.map(object => object.id)),
+      originalSignedZero: true, exactScaledPositions: true, nativeSamples,
+      unselectedCurvesHiddenAndOwned: true, meshCount: display.bindings.length,
+      webgl2: app.renderer.gl instanceof WebGL2RenderingContext,
+      oneCanvas: document.querySelectorAll('canvas').length === 1,
+      visiblePixels: counts, pixelHash: hash(first), callerChildRetained: app.stage.children.includes(callerChild),
+    };
+    window.__baroCadDocumentPixiMixedEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const before = hash(pixels());
+      const acceptedSources = cad.document.assets.map(asset => asset.source);
+      const acceptedOptions = JSON.stringify(request);
+      const { curveDisplay: unusedCurveDisplay, ...withoutCurveDisplay } = native;
+      const candidates = [
+        { ...request, bodyIds: ['missing_body'] },
+        { ...request, bodyIds: ['body_0_curve', 'body_0_curve'] },
+        { ...request, bodyIds: ['body_0_curve', 'body_0_surface', 'body_1_curve', 'body_1_surface', 'body_0_skip'] },
+        { ...request, basis: 'authored-xyz-no-axis-conversion' },
+        { ...request, native: withoutCurveDisplay, bodyIds: ['body_0_curve'] },
+        { ...request, native: { ...native, curveDisplay:
+          { chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } } },
+      ];
+      let refused = 0;
+      for (const candidate of candidates) {
+        try { createBaroCadDocumentPixi3DDisplay(cad, candidate); } catch { refused++; }
+      }
+      const forged = structuredClone(cad); forged.bodyBindings[0].assetId = 'asset_b';
+      try { createBaroCadDocumentPixi3DDisplay(forged, request); } catch { refused++; }
+      const staged = [];
+      let stagedFailureDisposed = false;
+      try {
+        BaroCADPixi3DLoader.prototype.parse = function (source) {
+          const result = originalParse.call(this, source);
+          staged.push(result);
+          if (staged.length === 2) result.model.name = 'forged_second_asset';
+          return result;
+        };
+        try { createBaroCadDocumentPixi3DDisplay(cad, request); } catch { refused++; }
+        stagedFailureDisposed = staged.length === 2 && staged.every(result =>
+          result.root.destroyed && result.renderedSurfaces.every(value => value.mesh.destroyed) &&
+          result.renderedCurves.every(value => value.mesh.destroyed));
+      } finally { BaroCADPixi3DLoader.prototype.parse = originalParse; }
+      Object.assign(evidence, {
+        invalidCandidatesRefused: refused, stagedFailureDisposed,
+        acceptedDisplayRetained: app.stage.children.includes(display.root) &&
+          display.bindings.every(binding => !binding.mesh.destroyed),
+        acceptedSourcesRetained: cad.document.assets.every((asset, index) => asset.source === acceptedSources[index]),
+        acceptedOptionsRetained: JSON.stringify(request) === acceptedOptions,
+        acceptedPixelsRetained: hash(pixels()) === before,
+      });
+      show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      const owned = parsed.flatMap(result => [
+        ...result.renderedSurfaces.map(value => value.mesh),
+        ...result.renderedCurves.map(value => value.mesh)]);
+      display.dispose(); display.dispose();
+      Object.assign(evidence, {
+        ownedMeshesDestroyed: owned.every(mesh => mesh.destroyed),
+        assetNodesDestroyed: display.assetNodes.every(node => node.destroyed),
+        displayRemoved: !app.stage.children.includes(display.root),
+        callerChildRetained: app.stage.children.includes(callerChild),
+        callerCanvasRetained: document.body.contains(canvas),
+        callerRendererRetained: app.renderer.gl instanceof WebGL2RenderingContext,
+        nativeSourcesRetained: cad.document.assets.every(asset => asset.source.includes('#guide_path_native')),
+      });
+      show();
+    };
+  } catch (error) {
+    display?.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCadDocumentPixiMixedError = String(error);
+  }
+</script>
+</html>
