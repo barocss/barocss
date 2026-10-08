@@ -173,3 +173,6 @@ export type { CubicCurveAffinePlaneIntersectionOptions, CubicCurveAffinePlaneInt
 
 export { intersectCubicCurveWideWithAffinePlaneSurface, validateWideCubicCurveAffinePlaneIntersection, WideCubicCurveAffinePlaneIntersectionError, WideCubicCurveAffinePlaneIntersectionDiagnosticCode } from './curve-wide-cubic-plane-intersection.js';
 export type { WideCubicCurveAffinePlaneIntersectionOptions, WideCubicCurveAffinePlaneSpan, WideCubicCurveAffinePlaneIntersectionReport, WideCubicCurveAffinePlaneIntersectionResult } from './curve-wide-cubic-plane-intersection.js';
+
+export { editCurveControlPolygonWide, validateWideCurveControlPolygonEdit, WideCurveControlPolygonEditError, WideCurveControlPolygonEditDiagnosticCode } from './curve-wide-control-polygon.js';
+export type { WideCurveControlPolygonEditReport, WideCurveControlPolygonEditResult } from './curve-wide-control-polygon.js';

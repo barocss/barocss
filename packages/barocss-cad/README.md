@@ -6040,3 +6040,58 @@ are not global binary64/manufacturing/G1/G2/topology/solid certification.
 Generic curved Surface/Curve-Curve intersection, arbitrary trims/sewing/Boolean,
 actual GPU/Loader consumption, Integration adoption and publication remain
 separate work.
+
+## Wide native Curve control-point and weight editing
+
+`editCurveControlPolygonWide(curve,edits)` admits positive clamped nonperiodic
+native Curves of degree1..3 with2..64 poles/at most70 knots/64 nonzero spans.
+Coordinates stay within±10000mm; existing native weight bounds1e-6..1e6 apply.
+Curve IDs are ASCII1..48. Edits reuse `CurveControlPolygonEdits`:
+`{poleEdits:[{index,xMM?,yMM?,zMM?,weight?}]}` with1..64 distinct in-range indices
+and at least one explicit finite requested field per record. Values are absolute
+replacements. No-op requests are valid; requested negative-zero values retain
+their sign. Duplicate indices and unknown fields refuse.
+
+The existing pole-patch admission/application/provenance calculation is shared
+by the older16-pole API and this explicit wider profile. Original kind/ID/degree,
+knots/domain/order and all unrequested coordinate/weight bits stay unchanged.
+The entire candidate must pass native admission and actual source0 compilation
+before acceptance. No normalization, point fit, parameterization/topology change
+or inferred persistent vertex naming is added.
+
+Result is `{original,edits,curve,source,sourceVersion,model,originalSource,
+originalModel,provenance,report}`. Original and candidate source strings are
+actual regenerated canonical geometry files from the supplied native Curve;
+they do not recover unavailable caller source formatting or its model name.
+Caller original files remain untouched. The report DTO is
+`barocss-native-wide-curve-control-polygon-edit`, version0/mm/authored XYZ.
+It records requested/changed/untouched fields and poles, native point effects,
+original C0 guards and bounded before/after D1 observations. Only the exact
+native C0 refusal is a guard state; other actual arithmetic failures refuse
+atomically. Coordinate/weight edits can change geometry and tangents; no G1/G2
+or global shape accuracy is certified.
+
+Observations use unique original knots and represented span midpoints, at
+most129 point and129 D1 observations. Intervals without a represented midpoint
+are recorded rather than supplied an invented point. Inputs allow32768 values,
+depth8/arrays128/fields16/strings128; owned result524288 values/depth32/arrays4096/
+fields64/source262144. Existing native source limits apply. Data is copied CPU
+state with GC and no renderer resources/disposal.
+
+`validateWideCurveControlPolygonEdit(result)` reconstructs original/edits,
+candidate/source/models/provenance/observations/guard states/report. Capacity,
+unknown/getter/hidden/symbol/foreign/sparse/cyclic/nonfinite and altered owned
+data refuse without changing previous input or accepted data. Diagnostics are
+INPUT, IDENTITY, BUDGET, NATIVE, BINDING and OWNED. Old public admission, output,
+source, report and16-pole/16-edit limits remain unchanged.
+
+The one actual source/native-file/owned-data/compiled JS and declarations flow is:
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/curve-wide-control-polygon-demo.mjs --source /tmp/barocss-wide-curve-edit
+```
+
+Native readiness, Integration adoption, actual consumer use and publication
+remain separate. Topology/solid/manufacturing certification and a legacy
+document-history layer are not added.
