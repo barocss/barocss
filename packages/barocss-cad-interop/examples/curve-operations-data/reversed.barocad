@@ -1,0 +1,1 @@
+@model weighted_reversed { version:0; length-unit:mm; @curve #weighted_reversed { type:nurbs; degree:2; knots:[-3,-3,-3,3,3,7,7,7]; control-points:[[6,1,5],[5,-2,4],[3,0,2],[0,3,1],[-2,-0,-0]]; weights:[1,1.5,0.75,2,1]; } }
