@@ -38,4 +38,6 @@ The [`image-cache.html`](image-cache.html) page uses compiled `createImageAssetC
 
 The [`frame.html`](frame.html) page creates a public frame with an overhanging rectangle child. It checks compiled types, actual clipped and unclipped pixels/hits, frame pointer delivery, atomic edit refusal and real v1 document Save/Open into fresh handles. The [frame observation](evidence/frame/observation.md) records the bounded Chromium/WebGL2 result.
 
+The [`sprite-crop.html`](sprite-crop.html) page edits a public sprite's existing Scene v6 `sourceRect`. It checks red, transparent, green, full-atlas and reconstructed blue pixels/hits, real pointer delivery, strict handle refusal, renderer asset-bound refusal and v1 document cold Open. The [sprite crop observation](evidence/sprite-crop/observation.md) records one fixed 2×2 RGBA8 atlas flow.
+
 The [`line.html`](line.html) page creates a public finite line and white rectangle under a container. It checks compiled types, ink and adjacent background pixels/hits, real line pointer delivery, an atomic rejected edit, and v1 document Save/Open into new handles. The [line observation](evidence/line/observation.md) records the bounded Chromium/WebGL2 result.
