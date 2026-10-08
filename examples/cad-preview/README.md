@@ -1369,3 +1369,33 @@ independent frame conversion, one Undo/Redo, zero-size/duplicate-ID/over-capacit
 refusal retention, actual Save Blob+file chooser Open, edit after Open, unrelated
 profile preservation, pending drawing Cancel and empty/disposal0. No OS Downloads,
 reader/capacity/performance/parent/Review/full Sketch/constraint/region certificate.
+
+## Accepted Sketch Curve point and tangent (#861)
+
+In `/xy-sketch.html`, select a profile, expand **Native Curve evaluation**, enter
+its original dimensionless parameter and click **Evaluate native Curve**. The
+result pins document/profile/Curve IDs, accepted revision/domain, raw point(mm)
+and raw D1(mm per original parameter), before display rotation/scale. It queries
+the provider-produced Curve from accepted Sketch0 intent; it is not an unrelated
+3D Curve, normalized parameter, sampled preview normal or B-Rep identity.
+
+Pending coordinate/drawing fields do not supply geometry. Query success/refusal
+leaves native/source/history/view/pixels and other pending fields unchanged.
+Actual C0/domain/finite guards apply; failure keeps the previous successful
+query plus a separate error. Another profile or native adoption invalidates the
+result; another point in the same profile and resize/view-only actions retain it.
+Input text stays pending. Disposed/unaccepted/empty context disables query.
+
+```sh
+BAROCSS_SKETCH_QUERY_EVIDENCE=/absolute/unique/output \
+node examples/cad-preview/sketch-curve-query-flow.mjs
+```
+
+The scoped actual flow creates a real three-click polyline and compares explicit
+native point/D1 with independent segment expectations. It observes pending-field/
+source/revision/history/entries/options/pixel/resource retention and zero GPU
+updates on queries, genuine C0/domain/text refusal, resize retention, accepted edit
+invalidation/requery and idempotent disposal. Initial disposed SVG projection
+failure is preserved; the same flow passed after an inactive-view guard. No old
+805 Save/Open, parent517 broad reader/unit/gallery campaign, geometry edits during
+query, general Curve editor, G1/G2/global continuity or topology certificate.
