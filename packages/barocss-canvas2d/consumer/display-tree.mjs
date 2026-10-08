@@ -106,9 +106,9 @@ async function openText(text) {
   if (stopped) return;
   const fresh = document.createElement('canvas'); fresh.id = 'scene';
   const staged = await stageCanvasDocument(text, fresh, options);
-  if (staged.scene.version !== 6 && staged.scene.version !== 7 && staged.scene.version !== 8) {
+  if (staged.scene.version !== 6 && staged.scene.version !== 7 && staged.scene.version !== 8 && staged.scene.version !== 9) {
     staged.renderer.dispose();
-    throw new Canvas2DError('UNSUPPORTED_FEATURE', 'this display-tree consumer opens Scene v6, v7 or v8');
+    throw new Canvas2DError('UNSUPPORTED_FEATURE', 'this display-tree consumer opens Scene v6, v7, v8 or v9');
   }
   /** @type {import('@barocss/canvas2d').DisplayTree} */
   let restored;

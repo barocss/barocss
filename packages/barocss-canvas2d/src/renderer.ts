@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, Point, Scene, Size, Transform, View } from './schema.js';
+import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, Point, Scene, Size, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -7,11 +7,11 @@ import type { ImageAsset, ImageGpu } from './image.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
   id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
-  matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null;
+  matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null; visible: boolean;
   observation?: PathObservation; fillObservation?: FillObservation;
   maskVertices?: Float32Array; contours?: Float32Array[]; fillRule?: 'evenodd' | 'nonzero';
   imageAsset?: ImageAsset; imageNode?: ImageNode;
@@ -74,7 +74,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
   assets: ReadonlyMap<string, ImageAsset>): Draw[] {
   const draws: Draw[] = [];
   let vertices = 0;
-  function add(draw: Draw): void {
+  function addDraw(draw: Draw): void {
     for (const coordinates of [draw.vertices, draw.maskVertices]) {
       if (!coordinates) continue;
       for (const coordinate of coordinates) {
@@ -87,12 +87,15 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
     if (vertices > 16384) throw new Canvas2DError('SCENE_LIMIT', 'scene exceeds 16384 draw vertices');
     draws.push(draw);
   }
-  function visit(siblings: RenderNode[], parent: Matrix, inheritedClip: Clip | null): void {
+  function visit(siblings: RenderNode[], parent: Matrix, inheritedClip: Clip | null,
+    inheritedVisible: boolean): void {
     const sorted = siblings.map((node, index) => ({ node, index }))
       .sort((a, b) => a.node.layer - b.node.layer || a.index - b.index);
     for (const { node } of sorted) {
+      const visible = inheritedVisible && (!('visible' in node) || node.visible !== false);
+      const add = (draw: Omit<Draw, 'visible'>): void => addDraw({ ...draw, visible });
       const matrix = multiply(parent, pose(node.transform));
-      if (node.kind === 'group') { visit(node.children as RenderNode[], matrix, inheritedClip); continue; }
+      if (node.kind === 'group') { visit(node.children as RenderNode[], matrix, inheritedClip, visible); continue; }
       const inv = inverse(matrix);
       if (node.kind === 'frame') {
         add({ id: node.id, kind: 'frame', node, matrix, inverse: inv,
@@ -105,7 +108,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
             right: Math.max(topLeft.x, bottomRight.x), bottom: Math.max(topLeft.y, bottomRight.y),
           });
         }
-        visit(node.children as RenderNode[], matrix, childClip);
+        visit(node.children as RenderNode[], matrix, childClip, visible);
       } else if (node.kind === 'rect') {
         add({ id: node.id, kind: 'rect', node, matrix, inverse: inv,
           color: node.fill, vertices: rectangle(matrix, node.width, node.height), clip: inheritedClip });
@@ -156,7 +159,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
       }
     }
   }
-  visit(scene.nodes as RenderNode[], [1, 0, 0, 1, 0, 0], null);
+  visit(scene.nodes as RenderNode[], [1, 0, 0, 1, 0, 0], null, true);
   return draws;
 }
 
@@ -445,7 +448,7 @@ export class Canvas2DRenderer {
       y: (p.y - this.view.panY) / this.view.zoom };
     for (let i = this.draws.length - 1; i >= 0; i--) {
       const draw = this.draws[i];
-      if (draw.color[3] > 0 && contains(draw, world)) return { id: draw.id, kind: draw.kind };
+      if (draw.visible && draw.color[3] > 0 && contains(draw, world)) return { id: draw.id, kind: draw.kind };
     }
     return null;
   }
@@ -463,6 +466,7 @@ export class Canvas2DRenderer {
     gl.uniform2f(gpu.size, this.size.width, this.size.height);
     gl.uniform3f(gpu.view, this.view.panX, this.view.panY, this.view.zoom);
     for (const draw of this.draws) {
+      if (!draw.visible) continue;
       if (draw.maskVertices) {
         gl.disable(gl.SCISSOR_TEST);
         gl.stencilMask(0xff); gl.clearStencil(0); gl.clear(gl.STENCIL_BUFFER_BIT);

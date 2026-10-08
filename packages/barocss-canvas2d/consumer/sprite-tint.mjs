@@ -101,7 +101,7 @@ async function openText(text) {
   /** @type {import('@barocss/canvas2d').SpriteHandle} */ let nextSprite;
   /** @type {import('@barocss/canvas2d').RectHandle} */ let nextBack;
   try {
-    if (staged.scene.version !== 7 && staged.scene.version !== 8) throw new Error('Document needs Scene v7 or v8');
+    if (staged.scene.version !== 7 && staged.scene.version !== 8 && staged.scene.version !== 9) throw new Error('Document needs Scene v7, v8 or v9');
     nextTree = createDisplayTreeFromScene(staged.scene);
     const imageNode = nextTree.get('Sprite'), underlay = nextTree.get('Back');
     const bytes = staged.renderer.getImageAsset('Atlas')?.pixels;
