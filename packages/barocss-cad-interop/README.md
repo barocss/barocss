@@ -607,6 +607,40 @@ assembly relation. A GPU packet label is not a native identity; resolve it
 through the binding before any native query. Viewer native measurement and
 multi-model adoption remain separate work.
 
+### Project mixed Surface and Curve sets
+
+`prepareBaroCadModelSetPrimitiveDisplayV1(set)` accepts a model set with 1–4
+total native objects. Every object must have a Surface packet or a sampled
+Curve. It returns ordered, owned `surface` and `curve` entries. Each entry has
+a unique `binding.displayGeometryId`, plus the original `aliasId`, `modelId`,
+`geometryId`, `geometryKind` and source URL. Surface packet IDs are qualified
+for display. Curve samples keep their complete validated CAD v0/v1 DTO, native
+Curve ID, source parameters and signed-zero values; only the binding gets a
+qualified display label. No native Model or input packet is changed.
+
+```js
+import { loadBaroCadModelSet, prepareBaroCadModelSetPrimitiveDisplayV1 }
+  from '@barocss/cad-interop/model-set';
+
+const set = await loadBaroCadModelSet(manifest, { baseURL: location.href });
+const display = prepareBaroCadModelSetPrimitiveDisplayV1(set);
+for (const entry of display) {
+  // Use entry.binding to map a display object back to its native CAD object.
+  // Pass entry.sample or entry.packet to the selected renderer adapter.
+}
+```
+
+`examples/model-set-primitive-v1.html` loads two exact copies of the wide
+Curve v1 fixture and one two-Surface source through local HTTP. The Three
+native loader places two Lines and two Meshes in one caller Scene even when
+both Curves have the native ID `wide_64`. The example tests invalid input,
+the four-object cap, prior-scene retention and adapter-owned disposal. Run it
+through the package's Vite browser server. For a CPU-only check, run
+`node examples/model-set-primitive-v1-verify.mjs` after building CAD and this
+package. The existing Surface-only helper and example remain valid. Own GPU
+one-scene qualified identity is tracked separately in issue #746; this
+projection does not change that GPU scene contract or add CAD placement.
+
 ## CAD Surface operation consumer in Three.js
 
 `examples/surface-region-reversal-generate.mjs` uses the public `@barocss/cad`
