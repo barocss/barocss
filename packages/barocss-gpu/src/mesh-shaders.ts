@@ -1,3 +1,4 @@
+import {lowerMeshMaterial} from './mesh-material.js';
 import type {SceneShaders} from './compiler.js';
 import type {MeshLighting} from './mesh-lighting.js';
 export const MESH_LIGHTING=Object.freeze({kind:'fixed-directional-and-ambient',direction:Object.freeze([-.6,.8,1]),ambientStrength:.35,diffuseStrength:.65});
@@ -56,4 +57,14 @@ export function applyMeshLighting(gl:WebGL2RenderingContext,program:WebGLProgram
  gl.uniform1f(gl.getUniformLocation(program,'ambientStrength'),lighting.ambientStrength);
  gl.uniform1f(gl.getUniformLocation(program,'directionalStrength'),lighting.directionalStrength);
  gl.uniform3fv(gl.getUniformLocation(program,'lightDirection'),lighting.direction.map(n=>n/length));
+}
+
+/** Material expressions are reconstructed from source, never caller GLSL. */
+export function materialMeshShaders(lighting:MeshLighting|undefined,binding:import('./mesh-material.js').MeshMaterialBinding|null):SceneShaders{
+ if(!binding)return meshLightingShaders(lighting);
+ const base=meshLightingShaders(lighting),lowered=lowerMeshMaterial(binding.material);
+ return{vertex:base.vertex,fragment:base.fragment.replace('uniform vec3 color;','uniform vec3 color;\n'+lowered.uniformDeclarations).replace('pow(color,vec3(2.2))','('+lowered.expression+')')};
+}
+export function applyMeshMaterial(gl:WebGL2RenderingContext,program:WebGLProgram,binding:import('./mesh-material.js').MeshMaterialBinding|null):void{
+ if(!binding)return;binding.material.uniforms.forEach((u,i)=>gl.uniform1f(gl.getUniformLocation(program,'mat_u_'+i),binding.uniforms[u.name]));
 }

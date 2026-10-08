@@ -1,4 +1,6 @@
-import {MESH_LIGHTING as LIGHTING,MESH_SHADERS as SHADERS,meshLightingShaders,applyMeshLighting} from './mesh-shaders.js';
+import {validateMeshMaterialBinding} from './mesh-material.js';
+import type {MeshMaterialBinding} from './mesh-material.js';
+import {MESH_LIGHTING as LIGHTING,MESH_SHADERS as SHADERS,meshLightingShaders,applyMeshLighting,materialMeshShaders,applyMeshMaterial} from './mesh-shaders.js';
 import { GPUError } from './renderer.js';
 import type { UpdateResult } from './renderer.js';
 import {requireMeshExecution} from './gpu-compiler.js';
@@ -19,6 +21,7 @@ import type {MeshObjectHighlight} from './object-highlight.js';
 type Mesh = ReturnType<typeof requireMeshExecution>;
 const EMPTY_VIEWPORT = Symbol('empty mesh viewport');
 interface Resources {
+  material:MeshMaterialBinding|null;
   highlight: MeshFaceHighlight | null;
   objectHighlight: MeshObjectHighlight | null;
   mesh: Mesh | null; options: MeshOptions; program: WebGLProgram | null; vao: WebGLVertexArrayObject | null;
@@ -67,7 +70,7 @@ export class MeshRenderer {
   get objectHighlight():MeshObjectHighlight|null {this.live();return this.accepted!.objectHighlight&&structuredClone(this.accepted!.objectHighlight);}
   get lighting() {const lighting=this.accepted?.options.lighting;return lighting?{kind:'configured-directional-and-ambient' as const,direction:[...lighting.direction],ambientStrength:lighting.ambientStrength,diffuseStrength:lighting.directionalStrength}:structuredClone(LIGHTING);}
   get revision(): number { this.live(); if (!this.accepted!.mesh) throw new GPUError('Viewport is empty'); return this.accepted!.mesh.packet.revision; }
-  get shaders(): SceneShaders { this.live(); return { ...meshLightingShaders(this.accepted!.options.lighting) }; }
+  get shaders(): SceneShaders { this.live(); return { ...materialMeshShaders(this.accepted!.options.lighting,this.accepted!.material) }; }
   private live(): void {
     if (this.disposed) throw new GPUError('Mesh renderer is disposed');
     if (this.lost || this.gl.isContextLost()) throw new GPUError('WebGL2 context is lost; mount a new renderer');
@@ -80,15 +83,15 @@ export class MeshRenderer {
     if (error !== this.gl.NO_ERROR) throw new GPUError(`WebGL2 error 0x${error.toString(16)}`);
     if (this.gl.isContextLost()) throw new GPUError('WebGL2 context is lost');
   }
-  private create(mesh: Mesh | null, options: MeshOptions, width: number, height: number, edges: PreparedMeshEdges | null, highlight:MeshFaceHighlight|null,objectHighlight:MeshObjectHighlight|null=null): Resources {
+  private create(mesh: Mesh | null, options: MeshOptions, width: number, height: number, edges: PreparedMeshEdges | null, highlight:MeshFaceHighlight|null,objectHighlight:MeshObjectHighlight|null=null,material:MeshMaterialBinding|null=null): Resources {
     this.live(); this.check();
     const camera = prepareCamera(options.camera, width / height);
     const gl = this.gl;
-    const resources: Resources = { highlight, objectHighlight, mesh, options, program: null, vao: null, buffers: [], framebuffer: null, color: null, depth: null, width, height, edges, edgeProgram: null, edgeVao: null };
+    const resources: Resources = { material, highlight, objectHighlight, mesh, options, program: null, vao: null, buffers: [], framebuffer: null, color: null, depth: null, width, height, edges, edgeProgram: null, edgeVao: null };
     const shaders: WebGLShader[] = [];
     try {
       if (mesh) {
-        const source=meshLightingShaders(options.lighting);
+        const source=materialMeshShaders(options.lighting,material);
         for (const [kind, text] of [[gl.VERTEX_SHADER, source.vertex], [gl.FRAGMENT_SHADER, source.fragment]] as const) {
           const shader = gl.createShader(kind);
           if (!shader) throw new GPUError('Cannot allocate mesh shader');
@@ -134,6 +137,7 @@ export class MeshRenderer {
         gl.uniformMatrix4fv(gl.getUniformLocation(resources.program!, 'projection'), false, camera.projection);
         gl.uniform3fv(gl.getUniformLocation(resources.program!, 'color'), options.color);
         applyMeshLighting(gl,resources.program!,options.lighting);
+        applyMeshMaterial(gl,resources.program!,material);
         if (edges) { gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, 1); }
         gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
         if(objectHighlight){
@@ -193,6 +197,13 @@ export class MeshRenderer {
     this.check();
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
+  get material():MeshMaterialBinding|null {this.live();return this.accepted!.material&&structuredClone(this.accepted!.material);}
+  /** First opaque profile restages the existing mesh candidate lifecycle. */
+  setMaterial(input:MeshMaterialBinding|null):UpdateResult {
+    let candidate:Resources|null=null;
+    try{this.live();const prior=this.accepted!;if(!prior.mesh)throw new GPUError('Accepted mesh required for material');const material=input===null?null:validateMeshMaterialBinding(input);if(material&&(prior.edges||prior.highlight||prior.objectHighlight))throw new GPUError('Clear overlay/selection before material');candidate=this.create(prior.mesh,prior.options,this.canvas.width,this.canvas.height,prior.edges,prior.highlight,prior.objectHighlight,material);this.present(candidate);this.accepted=candidate;this.release(prior);return{ok:true};}
+    catch(error){if(candidate)this.release(candidate);if(!this.disposed&&!this.lost&&!this.gl.isContextLost()&&this.accepted){try{this.present(this.accepted);}catch{this.lost=true;}}return{ok:false,error:error instanceof Error?error:new GPUError('Material change refused')};}
+  }
   update(packet: PreviewPacket, options: MeshOptions, overlay?: MeshEdgeOverlay | null, highlight?:MeshFaceHighlight|null, objectHighlight?:MeshObjectHighlight|null): UpdateResult {
     let candidate: Resources | null = null;
     try {
@@ -203,7 +214,8 @@ export class MeshRenderer {
       const face=prepareFaceHighlight(highlight===undefined?oldFace:highlight,mesh.packet);
       const retainedObject=objectHighlight===undefined&&this.accepted!.mesh&&sameMeshPacket(mesh.packet,this.accepted!.mesh.packet)?this.accepted!.objectHighlight:null;
       const object=prepareObjectHighlight(objectHighlight===undefined?retainedObject:objectHighlight,mesh.packet);
-      candidate = this.create(mesh, mesh.options, this.canvas.width, this.canvas.height, edges, face, object);
+      if(this.accepted!.material&&(edges||face||object))throw new GPUError('Clear material before overlay or selection rendering');
+      candidate = this.create(mesh, mesh.options, this.canvas.width, this.canvas.height, edges, face, object,this.accepted!.material);
       this.present(candidate);
       const previous = this.accepted!; this.accepted = candidate; this.release(previous);
       return { ok: true };
@@ -254,7 +266,7 @@ export class MeshRenderer {
     let candidate: Resources | null = null;
     const previous = this.accepted!;
     try {
-      candidate = this.create(previous.mesh, previous.options, width, height, previous.edges, previous.highlight, previous.objectHighlight);
+      candidate = this.create(previous.mesh, previous.options, width, height, previous.edges, previous.highlight, previous.objectHighlight,previous.material);
       this.canvas.width = width; this.canvas.height = height;
       if (this.gl.drawingBufferWidth !== width || this.gl.drawingBufferHeight !== height) throw new GPUError('Requested mesh buffer allocation failed');
       this.present(candidate); this.accepted = candidate; this.release(previous);

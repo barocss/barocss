@@ -832,3 +832,69 @@ pixels, invalid/legacy-empty refusal retention, clear/restore/empty resize and z
 owned resources after disposal. It proves one nativev0 Line and this explicit
 viewport lifecycle. Wide/Surface/reader/gallery/hardware-performance campaigns
 and Viewer/Loader/sketch UI adoption are separate.
+
+### Own opaque Mesh material source (#779)
+
+```ts
+const result = compileMeshMaterial(`
+@shader #wave {
+  @uniform timeSeconds: float(0,2,0);
+  @fragment {
+    color: mix(#204080,#E08020,sin(timeSeconds*1.5707963267948966)*0.5+0.5);
+  }
+}`);
+if (result.ok) {
+  meshRenderer.setMaterial({material: result.material, uniforms: {timeSeconds: 1}});
+  meshRenderer.material; // owned accepted binding
+  meshRenderer.setMaterial(null); // exact legacy path
+}
+```
+
+compileMeshMaterial is a DOM-free source→typedIR compiler with half-open UTF16
+source diagnostics. validateMeshMaterialIR reconstructs source and compares complete
+owned data; lowerMeshMaterial emits only trusted expression/uniform layout. Imported
+or forged success objects/raw GLSL are not trusted. MeshRenderer.setMaterial validates
+IR and scalar values, then uses its existing program/frame/resource lifecycle.
+Missing uniform values use declared defaults; foreign/getter/nonfinite/out-of-range
+values refuse. Source changes and uniform changes restage program/buffers/frame;
+this prototype does not promise buffer/program reuse or animation performance.
+There is no timer or native geometry mutation. setMaterial(null) restores old shader
+bytes/pixels. Existing update/resize preserve accepted material; clear removes it.
+
+Profile mesh-opaque-fragment-v0 is one opaque color output with float uniforms,
+decimal/exponent and #RRGGBB literals, unary± and float+,-,*, sin/cos, mix(color,color,
+float), clamp(float,float,float). Uniform names ASCII1..32/shader IDs1..64; min/default/
+max finite ordered within±1000. Source64KiBUTF8/tokens4096/uniforms16/nodes256/depth16;
+intermediate interval bounds±1e6, sin/cos arguments±1000, mix ratio admitted0..1.
+Declared target semantics clamp admitted ratios and final linear RGB0..1 to protect
+Float32 color bounds. Material zeros normalize to+0 for JSON-friendly shader data;
+authored native/source/coefficient -0 is not changed.
+
+Hex colors decode once using legacy gamma2.2; expressions are linear RGB, then one
+existing ambient/directional lighting multiplication and one gamma2.2 encode, alpha1.
+No CSSColor4/exact sRGB-transfer/PBR certification. No division/loops/conditions/eval/
+imports/callbacks/rawGLSL/color uniforms/UV/textures/vertex deformation. Native UV is
+retained packet data, not a material varying. Original positions/normals/indices/UV/
+IDs/source stay unchanged; all previous MeshOptions/scene grammar/version/Curve/edge
+paths stay. Only single MeshRenderer is adopted. Other Scene/Primitive/Viewer/Canvas
+material APIs are separate. Material and overlay/face/object highlight combinations
+explicitly refuse in this profile; no silent selection masking.
+
+Every refused candidate retains accepted material/native/program/pixels and frees
+only candidate resources. CPU artifacts own copies/GC; GL resources remain this
+renderer's ownership. Compiled Node probe and one actual native Surface GPU flow:
+
+```sh
+BAROCSS_MATERIAL_CPU_EVIDENCE=/absolute/unique/cpu \
+node examples/gpu-scene/mesh-material-cpu-probe.mjs
+BAROCSS_MATERIAL_GPU_EVIDENCE=/absolute/unique/gpu \
+BAROCSS_MATERIAL_CAD_DEPS=/absolute/compiled/CAD/provider/repo \
+node examples/gpu-scene/mesh-material-flow.mjs
+```
+
+The actual browser flow checks typed source/IR/trusted GLSL, nonunit native affine
+Surface/source/UV/-0 and actual position/normal/index uploads; caller time0/1/2
+independent linear/mix/light/gamma RGB, CPU/IR/uniform refusals, explicit test-injected
+createProgram-null retention, exact absent-material restoration and disposal0.
+The injection is not physical allocation exhaustion. No broad/native/reader/packed/
+color/renderer/performance campaign or publication follows from this prototype.
