@@ -5902,3 +5902,72 @@ node examples/cad-nurbs/cad-document-export-demo.mjs --source /tmp/barocss-docum
 The independent reader is test-only. It is not a dependency of the CAD engine.
 Native readiness, Integration adoption, actual consumer support and publication
 remain separate.
+
+## Cubic Bezier Curve and affine Plane intersections
+
+`intersectCubicBezierCurveWithAffinePlaneSurface(curve,plane,options)` admits one
+positive clamped nonperiodic native cubic Bezier Curve:4 poles/8 knots/one span.
+Plane is the existing safely represented affine equal-weight four-pole
+Surface1x1. Coordinates are within±10000mm; native positive weight bounds and
+represented parameter spans apply. Options are exactly
+`{evaluationId,pointEventIds}` with1..3 explicit distinct event slots and
+ASCII1..48 original/context/event IDs.
+
+The operation retains complete original Curve/Plane IDs, control coordinates,
+weights, knots, original domains and sign bits. The actual compound source0
+file contains those two original objects. Root solving scales only a derived
+four-coefficient homogeneous plane numerator, never the native geometry.
+Nonzero underflow or collapsed distinct adjacent scalar coefficients refuse.
+
+The derivative numerator is quadratic in Bernstein form. Its roots use the
+existing own quadratic solver. Actual derivative-root brackets divide the
+normalized cubic domain into monotone intervals and critical brackets. Each
+critical bracket must exclude a support root with a strict sign and derivative
+control-hull Lipschitz margin plus a64-epsilon arithmetic guard. Interior
+tangency, repeated roots, near-zero signs or unresolved derivative predicates
+refuse atomically. A simple crossing is refined by sign-bracket bisection of
+the original normalized cubic numerator. A near-zero midpoint can shrink its
+bracket only when represented quarter points have safely opposite signs.
+There is no point fit, mesh intersection or external geometry kernel.
+
+Global endpoint roots are explicit; distinct start/end parameters stay distinct
+even at the same world point. An all-zero numerator reports coincident support,
+with control-hull-contained or finite-containment-not-proven semantics. No
+finite coincident clipping is added. Root evidence records original/derived
+coefficients and scale, actual derivative equation/roots, critical bracket
+margins, monotone intervals, scalar observations and bounded work counts.
+
+Result is `{kind,curve,plane,options,source,sourceVersion,model,events,report}`.
+Events reuse original native Curve point/Plane UV/bracket binding and D1 states.
+Finite Plane classification must agree at the estimate and bracket samples;
+no UV clamping, point projection or sewn/exact algebraic vertex is implied.
+Report DTO is `barocss-native-cubic-curve-plane-intersection`, version0, mm and
+raw `authored-xyz-no-axis-conversion`. The original degree1/2 public primitive
+keeps its admission, arithmetic, DTO and limits; both use the same trusted
+plane-axis/projection/root-binding/support helpers.
+
+Limits are3 isolated roots,2 derivative roots,64 bisection steps per actual
+root,1024 cubic scalar evaluations,3 monotone intervals and2 critical brackets.
+Original-domain bracket target is1e-12; the normalized target is the smaller of
+1e-12 and1e-12 divided by original span width. Input snapshots allow4096 values,
+depth8, arrays64, fields16 and strings128; owned results262144 values/depth32/
+arrays4096/fields64/source262144. Numerical/order/work/identity/unsupported and
+malformed or altered owned data refuse without replacing prior accepted data.
+
+`validateCubicBezierCurveAffinePlaneIntersection(result)` reconstructs actual
+original source, scalar evidence, roots, original points/UV/brackets/IDs/report.
+Diagnostics are INPUT, IDENTITY, REPRESENTABILITY, BUDGET, NATIVE, BINDING and
+OWNED. Data is copied CPU/GC state, with no renderer resources. Local evidence
+does not certify global binary64 accuracy, manufacturing tolerances, G1/G2,
+topology or solids. Wide cubic composition, Curve-Curve and curved-Surface
+intersection, arbitrary trims/sewing/Boolean remain separate work.
+
+The one source/native-file/owned-data/compiled JS and types flow is:
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/cubic-curve-plane-intersection-demo.mjs --source /tmp/barocss-cubic-curve-plane
+```
+
+Native readiness, Integration adoption, actual consumer use and publication
+remain separate.

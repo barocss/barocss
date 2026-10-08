@@ -167,3 +167,6 @@ export type { CadDocumentCompatibilityInput, CadDocumentMigrationOptions, CadDoc
 
 export { getCadDocumentExportCapabilities, inspectCadDocumentExport, exportCadDocument, validateCadDocumentExport, CadDocumentExportError, CadDocumentExportDiagnosticCode } from './cad-document-export.js';
 export type { CadDocumentExportCapability, CadDocumentExportSelection, CadDocumentExportOptions, CadDocumentExportMapping, CadDocumentExportReport, CadDocumentExportResult } from './cad-document-export.js';
+
+export { intersectCubicBezierCurveWithAffinePlaneSurface, validateCubicBezierCurveAffinePlaneIntersection, CubicCurveAffinePlaneIntersectionError, CubicCurveAffinePlaneIntersectionDiagnosticCode } from './own-cubic-curve-plane-intersection.js';
+export type { CubicCurveAffinePlaneIntersectionOptions, CubicCurveAffinePlaneIntersectionReport, CubicCurveAffinePlaneIntersectionResult, CubicCurvePlaneRootEvidence } from './own-cubic-curve-plane-intersection.js';
