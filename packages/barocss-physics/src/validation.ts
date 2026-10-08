@@ -1,5 +1,5 @@
 import { PhysicsError } from './types.js';
-import type { Body, PhysicsErrorCode, PhysicsFriction, PhysicsShape, Quat, Vec3 } from './types.js';
+import type { Body, PhysicsCollisionFilter, PhysicsErrorCode, PhysicsFriction, PhysicsShape, Quat, Vec3 } from './types.js';
 import { ID, MAX_COMMANDS, MAX_FORCE_N, MAX_IMPULSE_NS, MAX_TORQUE_NM, MAX_ANGULAR_IMPULSE_NMS } from './limits.js';
 
 export function error(code: PhysicsErrorCode, message: string): never { throw new PhysicsError(code, message); }
@@ -66,7 +66,16 @@ function friction(value: unknown): PhysicsFriction {
   const dynamicCoefficient = finite(input.dynamic, 0, staticCoefficient, 'friction.dynamic');
   return { static: staticCoefficient, dynamic: dynamicCoefficient };
 }
-export function parseBody(value: unknown): Body {
+function collisionFilter(value: unknown): PhysicsCollisionFilter {
+  const input = record(value, 'collisionFilter');
+  fields(input, ['categoryBits', 'maskBits'], 'collisionFilter');
+  if (!Number.isInteger(input.categoryBits) || !Number.isInteger(input.maskBits)) {
+    error('INVALID_CONFIG', 'collision filter bits must be integers');
+  }
+  return { categoryBits: finite(input.categoryBits, 1, 65535, 'categoryBits'),
+    maskBits: finite(input.maskBits, 0, 65535, 'maskBits') };
+}
+export function parseBody(value: unknown, largeMode = false): Body {
   const input = record(value, 'body');
   if (typeof input.id !== 'string' || !ID.test(input.id)) error('INVALID_CONFIG', 'invalid body ID');
   if (input.kind !== 'dynamic' && input.kind !== 'static' && input.kind !== 'kinematic') {
@@ -75,8 +84,10 @@ export function parseBody(value: unknown): Body {
   const kind = input.kind;
   fields(input, kind === 'dynamic'
     ? ['id', 'kind', 'shape', 'positionM', 'velocityMps', 'massKg', 'restitution',
-      'orientation', 'angularVelocityRadps', 'inertiaKgM2', 'friction', 'ccd']
-    : ['id', 'kind', 'shape', 'positionM', 'restitution', 'orientation', 'sensor', 'friction'], 'body');
+      'orientation', 'angularVelocityRadps', 'inertiaKgM2', 'friction', 'ccd',
+      ...(largeMode ? ['collisionFilter'] : [])]
+    : ['id', 'kind', 'shape', 'positionM', 'restitution', 'orientation', 'sensor', 'friction',
+      ...(largeMode ? ['collisionFilter'] : [])], 'body');
   if (Object.hasOwn(input, 'sensor') && input.sensor !== true) error('INVALID_CONFIG', 'sensor must be true');
   const sensor = input.sensor === true;
   const parsedShape = shape(input.shape);
@@ -86,12 +97,15 @@ export function parseBody(value: unknown): Body {
   const positionM = vector(input.positionM, -10000, 10000, 'positionM');
   const restitution = finite(input.restitution, 0, 1, 'restitution');
   const material = Object.hasOwn(input, 'friction') ? friction(input.friction) : { static: 0, dynamic: 0 };
+  const filter = largeMode ? Object.hasOwn(input, 'collisionFilter')
+    ? collisionFilter(input.collisionFilter) : { categoryBits: 1, maskBits: 65535 } : undefined;
   const orientation = Object.hasOwn(input, 'orientation') ? quaternion(input.orientation) : [0, 0, 0, 1] as Quat;
   if (kind !== 'dynamic') {
     return { id: input.id, kind, shape: parsedShape, positionM, velocityMps: [0, 0, 0],
       orientation, angularVelocityRadps: [0, 0, 0], inverseInertiaLocal: [0, 0, 0],
       sensor, inverseMass: 0, restitution,
-      frictionStatic: material.static, frictionDynamic: material.dynamic };
+      frictionStatic: material.static, frictionDynamic: material.dynamic,
+      ...(filter ? { collisionFilter: filter } : {}) };
   }
   const massKg = finite(input.massKg, 0.000001, 1000000, 'massKg');
   if (parsedShape.kind !== 'sphere' && Object.hasOwn(input, 'inertiaKgM2')) {
@@ -111,6 +125,7 @@ export function parseBody(value: unknown): Body {
       : undefined;
   const inertia = inertiaDiagonalKgM2 ?? [inertiaKgM2!, inertiaKgM2!, inertiaKgM2!];
   return { id: input.id, kind, shape: parsedShape, positionM, sensor,
+    ...(filter ? { collisionFilter: filter, sleeping: false } : {}),
     ...(input.ccd === true ? { ccd: true as const } : {}),
     velocityMps: vector(input.velocityMps, -1000, 1000, 'velocityMps'),
     orientation,
@@ -129,6 +144,7 @@ export function copyShape(value: PhysicsShape): PhysicsShape {
 export function copyBody(body: Body): Body {
   return { ...body, shape: copyShape(body.shape), positionM: [...body.positionM], velocityMps: [...body.velocityMps],
     orientation: [...body.orientation], angularVelocityRadps: [...body.angularVelocityRadps],
+    ...(body.collisionFilter ? { collisionFilter: { ...body.collisionFilter } } : {}),
     ...(body.inertiaDiagonalKgM2 ? { inertiaDiagonalKgM2: [...body.inertiaDiagonalKgM2] as Vec3 } : {}),
     inverseInertiaLocal: [...body.inverseInertiaLocal] };
 }

@@ -17,11 +17,13 @@ export type BoxShape = { kind: 'box'; halfExtentsM: Vec3 };
 export type CapsuleShape = { kind: 'capsule'; radiusM: number; halfLengthM: number };
 export type PhysicsShape = SphereShape | BoxShape | CapsuleShape;
 export type PhysicsFriction = { static: number; dynamic: number };
+export type PhysicsCollisionFilter = { categoryBits: number; maskBits: number };
 export type PhysicsBodyConfig =
   | { id: string; kind: 'dynamic'; shape: PhysicsShape; positionM: Vec3; velocityMps: Vec3; massKg: number; restitution: number;
-      orientation?: Quat; angularVelocityRadps?: Vec3; inertiaKgM2?: number; friction?: PhysicsFriction; ccd?: true }
+      orientation?: Quat; angularVelocityRadps?: Vec3; inertiaKgM2?: number; friction?: PhysicsFriction; ccd?: true;
+      collisionFilter?: PhysicsCollisionFilter }
   | { id: string; kind: 'static' | 'kinematic'; shape: PhysicsShape; positionM: Vec3; restitution: number;
-      orientation?: Quat; sensor?: true; friction?: PhysicsFriction };
+      orientation?: Quat; sensor?: true; friction?: PhysicsFriction; collisionFilter?: PhysicsCollisionFilter };
 export type PhysicsStepCommand =
   | { kind: 'force'; bodyId: string; forceN: Vec3 }
   | { kind: 'impulse'; bodyId: string; impulseNs: Vec3 }
@@ -39,6 +41,7 @@ export interface PhysicsWorldConfig {
   joints?: PhysicsJointConfig[];
   broadPhase?: 'aabb';
   contactMode?: 'persistent-box-v1';
+  sceneMode?: 'large-v1';
 }
 export interface PhysicsBodyState {
   id: string;
@@ -52,6 +55,8 @@ export interface PhysicsBodyState {
   inertiaDiagonalKgM2?: Vec3;
   sensor?: boolean;
   ccd?: true;
+  collisionFilter?: PhysicsCollisionFilter;
+  sleeping?: boolean;
 }
 export interface PhysicsContact {
   aId: string;

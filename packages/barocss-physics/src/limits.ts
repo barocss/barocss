@@ -1,6 +1,7 @@
 
 export const ID = /^[A-Za-z][A-Za-z0-9._:-]{0,63}$/;
 export const MAX_BODIES = 32;
+export const MAX_LARGE_BODIES = 64;
 export const MAX_STEPS = 3600;
 export const MAX_STEP_DISPLACEMENT_M = 10;
 export const MAX_COMMANDS = 64;
