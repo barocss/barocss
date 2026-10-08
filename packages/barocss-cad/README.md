@@ -5771,3 +5771,64 @@ candidate and cold-reads/recompiles the native data. Currentv1 JSON formatting,
 unsupported formats/versions/fields, original/prior retention and real compiled
 JS/types are checked in the same flow. Older editor/feature readers, lossy
 migration, renderer adoption, full format parity and publication are separate.
+
+## Wide native Curve and affine Plane intersections
+
+`intersectCurveWideWithAffinePlaneSurface(curve,plane,options)` extends native
+coefficient intersection to positive clamped nonperiodic degree1/2 Curves with
+2..64 original poles, at most70 knots and64 nonzero spans. Plane remains an
+original equal-weight, four-pole affine degree1x1 Surface with safely represented
+independent axes. Degree3 is unsupported in this intersection profile.
+
+Options are exactly `{evaluationId,resultIdPrefix,pointEventIds}`. Caller IDs are
+ASCII1..48; prefix1..20 reserves the actual #723 extraction model and all64 span
+roles. Supply1..128 distinct event IDs, separate from original/evaluation/span
+roles. Private primitive IDs use bounded allocation and cannot collide. More
+roots than declared capacity refuse atomically.
+
+Result is `{kind,curve,plane,options,source,sourceVersion,model,extraction,spans,
+events,report}`. `extraction` is the actual public `extractCurveBezierSpans`
+result, with coefficient matrices, active original poles/knots, homogeneous
+lineage, original domain and actual local native source files. Each local
+Bezier has at most3 poles. The existing own linear/quadratic Bezier/Plane
+primitive computes roots; the existing whole-original event assembly binds
+points, brackets, UV and side observations. The older12-pole/8-span API uses
+that same assembly with its unchanged32-contribution/16-event caps.
+
+Original full Curve/Plane coefficients remain authoritative. No display
+sampling, point fitting, global64-pole refinement or mesh intersection is used.
+Exactly equal native parameters consolidate while retaining all contributions.
+Distinct seam parameters remain distinct even at the same world point. Original
+C0 D1 guards and local one-sided evaluations are separate. Original estimates
+and bracket samples must agree on finite Plane UV classification; no clamping,
+projection or snapping is applied. Coincident spans report support intervals and
+control-hull containment or finite-containment-not-proven. Wide finite clipping,
+sewn vertices, Curve–Curve and curved Surface intersection are separate work.
+
+Report declares `barocss-native-wide-curve-plane-intersection`, version0, mm and
+`authored-xyz-no-axis-conversion`; this is independent of canonical documentv1.
+It records original/extracted roles, span/contribution/event counts, original
+C0 parameters, inherited root/Gram/bracket policies, and copied CPU ownership.
+Local numerical observations do not certify global binary64 error,
+manufacturing tolerances, G1/G2, topology or a solid.
+
+Limits are64 spans,128 isolated contributions/events,64 inherited root steps
+per root and512 private ID-allocation attempts. Inputs allow32768 values,
+depth8, arrays128, fields16 and strings128. Owned results allow1048576 values,
+depth40, arrays4096, fields64 and source strings262144.
+`validateWideCurveAffinePlaneIntersection(result)` snapshots and reconstructs
+the full original geometry, extraction, local roots, event lineage, source and
+report. Unsupported inputs, unsafe arithmetic, unresolved predicates, capacity
+exhaustion and malformed or altered owned data refuse without changing a prior
+accepted result. Diagnostics are INPUT, IDENTITY, SPAN, REPRESENTABILITY,
+BUDGET, NATIVE, BINDING and OWNED.
+
+The single source/native-file/compiled JS and declarations prototype is:
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/curve-wide-plane-intersection-demo.mjs --source /tmp/barocss-wide-curve-plane
+```
+
+Native implementation, Integration adoption, actual GPU/Loader use and
+publication remain separate checkpoints.

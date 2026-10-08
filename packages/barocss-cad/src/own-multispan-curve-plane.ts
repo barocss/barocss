@@ -77,6 +77,70 @@ function derivativeComparison(original:CurvePlaneD1State,child:CurvePlaneD1State
   const difference=Math.max(...original.value.derivative.map((value,i)=>Math.abs(value-child.value.derivative[i])));
   return Number.isFinite(difference)?{status:'compared',maximumAbsoluteDifference:difference}:{status:'unavailable',reason:'original/child native D1 difference arithmetic is not finite'};
 }
+/** Trusted shared whole-original event assembly; callers establish geometry and work bounds. */
+export function assembleCurvePlaneEventsTrusted(
+  c:Curve,p:Surface,spans:CurveAffinePlaneSpan[],pointEventIds:string[],
+  maximumContributions:number,maximumEvents:number,
+):{
+  axes:CurveAffinePlaneAxes;events:CurvePlanePointEvent[];contributionCount:number;
+  coincidentSpans:CurveAffinePlaneIntersectionReport['coincidentSpans'];finiteCount:number;
+  kind:CurveAffinePlaneIntersectionResult['kind'];originalGuardedParameters:number[];
+} {
+  const domain=curveDomain(c),breaks:number[]=[domain[0]];
+  for(const knot of c.knots)if(knot>domain[0]&&knot<domain[1]&&!breaks.some(value=>value===knot))breaks.push(knot);
+  breaks.push(domain[1]);
+  const axes=spans[0].intersection.report.planeAxes;
+  check(spans.every(span=>same(span.intersection.report.planeAxes,axes)),'all spans must bind the same original Plane axes');
+  const groups:{parameter:number;contributions:CurvePlaneSpanContribution[]}[]=[];
+  let contributionCount=0;
+  for(const span of spans)for(const event of span.intersection.events){
+    check(++contributionCount<=maximumContributions,'native event contribution capacity exceeded');
+    const boundary=breaks.find(value=>value===event.parameter),parameter=boundary===undefined?event.parameter:boundary;
+    const originalPointMM=evaluateCurve(c,parameter),pointDifferenceMM=finite(Math.hypot(...delta(originalPointMM,event.pointMM)));
+    check(pointDifferenceMM<=TOL,'original/extracted Curve event point difference exceeds local policy');
+    const originalCurveD1=d1(c,parameter),contribution:CurvePlaneSpanContribution={spanId:span.spanId,spanIndex:span.spanIndex,event,childPointMM:event.pointMM,originalPointMM,pointDifferenceMM,childCurveD1:event.curveD1,originalCurveD1,derivativeComparison:derivativeComparison(originalCurveD1,event.curveD1)};
+    let group=groups.find(item=>item.parameter===parameter);
+    if(!group){group={parameter,contributions:[]};groups.push(group);}group.contributions.push(contribution);
+  }
+  groups.sort((a,b)=>a.parameter<b.parameter?-1:a.parameter>b.parameter?1:0);
+  check(groups.length<=maximumEvents&&groups.length<=pointEventIds.length,'consolidated explicit event capacity exceeded');
+  const events:CurvePlanePointEvent[]=groups.map((group,index)=>{
+    const parameter=group.parameter,pointMM=evaluateCurve(c,parameter),planeUV=uvOf(pointMM,axes),residualMM=Math.abs(dot(axes.unitNormal,delta(pointMM,axes.originMM)));
+    check(residualMM<=TOL,'actual original complete Curve support residual exceeds local policy');
+    // Apply the inherited UV bracket policy to actual whole-Curve values as well.
+    const sampleParameters:number[]=[parameter];
+    for(const contribution of group.contributions)for(const t of contribution.event.bracket)if(!sampleParameters.some(value=>value===t))sampleParameters.push(t);
+    const samples=sampleParameters.map(t=>uvOf(evaluateCurve(c,t),axes)),inside=samples.every(uv=>inRectangle(uv,axes));
+    const outside=samples.every(uv=>uv[0]<axes.domains.u[0])||samples.every(uv=>uv[0]>axes.domains.u[1])||samples.every(uv=>uv[1]<axes.domains.v[0])||samples.every(uv=>uv[1]>axes.domains.v[1]);
+    check(inside||outside,'original finite UV classification unresolved across contribution brackets');
+    const planePointMM=inside?evaluateSurface(p,planeUV[0],planeUV[1]):null;
+    if(planePointMM!==null)check(finite(Math.hypot(...delta(pointMM,planePointMM)))<=TOL,'actual original Curve/Plane UV binding exceeds local policy');
+    const sideObservations:CurvePlaneSideObservation[]=[];
+    // At a shared knot use actual samples inside each neighboring native span.
+    // Other roots bound each sample interval; no epsilon or extrapolation is used.
+    for(const span of spans){
+      if(parameter<span.domain[0]||parameter>span.domain[1])continue;
+      for(const side of ['lower','upper'] as const){
+        if(side==='lower'&&parameter===span.domain[0]||side==='upper'&&parameter===span.domain[1])continue;
+        const neighbors=span.intersection.events.map(event=>event.parameter);
+        const boundary=side==='lower'?Math.max(span.domain[0],...neighbors.filter(t=>t<parameter)):Math.min(span.domain[1],...neighbors.filter(t=>t>parameter));
+        const low=Math.min(parameter,boundary),high=Math.max(parameter,boundary),t=finite(low+finite(high-low)/2);
+        check(t>low&&t<high,'one-sided native interval has no represented midpoint');
+        const point=evaluateCurve(c,t),childPoint=evaluateCurve(span.curve,t);
+        check(finite(Math.hypot(...delta(point,childPoint)))<=TOL,'original/extracted one-sided point difference exceeds local policy');
+        sideObservations.push({spanId:span.spanId,spanIndex:span.spanIndex,side,parameter:t,pointMM:point,childPointMM:childPoint,pointDifferenceMM:finite(Math.hypot(...delta(point,childPoint))),signedDistanceMM:dot(axes.unitNormal,delta(point,axes.originMM)),originalCurveD1:d1(c,t),childCurveD1:d1(span.curve,t)});
+      }
+    }
+    const internal=breaks.slice(1,-1).some(value=>value===parameter);
+    return{eventId:pointEventIds[index],parameter,kind:internal?'knot-event':parameter===domain[0]||parameter===domain[1]?'endpoint':'span-root',pointMM,planeUV,planePointMM,classification:inside?'finite-domain-admitted':'outside-domain',finiteDomainAdmitted:inside,residualMM,originalCurveD1:d1(c,parameter),contributions:group.contributions,sideObservations};
+  });
+  const coincidentSpans:CurveAffinePlaneIntersectionReport['coincidentSpans']=spans.filter(span=>span.intersection.report.coincident.support).map(span=>({spanId:span.spanId,domain:span.domain,finiteContainment:span.intersection.report.coincident.finiteContainment==='control-hull-contained'?'control-hull-contained':'finite-containment-not-proven'}));
+  const finiteCount=events.filter(event=>event.finiteDomainAdmitted).length;
+  const kind:CurveAffinePlaneIntersectionResult['kind']=coincidentSpans.length?coincidentSpans.length===spans.length?'coincident-spans':'mixed':events.length===0?'support-disjoint':finiteCount?'isolated':'finite-disjoint';
+  const originalGuardedParameters=breaks.slice(1,-1).filter(value=>c.knots.filter(knot=>knot===value).length>=c.degree);
+  return{axes,events,contributionCount,coincidentSpans,finiteCount,kind,originalGuardedParameters};
+}
+
 /** Actual knot splits and actual Bezier intersections; the whole original Curve remains authority. */
 export function intersectCurveWithAffinePlaneSurface(curveInput:Curve,planeInput:Surface,inputOptions:CurveAffinePlaneIntersectionOptions):CurveAffinePlaneIntersectionResult {
   // Snapshot all caller data before any native validator or derived operation.
@@ -111,55 +175,9 @@ export function intersectCurveWithAffinePlaneSurface(curveInput:Curve,planeInput
     check(same(curveDomain(curve),[breaks[index],breaks[index+1]]),'derived span must retain represented original domain bits');
     return{spanId:curve.id,spanIndex:index,domain:curveDomain(curve),curve:intersection.curve,intersection,source:intersection.source,sourceVersion:0,model:intersection.model};
   });
-  const axes=spans[0].intersection.report.planeAxes;
-  check(spans.every(span=>same(span.intersection.report.planeAxes,axes)),'all spans must bind the same original Plane axes');
-  const groups:{parameter:number;contributions:CurvePlaneSpanContribution[]}[]=[];
-  let contributionCount=0;
-  for(const span of spans)for(const event of span.intersection.events){
-    check(++contributionCount<=32,'native event contribution capacity exceeded');
-    const boundary=breaks.find(value=>value===event.parameter),parameter=boundary===undefined?event.parameter:boundary;
-    const originalPointMM=evaluateCurve(c,parameter),pointDifferenceMM=finite(Math.hypot(...delta(originalPointMM,event.pointMM)));
-    check(pointDifferenceMM<=TOL,'original/extracted Curve event point difference exceeds local policy');
-    const originalCurveD1=d1(c,parameter),contribution:CurvePlaneSpanContribution={spanId:span.spanId,spanIndex:span.spanIndex,event,childPointMM:event.pointMM,originalPointMM,pointDifferenceMM,childCurveD1:event.curveD1,originalCurveD1,derivativeComparison:derivativeComparison(originalCurveD1,event.curveD1)};
-    let group=groups.find(item=>item.parameter===parameter);
-    if(!group){group={parameter,contributions:[]};groups.push(group);}group.contributions.push(contribution);
-  }
-  groups.sort((a,b)=>a.parameter<b.parameter?-1:a.parameter>b.parameter?1:0);
-  check(groups.length<=16&&groups.length<=options.pointEventIds.length,'consolidated explicit event capacity exceeded');
-  const events:CurvePlanePointEvent[]=groups.map((group,index)=>{
-    const parameter=group.parameter,pointMM=evaluateCurve(c,parameter),planeUV=uvOf(pointMM,axes),residualMM=Math.abs(dot(axes.unitNormal,delta(pointMM,axes.originMM)));
-    check(residualMM<=TOL,'actual original complete Curve support residual exceeds local policy');
-    // Apply the inherited UV bracket policy to actual whole-Curve values as well.
-    const sampleParameters:number[]=[parameter];
-    for(const contribution of group.contributions)for(const t of contribution.event.bracket)if(!sampleParameters.some(value=>value===t))sampleParameters.push(t);
-    const samples=sampleParameters.map(t=>uvOf(evaluateCurve(c,t),axes)),inside=samples.every(uv=>inRectangle(uv,axes));
-    const outside=samples.every(uv=>uv[0]<axes.domains.u[0])||samples.every(uv=>uv[0]>axes.domains.u[1])||samples.every(uv=>uv[1]<axes.domains.v[0])||samples.every(uv=>uv[1]>axes.domains.v[1]);
-    check(inside||outside,'original finite UV classification unresolved across contribution brackets');
-    const planePointMM=inside?evaluateSurface(p,planeUV[0],planeUV[1]):null;
-    if(planePointMM!==null)check(finite(Math.hypot(...delta(pointMM,planePointMM)))<=TOL,'actual original Curve/Plane UV binding exceeds local policy');
-    const sideObservations:CurvePlaneSideObservation[]=[];
-    // At a shared knot use actual samples inside each neighboring native span.
-    // Other roots bound each sample interval; no epsilon or extrapolation is used.
-    for(const span of spans){
-      if(parameter<span.domain[0]||parameter>span.domain[1])continue;
-      for(const side of ['lower','upper'] as const){
-        if(side==='lower'&&parameter===span.domain[0]||side==='upper'&&parameter===span.domain[1])continue;
-        const neighbors=span.intersection.events.map(event=>event.parameter);
-        const boundary=side==='lower'?Math.max(span.domain[0],...neighbors.filter(t=>t<parameter)):Math.min(span.domain[1],...neighbors.filter(t=>t>parameter));
-        const low=Math.min(parameter,boundary),high=Math.max(parameter,boundary),t=finite(low+finite(high-low)/2);
-        check(t>low&&t<high,'one-sided native interval has no represented midpoint');
-        const point=evaluateCurve(c,t),childPoint=evaluateCurve(span.curve,t);
-        check(finite(Math.hypot(...delta(point,childPoint)))<=TOL,'original/extracted one-sided point difference exceeds local policy');
-        sideObservations.push({spanId:span.spanId,spanIndex:span.spanIndex,side,parameter:t,pointMM:point,childPointMM:childPoint,pointDifferenceMM:finite(Math.hypot(...delta(point,childPoint))),signedDistanceMM:dot(axes.unitNormal,delta(point,axes.originMM)),originalCurveD1:d1(c,t),childCurveD1:d1(span.curve,t)});
-      }
-    }
-    const internal=breaks.slice(1,-1).some(value=>value===parameter);
-    return{eventId:options.pointEventIds[index],parameter,kind:internal?'knot-event':parameter===domain[0]||parameter===domain[1]?'endpoint':'span-root',pointMM,planeUV,planePointMM,classification:inside?'finite-domain-admitted':'outside-domain',finiteDomainAdmitted:inside,residualMM,originalCurveD1:d1(c,parameter),contributions:group.contributions,sideObservations};
-  });
-  const coincidentSpans:CurveAffinePlaneIntersectionReport['coincidentSpans']=spans.filter(span=>span.intersection.report.coincident.support).map(span=>({spanId:span.spanId,domain:span.domain,finiteContainment:span.intersection.report.coincident.finiteContainment==='control-hull-contained'?'control-hull-contained':'finite-containment-not-proven'}));
-  const finiteCount=events.filter(event=>event.finiteDomainAdmitted).length;
-  const kind:CurveAffinePlaneIntersectionResult['kind']=coincidentSpans.length?coincidentSpans.length===spans.length?'coincident-spans':'mixed':events.length===0?'support-disjoint':finiteCount?'isolated':'finite-disjoint';
-  const file=adopt(c,p,options.evaluationId),originalGuardedParameters=breaks.slice(1,-1).filter(value=>c.knots.filter(knot=>knot===value).length>=c.degree);
+  const {axes,events,contributionCount,coincidentSpans,finiteCount,kind,originalGuardedParameters}=
+    assembleCurvePlaneEventsTrusted(c,p,spans,options.pointEventIds,32,16);
+  const file=adopt(c,p,options.evaluationId);
   return copyCadData({kind,curve:file.model.objects[0] as Curve,plane:file.model.objects[1] as Surface,options,...file,sourceVersion:0,extraction,spans,events,report:{family:'own-multispan-curve-affine-plane-surface',kind,evaluationId:options.evaluationId,curveId:c.id,planeId:p.id,curveDomain:domain,curveDegree:c.degree,planeAxes:axes,spanCount:spans.length,contributionCount,supportEventCount:events.length,finiteEventCount:finiteCount,outsideEventCount:events.length-finiteCount,coincidentSpans,supportDisjointSpanIds:spans.filter(span=>span.intersection.kind==='support-disjoint').map(span=>span.spanId),originalGuardedParameters,authority:'original-complete-curve-coefficients',geometricValidity:'not-certified',topologyCertified:false,solid:false,numericPolicy:{parameterWidthTarget:1e-12,maximumRootSteps:64,pointBindingComparisonMM:TOL,exactParameterDedupOnly:true,sideSampling:'represented-midpoint-between-event-and-nearest-span-root-or-boundary',uvBoundaryPolicy:'original-estimate-and-bracket-domain-agreement-no-clamp'},limits:{maximumOriginalPoles:12,maximumSpans:8,maximumTemporaryPoles:16,maximumContributions:32,maximumEvents:16,snapshotValues:131072,snapshotDepth:24,resultRecordFields:32,authoredIdCharacters:48}}});
 }
 /** Rebuild from owned original coefficients/options, including all extraction and contribution data. */
