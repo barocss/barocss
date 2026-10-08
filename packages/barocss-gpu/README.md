@@ -1,19 +1,23 @@
-# @barocss/gpu (private experimental v0)
+# @barocss/gpu (experimental v0)
 
 An independent CSS-shaped scene language and original WebGL2 SDF renderer.
 This package has no React, Three.js, GSS, CAD or existing utility-class dependency.
-It is private, additive and not a claim of CSS/GSS compatibility or production readiness.
+Its local package configuration is public (`private:false`, `publishConfig.access:public`).
+This does not mean the package has been published to npm, or claim CSS/GSS compatibility or production readiness.
 
-## Local source development
+## Compiled package and local source development
 
-This private workspace package exposes `src/index.ts` through main, types and
-import exports. Use `pnpm dev:gpu` from the repository root for the
-loopback example. Installed esbuild resolves the original TypeScript module
-graph in memory, including `.js` relative imports. Reload consumes source edits
-without a dependency build or server restart. A plain browser cannot load raw
-TypeScript; use the source host. Existing Node artifact demos explicitly import
-`dist/index.js` and retain their separate `build:library` checkpoint. This private
-entry change is not a published-package or release change.
+Run `pnpm --filter @barocss/gpu build:library` to emit the declared `dist/index.js`
+ES module and `dist/index.d.ts` declarations. Ordinary main/import/types consumers use
+these compiled entries; runtime imports do not execute TypeScript. The package files
+include compiled modules/declarations, source for explicit development, README and MIT LICENSE.
+Version remains `0.0.0`; actual npm publication is a separate authorized release step.
+
+Explicit `@barocss/gpu/source` exports the original `src/index.ts` for TypeScript-aware
+development tooling. The repository's loopback examples use explicit original source entries
+or source aliases. Installed esbuild resolves `.js` relative imports in memory, so source
+editing does not require an artifact build. A plain browser cannot load raw TypeScript;
+use the source host. Node artifact consumers use the compiled package entry after a build.
 
 ## Supported language
 
@@ -108,7 +112,7 @@ Structured Scene1 cylinders and IR2 cylinder draws use type/kind `cylinder` and
 require `height`. Sphere/box records have no height field. The common unused size
 layout remains, but does not determine cylinder dimensions. Source0/Scene0/IR1
 reject cylinders; source1 sphere/box shader bytes stay unchanged when no cylinder
-is present. This is an additive private source1/IR2 kind; an older implementation
+is present. This is an additive experimental source1/IR2 kind; an older implementation
 or consumer must not be assumed to support it.
 
 Select **GPU · Cylinder** in the minimal Example menu to see the cap and side.
@@ -145,7 +149,7 @@ Scene1 capsule objects and IR2 draws carry owned, frozen start/end vectors;
 other shapes gain no endpoint fields and capsules gain no height field. The
 common unused size layout has no capsule dimension meaning. Structured admission
 requires both vectors and rejects sparse/accessor/foreign/extra values without
-invoking getters. This is an additive private source1/IR2 kind; older consumers
+invoking getters. This is an additive experimental source1/IR2 kind; older consumers
 must not be assumed to support it. Source0/Scene0/IR1 reject capsule.
 
 Select **GPU · Capsule** at `/#capsule` for an oblique mixed-primitive view.
