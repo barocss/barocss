@@ -441,3 +441,45 @@ renderer, stage, camera, lights, controllers and unrelated children.
 
 Run `examples/pixi3d-native.html` through a browser module server to see the
 two Surface preview, original IDs, invalid-source retention and disposal.
+
+## Neutral model set
+
+`@barocss/cad-interop/model-set` composes 1–4 separate native source0 files
+without creating renderer objects or renaming native Models. The v0 manifest
+has only `format`, `version` and `entries`; each entry has a unique ASCII
+`aliasId`, an HTTP(S) URL and explicit native parse options. Relative URLs
+require an explicit absolute HTTP(S) `baseURL`.
+
+```js
+import { loadBaroCadModelSet } from '@barocss/cad-interop/model-set';
+
+const set = await loadBaroCadModelSet({
+  format: 'barocad-model-set', version: 0,
+  entries: [
+    { aliasId: 'left', url: 'left.barocad', options: {
+      sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    } },
+    { aliasId: 'right', url: 'right.barocad', options: {
+      sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    } },
+  ],
+}, { baseURL: 'https://example.test/models/' });
+// Use set.entries[0].aliasId with the original result.model and geometry IDs.
+```
+
+Each returned entry contains `{ aliasId, url, result }`, where `result` is
+the unchanged neutral native loader result. Aliases qualify a composition
+reference; they do not become Model or geometry IDs. Source text, signed zero,
+native U/V, authored XYZ/Y-up intent and source0 millimetres remain exact.
+Each entry chooses its own display scale. The set supplies no placement,
+common physical frame, assembly constraints or renderer resources.
+
+The loader snapshots manifest/options before loading, fetches sources in order
+and returns a set only after every source succeeds. Invalid aliases, versions,
+URL schemes/options, failed member loads, progress cancellation and caller
+abort reject without a partial set. An earlier accepted set remains with its
+caller. `onProgress` reports member and aggregate transport bytes, not
+geometry progress. Each source uses the existing 262144-byte/4096-chunk
+strict UTF-8 transport; four sources cap the set at 1048576 bytes. Results
+are plain owned data and need no renderer `dispose()`. See
+`examples/model-set-native.html` for a two-file browser readout.

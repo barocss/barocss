@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>BaroCAD neutral model set</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 54rem; }
+  pre { white-space: pre-wrap; background: #f1f4f8; padding: 1rem; }
+</style>
+<h1>BaroCAD neutral model set</h1>
+<p>Two separate source0 files keep their original Model and geometry IDs.</p>
+<pre id="status">Loading…</pre>
+<script type="module">
+  import { loadBaroCadModelSet } from '../dist/model-set.js';
+
+  const nativeOptions = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001 };
+  const manifest = {
+    format: 'barocad-model-set', version: 0,
+    entries: [
+      { aliasId: 'left', url: 'two-surfaces.barocad', options: nativeOptions },
+      { aliasId: 'right', url: 'model-set-peer.barocad', options: nativeOptions },
+    ],
+  };
+  const status = document.querySelector('#status');
+  try {
+    const prior = await loadBaroCadModelSet(manifest, { baseURL: new URL('./', location.href).href });
+    let invalidRejected = false;
+    try {
+      await loadBaroCadModelSet({ ...manifest, entries: [manifest.entries[0], manifest.entries[0]] },
+        { baseURL: new URL('./', location.href).href });
+    } catch (error) { invalidRejected = error instanceof RangeError; }
+    const evidence = {
+      aliases: prior.entries.map(entry => entry.aliasId),
+      sourceURLs: prior.entries.map(entry => new URL(entry.url).pathname.split('/').pop()),
+      modelNames: prior.entries.map(entry => entry.result.model.name),
+      originalObjectIds: prior.entries.map(entry => entry.result.model.objects.map(object => object.id)),
+      signedZero: prior.entries.map(entry => Object.is(entry.result.model.objects[0].controlPoints[0][0][0], -0)),
+      nativeUV: prior.entries.map(entry => Array.from(entry.result.surfaces[0].mesh.parameters.slice(0, 2))),
+      totalLoadedBytes: prior.totalLoadedBytes,
+      invalidRejected,
+      priorSetRetained: prior.entries.length === 2,
+    };
+    window.__baroCadModelSetEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+  } catch (error) {
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCadModelSetError = String(error);
+  }
+</script>
+</html>
