@@ -15,6 +15,7 @@ node examples/physics-scene/friction-stack-probe.mjs
 node examples/physics-scene/joints-probe.mjs
 node examples/physics-scene/ccd-probe.mjs
 node examples/physics-scene/broadphase-probe.mjs
+node examples/physics-scene/replay-probe.mjs
 node examples/physics-scene/server.mjs
 ```
 
@@ -35,3 +36,5 @@ The compiled `joints-probe.mjs` checks a static-anchored fixed sphere under grav
 The compiled `ccd-probe.mjs` reproduces a fast sphere crossing a thin box under discrete stepping, then checks that opt-in CCD records an entry fraction and stops at contact. It also checks an oriented box, no-hit output, copied hit state, unsupported configuration refusal and failed-step retention. The SVG scene still renders the original bounded sphere/floor case.
 
 The compiled `broadphase-probe.mjs` compares direct and optional AABB pair filtering for 32 bodies over 120 steps. It checks copied pair statistics, exact accepted pose/contact agreement in the fixed workload, oriented box and capsule bounds, a contact cascade within one solver pass, kinematic movement, CCD, refusal and disposal. It prints candidate counts, local wall time and heap-use change. These measurements describe this run only; heap-use change is not total allocation.
+
+The compiled `replay-probe.mjs` saves a versioned scene and 150 accepted command frames, round-trips a snapshot through JSON, restores an independent world and compares state and a subsequent step. It also checks contact and fixed-joint reaction, copied scene/log data, stale scene and source revisions, damaged commands/state, unsupported versions, nonfinite input, failed-step retention and the 512-frame limit. Replay is a bounded command-log reconstruction, not an arbitrary state restore or cross-platform determinism guarantee.
