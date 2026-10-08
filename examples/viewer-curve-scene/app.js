@@ -37,6 +37,12 @@ load('mixed');
 document.querySelector('#mixed').addEventListener('click', () => load('mixed'));
 document.querySelector('#curves-only').addEventListener('click', () => load('curves-only'));
 document.querySelector('#fit').addEventListener('click', () => { viewer.fit(); describe('Fitted visible geometry.'); });
+document.querySelector('#fit-selection').addEventListener('click', () => {
+  const ref = viewer.getState().selectedGeometry;
+  if (!ref) { describe('Select a displayed Surface or Curve first.'); return; }
+  viewer.fitGeometry(ref);
+  describe(`Fitted displayed ${ref.kind} only. Selection and native source are unchanged.`);
+});
 document.querySelector('#orbit').addEventListener('click', () => { viewer.orbit(0.3, 0.1); describe('Orbited camera.'); });
 document.querySelector('#pose').addEventListener('click', () => {
   const refs = viewer.getState().surfaces;

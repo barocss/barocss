@@ -747,6 +747,17 @@ export class Viewer {
     this.setView(fittedCamera(this.packets, this.curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height,
       this.motion, this.geometryMotion));
   }
+  fitGeometry(input: ViewerGeometryRef): void {
+    this.live();
+    const ref = parseGeometryRef(input);
+    const packets = ref.kind === 'surface' ? this.packets.filter(entry =>
+      entry.modelId === ref.modelId && entry.packet.surfaceId === ref.surfaceId) : [];
+    const curves = ref.kind === 'curve' ? this.curves.filter(entry =>
+      entry.modelId === ref.modelId && entry.sample.curve.id === ref.curveId) : [];
+    check(packets.length + curves.length === 1, 'Unknown displayed geometry reference');
+    this.setView(fittedCamera(packets, curves, this.options.mmToSceneUnit,
+      this.canvas.width, this.canvas.height, this.motion, this.geometryMotion));
+  }
   setView(input: MeshCamera): void {
     this.live(); const camera = validateMeshCamera(input);
     if (this.renderer) this.present(this.packets, this.curves, camera, this.selected, this.motion);
