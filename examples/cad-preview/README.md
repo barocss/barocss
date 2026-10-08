@@ -1122,3 +1122,29 @@ nonuniform-scaled Surface, marker selection, bounds refusal, one-command history
 controlled Escape handler cancellation and accepted-only Save Blob/Open. Physical
 Escape during a held drag and OS Downloads remain explicitly deferred. No Surface
 pole addition/refinement, B-Rep edges, topology/solid or numerical certification.
+
+### Original U/V knot refinement
+
+Properties → **Refine Surface** inserts an interior native U or V knot using
+native620. The parameter is dimensionless in the original displayed axis domain;
+count1–3 and final multiplicity/grid limits use native admission. Refine changes
+representation, not shape or Surface identity. It stores only returned accepted
+literal source, without an authoring recipe, report or mesh in the scene file.
+
+Apply/discard existing pole/name/placement drafts first. Refine refuses during a
+gesture and retains its raw form and old accepted scene/frame on failure. Each
+accepted refinement is one Undo command. Pole selection resets to U0/V0 after
+Refine and after Undo/Redo when grid dimensions change; coefficients are indexed
+per revision, not persistent physical point IDs. Existing pole XYZ handles edit
+the adopted refined net. Unchanged native fields follow native620 provenance;
+computed coefficients and finite shape observations are not a precision certificate.
+
+```sh
+pnpm --filter @barocss/cad-editor-example build
+BAROCSS_REFINEMENT_EVIDENCE=<fresh-output-dir> node examples/cad-preview/scene-surface-refinement-smoke.mjs
+```
+
+One source/browser/native-file checkpoint observes U then V insertion, original
+native points/D1 and mapped bits, refined-pole edits, history/atomic refusal and
+actual Save Blob/supported Open. Parent suites, numerical/solid certification,
+physical held-Escape and OS Downloads completion remain deferred.
