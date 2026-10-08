@@ -181,7 +181,11 @@ importers:
         specifier: workspace:*
         version: link:../barocss-cad
 
-  packages/barocss-physics: {}
+  packages/barocss-physics:
+    dependencies:
+      '@barocss/cad':
+        specifier: workspace:*
+        version: link:../barocss-cad
 
   packages/barocss-render:
     dependencies:
