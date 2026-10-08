@@ -395,6 +395,29 @@ geometry. The host still decides which of several successful requests to
 mount. `examples/document-three-url-v1.html` checks the HTTP, abort,
 resource and prior-frame behavior in a headed Three WebGL2 scene.
 
+For a direct Three host that must frame an unknown-sized native document,
+`examples/document-native-bounds-three.html` reads the document once,
+creates qualified CAD references for four selected bodies and queries the
+public `queryCadDocumentBounds` control-pole box for each. The two assets
+contain identical geometry, so the host applies explicit display-only X
+poses to separate them. It scales each original authored XYZ/mm box once,
+adds the corresponding host pose, and sets its own orthographic camera
+before mounting `createBaroCadDocumentThreeDisplay` from that same
+document result. Run the focused source/reference check after building
+CAD and interop:
+
+```sh
+node packages/barocss-cad-interop/examples/document-native-bounds-verify.mjs
+```
+
+The page compares selected native references with the target bindings and
+Float32 display positions, then checks visible pixels, invalid candidate
+retention and adapter-owned disposal. This control hull is conservative
+source-space data. It is neither a tight shape bound nor a transformed
+display box or centre of mass. The host still owns the camera, scene,
+canvas, colors and any display poses. Viewer `fitGeometry` uses displayed
+geometry through a separate contract.
+
 ### Display selected document bodies in Babylon.js
 
 The optional `./babylon-document` entry uses the same validated body

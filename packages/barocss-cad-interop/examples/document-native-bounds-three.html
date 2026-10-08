@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Source-backed CAD document bounds in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Source-backed CAD document bounds · Three.js</h1>
+  <p>The host frames four native bodies using original control-hull bounds in mm.</p>
+  <canvas id="view" width="800" height="480"></canvas>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose owned display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { BufferGeometry, Color, Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { createCadGeometryReference, queryCadDocumentBounds, validateCadDocumentBounds } from '@barocss/cad';
+  import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '../dist/document.js';
+  import { createBaroCadDocumentThreeDisplay } from '../dist/three-document.js';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const url = new URL('document-gpu-v2.cad-document.json', location.href).href;
+  const bodyIds = ['body_0_curve', 'body_0_surface', 'body_1_curve', 'body_1_surface'];
+  const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const request = { native, basis: 'authored-xyz-matches-rhyup', bodyIds };
+  const assetPoses = { 'asset-a': -0.006, asset_b: 0.006 };
+  const scene = new Scene(); scene.background = new Color(0x101b2c);
+  const marker = new Group(); marker.name = 'caller-marker'; scene.add(marker);
+  const camera = new OrthographicCamera(-1, 1, 1, -1, 0.001, 1);
+  const renderer = new WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(800, 480, false);
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const readPixels = () => {
+    renderer.render(scene, camera);
+    const data = new Uint8Array(canvas.width * canvas.height * 4);
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Three WebGL readPixels failed');
+    return data;
+  };
+  const countPixels = data => {
+    let cyan = 0, magenta = 0, nonBackground = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (r !== 16 || g !== 27 || b !== 44) nonBackground++;
+      if (r < 80 && g > 150 && b > 150) cyan++;
+      if (r > 150 && g < 80 && b > 150) magenta++;
+    }
+    return { cyan, magenta, nonBackground };
+  };
+  const same = (actual, expected) => actual.length === expected.length &&
+    actual.every((value, index) => Object.is(value, expected[index]));
+  let cad, display, bounds, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    cad = await loadBaroCadDocument(url);
+    bounds = bodyIds.map(bodyId => {
+      const { reference } = createCadGeometryReference(cad, { bodyId });
+      const result = queryCadDocumentBounds(cad, reference);
+      if (JSON.stringify(validateCadDocumentBounds(cad, result)) !== JSON.stringify(result.report) ||
+          result.report.geometryAuthority !== 'original-native-control-hull' ||
+          result.extrema.length !== 6) throw new Error('Original native bound validation failed');
+      return result;
+    });
+    const projection = prepareBaroCadDocumentPrimitiveNativeRefsV2(cad, request);
+    display = createBaroCadDocumentThreeDisplay(cad, request);
+    if (display.bindings.length !== 4 || display.root.children.length !== 2 ||
+        display.bindings.some((binding, index) => binding.bodyId !== bodyIds[index] ||
+          binding.assetId !== bounds[index].reference.assetId ||
+          binding.assetRevision !== bounds[index].reference.assetRevision ||
+          binding.documentRevision !== bounds[index].reference.documentRevision ||
+          binding.geometryId !== bounds[index].reference.geometryId ||
+          binding.object.name !== binding.geometryId)) {
+      throw new Error('Selected target bindings differ from original native references');
+    }
+    for (const binding of display.bindings) {
+      const entry = projection.find(value => value.binding.bodyId === binding.bodyId);
+      const positionsMM = entry.kind === 'curve' ? entry.sample.pointsMM.flat() : entry.packet.positions;
+      const expected = Float32Array.from(positionsMM, value => Math.fround(value * native.unitsPerMillimeter));
+      if (!same(binding.object.geometry.getAttribute('position').array, expected)) {
+        throw new Error('Three display positions differ from the selected source projection');
+      }
+      if (binding.object.isLine) {
+        binding.object.material.color.setHex(binding.assetId === 'asset-a' ? 0x00ffff : 0xff00ff);
+        binding.object.material.depthTest = false;
+        binding.object.renderOrder = 2;
+      }
+      if (binding.object.isMesh) {
+        binding.object.material.transparent = true;
+        binding.object.material.opacity = 0.75;
+      }
+      binding.assetGroup.position.x = assetPoses[binding.assetId];
+    }
+    const min = [0, 1, 2].map(axis => Math.min(...bounds.map(result => result.boundsMM.min[axis])));
+    const max = [0, 1, 2].map(axis => Math.max(...bounds.map(result => result.boundsMM.max[axis])));
+    const scale = native.unitsPerMillimeter, aspect = canvas.width / canvas.height;
+    const posedMin = [0, 1, 2].map(axis => Math.min(...bounds.map(result =>
+      result.boundsMM.min[axis] * scale + (axis === 0 ? assetPoses[result.reference.assetId] : 0))));
+    const posedMax = [0, 1, 2].map(axis => Math.max(...bounds.map(result =>
+      result.boundsMM.max[axis] * scale + (axis === 0 ? assetPoses[result.reference.assetId] : 0))));
+    const centre = posedMin.map((value, axis) => (value + posedMax[axis]) / 2);
+    const halfHeight = Math.max((posedMax[1] - posedMin[1]) / 2,
+      (posedMax[0] - posedMin[0]) / (2 * aspect)) * 1.25;
+    const halfWidth = halfHeight * aspect;
+    const eyeZ = centre[2] + Math.max(0.05, 2 * (posedMax[2] - posedMin[2]) + 0.01);
+    if (!(halfHeight > 0 && halfHeight < 0.5 && eyeZ - posedMax[2] > camera.near)) {
+      throw new Error('Selected source bounds do not fit the declared host camera profile');
+    }
+    camera.left = -halfWidth; camera.right = halfWidth;
+    camera.top = halfHeight; camera.bottom = -halfHeight;
+    camera.position.set(centre[0], centre[1], eyeZ);
+    camera.lookAt(...centre);
+    camera.updateProjectionMatrix();
+    scene.add(display.root);
+    const pixels = readPixels(), visible = countPixels(pixels);
+    if (visible.cyan < 20 || visible.magenta < 20 || visible.nonBackground < 500) {
+      throw new Error('Native-bounds-framed document has no visible Curve/Surface pixels');
+    }
+    evidence = { documentId: cad.document.documentId, documentRevision: cad.document.revision,
+      bodyIds, assetIds: bounds.map(result => result.reference.assetId),
+      assetRevisions: bounds.map(result => result.reference.assetRevision),
+      repeatedNativeIdsQualified: display.bindings.map(binding => binding.geometryId),
+      nativeBoundsMM: { min, max }, hostAssetPoses: assetPoses,
+      posedBoundsScene: { min: posedMin, max: posedMax },
+      boundsSemantics: bounds.map(result => result.report.quality.boundsSemantics),
+      extremaWitnesses: bounds.map(result => result.extrema.length),
+      camera: { target: centre, eyeZ, halfHeight, halfWidth },
+      uploadedPositionsMatch: true, sourceFrame: cad.document.nativeFrame,
+      scaleUnitsPerMM: scale, webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      oneCanvas: document.querySelectorAll('canvas').length === 1,
+      visiblePixels: visible, pixelHash: hash(pixels), callerMarkerRetained: scene.children.includes(marker) };
+    window.__baroNativeBoundsThreeEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const acceptedPixels = hash(readPixels());
+      const cameraState = JSON.stringify({ position: camera.position.toArray(),
+        projection: camera.projectionMatrix.toArray(),
+        left: camera.left, right: camera.right, top: camera.top, bottom: camera.bottom });
+      const sourceState = cad.document.assets.map(asset => asset.source);
+      const candidates = [
+        () => queryCadDocumentBounds(cad, { ...bounds[0].reference, documentRevision: 4 }),
+        () => createCadGeometryReference(cad, { bodyId: 'missing_body' }),
+        () => validateCadDocumentBounds(cad, { ...bounds[0], boundsMM: { min: [99, 99, 99], max: bounds[0].boundsMM.max } }),
+      ];
+      let refused = 0;
+      for (const candidate of candidates) { try { candidate(); } catch { refused++; } }
+      let stagedDisposals = 0, stagedFailureRefused = false;
+      const setIndex = BufferGeometry.prototype.setIndex;
+      BufferGeometry.prototype.setIndex = function () {
+        this.addEventListener('dispose', () => stagedDisposals++);
+        throw new Error('injected staged target failure');
+      };
+      try { createBaroCadDocumentThreeDisplay(cad, request); } catch (error) {
+        stagedFailureRefused = error.message === 'injected staged target failure';
+      } finally { BufferGeometry.prototype.setIndex = setIndex; }
+      Object.assign(evidence, { invalidCandidatesRefused: refused, stagedFailureRefused,
+        stagedDisposals, acceptedDocumentRetained: cad.document.revision === 5 &&
+          cad.document.assets.every((asset, index) => asset.source === sourceState[index]),
+        acceptedDisplayRetained: scene.children.includes(display.root) && display.bindings.length === 4,
+        acceptedCameraRetained: JSON.stringify({ position: camera.position.toArray(),
+          projection: camera.projectionMatrix.toArray(), left: camera.left, right: camera.right,
+          top: camera.top, bottom: camera.bottom }) === cameraState,
+        acceptedPixelsRetained: hash(readPixels()) === acceptedPixels });
+      show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      let geometryDisposals = 0, materialDisposals = 0;
+      for (const binding of display.bindings) {
+        binding.object.geometry.addEventListener('dispose', () => geometryDisposals++);
+        binding.object.material.addEventListener('dispose', () => materialDisposals++);
+      }
+      display.dispose(); display.dispose();
+      Object.assign(evidence, { geometryDisposals, materialDisposals,
+        acceptedRemoved: !scene.children.includes(display.root),
+        callerMarkerRetained: scene.children.includes(marker),
+        callerRendererAndCanvasRetained: renderer.getContext() instanceof WebGL2RenderingContext &&
+          document.body.contains(canvas), nativeDocumentRetained: cad.document.revision === 5 });
+      show();
+    };
+  } catch (error) {
+    display?.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroNativeBoundsThreeError = String(error?.stack ?? error);
+  }
+</script>
+</html>
