@@ -764,3 +764,27 @@ lighting flow** at its printed URL. Independent bright/opposed/zero/default gamm
 pixels, unchanged real GL arrays/native source, unlit Curve pixels, subnormal
 direction lowering, copied getters/IR, invalid retention and cleanup are recorded.
 Integration, Viewer/editor adoption and publication remain separate stages.
+
+## Qualified original model identities in scene v2 (#746)
+
+`mountPrimitiveSceneV2(canvas,{version:2,entries},options)` adds required
+`ref:{modelId,geometryId}` to each existing explicit-v1 entry. `modelId` is the
+caller's accepted source-model namespace (ASCII1..128), not an inferred native
+Model name or a native revision/topology certificate. `geometryId` must match
+original packet.surfaceId or validated sample.curve.id exactly. Structured pairs
+are unique; the same original geometry ID is legal in different model namespaces.
+Source/models/packets/samples/IDs remain unchanged; no synthetic ID workaround.
+
+V2 keeps1..4 objects, v1 Curve budgets/sampleVersion/frame/TRS/lighting/Float32
+admission and the same single-context shared-depth backend. Ref/getter/native-ID/
+duplicate-pair/invalid-candidate refusal retains the whole accepted data/pixels.
+Owned entries copy refs and native records. Old v0/v1 profile schemas/uniqueness
+remain and refuse v2/ref fields. No document transport, native reference revision
+binding, topology naming, exact picking or assembly semantics are inferred.
+
+Use `node packages/barocss-gpu/tests/primitive-scene-v2-flow.mjs` with unique
+`BAROCSS_PRIMITIVE_V2_EVIDENCE` and optional port. Press **Run qualified native scene
+flow**. It first demonstrates the actual old refusal on two native source Models
+with shared Surface/Curve IDs, then observes the new qualified scene's buffers,
+pixels/bounds/depth/ref/native retention, invalid cases and cleanup. Integration
+and actual model-set/Viewer/Loader adoption remain separate from native readiness.

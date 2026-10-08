@@ -28,5 +28,5 @@ export type {KernelFaceContext,KernelNormalSource,KernelFaceReference,KernelFace
 
 export {mountMeshScene,MeshSceneRenderer} from './mesh-scene-renderer.js';
 export type {MeshSceneEntry,MeshSceneOptions,MeshSceneTransform,MeshSceneBounds} from './mesh-scene-renderer.js';
-export {mountPrimitiveScene,PrimitiveSceneRenderer,mountPrimitiveSceneV1,PrimitiveSceneRendererV1} from './primitive-scene-renderer.js';
-export type {PrimitiveSceneEntry,PrimitiveSceneOptions,PrimitiveSceneEntryV1,PrimitiveSceneInputV1} from './primitive-scene-renderer.js';
+export {mountPrimitiveScene,PrimitiveSceneRenderer,mountPrimitiveSceneV1,PrimitiveSceneRendererV1,mountPrimitiveSceneV2,PrimitiveSceneRendererV2} from './primitive-scene-renderer.js';
+export type {PrimitiveSceneEntry,PrimitiveSceneOptions,PrimitiveSceneEntryV1,PrimitiveSceneInputV1,PrimitiveSceneRef,PrimitiveSceneEntryV2,PrimitiveSceneInputV2} from './primitive-scene-renderer.js';
