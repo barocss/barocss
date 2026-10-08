@@ -269,6 +269,73 @@ try {
     'Qualified model-set native Surface projection failed');
   viewer.clear();
   viewer.loadDocument(result, options);
+  const synchronousHash = hash(viewer.readPixels());
+  const documentUrl = new URL('/document.cad-document.json', location.href).href;
+  const slowDocumentUrl = new URL('/slow-document.cad-document.json', location.href).href;
+  const progress = [];
+  await viewer.loadDocumentUrl(documentUrl, options,
+    { onProgress: event => progress.push(event.loadedBytes) });
+  assert(progress.length > 0 && progress.at(-1) === 3172
+    && hash(viewer.readPixels()) === synchronousHash
+    && viewer.getState().documentBodies.length === 4,
+  'Document URL did not match synchronous admission or byte progress');
+  const retainedUrlState = () => ({ state: JSON.stringify(viewer.getState()),
+    pixels: hash(viewer.readPixels()) });
+  const refusesWithoutChange = async (url, displayOptions, transport) => {
+    const before = retainedUrlState();
+    let refused = false;
+    try { await viewer.loadDocumentUrl(url, displayOptions, transport); } catch { refused = true; }
+    assert(refused && JSON.stringify(retainedUrlState()) === JSON.stringify(before),
+      'Refused document URL changed accepted scene or pixels');
+  };
+  await refusesWithoutChange(new URL('/missing.cad-document.json', location.href).href, options);
+  await refusesWithoutChange(new URL('/invalid.cad-document.json', location.href).href, options);
+  await refusesWithoutChange('data:application/json,{}', options);
+  await refusesWithoutChange(documentUrl, { ...options, basis: 'wrong' });
+  await refusesWithoutChange(documentUrl, { ...options, bodyIds: ['missing_body'] });
+  const aborted = new AbortController();
+  const abortedLoad = viewer.loadDocumentUrl(slowDocumentUrl, options, { signal: aborted.signal });
+  aborted.abort();
+  const beforeAbort = retainedUrlState();
+  let abortCode = null;
+  try { await abortedLoad; } catch (error) { abortCode = error.code; }
+  assert(abortCode === 'ABORT_ERR' && JSON.stringify(retainedUrlState()) === JSON.stringify(beforeAbort),
+    'Caller abort replaced accepted document');
+  const staleDocument = viewer.loadDocumentUrl(slowDocumentUrl, options)
+    .then(() => null, error => error.code);
+  await viewer.loadDocumentUrl(documentUrl, options);
+  const staleCode = await staleDocument;
+  assert(staleCode === 'ABORT_ERR' && viewer.getState().documentBodies.length === 4,
+    'Newer URL failed to supersede old document URL');
+  const pendingDocument = viewer.loadDocumentUrl(slowDocumentUrl, options)
+    .then(() => null, error => error.code);
+  viewer.loadDocument(result, options);
+  const synchronousCode = await pendingDocument;
+  assert(synchronousCode === 'ABORT_ERR' && hash(viewer.readPixels()) === synchronousHash,
+    'Synchronous document did not supersede pending URL');
+  const pendingNative = viewer.loadNativeUrl(new URL('/model-a.barocad', location.href).href,
+    { sourceVersion: 0, countU: 8, countV: 8, curveDisplay: native.curveDisplay })
+    .then(() => null, error => error.code);
+  await viewer.loadDocumentUrl(documentUrl, options);
+  const nativeCode = await pendingNative;
+  assert(nativeCode === 'ABORT_ERR' && viewer.getState().documentBodies.length === 4,
+    'Document URL did not supersede pending native URL');
+  const pendingClear = viewer.loadDocumentUrl(slowDocumentUrl, options)
+    .then(() => null, error => error.code);
+  viewer.clear();
+  const clearCode = await pendingClear;
+  assert(clearCode === 'ABORT_ERR' && viewer.getState().status === 'empty',
+    'Clear did not supersede pending document URL');
+  const disposableCanvas = document.createElement('canvas');
+  disposableCanvas.width = 800; disposableCanvas.height = 480;
+  const disposable = createViewer(disposableCanvas, { mmToSceneUnit: 0.15,
+    background: [0.015, 0.02, 0.03] });
+  const pendingDispose = disposable.loadDocumentUrl(slowDocumentUrl, options);
+  disposable.dispose();
+  let disposeRefused = false;
+  try { await pendingDispose; } catch { disposeRefused = true; }
+  assert(disposeRefused, 'Disposed Viewer admitted pending document URL');
+  await viewer.loadDocumentUrl(documentUrl, options);
   const restored = viewer.getState();
   assert(restored.documentBodies.length === 4 && restored.selectedGeometry === null
     && restored.nativeMeasurement === null && restored.visibleGeometry.length === 4,
@@ -306,7 +373,10 @@ try {
     badParameterRefused, badPointRefused, hiddenNativeRefused,
     hiddenProjectionRefused, clearedProjectionRefused,
     sourceAndModelSetProjection: true,
-    retainedHash: pixelsBeforeInvalid, singleSourceAndModelSetCompatible: true };
+    retainedHash: pixelsBeforeInvalid, singleSourceAndModelSetCompatible: true,
+    documentUrl: { progressCount: progress.length, finalBytes: progress.at(-1),
+      synchronousPixelsMatch: true, refusalRetention: true, abortCode, staleCode,
+      synchronousCode, nativeCode, clearCode, disposeRefused } };
   output.textContent = JSON.stringify(window.viewerDocumentProof, null, 2);
 } catch (error) {
   window.viewerDocumentProof = { ok: false, error: error.stack || error.message };

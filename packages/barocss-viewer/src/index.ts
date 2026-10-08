@@ -2,7 +2,7 @@ import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from '@bar
 import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult } from '@barocss/cad';
 import { BaroCadLoadAbortError, loadBaroCadSource, parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadLoadTransportOptions, BaroCadNativeResult } from '@barocss/cad-interop/native';
-import { prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '@barocss/cad-interop/document';
+import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '@barocss/cad-interop/document';
 import type { BaroCadDocumentPrimitiveBindingV2, BaroCadDocumentPrimitiveOptionsV2,
   CadDocumentResult } from '@barocss/cad-interop/document';
 import { prepareBaroCadModelSetPrimitiveNativeRefsV2 } from '@barocss/cad-interop/model-set';
@@ -763,6 +763,10 @@ export class Viewer {
   }
   loadDocument(input: CadDocumentResult, options: BaroCadDocumentPrimitiveOptionsV2): void {
     this.live();
+    this.admitDocument(input, options);
+    this.sceneRequest++;
+  }
+  private admitDocument(input: CadDocumentResult, options: BaroCadDocumentPrimitiveOptionsV2): void {
     const projected = prepareBaroCadDocumentPrimitiveNativeRefsV2(input, options);
     const document = structuredClone(input);
     const packets: ViewerPacket[] = [];
@@ -784,7 +788,15 @@ export class Viewer {
       }
     }
     this.accept(packets, null, curves, null, document, documentBodies);
-    this.sceneRequest++;
+  }
+  async loadDocumentUrl(url: string, options: BaroCadDocumentPrimitiveOptionsV2,
+    transport: BaroCadLoadTransportOptions = {}): Promise<void> {
+    this.live();
+    const request = ++this.sceneRequest;
+    const document = await loadBaroCadDocument(url, transport);
+    this.live();
+    if (request !== this.sceneRequest) throw new BaroCadLoadAbortError();
+    this.admitDocument(document, options);
   }
   async loadNativeUrl(url: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions
     | ViewerNativeCurveLoadOptionsV1, transport: BaroCadLoadTransportOptions = {}): Promise<void> {
