@@ -22,6 +22,7 @@ function describe(next = message) {
     `Selected geometry: ${state.selectedGeometry
       ? `${state.selectedGeometry.kind} ${state.selectedGeometry.kind === 'curve'
         ? state.selectedGeometry.curveId : state.selectedGeometry.surfaceId}` : 'none'}`,
+    `Motion: ${state.geometryMotion ? 'all geometry' : state.motion ? 'Surfaces' : 'none'}`,
     `Camera: ${state.camera.eye.map(value => value.toFixed(3)).join(', ')}`,
     next,
   ].join('\n');
@@ -46,6 +47,22 @@ document.querySelector('#pose').addEventListener('click', () => {
   refs.map((ref, index) => ({ contextId: 'native_mixed', targetId: `panel-${index}`, ref })),
   { basis: 'part-xyz-matches-rhyup' });
   describe('Posed Surfaces; native Curves stay in authored XYZ/mm.');
+});
+document.querySelector('#pose-geometry').addEventListener('click', () => {
+  const state = viewer.getState();
+  const refs = [...state.surfaces.map(ref => ({ kind: 'surface', ...ref })),
+    ...state.curves.map(ref => ({ kind: 'curve', ...ref }))];
+  const contextId = state.native.model.name;
+  viewer.applyGeometryMotionFrame({ contextId, timeSeconds: 1,
+    poses: refs.map((ref, index) => ({ targetId: `object-${index}`,
+      translation: [ref.kind === 'curve' ? 80 : 0, 0, 0] })) },
+  refs.map((ref, index) => ({ contextId, targetId: `object-${index}`, ref })),
+  { basis: 'part-xyz-matches-rhyup' });
+  describe('Displayed Curves moved 80 mm. Native source and measurements remain unchanged.');
+});
+document.querySelector('#reset-pose').addEventListener('click', () => {
+  viewer.resetMotion();
+  describe('Display poses reset.');
 });
 document.querySelector('#invalid').addEventListener('click', () => {
   try { viewer.loadNative(sources.mixed, { ...options,
