@@ -15,11 +15,12 @@ export type SphereShape = { kind: 'sphere'; radiusM: number };
 export type BoxShape = { kind: 'box'; halfExtentsM: Vec3 };
 export type CapsuleShape = { kind: 'capsule'; radiusM: number; halfLengthM: number };
 export type PhysicsShape = SphereShape | BoxShape | CapsuleShape;
+export type PhysicsFriction = { static: number; dynamic: number };
 export type PhysicsBodyConfig =
   | { id: string; kind: 'dynamic'; shape: PhysicsShape; positionM: Vec3; velocityMps: Vec3; massKg: number; restitution: number;
-      orientation?: Quat; angularVelocityRadps?: Vec3; inertiaKgM2?: number }
+      orientation?: Quat; angularVelocityRadps?: Vec3; inertiaKgM2?: number; friction?: PhysicsFriction }
   | { id: string; kind: 'static' | 'kinematic'; shape: PhysicsShape; positionM: Vec3; restitution: number;
-      orientation?: Quat; sensor?: true };
+      orientation?: Quat; sensor?: true; friction?: PhysicsFriction };
 export type PhysicsStepCommand =
   | { kind: 'force'; bodyId: string; forceN: Vec3 }
   | { kind: 'impulse'; bodyId: string; impulseNs: Vec3 }
@@ -50,6 +51,7 @@ export interface PhysicsContact {
   pointM: Vec3;
   penetrationM: number;
   impulseNs: number;
+  tangentImpulseNs: Vec3;
 }
 export interface PhysicsEvent {
   aId: string;
@@ -80,6 +82,8 @@ interface Body extends PhysicsBodyState {
   inverseMass: number;
   inverseInertiaLocal: Vec3;
   restitution: number;
+  frictionStatic: number;
+  frictionDynamic: number;
 }
 interface Hit { normal: Vec3; penetration: number; pointM: Vec3 }
 
@@ -168,6 +172,13 @@ function shape(value: unknown): PhysicsShape {
   }
   return error('INVALID_CONFIG', 'unsupported collider shape');
 }
+function friction(value: unknown): PhysicsFriction {
+  const input = record(value, 'friction');
+  fields(input, ['static', 'dynamic'], 'friction');
+  const staticCoefficient = finite(input.static, 0, 2, 'friction.static');
+  const dynamicCoefficient = finite(input.dynamic, 0, staticCoefficient, 'friction.dynamic');
+  return { static: staticCoefficient, dynamic: dynamicCoefficient };
+}
 function parseBody(value: unknown): Body {
   const input = record(value, 'body');
   if (typeof input.id !== 'string' || !ID.test(input.id)) error('INVALID_CONFIG', 'invalid body ID');
@@ -177,18 +188,20 @@ function parseBody(value: unknown): Body {
   const kind = input.kind;
   fields(input, kind === 'dynamic'
     ? ['id', 'kind', 'shape', 'positionM', 'velocityMps', 'massKg', 'restitution',
-      'orientation', 'angularVelocityRadps', 'inertiaKgM2']
-    : ['id', 'kind', 'shape', 'positionM', 'restitution', 'orientation', 'sensor'], 'body');
+      'orientation', 'angularVelocityRadps', 'inertiaKgM2', 'friction']
+    : ['id', 'kind', 'shape', 'positionM', 'restitution', 'orientation', 'sensor', 'friction'], 'body');
   if (Object.hasOwn(input, 'sensor') && input.sensor !== true) error('INVALID_CONFIG', 'sensor must be true');
   const sensor = input.sensor === true;
   const parsedShape = shape(input.shape);
   const positionM = vector(input.positionM, -10000, 10000, 'positionM');
   const restitution = finite(input.restitution, 0, 1, 'restitution');
+  const material = Object.hasOwn(input, 'friction') ? friction(input.friction) : { static: 0, dynamic: 0 };
   const orientation = Object.hasOwn(input, 'orientation') ? quaternion(input.orientation) : [0, 0, 0, 1] as Quat;
   if (kind !== 'dynamic') {
     return { id: input.id, kind, shape: parsedShape, positionM, velocityMps: [0, 0, 0],
       orientation, angularVelocityRadps: [0, 0, 0], inverseInertiaLocal: [0, 0, 0],
-      sensor, inverseMass: 0, restitution };
+      sensor, inverseMass: 0, restitution,
+      frictionStatic: material.static, frictionDynamic: material.dynamic };
   }
   const massKg = finite(input.massKg, 0.000001, 1000000, 'massKg');
   if (parsedShape.kind !== 'sphere' && Object.hasOwn(input, 'inertiaKgM2')) {
@@ -214,7 +227,8 @@ function parseBody(value: unknown): Body {
     ...(inertiaKgM2 === undefined ? {} : { inertiaKgM2 }),
     ...(inertiaDiagonalKgM2 === undefined ? {} : { inertiaDiagonalKgM2 }),
     inverseInertiaLocal: inertia.map((value) => 1 / value) as Vec3,
-    inverseMass: 1 / massKg, restitution };
+    inverseMass: 1 / massKg, restitution,
+    frictionStatic: material.static, frictionDynamic: material.dynamic };
 }
 function copyShape(value: PhysicsShape): PhysicsShape {
   return value.kind === 'sphere' ? { kind: 'sphere', radiusM: value.radiusM }
@@ -322,8 +336,9 @@ function publicState(bodies: Body[], contacts: PhysicsContact[], events: Physics
         ...(inertiaKgM2 === undefined ? {} : { inertiaKgM2 }),
         ...(inertiaDiagonalKgM2 === undefined ? {} : { inertiaDiagonalKgM2: [...inertiaDiagonalKgM2] as Vec3 }),
         ...(sensor ? { sensor: true } : {}) })),
-    contacts: contacts.map(({ aId, bId, normalAtoB, pointM, penetrationM, impulseNs }) =>
-      ({ aId, bId, normalAtoB: [...normalAtoB], pointM: [...pointM], penetrationM, impulseNs })),
+    contacts: contacts.map(({ aId, bId, normalAtoB, pointM, penetrationM, impulseNs, tangentImpulseNs }) =>
+      ({ aId, bId, normalAtoB: [...normalAtoB], pointM: [...pointM], penetrationM, impulseNs,
+        tangentImpulseNs: [...tangentImpulseNs] })),
     events: events.map((event) => ({ ...event })),
   };
 }
@@ -504,9 +519,9 @@ function rayDistance(origin: Vec3, direction: Vec3, body: Body): number | null {
   }
   return far < 0 ? null : Math.max(0, near);
 }
-function solve(a: Body, b: Body, hit: Hit): number {
+function solve(a: Body, b: Body, hit: Hit): { normalImpulseNs: number; tangentImpulseNs: Vec3 } {
   const inverseTotal = a.inverseMass + b.inverseMass;
-  if (inverseTotal === 0) return 0;
+  if (inverseTotal === 0) return { normalImpulseNs: 0, tangentImpulseNs: [0, 0, 0] };
   const armA = sub(hit.pointM, a.positionM), armB = sub(hit.pointM, b.positionM);
   const pointVelocityA = add(a.velocityMps, cross(a.angularVelocityRadps, armA));
   const pointVelocityB = add(b.velocityMps, cross(b.angularVelocityRadps, armB));
@@ -527,7 +542,34 @@ function solve(a: Body, b: Body, hit: Hit): number {
     a.positionM[i] -= hit.normal[i] * hit.penetration * a.inverseMass / inverseTotal;
     b.positionM[i] += hit.normal[i] * hit.penetration * b.inverseMass / inverseTotal;
   }
-  return impulse;
+  const staticFriction = Math.sqrt(a.frictionStatic * b.frictionStatic);
+  if (impulse === 0 || staticFriction === 0) {
+    return { normalImpulseNs: impulse, tangentImpulseNs: [0, 0, 0] };
+  }
+  const frictionArmA = sub(hit.pointM, a.positionM);
+  const frictionArmB = sub(hit.pointM, b.positionM);
+  const afterA = add(a.velocityMps, cross(a.angularVelocityRadps, frictionArmA));
+  const afterB = add(b.velocityMps, cross(b.angularVelocityRadps, frictionArmB));
+  const relative = sub(afterB, afterA);
+  const tangent = sub(relative, scale(hit.normal, dot(relative, hit.normal)));
+  const speed = Math.hypot(...tangent);
+  if (speed === 0) return { normalImpulseNs: impulse, tangentImpulseNs: [0, 0, 0] };
+  const direction = scale(tangent, 1 / speed);
+  const tangentAxisA = cross(frictionArmA, direction), tangentAxisB = cross(frictionArmB, direction);
+  const tangentMass = inverseTotal + dot(tangentAxisA, inverseInertia(a, tangentAxisA))
+    + dot(tangentAxisB, inverseInertia(b, tangentAxisB));
+  const required = speed / tangentMass;
+  const dynamicFriction = Math.sqrt(a.frictionDynamic * b.frictionDynamic);
+  const magnitude = required <= staticFriction * impulse
+    ? required : Math.min(required, dynamicFriction * impulse);
+  const tangentImpulse = scale(direction, -magnitude);
+  a.velocityMps = sub(a.velocityMps, scale(tangentImpulse, a.inverseMass));
+  b.velocityMps = add(b.velocityMps, scale(tangentImpulse, b.inverseMass));
+  a.angularVelocityRadps = sub(a.angularVelocityRadps,
+    inverseInertia(a, cross(frictionArmA, tangentImpulse)));
+  b.angularVelocityRadps = add(b.angularVelocityRadps,
+    inverseInertia(b, cross(frictionArmB, tangentImpulse)));
+  return { normalImpulseNs: impulse, tangentImpulseNs: tangentImpulse };
 }
 function validateResult(bodies: Body[], contacts: PhysicsContact[]): void {
   for (const body of bodies) {
@@ -540,7 +582,8 @@ function validateResult(bodies: Body[], contacts: PhysicsContact[]): void {
   }
   if (contacts.some((contact) => !Number.isFinite(contact.impulseNs) || !Number.isFinite(contact.penetrationM) ||
     contact.normalAtoB.some((value) => !Number.isFinite(value)) ||
-    contact.pointM.some((value) => !Number.isFinite(value)))) error('NUMERIC_LIMIT', 'unsafe contact result');
+    contact.pointM.some((value) => !Number.isFinite(value)) ||
+    contact.tangentImpulseNs.some((value) => !Number.isFinite(value)))) error('NUMERIC_LIMIT', 'unsafe contact result');
 }
 
 export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
@@ -627,12 +670,14 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
         let contact = found.get(key);
         if (!contact) {
           contact = { aId: a.id, bId: b.id, normalAtoB: [...hit.normal], pointM: [...hit.pointM],
-            penetrationM: 0, impulseNs: 0 };
+            penetrationM: 0, impulseNs: 0, tangentImpulseNs: [0, 0, 0] };
           found.set(key, contact);
         }
         contact.pointM = [...hit.pointM];
         contact.penetrationM = Math.max(contact.penetrationM, hit.penetration);
-        contact.impulseNs += solve(a, b, hit);
+        const resolved = solve(a, b, hit);
+        contact.impulseNs += resolved.normalImpulseNs;
+        contact.tangentImpulseNs = add(contact.tangentImpulseNs, resolved.tangentImpulseNs);
       }
       const nextContacts = [...found.values()];
       const nextActive = new Map<string, Omit<PhysicsEvent, 'phase'>>(sensed);
