@@ -17,6 +17,10 @@
       "types": "./dist/native.d.ts",
       "import": "./dist/native.js"
     },
+    "./document": {
+      "types": "./dist/document.d.ts",
+      "import": "./dist/document.js"
+    },
     "./three": {
       "types": "./dist/three.d.ts",
       "import": "./dist/three.js"
