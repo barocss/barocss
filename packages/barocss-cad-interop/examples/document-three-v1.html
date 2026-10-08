@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Selected CAD document bodies in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; width: 800px; height: 480px; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Selected CAD document bodies · Three.js</h1>
+  <p>Two source assets keep the same native Curve and Surface IDs. Four of six bodies are displayed.</p>
+  <canvas id="view" width="800" height="480"></canvas>
+  <button id="reject" type="button">Try invalid candidate</button>
+  <button id="dispose" type="button">Dispose owned display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Color, Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '../dist/document.js';
+  import { createBaroCadDocumentThreeDisplay } from '../dist/three-document.js';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const request = { native, basis: 'authored-xyz-matches-rhyup',
+    bodyIds: ['body_1_surface', 'body_0_curve', 'body_1_curve', 'body_0_surface'] };
+  const scene = new Scene();
+  scene.background = new Color(0x101b2c);
+  const callerChild = new Group(); callerChild.name = 'caller-marker'; scene.add(callerChild);
+  const camera = new OrthographicCamera(-0.018, 0.018, 0.0108, -0.0108, 0.01, 1);
+  camera.position.set(0.001, -0.001, 0.2);
+  camera.lookAt(0.001, -0.001, 0);
+  const renderer = new WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(800, 480, false);
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const readPixels = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const pixels = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('WebGL readPixels failed');
+    return pixels;
+  };
+  const colors = pixels => {
+    let cyan = 0, magenta = 0, left = 0, right = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      const r = pixels[index], g = pixels[index + 1], b = pixels[index + 2];
+      if (r < 60 && g > 150 && b > 150) cyan++;
+      if (r > 150 && g < 70 && b > 150) magenta++;
+      if (Math.abs(r - 16) > 12 || Math.abs(g - 27) > 12 || Math.abs(b - 44) > 12) {
+        if ((index / 4) % canvas.width < canvas.width / 2) left++;
+        else right++;
+      }
+    }
+    return { cyan, magenta, left, right };
+  };
+  let cad, display, projection, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    cad = await loadBaroCadDocument(new URL('document-gpu-v2.cad-document.json', location.href).href);
+    projection = prepareBaroCadDocumentPrimitiveNativeRefsV2(cad, request);
+    display = createBaroCadDocumentThreeDisplay(cad, request);
+    if (display.bindings.length !== 4 || display.root.children.length !== 2 ||
+        display.root.children.some(group => group.children.length !== 2 ||
+          group.children.some(child => child.name === 'skip_path_native'))) {
+      throw new Error('Three selected-body display contains wrong children');
+    }
+    display.root.children[0].position.x = -0.006;
+    display.root.children[1].position.x = 0.006;
+    for (const binding of display.bindings) {
+      const entry = projection.find(value => value.binding.bodyId === binding.bodyId);
+      const original = entry.kind === 'curve' ? entry.sample.pointsMM.flat() : entry.packet.positions;
+      const expected = Float32Array.from(original, value => Math.fround(value * native.unitsPerMillimeter));
+      const actual = binding.object.geometry.getAttribute('position').array;
+      if (actual.length !== expected.length || !actual.every((value, index) => value === expected[index])) {
+        throw new Error('Three position buffer differs from selected native projection');
+      }
+      if (binding.object.isLine) binding.object.material.color.setHex(
+        binding.assetId === 'asset-a' ? 0x00ffff : 0xff00ff);
+    }
+    scene.add(display.root);
+    const pixels = readPixels();
+    const coloredPixels = colors(pixels);
+    if (Object.values(coloredPixels).some(value => value < 20)) {
+      throw new Error('Selected Curves and Surfaces must be visible on both sides');
+    }
+    evidence = {
+      documentId: cad.document.documentId, revision: cad.document.revision,
+      frame: cad.document.nativeFrame, assetRevisions: cad.document.assets.map(asset => asset.revision),
+      sourceBytes: cad.document.assets.map(asset => new TextEncoder().encode(asset.source).length),
+      originalIds: cad.compiledAssets.map(asset => asset.model.objects.map(object => object.id)),
+      originalSignedZero: cad.compiledAssets.map(asset => Object.is(asset.model.objects[0].controlPoints[0][1], -0)),
+      bodyIds: display.bindings.map(binding => binding.bodyId),
+      refs: display.bindings.map(binding => binding.ref),
+      nativeNames: display.bindings.map(binding => binding.object.name),
+      sampleVersions: projection.filter(entry => entry.kind === 'curve').map(entry => entry.sampleVersion),
+      domains: projection.filter(entry => entry.kind === 'curve').map(entry => entry.sample.domain),
+      threeLines: display.bindings.filter(binding => binding.object.isLine).length,
+      threeSurfaces: display.bindings.filter(binding => binding.object.isMesh).length,
+      unselectedVisible: display.root.children.some(group => group.children.some(child => child.name === 'skip_path_native')),
+      webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      uploadedPositionsMatch: true, oneCanvas: document.querySelectorAll('canvas').length === 1,
+      coloredPixels, pixelHash: hash(pixels), callerChildRetained: scene.children.includes(callerChild),
+    };
+    window.__baroCadDocumentThreeEvidence = evidence;
+    show();
+  } catch (error) {
+    display?.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCadDocumentThreeError = String(error);
+  }
+  document.querySelector('#reject').onclick = () => {
+    if (!display) return;
+    const before = hash(readPixels());
+    const checks = [
+      { ...request, bodyIds: ['missing_body'] },
+      { ...request, bodyIds: ['body_0_curve', 'body_0_curve'] },
+      { ...request, bodyIds: [...request.bodyIds, 'body_0_skip'] },
+      { ...request, basis: 'authored-xyz-no-axis-conversion' },
+    ].map(candidate => { try { createBaroCadDocumentThreeDisplay(cad, candidate); return false; }
+      catch { return true; } });
+    const forged = structuredClone(cad); forged.bodyBindings[0].assetId = 'asset_b';
+    let forgedRejected = false;
+    try { createBaroCadDocumentThreeDisplay(forged, request); } catch { forgedRejected = true; }
+    Object.assign(evidence, { invalidCandidatesRejected: checks.every(Boolean), forgedRejected,
+      priorSceneRetained: scene.children.includes(display.root) && scene.children.includes(callerChild),
+      priorPixelsRetained: hash(readPixels()) === before });
+    show();
+  };
+  document.querySelector('#dispose').onclick = () => {
+    if (!display) return;
+    let geometryDisposals = 0, materialDisposals = 0;
+    for (const binding of display.bindings) {
+      binding.object.geometry.addEventListener('dispose', () => geometryDisposals++);
+      binding.object.material.addEventListener('dispose', () => materialDisposals++);
+    }
+    display.dispose(); display.dispose();
+    Object.assign(evidence, { geometryDisposals, materialDisposals,
+      loadedDisplayRemoved: !scene.children.includes(display.root),
+      callerChildRetained: scene.children.includes(callerChild),
+      callerCanvasRetained: document.body.contains(canvas),
+      callerRendererRetained: renderer.getContext() instanceof WebGL2RenderingContext,
+      nativeSourcesRetained: cad.document.assets.every(asset => asset.source.includes('#guide_path_native')) });
+    show();
+  };
+</script>
+</html>
