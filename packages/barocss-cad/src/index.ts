@@ -202,3 +202,6 @@ export type { CadAssemblyMemberTransaction, CadAssemblyMemberReport, CadAssembly
 
 export { booleanCoplanarFaces, validateCoplanarFaceBoolean, CoplanarFaceBooleanError, CoplanarFaceBooleanDiagnosticCode } from './coplanar-face-boolean.js';
 export type { CoplanarFaceBooleanOptions, CoplanarFaceBooleanContributor, CoplanarFaceBooleanEvent, CoplanarFaceBooleanFragment, CoplanarFaceBooleanLoop, CoplanarFaceBooleanComponent, CoplanarFaceBooleanReport, CoplanarFaceBooleanResult } from './coplanar-face-boolean.js';
+
+export { tessellateCoplanarFaceBoolean, validateCoplanarFaceBooleanMesh, CoplanarFaceBooleanMeshError, CoplanarFaceBooleanMeshDiagnosticCode } from './coplanar-face-boolean-mesh.js';
+export type { CoplanarFaceBooleanMeshOptions, CoplanarFaceBooleanMeshVertex, CoplanarFaceBooleanMeshBoundaryPath, CoplanarFaceBooleanMeshEdgeUse, CoplanarFaceBooleanMeshTriangulation, CoplanarFaceBooleanMeshReport, CoplanarFaceBooleanMeshResult } from './coplanar-face-boolean-mesh.js';
