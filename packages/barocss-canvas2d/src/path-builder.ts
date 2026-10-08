@@ -8,6 +8,7 @@ export type PathBuilder = {
   bezierCurveTo(c1x: number, c1y: number, c2x: number, c2y: number, x: number, y: number): PathBuilder;
   closePath(): PathBuilder;
   rect(x: number, y: number, width: number, height: number): PathBuilder;
+  roundRect(x: number, y: number, width: number, height: number, radius: number): PathBuilder;
   circle(cx: number, cy: number, radius: number): PathBuilder;
   clear(): PathBuilder;
   build(): PathCommand[];
@@ -79,6 +80,23 @@ export function createPathBuilder(): PathBuilder {
       const left = scalar(x), top = scalar(y), right = scalar(x + positive(width)), bottom = scalar(y + positive(height));
       return append([{ kind: 'M', x: left, y: top }, { kind: 'L', x: right, y: top },
         { kind: 'L', x: right, y: bottom }, { kind: 'L', x: left, y: bottom }, { kind: 'Z' }]);
+    },
+    roundRect(x: number, y: number, width: number, height: number, radius: number) {
+      const left = scalar(x), top = scalar(y), w = positive(width), h = positive(height), r = positive(radius);
+      if (r > Math.min(w, h) / 2) invalid('path builder radius exceeds half the smaller dimension');
+      const right = scalar(left + w), bottom = scalar(top + h), k = 4 * (Math.SQRT2 - 1) / 3;
+      const x0 = scalar(left + r), x1 = scalar(right - r);
+      const y0 = scalar(top + r), y1 = scalar(bottom - r);
+      const a = k * r;
+      return append([{ kind: 'M', x: x0, y: top }, { kind: 'L', x: x1, y: top },
+        { kind: 'C', c1x: scalar(x1 + a), c1y: top, c2x: right, c2y: scalar(y0 - a), x: right, y: y0 },
+        { kind: 'L', x: right, y: y1 },
+        { kind: 'C', c1x: right, c1y: scalar(y1 + a), c2x: scalar(x1 + a), c2y: bottom, x: x1, y: bottom },
+        { kind: 'L', x: x0, y: bottom },
+        { kind: 'C', c1x: scalar(x0 - a), c1y: bottom, c2x: left, c2y: scalar(y1 + a), x: left, y: y1 },
+        { kind: 'L', x: left, y: y0 },
+        { kind: 'C', c1x: left, c1y: scalar(y0 - a), c2x: scalar(x0 - a), c2y: top, x: x0, y: top },
+        { kind: 'Z' }]);
     },
     circle(cx: number, cy: number, radius: number) {
       const x = scalar(cx), y = scalar(cy), r = positive(radius);
