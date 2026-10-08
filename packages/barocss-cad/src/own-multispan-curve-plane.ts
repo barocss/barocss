@@ -14,6 +14,14 @@ export interface CurveAffinePlaneSpan {
   spanId:string; spanIndex:number; domain:[number,number]; curve:Curve;
   intersection:BezierCurveAffinePlaneIntersectionResult; source:string; sourceVersion:0; model:Model;
 }
+/** Internal structural span needed by unchanged whole-original event assembly. */
+export interface CurvePlaneEventAssemblySpan {
+  spanId:string;spanIndex:number;domain:[number,number];curve:Curve;
+  intersection:{
+    kind:BezierCurveAffinePlaneIntersectionResult['kind'];events:BezierCurvePlanePointEvent[];
+    report:{planeAxes:CurveAffinePlaneAxes;coincident:BezierCurveAffinePlaneIntersectionResult['report']['coincident']};
+  };
+}
 export interface CurvePlaneSpanContribution {
   spanId:string; spanIndex:number; event:BezierCurvePlanePointEvent; childPointMM:Point; originalPointMM:Point;
   pointDifferenceMM:number; childCurveD1:CurvePlaneD1State; originalCurveD1:CurvePlaneD1State;
@@ -79,7 +87,7 @@ function derivativeComparison(original:CurvePlaneD1State,child:CurvePlaneD1State
 }
 /** Trusted shared whole-original event assembly; callers establish geometry and work bounds. */
 export function assembleCurvePlaneEventsTrusted(
-  c:Curve,p:Surface,spans:CurveAffinePlaneSpan[],pointEventIds:string[],
+  c:Curve,p:Surface,spans:CurvePlaneEventAssemblySpan[],pointEventIds:string[],
   maximumContributions:number,maximumEvents:number,
 ):{
   axes:CurveAffinePlaneAxes;events:CurvePlanePointEvent[];contributionCount:number;
