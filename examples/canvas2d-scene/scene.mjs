@@ -56,3 +56,34 @@ initialScene.nodes[1].children.push({
     { kind: 'Z' },
   ],
 });
+
+export const initialSceneV2 = structuredClone(initialScene);
+initialSceneV2.version = 2;
+const ribbon = initialSceneV2.nodes[1].children.at(-1);
+ribbon.stroke = { color: ribbon.stroke, width: ribbon.width };
+delete ribbon.width;
+initialSceneV2.nodes[0].children.push({
+  kind: 'path', id: 'FilledBadge', layer: 3,
+  transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+  fill: { color: [0.04, 0.72, 0.78, 0.92], rule: 'evenodd' },
+  stroke: { color: [0.02, 0.25, 0.38, 1], width: 3 },
+  commands: [
+    { kind: 'M', x: 18, y: 18 }, { kind: 'L', x: 280, y: 18 },
+    { kind: 'L', x: 280, y: 225 }, { kind: 'L', x: 190, y: 225 },
+    { kind: 'Q', cx: 145, cy: 153, x: 105, y: 225 },
+    { kind: 'L', x: 18, y: 225 }, { kind: 'Z' },
+    { kind: 'M', x: 75, y: 60 }, { kind: 'L', x: 225, y: 60 },
+    { kind: 'L', x: 225, y: 165 }, { kind: 'L', x: 75, y: 165 }, { kind: 'Z' },
+    { kind: 'M', x: 120, y: 90 }, { kind: 'L', x: 180, y: 90 },
+    { kind: 'L', x: 180, y: 135 }, { kind: 'L', x: 120, y: 135 }, { kind: 'Z' },
+  ],
+});
+initialSceneV2.nodes[1].children.push({
+  kind: 'path', id: 'CrossingFill', layer: 4,
+  transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+  fill: { color: [1, 0.62, 0.08, 0.9], rule: 'evenodd' },
+  commands: [
+    { kind: 'M', x: 175, y: 25 }, { kind: 'L', x: 275, y: 125 },
+    { kind: 'L', x: 175, y: 125 }, { kind: 'L', x: 275, y: 25 }, { kind: 'Z' },
+  ],
+});
