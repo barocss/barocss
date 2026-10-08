@@ -1,4 +1,4 @@
-import { importMotionGltfAnimation, MotionGltfError, type MotionGltfErrorCode, type MotionGltfOptions } from './gltf.js';
+import { bakeMotionGltfAnimation, importMotionGltfAnimation, MotionGltfError, type MotionGltfBakeOptions, type MotionGltfErrorCode, type MotionGltfOptions } from './gltf.js';
 import type { MotionClip } from './index.js';
 
 declare const TextDecoder: {
@@ -25,8 +25,7 @@ function readChunk(view: DataView, offset: number, path: string): { type: number
   return { type, start: offset + 8, end: offset + 8 + length, length };
 }
 
-/** Import one selected animation from a bounded, caller-loaded GLB v2 container. */
-export function importMotionGlbAnimation(bytes: Uint8Array, options: MotionGltfOptions): MotionClip {
+function decodeMotionGlb(bytes: Uint8Array): { gltf: Record<string, unknown>; binary: Uint8Array } {
   if (!(bytes instanceof Uint8Array)) fail('INVALID_INPUT', 'glb', 'expected Uint8Array');
   if (bytes.byteLength > MAX_GLB_BYTES) fail('LIMIT_EXCEEDED', 'glb', 'more than 1114144 bytes');
   if (bytes.byteLength < 28 || bytes.byteLength % 4 !== 0) {
@@ -84,5 +83,17 @@ export function importMotionGlbAnimation(bytes: Uint8Array, options: MotionGltfO
     offset = later.end;
   }
   const binary = bytes.subarray(binChunk.start, binChunk.start + declaredLength);
+  return { gltf, binary };
+}
+
+/** Import one selected animation from a bounded, caller-loaded GLB v2 container. */
+export function importMotionGlbAnimation(bytes: Uint8Array, options: MotionGltfOptions): MotionClip {
+  const { gltf, binary } = decodeMotionGlb(bytes);
   return importMotionGltfAnimation(gltf, [binary], options);
+}
+
+/** Bake one selected GLB animation onto a caller-chosen finite v0 key grid. */
+export function bakeMotionGlbAnimation(bytes: Uint8Array, options: MotionGltfBakeOptions): MotionClip {
+  const { gltf, binary } = decodeMotionGlb(bytes);
+  return bakeMotionGltfAnimation(gltf, [binary], options);
 }

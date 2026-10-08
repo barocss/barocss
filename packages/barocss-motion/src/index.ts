@@ -71,7 +71,7 @@ export type { MotionTransitionErrorCode, MotionTransitionOptions, MotionTransiti
 export { MotionGltfError, importMotionGltfAnimation } from './gltf.js';
 export { bakeMotionGltfAnimation } from './gltf.js';
 export type { MotionGltfBakeOptions, MotionGltfErrorCode, MotionGltfNodeTarget, MotionGltfOptions } from './gltf.js';
-export { importMotionGlbAnimation } from './glb.js';
+export { bakeMotionGlbAnimation, importMotionGlbAnimation } from './glb.js';
 
 export const MOTION_LIMITS = Object.freeze({
   targets: 64,
