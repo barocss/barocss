@@ -18,6 +18,8 @@ Open <http://127.0.0.1:52922/> and click the colored geometry. A Curve hit
 reports the displayed segment and approximate parameter alongside a separate
 fresh native XYZ/mm evaluation. Press **Select last hit** to highlight the
 displayed Surface or Curve; **Clear selection** removes the highlight. The
+**Fit selected** button frames only that displayed object, including its
+accepted pose; **Fit all** returns to whole-scene framing. The
 original `pick` and `select` remain Surface-only. The one-pixel GPU line and
 screen tolerance do not certify an
 exact Curve intersection or a native boundary.

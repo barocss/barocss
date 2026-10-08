@@ -81,6 +81,14 @@ poses. A successful call to either Motion method clears the other pose state.
 fit, approximate `pickGeometry()` and selection follow the tagged display pose;
 native point measurements stay in authored XYZ/mm.
 
+`fitGeometry({kind:'surface',modelId,surfaceId})` or
+`fitGeometry({kind:'curve',modelId,curveId})` frames one currently displayed
+object from its accepted packet or Curve sample. It follows the active display
+pose and changes only the camera. The tagged reference must exactly match a
+displayed object; hidden or stale refs are rejected. `fit()` still frames the
+whole scene. Curve fitting uses sampled display bounds, not certified native
+Curve bounds.
+
 `getState().native` contains a copied native model and the exact source string.
 For two points on the accepted native model, call
 `measureNativeSurfacePoints({modelId,surfaceId,u,v}, {modelId,surfaceId,u,v})`.
