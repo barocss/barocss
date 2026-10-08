@@ -234,3 +234,31 @@ overlay and injected program allocation failures retain the accepted whole frame
 The same flow exercises scene replacement and viewport material/empty/clear/
 restore/resize/disposal. Injection is not hardware exhaustion; no program/buffer
 reuse, Viewer adoption, publication or performance certificate is claimed.
+
+## Actual Physics frames with native shared depth (#850)
+
+```sh
+BAROCSS_PARTICLE_DEPS=/absolute/compiled/CAD-and-Physics/provider/repo \
+BAROCSS_PARTICLE_EVIDENCE=/absolute/unique/output \
+node examples/gpu-scene/particle-layer-flow.mjs
+```
+
+Build only the affected local GPU package first. The example consumes integrated
+Physics813 compiled `/fluid` and CAD read-only. Its exact256-particle waterRev1
+recipe generates0/60/240 states through240 host-requested steps; the supplied
+raw Float64 metre SHA hashes must match. Original metre state/diagnostics/files
+are separate from the host's one conversion `metres *1000 *.001`, GPU DTO and
+actual Float32 upload checksum.
+
+A real native plane Surface and the particles share one camera/context/depth
+frame. Moving that same Surface offscreen via a display-only pose exposes more
+cyan pixels (actual3195 occluded versus3686 unobstructed), demonstrating true
+occlusion. These are pixel counts, not individual visible particle counts.
+Actual POINTS256 calls/uploads/context-revision-step retention, invalid input/
+camera/getter/regression/resource refusal, particle-only clear/exact native
+restore, explicit reset/new generation, resize and viewport empty/restore/disposal
+are checked in one source/API/WebGL2 flow. Allocation refusal is injected, not
+physical exhaustion. Three upload/draw timings include full native restaging and
+presentation; they exclude Physics and capture and are not a performance study.
+The Surface is a display occluder, not a Physics obstacle or exact CAD collision.
+Viewer851/play-pause-step-reset/parent814 adoption remains separate.

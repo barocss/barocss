@@ -924,3 +924,42 @@ material uses the exact legacy shader path. Curves remain on their default
 Line shader. No texture/UV varying, deformation/PBR/shadow/raw GLSL or Viewer
 adoption is supplied. See `examples/gpu-scene/qualified-material-flow.mjs` for
 one actual mixed native scene and independent time0/1/2 RGB/light/gamma checks.
+
+### Shared-depth bounded particle layer (#850)
+
+Only `PrimitiveSceneRendererV2` and `PrimitiveViewport` expose:
+
+```ts
+setParticleLayer(frame: ParticleLayerV0 | null): UpdateResult
+update(input: PrimitiveSceneInputV2, options: PrimitiveSceneOptions,
+       particles?: ParticleLayerV0 | null): UpdateResult
+// Copied query:
+particleLayer: ParticleLayerV0 | null
+```
+
+`ParticleLayerV0` has exact own fields `version:0`, `contextId`, `sceneRevision`,
+`stepIndex`, `coordinateSystem:'right-handed-y-up-scene-units'`, and a dense
+`positions:number[]`. Admit1..256 XYZ points, finite±1000 scene units;
+context/revision ASCII1..128; integer step0..2147483647. GPU copies original
+binary64 numbers and lowers a derived Float32 buffer. GPU does not convert
+metres/mm, import Physics, advance simulation or create native geometry IDs.
+The host owns tag meaning, unit mapping and pending generation checks.
+
+Incremental set requires current context/revision match and nondecreasing step;
+equal step requires identical original position bits. Null clears only particles.
+Reset clears first or uses a full atomic update with an explicit new context.
+Full update with the same context retains revision/step checks; a different
+context permits a new generation. Omitted/null third argument clears particles
+on successful scene replacement. Native/camera/particle state stages in one
+accepted frame; refusal retains prior state/pixels/resources. Whole scene update
+retains the material-reset rule above; particle-only updates retain materials.
+
+Particles use fixed6px opaque circular POINTS, encoded cyan[0.1,0.7,1]/alpha1,
+actual LESS depth test/write and the native camera/framebuffer. A WebGL2 point-size
+range containing6 is required. No separate canvas/renderer/blit, overlay SVG,
+forced visibility, transparency sorting, texture/PBR or lighting/gamma pass for
+particles is supplied. Submitted count differs from visible/occluded samples.
+Native bounds and entries describe native geometry; inspect particle positions
+separately. Native-empty binding refuses. Viewport clear removes both; resize/
+render retain; lost context requires remount; dispose releases owned resources.
+Full frames/programs/buffers restage; no reuse or performance guarantee.
