@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Edited-middle CAD loft rebuild in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Edited-middle CAD loft rebuild · Three.js</h1>
+  <p>Left: accepted original loft. Right: a new Surface from one native middle-section edit.</p>
+  <canvas id="view" width="800" height="500"></canvas>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose both displays</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { BufferGeometry, Color, Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { buildThreeSectionLoftSurface, compileCadModel, editCurveControlPolygonWide,
+    evaluateSurface, validateThreeSectionLoftSurface, validateWideCurveControlPolygonEdit } from '@barocss/cad';
+  import { BaroCADLoader } from '../dist/three.js';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const options = { sourceVersion: 0, countU: 9, countV: 9, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 128, maxDepth: 12 } };
+  const url = file => new URL('loft-three-data/' + file, location.href).href;
+  const scene = new Scene(); scene.background = new Color(0x101b2c);
+  const marker = new Group(); marker.name = 'caller-marker'; scene.add(marker);
+  const camera = new OrthographicCamera(-0.009, 0.013, 0.007, -0.005, 0.001, 0.2);
+  camera.position.set(0.013, 0.016, 0.024); camera.lookAt(0.002, 0.002, 0.001);
+  const renderer = new WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(800, 500, false);
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const pixels = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const data = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Three WebGL readPixels failed');
+    return data;
+  };
+  const counts = data => {
+    let cyan = 0, magenta = 0, yellow = 0, nonBackground = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (r !== 16 || g !== 27 || b !== 44) nonBackground++;
+      if (r < 90 && g > 150 && b > 150) cyan++;
+      if (r > 150 && g < 90 && b > 150) magenta++;
+      if (r > 150 && g > 150 && b < 90) yellow++;
+    }
+    return { cyan, magenta, yellow, nonBackground };
+  };
+  const sameArray = (actual, expected) => actual.length === expected.length &&
+    actual.every((value, index) => Object.is(value, expected[index]));
+  const loader = new BaroCADLoader(options);
+  let originalDisplay, editedDisplay, edit, original, edited, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const [sectionsText, originalText, editedMiddleText, editedText] = await Promise.all([
+      'sections.barocad', 'loft.barocad', 'edited_middle.barocad', 'edited_loft.barocad',
+    ].map(file => fetch(url(file)).then(response => response.text())));
+    const compiled = compileCadModel(sectionsText, { sourceVersion: 0 });
+    if (!compiled.ok || compiled.model.objects.length !== 3 ||
+        compiled.model.objects.some(object => object.kind !== 'curve')) {
+      throw new Error('Original section source failed to compile');
+    }
+    const [first, middle, last] = compiled.model.objects;
+    original = buildThreeSectionLoftSurface(first, middle, last,
+      { surfaceId: 'equal_curved_middle_surface' });
+    edit = editCurveControlPolygonWide(middle, { poleEdits: [{ index: 1, zMM: 3.25 }] });
+    edited = buildThreeSectionLoftSurface(first, edit.curve, last,
+      { surfaceId: 'edited_middle_surface' });
+    if (original.source !== originalText || edit.source !== editedMiddleText ||
+        edited.source !== editedText ||
+        JSON.stringify(validateWideCurveControlPolygonEdit(edit)) !== JSON.stringify(edit.report) ||
+        JSON.stringify(validateThreeSectionLoftSurface(original)) !== JSON.stringify(original.report) ||
+        JSON.stringify(validateThreeSectionLoftSurface(edited)) !== JSON.stringify(edited.report) ||
+        edit.curve.id !== middle.id || edit.report.changedFieldCount !== 1 ||
+        edited.report.observationCount !== 9 || edited.report.derivativeObservationCount !== 9) {
+      throw new Error('Saved edited loft differs from public CAD operations');
+    }
+    const oldPoint = evaluateSurface(original.surface, 1, 0.5);
+    const newPoint = evaluateSurface(edited.surface, 1, 0.5);
+    const middleDifferenceMM = Math.hypot(...oldPoint.map((value, axis) => value - newPoint[axis]));
+    if (middleDifferenceMM <= 0.01) throw new Error('Edited middle did not change native Surface');
+    originalDisplay = await loader.loadAbortable(url('loft.barocad'), {});
+    editedDisplay = await loader.loadAbortable(url('edited_loft.barocad'), {});
+    const displays = [originalDisplay, editedDisplay];
+    const expectedSources = [originalText, editedText];
+    const surfaceIds = [original.surface.id, edited.surface.id];
+    const objects = [];
+    for (const [index, display] of displays.entries()) {
+      const mesh = display.group.children.find(child => child.isMesh);
+      const lines = display.group.children.filter(child => child.isLine);
+      if (display.source !== expectedSources[index] || display.model.objects.length !== 4 ||
+          display.surfaces.length !== 1 || display.curves.length !== 3 ||
+          !mesh || lines.length !== 3 || mesh.name !== surfaceIds[index] ||
+          display.model.objects[1].id !== middle.id ||
+          !Object.is(display.model.objects[1].controlPoints[0][0], -0)) {
+        throw new Error('One source-owned loft display lost its native IDs');
+      }
+      const neutral = display.surfaces[0].mesh, geometry = mesh.geometry;
+      if (!sameArray(geometry.getAttribute('position').array, neutral.positions) ||
+          !sameArray(geometry.getAttribute('normal').array, neutral.normals) ||
+          !sameArray(geometry.getAttribute('_CAD_UV').array, neutral.parameters) ||
+          !sameArray(geometry.getIndex().array, neutral.indices)) {
+        throw new Error('Three Mesh differs from its own neutral Surface packet');
+      }
+      for (const [sectionIndex, line] of lines.entries()) {
+        const curve = display.curves[sectionIndex];
+        if (line.name !== [first, middle, last][sectionIndex].id ||
+            curve.curveId !== line.name ||
+            !sameArray(line.geometry.getAttribute('position').array, curve.positions) ||
+            JSON.stringify(line.userData.barocss.nativeParameters) !==
+              JSON.stringify(curve.sample.parameters)) {
+          throw new Error('Three section Line differs from its own neutral sample');
+        }
+      }
+      mesh.material.transparent = true; mesh.material.opacity = 0.72;
+      mesh.material.depthWrite = false;
+      for (const [sectionIndex, line] of lines.entries()) {
+        line.material.color.setHex([0x00ffff, 0xff00ff, 0xffff00][sectionIndex]);
+        line.material.depthTest = false; line.renderOrder = 2;
+      }
+      objects.push({ mesh, lines });
+    }
+    const originalMesh = originalDisplay.surfaces[0].mesh;
+    const editedMesh = editedDisplay.surfaces[0].mesh;
+    const changedMeshPositionValues = originalMesh.positions.reduce((count, value, index) =>
+      count + Number(!Object.is(value, editedMesh.positions[index])), 0);
+    if (changedMeshPositionValues < 1 ||
+        !originalDisplay.model.objects[0].controlPoints.every((pole, index) =>
+          pole.every((value, axis) => Object.is(value,
+            editedDisplay.model.objects[0].controlPoints[index][axis]))) ||
+        !originalDisplay.model.objects[2].controlPoints.every((pole, index) =>
+          pole.every((value, axis) => Object.is(value,
+            editedDisplay.model.objects[2].controlPoints[index][axis])))) {
+      throw new Error('Edited Surface changed no geometry or altered endpoint sections');
+    }
+    scene.add(originalDisplay.group);
+    const originalPixels = hash(pixels());
+    scene.remove(originalDisplay.group);
+    scene.add(editedDisplay.group);
+    const editedPixels = hash(pixels());
+    scene.remove(editedDisplay.group);
+    if (originalPixels === editedPixels) throw new Error('Edited Surface produced no changed pixels');
+    originalDisplay.group.position.set(-0.005, 0, 0);
+    editedDisplay.group.position.set(0.004, 0, 0);
+    scene.add(originalDisplay.group, editedDisplay.group);
+    const together = pixels(), visible = counts(together);
+    if (visible.cyan < 20 || visible.magenta < 20 || visible.yellow < 20 ||
+        visible.nonBackground < visible.cyan + visible.magenta + visible.yellow + 500) {
+      throw new Error('Original or edited loft has no visible section/Surface pixels');
+    }
+    evidence = {
+      originalSurfaceId: original.surface.id, editedSurfaceId: edited.surface.id,
+      repeatedSectionIds: [first.id, middle.id, last.id],
+      originalSourceRetained: originalDisplay.source === originalText,
+      editedSourceDistinct: originalDisplay.source !== editedDisplay.source,
+      middleChangedFields: edit.report.changedFieldCount, middleDifferenceMM,
+      changedMeshPositionValues, originalPixels, editedPixels,
+      originalCurveSamples: originalDisplay.curves.map(curve => curve.sample.pointsMM.length),
+      editedCurveSamples: editedDisplay.curves.map(curve => curve.sample.pointsMM.length),
+      nativeParametersSeparateFromVertices: true, bothNeutralBuffersMatch: true,
+      signedZeroRetained: Object.is(editedDisplay.model.objects[1].controlPoints[0][0], -0),
+      webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      oneCanvas: document.querySelectorAll('canvas').length === 1,
+      visiblePixels: visible, pixelHash: hash(together), callerMarkerRetained: scene.children.includes(marker),
+    };
+    window.__baroEditedLoftThreeEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const acceptedPixels = hash(pixels()), acceptedOptions = JSON.stringify(options);
+      const candidates = [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADLoader({ ...options, countU: 18 }).parse(editedText),
+        () => { const wrong = structuredClone(edit); wrong.curve.weights[0] = 2;
+          validateWideCurveControlPolygonEdit(wrong); },
+        () => { const wrong = structuredClone(edited); wrong.surface.weights[1][1] = 2;
+          validateThreeSectionLoftSurface(wrong); },
+        () => { const wrong = structuredClone([first, edit.curve, last]); wrong[1].knots[0] = 0;
+          buildThreeSectionLoftSurface(...wrong, { surfaceId: 'invalid_surface' }); },
+      ];
+      let refused = 0;
+      for (const candidate of candidates) { try { candidate(); } catch { refused++; } }
+      let stagedDisposals = 0, stagedFailureRefused = false;
+      const setIndex = BufferGeometry.prototype.setIndex;
+      BufferGeometry.prototype.setIndex = function () {
+        this.addEventListener('dispose', () => stagedDisposals++);
+        throw new Error('injected staged index failure');
+      };
+      try { loader.parse(editedText); } catch (error) {
+        stagedFailureRefused = error.message === 'injected staged index failure';
+      } finally { BufferGeometry.prototype.setIndex = setIndex; }
+      Object.assign(evidence, {
+        invalidCandidatesRefused: refused, stagedFailureRefused, stagedDisposals,
+        bothDisplaysRetained: displays.every(display =>
+          scene.children.includes(display.group) && display.group.children.length === 4),
+        bothSourcesRetained: originalDisplay.source === originalText && editedDisplay.source === editedText,
+        acceptedOptionsRetained: JSON.stringify(options) === acceptedOptions,
+        acceptedPixelsRetained: hash(pixels()) === acceptedPixels,
+      });
+      show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      let geometryDisposals = 0, materialDisposals = 0;
+      for (const { mesh, lines } of objects) for (const child of [mesh, ...lines]) {
+        child.geometry.addEventListener('dispose', () => geometryDisposals++);
+        child.material.addEventListener('dispose', () => materialDisposals++);
+      }
+      originalDisplay.dispose(); originalDisplay.dispose();
+      editedDisplay.dispose(); editedDisplay.dispose();
+      Object.assign(evidence, {
+        geometryDisposals, materialDisposals,
+        displaysRemoved: displays.every(display => !scene.children.includes(display.group)),
+        callerMarkerRetained: scene.children.includes(marker),
+        callerRendererAndCanvasRetained: renderer.getContext() instanceof WebGL2RenderingContext &&
+          document.body.contains(canvas),
+        nativeSourcesRetained: originalDisplay.source === originalText && editedDisplay.source === editedText,
+      });
+      show();
+    };
+  } catch (error) {
+    originalDisplay?.dispose(); editedDisplay?.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroEditedLoftThreeError = String(error?.stack ?? error);
+  }
+</script>
+</html>

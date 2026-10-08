@@ -1124,3 +1124,27 @@ objects. Native interpolation and parameter evidence stay separate from
 Float32 display meshes. This proves one same-basis three-section loft
 consumer. It does not prove arbitrary lofts, B-Rep/solid quality,
 other targets or npm publication.
+
+## Edited-middle three-section loft consumer in Three.js
+
+`examples/loft-three-edited-generate.mjs` reads the original three sections
+and uses public CAD `editCurveControlPolygonWide` to change one Z coefficient
+in the middle Curve. It then calls `buildThreeSectionLoftSurface` with the
+edited Curve. The verifier checks the edit report, unchanged coefficient
+bits, signed zero, local Surface observations and exact saved source0 text
+in `examples/loft-three-data/edited_middle.barocad` and `edited_loft.barocad`.
+Run it after building CAD and interop:
+
+```sh
+node packages/barocss-cad-interop/examples/loft-three-edited-generate.mjs
+```
+
+Serve `examples/loft-three-edited.html` through the local Vite browser
+server. The existing Three adapter loads the original and edited lofts as
+separate source-owned results. The caller supplies display poses, colors,
+camera and 0.001 scene units/mm. The page checks source-to-buffer values,
+the visible change, invalid candidate refusal, retained pixels after a
+staging failure and adapter-owned disposal. The native edit and loft
+observations remain separate from Float32 display meshes. This shows one
+edited-middle rebuild; it makes no claim about arbitrary edits, global
+shape, solids, other targets or npm publication.

@@ -1,0 +1,1 @@
+@model profile { version:0; length-unit:mm; @curve #middle_equal { type:nurbs; degree:2; knots:[-0,-0,-0,2,2,2]; control-points:[[-0,2,-0],[2,4,3.25],[4,2,0]]; weights:[1,1,1]; } }
