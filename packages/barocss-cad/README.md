@@ -6316,3 +6316,82 @@ interval, zero speed, an actual source edit/revision, one native reversal
 witness and saved/reopened source/document/result files. Analytic comparisons
 are local prototype evidence. Integration and display consumers need their
 own receipts.
+
+## Source-qualified native Surface parametric-area estimate
+
+`queryCadDocumentSurfaceArea(documentResult, reference, options)` estimates
+the integral of `norm(cross(du,dv))` over the original Surface parameter
+rectangle, in mm². It uses the current qualified document reference and
+actual native Surface D1. It counts parametrized coverage, including
+multiplicity of overlapping portions. It does not provide union area,
+trimmed BRep face area or a mesh-area measurement.
+
+```js
+const reference = cad.createCadGeometryReference(document, {bodyId}).reference;
+const area = cad.queryCadDocumentSurfaceArea(document, reference, {
+  region: null,
+  absoluteToleranceMM2: 1e-6,
+  relativeTolerance: 1e-8,
+  maximumEvaluations: 16384,
+  maximumSubdivisions: 128,
+  maximumDepth: 8,
+});
+cad.validateCadDocumentSurfaceArea(document, area);
+```
+
+`region:null` retains original U/V domains and endpoint bits. An explicit
+`{u:[a,b],v:[c,d]}` must be finite, increasing and inside both original
+domains. Zero, reversed and outside rectangles refuse; parameters are never
+clamped, sorted, normalized or interpreted as fractional physical angles.
+Admission is positive clamped nonperiodic degreeU/V1..3, axes2..16, at most256
+poles and20 knots per axis, XYZ±10000mm and native weights[1e-6,1e6]. The
+existing native degree4/5 profile remains separate from this numerical
+subset. Source/coefficients/IDs/frame/revisions remain authoritative.
+
+Initial cells split at all actual U/V knot breaks. Each cell compares tensor
+3x3 and5x5 Gauss-Legendre quadrature. Their common centre is reused:33 native
+D1 evaluations per measured cell, all strict interior representable points.
+Q5 is the area estimate. The estimator uses their difference,64 epsilon
+times abs(Q5), and a native point sanity check. A3x3 endpoint/midpoint grid
+uses eight native D0 evaluations plus the existing centre point. Eight
+fixed triangles provide a local plausibility check; any triangle-area
+shortfall in Q5 also enters the estimator. This check can be conservative.
+Its floating area is not a certified bound and never replaces Q5.
+
+The greatest-estimator cell splits into four children when the aggregate
+estimator exceeds max(absoluteToleranceMM2,relativeTolerance*areaEstimateMM2).
+Ties follow the current deterministic cell list. Child order is lowerU/lowerV,
+lowerU/upperV,upperU/lowerV,upperU/upperV. Original initial-grid order and
+replacement traversal remain deterministic; local refinement does not promise
+globally lexicographic cells. Measurement IDs and counts include discarded
+parents. Genuine native C0 U/V derivative refusals are observed separately
+using a strict other-axis interior parameter. No boundary derivative or
+normal is fabricated.
+
+Unsafe cross/product/sum arithmetic, nonzero derived underflow, insufficient
+node spacing or exhausted work/depth/subdivision budgets refuse atomically.
+Rank-deficient/zero native Jacobians may contribute0; this is not a surface
+regularity or global zero-area certificate. Absolute tolerance is[1e-8,10]mm²,
+relative[0,1e-2], D1 budget33..65536, subdivisions0..128 and depth0..10.
+Estimator convergence is heuristic and does not certify requested global
+error, manufacturing tolerance, topology, solid, volume or mass.
+
+The result owns `reference`, `geometry`, `source`, `options`,
+`areaEstimateMM2`, `errorEstimateMM2`, `cells` and `report`. Current-only
+report schema is `barocss-cad-surface-area`, version0, current document1 and
+Source0. The canonical authored frame remains exactly
+`authored-xyz-no-axis-conversion`. Whole-owned validation re-resolves the
+actual document and reproduces every node, native point/Jacobian, sanity
+triangle, cell, subdivision, guard, count and criterion. CPU copies/GC have
+no renderer resource lifecycle. Stale references keep their STALE category.
+
+```sh
+node examples/cad-nurbs/cad-surface-area-demo.mjs --source /tmp/cad-native-surface-area
+```
+
+The example uses known affine-plane/full-cylinder/subrectangle/C0-extrusion
+areas, zero area, actual control-net edit/revision and one native axis
+reversal witness. It saves/reopens original source, current document and
+raw signed-zero results, with separate manifest JS/types checks. Analytic
+comparisons are local prototype evidence. Integration and independent display
+consumers require their own receipts.
