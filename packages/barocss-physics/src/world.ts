@@ -7,7 +7,8 @@ import { detect, solve, validateResult, sphereOverlaps, rayDistance } from './co
 import { boxFaceManifold } from './contact-manifold.js';
 import { correctPersistentPair, solvePersistentPoint, warmStartPoint } from './persistent-box-contact.js';
 import type { PointImpulse } from './persistent-box-contact.js';
-import { ccdFixtures, sweepSphere } from './ccd.js';
+import { admitCcd, sweepSphere } from './ccd.js';
+import { sweepSpherePair } from './ccd-pair.js';
 import { bodyBounds, boundsOverlap } from './broadphase.js';
 import { dormantPair, filterAllowsPair, wakeOnContact } from './scene-profile.js';
 import { updateSleeping, wakeForActions } from './sleep.js';
@@ -70,8 +71,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   if (!bodies.some((body) => body.kind === 'dynamic')) error('INVALID_CONFIG', 'at least one dynamic body is required');
   if (new Set(bodies.map((body) => body.id)).size !== bodies.length) error('INVALID_CONFIG', 'duplicate body ID');
   const joints = parseJoints(Object.hasOwn(input, 'joints') ? input.joints : [], bodies);
-  const fixtures = ccdFixtures(bodies, joints.length);
-  const ccdIndex = bodies.findIndex((body) => body.ccd);
+  const ccd = admitCcd(bodies, joints.length, gravity);
   const disabledPairs = new Set(joints.map((joint) =>
     [bodies[joint.aIndex].id, bodies[joint.bIndex].id].sort().join('\u0000')));
   const pairs: Array<[number, number]> = [];
@@ -141,7 +141,11 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
           for (let i = 0; i < 3; i++) body.positionM[i] += body.velocityMps[i] * dt;
         }
       }
-      const hit = ccdIndex < 0 ? null : sweepSphere(bodies[ccdIndex], next[ccdIndex], fixtures);
+      const hit = ccd.kind === 'static-boxes'
+        ? sweepSphere(bodies[ccd.sphereIndex], next[ccd.sphereIndex], ccd.fixtures)
+        : ccd.kind === 'sphere-pair'
+          ? sweepSpherePair(bodies[ccd.sphereIndex], next[ccd.sphereIndex],
+            bodies[ccd.otherIndex], next[ccd.otherIndex]) : null;
       const nextCcdHits = hit ? [hit] : [];
       const nextPairStats: PhysicsPairStats = { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 };
       const found = new Map<string, PhysicsContact>();

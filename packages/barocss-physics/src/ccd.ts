@@ -2,16 +2,28 @@ import type { Body, PhysicsCcdHit, Vec3 } from './types.js';
 import { add, localPoint, rotate, scale, sub } from './math.js';
 import { error } from './validation.js';
 
-export function ccdFixtures(bodies: Body[], jointCount: number): Body[] {
+export type CcdProfile =
+  | { kind: 'none' }
+  | { kind: 'static-boxes'; sphereIndex: number; fixtures: Body[] }
+  | { kind: 'sphere-pair'; sphereIndex: number; otherIndex: number };
+
+export function admitCcd(bodies: Body[], jointCount: number, gravity: Vec3): CcdProfile {
   const selected = bodies.filter((body) => body.ccd);
-  if (selected.length === 0) return [];
+  if (selected.length === 0) return { kind: 'none' };
+  const sphereIndex = bodies.findIndex((body) => body.ccd);
+  if (selected.length === 1 && bodies.length === 2 && jointCount === 0 &&
+    gravity.every((component) => component === 0) &&
+    bodies.every((body) => body.kind === 'dynamic' && body.shape.kind === 'sphere' && !body.sensor)) {
+    return { kind: 'sphere-pair', sphereIndex, otherIndex: 1 - sphereIndex };
+  }
   const fixtures = bodies.filter((body) => body.kind === 'static' && !body.sensor && body.shape.kind === 'box');
   if (selected.length !== 1 || bodies.length !== fixtures.length + 1 ||
     bodies.filter((body) => body.kind === 'dynamic').length !== 1 ||
     fixtures.length < 1 || fixtures.length > 8 || jointCount !== 0) {
     error('INVALID_CONFIG', 'ccd requires one dynamic sphere, 1..8 static nonsensor boxes and no joints');
   }
-  return fixtures.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  return { kind: 'static-boxes', sphereIndex,
+    fixtures: fixtures.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0) };
 }
 
 interface Sweep { fraction: number; normalLocal: Vec3 }
