@@ -1,6 +1,7 @@
 import { createCanvas2D, parseSceneJSON, stringifySceneJSON } from '../../packages/barocss-canvas2d/dist/index.js';
 import { initialScene, initialSceneV0, initialSceneV2, initialSceneV3, initialSceneV4 } from './scene.mjs';
 import { imageAssets } from './image-assets.mjs';
+import { SceneHistory } from './scene-history.mjs';
 
 const canvas = document.querySelector('#scene');
 const status = document.querySelector('#status');
@@ -8,6 +9,9 @@ const selectedLabel = document.querySelector('#selected');
 const errorLabel = document.querySelector('#error');
 const selectionBox = document.querySelector('#selection-box');
 const pathHandles = document.querySelector('#path-handles');
+const undoButton = document.querySelector('#undo');
+const redoButton = document.querySelector('#redo');
+const moveRightButton = document.querySelector('#move-right');
 let scene = structuredClone(initialSceneV4);
 let view = { panX: 0, panY: 0, zoom: 1 };
 let selected = null;
@@ -15,8 +19,7 @@ let gesture = null;
 let controlDrag = null;
 let renderer = createCanvas2D(canvas, { logicalSize: { width: 800, height: 480 }, dpr: Math.min(4, Math.max(0.5, devicePixelRatio || 1)) });
 for (const [id, asset] of imageAssets) renderer.setImageAsset(id, asset);
-renderer.updateScene(scene);
-renderer.render();
+const history = new SceneHistory(renderer, scene);
 
 function findNode(id, nodes = scene.nodes, parentX = 0, parentY = 0) {
   for (const node of nodes) {
@@ -30,6 +33,7 @@ function findNode(id, nodes = scene.nodes, parentX = 0, parentY = 0) {
 }
 function updateSelection() {
   selectedLabel.textContent = selected ? `${selected.kind}: ${selected.id}` : 'No selection';
+  moveRightButton.disabled = !selected;
   selectionBox.style.display = 'none';
   if (!selected) return;
   const found = findNode(selected.id);
@@ -75,22 +79,42 @@ function draw() {
   updateSelection();
   updateHandles();
   status.textContent = `v${scene.version} · Zoom ${Math.round(view.zoom * 100)}% · DPR ${canvas.width / 800} · ${scene.nodes.length} frames`;
+  undoButton.disabled = !history.canUndo;
+  redoButton.disabled = !history.canRedo;
   errorLabel.textContent = '';
+}
+function showError(error) { errorLabel.textContent = `${error.code || 'ERROR'}: ${error.message}`; }
+function commitEdit(edit) {
+  try { scene = history.commit(edit); draw(); }
+  catch (error) { showError(error); }
+}
+function replaceScene(next) {
+  try {
+    scene = history.replace(next);
+    view = { panX: 0, panY: 0, zoom: 1 }; selected = null;
+    draw();
+  } catch (error) { showError(error); }
 }
 window.addEventListener('pointermove', event => {
   if (!controlDrag) return;
-  const { node } = findNode(controlDrag.pathId);
-  const command = node.commands[controlDrag.commandIndex];
-  const oldX = command[controlDrag.xField], oldY = command[controlDrag.yField];
-  command[controlDrag.xField] = controlDrag.x + (event.clientX - controlDrag.clientX) / view.zoom;
-  command[controlDrag.yField] = controlDrag.y + (event.clientY - controlDrag.clientY) / view.zoom;
-  try { draw(); } catch (error) {
-    command[controlDrag.xField] = oldX; command[controlDrag.yField] = oldY;
-    errorLabel.textContent = `${error.code || 'ERROR'}: ${error.message}`;
-  }
+  const drag = controlDrag;
+  const x = drag.x + (event.clientX - drag.clientX) / view.zoom;
+  const y = drag.y + (event.clientY - drag.clientY) / view.zoom;
+  const edit = candidate => {
+    const command = findNode(drag.pathId, candidate.nodes).node.commands[drag.commandIndex];
+    command[drag.xField] = x; command[drag.yField] = y;
+  };
+  try { scene = history.preview(edit); drag.finalEdit = edit; draw(); }
+  catch (error) { showError(error); }
 });
-window.addEventListener('pointerup', () => { controlDrag = null; });
-window.addEventListener('pointercancel', () => { controlDrag = null; });
+window.addEventListener('pointerup', () => {
+  if (controlDrag?.finalEdit) commitEdit(controlDrag.finalEdit);
+  controlDrag = null;
+});
+window.addEventListener('pointercancel', () => {
+  if (controlDrag?.finalEdit) { scene = history.restore(); draw(); }
+  controlDrag = null;
+});
 function point(event) { const rect = canvas.getBoundingClientRect(); return { x: event.clientX - rect.left, y: event.clientY - rect.top }; }
 canvas.addEventListener('pointerdown', event => {
   const p = point(event);
@@ -105,15 +129,27 @@ canvas.addEventListener('pointermove', event => {
   if (!gesture) return;
   const p = point(event), dx = p.x - gesture.x, dy = p.y - gesture.y;
   if (gesture.selectedId) {
-    const found = findNode(gesture.selectedId);
-    found.node.transform.x = gesture.nodeX + dx / view.zoom;
-    found.node.transform.y = gesture.nodeY + dy / view.zoom;
-  } else view = { ...view, panX: gesture.panX + dx, panY: gesture.panY + dy };
-  draw();
+    const drag = gesture;
+    const edit = candidate => {
+      const found = findNode(drag.selectedId, candidate.nodes);
+      found.node.transform.x = drag.nodeX + dx / view.zoom;
+      found.node.transform.y = drag.nodeY + dy / view.zoom;
+    };
+    try { scene = history.preview(edit); drag.finalEdit = edit; draw(); }
+    catch (error) { showError(error); }
+  } else {
+    view = { ...view, panX: gesture.panX + dx, panY: gesture.panY + dy };
+    draw();
+  }
 });
-function endGesture() { gesture = null; }
-canvas.addEventListener('pointerup', endGesture);
-canvas.addEventListener('pointercancel', endGesture);
+canvas.addEventListener('pointerup', () => {
+  if (gesture?.finalEdit) commitEdit(gesture.finalEdit);
+  gesture = null;
+});
+canvas.addEventListener('pointercancel', () => {
+  if (gesture?.finalEdit) { scene = history.restore(); draw(); }
+  gesture = null;
+});
 function zoomAt(nextZoom, x = 400, y = 240) {
   const zoom = Math.min(64, Math.max(0.05, nextZoom));
   const worldX = (x - view.panX) / view.zoom, worldY = (y - view.panY) / view.zoom;
@@ -126,35 +162,35 @@ canvas.addEventListener('wheel', event => {
 }, { passive: false });
 document.querySelector('#zoom-in').addEventListener('click', () => zoomAt(view.zoom * 1.25));
 document.querySelector('#zoom-out').addEventListener('click', () => zoomAt(view.zoom / 1.25));
-document.querySelector('#reset').addEventListener('click', () => {
-  scene = structuredClone(initialSceneV4); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
+undoButton.addEventListener('click', () => { scene = history.undo(); draw(); });
+redoButton.addEventListener('click', () => { scene = history.redo(); draw(); });
+moveRightButton.addEventListener('click', () => {
+  if (!selected) return;
+  const id = selected.id;
+  commitEdit(candidate => { findNode(id, candidate.nodes).node.transform.x += 10; });
 });
-document.querySelector('#open-v3').addEventListener('click', () => {
-  scene = structuredClone(initialSceneV3); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
-});
-document.querySelector('#open-v2').addEventListener('click', () => {
-  scene = structuredClone(initialSceneV2); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
-});
-document.querySelector('#open-v1').addEventListener('click', () => {
-  scene = structuredClone(initialScene); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
-});
-document.querySelector('#open-v0').addEventListener('click', () => {
-  scene = structuredClone(initialSceneV0); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
-});
+document.querySelector('#reset').addEventListener('click', () => replaceScene(initialSceneV4));
+document.querySelector('#open-v3').addEventListener('click', () => replaceScene(initialSceneV3));
+document.querySelector('#open-v2').addEventListener('click', () => replaceScene(initialSceneV2));
+document.querySelector('#open-v1').addEventListener('click', () => replaceScene(initialScene));
+document.querySelector('#open-v0').addEventListener('click', () => replaceScene(initialSceneV0));
 document.querySelector('#save').addEventListener('click', () => {
-  const blob = new Blob([stringifySceneJSON(scene)], { type: 'application/json' });
+  const blob = new Blob([stringifySceneJSON(history.scene)], { type: 'application/json' });
   const url = URL.createObjectURL(blob), anchor = document.createElement('a');
   anchor.href = url; anchor.download = 'canvas2d-scene.json'; anchor.click();
   setTimeout(() => URL.revokeObjectURL(url), 0);
 });
 document.querySelector('#open').addEventListener('change', async event => {
   const file = event.target.files?.[0]; if (!file) return;
-  try { const next = parseSceneJSON(await file.text()); renderer.updateScene(next); scene = next; selected = null; draw(); }
-  catch (error) { errorLabel.textContent = `${error.code || 'ERROR'}: ${error.message}`; }
+  try { replaceScene(parseSceneJSON(await file.text())); }
+  catch (error) { showError(error); }
   event.target.value = '';
 });
 window.__canvas2dDebug = {
-  get scene() { return structuredClone(scene); }, get view() { return { ...view }; },
+  get scene() { return structuredClone(scene); }, get acceptedScene() { return history.scene; },
+  get history() { return { position: history.position, length: history.length,
+    canUndo: history.canUndo, canRedo: history.canRedo }; },
+  get view() { return { ...view }; },
   hit(point) { return renderer.hitTest(point); },
   pathObservation(id = 'PathRibbon') { return renderer.getPathObservation(id); },
   fillObservation(id = 'FilledBadge') { return renderer.getFillObservation(id); },
@@ -163,13 +199,17 @@ window.__canvas2dDebug = {
   setImageAsset(id, value) { renderer.setImageAsset(id, value); renderer.render(); },
   removeImageAsset(id) { renderer.removeImageAsset(id); },
   resizeDpr(dpr) { renderer.resize({ width: 800, height: 480 }, dpr); renderer.render(); updateSelection(); updateHandles(); },
-  setScene(next) { renderer.updateScene(next); scene = structuredClone(next); draw(); },
+  setScene(next) { scene = history.replace(next); draw(); },
+  commit(edit) { scene = history.commit(edit); draw(); },
+  undo() { scene = history.undo(); draw(); },
+  redo() { scene = history.redo(); draw(); },
   setView(next) { renderer.setView(next); view = { ...next }; draw(); },
   pixel(x, y) { const gl = canvas.getContext('webgl2'); const p = new Uint8Array(4);
     gl.readPixels(x, canvas.height - y - 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, p); return [...p]; },
   recreate() { renderer.dispose(); renderer = createCanvas2D(canvas,
     { logicalSize: { width: 800, height: 480 }, dpr: Math.min(4, Math.max(0.5, devicePixelRatio || 1)) });
     for (const [id, asset] of imageAssets) renderer.setImageAsset(id, asset);
+    history.attachRenderer(renderer);
     draw(); },
 };
 draw();
