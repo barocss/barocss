@@ -18,6 +18,39 @@ function check(name,input,axis){
  assert.deepEqual(input,before);assert.deepEqual(r.original,input);assert.deepEqual(r.options,options);assert.equal(r.surface.id,name);assert.deepEqual(surfaceDomain(r.surface),domain);assert.equal(r.surface.degreeU,input.degreeU);assert.equal(r.surface.degreeV,input.degreeV);
  for(let u=0;u<nu;u++)for(let v=0;v<nv;v++){const originalU=axis==='u'?nu-1-u:u,originalV=axis==='v'?nv-1-v:v;assert.deepEqual(r.surface.controlPoints[u][v],input.controlPoints[originalU][originalV]);assert.ok(Object.is(r.surface.weights[u][v],input.weights[originalU][originalV]));}
  assert.deepEqual(r.surface[axis==='u'?'knotsV':'knotsU'],input[axis==='u'?'knotsV':'knotsU']);assert.equal(r.sourceVersion,0);assert.deepEqual(r.model.objects,[r.surface]);assert.deepEqual(r.originalModel.objects,[input]);assert.equal(r.model.name,name);assert.equal(r.originalModel.name,'surface_reverse_original');assert.equal(r.report.geometricValidity,'not-certified');assert.equal(r.report.topologyCertified,false);assert.equal(r.report.solid,false);
+ const provenance=r.provenance,report=r.report;
+ assert.equal(provenance.originalSurfaceId,input.id);assert.equal(provenance.outputSurfaceId,name);assert.equal(provenance.axis,axis);assert.deepEqual(provenance.domain,domain);
+ assert.equal(provenance.strips.length,axis==='u'?nv:nu);assert.equal(report.stripCount,provenance.strips.length);
+ assert.deepEqual(report.dto,{schema:'barocss-native-surface-axis-reversal',version:0,lengthUnit:'mm',frame:'authored-xyz-no-axis-conversion',representation:'native-surface-not-face-topology'});
+ assert.equal(report.quality.coefficientAndWeightBitsPreserved,true);assert.equal(report.quality.nonselectedKnotBitsPreserved,true);assert.equal(report.quality.generatedInteriorKnotBitsCertified,false);assert.equal(report.quality.doubleReversalBitsCertified,false);
+ assert.equal(provenance.coefficients.length,nu*nv);assert.equal(provenance.parameterMaps.u.d1Factor,axis==='u'?-1:1);assert.equal(provenance.parameterMaps.v.d1Factor,axis==='v'?-1:1);
+ for(const strip of provenance.strips){
+  const fixed=strip.fixedPoleIndex,expectedPoints=axis==='u'?input.controlPoints.map(row=>row[fixed]):input.controlPoints[fixed],expectedWeights=axis==='u'?input.weights.map(row=>row[fixed]):input.weights[fixed];
+  assert.deepEqual(strip.result.original.controlPoints,expectedPoints);assert.deepEqual(strip.result.original.weights,expectedWeights);
+  assert.deepEqual(strip.result.curve.controlPoints,[...expectedPoints].reverse());assert.deepEqual(strip.result.curve.weights,[...expectedWeights].reverse());
+  assert.deepEqual(r.surface[axis==='u'?'knotsU':'knotsV'],strip.result.curve.knots);
+  sourceFile(name+'.strip_'+fixed+'.original',strip.result.originalSource,strip.result.originalModel);
+  sourceFile(name+'.strip_'+fixed+'.reversed',strip.result.source,strip.result.model);
+ }
+ const parentPairs=provenance.strips[0].result.report.observations;assert.ok(report.observations.length<=128);
+ for(const o of report.observations){
+  const pair=parentPairs.find(value=>value.reversedParameter===(axis==='u'?o.u:o.v));assert.ok(pair);
+  assert.ok(Object.is(axis==='u'?o.originalU:o.originalV,pair.originalParameter));assert.ok(Object.is(axis==='u'?o.originalV:o.originalU,axis==='u'?o.v:o.u));
+  close(o.originalPointMM,evaluateSurface(input,o.originalU,o.originalV));close(o.reversedPointMM,evaluateSurface(r.surface,o.u,o.v));
+  assert.deepEqual(o.originalD1,d1(input,o.originalU,o.originalV));assert.deepEqual(o.reversedD1,d1(r.surface,o.u,o.v));
+  if(o.originalD1.status==='evaluated'){
+   const expectedDu=o.originalD1.value.du.map(value=>axis==='u'?-value:value),expectedDv=o.originalD1.value.dv.map(value=>axis==='v'?-value:value);
+   assert.deepEqual(o.expectedDuMM,expectedDu);assert.deepEqual(o.expectedDvMM,expectedDv);
+   if(o.reversedD1.status==='evaluated'){close(o.reversedD1.value.du,expectedDu,1e-7*Math.max(1,Math.hypot(...expectedDu)));close(o.reversedD1.value.dv,expectedDv,1e-7*Math.max(1,Math.hypot(...expectedDv)));}
+  }else{assert.equal(o.expectedDuMM,null);assert.equal(o.expectedDvMM,null);}
+ }
+ for(const guard of report.guards){
+  assert.deepEqual(guard.originalAtAuthoredKnot,d1(input,guard.originalAuthoredU,guard.originalAuthoredV));
+  assert.deepEqual(guard.originalAtMappedParameters,d1(input,guard.mappedOriginalU,guard.mappedOriginalV));
+  assert.deepEqual(guard.reversedAtReflectedParameters,d1(r.surface,guard.reversedU,guard.reversedV));
+  assert.equal(guard.originalAtAuthoredKnot.status,'native-refused');
+ }
+ write(name+'.mapped-observations.json',report.observations);
  validate(r);const originalSourceFile=sourceFile(name+'.original',r.originalSource,r.originalModel),reversedSourceFile=sourceFile(name+'.reversed',r.source,r.model),file=resolve(output,name+'.owned-result.json');writeFileSync(file,nativeJSON(r)+'\n');const reopened=JSON.parse(readFileSync(file,'utf8'));assert.deepEqual(reopened,r);validate(reopened);summaries.push({name,axis,grid:[nu,nv],domain,originalSourceFile,reversedSourceFile,ownedResultFile:file});return r;
 }
 const curved={kind:'surface',id:'curved',degreeU:2,degreeV:2,knotsU:[0,0,0,1,1,1],knotsV:[0,0,0,1,1,1],controlPoints:Array.from({length:3},(_,u)=>Array.from({length:3},(_,v)=>[u*2,v*2,u*v*.5+(u===1&&v===1?.75:0)])),weights:Array.from({length:3},(_,u)=>Array.from({length:3},(_,v)=>1+u*.125+v*.25+u*v*.125))};
