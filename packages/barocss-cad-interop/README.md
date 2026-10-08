@@ -738,6 +738,49 @@ renderer, stage, camera, lights, controllers and unrelated children.
 Run `examples/pixi3d-native.html` through a browser module server to see the
 two Surface preview, original IDs, invalid-source retention and disposal.
 
+### Display selected document Surfaces in Pixi3D
+
+The optional `./pixi3d-document` entry composes the same source-backed
+document body selection as `./document` with the pinned source0 Pixi3D
+Surface adapter. It accepts 1–4 selected Surface bodies in authored order
+and refuses a selected Curve or any `curveDisplay` option. A document with
+more than four bodies needs explicit `bodyIds`. Unselected native Curves
+remain in the authoritative Model; the adapter does not draw them.
+
+```js
+import { loadBaroCadDocument } from '@barocss/cad-interop/document';
+import { createBaroCadDocumentPixi3DDisplay }
+  from '@barocss/cad-interop/pixi3d-document';
+
+const cad = await loadBaroCadDocument(documentURL);
+const display = createBaroCadDocumentPixi3DDisplay(cad, {
+  native: { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001 },
+  basis: 'authored-xyz-matches-rhyup', // Assertion supplied by the host.
+  bodyIds: ['body_0_surface', 'body_1_surface'],
+});
+app.stage.addChild(display.root);
+// The host may set display-only poses on display.assetNodes.
+display.dispose();
+```
+
+The result contains one owned root, one node per selected asset and
+bindings with original document/asset/body/revision/frame/Surface IDs,
+the asset-scoped ref, actual `Mesh3D` and asset node. The source adapter
+constructs the bounded whole source Model. It keeps any unselected
+Surface meshes outside the visible result tree until owned disposal.
+Failed candidates release staged resources and keep an accepted display.
+`dispose()` is idempotent and does not destroy the caller Application,
+renderer, stage, camera, canvas or unrelated children. The caller must
+assert that authored XYZ matches the target right-handed Y-up display
+frame; the document does not certify this or define CAD assembly poses.
+PixiJS v8 and Curve rendering are outside this entry's profile.
+
+`examples/document-pixi3d-v1.html` reads the actual 3,172-byte document
+over local HTTP and renders two selected Surface meshes in one Pixi3D
+2.5.0/PixiJS 7.2.4 WebGL2 canvas. It also checks a second source with an
+unselected Surface, source IDs/scale, refusal, staged cleanup and owned
+disposal. This optional Pixi entry requires a browser runtime.
+
 ## Neutral model set
 
 `@barocss/cad-interop/model-set` composes 1–4 separate native source0 files
