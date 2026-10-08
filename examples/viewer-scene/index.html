@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>BaroCSS Viewer · two native surfaces</title>
+  <style>
+    body { margin: 0; background: #111827; color: #edf2f8; font: 14px/1.5 system-ui, sans-serif; }
+    main { max-width: 1100px; margin: 26px auto; padding: 0 18px; }
+    h1 { font-size: 24px; margin: 0 0 5px; } p { color: #acbacb; margin: 0 0 18px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 720px) minmax(250px, 1fr); gap: 16px; }
+    canvas { display: block; width: 100%; height: auto; border: 1px solid #354359; border-radius: 8px; cursor: crosshair; }
+    aside { border: 1px solid #354359; border-radius: 8px; padding: 14px; background: #1b2738; }
+    button { background: #2b405b; border: 1px solid #587399; color: white; padding: 7px 11px; border-radius: 5px; margin: 0 4px 8px 0; cursor: pointer; }
+    button:hover { background: #365477; } pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 ui-monospace, monospace; }
+    .hint { margin-top: 10px; font-size: 12px; color: #acbacb; }
+    @media(max-width:850px) { .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Native surface viewer</h1>
+  <p>Two source-version-0 BaroCAD surfaces. The mesh and hit are display approximations; the native model stays available.</p>
+  <div class="layout">
+    <canvas id="view" width="720" height="480" aria-label="BaroCSS native surface viewport"></canvas>
+    <aside>
+      <div>
+        <button id="fit">Fit</button><button id="orbit">Orbit</button>
+        <button id="pan">Pan</button><button id="zoom">Zoom</button>
+      </div>
+      <div class="hint">Click a surface to select it. Coordinates are right-handed Y-up, source millimetres, displayed at 0.001 scene units per mm.</div>
+      <pre id="state" aria-live="polite">Loading native source…</pre>
+    </aside>
+  </div>
+</main>
+<script type="module" src="/bundle.js"></script>
+</body>
+</html>
