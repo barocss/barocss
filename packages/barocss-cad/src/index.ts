@@ -176,3 +176,6 @@ export type { WideCubicCurveAffinePlaneIntersectionOptions, WideCubicCurveAffine
 
 export { editCurveControlPolygonWide, validateWideCurveControlPolygonEdit, WideCurveControlPolygonEditError, WideCurveControlPolygonEditDiagnosticCode } from './curve-wide-control-polygon.js';
 export type { WideCurveControlPolygonEditReport, WideCurveControlPolygonEditResult } from './curve-wide-control-polygon.js';
+
+export { reverseCurveWide, validateWideReversedCurveResult, WideCurveReversalError, WideCurveReversalDiagnosticCode } from './curve-wide-reversal.js';
+export type { WideReversedCurveReport, WideReversedCurveResult } from './curve-wide-reversal.js';
