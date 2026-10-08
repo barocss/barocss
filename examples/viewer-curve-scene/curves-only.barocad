@@ -1,0 +1,1 @@
+@model native_curves_only {version:0;length-unit:mm;@curve #weighted_left {type:nurbs;degree:2;knots:[-2,-2,-2,7,7,7];control-points:[[-850,-200,100],[-550,400,100],[-150,-100,100]];weights:[1,1.4,1];}@curve #weighted_right {type:nurbs;degree:2;knots:[-2,-2,-2,7,7,7];control-points:[[150,-100,120],[500,450,170],[850,-200,120]];weights:[1,0.7,1.2];}}

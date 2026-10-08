@@ -1,6 +1,6 @@
 # @barocss/viewer
 
-Experimental WebGL2 viewer for bounded BaroCAD Surface previews. It uses the public
+Experimental WebGL2 viewer for bounded BaroCAD Surface and sampled Curve previews. It uses the public
 `@barocss/gpu` scene backend and `@barocss/cad-interop/native` loader. The viewer
 does not evaluate NURBS for selection and does not change the native CAD model.
 
@@ -16,6 +16,22 @@ const hit = viewer.pick(120, 80); // canvas-local CSS pixels
 if (hit) viewer.select(hit.ref);
 viewer.dispose();
 ```
+
+To display genuine native Curve samples in the same scene, opt in during load:
+
+```js
+viewer.loadNative(sourceText, { sourceVersion: 0, countU: 8, countV: 8,
+  curveDisplay: { chordToleranceMM: 2, maxSegments: 256, maxDepth: 10 } });
+const hit = viewer.pickGeometry({ xCss: 120, yCss: 80 }, { curveTolerancePx: 4 });
+// hit.kind is 'surface' or 'curve'; neither kind changes selection by itself.
+```
+
+The original three-field load still renders only Surfaces. With `curveDisplay`,
+Loader's complete native sampling result goes to GPU's mixed primitive scene;
+Curves are not fabricated as Surface packets. `getState().curves` lists the
+qualified displayed Curve IDs. Curve-only source0 Models can be displayed and
+fitted. `getState().packets` and `surfaces` remain Surface-only. `select` and
+`pick` remain Surface-only, including in a mixed scene.
 
 For a sampled Motion frame, bind each Motion target to exactly one displayed surface:
 
@@ -66,8 +82,8 @@ and straight chord `distanceMM`. The copied result uses
 `metric: 'straight-chord'`, `space: 'native-authored'`, and
 `certification: 'not-certified'`. It is not length along a Curve. The last
 accepted result is separate at `getState().curveMeasurement`; a successful
-new model load clears it. The current Viewer does not draw or pick native
-Curves. Invalid requests retain both measurement records and the scene.
+new model load clears it. Curves remain hidden unless `curveDisplay` is given.
+Invalid requests retain both measurement records and the scene.
 
 `measureNativeSurfaceCurvePoints(surface, curve)` evaluates one original
 Surface U/V and one original Curve t from the same accepted native Model.
@@ -103,20 +119,35 @@ native model. Use a unique `(modelId, surfaceId)` pair for each surface.
 
 The camera uses scene units. `fit`, `setView`, `orbit`, `pan`, and `zoom` update
 the camera without editing native geometry. `fit` encloses the current displayed
-vertices with a 30% sphere margin at a 45-degree vertical FOV. It uses a minimum
+Surface vertices and sampled Curve points, including Curve-only scenes, with a
+30% sphere margin at a 45-degree vertical FOV. It uses a minimum
 0.01 scene-unit radius for planar or degenerate bounds and sets near/far around
 the full sphere. `pick` tests displayed triangles
 and returns `approximate: true`, the surface reference, triangle index,
 interpolated native U/V, scene position and a same-depth ambiguity flag. It is
 not a CAD face or BRep query.
 
-Limits: one canvas and WebGL2 context; 1..4 Surface packets, at most 4096 total
-vertices and 24576 indices; source text at most 65536 characters; native grid
+`pickGeometry({xCss,yCss},{curveTolerancePx?})` compares displayed Surface
+triangles and native sampled Curve line segments. The default Curve tolerance
+is 4 CSS pixels; the accepted range is 0.5..16. Segments are clipped to the
+camera frustum, tested against nearer opaque Surfaces and associated in screen
+space with perspective-correct interpolation. A Curve result identifies its
+qualified ref, sample segment, original parameter interval, approximate
+parameter, displayed scene point, separately evaluated native XYZ/mm point,
+scene depth, screen distance and ambiguity. It is not an exact ray/Curve
+intersection, certified boundary, trim or topology result. Surface results
+carry `kind:'surface'` and otherwise retain the `pick` fields. This call does
+not change selection.
+
+Limits: one canvas and WebGL2 context; 1..4 total displayed Surface/Curve
+objects; Surface packets at most 4096 total vertices and 24576 indices,
+sampled Curves at most 4096 total points and 4092 segments; source text at
+most 65536 characters; native grid
 counts 2..17; canvas at most 4096 pixels per side and 4194304 pixels total.
 `resize(width, height)` takes intrinsic pixel dimensions; it never multiplies
 them by device pixel ratio.
-Only `.barocad` source version 0 and preview packet version 0 are supported.
-Curves remain in the native model but are not displayed. The caller owns the
+Only `.barocad` source version 0, preview packet version 0 and the current
+native Curve sample v0/16-pole profile are supported. The caller owns the
 canvas and source text; `dispose()` releases only viewer-owned GPU resources.
 After WebGL context loss, `getState().status` reports `context-lost`; dispose and
 create a new Viewer to render again.

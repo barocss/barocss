@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>BaroCSS Viewer · native Curves</title>
+  <style>
+    body { margin: 0; background: #111827; color: #edf2f8; font: 14px/1.5 system-ui, sans-serif; }
+    main { max-width: 1120px; margin: 25px auto; padding: 0 18px; }
+    h1 { font-size: 24px; margin: 0 0 5px; }
+    p { color: #acbacb; margin: 0 0 18px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 720px) minmax(260px, 1fr); gap: 16px; }
+    canvas { display: block; width: 100%; height: auto; border: 1px solid #354359; border-radius: 8px; cursor: crosshair; }
+    aside { border: 1px solid #354359; border-radius: 8px; padding: 14px; background: #1b2738; }
+    button { background: #2b405b; border: 1px solid #587399; color: white; padding: 7px 11px; border-radius: 5px; margin: 0 4px 8px 0; cursor: pointer; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 ui-monospace, monospace; }
+    @media(max-width:850px) { .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Native Curve inspection</h1>
+  <p>Original source0 Surfaces and weighted Curves share one WebGL scene. Curve selection is a screen-line approximation; native XYZ/mm is evaluated separately.</p>
+  <div class="layout">
+    <canvas id="view" width="720" height="480" aria-label="Native Surface and Curve viewport"></canvas>
+    <aside>
+      <button id="mixed">Mixed scene</button><button id="curves-only">Curves only</button>
+      <button id="fit">Fit</button><button id="orbit">Orbit</button>
+      <button id="pose">Pose Surfaces</button><button id="invalid">Try invalid load</button>
+      <p>Click a visible Curve or Surface. The source remains in authored right-handed Y-up millimetres; display uses 0.001 scene units per millimetre.</p>
+      <pre id="state" aria-live="polite">Loading…</pre>
+    </aside>
+  </div>
+</main>
+<script type="module" src="/bundle.js"></script>
+</body>
+</html>
