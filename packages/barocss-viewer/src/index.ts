@@ -1,4 +1,4 @@
-import { evaluateSurface, surfaceDomain } from '@barocss/cad';
+import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from '@barocss/cad';
 import { parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadNativeResult } from '@barocss/cad-interop/native';
 import { mountMeshScene, prepareMesh, validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
@@ -34,6 +34,17 @@ export interface ViewerMotionState {
   bindings: ViewerMotionBinding[];
   displayPoses: ViewerDisplayPose[];
 }
+export interface ViewerCurveRef { modelId: string; curveId: string }
+export interface ViewerNativeCurveParameter extends ViewerCurveRef { t: number }
+export interface ViewerNativeCurvePoint { ref: ViewerCurveRef; t: number; pointMM: Vec3 }
+export interface ViewerNativeCurveMeasurement {
+  first: ViewerNativeCurvePoint;
+  second: ViewerNativeCurvePoint;
+  distanceMM: number;
+  metric: 'straight-chord';
+  space: 'native-authored';
+  certification: 'not-certified';
+}
 export interface ViewerPick {
   ref: ViewerRef;
   triangleIndex: number;
@@ -55,6 +66,7 @@ export interface ViewerState {
   native: BaroCadNativeResult | null;
   measurement: ViewerNativeSurfaceMeasurement | null;
   motion: ViewerMotionState | null;
+  curveMeasurement: ViewerNativeCurveMeasurement | null;
 }
 
 const PALETTE: Vec3[] = [[0.14, 0.58, 0.86], [0.95, 0.57, 0.22], [0.36, 0.72, 0.49], [0.72, 0.48, 0.87]];
@@ -158,6 +170,13 @@ function parseNativeParameter(input: unknown): ViewerNativeSurfaceParameter {
     && typeof value.v === 'number' && Number.isFinite(value.v), 'Native U/V parameters must be finite');
   return { ...ref, u: value.u, v: value.v };
 }
+function parseNativeCurveParameter(input: unknown): ViewerNativeCurveParameter {
+  const value = ownRecord(input, ['modelId', 'curveId', 't'], 'Native Curve parameter');
+  check(typeof value.modelId === 'string' && ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
+  check(typeof value.curveId === 'string' && ID.test(value.curveId), 'curveId must be a bounded ASCII identifier');
+  check(typeof value.t === 'number' && Number.isFinite(value.t), 'Native Curve parameter must be finite');
+  return { modelId: value.modelId, curveId: value.curveId, t: value.t };
+}
 function sameRef(a: ViewerRef | null, b: ViewerRef | null): boolean {
   return !!a && !!b && a.modelId === b.modelId && a.surfaceId === b.surfaceId;
 }
@@ -234,6 +253,7 @@ export class Viewer {
   private packets: ViewerPacket[] = [];
   private native: BaroCadNativeResult | null = null;
   private measurement: ViewerNativeSurfaceMeasurement | null = null;
+  private curveMeasurement: ViewerNativeCurveMeasurement | null = null;
   private camera: MeshCamera = validateMeshCamera(INITIAL_CAMERA);
   private selected: ViewerRef | null = null;
   private motion: ViewerMotionState | null = null;
@@ -303,7 +323,7 @@ export class Viewer {
     const camera = fittedCamera(packets, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
     this.present(packets, camera, null, null);
     this.packets = packets; this.camera = camera; this.selected = null; this.native = native;
-    this.measurement = null; this.motion = null;
+    this.measurement = null; this.motion = null; this.curveMeasurement = null;
   }
   loadNative(source: string, input: NativeLoadOptions): void {
     this.live();
@@ -372,6 +392,30 @@ export class Viewer {
     this.live();
     if (this.motion) this.present(this.packets, this.camera, this.selected, null);
     this.motion = null;
+  }
+  measureNativeCurvePoints(firstInput: ViewerNativeCurveParameter,
+    secondInput: ViewerNativeCurveParameter): ViewerNativeCurveMeasurement {
+    this.live();
+    const first = parseNativeCurveParameter(firstInput), second = parseNativeCurveParameter(secondInput);
+    const model = this.native?.model;
+    check(model && first.modelId === model.name && second.modelId === model.name,
+      'Both Curve points must belong to the accepted native model');
+    const point = (input: ViewerNativeCurveParameter): ViewerNativeCurvePoint => {
+      const curve = model.objects.find(object => object.kind === 'curve' && object.id === input.curveId);
+      check(curve && curve.kind === 'curve', 'Native Curve reference is unknown');
+      const domain = curveDomain(curve);
+      check(input.t >= domain[0] && input.t <= domain[1],
+        'Native Curve parameter must be inside the original domain');
+      return { ref: { modelId: input.modelId, curveId: input.curveId }, t: input.t,
+        pointMM: [...evaluateCurve(curve, input.t)] as Vec3 };
+    };
+    const firstPoint = point(first), secondPoint = point(second);
+    const distanceMM = Math.hypot(...subtract(firstPoint.pointMM, secondPoint.pointMM));
+    check(Number.isFinite(distanceMM), 'Native Curve chord distance is not finite');
+    const result: ViewerNativeCurveMeasurement = { first: firstPoint, second: secondPoint,
+      distanceMM, metric: 'straight-chord', space: 'native-authored', certification: 'not-certified' };
+    this.curveMeasurement = result;
+    return structuredClone(result);
   }
   fit(): void {
     this.live(); check(this.packets.length > 0, 'Viewer has no surfaces');
@@ -469,7 +513,8 @@ export class Viewer {
       mmToSceneUnit: this.options.mmToSceneUnit, camera: this.camera,
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
       packets: this.packets,
-      selected: this.selected, native: this.native, measurement: this.measurement, motion: this.motion });
+      selected: this.selected, native: this.native, measurement: this.measurement,
+      curveMeasurement: this.curveMeasurement, motion: this.motion });
   }
   readPixels(): Uint8Array { this.live(); check(this.renderer, 'Viewer has no surfaces'); return this.renderer.readPixels(); }
   dispose(): void { if (this.disposed) return; this.disposed = true;

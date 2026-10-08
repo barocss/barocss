@@ -21,3 +21,10 @@ Press **Measure native points** to show the native XYZ points and
 **Native point distance (mm)**. A displayed triangle click can fill one
 parameter pair, but that selected U/V is approximate. The method evaluates
 the native Surface again and does not measure display or assembly placement.
+
+Open the optional **Native Curve chord** section for two original Curve
+parameters. Curves remain in the native model but are not drawn. For a
+nonunit rational example, open `/?weightedCurve=1`; only the hidden
+`reference_edge` Curve weight changes to 0.5. Parameters 0.25 and 0.75
+produce a straight native chord of 45.714285714285715 mm. It is not the
+length along the Curve or a certified dimension.

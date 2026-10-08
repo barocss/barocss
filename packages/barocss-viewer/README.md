@@ -59,6 +59,15 @@ the previous measurement, camera, selection, native data and pixels intact.
 An approximate `pick()` U/V can be passed to the method, but the pick remains
 an approximate display selection. This result does not include a display pose
 or assembly placement and does not drive a CAD dimension.
+
+`measureNativeCurvePoints({modelId,curveId,t}, {modelId,curveId,t})` likewise
+evaluates two original native Curve parameters and returns their XYZ/mm points
+and straight chord `distanceMM`. The copied result uses
+`metric: 'straight-chord'`, `space: 'native-authored'`, and
+`certification: 'not-certified'`. It is not length along a Curve. The last
+accepted result is separate at `getState().curveMeasurement`; a successful
+new model load clears it. The current Viewer does not draw or pick native
+Curves. Invalid requests retain both measurement records and the scene.
 `getState().packets` contains copied, unscaled preview packets for native or
 generic input.
 The current GPU scene backend requires distinct original `surfaceId` values
