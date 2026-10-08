@@ -5,6 +5,9 @@ loads one genuine source0 Model with two Surfaces and two weighted, nonunit
 Curves. The Curves retain original `[-2,7]` parameters and native XYZ/mm.
 The page also loads a Curve-only Model, fits either scene, applies a display
 pose to the Surfaces and tries an invalid replacement.
+The **Wide 64-pole Curve** button loads committed source0 with explicit
+`curveDisplay.version:1`. It uses the GPU v1 primitive scene. The existing
+mixed and Curve-only buttons retain the unversioned v0 path.
 The **Pose all geometry** button moves displayed Curves by 80 mm in both
 mixed and Curve-only scenes. **Reset pose** restores identity display poses.
 
