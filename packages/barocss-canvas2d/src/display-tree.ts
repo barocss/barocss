@@ -36,6 +36,16 @@ export type DisplayPointerEvent = {
 };
 export type PointerInput = { type: PointerEventType; pointerId: number; point: Point; hit: Hit | null };
 export type PointerListener = (event: DisplayPointerEvent) => void;
+export type HoverEventType = 'pointerenter' | 'pointerleave';
+export type HoverInput = { pointerId: number; point: Point; hit: Hit | null };
+export type DisplayHoverEvent = {
+  readonly type: HoverEventType;
+  readonly pointerId: number;
+  readonly point: Readonly<Point>;
+  readonly target: DisplayHandle;
+  readonly currentTarget: DisplayHandle;
+};
+export type HoverListener = (event: DisplayHoverEvent) => void;
 export type WorldBounds = { x: number; y: number; width: number; height: number };
 export type StageHandle = {
   readonly children: readonly DisplayHandle[];
@@ -51,6 +61,7 @@ type PointConversion = {
   getWorldBounds(): WorldBounds | null;
 };
 export type ContainerHandle = StageHandle & PointConversion & {
+  onHover(type: HoverEventType, listener: HoverListener): () => void;
   readonly kind: 'container'; readonly id: string; readonly data: ContainerData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -62,6 +73,7 @@ export type ContainerHandle = StageHandle & PointConversion & {
   setHitMode(mode: HitMode): void;
 };
 export type FrameHandle = StageHandle & PointConversion & {
+  onHover(type: HoverEventType, listener: HoverListener): () => void;
   readonly kind: 'frame'; readonly id: string; readonly data: FrameData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -74,6 +86,7 @@ export type FrameHandle = StageHandle & PointConversion & {
   setFrame(paint: FramePaint): void;
 };
 export type SpriteHandle = PointConversion & {
+  onHover(type: HoverEventType, listener: HoverListener): () => void;
   readonly kind: 'sprite'; readonly id: string; readonly data: SpriteData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -94,6 +107,7 @@ export type SpriteHandle = PointConversion & {
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type RectHandle = PointConversion & {
+  onHover(type: HoverEventType, listener: HoverListener): () => void;
   readonly kind: 'rect'; readonly id: string; readonly data: RectData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -107,6 +121,7 @@ export type RectHandle = PointConversion & {
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type LineHandle = PointConversion & {
+  onHover(type: HoverEventType, listener: HoverListener): () => void;
   readonly kind: 'line'; readonly id: string; readonly data: LineData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -120,6 +135,7 @@ export type LineHandle = PointConversion & {
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type PathHandle = PointConversion & {
+  onHover(type: HoverEventType, listener: HoverListener): () => void;
   readonly kind: 'path'; readonly id: string; readonly data: PathData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -133,6 +149,7 @@ export type PathHandle = PointConversion & {
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type GlyphRunHandle = PointConversion & {
+  onHover(type: HoverEventType, listener: HoverListener): () => void;
   readonly kind: 'glyphRun'; readonly id: string; readonly data: GlyphRunData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -157,6 +174,7 @@ export type DisplayTree = {
   reparentChild(child: DisplayHandle, target: StageHandle | ContainerHandle | FrameHandle, index: number): void;
   get(id: string): DisplayHandle | null;
   dispatchPointer(input: PointerInput): void;
+  dispatchHover(input: HoverInput): void;
   snapshot(): SceneV11;
 };
 
@@ -305,7 +323,10 @@ export function createDisplayTree(contextId: string): DisplayTree {
   const root: RecordNode = { data: null, parent: null, children: [], handle: null as unknown as StageHandle };
   const records = new WeakMap<object, RecordNode>();
   const listeners = new WeakMap<RecordNode, Map<PointerEventType, { listener: PointerListener }[]>>();
+  const hoverListeners = new WeakMap<RecordNode, Map<HoverEventType, { listener: HoverListener }[]>>();
+  const hoverRoutes = new Map<number, RecordNode[]>();
   const pointerTypes: readonly PointerEventType[] = ['pointerdown', 'pointerup', 'pointermove', 'pointercancel'];
+  const hoverTypes: readonly HoverEventType[] = ['pointerenter', 'pointerleave'];
 
   function checkedPointerType(type: unknown): PointerEventType {
     if (!pointerTypes.includes(type as PointerEventType)) invalid('pointer event type is unsupported');
@@ -329,6 +350,29 @@ export function createDisplayTree(contextId: string): DisplayTree {
       if (index >= 0) callbacks.splice(index, 1);
     };
   }
+  function onHover(record: RecordNode, type: HoverEventType, listener: HoverListener): () => void {
+    if (!hoverTypes.includes(type)) invalid('hover event type is unsupported');
+    if (typeof listener !== 'function') invalid('hover listener must be a function');
+    let byType = hoverListeners.get(record);
+    if (!byType) { byType = new Map(); hoverListeners.set(record, byType); }
+    let callbacks = byType.get(type);
+    if (!callbacks) { callbacks = []; byType.set(type, callbacks); }
+    if (callbacks.length >= 32) throw new Canvas2DError('SCENE_LIMIT', 'hover listener limit is 32 per type and handle');
+    const registration = { listener };
+    callbacks.push(registration);
+    let active = true;
+    return () => {
+      if (!active) return;
+      active = false;
+      const index = callbacks.indexOf(registration);
+      if (index >= 0) callbacks.splice(index, 1);
+    };
+  }
+  function clearHoverRoutesThrough(record: RecordNode): void {
+    for (const [pointerId, route] of hoverRoutes) {
+      if (route.includes(record)) hoverRoutes.delete(pointerId);
+    }
+  }
   function findRecord(id: string): RecordNode | null {
     const find = (children: RecordNode[]): RecordNode | null => {
       for (const child of children) {
@@ -339,6 +383,30 @@ export function createDisplayTree(contextId: string): DisplayTree {
       return null;
     };
     return find(root.children);
+  }
+  function checkedPointerId(value: unknown): number {
+    if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0 || Object.is(value, -0)) {
+      invalid('pointer ID must be a non-negative safe integer');
+    }
+    return value;
+  }
+  function claimedTarget(value: unknown): RecordNode | null {
+    if (value === null) return null;
+    const hit = exactSpec(value, ['id', 'kind']);
+    if (typeof hit.id !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(hit.id)) {
+      invalid('pointer hit ID is invalid');
+    }
+    if (!['frame', 'rect', 'line', 'path', 'image', 'glyphRun'].includes(hit.kind as string)) {
+      invalid('pointer hit kind is invalid');
+    }
+    const target = findRecord(hit.id);
+    if (!target || target.data?.kind !== hit.kind) invalid('pointer hit is not an attached display handle');
+    for (let cursor: RecordNode | null = target; cursor && cursor !== root; cursor = cursor.parent) {
+      if (cursor.data?.visible === false || cursor.data?.alpha === 0 || cursor.data?.hitMode === 'none') {
+        invalid('pointer hit is hidden, transparent or disabled');
+      }
+    }
+    return target;
   }
 
   function toNode(record: RecordNode): GroupNodeV11 | ImageNodeV11 | PathNodeV11 | RectNodeV11 | GlyphRunNodeV11 | FrameNodeV11 | LineNodeV11 {
@@ -491,6 +559,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
         const index = parent.children.indexOf(record);
         if (index < 0) invalid('display object is not a child of this parent');
         parent.children.splice(index, 1); record.parent = null;
+        clearHoverRoutesThrough(record);
       },
       setChildIndex(child: DisplayHandle, index: number) {
         const record = known(child);
@@ -544,6 +613,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
         record.parent = source;
         throw error;
       }
+      clearHoverRoutesThrough(record);
     },
     createContainer(spec: ContainerSpec): ContainerHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform'], ['visible', 'alpha', 'hitMode']);
@@ -560,6 +630,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
         get children() { return parent.children; },
         addChild: parent.addChild, removeChild: parent.removeChild, setChildIndex: parent.setChildIndex,
         onPointer: parent.onPointer,
+        onHover(type, listener) { return onHover(record, type, listener); },
         ...common(record),
       });
       record.handle = handle; records.set(handle, record);
@@ -581,6 +652,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
           return structuredClone(data) as SpriteData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
+        onHover(type, listener) { return onHover(record, type, listener); },
         setAnchor(x: number, y: number) { mutate(record, { ...(record.data as ImageNodeV11), anchorX: x, anchorY: y }); },
         setSize(width: number, height: number) {
           mutate(record, { ...(record.data as ImageNodeV11), width, height });
@@ -621,6 +693,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
           return structuredClone(data) as PathData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
+        onHover(type, listener) { return onHover(record, type, listener); },
         setPath(paint: PathPaint) {
           const fields = exactSpec(paint, ['commands'], ['fill', 'stroke']);
           const { kind, id, layer, transform, visible, alpha, hitMode } = record.data as PathNodeV11;
@@ -643,6 +716,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
           return structuredClone(data) as RectData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
+        onHover(type, listener) { return onHover(record, type, listener); },
         setRect(paint: RectPaint) {
           const fields = exactSpec(paint, ['width', 'height', 'fill']);
           const { kind, id, layer, transform, visible, alpha, hitMode } = record.data as RectNodeV11;
@@ -666,6 +740,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
           return structuredClone(data) as GlyphRunData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
+        onHover(type, listener) { return onHover(record, type, listener); },
         setLayout(layout: GlyphRunLayout) {
           const fields = exactSpec(layout, ['atlasId', 'text', 'baseline', 'opacity', 'sampling', 'glyphs']);
           const { kind, id, layer, transform, visible, alpha, hitMode } = record.data as GlyphRunNodeV11;
@@ -690,6 +765,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
         get children() { return parent.children; },
         addChild: parent.addChild, removeChild: parent.removeChild, setChildIndex: parent.setChildIndex,
         onPointer: parent.onPointer,
+        onHover(type, listener) { return onHover(record, type, listener); },
         ...common(record),
         setFrame(paint: FramePaint) {
           const fields = exactSpec(paint, ['width', 'height', 'fill', 'clip']);
@@ -712,6 +788,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
           return structuredClone(data) as LineData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
+        onHover(type, listener) { return onHover(record, type, listener); },
         setLine(paint: LinePaint) {
           const fields = exactSpec(paint, ['x1', 'y1', 'x2', 'y2', 'width', 'stroke']);
           mutate(record, { ...(record.data as LineNodeV11), ...fields });
@@ -729,31 +806,9 @@ export function createDisplayTree(contextId: string): DisplayTree {
     dispatchPointer(input: PointerInput): void {
       const fields = exactSpec(input, ['type', 'pointerId', 'point', 'hit']);
       const type = checkedPointerType(fields.type);
-      const pointerId = fields.pointerId;
-      if (typeof pointerId !== 'number' || !Number.isSafeInteger(pointerId) || pointerId < 0 || Object.is(pointerId, -0)) {
-        invalid('pointer ID must be a non-negative safe integer');
-      }
+      const pointerId = checkedPointerId(fields.pointerId);
       const point = validatePoint(fields.point);
-      let target: RecordNode | null = null;
-      if (fields.hit !== null) {
-        const hit = exactSpec(fields.hit, ['id', 'kind']);
-        if (typeof hit.id !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(hit.id)) {
-          invalid('pointer hit ID is invalid');
-        }
-        if (!['frame', 'rect', 'line', 'path', 'image', 'glyphRun'].includes(hit.kind as string)) {
-          invalid('pointer hit kind is invalid');
-        }
-        if (hit.kind !== 'image' && hit.kind !== 'path' && hit.kind !== 'rect' && hit.kind !== 'glyphRun' && hit.kind !== 'frame' && hit.kind !== 'line') {
-          throw new Canvas2DError('UNSUPPORTED_FEATURE', 'display tree pointer target must be an image, path, rect, glyph run, frame or line');
-        }
-        target = findRecord(hit.id);
-        if (!target || target.data?.kind !== hit.kind) invalid('pointer hit is not an attached display handle');
-        for (let cursor: RecordNode | null = target; cursor && cursor !== root; cursor = cursor.parent) {
-          if (cursor.data?.visible === false || cursor.data?.alpha === 0 || cursor.data?.hitMode === 'none') {
-            invalid('pointer hit is hidden, transparent or disabled');
-          }
-        }
-      }
+      const target = claimedTarget(fields.hit);
       const route: RecordNode[] = [];
       for (let cursor: RecordNode | null = target ?? root; cursor; cursor = cursor.parent) route.push(cursor);
       const planned = route.map(record => ({ record,
@@ -767,6 +822,38 @@ export function createDisplayTree(contextId: string): DisplayTree {
             stopPropagation() { stopped = true; } }));
         }
         if (stopped) break;
+      }
+    },
+    dispatchHover(input: HoverInput): void {
+      const fields = exactSpec(input, ['pointerId', 'point', 'hit']);
+      const pointerId = checkedPointerId(fields.pointerId);
+      const point = validatePoint(fields.point);
+      const target = claimedTarget(fields.hit);
+      const next: RecordNode[] = [];
+      for (let cursor = target; cursor && cursor !== root; cursor = cursor.parent) next.push(cursor);
+      const previous = hoverRoutes.get(pointerId) ?? [];
+      if (next.length > 0 && previous.length === 0 && hoverRoutes.size >= 16) {
+        throw new Canvas2DError('SCENE_LIMIT', 'hover pointer limit is 16');
+      }
+      let shared = 0;
+      while (shared < previous.length && shared < next.length &&
+          previous[previous.length - 1 - shared] === next[next.length - 1 - shared]) shared++;
+      const changes: { type: HoverEventType; record: RecordNode; callbacks: HoverListener[] }[] = [];
+      for (const record of previous.slice(0, previous.length - shared)) {
+        changes.push({ type: 'pointerleave', record,
+          callbacks: (hoverListeners.get(record)?.get('pointerleave') ?? []).map(entry => entry.listener) });
+      }
+      for (const record of next.slice(0, next.length - shared).reverse()) {
+        changes.push({ type: 'pointerenter', record,
+          callbacks: (hoverListeners.get(record)?.get('pointerenter') ?? []).map(entry => entry.listener) });
+      }
+      if (next.length === 0) hoverRoutes.delete(pointerId);
+      else hoverRoutes.set(pointerId, next);
+      for (const { type, record, callbacks } of changes) {
+        const handle = record.handle as DisplayHandle;
+        const event: DisplayHoverEvent = Object.freeze({ type, pointerId,
+          point: Object.freeze({ ...point }), target: handle, currentTarget: handle });
+        for (const callback of callbacks) callback(event);
       }
     },
     snapshot(): SceneV11 {

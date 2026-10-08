@@ -17,7 +17,7 @@ export type { ImageURLLoadOptions } from './image-url.js';
 export { createImageAssetCache } from './image-cache.js';
 export type { ImageAssetCache, ImageAssetCacheOptions } from './image-cache.js';
 export { createDisplayTree, createDisplayTreeFromScene } from './display-tree.js';
-export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, PathHandle, RectHandle, GlyphRunHandle, FrameHandle, LineHandle, DisplayHandle, ContainerSpec, ContainerData, SpriteSpec, SpriteData, PathSpec, PathData, PathPaint, RectSpec, RectData, RectPaint, GlyphRunSpec, GlyphRunData, GlyphRunLayout, FrameSpec, FrameData, FramePaint, LineSpec, LineData, LinePaint, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener, WorldBounds } from './display-tree.js';
+export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, PathHandle, RectHandle, GlyphRunHandle, FrameHandle, LineHandle, DisplayHandle, ContainerSpec, ContainerData, SpriteSpec, SpriteData, PathSpec, PathData, PathPaint, RectSpec, RectData, RectPaint, GlyphRunSpec, GlyphRunData, GlyphRunLayout, FrameSpec, FrameData, FramePaint, LineSpec, LineData, LinePaint, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener, HoverEventType, DisplayHoverEvent, HoverInput, HoverListener, WorldBounds } from './display-tree.js';
 export { createTicker } from './ticker.js';
 export type { Canvas2DTicker, FrameScheduler, TickInfo, TickListener } from './ticker.js';
 export { createSpriteAnimation } from './sprite-animation.js';
