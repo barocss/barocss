@@ -30,6 +30,8 @@ export type PrimitiveSceneEntryV2=PrimitiveSceneEntryV1&{ref:PrimitiveSceneRef};
 export interface PrimitiveSceneInputV2 {version:2;entries:PrimitiveSceneEntryV2[]}
 /** Copied derived appearance bound to one accepted qualified Surface. */
 export interface PrimitiveSceneMaterial {ref:PrimitiveSceneRef;binding:MeshMaterialBinding}
+/** Explicit complete appearance/frame replacement; no implicit binding carry. */
+export interface PrimitiveSceneFrameV0 {version:0;scene:PrimitiveSceneInputV2;options:PrimitiveSceneOptions;particles:ParticleLayerV0|null;materials:PrimitiveSceneMaterial[]}
 type NativeCurveSample=AdaptiveCurveSamplingResult|WideAdaptiveCurveSamplingResult;
 interface Primitive {
  entry:PrimitiveSceneEntry|PrimitiveSceneEntryV1|PrimitiveSceneEntryV2;positions:Float32Array;normals?:Float32Array;indices?:Uint16Array;bounds:MeshSceneBounds;material?:MeshMaterialBinding;
@@ -217,6 +219,32 @@ class PrimitiveSceneBackend {
  protected setParticles(input:ParticleLayerV0|null):UpdateResult{
   return this.updatePrepared(()=>{const prior=this.accepted!,particles=prepareParticleLayer(input,prior.particles?.layer??null);check(!particles||prior.draws.length>0,'Particles require accepted native geometry');return{primitives:prior.draws,options:prior.options,particles};});
  }
+ protected copyCompleteFrame():PrimitiveSceneFrameV0{
+  return{version:0,scene:{version:2,entries:this.copyEntries() as PrimitiveSceneEntryV2[]},options:this.options,particles:this.copyParticleLayer(),materials:this.copyMaterials()};
+ }
+ protected updateCompleteFrame(input:PrimitiveSceneFrameV0,allowEmpty=false):UpdateResult{
+  return this.updatePrepared(()=>{
+   const frame=record(input,['version','scene','options','particles','materials']);check(frame.version===0,'Only complete frame version0 is supported');
+   const scene=record(frame.scene,['version','entries']);check(scene.version===2,'Complete frame requires qualified scene version2');
+   const empty=allowEmpty&&Array.isArray(scene.entries)&&Object.getPrototypeOf(scene.entries)===Array.prototype&&scene.entries.length===0&&Reflect.ownKeys(scene.entries).length===1;
+   const prepared=empty?{primitives:[] as Primitive[],options:prepareOptions(frame.options)}:prepareV2(frame.scene,frame.options);
+   const list=frame.materials;check(Array.isArray(list)&&Object.getPrototypeOf(list)===Array.prototype,'Materials require plain dense array');
+   const descriptors=Object.getOwnPropertyDescriptors(list as object),length=descriptors.length.value;
+   check(Number.isInteger(length)&&length>=0&&length<=4&&Reflect.ownKeys(list).length===length+1,'Complete frame admits0..4 dense materials');
+   const seen=new Set<string>();
+   for(let i=0;i<length;i++){
+    const descriptor=descriptors[String(i)];check(descriptor&&'value'in descriptor&&descriptor.enumerable,'Material entries must be own data');
+    const item=record(descriptor.value,['ref','binding']),ref=record(item.ref,['modelId','geometryId']);
+    check(typeof ref.modelId==='string'&&/^[A-Za-z_][A-Za-z0-9_.:-]{0,127}$/.test(ref.modelId)&&typeof ref.geometryId==='string','Exact qualified material ref required');
+    const key=JSON.stringify([ref.modelId,ref.geometryId]);check(!seen.has(key),'Duplicate complete-frame material ref');seen.add(key);
+    const primitive=prepared.primitives.find(p=>{const r=(p.entry as PrimitiveSceneEntryV2).ref;return r.modelId===ref.modelId&&r.geometryId===ref.geometryId;});
+    check(primitive&&primitive.entry.kind==='surface','Material must reference a candidate-scene Surface');
+    primitive.material=validateMeshMaterialBinding(item.binding);
+   }
+   const particles=this.prepareSceneParticles(frame.particles);check(!particles||prepared.primitives.length>0,'Particles require candidate native geometry');
+   return{...prepared,particles};
+  });
+ }
  protected updatePrepared(candidate:()=>PreparedScene):UpdateResult{
   let frame:Frame|null=null;try{this.live();const p=candidate();frame=this.create(p.primitives,p.options,this.canvas.width,this.canvas.height,p.particles??null);this.present(frame);const prior=this.accepted!;this.accepted=frame;this.release(prior);return{ok:true};}
   catch(error){if(frame)this.release(frame);if(!this.disposed&&!this.lost&&!this.gl.isContextLost()&&this.accepted){try{this.present(this.accepted);}catch{this.lost=true;}}return{ok:false,error:error instanceof Error?error:new GPUError('Primitive scene update failed')};}
@@ -242,6 +270,8 @@ export class PrimitiveSceneRendererV1 extends PrimitiveSceneBackend {
  update(input:PrimitiveSceneInputV1,options:PrimitiveSceneOptions):UpdateResult{return this.updatePrepared(()=>prepareV1(input,options));}
 }
 export class PrimitiveSceneRendererV2 extends PrimitiveSceneBackend {
+ get frame():PrimitiveSceneFrameV0{return this.copyCompleteFrame();}
+ updateFrame(frame:PrimitiveSceneFrameV0):UpdateResult{return this.updateCompleteFrame(frame);}
  get particleLayer():ParticleLayerV0|null{return this.copyParticleLayer();}
  setParticleLayer(frame:ParticleLayerV0|null):UpdateResult{return this.setParticles(frame);}
  get materials():PrimitiveSceneMaterial[]{return this.copyMaterials();}
@@ -256,6 +286,8 @@ export function mountPrimitiveSceneV2(canvas:HTMLCanvasElement,input:PrimitiveSc
 
 /** Reuses the current primitive frame lifecycle; empty frames contain no native data. */
 class PrimitiveViewportBackend extends PrimitiveSceneBackend {
+ get frame():PrimitiveSceneFrameV0{return this.copyCompleteFrame();}
+ updateFrame(frame:PrimitiveSceneFrameV0):UpdateResult{return this.updateCompleteFrame(frame,true);}
  get particleLayer():ParticleLayerV0|null{return this.copyParticleLayer();}
  setParticleLayer(frame:ParticleLayerV0|null):UpdateResult{return this.setParticles(frame);}
  get materials():PrimitiveSceneMaterial[]{return this.copyMaterials();}
@@ -269,6 +301,8 @@ class PrimitiveViewportBackend extends PrimitiveSceneBackend {
 /** Explicit empty/clear owner over the same qualified version2 primitive backend. */
 export class PrimitiveViewport {
  private readonly backend:PrimitiveViewportBackend;
+ get frame():PrimitiveSceneFrameV0{return this.backend.frame;}
+ updateFrame(frame:PrimitiveSceneFrameV0):UpdateResult{return this.backend.updateFrame(frame);}
  get particleLayer():ParticleLayerV0|null{return this.backend.particleLayer;}
  setParticleLayer(frame:ParticleLayerV0|null):UpdateResult{return this.backend.setParticleLayer(frame);}
  get materials():PrimitiveSceneMaterial[]{return this.backend.materials;}

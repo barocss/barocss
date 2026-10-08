@@ -288,3 +288,26 @@ retain prior native/property/frame. Resize and double disposal keep source data
 and release owned resources. The property exposes a heuristic, non-certified
 estimator; it is not trimmed/union/B-Rep/solid/volume/mass/COM or manufacturing
 accuracy. Exact provider entry hashes/metafiles and fixture hashes are recorded.
+
+## Complete native/material/particle frame (#868)
+
+```sh
+BAROCSS_COMPLETE_FRAME_DEPS=/absolute/compiled/CAD/provider/repo \
+BAROCSS_COMPLETE_FRAME_EVIDENCE=/absolute/unique/output \
+node examples/gpu-scene/complete-frame-flow.mjs
+```
+
+Build the affected local GPU package with Node22 first. The actual flow uses
+two same-native-ID Surfaces under different model refs and a native Line. One
+Surface gets the existing opaque source material at caller time1. A complete
+camera/pose/material/particle update retains that binding and native/source/UV
+ownership; a new model namespace binds against candidate refs. The actual850
+step0 scene-unit layer is copied fixture data, not a repeated Physics solver.
+
+Independent linear/light/gamma and default-object pixels, native GL uploads,
+POINTS256, copied queries, wrong ref/Curve/duplicate/getter/IR/uniform/camera/
+particle/profile and injected program failure retention are observed. Explicit
+null clears particles, old update resets material, and viewport empty/clear/
+restore/resize/double-dispose have no stale bindings or resources. This is one
+actual source/API/WebGL2 flow, not Viewer adoption, selected-material overlay,
+all-target parity, buffer reuse or performance certification.
