@@ -477,6 +477,36 @@ refusal and caller-owned resources. The matching Node flow is
 `node examples/boolean-mesh-three-verify.mjs`. This is a derived preview,
 not a native Surface, solid, B-Rep or manufacturing certificate.
 
+### Display native filled planar Boolean material in Babylon.js
+
+The optional `./babylon-boolean-mesh` entry consumes the same public #887
+raw authored-XYZ/mm result in a live right-handed Babylon Scene. It validates
+the complete native result, then creates one owned filled Mesh per material
+component. The caller supplies the explicit mm-to-scene-unit scale and a
+matching Y-up basis assertion. It copies native positions, normals, triangle
+indices and dimensionless `_CAD_UV` parameters; `_CAD_UV` is a custom CAD
+attribute, not texture UV.
+
+```js
+import { createBaroCadBooleanBabylonMesh }
+  from '@barocss/cad-interop/babylon-boolean-mesh';
+
+const display = createBaroCadBooleanBabylonMesh(scene, nativeMesh, {
+  unitsPerMillimeter: 0.01,
+  basis: 'authored-xyz-matches-rhyup',
+});
+display.dispose();
+```
+
+Bindings retain the native mesh/support/evaluation/operand/source IDs and
+component/loop/triangle/vertex IDs. True `boundaryPaths` stay separate from
+internal display diagonals and bridges. Empty material creates zero Meshes.
+The caller owns the Scene, Engine, canvas, camera and unrelated objects.
+`examples/boolean-mesh-babylon.html` verifies actual WebGL2 fill, hole
+exclusion, separated components, refusal and disposal over HTTP. The matching
+Node/NullEngine flow is `node examples/boolean-mesh-babylon-verify.mjs`.
+This is a derived preview, not a native Surface, solid or B-Rep certificate.
+
 ### Display selected document bodies in Three.js
 
 The optional `./three-document` entry composes the same validated body
