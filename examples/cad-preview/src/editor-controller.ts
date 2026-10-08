@@ -7,7 +7,7 @@ import type {NativeIntent} from './native-adapters';
 import {buildSceneDisplay,resolveSceneFace} from './scene-display';
 import type {SceneDisplay} from './scene-display';
 import {refineSurfaceIntent,refinementDomain} from './surface-refinement';
-import {buildSurfaceIsocurve} from './surface-isocurve';
+import {buildSurfaceIsocurve,ISOCURVE_SCENE_MM_SCALE} from './surface-isocurve';
 import type {SurfaceKnotInsertionResult} from './surface-refinement';
 import {validatePlacement} from './scene-transform';
 import type {SurfacePoleField,SurfacePoleEdit,Surface} from '@barocss/cad';
@@ -32,7 +32,7 @@ export class EditorController {
  private failed(error:unknown){this.error=error instanceof Error?error.message:'Command failed';this.status='Change rejected';this.publish();return false;}
  private faceFor(display:SceneDisplay,selected:string|null){const previous=this.selectedFace;if(!previous||previous.objectId!==selected)return null;if(previous.reference)return resolveSceneFace(display,previous.reference);if(previous.kind==='surface-chart'&&this.display.surfaceCharts?.[previous.objectId]?.geometryRevision!==display.surfaceCharts?.[previous.objectId]?.geometryRevision)return null;return display.faces.find(f=>f.objectId===selected&&f.nativeFaceId===previous.nativeFaceId)??null;}
  private highlight(display:SceneDisplay,selected:string|null,face:SceneDisplay['faces'][number]|null){const range=display.objects.find(o=>o.objectId===selected);return display.packet&&range?{object:{version:0 as const,packet:display.packet,objectId:range.objectId,indexRange:range.indexRange,color:[.77,.58,.32] as [number,number,number]},face:face?{version:0 as const,packet:display.packet,faceId:'editor_selected_face',indexRange:face.indexRange,color:[1,.77,.32] as [number,number,number]}:null}:null;}
- options(scene=this.scene):MeshOptions{return{mmToSceneUnit:.035,translate:[0,0,0],color:[.53,.69,.78],background:[.065,.082,.102],camera:scene.view.camera};}
+ options(scene=this.scene):MeshOptions{return{mmToSceneUnit:ISOCURVE_SCENE_MM_SCALE,translate:[0,0,0],color:[.53,.69,.78],background:[.065,.082,.102],camera:scene.view.camera};}
  private curveFor(scene:SceneDocument,selected:string|null,previous=this.parameterCurve):ParameterCurveInspection|null {
   const object=scene.objects.find(o=>o.id===selected);if(!previous||object?.id!==previous.objectId||object.intent.kind!=='surface')return null;
   const placement=signedJson(object.placement);if(object.intent.source===previous.source&&placement===previous.placement)return previous;
