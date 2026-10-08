@@ -38,6 +38,7 @@ export interface PhysicsWorldConfig {
   bodies: PhysicsBodyConfig[];
   joints?: PhysicsJointConfig[];
   broadPhase?: 'aabb';
+  contactMode?: 'persistent-box-v1';
 }
 export interface PhysicsBodyState {
   id: string;
