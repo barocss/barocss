@@ -6199,3 +6199,48 @@ iso-curves. Its native evidence is separate from Integration adoption and
 GPU/Loader consumer evidence. Arbitrary section counts/parameters, guide
 curves, periodic/closed loft, caps, BRep, solid validity, general sweep and
 manufacturing certification remain open.
+
+## Native document control-hull bounds
+
+`queryCadDocumentBounds(documentResult, reference)` resolves one exact
+qualified Curve or Surface from the current canonical document. It returns
+original geometry/source/reference, `boundsMM`, `extentMM`, `boxCenterMM`,
+six original pole witnesses in `extrema`, and a report.
+
+```js
+const reference = cad.createCadGeometryReference(document, {bodyId}).reference;
+const bounds = cad.queryCadDocumentBounds(document, reference);
+cad.validateCadDocumentBounds(document, bounds);
+```
+
+The box uses all original positive rational control poles in authored XYZ/mm.
+It is a conservative control-hull box, and can be wider than the geometry's
+actual extrema. This distinction makes it independent of display tessellation.
+The analytic enclosure is the positive rational convex-hull property in exact
+arithmetic; evaluated binary64 points do not carry a global enclosure guarantee.
+The native current profile remains degree1..5, Curve poles2..64 and Surface
+grid axes2..16 (at most256 poles), weights[1e-6,1e6]. No geometry frame, source
+coefficient, authored ID, original parameter domain or weight is changed.
+
+Extrema order is x-min,x-max,y-min,y-max,z-min,z-max. The first Object.is
+matching coefficient in Curve index or Surface row-major order is the witness.
+When both zero signs occur, the minimum uses -0 and the maximum +0. A Curve
+witness uses `poleIndex`; a Surface witness uses `uIndex`/`vIndex`. Each carries
+a copied original point. Extents and box centre are derived values. Box centre
+is not the centre of mass.
+
+The current-only report schema is `barocss-cad-document-bounds`, version0.
+Document and asset revisions must match the reference exactly. After a source
+edit and revision advance, old references refuse with STALE. Whole-owned
+validation requires the actual document and reconstructs source/geometry, all
+box fields, witnesses and report. Copied plain CPU data has no renderer resource
+lifecycle. Getter, foreign/sparse/cyclic data and owned tampering refuse.
+
+```sh
+node examples/cad-nurbs/cad-document-bounds-demo.mjs --source /tmp/cad-native-bounds \
+  --loft-source /absolute/path/to/independent_weights.source0.css
+```
+
+This ENG-02 subset does not provide tight curve/surface extrema, assembly or
+BRep bounds, area, volume, density, mass or inertia. Native evidence, Integration
+adoption and independent GPU/Loader consumers remain separate.
