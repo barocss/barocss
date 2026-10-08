@@ -1,7 +1,8 @@
 import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from '@barocss/cad';
 import { parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadNativeResult } from '@barocss/cad-interop/native';
-import { mountMeshScene, prepareMesh, validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
+import { mountMeshScene, mountPrimitiveScene, PrimitiveSceneRenderer, prepareMesh,
+  validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
 import type { MeshCamera, PreviewPacket } from '@barocss/gpu';
 import { MOTION_LIMITS } from '@barocss/motion';
 import type { MotionFrame } from '@barocss/motion';
@@ -10,6 +11,9 @@ type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
 export interface ViewerOptions { mmToSceneUnit: number; background: Vec3 }
 export interface NativeLoadOptions { sourceVersion: 0; countU: number; countV: number }
+export interface ViewerNativeCurveLoadOptions extends NativeLoadOptions {
+  curveDisplay: { chordToleranceMM: number; maxSegments: number; maxDepth: number };
+}
 export interface ViewerRef { modelId: string; surfaceId: string }
 export interface ViewerPacket { modelId: string; packet: PreviewPacket }
 export interface ViewerNativeSurfaceParameter extends ViewerRef { u: number; v: number }
@@ -76,6 +80,13 @@ export interface ViewerPick {
   approximate: true;
   ambiguous: boolean;
 }
+export interface ViewerGeometryPoint { xCss: number; yCss: number }
+export type ViewerGeometryPick =
+  | ({ kind: 'surface' } & ViewerPick)
+  | { kind: 'curve'; ref: ViewerCurveRef; segmentIndex: number;
+      parameterInterval: [number, number]; parameterApprox: number;
+      displayPositionScene: Vec3; nativePointMM: Vec3; depthScene: number;
+      screenDistancePx: number; approximate: true; ambiguous: boolean };
 export interface ViewerState {
   status: 'empty' | 'ready' | 'context-lost' | 'disposed';
   frame: 'right-handed-y-up';
@@ -83,6 +94,7 @@ export interface ViewerState {
   mmToSceneUnit: number;
   camera: MeshCamera;
   surfaces: ViewerRef[];
+  curves: ViewerCurveRef[];
   packets: ViewerPacket[];
   selected: ViewerRef | null;
   native: BaroCadNativeResult | null;
@@ -174,12 +186,25 @@ function parseViewerOptions(input: unknown): ViewerOptions {
   return { mmToSceneUnit: finite(value.mmToSceneUnit, 'mmToSceneUnit', 1e-6, 1),
     background: vector(value.background, 'background', 0, 1) };
 }
-function parseNativeOptions(input: unknown): NativeLoadOptions {
-  const value = ownRecord(input, ['sourceVersion', 'countU', 'countV'], 'Native options');
+function parseNativeOptions(input: unknown): NativeLoadOptions | ViewerNativeCurveLoadOptions {
+  check(input !== null && typeof input === 'object' && Object.getPrototypeOf(input) === Object.prototype,
+    'Native options must be plain data');
+  const hasCurves = Object.hasOwn(input, 'curveDisplay');
+  const value = ownRecord(input, hasCurves
+    ? ['sourceVersion', 'countU', 'countV', 'curveDisplay']
+    : ['sourceVersion', 'countU', 'countV'], 'Native options');
   check(value.sourceVersion === 0, 'Only sourceVersion 0 is supported');
   const countU = finite(value.countU, 'countU', 2, 17), countV = finite(value.countV, 'countV', 2, 17);
   check(Number.isInteger(countU) && Number.isInteger(countV), 'Grid counts must be integers');
-  return { sourceVersion: 0, countU, countV };
+  if (!hasCurves) return { sourceVersion: 0, countU, countV };
+  const display = ownRecord(value.curveDisplay,
+    ['chordToleranceMM', 'maxSegments', 'maxDepth'], 'Curve display options');
+  const chordToleranceMM = finite(display.chordToleranceMM, 'chordToleranceMM', 1e-7, 1000);
+  const maxSegments = finite(display.maxSegments, 'maxSegments', 1, 1024);
+  const maxDepth = finite(display.maxDepth, 'maxDepth', 0, 16);
+  check(Number.isInteger(maxSegments) && Number.isInteger(maxDepth), 'Curve display budgets must be integers');
+  return { sourceVersion: 0, countU, countV,
+    curveDisplay: { chordToleranceMM, maxSegments, maxDepth } };
 }
 function parseRef(input: unknown): ViewerRef {
   const value = ownRecord(input, ['modelId', 'surfaceId'], 'Surface reference');
@@ -265,7 +290,12 @@ function displayVertex(native: Vec3, pose: ViewerDisplayPose | undefined, mmToSc
   return multiply(add(pose.translationMm, rotated(pose.rotationXYZW, scaled)), mmToSceneUnit);
 }
 
-function fittedCamera(packets: ViewerPacket[], scale: number, width: number, height: number,
+interface ViewerCurveEntry {
+  modelId: string;
+  sample: BaroCadNativeResult['curves'][number]['sample'];
+}
+
+function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale: number, width: number, height: number,
   motion: ViewerMotionState | null = null): MeshCamera {
   const low: Vec3 = [Infinity, Infinity, Infinity], high: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (const entry of packets) {
@@ -273,6 +303,15 @@ function fittedCamera(packets: ViewerPacket[], scale: number, width: number, hei
       { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }));
     for (let offset = 0; offset < entry.packet.positions.length; offset += 3) {
       const point = displayVertex(entry.packet.positions.slice(offset, offset + 3) as Vec3, pose, scale);
+      for (let axis = 0; axis < 3; axis++) {
+        low[axis] = Math.min(low[axis], point[axis]);
+        high[axis] = Math.max(high[axis], point[axis]);
+      }
+    }
+  }
+  for (const entry of curves) {
+    for (const raw of entry.sample.pointsMM) {
+      const point = multiply(raw as Vec3, scale);
       for (let axis = 0; axis < 3; axis++) {
         low[axis] = Math.min(low[axis], point[axis]);
         high[axis] = Math.max(high[axis], point[axis]);
@@ -298,11 +337,15 @@ function rayTriangle(origin: Vec3, direction: Vec3, a: Vec3, b: Vec3, c: Vec3): 
   const distance = dot(edge2, q) * inverse;
   return distance > 0 ? { distance, u, v } : null;
 }
+function interpolate(a: Vec3, b: Vec3, fraction: number): Vec3 {
+  return add(multiply(a, 1 - fraction), multiply(b, fraction));
+}
 
 /** One canvas and one BaroCSS GPU scene backend. The caller retains canvas ownership. */
 export class Viewer {
-  private renderer: ReturnType<typeof mountMeshScene> | null = null;
+  private renderer: ReturnType<typeof mountMeshScene> | PrimitiveSceneRenderer | null = null;
   private packets: ViewerPacket[] = [];
+  private curves: ViewerCurveEntry[] = [];
   private native: BaroCadNativeResult | null = null;
   private measurement: ViewerNativeSurfaceMeasurement | null = null;
   private curveMeasurement: ViewerNativeCurveMeasurement | null = null;
@@ -339,20 +382,43 @@ export class Viewer {
           rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) };
     });
   }
-  private present(packets: ViewerPacket[], camera: MeshCamera, selected: ViewerRef | null,
+  private present(packets: ViewerPacket[], curves: ViewerCurveEntry[], camera: MeshCamera, selected: ViewerRef | null,
     motion: ViewerMotionState | null): void {
-    const entries = this.gpuEntries(packets, selected, motion), options = this.gpuOptions(camera);
-    if (this.renderer) {
-      const result = this.renderer.update(entries, options);
+    const surfaces = this.gpuEntries(packets, selected, motion), options = this.gpuOptions(camera);
+    if (curves.length) {
+      const entries = [
+        ...surfaces.map(entry => ({ kind: 'surface' as const, ...entry })),
+        ...curves.map((entry, index) => ({ kind: 'curve' as const, sample: entry.sample,
+          basis: 'authored-xyz-matches-rhyup' as const, color: PALETTE[(packets.length + index) % PALETTE.length] })),
+      ];
+      if (this.renderer instanceof PrimitiveSceneRenderer) {
+        const result = this.renderer.update(entries, options);
+        if (!result.ok) throw result.error;
+      } else {
+        const prior = this.renderer;
+        try {
+          const candidate = mountPrimitiveScene(this.canvas, entries, options);
+          this.renderer = candidate;
+          prior?.dispose();
+        } catch (error) { prior?.render(); throw error; }
+      }
+    } else if (this.renderer && !(this.renderer instanceof PrimitiveSceneRenderer)) {
+      const result = this.renderer.update(surfaces, options);
       if (!result.ok) throw result.error;
     } else {
-      this.renderer = mountMeshScene(this.canvas, entries, options);
+      const prior = this.renderer;
+      try {
+        const candidate = mountMeshScene(this.canvas, surfaces, options);
+        this.renderer = candidate;
+        prior?.dispose();
+      } catch (error) { prior?.render(); throw error; }
     }
   }
-  private validatedPackets(input: unknown): ViewerPacket[] {
+  private validatedPackets(input: unknown, allowEmpty = false): ViewerPacket[] {
     check(Array.isArray(input) && Object.getPrototypeOf(input) === Array.prototype
-      && input.length >= 1 && input.length <= 4 && Reflect.ownKeys(input).length === input.length + 1,
-    'Viewer requires a dense array of 1..4 surfaces');
+      && input.length >= (allowEmpty ? 0 : 1) && input.length <= 4
+      && Reflect.ownKeys(input).length === input.length + 1,
+    'Viewer requires a dense bounded Surface array');
     const result: ViewerPacket[] = [], identities = new Set<string>(), surfaceIds = new Set<string>();
     let vertices = 0, indices = 0;
     for (let i = 0; i < input.length; i++) {
@@ -372,21 +438,24 @@ export class Viewer {
     }
     return result;
   }
-  private accept(input: unknown, native: BaroCadNativeResult | null): void {
-    const packets = this.validatedPackets(input);
-    const camera = fittedCamera(packets, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
-    this.present(packets, camera, null, null);
-    this.packets = packets; this.camera = camera; this.selected = null; this.native = native;
+  private accept(input: unknown, native: BaroCadNativeResult | null, curves: ViewerCurveEntry[] = []): void {
+    const packets = this.validatedPackets(input, curves.length > 0);
+    check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
+      'Viewer requires 1..4 total display objects');
+    const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
+    this.present(packets, curves, camera, null, null);
+    this.packets = packets; this.curves = curves; this.camera = camera; this.selected = null; this.native = native;
     this.measurement = null; this.motion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
   }
-  loadNative(source: string, input: NativeLoadOptions): void {
+  loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions): void {
     this.live();
     check(typeof source === 'string' && source.length > 0 && source.length <= 65536, 'Native source length exceeds limits');
     const options = parseNativeOptions(input);
     const native = parseBaroCadSource(source, { ...options, unitsPerMillimeter: 1 });
     check(native.model.objects.length <= 64, 'Native model exceeds object limit');
-    this.accept(native.surfaces.map(surface => ({ modelId: native.model.name, packet: surface.packet })), native);
+    this.accept(native.surfaces.map(surface => ({ modelId: native.model.name, packet: surface.packet })), native,
+      native.curves.map(curve => ({ modelId: native.model.name, sample: curve.sample })));
   }
   setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); }
   measureNativeSurfacePoints(firstInput: ViewerNativeSurfaceParameter,
@@ -442,12 +511,12 @@ export class Viewer {
           'Transformed Viewer position exceeds GPU scene bounds');
       }
     }
-    this.present(this.packets, this.camera, this.selected, motion);
+    this.present(this.packets, this.curves, this.camera, this.selected, motion);
     this.motion = motion;
   }
   resetMotion(): void {
     this.live();
-    if (this.motion) this.present(this.packets, this.camera, this.selected, null);
+    if (this.motion) this.present(this.packets, this.curves, this.camera, this.selected, null);
     this.motion = null;
   }
   measureNativeCurvePoints(firstInput: ViewerNativeCurveParameter,
@@ -543,13 +612,13 @@ export class Viewer {
     return structuredClone(result);
   }
   fit(): void {
-    this.live(); check(this.packets.length > 0, 'Viewer has no surfaces');
-    this.setView(fittedCamera(this.packets, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height,
+    this.live(); check(this.packets.length + this.curves.length > 0, 'Viewer has no geometry');
+    this.setView(fittedCamera(this.packets, this.curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height,
       this.motion));
   }
   setView(input: MeshCamera): void {
     this.live(); const camera = validateMeshCamera(input);
-    if (this.renderer) this.present(this.packets, camera, this.selected, this.motion);
+    if (this.renderer) this.present(this.packets, this.curves, camera, this.selected, this.motion);
     this.camera = camera;
   }
   orbit(deltaAzimuthRadians: number, deltaElevationRadians: number): void {
@@ -619,11 +688,122 @@ export class Viewer {
     }
     return best;
   }
+  pickGeometry(pointInput: ViewerGeometryPoint,
+    optionsInput?: { curveTolerancePx?: number }): ViewerGeometryPick | null {
+    this.live(); check(!this.contextLost, 'Cannot pick after WebGL2 context loss');
+    const point = ownRecord(pointInput, ['xCss', 'yCss'], 'Geometry pick point');
+    const xCss = finite(point.xCss, 'Pick X', 0, 4096);
+    const yCss = finite(point.yCss, 'Pick Y', 0, 4096);
+    let tolerance = 4;
+    if (optionsInput !== undefined) {
+      check(optionsInput !== null && typeof optionsInput === 'object'
+        && Object.getPrototypeOf(optionsInput) === Object.prototype,
+      'Geometry pick options must be plain data');
+      const keys = Reflect.ownKeys(optionsInput);
+      check(keys.length <= 1 && keys.every(key => key === 'curveTolerancePx'),
+        'Geometry pick options have unsupported fields');
+      const options = ownRecord(optionsInput, keys as string[], 'Geometry pick options');
+      if (Object.hasOwn(options, 'curveTolerancePx')) {
+        tolerance = finite(options.curveTolerancePx, 'Curve pick tolerance', 0.5, 16);
+      }
+    }
+    const rect = this.canvas.getBoundingClientRect();
+    check(rect.width > 0 && rect.height > 0, 'Canvas must have a visible CSS size for picking');
+    check(xCss <= rect.width && yCss <= rect.height, 'Pick point is outside canvas');
+    const surface = this.pick(xCss, yCss);
+    const backward = unit(subtract(this.camera.eye, this.camera.target));
+    const forward = multiply(backward, -1);
+    const right = unit(cross(this.camera.up, backward));
+    const up = cross(backward, right);
+    const tangent = Math.tan(this.camera.fovYDegrees * Math.PI / 360);
+    const aspect = this.canvas.width / this.canvas.height;
+    const depth = (position: Vec3) => dot(subtract(position, this.camera.eye), forward);
+    const project = (position: Vec3, z: number): [number, number] => {
+      const offset = subtract(position, this.camera.eye);
+      return [rect.width * (1 + dot(offset, right) / (z * tangent * aspect)) / 2,
+        rect.height * (1 - dot(offset, up) / (z * tangent)) / 2];
+    };
+    const candidates: { result: ViewerGeometryPick; depth: number; distance: number }[] = [];
+    if (surface) candidates.push({ result: { kind: 'surface', ...surface },
+      depth: depth(surface.positionScene), distance: 0 });
+    for (const entry of this.curves) {
+      const sample = entry.sample;
+      for (let index = 0; index + 1 < sample.pointsMM.length; index++) {
+        const displayed = (pointMM: number[]): Vec3 => pointMM.map(value =>
+          Math.fround(value * this.options.mmToSceneUnit)) as Vec3;
+        const a = displayed(sample.pointsMM[index]);
+        const b = displayed(sample.pointsMM[index + 1]);
+        const view = (position: Vec3): Vec3 => {
+          const offset = subtract(position, this.camera.eye);
+          return [dot(offset, right), dot(offset, up), dot(offset, forward)];
+        };
+        const firstView = view(a), secondView = view(b);
+        const planes = (position: Vec3): number[] => [
+          position[2] - this.camera.near, this.camera.far - position[2],
+          position[0] + position[2] * tangent * aspect,
+          position[2] * tangent * aspect - position[0],
+          position[1] + position[2] * tangent,
+          position[2] * tangent - position[1],
+        ];
+        const firstPlanes = planes(firstView), secondPlanes = planes(secondView);
+        let low = 0, high = 1;
+        for (let plane = 0; plane < firstPlanes.length; plane++) {
+          const start = firstPlanes[plane], end = secondPlanes[plane];
+          if (start < 0 && end < 0) { low = 1; high = 0; break; }
+          if (start < 0 || end < 0) {
+            const boundary = start / (start - end);
+            if (start < 0) low = Math.max(low, boundary);
+            else high = Math.min(high, boundary);
+          }
+        }
+        if (low > high) continue;
+        const first = interpolate(a, b, low), second = interpolate(a, b, high);
+        const zFirst = depth(first), zSecond = depth(second);
+        if (zFirst <= 0 || zSecond <= 0) continue;
+        const screenFirst = project(first, zFirst), screenSecond = project(second, zSecond);
+        const dx = screenSecond[0] - screenFirst[0], dy = screenSecond[1] - screenFirst[1];
+        const lengthSquared = dx * dx + dy * dy;
+        const screenFraction = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1,
+          ((xCss - screenFirst[0]) * dx + (yCss - screenFirst[1]) * dy) / lengthSquared));
+        const closestX = screenFirst[0] + screenFraction * dx;
+        const closestY = screenFirst[1] + screenFraction * dy;
+        const screenDistancePx = Math.hypot(xCss - closestX, yCss - closestY);
+        if (screenDistancePx > tolerance) continue;
+        const denominator = (1 - screenFraction) * zSecond + screenFraction * zFirst;
+        const visibleFraction = denominator === 0 ? 0 : screenFraction * zFirst / denominator;
+        const segmentFraction = low + (high - low) * visibleFraction;
+        const displayPositionScene = interpolate(a, b, segmentFraction);
+        const depthScene = depth(displayPositionScene);
+        const cover = this.packets.length ? this.pick(closestX, closestY) : null;
+        if (cover && depth(cover.positionScene) <= depthScene + 1e-6) continue;
+        const parameterInterval: [number, number] =
+          [sample.parameters[index], sample.parameters[index + 1]];
+        const parameterApprox = parameterInterval[0]
+          + (parameterInterval[1] - parameterInterval[0]) * segmentFraction;
+        const curve = this.native?.model.objects.find(object => object.kind === 'curve'
+          && object.id === sample.curve.id);
+        check(curve && curve.kind === 'curve', 'Displayed Curve has no accepted native authority');
+        const nativePointMM = [...evaluateCurve(curve, parameterApprox)] as Vec3;
+        candidates.push({ result: { kind: 'curve',
+          ref: { modelId: entry.modelId, curveId: sample.curve.id }, segmentIndex: index,
+          parameterInterval, parameterApprox, displayPositionScene, nativePointMM,
+          depthScene, screenDistancePx, approximate: true, ambiguous: false },
+        depth: depthScene, distance: screenDistancePx });
+      }
+    }
+    if (!candidates.length) return null;
+    candidates.sort((a, b) => a.depth - b.depth || a.distance - b.distance);
+    const best = candidates[0];
+    const ambiguous = candidates.slice(1).some(candidate =>
+      Math.abs(candidate.depth - best.depth) <= 1e-6
+      && Math.abs(candidate.distance - best.distance) <= 0.5);
+    return { ...best.result, ambiguous: best.result.ambiguous || ambiguous };
+  }
   select(input: ViewerRef | null): void {
     this.live(); const selected = input === null ? null : parseRef(input);
     check(selected === null || this.packets.some(entry => sameRef(
       { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }, selected)), 'Unknown surface reference');
-    if (this.renderer) this.present(this.packets, this.camera, selected, this.motion);
+    if (this.renderer) this.present(this.packets, this.curves, this.camera, selected, this.motion);
     this.selected = selected;
   }
   resize(width: number, height: number): void {
@@ -633,16 +813,17 @@ export class Viewer {
   }
   getState(): ViewerState {
     const status = this.disposed ? 'disposed' : this.contextLost ? 'context-lost'
-      : this.packets.length ? 'ready' : 'empty';
+      : this.packets.length + this.curves.length ? 'ready' : 'empty';
     return structuredClone({ status, frame: 'right-handed-y-up', sourceUnit: 'mm',
       mmToSceneUnit: this.options.mmToSceneUnit, camera: this.camera,
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
+      curves: this.curves.map(entry => ({ modelId: entry.modelId, curveId: entry.sample.curve.id })),
       packets: this.packets,
       selected: this.selected, native: this.native, measurement: this.measurement,
       curveMeasurement: this.curveMeasurement, surfaceCurveMeasurement: this.surfaceCurveMeasurement,
       nativeMeasurement: this.nativeMeasurement, motion: this.motion });
   }
-  readPixels(): Uint8Array { this.live(); check(this.renderer, 'Viewer has no surfaces'); return this.renderer.readPixels(); }
+  readPixels(): Uint8Array { this.live(); check(this.renderer, 'Viewer has no geometry'); return this.renderer.readPixels(); }
   dispose(): void { if (this.disposed) return; this.disposed = true;
     this.canvas.removeEventListener('webglcontextlost', this.onContextLost);
     this.renderer?.dispose(); this.renderer = null; }
