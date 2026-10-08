@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Canvas2D document v1</title>
+<style>
+  body { margin: 24px; font: 15px system-ui; color: #17233c; background: #f5f7fb; }
+  section { display: flex; align-items: center; gap: 14px; margin: 16px 0; }
+  button, input { font: inherit; }
+  button { padding: 8px 12px; border: 1px solid #aab9d0; border-radius: 6px; background: white; }
+  canvas { display: block; width: 800px; height: 480px; background: white; border: 1px solid #c8d2e3; }
+  #status { min-height: 20px; }
+</style>
+<h1>Canvas2D document bundle</h1>
+<p>A fresh canvas is rendered before this host replaces the visible document.</p>
+<section><button id="save" type="button">Save document</button>
+  <label>Open document <input id="open" type="file" accept="application/json,.json"></label></section>
+<p id="status" role="status">Loading</p>
+<canvas id="live" aria-label="Current Canvas2D document"></canvas>
+<script type="module">
+  import { createCanvas2D } from '../../packages/barocss-canvas2d/dist/index.js';
+  import { serializeCanvasDocument, stageCanvasDocument } from '../../packages/barocss-canvas2d/dist/document.js';
+  import { initialSceneV4 } from './scene.mjs';
+  import { imageAssets } from './image-assets.mjs';
+
+  const options = { logicalSize: { width: 800, height: 480 }, dpr: 2 };
+  let liveCanvas = document.querySelector('#live');
+  let liveRenderer = createCanvas2D(liveCanvas, options);
+  let liveScene = structuredClone(initialSceneV4);
+  for (const [id, asset] of imageAssets) liveRenderer.setImageAsset(id, asset);
+  liveRenderer.updateScene(liveScene); liveRenderer.render();
+  const status = document.querySelector('#status');
+  status.textContent = 'Ready · v4 · 3 assets';
+
+  document.querySelector('#save').addEventListener('click', async () => {
+    try {
+      const text = await serializeCanvasDocument(liveScene, id => liveRenderer.getImageAsset(id));
+      const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+      const link = document.createElement('a'); link.href = url; link.download = 'canvas-document.json';
+      link.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
+      status.textContent = `Saved ${new TextEncoder().encode(text).length} bytes`;
+    } catch (error) { status.textContent = `${error.code || 'ERROR'}: ${error.message}`; }
+  });
+  document.querySelector('#open').addEventListener('change', async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const freshCanvas = document.createElement('canvas');
+      freshCanvas.id = 'live'; freshCanvas.setAttribute('aria-label', 'Current Canvas2D document');
+      const staged = await stageCanvasDocument(await file.text(), freshCanvas, options);
+      const previousRenderer = liveRenderer;
+      liveCanvas.replaceWith(freshCanvas);
+      liveCanvas = freshCanvas; liveRenderer = staged.renderer; liveScene = staged.scene;
+      previousRenderer.dispose();
+      status.textContent = `Opened v${liveScene.version} · ${staged.assets.size} assets`;
+    } catch (error) { status.textContent = `${error.code || 'ERROR'}: ${error.message}`; }
+    event.target.value = '';
+  });
+  window.__documentDebug = {
+    get scene() { return structuredClone(liveScene); },
+    get canvas() { return liveCanvas; },
+    get renderer() { return liveRenderer; },
+    asset(id) { return liveRenderer.getImageAsset(id); },
+    hit(x, y) { return liveRenderer.hitTest({ x, y }); },
+    pixel(x, y) {
+      const gl = liveCanvas.getContext('webgl2'), rgba = new Uint8Array(4);
+      gl.readPixels(x * 2, liveCanvas.height - y * 2 - 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, rgba);
+      return [...rgba];
+    },
+  };
+</script>
+</html>
