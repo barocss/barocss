@@ -5,7 +5,8 @@ import type { BaroCadLoadTransportOptions, BaroCadNativeResult } from '@barocss/
 import { prepareBaroCadModelSetPrimitiveNativeRefsV2 } from '@barocss/cad-interop/model-set';
 import type { BaroCadModelSetResult } from '@barocss/cad-interop/model-set';
 import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, mountPrimitiveSceneV2,
-  PrimitiveSceneRenderer, PrimitiveSceneRendererV1, PrimitiveSceneRendererV2, prepareMesh,
+  mountPrimitiveViewport, PrimitiveSceneRenderer, PrimitiveSceneRendererV1,
+  PrimitiveSceneRendererV2, PrimitiveViewport, prepareMesh,
   validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
   PrimitiveSceneEntryV2 } from '@barocss/gpu';
@@ -468,7 +469,7 @@ function interpolate(a: Vec3, b: Vec3, fraction: number): Vec3 {
 /** One canvas and one BaroCSS GPU scene backend. The caller retains canvas ownership. */
 export class Viewer {
   private renderer: ReturnType<typeof mountMeshScene> | PrimitiveSceneRenderer |
-    PrimitiveSceneRendererV1 | PrimitiveSceneRendererV2 | null = null;
+    PrimitiveSceneRendererV1 | PrimitiveSceneRendererV2 | PrimitiveViewport | null = null;
   private packets: ViewerPacket[] = [];
   private curves: ViewerCurveEntry[] = [];
   private native: BaroCadNativeResult | null = null;
@@ -518,7 +519,19 @@ export class Viewer {
     geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion,
     qualified = this.modelSet !== null): void {
     const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion), options = this.gpuOptions(camera);
-    if (qualified) {
+    if (packets.length + curves.length === 0) {
+      if (this.renderer instanceof PrimitiveViewport) {
+        const result = this.renderer.clear(options);
+        if (!result.ok) throw result.error;
+      } else {
+        const prior = this.renderer;
+        try {
+          const candidate = mountPrimitiveViewport(this.canvas, options);
+          this.renderer = candidate;
+          prior?.dispose();
+        } catch (error) { prior?.render(); throw error; }
+      }
+    } else if (qualified) {
       const entries: PrimitiveSceneEntryV2[] = [
         ...surfaces.map((entry, index): PrimitiveSceneEntryV2 => ({
           kind: 'surface', ...entry,
@@ -541,7 +554,8 @@ export class Viewer {
         }),
       ];
       const input = { version: 2 as const, entries };
-      if (this.renderer instanceof PrimitiveSceneRendererV2) {
+      if (this.renderer instanceof PrimitiveSceneRendererV2
+        || this.renderer instanceof PrimitiveViewport) {
         const result = this.renderer.update(input, options);
         if (!result.ok) throw result.error;
       } else {
@@ -606,7 +620,8 @@ export class Viewer {
       }
     } else if (this.renderer && !(this.renderer instanceof PrimitiveSceneRenderer)
       && !(this.renderer instanceof PrimitiveSceneRendererV1)
-      && !(this.renderer instanceof PrimitiveSceneRendererV2)) {
+      && !(this.renderer instanceof PrimitiveSceneRendererV2)
+      && !(this.renderer instanceof PrimitiveViewport)) {
       const result = this.renderer.update(surfaces, options);
       if (!result.ok) throw result.error;
     } else {
@@ -709,6 +724,16 @@ export class Viewer {
     this.admitNative(native, options);
   }
   setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); this.sceneRequest++; }
+  clear(): void {
+    this.live();
+    this.present([], [], this.camera, null, null, null, null, false);
+    this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
+    this.selected = null; this.selectedGeometry = null;
+    this.measurement = null; this.curveMeasurement = null;
+    this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
+    this.motion = null; this.geometryMotion = null;
+    this.sceneRequest++;
+  }
   private nativeModel(modelId: string): BaroCadNativeResult['model'] | null {
     if (this.modelSet) return this.modelSet.entries.find(entry =>
       entry.aliasId.replaceAll('-', '.') === modelId)?.result.model ?? null;

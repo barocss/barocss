@@ -17,6 +17,17 @@ if (hit) viewer.select(hit.ref);
 viewer.dispose();
 ```
 
+`viewer.clear()` explicitly returns the caller canvas to a real blank GPU
+frame. It clears displayed objects, native/model-set source, selection, poses
+and measurements, while keeping the accepted camera, scale, background and
+lighting. `getState().status` becomes `empty`, and `readPixels()` returns
+the background after this explicit clear. Empty camera changes, resize and
+null selection remain usable. An older pending `loadNativeUrl` result is
+refused after a successful clear; the caller still owns network cancellation.
+Later native, packet or qualified model-set loads use their usual validation.
+The fresh Viewer retains its earlier no-renderer state until a load or clear.
+The runnable `examples/viewer-clear` exercises this lifecycle in WebGL2.
+
 For a source0 file served over HTTP, call `await viewer.loadNativeUrl(url,
 loadOptions, { signal, onProgress })`. The transport reports received bytes and
 supports caller cancellation; the same native source, display limits and
