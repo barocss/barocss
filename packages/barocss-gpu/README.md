@@ -646,3 +646,45 @@ receipt covers actual uploaded buffers, independently expected transformed
 positions/normals/bounds, original metadata, visible frames/shared depth,
 invalid pose and Float32 collapse retention, copied getters and disposal.
 Broader validation and npm publication are separate states.
+
+## Genuine native Surface and Curve primitives (#679)
+
+`mountPrimitiveScene(canvas, entries, options)` adds a mixed renderer alongside
+unchanged `mountMeshScene`. A Surface entry is `{kind:'surface',packet,color,
+transform?}`. A Curve entry is `{kind:'curve',sample,basis,color,transform?}`, where
+`sample` is the complete own CAD `AdaptiveCurveSamplingResult` and `basis` must be
+`'authored-xyz-matches-rhyup'`. The host explicitly asserts that authored XYZ
+matches the renderer's right-handed Y-up frame. There is no inferred axis rotation.
+This package declares its own `@barocss/cad` dependency. The native validator
+reconstructs the sample from original Curve coefficients/options before display;
+GPU code does not replace the CAD sampling engine.
+
+The scene admits1..4 entries with distinct native IDs and at most4096 Curve points /
+4092 Curve segments in total. Native sampling keeps its current degree1..3,
+2..16-pole, positive-weight, nonperiodic clamped family and actual native refusal
+limits. Full copied source/Model/coefficients/parameters/provenance/quality reports
+remain separate from renderer-local positions. Input snapshots reject getters,
+hidden/symbolic/foreign/cyclic/sparse/nonfinite data within262144 values, depth24,
+4096 array elements,64 record fields and262144-character strings per sample.
+
+Options and optional per-entry poses use the #670 contract and existing camera.
+One context, candidate framebuffer and shared depth clear support lit indexed
+Surface triangles and unlit `LINE_STRIP` Curves at width1 device pixel. Curves
+have one position buffer and no normals, indices, UV or fabricated Surface packet.
+There is no depth bias: coplanar Curves can be occluded under the shared `LESS`
+depth test. Exactly repeated native sample points remain zero-length segments;
+nonzero native segments that collapse in Float32 are refused atomically.
+
+`entries`, `options` and actual Float32 display `bounds` return owned copies.
+`update`, staged `resize`, `render`, `readPixels` and idempotent resource-only
+`dispose` follow the existing lifecycle. Invalid native records, basis, poses,
+coordinates or candidate resources retain the previous complete scene/pixels.
+No timer, native edit, boundary topology, exact picking, thick-line portability,
+global tolerance or manufacturing certification is inferred.
+
+One actual compiled CAD/GPU/WebGL flow: set a unique `BAROCSS_PRIMITIVE_EVIDENCE`
+directory, optionally `BAROCSS_PRIMITIVE_PORT`, and run
+`node packages/barocss-gpu/tests/primitive-scene-flow.mjs`. Open the printed
+loopback URL and press **Run native primitive flow**. It uses two genuine native
+Surfaces and two weighted, asymmetric Curves with nonunit original domains.
+Root/lock adoption, Viewer consumer adoption and publication remain separate.

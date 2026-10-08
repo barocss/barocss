@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Experimental bounded CSS scene compiler and WebGL2 SDF renderer",
   "license": "MIT",
+  "dependencies": {"@barocss/cad": "workspace:*"},
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
