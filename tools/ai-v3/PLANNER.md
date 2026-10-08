@@ -1,3 +1,35 @@
+# Current owner lanes and specifications (2026-10-08)
+
+The owner explicitly created separate Canvas2D and Viewer Execute Works under
+[family #660](https://github.com/barocss/barocss/issues/660), in addition to Motion.
+This supersedes the Motion-only new-Work exception below; no further Work,
+scheduler or model change is authorized.
+
+- [Canvas2D #664](https://github.com/barocss/barocss/issues/664) owns only new
+  `packages/barocss-canvas2d/` and `examples/canvas2d-scene/`: logical pixels,
+  X-right/Y-down, own specialized WebGL2 2D passes. No fake CAD packets/Pixi kernel.
+- [Viewer #665](https://github.com/barocss/barocss/issues/665) owns only new
+  `packages/barocss-viewer/` and `examples/viewer-scene/`: a reusable facade over
+  our GPU/native Loader with real model metadata, fit, display picking and disposal.
+  Default rendering uses our GPU, one canvas; no fake native identity workaround.
+- GPU still owns sole serial product/root/lock/static/policy integration and any
+  common/public GPU backend. Viewer proposes the needed multi-packet render API
+  before using it; other lanes never copy/edit GPU internals. Existing CAD/Loader/
+  Motion ownership and exact native parent/child handoffs remain distinct.
+
+The [Product Vision](https://github.com/barocss/barocss/wiki/3D-Library-Product-Vision),
+[Living Specification](https://github.com/barocss/barocss/wiki/3D-Library-Specification)
+and [Execution Backlog](https://github.com/barocss/barocss/wiki/3D-Library-Backlog)
+organize the human-readable contracts/manuals. ALL concrete tasks, bugs and
+validation debt remain in GitHub Issues. Report meaningful exact SHA/build/run and
+changed API/version/unit/frame/identity/ownership/support/lifecycle facts once;
+keep native implementation, local integration and registry publication distinct.
+The existing six-lane monitor cadence/notification preferences remain unchanged.
+Current prototype gates, own engines, user-state preservation and separate release
+permission below continue to apply. Professional parity and unrun targets stay unclaimed.
+
+---
+
 # Current owner goal — public 3D library family (2026-10-08)
 
 The active goal is our own reusable public GPU, CAD, native Loader and Motion
