@@ -14,6 +14,8 @@ For the 3D water-particle example with an actual CAD Surface and shared WebGL2 d
 
 For the first CAD obstacle profile, run `node examples/physics-scene/fluid-cad-viewer/server.mjs` and open `http://127.0.0.1:52955/`. It loads a native CAD shelf Surface and shows the same 256 particles with or without collision against one derived static box. The stale-source control proves refusal without changing the accepted frame. Physics is bundled from `src/fluid-cad.ts`; build CAD, CAD interop, GPU and Viewer first. See [fluid-cad-viewer/README.md](fluid-cad-viewer/README.md) and [#816 browser evidence](evidence/fluid-816-cad-shelf-2026-10-09.md). After building Physics, run `node examples/physics-scene/fluid-cad-shelf-probe.mjs` for the compiled admission, stale-source, numeric and cost checks.
 
+`node examples/physics-scene/fluid-release-gate.mjs /tmp/fluid-native-report.json` runs the frozen FLUID-06 numeric and resource preparation on a clean checkout: offline install, five library builds, five source/compiled entries, three GC-backed v1 probes, v2 release/high-drop and CAD shelf probes. It records the exact Git head and environment. A passing native report keeps `localReleaseCandidate:false`; the actual merged-head Viewer browser, playback, screenshot and interaction gates remain separate. See [#818 frozen gate](https://github.com/barocss/barocss/issues/818#issuecomment-6066177892).
+
 The compiled probes and release gate still test the `dist` package contract. Build Physics before running them:
 
 ```sh
