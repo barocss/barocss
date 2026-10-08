@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, Point, Scene, Size, Transform, View } from './schema.js';
+import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, Point, Scene, Size, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -7,7 +7,7 @@ import type { ImageAsset, ImageGpu } from './image.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
   id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
@@ -128,9 +128,31 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
         const imageMatrix = 'anchorX' in node
           ? multiply(matrix, [1, 0, 0, 1, -node.anchorX * node.width, -node.anchorY * node.height])
           : matrix;
-        add({ id: node.id, kind: 'image', node, matrix: imageMatrix, inverse: inverse(imageMatrix),
-          color: [1, 1, 1, node.opacity], vertices: rectangle(imageMatrix, node.width, node.height),
-          imageAsset: asset, clip: inheritedClip });
+        if ('slice' in node && node.slice) {
+          const { left, right, top, bottom } = node.slice;
+          const sourceX = [crop.x, crop.x + left, crop.x + crop.width - right, crop.x + crop.width];
+          const sourceY = [crop.y, crop.y + top, crop.y + crop.height - bottom, crop.y + crop.height];
+          const destX = [0, left, node.width - right, node.width];
+          const destY = [0, top, node.height - bottom, node.height];
+          for (let row = 0; row < 3; row++) for (let column = 0; column < 3; column++) {
+            const width = destX[column + 1] - destX[column];
+            const height = destY[row + 1] - destY[row];
+            if (width === 0 || height === 0) continue;
+            const tileMatrix = multiply(imageMatrix, [1, 0, 0, 1, destX[column], destY[row]]);
+            const imageNode: ImageNode = { ...node, width, height, sourceRect: {
+              x: sourceX[column], y: sourceY[row],
+              width: sourceX[column + 1] - sourceX[column],
+              height: sourceY[row + 1] - sourceY[row],
+            } };
+            add({ id: node.id, kind: 'image', node, matrix: tileMatrix, inverse: inverse(tileMatrix),
+              color: [1, 1, 1, node.opacity], vertices: rectangle(tileMatrix, width, height),
+              imageAsset: asset, imageNode, clip: inheritedClip });
+          }
+        } else {
+          add({ id: node.id, kind: 'image', node, matrix: imageMatrix, inverse: inverse(imageMatrix),
+            color: [1, 1, 1, node.opacity], vertices: rectangle(imageMatrix, node.width, node.height),
+            imageAsset: asset, clip: inheritedClip });
+        }
       } else if (node.kind === 'glyphRun') {
         const asset = assets.get(node.atlasId);
         if (!asset) throw new Canvas2DError('INVALID_ASSET', `missing glyph atlas ${node.atlasId}`);

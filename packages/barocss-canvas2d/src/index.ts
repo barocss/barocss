@@ -8,6 +8,7 @@ export { Canvas2DError, parseSceneJSON, stringifySceneJSON } from './schema.js';
 export type { Scene, SceneV0, SceneV1, SceneV2, SceneV3, SceneV4, SceneV5, SceneV6, SceneV7, SceneV8, SceneV9, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, OldNode, GroupNode, GroupNodeV2, GroupNodeV3, GroupNodeV4, GroupNodeV5, GroupNodeV6, GroupNodeV7, GroupNodeV8, GroupNodeV9, FrameNode, FrameNodeV2, FrameNodeV3, FrameNodeV4, FrameNodeV5, FrameNodeV6, FrameNodeV7, FrameNodeV8, FrameNodeV9, RectNode, RectNodeV9, LineNodeV9, PathNodeV9, ImageNodeV9, GlyphRunNodeV9, LineNode, ImageNode, ImageNodeV6, ImageNodeV7, ImageNodeV8, GlyphRunNode, GlyphQuad, SourceRect, ImageAssetInput, PathNode, PathNodeV2, PathNodeV5, PathFill, PathFillV5, PathStroke, PathCommand, Point, Size, View, Color, Tint, Transform, ErrorCode } from './schema.js';
 export type { SceneV10, NodeV10, GroupNodeV10, FrameNodeV10, RectNodeV10, LineNodeV10, PathNodeV10, ImageNodeV10, GlyphRunNodeV10 } from './schema.js';
 export type { SceneV11, NodeV11, GroupNodeV11, FrameNodeV11, RectNodeV11, LineNodeV11, PathNodeV11, ImageNodeV11, GlyphRunNodeV11, HitMode } from './schema.js';
+export type { SceneV12, NodeV12, GroupNodeV12, FrameNodeV12, ImageNodeV12, NineSliceInsets } from './schema.js';
 export type { PathObservation, FillObservation, PathSample } from './path.js';
 export { createPathBuilder } from './path-builder.js';
 export type { PathBuilder } from './path-builder.js';
