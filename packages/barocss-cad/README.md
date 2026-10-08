@@ -6703,3 +6703,63 @@ nonconvex material, a hole, two components and empty material, then rebuilds one
 actual authored corner edit. It also checks one existing convex-hole mesh
 consumer after the shared UV predicate extraction. GPU rendering, solid Boolean,
 sewing, global triangulation and manufacturing certification remain separate work.
+
+
+## Native capped extrusion from coplanar Boolean regions
+
+`extrudeCoplanarFaceBoolean(region, options)` constructs native geometry from a
+complete validated Boolean region. It preserves nonconvex outlines, holes and
+all components. The extrusion follows the actual support normal in authored
+XYZ coordinates. Each component has its own closed incidence Shell. It contains
+two trimmed cap faces and one ruled wall per selected boundary fragment.
+
+```ts
+const part = cad.extrudeCoplanarFaceBoolean(region, {
+  evaluationId: 'extrusion_eval',
+  resultIdPrefix: 'extrusion',
+  distanceMM: 2,
+  maximumVertices: 128,
+  maximumFaces: 80,
+  maximumSourceChunks: 17,
+  maximumBindingSamples: 1152,
+});
+cad.validateCoplanarFaceBooleanExtrusion(part);
+```
+
+The dedicated `barocss-native-coplanar-face-boolean-extrusion` version 0 owns
+`{region, options, normal, translationMM, vertices, edges, faces, shells,
+sources, report}`. Distance is finite 0.0001 through 10000 mm. Derived poles and
+vertices must remain within ±10000 mm. Caller capacities can be lower than the
+fixed profile; exceeding one refuses the whole result. Empty material has no
+new geometry, Shells, sources or binding observations, and has null normal,
+translation and bounds.
+
+The two native cap support Surfaces preserve the original basis and domains.
+Component-owned outer/hole loops trim them. Top poles translate once by
+`normal * distanceMM`. Each original fragment supplies a bottom Curve, a top
+Curve and an actual compatible ruled Surface. Wall U keeps the original Curve
+parameter. Wall V spans 0 through 1 and means extrusion interpolation. Vertical
+Curves connect canonical bottom/top vertices. The original Boolean region and
+its unsnapped fragment coefficients remain unchanged.
+
+Per-face sidecar pcurves bind actual native edges to cap and wall UV charts.
+They are dimensionless and do not enter world Source0 models. World geometry
+compiles in chunks of at most 16 objects, with explicit source pointers. Each
+global edge has two opposite effective face uses. Cap and wall orientations
+produce outward normals, including the inner-hole walls. Native point/D1
+observations check pcurve chains and record endpoint residuals. Shared logical
+vertices do not imply exact welding of original fragment endpoints.
+
+Run the actual saved-region construction flow after the affected library build:
+
+```sh
+node examples/cad-nurbs/coplanar-face-boolean-extrusion-demo.mjs --source /tmp/cad-boolean-extrusion --boolean-directory /path/to/cad-planar-boolean
+```
+
+The flow consumes five saved Boolean regions on a tilted, sheared support and
+rebuilds one actual distance edit. It checks native geometry, parameters,
+orientations, holes, components, source chunks and cold-owned reconstruction.
+The filled preview is separate from native construction. Paired incidence and
+local residual checks do not certify a Solid, exact sewing, global manifold
+quality, volume or manufacturing tolerance. Rendering and general curved,
+draft, sweep or arbitrary-vector extrusion remain separate work.
