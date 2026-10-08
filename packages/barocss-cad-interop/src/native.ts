@@ -62,7 +62,8 @@ export class BaroCadSourceError extends SyntaxError {
   }
 }
 
-function parseOptions(input: unknown): BaroCadParseOptions {
+/** Validate and snapshot native parse options before asynchronous work. */
+export function validateBaroCadParseOptions(input: unknown): BaroCadParseOptions {
   if (input === null || typeof input !== 'object' || Array.isArray(input)) throw new TypeError('BaroCAD options must be a plain object');
   const prototype = Object.getPrototypeOf(input);
   if (prototype !== Object.prototype && prototype !== null) throw new TypeError('BaroCAD options must be a plain object');
@@ -137,7 +138,7 @@ function curvePositions(pointsMM: AdaptiveCurveSamplingResult['pointsMM'], units
 
 /** Compile native source and make bounded display meshes without changing the native model. */
 export function parseBaroCadSource(source: string, options: BaroCadParseOptions): BaroCadNativeResult {
-  const parsedOptions = parseOptions(options);
+  const parsedOptions = validateBaroCadParseOptions(options);
   const compiled = compileCadModel(source, { sourceVersion: parsedOptions.sourceVersion });
   if (!compiled.ok) throw new BaroCadSourceError(compiled.diagnostics);
   const surfaces = compiled.model.objects.filter(object => object.kind === 'surface');
@@ -185,7 +186,7 @@ export function parseBaroCadSource(source: string, options: BaroCadParseOptions)
 export function baroCadSourceToGLB(
   source: string, nativeOptions: BaroCadParseOptions, exportOptions: BaroCadGlbExportOptions,
 ): ArrayBuffer {
-  const options = parseOptions(nativeOptions);
+  const options = validateBaroCadParseOptions(nativeOptions);
   if (options.unitsPerMillimeter !== 0.001) throw new RangeError('BaroCAD GLB requires unitsPerMillimeter 0.001');
   if (exportOptions === null || typeof exportOptions !== 'object' || Array.isArray(exportOptions) ||
       ![Object.prototype, null].includes(Object.getPrototypeOf(exportOptions))) {
@@ -232,7 +233,7 @@ export async function loadBaroCadSource(
   options: BaroCadParseOptions,
   transport: BaroCadLoadTransportOptions = {},
 ): Promise<BaroCadNativeResult> {
-  const parsedOptions = parseOptions(options);
+  const parsedOptions = validateBaroCadParseOptions(options);
   const request = validateBaroCadTransport(url, transport);
   const source = await readAbortableBaroCadSource(request);
   throwIfBaroCadAborted(request.signal);

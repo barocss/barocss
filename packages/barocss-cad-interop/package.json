@@ -28,6 +28,10 @@
     "./pixi3d": {
       "types": "./dist/pixi3d.d.ts",
       "import": "./dist/pixi3d.js"
+    },
+    "./model-set": {
+      "types": "./dist/model-set.d.ts",
+      "import": "./dist/model-set.js"
     }
   },
   "files": ["dist", "examples", "README.md", "LICENSE"],
