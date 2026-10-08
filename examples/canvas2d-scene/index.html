@@ -32,7 +32,7 @@
 <body>
   <header>
     <h1>Canvas2D Scene</h1>
-    <button id="reset" type="button">Reset v3</button><button id="open-v2" type="button">Open v2 scene</button><button id="open-v1" type="button">Open v1 scene</button><button id="open-v0" type="button">Open v0 scene</button>
+    <button id="reset" type="button">Reset v4</button><button id="open-v3" type="button">Open v3 scene</button><button id="open-v2" type="button">Open v2 scene</button><button id="open-v1" type="button">Open v1 scene</button><button id="open-v0" type="button">Open v0 scene</button>
     <button id="save" type="button">Save JSON</button>
     <label class="file-label" for="open">Open JSON</label><input id="open" type="file" accept="application/json,.json">
     <button id="zoom-in" type="button">Zoom in</button><button id="zoom-out" type="button">Zoom out</button>
@@ -45,6 +45,7 @@
       <p>Frames clip their children. Orange overlaps blue. The violet card rotates inside the second frame.</p>
       <p>The first frame shows an even-odd fill with a hole and an island. The second frame shows a self-crossing fill. Drag a path handle to change a curve.</p>
       <p>RGBA quadrants and a rotated cropped checker use host-provided image bytes. Scene JSON saves their IDs, not the bytes.</p>
+      <p>The HI glyph run uses a host-provided RGBA atlas. The scene stores text, glyph ranges, and atlas ID.</p>
       <div id="error" role="alert"></div>
     </aside>
     <div id="viewport"><div id="canvas-wrap"><canvas id="scene" aria-label="Interactive design scene"></canvas><div id="selection-box"></div><div id="path-handles"></div></div></div>
