@@ -190,3 +190,27 @@ resize/reset and double-dispose are inspected in one source/file/WebGL2 flow.
 The actual run used64/64/64 poles and111/124/124 sample points. These are local
 observations, not full capacity, global error, topology, solid or performance
 certification. Integration, Loader/Viewer adoption and publication are separate.
+
+## Actual three-section loft Surface + sections (#853)
+
+```sh
+BAROCSS_LOFT_EVIDENCE=/absolute/unique/output \
+BAROCSS_LOFT_DEPS=/absolute/compiled/provider/repo \
+node examples/gpu-scene/three-section-loft-flow.mjs
+```
+
+Authentic native847 equal_curved_middle source/owned data supply three compatible
+quadratic three-pole sections. Public buildThreeSectionLoftSurface and its owned
+validator produce the actual Surface atV0/.5/1. Public middle-pole Z edit3→3.25mm
+then rebuilds a distinct native Surface. Original/edited source0 and signed-zero
+owned records save/cold-reopen; original caller file bytes remain separate.
+
+Existing qualified scene2 displays the actual9×9 Surface packet and three
+original section sample0 Curves (17/33/17 points). Native U[-0,2]/V[0,1], original
+coefficients/weights/IDs/report and generated homogeneous poles stay distinct
+from sampled buffers and host appearance. Explicit RH-Y-up/mm scale0.15 is used;
+section display Z offset0.03mm exposes coincident curves without native editing.
+Actual uploads/pixels, edited frame change, owned-result/packet/ref/fifth-entry
+refusal retention, resize/reset and double-dispose are observed. One actual
+source/file/WebGL2 flow is the proof, not arbitrary section count/guides/sweep,
+B-Rep edges, G1/G2, solid, global error or manufacturing certification.
