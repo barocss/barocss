@@ -3,6 +3,7 @@ import { loadBaroCadModelSet } from '../../../packages/barocss-cad-interop/dist/
 import { createCadFluidWorld } from '../../../packages/barocss-physics/src/fluid-cad.ts';
 import { createWaterWorld, waterScene } from '../fluid-viewer/scene.js';
 import { createFluidController } from '../fluid-viewer/controller.js';
+import { createTimingRecorder } from './timings.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('view'), status = $('status'), mode = $('mode');
@@ -15,6 +16,7 @@ const pixelHash = pixels => pixels.reduce((hash, value) =>
 
 let viewer, controller, cadWorld;
 let generation = 0, renderVersion = 0;
+const solverTiming = createTimingRecorder(), renderTiming = createTimingRecorder();
 canvas.addEventListener('webglcontextlost', event => {
   event.preventDefault();
   renderVersion++;
@@ -41,10 +43,14 @@ try {
   viewer.setView({ eye: [0.9, 0.85, 1.35], target: [0.35, 0.25, 0.25], up: [0, 1, 0],
     fovYDegrees: 45, near: 0.01, far: 10 });
   const present = (state, running, resetting = false) => {
-    if (resetting) { viewer.setFluidFrame(null); generation++; }
-    viewer.setFluidFrame({ version: 0, contextId: `shelf_generation_${generation}`,
+    if (resetting) {
+      viewer.setFluidFrame(null);
+      generation++;
+      solverTiming.clear(); renderTiming.clear();
+    }
+    renderTiming.run(() => viewer.setFluidFrame({ version: 0, contextId: `shelf_generation_${generation}`,
       sceneRevision: state.sceneRevision, stepIndex: state.stepIndex,
-      particleCount: state.particleCount, positionsM: state.positionsM });
+      particleCount: state.particleCount, positionsM: state.positionsM }));
     const accepted = viewer.getState().fluidFrame;
     if (accepted?.stepIndex !== state.stepIndex || accepted.particleCount !== 256) {
       throw new Error('Viewer did not accept the CAD fluid frame');
@@ -54,13 +60,15 @@ try {
     sha256(state.positionsM).then(sha => {
       if (version !== renderVersion) return;
       const obstacle = cadWorld?.getObstacle();
-      status.textContent = `모드: ${mode.selectedOptions[0].textContent}\n단계: ${state.stepIndex}\n입자: ${state.particleCount}\n선반 접촉: ${state.obstacleHits ?? 0}\n밀도 오차: ${state.diagnostics.meanAbsoluteDensityError.toFixed(4)}\n원본 리비전: shelfRev1\n충돌 ID: ${obstacle?.bodyId ?? '없음'}\n근사: ${obstacle?.lossLabel ?? '충돌 없음'}\n위치 SHA-256: ${sha}`;
+      const timing = { solver: solverTiming.summary(), renderSubmit: renderTiming.summary() };
+      status.textContent = `모드: ${mode.selectedOptions[0].textContent}\n단계: ${state.stepIndex}\n입자: ${state.particleCount}\n선반 접촉: ${state.obstacleHits ?? 0}\n밀도 오차: ${state.diagnostics.meanAbsoluteDensityError.toFixed(4)}\nSolver p95: ${timing.solver.p95Ms?.toFixed(2) ?? '-'} ms\nViewer 제출 p95: ${timing.renderSubmit.p95Ms?.toFixed(2) ?? '-'} ms\n원본 리비전: shelfRev1\n충돌 ID: ${obstacle?.bodyId ?? '없음'}\n근사: ${obstacle?.lossLabel ?? '충돌 없음'}\n위치 SHA-256: ${sha}`;
       window.fluidCadState = { running, mode: mode.value, sceneRevision: state.sceneRevision,
         stepIndex: state.stepIndex, displayStep: accepted.stepIndex,
         particleCount: state.particleCount, obstacleHits: state.obstacleHits ?? 0,
         density: { ...state.diagnostics }, sha256: sha,
         bodyId: obstacle?.bodyId ?? null, lossLabel: obstacle?.lossLabel ?? null,
         sourceRevision: obstacle?.sourceRevision ?? null,
+        timing,
         glError: canvas.getContext('webgl2').getError() };
     }).catch(error => { status.textContent = String(error); });
   };
@@ -68,13 +76,17 @@ try {
     renderVersion++;
     controller?.dispose();
     viewer.setFluidFrame(null);
+    solverTiming.clear(); renderTiming.clear();
     generation++;
     cadWorld = mode.value === 'shelf' ? createCadFluidWorld(waterScene(), source, request) : null;
     const world = cadWorld ?? createWaterWorld();
     controller = createFluidController(cadWorld ? {
-      getState: () => world.getState(), step: dt => world.step(dt, current),
+      getState: () => world.getState(), step: dt => solverTiming.run(() => world.step(dt, current)),
       reset: () => world.reset(current), dispose: () => world.dispose(),
-    } : world, present);
+    } : {
+      getState: () => world.getState(), step: dt => solverTiming.run(() => world.step(dt)),
+      reset: () => world.reset(), dispose: () => world.dispose(),
+    }, present);
     stale.disabled = !cadWorld;
   };
   start();
