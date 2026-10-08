@@ -111,3 +111,21 @@ Set PW_DIR and CHROME to the installed Playwright runtime and browser. This one
 actual flow records generated helper distances, hole/annulus pixels, rotation,
 orbit, invalid update retention, source-editor adoption and unchanged source0
 shader bytes. Broader validation is deferred.
+
+## Native Surface region and parameter reversal consumer (#680/#694)
+
+`surface-region-reversal-flow.mjs` consumes the actual compiled own CAD/GPU APIs
+and weighted nonunit `rational_panel` source. It extracts U2.5..4.5/V12..18,
+reverses the original U parameter axis, saves/reopens each original native source,
+and shows both real Surface packets in one own-GPU scene with display-only offsets.
+An explicit Y-facing camera inspects this XZ fixture. Native reversed normals/
+winding, physical display transforms and topology/face-sense certification remain
+separate. It records original UV/IDs, independent reflected-point correspondence,
+real uploaded arrays/culling/pixels, invalid native/source/display retention and
+owned cleanup. No private editor/Loader/native algorithm or shared/root changes.
+
+Set a unique `BAROCSS_REGION_GPU_EVIDENCE`, optional `BAROCSS_REGION_GPU_PORT`, then
+run `node examples/gpu-scene/surface-region-reversal-flow.mjs`. Use the existing
+compiled compatible CAD/GPU dependencies and press **Run native region GPU flow**
+at the printed loopback URL. This consumer build/run checkpoint does not establish
+commercial accuracy, general trims/Boolean/solids or npm publication.
