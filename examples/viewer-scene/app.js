@@ -46,10 +46,19 @@ function describe(extra = '') {
     `Native point distance (mm): ${state.measurement?.distanceMM.toFixed(6) ?? 'none'}`,
     `Native Curve chord distance (mm): ${state.curveMeasurement?.distanceMM.toFixed(6) ?? 'none'}`,
     `Native Surface-to-Curve distance (mm): ${state.surfaceCurveMeasurement?.distanceMM.toFixed(6) ?? 'none'}`,
+    `Latest typed native distance (mm): ${state.nativeMeasurement?.distanceMM.toFixed(6) ?? 'none'}`,
     extra,
   ].join('\n');
 }
 describe();
+function measureTyped(first, second) {
+  try {
+    const result = viewer.measureNativePoints(first, second);
+    describe(`Typed ${result.first.kind} → ${result.second.kind} XYZ (mm): ${result.first.pointMM.map(n => n.toFixed(3)).join(', ')} → ${result.second.pointMM.map(n => n.toFixed(3)).join(', ')} · straight line · ${result.certification}`);
+  } catch (error) {
+    describe(`Typed native distance rejected: ${error.message}`);
+  }
+}
 
 document.querySelector('#fit').addEventListener('click', () => { viewer.fit(); describe('Fit camera to both surfaces.'); });
 document.querySelector('#orbit').addEventListener('click', () => { viewer.orbit(0.4, 0.12); describe('Orbit changed the camera.'); });
@@ -69,6 +78,10 @@ document.querySelector('#measure').addEventListener('click', () => {
     describe(`Measurement rejected: ${error.message}`);
   }
 });
+document.querySelector('#measure-typed-surfaces').addEventListener('click', () => {
+  measureTyped({ kind: 'surface', ...parameter('first') },
+    { kind: 'surface', ...parameter('second') });
+});
 document.querySelector('#measure-curve').addEventListener('click', () => {
   try {
     const result = viewer.measureNativeCurvePoints(curveParameter('first'), curveParameter('second'));
@@ -77,6 +90,10 @@ document.querySelector('#measure-curve').addEventListener('click', () => {
     describe(`Curve chord rejected: ${error.message}`);
   }
 });
+document.querySelector('#measure-typed-curves').addEventListener('click', () => {
+  measureTyped({ kind: 'curve', ...curveParameter('first') },
+    { kind: 'curve', ...curveParameter('second') });
+});
 document.querySelector('#measure-mixed').addEventListener('click', () => {
   try {
     const result = viewer.measureNativeSurfaceCurvePoints(parameter('mixed'), curveParameter('mixed'));
@@ -84,6 +101,12 @@ document.querySelector('#measure-mixed').addEventListener('click', () => {
   } catch (error) {
     describe(`Surface-to-Curve distance rejected: ${error.message}`);
   }
+});
+document.querySelector('#measure-typed').addEventListener('click', () => {
+  const surface = { kind: 'surface', ...parameter('mixed') };
+  const curve = { kind: 'curve', ...curveParameter('mixed') };
+  if (document.querySelector('#typed-order').value === 'curve-surface') measureTyped(curve, surface);
+  else measureTyped(surface, curve);
 });
 canvas.addEventListener('click', event => {
   const rect = canvas.getBoundingClientRect();
