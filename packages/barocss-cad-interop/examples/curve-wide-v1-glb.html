@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>BaroCAD wide Curve v1 display GLB in Three</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Wide Curve through a portable display GLB</h1>
+  <p>BaroCAD source0 produces a glTF LINE_STRIP. Three GLTFLoader reads the display asset.</p>
+  <div id="view"></div>
+  <button id="reject">Try invalid source</button><button id="dispose">Dispose imported display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { baroCadSourceToGLB, parseBaroCadSource } from '../dist/native.js';
+
+  const status = document.querySelector('#status');
+  const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(800, 480);
+  renderer.setClearColor(0x142236);
+  document.querySelector('#view').append(renderer.domElement);
+  const scene = new Scene();
+  const callerChild = new Group();
+  scene.add(callerChild);
+  const camera = new OrthographicCamera(-0.018, 0.018, 0.01, -0.01, 0.001, 0.1);
+  camera.position.set(0.015, 0.05, 0.002);
+  camera.up.set(0, 0, 1);
+  camera.lookAt(0.015, 0, 0.002);
+  const options = {
+    sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 },
+  };
+  const pixels = () => {
+    const data = new Uint8Array(800 * 480 * 4);
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, 800, 480, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return data;
+  };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  let loaded;
+  try {
+    const source = await (await fetch(new URL('./curve-wide-v1.barocad', location.href))).text();
+    const neutral = parseBaroCadSource(source, options);
+    const glb = baroCadSourceToGLB(source, options, { includeSourceText: true });
+    loaded = await new GLTFLoader().parseAsync(glb, '');
+    scene.add(loaded.scene);
+    renderer.render(scene, camera);
+    const firstPixels = pixels();
+    const lines = [];
+    loaded.scene.traverse(object => { if (object.isLine) lines.push(object); });
+    const line = lines[0];
+    let nonBackgroundPixels = 0;
+    for (let i = 0; i < firstPixels.length; i += 4) {
+      if (Math.abs(firstPixels[i] - 20) > 10 || Math.abs(firstPixels[i + 1] - 34) > 10 ||
+          Math.abs(firstPixels[i + 2] - 54) > 10) nonBackgroundPixels++;
+    }
+    const evidence = {
+      nativeCurveId: neutral.model.objects[0].id,
+      originalPoles: neutral.model.objects[0].controlPoints.length,
+      originalSignedZero: Object.is(neutral.model.objects[0].controlPoints[0][0], -0),
+      glbBytes: glb.byteLength, glbWithinOneMiB: glb.byteLength <= 1024 * 1024,
+      assetSourceVersion: loaded.parser.json.asset.extras.barocss.sourceVersion,
+      assetCurveSampleVersion: loaded.parser.json.asset.extras.barocss.curveSampleVersion,
+      embeddedSourceExact: loaded.parser.json.asset.extras.barocss.source.text === source,
+      primitiveMode: loaded.parser.json.meshes[0].primitives[0].mode,
+      importedLineCount: lines.length, importedCurveId: line.name,
+      importedSampleVersion: line.userData.barocss.sampleVersion,
+      importedPoints: line.geometry.getAttribute('position').count,
+      importedIntervalsExact: JSON.stringify(line.userData.barocss.intervals) ===
+        JSON.stringify(neutral.curves[0].sample.segments.map(segment => segment.domain)),
+      maximumPositionDifference: Math.max(...Array.from(line.geometry.getAttribute('position').array,
+        (value, index) => Math.abs(value - neutral.curves[0].positions[index]))),
+      webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      nonBackgroundPixels,
+      callerChildRetained: scene.children.includes(callerChild),
+    };
+    window.__baroCadWideGlbEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    document.querySelector('#reject').onclick = () => {
+      try { baroCadSourceToGLB('@model invalid {}', options, { includeSourceText: true }); }
+      catch {
+        renderer.render(scene, camera);
+        evidence.invalidRejected = true;
+        evidence.priorLineRetained = scene.children.includes(loaded.scene) && line.parent !== null;
+        evidence.priorPixelsRetained = hash(pixels()) === hash(firstPixels);
+        status.textContent = JSON.stringify(evidence, null, 2);
+      }
+    };
+    document.querySelector('#dispose').onclick = () => {
+      scene.remove(loaded.scene);
+      loaded.scene.traverse(object => {
+        object.geometry?.dispose();
+        if (Array.isArray(object.material)) object.material.forEach(material => material.dispose());
+        else object.material?.dispose();
+      });
+      renderer.render(scene, camera);
+      evidence.importedDisplayRemoved = !scene.children.includes(loaded.scene);
+      evidence.callerChildRetained = scene.children.includes(callerChild);
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCadWideGlbError = String(error);
+  }
+</script>
+</html>

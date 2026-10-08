@@ -50,7 +50,13 @@ assert.throws(() => parseBaroCadSource(source, {
 assert.throws(() => parseBaroCadSource(source, {
   ...base, curveDisplay: { ...curveDisplay, get extra() { throw new Error('getter ran'); } },
 }), /requires .* only/);
-assert.throws(() => baroCadSourceToGLB(source, options, { includeSourceText: false }), /version 1/);
+const wideGlb = baroCadSourceToGLB(source, options, { includeSourceText: true });
+assert.ok(wideGlb.byteLength <= 1024 * 1024);
+const glbJsonLength = new DataView(wideGlb).getUint32(12, true);
+const glbJson = JSON.parse(new TextDecoder().decode(new Uint8Array(wideGlb, 20, glbJsonLength)));
+assert.equal(glbJson.asset.extras.barocss.curveSampleVersion, 1);
+assert.equal(glbJson.nodes[0].extras.barocss.sampleVersion, 1);
+assert.equal(glbJson.asset.extras.barocss.source.text, source);
 
 const engine = new NullEngine();
 const babylonScene = new BabylonScene(engine);
@@ -109,5 +115,5 @@ console.log(JSON.stringify({
   domain: result.curves[0].sample.domain, sampleVersion: result.curves[0].sample.report.dto.version,
   segments: result.curves[0].sample.segments.length, points: result.curves[0].sample.pointsMM.length,
   threeLines: 1, babylonLines: 1, babylonPickParameter: babylonPick.parameterApprox,
-  oldV0Refused: true, glbV1Refused: true, callerChildRetained: true,
+  oldV0Refused: true, glbV1Bytes: wideGlb.byteLength, callerChildRetained: true,
 }));

@@ -19,6 +19,8 @@ export interface NativeGlbCurve {
   positions: Float32Array;
   parameters: number[];
   intervals: [number, number][];
+  /** Present only for the explicit wide Curve display profile. */
+  sampleVersion?: 1;
 }
 
 function align4(length: number): number { return (length + 3) & ~3; }
@@ -115,7 +117,11 @@ function encodeMeshes(
 
   const curveMeshes = (native?.curves ?? []).map(curve => {
     const pointCount = curve.positions.length / 3;
-    if (!Number.isInteger(pointCount) || pointCount < 2 || pointCount > 1025 ||
+    if (curve.sampleVersion !== undefined && curve.sampleVersion !== 1) {
+      throw new RangeError('GLB Curve sample version must be 1 when present');
+    }
+    const maximumPoints = curve.sampleVersion === 1 ? 4093 : 1025;
+    if (!Number.isInteger(pointCount) || pointCount < 2 || pointCount > maximumPoints ||
         curve.parameters.length !== pointCount || curve.intervals.length !== pointCount - 1 ||
         !curve.positions.every(Number.isFinite)) throw new RangeError('GLB Curve has invalid sample points');
     for (let index = 1; index < pointCount; index++) {
@@ -150,7 +156,8 @@ function encodeMeshes(
       ...(native?.curves ?? []).map((curve, index) => ({ mesh: meshes.length + index, name: curve.curveId,
         extras: { barocss: { kind: 'curve', curveId: curve.curveId, sourceLengthUnit: 'mm',
           displayLengthUnit: 'm', approximate: true, parameters: curve.parameters,
-          intervals: curve.intervals } } }))],
+          intervals: curve.intervals,
+          ...(curve.sampleVersion === 1 ? { sampleVersion: 1 } : {}) } } }))],
     meshes: [...gltfMeshes, ...curveMeshes],
     materials: [{ name: 'CAD preview', doubleSided: true,
       pbrMetallicRoughness: { baseColorFactor: [0.8, 0.8, 0.8, 1], metallicFactor: 0,
