@@ -193,3 +193,22 @@ sampleMotionClip(clip, 1);
 The caller supplies a `Uint8Array` containing one GLB v2 file. This function reads the little-endian header, a first JSON chunk and a second BIN chunk, then delegates the selected animation to `importMotionGltfAnimation`. A GLB-stored buffer must be the sole glTF buffer and have no `uri`. The BIN chunk may have up to three final zero bytes beyond its declared length. Well-formed unknown chunks after BIN are ignored. JSON uses strict UTF-8 decoding and normal `JSON.parse`; duplicate JSON members are not detected. This is a bounded container reader, not a full glTF schema validator.
 
 The JSON chunk is at most 64 KiB, the declared BIN buffer at most 1 MiB, and the complete GLB at most 1,114,144 bytes. Invalid magic, length, alignment, chunk order, JSON, BIN length or padding refuses the import with `MotionGltfError`; unsupported external or multiple buffers refuse. The returned clip follows all #718 unit, frame, identity, key and ownership rules. The input bytes are never changed. This API has no file/network access, GLB writer, geometry/image/skin loading, hierarchy composition or renderer work. A runnable [Khronos BoxAnimated GLB consumer](../../examples/motion-scene/README.md#glb-animation-consumer) shows two channel end times in one clip.
+
+## Finite glTF CUBICSPLINE bake
+
+```js
+import { bakeMotionGltfAnimation, sampleMotionClip } from '@barocss/motion';
+
+const clip = bakeMotionGltfAnimation(gltf, buffers, {
+  animationIndex: 4,
+  contextId: 'interpolation-test',
+  nodeTargets: [{ nodeIndex: 4, targetId: 'rotating-box' }],
+  frame: 'gltf-y-up-as-part-xyz',
+  subdivisionsPerInterval: 4,
+});
+sampleMotionClip(clip, 0.125);
+```
+
+This separate API accepts the existing STEP/LINEAR profile plus float32 CUBICSPLINE translation, rotation and scale channels. Each cubic source key has an in-tangent, value and out-tangent; at least two source keys are required. The bake evaluates the glTF cubic polynomial at 1–16 equal steps per source interval, multiplies tangents by interval seconds, keeps the original key times at interval ends, converts translation meters to millimeters once and normalizes interpolated rotation quaternions. Source rotation values use the existing near-unit admission rule. The resulting owned v0 track uses LINEAR or SLERP between baked keys. The old `importMotionGltfAnimation` and `importMotionGlbAnimation` APIs still refuse CUBICSPLINE.
+
+The caller sets `subdivisionsPerInterval` in an exact own-data options record. More than 256 output keys per track or 4096 in the selected animation refuses instead of truncating. The existing binary, channel, time, target, scale and translation bounds also apply. Errors use the existing `MotionGltfError` codes. The output matches the evaluated cubic at its baked keys, subject to finite Float32 input and arithmetic, and is only an approximation between keys. The subdivision count is not an error tolerance or accuracy certificate. No tangent data is stored in the v0 clip; this API does not add a native spline track, GLB cubic shortcut, geometry or hierarchy import. The [Khronos InterpolationTest consumer](../../examples/motion-scene/README.md#cubic-animation-bake-consumer) exercises its rotation channel.

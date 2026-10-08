@@ -25,6 +25,10 @@ export interface MotionGltfOptions {
   readonly frame: 'gltf-y-up-as-part-xyz';
 }
 
+export interface MotionGltfBakeOptions extends MotionGltfOptions {
+  readonly subdivisionsPerInterval: number;
+}
+
 const MAX_BYTES = 1_048_576;
 const MAX_SOURCE_ITEMS = 4096;
 
@@ -94,7 +98,7 @@ function unsupportedExtension(source: Record<string, unknown>, path: string): vo
 function readAccessor(
   accessorIndex: number, expectedType: 'SCALAR' | 'VEC3' | 'VEC4',
   accessors: unknown[], views: unknown[], declaredBuffers: unknown[], buffers: readonly Uint8Array[],
-  path: string,
+  path: string, maximum = 256,
 ): number[][] {
   const accessor = record(accessors[index(accessorIndex, accessors.length, path)], path);
   unsupportedExtension(accessor, path);
@@ -105,8 +109,8 @@ function readAccessor(
     fail('UNSUPPORTED', path, `expected float32 ${expectedType}`);
   }
   const rawCount = field(accessor, 'count', path);
-  if (!Number.isInteger(rawCount) || (rawCount as number) < 1 || (rawCount as number) > 256) {
-    fail('LIMIT_EXCEEDED', `${path}.count`, 'expected 1..256 keys');
+  if (!Number.isInteger(rawCount) || (rawCount as number) < 1 || (rawCount as number) > maximum) {
+    fail('LIMIT_EXCEEDED', `${path}.count`, `expected 1..${maximum} values`);
   }
   const count = rawCount as number;
   const viewIndex = index(field(accessor, 'bufferView', path), views.length, `${path}.bufferView`);
@@ -153,11 +157,77 @@ function quaternion(value: number[], path: string): number[] {
   return Math.abs(norm - 1) <= 1e-9 ? value : value.map((component) => component / norm);
 }
 
-/** Import one bounded glTF 2.0 animation from caller-loaded JSON and binary buffers. */
-export function importMotionGltfAnimation(
-  gltf: unknown, inputBuffers: readonly Uint8Array[], inputOptions: MotionGltfOptions,
+function endpoint(value: number[], property: MotionProperty, path: string): number[] {
+  if (property === 'translation') return value.map((component) => component * 1000);
+  if (property === 'rotation') return quaternion(value, path);
+  return value;
+}
+
+function cubicValue(
+  left: number[], leftOut: number[], right: number[], rightIn: number[],
+  fraction: number, deltaSeconds: number, property: MotionProperty, path: string,
+): number[] {
+  const squared = fraction * fraction;
+  const cubed = squared * fraction;
+  const leftWeight = 2 * cubed - 3 * squared + 1;
+  const outWeight = deltaSeconds * (cubed - 2 * squared + fraction);
+  const rightWeight = -2 * cubed + 3 * squared;
+  const inWeight = deltaSeconds * (cubed - squared);
+  const value = left.map((component, index) =>
+    leftWeight * component + outWeight * leftOut[index] +
+    rightWeight * right[index] + inWeight * rightIn[index]);
+  if (value.some((component) => !Number.isFinite(component))) {
+    fail('INVALID_CLIP', path, 'nonfinite cubic result');
+  }
+  if (property === 'rotation') {
+    const norm = Math.hypot(...value);
+    if (!Number.isFinite(norm) || norm === 0) fail('INVALID_CLIP', path, 'invalid cubic quaternion');
+    return value.map((component) => component / norm);
+  }
+  return property === 'translation' ? value.map((component) => component * 1000) : value;
+}
+
+function cubicKeys(
+  input: number[][], output: number[][], subdivisions: number, property: MotionProperty, path: string,
+): Array<{ timeSeconds: number; value: number[] }> {
+  if (input.length < 2 || output.length !== input.length * 3) {
+    fail('INVALID_ACCESSOR', path, 'cubic output needs three records per input and at least two keys');
+  }
+  const outputCount = 1 + (input.length - 1) * subdivisions;
+  if (outputCount > 256) fail('LIMIT_EXCEEDED', path, 'bake exceeds 256 output keys');
+  const keys = [{ timeSeconds: input[0][0], value: endpoint(output[1], property, `${path}.output[1]`) }];
+  for (let interval = 0; interval < input.length - 1; interval += 1) {
+    const start = input[interval][0];
+    const end = input[interval + 1][0];
+    if (start < 0 || !Number.isFinite(start) || !Number.isFinite(end) || end <= start) {
+      fail('INVALID_CLIP', `${path}.input[${interval}]`, 'key times must strictly increase from zero');
+    }
+    const delta = end - start;
+    for (let step = 1; step <= subdivisions; step += 1) {
+      const timeSeconds = step === subdivisions ? end : start + delta * (step / subdivisions);
+      const value = step === subdivisions
+        ? endpoint(output[3 * (interval + 1) + 1], property, `${path}.output[${3 * (interval + 1) + 1}]`)
+        : cubicValue(output[3 * interval + 1], output[3 * interval + 2],
+          output[3 * (interval + 1) + 1], output[3 * (interval + 1)],
+          step / subdivisions, delta, property, `${path}.interval[${interval}]`);
+      keys.push({ timeSeconds, value });
+    }
+  }
+  return keys;
+}
+
+function importAnimation(
+  gltf: unknown, inputBuffers: readonly Uint8Array[], inputOptions: MotionGltfOptions | MotionGltfBakeOptions,
+  bake: boolean,
 ): MotionClip {
-  const options = exact(inputOptions, ['animationIndex', 'contextId', 'nodeTargets', 'frame'], 'options');
+  const optionNames = bake
+    ? ['animationIndex', 'contextId', 'nodeTargets', 'frame', 'subdivisionsPerInterval']
+    : ['animationIndex', 'contextId', 'nodeTargets', 'frame'];
+  const options = exact(inputOptions, optionNames, 'options');
+  const subdivisions = options.subdivisionsPerInterval;
+  if (bake && (!Number.isInteger(subdivisions) || (subdivisions as number) < 1 || (subdivisions as number) > 16)) {
+    fail('INVALID_INPUT', 'options.subdivisionsPerInterval', 'expected integer 1..16');
+  }
   if (options.frame !== 'gltf-y-up-as-part-xyz') {
     fail('UNSUPPORTED', 'options.frame', 'explicit glTF axis preservation is required');
   }
@@ -233,23 +303,24 @@ export function importMotionGltfAnimation(
     const sampler = record(samplers[samplerIndex], samplerPath);
     unsupportedExtension(sampler, samplerPath);
     const method = field(sampler, 'interpolation', samplerPath) ?? 'LINEAR';
-    if (method !== 'STEP' && method !== 'LINEAR') {
-      fail('UNSUPPORTED', `${samplerPath}.interpolation`, 'only STEP and LINEAR are supported');
+    if (method !== 'STEP' && method !== 'LINEAR' && !(bake && method === 'CUBICSPLINE')) {
+      fail('UNSUPPORTED', `${samplerPath}.interpolation`, 'interpolation is outside this API profile');
     }
     const input = readAccessor(field(sampler, 'input', samplerPath) as number, 'SCALAR',
       accessors, views, declaredBuffers, buffers as Uint8Array[], `${samplerPath}.input`);
     const output = readAccessor(field(sampler, 'output', samplerPath) as number,
       property === 'rotation' ? 'VEC4' : 'VEC3', accessors, views, declaredBuffers, buffers as Uint8Array[],
-      `${samplerPath}.output`);
-    if (input.length !== output.length) fail('INVALID_ACCESSOR', samplerPath, 'input/output key counts differ');
-    totalKeys += input.length;
-    if (totalKeys > 4096) fail('LIMIT_EXCEEDED', 'animation', 'more than 4096 keys');
-    const keys = input.map(([timeSeconds], keyIndex) => ({
-      timeSeconds,
-      value: property === 'translation' ? output[keyIndex].map((component) => component * 1000)
-        : property === 'rotation' ? quaternion(output[keyIndex], `${samplerPath}.output[${keyIndex}]`)
-          : output[keyIndex],
-    }));
+      `${samplerPath}.output`, method === 'CUBICSPLINE' ? 768 : 256);
+    if (method !== 'CUBICSPLINE' && input.length !== output.length) {
+      fail('INVALID_ACCESSOR', samplerPath, 'input/output key counts differ');
+    }
+    const keys = method === 'CUBICSPLINE'
+      ? cubicKeys(input, output, subdivisions as number, property, samplerPath)
+      : input.map(([timeSeconds], keyIndex) => ({
+        timeSeconds, value: endpoint(output[keyIndex], property, `${samplerPath}.output[${keyIndex}]`),
+      }));
+    totalKeys += keys.length;
+    if (totalKeys > 4096) fail('LIMIT_EXCEEDED', 'animation', 'more than 4096 output keys');
     durationSeconds = Math.max(durationSeconds, keys[keys.length - 1].timeSeconds);
     tracks.push({ targetId, property, interpolation: method === 'STEP' ? 'STEP' : property === 'rotation' ? 'SLERP' : 'LINEAR', keys });
   }
@@ -259,4 +330,18 @@ export function importMotionGltfAnimation(
   } catch {
     fail('INVALID_CLIP', 'animation', 'converted keys exceed the v0 Motion clip contract');
   }
+}
+
+/** Import STEP/LINEAR channels without changing the v0 glTF contract. */
+export function importMotionGltfAnimation(
+  gltf: unknown, inputBuffers: readonly Uint8Array[], inputOptions: MotionGltfOptions,
+): MotionClip {
+  return importAnimation(gltf, inputBuffers, inputOptions, false);
+}
+
+/** Bake selected glTF CUBICSPLINE channels onto a caller-chosen finite v0 key grid. */
+export function bakeMotionGltfAnimation(
+  gltf: unknown, inputBuffers: readonly Uint8Array[], inputOptions: MotionGltfBakeOptions,
+): MotionClip {
+  return importAnimation(gltf, inputBuffers, inputOptions, true);
 }
