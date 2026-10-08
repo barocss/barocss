@@ -1,9 +1,15 @@
-# @barocss/cad (private experiment)
+# @barocss/cad (experimental)
 
 CSS-shaped model source becomes native rational B-spline geometry and ASCII IGES.
 This package contains an original parser, local basis evaluator and writer. It has
 no runtime dependencies. OCP is an independent test consumer, never a product kernel.
-The private package is not registered for release or publication.
+Version `0.0.0-experimental` is configured for public scoped-package access.
+This local configuration does not establish registry availability or a release.
+The public ESM entry is `dist/index.js`; types use `dist/index.d.ts`.
+`pnpm --filter @barocss/cad build:library` emits both with the existing TypeScript
+build configuration. Published files include compiled modules/declarations,
+original source, this README and the MIT LICENSE. Runtime import needs no
+repository build scripts or TypeScript loader.
 
 ```js
 import { compileCadModel, evaluateCurve, exportIGES } from '@barocss/cad';
@@ -17,14 +23,17 @@ const { iges, report } = exportIGES(model, ['arc']);
 
 ## Local source development
 
-This private workspace package exposes `src/index.ts` through main, types and
-import exports. Use `pnpm dev:cad` from the repository root for the
+Source development explicitly uses `packages/barocss-cad/src/index.ts`, while
+package main/types/import exports use compiled `dist` files.
+Use `pnpm dev:cad` from the repository root for the
 loopback example. Installed esbuild resolves the original TypeScript module
 graph in memory, including `.js` relative imports. Reload consumes source edits
 without a dependency build or server restart. A plain browser cannot load raw
 TypeScript; use the source host. Existing Node artifact demos explicitly import
-`dist/index.js` and retain their separate `build:library` checkpoint. This private
-entry change is not a published-package or release change.
+`dist/index.js` and retain their separate `build:library` checkpoint. Source-only
+native demos use the actual source entry with `--source`, without a CAD artifact
+import or a per-demo build. Public package configuration preserves those explicit
+source paths. Registry publication and the existing release workflow are separate.
 
 ## Exact language v0
 
