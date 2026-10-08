@@ -101,3 +101,17 @@ initialSceneV3.nodes[0].children.push({
   imageId: 'Checker8', width: 100, height: 100, opacity: 0.75, sampling: 'linear',
   sourceRect: { x: 2, y: 1, width: 4, height: 5 },
 });
+
+export const initialSceneV4 = structuredClone(initialSceneV3);
+initialSceneV4.version = 4;
+initialSceneV4.nodes[1].children.push({
+  kind: 'glyphRun', id: 'GlyphHI', layer: 6,
+  transform: { x: 118, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+  atlasId: 'GlyphHI', text: 'HI', baseline: 210, opacity: 1, sampling: 'nearest',
+  glyphs: [
+    { sourceRect: { x: 0, y: 0, width: 5, height: 7 }, x: 0, y: -56,
+      width: 40, height: 56, textStart: 0, textEnd: 1 },
+    { sourceRect: { x: 5, y: 0, width: 5, height: 7 }, x: 48, y: -56,
+      width: 40, height: 56, textStart: 1, textEnd: 2 },
+  ],
+});

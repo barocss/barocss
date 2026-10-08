@@ -1,5 +1,5 @@
 import { createCanvas2D, parseSceneJSON, stringifySceneJSON } from '../../packages/barocss-canvas2d/dist/index.js';
-import { initialScene, initialSceneV0, initialSceneV2, initialSceneV3 } from './scene.mjs';
+import { initialScene, initialSceneV0, initialSceneV2, initialSceneV3, initialSceneV4 } from './scene.mjs';
 import { imageAssets } from './image-assets.mjs';
 
 const canvas = document.querySelector('#scene');
@@ -8,7 +8,7 @@ const selectedLabel = document.querySelector('#selected');
 const errorLabel = document.querySelector('#error');
 const selectionBox = document.querySelector('#selection-box');
 const pathHandles = document.querySelector('#path-handles');
-let scene = structuredClone(initialSceneV3);
+let scene = structuredClone(initialSceneV4);
 let view = { panX: 0, panY: 0, zoom: 1 };
 let selected = null;
 let gesture = null;
@@ -33,7 +33,8 @@ function updateSelection() {
   selectionBox.style.display = 'none';
   if (!selected) return;
   const found = findNode(selected.id);
-  if (!found || found.node.kind === 'line' || found.node.kind === 'path' || found.node.transform.rotation !== 0) return;
+  if (!found || found.node.kind === 'line' || found.node.kind === 'path' ||
+      found.node.kind === 'glyphRun' || found.node.transform.rotation !== 0) return;
   const { node, parentX, parentY } = found;
   selectionBox.style.left = `${view.panX + (parentX + node.transform.x) * view.zoom}px`;
   selectionBox.style.top = `${view.panY + (parentY + node.transform.y) * view.zoom}px`;
@@ -126,6 +127,9 @@ canvas.addEventListener('wheel', event => {
 document.querySelector('#zoom-in').addEventListener('click', () => zoomAt(view.zoom * 1.25));
 document.querySelector('#zoom-out').addEventListener('click', () => zoomAt(view.zoom / 1.25));
 document.querySelector('#reset').addEventListener('click', () => {
+  scene = structuredClone(initialSceneV4); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
+});
+document.querySelector('#open-v3').addEventListener('click', () => {
   scene = structuredClone(initialSceneV3); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
 });
 document.querySelector('#open-v2').addEventListener('click', () => {

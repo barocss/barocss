@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, LineNode, Node, NodeV2, NodeV3, Point, Scene, Size, Transform, View } from './schema.js';
+import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, Point, Scene, Size, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -7,14 +7,14 @@ import type { ImageAsset, ImageGpu } from './image.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
-  id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image'; node: DrawNode;
+  id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
   matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null;
   observation?: PathObservation; fillObservation?: FillObservation;
   maskVertices?: Float32Array; contours?: Float32Array[];
-  imageAsset?: ImageAsset;
+  imageAsset?: ImageAsset; imageNode?: ImageNode;
 };
 type Gpu = { program: WebGLProgram; buffer: WebGLBuffer; vao: WebGLVertexArrayObject;
   size: WebGLUniformLocation; view: WebGLUniformLocation; color: WebGLUniformLocation;
@@ -122,6 +122,22 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
         add({ id: node.id, kind: 'image', node, matrix, inverse: inv,
           color: [1, 1, 1, node.opacity], vertices: rectangle(matrix, node.width, node.height),
           imageAsset: asset, clip: inheritedClip });
+      } else if (node.kind === 'glyphRun') {
+        const asset = assets.get(node.atlasId);
+        if (!asset) throw new Canvas2DError('INVALID_ASSET', `missing glyph atlas ${node.atlasId}`);
+        for (const glyph of node.glyphs) {
+          const crop = glyph.sourceRect;
+          if (crop.x + crop.width > asset.width || crop.y + crop.height > asset.height) {
+            throw new Canvas2DError('INVALID_ASSET', `glyph crop exceeds atlas ${node.atlasId}`);
+          }
+          const quadMatrix = multiply(matrix, [1, 0, 0, 1, glyph.x, node.baseline + glyph.y]);
+          const imageNode: ImageNode = { kind: 'image', id: node.id, layer: node.layer, transform: node.transform,
+            imageId: node.atlasId, width: glyph.width, height: glyph.height,
+            opacity: node.opacity, sampling: node.sampling, sourceRect: crop };
+          add({ id: node.id, kind: 'glyphRun', node, matrix: quadMatrix, inverse: inverse(quadMatrix),
+            color: [1, 1, 1, node.opacity], vertices: rectangle(quadMatrix, glyph.width, glyph.height),
+            imageAsset: asset, imageNode, clip: inheritedClip });
+        }
       } else {
         const geometry = tessellatePath(node, matrix, view, dpr, tolerance);
         if (geometry.fill) add({ id: node.id, kind: 'path', node, matrix, inverse: inv,
@@ -144,7 +160,8 @@ function contains(draw: Draw, world: Point): boolean {
       world.y < draw.clip.top || world.y > draw.clip.bottom)) return false;
   const p = point(draw.inverse, world.x, world.y);
   const node = draw.node;
-  if (node.kind === 'image') return !!draw.imageAsset && sampledAlpha(node, draw.imageAsset, p) > 0;
+  const imageNode = draw.imageNode ?? (node.kind === 'image' ? node : null);
+  if (imageNode) return !!draw.imageAsset && sampledAlpha(imageNode, draw.imageAsset, p) > 0;
   if (draw.contours) {
     let inside = false;
     for (const contour of draw.contours) {
@@ -178,6 +195,7 @@ function contains(draw: Draw, world: Point): boolean {
     const distance = Math.abs((p.x - node.x1) * dy - (p.y - node.y1) * dx) / Math.sqrt(lengthSquared);
     return distance <= node.width / 2;
   }
+  if (node.kind === 'glyphRun') return false;
   return p.x >= 0 && p.y >= 0 && p.x <= node.width && p.y <= node.height;
 }
 
@@ -230,7 +248,7 @@ function disposeGpu(gl: WebGL2RenderingContext, gpu: Gpu): void {
 }
 
 export type Canvas2DOptions = { logicalSize: Size; dpr: number; maxDeviationDevicePx?: number };
-export type Hit = { id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' };
+export type Hit = { id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun' };
 
 export class Canvas2DRenderer {
   private scene: Scene = { version: 0, unit: 'logical-px', contextId: 'Empty', nodes: [] };
@@ -347,7 +365,8 @@ export class Canvas2DRenderer {
     const assetId = validateImageAssetId(id);
     const asset = this.assets.get(assetId);
     if (!asset) throw new Canvas2DError('INVALID_ASSET', 'image asset is missing');
-    if (this.draws.some(draw => draw.node.kind === 'image' && draw.node.imageId === assetId)) {
+    if (this.draws.some(draw => (draw.node.kind === 'image' && draw.node.imageId === assetId) ||
+        (draw.node.kind === 'glyphRun' && draw.node.atlasId === assetId))) {
       throw new Canvas2DError('ASSET_IN_USE', 'image asset is referenced by the accepted scene');
     }
     if (asset.texture) this.gl.deleteTexture(asset.texture);
@@ -441,8 +460,9 @@ export class Canvas2DRenderer {
         gl.enable(gl.SCISSOR_TEST);
         gl.scissor(left, this.canvas.height - bottom, right - left, bottom - top);
       } else gl.disable(gl.SCISSOR_TEST);
-      if (draw.node.kind === 'image' && draw.imageAsset) {
-        renderImage(gl, gpu.image, draw.vertices, draw.node, draw.imageAsset, this.size, this.view);
+      const imageNode = draw.imageNode ?? (draw.node.kind === 'image' ? draw.node : null);
+      if (imageNode && draw.imageAsset) {
+        renderImage(gl, gpu.image, draw.vertices, imageNode, draw.imageAsset, this.size, this.view);
         gl.useProgram(gpu.program); gl.bindVertexArray(gpu.vao); gl.bindBuffer(gl.ARRAY_BUFFER, gpu.buffer);
         gl.uniform2f(gpu.size, this.size.width, this.size.height);
         gl.uniform3f(gpu.view, this.view.panX, this.view.panY, this.view.zoom);
