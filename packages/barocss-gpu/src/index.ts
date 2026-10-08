@@ -34,3 +34,6 @@ export {compileMeshMaterial,validateMeshMaterialIR,lowerMeshMaterial,MeshMateria
 export type {MeshMaterialCode,MeshMaterialDiagnostic,MeshMaterialUniform,MeshMaterialExpression,MeshMaterialIR,MeshMaterialBinding,LoweredMeshMaterial} from './mesh-material.js';
 
 export type {ParticleLayerV0} from './particle-layer.js';
+
+export {prepareCoplanarBooleanBuffers} from './coplanar-boolean-buffers.js';
+export type {CoplanarBooleanBufferOptions,PreparedCoplanarBooleanBuffers} from './coplanar-boolean-buffers.js';
